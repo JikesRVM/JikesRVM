@@ -639,21 +639,6 @@ public class VM_CommandLineArgs {
 	//-#endif
 	break;
 
-	// -------------------------------------------------------------------
-	// Access runtime compiler to support compilation time measure.
-	// -------------------------------------------------------------------
-      case MEASURE_COMP_ARG:
-	if (arg.equals("true")) {
-	  VM.MeasureCompilation = true;
-	  VM.EnableCPUMonitoring = true;
-	} else if (arg.equals("false")) {
-	  VM.MeasureCompilation = false;
-	} else {
-	  VM.sysWrite("vm: -X:measureCompilation=<option>, where option is true or false\n");
-	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	}
-	break;
-
 	// ----------------------------------------------------
 	// Access nonadaptive configuration's baseline compiler
 	// (Note the initial runtime compiler may be baseline or

@@ -229,7 +229,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       !context.method.isForOsrSpecialization() &&
 	  OPT_Compiler.getAppStarted() &&
 	  (VM_Controller.options != null) &&
-	  VM_Controller.options.adaptive();
+           VM_Controller.options.ENABLE_RECOMPILATION;
     //-#endif
   }
 

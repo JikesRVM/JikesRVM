@@ -9,7 +9,7 @@ import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.classloader.VM_NormalMethod;
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
+import com.ibm.JikesRVM.VM_RuntimeCompiler;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
@@ -340,7 +340,7 @@ abstract class VM_RecompilationStrategy {
 	}
       }
     }
-    VM_RuntimeOptCompilerInfrastructure.setNoCacheFlush(options);
+    VM_RuntimeCompiler.setNoCacheFlush(options);
   }
 }
 

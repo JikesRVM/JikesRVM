@@ -216,13 +216,13 @@ fi >> $MSG
 
 # gather measure compilation results
 echo -e "\n\n Opt Level 0 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastCopyMS.O0.?proc.raw >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastAdaptiveCopyMS.O0.?proc.raw >> $MSG
 #
 echo -e "\n\n Opt Level 1 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastCopyMS.O1.?proc.raw >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastAdaptiveCopyMS.O1.?proc.raw >> $MSG
 #
 echo -e "\n\n Opt Level 2 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastCopyMS.O2.?proc.raw >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastAdaptiveCopyMS.O2.?proc.raw >> $MSG
 
 # Finally!  Send the mail message to those who care
 # echo "mailing status to $RESULT_MAILING_LIST"

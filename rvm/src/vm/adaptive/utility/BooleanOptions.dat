@@ -8,6 +8,9 @@ DECL
 # the template files. --dave
 DESCRIP  
 
+ENABLE_RECOMPILATION -1 true
+Should the adaptive system recompile hot methods?
+
 GATHER_PROFILE_DATA -1 false
 Should profile data be gathered and reported at the end of the run?
 
@@ -31,3 +34,4 @@ Should AOS promote baseline-compiled methods to opt?
 
 BACKGROUND_RECOMPILATION -1 true
 Should recompilation be done on a background thread or on next invocation?
+

@@ -8,7 +8,8 @@ import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
-import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
+import com.ibm.JikesRVM.VM_RuntimeCompiler;
+
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -184,7 +185,7 @@ public final class VM_ControllerPlan {
     }
     
     // Compile the method.
-    int newCMID = VM_RuntimeOptCompilerInfrastructure.recompileWithOpt(cp);
+    int newCMID = VM_RuntimeCompiler.recompileWithOpt(cp);
     int prevCMID = getPrevCMID();
 
     if (VM_Controller.options.sampling()) {

@@ -77,7 +77,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
         if (opts.OSR_GUARDED_INLINING && 
             OPT_Compiler.getAppStarted() &&
 			(VM_Controller.options != null) &&
-			VM_Controller.options.adaptive()) {
+	                 VM_Controller.options.ENABLE_RECOMPILATION) {
 	  // note that we will OSR the failed case.
 	  YES.setOSRTestFailed();
         }

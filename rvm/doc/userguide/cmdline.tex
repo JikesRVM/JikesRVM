@@ -1,66 +1,82 @@
-Currently, Jikes\trademark RVM has two types of configurations:
-the adaptive configurations that contain the adaptive optimization
-system (AOS), and the non-adaptive configurations that do not.  This
-section describes the non-standard Jikes RVM command-line options that
-provide the mechanism to specify AOS, baseline compiler, and
-optimizing compiler options for the different types of configurations;
-and how to add a new non-standard command-line option.
-
-\subsection{Command-Line Options in Non-Adaptive Configurations}
-\label{subsection:nonadaptive:cmdline}
+\label{subsection:cmdline}
+\index{command line arguments}
 
 This section describes how non-standard Jikes\trademark RVM command
-line options are specified for a non-adaptive configuration of Jikes
-RVM.  In a non-adaptive configuration, the command line options modify
-the behavior of the baseline or optimizing compiler.  Different
-prefixes can be used to direct the option to one of following:
-the initial runtime compiler ({\tt -X:irc:}),
-the baseline compiler ({\tt -X:base:}) 
-and the optimizing compiler ({\tt -X:opt:}). 
-Some prefixes are only allowed with some configurations.
-Depending on the configuration selected, the initial runtime compiler is 
-either the baseline or the optimizing compiler. 
+line options are specified. Command line options can be used to modify
+the behavior of the runtime system, adaptive optimization system, the
+optimizing compiler, the baseline compiler, or the memory manager.  A
+command-line directive is constructed by concatenating an option with
+a prefix which identifies the desired destination for that option.
 
-Consider the case where the initial runtime compiler is the optimizing
-compiler. In that case either of the prefixes {\tt -X:irc:} or {\tt
--X:opt:} can be used to pass options to the optimizing compiler.  For
-example, to perform global array bounds check elimination on demand
-when a method is initially compiled with the optimizing compiler, use
-the {\tt -X:irc:global\_bounds=true} directive.  In such a
-configuration the baseline compiler will still be present and will be
-used for some compilations.  The prefix {\tt -X:base:} must be used to
-pass an option to the baseline compiler in configurations when the
-initial runtime compiler is the optimizing compiler.
+All of the non-standard VM options must occur before 
+the application class name and application's command-line options.
 
-When the initial runtime compiler is the baseline compiler, the
-optimizing compiler will not be part of the system, so the prefix {\tt
--X:opt:} should not be used. Also, with such a configuration, options
-specified with the prefix {\tt -X:irc:} must be options recognized by
-the baseline compiler.
+The order of non-standard command line argument is significant. Each
+command line option is processed in order, as typed on the command
+line. For example, using a {\tt printOptions} directive for a
+subsystem will print the current value of the subsystem's options and
+this will reflect only those command line arguments that have preceded
+the {\tt printOptions} directive.
 
-All of the above non-standard VM options must occur before the
-application class name and application's command-line options.
 
-For the following discussion, we assume that the appropriate prefix
-has been prepended to the option and only discuss the option.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Adaptive Optimization System (AOS) Command-Line Options}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Optimizing Compiler Command-Line Options}
-\label{section:nonadaptive:optimizing:options}
-
-To see descriptions of command-line options to the optimizing compiler,
-use the {\tt help} option with the {\tt -X:opt:} prefix 
-to generate the following output:
+To see a description of the command-line options to the AOS, use 
+{\tt -X:aos:help}.  As of this writing, this command produces the
+following output:
 
 \T \begin{tiny}
-\input{opt_options}
+\input{adaptive_options}
 \T \end{tiny}
 
-Note that when the initial runtime compiler is the optimizing compiler, 
-the {\tt -X:irc} and the {\tt -X:opt} command line prefixes are equivalent.
+All options in an adaptive configuration are prefixed with {\tt
+-X:aos}.  To pass an option to the adaptive optimization system, use
+the {\tt -X:aos:} prefix.  For example, to set the logging level of
+AOS to one, use the directive {\tt -X:aos:logging\_level=1}. An
+adaptive configuration may conceptually have many optimizing compilers
+that are available at runtime, each with its own set of option values.
+We present a mechanism to address each conceptual optimizing compiler.
+To pass options to the opt compiler that recompiles a method use the
+{\tt -X:aos:opt[?]} prefix where the {\tt ?} is optional and if
+specified is an integer that identifies the optimization level.  For
+example, {\tt -X:aos:opt2:global\_bounds=true} performs global array
+bounds check elimination on demand when a method is optimized at
+optimization level 2.  If no optimization level is specified, the
+option applies to all optimization levels of the optimizing compiler
+that recompiles methods.  For example, {\tt
+-X:aos:opt:global\_bounds=true} performs global array bounds check
+elimination on demand whenever a method is recompiled with
+optimization.  In the default adaptive configurations, the initial
+runtime compiler is the baseline compiler.  Options are passed to the
+initial runtime compiler by prefixing each option with {\tt
+-X:aos:irc:}.  
+
+The {\tt enable\_recompilation} option determines whether or not the
+adaptive system will actually adaptively recompile methods.  By
+default, this is set to true. By setting this to false, Jikes RVM can
+simulate a JIT-only system by compiling each method on first
+invocation with a specified {\tt initial\_compiler}. For example, 
+by saying {\tt -X:aos:enable\_recompilation=false
+-X:aos:initial\_compiler=opt}, one can force all methods to be
+optimized on first invocation. 
+This has the effect of making the initial runtime compiler
+be the optimizing compiler (and no recompilations will take place), so
+subsequent options in the command line that are prefixed with {\tt
+-X:aos:irc:} will be passed to the optimizing compiler. Since no
+recompilation will take place options prefixed with {\tt -X:aos:opt}
+will have no effect.  For example to optimize compile a method at
+optimization level 1, use the {\tt -X:aos:irc:O1} option. 
+
+Finally, the prefix {\tt -X:aos:share[?]:o=v} is a short hand for
+passing a option value pair, {\tt o=v}, to both the AOS and to the
+different "conceptual" optimizing compilers.  If the optimization
+level is specified, then only that optimization level for
+recompilation is affected.  Otherwise, the option is set for AOS and
+all optimization levels for method recompilation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Baseline Compiler Command-Line Options}
+\subsection{Baseline Compiler Command-Line Options}
 \label{section:nonadaptive:baseline:options}
 
 To see descriptions of the command-line options to the baseline
@@ -74,100 +90,20 @@ to generate the following output:
 Note that when the initial runtime compiler is the baseline compiler, 
 the {\tt -X:irc} and the {\tt -X:base} command line prefixes are equivalent.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Discussion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Optimizing Compiler Command-Line Options}
+\label{section:nonadaptive:optimizing:options}
 
-The {\tt printOptions} command-line option for both the baseline and 
-optimizing compilers will print the current setting of compiler's options.  
-Please note that the order of the {\tt printOptions} command-line directive 
-with respect to other compiler command-line options is important.  
-When a {\tt printOptions} directive is found, the setting of the  
-compiler options will reflect only those compiler options
-that have preceded the {\tt printOptions} directive.  
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Command-Line Options in Adaptive Configurations}
-\label{subsection:adaptive:cmdline}
-
-This section describes how non-standard Jikes\trademark RVM command
-line options are specified for an adaptive configuration.  In an
-adaptive configuration, the command line options modifies the behavior
-of the adaptive optimization system, the optimizing compiler or the
-baseline compiler.  A command-line directive is constructed by
-concatenating an option with a prefix which identifies the desired
-destiny for that option.
-
-All options in an adaptive configuration are prefixed with {\tt
--X:aos}.  To pass an option to the adaptive optimization system, use
-the {\tt -X:aos:} prefix.  For example, to set the logging level of
-AOS to one, use the directive {\tt -X:aos:logging\_level=1}.  Unlike a
-nonadaptive configuration, an adaptive configuration may conceptually
-have many optimizing compilers that are available at runtime, each
-with its own set of option values.  We present a mechanism to address
-each conceptual optimizing compiler.  To pass options to the opt
-compiler that recompiles a method use the {\tt -X:aos:opt[?]} prefix
-where the {\tt ?} is optional and if specified is an integer that
-identifies the optimization level.  For example, 
-{\tt -X:aos:opt2:global\_bounds=true} performs global array bounds check
-elimination on demand when a method is optimized at optimization level
-2.  If no optimization level is specified, the option applies to all
-optimization levels of the optimizing compiler that recompiles
-methods.  For example, {\tt -X:aos:opt:global\_bounds=true} performs
-global array bounds check elimination on demand whenever a method is
-recompiled with optimization.  Like a nonadaptive configuration, there
-is an initial runtime compiler.  In the default adaptive
-configurations, the initial runtime compiler is the baseline compiler.
-Options are passed to the initial runtime compiler by prefixing each
-option with {\tt -X:aos:irc:}.  For example, to perform global array
-bounds check elimination on demand when a method is initially compiled
-with the optimizing compiler, use the {\tt
--X:aos:irc:global\_bounds=true} directive.  See
-Section~\ref{subsection:nonadaptive:cmdline} for a discussion of the
-optimizing and baseline compiler command-line options that are
-available.
-
-Finally, the prefix {\tt -X:aos:share[?]:o=v} is a short hand for
-passing a option value pair, {\tt o=v}, to both the AOS and to the
-different "conceptual" optimizing compilers.  If the optimization
-level is specified, then only that optimization level for
-recompilation is affected.  Otherwise, the option is set for AOS and
-all optimization levels for method recompilation.
-
-All of the above non-standard VM options must occur before 
-the application class name and application's command-line options.
-
-For the following discussion, we assume that the appropriate prefix has been
-prepended to the option and only discuss the option.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Adaptive Optimization System (AOS) Command-Line Options}
-
-To see a description of the command-line options to the AOS, use 
-{\tt -X:aos:help}.  As of this writing, this command produces the
-following output:
+To see descriptions of command-line options to the optimizing compiler,
+use the {\tt help} option with the {\tt -X:opt:} prefix 
+to generate the following output:
 
 \T \begin{tiny}
-\input{adaptive_options}
+\input{opt_options}
 \T \end{tiny}
 
-The {\tt primary\_strategy} option determines what strategy is used to
-compile methods.  The default strategy is {\tt adaptive} which allows
-a method to be recompiled multiple times at different optimization
-levels.  The other strategies allow an adaptive configuration to
-behave as a just-in-time compiler (JIT) by determining what compiler
-will compile a method.  For example, the {\tt optonly} strategy
-compiles a method once with the optimizing compiler. This has the
-effect of making the initial runtime compiler be the optimizing
-compiler (and no recompilations will take place), so subsequent
-options in the command line that are prefixed with {\tt -X:aos:irc:}
-will be passed to the optimizing compiler. Since no recompilation will
-take place options prefixed with {\tt -X:aos:opt} will have no effect.
-For example to optimize compile a method at optimization level 1, when
-the {\tt optonly} strategy is specified, use the {\tt -X:aos:irc:O1}
-option.  (Note that to obtain the functionality of a JIT at
-optimization level 1, {\tt -X:primary\_strategy=optonly
--X:aos:irc:O1}, in a nonadaptive configuration would be achieved with
-the command-line option {\tt -X:irc:O1}.) 
+Note that when the initial runtime compiler is the optimizing compiler, 
+the {\tt -X:irc} and the {\tt -X:opt} command line prefixes are equivalent.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{JMTk Command-Line Options}

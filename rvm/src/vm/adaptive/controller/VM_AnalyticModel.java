@@ -6,7 +6,7 @@
 package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_RuntimeCompilerInfrastructure;
+import com.ibm.JikesRVM.VM_RuntimeCompiler;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.classloader.VM_NormalMethod;
@@ -174,7 +174,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
    * code
    */
   private double estimatePrevCompileTime(VM_HotMethodEvent hme) {
-    double baselineRate = VM_RuntimeCompilerInfrastructure.getBaselineRate();
+    double baselineRate = VM_RuntimeCompiler.getBaselineRate();
     VM_NormalMethod m = (VM_NormalMethod)hme.getMethod();
     double bytes = (double)m.getBytecodeLength();
     double baselineSecs = bytes / baselineRate;

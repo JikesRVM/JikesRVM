@@ -135,8 +135,8 @@ public class OSR_SpecialCompiler{
     _options.OSR_GUARDED_INLINING = false;
 
     OPT_CompilationPlan compPlan = 
-      new OPT_CompilationPlan(method, VM_RuntimeOptCompilerInfrastructure.optimizationPlan, null,
-			      _options);
+      new OPT_CompilationPlan(method, VM_RuntimeCompiler.optimizationPlan, 
+			      null, _options);
 
     // it is also necessary to recompile the current method
     // without OSR.
@@ -189,7 +189,7 @@ public class OSR_SpecialCompiler{
 
  
     VM_CompiledMethod newCompiledMethod =
-	VM_RuntimeOptCompilerInfrastructure.recompileWithOptOnStackSpecialization(compPlan);
+	VM_RuntimeCompiler.recompileWithOptOnStackSpecialization(compPlan);
 
     // restore original bytecode, exception table, and line number table
     method.finalizeOsrSpecialization();

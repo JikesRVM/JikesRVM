@@ -345,12 +345,6 @@ declare -x -i RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH=0
 declare -i RVM_WITH_BASE_BOOTIMAGE_COMPILER=0
 declare -i RVM_WITH_OPT_BOOTIMAGE_COMPILER=0
 
-# Here are the choices for compiler to generate code for classes that are loaded at runtime.
-#
-declare -i RVM_WITH_BASE_RUNTIME_COMPILER=0
-declare -i RVM_WITH_OPT_RUNTIME_COMPILER=0
-declare -i RVM_WITH_ADAPTIVE_RUNTIME_SYSTEM=0
-
 # Here are the choices for the object model
 #
 declare -i RVM_WITH_DEFAULT_OBJECT_MODEL=1
@@ -678,13 +672,6 @@ function emitSourceList () {
     # Runtime compiler components.
     #
     echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/runtime
-    if (( ${RVM_WITH_BASE_RUNTIME_COMPILER} )); then
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/runtime/baseline
-    elif (( ${RVM_WITH_OPT_RUNTIME_COMPILER} )); then
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/runtime/optimizing
-    elif (( ${RVM_WITH_ADAPTIVE_RUNTIME_SYSTEM} )); then
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/runtime/adaptive
-    fi
 
     # Common memory manager components.
     #
@@ -1589,6 +1576,9 @@ EOF
        echo "   \${FIND} . -name '*.class' -print > ${PRIMORDIAL_CLASSES_STR}.1"
     else
 	echo "   \$FIND . -name 'VM*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
+	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
+	    echo "   \$FIND ./com/ibm/JikesRVM/opt -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
+        fi
 	echo "   \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
 	echo "   \$FIND . -path '*/JikesRVMSupport.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
     fi

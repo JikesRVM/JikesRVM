@@ -474,7 +474,7 @@ evolves.
 Most standard Jikes RVM configuration files loosely follow the
 following naming scheme 
 \begin{verbatim}
-       <boot image compiler> <runtime compiler> <garbage collector>
+       <boot image compiler> [Base|Adaptive] <garbage collector>
 \end{verbatim}
 
 \index{boot image compiler}
@@ -483,18 +483,10 @@ where
 \begin{itemize}
 \item the {\em boot image compiler} is the compiler used to compile
 Jikes RVM's boot image. 
-\item the {\em runtime compiler} is the ``compiler'' used to compile
-the classes loaded at runtime.  
+\item [Base|Adaptive] denotes whether or not the adaptive system and
+optimizing compiler are included in the build. 
 \item the {\em garbage collector} is the garbage collection scheme used.
 \end{itemize}
-
-The types of compilers --- the baseline compiler and 
-the optimizing compiler --- are designated by the names {\em Base}
-and {\em Opt} respectively.  In these configurations,
-methods of classes loaded at runtime are compiled once by the specified
-compiler when they are first called.
-This differs from the adaptive configurations,
-discussed in Section~\ref{adaptive-configs}.
 
 The following garbage collection suffixes are available:
 
@@ -512,72 +504,39 @@ The following garbage collection suffixes are available:
 \end{description}
 
 For example, to specify a compiler with a baseline-compiled boot image
-that will compile classes loaded at runtime using the optimizing
+that will compile classes loaded at runtime using the baseline 
 compiler and that uses a non-generational semi-space copying garbage
-collector, use the name {\em BaseOptSemiSpace}.
+collector, use the name {\em BaseBaseSemiSpace}.
 
 Some files augment the standard configurations as follows:
 \begin{itemize}
 \item The word 
-{\em Full} at the beginning of the configuration name identifies a 
-configuration
-such that all the Jikes RVM classes are included in the boot image 
-and are compiled by the optimizing compiler. 
-(By default only
-a small subset of these classes are included in the boot image.)
-\item The word
-{\em Fast} at the beginning of the configuration name identifies a Full
-configuration where all assertion checking has been turned off. 
+{\em Full} at the beginning of the configuration name identifies a
+configuration such that all the Jikes RVM classes are included in the
+boot image and are compiled by the optimizing compiler.  (By default
+only a small subset of these classes are included in the boot image.)
+\item The word {\em Fast} at the beginning of the configuration name identifies a
+Full configuration where all assertion checking has been turned off.
 \end{itemize}
-A boot image with
-either of these modifications will likely to run faster than without
-(the opt compiler will be opt compiled), but take longer to build.  
+A boot image with either of these modifications will likely to run
+faster than without, but take longer to build.
 
-\subsubsection{Adaptive Configurations} \label{adaptive-configs}
 \index{adaptive configurations}
-In the non-adaptive configurations, the system compiles each
-method once, by the specified
-compiler (baseline or optimizing) when the method is first called.  
-Another option is to build one configuration, 
-an {\em adaptive} configuration,
-where the runtime compiler is either
-\begin{itemize}
-\item specified on the command line (base or opt), or
-\item selected automatically as the application runs.
-\end{itemize}
+In configurations that include the adaptive system (denoted by
+Adaptive in their name), methods are initially compiled by one
+compiler (by default the baseline compiler) and then online profiling
+is used to automatically select hot methods for recompilation by the
+opt compiler at an appropriate optimization level. Further details are
+provided in Section~\ref{section:aosdetails}.
 
-The first choice allows an adaptive configuration to provide the same
-functionality as a non-adaptive configuration.  A single adaptive
-image can support either runtime compiler when directed on the
-command-line as follows:
-\begin{verbatim}
-  rvm -X:aos:primary_strategy=baseonly
-            or
-  rvm -X:aos:primary_strategy=optonly
-\end{verbatim}
-
-The second choice initially compiles all methods with the
-baseline compiler and then automatically selects hot methods for
-recompilation by the opt compiler at an appropriate optimization
-level. Further details are provided in Section~\ref{section:aosdetails}.
-
-The adaptive configurations follow the following naming scheme
-\begin{verbatim}
-           [boot image compiler] Adaptive  <garbage collector>
-\end{verbatim}
-
-For example, to configure a build 
-directory for an adaptive configuration, where the optimizing compiler is 
-used to compile the boot image (but is not included in the boot image
-and assertions are turned on), and the semi-space garbage collector is
-used, use the following command:
+For example, to configure a build directory for an adaptive
+configuration, where the optimizing compiler is used to compile the
+boot image and the semi-space garbage collector is used, use the
+following command:
 
 \begin{verbatim}
 % jconfigure OptAdaptiveSemiSpace
 \end{verbatim}
-
-Section~\ref{section:running} describes how this image can be used in
-the manner mentioned above.
 
 To view a list of configurations see 
 {\tt \$RVM\_ROOT/rvm/config/build}.  Follow the examples in this
@@ -669,4 +628,3 @@ HTML userguide using
 \xlink{{\tt hyperlatex}}{\HyperlatexURL}.  To build the Javadoc pages, use
 the {\tt jdoc.sh} script in {\tt \$RVM\_ROOT/rvm/bin}; this script takes as
 its one command-line argument the directory to output the Javadoc HTML.
-

@@ -278,10 +278,10 @@ while [ $# != 0 ]; do
 done
 
 #
-# Default optimization controls for adaptive and nonadaptive configurations
+# Some common command line arguments
 #
-DEFAULT_ADAPTIVE_RC_ARGS="-X:aos:opt:errors_fatal=true"
-DEFAULT_NONADAPTIVE_OPT_RC_ARGS="-X:irc:errors_fatal=true"
+DEFAULT_ADAPTIVE_RC_ARGS="-X:aos:opt:errors_fatal=true -X:aos:logging_level=1"
+OPT_JIT_ARGS="-X:aos:enable_recompilation=false -X:aos:initial_compiler=opt"
 
 # Name of current configuration being tested.
 #
@@ -345,23 +345,10 @@ function doRun {
 	return;
     fi
 
-    # set extglob			# so that @( a | b  ) works in the case statement below.
-
-    # special arguments:
-    # JAVA_PACKAGES is for use by "toba" test
-    # RVMPATH       is for use by "ExecuteOptCode" tests !!TODO: clean this up by using "JCOMPILE:=$(RVM_BUILD)/jbuild.tool" line in Makefiles [--DL]
-     
     # Determine which set of runtime arguments to pass
     case $NAME in
 
 	*Adaptive* ) export RC_ARGS=$DEFAULT_ADAPTIVE_RC_ARGS 
-	    ;;
-
-	BaseOpt* | OptOpt* | FastOpt* | FullOpt* | ExtremeAssertionsOptOpt* | FastMarkSweep | FastSemiSpace  )
-
-	    export RC_ARGS=$DEFAULT_NONADAPTIVE_OPT_RC_ARGS
-            # use opt. level, if requested
-	    RC_ARGS="$RC_ARGS -X:irc:${OPT_LEVEL-O3}"
 	    ;;
 
 	* ) # baseline must be the runtime compiler - no default options yet
@@ -432,7 +419,7 @@ function doRun {
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
 	   SUFFIX=$SUFFIX \
            PROCESSORS=\"$NUM_PROCS\" \
-           RC_ARGS=\"$RC_ARGS $EXTRA_RC_ARGS\" \
+           RC_ARGS=\"$RC_ARGS $OPT_LEVEL_ARGS $EXTRA_RC_ARGS\" \
            JAVA_PACKAGES=$RVM_BUILD/RVM.classes \
            RVMPATH=$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar \
            clean sanity"
@@ -475,6 +462,7 @@ function doTests {
    
 function doOptLevelTests {
     for OPT_LEVEL in $OPT_LEVELS; do
+	export OPT_LEVEL_ARGS="$OPT_JIT_ARGS -X:aos:opt:$OPT_LEVEL"
 	doTests
     done
 }

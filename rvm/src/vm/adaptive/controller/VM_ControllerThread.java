@@ -58,7 +58,7 @@ class VM_ControllerThread extends VM_Thread {
     // adaptive recompilation
     createProfilers();
 
-    if (!VM_Controller.options.adaptive()) {
+    if (!VM_Controller.options.ENABLE_RECOMPILATION) {
       // We're running an AOS bootimage with a non-adaptive primary strategy. 
       // We already set up any requested profiling infrastructure, so nothing
       // left to do but exit.

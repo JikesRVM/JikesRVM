@@ -54,18 +54,14 @@ public final class OSR_OnStackReplacementEvent
     VM_ControllerPlan oldPlan = VM_ControllerMemory.findLatestPlan(todoMethod);
 
     if (oldPlan != null) {
-      OPT_CompilationPlan oldCompPlan = 
-	oldPlan.getCompPlan();
-      
+      OPT_CompilationPlan oldCompPlan = oldPlan.getCompPlan();
       priority = oldPlan.getPriority();
       options = oldCompPlan.options;
       optimizationPlan = oldCompPlan.optimizationPlan;
     } else {
       priority = 5.0;
-      options = 
-	VM_RuntimeOptCompilerInfrastructure.options;
-      optimizationPlan = 
-	VM_RuntimeOptCompilerInfrastructure.optimizationPlan;
+      options = VM_RuntimeCompiler.options;
+      optimizationPlan = VM_RuntimeCompiler.optimizationPlan;
     }
 
     OPT_CompilationPlan compPlan = 
