@@ -77,7 +77,7 @@ implements VM_Uninterruptible, VM_Constants {
     //-#if RVM_FOR_IA32
     // presave JTOC register contents 
     // (so lintel compiler can us JTOC for scratch)
-    if (VM.runningVM) jtoc = VM_Magic.getJTOC();
+    if (VM.runningVM) this.jtoc = VM_Magic.getJTOC();
     //-#endif
 
     this.id = id;
@@ -843,10 +843,9 @@ implements VM_Uninterruptible, VM_Constants {
   VM_ProcessorLock awaitingProcessorLock;
   VM_Processor     contenderLink;
 
-  // Scratch area for use by VM_Magic.getTime()
-  //
-  private double   scratchSeconds;
-  private double   scratchNanoseconds;
+  // Scratch area for use for gpr <=> fpr transfers by 
+  // PPC baseline compiler
+  private double scratchStorage;
 
   public void dumpProcessorState() throws VM_PragmaInterruptible {
     VM.sysWrite("Processor "); 

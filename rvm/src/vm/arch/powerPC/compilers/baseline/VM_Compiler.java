@@ -1550,15 +1550,15 @@ public class VM_Compiler extends VM_BaselineCompiler
     } else {
       popInt(T0); 		// TO is X  (an int)
       asm.emitLFDtoc(F0, VM_Entrypoints.IEEEmagicField.getOffset(), T1);  // F0 is MAGIC
-      asm.emitSTFD  (F0, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER);
-      asm.emitSTW   (T0, VM_Entrypoints.scratchSecondsField.getOffset()+4, PROCESSOR_REGISTER);
+      asm.emitSTFD  (F0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER);
+      asm.emitSTW   (T0, VM_Entrypoints.scratchStorageField.getOffset()+4, PROCESSOR_REGISTER);
       asm.emitCMPI  (T0,  0);                // is X < 0
       VM_ForwardReference fr = asm.emitForwardBC(GE);
-      asm.emitLInt  (T0, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER);
+      asm.emitLInt  (T0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER);
       asm.emitADDI  (T0, -1, T0);            // decrement top of MAGIC
-      asm.emitSTW   (T0, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER); // MAGIC + X in scratch field
+      asm.emitSTW   (T0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER); // MAGIC + X in scratch field
       fr.resolve(asm);
-      asm.emitLFD   (F1, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER); // F1 is MAGIC + X
+      asm.emitLFD   (F1, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER); // F1 is MAGIC + X
       asm.emitFSUB  (F1, F1, F0);            // F1 is X
       pushFloat(F1);                         // float(X) is on stack 
     }
@@ -1625,13 +1625,13 @@ public class VM_Compiler extends VM_BaselineCompiler
     VM_ForwardReference fr1 = asm.emitForwardBC(NE);
     // Normal case: F0 == F0 therefore not a NaN
     asm.emitFCTIWZ(F0, F0);
-	if (VM.BuildFor64Addr) { 
+    if (VM.BuildFor64Addr) { 
       pushLowDoubleAsInt(F0);
-	} else {
-	  asm.emitSTFD  (F0, VM_Entrypoints.scratchSecondsField.getOffset(), PROCESSOR_REGISTER);
-	  asm.emitLWZ   (T0, VM_Entrypoints.scratchSecondsField.getOffset() + 4, PROCESSOR_REGISTER);
-	  pushInt       (T0);
-	}
+    } else {
+      asm.emitSTFD  (F0, VM_Entrypoints.scratchStorageField.getOffset(), PROCESSOR_REGISTER);
+      asm.emitLWZ   (T0, VM_Entrypoints.scratchStorageField.getOffset() + 4, PROCESSOR_REGISTER);
+      pushInt       (T0);
+    }
     VM_ForwardReference fr2 = asm.emitForwardB();
     fr1.resolve(asm);
     // A NaN => 0
