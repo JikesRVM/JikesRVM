@@ -134,14 +134,16 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
    */
   public static boolean considerHeapSize() {
     int oldSize = currentHeapSize;
-    double liveRatio = Plan.reservedMemory() / ((double) currentHeapSize);
+    long reserved = Plan.reservedMemory();
+    double liveRatio = reserved / ((double) currentHeapSize);
     double ratio = computeHeapChangeRatio(liveRatio);
-    int newSize = (int)(ratio * (double)oldSize);
-    newSize = (newSize + (1<<20)) >> 20 << 20;
+    long newSize = (long) (ratio * (double)oldSize);
+    if (newSize < reserved) newSize = reserved;
+    newSize = (newSize + (1<<20)) >> 20 << 20; // round to next megabyte
     if (newSize > maxHeapSize) newSize = maxHeapSize;
     if (newSize != oldSize) {
       // Heap size is going to change
-      currentHeapSize = newSize;
+      currentHeapSize = (int) newSize;
       if (Options.verbose >= 2) { 
 	VM_Interface.sysWrite("Heap changed from ", (int) (oldSize / 1024)); 
 	VM_Interface.sysWrite("KB to ", (int) (newSize / 1024)); 
