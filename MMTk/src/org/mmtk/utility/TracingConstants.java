@@ -10,6 +10,8 @@ import com.ibm.JikesRVM.VM_Word;
 /**
  * The constants needed when storing events and then generating the trace.
  *
+ * $Id$
+ *
  * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
