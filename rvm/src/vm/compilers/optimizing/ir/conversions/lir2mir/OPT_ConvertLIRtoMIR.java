@@ -321,8 +321,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
     public void reportAdditionalStats() {
       VM.sysWrite("  ");
-      VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
-						       container.counter2);
+      VM.sysWrite(container.counter1/container.counter2*100, 2);
       VM.sysWrite("% Infrequent BBs");
     }
 

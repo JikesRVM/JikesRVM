@@ -42,7 +42,7 @@ public class VM_Stopwatch {
       VM.sysWrite("\t");
       VM.sysWrite(VM_Time.toMilliSecs(elapsedTime),false);
       VM.sysWrite("\t");
-      VM_RuntimeCompilerInfrastructure.printPercentage(elapsedTime, totalTime);
+      VM.sysWrite(elapsedTime/totalTime*100, 2);
       VM.sysWrite("%\n");
     }
   }

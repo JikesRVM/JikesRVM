@@ -57,7 +57,7 @@ public class VM_RuntimeCompilerInfrastructure
    * @param value the exit value
    */
   public void notifyExit(int value) {
-    report(true);
+    report(false);
   }
 
   /**
@@ -70,7 +70,6 @@ public class VM_RuntimeCompilerInfrastructure
    */
   public static void record(byte compiler, VM_NormalMethod method, 
 			    VM_CompiledMethod compiledMethod) {
-    
     total_methods[compiler]++;
     total_bcodeLen[compiler] += method.getBytecodeLength();
     total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
@@ -89,7 +88,6 @@ public class VM_RuntimeCompilerInfrastructure
    */
   public static void record(byte compiler, VM_NativeMethod method, 
 			    VM_CompiledMethod compiledMethod) {
-    
     total_methods[compiler]++;
     total_bcodeLen[compiler] += 1; // lie!
     total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
@@ -112,19 +110,19 @@ public class VM_RuntimeCompilerInfrastructure
 	VM.sysWrite(total_methods[i], false);
 	VM.sysWrite("\t");
 	// Compilation time
-	VM.sysWrite((int)total_time[i], false);
+	VM.sysWrite(VM_Time.toSecs(total_time[i]), false);
 	VM.sysWrite("\t");
 	// Bytecode bytes per millisecond
-	printRatio(total_bcodeLen[i], (int)total_time[i], 2);
+	VM.sysWrite((double)total_bcodeLen[i]/total_time[i], 2);
 	VM.sysWrite("\t");
 	// Ratio of machine code bytes to bytecode bytes
-	printRatio(total_mcodeLen[i] << LG_INSTRUCTION_WIDTH, total_bcodeLen[i], 2);
+	VM.sysWrite((double)(total_mcodeLen[i] << LG_INSTRUCTION_WIDTH)/(double)total_bcodeLen[i], 2);
 	VM.sysWrite("\t");
 	// Generated machine code Kbytes
-	printRatio(total_mcodeLen[i] << LG_INSTRUCTION_WIDTH, 1024, 1);
+	VM.sysWrite((double)(total_mcodeLen[i] << LG_INSTRUCTION_WIDTH)/1024, 1);
 	VM.sysWrite("\t");
 	// Compiled bytecode Kbytes
-	printRatio(total_bcodeLen[i], 1024, 1); 
+	VM.sysWrite((double)total_bcodeLen[i]/1024, 1); 
 	VM.sysWrite("\n");
       }
     }
@@ -141,47 +139,6 @@ public class VM_RuntimeCompilerInfrastructure
     VM_RuntimeCompiler.detailedCompilationReport(explain);
   }
    
-
-  /**
-   * Prints the ratio of first two parameters using the number of digits
-   * specified by the 3rd parameter.
-
-   * NOTE: Printing a double or float requires a fair amount of work and
-   * furthermore may result in class loading and/or allocation.  We could
-   * call Math.round, but that might also cause classloading, so instead
-   * we do something fairly simple, but slow and ugly that more or less
-   * works in most cases.
-   *
-   * TODO: Move this somewhere else (general profiling utility file).
-   *
-   * @param numerator the numerator
-   * @param denominator the denominator
-   * @param places the number of decimal places to be used in the result
-   */
-  public static void printRatio(int numerator, int denominator, int places) {
-    if (denominator == 0) return;
-    int divide = 10;
-    for (int i = 0; i<places; i++)
-      divide = divide*10;
-    float value = ((float)numerator)/((float)denominator) + (5.0f/(float)divide); //Add in fudge to get rounding
-    int approx = (int)value;
-    VM.sysWrite(approx, false);
-    if (places > 0) VM.sysWrite(".");
-    for (int i = 0; i<places; i++) {
-      value = (value - (float)approx)*10.0f;
-      approx = (int)(value);
-      VM.sysWrite(approx, false);
-    }
-  }
-
-  /**
-   * Prints the percentage of total time taken by the first parameter.
-   * @param phaseTime the time take by a phase
-   * @param time the total time
-   */
-  public static void printPercentage(double phaseTime, double time) {
-    printRatio((int)(phaseTime*100), (int)time, 2);
-  }
 
   /**
    * This method will compile the passed method using the baseline compiler.

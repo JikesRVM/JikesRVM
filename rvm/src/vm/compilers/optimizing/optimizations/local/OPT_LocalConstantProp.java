@@ -26,8 +26,7 @@ public class OPT_LocalConstantProp extends OPT_CompilerPhase implements OPT_Oper
 
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
-    VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
-						     container.counter2);
+    VM.sysWrite(container.counter1/container.counter2*100, 2);
     VM.sysWrite("% Infrequent BBs");
   }
 

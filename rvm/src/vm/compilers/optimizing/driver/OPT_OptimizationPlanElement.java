@@ -84,11 +84,10 @@ public abstract class OPT_OptimizationPlanElement {
     VM.sysWrite(t, false);
     if (time/totalTime > 0.10) {
       VM.sysWrite("    ");
-    } 
-    else {
+    } else {
       VM.sysWrite("     ");
     }
-    VM_RuntimeCompilerInfrastructure.printPercentage(time, totalTime);
+    VM.sysWrite(time/totalTime*100, 2);
     VM.sysWrite("%");
   }
 }
