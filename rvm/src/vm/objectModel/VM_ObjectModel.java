@@ -458,6 +458,14 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
     return computeHeaderSize(VM_Magic.objectAsType(tib[0]));
   }
 
+  public static int getScalarOffsetForAlignment(Object[] tib, int size) {
+    return VM_JavaHeader.getScalarOffsetForAlignment(tib, size);
+  }
+
+  public static int getArrayOffsetForAlignment(Object[] tib, int size) {
+    return VM_JavaHeader.getArrayOffsetForAlignment(tib, size);
+  }
+
   /**
    * Initialize raw storage with low memory word ptr of size bytes
    * to be an uninitialized instance of the (scalar) type specified by tib.

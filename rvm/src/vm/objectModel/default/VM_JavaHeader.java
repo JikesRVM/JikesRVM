@@ -456,6 +456,24 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
 
   /**
+   * Return the offset relative to physical beginning of object that must meet natural alignment.
+   * @param tib the TIB of the instance being created
+   * @param size the number of bytes allocated by the GC system for this object.
+   */
+  public static int getScalarOffsetForAlignment(Object[] tib, int size) {
+    return size; // TIB is at the end
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object that must meet natural alignment.
+   * @param tib the TIB of the instance being created
+   * @param size the number of bytes allocated by the GC system for this object.
+   */
+  public static int getArrayOffsetForAlignment(Object[] tib, int size) {
+    return ARRAY_HEADER_SIZE_ALIGNED; // TIB is at end of header
+  }
+
+  /**
    * Perform any required initialization of the JAVA portion of the header.
    * @param ptr the raw storage to be initialized
    * @param tib the TIB of the instance being created
