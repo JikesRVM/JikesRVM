@@ -1,0 +1,22 @@
+#
+# (C) Copyright IBM Corp. 2001
+#
+DECL
+# Structure of DECL FULL_NAME OPT_LEVEL DEFAULT_VALUE {SHORT_NAME}
+DESCRIP
+
+##########
+# First all the non-printing, non-debugging options
+# Should not start with PRINT_ or DEBUG_ prefix
+#   There are none of these right now but may want to consider
+#   moving some like NO_CHECKCAST NO_CHECKSTORE from opt only to here
+##########
+##########
+# Next, declare all the printing options
+# MUST start with PRINT_ or VCG_ prefix
+#
+PRINT_METHOD -1 false verbose
+Print method name at start of compilation
+
+PRINT_MACHINECODE -1 false mc
+Print final machine code
