@@ -40,12 +40,13 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   private final static boolean trace = false;
   private final static boolean traceTermination = false;
 
-  public Thread thread;         // Can't be final -- the primordial thread is
+  private Thread thread;         // Can't be final -- the primordial thread is
                                 // created by the boot image writer without an
                                 // associated java.lang.Thread ; we need to be
                                 // booting before we can create a Jikes RVM
                                 // java.lang.Thread, at which point we will
-                                // perform the assignment.
+                                // perform the assignment.  I am also highly
+                                // suspicous of the CollectorThread.
   
   /**
    * Enumerate different types of yield points for sampling
@@ -124,6 +125,25 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     return VM_Processor.getCurrentProcessor().activeThread;
   }
       
+  public Thread getJavaLangThread() 
+    throws InterruptiblePragma
+  {
+    if (thread != null)
+      return thread;
+
+    if (!VM.safeToAllocateJavaThread) {
+      VM.sysWriteln("Someone asked for a Java thread before it is safe to allocate one -- dumping the stack and returning null.");
+      VM_Scheduler.dumpStack();
+      return null;
+    }
+    thread = java.lang.JikesRVMSupport.createThread(this, toString());
+    return thread;
+  }
+
+  public void setJavaLangThread(Thread t) {
+    thread = t;
+  }
+
   /**
    * Get current thread's JNI environment.
    */ 
@@ -145,8 +165,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     return jniEnv != null && jniEnv.hasNativeStackFrame();
   }
 
+  private String myName;
+  
   public String toString() throws InterruptiblePragma {
-    return "VM_Thread";
+    return myName == null ? "VM_Thread-" + getIndex() : myName;
   }
 
   /**
@@ -1127,8 +1149,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    */ 
   public VM_Thread (byte[] stack, Thread thread, String myName) {
     this.stack = stack;
-    
     this.thread = thread;
+    this.myName = myName;
 
     chosenProcessorId = (VM.runningVM ? VM_Processor.getCurrentProcessorId() : 0); // for load balancing
     suspendLock = new VM_ProcessorLock();
