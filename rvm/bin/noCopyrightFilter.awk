@@ -29,7 +29,7 @@
 
 /\/tests\/javalex\/qb1.lex.ref/ { next }
 
-/\/tools\/bootImageRunner\/VM_0005fInetAddress.h/ { next }
+/\/tools\/bootImageRunner\/com_ibm_JikesRVM_VM_0005fProcess.h/ { next }
 /\/tools\/bootImageWriter\/rvm.security/ { next }
 /\/tools\/jburg\/COPYRIGHT/ { next }
 /\/src\/tools\/eclipse\/plugin2\/src\/com\/ibm\/jikesrvm\/eclipse\/ui\/jalapeno.jpg/ { next }
