@@ -84,12 +84,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
   
   // Memory layout constants
-  public  static final int              MAX_SIZE = 2048 * 1024 * 1024;
+  public  static final int              MAX_SIZE = 1556 * 1024 * 1024;
   private static final VM_Address      LOS_START = PLAN_START;
   private static final EXTENT           LOS_SIZE = 256 * 1024 * 1024;
   private static final VM_Address        LOS_END = LOS_START.add(LOS_SIZE);
   private static final VM_Address       SS_START = LOS_END;
-  private static final EXTENT            SS_SIZE = 1024 * 1024 * 1024;
+  private static final EXTENT            SS_SIZE = 728 * 1024 * 1024;
   private static final VM_Address   LOW_SS_START = SS_START;
   private static final VM_Address  HIGH_SS_START = SS_START.add(SS_SIZE);
   private static final VM_Address         SS_END = HIGH_SS_START.add(SS_SIZE);
