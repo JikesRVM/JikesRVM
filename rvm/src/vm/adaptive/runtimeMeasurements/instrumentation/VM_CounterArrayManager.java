@@ -103,8 +103,8 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
   /**
    * Create a place holder instruction to represent the counted event.
    *
-   * @param counterHandle  The handle of the array for the method
-   * @param index  Index within that array
+   * @param handle  The handle of the array for the method
+   * @param index   Index within that array
    * @param incrementValue The value to add to the counter
    * @return The counter instruction
    **/
