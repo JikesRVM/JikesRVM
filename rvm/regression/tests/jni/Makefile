@@ -26,7 +26,7 @@ include 	$(JAL_ROOT)/rvm/regression/Make.rules
 ifeq ($(shell uname),Linux) 
 # TESTS that currently fail for one reason or another on Linux/IA32
 #       TEST			REASON FOR EXCLUSION
-# 	ArrayFunctions 		JDK claims that a native function attempts to unpin and object that is not pinned
+# 	ArrayFunctions 		JDK claims that a native function attempts to unpin an object that is not pinned
 #       MonitorTests            JDK hangs
 #       t3GT3	                tested mechanism not implemented on IA32
 TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
@@ -35,7 +35,7 @@ TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
 else
 # TESTS that currently fail for one reason or another on AIX/PowerPC
 #       TEST			REASON FOR EXCLUSION
-# 	ArrayFunctions 		JDK claims that a native function attempts to unpin and object that is not pinned
+# 	ArrayFunctions 		JDK claims that a native function attempts to unpin an object that is not pinned
 TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
         FieldAccess MethodInvocation MonitorTest NativeException \
 	StringFunctions TestGC t3GT3
