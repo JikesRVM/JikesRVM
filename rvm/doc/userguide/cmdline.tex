@@ -96,15 +96,15 @@ This section provides some information on various
 implementation details for baseline compiler command-line options.
 
 \index{baseline compiler command-line options}
-\index{OPT\_BASEOptions class}
+\index{VM\_BaseOptions class}
 The command-line options to the baseline compiler are
-stored as fields in an object of type {\tt VM\_BASEOptions}.
-The Jikes\trademark RVM build process generates the {\tt VM\_BASEOptions.java} 
+stored as fields in an object of type {\tt VM\_BaseOptions}.
+The Jikes\trademark RVM build process generates the {\tt VM\_BaseOptions.java} 
 file automatically from a template.  
 
 \index{BooleanOptions.dat}
 \index{ValueOptions.dat}
-To add or modify the command-line options in {\tt VM\_BASEOptions.java},
+To add or modify the command-line options in {\tt VM\_BaseOptions.java},
 you must modify either {\tt BooleanOptions.dat}, or {\tt ValueOptions.dat}.
 You should describe your desired command-line option in a format 
 described below in Section~\ref{section:optdetails:options}, which 

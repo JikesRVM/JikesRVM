@@ -21,12 +21,12 @@ abstract class VM_BaselineCompiler {
   /** 
    * Options used during base compiler execution 
    */
-  protected static VM_BASEOptions options;
+  protected static VM_BaseOptions options;
 
   /** 
    * Holds the options as the command line is being processed. 
    */
-  protected static VM_BASEOptions setUpOptions;
+  protected static VM_BaseOptions setUpOptions;
 
 
   /**
@@ -113,8 +113,8 @@ abstract class VM_BaselineCompiler {
    * Clear out crud from bootimage writing
    */
   static void initOptions() {
-    options = new VM_BASEOptions();
-    setUpOptions = new VM_BASEOptions();
+    options = new VM_BaseOptions();
+    setUpOptions = new VM_BaseOptions();
   }
 
   /**

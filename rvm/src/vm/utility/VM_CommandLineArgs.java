@@ -417,7 +417,7 @@ class VM_CommandLineArgs {
       case AOS_IRC_HELP_ARG:
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_BASEOptions.printHelp("-X:aos:base");
+	VM_BaseOptions.printHelp("-X:aos:base");
 	//-#else
 	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
@@ -462,7 +462,7 @@ class VM_CommandLineArgs {
       case AOS_BASE_HELP_ARG:
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_BASEOptions.printHelp("-X:aos:base");
+	VM_BaseOptions.printHelp("-X:aos:base");
 	//-#else
 	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
@@ -604,7 +604,7 @@ class VM_CommandLineArgs {
 	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
 	//-#else
-	VM_BASEOptions.printHelp("-X:base");
+	VM_BaseOptions.printHelp("-X:base");
 	//-#endif
 	break;
       case BASE_ARG: // "-X:base:arg"; pass 'arg' as an option
