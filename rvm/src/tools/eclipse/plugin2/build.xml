@@ -11,7 +11,7 @@ $Date$
 $Author$
 $Id$
 
- (C) Copyright IBM Corp. 2002
+ (C) Copyright IBM Corp. 2002, 2003
 
 @author Jeffrey Palm
 
@@ -32,7 +32,12 @@ $Id$
   <property name="name" value="${ant.project.name}"/>
 
   <property name="plugins.dir" value="${eclipse.dir}/plugins"/>
-  <property name="package" value="org.eclipse.jdt.launching.jikesrvm_Post2.2.2"/> <!-- I.E., the CVS Head. -->
+  <!-- property name="package"
+  value="org.eclipse.jdt.launching.jikesrvm_Post2.2.2"/ --> <!-- I.E., the CVS Head. -->
+  <!-- Don't break this next entry across two lines; a sed script
+	emitted in jbuild.plugin expects it to stay on one
+	line. -Steve Augart  -->
+  <property name="package" value="com.ibm.JikesRVM_post2.2.2" />
   <property name="install.dir" value="${plugins.dir}/${package}"/>
   <property name="build.dist.install" value="${build.dist}/${package}"/>
 
@@ -103,6 +108,9 @@ $Id$
     <mkdir dir="${build.classes}"/>
     <javac destdir="${build.classes}"
 	   classpathref="project.classpath"
+	   failonerror="true"
+	   deprecation="true"
+	   listfiles="${build.trace}"
 	   debug="${build.config.debug}">
       <src path="${src.dir}"/>
       <src path="${build.src}"/>
