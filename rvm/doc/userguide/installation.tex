@@ -97,6 +97,7 @@ for information about the various configurations.
 \newcommand{\gccURL}{ftp://ftp.gnu.org/gnu/gcc}
 \newcommand{\glibcURL}{ftp://ftp.gnu.org/gnu/glibc}
 \newcommand{\makeURL}{ftp://ftp.gnu.org/gnu/make}
+\newcommand{\bashURL}{ftp://ftp.gnu.org/gnu/bash}
 \newcommand{\tarURL}{ftp://ftp.gnu.org/gnu/tar}
 \newcommand{\autoconfURL}{ftp://ftp.gnu.org/gnu/autoconf}
 \newcommand{\automakeURL}{ftp://ftp.gnu.org/gnu/automake}
@@ -120,6 +121,7 @@ have those.
 {\em software} & {\em version} & {\em site} \\ \hline
 \multicolumn{3}{|c|}{\em All platforms}                     \\ \hline
 GNU make       & 3.79+    & \xlink{\tt \makeURL}{\makeURL}         \\ 
+{\tt bash} (The Bourne-Again Shell) & 2.05a+ {\em See Below}   & \xlink{\tt \bashURL}{\bashURL}         \\ 
 GNU tar        & 1.13+    & \xlink{\tt \tarURL}{\tarURL}           \\ 
 {\tt automake}       & 1.6.3+ {{\em See below}}  & \xlink{\tt \automakeURL}{\automakeURL} \\
 {\tt autoconf}       & 2.53+  {{\em See below}}  & \xlink{\tt \autoconfURL}{\autoconfURL} \\
@@ -157,6 +159,14 @@ if that scares you, use a recent RedHat or SuSE Linux distribution.
 support disabled in Jikes RVM.  We do not recommend this; if you
 insist, look in {\tt jconfigure} for details.
 \item We have also used the Sun JDK 1.4.1 to build Jikes RVM.
+
+\item We have had a problem with Bash 2.05 (not
+  2.05a or 2.05b): it occasionally hangs on AIX while running
+  jconfigure, because of what appears to be a bug in its handling of
+  the here-document redirection operator (<< EOF).  Unfortunately, the
+  version of Bash distributed with AIX 5.1 in /usr/contrib/bin is
+  2.05.   Bash 2.05a, 2.05b, 2.02 and 2.03 seem to work adequately.
+
 \end{itemize}
 
 \AIXPPCJikesTMFooter
