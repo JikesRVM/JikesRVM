@@ -1723,7 +1723,7 @@ public class VM_Class extends VM_Type
   // Additional fields and methods for Interfaces               //
   //------------------------------------------------------------//
 
-  private static final Object interfaceCountLock = new VM_Synchronizer();
+  private static final VM_Synchronizer interfaceCountLock = new VM_Synchronizer();
   private static int          interfaceCount     = 0;
   private static VM_Class[]   interfaces         = new VM_Class[100];
   private int                 interfaceId        = -1; 
@@ -1736,15 +1736,7 @@ public class VM_Class extends VM_Type
    */ 
   int getInterfaceId () {
     if (interfaceId == -1) {
-      synchronized (interfaceCountLock) {
-	interfaceId = interfaceCount++;
-	if (interfaceId == interfaces.length) {
-	  VM_Class[] tmp = new VM_Class[interfaces.length*2];
-	  System.arraycopy(interfaces, 0, tmp, 0, interfaces.length);
-	  interfaces = tmp;
-	}
-	interfaces[interfaceId] = this;
-      }
+      assignInterfaceId();
     }
     return interfaceId;
   }
@@ -1759,5 +1751,19 @@ public class VM_Class extends VM_Type
 
   static VM_Class getInterface(int id) {
     return interfaces[id];
+  }
+
+  private synchronized void assignInterfaceId() {
+    if (interfaceId == -1) {
+      synchronized(interfaceCountLock) {
+	interfaceId = interfaceCount++;
+	if (interfaceId == interfaces.length) {
+	  VM_Class[] tmp = new VM_Class[interfaces.length*2];
+	  System.arraycopy(interfaces, 0, tmp, 0, interfaces.length);
+	  interfaces = tmp;
+	}
+	interfaces[interfaceId] = this;
+      }
+    }
   }
 }
