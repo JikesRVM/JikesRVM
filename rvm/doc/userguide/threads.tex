@@ -20,8 +20,10 @@ through the Java JNI.  Multiple virtual processors require a working
 pThread library, each virtual processor being bound to a pThread.  It
 is possible to build a system that only uses one virtual processor by
 setting the preprocessor directive {\tt
-JVM\_WITH\_SINGLE\_VIRTUAL\_PROCESSOR} to 1.  This may give a minor
-performance benefit on uniprocessors.
+RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR} to 1.  This may give a minor
+performance benefit on uniprocessors. See the configuration files
+{\ttBaseBaseUPSemispace} and {\ttOptOptUPSemispace} for examples of
+using this preprocessor directive.
 
 Threads that are not executing are either placed on thead queues
 (deriving from 
