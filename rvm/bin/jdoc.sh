@@ -90,7 +90,6 @@ if [ $STRIP_FIELDS -eq 1 ]; then
         discard_table==1 && /<\/TABLE/ { find_table = 0; discard_table = 0; }
       ' $f > $TMP
       mv $TMP $f
-      chmod o+r $f
     done
 fi
 
@@ -110,6 +109,7 @@ if [ $STRIP_CLASSES -eq 1 ]; then
         discard_table==1 && /<\/TABLE/ { find_table = 0; discard_table = 0; }
       ' $f > $TMP
       mv $TMP $f
+      chmod +r $f
     done
 fi
 
