@@ -6,19 +6,28 @@
 # @author Steven Augart 
 #
 
-# Most useful Make targets:
+# Here are the most useful targets in this makefile:
 #
-# TAGS: * Make a tags table for the generated sources (in $RVM_BUILD) and for
-#	  the C, C++, and Java sources in the 'src' directory.  
+# "make TAGS": * Make a tags table, "TAGS", for the generated
+#	  sources (in $RVM_BUILD) and for the C, C++, and Java sources
+#	   in the 'src' directory.  
 #	* Skip 'src/examples'
 #	* The table should include the Java templates in *.template
 #
-# TAGS.ALL: Make a tags table covering all of the source files in the 'rvm' tree.  
+# "make TAGS.ALL": Make a tags table covering all of the source files
+#	 in the 'rvm' tree and all of the generated files.  
 #
-# conditionals: Search the sources for any .java files containing preprocessor
-# 	conditionals.  Filter out the conditional expressions.  
-#	Dump the sorted list of unique conditional variables to stdout.
-
+# "make TAGS.Makefiles": Make a tags table covering all of the Makefiles.
+#
+# "make conditionals": Search the sources for any .java files 
+#	containing preprocessor conditionals.  Filter out the conditional
+#	expressions.  Dump the sorted list of unique conditional variables
+#	to stdout.
+#
+# "make -s findall0": Search through the rvm source tree and the generated
+#	source tree.  Print all file names, separated by ASCII NUL 
+#	characters.  This makes output useful for the GNU "xargs -0" command 
+#	to use.
 
 
 .PHONY: all
@@ -29,6 +38,7 @@ all:
 	@echo >&2 ' (Well, it can also run "find" in ways useful for the Emacs Meta-x grep-find '
 	@echo >&2 ' command.  It also makes an alternative tags file, TAGS.ALL, which contains'
 	@echo >&2 ' all files in the source tree, skipping only Emacs backups and CVS files.)'
+	@echo >&2 ' Documentation is at the head of the Makefile."
 
 
 ## If RVM_BUILD is in the environment, then we have a real Jikes RVM build that
