@@ -71,15 +71,14 @@ abstract class VM_ExceptionTable {
    */
   public static final void printExceptionTable (int[] eTable) {
     int length = eTable.length;
-    System.out.println("Exception Table:");
-    System.out.println("    trystart   tryend    catch    type");
+    VM.sysWriteln("Exception Table:");
+    VM.sysWriteln("    trystart   tryend    catch    type");
     for (int i = 0; i<length; i+=4) {
-      System.out.print("    " + 
-		       VM_Services.getHexString(eTable[i + TRY_START], true) + " "+
-		       VM_Services.getHexString(eTable[i + TRY_END], true) + " " + 
-		       VM_Services.getHexString(eTable[i + CATCH_START], true) + "    " +
-		       VM_TypeDictionary.getValue(eTable[i + EX_TYPE]));
-      System.out.println();
+      VM.sysWriteln("    " + 
+		    VM_Services.getHexString(eTable[i + TRY_START], true) + " "+
+		    VM_Services.getHexString(eTable[i + TRY_END], true) + " " + 
+		    VM_Services.getHexString(eTable[i + CATCH_START], true) + "    " +
+		    VM_TypeDictionary.getValue(eTable[i + EX_TYPE]));
     }
   }
 }
