@@ -125,6 +125,10 @@ $$$$ END LOOP
        printOptions();
        return true;
     }
+    if (arg.equals("")) {
+      printHelp(prefix);
+      return true;
+    }
     // Make sure only process O? option if initial runtime compiler!
     if ((prefix.indexOf("irc")!=-1 || 
 	 prefix.indexOf("rc")!=-1 ||
