@@ -578,6 +578,16 @@ public class BootImageWriter extends BootImageWriterMessages
       fail("unable to update boot record: "+e);
     }
 
+    //-#if RVM_WITH_GCTRACE
+    /* Set the values in fields updated during the build process */
+    int prevAddrOffset = VM_Entrypoints.tracePrevAddressField.getOffset();
+    bootImage.setAddressWord(jtocImageOffset + prevAddrOffset, 
+			     VM_MiscHeader.getBootImageLink().toWord());
+    int oIDOffset = VM_Entrypoints.traceOIDField.getOffset();
+    bootImage.setAddressWord(jtocImageOffset + oIDOffset, 
+			     VM_MiscHeader.getOID());
+    //-#endif
+
     //
     // Write image to disk.
     //

@@ -71,6 +71,12 @@ if (val2 <= Plan.DEFAULT_POLL_FREQUENCY) VM_Interface.sysFail("Unreasonable stre
 val = val2;
 
 
+V traceFrequencyLog int 0x3fffffff traceRate
+The granularity of the trace being produced.  By default, the trace has the maximum possible granularity.
+int val2 = (val < LOG_BYTES_IN_ADDRESS)? 0 : val - LOG_BYTES_IN_ADDRESS; \
+val = 1<<val2;
+
+
 V gcspyPort int 0
 Port number for GCSpy server to connect with visualiser
 if (val <= 0) VM_Interface.sysFail("Unreasonable gcspy port " + val);

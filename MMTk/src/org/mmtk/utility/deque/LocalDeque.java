@@ -17,19 +17,19 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 
 /**
- * Note this may perform poorly when used as simple (concurrent) FIFO,
- * with interleaved insert and pop operations, in the case where the
- * local buffer is nearly empty and more pops than inserts are
- * performed.
+ * Note this may perform poorly when being used as a FIFO structure with
+ * insertHead and pop operations operating on the same buffer.  This
+ * only uses the fields inherited from <code>LocalQueue</code>, but adds
+ * the ability for entries to be added to the head of the deque and popped
+ * from the rear.
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
-
  */ 
-public class LocalDeque extends LocalSSB 
+public class LocalDeque extends LocalQueue 
   implements Constants, VM_Uninterruptible {
-
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -40,39 +40,24 @@ public class LocalDeque extends LocalSSB
   /**
    * Constructor
    *
-   * @param queue The shared queue to which this local queue will append
+   * @param queue The shared deque to which this local deque will append
    * its buffers (when full or flushed).
    */
   LocalDeque(SharedDeque queue) {
     super(queue);
-    reset();
   }
 
   /**
-   * Flush the buffer to the shared queue (this will make any entries
+   * Flush the buffer to the shared deque (this will make any entries
    * in the buffer visible to any other consumer associated with the
-   * shared queue).
+   * shared deque).
    */
   public final void flushLocal() {
     super.flushLocal();
-    if (!isReset()) 
-      closeAndEnqueueHead(queue.getArity());
+    if (head.NE(Deque.HEAD_INITIAL_VALUE)) {
+      closeAndInsertHead(queue.getArity());
+      head = Deque.HEAD_INITIAL_VALUE;
   }
-
-  /**
-   * Reset the local buffer (throwing away any local entries).
-   */
-  void resetLocal() {
-    super.flushLocal();
-    reset();
-  }
-
-  protected final void reset() {
-    head = VM_Address.zero().add(headSentinel(queue.getArity()));
-  }
-
-  public final boolean isReset() throws VM_PragmaInline {
-    return head.EQ(VM_Address.zero().add(headSentinel(queue.getArity())));
   }
 
   /****************************************************************************
@@ -81,55 +66,57 @@ public class LocalDeque extends LocalSSB
    */
 
   /**
-   * Check whether there is space in the buffer for a pending push.
+   * Check whether there is space in the buffer for a pending insert.
    * If there is not sufficient space, allocate a new buffer
-   * (dispatching the full buffer to the shared queue if not null).
+   * (dispatching the full buffer to the shared deque if not null).
    *
-   * @param arity The arity of the values stored in this queue: the
+   * @param arity The arity of the values stored in this deque: the
    * buffer must contain enough space for this many words.
    */
-  protected final void checkPush(int arity) throws VM_PragmaInline {
-    if (bufferOffset(head).EQ(headSentinel(arity)))
-      pushOverflow(arity);
+  protected final void checkHeadInsert(int arity) throws VM_PragmaInline {
+    if (bufferOffset(head).EQ(bufferSentinel(arity)) || 
+	head.EQ(HEAD_INITIAL_VALUE))
+      headOverflow(arity);
     else if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
   }
   
   /**
-   * Check whether there are sufficient entries in the head buffer for
-   * a pending pop.  If there are not sufficient entries, acquire a
-   * new buffer from the shared queeue. Return true if there are
-   * enough entries for the pending pop, false if the queue has been
-   * exhausted.
-   *
-   * @param arity The arity of the values stored in this queue: there
-   * must be at least this many values available.
-   * @return true if there are enough entries for the pending pop,
-   * false if the queue has been exhausted.
-   */
-  protected final boolean checkPop(int arity) throws VM_PragmaInline {
-    if ((bufferOffset(head).isZero()) || isReset()) {
-      return popOverflow(arity);
-    } else {
-      if (VM_Interface.VerifyAssertions)
-        VM_Interface._assert(bufferOffset(head).sGE(VM_Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
-      return true;
-    }
-  }
-
-  /**
-   * Push a value onto the buffer.  This is <i>unchecked</i>.  The
-   * caller must first call <code>checkPush()</code> to ensure the
-   * buffer can accommodate the insertion.
+   * Insert a value at the front of the deque (and buffer).  This is 
+   * <i>unchecked</i>.  The caller must first call 
+   * <code>checkHeadInsert()</code> to ensure the buffer can accommodate 
+   * the insertion.
    *
    * @param value the value to be inserted.
    */
-  protected final void uncheckedPush(VM_Address value) throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bufferOffset(head).sLE(bufferLastOffset(queue.getArity())));
+  protected final void uncheckedHeadInsert(VM_Address value) 
+    throws VM_PragmaInline {
+      if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
     VM_Magic.setMemoryAddress(head, value);
     head = head.add(BYTES_IN_ADDRESS);
     //    if (VM_Interface.VerifyAssertions) enqueued++;
+  }
+
+  /**
+   * Check whether there are sufficient entries in the tail buffer for
+   * a pending pop.  If there are not sufficient entries, acquire a
+   * new buffer from the shared deque. Return true if there are
+   * enough entries for the pending pop, false if the deque has been
+   * exhausted.
+   *
+   * @param arity The arity of the values stored in this deque: there
+   * must be at least this many values available.
+   * @return True if there are enough entries for the pending pop,
+   * false if the queue has been exhausted.
+   */
+  protected final boolean checkPop(int arity) throws VM_PragmaInline {
+    if (tail.EQ(tailBufferEnd)) {
+      return popUnderflow(arity);
+    } else if (VM_Interface.VerifyAssertions) {
+      VM_Interface._assert(bufferOffset(tail).sLT(bufferSentinel(queue.getArity())));
+    }
+    return true;
   }
 
   /**
@@ -137,112 +124,101 @@ public class LocalDeque extends LocalSSB
    * caller must first call <code>checkPop()</code> to ensure the
    * buffer has sufficient values.
    *
-   * @return the next int in the buffer
+   * @return the next address in the buffer
    */
   protected final VM_Address uncheckedPop() throws VM_PragmaInline {
+    VM_Address retVal;
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bufferOffset(head).sGE(VM_Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
-    head = head.sub(BYTES_IN_ADDRESS);
+      VM_Interface._assert(tail.LT(tailBufferEnd));
     // if (VM_Interface.VerifyAssertions) enqueued--;
-    return VM_Magic.getMemoryAddress(head);
+    retVal = VM_Magic.getMemoryAddress(tail);
+    tail = tail.add(BYTES_IN_ADDRESS);
+    return retVal;
   }
 
   /****************************************************************************
    *
    * Private instance methods and fields
    */
-  private VM_Address head;   // the head buffer
 
   /**
-   * There is no space in the head buffer for a pending push. Allocate
-   * a new buffer and enqueue the existing buffer (if any).
+   * Buffer space has been exhausted, allocate a new buffer and enqueue
+   * the existing buffer (if any).
    *
    * @param arity The arity of this buffer (used for sanity test only).
    */
-  private final void pushOverflow(int arity) throws VM_PragmaNoInline {
-    if (!isReset())
-      closeAndEnqueueHead(arity);
+  private final void headOverflow(int arity) {
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(arity == queue.getArity());
+    if (head.NE(Deque.HEAD_INITIAL_VALUE))
+      closeAndInsertHead(arity);
+
     head = queue.alloc();
     Plan.checkForAsyncCollection(); // possible side-effect of alloc()
   }
 
   /**
    * There are not sufficient entries in the head buffer for a pending
-   * pop.  Acquire a new head buffer.  If the shared queue has no
-   * buffers available, consume the tail if necessary.  Return false
+   * pop.  Acquire a new tail buffer.  If the shared deque has no
+   * buffers available, consume the head if necessary.  Return false
    * if entries cannot be acquired.
    *
    * @param arity The arity of this buffer (used for sanity test only).
-   * @return True if there the head buffer has been successfully
+   * @return True if the buffer has been successfully
    * replenished.
    */
-  private final boolean popOverflow(int arity) throws VM_PragmaNoInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == queue.getArity());
-    VM_Address sentinelAsAddress = VM_Address.zero().add(headSentinel(arity));
+  private final boolean popUnderflow(int arity) throws VM_PragmaNoInline {
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(arity == queue.getArity());
     do {
-      if (!isReset())
-        queue.free(bufferStart(head));
-      VM_Address tmp = queue.dequeue(arity);
-      head = tmp.isZero() ? sentinelAsAddress : tmp;
-    } while (bufferOffset(head).isZero());
+      if (tail.NE(Deque.TAIL_INITIAL_VALUE))
+	queue.free(head);
+      tailBufferEnd = queue.dequeue(arity, true);
+      tail = bufferStart(tailBufferEnd);
+    } while (tail.NE(Deque.TAIL_INITIAL_VALUE) && tail.EQ(tailBufferEnd));
 
-    if (head.EQ(sentinelAsAddress))
-      return consumerStarved(arity);
-    else 
+    if (tail.EQ(Deque.TAIL_INITIAL_VALUE))
+      return !tailStarved(arity);
+
       return true;
   }
 
   /**
-   * Close the head buffer and enqueue it in the shared buffer queue.
+   * Close the head buffer and enqueue it at the front of the 
+   * shared buffer deque.
    *
-   * @param arity The arity of this buffer (used for sanity test only).
+   *  @param arity The arity of this buffer.
    */
-  private final void closeAndEnqueueHead(int arity) throws VM_PragmaNoInline {
+  private final void closeAndInsertHead(int arity) throws VM_PragmaInline {
     queue.enqueue(head, arity, false);
-    reset();
   }
 
   /**
-   * The head is empty (or null), and the shared queue has no buffers
-   * available.  If the tail has sufficient entries, consume the tail.
-   * Otherwise try wait on the global queue until either all other
-   * clients of the queue reach exhaustion or a buffer becomes
+   * The tail is empty (or null), and the shared deque has no buffers
+   * available.  If the head has sufficient entries, consume the head.
+   * Otherwise try wait on the shared deque until either all other
+   * clients of the reach exhaustion or a buffer becomes
    * available.
    *
    * @param arity The arity of this buffer  
-   * @return True if more entires were aquired.
+   * @return True if the consumer has eaten all of the entries
    */
-  private final boolean consumerStarved(int arity) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == queue.getArity());
-    VM_Address sentinelAsAddress = VM_Address.zero().add(headSentinel(arity)); 
-    if (bufferOffset(tail).sGE(VM_Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset())) {
-      // entries in tail, so consume tail
-      if (isReset()) {
-        head = queue.alloc(); // no head, so alloc a new one
-        Plan.checkForAsyncCollection(); // possible side-effect of alloc()
-      }
-      VM_Address tmp = head;
-      head = normalizeTail(arity).add(BYTES_IN_ADDRESS);// account for pre-decrement
+  private final boolean tailStarved(int arity) {
       if (VM_Interface.VerifyAssertions)
-        VM_Interface._assert(tmp.EQ(bufferStart(tmp)));
-      tail = tmp.add(bufferLastOffset(arity)).add(BYTES_IN_ADDRESS);
-    } else {
-      VM_Address tmp = queue.dequeueAndWait(arity);
-      head = (tmp.isZero() ? sentinelAsAddress : tmp);
-    }
-    // return true if a) there is a head buffer, and b) it is non-empty
-    return ((!isReset()) && (!(bufferOffset(head).isZero())));
+      VM_Interface._assert(arity == queue.getArity());
+    // entries in tail, so consume tail
+    if (!bufferOffset(head).isZero()) {
+      tailBufferEnd = head;
+      tail = bufferStart(tailBufferEnd);
+      head = Deque.HEAD_INITIAL_VALUE;
+      return false;
   }
 
-  /**
-   * Return the sentinel value used for testing whether a head buffer
-   * is full.  This value is a funciton of the arity of the buffer.
-   * 
-   * @param arity The arity of this buffer  
-   * @return The sentinel offset value for head buffers, used to test
-   * whether a head buffer is full.
-   */
-  private final VM_Offset headSentinel(int arity) throws VM_PragmaInline {
-    return bufferLastOffset(arity).add(BYTES_IN_ADDRESS);
+    // Wait for another entry to materialize...
+    tailBufferEnd = queue.dequeueAndWait(arity, true);
+    tail = bufferStart(tail);
+
+    // return true if a) there is not a tail buffer or b) it is empty
+    return (tail.EQ(Deque.TAIL_INITIAL_VALUE) || tail.EQ(tailBufferEnd));
   }
 }

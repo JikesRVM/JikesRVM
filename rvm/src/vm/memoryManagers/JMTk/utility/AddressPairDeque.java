@@ -47,9 +47,9 @@ public class AddressPairDeque extends LocalDeque implements Constants, VM_Uninte
   public final void insert(VM_Address addr1, VM_Address addr2) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
-    checkInsert(2);
-    uncheckedInsert(addr1);
-    uncheckedInsert(addr2);
+    checkTailInsert(2);
+    uncheckedTailInsert(addr1);
+    uncheckedTailInsert(addr2);
   }
  
   /**
@@ -61,9 +61,9 @@ public class AddressPairDeque extends LocalDeque implements Constants, VM_Uninte
   public final void push(VM_Address addr1, VM_Address addr2) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
-    checkPush(2);
-    uncheckedPush(addr2);
-    uncheckedPush(addr1);
+    checkHeadInsert(2);
+    uncheckedHeadInsert(addr2);
+    uncheckedHeadInsert(addr1);
   }
 
   /**
@@ -74,8 +74,8 @@ public class AddressPairDeque extends LocalDeque implements Constants, VM_Uninte
    * queue is empty
    */
   public final VM_Address pop1() {
-     if (checkPop(2))
-      return uncheckedPop();
+     if (checkDequeue(2))
+      return uncheckedDequeue();
     else
       return VM_Address.zero();
   }
@@ -86,10 +86,10 @@ public class AddressPairDeque extends LocalDeque implements Constants, VM_Uninte
    * @return The next address in the address queue
    */
   public final VM_Address pop2() {
-    return uncheckedPop();
+    return uncheckedDequeue();
   }
 
   public final boolean isEmpty() {
-    return !checkPop(2);
+    return !checkDequeue(2);
   }
 }

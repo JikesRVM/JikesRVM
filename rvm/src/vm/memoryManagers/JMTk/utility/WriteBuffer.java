@@ -44,8 +44,8 @@ class WriteBuffer extends LocalSSB implements Constants, VM_Uninterruptible {
    */
   public final void insert(VM_Address addr)
     throws VM_PragmaNoInline {
-    checkInsert(1);
-    uncheckedInsert(addr);
+    checkTailInsert(1);
+    uncheckedTailInsert(addr);
   }
   private static boolean inWB = false;
 }

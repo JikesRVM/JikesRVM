@@ -474,6 +474,44 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   }
 
   /**
+   * Triggers a collection without allowing for a thread switch.  This is needed
+   * for Merlin lifetime analysis used by trace generation 
+   *
+   * @param why the reason why a collection was triggered.  0 to
+   * <code>TRIGGER_REASONS - 1</code>.
+   */
+  public static final void triggerCollectionNow(int why) 
+    throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
+    Plan.collectionInitiated();
+
+    if (Options.verbose >= 4) {
+      VM.sysWriteln("Entered VM_Interface.triggerCollectionNow().  Stack:");
+      VM_Scheduler.dumpStack();
+    }
+    if (why == EXTERNAL_GC_TRIGGER) {
+      Plan.userTriggeredGC();
+      if (Options.verbose == 1 || Options.verbose == 2) 
+	VM.sysWrite("[Forced GC]");
+    }
+    if (Options.verbose > 2) 
+      VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
+    int sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
+    long start = VM_Time.cycles();
+    VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
+    long end = VM_Time.cycles();
+    double gcTime = VM_Time.cyclesToMillis(end - start);
+    if (Options.verbose > 2) 
+      VM.sysWriteln("Collection finished (ms): ", gcTime);
+
+    if (Plan.isLastGCFull() && 
+	sizeBeforeGC == HeapGrowthManager.getCurrentHeapSize()) 
+      checkForExhaustion(why, false);
+    
+    Plan.checkForAsyncCollection();
+  }
+
+  /**
    * Trigger an asynchronous collection, checking for memory
    * exhaustion first.
    */
@@ -1126,6 +1164,21 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   public static byte getArrayNoBarrier(byte [] src, int index) {
     if (runningVM())
       return VM_Magic.getByteAtOffset(src, index);
+    else
+      return src[index];
+  }
+
+  /**
+   * Gets an element of an array of byte arrays without causing the potential
+   * thread switch point that array accesses normally cause.
+   *
+   * @param src the source array
+   * @param index the index of the element to get
+   * @return the new value of element
+   */
+  public static byte[] getArrayNoBarrier(byte[][] src, int index) {
+    if (runningVM())
+      return VM_Magic.addressAsByteArray(VM_Magic.objectAsAddress(VM_Magic.getObjectAtOffset(src, index << LOG_BYTES_IN_ADDRESS)));
     else
       return src[index];
   }

@@ -57,6 +57,7 @@ public abstract class BasePlan
   public static final boolean SUPPORTS_PARALLEL_GC = true;
   public static final boolean MOVES_TIBS = false;
   public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
+  public static final boolean GENERATE_GC_TRACE = false;
 
   private static final int MAX_PLANS = 100;
   protected static Plan [] plans = new Plan[MAX_PLANS];
@@ -109,7 +110,7 @@ public abstract class BasePlan
 
   // Miscellaneous constants
   public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
-  private static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
+  protected static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final int DEFAULT_LOS_SIZE_THRESHOLD = 16 * 1024;
   public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
@@ -188,6 +189,8 @@ public abstract class BasePlan
    * allocation.
    */
   public static void boot() throws VM_PragmaInterruptible {
+    if (Plan.GENERATE_GC_TRACE)
+      TraceGenerator.boot(BOOT_START);
   }
 
   /**
@@ -337,7 +340,6 @@ public abstract class BasePlan
    * location is within the object being scanned by ScanObject.
    */
   public void enumeratePointerLocation(VM_Address location) {}
-
   // XXX Javadoc comment missing.
   public static boolean willNotMove(VM_Address obj) {
     return !VMResource.refIsMovable(obj);
@@ -508,6 +510,56 @@ public abstract class BasePlan
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
 
+  /****************************************************************************
+   *
+   * GC trace generation support methods
+   */
+
+  /**
+   * Return true if <code>obj</code> is in a space known to the class and
+   * is reachable.
+   *  
+   * <i> For this method to be accurate, collectors must override this method
+   * to define results for the spaces they create.</i>
+   *
+   * @param obj The object in question
+   * @return True if <code>obj</code> is a reachable object in a space known by
+   *         the class; unreachable objects may still be live, however.  False 
+   *         will be returned if it cannot be determined if the object is 
+   *         reachable (e.g., resides in a space unknown to the class).
+   */
+  public boolean isReachable(VM_Address obj) {
+    if (obj.isZero()) return false;
+    VM_Address addr = VM_Interface.refToAddress(obj);
+    byte space = VMResource.getSpace(addr);
+    switch (space) {
+    case IMMORTAL_SPACE:  return ImmortalSpace.isReachable(obj);
+    case BOOT_SPACE:      return ImmortalSpace.isReachable(obj);
+    default:
+      if (VM_Interface.VerifyAssertions) {
+	VM_Interface.sysFail("BasePlan.isReachable given object from unknown space");
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Follow a reference during GC.  This involves determining which
+   * collection policy applies and getting the final location of the object
+   *
+   * <i> For this method to be accurate, collectors must override this method
+   * to define results for the spaces they create.</i>   
+   *
+   * @param obj The object reference to be followed.  This is <i>NOT</i> an
+   * interior pointer.
+   * @return The possibly moved reference.
+   */
+  public static VM_Address followObject(VM_Address obj) {
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+    return VM_Address.zero();
+  }
+  
   /****************************************************************************
    *
    * Space management
@@ -747,6 +799,8 @@ public abstract class BasePlan
     }
     if (Options.verboseTiming) printDetailedTiming(true);
     planExit(value);
+    if (Plan.GENERATE_GC_TRACE)
+      TraceGenerator.notifyExit(value);
   }
 
   protected void printDetailedTiming(boolean totals) {}
@@ -759,6 +813,14 @@ public abstract class BasePlan
    */
   protected void planExit(int value) {}
 
+  /**
+   * Specify if the plan has been fully initialized
+   *
+   * @return True if the plan has been initialized
+   */
+  public static boolean initialized() {
+    return initialized;
+  }
 
   /****************************************************************************
    *

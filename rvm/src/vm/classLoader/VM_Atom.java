@@ -415,6 +415,14 @@ public final class VM_Atom implements VM_ClassLoaderConstants {
   }
 
   /**
+   * Return the underlying set of bytes for the VM_Atom.  This can be used
+   * to perform comparisons without requiring the allocation of a string.
+   */ 
+  public final byte[] getBytes() throws VM_PragmaUninterruptible {
+    return val;
+  }
+
+  /**
    * Parse "this" field, parameter, or return descriptor to obtain its 
    * type code.
    * this: descriptor - something like "Ljava/lang/String;" or "[I" or "I"

@@ -91,7 +91,7 @@ implements VM_Uninterruptible, VM_Constants {
   /**
    * Is it ok to switch to a new VM_Thread in this processor?
    */ 
-  boolean threadSwitchingEnabled() throws VM_PragmaInline {
+  public boolean threadSwitchingEnabled() throws VM_PragmaInline {
     return threadSwitchingEnabledCount == 1;
   }
 

@@ -808,11 +808,23 @@ extern "C" void processTimerTick(void) {
      * just appear to be hung. 
      */
     if (longest_stuck_ticks >= 500 && (longest_stuck_ticks % 50) == 0) {
+      /* When performing tracing, delays will often last more than 5
+       * seconds and can take much, much longer (on a fairly fast
+       * machine I've seen delays above 1 minute).  This is due to a
+       * GC possibly needing to include additional processing and
+       * outputting a large amount of information which will
+       * presumably be saved.  Unfortunately, these warnings will appear
+       * in the midst of the trace and cause them to be very difficult to
+       * parse.  As this is a normal condition during tracing, and causes
+       * a lot of problems to tracing, we elide the warning.
+       */
+#if (!defined RVM_FOR_GCTRACE)
         fprintf(stderr, "%s: WARNING: Virtual processor has ignored"
                 " timer interrupt for %d ms.\n", 
                 Me, getTimeSlice_msec() * longest_stuck_ticks);
         fprintf(stderr, "This may indicate that a blocking system call"
                 " has occured and the JVM is deadlocked\n");
+#endif
     }
 #endif
 }

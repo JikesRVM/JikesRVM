@@ -14,6 +14,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Barrier;
 import com.ibm.JikesRVM.memoryManagers.JMTk.VMResource;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
+import com.ibm.JikesRVM.memoryManagers.JMTk.TraceGenerator;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Memory;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
@@ -111,6 +112,12 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * zeroed is desired.
    */
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
+
+  /**
+   * <code>true</code> if the memory manager will generate a garbage
+   * collection trace of the run.
+   */
+  public static final boolean GENERATE_GC_TRACE = Plan.GENERATE_GC_TRACE;
 
   /** Used by mmtypes for arrays */
   private static final int [] zeroLengthIntArray = new int [0];

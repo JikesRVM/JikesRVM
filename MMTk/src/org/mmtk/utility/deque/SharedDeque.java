@@ -9,6 +9,9 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_AddressArray;
+import com.ibm.JikesRVM.VM_Offset;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -16,18 +19,18 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
 
 /**
- * This supports <i>unsynchronized</i> enqueuing and dequeuing of
- * address pairs
+ * This supports <i>unsynchronized</i> enqueuing and dequeuing of buffers
+ * for shared use.  The data can be added to and removed from either end
+ * of the deque.  
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @author <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  * @version $Revision$
  * @date $Date$
  */ 
-public class SharedDeque extends Deque 
-  implements Constants, VM_Uninterruptible {
+public class SharedDeque extends Deque implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  
   /****************************************************************************
    *
    * Public instance methods
@@ -42,6 +45,8 @@ public class SharedDeque extends Deque
     this.arity = arity;
     lock = new Lock("SharedDeque");
     completionFlag = 0;
+    head = HEAD_INITIAL_VALUE;
+    tail = TAIL_INITIAL_VALUE;
   }
 
   final boolean complete() {
@@ -53,20 +58,23 @@ public class SharedDeque extends Deque
   final void enqueue(VM_Address buf, int arity, boolean toTail) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(arity == this.arity);
-
     lock();
     if (toTail) {
       // Add to the tail of the queue
       setNext(buf, VM_Address.zero());
-      if (tail.isZero())
+      if (tail.EQ(TAIL_INITIAL_VALUE))
         head = buf;
       else
         setNext(tail, buf);
+      setPrev(buf, tail);
       tail = buf;
     } else {
       // Add to the head of the queue
-      if (head.isZero())
+      setPrev(buf, VM_Address.zero());
+      if (head.EQ(HEAD_INITIAL_VALUE))
         tail = buf;
+      else
+	setPrev(head, buf);
       setNext(buf, head);
       head = buf;
     } 
@@ -85,18 +93,26 @@ public class SharedDeque extends Deque
     }
   }
 
-  final VM_Address dequeue(int arity) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(arity == this.arity);
-    return dequeue(false);
+  final VM_Address dequeue(int arity) throws VM_PragmaInline {
+    return dequeue(arity, false);
   }
 
-  final VM_Address dequeueAndWait(int arity) {
+  final VM_Address dequeue(int arity, boolean fromTail) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(arity == this.arity);
-    VM_Address buf = dequeue(false);
+    return dequeue(false, fromTail);
+  }
+
+  final VM_Address dequeueAndWait(int arity) throws VM_PragmaInline {
+    return dequeueAndWait(arity, false);
+  }
+
+  final VM_Address dequeueAndWait(int arity, boolean fromTail) {
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(arity == this.arity);
+    VM_Address buf = dequeue(false, fromTail);
     while (buf.isZero() && (completionFlag == 0)) {
-      buf = dequeue(true);
+      buf = dequeue(true, fromTail);
     }
     return buf;  
   }
@@ -138,17 +154,18 @@ public class SharedDeque extends Deque
   private int completionFlag; //
   private int numClients; //
   private int numClientsWaiting; //
-  private VM_Address head;
-  private VM_Address tail;
+  protected VM_Address head;
+  protected VM_Address tail;
   private int bufsenqueued;
   private Lock lock;
 
   
-  private final VM_Address dequeue(boolean waiting) {
+  private final VM_Address dequeue(boolean waiting, boolean fromTail) {
     lock();
-    VM_Address rtn = VM_Address.zero();
-    if (head.isZero()) {
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(tail.isZero());
+    VM_Address rtn = ((fromTail) ? tail : head);
+    if (rtn.isZero()) {
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface._assert(tail.isZero() && head.isZero());
       // no buffers available
       if (waiting) {
         setNumClientsWaiting(numClientsWaiting + 1);
@@ -156,12 +173,24 @@ public class SharedDeque extends Deque
           setCompletionFlag(1);
       }
     } else {
+      if (fromTail) {
+	// dequeue the tail buffer
+	setTail(getPrev(tail));	
+	if (head.EQ(rtn)) {
+	  setHead(VM_Address.zero());
+	  if (VM_Interface.VerifyAssertions) VM_Interface._assert(tail.isZero());
+	} else {
+	  setNext(tail, VM_Address.zero());
+	}
+      } else {
       // dequeue the head buffer
-      rtn = head;
       setHead(getNext(head));
       if (tail.EQ(rtn)) {
         setTail(VM_Address.zero());
         if (VM_Interface.VerifyAssertions) VM_Interface._assert(head.isZero());
+	} else {
+	  setPrev(head, VM_Address.zero());
+	}
       }
       bufsenqueued--;
       if (waiting)
@@ -187,8 +216,28 @@ public class SharedDeque extends Deque
    * @param bufRef The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
-  private final VM_Address getNext(VM_Address buf) {
+  protected final VM_Address getNext(VM_Address buf) {
     return VM_Magic.getMemoryAddress(buf);
+  }
+
+  /**
+   * Set the "prev" pointer in a buffer forming the linked buffer chain.
+   *
+   * @param bufRef The buffer whose next field is to be set.
+   * @param next The reference to which next should point.
+   */
+  private final void setPrev(VM_Address buf, VM_Address prev) {
+    VM_Magic.setMemoryAddress(buf.add(BYTES_IN_ADDRESS), prev);
+  }
+
+  /**
+   * Get the "next" pointer in a buffer forming the linked buffer chain.
+   *
+   * @param bufRef The buffer whose next field is to be returned.
+   * @return The next field for this buffer.
+   */
+  protected final VM_Address getPrev(VM_Address buf) {
+    return VM_Magic.getMemoryAddress(buf.add(BYTES_IN_ADDRESS));
   }
 
   /**

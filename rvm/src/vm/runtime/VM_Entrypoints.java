@@ -128,6 +128,8 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field threadContextRegistersField     = getField("Lcom/ibm/JikesRVM/VM_Thread;", "contextRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
   public static final VM_Field threadHardwareExceptionRegistersField = getField("Lcom/ibm/JikesRVM/VM_Thread;", "hardwareExceptionRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
 
+  public static final VM_Field tracePrevAddressField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "prevAddress", "I");
+  public static final VM_Field traceOIDField = getField("Lcom/ibm/JikesRVM/VM_MiscHeader;", "oid", "Lcom/ibm/JikesRVM/VM_Word;");
   public static final VM_Field dispenserField = getField("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/Lock;", "dispenser","I");
   public static final VM_Field servingField = getField("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/Lock;", "serving","I");
   public static final VM_Field lockThreadField = getField("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/Lock;", "thread","Lcom/ibm/JikesRVM/VM_Thread;");
@@ -139,7 +141,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field SQNCWField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedDeque;", "numClientsWaiting","I");
   public static final VM_Field SQheadField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedDeque;", "head","Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field SQtailField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedDeque;", "tail","Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_Field LQheadField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/LocalDeque;", "head","Lcom/ibm/JikesRVM/VM_Address;");
+  public static final VM_Field LQheadField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/LocalQueue;", "head","Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field SQBEField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedDeque;", "bufsenqueued","I");
   public static final VM_Field synchronizedCounterField = getField("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/SynchronizedCounter;", "count", "I");
   public static final VM_NormalMethod arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/MM_Interface;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
@@ -263,6 +265,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field classLoaderDefinedPackages = getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/Map;");
 
   static {
+
     // Don't mark the following as runtime serivce methods;
     // they are included in VM_Entrypoints for other reasons
     // than being called under-the-covers from generated code.

@@ -119,4 +119,18 @@ final class ImmortalSpace extends BasePolicy
     return true;
   }
 
+  /**
+   * Returns if the object in question is currently thought to be reachable.  
+   * This is done by comparing the mark bit to the current mark state. For the 
+   * immortal collector reachable and live are different, making this method
+   * necessary.
+   *
+   * @param ref The address of an object in immortal space to test
+   * @return True if <code>ref</code> may be a reachable object (e.g., having
+   *         the current mark state).  While all immortal objects are live,
+   *         some may be unreachable.
+   */
+  public static boolean isReachable(VM_Address ref) {
+    return (VM_Interface.readAvailableBitsWord(ref).and(GC_MARK_BIT_MASK).EQ(immortalMarkState));
+  }
 }
