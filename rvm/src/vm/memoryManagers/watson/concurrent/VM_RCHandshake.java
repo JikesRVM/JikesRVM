@@ -16,7 +16,7 @@
  */
 class VM_RCHandshake extends VM_Handshake implements VM_Uninterruptible
 {
-    private static final boolean trace = true;
+    private static final boolean trace = false;
     //    private boolean requestFlag;
     //    private boolean completionFlag;
    

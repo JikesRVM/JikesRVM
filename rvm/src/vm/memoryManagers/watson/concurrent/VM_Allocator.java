@@ -165,7 +165,7 @@ public class VM_Allocator
     // Tracing/Debugging
 
     static final boolean GC_TRIGGERGC = false;	    // for knowing why GC triggered
-    static final boolean GC_TRACEALLOCATOR = true; // for tracing RCGC
+    static final boolean GC_TRACEALLOCATOR = false; // for tracing RCGC
     static final boolean GC_TRACEALLOCATOR_DETAIL = false; // for detailed tracing RCGC
     static final boolean GC_MARK_REACHABLE_OBJECTS = false; // check if freeing reachable obj
     static final boolean GC_MARK_REACHABLE_OBJECTS_DETAIL = false; // check if freeing reachable obj
@@ -498,7 +498,7 @@ public class VM_Allocator
 
 	    println("HEAP AFTER CLEANUP");  heapInfo();
 	}
-	else {
+	else if (GC_TRACEALLOCATOR) {
 	    println("HEAP STATUS");  heapInfo();
 	}
 
@@ -1750,7 +1750,7 @@ public class VM_Allocator
 	//
 	VM_CollectorThread.collect(VM_CollectorThread.collect);
 
-	if (GC_TIMING) {
+	if (GC_TIMING && GC_TRACEALLOCATOR) {
 	    time = VM_Time.now() - time;
 	    VM_Scheduler.trace("GC time at mutator","(millisec)",(int)(time*1000.0));
 	}

@@ -15,7 +15,7 @@ public abstract class VM_ChildVisitor
 
     protected final boolean ignorePrimitiveTypes = false;
 
-    private static final boolean measureDepth = true;
+    private static final boolean measureDepth = false;
     private static int depth;
 
     public final boolean visitChildren(int object) {
