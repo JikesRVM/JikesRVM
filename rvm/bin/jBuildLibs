@@ -24,7 +24,7 @@ cat <<EOF
 usage: $ME [--installOnly]
 Build the RVM standard libraries, rvmrt.jar, from the java source files.
 --installOnly don't build, just tell the rvm to use the rvmrt.jar in
-              \$RVM_ROOT/support/libs, whereever that might have come from.
+              \$RVM_ROOT/support/lib, whereever that might have come from.
 EOF
   exit $1
 }
