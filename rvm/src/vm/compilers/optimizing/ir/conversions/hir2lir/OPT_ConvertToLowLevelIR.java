@@ -96,7 +96,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  OPT_LocationOperand loc = GetStatic.getClearLocation(s);
 	  VM_Field field = loc.field;
 	  OPT_RegisterOperand result = GetStatic.getClearResult(s);
-	  OPT_RegisterOperand address = ir.regpool.makeJTOCOp(ir,s);
+	  OPT_Operand address = ir.regpool.makeJTOCOp(ir,s);
 	  OPT_Operand offset;
 	  if (s.operator() == GETSTATIC_UNRESOLVED) {
 	    offset = resolve(loc, s, ir, false);
@@ -113,7 +113,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  OPT_LocationOperand loc = PutStatic.getClearLocation(s);
 	  VM_Field field = loc.field;
 	  OPT_Operand value = PutStatic.getClearValue(s);
-	  OPT_RegisterOperand address = ir.regpool.makeJTOCOp(ir,s);
+	  OPT_Operand address = ir.regpool.makeJTOCOp(ir,s);
 	  OPT_Operand offset;
 	  if (s.operator() == PUTSTATIC_UNRESOLVED) {
 	    offset = resolve(loc, s, ir, false);
