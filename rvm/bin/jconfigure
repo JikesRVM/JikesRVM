@@ -454,7 +454,12 @@ do
 	    exit 0; ;;
 	-D )
  	    shift
-	    eval "export $1";;
+	    export "$1";;
+	
+	-D* )
+	    arg="$1";
+	    arg="${arg#-D}"	# trim off the leading -D
+	    export "$arg" ;;
 	
 	-quiet|--quiet ) 
 	    quiet=1;;
@@ -1167,6 +1172,7 @@ function emitController () {
 	    shift
 	done
 
+	cd $RVM_BUILD
 	
 	if [[ \$BOOTER_FLAG = -booter ]]; then
 	  . ./environment.target
