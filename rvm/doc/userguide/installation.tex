@@ -20,8 +20,10 @@ running Eclipse on Jikes RVM}%
 \subsection{Installing on Red Hat Linux 7.3, 8.x, and 9.0, or SuSE Linux 8.x and 9.0 for~Intel~x86}
 
 Red~Hat\TMboth{} Linux\Rboth{} for Intel\Rboth{} IA-32 and AMD\Rboth{} x86-32 has emerged as the 
-primary platform for Jikes\TMweb{} RVM.\@  SuSE\Rboth{} Linux is also in daily use
-by one of the Jikes RVM core team members.
+primary platform for Jikes\TMweb{} RVM.\@ 
+%% %% No longer true for me --Steve Augart, 28 September 2004
+%% SuSE\Rboth{} Linux is also in daily use
+%% by one of the Jikes RVM core team members.
 If you have either a developer or full install of Red~Hat
 Linux~7.3 or later, your system has almost everything you need
 to run Jikes RVM.\@  The following instructions describe how to install
@@ -73,8 +75,8 @@ CD in the package {\tt jikes}.
 
 We have had mixed experiences with different releases of the Jikes
 compiler. Versions 1.13 and 1.18 are known to work for building Jikes
-RVM. Versions 1.14 through 1.17 and 1.20 are known to {\em not}\/
-work. Version 1.19 has worked for many people, but we have had
+RVM. Versions 1.14 through 1.17, 1.20, and 1.21 are known {\em not}\/ to
+work.  Version 1.19 has worked for many people, but we have had
 problems reported on OSX. 
 
 
@@ -82,8 +84,11 @@ problems reported on OSX.
 {\tt jikes-1.15} in
 particular --- installed by default with SuSE Linux 8.1 --- has a
 byte-code generation bug that will cause Jikes RVM to crash with an
-{\tt ArrayIndexOutOfBounds} exception.  {\tt jikes-1.13}, as of the last
-time we tried it (August 8, 2003) works fine, and sometimes generates
+{\tt ArrayIndexOutOfBounds} exception.  Jikes 1.21 dumps core with an assertion failure when it
+builds Jikes RVM.
+
+{\tt jikes-1.13}, as of the last
+time we tried it (September 28, 2004) works fine, and sometimes generates
 better error messages than {\tt jikes-1.18}.
 \end{small}
 
@@ -97,18 +102,25 @@ hereinafter call the location of the unpacked RVM distribution {\tt
 \index{GNU Classpath: Java class libraries}%
 \index{Classpath, GNU: Java class libraries}%
 \item You will need version \classpathversion{} of the GNU
-Classpath libraries.  The cvs head of Jikes RVM also works with the
-cvs head of GNU Classpath and with GNU Classpath 0.09 on Linux/IA32.
-However, we are currently recommending that users do not upgrade to
-Classpath 0.09.  There is a severe performance problem with Classpath
-0.09's I/O layer and Classpath 0.09 does not compile out-of-the-box on
-AIX.  We hope that these issues will be resolved for Classpath 0.10.
+Classpath libraries.  
+Jikes RVM (both CVS head and release) does not work with GNU Classpath
+0.11, nor with Classpath CVS head, as of this writing, 28 September
+2004.  Steven Augart is working to remedy that deficiency and expects
+to have it fixed soon. 
+%% The cvs head of Jikes RVM normally also works with the
+%% cvs head of GNU Classpath and with GNU Classpath 0.09 on Linux/IA32.
+%% However, we are currently recommending that users do not upgrade to
+%% Classpath 0.09.  There is a severe performance problem with Classpath
+%% 0.09's I/O layer and Classpath 0.09 does not compile out-of-the-box on
+%% AIX.  We hope that these issues will be resolved for Classpath 0.10.
 The Jikes RVM build process can automatically download, 
 configure, and build the appropriate version of Classpath for you.
 
 This has historically sometimes led to confusion on the part of the
-person installing Jikes RVM.\@  We expect to have these glitches ironed
-out before the next release.  If you have any difficulty, look \AtManualClasspathRootDiscussion{}
+person installing Jikes RVM.\@  
+%% We expect to have these glitches ironed
+%% out before the next release.  
+If you have any difficulty, look \AtManualClasspathRootDiscussion{}
 
 \item Edit a configuration file so that it fits your machine.  One of
 the {\tt i686-pc-linux} files in {\tt \$RVM\_\-ROOT/rvm/config} will probably be
