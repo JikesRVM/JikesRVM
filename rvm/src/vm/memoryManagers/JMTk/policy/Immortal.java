@@ -78,7 +78,8 @@ final class Immortal extends BasePolicy implements Constants, VM_Uninterruptible
   }
 
   static final int GC_MARK_BIT_MASK    = 0x1;
-  private static int immortalMarkState = 0x0;
+  private static int immortalMarkState = 0x0; // when GC off, the initialization value
+
 
   /**
    * Trace a reference to an object under an immortal collection
@@ -93,6 +94,10 @@ final class Immortal extends BasePolicy implements Constants, VM_Uninterruptible
     if (testAndMark(object, immortalMarkState)) 
       VM_Interface.getPlan().enqueue(object);
     return object;
+  }
+
+  public static void postAlloc (Object object) throws VM_PragmaInline {
+    writeMarkBit (object, immortalMarkState);
   }
 
   /**
