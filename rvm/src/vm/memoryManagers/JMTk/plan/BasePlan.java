@@ -132,6 +132,7 @@ public abstract class BasePlan
    * boot is called.
    */
   public static void postBoot() {
+    if (verbose > 2) VMResource.showAll();
   }
 
 
