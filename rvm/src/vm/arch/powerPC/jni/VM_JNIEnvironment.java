@@ -4,10 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.jni;
 
-import java.lang.reflect.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.classloader.*;
 
 /**
  * Platform dependent aspects of the JNIEnvironment.
