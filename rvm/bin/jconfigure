@@ -1055,17 +1055,28 @@ declare -i RVM_WITH_OWN_JAVA_LANG_CLASS=1
 ## On that platform, there is difficulty building Classpath 0.12, so we
 ## use Classpath 0.10.
 
+## Used on OSX/Darwin
 declare -i RVM_WITH_CLASSPATH_0_10=0
 
+## Should work.  It's always possible that CVS head has drifted away from
+## working with it, though, since we don't do nightly tests.
 declare -i RVM_WITH_CLASSPATH_0_11=0
 
+## We are running most of our regression tests against Classpath 0.12
 declare -i RVM_WITH_CLASSPATH_0_12=0
 
-## Classpath 0.13 does not work yet -- we crash during boot image writing
-## time with a weird message.
+## Classpath 0.13 will work just fine.   However, there is a code generation
+## bug in version 1.19 of the Jikes Compiler such that it builds a 
+## broken version of Classpath 0.13 that we can't boot with.
+## You can build Classpath with Jikes 1.22 and then build Jikes RVM with 
+## Jikes 1.19, though -- that will work fine. 
+##
+## If you build Classpath 0.13 with GCJ 3.3.1 (at least), that won't work
+## -- when you then try to build Jikes RVM with Jikes 1.19, it 
+## triggers an assertion failure in Jikes 1.19.  
 declare -i RVM_WITH_CLASSPATH_0_13=0
 
-## CVS Head, as of January 13, 2005, does, however.
+## Classpath's CVS Head, as of January 15, 2005, runs just fine.
 declare -i RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
