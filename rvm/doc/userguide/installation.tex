@@ -67,10 +67,16 @@ JVM and will not suffice for building Jikes RVM.\@
 compiler, if you have not already 
 done so (it is included in the standard SuSE Linux install, but not in
 the standard Red Hat Linux install).  You can 
-obtain Jikes from \xlink{the Jikes developerWorks site}{\jikesURL}.
-Use the pre-built RPM file for {\tt jikes-1.18} or higher.   
+obtain Jikes from \xlink{the Jikes developerWorks site}{\jikesURL};
+use the pre-build RPM file.
 If you're using SuSE Linux~8.2 or newer, Jikes~1.18 is on the install
 CD in the package {\tt jikes}.
+
+We have had mixed experiences with different releases of the Jikes
+compiler. Versions 1.13 and 1.18 are known to work for building Jikes
+RVM. Versions 1.14 through 1.17 and 1.20 are known to {\em not}\/
+work. Version 1.19 has worked for many people, but we have had
+problems reported on OSX. 
 
 
 \begin{small}
@@ -183,7 +189,7 @@ GNU make       & 3.79+    & \xlink{\tt \makeURL}{\makeURL}         \\
 GNU tar        & 1.13+    & \xlink{\tt \tarURL}{\tarURL}           \\ 
 {\tt gcc}            & 2.95+    & \xlink{\tt \gccURL}{\gccURL}           \\
 {\tt unzip}          & 5.50+    & \xlink{\tt \unzipURL}{\unzipURL}       \\
-Jikes\TMweb{} Compiler & 1.18+ or 1.13 & \xlink{\tt \jikesURL}{\jikesURL}       \\
+Jikes\TMweb{} Compiler & 1.19, 1.18 or 1.13 & \xlink{\tt \jikesURL}{\jikesURL}       \\
 Yacc or Bison &	{\it any} & \xlink{\tt \bisonURL}{\bisonURL} \\
 \hline
 \hline \multicolumn{3}{|c|}{\em If \link{automatically Building GNU
