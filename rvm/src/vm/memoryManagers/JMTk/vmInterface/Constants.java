@@ -16,10 +16,15 @@ import com.ibm.JikesRVM.VM_JavaHeader;
 public interface Constants {
   static final int MAX_INT = 0x7fffffff;
 
+  //-#if RVM_FOR_32_ADDR
   static final int LOG_ADDRESS_SPACE = 32;
+  static final int LOG_WORD_SIZE = 2;
+  //-#elif RVM_FOR_64_ADDR
+  static final int LOG_ADDRESS_SPACE = 64;
+  static final int LOG_WORD_SIZE = 3;
+  //-#endif
   static final int LOG_BYTE_BITS = 3;
   static final int BYTE_BITS = 1<<LOG_BYTE_BITS;
-  static final int LOG_WORD_SIZE = 2;
   static final int WORD_SIZE = 1<<LOG_WORD_SIZE;
   static final int LOG_WORD_BITS = LOG_BYTE_BITS + LOG_WORD_SIZE;
   static final int WORD_BITS = 1<<LOG_WORD_BITS;
