@@ -1,12 +1,14 @@
 BaseBaseSemispace -test-list nightly-tests
-BaseBaseMarkSweep -test-list nightly-tests-with-jdp
+BaseBaseMarkSweep -test-list nightly-tests
+BaseBaseUPMarkSweep -test-list nightly-tests-just-jdp
+OptOptUPSemispace -test-list nightly-tests-just-jdp
 BaseBaseHybrid -test-list nightly-tests
 BaseBaseCopyGen -test-list nightly-tests 
 BaseBaseCopyGenVariable -test-list nightly-tests 
 BaseBaseConcurrent -test-list nightly-tests-BaseBaseConcurrent
 BaseAdaptiveSemispace -test-list nightly-tests-short
 FullOptMarkSweep -use-opt-levels "O0 O1 O2" -test-list nightly-tests
-FullOptCopyGenVariable -test-list nightly-tests-with-jdp
+FullOptCopyGenVariable -test-list nightly-tests
 FullOptHybrid -test-list nightly-tests
 FullAdaptiveSemispace -test-list nightly-tests
 FastSemispace -test-list nightly-tests-short

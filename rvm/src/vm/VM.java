@@ -536,6 +536,9 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value  value to pass to host o/s
    */
   public static void sysExit(int value) {
+    // SJF: I don't want this method inlined, since I use it as a
+    // breakpoint for the jdp regression test.
+    VM_Magic.pragmaNoInline();
     if (runningVM) {
       System.out.flush();
       System.err.flush();

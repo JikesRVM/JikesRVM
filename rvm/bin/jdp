@@ -73,15 +73,12 @@ if [[ ! -a $RVM_BUILD/RVM.map ]]; then
    exit 1
 fi
 
-if [ $HOST_OS = "Linux" ]
-then 
-  `fgrep -s -q RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 $RVM_BUILD/RVM.configuration`
-  if [ $? != 0 ]
-  then
-    print "Sorry, jdp can only be used on Linux on IA32 with a configuration "
-    print " built with RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 set."
-    exit 1
-  fi
+`fgrep -s -q RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 $RVM_BUILD/RVM.configuration`
+if [ $? != 0 ]
+then
+  print "Sorry, jdp can only be used with a configuration "
+  print " built with RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 set."
+  exit 1
 fi
 
 # make sure all the debugger classes are built
