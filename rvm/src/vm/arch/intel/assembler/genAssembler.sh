@@ -170,14 +170,14 @@ function emitBinaryImmWordOrDouble() {
     // dstReg ${opStr}= ${code} imm
     public final void emit${acronym}_Reg_Imm${ext}(byte dstReg, int imm) {
 	int miStart = mi;$prefix
-	if (dstReg == EAX) {
-	    setMachineCodes(mi++, (byte) $eaxOpcode);
-	    ${emitImm}(imm);
-	} else if (fits(imm,8)) {
+	if (fits(imm,8)) {
 	    setMachineCodes(mi++, (byte) ${imm8Code});
 	    // "register ${immExtOp}" is really part of the opcode 
 	    emitRegRegOperands(dstReg, (byte) ${immExtOp});
 	    emitImm8((byte)imm);
+        } else if (dstReg == EAX) {
+	    setMachineCodes(mi++, (byte) $eaxOpcode);
+	    ${emitImm}(imm);
 	} else {
 	    setMachineCodes(mi++, (byte) ${imm32Code});
 	    // "register ${immExtOp}" is really part of the opcode 
