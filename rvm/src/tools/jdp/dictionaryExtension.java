@@ -65,7 +65,6 @@ class dictionaryExtension
    * methods will have to be replicated here (not very good 
    * software engineering!):
    * 	  VM_Atom.init(byte[])
-   * 	  VM_Atom.escape(byte[])
    * 	  VM_Atom.dictionaryCompare
    * @param  keyString key sought in String format
    * @param  keys  dictionary keys
@@ -123,45 +122,9 @@ class dictionaryExtension
     int hash = 99989;
     for (int i = keyByte.length; --i >= 0; )  {
       byte b = keyByte[i];
-      if ((b & 0x80) != 0)  {
-	hash = escapeHashCode(keyByte);
-	break;
-      }
       hash = 99991 * hash + b;
     }
     return hash;
   }
-
-   // Compute hash code from data known to contain a utf8 escape sequence.
-   // The only escape we recognize is that for the ascii null character.
-   // In java, the ascii null character is represented as a two byte
-   // utf8 escape sequence. We store it internally as one byte of zeros.
-   // All other escape sequences are left unchanged.
-   // (this is replicated from VM_Atom.escape(byte[]) with some code deleted)
-   public static int
-   escapeHashCode(byte utf8[]) {
-     int hash = 0;
-     for (int src = 0, dst = 0; src < utf8.length; src += 1)  {
-       // ascii char
-       if ((utf8[src] & 0x80) == 0)   { 
-	 hash = 31 * hash + utf8[src];
-	 src += 1;
-	 continue; 
-       }
-       // escape sequence for ascii null
-       if (utf8[src] == -64 && utf8[src + 1] == -128)  { 
-	 hash = 31 * hash + 0;
-	 src += 2;
-	 continue; 
-       }
-       // escape sequence for non-ascii character
-       while (src < utf8.length && (utf8[src] & 0x80) != 0)  { 
-	 hash = 31 * hash + utf8[src];
-	 src += 1;
-       }
-     }
-
-     return hash;
-   }
 
 }

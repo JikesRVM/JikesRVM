@@ -52,7 +52,7 @@ class VM_MachineCode
      if (VM.VerifyAssertions) VM.assert(instructions == null); // finish must only be called once
      
      int n = (next_bundle-1)*size+next;
-     instructions = new INSTRUCTION[n];
+     instructions = VM_RuntimeStructures.newInstructions(n);
      int k = 0;
      for (int i=0; i<next_bundle; i++){
        INSTRUCTION[] b = (INSTRUCTION[]) bundles.elementAt(i);

@@ -20,8 +20,9 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
   /**
    * For builds where thread switching is deterministic rather than timer driven
+   * Initialized in constructor
    */
-  public static int deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval; 
+  public int deterministicThreadSwitchCount;
 
   // fields to track native processors - processors created for java threads 
   // found blocked in native code
@@ -46,11 +47,11 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    */ 
   VM_Processor (int id,  int processorType ) {
 
-//-#if RVM_FOR_IA32
+    //-#if RVM_FOR_IA32
     // presave JTOC register contents 
     // (so lintel compiler can us JTOC for scratch)
     if (VM.runningVM) jtoc = VM_Magic.getJTOC();
-//-#endif
+    //-#endif
 
     this.id = id;
     this.transferMutex     = new VM_ProcessorLock();
@@ -62,14 +63,18 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     this.isInSelect        = false;
     this.processorMode     = processorType;
 
-//-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS (alternate implementation of jni)
-//-#else                                    (default implementation of jni)
+    //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS (alternate implementation of jni)
+    //-#else                                    (default implementation of jni)
     lastVPStatusIndex = (lastVPStatusIndex + VP_STATUS_STRIDE) % VP_STATUS_SIZE;
     this.vpStatusIndex = lastVPStatusIndex;
     this.vpStatusAddress = VM_Magic.objectAsAddress(vpStatus) + (this.vpStatusIndex << 2);
     if (VM.VerifyAssertions) VM.assert(vpStatus[this.vpStatusIndex] == UNASSIGNED_VP_STATUS);
     vpStatus[this.vpStatusIndex] = IN_JAVA;
-//-#endif
+    //-#endif
+
+    if (VM.BuildForDeterministicThreadSwitching) { // where we set THREAD_SWITCH_BIT every N method calls
+      this.deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
+    }
 
     VM_Collector.setupProcessor(this);
   }
@@ -110,9 +115,9 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   /**
    * Get processor that's being used to run the current java thread.
    */
-  static VM_Processor getCurrentProcessor () {
+  static VM_Processor getCurrentProcessor() {
     VM_Magic.pragmaInline();
-    return VM_Magic.getProcessorRegister();
+    return VM_ProcessorLocalState.getCurrentProcessor();
   }
   
   /**
@@ -120,17 +125,12 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    */ 
   static int getCurrentProcessorId () {
     VM_Magic.pragmaInline();
-    return VM_Magic.getProcessorRegister().id;
+    return getCurrentProcessor().id;
   }
 
   /**
    * Become next "ready" thread.
-   * Note: 1. This method is ONLY intended for use by VM_Thread.
-   *       2. The number words of arguments to this method must match the 
-   *       number of words of arguments to VM_Magic.saveThreadState(). 
-   *       Furthermore, a call to 
-   *       VM_Magic.saveThreadState() must immediately preceed 
-   *       the call to this method.
+   * Note: This method is ONLY intended for use by VM_Thread.
    */ 
   void dispatch () {
     if (VM.VerifyAssertions) VM.assert(lockCount == 0);// no processor locks should be held across a thread switch
@@ -143,17 +143,18 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
       newThread.suspendLock.unlock();
       newThread = getRunnableThread();
     }
+    
     previousThread = activeThread;
     activeThread   = newThread;
-
-//-#if RVM_FOR_IA32
+    activeThreadStackLimit = newThread.stackLimit;
+    //-#if RVM_FOR_IA32
     threadId       = newThread.getLockingId();
-    // save this threads next instruction address to be the return address of the call to dispatch()
-    // TODO!! eliminate this ugliness by unifying VM_Magic.saveThreadState() and VM_Magic.restoreThreadExecution
-    previousThread.contextRegisters.ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
-//-#endif
-    
-    if (idleProcessor != null && !readyQueue.isEmpty() && getCurrentProcessor().processorMode != NATIVEDAEMON) { // if we've got too much work, transfer some of it to another processor that has nothing to do
+    //-#endif
+
+    if (idleProcessor != null && !readyQueue.isEmpty() 
+        && getCurrentProcessor().processorMode != NATIVEDAEMON) { 
+      // if we've got too much work, transfer some of it to another 
+      // processor that has nothing to do
       VM_Thread t = readyQueue.dequeue();
       if (trace) VM_Scheduler.trace("VM_Processor", "dispatch: offload ", t.getIndex());
       scheduleThread(t);
@@ -170,8 +171,8 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
       newThread.cpuStartTime = now;  // this thread has started running
     }
     
-    VM_Magic.resumeThreadExecution(previousThread, newThread.contextRegisters); // (sets "previousThread.beingDispatched = false")
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+    // (sets "previousThread.beingDispatched = false")
+    VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
   }
 
   /**
@@ -252,8 +253,6 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    * Put thread onto most lightly loaded virtual processor.
    */ 
   void scheduleThread (VM_Thread t) {
-      VM_Magic.pragmaNoOptCompile();
-
     // if thread wants to stay on specified processor, put it there
     if (t.processorAffinity != null) {
       if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread", "outgoing to specific processor:", t.getIndex());
@@ -345,11 +344,11 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     VM_Processor newProcessor = new VM_Processor(generateNativeProcessorId(), NATIVE);
     // create idle thread for this native processor, running in attached mode
     VM_Thread t = new VM_NativeIdleThread(newProcessor, true);
-    t.isAlive = true;
-    newProcessor.idleQueue.enqueue(t);
+    t.start(newProcessor.idleQueue);
 
     // Make the current thread the active thread for this native VP
     newProcessor.activeThread = withThisThread;
+    newProcessor.activeThreadStackLimit = withThisThread.stackLimit;
 
     // Because the start up thread will not be executing to 
     // initialize itself as in the
@@ -409,7 +408,6 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
     // create idle thread for processor
     VM_Thread t = new VM_NativeIdleThread(newProcessor);
-    t.isAlive = true;
 
     // There is a race between the native pthread which will be started shortly
     // and will run and intilize its idle thread, and our pthread/thread which
@@ -419,11 +417,11 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     // of the native processor now, before the native pthread starts.
     //
     ////newProcessor.idleQueue.enqueue(t);
-    newProcessor.transferQueue.enqueue(t);
+    t.start(newProcessor.transferQueue);
 
     // create VM_Thread for virtual cpu to execute
     //
-    VM_Thread target = new VM_StartupThread(new int[STACK_SIZE_NORMAL >> 2]);
+    VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL));
     // create virtual cpu and wait for execution to enter target's code/stack.
     // this is done with gc disabled to ensure that garbage 
     // collector doesn't move
@@ -446,26 +444,28 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 	if(VM_Magic.attempt(VM_BootRecord.the_boot_record, 
 			    VM_Entrypoints.lockoutProcessorOffset,
 			    VM_Magic.objectAsAddress
-                            (VM_Magic.getProcessorRegister()),
+                            (VM_ProcessorLocalState.getCurrentProcessor()),
 			    0, lockoutId))
-	  break;
+          break;
       }else VM_Thread.yield();
     }
 
 
     newProcessor.activeThread = target;
-//-#if RVM_FOR_POWERPC
+    newProcessor.activeThreadStackLimit = target.stackLimit;
+    target.registerThread(); // let scheduler know that thread is active.
+    //-#if RVM_FOR_POWERPC
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-				 VM_Magic.objectAsAddress(newProcessor),
-				 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
-				 target.contextRegisters.gprs[VM.FRAME_POINTER]);
-//-#endif
-//-#if RVM_FOR_IA32
+                                 VM_Magic.objectAsAddress(newProcessor),
+                                 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
+                                 target.contextRegisters.gprs[VM.FRAME_POINTER]);
+    //-#endif
+    //-#if RVM_FOR_IA32
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-				 VM_Magic.objectAsAddress(newProcessor),
-				 0, 
-				 target.contextRegisters.gprs[VM.FRAME_POINTER]);
-//-#endif
+                                 VM_Magic.objectAsAddress(newProcessor),
+                                 0, 
+                                 target.contextRegisters.gprs[VM.FRAME_POINTER]);
+    //-#endif
     while (!newProcessor.isInitialized)
       VM.sysVirtualProcessorYield();
     ///    VM.enableGC();
@@ -535,12 +535,11 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     // ?? will this affinity be a problem when idle thread temporarily migrates
     // ?? to a blue processor ??
     VM_Thread t = new VM_NativeIdleThread(newProcessor);
-    t.isAlive = true;
-    newProcessor.transferQueue.enqueue(t);
+    t.start(newProcessor.transferQueue);
 
     // create VM_Thread for virtual cpu to execute
     //
-    VM_Thread target = new VM_StartupThread(new int[STACK_SIZE_NORMAL >> 2]);
+    VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL));
 
     // create virtual cpu and wait for execution to enter target's code/stack.
     // this is done with gc disabled to ensure that garbage 
@@ -549,7 +548,15 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     // to transfer control into vm image.
 
     VM.disableGC();
+
+    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    //-#else
+    // Need to set startuplock here
+    VM.sysInitializeStartupLocks(1);
+    //-#endif
     newProcessor.activeThread = target;
+    newProcessor.activeThreadStackLimit = target.stackLimit;
+    target.registerThread(); // let scheduler know that thread is active.
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
 				 VM_Magic.objectAsAddress(newProcessor),
 				 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
@@ -663,6 +670,108 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   // Implementation //
   //----------------//
 
+  /*
+   * NOTE: The order of field declarations determines
+   *       the layout of the fields in the processor object
+   *       For IA32, it is valuable (saves code space) to
+   *       declare the most frequently used fields first so that
+   *       they can be accessed with 8 bit immediates.
+   *       On PPC, we have plenty of bits of immediates in 
+   *       load/store instructions, so it doesn't matter.
+   */
+
+  /*
+   * BEGIN FREQUENTLY ACCESSED INSTANCE FIELDS
+   */
+
+  /**
+   * Is it time for this processor's currently running VM_Thread 
+   * to call its "threadSwitch" method?
+   * A value of: 
+   *    -1 means yes
+   *     0 means no
+   * This word is set by a timer interrupt every 10 milliseconds and
+   * interrogated by every compiled method, typically in the method's prologue.
+   */ 
+  int threadSwitchRequested;
+  
+  /**
+   * thread currently running on this processor
+   */
+  VM_Thread        activeThread;    
+
+  /**
+   * cached activeThread.stackLimit;
+   * removes 1 load from stackoverflow sequence.
+   */
+  int activeThreadStackLimit;
+
+//-#if RVM_FOR_IA32
+  // to free up (nonvolatile or) scratch registers
+  Object jtoc;
+  int    threadId;
+  /**
+   * FP for current frame (opt compiler wants FP register) 
+   * TODO warn GC about this guy
+   */
+  int    framePointer;        
+  /**
+   * "hidden parameter" for interface invocation thru the IMT
+   */
+  int    hiddenSignatureId;   
+  /**
+   * "hidden parameter" from ArrayIndexOutOfBounds trap to C trap handler
+   */
+  int    arrayIndexTrapParam; 
+//-#endif
+
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+  // An array of VM_SizeControl: used by noncopying memory managers;
+  // by making one such array per processor, allocations can be performed
+  // in parallel without locking, except when a new block is needed.
+  // 
+  VM_SizeControl[] sizes;
+  VM_SizeControl[] GC_INDEX_ARRAY;
+
+  // Writebuffer for generational collectors
+  // contains a "remembered set" of old objects with modified object references.
+  //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
+  //   initial:    |   |   |   |   |lnk|             later:    |obj|obj|   |   |lnk|
+  //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
+  //            ^top            ^max                                ^top    ^max
+  //
+  int[]  modifiedOldObjects;          // the buffer
+  int    modifiedOldObjectsTop;       // address of most recently filled slot
+  int    modifiedOldObjectsMax;       // address of last available slot in buffer
+
+  // pointers for allocation from Processor local memory "chunks"
+  //
+  /**
+   * current position within current allocation buffer
+   */
+  int    localCurrentAddress;  
+  /**
+   * end (1 byte beyond) of current allocation buffer
+   */
+  int    localEndAddress;      
+
+  // pointers for allocation from processor local "chunks" or "ToSpace" memory,
+  // for copying live objects during GC.
+  //
+  /**
+   * current position within current "chunk"
+   */
+  int    localMatureCurrentAddress;   
+  /**
+   * end (1 byte beyond) of current "chunk"
+   */
+  int    localMatureEndAddress;       
+//-#endif
+
+  /*
+   * END FREQUENTLY ACCESSED INSTANCE FIELDS
+   */
+  
   /**
    * Identity of this processor.
    * Note: 1. VM_Scheduler.processors[id] == this processor
@@ -678,17 +787,6 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    *   true  means "cpu is now executing vm code (on a vm stack)"
    */ 
   boolean isInitialized;
-  
-  /**
-   * Is it time for this processor's currently running VM_Thread 
-   * to call its "threadSwitch" method?
-   * A value of: 
-   *    -1 means yes
-   *     0 means no
-   * This word is set by a timer interrupt every 10 milliseconds and
-   * interrogated by every compiled method, typically in the method's prologue.
-   */ 
-  int threadSwitchRequested;
   
   /**
    * Should this processor dispatch a new VM_Thread when 
@@ -707,10 +805,6 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    */ 
   boolean threadSwitchPending;
 
-  /**
-   * thread currently running on this processor
-   */
-  VM_Thread        activeThread;    
   /**
    * thread previously running on this processor
    */
@@ -760,53 +854,11 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   //--------------------//
 
 //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-
-  // An array of VM_SizeControl: used by noncopying memory managers;
-  // by making one such array per processor, allocations can be performed
-  // in parallel without locking, except when a new block is needed.
-  // 
-  VM_SizeControl[] sizes;
-  VM_SizeControl[] GC_INDEX_ARRAY;
-
-  // Writebuffer for generational collectors
-  // contains a "remembered set" of old objects with modified object references.
-  //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
-  //   initial:    |   |   |   |   |lnk|             later:    |obj|obj|   |   |lnk|
-  //            ---+---+---+---+---+---+                    ---+---+---+---+---+---+
-  //            ^top            ^max                                ^top    ^max
-  //
-  int[]  modifiedOldObjects;          // the buffer
-  int    modifiedOldObjectsTop;       // address of most recently filled slot
-  int    modifiedOldObjectsMax;       // address of last available slot in buffer
-
   // Reference Counting Collector additions 
   int    incDecBuffer;        // the buffer
   int    incDecBufferTop;     // address of most recently filled slot in buffer
   int    incDecBufferMax;     // address of last available slot in buffer
   int    localEpoch;
-
-  // pointers for allocation from Processor local memory "chunks"
-  //
-  /**
-   * current position within current allocation buffer
-   */
-  int    localCurrentAddress;  
-  /**
-   * end (1 byte beyond) of current allocation buffer
-   */
-  int    localEndAddress;      
-
-  // pointers for allocation from processor local "chunks" or "ToSpace" memory,
-  // for copying live objects during GC.
-  //
-  /**
-   * current position within current "chunk"
-   */
-  int    localMatureCurrentAddress;   
-  /**
-   * end (1 byte beyond) of current "chunk"
-   */
-  int    localMatureEndAddress;       
 
   // misc. fields - probably should verify if still in use
   //
@@ -814,7 +866,6 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
   int	 small_live;		// count live objects during gc
   long   totalBytesAllocated;	// used for instrumentation in allocators
   long   totalObjectsAllocated; // used for instrumentation in allocators
-
 //-#endif
 //-#if RVM_WITH_GCTk
 
@@ -943,24 +994,4 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     VM_Scheduler.writeString("\n");
 //-#endif
   }
-  
-//-#if RVM_FOR_IA32
-  // to free up (nonvolatile or) scratch registers
-  Object jtoc;
-  int    threadId;
-  /**
-   * FP for current frame (opt compiler wants FP register) 
-   * TODO warn GC about this guy
-   */
-  int    framePointer;        
-  /**
-   * "hidden parameter" for interface invocation thru the IMT
-   */
-  int    hiddenSignatureId;   
-  /**
-   * "hidden parameter" from ArrayIndexOutOfBounds trap to C trap handler
-   */
-  int    arrayIndexTrapParam; 
-//-#endif
-
 }

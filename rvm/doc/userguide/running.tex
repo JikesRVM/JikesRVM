@@ -37,6 +37,8 @@ option is supported in RVM.
 \item[{\tt -cp -classpath <directories and zip/jar files separated by :>}]
 set search path for application classes and resources
 
+\item[{\tt -D<name>=<value>}] set a system property
+
 \item[{\tt -verbose[:gc|:jni|:class]}]
 enable verbose output; currently ``jni'' is not supported
 
@@ -58,7 +60,7 @@ The non-standard options are
 \item[{\tt -X:h=<number>}]
 allocate {\tt <number>} megabytes of small object heap
 
-\item[{\tt -X:mx<number>}]
+\item[{\tt -Xmx<number>}]
 allocate {\tt <number>} megabytes of small object heap
 
 \item[{\tt -X:lh=<number>}]
@@ -76,7 +78,7 @@ read boot image from {\tt <filename>}
 \item[{\tt -X:sysLogfile=<filename>}]
 writes standard error message to {\tt <filename>}
 
-\item[{\tt -X:rvmClasses=<filename>}]
+\item[{\tt -X:vmClasses=<filename>}]
 load classes from {\tt <filename>}
 
 \item[{\tt -X:cpuAffinity=<int>}]
@@ -89,23 +91,38 @@ number of processors to use on a multiprocessor
 print out additional information for GC
 
 \item[{\tt -X:irc[:help]}]
-print options supported by runtime compiler when in a non-adaptive configuration 
+print options supported by the initial runtime compiler when in a non-adaptive
+configuration 
 
-\item[{\tt -X:irc<option>}]
-pass {\tt <option>} to the runtime compiler when in a non-adaptive configuration 
+\item[{\tt -X:irc:<option>}]
+pass {\tt <option>} to the initial runtime compiler when in a non-adaptive configuration 
 
 \item[{\tt -X:aos[:help]}]
 print options supported by adaptive optimization system when in an
 adaptive configuration
 
-\item[{\tt -X:aos<option>}]
+\item[{\tt -X:aos:<option>}]
 pass {\tt <option>} to the adaptive optimization system when in an adaptive configuration
+
+\item[{\tt -X:opt[:help]}]
+print options supported by the optimizing compiler when in a 
+non-adaptive configuration
+
+\item[{\tt -X:opt:<option>}]
+pass {\tt <option>} to the optimizing compiler when in a non-adaptive configuration
+
+\item[{\tt -X:base[:help]}]
+print options supported by the baseline compiler when in a 
+non-adaptive configuration
+
+\item[{\tt -X:base:<option>}]
+pass {\tt <option>} to the baseline compiler when in a non-adaptive configuration
 
 \end{description}
 
 See section~\ref{appendix:nonadaptive:cmdline} for more details on 
 command-line options, including the list of options supported by the 
-optimizing compiler and adaptive optimization system.
+baseline compiler, optimizing compiler and adaptive optimization system.
 
 \JikesTMFooter
 

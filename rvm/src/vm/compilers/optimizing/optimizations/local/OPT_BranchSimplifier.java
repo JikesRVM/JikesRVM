@@ -160,8 +160,8 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
           bb.recomputeNormalOut(ir);
           didSomething = true;
         }
-      } else if (MethodIfCmp.conforms(s)) {
-	OPT_Operand val = MethodIfCmp.getValue(s);
+      } else if (InlineGuard.conforms(s)) {
+	OPT_Operand val = InlineGuard.getValue(s);
 	if (val.isNullConstant()) {
 	  // branch not taken
 	  s.remove();
@@ -173,31 +173,6 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
 	} else if (val.isStringConstant()) {
 	  // TODO:
 	  VM.sysWrite("TODO: should constant fold MethodIfCmp on StringConstant");
-	}
-      } else if (TypeIfCmp.conforms(s)) {
-	OPT_Operand val = TypeIfCmp.getValue(s);
-	if (val.isNullConstant()) {
-	  // Like an instanceof, therefore branch not taken
-	  s.remove();
-	  // hack. Just start over since Enumeration has changed.
-	  branches = bb.enumerateBranchInstructions();
-	  bb.recomputeNormalOut(ir);
-	  didSomething = true;
-	  continue;
-	} else if (val.isStringConstant()) {
-	  if (TypeIfCmp.getType(s).type == VM_Type.JavaLangStringType) {
-	    // branch taken
-	    Goto.mutate(s, GOTO, TypeIfCmp.getClearTarget(s));
-	    removeBranchesAfterGotos(bb);
-	  } else {
-	    // Not taken
-	    s.remove();
-	  }
-	  // hack. Just start over since Enumeration has changed.
-	  branches = bb.enumerateBranchInstructions();
-	  bb.recomputeNormalOut(ir);
-	  didSomething = true;
-	  continue;
 	}
       }
     }

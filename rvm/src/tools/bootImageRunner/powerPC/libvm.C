@@ -620,6 +620,8 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
 	    return;
             }
          *(unsigned *)((char *)thread + VM_Thread_stackLimit_offset) = stackLimit;
+	 *(unsigned *)(save->gpr[VM_Constants_PROCESSOR_REGISTER] + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
+
          break;
          }
       ANNOUNCE_TRAP("vm: unknown trap\n");

@@ -37,10 +37,6 @@ class OPT_GenerateMachineSpecificMagic
     if (methodName == VM_MagicNames.getFramePointer) {
       bc2ir.push(gc.temps.makeFPOp());
       gc.allocFrame = true;
-    } else if (methodName == VM_MagicNames.setFramePointer) {
-      bc2ir.appendInstruction(Move.create(INT_MOVE, gc.temps.makeFPOp(), 
-					  bc2ir.popInt()));
-      gc.allocFrame = true;
     } else if (methodName == VM_MagicNames.getTocPointer) {
       bc2ir.push(gc.temps.makeJTOCOp(null,null));
     } else if (methodName == VM_MagicNames.getJTOC) {

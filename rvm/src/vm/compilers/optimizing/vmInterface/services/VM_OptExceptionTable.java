@@ -134,35 +134,13 @@ final class VM_OptExceptionTable implements VM_Constants {
     System.out.println("    trystart   tryend    catch    type");
     for (int i = 0; i<length; i+=4) {
       System.out.print("    " + 
-		       getHexString(eTable[i + TRY_START], true) + " "+
-		       getHexString(eTable[i + TRY_END], true) + " " + 
-		       getHexString(eTable[i + CATCH_START], true) + " " +
+		       VM_Services.getHexString(eTable[i + TRY_START], true) + " "+
+		       VM_Services.getHexString(eTable[i + TRY_END], true) + " " + 
+		       VM_Services.getHexString(eTable[i + CATCH_START], true) + " " +
 		       VM_TypeDictionary.getValue(eTable[i + EX_TYPE]));
       System.out.println();
     }
   }
-
-
-  /**
-   * Utility printing function.
-   * @param i
-   * @param blank
-   * @return 
-   */
-  static String getHexString(int i, boolean blank) {
-    StringBuffer buf = new StringBuffer(8);
-    for (int j = 0; j < 8; j++, i <<= 4) {
-      int n = i >>> 28;
-      if (blank && (n == 0) && (j != 7)) {
-        buf.append(' ');
-      } else {
-        buf.append(Character.forDigit(n, 16));
-        blank = false;
-      }
-    }
-    return buf.toString();
-  }
-  
 
   /**
    * Return an upper bounds on the size of the exception table for an IR.

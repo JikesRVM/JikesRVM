@@ -88,6 +88,19 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       OPT_Operand object = bc2ir.popRef();
       bc2ir.appendInstruction(Store.create(INT_STORE, val, object, offset, 
 					   null));
+    } else if (methodName == VM_MagicNames.getByteAtOffset) {
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand object = bc2ir.popRef();
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.ByteType);
+      bc2ir.appendInstruction(Load.create(BYTE_LOAD, val, object, offset, 
+					  null));
+      bc2ir.push(val.copyD2U());
+    } else if (methodName == VM_MagicNames.setByteAtOffset) {
+      OPT_Operand val = bc2ir.popInt();
+      OPT_Operand offset = bc2ir.popInt();
+      OPT_Operand object = bc2ir.popRef();
+      bc2ir.appendInstruction(Store.create(BYTE_STORE, val, object, offset, 
+					   null));
     } else if (methodName == VM_MagicNames.getMemoryWord) {
       OPT_Operand memAddr = bc2ir.popInt();
       OPT_RegisterOperand val = gc.temps.makeTempInt();
@@ -147,6 +160,11 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
     } else if (methodName == VM_MagicNames.addressAsBlockControl) {
       OPT_RegisterOperand reg = 
 	gc.temps.makeTemp(OPT_ClassLoaderProxy.proxy.findOrCreateType("LVM_BlockControl;"));
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popInt()));
+      bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.addressAsSizeControl) {
+      OPT_RegisterOperand reg = 
+	gc.temps.makeTemp(OPT_ClassLoaderProxy.proxy.findOrCreateType("LVM_SizeControl;"));
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popInt()));
       bc2ir.push(reg.copyD2U());
       //-#endif
@@ -291,8 +309,6 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
       OPT_Instruction s = Call.create4(CALL, res, null, met, Code, gprs, 
 				       fprs, spills);
       bc2ir.appendInstruction(s);
-    //-#if RVM_FOR_IA32
-    //-#else
     } else if (methodName == VM_MagicNames.saveThreadState) {
       OPT_Operand p1 = bc2ir.popRef();
       OPT_MethodOperand mo = 
@@ -302,22 +318,16 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 			      OPT_MethodOperand.STATIC, 
 			      VM_Entrypoints.saveThreadStateInstructionsOffset);
       bc2ir.appendInstruction(Call.create1(CALL, null, null, mo, p1));
-    //-#endif
-    //-#if RVM_FOR_IA32
-    //-#else
-    } else if (methodName == VM_MagicNames.resumeThreadExecution) {
+    } else if (methodName == VM_MagicNames.threadSwitch) {
       OPT_Operand p2 = bc2ir.popRef();
       OPT_Operand p1 = bc2ir.popRef();
       OPT_MethodOperand mo = 
 	new OPT_MethodOperand(VM.getMember("LVM_OutOfLineMachineCode;", 
-					   "resumeThreadExecutionInstructions",
+					   "threadSwitchInstructions",
 					   INSTRUCTION_ARRAY_SIGNATURE), 
 			      OPT_MethodOperand.STATIC, 
-			      VM_Entrypoints.resumeThreadExecutionInstructionsOffset);
-      bc2ir.appendInstruction(Call.create2(CALL, null, null, mo, p2, p1));
-    //-#endif
-    //-#if RVM_FOR_IA32
-    //-#else
+			      VM_Entrypoints.threadSwitchInstructionsOffset);
+      bc2ir.appendInstruction(Call.create2(CALL, null, null, mo, p1, p2));
     } else if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
       OPT_MethodOperand mo = 
 	new OPT_MethodOperand(VM.getMember("LVM_OutOfLineMachineCode;", 
@@ -327,7 +337,6 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 			      VM_Entrypoints.restoreHardwareExceptionStateInstructionsOffset);
       bc2ir.appendInstruction(Call.create1
 			      (CALL, null, null, mo, bc2ir.popRef()));
-    //-#endif
     } else if (methodName == VM_MagicNames.getTime) {
       OPT_RegisterOperand val = gc.temps.makeTempDouble();
       OPT_MethodOperand mo = 

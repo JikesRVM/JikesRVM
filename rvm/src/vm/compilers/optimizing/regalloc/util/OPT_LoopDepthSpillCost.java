@@ -30,7 +30,8 @@ class OPT_LoopDepthSpillCost extends OPT_SpillCostEstimator {
       for (Enumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements(); ) {
         OPT_Instruction s = (OPT_Instruction)e.nextElement();
 
-        double factor = loopDepth.getBasicBlockFrequency(bb);
+        double factor = (bb.getInfrequent()) ? 0.0 : 
+                                               loopDepth.getBasicBlockFrequency(bb);
         if (s.isMove()) factor *= OPT_SimpleSpillCost.MOVE_FACTOR;
         double baseFactor = factor;
         if (OPT_SimpleSpillCost.hasBadSizeMemoryOperand(s)) {

@@ -197,13 +197,13 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
       // OPT_RegisterOperand.
       incValReg = (OPT_RegisterOperand) InstrumentedCounter.
 	getIncrement(counterInst);
-    }
-    else {
+    } else {
       // If the counter was inserted in LIR, it needs to be
       // materialized manually.
       incValReg = ir.regpool.makeTemp(VM_Type.DoubleType);
-      counterInst.insertBefore(Unary.create(MATERIALIZE_CONSTANT, incValReg,
-					    incOperand));
+      counterInst.insertBefore(Binary.create(MATERIALIZE_CONSTANT, incValReg,
+					     ir.regpool.makeJTOCOp(ir,counterInst),
+					     incOperand));
     }
 
     // Insert increment instruction

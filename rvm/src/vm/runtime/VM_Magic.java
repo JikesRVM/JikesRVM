@@ -7,7 +7,7 @@
  * Magic methods for accessing raw machine memory, registers, and 
  * operating system calls.
  * 
- * These are "inline assembler functions" that cannot be implemented in
+ * <p> These are "inline assembler functions" that cannot be implemented in
  * java code. Their names are recognized by RVM's compilers 
  * and cause inline machine code to be generated instead of 
  * actual method calls.
@@ -27,15 +27,10 @@ public class VM_Magic {
     return -1;
   }
 
-  /** Set contents of stack frame pointer register. */
-  public static void setFramePointer(int fp) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-
   /** Get contents of "jtoc" register. */
   public static int getTocPointer() {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return -1;
+    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return VM_BootRecord.the_boot_record.tocRegister;
   }
 
   /** Get contents of "jtoc" register as an int[] */
@@ -71,6 +66,19 @@ public class VM_Magic {
   static void setProcessorRegister(VM_Processor p) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
+
+  //-#if RVM_FOR_IA32
+  /** Get contents of ESI, as a VM_Processor */
+  static VM_Processor getESIAsProcessor() {
+    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return null;
+  }
+
+  /** Set contents of ESI to hold a reference to a processor object */
+  static void setESIAsProcessor(VM_Processor p) {
+    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+  //-#endif
 
   /**
    * Read contents of hardware time base registers.
@@ -186,6 +194,16 @@ public class VM_Magic {
   //---------------------------------------//
 
   /**
+   * Get byte at arbitrary (byte) offset from object. 
+   * Clients must not depend on whether or not the byte is zero or sign extended as it is loaded.
+   * (In other words, mask off all but the lower 8 bits before using the value).
+   */
+  static byte getByteAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return -1;
+  }
+
+  /**
    * Get int at arbitrary (byte) offset from object.
    * Use getIntAtOffset(obj, ofs) instead of getMemoryWord(objectAsAddress(obj)+ofs)
    */
@@ -219,6 +237,13 @@ public class VM_Magic {
   public static int getMemoryWord(int address) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
+  }
+
+  /**
+   * Set byte at arbitrary (byte) offset from object.
+   */ 
+  static void setByteAtOffset(Object object, int offset, byte newvalue) {
+    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
@@ -592,18 +617,19 @@ public class VM_Magic {
   }
 
   /**
-   * Resume execution with specified thread state.
-   * The following registers are restored:
+   * Switch threads.
+   * The following registers are saved/restored
    *        - nonvolatile fpr registers
    *        - nonvolatile gpr registers
-   *        - FRAME_POINTER register
+   *        - FRAME_POINTER "register"
    *        - THREAD_ID     "register"
-   * Does not return (execution resumes at new IP)
-   * @param phantomThread thread on whose stack we're currently running
-   * @param registers     register values to be restored
+   * 
+   * @param phantomThread thread that is currently running 
+   * @param restoreRegs   registers from which we should restore 
+   *                      the saved hardware state of another thread.
    */
-  public static void resumeThreadExecution(VM_Thread phantomThread, 
-					   VM_Registers registers) {
+  public static void threadSwitch(VM_Thread currentThread, 
+				  VM_Registers restoreRegs) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -764,6 +790,14 @@ public class VM_Magic {
    public static void roundToZero() {
      if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
    }
+
+   /**
+    * Clear the hardware floating point state
+    */
+   public static void clearFloatingPointState() {
+     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
+   }
+
 //-#endif
   
   //---------------------------------------//

@@ -13,7 +13,7 @@ import java.lang.reflect.*;
  * @author Ton Ngo
  * @author Steve Smith 
  */
-public class VM_JNIEnvironment implements VM_JNIConstants, VM_RegisterConstants {
+public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConstants {
 
   private static boolean initialized = false;
   private static String[] names;

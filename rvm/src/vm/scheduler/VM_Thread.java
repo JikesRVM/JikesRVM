@@ -36,7 +36,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Create a thread with default stack.
    */ 
   public VM_Thread () {
-    this(new int[STACK_SIZE_NORMAL >> 2]);
+    this(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL));
   }
 
   /**
@@ -207,7 +207,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */ 
   public static void threadSwitch(int whereFrom) {
     VM_Magic.pragmaNoInline();
-    VM_Magic.clearThreadSwitchBit();
+    if (VM.BuildForThreadSwitchUsingControlRegisterBit) VM_Magic.clearThreadSwitchBit();
     VM_Processor.getCurrentProcessor().threadSwitchRequested = 0;
 
     if (!VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) { 
@@ -364,7 +364,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Suspend execution of current thread in favor of some other thread.
    * @param q queue to put thread onto (must be processor-local, ie. 
    * not guarded with a lock)
-   *!!TODO: verify that this method gets inlined by opt compiler
   */
   static void yield (VM_AbstractThreadQueue q) {
     VM_Thread myThread = getCurrentThread();
@@ -446,7 +445,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   /**
    * Current thread has been placed onto some queue. Become another thread.
-   * !!TODO: verify that this method gets inlined by opt compiler
    */ 
   static void morph () {
     //VM_Scheduler.trace("VM_Thread", "morph");
@@ -458,10 +456,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // become another thread
     //
-    VM_Magic.saveThreadState(myThread.contextRegisters);
     VM_Processor.getCurrentProcessor().dispatch();
-
-    // return from thread switch
 
     // respond to interrupt sent to this thread by some other thread
     //
@@ -569,8 +564,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */
   static void becomeRVMThread () {
 
-    VM_Magic.getProcessorRegister().activeThread.returnAffinity.
-      transferMutex.lock();
+    VM_Processor currentProcessor = VM_ProcessorLocalState.getCurrentProcessor();
+    currentProcessor.activeThread.returnAffinity.transferMutex.lock();
+
     // morph to RVM processor
     yield( VM_Thread.getCurrentThread().returnAffinity.transferQueue,  
            VM_Thread.getCurrentThread().returnAffinity.transferMutex); 
@@ -623,6 +619,40 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     terminate();
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
   }
+
+
+  /**
+   * Update internal state of Thread and Scheduler to indicate that
+   * a thread is about to start
+   */
+  void registerThread() {
+    isAlive = true; 
+    VM_Scheduler.threadCreationMutex.lock();
+    VM_Scheduler.numActiveThreads += 1;
+    if (isDaemon) VM_Scheduler.numDaemons += 1;
+    VM_Scheduler.threadCreationMutex.unlock();
+  }
+
+
+  /**
+   * Start execution of 'this' by putting it on the appropriate queue
+   * of an unspecified virutal processor.
+   */
+  public synchronized void start() {
+    registerThread();
+    schedule();
+  }
+
+  /**
+   * Start execution of 'this' by putting it on the given queue.
+   * Precondition: If the queue is global, caller must have the appropriate mutex.
+   * @param q the VM_ThreadQueue on which to enqueue this thread.
+   */
+  void start(VM_ThreadQueue q) {
+    registerThread();
+    q.enqueue(this);
+  }
+
  
   /**
    * Terminate execution of current thread by abandoning all 
@@ -645,7 +675,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     synchronized (myThread) { // release anybody waiting on this thread - 
 
 	// begin critical section
-	//
+        //
 	VM_Scheduler.threadCreationMutex.lock();
 	VM_Processor.getCurrentProcessor().disableThreadSwitching();
 	
@@ -702,8 +732,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Scheduler.deadQueue.enqueue(myThread);
     VM_Scheduler.threadCreationMutex.unlock();
 
-
-    VM_Magic.saveThreadState(myThread.contextRegisters);
     VM_Processor.getCurrentProcessor().dispatch();
 
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
@@ -737,7 +765,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
     if (!VM.BuildForConcurrentGC && VM_Collector.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");
-    int[] newStack = new int[newSize];
+    int[] newStack = VM_RuntimeStructures.newStack(newSize);
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     transferExecutionToNewStack(newStack, exceptionRegisters);
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
@@ -804,7 +832,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     //
     myThread.stack      = newStack;
     myThread.stackLimit = VM_Magic.objectAsAddress(newStack) + STACK_SIZE_GUARD;
-
+    VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
+    
     // return to caller, resuming execution on new stack 
     // (original stack now abandoned)
     //
@@ -875,15 +904,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 	  VM.sysWrite(" sp=");
 	  VM.sysWrite(registers.gprs[VM_BaselineConstants.SP]);
 	}
-	//-#endif
-	//-#if RVM_FOR_IA32
-	/* TODO: put this in when VM_Regsters.setInnermost no longer does it!
-	registers.gprs[VM_BaselineConstants.FP] += delta;
-	if (traceAdjustments) {
-	  VM.sysWrite(" fp (ebp) =");
-	  VM.sysWrite(registers.gprs[VM_BaselineConstants.FP]);
-	}
-	*/
 	//-#endif
       }
       //-#if RVM_FOR_IA32
@@ -1008,22 +1028,17 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */ 
   protected final void makeDaemon (boolean on) {
     if (isDaemon == on) return;
-    VM_Scheduler.threadCreationMutex.lock();
     isDaemon = on;
-    if (on) {
-      if (++VM_Scheduler.numDaemons == VM_Scheduler.numActiveThreads) {
-	if (VM.TraceThreads) VM_Scheduler.trace("VM_Thread", 
-                                                "last non Daemon demonized");
-        VM_Scheduler.threadCreationMutex.unlock();
-	VM.sysExit(0);
-	if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
-      }
-      else {
-        VM_Scheduler.threadCreationMutex.unlock();
-      }
-    } else {
-      --VM_Scheduler.numDaemons;
-      VM_Scheduler.threadCreationMutex.unlock();
+    if (!isAlive) return; 
+    VM_Scheduler.threadCreationMutex.lock();
+    VM_Scheduler.numDaemons += on ? 1 : -1;
+    VM_Scheduler.threadCreationMutex.unlock();
+
+    if (VM_Scheduler.numDaemons == VM_Scheduler.numActiveThreads) {
+      if (VM.TraceThreads) VM_Scheduler.trace("VM_Thread", 
+					      "last non Daemon demonized");
+      VM.sysExit(0);
+      if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
     }
   }
   
@@ -1066,13 +1081,58 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       return;
     }
 
-    // begin critical section
+    // create a normal (ie. non-primordial) thread
     //
-    VM_Scheduler.threadCreationMutex.lock();
-    VM_Processor.getCurrentProcessor().disableThreadSwitching();
+    //VM_Scheduler.trace("VM_Thread", "create");
+      
+    stackLimit = VM_Magic.objectAsAddress(stack) + STACK_SIZE_GUARD;
 
+    // get instructions for method to be executed as thread startoff
+    //
+    VM_Method method = (VM_Method)VM.getMember("LVM_Thread;", 
+                                               "startoff", "()V");
+    INSTRUCTION[] instructions = method.getMostRecentlyGeneratedInstructions();
+
+    VM.disableGC();
+
+    // initialize thread registers
+    //
+    int ip = VM_Magic.objectAsAddress(instructions);
+    int sp = VM_Magic.objectAsAddress(stack) + (stack.length << 2);
+    int fp = STACKFRAME_SENTINAL_FP;
+
+//-#if RVM_FOR_IA32 
+
+    // initialize thread stack as if "startoff" method had been called
+    // by an empty baseline-compiled "sentinal" frame with one local variable
+    //
+    sp -= STACKFRAME_HEADER_SIZE;                   // last word of header
+    fp  = sp - VM_BaselineConstants.WORDSIZE - STACKFRAME_BODY_OFFSET;   // 
+    VM_Magic.setCallerFramePointer(fp, STACKFRAME_SENTINAL_FP);
+    VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
+
+    sp -= VM_BaselineConstants.WORDSIZE;                                 // allow for one local
+    contextRegisters.gprs[ESP] = sp;
+    contextRegisters.gprs[VM_BaselineConstants.JTOC]          = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
+    contextRegisters.fp  = fp;
+    contextRegisters.ip  = ip;
+
+//-#else
+
+    // initialize thread stack as if "startoff" method had been called
+    // by an empty "sentinal" frame  (with a single argument ???)
+    //
+    VM_Magic.setMemoryWord(sp -= 4, ip);                  // STACKFRAME_NEXT_INSTRUCTION_OFFSET
+    VM_Magic.setMemoryWord(sp -= 4, INVISIBLE_METHOD_ID); // STACKFRAME_METHOD_ID_OFFSET
+    VM_Magic.setMemoryWord(sp -= 4, fp);                  // STACKFRAME_FRAME_POINTER_OFFSET
+    fp = sp;
+
+    contextRegisters.gprs[FRAME_POINTER]  = fp;
+    contextRegisters.ip  = ip;
+//-#endif
+
+    VM_Scheduler.threadCreationMutex.lock();
     assignThreadSlot();
-    VM_Scheduler.numActiveThreads += 1;
 
     if (VM.BuildForConcurrentGC) { // RCGC - currently assign a 
       // thread to a processor - no migration yet
@@ -1093,71 +1153,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       }
     }
 
-    // end critical section
-    //
-    VM_Processor.getCurrentProcessor().enableThreadSwitching();
     VM_Scheduler.threadCreationMutex.unlock();
 
-
-    // create a normal (ie. non-primordial) thread
-    //
-  //VM_Scheduler.trace("VM_Thread", "create");
-      
-    stackLimit = VM_Magic.objectAsAddress(stack) + STACK_SIZE_GUARD;
-
-    // make sure thread id will fit in Object .status field
-    //
-    if (VM.VerifyAssertions) 
-      VM.assert(threadSlot == (((threadSlot << OBJECT_THREAD_ID_SHIFT) 
-                                &(OBJECT_THREAD_ID_MASK) ) 
-                               >>  OBJECT_THREAD_ID_SHIFT ));
-
-    // get instructions for method to be executed as thread startoff
-    //
-    VM_Method method = (VM_Method)VM.getMember("LVM_Thread;", 
-                                               "startoff", "()V");
-    INSTRUCTION[] instructions = method.getMostRecentlyGeneratedInstructions();
-
-    VM.disableGC();
-
-    // initialize thread registers
-    //
-    int ip = VM_Magic.objectAsAddress(instructions);
-    int sp = VM_Magic.objectAsAddress(stack) + (stack.length << 2);
-    int fp = STACKFRAME_SENTINAL_FP;
-
-//-#if RVM_FOR_IA32 // TEMP!!
-
-    // initialize thread stack as if "startoff" method had been called
-    // by an empty baseline-compiled "sentinal" frame with one local variable
-    //
-    sp -= STACKFRAME_HEADER_SIZE;                   // last word of header
-    fp  = sp - VM_BaselineConstants.WORDSIZE - STACKFRAME_BODY_OFFSET;   // 
-    VM_Magic.setCallerFramePointer(fp, STACKFRAME_SENTINAL_FP);
-    VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
-
-    sp -= VM_BaselineConstants.WORDSIZE;                                 // allow for one local
-    contextRegisters.gprs[VM_BaselineConstants.FP] = fp;
-    contextRegisters.gprs[ESP] = sp;
-    contextRegisters.gprs[VM_BaselineConstants.JTOC]          = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
-    contextRegisters.fp  = fp;
-    contextRegisters.ip  = ip;
-
+//-#if RVM_FOR_IA32 
 //-#else
-
-    // initialize thread stack as if "startoff" method had been called
-    // by an empty "sentinal" frame  (with a single argument ???)
-    //
-    VM_Magic.setMemoryWord(sp -= 4, ip);                  // STACKFRAME_NEXT_INSTRUCTION_OFFSET
-    VM_Magic.setMemoryWord(sp -= 4, INVISIBLE_METHOD_ID); // STACKFRAME_METHOD_ID_OFFSET
-    VM_Magic.setMemoryWord(sp -= 4, fp);                  // STACKFRAME_FRAME_POINTER_OFFSET
-    fp = sp;
-
     contextRegisters.gprs[THREAD_ID_REGISTER] = getLockingId();
-    contextRegisters.gprs[FRAME_POINTER]  = fp;
-
 //-#endif
-
     VM.enableGC();
 
     // only do this at runtime because it will call VM_Magic

@@ -11,11 +11,8 @@
  * the register save area of the method's stackframe, the compiler generates 
  * code to save *all* GPR and FPR registers except GPR0, FPR0, JTOC, and FP.
  *
- * <p>Prior to method return, all the non-volatile saved registers are restored.
- *
- * <p>!!TODO: consider not saving scratch registers
- * <p>!!TODO: consider not saving THREAD_ID_REGISTER and PROCESSOR_REGISTER 
- *    (since they aren't restored)
+ * <p>Methods of a class that implement this interface may not return.
+ *    (it is assumed that execution is resumed via a call to VM_Magic.dynamicBridgeTo)
  *
  * <p> See also: VM_Magic.dynamicBridgeTo()
  *

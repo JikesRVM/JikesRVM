@@ -10,6 +10,24 @@
 # IMPORTANT: You need to modify this file to reflect your environment!
 #
 
+#########
+# PART I: Preprocessor directives that hold for every config on this target
+#########
+# target architecutre is PowerPC
+export RVM_FOR_POWERPC=1
+
+# target OS is Linux
+export RVM_FOR_LINUX=1
+
+# SMP is not supported on PowerPC/Linux.
+# pthread library doesn't play nicely with RVM since it wants to
+# mask the bottom bits of stackpointer to find phtread local storage.
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
+
+##########
+# PART II: Where to find tools and resources on this target
+########## 
+
 export HOST_JAVA_HOME=/usr/local/jre13
 
 # the JDK java executable

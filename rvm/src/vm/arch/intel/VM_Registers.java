@@ -49,7 +49,6 @@ class VM_Registers implements VM_Constants, VM_Uninterruptible {
   final void unwindStackFrame() {
     ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
-    gprs[VM_BaselineConstants.FP] = fp;
   }
 
   /**
@@ -60,8 +59,6 @@ class VM_Registers implements VM_Constants, VM_Uninterruptible {
   final void setInnermost(int newip, int newfp) {
     ip = newip;
     fp = newfp;
-    // fix VM_Thread.adjustRegisters when line below is deleted!
-    gprs[VM_BaselineConstants.FP] = newfp;
   }
 
   /**
@@ -73,7 +70,6 @@ class VM_Registers implements VM_Constants, VM_Uninterruptible {
     int current_fp = VM_Magic.getFramePointer();
     ip = VM_Magic.getReturnAddress(current_fp);
     fp = VM_Magic.getCallerFramePointer(current_fp);
-    gprs[VM_BaselineConstants.FP] = fp;
   }
 
 }

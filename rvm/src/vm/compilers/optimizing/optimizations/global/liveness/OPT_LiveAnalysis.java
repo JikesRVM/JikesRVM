@@ -8,6 +8,7 @@ import  java.util.Enumeration;
 import instructionFormats.*;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.HashSet;
 
 /**
  * This class performs a flow-sensitive iterative live variable analysis. 
@@ -86,6 +87,10 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    */
   final boolean shouldPerform(OPT_Options options) {
     return true;
+  }
+
+  final boolean printingEnabled(OPT_Options options, boolean before) {
+    return false;
   }
 
   final String getName() {
@@ -418,7 +423,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     }
 
     // Get any uses from PHIs, which are in the successor blocks
-    getUsesFromPHIs(bblock);
+    getUsesFromPhis(bblock);
 
 
     // Traverse instructions in reverse order within the basic block.
@@ -507,7 +512,6 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
   }
 
   /**
-   *
    * The rvals of phi nodes are logically uses in the phi's predecessor 
    * blocks, so here we collect phi rvals from the current block's
    * successors into the gen set for this block, being careful to
@@ -518,32 +522,33 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * pre: Assumes the liveInfo array is allocated for this block
    * post: May add to liveInfo for this block
    */
-  private void getUsesFromPHIs(OPT_BasicBlock bblock) {
+  private void getUsesFromPhis(OPT_BasicBlock bblock) {
     Enumeration successors = bblock.getOut();
     while (successors.hasMoreElements()) {
       OPT_BasicBlock sb = (OPT_BasicBlock)successors.nextElement();
       if (sb.isExit())
         continue;
 
-      // which phi rval is associated with this block (i.e. bblock)
-      int index = 0;
-      Enumeration x = sb.getIn();
-      while (x.nextElement() != bblock)
-        index++;
       for (OPT_Instruction phi = sb.firstInstruction(); 
-          phi != sb.lastInstruction(); phi = phi.nextInstructionInCodeOrder()) {
+           phi != sb.lastInstruction(); 
+           phi = phi.nextInstructionInCodeOrder()) {
         if (phi.operator() == PHI) {
-          OPT_Operand myRval = Phi.getValue(phi, index);
-          if (myRval instanceof OPT_RegisterOperand) {
-            OPT_RegisterOperand regOp = (OPT_RegisterOperand)myRval;
-            VM_Type regType = regOp.type;
-            if (regOp.register.spansBasicBlock() && regType != null) {
-              bbLiveInfo[bblock.getNumber()].getGen().add(regOp);
+          for (int j = 0; j < Phi.getNumberOfValues(phi); j++) {
+            OPT_BasicBlockOperand bbop = Phi.getPred(phi,j);
+            if (bbop.block == bblock) {
+              OPT_Operand myRval = Phi.getValue(phi, j);
+              if (myRval instanceof OPT_RegisterOperand) {
+                OPT_RegisterOperand regOp = (OPT_RegisterOperand)myRval;
+                VM_Type regType = regOp.type;
+                if (regOp.register.spansBasicBlock() && regType != null) {
+                  bbLiveInfo[bblock.getNumber()].getGen().add(regOp);
+                }
+              }                    
             }
-          }                     // is a RegOp
-        }       // is a PHI
-      }         // foreach instruction
-    }           // foreach successor
+          }
+        }     
+      }      
+    }       
   }
 
   /**
@@ -864,9 +869,8 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     // The old test would exclude all physical registers.  However,
     // register allocation needs to know about physical registers, except
     // for the ones listed below.  Such regs are inserted in the IR
-    // during call expansion.
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    if (phys.excludeFromLiveness(regOp.register)
+    // during call expansion. 
+    if (regOp.register.isExcludedLiveA()
 	|| (regOp.register.isValidation() && skipGuards)) {
       return  true;
     }
@@ -983,6 +987,44 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     return  bbLiveInfo[bb.getNumber()];
   }
 
+  /**
+   * Return the set of registers that are live on the control-flow edge 
+   * basic block bb1 to basic block bb2
+   */
+  HashSet getLiveRegistersOnEdge(OPT_BasicBlock bb1, OPT_BasicBlock bb2) {
+    HashSet s1 = getLiveRegistersOnExit(bb1);
+    HashSet s2 = getLiveRegistersOnEntry(bb2);
+    s1.retainAll(s2);
+    return s1;
+  }
+
+  /**
+   * Return the set of registers that are live across a basic block, and who 
+   * are live after the basic block exit.
+   */	
+  HashSet getLiveRegistersOnExit(OPT_BasicBlock bb) {
+    HashSet result = new HashSet(10);
+    for (Enumeration e = bb.enumerateLiveIntervals(); e.hasMoreElements(); ){
+      OPT_LiveIntervalElement lie = (OPT_LiveIntervalElement)e.nextElement();
+      OPT_Instruction end = lie.getEnd(); 
+      if (end == null) result.add(lie.getRegister());
+    }
+    return result;
+  }
+  /**
+   * Return the set of registers that are live across a basic block, and who 
+   * are live before the basic block entry.
+   */	
+  HashSet getLiveRegistersOnEntry(OPT_BasicBlock bb) {
+    HashSet result = new HashSet(10);
+    for (Enumeration e = bb.enumerateLiveIntervals(); e.hasMoreElements(); ){
+      OPT_LiveIntervalElement lie = (OPT_LiveIntervalElement)e.nextElement();
+      OPT_Instruction begin = lie.getBegin(); 
+      if (begin == null) result.add(lie.getRegister());
+    }
+    return result;
+  }
+
   // A simple class used to store live info
   static final class BBLiveElement {
     private OPT_LiveSet gen;
@@ -1081,6 +1123,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
       buf.append(" In: " + in + "\n");
       return  buf.toString();
     }
+
   }
 
   /**

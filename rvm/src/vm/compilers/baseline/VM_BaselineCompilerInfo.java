@@ -284,9 +284,10 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
   //        number of instructions for method
   //        offset of the monitor acquisition instruction (in prologue)
   //
-  VM_BaselineCompilerInfo (VM_Method method, int[] bytecodeMap, int numInstructions, 
+  VM_BaselineCompilerInfo (VM_Method method, VM_ReferenceMaps referenceMaps, 
+			   int[] bytecodeMap, int numInstructions, 
 			   int lockOffset) {
-    this(method, bytecodeMap, numInstructions);
+    this(method, referenceMaps, bytecodeMap, numInstructions);
     this.lockAcquisitionOffset = lockOffset;
   }
 
@@ -295,14 +296,15 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
   //        bytecode-index to machine-instruction-index map for method
   //        number of instructions for method
   //
-  VM_BaselineCompilerInfo (VM_Method method, int[] bytecodeMap, int numInstructions) {
+  VM_BaselineCompilerInfo (VM_Method method, VM_ReferenceMaps referenceMaps, 
+			   int[] bytecodeMap, int numInstructions) {
     this.method = method;
-    ///// int[] bytecodeMap = machineCode.getBytecodeMap();
     if (saveBytecodeMap)
       _bytecodeMap = bytecodeMap;
     // create stack-slot reference map
     //
-    referenceMaps = new VM_ReferenceMaps(method, bytecodeMap);
+    referenceMaps.translateByte2Machine(bytecodeMap);
+    this.referenceMaps = referenceMaps;
     // create exception tables
     //
     VM_ExceptionHandlerMap emap = method.getExceptionHandlerMap();
@@ -342,8 +344,7 @@ class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineCons
         localStartInstructionOffsets[i] = (bytecodeMap[v.startPC] << VM.LG_INSTRUCTION_WIDTH);
         localEndInstructionOffsets[i] = v.endPC < bytecodeMap.length ?
             (bytecodeMap[v.endPC] << VM.LG_INSTRUCTION_WIDTH) 
-        ////////////: machineCode.getInstructions().length;
-        : (numInstructions << VM.LG_INSTRUCTION_WIDTH);
+	  : (numInstructions << VM.LG_INSTRUCTION_WIDTH);
       }
     }
   }

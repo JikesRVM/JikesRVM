@@ -171,7 +171,7 @@ class VM_Entrypoints implements VM_Constants
    //
    static int reflectiveMethodInvokerInstructionsOffset;
    static int saveThreadStateInstructionsOffset;
-   static int resumeThreadExecutionInstructionsOffset;
+   static int threadSwitchInstructionsOffset;
    static int restoreHardwareExceptionStateInstructionsOffset;
    static int getTimeInstructionsOffset;
    static int invokeNativeFunctionInstructionsOffset;
@@ -195,6 +195,7 @@ class VM_Entrypoints implements VM_Constants
    static int scratchNanosecondsOffset;
    static int threadSwitchRequestedOffset;
    static int activeThreadOffset;
+   static int activeThreadStackLimitOffset;
 //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
    static int vpStateOffset;
 //-#else
@@ -313,7 +314,7 @@ class VM_Entrypoints implements VM_Constants
    static VM_Method resolvedPutStaticWriteBarrierMethod;
    static int       resolvedPutStaticWriteBarrierOffset;
 
-//-#if RVM_WITH_READ_BARRIER
+//-#if RVM_WITH_READ_BARRIER2
    static VM_Method arrayLoadReadBarrierMethod;
    static int       arrayLoadReadBarrierOffset;
 
@@ -328,7 +329,7 @@ class VM_Entrypoints implements VM_Constants
 
    static VM_Method resolvedGetStaticReadBarrierMethod;
    static int       resolvedGetStaticReadBarrierOffset;
-//-#endif
+//-#endif RVM_WITH_READ_BARRIER2
 
 //-#if RVM_WITH_GCTk
    static ADDRESS GCTk_WriteBufferBase;
@@ -466,7 +467,7 @@ class VM_Entrypoints implements VM_Constants
  
       reflectiveMethodInvokerInstructionsOffset       = VM.getMember("LVM_OutOfLineMachineCode;", "reflectiveMethodInvokerInstructions", INSTRUCTION_ARRAY_SIGNATURE).getOffset();
       saveThreadStateInstructionsOffset               = VM.getMember("LVM_OutOfLineMachineCode;", "saveThreadStateInstructions", INSTRUCTION_ARRAY_SIGNATURE).getOffset();
-      resumeThreadExecutionInstructionsOffset         = VM.getMember("LVM_OutOfLineMachineCode;", "resumeThreadExecutionInstructions", INSTRUCTION_ARRAY_SIGNATURE).getOffset();
+      threadSwitchInstructionsOffset                  = VM.getMember("LVM_OutOfLineMachineCode;", "threadSwitchInstructions", INSTRUCTION_ARRAY_SIGNATURE).getOffset();
       restoreHardwareExceptionStateInstructionsOffset = VM.getMember("LVM_OutOfLineMachineCode;", "restoreHardwareExceptionStateInstructions", INSTRUCTION_ARRAY_SIGNATURE).getOffset();
 //-#if RVM_FOR_POWERPC
       getTimeInstructionsOffset                       = VM.getMember("LVM_OutOfLineMachineCode;", "getTimeInstructions", INSTRUCTION_ARRAY_SIGNATURE).getOffset();
@@ -505,6 +506,7 @@ class VM_Entrypoints implements VM_Constants
       scratchNanosecondsOffset    = VM.getMember("LVM_Processor;", "scratchNanoseconds", "D").getOffset();
       threadSwitchRequestedOffset = VM.getMember("LVM_Processor;", "threadSwitchRequested", "I").getOffset();
       activeThreadOffset          = VM.getMember("LVM_Processor;", "activeThread", "LVM_Thread;").getOffset();
+      activeThreadStackLimitOffset= VM.getMember("LVM_Processor;", "activeThreadStackLimit", "I").getOffset();
 
 //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
       vpStateOffset               = VM.getMember("LVM_Processor;", "vpState", "I").getOffset();
@@ -632,7 +634,7 @@ class VM_Entrypoints implements VM_Constants
 
       m = unresolvedPutStaticWriteBarrierMethod = (VM_Method)VM.getMember("LVM_WriteBarrier;", "unresolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
       unresolvedPutStaticWriteBarrierOffset = m.getOffset();
-//-#if RVM_WITH_READ_BARRIER
+//-#if RVM_WITH_READ_BARRIER2
       m = arrayLoadReadBarrierMethod = (VM_Method)VM.getMember("LVM_ReadBarrier;", "arrayLoadReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
       arrayLoadReadBarrierOffset = m.getOffset();
 
@@ -647,6 +649,6 @@ class VM_Entrypoints implements VM_Constants
 
       m = unresolvedGetStaticReadBarrierMethod = (VM_Method)VM.getMember("LVM_ReadBarrier;", "unresolvedGetStaticReadBarrier", "(ILjava/lang/Object;)V");
       unresolvedGetStaticReadBarrierOffset = m.getOffset();
-//-#endif
+//-#endif RVM_WITH_READ_BARRIER2
    }
 }

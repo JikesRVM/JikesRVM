@@ -52,6 +52,7 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
   public abstract int currentSP();
   public abstract void cacheJTOC();
   public abstract int getJTOC();
+  public abstract int getFPFromPR(int pr);
 
   public abstract String getValue(String regname, int count) throws Exception;
 
@@ -285,7 +286,7 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
    */
   public int[] getVMThreadSPR(int threadID) throws Exception  {
     // Need to check if this thread is loaded in the system thread or swapped out,
-    int sprs[]= new int[2];
+    int sprs[]= new int[1];
 
     // int systemThreadID[] = owner.getSystemThreadId();
     // sprs = getSystemThreadSPR(threadID, systemThreadID);
@@ -306,12 +307,10 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
     // the one we stopped in.
     if (threadIsLoaded(threadID)) {
       sprs[0] = read("IP");
-      sprs[1] = read("FP");
       return sprs;
     } else {
       // not in system thread, then the IP is in the stack frame
       sprs[0] = getVMThreadSavedIP(threadID);
-      sprs[1] = getVMThreadSavedFP(threadID);
       return sprs;
     }
 
@@ -369,22 +368,22 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
   public static int regGetNum(String regString) throws Exception {
     int reg, i;
   
-    // if (regString.equalsIgnoreCase("jt")) {
-    // 	    return registerConstants.EDI;
+    if (regString.equalsIgnoreCase("jt")) {
+    	    return registerConstants.EDI;
     // } else if (regString.equalsIgnoreCase("ip")) {
     // 	    return IAR;
-    // } else if (regString.equalsIgnoreCase("pr")) {
-    // 	    return PR;
+    } else if (regString.equalsIgnoreCase("pr")) {
+    	    return PR;
     // } else if (regString.equalsIgnoreCase("fp")) {
     // 	    return FP;
-    // } else if (regString.equalsIgnoreCase("sp")) {
-    // 	    return SP;
-    // } else if (regString.equalsIgnoreCase("jtoc") ||
-    // 		     regString.equalsIgnoreCase("toc")) {
-    // 	    return JTOC;
+    } else if (regString.equalsIgnoreCase("sp")) {
+    	    return SP;
+    } else if (regString.equalsIgnoreCase("jtoc") ||
+    		     regString.equalsIgnoreCase("toc")) {
+    	    return JTOC;
     // }  else if (regString.equalsIgnoreCase("")) {
     // 	    return 0;
-    // }
+    }
 
     /* first try the special purpose names */
     for (i = 0; i<RVM_GPR_NAMES.length; i++) {
@@ -437,9 +436,7 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
     if (reg==LR)       return "LR"; 
     
     /* Any override for the special RVM register */
-    if (reg==FP)
-      return "FP";
-    else if (reg==JTOC)
+    if (reg==JTOC)
       return "JTOC";
     else if (reg==SP)
       return "SP";

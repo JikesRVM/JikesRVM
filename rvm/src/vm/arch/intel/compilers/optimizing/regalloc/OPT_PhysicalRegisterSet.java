@@ -142,7 +142,6 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
     reg[C2].setSpansBasicBlock();
     reg[C3].setSpansBasicBlock();
     reg[PROCESSOR_REGISTER].setSpansBasicBlock();
-    reg[VM_BaselineConstants.FP].setSpansBasicBlock();
 
     // 7. set up the volatile FPRs
     for (Enumeration e = enumerateVolatileFPRs(); e.hasMoreElements(); ) {
@@ -169,6 +168,9 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
       OPT_Register r = (OPT_Register)e.nextElement();
       fpSet.add(r);
     }
+
+    // Note no registers are excluded from live analysis (as is done for PPC)
+
   }
 
   /**
@@ -190,7 +192,7 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    * @return the frame pointer register
    */
   OPT_Register getFP() {
-    return getGPR(VM_BaselineConstants.FP);
+    throw new OPT_OptimizingCompilerException("Framepointer is not a register on IA32");
   }
 
   /**
@@ -581,17 +583,6 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants {
    */
   Enumeration enumerateNonvolatilesBackwards(int regClass) {
     return new OPT_ReverseEnumerator(enumerateNonvolatiles(regClass));
-  }
-  /**
-   * Should this physical register be excluded from liveness analysis?
-   *
-   * @param r the register to consider skipping
-   * @param ir the governing ir
-   * @return whether the register should be skipped, i.e., not be
-   *          present in the liveness solution
-   */
-  public boolean excludeFromLiveness(OPT_Register r) {
-    return false;
   }
 
 

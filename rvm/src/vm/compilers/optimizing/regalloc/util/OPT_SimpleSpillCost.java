@@ -32,40 +32,43 @@ class OPT_SimpleSpillCost extends OPT_SpillCostEstimator {
    * Calculate the estimated cost for each register.  
    */
   void calculate(OPT_IR ir) {
-    for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements(); ) {
-      OPT_Instruction s = (OPT_Instruction)e.nextElement();
-      double factor = 1.0;
-      if (s.isMove()) {
-        factor *= MOVE_FACTOR;
-      }
-      double baseFactor = factor;
-      if (hasBadSizeMemoryOperand(s)) {
-        baseFactor *= MEMORY_OPERAND_FACTOR;
-      }
-      // first deal with non-memory operands
-      for (Enumeration e2 = s.getRootOperands(); e2.hasMoreElements(); ) {
-        OPT_Operand op = (OPT_Operand)e2.nextElement();
-        if (op.isRegister()) {
-          OPT_Register r = op.asRegister().register;
-          if (r.isSymbolic()) {
-            update(r,baseFactor);
+    for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements(); ) {
+      OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
+      for (Enumeration ie = bb.forwardInstrEnumerator();ie.hasMoreElements();) {
+        OPT_Instruction s = (OPT_Instruction)ie.nextElement();
+        double factor = (bb.getInfrequent()) ? 0.0 : 1.0;
+        if (s.isMove()) {
+          factor *= MOVE_FACTOR;
+        }
+        double baseFactor = factor;
+        if (hasBadSizeMemoryOperand(s)) {
+          baseFactor *= MEMORY_OPERAND_FACTOR;
+        }
+        // first deal with non-memory operands
+        for (Enumeration e2 = s.getRootOperands(); e2.hasMoreElements(); ) {
+          OPT_Operand op = (OPT_Operand)e2.nextElement();
+          if (op.isRegister()) {
+            OPT_Register r = op.asRegister().register;
+            if (r.isSymbolic()) {
+              update(r,baseFactor);
+            }
           }
         }
-      }
-      // now handle memory operands
-      factor *= MEMORY_OPERAND_FACTOR;
-      for (Enumeration e2 = s.getMemoryOperands(); e2.hasMoreElements(); ) {
-        OPT_MemoryOperand M = (OPT_MemoryOperand)e2.nextElement();
-        if (M.base != null) {
-          OPT_Register r = M.base.register;
-          if (r.isSymbolic()) {
-            update(r,factor);
+        // now handle memory operands
+        factor *= MEMORY_OPERAND_FACTOR;
+        for (Enumeration e2 = s.getMemoryOperands(); e2.hasMoreElements(); ) {
+          OPT_MemoryOperand M = (OPT_MemoryOperand)e2.nextElement();
+          if (M.base != null) {
+            OPT_Register r = M.base.register;
+            if (r.isSymbolic()) {
+              update(r,factor);
+            }
           }
-        }
-        if (M.index != null) {
-          OPT_Register r = M.index.register;
-          if (r.isSymbolic()) {
-            update(r,factor);
+          if (M.index != null) {
+            OPT_Register r = M.index.register;
+            if (r.isSymbolic()) {
+              update(r,factor);
+            }
           }
         }
       }

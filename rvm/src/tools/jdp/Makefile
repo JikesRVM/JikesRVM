@@ -131,7 +131,7 @@ lib_intel: $(NATIVECLASSES_INTEL:.class=.h) $(NATIVECLASSES_INTEL:.class=.o) \
 #Note: must have the option -funsigned-bitfields for the disassembler to work
 .c.o:
 	@mkdir -p $(@D)
-	gcc -funsigned-bitfields -c -I$(HOST_JAVA_HOME)/include -o $@ $< 
+	gcc -funsigned-bitfields -c -I$(HOST_JAVA_HOME)/include -I$(RVM_BUILD)/RVM.scratch -o $@ $< 
 
 .C.o:
 	gcc -funsigned-bitfields -c -I$(HOST_JAVA_HOME)/include -o $@ $< 

@@ -146,17 +146,17 @@ interface VM_RegisterConstants {
   // Register mnemonics (for use by debugger).
   //
   static final String [] GPR_NAMES = {
-    "00", "FP", "JT", "T0", "T1", "T2", "T3", "V4",
-    "V5", "V6", "V7", "V8", "V9", "S0", "SP", "TI",
-    "PR", "NE", "ND", "NC", "NB", "NA", "N9", "N8",
-    "N7", "N6", "N5", "N4", "N3", "N2", "N1", "N0"
+    "R0", "FP", "JT", "R3", "R4", "R5", "R6", "R7",
+    "R8", "R9", "R10", "R11", "R12", "R13", "SP", "TI",
+    "PR", "R17", "R18", "R19", "R20", "R21", "R22", "R23",
+    "R24", "R25", "R26", "R27", "R28", "R29", "R30", "R31"
   };
 
   static final String [] FPR_NAMES = {
-    "F00",  "FV0",  "FV1",  "FV2",  "FV3",  "FV4",  "FN19", "FN18",
-    "FN17", "FN16", "FN15", "FN14", "FN13", "FN12", "FN11", "FN10",
-    "FNF",  "FNE",  "FND",  "FNC",  "FNB",  "FNA",  "FN9",  "FN8",
-    "FN7",  "FN6",  "FN5",  "FN4",  "FN3",  "FN2",  "FN1",  "FN0"
+    "F0",  "F1",  "F2",  "F3",  "F4",  "F5",  "F6", "F7",
+    "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15",
+    "F16",  "F17",  "F18",  "F19",  "F20",  "F21",  "F22",  "F23",
+    "F24",  "F25",  "F26",  "F27",  "F28",  "F29",  "F30",  "F31"
   };
 
 }

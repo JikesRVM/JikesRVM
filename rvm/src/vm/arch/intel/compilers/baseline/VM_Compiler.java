@@ -9,7 +9,7 @@
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-public class VM_Compiler implements VM_BaselineConstants {
+public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants {
 
   //-----------//
   // interface //
@@ -24,14 +24,21 @@ public class VM_Compiler implements VM_BaselineConstants {
     }
     if (!VM.BuildForInterpreter) {
       VM_Compiler     compiler     = new VM_Compiler();
-      VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method);
+      boolean         shouldPrint  = ((options.PRINT_MACHINECODE) &&
+				     (!options.hasMETHOD_TO_PRINT() ||
+				     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
+      if (shouldPrint) printStartHeader(method);
+      compiler.stackHeights        = new int[method.getBytecodes().length];
+      VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method, compiler.stackHeights);
+      VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method, shouldPrint);
+      if (shouldPrint) printEndHeader(method);
       INSTRUCTION[]   instructions = machineCode.getInstructions();
       int[]           bytecodeMap  = machineCode.getBytecodeMap();
       VM_CompilerInfo info;
       if (method.isSynchronized()) {
-        info = new VM_BaselineCompilerInfo(method, bytecodeMap, instructions.length, compiler.lockOffset);
+        info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, instructions.length, compiler.lockOffset);
       } else {
-        info = new VM_BaselineCompilerInfo(method, bytecodeMap, instructions.length);
+        info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, instructions.length);
       }
       VM_Assembler.TRACE = false;
       return new VM_CompiledMethod(compiledMethodId, method, instructions, info);
@@ -69,11 +76,14 @@ public class VM_Compiler implements VM_BaselineConstants {
      return exceptionDeliverer;
   }
 
+
+
   //----------------//
   // implementation //
   //----------------//
   
-  private final VM_MachineCode genCode (int compiledMethodId, VM_Method method) {
+  private final VM_MachineCode genCode (int compiledMethodId, VM_Method method, boolean shouldPrint) {
+    if (options.PRINT_METHOD) printMethodMessage(method);
     /* initialization */ {
       // TODO!! check register ranges TODO!!
       this.method          = method;
@@ -83,13 +93,12 @@ public class VM_Compiler implements VM_BaselineConstants {
       bytecodeMap          = new int [bytecodeLength];
       if (klass.isBridgeFromNative())
 	// JNIFunctions need space for bigger prolog & epilog
-	asm                  = new VM_Assembler(bytecodeLength+10);
+	asm                  = new VM_Assembler(bytecodeLength+10,shouldPrint);
       else
-	asm                  = new VM_Assembler(bytecodeLength);
+	asm                  = new VM_Assembler(bytecodeLength,shouldPrint);
       profilerClass        = null; // TODO!! set this correctly
       parameterWords       = method.getParameterWords();
       parameterWords      += (method.isStatic() ? 0 : 1); // add 1 for this pointer
-      //      if (VM.VerifyAssertions) VM.assert(parameters == 0); // TODO!!
     }
     VM_Assembler asm = this.asm; // premature optimization
     if (klass.isBridgeFromNative()) {
@@ -98,7 +107,6 @@ public class VM_Compiler implements VM_BaselineConstants {
       // set some constants for the code generation of the rest of the method
       // firstLocalOffset is shifted down because more registers are saved
       firstLocalOffset = STACKFRAME_BODY_OFFSET - (VM_JNICompiler.SAVED_GPRS_FOR_JNI<<LG_WORDSIZE) ;
-
     } else {
       genPrologue(compiledMethodId);
     }
@@ -107,7 +115,6 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.resolveForwardReferences(bi);
       biStart = bi;
       int code = fetch1ByteUnsigned();
-      // if (VM.runningVM) VM.sysWrite("\n at: " + VM_Lister.decimal(biStart) + " = " + VM_Lister.hex((byte) code) + "\n");
       switch (code) {
       case 0x00: /* nop */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "nop");
@@ -230,175 +237,165 @@ public class VM_Compiler implements VM_BaselineConstants {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp(FP,offset);
+	asm.emitPUSH_RegDisp(ESP,offset);
 	break;
       }
       case 0x16: /* lload */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(index+1);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
 	break;
       }
       case 0x17: /* fload */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp (FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x18: /* dload */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(index+1);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
 	break;
       }
       case 0x19: /* aload */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp(FP, offset);
+	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       }
       case 0x1a: /* iload_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload_0");
 	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x1b: /* iload_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload_1");
 	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x1c: /* iload_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload_2");
 	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp (FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x1d: /* iload_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload_3");
 	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x1e: /* lload_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload_0");
 	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(1);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
 	break;
       }
       case 0x1f: /* lload_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload_1");
 	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(2);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x20: /* lload_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload_2");
 	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(3);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x21: /* lload_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload_3");
 	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(4);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x22: /* fload_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload_0");
 	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x23: /* fload_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload_1");
 	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x24: /* fload_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload_2");
 	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x25: /* fload_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload_3");
 	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x26: /* dload_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload_0");
 	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(1);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x27: /* dload_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload_1");
 	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(2);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x28: /* dload_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload_2");
 	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(3);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x29: /* dload_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload_3");
 	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(4);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x2a: /* aload_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload_0");
 	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp(FP, offset);
+	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       }
       case 0x2b: /* aload_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload_1");
 	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp(FP, offset);
+	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       }           
       case 0x2c: /* aload_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload_2");
 	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp(FP, offset);
+	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       }
       case 0x2d: /* aload_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload_3");
 	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp(FP, offset);
+	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       } 
       case 0x2e: /* iaload */ {
@@ -481,176 +478,166 @@ public class VM_Compiler implements VM_BaselineConstants {
       case 0x36: /* istore */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore " + VM_Lister.decimal(index));
-	int offset = localOffset(index);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset); 
 	break;
       }
       case 0x37: /* lstore */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore " + VM_Lister.decimal(index));
-	int offset = localOffset(index+1);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(index);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(index+1) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x38: /* fstore */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore " + VM_Lister.decimal(index));
-	int offset = localOffset(index);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x39: /* dstore */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore " + VM_Lister.decimal(index));
-	int offset = localOffset(index+1);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(index);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(index+1) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x3a: /* astore */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore " + VM_Lister.decimal(index));
-	int offset = localOffset(index);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x3b: /* istore_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore_0");
-	int offset = localOffset(0);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(0) - 4;
+	asm.emitPOP_RegDisp (ESP, offset); // pop computes EA after ESP has moved by 4!
 	break;
       }
       case 0x3c: /* istore_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore_1");
-	int offset = localOffset(1);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(1) -4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x3d: /* istore_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore_2");
-	int offset = localOffset(2);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x3e: /* istore_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore_3");
-	int offset = localOffset(3);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x3f: /* lstore_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore_0");
-	int offset = localOffset(1);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(0);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x40: /* lstore_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore_1");
-	int offset = localOffset(2);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(1);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x41: /* lstore_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore_2");
-	int offset = localOffset(3);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(2);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       } 
       case 0x42: /* lstore_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore_3");
-	int offset = localOffset(4);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(3);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(4) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x43: /* fstore_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore_0");
-	int offset = localOffset(0);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(0) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x44: /* fstore_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore_1");
-	int offset = localOffset(1);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x45: /* fstore_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore_2");
-	int offset = localOffset(2);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x46: /* fstore_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore_3");
-	int offset = localOffset(3);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x47: /* dstore_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore_0");
-	int offset = localOffset(1);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(0);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x48: /* dstore_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore_1");
-	int offset = localOffset(2);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(1);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x49: /* dstore_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore_2");
-	int offset = localOffset(3);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(2);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x4a: /* dstore_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore_3");
-	int offset = localOffset(4);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(3);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(4) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x4b: /* astore_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore_0");
-	int offset = localOffset(0);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(0) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x4c: /* astore_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore_1");
-	int offset = localOffset(1);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset); 
 	break;
       }
       case 0x4d: /* astore_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore_2");
-	int offset = localOffset(2);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x4e: /* astore_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore_3");
-	int offset = localOffset(3);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x4f: /* iastore */ {
@@ -811,7 +798,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	asm.emitPUSH_Reg(T1);
 	asm.emitPUSH_Reg(S0);
 	asm.emitPUSH_Reg(T0);
-	asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC register
+        // restore JTOC register
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, 
+                                                  VM_Entrypoints.jtocOffset);
 	break;
       }
       case 0x5f: /* swap */ {
@@ -922,7 +911,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	asm.emitIMUL1_Reg_Reg(EAX, JTOC);    // step 11
 	asm.emitADD_Reg_Reg (S0, EAX);      // step 12
 	asm.emitMOV_RegDisp_Reg (SP, 4, S0);            // step 13
-	asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC register
+        // restore JTOC register
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, 
+                                                  VM_Entrypoints.jtocOffset);
 	break;
       }
       case 0x6a: /* fmul */ {
@@ -1087,7 +1078,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	fr2.resolve(asm);
 	asm.emitPUSH_Reg(T1);                   // push high half (step 14)
 	asm.emitPUSH_Reg(T0);                   // push low half
-	asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC
+        // restore JTOC
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, 
+                                                  VM_Entrypoints.jtocOffset);
 	break;
       }
       case 0x7a: /* ishr */ {
@@ -1139,7 +1132,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	fr2.resolve(asm);
 	asm.emitPUSH_Reg(T1);                   // push high half (step 15)
 	asm.emitPUSH_Reg(T0);                   // push low half
-	asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC
+        // restore JTOC
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
+                                                  VM_Entrypoints.jtocOffset);
 	break;
       }
       case 0x7c: /* iushr */ {
@@ -1190,7 +1185,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	fr2.resolve(asm);
 	asm.emitPUSH_Reg(T1);                   // push high half (step 14)
 	asm.emitPUSH_Reg(T0);                   // push low half
-	asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC
+        // restore JTOC
+        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
+                                                  VM_Entrypoints.jtocOffset);
 	break;
       }
       case 0x7e: /* iand */ {
@@ -1243,7 +1240,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	int val = fetch1ByteSigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iinc " + VM_Lister.decimal(index) + " " + VM_Lister.decimal(val));
 	int offset = localOffset(index);
-	asm.emitADD_RegDisp_Imm(FP, offset, val);
+	asm.emitADD_RegDisp_Imm(ESP, offset, val);
 	break;
       }
       case 0x85: /* i2l */ {
@@ -1678,7 +1675,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ret " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
-	asm.emitJMP_RegDisp(FP, offset); 
+	asm.emitJMP_RegDisp(ESP, offset); 
 	break;
       }
       case 0xaa: /* tableswitch */ {
@@ -1736,7 +1733,7 @@ public class VM_Compiler implements VM_BaselineConstants {
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitPOP_Reg(T0);
-	genEpilogue(); 
+	genEpilogue(4); 
 	break;
       }
       case 0xad: /* lreturn */ {
@@ -1745,7 +1742,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitPOP_Reg(T1); // low half
 	asm.emitPOP_Reg(T0); // high half
-	genEpilogue();
+	genEpilogue(8);
 	break;
       }
       case 0xae: /* freturn */ {
@@ -1754,7 +1751,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitFLD_Reg_RegInd(FP0, SP);
 	asm.emitADD_Reg_Imm(SP, WORDSIZE); // pop the stack
-	genEpilogue();
+	genEpilogue(4);
 	break;
       }
       case 0xaf: /* dreturn */ {
@@ -1763,7 +1760,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitFLD_Reg_RegInd_Quad(FP0, SP);
 	asm.emitADD_Reg_Imm(SP, WORDSIZE<<1); // pop the stack
-	genEpilogue();
+	genEpilogue(8);
 	break;
       }
       case 0xb0: /* areturn */ {
@@ -1771,14 +1768,14 @@ public class VM_Compiler implements VM_BaselineConstants {
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	if (method.isSynchronized()) genMonitorExit();
 	asm.emitPOP_Reg(T0);
-	genEpilogue(); 
+	genEpilogue(4); 
 	break;
       }
       case 0xb1: /* return */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "return");
  	if (VM.UseEpilogueYieldPoints) genThreadSwitchTest(VM_Thread.EPILOGUE);
 	if (method.isSynchronized()) genMonitorExit();
-	genEpilogue(); 
+	genEpilogue(0); 
 	break;
       }
       case 0xb2: /* getstatic */ {
@@ -2057,7 +2054,9 @@ public class VM_Compiler implements VM_BaselineConstants {
 	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, JTOC);            // [S0+T0] <- JTOC
 	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, WORDSIZE, T1);       // [S0+T0+4] <- T1
 	    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                           // complete popping the values and reference
-	    asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC register
+            // restore JTOC
+            VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC,
+                                                      VM_Entrypoints.jtocOffset);
 	  }
 	} else {
           fieldRef = fieldRef.resolve();
@@ -2278,7 +2277,12 @@ public class VM_Compiler implements VM_BaselineConstants {
 	if (VM.BuildForIMTInterfaceInvocation) {
 	  int signatureId = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(methodRef.getName(), methodRef.getDescriptor());
 	  int offset      = VM_InterfaceMethodSignature.getOffset(signatureId);
-	  asm.emitMOV_RegDisp_Imm (PR, VM_Entrypoints.hiddenSignatureIdOffset, signatureId); // squirrel away signature ID
+          
+          // squirrel away signature ID
+          VM_ProcessorLocalState.emitMoveImmToField(asm, 
+                                                    VM_Entrypoints.hiddenSignatureIdOffset,
+                                                    signatureId);
+
 	  asm.emitMOV_Reg_RegDisp (S0, SP, (count-1) << 2);                                  // "this" object
 	  asm.emitMOV_Reg_RegDisp (S0, S0, OBJECT_TIB_OFFSET);                               // tib of "this" object
           if (VM.BuildForIndirectIMT) {
@@ -2468,78 +2472,78 @@ public class VM_Compiler implements VM_BaselineConstants {
 	case 0x15: /* --- wide iload --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide iload " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
-	  asm.emitPUSH_RegDisp(FP,offset);
+	  asm.emitPUSH_RegDisp(ESP,offset);
 	  break;
 	}
 	case 0x16: /* --- wide lload --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide lload " + VM_Lister.decimal(index));
-	  int offset = localOffset(index) - 4;
-	  asm.emitPUSH_RegDisp(FP, offset+4);  // high part
-	  asm.emitPUSH_RegDisp(FP, offset);    //  low part
+	  int offset = localOffset(index);
+	  asm.emitPUSH_RegDisp(ESP, offset);  // high part
+	  asm.emitPUSH_RegDisp(ESP, offset);  //  low part (ESP has moved by 4!!)
 	  break;
 	}
 	case 0x17: /* --- wide fload --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide fload " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
-	  asm.emitPUSH_RegDisp (FP, offset);
+	  asm.emitPUSH_RegDisp (ESP, offset);
 	  break;
 	}
 	case 0x18: /* --- wide dload --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide dload " + VM_Lister.decimal(index));
-	  int offset = localOffset(index) - 4;
-	  asm.emitPUSH_RegDisp(FP, offset+4);  // high part
-	  asm.emitPUSH_RegDisp(FP, offset);    //  low part
+	  int offset = localOffset(index);
+	  asm.emitPUSH_RegDisp(ESP, offset);  // high part
+	  asm.emitPUSH_RegDisp(ESP, offset);  //  low part (ESP has moved by 4!!)
 	  break;
 	}
 	case 0x19: /* --- wide aload --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide aload " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
-	  asm.emitPUSH_RegDisp(FP, offset);
+	  asm.emitPUSH_RegDisp(ESP, offset);
 	  break;
 	}
 	case 0x36: /* --- wide istore --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide istore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index);
-	  asm.emitPOP_RegDisp (FP, offset);
+	  int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+	  asm.emitPOP_RegDisp (ESP, offset);
 	  break;
 	}
 	case 0x37: /* --- wide lstore --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide lstore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index)-4;
-	  asm.emitPOP_RegDisp (FP, offset);   // store low half of long
-	  asm.emitPOP_RegDisp (FP, offset+4); // store high half
+	  int offset = localOffset(index)-8; // pop computes EA after ESP has moved by 4!
+	  asm.emitPOP_RegDisp (ESP, offset);   // store low half of long
+	  asm.emitPOP_RegDisp (ESP, offset);   // store high half (ESP has moved by 4!!)
 	  break;
 	}
 	case 0x38: /* --- wide fstore --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide fstore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index);
-	  asm.emitPOP_RegDisp (FP, offset);
+	  int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+	  asm.emitPOP_RegDisp (ESP, offset);
 	  break;
 	}
 	case 0x39: /* --- wide dstore --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide dstore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index)-4;
-	  asm.emitPOP_RegDisp (FP, offset);   // store low half of double
-	  asm.emitPOP_RegDisp (FP, offset+WORDSIZE); // store high half
+	  int offset = localOffset(index)-8; // pop computes EA after ESP has moved by 4!
+	  asm.emitPOP_RegDisp (ESP, offset);   // store low half of double
+	  asm.emitPOP_RegDisp (ESP, offset);   // store high half (ESP has moved by 4!!)
 	  break;
 	}
 	case 0x3a: /* --- wide astore --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide astore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index);
-	  asm.emitPOP_RegDisp (FP, offset);
+	  int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+	  asm.emitPOP_RegDisp (ESP, offset);
 	  break;
 	}
 	case 0x84: /* --- wide iinc --- */ {
 	  int val = fetch2BytesSigned();
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide inc " + VM_Lister.decimal(index) + " by " + VM_Lister.decimal(val));
 	  int offset = localOffset(index);
-	  asm.emitADD_RegDisp_Imm(FP, offset, val);
+	  asm.emitADD_RegDisp_Imm(ESP, offset, val);
 	  break;
 	}
 	case 0x9a: /* --- wide ret --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide ret " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
-	  asm.emitJMP_RegDisp(FP, offset); 
+	  asm.emitJMP_RegDisp(ESP, offset); 
 	  break;
 	}
 	default:
@@ -2634,29 +2638,36 @@ public class VM_Compiler implements VM_BaselineConstants {
      * point of the caller.
      * The third word of the header contains the compiled method id of the called method.
      */
-    asm.emitPUSH_Reg       (FP);			 // store caller's frame pointer
-    asm.emitMOV_Reg_Reg    (FP, SP);			 // establish new frame
-    asm.emitMOV_RegDisp_Imm(FP, STACKFRAME_METHOD_ID_OFFSET, cmid);	// 3rd word of header
-    asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); // so hardware trap handler can always find it (opt compiler will reuse FP register)
+    asm.emitPUSH_RegDisp   (PR, VM_Entrypoints.framePointerOffset);	// store caller's frame pointer
+    VM_ProcessorLocalState.emitMoveRegToField(asm, VM_Entrypoints.framePointerOffset, SP); // establish new frame
+    /*
+     * NOTE: until the end of the prologue SP holds the framepointer.
+     */
+    asm.emitMOV_RegDisp_Imm(SP, STACKFRAME_METHOD_ID_OFFSET, cmid);	// 3rd word of header
+  
+    /*
+     * save registers
+     */
+    asm.emitMOV_RegDisp_Reg (SP, JTOC_SAVE_OFFSET, JTOC);          // save nonvolatile JTOC register
+    
+    // establish the JTOC register
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, 
+                                              VM_Entrypoints.jtocOffset);
 
-    // save registers
-    asm.emitMOV_RegDisp_Reg (FP, JTOC_SAVE_OFFSET, JTOC);          // save nonvolatile JTOC register
-    asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // establish JTOC register
     int savedRegistersSize   = SAVED_GPRS<<LG_WORDSIZE;	// default
     /* handle "dynamic brige" methods:
      * save all registers except FP, SP, PR, S0 (scratch), and
      * JTOC saved above.
      */
+    // TODO: (SJF): When I try to reclaim ESI, I may have to save it here?
     if (klass.isDynamicBridge()) {
       savedRegistersSize += 3 << LG_WORDSIZE;
-      asm.emitMOV_RegDisp_Reg (FP, T0_SAVE_OFFSET,  T0); 
-      asm.emitMOV_RegDisp_Reg (FP, T1_SAVE_OFFSET,  T1); 
-      asm.emitMOV_RegDisp_Reg (FP, EBX_SAVE_OFFSET, EBX); 
-      asm.emitFNSAVE_RegDisp(FP, FPU_SAVE_OFFSET);
+      asm.emitMOV_RegDisp_Reg (SP, T0_SAVE_OFFSET,  T0); 
+      asm.emitMOV_RegDisp_Reg (SP, T1_SAVE_OFFSET,  T1); 
+      asm.emitMOV_RegDisp_Reg (SP, EBX_SAVE_OFFSET, EBX); 
+      asm.emitFNSAVE_RegDisp  (SP, FPU_SAVE_OFFSET);
       savedRegistersSize += FPU_STATE_SIZE;
-    } else if (klass.isBridgeFromNative()) {
-	savedRegistersSize = VM_JNICompiler.SAVED_GPRS_FOR_JNI<<LG_WORDSIZE;
-    }          
+    } 
 
     // copy registers to callee's stackframe
     firstLocalOffset         = STACKFRAME_BODY_OFFSET - savedRegistersSize;
@@ -2669,8 +2680,10 @@ public class VM_Compiler implements VM_BaselineConstants {
      * generate stacklimit check
      */
     if (klass.isInterruptible()) {
-      asm.emitMOV_Reg_RegDisp (S0, PR, VM_Entrypoints.activeThreadOffset);	// S0<-thd. @
-      asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.stackLimitOffset);	// S0<-limit
+      // S0<-limit
+       VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
+                                                 VM_Entrypoints.activeThreadStackLimitOffset);
+
       asm.emitSUB_Reg_Reg (S0, SP);                                   	// space left
       asm.emitADD_Reg_Imm (S0, method.getOperandWords() << LG_WORDSIZE); 	// space left after this expression stack
       VM_ForwardReference fr = asm.forwardJcc(asm.LT);	// Jmp around trap if OK
@@ -2687,29 +2700,21 @@ public class VM_Compiler implements VM_BaselineConstants {
     asm.emitNOP();                                      // mark end of prologue for JDP
   }
   
-  private final void genEpilogue () {
+  private final void genEpilogue (int bytesPopped) {
     if (klass.isBridgeFromNative()) {
       // pop locals and parameters, get to saved GPR's
       asm.emitADD_Reg_Imm(SP, (this.method.getLocalWords() << LG_WORDSIZE));
       VM_JNICompiler.generateEpilogForJNIMethod(asm, this.method);
-      return;
+    } else if (klass.isDynamicBridge()) {
+      // we never return from a DynamicBridge frame
+      asm.emitINT_Imm(0xFF);
+    } else {
+      // normal method
+      asm.emitADD_Reg_Imm     (SP, fp2spOffset(0) - bytesPopped);      // SP becomes frame pointer
+      asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);            // restore nonvolatile JTOC register
+      asm.emitPOP_RegDisp     (PR, VM_Entrypoints.framePointerOffset); // discard frame
+      asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 // return to caller- pop parameters from stack
     }
-
-    if (klass.isDynamicBridge()) {
-      // Restore non-volatile registers. 
-      asm.emitMOV_Reg_RegDisp (EBX, FP, EBX_SAVE_OFFSET); 
-
-      // don't restore the return paramater :)
-      // and don't restore the volatiles
-
-      // restore FPU state
-      asm.emitFRSTOR_RegDisp(FP, FPU_SAVE_OFFSET);
-    }
-
-    asm.emitMOV_Reg_RegDisp (JTOC, FP, JTOC_SAVE_OFFSET);// restore nonvolatile JTOC register
-    asm.emitLEAVE();				// discard current stack frame
-    asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); // so hardware trap handler can always find it (opt compiler will reuse FP register)
-    asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 // return to caller- pop parameters from stack
   }
    
   private final void genMonitorEnter () {
@@ -2720,7 +2725,7 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitMOV_Reg_RegInd (T0, T0);		                   // T0 = VM_Class for klass
       asm.emitPUSH_RegDisp(T0, VM_Entrypoints.classForTypeOffset); // push java.lang.Class object for klass
     } else {
-      asm.emitPUSH_RegDisp(FP, localOffset(0));	                   // push "this" object
+      asm.emitPUSH_RegDisp(ESP, localOffset(0));	                   // push "this" object
     }
     genParameterRegisterLoad(1);			           // pass 1 parameter
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.lockOffset);  
@@ -2734,16 +2739,26 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitMOV_Reg_RegInd (T0, T0);                             // T0 = VM_Class for klass
       asm.emitPUSH_RegDisp(T0, VM_Entrypoints.classForTypeOffset); // push java.lang.Class object for klass
     } else {
-      asm.emitPUSH_RegDisp(FP, localOffset(0));                    // push "this" object
+      asm.emitPUSH_RegDisp(ESP, localOffset(0));                    // push "this" object
     }
     genParameterRegisterLoad(1); // pass 1 parameter
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockOffset);  
   }
   
   private final void genBoundsCheck (VM_Assembler asm, byte indexReg, byte arrayRefReg ) { 
+    if ( options.ANNOTATIONS &&
+	 method.queryAnnotationForBytecode(biStart,
+					VM_Method.annotationBoundsCheck)) {
+      return;
+    }
     asm.emitCMP_RegDisp_Reg(arrayRefReg, ARRAY_LENGTH_OFFSET, indexReg);  // compare index to array length
     VM_ForwardReference fr = asm.forwardJcc(asm.LGT);                     // Jmp around trap if index is OK
-    asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.arrayIndexTrapParamOffset, indexReg); // "pass" index param to C trap handler
+    
+    // "pass" index param to C trap handler
+    VM_ProcessorLocalState.emitMoveRegToField(asm, 
+                                              VM_Entrypoints.arrayIndexTrapParamOffset,
+                                              indexReg);
+
     asm.emitINT_Imm(VM_Runtime.TRAP_ARRAY_BOUNDS + RVM_TRAP_BASE );	  // trap
     fr.resolve(asm);
   }
@@ -2862,12 +2877,12 @@ public class VM_Compiler implements VM_BaselineConstants {
     byte  T = T0; // next GPR to get a parameter
     if (!method.isStatic()) { // handle "this" parameter
       if (gpr < NUM_PARAMETER_GPRS) {
-	asm.emitMOV_RegDisp_Reg(FP, dstOffset, T);
+	asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);
 	T = T1; // at most 2 parameters can be passed in general purpose registers
 	gpr++;
       } else { // no parameters passed in registers
-	asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);
-	asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
+	asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
       }
       srcOffset -= WORDSIZE;
       dstOffset -= WORDSIZE;
@@ -2879,7 +2894,7 @@ public class VM_Compiler implements VM_BaselineConstants {
       VM_Type t = types[i];
       if (t.isLongType()) {
         if (gpr < NUM_PARAMETER_GPRS) {
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, T);    // hi mem := lo register (== hi order word)
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);    // hi mem := lo register (== hi order word)
 	  T = T1;                                       // at most 2 parameters can be passed in general purpose registers
 	  gpr++;
 	  srcOffset -= WORDSIZE;
@@ -2888,16 +2903,16 @@ public class VM_Compiler implements VM_BaselineConstants {
 	    asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);  // lo mem := hi register (== lo order word)
 	    gpr++;
 	  } else {
-	    asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset); // lo mem from caller's stackframe
-	    asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	    asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset); // lo mem from caller's stackframe
+	    asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	  }
 	} else {
-	  asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);   // hi mem from caller's stackframe
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	  asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // hi mem from caller's stackframe
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	  srcOffset -= WORDSIZE;
 	  dstOffset -= WORDSIZE;
-	  asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);   // lo mem from caller's stackframe
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	  asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // lo mem from caller's stackframe
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	}
 	srcOffset -= WORDSIZE;
 	dstOffset -= WORDSIZE;
@@ -2907,8 +2922,8 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  is32bit[fpr]   = true;
 	  fpr++;
 	} else {
-	  asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	  asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	}
 	srcOffset -= WORDSIZE;
 	dstOffset -= WORDSIZE;
@@ -2920,12 +2935,12 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  is32bit[fpr]   = false;
 	  fpr++;
 	} else {
-	  asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);   // hi mem from caller's stackframe
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	  asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // hi mem from caller's stackframe
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	  srcOffset -= WORDSIZE;
 	  dstOffset -= WORDSIZE;
-	  asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);   // lo mem from caller's stackframe
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	  asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);   // lo mem from caller's stackframe
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	}
 	srcOffset -= WORDSIZE;
 	dstOffset -= WORDSIZE;
@@ -2935,8 +2950,8 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  T = T1; // at most 2 parameters can be passed in general purpose registers
 	  gpr++;
 	} else {
-	  asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset);
-	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, S0);
+	  asm.emitMOV_Reg_RegDisp(S0, SP, srcOffset);
+	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, S0);
 	}
 	srcOffset -= WORDSIZE;
 	dstOffset -= WORDSIZE;
@@ -2944,9 +2959,9 @@ public class VM_Compiler implements VM_BaselineConstants {
     }
     for (int i=fpr-1; 0<=i; i--) { // unload the floating point register stack (backwards)
       if (is32bit[i]) {
-	asm.emitFSTP_RegDisp_Reg(FP, fprOffset[i], FP0);
+	asm.emitFSTP_RegDisp_Reg(SP, fprOffset[i], FP0);
       } else {
-	asm.emitFSTP_RegDisp_Reg_Quad(FP, fprOffset[i], FP0);
+	asm.emitFSTP_RegDisp_Reg_Quad(SP, fprOffset[i], FP0);
       }
     }
   }
@@ -2979,9 +2994,16 @@ public class VM_Compiler implements VM_BaselineConstants {
     if (!klass.isInterruptible()) {
       return;
     } else if (VM.BuildForDeterministicThreadSwitching) {
-      asm.emitDEC_RegDisp(PR, VM_Entrypoints.deterministicThreadSwitchCountOffset);                          // 0 == count-- ??
+      // decrement the deterministic thread switch count field in the
+      // processor object
+      VM_ProcessorLocalState.emitDecrementField(asm, 
+                                                VM_Entrypoints.deterministicThreadSwitchCountOffset);
       VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);                  // if not, skip
-      asm.emitMOV_RegDisp_Imm(PR, VM_Entrypoints.deterministicThreadSwitchCountOffset, THREAD_SWITCH_LIMIT);     // reset count
+      
+      // reset the count.
+      VM_ProcessorLocalState.emitMoveImmToField(asm,VM_Entrypoints.deterministicThreadSwitchCountOffset,
+                                                THREAD_SWITCH_LIMIT);
+
       if (whereFrom == VM_Thread.PROLOGUE) {
         asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromPrologueOffset); 
       } else if (whereFrom == VM_Thread.BACKEDGE) {
@@ -2991,7 +3013,10 @@ public class VM_Compiler implements VM_BaselineConstants {
       }
       fr1.resolve(asm);
     } else {
-      asm.emitCMP_RegDisp_Imm(PR, VM_Entrypoints.threadSwitchRequestedOffset, 0);    // thread switch requested ??
+      // thread switch requested ??
+      VM_ProcessorLocalState.emitCompareFieldWithImm(asm, 
+                                                     VM_Entrypoints.threadSwitchRequestedOffset,
+                                                     0);
       VM_ForwardReference fr1 = asm.forwardJcc(asm.EQ);                    // if not, skip
       if (whereFrom == VM_Thread.PROLOGUE) {
         asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.threadSwitchFromPrologueOffset); 
@@ -3051,8 +3076,8 @@ public class VM_Compiler implements VM_BaselineConstants {
       return;
     }
 
-    if (methodName == VM_MagicNames.resumeThreadExecution) {
-      int offset = VM_Entrypoints.resumeThreadExecutionInstructionsOffset;
+    if (methodName == VM_MagicNames.threadSwitch) {
+      int offset = VM_Entrypoints.threadSwitchInstructionsOffset;
       genParameterRegisterLoad(2); // pass 2 parameter words
       asm.emitCALL_RegDisp(JTOC, offset);
       return;
@@ -3088,11 +3113,11 @@ public class VM_Compiler implements VM_BaselineConstants {
     if (methodName == VM_MagicNames.sysCall0) {
       asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
       asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(PR);	// PR aka ESI
+       asm.emitPUSH_Reg(ESI);	
       asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
       asm.emitCALL_RegInd(T0);	// branch to C code
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T0);	// store return value
       return;
@@ -3102,13 +3127,13 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitPOP_Reg(S0);	// first and only argument
       asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
       asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(PR);	// PR aka ESI
+      asm.emitPUSH_Reg(ESI);	
       asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
       asm.emitPUSH_Reg(S0);	// push arg on stack
       asm.emitCALL_RegInd(T0);	// branch to C code
       asm.emitPOP_Reg(S0);	// pop the argument 
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T0);	// store return value
       return;
@@ -3120,14 +3145,14 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitPOP_Reg(S0);	// first arg
       asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
       asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(PR);	// PR aka ESI
+      asm.emitPUSH_Reg(ESI);	
       asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
       asm.emitPUSH_Reg(T1);	// reorder arguments for C 
       asm.emitPUSH_Reg(S0);	// reorder arguments for C
       asm.emitCALL_RegInd(T0);	// branch to C code
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);	// pop the arguments 
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T0);	// store return value
       return;
@@ -3143,13 +3168,13 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitMOV_RegDisp_Reg(SP, -3*WORDSIZE, T0);	// store 1st arg
       asm.emitMOV_Reg_Reg(T0, SP);			// T0 <- SP
       asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, EBX);	// save three nonvolatiles: EBX
-      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, PR);	// PR aka ESI
+      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, ESI);
       asm.emitMOV_RegInd_Reg(SP, JTOC);			// JTOC aka EDI
       asm.emitADD_Reg_Imm(SP, -3*WORDSIZE);		// grow the stack
       asm.emitCALL_RegDisp(T0, 3*WORDSIZE); // fourth arg on stack is address to call
       asm.emitADD_Reg_Imm(SP, WORDSIZE*3);		// pop the arguments 
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T0);			// store return value
       return;
@@ -3165,13 +3190,13 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitMOV_RegDisp_Reg(SP, -3*WORDSIZE, T0);	// store 1st arg
       asm.emitMOV_Reg_Reg(T0, SP);			// T0 <- SP
       asm.emitMOV_RegDisp_Reg(SP, 3*WORDSIZE, EBX);	// save three nonvolatiles: EBX
-      asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, PR);	// PR aka ESI
+      asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, ESI);	
       asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, JTOC);	// JTOC aka EDI
       asm.emitADD_Reg_Imm(SP, -3*WORDSIZE);		// grow the stack
       asm.emitCALL_RegDisp(T0, 4*WORDSIZE); // fifth arg on stack is address to call
       asm.emitADD_Reg_Imm(SP, WORDSIZE*4);		// pop the arguments 
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T0);			// store return value
       return;
@@ -3183,11 +3208,11 @@ public class VM_Compiler implements VM_BaselineConstants {
     if (methodName == VM_MagicNames.sysCall_L_0) {
       asm.emitMOV_Reg_Reg(T0, SP);
       asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(PR);	// PR aka ESI
+      asm.emitPUSH_Reg(ESI);	
       asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
       asm.emitCALL_RegInd(T0);	// first arg on stack is address to call
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T1);	// store return value: hi half
       asm.emitPUSH_Reg(T0);	// low half
@@ -3201,13 +3226,13 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitPOP_Reg(S0);	// the one integer argument
       asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
       asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(PR);	// PR aka ESI
+      asm.emitPUSH_Reg(ESI);	
       asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
       asm.emitPUSH_Reg(S0);	// push arg on stack
       asm.emitCALL_RegInd(T0);	// branch to C code
       asm.emitPOP_Reg(S0);	// pop the argument 
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T1);	// store return value: hi half
       asm.emitPUSH_Reg(T0);	// low half
@@ -3224,13 +3249,13 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitMOV_RegDisp_Reg(SP, -3*WORDSIZE, T0);	// store 1st arg
       asm.emitMOV_Reg_Reg(T0, SP);			// T0 <- SP
       asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, EBX);	// save three nonvolatiles: EBX
-      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, PR);	// PR aka ESI
+      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, ESI);	
       asm.emitMOV_RegInd_Reg(SP, JTOC);			// JTOC aka EDI
       asm.emitADD_Reg_Imm(SP, -3*WORDSIZE);		// grow the stack
       asm.emitCALL_RegDisp(T0, 3*WORDSIZE); // 4th word on orig. stack is address to call
       asm.emitADD_Reg_Imm(SP, WORDSIZE*3);		// pop the arguments 
       asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(PR);
+      asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
       asm.emitMOV_RegInd_Reg(SP, T0);			// store return value
       return;
@@ -3267,14 +3292,13 @@ public class VM_Compiler implements VM_BaselineConstants {
       int fpOffset   = VM.getMember("LVM_Registers;", "fp",  "I").getOffset();
       int gprsOffset = VM.getMember("LVM_Registers;", "gprs", "[I").getOffset();
 
-      asm.emitMOV_Reg_RegInd(T0, SP);	// T0 <- context register obj @
-      asm.emitMOV_RegDisp_Reg(T0, fpOffset, FP);	// store fp in context
+      asm.emitMOV_Reg_RegInd(T0, SP);	                // T0 <- context register obj @
+      asm.emitLEA_Reg_RegDisp(S0, SP, fp2spOffset(0));  // compute FP
+      asm.emitMOV_RegDisp_Reg(T0, fpOffset, S0);	// store fp in context
       asm.emitCALL_Imm (asm.getMachineCodeIndex() + 5);
       asm.emitPOP_Reg(T1);				// T1 <- IP
       asm.emitMOV_RegDisp_Reg(T0, ipOffset, T1);	// store ip in context
       asm.emitMOV_Reg_RegDisp(T0, T0, gprsOffset);	// T0 <- grps array @
-      asm.emitMOV_Reg_Imm(T1, (int) FP );		// T1 <- the index for fp
-      asm.emitMOV_RegIdx_Reg(T0, T1, asm.WORD, 0, FP);	// store fp in the gpr array too
       asm.emitMOV_Reg_RegDisp(T1, SP, WORDSIZE);	// second arg
       asm.emitMOV_Reg_RegDisp(S0, SP, 2*WORDSIZE);	// first arg
       asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- [sysPthreadSigWait @]
@@ -3292,15 +3316,11 @@ public class VM_Compiler implements VM_BaselineConstants {
     }
     
     if (methodName == VM_MagicNames.getFramePointer) {
-      asm.emitPUSH_Reg(FP);
+      asm.emitLEA_Reg_RegDisp(S0, SP, fp2spOffset(0));
+      asm.emitPUSH_Reg       (S0);
       return;
     }
     
-    if (methodName == VM_MagicNames.setFramePointer) {
-      asm.emitPOP_Reg(FP);
-      return;
-    }
-
     if (methodName == VM_MagicNames.getCallerFramePointer) {
       asm.emitPOP_Reg(T0);                                       // Callee FP
       asm.emitPUSH_RegDisp(T0, STACKFRAME_FRAME_POINTER_OFFSET); // Caller FP
@@ -3347,13 +3367,13 @@ public class VM_Compiler implements VM_BaselineConstants {
     }
     
     if (methodName == VM_MagicNames.getThreadId) {
-      asm.emitPUSH_RegDisp(PR, VM_Entrypoints.threadIdOffset);                                   
+      VM_ProcessorLocalState.emitPushField(asm,VM_Entrypoints.threadIdOffset);
       return;
     }
        
     // set the Thread id register (not really a register)
     if (methodName == VM_MagicNames.setThreadId) {
-      asm.emitPOP_RegDisp(PR, VM_Entrypoints.threadIdOffset);                                   
+      VM_ProcessorLocalState.emitPopField(asm,VM_Entrypoints.threadIdOffset); 
       return;
     }
     
@@ -3368,8 +3388,19 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitPOP_Reg(PR);
       return;
     }
-  
+    
+    // Get the value in ESI 
+    if (methodName == VM_MagicNames.getESIAsProcessor) {
+      asm.emitPUSH_Reg(ESI);
+      return;
+    }  
 
+    // Set the value in ESI
+    if (methodName == VM_MagicNames.setESIAsProcessor) {
+      asm.emitPOP_Reg(ESI);
+      return;
+    }
+  
     if (methodName == VM_MagicNames.getIntAtOffset ||
 	methodName == VM_MagicNames.getObjectAtOffset ||
 	methodName == VM_MagicNames.prepare) {
@@ -3379,12 +3410,28 @@ public class VM_Compiler implements VM_BaselineConstants {
       return;
     }
     
+    if (methodName == VM_MagicNames.getByteAtOffset) {
+      asm.emitPOP_Reg (T0);                  // object ref
+      asm.emitPOP_Reg (S0);                  // offset
+      asm.emitMOV_Reg_RegIdx_Byte(T0, T0, S0, asm.BYTE, 0); // load and zero extend byte [T0+S0]
+      asm.emitPUSH_Reg (T0);
+      return;
+    }
+    
     if (methodName == VM_MagicNames.setIntAtOffset ||
 	methodName == VM_MagicNames.setObjectAtOffset ) {
       asm.emitPOP_Reg(T0);                   // value
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref
       asm.emitMOV_RegIdx_Reg(T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- T0
+      return;
+    }
+    
+    if (methodName == VM_MagicNames.setByteAtOffset) {
+      asm.emitPOP_Reg(T0);                   // value
+      asm.emitPOP_Reg(S0);                   // offset
+      asm.emitPOP_Reg(T1);                   // obj ref
+      asm.emitMOV_RegIdx_Reg_Byte(T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- (byte) T0
       return;
     }
     
@@ -3403,6 +3450,7 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- T0
       asm.emitMOV_Reg_RegDisp(T0, SP, +4 );	// value low
       asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, 4, T0); // [T1+S0+4] <- T0
+      asm.emitADD_Reg_Imm    (SP, WORDSIZE * 4); // pop stack locations
       return;
     }
     
@@ -3557,35 +3605,35 @@ public class VM_Compiler implements VM_BaselineConstants {
       // save the branch address for later
       asm.emitPOP_Reg (S0);		// S0<-code address
 
+      asm.emitADD_Reg_Imm(SP, fp2spOffset(0) - 4); // just popped 4 bytes above.
+
       // restore FPU state
-      asm.emitFRSTOR_RegDisp(FP, FPU_SAVE_OFFSET);
+      asm.emitFRSTOR_RegDisp(SP, FPU_SAVE_OFFSET);
 
       // restore GPRs
-      asm.emitMOV_Reg_RegDisp (T0,  FP, T0_SAVE_OFFSET); 
-      asm.emitMOV_Reg_RegDisp (T1,  FP, T1_SAVE_OFFSET); 
-      asm.emitMOV_Reg_RegDisp (EBX, FP, EBX_SAVE_OFFSET); 
-      asm.emitMOV_Reg_RegDisp (JTOC,  FP, JTOC_SAVE_OFFSET); 
+      asm.emitMOV_Reg_RegDisp (T0,  SP, T0_SAVE_OFFSET); 
+      asm.emitMOV_Reg_RegDisp (T1,  SP, T1_SAVE_OFFSET); 
+      asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET); 
+      asm.emitMOV_Reg_RegDisp (JTOC,  SP, JTOC_SAVE_OFFSET); 
 
       // pop frame
-      asm.emitMOV_Reg_Reg(SP, FP);	// SP<-FP
-      asm.emitPOP_Reg (FP);		// FP<-previous FP 
+      asm.emitPOP_RegDisp (PR, VM_Entrypoints.framePointerOffset); // FP<-previous FP 
 
       // branch
       asm.emitJMP_Reg (S0);
-
       return;
     }
                                                   
     if (methodName == VM_MagicNames.returnToNewStack) {
-      // load frame pointer with new stack address
-      asm.emitPOP_Reg (FP);	
+      // SP gets frame pointer for new stack
+      asm.emitPOP_Reg (SP);	
+
       // restore nonvolatile JTOC register
-      asm.emitMOV_Reg_RegDisp (JTOC, FP, JTOC_SAVE_OFFSET);
+      asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);
+
       // discard current stack frame
-      asm.emitLEAVE();				
-      // so hardware trap handler can always find it 
-      // (opt compiler will reuse FP register)
-      asm.emitMOV_RegDisp_Reg(PR, VM_Entrypoints.framePointerOffset, FP); 
+      asm.emitPOP_RegDisp (PR, VM_Entrypoints.framePointerOffset);
+
       // return to caller- pop parameters from stack
       asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 
       return;
@@ -3601,6 +3649,11 @@ public class VM_Compiler implements VM_BaselineConstants {
                              0x00000c00);
       // Now store the result back into the FPU Control Word
       asm.emitFLDCW_RegDisp(JTOC,VM_Entrypoints.FPUControlWordOffset);
+      return;
+    }
+    if (methodName == VM_MagicNames.clearFloatingPointState) {
+      // Clear the hardware floating-point state
+      asm.emitFNINIT();
       return;
     }
     
@@ -3626,10 +3679,19 @@ public class VM_Compiler implements VM_BaselineConstants {
     
   }
 
-  // Offset of Java local variable (off frame pointer)
-  //
+  // Offset of Java local variable (off stack pointer)
+  // assuming ESP is still positioned as it was at the 
+  // start of the current bytecode (biStart)
   private final int localOffset  (int local) {
-    return firstLocalOffset - (local<<LG_WORDSIZE);
+    return (stackHeights[biStart] - local)<<LG_WORDSIZE;
+  }
+
+  // Translate a FP offset into an SP offset 
+  // assuming ESP is still positioned as it was at the 
+  // start of the current bytecode (biStart)
+  private final int fp2spOffset(int offset) {
+    int offsetToFrameHead = (stackHeights[biStart] << LG_WORDSIZE) - firstLocalOffset;
+    return offsetToFrameHead + offset;
   }
   
   /* reading bytecodes */
@@ -3661,9 +3723,55 @@ public class VM_Compiler implements VM_BaselineConstants {
     i |= (bytecodes[bi++] & 0xFF);
     return i;
   }
+
+  /**
+   * Print a message of a method name
+   * @param method
+   */
+  private static void printMethodMessage (VM_Method method) {
+      VM.sysWrite("-methodBase ");
+      VM.sysWrite(method.getDeclaringClass().toString());
+      VM.sysWrite(" "); 
+      VM.sysWrite(method.getName());
+      VM.sysWrite(" ");
+      VM.sysWrite(method.getDescriptor());
+      VM.sysWrite(" \n");
+  }
+
+  /**
+   * Print a message to mark the start of machine code printing for a method
+   * @param method
+   */
+  private static void printStartHeader (VM_Method method) {
+    VM.sysWrite("baseline Start: Final machine code for method ");
+    VM.sysWrite(method.getDeclaringClass().toString());
+    VM.sysWrite(" "); 
+    VM.sysWrite(method.getName());
+    VM.sysWrite(" ");
+    VM.sysWrite(method.getDescriptor());
+    VM.sysWrite("\n");
+  }
+
+  /**
+   * Print a message to mark the end of machine code printing for a method
+   * @param method
+   */
+  private static void printEndHeader (VM_Method method) {
+    VM.sysWrite("baseline End: Final machine code for method ");
+    VM.sysWrite(method.getDeclaringClass().toString());
+    VM.sysWrite(" "); 
+    VM.sysWrite(method.getName());
+    VM.sysWrite(" ");
+    VM.sysWrite(method.getDescriptor());
+    VM.sysWrite("\n");
+  }
+
   
   static void init() {
     exceptionDeliverer = new VM_BaselineExceptionDeliverer();
+
+    // initialize the options very early for bootimage writing
+    options = new VM_BASEOptions();
   }
 
   static void boot() {
@@ -3684,7 +3792,7 @@ public class VM_Compiler implements VM_BaselineConstants {
   private VM_Class     profilerClass;
   private int          parameterWords;
   private int          firstLocalOffset;
+  private int[]        stackHeights;
   
           int          lockOffset;
-
 }

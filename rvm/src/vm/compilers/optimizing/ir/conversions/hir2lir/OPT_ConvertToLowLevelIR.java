@@ -56,8 +56,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       // 
       // Constants can't appear as defs, so only scan the uses.
       //
-      // SIDE EFFECT: while enumerating all uses, if we see a
-      // floating-point, set ir.hasFloatingPoint = true.
       int numUses = s.getNumberOfUses();
       if (numUses > 0) {
         int numDefs = s.getNumberOfDefs();
@@ -76,23 +74,17 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
               s.insertBack(Binary.create(MATERIALIZE_CONSTANT, rop, ir.regpool.makeJTOCOp(ir,s), use));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_DoubleConstantOperand) {
-              ir.setHasFloatingPoint(true);
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.DoubleType);
 	      use.clear();
               s.insertBack(Binary.create(MATERIALIZE_CONSTANT, rop, ir.regpool.makeJTOCOp(ir,s), use));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_FloatConstantOperand) {
-              ir.setHasFloatingPoint(true);
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.FloatType);
 	      use.clear();
               s.insertBack(Binary.create(MATERIALIZE_CONSTANT, rop, ir.regpool.makeJTOCOp(ir,s), use));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_NullConstantOperand) {
               s.putOperand(idx, I(0));
-            } else if (use instanceof OPT_RegisterOperand) {
-              if (use.asRegister().register.isFloatingPoint()) {
-                ir.setHasFloatingPoint(true);
-              }
             }
           }
         }
@@ -104,7 +96,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  OPT_LocationOperand loc = GetStatic.getClearLocation(s);
 	  VM_Field field = loc.field;
 	  OPT_RegisterOperand result = GetStatic.getClearResult(s);
-	  OPT_RegisterOperand address = ir.regpool.makeJTOCOp(ir,s);
+	  OPT_Operand address = ir.regpool.makeJTOCOp(ir,s);
 	  OPT_Operand offset;
 	  if (s.operator() == GETSTATIC_UNRESOLVED) {
 	    offset = resolve(loc, s, ir, false);
@@ -121,7 +113,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  OPT_LocationOperand loc = PutStatic.getClearLocation(s);
 	  VM_Field field = loc.field;
 	  OPT_Operand value = PutStatic.getClearValue(s);
-	  OPT_RegisterOperand address = ir.regpool.makeJTOCOp(ir,s);
+	  OPT_Operand address = ir.regpool.makeJTOCOp(ir,s);
 	  OPT_Operand offset;
 	  if (s.operator() == PUTSTATIC_UNRESOLVED) {
 	    offset = resolve(loc, s, ir, false);
@@ -280,49 +272,37 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	s = OPT_DynamicTypeCheckExpansion.checkcastInterfaceNotNull(s, ir);
 	break;
 
-      case CHECKTYPE_opcode:
-	{
-	  OPT_RegisterOperand reg = TypeCheck.getClearRef(s).asRegister();
-	  TrapIf.mutate(s, TRAP_IF, null, 
-			getTIB(s, ir, reg, 
-			       TypeCheck.getClearGuard(s)), 
-			getTIB(s, ir, TypeCheck.getClearType(s)), 
-			OPT_ConditionOperand.NOT_EQUAL(), 
-			OPT_TrapCodeOperand.Regenerate());
-	}
-	break;
-
-      case TYPE_IFCMP_opcode:
+      case IG_CLASS_TEST_opcode:
 	{
 	  IfCmp.mutate(s, INT_IFCMP, null, 
 		       getTIB(s, ir, 
-			      (OPT_RegisterOperand)TypeIfCmp.getClearValue(s), 
-			      TypeIfCmp.getClearGuard(s)), 
-		       getTIB(s, ir, TypeIfCmp.getType(s)), 
-		       TypeIfCmp.getClearCond(s), 
-		       TypeIfCmp.getClearTarget(s),
-		       TypeIfCmp.getClearBranchProfile(s));
+			      (OPT_RegisterOperand)InlineGuard.getClearValue(s), 
+			      InlineGuard.getClearGuard(s)), 
+		       getTIB(s, ir, InlineGuard.getGoal(s).asType()), 
+		       OPT_ConditionOperand.NOT_EQUAL(), 
+		       InlineGuard.getClearTarget(s),
+		       InlineGuard.getClearBranchProfile(s));
 	  break;
 	}
 
-      case METHOD_IFCMP_opcode:
+      case IG_METHOD_TEST_opcode:
 	{
-	  OPT_MethodOperand methOp = MethodIfCmp.getClearMethod(s);
+	  OPT_MethodOperand methOp = InlineGuard.getClearGoal(s).asMethod();
 	  OPT_RegisterOperand t1 = 
 	    getTIB(s, ir, 
-		   (OPT_RegisterOperand)MethodIfCmp.getClearValue(s), 
-		   MethodIfCmp.getClearGuard(s));
+		   (OPT_RegisterOperand)InlineGuard.getClearValue(s), 
+		   InlineGuard.getClearGuard(s));
 	  OPT_RegisterOperand t2 = 
 	    getTIB(s, ir, methOp.method.getDeclaringClass());
 	  IfCmp.mutate(s, INT_IFCMP, null, 
 		       getInstanceMethod(s, ir, t1, methOp), 
 		       getInstanceMethod(s, ir, t2, methOp), 
-		       MethodIfCmp.getClearCond(s), 
-		       MethodIfCmp.getClearTarget(s),
-		       MethodIfCmp.getClearBranchProfile(s));
+		       OPT_ConditionOperand.NOT_EQUAL(), 
+		       InlineGuard.getClearTarget(s),
+		       InlineGuard.getClearBranchProfile(s));
 	  break;
 	}
-
+	
       case INSTANCEOF_opcode:
 	s = OPT_DynamicTypeCheckExpansion.instanceOf(s, ir);
 	break;

@@ -10,6 +10,26 @@
 # IMPORTANT: You need to modify this file to reflect your environment!
 #
 
+#########
+# PART I: Preprocessor directives that hold for every config on this target
+#########
+# target architecutre is IA32
+export RVM_FOR_IA32=1
+
+# target OS is Linux
+export RVM_FOR_LINUX=1
+
+# pthread library will work on our machines so default this to 0.
+# NOTE: the key requirement is that you have a 2.4 kernel and
+#       that glibc is compiled to use the GS segment register
+#       to access pthread-local storage.  See discussion in rvm-researchers 
+#       archive and the userguide FAQ.
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+
+##########
+# PART II: Where to find tools and resources on this target
+########## 
+
 export HOST_JAVA_HOME="/opt/IBMJava2-13"
 
 # the JDK java executable

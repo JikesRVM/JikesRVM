@@ -67,12 +67,19 @@ public class VM extends VM_Properties implements VM_Constants,
     VM.runningVM        = true;
     VM.runningAsSubsystem = false;
 
+    // 0. Set up the current VM_Processor object.  The bootstrap program
+    // has placed a pointer to the current VM_Processor in a special
+    // register.
+    VM_ProcessorLocalState.boot();
+    
     // 1. Finish thread initialization that couldn't be done in boot image.
-    //    The "stackLimit" must be set before any method calls, because it's accessed
+    //    The "stackLimit" must be set before any method calls, 
+    //    because it's accessed
     //    by compiler-generated stack overflow checks.
     //
     VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> OBJECT_THREAD_ID_SHIFT];
     currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack) + STACK_SIZE_GUARD;
+    VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
 
     // get pthread_id from OS and store into vm_processor field
     // 
@@ -126,6 +133,10 @@ public class VM extends VM_Properties implements VM_Constants,
     // java class libraries, start up the thread subsystem, and launch
     // the user level "main" thread.
     //
+
+    //  Start up the baseline compiler's options before any compilations happen
+    //
+    VM_Compiler.bootOptions();
      
     // Initialize statics that couldn't be placed in bootimage, either 
     // because they refer to external state (open files), or because they 
@@ -181,7 +192,16 @@ public class VM extends VM_Properties implements VM_Constants,
       VM.sysExit(1);
     }
 
-    // 8. Allow Collector to respond to command line arguments
+    // 8. Allow Baseline compiler to respond to command line arguments
+    //  
+
+    // The baseline compiler ignores command line arguments until all are processed
+    // otherwise printing may occur because of compilations ahead of processing the
+    // method_to_print restriction
+    VM_Compiler.postBootOptions();
+
+
+    // 9. Allow Collector to respond to command line arguments
     //
     VM_Collector.postBoot();
 

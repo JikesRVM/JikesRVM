@@ -37,6 +37,9 @@ Try to remove unnecessary monitor operations
 INVOKEE_THREAD_LOCAL -1 false
 Compile the method assuming the invokee is thread-local
 
+NO_CALLEE_EXCEPTIONS -1 false
+Assert that any callee of this compiled method will not throw exceptions?
+
 SIMPLE_ESCAPE_IPA -1 false
 Eagerly compute method summaries for simple escape analysis
 
@@ -55,11 +58,17 @@ Inline allocation of scalars and arrays
 INLINE 1 true
 Inline statically resolvable calls
 
-EAGER_INLINE 1 true
-Speculatively inline non-final virtual calls
+GUARDED_INLINE 1 true
+Guarded inlining of non-final virtual calls
 
-EAGER_INLINE_INTERFACE 1 true
+GUARDED_INLINE_INTERFACE 1 true
 Speculatively inline non-final interface calls
+
+STATIC_SPLITTING 1 true
+CFG splitting to create hot traces based on static heuristics
+
+REDUNDANT_BRANCH_ELIMINATION 2 true
+Eliminate redundant conditional branches
 
 PREEX_INLINE 1 true
 Pre-existence based inlining
@@ -81,6 +90,9 @@ Should we coalesce move instructions after leaving SSA?
 
 EXPRESSION_FOLDING 2 false
 Should we try to fold expressions with constants in SSA form?
+
+LIVE_RANGE_SPLITTING -1 false
+Split live ranges using LIR SSA pass?
 
 ## (SJF): The following optimization is not on by default because
 ## it is usually expensive and ineffective.
@@ -153,8 +165,8 @@ Should we dump out compile-time statistics for basic blocks?
 LOOP_DEPTH_EDGE_COUNTS -1 false
 Use loop depth to approximate edge counts
 
-FIXED_JTOC -1 false 
-Exploit knowledge that the value of JTOC is a constant? (IA32 only)
+FIXED_JTOC -1 VM.BuildForIA32
+Exploit knowledge that the value of JTOC is a constant?
 
 ##########
 # Next, declare all the printing options
@@ -163,8 +175,8 @@ Exploit knowledge that the value of JTOC is a constant? (IA32 only)
 PRINT_PHASES -1 false phases
 Print short message for each compilation phase
 
-PRINT_METHOD -1 false verbose
-Print method name at start of compilation
+PRINT_ALL_IR -1 false 
+Dump the IR after each compiler phase
 
 PRINT_INLINE_REPORT -1 false
 Print detailed report of compile-time inlining decisions
@@ -211,9 +223,6 @@ Print IR after conversion to MIR
 
 PRINT_FINAL_MIR -1 false final_mir
 Print IR just before conversion to machine code
-
-PRINT_MACHINECODE -1 false mc
-Print final machine code
 
 PRINT_CFG -1 false cfg
 Print control flow graph too when IR is printed

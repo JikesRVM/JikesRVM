@@ -6,8 +6,8 @@
 # Generate control files necessary to build a particular "configuration"
 # of the Research Virtual Machine.
 #
-# Invocation:  jconfigure configuration-name
-#        or:   jconfigure configuration-name </dev/null (to suppress interactive questions)
+# Invocation:  jconfigure [-quiet] configuration-name
+#        or:   jconfigure [-quiet] configuration-name </dev/null (to suppress interactive questions)
 #
 # This script is organized into 4 sections:
 #    - documentation
@@ -208,10 +208,12 @@ BOOTER=$BUILD_DIRECTORY/JikesRVM
 BOOTER_STR=$BUILD_DIRECTORY_STR/JikesRVM
 
 # Variables to allow configuration files to alter the list of
-# directories and primordials.
+# directories, primordials, exclusions and top level sources.
 #
 CONF_SPECIFIC_SOURCES_LIST=""
 CONF_SPECIFIC_PRIMORDIALS_LIST=""
+CONF_SPECIFIC_EXCLUSIONS_LIST=""
+CONF_SPECIFIC_TOP_LEVEL_SOURCES=""
 
 # Strings to use in the scripts for various command
 #
@@ -254,7 +256,7 @@ export GENERATE_MAP=1
 BOOTIMAGE_LOAD_ADDRESS="0x30000000"
 
 # Current version of RVM
-JIKESRVM_VERSION="Jikes Research VM for Java 2.0.1"
+JIKESRVM_VERSION="Jikes Research VM for Java 2.0.2"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -293,6 +295,7 @@ integer RVM_WITH_NONCOPYING_GC=0
 integer RVM_WITH_GENERATIONAL_GC=0
 integer RVM_WITH_FIXED_NURSERY_GC=0
 integer RVM_WITH_CONCURRENT_GC=0     # aka reference counting, aka RCGC
+integer RVM_WITH_REALTIME_GC=0
 integer RVM_WITH_NO_GC=0
 
 #
@@ -357,132 +360,18 @@ integer BUILD_RVMRT_JAR=0
 # Are we putting VM classes into a jar?
 integer RVM_WITH_JKSVM_JAR=0
 
-#--------------------------------------#
-# SECTION 3 - ENVIRONMENT VARIABLES    #
-#--------------------------------------#
+#---------------------------------------#
+# SECTION 3 - PROCESS RVM_TARGET_CONFIG # 
+#---------------------------------------#
+# One use of the target_config file is to define
+# directives that hold for all configurations 
+# defined on the target. By sourcing it here,
+# we define such directives for all configs on the target,
+# but still allow them to be overridden on the command line
+# or in a build-config file.
 
-# 
-# The following environment (shell) variables are examined
-#	RVM_TARGET_ARCH
-#		values: powerpc, POWERPC, PPC, IS32, i686
-#	RVM_TARGET_OS
-#		values: aix, AIX, Linux, linux, linuxsmp, Cygwin, cygwin
-#	RVM_TARGET_CONFIG
-#		values: file name in config.guess format
-#	
+. $RVM_TARGET_CONFIG
 
-#
-# Make some choices based on the enviroment variable
-# RVM_TARGET_ARCH 
-# Odd syntax required to run on various ksh's
-#
-if [[ X"$RVM_TARGET_ARCH" = X"powerpc" ]]; then
-   export RVM_FOR_POWERPC=1
-fi
-
-if [[ X"$RVM_TARGET_ARCH" = X"POWERPC" ]]; then
-   export RVM_FOR_POWERPC=1
-fi
-
-if [[ X"$RVM_TARGET_ARCH" = X"PPC" ]]; then
-   export RVM_FOR_POWERPC=1
-fi
-
-if [[ X"$RVM_TARGET_ARCH" = X"IA32" ]]; then
-   export RVM_FOR_IA32=1
-fi
-
-if [[ X"$RVM_TARGET_ARCH" = X"i686" ]]; then
-   export RVM_FOR_IA32=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X"aix" ]]; then
-   # AIX implies PPC
-   export RVM_FOR_AIX=1
-   export RVM_FOR_POWERPC=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X"AIX" ]]; then
-   # AIX implies PPC
-   export RVM_FOR_AIX=1
-   export RVM_FOR_POWERPC=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X"Linux" ]]; then
-   export RVM_FOR_LINUX=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X"linux" ]]; then
-   export RVM_FOR_LINUX=1
-fi
-
-# TODO soon: change this flag # this stanza is depricated
-if [[ X"$RVM_TARGET_OS" = X"linuxsmp" ]]; then
-   export RVM_FOR_LINUX=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X"Cygwin" ]]; then
-   export RVM_FOR_CYGWIN=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X"cygwin" ]]; then
-   export RVM_FOR_CYGWIN=1
-fi
-
-if [[ X"$RVM_TARGET_OS" = X ]]; then
-   # no target operating system specified
-   if (( !RVM_FOR_LINUX && !RVM_FOR_AIX )); then
-     # so far we have not guessed one so try to infer it from name of
-     # target configuration file
-     case $RVM_TARGET_CONFIG in
-       *aix* ) export RVM_FOR_AIX=1
-      	       export RVM_FOR_POWERPC=1 ;;
-       *linux* ) export RVM_FOR_LINUX=1 ;;
-       *cygwin* ) export RVM_FOR_CYGWIN=1 ;;
-     esac
-   fi
-   if (( !RVM_FOR_LINUX && !RVM_FOR_AIX )); then
-     # if we still have not guessed, lets default to current system
-     if [[ X`uname` = X"Linux" ]]; then
-       export RVM_FOR_LINUX=1
-     elif [[ X`uname` = X"AIX" ]]; then
-       export RVM_FOR_AIX=1
-       export RVM_FOR_POWERPC=1
-     elif [[ X`uname` = X"CYGWIN_NT-5.0" ]]; then
-       export RVM_FOR_CYGWIN=1
-     fi
-   fi
-fi
-
-if [[ X"$RVM_TARGET_ARCH" = X ]]; then
-   # no target architecture specified
-   if (( !RVM_FOR_IA32 && !RVM_FOR_POWERPC )); then
-     # so far we have not guessed one so try to infer it from name of
-     # target configuration file
-     case $RVM_TARGET_CONFIG in
-       *i686* ) export RVM_FOR_IA32=1 ;;
-       *powerpc* ) export RVM_FOR_POWERPC=1 ;;
-     esac
-   fi
-   if (( !RVM_FOR_IA32 && !RVM_FOR_POWERPC )); then
-     # if we still have not guessed, lets default to current system
-     if [[ X`uname -m` = X"ppc" ]]; then
-       export RVM_FOR_POWERPC=1
-     elif [[ X`uname -m` = X"i686" ]]; then
-       export RVM_FOR_IA32=1
-     fi
-   fi
-fi
-
-if (( RVM_FOR_CYGWIN )); then
-      export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1 
-fi
-
-if (( RVM_FOR_LINUX )); then
-  case `uname -r` in
-    2.2.*) export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1  ;;
-  esac
-fi
 
 #--------------------------------------#
 # SECTION 4 - ARGUMENT PARSING         #
@@ -494,6 +383,8 @@ while ((1)); do
 	shift
 	eval "export $1";;
 	
+    "-quiet" ) quiet=1;;
+
     "" ) break;;
 
     * ) CONFIGURATION_NAME=$1;;
@@ -579,6 +470,7 @@ function emitSourceList
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR
    print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/runtime
    print $RVM_ROOT/rvm/src/vm/classLoader
+   print $RVM_ROOT/rvm/src/vm/jni
    print $RVM_ROOT/rvm/src/vm/runtime
    print $RVM_ROOT/rvm/src/vm/scheduler
    print $RVM_ROOT/rvm/src/vm/profiler                #!!TEMP kludge to resolve VM_Timer, VM_EventLogger references
@@ -595,6 +487,10 @@ function emitSourceList
    if [[ -e $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/assembler ]]; then
      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/assembler # architecture dependent
    fi
+
+   # other components
+   #
+   print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/disassembler
 
    # Optimizing compiler components.
    #
@@ -619,6 +515,7 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/control/dominators
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/coalesce
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/liveness
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/liveRangeSplitting
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/simpleSSA
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/simpleSSA/escape
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/abcd
@@ -627,6 +524,7 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/expressionFolding
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/gvn
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/loadElimination
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/redundantBranchElimination
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/storeElimination
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/inlining
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/optimizations/ipa/specialization
@@ -659,10 +557,6 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/ir/conversions/mir2mc
       print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/regalloc
       print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/compilers/optimizing/vmInterface/services
-
-      # other components
-      #
-      print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/disassembler
    fi
 
    # Adaptive compiler components.
@@ -751,6 +645,8 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/markAndSweep
    elif (( $RVM_WITH_CONCURRENT_GC )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/concurrent
+   elif (( $RVM_WITH_REALTIME_GC )); then
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/realtime
    elif (( $RVM_WITH_NO_GC )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/noGC
    fi
@@ -783,7 +679,7 @@ function emitSourceList
 
    # Add the configuration specific directories
    #
-   for dir in `echo $CONF_SPECIFIC_SOURCES_LIST`; do
+   for dir in `echo "$CONF_SPECIFIC_SOURCES_LIST"`; do
      print $RVM_ROOT/$dir
    done
 
@@ -794,7 +690,7 @@ function emitSourceList
 #
 # Emit script which set all shell variables relative to the
 # shadow and build directory
-function emitEnvironment
+function emitEnvironmentKsh
    {
 
 # read the target environmet file
@@ -847,6 +743,61 @@ function emitEnvironment
    print "export JAZZLIBDIR='$JAZZLIBDIR'"
    }
 
+#
+# Emit script which set all shell variables relative to the
+# shadow and build directory
+function emitEnvironmentPerl
+   {
+
+# read the target environmet file
+#
+   print '#!/bin/perl'
+   print '# Set the enviroment.'
+   print ""
+   print "# This file is generated by jconfigure according to values specified"
+   print "# in the configuration files RVM_HOST_CONFIG.  You may edit file, but"
+   print "# all your changes will be lost if jconfigure is executed again using"
+   print "# the current directory as RVM_BUILD."
+   print ""
+   print "# This file was generated from the configation file:"
+   print "#      $CURRENT_CONFIG_FILE"
+
+   print ""
+   print "\$ENV{BUILD_DIRECTORY_STR1} = '$RVM_BUILD';"
+   print "\$ENV{ROOT_DIRECTORY_STR1} = '$RVM_ROOT';"
+   print ""
+   print "\$ENV{HOST_JIKES_STR1} = '$JIKES';"
+   print "\$ENV{HOST_JAVA_STR1} = '$HOST_JAVA';"
+   print "\$ENV{HOST_JAVA_HOME_STR1} = '$HOST_JAVA_HOME';"
+   print "\$ENV{HOST_JAVADOC_STR1} = '$HOST_JAVADOC';"
+   print "\$ENV{HOST_JAR_STR1} = '$HOST_JAR';"
+   print "\$ENV{HOST_REPOSITORIES_STR1} = '$HOST_REPOSITORIES';"
+   print "\$ENV{HOST_TOOLS_STR1} = '$HOST_TOOLS';"
+   print "\$ENV{HOST_J9_STR1} = '$HOST_J9';"
+   print "\$ENV{HOST_J9_LIBS_STR1} = '$HOST_J9_LIBS';"
+   print ""
+   print "\$ENV{GNU_MAKE_STR1} = '$GNU_MAKE';"
+   print ""
+   print "\$ENV{HOST_CC_STR1} = '$CC';"
+   print "\$ENV{HOST_CPLUS_STR1} = '$CPLUS';"
+   print "\$ENV{HOST_CPP_STR1} = '$CPP';"
+   print "\$ENV{HOST_SHLD_STR1} = '$LDSHARED';"
+   print ""
+   print "\$ENV{REP} = '$GREP';"
+   print "\$ENV{IND} = '$FIND';"
+   print "\$ENV{GREP} = '$FGREP';"
+   print "\$ENV{S} = '$PS';"  
+   print "\$ENV{WK} = '$AWK';"  
+   print "\$ENV{ASH} = '$BASH';"  
+   print "\$ENV{ED} = '$SED';"
+   print "\$ENV{GET} = '$WGET';"
+   print "\$ENV{IFF} = '$DIFF';"  
+   print "\$ENV{AR} = '$TAR';"  
+   print "\$ENV{NU_TAR} = '$GNU_TAR';"  
+   print "\$ENV{D5SUM} = '$MD5SUM';"  
+   print ""
+   print "\$ENV{AZZLIBDIR} = '$JAZZLIBDIR';"
+   }
 
 #
 # Emit Make file
@@ -1038,9 +989,8 @@ function emitExpander
    print 'fi'
 
    # Make the tools that we need to do template expansion
-   if (( RVM_WITH_ADAPTIVE_SYSTEM || RVM_WITH_OPT_COMPILER  || RVM_WITH_GCTk )); then
    print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/templateExpander && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
-   fi
+
    if (( RVM_WITH_OPT_COMPILER )); then
    print "   (cd $ROOT_DIRECTORY_STR/rvm/src/tools/jburg && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
    fi
@@ -1056,6 +1006,8 @@ function emitExpander
    # Do the expansion
    print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/classLoader && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR)"
 
+   print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/baseline && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
+
    if (( RVM_WITH_OPT_COMPILER )); then
       print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/compilers/optimizing && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates ARCH_DIR=$ARCH_DIR GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_SYSTEM)"
       if (( RVM_WITH_EXTREME_ASSERTIONS )); then
@@ -1069,7 +1021,9 @@ function emitExpander
    print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/memoryManagers/GCTk && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
    fi
    
-   print 'print ""'
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '  print ""'
+   print 'fi'
    }
 
 # Emit script to copy/preprocess vm java files from source tree to 
@@ -1084,7 +1038,7 @@ function emitCopier
    print 'set -e'
    print 'ME=`basename $0`'
 
-   print 'TRACE_FLAG=-trace' # always on, for now
+#  print 'TRACE_FLAG=-trace' # always on, for now
    print 'if [[ $1 = -trace ]]; then'
    print '   TRACE_FLAG=-trace'
    print '   shift'
@@ -1136,7 +1090,9 @@ fi
    print '      exit 1'
    print '   fi'
    print '   set -e'
-   print '   print ""'
+   print '   if [[ $TRACE_FLAG = -trace ]]; then'
+   print '     print ""'
+   print '   fi'
    print '   FILES='
    print '   FILES2='
    print 'done'
@@ -1158,7 +1114,9 @@ fi
    print '   exit 1'
    print 'fi'
    print 'set -e'
-   print 'print ""'
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '  print ""'
+   print 'fi'
 if (( RVM_WITH_OPT_COMPILER )); then
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
    print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR'/instructionFormats"'
@@ -1173,7 +1131,9 @@ if (( RVM_WITH_OPT_COMPILER )); then
    print '   exit 1'
    print 'fi'
    print 'set -e'
-   print 'print ""'
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '  print ""'
+   print 'fi'
    print ''
 fi
 
@@ -1192,7 +1152,9 @@ if (( RVM_WITH_JAZZLIB )); then
    print '   exit 1'
    print 'fi'
    print 'set -e'
-   print 'print ""'
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '  print ""'
+   print 'fi'
    print ''
 fi
 
@@ -1205,7 +1167,9 @@ fi
    print 'FILES=`/bin/ls' $BOOTIMAGE_RUNNER_DIR_STR'/GenerateInterfaceDeclarations.java`'
    print 'set +e'
    print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR ' $FILES'
-   print 'print ""'
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '  print ""'
+   print 'fi'
    print ''
 
    # preprocess the necessary interpreter file for the debugger jdp
@@ -1257,20 +1221,18 @@ function emitCompiler
    
    # Generate classes
    #
+   TOP_LEVEL_SOURCES="Dummy.java"
+   if (( RVM_WITH_OPT_COMPILER )); then
+      TOP_LEVEL_SOURCES="$TOP_LEVEL_SOURCES OptDummy.java"
+   fi
    if (( RVM_WITH_OPT_TEST_HARNESS )); then
-      DUMMY_SOURCES="Dummy.java OptDummy.java OptTestHarness.java"
-      DUMMY_CLASSES="Dummy.class OptDummy.class OptTestHarness.class"
-   elif (( RVM_WITH_OPT_COMPILER )); then
-      DUMMY_SOURCES="Dummy.java OptDummy.java"
-      DUMMY_CLASSES="Dummy.class OptDummy.class"
-   else
-      DUMMY_SOURCES="Dummy.java"
-      DUMMY_CLASSES="Dummy.class"
+      TOP_LEVEL_SOURCES="$TOP_LEVEL_SOURCES OptDummy.java OptTestHarness.java"
    fi
-   
    if (( RVM_WITH_JAZZLIB )); then
-      DUMMY_SOURCES="$DUMMY_SOURCES java/util/zip/*.java"
+      TOP_LEVEL_SOURCES="$TOP_LEVEL_SOURCES java/util/zip/*.java"
    fi
+   TOP_LEVEL_SOURCES="$TOP_LEVEL_SOURCES $CONF_SPECIFIC_TOP_LEVEL_SOURCES"
+   TOP_LEVEL_CLASSES=`echo $TOP_LEVEL_SOURCES|sed 's@\.java@.class@g'`
 
    if (( RVM_FOR_POWERPC )); then
       INSTRUCTION_TYPE="int"
@@ -1284,11 +1246,11 @@ function emitCompiler
 
    print "if [[ -e $CLASSES_INVALID_STR ]]; then"
    print "   cd $CLASSES_DIRECTORY_STR"
-   print "   rm -f $DUMMY_CLASSES"
+   print "   rm -f $TOP_LEVEL_CLASSES"
    if (( BUILD_RVMRT_JAR )); then
-     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath . $DUMMY_SOURCES"
+     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath . $TOP_LEVEL_SOURCES"
    else 
-     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $DUMMY_SOURCES"
+     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
    fi
    print '   print -n "(classes compiled) "'
    print ""
@@ -1309,8 +1271,9 @@ function emitCompiler
    print "rm -f $CLASSES_INVALID_STR"
    print ''
 
-
-   print 'print ""'
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '  print ""'
+   print 'fi'
 }
 
 # Emit script to generate vm bootimage.
@@ -1361,20 +1324,26 @@ function emitImageLinker
    #
    print "if [[ ! -e $PRIMORDIAL_CLASSES_STR ]]; then"
    
+   # skip: needed to build bootimage, but not to run it
+   print "   print VM_BootImageCompiler.class        > $EXCLUDED_CLASSES_STR"
+   print "   print Dummy.class                      >> $EXCLUDED_CLASSES_STR"
+   print "   print OptDummy.class                   >> $EXCLUDED_CLASSES_STR"
+
+   # skip: java.lang.Thread jdk<->RVM interoperability problems
+   print "   print MainThread.class                 >> $EXCLUDED_CLASSES_STR"
+   print "   print JNIServiceThread.class           >> $EXCLUDED_CLASSES_STR"
+
+   # skip: InetAddress loads native library; so don't load unless needed
+   print "   print VM_InetAddress.class             >> $EXCLUDED_CLASSES_STR"
+
+   # Add the configuration specific exclusions
+   #
+   for exclusion in `echo "$CONF_SPECIFIC_EXCLUSIONS_LIST"`; do
+      print "   print '$exclusion'                  >> $EXCLUDED_CLASSES_STR"
+   done
+
    if (( RVM_WITH_ALL_CLASSES )); then
       # Put (almost) all vm classes into bootimage.
-
-      # skip: needed to build bootimage, but not to run it
-      print "   print VM_BootImageCompiler.class        > $EXCLUDED_CLASSES_STR"
-      print "   print Dummy.class                      >> $EXCLUDED_CLASSES_STR"
-      print "   print OptDummy.class                   >> $EXCLUDED_CLASSES_STR"
-      
-      # skip: java.lang.Thread jdk<->RVM interoperability problems
-      print "   print MainThread.class                 >> $EXCLUDED_CLASSES_STR"
-      print "   print JNIServiceThread.class    >> $EXCLUDED_CLASSES_STR"
-      
-      # skip: InetAddress loads native library; so dont load unless needed
-      print "   print VM_InetAddress.class      >> $EXCLUDED_CLASSES_STR"
 
       # skip: not part of production system, so don't put them in the bootimage (if they are in the build at all)
       print "   print PPC_Disassembler.class >> $EXCLUDED_CLASSES_STR"
@@ -1382,31 +1351,17 @@ function emitImageLinker
       # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
       print "   print $CLASSES_DIRECTORY_STR/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
       print "   print $CLASSES_DIRECTORY_STR/instructionFormats/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@LinstructionFormats/\1;@' >> $PRIMORDIAL_CLASSES_STR"
-      if (( RVM_WITH_GCTk )); then
-          print "   print $CLASSES_DIRECTORY_STR/GCTk*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR"
-      fi
 
    else
       # Put minimum number of vm classes into boot image (just sufficient to
       # dynamically load remaining portions of the system).
       
-      # skip: needed to build bootimage, but not to run it
-      print "   print VM_BootImageCompiler.class > $EXCLUDED_CLASSES_STR"
-      print "   print Dummy.class               >> $EXCLUDED_CLASSES_STR"
-      print "   print OptDummy.class            >> $EXCLUDED_CLASSES_STR"
-
-      # skip: java.lang.Thread jdk<->RVM interoperability problems
-      print "   print MainThread.class          >> $EXCLUDED_CLASSES_STR"
-      print "   print JNIServiceThread.class    >> $EXCLUDED_CLASSES_STR"
-            
-      # skip: InetAddress loads native library; so dont load unless needed
-      print "   print VM_InetAddress.class      >> $EXCLUDED_CLASSES_STR"
-
       # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
       print "   print $CLASSES_DIRECTORY_STR/VM*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
-      if (( RVM_WITH_GCTk )); then
-          print "   print $CLASSES_DIRECTORY/GCTk*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES | sed 's@.*/\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES"
-      fi
+   fi
+
+   if (( RVM_WITH_GCTk )); then
+      print "   print $CLASSES_DIRECTORY_STR/GCTk*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR"
    fi
 
    # Now add classes sufficient to start up the vm and to dynamically load anything that's not
@@ -1604,7 +1559,7 @@ function emitImageLinker
 
    print "   print '[LVM_CommandLineArgs\$Prefix;' >> $PRIMORDIAL_CLASSES_STR" # for command line argument processing
 
-   if (( RVM_WITH_NONCOPYING_GC || RVM_WITH_HYBRID_GC || RVM_WITH_CONCURRENT_GC )); then
+   if (( RVM_WITH_NONCOPYING_GC || RVM_WITH_HYBRID_GC || RVM_WITH_CONCURRENT_GC || RVM_WITH_REALTIME_GC )); then
       print "   print '[LVM_ProcessorLock;' >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[LVM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"
@@ -1678,8 +1633,8 @@ function emitImageLinker
 
    # Add the configuration specific primordials
    #
-   for primordial in `echo $CONF_SPECIFIC_PRIMORDIALS_LIST`; do
-     print "   print $RVM_ROOT/$primordial		>> $PRIMORDIAL_CLASSES_STR"
+   for primordial in `echo "$CONF_SPECIFIC_PRIMORDIALS_LIST"`; do
+     print "   print '$primordial'			>> $PRIMORDIAL_CLASSES_STR"
    done
 
    print '   print -n "(primordials updated) "'
@@ -1722,7 +1677,8 @@ function emitImageLinker
    fi
    
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
-   print '   OPT_ARGS="$OPT_ARGS -X:bc:verbose=true -X:bc:phases=true"'
+   print '   OPT_ARGS="$OPT_ARGS -X:bc:verbose=true"'
+   print '   VERBOSE_STR="VERBOSE_ARG=-verbose:gc"'
    print 'fi'
    print ""
 
@@ -1752,7 +1708,7 @@ function emitImageLinker
    print "cd $BOOTIMAGE_WRITER_DIR_STR"
 
    if (( RVM_WITH_JKSVM_JAR )); then
-   print "$GNU_MAKE_STR -f $BOOTIMAGE_WRITER_MAKEFILE \$SILENT_MAKE $MEM_KLUDGE\
+   print "$GNU_MAKE_STR -f $BOOTIMAGE_WRITER_MAKEFILE \$SILENT_MAKE \$VERBOSE_STR\
           RVM_INSTRUCTION_TYPE=$INSTRUCTION_TYPE\
           RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar\
           RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR\
@@ -1762,7 +1718,7 @@ function emitImageLinker
           SCRATCH_DIR=$SCRATCH_DIRECTORY_STR\
           $BOOTIMAGE_STR"
    else
-   print "$GNU_MAKE_STR -f $BOOTIMAGE_WRITER_MAKEFILE \$SILENT_MAKE $MEM_KLUDGE\
+   print "$GNU_MAKE_STR -f $BOOTIMAGE_WRITER_MAKEFILE \$SILENT_MAKE \$VERBOSE_STR\
           RVM_INSTRUCTION_TYPE=$INSTRUCTION_TYPE\
           RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
           RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR\
@@ -1773,7 +1729,9 @@ function emitImageLinker
           $BOOTIMAGE_STR"
    fi
 
-   print 'print ""'
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '  print ""'
+   print 'fi'
    }
 
 # Emit script to generate vm booter.
@@ -1963,7 +1921,7 @@ function emitBooterLinker
 		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C"
       print "cd $SCRATCH_DIRECTORY_STR &&\
 		\$BOOTER_CC -o $BOOTER_STR RunBootImage.o libvm.o sys.o bootThread.o \$CCLIBS"
-      print 'print "(booter linked)"'
+      print 'print -n "(booter linked)"'
       print ""
 
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
@@ -2172,7 +2130,7 @@ chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.tool
 export CURRENT_CONFIG_FILE=$RVM_HOST_CONFIG
 emitMakefile	      	      >$BUILD_DIRECTORY/jbuild.Make.rules
 
-emitEnvironment		      >$BUILD_DIRECTORY/jbuild.environment
+emitEnvironmentKsh	      >$BUILD_DIRECTORY/jbuild.environment
 chmod +x$PERM		      $BUILD_DIRECTORY/jbuild.environment
 
 # read the target environmet file
@@ -2180,19 +2138,25 @@ chmod +x$PERM		      $BUILD_DIRECTORY/jbuild.environment
 export CURRENT_CONFIG_FILE=$RVM_TARGET_CONFIG
 emitMakefile		      >$BUILD_DIRECTORY/Make.rules
 
-emitEnvironment		      >$BUILD_DIRECTORY/environment
+emitEnvironmentKsh	      >$BUILD_DIRECTORY/environment
 chmod +x$PERM		      $BUILD_DIRECTORY/environment
+
+emitEnvironmentPerl	      >$BUILD_DIRECTORY/environment.pl
+chmod +x$PERM		      $BUILD_DIRECTORY/environment.pl
 
 
 print -n "(control files and scripts installed) "
 
 print ""
-if tty -s; then # keyboard is live (ie. this is not an automated build)
-   print "$ME: $CONFIGURATION_NAME configuration is ready"
-   print "$ME: To build it, type:"
-   print "$ME:    cd $BUILD_DIRECTORY"
-   print "$ME:    ./jbuild"
-   print "$ME: To execute it (from any directory) type:"
-   print "$ME:    rvm <vm-args> classname <application-args>"
+
+if [[ $quiet != 1 ]]; then
+  if tty -s; then # keyboard is live (ie. this is not an automated build)
+    print "$ME: $CONFIGURATION_NAME configuration is ready"
+    print "$ME: To build it, type:"
+    print "$ME:    cd $BUILD_DIRECTORY"
+    print "$ME:    ./jbuild"
+    print "$ME: To execute it (from any directory) type:"
+    print "$ME:    rvm <vm-args> classname <application-args>"
+  fi
 fi
 

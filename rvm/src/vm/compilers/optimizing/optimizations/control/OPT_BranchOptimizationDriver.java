@@ -66,6 +66,10 @@ public abstract class OPT_BranchOptimizationDriver
     return  "Branch Optimizations";
   }
 
+  final boolean printingEnabled(OPT_Options options, boolean before) {
+    return false;
+  } 
+
   /**
    * This phase contains no per-compilation instance fields.
    */
@@ -100,6 +104,10 @@ public abstract class OPT_BranchOptimizationDriver
       maximizeBasicBlocks(ir);
     if (renumber)
       ir.cfg.compactNodeNumbering();
+
+    if (ir.IRStage < OPT_IR.MIR) {
+      ir.pruneExceptionalOut();
+    }
   }
 
   /**

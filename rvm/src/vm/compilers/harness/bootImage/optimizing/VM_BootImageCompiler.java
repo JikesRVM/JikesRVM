@@ -28,33 +28,7 @@ class VM_BootImageCompiler {
       // concerned about compile time, but we do care a lot about the quality
       // and stability of the generated code.  Set the options accordingly.
 
-      // Pick an optimization level
-      options.setOptLevel(3); 
-
-      // Disable things that we think are a bad idea in this context
-      options.EAGER_INLINE = false;        // badly hurts pBOB performance if enabled (25% reduction in TPM).
-
-      // would increase build time by some 25%
-      options.GCP = false;
-      options.TURN_WHILES_INTO_UNTILS = false;
-      options.GCSE=false;
-	 
-      // Pre-existence based inlining isn't supported for bootimage writing
-      // to avoid needing to stick the dependency database in the bootimage
-      options.PREEX_INLINE = false;
-
-      // Compute summaries of bootimage methods if we haven't encountered them yet.
-      // Does not handle unimplemented magics very well; disable until
-      // we can get a chance to either implement them on IA32 or fix the 
-      // analysis to not be so brittle.
-      // options.SIMPLE_ESCAPE_IPA = true;
-
-      // Static inlining controls. 
-      // Be more aggressive when building the boot image then we are normally.
-      options.IC_MAX_TARGET_SIZE = 5*VM_OptMethodSummary.CALL_COST;
-      options.IC_MAX_INLINE_DEPTH = 6;
-      options.IC_MAX_INLINE_EXPANSION_FACTOR = 7;
-      OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
+      OPT_Compiler.setBootOptions( options );
 
       // An unexpected error when building the opt boot image should be fatal
       options.ERRORS_FATAL = true;
@@ -100,7 +74,8 @@ class VM_BootImageCompiler {
       VM.sysFail(msg);
     }
   }
-   
+
+
   /** 
    * Compile a method.
    * @param method the method to compile

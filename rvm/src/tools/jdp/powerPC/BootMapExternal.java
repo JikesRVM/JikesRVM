@@ -382,9 +382,10 @@ class BootMapExternal extends BootMap {
     // Accomodate wild cards
     if (!classname.equals("")) {
       // class name given, look for this class specifically
-      clsID = dictionaryExtension.findTypeID("L" + classname + ";");
+      String classDescriptor = "L" + classname.replace('.','/') + ";";
+      clsID = dictionaryExtension.findTypeID(classDescriptor);
       if (clsID==0) 
-        throw new BmapNotFoundException("class not found");
+        throw new BmapNotFoundException("class "+classDescriptor+" not found");
       VM_Type[] val = VM_TypeDictionary.getValuesPointer();
       VM_Class cls = val[clsID].asClass();
       if (!cls.isLoaded())

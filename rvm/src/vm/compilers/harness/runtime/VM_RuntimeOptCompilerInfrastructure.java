@@ -25,6 +25,9 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
   // you know what you're doing before modifying it!!!
   protected static boolean compilationInProgress; 
   
+  // One time check to optionally preload and compile a specified class
+  protected static boolean preloadChecked = false;
+
   // Cache objects needed to cons up compilation plans
   protected static OPT_Options options;
   protected static OPT_OptimizationPlanElement[] optimizationPlan;

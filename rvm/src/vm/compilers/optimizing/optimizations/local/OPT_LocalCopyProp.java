@@ -38,7 +38,6 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
   public void perform (OPT_IR ir) {
     // info is a mapping from OPT_Register to OPT_Register
     java.util.HashMap info = new java.util.HashMap();
-
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
 	 bb != null; 
 	 bb = bb.nextBasicBlockInCodeOrder()) {
@@ -69,6 +68,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
 	      if (didSomething) OPT_Simplifier.simplify(s);
 	    }
 	    // KILL
+	    boolean killPhysicals = s.isTSPoint() || s.operator().implicitDefs != 0;
 	    for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements();) {
               OPT_Operand def = e.next();
               if (def != null && def.isRegister()) {
@@ -85,7 +85,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
                   OPT_Register eR =
                     ((OPT_RegisterOperand)entry.getValue()).
                     asRegister().register;
-                  if (eR == r) {
+                  if (eR == r || (killPhysicals && eR.isPhysical())) {
                     // delay the removal to avoid ConcurrentModification
                     // with iterator.
                     toRemove.add(entry.getKey());
@@ -101,7 +101,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
 	  // GEN
 	  if (Move.conforms(s)) {
 	    OPT_Operand val = Move.getVal(s);
-	    if (val.isRegister() && !val.asRegister().register.isPhysical()) {
+	    if (val.isRegister()) {
 	      info.put(Move.getResult(s).register, val);
 	    } 
 	  }

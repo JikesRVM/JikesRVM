@@ -171,6 +171,17 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
       OPT_Register r = (OPT_Register)e.nextElement();
       volatileSet.add(r);
     }
+
+    // 12. Show which registers should be excluded from live analysis
+    reg[CTR].setExcludedLiveA();
+    reg[CR].setExcludedLiveA();
+    reg[TU].setExcludedLiveA();
+    reg[TL].setExcludedLiveA();
+    reg[XER].setExcludedLiveA();
+    reg[FRAME_POINTER].setExcludedLiveA();
+    reg[JTOC_POINTER].setExcludedLiveA();
+    reg[LR].setExcludedLiveA();
+
   }
 
   /**
@@ -690,25 +701,6 @@ implements VM_RegisterConstants, OPT_PhysicalRegisterConstants{
     return new OPT_ReverseEnumerator(enumerateNonvolatiles(regClass));
   }
 
-  /**
-   * Should this physical register be excluded from liveness analysis?
-   *
-   * @param r the register to consider skipping
-   * @param ir the governing ir
-   * @return whether the register should be skipped, i.e., not be
-   *          present in the liveness solution
-   */
-  public boolean excludeFromLiveness(OPT_Register r) {
-    // The old test would exclude all physical registers.  However,
-    // register allocation needs to know about physical registers, except
-    // for the ones listed below.  Such regs are inserted in the IR
-    // during call expansion.
-    if ( r== getCTR() || r == getCR() || r == getTU() || r == getTL()
-        || r == getXER() || r == getFP() || r == getJTOC() || r == getLR()) {
-      return  true;
-    }
-    return  false;
-  }
 
   /**
    * If the passed in physical register r is used as a GPR parameter register,

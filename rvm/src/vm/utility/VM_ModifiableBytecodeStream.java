@@ -163,27 +163,23 @@ public final class VM_ModifiableBytecodeStream extends VM_BytecodeStream {
     int[] startPCs   = new int[oldlen + len];
     int[] endPCs     = new int[oldlen + len];
     int[] handlerPCs = new int[oldlen + len];
-    int[] cpiIndex   = new int[oldlen + len];
     VM_Type[] exceptionTypes = new VM_Type[oldlen + len];
     // prepend em to ehm
     for (int i = 0; i < len; i++) {
       startPCs[i] = em.startPCs[i];
       endPCs[i] = em.endPCs[i];
       handlerPCs[i] = em.handlerPCs[i];
-      cpiIndex[i] = em.cpiIndex[i];
       exceptionTypes[i] = em.exceptionTypes[i];
     }
     for (int i = 0; i < oldlen; i++) {
       startPCs[i+len] = ehm.startPCs[i];
       endPCs[i+len] = ehm.endPCs[i];
       handlerPCs[i+len] = ehm.handlerPCs[i];
-      cpiIndex[i+len] = ehm.cpiIndex[i];
       exceptionTypes[i+len] = ehm.exceptionTypes[i];
     }
     ehm.startPCs = startPCs;
     ehm.endPCs = endPCs;
     ehm.handlerPCs = handlerPCs;
-    ehm.cpiIndex = cpiIndex;
     ehm.exceptionTypes = exceptionTypes;
   }
 

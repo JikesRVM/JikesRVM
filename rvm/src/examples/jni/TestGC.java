@@ -25,7 +25,7 @@ class TestGC {
 
     int returnValue;
     boolean returnFlag;
-    boolean runningUnderJDK = false;
+    boolean runningUnderJDK = true;
     boolean copyingGC=false;
 
     String str1 = new String("string 1");

@@ -42,6 +42,8 @@ HOST_OS=`uname`
 if [ $HOST_OS = "AIX" ]
 then 
   export ARCH=powerPC
+  export LDR_CNTRL=MAXDATA=0
+  # that tells newer JVMs not to claim so many segments
 elif [ $HOST_OS = "Linux" ]
 then
   export ARCH=intel

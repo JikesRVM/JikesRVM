@@ -21,7 +21,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
    * Returns the name of the phase.
    */
   String getName () {
-    return  "CFGTransformations";
+    return  "Loop Unrolling";
   }
 
   boolean shouldPerform (OPT_Options options) {
@@ -45,6 +45,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     new OPT_BranchOptimizations(-1).perform(ir, true);
 
     new OPT_CFGTransformations().perform(ir);
+    // new OPT_CFGTransformations().performMakeExitsExit(ir);
     // Note: the following unfactors the CFG
     new OPT_DominatorsPhase(true).perform(ir);
     OPT_DefUse.computeDU (ir);
@@ -73,7 +74,10 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
   static int unrollLoopTree (OPT_LSTNode t, OPT_IR ir) {
     int res = 0;
     Enumeration e = t.outNodes();
-    if (!e.hasMoreElements()) unrollLeaf (t, ir);
+    if (!e.hasMoreElements()) {
+      boolean doNaiveUnrolling = unrollLeaf (t, ir);
+      // not yet: if (doNaiveUnrolling) naiveUnroller (t, ir);
+    }
     else while (e.hasMoreElements()) {
       OPT_LSTNode n = (OPT_LSTNode)e.nextElement();
       int heightOfTree = unrollLoopTree(n, ir);
@@ -88,20 +92,21 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 
   static int theCnt=0;
   
-  static void unrollLeaf (OPT_LSTNode t, OPT_IR ir) {
+  static boolean unrollLeaf (OPT_LSTNode t, OPT_IR ir) {
     int instructionsInLoop = 0;
     OPT_BasicBlock exitBlock = null, succBlock = null, predBlock = null;
     OPT_BitVector nloop = t.loop;
     OPT_BasicBlock header = t.header;
     OPT_Instruction tmp;
     
-    if (nloop == null) return;
+    if (nloop == null) return false;
+
 
     // examine what we got...
     report ("Leaf loop in " + ir.method + ": "+nloop+"\n");
 
     if (ir.hasReachableExceptionHandlers()){
-      report ("0 IR may have exception handlers\n"); return;}
+      report ("0 IR may have exception handlers\n"); return false;}
 
     // determine loop structure by looking at its blocks
     OPT_BasicBlockEnumeration loopBlocks = ir.getBasicBlocks(nloop);
@@ -112,7 +117,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       // check for size
       instructionsInLoop += b.getNumberOfRealInstructions();
       if (instructionsInLoop > MaxInstructions) {
-	report ("1 is too big\n"); return;}
+	report ("1 is too big\n"); return false;}
 
       // look at the in edges. We want the header to be the only
       // block with out of loop incoming edges.
@@ -120,8 +125,8 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       if (b != header) {
 	while (e.hasMoreElements()) {
 	  OPT_BasicBlock o = e.next();
-	  if (!nloop.get(o.getNumber())) {
-	    report ("2 interior pointers.\n"); return;}
+	  if (!OPT_CFGTransformations.inLoop (o, nloop)) {
+	    report ("2 interior pointers.\n"); return true;}
 	}
       } else {
 	// check the headers predecessors: there should be
@@ -132,37 +137,37 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 	while (e.hasMoreElements()) {
 	  inEdges++;
 	  OPT_BasicBlock o = e.next();
-	  if (!nloop.get(o.getNumber())) {
+	  if (!OPT_CFGTransformations.inLoop (o, nloop)) {
 	    if (predBlock == null) predBlock = o;
-	    else {report ("3 multi entry header.\n"); return;}
+	    else {report ("3 multi entry header.\n"); return true;}
 	  } else {
 	    if (exitBlock == null) exitBlock = o;
-	    else {report ("4 multiple back edges.\n"); return;}
+	    else {report ("4 multiple back edges.\n"); return true;}
 	  }
 	}
       }      
     }
     // exitBlock must exit
-    while (exitBlock.getNumberOfOut() == 1 && exitBlock.getNumberOfIn() == 1)
-      exitBlock = exitBlock.getIn().next();
+    //while (exitBlock.getNumberOfOut() == 1 && exitBlock.getNumberOfIn() == 1)
+    // exitBlock = exitBlock.getIn().next();
   
     OPT_BasicBlockEnumeration e = exitBlock.getOut();
     boolean exits = false;
     while (e.hasMoreElements()) {
       OPT_BasicBlock b = e.next();
-      if (!nloop.get(b.getNumber())) {exits = true; break;}
+      if (!OPT_CFGTransformations.inLoop (b, nloop)) {exits = true; break;}
     }
-    if (!exits) {report ("5 exitBlock doesn't exit\n"); return;}
+    if (!exits) {report ("5 exitBlock doesn't exit\n"); return true;}
 
     if (exitBlock == header && blocks > 1) {
-      report("6 while loop? ("+blocks+")\n"); return;}
+      report("6 while loop? ("+blocks+")\n"); return true;}
 
     // So far, so good. Examine the exit test.
     OPT_Instruction origBranch = exitBlock.firstBranchInstruction();
     if (origBranch != exitBlock.lastRealInstruction()) {
       OPT_Instruction aGoto = origBranch.nextInstructionInCodeOrder();
       if (aGoto.operator.opcode != GOTO_opcode) {
-	report ("7 too complex exit\n"); return;}
+	report ("7 too complex exit\n"); return true;}
       succBlock = Label.getBlock(Goto.getTarget(aGoto).target).block;
       if (VM.VerifyAssertions)
 	VM.assert (aGoto == exitBlock.lastRealInstruction());
@@ -171,7 +176,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     }
     
     if (origBranch.operator.opcode != INT_IFCMP_opcode) {
-      report("8 branch isn't int_ifcmp: "+origBranch.operator+".\n"); return;}
+      report("8 branch isn't int_ifcmp: "+origBranch.operator+".\n"); return true;}
 
     // examine operands:
     OPT_Operand op1 = follow(IfCmp.getVal1(origBranch));
@@ -188,25 +193,31 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 	op2 = op;
 	cond.flipOperands();
       } else {
-	report ("8a op1 and op2 may not be loop invariant\n"); return;}
+	if (DEBUG) {
+	  printDefs (op1);
+	  printDefs (op2);
+	  VM.sysWrite (""+origBranch+"\n");
+	}
+	report ("8a op1 and op2 may not be loop invariant\n"); return true;
+      }
     }
     OPT_BasicBlock
       target = Label.getBlock(IfCmp.getTarget(origBranch).target).block;
 
     if (!(op1 instanceof OPT_RegisterOperand)) {
-      report ("9 op1 of ifcmp isn't a register\n"); return;}
+      report ("9 op1 of ifcmp isn't a register\n"); return true;}
 
     OPT_RegisterOperand rop1 = (OPT_RegisterOperand) op1;
 
 
     OPT_Register reg = rop1.register;
-    if (reg.isPhysical()) {report("10 loops over physical register\n"); return;}
-    if (succBlock == header && !nloop.get(target.getNumber())) {
+    if (reg.isPhysical()) {report("10 loops over physical register\n"); return false;}
+    if (succBlock == header && !OPT_CFGTransformations.inLoop (target, nloop)) {
       succBlock = target;
       target = header;
       cond.flipCode();
     }
-    if (target != header) {report ("11 ifcmp doesn't jump to header\n");return;}
+    if (target != header) {report("11 ifcmp doesn't jump to header\n");return true;}
 
     OPT_Instruction iterator = null;
     OPT_OperandEnumeration defs = new RealDefs (rop1);
@@ -215,32 +226,31 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       OPT_Instruction inst = def.instruction;
       OPT_BasicBlock block = inst.getBasicBlock();
       //VM.sysWrite (""+block+": "+inst+"\n"); 
-      if (nloop.get(block.getNumber())) {
+      if (OPT_CFGTransformations.inLoop (block, nloop)) {
 	if (iterator == null) {
 	  iterator = inst;
-	} else {report("12 iterator not unique.\n"); return;}
+	} else {report("12 iterator not unique.\n"); return true;}
       }
     }
     
-    if (iterator == null) {report ("15 iterator not found.\n"); return;}
+    if (iterator == null) {report ("15 iterator not found.\n"); return true;}
 
       
     if (iterator.operator.opcode != INT_ADD_opcode) {
-      report ("16 iterator is no addition: "+iterator.operator+"\n"); return;}
+      //dumpIR (ir, "malformed");
+      report ("16 iterator is no addition: "+iterator.operator+"\n"); return true;}
 
     if (!rop1.similar(follow(Binary.getVal1(iterator)))) {
       //dumpIR (ir, "malformed");
-      report ("17 malformed iterator.\n"+iterator+"\n"); return;}
+      report ("17 malformed iterator.\n"+iterator+"\n"); return true;}
 
     OPT_Operand strideOp = follow (Binary.getVal2(iterator));
     if (!(strideOp instanceof OPT_IntConstantOperand)) {
-      report ("18 stride not constant\n"); return;}
+      report ("18 stride not constant\n"); return true;}
 
     int stride = ((OPT_IntConstantOperand)strideOp).value;
-    if (stride != 1
-	&& stride != -1
-	) {
-      report ("18b stride != +/-1 ("+stride+")\n"); return;}
+    if (stride != 1 && stride != -1) {
+      report ("18b stride != +/-1 ("+stride+")\n"); return true;}
 
     if ((   stride ==  1
 	    && ((  cond.value != OPT_ConditionOperand.LESS)
@@ -252,7 +262,10 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 		&& cond.value != OPT_ConditionOperand.GREATER_EQUAL
 		&& cond.value != OPT_ConditionOperand.NOT_EQUAL
 		))) {
-      report ("19 unexpected condition: "+cond+"\n"+iterator+"\n\n"); return;}
+      report ("19 unexpected condition: "+cond+"\n"+iterator+"\n"
+	      +origBranch+"\n\n");
+      return true;
+    }
 
     OPT_RegisterOperand outerGuard;
     OPT_BasicBlock outer = predBlock;
@@ -261,7 +274,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       outer = outer.getIn().next();
     }
     if (outer.getNumberOfIn() > 0 && outer.getNumberOfOut() < 2) {
-      report ("23 no suitable outer guard found.\n"); return;}
+      report ("23 no suitable outer guard found.\n"); return true;}
 
     tmp = outer.firstBranchInstruction();
     if (tmp != null && GuardResultCarrier.conforms(tmp))
@@ -322,14 +335,11 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 //                                                      
 //                          exit:
 //--------------------------------------------------------------------------
-    theCnt++;
-    //if (theCnt > 0) return;
     report ("...transforming.\n");
-    if (ir.options.hasMETHOD_TO_PRINT()
-	&& ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString()))  {
-      //{report ("canceled\n"); return; }
-      // dumpIR(ir, "before unroll");
-    }    
+    if (DEBUG && ir.options.hasMETHOD_TO_PRINT()
+	&& ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) 
+      dumpIR(ir, "before unroll"); 
+   
     
     OPT_CFGTransformations.killFallThroughs (ir, nloop);
     OPT_BasicBlock handles[] = makeSomeCopies(unrollFactor, ir, nloop, blocks,
@@ -482,12 +492,108 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     exitBlock.recomputeNormalOut(ir);
     landingPad.recomputeNormalOut(ir);
     mainExit.recomputeNormalOut(ir);
-    if (ir.options.hasMETHOD_TO_PRINT()
-	&& ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
-      // dumpIR(ir, "after unroll");
-    }
+    if (DEBUG && ir.options.hasMETHOD_TO_PRINT()
+	&& ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString()))
+      dumpIR(ir, "after unroll");
+    return false;
   }
 
+
+  private static void naiveUnroller (OPT_LSTNode t, OPT_IR ir) {
+    OPT_BitVector nloop = t.loop;
+    OPT_BasicBlock seqStart = null;
+
+    report ("Naively unrolling loop in " + ir.method + ": "+nloop+"\n");
+
+    OPT_CFGTransformations.killFallThroughs (ir, nloop);
+
+    // first, capture the blocks in the loop body.
+    int bodyBlocks = 0;
+    OPT_BasicBlockEnumeration bs = ir.getBasicBlocks (nloop);
+    while (bs.hasMoreElements()) {bodyBlocks++; bs.next();}
+    OPT_BasicBlock body[] = new OPT_BasicBlock[bodyBlocks];
+    {
+      int i = 0;
+      bs = ir.getBasicBlocks (nloop);
+      while (bs.hasMoreElements()) {
+	OPT_BasicBlock b = bs.next();
+	if (b instanceof OPT_ExceptionHandlerBasicBlock) {
+	  VM.sysWrite ("ARGL!!"+ir.method);
+	  return;
+	}
+	body[i++] = b;
+	OPT_BasicBlock next = b.nextBasicBlockInCodeOrder();
+	if (next == null || !OPT_CFGTransformations.inLoop (next, nloop));
+	  seqStart = b; // end of loop in code order
+      }
+    }
+
+    
+    OPT_BasicBlock seqEnd = seqStart.nextBasicBlockInCodeOrder();
+    if (seqEnd != null) ir.cfg.breakCodeOrder(seqStart, seqEnd);
+    OPT_BasicBlock seqLast = seqStart;
+    OPT_BasicBlock firstHeaderCopy = null;
+    
+    for (int i = 1;  i < unrollFactor ;  ++i) {
+
+      // copy body
+      for (int k = 0;  k < body.length;  ++k) {
+	seqLast = copyAndLinkBlock (ir, seqLast, body[k]);
+	if (body[k] == t.header) {
+	  OPT_CFGTransformations.removeYieldPoint(seqLast);
+	  if (firstHeaderCopy == null) {
+	    firstHeaderCopy = seqLast;
+	  }
+	}
+      }
+ 
+      // redirect internal branches
+      OPT_BasicBlock cb = seqLast;
+      for (int j = 0; j < bodyBlocks; ++j) {
+	cb.recomputeNormalOut(ir);
+	OPT_BasicBlockEnumeration be = cb.getOut();
+	while (be.hasMoreElements()) {
+	  OPT_BasicBlock out = be.next();
+	  if (out != t.header && OPT_CFGTransformations.inLoop (out, nloop)) {
+	    cb.redirectOuts (out, (OPT_BasicBlock) out.scratchObject, ir);
+	  }
+	}
+	cb.recomputeNormalOut(ir);
+	cb = cb.prevBasicBlockInCodeOrder();
+      }
+      
+      if (i != 1) {
+	// redirect the branches to the header in the (i-1)th copy
+	for (int j = 0; j < bodyBlocks; ++j) {
+	  OPT_BasicBlockEnumeration be = cb.getOut();
+	  while (be.hasMoreElements()) {
+	    OPT_BasicBlock out = be.next();
+	    if (out == t.header) {
+	      cb.redirectOuts (t.header, (OPT_BasicBlock) t.header.scratchObject, ir);
+	    }
+	  }
+	  cb.recomputeNormalOut(ir);
+	  cb = cb.prevBasicBlockInCodeOrder();
+	}
+      }
+    }
+    
+    // redirect the branches to the header in the original loop
+    for (int j = 0; j < bodyBlocks; ++j) {
+      OPT_BasicBlockEnumeration be = body[j].getOut();
+      while (be.hasMoreElements()) {
+	OPT_BasicBlock out = be.next();
+	if (out == t.header) {
+	  body[j].redirectOuts (t.header, firstHeaderCopy, ir);
+	}
+      }
+      body[j].recomputeNormalOut(ir);
+    }
+    if (seqEnd != null) ir.cfg.linkInCodeOrder (seqLast, seqEnd);
+  }
+
+  
+  
   static void report (String s) {
     if (DEBUG) VM.sysWrite ("] "+s);
   }
@@ -533,26 +639,39 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
       while (defs.hasMoreElements()) {
 	OPT_Instruction inst = defs.next().instruction;
-	if (Move.conforms (inst))
+	if (Move.conforms (inst)) {
 	  inst = definingInstruction (follow (Move.getVal(inst)));
-	if (nloop.get(inst.getBasicBlock().getNumber())) {
+	  if (Move.conforms (inst)
+	      && Move.getVal (inst) instanceof OPT_ConstantOperand)
+	    return true;
+	}
+	if (inst.operator.opcode == ARRAYLENGTH_opcode)
+	  inst = definingInstruction (GuardedUnary.getVal(inst));
+	if (OPT_CFGTransformations.inLoop (inst.getBasicBlock(), nloop)) {
 	  variant = true;
 	  break;
 	}
       }
-      if (variant) {
-	defs = OPT_DefUse.defs(reg);
-	while (defs.hasMoreElements()) {
-	  OPT_Instruction inst = defs.next().instruction;
-	  if (Move.conforms (inst))
-	    inst = definingInstruction (follow (Move.getVal(inst)));
-	  //VM.sysWrite ("- "+inst.getBasicBlock()+": "+inst+"\n");
-	}
-      }
       return !variant;
     }
-    //VM.sysWrite("other: "+op+"\n");
     return false;
+  }
+
+
+  private static void printDefs (OPT_Operand op) {
+    if (op instanceof OPT_RegisterOperand) {
+      OPT_Register reg = ((OPT_RegisterOperand)op).register;
+      OPT_RegisterOperandEnumeration defs = OPT_DefUse.defs(reg);
+      defs = OPT_DefUse.defs(reg);
+      while (defs.hasMoreElements()) {
+	OPT_Instruction inst = defs.next().instruction;
+	if (Move.conforms (inst))
+	  inst = definingInstruction (follow (Move.getVal(inst)));
+	VM.sysWrite (">> "+inst.getBasicBlock()+": "+inst+"\n");
+      }
+    } else {
+      VM.sysWrite (">> "+op+"\n");
+    }
   }
   
   static void linkToLST (OPT_IR ir) {
@@ -577,7 +696,8 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       markHeaders (n);
     }
   }
-  
+
+  // inserts unrollFactor copies of the loop after seqStart
   static OPT_BasicBlock[] makeSomeCopies (int unrollFactor, OPT_IR ir,
 					  OPT_BitVector nloop,
 					  int blocks,
@@ -586,6 +706,27 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 					  OPT_BasicBlock seqStart)
   {
     // make some copies of the original loop
+
+    // first, capture the blocks in the loop body.
+    OPT_BitVector loop = new OPT_BitVector (nloop);
+    loop.clear(header.getNumber());
+    loop.clear(exitBlock.getNumber());
+    int bodyBlocks = 0;
+    OPT_BasicBlockEnumeration bs = ir.getBasicBlocks (loop);
+    while (bs.hasMoreElements()) {
+      bodyBlocks++;
+      bs.next();
+    }
+    OPT_BasicBlock body[] = new OPT_BasicBlock[bodyBlocks];
+    {
+      int i = 0;
+      bs = ir.getBasicBlocks (loop);
+      while (bs.hasMoreElements()) {
+	body[i++] = bs.next();
+      }
+    }
+
+
     OPT_BasicBlock seqEnd = seqStart.nextBasicBlockInCodeOrder();
     if (seqEnd != null) ir.cfg.breakCodeOrder(seqStart, seqEnd);
     OPT_BasicBlock seqLast = seqStart;
@@ -595,10 +736,6 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     OPT_BasicBlock lastExit = null;
     OPT_BasicBlock handles[] = new OPT_BasicBlock[2];
     
-    OPT_BasicBlock bCopy = null;
-    OPT_BitVector loop = new OPT_BitVector (nloop);
-    loop.clear(header.getNumber());
-    loop.clear(exitBlock.getNumber());
     
     for (int i = 0;  i < unrollFactor;  ++i) {
 
@@ -611,15 +748,13 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
       } else {
 	// link copies by jumps
 	OPT_CFGTransformations.removeYieldPoint(seqLast);
-	lastExit.lastInstruction().insertBefore
-	  (Goto.create(GOTO, seqLast.makeJumpTarget()));
+	lastExit.appendInstruction(Goto.create(GOTO,seqLast.makeJumpTarget()));
 	lastExit.recomputeNormalOut(ir);
       }
 
       // copy body
-      OPT_BasicBlockEnumeration bs = ir.getBasicBlocks (loop);
-      while (bs.hasMoreElements()) {
-	seqLast = copyAndLinkBlock (ir, seqLast, bs.next());
+      for (int k = 0;  k < body.length;  ++k) {
+	seqLast = copyAndLinkBlock (ir, seqLast, body[k]);
       }
 
       // copy exit block
@@ -640,7 +775,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 	OPT_BasicBlockEnumeration be = cb.getOut();
 	while (be.hasMoreElements()) {
 	  OPT_BasicBlock out = be.next();
-	  if (nloop.get(out.getNumber())) {
+	  if (OPT_CFGTransformations.inLoop (out, nloop)) {
 	    cb.redirectOuts (out, (OPT_BasicBlock) out.scratchObject, ir);
 	  }
 	}

@@ -350,6 +350,9 @@ class GenerateInterfaceDeclarations {
     offset = VM.getMember("LVM_Processor;", "threadSwitchRequested", "I").getOffset();
     System.out.print("static const int VM_Processor_threadSwitchRequested_offset = "
         + offset + ";\n");
+    offset = VM.getMember("LVM_Processor;", "activeThreadStackLimit", "I").getOffset();
+    System.out.print("static const int VM_Processor_activeThreadStackLimit_offset = "
+        + offset + ";\n");
     offset = VM.getMember("LVM_Processor;", "pthread_id", "I").getOffset();
     System.out.print("static const int VM_Processor_pthread_id_offset = "
         + offset + ";\n");
@@ -458,7 +461,7 @@ class GenerateInterfaceDeclarations {
     if (VM.BuildForIA32) {
       System.out.print("#define JTOC %" + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.JTOC]
           + ";\n");
-      System.out.print("#define PR %"   + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.PR]
+      System.out.print("#define PR %"   + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.ESI]
           + ";\n");
     }
     //-#endif

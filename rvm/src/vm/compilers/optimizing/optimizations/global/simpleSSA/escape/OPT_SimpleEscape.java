@@ -209,6 +209,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:
       case FLOAT_ALOAD_opcode:case DOUBLE_ALOAD_opcode:
       case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
+      case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
       case SHORT_ALOAD_opcode:case USHORT_ALOAD_opcode:
       case REF_ALOAD_opcode:
       case INT_LOAD_opcode: case LONG_LOAD_opcode:
@@ -240,6 +241,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
+      case BYTE_STORE_opcode: case SHORT_STORE_opcode: 
       case INT_STORE_opcode:  case LONG_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
@@ -255,7 +257,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case BOUNDS_CHECK_opcode:case MONITORENTER_opcode:
       case MONITOREXIT_opcode:case NULL_CHECK_opcode:
       case ARRAYLENGTH_opcode:case REF_IFCMP_opcode:
-      case INT_IFCMP_opcode:case TYPE_IFCMP_opcode:case METHOD_IFCMP_opcode:
+      case INT_IFCMP_opcode:case IG_PATCH_POINT_opcode:
+      case IG_CLASS_TEST_opcode:case IG_METHOD_TEST_opcode:
       case BOOLEAN_CMP_opcode:case OBJARRAY_STORE_CHECK_opcode:
       case GET_OBJ_STATUS_opcode:case GET_OBJ_TIB_opcode:
       case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:case NEWARRAY_opcode:
@@ -326,14 +329,15 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case PHI_opcode: case INT_2LONG_opcode:
       case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
 //-#if RVM_FOR_IA32
-      case GET_JTOC_opcode:
+      case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
 //-#endif
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
         return  true;
       default:
-        throw  new OPT_OptimizingCompilerException("Unexpected " + inst);
+        throw  new OPT_OptimizingCompilerException("OPT_SimpleEscape: Unexpected " 
+                                                   + inst);
     }
   }
 
@@ -367,6 +371,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
       case DOUBLE_ALOAD_opcode:case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
+      case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
       case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:case REF_ALOAD_opcode:
       case INT_LOAD_opcode:case LONG_LOAD_opcode:
         // all is OK, unless we load this register from memory
@@ -397,6 +402,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
+      case BYTE_STORE_opcode:case SHORT_STORE_opcode:
       case INT_STORE_opcode:case LONG_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
@@ -411,8 +417,9 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         // escape
       case BOUNDS_CHECK_opcode:case MONITORENTER_opcode:
       case MONITOREXIT_opcode:case NULL_CHECK_opcode:case ARRAYLENGTH_opcode:
-      case REF_IFCMP_opcode:case INT_IFCMP_opcode:case TYPE_IFCMP_opcode:
-      case METHOD_IFCMP_opcode:case BOOLEAN_CMP_opcode:
+      case REF_IFCMP_opcode:case INT_IFCMP_opcode:case IG_PATCH_POINT_opcode:
+      case IG_CLASS_TEST_opcode:case IG_METHOD_TEST_opcode:
+      case BOOLEAN_CMP_opcode:
       case OBJARRAY_STORE_CHECK_opcode:case GET_OBJ_STATUS_opcode:
       case GET_OBJ_TIB_opcode:case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:
       case NEWARRAY_opcode:case NEWOBJMULTIARRAY_opcode:
@@ -441,14 +448,14 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case PHI_opcode: case INT_2LONG_opcode:
       case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
 //-#if RVM_FOR_IA32
-      case GET_JTOC_opcode:
+      case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
 //-#endif
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
         return  true;
       default:
-        throw  new OPT_OptimizingCompilerException("Unexpected " + inst);
+        throw  new OPT_OptimizingCompilerException("OPT_SimpleEscapge: Unexpected " + inst);
     }
   }
 

@@ -5,7 +5,7 @@
 
 /**
  * A collector thread which does not participate in GC, useful for
- * VM_Processors which should not participate in GC.
+ * <code>VM_Processor</code>s which should not participate in GC.
  *
  * @author Manu Sridharan
  * @author Tony Cocchi
@@ -22,10 +22,11 @@ class VM_PassiveCollectorThread extends VM_Thread implements VM_Uninterruptible 
     
     // myProcessor local variable will be relocated by GC if Processor object
     // is moved, and is used to reset Processor register after sigWait (after GC)
-    VM_Processor myProcessor = VM_Magic.getProcessorRegister();
+    VM_Processor myProcessor = VM_ProcessorLocalState.getCurrentProcessor();
     
     //  make sure Opt compiler does not compile this method
-    //  references stored in registers by the opt compiler will not be relocated by GC
+    //  references stored in registers by the opt compiler will not 
+    //  be relocated by GC
     VM_Magic.pragmaNoOptCompile();
     
     // save current frame pointer in threads JNIEnv
@@ -78,9 +79,11 @@ class VM_PassiveCollectorThread extends VM_Thread implements VM_Uninterruptible 
         // set status appropriately
 	VM_Processor.vpStatus[processorStatusIndex] = VM_Processor.IN_JAVA;
         
-	// GC has completed while this thread was in sigwait, in which case the local variable
-	// myProcessor has been relocated by GC, so reset the PR reg using that variable
-	VM_Magic.setProcessorRegister(myProcessor);
+	// GC has completed while this thread was in sigwait, 
+        // in which case the local variable
+	// myProcessor has been relocated by GC, 
+        // so reset the PR reg using that variable
+        VM_ProcessorLocalState.setCurrentProcessor(myProcessor);
 	
 	myProcessor.enableThreadSwitching();  // resume normal scheduling
 	

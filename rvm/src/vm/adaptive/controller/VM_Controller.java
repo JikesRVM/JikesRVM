@@ -170,7 +170,7 @@ class VM_Controller implements VM_Callbacks.ExitMonitor,
     Object sentinel = new Object();
     VM_ControllerThread tt = new VM_ControllerThread(sentinel);
     tt.makeDaemon(true);
-    VM_Processor.getCurrentProcessor().scheduleThread(tt);
+    tt.start();
     // wait until controller threads are up and running.
     try {
       synchronized(sentinel) {

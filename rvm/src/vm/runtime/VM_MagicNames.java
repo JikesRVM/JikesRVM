@@ -35,13 +35,18 @@ class VM_MagicNames {
   static VM_Atom invokeMethodReturningObject;
 
   static VM_Atom getFramePointer;          
-  static VM_Atom setFramePointer; 
   static VM_Atom getTocPointer;            
   static VM_Atom getJTOC;
   static VM_Atom getThreadId;
   static VM_Atom setThreadId;
+
   static VM_Atom getProcessorRegister;
   static VM_Atom setProcessorRegister;
+ 
+  //-#if RVM_FOR_IA32
+  static VM_Atom getESIAsProcessor;
+  static VM_Atom setESIAsProcessor;
+  //-#endif
     
   static VM_Atom getTime;
   static VM_Atom getTimeBase;
@@ -55,9 +60,11 @@ class VM_MagicNames {
   static VM_Atom getReturnAddress;
   static VM_Atom setReturnAddress;
 
+  static VM_Atom getByteAtOffset;
   static VM_Atom getIntAtOffset;
   static VM_Atom getObjectAtOffset;
   static VM_Atom getLongAtOffset;
+  static VM_Atom setByteAtOffset;
   static VM_Atom setIntAtOffset;
   static VM_Atom setObjectAtOffset;
   static VM_Atom setLongAtOffset;
@@ -72,7 +79,7 @@ class VM_MagicNames {
   static VM_Atom clearThreadSwitchBit;
     
   static VM_Atom saveThreadState;
-  static VM_Atom resumeThreadExecution;
+  static VM_Atom threadSwitch;
   static VM_Atom restoreHardwareExceptionState;
   static VM_Atom returnToNewStack;
   static VM_Atom dynamicBridgeTo;
@@ -116,6 +123,7 @@ class VM_MagicNames {
   //-#endif
   //-#if RVM_FOR_IA32
   static VM_Atom roundToZero;
+  static VM_Atom clearFloatingPointState;
   //-#endif
 
   static VM_Atom pragmaNoInline;
@@ -147,13 +155,17 @@ class VM_MagicNames {
     invokeMethodReturningObject   = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningObject");
 
     getFramePointer               = VM_Atom.findOrCreateAsciiAtom("getFramePointer");
-    setFramePointer               = VM_Atom.findOrCreateAsciiAtom("setFramePointer");
     getTocPointer                 = VM_Atom.findOrCreateAsciiAtom("getTocPointer");
     getJTOC                       = VM_Atom.findOrCreateAsciiAtom("getJTOC");
     getThreadId                   = VM_Atom.findOrCreateAsciiAtom("getThreadId");
     setThreadId                   = VM_Atom.findOrCreateAsciiAtom("setThreadId");
     getProcessorRegister          = VM_Atom.findOrCreateAsciiAtom("getProcessorRegister");
     setProcessorRegister          = VM_Atom.findOrCreateAsciiAtom("setProcessorRegister");
+    
+    //-#if RVM_FOR_IA32
+    getESIAsProcessor = VM_Atom.findOrCreateAsciiAtom("getESIAsProcessor");
+    setESIAsProcessor = VM_Atom.findOrCreateAsciiAtom("setESIAsProcessor");
+    //-#endif
 
     getTime                       = VM_Atom.findOrCreateAsciiAtom("getTime");
     getTimeBase                   = VM_Atom.findOrCreateAsciiAtom("getTimeBase");
@@ -167,9 +179,11 @@ class VM_MagicNames {
     getReturnAddress              = VM_Atom.findOrCreateAsciiAtom("getReturnAddress");
     setReturnAddress              = VM_Atom.findOrCreateAsciiAtom("setReturnAddress");
 
+    getByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("getByteAtOffset");
     getIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("getIntAtOffset");
     getObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("getObjectAtOffset");
     getLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("getLongAtOffset");
+    setByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("setByteAtOffset");
     setIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("setIntAtOffset");
     setObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("setObjectAtOffset");
     setLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("setLongAtOffset");
@@ -184,7 +198,7 @@ class VM_MagicNames {
     clearThreadSwitchBit          = VM_Atom.findOrCreateAsciiAtom("clearThreadSwitchBit");
     
     saveThreadState               = VM_Atom.findOrCreateAsciiAtom("saveThreadState");
-    resumeThreadExecution         = VM_Atom.findOrCreateAsciiAtom("resumeThreadExecution");
+    threadSwitch                  = VM_Atom.findOrCreateAsciiAtom("threadSwitch");
     restoreHardwareExceptionState = VM_Atom.findOrCreateAsciiAtom("restoreHardwareExceptionState");
     returnToNewStack              = VM_Atom.findOrCreateAsciiAtom("returnToNewStack");
     dynamicBridgeTo               = VM_Atom.findOrCreateAsciiAtom("dynamicBridgeTo");
@@ -229,6 +243,7 @@ class VM_MagicNames {
     //-#endif
     //-#if RVM_FOR_IA32
     roundToZero                   = VM_Atom.findOrCreateAsciiAtom("roundToZero");
+    clearFloatingPointState       = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
     //-#endif
 
     pragmaNoInline                = VM_Atom.findOrCreateAsciiAtom("pragmaNoInline");

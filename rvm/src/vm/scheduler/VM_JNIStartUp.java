@@ -90,7 +90,7 @@ public class VM_JNIStartUp implements Runnable {
 				      externalJNIEnvAddress,
 				      currentVP);
     // get it going
-    currentVP.readyQueue.enqueue(cleanupThread);
+    cleanupThread.start(currentVP.readyQueue);
 
     // wait for it to come up
     if (trace) {      
@@ -248,7 +248,7 @@ public class VM_JNIStartUp implements Runnable {
 				      externalJNIEnv,
 				      currentVP);
     // get it going
-    currentVP.readyQueue.enqueue(cleanupThread);
+    cleanupThread.start(currentVP.readyQueue);
 
     // wait for it to come up
     if (trace)

@@ -163,11 +163,6 @@ MIR_Test
 "U Val1 OPT_Operand" "U Val2 OPT_Operand" 
 
 
-MIR_StackOp
-0 0 1
-"U Val OPT_Operand"
-
-
 MIR_Nullary
 1 0 0
 "D Result OPT_Operand"
@@ -200,6 +195,6 @@ MIR_CaseLabel
 
 MIR_FSave
 0 0 1
-"U Destination OPT_MemoryOperand"
+"U Destination OPT_Operand"
 
 

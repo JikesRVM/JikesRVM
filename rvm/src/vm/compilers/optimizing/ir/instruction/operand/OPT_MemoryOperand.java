@@ -72,6 +72,10 @@ public final class OPT_MemoryOperand extends OPT_Operand {
     this.scale = scale;
     this.disp = disp;
     this.size = size;
+    if (loc != null) loc.instruction = null;
+    if (guard != null) guard.instruction = null;
+    if (base != null) base.instruction = null;
+    if (index != null) index.instruction = null;
   }
 
   // Shortcuts for some common addressing modes

@@ -176,7 +176,6 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     case CHECKCAST_opcode:
     case CHECKCAST_NOTNULL_opcode:
     case CHECKCAST_INTERFACE_NOTNULL_opcode:
-    case CHECKTYPE_opcode:
     case INSTANCEOF_opcode:
     case INSTANCEOF_NOTNULL_opcode:
     case PI_opcode:
@@ -257,6 +256,7 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
     case LONG_BITS_AS_DOUBLE_opcode:
     case ARRAYLENGTH_opcode:
     case GET_OBJ_TIB_opcode:
+    case GET_OBJ_RAW_opcode:
     case GET_CLASS_TIB_opcode:
     case GET_TYPE_FROM_TIB_opcode:
     case GET_SUPERCLASS_IDS_FROM_TIB_opcode:

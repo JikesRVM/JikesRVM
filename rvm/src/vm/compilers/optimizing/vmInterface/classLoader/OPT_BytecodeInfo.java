@@ -68,6 +68,10 @@ class OPT_BytecodeInfo {
     return  fetch1ByteUnsigned();
   }
 
+  final boolean queryAnnotation( int index, byte mask ) {
+    return method.queryAnnotationForBytecode( index, mask );
+  }
+
   /**
    * Fetch the next byte from the bytecode stream but do <em> not </em> 
    * advance the cursor.

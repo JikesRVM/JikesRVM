@@ -232,6 +232,19 @@ class OPT_DominatorTree extends OPT_Tree {
   }
 
   /** 
+   * Does basic block number "master" dominate basic block number "slave"?
+   *
+   * @param master the number of the proposed "master" basic block
+   * @param slave  the number of the proposed "slave block
+   * @return "master dominates slave"
+   */
+  public boolean dominates(OPT_BasicBlock master, OPT_BasicBlock slave) {
+    OPT_DominatorTreeNode masterNode = dominatorInfoMap[master.getNumber()];
+    OPT_DominatorTreeNode slaveNode = dominatorInfoMap[slave.getNumber()];
+    return slaveNode.isDominatedBy(masterNode);
+  }
+
+  /** 
    * Creates domniator tree nodes for the passed block and adds them to the
    * map.
    * @param b the basic block

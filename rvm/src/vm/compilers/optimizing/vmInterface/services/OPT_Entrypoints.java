@@ -20,6 +20,9 @@ public class OPT_Entrypoints implements VM_Constants {
   static VM_Method RCGC_resolvedPutstaticMethod;
   static VM_Method RCGC_unresolvedPutstaticMethod;
   //-#endif
+  static VM_Method resolvedGetfieldReadBarrierMethod;
+  static VM_Method unresolvedGetfieldReadBarrierMethod;
+
   static VM_Field specializedMethodsField;
   static int specializedMethodsOffset;
   static VM_Method threadSwitchFromPrologueMethod;
@@ -60,6 +63,7 @@ public class OPT_Entrypoints implements VM_Constants {
 			      "unresolvedPutstatic", 
 			      "(ILjava/lang/Object;)V");
     //-#endif
+
     specializedMethodsField = 
       (VM_Field)VM.getMember("LOPT_SpecializedMethodPool;", 
 			     "specializedMethods", 

@@ -25,7 +25,7 @@ public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent
    * boost factor for recompiling at higher opt levels.
    * In the short run, this is academic, since we only plan to
    * create an instance of this event for methods already compiled
-   * at O2, but it may be required later.
+   * at max opt level, but it may be required later.
    * <p>
    * NB: Boost factor is a value >= 1.0!
    * (1.0 means no boost, 1.1 means a 10% improvement, etc).

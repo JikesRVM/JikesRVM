@@ -31,35 +31,52 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
     VM_Atom methodName = meth.getName();
     OPT_PhysicalRegisterSet phys = gc.temps.getPhysicalRegisterSet();
 
-    if (methodName == VM_MagicNames.getFramePointer) {
+    if (methodName == VM_MagicNames.getESIAsProcessor) {
+      OPT_RegisterOperand rop = gc.temps.makePROp();
+      bc2ir.markGuardlessNonNull(rop);
+      bc2ir.push(rop);
+    } else if (methodName == VM_MagicNames.setESIAsProcessor) {
+      OPT_Operand val = bc2ir.popRef();
+      if (val instanceof OPT_RegisterOperand) {
+	bc2ir.appendInstruction(Move.create(REF_MOVE, 
+					    gc.temps.makePROp(), 
+					    val));
+      } else {
+	String msg = " Unexpected operand VM_Magic.setProcessorRegister";
+	throw OPT_MagicNotImplementedException.UNEXPECTED(msg);
+      }
+    }else if (methodName == VM_MagicNames.getFramePointer) {
       gc.allocFrame = true;
       OPT_RegisterOperand val = gc.temps.makeTempInt();
       VM_Field f = (VM_Field)VM.getMember("LVM_Processor;", "framePointer", "I");
-      OPT_RegisterOperand pr = 
-	OPT_IRTools.R(gc.temps.getPhysicalRegisterSet().getPR());
-      bc2ir.appendInstruction(GetField.create(GETFIELD, val, pr, 
+      OPT_RegisterOperand pr = null;
+      if (VM.dedicatedESI) {
+        pr = OPT_IRTools.R(phys.getESI());
+      } else {
+        pr = gc.temps.makeTemp(OPT_ClassLoaderProxy.VM_ProcessorType);
+        bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
+      }
+      bc2ir.appendInstruction(GetField.create(GETFIELD, val, pr.copy(), 
 					      new OPT_LocationOperand(f), 
 					      new OPT_TrueGuardOperand()));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setFramePointer) {
-      gc.allocFrame = true;
-      VM_Field f = (VM_Field)VM.getMember("LVM_Processor;", "framePointer", "I");
-      OPT_RegisterOperand pr = 
-	OPT_IRTools.R(gc.temps.getPhysicalRegisterSet().getPR());
-      bc2ir.appendInstruction(PutField.create(PUTFIELD, bc2ir.popInt(), pr, 
-					      new OPT_LocationOperand(f), 
-					      new OPT_TrueGuardOperand()));
     } else if (methodName == VM_MagicNames.getJTOC || 
 	       methodName == VM_MagicNames.getTocPointer) {
       VM_Type t = (methodName == VM_MagicNames.getJTOC ? OPT_ClassLoaderProxy.IntArrayType : VM_Type.IntType);
       OPT_RegisterOperand val = gc.temps.makeTemp(t);
-      OPT_RegisterOperand pr = OPT_IRTools.R(gc.temps.getPhysicalRegisterSet().getPR());
-      if (VM.BuildForIA32 && gc.options.FIXED_JTOC) {
-        int jtoc = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
+      OPT_RegisterOperand pr = null;
+      if (VM.dedicatedESI) {
+        pr = OPT_IRTools.R(phys.getESI());
+      } else {
+        pr = gc.temps.makeTemp(OPT_ClassLoaderProxy.VM_ProcessorType);
+        bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
+      }
+      if (gc.options.FIXED_JTOC) {
+        int jtoc = VM_Magic.getTocPointer();
         OPT_IntConstantOperand I = new OPT_IntConstantOperand(jtoc);
         bc2ir.appendInstruction(Move.create(REF_MOVE, val, I));
       } else {
-        bc2ir.appendInstruction(Unary.create(GET_JTOC, val, pr));
+        bc2ir.appendInstruction(Unary.create(GET_JTOC, val, pr.copy()));
       }
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.isync) {
@@ -68,9 +85,14 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       // nothing required on Intel
     } else if (methodName == VM_MagicNames.getThreadId) {
       OPT_RegisterOperand val = gc.temps.makeTempInt();
-      OPT_RegisterOperand pr = new OPT_RegisterOperand(phys.getPR(),
-                                                       VM_Type.IntType);
-      bc2ir.appendInstruction(Load.create(INT_LOAD, val, pr,
+      OPT_RegisterOperand pr = null;
+      if (VM.dedicatedESI) {
+        pr = OPT_IRTools.R(phys.getESI());
+      } else {
+        pr = gc.temps.makeTemp(OPT_ClassLoaderProxy.VM_ProcessorType);
+        bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
+      }
+      bc2ir.appendInstruction(Load.create(INT_LOAD, val, pr.copy(),
 					  new
                                           OPT_IntConstantOperand(VM_Entrypoints.threadIdOffset),
 					  null));
@@ -179,6 +201,8 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.roundToZero) {
       bc2ir.appendInstruction(Empty.create(ROUND_TO_ZERO));
+    } else if (methodName == VM_MagicNames.clearFloatingPointState) {
+      bc2ir.appendInstruction(Empty.create(CLEAR_FLOATING_POINT_STATE));
     } else {
       // Distinguish between magics that we know we don't implement
       // (and never plan to implement) and those (usually new ones) 

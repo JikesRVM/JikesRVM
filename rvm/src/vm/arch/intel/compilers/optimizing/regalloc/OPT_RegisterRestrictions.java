@@ -16,11 +16,6 @@ import java.util.Vector;
 final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   /**
-   * Allocate EBP as a general purpose register?
-   */
-  private final static boolean ALLOCATE_EBP = true;
-
-  /**
    * Allow scratch registers in PEIs?
    */
   final static boolean SCRATCH_IN_PEI = true;
@@ -83,7 +78,7 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
   protected void processBlock(OPT_BasicBlock bb) {
     // first process the default register restrictions
     super.processBlock(bb);
-    
+
     // If there are any registers used in catch blocks, we want to ensure
     // that these registers are not used or evicted from scratch registers
     // at a relevant PEI, so that the assumptions of register homes in the
@@ -99,95 +94,80 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
             OPT_Operand op = (OPT_Operand)e.nextElement();
             if (op != null && op.isRegister()) {
               noteMustNotSpill(op.asRegister().register);
+              handle8BitRestrictions(s);
             }
           }
         }
       }
 
       // handle special cases for IA32
-      // These fall into two classes:
-      //  (1) Some operands must be in registers
-      //  (2) Some register operands must be in eax,ebx,ecx,or edx
-      //      because they are really 8 bit registers (al,bl,cl,dl).
-      //      This happens in a few special cases (MOVZX/MOZSX/SET)
-      //      and in any other operator that has an 8 bit memory operand.
       switch (s.getOpcode()) {
-      case IA32_SHRD_opcode: case IA32_SHLD_opcode:
-	{
-	  OPT_RegisterOperand op = MIR_DoubleShift.getSource(s);
-	  noteMustNotSpill(op.register);
-	}
-	break;
-      case IA32_FCOMI_opcode: case IA32_FCOMIP_opcode:
-	{
-	  OPT_Operand op = MIR_Compare.getVal2(s);
-	  if (!(op instanceof OPT_BURSManagedFPROperand)) {
-	    noteMustNotSpill(op.asRegister().register);
-	  }
-	}
-	break;
-      case IA32_IMUL2_opcode:
-	{ 
-	  OPT_RegisterOperand op = MIR_BinaryAcc.getResult(s).asRegister();
-	  noteMustNotSpill(op.register);
-	}
-	break;
-      case IA32_LOWTABLESWITCH_opcode:
-	{
-	  OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
-	  noteMustNotSpill(op.register);
-	}
-	break;
-      case IA32_CMOV_opcode: case IA32_FCMOV_opcode:
-	{
-	  OPT_RegisterOperand op = MIR_CondMove.getResult(s).asRegister();
-	  noteMustNotSpill(op.register);
-	}
-	break;
-      case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
-	{
-	  OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
-	  noteMustNotSpill(op.register);
-	  if (MIR_Unary.getVal(s).isRegister()) {
-	    OPT_RegisterOperand val = MIR_Unary.getVal(s).asRegister();
-	    restrictTo8Bits(val.register);
-	  }
-	}
-	break;
-      case IA32_MOVZX$W_opcode: case IA32_MOVSX$W_opcode:
-	{ 
-	  OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
-	  noteMustNotSpill(op.register);
-	}
-	break;
-      case IA32_SET$B_opcode:
-	{ 
-	  if (MIR_Set.getResult(s).isRegister()) {
-	    OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
-	    restrictTo8Bits(op.register);
-	  }
-	}
-	break;
-      default:
-	{
-	  for (OPT_OperandEnumeration me = s.getMemoryOperands(); 
-	       me.hasMoreElements(); ) {
-	    OPT_MemoryOperand mop = (OPT_MemoryOperand)me.next();
-	    if (mop.size == 1) {
-	      for (OPT_OperandEnumeration e2 = s.getRootOperands(); 
-		   e2.hasMoreElements(); ) {
-		OPT_Operand rootOp = e2.next();
-		if (rootOp.isRegister()) {
-		  restrictTo8Bits(rootOp.asRegister().register);
-		}
-	      }
-	    }
-	  }
-	}
-	break;
+        case IA32_LOWTABLESWITCH_opcode:
+          {
+            OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
+            noteMustNotSpill(op.register);
+          }
+          break;
+        case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
+          {
+            OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
+            if (MIR_Unary.getVal(s).isRegister()) {
+              OPT_RegisterOperand val = MIR_Unary.getVal(s).asRegister();
+              restrictTo8Bits(val.register);
+            }
+          }
+          break;
+        case IA32_SET$B_opcode:
+          { 
+            if (MIR_Set.getResult(s).isRegister()) {
+              OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
+              restrictTo8Bits(op.register);
+            }
+          }
+          break;
+
+        default:
+          handle8BitRestrictions(s);
+          break;
       }
     }
   }
+
+
+  /**
+   * Does instruction s contain an 8-bit memory operand?
+   */
+  final boolean has8BitMemoryOperand(OPT_Instruction s) {
+    for (OPT_OperandEnumeration me = s.getMemoryOperands(); 
+         me.hasMoreElements(); ) {
+      OPT_MemoryOperand mop = (OPT_MemoryOperand)me.next();
+      if (mop.size == 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+  /**
+   * Ensure that if an operand has an 8 bit memory operand that
+   * all of its register operands are in 8 bit registers.
+   * @param s the instruction to restrict
+   */
+  final void handle8BitRestrictions(OPT_Instruction s) {
+    for (OPT_OperandEnumeration me = s.getMemoryOperands(); 
+         me.hasMoreElements(); ) {
+      OPT_MemoryOperand mop = (OPT_MemoryOperand)me.next();
+      if (mop.size == 1) {
+        for (OPT_OperandEnumeration e2 = s.getRootOperands(); 
+             e2.hasMoreElements(); ) {
+          OPT_Operand rootOp = e2.next();
+          if (rootOp.isRegister()) {
+            restrictTo8Bits(rootOp.asRegister().register);
+          }
+        }
+      }
+    }
+  }
+
 
   /**
    * Ensure that a particular register is only assigned to AL, BL, CL, or
@@ -205,13 +185,129 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
   }
 
   /**
-   * Is it forbidden to assign symbolic register symb to physical register
-   * physical?
+   * Given symbolic register r that appears in instruction s, does the
+   * architecture demand that r be assigned to a physical register in s?
    */
-  boolean isForbidden(OPT_Register symb, OPT_Register physical) {
-    if (!ALLOCATE_EBP && physical == phys.getEBP()) {
-      return true;
+  static boolean mustBeInRegister(OPT_Register r, OPT_Instruction s) {
+    switch (s.getOpcode()) {
+      case IA32_SHRD_opcode: case IA32_SHLD_opcode:
+        {
+          OPT_RegisterOperand op = MIR_DoubleShift.getSource(s);
+          if (op.asRegister().register == r) return true;
+        }
+        break;
+      case IA32_FCOMI_opcode: case IA32_FCOMIP_opcode:
+        {
+          OPT_Operand op = MIR_Compare.getVal2(s);
+          if (!(op instanceof OPT_BURSManagedFPROperand)) {
+            if (op.asRegister().register == r) return true;
+          }
+        }
+        break;
+      case IA32_IMUL2_opcode:
+        { 
+          OPT_RegisterOperand op = MIR_BinaryAcc.getResult(s).asRegister();
+          if (op.asRegister().register == r) return true;
+        }
+        break;
+      case IA32_LOWTABLESWITCH_opcode:
+        {
+          OPT_RegisterOperand op = MIR_LowTableSwitch.getIndex(s);
+          if (op.asRegister().register == r) return true;
+        }
+        break;
+      case IA32_CMOV_opcode: case IA32_FCMOV_opcode:
+        {
+          OPT_RegisterOperand op = MIR_CondMove.getResult(s).asRegister();
+          if (op.asRegister().register == r) return true;
+        }
+        break;
+      case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
+        {
+          OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
+          if (op.asRegister().register == r) return true;
+        }
+        break;
+      case IA32_MOVZX$W_opcode: case IA32_MOVSX$W_opcode:
+        { 
+          OPT_RegisterOperand op = MIR_Unary.getResult(s).asRegister();
+          if (op.asRegister().register == r) return true;
+        }
+        break;
+      case IA32_SET$B_opcode:
+        { 
+          if (MIR_Set.getResult(s).isRegister()) {
+            OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
+            if (op.asRegister().register == r) return true;
+          }
+        }
+        break;
+      case IA32_TEST_opcode:
+        {
+          // at least 1 of the two operands must be in a register
+          if (!MIR_Test.getVal2(s).isConstant()) {
+            if (MIR_Test.getVal1(s).isRegister()) {
+              if (MIR_Test.getVal1(s).asRegister().register == r) return true;
+            } else if (MIR_Test.getVal2(s).isRegister()) {
+              if (MIR_Test.getVal2(s).asRegister().register == r) return true;
+            }
+          }
+        }
+        break;
+
+      default:
+        break;
     }
-    return super.isForbidden(symb,physical);
+    return false;
+  }
+
+  /**
+   * Can physical register r hold an 8-bit value?
+   */
+  private boolean okFor8(OPT_Register r) {
+    OPT_Register ESP = phys.getESP();        
+    OPT_Register EBP = phys.getEBP();        
+    OPT_Register ESI = phys.getESI();        
+    OPT_Register EDI = phys.getEDI();        
+    return (r!=ESP && r!=EBP && r!=ESI && r!=EDI);
+  }
+
+  /**
+   * Is it forbidden to assign symbolic register symb to physical register r
+   * in instruction s?
+   */
+  boolean isForbidden(OPT_Register symb, OPT_Register r,
+                             OPT_Instruction s) {
+
+    // Look at 8-bit restrictions.
+    switch (s.operator.opcode) {
+      case IA32_MOVZX$B_opcode: case IA32_MOVSX$B_opcode:
+        {
+          if (MIR_Unary.getVal(s).isRegister()) {
+            OPT_RegisterOperand val = MIR_Unary.getVal(s).asRegister();
+            if (val.register == symb) {
+              return !okFor8(r);
+            }
+          }
+        }
+        break;
+      case IA32_SET$B_opcode:
+        { 
+          if (MIR_Set.getResult(s).isRegister()) {
+            OPT_RegisterOperand op = MIR_Set.getResult(s).asRegister();
+            if (op.asRegister().register == symb) {
+              return !okFor8(r);
+            }
+          }
+        }
+        break;
+     }
+
+    if (has8BitMemoryOperand(s)) {
+      return !okFor8(r);
+    }
+
+    // Otherwise, it's OK.
+    return false;
   }
 }

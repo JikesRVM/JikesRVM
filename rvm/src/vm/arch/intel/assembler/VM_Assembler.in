@@ -513,8 +513,26 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    * @param reg2 the other operand or the extended opcode
    */
   private void emitRegOffRegOperands(byte index, short scale, int disp, byte reg2) {
-      setMachineCodes(mi++, regIndirectRegModRM((byte) 0x5, reg2));
+      setMachineCodes(mi++, regIndirectRegModRM((byte) 0x4, reg2));
       setMachineCodes(mi++, sib(scale, (byte) 0x5, index));
+      emitImm32(disp);
+  }
+
+  /**
+   *  Generate the appropriate bytes into the generated code to denote
+   * an absolute-addresss--register instruction.  This
+   * expresses the case where the SIB byte is used, but no base and no 
+   * index register is desired.  This method handles the somewhat convoluted
+   * special case used to express this mode (both the r/m register and
+   * the base register must both be 5, and the index must 4; scale can be
+   * anything, and we choose 0).
+   *
+   * @param disp the displacement for the r/m operand
+   * @param reg2 the other operand or the extended opcode
+   */
+  private void emitAbsRegOperands(int disp, byte reg2) {
+      setMachineCodes(mi++, regIndirectRegModRM((byte) 0x5, reg2));
+      // setMachineCodes(mi++, sib((byte) 0x0, (byte) 0x5, (byte) 0x4));
       emitImm32(disp);
   }
 
@@ -531,6 +549,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    * @param reg2 the other operand or the extended opcode
    */
   private void emitSIBRegOperands(byte base, byte index, short scale, int disp, byte reg2) {
+      if (VM.VerifyAssertions) VM.assert(index != ESP);
       if (disp == 0 && base != EBP) {
 	  setMachineCodes(mi++, regIndirectRegModRM((byte) 0x4, reg2));
 	  setMachineCodes(mi++, sib(scale, base, index));
@@ -636,6 +655,72 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    */
   final void emitLockNextInstruction() {
       setMachineCodes(mi++, (byte) 0xF0);
+  }
+
+  /**
+   * Generate a patch point into the generated code.
+   * (1) force patch point to be 16 bit aligned by optionally
+   *     generating a nop.
+   * (2) emit a short branch (2 byte) around 3 bytes of nops.
+   * (3) If the the code is later patched, we first patch the 3
+   *     nop bytes to be the upper 24 bits of a long jump
+   *     instruction, then update the 2 bytes of the patch
+   *     point to be an unconditional jump with a 32 bit immediate.
+   */
+  final void emitPatchPoint() {
+    if ((mi & 0x1) == 1) {
+      emitNOP();
+    }
+    VM_ForwardReference r = forwardJMP();
+    emitNOP();
+    emitNOP();
+    emitNOP();
+    r.resolve(this);
+  }
+
+  /**
+   * Apply a patch.
+   * We expect the following instruction stream:
+   *  i1; JMP rel8; NOP; NOP; NOP; i2;
+   * where patchOffset is the index of the last NOP.
+   * We patch it to be
+   *  i1; JMP rel32; i2;
+   *
+   * @param code        the code array to patch
+   * @param patchOffset the offset of the last byte of the patch point
+   * @param rel32       the new immediate to use in the branch instruction
+   *                    the code patcher is going to lay down before patchOffset
+   */
+  final static void patchCode(INSTRUCTION[] code,
+			      int patchOffset,
+			      int rel32) {
+    byte p0 = (byte)0xE9;
+    byte p1 = (byte) (rel32 & 0x000000ff);
+    byte p2 = (byte)((rel32 & 0x0000ff00) >>>  8);
+    byte p3 = (byte)((rel32 & 0x00ff0000) >>> 16);
+    byte p4 = (byte)((rel32 & 0xff000000) >>> 24);
+    if ((patchOffset & 0x2) == 0x2) {
+      // (a) lay down p4,p3,p2 one byte at a time
+      // (b) pick up the two bytes before p0 and then
+      //     lay down b2b1p0p1 as a word.
+      code[patchOffset--] = p4;
+      code[patchOffset--] = p3;
+      code[patchOffset--] = p2;
+      patchOffset -= 2; // skip over p1, p0
+      byte b1 = code[patchOffset--];
+      byte b2 = code[patchOffset];
+      int patch = (((int)p1&0xff) << 24) | (((int)p0&0xff) << 16) | 
+	          (((int)b1&0xff) << 8)  |  ((int)b2&0xff);
+      VM_Magic.setIntAtOffset(code, patchOffset, patch);
+    } else {
+      // (a) lay down p4
+      // (b) lay down p0p1p2p3 as a word
+      code[patchOffset--] = p4;
+      patchOffset -= 3; // skip over p0p1p2p3
+      int patch = (((int)p3&0xff) << 24) | (((int)p2&0xff) << 16) |
+        	  (((int)p1&0xff) << 8)  |  ((int)p0&0xff);
+      VM_Magic.setIntAtOffset(code, patchOffset, patch);
+    }
   }
 
   /**
@@ -923,6 +1008,20 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   /**
    *  Conditionally move the source to the destination, i.e.
    * <PRE>
+   * if (cond) dst = [disp2]
+   * </PRE>
+   */
+  final void emitCMOV_Cond_Reg_Abs(byte cond, byte dst, int disp2) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x40, cond);
+      emitAbsRegOperands(disp2, dst);
+      if (lister != null) lister.RRA(miStart, "CMOV" + CONDITION[cond], dst, disp2);
+  }
+
+  /**
+   *  Conditionally move the source to the destination, i.e.
+   * <PRE>
    * if (cond) dst = [base2 + index2<<scale2 + disp2]
    * </PRE>
    */
@@ -984,6 +1083,14 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       if (lister != null) lister.RFD(miStart, "SET" + CONDITION[cond], index, scale, disp);
   }
 
+  final void emitSET_Cond_Abs_Byte(byte cond, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      emitCondOpByte((byte)0x90, cond);
+      emitAbsRegOperands(disp, (byte) 0x00);
+      if (lister != null) lister.RA(miStart, "SET" + CONDITION[cond], disp);
+  }
+
   final void emitIMUL2_Reg_Reg(byte dstReg, byte srcReg) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -1014,6 +1121,14 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       setMachineCodes(mi++, (byte) 0xAF);
       emitRegOffRegOperands(srcIndex, scale, disp, dstReg);
       if (lister != null) lister.RRFD(miStart, "IMUL", dstReg, srcIndex, scale, disp);
+  }
+
+  final void emitIMUL2_Reg_Abs(byte dstReg, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x0F);
+      setMachineCodes(mi++, (byte) 0xAF);
+      emitAbsRegOperands(disp, dstReg);
+      if (lister != null) lister.RRA(miStart, "IMUL", dstReg, disp);
   }
 
   final void emitIMUL2_Reg_RegIdx(byte dstReg, byte srcBase, byte srcIndex, short scale, int disp) {
@@ -1161,6 +1276,13 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       if (lister != null) lister.RRFD(miStart, "LEA", dstReg, idx, scale, disp);
   }
 
+  final void emitLEA_Reg_Abs(byte dstReg, int disp) {
+      int miStart = mi;
+      setMachineCodes(mi++, (byte) 0x8D);
+      emitAbsRegOperands(disp, dstReg);
+      if (lister != null) lister.RRA(miStart, "LEA", dstReg, disp);
+  }
+
   final void emitLEA_Reg_RegIdx(byte dstReg, byte base, byte idx, short scale, int disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x8D);
@@ -1226,13 +1348,6 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     int miStart = mi;
     setMachineCodes(mi++, (byte) 0x90);
     if (lister != null) lister.OP(miStart, "NOP");
-  }
-
-  // SP := FP; FP := [SP]; SP -= WORDSIZE; discard current stackframe
-  final void emitLEAVE () {
-    int miStart = mi;
-    setMachineCodes(mi++, (byte) 0xC9);
-    if (lister != null) lister.OP(miStart, "LEAVE");
   }
 
   ////////////////////////////////////////////

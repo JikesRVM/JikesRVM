@@ -28,7 +28,6 @@ void lookup_Linux_signal(char *buf, int value);
 
 
 /* register number for each system pointer, to be filled on init */
-int jvmFP;
 int jvmSP;
 int jvmTI;
 char **GPR_names; 
@@ -49,7 +48,7 @@ int ignoredTraps[] = {SIGALRM};
  * Signature: (IIII[Ljava/lang/String;[Ljava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_Platform_setRegisterMapping
-  (JNIEnv *env, jobject obj, jint fp, jint sp, 
+  (JNIEnv *env, jobject obj, jint sp, 
    jobjectArray gprnames, jobjectArray fprnames, jint tpshift)
 {
   jsize count; 
@@ -57,7 +56,6 @@ JNIEXPORT void JNICALL Java_Platform_setRegisterMapping
   const char *name;
   int i;
 
-  jvmFP = fp;
   jvmSP = sp;
   shiftTP = tpshift;
 

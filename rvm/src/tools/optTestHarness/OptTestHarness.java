@@ -25,6 +25,7 @@ import java.io.*;
  * can be given to the optimizing compiler by OptTestHarness via -oc:<cmd>.
  * In addition, the OptTestHarness supports the following commands:
  * -longcommandline <filename>    Read commands (one per line) from a file
+ * -inlineplan <filename>         Read an inline plan from a file
  * +baseline                      Switch default compiler to baseline
  * -baseline                      Switch default compiler to optimizing
  * -load  <class    >             Load a class
@@ -33,14 +34,40 @@ import java.io.*;
  * -methodOpt <class> <method> [-|<descrip>] Compile method with opt compiler
  * -methodBase <class> <method> [-|<descrip>] Compile method with base compiler
  * -er <class> <method> [-|<descrip>] {args} Compile with default compiler and execute a method
+ * -performance                   Show performance results
  *
  * @author Stephen Fink
  * @author David Grove
  */
+
+class Performance implements VM_Callbacks.ExitMonitor {
+
+  private double start = 0.0;
+  private double end = 0.0;
+
+  void reset() { start = VM_Time.now(); }
+  void stop() { if (end == 0.0) end = VM_Time.now(); }
+
+  void show() {
+      stop();  // In case we got here due to a System.exit
+      System.out.println("");
+      System.out.println("Performance of executed method");
+      System.out.println("------------------------------");
+      System.out.print("Elapsed wallclock time: "); 
+      System.out.print(end - start); 
+      System.out.println(" sec");
+  }
+
+    public void notifyExit(int discard) { show(); }
+}
+
 class OptTestHarness {
   static boolean EXECUTE_WITH_REFLECTION = false;
   // Default value for for compiling opt/baseline
   static boolean BASELINE = false; 
+
+  // Record and show performance of executed methods, if any
+  static Performance perf;
 
   // Keep baseline and opt methods separate in list of methods 
   // to be compiled
@@ -191,6 +218,13 @@ class OptTestHarness {
 	    av[j] = t.nextToken();
 	  }
 	  processOptionString(av);
+	} else if (arg.equals("-inlineplan")) {
+	  // -inlineplan is used to read an inline plan from a file
+	  i++;
+	  OPT_ContextFreeInlinePlan plan = new OPT_ContextFreeInlinePlan();
+	  plan.readObject(new LineNumberReader(new FileReader(args[i])));
+	  System.out.println(plan.toString());
+	  OPT_InlineOracleDictionary.registerDefault(new OPT_ProfileDirectedInlineOracle(plan));
         } else if (arg.equals("+baseline")) {
 	  BASELINE = true;
 	} else if (arg.equals("-baseline")) {
@@ -229,6 +263,8 @@ class OptTestHarness {
 	    processMethod(method,options,isBaseline);
 	  }
 	  options = (OPT_Options) options.clone() ;
+	} else if (arg.equals("-performance")) {
+	    perf = new Performance();
 	} else if (arg.equals("-er")) {
 	  EXECUTE_WITH_REFLECTION = true ;
 	  VM_Class  klass      = loadClass(args[++i]);
@@ -329,13 +365,16 @@ class OptTestHarness {
 	VM_Method method = (VM_Method) reflectMethodVector.elementAt(i);
 	VM.sysWrite("**** START OF EXECUTION of "+method+" ****.\n");
 	Object result = null;
+	if (perf != null) perf.reset();
 	result   = reflectoid.invoke(null, reflectMethodArgs);
+	if (perf != null) perf.stop();
 	VM.sysWrite("**** END OF EXECUTION of "+method+" ****.\n");
 	VM.sysWrite("**** RESULT: " + result+"\n");
       }
       EXECUTE_WITH_REFLECTION = false ;
     }
   }
+
 
   public static void main(String args[]) 
     throws InvocationTargetException, 
@@ -353,6 +392,10 @@ class OptTestHarness {
       OPT_Compiler.init(options);
     }
     processOptionString(args);
+    if (perf != null)
+	VM_Callbacks.addExitMonitor(perf);
     executeCommand();
+    if (perf != null)
+	perf.show();
   }
 }

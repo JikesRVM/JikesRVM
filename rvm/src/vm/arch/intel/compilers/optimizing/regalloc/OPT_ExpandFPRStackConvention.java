@@ -11,7 +11,7 @@ import instructionFormats.*;
  * all floating-point stack locations to be available, and named
  * FPi, 0 < i < 7
  *
- * However, BURS may consume FP stack locations by inserting instructions
+ * <p>However, BURS may consume FP stack locations by inserting instructions
  * that push or pop the floating-point stack.  This phase inserts dummy
  * definitions and uses to indicate when symbolic FP registers are not
  * available for register allocation since BURS has consumed a stack slot.
@@ -33,6 +33,11 @@ import instructionFormats.*;
  *   FSTP M, t1
  *   DUMMY_USE FP6
  * </pre>
+ *
+ * <p> Additionally, by convention, we will always clear the
+ * floating-point stack when delivering an exception.  To model this, we
+ * insert dummy defs and uses for each floating-point register at the
+ * beginning of each catch block.
  *
  * @author Stephen Fink
  */
@@ -64,6 +69,17 @@ implements OPT_Operators{
 
     for (Enumeration b = ir.getBasicBlocks(); b.hasMoreElements(); ) {
       OPT_BasicBlock bb = (OPT_BasicBlock)b.nextElement();
+      
+      if (bb instanceof OPT_ExceptionHandlerBasicBlock) {
+        // clear all floating-point state at the entry to a catch block
+        for (int i=0; i<NUM_ALLOCATABLE_FPR; i++) {
+          OPT_Register fpr = phys.getFPR(i);
+          bb.prependInstruction(MIR_UnaryNoRes.create(DUMMY_USE,
+                                                      OPT_IRTools.D(fpr)));
+          bb.prependInstruction(MIR_Nullary.create(DUMMY_DEF,
+                                                   OPT_IRTools.D(fpr)));
+        }
+      }
       
       // The following holds the floating point stack offset from its
       // 'normal' position.

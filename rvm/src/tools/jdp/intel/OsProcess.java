@@ -554,7 +554,8 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
     case PRINTASSEMBLY:
       if (verbose) {
 	try {
-	  mem.printJVMstack(reg.read("FP"), 4);
+	  //	  mem.printJVMstack(reg.read("FP"), 4);
+	  mem.printJVMstack(reg.currentFP(), 4);
 	} catch (Exception e) {
 	  System.out.println(e.getMessage());
 	}
@@ -1255,7 +1256,8 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
       // Find the name of the top stack frame
       int ip = reg.getVMThreadIP(id);
       int[] savedRegs = reg.getVMThreadGPR(id);
-      int fp = savedRegs[reg.regGetNum("FP")];
+      int pr = savedRegs[reg.regGetNum("PR")];
+      int fp = reg.getFPFromPR(pr);
       int compiledMethodID = bmap.getCompiledMethodID(fp, ip);
       if (compiledMethodID==NATIVE_METHOD_ID) {
 	result += "  (native procedure)";

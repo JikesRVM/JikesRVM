@@ -22,6 +22,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
 			VM_Registers      registers) {
     int       fp     = registers.getInnermostFramePointer();
     VM_Method method = compiledMethod.getMethod();
+    VM_Thread myThread = VM_Thread.getCurrentThread();
 
     // reset sp to "empty expression stack" state
     //
@@ -41,6 +42,17 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     if (VM.VerifyAssertions) VM.assert(registers.inuse == true); 
 
     registers.inuse = false;
+
+    // 'give back' the portion of the stack we borrowed to run 
+    // exception delivery code when invoked for a hardware trap.
+    // If this was a straight software trap (athrow) then setting 
+    // the stacklimit should be harmless, since the stacklimit should already have exactly
+    // the value we are setting it too. 
+    if (!myThread.hardwareExceptionRegisters.inuse) {
+      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.stack) + STACK_SIZE_GUARD;
+      VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
+    }
+
     VM_Magic.restoreHardwareExceptionState(registers);
     if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
   }

@@ -15,15 +15,15 @@ import instructionFormats.*;
 abstract class OPT_InlineTools implements OPT_Constants {
 
   /**
-   * Does class A implement the interface B?
+   * Does class A directly implement the interface B?
    */
-  public static boolean implementsInterface (Class A, Class B) {
+  public static boolean implementsInterface(Class A, Class B) {
     Class[] interfaces = A.getInterfaces();
     for (int i = 0; i < interfaces.length; i++) {
       if (interfaces[i] == B)
-        return  true;
+        return true;
     }
-    return  false;
+    return false;
   }
 
   /**
@@ -32,20 +32,20 @@ abstract class OPT_InlineTools implements OPT_Constants {
    * @param callee the callee method
    * @return true if legal, false otherwise
    */
-  public static boolean legalToInline (VM_Method caller, VM_Method callee) {
+  public static boolean legalToInline(VM_Method caller, VM_Method callee) {
     if (callee == null) {
-      return  false;            // Unable to idenitfy callee
+      return false;            // Unable to idenitfy callee
     }
-    if (!callee.getDeclaringClass().isLoaded()) 
+    if (!callee.getDeclaringClass().isLoaded()) {
       return false;
-
+    }
     if (callee.needsDynamicLink(caller)) {
-      return  false;  // Can't inline due to class loading state of callee
+      return false;  // Can't inline due to class loading state of callee
     }
     if (callee.isAbstract() || callee.isNative()) {
-      return  false;            // No body to inline
+      return false;            // No body to inline
     }
-    return  true;
+    return true;
   }
 
   /**
@@ -54,15 +54,14 @@ abstract class OPT_InlineTools implements OPT_Constants {
    * 
    * @param callee the callee method
    */
-  public static boolean needsGuard (VM_Method callee) {
-
+  public static boolean needsGuard(VM_Method callee) {
     if (callee.isFinal() || 
         callee.getDeclaringClass().isFinal() || 
         callee.isPrivate() || 
         callee.isObjectInitializer() || callee.isStatic())
-      return  false; 
+      return false; 
     else 
-      return  true;
+      return true;
   }
 
   /**
@@ -70,8 +69,8 @@ abstract class OPT_InlineTools implements OPT_Constants {
    * Note that this says nothing about whether or not the method will
    * be overriden by future dynamically loaded classes.
    */
-  public static boolean isCurrentlyFinal (VM_Method callee, 
-					  boolean searchSubclasses) {
+  public static boolean isCurrentlyFinal(VM_Method callee, 
+					 boolean searchSubclasses) {
     VM_Class klass = callee.getDeclaringClass();
     if (klass.isInterface()) {
       // interface methods are not final.
@@ -80,7 +79,7 @@ abstract class OPT_InlineTools implements OPT_Constants {
     VM_Class[] subClasses = klass.getSubClasses();
     if (subClasses.length == 0) {
       //  Currently no subclasses, so trivially not overridden
-      return  true;
+      return true;
     } else if (searchSubclasses) {
       // see if any subclasses have overridden the method
       Stack s = new Stack();
@@ -91,17 +90,16 @@ abstract class OPT_InlineTools implements OPT_Constants {
         VM_Class subClass = (VM_Class)s.pop();
         if (subClass.findDeclaredMethod(callee.getName(), 
             callee.getDescriptor()) != null) {
-          return  false;        // found an overridding method
+          return false;        // found an overridding method
         }
         subClasses = subClass.getSubClasses();
         for (int i = 0; i < subClasses.length; i++) {
           s.push(subClasses[i]);
         }
       }
-      return  true;             // didn't find an overridding method in 
-                                // all currently resolved subclasses
+      return true;  // didn't find an overridding method in all currently resolved subclasses
     } else {
-      return  false;            // could be one, so be conservative.
+      return false; // could be one, so be conservative.
     }
   }
 
@@ -113,8 +111,8 @@ abstract class OPT_InlineTools implements OPT_Constants {
    *              is to be inlined
    * @return an inlined size estimate (number of machine code instructions)
    */
-  public static int inlinedSizeEstimate (VM_Method callee, 
-      OPT_CompilationState state) {
+  public static int inlinedSizeEstimate(VM_Method callee, 
+					OPT_CompilationState state) {
     int sizeEstimate = VM_OptMethodSummary.inlinedSizeEstimate(callee);
     // Adjust size estimate downward to account for optimizations enabled 
     // by constant parameters.
@@ -141,7 +139,7 @@ abstract class OPT_InlineTools implements OPT_Constants {
     }
     reductionFactor = Math.max(reductionFactor, 0.40); // bound credits at 60% 
                                                        // off.
-    return  (int)(sizeEstimate*reductionFactor);
+    return (int)(sizeEstimate*reductionFactor);
   }
 
   /**
@@ -153,37 +151,37 @@ abstract class OPT_InlineTools implements OPT_Constants {
    * @param state the compilation state of the caller.
    * @return whether or not the callee should be unconditionally inlined. 
    */
-  public static boolean hasInlinePragma (VM_Method callee, 
-      OPT_CompilationState state) {
+  public static boolean hasInlinePragma(VM_Method callee, 
+					OPT_CompilationState state) {
     if (VM_OptMethodSummary.hasInlinePragma(callee))
-      return  true;
+      return true;
     // If we know what kind of array "src" (argument 0) is
     // then we always want to inline java.lang.System.arraycopy.
     // TODO: Would be nice to discover this automatically!!!
     //       There have to be other methods with similar properties.
     if (callee == sysArrayCopy) {
       OPT_Operand src = Call.getParam(state.getCallInstruction(), 0);
-      return  src.getType() != VM_Type.JavaLangObjectType;
+      return src.getType() != VM_Type.JavaLangObjectType;
     }
     // More arraycopy hacks.  If we the two starting indices are constant and
     // it's not the object array version 
     // (too big...kills other inlining), then inline it.
-    if (callee.getDeclaringClass() == OPT_ClassLoaderProxy.VM_Array_type
-        && callee.getName() == arraycopyName && callee.getDescriptor()
-        != objectArrayCopyDescriptor) {
-      return  Call.getParam(state.getCallInstruction(), 1).isConstant()
-          && Call.getParam(state.getCallInstruction(), 3).isConstant();
+    if (callee.getDeclaringClass() == OPT_ClassLoaderProxy.VM_Array_type && 
+	callee.getName() == arraycopyName && 
+	callee.getDescriptor() != objectArrayCopyDescriptor) {
+      return Call.getParam(state.getCallInstruction(), 1).isConstant() && 
+	Call.getParam(state.getCallInstruction(), 3).isConstant();
     }
-    return  false;
+    return false;
   }
-  private static VM_Method sysArrayCopy = (VM_Method)VM.getMember(
-      "Ljava/lang/System;", 
-      "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V");
-  private static VM_Atom arraycopyName = VM_Atom.findOrCreateAsciiAtom(
-      "arraycopy");
+  private static VM_Method sysArrayCopy = 
+    (VM_Method)VM.getMember("Ljava/lang/System;", 
+			    "arraycopy", 
+			    "(Ljava/lang/Object;ILjava/lang/Object;II)V");
+  private static VM_Atom arraycopyName = 
+    VM_Atom.findOrCreateAsciiAtom("arraycopy");
   private static VM_Atom objectArrayCopyDescriptor = 
-      VM_Atom.findOrCreateAsciiAtom(
-      "([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
+    VM_Atom.findOrCreateAsciiAtom("([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
 
   /**
    * Should the callee method be barred from ever being considered for inlining?
@@ -194,8 +192,8 @@ abstract class OPT_InlineTools implements OPT_Constants {
    *         from being inlined.
    */
   public static boolean hasNoInlinePragma (VM_Method callee, 
-      OPT_CompilationState state) {
-    return  VM_OptMethodSummary.hasNoInlinePragma(callee);
+					   OPT_CompilationState state) {
+    return VM_OptMethodSummary.hasNoInlinePragma(callee);
   }
 }
 

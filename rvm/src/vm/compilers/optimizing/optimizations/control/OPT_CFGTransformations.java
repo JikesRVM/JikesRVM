@@ -156,7 +156,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     // all in loop predecessors of `h' have `h' as single successor
     OPT_BasicBlockEnumeration be = header.getOut();
     while (be.hasMoreElements()) {
-      if (!loop.get(be.next().getNumber())) {
+      if (!inLoop (be.next(), loop)) {
         headerExits = true;
         break;
       }
@@ -168,7 +168,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     int i = 0;
     while (be.hasMoreElements()) {
       OPT_BasicBlock in = (OPT_BasicBlock)be.nextElement();
-      if (loop.get(in.getNumber())) {
+      if (inLoop(in, loop)) {
         if (in.hasOneOut()) {
           res[i] = in;
           i++;
@@ -215,7 +215,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
       OPT_BasicBlockEnumeration bi = block.getIn();
       while (bi.hasMoreElements()) {
 	OPT_BasicBlock in = bi.next();
-	if (nloop.get(in.getNumber())) continue;
+	if (inLoop (in, nloop)) continue;
 	killFallThrough(in);
       }
       killFallThrough(block);
@@ -230,7 +230,13 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     }
   }
 
-  /**
+  static boolean inLoop (OPT_BasicBlock b, OPT_BitVector nloop) {
+    int idx = b.getNumber();
+    if (idx >= nloop.length()) return false;
+    return nloop.get(idx);
+  }
+  
+/**
    * Critical edge removal: if (a,b) is an edge in the cfg where `a' has more
    * than one out-going edge and `b' has more than one in-coming edge,
    * insert a new empty block `c' on the edge between `a' and `b'.

@@ -5,6 +5,7 @@
 
 import java.util.Enumeration;
 import java.util.Iterator;
+import instructionFormats.*;
 
 /**
  * Utility to help coalesce registers.
@@ -13,7 +14,7 @@ import java.util.Iterator;
  *
  * @author Stephen Fink
  */
-class OPT_Coalesce {
+class OPT_Coalesce implements OPT_Operators {
 
   /**
    * Attempt to coalesce register r2 into register r1.  If this is legal,
@@ -39,7 +40,11 @@ class OPT_Coalesce {
     if (isLiveAtDef(r2,r1,live)) return false;
     if (isLiveAtDef(r1,r2,live)) return false;
 
-    // Liveness is OK.  
+    // Liveness is OK.  Check for SPLIT operations
+    if (split(r1,r2)) return false;
+
+    // Don't merge a register with itself		
+    if (r1 == r2) return false;
 
     // Update liveness information to reflect the merge.
     live.merge(r1,r2);
@@ -95,6 +100,31 @@ class OPT_Coalesce {
     }
 
     // no conflict was found.
+    return false;
+  }
+
+  /**
+   * Is there an instruction r1 = split r2 or r2 = split r1??
+   */
+  private static boolean split(OPT_Register r1, OPT_Register r2) {
+    for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r1);
+         e.hasMoreElements(); ) {
+      OPT_RegisterOperand def = (OPT_RegisterOperand)e.nextElement();
+      OPT_Instruction s = def.instruction;
+      if (s.operator == SPLIT) {
+        OPT_Operand rhs = Unary.getVal(s);
+        if (rhs.similar(def)) return true;
+      }
+    }
+    for (OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r2); 
+         e.hasMoreElements(); ) {
+      OPT_RegisterOperand def = (OPT_RegisterOperand)e.nextElement();
+      OPT_Instruction s = def.instruction;
+      if (s.operator == SPLIT) {
+        OPT_Operand rhs = Unary.getVal(s);
+        if (rhs.similar(def)) return true;
+      }
+    }
     return false;
   }
 }

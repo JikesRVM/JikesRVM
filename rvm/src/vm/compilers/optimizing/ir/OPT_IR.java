@@ -210,14 +210,6 @@ final class OPT_IR implements OPT_Operators {
   private OPT_BasicBlock[] basicBlockMap;
 
   /**
-   * Does this IR include floating point operations?
-   * Initialized during convert-to-low.
-   */
-  private boolean hasFP = false;
-  public boolean hasFloatingPoint() { return hasFP; }
-  public void setHasFloatingPoint(boolean b) { hasFP = b; }
-  
-  /**
    * Does this IR include a syscall?
    * Initialized during lir to mir conversion;
    */
@@ -411,7 +403,18 @@ final class OPT_IR implements OPT_Operators {
     }
     return false;
   }
+
   
+  /**
+   * How many bytes of parameters does this method take?
+   */
+  public int incomingParameterBytes() {
+    int nWords = method.getParameterWords();
+    // getParameterWords() does not include the implicit 'this' parameter.
+    if (!method.isStatic()) nWords++;
+    return nWords << 2;
+  }
+
 
   /** 
    * Recompute the basic block map, so can use getBasicBlock(int)
@@ -568,6 +571,18 @@ final class OPT_IR implements OPT_Operators {
       return -1;
     else
       return cfg.numberOfNodes();
+  }
+
+  /**
+   * Prune the exceptional out edges for each basic block in the IR.
+   */
+  public void pruneExceptionalOut() {
+    if (hasReachableExceptionHandlers()) {
+      for (Enumeration e = getBasicBlocks(); e.hasMoreElements(); ) {
+        OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
+        bb.pruneExceptionalOut(this);
+      } 
+    }      
   }
 
 

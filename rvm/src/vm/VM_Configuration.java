@@ -141,6 +141,39 @@ public abstract class VM_Configuration {
         false;
       //-#endif
 
+  // Compiler support for real-time garbage collection
+  //
+  public static final boolean BuildForRealtimeGC =
+      //-#if RVM_WITH_REALTIME_GC
+        true;
+      //-#else
+        false;
+      //-#endif
+
+  // Brooks-style redirection barrier
+  public static final boolean BuildWithRedirectSlot =
+      //-#if RVM_WITH_REDIRECT_SLOT
+        true;
+      //-#else
+        false;
+      //-#endif
+
+  // Brooks-style redirection barrier
+  public static final boolean BuildWithLazyRedirect =
+      //-#if RVM_WITH_LAZY_REDIRECT
+        true;
+      //-#else
+        false;
+      //-#endif
+
+  // Brooks-style redirection barrier
+  public static final boolean BuildWithEagerRedirect =
+      //-#if RVM_WITH_EAGER_REDIRECT
+        true;
+      //-#else
+        false;
+      //-#endif
+
   // Epilogue yieldpoints increase sampling accuracy for adaptive recompilation.
   // In particular, they are key for large, leaf, loop-free methods.
   public static final boolean UseEpilogueYieldPoints =
@@ -250,4 +283,11 @@ public abstract class VM_Configuration {
       //-#else
         false;
       //-#endif
+        
+  //-#if RVM_FOR_IA32
+  /**
+   * Is ESI dedicated to always hold the processor register?
+   */
+  public final static boolean dedicatedESI = true;
+  //-#endif
 }

@@ -32,7 +32,7 @@ class OPT_LTDominators extends OPT_Stack {
   /*
    * a counter for assigning DFS numbers
    */
-  private int DFSCounter;
+  protected int DFSCounter;
 
   /*
    * a mapping from DFS number to their basic blocks
@@ -60,6 +60,7 @@ class OPT_LTDominators extends OPT_Stack {
       }
     }
     OPT_LTDominators dom = new OPT_LTDominators(ir, forward);
+    dom.analyze(ir);
   }
 
   /**
@@ -69,8 +70,14 @@ class OPT_LTDominators extends OPT_Stack {
    */
   OPT_LTDominators(OPT_IR ir, boolean forward) {
     cfg = ir.cfg;               // save the cfg for easy access
-    this.forward = forward;     // save the forward flag  
+    this.forward = forward;     // save the forward flag
+  }
 
+  /**
+   * analyze dominators
+   */
+  protected void analyze(OPT_IR ir)
+  {
     if (DEBUG) { 
       System.out.println("   Here's the CFG for method: "+ ir.method.name
 			 +"\n"+ ir.cfg);
@@ -80,13 +87,7 @@ class OPT_LTDominators extends OPT_Stack {
     step1();
 
     // Check to make sure all nodes were reached
-    if (!forward && DFSCounter != cfg.numberOfNodes()) {
-      VM.sysWrite(" *** Warning ***\n CFG for method "+ ir.method.name
-		  + " in class " + ir.method.getDeclaringClass().getName()
-		  +" has unreachable nodes.\n");
-      VM.sysWrite(" Assuming pessimistic results in dominators computation\n"+
-		  " for unreachable nodes.\n");
-    }
+    checkReachability(ir);
 
     // Step 2: the heart of the algorithm
     step2();
@@ -102,6 +103,23 @@ class OPT_LTDominators extends OPT_Stack {
     cfg = null;                 // no longer need a pointer to the cfg
   }
 
+
+  /**
+   * Check to make sure all nodes were reached
+   */
+  private void checkReachability (OPT_IR ir)
+  {
+    if (!forward) {
+      if (DFSCounter != cfg.numberOfNodes()) {
+	VM.sysWrite(" *** Warning ***\n CFG for method "+ ir.method.name
+		    + " in class " + ir.method.getDeclaringClass().getName()
+		    + " has unreachable nodes.\n");
+	VM.sysWrite(" Assuming pessimistic results in dominators computation\n"
+		    + " for unreachable nodes.\n");
+      }
+    }
+  }
+  
   /**
    *  The goal of this step is to perform a DFS numbering on the CFG,
    *  starting at the root.  The exit node is not included.
@@ -126,14 +144,16 @@ class OPT_LTDominators extends OPT_Stack {
       }
     }
 
-    DFS(getFirstNode());
-
+    DFS ();
+    
     if (DEBUG) { 
       System.out.println("DFSCounter: "+ DFSCounter +", CFG Nodes: "+
 			 cfg.numberOfNodes()); 
       printDFSNumbers();
     }
   }
+
+  private void DFS () { DFS(getFirstNode()); }
 
   /**
    * Get the first node, either entry or exit
@@ -202,7 +222,7 @@ class OPT_LTDominators extends OPT_Stack {
    * The recursive version was too costly on the toba benchmark on Linux/IA32.
    * @param block the basic block to process
    */
-  private void DFS(OPT_BasicBlock block) {
+  protected void DFS(OPT_BasicBlock block) {
 
     // push node on to the emulated activation stack
     push(block);
@@ -303,7 +323,7 @@ class OPT_LTDominators extends OPT_Stack {
 
       // add "block" to bucket(vertex(semi(block)));
       OPT_LTDominatorInfo.getInfo(vertex[blockInfo.getSemiDominator()]).
-	                                                      addToBucket(block);
+	                                                    addToBucket(block);
 
       // LINK(parent(block), block)
       LINK(blockInfo.getParent(), block);

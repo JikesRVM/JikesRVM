@@ -496,24 +496,24 @@ public final class OPT_Instruction
    * @return number of operands
    */
   public int getNumberOfOperands() {
-    if (operator.hasVarUses()) {
-      int numOps = 
-	operator.getNumberOfDefs() + operator.getNumberOfPureFixedUses();
-      for (; numOps < ops.length; numOps++) {
-	if (ops[numOps] == null) break;
-      }
-      return numOps;
-    } else if (operator.hasVarDefs()) {
-      int numOps = operator.getNumberOfFixedPureDefs();
-      for (; numOps < ops.length; numOps++) {
-	if (ops[numOps] == null) break;
-      }
-      return numOps;
+    if (operator.hasVarUsesOrDefs()) {
+      return getNumberOfOperandsVarUsesOrDefs();
     } else {
       return operator.getNumberOfDefs() + operator.getNumberOfPureUses();
     }
   }
-
+  // isolate uncommon cases to enable inlined common case of getNumberOfOperands
+  private int getNumberOfOperandsVarUsesOrDefs() {
+    int numOps = ops.length - 1;
+    int minOps;
+    if (operator().hasVarUses()) {
+      minOps = operator.getNumberOfDefs() + operator.getNumberOfPureFixedUses() - 1;
+    } else {
+      minOps = operator.getNumberOfFixedPureDefs() - 1;
+    } 
+    while (numOps > minOps && ops[numOps] == null) numOps--;
+    return numOps + 1;
+  }
 
   /**
    * Returns the number of operands that are defs
@@ -613,6 +613,21 @@ public final class OPT_Instruction
     for (int i = 0; i < ops.length; i++) {
       if (getOperand(i) == oldOp) {
 	putOperand(i, newOp);
+      }
+    }
+  }
+
+  /**
+   * Replace any operands that are similar to the first operand 
+   * with a copy of the second operand.
+   *
+   * @param old the operand whose similar operands should be replaced
+   * @param new the new one to replace it with
+   */
+  public void replaceSimilarOperands(OPT_Operand oldOp, OPT_Operand newOp) {
+    for (int i = 0; i < ops.length; i++) {
+      if (oldOp.similar(getOperand(i))) {
+	putOperand(i, newOp.copy());
       }
     }
   }
@@ -1103,12 +1118,10 @@ public final class OPT_Instruction
   }
 
   /**
-   * NOTE: ONLY FOR USE ON MIR INSTRUCTIONS!!!!
    * Record that this instruction is not a PEI. 
    * Leave GCPoint status (if any) unchanged.
    */
   public void markAsNonPEI() {
-    if (VM.VerifyAssertions) VM.assert(getOpcode() > MIR_START_opcode);
     operatorInfo &= ~OI_PEI;
     operatorInfo |= OI_PEI_VALID;
   }
@@ -1257,12 +1270,11 @@ public final class OPT_Instruction
     case DOUBLE_IFCMPG_opcode:
       return IfCmp.getTarget(this).target.getBasicBlock();
 
-    case TYPE_IFCMP_opcode:
-      return TypeIfCmp.getTarget(this).target.getBasicBlock();
-
-    case METHOD_IFCMP_opcode:
-      return MethodIfCmp.getTarget(this).target.getBasicBlock();
-
+    case IG_CLASS_TEST_opcode:
+    case IG_METHOD_TEST_opcode:
+    case IG_PATCH_POINT_opcode:
+      return InlineGuard.getTarget(this).target.getBasicBlock();
+      
     default:
       if (MIR_Branch.conforms(this)) {
 	return MIR_Branch.getTarget(this).target.getBasicBlock();
@@ -1309,12 +1321,10 @@ public final class OPT_Instruction
       e.addElement(IfCmp.getTarget(this).target.getBasicBlock());
       break;
 
-    case TYPE_IFCMP_opcode:
-      e.addElement(TypeIfCmp.getTarget(this).target.getBasicBlock());
-      break;
-
-    case METHOD_IFCMP_opcode:
-      e.addElement(MethodIfCmp.getTarget(this).target.getBasicBlock());
+    case IG_PATCH_POINT_opcode:
+    case IG_CLASS_TEST_opcode:
+    case IG_METHOD_TEST_opcode:
+      e.addElement(InlineGuard.getTarget(this).target.getBasicBlock());
       break;
 
     case TABLESWITCH_opcode:
@@ -1342,7 +1352,15 @@ public final class OPT_Instruction
       } else if (MIR_CondBranch2.conforms(this)) {
 	e.addElement(MIR_CondBranch2.getTarget1(this).target.getBasicBlock());
 	e.addPossiblyDuplicateElement(MIR_CondBranch2.getTarget2(this).target.getBasicBlock());
-      } else {
+      //-#if RVM_FOR_IA32
+      // TODO: should factor the MIR-specific stuff into an arch-specific
+      // file.  Too lazy to do it today (SJF).
+      } else if (MIR_LowTableSwitch.conforms(this)) {
+          for(int i = 0; i < MIR_LowTableSwitch.getNumberOfTargets(this); i++) 
+    	    e.addPossiblyDuplicateElement(MIR_LowTableSwitch.getTarget(this,i).
+                                          target.getBasicBlock());
+      //-#endif
+      } else if (MIR_CondBranch2.conforms(this)) {
 	throw new OPT_OptimizingCompilerException("getBranchTargets()",
 						  "operator not implemented",
 						  operator().toString());
@@ -1808,7 +1826,6 @@ public final class OPT_Instruction
       ops = newOps;
     }
   }
-
 
   /**
    * For IR internal use only; general clients should use

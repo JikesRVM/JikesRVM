@@ -12,11 +12,11 @@ include		$(RVM_ROOT)/rvm/build.Make.rules
 default: 	$(GEN_FILES_DIR)/OPT_Options.java 
 
 ifeq ($(IS_ADAPTIVE),1)
-BOOLEAN_DAT_FILES = BooleanOptions.dat ../../../adaptive/utility/SharedBooleanOptions.dat
-VALUE_DAT_FILES = ValueOptions.dat ../../../adaptive/utility/SharedValueOptions.dat
+BOOLEAN_DAT_FILES = BooleanOptions.dat ../../../adaptive/utility/SharedBooleanOptions.dat ../../baseline/SharedBooleanOptions.dat
+VALUE_DAT_FILES = ValueOptions.dat ../../../adaptive/utility/SharedValueOptions.dat ../../baseline/SharedValueOptions.dat
 else
-BOOLEAN_DAT_FILES = BooleanOptions.dat
-VALUE_DAT_FILES = ValueOptions.dat
+BOOLEAN_DAT_FILES = BooleanOptions.dat ../../baseline/SharedBooleanOptions.dat
+VALUE_DAT_FILES = ValueOptions.dat ../../baseline/SharedValueOptions.dat
 endif
 
 

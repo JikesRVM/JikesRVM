@@ -172,14 +172,6 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          return;
          }
 
-      /* added for rewriting */
-      if (methodName == VM_MagicNames.setFramePointer)
-         {
-         asm.emitL  (FP, 0, SP); // FP frame pointer register
-         asm.emitCAL(SP, 4, SP); // pop frame pointer
-         return;
-         }
-
       if (methodName == VM_MagicNames.getCallerFramePointer)
          {
          asm.emitL (T0, 0, SP);                               // pop  frame pointer of callee frame
@@ -377,6 +369,15 @@ class VM_MagicCompiler implements VM_BaselineConstants,
 		  return;
       }
 
+      if (methodName == VM_MagicNames.getByteAtOffset)
+      {
+		  asm.emitL   (T0, +4, SP);   // pop object
+		  asm.emitL   (T1,  0, SP);   // pop offset
+		  asm.emitLBZX(T0, T1, T0);   // load byte with zero extension.
+		  asm.emitSTU (T0, 4, SP);    // push *(object+offset) 
+		  return;
+      }
+
       if (methodName == VM_MagicNames.setIntAtOffset ||
 		   methodName == VM_MagicNames.setObjectAtOffset)
       {
@@ -384,6 +385,16 @@ class VM_MagicCompiler implements VM_BaselineConstants,
 		  asm.emitL  (T1, +4, SP); // pop offset
 		  asm.emitL  (T2,  0, SP); // pop newvalue
 		  asm.emitSTX(T2, T1, T0); // *(object+offset) = newvalue
+		  asm.emitCAL(SP, 12, SP); // drop all args
+		  return;
+      }
+
+      if (methodName == VM_MagicNames.setByteAtOffset)
+      {
+		  asm.emitL  (T0, +8, SP); // pop object
+		  asm.emitL  (T1, +4, SP); // pop offset
+		  asm.emitL  (T2,  0, SP); // pop newvalue
+		  asm.emitSTBX(T2, T1, T0); // *(object+offset) = newvalue
 		  asm.emitCAL(SP, 12, SP); // drop all args
 		  return;
       }
@@ -485,14 +496,16 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          return;
          }
 
-      if (methodName == VM_MagicNames.resumeThreadExecution)
+      if (methodName == VM_MagicNames.threadSwitch)
          {
-         asm.emitL(T0, 0, SP); // T0 := address of VM_Registers object
-         asm.emitL(T1, 4, SP); // T1 := address of VM_Thread object
+         asm.emitL(T0, 4, SP); // T0 := address of previous VM_Thread object
+         asm.emitL(T1, 0, SP); // T1 := address of VM_Registers of new thread
          
-         asm.emitLtoc(S0, VM_Entrypoints.resumeThreadExecutionInstructionsOffset);
+         asm.emitLtoc(S0, VM_Entrypoints.threadSwitchInstructionsOffset);
          asm.emitMTLR(S0);
-         asm.emitBLR(); // branch to out of line machine code (does not return)
+	 asm.emitCall(spSaveAreaOffset);
+
+         asm.emitCAL(SP, 8, SP);  // pop two args
          return;
          }
          

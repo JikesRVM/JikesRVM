@@ -690,7 +690,8 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    */
   public final boolean hasReturn() {
     if (isEmpty()) return false;
-    return Return.conforms(lastRealInstruction());
+    return Return.conforms(lastRealInstruction()) || 
+           MIR_Return.conforms(lastRealInstruction());
   }
 
   /**
@@ -710,9 +711,6 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   /**
    * Does this basic block contain an explicit athrow instruction?  
    *
-   * NOTE: This method does NOT catch the case where the athrow has
-   * been converted to a call to method VM_Runtime.athrow().
-   *
    * @return <code>true</code> if the block ends in an explicit Athrow
    *         instruction or <code>false</code> if it does not 
    */
@@ -720,7 +718,29 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     if (isEmpty()) return false;
     OPT_Instruction s = lastRealInstruction();
 
-    return Athrow.conforms(s);
+    //-#if RVM_FOR_IA32
+    if (s.operator == ADVISE_ESP) {
+      s = s.getPrev();
+    }
+    //-#endif
+
+    if (Athrow.conforms(s)) return true;
+    else if (MIR_Call.conforms(s)) {
+      OPT_MethodOperand mop = MIR_Call.getMethod(s);
+      if (mop != null) {
+        if (mop.method == VM_Entrypoints.athrowMethod) {
+          return true;
+        }
+      }
+    } else if (Call.conforms(s)) {
+      OPT_MethodOperand mop = Call.getMethod(s);
+      if (mop != null) {
+        if (mop.method == VM_Entrypoints.athrowMethod) {
+          return true;
+        }
+      }
+    } 
+    return false;
   }
 
   /**
@@ -1251,6 +1271,9 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
 	 s != lastInstruction(); 
 	 s=s.getNext())
       newBlock.appendInstruction(s.copyWithoutLinks());
+
+    // copy other properties of the block.
+    newBlock.flags = flags;
     
     return newBlock;
   }
@@ -1368,7 +1391,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   
   /**
    * Change all branches from this to b to branches that go to bCopy instead.
-   * This method also handles this.fallThough, so `this' should still be in
+   * This method also handles this.fallThrough, so `this' should still be in
    * the code order when this method is called.
    *
    * WARNING: Use this method with caution.  See comment on 
@@ -1385,40 +1408,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     for (OPT_InstructionEnumeration ie = enumerateBranchInstructions();
 	 ie.hasMoreElements(); ) {
       OPT_Instruction s = ie.next();
-      if (IfCmp.conforms(s)) {
-	if (IfCmp.getTarget(s).similar(bTarget))
-	  IfCmp.setTarget(s,(OPT_BranchOperand)copyTarget.copy());
-      } else if (IfCmp2.conforms(s)) {
-	if (IfCmp2.getTarget1(s).similar(bTarget))
-	  IfCmp2.setTarget1(s,(OPT_BranchOperand)copyTarget.copy());
-	if (IfCmp2.getTarget2(s).similar(bTarget))
-	  IfCmp2.setTarget2(s,(OPT_BranchOperand)copyTarget.copy());
-      } else if (MethodIfCmp.conforms(s)) {
-	if (MethodIfCmp.getTarget(s).similar(bTarget))
-	  MethodIfCmp.setTarget(s,(OPT_BranchOperand)copyTarget.copy());
-      } else if (TypeIfCmp.conforms(s)) {
-	if (TypeIfCmp.getTarget(s).similar(bTarget))
-	  TypeIfCmp.setTarget(s,(OPT_BranchOperand)copyTarget.copy());
-      } else if (Goto.conforms(s)) {
-	if (Goto.getTarget(s).similar(bTarget))
-	  Goto.setTarget(s,(OPT_BranchOperand)copyTarget.copy());
-      } else if (TableSwitch.conforms(s)) {
-	if (TableSwitch.getDefault(s).similar(bTarget))
-	  TableSwitch.setDefault(s, (OPT_BranchOperand)copyTarget.copy());
-	for(int i = 0; i < TableSwitch.getNumberOfTargets(s); i++)
-	  if (TableSwitch.getTarget(s, i).similar(bTarget))
-	    TableSwitch.setTarget(s,i,(OPT_BranchOperand)copyTarget.copy());
-      } else if (LowTableSwitch.conforms(s)) {
-	for(int i = 0; i < LowTableSwitch.getNumberOfTargets(s); i++)
-	  if (LowTableSwitch.getTarget(s, i).similar(bTarget))
-	    LowTableSwitch.setTarget(s,i,(OPT_BranchOperand)copyTarget.copy());
-      } else if (LookupSwitch.conforms(s)) {
-	if (LookupSwitch.getDefault(s).similar(bTarget))
-	  LookupSwitch.setDefault(s, (OPT_BranchOperand)copyTarget.copy());
-	for(int i = 0; i < LookupSwitch.getNumberOfTargets(s); i++)
-	  if (LookupSwitch.getTarget(s, i).similar(bTarget))
-	    LookupSwitch.setTarget(s, i, (OPT_BranchOperand)copyTarget.copy());
-      }
+      s.replaceSimilarOperands(bTarget, copyTarget);
     }
 
     // 2. if this falls through to b, make it jump to bCopy
@@ -1570,13 +1560,16 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
       if (expOuts.hasMoreElements() && e.hasMoreElements()) {
 	OPT_BasicBlock next = splitNodeWithLinksAt(s, ir);
 	next.unfactor(ir);
-	pruneExceptionalOutAfterSplit();
+	pruneExceptionalOut(ir);
 	return;
       }
     }
   }
-  // helper function for unfactor
-  private void pruneExceptionalOutAfterSplit() {
+  /**
+   * Prune away exceptional out edges that are not reachable given this
+   * block's instructions.
+   */
+  final void pruneExceptionalOut(OPT_IR ir) {
     int n = getNumberOfExceptionalOut();
     if (n > 0) {
       ComputedBBEnum handlers = new ComputedBBEnum(n);
@@ -1598,6 +1591,12 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
 	insertOut(b);
       }
     }
+    
+    // Since any edge to an exception handler is an "exceptional" edge,
+    // the previous procedure has thrown away any "normal" CFG edges to
+    // exception handlers.  So, recompute normal edges to recover them.
+    recomputeNormalOut(ir);
+
   }
   // helper function for unfactor
   private final void deleteExceptionalOut() {

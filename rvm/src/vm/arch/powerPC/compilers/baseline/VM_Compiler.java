@@ -11,7 +11,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_Compiler implements VM_BaselineConstants {
+public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants {
 
   //-----------//
   // interface //
@@ -25,24 +25,26 @@ public class VM_Compiler implements VM_BaselineConstants {
       VM_CompilerInfo info = new VM_JNICompilerInfo(method);
       return new VM_CompiledMethod(compiledMethodId, method, 
                                    machineCode.getInstructions(), info); 
-
-      //      return new VM_CompiledMethod(compiledMethodId, method, 
-      //                                   machineCode.getInstructions(), 
-      //                                   VM_JNIEnvironment.javaToCCompilerInfo);
     } 
     else if (!VM.BuildForInterpreter) {
       VM_Compiler     compiler     = new VM_Compiler();
-
+      VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method, null);
       VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method);
       INSTRUCTION[]   instructions = machineCode.getInstructions();
       int[]           bytecodeMap  = machineCode.getBytecodeMap();
       VM_CompilerInfo info;
+      if ((options.PRINT_MACHINECODE) &&
+          (!options.hasMETHOD_TO_PRINT() ||
+	   options.fuzzyMatchMETHOD_TO_PRINT(method.toString()))) {
+	printMethodCode(method, instructions);
+      }
+      
       if (method.isSynchronized()) {
-	info = new VM_BaselineCompilerInfo(method, bytecodeMap, 
+	info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, 
                                            instructions.length, 
                                            compiler.lockOffset);
       } else {
-	info = new VM_BaselineCompilerInfo(method, bytecodeMap, 
+	info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, 
                                            instructions.length);
       }
       return new VM_CompiledMethod(compiledMethodId, method, 
@@ -115,6 +117,7 @@ public class VM_Compiler implements VM_BaselineConstants {
   static VM_ExceptionDeliverer getExceptionDeliverer() {
     return exceptionDeliverer;
   }
+
   
   //----------------//
   // implementation //
@@ -158,6 +161,7 @@ public class VM_Compiler implements VM_BaselineConstants {
   }
 
   private VM_MachineCode genCode (int compiledMethodId, VM_Method meth) {
+    if (options.PRINT_METHOD) printMethodMessage(meth);
     if (VM.TraceCompilation) VM.sysWrite("VM_Compiler: begin compiling " + meth + "\n");
     /* initialization */ { 
       if (VM.VerifyAssertions) VM.assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
@@ -497,10 +501,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x2e: /* --- iaload --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("iaload");
-          asm.emitL   (T1,  4, SP);                    // T1 is array ref
-          asm.emitL   (T0,  0, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-          asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  aloadSetup(2);
 	  asm.emitSLI (T0, T0,  2);  // convert word index to byte index
 	  asm.emitLX  (T2, T0, T1);  // load desired int array element
           asm.emitSTU (T2,  4, SP);  
@@ -508,10 +509,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x2f: /* --- laload --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("laload");
-          asm.emitL   (T1,  4, SP);                    // T1 is array ref
-          asm.emitL   (T0,  0, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  aloadSetup(3);
 	  asm.emitSLI (T0, T0,  3);  // convert two word index to byte index
 	  asm.emitLFDX(F0, T0, T1);  // load desired (long) array element
           asm.emitSTFD(F0,  0, SP);  
@@ -519,10 +517,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x30: /* --- faload --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("faload");
-          asm.emitL   (T1,  4, SP);                    // T1 is array ref
-          asm.emitL   (T0,  0, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  aloadSetup(2);
 	  asm.emitSLI (T0, T0,  2);  // convert word index to byte index
 	  asm.emitLX  (T2, T0, T1);  // load desired (float) array element
           asm.emitSTU (T2,  4, SP);  
@@ -530,10 +525,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x31: /* --- daload --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("daload");
-          asm.emitL   (T1,  4, SP);                    // T1 is array ref
-          asm.emitL   (T0,  0, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  aloadSetup(3);
 	  asm.emitSLI (T0, T0,  3);  // convert two word index to byte index
 	  asm.emitLFDX(F0, T0, T1);  // load desired (double) array element
           asm.emitSTFD(F0,  0, SP);  
@@ -541,10 +533,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x32: /* --- aaload --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("aaload");
-          asm.emitL   (T1,  4, SP);                    // T1 is array ref
-          asm.emitL   (T0,  0, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  aloadSetup(2);
 	  asm.emitSLI (T0, T0,  2);  // convert word index to byte index
 	  asm.emitLX  (T2, T0, T1);  // load desired (ref) array element
           asm.emitSTU (T2,  4, SP);  
@@ -552,10 +541,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x33: /* --- baload --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("baload");
-          asm.emitL   (T1,  4, SP);                    // T1 is array ref
-          asm.emitL   (T0,  0, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  aloadSetup(0);
 	  asm.emitLBZX(T2, T0, T1);  // no load byte algebraic ...
 	  asm.emitSLI (T2, T2, 24);
 	  asm.emitSRAI(T2, T2, 24);  // propogate the sign bit
@@ -564,10 +550,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x34: /* --- caload --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("caload");
-          asm.emitL   (T1,  4, SP);                    // T1 is array ref
-          asm.emitL   (T0,  0, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  aloadSetup(1);
 	  asm.emitSLI (T0, T0,  1);  // convert halfword index to byte index
 	  asm.emitLHZX(T2, T0, T1);  // load desired (char) array element
           asm.emitSTU (T2,  4, SP);  
@@ -575,10 +558,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x35: /* --- saload --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("saload");
-          asm.emitL   (T1,  4, SP);                    // T1 is array ref
-          asm.emitL   (T0,  0, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  aloadSetup(1);
 	  asm.emitSLI (T0, T0,  1);  // convert halfword index to byte index
 	  asm.emitLHAX(T2, T0, T1);  // load desired (short) array element
           asm.emitSTU (T2,  4, SP);  
@@ -791,11 +771,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x4f: /* --- iastore --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("iastore");
-	  asm.emitL   (T1,  8, SP);                    // T1 is array ref
-          asm.emitL   (T0,  4, SP);                    // T0 is array index
-	  asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitL   (T3,  0, SP);                    // T3 is value to store
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  astoreSetup(2);
 	  asm.emitSLI (T0, T0,  2);  // convert word index to byte index
 	  asm.emitSTX (T3, T0, T1);  // store int value in array
           asm.emitCAL (SP, 12, SP);  // complete 3 pops
@@ -803,23 +779,12 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x50: /* --- lastore --- */ { 
           if (VM.TraceAssembler) asm.noteBytecode("lastore");
-          asm.emitL    (T1, 12, SP);                    // T1 is array ref
-          asm.emitL    (T0,  8, SP);                    // T0 is array index
-          asm.emitL    (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitLFD  (F0,  0, SP);                    // F0 is value to store
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
-	  asm.emitSLI  (T0, T0,  3);  // convert long index to byte index
-	  asm.emitSTFDX(F0, T0, T1);  // store long value in array
-          asm.emitCAL  (SP, 16, SP);  // complete 3 pops (1st is 2 words)
+	  astoreLong();
           break;
 	}
         case 0x51: /* --- fastore --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("fastore");
-          asm.emitL   (T1,  8, SP);                    // T1 is array ref
-          asm.emitL   (T0,  4, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitL   (T3,  0, SP);                    // T3 is value to store
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  astoreSetup(2);
 	  asm.emitSLI (T0, T0,  2);  // convert word index to byte index
 	  asm.emitSTX (T3, T0, T1);  // store float value in array
           asm.emitCAL (SP, 12, SP);  // complete 3 pops
@@ -827,14 +792,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x52: /* --- dastore --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("dastore");
-          asm.emitL    (T1, 12, SP);                    // T1 is array ref
-          asm.emitL    (T0,  8, SP);                    // T0 is array index
-          asm.emitL    (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitLFD  (F0,  0, SP);                    // F0 is value to store
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
-	  asm.emitSLI  (T0, T0,  3);  // convert double index to byte index
-	  asm.emitSTFDX(F0, T0, T1);  // store double value in array
-          asm.emitCAL  (SP, 16, SP);  // complete 3 pops (1st is 2 words)
+	  astoreLong();
           break;
 	}
         case 0x53: /* --- aastore --- */ {
@@ -846,10 +804,12 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitCall(spSaveAreaOffset);   // checkstore(arrayref, value)
           if (VM_Collector.NEEDS_WRITE_BARRIER) 
 	    VM_Barriers.compileArrayStoreBarrier(asm, spSaveAreaOffset);
+	  astoreSetup(-1);	// NOT (dfb): following 4 lines plus emitTLLE seem redundant and possibly bogus
           asm.emitL   (T1,  8, SP);                    // T1 is array ref
           asm.emitL   (T0,  4, SP);                    // T0 is array index
           asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
 	  asm.emitL   (T3,  0, SP);                    // T3 is value to store
+	  emitSegmentedArrayAccess (asm, T1, T0, T2, 2);
 	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
 	  asm.emitSLI (T0, T0,  2);  // convert word index to byte index
 	  if (VM.BuildForConcurrentGC) {
@@ -864,22 +824,14 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x54: /* --- bastore --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("bastore");
-          asm.emitL   (T1,  8, SP);                    // T1 is array ref
-          asm.emitL   (T0,  4, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitL   (T3,  0, SP);                    // T3 is value to store
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  astoreSetup(0);
 	  asm.emitSTBX(T3, T0, T1);  // store byte value in array
           asm.emitCAL (SP, 12, SP);  // complete 3 pops
           break;
 	}
         case 0x55: /* --- castore --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("castore");
-          asm.emitL   (T1,  8, SP);                    // T1 is array ref
-          asm.emitL   (T0,  4, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitL   (T3,  0, SP);                    // T3 is value to store
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  astoreSetup(1);
 	  asm.emitSLI (T0, T0,  1);  // convert halfword index to byte index
 	  asm.emitSTHX(T3, T0, T1);  // store char value in array
           asm.emitCAL (SP, 12, SP);  // complete 3 pops
@@ -887,11 +839,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	}
         case 0x56: /* --- sastore --- */ {
           if (VM.TraceAssembler) asm.noteBytecode("sastore");
-          asm.emitL   (T1,  8, SP);                    // T1 is array ref
-          asm.emitL   (T0,  4, SP);                    // T0 is array index
-          asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
-	  asm.emitL   (T3,  0, SP);                    // T3 is value to store
-	  asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+	  astoreSetup(1);
 	  asm.emitSLI (T0, T0,  1);  // convert halfword index to byte index
 	  asm.emitSTHX(T3, T0, T1);  // store short value in array
           asm.emitCAL (SP, 12, SP);  // complete 3 pops
@@ -2756,6 +2704,11 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
           if (VM.TraceAssembler) asm.noteBytecode("arraylength");
           asm.emitL (T0, 0, SP);
           asm.emitL (T1, ARRAY_LENGTH_OFFSET, T0);
+	  if (VM.BuildForRealtimeGC) {
+	      asm.emitCMPI(T1, 0);
+	      asm.emitBGE(2);
+	      asm.emitNEG(T1, T1);
+	  }
 	  asm.emitST(T1, 0, SP);
           break;
 	}
@@ -3037,6 +2990,58 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
     return asm.makeMachineCode();
   }
   
+  // Load/Store assist
+  private void aloadSetup (int logSize) {
+    asm.emitL   (T1,  4, SP);                    // T1 is array ref
+    asm.emitL   (T0,  0, SP);                    // T0 is array index
+    asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
+    if (logSize >= 0)
+	emitSegmentedArrayAccess(asm, T1, T0, T2, logSize);
+    if ( VM.BuildForRealtimeGC || !options.ANNOTATIONS ||
+	 !method.queryAnnotationForBytecode(bIP,
+					VM_Method.annotationBoundsCheck)) {
+      asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+    }
+  }
+
+  private void astoreSetup (int logSize) {
+    asm.emitL   (T1,  8, SP);                    // T1 is array ref
+    asm.emitL   (T0,  4, SP);                    // T0 is array index
+    asm.emitL   (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
+    asm.emitL   (T3,  0, SP);                    // T3 is value to store
+    if (logSize >= 0)
+	emitSegmentedArrayAccess(asm, T1, T0, T2, logSize);
+    if ( VM.BuildForRealtimeGC || !options.ANNOTATIONS ||
+	 !method.queryAnnotationForBytecode(bIP,
+					VM_Method.annotationBoundsCheck)) {
+      asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+    }
+  }
+
+  private void astoreLong () {
+    asm.emitL    (T1, 12, SP);                    // T1 is array ref
+    asm.emitL    (T0,  8, SP);                    // T0 is array index
+    asm.emitL    (T2,  ARRAY_LENGTH_OFFSET, T1);  // T2 is array length
+    asm.emitLFD  (F0,  0, SP);                    // F0 is value to store
+    emitSegmentedArrayAccess(asm, T1, T0, T2, 3);
+    if ( VM.BuildForRealtimeGC || !options.ANNOTATIONS ||
+	 !method.queryAnnotationForBytecode(bIP,
+					VM_Method.annotationBoundsCheck)) {
+      asm.emitTLLE(T2, T0);     // trap if index < 0 or index >= length
+    }
+    asm.emitSLI  (T0, T0,  3);  // convert double index to byte index
+    asm.emitSTFDX(F0, T0, T1);  // store double value in array
+    asm.emitCAL  (SP, 16, SP);  // complete 3 pops (1st is 2 words)
+  }
+
+  private static void emitSegmentedArrayAccess (VM_Assembler asm, int Tarr, int Tidx, int Tlen, int shift) {
+    if (VM.BuildForRealtimeGC) {
+    //-#if RVM_WITH_REALTIME_GC
+      VM_SegmentedArray.emitSegmentedArrayAccess(asm, Tarr, Tidx, Tlen, shift);
+    //-#endif
+    }
+  }  
+
   // Emit code to buy a stackframe, store incoming parameters, 
   // and acquire method synchronization lock.
   //
@@ -3150,21 +3155,18 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
   //
   private void genEpilogue () {
     if (klass.isDynamicBridge()) {// Restore non-volatile registers.
-      int offset = frameSize;
-      for (int i = LAST_NONVOLATILE_FPR; i >= FIRST_NONVOLATILE_FPR; --i) // restore non-volatile fprs
-         asm.emitLFD(i, offset -= 8, FP);
-      offset -= (FIRST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR) * 8;         //  skip       volatile fprs
-      for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_NONVOLATILE_GPR; --i) // restore non-volatile gprs
-         asm.emitL  (i, offset -= 4, FP);
-    }
-    if (frameSize <= 0x8000) {
-      asm.emitCAL(FP, frameSize, FP); // discard current frame
+      // we never return from a DynamicBridge frame
+      asm.emitTWI(-1);
     } else {
-      asm.emitL(FP, 0, FP);           // discard current frame
+      if (frameSize <= 0x8000) {
+	asm.emitCAL(FP, frameSize, FP); // discard current frame
+      } else {
+	asm.emitL(FP, 0, FP);           // discard current frame
+      }
+      asm.emitL   (S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); 
+      asm.emitMTLR(S0);
+      asm.emitBLR (); // branch always, through link register
     }
-    asm.emitL   (S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); 
-    asm.emitMTLR(S0);
-    asm.emitBLR (); // branch always, through link register
   }
 
 
@@ -3184,7 +3186,7 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
         
 	// If counter reaches zero, set threadswitch bit
 	asm.emitCMPI(T2, 0);
-	asm.emitBGT(2);
+	asm.emitBGT(VM_Assembler.CALL_INSTRUCTIONS + 5);
 	asm.emitCRORC(THREAD_SWITCH_BIT, 0, 0); // set thread switch bit
       } else if (!VM.BuildForThreadSwitchUsingControlRegisterBit) {
 	asm.emitL(S0, VM_Entrypoints.threadSwitchRequestedOffset, PROCESSOR_REGISTER);
@@ -3321,6 +3323,54 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
      asm.emitSTFD(0, localOffset(localIndex) - 4, FP);
      spillOffset += 8;
   }
+
+  /**
+   * Print a message of a method name
+   * @param method
+   */
+  private static void printMethodMessage (VM_Method method) {
+      VM.sysWrite("-methodBase ");
+      VM.sysWrite(method.getDeclaringClass().toString());
+      VM.sysWrite(" "); 
+      VM.sysWrite(method.getName());
+      VM.sysWrite(" ");
+      VM.sysWrite(method.getDescriptor());
+      VM.sysWrite(" \n");
+  }
+
+  /**
+   * Print a message of a method name
+   * @param method
+   * @param instructions
+   */
+  private static void printMethodCode (VM_Method method, INSTRUCTION[] instructions) {
+    // While doing this step more classes may need to be loaded and compiled
+    // Temporarily disable print request to avoid those compilations to complete 
+    options.PRINT_MACHINECODE=false;
+    VM.sysWrite("baseline Start: Final machine code for method ");
+    VM.sysWrite(method.getDeclaringClass().toString());
+    VM.sysWrite(" "); 
+    VM.sysWrite(method.getName());
+    VM.sysWrite(" ");
+    VM.sysWrite(method.getDescriptor());
+    VM.sysWrite("\n");
+    for (int i = 0; i < instructions.length; i++) {
+      VM.sysWrite(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true));
+      VM.sysWrite(" : ");
+      VM.sysWrite(VM_Services.getHexString(instructions[i], false));
+      VM.sysWrite("  ");
+      VM.sysWrite(PPC_Disassembler.disasm(instructions[i], i << LG_INSTRUCTION_WIDTH));
+      VM.sysWrite("\n");
+    }
+    VM.sysWrite("baseline End: Final machine code for method ");
+    VM.sysWrite(method.getDeclaringClass().toString());
+    VM.sysWrite(" "); 
+    VM.sysWrite(method.getName());
+    VM.sysWrite(" ");
+    VM.sysWrite(method.getDescriptor());
+    VM.sysWrite("\n");
+    options.PRINT_MACHINECODE=true;
+  }
    
   private VM_Method    method;
   /*private*/ VM_Class     klass;       //!!TODO: make private once VM_MagicCompiler is merged in
@@ -3367,7 +3417,9 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
 
     // initialize the JNI environment
     VM_JNIEnvironment.init();
+
+    // initialize the options very early for bootimage writing
+    options = new VM_BASEOptions();
   }
 
 }
-

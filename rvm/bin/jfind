@@ -52,3 +52,11 @@ else
                  -o -name 'Make*'      \
                  | xargs fgrep -n -- "$*"
 fi
+
+if [ $# = 0 ]; then
+   find $RVM_ROOT/rvm/bin -name CVS -prune -o -name '*' 
+
+else
+   find $RVM_ROOT/rvm/bin -name CVS -prune -o -name '*' \
+                 | xargs fgrep -n -- "$*"
+fi

@@ -27,7 +27,7 @@ implements OPT_Operators {
   }
 
   final boolean printingEnabled (OPT_Options options, boolean before) {
-    return  false;
+    return false;
   }
 
   /** 

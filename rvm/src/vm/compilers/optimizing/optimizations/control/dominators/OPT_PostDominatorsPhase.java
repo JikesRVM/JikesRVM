@@ -51,7 +51,7 @@ final class OPT_PostDominatorsPhase extends OPT_CompilerPhase {
 
       // compute post-dominators, 
       // leaves info in scratch object of basic blocks
-      OPT_LTDominators.perform(ir, false);
+      OPT_LTDominators.perform(ir, false, false);
 
       // create the dominator tree, relies on dominator info being
       // in scratch object of basic blocks

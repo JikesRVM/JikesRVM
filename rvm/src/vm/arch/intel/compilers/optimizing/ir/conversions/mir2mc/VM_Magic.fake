@@ -1,0 +1,10 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+/**
+ * @author Dave Grove 
+ */
+class VM_Magic {
+  public static void setIntAtOffset(Object o, int x, int y) { } 
+}

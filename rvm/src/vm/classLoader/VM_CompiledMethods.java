@@ -34,7 +34,7 @@ public class VM_CompiledMethods
 			// Slots are never reused even when a slot becomes
 			// obsolete. This is because there can be parallel data
     compiledMethods[compiledMethodId] = compiledMethod;
-    VM_Magic.sync();  // make sure the update is visible on other procs
+    VM_Magic.sync();	// make sure the update is visible on other procs
   }
 
   // Fetch a previously compiled method.
@@ -45,7 +45,6 @@ public class VM_CompiledMethods
     if (VM.VerifyAssertions) {
       VM.assert(0 <= compiledMethodId);
       VM.assert(compiledMethodId <= currentCompiledMethodId);
-      VM.assert(compiledMethods[compiledMethodId] != null);
     }
 
     return compiledMethods[compiledMethodId];
@@ -109,6 +108,70 @@ public class VM_CompiledMethods
     return null;
   }
 
+  // We keep track of compiled methods that become obsolete because they have
+  // been replaced by another version. These are candidates for GC. But, they
+  // can only be collected once we are certain that they are no longer being
+  // executed. Here, we keep track of them until we know they are no longer
+  // in use.
+  static void setCompiledMethodObsolete(VM_CompiledMethod compiledMethod) {
+    if ( compiledMethod == null ) return;
+
+    int	cmid = compiledMethod.getId();
+
+    // Currently, we avoid setting methods of java.lang.Object obsolete.
+    // This is because the TIBs for arrays point to the original version
+    // and are not updated on recompilation.
+    // !!TODO: When replacing a java.lang.Object method, find arrays in JTOC
+    //	and update TIB to use newly recompiled method.
+    if ( compiledMethod.getMethod().declaringClass.isJavaLangObjectType() )
+      return;
+
+    if (VM.VerifyAssertions)		// Any good reason this could happen?
+	VM.assert( compiledMethods[ cmid ] != null );
+
+    if ( obsoleteMethods == null ) {
+      // This should tend not to get too big as it gets compressed as we
+      // snip obsollete code at GC time.
+      obsoleteMethods = new int[ 100 ];
+    }
+    else if (obsoleteMethodCount >= obsoleteMethods.length) {
+      int newArray[] = new int[obsoleteMethods.length*2];
+      // Disable GC during array copy because GC can alter the source array
+      VM.disableGC();
+      for (int i = 0, n = obsoleteMethods.length; i < n; ++i) {
+        newArray[i] = obsoleteMethods[i];
+      }
+      VM.enableGC();
+      obsoleteMethods = newArray;
+    }
+    compiledMethod.setObsolete( true );
+    obsoleteMethods[ obsoleteMethodCount++ ] = cmid;
+    VM_Magic.sync();	// make sure the update is visible on other procs
+  }
+
+  // Snip reference to CompiledMethod so that we can reclaim code space. If
+  // the code is currently being executed, stack scanning is responsible for
+  // marking it NOT obsolete. Keep such reference until a future GC.
+  // NOTE: It's expected that this is processed during GC, after scanning
+  //	stacks to determine which methods are currently executing.
+  static void snipObsoleteCompiledMethods( ) {
+    if ( obsoleteMethods == null ) return;
+    
+    int oldCount = obsoleteMethodCount;
+    obsoleteMethodCount = 0;
+
+    for ( int i = 0; i < oldCount; i++ ) {
+      int currCM = obsoleteMethods[ i ];
+      if ( compiledMethods[ currCM ].isObsolete() ) {
+	compiledMethods[ currCM ] = null;		// break the link
+      }
+      else {
+	obsoleteMethods[ obsoleteMethodCount++ ] = currCM; // keep it
+	compiledMethods[ currCM ].setObsolete( true );	// maybe next time
+      }
+    }
+  }
+
   //----------------//
   // implementation //
   //----------------//
@@ -122,6 +185,10 @@ public class VM_CompiledMethods
   // Index of most recently allocated slot in compiledMethods[].
   //
   private static int currentCompiledMethodId;
+
+  // See usage above
+  private static int[]	obsoleteMethods;
+  private static int	obsoleteMethodCount;
 
    // Initialize for bootimage.
    //

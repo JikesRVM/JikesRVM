@@ -22,8 +22,7 @@ class NetworkMonitor extends VM_Thread
          return;
          }
       VM_Thread t = new NetworkMonitor();
-      t.isAlive = true;
-      t.schedule();
+      t.start();
       }
 
    private

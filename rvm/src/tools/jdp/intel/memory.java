@@ -488,7 +488,7 @@ abstract class memory implements jdpConstants, VM_Constants
       return (depthString + "  " + VM.intAsHexString(native_linkaddr) + 
               "   <- link to boot C code\n");
     }
-    // if (!bmap.isInJVMspace(fp)) {
+    // if (!bmap.isInRVMspace(fp)) {
     // 	 return (depthString + "  0x" + Integer.toHexString(native_linkaddr) +
     // 		 "   (native) \n");     
     // }
@@ -969,7 +969,7 @@ abstract class memory implements jdpConstants, VM_Constants
     IP = owner.reg.hardwareIP();
 
     try {
-      FP = owner.reg.read("FP");
+      FP = owner.reg.currentFP();
       thread = 0;               // TODO: place holder for multithread later
       
       /* read enough from memory for 1 instruction */

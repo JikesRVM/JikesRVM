@@ -46,7 +46,10 @@ class VM_StartupThread extends VM_Thread
       // code/stack and are now running vm code/stack
       //
       VM_Processor.getCurrentProcessor().isInitialized = true;
+      //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+      //-#else
       VM.sysWaitForVirtualProcessorInitialization();
+      //-#endif
 
       // enable multiprocessing
       //
@@ -54,7 +57,10 @@ class VM_StartupThread extends VM_Thread
 
       // wait for all other processors to do likewise
       //
+      //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+      //-#else
       VM.sysWaitForMultithreadingStart();
+      //-#endif
       
       // we've done our job
       //

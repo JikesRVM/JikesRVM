@@ -121,13 +121,18 @@ public final class VM_MethodCountData
 		" times counted (undecayed  "+undecayedTotalCountsTaken+")\n");
     for (int i=1; i<nextIndex; i++) {
       double percent = 100 * countsToHotness(counts[i]);
-      VM_Method m = VM_CompiledMethods.getCompiledMethod(cmids[i]).getMethod();
-      VM.sysWrite(counts[i] + " ("+percent+"%) "+m+"\n");
-      if (m.getDeclaringClass().isInBootImage()) {
-	VM.sysWrite(" BOOT\n");
+      VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmids[i]);
+      VM.sysWrite(counts[i] + " ("+percent+"%) ");
+      if ( cm == null ) {
+        VM.sysWrite("OBSOLETE");		// Compiled Method Obsolete
       } else {
-	VM.sysWrite("\n");
+        VM_Method m = cm.getMethod();
+        VM.sysWrite(m);
+        if (m.getDeclaringClass().isInBootImage()) {
+	  VM.sysWrite("\n\tBOOT");
+        }
       }
+      VM.sysWrite("\n");
     }    
   }
 
@@ -222,20 +227,20 @@ public final class VM_MethodCountData
 
 
   /**
-   * Collect the hot methods that have been Opt level 2 compiled.
+   * Collect the hot methods that have been compiled at the given opt level.
    *
+   * @param optLevel  target opt level
    * @param threshold hotness value above which the method is considered to
    *                  be hot. (0.0 to 1.0)
    * @return a VM_MethodCountSet containing an
    * 		array of methods (cmids) and an array of their counts.
    * 
    */
-  public final synchronized 
-    VM_MethodCountSet collectHotO2Methods(double threshold) 
-  {
+  public final synchronized VM_MethodCountSet collectHotMethods(int optLevel, 
+								double threshold) {
     if (DEBUG) validityCheck();
     Vector collect = new Vector();
-    collectHotOptNMethodsInternal(1, collect, hotnessToCounts(threshold), 2);
+    collectHotOptMethodsInternal(1, collect, hotnessToCounts(threshold), optLevel);
 
     // now package the data into the form the caller expects.
     int numHotMethods = collect.size();
@@ -330,36 +335,42 @@ public final class VM_MethodCountData
   }
 
   /**
-   * Recursive implementation of collectHotO2Methods. 
+   * Recursive implementation of collectHotOptNMethods. 
    * Exploit heap property. 
    * Constraint: threshold has been converted into a count value by my caller!
    *
    * @param index count array index
-   * @param filterOptLevel filter out all methods already compiled at 
-   *                       this opt level (or higher)
+   * @param collect vector used to collect output.
    * @param threshold hotness value above which the method is considered
    *                  to be hot. (0.0 to 1.0)
-   * @param optLevel level at which method is optimized
+   * @param optLevel target opt level to look for.
    */
-  private void collectHotOptNMethodsInternal(int index, 
-					     Vector collect, 
-					     double threshold, 
-					     int optLevel) {
+  private void collectHotOptMethodsInternal(int index, 
+					    Vector collect, 
+					    double threshold, 
+					    int optLevel) {
     if (index < nextIndex) {
       if (counts[index] > threshold) {
 	int cmid = cmids[index];
-	VM_CompilerInfo info = 
-	  VM_CompiledMethods.getCompiledMethod(cmid).getCompilerInfo();
-	int compilerType = info.getCompilerType();
-	if (compilerType == VM_CompilerInfo.OPT && 
-	    ((VM_OptCompilerInfo)info).getOptLevel() == optLevel) {
-	  double ns = numCountsForModel(counts[index]);
-	  collect.add(new VM_HotMethodRecompilationEvent(cmid, ns));
+	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+	if ( cm == null ) {			// obsolete and deleted
+	  reset(cmid);				// free up this slot
+	  // Visit new one in the slot
+	  collectHotOptMethodsInternal(index, collect, threshold, optLevel);
+	  return;
+	} else {
+	  VM_CompilerInfo info = cm.getCompilerInfo();
+	  int compilerType = info.getCompilerType();
+	  if (compilerType == VM_CompilerInfo.OPT && 
+	      ((VM_OptCompilerInfo)info).getOptLevel() == optLevel) {
+	    double ns = numCountsForModel(counts[index]);
+	    collect.add(new VM_HotMethodRecompilationEvent(cmid, ns));
+	  }
 	}
 	
 	// Since I was hot enough, also consider my children.
-	collectHotOptNMethodsInternal(index * 2, collect, threshold, optLevel);
-	collectHotOptNMethodsInternal(index * 2 + 1, collect, threshold, optLevel);
+	collectHotOptMethodsInternal(index * 2, collect, threshold, optLevel);
+	collectHotOptMethodsInternal(index * 2 + 1, collect, threshold, optLevel);
       }
     }
   }
@@ -498,7 +509,6 @@ public final class VM_MethodCountData
       }
       for (int i=1; i<nextIndex; i++) {
 	VM.assert(map[cmids[i]] == i);
-	VM.assert(VM_CompiledMethods.getCompiledMethod(cmids[i]) != null);
       }
 
       // Verify that heap property holds on data.

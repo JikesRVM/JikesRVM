@@ -57,7 +57,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
    * @return 
    */
   final boolean printingEnabled (OPT_Options options, boolean before) {
-    return  false;
+    return false;
   }
 
   /**
@@ -162,12 +162,15 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
                                    VariableStacks s) {
     // pushed records variables renamed in this block
     java.util.Set pushed = new java.util.HashSet(4);
+
     // compute out liveness from information in LiveAnalysis
-    OPT_LiveAnalysis.BBLiveElement le = live.getLiveInfo(bb);
     OPT_LiveSet out = new OPT_LiveSet();
-    out.add(le.in());
-    out.remove(le.BBKillSet());
-    out.add(le.gen());
+    for (Enumeration outBlocks = bb.getOut(); outBlocks.hasMoreElements(); ) {
+      OPT_BasicBlock ob = (OPT_BasicBlock)outBlocks.nextElement();
+      OPT_LiveAnalysis.BBLiveElement le = live.getLiveInfo(ob);
+      out.add(le.in());
+    }
+
     // initialization
     java.util.HashMap map = new java.util.HashMap(4);
     java.util.HashSet usedByAnother = new java.util.HashSet(4);
@@ -184,7 +187,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
           phi != bbs.lastInstruction(); 
           phi = phi.nextInstructionInCodeOrder()) {
         if (phi.operator() != PHI) continue;
-        for (int index=0; index<bbs.getNumberOfIn(); index++) {
+        for (int index=0; index<Phi.getNumberOfPreds(phi); index++) {
           if (Phi.getPred(phi,index).block != bb) continue;
           OPT_Operand rval = Phi.getValue(phi, index);
           if (rval.isRegister() && Phi.getResult(phi).asRegister().register

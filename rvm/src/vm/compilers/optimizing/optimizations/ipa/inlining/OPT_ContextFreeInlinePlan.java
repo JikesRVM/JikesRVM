@@ -3,8 +3,8 @@
  */
 //$Id$
 
-import  java.io.*;
 import  java.util.*;
+import  java.io.*;
 
 /**
  * An object of this class represents a set of triples <a,x,b>.
@@ -14,9 +14,8 @@ import  java.util.*;
  * @modified Peter Sweeney
  * @modified Matthew Arnold
  */
-class OPT_ContextFreeInlinePlan {
+class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
 
-  /** Interface */
   /** 
    * Add the rule "inline b into a at bytecode x" to the object
    *
@@ -26,7 +25,7 @@ class OPT_ContextFreeInlinePlan {
    */
   public void addRule (VM_Method a, int x, VM_Method b) {
     OPT_CallSite s = new OPT_CallSite(a, x);
-    java.util.HashSet targets = findOrCreateTargets(s);
+    HashSet targets = findOrCreateTargets(s);
     targets.add(b);
   }
 
@@ -37,12 +36,12 @@ class OPT_ContextFreeInlinePlan {
    * @param x bytecodeIndex
    */
   public VM_Method[] getTargets (VM_Method a, int x) {
-    java.util.HashSet targets = (java.util.HashSet)map.get(new OPT_CallSite(a, x));
+    HashSet targets = (HashSet)map.get(new OPT_CallSite(a, x));
     if (targets == null)
       return  null;
     int length = targets.size();
     VM_Method[] result = new VM_Method[length];
-    java.util.Iterator j = targets.iterator();
+    Iterator j = targets.iterator();
     for (int i = 0; i < length; i++) {
       result[i] = (VM_Method)j.next();
     }
@@ -52,55 +51,39 @@ class OPT_ContextFreeInlinePlan {
   /**
    *  Allows iteration over the elements
    */
-  public java.util.Iterator getIterator () {
+  public Iterator getIterator () {
     return  map.keySet().iterator();
   }
 
   /**
-   * put your documentation comment here
-   * @return 
+   * NOTE: must be kept in synch with readObject!
    */
   public String toString () {
     String tmp = "";
-    for (java.util.Iterator i = getIterator(); i.hasNext();) {
+    for (Iterator i = getIterator(); i.hasNext();) {
       OPT_CallSite key = (OPT_CallSite)i.next();
-      java.util.HashSet targets = (java.util.HashSet)map.get(key);
-      for (java.util.Iterator j = targets.iterator(); j.hasNext();) {
+      HashSet targets = (HashSet)map.get(key);
+      for (Iterator j = targets.iterator(); j.hasNext();) {
         VM_Method callee = (VM_Method)j.next();
-        tmp += "  <" + key.method + "," + key.bcIndex + "," + "," + callee
-            + ">\n";
+        tmp += "\t"+key.method.getDeclaringClass().getDescriptor()+" "+key.method.getName()+
+	  " "+key.method.getDescriptor()+ "," + key.bcIndex + "," + 
+	  callee.getDeclaringClass().getDescriptor()+" "+callee.getName()+
+	  " "+callee.getDescriptor() + "\n";
       }
     }
     return  tmp;
   }
 
-  /** Implementation */
-  java.util.HashMap map = new java.util.HashMap();        // f:call site -> Set<VM_Method>
-
-  /**
-   * Find the set of targets for a call site
-   * If none found, create one
-   */
-  private java.util.HashSet findOrCreateTargets (OPT_CallSite c) {
-    java.util.HashSet targets = (java.util.HashSet)map.get(c);
-    if (targets == null) {
-      targets = new java.util.HashSet();
-      map.put(c, targets);
-    }
-    return  targets;
-  }
-
   /** 
-   * Read a serialized representation of the object from a stream
-   * Reincarnated from old RCS version: bytecode offset added
-   *  format is <caller, bytecode offset, callee>
+   * Read a serialized representation of the object from a stream.
+   * Expected format is that produced by toString.
    */
   public void readObject (LineNumberReader in) throws IOException {
     int bytecodeOffset;
     String s = in.readLine();
     while (s != null) {
       bytecodeOffset = 0;
-      StringTokenizer parser = new StringTokenizer(s);
+      StringTokenizer parser = new StringTokenizer(s, " \t\n\r\f,");
       String nextToken1 = parser.nextToken();
       String nextToken2 = parser.nextToken();
       String nextToken3 = parser.nextToken();
@@ -110,15 +93,8 @@ class OPT_ContextFreeInlinePlan {
         VM_Atom callerClass = VM_Atom.findOrCreateUnicodeAtom(nextToken1);
         VM_Atom callerName = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
         VM_Atom callerDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
-        caller = VM_ClassLoader.findOrCreateMethod(callerClass, callerName, 
-            callerDescriptor);
-        VM.sysWrite("Offline oracle: ");
-        VM.sysWrite(callerClass);
-        VM.sysWrite(" ");
-        VM.sysWrite(callerName);
-        VM.sysWrite(" ");
-        VM.sysWrite(callerDescriptor);
-        VM.sysWrite("\n");
+        caller = 
+	  VM_ClassLoader.findOrCreateMethod(callerClass, callerName, callerDescriptor);
       }
       nextToken1 = parser.nextToken();
       if (!nextToken1.equals("null")) {
@@ -131,14 +107,27 @@ class OPT_ContextFreeInlinePlan {
         VM_Atom calleeClass = VM_Atom.findOrCreateUnicodeAtom(nextToken1);
         VM_Atom calleeName = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
         VM_Atom calleeDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
-        callee = VM_ClassLoader.findOrCreateMethod(calleeClass, calleeName, 
-            calleeDescriptor);
+        callee = 
+	  VM_ClassLoader.findOrCreateMethod(calleeClass, calleeName, calleeDescriptor);
       }
       addRule(caller, bytecodeOffset, callee);
       s = in.readLine();
     }
   }
+
+  /**
+   * Find the set of targets for a call site
+   * If none found, create one
+   */
+  private HashSet findOrCreateTargets (OPT_CallSite c) {
+    HashSet targets = (HashSet)map.get(c);
+    if (targets == null) {
+      targets = new HashSet();
+      map.put(c, targets);
+    }
+    return  targets;
+  }
+
+  /** Backing data store */
+  private HashMap map = new HashMap();        // f:call site -> Set<VM_Method>
 }
-
-
-

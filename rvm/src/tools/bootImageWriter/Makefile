@@ -53,14 +53,14 @@ $(UTIL_KLUDGE_JAR):		$(JAL_BUILD)/RVM.classes/rvmrt.jar
 #   RVM_BOOTIMAGE_CLASSES = place to read names of classes to be put in boot image
 #   RVM_BOOTIMAGE_COMPILER_ARGS = command line arguments to pass to boot image compiler
 #   RVM_BOOTIMAGE_WRITER_ARGS = command line arguments to pass to boot image writer
-#
+#   VERBOSE_ARG = command-line argument for verbose host jdk options
 $(RVM_BOOTIMAGE): $(SCRATCH_DIR)/BootImageWriter2.class $(UTIL_KLUDGE_JAR)
 	$(HOST_JAVA) -Xbootclasspath/p:`$(HOST_JAVA_PATH_ADJUST) $(UTIL_KLUDGE_JAR)` \
 	   -Xms$(HOST_MEM_MIN) -Xmx$(HOST_MEM_MAX)\
 	   -classpath `$(HOST_JAVA_PATH_ADJUST) \
 			$(SCRATCH_DIR):$(RVM_REPOSITORIES)` \
 	   -Djava.security.policy=rvm.security \
-	   $(HOST_JDK_FLAGS) \
+	   $(HOST_JDK_FLAGS) $(VERBOSE_ARG) \
 	   BootImageWriter2\
 	   -classpath `$(HOST_JAVA_PATH_ADJUST) $(RVM_REPOSITORIES)`\
 	   -n `$(HOST_JAVA_PATH_ADJUST) $(RVM_BOOTIMAGE_CLASSES)`\

@@ -302,6 +302,10 @@ class VM_CollectorThread extends VM_Thread
       // replace it with a new one.
       //
       if ( gcOrdinal == 1 ) {
+	// Snip reference to any methods that are still marked obsolete after
+	// we've done stack scans. This allows reclaiming them on next GC.
+	VM_CompiledMethods.snipObsoleteCompiledMethods();
+
 	collectionCount += 1;
 
 	// notify mutators waiting on previous handshake object - actually we

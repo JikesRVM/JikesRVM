@@ -465,9 +465,42 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
   final OPT_Operand MO_CONV(OPT_BURS burs, byte size) {
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
-    return new OPT_StackLocationOperand(offset, size);
+    return new OPT_StackLocationOperand(true, offset, size);
   }
 
+
+  // condition code state
+  private OPT_ConditionOperand cc;
+  void pushCOND(OPT_ConditionOperand c) {
+    if (VM.VerifyAssertions) VM.assert(cc == null);
+    cc = c ;
+  }
+  OPT_ConditionOperand consumeCOND() {
+    OPT_ConditionOperand ans = cc;
+    if (VM.VerifyAssertions) {
+      VM.assert(cc != null);
+      cc = null;
+    }
+    return ans;
+  }
+
+  // emit code to load 32 bits form a given jtoc offset
+  private OPT_MemoryOperand loadFromJTOC(OPT_BURS burs, int offset) {
+    OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+    OPT_Operand guard = TG();
+    if (burs.ir.options.FIXED_JTOC) {
+      return OPT_MemoryOperand.D(offset + VM_Magic.getTocPointer(),
+				 (byte)4, loc, guard);
+    } else {
+      OPT_Operand jtoc = 
+	OPT_MemoryOperand.BD(R(burs.ir.regpool.getPhysicalRegisterSet().getPR()),
+			     VM_Entrypoints.jtocOffset, 
+			     (byte)4, null, TG());
+      OPT_RegisterOperand regOp = burs.ir.regpool.makeTempInt();
+      burs.append(MIR_Move.create(IA32_MOV, regOp, jtoc));
+      return OPT_MemoryOperand.BD(regOp.copyD2U(), offset, (byte)4, loc, guard);
+    }
+  }
 
   /*
    * IA32-specific emit rules that are complex 
@@ -486,7 +519,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    */
   void GET_EXCEPTION_OBJECT(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager.allocateSpaceForCaughtException();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, DW);
     burs.append(MIR_Move.mutate(s, IA32_MOV, Nullary.getResult(s), sl));
   }
 
@@ -500,7 +533,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    */
   void SET_EXCEPTION_OBJECT(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager. allocateSpaceForCaughtException();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, DW);
     OPT_RegisterOperand obj = (OPT_RegisterOperand)CacheOp.getRef(s);
     burs.append(MIR_Move.mutate(s, IA32_MOV, sl, obj));
   }
@@ -545,17 +578,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
     // Call VM_Math.doubleToInt
     int offset = VM_Entrypoints.doubleToIntOffset;
-    OPT_RegisterOperand PR = 
-      R(burs.ir.regpool.getPhysicalRegisterSet().getPR());
-    OPT_Operand jtoc = 
-      OPT_MemoryOperand.BD(PR, VM_Entrypoints.jtocOffset, DW, null, null);
-    OPT_RegisterOperand regOp = burs.ir.regpool.makeTempInt();
-    burs.append(MIR_Move.create(IA32_MOV, regOp, jtoc));
-    OPT_Operand targetAddr = 
-      OPT_MemoryOperand.BD(regOp.copyD2U(),
-			   offset, DW,
-			   new OPT_LocationOperand(offset),
-			   TG());
+    OPT_Operand targetAddr = loadFromJTOC(burs, offset);
     OPT_MethodOperand targetMeth = 
       OPT_MethodOperand.STATIC(VM_Entrypoints.doubleToIntMethod);
     burs.append(CPOS(s, MIR_Call.mutate1(s, IA32_CALL, result, null, 
@@ -577,6 +600,8 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   final void FPR_2INT_FIST(OPT_BURS burs, OPT_Instruction s,
 			   OPT_RegisterOperand result,
 			   OPT_Operand value) {
+    OPT_MemoryOperand M;
+
     // Step 1: Get value to be converted into myFP0
     //         and in 'strict' IEEE mode.
     if (value instanceof OPT_MemoryOperand) {
@@ -648,17 +673,23 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(MIR_BinaryAcc.create(IA32_SUB, result.copy(), R(subtractee)));
 
     // Acquire the JTOC in a register
-    OPT_Register jtoc = burs.ir.regpool.getInteger(false);
-    burs.append(MIR_Move.create(IA32_MOV, 
-				R(jtoc), 
-				MO_BD(R(burs.ir.regpool.getPhysicalRegisterSet().getPR()),
-				      VM_Entrypoints.jtocOffset, DW, null, null)));
+    OPT_Register jtoc = null;
+    if (!burs.ir.options.FIXED_JTOC) {
+      jtoc = burs.ir.regpool.getInteger(false);
+      burs.append(MIR_Move.create(IA32_MOV, 
+				  R(jtoc), 
+				  MO_BD(R(burs.ir.regpool.getPhysicalRegisterSet().getPR()),
+					VM_Entrypoints.jtocOffset, DW, null, null)));
+    }
 
     // Compare myFP0 with (double)Integer.MAX_VALUE
-    burs.append(MIR_Move.create(IA32_FLD, myFP0(), 
-				OPT_MemoryOperand.BD(R(jtoc), 
-						     VM_Entrypoints.maxintOffset, 
-						     QW, null, null)));
+    if (burs.ir.options.FIXED_JTOC) {
+      M = OPT_MemoryOperand.D(VM_Entrypoints.maxintOffset + VM_Magic.getTocPointer(),
+			      QW, null, null);
+    } else {
+      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.maxintOffset, QW, null, null);
+    }
+    burs.append(MIR_Move.create(IA32_FLD, myFP0(), M));
     // FP Stack: myFP0 = (double)Integer.MAX_VALUE; myFP1 = value
     burs.append(MIR_Compare.create(IA32_FCOMIP, myFP0(), myFP1()));
     // FP Stack: myFP0 = value
@@ -669,10 +700,13 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
                                     OPT_IA32ConditionOperand.LLT()));
     
     // Compare myFP0 with (double)Integer.MIN_VALUE
-    burs.append(MIR_Move.create(IA32_FLD, myFP0(), 
-				OPT_MemoryOperand.BD(R(jtoc), 
-						     VM_Entrypoints.minintOffset, 
-						     QW, null, null)));
+    if (burs.ir.options.FIXED_JTOC) {
+      M = OPT_MemoryOperand.D(VM_Entrypoints.minintOffset + VM_Magic.getTocPointer(),
+			      QW, null, null);
+    } else {
+      M = OPT_MemoryOperand.BD(R(jtoc), VM_Entrypoints.minintOffset, QW, null, null);
+    }
+    burs.append(MIR_Move.create(IA32_FLD, myFP0(), M));
     // FP Stack: myFP0 = (double)Integer.MIN_VALUE; myFP1 = value
     burs.append(MIR_Compare.create(IA32_FCOMIP, myFP0(), myFP1()));
     // FP Stack: myFP0 = value
@@ -719,9 +753,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    */
   final void FPR2GPR_64(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, QW);
-    OPT_StackLocationOperand sl1 = new OPT_StackLocationOperand(offset+4, DW);
-    OPT_StackLocationOperand sl2 = new OPT_StackLocationOperand(offset, DW);
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, QW);
+    OPT_StackLocationOperand sl1 = new OPT_StackLocationOperand(true, offset+4, DW);
+    OPT_StackLocationOperand sl2 = new OPT_StackLocationOperand(true, offset, DW);
     burs.append(MIR_Move.create(IA32_FMOV, sl, Unary.getVal(s)));
     OPT_RegisterOperand i1 = Unary.getResult(s);
     OPT_RegisterOperand i2 = R(burs.ir.regpool.getSecondReg(i1.register));
@@ -735,9 +769,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    */
   final void GPR2FPR_64(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, QW);
-    OPT_StackLocationOperand sl1 = new OPT_StackLocationOperand(offset+4, DW);
-    OPT_StackLocationOperand sl2 = new OPT_StackLocationOperand(offset, DW);
+    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(true, offset, QW);
+    OPT_StackLocationOperand sl1 = new OPT_StackLocationOperand(true, offset+4, DW);
+    OPT_StackLocationOperand sl2 = new OPT_StackLocationOperand(true, offset, DW);
     OPT_Operand i1, i2;
     OPT_Operand val = Unary.getVal(s);
     if (val instanceof OPT_RegisterOperand) {
@@ -1318,13 +1352,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 			 OPT_Operand val2,
 			 OPT_ConditionOperand cond) {
     burs.append(CPOS(s, MIR_Compare.create(IA32_CMP, val1, val2)));
-    if (res instanceof OPT_RegisterOperand) {
-      OPT_RegisterOperand temp = burs.ir.regpool.makeTemp(VM_Type.BooleanType);
-      burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, temp, COND(cond))));
-      burs.append(MIR_Unary.mutate(s, IA32_MOVZX$B, res, temp.copyD2U()));
-    } else {
-      burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, res, COND(cond))));
-    }
+    OPT_RegisterOperand temp = burs.ir.regpool.makeTemp(VM_Type.BooleanType);
+    burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, temp, COND(cond))));
+    burs.append(MIR_Unary.mutate(s, IA32_MOVZX$B, res, temp.copyD2U()));
   }
 
 
@@ -1341,13 +1371,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
   final void BOOLEAN_CMP(OPT_BURS burs, OPT_Instruction s,
 			 OPT_Operand res, 
 			 OPT_ConditionOperand cond) {
-    if (res instanceof OPT_RegisterOperand) {
-      OPT_RegisterOperand temp = burs.ir.regpool.makeTemp(VM_Type.BooleanType);
-      burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, temp, COND(cond))));
-      burs.append(MIR_Unary.mutate(s, IA32_MOVZX$B, res, temp.copyD2U()));
-    } else {
-      burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, res, COND(cond))));
-    }
+    OPT_RegisterOperand temp = burs.ir.regpool.makeTemp(VM_Type.BooleanType);
+    burs.append(CPOS(s, MIR_Set.create(IA32_SET$B, temp, COND(cond))));
+    burs.append(MIR_Unary.mutate(s, IA32_MOVZX$B, res, temp.copyD2U()));
   }
 
 
@@ -1644,22 +1670,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    */
   final void RESOLVE(OPT_BURS burs, 
 		     OPT_Instruction s) {
-    int offset = VM_OptLinker.optResolveMethod.getOffset();
-    OPT_Operand jtoc = 
-      OPT_MemoryOperand.BD(R(burs.ir.regpool.getPhysicalRegisterSet().getPR()),
-			   VM_Entrypoints.jtocOffset, 
-			   DW, 
-			   null, 
-			   null);
-
-    OPT_RegisterOperand regOp = burs.ir.regpool.makeTempInt();
-    burs.append(MIR_Move.create(IA32_MOV, regOp, jtoc));
-    OPT_Operand target = 
-      OPT_MemoryOperand.BD(regOp.copyD2U(),
-			   offset, DW,
-			   new OPT_LocationOperand(offset),
-			   TG());
-
+    OPT_Operand target = loadFromJTOC(burs, VM_OptLinker.optResolveMethod.getOffset());
     burs.append(CPOS(s, MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, 
 					 null, null,  target, 
 					 OPT_MethodOperand.STATIC(VM_OptLinker.optResolveMethod))));

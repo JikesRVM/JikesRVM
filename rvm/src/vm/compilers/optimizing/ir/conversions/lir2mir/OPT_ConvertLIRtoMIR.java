@@ -94,6 +94,15 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	  }
 	  break;
 
+	case GET_OBJ_RAW_opcode:
+	  {
+	    OPT_Operand address = GuardedUnary.getClearVal(s);
+	    Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
+			address, I(OBJECT_REDIRECT_OFFSET), OPT_LocationOperand.createRedirection(),
+			GetField.getClearGuard(s));
+	  }
+	  break;
+
 	case GET_CLASS_TIB_opcode:
 	  {
 	    OPT_TypeOperand type = (OPT_TypeOperand)Unary.getVal(s);

@@ -108,13 +108,6 @@ immedPEI | dynLink
 
 
 
-# Trap on type inequality. In some configurations used to guard speculative inlining of virutal calls
-CHECKTYPE
-TypeCheck
-immedPEI
-
-
-
 # implement instanceof bytecode. Numerous exceptions could be raised during dynamic class loading
 # The object being checked may be null
 INSTANCEOF
@@ -147,7 +140,7 @@ memAsLoad | memAsStore | acquire | tsp
 # Mark as threadswitch point because thread may be suspended waiting for lock
 MONITOREXIT
 MonitorOp
-memAsLoad | memAsStore | release | tsp
+memAsLoad | memAsStore | release | tsp | immedPEI
 
 
 
@@ -383,18 +376,23 @@ branch | conditional
 
 
 
-# conditional branch based on value/condition operands
-TYPE_IFCMP
-TypeIfCmp
+# inlining guard with patch-point mechanism
+IG_PATCH_POINT
+InlineGuard
 branch | conditional
 
 
 
-# conditional branch based on value/condition operands
-# Warning: METHOD_IFCMP can only be used with virtual methods. 
-# Don't use it with static methods
-METHOD_IFCMP
-MethodIfCmp
+# inlining gaurd with class-test mechanism
+IG_CLASS_TEST
+InlineGuard
+branch | conditional
+
+
+
+# inlining guard with method-test mechanism
+IG_METHOD_TEST
+InlineGuard
 branch | conditional
 
 
@@ -456,6 +454,13 @@ none
 # PHI node for SSA form.
 PHI
 Phi
+none
+
+
+
+# introduce a new name to force live range splitting
+SPLIT
+Unary
 none
 
 
@@ -1393,6 +1398,13 @@ none
 
 # Get the TIB ptr of an object 
 GET_OBJ_TIB
+GuardedUnary
+none
+
+
+
+# Get the raw ptr of an object in an access barrier model
+GET_OBJ_RAW
 GuardedUnary
 none
 

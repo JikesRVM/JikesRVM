@@ -125,7 +125,8 @@ public class BootImage extends BootImageWriterMessages
     if (VM.BuildForConcurrentGC) // RCGC
       setFullWord(imageOffset + OBJECT_REFCOUNT_OFFSET, BOOTIMAGE_REFCOUNT);
     else
-      setFullWord(imageOffset + OBJECT_STATUS_OFFSET, OBJECT_BARRIER_MASK);
+      setFullWord(imageOffset + OBJECT_STATUS_OFFSET,
+		  VM_Runtime.newObjectHashCode() | OBJECT_BARRIER_MASK);
 
     return imageOffset;
   }

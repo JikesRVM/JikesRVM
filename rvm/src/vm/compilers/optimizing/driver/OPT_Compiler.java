@@ -50,6 +50,9 @@ public class OPT_Compiler {
         throw  new OPT_OptimizingCompilerException("VM not initialized", 
             true);
       }
+
+      // Make a local copy so that some options can be forced off just for the
+      // duration of this initialization step.
       options = (OPT_Options)options.clone();
       options.SIMPLE_ESCAPE_IPA = false;
 
@@ -82,7 +85,45 @@ public class OPT_Compiler {
                 "untrapped failure during init, "
           + " Converting to OPT_OptimizingCompilerException");
     }
+  }
 
+  /**
+   * Set up option used while compiling the boot image
+   */
+  public static void setBootOptions(OPT_Options options) {
+    // Pick an optimization level
+    options.setOptLevel(3); 
+
+    // Disable things that we think are a bad idea in this context
+    options.GUARDED_INLINE = false;        // badly hurts pBOB performance if enabled (25% reduction in TPM).
+
+    // would increase build time by some 25%
+    options.GCP = false;
+    options.TURN_WHILES_INTO_UNTILS = false;
+    options.GCSE=false;
+	 
+    // Pre-existence based inlining isn't supported for bootimage writing.
+    // Similarly, we need to avoid IG_CODE_PATCH (uses same dependency database)
+    // The problem is that some subset of bootimage methods can't be safely invalidated.
+    // If a method that is executed when GC is disabled becomes invalid, we are unable
+    // to invalidate it (since we can't recompile it the next time it is called).
+    // We could work around this by doing eager recompilation of invalidated bootimage
+    // methods, but for now simply give up on these optimizations when writing the bootimage.
+    options.PREEX_INLINE = false;
+    options.INLINING_GUARD = OPT_Options.IG_METHOD_TEST;
+
+    // Compute summaries of bootimage methods if we haven't encountered them yet.
+    // Does not handle unimplemented magics very well; disable until
+    // we can get a chance to either implement them on IA32 or fix the 
+    // analysis to not be so brittle.
+    // options.SIMPLE_ESCAPE_IPA = true;
+
+    // Static inlining controls. 
+    // Be more aggressive when building the boot image then we are normally.
+    options.IC_MAX_TARGET_SIZE = 5*VM_OptMethodSummary.CALL_COST;
+    options.IC_MAX_INLINE_DEPTH = 6;
+    options.IC_MAX_INLINE_EXPANSION_FACTOR = 7;
+    OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
   }
 
   /**
@@ -104,6 +145,7 @@ public class OPT_Compiler {
     VM_Method[] methods = klass.getDeclaredMethods();
     for (int j = 0; j < methods.length; j++) {
       VM_Method meth = methods[j];
+
       if (meth.isClassInitializer())
         continue;
       if (!meth.isCompiled() || 
@@ -114,6 +156,25 @@ public class OPT_Compiler {
                       null, options);
         meth.replaceCompiledMethod(compile(cp));
       }
+    }
+  }
+
+  public static void preloadSpecialClass( OPT_Options options ) {
+    String klassName = "L"+options.PRELOAD_CLASS+";";
+
+
+    if (options.PRELOAD_AS_BOOT ) {
+      setBootOptions( options  );
+      // Make a local copy so that some options can be altered to mimic options
+      // during boot build
+      options = (OPT_Options)options.clone();
+    }
+
+    try {
+      loadSpecialClass(klassName, options);
+    } catch (Throwable e) {
+      e.printStackTrace();
+      VM.sysWrite("Ignoring failure of preloadSpecialClass of "+klassName+"\n");
     }
   }
 
@@ -280,9 +341,9 @@ public class OPT_Compiler {
   private static void printMethodMessage (VM_Method method, 
                                           OPT_Options options) {
     if (options.PRINT_METHOD || options.PRINT_INLINE_REPORT)
-      VM.sysWrite("-method " + method.getDeclaringClass() + ' ' 
-                    + method.getName()
-          + ' ' + method.getDescriptor() + " \\\n");
+      VM.sysWrite("-methodOpt "+ method.getDeclaringClass() + ' ' 
+		  + method.getName() + ' ' 
+		  + method.getDescriptor() + " \n");
   }
 
   /**

@@ -55,20 +55,15 @@ class OPT_ValueGraph
   public OPT_ValueGraphVertex getVertex (Object name) {
     if (name instanceof OPT_RegisterOperand) {
       name = ((OPT_RegisterOperand)name).asRegister().register;
-    } 
-    else if (name instanceof OPT_IntConstantOperand) {
+    } else if (name instanceof OPT_IntConstantOperand) {
       name = new Integer(((OPT_IntConstantOperand)name).value);
-    } 
-    else if (name instanceof OPT_FloatConstantOperand) {
+    } else if (name instanceof OPT_FloatConstantOperand) {
       name = new Float(((OPT_FloatConstantOperand)name).value);
-    } 
-    else if (name instanceof OPT_LongConstantOperand) {
+    } else if (name instanceof OPT_LongConstantOperand) {
       name = new Long(((OPT_LongConstantOperand)name).value);
-    } 
-    else if (name instanceof OPT_DoubleConstantOperand) {
+    } else if (name instanceof OPT_DoubleConstantOperand) {
       name = new Double(((OPT_DoubleConstantOperand)name).value);
-    } 
-    else if (name instanceof OPT_StringConstantOperand) {
+    } else if (name instanceof OPT_StringConstantOperand) {
       name = ((OPT_StringConstantOperand)name).value;
     }
     return  (OPT_ValueGraphVertex)nameMap.get(name);
@@ -132,6 +127,10 @@ class OPT_ValueGraph
       processUnary(s); 
     else if (Binary.conforms(s))
       processBinary(s); 
+    else if (InlineGuard.conforms(s))
+      processInlineGuard(s);
+    else if (IfCmp.conforms(s))
+      processIfCmp(s);
     else if (Call.conforms(s))
       processCall(s); 
     else if (CallSpecial.conforms(s))
@@ -171,20 +170,7 @@ class OPT_ValueGraph
     OPT_Operand val = Move.getVal(s);
     // bypass Move instructions that define the right-hand side
     val = bypassMoves(val);
-    if (val.isRegister()) {
-      OPT_ValueGraphVertex target = findOrCreateVertex
-          (((OPT_RegisterOperand)val).register);
-      v.copyVertex(target);
-    } 
-    else if (val.isConstant()) {
-      OPT_ValueGraphVertex target = findOrCreateVertex(
-          (OPT_ConstantOperand)val);
-      v.copyVertex(target);
-    } 
-    else {
-      throw  new OPT_OptimizingCompilerException
-          ("OPT_ValueGraph.processMove: unexpected operand");
-    }
+    v.copyVertex(findOrCreateVertex(val));
   }
 
   /** 
@@ -200,20 +186,7 @@ class OPT_ValueGraph
     OPT_Operand val = GuardedUnary.getVal(s);
     // bypass Move instructions that define the right-hand side
     val = bypassMoves(val);
-    if (val.isRegister()) {
-      OPT_ValueGraphVertex target = 
-          findOrCreateVertex(((OPT_RegisterOperand)val).register);
-      v.copyVertex(target);
-    } 
-    else if (val.isConstant()) {
-      OPT_ValueGraphVertex target = 
-          findOrCreateVertex((OPT_ConstantOperand)val);
-      v.copyVertex(target);
-    } 
-    else {
-      throw  new OPT_OptimizingCompilerException(
-          "OPT_ValueGraph.processMove: unexpected operand");
-    }
+    v.copyVertex(findOrCreateVertex(val));
   }
 
   /** 
@@ -334,21 +307,7 @@ class OPT_ValueGraph
     OPT_Operand val = Unary.getVal(s);
     // bypass Move instructions
     val = bypassMoves(val);
-    if (val.isRegister()) {
-      OPT_ValueGraphVertex target = findOrCreateVertex
-          (((OPT_RegisterOperand)val).register);
-      link(v, target, 0);
-    } 
-    else if (val.isConstant() || val.isType()) {
-      OPT_ValueGraphVertex target = findOrCreateVertex(val);
-      link(v, target, 0);
-    } 
-    else {
-      throw  new OPT_OptimizingCompilerException(
-          "OPT_ValueGraph.processUnary: unexpected operand"
-          + val.toString() + " (of type " + val.getClass().toString() + 
-          ") for " + s.toString());
-    }
+    link(v, findOrCreateVertex(val), 0);
   }
 
   /** 
@@ -367,38 +326,52 @@ class OPT_ValueGraph
     // first link the first val
     OPT_Operand val = Binary.getVal1(s);
     val = bypassMoves(val);
-    if (val.isRegister()) {
-      OPT_ValueGraphVertex target = findOrCreateVertex
-          (((OPT_RegisterOperand)val).register);
-      link(v, target, 0);
-    } 
-    else if (val.isConstant()) {
-      OPT_ValueGraphVertex target = findOrCreateVertex
-          ((OPT_ConstantOperand)val);
-      link(v, target, 0);
-    } 
-    else {
-      throw  new OPT_OptimizingCompilerException(
-          "OPT_ValueGraph.processBinary: unexpected operand");
-    }
-    // now link the second val
+    link(v, findOrCreateVertex(val), 0);
     OPT_Operand val2 = Binary.getVal2(s);
     val2 = bypassMoves(val2);
-    if (val2.isRegister()) {
-      OPT_ValueGraphVertex target = findOrCreateVertex(
-          ((OPT_RegisterOperand)val2).register);
-      link(v, target, 1);
-    } 
-    else if (val2.isConstant()) {
-      OPT_ValueGraphVertex target = findOrCreateVertex(
-          (OPT_ConstantOperand)val2);
-      link(v, target, 1);
-    } 
-    else {
-      throw  new OPT_OptimizingCompilerException(
-          "OPT_ValueGraph.processBinary: unexpected operand");
+    link(v, findOrCreateVertex(val2), 1);
+  }
+
+  /** 
+   * Update the value graph to account for a given InlineGuard instruction.
+   * 
+   * <p><b>PRECONDITION:</b> <code> InlineGuard.conforms(s); </code>
+   *
+   * @param s the instruction in question
+   */
+  private void processInlineGuard(OPT_Instruction s) {
+    OPT_ValueGraphVertex v = new OPT_ValueGraphVertex(s);
+    graph.addGraphNode(v);
+    nameMap.put(s, v);
+    if (s.operator() == IG_PATCH_POINT) {
+      // the 'goal' is irrelevant for patch_point guards.
+      v.setLabel(s.operator(), 1);
+      link(v, findOrCreateVertex(bypassMoves(InlineGuard.getValue(s))), 0);
+    } else {
+      v.setLabel(s.operator(), 2);
+      link(v, findOrCreateVertex(bypassMoves(InlineGuard.getValue(s))), 0);
+      link(v, findOrCreateVertex(InlineGuard.getGoal(s)), 1);
     }
   }
+
+
+  /** 
+   * Update the value graph to account for a given IfCmp instruction.
+   * 
+   * <p><b>PRECONDITION:</b> <code> IfCmp.conforms(s); </code>
+   *
+   * @param s the instruction in question
+   */
+  private void processIfCmp(OPT_Instruction s) {
+    OPT_ValueGraphVertex v = new OPT_ValueGraphVertex(s);
+    graph.addGraphNode(v);
+    nameMap.put(s, v);
+    v.setLabel(s.operator(), 3);
+    link(v, findOrCreateVertex(bypassMoves(IfCmp.getVal1(s))), 0);
+    link(v, findOrCreateVertex(bypassMoves(IfCmp.getVal2(s))), 1);
+    link(v, findOrCreateVertex(IfCmp.getCond(s)), 2);
+  }
+
 
   /** 
    * Update the value graph to account for a given Phi instruction.
@@ -468,6 +441,10 @@ class OPT_ValueGraph
       return  findOrCreateVertex((OPT_ConstantOperand)var); 
     else if (var instanceof OPT_TypeOperand)
       return  findOrCreateVertex((OPT_TypeOperand)var); 
+    else if (var instanceof OPT_MethodOperand)
+      return findOrCreateVertex((OPT_MethodOperand)var); 
+    else if (var instanceof OPT_ConditionOperand)
+      return findOrCreateVertex((OPT_ConditionOperand)var); 
     else 
       throw  new OPT_OptimizingCompilerException(
           "OPT_ValueGraph.findOrCreateVertex: unexpected type "
@@ -503,26 +480,19 @@ class OPT_ValueGraph
     Object name;
     if (op.isIntConstant()) {
       name = new Integer(op.asIntConstant().value);
-    } 
-    else if (op.isFloatConstant()) {
+    } else if (op.isFloatConstant()) {
       name = new Float(op.asFloatConstant().value);
-    } 
-    else if (op.isLongConstant()) {
+    } else if (op.isLongConstant()) {
       name = new Long(op.asLongConstant().value);
-    } 
-    else if (op.isDoubleConstant()) {
+    } else if (op.isDoubleConstant()) {
       name = new Double(op.asDoubleConstant().value);
-    } 
-    else if (op.isStringConstant()) {
+    } else if (op.isStringConstant()) {
       name = op.asStringConstant().value;
-    } 
-    else if (op.isNullConstant()) {
+    } else if (op.isNullConstant()) {
       name = op;
-    } 
-    else if (op instanceof OPT_TrueGuardOperand) {
+    } else if (op instanceof OPT_TrueGuardOperand) {
       name = op;
-    } 
-    else {
+    } else {
       throw  new OPT_OptimizingCompilerException(
           "OPT_ValueGraph.findOrCreateVertex: unexpected constant operand");
     }
@@ -545,6 +515,44 @@ class OPT_ValueGraph
    */
   private OPT_ValueGraphVertex findOrCreateVertex (OPT_TypeOperand op) {
     Object name = op.type;
+    OPT_ValueGraphVertex v = getVertex(name);
+    if (v == null) {
+      v = new OPT_ValueGraphVertex(op);
+      v.setLabel(op, 0);
+      graph.addGraphNode(v);
+      nameMap.put(name, v);
+    }
+    return  v;
+  }
+
+  /**
+   * Find or create an OPT_ValueGraphVertex corresponding to a 
+   * given method operand 
+   * 
+   * @param op the operand in question
+   * @return a value graph vertex corresponding to this type
+   */
+  private OPT_ValueGraphVertex findOrCreateVertex (OPT_MethodOperand op) {
+    Object name = op.method;
+    OPT_ValueGraphVertex v = getVertex(name);
+    if (v == null) {
+      v = new OPT_ValueGraphVertex(op);
+      v.setLabel(op, 0);
+      graph.addGraphNode(v);
+      nameMap.put(name, v);
+    }
+    return  v;
+  }
+
+  /**
+   * Find or create an OPT_ValueGraphVertex corresponding to a 
+   * given method operand 
+   * 
+   * @param op the operand in question
+   * @return a value graph vertex corresponding to this type
+   */
+  private OPT_ValueGraphVertex findOrCreateVertex (OPT_ConditionOperand op) {
+    Object name = new Integer(op.value); // kludge.
     OPT_ValueGraphVertex v = getVertex(name);
     if (v == null) {
       v = new OPT_ValueGraphVertex(op);
@@ -592,11 +600,9 @@ class OPT_ValueGraph
       //   We can't simply bypass this move, since it may lead to
       //   infinite mutual recursion.
       return  op;
-    } 
-    else if (def.operator == PI) {
+    } else if (def.operator == PI) {
       return  bypassMoves(GuardedUnary.getVal(def));
-    } 
-    else 
+    } else 
       return  op;
   }
 }

@@ -147,4 +147,9 @@ interface OPT_IRGenOptions {
    * Debug flag: jsr inlining
    */
   static final boolean DBG_INLINE_JSR = DBG_ALL || false;
+
+  /**
+   * Debug flag: annotations
+   */
+  static final boolean DBG_ANNOTATIONS = DBG_ALL || false;
 }

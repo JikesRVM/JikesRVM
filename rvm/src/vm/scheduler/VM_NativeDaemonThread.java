@@ -7,24 +7,25 @@
  * This thread executes in a distinct daemon thread: its
  * functions are as follows:
  * 
- * its normal state is waiting for a (to be defined) signal
+ * <p> its normal state is waiting for a (to be defined) signal
  * 
- * if all RVM threads are "stuck" in C (unlikely but
+ * <p> if all RVM threads are "stuck" in C (unlikely but
  * not impossible) it is available to field the timeslicer
  * interrupt.
  *
- * On timeslice end, timer interrupt handler checks each
+ * <p> On timeslice end, timer interrupt handler checks each
  * RVM processor to see if it is "stuck in C", i.e., 
  * has not yielded within VM_STUCK_TICKS timeslices.
  * 
- * if t.i.h. is executing on the daemon processor it raises
+ * <p> if t.i.h. is executing on the daemon processor it raises
  * the SIGCONT signal; else the executing thread sends that 
  * signal to the daemon processor.
  *
- * on receiving the SIGCONT signal, the run method loops 
+ * <p> on receiving the SIGCONT signal, the run method loops 
  * through the RVM processors;  it should have been 
  * signalled only if at least one RVM processor is 
  * stuck in C
+ * <pre>
  * if it is stuck in C 
  *   mark the associated vp "stuck in C"
  *   if there is an available pthread/(red) vp on the available queue 
@@ -36,6 +37,7 @@
  *     an appropriate idle thread becomes current on the
  *     previous vp - which thread will yield to its idle
  *     queue, triggering schedule in the new pthread. 
+ * </pre>
  *
  * @author Bowen Alpern
  * @author Derek Lieber
@@ -55,16 +57,15 @@ class VM_NativeDaemonThread extends VM_Thread {
     if (trace) VM_Scheduler.trace(" In constructor method of NDT ", "  ");
   }
   public String
-  toString () // overrides VM_Thread
-     {
-     return "VM_NativeDaemonThread";
-     }
+    toString () {
+      return "VM_NativeDaemonThread";
+    }
 
 
   public void run () { // overrides VM_Thread
 
     if (trace) VM_Scheduler.trace(" Entering run method of NDT ", "  ");
-    VM_Processor myProcessor = VM_Magic.getProcessorRegister();
+    VM_Processor myProcessor = VM_ProcessorLocalState.getCurrentProcessor();
     int lockoutAddr = VM_Magic.objectAsAddress( VM_BootRecord.the_boot_record) + 
                                                 VM_Entrypoints.lockoutProcessorOffset;
     int i, transferCount=0, stuckCount=0;
@@ -112,7 +113,7 @@ class VM_NativeDaemonThread extends VM_Thread {
 
       // GC might have happened and my processor object moved
       //
-      VM_Magic.setProcessorRegister(myProcessor);
+      VM_ProcessorLocalState.setCurrentProcessor(myProcessor);
 
       if (trace) VM_Scheduler.trace("NDT:","woke up from SigWait");
 
@@ -239,7 +240,7 @@ class VM_NativeDaemonThread extends VM_Thread {
 	    VM_Processor.BLOCKED_IN_NATIVE) {
        // just spin - we are running on a separate pthread
        if (VM.VerifyAssertions && (loopCount++%100000==0))
-	 VM_Scheduler.trace("NDT","waiting for native VP to unblock, count =",loopCount);
+	 if (trace) VM_Scheduler.trace("NDT","waiting for native VP to unblock, count =",loopCount);
      }
 	
    }
@@ -365,6 +366,13 @@ class VM_NativeDaemonThread extends VM_Thread {
     int needToCreate = needed - VM_Scheduler.nativeProcessorQueue.length();
 
     if (needToCreate <= 0) return;
+
+
+    // reset startup locks count
+    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    //-#else
+//  VM.sysInitializeStartupLocks(needToCreate);
+    //-#endif
 
     while (needToCreate > 0) {
       VM_Processor processor = VM_Processor.createNativeProcessor();

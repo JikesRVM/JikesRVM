@@ -740,6 +740,7 @@ sysWriteBytes(int fd, char *buf, int cnt)
     //
     #if RVM_FOR_IA32
     {
+    *(unsigned *) (pr + VM_Processor_framePointer_offset) = fp;
     int sp = fp + VM_Constants_STACKFRAME_BODY_OFFSET;
     bootThread(ti_or_ip, jtoc, pr, sp);
     }

@@ -255,7 +255,7 @@ categorized into four types:
 \item [volatile ("caller save", or "parameter")]
      Like scratch registers these can be used by the compiler as
      temporaries, but they are not preserved across calls.  (Volatile
-     registers differ from scratch registers in that they (the former)
+     registers differ from scratch registers in that volatiles
      can be used to pass parameters and result(s) to and from
      methods.)
 
@@ -370,17 +370,14 @@ information!}
     Stack pointer.
 
 \item[EBP]
-    Frame pointer, valid at method call/return, must be shadowed in the
-    framePointer field of the VM\_Processor object pointed to by ESI (see
-    below). Expected to become a nonvolatile (and FP only in the
-    baseline compiler) very soon.
+    Nonvolatile.
 
 \item[ESI]
     Processor register, reference to the VM\_Processor object for the current
     virtual processor.
 
 \item[EDI]
-    Nonvolatile.  (JTOC in baseline compiler)
+    Nonvolatile.  (used to hold JTOC in baseline compiled code)
 
 \end{description}
 
@@ -404,9 +401,9 @@ The first two areas of the callee's stackframe (see above) have been
 {\LintelRegisterConstantsURL}.
 \item[After callee's epilogue]
      Callee's stackframe has been removed.  ESP points to the word above where
-     callee's frame was.  EBP points to A's frame.  (The framePointer field
-     of the VM\_Processor object pointed to by ESI must also contain
-     this value.)  If B returns a floating-point result, this is at
+     callee's frame was.  The framePointer field
+     of the VM\_Processor object pointed to by ESI points to A's
+     frame.  If B returns a floating-point result, this is at
      the top of the fp register stack.  If B returns a long, the
      low-order word is in EAX and the high-order word is in EDX.
      Otherwise, if B has a result, it is in EAX.

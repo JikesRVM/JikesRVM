@@ -556,8 +556,6 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  s = AStore.create(REF_ASTORE, val, ref, index,
 			    new OPT_LocationOperand(type),
 			    getCurrentGuard());
-	  if (VM_Collector.NEEDS_WRITE_BARRIER)
-	    rectifyStateWithErrorHandler();
 	}
 	break;
 
@@ -1423,12 +1421,10 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	    break;
 	  boolean unresolved = field.needsDynamicLink(gc.method);
 	  if (!unresolved) field = field.resolve();
-	  boolean willHaveWB = 
-	    VM_Collector.NEEDS_WRITE_BARRIER && !field.getType().isPrimitiveType();
 	  OPT_Operator operator = unresolved?PUTFIELD_UNRESOLVED:PUTFIELD;
 	  s = PutField.create(operator, val, obj, makeInstanceFieldRef(field), 
 			      getCurrentGuard());
-	  if (unresolved || willHaveWB)
+	  if (unresolved)
 	    rectifyStateWithErrorHandler();
 	}
 	break;
@@ -1635,6 +1631,10 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 		    Call.create2(CALL, null, null, dtcRoutine, 
 		      new OPT_IntConstantOperand(meth.getDictionaryId()),
 		      tibPtr.copyD2U());
+                if (gc.options.NO_CALLEE_EXCEPTIONS) {
+                  callCheck.markAsNonPEI();
+                }
+
 		appendInstruction(callCheck);
 		callCheck.bcIndex = RUNTIME_SERVICES_BCI;
 
@@ -2276,6 +2276,9 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     VM_Type[] params = methOp.method.getParameterTypes();
     OPT_Instruction s = Call.create(CALL, null, null, null, null,  
 				    params.length + numHiddenParams);
+    if (gc.options.NO_CALLEE_EXCEPTIONS) {
+      s.markAsNonPEI();
+    }
     for (int i = params.length - 1; i >= 0; i--)
       Call.setParam(s, i + numHiddenParams, pop(params[i]));
     if (numHiddenParams != 0) {
@@ -2979,6 +2982,15 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     }
     if (ref instanceof OPT_RegisterOperand) {
       OPT_RegisterOperand rop = (OPT_RegisterOperand)ref;
+      if ( gc.options.ANNOTATIONS &&
+	   bcInfo.queryAnnotation(instrIndex, VM_Method.annotationNullCheck)) {
+        if ( DBG_ANNOTATIONS )
+	  db("\tEliminate null check of "+ref+" based on annotations\n" );
+	OPT_Operand guard = new OPT_TrueGuardOperand();
+        setCurrentGuard(guard);
+	setGuard(rop, guard);
+        return false;
+      }
       if (hasGuard(rop)) {
         OPT_Operand guard = getGuard(rop);
         setCurrentGuard(guard);
@@ -3059,6 +3071,12 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     // Unsafely eliminate all bounds checks
     if (gc.options.NO_BOUNDS_CHECK)
       return false;
+    if ( gc.options.ANNOTATIONS &&
+	bcInfo.queryAnnotation(instrIndex, VM_Method.annotationBoundsCheck )) {
+      if ( DBG_ANNOTATIONS )
+	db("\tEliminate bounds check of "+ref+" based on annotations\n" );
+      return false;
+    } 
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     appendInstruction(BoundsCheck.create(BOUNDS_CHECK, guard, ref.copy(), 
 					 index.copy(), getCurrentGuard()));
@@ -5177,7 +5195,8 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     OperandStack copy() {
       OperandStack newss = new OperandStack(stack.length);
       newss.top = top;
-      System.arraycopy(stack, 0, newss.stack, 0, top);
+      for ( int i = 0; i < top; i++ )		// deep copy of stack
+	newss.stack[ i ] = stack[ i ].copy();
       return newss;
     }
 
@@ -5443,6 +5462,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
       // the performance of code in exception handling blocks, this 
       // should be the right tradeoff.
       exceptionObject = temps.makeTemp(VM_Type.JavaLangThrowableType);
+      setGuard(exceptionObject, new OPT_TrueGuardOperand());	// know not null 
       low = loc;
       high = loc;
       // Set up expression stack on entry to have the caught exception operand.
