@@ -183,7 +183,9 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
    * @param method the VM_NormalMethod to compile.
    * @return the generated VM_CompiledMethod for said VM_NormalMethod.
    */
-  public static synchronized VM_CompiledMethod compile (VM_NormalMethod method) {
+  public static 
+      // synchronized 
+      VM_CompiledMethod compile (VM_NormalMethod method) {
     VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
     new VM_Compiler(cm).compile();
     return cm;
