@@ -163,7 +163,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     }
 
     // clear the GC flag on entry to native code
-    asm.emitADDI(PROCESSOR_REGISTER,0,0);          // use PR as scratch
+    asm.emitLVAL(PROCESSOR_REGISTER,0);          // use PR as scratch
     asm.emitSTW(PROCESSOR_REGISTER, frameSize-JNI_GC_FLAG_OFFSET, FP); //Kris Venstermans : How big is flag? 
 
     // generate the code to map the parameters to AIX convention and add the
@@ -267,7 +267,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // CHECK EXCEPTION AND BRANCH TO ATHROW CODE OR RETURN NORMALLY
 
     asm.emitLWZ (T2, VM_Entrypoints.JNIPendingExceptionField.getOffset(), S0);   // get pending exception from JNIEnv
-    asm.emitADDI (T3,  0, 0);             // get a null value to compare
+    asm.emitLVAL(T3, 0);                   // get a null value to compare
     asm.emitSTW (T3, VM_Entrypoints.JNIPendingExceptionField.getOffset(), S0); // clear the current pending exception
     asm.emitCMP (T2, T3);                      // check for pending exception on return from native
     VM_ForwardReference fr3 = asm.emitForwardBC(NE);
@@ -278,7 +278,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // at the location of the call to the native method
     asm.emitLAddrToc(T3, VM_Entrypoints.athrowMethod.getOffset());
     asm.emitMTCTR(T3);                         // point LR to the exception delivery code
-    asm.emitADDI (T0, 0, T2);                   // copy the saved exception to T0
+    asm.emitMR (T0, T2);                       // copy the saved exception to T0
 
     asm.emitBCCTR();                            // then branch to the exception delivery code, does not return
 
@@ -468,8 +468,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	    asmArg.emitSTW(nextVMArgReg+1, regOrSpilling+4, FP);
 	    asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
 	  } else {
-	    asmArg.emitADDIS(regOrSpilling+1, nextVMArgReg+1, 0);
-	    asmArg.emitADDIS(regOrSpilling, nextVMArgReg, 0);
+	    asmArg.emitMR(regOrSpilling+1, nextVMArgReg+1);
+	    asmArg.emitMR(regOrSpilling, nextVMArgReg);
 	  }
 	  // advance register counting, Linux register number
 	  // already advanced 
@@ -482,7 +482,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	    asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
 	  } else {
 	    asmArg.emitLWZ(regOrSpilling + 1, spillOffsetVM, FP);
-	    asmArg.emitADDIS(regOrSpilling, nextVMArgReg, 0);
+	    asmArg.emitMR(regOrSpilling, nextVMArgReg);
 	  }
 	  // advance spillOffsetVM and nextVMArgReg
 	  nextVMArgReg ++;
@@ -521,7 +521,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	// For all other types: int, short, char, byte, boolean
 	// (1a) fit in AIX register, move the register
 	if (nextAIXArgReg<=LAST_OS_PARAMETER_GPR) {
-	  asmArg.emitADDIS(nextAIXArgReg++, nextVMArgReg++, 0);
+	  asmArg.emitMR(nextAIXArgReg++, nextVMArgReg++);
 	}
 	// (1b) spill AIX register, but still fit in VM register
 	else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
@@ -758,8 +758,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	
 	// (1a) fit in AIX register, move the pair
 	if (nextAIXArgReg<=LAST_OS_PARAMETER_GPR-1) {
-	  asmArg.emitADDIS(nextAIXArgReg+1, nextVMArgReg+1, 0);  // move lo-word first
-	  asmArg.emitADDIS(nextAIXArgReg, nextVMArgReg, 0);      // so it doesn't overwritten
+	  asmArg.emitMR(nextAIXArgReg+1, nextVMArgReg+1);  // move lo-word first
+	  asmArg.emitMR(nextAIXArgReg, nextVMArgReg);      // so it doesn't overwritten
 	  nextAIXArgReg+=2;
 	  nextVMArgReg+=2;
 	  spillOffsetAIX+=8;
@@ -769,7 +769,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	  spillOffsetAIX+=4;
 	  asmArg.emitSTW(nextVMArgReg+1, spillOffsetAIX, FP);   // move lo-word first
 	  spillOffsetAIX+=4;                                    // so it doesn't overwritten
-	  asmArg.emitADDIS(nextAIXArgReg, nextVMArgReg, 0);
+	  asmArg.emitMR(nextAIXArgReg, nextVMArgReg);
 	  nextAIXArgReg+=2;
 	  nextVMArgReg+=2;	  
 	} else if (nextAIXArgReg>LAST_OS_PARAMETER_GPR &&
@@ -823,7 +823,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 
 	// (1a) fit in AIX register, move the register
 	if (nextAIXArgReg<=LAST_OS_PARAMETER_GPR) {
-	  asmArg.emitADDIS(nextAIXArgReg++, nextVMArgReg++, 0);
+	  asmArg.emitMR(nextAIXArgReg++, nextVMArgReg++);
 	  spillOffsetAIX+=4;
 	}
 
@@ -982,7 +982,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitCMPI  (S0, VM_Processor.BLOCKED_IN_NATIVE);       // check if GC in progress, blocked in native mode
     VM_ForwardReference frBlocked = asm.emitForwardBC(EQ);
 
-    asm.emitADDI   (S0,  VM_Processor.IN_JAVA, 0 );            // S0  <- new state value
+    asm.emitLVAL  (S0,  VM_Processor.IN_JAVA);                // S0  <- new state value
     asm.emitSTWCXr(S0,  0, TI);                               // attempt to change state to native
     asm.emitBC    (NE, label0);                               // br if failure -retry lwarx by jumping to label0
     VM_ForwardReference frInJava = asm.emitForwardB();        // branch around code to call sysYield
@@ -1008,12 +1008,12 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // note JTOC is the RVM JTOC, set by native code when it branched thru the
     // JNI function pointer to this code
     asm.emitLAddr(S1, VM_Entrypoints.the_boot_recordField.getOffset(), JTOC); // get boot record address
-    asm.emitADDI(PROCESSOR_REGISTER, 0, JTOC);                    // save JTOC for later
+    asm.emitMR(PROCESSOR_REGISTER, JTOC);                    // save JTOC for later
     asm.emitLAddr(JTOC, VM_Entrypoints.sysTOCField.getOffset(), S1);          // load TOC for syscalls from bootrecord
     asm.emitLAddr(TI,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset(), S1);  // load addr of function
     asm.emitMTLR(TI);
     asm.emitBCLRL();                                                 // call sysVirtualProcessorYield in sys.C
-    asm.emitADDI   (JTOC, 0,PROCESSOR_REGISTER);                     // restore RVM JTOC
+    asm.emitMR   (JTOC, PROCESSOR_REGISTER);                     // restore RVM JTOC
 
     // restore the saved volatile GPRs 3-10 and FPRs 1-6
     offset = STACKFRAME_HEADER_SIZE;
@@ -1116,7 +1116,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // and are never "BLOCKED_IN_JAVA"
     //
     asm.emitLAddr(T3, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // T3 gets addr vpStatus word
-    asm.emitADDI(S0,  VM_Processor.IN_NATIVE, 0);              // S0  <- new status value
+    asm.emitLVAL(S0,  VM_Processor.IN_NATIVE);              // S0  <- new status value
     asm.emitSTW(S0,  0, T3);                                   // change state to native
 
     // Restore those AIX nonvolatile registers saved in the prolog above
@@ -1164,14 +1164,14 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	  nextAIXReg += (nextAIXReg + 1) & 0x01;
 	  if (nextAIXReg != nextVMReg) {
 	    // Native and Java reg do not match
-	    asm.emitADDIS(nextVMReg, nextAIXReg, 0);
-	    asm.emitADDIS(nextVMReg + 1, nextAIXReg + 1, 0);
+	    asm.emitMR(nextVMReg, nextAIXReg);
+	    asm.emitMR(nextVMReg + 1, nextAIXReg + 1);
 	  }
 	  nextAIXReg += 2;
 	  nextVMReg += 2;
 	} else {
 	  if (nextAIXReg != nextVMReg) {
-	    asm.emitADDIS(nextVMReg, nextAIXReg, 0);
+	    asm.emitMR(nextVMReg, nextAIXReg);
 	  }
 	  nextAIXReg ++;
 	  nextVMReg ++;

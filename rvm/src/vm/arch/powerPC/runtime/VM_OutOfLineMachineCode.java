@@ -82,7 +82,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
       
     // create new frame  //Kris Venstermans : Not sure what's loaded
     //
-    asm.emitADDI  (S0,  0, FP);                  // S0 := old frame pointer
+    asm.emitMR    (S0,  FP);                  // S0 := old frame pointer
     asm.emitLInt  (T0, VM_ObjectModel.getArrayLengthOffset(), T3); // T0 := number of spill words
     asm.emitADDI  (T3, -BYTES_IN_ADDRESS, T3);                  // T3 -= 4 (predecrement, ie. T3 + 4 is &spill[0] )
     int spillLoopLabel = asm.getMachineCodeIndex();
@@ -381,7 +381,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     //
     asm.emitLAddr  (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), S0); 
     asm.emitLWZ    (S1, VM_Entrypoints.vpStatusAddressField.getOffset(), PROCESSOR_REGISTER); // S1 gets addr vpStatus word
-    asm.emitADDI   (S0,  VM_Processor.IN_NATIVE, 0);               // S0  <- new status value
+    asm.emitLVAL   (S0,  VM_Processor.IN_NATIVE);                  // S0  <- new status value
     asm.emitSTW    (S0,  0, S1);                                   // change state to native
 
     // set word following JNI function ptr to addr of current processors vpStatus word
@@ -430,7 +430,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     //  br to here -not blocked in native
     //
     fr.resolve(asm);
-    asm.emitADDI   (S0,  VM_Processor.IN_JAVA, 0 );           // S0  <- new state value
+    asm.emitLVAL  (S0,  VM_Processor.IN_JAVA);               // S0  <- new state value
     asm.emitSTWCXr(S0,  0, T3);                              // attempt to change state to java
     asm.emitBC    (NE, label1);                              // br if failure -retry lwarx
     //

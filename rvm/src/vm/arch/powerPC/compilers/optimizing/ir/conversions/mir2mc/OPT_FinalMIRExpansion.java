@@ -241,11 +241,6 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
     else 
       machinecodeLength = instructionCount + conditionalBranchCount;
 
-    //-#if RVM_WITH_OSR
-    // reserver more space for thread swith basic blocks
-    int OSR_TS_BLOCK_SIZE = 5;
-    machinecodeLength += OSR_TS_BLOCK_SIZE;
-    //-#endif
     if ((machinecodeLength & ~OPT_Assembler.MAX_24_BITS) != 0)
       throw new OPT_OptimizingCompilerException("CodeGen", 
 						"method too large to compile:", 

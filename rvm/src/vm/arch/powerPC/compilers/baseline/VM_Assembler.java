@@ -864,6 +864,11 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
+  // move register RT <- RS
+  final void emitMR(int RT, int RS) {
+    emitOR(RT, RS, RS);
+  }
+
   static final int ORItemplate = 24<<26;
 
   final void emitORI (int RA, int RS, int UI) {
