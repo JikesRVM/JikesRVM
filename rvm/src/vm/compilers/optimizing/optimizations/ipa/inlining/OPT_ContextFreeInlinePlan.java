@@ -15,7 +15,7 @@ import  java.io.*;
  * @modified Peter Sweeney
  * @modified Matthew Arnold
  */
-class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
+public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
 
   /** 
    * Add the rule "inline b into a at bytecode x" to the object

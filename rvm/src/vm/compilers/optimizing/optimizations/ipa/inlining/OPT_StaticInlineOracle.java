@@ -12,7 +12,7 @@ package com.ibm.JikesRVM;
  */
 public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 
-  OPT_StaticInlineOracle () {}
+  public OPT_StaticInlineOracle () {}
 
   /**
    * The main routine whereby this oracle makes decisions whether or not

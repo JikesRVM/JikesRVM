@@ -6,6 +6,7 @@
 import java.util.*;
 import java.lang.reflect.InvocationTargetException;
 import java.io.*;
+import com.ibm.JikesRVM.*;
 
 /**
  * A test harness for the optimizing compiler.

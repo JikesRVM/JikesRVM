@@ -186,7 +186,7 @@ public class OPT_Compiler {
   /**
    * Has the optimizing compiler been initialized?
    */
-  static boolean isInitialized () {
+  public static boolean isInitialized () {
     return isInitialized;
   }
 

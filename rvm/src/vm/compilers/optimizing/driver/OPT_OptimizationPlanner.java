@@ -20,7 +20,7 @@ import  java.util.Vector;
  * @author Dave Grove
  * @author Michael Hind
  */
-class OPT_OptimizationPlanner {
+public class OPT_OptimizationPlanner {
 
   /** 
    * The master optimization plan.

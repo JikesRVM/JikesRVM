@@ -15,7 +15,7 @@ package com.ibm.JikesRVM;
  * compiler how to compile the specified method.
  *
  */
-final class OPT_CompilationPlan {
+public final class OPT_CompilationPlan {
   /**
    * The method to be compiled.
    */

@@ -13,7 +13,7 @@ import  java.io.*;
  *
  * @author Stephen Fink
  */
-class OPT_InlineOracleDictionary {
+public class OPT_InlineOracleDictionary {
 
   /** 
    * Returns the OPT_InlineOracle associated with a VM_Method.
@@ -43,7 +43,7 @@ class OPT_InlineOracleDictionary {
    * <em> all </em> methods.
    * @param oracle the default oracle
    */
-  static void registerDefault (OPT_InlineOracle oracle) {
+  public static void registerDefault (OPT_InlineOracle oracle) {
     defaultOracle = oracle;
   }
 

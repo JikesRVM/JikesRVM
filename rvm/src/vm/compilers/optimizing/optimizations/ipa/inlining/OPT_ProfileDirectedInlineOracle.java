@@ -12,7 +12,7 @@ package com.ibm.JikesRVM;
   * @author Dave Grove
   * @modified Michael Hind
   */
-class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
+public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 
   // So much for sharing code with the generic guy.
   // The issue is that the callee extracted from the state may not
@@ -202,7 +202,7 @@ class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
   /** 
    * construct an oracle that interfaces to a plan 
    */
-  OPT_ProfileDirectedInlineOracle(OPT_InlinePlan plan) {
+  public OPT_ProfileDirectedInlineOracle(OPT_InlinePlan plan) {
     this.plan = plan;
   }
 

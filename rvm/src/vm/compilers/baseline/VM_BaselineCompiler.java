@@ -17,7 +17,7 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  * @author Janice Shepherd
  */
-abstract class VM_BaselineCompiler {
+public abstract class VM_BaselineCompiler {
 
   /** 
    * Options used during base compiler execution 

@@ -21,12 +21,12 @@ import java.io.File;
 import java.net.URL;
 
 //-#if RVM_WITH_GNU_CLASSPATH
-class VM_ApplicationClassLoader extends ClassLoader {
+public class VM_ApplicationClassLoader extends ClassLoader {
 //-#else
-class VM_ApplicationClassLoader extends AppClassLoader {
+public class VM_ApplicationClassLoader extends AppClassLoader {
 //-#endif
 
-    VM_ApplicationClassLoader(ClassLoader parent) {
+    public VM_ApplicationClassLoader(ClassLoader parent) {
 	super( parent );
     }
 

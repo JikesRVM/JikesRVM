@@ -186,7 +186,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   /**
    * Implemented in subclass?
    */
-  final boolean isAbstract() throws VM_PragmaUninterruptible {
+  public final boolean isAbstract() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(declaringClass.isLoaded());
     if (VM.VerifyAssertions) VM.assert(isLoaded());
     return (modifiers & ACC_ABSTRACT) != 0;

@@ -191,7 +191,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: method descriptor     - something like "(III)V"
    * @return parameter descriptions
    */ 
-  final VM_Type[] parseForParameterTypes(ClassLoader classloader) {
+  public final VM_Type[] parseForParameterTypes(ClassLoader classloader) {
     if (VM.VerifyAssertions) VM.assert(val[0] == '(');
 
     VM_TypeVector sigs = new VM_TypeVector();
