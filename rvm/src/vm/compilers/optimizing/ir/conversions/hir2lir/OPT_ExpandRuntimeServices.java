@@ -18,6 +18,7 @@ import instructionFormats.*;
  *   
  * @author Stephen Fink
  * @author Dave Grove
+ * @author Martin Trapp
  */
 public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
@@ -39,6 +40,10 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
    * @param OPT_IR HIR to expand
    */
   public void perform (OPT_IR ir) {
+    
+    // resync gc
+    ir.gc.resync();
+    
     OPT_Instruction next;
     for (OPT_Instruction inst = ir.firstInstructionInCodeOrder(); 
 	 inst != null; 
@@ -457,7 +462,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       branchOpts.perform(ir, true);
       _os.perform(ir);
     }
-
+    // signal that we do not intend to use the gc in other phases anymore.
+    ir.gc.close();
   }
 
 
