@@ -171,8 +171,8 @@ public abstract class StopTheWorldGC extends BasePlan
     processAllWork(); 
     if (designated) Statistics.scanTime.stop();
 
-    ReferenceProcessor.moveSoftReferencesToReadyList();
-    ReferenceProcessor.moveWeakReferencesToReadyList();
+    if (designated) ReferenceProcessor.moveSoftReferencesToReadyList();
+    if (designated) ReferenceProcessor.moveWeakReferencesToReadyList();
  
     if (Options.noFinalizer) {
 
@@ -185,7 +185,7 @@ public abstract class StopTheWorldGC extends BasePlan
     VM_CollectorThread.gcBarrier.rendezvous();
     if (designated) Statistics.finalizeTime.stop();
 
-    ReferenceProcessor.movePhantomReferencesToReadyList();
+    if (designated) ReferenceProcessor.movePhantomReferencesToReadyList();
 
     if (designated) Statistics.scanTime.start();
     processAllWork();
