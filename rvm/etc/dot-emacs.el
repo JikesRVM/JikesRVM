@@ -15,11 +15,30 @@
     (add-to-list 'load-path (concat r "/rvm/etc"))
     (require 'jikes-rvm)))
 
+;;; The rest of this file is optional.
+
+;;; If you want Emacs to truncate long lines instead of wrapping them, 
+;;; uncomment the following lines and add them to your ~/.emacs file:
+
+; (add-hook 'c-mode-common-hook
+;           #'(lambda ()
+; 	      (set (make-local-variable 'truncate-lines) 't)))
+
+
+
 ;; I recommend adding the following to your c-mode-common-hook; they can make
 ;; it more pleasant to edit Jikes RVM code.
 (add-hook 'c-mode-common-hook
 	  #'(lambda ()
+	      
+	      ;; If you want Emacs to use fonts and colors to decorate your
+	      ;; code (this is generally a Good Thing), leave the following
+	      ;; line uncommented:
+
 	      (turn-on-font-lock)
+
+	      ;; Tells Emacs to display the name of the function you're
+	      ;; editing in the mode line.  Comment out to disable.
 	      (which-function-mode 1)
 	      ;; I like the auto-newline and hungry-delete-key features.
 	      ;; You can learn about them with C-h f c-toggle-auto-state and
