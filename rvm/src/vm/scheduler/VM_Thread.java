@@ -1281,13 +1281,18 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
        int index = VM_Scheduler.threadAllocationIndex;
        if (++VM_Scheduler.threadAllocationIndex == VM_Scheduler.threads.length)
           VM_Scheduler.threadAllocationIndex = 1;
-       if (VM_Scheduler.threads[index] == null)
-         {
-         //  Problem:
-         //  We'd like to say "VM_Scheduler.threads[index] = this;"
-         //  but can't do "checkstore" without losing control
-         //
+       if (VM_Scheduler.threads[index] == null) {
+	 /*
+	  *  Problem:
+	  *
+	  *  We'd like to say "VM_Scheduler.threads[index] = this;"
+	  *  but can't do "checkstore" without losing control. Since
+	  *  we're using magic for the store, we need to perform an
+	  *  explicit write barrier.
+	  */
          threadSlot = index;
+	 if (MM_Interface.NEEDS_WRITE_BARRIER)
+	   MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, threadSlot, this);
          VM_Magic.setObjectAtOffset(VM_Scheduler.threads,threadSlot << LOG_BYTES_IN_ADDRESS, this);
          return;
          }
@@ -1304,13 +1309,19 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * are invoked if they are to be able to do JNI.
    */ 
   final void releaseThreadSlot() {
-    //  Problem:
-    //  We'd like to say "VM_Scheduler.threads[index] = null;"
-    //  but can't do "checkstore" inside dispatcher 
-    //  (with thread switching enabled) without
-    //  losing control to a threadswitch, so we must hand code 
-    //  the operation via magic.
-    //
+    /*
+     * Problem:
+     *
+     *  We'd like to say "VM_Scheduler.threads[index] = null;" but
+     *  can't do "checkstore" inside dispatcher (with thread switching
+     *  enabled) without losing control to a threadswitch, so we must
+     *  hand code the operation via magic.  Since we're using magic
+     *  for the store, we need to perform an explicit write
+     *  barrier. Generational collectors may not care about a null
+     *  store, but a reference counting collector sure does.
+     */
+    if (MM_Interface.NEEDS_WRITE_BARRIER)
+      MM_Interface.arrayStoreWriteBarrier(VM_Scheduler.threads, threadSlot, null);
     VM_Magic.setObjectAtOffset(VM_Scheduler.threads, threadSlot << LOG_BYTES_IN_ADDRESS, null);
     VM_Scheduler.threadAllocationIndex = threadSlot;
     // ensure trap if we ever try to "become" this thread again
