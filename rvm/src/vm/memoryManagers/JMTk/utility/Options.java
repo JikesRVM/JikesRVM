@@ -5,6 +5,8 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -15,15 +17,15 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  *
  * @author Perry Cheng
  */
-public class Options implements VM_Uninterruptible {
+public class Options implements VM_Uninterruptible, Constants {
 
   static int initialHeapSize = 100 * (1 << 20);
   static int maxHeapSize     = 500 * (1 << 20);
 
   static int heapSize         = 0; // deprecated
   static int largeHeapSize    = 0; // deprecated
-  static int nurseryPages     = (1<<30);  // default to variable nursery
-  static int stressTest       = (1<<30);  // default to never
+  static int nurseryPages     = MAX_INT;  // default to variable nursery
+  static int stressTest       = MAX_INT;  // default to never
 
   public static void process (String arg) throws VM_PragmaInterruptible {
     if (arg.startsWith("initial=")) {

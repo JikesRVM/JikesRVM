@@ -87,7 +87,7 @@ public abstract class Generational extends StopTheWorldGC
 
   // Miscellaneous constants
   protected static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  protected static final int NURSERY_THRESHOLD = (512*1024)>>LOG_PAGE_SIZE;
+  protected static final int DEFAULT_MIN_NURSERY = (512*1024)>>LOG_PAGE_SIZE;
   protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
   protected static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
 
@@ -444,7 +444,8 @@ public abstract class Generational extends StopTheWorldGC
       globalMatureRelease();
       Immortal.release(immortalVM, null);
     }
-    fullHeapGC = (getPagesAvail() < NURSERY_THRESHOLD);
+    int minNursery = (Options.nurseryPages < MAX_INT) ? Options.nurseryPages : DEFAULT_MIN_NURSERY;
+    fullHeapGC = (getPagesAvail() < minNursery);
     if (getPagesReserved() + required >= getTotalPages()) {
       if (!progress) {
 	VM.sysWrite("getPagesReserved() = ", getPagesReserved());

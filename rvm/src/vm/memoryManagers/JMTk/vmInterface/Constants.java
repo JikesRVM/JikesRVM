@@ -14,6 +14,7 @@ import com.ibm.JikesRVM.VM_JavaHeader;
  * @author Perry Cheng
  */
 public interface Constants {
+  static final int MAX_INT = 0x7fffffff;
 
   static final int LOG_ADDRESS_SPACE = 32;
   static final int LOG_BYTE_BITS = 3;
