@@ -37,11 +37,7 @@ public class RCHeader extends RCBaseHeader {
     int initialValue = INCREMENT;
     if (Plan.REF_COUNT_CYCLE_DETECTION && VM_Interface.isAcyclic(tib))
       initialValue |= GREEN;
-    
     VM_Magic.setIntAtOffset(ref, RC_HEADER_OFFSET, initialValue);
-    int oldValue = VM_Interface.readAvailableBitsWord(ref);
-    int newValue = (oldValue & ~SMALL_OBJECT_MASK) | Plan.getInitialHeaderValue(size);
-    VM_Interface.writeAvailableBitsWord(ref,newValue);
   }
 
   /**
