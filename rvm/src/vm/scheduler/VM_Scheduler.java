@@ -594,10 +594,12 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     dumpStack(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
 
-    // The following line often causes a hang and prevents overnight sanity tests from finishing.
-    // So, for the moment, I commented it out. Maybe someday we can come up with some sort of
-    // of dead man timer that will expire and kill us if we take too long to finish. [--DL]
-    // dumpVirtualMachine();
+    /** The following line often causes a hang and prevents overnight sanity tests from finishing.
+	So, for the moment, I commented it out. Maybe someday we can come up with some sort of
+	of dead man timer that will expire and kill us if we take too long to finish. [--DL]
+    */
+    // ... I believe that day has arrived; whee!  Uncommenting it. --Steve Augart, July 2003
+    dumpVirtualMachine();
   }
 
   /**
@@ -607,7 +609,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     dumpStack(VM_Magic.getFramePointer());
   }
 
-  static boolean dumpingStack = false;
   /**
    * Dump state of a (stopped) thread's stack.
    * @param fp address of starting frame. first frame output
@@ -616,11 +617,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   static void dumpStack (VM_Address fp) {
     if (VM.VerifyAssertions)
       VM._assert(VM.runningVM);
-    if (dumpingStack) {
-      // Recursive stack dump!! Completely give up.
-      VM.shutdown(38);
-    }
-    dumpingStack = true;
 
     VM_Address ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
@@ -628,12 +624,24 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       
   }
 
+  static int inDumpStack = 0;
   /**
    * Dump state of a (stopped) thread's stack.
    * @param ip instruction pointer for first frame to dump
    * @param fp frame pointer for first frame to dump
    */
   public static void dumpStack (VM_Address ip, VM_Address fp) {
+    ++inDumpStack;
+    if (inDumpStack > 1 && inDumpStack <= VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite ) {
+      VM.sysWrite("VM_Scheduler.dumpStack(): in a recursive call, ");
+      VM.sysWrite(inDumpStack);
+      VM.sysWriteln(" deep.");
+    }
+    if (inDumpStack > VM.maxSystemTroubleRecursionDepth) {
+      VM.dieAbruptlyRecursiveSystemTrouble();
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    }
+    
     writeString("\n-- Stack --\n");
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
 
@@ -711,6 +719,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
     }
+    --inDumpStack;
   }  
 
   private static boolean exitInProgress = false;
