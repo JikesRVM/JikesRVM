@@ -1,35 +1,57 @@
 #!/bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2004
 #
 #$Id$
 #
 # @author Dave Grove
+# @modified Steven Augart
 #
 # Calls cvs diff on all Jikes RVM repositories
 #
+# Takes an optional arguments: flags to pass to "cvs diff".
+# If no arguments are specified, it uses user-specified defaults from
+#  RVM_ALLDIFFS_FLAGS.
+# If those aren't specified, it passes no arguments to "cvs diff"
 
-if [[ $RVM_HOST_CONFIG = "" ]]; then
-   echo "$0: please set your RVM_HOST_CONFIG environment variable (eg. $HOME/rvm/config/i686-pc-linux.watson)"
-   exit 1
+
+ME="$0" 
+
+if ! [[ $RVM_ROOT ]]; then
+   echo >&2 "$ME: please set your RVM_ROOT environment variable (eg. $HOME/JikesRVM)"
+   exit 2
 fi
 
-. $RVM_HOST_CONFIG
+if [[ $RVM_HOST_CONFIG = "" ]]; then
+   echo >&2 "$ME: please set your RVM_HOST_CONFIG environment variable (eg. \$RVM_ROOT/rvm/config/i686-pc-linux.watson)"
+   exit 2
+fi
 
-cd $RVM_ROOT
+. $RVM_HOST_CONFIG || { echo >&2 "$ME: Can not read $RVM_HOST_CONFIG; giving up"; exit 2; }
+
+cd $RVM_ROOT || { echo >&2 "$ME: Can not get to the directory \$RVM_ROOT; giving up"; exit 2; }
 WORKING_DIRS="rvm MMTk"
 SCRIPT=$RVM_ROOT/diffs.txt
 
 if [[ -f $SCRIPT ]]; then
     rm -f $SCRIPT
 fi
-touch $SCRIPT
+touch $SCRIPT || { echo >&2 "$ME: Can not create the file $SCRIPT; giving up";
+		   exit 2 ; }
+
+## XXX This code is inactive, to avoid changing the semantics.  
+## Set the default args for "cvs diff" to "-u", if none were provided.  
+# [[ $RVM_ALLDIFFS_FLAGS ]] || RVM_ALLDIFFS_FLAGS="-u"
+
+## If command-line args were provided, then pass them to "cvs diff".
+## If no args provided, then use $RVM_ALLDIFFS_FLAGS.
+[[ $* ]]  || set -- ${RVM_ALLDIFFS_FLAGS}
 
 for dir in $WORKING_DIRS; do
     if [[ -d $RVM_ROOT/$dir ]]; then 
 	cd $RVM_ROOT/$dir
 	echo >> $SCRIPT
 	echo "******** Diffs for $dir ******** " >> $SCRIPT
-	$CVS -q diff 2>> $SCRIPT >> $SCRIPT
+	$CVS -q diff "$@" 2>> $SCRIPT >> $SCRIPT
     fi
 done
