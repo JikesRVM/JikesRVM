@@ -27,3 +27,6 @@ runtime service routines that won't be inlined no matter how many
 times we try.  Problem has always existed, but became much more severe
 in 2.3.0 release when we disabled the inlining of allocation sequences
 if the size of the object was not known at compile time.
+
+** Fixed bug in which non-virtualizable interface calls where not being
+considered as candidates for feedback-directed inlining.
