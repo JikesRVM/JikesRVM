@@ -2405,7 +2405,7 @@ memopSetParms(STATE &s, FLAGS flags)
 /*                                                                         */
 /***************************************************************************/
 static void 
-op_NL(STATE &s, FLAGS UNUSED & flags)
+op_NL(STATE UNUSED &s, FLAGS UNUSED & flags)
 {
 }
 
