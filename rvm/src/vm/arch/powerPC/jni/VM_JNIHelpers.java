@@ -313,10 +313,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
     // get the FP for this stack frame and traverse 2 frames to get to the glue frame
     Address currentfp = VM_Magic.getFramePointer(); 
-    Address gluefp = VM_Magic.getFramePointer().loadAddress(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET);
-    gluefp = gluefp.loadAddress(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET);
-    gluefp = gluefp.loadAddress(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET);
-    Address gluecallerfp = gluefp.loadAddress(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET);
+    Address gluefp = VM_Magic.getFramePointer().add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+    gluefp = gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+    gluefp = gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+    Address gluecallerfp = gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
     // compute the offset into the spill area of the native caller frame, 
     // skipping the args which are not part of the arguments for the target method
 
@@ -367,7 +367,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
       for (targetOffset = spillRequiredAtOffset;
            targetOffset <= argSize;
            srcOffset += BYTES_IN_ADDRESS, targetOffset += BYTES_IN_ADDRESS) {
-        word = srcAddress.loadWord(srcOffset);
+        word = srcAddress.loadWord(Offset.fromInt(srcOffset));
         targetAddress.store(word, Offset.fromInt(targetOffset));
       }
     }
@@ -795,8 +795,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
           // va-ppc.h makes last gpr useless
           regIncrementGpr = 2;
         } else {
-          hiword = gprarray.loadInt(gpr*4);
-          loword = gprarray.loadInt((gpr+1)*4);
+          hiword = gprarray.loadInt(Offset.fromInt(gpr*4));
+          loword = gprarray.loadInt(Offset.fromInt((gpr+1)*4));
           regIncrementGpr = 2;
         }
         long longBits = (((long)hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
@@ -810,7 +810,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
           ivalue = overflowarea.add(overflowoffset).loadInt();
           overflowoffset += 4;
         } else {
-          ivalue = gprarray.loadInt(gpr*4);
+          ivalue = gprarray.loadInt(Offset.fromInt(gpr*4));
         } 
         
         //              VM.sysWriteln("int "+ivalue);
