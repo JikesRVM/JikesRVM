@@ -56,7 +56,7 @@ export GNU_MAKE="/usr/bin/make"
 # path for jikes.
 export JIKES="/homes/fury5/jalapeno/bin/jc-lintel"
 # for exprimenting with jikes 1.16
-#export JIKES="/usr/local/bin/jikes"
+#export JIKES="/usr/local/bin/jikes -target 1.3"
 
 # what C compilers should be used?
 export CC='/usr/bin/gcc -w -O'
