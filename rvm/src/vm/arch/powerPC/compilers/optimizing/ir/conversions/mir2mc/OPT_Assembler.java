@@ -54,16 +54,17 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
    * @return   the number of machinecode instructions generated
    */
   public static final int generateCode (OPT_IR ir, boolean shouldPrint) {
-    ir.MIRInfo.machinecode = VM_CodeArray.create(ir.MIRInfo.mcSizeEstimate);
-    return new OPT_Assembler().genCode(ir, shouldPrint);
+    int[] instrs = new int[ir.MIRInfo.mcSizeEstimate];
+    int numGen = new OPT_Assembler().genCode(ir, instrs, shouldPrint);
+    ir.MIRInfo.machinecode = VM_CodeArray.Factory.createAndFill(instrs, numGen, true);
+    return numGen;
   }
 
-  private final int genCode(OPT_IR ir, boolean shouldPrint) {
+  private final int genCode(OPT_IR ir, int[] machinecodes, boolean shouldPrint) {
     int mi = 0;
-    VM_CodeArray machinecodes = ir.MIRInfo.machinecode;
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    boolean unsafeCondDispl = machinecodes.length() > MAX_COND_DISPL;
-    boolean unsafeDispl = machinecodes.length() > MAX_DISPL;
+    boolean unsafeCondDispl = machinecodes.length > MAX_COND_DISPL;
+    boolean unsafeDispl = machinecodes.length > MAX_DISPL;
     for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
          p != null; 
          p = p.nextInstructionInCodeOrder()) {
@@ -91,10 +92,10 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 
           switch (branchStmt.getOpcode()) {
           case PPC_B_opcode:case PPC_BL_opcode:
-            machinecodes.set(bi, machinecodes.get(bi) | targetOffset & LI_MASK);
+            machinecodes[bi] = machinecodes[bi] | targetOffset & LI_MASK;
             break;
           case PPC_DATA_LABEL_opcode:
-            machinecodes.set(bi, targetOffset & LI_MASK);
+            machinecodes[bi] = targetOffset & LI_MASK;
             break;
           // Since resolveBranch and patch already check the range
           // of target offset, and will fail if it is out of range
@@ -106,10 +107,10 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
             // fall through!
           default:          // conditional branches
             if (targetOffset <= MAX_COND_DISPL << 2) {// one word is enough
-              machinecodes.set(bi, machinecodes.get(bi) | targetOffset & BD_MASK);
+              machinecodes[bi] = machinecodes[bi] | targetOffset & BD_MASK;
               if (DEBUG) {
                 VM.sysWrite("**** Forward Short Cond. Branch ****\n");
-                VM.sysWrite(disasm(machinecodes.get(bi), 0)+"\n");
+                VM.sysWrite(disasm(machinecodes[bi], 0)+"\n");
               }
             } else {          // one word is not enough
               // we're moving the "real" branch ahead 1 instruction
@@ -118,17 +119,17 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
               branchStmt.setmcOffset(branchStmt.getmcOffset() + 
                                      (1 <<  LG_INSTRUCTION_WIDTH));
               // flip the condition and skip the next branch instruction
-              machinecodes.set(bi, flipCondition(machinecodes.get(bi)));
-              machinecodes.set(bi, machinecodes.get(bi) | (2 << LG_INSTRUCTION_WIDTH));
-              machinecodes.set(bi, machinecodes.get(bi) & 0xfffffffe);       // turn off link bit.
+              machinecodes[bi] = flipCondition(machinecodes[bi]);
+              machinecodes[bi] = machinecodes[bi] | (2 << LG_INSTRUCTION_WIDTH);
+              machinecodes[bi] = machinecodes[bi] & 0xfffffffe;       // turn off link bit.
               // make a long branch
-              machinecodes.set(bi + 1, Btemplate | ((targetOffset-4) & LI_MASK));
+              machinecodes[bi + 1] = Btemplate | ((targetOffset-4) & LI_MASK);
               if (setLink)
-                machinecodes.set(bi+1, machinecodes.get(bi+1) | 1);          // turn on link bit.
+                machinecodes[bi+1] = machinecodes[bi+1] | 1;          // turn on link bit.
               if (DEBUG) {
                 VM.sysWrite("**** Forward Long Cond. Branch ****\n");
-                VM.sysWrite(disasm(machinecodes.get(bi), 0)+"\n");
-                VM.sysWrite(disasm(machinecodes.get(bi + 1), 0)+"\n");
+                VM.sysWrite(disasm(machinecodes[bi], 0)+"\n");
+                VM.sysWrite(disasm(machinecodes[bi + 1], 0)+"\n");
               }
             }
             break;
@@ -146,7 +147,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_DATA_INT_opcode:
         {
           int value = MIR_DataInt.getValue(p).value;
-          machinecodes.set(mi++, value);
+          machinecodes[mi++] = value;
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -155,7 +156,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {
           OPT_Instruction target = MIR_DataLabel.getTarget(p).target;
           int targetOffset = resolveBranch(p, target, mi);
-          machinecodes.set(mi++, targetOffset);
+          machinecodes[mi++] = targetOffset;
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -166,7 +167,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Condition.getResultBit(p).value & REG_MASK;
           int op1 = MIR_Condition.getValue1Bit(p).value & REG_MASK;
           int op2 = MIR_Condition.getValue2Bit(p).value & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | (op2 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -197,7 +198,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | (op2 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -219,7 +220,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Load.getAddress(p).register.number & REG_MASK;
           int op2 = MIR_Load.getOffset(p).asRegister().register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | (op2 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -237,7 +238,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
           int op1 = MIR_Store.getAddress(p).register.number & REG_MASK;
           int op2 = MIR_Store.getOffset(p).asRegister().register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | (op2 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -250,7 +251,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_LoadUpdate.getResult(p).register.number & REG_MASK;
           int op1 = MIR_LoadUpdate.getAddress(p).register.number & REG_MASK;
           int op2 = MIR_LoadUpdate.getOffset(p).asRegister().register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | (op2 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -260,7 +261,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_LoadUpdate.getResult(p).register.number & REG_MASK;
           int op1 = MIR_LoadUpdate.getAddress(p).register.number & REG_MASK;
           int op2 = MIR_LoadUpdate.getOffset(p).asIntConstant().value & SHORT_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | op2);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -275,7 +276,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Trap.getCond(p).value;
           int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Trap.getValue2(p).asRegister().register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | (op2 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -288,7 +289,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Trap.getCond(p).value;
           int op1 = MIR_Trap.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Trap.getValue2(p).asIntConstant().value & SHORT_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | op2);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -304,7 +305,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           //-#else
           inst = PPC_TWI.instTemplate;
                          //-#endif
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | op2);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -314,7 +315,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {
           int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asIntConstant().value & SHORT_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | op1));
+          machinecodes[mi++] = (inst | (op0 << 21) | op1);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -328,7 +329,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | op2);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -346,7 +347,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {
           int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -357,7 +358,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
           int op3high = 1;  //op3low = 0, so op3 == 32
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op3high << 5)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | (op3high << 5));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -370,7 +371,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {
           int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -382,7 +383,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | op2));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | op2);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -409,7 +410,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | (op2 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -419,7 +420,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {
           int op0 = MIR_Move.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Move.getValue(p).register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -436,7 +437,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int shift = MIR_Binary.getValue2(p).asIntConstant().value & REG_MASK;
           int op2 = (32 - shift);
           int op3 = shift;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -450,7 +451,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int shift = MIR_Binary.getValue2(p).asIntConstant().value & REG_MASK;
           int op2 = shift;
           int op3 = (31 - shift);
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 1)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 1));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -464,7 +465,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | (op2 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -478,7 +479,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SIXBIT_MASK;
           int op2low = op2 & 0x1F;
           int op2high = (op2 & 0x20) >>> 5;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -494,7 +495,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op2high = (op2 & 0x20) >>> 5;
           int op3low = op3 & 0x1F;
           int op3high = (op3 & 0x20) >>> 5;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1) | (op3low << 6) | (op3high << 5)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1) | (op3low << 6) | (op3high << 5));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -510,7 +511,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op3 = 63 - shift;
           int op3low = op3 & 0x1F;
           int op3high = (op3 & 0x20) >>> 5;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1) | (op3low << 6) | (op3high << 5)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | (op2low << 11) | (op2high << 1) | (op3low << 6) | (op3high << 5));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -525,7 +526,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | op2));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | op2);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -538,7 +539,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op2 = MIR_RotateAndMask.getShift(p).asIntConstant().value & REG_MASK;
           int op3 = MIR_RotateAndMask.getMaskBegin(p).value & REG_MASK;
           int op4 = MIR_RotateAndMask.getMaskEnd(p).value & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6) | (op4 << 1)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6) | (op4 << 1));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -555,7 +556,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op2 = MIR_RotateAndMask.getShift(p).asIntConstant().value & REG_MASK;
           int op3 = MIR_RotateAndMask.getMaskBegin(p).value & REG_MASK;
           int op4 = MIR_RotateAndMask.getMaskEnd(p).value & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6) | (op4 << 1)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6) | (op4 << 1));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -568,7 +569,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op2 = MIR_RotateAndMask.getShift(p).asRegister().register.number & REG_MASK;
           int op3 = MIR_RotateAndMask.getMaskBegin(p).value & REG_MASK;
           int op4 = MIR_RotateAndMask.getMaskEnd(p).value & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6) | (op4 << 1)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21) | (op2 << 11) | (op3 << 6) | (op4 << 1));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -577,7 +578,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {
           OPT_BranchOperand o = MIR_Branch.getTarget(p);
           int targetOffset = resolveBranch(p, o.target, mi);
-          machinecodes.set(mi++, inst | (targetOffset & LI_MASK));
+          machinecodes[mi++] = inst | (targetOffset & LI_MASK);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -586,7 +587,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_BCTR_opcode:
         /* p   , == bcctr  0x14,BI */
         {                     // INDIRECT BRANCH (Target == null)
-          machinecodes.set(mi++, inst);
+          machinecodes[mi++] = inst;
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -607,29 +608,29 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int targetOffset = resolveBranch(p, o.target, mi);
           if (targetOffset == 0) {            // unresolved branch
             if (DEBUG) VM.sysWrite("**** Forward Cond. Branch ****\n");
-            machinecodes.set(mi++, inst | (bo_bi << 16));
+            machinecodes[mi++] = inst | (bo_bi << 16);
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi-1), 0)+"\n");
+            if (DEBUG) VM.sysWrite(disasm(machinecodes[mi-1], 0)+"\n");
             if (unsafeCondDispl) {            // assume we might need two words
-              machinecodes.set(mi++, NOPtemplate);   // for now fill with NOP
-              if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi-1), 0)+"\n");
+              machinecodes[mi++] = NOPtemplate;   // for now fill with NOP
+              if (DEBUG) VM.sysWrite(disasm(machinecodes[mi-1], 0)+"\n");
             }
           } else if (targetOffset < MIN_COND_DISPL << 2) {
             // one word is not enough
             if (DEBUG) VM.sysWrite("**** Backward Long Cond. Branch ****\n");
             // flip the condition and skip the following branch instruction
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi-1), 0)+"\n");
-            machinecodes.set(mi++, inst | flipCondition(bo_bi << 16) | (2 << 2));
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi-1), 0)+"\n");
+            if (DEBUG) VM.sysWrite(disasm(machinecodes[mi-1], 0)+"\n");
+            machinecodes[mi++] = inst | flipCondition(bo_bi << 16) | (2 << 2);
+            if (DEBUG) VM.sysWrite(disasm(machinecodes[mi-1], 0)+"\n");
             // make a long branch to the target
-            machinecodes.set(mi++, Btemplate | ((targetOffset - 4) & LI_MASK));
+            machinecodes[mi++] = Btemplate | ((targetOffset - 4) & LI_MASK);
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi-1), 0)+"\n");
+            if (DEBUG) VM.sysWrite(disasm(machinecodes[mi-1], 0)+"\n");
           } else {              // one word is enough
             if (DEBUG) VM.sysWrite("**** Backward Short Cond. Branch ****\n");
-            machinecodes.set(mi++, inst | (bo_bi << 16) | (targetOffset & BD_MASK));
+            machinecodes[mi++] = inst | (bo_bi << 16) | (targetOffset & BD_MASK);
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi-1), 0)+"\n");
+            if (DEBUG) VM.sysWrite(disasm(machinecodes[mi-1], 0)+"\n");
           }
         }
         break;
@@ -644,9 +645,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           // condition bit (0..3) in the correct condition field (0..7).
           // 1 <= op <= 7
           int bo_bi = op0 << 2 | op1;
-          machinecodes.set(mi++, inst | (bo_bi << 16));
+          machinecodes[mi++] = inst | (bo_bi << 16);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
-          if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi-1), 0));
+          if (DEBUG) VM.sysWrite(disasm(machinecodes[mi-1], 0));
         }
         break;
 
@@ -655,7 +656,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {                     // CALL
           OPT_BranchOperand o = (OPT_BranchOperand)MIR_Call.getTarget(p);
           int targetOffset = resolveBranch(p, o.target, mi);
-          machinecodes.set(mi++, inst | (targetOffset & LI_MASK));
+          machinecodes[mi++] = inst | (targetOffset & LI_MASK);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -667,7 +668,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_BCTRL_SYS_opcode:
         /* p   , == bcctrl 0x14,BI */
         {                     // INDIRECT CALL (Target == null)
-          machinecodes.set(mi++, inst);
+          machinecodes[mi++] = inst;
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -684,12 +685,12 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int targetOffset = resolveBranch(p, o.target, mi);
           if (targetOffset == 0) {            // unresolved branch
             if (DEBUG) VM.sysWrite("**** Forward Cond. Branch ****\n");
-            machinecodes.set(mi++, inst | (bo_bi << 16));
+            machinecodes[mi++] = inst | (bo_bi << 16);
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi-1), 0)+"\n");
+            if (DEBUG) VM.sysWrite(disasm(machinecodes[mi-1], 0)+"\n");
             if (unsafeCondDispl) {            // assume we need two words
-              machinecodes.set(mi++, NOPtemplate);    // for now fill with NOP
-              if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi-1), 0)+"\n");
+              machinecodes[mi++] = NOPtemplate;    // for now fill with NOP
+              if (DEBUG) VM.sysWrite(disasm(machinecodes[mi-1], 0)+"\n");
             }
           } else if (targetOffset < MIN_COND_DISPL << 2) {      
             // one instruction is not enough
@@ -701,19 +702,19 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
               link around an unconditional branch.
               if (DEBUG) VM.sysWrite("**** Backward Long Cond. Branch ****\n");
               // flip the condition and skip the following branch instruction
-              machinecodes.set(mi++, inst | flipCondition(bo_bi<<16) | (2<<2));
+              machinecodes[mi++] = inst | flipCondition(bo_bi<<16) | (2<<2);
               if (DEBUG) printInstruction(mi-1, inst, 
               flipCondition(bo_bi<<16), 2<<2);
               // make a long branch to the target
-              machinecodes.set(mi++, Btemplate | ((targetOffset-4) & LI_MASK));
+              machinecodes[mi++] = Btemplate | ((targetOffset-4) & LI_MASK);
               p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
               if (DEBUG) printInstruction(mi-1, Btemplate, targetOffset-4);
             */
           } else {              // one instruction is enough
             if (DEBUG) VM.sysWrite("**** Backward Short Cond. Branch ****\n");
-            machinecodes.set(mi++, inst | (bo_bi << 16) | (targetOffset & BD_MASK));
+            machinecodes[mi++] = inst | (bo_bi << 16) | (targetOffset & BD_MASK);
             p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
-            if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi-1), 0)+"\n");
+            if (DEBUG) VM.sysWrite(disasm(machinecodes[mi-1], 0)+"\n");
           }
         }
         break;
@@ -726,9 +727,9 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           // condition bit (0..3) in the correct condition field (0..7).
           // 1 <= op <= 7
           int bo_bi = op0 << 2 | op1;
-          machinecodes.set(mi++, inst | (bo_bi << 16));
+          machinecodes[mi++] = inst | (bo_bi << 16);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
-          if (DEBUG) VM.sysWrite(disasm(machinecodes.get(mi-1), 0));
+          if (DEBUG) VM.sysWrite(disasm(machinecodes[mi-1], 0));
         }
         break;
 
@@ -742,7 +743,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | (op2 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 23) | (op1 << 16) | (op2 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -757,7 +758,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asIntConstant().value & SHORT_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | op2));
+          machinecodes[mi++] = (inst | (op0 << 23) | (op1 << 16) | op2);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -766,7 +767,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {
           int op0 = MIR_Move.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Move.getValue(p).register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -782,7 +783,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {
           int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -794,7 +795,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().register.number 
             & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 23) | (op1 << 16) | (op2 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 23) | (op1 << 16) | (op2 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -805,7 +806,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Binary.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Binary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Binary.getValue2(p).asRegister().register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 6)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | (op2 << 6));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -824,7 +825,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op1 = MIR_Ternary.getValue1(p).register.number & REG_MASK;
           int op2 = MIR_Ternary.getValue2(p).register.number & REG_MASK;
           int op3 = MIR_Ternary.getValue3(p).register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | (op2 << 6) | (op3 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | (op2 << 6) | (op3 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -844,7 +845,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
           int op1 = MIR_Load.getOffset(p).asIntConstant().value & SHORT_MASK;
           int op2 = MIR_Load.getAddress(p).register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | op1 | (op2 << 16)));
+          machinecodes[mi++] = (inst | (op0 << 21) | op1 | (op2 << 16));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -856,7 +857,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Load.getResult(p).register.number & REG_MASK;
           int op1 = (MIR_Load.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
           int op2 = MIR_Load.getAddress(p).register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1<<2) | (op2 << 16)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1<<2) | (op2 << 16));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -875,7 +876,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
           int op1 = MIR_Store.getOffset(p).asIntConstant().value & SHORT_MASK;
           int op2 = MIR_Store.getAddress(p).register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | op1 | (op2 << 16)));
+          machinecodes[mi++] = (inst | (op0 << 21) | op1 | (op2 << 16));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -890,7 +891,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_StoreUpdate.getValue(p).register.number & REG_MASK;
           int op1 = MIR_StoreUpdate.getAddress(p).register.number & REG_MASK;
           int op2 = MIR_StoreUpdate.getOffset(p).asIntConstant().value & SHORT_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16) | op2));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16) | op2);
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -901,7 +902,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_Store.getValue(p).register.number & REG_MASK;
           int op1 = (MIR_Store.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
           int op2 = MIR_Store.getAddress(p).register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1<<2) | (op2 << 16)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1<<2) | (op2 << 16));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -910,7 +911,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           int op0 = MIR_StoreUpdate.getValue(p).register.number & REG_MASK;
           int op1 = (MIR_StoreUpdate.getOffset(p).asIntConstant().value >> 2) & SHORT14_MASK;
           int op2 = MIR_StoreUpdate.getAddress(p).register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1<<2) | (op2 << 16)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1<<2) | (op2 << 16));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -920,7 +921,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {
           int op0 = MIR_Move.getResult(p).register.number & REG_MASK;
           int op1 = phys.getSPR(MIR_Move.getValue(p).register);
-          machinecodes.set(mi++, (inst | (op0 << 21) | (op1 << 16)));
+          machinecodes[mi++] = (inst | (op0 << 21) | (op1 << 16));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -929,7 +930,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {
           int op0 = phys.getSPR(MIR_Move.getResult(p).register);
           int op1 = MIR_Move.getValue(p).register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 21));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -938,7 +939,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_MFTBU_opcode:
         {
           int op0 = MIR_Move.getResult(p).register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 21)));
+          machinecodes[mi++] = (inst | (op0 << 21));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -946,7 +947,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
       case PPC_SYNC_opcode:
       case PPC_ISYNC_opcode:
         {
-          machinecodes.set(mi++, inst);
+          machinecodes[mi++] = inst;
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -957,7 +958,7 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         {
           int op0 = MIR_CacheOp.getAddress(p).register.number & REG_MASK;
           int op1 = MIR_CacheOp.getOffset(p).register.number & REG_MASK;
-          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 11)));
+          machinecodes[mi++] = (inst | (op0 << 16) | (op1 << 11));
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
         }
         break;
@@ -974,13 +975,13 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
           // add one case for IG_PATCH_POINT
           int targetOffset = resolveBranch(p, target, mi);
 
-          machinecodes.set(mi++, NOPtemplate);
+          machinecodes[mi++] = NOPtemplate;
           p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
 
           if (DEBUG_CODE_PATCH) {
             VM.sysWrite("to be patched at ", mi-1);
             VM.sysWrite(" inst ");
-            VM.sysWriteHex(machinecodes.get(mi-1));
+            VM.sysWriteHex(machinecodes[mi-1]);
             VM.sysWrite("\n");
           }
         }
@@ -997,12 +998,12 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
     
     if (shouldPrint) {
       OPT_Compiler.header("Final machine code", ir.method);
-      for (int i = 0; i < machinecodes.length(); i++) {
+      for (int i = 0; i < machinecodes.length; i++) {
         System.out.print(VM_Services.getHexString(i << LG_INSTRUCTION_WIDTH, true) + 
                          " : " + 
-                         VM_Services.getHexString(machinecodes.get(i), false));
+                         VM_Services.getHexString(machinecodes[i], false));
         System.out.print("  ");
-        System.out.print(disasm(machinecodes.get(i), i << LG_INSTRUCTION_WIDTH));
+        System.out.print(disasm(machinecodes[i], i << LG_INSTRUCTION_WIDTH));
         System.out.println();
       }
     }

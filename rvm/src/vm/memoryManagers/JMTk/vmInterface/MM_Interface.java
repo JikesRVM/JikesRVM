@@ -766,20 +766,18 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
 
 
   /**
-   * Allocate a VM_CodeArray
-   * NOTE: We don't use this at all for Jikes RVM right now.
-   *       It might be useful to think about expanding the interface
-   *       to take hints on the likely hot/coldness of the code and
-   *       other code placement hints.
-   * @param n The number of instructions to allocate
+   * Allocate a VM_CodeArray into a code space,
+   * Currently the interface is fairly primitive;
+   * just the number of instructions in the code array and a boolean
+   * to indicate hot or cold code.
+   * @param numInstrs number of instructions
+   * @param isHot is this a request for hot code space allocation?
    * @return The  array
    */
-  /*
-    public static VM_CodeArray newInstructions(int n)
-     throws InlinePragma, InterruptiblePragma {
-     return VM_CodeArray.create(n);
-   }
-  */
+  public static VM_CodeArray newCode(int numInstrs, boolean isHot)
+    throws InlinePragma, InterruptiblePragma {
+    return VM_CodeArray.create(numInstrs);
+  }
 
   /**
    * Allocate a stack

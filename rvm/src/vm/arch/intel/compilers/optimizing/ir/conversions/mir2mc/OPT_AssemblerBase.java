@@ -33,6 +33,13 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   }
 
   /**
+   * Should code created by this assembler instance be allocated in the
+   * hot code code space? The default answer for opt compiled code is yes
+   * (otherwise why are we opt compiling it?).
+   */
+  protected boolean isHotCode() { return true; }
+
+  /**
    *  Is the given operand an immediate?  In the IA32 assembly, one
    * cannot specify floating-point constants, so the possible
    * immediates we may see are OPT_IntegerConstants and

@@ -284,17 +284,19 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
   }
 
   /**
-   *	Return an array of the generated machine code.	This method
-   * returns a copy of the generated code.
-   *
-   * @return a copy of the generated code.
+   * Should code created by this assembler instance be allocated in the
+   * hot code code space? By default the answer is false (ie, no).
+   */
+  protected boolean isHotCode() { return false; }
+
+  /**
+   * Return a copy of the generated code as a VM_CodeArray.
+   * @return a copy of the generated code as a VM_CodeArray.
    */
   public final VM_CodeArray getMachineCodes () {
-      VM_CodeArray trimmed = VM_CodeArray.create(getMachineCodeIndex());
-      for(int i = 0; i < getMachineCodeIndex(); i++) {
-	  trimmed.set(i, machineCodes[i]);
-      }
-      return trimmed;
+    return VM_CodeArray.Factory.createAndFill(machineCodes, 
+					      getMachineCodeIndex(),
+                                              isHotCode());
   }
     
   /**

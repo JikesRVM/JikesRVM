@@ -7,12 +7,8 @@ package com.ibm.JikesRVM;
 /**
  * @author Dave Grove
  */
-final public class VM_CodeArray {
+public final class VM_CodeArray {
   private byte [] data;
-
-  static public VM_CodeArray create (int size) {
-    return null;
-  }
 
   public byte get (int index) {
     return data[index];
@@ -24,5 +20,13 @@ final public class VM_CodeArray {
 
   public int length() {
     return data.length;
+  }
+
+  public static class Factory {
+    public static VM_CodeArray createAndFill(byte[] code, 
+					     int numInstrs,
+					     boolean isHot) {
+     return null;
+    }
   }
 }
