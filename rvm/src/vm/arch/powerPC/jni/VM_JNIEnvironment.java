@@ -116,7 +116,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   VM_Registers savedContextForTermination;
 
   // temporarily use a fixed size array for JNI refs, later grow as needed
-  static final int JNIREFS_ARRAY_LENGTH = 100;
+  static final int JNIREFS_ARRAY_LENGTH = 400;
 
   // allocate the first dimension of the function array in the boot image so that
   // we have an address pointing to it.  This is necessary for thread creation
