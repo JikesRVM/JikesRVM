@@ -398,7 +398,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
       }
 
       Object newObj = VM_Runtime.quickNewScalar(cls.getInstanceSize(), 
-      						cls.getTypeInformationBlock());
+      						cls.getTypeInformationBlock(),
+						cls.hasFinalizer());
       if (newObj==null)
       	return 0;
       else      

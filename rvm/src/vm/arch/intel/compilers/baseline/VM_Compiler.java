@@ -2296,7 +2296,8 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  int tibOffset = newclass.getOffset();
 	  asm.emitPUSH_Imm(instanceSize);            
 	  asm.emitPUSH_RegDisp (JTOC, tibOffset);        // put tib on stack    
-	  genParameterRegisterLoad(2);           // pass 2 parameter words
+	  asm.emitPUSH_Imm(newclass.hasFinalizer()?1:0); // does the class have a finalizer?
+	  genParameterRegisterLoad(3);                   // pass 3 parameter words
 	  asm.emitCALL_RegDisp (JTOC, VM_Entrypoints.quickNewScalarOffset);
 	  asm.emitPUSH_Reg (T0);
 	} else { // call regular allocator (someday backpatch?)

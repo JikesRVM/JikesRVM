@@ -2699,6 +2699,7 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
 	    asm.emitMTLR(T0);
 	    asm.emitLVAL(T0, instanceSize);
 	    asm.emitLtoc(T1, tibOffset);
+	    asm.emitLVAL(T2, newclass.hasFinalizer()?1:0);
 	    asm.emitCall(spSaveAreaOffset);
 	    asm.emitSTU (T0, -4, SP);
 	  } else { // call regular allocator (someday backpatch?)

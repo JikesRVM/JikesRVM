@@ -79,7 +79,7 @@ class TabooMethods {
     tabooSet.add(VM.getMember("LVM_Runtime;", "newScalar", 
 			      "(I)Ljava/lang/Object;"));
     tabooSet.add(VM.getMember("LVM_Runtime;", "quickNewScalar", 
-			      "(I[Ljava/lang/Object;)Ljava/lang/Object;"));
+			      "(I[Ljava/lang/Object;Z)Ljava/lang/Object;"));
     tabooSet.add(VM.getMember("LVM_Runtime;", "quickNewArray", 
 			      "(II[Ljava/lang/Object;)Ljava/lang/Object;"));
     tabooSet.add(VM.getMember("LVM_Finalizer;", "addElement", "(I)V"));

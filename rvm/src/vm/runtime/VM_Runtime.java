@@ -226,25 +226,6 @@ public class VM_Runtime implements VM_Constants {
   //           (ready for initializer to be run on it)
   // See also: bytecode 0xbb ("new")
   //
-  // Note: It is expected that this version of quickNewScalar may 
-  // be removed once the transition to the new three argument version 
-  // is complete.
-  // Dick, Steve, and Dave are working on reducing opt 
-  // allocation path length.
-  public static Object quickNewScalar(int size, Object[] tib) 
-    throws OutOfMemoryError {
-    boolean hasFinalizer = 
-      VM_Magic.addressAsType(VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(tib))).hasFinalizer();
-    return quickNewScalar(size, tib, hasFinalizer);
-  }
-   
-  // Allocate something like "new Foo()".
-  // Taken:    size of object (including header), in bytes
-  //           type information block for object
-  // Returned: object with header installed and all fields set to zero/null
-  //           (ready for initializer to be run on it)
-  // See also: bytecode 0xbb ("new")
-  //
   static int countDownToGC = 500;
   static final int GCInterval  = 100; // how many GC's in a test interval
   public static Object quickNewScalar(int size, Object[] tib, 

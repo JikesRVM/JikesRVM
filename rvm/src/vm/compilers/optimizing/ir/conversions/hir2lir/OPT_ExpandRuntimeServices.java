@@ -71,14 +71,14 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	      // FIXME: the above doesn't use the finalizer
 	    } else
 	  Call.mutate3(inst, CALL, New.getClearResult(inst), null, 
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewScalarMethodNEW), 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewScalarMethod), 
 		       new OPT_IntConstantOperand(cls.getInstanceSize()),
 		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type), 
 		       hasFinalizer);
 	  } else {
 	  //-#endif
 	  Call.mutate3(inst, CALL, New.getClearResult(inst), null, 
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewScalarMethodNEW), 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewScalarMethod), 
 		       new OPT_IntConstantOperand(cls.getInstanceSize()),
 		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type), 
 		       hasFinalizer);

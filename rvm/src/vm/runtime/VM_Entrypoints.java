@@ -42,9 +42,6 @@ class VM_Entrypoints implements VM_Constants
 
    static VM_Method quickNewScalarMethod;   
    static int       quickNewScalarOffset;   
-
-   static VM_Method quickNewScalarMethodNEW;   
-   static int       quickNewScalarOffsetNEW;   
    
    static VM_Method lockMethod;             
    static int       lockOffset;             
@@ -359,11 +356,8 @@ static int arrayIndexTrapParamOffset;
       m = quickNewArrayMethod = (VM_Method)VM.getMember("LVM_Runtime;", "quickNewArray", "(II[Ljava/lang/Object;)Ljava/lang/Object;");
       quickNewArrayOffset = m.getOffset();
 
-      m = quickNewScalarMethod = (VM_Method)VM.getMember("LVM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;)Ljava/lang/Object;");
+      m = quickNewScalarMethod = (VM_Method)VM.getMember("LVM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;Z)Ljava/lang/Object;");
       quickNewScalarOffset = m.getOffset();
-
-      m = quickNewScalarMethodNEW = (VM_Method)VM.getMember("LVM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;Z)Ljava/lang/Object;");
-      quickNewScalarOffsetNEW = m.getOffset();
 
 //-#if RVM_WITH_GCTk_ALLOC_ADVICE
       m = allocAdviceNewScalarMethod = (VM_Method)VM.getMember("LVM_Runtime;", "newScalar", "(II)Ljava/lang/Object;");
