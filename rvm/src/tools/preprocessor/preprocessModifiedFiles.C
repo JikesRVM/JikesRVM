@@ -1,11 +1,12 @@
-
-//
 // (C) Copyright IBM Corp. 2001, 2003
 //
 // $Id$
 
 // Read the documentation for how this works:
 
+#define _GNU_SOURCE 1		// so we get vsnprintf() guaranteed on gnu libc.
+#define _XOPEN_SOURCE 500	// the most extended version.  GNU explicitly
+				// tests for this being equal to 500.  Fun, eh?
 #include <stdio.h>
 char *Me; // name to appear in error messages
 
