@@ -27,7 +27,6 @@ export BOOTIMAGE_LOAD_ADDRESS=0x30000000
 export MAXIMUM_MAPPABLE_ADDRESS=0xd0000000
 
 # Hardware performance monitor api available in AIX5.1 (bos.pmapi)
-# package needs to be re-installed on munchkin; disabling until that is done
 export RVM_HPM_DIR="/usr/pmapi"
 export RVM_WITH_HPM=1
 
