@@ -219,32 +219,32 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       generateMethodInvocation(asm, spSaveAreaOffset); // call method
       asm.emitSTU(T0, -4, SP);       // push result
     } else if (methodName == VM_MagicNames.addressArrayCreate) {
-	// Do NOT call an auxiliary method for that will obscure the true calling site
-	//   and confound the pickAllocator method's logic
-	//-#if RVM_FOR_32_ADDR
-	VM_Array arrayType = VM_Array.IntArray;
-	//-#elif RVM_FOR_64_ADDR
-	VM_Array arrayType = VM_Array.LongArray;
-	//-#endif
-	compiler.emit_resolved_newarray(arrayType);
+      try {
+	VM_Array type = methodToBeCalled.getType().resolve().asArray();
+	compiler.emit_resolved_newarray(type);
+      } catch (ClassNotFoundException e) {
+	InternalError ex = new InternalError();
+	e.initCause(ex);
+	throw ex;
+      }
     } else if (methodName == VM_MagicNames.addressArrayLength) {
       compiler.emit_arraylength();
     } else if (methodName == VM_MagicNames.addressArrayGet) {
-	//-#if RVM_FOR_32_ADDR
-	compiler.emit_iaload();   
-	//-#elif RVM_FOR_64_ADDR
+      if (VM.BuildFor32Addr) {
+	compiler.emit_iaload();
+      } else if (VM.BuildFor64Addr) {
 	compiler.emit_laload();
-	//-#else
+      } else {
 	VM._assert(NOT_REACHED);
-	//-#endif
+      }
     } else if (methodName == VM_MagicNames.addressArraySet) {
-	//-#if RVM_FOR_32_ADDR
+      if (VM.BuildFor32Addr) {
         compiler.emit_iastore();  
-	//-#elif RVM_FOR_64_ADDR
+      } else if (VM.BuildFor64Addr) {
 	VM._assert(false);  // not implemented
-	//-#else
+      } else {
 	VM._assert(NOT_REACHED);
-	//-#endif
+      }
     } else if (methodName == VM_MagicNames.getIntAtOffset ||
 	       methodName == VM_MagicNames.getObjectAtOffset ||
 	       methodName == VM_MagicNames.getObjectArrayAtOffset) {

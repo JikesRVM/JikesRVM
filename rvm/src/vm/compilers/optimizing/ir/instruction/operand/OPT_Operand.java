@@ -1022,11 +1022,10 @@ public abstract class OPT_Operand {
 
   private static boolean compatiblePrimitives(VM_TypeReference type1, VM_TypeReference type2) {
     if (type1.isIntLikeType() && type2.isIntLikeType()) {
-      if (type1.isIntType() || type1.isWordType()) {
+      if (type1.isIntType()) {
 	return type2.isBooleanType() ||
 	  type2.isByteType() ||
 	  type2.isShortType() ||
-	  type2.isWordType() ||
 	  type2.isIntType();
       }
       if (type1.isShortType()) {

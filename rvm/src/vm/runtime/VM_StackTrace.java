@@ -28,7 +28,7 @@ public class VM_StackTrace implements VM_Constants {
   /**
    * The instruction offsets within those methods.
    */
-  private int[] offsets;
+  private VM_OffsetArray offsets;
   
   /**
    * Create a trace of the current call stack
@@ -37,7 +37,7 @@ public class VM_StackTrace implements VM_Constants {
     // (1) Count the number of frames compirsing the stack.
     int numFrames = walkFrames(false, skip+1);
     compiledMethods = new VM_CompiledMethod[numFrames];
-    offsets = new int[numFrames];
+    offsets = VM_OffsetArray.create(numFrames);
     walkFrames(true, skip+1);
     
     if (verboseTracePeriod > 0) {
@@ -67,7 +67,7 @@ public class VM_StackTrace implements VM_Constants {
 	if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
 	  if (record) {
 	    VM_Address start = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-	    offsets[stackFrameCount] = ip.diff(start).toInt();
+	    offsets.set(stackFrameCount, ip.diff(start));
 	  }
 	  if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
 	    // skip native frames, stopping at last native frame preceeding the
@@ -108,7 +108,7 @@ public class VM_StackTrace implements VM_Constants {
       if (cm == null) {
 	out.println("\tat <invisible method>");
       } else {
-	cm.printStackTrace(VM_Offset.fromInt(offsets[i]), out);
+	cm.printStackTrace(offsets.get(i), out);
       }
     }
   }
@@ -136,7 +136,7 @@ public class VM_StackTrace implements VM_Constants {
       if (cm == null) {
 	out.println("\tat <invisible method>");
       } else {
-	cm.printStackTrace(VM_Offset.fromInt(offsets[i]), out);
+	cm.printStackTrace(offsets.get(i), out);
       }
     }
   }

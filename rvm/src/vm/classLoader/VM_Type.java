@@ -76,10 +76,13 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   public static VM_Class JavaIoSerializableType; 
   public static VM_Type MagicType;             
   public static VM_Type WordType;             
+  public static VM_Type WordArrayType;             
   public static VM_Type AddressType;             
   public static VM_Type AddressArrayType;             
   public static VM_Type OffsetType;             
+  public static VM_Type OffsetArrayType;             
   public static VM_Type ExtentType;             
+  public static VM_Type ExtentArrayType;             
   public static VM_Type InstructionArrayType;             
   public static VM_Type UninterruptibleType;   
   public static VM_Type SynchronizedObjectType;   
@@ -329,7 +332,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
    * @return whether or not this is a primitive type
    */
   public final boolean isPrimitiveType() throws VM_PragmaUninterruptible { 
-    return (dimension < 0) || isWordType();  
+    return dimension < 0;
   }
   /**
    * @return whether or not this is a reference (ie non-primitive) type.
@@ -464,7 +467,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   public final boolean isFloatType() throws VM_PragmaUninterruptible             { return this == FloatType;          }
   public final boolean isDoubleType() throws VM_PragmaUninterruptible            { return this == DoubleType;         }
   public final boolean isCharType() throws VM_PragmaUninterruptible              { return this == CharType;           }
-  public final boolean isIntLikeType() throws VM_PragmaUninterruptible           { return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType() || isWordType(); }
+  public final boolean isIntLikeType() throws VM_PragmaUninterruptible           { return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType(); }
 
   public final boolean isJavaLangObjectType() throws VM_PragmaUninterruptible    { return this == JavaLangObjectType;    }
   public final boolean isJavaLangThrowableType() throws VM_PragmaUninterruptible { return this == JavaLangThrowableType; }
@@ -474,9 +477,12 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
                                                                                           (this == AddressType) ||
 										          (this == ExtentType) || 
 										          (this == OffsetType); }
-  public final boolean isMagicType() throws VM_PragmaUninterruptible             { return isWordType() ||
-										          (this == MagicType) ||
-										          (this == AddressArrayType); }
+  final boolean isWordArrayType() throws VM_PragmaUninterruptible         { return (this == WordArrayType) ||
+                                                                                          (this == AddressArrayType) ||
+										          (this == ExtentArrayType) || 
+										          (this == OffsetArrayType); }
+  public final boolean isMagicType() throws VM_PragmaUninterruptible             { return isWordType() || isWordArrayType() ||
+										     (this == MagicType); }
   public final boolean isUninterruptibleType() throws VM_PragmaUninterruptible   { return this == UninterruptibleType;   }
   public final boolean isSynchronizedObjectType() throws VM_PragmaUninterruptible{ return this == SynchronizedObjectType;   }
   public final boolean isDynamicBridgeType() throws VM_PragmaUninterruptible     { return this == DynamicBridgeType;     }
@@ -548,10 +554,13 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     NativeBridgeType      = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
 							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_NativeBridge;")).resolve();
     WordType = VM_TypeReference.Word.resolve();
+    WordArrayType = VM_TypeReference.WordArray.resolve();
     AddressType = VM_TypeReference.Address.resolve();
     AddressArrayType = VM_TypeReference.AddressArray.resolve();
     OffsetType = VM_TypeReference.Offset.resolve();
+    OffsetArrayType = VM_TypeReference.OffsetArray.resolve();
     ExtentType = VM_TypeReference.Extent.resolve();
+    ExtentArrayType = VM_TypeReference.ExtentArray.resolve();
     
     VM_Array.init();
   }

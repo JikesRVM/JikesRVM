@@ -1677,6 +1677,11 @@ function emitImageLinker
    print "   print '[[I'                              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[B'                              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[[I'                             >> $PRIMORDIAL_CLASSES_STR"
+   # These next arrays are really arrays of primitves to Jikes RVM (even though Java doesn't think they are...)
+   print "   print '[Lcom/ibm/JikesRVM/VM_Address;'   >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Word;'      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Offset;'    >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/VM_Extent;'    >> $PRIMORDIAL_CLASSES_STR"
 
    print "   print '[Lcom/ibm/JikesRVM/classloader/VM_Class;'          >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_UnusualMaps;'                >> $PRIMORDIAL_CLASSES_STR"

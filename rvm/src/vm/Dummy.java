@@ -36,4 +36,7 @@ class Dummy {
   static VM_MultianewarrayHelper    r;
   static VM_Address                 s;
   static VM_Math                    t;
+  static VM_WordArray               x;
+  static VM_OffsetArray             y;
+  static VM_ExtentArray             z;
 }

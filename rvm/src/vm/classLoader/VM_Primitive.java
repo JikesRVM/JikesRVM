@@ -139,9 +139,17 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
       name = VM_Atom.findOrCreateAsciiAtom("double");
       break;
     default:
-      if (VM.VerifyAssertions) VM._assert(false);
-      stackWords = -1;
-      name = null;
+      if (tr == VM_TypeReference.Address ||
+	  tr == VM_TypeReference.Word ||
+	  tr == VM_TypeReference.Offset ||
+	  tr == VM_TypeReference.Extent) {
+	stackWords = BYTES_IN_ADDRESS;
+	name = tr.getName();
+      } else {
+	if (VM.VerifyAssertions) VM._assert(false);
+	stackWords = -1;
+	name = null;
+      }
     }
 
     state = CLASS_INITIALIZED; // primitives have no-op "resolve, instantiate, initialize" phases

@@ -1170,10 +1170,10 @@ implements BootImageWriterConstants {
           if (parentObject != null) {
             Class parentObjectType = parentObject.getClass();
             VM.sysWrite("Copying int array (", 4 * ((int []) jdkObject).length);
-                        VM.sysWriteln(" bytes) from parent object of type ", parentObjectType.toString());
-          }
-          else
+	    VM.sysWriteln(" bytes) from parent object of type ", parentObjectType.toString());
+          } else {
             VM.sysWriteln("Copying int array from no parent object");
+	  }
         }
 
         //
@@ -1277,23 +1277,43 @@ implements BootImageWriterConstants {
             }
         }
       } else {
-        VM_Class rvmScalarType = rvmType.asClass();
-
-	if (rvmScalarType == VM_Type.AddressArrayType) {
-	    if (verbose >= 2) depth--;
-	    VM_AddressArray addrArray = (VM_AddressArray) jdkObject;
-	    Object backing = addrArray.getBacking();
-	    return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
+	if (rvmType == VM_Type.AddressArrayType) {
+	  if (verbose >= 2) depth--;
+	  VM_AddressArray addrArray = (VM_AddressArray) jdkObject;
+	  Object backing = addrArray.getBacking();
+	  return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
 	}
 
-	if (rvmScalarType.isMagicType()) {
-	    VM.sysWriteln("Unhandled copying of magic type: " + rvmScalarType.getDescriptor().toString());
-	    VM.sysFail("incomplete boot image support");
+	if (rvmType == VM_Type.OffsetArrayType) {
+	  if (verbose >= 2) depth--;
+	  VM_OffsetArray addrArray = (VM_OffsetArray) jdkObject;
+	  Object backing = addrArray.getBacking();
+	  return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
+	}
+
+	if (rvmType == VM_Type.WordArrayType) {
+	  if (verbose >= 2) depth--;
+	  VM_WordArray addrArray = (VM_WordArray) jdkObject;
+	  Object backing = addrArray.getBacking();
+	  return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
+	}
+
+	if (rvmType == VM_Type.ExtentArrayType) {
+	  if (verbose >= 2) depth--;
+	  VM_ExtentArray addrArray = (VM_ExtentArray) jdkObject;
+	  Object backing = addrArray.getBacking();
+	  return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
+	}
+
+	if (rvmType.isMagicType()) {
+	  VM.sysWriteln("Unhandled copying of magic type: " + rvmType.getDescriptor().toString());
+	  VM.sysFail("incomplete boot image support");
 	}
 
         //
         // allocate space in image
         //
+        VM_Class rvmScalarType = rvmType.asClass();
         int scalarImageOffset = (overwriteOffset == -1) ? bootImage.allocateScalar(rvmScalarType) : overwriteOffset;
         mapEntry.imageOffset = scalarImageOffset;
 

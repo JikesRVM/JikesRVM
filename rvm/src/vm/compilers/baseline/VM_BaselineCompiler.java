@@ -1545,6 +1545,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
 	    break;
 	  }
 	} 
+
 	if (methodRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokevirtual "+methodRef);
 	  emit_unresolved_invokevirtual(methodRef);
@@ -1695,6 +1696,12 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
 	if (shouldPrint) asm.noteBytecode(biStart, "anewarray new " + arrayRef);
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+arrayRef);
 	
+	if (VM.VerifyAssertions && elementTypeRef.isWordType()) {
+	  VM.sysWriteln("During compilation of "+method+" found a anewarray of "+elementTypeRef);
+	  VM.sysWriteln("You must use the 'create' function to create an array of this type");
+	  VM._assert(false);
+	}
+
 	// We can do early resolution of the array type if the element type 
 	// is already initialized.
 	VM_Array array = (VM_Array)arrayRef.peekResolvedType();
@@ -1745,6 +1752,10 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
 	    if (elemType.isPrimitiveType() || 
 		(elemType.isClassType() && elemType.asClass().isFinal())) {
 	      emit_checkcast_final(type);
+	      break;
+	    }
+	  } else {
+	    if (type.isWordType()) {
 	      break;
 	    }
 	  }

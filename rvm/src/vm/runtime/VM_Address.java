@@ -159,12 +159,8 @@ final public class VM_Address implements VM_Uninterruptible , VM_SizeConstants {
   }
 
   public VM_Word toWord() {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return VM_Word.fromInt(value);
   }
-
-  public int generateHashCode() {
-	 return (int) toInt() >>> LOG_BYTES_IN_ADDRESS;  
-  }
-  
 }
 

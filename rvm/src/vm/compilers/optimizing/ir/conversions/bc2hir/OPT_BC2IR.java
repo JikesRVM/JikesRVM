@@ -282,7 +282,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   // pops the length off the stack
   //
   public OPT_Instruction generateAnewarray (VM_TypeReference elementTypeRef) {
-
     VM_TypeReference array = elementTypeRef.getArrayTypeForElementType();
     OPT_RegisterOperand t = gc.temps.makeTemp(array);
     t.setPreciseType();
@@ -293,19 +292,19 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_Operator op = NEWARRAY_UNRESOLVED;
     OPT_TypeOperand arrayOp = makeTypeOperand(array);
     if (arrayType != null) {
-	if (!(arrayType.isInitialized() || arrayType.isInBootImage())) {
-	    VM_Type elementType = elementTypeRef.peekResolvedType();
-	    if (elementType != null) {
-		if (elementType.isInitialized() || elementType.isInBootImage()) {
-		    arrayType.resolve();
-		    arrayType.instantiate();
-		}
-	    }
+      if (!(arrayType.isInitialized() || arrayType.isInBootImage())) {
+	VM_Type elementType = elementTypeRef.peekResolvedType();
+	if (elementType != null) {
+	  if (elementType.isInitialized() || elementType.isInBootImage()) {
+	    arrayType.resolve();
+	    arrayType.instantiate();
+	  }
 	}
-	if (arrayType.isInitialized()) {
-	    op = NEWARRAY;
-	    arrayOp = makeTypeOperand(arrayType);
-	}
+      }
+      if (arrayType.isInitialized()) {
+	op = NEWARRAY;
+	arrayOp = makeTypeOperand(arrayType);
+      }
     }
     OPT_Instruction s = NewArray.create(op, t, arrayOp, popInt());
     push(t.copyD2U()); 
@@ -2022,6 +2021,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  VM_TypeReference typeRef = bcodes.getTypeReference();
 	  boolean classLoading = couldCauseClassLoading(typeRef);
 	  OPT_Operand op2 = pop();
+	  if (typeRef.isWordType()) {
+	    op2 = op2.copy();
+	    if (op2 instanceof OPT_RegisterOperand) {
+	      ((OPT_RegisterOperand)op2).type = typeRef;
+	    }
+	    push(op2);
+	    if (DBG_CF) db("skipped gen of checkcast to word type "+typeRef);
+	    break;
+	  }
 	  if (VM.VerifyAssertions) VM._assert(op2.isRef());
 	  if (CF_CHECKCAST && !classLoading) {
 	    if (op2.isDefinitelyNull()) {
@@ -3215,9 +3223,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param childType child type
    */
   private void assertIsAssignable(VM_TypeReference parentType, VM_TypeReference childType) {
-    if (VM.VerifyAssertions)
-	if (OPT_ClassLoaderProxy.includesType(parentType, childType) == NO)
-	    VM._assert(false, parentType + " not assignable with " + childType);
+    if (VM.VerifyAssertions) {
+      if (OPT_ClassLoaderProxy.includesType(parentType, childType) == NO) {
+	VM.sysWriteln("type reference equality "+ (parentType == childType));
+	VM._assert(false, parentType + " not assignable with " + childType);
+      }
+    }
   }
 
   //// DEBUGGING.

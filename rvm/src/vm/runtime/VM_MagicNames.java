@@ -155,7 +155,7 @@ public class VM_MagicNames {
   public static final VM_Atom wordNot                       = VM_Atom.findOrCreateAsciiAtom("not");
   public static final VM_Atom wordXor                       = VM_Atom.findOrCreateAsciiAtom("xor");
 
-  // atoms related to VM_AddressArray
+  // atoms related to VM_WordArray, VM_AddressArray, VM_OffsetArray, VM_ExtentArray
   public static final VM_Atom addressArrayCreate            = VM_Atom.findOrCreateAsciiAtom("create");
   public static final VM_Atom addressArrayLength            = VM_Atom.findOrCreateAsciiAtom("length");
   public static final VM_Atom addressArrayGet               = VM_Atom.findOrCreateAsciiAtom("get");

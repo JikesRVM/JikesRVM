@@ -24,10 +24,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
   public static VM_TypeReference findCommonSuperclass (VM_TypeReference t1, VM_TypeReference t2) {
     if (t1 == t2)
       return t1;
-    if (t1.isPrimitiveType() && t2.isPrimitiveType()) {
+    if (t1.isPrimitiveType() || t2.isPrimitiveType()) {
       if (t1.isIntLikeType() && t2.isIntLikeType()) {
-        if (t1.isWordType() || t2.isWordType())
-          return VM_TypeReference.Address;
         if (t1.isIntType() || t2.isIntType())
           return VM_TypeReference.Int;
         if (t1.isCharType() || t2.isCharType())
@@ -39,9 +37,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
       }
       return null;
     }
-    if (!((t1.isReferenceType() || t1.isWordType()) && 
-          (t2.isReferenceType() || t2.isWordType())))
-      return null;
+
     // can these next two cases happen?
     if (t1 == VM_TypeReference.NULL_TYPE)
       return t2;
@@ -59,10 +55,17 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
     // at this point, they are not both array types.
     // if one is a primitive, then we want an object array of one less
     // dimensionality
-    if (t1.isPrimitiveType() || t1.isPrimitiveType()) {
-      if (VM.VerifyAssertions)
-        VM._assert(t1 != t2);
+    if (t1.isPrimitiveType() || t2.isPrimitiveType()) {
       VM_TypeReference type = VM_TypeReference.JavaLangObject;
+      if (t1 == t2) { 
+	// Kludge around the fact that we have two names for VM_AddressArray
+	if (t1.isWordType()) {
+	  arrayDimensions++;
+	  type = t1;
+	} else {
+	  if (VM.VerifyAssertions) VM._assert(false);
+	}
+      }
       --arrayDimensions;
       while (arrayDimensions-- > 0)
         type = type.getArrayTypeForElementType();

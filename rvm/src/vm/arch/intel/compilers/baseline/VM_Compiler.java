@@ -3355,42 +3355,41 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
 
     if (methodName == VM_MagicNames.addressArrayCreate) {
-	// Do NOT call an auxiliary method for that will obscure the true calling site
-	//   and confound the pickAllocator method's logic
-	//-#if RVM_FOR_32_ADDR
-	VM_Array arrayType = VM_Array.IntArray;
-	//-#elif RVM_FOR_64_ADDR
-	VM_Array arrayType = VM_Array.LongArray;
-	//-#endif
-	emit_resolved_newarray(arrayType);
-	return true;
+      try {
+	emit_resolved_newarray(m.getType().resolve().asArray());
+      } catch (ClassNotFoundException e) {
+	InternalError ex = new InternalError();
+	e.initCause(ex);
+	throw ex;
+      }
+      return true;
     }
 
     if (methodName == VM_MagicNames.addressArrayLength) {
-	emit_arraylength();  // argument order already correct
-	return true;
+      emit_arraylength();  // argument order already correct
+      return true;
     }
 
     if (methodName == VM_MagicNames.addressArrayGet) {
-	//-#if RVM_FOR_32_ADDR
+      if (VM.BuildFor32Addr) {
 	emit_iaload();   
-	//-#elif RVM_FOR_64_ADDR
+      } else if (VM.BuildFor64Addr) {
 	emit_laload();
-	//-#else
+      } else {
 	VM._assert(NOT_REACHED);
-	//-#endif
-	return true;
+      }
+      return true;
     }
 
     if (methodName == VM_MagicNames.addressArraySet) {
-	//-#if RVM_FOR_32_ADDR
+      if (VM.BuildFor32Addr) {
 	emit_iastore();  
-	//-#elif RVM_FOR_64_ADDR
+      } else if (VM.BuildFor64Addr) {
 	VM._assert(false);  // not implemented
-	//-#else
+      } else {
 	VM._assert(NOT_REACHED);
-	//-#endif
-	return true;
+      }
+      return true;
     }
 
     if (methodName == VM_MagicNames.getMemoryInt ||

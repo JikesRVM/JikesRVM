@@ -65,7 +65,10 @@ public class VM_TypeReference implements VM_SizeConstants{
   public static final VM_TypeReference Address = findOrCreate("Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_TypeReference Offset  = findOrCreate("Lcom/ibm/JikesRVM/VM_Offset;");
   public static final VM_TypeReference Extent  = findOrCreate("Lcom/ibm/JikesRVM/VM_Extent;");
+  public static final VM_TypeReference WordArray = findOrCreate("Lcom/ibm/JikesRVM/VM_WordArray;");
   public static final VM_TypeReference AddressArray = findOrCreate("Lcom/ibm/JikesRVM/VM_AddressArray;");
+  public static final VM_TypeReference OffsetArray = findOrCreate("Lcom/ibm/JikesRVM/VM_OffsetArray;");
+  public static final VM_TypeReference ExtentArray = findOrCreate("Lcom/ibm/JikesRVM/VM_ExtentArray;");
   public static final VM_TypeReference Magic   = findOrCreate("Lcom/ibm/JikesRVM/VM_Magic;");
 
   public static final VM_TypeReference JavaLangObject = findOrCreate("Ljava/lang/Object;");
@@ -205,7 +208,22 @@ public class VM_TypeReference implements VM_SizeConstants{
    */
   public final VM_TypeReference getArrayElementType() {
     if (VM.VerifyAssertions) VM._assert(isArrayType());
-    return findOrCreate(classloader, name.parseForArrayElementDescriptor());
+    if (isWordArrayType()) {
+      if (this == AddressArray) {
+	return Address;
+      } else if (this == WordArray) {
+	return Word;
+      } else if (this == OffsetArray) {
+	return Offset;
+      } else if (this == ExtentArray) {
+	return Extent;
+      } else {
+	if (VM.VerifyAssertions) VM._assert(false, "Unexpected case of Magic arrays!");
+	return null;
+      }
+    } else {
+      return findOrCreate(classloader, name.parseForArrayElementDescriptor());
+    }
   }
 
   /**
@@ -223,7 +241,13 @@ public class VM_TypeReference implements VM_SizeConstants{
    */
   public final int getDimensionality() {
     if (isArrayType()) {
-      return name.parseForArrayDimensionality();
+      if (isWordArrayType()) {
+	return 1;
+      } else {
+	return name.parseForArrayDimensionality();
+      }
+    } else if (isWordType()) {
+      return -1;
     } else if (isClassType()) {
       return 0;
     } else {
@@ -235,30 +259,32 @@ public class VM_TypeReference implements VM_SizeConstants{
    * Return the innermost element type reference for an array
    */
   public final VM_TypeReference getInnermostElementType() {
-    return findOrCreate(classloader, name.parseForInnermostArrayElementDescriptor());
+    if (isWordArrayType()) {
+      return getArrayElementType();
+    } else {
+      return findOrCreate(classloader, name.parseForInnermostArrayElementDescriptor());
+    }
   }
 
   /**
    * Does 'this' refer to a class?
    */ 
   public final boolean isClassType() throws VM_PragmaUninterruptible {
-    return name.isClassDescriptor();
+    return name.isClassDescriptor() && !isWordArrayType() && !isWordType();
   }
       
   /**
    * Does 'this' refer to an array?
    */ 
   public final boolean isArrayType() throws VM_PragmaUninterruptible {
-    return name.isArrayDescriptor();
+    return name.isArrayDescriptor() || isWordArrayType();
   }
 
   /**
    * Does 'this' refer to a primitive type
    */
   public final boolean isPrimitiveType() throws VM_PragmaUninterruptible {
-    if (isArrayType()) return false;
-    if (isClassType()) return isWordType();
-    return true;
+    return !(isArrayType() || isClassType());
   }
 
   /**
@@ -269,17 +295,24 @@ public class VM_TypeReference implements VM_SizeConstants{
   }
 
   /**
-   * Does 'this' refer to VM_Word, VM_Address, or VM_Offset
+   * Does 'this' refer to VM_Word, VM_Address, VM_Offset or VM_Extent
    */
   public final boolean isWordType() throws VM_PragmaUninterruptible {
     return this == Word || this == Offset || this == Address || this == Extent;
   }
 
   /**
+   * Does 'this' refer to VM_WordArray, VM_AddressArray, VM_OffsetArray or VM_ExtentArray
+   */
+  final boolean isWordArrayType() throws VM_PragmaUninterruptible {
+    return this == WordArray || this == OffsetArray || this == AddressArray || this == ExtentArray;
+  }
+
+  /**
    * Does 'this' refer to VM_Magic?
    */
   public final boolean isMagicType() {
-    return this == Magic || this == AddressArray || isWordType();
+    return this == Magic || isWordType() || isWordArrayType();
   }
 
   /**
@@ -363,8 +396,8 @@ public class VM_TypeReference implements VM_SizeConstants{
    * Is this the type reference for an int-like (8,16, or 32 bit integeral) primitive type?
    */
   public final boolean isIntLikeType() throws VM_PragmaUninterruptible { 
-    return isBooleanType() || isByteType() || isCharType() || isShortType() || isIntType()
-		 || isWordType() ; // TODO: for 64 bit : BOGUS
+    return isBooleanType() || isByteType() || isCharType() 
+      || isShortType() || isIntType();
   } 
 
   /**
@@ -435,15 +468,21 @@ public class VM_TypeReference implements VM_SizeConstants{
       if (VM.VerifyAssertions) VM._assert(resolvedType == null || resolvedType == ans);
       resolvedType = ans;
     } else if (isArrayType()) {
-      VM_Type elementType = getArrayElementType().resolve();
-      if (elementType.getClassLoader() != classloader) {
-	// We aren't the cannonical type reference because the element type
-	// was loaded using a different classloader. 
-	// Find the cannonical type reference and ask it to resolve itself.
-	VM_TypeReference cannonical = VM_TypeReference.findOrCreate(elementType.getClassLoader(), name);
-	resolvedType = cannonical.resolve();
+      if (isWordArrayType()) {
+	// Ensure that we only create one VM_Array object for each pair of names for this type.
+	// Do this by resolving VM_AddressArray to [VM_Addresss
+	resolvedType = getArrayElementType().getArrayTypeForElementType().resolve();
       } else {
-	resolvedType = new VM_Array(this, elementType);
+	VM_Type elementType = getArrayElementType().resolve();
+	if (elementType.getClassLoader() != classloader) {
+	  // We aren't the cannonical type reference because the element type
+	  // was loaded using a different classloader. 
+	  // Find the cannonical type reference and ask it to resolve itself.
+	  VM_TypeReference cannonical = VM_TypeReference.findOrCreate(elementType.getClassLoader(), name);
+	  resolvedType = cannonical.resolve();
+	} else {
+	  resolvedType = new VM_Array(this, elementType);
+	}
       }
     } else {
       resolvedType = new VM_Primitive(this);

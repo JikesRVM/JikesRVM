@@ -214,7 +214,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     VM_Memory.aligned32Copy(toAddress, fromAddress, numBytes); 
     Object toObj = VM_Magic.addressAsObject(toAddress.sub(objectEndOffset));
     if (hashState == HASH_STATE_HASHED) {
-      VM_Magic.setIntAtOffset(toObj, HASHCODE_SCALAR_OFFSET, VM_Magic.objectAsAddress(fromObj).generateHashCode());
+      int hashCode = VM_Magic.objectAsAddress(fromObj).toInt() >>> LOG_BYTES_IN_ADDRESS;  
+      VM_Magic.setIntAtOffset(toObj, HASHCODE_SCALAR_OFFSET, hashCode);
       VM_Magic.setIntAtOffset(toObj, STATUS_OFFSET, availBitsWord | HASH_STATE_HASHED_AND_MOVED);
       if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition2++;
     } else {
@@ -240,7 +241,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     VM_Memory.aligned32Copy(toAddress, fromAddress, numBytes); 
     Object toObj = VM_Magic.addressAsObject(toAddress.add(headersizeAligned));
     if (hashState == HASH_STATE_HASHED) {
-      VM_Magic.setIntAtOffset(toObj, HASHCODE_ARRAY_OFFSET, VM_Magic.objectAsAddress(fromObj).generateHashCode());
+      int hashCode = VM_Magic.objectAsAddress(fromObj).toInt() >>> LOG_BYTES_IN_ADDRESS;  
+      VM_Magic.setIntAtOffset(toObj, HASHCODE_ARRAY_OFFSET, hashCode);
       VM_Magic.setIntAtOffset(toObj, STATUS_OFFSET, availBitsWord | HASH_STATE_HASHED_AND_MOVED);
       if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition2++;
     } else {
@@ -257,7 +259,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
       if (VM_Interface.MOVES_OBJECTS) {
 	int hashState = VM_Magic.getIntAtOffset(o, STATUS_OFFSET) & HASH_STATE_MASK;
 	if (hashState == HASH_STATE_HASHED) {
-	  return VM_Magic.objectAsAddress(o).generateHashCode();
+	  return VM_Magic.objectAsAddress(o).toInt() >>> LOG_BYTES_IN_ADDRESS;  
 	} else if (hashState == HASH_STATE_HASHED_AND_MOVED) {
 	  VM_Type t = VM_Magic.getObjectType(o);
 	  if (t.isArrayType()) {
@@ -274,7 +276,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 	  return getObjectHashCode(o);
 	}
       } else {
-	return VM_Magic.objectAsAddress(o).generateHashCode();
+	return VM_Magic.objectAsAddress(o).toInt() >>> LOG_BYTES_IN_ADDRESS;  
       }
     } else { // 10 bit hash code in status word
       int hashCode = (VM_Magic.getIntAtOffset(o, STATUS_OFFSET) & HASH_CODE_MASK) >> HASH_CODE_SHIFT;

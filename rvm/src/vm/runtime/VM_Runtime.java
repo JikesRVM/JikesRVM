@@ -187,9 +187,6 @@ public class VM_Runtime implements VM_Constants {
     if (elmType == VM_Type.JavaLangObjectType) 
       return; // array of Object can receive anything
 
-    if (elmType == VM_Type.AddressType)
-      return; // array of Address can receive anything that was verifiable
-      
     VM_Type rhsType = VM_Magic.getObjectType(arrayElement);
      
     if (elmType == rhsType)

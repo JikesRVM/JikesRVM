@@ -168,10 +168,6 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     super(typeRef);
     depth = 1;
     this.elementType = elementType;
-    if (VM.VerifyAssertions && elementType.isWordType()) {
-      VM.sysWriteln("\nDo not create arrays of VM_Address, VM_Word, VM_Offset, or other special primitive types.\n  Use an int array or long array for now and use casts.");
-      VM._assert(false);
-    }
     if (elementType.isArrayType()) {
       innermostElementType = elementType.asArray().getInnermostElementType();
     } else {
