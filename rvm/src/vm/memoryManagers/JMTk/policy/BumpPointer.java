@@ -97,14 +97,26 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
   final private VM_Address allocSlowPath(EXTENT bytes) throws VM_PragmaNoInline { 
     int chunkSize = ((bytes + CHUNK_SIZE - 1) >>> LOG_CHUNK_SIZE) << LOG_CHUNK_SIZE;
     VM_Address start = VM_Address.zero();
-    while (start.isZero()) {
+    for (int i=0; ; i++) {
       start = vmResource.acquire(Conversions.bytesToPages(chunkSize));
-      if (Plan.verbose > 5) VM.sysWriteln("BumpPointer.allocSlowPath acquired ", start);
+      if (!start.isZero()) break;
+      if (i > MAX_RETRY) {
+	   VM.sysWriteln("memoryResource committed = ", vmResource.memoryResource.committedPages());
+	   VM.sysWriteln("memoryResource reserved  = ", vmResource.memoryResource.reservedPages());
+	   VM.sysWriteln("vmresource.getPages         = ", vmResource.getPages());
+	   VM.sysWriteln("vmresource.usedPages         = ", vmResource.getUsedPages());
+	VM.sysWriteln("BumpPointer.allocSlowPath exceeded max retry ", MAX_RETRY);
+	VM.sysFail("Out of Memory - inconsistent with memory resource or vm range too small?");
+      }
+    }
+    if (Plan.verbose > 5) {
+      VM.sysWrite("BumpPointer.allocSlowPath acquired ", start);
+      VM.sysWriteln(" to ", start.add(chunkSize));
     }
     bp = start.add(bytes);
     if (useLimit)
       limit = start.add(chunkSize);
-    if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(start, bytes));
+    if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(start, chunkSize));
     return start;
   }
 
@@ -133,4 +145,5 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
   private static final VM_Address INITIAL_BP_VALUE = VM_Address.fromInt(TRIGGER);
   private static final VM_Address INITIAL_LIMIT_VALUE = VM_Address.fromInt(TRIGGER);
   private static final boolean useLimit = true;
+  private static final int MAX_RETRY = 3;
 }
