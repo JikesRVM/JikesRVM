@@ -254,7 +254,12 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 	    VM.sysWriteln("                           reserved (kb) = ", (int) (Plan.reservedMemory() / 1024));
 	    VM.sysWriteln("                           total    (Kb) = ", (int) (Plan.totalMemory() / 1024));
 	  }
-	  throw (new OutOfMemoryError());
+	  if (VM.debugOOM || Plan.verbose >= 5)
+	    VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
+	  OutOfMemoryError oome = new OutOfMemoryError();
+	  if (VM.debugOOM || Plan.verbose >= 5)
+	    VM.sysWriteln("triggerCollection(): Allocated the new OutOfMemoryError().");
+	  throw oome;
 	}
 	ReferenceProcessor.setClearSoftReferences(true); // clear all possible reference objects
 	triggerCollection(INTERNALLY_TRIGGERED);
