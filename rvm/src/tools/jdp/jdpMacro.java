@@ -45,6 +45,16 @@ public class jdpMacro extends SourceSnapshot {
       // parse line into words
       //
       String str = new String(super.getSourceLine(name, curr_line));
+      while (str.startsWith("#")) {
+	if (curr_line==super.getLineCount()) {
+	  super.resetBuffer();
+	  return false;
+	} else {
+	  curr_line++;
+	  str = new String(super.getSourceLine(name, curr_line));
+	}
+      }
+
       Vector vec = new Vector();
       for (;;)  {
 	while (str.startsWith(" "))
