@@ -61,11 +61,12 @@ fi
 # Stop immediately if any programs we call return errors.
 #
 ## Check if the command does not support the ERR trap.
+CLEANUP=":"
 unset xited || :
 if trap -- 'xited=$? finalarg=$_; set +vx; echo >&2 "$ME: some command we just ran (probably with a
       final argument of \"$finalarg\") exited with status $xited, possibly in source
       file line # $LINENO ${FUNCNAME+'"'"'and function '"'"'}$FUNCNAME
-      I give up; aborting execution."; trap "echo >&2 \"Exiting due to an error\"" EXIT' ERR
+      I give up; aborting execution."; trap "echo >&2 \"Exiting due to an error\"" EXIT; eval $CLEANUP' ERR
 then
     have_err_trap=yes
 else
@@ -78,7 +79,7 @@ fi
 
 trap -- 'echo >&2 "$ME: We are exiting due to an error; the triggering exit status was ${xited:-$?}.
    possibly in source file line # $LINENO and function $FUNCNAME
-"' EXIT
+"; eval $CLEANUP' EXIT
 set -e;
 
 function croak_nonusage () {
@@ -392,6 +393,7 @@ declare -i RVM_WITH_OSR=0
 # These have preprocessor "//-#if" conditional directives that 
 # test against them.   If we put the preprocessor into paranoid mode, it
 # complains about any tests against undefined conditionals.
+# Search for "BUILD_WITH_PARANOID_PREPROCESSOR" below and way below.
 declare -i RVM_WITHOUT_LOAD_BALANCING=0	# default in VM_IdleThread.java
 declare -i RVM_WITH_FREE_LOCK_BALANCING=0	# In VM_Lock.java
 declare -i RVM_WITH_TENTATIVE_MICROLOCKING=0	
@@ -399,6 +401,9 @@ declare -i RVM_FOR_MCS_PROCESSOR_LOCKS=0
 declare -i RVM_WITH_VARIABLE_LOCK_RETRY_LIMIT=0
 declare -i RVM_WITH_LOCK_CONTENTION_TRACING=0
 declare -i RVM_WITH_DEBUG=0
+
+## Just affects the build process
+declare -i BUILD_WITH_PARANOID_PREPROCESSOR=0
 
 #---------------------------------------#
 # SECTION 3 - PROCESS RVM_TARGET_CONFIG # 
@@ -458,13 +463,12 @@ do
     shift
 done
 
+(( $# >= 1 )) || croak_usage "Please specify <configuration-name>"
 CONFIGURATION_NAME="$1"
 shift
 
 (( $# == 0 )) || croak_usage "Too many arguments; specify only one <configuration-name>."
 
-
-[[ "${CONFIGURATION_NAME}" ]] || croak_usage "Please specify <configuration-name>"
 
 if [[ -f "${CONFIGURATION_FILE_SOURCE}/${CONFIGURATION_NAME}" ]]; then
     . "${CONFIGURATION_FILE_SOURCE}/${CONFIGURATION_NAME}" "${CONFIGURATION_FILE_SOURCE}"
@@ -495,25 +499,30 @@ fi
 #    RVM_WITH_xxx --> -DRVM_WITH_xxx
 #    RVM_WITHOUT_xxx --> -DRVM_WITH_xxx
 #
-## To find out which programmable conditions are still alive, 
-## look at rvm/GNUmakefile, the 'conditionals' target. 
+## To find out which programmable conditions are still alive (i.e., which ones
+## are currently in use in the program source code), look at 
+## rvm/GNUmakefile, the 'conditionals' target.  
+## The BUILD_WITH_PARANOID_PREPROCESSOR directive affects this.
 PREPROCESSOR_DEFINITIONS="-DBOOTIMAGE_LOAD_ADDRESS=${BOOTIMAGE_LOAD_ADDRESS}"
 PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS}
 -DMAXIMUM_MAPPABLE_ADDRESS=${MAXIMUM_MAPPABLE_ADDRESS}"
+CLEANUP='/bin/rm -f $tmpf'	# used by EXIT trap.
 tmpf=/tmp/jconfigure.$$
 set | sed -n -e 's/^RVM_FOR_/-DRVM_FOR_/p' \
 		-e 's/^RVM_WITH_/-DRVM_WITH_/p'			\
 		-e 's/RVM_WITHOUT_/-DRVM_WITHOUT_/p' > $tmpf
-if :; then
+if (( BUILD_WITH_PARANOID_PREPROCESSOR )); then
+    from_vars="$(< $tmpf)"
+else
     ## To cut down on the number of definitions that appear in our generated
-    ## code, if we are not compiling with the strict preprocessor flags 
+    ## code, if we are not compiling with the paranoid preprocessor flags 
     ## enabled, we can remove all of the ones which just set to 
     ## the default value (zero) 
     from_vars="$(sed -e '/=0/d' $tmpf)"
-else
-    from_vars="$(< $tmpf)"
 fi
-rm -f $tmpf
+eval $CLEANUP
+# rm -f $tmpf
+CLEANUP=":"
 # echo "from_vars are $from_vars"
 PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS}
 ${from_vars}"
@@ -774,15 +783,13 @@ function emitBoilerplate () {
 	ME="${0##*/}"
 	EOF
     emit_enable_exit_on_error
-    cat <<- 'EOF'
 	# tracing() takes 0 or 1 arguments.
 	# The trace argument can be:
 	# -trace		 (gets most things but for some of the bootimagewriter)
 	# -trace=ant		# Just ant is of interest
 	# -trace=jbuild		# high-level
 	# 
-	# was: -trace, -trace=no-all, or: -trace=no-BootImageWriter,
-	# Converted to:
+	# This is then converted to:
 	# TRACE_FLAG: (empty)  # only if nothing was said
 	# TRACE_FLAG: ,no-all,
 	# TRACE_FLAG: ,-trace,
@@ -790,9 +797,11 @@ function emitBoilerplate () {
 	# preprocessor,make,BootImageWriter,ant,jbuild
 	# As well as the groups:
 	# most,all
+	# See the help message in "jbuild -help" for more info.
 
 	# Returns true (exit 0) if we are tracing
 	# Returns false (exit 1) if we are not.
+    cat <<- 'EOF'
 	function tracing() {
 	    [[ $TRACE_FLAG ]] || return 1
 
@@ -1170,21 +1179,21 @@ function emitController () {
 		    "
 		echo >&2 \
 		"    -v, -x: Turn on the -v and/or -x debugging flags in the subshells we spawn.
-		     -nobooter: avoid building the booter (when, for example, running on the AIX
+		    -nobooter: avoid building the booter (when, for example, running on the AIX
 		          side of an AIX/Linux cross-compilation)
 
-		     -booter:  build only the booter (when, for example, running on 
+		    -booter:  build only the booter (when, for example, running on 
 		          the Linux side of an AIX cross-build to Linux)
 
-		      -nolink:  avoid unnecessarily rebuilding the bootimage (when, for example,
+		    -nolink:  avoid unnecessarily rebuilding the bootimage (when, for example,
 		          you've only modified classes that are dynamically loaded and which
 		          are not part of the bootimage)
 
-		      -recompile:  force recompilation of all classes (when, for example, 
+		    -recompile:  force recompilation of all classes (when, for example, 
 		          you've modified a global constant or have added/removed
 		           fields/methods from a class)
 
-		      -clean:  restore the build directory to its original \"unbuilt\" state"
+		    -clean:  restore the build directory to its original \"unbuilt\" state"
 		trap '' EXIT
 	        exit 33
 	    fi
@@ -1394,6 +1403,9 @@ fi
 #
 # echo >&2  "HERE I AM! emitCopier" # DBG
 function emitCopier () {
+    if (( BUILD_WITH_PARANOID_PREPROCESSOR )); then
+	PARANOID_PREPROCESSOR_FLAG=" --no-undefined-constants-in-conditions"
+    fi
     cat <<- EOF
 	#! /bin/bash
 	# Copy or preprocess VM Java files from the source tree to 
@@ -1459,10 +1471,9 @@ function emitCopier () {
 
 	# Update from directories containing sources that implement the virtual machine.
 	#
+	PREPROC_FLAGS="--only-boolean-constants-in-conditions ${PARANOID_PREPROCESSOR_FLAG}"
 	if tracing preprocessor; then
-	    PREPROC_TRACE_FLAG=-trace
-	else
-	    PREPROC_TRACE_FLAG=
+	    PREPROC_FLAGS="-trace \$PREPROC_FLAGS"
 	fi
 	for d in \$(< ${SOURCE_LIST_STR} ); do
 	    if tracing preprocessor; then
@@ -1483,7 +1494,7 @@ EOF
 	    ## So, all the non-zero return values get mapped to 123, and we 
 	    ## want to distinguish 1 (OK) 
 	    ## from other non-zero return values (trouble).
-	    # echo \$FILES | \$XARGS -r ${BUILD_DIRECTORY_STR}/jbuild.prep \${PREPROC_TRACE_FLAG} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} 
+	    # echo \$FILES | \$XARGS -r ${BUILD_DIRECTORY_STR}/jbuild.prep \${PREPROC_FLAGS} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} 
 
 	    if [[ ! \$FILES ]]; then
 	        continue;
@@ -1631,7 +1642,7 @@ EOF
 	    rm -f $TOP_LEVEL_CLASSES
 	    jikes_invocation="$HOST_JIKES_STR -nowarn -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
 	    $(emit_disable_exit_on_error)
-	    if $HOST_JIKES_STR -nowarn -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES; then
+	    if \${jikes_invocation}; then
 		echo -n '(classes compiled) '
 	    else
 		status=\$?
@@ -2624,7 +2635,8 @@ function emitBooterLinker () {
     fi
 }
 
-# Emit script to generate .class files for vm tools that are not part of the build.
+# Emit script to generate .class files for vm tools that are not part of 
+# the build.   This becomes jbuild.tool
 #
 # echo >&2  "HERE I AM! emitToolCompiler" # DBG
 function emitToolCompiler () {
@@ -2648,15 +2660,15 @@ function emitToolCompiler () {
     echo '    exit' $Exit_Status_Bad_Args
     echo 'fi'
 
-    echo 'if [[ '${HOST_JIKES_STR}' = "" ]]; then'
-    echo '    echo >&2 "${ME}: please set your' ${HOST_JIKES_STR1} 'environment variable"'
+    echo 'if [[ '${HOST_JAVAC_STR}' = "" ]]; then'
+    echo '    echo >&2 "${ME}: please set your' ${HOST_JAVAC_STR1} 'environment variable"'
     echo '    trap "" EXIT'
     echo '    exit' $Exit_Status_Bad_Args
     echo 'fi'
 
     echo 'unset EXTRA_CPATH TRACE_FLAG XFLAG VFLAG || :'
     echo 'while :; do'
-    echo '    arg="\$1"'
+    echo '    arg="$1"'
     echo '    [[ $arg != -- ]] || { shift ; break; }'
     echo '    [[ \$arg != --?* ]] || arg="\${arg#-}"'
     echo "    if [[ \$arg = -classpath ]]; then"
@@ -2673,7 +2685,7 @@ function emitToolCompiler () {
     echo '    elif [[ $arg == -trace* ]]; then'
     echo '        TRACE_FLAG=$arg'
     echo '        shift'
-    echo '    elif [[ $arg == -* ]]'
+    echo '    elif [[ $arg == -* ]]; then'
     echo '        echo >&2 "${ME}: Unknown argument: $arg"'
     echo '	  exit 33'
     echo '    else'
@@ -2683,11 +2695,9 @@ function emitToolCompiler () {
     echo ""    
     echo "CPATH=\${EXTRA_CPATH-.}:${BUILD_DIRECTORY_STR}/RVM.classes:${BUILD_DIRECTORY_STR}/RVM.classes/rvmrt.jar"
     echo "! tracing jbuild || XFLAG=-x"
-#    echo "[[ \$VFLAG ]] || VFLAG=+v"
-#    echo "[[ \$XFLAG ]] || XFLAG=+x"
     echo "[ ! \"\$VFLAG\$XFLAG\" ] || set \$VFLAG \$XFLAG"
     echo ""
-    echo "$HOST_JAVAC_STR -nowarn -g -classpath \"\$CPATH\" -bootclasspath \"\$CPATH\" \"\$@\""
+    echo "exec $HOST_JAVAC_STR -nowarn -g -classpath \"\$CPATH\" -bootclasspath \"\$CPATH\" \"\$@\""
 }
   
 # Emit script to run jbuild.prep on java files that are not part of the build
