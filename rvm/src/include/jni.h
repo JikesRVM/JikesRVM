@@ -737,6 +737,7 @@ struct JavaVM_ {
 #endif
 };
 
+/* Jikes RVM needs to implement these: */
 jint JNICALL JNI_GetDefaultJavaVMInitArgs(void *);
 jint JNICALL JNI_CreateJavaVM(JavaVM **, JNIEnv **, void *);
 jint JNICALL JNI_GetCreatedJavaVMs(JavaVM **, jsize, jsize *);

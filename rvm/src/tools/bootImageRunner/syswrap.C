@@ -404,6 +404,7 @@ GetEnv(JavaVM UNUSED *vm, void **penv, jint version)
     return JNI_OK;
 }
 
+/** JNI 1.4 */
 jint 
 AttachCurrentThreadAsDaemon(JavaVM UNUSED * vm, JNIEnv UNUSED ** penv, /* JavaVMAttachArgs */ void UNUSED *args) 
 {
