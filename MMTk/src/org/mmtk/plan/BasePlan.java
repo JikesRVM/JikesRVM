@@ -101,6 +101,7 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
    * The boot method is called early in the boot process before any allocation.
    */
   static public void boot() throws VM_PragmaInterruptible {
+    bootTime = VM_Time.now();
   }
 
   /**
@@ -139,13 +140,18 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
       gcInProgress = true;
       gcCount++;
       startTime = tmp;
+      if (verbose == 1) {
+	VM.sysWrite("[GC ", gcCount);
+	VM.sysWrite(" start ", ((startTime - bootTime)*1000));
+	VM.sysWrite("ms ");
+      }
       singlePrepare();
       resetComputeRoots();
       VM_Interface.prepareNonParticipating(); // The will fix collector threads that are not participating in thie GC.
     }
     VM_Interface.prepareParticipating();      // Every participating thread needs to adjust its context registers.
     order = barrier.rendezvous();
-    if (verbose > 1) VM.sysWriteln("  Preparing all collector threads for start");
+    if (verbose > 3) VM.sysWriteln("  Preparing all collector threads for start");
     allPrepare(order);
     barrier.rendezvous();
   }
@@ -153,14 +159,18 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
   protected final void release() {
     SynchronizationBarrier barrier = VM_CollectorThread.gcBarrier;
     int order = barrier.rendezvous();
-    if (verbose > 1) VM.sysWriteln("  Preparing all collector threads for termination");
+    if (verbose > 3) VM.sysWriteln("  Preparing all collector threads for termination");
     allRelease(order);
     order = barrier.rendezvous();
     if (order == 1) {
       singleRelease();
       gcInProgress = false;    // GC is in progress until after release!
       stopTime = VM_Time.now();
-      if (verbose > 0) {
+      if (verbose == 1) {
+	VM.sysWrite("stop ", ((stopTime - bootTime)*1000));
+	VM.sysWriteln("ms]");
+      }
+      if (verbose > 2) {
 	VM.sysWrite("    Collection time: ", (stopTime - startTime));
 	VM.sysWriteln(" seconds");
       }
@@ -181,6 +191,7 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
   abstract protected void singleRelease();
 
   static SynchronizedCounter threadCounter = new SynchronizedCounter();
+  static double bootTime;
   static double startTime;
   static double stopTime;
 
@@ -229,15 +240,15 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 
   private void processAllWork() throws VM_PragmaNoInline {
 
-    if (verbose >= 2) VM.sysWriteln("  Working on GC in parallel");
+    if (verbose >= 4) VM.sysWriteln("  Working on GC in parallel");
     while (true) {
-      if (verbose >= 3) VM.sysWriteln("    processing root locations");
+      if (verbose >= 5) VM.sysWriteln("    processing root locations");
       while (!rootLocations.isEmpty()) {
 	VM_Address loc = rootLocations.pop();
-	if (verbose >= 4) VM.sysWriteln("      root location = ", loc);
+	if (verbose >= 6) VM.sysWriteln("      root location = ", loc);
 	traceObjectLocation(loc, true);
       }
-      if (verbose >= 3) VM.sysWriteln("    processing interior root locations");
+      if (verbose >= 5) VM.sysWriteln("    processing interior root locations");
       while (!interiorRootLocations.isEmpty()) {
 	VM_Address obj = interiorRootLocations.pop1();
 	VM_Address interiorLoc = interiorRootLocations.pop2();
@@ -245,12 +256,12 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 	VM_Address newInterior = traceInteriorReference(obj, interior, true);
 	VM_Magic.setMemoryAddress(interiorLoc, newInterior);
       }
-      if (verbose >= 3) VM.sysWriteln("    processing gray objects");
+      if (verbose >= 5) VM.sysWriteln("    processing gray objects");
       while (!values.isEmpty()) {
 	VM_Address v = values.pop();
 	ScanObject.scan(v);  // NOT traceObject
       }
-      if (verbose >= 3) VM.sysWriteln("    processing locations");
+      if (verbose >= 5) VM.sysWriteln("    processing locations");
       while (!locations.isEmpty()) {
 	VM_Address loc = locations.pop();
 	traceObjectLocation(loc, false);

@@ -259,6 +259,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * External call to force a garbage collection.
    */
   public static final void gc() throws VM_PragmaInterruptible {
+    if (Plan.verbose == 1) VM.sysWrite("[Forced GC]");
     triggerCollection();
   }
 

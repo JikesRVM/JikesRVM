@@ -90,7 +90,7 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
     VM_Address start = VM_Address.zero();
     while (start.isZero()) {
       start = vmResource.acquire(blocks);
-      if (Plan.verbose > 3) VM.sysWriteln("BumpPointer.allocSlowPath acquired ", start);
+      if (Plan.verbose > 5) VM.sysWriteln("BumpPointer.allocSlowPath acquired ", start);
     }
     bp = start.add(bytes);
     if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(start, bytes));

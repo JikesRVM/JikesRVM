@@ -237,7 +237,7 @@ public class LOSVMResource extends MonotoneVMResource implements Constants, VM_U
     }
     int temp = allocated[page_num];
     pagesMarked += (temp > 0) ? temp : -temp;
-    if (Plan.verbose > 3)
+    if (Plan.verbose > 5)
       VM.sysWriteln("LOS.marking ", ref);
     if (temp == 1) 
       mark[page_num] = 1;

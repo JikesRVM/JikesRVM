@@ -353,7 +353,10 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * Called by BasePlan which will make sure only one thread executes this.
    */
   protected void singlePrepare() {
-    if (verbose > 0) {
+    if (verbose == 1) {
+      VM.sysWrite(Conversions.pagesToBytes(getPagesUsed())>>10);
+    }
+    if (verbose > 2) {
       VM.sysWrite("Collection ", gcCount);
       VM.sysWrite(":      reserved = ", getPagesReserved());
       VM.sysWrite(" (", Conversions.pagesToBytes(getPagesReserved()) / ( 1 << 20)); 
@@ -397,7 +400,12 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     ((hi) ? ss0VM : ss1VM).release();
     Copy.release(((hi) ? ss0VM : ss1VM), ssMR);
     Immortal.release(immortalVM, null);
-    if (verbose > 0) {
+    if (verbose == 1) {
+      VM.sysWrite("->");
+      VM.sysWrite(Conversions.pagesToBytes(getPagesUsed())>>10);
+      VM.sysWrite("KB ");
+    }
+    if (verbose > 2) {
       VM.sysWrite("   After Collection: ");
       showUsage();
     }

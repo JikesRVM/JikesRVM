@@ -54,7 +54,7 @@ public class LOSPointer implements Constants, VM_Uninterruptible {
       VM_Interface.getPlan().poll(true);
       if (count > 2) VM.sysFail("Out of Memory in LOSPointer.alloc");
     }
-    if (Plan.verbose > 1) {
+    if (Plan.verbose > 3) {
       VM.sysWrite("LOSPointer.alloc allocated ", result);
       VM.sysWriteln("   request = ", bytes);
     }
