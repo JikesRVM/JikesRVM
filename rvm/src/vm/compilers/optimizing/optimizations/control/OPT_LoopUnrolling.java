@@ -465,18 +465,18 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 		     rop1.copyU2U(), limit.copyD2U(),
 		     (OPT_ConditionOperand) cond.copy(),
 		     header.makeJumpTarget(),
-		     new OPT_BranchProfileOperand(1.0f - 1.0f / unrollFactor)));
+		     new OPT_BranchProfileOperand(1.0f - 1.0f / (unrollFactor/2))));
     tmp.insertBefore
       (Goto.create(GOTO,guardBlock2.makeJumpTarget()));
 
-    // jump over main loop if no iterations left
+    // only enter main loop if iterations left
     tmp = guardBlock2.lastInstruction();
     tmp.insertBefore
       (IfCmp.create (INT_IFCMP, outerGuard.copyD2D(),
 		     rop1.copyU2U(), op2.copy(),
 		     (OPT_ConditionOperand) cond.copy(),
 		     landingPad.makeJumpTarget(),
-		     new OPT_BranchProfileOperand(1.0f-backBranchProbability)));
+		     new OPT_BranchProfileOperand(backBranchProbability)));
     tmp.insertBefore (Goto.create (GOTO, succBlock.makeJumpTarget()));
 
     // landing pad jumps to mainHeader
