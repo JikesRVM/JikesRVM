@@ -10,13 +10,13 @@ YFLAGS=
 tool:
 	@$(MAKE) $(SCRATCH_DIR)/jburg
 
-$(SCRATCH_DIR)/jburg:	jburg.c gram.y jburg.h
+$(SCRATCH_DIR)/jburg:	jburg.c gram.y jburg.h GNUmakefile.scratch
 	$(CP) jburg.c $(SCRATCH_DIR)
 	$(CP) jburg.h $(SCRATCH_DIR)
 	$(CP) gram.y  $(SCRATCH_DIR)
 #	(cd $(SCRATCH_DIR) && (export TMPDIR=.; $(MAKE) gram.c; $(CC) -o jburg jburg.c gram.c))
-	$(MAKE) TMPDIR=. -C $(SCRATCH_DIR) gram.c
-	$(CC) -o $(SCRATCH_DIR)/jburg $(SCRATCH_DIR)/jburg.c $(SCRATCH_DIR)/gram.c
+	$(MAKE) -f $(shell pwd)/GNUmakefile.scratch TMPDIR=. -C $(SCRATCH_DIR) gram.c
+	$(CC) -o  $(SCRATCH_DIR)/jburg $(SCRATCH_DIR)/jburg.c $(SCRATCH_DIR)/gram.c
 
 .PHONY:	tool
 
