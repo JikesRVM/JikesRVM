@@ -457,7 +457,7 @@ sysBytesAvailable(int fd)
     if (ioctl(fd, FIONREAD, &count) == -1)
     {
 	bool badFD = (errno == EBADF);
-	fprintf(SysErrorFile, "%s: FIONREAD ioctl on %d failed (errno=%d (%s))\n", Me, fd, errno, strerror( errno ));
+	fprintf(SysErrorFile, "%s: FIONREAD ioctl on %d failed: %s (errno=%d)\n", Me, fd, strerror( errno ), errno);
 	return badFD ? VM_ThreadIOConstants_FD_INVALID : -1;
     }
 // fprintf(SysTraceFile, "%s: available fd=%d count=%d\n", Me, fd, count);
@@ -672,8 +672,8 @@ sysClose(int fd)
     if (errno == EBADF)
 	return -1; // not currently open
 
-    fprintf(SysErrorFile, "%s: close on %d failed (errno=%d, %s)\n", Me,
-	    fd, errno, strerror(errno));
+    fprintf(SysErrorFile, "%s: close on %d failed: %s (errno=%d)\n", Me,
+	    fd, strerror(errno), errno);
     return -2; // some other error
 }
 
@@ -735,8 +735,8 @@ timeSlicerThreadMain(void *arg)
 		// polling, but I haven't strictly verified this.  --augart
 		;
 	    } else if (errno == EINVAL) {
-		fprintf(SysErrorFile, "%s: nanosleep failed (errno=%d, %s): ",
-			Me, errno, strerror(errno));
+		fprintf(SysErrorFile, "%s: nanosleep failed: %s (errno=%d): ",
+			Me, strerror(errno), errno);
 		// XXX As of this writing (August 2003), SysErrorFile is
 		// always identical to stderr.  Unlike SysTraceFile,
 		// SysErrorFile is never reset.  (So why does it exist?)
@@ -778,16 +778,17 @@ extern "C" void processTimerTick(void) {
      * interrupted C-library code, so we use boot image 
      * jtoc address (== VmToc) instead. 
      */
-    unsigned *processors = *(unsigned **) ((char *) VmToc + getProcessorsOffset());
+    unsigned *processors 
+	= *(unsigned **) ((char *) VmToc + getProcessorsOffset());
     unsigned cnt = getArrayLength(processors);
     unsigned longest_stuck_ticks = 0;
     for (unsigned i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; i++) {
-      // During how many ticks has this VM_Processor ignored 
-      // a thread switch request? 
-      int val = (*(int *)((char *)processors[i] + 
-			  VM_Processor_threadSwitchRequested_offset))--;
-      if (longest_stuck_ticks < (unsigned) -val)
-	longest_stuck_ticks = -val;
+	// During how many ticks has this VM_Processor ignored 
+	// a thread switch request? 
+	int val = (*(int *)((char *)processors[i] + 
+			    VM_Processor_threadSwitchRequested_offset))--;
+	if (longest_stuck_ticks < (unsigned) -val)
+	    longest_stuck_ticks = -val;
     }
     
     /* 
@@ -796,8 +797,11 @@ extern "C" void processTimerTick(void) {
      * just appear to be hung. 
      */
     if (longest_stuck_ticks >= 500 && (longest_stuck_ticks % 50) == 0) {
-      fprintf(stderr, "%s: WARNING: Virtual processor has ignored timer interrupt for %d ms.\n", Me, getTimeSlice_msec() * longest_stuck_ticks);
-      fprintf(stderr, "This may indicate that a blocking system call has occured and the JVM is deadlocked\n");
+	fprintf(stderr, "%s: WARNING: Virtual processor has ignored"
+		" timer interrupt for %d ms.\n", 
+		Me, getTimeSlice_msec() * longest_stuck_ticks);
+	fprintf(stderr, "This may indicate that a blocking system call"
+		" has occured and the JVM is deadlocked\n");
     }
 }
 
@@ -825,7 +829,7 @@ setTimeSlicer(int msTimerDelay)
 	sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
 
-#elif (defined RVM_FOR_LINUX)
+#elif (defined RVM_FOR_LINUX) // && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     // NOTE: This code is ONLY called if we have defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.
     // set it to issue a periodic SIGALRM (or 0 to disable timer)
     //
@@ -2128,6 +2132,11 @@ sysShmctl(int shmid, int command)
 //        offset (Java long)  [to cover 64 bit file systems]
 // Returned: address of region (or -1 on failure) (Java ADDRESS)
 
+extern "C" void *sysMMap(char *start, size_t length, int protection, 
+			 int flags, int fd, long long offset) 
+    __attribute__((noreturn));
+
+
 extern "C" void *
 sysMMap(char UNUSED *start , size_t UNUSED length ,
 	int UNUSED protection , int UNUSED flags ,
@@ -2416,36 +2425,33 @@ sysNetRemoteHostName(int internetAddress, char *buf, int limit)
 
     fprintf(SysTraceFile, "untested system call sysNetRemoteHostName()\n");
     resultAddress = gethostbyaddr((char *)&internetAddress,
-				  sizeof(internetAddress),
+				  sizeof internetAddress,
 				  AF_INET);
 
-    if ( !resultAddress )
+    if ( ! resultAddress )
 	return 0;
 
     char *name = resultAddress->h_name;
-    for (int i = 0; i < limit; ++i)
-    {
+    for (int i = 0; i < limit; ++i) {
 	if (name[i] == 0)
 	    return i;
 	buf[i] = name[i];
     }
     return -1;
 #else
-    hostent      results; memset(&results, 0, sizeof(results));
-    hostent_data data;    memset(&data, 0, sizeof(data));
+    hostent      results; memset(&results, 0, sizeof results);
+    hostent_data data;    memset(&data, 0, sizeof data);
 
     int rc = gethostbyaddr_r((char *)&internetAddress,
-		             sizeof(internetAddress), AF_INET,
+		             sizeof internetAddress, AF_INET,
 			     &results, &data);
-    if (rc != 0)
-    {
+    if (rc != 0) {
 	// fprintf(SysErrorFile, "%s: gethostbyaddr_r failed (errno=%d)\n", Me, h_errno);
 	return 0;
     }
 
     char *name = results.h_name;
-    for (int i = 0; i < limit; ++i)
-    {
+    for (int i = 0; i < limit; ++i) {
 	if (name[i] == 0)
 	    return i;
 	buf[i] = name[i];
@@ -2467,27 +2473,26 @@ extern "C" int
 sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
 {
     int i;
-    hostent      results; memset(&results, 0, sizeof(results));
-    hostent_data data;    memset(&data, 0, sizeof(data));
+    hostent      results; memset(&results, 0, sizeof results);
+    hostent_data data;    memset(&data, 0, sizeof data);
 
     int rc = gethostbyname_r(hostname, &results, &data);
-    if (rc != 0)
-    {
-	fprintf(SysErrorFile, "%s: gethostbyname_r failed (errno=%d)\n", Me, h_errno);
+    if (rc != 0) {
+	fprintf(SysErrorFile, "%s: gethostbyname_r failed: %s (h_errno=%d)\n",
+		Me, hstrerror(h_errno), h_errno);
 	return -2;
     }
 
     // verify 4-byte-address assumption
     //
-    if (results.h_addrtype != AF_INET || results.h_length != 4 || sizeof(in_addr_t) != 4)
-    {
+    if (results.h_addrtype != AF_INET || results.h_length != 4 
+	|| sizeof (in_addr_t) != 4) {
 	fprintf(SysErrorFile, "%s: gethostbyname_r failed (unexpected address type or length)\n", Me);
 	return -2;
     }
 
     in_addr **addresses = (in_addr **)results.h_addr_list;
-    for (i = 0; addresses[i] != 0; ++i)
-    {
+    for (i = 0; addresses[i] != 0; ++i) {
 	if (i == limit)
 	    return -1;
 
@@ -2511,8 +2516,7 @@ sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
 	return -2;
 
     uint32_t **address = (uint32_t ** )result->h_addr_list;
-    for (i=0; address[i]; i++ )
-    {
+    for (i=0; address[i]; i++ ) {
 	if (i == limit)
 	    return -1;
 	*buf[i] = *(address[i]);
@@ -2531,9 +2535,9 @@ sysNetSocketCreate(int isStream)
     int fd;
 
     fd = socket(AF_INET, isStream ? SOCK_STREAM : SOCK_DGRAM, 0);
-    if (fd == -1)
-    {
-	fprintf(SysErrorFile, "%s: socket create failed (errno=%d)\n", Me, errno);
+    if (fd == -1) {
+	fprintf(SysErrorFile, "%s: socket create failed: %s (errno=%d)\n", 
+		Me, strerror(errno), errno);
 	return -1;
     }
 
@@ -2559,10 +2563,11 @@ sysNetSocketPort(int fd)
     socklen_t len;
 #endif
 
-    len = sizeof(info);
+    len = sizeof info;
     if (getsockname(fd, (sockaddr *)&info, &len) == -1)
     {
-	fprintf(SysErrorFile, "%s: getsockname on %d failed (errno=%d (%s))\n", Me, fd, errno, strerror( errno ));
+	fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n", 
+		Me, fd, strerror(errno), errno);
 	return -1;
     }
 
@@ -2588,10 +2593,11 @@ sysNetSocketLocalAddress(int fd)
     socklen_t len;
 #endif
 
-    len = sizeof(info);
+    len = sizeof info;
     if (getsockname(fd, (sockaddr *)&info, &len) == -1)
     {
-	fprintf(SysErrorFile, "%s: getsockname on %d failed (errno=%d (%s))\n", Me, fd, errno, strerror( errno ));
+	fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n",
+		Me, fd, strerror( errno ), errno);
 	return -1;
     }
 
@@ -2617,10 +2623,10 @@ sysNetSocketFamily(int fd)
     socklen_t len;
 #endif
 
-    len = sizeof(info);
-    if (getsockname(fd, (sockaddr *)&info, &len) == -1)
-    {
-	fprintf(SysErrorFile, "%s: getsockname on %d failed (errno=%d (%s))\n", Me, fd, errno, strerror( errno ));
+    len = sizeof info;
+    if (getsockname(fd, (sockaddr *)&info, &len) == -1) {
+	fprintf(SysErrorFile, "%s: getsockname on %d failed: %s (errno=%d)\n",
+		Me, fd, strerror( errno ), errno);
 	return -1;
     }
 
@@ -2639,9 +2645,8 @@ sysNetSocketFamily(int fd)
 extern "C" int
 sysNetSocketListen(int fd, int backlog)
 {
-    if (listen(fd, backlog) == -1)
-    {
-	fprintf(SysErrorFile, "%s: socket listen on %d failed (errno=%d)\n", Me, fd, errno);
+    if (listen(fd, backlog) == -1) {
+	fprintf(SysErrorFile, "%s: socket listen on %d failed: %s (errno=%d)\n", Me, fd, strerror(errno), errno);
 	return -1;
     }
 
@@ -2668,19 +2673,23 @@ sysNetSocketBind(int fd,
 {
     sockaddr_in address;
 
-    memset(&address, 0, sizeof(address));
+    memset(&address, 0, sizeof address);
     address.sin_family      = family;
     address.sin_addr.s_addr = MANGLE32(localAddress);
     address.sin_port        = MANGLE16(localPort);
 
-    if (bind(fd, (sockaddr *)&address, sizeof(address)) == -1)
-    {
-	fprintf(SysErrorFile, "%s: socket bind on %d for port %d failed (errno=%d, %s)\n", Me, fd, localPort, errno, strerror( errno ));
+    if (bind(fd, (sockaddr *)&address, sizeof address) == -1) {
+	fprintf(SysErrorFile, 
+		"%s: socket bind on %d for port %d failed: %s (errno=%d)\n", 
+		Me, fd, localPort, strerror( errno ), errno);
 	return -1;
     }
 
 #ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: bind %d to %d.%d.%d.%d:%d\n", Me, fd, (localAddress >> 24) & 0xff, (localAddress >> 16) & 0xff, (localAddress >> 8) & 0xff, (localAddress >> 0) & 0xff, localPort & 0x0000ffff);
+    fprintf(SysTraceFile, "%s: bind %d to %d.%d.%d.%d:%d\n", Me, fd, 
+	    (localAddress >> 24) & 0xff, (localAddress >> 16) & 0xff, 
+	    (localAddress >> 8) & 0xff, (localAddress >> 0) & 0xff, 
+	    localPort & 0x0000ffff);
 #endif
 
     return 0;
@@ -2705,13 +2714,12 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort)
     for (;;) {
 	sockaddr_in address;
 
-	memset(&address, 0, sizeof(address));
+	memset(&address, 0, sizeof address);
 	address.sin_family      = family;
 	address.sin_addr.s_addr = MANGLE32(remoteAddress);
 	address.sin_port        = MANGLE16(remotePort);
 
-	if (connect(fd, (sockaddr *)&address, sizeof(address)) == -1) {
-
+	if (connect(fd, (sockaddr *)&address, sizeof address) == -1) {
 	    if (errno == EINTR) {
 		fprintf(SysTraceFile, 
 			"%s: connect on %d interrupted, retrying\n", Me, fd);
@@ -2728,17 +2736,22 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort)
 		// connection was "in progress" due to previous call.
 		// This (retry) call has succeeded.
 #ifdef DEBUG_NET
-		fprintf(SysTraceFile, "%s: connect on %d: %s\n", Me, fd, strerror( errno ));
+		fprintf(SysTraceFile, "%s: connect on %d: %s\n", 
+			Me, fd, strerror( errno ));
 #endif
 		goto ok;
 	    } else if (errno == ECONNREFUSED) {
-		fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", Me, fd, strerror( errno ));
+		fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", 
+			Me, fd, strerror( errno ));
 		return -4;
 	    } else if (errno == EHOSTUNREACH) {
-		fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", Me, fd, strerror( errno ));
+		fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", 
+			Me, fd, strerror( errno ));
 		return -5;
 	    } else {
-		fprintf(SysErrorFile, "%s: socket connect on %d failed: %s (errno=%d)\n", Me, fd, strerror(errno), errno);
+		fprintf(SysErrorFile, 
+			"%s: socket connect on %d failed: %s (errno=%d)\n", 
+			Me, fd, strerror(errno), errno);
 		return -3;
 	    }
 	}
@@ -2746,11 +2759,15 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort)
     ok:
 	if (interruptsThisTime > maxConnectInterrupts) {
 	    maxConnectInterrupts = interruptsThisTime;
-	    fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", interruptsThisTime);
+	    fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", 
+		    interruptsThisTime);
 	}
 
 #ifdef DEBUG_NET
-	fprintf(SysTraceFile, "%s: connect %d to %d.%d.%d.%d:%d\n", Me, fd, (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, remotePort & 0x0000ffff);
+	fprintf(SysTraceFile, "%s: connect %d to %d.%d.%d.%d:%d\n", 
+		Me, fd, (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, 
+		(remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, 
+		remotePort & 0x0000ffff);
 #endif
 	return 0;
     }
@@ -2781,7 +2798,7 @@ sysNetSocketAccept(int fd, void *connectionObject)
     fprintf(SysTraceFile, "accepting for socket %d, 0x%x\n", fd, connectionObject);
 #endif
 
-    len = sizeof(info);
+    len = sizeof info;
     for (;;) {
 	connectionFd = accept(fd, (sockaddr *)&info, &len);
 
@@ -2796,12 +2813,16 @@ sysNetSocketAccept(int fd, void *connectionObject)
 		continue;
 	    } else if (errno == EAGAIN) {
 #ifdef DEBUG_NET
-		fprintf(SysTraceFile, "%s: accept on %d would have blocked: needs retry\n", Me, fd);
+		fprintf(SysTraceFile,
+			"%s: accept on %d would have blocked: needs retry\n", 
+			Me, fd);
 #endif
 		return -2;
 	    } else {
 #ifdef DEBUG_NET
-		fprintf(SysTraceFile, "%s: socket accept on %d failed (errno=%d, %s)\n", Me, fd, errno, strerror( errno ));
+		fprintf(SysTraceFile, 
+			"%s: socket accept on %d failed: %s (errno=%d)\n", 
+			Me, fd, strerror( errno ), errno);
 #endif
 		return -3;
 	    }
@@ -2809,7 +2830,8 @@ sysNetSocketAccept(int fd, void *connectionObject)
     }
 
 #ifdef DEBUG_NET
-    fprintf(SysTraceFile, "accepted %d for socket %d, 0x%x\n", connectionFd, fd, connectionObject);
+    fprintf(SysTraceFile, "accepted %d for socket %d, 0x%x\n", 
+	    connectionFd, fd, connectionObject);
 #endif
 
     int remoteFamily  = info.sin_family;
@@ -2817,7 +2839,11 @@ sysNetSocketAccept(int fd, void *connectionObject)
     int remotePort    = MANGLE16(info.sin_port);
 
 #ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: %d accept %d from %d.%d.%d.%d:%d\n", Me, fd, connectionFd, (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, remotePort & 0x0000ffff);
+    fprintf(SysTraceFile, "%s: %d accept %d from %d.%d.%d.%d:%d\n", 
+	    Me, fd, connectionFd, 
+	    (remoteAddress >> 24) & 0xff, (remoteAddress >> 16) & 0xff, 
+	    (remoteAddress >> 8) & 0xff, (remoteAddress >> 0) & 0xff, 
+	    remotePort & 0x0000ffff);
 #endif
 
     void *addressObject = *(void **)((char *)connectionObject + java_net_SocketImpl_address_offset);
@@ -2831,7 +2857,8 @@ sysNetSocketAccept(int fd, void *connectionObject)
 
     if (interruptsThisTime > maxAcceptInterrupts) {
 	maxAcceptInterrupts = interruptsThisTime;
-	fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", interruptsThisTime);
+	fprintf(SysErrorFile, "maxSelectInterrupts is now %d\n", 
+		interruptsThisTime);
     }
 
     return connectionFd;
@@ -2853,15 +2880,18 @@ sysNetSocketLinger(int fd, int enable, int timeout)
 {
 
 #ifdef DEBUG_NET
-    fprintf(SysTraceFile, "%s: linger socket=%d enable=%d timeout=%d\n", Me, fd, enable, timeout);
+    fprintf(SysTraceFile, "%s: linger socket=%d enable=%d timeout=%d\n", 
+	    Me, fd, enable, timeout);
 #endif
 
     linger info;
     info.l_onoff  = enable;
     info.l_linger = timeout;
 
-    int rc = setsockopt(fd, SOL_SOCKET, SO_LINGER, &info, sizeof(info));
-    if (rc == -1) fprintf(SysErrorFile, "%s: socket linger on %d failed (errno=%d)\n", Me, fd, errno);
+    int rc = setsockopt(fd, SOL_SOCKET, SO_LINGER, &info, sizeof info);
+    if (rc == -1) fprintf(SysErrorFile, 
+			  "%s: socket linger on %d failed: %s (errno=%d)\n", 
+			  Me, fd, strerror(errno), errno);
     return rc;
 }
 
@@ -2882,9 +2912,10 @@ sysNetSocketNoDelay(int fd, int enable)
     fprintf(SysTraceFile, "%s: nodelay socket=%d value=%d\n", Me, fd, value);
 #endif
 
-    int rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &value, sizeof(value));
+    int rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &value, sizeof value);
     if (rc == -1)
-	fprintf(SysErrorFile, "%s: TCP_NODELAY on %d failed (%s, errno=%d)\n", Me, fd, strerror(errno), errno);
+	fprintf(SysErrorFile, "%s: TCP_NODELAY on %d failed: %s (errno=%d)\n", 
+		Me, fd, strerror(errno), errno);
 
     return rc;
 }
@@ -2908,7 +2939,8 @@ sysNetSocketNoBlock(int fd, int enable)
 
     int rc = ioctl(fd, FIONBIO, &value);
     if (rc == -1) {
-	fprintf(SysErrorFile, "%s: FIONBIO on %d failed (%s, errno=%d)\n", Me, fd, strerror(errno), errno);
+	fprintf(SysErrorFile, "%s: FIONBIO on %d failed: %s (errno=%d)\n", 
+		Me, fd, strerror(errno), errno);
 	return -1;
     }
 
@@ -2942,8 +2974,8 @@ sysNetSocketClose(int fd)
 	return sysClose(fd);
     }
 
-    fprintf(SysErrorFile, "%s: socket shutdown on %d failed (errno=%d (%s))\n",
-	    Me, fd, errno, strerror(errno));
+    fprintf(SysErrorFile, "%s: socket shutdown on %d failed: %s (errno=%d)\n",
+	    Me, fd, strerror(errno), errno);
 
     sysClose(fd);
     return -2; // shutdown (and possibly close) error
