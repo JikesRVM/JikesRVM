@@ -2898,7 +2898,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 
     // Buy frame.
     //
-      asm.emitSTAddrU (FP, -frameSize, FP); // save old FP & buy new frame (trap if new frame below guard page) !!TODO: handle frames larger than 32k when addressing local variables, etc.
+    asm.emitSTAddrU (FP, -frameSize, FP); // save old FP & buy new frame (trap if new frame below guard page) !!TODO: handle frames larger than 32k when addressing local variables, etc.
     
     // If this is a "dynamic bridge" method, then save all registers except GPR0, FPR0, JTOC, and FP.
     // 
