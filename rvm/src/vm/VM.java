@@ -439,6 +439,16 @@ public class VM extends VM_Properties implements VM_Constants,
 
   /**
    * Low level print to console.
+   * @param value	print value and left-fill with enough spaces to print at least fieldWidth characters
+   */
+  public static void sysWriteField(int fieldWidth, VM_Atom s) {
+      int len = s.length();
+      while (fieldWidth > len++) sysWrite(" ");
+      sysWrite(s);
+  }
+
+  /**
+   * Low level print to console.
    * @param value	what is printed, as hex only
    */
   public static void sysWriteHex(int value) {
