@@ -43,20 +43,26 @@ PS2GIF ?= ps2gif
 
 INPUT_FILES = 	userguide.tex \
 		ack.tex \
+		aosdetails.tex \
+		basedetails.tex \
 		cmdline.tex \
 		codingstyle.tex \
+		componentOverview.tex \
+		debugging.tex \
 		faq.tex \
 		installation.tex \
 		intro.tex \
+		jni.tex \
+		libraries.tex \
 		mmdetails.tex \
 		optdetails.tex \
 		performance.tex \
 		profiling.tex \
+		runEclipse.tex \
 		regression.tex \
 		running.tex \
 		remark.tex \
-		vmdetails.tex \
-		aosdetails.tex
+		vmdetails.tex
 
 GEN_INPUTS =	opt_options.tex adaptive_options.tex base_options.tex
 

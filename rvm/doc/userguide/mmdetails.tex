@@ -1,6 +1,6 @@
 This section provides additional information on the implementation
 of the memory management component of Jikes\trademark RVM runtime system.
- 
+
 \subsection{Directory Structure} \label{sssec:directories}
 The classes related to memory management are contained in the 
 {\tt \$RVM\_ROOT/rvm/src/vm/memoryManagers}  directory.
@@ -115,12 +115,6 @@ The Jikes RVM generational collectors treat all objects which survive one garbag
 and performs {\it en masse} promotion.  Thus, they do not need to maintain ``remembered sets''
 of old objects to record intergenerational references between collections.
 
-%Alternative write barriers can be implemented. For example, the concurrent
-%reference counting collector uses a barrier that records both old and new
-%references for each store of a reference into an object. It does this
-%by building with its own version of VM\_WriteBarrier.
-
-
 \subsection{Starting Garbage Collection} \label{sssec:startgc}
 \index{VM\_Handshake class}
 \index{VM\_CollectorThread class}
@@ -186,7 +180,6 @@ processing the work queue, and time waiting in rendezvous between phases of the
 collection process. Turning on this flag will cause
 the summary statistics, with average wait times, to be generated when VM exits.  
 If ``{\tt -verbose:gc}'' is specified the output is generated after each collection.
-% will cause necessary flags in {\tt VM\_Allocator} and {\tt VM\_GCWorkQueue} to be set.
 
 \item[COUNT\_BY\_TYPES and COUNT\_BY\_ALLOCATIONS]
 These two flags control GC profiling and both flags have significant runtime cost.

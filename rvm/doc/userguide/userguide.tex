@@ -241,7 +241,6 @@ Corporation in the United States, other countries, or both.}
 \T \remarktrue
 \W \newcommand{\remark}[1]{}
 
-
 \title{\texonly{\vfill} {\huge The Jikes\JikesTMFootnote\ Research Virtual
 Machine
 \\
@@ -277,8 +276,17 @@ User's Guide} \\ {\huge v\version} \\ { } \texonly{\vfill} }
 \input{running}
 
 \T \newpage
+\section{Overview of \jrvm\ Structure}
+\input{componentOverview}
+
+\T \newpage
 \section{Runtime Implementation Details}
 \input{vmdetails}
+
+\T \newpage
+\section{Baseline Compiler Implementation Details}
+\label{section:basedetails}
+\input{basedetails}
 
 \T \newpage
 \section{Optimizing Compiler Implementation Details}
@@ -290,17 +298,36 @@ User's Guide} \\ {\huge v\version} \\ { } \texonly{\vfill} }
 \input{mmdetails}
 
 \T \newpage
-\section{Magic}
-\input{magic}
-
-\T \newpage
 \section{Adaptive Optimization System}
 \label{section:aosdetails}
 \input{aosdetails}
 
 \T \newpage
+\section{Magic}
+\input{magic}
+
+\T \newpage
+\section{JNI Implementation Details}
+\label{section:jni}
+\input{jni}
+
+\T \newpage
+\section{Class Libraries}
+\label{section:libraries}
+\input{libraries}
+
+\T \newpage
+\section{Debugging Support}
+\label{section:debugging}
+\input{debugging}
+
+\T \newpage
 \section{Using the \jrvm\ to Profile an Application}
 \input{profiling}
+
+\T \newpage
+\section{Using the \jrvm\ to run Eclipse}
+\input{runEclipse}
 
 \T \newpage
 \section{Experimental Guidelines}
