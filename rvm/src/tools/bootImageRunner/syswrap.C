@@ -29,14 +29,11 @@
 
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #include "InterfaceDeclarations.h"
+#include "bootImageRunner.h"
 
+// Forward declaration of a function defined later on in this file.  Goes into
+// the jni dispatch table.
 extern jint GetEnv(JavaVM *, void **, jint);
-
-extern "C" void *getJTOC();
-extern "C" int getProcessorsOffset();
-
-extern pthread_key_t VmProcessorIdKey;
-extern pthread_key_t IsVmProcessorKey;
 
 #include "syswrap.h"
 
@@ -59,48 +56,52 @@ static PollFunc libcPoll;
 // symbolName - name of symbol
 // pPtr - address of pointer variable in which to store
 //        the address of the symbol
-static void getRealSymbol(const char *symbolName, void **pPtr)
+static void 
+getRealSymbol(const char *symbolName, void **pPtr)
 {
-  static void *libcHandle;
+    static void *libcHandle;
 
-  // FIXME: should handle errors
-  if (*pPtr == 0) {
-    if (libcHandle == 0)
-      libcHandle = dlopen(C_LIBRARY_NAME, RTLD_LAZY);
-    *pPtr = dlsym(libcHandle, symbolName);
-  }
+    // FIXME: should handle errors
+    if (*pPtr == 0) {
+	if (libcHandle == 0)
+	    libcHandle = dlopen(C_LIBRARY_NAME, RTLD_LAZY);
+	*pPtr = dlsym(libcHandle, symbolName);
+    }
 }
 
 // Fish out an address stored in an instance field of an object.
-static void *getFieldAsAddress(void *objPtr, int fieldOffset)
+static void *
+getFieldAsAddress(void *objPtr, int fieldOffset)
 {
-  char *fieldAddress = ((char*) objPtr) + fieldOffset;
-  return *((void**) fieldAddress);
+    char *fieldAddress = ((char*) objPtr) + fieldOffset;
+    return *((void**) fieldAddress);
 }
 
 // Get the JNI environment object from the VM_Processor.
-JNIEnv *getJniEnvFromVmProcessor(void *vmProcessorPtr)
+JNIEnv *
+getJniEnvFromVmProcessor(void *vmProcessorPtr)
 {
-  if (vmProcessorPtr == 0)
-    return 0; // oops
+    if (vmProcessorPtr == 0)
+	return 0; // oops
 
-  // Follow chain of pointers:
-  // VM_Processor -> VM_Thread -> VM_JNIEnvironment -> thread's native JNIEnv
-  void *vmThreadPtr =
-    getFieldAsAddress(vmProcessorPtr, VM_Processor_activeThread_offset);
-  void *jniEnvironment =
-    getFieldAsAddress(vmThreadPtr, VM_Thread_jniEnv_offset);
-  void *jniEnv =
-    getFieldAsAddress(jniEnvironment, VM_JNIEnvironment_JNIEnvAddress_offset);
+    // Follow chain of pointers:
+    // VM_Processor -> VM_Thread -> VM_JNIEnvironment -> thread's native JNIEnv
+    void *vmThreadPtr =
+	getFieldAsAddress(vmProcessorPtr, VM_Processor_activeThread_offset);
+    void *jniEnvironment =
+	getFieldAsAddress(vmThreadPtr, VM_Thread_jniEnv_offset);
+    void *jniEnv =
+	getFieldAsAddress(jniEnvironment, VM_JNIEnvironment_JNIEnvAddress_offset);
 
-  return (JNIEnv*) jniEnv;
+    return (JNIEnv*) jniEnv;
 }
 
 // Arbitrarily consider anything longer than 1 second a "long" wait.
 // We may want to adjust this so any non-zero wait is considered long.
-static bool isLongWait(struct timeval *timeout)
+static bool 
+isLongWait(struct timeval *timeout)
 {
-  return timeout == 0 || timeout->tv_sec > 0 || timeout->tv_usec > 1000;
+    return timeout == 0 || timeout->tv_sec > 0 || timeout->tv_usec > 1000;
 }
 
 // Pointer to JTOC.
@@ -116,39 +117,42 @@ static int VmProcessorId;
 
 // Return the number of file descriptors which are set in given
 // fd_set.
-static int countFileDescriptors(fd_set *fdSet, int maxFd)
+static int 
+countFileDescriptors(fd_set *fdSet, int maxFd)
 {
-  int count = 0;
-  for (int i = 0; i < maxFd; ++i) {
-    if (FD_ISSET(i, fdSet))
-      ++count;
-  }
-  return count;
+    int count = 0;
+    for (int i = 0; i < maxFd; ++i) {
+	if (FD_ISSET(i, fdSet))
+	    ++count;
+    }
+    return count;
 }
 
 // Transfer file descriptors from an fd_set to a Java array of integer.
-static void addFileDescriptors(jint *elements, fd_set *fdSet, int maxFd)
+static void 
+addFileDescriptors(jint *elements, fd_set *fdSet, int maxFd)
 {
-  int count = 0;
-  for (int i = 0; i < maxFd; ++i) {
-    if (FD_ISSET(i, fdSet))
-      elements[count++] = i;
-  }
+    int count = 0;
+    for (int i = 0; i < maxFd; ++i) {
+	if (FD_ISSET(i, fdSet))
+	    elements[count++] = i;
+    }
 }
 
 // Convert an fd_set into a Java array of integer containing the
 // file descriptors which are set in the fd_set.
-static jintArray fdSetToIntArray(JNIEnv *env, fd_set *fdSet, int maxFd)
+static jintArray 
+fdSetToIntArray(JNIEnv *env, fd_set *fdSet, int maxFd)
 {
-  jintArray arr = 0;
-  if (fdSet != 0) {
-    int count = countFileDescriptors(fdSet, maxFd);
-    arr = env->NewIntArray(count);
-    jint *elements = env->GetIntArrayElements(arr, 0);
-    addFileDescriptors(elements, fdSet, maxFd);
-    env->ReleaseIntArrayElements(arr, elements, 0);
-  }
-  return arr;
+    jintArray arr = 0;
+    if (fdSet != 0) {
+	int count = countFileDescriptors(fdSet, maxFd);
+	arr = env->NewIntArray(count);
+	jint *elements = env->GetIntArrayElements(arr, 0);
+	addFileDescriptors(elements, fdSet, maxFd);
+	env->ReleaseIntArrayElements(arr, elements, 0);
+    }
+    return arr;
 }
 
 // Scan through java array of file descriptors, noting
@@ -158,27 +162,28 @@ static jintArray fdSetToIntArray(JNIEnv *env, fd_set *fdSet, int maxFd)
 // Returns: count of file descriptors marked as ready
 //
 // TODO: check for FD_INVALID_BIT
-static int updateStatus(JNIEnv *env, fd_set *fdSet, jintArray fdArray)
+static int 
+updateStatus(JNIEnv *env, fd_set *fdSet, jintArray fdArray)
 {
-  int readyCount = 0;
-  if (fdSet != 0) {
-    // Clear the fd_set.
-    FD_ZERO(fdSet);
+    int readyCount = 0;
+    if (fdSet != 0) {
+	// Clear the fd_set.
+	FD_ZERO(fdSet);
 
-    // Scan through the elements of the array
-    jsize length = env->GetArrayLength(fdArray);
-    jint *elements = env->GetIntArrayElements(fdArray, 0);
-    for (jsize i = 0; i < length; ++i) {
-      int fd = elements[i];
-      if ((fd & VM_ThreadIOConstants_FD_READY_BIT) != 0) {
-	fd &= VM_ThreadIOConstants_FD_MASK;
-	FD_SET(fd, fdSet);
-	++readyCount;
-      }
+	// Scan through the elements of the array
+	jsize length = env->GetArrayLength(fdArray);
+	jint *elements = env->GetIntArrayElements(fdArray, 0);
+	for (jsize i = 0; i < length; ++i) {
+	    int fd = elements[i];
+	    if ((fd & VM_ThreadIOConstants_FD_READY_BIT) != 0) {
+		fd &= VM_ThreadIOConstants_FD_MASK;
+		FD_SET(fd, fdSet);
+		++readyCount;
+	    }
+	}
+	env->ReleaseIntArrayElements(fdArray, elements, 0);
     }
-    env->ReleaseIntArrayElements(fdArray, elements, 0);
-  }
-  return readyCount;
+    return readyCount;
 }
 
 //////////////////////////////////////////////////////////////
@@ -187,21 +192,23 @@ static int updateStatus(JNIEnv *env, fd_set *fdSet, jintArray fdArray)
 
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 // Initialization function for single virtual processor
-extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset,
-  int vmProcessorId)
+extern "C" void 
+initSyscallWrapperLibrary(void *jtoc, int processorsOffset, int vmProcessorId)
 {
-  Jtoc = jtoc;
-  ProcessorsOffset = processorsOffset;
-  VmProcessorId = vmProcessorId;
+    Jtoc = jtoc;
+    ProcessorsOffset = processorsOffset;
+    VmProcessorId = vmProcessorId;
 }
 #else
 // Initialization function for configurations with
 // multiple VM_Processors.
 // Called by the VM to tell us the thread-specific data key
 // storing the id of each pthread's VM_Processor object.
-extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset) {
-  Jtoc = jtoc;
-  ProcessorsOffset = processorsOffset;
+extern "C" void 
+initSyscallWrapperLibrary(void *jtoc, int processorsOffset) 
+{
+    Jtoc = jtoc;
+    ProcessorsOffset = processorsOffset;
 }
 #endif // defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 
@@ -213,10 +220,11 @@ extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset) {
 //
 // Returned:
 // Pointer to select() function in C library.
-SelectFunc getLibcSelect(void)
+SelectFunc 
+getLibcSelect(void)
 {
-  getRealSymbol("select", (void**) &libcSelect);
-  return libcSelect;
+    getRealSymbol("select", (void**) &libcSelect);
+    return libcSelect;
 }
 
 //////////////////////////////////////////////////////////////
@@ -239,51 +247,52 @@ SelectFunc getLibcSelect(void)
 // -1: on error (errno should be set)
 //  0: if no file descriptors became ready prior to timeout
 // >0: number of file descriptors that are ready
-extern "C" int select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
-   fd_set *exceptFdSet, struct timeval *timeout)
+extern "C" int 
+select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
+       fd_set *exceptFdSet, struct timeval *timeout)
 {
-  getRealSymbol("select", (void**) &libcSelect);
+    getRealSymbol("select", (void**) &libcSelect);
 
-  // If timeout is short, just call real select().
-  if (!isLongWait(timeout)) {
-    return libcSelect(maxFd, readFdSet, writeFdSet, exceptFdSet, timeout);
-  }
+    // If timeout is short, just call real select().
+    if (!isLongWait(timeout)) {
+	return libcSelect(maxFd, readFdSet, writeFdSet, exceptFdSet, timeout);
+    }
 
-  // Get the JNIEnv from the VM_Processor object
-  JNIEnv *env;
-  GetEnv(NULL, (void**) &env, JNI_VERSION_1_1);
+    // Get the JNIEnv from the VM_Processor object
+    JNIEnv *env;
+    GetEnv(NULL, (void**) &env, JNI_VERSION_1_1);
 
-  // Build int arrays to describe file descriptor sets
-  jintArray readArr = fdSetToIntArray(env, readFdSet, maxFd);
-  jintArray writeArr = fdSetToIntArray(env, writeFdSet, maxFd);
-  jintArray exceptArr = fdSetToIntArray(env, exceptFdSet, maxFd);
+    // Build int arrays to describe file descriptor sets
+    jintArray readArr = fdSetToIntArray(env, readFdSet, maxFd);
+    jintArray writeArr = fdSetToIntArray(env, writeFdSet, maxFd);
+    jintArray exceptArr = fdSetToIntArray(env, exceptFdSet, maxFd);
 
-  // Figure out how many seconds to wait
-  double totalWaitTime;
-  if (timeout == 0)
-    totalWaitTime = VM_ThreadEventConstants_WAIT_INFINITE;
-  else {
-    totalWaitTime = ((double) timeout->tv_sec);
-    totalWaitTime += ((double) timeout->tv_usec) / 1000000.0;
-  }
+    // Figure out how many seconds to wait
+    double totalWaitTime;
+    if (timeout == 0)
+	totalWaitTime = VM_ThreadEventConstants_WAIT_INFINITE;
+    else {
+	totalWaitTime = ((double) timeout->tv_sec);
+	totalWaitTime += ((double) timeout->tv_usec) / 1000000.0;
+    }
 
-  // Call VM_Thread.ioWaitSelect()
-  jclass vmWaitClass = env->FindClass("com/ibm/JikesRVM/VM_Wait");
-  jmethodID ioWaitSelectMethod = env->GetStaticMethodID(vmWaitClass,
-    "ioWaitSelect", "([I[I[IDZ)V");
-  env->CallStaticVoidMethod(vmWaitClass, ioWaitSelectMethod,
-    readArr, writeArr, exceptArr, totalWaitTime, (jboolean) 1);
+    // Call VM_Thread.ioWaitSelect()
+    jclass vmWaitClass = env->FindClass("com/ibm/JikesRVM/VM_Wait");
+    jmethodID ioWaitSelectMethod = env->GetStaticMethodID(vmWaitClass,
+							  "ioWaitSelect", "([I[I[IDZ)V");
+    env->CallStaticVoidMethod(vmWaitClass, ioWaitSelectMethod,
+			      readArr, writeArr, exceptArr, totalWaitTime, (jboolean) 1);
 
-  // TODO: should have return value from ioWaitSelect(), for returning errors
+    // TODO: should have return value from ioWaitSelect(), for returning errors
 
-  // For each file descriptor set in the Java arrays,
-  // mark the corresponding entry in the fd_sets (as appropriate).
-  int readyCount = 0;
-  readyCount += updateStatus(env, readFdSet, readArr);
-  readyCount += updateStatus(env, writeFdSet, writeArr);
-  readyCount += updateStatus(env, exceptFdSet, exceptArr);
+    // For each file descriptor set in the Java arrays,
+    // mark the corresponding entry in the fd_sets (as appropriate).
+    int readyCount = 0;
+    readyCount += updateStatus(env, readFdSet, readArr);
+    readyCount += updateStatus(env, writeFdSet, writeArr);
+    readyCount += updateStatus(env, exceptFdSet, exceptArr);
 
-  return readyCount;
+    return readyCount;
 }
 
 // Wrapper for the poll() system call, which we re-implement using select
@@ -292,135 +301,146 @@ extern "C" int select(int maxFd, fd_set *readFdSet, fd_set *writeFdSet,
 // that exceptfds in select is really used for out-of-band data and not
 // for exceptions.  See select_tut(2) for details.
 //
-extern "C" int poll(struct pollfd *ufds, long unsigned int nfds, int timeout) {
-  fd_set readfds, writefds, exceptfds;
-  struct timeval tv;
-  struct timeval *tv_ptr;
-  int max_fd;
-  int ready;
-  int i;
+extern "C" int
+poll(struct pollfd *ufds, long unsigned int nfds, int timeout) 
+{
+    fd_set readfds, writefds, exceptfds;
+    struct timeval tv;
+    struct timeval *tv_ptr;
+    int max_fd;
+    int ready;
 
-  getRealSymbol("poll", (void**) &libcPoll);
+    getRealSymbol("poll", (void**) &libcPoll);
 
-  // If timeout is short, just call real poll().
-  if (timeout == 0 || timeout == 1) {
-    return libcPoll(ufds, nfds, timeout);
-  }
+    // If timeout is short, just call real poll().
+    if (timeout == 0 || timeout == 1) {
+	return libcPoll(ufds, nfds, timeout);
+    }
 
-  FD_ZERO( &readfds );
-  FD_ZERO( &writefds );
-  FD_ZERO( &exceptfds );
+    FD_ZERO( &readfds );
+    FD_ZERO( &writefds );
+    FD_ZERO( &exceptfds );
 
-  if (timeout < 0) 
-    tv_ptr = NULL;
-  else {
-    tv.tv_sec = timeout / 1000;
-    tv.tv_usec = (timeout - (tv.tv_sec*1000)) * 1000;
-    tv_ptr = &tv;
-  }
+    if (timeout < 0) 
+	tv_ptr = NULL;
+    else {
+	tv.tv_sec = timeout / 1000;
+	tv.tv_usec = (timeout - (tv.tv_sec*1000)) * 1000;
+	tv_ptr = &tv;
+    }
 
-  max_fd = 0;
+    max_fd = 0;
 
-  for(i = 0; i < nfds; i++) {
+    for (unsigned i = 0; i < nfds; i++) {
 
-    if (ufds[i].fd+1 > max_fd)
-      max_fd = ufds[i].fd+1;
+	if (ufds[i].fd+1 > max_fd)
+	    max_fd = ufds[i].fd+1;
 
-    if (ufds[i].events&POLLIN)
-      FD_SET( ufds[i].fd, &readfds );
+	if (ufds[i].events&POLLIN)
+	    FD_SET( ufds[i].fd, &readfds );
 
-    if (ufds[i].events&POLLOUT)
-      FD_SET( ufds[i].fd, &writefds );
+	if (ufds[i].events&POLLOUT)
+	    FD_SET( ufds[i].fd, &writefds );
 
-    if (ufds[i].events&POLLPRI)
-      FD_SET( ufds[i].fd, &exceptfds );
-  }
+	if (ufds[i].events&POLLPRI)
+	    FD_SET( ufds[i].fd, &exceptfds );
+    }
 
-  ready = select(max_fd, &readfds, &writefds, &exceptfds, &tv);
+    ready = select(max_fd, &readfds, &writefds, &exceptfds, &tv);
     
-  for(i = 0; i < nfds; i++) {
+    for (unsigned i = 0; i < nfds; i++) {
 
-    if (ufds[i].events&POLLIN && FD_ISSET( ufds[i].fd, &readfds ))
-      ufds[i].revents |= POLLIN;
+	if (ufds[i].events&POLLIN && FD_ISSET( ufds[i].fd, &readfds ))
+	    ufds[i].revents |= POLLIN;
 
-    if (ufds[i].events&POLLOUT && FD_ISSET( ufds[i].fd, &writefds ))
-      ufds[i].revents |= POLLOUT;
+	if (ufds[i].events&POLLOUT && FD_ISSET( ufds[i].fd, &writefds ))
+	    ufds[i].revents |= POLLOUT;
 
-    if (ufds[i].events&POLLPRI && FD_ISSET( ufds[i].fd, &exceptfds ))
-      ufds[i].revents |= POLLPRI;
-  }
+	if (ufds[i].events&POLLPRI && FD_ISSET( ufds[i].fd, &exceptfds ))
+	    ufds[i].revents |= POLLPRI;
+    }
 
-  return ready;
+    return ready;
 }
 
 //////////////////////////////////////////////////////////////
 // JNI stuff
 //////////////////////////////////////////////////////////////
 
-jint DestroyJavaVM(JavaVM *vm) {
-  fprintf(stderr, "unimplemented DestroyJavaVM");
-  return 0;
+jint 
+DestroyJavaVM(JavaVM *vm) 
+{
+    fprintf(stderr, "unimplemented DestroyJavaVM");
+    return 0;
 }
 
-jint AttachCurrentThread(JavaVM *vm, JNIEnv **penv, void *args) {
-  fprintf(stderr, "unimplemented AttachCurrentThread");
-  return 0;
+jint 
+AttachCurrentThread(JavaVM *vm, JNIEnv **penv, void *args) 
+{
+    fprintf(stderr, "unimplemented AttachCurrentThread");
+    return 0;
 }
 
-jint DetachCurrentThread(JavaVM *vm) {
-  fprintf(stderr, "unimplemented DetachCurrentThread");
-  return 0;
+jint 
+DetachCurrentThread(JavaVM *vm) 
+{
+    fprintf(stderr, "unimplemented DetachCurrentThread");
+    return 0;
 }
  
-jint GetEnv(JavaVM *vm, void **penv, jint version) { 
+jint 
+GetEnv(JavaVM *vm, void **penv, jint version) 
+{ 
 
-  // Java 1.2 is not supported yet
-  if (version == JNI_VERSION_1_2)
-    return JNI_EVERSION;
+    // Java 1.2 is not supported yet
+    if (version == JNI_VERSION_1_2)
+	return JNI_EVERSION;
 
 #if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-  // Return NULL if we are not on a VM pthread
-  if (pthread_getspecific(IsVmProcessorKey) == NULL) {
-    *penv = NULL;
-    return -1;
-  }
+    // Return NULL if we are not on a VM pthread
+    if (pthread_getspecific(IsVmProcessorKey) == NULL) {
+	*penv = NULL;
+	return -1;
+    }
 #endif
 
-  // Get VM_Processor id.
-  int vmProcessorId =
+    // Get VM_Processor id.
+    int vmProcessorId =
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-    VmProcessorId;
+	VmProcessorId;
 #else
     (int) pthread_getspecific(VmProcessorIdKey);
 #endif
 
-  // Find the VM_Processor object.
-  unsigned *processors = *(unsigned **) ((char *) Jtoc + ProcessorsOffset);
-  void *vmProcessorPtr = (void*) (processors[vmProcessorId]);
+    // Find the VM_Processor object.
+    unsigned *processors = *(unsigned **) ((char *) Jtoc + ProcessorsOffset);
+    void *vmProcessorPtr = (void*) (processors[vmProcessorId]);
 
-  // Get the JNIEnv from the VM_Processor object
-  JNIEnv *env = getJniEnvFromVmProcessor(vmProcessorPtr);
+    // Get the JNIEnv from the VM_Processor object
+    JNIEnv *env = getJniEnvFromVmProcessor(vmProcessorPtr);
  
-  *penv = env;
+    *penv = env;
 
-  return JNI_OK;
+    return JNI_OK;
 }
 
 struct JNIInvokeInterface_ externalJNIFunctions = {
-  NULL,
-  NULL,
-  NULL,
-  DestroyJavaVM,
-  AttachCurrentThread,
-  DetachCurrentThread,
-  GetEnv
+    NULL,
+    NULL,
+    NULL,
+    DestroyJavaVM,
+    AttachCurrentThread,
+    DetachCurrentThread,
+    GetEnv
 };
 
-int createJavaVM() {
-  JavaVM *theJikesRVM = (struct JavaVM_ *) malloc (sizeof(struct JavaVM_));
-  theJikesRVM->functions = &externalJNIFunctions;
+int 
+createJavaVM(void)
+{
+    JavaVM *theJikesRVM = (struct JavaVM_ *) malloc (sizeof(struct JavaVM_));
+    theJikesRVM->functions = &externalJNIFunctions;
 
-  return (int) theJikesRVM;
+    return (int) theJikesRVM;
 }
 
 /*
@@ -428,16 +448,18 @@ int createJavaVM() {
  * Method:    createJavaVM
  * Signature: ()I
  */
-extern "C" JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1JNIFunctions_createJavaVM
-  (JNIEnv *, jclass)
+extern "C" JNIEXPORT jint JNICALL 
+Java_com_ibm_JikesRVM_VM_1JNIFunctions_createJavaVM(JNIEnv *, jclass)
 {
-  return createJavaVM();
+    return createJavaVM();
 }
 
-extern "C" void _init() {
+extern "C" void 
+_init(void) 
+{
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), 1);
+    initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), 1);
 #else
-  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset());
+    initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset());
 #endif
 }
