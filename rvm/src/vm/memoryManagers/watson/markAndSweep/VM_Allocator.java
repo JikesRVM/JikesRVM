@@ -3342,6 +3342,12 @@ tib));
     int avgTime=0, avgStartTime=0;
     int np = VM_Scheduler.numProcessors;
 
+    // produce summary system exit output if -verbose:gc was specified of if
+    // compiled with measurement flags turned on
+    //
+    if ( ! (TIME_GC_PHASES || VM_CollectorThread.MEASURE_WAIT_TIMES || VM.verboseGC) )
+      return;     // not verbose, no flags on, so don't produce output
+
     VM.sysWrite("\nGC stats: Mark Sweep Collector (");
     VM.sysWrite(np,false);
     VM.sysWrite(" Collector Threads ):\n");
