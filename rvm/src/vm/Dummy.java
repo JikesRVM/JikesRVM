@@ -1,12 +1,17 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Dummy class containing enough references to force java compiler
-// to find every class comprising the vm, so everything gets recompiled
-// by just compiling "Dummy.java".
-//
-// The minimal set has to be discovered by trial and error. Sorry. --Derek
-//
+//$Id$
+
+/**
+ * Dummy class containing enough references to force java compiler
+ * to find every class comprising the vm, so everything gets recompiled
+ * by just compiling "Dummy.java".
+ *
+ * The minimal set has to be discovered by trial and error. Sorry.
+ *
+ * @author Derek Lieber
+ */
 class Dummy
    {
    static VM                         a;
