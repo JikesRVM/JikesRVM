@@ -153,15 +153,39 @@ public abstract class RCBaseHeader implements Constants {
    * <code>DEC_PURPLE</code> if the count did not go to zero and the
    * object was already in the purple buffer.
    */
-   public static boolean decRC(VM_Address object)
+  public static int decRC(VM_Address object, boolean makePurple)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int result = changeRC(object, -INCREMENT);
-    if (Plan.REF_COUNT_SANITY_TRACING) {
-      return (result & INCREMENT_MASK) < INCREMENT;
-    } else
-      return (result < INCREMENT);
+    int oldValue, newValue;
+    int rtn;
+    if (Plan.SUPPORTS_PARALLEL_GC)
+      do {
+	oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
+	newValue = oldValue - INCREMENT;
+	if (newValue < INCREMENT)
+	  rtn = DEC_KILL;
+	else if (Plan.REF_COUNT_CYCLE_DETECTION && makePurple &&
+		 ((newValue & COLOR_MASK) < PURPLE)) {
+	  rtn = ((newValue & BUFFERED_MASK) == 0) ? DEC_BUFFER : DEC_PURPLE;
+	  newValue = (newValue & ~COLOR_MASK) | PURPLE | CYCLIC_MATURE | BUFFERED_MASK;
+	} else
+	  rtn = DEC_PURPLE;
+      } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
+    else {
+      oldValue = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
+      newValue = oldValue - INCREMENT;
+      if (newValue < INCREMENT)
+	rtn = DEC_KILL;
+      else if (Plan.REF_COUNT_CYCLE_DETECTION && makePurple &&
+	       ((newValue & COLOR_MASK) < PURPLE)) {
+	rtn = ((newValue & BUFFERED_MASK) == 0) ? DEC_BUFFER : DEC_PURPLE;
+	newValue = (newValue & ~COLOR_MASK) | PURPLE | CYCLIC_MATURE | BUFFERED_MASK;
+      } else
+	rtn = DEC_PURPLE;
+      VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, newValue);
+    }
+    return rtn;
   }
-
+  
   public static int getRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (Plan.REF_COUNT_SANITY_TRACING) {

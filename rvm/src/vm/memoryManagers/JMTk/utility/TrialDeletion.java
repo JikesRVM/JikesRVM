@@ -217,12 +217,10 @@ final class TrialDeletion extends CycleDetector
 
   public final void possibleCycleRoot(VM_Address object)
     throws VM_PragmaInline {
-    if (RCBaseHeader.makePurple(object)) {
-      if (purpleBufferAisOpen)
-	purpleBufferA.insert(object);
-      else
-	purpleBufferB.insert(object);
-    }
+    if (purpleBufferAisOpen)
+      purpleBufferA.insert(object);
+    else
+      purpleBufferB.insert(object);
   }
 
   private final void filterPurpleBufs() {
@@ -340,7 +338,7 @@ final class TrialDeletion extends CycleDetector
     case MARK_GREY: 
       if (!RCBaseHeader.isGreen(object)) {
 	if (VM_Interface.VerifyAssertions) VM_Interface._assert(RCBaseHeader.isLiveRC(object));
-	RCBaseHeader.decRC(object);
+	RCBaseHeader.decRC(object, false);
 	workQueue.push(object);
       }
       break;

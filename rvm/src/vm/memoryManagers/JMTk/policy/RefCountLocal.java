@@ -279,9 +279,10 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void decrement(VM_Address object) 
     throws VM_PragmaInline {
-    if (RCBaseHeader.decRC(object))
+    int state = RCBaseHeader.decRC(object, true);
+    if (state == RCBaseHeader.DEC_KILL)
       release(object);
-    else if (Plan.REF_COUNT_CYCLE_DETECTION)
+    else if (Plan.REF_COUNT_CYCLE_DETECTION && state ==RCBaseHeader.DEC_BUFFER)
       cycleDetector.possibleCycleRoot(object);
   }
 
@@ -340,7 +341,7 @@ final class RefCountLocal extends SegregatedFreeList
    * established during the sanity scan.
    */
   private final void rcSanityCheck() {
-    if (VM_Interface.VerifyAssertions)
+    if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     VM_Address obj;
     int checked = 0;
@@ -409,7 +410,7 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void addToTraceBuffer(VM_Address object) 
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions)
+    if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     tracingBuffer.push(VM_Magic.objectAsAddress(object));
   }
