@@ -1012,16 +1012,34 @@ implements OPT_Operators, OPT_Constants {
    * Remove all phis that are unreachable
    */
   private void removeAllUnreachablePhis(HashSet scalarPhis) {
+    boolean iterateAgain = false;
+    do {
+      iterateAgain = false;
 outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
-      OPT_Instruction phi = (OPT_Instruction)i.next();
-      for (int j=0; j<Phi.getNumberOfValues(phi); j++) {
-        OPT_Operand op = Phi.getValue(phi,j);
-        if (!(op instanceof OPT_UnreachableOperand)) {
-          continue outer;
-        }
-      }
-      i.remove();
-    }
+         OPT_Instruction phi = (OPT_Instruction)i.next();
+         for (int j=0; j<Phi.getNumberOfValues(phi); j++) {
+           OPT_Operand op = Phi.getValue(phi,j);
+           if (!(op instanceof OPT_UnreachableOperand)) {
+             continue outer;
+           }
+         }
+         OPT_RegisterOperand result = Phi.getResult(phi).asRegister(); 
+         i.remove();
+         for (Enumeration e = OPT_DefUse.uses(result.register); e.hasMoreElements(); ) {
+           OPT_RegisterOperand use = (OPT_RegisterOperand)e.nextElement();
+           OPT_Instruction s = use.instruction;
+           if (Phi.conforms(s)) {
+             for (int k = 0; k < Phi.getNumberOfValues(phi); k++) {
+               OPT_Operand op = Phi.getValue(phi, k);
+               if (op != null && op.similar(result)) {
+                 Phi.setValue(phi, k, new OPT_UnreachableOperand());
+                 iterateAgain = true;
+               }
+             }
+           }
+         }
+       }
+    } while (iterateAgain);
   }
   /**
    * Remove all unreachable operands from scalar phi functions
