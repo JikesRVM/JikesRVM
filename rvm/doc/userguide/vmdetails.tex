@@ -213,24 +213,25 @@ For more details, see
 
 \subsection{VM Conventions}
 
-\subsubsection{AIX\TMheadingweb{} VM Conventions}
+\subsubsection{AIX/PowerPC VM Conventions}
 \label{aix-conventions}
 
-\index{stack conventions}
-\index{register conventions}
-\index{calling conventions}
+\index{stack conventions: AIX/PowerPC}
+\index{register conventions: AIX/PowerPC}
+\index{calling conventions: AIX/PowerPC}
 
 This section describes register, stack, and calling conventions that apply to 
-Jikes RVM on PowerPC\TMweb.
+Jikes RVM on AIX/PowerPC\TMweb.
 
 Stackframe layout and calling conventions may evolve as our understanding
 of Jikes RVM's performance improves.  Where possible API's should be used
 to protect code against such changes.  In particular, we may move to
-the AIX conventions at a later date.  Where code differs from the AIX
+the AIX\TMweb conventions at a later date.  Where code differs from the AIX
 conventions, it should be marked with a comment to that effect containing
 the string "AIX".
 
-\noindent{\bf Register conventions}
+%\noindent{\bf Register conventions}
+\paragraph{Register conventions}
 
 Registers (general purpose, gp, and floating point, fp) can be roughly
 categorized into four types:
@@ -288,14 +289,16 @@ registers when doing a JNI transition from C to Java code.
 \end{description}
 
 
-\noindent{\bf Stack conventions}
+%\noindent{\bf Stack conventions}
+\paragraph{Stack conventions}
 
 Stacks grow from high memory to low memory.
 The layout of the stackframe appears in a block comment in
 \xlink{{\tt \$RVM\_ROOT/rvm/src/vm/arch/powerpc/VM\_StackframeLayoutConstants.java}}
 {\PPCStackframeLayoutURL}.
 
-\noindent{\bf Calling Conventions}
+%\noindent{\bf Calling Conventions}
+\paragraph{Calling Conventions}
 
 \begin{description}
 \item[Parameters]
@@ -354,14 +357,15 @@ ommitted for leaf methods):
 \end{description}
 
 \subsubsection{Linux/IA32 VM Conventions} \label{lintel-conventions}
-\index{stack conventions}
-\index{register conventions}
-\index{calling conventions}
+\index{stack conventions: Linux/x86}
+\index{register conventions: Linux/x86}
+\index{calling conventions: Linux/x86}
 
 This section describes register, stack, and calling conventions that
 apply to Jikes RVM on Linux\Rweb{}/IA32.  
 
-\noindent{\bf Register conventions}
+%\noindent{\bf Register conventions}
+\paragraph{Register conventions}
 
 \begin{description}
 \item[EAX]
@@ -393,7 +397,8 @@ apply to Jikes RVM on Linux\Rweb{}/IA32.
 
 \end{description}
 
-\noindent{\bf Stack conventions}
+%\noindent{\bf Stack conventions}
+\paragraph{Stack conventions}
 
 Stacks grow from high memory to low memory.
 The layout of the stackframe appears in a block comment in
@@ -401,7 +406,8 @@ The layout of the stackframe appears in a block comment in
 \$RVM\_ROOT/rvm/src/vm/arch/intel/VM\_StackframeLayoutConstants.java}}
 {\LintelStackframeLayoutURL}.
 
-\noindent{\bf Calling Conventions}
+%\noindent{\bf Calling Conventions}
+\paragraph{Calling Conventions}
 
 \begin{description}
 \item[At the beginning of callee's prologue]
@@ -421,6 +427,19 @@ The first two areas of the callee's stackframe (see above) have been
      Otherwise, if B has a result, it is in EAX.
 
 \end{description}
+
+\subsubsection{OS~X VM Conventions} \label{lintel-conventions}
+\index{calling conventions: OS X/PowerPC}
+
+\paragraph{Calling Conventions}
+
+\newcommand{\OSXCallingConventionsURL}{http://devel\-op\-er.ap\-ple.com/\-do\-cu\-men\-ta\-tion/\-De\-ve\-lo\-perTools/\-Con\-cep\-tu\-al/Mach\-O\-Run\-time/\-Mach\-O\-Run\-time.pdf}
+The calling conventions we use for OS~X are the same as those listed
+at \xlink{\texttt{\OSXCallingConventionsURL}}{\OSXCallingConventionsURL}.
+They're fairly similar to the Linux PowerPC calling conventions.  One
+major difference is how the two operating systems handle the case of
+a long parameter when you only have a single parameter register left.
+
 
 \subsection{Class Loading} \label{sssec:classLoading}
 \index{class loading}
