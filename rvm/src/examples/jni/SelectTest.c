@@ -1,3 +1,13 @@
+/*
+ * (C) Copyright IBM Corp. 2003
+ *
+ * $Id$
+ *
+ * Simple test for sys call interception.
+ * 
+ * @author David Grove
+ */
+
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/types.h>

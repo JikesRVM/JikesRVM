@@ -1,7 +1,8 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2003
  */
 //$Id$ 
+
 /**
  * Simple test to see if hijacking of select works.
  * 
