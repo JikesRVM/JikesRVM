@@ -1,7 +1,8 @@
 /*
  * Licensed Materials - Property of IBM,
- * (c) Copyright IBM Corp. 1998, 2001  All Rights Reserved
+ * (c) Copyright IBM Corp 2002  All Rights Reserved
  */
+// $Id$
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.librarySupport.FileSupport;
@@ -15,6 +16,8 @@ import java.net.*;
 
 /**
  * Sockets using Jikes RVM non-blocking I/O support
+ *
+ * @author Julian Dolby
  */
 final class JikesRVMSocketImpl extends SocketImpl {
 
