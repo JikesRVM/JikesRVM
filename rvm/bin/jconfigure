@@ -500,12 +500,6 @@ declare -i RVM_WITH_NOFLUSH
 
 # echo >&2 "I read RVM_TARGET_CONFIG=${RVM_TARGET_CONFIG} in section 3;  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS"  #DEBUG
 
-
-# Which sed should "jconfigure" use?  We do NOT want to use the value
-# of "SED" set above in RVM_TARGET_CONFIG, since it is unlikely that
-# we are running "jconfigure" on the target.
-JC_SED=$(type -p sed)
-
 #--------------------------------------#
 # SECTION 4 - ARGUMENT PARSING         #
 #--------------------------------------#
@@ -600,7 +594,7 @@ PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS}
 -DMAXIMUM_MAPPABLE_ADDRESS=${MAXIMUM_MAPPABLE_ADDRESS}"
 CLEANUP='/bin/rm -f $tmpf'	# used by EXIT trap.
 tmpf=/tmp/jconfigure.$$
-set | ${JC_SED} -n -e 's/^RVM_FOR_/-DRVM_FOR_/p' \
+set | sed -n -e 's/^RVM_FOR_/-DRVM_FOR_/p' \
 		-e 's/^RVM_WITH_/-DRVM_WITH_/p'			\
 		-e 's/RVM_WITHOUT_/-DRVM_WITHOUT_/p' > $tmpf
 if (( BUILD_WITH_PARANOID_PREPROCESSOR )); then
@@ -610,7 +604,7 @@ else
     ## code, if we are not compiling with the paranoid preprocessor flags 
     ## enabled, we can remove all of the ones which just set to 
     ## the default value (zero) 
-    from_vars="$(${JC_SED} -e '/=0/d' $tmpf)"
+    from_vars="$(sed -e '/=0/d' $tmpf)"
 fi
 eval $CLEANUP   # rm -f $tmpf
 CLEANUP=":"
@@ -1592,7 +1586,7 @@ EOF
 	TOP_LEVEL_SOURCES="${TOP_LEVEL_SOURCES} OptDummy.java OptTestHarness.java"
     fi
     TOP_LEVEL_SOURCES="${TOP_LEVEL_SOURCES} ${CONF_SPECIFIC_TOP_LEVEL_SOURCES}"
-    TOP_LEVEL_CLASSES="$(builtin echo ${TOP_LEVEL_SOURCES}| ${JC_SED} 's@\.java@.class@g')"
+    TOP_LEVEL_CLASSES="$(builtin echo ${TOP_LEVEL_SOURCES}| sed 's@\.java@.class@g')"
 
     cat <<- EOF
 	if [[ -e $CLASSES_INVALID_STR ]]; then
