@@ -135,7 +135,6 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field beingDispatchedField            = getField("Lcom/ibm/JikesRVM/VM_Thread;", "beingDispatched", "Z");
   public static final VM_Field threadSlotField                 = getField("Lcom/ibm/JikesRVM/VM_Thread;", "threadSlot", "I");
   public static final VM_Field jniEnvField                     = getField("Lcom/ibm/JikesRVM/VM_Thread;", "jniEnv", "Lcom/ibm/JikesRVM/VM_JNIEnvironment;");
-  public static final VM_Field processorAffinityField          = getField("Lcom/ibm/JikesRVM/VM_Thread;", "processorAffinity", "Lcom/ibm/JikesRVM/VM_Processor;");
   public static final VM_Field nativeAffinityField             = getField("Lcom/ibm/JikesRVM/VM_Thread;", "nativeAffinity", "Lcom/ibm/JikesRVM/VM_Processor;");
   public static final VM_Field threadContextRegistersField     = getField("Lcom/ibm/JikesRVM/VM_Thread;", "contextRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
   public static final VM_Field threadHardwareExceptionRegistersField = getField("Lcom/ibm/JikesRVM/VM_Thread;", "hardwareExceptionRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
