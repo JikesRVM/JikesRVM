@@ -1237,7 +1237,8 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  public final void emitLDoffset(int RT, int RA, int offset) {
+  //private: use emitLIntOffset or emitLAddrOffset instead
+  private final void emitLDoffset(int RT, int RA, int offset) {
     if (fits(offset, 16)) {
       emitLD(RT, offset, RA);
     } else if ((offset & 0x8000) == 0) {
@@ -1249,7 +1250,8 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
   }
   
-  public final void emitLWAoffset(int RT, int RA, int offset) {
+  //private: use emitLIntOffset or emitLAddrOffset instead
+  private final void emitLWAoffset(int RT, int RA, int offset) {
     if (fits(offset, 16)) {
       emitLWA (RT, offset, RA);
     } else if ((offset & 0x8000) == 0) {
@@ -1261,7 +1263,8 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
   }
     
-  public final void emitLWZoffset(int RT, int RA, int offset) {
+  //private: use emitLIntOffset or emitLAddrOffset instead
+  private final void emitLWZoffset(int RT, int RA, int offset) {
     if (fits(offset, 16)) {
       emitLWZ (RT, offset, RA);
     } else if ((offset & 0x8000) == 0) {
@@ -1273,14 +1276,17 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
   }
     
+  //prefer to use emitLIntToc or emitLAddrToc instead
   public final void emitLDtoc (int RT, int offset) {
     emitLDoffset(RT, JTOC, offset); 
   }
 
+  //prefer to use emitLIntToc or emitLAddrToc instead
   public final void emitLWAtoc (int RT, int offset) {
     emitLWAoffset(RT, JTOC, offset);
   }
 
+  //prefer to use emitLIntToc or emitLAddrToc instead
   public final void emitLWZtoc (int RT, int offset) {
     emitLWZoffset(RT, JTOC, offset);
   }
@@ -1988,6 +1994,13 @@ public final class VM_Assembler implements VM_BaselineConstants,
       emitLWAoffset(RT, RA, offset);
     else 
       emitLWZoffset(RT, RA, offset);
+  }
+
+  public final void emitLAddrOffset(int RT, int RA, int offset) {
+      if (VM.BuildFor64Addr) 
+	emitLDoffset(RT, RA, offset);
+      else 
+	emitLWZoffset(RT, RA, offset);
   }
 
   // -----------------------------------------------------------//

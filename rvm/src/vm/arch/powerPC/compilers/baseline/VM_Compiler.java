@@ -2068,7 +2068,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       edgeCounterIdx += n+1; // allocate n+1 counters
       // Load counter array for this method
       asm.emitLAddrToc (T2, VM_Entrypoints.edgeCountersField.getOffset());
-      asm.emitLWZoffset(T2, T2, getEdgeCounterOffset());
+      asm.emitLAddrOffset(T2, T2, getEdgeCounterOffset());
       
       VM_ForwardReference fr = asm.emitForwardBC(LT); // jump around jump to default target
       incEdgeCounter(T2, S0, firstCounter + n);
@@ -2111,7 +2111,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (options.EDGE_COUNTERS) {
       // Load counter array for this method
       asm.emitLAddrToc (T2, VM_Entrypoints.edgeCountersField.getOffset());
-      asm.emitLWZoffset(T2, T2, getEdgeCounterOffset());
+      asm.emitLAddrOffset(T2, T2, getEdgeCounterOffset());
     }
 
     popInt(T0); // T0 is key
@@ -2872,7 +2872,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     } else {
       // load offset table
       asm.emitLAddrToc (reg, tableOffset);
-      asm.emitLWZoffset(reg, reg, memberOffset);
+      asm.emitLIntOffset(reg, reg, memberOffset);
     }
   }
 
@@ -3039,10 +3039,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 
       // Load counter array for this method
       asm.emitLAddrToc (T0, VM_Entrypoints.edgeCountersField.getOffset());
-      if (VM.BuildFor64Addr) 
-	asm.emitLDoffset(T0, T0, getEdgeCounterOffset());
-      else 
-	asm.emitLWZoffset(T0, T0, getEdgeCounterOffset());
+      asm.emitLAddrOffset(T0, T0, getEdgeCounterOffset());
 
       // Flip conditions so we can jump over the increment of the taken counter.
       VM_ForwardReference fr = asm.emitForwardBC(asm.flipCode(cc));
