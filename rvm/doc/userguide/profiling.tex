@@ -3,7 +3,7 @@ Jikes\TMweb{} RVM can be used to profile an application and the VM
 itself.  The first section describes how Jikes RVM supports
 platform-specific hardware performance monitors (HPM). Currently HPM
 support is only available for
-PowerPC\TMweb/AIX\TMweb\ version 5, but can be
+PowerPC\TMweb/AIX\TMweb{} version 5, but can be
 used in any configuration of Jikes RVM on that platform.  The next two
 sections describe how adaptive configurations of Jikes RVM can be used
 to gather profile data.  This support is available on all platforms,
@@ -15,8 +15,8 @@ but only in adaptive configurations.
 Jikes RVM can be built to enable access to the PowerPC hardware
 performance monitors (HPMs) using the {\tt bos.pmapi} interface 
 included in AIX version 5. To build Jikes RVM to use
-HPMs, you must define RVM\_HPM\_DIR to be the directory containing
-the pmapi code (typically {\tt /usr/pmapi}) and RVM\_WITH\_HPM to be 1.
+HPMs, you must define \varName{RVM\_HPM\_DIR} to be the directory containing
+the pmapi code (typically {\tt /usr/pmapi}) and \varName{RVM\_WITH\_HPM} to be 1.
 See the config file {\tt \$RVM\_\-ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U} for
 an example.
 
@@ -132,7 +132,7 @@ instrumentation lives in {\tt
 \$RVM\_\-ROOT/rvm/src/vm/adaptive/runtimeMeasurements/instrumentation} and {\tt
 adaptive/recompilation/instrumentation}.
 
-\link{Below, }[Section~\Ref]{existing_phases} \link{describes existing instrumentation
+\link{Below}[, Section~\Ref (page~\Pageref)]{existing_phases}\link{ describes existing instrumentation
 phases and how to run them}{existing_phases}; \link{immediately
 following}[, Section~\Ref (page~\Pageref)]{adding_phases}
 \link{describes the details of how a new phase can be added}{adding_phases}.
