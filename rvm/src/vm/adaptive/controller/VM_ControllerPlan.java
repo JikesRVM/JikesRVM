@@ -210,16 +210,17 @@ public final class VM_ControllerPlan {
 
     setCMID(newCMID);
     setTimeCompleted(VM_Controller.controllerClock);
+    VM_CompiledMethod cm = newCMID == -1 ? null : VM_CompiledMethods.getCompiledMethod(newCMID);
     if (VM.LogAOSEvents) {
       if (newCMID == -1) {
 	VM_AOSLogging.recompilationAborted(cp);
       } else {
 	VM_AOSLogging.recompilationCompleted(cp);
-        VM_AOSLogging.debug("New CMID " + newCMID);
+	VM_AOSLogging.recordCompileTime(cm);
       }
     }
-
-    return newCMID == -1 ? null : VM_CompiledMethods.getCompiledMethod(newCMID);
+    
+    return cm;
   }
 
   /**

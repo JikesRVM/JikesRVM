@@ -483,6 +483,21 @@ public class VM_AOSLogging {
   }
 
   /**
+   * This method logs the actual compilation time for the given compiled method.
+   * @param plan the OPT_Compilation plan being executed.
+   */
+  public static void recordCompileTime(VM_CompiledMethod cm) {
+    if (log != null && VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized (log) {
+	String name = " baseline ";
+	log.println(VM_Controller.controllerClock 
+		    +" Compiled "+cm.getMethod() + " with "+ cm.getCompilerName()
+		    + " in "+cm.getCompilationTime()+ " ms.");
+      }
+    }
+  }
+
+  /**
    * this method logs the event when the controller discovers a method that has 
    * been recompiled and the previous version is still regarded as hot, 
    * i.e., still on the stack and signficant.
@@ -610,8 +625,8 @@ public class VM_AOSLogging {
    * @param cost  the computed cost for this method and level
    */
   public static void recordControllerEstimateCostDoNothing(VM_Method method, 
-					  int optLevel,
-					  double cost) {
+							   int optLevel,
+							   double cost) {
     if (VM_Controller.options.LOGGING_LEVEL >= 3) {
       synchronized (log) {
 	log.print(VM_Controller.controllerClock 
@@ -634,8 +649,8 @@ public class VM_AOSLogging {
    @ @param cost  the computed cost for this method and level
    */
   public static void recordControllerEstimateCostOpt(VM_Method method, 
-				    String choiceDesc,
-				    double cost) {
+						     String choiceDesc,
+						     double cost) {
     if (VM_Controller.options.LOGGING_LEVEL >= 3) {
       synchronized (log) {
 	log.println(VM_Controller.controllerClock 

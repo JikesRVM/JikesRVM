@@ -125,6 +125,9 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	}
       }
     }
+    if (VM.LogAOSEvents) {
+      VM_AOSLogging.recordCompileTime(cm);
+    }
     return cm;
   }
 
