@@ -30,7 +30,6 @@ import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_Time;
-import com.ibm.JikesRVM.VM_Entrypoints;
 import com.ibm.JikesRVM.VM_Reflection;
 import com.ibm.JikesRVM.VM_Synchronization;
 import com.ibm.JikesRVM.VM_Synchronizer;
