@@ -261,6 +261,15 @@ public final class OPT_BranchOptimizations
     if (Goto.conforms(targetInst)) {
       // conditional branch to unconditional branch.
       // change conditional branch target to latter's target
+      OPT_BranchOperand top = Goto.getTarget(targetInst);
+      if (top.similar(IfCmp.getTarget(cb))) {
+	// Avoid an infinite recursion in the following scenario:
+	// g: if (...) goto L
+	// ...
+	// L: goto L
+	// This happens in VM_GCUtil in some systems due to a while(true) {} 
+	return false;
+      }
       IfCmp.setTarget(cb, Goto.getTarget(targetInst));
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
