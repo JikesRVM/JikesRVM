@@ -265,6 +265,7 @@ public class VM_BootRecord {
   public Address sysVirtualProcessorYieldIP;
   public Address sysVirtualProcessorEnableTimeSlicingIP;
   public Address sysPthreadSelfIP;
+  public Address sysPthreadSetupSignalHandlingIP;
   public Address sysPthreadSignalIP;
   public Address sysPthreadExitIP;
   public Address sysPthreadJoinIP;

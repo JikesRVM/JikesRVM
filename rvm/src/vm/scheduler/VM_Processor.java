@@ -101,8 +101,10 @@ implements Uninterruptible, VM_Constants {
     if (VM_Scheduler.cpuAffinity != VM_Scheduler.NO_CPU_AFFINITY)
       VM_SysCall.sysVirtualProcessorBind(VM_Scheduler.cpuAffinity + id - 1);
      
-    // get pthread_id from AIX and store into vm_processor field
-    // 
+    VM_SysCall.sysPthreadSetupSignalHandling();
+
+    /* get pthread_id from the operating system and store into vm_processor
+       field  */
     pthread_id = VM_SysCall.sysPthreadSelf();
     
     //

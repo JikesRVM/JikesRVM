@@ -143,6 +143,7 @@ public class VM_SysCall implements Uninterruptible {
    */
   public static void sysVirtualProcessorEnableTimeSlicing(int timeSlice) {}
   public static int sysPthreadSelf() { return 0; }
+  public static void sysPthreadSetupSignalHandling() {}
   public static int sysPthreadSignal(int pthread) { return 0; }
   public static void sysPthreadExit() {}
   public static int sysPthreadJoin(int pthread) { return 0; }

@@ -98,8 +98,11 @@ public class VM extends VM_Properties
     
     // get pthread_id from OS and store into vm_processor field
     // 
-    if (!BuildForSingleVirtualProcessor)
-      VM_Processor.getCurrentProcessor().pthread_id = VM_SysCall.sysPthreadSelf();
+    if (!BuildForSingleVirtualProcessor) {
+      VM_SysCall.sysPthreadSetupSignalHandling();
+      VM_Processor.getCurrentProcessor().pthread_id = 
+        VM_SysCall.sysPthreadSelf();
+    }
 
     // Initialize memory manager's virtual processor local state.
     // This must happen before any putfield or arraystore of object refs

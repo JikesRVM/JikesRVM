@@ -1751,6 +1751,7 @@ sysWaitForMultithreadingStart()
 // CRA, Maria
 // 09/14/00
 //
+
 /*
   I have filed defect report # 3925 about this function, with the following
   description of the defect: --Steve Augart:
@@ -1776,15 +1777,26 @@ sysPthreadSelf()
     sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
     int thread;
-    int rc;
 
     thread = (int)pthread_self();
 
     if (VERBOSE_PTHREAD)
         fprintf(SysTraceFile, "%s: sysPthreadSelf: thread %d\n", Me, thread);
 
+    return thread;
+#endif
+}
+
+extern "C" void
+sysPthreadSetupSignalHandling()
+{
+#if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+    fprintf(stderr, "%s: sysPthreadSelf: FATAL Unsupported operation with single virtual processor\n", Me);
+    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+#else
 
 #if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
+    int rc;                     // retval from subfunction.
     /*
      *  Provide space for this pthread to process exceptions.  This is
      * needed on Linux because multiple pthreads can handle signals
@@ -1798,9 +1810,10 @@ sysPthreadSelf()
 
     stack.ss_size = SIGSTKSZ;
     if (sigaltstack (&stack, 0)) {
+        /* Only fails with EINVAL, ENOMEM, EPERM */
         fprintf (SysErrorFile, "sigaltstack failed (errno=%d): ", errno);
         perror(NULL);
-        return 1;
+        sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
     }
 #endif
 
@@ -1815,13 +1828,26 @@ sysPthreadSelf()
 
 #if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
     rc = pthread_sigmask(SIG_BLOCK, &input_set, &output_set);
-#else
+    /* pthread_sigmask can only return the following errors.  Either of them
+     * indicates serious trouble and is grounds for aborting the process:
+     * EINVAL EFAULT.  */
+    if (rc) {
+        fprintf (SysErrorFile, "pthread_sigmask failed (errno=%d): ", errno);
+        perror(NULL);
+        sysExit(EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR);
+    }
+    
+#elif defined RVM_FOR_AIX
     rc = sigthreadmask(SIG_BLOCK, &input_set, &output_set);
+#else
+    #error "Unsupported Operating System"
 #endif
 
-    return thread;
+    
 #endif
 }
+
+
 
 //
 extern "C" int
