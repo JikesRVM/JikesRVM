@@ -24,9 +24,12 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 /**
  * @author Jeffrey Palm
  */
-public class Plugin extends AbstractUIPlugin {
+public class JikesRVMLaunchingPlugin extends AbstractUIPlugin {
 
-  private static Plugin instance;
+  private static JikesRVMLaunchingPlugin instance;
+
+  // For debugging we just want to launch the jdp wrapper
+  private String debuggerProgram = !JikesRVMDebug.d.debug() ? "jdpWrapper" : "jdp";
 
   /**
    * Utility method with conventions
@@ -47,9 +50,9 @@ public class Plugin extends AbstractUIPlugin {
     return getDefault().getWorkbench().getActiveWorkbenchWindow();
   }
 
-  public static Plugin getDefault() {
+  public static JikesRVMLaunchingPlugin getDefault() {
     if (instance == null) {
-      throw new NullPointerException("Plugin.instance is NULL!");
+      throw new NullPointerException("JikesRVMLaunchingPlugin.instance is NULL!");
     }
     return instance;
   }
@@ -59,9 +62,9 @@ public class Plugin extends AbstractUIPlugin {
   }
   
   /**
-   * Constructor for Plugin
+   * Constructor for JikesRVMLaunchingPlugin
    */
-  public Plugin(IPluginDescriptor descriptor) {
+  public JikesRVMLaunchingPlugin(IPluginDescriptor descriptor) {
     super(descriptor);
     instance = this;
   }
@@ -75,7 +78,7 @@ public class Plugin extends AbstractUIPlugin {
    */
   public void addInstall(JikesRVMInstall install) {
     if (install == null) {
-      String msg = Msgs.getInternalErr("install == null");
+      String msg = JikesRVMLauncherMessages.getString("JikesRVMLaunchingPlugin.error.nullInstall");
       throw new NullPointerException(msg);
     }
     JikesRVMDebug.d.bug("addInstall (begin) install="+install);
@@ -89,6 +92,22 @@ public class Plugin extends AbstractUIPlugin {
    */
   public Collection getRVMs() {
     return installs.values();
+  }
+
+  /**
+   * Returns the program to use for debugging... just the name.
+   * @return the program to use for debugging... just the name.
+   */
+  public final String debuggerProgram() {
+    return debuggerProgram;
+  }
+
+  /**
+   * Sets the program to use for debugging.
+   * @param debuggerProgram the program to use for debugging
+   */
+  public final void setDebuggerProgram(String debuggerProgram) {
+    this.debuggerProgram = debuggerProgram;
   }
 
   /**
@@ -110,10 +129,10 @@ public class Plugin extends AbstractUIPlugin {
     JikesRVMInstall install = getInstall(toString);
     if (install == null) {
       errorDialog(getActiveWorkbenchShell(), 
-		  Msgs.getString("launcher.dialog.error"),
-		  Msgs.getString("launcher.removeInstall.notFound"),
-		  new Status(IStatus.ERROR, Plugin.getPluginId(), 0, 
-			     Msgs.getString("JikesRVMType.removeInstall.notFound"), 
+		  JikesRVMLauncherMessages.getString("JikesRVMLauncher.dialog.error"),
+		  JikesRVMLauncherMessages.getString("JikesRVMLauncher.removeInstall.notFound"),
+		  new Status(IStatus.ERROR, JikesRVMLaunchingPlugin.getPluginId(), 0, 
+			     JikesRVMLauncherMessages.getString("JikesRVMType.removeInstall.notFound"), 
 			     null));
     }
     installs.remove(toString);

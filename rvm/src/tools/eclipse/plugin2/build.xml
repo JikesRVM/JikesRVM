@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 Ant build file for the eclipse plug in
 
@@ -11,7 +12,7 @@ $Date$
 $Author$
 $Id$
 
- (C) Copyright IBM Corp. 2002, 2003
+ Copyright © IBM Corp. 2002, 2003
 
 @author Jeffrey Palm
 
@@ -32,12 +33,7 @@ $Id$
   <property name="name" value="${ant.project.name}"/>
 
   <property name="plugins.dir" value="${eclipse.dir}/plugins"/>
-  <!-- property name="package"
-  value="org.eclipse.jdt.launching.jikesrvm_Post2.2.2"/ --> <!-- I.E., the CVS Head. -->
-  <!-- Don't break this next entry across two lines; a sed script
-	emitted in jbuild.plugin expects it to stay on one
-	line. -Steve Augart  -->
-  <property name="package" value="com.ibm.JikesRVM.eclipse.jdt.launching_post2.2.2" />
+  <property name="package"     value="com.ibm.jikesrvm.launching_2.3.0.1"/>
   <property name="install.dir" value="${plugins.dir}/${package}"/>
   <property name="build.dist.install" value="${build.dist}/${package}"/>
 
@@ -106,16 +102,8 @@ $Id$
           depends="build.src"
           description="compiles source code">
     <mkdir dir="${build.classes}"/>
-       <!-- had the following as one of the attributes for the "javac" tag, 
-	    works with Ant 1.5.3, does not work with
-            Ant 1.4.1.  Can we put 1.4.1 in a mode where it won't
-            treat attributes it doesn't understand as fatal errors? -->
-	<!--  listfiles="${build.trace}" -->
-
     <javac destdir="${build.classes}"
 	   classpathref="project.classpath"
-	   failonerror="true"
-	   deprecation="true"
 	   debug="${build.config.debug}">
       <src path="${src.dir}"/>
       <src path="${build.src}"/>

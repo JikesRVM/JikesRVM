@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002, 2003
+ * (C) Copyright IBM Corp 2001,2002
  *
  * ==========
  * $Source$
@@ -16,30 +16,22 @@ import java.util.ResourceBundle;
 /**
  * @author Jeffrey Palm
  */
-public class Msgs {
+public class JikesRVMLauncherMessages {
 
   private static final String RESOURCE_BUNDLE= 
-    //"org.eclipse.jdt.internal.launching.jikesrvm2.Msgs";
-    "com.ibm.jikesrvm.eclipse.jdt.launching.Msgs";
+    //"org.eclipse.jdt.internal.launching.jikesrvm2.JikesRVMLauncherMessages";
+    "com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMLauncherMessages";
 
-    // XXX Not PropertyResourceBundle???
   private static ResourceBundle resources = ResourceBundle.getBundle(RESOURCE_BUNDLE);
-  private static ResourceBundle r = resources;
 
   public static String getString(String key) {
     try {
-      return r.getString(key);
+      return resources.getString(key);
     } catch (MissingResourceException e) {
       return "!" + key + "!";
     }
   }
 
-  public static String getInternalErr(String txt) {
-    return r.getString("internalError") + ": " + txt;
-  }
-
-  public final static Msgs m = new Msgs();
-
-  private Msgs() {}
+  private JikesRVMLauncherMessages() {}
 
 }
