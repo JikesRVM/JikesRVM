@@ -33,7 +33,6 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 
   public static void boot() {
     zipFileCache = new HashMap();
-    //-#if RVM_WITH_GNU_CLASSPATH
     // the following idiot reflection hack is because the field is final :(
     if (VM.runningVM) {
       try {
@@ -43,7 +42,6 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 	VM.sysExit(-1);
       }
     }
-    //-#endif
   }
 
   // prevent other classes from constructing

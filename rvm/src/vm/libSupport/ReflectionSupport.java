@@ -1449,9 +1449,6 @@ public class ReflectionSupport {
    * @exception	IOException		If an IO exception happened when creating internal streams to hold primitive data
    */
   public static void initPrimitiveTypes(ObjectInputStream ois, byte[] data) throws IOException {
-    //-#if !RVM_WITH_GNU_CLASSPATH
-    ois.primitiveTypes = new DataInputStream(new ByteArrayInputStream(data));
-    //-#endif
   }
 
   /**
@@ -1464,72 +1461,6 @@ public class ReflectionSupport {
    * @exception	ClassNotFoundException	If a class for one of the field types could not be found
    */
   public static void readFieldDescriptors(ObjectInputStream ois, ObjectStreamClass cDesc) throws ClassNotFoundException, IOException {
-    //-#if !RVM_WITH_GNU_CLASSPATH
-    ObjectStreamField f;
-    short numFields = ois.input.readShort();
-    ObjectStreamField[] fields = new ObjectStreamField [numFields];
-
-    // We set it now, but each element will be inserted in the array further down
-    cDesc.setLoadFields (fields);
-
-    // Check ObjectOutputStream.writeFieldDescriptors
-    for (short i = 0 ; i < numFields; i++) {
-      char typecode = (char) ois.input.readByte();
-      String fieldName = ois.input.readUTF();
-      boolean isPrimType = isPrimitiveType(typecode);
-      String classSig;
-      if (isPrimType) {
-        char [] oneChar = new char[1];
-        oneChar[0]=typecode;
-        classSig = new String (oneChar);
-
-        Class typeClass;
-        switch (typecode) {
-	case 'Z' :
-	  typeClass = boolean.class;
-	  break;
-	case 'B' :
-	  typeClass = byte.class;
-	  break;
-	case 'C' :
-	  typeClass = char.class;
-	  break;
-	case 'S' :
-	  typeClass = short.class;
-	  break;
-	case 'I' :
-	  typeClass = int.class;
-	  break;
-	case 'J' :
-	  typeClass = long.class;
-	  break;
-	case 'F' :
-	  typeClass = float.class;
-	  break;
-	case 'D' :
-	  typeClass = double.class;
-	  break;
-	default :
-	  throw new IOException("Invalid Typecode " + typecode);
-        }
-
-        f = new ObjectStreamField(fieldName, typeClass);
-
-      } else {
-        // The spec says it is a UTF, but experience shows they dump this String
-        // using writeObject (unlike the field name, which is saved with writeUTF)
-        classSig = (String) ois.readObject ();
-
-        // strip off leading L and trailing ; to get class name
-        if (classSig.charAt(0) == 'L')
-          classSig = classSig.substring(1,classSig.length()-1);
-
-        f = new ObjectStreamField(fieldName, Class.forName(classSig));
-      }
-
-      fields [i] = f;
-    }
-    //-#endif
   }
 
   /**

@@ -11,7 +11,7 @@ import java.io.*;
 
 /**
  * This class provides a handle to a VM-specific object representing
- * a stack trace.  This is used in the implemented of java.lang.Throwable,
+ * a stack trace.  This is used in the implementation of java.lang.Throwable,
  * which holds a reference to such an object.
  *
  * @author Stephen Fink
@@ -58,16 +58,15 @@ public class StackTrace {
   public static void print(StackTrace s, PrintWriter err) {
     VM_StackTrace.print(s.stackTrace,err);
   }
-//-#if RVM_WITH_GNU_CLASSPATH    
-    public Class[] getClassContext()
-    {
-	/*	Class[] ret = new Class[stackTrace.length];
-	for(int i = 0; i < ret.length;i++)
-	    {
-		ret[i] = stackTrace[i].compiledMethod.getMethod().getDeclaringClass();
-	    }
-	return ret;*/
-	return new Class[0];
-    }
-//-#endif
+
+  public Class[] getClassContext() {
+    /*	
+      Class[] ret = new Class[stackTrace.length];
+      for(int i = 0; i < ret.length;i++) {
+      ret[i] = stackTrace[i].compiledMethod.getMethod().getDeclaringClass();
+      }
+      return ret;
+    */
+    return new Class[0];
+  }
 }

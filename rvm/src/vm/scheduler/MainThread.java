@@ -47,7 +47,6 @@ class MainThread extends Thread {
    * Run "main" thread.
    */
   public void run() {
-    //-#if RVM_WITH_GNU_CLASSPATH
     // set up JikesRVM socket I/O
     try {
       Socket.setSocketImplFactory(new SocketImplFactory() {
@@ -58,13 +57,11 @@ class MainThread extends Thread {
 	});
       DatagramSocket.setDatagramSocketImplFactory(new DatagramSocketImplFactory() {
 	  public DatagramSocketImpl createDatagramSocketImpl() { 
-	    VM.sysWriteln("HI DAVE");
 	    throw new VM_UnimplementedError ("Need to implement JikesRVMDatagramSocketImpl");
 	  }});
     } catch (java.io.IOException e) {
       VM.sysWrite("trouble setting socket impl factories");
     }
-    //-#endif
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     // initialize the controller and runtime measurement subsystems

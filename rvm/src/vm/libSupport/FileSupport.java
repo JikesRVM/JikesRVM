@@ -7,9 +7,6 @@
 package com.ibm.JikesRVM.librarySupport;
 
 import java.io.*;
-//-#if !RVM_WITH_GNU_CLASSPATH
-import java.io.JikesRVMSupport;
-//-#endif
 import com.ibm.JikesRVM.VM_FileSystem;
 import com.ibm.JikesRVM.VM_Callbacks;
 
@@ -105,101 +102,13 @@ public class FileSupport {
     return VM_FileSystem.close(fd);
   }
 
-//-#if !RVM_WITH_GNU_CLASSPATH
-  /**
-   * Close a FileInputStream.
-   *
-   * @exception 	java.io.IOException	If an error occurs attempting to close this FileInputStream.
-   */
-    public static void close(FileInputStream f) throws IOException {    
-    FileDescriptor fd = f.fd;
-    f.fd = null;
-    if (fd != null) {
-      JikesRVMSupport.deref(fd);
-      if (JikesRVMSupport.dead(fd)) {
-        int rc = FileSupport.close(JikesRVMSupport.getFd(fd));
-        if (rc == -2)
-          // !!TODO: what additional details to supply?
-          throw new IOException(); 
-      }
-    }
-    }
-
-  /**
-   * Close a FileOutputStream.  This implementation closes the underlying OS resources allocated
-   * to represent this stream.
-   *
-   * @exception 	java.io.IOException	If an error occurs attempting to close this FileOutputStream.
-   */
-    
-  public static void close(FileOutputStream f) throws IOException {
-    FileDescriptor fd = f.fd;
-    f.fd = null;
-    if (fd != null) {
-      JikesRVMSupport.deref(fd);
-      if (JikesRVMSupport.dead(fd)) {
-        int rc = FileSupport.close(JikesRVMSupport.getFd(fd));
-        if (rc == -2)
-          // !!TODO: what additional details to supply?
-          throw new IOException(); 
-      } else {
-        FileSupport.sync(JikesRVMSupport.getFd(fd));
-      }
-    }  
-    }
-
-  /**
-   * Frees any resources allocated to represent a FileOutputStream before it is garbage collected.
-   *
-   * @exception 	java.io.IOException	If an error occurs attempting to finalize this FileOutputStream.
-   */
-  public static void finalize(FileOutputStream f) throws IOException {
-    if (f.fd != null) {
-      int fd = JikesRVMSupport.getFd(f.fd);
-
-      // in UNIX, fds 0, 1 and 2 tend to be special
-      if (fd > 2) 
-        close(f);
-      else
-        FileSupport.sync(fd);
-    }
-  }
-
-  /**
-   * Writes <code>count</code> <code>bytes</code> from the byte array
-   * <code>buffer</code> starting at <code>offset</code> to this
-   * FileOutputStream.
-   *
-   * @param		buffer		the buffer to be written
-   * @param		offset		offset in buffer to get bytes
-   * @param		count		number of bytes in buffer to write
-   *
-   * @throws 	java.io.IOException	If an error occurs attempting to write to this FileOutputStream.
-   * @throws	java.lang.IndexOutOfBoundsException If offset or count are outside of bounds.
-   * @throws	java.lang.NullPointerException If buffer is <code>null</code>.
-   */
-    
-  public static void write(FileOutputStream f, byte[] buffer, int offset, int count) throws IOException {
-    int fd = JikesRVMSupport.getFd(f.fd);
-    int rc = FileSupport.writeBytes(fd, buffer, offset, count);
-    if (rc != count)
-      throw new IOException();
-      }
-
-
-
-    //-#endif
   /**
    * Get file status.
    * @param fileName file name
    * @param kind     kind of info desired (one of STAT_XXX, above)
    * @return desired info (-1 -> error)
    */ 
-//-#if RVM_WITH_GNU_CLASSPATH
   public static int stat(String fileName, int kind) {
-//-#else
-  private static int stat(String fileName, int kind) {
-//-#endif
     return VM_FileSystem.stat(fileName,kind);
   }
 
@@ -209,11 +118,7 @@ public class FileSupport {
    * @param kind     kind of access perm(s) to check for (ACCESS_W_OK,...)
    * @return 0 if access ok (-1 -> error)
    */ 
-//-#if RVM_WITH_GNU_CLASSPATH
   public static int access(String fileName, int kind) {
-//-#else
-  private static int access(String fileName, int kind) {
-//-#endif
     return VM_FileSystem.access(fileName, kind);
   }
 
@@ -477,175 +382,4 @@ public class FileSupport {
   public static int writeByte(int fd, int b) {
     return VM_FileSystem.writeByte(fd,b);
   }
-
-
-//-#if RVM_WITH_GNU_CLASSPATH
-//-#else
-  /**
-   * Close a RandomAccessFile.
-   *
-   * @exception 	java.io.IOException	If an error occurs attempting to close this RandomAccessFile.
-   */
-
-  public static void close(RandomAccessFile f) throws IOException {
-    FileDescriptor fd = f.fd;
-    f.fd = null;
-    if (fd != null) {
-      JikesRVMSupport.deref(fd);
-      if (JikesRVMSupport.dead(fd)) {
-        int rc = close(JikesRVMSupport.getFd(fd));
-        if (rc == -2)
-          // !!TODO: what additional details to supply?
-          throw new IOException(); 
-      } else {
-        sync( JikesRVMSupport.getFd(fd) );
-      }
-    }  
-  }
-
-  /**
-   * Answers the current position within a RandomAccessFile.  All reads and writes
-   * take place at the current file pointer position.
-   *
-   * @return		the current file pointer position.
-   *
-   * @exception 	java.io.IOException	If an error occurs attempting to get the file pointer position
-   *									of this RandomAccessFile.
-   */
-
-  public static long getFilePointer(RandomAccessFile f) throws IOException {
-    int curpos = seek(JikesRVMSupport.getFd(f.fd), 0, SEEK_CUR);
-    if (curpos == -1)
-      throw new IOException();
-    return curpos;
-  }
-
-  /**
-   * Answers the current length of a RandomAccessFile in bytes.
-   *
-   * @return		the current file length in bytes.
-   *
-   * @exception 	java.io.IOException	If an error occurs attempting to get the file length
-   *									of this RandomAccessFile.
-   */
-  public static long length(RandomAccessFile f) throws IOException {
-    int fd = JikesRVMSupport.getFd(f.fd);
-
-    //!!TODO - probably an fstat() would be faster than three lseeks()...
-    //!!TODO - also, this computation is not thread safe if
-    //         multiple threads do read/write/seek on file simultaneously
-    int oldpos = seek(fd, 0,      FileSupport.SEEK_CUR);
-    int endpos = seek(fd, 0,      FileSupport.SEEK_END);
-    int newpos = seek(fd, oldpos, FileSupport.SEEK_SET);
-
-    if (oldpos == -1 || endpos == -1 || newpos != oldpos)
-      throw new IOException();
-
-    return endpos;
-  }
-
-  /**
-   * Reads a single byte from a RandomAccessFile and returns the result as
-   * an int.  The low-order byte is returned or -1 of the end of file was
-   * encountered.
-   *
-   * @return 		the byte read or -1 if end of file.
-   *
-   * @exception 	java.io.IOException	If an error occurs attempting to read from this RandomAccessFile.
-   *
-   * @see 		#write(RandomAccessFile,byte[], int, int)
-   * @see 		#write(RandomAccessFile,int)
-   */
-
-  public static int read(RandomAccessFile f) throws IOException {
-    if (f.fd != null) {
-      int rc = readByte(JikesRVMSupport.getFd(f.fd));
-      if (rc < -1)	throw new IOException();
-      else		return rc;
-    }
-    throw new IOException();
-    }
-
-  /**
-   * Seeks to the position <code>pos</code> in a RandomAccessFile.  All read/write/skip
-   * methods sent will be relative to <code>pos</code>.
-   *
-   * @param 		pos			the desired file pointer position
-   *
-   * @exception 	java.io.IOException 	If the stream is already closed or another IOException occurs.
-   */
-    
-  public static void seek(RandomAccessFile f, long pos) throws IOException {
-    if (seek(JikesRVMSupport.getFd(f.fd), (int)pos, SEEK_SET) == -1)
-      throw new IOException();
-  }
-    
-  /**
-   * Writes <code>count</code> bytes from the byte array
-   * <code>buffer</code> starting at <code>offset</code> to this
-   * RandomAccessFile starting at the current file pointer..
-   *
-   * @param		buffer		the bytes to be written
-   * @param		offset		offset in buffer to get bytes
-   * @param		count		number of bytes in buffer to write
-   *
-   * @exception 	java.io.IOException	If an error occurs attempting to write to this RandomAccessFile.
-   *
-   * @see 		#read(RandomAccessFile)
-   *
-   * @exception	java.lang.ArrayIndexOutOfBoundsException If offset or count are outside of bounds.
-   */
-    
-  public static void write(RandomAccessFile f, byte[] buffer, int offset, int count) throws IOException {
-    if (f.fd != null) {
-      int rc = writeBytes(JikesRVMSupport.getFd(f.fd), buffer, offset, count);
-      if (rc != count) throw new IOException();
-      return;
-    }
-    else throw new IOException();
-    }
-
-  /**
-   * Writes the specified byte <code>oneByte</code> to this RandomAccessFile
-   * starting at the current file pointer. Only the low order byte of
-   * <code>oneByte</code> is written.
-   *
-   * @param		oneByte		the byte to be written
-   *
-   * @exception 	java.io.IOException	If an error occurs attempting to write to this RandomAccessFile.
-   *
-   * @see 		#read(RandomAccessFile)
-   */
-    
-  public static void write(RandomAccessFile f, int oneByte) throws IOException {
-    if (f.fd != null)
-    {
-      if (FileSupport.writeByte(JikesRVMSupport.getFd(f.fd), oneByte) == -1)
-        throw new IOException();
-      return;
-    }
-    else throw new IOException();
-  }
-
-  public static void deleteOnExit(final String fileName) {
-      VM_Callbacks.addExitMonitor(new VM_Callbacks.ExitMonitor() {
-	public void notifyExit(int code) {
-	  VM_FileSystem.delete( fileName );
-	}
-     });
-  }
-
-  /**
-   * Registration hook for new FileDescriptor objects.
-   * The library should call this from FileDescriptor's constructor(s).
-   *
-   * @param fd the file descriptor object
-   * @param shared true if the file descriptor might be shared with
-   *    another process
-   */
-  public static void onCreateFileDescriptor(FileDescriptor fd, boolean shared) {
-    VM_FileSystem.onCreateFileDescriptor(JikesRVMSupport.getFd(fd), shared);
-  }
-
-  //-#endif
 }

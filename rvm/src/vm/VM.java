@@ -140,37 +140,19 @@ public class VM extends VM_Properties
     //
 
     if (verbose >= 1) VM.sysWriteln("Running various class initializers");
-    //-#if RVM_WITH_GNU_CLASSPATH
     java.lang.ref.JikesRVMSupport.setReferenceLock(new VM_Synchronizer());
-    //-#else
-    runClassInitializer("java.io.FileDescriptor");
-    runClassInitializer("java.io.File");
-    //-#endif
 
     runClassInitializer("java.lang.Runtime");
-    //-#if RVM_WITH_GNU_CLASSPATH
     runClassInitializer("java.lang.System");
     runClassInitializer("java.io.File");
-    //-#else
-    runClassInitializer("java.lang.System");
-    System.boot();
-    //-#endif
     runClassInitializer("java.lang.Boolean");
     runClassInitializer("java.lang.Byte");
     runClassInitializer("java.lang.Short");
-    //-#if RVM_WITH_GNU_CLASSPATH
     runClassInitializer("java.lang.Number");
-    //-#endif
     runClassInitializer("java.lang.Integer");
     runClassInitializer("java.lang.Long");
     runClassInitializer("java.lang.Float");
     runClassInitializer("java.lang.Character");
-    //-#if !RVM_WITH_GNU_CLASSPATH
-    runClassInitializer("com.ibm.oti.io.CharacterConverter");
-    runClassInitializer("java.util.Hashtable");
-    runClassInitializer("java.lang.String");
-    //-#endif
-    //-#if RVM_WITH_GNU_CLASSPATH
     runClassInitializer("gnu.java.io.EncodingManager");
     runClassInitializer("java.lang.Thread");
     runClassInitializer("java.lang.ThreadGroup");
@@ -180,12 +162,8 @@ public class VM extends VM_Properties
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     runClassInitializer("java.security.Policy");
     runClassInitializer("java.util.WeakHashMap");
-    //-#endif
     runClassInitializer("java.lang.ClassLoader");
     runClassInitializer("java.lang.Math");
-    //-#if !RVM_WITH_GNU_CLASSPATH
-    runClassInitializer("java.lang.RuntimePermission");
-    //-#endif
     runClassInitializer("java.util.TimeZone");
     runClassInitializer("java.util.Locale");
     runClassInitializer("java.util.Calendar");
@@ -196,10 +174,8 @@ public class VM extends VM_Properties
     runClassInitializer("java.util.zip.DeflaterHuffman");
     runClassInitializer("java.util.zip.InflaterDynHeader");
     runClassInitializer("java.util.zip.InflaterHuffmanTree");
-    //-#if RVM_WITH_GNU_CLASSPATH
     runClassInitializer("gnu.java.locale.Calendar");
     runClassInitializer("java.util.Date");
-    //-#endif
     //-#if RVM_WITH_ALL_CLASSES
     runClassInitializer("java.util.jar.Attributes$Name");
     //-#endif
@@ -267,9 +243,6 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("com.ibm.JikesRVM.VM_Process");
-    //-#if !RVM_WITH_GNU_CLASSPATH
-    runClassInitializer("com.ibm.oti.util.Msg");
-    //-#endif
 
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();

@@ -286,9 +286,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method invocationCounterTrippedMethod   = getMethod("Lcom/ibm/JikesRVM/adaptive/VM_InvocationCounts;", "counterTripped", "(I)V");
   //-#endif
 
-  //-#if RVM_WITH_GNU_CLASSPATH
   public static final VM_Field classLoaderDefinedPackages = getField("Ljava/lang/ClassLoader;", "definedPackages", "Ljava/util/Map;");
-  //-#endif
 
   static void init() {
   }

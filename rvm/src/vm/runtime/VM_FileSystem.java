@@ -673,12 +673,6 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     VM_FileSystem.prepareStandardFd(1);
     VM_FileSystem.prepareStandardFd(2);
     
-    //-#if !RVM_WITH_GNU_CLASSPATH
-    java.io.JikesRVMSupport.setFd(FileDescriptor.in, 0);
-    java.io.JikesRVMSupport.setFd(FileDescriptor.out, 1);
-    java.io.JikesRVMSupport.setFd(FileDescriptor.err, 2);
-    //-#endif
-
     FileInputStream  fdIn  = new FileInputStream(FileDescriptor.in);
     FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
     FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);
