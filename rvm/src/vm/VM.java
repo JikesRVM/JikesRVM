@@ -579,7 +579,7 @@ public class VM extends VM_Properties implements VM_Constants,
       if (runningVM) {
 	char[] chars = java.lang.JikesRVMSupport.getBackingCharArray(value);
 	int numChars = java.lang.JikesRVMSupport.getStringLength(value);
-	for (int i = 0; i < chars.length; i++) 
+	for (int i = 0; i<numChars; i++) 
 	  write(chars[i]);
       } else {
 	System.err.print(value);
@@ -592,7 +592,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value character array that is printed
    * @param len number of characters printed
    */
-  public static void write(char [] value, int len) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+  public static void write(char[] value, int len) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     for (int i = 0, n = len; i < n; ++i) {
       if (runningVM)
 	write(VM_Magic.getCharAtOffset(value, i << LOG_BYTES_IN_CHAR));
