@@ -760,19 +760,21 @@ public class VM_Allocator  extends VM_GCStatistics
 
     // ALL GC THREADS IN PARALLEL - AFTER COLLECTION
 
-    // have each processor begin allocations in next mutator cycle in what
-    // remains of the current chunk acquired for copying objects during GC.
-    // Note. it must be zero'ed
-    //
     if (PROCESSOR_LOCAL_ALLOCATE) {
-      if (PROCESSOR_LOCAL_MATURE_ALLOCATE) 
-	VM_Chunk.swapChunks(VM_Processor.getCurrentProcessor());
-      else 
+      if (PROCESSOR_LOCAL_MATURE_ALLOCATE) {
+	// have each processor begin allocations in next mutator cycle in what
+	// remains of the current chunk acquired for copying objects during GC.
+	// NOTE: promoteChunk2 handles zeroing the rest of the chunk if necessary
+	VM_Chunk.promoteChunk2(VM_Processor.getCurrentProcessor());
+      } else {
 	VM_Chunk.resetChunk1(VM_Processor.getCurrentProcessor(), fromHeap, false);
+      }
     }
 
-    if (ZERO_NURSERY_IN_PARALLEL) 
+    if (ZERO_NURSERY_IN_PARALLEL) {
       fromHeap.zeroFreeSpaceParallel();
+      mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+    }
 
     // Each GC thread increments adds its wait times for this collection
     // into its total wait time - for printSummaryStatistics output

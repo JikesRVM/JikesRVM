@@ -140,26 +140,27 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
   }
 
   /**
-   * Swap the chunks of given virtual processor
-   * @param st the virtual processor whose chunks should be swapped.
+   * Promote chunk2 to chunk1; if ZERO_CHUNKS_ON_ALLOCATION,
+   * then it zeros the remaining free space of the chunk (which hadn't been zeroed
+   * before because the GC system was using it to copy objects).
+   *
+   * @param st the virtual processor whose chunk2 should be promoted to chunk1
    */
-  public static void swapChunks(VM_Processor st) {
-    VM_Address start = st.startChunk1;
-    VM_Address current = st.currentChunk1;
-    VM_Address end = st.endChunk1;
-    VM_ContiguousHeap heap = st.backingHeapChunk1;
-
+  public static void promoteChunk2(VM_Processor st) {
     st.startChunk1 = st.startChunk2;
     st.currentChunk1 = st.currentChunk2;
     st.endChunk1 = st.endChunk2;
     st.backingHeapChunk1 = st.backingHeapChunk2;
+    
+    st.startChunk2 = VM_Address.zero();
+    st.currentChunk2 = VM_Address.zero();
+    st.endChunk2 = VM_Address.zero();
+    st.backingHeapChunk2 = null;
 
-    st.startChunk2 = start;
-    st.currentChunk2 = current;
-    st.endChunk2 = end;
-    st.backingHeapChunk2 = heap;
+    if (!st.startChunk1.isZero() && ZERO_CHUNKS_ON_ALLOCATION) {
+      VM_Memory.zero(st.currentChunk2, st.endChunk2);
+    }
   }
-
 
   public static boolean unusedChunk1(VM_Processor st) {
       return st.startChunk1 == st.currentChunk1;
