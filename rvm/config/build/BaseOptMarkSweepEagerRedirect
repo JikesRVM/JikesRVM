@@ -1,3 +1,0 @@
-   . $1/BaseOptMarkSweep
-   export RVM_WITH_REDIRECT_SLOT=1
-   export RVM_WITH_EAGER_REDIRECT=1
