@@ -125,7 +125,7 @@ INT_2LONG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 rs:	INT_2LONG(rs)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), PPC_MOVE, Move.getResult(P(p)), R(Move.getVal(P(p)))));
+EMIT(MIR_Move.mutate(P(p), PPC_MOVE, Unary.getResult(P(p)), R(Unary.getVal(P(p)))));
 
 #####
 # LONG_2INT
@@ -245,7 +245,7 @@ EMIT_INSTRUCTION
 rz:	INT_2ADDRZerExt(rz)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), PPC_MOVE, Move.getResult(P(p)), R(Move.getVal(P(p)))));
+EMIT(MIR_Move.mutate(P(p), PPC_MOVE, Unary.getResult(P(p)), R(Unary.getVal(P(p)))));
 
 rz:	INT_2ADDRZerExt(r)
 11
