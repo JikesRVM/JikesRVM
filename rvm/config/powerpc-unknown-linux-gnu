@@ -18,9 +18,6 @@ export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
 # the JDK javac executable
 export HOST_JAVAC="$HOST_JAVA_HOME/bin/javac"
 
-# the JDK jar executable
-export HOST_JAR="$HOST_JAVA_HOME/bin/jar"
-
 # the JDK standard library jar files
 export HOST_REPOSITORIES="$HOST_JAVA_HOME/lib/rt.jar"
 
@@ -44,6 +41,11 @@ export CPP=/usr/bin/cpp
 
 #
 export JNI_NATIVE_LIBS_LD=
+
+# The configuration for building the user guide.
+# You may have to edit this file.
+export USER_GUIDE_CONFIG="${RVM_ROOT}/doc/userguide/config.mk"
+
 
 export GREP="/usr/bin/grep"
 export FIND="/usr/bin/find"

@@ -18,9 +18,6 @@ export HOST_JAVA="/opt/IBMJava2-13/bin/java"
 # the JDK javadoc executable
 export HOST_JAVADOC="/opt/IBMJava2-13/bin/javadoc"
 
-# the JDK jar executable
-export HOST_JAR="/opt/IBMJava2-13/bin/jar"
-
 # the JDK javac executable
 export HOST_JAVAC="/opt/IBMJava2-13/bin/javac"
 
@@ -57,6 +54,11 @@ export LDSHARED="/usr/bin/g++ -shared"
 #
 export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
 
+# The configuration for building the user guide.
+# You may have to edit this file.
+export USER_GUIDE_CONFIG="${RVM_ROOT}/doc/userguide/config.mk"
+
+
 #  some Unix commands
 export GREP="/bin/grep"
 export FIND="/usr/bin/find"
@@ -67,7 +69,6 @@ export BASH="/bin/bash"
 export SED="/bin/sed"
 export WGET="/usr/bin/wget"
 export DIFF="/usr/bin/diff"
-export TAR="/bin/tar"
 
 # where to find Jazzlib
 export JAZZLIBDIR=/homes/fury5/jalapeno/contrib/jazzlib-0.02

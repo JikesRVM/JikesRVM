@@ -14,12 +14,10 @@ export HOST_JAVA_HOME="/opt/IBMJava2-13"
 
 # the JDK java executable
 export HOST_JAVA="/opt/IBMJava2-13/jre/bin/java"
+#
 
 # the JDK javac executable
 export HOST_JAVAC="/opt/IBMJava2-13/bin/javac"
-
-# the jar executable
-export HOST_JAR="/opt/IBMJava2-13/bin/jar 
 
 # the JDK standard library jar files
 export HOST_REPOSITORIES="/opt/IBMJava2-13/jre/lib/rt.jar"
@@ -41,6 +39,11 @@ export LDSHARED="/usr/bin/g++ -shared"
 
 #
 export JNI_NATIVE_LIBS_LD=
+
+# The configuration for building the user guide.
+# You may have to edit this file.
+export USER_GUIDE_CONFIG="${RVM_ROOT}/doc/userguide/config.mk"
+
 
 #  some Unix commands
 export GREP=/bin/grep

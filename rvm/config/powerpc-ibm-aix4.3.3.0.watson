@@ -21,9 +21,6 @@ export HOST_JAVAC="/share/power/Java/aix/J1.3.0/java130/bin/javac"
 # the JDK1.3.0 javadoc executable
 export HOST_JAVADOC="/share/power/Java/aix/J1.3.0/java130/bin/javadoc"
 
-# the JDK1.3.0 jar executable
-export HOST_JAR="/share/power/Java/aix/J1.3.0/java130/bin/jar"
-
 # the JDK1.3.0 standard library jar files
 export HOST_REPOSITORIES="/share/power/Java/aix/J1.3.0/java130/jre/lib/rt.jar"
 
@@ -54,6 +51,11 @@ export LDSHARED="/usr/gnu/bin/g++ -shared"
 #
 export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
 
+# The configuration for building the user guide.
+# You may have to edit this file.
+export USER_GUIDE_CONFIG="${RVM_ROOT}/doc/userguide/config.mk"
+
+
 # some Unix commands used in sanity rules
 export GREP="/usr/bin/grep"
 export FIND="/usr/bin/find"
@@ -64,7 +66,6 @@ export BASH="/usr/gnu/bin/bash"
 export SED="/usr/gnu/bin/sed"
 export WGET="/homes/fury5/jalapeno/bin/wget-aix"
 export DIFF="/usr/gnu/bin/diff"
-export TAR="/usr/gnu/bin/tar"
 
 # where to find Jazzlib
 export JAZZLIBDIR=/homes/fury5/jalapeno/contrib/jazzlib-0.02

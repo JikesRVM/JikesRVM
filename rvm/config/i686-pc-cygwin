@@ -40,6 +40,12 @@ export LDSHARED="/usr/bin/g++ -shared"
 #
 export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
 
+
+# The configuration for building the user guide.
+# You may have to edit this file.
+export USER_GUIDE_CONFIG="${RVM_ROOT}/doc/userguide/config.mk"
+
+
 #  some Unix commands
 export GREP=/bin/grep
 export FIND=/bin/find
