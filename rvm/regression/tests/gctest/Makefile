@@ -26,7 +26,7 @@ BENCH_RVM_ARGS=
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
-sanity: 	$(TESTS) InlineAllocation
+sanity: 	InlineAllocation $(TESTS)
 	echo DONE
 
 $(TESTS): %:
