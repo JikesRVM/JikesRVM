@@ -110,7 +110,7 @@ bench-rvm:			$(START_CLASS) $(WORKING)
 bench-jdk:			$(START_CLASS) $(WORKING)
 	@echo
 	@echo "(Running $(START_NAME) on JDK for comparison)"
-	@cd $(WORKING); $(HOST_JAVA) $(JDK_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) \
+	@cd $(WORKING); $(HOST_VM_RT) $(JDK_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) \
 		> $(OUT) 2>&1
 
 
