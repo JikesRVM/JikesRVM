@@ -67,7 +67,8 @@ final class DoublyLinkedList
 
     // ensure that granularity is big enough for midPayloadToNode to work
     VM_Word tmp = VM_Word.fromIntZeroExtend(granularity);
-    VM_Interface._assert(tmp.and(nodeMask).EQ(tmp));
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(tmp.and(nodeMask).EQ(tmp));
   }
 
   // Offsets are relative to the node (not the payload)
