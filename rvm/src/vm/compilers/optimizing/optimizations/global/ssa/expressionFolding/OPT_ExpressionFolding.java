@@ -44,23 +44,22 @@ class OPT_ExpressionFolding implements OPT_Operators {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
       // Check if s is a fixed-point add/subtract instruction with 
       // a constant second operand
-      if (isCandidateExpression(s)) {
-        candidates.add(s);
+      OPT_Register r = isCandidateExpression(s);
+      if (r != null) {
+        candidates.add(r);
       }
     }
 
     boolean didSomething = true;
     while (didSomething) {
       didSomething = false;
-      // Remember which instructions are transformed in each loop
-      // iteration
-      HashMap replace = new HashMap(20);
       for (Iterator i = candidates.iterator(); i.hasNext(); ) {
-        OPT_Instruction s = (OPT_Instruction)i.next();
+        OPT_Register r = (OPT_Register)i.next();
+        OPT_Instruction s = r.getFirstDef();
         OPT_Operand val1 = Binary.getVal1(s);
         if (VM.VerifyAssertions) VM.assert(val1.isRegister());
-        OPT_Instruction def = val1.asRegister().register.getFirstDef();
-        if (candidates.contains(def)) {
+        if (candidates.contains(val1.asRegister().register)) {
+          OPT_Instruction def = val1.asRegister().register.getFirstDef();
           OPT_Operand def1 = Binary.getVal1(def);
           if (VM.VerifyAssertions) VM.assert(def1.isRegister());
           OPT_Operand def2 = Binary.getVal2(def);
@@ -68,16 +67,11 @@ class OPT_ExpressionFolding implements OPT_Operators {
 
           OPT_Instruction newS = transform(s,def);
           s.insertAfter(newS);
-          replace.put(s,newS);
           OPT_DefUse.updateDUForNewInstruction(newS);
           OPT_DefUse.removeInstructionAndUpdateDU(s);
           didSomething = true;
         }
       }
-      // update the candidate set to account for the transformations done
-      // in this loop iteration.
-      candidates.removeAll(replace.keySet());
-      candidates.addAll(replace.values());
     }
   }      
 
@@ -142,16 +136,18 @@ class OPT_ExpressionFolding implements OPT_Operators {
   }
 
   /**
-   * Does instruction s compute a candidate expression?
+   * Does instruction s compute a register r = candidate expression?
+   *
+   * @return the computed register, or null 
    */
-  private static boolean isCandidateExpression(OPT_Instruction s) {
+  private static OPT_Register isCandidateExpression(OPT_Instruction s) {
     if (s.operator == INT_ADD || s.operator == LONG_ADD ||
         s.operator == INT_SUB || s.operator == LONG_SUB ) {
       OPT_Operand val2 = Binary.getVal2(s);
       if (val2.isConstant()) {
-        return true;
+        return Binary.getResult(s).asRegister().register;
       }
     }
-    return false;
+    return null;
   }
 }
