@@ -112,7 +112,7 @@ input.ramp_up_seconds=0
 #DS# In addition, there is an overhead for building data of about 
 #DS# (1.3*(#warehouses) + 3) seconds.
 input.ramp_up_seconds=30
-input.measurement_seconds=120000
+input.measurement_seconds=20000
 
 
 
