@@ -4,7 +4,7 @@
    id="org.eclipse.jdt.launching.jikesrvm"
    name="%pluginName"
    version="1.0"
-   provider-name="Object Technology International, Inc."
+   provider-name="Jikes RVM"
    class="org.eclipse.jdt.internal.launching.jikesrvm.JikesRVMLaunchingPlugin">
 
   <!-- Required plugins -->

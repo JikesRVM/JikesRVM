@@ -1,15 +1,6 @@
 /*
- * ===========================================================================
- * IBM Confidential
- * Software Group 
+ * (C) Copyright IBM Corp 2001,2002
  *
- * Eclipse/Jikes
- *
- * (C) Copyright IBM Corp., 2002.
- *
- * The source code for this program is not published or otherwise divested of
- * its trade secrets, irrespective of what has been deposited with the U.S.
- * Copyright office.
  *
  * ==========
  * $Source$
@@ -20,6 +11,9 @@
 
 package org.eclipse.jdt.internal.launching.jikesrvm;
 
+/**
+ * @author Jeffrey Palm
+ */
 public interface BuildInfo {
   public final static String         TIME = "@long.date@";
   public final static java.util.Date DATE = new java.util.Date(TIME);

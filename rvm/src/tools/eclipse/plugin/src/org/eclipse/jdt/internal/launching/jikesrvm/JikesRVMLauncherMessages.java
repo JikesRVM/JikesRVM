@@ -1,12 +1,14 @@
-package org.eclipse.jdt.internal.launching.jikesrvm;
-
 /*
  * (c) Copyright IBM Corp. 2000, 2001.
- * All Rights Reserved.
  */
+package org.eclipse.jdt.internal.launching.jikesrvm;
+
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+/**
+ * @author Jeffrey Palm
+ */
 public class JikesRVMLauncherMessages {
 
 	private static final String RESOURCE_BUNDLE= 

@@ -1,15 +1,5 @@
 /*
- * ===========================================================================
- * IBM Confidential
- * Software Group 
- *
- * Eclipse/Jikes
- *
- * (C) Copyright IBM Corp., 2002.
- *
- * The source code for this program is not published or otherwise divested of
- * its trade secrets, irrespective of what has been deposited with the U.S.
- * Copyright office.
+ * (C) Copyright IBM Corp 2001,2002
  *
  * ==========
  * $Source$
@@ -27,6 +17,9 @@ import org.eclipse.jdt.internal.ui.wizards.swt.*;
 import org.eclipse.swt.*;
 import org.eclipse.swt.widgets.*;
 
+/**
+ * @author Jeffrey Palm
+ */
 public class ChangeConfigurationDialog extends StatusDialog {
 
   public final static void changeConfiguration(Shell parent, JikesRVMInstall install, boolean useDefaults) {

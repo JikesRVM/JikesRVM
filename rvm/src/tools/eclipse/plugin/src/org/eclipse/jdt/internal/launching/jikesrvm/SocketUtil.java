@@ -1,14 +1,16 @@
-package org.eclipse.jdt.internal.launching.jikesrvm;
-
 /*
  * (c) Copyright IBM Corp. 2000, 2001.
- * All Rights Reserved.
  */
+package org.eclipse.jdt.internal.launching.jikesrvm;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Random;
 
+/**
+ * @author Jeffrey Palm
+ */
 public class SocketUtil {
 	private static final Random fgRandom= new Random(System.currentTimeMillis());
 	
@@ -24,6 +26,7 @@ public class SocketUtil {
 		}
 		return -1;
 	}
+
 	private static int getRandomPort(int low, int high) {
 		return (int)(fgRandom.nextFloat()*(high-low))+low;
 	}

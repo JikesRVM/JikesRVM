@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
- ===========================================================================
- IBM Confidential
- Software Group 
- Eclipse/Jikes
  (C) Copyright IBM Corp., 2002.
- The source code for this program is not published or otherwise divested of
- its trade secrets, irrespective of what has been deposited with the U.S.
- Copyright office.
- ==========
+
  $Source$
  $Revision$
  $Date$
@@ -18,7 +11,7 @@
    id="com.ibm.jikesrvm.eclipse.jdt.launching"
    name="%pluginName"
    version="1.0"
-   provider-name="Object Technology International, Inc."
+   provider-name="JikesRVM"
    class="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMLaunchingPlugin">
 
   <!-- Required plugins -->

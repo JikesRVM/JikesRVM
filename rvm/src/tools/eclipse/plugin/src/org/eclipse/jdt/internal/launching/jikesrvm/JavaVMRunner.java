@@ -1,15 +1,5 @@
 /*
- * ===========================================================================
- * IBM Confidential
- * Software Group 
- *
- * Eclipse/Jikes
- *
- * (C) Copyright IBM Corp., 2002.
- *
- * The source code for this program is not published or otherwise divested of
- * its trade secrets, irrespective of what has been deposited with the U.S.
- * Copyright office.
+ * (C) Copyright IBM Corp 2001,2002
  *
  * ==========
  * $Source$
@@ -33,6 +23,9 @@ import org.eclipse.swt.widgets.Display;
 
 import com.sun.jdi.VirtualMachine;
 
+/**
+ * @author Jeffrey Palm
+ */
 public abstract class JavaVMRunner implements IVMRunner {
 
   protected IVMInstall fVMInstance;
