@@ -143,7 +143,7 @@ public class VM_BootImageCompiler {
     // It is tempting to time via System.currentTimeMillis()
     // but 1 millisecond granularity isn't good enough because the 
     // the baseline compiler is just too fast.
-    double compileTime = method.getRawBytecodes().length / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+    double compileTime = method.getBytecodeLength() / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
     cm.setCompilationTime(compileTime);
     //-#endif
     return cm;

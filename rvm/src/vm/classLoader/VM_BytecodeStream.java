@@ -6,40 +6,32 @@ package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Statics;
+
 /**
  * Provides minimal abstraction layer to a stream of bytecodes
  * from the code attribute of a method.
  * 
  * @author Igor Pechtchanski
- * @see com.ibm.JikesRVM.opt.ir.OPT_BC2IR
- * @see VM_ModifiableBytecodeStream
  */
 public class VM_BytecodeStream implements VM_BytecodeConstants {
   private final VM_Method method;
   private final VM_Class declaringClass;
-  private int bcLength;
+  private final int bcLength;
+  private final byte[] bcodes;
   private int bcIndex;
-  private byte[] bcodes;
   private int opcode;
   private boolean wide;
 
   /**
    * @param m the method containing the bytecodes
+   * @param bc the array of bytecodes
    */
-  public VM_BytecodeStream(VM_Method m) {
+  public VM_BytecodeStream(VM_Method m, byte[] bc) {
     method = m;
     declaringClass = m.getDeclaringClass();
-    reload();
+    bcodes = bc;
+    bcLength = bc == null ? 0 : bc.length;
     bcIndex = 0;
-  }
-
-  /**
-   * Reload information from the method data structure.
-   */
-  protected final void reload() {
-    bcodes = method.getRawBytecodes();
-    if (bcodes != null) bcLength = bcodes.length;
-    else                bcLength = 0;
   }
 
   /**
@@ -92,16 +84,6 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
    */
   public final void reset(int index) {
     bcIndex = index;
-  }
-
-  /**
-   * Resets the stream to a given position
-   * @deprecated reset(int)
-   * @param index the position to reset the stream to
-   * @see #reset(int)
-   */
-  public final void setPosition(int index) {
-    reset(index);
   }
 
   /**
@@ -883,7 +865,6 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
   }
 
   //// READ BYTECODES
-
   private final byte readSignedByte() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     return bcodes[bcIndex++];
@@ -903,28 +884,12 @@ public class VM_BytecodeStream implements VM_BytecodeConstants {
     i |= (bcodes[bcIndex++] & 0xFF);
     return (int)i;
   }
-  // UNUSED!
-  private final int getSignedShort(int index) {
-    if (VM.VerifyAssertions) VM._assert(index <= bcLength);
-    int i = bcodes[index++] << 8;
-    i |= (bcodes[index] & 0xFF);
-    return (int)i;
-  }
-
   private final int readUnsignedShort() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = (bcodes[bcIndex++] & 0xFF) << 8;
     i |= (bcodes[bcIndex++] & 0xFF);
     return (int)i;
   }
-  // UNUSED!
-  private final int getUnsignedShort(int index) {
-    if (VM.VerifyAssertions) VM._assert(index <= bcLength);
-    int i = (bcodes[index++] & 0xFF) << 8;
-    i |= (bcodes[index] & 0xFF);
-    return (int)i;
-  }  
-
   private final int readSignedInt() {
     if (VM.VerifyAssertions) VM._assert(bcIndex <= bcLength);
     int i = bcodes[bcIndex++] << 24;

@@ -50,7 +50,6 @@ public class VM_Verifier  implements VM_BytecodeConstants {
   private boolean [] newObjectInfo; 
 
   private int	opcode;
-  private int opLength;
 
   private boolean processNextBlock;
   private boolean inJSRSub = false;
@@ -149,8 +148,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
     }
 
     //VM.sysWrite("Start to verify method " + currMethodName + "\n");
-    //get method bytecode
-    byte bytecodes[] = method.getRawBytecodes();
+    VM_BytecodeStream bcodes = method.getBytecodes();
     VM_Class declaringClass = method.getDeclaringClass();
     int paramCount = method.getParameterWords();
     if(!method.isStatic()) paramCount ++;
@@ -238,8 +236,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
       for(int ii = 0; ii < reachableHandlerBBNums.length; ii++)
         reachableHandlerBBNums[ii] = -1;
 
-    }
-    else {
+    } else {
       tryHandlerLength       = 0;
       handlersAllDone        = true;
       tryStartPC             = null; 
@@ -250,7 +247,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
     }
     reachableHandlersCount = 0;
 
-    //step 4 -- start to interprete the first block
+    //step 4 -- start to interpret the first block
     workStk = new short [10 + tryHandlerLength];
     workStkTop = 0;
     workStk[workStkTop] = byteToBlockMap[0];
@@ -270,7 +267,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
     //keep doing until worklist is empty
     while(workStkTop >-1){
       currBBNum = workStk[workStkTop];
-      workStkTop --;
+      workStkTop--;
 
       inJSRSub = false;
       if(typeMaps[currBBNum]!=null){
@@ -331,11 +328,10 @@ public class VM_Verifier  implements VM_BytecodeConstants {
 
 
       processNextBlock = true;
-      int i;
-      for(i=start; i <= end; ){
-        opcode = ((int)bytecodes[i]) & 0x000000FF;
-        opLength = JBC_length[opcode];
-	currentByteCodeIndex = i;
+      bcodes.reset(start);
+      while (bcodes.index() <= end) {
+	int currentByteCodeIndex = bcodes.index();
+	opcode = bcodes.nextInstruction();
 
         /* debug
            VM.sysWrite("#" + i + ": " + opcode + " , length: "+ opLength + "\n");
@@ -364,11 +360,11 @@ public class VM_Verifier  implements VM_BytecodeConstants {
             load_like(V_REF, 3, 1, true);
             break;
           case JBC_aload:{
-                           int index =((int)bytecodes[i+1])&0xFF;
-                           load_like(V_REF, index, 1, true);
-                           break;
-                         }
-                         //int kind of load
+	    int index =bcodes.getLocalNumber();
+	    load_like(V_REF, index, 1, true);
+	    break;
+	  }
+	  //int kind of load
           case JBC_iconst_m1:
           case JBC_iconst_0:
           case JBC_iconst_1:
@@ -378,306 +374,282 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           case JBC_iconst_5:
           case JBC_bipush:
           case JBC_sipush:
-                         load_like(V_INT, -1, 1, false);
-                         break;
+	    load_like(V_INT, -1, 1, false);
+	    bcodes.skipInstruction();
+	    break;
           case JBC_iload_0:
-                         load_like(V_INT, 0, 1, true);
-                         break;
+	    load_like(V_INT, 0, 1, true);
+	    break;
           case JBC_iload_1:
-                         load_like(V_INT, 1, 1, true);
-                         break;
+	    load_like(V_INT, 1, 1, true);
+	    break;
           case JBC_iload_2:
-                         load_like(V_INT, 2, 1, true);
-                         break;
+	    load_like(V_INT, 2, 1, true);
+	    break;
           case JBC_iload_3:
-                         load_like(V_INT, 3, 1, true);
-                         break;
+	    load_like(V_INT, 3, 1, true);
+	    break;
           case JBC_iload:{
-                           int index = ((int)bytecodes[i+1])&0xFF;
-                           load_like(V_INT, index, 1, true);
-                           break;
-                         }
-                         //float kind of load
+	    int index = bcodes.getLocalNumber();
+	    load_like(V_INT, index, 1, true);
+	    break;
+	  }
+	  //float kind of load
           case JBC_fconst_0:
           case JBC_fconst_1:
           case JBC_fconst_2:
-                         load_like(V_FLOAT, -1, 1, false);
-                         break;
+	    load_like(V_FLOAT, -1, 1, false);
+	    break;
           case JBC_fload_0:
-                         load_like(V_FLOAT, 0, 1,true);
-                         break;
+	    load_like(V_FLOAT, 0, 1,true);
+	    break;
           case JBC_fload_1:
-                         load_like(V_FLOAT, 1, 1,true);
-                         break;
+	    load_like(V_FLOAT, 1, 1,true);
+	    break;
           case JBC_fload_2:
-                         load_like(V_FLOAT, 2, 1, true);
-                         break;
+	    load_like(V_FLOAT, 2, 1, true);
+	    break;
           case JBC_fload_3:
-                         load_like(V_FLOAT, 3,  1, true);
-                         break;
+	    load_like(V_FLOAT, 3,  1, true);
+	    break;
           case JBC_fload:{
-                           int index = ((int)bytecodes[i+1])&0xFF;
-                           load_like(V_FLOAT, index, 1, true);
-                           break;
-                         }
-                         //long kind of load
-          case JBC_lconst_0:
+	    int index = bcodes.getLocalNumber();
+	    load_like(V_FLOAT, index, 1, true);
+	    break;
+	  }
+	  //long kind of load
+	  case JBC_lconst_0:
           case JBC_lconst_1:
-                         load_like(V_LONG, -1, 2, false);
-                         break;
+	    load_like(V_LONG, -1, 2, false);
+	    break;
           case JBC_lload_0:
-                         load_like(V_LONG, 0, 2, true);
-                         break;
+	    load_like(V_LONG, 0, 2, true);
+	    break;
           case JBC_lload_1:
-                         load_like(V_LONG, 1, 2, true);
-                         break;
+	    load_like(V_LONG, 1, 2, true);
+	    break;
           case JBC_lload_2:
-                         load_like(V_LONG, 2, 2, true);
-                         break;
+	    load_like(V_LONG, 2, 2, true);
+	    break;
           case JBC_lload_3:
-                         load_like(V_LONG, 3, 2, true);
-                         break;
+	    load_like(V_LONG, 3, 2, true);
+	    break;
           case JBC_lload:{
-                           int index = ((int)bytecodes[i+1])&0xFF;
-                           load_like(V_LONG, index, 2, true);
-                           break;
-                         }
-                         //double kind of load
+	    int index = bcodes.getLocalNumber();
+	    load_like(V_LONG, index, 2, true);
+	    break;
+	  }
+	  //double kind of load
           case JBC_dconst_0:
-          case JBC_dconst_1:
-                         load_like(V_DOUBLE, -1, 2, false);
-                         break;
+	  case JBC_dconst_1:
+	    load_like(V_DOUBLE, -1, 2, false);
+	    break;
           case JBC_dload_0:
-                         load_like(V_DOUBLE, 0, 2, true);
-                         break;
+	    load_like(V_DOUBLE, 0, 2, true);
+	    break;
           case JBC_dload_1:
-                         load_like(V_DOUBLE, 1, 2, true);
-                         break;
+	    load_like(V_DOUBLE, 1, 2, true);
+	    break;
           case JBC_dload_2:
-                         load_like(V_DOUBLE, 2, 2, true);
-                         break;
+	    load_like(V_DOUBLE, 2, 2, true);
+	    break;
           case JBC_dload_3:
-                         load_like(V_DOUBLE, 3, 2, true);
-                         break;
+	    load_like(V_DOUBLE, 3, 2, true);
+	    break;
           case JBC_dload:{
-                           int index = ((int)bytecodes[i+1])&0xFF;
-                           load_like(V_DOUBLE, index, 2, true);
-                           break;
-                         }
-                         //cast_like bytecode
+	    int index = bcodes.getLocalNumber();
+	    load_like(V_DOUBLE, index, 2, true);
+	    break;
+	  }
+	  //cast_like bytecode
           case JBC_int2byte:
           case JBC_int2char:
           case JBC_int2short:
-                         cast_like(V_INT,V_INT,1,1);
-                         break;
+	    cast_like(V_INT,V_INT,1,1);
+	    break;
           case JBC_i2l:
-                         cast_like(V_INT,V_LONG, 1, 2);
-                         break;
+	    cast_like(V_INT,V_LONG, 1, 2);
+	    break;
           case JBC_i2f:
-                         cast_like(V_INT,V_FLOAT, 1, 1);
-                         break;
+	    cast_like(V_INT,V_FLOAT, 1, 1);
+	    break;
           case JBC_i2d:
-                         cast_like(V_INT,V_DOUBLE, 1, 2);
-                         break;
+	    cast_like(V_INT,V_DOUBLE, 1, 2);
+	    break;
           case JBC_l2i:
-                         cast_like(V_LONG,V_INT, 2, 1);
-                         break;
+	    cast_like(V_LONG,V_INT, 2, 1);
+	    break;
           case JBC_l2f:
-                         cast_like(V_LONG,V_FLOAT, 2, 1);
-                         break;
+	    cast_like(V_LONG,V_FLOAT, 2, 1);
+	    break;
           case JBC_l2d:
-                         cast_like(V_LONG,V_DOUBLE, 2, 2);
-                         break;
+	    cast_like(V_LONG,V_DOUBLE, 2, 2);
+	    break;
           case JBC_f2i:
-                         cast_like(V_FLOAT,V_INT, 1, 1);
-                         break;
+	    cast_like(V_FLOAT,V_INT, 1, 1);
+	    break;
           case JBC_f2l:
-                         cast_like(V_FLOAT,V_LONG, 1, 2);
-                         break;
+	    cast_like(V_FLOAT,V_LONG, 1, 2);
+	    break;
           case JBC_f2d:
-                         cast_like(V_FLOAT,V_DOUBLE, 1, 2);
-                         break;
+	    cast_like(V_FLOAT,V_DOUBLE, 1, 2);
+	    break;
           case JBC_d2i:
-                         cast_like(V_DOUBLE,V_INT, 2, 1);
-                         break;
+	    cast_like(V_DOUBLE,V_INT, 2, 1);
+	    break;
           case JBC_d2l:
-                         cast_like(V_DOUBLE,V_LONG, 2, 2);
-                         break;
+	    cast_like(V_DOUBLE,V_LONG, 2, 2);
+	    break;
           case JBC_d2f:
-                         cast_like(V_DOUBLE,V_FLOAT, 2, 1);
-                         break;
+	    cast_like(V_DOUBLE,V_FLOAT, 2, 1);
+	    break;
 
-                         //store like bytecodes
+	    //store like bytecodes
           case JBC_istore_0:
-                         store_like(V_INT, 1, 0, 
-                                    reachableHandlerBBNums, reachableHandlersCount); 
-                         break;
+	    store_like(V_INT, 1, 0, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_istore_1:
-                         store_like(V_INT, 1, 1,
-                                    reachableHandlerBBNums, reachableHandlersCount); 
-                         break;
+	    store_like(V_INT, 1, 1, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_istore_2:
-                         store_like(V_INT, 1, 2,
-                                    reachableHandlerBBNums, reachableHandlersCount); 
-                         break;
+	    store_like(V_INT, 1, 2, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_istore_3:
-                         store_like(V_INT, 1, 3,
-                                    reachableHandlerBBNums, reachableHandlersCount); 
-                         break;
+	    store_like(V_INT, 1, 3, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_istore:{
-                            int index = ((int)bytecodes[i+1])&0xFF;
-                            store_like(V_INT, 1, index,
-                                       reachableHandlerBBNums, reachableHandlersCount); 
-                            break;
-                          }
-          case JBC_fstore_0:
-                          store_like(V_FLOAT, 1, 0,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    int index = bcodes.getLocalNumber();
+	    store_like(V_INT, 1, index, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
+	  }
+	  case JBC_fstore_0:
+	    store_like(V_FLOAT, 1, 0, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_fstore_1:
-                          store_like(V_FLOAT, 1, 1,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_FLOAT, 1, 1, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_fstore_2:
-                          store_like(V_FLOAT, 1, 2,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_FLOAT, 1, 2, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_fstore_3:
-                          store_like(V_FLOAT, 1, 3,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_FLOAT, 1, 3, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_fstore:{
-                            int index = ((int)bytecodes[i+1])&0xFF;
-                            store_like(V_FLOAT, 1, index,
-                                       reachableHandlerBBNums, reachableHandlersCount); 
-                            break;
-                          }
+	    int index = bcodes.getLocalNumber();
+	    store_like(V_FLOAT, 1, index, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
+	  }
           case JBC_dstore_0:
-                          store_like(V_DOUBLE, 2, 0,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_DOUBLE, 2, 0, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_dstore_1:
-                          store_like(V_DOUBLE, 2, 1,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_DOUBLE, 2, 1, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_dstore_2:
-                          store_like(V_DOUBLE, 2, 2,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_DOUBLE, 2, 2, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_dstore_3:
-                          store_like(V_DOUBLE, 2, 3,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_DOUBLE, 2, 3, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_dstore:{
-                            int index = ((int)bytecodes[i+1])&0xFF;
-                            store_like(V_DOUBLE, 2, index,
-                                       reachableHandlerBBNums, reachableHandlersCount); 
-                            break;
-                          }
+	    int index = bcodes.getLocalNumber();
+	    store_like(V_DOUBLE, 2, index, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
+	  }
           case JBC_lstore_0:
-                          store_like(V_LONG, 2, 0,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_LONG, 2, 0, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_lstore_1:
-                          store_like(V_LONG, 2, 1,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_LONG, 2, 1, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_lstore_2:
-                          store_like(V_LONG, 2, 2,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_LONG, 2, 2, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_lstore_3:
-                          store_like(V_LONG, 2, 3,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_LONG, 2, 3, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_lstore:{
-                            int index = ((int)bytecodes[i+1])&0xFF;
-                            store_like(V_LONG, 2, index,
-                                       reachableHandlerBBNums, reachableHandlersCount); 
-                            break;
-                          }
-          case JBC_astore_0:
-                          store_like(V_REF, 1, 0,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    int index = bcodes.getLocalNumber();
+	    store_like(V_LONG, 2, index, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
+	  }
+	  case JBC_astore_0:
+	    store_like(V_REF, 1, 0, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_astore_1:
-                          store_like(V_REF, 1, 1,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_REF, 1, 1, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_astore_2:
-                          store_like(V_REF, 1, 2,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_REF, 1, 2, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_astore_3:
-                          store_like(V_REF, 1, 3,
-                                     reachableHandlerBBNums, reachableHandlersCount); 
-                          break;
+	    store_like(V_REF, 1, 3, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
           case JBC_astore:{
-                            int index = ((int)bytecodes[i+1])&0xFF;
-                            store_like(V_REF, 1, index,
-                                       reachableHandlerBBNums, reachableHandlersCount); 
-                            break;
-                          }
-                          //stack manipulate bytecode
+	    int index = bcodes.getLocalNumber();
+	    store_like(V_REF, 1, index, reachableHandlerBBNums, reachableHandlersCount); 
+	    break;
+	  }
+	  //stack manipulate bytecode
           case JBC_pop:
-                          currBBStkTop--;
-                          if(currBBStkTop < currBBStkEmpty){
-                            verificationFailure(" stack overflow when "+ JBC_name[opcode] +
-                                        " in method " + currMethodName+ " \n");
-                            return false;
-                          }
-                          break;
-          case JBC_pop2:
-                          currBBStkTop-=2;
-                          if(currBBStkTop < currBBStkEmpty){
-                            verificationFailure(" stack overflow when "+ JBC_name[opcode] +
-                                        " in method " + currMethodName+ " \n");
-                            return false;
-                          }
-                          break;
+	    currBBStkTop--;
+	    if(currBBStkTop < currBBStkEmpty){
+	      verificationFailure(" stack overflow when "+ JBC_name[opcode] +
+				  " in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    break;
+	  case JBC_pop2:
+	    currBBStkTop-=2;
+	    if(currBBStkTop < currBBStkEmpty){
+	      verificationFailure(" stack overflow when "+ JBC_name[opcode] +
+				  " in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    break;
           case JBC_dup:{
-                         dup_like(1,0);
-                         //###if this "dup" is after "new", set new object info for it
-                         if(newObjectInfo[currBBStkTop-currBBStkEmpty-2 ])
-                           newObjectInfo[currBBStkTop-currBBStkEmpty-1] = true; 
-                         break;
-                       }
+	    dup_like(1,0);
+	    //###if this "dup" is after "new", set new object info for it
+	    if(newObjectInfo[currBBStkTop-currBBStkEmpty-2 ])
+	      newObjectInfo[currBBStkTop-currBBStkEmpty-1] = true; 
+	    break;
+	  }
           case JBC_dup_x1:
-                       dup_like(1,1);
-                       break;
+	    dup_like(1,1);
+	    break;
           case JBC_dup_x2:
-                       dup_like(1,2);
-                       break;
+	    dup_like(1,2);
+	    break;
           case JBC_dup2:
-                       dup_like(2,0);
-                       break;
+	    dup_like(2,0);
+	    break;
           case JBC_dup2_x1:
-                       dup_like(2,1);
-                       break;
+	    dup_like(2,1);
+	    break;
           case JBC_dup2_x2:
-                       dup_like(2,2);
-                       break;
+	    dup_like(2,2);
+	    break;
 
           case JBC_swap:{
-                          //check stack underflow
-                          if(currBBStkTop -1 <= currBBStkEmpty){
-                            verificationFailure(" stack underflow when "+ JBC_name[opcode] +
-                                        " in method " + currMethodName+ " \n");
-                            return false;
-                          }
-                          //check type, can't be 64-bits data
-                          if(currBBMap[currBBStkTop]<=V_LONG || currBBMap[currBBStkTop-1] <= V_LONG){
-                            verificationFailure(" stack has wrong type when " + JBC_name[opcode]
-                                        +" in method " + currMethodName+ " \n");
-                            return false;
-                          }
-                          //swap the type
-                          int temp = currBBMap[currBBStkTop-1];
-                          currBBMap[currBBStkTop-1] = currBBMap[currBBStkTop];
-                          currBBMap[currBBStkTop] = temp;
-                          break;
-                        }
-                        //arithmetic bytecodes
+	    //check stack underflow
+	    if(currBBStkTop -1 <= currBBStkEmpty){
+	      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
+				  " in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    //check type, can't be 64-bits data
+	    if(currBBMap[currBBStkTop]<=V_LONG || currBBMap[currBBStkTop-1] <= V_LONG){
+	      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
+				  +" in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    //swap the type
+	    int temp = currBBMap[currBBStkTop-1];
+	    currBBMap[currBBStkTop-1] = currBBMap[currBBStkTop];
+	    currBBMap[currBBStkTop] = temp;
+	    break;
+	  }
+	  //arithmetic bytecodes
           case JBC_iadd:
           case JBC_isub:
           case JBC_imul:
@@ -689,8 +661,8 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           case JBC_iand:
           case JBC_ior:
           case JBC_ixor:
-                        arith_like(V_INT, 2, 1);
-                        break;
+	    arith_like(V_INT, 2, 1);
+	    break;
 
           case JBC_ladd:
           case JBC_lsub:
@@ -700,987 +672,907 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           case JBC_land:
           case JBC_lor:
           case JBC_lxor:
-                        arith_like(V_LONG, 2, 2);
-                        break;
+	    arith_like(V_LONG, 2, 2);
+	    break;
 
           case JBC_lshl:
           case JBC_lshr:
           case JBC_lushr:
-                        {
-                          /* Since these two bytecodes are a little special: the stack is supposed to
-                           * be ...V_LONG, V_LONG, V_INT => ...V_LONG, V_LONG
-                           * Handle "V_INT" first to use arith_like
-                           */
-                          //check stack underflow
-                          if(currBBStkTop <= currBBStkEmpty){
-                            verificationFailure(" stack underflow when "+ JBC_name[opcode] +
-                                        " in method " + currMethodName+ " \n");
-                            throw new Exception();
-                          }
+	    {
+	      /* Since these two bytecodes are a little special: the stack is supposed to
+	       * be ...V_LONG, V_LONG, V_INT => ...V_LONG, V_LONG
+	       * Handle "V_INT" first to use arith_like
+	       */
+	      //check stack underflow
+	      if(currBBStkTop <= currBBStkEmpty){
+		verificationFailure(" stack underflow when "+ JBC_name[opcode] +
+				    " in method " + currMethodName+ " \n");
+		throw new Exception();
+	      }
 
-                          if(currBBMap[currBBStkTop] != V_INT){
-                            verificationFailure(" stack has wrong type when " + JBC_name[opcode]
-                                        +" in method " + currMethodName+ " \n");
-                            throw new Exception();
-                          }
+	      if(currBBMap[currBBStkTop] != V_INT){
+		verificationFailure(" stack has wrong type when " + JBC_name[opcode]
+				    +" in method " + currMethodName+ " \n");
+		throw new Exception();
+	      }
 
-                          currBBStkTop--;
-                          arith_like(V_LONG, 1, 2);
-                          break;
-
-                        }
+	      currBBStkTop--;
+	      arith_like(V_LONG, 1, 2);
+	      break;
+	    }
 
           case JBC_fadd:
           case JBC_fsub:
           case JBC_fmul:
           case JBC_fdiv:
           case JBC_frem:
-                        arith_like(V_FLOAT, 2, 1);
-                        break;
+	    arith_like(V_FLOAT, 2, 1);
+	    break;
 
           case JBC_dadd:
           case JBC_dsub:
           case JBC_dmul:
           case JBC_ddiv:
           case JBC_drem:
-                        arith_like(V_DOUBLE, 2, 2);
-                        break;
+	    arith_like(V_DOUBLE, 2, 2);
+	    break;
 
           case JBC_ineg:
-                        arith_like(V_INT, 1, 1);
-                        break;
+	    arith_like(V_INT, 1, 1);
+	    break;
 
           case JBC_lneg:
-                        arith_like(V_LONG, 1, 2);
-                        break;
+	    arith_like(V_LONG, 1, 2);
+	    break;
 
           case JBC_fneg:
-                        arith_like(V_FLOAT, 1, 1);
-                        break;
+	    arith_like(V_FLOAT, 1, 1);
+	    break;
 
           case JBC_dneg:
-                        arith_like(V_DOUBLE, 1, 2);
-                        break;
+	    arith_like(V_DOUBLE, 1, 2);
+	    break;
 
           case JBC_iinc:{
-                          //check index validity
-                          int index = ((int)bytecodes[i+1])&0xFF;
-                          if(index <0 || index > currBBStkEmpty){
-                            verificationFailure(" invalid register index when " + JBC_name[opcode]
-                                        + " index: " + index + " in method "+ currMethodName+ " \n");
-                            return false;
-                          }
-                          //check type in the register
-                          if(currBBMap[index]!=V_INT){
-                            verificationFailure(" register " + index +" has wrong type when " +
-                                        JBC_name[opcode] + " in method "+ currMethodName+ " \n");
-                            return false;
-                          }
+	    //check index validity
+	    int index = bcodes.getLocalNumber();
+	    int val = bcodes.getIncrement();
+	    if(index <0 || index > currBBStkEmpty){
+	      verificationFailure(" invalid register index when " + JBC_name[opcode]
+				  + " index: " + index + " in method "+ currMethodName+ " \n");
+	      return false;
+	    }
+	    //check type in the register
+	    if(currBBMap[index]!=V_INT){
+	      verificationFailure(" register " + index +" has wrong type when " +
+				  JBC_name[opcode] + " in method "+ currMethodName+ " \n");
+	      return false;
+	    }
 
-                          //####
-                          if(inJSRSub && currPendingJsr != null && !currPendingJsr.updateOnce)
-                            currPendingJsr.setUsed(index);
+	    //####
+	    if(inJSRSub && currPendingJsr != null && !currPendingJsr.updateOnce)
+	      currPendingJsr.setUsed(index);
+	    break; 
+	  }
 
-                          break; 
-                        }
-
-                        //return like bytecode
+	  //return like bytecode
           case JBC_return:
-                        return_like(V_VOID, 0, method);
-                        break;
+	    return_like(V_VOID, 0, method);
+	    break;
           case JBC_ireturn:
-                        return_like(V_INT, 1, method);
-                        break;
+	    return_like(V_INT, 1, method);
+	    break;
           case JBC_lreturn:
-                        return_like(V_LONG, 2, method);
-                        break;
+	    return_like(V_LONG, 2, method);
+	    break;
           case JBC_freturn:
-                        return_like(V_FLOAT, 1, method);
-                        break;
+	    return_like(V_FLOAT, 1, method);
+	    break;
           case JBC_dreturn:
-                        return_like(V_DOUBLE, 2, method);
-                        break;
+	    return_like(V_DOUBLE, 2, method);
+	    break;
           case JBC_areturn:
-                        return_like(V_REF, 1, method);
-                        break;
+	    return_like(V_REF, 1, method);
+	    break;
 
-                        //*aload bytecode
+	    //*aload bytecode
           case JBC_iaload:
           case JBC_baload:
           case JBC_caload:
           case JBC_saload:
-                        aaload_like(V_INT, 1);
-                        break;
+	    aaload_like(V_INT, 1);
+	    break;
           case JBC_laload:
-                        aaload_like(V_LONG, 2);
-                        break;
+	    aaload_like(V_LONG, 2);
+	    break;
           case JBC_faload:
-                        aaload_like(V_FLOAT, 1);
-                        break;
+	    aaload_like(V_FLOAT, 1);
+	    break;
           case JBC_daload:
-                        aaload_like(V_DOUBLE, 2);
-                        break;
+	    aaload_like(V_DOUBLE, 2);
+	    break;
           case JBC_aaload:
-                        aaload_like(V_REF, 1);
-                        break;
+	    aaload_like(V_REF, 1);
+	    break;
 
-                        //*astore bytecode
+	    //*astore bytecode
           case JBC_iastore:
           case JBC_bastore:
           case JBC_castore:
           case JBC_sastore:
-                        aastore_like(V_INT, 1);
-                        break;
+	    aastore_like(V_INT, 1);
+	    break;
           case JBC_lastore:
-                        aastore_like(V_LONG, 2);
-                        break;
+	    aastore_like(V_LONG, 2);
+	    break;
           case JBC_fastore:
-                        aastore_like(V_FLOAT, 1);
-                        break;
+	    aastore_like(V_FLOAT, 1);
+	    break;
           case JBC_dastore:
-                        aastore_like(V_DOUBLE, 2);
-                        break;
+	    aastore_like(V_DOUBLE, 2);
+	    break;
           case JBC_aastore:
-                        aastore_like(V_REF, 1);
-                        break;
+	    aastore_like(V_REF, 1);
+	    break;
 
-                        //ldc* bytecode
+	    //ldc* bytecode
           case JBC_ldc:{
-                         int cpindex = ((int)bytecodes[i+1])&0xFF;
-                         ldc_like(1, cpindex, declaringClass);
-                         break;
-                       }
+	    int cpindex = bcodes.getConstantIndex();
+	    ldc_like(1, cpindex, declaringClass);
+	    break;
+	  }
           case JBC_ldc_w:{
-                           int cpindex = (((int)bytecodes[i+1])<<8 |
-                                          (((int)bytecodes[i+2])&0xFF)) & 0xFFFF;;
-                           ldc_like(1, cpindex, declaringClass);
-                           break;
-                         }
-          case JBC_ldc2_w:{
-                            int cpindex = (((int)bytecodes[i+1])<<8 |
-                                           (((int)bytecodes[i+2])&0xFF)) & 0xFFFF;;
-                            ldc_like(2, cpindex, declaringClass);
-                            break;
-                          }
-                          //cmp, no branch bytecode
+	    int cpindex = bcodes.getWideConstantIndex();
+	    ldc_like(1, cpindex, declaringClass);
+	    break;
+	  }
+	  case JBC_ldc2_w:{
+	    int cpindex = bcodes.getWideConstantIndex();
+	    ldc_like(2, cpindex, declaringClass);
+	    break;
+	  }
+	  //cmp, no branch bytecode
           case JBC_lcmp:
-                          cmp_like(V_LONG, 2, 2, 1);
-                          break;
+	    cmp_like(V_LONG, 2, 2, 1);
+	    break;
           case JBC_fcmpl:
-                          cmp_like(V_FLOAT, 1, 2, 1);
-                          break;
+	    cmp_like(V_FLOAT, 1, 2, 1);
+	    break;
           case JBC_fcmpg:
-                          cmp_like(V_FLOAT,1, 2, 1);
-                          break;
+	    cmp_like(V_FLOAT,1, 2, 1);
+	    break;
           case JBC_dcmpl:
-                          cmp_like(V_DOUBLE, 2, 2, 1);
-                          break;
+	    cmp_like(V_DOUBLE, 2, 2, 1);
+	    break;
           case JBC_dcmpg:
-                          cmp_like(V_DOUBLE, 2, 2, 1);
-                          break;
-
-                          //ifnull like bytecode
+	    cmp_like(V_DOUBLE, 2, 2, 1);
+	    break;
+	    
+	    //ifnull like bytecode
           case JBC_ifnull:
           case JBC_ifnonnull:{
-                               cmp_like(V_REF, 1, 1, 0);
-                               short offset =(short)(((int)bytecodes[i+1])<<8 |
-                                                     (((int)bytecodes[i+2])&0xFF));
-                               //check the validity of branch offset
-                               if( (i+offset)<0 || (i+offset) > bytecodes.length){
-                                 verificationFailure(" invalid branch offset when " + JBC_name[opcode]
-                                             +" in method "+ currMethodName+ " \n");
-                                 return false;
-                               }
+	    cmp_like(V_REF, 1, 1, 0);
+	    int offset = bcodes.getBranchOffset();
+	    //check the validity of branch offset
+	    if((currentByteCodeIndex+offset)<0 || (currentByteCodeIndex+offset) > bcodes.length()){
+	      verificationFailure(" invalid branch offset when " + JBC_name[opcode]
+				  +" in method "+ currMethodName+ " \n");
+	      return false;
+	    }
 
-                               if( offset < 0){  //backward branch
-                                 short NextBBNum = byteToBlockMap[i+3];
-                                 processBranchBB(NextBBNum);
-                                 processNextBlock = false;
-                               }
-                               short brBBNum = byteToBlockMap[i+offset];
-                               processBranchBB(brBBNum);
-                               break;
-                             }
+	    if( offset < 0){  //backward branch
+	      short NextBBNum = byteToBlockMap[currentByteCodeIndex+3];
+	      processBranchBB(NextBBNum);
+	      processNextBlock = false;
+	    }
+	    short brBBNum = byteToBlockMap[currentByteCodeIndex+offset];
+	    processBranchBB(brBBNum);
+	    break;
+	  }
 
-                             //ifeq like bytecode
+	  //ifeq like bytecode
           case JBC_ifeq:
           case JBC_ifne:
           case JBC_iflt:
           case JBC_ifle:
           case JBC_ifgt:
           case JBC_ifge:{
-                          cmp_like(V_INT, 1,1, 0);
-                          short offset =(short)(((int)bytecodes[i+1])<<8 |
-                                                (((int)bytecodes[i+2])&0xFF));
-                          //check the validity of branch offset
-                          if( (i+offset)<0 || (i+offset) > bytecodes.length){
-                            verificationFailure(" invalid branch offset when " + JBC_name[opcode]
-                                        +" in method "+ currMethodName+ " \n");
-                            return false;
-                          }
+	    cmp_like(V_INT, 1,1, 0);
+	    int offset = bcodes.getBranchOffset();
+	    //check the validity of branch offset
+	    if( (currentByteCodeIndex+offset)<0 || (currentByteCodeIndex+offset) > bcodes.length()){
+	      verificationFailure(" invalid branch offset when " + JBC_name[opcode]
+				  +" in method "+ currMethodName+ " \n");
+	      return false;
+	    }
 
-                          if( offset < 0){  //backward branch
-                            short NextBBNum = byteToBlockMap[i+3];
-                            processBranchBB(NextBBNum);
-                            processNextBlock = false;
-                          }
-                          short brBBNum = byteToBlockMap[i+offset];
-                          processBranchBB(brBBNum);
-                          break;
-                        }
+	    if( offset < 0){  //backward branch
+	      short NextBBNum = byteToBlockMap[currentByteCodeIndex+3];
+	      processBranchBB(NextBBNum);
+	      processNextBlock = false;
+	    }
+	    short brBBNum = byteToBlockMap[currentByteCodeIndex+offset];
+	    processBranchBB(brBBNum);
+	    break;
+	  }
 
-                        //cmp_branch like bytecode
+	  //cmp_branch like bytecode
           case JBC_if_icmpeq:	
           case JBC_if_icmpne:
           case JBC_if_icmplt:
           case JBC_if_icmpge:
           case JBC_if_icmpgt:
           case JBC_if_icmple:{
-                               cmp_like(V_INT, 1,2, 0);
-                               short offset =(short)(((int)bytecodes[i+1])<<8 |
-                                                     (((int)bytecodes[i+2])&0xFF));
-
-                               //check the validity of branch offset
-                               if( (i+offset)<0 || (i+offset) > bytecodes.length){
-                                 verificationFailure(" invalid branch offset when " + JBC_name[opcode]
-                                             +" in method "+ currMethodName+ " \n");
-                                 return false;
-                               }
-
-                               if( offset < 0){  //backward branch
-                                 short NextBBNum = byteToBlockMap[i+3];
-                                 processBranchBB(NextBBNum);
-                                 processNextBlock = false;
-                               }
-                               short brBBNum = byteToBlockMap[i+offset];
-                               processBranchBB(brBBNum);
-                               break;
-                             }
+	    cmp_like(V_INT, 1,2, 0);
+	    int offset = bcodes.getBranchOffset();
+	    
+	    //check the validity of branch offset
+	    if( (currentByteCodeIndex+offset)<0 || (currentByteCodeIndex+offset) > bcodes.length()){
+	      verificationFailure(" invalid branch offset when " + JBC_name[opcode]
+				  +" in method "+ currMethodName+ " \n");
+	      return false;
+	    }
+	    
+	    if( offset < 0){  //backward branch
+	      short NextBBNum = byteToBlockMap[currentByteCodeIndex+3];
+	      processBranchBB(NextBBNum);
+	      processNextBlock = false;
+	    }
+	    short brBBNum = byteToBlockMap[currentByteCodeIndex+offset];
+	    processBranchBB(brBBNum);
+	    break;
+	  }
 
           case JBC_if_acmpeq:
           case JBC_if_acmpne:{
-                               cmp_like(V_REF, 1,2, 0);
-                               short offset =(short)(((int)bytecodes[i+1])<<8 |
-                                                     (((int)bytecodes[i+2])&0xFF));
+	    cmp_like(V_REF, 1,2, 0);
+	    int offset = bcodes.getBranchOffset();
 
-                               //check the validity of branch offset
-                               if( (i+offset)<0 || (i+offset) > bytecodes.length){
-                                 verificationFailure(" invalid branch offset when " + JBC_name[opcode]
-                                             +" in method "+ currMethodName+ " \n");
-                                 return false;
-                               }
+	    //check the validity of branch offset
+	    if( (currentByteCodeIndex+offset)<0 || (currentByteCodeIndex+offset) > bcodes.length()){
+	      verificationFailure(" invalid branch offset when " + JBC_name[opcode]
+				  +" in method "+ currMethodName+ " \n");
+	      return false;
+	    }
 
-                               if( offset < 0){  //backward branch
-                                 short NextBBNum = byteToBlockMap[i+3];
-                                 processBranchBB(NextBBNum);
-                                 processNextBlock = false;
-                               }
-                               short brBBNum = byteToBlockMap[i+offset];
-                               processBranchBB(brBBNum);
-                               break;
-                             }
+	    if( offset < 0){  //backward branch
+	      short NextBBNum = byteToBlockMap[currentByteCodeIndex+3];
+	      processBranchBB(NextBBNum);
+	      processNextBlock = false;
+	    }
+	    short brBBNum = byteToBlockMap[currentByteCodeIndex+offset];
+	    processBranchBB(brBBNum);
+	    break;
+	  }
 
-                             //goto instructions:
+	  //goto instructions:
           case JBC_goto:{
-                          short offset =(short)(((int)bytecodes[i+1])<<8 |
-                                                (((int)bytecodes[i+2])&0xFF));
+	    int offset = bcodes.getBranchOffset();
+	    
+	    //check the validity of branch offset
+	    if( (currentByteCodeIndex+offset)<0 || (currentByteCodeIndex+offset) > bcodes.length()){
+	      verificationFailure(" invalid branch offset when " + JBC_name[opcode]
+				  +" in method "+ currMethodName+ " \n");
+	      return false;
+	    }
 
-                          //check the validity of branch offset
-                          if( (i+offset)<0 || (i+offset) > bytecodes.length){
-                            verificationFailure(" invalid branch offset when " + JBC_name[opcode]
-                                        +" in method "+ currMethodName+ " \n");
-                            return false;
-                          }
-
-                          short brBBNum = byteToBlockMap[i+offset];
-                          processBranchBB(brBBNum);
-                          processNextBlock = false;
-                          break;
-                        }
+	    short brBBNum = byteToBlockMap[currentByteCodeIndex+offset];
+	    processBranchBB(brBBNum);
+	    processNextBlock = false;
+	    break;
+	  }
 
           case JBC_goto_w:{
-                            int offset = getIntOffset(i, bytecodes);
+	    int offset = bcodes.getWideBranchOffset();
 
-                            //check the validity of branch offset
-                            if( (i+offset)<0 || (i+offset) > bytecodes.length){
-                              verificationFailure(" invalid branch offset when " + JBC_name[opcode]
-                                          +" in method "+ currMethodName+ " \n");
-                              return false;
-                            }
-                            short brBBNum = byteToBlockMap[i+offset];
-                            processBranchBB(brBBNum);
-                            processNextBlock = false;
-                            break;
-                          }
+	    //check the validity of branch offset
+	    if( (currentByteCodeIndex+offset)<0 || (currentByteCodeIndex+offset) > bcodes.length()){
+	      verificationFailure(" invalid branch offset when " + JBC_name[opcode]
+				  +" in method "+ currMethodName+ " \n");
+	      return false;
+	    }
+	    short brBBNum = byteToBlockMap[currentByteCodeIndex+offset];
+	    processBranchBB(brBBNum);
+	    processNextBlock = false;
+	    break;
+	  }
 
-                          //switch
+	  //switch
           case JBC_tableswitch : {
-                                   int j = i;           // save initial value
-                                   opLength = 0;
+	    //check stack underflow
+	    if(currBBStkTop <= currBBStkEmpty){
+	      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
+				  " in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    //top of stack: index must be int
+	    if(currBBMap[currBBStkTop]!=V_INT){
+	      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
+				  +" in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    currBBStkTop--; 
+	    bcodes.alignSwitch();
+	    int def = bcodes.getDefaultSwitchOffset();
+	    // offset
+	    if(currentByteCodeIndex+def <0 || currentByteCodeIndex+def > bcodes.length()){
+	      verificationFailure(" invalid branch offset when " + JBC_name[opcode]
+				  +" in method "+ currMethodName+ " \n");
+	      return false;
+	    }
+	    processBranchBB(byteToBlockMap[currentByteCodeIndex+def]);
 
-                                   //check stack underflow
-                                   if(currBBStkTop <= currBBStkEmpty){
-                                     verificationFailure(" stack underflow when "+ JBC_name[opcode] +
-                                                 " in method " + currMethodName+ " \n");
-                                     return false;
-                                   }
-                                   //top of stack: index must be int
-                                   if(currBBMap[currBBStkTop]!=V_INT){
-                                     verificationFailure(" stack has wrong type when " + JBC_name[opcode]
-                                                 +" in method " + currMethodName+ " \n");
-                                     return false;
-                                   }
-                                   currBBStkTop--; 
-                                   i = i + 1;           // space past op code
-                                   i = (((i + 3)/4)*4); // align to next word boundary
-                                   // get default offset and generate basic block at default offset
-                                   int def = getIntOffset(i-1,bytecodes);  // getIntOffset expects byte before 
-                                   // offset
-                                   if(j+def <0 || j+def > bytecodes.length){
-                                     verificationFailure(" invalid branch offset when " + JBC_name[opcode]
-                                                 +" in method "+ currMethodName+ " \n");
-                                     return false;
-                                   }
-                                   processBranchBB(byteToBlockMap[j+def]);
-
-                                   // get low offset
-                                   i = i + 4;           // go past default br offset
-                                   int low = getIntOffset(i-1,bytecodes);
-                                   i = i + 4;           // space past low offset
-
-                                   // get high offset
-                                   int high = getIntOffset(i-1,bytecodes);
-                                   i = i + 4;           // go past high offset
-
-                                   // generate labels for offsets
-                                   for (int k = 0; k < (high - low +1); k++) {
-                                     int l = i + k*4; // point to next offset
-                                     // get next offset
-                                     int offset = getIntOffset(l-1,bytecodes);
-                                     if(j+offset <0 || j+offset > bytecodes.length){
-                                       verificationFailure(" invalid branch offset when " + JBC_name[opcode]
-                                                   +" in method "+ currMethodName+ " \n");
-                                       return false;
-                                     }
-                                     processBranchBB(byteToBlockMap[j+offset]);
-                                   }
-                                   processNextBlock = false;       
-                                   i = i + (high - low +1) * 4; // space past offsets
-                                   break;
-                                 }
+	    int low = bcodes.getLowSwitchValue();
+	    int high = bcodes.getHighSwitchValue();
+	    int n = high - low + 1;
+	    for (int k=0; k<n; k++) {
+	      int offset = bcodes.getTableSwitchOffset(k);
+	      if(currentByteCodeIndex+offset <0 || currentByteCodeIndex+offset > bcodes.length()){
+		verificationFailure(" invalid branch offset when " + JBC_name[opcode]
+				    +" in method "+ currMethodName+ " \n");
+		return false;
+	      }
+	      processBranchBB(byteToBlockMap[currentByteCodeIndex+offset]);
+	    }
+	    processNextBlock = false;       
+	    bcodes.skipTableSwitchOffsets(n);
+	    break;
+	  }
 
           case JBC_lookupswitch : {
-                                    int j = i;           // save initial value
-                                    opLength = 0;
+	    //check stack underflow
+	    if(currBBStkTop <= currBBStkEmpty){
+	      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
+				  " in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    //top of stack: key must be int
+	    if(currBBMap[currBBStkTop]!=V_INT){
+	      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
+				  +" in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    currBBStkTop--; 
+	    bcodes.alignSwitch();
+	    // get default offset and generate basic block at default offset
+	    int def = bcodes.getDefaultSwitchOffset();
+	    if(currentByteCodeIndex+def <0 || currentByteCodeIndex+def > bcodes.length()){
+	      verificationFailure(" invalid branch offset when " + JBC_name[opcode]
+				  +" in method "+ currMethodName+ " \n");
+	      return false;
+	    }
+	    processBranchBB(byteToBlockMap[currentByteCodeIndex+def]);
 
-                                    //check stack underflow
-                                    if(currBBStkTop <= currBBStkEmpty){
-                                      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
-                                                  " in method " + currMethodName+ " \n");
-                                      return false;
-                                    }
-                                    //top of stack: key must be int
-                                    if(currBBMap[currBBStkTop]!=V_INT){
-                                      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
-                                                  +" in method " + currMethodName+ " \n");
-                                      return false;
-                                    }
-                                    currBBStkTop--; 
-                                    i = i + 1;           // space past op code
-                                    i = (((i + 3)/4)*4); // align to next word boundary
-                                    // get default offset and generate basic block at default offset
-                                    int def = getIntOffset(i-1,bytecodes);  // getIntOffset expects byte before 
-                                    // offset
-                                    if(j+def <0 || j+def > bytecodes.length){
-                                      verificationFailure(" invalid branch offset when " + JBC_name[opcode]
-                                                  +" in method "+ currMethodName+ " \n");
-                                      return false;
-                                    }
-                                    processBranchBB(byteToBlockMap[j+def]);
+	    int npairs = bcodes.getSwitchLength();
+	    // generate label for each offset in table
+	    for (int k = 0; k < npairs; k++) {
+	      int offset = bcodes.getLookupSwitchOffset(k);
+	      if(currentByteCodeIndex+offset <0 || currentByteCodeIndex+offset > bcodes.length()){
+		verificationFailure(" invalid branch offset when " + JBC_name[opcode]
+				    +" in method "+ currMethodName+ " \n");
+		return false;
+	      }
+	      processBranchBB(byteToBlockMap[currentByteCodeIndex+offset]);
+	    }
+	    processNextBlock = false;
+	    bcodes.skipLookupSwitchPairs(npairs);
+	    break;
+	  }
 
-                                    i = i + 4;           // go past default  offset
-
-
-                                    // get number of pairs
-                                    int npairs = getIntOffset(i-1,bytecodes);
-                                    i = i + 4;           // space past  number of pairs
-
-                                    // generate label for each offset in table
-                                    for (int k = 0; k < npairs; k++) {
-                                      int l = i + k*8 + 4; // point to next offset
-                                      // get next offset
-                                      int offset = getIntOffset(l-1,bytecodes);
-                                      if(j+offset <0 || j+offset > bytecodes.length){
-                                        verificationFailure(" invalid branch offset when " + JBC_name[opcode]
-                                                    +" in method "+ currMethodName+ " \n");
-                                        return false;
-                                      }
-                                      processBranchBB(byteToBlockMap[j+offset]);
-                                    }
-                                    processNextBlock = false;
-                                    i = i + (npairs) *8; // space past match-offset pairs
-                                    break;
-                                  }
-
-                                  //jsr
+	  //jsr
           case JBC_jsr : {
-                           processNextBlock = false;
-                           short offset = (short)(((int)bytecodes[i+1]) << 8 | 
-                                                  (((int)bytecodes[i+2]) & 0xFF));
-                           currBBStkTop++;
-                           //check stack overflow
-                           if(currBBStkTop >= currBBMap.length){
-                             verificationFailure(" stack overflow when "+ JBC_name[opcode] +
-                                         " in method " + currMethodName+ " \n");
-                             return false;
-                           }
-                           currBBMap[currBBStkTop] = V_RETURNADDR; 
-                           if(i+offset <0 || i+offset > bytecodes.length){
-                             verificationFailure(" invalid jsr offset in method "+ 
-                                         currMethodName+ " \n");
-                             return false;
-                           }
+	    processNextBlock = false;
+	    int offset = bcodes.getBranchOffset();
+	    currBBStkTop++;
+	    //check stack overflow
+	    if(currBBStkTop >= currBBMap.length){
+	      verificationFailure(" stack overflow when "+ JBC_name[opcode] +
+				  " in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    currBBMap[currBBStkTop] = V_RETURNADDR; 
+	    if(currentByteCodeIndex+offset <0 || currentByteCodeIndex+offset > bcodes.length()){
+	      verificationFailure(" invalid jsr offset in method "+ 
+				  currMethodName+ " \n");
+	      return false;
+	    }
 
-                           //#### 
-                           short brBBNum = byteToBlockMap[i+offset];
-                           short nextBBNum = byteToBlockMap[i+3];
+	    //#### 
+	    short brBBNum = byteToBlockMap[currentByteCodeIndex+offset];
+	    short nextBBNum = byteToBlockMap[currentByteCodeIndex+3];
 
+	    if(bbPendingJsrs[brBBNum]==null)
+	      bbPendingJsrs[brBBNum] = new VM_PendingJSRInfo(currentByteCodeIndex+offset, currBBStkEmpty,
+							     currBBMap,	currBBStkTop, currPendingJsr);
+	    else{
+	      //compute type map for the instruction right after "jsr" if
+	      //the jsr subroutine is already processed once
+	      int[] endMap = bbPendingJsrs[brBBNum].endMap;
+	      if(typeMaps[nextBBNum]==null && endMap != null){
+		typeMaps[nextBBNum] = new int[endMap.length];
+		boolean[] used = bbPendingJsrs[brBBNum].getUsedMap();
+		for(int j =0; j <= currBBStkEmpty; j++){
+		  if(used[j])
+		    typeMaps[nextBBNum][j] = endMap[j];
+		  else
+		    typeMaps[nextBBNum][j] = currBBMap[j];
+		}	
+		for(int j = currBBStkEmpty+1; j <= currBBStkTop; j++)
+		  typeMaps[nextBBNum][j] = endMap[j];
+		//-1 to get rid of the return address on the top of stack now
+		blockStkTop[nextBBNum] = currBBStkTop -1;
+		
+		addToWorkStk(nextBBNum);
+	      }
+	    }
 
-                           if(bbPendingJsrs[brBBNum]==null)
-                             bbPendingJsrs[brBBNum] = new VM_PendingJSRInfo(i+offset, currBBStkEmpty,
-                                                                            currBBMap,	currBBStkTop, currPendingJsr);
-                           else{
-                             //compute type map for the instruction right after "jsr" if
-                             //the jsr subroutine is already processed once
-                             int[] endMap = bbPendingJsrs[brBBNum].endMap;
-                             if(typeMaps[nextBBNum]==null && endMap != null){
-                               typeMaps[nextBBNum] = new int[endMap.length];
-                               boolean[] used = bbPendingJsrs[brBBNum].getUsedMap();
-                               for(int j =0; j <= currBBStkEmpty; j++){
-                                 if(used[j])
-                                   typeMaps[nextBBNum][j] = endMap[j];
-                                 else
-                                   typeMaps[nextBBNum][j] = currBBMap[j];
-                               }	
-                               for(int j = currBBStkEmpty+1; j <= currBBStkTop; j++)
-                                 typeMaps[nextBBNum][j] = endMap[j];
-                               //-1 to get rid of the return address on the top of stack now
-                               blockStkTop[nextBBNum] = currBBStkTop -1;
-
-                               addToWorkStk(nextBBNum);
-                             }
-                           }
-
-                           bbPendingJsrs[brBBNum].addSitePair(currBBMap, nextBBNum);
-
-                           if(currPendingJsr!= null)
-                             bbPendingJsrs[nextBBNum] = currPendingJsr;
-
-                           processBranchBB(byteToBlockMap[i+offset]);
-                           break;
-                         }
+	    bbPendingJsrs[brBBNum].addSitePair(currBBMap, nextBBNum);
+	    
+	    if(currPendingJsr!= null)
+	      bbPendingJsrs[nextBBNum] = currPendingJsr;
+	    
+	    processBranchBB(byteToBlockMap[currentByteCodeIndex+offset]);
+	    break;
+	  }
 
           case JBC_jsr_w : {
-                             processNextBlock = false;
-                             int offset = getIntOffset(i, bytecodes);
-                             currBBStkTop++;
-                             //check stack overflow
-                             if(currBBStkTop >= currBBMap.length){
-                               verificationFailure(" stack overflow when "+ JBC_name[opcode] +
-                                           " in method " + currMethodName+ " \n");
-                               return false;
-                             }
-                             currBBMap[currBBStkTop] = V_RETURNADDR; 
-                             if(i+offset <0 || i+offset > bytecodes.length){
-                               verificationFailure(" invalid jsr offset in method "+ 
-                                           currMethodName+ " \n");
-                               return false;
-                             }
+	    processNextBlock = false;
+	    int offset = bcodes.getWideBranchOffset();
+	    currBBStkTop++;
+	    //check stack overflow
+	    if(currBBStkTop >= currBBMap.length){
+	      verificationFailure(" stack overflow when "+ JBC_name[opcode] +
+				  " in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    currBBMap[currBBStkTop] = V_RETURNADDR; 
+	    if(currentByteCodeIndex+offset <0 || currentByteCodeIndex+offset > bcodes.length()){
+	      verificationFailure(" invalid jsr offset in method "+ 
+				  currMethodName+ " \n");
+	      return false;
+	    }
 
-                             //#### 
-                             short brBBNum = byteToBlockMap[i+offset];
-                             short nextBBNum = byteToBlockMap[i+3];
+	    //#### 
+	    short brBBNum = byteToBlockMap[currentByteCodeIndex+offset];
+	    short nextBBNum = byteToBlockMap[currentByteCodeIndex+3];
+	    
+	    if(bbPendingJsrs[brBBNum]==null)
+	      bbPendingJsrs[brBBNum] = new VM_PendingJSRInfo(currentByteCodeIndex+offset, currBBStkEmpty,
+							     currBBMap,	currBBStkTop, currPendingJsr);
+	    else{
+	      //compute type map for the instruction right after "jsr" if
+	      //the jsr subroutine is already processed once
+	      int[] endMap = bbPendingJsrs[brBBNum].endMap;
+	      if(typeMaps[nextBBNum]==null && endMap != null){
+		typeMaps[nextBBNum] = new int[endMap.length];
+		boolean[] used = bbPendingJsrs[brBBNum].getUsedMap();
+		for(int j =0; j <= currBBStkEmpty; j++){
+		  if(used[j])
+		    typeMaps[nextBBNum][j] = endMap[j];
+		  else
+		    typeMaps[nextBBNum][j] = currBBMap[j];
+		}	
+		for(int j = currBBStkEmpty+1; j <= currBBStkTop; j++)
+		  typeMaps[nextBBNum][j] = endMap[j];
+		
+		//-1 to get rid of the return address on the top of stack now
+		blockStkTop[nextBBNum] = currBBStkTop -1;
+		addToWorkStk(nextBBNum);
+	      }
+	    }
+	    
+	    bbPendingJsrs[brBBNum].addSitePair(currBBMap, nextBBNum);
+	    
+	    if(currPendingJsr!= null)
+	      bbPendingJsrs[nextBBNum] = currPendingJsr;
+	    
+	    processBranchBB(byteToBlockMap[currentByteCodeIndex+offset]);
+	    
+	    break;
+	  }
 
-                             if(bbPendingJsrs[brBBNum]==null)
-                               bbPendingJsrs[brBBNum] = new VM_PendingJSRInfo(i+offset, currBBStkEmpty,
-                                                                              currBBMap,	currBBStkTop, currPendingJsr);
-                             else{
-                               //compute type map for the instruction right after "jsr" if
-                               //the jsr subroutine is already processed once
-                               int[] endMap = bbPendingJsrs[brBBNum].endMap;
-                               if(typeMaps[nextBBNum]==null && endMap != null){
-                                 typeMaps[nextBBNum] = new int[endMap.length];
-                                 boolean[] used = bbPendingJsrs[brBBNum].getUsedMap();
-                                 for(int j =0; j <= currBBStkEmpty; j++){
-                                   if(used[j])
-                                     typeMaps[nextBBNum][j] = endMap[j];
-                                   else
-                                     typeMaps[nextBBNum][j] = currBBMap[j];
-                                 }	
-                                 for(int j = currBBStkEmpty+1; j <= currBBStkTop; j++)
-                                   typeMaps[nextBBNum][j] = endMap[j];
+	case JBC_ret:{
+	  //#### 
+	  //index of local variable (unsigned byte)
+	  int index = bcodes.getLocalNumber();
+	  //can not be used again as a return addr.
+	  currBBMap[index] = V_UNDEF;
+	  processNextBlock = false;
 
-                                 //-1 to get rid of the return address on the top of stack now
-                                 blockStkTop[nextBBNum] = currBBStkTop -1;
-                                 addToWorkStk(nextBBNum);
-                               }
-                             }
+	  currPendingJsr.updateOnce = true;
+	  computeJSRNextMaps();
+	  
+	  break;
+	}
 
-                             bbPendingJsrs[brBBNum].addSitePair(currBBMap, nextBBNum);
+	//invoke like bytecodes
+	case JBC_invokespecial:
+	case JBC_invokevirtual: {
+	  VM_Method calledMethod = bcodes.getMethodReference();
+	  processInvoke(calledMethod,false);
+	  break;
+	}
 
-                             if(currPendingJsr!= null)
-                               bbPendingJsrs[nextBBNum] = currPendingJsr;
+	case JBC_invokeinterface:{
+	  VM_Method calledMethod = bcodes.getMethodReference();
+	  bcodes.alignInvokeInterface();
+	  processInvoke(calledMethod,false);
+	  break;
+	}
 
-                             processBranchBB(byteToBlockMap[i+offset]);
-
-                             break;
-                           }
-
-          case JBC_ret:{
-                         //#### 
-                         //index of local variable (unsigned byte)
-                         int index = ((int)bytecodes[i+1])& 0xFF;
-                         //can not be used again as a return addr.
-                         currBBMap[index] = V_UNDEF;
-                         processNextBlock = false;
-
-                         currPendingJsr.updateOnce = true;
-                         computeJSRNextMaps();
-
-                         break;
-                       }
-
-                       //invoke like bytecodes
-          case JBC_invokespecial:
-          case JBC_invokevirtual:
-          case JBC_invokeinterface:{
-                                     int index = ((int)bytecodes[i+1]<<8 |
-                                                  (((int)bytecodes[i+2])&0xFF))&0xFFFF;
-                                     VM_Method calledMethod = declaringClass.getMethodRef(index);
-                                     /*debug
-                                       VM.sysWrite("calledMethod: "+ calledMethod + "\n");
-                                      */
-                                     processInvoke(calledMethod,false);
-
-                                     break;
-                                   }
-
-          case JBC_invokestatic:{
-                                  int index = ((int)bytecodes[i+1]<<8 |
-                                               (((int)bytecodes[i+2])&0xFF))&0xFFFF;
-                                  VM_Method calledMethod = declaringClass.getMethodRef(index);
-                                  /*debug
-                                    VM.sysWrite("calledMethod: "+ calledMethod + "\n");
-                                   */
-                                  processInvoke(calledMethod,true);
-
-                                  break;
-                                }
+	case JBC_invokestatic:{
+	  VM_Method calledMethod = bcodes.getMethodReference();
+	  processInvoke(calledMethod,true);
+	  break;
+	}
 
                                 //get
-          case JBC_getstatic:{
-                               int index = ((int)bytecodes[i+1]<<8 |
-                                            (((int)bytecodes[i+2])&0xFF))&0xFFFF;
-                               VM_Field field = declaringClass.getFieldRef(index);
-                               get_like(field, true);
-                               break;
-                             }
+	case JBC_getstatic:{
+	  VM_Field field = bcodes.getFieldReference();
+	  get_like(field, true);
+	  break;
+	}
 
-          case JBC_getfield:{
-                              int index = ((int)bytecodes[i+1]<<8 |
-                                           (((int)bytecodes[i+2])&0xFF))&0xFFFF;
-                              VM_Field field = declaringClass.getFieldRef(index);
-                              get_like(field, false);
-                              break;
-                            }
+	case JBC_getfield:{
+	  VM_Field field = bcodes.getFieldReference();
+	  get_like(field, false);
+	  break;
+	}
 
-                            //put
-          case JBC_putstatic:{
-                               int index = ((int)bytecodes[i+1]<<8 |
-                                            (((int)bytecodes[i+2])&0xFF))&0xFFFF;
-                               VM_Field field = declaringClass.getFieldRef(index);
-                               put_like(field, true);
-                               break;
-                             }
+	//put
+	case JBC_putstatic:{
+	  VM_Field field = bcodes.getFieldReference();
+	  put_like(field, true);
+	  break;
+	}
 
-          case JBC_putfield:{
-                              int index = ((int)bytecodes[i+1]<<8 |
-                                           (((int)bytecodes[i+2])&0xFF))&0xFFFF;
-                              VM_Field field = declaringClass.getFieldRef(index);
-                              put_like(field, false);
-                              break;
-                            }
+	case JBC_putfield:{
+	  VM_Field field = bcodes.getFieldReference();
+	  put_like(field, false);
+	  break;
+	}
 
-          case JBC_checkcast:{
-                               //check whether toType is a reference type
-                               int index = ((int)bytecodes[i+1]<<8 |
-                                            (((int)bytecodes[i+2])&0xFF))&0xFFFF;
-                               VM_Type toType = declaringClass.getTypeRef(index);
-                               if(!toType.isReferenceType()){
-                                 VM.sysWrite("Vefity error: checkcast dest type isn't reference type in method " + 
-                                             currMethodName + "\n");
-                                 return false;
-                               }
+	case JBC_checkcast:{
+	  //check whether toType is a reference type
+	  VM_Type toType = bcodes.getTypeReference();
+	  if(!toType.isReferenceType()){
+	    VM.sysWrite("Vefity error: checkcast dest type isn't reference type in method " + 
+			currMethodName + "\n");
+	    return false;
+	  }
 
-                               //check stack underflow
-                               if(currBBStkTop <= currBBStkEmpty){
-                                 verificationFailure(" stack underflow when "+ JBC_name[opcode] +
-                                             " in method " + currMethodName+ " \n");
-                                 return false;
-                               }
+	  //check stack underflow
+	  if(currBBStkTop <= currBBStkEmpty){
+	    verificationFailure(" stack underflow when "+ JBC_name[opcode] +
+				" in method " + currMethodName+ " \n");
+	    return false;
+	  }
 
-                               //check whether fromType is a reference type
-                               if(currBBMap[currBBStkTop]<0){
-                                 VM.sysWrite("Vefity error: checkcast from type isn't reference type in method " + 
-                                             currMethodName + "\n");
-                                 return false;
-                               }
+	  //check whether fromType is a reference type
+	  if(currBBMap[currBBStkTop]<0){
+	    VM.sysWrite("Vefity error: checkcast from type isn't reference type in method " + 
+			currMethodName + "\n");
+	    return false;
+	  }
 
-                               //check whether fromType is assignable to the totype
-                               //Note: if toType is subclass of fromType, it should be passed by verifier
-                               if(currBBMap[currBBStkTop]!=V_NULL && 
-                                  !VM_Runtime.isAssignableWith(VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]), toType)&&
-                                  !VM_Runtime.isAssignableWith(toType, VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]))){
-                                 VM.sysWrite("Vefity error: checkcast from type isn't assignable to toType in method " + 
-                                             currMethodName + "\n");
-                                 VM.sysWrite("======toType: " + toType + " id:" + toType.getDictionaryId()
-                                             + " fromType: "+ VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop])
-                                             + " id: " + currBBMap[currBBStkTop] + "\n");
-                                 return false;
-                               }
-                               currBBMap[currBBStkTop] = toType.getDictionaryId();
+	  //check whether fromType is assignable to the totype
+	  //Note: if toType is subclass of fromType, it should be passed by verifier
+	  if(currBBMap[currBBStkTop]!=V_NULL && 
+	     !VM_Runtime.isAssignableWith(VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]), toType)&&
+	     !VM_Runtime.isAssignableWith(toType, VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]))){
+	    VM.sysWrite("Vefity error: checkcast from type isn't assignable to toType in method " + 
+			currMethodName + "\n");
+	    VM.sysWrite("======toType: " + toType + " id:" + toType.getDictionaryId()
+			+ " fromType: "+ VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop])
+			+ " id: " + currBBMap[currBBStkTop] + "\n");
+	    return false;
+	  }
+	  currBBMap[currBBStkTop] = toType.getDictionaryId();
 
-                               break;
-                             }
+	  break;
+	}
 
-          case JBC_instanceof:{
+	case JBC_instanceof:{
                                 //check whether toType is a reference type
-                                int index = ((int)bytecodes[i+1]<<8 |
-                                             (((int)bytecodes[i+2])&0xFF))&0xFFFF;
-                                if(!declaringClass.getTypeRef(index).isReferenceType()){
-                                  VM.sysWrite("Vefity error: instanceof dest type isn't reference type in method " + 
-                                              currMethodName + "\n");
-                                  return false;
-                                }
+	  VM_Type type = bcodes.getTypeReference();
+	  if(!type.isReferenceType()){
+	    VM.sysWrite("Vefity error: instanceof dest type isn't reference type in method " + 
+			currMethodName + "\n");
+	    return false;
+	  }
 
-                                //check stack underflow
-                                if(currBBStkTop <= currBBStkEmpty){
-                                  verificationFailure(" stack underflow when "+ JBC_name[opcode] +
-                                              " in method " + currMethodName+ " \n");
-                                  return false;
-                                }
+          //check stack underflow
+	  if(currBBStkTop <= currBBStkEmpty){
+	    verificationFailure(" stack underflow when "+ JBC_name[opcode] +
+				" in method " + currMethodName+ " \n");
+	    return false;
+	  }
 
-                                //check whether fromType is a reference type
-                                if(currBBMap[currBBStkTop]<0){
-                                  VM.sysWrite("Vefity error: instanceof from type isn't reference type in method " + 
-                                              currMethodName + "\n");
-                                  return false;
-                                }
+          //check whether fromType is a reference type
+	  if(currBBMap[currBBStkTop]<0){
+	    VM.sysWrite("Vefity error: instanceof from type isn't reference type in method " + 
+			currMethodName + "\n");
+	    return false;
+	  }
 
-                                //pop fromtype from the stack
-                                currBBStkTop--;
-                                //push the int result onto the stack
-                                currBBMap[++currBBStkTop] = V_INT;
-                                break;
-                              }
+	  //pop fromtype from the stack
+	  currBBStkTop--;
+	  //push the int result onto the stack
+	  currBBMap[++currBBStkTop] = V_INT;
+	  break;
+	}
 
-                              //new
+	//new
           case JBC_new:{
-                         int index = ((int)bytecodes[i+1]<<8 |
-                                      (((int)bytecodes[i+2])&0xFF))&0xFFFF;
-                         // the type in constant pool must be a class
-                         VM_Type newType = declaringClass.getTypeRef(index);
-                         if(!newType.isClassType()){
-                           VM.sysWrite("Vefity error: new type isn't a class type in method " + 
-                                       currMethodName + "\n");
-                           return false;
-                         }
-                         //check stack overflow
-                         currBBStkTop ++;
-                         if(currBBStkTop >= currBBMap.length){
-                           verificationFailure(" stack overflow when "+ JBC_name[opcode] +
-                                       " in method " + currMethodName+ " \n");
-                           return false;
-                         }
-                         //push the class type onto the stack
-                         currBBMap[currBBStkTop] = newType.getDictionaryId(); 
-
-                         //####use the bytecode index as the label of uninitiated new object
-                         newObjectInfo[currBBStkTop-currBBStkEmpty -1] = true;
-
-                         break;
-                       }
+	    // the type in constant pool must be a class
+	    VM_Type newType = bcodes.getTypeReference();
+	    if(!newType.isClassType()){
+	      VM.sysWrite("Vefity error: new type isn't a class type in method " + 
+			  currMethodName + "\n");
+	      return false;
+	    }
+	    //check stack overflow
+	    currBBStkTop ++;
+	    if(currBBStkTop >= currBBMap.length){
+	      verificationFailure(" stack overflow when "+ JBC_name[opcode] +
+				  " in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    //push the class type onto the stack
+	    currBBMap[currBBStkTop] = newType.getDictionaryId(); 
+	    
+	    //####use the bytecode index as the label of uninitiated new object
+	    newObjectInfo[currBBStkTop-currBBStkEmpty -1] = true;
+	    
+	    break;
+	  }
 
           case JBC_newarray:{
-                              //check stack underflow
-                              if(currBBStkTop <= currBBStkEmpty){
-                                verificationFailure(" stack underflow when "+ JBC_name[opcode] +
-                                            " in method " + currMethodName+ " \n");
-                                return false;
-                              }
-                              //check whether the top of stack is int
-                              if(currBBMap[currBBStkTop]!=V_INT){
-                                verificationFailure(" stack has wrong type when " + JBC_name[opcode]
-                                            +" in method " + currMethodName+ " \n");
-                                return false;
-                              }
-                              //pop the count
-                              currBBStkTop--;
+	    //check stack underflow
+	    if(currBBStkTop <= currBBStkEmpty){
+	      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
+				  " in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    //check whether the top of stack is int
+	    if(currBBMap[currBBStkTop]!=V_INT){
+	      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
+				  +" in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    //pop the count
+	    currBBStkTop--;
 
-                              //push the array type
-                              byte atype = bytecodes[i+1];
-                              if(atype<4 || atype >11){
-                                VM.sysWrite("Vefity error: invalid atype for newarray in method " + currMethodName + "\n");
-                                return false;
-                              }
-                              currBBMap[++currBBStkTop] = VM_Array.getPrimitiveArrayType(atype).getDictionaryId();
-                              break;
-                            }
+	    //push the array type
+	    int atype = bcodes.getArrayElementType();
+	    if(atype<4 || atype >11){
+	      VM.sysWrite("Vefity error: invalid atype for newarray in method " + currMethodName + "\n");
+	      return false;
+	    }
+	    currBBMap[++currBBStkTop] = VM_Array.getPrimitiveArrayType(atype).getDictionaryId();
+	    break;
+	  }
 
-          case JBC_anewarray:{
-                               //check stack underflow
-                               if(currBBStkTop <= currBBStkEmpty){
-                                 verificationFailure(" stack underflow when "+ JBC_name[opcode] +
-                                             " in method " + currMethodName+ " \n");
-                                 return false;
-                               }
-                               //check whether the top of stack is int
-                               if(currBBMap[currBBStkTop]!=V_INT){
-                                 verificationFailure(" stack has wrong type when " + JBC_name[opcode]
-                                             +" in method " + currMethodName+ " \n");
-                                 return false;
-                               }
-                               //pop the count
-                               currBBStkTop--;
+	case JBC_anewarray:{
+	  //check stack underflow
+	  if(currBBStkTop <= currBBStkEmpty){
+	    verificationFailure(" stack underflow when "+ JBC_name[opcode] +
+				" in method " + currMethodName+ " \n");
+	    return false;
+	  }
+	  //check whether the top of stack is int
+	  if(currBBMap[currBBStkTop]!=V_INT){
+	    verificationFailure(" stack has wrong type when " + JBC_name[opcode]
+				+" in method " + currMethodName+ " \n");
+	    return false;
+	  }
+	  //pop the count
+	  currBBStkTop--;
 
-                               int index = ((int)bytecodes[i+1]<<8 |
-                                            (((int)bytecodes[i+2])&0xFF))&0xFFFF;
-                               // the type in constant pool must be a reference type 
-                               VM_Type newType = declaringClass.getTypeRef(index);
-                               if(!newType.isReferenceType()){
-                                 VM.sysWrite("Vefity error: anewarray type isn't a reference type in method " + 
-                                             currMethodName + "\n");
-                                 return false;
-                               }
+	  // the type in constant pool must be a reference type 
+	  VM_Type newType = bcodes.getTypeReference();
+	  if(!newType.isReferenceType()){
+	    VM.sysWrite("Vefity error: anewarray type isn't a reference type in method " + 
+			currMethodName + "\n");
+	    return false;
+	  }
 
-                               //push the new reference array onto the stack
-                               currBBMap[++currBBStkTop] = newType.getArrayTypeForElementType().getDictionaryId();
-
-                               break;
-                             }
+	  //push the new reference array onto the stack
+	  currBBMap[++currBBStkTop] = newType.getArrayTypeForElementType().getDictionaryId();
+	  
+	  break;
+	}
 
           case JBC_multianewarray:{
-                                    int index = ((int)bytecodes[i+1]<<8 |
-                                                 (((int)bytecodes[i+2])&0xFF))&0xFFFF;
-                                    // the type in constant pool must be a reference type 
-                                    VM_Type newType = declaringClass.getTypeRef(index);
-                                    if(!newType.isReferenceType()){
-                                      VM.sysWrite("Vefity error: multianewarray type isn't a reference type in method " + 
-                                                  currMethodName + "\n");
-                                      return false;
-                                    }
+	    // the type in constant pool must be a reference type 
+	    VM_Type newType = bcodes.getTypeReference();
+	    if(!newType.isReferenceType()){
+	      VM.sysWrite("Vefity error: multianewarray type isn't a reference type in method " + 
+			  currMethodName + "\n");
+	      return false;
+	    }
 
-                                    int dimension = ((int)bytecodes[i+3]) & 0xFFFF;
-                                    //check stack underflow
-                                    if(currBBStkTop - dimension < currBBStkEmpty){
-                                      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
-                                                  " in method " + currMethodName+ " \n");
-                                      return false;
-                                    }
+	    int dimension = bcodes.getArrayDimension();
+	    //check stack underflow
+	    if(currBBStkTop - dimension < currBBStkEmpty){
+	      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
+				  " in method " + currMethodName+ " \n");
+	      return false;
+	    }
 
-                                    for(int k=0; k<dimension; k++){
-                                      //check whether the top of stack is int
-                                      if(currBBMap[currBBStkTop]!=V_INT){
-                                        verificationFailure(" stack has wrong type when " + JBC_name[opcode]
-                                                    +" in method " + currMethodName+ " \n");
-                                        return false;
-                                      }
-                                      //pop the count
-                                      currBBStkTop--;
-                                    }
+	    for(int k=0; k<dimension; k++){
+	      //check whether the top of stack is int
+	      if(currBBMap[currBBStkTop]!=V_INT){
+		verificationFailure(" stack has wrong type when " + JBC_name[opcode]
+				    +" in method " + currMethodName+ " \n");
+		return false;
+	      }
+	      //pop the count
+	      currBBStkTop--;
+	    }
 
-                                    //push the new reference array onto the stack
-                                    currBBMap[++currBBStkTop] = newType.getDictionaryId();
-                                    break;
-                                  }
+	    //push the new reference array onto the stack
+	    currBBMap[++currBBStkTop] = newType.getDictionaryId();
+	    break;
+	  }
 
           case JBC_arraylength:
-                                  //check stack underflow
-                                  if(currBBStkTop <= currBBStkEmpty){
-                                    verificationFailure(" stack underflow when "+ JBC_name[opcode] +
-                                                " in method " + currMethodName+ " \n");
-                                    return false;
-                                  }
+	    //check stack underflow
+	    if(currBBStkTop <= currBBStkEmpty){
+	      verificationFailure(" stack underflow when "+ JBC_name[opcode] +
+				  " in method " + currMethodName+ " \n");
+	      return false;
+	    }
 
-                                  //check whether stack top is an array reference
-                                  if(currBBMap[currBBStkTop]<=0 || 
-                                     !VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]).isArrayType()){
-                                    verificationFailure(" stack has wrong type when " + JBC_name[opcode]
-                                                +" in method " + currMethodName+ " \n");
-                                    return false;
-                                  }
+	    //check whether stack top is an array reference
+	    if(currBBMap[currBBStkTop]<=0 || 
+	       !VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]).isArrayType()){
+	      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
+				  +" in method " + currMethodName+ " \n");
+	      return false;
+	    }
 
-                                  //push int type (length) onto stack
-                                  currBBMap[currBBStkTop] = V_INT;
-                                  break;
+	    //push int type (length) onto stack
+	    currBBMap[currBBStkTop] = V_INT;
+	    break;
 
-          case JBC_athrow:
-                                  {
-                                    //check whether type of top stack is a subclass of Throwable
-                                    if(currBBMap[currBBStkTop] < 0){	//not a reference
-                                      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
-                                                  +" in method " + currMethodName+ " \n");
-                                      return false;
-                                    }
-                                    int typeId = currBBMap[currBBStkTop];
-                                    if(typeId == V_NULL){
-                                      currBBStkTop = currBBStkEmpty +1;
-                                      currBBMap[currBBStkTop] = typeId;
-                                      processNextBlock = false;
-                                      break;
-                                    }
-                                    VM_Class cls = VM_ClassLoader.getTypeFromId(typeId).asClass();
+	case JBC_athrow:
+	  {
+	    //check whether type of top stack is a subclass of Throwable
+	    if(currBBMap[currBBStkTop] < 0){	//not a reference
+	      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
+				  +" in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    int typeId = currBBMap[currBBStkTop];
+	    if(typeId == V_NULL){
+	      currBBStkTop = currBBStkEmpty +1;
+	      currBBMap[currBBStkTop] = typeId;
+	      processNextBlock = false;
+	      break;
+	    }
+	    VM_Class cls = VM_ClassLoader.getTypeFromId(typeId).asClass();
 
-                                    if(!cls.isClassType()){   // not a object reference
-                                      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
-                                                  +" in method " + currMethodName+ " \n");
-                                      return false;
-                                    }
+	    if(!cls.isClassType()){   // not a object reference
+	      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
+				  +" in method " + currMethodName+ " \n");
+	      return false;
+	    }
 
-                                    //resolve class
-                                    if(!cls.isLoaded())
-                                      cls.load();
+	    //resolve class
+	    if(!cls.isLoaded())
+	      cls.load();
 
-                                    VM_Atom d = VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;");
-                                    VM_Class throwType = VM_ClassLoader.findOrCreateType(d, VM_SystemClassLoader.getVMClassLoader()).asClass(); 
-                                    //resolve class
-                                    if(!throwType.isLoaded())
-                                      throwType.load();
+	    VM_Atom d = VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;");
+	    VM_Class throwType = VM_ClassLoader.findOrCreateType(d, VM_SystemClassLoader.getVMClassLoader()).asClass(); 
+	    //resolve class
+	    if(!throwType.isLoaded())
+	      throwType.load();
+	    
+	    while(cls!= null && cls!= throwType)
+	      cls = cls.getSuperClass();
 
-                                    while(cls!= null && cls!= throwType)
-                                      cls = cls.getSuperClass();
-
-                                    if(cls==null){
-                                      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
-                                                  +" in method " + currMethodName+ " \n");
-                                      return false;
-                                    }
-                                    currBBStkTop = currBBStkEmpty +1;
-                                    currBBMap[currBBStkTop] = typeId;
-                                    processNextBlock = false;
-                                    break;
-                                  }
+	    if(cls==null){
+	      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
+				  +" in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    currBBStkTop = currBBStkEmpty +1;
+	    currBBMap[currBBStkTop] = typeId;
+	    processNextBlock = false;
+	    break;
+	  }
           case JBC_monitorenter:
           case JBC_monitorexit:
-                                  if(currBBMap[currBBStkTop] < 0){  // not a reference
-                                    verificationFailure(" stack has wrong type when " + JBC_name[opcode]
-                                                +" in method " + currMethodName+ " \n");
-                                    return false;
-                                  }
-                                  currBBStkTop--;
-                                  break;
+	    if(currBBMap[currBBStkTop] < 0){  // not a reference
+	      verificationFailure(" stack has wrong type when " + JBC_name[opcode]
+				  +" in method " + currMethodName+ " \n");
+	      return false;
+	    }
+	    currBBStkTop--;
+	    break;
 
           case JBC_wide:{
-                          int wopcode = ((int)bytecodes[i+1]) & 0xFF;
+	    int widecode = bcodes.getWideOpcode();
+	    int index = bcodes.getWideLocalNumber();
+	    switch(widecode) {
+	    case JBC_iload:
+	      load_like(V_INT, index, 1, true);
+	      break;
+	    case JBC_fload:
+	      load_like(V_FLOAT, index, 1, true);
+	      break;
+	    case JBC_lload:
+	      load_like(V_LONG, index, 2, true);
+	      break;
+	    case JBC_dload:
+	      load_like(V_DOUBLE, index, 2, true);
+	      break;
+	    case JBC_aload: 
+	      load_like(V_REF, index, 1, true);
+	      break;
+	    case JBC_istore:
+	      store_like(V_INT, 1, index, reachableHandlerBBNums, reachableHandlersCount); 
+	      break;
+	    case JBC_fstore:
+	      store_like(V_FLOAT, 1, index, reachableHandlerBBNums, reachableHandlersCount); 
+	      break;
+	    case JBC_lstore:
+	      store_like(V_LONG, 2, index, reachableHandlerBBNums, reachableHandlersCount); 
+	      break;
+	    case JBC_dstore:
+	      store_like(V_DOUBLE, 2, index, reachableHandlerBBNums, reachableHandlersCount); 
+	      break;
+	    case JBC_astore:
+	      store_like(V_REF, 1, index, reachableHandlerBBNums, reachableHandlersCount); 
+	      break;
+	    case JBC_iinc:
+	      int val = bcodes.getWideIncrement();
+	      if(index <0 || index > currBBStkEmpty){
+		verificationFailure(" invalid register index when " + JBC_name[opcode]
+				    + " index: " + index + " in method "+ currMethodName+ " \n");
+		return false;
+	      }
+	      //check type in the register
+	      if(currBBMap[index]!=V_INT){
+		verificationFailure(" register " + index +" has wrong type when " +
+				    JBC_name[opcode] + " in method "+ currMethodName+ " \n");
+		return false;
+	      }
 
-                          opLength = JBC_length[wopcode]*2;			// 4 or 6
-
-                          if(wopcode != JBC_iinc){
-                            int index = (((int)bytecodes[i+2]) << 8 |
-                                         (((int)bytecodes[i+3]) & 0xFF)) & 0xFFFF;
-                            switch(wopcode){
-                              case JBC_iload:
-                                load_like(V_INT, index, 1, true);
-                                break;
-                              case JBC_fload:
-                                load_like(V_FLOAT, index, 1, true);
-                                break;
-                              case JBC_aload:
-                                load_like(V_REF, index, 1, true);
-                                break;
-                              case JBC_lload:
-                                load_like(V_LONG, index, 2, true);
-                                break;
-                              case JBC_dload:
-                                load_like(V_DOUBLE, index, 2, true);
-                                break;
-                              case JBC_istore:
-                                store_like(V_INT, 1, index,
-                                           reachableHandlerBBNums, reachableHandlersCount); 
-                                break;
-                              case JBC_fstore:
-                                store_like(V_FLOAT, 1, index,
-                                           reachableHandlerBBNums, reachableHandlersCount); 
-                                break;
-                              case JBC_astore:
-                                store_like(V_REF, 1, index,
-                                           reachableHandlerBBNums, reachableHandlersCount); 
-                                break;
-                              case JBC_lstore:
-                                store_like(V_LONG, 2, index,
-                                           reachableHandlerBBNums, reachableHandlersCount); 
-                                break;
-                              case JBC_dstore:
-                                store_like(V_DOUBLE, 2, index,
-                                           reachableHandlerBBNums, reachableHandlersCount); 
-                                break;
-                              case JBC_ret: {
-                                              //#### 
-                                              //can not be used again as a return addr.
-                                              if(currBBMap[index] != V_RETURNADDR){
-                                                VM.sysWrite("Vefity error: wrong register type when ret in method " + currMethodName + "\n");
-                                                return false;
-                                              }
-                                              currBBMap[index] = V_UNDEF;
-                                              processNextBlock = false;
-
-                                              currPendingJsr.updateOnce = true;
-                                              computeJSRNextMaps();
-                                              break;
-                                            }
-                              default:{
-                                        VM.sysWrite("Vefity error: wrong wide opcode in method " + currMethodName + "\n");
-                                        return false;
-                                      }
-                            }
-                          }//end if wopcode! iinc
-                          else{
-                            //check index validity
-                            int index = (((int)bytecodes[i+2]) << 8 |
-                                         (((int)bytecodes[i+3]) & 0xFF)) & 0xFFFF;
-                            if(index <0 || index > currBBStkEmpty){
-                              verificationFailure(" invalid register index when " + JBC_name[opcode]
-                                          + " index: " + index + " in method "+ currMethodName+ " \n");
-                              return false;
-                            }
-                            //check type in the register
-                            if(currBBMap[index]!=V_INT){
-                              verificationFailure(" register " + index +" has wrong type when " +
-                                          JBC_name[opcode] + " in method "+ currMethodName+ " \n");
-                              return false;
-                            }
-
-                            //####
-                            if(inJSRSub && currPendingJsr != null && !currPendingJsr.updateOnce)
-                              currPendingJsr.setUsed(index);
-
-
-                          }
-                          break;
-                        }	
-                        //####
-          default:{
-                    VM.sysWrite("Vefity error: wrong opcode in method " + currMethodName + "\n");
-                    return false;
-                  }
+	      //####
+	      if(inJSRSub && currPendingJsr != null && !currPendingJsr.updateOnce)
+		currPendingJsr.setUsed(index);
+	      break;
+	    case JBC_ret: {
+	      //#### 
+	      //can not be used again as a return addr.
+	      if(currBBMap[index] != V_RETURNADDR){
+		VM.sysWrite("Vefity error: wrong register type when ret in method " + currMethodName + "\n");
+		return false;
+	      }
+	      currBBMap[index] = V_UNDEF;
+	      processNextBlock = false;
+	      
+	      currPendingJsr.updateOnce = true;
+	      computeJSRNextMaps();
+	      break;
+	    }
+	    default: // switch on widecode
+	      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+	    }
+	  break;
+	}  // case JBC_wide:
+	default:{
+	    VM.sysWrite("Vefity error: wrong opcode in method " + currMethodName + "\n");
+	    return false;
+	  }
         }//end of switch
 
-        i = i+opLength;
-
-      }//end of for start to end
+      } // end of while
 
       if(processNextBlock){
-        short nextBBNum = byteToBlockMap[i];
+        short nextBBNum = byteToBlockMap[bcodes.index()];
         processBranchBB(nextBBNum);
       }
 

@@ -108,14 +108,13 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   // successful lookup is kept. We first check it to catch repeated quries
   // for the same bytecode. Failing this, we perform a binary search where the
   // first probe is either the next sequential entry or 0 (typical cases).
-  public final boolean queryAnnotationForBytecode( int pc, byte mask ) {
+  public final boolean queryAnnotationForBytecode(int pc, byte mask) {
+    if (annotationNum == 0) return false;		// none
 
-    if ( annotationNum == 0 ) return false;		// none
-
-    int currPC = annotationPC[ annotationPrior ];	// prior pc found
+    int currPC = annotationPC[annotationPrior];	// prior pc found
     int annotationIndex, Lo, Hi;
 
-    if ( currPC == pc )					// same as last match
+    if (currPC == pc)					// same as last match
       annotationIndex = annotationPrior;
     else {
       if ( currPC < pc ) {
@@ -231,21 +230,13 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   }
 
   /**
-   * Bytecodes to be executed by this method.
-   * @return bytecodes (null --> native or abstract: no code)
-   */
-  public final byte[] getRawBytecodes() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-    return bytecodes;
-  }
-
-  /**
    * Get a representation of the bytecodes in the code attribute of this method.
    * @return object representing the bytecodes
    */
   public final VM_BytecodeStream getBytecodes() {
-    return new VM_BytecodeStream(this);
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
+    return new VM_BytecodeStream(this, bytecodes);
   }
 
   /**
@@ -255,6 +246,26 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     bytecodes = bcodes;
   }
 
+  /**
+   * Fill in DynamicLink object for the invoke at the given bytecode index
+   * @param dynamicLink the dynamicLink object to initialize
+   * @param bcIndex the bcIndex of the invoke instruction
+   */
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, int bcIndex) {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());  
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
+    if (VM.VerifyAssertions) VM._assert(bytecodes != null);
+    if (VM.VerifyAssertions) VM._assert(bcIndex + 2 < bytecodes.length);
+    int bytecode = bytecodes[bcIndex] & 0xFF;
+    int constantPoolIndex = ((bytecodes[bcIndex + 1] & 0xFF) << 8) | (bytecodes[bcIndex + 2] & 0xFF);
+    dynamicLink.set(declaringClass.getMethodRef(constantPoolIndex), bytecode);
+  }
+
+  public final int getBytecodeLength() {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());  
+    if (VM.VerifyAssertions) VM._assert(isLoaded());
+    return bytecodes == null ? 0 : bytecodes.length;
+  }
 
   /**
    * Local variables defined by this method.

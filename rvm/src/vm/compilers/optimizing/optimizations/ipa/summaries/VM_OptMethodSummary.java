@@ -131,7 +131,7 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
   public static final boolean mayWrite(VM_Method method, VM_Field field) {
     // TODO: what's the proper behavior in this case??  For now, be
     // conservative.
-    if (method.getRawBytecodes() == null)
+    if (method.getBytecodeLength() == 0)
       return true;
     VM_Field[] summary = getWriteSummary(method);
     if (summary == null) return false;
@@ -207,7 +207,7 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
   private static int getSummary(VM_Method method) {
     int idx = method.getDictionaryId();
     if (VM.VerifyAssertions) {
-      VM._assert(method.getRawBytecodes() != null);
+      VM._assert(method.getBytecodeLength() != 0);
       VM._assert(isValid(summaries[idx]));
     }
     return summaries[idx];
@@ -220,7 +220,7 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
   private static VM_Field[] getWriteSummary(VM_Method method) {
     int idx = method.getDictionaryId();
     if (VM.VerifyAssertions) {
-      VM._assert(method.getRawBytecodes() != null);
+      VM._assert(method.getBytecodeLength() != 0);
       VM._assert(isValid(summaries[idx]));
     }
     return writeSets[idx];
@@ -542,8 +542,7 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
         case JBC_invokestatic:   // Special case VM_Magic's as being cheaper.
           int constantPoolIndex = (bytecodes[bcIndex++] & 0xFF) << 8;
           constantPoolIndex |= (bytecodes[bcIndex++] & 0xFF);
-          VM_Method meth = method.getDeclaringClass().getMethodRef(
-              constantPoolIndex);
+          VM_Method meth = method.getDeclaringClass().getMethodRef(constantPoolIndex);
           if (meth.getDeclaringClass().isMagicType() ||
 	      meth.getDeclaringClass().isWordType()) {
             summary = setMagic(summary);

@@ -34,21 +34,21 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     VM_Method realMethod = map.getMethodForMCOffset(offset);
     if (bci == -1 || realMethod == null)
       VM.sysFail("Mapping to source code location not available at Dynamic Linking point\n");
-    byte[] bytecodes = realMethod.getRawBytecodes();
-    int bytecode = bytecodes[bci] & 0xFF;
-    int cpi = ((bytecodes[bci + 1] & 0xFF) << 8) | (bytecodes[bci + 2] & 0xFF);
-    switch (bytecode) {
+    VM_BytecodeStream bcodes = realMethod.getBytecodes();
+    bcodes.reset(bci);
+    int opcode = bcodes.nextInstruction();
+    switch (opcode) {
     case JBC_getfield: case JBC_putfield: 
     case JBC_getstatic: case JBC_putstatic: 
       { 
-	int fid = realMethod.getDeclaringClass().getFieldRefId(cpi);
-	VM_TableBasedDynamicLinker.resolveField(fid);
+	VM_Field field = bcodes.getFieldReference();
+	VM_TableBasedDynamicLinker.resolveField(field.getDictionaryId());
       }
       break;
     case JBC_invokevirtual:case JBC_invokestatic:
       {
-	int mid = realMethod.getDeclaringClass().getMethodRefId(cpi);
-	VM_TableBasedDynamicLinker.resolveMethod(mid);
+	VM_Method method = bcodes.getMethodReference();
+	VM_TableBasedDynamicLinker.resolveMethod(method.getDictionaryId());
       }
       break;
     case JBC_invokeinterface:

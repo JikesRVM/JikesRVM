@@ -22,8 +22,6 @@ final class VM_BuildBB implements VM_BytecodeConstants {
   static private final byte CONDITIONAL_BRANCH = 2;
   static private final byte BRANCH = 3;  
 
-  static private final boolean COLLECT_STATISTICS = false;
-
   //***************************************************************************//
   //                                                                           //
   //  Once the method determineTheBasicBlocks is complete, these 4 items       //
@@ -714,12 +712,10 @@ final class VM_BuildBB implements VM_BytecodeConstants {
 	if (newSize <= blocknum)
 	  newSize = blocknum + 20;
       }
-
       VM_BasicBlock biggerBlocks[] = new VM_BasicBlock[newSize];
       for (int i=0; i<currentSize; i++) 
 	biggerBlocks[i] = basicBlocks[i];
       basicBlocks = biggerBlocks;
-      biggerBlocks = null;
     } 
 
     // Go ahead and add block

@@ -78,7 +78,7 @@ public class VM_RuntimeCompilerInfrastructure
       }
     } else {
       total_methods[compiler]++;
-      total_bcodeLen[compiler] += method.getRawBytecodes().length;
+      total_bcodeLen[compiler] += method.getBytecodeLength();
       total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
       if (VM.MeasureCompilation) {
 	total_time[compiler] += compiledMethod.getCompilationTime();
