@@ -56,7 +56,7 @@ final class RefCountLocal extends SegregatedFreeList
 
   private boolean decrementPhase = false;
 
-  private CycleDetector cycleDetector;
+  private TrialDeletion cycleDetector;
 
   // counters
   private int incCounter;
@@ -440,7 +440,7 @@ final class RefCountLocal extends SegregatedFreeList
     if (Plan.REF_COUNT_CYCLE_DETECTION) {
       time = (totals) ? Statistics.cdTime.sum() : Statistics.cdTime.lastMs();
       VM_Interface.sysWrite(" cd: "); VM_Interface.sysWrite(time);
+      cycleDetector.printTimes(totals);
     }
-    cycleDetector.printTimes(totals);
   }
 }
