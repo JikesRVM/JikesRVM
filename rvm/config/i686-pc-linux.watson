@@ -10,7 +10,7 @@ export HOST_JAVA_HOME="/homes/meriadoc/jalapeno/contrib/j2sdk1.4.1"
 
 . $RVM_ROOT/rvm/config/i686-pc-linux-gnu
 
-export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.06
+export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.07
 export JIKES=/homes/meriadoc/jalapeno/bin/i686/jikes-1.18
 export ANT_CMD=/homes/meriadoc/jalapeno/contrib/jakarta-ant-1.4.1/bin/ant
 export BENCHMARK_ROOT=/homes/meriadoc/jalapeno/contrib/benchmarks
