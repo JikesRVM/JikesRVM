@@ -484,8 +484,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     boolean threadSwitch = ! (VM_Scheduler.interruptQuantumCounter < VM.schedulingMultiplier);
     VM_Thread myThread = getCurrentThread();
     //-#if RVM_WITH_HPM
-    if (VM_HardwarePerformanceMonitors.sample) {
-      // sample HPM counter values at every interrupt.
+    if (VM_HardwarePerformanceMonitors.sample || threadSwitch) {
+      // sample HPM counter values at every interrupt or a thread switch.
       if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
 	  ! VM_HardwarePerformanceMonitors.hpm_thread_group) {
 	VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, myThread, true, threadSwitch);
