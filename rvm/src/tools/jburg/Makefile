@@ -19,7 +19,11 @@ endif
 
 include		$(RVM_BUILD)/Make.rules.host
 
-CFLAGS+=-Wno-unused -Wno-strict-prototypes
+CFLAGS+=-W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts  -fkeep-inline-functions -Wundef -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-unused -Wno-strict-prototypes
+
+## For GCC version 3.3, we can add:
+## but we don't have the infrastructure to do this programmatically right now.
+## -Wfloat-equal -Wendif-labels -Wmissing-format-attribute -Wunreachable-code -Wno-long-long
 
 YFLAGS=
 
