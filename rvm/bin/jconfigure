@@ -760,8 +760,6 @@ function emitEnvironmentKsh
    print "export TAR='$TAR'"  
    print "export GNU_TAR='$GNU_TAR'"  
    print "export MD5SUM='$MD5SUM'"  
-   print ""
-   print "export JAZZLIBJAR='$JAZZLIBJAR'"
    }
 
 #
@@ -816,9 +814,7 @@ function emitEnvironmentPerl
    print "\$ENV{AR} = '$TAR';"  
    print "\$ENV{NU_TAR} = '$GNU_TAR';"  
    print "\$ENV{D5SUM} = '$MD5SUM';"  
-   print ""
-   print "\$ENV{JAZZLIBJAR} = '$JAZZLIBJAR';"
-   }
+}
 
 #
 # Emit Make file
@@ -1751,7 +1747,7 @@ function emitImageLinker
 
    print "$GNU_MAKE_STR -f $BOOTIMAGE_WRITER_MAKEFILE \$SILENT_MAKE \$VERBOSE_STR\
           RVM_INSTRUCTION_TYPE=$INSTRUCTION_TYPE\
-          RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:\$JAZZLIBJAR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
+          RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR/jksvm.jar:$RVM_ROOT/support/lib/jazzlib.jar:$CLASSES_DIRECTORY_STR/rvmrt.jar\
           RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR\
           RVM_BOOTIMAGE=$BOOTIMAGE_STR\
           RVM_BOOTIMAGE_COMPILER_ARGS=\"\$OPT_ARGS\"\

@@ -34,9 +34,9 @@ if [[ X`uname` = X"CYGWIN_NT-5.0" ]]; then
 else
   ARGS="-X:i=$RVM_BUILD/RVM.image"
   if [[ ! -e $RVM_BUILD/javamath.jar ]]; then
-    ARGS="$ARGS -X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$JAZZLIBJAR:$RVM_BUILD/RVM.classes/rvmrt.jar"
+    ARGS="$ARGS -X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$JAL_ROOT/support/lib/jazzlib.jar:$RVM_BUILD/RVM.classes/rvmrt.jar"
   else
-    ARGS="$ARGS -X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$JAZZLIBJAR:$RVM_BUILD/javamath.jar:$RVM_BUILD/RVM.classes/rvmrt.jar"
+    ARGS="$ARGS -X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$JAL_ROOT/support/lib/jazzlib.jar:$RVM_BUILD/javamath.jar:$RVM_BUILD/RVM.classes/rvmrt.jar"
   fi
 fi
 for arg in $*; do
