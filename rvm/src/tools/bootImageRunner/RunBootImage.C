@@ -40,8 +40,10 @@
 #include <sys/context.h>
 extern "C" char *sys_siglist[];
 #endif
-#include "RunBootImage.h"
-#include "cmdLine.h"
+#include "RunBootImage.h"	// Automatically generated for us by
+				// jbuild.linkBooter 
+#include "bootImageRunner.h"	// In rvm/src/tools/bootImageRunner
+#include "cmdLine.h"		// Command line args.
 
 // Interface to VM data structures.
 //
@@ -54,34 +56,14 @@ extern "C" char *sys_siglist[];
 
 #include <InterfaceDeclarations.h>
 
-// Sink for messages relating to serious errors detected by C runtime.
-//
-extern FILE *SysErrorFile;
 
-// Sink for trace messages produced by VM.sysWrite().
-//
-extern FILE *SysTraceFile;
-extern int   SysTraceFd;
+unsigned initialHeapSize;  /* Declared in bootImageRunner.h */
+unsigned maximumHeapSize;  /* Declared in bootImageRunner.h */
 
-// Command line arguments to be passed to boot image.
-//
-extern char **	JavaArgs;
-extern int	JavaArgc; 
 
-// Emit trace information?
-//
-extern int lib_verbose;
-
-// command line arguments
-
-extern char *bootFilename;
-extern char *me;
-
-unsigned initialHeapSize;
-unsigned maximumHeapSize;
-
-extern "C" int createJVM(int);
-extern "C" void findMappable();
+/* See VM.exitStatusBogusCommandLineArg in VM.java.  
+ * If you change this value, change it there too. */
+const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 98;
 
 int DEBUG = 0;
 char * emptyString = "";
@@ -131,82 +113,88 @@ void nonstandard_usage()
 }
 
 /**
- * Maximum length of token
- */
-const int maxToken = 2048;
-
-/**
  * Maximum number of tokens
  */
 const int maxTokens = 256;
 
-/*
- * function findAndRemoveQuotes
- * input:  token
- * output: boolean that is true if the string contains an open quote, otherwise
- *	   returns false.
- * A string contains an open quote if the string contains an odd number of 
- * double quotes.
- */
-int findAndRemoveQuotes(char **tokenContainer) 
-{
-  char *token	   =*tokenContainer;
-  int length       =strlen(token);
-  int n_quotes     =0; 
-  int n_backSlashes=0;
-  char buffer[maxToken];
-  int b_index=0;
-  int i;
-  for (i=0; i<length; i++) {
-    if (token[i]=='"' && ((n_backSlashes%2)==0)) { 
-      // found double quote, remove quote
-      n_quotes++;
-    } else {
-      buffer[b_index++]=token[i];
-      if (token[i]=='\\') {
-	// found backslash, keep running count
-	n_backSlashes++;
-      } else {
-	n_backSlashes=0;
-      }
-    }
-  }
-  buffer[b_index++]='\0';
-  if(n_quotes) {
-    // found at least one quote, update tokenContainer
-    char *buf = (char*)malloc(b_index);
-    for(i=0;i<b_index;i++) {
-      buf[i]=buffer[i];
-    }
-    *tokenContainer = buf;
-  }
-  return (n_quotes%2);
-}
+// /* This code is unused.  I am avoiding deleting it in case someone wants it 
+//    later.  --Steven Augart, July 2003 */
 
-/*
- * function stringAppendWithSpace
- *   given two strings, first and second, return a new string that consists
- *   of first, followed by a space, followed by second.
- */
-char *stringAppendWithSpace(char *first, char *second) 
-{
-  if (second == "") {
-  }
-  int l_first  = strlen(first);
-  int l_second = strlen(second);
-  int length   = l_first+l_second+2;
-  char *result = (char*)malloc(length);
-  int i=0;
-  for(; i<l_first; i++) {
-    result[i]=first[i]; 
-  }
-  result[i++]=' ';
-  for (int j=0; j<l_second; j++) {
-    result[i++]=second[j];
-  }
-  result[i++]='\0';
-  return result;
-}
+// /**
+//  * Maximum length of token
+//  */
+// const int maxToken = 2048;
+
+// /*
+//  * function findAndRemoveQuotes
+//  * input:  token
+//  * output: boolean that is true if the string contains an open quote, otherwise
+//  *	   returns false.
+//  * A string contains an open quote if the string contains an odd number of 
+//  * double quotes.
+//  */
+// int findAndRemoveQuotes(char **tokenContainer) 
+// {
+//   char *token	   =*tokenContainer;
+//   int length       =strlen(token);
+//   int n_quotes     =0; 
+//   int n_backSlashes=0;
+//   char buffer[maxToken];
+//   int b_index=0;
+//   int i;
+//   for (i=0; i<length; i++) {
+//     if (token[i]=='"' && ((n_backSlashes%2)==0)) { 
+//       // found double quote, remove quote
+//       n_quotes++;
+//     } else {
+//       buffer[b_index++]=token[i];
+//       if (token[i]=='\\') {
+// 	// found backslash, keep running count
+// 	n_backSlashes++;
+//       } else {
+// 	n_backSlashes=0;
+//       }
+//     }
+//   }
+//   buffer[b_index++]='\0';
+//   if(n_quotes) {
+//     // found at least one quote, update tokenContainer
+//     char *buf = (char*)malloc(b_index);
+//     for(i=0;i<b_index;i++) {
+//       buf[i]=buffer[i];
+//     }
+//     *tokenContainer = buf;
+//   }
+//   return (n_quotes%2);
+// }
+
+// /* This code is unused.  I am avoiding deleting it in case someone wants it 
+//    later.  --Steven Augart, July 2003 */
+// /*
+//  * function stringAppendWithSpace
+//  *   given two strings, first and second, return a pointer to freshly
+//  *   allocated memory containing a new string that consists
+//  *   of first, followed by a space, followed by second.
+//  */
+// char *stringAppendWithSpace(char *first, char *second) 
+// {
+//   if (second == "") {
+//   }
+//   int l_first  = strlen(first);
+//   int l_second = strlen(second);
+//   int length   = l_first+l_second+2;
+//   char *result = (char*)malloc(length);
+//   int i=0;
+//   for(; i<l_first; i++) {
+//     result[i]=first[i]; 
+//   }
+//   result[i++]=' ';
+//   for (int j=0; j<l_second; j++) {
+//     result[i++]=second[j];
+//   }
+//   result[i++]='\0';
+//   return result;
+// }
 
 /*
  * Identify all command line arguments that are VM directives.
@@ -224,7 +212,7 @@ char *stringAppendWithSpace(char *first, char *second)
  * Side Effect  global JavaArgc set.
  */
 char ** 
-processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit) 
+processCommandLineArguments(char **CLAs, int n_CLAs, bool *fastExit) 
 {
   char *autoJCLAs[maxTokens];
   char **JCLAs;
@@ -462,10 +450,10 @@ main(int argc, char **argv)
   }
   
   // call processCommandLineArguments().
-  int fastBreak = 0;
+  bool fastBreak = false;
   char **Arguments = processCommandLineArguments(argv, argc, &fastBreak);
-  if (fastBreak==1) {
-    return 1;
+  if (fastBreak) {
+      exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
   }
 
   if (initialHeapSize == heap_default_initial_size &&
@@ -483,7 +471,7 @@ main(int argc, char **argv)
   if (maximumHeapSize < initialHeapSize) {
     fprintf(SysTraceFile, "%s: maximum heap size %d is less than initial heap size %d\n", 
 	    me, maximumHeapSize/(1024*1024), initialHeapSize/(1024*1024));
-    return 1;
+    return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
   }
 
   if(DEBUG){
@@ -500,7 +488,7 @@ main(int argc, char **argv)
 
   if (!bootFilename) {
     fprintf(SysTraceFile, "%s: please specify name of boot image file using \"-i<filename>\"\n", me);
-    return 1;
+    return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
   }
 
   JavaArgs = Arguments;
