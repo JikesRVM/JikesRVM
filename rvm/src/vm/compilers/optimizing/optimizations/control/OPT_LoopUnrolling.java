@@ -45,7 +45,6 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     new OPT_BranchOptimizations(-1).perform(ir, true);
 
     new OPT_CFGTransformations().perform(ir);
-    // new OPT_CFGTransformations().performMakeExitsExit(ir);
     // Note: the following unfactors the CFG
     new OPT_DominatorsPhase(true).perform(ir);
     OPT_DefUse.computeDU (ir);
