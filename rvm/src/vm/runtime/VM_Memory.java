@@ -30,8 +30,9 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
-   * Assumptions: src != dst || (scrPos >= dstPos + 4) and
-   *              src and dst are 8Bit arrays.
+   *
+   * Assumptions: <code> src != dst || (scrPos >= dstPos + 4) </code>
+   *              and src and dst are 8Bit arrays.
    * @param src     the source array
    * @param srcPos  index in the source array to begin copy
    * @param dst     the destination array
@@ -140,6 +141,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
+   *
    * Assumption src != dst || (srcPos >= dstPos + 2).
    * 
    * @param src     the source array
@@ -265,10 +267,9 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Copy a region of memory.
-   * Taken:    destination address
-   *           source address
-   *           number of bytes to copy
-   * Returned: nothing
+   * @param destination address
+   * @param source address
+   * @param number of bytes to copy
    * Assumption: source and destination regions do not overlap
    */
   public static void memcopy(VM_Address dst, VM_Address src, int cnt) {
@@ -277,10 +278,9 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Fill a region of memory.
-   * Taken:    destination address
-   *           pattern
-   *           number of bytes to fill with pattern
-   * Returned: nothing
+   * @param destination address
+   * @param pattern
+   * @param number of bytes to fill with pattern
    */
   public static void fill(VM_Address dst, byte pattern, int cnt) {
     VM_SysCall.sysFill(dst, pattern, cnt);
@@ -288,9 +288,8 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Zero a region of memory.
-   * Taken:    start of address range (inclusive)
-   *           end of address range   (exclusive)
-   * Returned: nothing
+   * @param start of address range (inclusive)
+   * @param end of address range   (exclusive)
    */
   public static void zero(VM_Address start, VM_Address end) {
     VM_SysCall.sysZero(start, end.diff(start).toInt());
@@ -307,9 +306,8 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Zero a range of pages of memory.
-   * Taken:    start address       (must be a page address)
-   *           number of bytes     (must be multiple of page size)
-   * Returned: nothing
+   * @param start address       (must be a page address)
+   * @param number of bytes     (must be multiple of page size)
    */
   public static void zeroPages(VM_Address start, int len) {
     if (VM.VerifyAssertions) VM._assert(isPageAligned(start) && isPageMultiple(len));
@@ -323,9 +321,8 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   /**
    * Synchronize a region of memory: force data in dcache to be written out to main 
    * memory so that it will be seen by icache when instructions are fetched back.
-   * Taken:    start of address range
-   *           size of address range (bytes)
-   * Returned: nothing
+   * @param start of address range
+   * @param size of address range (bytes)
    */
   public static void sync(VM_Address address, int size) {
     VM_SysCall.sysSyncCache(address, size);
@@ -343,6 +340,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   public static final int PROT_WRITE = 2;
   public static final int PROT_EXEC  = 4;
 
+  public static final int MAP_FILE      =  0;
   public static final int MAP_SHARED    =  1;
   public static final int MAP_PRIVATE   =  2;
   public static final int MAP_FIXED     = 0x0010;
@@ -358,6 +356,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   public static final int PROT_WRITE = 2;
   public static final int PROT_EXEC  = 4;
 
+  public static final int MAP_FILE      =  0;
   public static final int MAP_SHARED    =  1;
   public static final int MAP_PRIVATE   =  2;
   public static final int MAP_FIXED     = 16;
@@ -373,6 +372,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   public static final int PROT_WRITE = 2;
   public static final int PROT_EXEC  = 4;
 
+  public static final int MAP_FILE      =  0;
   public static final int MAP_SHARED    =  1;
   public static final int MAP_PRIVATE   =  2;
   public static final int MAP_FIXED     = 256;
@@ -424,77 +424,82 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   }
 
   /**
-   * Do mmap general memory mapping call (not implemented)
-   * Taken:    start of address range (VM_Address)
-   *           size of address range
-   *           protection (int)
-   *           flags (int)
-   *           fd (int)
-   *           offset (long)
-   * Returned: VM_Address (of region)
+   * Do mmap general memory mapping call.
+   * @param start of address range (VM_Address)
+   * @param size of address range
+   * @param protection 
+   * @param flags
+   * @param fd 
+   * @param offset
+   * @return VM_Address (of region) if successful; errno (1 to 127) otherwise
+   * @note Please consult your system's mmap system call documentation 
    */
   public static VM_Address mmap(VM_Address address, int size, 
                                 int prot, int flags, int fd, long offset) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
-    return VM_Address.max();  // not implemented: requires new magic for 6 args, etc.
-    // return VM_SysCall.sysMMap(address, size, prot, flags, fd, offset);
+    return VM_SysCall.sysMMapErrno(address,VM_Extent.fromInt(size), prot, flags, fd, offset);
   }
 
   /**
    * Do mmap file memory mapping call
-   * Taken:    start of address range (VM_Address)
-   *           size of address range
-   *           file name (char *)
-   * Returned: VM_Address (of region)
+   * @param start of address range (VM_Address)
+   * @param size of address range
+   * @param fd file desciptor of file to be mapped
+   * @return VM_Address (of region) if successful; errno (1 to 127) otherwise
    */
   public static VM_Address mmapFile(VM_Address address, VM_Extent size, int fd, int prot) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMMapGeneralFile(address, size, fd, prot);
+    int flag = MAP_FILE | MAP_FIXED | MAP_SHARED;
+    return VM_SysCall.sysMMapErrno(address,size,prot,flag,fd,0);
   }
 
   /**
    * Do mmap non-file memory mapping call
-   * Taken:    start of address range (VM_Address)
-   *           size of address range 
-   *           protection (int)
-   *           flags (int)
-   * Returned: VM_Address (of region) if successful; errno (1 to 127) otherwise
+   * @param start of address range (VM_Address)
+   * @param size of address range 
+   * @param protection (int)
+   * @param flags (int)
+   * @return VM_Address (of region) if successful; errno (1 to 127) otherwise
    */
   public static VM_Address mmap(VM_Address address, VM_Extent size, int prot, int flags) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMMapNonFile(address, size, prot, flags);
+    return VM_SysCall.sysMMapErrno(address,size,prot,flags,-1,0);
   }
 
   /**
    * Do mmap demand zero fixed address memory mapping call
-   * Taken:    start of address range (VM_Address)
-   *           size of address range 
-   * Returned: VM_Address (of region)
+   * @param start of address range
+   * @param size of address range 
+   * @return VM_Address (of region) if successful; errno (1 to 127) otherwise
    */
   public static VM_Address mmap(VM_Address address, VM_Extent size) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMMapDemandZeroFixed(address, size);
+    int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
+    int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
+    return VM_SysCall.sysMMapErrno(address, size, prot, flag, -1, 0);
   }
 
   /**
    * Do mmap demand zero any address memory mapping call
-   * Taken:    size of address range (VM_Address)
-   * Returned: VM_Address (of region)
+   * @param size of address range (VM_Address)
+   * @return VM_Address (of region) if successful; errno (1 to 127) otherwise 
    */
   public static VM_Address mmap(VM_Extent size) {
     if (VM.VerifyAssertions) VM._assert(isPageMultiple(size));
-    return VM_SysCall.sysMMapDemandZeroAny(size);
+    int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
+    int flag = MAP_ANONYMOUS | MAP_PRIVATE;
+    return VM_SysCall.sysMMapErrno(VM_Address.zero(), size, prot, flag, -1, 0);
   }
 
   /**
    * Do munmap system call
-   * Taken:    start of address range (VM_Address)
-   *           size of address range 
-   * Returned: 0 if successfull; errno otherwise
+   * @param start of address range (VM_Address)
+   * @param size of address range 
+   * @return 0 if successfull; errno otherwise
    */
   public static int munmap(VM_Address address, VM_Extent size) {
     if (VM.VerifyAssertions)
@@ -504,10 +509,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do mprotect system call
-   * Taken:    start of address range (VM_Address)
-   *           size of address range 
-   *           protection (int)
-   * Returned: true if success
+   * @param start of address range (VM_Address)
+   * @param size of address range 
+   * @param protection (int)
+   * @return true iff success
    */
   public static boolean mprotect(VM_Address address, VM_Extent size, int prot) {
     if (VM.VerifyAssertions)
@@ -517,10 +522,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do msync system call
-   * Taken:    start of address range (VM_Address)
-   *           size of address range 
-   *           flags (int)
-   * Returned: true if success
+   * @param of address range (VM_Address)
+   * @param size of address range 
+   * @param flags (int)
+   * @return true iff success
    */
   public static boolean msync(VM_Address address, VM_Extent size, int flags) {
     if (VM.VerifyAssertions)
@@ -530,10 +535,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do madvise system call (UNIMPLEMENTED IN LINUX)
-   * Taken:    start of address range (VM_Address)
-   *           size of address range 
-   *           advice (int)
-   * Returned: true if success
+   * @param start of address range (VM_Address)
+   * @param size of address range 
+   * @param advice (int)
+   * @return true iff success
    */
   public static boolean madvise(VM_Address address, VM_Extent size, int advice) {
     if (VM.VerifyAssertions)
@@ -588,10 +593,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do shmget call
-   * Taken:    secret key or IPC_PRIVATE
-   *           size of address range
-   *           segment attributes
-   * Returned: shared memory segment id 
+   * @param secret key or IPC_PRIVATE
+   * @param size of address range
+   * @param segment attributes
+   * @return shared memory segment id 
    */
   public static int shmget(int key, int size, int flags) {
     return VM_SysCall.sysShmget(key, size, flags);
@@ -599,10 +604,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do shmat call
-   * Taken:    shmid obtained from shmget
-   *           size of address range
-   *           access attributes
-   * Returned: address of attached shared memory segment 
+   * @param shmid obtained from shmget
+   * @param size of address range
+   * @param access attributes
+   * @return address of attached shared memory segment 
    */
   public static VM_Address shmat(int shmid, VM_Address addr, int flags) {
     return VM_SysCall.sysShmat(shmid, addr, flags);
@@ -610,8 +615,8 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do shmdt call
-   * Taken:    address of mapped region
-   * Returned: shared memory segment id 
+   * @param address of mapped region
+   * @return shared memory segment id 
    */
   public static int shmdt(VM_Address addr) {
     return VM_SysCall.sysShmdt(addr);
@@ -619,10 +624,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do shmctl call
-   * Taken:    shmid obtained from shmget
-   *           command
-   *           missing buffer argument
-   * Returned: shared memory segment id 
+   * @param shmid obtained from shmget
+   * @param command
+   * @param missing buffer argument
+   * @return shared memory segment id 
    */
   public int shmctl(int shmid, int command) {
     return VM_SysCall.sysShmctl(shmid, command);
@@ -631,8 +636,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do getpagesize call
-   * Taken:    none
-   * Returned: page size
+   * @return page size
    */
   private static int pagesize = -1;
   private static int pagesizeLog = -1;

@@ -2125,86 +2125,38 @@ sysShmctl(int shmid, int command)
 //        offset (Java long)  [to cover 64 bit file systems]
 // Returned: address of region (or -1 on failure) (Java ADDRESS)
 
-extern "C" void *sysMMap(char *start, size_t length, int protection, 
-                         int flags, int fd, long long offset) 
-    __attribute__((noreturn));
-
-
 extern "C" void *
-sysMMap(char UNUSED *start , size_t UNUSED length ,
-        int UNUSED protection , int UNUSED flags ,
-        int UNUSED fd , long long UNUSED offset )
+sysMMap(char *start , size_t length ,
+        int protection , int flags ,
+        int fd , long long offset)
 {
-    fprintf(SysErrorFile, "%s: sysMMap called, but it's unimplemented\n", Me);
-    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
-    // return mmap(start, (size_t)(length), protection, flags, fd, (off_t)(offset));
+    return mmap(start, (size_t)(length), protection, flags, fd, (off_t)(offset));
 }
 
-// mmap - non-file general case
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-//        desired protection (Java int)
-//        flags (Java int)
-// Returned: address of region (or -1 on failure) (Java ADDRESS)
-//
+// Same as mmap, but with more debugging support.
+// Returned: address of region if successful; errno (1 to 127) otherwise
+
 extern "C" void *
-sysMMapNonFile(char *start, char *length, int protection, int flags)
+sysMMapErrno(char *start , size_t length ,
+	     int protection , int flags ,
+	     int fd , long long offset)
 {
-    void *res = mmap(start, (size_t)(length), protection, flags, -1, 0);
-    if (res == (void *) -1) {
+  void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)(offset));
+  if (res == (void *) -1){
 #if RVM_FOR_32_ADDR
-        fprintf(stderr, "mmap (%x, %u, %d, %d, -1, 0) failed with %d: ",
-                (VM_Address) start, (unsigned) length, protection, flags, errno);
+    fprintf(stderr, "mmap (%x, %u, %d, %d, -1, 0) failed with %d: ",
+	    (VM_Address) start, (unsigned) length, protection, flags, errno);
 #else
-        fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",
-                (VM_Address) start, (unsigned) length, protection, flags, errno);
+    fprintf(stderr, "mmap (%llx, %u, %d, %d, -1, 0) failed with %d: ",
+	    (VM_Address) start, (unsigned) length, protection, flags, errno);
 #endif          
-        perror(NULL);
-        return (void *) errno;
-    }
+    return (void *) errno;
+  }else{
 #ifdef DEBUG_SYS
     printf("mmap worked - region = [0x%x ... 0x%x]    size = %d\n", res, ((int)res) + length, length);
 #endif
     return res;
-}
-
-// mmap - demand zero fixed address case
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-// Returned: address of region (or -1 on failure) (Java ADDRESS)
-//
-extern "C" char *
-sysMMapGeneralFile(char *start, size_t length, int fd, int prot)
-{
-    int flag = MAP_FILE | MAP_FIXED | MAP_SHARED;
-    char *foo = (char *) mmap(start, length, prot, flag, fd, 0);
-
-    return foo;
-}
-
-// mmap - demand zero fixed address case
-// Taken: start address (Java ADDRESS)
-//        length of region (Java EXTENT)
-// Returned: address of region (or -1 on failure) (Java ADDRESS)
-//
-extern "C" char *
-sysMMapDemandZeroFixed(char *start, size_t length)
-{
-    int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
-    int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
-    return (char *) mmap(start, length, prot, flag, -1, 0);
-}
-
-// mmap - demand zero any address case
-// Taken: length of region (Java EXTENT)
-// Returned: address of region (or -1 on failure) (Java ADDRESS)
-//
-extern "C" char *
-sysMMapDemandZeroAny(size_t length)
-{
-    int prot = PROT_READ | PROT_WRITE | PROT_EXEC;
-    int flag = MAP_ANONYMOUS | MAP_PRIVATE;
-    return (char *) mmap(0, length, prot, flag, -1, 0);
+  }
 }
 
 // munmap

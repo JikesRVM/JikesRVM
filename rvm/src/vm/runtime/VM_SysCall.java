@@ -85,18 +85,10 @@ public class VM_SysCall implements VM_Uninterruptible {
                                    int flags, int fd, long offset) { 
     return null; 
   }
-  public static VM_Address sysMMapNonFile(VM_Address start, VM_Extent length,
-                                          int protection, int flags) {
-    return null;
+  public static VM_Address sysMMapErrno(VM_Address start, VM_Extent length, int protection,
+					int flags, int fd, long offset) { 
+    return null; 
   }
-  public static VM_Address sysMMapGeneralFile(VM_Address start, VM_Extent length,
-                                              int fd, int prot) {
-    return null;
-  }
-  public static VM_Address sysMMapDemandZeroFixed(VM_Address start, VM_Extent length) {
-    return null;
-  }
-  public static VM_Address sysMMapDemandZeroAny(VM_Extent length) { return null; }
   public static int sysMUnmap(VM_Address start, VM_Extent length) {
     return 0;
   }
