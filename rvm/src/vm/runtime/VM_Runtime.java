@@ -574,9 +574,9 @@ public class VM_Runtime implements VM_Constants {
    */
   static void athrow(Throwable exceptionObject) throws VM_PragmaNoInline {
     VM_Registers registers = new VM_Registers();
-    registers.inuse = true;
     VM.disableGC();              // VM.enableGC() is called when the exception is delivered.
     VM_Magic.saveThreadState(registers);
+    registers.inuse = true;
     deliverException(exceptionObject,registers);
   }
 
@@ -608,22 +608,13 @@ public class VM_Runtime implements VM_Constants {
     if ((trapCode == TRAP_STACK_OVERFLOW || trapCode == TRAP_JNI_STACK) && 
 	myThread.stack.length < (STACK_SIZE_MAX >> 2) && 
 	!myThread.hasNativeStackFrame()) { 
-      // determine whether the method causing the overflow is native
-      VM.disableGC();   // because we're holding raw addresses (ip)
-      VM_Address ip                    = exceptionRegisters.getInnermostInstructionAddress();
-      VM_CompiledMethod	compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
-      VM.enableGC();
-      VM_CompilerInfo	compilerInfo	= compiledMethod.getCompilerInfo();
-      VM_Method 	myMethod	= compiledMethod.getMethod();
-
       // expand stack by the size appropriate for normal or native frame 
       // and resume execution at successor to trap instruction
       // (C trap handler has set register.ip to the instruction following the trap).
       if (trapCode == TRAP_JNI_STACK) {
 	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_JNINATIVE_GROW >> 2), exceptionRegisters);
-	// VM.sysWrite("Growing native stack before entry\n");
       } else {
-	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GROW >> 2), exceptionRegisters); // grow
+	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_GROW >> 2), exceptionRegisters);
       }
       if (VM.VerifyAssertions) VM.assert(exceptionRegisters.inuse == true); 
       exceptionRegisters.inuse = false;
@@ -631,7 +622,6 @@ public class VM_Runtime implements VM_Constants {
 
       if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
     }
-
 
     Throwable exceptionObject;
     switch (trapCode) {
