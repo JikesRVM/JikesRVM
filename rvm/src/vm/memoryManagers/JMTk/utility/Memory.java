@@ -8,6 +8,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -22,7 +23,11 @@ import com.ibm.JikesRVM.VM_Memory;
 
 public class Memory implements VM_Uninterruptible {
 
-  private static boolean isZeroedHelper(VM_Address start, EXTENT size, boolean verbose) {
+  // Inlining this loop into the uninterruptible code can cause/encourage the GCP 
+  // into moving a get_obj_tib into the interruptible region where the tib is being
+  // installed via an int_store
+  //
+  private static boolean isZeroedHelper(VM_Address start, EXTENT size, boolean verbose) throws VM_PragmaNoInline {
     if (VM.VerifyAssertions) VM._assert(size == (size & (~3)));
     for (int i=0; i<size; i+=4) 
       if (!VM_Magic.getMemoryAddress(start.add(i)).isZero()) {
@@ -36,19 +41,19 @@ public class Memory implements VM_Uninterruptible {
     return true;
   }
 
-  static boolean IsZeroed(VM_Address start, EXTENT size) {
+  public static boolean IsZeroed(VM_Address start, EXTENT size) {
     return isZeroedHelper(start, size, false);
   }
 
-  static boolean assertIsZeroed(VM_Address start, EXTENT size) {
+  public static boolean assertIsZeroed(VM_Address start, EXTENT size) {
     return isZeroedHelper(start, size, true);
   }
 
-  static void zero(VM_Address start, VM_Address end) {
+  public static void zero(VM_Address start, VM_Address end) {
     VM_Memory.zero(start, end);
   }
 
-  static void zero(VM_Address start, int len) {
+  public static void zero(VM_Address start, int len) {
     VM_Memory.zero(start, len);
   }
 
