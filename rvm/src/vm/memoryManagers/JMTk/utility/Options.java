@@ -50,7 +50,8 @@ public class Options implements VM_Uninterruptible, Constants {
     initialHeapSize = initial;
     max = maxHeapSize;
     if (initialHeapSize > maxHeapSize) 
-	VM.sysFail("The boot record's heap sizes are inconsistent due to a faulty configuration file.");
+      maxHeapSize = initialHeapSize;
+    // VM.sysWriteln("The boot record's heap sizes are inconsistent due to a faulty configuration file.");
   }
 
   public static boolean updateCurrentHeapSize(int usedHeapSize) {
