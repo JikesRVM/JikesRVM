@@ -7,6 +7,7 @@ BaseBaseGenCopy                  -test-list nightly-tests
 BaseBaseGenMS                    -test-list nightly-tests
 ExtremeAssertionsOptOptSemiSpace -test-list nightly-tests-short
 FullOptSemiSpace -use-opt-levels "O0 O1 O2" -test-list nightly-tests-short
-FastWatsonMarkSweep              -test-list nightly-tests-short
 FastAdaptiveSemiSpace            -test-list nightly-tests-short
 FastSemiSpace                    -test-list nightly-tests-short
+FastMarkSweep                    -test-list nightly-tests-short
+FastWatsonMarkSweep              -test-list nightly-tests-short
