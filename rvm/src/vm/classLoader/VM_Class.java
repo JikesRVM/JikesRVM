@@ -73,12 +73,15 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * offsets of reference-containing instance fields
    */
   private int[]        referenceOffsets;       
-//-#if RVM_FOR_64_ADDR
   /**
    * offset of hole due to alignment, zero if none
    */
-  private int alignOffset = 0;
-//-#endif
+  private int emptySlot = 0;
+  /**
+   * The desired alignment for instances of this type.
+   */
+  private int alignment;
+  
 
   //
   // --- Method-dispatching information ---    //
@@ -522,34 +525,39 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     return referenceOffsets;
   }
 
-//-#if RVM_FOR_64_ADDR
   /**
-   * Offsets of hole, due to alignment.
+   * Offset of hole, due to alignment; 
    * returns zero if none.
    */
-  public final int getAlignOffset() {
-    return alignOffset;
+  public final int getEmptySlot() {
+    return emptySlot;
   }
 
   /**
-   * Reset the offset of the hole.
-   * This means that the hole is used from now on, so there ain't one left.
+   * Set the offset of a hole.
    */
-  public final void resetAlignOffset() {
-    alignOffset = 0;
+  public final void setEmptySlot(int off) {
+    if (VM.VerifyAssertions) {
+      VM._assert(off == 0 || emptySlot == 0);
+    }
+    emptySlot = off;
   }
 
   /**
-   * Add a field to the object; only meant to be called from VM_ObjectModel et al.
-   * must be called when lock on class object is already held (ie from resolve).
-	* As Side-effect it sets the alignOffset field to the new objectEndOffset.
+   * @return alignment for instances of this class type
    */
-  public final void increaseInstanceSizeAndSetAlignOffset(int numBytes) throws VM_PragmaUninterruptible {
-    instanceSize += numBytes;
-    alignOffset = VM_JavaHeader.objectEndOffset(this);
+  public final int getAlignment() throws VM_PragmaUninterruptible {
+    return alignment;
   }
-//-#endif
 
+  /**
+   * Set the alignment for instances of this class type
+   */
+  public final void setAlignment(int align) {
+    if (VM.VerifyAssertions) VM._assert(align >= alignment);
+    alignment = align;
+  }
+  
   /**
    * Find specified virtual method description.
    * @param memberName   method name - something like "foo"
@@ -966,17 +974,13 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       depth = 1; 
     } else if (isJavaLangObjectType()) {
       instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
-      //-#if RVM_FOR_64_ADDR
-      int diff = VM_JavaHeader.objectEndOffset(this) - VM_Memory.alignDown(VM_JavaHeader.objectEndOffset(this), BYTES_IN_ADDRESS);
-      if (diff != 0) {	
-	if (VM.VerifyAssertions) VM._assert(diff % BYTES_IN_INT == 0); //assume bad aligned on 8 byte, but good aligned on 4 byte
-	increaseInstanceSizeAndSetAlignOffset(diff);
-      }
-      //-#endif
+      alignment = BYTES_IN_ADDRESS;
     } else {
       depth = superClass.depth + 1;
       thinLockOffset = superClass.thinLockOffset;
       instanceSize = superClass.instanceSize;
+      emptySlot = superClass.emptySlot;
+      alignment= superClass.alignment;
     }
 
     if (isSynchronizedObject() || this == VM_Type.JavaLangClassType)

@@ -53,6 +53,12 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    */
   private Object[] typeInformationBlock;
 
+  /**
+   * The desired alignment for instances of this type.
+   * Cached rather than computed because this is a frequently
+   * asked question
+   */
+  private final int alignment;
   
   /**
    * Name - something like "[I" or "[Ljava.lang.String;"
@@ -82,6 +88,13 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     return innermostElementType;
   }
       
+  /**
+   * @return alignment for instances of this array type
+   */
+  public final int getAlignment() throws VM_PragmaUninterruptible {
+    return alignment;
+  }
+
   /**
    * Size, in bytes, of an array element, log base 2.
    * @return log base 2 of array element size
@@ -176,7 +189,12 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     } else {
       innermostElementType = elementType;
     }
-
+    if (elementType.isDoubleType() || elementType.isLongType()) {
+      this.alignment = BYTES_IN_DOUBLE;
+    } else {
+      this.alignment = BYTES_IN_ADDRESS;
+    }
+    
     acyclic = elementType.isAcyclicReference(); // RCGC: Array is acyclic if its references are acyclic
 
     state = CLASS_LOADED;

@@ -148,6 +148,12 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
 	size += HASHCODE_BYTES;
       }
     }
+    // JMTK requires sizes to be multiples of BYTES_IN_ADDRESS
+    // Jikes RVM currently forces scalars to be multiples of
+    // BYTES_IN_INT. So in 64 bit mode have to do something extra here.
+    if (BYTES_IN_INT != BYTES_IN_ADDRESS) {
+      size = VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
+    }
     return size;
   }
 
@@ -155,8 +161,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * how many bytes are needed when the array object is copied by GC?
    */
   public static int bytesRequiredWhenCopied(Object fromObj, VM_Array type, int numElements) {
-    // JMTk requires all sizes to be multiples of 4
-    int size = VM_Memory.alignUp(type.getInstanceSize(numElements), 4);
+    // JMTk requires all sizes to be multiples of BYTES_IN_ADDRESS
+    int size = VM_Memory.alignUp(type.getInstanceSize(numElements), BYTES_IN_ADDRESS);
     if (ADDRESS_BASED_HASHING) {
       int hashState = VM_Magic.getIntAtOffset(fromObj, STATUS_OFFSET) & HASH_STATE_MASK;
       if (hashState != HASH_STATE_UNHASHED) {
@@ -463,7 +469,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param t VM_Class instance being created
    */
   public static int getAlignment(VM_Class t) {
-    return BYTES_IN_ADDRESS;
+    return t.getAlignment();
   }
 
   /**
@@ -473,7 +479,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param obj the object being copied
    */
   public static int getAlignment(VM_Class t, Object obj) {
-    return BYTES_IN_ADDRESS;
+    return t.getAlignment();
   }
 
   /**
@@ -482,7 +488,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param t VM_Array instance being created
    */
   public static int getAlignment(VM_Array t) {
-    return BYTES_IN_ADDRESS;
+    return t.getAlignment();
   }
 
   /**
@@ -492,7 +498,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param obj the object being copied
    */
   public static int getAlignment(VM_Array t, Object obj) {
-    return BYTES_IN_ADDRESS;
+    return t.getAlignment();
   }
 
   /**

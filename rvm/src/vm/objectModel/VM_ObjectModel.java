@@ -130,23 +130,34 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
       VM_Field field = fields[i];
       if (!field.isStatic()) {
 	int fieldSize = field.getType().getSize();
-	//-#if RVM_FOR_64_ADDR
-	if (fieldSize == BYTES_IN_INT ) { 
-	  if (klass.getAlignOffset() == 0) { //create a new unused slot of 4 bytes
-	    field.setOffset(fieldOffset - BYTES_IN_INT);
-	    fieldOffset -= BYTES_IN_ADDRESS; 
-	    klass.increaseInstanceSizeAndSetAlignOffset(BYTES_IN_ADDRESS);
-	  } else { //use an unused slot of 4 bytes
-	    field.setOffset(klass.getAlignOffset());
-	    klass.resetAlignOffset();
-	  }
-	} else 
-        //-#endif 		
-	  {			
-	    fieldOffset -= fieldSize; // lay out fields 'backwards'
-	    field.setOffset(fieldOffset);
-	    klass.increaseInstanceSize(fieldSize);
+	if (fieldSize == BYTES_IN_INT) {
+          int emptySlot = klass.getEmptySlot();
+          if (emptySlot != 0) {
+            field.setOffset(emptySlot);
+            klass.setEmptySlot(0);
+          } else {
+            fieldOffset -= BYTES_IN_INT;
+            field.setOffset(fieldOffset);
+            klass.increaseInstanceSize(BYTES_IN_INT);
           }
+        } else {
+          if (VM.VerifyAssertions) {
+            VM._assert(fieldSize == BYTES_IN_DOUBLE); // (or ADDRESS in 64 bit mode)
+          }
+          klass.setAlignment(BYTES_IN_DOUBLE);
+          if ((fieldOffset % BYTES_IN_DOUBLE) == 0) {
+            fieldOffset -= BYTES_IN_DOUBLE;
+            field.setOffset(fieldOffset);
+            klass.increaseInstanceSize(BYTES_IN_DOUBLE);
+          } else {
+            if (VM.VerifyAssertions) VM._assert(klass.getEmptySlot() == 0);
+            fieldOffset -= BYTES_IN_INT;
+            klass.setEmptySlot(fieldOffset);
+            fieldOffset -= BYTES_IN_DOUBLE;
+            field.setOffset(fieldOffset);
+            klass.increaseInstanceSize(BYTES_IN_INT+BYTES_IN_DOUBLE);
+          }
+        }
       }
     }
   }
