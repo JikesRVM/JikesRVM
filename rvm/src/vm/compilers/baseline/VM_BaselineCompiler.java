@@ -28,7 +28,6 @@ abstract class VM_BaselineCompiler {
    */
   protected static VM_BaseOptions setUpOptions;
 
-
   /**
    * The method being compiled
    */
