@@ -431,9 +431,9 @@ public class VM extends VM_Properties
    * @param value  what is printed
    */
   public static void sysWrite(VM_MemberReference value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-    sysWrite(value.getClassName());
+    sysWrite(value.getType().getName());
     sysWrite(".");
-    sysWrite(value.getMemberName());
+    sysWrite(value.getName());
     sysWrite(" ");
     sysWrite(value.getDescriptor());
   }

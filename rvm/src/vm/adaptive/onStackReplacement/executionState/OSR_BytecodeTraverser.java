@@ -1139,7 +1139,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       case JBC_getstatic:
 	{
 	  VM_FieldReference fieldRef = bytecodes.getFieldReference();
-	  VM_Type ftype = fieldRef.getType();
+	  VM_Type ftype = fieldRef.getFieldContentsType();
 	  byte tcode = ftype.getDescriptor().parseForTypeCode();
 	  if ((tcode == LongTypeCode) || (tcode == DoubleTypeCode) ) {
 	    S.push(VoidTypeCode);
@@ -1150,7 +1150,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       case JBC_putstatic:
 	{
 	  VM_FieldReference fieldRef = bytecodes.getFieldReference();
-	  VM_Type ftype = fieldRef.getType();
+	  VM_Type ftype = fieldRef.getFieldContentsType();
 	  byte tcode = ftype.getDescriptor().parseForTypeCode();
 	  if ( (tcode == LongTypeCode) || (tcode == DoubleTypeCode) )
 	    S.pop(2);
@@ -1161,7 +1161,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
       case JBC_putfield:
 	{
 	  VM_FieldReference fieldRef = bytecodes.getFieldReference();
-	  VM_Type ftype = fieldRef.getType();
+	  VM_Type ftype = fieldRef.getFieldContentsType();
 	  byte tcode = ftype.getDescriptor().parseForTypeCode();
 	  if ( (tcode == LongTypeCode) || (tcode == DoubleTypeCode) )
 	    S.pop(2);

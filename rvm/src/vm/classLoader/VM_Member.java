@@ -76,7 +76,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * Name of this member.
    */ 
   public final VM_Atom getName() throws VM_PragmaUninterruptible { 
-    return memRef.getMemberName();
+    return memRef.getName();
   }
 
   /**

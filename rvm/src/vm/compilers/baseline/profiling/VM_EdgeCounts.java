@@ -127,7 +127,8 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
 	    VM.sysFail("Unable to match classloader "+clName);
 	    cl = null;
 	  }
-	  VM_MemberReference key = VM_MemberReference.findOrCreate(cl, dc, mn, md);
+	  VM_TypeReference tref = VM_TypeReference.findOrCreate(cl, dc);
+	  VM_MemberReference key = VM_MemberReference.findOrCreate(tref, mn, md);
 	  int id = key.getId();
 	  allocateCounters(id, numCounts);
 	  cur = data[id];

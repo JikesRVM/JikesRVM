@@ -171,9 +171,10 @@ public class VM_ClassLoader implements VM_Constants,
   public static void load(String libname) {
     currentDynamicLibraryId++;
 
-    if (currentDynamicLibraryId>=(dynamicLibraries.length-1))
-	dynamicLibraries = 
-	    growArray(dynamicLibraries, currentDynamicLibraryId << 1); 
+    if (currentDynamicLibraryId>=(dynamicLibraries.length-1)) {
+      dynamicLibraries = 
+	growArray(dynamicLibraries, currentDynamicLibraryId << 1); 
+    }
     
     if (VM.VerifyAssertions)
 	VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
@@ -187,41 +188,40 @@ public class VM_ClassLoader implements VM_Constants,
    */
   public static void loadLibrary(String libname) {
     currentDynamicLibraryId++;
-    if (currentDynamicLibraryId>=(dynamicLibraries.length-1))
+    if (currentDynamicLibraryId>=(dynamicLibraries.length-1)) {
       dynamicLibraries = 
-	  growArray(dynamicLibraries, currentDynamicLibraryId << 1); 
+	growArray(dynamicLibraries, currentDynamicLibraryId << 1); 
+    }
 
     if (VM.VerifyAssertions)
-	VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
+      VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
 
     //-#if RVM_WITH_GNU_CLASSPATH    
-    String platformLibName = System.mapLibraryName( libname );
+    String platformLibName = System.mapLibraryName(libname);
     //-#else
     // this is ugly, but will go away soon anyway
     String platformLibName;
     if (VM.BuildForLinux)
-	platformLibName = "lib" + libname + ".so";
+      platformLibName = "lib" + libname + ".so";
     else if (VM.BuildForAix)
-	platformLibName = "lib" + libname + ".a";
+      platformLibName = "lib" + libname + ".a";
     else {
-	platformLibName = null;
-	VM._assert(NOT_REACHED);
+      platformLibName = null;
+      VM._assert(NOT_REACHED);
     }
     //-#endif
 
     StringTokenizer javaLibDirs =
-	new StringTokenizer(javaLibPath, File.pathSeparator, false);
+      new StringTokenizer(javaLibPath, File.pathSeparator, false);
 
     while (javaLibDirs.hasMoreElements()) {
-	String javaLibDir = javaLibDirs.nextToken();
-	File javaLib = new File(javaLibDir, platformLibName);
+      String javaLibDir = javaLibDirs.nextToken();
+      File javaLib = new File(javaLibDir, platformLibName);
 	
-	if (javaLib.exists()) {
-	    dynamicLibraries[currentDynamicLibraryId] = 
-		new VM_DynamicLibrary(javaLib.getPath());
-
-	    return;
-	}
+      if (javaLib.exists()) {
+	dynamicLibraries[currentDynamicLibraryId] = new VM_DynamicLibrary(javaLib.getPath());
+	return;
+      }
     }
 
     throw new UnsatisfiedLinkError("Cannot find library " + libname);
@@ -320,31 +320,31 @@ public class VM_ClassLoader implements VM_Constants,
     //-#endif
   }
 
-    private static String javaLibPath;
+  private static String javaLibPath;
 
-    private static void setJavaLibPath() {
-	javaLibPath = VM_CommandLineArgs.getEnvironmentArg("java.library.path");
-	if (javaLibPath == null) javaLibPath="";
+  private static void setJavaLibPath() {
+    javaLibPath = VM_CommandLineArgs.getEnvironmentArg("java.library.path");
+    if (javaLibPath == null) javaLibPath="";
 
-	//-#if !RVM_WITH_GNU_CLASSPATH
-	// an ugly hack that will go away soon
-	javaLibPath = javaLibPath + File.pathSeparator + VM_CommandLineArgs.getEnvironmentArg("rvm.build");
-	//-#endif
-    }
+    //-#if !RVM_WITH_GNU_CLASSPATH
+    // an ugly hack that will go away soon
+    javaLibPath = javaLibPath + File.pathSeparator + VM_CommandLineArgs.getEnvironmentArg("rvm.build");
+    //-#endif
+  }
 
-    public static String getJavaLibPath() {
-	return javaLibPath;
-    } 
+  public static String getJavaLibPath() {
+    return javaLibPath;
+  } 
 
-    private static String systemNativePath;
+  private static String systemNativePath;
 
-    private static void setSystemNativePath() {
-	systemNativePath = VM_CommandLineArgs.getEnvironmentArg("rvm.build");
-    }
+  private static void setSystemNativePath() {
+    systemNativePath = VM_CommandLineArgs.getEnvironmentArg("rvm.build");
+  }
 
-    public static String getSystemNativePath() {
-	return systemNativePath;
-    } 
+  public static String getSystemNativePath() {
+    return systemNativePath;
+  } 
 
   /**
    * Initialize for execution.
@@ -367,15 +367,16 @@ public class VM_ClassLoader implements VM_Constants,
   private static VM_DynamicLibrary[] growArray(VM_DynamicLibrary[] array, 
                                                int newLength) {
     VM_DynamicLibrary[] newarray = VM_Interface.newContiguousDynamicLibraryArray(newLength);
-    for (int i = 0, n = array.length; i < n; ++i)
+    for (int i = 0, n = array.length; i < n; ++i) {
       newarray[i] = array[i];
+    }
 
     VM_Magic.sync();
     return newarray;
   }
 
   public static final void resolveClassInternal(Class clazz) {
-    VM_Type cls = java.lang.JikesRVMSupport.getTypeForClass( clazz );
+    VM_Type cls = java.lang.JikesRVMSupport.getTypeForClass(clazz);
     try {
       cls.resolve();
     } catch (VM_ResolutionException e) { 
@@ -419,15 +420,15 @@ public class VM_ClassLoader implements VM_Constants,
 
     VM_Atom classDescriptor = null;
     if (className != null)
-	classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
+      classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
 
     if (VM.TraceClassLoading  && VM.runningVM)
-	VM.sysWrite("loading " + classDescriptor + " with " + classloader);
+      VM.sysWrite("loading " + classDescriptor + " with " + classloader);
       
     try {
-	return VM_Class.load(new DataInputStream(is), classloader, classDescriptor).getClassForType();
+      return VM_Class.load(new DataInputStream(is), classloader, classDescriptor).getClassForType();
     } catch (IOException e) {
-        throw new ClassFormatError(e.getMessage());
+      throw new ClassFormatError(e.getMessage());
     }
   }
 }

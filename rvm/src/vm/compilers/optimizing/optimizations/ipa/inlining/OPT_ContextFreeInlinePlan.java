@@ -97,7 +97,8 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
         VM_Atom callerClass = VM_Atom.findOrCreateUnicodeAtom(nextToken1);
         VM_Atom callerName = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
         VM_Atom callerDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
-        callerRef = VM_MemberReference.findOrCreate(classloader, callerClass, callerName, callerDescriptor).asMethodReference();
+	VM_TypeReference tref = VM_TypeReference.findOrCreate(classloader, callerClass);
+        callerRef = VM_MemberReference.findOrCreate(tref, callerName, callerDescriptor).asMethodReference();
       }
       nextToken1 = parser.nextToken();
       if (!nextToken1.equals("null")) {
@@ -110,7 +111,8 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
         VM_Atom calleeClass = VM_Atom.findOrCreateUnicodeAtom(nextToken1);
         VM_Atom calleeName = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
         VM_Atom calleeDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
-        calleeRef = VM_MemberReference.findOrCreate(classloader, calleeClass, calleeName, calleeDescriptor).asMethodReference();
+	VM_TypeReference tref = VM_TypeReference.findOrCreate(classloader, calleeClass);
+        calleeRef = VM_MemberReference.findOrCreate(tref, calleeName, calleeDescriptor).asMethodReference();
       }
       VM_Method caller = callerRef.resolve(true);
       VM_Method callee = calleeRef.resolve(true);

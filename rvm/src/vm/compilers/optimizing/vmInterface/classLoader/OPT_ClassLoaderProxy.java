@@ -445,7 +445,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
   public static VM_Method lookupMethod(VM_Class cls, VM_MethodReference ref) {
     VM_Method newmeth = null;
     if (cls.isResolved() && !cls.isInterface()) {
-      VM_Atom mn = ref.getMemberName();
+      VM_Atom mn = ref.getName();
       VM_Atom md = ref.getDescriptor();
       for (; (newmeth == null) && (cls != null); cls = cls.getSuperClass()) {
         newmeth = cls.findDeclaredMethod(mn, md);

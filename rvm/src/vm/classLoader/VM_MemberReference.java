@@ -13,8 +13,7 @@ import java.util.HashMap;
  * member (field or method). 
  * A member reference is uniquely defined by
  * <ul>
- * <li> an initiating class loader
- * <li> a class name
+ * <li> a type reference
  * <li> a method name
  * <li> a descriptor
  * </ul>
@@ -44,19 +43,14 @@ public abstract class VM_MemberReference {
   private static int nextId = 1; 
   
   /**
-   * The initiating class loader
+   * The type reference
    */
-  protected final ClassLoader classloader;
-
-  /**
-   * The class name
-   */
-  protected final VM_Atom className;
+  protected final VM_TypeReference type;
 
   /**
    * The member name
    */
-  protected final VM_Atom memberName;
+  protected final VM_Atom name;
 
   /**
    * The descriptor
@@ -71,20 +65,22 @@ public abstract class VM_MemberReference {
   /**
    * Find or create the cannonical VM_MemberReference instance for
    * the given tuple.
-   * @param cl the classloader (defining/initiating depending on usage)
-   * @param cn the name of the class
+   * @param cl the type reference
    * @param mn the name of the member
    * @param md the descriptor of the member
    */
-  public static synchronized VM_MemberReference findOrCreate(ClassLoader cl, VM_Atom cn, VM_Atom mn, VM_Atom md) {
+  public static synchronized VM_MemberReference findOrCreate(VM_TypeReference tref, VM_Atom mn, VM_Atom md) {
     VM_MemberReference key;
     if (md.isMethodDescriptor()) {
-      if (cn.isArrayDescriptor()) {
-	cn = VM_Type.JavaLangObjectType.getDescriptor();
+      if (tref.isArray()) {
+	// TODO: migration kludge.  
+	//    Should be able to get a cannonical type reference directly from the VM_Type.
+	tref = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+					     VM_Type.JavaLangObjectType.getDescriptor());
       }
-      key = new VM_MethodReference(cl, cn, mn, md);
+      key = new VM_MethodReference(tref, mn, md);
     } else {
-      key = new VM_FieldReference(cl, cn, mn, md);
+      key = new VM_FieldReference(tref, mn, md);
     }
     VM_MemberReference val = (VM_MemberReference)dictionary.get(key);
     if (val != null)  return val;
@@ -105,44 +101,28 @@ public abstract class VM_MemberReference {
   }
 
   /**
-   * @param cl the classloader
-   * @param cn the class name
+   * @param tr the type reference
    * @param mn the field or method name
    * @param d the field or method descriptor
    */
-  protected VM_MemberReference(ClassLoader cl, VM_Atom cn, VM_Atom mn, VM_Atom d) {
-    classloader = cl;
-    className = cn;
-    memberName = mn;
+  protected VM_MemberReference(VM_TypeReference tref, VM_Atom mn, VM_Atom d) {
+    type = tref;
+    name = mn;
     descriptor = d;
   }
 
   /**
-   * @return the classloader component of this member reference
+   * @return the type reference component of this member reference
    */
-  public final ClassLoader getClassLoader() throws VM_PragmaUninterruptible {
-    return classloader;
-  }
-      
-  /**
-   * @return the class name component of this member reference
-   */
-  public final VM_Atom getClassName() throws VM_PragmaUninterruptible {
-    return className;
-  }
-
-  /** 
-   * Temporary migration code until we switch to type refs.
-   */
-  public final VM_Class getDeclaringClass() {
-    return (VM_Class)VM_ClassLoader.findOrCreateType(className, classloader);
+  public final VM_TypeReference getType() throws VM_PragmaUninterruptible {
+    return type;
   }
 
   /**
    * @return the member name component of this member reference
    */
-  public final VM_Atom getMemberName() throws VM_PragmaUninterruptible {
-    return memberName;
+  public final VM_Atom getName() throws VM_PragmaUninterruptible {
+    return name;
   }
 
   /**
@@ -192,7 +172,14 @@ public abstract class VM_MemberReference {
    * referenced from "that" method?
    */ 
   public final boolean needsDynamicLink(VM_Method that) {
-    VM_Class thisClass = (VM_Class)VM_ClassLoader.findOrCreateType(className, classloader);
+    if (type == that.getMemberRef().getType()) {
+      // Intra-class references don't need to be compiled with dynamic linking
+      // because they execute *after* class has been loaded/resolved/compiled.
+      return false;
+    }
+
+    VM_Class thisClass = (VM_Class)type.resolve(false);
+    if (thisClass == null) return true; // thisClass isn't loaded yet.
     
     if (thisClass.isInitialized()) {
       // No dynamic linking code is required to access this member
@@ -220,12 +207,6 @@ public abstract class VM_MemberReference {
       return false;
     }
 
-    if (thisClass == that.getDeclaringClass()) {
-      // Intra-class references don't need to be compiled with dynamic linking
-      // because they execute *after* class has been loaded/resolved/compiled.
-      return false;
-    }
-  
     // This member needs size and offset to be computed, or its class's static
     // initializer needs to be run when the member is first "touched", so
     // dynamic linking code is required to access the member.
@@ -233,22 +214,20 @@ public abstract class VM_MemberReference {
   }
 
   public final int hashCode() {
-    return className.hashCode() + memberName.hashCode() + descriptor.hashCode();
+    return type.hashCode() + name.hashCode() + descriptor.hashCode();
   }
 
   public final boolean equals(Object other) {
     if (other instanceof VM_MemberReference) {
       VM_MemberReference that = (VM_MemberReference)other;
-      return className == that.className &&
-	memberName == that.memberName &&
-	descriptor == that.descriptor &&
-	classloader.equals(that.classloader);
+      return type == that.type && name == that.name &&
+	descriptor == that.descriptor;
     } else {
       return false;
     }
   }
 
   public final String toString() {
-    return "< " + classloader + ", "+ className + ", " + memberName + ", " + descriptor + " >";
+    return "< " + type.getClassLoader() + ", "+ type.getName() + ", " + name + ", " + descriptor + " >";
   }
 }

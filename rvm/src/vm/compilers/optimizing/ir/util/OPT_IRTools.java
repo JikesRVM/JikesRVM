@@ -236,7 +236,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return the OPT_Operator to use when loading the given field
    */
   public static final OPT_Operator getLoadOp(VM_FieldReference field) {
-    return getLoadOp(field.getType());
+    return getLoadOp(field.getFieldContentsType());
   }
 
   /**
@@ -270,7 +270,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return the OPT_Operator to use when storing to the given field
    */
   public static final OPT_Operator getStoreOp(VM_FieldReference field) {
-    return getStoreOp(field.getType());
+    return getStoreOp(field.getFieldContentsType());
   }
 
   /**

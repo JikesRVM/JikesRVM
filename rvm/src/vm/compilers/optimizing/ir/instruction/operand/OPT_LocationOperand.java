@@ -263,7 +263,7 @@ public final class OPT_LocationOperand extends OPT_Operand
     case METHOD_ACCESS: 
       return "<mem loc: methOp is null!>";
     case FIELD_ACCESS:   
-      return "<mem loc: "+fieldRef.getClassName() + "." +fieldRef.getMemberName()+">";
+      return "<mem loc: "+fieldRef.getType().getName() + "." +fieldRef.getName()+">";
     case ARRAY_ACCESS:   
       return "<mem loc: array "+arrayElementType+"[]>";
     case JTOC_ACCESS:

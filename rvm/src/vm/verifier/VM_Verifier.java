@@ -2196,23 +2196,23 @@ public class VM_Verifier  implements VM_BytecodeConstants {
         }
         //check the compatibility
         if(currBBMap[currBBStkTop]<0 || currBBMap[currBBStkTop]!=V_NULL
-           && !VM_Runtime.isAssignableWith(field.getDeclaringClass(),
+           && !VM_Runtime.isAssignableWith(field.resolve().getDeclaringClass(),
 					   VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]))){
           verificationFailure(" incompatible object reference when " + JBC_name[opcode]
-                      + " in method " + currMethodName+ " \n");
+			      + " in method " + currMethodName+ " \n");
           throw new Exception();
         }
 
         if(newObjectInfo[currBBStkTop-currBBStkEmpty-1]){	//uninitialized object
           verificationFailure(" uninitialized object reference when getfield " + 
-                      field + " in method " + currMethodName+ " \n");
+			      field + " in method " + currMethodName+ " \n");
           throw new Exception();
         }
         //pop the "this" reference
         currBBStkTop --;
       }
 
-      VM_Type fieldType = field.getType();
+      VM_Type fieldType = field.getFieldContentsType();
       //check stack overflow
       currBBStkTop += fieldType.getStackWords();
       if(currBBStkTop >= currBBMap.length){
@@ -2249,7 +2249,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
   private void put_like(VM_FieldReference field, boolean isStatic)
     throws Exception {
 
-      VM_Type fieldType = field.getType();
+      VM_Type fieldType = field.getFieldContentsType();
       //check stack underflow
       if(currBBStkTop-fieldType.getStackWords() < currBBStkEmpty){
         verificationFailure(" stack underflow when "+ JBC_name[opcode] +
@@ -2286,7 +2286,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           throw new Exception();
         }
         //check the compatibility
-        if(currBBMap[currBBStkTop]<0 || !VM_Runtime.isAssignableWith(field.getDeclaringClass(), 
+        if(currBBMap[currBBStkTop]<0 || !VM_Runtime.isAssignableWith(field.resolve().getDeclaringClass(), 
 								     VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]))){
           verificationFailure(" incompatible object reference when " + JBC_name[opcode]
                       + " in method " + currMethodName+ " \n");
@@ -2669,7 +2669,7 @@ public class VM_Verifier  implements VM_BytecodeConstants {
           correct = (currBBMap[currBBStkTop] == V_NULL || 
                      VM_Runtime.isAssignableWith(parameterTypes[i], VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop])));
         if(correct == false){
-          verificationFailure(" incompatible parameter when call " + calledMethod.getMemberName() +
+          verificationFailure(" incompatible parameter when call " + calledMethod.getName() +
 			      " in method " + currMethodName+ " \n");
           throw new Exception();
         }
@@ -2686,16 +2686,16 @@ public class VM_Verifier  implements VM_BytecodeConstants {
                       " in method " + currMethodName+ " \n");
           throw new Exception();
         }
-
+	
         //this isn't a reference type or isn't a compatible reference type
-        if(currBBMap[currBBStkTop]<0 || !VM_Runtime.isAssignableWith(calledMethod.getDeclaringClass(),
+        if(currBBMap[currBBStkTop]<0 || !VM_Runtime.isAssignableWith(calledMethod.resolve().getDeclaringClass(),
 								     VM_ClassLoader.getTypeFromId(currBBMap[currBBStkTop]))){
           verificationFailure(" incompatible this reference when call " + calledMethod +
                       " in method " + currMethodName+ " \n");
           throw new Exception();
         }
 
-        if(calledMethod.getMemberName() != VM_ClassLoader.StandardObjectInitializerMethodName){
+        if(calledMethod.getName() != VM_ClassLoader.StandardObjectInitializerMethodName){
           if(newObjectInfo[currBBStkTop-currBBStkEmpty-1]){	//uninitialized object
             verificationFailure(" uninitialized object reference when call " + 
                         calledMethod + " in method " + currMethodName+ " \n");

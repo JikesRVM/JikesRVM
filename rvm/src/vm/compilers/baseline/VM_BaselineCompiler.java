@@ -1503,7 +1503,6 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
       case JBC_getfield: {
 	VM_FieldReference fieldRef = bcodes.getFieldReference();
 	if (shouldPrint) asm.noteBytecode(biStart, "getfield " + fieldRef);
-	VM_Class fieldRefClass = fieldRef.getDeclaringClass();
 	if (fieldRef.needsDynamicLink(method)) {
 	  if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved getfield "+fieldRef);
 	  emit_unresolved_getfield(fieldRef);
@@ -1541,7 +1540,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 
 	VM_MethodReference methodRef = bcodes.getMethodReference();
 	if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual " + methodRef);
-	if (methodRef.isWordType()) {
+	if (methodRef.getType().isWordType()) {
 	  if (emit_Magic(methodRef)) {
 	    break;
 	  }
@@ -1577,8 +1576,8 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	//-#endif
 	VM_MethodReference methodRef = bcodes.getMethodReference();
 	if (shouldPrint) asm.noteBytecode(biStart, "invokespecial " + methodRef);
-	VM_Method target;
-	if (methodRef.getDeclaringClass().isResolved() && (target = methodRef.resolveInvokeSpecial()) != null) {
+	VM_Method target = methodRef.resolveInvokeSpecial();
+	if (target != null) {
 	  if (VM.VerifyUnint && !isInterruptible) checkTarget(target);
 	  emit_resolved_invokespecial(methodRef, target);
 	} else {
@@ -1610,7 +1609,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 
 	VM_MethodReference methodRef = bcodes.getMethodReference();
 	if (shouldPrint) asm.noteBytecode(biStart, "invokestatic " + methodRef);
-	if (methodRef.isMagicType() || methodRef.isWordType()) {
+	if (methodRef.getType().isMagicType() || methodRef.getType().isWordType()) {
 	  if (emit_Magic(methodRef))
 	    break;
 	}

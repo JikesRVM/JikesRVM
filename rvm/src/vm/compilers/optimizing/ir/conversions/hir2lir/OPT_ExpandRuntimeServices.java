@@ -244,7 +244,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	if (VM_Interface.NEEDS_WRITE_BARRIER) {
 	  OPT_LocationOperand loc = PutField.getClearLocation(inst);
 	  VM_FieldReference field = loc.getFieldRef();
-	  if (!field.getType().isPrimitiveType()) {
+	  if (!field.getFieldContentsType().isPrimitiveType()) {
 	    VM_Method target = VM_Entrypoints.putfieldWriteBarrierMethod;
 	    OPT_Instruction wb = 
 	      Call.create3(CALL, null, new OPT_IntConstantOperand(target.getOffset()), 

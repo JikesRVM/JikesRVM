@@ -92,7 +92,7 @@ public final class OPT_InlinedOsrTypeInfoOperand extends OPT_Operand {
     StringBuffer buf = new StringBuffer("(");
 
     for (int i=0, n=methodids.length; i<n; i++) {
-      buf.append(bcindexes[i]+"@"+VM_MemberReference.getMemberRef(methodids[i]).getMemberName() +" : ");
+      buf.append(bcindexes[i]+"@"+VM_MemberReference.getMemberRef(methodids[i]).getName() +" : ");
       
       for (int j=0, m=localTypeCodes[i].length; j<m; j++) {
 	buf.append((char)localTypeCodes[i][j]);

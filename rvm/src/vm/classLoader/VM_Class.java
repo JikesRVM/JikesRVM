@@ -871,8 +871,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	      VM_Atom classDescriptor  = className.descriptorFromClassName();
 	      VM_Atom memberName       = VM_Atom.getAtom(tmpPool[memberNameIndex]);
 	      VM_Atom memberDescriptor = VM_Atom.getAtom(tmpPool[memberDescriptorIndex]);
-	      VM_MemberReference mr    = VM_MemberReference.findOrCreate(classLoader, classDescriptor, 
-									 memberName, memberDescriptor);
+	      VM_TypeReference tref    = VM_TypeReference.findOrCreate(classLoader, classDescriptor);
+	      VM_MemberReference mr    = VM_MemberReference.findOrCreate(tref, memberName, memberDescriptor);
 	      constantPool[i] = mr.getId();
 	      break; 
 	    } // out: VM_MemberReference id
@@ -932,8 +932,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	int      fmodifiers      = input.readUnsignedShort();
 	VM_Atom  fieldName       = VM_Atom.getAtom(constantPool[input.readUnsignedShort()]);
 	VM_Atom  fieldDescriptor = VM_Atom.getAtom(constantPool[input.readUnsignedShort()]);
-
-	VM_MemberReference memRef = VM_MemberReference.findOrCreate(classLoader, myType.getDescriptor(), fieldName, fieldDescriptor);
+	VM_TypeReference tref    = VM_TypeReference.findOrCreate(classLoader, myType.getDescriptor());
+	VM_MemberReference memRef= VM_MemberReference.findOrCreate(tref, fieldName, fieldDescriptor);
 	myType.declaredFields[i] = new VM_Field(myType, memRef, fmodifiers, input);
       }
     }
@@ -947,7 +947,8 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	int       mmodifiers       = input.readUnsignedShort();
 	VM_Atom   methodName       = VM_Atom.getAtom(constantPool[input.readUnsignedShort()]);
 	VM_Atom   methodDescriptor = VM_Atom.getAtom(constantPool[input.readUnsignedShort()]);
-	VM_MemberReference memRef  = VM_MemberReference.findOrCreate(classLoader, myType.getDescriptor(), methodName, methodDescriptor);
+	VM_TypeReference tref      = VM_TypeReference.findOrCreate(classLoader, myType.getDescriptor());
+	VM_MemberReference memRef  = VM_MemberReference.findOrCreate(tref, methodName, methodDescriptor);
 	VM_Method method           = VM_Method.readMethod(myType, memRef, mmodifiers, input);
 	myType.declaredMethods[i] = method;
 	if (method.isClassInitializer())

@@ -725,7 +725,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 			   OPT_ClassLoaderProxy.InstructionArrayType,
 			   iTable.copyD2U(),
 			   VM_InterfaceInvocation.getITableIndex(I, 
-								 methOp.getMemberRef().getMemberName(),
+								 methOp.getMemberRef().getName(),
 								 methOp.getMemberRef().getDescriptor())<<2);
 	Call.setAddress(v, address);
       } else {
@@ -735,7 +735,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	  // search ITable variant
 	  if (I.isLoaded()) {
 	    itableIndex = VM_InterfaceInvocation.getITableIndex(I, 
-								methOp.getMemberRef().getMemberName(),
+								methOp.getMemberRef().getName(),
 								methOp.getMemberRef().getDescriptor());
 	  }
 	}

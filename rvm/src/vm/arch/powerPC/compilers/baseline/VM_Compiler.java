@@ -1827,7 +1827,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_unresolved_putstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutstaticBarrier(asm, spSaveAreaOffset); // NOTE: offset is in T1 from emitDynamicLinkingSequence
       emitDynamicLinkingSequence(T1, fieldRef, false);
     }
@@ -1849,7 +1849,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.resolve().getOffset();
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutstaticBarrierImm(asm, spSaveAreaOffset, fieldOffset);
     }
     if (fieldRef.getSize() == 4) { // field is one word
@@ -1906,7 +1906,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrier(asm, spSaveAreaOffset); // NOTE: offset is in T1 from emitDynamicLinkingSequence
       emitDynamicLinkingSequence(T1, fieldRef, false);	
     }
@@ -1930,7 +1930,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.resolve().getOffset();
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrierImm(asm, spSaveAreaOffset, fieldOffset);
     }
     if (fieldRef.getSize() == 4) { // field is one word
@@ -2054,18 +2054,19 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_invokeinterface(VM_MethodReference methodRef) {
     int count = methodRef.getParameterWords() + 1; // +1 for "this" parameter
+    VM_Method resolvedMethod = null;
+    try {
+      resolvedMethod = methodRef.resolveInterfaceMethod(false);
+    } catch (VM_ResolutionException e) {
+      // actually can't be thrown when we pass false for canLoad.
+    }
+
     // (1) Emit dynamic type checking sequence if required to 
     // do so inline.
     if (VM.BuildForIMTInterfaceInvocation || 
 	(VM.BuildForITableInterfaceInvocation && 
 	 VM.DirectlyIndexedITables)) {
-      VM_Method resolvedMethodRef = null;
-      try {
-	resolvedMethodRef = methodRef.resolveInterfaceMethod(false);
-      } catch (VM_ResolutionException e) {
-	// actually can't be thrown when we pass false for canLoad.
-      }
-      if (resolvedMethodRef == null) {
+      if (resolvedMethod == null) {
 	// Can't successfully resolve it at compile time.
 	// Call uncommon case typechecking routine to do the right thing when this code actually executes.
 	asm.emitLtoc(T0, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());
@@ -2078,7 +2079,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	// normal case.  Not a ghost ref.
 	asm.emitLtoc(T0, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());
 	asm.emitMTCTR(T0);
-	asm.emitLtoc(T0, methodRef.getDeclaringClass().getTibOffset()); // tib of the interface method
+	asm.emitLtoc(T0, resolvedMethod.getDeclaringClass().getTibOffset()); // tib of the interface method
 	asm.emitL   (T0, TIB_TYPE_INDEX << 2, T0);                   // type of the interface method
 	asm.emitL   (T1, (count-1) << 2, SP);                        // the "this" object
 	VM_ObjectModel.baselineEmitLoadTIB(asm,T1,T1);
@@ -2100,25 +2101,22 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitCallWithHiddenParameter(spSaveAreaOffset, sig.getId());
     } else if (VM.BuildForITableInterfaceInvocation && 
 	       VM.DirectlyIndexedITables && 
-	       methodRef.getDeclaringClass().isResolved()) {
-      VM_Method target = methodRef.resolve();
-      VM_Class I = target.getDeclaringClass();
+	       resolvedMethod != null) {
+      VM_Class I = resolvedMethod.getDeclaringClass();
       genMoveParametersToRegisters(true, methodRef);        //T0 is "this"
       VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
       asm.emitL   (S0, TIB_ITABLES_TIB_INDEX << 2, S0); // iTables 
       asm.emitL   (S0, I.getInterfaceId() << 2, S0);  // iTable
-      int idx = VM_InterfaceInvocation.getITableIndex(I, methodRef.getMemberName(), methodRef.getDescriptor());
+      int idx = VM_InterfaceInvocation.getITableIndex(I, methodRef.getName(), methodRef.getDescriptor());
       asm.emitL   (S0, idx << 2, S0); // the method to call
       asm.emitMTCTR(S0);
       asm.emitCall(spSaveAreaOffset);
     } else {
-      VM_Class I = methodRef.getDeclaringClass();
       int itableIndex = -1;
-      if (VM.BuildForITableInterfaceInvocation) {
+      if (VM.BuildForITableInterfaceInvocation && resolvedMethod != null) {
 	// get the index of the method in the Itable
-	if (I.isLoaded()) {
-	  itableIndex = VM_InterfaceInvocation.getITableIndex(I, methodRef.getMemberName(), methodRef.getDescriptor());
-	}
+	itableIndex = VM_InterfaceInvocation.getITableIndex(resolvedMethod.getDeclaringClass(), 
+							    methodRef.getName(), methodRef.getDescriptor());
       }
       if (itableIndex == -1) {
 	// itable index is not known at compile-time.
@@ -2140,7 +2138,7 @@ public class VM_Compiler extends VM_BaselineCompiler
 	asm.emitMTCTR(T0);
 	asm.emitL   (T0, (count-1) << 2, SP);     // object
 	VM_ObjectModel.baselineEmitLoadTIB(asm,T0,T0);
-	asm.emitLVAL(T1, I.getInterfaceId());    // interface id
+	asm.emitLVAL(T1, resolvedMethod.getDeclaringClass().getInterfaceId());    // interface id
 	asm.emitCall(spSaveAreaOffset);   // T0 := itable reference
 	asm.emitL   (T0, itableIndex << 2, T0); // T0 := the method to call
 	asm.emitMTCTR(T0);

@@ -1880,7 +1880,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_unresolved_putstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutstaticBarrier(asm, T0);
       emitDynamicLinkingSequence(T0, fieldRef, false);
     }
@@ -1899,7 +1899,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.resolve().getOffset();
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset);
     }
     if (fieldRef.getSize() == 4) { // field is one word
@@ -1957,7 +1957,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrier(asm, T0);
       emitDynamicLinkingSequence(T0, fieldRef, false);
     }
@@ -1985,7 +1985,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.resolve().getOffset();
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset);
     }
     if (fieldRef.getSize() == 4) { // field is one word
@@ -2105,15 +2105,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_invokeinterface(VM_MethodReference methodRef) {
     int count = methodRef.getParameterWords() + 1; // +1 for "this" parameter
+
+    VM_Method resolvedMethod = null;
+    try {
+      resolvedMethod = methodRef.resolveInterfaceMethod(false);
+    } catch (VM_ResolutionException e) {
+      // actually can't be thrown when we pass false for canLoad.
+    }
+
     // (1) Emit dynamic type checking sequence if required to do so inline.
     if (VM.BuildForIMTInterfaceInvocation || 
 	(VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
-      VM_Method resolvedMethod = null;
-      try {
-	resolvedMethod = methodRef.resolveInterfaceMethod(false);
-      } catch (VM_ResolutionException e) {
-	// actually can't be thrown when we pass false for canLoad.
-      }
       if (resolvedMethod == null) {
 	// Can't successfully resolve it at compile time.
 	// Call uncommon case typechecking routine to do the right thing when this code actually executes.
@@ -2124,7 +2126,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	genParameterRegisterLoad(2);                                            // pass 2 parameter word
 	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
       } else {
-	asm.emitMOV_Reg_RegDisp (T0, JTOC, methodRef.getDeclaringClass().getTibOffset()); // tib of the interface method
+	asm.emitMOV_Reg_RegDisp (T0, JTOC, resolvedMethod.getDeclaringClass().getTibOffset()); // tib of the interface method
 	asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                 // "this" object
 	asm.emitPUSH_RegDisp(T0, TIB_TYPE_INDEX << 2);                                    // type of the interface method
 	VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
@@ -2154,24 +2156,22 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitCALL_RegDisp(S0, offset);                                             // the interface call
     } else if (VM.BuildForITableInterfaceInvocation && 
 	       VM.DirectlyIndexedITables && 
-	       methodRef.getDeclaringClass().isResolved()) {
-      VM_Method method = methodRef.resolve();
-      VM_Class I = method.getDeclaringClass();
+	       resolvedMethod != null) {
+      VM_Class I = resolvedMethod.getDeclaringClass();
       asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                 // "this" object
       VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T1);
       asm.emitMOV_Reg_RegDisp (S0, S0, TIB_ITABLES_TIB_INDEX << 2);                     // iTables
       asm.emitMOV_Reg_RegDisp (S0, S0, I.getInterfaceId() << 2);                        // iTable
       genParameterRegisterLoad(methodRef, true);
-      int idx = VM_InterfaceInvocation.getITableIndex(I, methodRef.getMemberName(), methodRef.getDescriptor());
+      int idx = VM_InterfaceInvocation.getITableIndex(I, methodRef.getName(), methodRef.getDescriptor());
       asm.emitCALL_RegDisp(S0, idx << 2); // the interface call
     } else {
-      VM_Class I = methodRef.getDeclaringClass();
       int itableIndex = -1;
-      if (VM.BuildForITableInterfaceInvocation) {
+      if (VM.BuildForITableInterfaceInvocation && resolvedMethod != null) {
 	// get the index of the method in the Itable
-	if (I.isLoaded()) {
-	  itableIndex = VM_InterfaceInvocation.getITableIndex(I, methodRef.getMemberName(), methodRef.getDescriptor());
-	}
+	itableIndex = VM_InterfaceInvocation.getITableIndex(resolvedMethod.getDeclaringClass(), 
+							    methodRef.getName(), 
+							    methodRef.getDescriptor());
       }
       if (itableIndex == -1) {
 	// itable index is not known at compile-time.
@@ -2192,7 +2192,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	asm.emitMOV_Reg_RegDisp (T0, SP, (count-1) << 2);             // "this" object
 	VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T0);
 	asm.emitPUSH_Reg(S0);
-	asm.emitPUSH_Imm        (I.getInterfaceId());                // interface id
+	asm.emitPUSH_Imm        (resolvedMethod.getDeclaringClass().getInterfaceId()); // interface id
 	genParameterRegisterLoad(2);                                  // pass 2 parameter words
 	asm.emitCALL_RegDisp    (JTOC,  VM_Entrypoints.findItableMethod.getOffset()); // findItableOffset(tib, id) returns iTable
 	asm.emitMOV_Reg_Reg     (S0, T0);                             // S0 has iTable
@@ -2870,7 +2870,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   }
 
   private final boolean genMagic (VM_MethodReference m) {
-    VM_Atom methodName = m.getMemberName();
+    VM_Atom methodName = m.getName();
 
     if (methodName == VM_MagicNames.attempt) {
       // attempt gets called with four arguments

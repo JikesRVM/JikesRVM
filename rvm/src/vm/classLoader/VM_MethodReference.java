@@ -33,13 +33,13 @@ public final class VM_MethodReference extends VM_MemberReference {
   private final VM_Type[] parameterTypes;      
 
   /**
-   * @param cl the classloader
-   * @param cn the class name
+   * @param tr a type reference
    * @param mn the field or method name
    * @param d the field or method descriptor
    */
-  VM_MethodReference(ClassLoader cl, VM_Atom cn, VM_Atom mn, VM_Atom d) {
-    super(cl, cn, mn, d);
+  VM_MethodReference(VM_TypeReference tr, VM_Atom mn, VM_Atom d) {
+    super(tr, mn, d);
+    ClassLoader cl = tr.getClassLoader();
     returnType = d.parseForReturnType(cl);
     parameterTypes = d.parseForParameterTypes(cl);
   }
@@ -69,24 +69,12 @@ public final class VM_MethodReference extends VM_MemberReference {
     return pw;
   }
 
-  // TEMPORARY KLUDGE UNTIL WE INTRRODUCE TYPE REFERENCES
-  public final boolean isWordType() {
-    return className == VM_Type.WordType.getDescriptor() || 
-      className == VM_Type.AddressType.getDescriptor() ||
-      className == VM_Type.OffsetType.getDescriptor();
-  }
-  public final boolean isMagicType() {
-    return className == VM_Type.MagicType.getDescriptor();
-  }
-    
-
   /**
    * Do this and that definitely refer to the different methods?
    */
   public final boolean definitelyDifferent(VM_MethodReference that) {
     if (this == that) return false;
-    if (getMemberName() != that.getMemberName() ||
-	getDescriptor() != that.getDescriptor()) return true;
+    if (name != that.name || descriptor != that.descriptor) return true;
     VM_Method mine = resolve(false);
     VM_Method theirs = that.resolve(false);
     if (mine == null || theirs == null) return false;
@@ -99,8 +87,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    */
   public final boolean definitelySame(VM_MethodReference that) {
     if (this == that) return true;
-    if (getMemberName() != that.getMemberName() ||
-	getDescriptor() != that.getDescriptor()) return false;
+    if (name != that.name || descriptor != that.descriptor) return false;
     VM_Method mine = resolve(false);
     VM_Method theirs = that.resolve(false);
     if (mine == null || theirs == null) return false;
@@ -135,8 +122,8 @@ public final class VM_MethodReference extends VM_MemberReference {
    * method, return null if the method cannot be resolved without classloading.
    */
   public final VM_Method resolveInvokeSpecial() {
-    VM_Class thisClass = (VM_Class)VM_ClassLoader.findOrCreateType(className, classloader);
-    if (!thisClass.isResolved()) return null; // can't be found now.
+    VM_Class thisClass = (VM_Class)type.resolve(false);
+    if (thisClass == null || !thisClass.isResolved()) return null; // can't be found now.
     VM_Method sought = resolve();
 
     if (sought.isObjectInitializer())
@@ -163,10 +150,10 @@ public final class VM_MethodReference extends VM_MemberReference {
   public final VM_Method resolve() {
     if (resolvedMember != null) return resolvedMember;
     // Hasn't been resolved yet. Do it now.
-    VM_Class declaringClass = (VM_Class)VM_ClassLoader.findOrCreateType(className, classloader);
+    VM_Class declaringClass = (VM_Class)type.resolve(true);
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
-      VM_Method it = c.findDeclaredMethod(memberName, descriptor);
+      VM_Method it = c.findDeclaredMethod(name, descriptor);
       if (it != null) {
 	resolvedMember = it;
 	return resolvedMember;
@@ -183,7 +170,8 @@ public final class VM_MethodReference extends VM_MemberReference {
    */
   public final VM_Method resolve(boolean canLoad) {
     if (resolvedMember != null) return resolvedMember;
-    VM_Class declaringClass = (VM_Class)VM_ClassLoader.findOrCreateType(className, classloader);
+    VM_Class declaringClass = (VM_Class)type.resolve(canLoad);
+    if (declaringClass == null) return null;
     if (!declaringClass.isResolved()) {
       if (canLoad) {
 	try {
@@ -209,9 +197,8 @@ public final class VM_MethodReference extends VM_MemberReference {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Do it now.
-    // If compileTime is true, then we don't raise errors and return
-    // null if the method can't be resolved at this time.
-    VM_Class declaringClass = (VM_Class)VM_ClassLoader.findOrCreateType(className, classloader);
+    VM_Class declaringClass = (VM_Class)type.resolve(canLoad);
+    if (declaringClass == null) return null;
     if (!declaringClass.isResolved()) {
       if (!canLoad) return null;
       VM_Runtime.initializeClassForDynamicLink(declaringClass);
@@ -220,7 +207,7 @@ public final class VM_MethodReference extends VM_MemberReference {
       if (!canLoad) return null;
       throw new IncompatibleClassChangeError();
     }
-    VM_Method it = declaringClass.findDeclaredMethod(memberName, descriptor);
+    VM_Method it = declaringClass.findDeclaredMethod(name, descriptor);
     if (it != null) {
       resolvedMember = it; 
       return resolvedMember;
@@ -239,7 +226,7 @@ public final class VM_MethodReference extends VM_MemberReference {
     
   private final VM_Method searchInterfaceMethods(VM_Class c, boolean canLoad) {
     if (!canLoad && !c.isResolved()) return null;
-    VM_Method it = c.findDeclaredMethod(memberName, descriptor);
+    VM_Method it = c.findDeclaredMethod(name, descriptor);
     if (it != null) return it;
     VM_Class[] interfaces = c.getDeclaredInterfaces();
     for (int i=0; i<interfaces.length; i++) {

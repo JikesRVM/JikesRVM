@@ -28,7 +28,7 @@ class VM_MagicCompiler implements VM_BaselineConstants {
   // Returned: true if method causes a stackframe to be created
   //
   public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
-    VM_Atom methodName = methodToBeCalled.getMemberName();
+    VM_Atom methodName = methodToBeCalled.getName();
     return methodName == VM_MagicNames.invokeMain             ||
       methodName == VM_MagicNames.invokeClassInitializer      ||
       methodName == VM_MagicNames.invokeMethodReturningVoid   ||

@@ -33,10 +33,7 @@ class OPT_GenerateMachineSpecificMagic
 				OPT_GenerationContext gc, 
 				VM_MethodReference meth) 
     throws OPT_MagicNotImplementedException {
-
-    OPT_PhysicalRegisterSet phys = gc.temps.getPhysicalRegisterSet();
-
-    VM_Atom methodName = meth.getMemberName();
+    VM_Atom methodName = meth.getName();
     if (methodName == VM_MagicNames.getFramePointer) {
       bc2ir.push(gc.temps.makeFPOp());
       gc.allocFrame = true;
@@ -45,6 +42,7 @@ class OPT_GenerateMachineSpecificMagic
     } else if (methodName == VM_MagicNames.getJTOC) {
       bc2ir.push(gc.temps.makeTocOp());
     } else if (methodName == VM_MagicNames.getThreadId) {
+      OPT_PhysicalRegisterSet phys = gc.temps.getPhysicalRegisterSet();
       OPT_RegisterOperand TIOp = 
 	new OPT_RegisterOperand(phys.getTI(),VM_Type.IntType);
       bc2ir.push(TIOp);

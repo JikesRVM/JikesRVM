@@ -55,7 +55,7 @@ public final class VM_InterfaceMethodSignature implements VM_TIBLayoutConstants 
    */
   public static synchronized VM_InterfaceMethodSignature findOrCreate(VM_MemberReference ref) {
     VM_InterfaceMethodSignature key = 
-      new VM_InterfaceMethodSignature(ref.getMemberName(), ref.getDescriptor());
+      new VM_InterfaceMethodSignature(ref.getName(), ref.getDescriptor());
     VM_InterfaceMethodSignature val = (VM_InterfaceMethodSignature)dictionary.get(key);
     if (val != null)  return val;
     key.id = nextId++;

@@ -52,7 +52,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
     if (VM.BuildForITableInterfaceInvocation) {
       Object[] tib = C.getTypeInformationBlock();
       Object[] iTable = findITable(tib, I.getInterfaceId());
-      return (INSTRUCTION[])iTable[getITableIndex(I, mref.getMemberName(), mref.getDescriptor())];
+      return (INSTRUCTION[])iTable[getITableIndex(I, mref.getName(), mref.getDescriptor())];
     } else { 
       if (!VM_Runtime.isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
       VM_Method found  = C.findVirtualMethod(sought.getName(), 

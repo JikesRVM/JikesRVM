@@ -57,7 +57,7 @@ public final class VM_Field extends VM_Member {
    * Get type of this field's value.
    */ 
   public final VM_Type getType() throws VM_PragmaUninterruptible {
-    return memRef.asFieldReference().getType();
+    return memRef.asFieldReference().getFieldContentsType();
   }
 
   /**

@@ -95,7 +95,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
 	Object targetObject = VM_DynamicLinkerHelper.getReceiverObject();
 	VM.enableGC();
 	VM_Class targetClass = VM_Magic.getObjectType(targetObject).asClass();
-	VM_Method targetMethod = targetClass.findVirtualMethod(methodRef.getMemberName(), methodRef.getDescriptor());
+	VM_Method targetMethod = targetClass.findVirtualMethod(methodRef.getName(), methodRef.getDescriptor());
 	if (targetMethod == null) {
 	  throw new VM_ResolutionException(targetClass.getDescriptor(), 
 					   new IncompatibleClassChangeError(targetClass.getDescriptor().classNameFromDescriptor()));

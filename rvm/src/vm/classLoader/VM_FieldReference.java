@@ -24,31 +24,30 @@ public final class VM_FieldReference extends VM_MemberReference {
   /**
    * The field's type
    */
-  private final VM_Type type;
+  private final VM_Type fieldContentsType;
 
   /**
-   * @param cl the classloader
-   * @param cn the class name
+   * @param tr a type reference
    * @param mn the field or method name
    * @param d the field or method descriptor
    */
-  VM_FieldReference(ClassLoader cl, VM_Atom cn, VM_Atom mn, VM_Atom d) {
-    super(cl, cn, mn, d);
-    type = VM_ClassLoader.findOrCreateType(d, classloader);
+  VM_FieldReference(VM_TypeReference tr, VM_Atom mn, VM_Atom d) {
+    super(tr, mn, d);
+    fieldContentsType = VM_ClassLoader.findOrCreateType(d, tr.getClassLoader());
   }
 
   /**
-   * @return the type of the field
+   * @return the type of the field's value
    */
-  public final VM_Type getType() throws VM_PragmaUninterruptible {
-    return type;
+  public final VM_Type getFieldContentsType() throws VM_PragmaUninterruptible {
+    return fieldContentsType;
   }
 
   /**
    * Get size of the field's value, in bytes.
    */ 
   public final int getSize() throws VM_PragmaUninterruptible {
-    return type.getStackWords() << 2;
+    return fieldContentsType.getStackWords() << 2;
   }
 
   /**
@@ -56,7 +55,7 @@ public final class VM_FieldReference extends VM_MemberReference {
    */
   public final boolean definitelyDifferent(VM_FieldReference that) {
     if (this == that) return false;
-    if (getMemberName() != that.getMemberName() ||
+    if (getName() != that.getName() ||
 	getDescriptor() != that.getDescriptor()) return true;
     VM_Field mine = resolve(false);
     VM_Field theirs = that.resolve(false);
@@ -70,7 +69,7 @@ public final class VM_FieldReference extends VM_MemberReference {
    */
   public final boolean definitelySame(VM_FieldReference that) {
     if (this == that) return true;
-    if (getMemberName() != that.getMemberName() ||
+    if (getName() != that.getName() ||
 	getDescriptor() != that.getDescriptor()) return false;
     VM_Field mine = resolve(false);
     VM_Field theirs = that.resolve(false);
@@ -102,7 +101,8 @@ public final class VM_FieldReference extends VM_MemberReference {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Try to do it now.
-    VM_Class declaringClass = (VM_Class)VM_ClassLoader.findOrCreateType(className, classloader);
+    VM_Class declaringClass = (VM_Class)type.resolve(canLoad);
+    if (declaringClass == null) return null;
     if (!declaringClass.isResolved()) {
       if (canLoad) {
 	try {
@@ -127,11 +127,11 @@ public final class VM_FieldReference extends VM_MemberReference {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Do it now.
-    VM_Class declaringClass = (VM_Class)VM_ClassLoader.findOrCreateType(className, classloader);
+    VM_Class declaringClass = (VM_Class)type.resolve(true);
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
       // Look in this class
-      VM_Field it = c.findDeclaredField(memberName, descriptor);
+      VM_Field it = c.findDeclaredField(name, descriptor);
       if (it != null) {
 	resolvedMember = it; 
 	return resolvedMember;
@@ -150,7 +150,7 @@ public final class VM_FieldReference extends VM_MemberReference {
   }
 
   private final VM_Field searchInterfaceFields(VM_Class c) {
-    VM_Field it = c.findDeclaredField(memberName, descriptor);
+    VM_Field it = c.findDeclaredField(name, descriptor);
     if (it != null) return it;
     VM_Class[] interfaces = c.getDeclaredInterfaces();
     for (int i=0; i<interfaces.length; i++) {

@@ -32,7 +32,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
 			       VM_MethodReference meth) 
     throws OPT_MagicNotImplementedException {
 
-    VM_Atom methodName = meth.getMemberName();
+    VM_Atom methodName = meth.getName();
     OPT_PhysicalRegisterSet phys = gc.temps.getPhysicalRegisterSet();
 
     if (methodName == VM_MagicNames.getESIAsProcessor) {

@@ -1108,7 +1108,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 						 currPendingRET.returnAddressLocation,
 						 blockSeen[currBBNum]);
 
-	  VM_Type fieldType = bcodes.getFieldReference().getType();
+	  VM_Type fieldType = bcodes.getFieldReference().getFieldContentsType();
 	  currBBMap[++currBBStkTop] = fieldType.isReferenceType() ? REFERENCE: NON_REFERENCE;
 	  if (fieldType.getStackWords() == 2)
 	    currBBMap[++currBBStkTop] = NON_REFERENCE;
@@ -1123,14 +1123,14 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 	    referenceMaps.recordJSRSubroutineMap(biStart, currBBMap, currBBStkTop, 
 						 currPendingRET.returnAddressLocation,
 						 blockSeen[currBBNum]);
-	  VM_Type fieldType = bcodes.getFieldReference().getType();
+	  VM_Type fieldType = bcodes.getFieldReference().getFieldContentsType();
 	  currBBStkTop--;
 	  if (fieldType.getStackWords() == 2)
 	    currBBStkTop--;
 	  break;
 	}
 	case JBC_getfield: {
-	  VM_Type fieldType = bcodes.getFieldReference().getType();
+	  VM_Type fieldType = bcodes.getFieldReference().getFieldContentsType();
 	  // Register the reference map, minus the object pointer on the stack
 	  if (!inJSRSub)
 	    referenceMaps.recordStkMap(biStart, currBBMap, currBBStkTop, 
@@ -1147,7 +1147,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 	  break;
 	}
 	case JBC_putfield: {
-	  VM_Type fieldType = bcodes.getFieldReference().getType();
+	  VM_Type fieldType = bcodes.getFieldReference().getFieldContentsType();
 	  // Register the reference map with the values still on the stack
 	  //  note: putfield could result in a call to the classloader 
 	  if (!inJSRSub)
@@ -1599,8 +1599,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     boolean skipRecordingReferenceMap = false;
     int stkDepth = currBBStkTop;
 
-    if (target.getDeclaringClass().isMagicType() ||
-	target.getDeclaringClass().isWordType()) {
+    if (target.getType().isMagicType() || target.getType().isWordType()) {
       boolean producesCall = VM_MagicCompiler.checkForActualCall(target);
       if (producesCall) {
 	stkDepth = currBBStkEmpty;   // register a map, but do NOT include any of the 

@@ -41,7 +41,7 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
     // TODO: move this to individual magics that are unsafe.
     // -- igor 08/13/1999
     bc2ir.markBBUnsafeForScheduling();
-    VM_Atom methodName = meth.getMemberName();
+    VM_Atom methodName = meth.getName();
     if (methodName == VM_MagicNames.getProcessorRegister) {
       OPT_RegisterOperand rop = gc.temps.makePROp();
       bc2ir.markGuardlessNonNull(rop);

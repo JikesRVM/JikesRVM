@@ -1404,7 +1404,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  boolean unresolved = ref.needsDynamicLink(bcodes.method());
 	  OPT_LocationOperand fieldOp = makeStaticFieldRef(ref);
 	  OPT_Operand offsetOp;
-	  VM_Type fieldType = ref.getType();
+	  VM_Type fieldType = ref.getFieldContentsType();
           OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
 	  if (unresolved) {
 	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
@@ -1497,7 +1497,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
 	  }
 
-	  VM_Type fieldType = ref.getType();
+	  VM_Type fieldType = ref.getFieldContentsType();
 	  OPT_Operand r = pop(fieldType);
 	  s = PutStatic.create(PUTSTATIC, r, offsetOp, fieldOp);
 	}
@@ -1510,7 +1510,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  boolean unresolved = ref.needsDynamicLink(bcodes.method());
 	  OPT_LocationOperand fieldOp = makeInstanceFieldRef(ref);
 	  OPT_Operand offsetOp;
-	  VM_Type fieldType = ref.getType();
+	  VM_Type fieldType = ref.getFieldContentsType();
           OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
 	  if (unresolved) {
 	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
@@ -1552,7 +1552,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  VM_FieldReference ref = bcodes.getFieldReference();
 	  boolean unresolved = ref.needsDynamicLink(bcodes.method());
 	  OPT_LocationOperand fieldOp = makeInstanceFieldRef(ref);
-	  VM_Type fieldType = ref.getType();
+	  VM_Type fieldType = ref.getFieldContentsType();
 	  OPT_Operand offsetOp;
 	  if (unresolved) {
 	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
@@ -1580,7 +1580,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
 	  // See if this is a magic method (VM_Address, VM_Word, etc.)
 	  // If it is, generate the inline code and we are done.
-	  if (ref.isWordType()) {
+	  if (ref.getType().isWordType()) {
 	    boolean generated = OPT_GenerateMagic.generateMagic(this, gc, ref);
 	    if (generated) break; // all done.
 	  }
@@ -1659,13 +1659,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       case JBC_invokespecial:
 	{
 	  VM_MethodReference ref = bcodes.getMethodReference();
-	  VM_Method target = null;
-	  boolean unresolved = true;
-	  if (ref.getDeclaringClass().isResolved() && (target = ref.resolveInvokeSpecial()) != null) {
-	    // Note: this is not the usual needsDynamicLink due to semantics of invokespecial
-	    // See comments in VM_OptLinker and VM_TableBasedDynamicLinker
-	    unresolved = false;
-	  }
+	  VM_Method target = ref.resolveInvokeSpecial();
 
 	  //-#if RVM_WITH_OSR
 	  /* just create an osr barrier right before _callHelper
@@ -1678,13 +1672,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  s = _callHelper(ref, OPT_MethodOperand.SPECIAL(ref, target));
 
 	  // Handle possibility of dynamic linking. Must be done before null_check!
-	  if (unresolved) {
+	  // NOTE: different definition of unresolved due to semantics of invokespecial.
+	  if (target == null) {
 	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
 	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
 	    Call.setAddress(s, offsetrop);
 	    rectifyStateWithErrorHandler();
 	  } else {
-	    if (VM.VerifyAssertions) VM._assert(target != null); 
 	    Call.setAddress(s, new OPT_IntConstantOperand(target.getOffset()));
 	  }
 
@@ -1714,12 +1708,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
 	  // See if this is a magic method (VM_Magic, VM_Address, VM_Word, etc.)
 	  // If it is, generate the inline code and we are done.
-	  if (ref.isMagicType() || ref.isWordType()) {
+	  if (ref.getType().isMagicType() || ref.getType().isWordType()) {
 	    boolean generated = OPT_GenerateMagic.generateMagic(this, gc, ref);
 	    if (generated) break;
 	  }
-
-
+	  
 	  // A non-magical invokestatic.  Create call instruction.
 	  boolean unresolved = ref.needsDynamicLink(bcodes.method());
 	  VM_Method target = ref.resolve(false);
