@@ -52,7 +52,7 @@ public class Options implements VM_Uninterruptible {
     }
     else if (arg.startsWith("nursery_size=")) {
       String tmp = arg.substring(13);
-      nurseryPages = Conversions.bytesToPages(Integer.parseInt(tmp)<<20);
+      nurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
       if (nurseryPages <= 0) VM.sysFail("Unreasonable nursery size " + tmp);
     }
     else if (arg.startsWith("stress=")) {

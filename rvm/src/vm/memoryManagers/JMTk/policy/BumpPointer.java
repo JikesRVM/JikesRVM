@@ -95,15 +95,15 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
 
 
   final private VM_Address allocSlowPath(EXTENT bytes) throws VM_PragmaNoInline { 
-    int blocks = Conversions.bytesToBlocks(bytes);
+    int chunkSize = ((bytes + CHUNK_SIZE - 1) >>> LOG_CHUNK_SIZE) << LOG_CHUNK_SIZE;
     VM_Address start = VM_Address.zero();
     while (start.isZero()) {
-      start = vmResource.acquire(blocks);
+      start = vmResource.acquire(Conversions.bytesToPages(chunkSize));
       if (Plan.verbose > 5) VM.sysWriteln("BumpPointer.allocSlowPath acquired ", start);
     }
     bp = start.add(bytes);
     if (useLimit)
-      limit = start.add(Conversions.blocksToBytes(blocks));
+      limit = start.add(chunkSize);
     if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(start, bytes));
     return start;
   }
@@ -127,7 +127,9 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
   //
   // Must ensure the bump pointer will go through slow path on (first) alloc of initial value
   //
-  private static final EXTENT TRIGGER = VMResource.BLOCK_SIZE - 1;
+  private static final int LOG_CHUNK_SIZE = VMResource.LOG_PAGE_SIZE + 3;
+  private static final int CHUNK_SIZE = 1 << LOG_CHUNK_SIZE;
+  private static final EXTENT TRIGGER = CHUNK_SIZE - 1;
   private static final VM_Address INITIAL_BP_VALUE = VM_Address.fromInt(TRIGGER);
   private static final VM_Address INITIAL_LIMIT_VALUE = VM_Address.fromInt(TRIGGER);
   private static final boolean useLimit = true;

@@ -36,10 +36,10 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
 
   // There is a monotonicity assmption so that only updates require lock acquisition.
   //
-  public static void ensureMapped(VM_Address start, int blocks) {
-    int startChunk = Conversions.addressToMmapChunks(start);       // round down
-    int endChunk = Conversions.addressToMmapChunks(start.add(Conversions.blocksToBytes(blocks)));       // round down
-    for (int chunk=startChunk; chunk <= endChunk; chunk++) {
+  public static void ensureMapped(VM_Address start, int pages) {
+    int startChunk = Conversions.addressToMmapChunksDown(start);
+    int endChunk = Conversions.addressToMmapChunksUp(start.add(Conversions.pagesToBytes(pages)));
+    for (int chunk=startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) continue;
       VM_Address mmapStart = Conversions.mmapChunksToAddress(chunk);
       lock.acquire();
@@ -77,9 +77,9 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
 
   }
 
-  public static void protect(VM_Address start, int blocks) {
-    int startChunk = Conversions.addressToMmapChunks(start);       // round down
-    int chunks = Conversions.blocksToMmapChunks(blocks); // round up
+  public static void protect(VM_Address start, int pages) {
+    int startChunk = Conversions.addressToMmapChunksDown(start); 
+    int chunks = Conversions.pagesToMmapChunksUp(pages);
     int endChunk = startChunk + chunks;
     lock.acquire();
     for (int chunk=startChunk; chunk < endChunk; chunk++) {
