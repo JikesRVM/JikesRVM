@@ -35,21 +35,18 @@ class OPT_RegisterPool extends OPT_GenericRegisterPool implements OPT_Operators 
    * @param s    the instruction to insert the load operand before
    * @return     a register operand that holds the JTOC
    */ 
-  public OPT_RegisterOperand makeJTOCOp(OPT_IR ir, OPT_Instruction s) {
-    OPT_RegisterOperand res = ir.regpool.makeTemp
-      (OPT_ClassLoaderProxy.IntArrayType);
-    if (VM.BuildForIA32 && ir.options.FIXED_JTOC) {
-      OPT_Operator mv = OPT_IRTools.getMoveOp(OPT_ClassLoaderProxy.IntArrayType,
-                                              ir.IRStage == ir.LIR);
+  public OPT_Operand makeJTOCOp(OPT_IR ir, OPT_Instruction s) {
+    if (ir.options.FIXED_JTOC) {
       int jtoc = VM_Magic.getTocPointer();
-      OPT_IntConstantOperand I = new OPT_IntConstantOperand(jtoc);
-      s.insertBefore(Move.create(mv, res, I));
+      return new OPT_IntConstantOperand(jtoc);
     } else {
+      OPT_RegisterOperand res = ir.regpool.makeTemp
+	(OPT_ClassLoaderProxy.IntArrayType);
       s.insertBefore(Unary.create(GET_JTOC, res, 
                                   OPT_IRTools.
                                   R(ir.regpool.getPhysicalRegisterSet().
                                     getPR())));
+      return res.copyD2U();
     }
-    return res.copyD2U();
   }
 }
