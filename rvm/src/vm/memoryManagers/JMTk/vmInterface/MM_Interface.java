@@ -218,6 +218,24 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     return VMResource.refInVM(ref);
   }
 
+  /**
+   * Return the max heap size in bytes (as set by -Xmx).
+   *
+   * @return The max heap size in bytes (as set by -Xmx).
+   */
+  public static int getMaxHeapSize() {
+    return Options.getMaxHeapSize();
+  }
+
+  /**
+   * Return the initial heap size in bytes (as set by -Xms).
+   *
+   * @return The initial heap size in bytes (as set by -Xms).
+   */
+  public static int getInitialHeapSize() {
+    return Options.getInitialHeapSize();
+  }
+
   public static int getMaxHeaps() {
     return VMResource.getMaxVMResource();
   }

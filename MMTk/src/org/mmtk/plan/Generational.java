@@ -181,7 +181,8 @@ public abstract class Generational extends StopTheWorldGC
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
 				AllocAdvice advice)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(WORD_SIZE-1))));
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     VM_Address region;
     if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       if (Plan.usesLOS) {
@@ -195,11 +196,14 @@ public abstract class Generational extends StopTheWorldGC
       case   MATURE_SPACE: region = matureAlloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
       case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
-      default:             region = VM_Address.zero();
-	VM_Interface.sysFail("No such allocator");
+      default:
+	if (VM_Interface.VerifyAssertions) 
+	  VM_Interface.sysFail("No such allocator");
+	region = VM_Address.zero();
       }
     }
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Memory.assertIsZeroed(region, bytes));
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(Memory.assertIsZeroed(region, bytes));
     return region;
   }
 
@@ -228,7 +232,9 @@ public abstract class Generational extends StopTheWorldGC
       case   MATURE_SPACE: if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
       case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
       case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-      default:             if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator");
+      default:
+	if (VM_Interface.VerifyAssertions)
+	  VM_Interface.sysFail("No such allocator");
       }
     }
   }
@@ -504,23 +510,23 @@ public abstract class Generational extends StopTheWorldGC
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject (VM_Address obj) {
+  public static final VM_Address traceObject(VM_Address obj) {
     if (obj.isZero()) return obj;
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     if (space == NURSERY_SPACE)
       return CopySpace.traceObject(obj);
     if (!fullHeapGC)
-	return obj;
+      return obj;
     switch (space) {
-        case LOS_SPACE:         return losSpace.traceObject(obj);
-        case IMMORTAL_SPACE:    return ImmortalSpace.traceObject(obj);
-        case BOOT_SPACE:	return ImmortalSpace.traceObject(obj);
-        case META_SPACE:	return obj;
-        default:                return Plan.traceMatureObject(space, obj, addr);
+    case LOS_SPACE:      return losSpace.traceObject(obj);
+    case IMMORTAL_SPACE: return ImmortalSpace.traceObject(obj);
+    case BOOT_SPACE:     return ImmortalSpace.traceObject(obj);
+    case META_SPACE:     return obj;
+    default:
+      return Plan.traceMatureObject(space, obj, addr);
     }
   }
-
 
   /**
    * Trace a reference during GC.  This involves determining which

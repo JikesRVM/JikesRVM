@@ -9,7 +9,7 @@
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import java.lang.System;	// unneeded
 import java.io.PrintStream;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 class Exhaust {
 
@@ -21,8 +21,7 @@ class Exhaust {
    *  the allocation of this array to be the cause of the exception.  This is
    *  frustrating.  */ 
   //  static int metaSize = 4 * 1024 * 1024;
-  //  final static int metaSize = (Options.getMaxHeapSize() / itemSize) * 2;
-  final static int metaSize = (Options.getMaxHeapSize() / itemSize) / 2;
+  final static int metaSize = (MM_Interface.getMaxHeapSize() / itemSize) / 2;
   static Object [] junk;
   static int cursor = 0;
   static double growthFactor = 1.0;
@@ -34,7 +33,7 @@ class Exhaust {
 
   public static void main(String args[])  //throws Throwable 
   {
-    long mhs = Options.getMaxHeapSize();
+    long mhs = MM_Interface.getMaxHeapSize();
     
     o.println("Max heap size: " + mhs + " bytes");
     if (mhs > 1024 * 1024)

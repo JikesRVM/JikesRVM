@@ -216,6 +216,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
   protected static final VM_Address traceMatureObject(byte space,
 						      VM_Address obj,
 						      VM_Address addr) {
+    if (VM_Interface.VerifyAssertions && space != MATURE_SPACE)
+      spaceFailure(obj, space, "Plan.traceMatureObject()");
     return matureSpace.traceObject(obj, VMResource.getTag(addr));
   }
 
@@ -243,17 +245,16 @@ public class Plan extends Generational implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-      case NURSERY_SPACE:   return CopySpace.isLive(obj);
-      case MATURE_SPACE:    return (!fullHeapGC) || matureSpace.isLive(obj);
-      case LOS_SPACE:       return losSpace.isLive(obj);
-      case IMMORTAL_SPACE:  return true;
-      case BOOT_SPACE:	    return true;
-      case META_SPACE:	    return true;
-      default:              if (VM_Interface.VerifyAssertions) {
-	                      VM_Interface.sysWriteln("Plan.traceObject: unknown space",space);
-			      VM_Interface.sysFail("Plan.traceObject: unknown space");
-                            }
-			    return false;
+    case NURSERY_SPACE:   return CopySpace.isLive(obj);
+    case MATURE_SPACE:    return (!fullHeapGC) || matureSpace.isLive(obj);
+    case LOS_SPACE:       return losSpace.isLive(obj);
+    case IMMORTAL_SPACE:  return true;
+    case BOOT_SPACE:	    return true;
+    case META_SPACE:	    return true;
+    default:
+      if (VM_Interface.VerifyAssertions) 
+	spaceFailure(obj, space, "Plan.isLive()");
+      return false;
     }
   }
 

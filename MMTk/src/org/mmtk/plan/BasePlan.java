@@ -92,7 +92,7 @@ public abstract class BasePlan
   public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
 
-  protected static final int DEFAULT_MIN_NURSERY = (1024*1024)>>LOG_PAGE_SIZE;
+  protected static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_PAGE_SIZE;
   protected static final int DEFAULT_MAX_NURSERY = MAX_INT;
 
   // Memory layout constants
@@ -562,7 +562,27 @@ public abstract class BasePlan
     }
   }
 
-
-
-
+  /**
+   * Print a failure message for the case where an object in an
+   * unknown space is traced.
+   *
+   * @param obj The object being traced
+   * @param space The space with which the object is associated
+   * @param source Information about the source of the problem
+   */
+  protected static void spaceFailure(VM_Address obj, byte space, 
+				     String source) {
+    VM_Address addr = VM_Interface.refToAddress(obj);
+    VM_Interface.sysWrite(source);
+    VM_Interface.sysWrite(": obj ", obj);
+    VM_Interface.sysWrite(" or addr ", addr);
+    VM_Interface.sysWrite(" of page ", Conversions.addressToPagesDown(addr));
+    VM_Interface.sysWrite(" is in unknown space ");
+    VM_Interface.sysWriteln(space);
+    VM_Interface.sysWrite("Type = ");
+    VM_Interface.sysWrite(VM_Magic.getObjectType(obj).getDescriptor());
+    VM_Interface.sysWriteln();
+    VM_Interface.sysWrite(source);
+    VM_Interface.sysFail(": unknown space");
+  }
 }

@@ -29,14 +29,26 @@ public final class Options implements VM_Uninterruptible, Constants {
   private static int maxHeapSize;     
   private static int currentHeapSize; 
 
-  /** This method is only for use by our regression tests (i.e., Exhaust.java)
-   */ 
   public static int getCurrentHeapSize() {
     return currentHeapSize;
   }
 
+  /**
+   * Return the max heap size in bytes (as set by -Xmx).
+   *
+   * @return The max heap size in bytes (as set by -Xmx).
+   */
   public static int getMaxHeapSize() {
     return maxHeapSize;
+  }
+
+  /**
+   * Return the initial heap size in bytes (as set by -Xms).
+   *
+   * @return The initial heap size in bytes (as set by -Xms).
+   */
+  public static int getInitialHeapSize() {
+    return initialHeapSize;
   }
 
   public static void overrideGrowHeapSize (int size) {

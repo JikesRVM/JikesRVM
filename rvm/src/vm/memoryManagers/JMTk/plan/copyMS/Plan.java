@@ -174,11 +174,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case       MS_SPACE: region = ms.alloc(isScalar, bytes, false); break;
       case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
-      default:             if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator");
+      default:
+	if (VM_Interface.VerifyAssertions) 
+	  VM_Interface.sysFail("No such allocator");
 	region = VM_Address.zero();
       }
     }
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Memory.assertIsZeroed(region, bytes));
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(Memory.assertIsZeroed(region, bytes));
     return region;
   }
   
@@ -204,7 +207,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case       MS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
       case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
       default:
-	if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator");
+	if (VM_Interface.VerifyAssertions) 
+	  VM_Interface.sysFail("No such allocator");
       }
     }
   }
@@ -444,19 +448,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-    case NURSERY_SPACE:   return CopySpace.traceObject(obj);
-    case MS_SPACE:        return msSpace.traceObject(obj, VMResource.getTag(addr));
-    case LOS_SPACE:       return losSpace.traceObject(obj);
-    case IMMORTAL_SPACE:  return ImmortalSpace.traceObject(obj);
-    case BOOT_SPACE:	  return ImmortalSpace.traceObject(obj);
-    case META_SPACE:	  return obj;
+    case NURSERY_SPACE:  return CopySpace.traceObject(obj);
+    case MS_SPACE:       return msSpace.traceObject(obj, VMResource.getTag(addr));
+    case LOS_SPACE:      return losSpace.traceObject(obj);
+    case IMMORTAL_SPACE: return ImmortalSpace.traceObject(obj);
+    case BOOT_SPACE:	 return ImmortalSpace.traceObject(obj);
+    case META_SPACE:	 return obj;
     default:
-      if (VM_Interface.VerifyAssertions) {
-	VM_Interface.sysWrite(addr);
-	VM_Interface.sysWrite("Plan.traceObject: VMResource.getSpace() returned an unknown space with code # ");
-	VM_Interface.sysWriteln(space);
-	VM_Interface.sysFail("Plan.traceObject: unknown space");
-      }
+      if (VM_Interface.VerifyAssertions) 
+	spaceFailure(obj, space, "Plan.traceObject()");
       return obj;
     }
   }
@@ -507,11 +507,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case IMMORTAL_SPACE:  return true;
       case BOOT_SPACE:	    return true;
       case META_SPACE:	    return true;
-      default:              if (VM_Interface.VerifyAssertions) {
-	                      VM_Interface.sysWriteln("Plan.traceObject: unknown space",space);
-			      VM_Interface.sysFail("Plan.traceObject: unknown space");
-                            }
-			    return false;
+      default:
+	if (VM_Interface.VerifyAssertions) 
+	  spaceFailure(obj, space, "Plan.isLive()");
+	return false;
     }
   }
 

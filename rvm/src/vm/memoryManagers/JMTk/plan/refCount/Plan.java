@@ -465,6 +465,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     else if (REF_COUNT_SANITY_TRACING && (space == BOOT_SPACE || space == IMMORTAL_SPACE))
       return rcSpace.traceBootObject(obj);
     
+    if (VM_Interface.VerifyAssertions && space != BOOT_SPACE 
+	&& space != IMMORTAL_SPACE && space != META_SPACE) 
+      spaceFailure(obj, space, "Plan.traceObject()");
     // else this is not a rc heap pointer
     return obj;
   }
