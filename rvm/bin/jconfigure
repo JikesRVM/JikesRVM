@@ -2557,6 +2557,9 @@ neither RVM_FOR_AIX nor RVM_FOR_LINUX nor RVM_FOR_OSX is defined."
     fi
     cat <<- EOF
 	echo >&2  -n '(classpath native libraries copied) '
+	CONFIG_H_DIR=${SCRATCH_DIRECTORY_STR}/Config.target
+
+	run ${GNU_MAKE_STR} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/configuring CONFIG_H_DIR=\${CONFIG_H_DIR} 
 
 	# Make a target platform preprocessor for use in gctest
 	run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \${MFLAGS} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.target tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR} 
@@ -2583,7 +2586,7 @@ EOF_RUNBOOTIMAGE_H
 	chdir ${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner/
 EOF
     DEST="${BUILD_DIRECTORY_STR}/libjpnexec${shlib_suffix}"
-    echo "run \$GNU_MAKE CFLAGS='' CXXFLAGS='' \$MFLAGS -f Makefile.proc DEST=\"$DEST\" \"$DEST\""
+    echo "run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \$MFLAGS -f Makefile.proc DEST=\"$DEST\" \"$DEST\""
 
     if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	CC_DEFINES="-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
@@ -2602,7 +2605,7 @@ EOF
     else
 	# Build the blocking system call wrapper library, if requested
 	DEST="$BUILD_DIRECTORY_STR/libsyswrap"${shlib_suffix}
-	echo "run \$GNU_MAKE CFLAGS='' CXXFLAGS='' \$MFLAGS -f Makefile.syswrap DEST=\"$DEST\" CXXFLAGS+=\"$CC_DEFINES\" \"$DEST\""
+	echo "run ${GNU_MAKE_STR} CFLAGS='' CXXFLAGS='' \$MFLAGS -f Makefile.syswrap DEST=\"$DEST\" CXXFLAGS+=\"$CC_DEFINES\" \"$DEST\""
     fi
 
     if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
@@ -2680,7 +2683,7 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	cat <<- EOF
 	chdir $BOOTIMAGE_RUNNER_DIR_STR
 
-	\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR		\
+	\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -I\${CONFIG_H_DIR}	\
 		-I$BOOTIMAGE_RUNNER_SUBDIR_STR\
 		\$IMAGE -DRVM_BOOTIMAGE=\\"$BOOTIMAGE_STR\\"		\
 		-o $SCRATCH_DIRECTORY_STR/RunBootImage.o RunBootImage.C
