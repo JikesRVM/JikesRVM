@@ -50,9 +50,11 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
    * Generate machine code into ir.MIRInfo.machinecode.
    * 
    * @param ir the IR to generate
+   * @param shouldPrint should we print the machine code?
    * @return   the number of machinecode instructions generated
    */
   public static final int generateCode (OPT_IR ir, boolean shouldPrint) {
+    ir.MIRInfo.machinecode = VM_CodeArray.create(ir.MIRInfo.mcSizeEstimate);
     return new OPT_Assembler().genCode(ir, shouldPrint);
   }
 
