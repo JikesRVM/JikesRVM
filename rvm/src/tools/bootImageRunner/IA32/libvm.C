@@ -105,7 +105,8 @@ unsigned int
 getInstructionFollowing (unsigned int faultingInstructionAddress)
 {
   int Illegal = 0;
-  char HexBuffer[256], MnemonicBuffer[256], OperandBuffer[256], AddrBuffer[256];
+  char HexBuffer[256], MnemonicBuffer[256], OperandBuffer[256];
+  //, AddrBuffer[256];
   PARLIST *p;
 
   p = Disassemble(HexBuffer,
@@ -138,7 +139,7 @@ static int inRVMAddressSpace(unsigned int addr) {
      assert(which <= 2 * (MaxHeaps + 1));
        VM_Address start = heapRanges[2 * which];
        VM_Address end = heapRanges[2 * which + 1];
-       if (start == ~0 && end == ~0) break;
+       if (start == ~(VM_Address) 0 && end == ~ (VM_Address) 0) break;
        if (start <= addr  && addr  < end)
 	 return true;
    }
@@ -498,7 +499,7 @@ extern "C" void processTimerTick() {
 
   /*
    * Turn on thread-switch flag in each virtual processor.
-   * Note that "jtoc" is not necessairly valid, because we might have interrupted
+   * Note that "jtoc" is not necessarily valid, because we might have interrupted
    * C-library code, so we use boot image jtoc address (== VmToc) instead.
    * !!TODO: if vm moves table, it must tell us so we can update "VmToc".
    * For now, we assume table is fixed in boot image and never moves.
@@ -516,7 +517,7 @@ extern "C" void processTimerTick() {
    * a single processor),
    * so allow for possibility of a null entry in the processors array
    */
-  int     i;
+  unsigned     i;
 
   // line added here - ndp is now the last processor - and cnt includes it
   cnt = cnt - 1;
@@ -537,9 +538,9 @@ extern "C" void processTimerTick() {
   if (sendit != 0) {
     // some processor "stuck in native"
     if (processors[i] != 0 /*null*/ ) {  
+#ifdef __linuxsmp__
       // have a NativeDaemon Processor (the last one) and can use it to recover
       int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset) ;
-#ifdef __linuxsmp__
       pthread_t thread = (pthread_t)pthread_id;
       int i_thread = (int)thread;
       pthread_kill(thread, SIGCONT);
@@ -553,86 +554,94 @@ extern "C" void processTimerTick() {
   }
 }
 
+// This is making G++ 3.3 gripe; why?
+static void softwareSignalHandler (int signo, siginfo_t * __attribute__((unused)) si, void *context);
 
-void softwareSignalHandler (int signo, siginfo_t * si, void *context) {
-
+static void 
+softwareSignalHandler(int signo, siginfo_t * __attribute__((unused)) si, void *context) 
+{
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-  if (signo == SIGALRM) {	/* asynchronous signal used for time slicing */
-    processTimerTick();
-  }
-  else
+    if (signo == SIGALRM) {	/* asynchronous signal used for time slicing */
+	processTimerTick();
+	return;
+    }
 #endif
 
-  if (signo == SIGQUIT)
-      { // asynchronous signal used to awaken internal debugger
-      
-      // Turn on debug-request flag.
-      // Note that "jtoc" is not necessairly valid, because we might have interrupted
-      // C-library code, so we use boot image jtoc address (== VmToc) instead.
-      // !!TODO: if vm moves table, it must tell us so we can update "VmToc".
-      // For now, we assume table is fixed in boot image and never moves.
-      //
-      unsigned *flag = (unsigned *)((char *)VmToc + DebugRequestedOffset);
-      if (*flag)
-         {
-         static char *message = "vm: debug request already in progress, please wait\n";
-         write(SysTraceFd, message, strlen(message));
-         }
-      else
-         {
-         static char *message = "vm: debug requested, waiting for a thread switch\n";
-         write(SysTraceFd, message, strlen(message));
-         *flag = 1;
-         }
-      }
+    // asynchronous signal used to awaken internal debugger
+    if (signo == SIGQUIT) { 
+	// Turn on debug-request flag.
+	// Note that "jtoc" is not necessarily valid, because we might have interrupted
+	// C-library code, so we use boot image jtoc address (== VmToc) instead.
+	// !!TODO: if vm moves table, it must tell us so we can update "VmToc".
+	// For now, we assume table is fixed in boot image and never moves.
+	//
+	unsigned *flag = (unsigned *)((char *)VmToc + DebugRequestedOffset);
+	if (*flag) {
+	    static const char *message = "vm: debug request already in progress, please wait\n";
+	    write(SysTraceFd, message, strlen(message));
+	} else {
+	    static const char *message = "vm: debug requested, waiting for a thread switch\n";
+	    write(SysTraceFd, message, strlen(message));
+	    *flag = 1;
+	}
+	return;
+    }
 
-  else if (signo == SIGTERM) {
-      // Presumably we received this signal because someone wants us
-      // to shut down.  Exit directly (unless the lib_verbose flag is set).
-      if (!lib_verbose)
-	_exit(-1);
+    if (signo == SIGTERM) {
+	// Presumably we received this signal because someone wants us
+	// to shut down.  Exit directly (unless the lib_verbose flag is set).
+	if (!lib_verbose)
+	    _exit(-1);
 
-      DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
+	DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 
-      unsigned int localJTOC = VmToc;
-      ucontext_t *uc = (ucontext_t *) context;  // user context
-      mcontext_t *mc = &(uc->uc_mcontext);      // machine context
-      greg_t  *gregs = mc->gregs;              // general purpose registers
-      int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
-   
-      /* get the frame pointer from processor object  */
-      unsigned int localVirtualProcessorAddress	= gregs[REG_ESI];
-      unsigned int localFrameAddress = 
-	  *(unsigned *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset);
+	unsigned int localJTOC = VmToc;
+	ucontext_t *uc = (ucontext_t *) context;  // user context
+	mcontext_t *mc = &(uc->uc_mcontext);      // machine context
+	greg_t  *gregs = mc->gregs;              // general purpose registers
+	int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
 
-      /* setup stack frame to contain the frame pointer */
-      long unsigned int *sp = (long unsigned int *) gregs[REG_ESP];
+	/* get the frame pointer from processor object  */
+	unsigned int localVirtualProcessorAddress	= gregs[REG_ESI];
+	unsigned int localFrameAddress = 
+	    *(unsigned *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset);
 
-      /* put fp as a  parameter on the stack  */
-      gregs[REG_ESP] = gregs[REG_ESP] - 4;
-      sp = (long unsigned int *) gregs[REG_ESP];
-      *sp = localFrameAddress;
-      // must pass localFrameAddress in first param register!
-      gregs[REG_EAX] = localFrameAddress;
+	/* setup stack frame to contain the frame pointer */
+	long unsigned int *sp = (long unsigned int *) gregs[REG_ESP];
 
-      /* put a return address of zero on the stack */
-      gregs[REG_ESP] = gregs[REG_ESP] - 4;
-      sp = (long unsigned int *) gregs[REG_ESP];
-      *sp = 0;
+	/* put fp as a  parameter on the stack  */
+	gregs[REG_ESP] = gregs[REG_ESP] - 4;
+	sp = (long unsigned int *) gregs[REG_ESP];
+	*sp = localFrameAddress;
+	// must pass localFrameAddress in first param register!
+	gregs[REG_EAX] = localFrameAddress;
 
-      /* goto dumpStackAndDie routine (in VM_Scheduler) as if called */
-      gregs[REG_EIP] = dumpStack;
-  }
+	/* put a return address of zero on the stack */
+	gregs[REG_ESP] = gregs[REG_ESP] - 4;
+	sp = (long unsigned int *) gregs[REG_ESP];
+	*sp = 0;
+
+	/* goto dumpStackAndDie routine (in VM_Scheduler) as if called */
+	gregs[REG_EIP] = dumpStack;
+	return;
+    }
+
+    /* Default case. */
+    fprintf(SysTraceFile, "vm: got an unexpected software signal (# %d)", signo);
+#if defined __GLIBC__ && defined _GNU_SOURCE
+    fprintf(SysTraceFile, " %s", strsignal(signo));
+#endif    
+    fprintf(SysTraceFile, "; ignoring it.\n");
 }
 
 /* startup configuration option with default values */
-char *bootFilename = 0;
+const char *bootFilename = 0;
 
-/* timer tick interval, in milliseconds     (10 <= delay <= 999) */
-static int TimerDelay = 10;
+// /* timer tick interval, in milliseconds     (10 <= delay <= 999) */
+// static int TimerDelay = 10;
 
 int
-createJVM(int vmInSeparateThread)
+createJVM(int __attribute__((unused)) vmInSeparateThread)
 {
   SysErrorFile = stderr;
   SysErrorFd = 2;
@@ -684,7 +693,7 @@ createJVM(int vmInSeparateThread)
 
   /* read image into memory segment */
   int cnt = fread (bootRegion, 1, actualImageSize, fin);
-  if (cnt != actualImageSize) {
+  if (cnt < 0 || (unsigned) cnt != actualImageSize) {
     fprintf (SysErrorFile, "%s: read failed (errno=%d)\n", me, errno);
     return 1;
   }
@@ -704,7 +713,7 @@ createJVM(int vmInSeparateThread)
   /* validate contents of boot record */
   bootRecord = (VM_BootRecord *) bootRegion;
 
-  if (bootRecord->bootImageStart != (int) bootRegion) {
+  if (bootRecord->bootImageStart != (unsigned) bootRegion) {
     fprintf (SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
 		me, bootRecord->bootImageStart, bootRegion);
     return 1;
@@ -722,7 +731,7 @@ createJVM(int vmInSeparateThread)
     return 1;
   }
 
-  if (((int *) bootRecord->spRegister)[-1] != 0xdeadbabe) {
+  if (((u_int32_t *) bootRecord->spRegister)[-1] != 0xdeadbabe) {
     fprintf (SysErrorFile,
 	"%s: image format error: missing stack sanity check marker (0x%08x)\n",
 	me, ((int *) bootRecord->spRegister)[-1]);
