@@ -1,0 +1,114 @@
+#! /bin/bash
+#
+# (C) Copyright IBM Corp. 2001, 2003
+#
+#
+# This file defines a set of environment variables needed to build and
+# run Jikes RVM.  This file is sourced by the installation scripts; you
+# do not need to source this file into your command-prompt shell.
+#
+# IMPORTANT: You need to modify this file to reflect your environment!
+#
+
+#########
+# PART I: Preprocessor directives that hold for every config on this target
+#########
+# target architecture is PowerPC
+export RVM_FOR_POWERPC=1
+export RVM_FOR_64_ADDR=1
+
+# target OS is Linux
+export RVM_FOR_LINUX=1
+
+# SMP is not supported on PowerPC/Linux.
+# The pthread library doesn't play nicely with RVM since it wants to
+# mask the bottom bits of stackpointer to find phtread local storage.
+export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
+export RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
+
+export BOOTIMAGE_LOAD_ADDRESS=0x31000000
+export MAXIMUM_MAPPABLE_ADDRESS=0x80000000L
+
+##########
+# PART II: Where to find tools and resources on this target
+########## 
+
+export HOST_JAVA_HOME=/opt/IBMJava2-ppc-141
+
+# the JDK java executable
+export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
+
+# the JDK Javadoc executable
+export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
+
+# the JDK javac executable
+export HOST_JAVAC="$HOST_JAVA_HOME/bin/javac"
+
+# the JDK jar executable
+export HOST_JAR="$HOST_JAVA_HOME/bin/jar"
+
+# the JDK standard library jar files
+export HOST_REPOSITORIES="$HOST_JAVA_HOME/lib/rt.jar"
+
+# the JDK tools jar
+export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
+
+# sources for GNU Classpath 0.06 (current stable version of Classpath)
+# Uncomment this line only if you manually downloaded the Classpath sources.
+# export CLASSPATH_ROOT=/opt/classpath-0.06
+
+# path for GNU make
+export GNU_MAKE="/usr/bin/make"
+
+# path for the Jikes java-to-byte-code compiler
+export JIKES=/opt/jikes-1.18/bin/jikes
+
+# what C compilers should be used?
+export CC="/usr/bin/gcc -m64 -w -g -O -DSIZE_VOID_P=8"
+
+# what C++ compilers should be used?
+export CPLUS='/usr/bin/g++ -m64 -w -g -O -DSIZE_VOID_P=8'
+
+# how to link a shared C++ library
+export LDSHARED="${CPLUS} -shared"
+
+# used by the jbuild.linkBooter
+export CPP=/usr/bin/cpp
+
+# The configuration for building the user guide.
+# You may have to edit this file.
+export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
+
+#  some Unix commands
+export AWK="/bin/awk"
+export BASH="/bin/bash"
+# You need one of YACC or Bison (one will usually be installed)
+# If you're using Bison, uncomment the line below:
+# BISON="bison"
+export CVS="/usr/bin/cvs"
+export DIFF="/usr/bin/diff"
+export FGREP="/bin/fgrep"
+export FIND="/usr/bin/find"
+export GNU_TAR=/bin/tar
+export GREP="/bin/grep"
+export MD5SUM="/usr/bin/md5sum"
+export PS="/bin/ps"
+export SED="/bin/sed"
+export WGET="/usr/bin/wget"
+export XARGS="/usr/bin/xargs"
+export UNZIP_CMD="/usr/bin/unzip"
+
+##########
+# PART III: Additional variables for running Eclipse on Jikes RVM
+########## 
+# These are used only by the jbuild.plugin build script.
+
+export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
+
+export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
+
+export BENCHMARK_ROOT=""
+
+# Used for the Emacs spell-checker
+#  LocalWords:  JDK JDKs LD JRE's HotSpot Blackdown DK CPLUS LDSHARED JNI ld bM
+#  LocalWords:  bnoentry SRE lc bE
