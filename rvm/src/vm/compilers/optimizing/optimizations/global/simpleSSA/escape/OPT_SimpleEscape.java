@@ -256,7 +256,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
           return  true;
         }
       case BYTE_STORE_opcode: case SHORT_STORE_opcode: 
-      case INT_STORE_opcode:  case LONG_STORE_opcode:
+      case INT_STORE_opcode:  case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = Store.getValue(inst);
@@ -420,7 +420,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
           return  true;
         }
       case BYTE_STORE_opcode:case SHORT_STORE_opcode:
-      case INT_STORE_opcode:case LONG_STORE_opcode:
+      case INT_STORE_opcode:case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = Store.getValue(inst);
