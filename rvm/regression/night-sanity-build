@@ -31,7 +31,7 @@ function croak() {
     exit 2
 }
 
-do_javadoc=0
+do_javadoc=1
 while (( $# > 0 )); do
     case "$1" in
 	-no-javadoc )
