@@ -36,7 +36,7 @@ extern "C" int sched_yield(void);
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <time.h>
+#include <time.h>               // nanosleep() and other
 #include <utime.h>
 
 #ifdef RVM_FOR_LINUX
@@ -1066,6 +1066,42 @@ sysGetTimeOfDay()
     return returnValue;
 }
 
+
+/** Routine to sleep for a number of nanoseconds (howLongNanos).  This is
+ * ridiculous on regular Linux, where we actually only sleep in increments of
+ * 1/HZ (1/100 of a second on x86).  Luckily, Linux will round up.
+ *
+ * This is just used internally in the scheduler, but we might as well make
+ * the function work properly even if it gets used for other purposes.
+ *
+ * We don't return anything, since we don't need to right now.  Just try to
+ * sleep; if interrupted, return.
+ */
+extern "C" void
+sysNanosleep(long long howLongNanos)
+{
+    struct timespec req;
+    const long long nanosPerSec = 1000LL * 1000 * 1000;
+    req.tv_sec = howLongNanos / nanosPerSec;
+    req.tv_nsec = howLongNanos % nanosPerSec;
+    int ret = nanosleep(&req, (struct timespec *) NULL);
+    if (ret < 0) {
+        if (errno == EINTR)
+            /* EINTR is expected, since we do use signals internally. */
+            return;
+
+        fprintf(SysErrorFile, "%s: nanosleep(<tv_sec=%ld,tv_nsec=%ld>) failed:"
+                " %s (errno=%d)\n"
+                "  That should never happen; please report it as a bug.\n", 
+                Me, req.tv_sec, req.tv_nsec,
+                strerror( errno ), errno);
+    }
+    // Done.
+}
+
+
+
+    
 
 //-----------------------//
 // Processor operations. //

@@ -203,6 +203,7 @@ public class VM_SysCall implements Uninterruptible {
 
   // time
   public static long sysGetTimeOfDay() { return 0; }
+  public static void sysNanosleep(long howLongNanos) {}
 
   // shared libraries
   public static Address sysDlopen(byte[] libname) { return null; }

@@ -308,6 +308,7 @@ public class VM_BootRecord {
 
   // time
   Address sysGetTimeOfDayIP;
+  Address sysNanosleepIP;
 
   // shared libraries
   Address sysDlopenIP;
