@@ -150,7 +150,6 @@ implements OPT_Operators, OPT_Constants {
    * </ul>
    */
   private void prepare () {
-    if (ir.options.PRUNED_SSA) {
       live = new OPT_LiveAnalysis(false, // don't create GC maps
                                   true,  // skip (final) local propagation step
                                   // of live analysis
@@ -158,11 +157,6 @@ implements OPT_Operators, OPT_Constants {
                                   ir.desiredSSAOptions.getExcludeGuards());
       // don't skip guards 
       live.perform(ir);
-    } 
-    else if (ir.options.SEMI_PRUNED_SSA) {
-      computeNonLocals();
-    }
-    // minimal SSA needs no preparation
   }
 
   /**
@@ -218,7 +212,7 @@ implements OPT_Operators, OPT_Constants {
           // void calls and the like... :(
           if (v != null) {
             OPT_Register orig = v.register;
-            if (ir.options.PRUNED_SSA) {
+            {
               OPT_BasicBlockEnumeration out = 
                 block.getApplicableExceptionalOut(pei);
               while (out.hasMoreElements()) {
@@ -230,12 +224,6 @@ implements OPT_Operators, OPT_Constants {
                 }
               }
             } 
-            else if (ir.options.SEMI_PRUNED_SSA) {
-              if (nonLocalRegisters.contains(orig))
-                copyNeeded = true;
-            } 
-            else                // MINIMAL_SSA
-              copyNeeded = true;
             if (copyNeeded) {
               boolean copyRequested = false;
               OPT_BasicBlockEnumeration out = 
@@ -260,24 +248,17 @@ implements OPT_Operators, OPT_Constants {
       OPT_Register temp = ir.regpool.getReg(register);
       inBlock.prependInstruction(OPT_SSA.makeMoveInstruction(ir, register, 
                                                              temp, type));
-      if (ir.options.PRUNED_SSA) {
-        OPT_LiveAnalysis.BBLiveElement inl = live.getLiveInfo(inBlock);
-        inl.gen().add(new OPT_RegisterOperand(temp, type));
-        inl.in().add(new OPT_RegisterOperand(temp, type));
-      } 
-      else if (ir.options.SEMI_PRUNED_SSA) {
-        nonLocalRegisters.add(temp);
-      }
+      OPT_LiveAnalysis.BBLiveElement inl = live.getLiveInfo(inBlock);
+      inl.gen().add(new OPT_RegisterOperand(temp, type));
+      inl.in().add(new OPT_RegisterOperand(temp, type));
       OPT_BasicBlockEnumeration outBlocks = inBlock.getIn();
       while (outBlocks.hasMoreElements()) {
         OPT_BasicBlock outBlock = outBlocks.next();
         OPT_Instruction x = OPT_SSA.makeMoveInstruction(ir, temp, register, 
                                                         type);
         OPT_SSA.addAtEnd(ir, outBlock, x, true);
-        if (ir.options.PRUNED_SSA) {
-          OPT_LiveAnalysis.BBLiveElement ol = live.getLiveInfo(outBlock);
-          ol.BBKillSet().add(new OPT_RegisterOperand(temp, type));
-        }
+        OPT_LiveAnalysis.BBLiveElement ol = live.getLiveInfo(outBlock);
+        ol.BBKillSet().add(new OPT_RegisterOperand(temp, type));
       }
     }
   }
@@ -556,26 +537,10 @@ implements OPT_Operators, OPT_Constants {
       removePhisThatDominateAllDefs(needsPhi, ir, defs[r]);
       if (DEBUG) System.out.println("Done.");
 
-      if (ir.options.PRUNED_SSA) {
-        for (int b = 0; b < needsPhi.length(); b++) {
-          if (needsPhi.get(b)) {
-            OPT_BasicBlock bb = ir.getBasicBlock(b);
-            if (live.getLiveInfo(bb).in().contains(symbolics[r]))
-              insertPhi(bb, symbolics[r]);
-          }
-        }
-      } else if (ir.options.SEMI_PRUNED_SSA) {
-        if (nonLocalRegisters.contains(symbolics[r])) {
-          for (int b = 0; b < needsPhi.length(); b++) {
-            OPT_BasicBlock bb = ir.getBasicBlock(b);
-            if (needsPhi.get(b))
-              insertPhi(bb, symbolics[r]);
-          }
-        }
-      } else { // ir.options.MINIMAL_SSA
-        for (int b = 0; b < needsPhi.length(); b++) {
+      for (int b = 0; b < needsPhi.length(); b++) {
+        if (needsPhi.get(b)) {
           OPT_BasicBlock bb = ir.getBasicBlock(b);
-          if (needsPhi.get(b))
+          if (live.getLiveInfo(bb).in().contains(symbolics[r]))
             insertPhi(bb, symbolics[r]);
         }
       }

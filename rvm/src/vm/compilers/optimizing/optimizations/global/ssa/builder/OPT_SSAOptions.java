@@ -19,9 +19,6 @@ public class OPT_SSAOptions {
   /**
    * options for SSA construction
    */
-  final static int MINIMAL = 0;
-  final static int PRUNED = 1;
-  final static int SEMI_PRUNED = 2;
   private boolean scalarsOnly;        // construct SSA only for scalars?
   private boolean backwards;          // construct Heap SSA for backwards 
   // analysis?
