@@ -40,7 +40,22 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final boolean REF_COUNT_CYCLE_DETECTION = true;
   public static final boolean SUPPORTS_PARALLEL_GC = false;
 
-  private static final boolean INLINE_WRITE_BARRIER = false;
+  /**
+   * Decide whether to track incs/decs using the slot remembering
+   * technique by Levanoni and Petrank. Slot remembering is
+   * implemented at object-level granularity.
+   *
+   * <p> See Yossi Levanoni and Erez Petrank. <b>A scalable reference
+   * counting garbage collector</b>. Technical Report CS-0967,
+   * Technion - Israel Institute of Technology, Haifa, Israel,
+   * November 1999
+   * 
+   * <p> The paper is available from <a
+   * href="http://citeseer.nj.nec.com/levanoni99scalable.html">Citeseer</a>
+   */
+  public static final boolean WITH_COALESCING_RC = true;
+   
+  private static final boolean INLINE_WRITE_BARRIER = WITH_COALESCING_RC;
 
   // virtual memory resources
   private static FreeListVMResource losVM;
@@ -55,6 +70,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // shared queues
   private static SharedDeque decPool;
   private static SharedDeque newRootPool;
+  private static SharedDeque modPool; // only used with coalescing RC
 
   // GC state
   private static int required;  // how many pages must this GC yeild?
@@ -96,10 +112,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // queues (buffers)
   private AddressDeque decBuffer;
   private AddressDeque newRootSet;
+  private AddressDeque modBuffer; // only used with coalescing RC
 
   // enumerators
   RCDecEnumerator decEnum;
   RCSanityEnumerator  sanityEnum;
+  private RCModifiedEnumerator modEnum; // only used with coalescing RC
 
   /****************************************************************************
    *
@@ -129,6 +147,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     decPool.newClient();
     newRootPool = new SharedDeque(metaDataRPA, 1);
     newRootPool.newClient();
+    if (WITH_COALESCING_RC) {
+      modPool = new SharedDeque(metaDataRPA, 1);
+      modPool.newClient();
+    }
   }
 
   /**
@@ -137,9 +159,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public Plan() {
     decBuffer = new AddressDeque("dec buf", decPool);
     newRootSet = new AddressDeque("new root set", newRootPool);
+    if (WITH_COALESCING_RC) modBuffer = new AddressDeque("mod buf", modPool);
     los = new RefCountLOSLocal(losVM, rcMR);
     rc = new RefCountLocal(rcSpace, this, los, decBuffer, newRootSet);
     decEnum = new RCDecEnumerator(this);
+    if (WITH_COALESCING_RC) modEnum = new RCModifiedEnumerator(this);
     if (RefCountSpace.RC_SANITY_CHECK) sanityEnum = new RCSanityEnumerator(rc);
   }
 
@@ -200,11 +224,16 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     switch (allocator) {
     case RC_SPACE: 
     case LOS_SPACE: 
+      if (WITH_COALESCING_RC) modBuffer.pushOOL(ref);
       decBuffer.pushOOL(VM_Magic.objectAsAddress(ref));
       if (RefCountSpace.RC_SANITY_CHECK) RefCountLocal.sanityAllocCount(); 
       return;
     case IMMORTAL_SPACE: 
-      ImmortalSpace.postAlloc(ref); return;
+      if (WITH_COALESCING_RC) 
+	modBuffer.pushOOL(ref);
+      else
+	ImmortalSpace.postAlloc(ref);
+      return;
     default: if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator"); return;
     }
   }
@@ -375,6 +404,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected final void threadLocalPrepare(int count) {
     rc.prepare(Options.verboseTiming && count==1);
+    if (WITH_COALESCING_RC)
+      processModBufs();    
   }
 
   /**
@@ -427,6 +458,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    *
    * Object processing and tracing
    */
+  
+  /**
+   * Flush any remembered sets pertaining to the current collection.
+   */
+  protected final void flushRememberedSets() {
+    if (WITH_COALESCING_RC) processModBufs();
+  }
+  
+  
 
   /**
    * Trace a reference during GC.  In this case we do nothing.  We
@@ -660,15 +700,21 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 				  VM_Address tgt) 
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
-    VM_Address old;
-    do {
-      old = VM_Magic.prepareAddress(src, 0);
-    } while (!VM_Magic.attemptAddress(src, 0, old, tgt));
-
-    if (old.GE(RC_START))
-      decBuffer.pushOOL(old);
-    if (tgt.GE(RC_START))
-      RCBaseHeader.incRCOOL(tgt);
+    if (WITH_COALESCING_RC) {
+      if (Header.logRequired(obj)) {
+	coalescingWriteBarrierSlow(obj);
+      }
+      VM_Magic.setMemoryAddress(src, tgt);
+    } else {      
+      VM_Address old;
+      do {
+	old = VM_Magic.prepareAddress(src, 0);
+      } while (!VM_Magic.attemptAddress(src, 0, old, tgt));
+      if (old.GE(RC_START))
+	decBuffer.pushOOL(old);
+      if (tgt.GE(RC_START))
+	RCBaseHeader.incRCOOL(tgt);
+    }
   }
 
   /**
@@ -684,16 +730,45 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 				     VM_Address tgt) 
     throws VM_PragmaNoInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
-    VM_Address old;
-    do {
-      old = VM_Magic.prepareAddress(src, 0);
-    } while (!VM_Magic.attemptAddress(src, 0, old, tgt));
-
-    if (old.GE(RC_START))
-      decBuffer.push(old);
-    if (tgt.GE(RC_START))
-      RCBaseHeader.incRC(tgt);
+    if (WITH_COALESCING_RC) {
+      if (Header.logRequired(obj)) {
+	coalescingWriteBarrierSlow(obj);
+      }
+      VM_Magic.setMemoryAddress(src, tgt);
+    } else {
+      VM_Address old;
+      do {
+	old = VM_Magic.prepareAddress(src, 0);
+      } while (!VM_Magic.attemptAddress(src, 0, old, tgt));
+      if (old.GE(RC_START))
+	decBuffer.push(old);
+      if (tgt.GE(RC_START))
+	RCBaseHeader.incRC(tgt);
+    }
   }
+
+  /**
+   * Slow path of the coalescing write barrier.
+   *
+   * <p> Attempt to log the source object. If successful in racing for
+   * the log bit, push an entry into the modified buffer and add a
+   * decrement buffer entry for each referent object (in the RC space)
+   * before setting the header bit to indicate that it has finished
+   * logging (allowing others in the race to continue).
+   *
+   * @param srcObj The object being mutated
+   */
+  private final void coalescingWriteBarrierSlow(VM_Address srcObj) 
+    throws VM_PragmaNoInline {
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(WITH_COALESCING_RC);
+    if (Header.attemptToLog(srcObj)) {
+      modBuffer.push(srcObj);
+      ScanObject.enumeratePointers(srcObj, decEnum);
+      Header.makeLogged(srcObj);
+    }
+  }
+
 
   /****************************************************************************
    *
@@ -714,6 +789,26 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address object = VM_Magic.getMemoryAddress(objLoc);
     if (isRCObject(object))
       decBuffer.push(object);
+  }
+
+  /**
+   * A field of an object in the modified buffer is being enumerated
+   * by ScanObject. If the field points to the RC space, increment the
+   * count of the referent object.
+   *
+   * @param objLoc The address of a reference field with an object
+   * being enumerated.
+   */
+  final void enumerateModifiedPointerLocation(VM_Address objLoc)
+    throws VM_PragmaInline {
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(WITH_COALESCING_RC);
+    VM_Address object = VM_Magic.getMemoryAddress(objLoc);
+    if (!object.isZero()) {
+      VM_Address addr = VM_Interface.refToAddress(object);
+      if (addr.GE(RC_START))
+       	RCBaseHeader.incRC(object);
+    }
   }
 
 
@@ -792,6 +887,20 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     newRootSet.push(root);
   }
 
+  /**
+   * Process the modified object buffers, enumerating the fields of
+   * each object, generating an increment for each referent object.
+   */
+  private final void processModBufs() {
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(WITH_COALESCING_RC);
+    modBuffer.flushLocal();
+    VM_Address obj = VM_Address.zero();
+    while (!(obj = modBuffer.pop()).isZero()) {
+      Header.makeUnlogged(obj);
+      ScanObject.enumeratePointers(obj, modEnum);
+    }
+  }
 
   /****************************************************************************
    *
