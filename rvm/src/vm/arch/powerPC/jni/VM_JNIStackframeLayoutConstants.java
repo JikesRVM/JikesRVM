@@ -46,38 +46,13 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
   //-#endif
 
   //-#if RVM_FOR_LINUX || RVM_FOR_OSX
-  // LINUX saves prologue address in lr slot of glue frame (1), see picture blow
+  // LINUX saves prologue address in lr slot of glue frame (1), see the picture
+  // in VM_JNICompiler
   public static final int JNI_GC_FLAG_OFFSET                = JNI_OS_PARAMETER_REGISTER_OFFSET + JNI_OS_PARAMETER_REGISTER_SIZE;
   public static final int JNI_MINI_FRAME_POINTER_OFFSET     = 
     VM_Memory.alignUp(JNI_GC_FLAG_OFFSET + STACKFRAME_HEADER_SIZE, STACKFRAME_ALIGNMENT);
 
   public static final int JNI_SAVE_AREA_SIZE = JNI_MINI_FRAME_POINTER_OFFSET;
-  // Linux uses different transition scheme, in Java-to-Native transition
-  // stackframe, it has two mini frames. Comparing to AIX transition frame,
-  // Linux version inserts a RVM frame header right above JNI_SAVE_AREA
-  //
-  //   |------------|
-  //   | fp         | <- Java to C glue frame (2)
-  //   | lr         |
-  //   | 0          | <- spill area, see VM_Compiler.getFrameSize
-  //   | 1          |
-  //   |.......     |
-  //   |------------| 
-  //   | fp         | <- Java to C glue frame (1)
-  //   | cmid       | 
-  //   | lr         |
-  //   | padding    |
-  //   | GC flag    |
-  //   | Affinity   |
-  //   | ........   |
-  //   |------------| 
-  //   | fp         | <- Java caller frame
-  //   | mid        |
-  //
-  // VM_Runtime.unwindNativeStackFrame will return a pointer to glue frame (1)
-  // lr slot of frame (2) holds out of line machine code which should be in 
-  // bootimage, I believe GC won't move that part. JNIGCIterator would 
-  // return lr or frame (2) as the result of getReturnAddressAddress
   //-#endif
   
   /////////////////////////////////////////////////////////
