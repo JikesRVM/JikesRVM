@@ -78,7 +78,7 @@ to make callbacks that when executed will place a marker record in the trace fil
 When the trace file is processed, the marker records allow the
 programmer to focus on portions of the execution.
 Jikes RVM uses this mechanism to open the trace files
-when the RVM starts executing and close the files when it exists.
+when the it starts executing and close the files when it exits.
 The AppStart, AppComplete, AppRunStart, and AppRunComplete monitors
 are supported for application use.  
 Support for other callbacks can be easily added following the current design.
