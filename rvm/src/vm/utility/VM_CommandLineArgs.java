@@ -10,6 +10,9 @@
  * @modified Igor Pechtchanski
  *      Arbitrary prefix support
  */
+import MM.VM_GCWorkQueue;
+import MM.VM_Collector;
+
 class VM_CommandLineArgs { 
   private static final boolean DEBUG = false;
 

@@ -7,7 +7,14 @@
  * @author Dick Attanasio
  * @author Stephen Smith
  */
-interface VM_GCConstants {
+package MM;
+
+import VM;
+import VM_Constants;
+import VM_Address;
+import VM_JavaHeader;
+
+public interface VM_GCConstants {
 
   static final int WORDSIZE = 4;
   static final int LG_WORDSIZE = 2;

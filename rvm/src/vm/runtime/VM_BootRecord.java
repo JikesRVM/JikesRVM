@@ -99,21 +99,21 @@ public class VM_BootRecord {
   /**
    * address at which image is to be loaded into memory
    */
-  VM_Address bootImageStart;
-  VM_Address bootImageEnd;
+  public VM_Address bootImageStart;
+  public VM_Address bootImageEnd;
 
   /**
    * size of various spaces in bytes
    */
-  int smallSpaceSize; 	    // Always present
-  int largeSpaceSize; 	    // Almost always present
-  int nurserySize;          // Present in generational collectors
+  public int smallSpaceSize; 	    // Always present
+  public int largeSpaceSize; 	    // Almost always present
+  public int nurserySize;          // Present in generational collectors
 
   // int[] should be VM_Address[] but compiler erroneously emits barriers
-  int [] heapRanges;         // [start1, end1, ..., start_k, end_k, -1, -1]
+  public int [] heapRanges;         // [start1, end1, ..., start_k, end_k, -1, -1]
                              // C-style termination with sentinel values
 
-  int verboseGC;             // GC verbosity level 
+  public int verboseGC;             // GC verbosity level 
 
   // Relocation not supported
   //
@@ -197,66 +197,66 @@ public class VM_BootRecord {
   //-#endif
 
   // startup/shutdown
-  int sysWriteCharIP;    
-  int sysWriteIP;            
-  int sysWriteLongIP;
-  int sysExitIP;                     
-  int sysArgIP;
+  public int sysWriteCharIP;    
+  public int sysWriteIP;            
+  public int sysWriteLongIP;
+  public int sysExitIP;                     
+  public int sysArgIP;
 
   // memory
-  int sysCopyIP;         
-  int sysFillIP;
-  int sysMallocIP;
-  int sysFreeIP;
-  int sysZeroIP;
-  int sysZeroPagesIP;
-  int sysSyncCacheIP;
+  public int sysCopyIP;         
+  public int sysFillIP;
+  public int sysMallocIP;
+  public int sysFreeIP;
+  public int sysZeroIP;
+  public int sysZeroPagesIP;
+  public int sysSyncCacheIP;
 
   // files
-  int sysStatIP;         
-  int sysListIP;
-  int sysOpenIP;                
-  int sysReadByteIP;            
-  int sysWriteByteIP;
-  int sysReadBytesIP;
-  int sysWriteBytesIP;
-  int sysSeekIP;
-  int sysCloseIP;
-  int sysDeleteIP;
-  int sysRenameIP;
-  int sysMkDirIP;
-  int sysBytesAvailableIP;
-  int sysSyncFileIP;
+  public int sysStatIP;         
+  public int sysListIP;
+  public int sysOpenIP;                
+  public int sysReadByteIP;            
+  public int sysWriteByteIP;
+  public int sysReadBytesIP;
+  public int sysWriteBytesIP;
+  public int sysSeekIP;
+  public int sysCloseIP;
+  public int sysDeleteIP;
+  public int sysRenameIP;
+  public int sysMkDirIP;
+  public int sysBytesAvailableIP;
+  public int sysSyncFileIP;
 
   // shm* - memory mapping
-  int sysShmgetIP;
-  int sysShmctlIP;
-  int sysShmatIP;
-  int sysShmdtIP;
+  public int sysShmgetIP;
+  public int sysShmctlIP;
+  public int sysShmatIP;
+  public int sysShmdtIP;
 
   // mmap - memory mapping
-  int sysMMapIP;
-  int sysMMapNonFileIP;
-  int sysMMapGeneralFileIP;
-  int sysMMapDemandZeroFixedIP;
-  int sysMMapDemandZeroAnyIP;
-  int sysMUnmapIP;
-  int sysMProtectIP;
-  int sysMSyncIP;
-  int sysMAdviseIP;
-  int sysGetPageSizeIP;
+  public int sysMMapIP;
+  public int sysMMapNonFileIP;
+  public int sysMMapGeneralFileIP;
+  public int sysMMapDemandZeroFixedIP;
+  public int sysMMapDemandZeroAnyIP;
+  public int sysMUnmapIP;
+  public int sysMProtectIP;
+  public int sysMSyncIP;
+  public int sysMAdviseIP;
+  public int sysGetPageSizeIP;
 
   // threads
-  int sysNumProcessorsIP;
-  int sysVirtualProcessorCreateIP;
-  int sysVirtualProcessorBindIP;
-  int sysVirtualProcessorYieldIP;
-  int sysVirtualProcessorEnableTimeSlicingIP;
-  int sysPthreadSelfIP;
-  int sysPthreadSigWaitIP;
-  int sysPthreadSignalIP;
-  int sysPthreadExitIP;
-  int sysPthreadJoinIP;
+  public int sysNumProcessorsIP;
+  public int sysVirtualProcessorCreateIP;
+  public int sysVirtualProcessorBindIP;
+  public int sysVirtualProcessorYieldIP;
+  public int sysVirtualProcessorEnableTimeSlicingIP;
+  public int sysPthreadSelfIP;
+  public int sysPthreadSigWaitIP;
+  public int sysPthreadSignalIP;
+  public int sysPthreadExitIP;
+  public int sysPthreadJoinIP;
 
   // arithmetic 
   int sysLongDivideIP;

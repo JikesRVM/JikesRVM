@@ -16,7 +16,17 @@
  * 
  * @see OPT_ExpandRuntimeServices (logic to inline this code)
  */
-class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
+package MM;
+
+import VM_Constants;
+import VM_PragmaUninterruptible;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_Processor;
+import VM_Magic;
+import VM_Address;
+
+public class VM_WriteBarrier implements VM_Constants {
 
   /**
    * This method is inlined to implement the write barrier for aastores
@@ -25,7 +35,8 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
    * @param index The array index being stored into.  NOTE: This is the "natural" index; a[3] will pass 3.
    * @param value The value being stored
    */
-  static void arrayStoreWriteBarrier(Object ref, int index, Object value) {
+  public static void arrayStoreWriteBarrier(Object ref, int index, Object value) 
+    throws VM_PragmaUninterruptible {
     internalWriteBarrier(ref);
   }
 
@@ -36,7 +47,8 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
    * @param offset The offset being stored into.  NOTE: This is in bytes.
    * @param value  The value being stored
    */
-  static void resolvedPutfieldWriteBarrier(Object ref, int offset, Object value) {
+  public static void resolvedPutfieldWriteBarrier(Object ref, int offset, Object value) 
+    throws VM_PragmaUninterruptible {
     internalWriteBarrier(ref);
   }
 
@@ -47,7 +59,8 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
    * @param fid   The field id that is being stored into.
    * @param value The value being stored
    */
-  static void unresolvedPutfieldWriteBarrier(Object ref, int fid, Object value) {
+  public static void unresolvedPutfieldWriteBarrier(Object ref, int fid, Object value) 
+      throws VM_PragmaUninterruptible {
     internalWriteBarrier(ref);
   }
 
@@ -57,7 +70,8 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
    * @param fieldOffset  The offset of static field ( from JTOC)
    * @param value        The value being stored
    */
-  static void resolvedPutStaticWriteBarrier(int fieldOffset, Object value) {
+  public static void resolvedPutStaticWriteBarrier(int fieldOffset, Object value) 
+    throws VM_PragmaUninterruptible {
     // currently there is no write barrier for statics, all statics are
     // scanned during each collection - a design decision
   }
@@ -68,7 +82,8 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
    * @param fieldId  The field id that is being stored into.
    * @param value    The value being stored
    */
-  static void unresolvedPutStaticWriteBarrier(int fieldId, Object value) {
+  public static void unresolvedPutStaticWriteBarrier(int fieldId, Object value) 
+    throws VM_PragmaUninterruptible {
     // currently there is no write barrier for statics, all statics are
     // scanned during each collection - a design decision
   }
@@ -78,7 +93,8 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
    * generates the same sequence in all cases and only uses the ref parameter.
    * So, we share an internal implementation method...
    */
-  private static void internalWriteBarrier(Object ref) throws VM_PragmaInline {
+  private static void internalWriteBarrier(Object ref) 
+      throws VM_PragmaInline, VM_PragmaUninterruptible {
     // force internal method to be inlined when compiled by Opt
     if (VM_AllocatorHeader.testBarrierBit(ref)) {
       doWriteBarrierInsertion(ref);
@@ -90,7 +106,8 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
    * Put out of line due to Steve Blackburn et al experience that
    * outlining the uncommon case yields the best performance.
    */
-  private static void doWriteBarrierInsertion(Object ref) throws VM_PragmaNoInline {
+  private static void doWriteBarrierInsertion(Object ref) 
+      throws VM_PragmaNoInline, VM_PragmaUninterruptible  {
 
     // (1) mark reference as being in the write buffer 
     VM_AllocatorHeader.clearBarrierBit(ref);
@@ -119,8 +136,9 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
    * @param end The last "natural" index into the array
    * @see VM_Array
    */
-  public static final void arrayCopyWriteBarrier(Object ref, int start, 
-						 int end) {
-    internalWriteBarrier(ref);
+  public static final void arrayCopyWriteBarrier(Object ref, int start, int end) 
+      throws VM_PragmaUninterruptible {
+      internalWriteBarrier(ref);
   }
+
 }

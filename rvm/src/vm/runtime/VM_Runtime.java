@@ -41,6 +41,11 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
+import MM.VM_Collector;
+import MM.VM_Allocator;
+import MM.VM_Finalizer;
+import MM.VM_Heap;
+
 public class VM_Runtime implements VM_Constants {
    
   // Trap codes for communication with C trap handler.

@@ -15,12 +15,38 @@
  * @author Steve Fink
  * @author Dave Grove
  */
+package MM;
+
+import VM;
+import VM_Constants;
+import VM_Address;
+import VM_Magic;
+import VM_ObjectModel;
+import VM_ClassLoader;
+import VM_SystemClassLoader;
+import VM_Atom;
+import VM_Type;
+import VM_Class;
+import VM_Array;
+import VM_Method;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_PragmaUninterruptible;
+import VM_PragmaLogicallyUninterruptible;
+import VM_Scheduler;
+import VM_Memory;
+import VM_Time;
+import VM_Entrypoints;
+import VM_Reflection;
+import VM_Synchronization;
+import VM_Synchronizer;
+import VM_EventLogger;
+
 public class VM_CommonAllocatorHeader 
-  implements VM_Uninterruptible,
-	     VM_AllocatorHeaderConstants {
+  implements VM_AllocatorHeaderConstants {
   
-  static final int GC_MARK_BIT_MASK    = 0x1;
-  static final int GC_BARRIER_BIT_MASK = (1 << GC_BARRIER_BIT_IDX);
+  public static final int GC_MARK_BIT_MASK    = 0x1;
+  public static final int GC_BARRIER_BIT_MASK = (1 << GC_BARRIER_BIT_IDX);
 
   /*
    * Barrier Bit -- only used when VM_Allocator.NEEDS_WRITE_BARRIER.
@@ -29,14 +55,14 @@ public class VM_CommonAllocatorHeader
   /**
    * test to see if the barrier bit is set
    */
-  static boolean testBarrierBit(Object ref) {
+  static boolean testBarrierBit(Object ref) throws VM_PragmaUninterruptible {
     return VM_ObjectModel.testAvailableBit(ref, GC_BARRIER_BIT_IDX);
   }
 
   /**
    * clear the barrier bit (indicates that object is in write buffer)
    */
-  static void clearBarrierBit(Object ref) {
+  static void clearBarrierBit(Object ref) throws VM_PragmaUninterruptible {
     VM_ObjectModel.setAvailableBit(ref, GC_BARRIER_BIT_IDX, false);
   }
 
@@ -44,7 +70,7 @@ public class VM_CommonAllocatorHeader
    * set the barrier bit (indicates that object needs to be put in write buffer
    * if a reference is stored into it).
    */
-  static void setBarrierBit(Object ref) {
+  static void setBarrierBit(Object ref) throws VM_PragmaUninterruptible {
     VM_ObjectModel.setAvailableBit(ref, GC_BARRIER_BIT_IDX, true);
   }
 
@@ -52,14 +78,14 @@ public class VM_CommonAllocatorHeader
   /**
    * test to see if the mark bit has the given value
    */
-  static boolean testMarkBit(Object ref, int value) {
+  static boolean testMarkBit(Object ref, int value) throws VM_PragmaUninterruptible {
     return (VM_ObjectModel.readAvailableBitsWord(ref) & value) != 0;
   }
 
   /**
    * write the given value in the mark bit.
    */
-  static void writeMarkBit(Object ref, int value) {
+  static void writeMarkBit(Object ref, int value) throws VM_PragmaUninterruptible {
     int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
     VM_ObjectModel.writeAvailableBitsWord(ref, newValue);
@@ -68,7 +94,7 @@ public class VM_CommonAllocatorHeader
   /**
    * atomically write the given value in the mark bit.
    */
-  static void atomicWriteMarkBit(Object ref, int value) {
+  static void atomicWriteMarkBit(Object ref, int value) throws VM_PragmaUninterruptible {
     while (true) {
       int oldValue = VM_ObjectModel.prepareAvailableBits(ref);
       int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
@@ -79,7 +105,7 @@ public class VM_CommonAllocatorHeader
   /**
    * used to mark boot image objects during a parallel scan of objects during GC
    */
-  static boolean testAndMark(Object ref, int value) {
+  static boolean testAndMark(Object ref, int value) throws VM_PragmaUninterruptible {
     int oldValue;
     do {
       oldValue = VM_ObjectModel.prepareAvailableBits(ref);
@@ -101,7 +127,7 @@ public class VM_CommonAllocatorHeader
    * if the object is already forwarded (or being forwarded)
    * or write the bit pattern that indicates that the object is being forwarded
    */
-  static int attemptToForward(Object base) throws VM_PragmaInline {
+  static int attemptToForward(Object base) throws VM_PragmaInline, VM_PragmaUninterruptible {
     int oldValue;
     do {
       oldValue = VM_ObjectModel.prepareAvailableBits(base);
@@ -113,49 +139,49 @@ public class VM_CommonAllocatorHeader
   /**
    * Non-atomic read of forwarding pointer word
    */
-  static int getForwardingWord(Object base) {
+  static int getForwardingWord(Object base) throws VM_PragmaUninterruptible {
     return VM_ObjectModel.readAvailableBitsWord(base);
   }
 
   /**
    * Has the object been forwarded?
    */
-  static boolean isForwarded(Object base) {
+  static boolean isForwarded(Object base) throws VM_PragmaUninterruptible {
     return stateIsForwarded(getForwardingWord(base));
   }
 
   /**
    * Has the object been forwarded?
    */
-  static boolean isBeingForwarded(Object base) {
+  static boolean isBeingForwarded(Object base) throws VM_PragmaUninterruptible {
     return stateIsBeingForwarded(getForwardingWord(base));
   }
 
   /**
    * is the state of the forwarding word forwarded?
    */
-  static boolean stateIsForwarded(int fw) {
+  static boolean stateIsForwarded(int fw) throws VM_PragmaUninterruptible {
     return (fw & GC_FORWARDING_MASK) == GC_FORWARDED;
   }
 
   /**
    * is the state of the forwarding word being forwarded?
    */
-  static boolean stateIsBeingForwarded(int fw) {
+  static boolean stateIsBeingForwarded(int fw) throws VM_PragmaUninterruptible {
     return (fw & GC_FORWARDING_MASK) == GC_BEING_FORWARDED;
   }
 
   /**
    * is the state of the forwarding word being forwarded?
    */
-  static boolean stateIsForwardedOrBeingForwarded(int fw) {
+  static boolean stateIsForwardedOrBeingForwarded(int fw) throws VM_PragmaUninterruptible {
     return (fw & GC_FORWARDED) != 0;
   }
 
   /**
    * Non-atomic read of forwarding pointer word
    */
-  static Object getForwardingPointer(Object base) {
+  static Object getForwardingPointer(Object base) throws VM_PragmaUninterruptible {
     int forwarded = getForwardingWord(base);
     return VM_Magic.addressAsObject(VM_Address.fromInt(forwarded & ~GC_FORWARDING_MASK));
   }
@@ -165,7 +191,7 @@ public class VM_CommonAllocatorHeader
    * (assumption, thread doing the set has done attempt to forward
    *  and owns the right to copy the object)
    */
-  static void setForwardingPointer(Object base, Object ptr) {
+  static void setForwardingPointer(Object base, Object ptr) throws VM_PragmaUninterruptible {
     VM_ObjectModel.writeAvailableBitsWord(base, VM_Magic.objectAsAddress(ptr).toInt() | GC_FORWARDED);
   }
 }

@@ -13,6 +13,8 @@ import java.lang.reflect.*;
  * @author Ton Ngo
  * @author Steve Smith 
  */
+import MM.VM_GCUtil;
+
 public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConstants {
 
   private static boolean initialized = false;
@@ -50,7 +52,7 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
   int   JNIRefsTop;       // -> address of current top ref in JNIRefs array 
   int   JNIRefsMax;       // -> address of end (last entry) of JNIRefs array
   int   JNIRefsSavedFP;   // -> previous frame boundary in JNIRefs array
-  VM_Address JNITopJavaFP;     // -> Top java frame when in C frames on top of the stack
+  public VM_Address JNITopJavaFP;     // -> Top java frame when in C frames on top of the stack
 
   Throwable pendingException = null;
 

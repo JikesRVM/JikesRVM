@@ -24,7 +24,25 @@
  * @modified by Stephen Smith
  * @modified by anyone adding a new iterator
  */
-final class VM_GCMapIteratorGroup implements VM_Uninterruptible {
+package MM;
+
+import VM_Constants;
+import VM_CompiledMethod;
+import VM_BaselineGCMapIterator;
+//-#if RVM_WITH_OPT_COMPILER
+import VM_OptGCMapIterator;
+//-#endif
+import VM_JNIGCMapIterator;
+import VM_HardwareTrapGCMapIterator;
+import VM_Thread;
+import VM;
+import VM_Address;
+import VM_RuntimeCompiler;
+import VM_BootImageCompiler;
+import VM_Magic;
+import VM_PragmaUninterruptible;
+
+final class VM_GCMapIteratorGroup {
   
   /** current location (memory address) of each gpr register */
   private int[]                registerLocations;
@@ -48,7 +66,7 @@ final class VM_GCMapIteratorGroup implements VM_Uninterruptible {
   private VM_GCMapIterator     jniIterator;
   
   
-  VM_GCMapIteratorGroup() {
+  VM_GCMapIteratorGroup() throws VM_PragmaUninterruptible {
     registerLocations         = new int[VM_Constants.NUM_GPRS];
     
     bootImageCompilerIterator = VM_BootImageCompiler.createGCMapIterator(registerLocations);
@@ -78,7 +96,7 @@ final class VM_GCMapIteratorGroup implements VM_Uninterruptible {
    * <p>
    * @param thread  VM_Thread whose registers and stack are to be scanned
    */
-  void newStackWalk(VM_Thread thread) {
+  void newStackWalk(VM_Thread thread) throws VM_PragmaUninterruptible {
     VM_Address registerLocation = VM_Magic.objectAsAddress(thread.contextRegisters.gprs);
     for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
       registerLocations[i] = registerLocation.toInt();
@@ -101,7 +119,7 @@ final class VM_GCMapIteratorGroup implements VM_Uninterruptible {
    *
    * @return VM_GCMapIterator to use
    */
-  VM_GCMapIterator selectIterator(VM_CompiledMethod compiledMethod) {
+  VM_GCMapIterator selectIterator(VM_CompiledMethod compiledMethod) throws VM_PragmaUninterruptible {
     int type = compiledMethod.getCompilerType();
     
     if (type == bootImageCompilerIterator.getType())
@@ -131,7 +149,7 @@ final class VM_GCMapIteratorGroup implements VM_Uninterruptible {
    *
    * @return jniIterator
    */
-  VM_GCMapIterator getJniIterator() {
+  VM_GCMapIterator getJniIterator() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(jniIterator!=null);
     return jniIterator;  
   }

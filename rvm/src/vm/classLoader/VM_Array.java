@@ -15,6 +15,9 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
+import MM.VM_Collector;
+import MM.VM_WriteBarrier;
+
 public final class VM_Array extends VM_Type
   implements VM_Constants, VM_ClassLoaderConstants  {
 
@@ -170,7 +173,7 @@ public final class VM_Array extends VM_Type
    * @param atype array type number (see "newarray" bytecode description in Java VM Specification)
    * @return array description
    */
-  static VM_Array getPrimitiveArrayType(int atype) {
+  public static VM_Array getPrimitiveArrayType(int atype) {
     switch (atype)
       {
       case  4: 
@@ -497,14 +500,14 @@ public final class VM_Array extends VM_Type
   }
    
   private static Object[] javaLangObjectTIB;
-  static VM_Array arrayOfBooleanType;
-  static VM_Array arrayOfByteType;
-  static VM_Array arrayOfShortType;
-  static VM_Array arrayOfIntType;
-  static VM_Array arrayOfLongType;
-  static VM_Array arrayOfFloatType;
-  static VM_Array arrayOfDoubleType;
-  static VM_Array arrayOfCharType;
+  public static VM_Array arrayOfBooleanType;
+  public static VM_Array arrayOfByteType;
+  public static VM_Array arrayOfShortType;
+  public static VM_Array arrayOfIntType;
+  public static VM_Array arrayOfLongType;
+  public static VM_Array arrayOfFloatType;
+  public static VM_Array arrayOfDoubleType;
+  public static VM_Array arrayOfCharType;
 
   private VM_Type  elementType;
   private VM_Type  innermostElementType;

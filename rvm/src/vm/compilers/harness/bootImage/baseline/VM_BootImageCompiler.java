@@ -9,7 +9,9 @@
  * @author Dave Grove
  * @author Derek Lieber
  */
-class VM_BootImageCompiler {
+import MM.VM_GCMapIterator;
+
+public class VM_BootImageCompiler {
   /** Identity. */
   public static final int COMPILER_TYPE = VM_CompiledMethod.BASELINE;
 
@@ -33,7 +35,7 @@ class VM_BootImageCompiler {
    * @param method the method to compile
    * @return the compiled method
    */
-  static VM_CompiledMethod compile(VM_Method method) {
+  public static VM_CompiledMethod compile(VM_Method method) {
     VM_Callbacks.notifyMethodCompile(method, COMPILER_TYPE);
     return VM_BaselineCompiler.compile(method);
   }
@@ -41,7 +43,7 @@ class VM_BootImageCompiler {
   /**
    * Create stackframe mapper appropriate for this compiler.
    */
-  static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
+  public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
     return new VM_BaselineGCMapIterator(registerLocations);
   }
 }

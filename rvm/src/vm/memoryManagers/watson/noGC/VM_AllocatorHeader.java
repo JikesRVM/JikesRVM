@@ -12,8 +12,7 @@
  * @author Steve Fink
  * @author Dave Grove
  */
-public final class VM_AllocatorHeader extends VM_CommonAllocatorHeader
-  implements VM_Uninterruptible {
+public final class VM_AllocatorHeader extends VM_CommonAllocatorHeader {
 
   /**
    * Perform any required initialization of the GC portion of the header.
@@ -23,7 +22,7 @@ public final class VM_AllocatorHeader extends VM_CommonAllocatorHeader
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(Object ref, Object[] tib, int size, boolean isScalar) {
+  public static void initializeHeader(Object ref, Object[] tib, int size, boolean isScalar) throws VM_PragmaUninterruptible {
     // nothing to do (no bytes of GC header)
   }
 
@@ -37,7 +36,7 @@ public final class VM_AllocatorHeader extends VM_CommonAllocatorHeader
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeHeader(BootImageInterface bootImage, int ref, 
-				      Object[] tib, int size, boolean isScalar) {
+				      Object[] tib, int size, boolean isScalar) throws VM_PragmaUninterruptible {
     // nothing to do (no bytes of GC header)
   }
 
@@ -46,7 +45,7 @@ public final class VM_AllocatorHeader extends VM_CommonAllocatorHeader
    * Dump the header word(s) of the given object reference.
    * @param ref the object reference whose header should be dumped 
    */
-  public static void dumpHeader(Object ref) {
+  public static void dumpHeader(Object ref) throws VM_PragmaUninterruptible {
     // nothing to do (no bytes of GC header)
   }
 }

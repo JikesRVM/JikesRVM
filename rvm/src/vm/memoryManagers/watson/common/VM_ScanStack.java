@@ -10,7 +10,22 @@
  *
  * @author Stephen Smith
  */  
-public class VM_ScanStack implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
+package MM;
+
+import VM;
+import VM_Constants;
+import VM_Address;
+import VM_Processor;
+import VM_Method;
+import VM_CompiledMethod;
+import VM_CompiledMethods;
+import VM_Scheduler;
+import VM_Runtime;
+import VM_Magic;
+import VM_Thread;
+import VM_PragmaUninterruptible;
+
+public class VM_ScanStack implements VM_Constants, VM_GCConstants {
 
   // quietly validates each ref reported by map iterators
   static final boolean VALIDATE_STACK_REFS = true;
@@ -44,7 +59,7 @@ public class VM_ScanStack implements VM_Constants, VM_GCConstants, VM_Uninterrup
    * @param top_frame      address of stack frame at which to begin the scan
    * @param relocate_code  if true, relocate code & update return addresses
    */
-  static void scanStack(VM_Thread t, VM_Address top_frame, boolean relocate_code)  {
+  static void scanStack(VM_Thread t, VM_Address top_frame, boolean relocate_code)  throws VM_PragmaUninterruptible {
     VM_Address       ip, fp, code, newip, newcode, refaddr, prevFp;
     int                    delta;
     VM_Method              method;
@@ -331,7 +346,7 @@ public class VM_ScanStack implements VM_Constants, VM_GCConstants, VM_Uninterrup
   // dump contents of a stack frame. attempts to interpret each
   // word a an object reference
   //
-  static void dumpStackFrame(VM_Address fp, VM_Address prevFp ) {
+  static void dumpStackFrame(VM_Address fp, VM_Address prevFp ) throws VM_PragmaUninterruptible {
     VM_Address start,end;
 //-#if RVM_FOR_IA32
     if (prevFp.isZero()) {

@@ -44,8 +44,43 @@
  * 
  * @modified by Perry Cheng  Heavily re-written to factor out common code and adding VM_Address
  */  
+package MM;
+
+import VM;
+import VM_BootRecord;
+import VM_Constants;
+import VM_Address;
+import VM_Magic;
+import VM_ObjectModel;
+import VM_JavaHeader;
+import VM_ClassLoader;
+import VM_SystemClassLoader;
+import VM_Atom;
+import VM_Type;
+import VM_Class;
+import VM_Array;
+import VM_Method;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_PragmaInterruptible;
+import VM_PragmaUninterruptible;
+import VM_PragmaLogicallyUninterruptible;
+import VM_Processor;
+import VM_ProcessorLocalState;
+import VM_Scheduler;
+import VM_Registers;
+import VM_Thread;
+import VM_Memory;
+import VM_Time;
+import VM_Entrypoints;
+import VM_Reflection;
+import VM_Synchronization;
+import VM_Synchronizer;
+import VM_EventLogger;
+import VM_Callbacks;
+
 public class VM_Allocator extends VM_GCStatistics
-  implements VM_Constants, VM_Uninterruptible {
+  implements VM_Constants {
 
   /**
    * Initialize for boot image - executed when bootimage is being build
@@ -98,7 +133,7 @@ public class VM_Allocator extends VM_GCStatistics
     if (verbose >= 1) showParameter();
   }
 
-  static void showParameter() {
+  static void showParameter() throws VM_PragmaUninterruptible {
     VM.sysWriteln("Generational Hybrid Collector/Allocator (verbose = ", verbose, ")");
     bootHeap.show();
     immortalHeap.show();
@@ -112,14 +147,14 @@ public class VM_Allocator extends VM_GCStatistics
    * Force a garbage collection. Supports System.gc() called from
    * application programs.
    */
-  public static void gc ()  {
+  public static void gc ()  throws VM_PragmaUninterruptible {
     gc1("GC triggered by external call to gc()", 0);
   }
 
   /**
    * VM internal method to initiate a collection
    */
-  public static void gc1 (String why, int size) {
+  public static void gc1 (String why, int size) throws VM_PragmaUninterruptible {
     if (verbose >= 2) VM.sysWriteln(why, size);
 
     // if here and in a GC thread doing GC then it is a system error, insufficient
@@ -139,7 +174,7 @@ public class VM_Allocator extends VM_GCStatistics
    *
    * @return the number of bytes
    */
-  public static long totalMemory () {
+  public static long totalMemory () throws VM_PragmaUninterruptible {
     return smallHeap.size + largeHeap.size + nurseryHeap.size;
   }
   
@@ -151,7 +186,7 @@ public class VM_Allocator extends VM_GCStatistics
    *
    * @return number of bytes available
    */
-  public static long freeMemory () {
+  public static long freeMemory () throws VM_PragmaUninterruptible {
     return nurseryHeap.freeMemory() + smallHeap.freeMemory();
   }
 
@@ -159,11 +194,11 @@ public class VM_Allocator extends VM_GCStatistics
    * Includes freeMemory and per-processor local storage
    * and partial blocks in small heap.
    */
-  public static long allSmallFreeMemory () {
+  public static long allSmallFreeMemory () throws VM_PragmaUninterruptible {
     return freeMemory() + VM_Chunk.freeMemoryChunk1() + smallHeap.partialBlockFreeMemory();
   }
 
-  public static long allSmallUsableMemory () {
+  public static long allSmallUsableMemory () throws VM_PragmaUninterruptible {
     return nurseryHeap.getSize() + smallHeap.getSize();
   }
 
@@ -178,7 +213,7 @@ public class VM_Allocator extends VM_GCStatistics
    * @return the reference for the allocated object
    */
   public static Object allocateScalar(int size, Object[] tib)
-    throws OutOfMemoryError, VM_PragmaInline {
+    throws OutOfMemoryError, VM_PragmaInline, VM_PragmaUninterruptible {
 
     if (size >= SMALL_SPACE_MAX) {
       return largeHeap.allocateScalar(size, tib);
@@ -202,7 +237,7 @@ public class VM_Allocator extends VM_GCStatistics
    * @return the reference for the allocated array object 
    */
   public static Object allocateArray(int numElements, int size, Object[] tib)
-    throws OutOfMemoryError, VM_PragmaInline {
+    throws OutOfMemoryError, VM_PragmaInline, VM_PragmaUninterruptible {
 
     // note: array size might not be a word multiple,
     //       must preserve alignment of future allocations
@@ -223,14 +258,16 @@ public class VM_Allocator extends VM_GCStatistics
    * @param size number of bytes to allocate
    * @return the address of the first byte of the allocated zero-filled region
    */
-  private static VM_Address allocateRawMemory(int size) throws OutOfMemoryError, VM_PragmaInline {
+  private static VM_Address allocateRawMemory(int size) 
+      throws OutOfMemoryError, VM_PragmaInline, VM_PragmaUninterruptible {
     if (PROCESSOR_LOCAL_ALLOCATE) {
       return VM_Chunk.allocateChunk1(size);
     } else {
       return globalAllocateRawMemory(size);
     }
   }
-  private static VM_Address globalAllocateRawMemory(int size) throws VM_PragmaNoInline {
+  private static VM_Address globalAllocateRawMemory(int size) 
+      throws VM_PragmaNoInline, VM_PragmaUninterruptible  {
     for (int count = 0; true; count++) {
       VM_Address addr = nurseryHeap.allocateZeroedMemory(size);
       if (!addr.isZero()) {
@@ -248,7 +285,7 @@ public class VM_Allocator extends VM_GCStatistics
    * @param size number of bytes requested in the failing allocation
    * @param count the retry count for the failing allocation.
    */
-  public static void heapExhausted(VM_Heap heap, int size, int count) {
+  public static void heapExhausted(VM_Heap heap, int size, int count) throws VM_PragmaUninterruptible {
     if (heap == nurseryHeap) {
       if (count>3) VM_GCUtil.outOfMemory("nursery space", heap.getSize(), "-X:nh=nnn");
       gc1("GC triggered by object request of ", size);
@@ -286,7 +323,7 @@ public class VM_Allocator extends VM_GCStatistics
 
   private static VM_BootHeap bootHeap            = new VM_BootHeap();
   private static VM_ContiguousHeap nurseryHeap   = new VM_ContiguousHeap("Nursery Heap");
-          static VM_ImmortalHeap immortalHeap    = new VM_ImmortalHeap();
+  public  static VM_ImmortalHeap immortalHeap    = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap          = new VM_LargeHeap(immortalHeap);
   private static VM_MallocHeap mallocHeap        = new VM_MallocHeap();
   private static VM_SegregatedListHeap smallHeap = new VM_SegregatedListHeap("Small Object Heap", mallocHeap);
@@ -294,7 +331,7 @@ public class VM_Allocator extends VM_GCStatistics
   /**
   * getter function for gcInProgress
   */
-  static boolean gcInProgress() {
+  static boolean gcInProgress() throws VM_PragmaUninterruptible {
     return gcInProgress;
   }
 
@@ -305,7 +342,7 @@ public class VM_Allocator extends VM_GCStatistics
    *
    * @param numThreads   number of collector threads participating
    */
-  static void gcSetup (int numThreads) {
+  static void gcSetup (int numThreads) throws VM_PragmaUninterruptible {
     VM_GCWorkQueue.workQueue.initialSetup(numThreads);
 
     majorCollectionThreshold = nurseryHeap.size/GC_BLOCKSIZE + numThreads*GC_SIZES;
@@ -315,13 +352,13 @@ public class VM_Allocator extends VM_GCStatistics
    * gc_getMatureSpace is called during Minor (Nursery) collections to get space
    * for live Nursery objects being copied to Mature Space.
    */
-  public static VM_Address gc_getMatureSpace(int size) throws OutOfMemoryError {
+  public static VM_Address gc_getMatureSpace(int size) throws OutOfMemoryError, VM_PragmaUninterruptible {
     return VM_SegregatedListHeap.allocateFastPath(size);
   }
     
   // called by ONE gc/collector thread to copy any "new" thread objects
   // copies but does NOT enqueue for scanning
-  static void gc_copyThreads ()  {
+  static void gc_copyThreads ()  throws VM_PragmaUninterruptible {
     for (int i=0; i<VM_Scheduler.threads.length; i++ ) {
       VM_Thread t = VM_Scheduler.threads[i];
       VM_Address ta = VM_Magic.objectAsAddress(t);
@@ -339,7 +376,7 @@ public class VM_Allocator extends VM_GCStatistics
    * processor it is running on, and reset it processor register, and update its
    * entry in the scheduler processors array and reset its local allocation pointers
    */
-  static void gc_initProcessor ()  {
+  static void gc_initProcessor ()  throws VM_PragmaUninterruptible {
     VM_Processor st = VM_Processor.getCurrentProcessor();
     VM_Address sta = VM_Magic.objectAsAddress(st);
     VM_Thread activeThread = st.activeThread;
@@ -384,7 +421,7 @@ public class VM_Allocator extends VM_GCStatistics
    * Do Minor collection of Nursery, copying live nursery objects
    * into Mature/Fixed Space.  All collector threads execute in parallel.
    */
-  static void gcCollectMinor () {
+  static void gcCollectMinor () throws VM_PragmaUninterruptible {
     // ASSUMPTIONS:
     // initGCDone flag is false before first GC thread enter gcCollectMinor
     // InitLock is reset before first GC thread enter gcCollectMinor
@@ -594,7 +631,7 @@ public class VM_Allocator extends VM_GCStatistics
    * Because Minor collection must complete successfully, this threshold is
    * conservatively set to the number of blocks in the Nursery.
    */
-  static void gcCollectMajor () {
+  static void gcCollectMajor () throws VM_PragmaUninterruptible {
     if (verbose >= 2) VM.sysWriteln("Starting major collection");
 
     VM_CollectorThread mylocal = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
@@ -728,7 +765,7 @@ public class VM_Allocator extends VM_GCStatistics
    * process objects in the work queue buffers until no more buffers to process
    * Minor collections
    */
-  static void gc_emptyWorkQueue () {
+  static void gc_emptyWorkQueue () throws VM_PragmaUninterruptible {
     VM_Address ref = VM_GCWorkQueue.getFromWorkBuffer();
     while (!ref.isZero()) {
       gc_scanObjectOrArray(ref);
@@ -736,7 +773,7 @@ public class VM_Allocator extends VM_GCStatistics
     }
   }
 
-  private static void prepareNonParticipatingVPsForGC(boolean major) {
+  private static void prepareNonParticipatingVPsForGC(boolean major) throws VM_PragmaUninterruptible {
     // include NativeDaemonProcessor in following loop over processors
     for (int i = 1; i <= VM_Scheduler.numProcessors+1; i++) {
       VM_Processor vp = VM_Scheduler.processors[i];
@@ -782,7 +819,7 @@ public class VM_Allocator extends VM_GCStatistics
     }
   }  // prepareNonParticipatingVPsForGC
 
-  private static void prepareNonParticipatingVPsForAllocation(boolean major) {
+  private static void prepareNonParticipatingVPsForAllocation(boolean major) throws VM_PragmaUninterruptible {
     // include NativeDaemonProcessor in following loop over processors
     for (int i = 1; i <= VM_Scheduler.numProcessors+1; i++) {
       VM_Processor vp = VM_Scheduler.processors[i];
@@ -805,7 +842,7 @@ public class VM_Allocator extends VM_GCStatistics
    * count of available blocks goes too low.
    * All GC threads execute in parallel.
    */
-  public static void collect () {
+  public static void collect () throws VM_PragmaUninterruptible {
 
     // set running threads context regs so that a scan of its stack
     // will start at the caller of collect (ie. VM_CollectorThread.run)
@@ -858,7 +895,7 @@ public class VM_Allocator extends VM_GCStatistics
    * Process write buffers for the current processor. called by
    * each collector thread during Minor collections.
    */
-  static void gc_processWriteBuffers () {
+  static void gc_processWriteBuffers () throws VM_PragmaUninterruptible {
     VM_WriteBuffer.processWriteBuffer(VM_Processor.getCurrentProcessor());
   }
 
@@ -866,7 +903,7 @@ public class VM_Allocator extends VM_GCStatistics
    * check that write buffers still empty, if not print diagnostics & reset
    * ...we seem to get some entries after major collections ????
    */
-  static void gc_checkWriteBuffers () {
+  static void gc_checkWriteBuffers () throws VM_PragmaUninterruptible {
     VM_WriteBuffer.checkForEmpty(VM_Processor.getCurrentProcessor());
   }
 
@@ -882,7 +919,7 @@ public class VM_Allocator extends VM_GCStatistics
    * @param scan should the copied object be enqueued for scanning?
    * @return the address of the Object in Mature Space
    */
-  static VM_Address copyAndScanObject (VM_Address fromRef, boolean scan) {
+  static VM_Address copyAndScanObject (VM_Address fromRef, boolean scan) throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(nurseryHeap.refInHeap(fromRef));
     return VM_CopyingCollectorUtil.copyAndScanObject(fromRef, scan);
   }
@@ -890,7 +927,7 @@ public class VM_Allocator extends VM_GCStatistics
   /**
    * scan object or array for references
    */
-  static void gc_scanObjectOrArray ( VM_Address objRef ) {
+  static void gc_scanObjectOrArray ( VM_Address objRef ) throws VM_PragmaUninterruptible {
     if (!majorCollection) {
       // For this collector, we only have to process the TIB in a minor collection.
       // In a major collection, the TIB is not going to move and is reachable from the JTOC.
@@ -918,7 +955,7 @@ public class VM_Allocator extends VM_GCStatistics
   // and queued for later scanning. adjusts write barrier pointers, if
   // write buffer is moved.
   //
-  static void gc_scanProcessor ()  {
+  static void gc_scanProcessor ()  throws VM_PragmaUninterruptible {
 
     VM_Processor st = VM_Processor.getCurrentProcessor();
     VM_Address sta = VM_Magic.objectAsAddress(st);
@@ -945,7 +982,7 @@ public class VM_Allocator extends VM_GCStatistics
     }
   }  // scanProcessor
 
-  static boolean validRef ( VM_Address ref ) {
+  static boolean validRef ( VM_Address ref ) throws VM_PragmaUninterruptible {
       return bootHeap.refInHeap(ref) || smallHeap.refInHeap(ref) || largeHeap.refInHeap(ref) ||
 	  immortalHeap.refInHeap(ref) || nurseryHeap.refInHeap(ref) || mallocHeap.refInHeap(ref);
   }
@@ -992,7 +1029,7 @@ public class VM_Allocator extends VM_GCStatistics
    *  
    * @param le  VM_FinalizerListElement to be processed
    */
-  static boolean processFinalizerListElement (VM_FinalizerListElement le) {
+  static boolean processFinalizerListElement (VM_FinalizerListElement le) throws VM_PragmaUninterruptible {
     VM_Address ref = le.value;
 
     if (!majorCollection) {
@@ -1050,7 +1087,7 @@ public class VM_Allocator extends VM_GCStatistics
   // Called from WriteBuffer code for generational collectors.
   // Argument is a modified old object which needs to be scanned
   //
-  static void processWriteBufferEntry (VM_Address ref) {
+  static void processWriteBufferEntry (VM_Address ref) throws VM_PragmaUninterruptible {
       VM_ScanObject.scanObjectOrArray(ref);
   }
         
@@ -1059,7 +1096,7 @@ public class VM_Allocator extends VM_GCStatistics
    *
    * @param location  address of a reference field
    */
-  static void processPtrField ( VM_Address location ) {
+  public static void processPtrField ( VM_Address location ) throws VM_PragmaUninterruptible {
       VM_Magic.setMemoryAddress(location, processPtrValue(VM_Magic.getMemoryAddress(location)));
   }
 
@@ -1071,7 +1108,7 @@ public class VM_Allocator extends VM_GCStatistics
    * 
    * @param ref  reference to process
    */
-  static VM_Address processPtrValue (VM_Address ref) {
+  static VM_Address processPtrValue (VM_Address ref) throws VM_PragmaUninterruptible {
     if (ref.isZero()) return ref;  
 
     if (majorCollection) {

@@ -10,7 +10,9 @@
  *
  * @author David F. Bacon
  */
-class VM_RuntimeStructures implements VM_Constants {
+import MM.VM_Allocator;
+
+public class VM_RuntimeStructures implements VM_Constants {
 
   /**
    * Allocate an array of instructions
@@ -51,7 +53,7 @@ class VM_RuntimeStructures implements VM_Constants {
    * @param n The number of stack slots to allocate
    * @return The stack array
    */ 
-  static int[] newImmortalStack (int n) {
+  public static int[] newImmortalStack (int n) {
 
     if (VM.runningVM) {
       int[] stack = (int[]) VM_Allocator.immortalHeap.allocateAlignedArray(VM_Array.arrayOfIntType, n, 4096);

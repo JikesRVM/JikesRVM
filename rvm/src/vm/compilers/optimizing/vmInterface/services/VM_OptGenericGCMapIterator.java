@@ -10,6 +10,8 @@
  *
  * @author Michael Hind
  */
+import MM.VM_GCMapIterator;
+import MM.VM_GCUtil;
 
 abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator 
   implements VM_OptGCMapIteratorConstants,

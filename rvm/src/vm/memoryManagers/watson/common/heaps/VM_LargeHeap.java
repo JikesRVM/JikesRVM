@@ -10,9 +10,20 @@
  *
  *  @author Perry Cheng
  */
+package MM;
+
+import VM_Constants;
+import VM_ProcessorLock;
+import VM_Address;
+import VM_Memory;
+import VM_ObjectModel;
+import VM;
+import VM_Magic;
+import VM_Array;
+import VM_PragmaUninterruptible;
 
 public class VM_LargeHeap extends VM_Heap 
-  implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
+  implements VM_Constants, VM_GCConstants {
 
   // Internal management
   private VM_ImmortalHeap immortal;         // place where we allocate metadata
@@ -29,7 +40,7 @@ public class VM_LargeHeap extends VM_Heap
   /**
    * Initialize for boot image - called from init of various collectors
    */
-  VM_LargeHeap(VM_ImmortalHeap imm) {
+  VM_LargeHeap(VM_ImmortalHeap imm) throws VM_PragmaUninterruptible {
     super("Large Object Heap");
     immortal        = imm;
     spaceLock       = new VM_ProcessorLock();      // serializes access to large space
@@ -42,7 +53,7 @@ public class VM_LargeHeap extends VM_Heap
   /**
    * Initialize for execution.
    */
-  public void attach (int size) {
+  public void attach (int size) throws VM_PragmaUninterruptible {
 
     // setup large object space
     super.attach(size);
@@ -58,7 +69,7 @@ public class VM_LargeHeap extends VM_Heap
    *
    * @return the number of bytes
    */
-  public int totalMemory () {
+  public int totalMemory () throws VM_PragmaUninterruptible {
     return size;
   }
 
@@ -69,7 +80,7 @@ public class VM_LargeHeap extends VM_Heap
    * @param size Number of bytes to allocate
    * @return Address of allocated storage
    */
-  protected VM_Address allocateZeroedMemory (int size) {
+  protected VM_Address allocateZeroedMemory (int size) throws VM_PragmaUninterruptible {
     int count = 0;
     while (true) {
       int num_pages = (size + (pageSize - 1)) / pageSize;    // Number of pages needed
@@ -126,7 +137,7 @@ public class VM_LargeHeap extends VM_Heap
    * Hook to allow heap to perform post-allocation processing of the object.
    * For example, setting the GC state bits in the object header.
    */
-  protected void postAllocationProcessing(Object newObj) { 
+  protected void postAllocationProcessing(Object newObj) throws VM_PragmaUninterruptible { 
     if (VM_Collector.NEEDS_WRITE_BARRIER) {
       VM_ObjectModel.initializeAvailableByte(newObj); 
       VM_AllocatorHeader.setBarrierBit(newObj);
@@ -134,26 +145,26 @@ public class VM_LargeHeap extends VM_Heap
   }
 
 
-  void startCollect() {
+  void startCollect() throws VM_PragmaUninterruptible {
       VM_Memory.zero(VM_Magic.objectAsAddress(largeSpaceMark), 
 		     VM_Magic.objectAsAddress(largeSpaceMark).add(2*largeSpaceMark.length));
   }
 
-  void endCollect() {
+  void endCollect() throws VM_PragmaUninterruptible {
       short[] temp    = largeSpaceAlloc;
       largeSpaceAlloc = largeSpaceMark;
       largeSpaceMark  = temp;
       large_last_allocated = 0;
   }
 
-  boolean isLive (VM_Address ref) {
+  boolean isLive (VM_Address ref) throws VM_PragmaUninterruptible {
       VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(ref);
       if (VM.VerifyAssertions) VM.assert(refInHeap(ref));
       int page_num = addr.diff(start ) >> 12;
       return (largeSpaceMark[page_num] != 0);
   }
 
-  boolean mark (VM_Address ref) {
+  boolean mark (VM_Address ref) throws VM_PragmaUninterruptible {
 
     VM_Address tref = VM_ObjectModel.getPointerInMemoryRegion(ref);
     if (VM.VerifyAssertions) VM.assert(addrInHeap(tref));
@@ -191,7 +202,7 @@ public class VM_LargeHeap extends VM_Heap
 
 
 
-  private void countObjects () {
+  private void countObjects () throws VM_PragmaUninterruptible {
     int i,num_pages,countLargeOld;
     int contiguousFreePages,maxContiguousFreePages;
 
@@ -238,7 +249,7 @@ public class VM_LargeHeap extends VM_Heap
     
   }  // countLargeObjects()
 
-  public int freeSpace () {
+  public int freeSpace () throws VM_PragmaUninterruptible {
     int total = 0;
     for (int i = 0 ; i < largeSpacePages;) {
       if (largeSpaceAlloc[i] == 0) {

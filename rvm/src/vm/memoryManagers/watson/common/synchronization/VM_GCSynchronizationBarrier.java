@@ -10,7 +10,19 @@
  * @author   Derek Lieber
  * @modified Steve Smith
  */
-final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
+package MM;
+
+import VM_Scheduler;
+import VM_Time;
+import VM_Magic;
+import VM;
+import VM_PragmaNoInline;
+import VM_Processor;
+import VM_BootRecord;
+import VM_Thread;
+import VM_PragmaUninterruptible;
+
+final class VM_GCSynchronizationBarrier {
 
   private static final boolean trace = false;  // emit trace messages? (all rendezvous)
   private static final boolean trace_startup = false;  // emit debugging messages? (startupRendezvous)
@@ -34,7 +46,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
   /**
    * Constructor
    */
-  VM_GCSynchronizationBarrier () {
+  VM_GCSynchronizationBarrier () throws VM_PragmaUninterruptible {
     // initialize numRealProcessors to 1. Will be set to actual value later.
     // Using without resetting will cause waitABit() to yield instead of spinning
     numRealProcessors = 1;
@@ -48,7 +60,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
   /**
    * Wait for all other collectorThreads/processors to arrive at this barrier.
    */
-  double rendezvous (boolean time) {
+  double rendezvous (boolean time) throws VM_PragmaUninterruptible {
 
     double start = time ? VM_Time.now() : 0.0;
     int myProcessorId = VM_Processor.getCurrentProcessorId();
@@ -91,7 +103,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
     return 0.0;
   }
 
-  double rendezvousRecord(double start, double end) {
+  double rendezvousRecord(double start, double end) throws VM_PragmaUninterruptible {
     int myProcessorId = VM_Processor.getCurrentProcessorId();
     int which = rendezvousCount[myProcessorId]++;
     VM.assert(which < rendezvousIn[0].length);
@@ -100,7 +112,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
     return end - start;
   }
 
-  static void printRendezvousTimes() {
+  static void printRendezvousTimes() throws VM_PragmaUninterruptible {
 
     VM.sysWriteln("**** Rendezvous entrance & exit times (microsecs) **** ");
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
@@ -124,7 +136,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
    * Other arriving collector threads just wait until all have either arrived or
    * been declared non-participating.
    */
-  void  startupRendezvous () {
+  void  startupRendezvous () throws VM_PragmaUninterruptible {
     int myProcessorId = VM_Processor.getCurrentProcessorId();
     int myNumber = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread()).getGCOrdinal();
     int numExcluded = 0;  // number of RVM VPs NOT participating
@@ -253,7 +265,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
    * reset the rendezvous counters for all VPs to 0.
    * Also sets numRealProcessors to number of real CPUs.
    */
-  void resetRendezvous () {
+  void resetRendezvous () throws VM_PragmaUninterruptible {
 
     for ( int i = 1; i <= VM_Scheduler.numProcessors; i++)
       entryCounts[i] = 0;
@@ -277,7 +289,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
    *
    * @param x amount to spin in some unknown units
    */
-  private int waitABit ( int x ) {
+  private int waitABit ( int x ) throws VM_PragmaUninterruptible {
     int sum = 0;
     if (VM_Scheduler.numProcessors < numRealProcessors) {
       // spin for a while, keeping the operating system thread
@@ -298,7 +310,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
    *
    * @param id  processor id of processor to be removed.
    */
-  private void removeProcessor( int id ) {
+  private void removeProcessor( int id ) throws VM_PragmaUninterruptible {
 
     VM_Processor vp = VM_Scheduler.processors[id];
 

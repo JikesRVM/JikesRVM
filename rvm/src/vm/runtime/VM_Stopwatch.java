@@ -12,6 +12,8 @@
  *
  * @author Dave Grove
  */
+import MM.VM_CollectorThread;
+
 class VM_Stopwatch {
   int count;
   double elapsedTime;

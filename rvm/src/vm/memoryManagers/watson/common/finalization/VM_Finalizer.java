@@ -23,6 +23,34 @@
  * @author Dick Attanasio
  * @author Stephen Smith
  */
+package MM;
+
+import VM;
+import VM_Address;
+import VM_Magic;
+import VM_ObjectModel;
+import VM_ClassLoader;
+import VM_SystemClassLoader;
+import VM_Atom;
+import VM_Type;
+import VM_Class;
+import VM_Array;
+import VM_Method;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_PragmaUninterruptible;
+import VM_PragmaLogicallyUninterruptible;
+import VM_Processor;
+import VM_Scheduler;
+import VM_Thread;
+import VM_Memory;
+import VM_Time;
+import VM_Entrypoints;
+import VM_Reflection;
+import VM_Synchronization;
+import VM_Synchronizer;
+import VM_EventLogger;
+
 public class VM_Finalizer {
 
   //----------------//
@@ -50,7 +78,7 @@ public class VM_Finalizer {
 
   // Add item.
   //
-  static final void addElement(Object item) throws VM_PragmaNoInline {
+  public static final void addElement(Object item) throws VM_PragmaNoInline, VM_PragmaUninterruptible {
     // (SJF: This method must NOT be inlined into an inlined allocation
     // sequence, since it contains a lock!)
     synchronized (locker) {
@@ -69,7 +97,7 @@ public class VM_Finalizer {
    * Called from the mutator thread: return the first object queued 
    * on the finalize list, or null if none
    */
-  final static Object get() {
+  public final static Object get() throws VM_PragmaUninterruptible {
     VM_FinalizerListElement temp = finalize_head;
     if (temp == null) return null;
     //
@@ -90,7 +118,7 @@ public class VM_Finalizer {
    * gcs at the end of a collection to determine whether 	
    * to call moveToFinalizable()
    */
-  final static boolean existObjectsWithFinalizers() throws VM_PragmaUninterruptible {
+  public final static boolean existObjectsWithFinalizers() throws VM_PragmaUninterruptible {
     return (live_head != null);
   }
 
@@ -98,7 +126,7 @@ public class VM_Finalizer {
    * Move all finalizable objects to the to-be-finalized queue
    * Called on shutdown
   */
-  final static void finalizeAll () {
+  public final static void finalizeAll () throws VM_PragmaUninterruptible {
     VM_FinalizerListElement le	= live_head;
     VM_FinalizerListElement from = live_head;
     while (le != null) {
@@ -135,7 +163,7 @@ public class VM_Finalizer {
    * Scan the array for objects which have become garbage
    * and move them to the Finalizable class
    */
-  final static void moveToFinalizable () throws VM_PragmaUninterruptible {
+  public final static void moveToFinalizable () throws VM_PragmaUninterruptible {
     if (TRACE) VM_Scheduler.trace(" VM_Finalizer: "," move to finalizable ");
     boolean added = false;
     boolean is_live = false;
@@ -208,7 +236,7 @@ public class VM_Finalizer {
   // Should be called at the end of GC after moveToFinalizable has been called,
   // and before mutators are allowed to run.
   //
-  static void schedule () {
+  static void schedule () throws VM_PragmaUninterruptible {
     if ((finalize_head != null) && !VM_Scheduler.finalizerQueue.isEmpty()) {
       VM_Thread t = VM_Scheduler.finalizerQueue.dequeue();
       VM_Processor.getCurrentProcessor().scheduleThread(t);
@@ -217,7 +245,7 @@ public class VM_Finalizer {
 
   // methods for statistics and debugging
 
-  static int countHasFinalizer() {
+  static int countHasFinalizer() throws VM_PragmaUninterruptible {
     int count = 0;
     VM_FinalizerListElement le = live_head;
     while (le != null) {
@@ -227,7 +255,7 @@ public class VM_Finalizer {
     return count;
   }
 
-  static int countToBeFinalized() {
+  static int countToBeFinalized() throws VM_PragmaUninterruptible {
     int count = 0;
     VM_FinalizerListElement le = finalize_head;
     while (le != null) {
@@ -240,7 +268,7 @@ public class VM_Finalizer {
   /**
    * A debugging routine: print out the type of each object in live_list
    */
-  final static void dump_live() {
+  public final static void dump_live() throws VM_PragmaUninterruptible {
     VM_Scheduler.trace(" VM_Finalizer.dump_live", "cnt is ", live_count);
     VM.sysWrite("\n");
     VM_FinalizerListElement le = live_head;
@@ -257,7 +285,7 @@ public class VM_Finalizer {
   /** 
    * A debugging routine: print out the type of each object to be finalized
    */
-  final static void dump_finalize() {
+  public final static void dump_finalize() throws VM_PragmaUninterruptible {
     VM_Scheduler.trace(" VM_Finalizer.dump_finalize", "cnt is ", finalize_count);
     VM.sysWrite("\n");
     VM_FinalizerListElement le = finalize_head;

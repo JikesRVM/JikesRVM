@@ -11,7 +11,7 @@
  * @author Dave Grove
  * @author Derek Lieber
  */
-class VM_Entrypoints implements VM_Constants {
+public class VM_Entrypoints implements VM_Constants {
   static final VM_Method debugBreakpointMethod = getMethod("LVM;", "debugBreakpoint", "()V");
   static final VM_Method bootMethod            = getMethod("LVM;", "boot", "()V");
 
@@ -142,16 +142,16 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field threadHardwareExceptionRegistersField = getField("LVM_Thread;", "hardwareExceptionRegisters", "LVM_Registers;");
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  static final VM_Field contiguousHeapCurrentField      = getField("LVM_ContiguousHeap;", "current", "LVM_Address;");
+  public static final VM_Field contiguousHeapCurrentField      = getField("LMM/VM_ContiguousHeap;", "current", "LVM_Address;");
   //-#endif
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  static final VM_Field finalizerListElementValueField   = getField("LVM_FinalizerListElement;", "value", "LVM_Address;");
-  static final VM_Field finalizerListElementPointerField = getField("LVM_FinalizerListElement;", "pointer", "Ljava/lang/Object;");
+  public static final VM_Field finalizerListElementValueField   = getField("LMM/VM_FinalizerListElement;", "value", "LVM_Address;");
+  public static final VM_Field finalizerListElementPointerField = getField("LMM/VM_FinalizerListElement;", "pointer", "Ljava/lang/Object;");
   //-#endif
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  static final VM_Field allocCountField                = getField("LVM_BlockControl;", "allocCount", "I");
+  public static final VM_Field allocCountField                = getField("LMM/VM_BlockControl;", "allocCount", "I");
   //-#endif
 
   static final VM_Field registersIPField   = getField("LVM_Registers;",   "ip",  "LVM_Address;");
@@ -225,7 +225,7 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field processorsOffsetField           = getField("LVM_BootRecord;", "processorsOffset", "I");
   static final VM_Field threadsOffsetField              = getField("LVM_BootRecord;", "threadsOffset", "I");
   static final VM_Field globalGCInProgressFlagField     = getField("LVM_BootRecord;", "globalGCInProgressFlag", "I");
-  static final VM_Field lockoutProcessorField           = getField("LVM_BootRecord;", "lockoutProcessor", "I");
+  public static final VM_Field lockoutProcessorField           = getField("LVM_BootRecord;", "lockoutProcessor", "I");
   static final VM_Field sysVirtualProcessorYieldIPField = getField("LVM_BootRecord;", "sysVirtualProcessorYieldIP", "I");
   static final VM_Field externalSignalFlagField         = getField("LVM_BootRecord;", "externalSignalFlag", "I");
   static final VM_Field sysLongDivideIPField            = getField("LVM_BootRecord;", "sysLongDivideIP", "I");
@@ -243,11 +243,11 @@ class VM_Entrypoints implements VM_Constants {
 
   static final VM_Field edgeCountersField               = getField("LVM_EdgeCounterDictionary;", "values", "[[I");
 
-  static final VM_Method arrayStoreWriteBarrierMethod = getMethod("LVM_WriteBarrier;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method resolvedPutfieldWriteBarrierMethod = getMethod("LVM_WriteBarrier;", "resolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method unresolvedPutfieldWriteBarrierMethod = getMethod("LVM_WriteBarrier;", "unresolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  static final VM_Method resolvedPutStaticWriteBarrierMethod = getMethod("LVM_WriteBarrier;", "resolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
-  static final VM_Method unresolvedPutStaticWriteBarrierMethod = getMethod("LVM_WriteBarrier;", "unresolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
+  static final VM_Method arrayStoreWriteBarrierMethod = getMethod("LMM/VM_WriteBarrier;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method resolvedPutfieldWriteBarrierMethod = getMethod("LMM/VM_WriteBarrier;", "resolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method unresolvedPutfieldWriteBarrierMethod = getMethod("LMM/VM_WriteBarrier;", "unresolvedPutfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  static final VM_Method resolvedPutStaticWriteBarrierMethod = getMethod("LMM/VM_WriteBarrier;", "resolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
+  static final VM_Method unresolvedPutStaticWriteBarrierMethod = getMethod("LMM/VM_WriteBarrier;", "unresolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
 
 
   static final VM_Field inetAddressAddressField = getField("Ljava/net/InetAddress;", "address", "I");

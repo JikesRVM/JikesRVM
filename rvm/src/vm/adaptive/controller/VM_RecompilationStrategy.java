@@ -19,6 +19,8 @@
  *
  * @author Matthew Arnold
  */
+import MM.VM_Collector;
+
 abstract class VM_RecompilationStrategy {
 
   //------  Interface -------

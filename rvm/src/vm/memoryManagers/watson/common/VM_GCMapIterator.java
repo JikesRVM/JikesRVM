@@ -14,23 +14,31 @@
  *
  * @author Janice Shepherd
  */
-abstract class VM_GCMapIterator implements VM_Uninterruptible {
+package MM;
+
+import VM_Address;
+import VM_Thread;
+import VM_CompiledMethod;
+import VM_CompiledMethods;
+import VM_PragmaUninterruptible;
+
+public abstract class VM_GCMapIterator {
   
   /** thread whose stack is currently being scanned */
-  VM_Thread thread; 
+  public VM_Thread thread; 
   
   /** address of stackframe currently being scanned */
-  VM_Address  framePtr;
+  public VM_Address  framePtr;
   
   /** address where each gpr register was saved by previously scanned stackframe(s) */
-  int[]     registerLocations;
+  public int[]     registerLocations;
   
   /**
    * Prepare to scan a thread's stack and saved registers for object references.
    *
    * @param thread VM_Thread whose stack is being scanned
    */
-  void newStackWalk(VM_Thread thread) {
+  public void newStackWalk(VM_Thread thread) throws VM_PragmaUninterruptible {
     this.thread = thread;
   }
   
@@ -41,7 +49,7 @@ abstract class VM_GCMapIterator implements VM_Uninterruptible {
    * @param instructionOffset  offset of current instruction within that method's code
    * @param framePtr           address of stackframe to be visited
    */
-  abstract void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address framePtr);
+  public abstract void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address framePtr);
   
   /**
    * Get address of next object reference held by current stackframe.
@@ -55,7 +63,7 @@ abstract class VM_GCMapIterator implements VM_Uninterruptible {
    * @return address of word containing an object reference
    *         zero if no more references to report
    */
-  abstract VM_Address getNextReferenceAddress();
+  public abstract VM_Address getNextReferenceAddress() throws VM_PragmaUninterruptible ;
   
   /**
    * Get address of next JSR return address held by current stackframe.
@@ -63,20 +71,20 @@ abstract class VM_GCMapIterator implements VM_Uninterruptible {
    * @return address of word containing a JSR return address
    *         zero if no more return addresses to report
    */
-  abstract VM_Address getNextReturnAddressAddress();
+  public abstract VM_Address getNextReturnAddressAddress() throws VM_PragmaUninterruptible;
   
   /**
    * Prepare to re-iterate on same stackframe, and to switch between
    * "reference" iteration and "JSR return address" iteration.
    */
-  abstract void reset();
+  public abstract void reset() throws VM_PragmaUninterruptible;
   
   /**
    * Iteration is complete, release any internal data structures including 
    * locks acquired during setupIterator for jsr maps.
    * 
    */
-  abstract void cleanupPointers();
+  public abstract void cleanupPointers() throws VM_PragmaUninterruptible;
   
   /**
    * Get the type of this iterator (BASELINE, OPT, etc.).
@@ -86,5 +94,5 @@ abstract class VM_GCMapIterator implements VM_Uninterruptible {
    *
    * @return type code for this iterator
    */
-  abstract int getType();
+  public abstract int getType() throws VM_PragmaUninterruptible;
 }

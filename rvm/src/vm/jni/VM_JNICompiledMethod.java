@@ -18,26 +18,26 @@
  */
 final class VM_JNICompiledMethod extends VM_CompiledMethod {
 
-  VM_JNICompiledMethod(int id, VM_Method m) {
+  public VM_JNICompiledMethod(int id, VM_Method m) {
     super(id,m);    
   }
 
-  final int getCompilerType() throws VM_PragmaUninterruptible { 
+  public final int getCompilerType() throws VM_PragmaUninterruptible { 
     return JNI; 
   }
 
-  final VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible { 
+  public final VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible { 
     // this method should never get called.
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
     return null;
   }
       
-  final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible { 
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible { 
     // this method should never get called.
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
   }
 
-  final int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType) {
+  public final int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType) {
     return -1;
   }
    
@@ -61,7 +61,7 @@ final class VM_JNICompiledMethod extends VM_CompiledMethod {
     }
   }
 
-  final void set(VM_StackBrowser browser, int instr) {
+  public final void set(VM_StackBrowser browser, int instr) {
     browser.setBytecodeIndex(-1);
     browser.setCompiledMethod(this);
     browser.setMethod(method);

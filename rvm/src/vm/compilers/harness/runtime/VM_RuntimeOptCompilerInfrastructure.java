@@ -10,6 +10,8 @@
  * @author Michael Hind
  * @author Dave Grove
  */
+import MM.VM_GCMapIterator;
+
 class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructure {
   
   // is the opt compiler usable?
@@ -215,7 +217,7 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
     return baselineCompile(method);
   }
 
-  static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
+  public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
     return new VM_OptGCMapIterator(registerLocations);
   }
 

@@ -22,8 +22,20 @@
  * @see VM_Chunk
  * @see VM_Processor
  */
-final class VM_ContiguousHeap extends VM_Heap
-  implements VM_Uninterruptible, VM_GCConstants {
+package MM;
+
+import VM_Constants;
+import VM_ProcessorLock;
+import VM_Address;
+import VM_Memory;
+import VM_ObjectModel;
+import VM;
+import VM_Entrypoints;
+import VM_Synchronization;
+import VM_PragmaUninterruptible;
+
+public final class VM_ContiguousHeap extends VM_Heap
+  implements VM_GCConstants {
 
 
   final static int FORWARD = 0;
@@ -37,12 +49,12 @@ final class VM_ContiguousHeap extends VM_Heap
   private VM_Address saved;
   private int sense;
 
-  VM_ContiguousHeap(String s) {
+  VM_ContiguousHeap(String s) throws VM_PragmaUninterruptible {
     super(s);
     sense = FORWARD;
   }
 
-  int sense() { return sense; }
+  int sense() throws VM_PragmaUninterruptible { return sense; }
 
   /**
    * Allocate size bytes of raw memory.
@@ -51,7 +63,7 @@ final class VM_ContiguousHeap extends VM_Heap
    * @param size Number of bytes to allocate
    * @return Address of allocated storage
    */
-  protected VM_Address allocateZeroedMemory(int size) {
+  protected VM_Address allocateZeroedMemory(int size) throws VM_PragmaUninterruptible {
     // The issue is that this doesn't make much sense because
     // VM_Heap requires that this returns valid memory and if this
     // heap instance is full what allocateRawMemory is going to do is 
@@ -68,7 +80,7 @@ final class VM_ContiguousHeap extends VM_Heap
    * Hook to allow heap to perform post-allocation processing of the object.
    * For example, setting the GC state bits in the object header.
    */
-  protected void postAllocationProcessing(Object newObj) { 
+  protected void postAllocationProcessing(Object newObj) throws VM_PragmaUninterruptible { 
     // nothing to do in this heap
   }
 
@@ -81,7 +93,7 @@ final class VM_ContiguousHeap extends VM_Heap
    * @param size the number of bytes to allocate
    * @return the allocate memory or VM_Address.zero() if space is exhausted.
    */
-  public VM_Address allocateRawMemory(int size) {
+  public VM_Address allocateRawMemory(int size) throws VM_PragmaUninterruptible {
     int offset = VM_Entrypoints.contiguousHeapCurrentField.getOffset();
     if (sense == FORWARD) {
 	VM_Address addr = VM_Synchronization.fetchAndAddAddressWithBound(this, offset, size, end);
@@ -96,9 +108,9 @@ final class VM_ContiguousHeap extends VM_Heap
     return VM_Address.zero();
   }    
 
-  VM_Address current() { return current; }
+  VM_Address current() throws VM_PragmaUninterruptible { return current; }
 
-  public void show(boolean newline) {
+  public void show(boolean newline) throws VM_PragmaUninterruptible {
       super.show(false);
       VM.sysWrite("   cur = ");
       VM.sysWrite(current);
@@ -110,7 +122,7 @@ final class VM_ContiguousHeap extends VM_Heap
   /**
    * All space in the heap is available for allocation again.
    */
-  public void reset() {
+  public void reset() throws VM_PragmaUninterruptible {
     if (sense == FORWARD)
       saved = current = start;
     else
@@ -120,25 +132,25 @@ final class VM_ContiguousHeap extends VM_Heap
   /**
    * All space in the heap is available for allocation again.
    */
-  public void setRegion(VM_Address s, VM_Address e) {
+  public void setRegion(VM_Address s, VM_Address e) throws VM_PragmaUninterruptible {
       super.setRegion(s, e);
       reset();
   }
 
-  public void setRegion(VM_Address s, VM_Address e, int se) {
+  public void setRegion(VM_Address s, VM_Address e, int se) throws VM_PragmaUninterruptible {
       if (VM.VerifyAssertions) VM.assert(se == FORWARD || se == BACKWARD);
       sense = se;
       setRegion(s, e);
   }
 
-  public void setRegion(VM_Address s, VM_Address c, VM_Address e, int se) {
+  public void setRegion(VM_Address s, VM_Address c, VM_Address e, int se) throws VM_PragmaUninterruptible {
       if (VM.VerifyAssertions) VM.assert(se == FORWARD || se == BACKWARD);
       sense = se;
       setRegion(s, e);
       current = c;
   }
 
-  public void contractRegion() {
+  public void contractRegion() throws VM_PragmaUninterruptible {
       if (sense == FORWARD) {
 	  end = current;
 	  setAuxiliary();
@@ -149,7 +161,7 @@ final class VM_ContiguousHeap extends VM_Heap
       }
   }
 
-  public void extendRegion(VM_Address newBoundary) {
+  public void extendRegion(VM_Address newBoundary) throws VM_PragmaUninterruptible {
       if (sense == FORWARD) {
 	  if (VM.VerifyAssertions) VM.assert(newBoundary.GE(end));
 	  end = newBoundary;
@@ -165,31 +177,31 @@ final class VM_ContiguousHeap extends VM_Heap
   /**
    * Heap is reset at attachment and detachment.
    */
-  public void attach(int size) {
+  public void attach(int size) throws VM_PragmaUninterruptible {
     super.attach(size);
     reset();
   }
 
-  public void detach(int size) {
+  public void detach(int size) throws VM_PragmaUninterruptible {
     super.detach();
     reset();
   }
 
-  public int allocatedFromSaved() {
+  public int allocatedFromSaved() throws VM_PragmaUninterruptible {
       if (sense == FORWARD)
 	  return current.diff(saved);
       else
 	  return saved.diff(current);
   }
 
-  public void recordSaved() {
+  public void recordSaved() throws VM_PragmaUninterruptible {
     saved = current;
   }
 
   /**
    * Zero the remaining free space in the heap.
    */
-  public void zeroFreeSpace() {
+  public void zeroFreeSpace() throws VM_PragmaUninterruptible {
       if (sense == FORWARD)
 	  VM_Memory.zeroPages(current, end.diff(current));
       else
@@ -199,7 +211,7 @@ final class VM_ContiguousHeap extends VM_Heap
   /**
    * Zero the remaining free space in the heap.
    */
-  public void zeroFreeSpaceParallel() {
+  public void zeroFreeSpaceParallel() throws VM_PragmaUninterruptible {
     if (sense == FORWARD)
 	zeroParallel(current, end);
     else
@@ -210,14 +222,14 @@ final class VM_ContiguousHeap extends VM_Heap
   /**
    * Round up to page boundary
    */
-  public void roundUpPage() {
+  public void roundUpPage() throws VM_PragmaUninterruptible {
     current = VM_Memory.roundUpPage(current);
   }
 
   /**
    * How much free memory is left in the heap?
    */
-  public int freeMemory() {
+  public int freeMemory() throws VM_PragmaUninterruptible {
     if (sense == FORWARD)
 	return end.diff(current);
     else
@@ -227,7 +239,7 @@ final class VM_ContiguousHeap extends VM_Heap
   /**
    * How much memory is used in the heap?
    */
-  public int usedMemory() {
+  public int usedMemory() throws VM_PragmaUninterruptible {
     if (sense == FORWARD)
 	return current.diff(start);
     else

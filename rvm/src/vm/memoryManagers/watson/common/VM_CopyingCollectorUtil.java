@@ -11,9 +11,24 @@
  * 
  * @author Steve Smith
  */
+package MM;
+
+import VM_Thread;
+import VM_Type;
+import VM_Magic;
+import VM_ObjectModel;
+import VM;
+import VM_Address;
+import VM_Scheduler;
+import VM_Array;
+import VM_Memory;
+import VM_Class;
+import VM_Constants;
+import VM_PragmaUninterruptible;
+
 class VM_CopyingCollectorUtil implements VM_Constants, 
-					 VM_GCConstants, 
-					 VM_Uninterruptible {
+					 VM_GCConstants {
+
 
   /**
    * Processes live objects that need to be marked, copied and
@@ -26,7 +41,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
    * @param scan should the object be scanned?
    * @return the address of the Object in mature space
    */
-  static VM_Address copyAndScanObject(VM_Address fromRef, boolean scan) {
+  static VM_Address copyAndScanObject(VM_Address fromRef, boolean scan) throws VM_PragmaUninterruptible {
     Object fromObj = VM_Magic.addressAsObject(fromRef);
     VM_Address toRef;
     Object toObj;
@@ -108,7 +123,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
    * 
    * @param fromHeap the heap that we are copying objects out of.
    */
-  static void scanThreads (VM_Heap fromHeap)  {
+  static void scanThreads (VM_Heap fromHeap)  throws VM_PragmaUninterruptible {
     // get ID of running GC thread
     int myThreadId = VM_Thread.getCurrentThread().getIndex();
     int[] oldstack;
@@ -193,11 +208,6 @@ class VM_CopyingCollectorUtil implements VM_Constants,
     } 
   }
   
-
-
-
-
-
 
 }
 

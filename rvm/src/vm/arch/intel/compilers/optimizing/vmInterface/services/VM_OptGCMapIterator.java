@@ -13,12 +13,12 @@
  *
  * @author Michael Hind
  */
-final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
+public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
   implements VM_Uninterruptible {
 
   private static final boolean DEBUG = false;
  
-  VM_OptGCMapIterator(int[] registerLocations) {
+  public VM_OptGCMapIterator(int[] registerLocations) {
     super(registerLocations);
   }
 
@@ -110,7 +110,7 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    *  @param offset  the offset for the spill 
    *  @return the resulting spill location
    */
-  VM_Address getStackLocation(VM_Address framePtr, int offset) {
+  public VM_Address getStackLocation(VM_Address framePtr, int offset) {
     return framePtr.sub(offset);
   }
 
@@ -119,7 +119,7 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    *  @param the frame pointer
    *  @return the first spill location
    */
-  VM_Address getFirstSpillLoc() {
+  public VM_Address getFirstSpillLoc() {
     return framePtr.sub(-VM.STACKFRAME_BODY_OFFSET);
   }
 
@@ -128,7 +128,7 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    *  @param the frame pointer
    *  @return the last spill location
    */
-  VM_Address getLastSpillLoc() {
+  public VM_Address getLastSpillLoc() {
     if (compiledMethod.isSaveVolatile()) {
       return framePtr.sub(compiledMethod.getUnsignedNonVolatileOffset() - 4 - SAVE_VOL_SIZE);
     } else {

@@ -36,8 +36,23 @@
  *
  * @author Stephen Smith
  */ 
+package MM;
+
+import VM;
+import VM_Magic;
+import VM_Constants;
+import VM_BootRecord;
+import VM_Processor;
+import VM_Scheduler;
+import VM_Time;
+import VM_Processor;
+import VM_PragmaInterruptible;
+import VM_PragmaUninterruptible;
+import VM_ObjectModel;
+import VM_Address;
+import VM_Thread;
+
 public class VM_WriteBuffer implements VM_Constants, 
-				       VM_Uninterruptible, 
 				       VM_GCConstants {
 
   private static final boolean trace = false;
@@ -55,7 +70,7 @@ public class VM_WriteBuffer implements VM_Constants,
    * buffers are allocated from the C heap via sysMalloc.  This may change
    * to allcoate from the RVM Large Object Heap in the future.
    */
-  static void growWriteBuffer() {
+  static void growWriteBuffer() throws VM_PragmaUninterruptible {
     VM_Processor vp = VM_Processor.getCurrentProcessor();
 
     if (VM.VerifyAssertions) VM.assert(vp.modifiedOldObjectsTop==vp.modifiedOldObjectsMax);
@@ -112,7 +127,7 @@ public class VM_WriteBuffer implements VM_Constants,
    *
    * @param vp  VM_Processor whose buffers are to be processed
    */
-  static void processWriteBuffer(VM_Processor vp) {
+  static void processWriteBuffer(VM_Processor vp) throws VM_PragmaUninterruptible {
     int count = 0;
     VM_Address end;
     double startTime;
@@ -191,7 +206,7 @@ public class VM_WriteBuffer implements VM_Constants,
    *
    * @param vp  VM_Processor whose write buffer entries are to be reset
    */
-  static void resetBarrierBits(VM_Processor vp) {
+  static void resetBarrierBits(VM_Processor vp) throws VM_PragmaUninterruptible {
     int count = 0;
     
     if (VM.VerifyAssertions) VM.assert(VM_Allocator.writeBarrier == true);
@@ -253,7 +268,7 @@ public class VM_WriteBuffer implements VM_Constants,
    *
    * @param vp  VM_Processor whose write buffer entries are to be moved
    */
-  static void  moveToWorkQueue (VM_Processor vp) {
+  static void  moveToWorkQueue (VM_Processor vp) throws VM_PragmaUninterruptible {
     int count = 0;
     VM_Address top = vp.modifiedOldObjectsTop;    // last occuppied slot in "current" buffer at start of GC
     
@@ -302,7 +317,7 @@ public class VM_WriteBuffer implements VM_Constants,
    *
    * @param vp VM_Processor to check
    */
-  static void checkForEmpty(VM_Processor vp) {
+  static void checkForEmpty(VM_Processor vp) throws VM_PragmaUninterruptible {
     if ( vp.modifiedOldObjectsTop.NE(VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4)) ) {
       
       if (DEBUG_WRITEBUFFER) { 
@@ -335,7 +350,7 @@ public class VM_WriteBuffer implements VM_Constants,
    *
    * @param vp VM_Processor whose extra buffers are to be freed
    */
-  private static void freeBuffers(VM_Processor vp) {
+  private static void freeBuffers(VM_Processor vp) throws VM_PragmaUninterruptible {
 
     // remember address of last slot in first buffer (the next buffer pointer)
     VM_Address temp = VM_Magic.objectAsAddress(vp.modifiedOldObjects).add(WRITE_BUFFER_SIZE - 4);

@@ -9,6 +9,8 @@
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
+import MM.VM_Collector;
+
 public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants {
 
   private final int parameterWords;

@@ -15,7 +15,7 @@ import instructionFormats.*;
  *
  * @author Stephen Fink
  */
-final class VM_ProcessorLocalState 
+public final class VM_ProcessorLocalState 
 //-#if RVM_WITH_OPT_COMPILER
 extends OPT_IRTools
 //-#endif 
@@ -35,14 +35,14 @@ extends OPT_IRTools
   /**
    * Return the current VM_Processor object
    */
-  static VM_Processor getCurrentProcessor() throws VM_PragmaUninterruptible {
+  public static VM_Processor getCurrentProcessor() throws VM_PragmaUninterruptible {
     return VM_Magic.getESIAsProcessor();
   }
 
   /**
    * Set the current VM_Processor object
    */
-  static void setCurrentProcessor(VM_Processor p) throws VM_PragmaUninterruptible {
+  public static void setCurrentProcessor(VM_Processor p) throws VM_PragmaUninterruptible {
     VM_Magic.setESIAsProcessor(p);
   }
 

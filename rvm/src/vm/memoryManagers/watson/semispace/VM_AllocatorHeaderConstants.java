@@ -24,6 +24,8 @@
  * @author Steve Fink
  * @author Dave Grove
  */
+package MM;
+
 public interface VM_AllocatorHeaderConstants {
   
   /**

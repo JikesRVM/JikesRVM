@@ -11,7 +11,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-abstract class VM_CompiledMethod implements VM_SynchronizedObject {
+public abstract class VM_CompiledMethod implements VM_SynchronizedObject {
 
   public final static int TRAP      = 0; // no code: special trap handling stackframe
   public final static int BASELINE  = 1; // baseline code
@@ -73,7 +73,7 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   /**
    * Return the machine code for this compiled method
    */
-  final INSTRUCTION[] getInstructions() throws VM_PragmaUninterruptible { 
+  public final INSTRUCTION[] getInstructions() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM.assert((bitField1 & COMPILED) != 0);
     return instructions; 
   }
@@ -81,7 +81,7 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   /**
    * Record that the compilation is complete.
    */
-  final void compileComplete(INSTRUCTION[] code) {
+  public final void compileComplete(INSTRUCTION[] code) {
     instructions = code;
     bitField1 |= COMPILED;
   }
@@ -89,14 +89,14 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   /**
    * Mark the compiled method as invalid
    */
-  final void setInvalid() {
+  public final void setInvalid() {
     bitField1 |= INVALID;
   }
 
   /**
    * Mark the compiled method as obsolete (ie a candidate for eventual GC)
    */
-  final void setObsolete(boolean sense) throws VM_PragmaUninterruptible {
+  public final void setObsolete(boolean sense) throws VM_PragmaUninterruptible {
     if (sense) {
       bitField1 |= OBSOLETE;
     } else {
@@ -107,21 +107,21 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
   /**
    * Has compilation completed?
    */
-  final boolean isCompiled() throws VM_PragmaUninterruptible {
+  public final boolean isCompiled() throws VM_PragmaUninterruptible {
     return (bitField1 & COMPILED) != 0;
   }
 
   /**
    * Is the compiled code invalid?
    */
-  final boolean isInvalid() throws VM_PragmaUninterruptible {
+  public final boolean isInvalid() throws VM_PragmaUninterruptible {
     return (bitField1 & INVALID) != 0;
   }
 
   /**
    * Is the compiled code obsolete?
    */
-  final boolean	isObsolete() throws VM_PragmaUninterruptible { 
+  public final boolean isObsolete() throws VM_PragmaUninterruptible { 
     return (bitField1 & OBSOLETE) != 0;
   }
 
@@ -132,13 +132,13 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * @return one of TRAP, BASELINE, OPT, or JNI.
    * Note: use this instead of "instanceof" when gc is disabled (ie. during gc)
    */ 
-  abstract int getCompilerType() throws VM_PragmaUninterruptible;
+  public abstract int getCompilerType() throws VM_PragmaUninterruptible;
 
   /**
    * Get handler to deal with stack unwinding and exception delivery for this 
    * compiled method's stackframes.
    */ 
-  abstract VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible;
+  public abstract VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible;
    
   /**
    * Find "catch" block for a machine instruction of 
@@ -170,7 +170,7 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * gc disabled when called by VM_Runtime.deliverException().
    * </ul>
    */
-  abstract int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType);
+  public abstract int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType);
 
   /**
    * Fetch symbolic reference to a method that's called by one of 
@@ -198,7 +198,7 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * gc disabled when called by VM_GCMapIterator.
    * <ul>
    */
-  abstract void getDynamicLink(VM_DynamicLink dynamicLink, 
+  public abstract void getDynamicLink(VM_DynamicLink dynamicLink, 
                                int instructionOffset) throws VM_PragmaUninterruptible;
 
    /**
@@ -222,7 +222,7 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
     * instruction pointer
     * to point to the "call site" or "exception site".
     */
-  int findLineNumberForInstruction(int instructionOffset) throws VM_PragmaUninterruptible {
+  public int findLineNumberForInstruction(int instructionOffset) throws VM_PragmaUninterruptible {
     return 0;
   }
 
@@ -233,7 +233,7 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * @return instruction offset from start of this method, 
    * in bytes (-1 --> not found)
    */
-  int findInstructionForLineNumber(int lineNumber) {
+  public int findInstructionForLineNumber(int lineNumber) {
     return -1;
   }
 
@@ -244,7 +244,7 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * @return instruction offset from start of this method, in bytes 
    * (-1 --> no more valid code line)
    */
-  int findInstructionForNextLineNumber(int lineNumber) {
+  public int findInstructionForNextLineNumber(int lineNumber) {
     return -1;
   }
 
@@ -253,7 +253,7 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * @param instructionOffset offset of machine instruction from start of method
    * @return local variables (null --> no local variable information available)
    */
-  VM_LocalVariable[] findLocalVariablesForInstruction(int instructionOffset) {
+  public VM_LocalVariable[] findLocalVariablesForInstruction(int instructionOffset) {
     return null;
   }
 
@@ -262,30 +262,30 @@ abstract class VM_CompiledMethod implements VM_SynchronizedObject {
    * @param instructionOffset offset of machine instruction from start of method
    * @param out the PrintStream to print the stack trace to.
    */
-  abstract void printStackTrace(int instructionOffset, java.io.PrintStream out);
+  public abstract void printStackTrace(int instructionOffset, java.io.PrintStream out);
      
   /**
    * Print this compiled method's portion of a stack trace 
    * @param instructionOffset offset of machine instruction from start of method
    * @param out the PrintWriter to print the stack trace to.
    */
-  abstract void printStackTrace(int instructionOffset, java.io.PrintWriter out);
+  public abstract void printStackTrace(int instructionOffset, java.io.PrintWriter out);
 
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  abstract void set(VM_StackBrowser browser, int instr);
+  public abstract void set(VM_StackBrowser browser, int instr);
 
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
-  boolean up(VM_StackBrowser browser) { return false; }
+  public boolean up(VM_StackBrowser browser) { return false; }
 
   /**
    * Return the number of bytes used to encode the compiler-specific mapping 
    * information for this compiled method.
    * Used to gather stats on the space costs of mapping schemes.
    */
-  int size() { return 0; }
+  public int size() { return 0; }
 
 }

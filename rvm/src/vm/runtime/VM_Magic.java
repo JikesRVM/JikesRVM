@@ -15,6 +15,10 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
+import MM.VM_BlockControl;
+import MM.VM_SizeControl;
+import MM.VM_CollectorThread;
+
 public class VM_Magic {
 
   //---------------------------------------//
@@ -52,30 +56,30 @@ public class VM_Magic {
    * Set contents of "thread id" pseduo register.
    * @param ti shifted thread index
    */
-  static void setThreadId(int ti) {
+  public static void setThreadId(int ti) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Get contents of "processor" register. */
-  static VM_Processor getProcessorRegister() {
+  public static VM_Processor getProcessorRegister() {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
   /** Set contents of "processor" register. */
-  static void setProcessorRegister(VM_Processor p) {
+  public static void setProcessorRegister(VM_Processor p) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   //-#if RVM_FOR_IA32
   /** Get contents of ESI, as a VM_Processor */
-  static VM_Processor getESIAsProcessor() {
+  public static VM_Processor getESIAsProcessor() {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
   /** Set contents of ESI to hold a reference to a processor object */
-  static void setESIAsProcessor(VM_Processor p) {
+  public static void setESIAsProcessor(VM_Processor p) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
   //-#endif
@@ -86,7 +90,7 @@ public class VM_Magic {
    *           undocumented and may vary across processor implementations.
    * @return number of ticks (epoch undefined)
    */
-  static long getTimeBase() {
+  public static long getTimeBase() {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
@@ -98,18 +102,18 @@ public class VM_Magic {
    * @param p current processor (!!TEMP)
    * @return time in seconds (epoch Jan 1 1970), to nanonsecond resolution.
    */
-  static double getTime(VM_Processor p) {
+  public static double getTime(VM_Processor p) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Set bit in thread switch condition register. */ // TODO: remove me!
-  static void setThreadSwitchBit() {
+  public static void setThreadSwitchBit() {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Clear bit in thread switch condition register. */
-  static void clearThreadSwitchBit() {
+  public static void clearThreadSwitchBit() {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
      
@@ -198,7 +202,7 @@ public class VM_Magic {
    * Clients must not depend on whether or not the byte is zero or sign extended as it is loaded.
    * (In other words, mask off all but the lower 8 bits before using the value).
    */
-  static byte getByteAtOffset(Object object, int offset) {
+  public static byte getByteAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
@@ -207,7 +211,7 @@ public class VM_Magic {
    * Get int at arbitrary (byte) offset from object.
    * Use getIntAtOffset(obj, ofs) instead of getMemoryWord(objectAsAddress(obj)+ofs)
    */
-  static int getIntAtOffset(Object object, int offset) {
+  public static int getIntAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
@@ -217,7 +221,7 @@ public class VM_Magic {
    * Use getObjectAtOffset(obj, ofs) instead of 
    * addressAsObject(getMemoryWord(objectAsAddress(obj)+ofs))
    */
-  static Object getObjectAtOffset(Object object, int offset) {
+  public static Object getObjectAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
@@ -227,7 +231,7 @@ public class VM_Magic {
    * Use getObjectArrayAtOffset(obj, ofs) instead of 
    * (Object[])addressAsObject(getMemoryWord(objectAsAddress(obj)+ofs))
    */
-  static Object[] getObjectArrayAtOffset(Object object, int offset) {
+  public static Object[] getObjectArrayAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
@@ -236,7 +240,7 @@ public class VM_Magic {
    * Get long at arbitrary (byte) offset from object.
    * Use getlongAtOffset(obj, ofs) instead of two getIntAtOffset
    */
-  static long getLongAtOffset(Object object, int offset) {
+  public static long getLongAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
@@ -258,7 +262,7 @@ public class VM_Magic {
   /**
    * Set byte at arbitrary (byte) offset from object.
    */ 
-  static void setByteAtOffset(Object object, int offset, byte newvalue) {
+  public static void setByteAtOffset(Object object, int offset, byte newvalue) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -266,7 +270,7 @@ public class VM_Magic {
    * Set int at arbitrary (byte) offset from object.
    * Use setIntAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, new)
    */ 
-  static void setIntAtOffset(Object object, int offset, int newvalue) {
+  public static void setIntAtOffset(Object object, int offset, int newvalue) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -274,7 +278,7 @@ public class VM_Magic {
    * Set Object at arbitrary (byte) offset from object.
    * Use getObjectAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, objectAsAddress(new))
    */ 
-  static void setObjectAtOffset(Object object, int offset, Object newvalue) {
+  public static void setObjectAtOffset(Object object, int offset, Object newvalue) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -282,7 +286,7 @@ public class VM_Magic {
    * Set long at arbitrary (byte) offset from object.
    * Use setlongAtOffset(obj, ofs) instead of two setIntAtOffset
    */ 
-  static void setLongAtOffset(Object object, int offset, long newvalue) {
+  public static void setLongAtOffset(Object object, int offset, long newvalue) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -305,7 +309,7 @@ public class VM_Magic {
   /**
    * Get contents of (object + offset) and begin conditional critical section.
    */ 
-  static int prepare(Object object, int offset) {
+  public static int prepare(Object object, int offset) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
@@ -316,7 +320,7 @@ public class VM_Magic {
    * Returns true if successful.
    * Ends conditional critical section.
    */ 
-  static boolean attempt(Object object, int offset, int oldValue, int newValue) {
+  public static boolean attempt(Object object, int offset, int oldValue, int newValue) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return false;
   }
@@ -331,7 +335,7 @@ public class VM_Magic {
    * Specify how to handle "objectAsAddress" and "addressAsObject" casts.
    * Used by debugger and boot image writer.
    */
-  static void setObjectAddressRemapper(VM_ObjectAddressRemapper x) { 
+  public static void setObjectAddressRemapper(VM_ObjectAddressRemapper x) { 
     objectAddressRemapper = x; 
   }
 
@@ -840,7 +844,7 @@ public class VM_Magic {
   /** 
    * Write contents of this processor's modified data cache back to main storage.
    */
-  static void dcbst(VM_Address address) {
+  public static void dcbst(VM_Address address) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
   //-#endif
@@ -849,7 +853,7 @@ public class VM_Magic {
   /**
    * Invalidate copy of main storage held in any processor's instruction cache.
    */
-  static void icbi(VM_Address address) {
+  public static void icbi(VM_Address address) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
   //-#endif
@@ -857,14 +861,14 @@ public class VM_Magic {
   /**
    * Wait for preceeding cache flush/invalidate instructions to complete on all processors.
    */
-  static void sync() {
+  public static void sync() {
     if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**
    * Wait for all preceeding instructions to complete and discard any prefetched instructions on this processor.
    */ 
-  static void isync() {
+  public static void isync() {
     if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 

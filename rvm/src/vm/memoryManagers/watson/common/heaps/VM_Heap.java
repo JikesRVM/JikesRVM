@@ -9,8 +9,40 @@
  * @author Perry Cheng
  * @modified Dave Grove
  */
-abstract class VM_Heap 
-  implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
+package MM;
+
+import VM;
+import VM_BootRecord;
+import VM_Constants;
+import VM_Address;
+import VM_Magic;
+import VM_ObjectModel;
+import VM_JavaHeader;
+import VM_ClassLoader;
+import VM_SystemClassLoader;
+import VM_Atom;
+import VM_Type;
+import VM_Class;
+import VM_Array;
+import VM_Method;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_PragmaInterruptible;
+import VM_PragmaUninterruptible;
+import VM_PragmaLogicallyUninterruptible;
+import VM_Processor;
+import VM_Scheduler;
+import VM_Thread;
+import VM_Memory;
+import VM_Time;
+import VM_Entrypoints;
+import VM_Reflection;
+import VM_Synchronization;
+import VM_Synchronizer;
+import VM_EventLogger;
+
+public abstract class VM_Heap 
+  implements VM_Constants, VM_GCConstants {
 
   private static VM_BootRecord bootRecord;
   static VM_BootHeap bootHeap;
@@ -41,7 +73,7 @@ abstract class VM_Heap
   /**
    * Boot the heaps.  Must be called exactly once from VM_Allocator.boot.
    */
-  static void boot(VM_BootHeap bh, VM_MallocHeap mh, VM_BootRecord br) {
+  public static void boot(VM_BootHeap bh, VM_MallocHeap mh, VM_BootRecord br) throws VM_PragmaUninterruptible {
     bootHeap = bh;
     mallocHeap = mh;
     bootRecord = br;
@@ -55,7 +87,7 @@ abstract class VM_Heap
    * Return true if the given reference is to an 
    * object that is located within some heap
    */
-  static public boolean refInAnyHeap(VM_Address ref) {
+  static public boolean refInAnyHeap(VM_Address ref) throws VM_PragmaUninterruptible {
     for (int i=0; i<heapCount; i++) {
       if (allHeaps[i].refInHeap(ref)) {
 	return true;
@@ -67,7 +99,7 @@ abstract class VM_Heap
   /**
    * Return true if the given addressis located within some heap
    */
-  static public boolean addrInAnyHeap(VM_Address addr) {
+  static public boolean addrInAnyHeap(VM_Address addr) throws VM_PragmaUninterruptible {
     for (int i=0; i<heapCount; i++)
       if (allHeaps[i].addrInHeap(addr))
 	return true;
@@ -77,7 +109,7 @@ abstract class VM_Heap
   /**
    * Ask all known heaps to show themselves
    */
-  static public void showAllHeaps() {
+  static public void showAllHeaps() throws VM_PragmaUninterruptible {
     VM.sysWriteln(heapCount, " heaps");
     for (int i=0; i<heapCount; i++) {
       VM.sysWrite("Heap ", i, ": "); 
@@ -88,7 +120,7 @@ abstract class VM_Heap
   /**
    * Clobber the specified address range; useful for debugging
    */
-  static public void clobber(VM_Address start, VM_Address end) {
+  static public void clobber(VM_Address start, VM_Address end) throws VM_PragmaUninterruptible {
     VM.sysWrite("Zapping region ", start);
     VM.sysWrite(" .. ", end);
     VM.sysWriteln(" with 0xff****ff: ");
@@ -108,7 +140,7 @@ abstract class VM_Heap
   /**
    * For initial creation when no information is known at boot-image build time 
    */
-  public VM_Heap(String n) {        
+  public VM_Heap(String n) throws VM_PragmaUninterruptible {        
     name = n;
     start = end = VM_Address.fromInt(0);
     minRef = maxRef = VM_Address.fromInt(0);
@@ -121,7 +153,7 @@ abstract class VM_Heap
   /**
    * Set minRef, maxRef, size and update bootRecord heap ranges
    */
-  void setAuxiliary() {     
+  void setAuxiliary() throws VM_PragmaUninterruptible {     
     if (VM.VerifyAssertions) VM.assert(id < bootRecord.heapRanges.length - 2); 
     bootRecord.heapRanges[2 * id] = start.toInt();
     bootRecord.heapRanges[2 * id + 1] = end.toInt();
@@ -133,7 +165,7 @@ abstract class VM_Heap
   /**
    * Set the region that the heap is managing
    */
-  public void setRegion(VM_Address s, VM_Address e) {
+  public void setRegion(VM_Address s, VM_Address e) throws VM_PragmaUninterruptible {
     start = s;
     end = e;
     setAuxiliary();
@@ -142,14 +174,14 @@ abstract class VM_Heap
   /**
    * How big is the heap (in bytes)
    */
-  public final int getSize() {
+  public final int getSize() throws VM_PragmaUninterruptible {
     return size;
   }
 
   /**
    * Zero the entire heap
    */
-  public final void zero() {
+  public final void zero() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(VM_Memory.roundDownPage(size) == size);
     VM_Memory.zeroPages(start, size);
   }
@@ -157,7 +189,7 @@ abstract class VM_Heap
   /**
    * Zero the portion of the s ..e range of this heap that is assigned to the given processor
    */
-  public final void zeroParallel(VM_Address s, VM_Address e) {
+  public final void zeroParallel(VM_Address s, VM_Address e) throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(s.GE(start));
     if (VM.VerifyAssertions) VM.assert(e.LE(end));
     int np = VM_CollectorThread.numCollectors();
@@ -176,7 +208,7 @@ abstract class VM_Heap
   /**
    * size is specified in bytes and must be positive - automatically rounded up to the next page
    */
-  public void attach(int size) {
+  public void attach(int size) throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(bootRecord != null);
     if (size < 0) 
       VM.sysFail("VM_Heap.attach given negative size\n");
@@ -203,7 +235,7 @@ abstract class VM_Heap
     setAuxiliary();
   }
 
-  public void grow(int sz) {
+  public void grow(int sz) throws VM_PragmaUninterruptible {
     if (sz < size)
       VM.sysFail("VM_Heap.grow given smaller size than current size\n");
     sz = VM_Memory.roundUpPage(sz);
@@ -227,7 +259,7 @@ abstract class VM_Heap
     setAuxiliary();
   }
 
-  public void detach() {
+  public void detach() throws VM_PragmaUninterruptible {
     if (this.size == 0)
       VM.sysFail("VM_Heap.detach called on unattached heap\n");
     int status = VM_Memory.munmap(start, size);
@@ -244,32 +276,32 @@ abstract class VM_Heap
     setAuxiliary();
   }
 
-  public final void protect() {
+  public final void protect() throws VM_PragmaUninterruptible {
     VM_Memory.mprotect(start, size, VM_Memory.PROT_NONE);
   }
     
-  public final void unprotect() {
+  public final void unprotect() throws VM_PragmaUninterruptible {
     VM_Memory.mprotect(start, size, VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC);
   }
     
-  public final boolean refInHeap(VM_Address ref) {
+  public final boolean refInHeap(VM_Address ref) throws VM_PragmaUninterruptible {
     return ref.GE(minRef) && ref.LE(maxRef);
   }
 
-  public final boolean addrInHeap(VM_Address addr) {
+  public final boolean addrInHeap(VM_Address addr) throws VM_PragmaUninterruptible {
     return addr.GE(start) && addr.LT(end);
   }
 
-  public void showRange() {
+  public void showRange() throws VM_PragmaUninterruptible {
     VM.sysWrite(start); VM.sysWrite(" .. "); VM.sysWrite(end);
   }
 
 
-  public void show() {
+  public void show() throws VM_PragmaUninterruptible {
     show(true);
   }
 
-  public void show(boolean newline) {
+  public void show(boolean newline) throws VM_PragmaUninterruptible {
     int tab = 26 - name.length();
     for (int i=0; i<tab; i++) VM.sysWrite(" ");
     VM.sysWrite(name, ": ");
@@ -278,19 +310,19 @@ abstract class VM_Heap
     if (newline) VM.sysWriteln();
   }
 
-  public void touchPages() {
+  public void touchPages() throws VM_PragmaUninterruptible {
     int ps = VM_Memory.getPagesize();
     for (int i = size - ps; i >= 0; i -= ps)
       VM_Magic.setMemoryWord(start.add(i), 0);
   }
 
-  public final void clobber() { clobber(start, end); }
+  public final void clobber() throws VM_PragmaUninterruptible { clobber(start, end); }
 
   /**
    * Scan this heap for references to the target heap and report them
    * This is approximate since the scan is done without type information.
    */
-  public final int paranoidScan(VM_Heap target, boolean show) {
+  public final int paranoidScan(VM_Heap target, boolean show) throws VM_PragmaUninterruptible {
     int count = 0;
     VM.sysWrite("Checking heap "); showRange(); 
     VM.sysWrite(" for references to "); target.showRange(); VM.sysWriteln();
@@ -324,7 +356,7 @@ abstract class VM_Heap
    *
    * @return the reference for the allocated object
    */
-  public final Object allocateScalar(VM_Class type) {
+  public final Object allocateScalar(VM_Class type) throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(type.isInitialized());
     int size = type.getInstanceSize();
     Object[] tib = type.getTypeInformationBlock();
@@ -341,7 +373,7 @@ abstract class VM_Heap
    *
    * @return the reference for the allocated array object 
    */
-  public final Object allocateArray(VM_Array type, int numElements) {
+  public final Object allocateArray(VM_Array type, int numElements) throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(type.isInitialized());
     int size = type.getInstanceSize(numElements);
     Object[] tib = type.getTypeInformationBlock();
@@ -358,7 +390,7 @@ abstract class VM_Heap
    * @return the reference for the allocated object
    */
   public final Object allocateScalar(int size, Object[] tib)
-    throws OutOfMemoryError, VM_PragmaNoInline /* infrequent case allocation --dave */ {
+    throws OutOfMemoryError, VM_PragmaNoInline /* infrequent case allocation --dave */, VM_PragmaUninterruptible {
     VM_Address region = allocateZeroedMemory(size);
     VM_GCStatistics.profileAlloc(region, size, tib); // profile/debug; usually inlined away to nothing
     Object newObj = VM_ObjectModel.initializeScalar(region, tib, size);
@@ -378,7 +410,7 @@ abstract class VM_Heap
    * @return the reference for the allocated array object 
    */
   public final Object allocateArray (int numElements, int size, Object[] tib)
-    throws OutOfMemoryError, VM_PragmaNoInline /* infrequent case allocation --dave */ {
+    throws OutOfMemoryError, VM_PragmaNoInline /* infrequent case allocation --dave */, VM_PragmaUninterruptible {
     // note: array size might not be a word multiple,
     //       must preserve alignment of future allocations
     size = VM_Memory.align(size, WORDSIZE);
@@ -397,13 +429,13 @@ abstract class VM_Heap
    * @param size Number of bytes to allocate
    * @return Address of allocated storage
    */
-  protected abstract VM_Address allocateZeroedMemory(int size);
+  protected abstract VM_Address allocateZeroedMemory(int size) throws VM_PragmaUninterruptible;
 
   /**
    * Hook to allow heap to perform post-allocation processing of the object.
    * For example, setting the GC state bits in the object header.
    * @param newObj the object just allocated in the heap.
    */
-  protected abstract void postAllocationProcessing(Object newObj);
+  protected abstract void postAllocationProcessing(Object newObj) throws VM_PragmaUninterruptible;
 
 }

@@ -328,7 +328,7 @@ public final class VM_Class extends VM_Type
    * they are compiled with
    * a special prolog to interface with the native stack frame.
    */
-  final boolean isBridgeFromNative() throws VM_PragmaUninterruptible {
+  public final boolean isBridgeFromNative() throws VM_PragmaUninterruptible {
     // The only class that returns true is the VM_JNIFunctions
     // which must have been loaded by the first call to System.loadLibrary
     // If this class is not loaded yet, we can assume that it

@@ -41,7 +41,7 @@ public class VM_CompiledMethods {
 
   // Fetch a previously compiled method.
   //
-  static VM_CompiledMethod getCompiledMethod(int compiledMethodId) throws VM_PragmaUninterruptible {
+  public static VM_CompiledMethod getCompiledMethod(int compiledMethodId) throws VM_PragmaUninterruptible {
     VM_Magic.isync();  // see potential update from other procs
 
     if (VM.VerifyAssertions) {
@@ -87,7 +87,7 @@ public class VM_CompiledMethods {
    // Note: this method is highly inefficient. Normally you should use the following instead:
    //   VM_ClassLoader.getCompiledMethod(VM_Magic.getCompiledMethodID(fp))
    //
-  static VM_CompiledMethod findMethodForInstruction(VM_Address ip) {
+  public static VM_CompiledMethod findMethodForInstruction(VM_Address ip) {
     for (int i = 0, n = numCompiledMethods(); i < n; ++i) {
       VM_CompiledMethod compiledMethod = compiledMethods[i];
       if (compiledMethod == null || !compiledMethod.isCompiled())
@@ -152,7 +152,7 @@ public class VM_CompiledMethods {
   // marking it NOT obsolete. Keep such reference until a future GC.
   // NOTE: It's expected that this is processed during GC, after scanning
   //	stacks to determine which methods are currently executing.
-  static void snipObsoleteCompiledMethods() {
+  public static void snipObsoleteCompiledMethods() {
     if (obsoleteMethods == null) return;
     
     int oldCount = obsoleteMethodCount;

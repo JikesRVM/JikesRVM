@@ -14,7 +14,9 @@
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
+import MM.VM_GCMapIterator;
+
+public final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants,
 	     VM_Uninterruptible {
   private static final boolean TRACE_ALL = false;
@@ -32,7 +34,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // The locations are kept as addresses within the stack.
   //
   
-  VM_BaselineGCMapIterator(int registerLocations[]) {
+  public VM_BaselineGCMapIterator(int registerLocations[]) {
     this.registerLocations = registerLocations; // (in superclass)
     dynamicLink  = new VM_DynamicLink();
   }
@@ -53,7 +55,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //
   //  NOTE: An iterator may be reused to scan a different method and map.
   //
-  void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address fp) {
+  public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address fp) {
     currentMethod = compiledMethod.getMethod();
       
     // setup superclass
@@ -118,7 +120,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // Reset iteration to initial state.
   // This allows a map to be scanned multiple times
   //
-  void reset() {
+  public void reset() {
     mapOffset = 0;
 
     if (bridgeTarget != null) {
@@ -133,7 +135,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // Get location of next reference.
   // A zero return indicates that no more references exist.
   //
-  VM_Address getNextReferenceAddress() {
+  public VM_Address getNextReferenceAddress() {
     if (mapId < 0) {
       mapOffset = maps.getNextJSRRef(mapOffset);
     } else {
@@ -247,7 +249,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // after the current position.
   //  a zero return indicates that no more references exist
   //
-  VM_Address getNextReturnAddressAddress() {
+  public VM_Address getNextReturnAddressAddress() {
     if (mapId >= 0) {
       if (VM.TraceStkMaps || TRACE_ALL) {
 	VM.sysWrite("VM_BaselineGCMapIterator getNextReturnAddressOffset mapId = ");
@@ -269,7 +271,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //    early ... they may be in temporary storage ie storage only used
   //    during garbage collection
   //
-  void cleanupPointers() {
+  public void cleanupPointers() {
     maps.cleanupPointers();
     maps = null;
     if (mapId < 0)   
@@ -278,13 +280,13 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator
     bridgeParameterTypes = null;
   }
 
-  int getType() {
+  public int getType() {
     return VM_CompiledMethod.BASELINE;
   }
 
   // For debugging (used with checkRefMap)
   //
-  int getStackDepth() {
+  public int getStackDepth() {
     return maps.getStackDepth(mapId);
   }
 

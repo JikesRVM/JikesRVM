@@ -12,15 +12,15 @@
  */
 final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
 
-  VM_HardwareTrapCompiledMethod(int id, VM_Method m) {
+  public VM_HardwareTrapCompiledMethod(int id, VM_Method m) {
     super(id,m);    
   }
 
-  final int getCompilerType() throws VM_PragmaUninterruptible { 
+  public final int getCompilerType() throws VM_PragmaUninterruptible { 
     return TRAP; 
   }
 
-  final VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible {
+  public final VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible {
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object
@@ -29,11 +29,11 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     return null;
   }
       
-  final int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType) {
+  public final int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType) {
     return -1;
   }
    
-  final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible {
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible {
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object
@@ -52,14 +52,14 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  final void set(VM_StackBrowser browser, int instr) {
+  public final void set(VM_StackBrowser browser, int instr) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);
   }
        
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
-  final boolean up(VM_StackBrowser browser) {
+  public final boolean up(VM_StackBrowser browser) {
     return false;
   }
 

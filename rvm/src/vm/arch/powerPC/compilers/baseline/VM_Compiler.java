@@ -12,6 +12,8 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
+import MM.VM_Collector;
+
 public class VM_Compiler extends VM_BaselineCompiler 
   implements VM_BaselineConstants,
 	     VM_AssemblerConstants {

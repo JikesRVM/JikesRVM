@@ -16,17 +16,17 @@ import instructionFormats.*;
  * @author Dave Grove
  * @author Mauricio Serrano
  */
-final class VM_OptCompiledMethod extends VM_CompiledMethod
+public final class VM_OptCompiledMethod extends VM_CompiledMethod
   implements OPT_Operators, VM_Uninterruptible  {
 
-  VM_OptCompiledMethod(int id, VM_Method m) {
+  public VM_OptCompiledMethod(int id, VM_Method m) {
     super(id,m);    
   }
 
   /**
    * Get compiler that generated this method's machine code.
    */ 
-  final int getCompilerType() {
+  public final int getCompilerType() {
     return VM_CompiledMethod.OPT;
   }
 
@@ -34,14 +34,14 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
    * Get handler to deal with stack unwinding and exception delivery 
    * for this method's stackframes.
    */
-  final VM_ExceptionDeliverer getExceptionDeliverer() {
+  public final VM_ExceptionDeliverer getExceptionDeliverer() {
     return exceptionDeliverer;
   }
 
   /**
    * Find "catch" block for a machine instruction of this method.
    */ 
-  final int findCatchBlockForInstruction(int instructionOffset, 
+  public final int findCatchBlockForInstruction(int instructionOffset, 
 					 VM_Type exceptionType) throws VM_PragmaInterruptible {
     if (eTable == null) {
       return -1;
@@ -57,7 +57,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
    * @param instructionOffset offset of machine instruction that issued 
    *                          the call
    */ 
-  final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) {
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) {
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     VM_Method realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
     if (bci == -1 || realMethod == null)
@@ -72,7 +72,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
    * Find source line number corresponding to one of this method's 
    * machine instructions.
    */
-  final int findLineNumberForInstruction(int instructionOffset) {
+  public final int findLineNumberForInstruction(int instructionOffset) {
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     if (bci < 0)
       return 0;
@@ -85,7 +85,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  final void set(VM_StackBrowser browser, int instr) throws VM_PragmaInterruptible {
+  public final void set(VM_StackBrowser browser, int instr) throws VM_PragmaInterruptible {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instr);
     if (iei >= 0) {
@@ -111,7 +111,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
-  final boolean up(VM_StackBrowser browser) throws VM_PragmaInterruptible {
+  public final boolean up(VM_StackBrowser browser) throws VM_PragmaInterruptible {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = browser.getInlineEncodingIndex();
     int[] ie = map.inlineEncoding;
@@ -143,7 +143,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
    * @param offset the offset of machine instruction from start of method
    * @param out    the PrintStream to print the stack trace to.
    */
-  final void printStackTrace(int instructionOffset, java.io.PrintStream out) throws VM_PragmaInterruptible {
+  public final void printStackTrace(int instructionOffset, java.io.PrintStream out) throws VM_PragmaInterruptible {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {
@@ -185,7 +185,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
    * @param instructionOffset offset of machine instruction from start of method
    * @param out               the PrintWriter to print the stack trace to.
    */
-  final void printStackTrace(int instructionOffset, java.io.PrintWriter out) throws VM_PragmaInterruptible {
+  public final void printStackTrace(int instructionOffset, java.io.PrintWriter out) throws VM_PragmaInterruptible {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {
@@ -222,7 +222,7 @@ final class VM_OptCompiledMethod extends VM_CompiledMethod
   }
 
   private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_ExceptionTable;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
-  final int size() throws VM_PragmaInterruptible {
+  public final int size() throws VM_PragmaInterruptible {
     int size = TYPE.getInstanceSize();
     size += _mcMap.size();
     if (eTable != null) size += VM_Array.arrayOfIntType.getInstanceSize(eTable.length);

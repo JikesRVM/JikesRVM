@@ -13,7 +13,7 @@
  * @author Dave Grove
  * @author Derek Lieber
  */
-class VM_Memory implements VM_Uninterruptible {
+public class VM_Memory implements VM_Uninterruptible {
 
   ////////////////////////
   // (1) Utilities for copying/filling/zeroing memory
@@ -234,13 +234,13 @@ class VM_Memory implements VM_Uninterruptible {
    *           end of address range   (exclusive)
    * Returned: nothing
    */
-  static void zero(VM_Address start, VM_Address end) {
+  public static void zero(VM_Address start, VM_Address end) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     VM.sysCall2(bootRecord.sysZeroIP, start.toInt(), end.diff(start));
   }
 
   // temporary different name
-  static void zeroTemp(VM_Address start, int len) {
+  public static void zeroTemp(VM_Address start, int len) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     VM.sysCall2(bootRecord.sysZeroIP, start.toInt(), len);
   }
@@ -251,7 +251,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           number of bytes     (must be multiple of page size)
    * Returned: nothing
    */
-  static void zeroPages(VM_Address start, int len) {
+  public static void zeroPages(VM_Address start, int len) {
     if (VM.VerifyAssertions) VM.assert(isPageAligned(start) && isPageMultiple(len));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     VM.sysCall2(bootRecord.sysZeroPagesIP, start.toInt(), len);
@@ -268,7 +268,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           size of address range (bytes)
    * Returned: nothing
    */
-  static void sync(VM_Address address, int size) {
+  public static void sync(VM_Address address, int size) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     VM.sysCall2(bootRecord.sysSyncCacheIP, address.toInt(), size);
   }
@@ -280,69 +280,69 @@ class VM_Memory implements VM_Uninterruptible {
 
   // constants for protection and mapping calls
   //-#if RVM_FOR_LINUX
-  static final int PROT_NONE  = 0;
-  static final int PROT_READ  = 1;
-  static final int PROT_WRITE = 2;
-  static final int PROT_EXEC  = 4;
+  public static final int PROT_NONE  = 0;
+  public static final int PROT_READ  = 1;
+  public static final int PROT_WRITE = 2;
+  public static final int PROT_EXEC  = 4;
 
-  static final int MAP_SHARED    =  1;
-  static final int MAP_PRIVATE   =  2;
-  static final int MAP_FIXED     = 16;
-  static final int MAP_ANONYMOUS = 32;
+  public static final int MAP_SHARED    =  1;
+  public static final int MAP_PRIVATE   =  2;
+  public static final int MAP_FIXED     = 16;
+  public static final int MAP_ANONYMOUS = 32;
 
-  static final int MS_ASYNC      = 1;
-  static final int MS_INVALIDATE = 2;
-  static final int MS_SYNC       = 4;
+  public static final int MS_ASYNC      = 1;
+  public static final int MS_INVALIDATE = 2;
+  public static final int MS_SYNC       = 4;
   //-#endif
   //-#if RVM_FOR_AIX
-  static final int PROT_NONE  = 0;
-  static final int PROT_READ  = 1;
-  static final int PROT_WRITE = 2;
-  static final int PROT_EXEC  = 4;
+  public static final int PROT_NONE  = 0;
+  public static final int PROT_READ  = 1;
+  public static final int PROT_WRITE = 2;
+  public static final int PROT_EXEC  = 4;
 
-  static final int MAP_SHARED    =  1;
-  static final int MAP_PRIVATE   =  2;
-  static final int MAP_FIXED     = 256;
-  static final int MAP_ANONYMOUS = 16;
+  public static final int MAP_SHARED    =  1;
+  public static final int MAP_PRIVATE   =  2;
+  public static final int MAP_FIXED     = 256;
+  public static final int MAP_ANONYMOUS = 16;
 
-  static final int MS_ASYNC      = 16;
-  static final int MS_INVALIDATE = 32;
-  static final int MS_SYNC       = 64;
+  public static final int MS_ASYNC      = 16;
+  public static final int MS_INVALIDATE = 32;
+  public static final int MS_SYNC       = 64;
   //-#endif
 
 
 
-  static boolean isPageMultiple(int val) {
+  public static boolean isPageMultiple(int val) {
     int pagesizeMask = getPagesize() - 1;
     return ((val & pagesizeMask) == 0);
   }
 
-  static boolean isPageMultiple(long val) {
+  public static boolean isPageMultiple(long val) {
     int pagesizeMask = getPagesize() - 1;
     return ((val & ((long) pagesizeMask)) == 0);
   }
 
-  static boolean isPageAligned(VM_Address addr) {
+  public static boolean isPageAligned(VM_Address addr) {
     return isPageMultiple(addr.toInt());
   }
 
   // Round size (interpreted as an unsigned int) up to the next page
-  static public int roundDownPage(int size) {     
+  public static int roundDownPage(int size) {     
     size &= ~(getPagesize() - 1);   
     return size;
   }
 
-  static public VM_Address roundDownPage(VM_Address addr) { 
+  public static VM_Address roundDownPage(VM_Address addr) { 
     int temp = addr.toInt();  // might be negative - consider as unsigned
     temp &= ~(getPagesize() - 1);
     return VM_Address.fromInt(temp);
   }
 
-  static public int roundUpPage(int size) {     // Round size up to the next page
+  public static int roundUpPage(int size) {     // Round size up to the next page
     return roundDownPage(size + getPagesize() - 1);
   }
 
-  static public VM_Address roundUpPage(VM_Address addr) {
+  public static VM_Address roundUpPage(VM_Address addr) {
     return VM_Address.fromInt(roundUpPage(addr.toInt()));
   }
 
@@ -356,7 +356,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           offset (long)
    * Returned: VM_Address (of region)
    */
-  static VM_Address mmap(VM_Address address, int size, 
+  public static VM_Address mmap(VM_Address address, int size, 
                          int prot, int flags, int fd, long offset) {
     if (VM.VerifyAssertions)
       VM.assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
@@ -372,7 +372,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           file name (char *)
    * Returned: VM_Address (of region)
    */
-  static VM_Address mmapFile(VM_Address address, int size, int fd, int prot) {
+  public static VM_Address mmapFile(VM_Address address, int size, int fd, int prot) {
     if (VM.VerifyAssertions)
       VM.assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
@@ -387,7 +387,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           flags (int)
    * Returned: VM_Address (of region) if successful; errno (1 to 127) otherwise
    */
-  static VM_Address mmap(VM_Address address, int size, int prot, int flags) {
+  public static VM_Address mmap(VM_Address address, int size, int prot, int flags) {
     if (VM.VerifyAssertions)
       VM.assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
@@ -401,7 +401,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           size of address range 
    * Returned: VM_Address (of region)
    */
-  static VM_Address mmap(VM_Address address, int size) {
+  public static VM_Address mmap(VM_Address address, int size) {
     if (VM.VerifyAssertions)
       VM.assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
@@ -413,7 +413,7 @@ class VM_Memory implements VM_Uninterruptible {
    * Taken:    size of address range (VM_Address)
    * Returned: VM_Address (of region)
    */
-  static VM_Address mmap(int size) {
+  public static VM_Address mmap(int size) {
     if (VM.VerifyAssertions) VM.assert(isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM_Address.fromInt(VM.sysCall1(bootRecord.sysMMapDemandZeroAnyIP, size));
@@ -425,7 +425,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           size of address range 
    * Returned: 0 if successfull; errno otherwise
    */
-  static int munmap(VM_Address address, int size) {
+  public static int munmap(VM_Address address, int size) {
     if (VM.VerifyAssertions)
       VM.assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
@@ -439,7 +439,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           protection (int)
    * Returned: true if success
    */
-  static boolean mprotect(VM_Address address, int size, int prot) {
+  public static boolean mprotect(VM_Address address, int size, int prot) {
     if (VM.VerifyAssertions)
       VM.assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
@@ -453,7 +453,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           flags (int)
    * Returned: true if success
    */
-  static boolean msync(VM_Address address, int size, int flags) {
+  public static boolean msync(VM_Address address, int size, int flags) {
     if (VM.VerifyAssertions)
       VM.assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
@@ -467,7 +467,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           advice (int)
    * Returned: true if success
    */
-  static boolean madvise(VM_Address address, int size, int advice) {
+  public static boolean madvise(VM_Address address, int size, int advice) {
     if (VM.VerifyAssertions)
       VM.assert(isPageAligned(address) && isPageMultiple(size));
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
@@ -476,44 +476,44 @@ class VM_Memory implements VM_Uninterruptible {
 
 
   //-#if RVM_FOR_AIX
-  static final int SHMGET_IPC_CREAT = 1 * 512; // 0001000 Creates the data structure if it does not already exist. 
-  static final int SHMGET_IPC_EXCL = 2 * 512;  // 0002000 Causes the shmget subroutine to be unsuccessful 
+  public static final int SHMGET_IPC_CREAT = 1 * 512; // 0001000 Creates the data structure if it does not already exist. 
+  public static final int SHMGET_IPC_EXCL = 2 * 512;  // 0002000 Causes the shmget subroutine to be unsuccessful 
   //         if the IPC_CREAT flag is also set, and the data structure already exists. 
-  static final int SHMGET_IRUSR = 4 * 64; // 0000400 self can read
-  static final int SHMGET_IWUSR = 2 * 64; // 0000200 self can write
-  static final int SHMGET_IRGRP = 4 * 8;  // 0000040 group can read
-  static final int SHMGET_IWGRP = 2 * 8;  // 0000020 group can write
-  static final int SHMGET_IROTH = 4;      // 0000004 others can read
-  static final int SHMGET_IWOTH = 2;      // 0000002 others can write
+  public static final int SHMGET_IRUSR = 4 * 64; // 0000400 self can read
+  public static final int SHMGET_IWUSR = 2 * 64; // 0000200 self can write
+  public static final int SHMGET_IRGRP = 4 * 8;  // 0000040 group can read
+  public static final int SHMGET_IWGRP = 2 * 8;  // 0000020 group can write
+  public static final int SHMGET_IROTH = 4;      // 0000004 others can read
+  public static final int SHMGET_IWOTH = 2;      // 0000002 others can write
 
-  static final int SHMAT_MAP = 4 * 512;     // 004000 Maps a file onto the address space instead of a shared memory segment. 
+  public static final int SHMAT_MAP = 4 * 512;     // 004000 Maps a file onto the address space instead of a shared memory segment. 
   //        The SharedMemoryID parameter must specify an open file descriptor.
-  static final int SHMAT_LBA = 268435456;   // 0x10000000 Specifies the low boundary address multiple of a segment. 
-  static final int SHMAT_RDONLY = 1 * 4096; // 010000 Specifies read-only mode instead of the default read-write mode. 
-  static final int SHMAT_RND = 2 * 4096;    // 020000 Rounds the address given by the SharedMemoryAddress parameter 
+  public static final int SHMAT_LBA = 268435456;   // 0x10000000 Specifies the low boundary address multiple of a segment. 
+  public static final int SHMAT_RDONLY = 1 * 4096; // 010000 Specifies read-only mode instead of the default read-write mode. 
+  public static final int SHMAT_RND = 2 * 4096;    // 020000 Rounds the address given by the SharedMemoryAddress parameter 
   //        to the next lower segment boundary, if necessary. 
-  static final int SHMCTL_IPC_RMID = 0;    // Removes the shared memory identifier specified by the shmid.
+  public static final int SHMCTL_IPC_RMID = 0;    // Removes the shared memory identifier specified by the shmid.
   // There are other SHMCTL that are not included for now.
   //-#endif
 
   //-#if RVM_FOR_LINUX
-  static final int SHMGET_IPC_CREAT  = 1 * 512;  // 01000 Create key if key does not exist
-  static final int SHMGET_IPC_EXCL   = 2 * 512;  // 02000 Fail if key exists
-  static final int SHMGET_IPC_NOWAIT = 4 * 512;  // 04000 Return error on wait
+  public static final int SHMGET_IPC_CREAT  = 1 * 512;  // 01000 Create key if key does not exist
+  public static final int SHMGET_IPC_EXCL   = 2 * 512;  // 02000 Fail if key exists
+  public static final int SHMGET_IPC_NOWAIT = 4 * 512;  // 04000 Return error on wait
 
-  static final int SHMGET_IRUSR = 4 * 64; // 0000400 self can read
-  static final int SHMGET_IWUSR = 2 * 64; // 0000200 self can write
-  static final int SHMGET_IRGRP = 4 * 8;  // 0000040 group can read
-  static final int SHMGET_IWGRP = 2 * 8;  // 0000020 group can write
-  static final int SHMGET_IROTH = 4;      // 0000004 others can read
-  static final int SHMGET_IWOTH = 2;      // 0000002 others can write
+  public static final int SHMGET_IRUSR = 4 * 64; // 0000400 self can read
+  public static final int SHMGET_IWUSR = 2 * 64; // 0000200 self can write
+  public static final int SHMGET_IRGRP = 4 * 8;  // 0000040 group can read
+  public static final int SHMGET_IWGRP = 2 * 8;  // 0000020 group can write
+  public static final int SHMGET_IROTH = 4;      // 0000004 others can read
+  public static final int SHMGET_IWOTH = 2;      // 0000002 others can write
 
-  static final int SHMAT_RDONLY = 1 * 4096; // 010000 Specifies read-only mode instead of the default read-write mode. 
-  static final int SHMAT_RND = 2 * 4096;    // 020000 Rounds the address given by the SharedMemoryAddress parameter 
-  static final int SHMAT_REMAP = 4 * 4096;    // 040000 take-over region on attach
-  // static final int SHMAT_MAP  - can't find this in linux's shm.h
+  public static final int SHMAT_RDONLY = 1 * 4096; // 010000 Specifies read-only mode instead of the default read-write mode. 
+  public static final int SHMAT_RND = 2 * 4096;    // 020000 Rounds the address given by the SharedMemoryAddress parameter 
+  public static final int SHMAT_REMAP = 4 * 4096;    // 040000 take-over region on attach
+  // public static final int SHMAT_MAP  - can't find this in linux's shm.h
 
-  static final int SHMCTL_IPC_RMID = 0;    // Removes the shared memory identifier specified by the shmid.
+  public static final int SHMCTL_IPC_RMID = 0;    // Removes the shared memory identifier specified by the shmid.
 
   // There are other SHMCTL that are not included for now.
   //-#endif
@@ -526,7 +526,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           segment attributes
    * Returned: shared memory segment id 
    */
-  static int shmget(int key, int size, int flags) {
+  public static int shmget(int key, int size, int flags) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM.sysCall3(bootRecord.sysShmgetIP, key, size, flags);
   }
@@ -538,7 +538,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           access attributes
    * Returned: address of attached shared memory segment 
    */
-  static VM_Address shmat(int shmid, VM_Address addr, int flags) {
+  public static VM_Address shmat(int shmid, VM_Address addr, int flags) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int result = VM.sysCall3(bootRecord.sysShmatIP, shmid, addr.toInt(), flags);
     return VM_Address.fromInt(result);
@@ -549,7 +549,7 @@ class VM_Memory implements VM_Uninterruptible {
    * Taken:    address of mapped region
    * Returned: shared memory segment id 
    */
-  static int shmdt(VM_Address addr) {
+  public static int shmdt(VM_Address addr) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM.sysCall1(bootRecord.sysShmdtIP, addr.toInt());
   }
@@ -561,7 +561,7 @@ class VM_Memory implements VM_Uninterruptible {
    *           missing buffer argument
    * Returned: shared memory segment id 
    */
-  static VM_Address shmctl(int shmid, int command) {
+  public static VM_Address shmctl(int shmid, int command) {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM_Address.fromInt(VM.sysCall2(bootRecord.sysShmctlIP, shmid, command));
   }
@@ -575,7 +575,7 @@ class VM_Memory implements VM_Uninterruptible {
   private static int pagesize = -1;
   private static int pagesizeLog = -1;
 
-  static int getPagesize() {
+  public static int getPagesize() {
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     if (pagesize == -1) {
       pagesize = VM.sysCall0(bootRecord.sysGetPageSizeIP);
@@ -596,7 +596,7 @@ class VM_Memory implements VM_Uninterruptible {
     return pagesizeLog;
   }
 
-  static void dumpMemory(VM_Address start, int beforeBytes, int afterBytes) {
+  public static void dumpMemory(VM_Address start, int beforeBytes, int afterBytes) {
 
     beforeBytes = beforeBytes & ~3;
     afterBytes = (afterBytes + 3) & ~3;
@@ -700,12 +700,12 @@ class VM_Memory implements VM_Uninterruptible {
   }
 
 
-  static VM_Address align (VM_Address address, int alignment) throws VM_PragmaInline {
+  public static VM_Address align (VM_Address address, int alignment) throws VM_PragmaInline {
     return VM_Address.fromInt((address.toInt() + alignment - 1) & ~(alignment - 1));
   }
 
   // This version is here to accomodate the boot image writer
-  static int align (int address, int alignment) throws VM_PragmaInline {
+  public static int align (int address, int alignment) throws VM_PragmaInline {
     return ((address + alignment - 1) & ~(alignment - 1));
   }
 }

@@ -11,6 +11,8 @@
  * @author Derek Lieber (project start).
  * @date 21 Nov 1997 
  */
+import MM.VM_Collector;
+
 public class VM extends VM_Properties implements VM_Constants, 
 VM_Uninterruptible { 
   //----------------------------------------------------------------------//
@@ -24,8 +26,7 @@ VM_Uninterruptible {
    */ 
   static void initForBootImageWriter(String classPath, 
                                      String[] bootCompilerArgs) 
-    throws VM_ResolutionException,
-  VM_PragmaInterruptible {
+    throws VM_ResolutionException, VM_PragmaInterruptible {
     writingBootImage = true;
     init(classPath, bootCompilerArgs);
   }
@@ -400,7 +401,7 @@ VM_Uninterruptible {
   }
 
   /**
-   * Low level print to console.
+    * Low level print to console.
    * @param value	what is printed
    */
   public static void sysWrite(char value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
@@ -589,7 +590,7 @@ VM_Uninterruptible {
    * Should only be called if the VM is running.
    * @param value  exit value
    */
-  static void shutdown(int value) {
+  public static void shutdown(int value) {
     if (VM.VerifyAssertions) VM.assert(VM.runningVM);
     if (VM.runningAsSubsystem) {
       // Terminate only the system threads that belong to the VM
@@ -624,7 +625,7 @@ VM_Uninterruptible {
   /**
    * Yield execution of current virtual processor back to o/s.
    */
-  static void sysVirtualProcessorYield() {
+  public static void sysVirtualProcessorYield() {
     //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     return;
     //-#else

@@ -14,7 +14,16 @@
  * @author Dick Attanasio
  * @author Stephen Smith
  */
-public class VM_GCLocks implements VM_Uninterruptible {
+package MM;
+
+import VM_Magic;
+import VM_Scheduler;
+import VM_Constants;
+import VM_Synchronization;
+import VM_Memory;
+import VM_PragmaUninterruptible;
+
+public class VM_GCLocks {
   
   private final static int NUM_LOCKS = 10;
   
@@ -34,13 +43,13 @@ public class VM_GCLocks implements VM_Uninterruptible {
   
   // reset all locks except the finishLock & finishMajorLock
   //
-  static void reset() {
+  static void reset() throws VM_PragmaUninterruptible {
     for (int i = 2; i < NUM_LOCKS; i++) locks[i] = 0;
     VM_Memory.zero(VM_Magic.objectAsAddress(threadlocks),
 		   VM_Magic.objectAsAddress(threadlocks).add(VM_Scheduler.MAX_THREADS * 4));
   }
   
-  static void resetFinishLock() {
+  static void resetFinishLock() throws VM_PragmaUninterruptible {
     locks[FINISH_LOCK] = 0;   
     locks[FINISH_MAJOR_LOCK] = 0;   
   }
@@ -50,31 +59,31 @@ public class VM_GCLocks implements VM_Uninterruptible {
   // If 0, sets to passed value and returns true, if not 0, returns false.
   //
   
-  static boolean testAndSetThreadLock(int ndx) {
+  static boolean testAndSetThreadLock(int ndx) throws VM_PragmaUninterruptible {
     return VM_Synchronization.testAndSet(threadlocks, ndx*4, 1);
   }
   
-  static boolean testAndSetInitLock() {
+  static boolean testAndSetInitLock() throws VM_PragmaUninterruptible {
     return VM_Synchronization.testAndSet(locks, INIT_LOCK*4, 1);
   }
   
-  static boolean testAndSetFinishLock() {
+  static boolean testAndSetFinishLock() throws VM_PragmaUninterruptible {
     return VM_Synchronization.testAndSet(locks, FINISH_LOCK*4, 1);
   }
   
-  static boolean testAndSetFinishMajorLock() {
+  static boolean testAndSetFinishMajorLock() throws VM_PragmaUninterruptible {
     return VM_Synchronization.testAndSet(locks, FINISH_MAJOR_LOCK*4, 1);
   }
   
-  static boolean testAndSetStaticsLock() {
+  static boolean testAndSetStaticsLock() throws VM_PragmaUninterruptible {
     return VM_Synchronization.testAndSet(locks, STATICS_LOCK*4, 1);
   }
   
-  static boolean testAndSetStatisticsLock() {
+  static boolean testAndSetStatisticsLock() throws VM_PragmaUninterruptible {
     return VM_Synchronization.testAndSet(locks, STATISTICS_LOCK*4, 1);
   }
   
-  static boolean testAndSetResetLock() {
+  static boolean testAndSetResetLock() throws VM_PragmaUninterruptible {
     return VM_Synchronization.testAndSet(locks, RESET_LOCK*4, 1);
   }
   

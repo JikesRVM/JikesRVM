@@ -9,7 +9,7 @@
  * @author Stephen Fink
  * @author David Grove
  */
-class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
+public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 
   public static final int COMPILER_TYPE = VM_CompiledMethod.OPT;
 

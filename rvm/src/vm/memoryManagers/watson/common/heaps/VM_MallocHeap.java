@@ -20,8 +20,24 @@
  *  @author Perry Cheng
  *  @author David Grove
  */
+package MM;
+
+import VM_Class;
+import VM_Array;
+import VM_Constants;
+import VM_ProcessorLock;
+import VM_Address;
+import VM_Memory;
+import VM_ObjectModel;
+import VM;
+import VM_Magic;
+import VM_Type;
+import VM_BootRecord;
+import VM_Processor;
+import VM_PragmaUninterruptible;
+
 public class VM_MallocHeap extends VM_Heap 
-  implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
+  implements VM_Constants, VM_GCConstants {
 
   // Internal management
   private VM_ProcessorLock spaceLock = new VM_ProcessorLock();
@@ -29,21 +45,21 @@ public class VM_MallocHeap extends VM_Heap
   /**
    * Initialize for boot image - called from init of various collectors
    */
-  VM_MallocHeap() {
+  VM_MallocHeap() throws VM_PragmaUninterruptible {
     super("Malloc Heap");
   }
 
   /**
    * Initialize for execution.
    */
-  public void attach (int size) { VM.sysFail("Cannot attach malloc space with size"); }
+  public void attach (int size) throws VM_PragmaUninterruptible { VM.sysFail("Cannot attach malloc space with size"); }
 
   /**
    * Get total amount of memory used by malloc space.
    *
    * @return the number of bytes
    */
-  public int totalMemory () {
+  public int totalMemory () throws VM_PragmaUninterruptible {
     return size;
   }
 
@@ -56,7 +72,7 @@ public class VM_MallocHeap extends VM_Heap
    *
    * @return the reference for the allocated object
    */
-  public Object atomicAllocateScalar(VM_Class type) {
+  public Object atomicAllocateScalar(VM_Class type) throws VM_PragmaUninterruptible {
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     Object o = allocateScalar(type);
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
@@ -74,7 +90,7 @@ public class VM_MallocHeap extends VM_Heap
    *
    * @return the reference for the allocated array object 
    */
-  public Object atomicAllocateArray(VM_Array type, int numElements) {
+  public Object atomicAllocateArray(VM_Array type, int numElements) throws VM_PragmaUninterruptible {
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     Object o = allocateArray(type, numElements);
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
@@ -85,7 +101,7 @@ public class VM_MallocHeap extends VM_Heap
    * Atomically free an array object.
    * @param obj the object to free
    */
-  public void atomicFreeArray(Object o) {
+  public void atomicFreeArray(Object o) throws VM_PragmaUninterruptible {
     // NOTE: making an evil assumption about the object model here
     //       to avoid requiring object model to have an object-to-base-addr function.
     //       This might be the wrong design decison.
@@ -102,7 +118,7 @@ public class VM_MallocHeap extends VM_Heap
    * Free a memory region.
    * @param addr the pointer to free
    */
-  public void free(VM_Address addr) {
+  public void free(VM_Address addr) throws VM_PragmaUninterruptible {
     VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, addr.toInt());
     // Cannot correctly change start/end here
   }
@@ -114,7 +130,7 @@ public class VM_MallocHeap extends VM_Heap
    * @param size Number of bytes to allocate
    * @return Address of allocated storage
    */
-  protected VM_Address allocateZeroedMemory(int size) {
+  protected VM_Address allocateZeroedMemory(int size) throws VM_PragmaUninterruptible {
     // NOTE: must use processorLock instead of synchronized virtual method
     //       because we can't give up the virtual processor.
     //       This method is sometimes called when the GC system is in a delicate state.
@@ -148,7 +164,7 @@ public class VM_MallocHeap extends VM_Heap
    * Hook to allow heap to perform post-allocation processing of the object.
    * For example, setting the GC state bits in the object header.
    */
-  protected void postAllocationProcessing(Object newObj) { 
+  protected void postAllocationProcessing(Object newObj) throws VM_PragmaUninterruptible { 
     // nothing to do in this heap since the GC subsystem
     // ignores objects in the malloc heap.
   }

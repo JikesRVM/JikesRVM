@@ -13,7 +13,37 @@
  * 
  * @see VM_Allocator
  */
-public class VM_Collector implements VM_Constants, VM_Uninterruptible {
+
+package MM;
+
+import VM;
+import VM_BootRecord;
+import VM_Constants;
+import VM_Address;
+import VM_Magic;
+import VM_ObjectModel;
+import VM_ClassLoader;
+import VM_SystemClassLoader;
+import VM_Atom;
+import VM_Type;
+import VM_Class;
+import VM_Array;
+import VM_Method;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_PragmaInterruptible;
+import VM_PragmaUninterruptible;
+import VM_PragmaLogicallyUninterruptible;
+import VM_Scheduler;
+import VM_Processor;
+import VM_Memory;
+import VM_Time;
+import VM_Entrypoints;
+import VM_Reflection;
+import VM_Synchronization;
+import VM_EventLogger;
+
+public class VM_Collector implements VM_Constants {
 
   /**
    * Initialization that occurs at <i>build</i> time.  The value of
@@ -42,7 +72,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    * options (this is called as soon as options have been parsed,
    * which is necessarily after the basic allocator boot).
    */
-  public static void postBoot() {
+  public static void postBoot() throws VM_PragmaInterruptible {
   }
 
   /** 
@@ -58,7 +88,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    *
    * @return True if GC is in progress.
    */
-  public static final boolean gcInProgress() {
+  public static final boolean gcInProgress() throws VM_PragmaUninterruptible {
     return VM_Allocator.gcInProgress;
   }
 
@@ -67,7 +97,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    *
    * @return The number of collections that have occured.
    */
-  public static final int collectionCount() {
+  public static final int collectionCount() throws VM_PragmaUninterruptible {
     return VM_CollectorThread.collectionCount;
   }
   
@@ -76,7 +106,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    *
    * @return The amount of free memory.
    */
-  public static final long freeMemory() {
+  public static final long freeMemory() throws VM_PragmaInterruptible {
     return VM_Allocator.freeMemory();
   }
 
@@ -85,14 +115,14 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    *
    * @return The amount of total memory.
    */
-  public static final long totalMemory() {
+  public static final long totalMemory() throws VM_PragmaInterruptible {
     return VM_Allocator.totalMemory();
   }
 
   /**
    * Forces a garbage collection.
    */
-  public static final void gc() {
+  public static final void gc() throws VM_PragmaInterruptible {
     VM_Allocator.gc();
   }
 
@@ -112,8 +142,8 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
     VM_Allocator.setupProcessor(p);
   }
 
-  static final boolean NEEDS_WRITE_BARRIER = VM_Allocator.writeBarrier;
-  static final boolean MOVES_OBJECTS = VM_Allocator.movesObjects;
-  static boolean useMemoryController = false;
+  public static final boolean NEEDS_WRITE_BARRIER = VM_Allocator.writeBarrier;
+  public static final boolean MOVES_OBJECTS = VM_Allocator.movesObjects;
+  public static boolean useMemoryController = false;
 
 }

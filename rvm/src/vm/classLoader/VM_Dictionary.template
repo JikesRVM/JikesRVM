@@ -41,7 +41,7 @@
  * @author Derek Lieber
  *
  */
-class CCC {
+public class CCC {
   //-----------//
   // interface //
   //-----------//
@@ -51,7 +51,7 @@ class CCC {
   //           value to associate with key, if key isn't already in dictionary
   // Returned: id for use by getKey(), setValue(), and getValue()
   //
-  static synchronized int findOrCreateId(KKK key, VVV value) {
+  public static synchronized int findOrCreateId(KKK key, VVV value) {
     // check for null/zero first, so we can later use null/zero as an end of chain sentinal
     if (key == keys[0])
       return 0;
@@ -114,7 +114,7 @@ class CCC {
   // Taken:    key sought
   // Returned: id for use by getKey(), setValue(), and getValue(), or 0 if not found
   //
-  static synchronized int findId(KKK key) {
+  public static synchronized int findId(KKK key) {
     // check for null/zero first, so we can later use null/zero as an end of chain sentinal
     if (key == keys[0])
       return -1;
@@ -145,7 +145,7 @@ class CCC {
   // Taken:    id obtained from findOrCreateId()
   // Returned: key
   //
-  static KKK getKey(int id) throws VM_PragmaUninterruptible {
+  public static KKK getKey(int id) throws VM_PragmaUninterruptible {
     return keys[id];
   }
    
@@ -153,7 +153,7 @@ class CCC {
   // Taken:    id obtained from findOrCreateId()
   // Returned: value
   //
-  static synchronized void setValue(int id, VVV value) {
+  public static synchronized void setValue(int id, VVV value) {
     values[id] = value;
   }
    
@@ -161,13 +161,13 @@ class CCC {
   // Taken:    id obtained from findOrCreateId()
   // Returned: value
   //
-  static VVV getValue(int id)  throws VM_PragmaUninterruptible {
+  public static VVV getValue(int id)  throws VM_PragmaUninterruptible {
     return values[id];
   }
    
   // Retrieve all keys currently stored in the dictionary.
   //
-  static synchronized KKK[] getKeys() {
+  public static synchronized KKK[] getKeys() {
     KKK[] tmp = new KKK[nextId];
     for (int i = 0; i < nextId; ++i)
       tmp[i] = keys[i];
@@ -176,7 +176,7 @@ class CCC {
       
   // Retrieve all values currently stored in the dictionary.
   //
-  static synchronized VVV[] getValues() {
+  public static synchronized VVV[] getValues() {
     VVV[] tmp = new VVV[nextId];
     for (int i = 0; i < nextId; ++i)
       tmp[i] = values[i];
@@ -185,25 +185,25 @@ class CCC {
 
   // Report how many values are currently stored in the dictionary.
   //
-  static int getNumValues()  throws VM_PragmaUninterruptible {
+  public static int getNumValues()  throws VM_PragmaUninterruptible {
     return nextId;
   }
 
   // Retrieve pointer to keys currently stored in the dictionary.
   // (Note: this is intended for the debugger only)
-  static KKK[] getKeysPointer() {
+  public static KKK[] getKeysPointer() {
     return keys;
   }
       
   // Retrieve pointer to values currently stored in the dictionary.
   // (Note: this is intended for the debugger only)
-  static VVV[] getValuesPointer() {
+  public static VVV[] getValuesPointer() {
     return values;
   }
 
   // Retrieve pointer to the hash chains
   // (Note: this is intended for the debugger only)
-  static int[][] getChainsPointer() {
+  public static int[][] getChainsPointer() {
     return chains;
   }
 

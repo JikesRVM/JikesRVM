@@ -20,7 +20,36 @@
  * @author Bowen Alpern
  * @author Stephen Smith
  */
-class VM_Handshake implements VM_Uninterruptible {
+package MM;
+
+import VM;
+import VM_Address;
+import VM_Magic;
+import VM_BootRecord;
+import VM_ObjectModel;
+import VM_ClassLoader;
+import VM_SystemClassLoader;
+import VM_Atom;
+import VM_Type;
+import VM_Class;
+import VM_Array;
+import VM_Method;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_PragmaUninterruptible;
+import VM_PragmaLogicallyUninterruptible;
+import VM_PragmaInterruptible;
+import VM_Scheduler;
+import VM_Memory;
+import VM_Time;
+import VM_Entrypoints;
+import VM_Reflection;
+import VM_Synchronization;
+import VM_EventLogger;
+import VM_Processor;
+import VM_Thread;
+
+public class VM_Handshake {
   
   private static final boolean trace = false;
   private static final boolean debug_native = false;   // temporary debugging of new threads
@@ -55,7 +84,7 @@ class VM_Handshake implements VM_Uninterruptible {
    * for the collection. They reside in the thread dispatch queues of their
    * processors, until the collector threads re-enable thread switching.
    */
-  private void initiateCollection() {
+  private void initiateCollection() throws VM_PragmaUninterruptible {
     int maxCollectorThreads;
 
     // check that scheduler initialization is complete
@@ -166,7 +195,7 @@ class VM_Handshake implements VM_Uninterruptible {
    * switching on the processor until it has completed the
    * collection.
    */
-  void requestAndAwaitCompletion() throws VM_PragmaInterruptible {
+  public void requestAndAwaitCompletion() throws VM_PragmaInterruptible {
     synchronized (this) {
       if (completionFlag) {
 	if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: already completed");
@@ -213,7 +242,7 @@ class VM_Handshake implements VM_Uninterruptible {
    * @param value    Value to store into lockoutlock word
    * @param spinwait flag to cause spinning (if true) or yielding
    */
-  static void acquireLockoutLock(int value, boolean spinwait) {
+  public static void acquireLockoutLock(int value, boolean spinwait) throws VM_PragmaUninterruptible {
     if (spinwait) {
       while (true) {
 	int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
@@ -256,7 +285,7 @@ class VM_Handshake implements VM_Uninterruptible {
    *
    * @param value    Value that should currently be in the lockoutlock word
    */
-  static void releaseLockoutLock(int value) {
+  public static void releaseLockoutLock(int value) throws VM_PragmaUninterruptible {
     while (true) {
       int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
 					VM_Entrypoints.lockoutProcessorField.offset);
@@ -276,17 +305,15 @@ class VM_Handshake implements VM_Uninterruptible {
    *
    * @return  current lockoutLock word
    */
-  static int queryLockoutLock() {
-    int lockoutVal;
+  public static int queryLockoutLock() throws VM_PragmaUninterruptible {
     while (true) {
-      lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
+      int lockoutVal = VM_Magic.prepare(VM_BootRecord.the_boot_record,
 				    VM_Entrypoints.lockoutProcessorField.offset);
       if (VM_Magic.attempt(VM_BootRecord.the_boot_record,
 			   VM_Entrypoints.lockoutProcessorField.offset,
 			   lockoutVal, lockoutVal))
-	break;
+	  return lockoutVal;
     }
-    return lockoutVal;
   }
 
 }

@@ -26,7 +26,20 @@
 
 ///TODO: remove Alloc1, Alloc2, and byte[] alloc.
 //
-final class VM_BlockControl {
+package MM;
+
+import VM_Address;
+import VM_ObjectModel;
+import VM_ClassLoader;
+import VM_SystemClassLoader;
+import VM_Atom;
+import VM_Type;
+import VM_Class;
+import VM_Array;
+
+
+
+public final class VM_BlockControl {
 
   VM_Address baseAddr;
   int slotsize;	  // slotsize
@@ -40,6 +53,6 @@ final class VM_BlockControl {
   int alloc_size; // allocated length of mark and alloc arrays
   int allocCount; // RCGC number of allocated slots in the block
   
-  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LVM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("LMM/VM_BlockControl;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
   static final VM_Array ARRAY_TYPE = TYPE.getArrayTypeForElementType();
 }

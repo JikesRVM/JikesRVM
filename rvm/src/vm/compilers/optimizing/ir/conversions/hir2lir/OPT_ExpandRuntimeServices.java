@@ -4,6 +4,7 @@
 //$Id$
 
 import instructionFormats.*;
+import MM.VM_Collector;
 
 /**
  * As part of the expansion of HIR into LIR, this compile phase

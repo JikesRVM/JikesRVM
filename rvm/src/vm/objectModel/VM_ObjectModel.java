@@ -100,17 +100,19 @@
  * @author Dave Grove
  * @author Derek Lieber
  */
+import MM.VM_AllocatorHeader;
+
 public final class VM_ObjectModel implements VM_Uninterruptible, 
 					     VM_JavaHeaderConstants {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
-  static final boolean HASH_STATS = false;
+  public static final boolean HASH_STATS = false;
   /** count number of Object::hashCode() operations */
-  static int hashRequests    = 0; 
+  public static int hashRequests    = 0; 
   /** count transitions from HASH_STATE_UNHASHED to HASH_STATE_HASHED */
-  static int hashTransition1 = 0; 
+  public static int hashTransition1 = 0; 
   /** count transitions from HASH_STATE_HASHED to HASH_STATE_HASHED_AND_MOVED */
-  static int hashTransition2 = 0; 
+  public static int hashTransition2 = 0; 
 
   /**
    * Given a reference to an object of a given class, 

@@ -41,6 +41,10 @@
  * @author Steve Fink
  * @author Dave Grove
  */
+package MM;
+
+import VM_JavaHeaderConstants;
+
 public interface VM_AllocatorHeaderConstants extends VM_JavaHeaderConstants {
   
   /**

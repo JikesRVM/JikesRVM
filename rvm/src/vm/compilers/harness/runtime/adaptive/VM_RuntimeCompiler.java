@@ -10,7 +10,7 @@
  * @author Michael Hind
  * @modified by Matthew Arnold
  */
-class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
+public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
   static OPT_InlineOracle offlineInlineOracle;
 
   static void boot() { 

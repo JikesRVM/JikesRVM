@@ -33,6 +33,7 @@
  * @author Dave Grove
  * @author Mike Hind
  */
+import MM.VM_CollectorThread;
 
 class VM_RuntimeCompilerInfrastructure
   implements VM_Constants, VM_Callbacks.ExitMonitor

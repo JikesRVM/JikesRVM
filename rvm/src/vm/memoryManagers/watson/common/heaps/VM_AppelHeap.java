@@ -13,15 +13,21 @@
  * @see VM_Chunk
  * @see VM_Processor
  */
+package MM;
+
+import VM_Address;
+import VM;
+import VM_Memory;
+import VM_PragmaUninterruptible;
 
 final class VM_AppelHeap extends VM_Heap
-  implements VM_Uninterruptible, VM_GCConstants {
+  implements VM_GCConstants {
 
   VM_ContiguousHeap nurseryHeap;
   VM_ContiguousHeap fromHeap;
   VM_ContiguousHeap toHeap;
 
-  VM_AppelHeap(String s) {
+  VM_AppelHeap(String s) throws VM_PragmaUninterruptible {
     super(s);
   }
 
@@ -32,7 +38,7 @@ final class VM_AppelHeap extends VM_Heap
    * @param size Number of bytes to allocate
    * @return Address of allocated storage
    */
-  protected VM_Address allocateZeroedMemory(int size) {
+  protected VM_Address allocateZeroedMemory(int size) throws VM_PragmaUninterruptible {
     // We're just a container for other heaps, thus not supported!
     VM.sysFail("allocateZeroedMemory on VM_AppelHeap forbidden");
     return VM_Address.zero();
@@ -42,7 +48,7 @@ final class VM_AppelHeap extends VM_Heap
    * Hook to allow heap to perform post-allocation processing of the object.
    * For example, setting the GC state bits in the object header.
    */
-  protected void postAllocationProcessing(Object newObj) { 
+  protected void postAllocationProcessing(Object newObj) throws VM_PragmaUninterruptible { 
     // nothing to do in this heap
   }
 
@@ -52,7 +58,7 @@ final class VM_AppelHeap extends VM_Heap
   public void attach(int size,
 		     VM_ContiguousHeap nursery,
 		     VM_ContiguousHeap from,
-		     VM_ContiguousHeap to) {
+		     VM_ContiguousHeap to) throws VM_PragmaUninterruptible {
     super.attach(size);
     nurseryHeap = nursery;
     fromHeap = from;
@@ -63,11 +69,11 @@ final class VM_AppelHeap extends VM_Heap
     toHeap.setRegion(end, end, VM_ContiguousHeap.BACKWARD);
   }
 
-  public void minorStart() {
+  public void minorStart() throws VM_PragmaUninterruptible {
       // nothing needed
   }
 
-  public void minorEnd() {
+  public void minorEnd() throws VM_PragmaUninterruptible {
       VM_Address middle = VM_Memory.roundDownPage(start.add(end.diff(start) / 2));
       if (nurseryHeap.sense() == VM_ContiguousHeap.FORWARD) {
 	  int available = fromHeap.current().diff(middle);
@@ -85,20 +91,20 @@ final class VM_AppelHeap extends VM_Heap
       }
   }
 
-  public void show(String when) {
+  public void show(String when) throws VM_PragmaUninterruptible {
       VM.sysWriteln(when);
       show();
       VM.sysWriteln();
   }
 
-  public void show() {
+  public void show() throws VM_PragmaUninterruptible {
       super.show();
       nurseryHeap.show();
       fromHeap.show();
       toHeap.show();
   }
 
-  public void majorStart() {
+  public void majorStart() throws VM_PragmaUninterruptible {
       if (nurseryHeap.sense() == VM_ContiguousHeap.FORWARD) {
 	  VM_Address newToStart = nurseryHeap.start;
 	  VM_Address newToEnd = fromHeap.current();
@@ -119,7 +125,7 @@ final class VM_AppelHeap extends VM_Heap
       }
   }
 
-  public void majorEnd() {
+  public void majorEnd() throws VM_PragmaUninterruptible {
       if (toHeap.sense() == VM_ContiguousHeap.FORWARD) {
 	  VM_Address newFromStart = toHeap.start;
 	  VM_Address newFromEnd = toHeap.current();
@@ -141,12 +147,12 @@ final class VM_AppelHeap extends VM_Heap
       minorEnd();
   }
 
-  public void detach(int size) {
+  public void detach(int size) throws VM_PragmaUninterruptible {
       VM.assert(false);
   }
 
-  public void zeroFreeSpace() { VM.assert(false); }
-  public void zeroFreeSpaceParallel() { VM.assert(false); }
-  public int freeMemory() { VM.assert(false); return 0; }
+  public void zeroFreeSpace() throws VM_PragmaUninterruptible { VM.assert(false); }
+  public void zeroFreeSpaceParallel() throws VM_PragmaUninterruptible { VM.assert(false); }
+  public int freeMemory() throws VM_PragmaUninterruptible { VM.assert(false); return 0; }
 
 }

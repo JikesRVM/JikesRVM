@@ -13,13 +13,16 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
+import MM.VM_CollectorThread;
+import MM.VM_GCUtil;
+
 public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
   /** Index of initial processor in which "VM.boot()" runs. */
-  static final int PRIMORDIAL_PROCESSOR_ID = 1;
+  public static final int PRIMORDIAL_PROCESSOR_ID = 1;
 
   /** Index of thread in which "VM.boot()" runs */
-  static final int PRIMORDIAL_THREAD_INDEX = 1;
+  public static final int PRIMORDIAL_THREAD_INDEX = 1;
 
   // A processors id is its index in the processors array & a threads
   // id is its index in the threads array.  id's start at 1, so that
@@ -30,29 +33,29 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * the NativeDaemonProcessor takes one slot & the RVM can be run with
    * 1 to MAX_PROCESSORS-1 processors
    **/
-  static final int MAX_PROCESSORS = 13;   // allow processors = 1 to 12
+  public static final int MAX_PROCESSORS = 13;   // allow processors = 1 to 12
 
   /** Maximum number of VM_Thread's that we can support. */
-  static final int LOG_MAX_THREADS = 14;
-  static final int MAX_THREADS = 1 << LOG_MAX_THREADS;
+  public static final int LOG_MAX_THREADS = 14;
+  public static final int MAX_THREADS = 1 << LOG_MAX_THREADS;
 
   // Flag for controlling virtual-to-physical processor binding.
   //
-  static final int NO_CPU_AFFINITY = -1;
+  public static final int NO_CPU_AFFINITY = -1;
 
   // Virtual cpu's.
   //
-  static int                  cpuAffinity   = NO_CPU_AFFINITY; // physical cpu to which first virtual processor is bound (remainder are bound sequentially)
-  static int                  numProcessors = 1; // total number of virtual processors to be used
-  static VM_Processor[]       processors;        // list thereof (slot 0 always empty)
-  static boolean              allProcessorsInitialized; // have all completed initialization?
-  static boolean              terminated;        // VM is terminated, clean up and exit
+  public static int                  cpuAffinity   = NO_CPU_AFFINITY; // physical cpu to which first virtual processor is bound (remainder are bound sequentially)
+  public static int           numProcessors = 1; // total number of virtual processors to be used
+  public static VM_Processor[]       processors;        // list thereof (slot 0 always empty)
+  public static boolean              allProcessorsInitialized; // have all completed initialization?
+  public static boolean              terminated;        // VM is terminated, clean up and exit
 
-  static int nativeDPndx;
+  public static int nativeDPndx;
 
   // Thread creation and deletion.
   //
-  static VM_Thread[]          threads;             // list of threads that have been created (slot 0 always empty)
+  public static VM_Thread[]          threads;             // list of threads that have been created (slot 0 always empty)
   static int                  threadAllocationIndex; // place to start searching threads[] for next free slot
   static int                  numActiveThreads;    // number of threads running or waiting to run
   static int                  numDaemons;          // number of "daemon" threads, in the java sense
@@ -73,43 +76,43 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   static VM_ThreadQueue       gcWaitQueue;         // threads waiting for GC epoch to finish
   static VM_ProcessorLock     gcWaitMutex;
 
-  static VM_ThreadQueue       collectorQueue;      // collector threads waiting to be resumed
-  static VM_ProcessorLock     collectorMutex;
+  public static VM_ThreadQueue       collectorQueue;      // collector threads waiting to be resumed
+  public static VM_ProcessorLock     collectorMutex;
 
-  static VM_ThreadQueue       finalizerQueue;      // Finalizer thread waits here when idle
-  static VM_ProcessorLock     finalizerMutex;
+  public static VM_ThreadQueue       finalizerQueue;      // Finalizer thread waits here when idle
+  public static VM_ProcessorLock     finalizerMutex;
 
-  static VM_ProcessorQueue    nativeProcessorQueue;  // queue for VPs available for blocked native threads
-  static VM_ProcessorLock     nativeProcessorMutex;
+  public static VM_ProcessorQueue    nativeProcessorQueue;  // queue for VPs available for blocked native threads
+  public static VM_ProcessorLock     nativeProcessorMutex;
 
   // JNI external thread service
-  static VM_ThreadQueue       attachThreadQueue;   // thread waiting to service external thread attach
-  static VM_ProcessorLock     attachThreadMutex;
+  public static VM_ThreadQueue       attachThreadQueue;   // thread waiting to service external thread attach
+  public static VM_ProcessorLock     attachThreadMutex;
 
   // Debugging output.
   //
   // DEPRECATED! use lockOutput() and unlock Output() instead
   //
-  static VM_ProcessorLock     outputMutex;         // guard for improving readability of trace output
+  public static VM_ProcessorLock     outputMutex;         // guard for improving readability of trace output
 
   // Guarding access to two word volatile fields.
   //
-  static VM_ProcessorLock     doublewordVolatileMutex;
+  public static VM_ProcessorLock     doublewordVolatileMutex;
 
   // Thick locks.
   //
-  static VM_Lock [] locks;
+  public static VM_Lock [] locks;
 
   // Flag set by external signal to request debugger activation at next thread switch.
   // See also: RunBootImage.C
   //
-  static boolean debugRequested;
+  public static boolean debugRequested;
 
   // Flag set by AttachCurrentThread (libjni.C) to request new Java thread
   // and native VM_Processor for an external pthread
   // A non-zero value stored here is a pointer to an integer array that 
   // contains the necessary arguments
-  static VM_Address attachThreadRequested;
+  public static VM_Address attachThreadRequested;
 
   // Trace flags.
   //
@@ -564,7 +567,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
   // Dump stack of calling thread, starting at callers frame
   //
-  static void dumpStack () {
+  public static void dumpStack () {
     dumpStack(VM_Magic.getFramePointer());
   }
 
@@ -583,7 +586,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   // Taken:    fp & ip for first frame to dump
   // Returned: nothing
   //
-  static void dumpStack (VM_Address ip, VM_Address fp) {
+  public static void dumpStack (VM_Address ip, VM_Address fp) {
     writeString("\n-- Stack --\n");
     while (VM_Magic.getCallerFramePointer(fp).toInt() != STACKFRAME_SENTINAL_FP) {
 
@@ -665,7 +668,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   // This method is called from RunBootImage.C when something goes horrifically
   // wrong with exception handling and we want to die with useful diagnostics.
   private static boolean exitInProgress = false;
-  static void dumpStackAndDie(VM_Address fp) {
+  public static void dumpStackAndDie(VM_Address fp) {
     if (!exitInProgress) {
       // This is the first time I've been called, attempt to exit "cleanly"
       exitInProgress = true;
@@ -680,7 +683,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
   // Dump state of virtual machine.
   //
-  static void dumpVirtualMachine() {
+  public static void dumpVirtualMachine() {
     VM_Processor processor;
     writeString("\n-- Processors --\n");
     for (int i = 1; i <= numProcessors; ++i) {
@@ -776,15 +779,15 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   // Low level writing. //
   //--------------------//
 
-  static void writeAtom(VM_Atom value) {
+  public static void writeAtom(VM_Atom value) {
     value.sysWrite();
   }
 
-  static void writeString(String s) {
+  public static void writeString(String s) {
     VM.sysWrite(s);
   }
 
-  static void writeHex (int n) {
+  public static void writeHex (int n) {
     for (int i=0; i<8; i++) {
       int v = n >>> 28;
       if (v < 10) {

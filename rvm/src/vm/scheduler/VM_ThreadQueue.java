@@ -9,7 +9,7 @@
  * @author Bowen Alpern
  * @date 30 August 1998 
  */
-class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
+public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
 
   protected int       id;     // id of this queue, for event logging
   protected VM_Thread head;   // first thread on list
@@ -21,7 +21,7 @@ class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptibl
 
   // Are any threads on the queue?
   //
-  boolean isEmpty () {
+  public boolean isEmpty () {
     return head == null;
   }
 
@@ -40,7 +40,7 @@ class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptibl
 
   // Add a thread to head of queue.
   //
-  void enqueueHighPriority (VM_Thread t) {
+  public void enqueueHighPriority (VM_Thread t) {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
     if (VM.VerifyAssertions) VM_Scheduler.assert(t.next == null); // not currently on any other queue
     t.next = head;
@@ -51,7 +51,7 @@ class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptibl
 
   // Add a thread to tail of queue.
   //
-  void enqueue (VM_Thread t) {
+  public void enqueue (VM_Thread t) {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
     if (VM.VerifyAssertions) VM_Scheduler.assert(t.next == null); // not currently on any other queue
     if (head == null)
@@ -64,7 +64,7 @@ class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptibl
   // Remove thread from head of queue.
   // Returned: the thread (null --> queue is empty)
   //
-  VM_Thread dequeue () {
+  public VM_Thread dequeue () {
     VM_Thread t = head;
     if (t == null)
        return null;
@@ -153,7 +153,7 @@ class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptibl
 
   // Number of items on queue (an estimate: queue is not locked during the scan).
   //
-  int length() {
+  public int length() {
   int length = 0;
   for (VM_Thread t = head; t != null; t = t.next)
      length += 1;
@@ -162,14 +162,14 @@ class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptibl
 
   // Debugging.
   //
-  boolean contains(VM_Thread x)
+  public boolean contains(VM_Thread x)
      {
      for (VM_Thread t = head; t != null; t = t.next)
         if (t == x) return true;
      return false;
      }
      
-  void dump()
+  public void dump()
      {
      for (VM_Thread t = head; t != null; t = t.next)
         t.dump();

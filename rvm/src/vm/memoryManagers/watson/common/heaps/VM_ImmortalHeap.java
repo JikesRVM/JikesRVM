@@ -9,8 +9,21 @@
  * @author David F. Bacon
  * @author Perry Cheng
  */
-final class VM_ImmortalHeap extends VM_Heap
-  implements VM_Constants, VM_GCConstants, VM_Uninterruptible, VM_AllocatorHeaderConstants {
+package MM;
+
+import VM_Constants;
+import VM_ProcessorLock;
+import VM_Address;
+import VM_Memory;
+import VM_ObjectModel;
+import VM;
+import VM_Magic;
+import VM_Array;
+import VM_JavaHeader;
+import VM_PragmaUninterruptible;
+
+public final class VM_ImmortalHeap extends VM_Heap
+  implements VM_Constants, VM_GCConstants, VM_AllocatorHeaderConstants {
 
   private VM_Address allocationCursor;
   private int markValue;
@@ -24,7 +37,7 @@ final class VM_ImmortalHeap extends VM_Heap
   /**
    * Initialize for boot image - called from init of various collectors or spaces
    */
-  VM_ImmortalHeap() {
+  VM_ImmortalHeap() throws VM_PragmaUninterruptible {
     super("Immortal Heap");
     if (USE_SIDE_MARK_VECTOR) {
       markVector = new VM_SideMarkVector();
@@ -34,12 +47,12 @@ final class VM_ImmortalHeap extends VM_Heap
   /**
    * Initialize for execution.
    */
-  public void attach (int size) {
+  public void attach (int size) throws VM_PragmaUninterruptible {
     super.attach(size);
     allocationCursor = start;
   }
 
-  void setAuxiliary() {
+  void setAuxiliary() throws VM_PragmaUninterruptible {
     super.setAuxiliary();
     if (USE_SIDE_MARK_VECTOR) {
       markVector.boot(mallocHeap, start, end);
@@ -51,7 +64,7 @@ final class VM_ImmortalHeap extends VM_Heap
    *
    * @return the number of bytes
    */
-  public int totalMemory () {
+  public int totalMemory () throws VM_PragmaUninterruptible {
     return size;
   }
 
@@ -59,7 +72,7 @@ final class VM_ImmortalHeap extends VM_Heap
    * Get the total amount of memory available in immortal space.
    * @return the number of bytes available
    */
-  public int freeMemory() {
+  public int freeMemory() throws VM_PragmaUninterruptible {
     return end.diff(allocationCursor);
   }
 
@@ -69,7 +82,7 @@ final class VM_ImmortalHeap extends VM_Heap
    * @param ref the object reference to mark
    * @return whether or not the object was already marked
    */
-  public boolean mark(VM_Address ref) {
+  public boolean mark(VM_Address ref) throws VM_PragmaUninterruptible {
     if (USE_SIDE_MARK_VECTOR) {
       return markVector.testAndMark(ref, markValue);
     } else {
@@ -80,7 +93,7 @@ final class VM_ImmortalHeap extends VM_Heap
   /**
    * Is the object reference live?
    */
-  public boolean isLive(VM_Address ref) {
+  public boolean isLive(VM_Address ref) throws VM_PragmaUninterruptible {
     Object obj = VM_Magic.addressAsObject(ref);
     if (USE_SIDE_MARK_VECTOR) {
       return markVector.testMarkBit(obj, markValue);
@@ -92,7 +105,7 @@ final class VM_ImmortalHeap extends VM_Heap
   /**
    * Work to do before collection starts
    */
-  public void startCollect() {
+  public void startCollect() throws VM_PragmaUninterruptible {
     // flip the sense of the mark bit.
     markValue = markValue ^ VM_CommonAllocatorHeader.GC_MARK_BIT_MASK;
   }    
@@ -107,7 +120,7 @@ final class VM_ImmortalHeap extends VM_Heap
    *
    * @return the reference for the allocated array object 
    */
-  public Object allocateAlignedArray(VM_Array type, int numElements, int alignment) {
+  public Object allocateAlignedArray(VM_Array type, int numElements, int alignment) throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM.assert(type.isInitialized());
     int size = type.getInstanceSize(numElements);
     size = VM_Memory.align(size, WORDSIZE);
@@ -126,7 +139,7 @@ final class VM_ImmortalHeap extends VM_Heap
    *   @param size Number of bytes to allocate
    *   @return Address of allocated storage
    */
-  protected VM_Address allocateZeroedMemory (int size) {
+  protected VM_Address allocateZeroedMemory (int size) throws VM_PragmaUninterruptible {
     return allocateZeroedMemory(size, 1, 0);
   }
 
@@ -136,7 +149,7 @@ final class VM_ImmortalHeap extends VM_Heap
    *   @param alignment Alignment specifier; must be a power of two
    *   @return Address of allocated storage
    */
-  protected VM_Address allocateZeroedMemory (int size, int alignment) {
+  protected VM_Address allocateZeroedMemory (int size, int alignment) throws VM_PragmaUninterruptible {
     return allocateZeroedMemory(size, alignment, 0);
   }
 
@@ -147,13 +160,13 @@ final class VM_ImmortalHeap extends VM_Heap
    *   @param offset Offset within the object that must be aligned
    *   @return Address of allocated storage
    */
-  protected VM_Address allocateZeroedMemory (int size, int alignment, int offset) {
+  protected VM_Address allocateZeroedMemory (int size, int alignment, int offset) throws VM_PragmaUninterruptible {
     VM_Address region = allocateInternal(size, alignment, offset);
     VM_Memory.zeroTemp(region, size);
     return region;
   }
 
-  private VM_Address allocateInternal (int size, int alignment, int offset) {
+  private VM_Address allocateInternal (int size, int alignment, int offset) throws VM_PragmaUninterruptible {
     // NOTE: must use processorLock instead of synchronized virtual method
     //       because we can't give up the virtual processor.
     //       This method is sometimes called when the GC system is in a delicate state.
@@ -179,7 +192,7 @@ final class VM_ImmortalHeap extends VM_Heap
    * Hook to allow heap to perform post-allocation processing of the object.
    * For example, setting the GC state bits in the object header.
    */
-  protected void postAllocationProcessing(Object newObj) { 
+  protected void postAllocationProcessing(Object newObj) throws VM_PragmaUninterruptible { 
     if (VM_Collector.NEEDS_WRITE_BARRIER) {
       VM_ObjectModel.initializeAvailableByte(newObj); 
       VM_AllocatorHeader.setBarrierBit(newObj);

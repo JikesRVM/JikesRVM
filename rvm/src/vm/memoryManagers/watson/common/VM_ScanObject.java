@@ -9,7 +9,33 @@
  *
  * @author Stephen Smith
  */  
-public class VM_ScanObject implements VM_Constants, VM_GCConstants, VM_Uninterruptible {
+package MM;
+
+import VM;
+import VM_Constants;
+import VM_Address;
+import VM_Magic;
+import VM_ObjectModel;
+import VM_ClassLoader;
+import VM_SystemClassLoader;
+import VM_Atom;
+import VM_Type;
+import VM_Class;
+import VM_Array;
+import VM_Method;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_PragmaUninterruptible;
+import VM_PragmaLogicallyUninterruptible;
+import VM_Scheduler;
+import VM_Memory;
+import VM_Time;
+import VM_Entrypoints;
+import VM_Reflection;
+import VM_Synchronization;
+import VM_EventLogger;
+
+public class VM_ScanObject implements VM_Constants, VM_GCConstants {
 
   /**
    * Scans an object or array for internal object references and
@@ -17,7 +43,7 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants, VM_Uninterru
    *
    * @param objRef  reference for object to be scanned (as int)
    */
-  static void scanObjectOrArray(VM_Address objRef ) {
+  static void scanObjectOrArray(VM_Address objRef ) throws VM_PragmaUninterruptible {
 
     // First process the TIB to relocate it.
     // Necessary only if the allocator/collector moves objects
@@ -75,11 +101,11 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants, VM_Uninterru
     }
   } 
 
-  static void scanObjectOrArray( Object objRef ) {
+  static void scanObjectOrArray( Object objRef ) throws VM_PragmaUninterruptible {
     scanObjectOrArray( VM_Magic.objectAsAddress(objRef) );
   }
 
-  public static boolean validateRefs( VM_Address ref, int depth ) {
+  public static boolean validateRefs( VM_Address ref, int depth ) throws VM_PragmaUninterruptible {
 
     VM_Type    type;
 

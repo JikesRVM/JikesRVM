@@ -16,7 +16,21 @@
  * @author Dave Grove
  * @author Stephen Smith
  */
-final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
+package MM;
+
+import VM;
+import VM_Magic;
+import VM_Address;
+import VM_Processor;
+import VM_PragmaNoInline;
+import VM_PragmaInline;
+import VM_Address;
+import VM_Memory;
+import VM_Scheduler;
+import VM_Thread;
+import VM_PragmaUninterruptible;
+
+final class VM_Chunk implements VM_GCConstants {
   
   /**
    * How big are the chunks?
@@ -26,11 +40,11 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
   /**
    * Some accessor functions.
    */
-  public static VM_Address currentChunk1() {
+  public static VM_Address currentChunk1() throws VM_PragmaUninterruptible {
       return VM_Processor.getCurrentProcessor().currentChunk1;
   }
 
-  public static VM_Address currentChunk2() {
+  public static VM_Address currentChunk2() throws VM_PragmaUninterruptible {
       return VM_Processor.getCurrentProcessor().currentChunk2;
   }
 
@@ -47,7 +61,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    *       If you change it you must verify that the efficient 
    *       inlined allocation sequence isn't hurt!
    */
-  public static VM_Address allocateChunk1(int size) throws OutOfMemoryError, VM_PragmaInline {
+  public static VM_Address allocateChunk1(int size) throws OutOfMemoryError, VM_PragmaInline, VM_PragmaUninterruptible {
     VM_Address oldCurrent = VM_Processor.getCurrentProcessor().currentChunk1;
     VM_Address newCurrent = oldCurrent.add(size);
     if (newCurrent.LE(VM_Processor.getCurrentProcessor().endChunk1)) {
@@ -75,7 +89,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    *       If you change it you must verify that the efficient 
    *       inlined allocation sequence isn't hurt!
    */
-  public static VM_Address allocateChunk2(int size) throws OutOfMemoryError, VM_PragmaInline {
+  public static VM_Address allocateChunk2(int size) throws OutOfMemoryError, VM_PragmaInline, VM_PragmaUninterruptible {
     VM_Address oldCurrent = VM_Processor.getCurrentProcessor().currentChunk2;
     VM_Address newCurrent = oldCurrent.add(size);
     if (newCurrent.LE(VM_Processor.getCurrentProcessor().endChunk2)) {
@@ -95,7 +109,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    */
   public static void resetChunk1(VM_Processor st, 
 				 VM_ContiguousHeap h, 
-				 boolean getChunk) throws OutOfMemoryError {
+				 boolean getChunk) throws VM_PragmaUninterruptible, OutOfMemoryError {
     st.backingHeapChunk1 = h;
     if (getChunk) {
       VM_Address chunk = h.allocateRawMemory(CHUNK_SIZE);
@@ -121,7 +135,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    */
   public static void resetChunk2(VM_Processor st, 
 				 VM_ContiguousHeap h, 
-				 boolean getChunk) throws OutOfMemoryError {
+				 boolean getChunk) throws OutOfMemoryError, VM_PragmaUninterruptible {
     st.backingHeapChunk2 = h;
     if (getChunk) {
       VM_Address chunk = h.allocateRawMemory(CHUNK_SIZE);
@@ -144,7 +158,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    *
    * @param st the virtual processor whose chunk2 should be promoted to chunk1
    */
-  public static void promoteChunk2(VM_Processor st) {
+  public static void promoteChunk2(VM_Processor st) throws VM_PragmaUninterruptible {
     st.startChunk1 = st.startChunk2;
     st.currentChunk1 = st.currentChunk2;
     st.endChunk1 = st.endChunk2;
@@ -160,18 +174,18 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
     }
   }
 
-  public static boolean unusedChunk1(VM_Processor st) {
+  public static boolean unusedChunk1(VM_Processor st) throws VM_PragmaUninterruptible {
       return st.startChunk1 == st.currentChunk1;
   }
 
-  public static boolean unusedChunk2(VM_Processor st) {
+  public static boolean unusedChunk2(VM_Processor st) throws VM_PragmaUninterruptible {
       return st.startChunk2 == st.currentChunk2;
   }
 
   /**
    * How much free space is left in the chunk1's?
    */
-  public static int freeMemoryChunk1() {
+  public static int freeMemoryChunk1() throws VM_PragmaUninterruptible {
     int sum = 0;
     for (int i=0; i<VM_Scheduler.numProcessors; i++) {
       VM_Processor st = VM_Scheduler.processors[i+1];
@@ -190,7 +204,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    * 
    * @param size the number of bytes to allocate
    */
-  private static VM_Address slowPath1(int size) throws OutOfMemoryError, VM_PragmaNoInline  {
+  private static VM_Address slowPath1(int size) throws OutOfMemoryError, VM_PragmaNoInline, VM_PragmaUninterruptible {
     // Detect Java-level allocations during GC or while GC disabled 
     // and trap as a fatal error.
     if (VM.VerifyAssertions) {
@@ -237,7 +251,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    * 
    * @param size the number of bytes to allocate
    */
-  private static VM_Address slowPath2(int size) throws OutOfMemoryError {
+  private static VM_Address slowPath2(int size) throws OutOfMemoryError, VM_PragmaUninterruptible {
     // Try to get a chunk from the backing heap.
     int count = 0;
     while (true) {

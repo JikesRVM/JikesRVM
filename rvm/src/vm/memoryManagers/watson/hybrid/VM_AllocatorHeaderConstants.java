@@ -41,6 +41,17 @@
  * @author Steve Fink
  * @author Dave Grove
  */
+package MM;
+
+import VM;
+import VM_Address;
+import VM_ObjectModel;
+import VM_Atom;
+import VM_Type;
+import VM_Class;
+import VM_Array;
+import VM_JavaHeaderConstants;
+
 public interface VM_AllocatorHeaderConstants extends VM_JavaHeaderConstants {
   
   /**

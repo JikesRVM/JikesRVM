@@ -15,6 +15,8 @@
  *  @author Stephen Fink
  *  @author Dave Grove
  */
+import MM.VM_Collector;
+
 public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
 
   private static final class VM_LockBucket {

@@ -6,11 +6,21 @@
 /**
  * @author Dave Grove
  */
-final class VM_BootHeap extends VM_Heap
-  implements VM_Uninterruptible,
-	     VM_AllocatorHeaderConstants {
+package MM;
 
-  VM_BootHeap() {
+import VM_Constants;
+import VM_ProcessorLock;
+import VM_Address;
+import VM_Memory;
+import VM_ObjectModel;
+import VM;
+import VM_Magic;
+import VM_PragmaUninterruptible;
+
+final class VM_BootHeap extends VM_Heap
+  implements VM_AllocatorHeaderConstants {
+
+  VM_BootHeap() throws VM_PragmaUninterruptible {
     super("Boot Image Heap");
     if (USE_SIDE_MARK_VECTOR) {
       markVector = new VM_SideMarkVector();
@@ -27,7 +37,7 @@ final class VM_BootHeap extends VM_Heap
    */
   private VM_SideMarkVector markVector;
 
-  void setAuxiliary() {
+  void setAuxiliary() throws VM_PragmaUninterruptible {
     super.setAuxiliary();
     if (USE_SIDE_MARK_VECTOR) {
       markVector.boot(mallocHeap, start, end);
@@ -41,7 +51,7 @@ final class VM_BootHeap extends VM_Heap
    * @param size Number of bytes to allocate
    * @return Address of allocated storage
    */
-  protected VM_Address allocateZeroedMemory(int size) {
+  protected VM_Address allocateZeroedMemory(int size) throws VM_PragmaUninterruptible {
     // Can't allocate anything in the bootheap!
     VM.sysFail("allocateZeroedMemory on VM_BootHeap forbidden");
     return VM_Address.zero();
@@ -51,7 +61,7 @@ final class VM_BootHeap extends VM_Heap
    * Hook to allow heap to perform post-allocation processing of the object.
    * For example, setting the GC state bits in the object header.
    */
-  protected void postAllocationProcessing(Object newObj) { 
+  protected void postAllocationProcessing(Object newObj) throws VM_PragmaUninterruptible { 
     // nothing to do in this heap
   }
 
@@ -61,7 +71,7 @@ final class VM_BootHeap extends VM_Heap
    * @param ref the object reference to mark
    * @return whether or not the object was already marked
    */
-  public boolean mark(VM_Address ref) {
+  public boolean mark(VM_Address ref) throws VM_PragmaUninterruptible {
     if (USE_SIDE_MARK_VECTOR) {
       return markVector.testAndMark(ref, markValue);
     } else {
@@ -72,7 +82,7 @@ final class VM_BootHeap extends VM_Heap
   /**
    * Is the object reference live?
    */
-  public boolean isLive(VM_Address ref) {
+  public boolean isLive(VM_Address ref) throws VM_PragmaUninterruptible {
     Object obj = VM_Magic.addressAsObject(ref);
     if (USE_SIDE_MARK_VECTOR) {
       return markVector.testMarkBit(obj, markValue);
@@ -84,7 +94,7 @@ final class VM_BootHeap extends VM_Heap
   /**
    * Work to do before collection starts
    */
-  public void startCollect() {
+  public void startCollect() throws VM_PragmaUninterruptible {
     // flip the sense of the mark bit.
     markValue = markValue ^ VM_CommonAllocatorHeader.GC_MARK_BIT_MASK;
   }    

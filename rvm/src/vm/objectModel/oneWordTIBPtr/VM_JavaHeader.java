@@ -21,6 +21,8 @@ import instructionFormats.*;
  * @author Steve Fink
  * @author Dave Grove
  */
+import MM.VM_AllocatorHeader;
+
 public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   implements VM_Uninterruptible
 	     //-#if RVM_WITH_OPT_COMPILER

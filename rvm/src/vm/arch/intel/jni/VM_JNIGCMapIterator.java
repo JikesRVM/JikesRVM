@@ -14,8 +14,10 @@
  * @see VM_JNICompiler
  * @author Steve Smith
  */
-final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineConstants,
-								    VM_Uninterruptible {
+import MM.VM_GCMapIterator;
+
+public final class VM_JNIGCMapIterator extends MM.VM_GCMapIterator 
+    implements VM_BaselineConstants, VM_Uninterruptible {
 
   // Java to Native C transition frame...(see VM_JNICompiler)
   //
@@ -42,7 +44,7 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
   VM_Address    jniSavedProcessorRegAddr;     // -> saved PR reg
   VM_Address    jniSavedReturnAddr;           // -> return addr in generated transition prolog
   
-  VM_JNIGCMapIterator(int[] registerLocations) {
+  public VM_JNIGCMapIterator(int[] registerLocations) {
     this.registerLocations = registerLocations;
   }
   
@@ -51,7 +53,7 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
   // Taken:    thread
   // Returned: nothing
   //
-  void newStackWalk(VM_Thread thread) {
+  public void newStackWalk(VM_Thread thread) {
     super.newStackWalk(thread);   // sets this.thread, inits registerLocations[]
     VM_JNIEnvironment env = this.thread.getJNIEnv();
     // the "primordial" thread, created by JDK in the bootimage, does not have
@@ -66,7 +68,7 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
     } 
   }
      
-  void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address framePtr) {
+  public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address framePtr) {
     this.framePtr = framePtr;
 
     // processor reg (PR) was saved at JNI_PR_OFFSET, and will be used to
@@ -86,7 +88,7 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
   // When at the end of the current frame, update register locations to point
   // to the non-volatile registers saved in the JNI transition frame.
   //
-  VM_Address getNextReferenceAddress() {
+  public VM_Address getNextReferenceAddress() {
     int nextFP;
     VM_Address ref_address;
 
@@ -130,7 +132,7 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
     return VM_Address.zero();  // no more refs to report
   } //- implements VM_GCMapIterator
   
-  VM_Address getNextReturnAddressAddress() {
+  public VM_Address getNextReturnAddressAddress() {
     VM_Address ref_address;
     if ( !jniSavedReturnAddr.isZero() ) {
       ref_address = jniSavedReturnAddr;
@@ -140,13 +142,13 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
     return VM_Address.zero();
   } //- implements VM_GCMapIterator
   
-  void reset() {
+  public void reset() {
   } //- implements VM_GCMapIterator
   
-  void cleanupPointers() {
+  public void cleanupPointers() {
   } //- implements VM_GCMapIterator
   
-  int getType() {
+  public int getType() {
     return VM_CompiledMethod.JNI;
   } //- implements VM_GCMapIterator
    

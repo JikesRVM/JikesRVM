@@ -11,18 +11,20 @@
  * @author Derek Lieber
  * @date 02 Jun 1999 
  */
-final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_Uninterruptible {
+import MM.VM_GCMapIterator;
 
-  VM_HardwareTrapGCMapIterator(int[] registerLocations) {
+public final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_Uninterruptible {
+
+  public VM_HardwareTrapGCMapIterator(int[] registerLocations) {
     this.registerLocations = registerLocations;
   }
 
-  void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, 
+  public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, 
 		     VM_Address framePtr) {
     this.framePtr = framePtr;
   }
   
-  VM_Address getNextReferenceAddress() {
+  public VM_Address getNextReferenceAddress() {
     // update register locations, noting that the trap handler represented by this stackframe
     // saved all registers into the thread's "hardwareExceptionRegisters" object
     //
@@ -34,15 +36,15 @@ final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_
     return VM_Address.zero();
   }
 
-  VM_Address getNextReturnAddressAddress() { 
+  public VM_Address getNextReturnAddressAddress() { 
     return VM_Address.zero();
   }
 
-  void reset() {}
+  public void reset() {}
   
-  void cleanupPointers() {} 
+  public void cleanupPointers() {} 
   
-  int getType() {
+  public int getType() {
     return VM_CompiledMethod.TRAP;
   }
 }

@@ -214,14 +214,14 @@
     /**
      * Fetch number of jtoc slots currently allocated.
      */ 
-    static int getNumberOfSlots() throws VM_PragmaUninterruptible {
+    public static int getNumberOfSlots() throws VM_PragmaUninterruptible {
       return nextSlot;
     }
 
     /**
      * Fetch total number of slots comprising the jtoc.
      */ 
-    static int getTotalNumberOfSlots() throws VM_PragmaUninterruptible {
+    public static int getTotalNumberOfSlots() throws VM_PragmaUninterruptible {
       return slots.length;
     }
 
@@ -230,7 +230,7 @@
      * @param    slot number obtained from allocateSlot()
      * @return true --> slot contains a reference
      */ 
-    static boolean isReference(int slot) throws VM_PragmaUninterruptible {
+    public static boolean isReference(int slot) throws VM_PragmaUninterruptible {
       return (descriptions[slot] & VM_Statics.REFERENCE_TAG) != 0;
     }
 
@@ -239,7 +239,7 @@
      * @param    slot number obtained from allocateSlot()
      * @return description of slot contents (see "kinds", above)
      */
-    static byte getSlotDescription(int slot) throws VM_PragmaUninterruptible {
+    public static byte getSlotDescription(int slot) throws VM_PragmaUninterruptible {
       return descriptions[slot];
     }
 

@@ -5,6 +5,8 @@
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import MM.VM_Collector;
+import MM.VM_WriteBarrier;
 
 /**
  * A field of a java class.
@@ -427,7 +429,7 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
 
   private VM_Type type;               // field's type
   private int     constantValueIndex; // constant pool index of field's value (0 --> not a "static final constant")
-  int     offset;             // field's jtoc/obj offset, in bytes
+  public  int     offset;             // field's jtoc/obj offset, in bytes
 
   // To guarantee uniqueness, only the VM_ClassLoader class may construct VM_Field instances.
   // All VM_Field creation should be performed by calling "VM_ClassLoader.findOrCreate" methods.

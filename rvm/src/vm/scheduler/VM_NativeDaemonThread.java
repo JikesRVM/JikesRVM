@@ -42,6 +42,8 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */ 
+import MM.VM_Handshake;
+
 class VM_NativeDaemonThread extends VM_Thread {
 
   static final boolean DEBUG = false;

@@ -11,14 +11,15 @@
  * @author Tony Cocchi
  * @author Stephen Smith
  */
-class VM_PassiveCollectorThread extends VM_Thread implements VM_Uninterruptible {
+package MM;
+
+class VM_PassiveCollectorThread extends VM_Thread {
   
   private final static boolean trace = false; // emit trace messages?
   
   // Run a collector thread (one per VM_Processor).
   //
-  public void
-    run() {  //- overrides VM_Thread
+  public void run() throws VM_PragmaLogicallyUninterruptible /* YUCK...a bold face lie -- dave */ {
     
     // myProcessor local variable will be relocated by GC if Processor object
     // is moved, and is used to reset Processor register after sigWait (after GC)
@@ -98,13 +99,13 @@ class VM_PassiveCollectorThread extends VM_Thread implements VM_Uninterruptible 
   // Returned: native collector
   //
   static VM_PassiveCollectorThread 
-    createPassiveCollectorThread(int[] stack, VM_Processor processorAffinity) {
-    return new VM_PassiveCollectorThread(stack, processorAffinity);
+      createPassiveCollectorThread(int[] stack, VM_Processor processorAffinity) throws VM_PragmaUninterruptible {
+   return new VM_PassiveCollectorThread(stack, processorAffinity);
   }
   
   
   private 
-    VM_PassiveCollectorThread(int[] stack,  VM_Processor processorAffinity) {
+    VM_PassiveCollectorThread(int[] stack,  VM_Processor processorAffinity) throws VM_PragmaUninterruptible {
     super(stack);
     makeDaemon(true); // this is redundant, but harmless
     // not an instance of VM_CollectorThread even though it is

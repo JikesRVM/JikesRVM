@@ -20,6 +20,9 @@
  * @author Steve Fink
  * @author Dave Grove 
  */
+import MM.VM_AllocatorHeader;
+import MM.VM_Collector;
+
 public class VM_LockNurseryJavaHeader implements VM_Uninterruptible, 
 						 VM_JavaHeaderConstants,
 						 VM_Constants {

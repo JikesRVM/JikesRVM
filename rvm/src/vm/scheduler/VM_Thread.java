@@ -8,6 +8,8 @@
  *  
  * @author Derek Lieber
  */
+import MM.VM_Collector;
+
 public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   /**
@@ -377,7 +379,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @param q queue to put thread onto (must be processor-local, ie. 
    * not guarded with a lock)
   */
-  static void yield (VM_AbstractThreadQueue q) {
+  public static void yield (VM_AbstractThreadQueue q) {
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q.enqueue(myThread);
@@ -389,7 +391,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @param q queue to put thread onto
    * @param l lock guarding that queue (currently locked)
    */ 
-  static void yield (VM_AbstractThreadQueue q, VM_ProcessorLock l) {
+  public static void yield (VM_AbstractThreadQueue q, VM_ProcessorLock l) {
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q.enqueue(myThread);
@@ -805,7 +807,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Fixup register and memory references to reflect its new position.
    * @param delta displacement to be applied to all interior references
    */ 
-  final void fixupMovedStack(int delta) {
+  public final void fixupMovedStack(int delta) {
     if (traceAdjustments) VM.sysWrite("VM_Thread: fixupMovedStack\n");
 
     if (!contextRegisters.getInnermostFramePointer().isZero()) 
@@ -991,7 +993,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * !!TODO: VM_Scheduler.deadQueue() has a bunch of dead threads that we should
    *         recycle from, before new'ing.
    */ 
-  VM_Thread (int[] stack) {
+  public VM_Thread (int[] stack) {
     this.stack = stack;
 
     chosenProcessorId = (VM.runningVM ? VM_Processor.getCurrentProcessorId() : 0); // for load balancing
@@ -1159,7 +1161,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * Dump this thread, for debugging.
    */
-  void dump() {
+  public void dump() {
     VM_Scheduler.writeString(" ");
     VM_Scheduler.writeDecimal(getIndex());   // id
     if (isDaemon)VM_Scheduler.writeString("-daemon");     // daemon thread?
@@ -1218,24 +1220,24 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * see disableGC/enableGC.
    * A value of "true" means it's an error for this thread to call "new".
    */ 
-  boolean disallowAllocationsByThisThread; 
+  public boolean disallowAllocationsByThisThread; 
 
   /**
    * Execution stack for this thread.
    */ 
-  int[] stack;      // machine stack on which to execute this thread
-  VM_Address   stackLimit; // address of stack guard area
+  public int[] stack;      // machine stack on which to execute this thread
+  public VM_Address   stackLimit; // address of stack guard area
   
   /**
    * Place to save register state when this thread is not actually running.
    */ 
-  VM_Registers contextRegisters; 
+  public VM_Registers contextRegisters; 
   
   /**
    * Place to save register state when C signal handler traps 
    * an exception while this thread is running.
    */ 
-  VM_Registers hardwareExceptionRegisters;
+  public VM_Registers hardwareExceptionRegisters;
   
   /**
    * Place to save/restore this thread's monitor state during "wait" 
@@ -1266,28 +1268,28 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Virtual processor that this thread wants to run on 
    * (null --> any processor is ok).
    */ 
-  VM_Processor processorAffinity;
+  public VM_Processor processorAffinity;
 
   /**
    * Virtual Processor to run native methods for this thread
    */ 
-  VM_Processor nativeAffinity;
+  public VM_Processor nativeAffinity;
  
   /**
    * Virtual Processor to return from native methods 
    */ 
-  VM_Processor returnAffinity;
+  public VM_Processor returnAffinity;
  
   /**
    * Is this thread's stack being "borrowed" by thread dispatcher 
    * (ie. while choosing next thread to run)?
    */ 
-  boolean beingDispatched;
+  public boolean beingDispatched;
 
   /**
    * This thread's successor on a VM_ThreadQueue.
    */ 
-  VM_Thread next;       
+  public VM_Thread next;       
   
   /**
    * A thread is "alive" if its start method has been called and the 
@@ -1300,7 +1302,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * A thread is a "gc thread" if it's an instance of VM_CollectorThread
    */ 
-  boolean isGCThread;
+  public boolean isGCThread;
 
   /**
    * A thread is an "idle thread" if it's an instance of VM_IdleThread
@@ -1323,14 +1325,14 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * The virtual machine terminates when the last non-daemon (user) 
    * thread terminates.
    */ 
- protected boolean isDaemon;
+  protected boolean isDaemon;
        
   /**
    * id of processor to run this thread (cycles for load balance)
    */
-  int chosenProcessorId; 
+  public int chosenProcessorId; 
 
-  VM_JNIEnvironment  jniEnv;
+  public VM_JNIEnvironment  jniEnv;
   
   // fields needed for RCGC reference counting collector
   // int[] should be VM_Address array but compilers erroneously emit write barriers 

@@ -22,8 +22,27 @@
  * @see VM_SizeControl
  * @see VM_Processor
  */
-final class VM_SegregatedListHeap extends VM_Heap
-  implements VM_Uninterruptible, VM_GCConstants {
+package MM;
+
+import VM;
+import VM_Array;
+import VM_Atom;
+import VM_Processor;
+import VM_ProcessorLock;
+import VM_PragmaInline;
+import VM_PragmaNoInline;
+import VM_PragmaInterruptible;
+import VM_PragmaUninterruptible;
+import VM_Address;
+import VM_Memory;
+import VM_Magic;
+import VM_Scheduler;
+import VM_SystemClassLoader;
+import VM_ObjectModel;
+import VM_ClassLoader;
+
+public final class VM_SegregatedListHeap extends VM_Heap
+  implements VM_GCConstants {
 
   private static final boolean DEBUG = false;
   private static final boolean COUNT_FAST_ALLOC = false;
@@ -77,7 +96,7 @@ final class VM_SegregatedListHeap extends VM_Heap
    */
   private VM_MallocHeap mallocHeap;
 
-  VM_SegregatedListHeap(String s, VM_MallocHeap mh) {
+  VM_SegregatedListHeap(String s, VM_MallocHeap mh) throws VM_PragmaUninterruptible {
     super(s);
     mallocHeap = mh;
   }
@@ -188,7 +207,7 @@ final class VM_SegregatedListHeap extends VM_Heap
    * @param size Number of bytes to allocate
    * @return Address of allocated storage
    */
-  protected VM_Address allocateZeroedMemory(int size) {
+  protected VM_Address allocateZeroedMemory(int size) throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) {
       VM.assert(size <= GC_MAX_SMALL_SIZE);
       VM.assert(VM_Processor.getCurrentProcessor().backingSLHeap == this);
@@ -200,7 +219,7 @@ final class VM_SegregatedListHeap extends VM_Heap
    * Hook to allow heap to perform post-allocation processing of the object.
    * For example, setting the GC state bits in the object header.
    */
-  protected void postAllocationProcessing(Object newObj) { 
+  protected void postAllocationProcessing(Object newObj) throws VM_PragmaUninterruptible { 
     // nothing to do in this heap
   }
 
@@ -212,7 +231,7 @@ final class VM_SegregatedListHeap extends VM_Heap
    * @param size Number of bytes to allocate
    * @return Address of allocated storage
    */
-  public static VM_Address allocateFastPath (int size) throws OutOfMemoryError, VM_PragmaInline {
+  public static VM_Address allocateFastPath (int size) throws OutOfMemoryError, VM_PragmaInline, VM_PragmaUninterruptible {
 
     if (COUNT_FAST_ALLOC) allocCount++;
     
@@ -242,7 +261,7 @@ final class VM_SegregatedListHeap extends VM_Heap
    * given an address in the heap 
    *  set the corresponding mark byte on
    */
-  public boolean  mark(VM_Address ref) {
+  public boolean  mark(VM_Address ref) throws VM_PragmaUninterruptible {
     VM_Address tref = VM_ObjectModel.getPointerInMemoryRegion(ref);
     int blkndx  = (tref.diff(start)) >> LOG_GC_BLOCKSIZE ;
     VM_BlockControl  this_block = blocks[blkndx];
@@ -276,7 +295,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   }
 
 
-  public boolean isLive(VM_Address ref) {
+  public boolean isLive(VM_Address ref) throws VM_PragmaUninterruptible {
     VM_Address tref = VM_ObjectModel.getPointerInMemoryRegion(ref);
     //  check for live small object
     int  blkndx, slotno, size, ij;
@@ -296,7 +315,7 @@ final class VM_SegregatedListHeap extends VM_Heap
    * @return Address of free, zero-filled storage
    */
   protected static VM_Address allocateSlotFast(VM_SizeControl the_size, 
-					       VM_Address next_slot) throws OutOfMemoryError, VM_PragmaInline {
+					       VM_Address next_slot) throws OutOfMemoryError, VM_PragmaInline, VM_PragmaUninterruptible {
 
     if (COUNT_FAST_ALLOC) fastAllocCount++;
 
@@ -335,7 +354,7 @@ final class VM_SegregatedListHeap extends VM_Heap
    *   @param size Size in bytes to allocate
    *   @return Address of free, zero-filled storage
    */
-  protected VM_Address allocateSlot(VM_SizeControl the_size, int size) throws OutOfMemoryError, VM_PragmaNoInline {
+  protected VM_Address allocateSlot(VM_SizeControl the_size, int size) throws OutOfMemoryError, VM_PragmaNoInline, VM_PragmaUninterruptible {
 
     int count = 0;
     while(true) {
@@ -375,7 +394,7 @@ final class VM_SegregatedListHeap extends VM_Heap
    *   @param size Size in bytes to allocate
    *   @return Address of free storage or 0 if none is available
    */
-  protected VM_Address allocateSlotFromBlocks (VM_SizeControl the_size, int size) {
+  protected VM_Address allocateSlotFromBlocks (VM_SizeControl the_size, int size) throws VM_PragmaUninterruptible {
     VM_BlockControl the_block = blocks[the_size.current_block];
 
     // First, look for a slot in the blocks on the existing list
@@ -433,7 +452,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   // associated VM_SizeControl.next_slot; return true if a free slot was found,
   // or false if not
   //
-  protected boolean build_list (VM_BlockControl the_block, VM_SizeControl the_size) {
+  protected boolean build_list (VM_BlockControl the_block, VM_SizeControl the_size) throws VM_PragmaUninterruptible {
     byte[] the_mark = the_block.mark;
     int first_free = 0, i = 0, j;
     VM_Address current, next;
@@ -521,7 +540,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   // A debugging routine: called to validate the result of build_list 
   // and build_list_for_new_block
   // 
-  protected void do_check (VM_BlockControl the_block, VM_SizeControl the_size) {
+  protected void do_check (VM_BlockControl the_block, VM_SizeControl the_size) throws VM_PragmaUninterruptible {
     int count = 0;
     if (blocks[the_size.current_block] != the_block) {
       VM_Scheduler.trace("do_check", "BlockControls don't match");
@@ -547,7 +566,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   // Input: a VM_BlockControl that was just assigned to a size; the VM_SizeControl
   // associated with the block
   //
-  protected void build_list_for_new_block (VM_BlockControl the_block, VM_SizeControl the_size) {
+  protected void build_list_for_new_block (VM_BlockControl the_block, VM_SizeControl the_size) throws VM_PragmaUninterruptible {
     byte[] the_mark = the_block.mark;
     int i, delta;
     VM_Address current = the_block.baseAddr;
@@ -575,7 +594,7 @@ final class VM_SegregatedListHeap extends VM_Heap
 
   // A routine to obtain a free VM_BlockControl and return it
   // to the caller.  First use is for the VM_Processor constructor: 
-  protected int getnewblockx (int ndx) {
+  protected int getnewblockx (int ndx) throws VM_PragmaUninterruptible {
     sysLockBlock.lock();
 
     if (first_freeblock == OUT_OF_BLOCKS) {
@@ -604,7 +623,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   }
 
 
-  protected int getPartialBlock (int ndx) {
+  protected int getPartialBlock (int ndx) throws VM_PragmaUninterruptible {
     VM_Processor st = VM_Processor.getCurrentProcessor();
     VM_SizeControl this_size = st.sizes[ndx];
     VM_BlockControl currentBlock = blocks[this_size.current_block];
@@ -645,7 +664,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   } 
 
  
-  protected int getnewblock (int ndx) {
+  protected int getnewblock (int ndx) throws VM_PragmaUninterruptible {
     int i, save, size;
     VM_Processor st = VM_Processor.getCurrentProcessor();
 
@@ -690,7 +709,7 @@ final class VM_SegregatedListHeap extends VM_Heap
     return 0;
   }
 
-  protected int getndx(int size) {
+  protected int getndx(int size) throws VM_PragmaUninterruptible {
     if (size <= GC_SIZEVALUES[0]) return 0;  // special case most common
     if (size <= GC_SIZEVALUES[1]) return 1;  // special case most common
     if (size <= GC_SIZEVALUES[2]) return 2;  // special case most common
@@ -706,7 +725,7 @@ final class VM_SegregatedListHeap extends VM_Heap
 
 
   //  a debugging routine: to make sure a pointer is into the give block
-  protected  boolean isPtrInBlock (VM_Address ptr, VM_SizeControl the_size) {
+  protected  boolean isPtrInBlock (VM_Address ptr, VM_SizeControl the_size) throws VM_PragmaUninterruptible {
     VM_BlockControl  the_block = blocks[the_size.current_block]; 
     VM_Address base = the_block.baseAddr;
     int  offset = ptr.diff(base);
@@ -717,7 +736,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   }
 
 
-  void dumpblocks (VM_Processor st)  {
+  void dumpblocks (VM_Processor st)  throws VM_PragmaUninterruptible {
     VM.sysWriteln("\n-- Processor ", st.id, " --");
     for (int i = 0; i < GC_SIZES; i++) {
       VM.sysWrite(" Size ", GC_SIZEVALUES[i], "  ");
@@ -733,7 +752,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   }
 
 
-  void dumpblocks () {
+  void dumpblocks () throws VM_PragmaUninterruptible {
     VM_Processor  st = VM_Processor.getCurrentProcessor();
     VM.sysWrite(first_freeblock, "  is the first freeblock index \n");
     for (int i = 0; i < GC_SIZES; i++) {
@@ -748,7 +767,7 @@ final class VM_SegregatedListHeap extends VM_Heap
     }
   } 
 
-  void clobber (VM_Address addr, int length) {
+  void clobber (VM_Address addr, int length) throws VM_PragmaUninterruptible {
     int value = 0xdeaddead;
     int i;
     for (i = 0; i + 3 < length; i = i+4) 
@@ -756,7 +775,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   }
 
 
-  void clobberfree () {
+  void clobberfree () throws VM_PragmaUninterruptible {
     VM_Processor  st = VM_Processor.getCurrentProcessor();
     for (int i = 0; i < GC_SIZES; i ++) {
       VM_BlockControl this_block = blocks[st.sizes[i].first_block];  
@@ -788,16 +807,16 @@ final class VM_SegregatedListHeap extends VM_Heap
 
 
 
-  public long freeMemory () {
+  public long freeMemory () throws VM_PragmaUninterruptible {
     return freeBlocks() * GC_BLOCKSIZE;
   }
 
-  public long partialBlockFreeMemory() {
+  public long partialBlockFreeMemory() throws VM_PragmaUninterruptible {
     if (VM_Allocator.verbose >= 2) VM.sysWrite("WARNING: partialBlockFreeMemory not implemented; returning 0\n");
     return 0;
   }
 
-  protected int emptyOfCurrentBlock(VM_BlockControl the_block, VM_Address current_pointer) {
+  protected int emptyOfCurrentBlock(VM_BlockControl the_block, VM_Address current_pointer) throws VM_PragmaUninterruptible {
     int sum = 0;
     while (!current_pointer.isZero()) {
       sum += the_block.slotsize;
@@ -808,7 +827,7 @@ final class VM_SegregatedListHeap extends VM_Heap
 
 
   //  calculate the number of free bytes in a block of slotsize size
-  protected  int emptyof (int size, byte[] alloc) {
+  protected  int emptyof (int size, byte[] alloc) throws VM_PragmaUninterruptible {
     int  total = 0;
     for (int i = 0; i < alloc.length; i++) {
       if (alloc[i] == 0) total += GC_SIZEVALUES[size];
@@ -818,7 +837,7 @@ final class VM_SegregatedListHeap extends VM_Heap
 
   // Count all VM_blocks in the chain from the input to the end
   //
-  protected int blocksInChain(VM_BlockControl the_block) {
+  protected int blocksInChain(VM_BlockControl the_block) throws VM_PragmaUninterruptible {
     int next = the_block.nextblock;
     int count = 1;
     while (next != OUT_OF_BLOCKS) {
@@ -832,7 +851,7 @@ final class VM_SegregatedListHeap extends VM_Heap
 
   // Count the blocks in the size_control input from first to current
   // 
-  protected int blocksToCurrent (VM_SizeControl the_size) {
+  protected int blocksToCurrent (VM_SizeControl the_size) throws VM_PragmaUninterruptible {
     int count = 1;
     if (the_size.first_block == the_size.current_block) return 1;
     VM_BlockControl the_block = blocks[the_size.first_block];	
@@ -911,7 +930,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   // does not, since the scan starts from current-block always.(at
   // the end, current_block == first_block
   //
-  void freeSmallSpaceDetails (boolean block_count) {
+  void freeSmallSpaceDetails (boolean block_count) throws VM_PragmaUninterruptible {
     if (DEBUG_FREEBLOCKS || VM_Allocator.verbose >= 1) {
       int next;
       int blocks_in_use = 0, blocks_in_partial = 0;
@@ -948,7 +967,7 @@ final class VM_SegregatedListHeap extends VM_Heap
     }
   }
 			
-  protected int freeSmallSpaceDetail (VM_Processor st) {
+  protected int freeSmallSpaceDetail (VM_Processor st) throws VM_PragmaUninterruptible {
     int blocks_in_use = 0;
     for (int i = 0; i < GC_SIZES; i++) {
       VM_BlockControl this_block = blocks[st.sizes[i].first_block];
@@ -968,7 +987,7 @@ final class VM_SegregatedListHeap extends VM_Heap
     return blocks_in_use;
   }
 
-  int freeBlocks () {
+  int freeBlocks () throws VM_PragmaUninterruptible {
     sysLockBlock.lock();
     if (first_freeblock == OUT_OF_BLOCKS) {
       sysLockBlock.unlock();
@@ -987,13 +1006,13 @@ final class VM_SegregatedListHeap extends VM_Heap
     return i;
   }
 
-  void postCollectionReport() {
+  void postCollectionReport() throws VM_PragmaUninterruptible {
     if (REPORT_BLOCKS) reportBlocks();
     if (DEBUG_FREEBLOCKS) freeSmallSpaceDetails(true);
   }
 
       
-  void reportBlocks() {
+  void reportBlocks() throws VM_PragmaUninterruptible {
     if (!REPORT_BLOCKS) return;
     for (int j = 0; j < GC_SIZES; j++) 
       total[j] = 0;  
@@ -1033,7 +1052,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   /**
    * Done by 1 collector thread at start of collection
    */
-  void startCollect() {
+  void startCollect() throws VM_PragmaUninterruptible {
 
     blocks_available = 0;    // not decremented during allocation
 
@@ -1059,7 +1078,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   }
 
 
-  void zeromarks(VM_Processor st) {
+  void zeromarks(VM_Processor st) throws VM_PragmaUninterruptible {
     int block_count = 0;
     for (int i = 0; i < GC_SIZES; i++) {
       
@@ -1085,7 +1104,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   }
 
 
-  void setupallocation(VM_Processor st) {
+  void setupallocation(VM_Processor st) throws VM_PragmaUninterruptible {
     for (int i = 0; i < GC_SIZES; i++) {
       VM_BlockControl this_block = blocks[st.sizes[i].first_block];
       VM_SizeControl this_size  = st.sizes[i];
@@ -1099,7 +1118,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   /**
    * Parallel sweep
    */
-  public void sweep(VM_CollectorThread mylocal) {
+  public void sweep(VM_CollectorThread mylocal) throws VM_PragmaUninterruptible {
     // Following local variables for free_block logic
     int local_first_free_ndx = OUT_OF_BLOCKS; 
     int local_blocks_available = 0; 

@@ -16,4 +16,4 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-interface VM_Uninterruptible { }
+public interface VM_Uninterruptible { }

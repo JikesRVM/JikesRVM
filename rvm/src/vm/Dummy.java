@@ -12,6 +12,7 @@
  *
  * @author Derek Lieber
  */
+import MM.VM_WriteBarrier;
 class Dummy {
   static VM                         a;
   static VM_TableBasedDynamicLinker b;

@@ -9,7 +9,9 @@
  * @author Stephen Fink
  * @author David Grove
  */
-class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
+import MM.VM_GCMapIterator;
+
+public class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
   public static final int COMPILER_TYPE = VM_CompiledMethod.BASELINE;
 
   static void boot() {
@@ -31,7 +33,7 @@ class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
   static void detailedCompilationReport(boolean explain) {
   }
   
-  static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
+  public static VM_GCMapIterator createGCMapIterator(int[] registerLocations) {
     return new VM_BaselineGCMapIterator(registerLocations);
   }
 }

@@ -313,50 +313,50 @@
   /**
    * supertype of all exception types
    */
-  static VM_Type JavaLangThrowableType; 
+  public static VM_Type JavaLangThrowableType; 
   /**
    * "final" type that gets special language treatment
    */
-  static VM_Type JavaLangStringType;    
+  public static VM_Type JavaLangStringType;    
   /**
    * all arrays are Cloneable, needed for type checking
    */
-  static VM_Class JavaLangCloneableType; 
+  public static VM_Class JavaLangCloneableType; 
   /**
    * all arrays are Serializable, needed for type checking
    */
-  static VM_Class JavaIoSerializableType; 
+  public static VM_Class JavaIoSerializableType; 
   /**
    * type used to extend java semantics for vm implementation
    */
-  static VM_Type MagicType;             
+  public static VM_Type MagicType;             
   /**
    * type used to represent machine addresses
    */
-  static VM_Type AddressType;             
+  public static VM_Type AddressType;             
   /**
    * type used to represent code - array of INSTRUCTION
    */
-  static VM_Type CodeType;             
+  public static VM_Type CodeType;             
   /**
    * interface implemented to prevent compiler-inserted threadswitching
    */
-  static VM_Type UninterruptibleType;   
+  public static VM_Type UninterruptibleType;   
   /**
    * interface implemented to hint to the runtime system that an object
    * may be locked
    */
-  static VM_Type SynchronizedObjectType;   
+  public static VM_Type SynchronizedObjectType;   
   /**
    * interface implemented to save/restore appropriate registers 
    * during dynamic linking, etc.
    */
-  static VM_Type DynamicBridgeType;     
+  public static VM_Type DynamicBridgeType;     
   /**
    * interface implemented to save various registers 
    * !!TODO: phase out in favor of preceeding line?
    */
-  static VM_Type SaveVolatileType;      
+  public static VM_Type SaveVolatileType;      
 
   // Convenience methods.
   //
@@ -438,7 +438,7 @@
    * Simple graph-based type checker.
    * Replaced by methods of VM_DynamicTypeChecking.
    */ 
-  static boolean isAssignableWith(VM_Type lhs, 
+  public static boolean isAssignableWith(VM_Type lhs, 
 				  VM_Type rhs) throws VM_ResolutionException {
     // check trivial case first
     //
@@ -507,7 +507,7 @@
     }
   }
 
-  static boolean explicitImplementsTest (VM_Class I, VM_Class J) throws VM_ResolutionException {
+  public static boolean explicitImplementsTest (VM_Class I, VM_Class J) throws VM_ResolutionException {
      VM_Class [] superInterfaces = J.getDeclaredInterfaces();
      if (superInterfaces == null) return false;
      for (int i=0; i<superInterfaces.length; i++) {

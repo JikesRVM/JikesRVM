@@ -9,55 +9,55 @@
  * @author Perry Cheng
  * 
  */
-class VM_TimeStatistic extends VM_Statistic implements VM_Uninterruptible {
+public class VM_TimeStatistic extends VM_Statistic implements VM_Uninterruptible {
 
     private double curStart = -1.0;
-    double lastStart = -1.0;
-    double lastStop = -1.0;
+    public double lastStart = -1.0;
+    public double lastStop = -1.0;
 
-    void start(double x) {
+    public void start(double x) {
 	if (VM.VerifyAssertions) VM.assert(curStart == -1.0);
 	lastStart = curStart = x;
     }
 
-    void stop(double x) {
+    public void stop(double x) {
 	if (VM.VerifyAssertions) VM.assert(curStart != -1.0);
 	lastStop = x;
 	addSample(x - curStart);
 	curStart = -1.0;
     }
 
-    void start() {
+    public void start() {
 	start(VM_Time.now());
     }
 
-    void stop() {
+    public void stop() {
 	stop(VM_Time.now());
     }
 
-    void start(VM_TimeStatistic other) {
+    public void start(VM_TimeStatistic other) {
 	double now = VM_Time.now();
 	other.stop(now);
 	start(now);
     }
 
-    int lastMs() {
+    public int lastMs() {
 	return (int)(last()*1000.0);
     }
 
-    int avgMs() {
+    public int avgMs() {
 	return (int)(avg()*1000.0);
     }
 
-    int maxMs() {
+    public int maxMs() {
 	return (int)(max()*1000.0);
     }
 
-    int sumS() {
+    public int sumS() {
 	return (int)(sum());
     }
 
-    int avgUs() {
+    public int avgUs() {
 	return (int)(avg()*1000.0);
     }
 
