@@ -300,8 +300,11 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * @return info (null --> method doesn't throw any exceptions)
    */
   public final VM_Type[] getExceptionTypes() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
+    if (VM.VerifyAssertions && !declaringClass.isLoaded())
+	VM._assert(false, declaringClass + " is not loaded");
+    if (VM.VerifyAssertions && !isLoaded()) 
+	VM._assert(false, this + " is not loaded");
+
     return exceptionTypes;
   }
 

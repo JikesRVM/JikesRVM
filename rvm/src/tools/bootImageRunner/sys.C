@@ -2016,7 +2016,7 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort) {
 	   }
 
 	   else {
-	       fprintf(SysErrorFile, "vm: socket connect on %d failed (errno=%d)\n", fd, errno);
+	       fprintf(SysErrorFile, "vm: socket connect on %d failed: %s (errno=%d)\n", fd, strerror(errno), errno);
 	       return -3;
 	   }
        }
