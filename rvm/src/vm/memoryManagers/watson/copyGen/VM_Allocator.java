@@ -97,7 +97,7 @@ public class VM_Allocator
 
     smallHeapSize = bootrecord.smallSpaceSize;
     int largeSize = bootrecord.largeSpaceSize;
-    int immortalSize = VM_Memory.roundUpPage((4 * largeSize / VM_Memory.getPagesize()) + 4 * VM_Memory.getPagesize());
+    int immortalSize = VM_Memory.roundUpPage(1024 * 1024 + (4 * largeSize / VM_Memory.getPagesize()) + 4 * VM_Memory.getPagesize());
     int nurserySize = bootrecord.nurserySize; 
     int oneSpaceSize = VM_Memory.roundUpPage(smallHeapSize / 2);
    
