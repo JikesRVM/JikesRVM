@@ -34,7 +34,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   public static final boolean needsWriteBarrier = true;
   public static final boolean needsRefCountWriteBarrier = true;
-  public static final boolean refCountCycleDetection = true;
+  public static final boolean refCountCycleDetection = false;
   public static final boolean movesObjects = false;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -439,6 +439,11 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     if (refCountCycleDetection) {
       processCycleBufs();
       processFreeBufs();
+      if (true) {
+	doMarkGreyPhase();
+	doScanPhase();
+	doCollectPhase();
+      }
     }
   }
 
@@ -459,8 +464,6 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       progress = false;
     } else
       progress = true;
-    if (refCountCycleDetection)
-      cycleBufferAisOpen = !cycleBufferAisOpen;
   }
 
   private final void processIncBufs() {
@@ -488,11 +491,16 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     }
   }
 
+  public void addToFreeBuf(VM_Address object) 
+   throws VM_PragmaInline {
+    freeBuffer.push(object);
+  }
   private final void processCycleBufs() {
     VM_Address obj;
     AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
     AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
     while (!(obj = src.pop()).isZero()) {
+      if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGreen(obj));
       if (SimpleRCHeader.isLiveRC(VM_Magic.addressAsObject(obj))) {
 	if (SimpleRCHeader.isPurple(VM_Magic.addressAsObject(obj)))
 	  tgt.push(obj);
@@ -501,13 +509,74 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       } else
 	freeBuffer.push(obj);
     }
+    cycleBufferAisOpen = !cycleBufferAisOpen;
   }
   private final void processFreeBufs() {
     VM_Address obj;
     while (!(obj = freeBuffer.pop()).isZero())
       rcCollector.free(obj, rc);
   }
-  private final void trialDelete(VM_Address obj) {
+  private final void doMarkGreyPhase() {
+    VM_Address obj;
+    AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
+    AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
+    rcCollector.markGreyPhase();
+    while (!(obj = src.pop()).isZero()) {
+      if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGreen(obj));
+      if (SimpleRCHeader.isPurple(obj) && SimpleRCHeader.isLiveRC(obj)) {
+	if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGrey(obj));
+// 	VM.sysWrite(obj);
+// 	VM.sysWrite(" ");
+// 	SimpleRCHeader.print(obj);
+// 	VM.sysWrite(" markgrey\n");
+	rcCollector.markGrey(obj);
+	tgt.push(obj);
+      } else {
+	//if (VM.VerifyAssertions) VM._assert(false);
+// 	VM.sysWrite(obj);
+// 	VM.sysWrite(" ");
+// 	SimpleRCHeader.print(obj);
+ 	SimpleRCHeader.clearBufferedBit(obj);
+// 	if (!SimpleRCHeader.isLiveRC(obj)) {
+// 	  VM.sysWrite(" d\n");
+// 	} else {
+// 	  VM.sysWrite(" l\n");
+// 	}
+      }
+    } 
+    cycleBufferAisOpen = !cycleBufferAisOpen;
+  }
+  private final void doScanPhase() {
+    VM_Address obj;
+    AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
+    AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
+    rcCollector.scanPhase();
+    while (!(obj = src.pop()).isZero()) {
+      if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGreen(obj));
+//       VM.sysWrite(obj);
+//       VM.sysWrite(" ");
+//       SimpleRCHeader.print(obj);
+//       VM.sysWrite(" scan\n");
+
+      rcCollector.scan(obj);
+      tgt.push(obj);
+    }
+    cycleBufferAisOpen = !cycleBufferAisOpen;
+  }
+  private final void doCollectPhase() {
+    VM_Address obj;
+    AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
+    rcCollector.collectPhase();
+    while (!(obj = src.pop()).isZero()) {
+      if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGreen(obj));
+      SimpleRCHeader.clearBufferedBit(obj);
+//       VM.sysWrite(obj);
+//       VM.sysWrite(" ");
+//       SimpleRCHeader.print(obj);
+//       VM.sysWrite(" collect\n");
+      rcCollector.collectWhite(obj, this);
+    }
+    //    processFreeBufs();
   }
 
   ////////////////////////////////////////////////////////////////////////////

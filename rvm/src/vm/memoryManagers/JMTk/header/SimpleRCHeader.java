@@ -38,9 +38,9 @@ public class SimpleRCHeader extends SimpleRCBaseHeader implements VM_Constants {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     // all objects are birthed with an RC of INCREMENT
     int initialValue = INCREMENT;
-    if (Plan.refCountCycleDetection && 
-	VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]).acyclic)
-      initialValue |= GREEN_MASK;
+//     if (Plan.refCountCycleDetection && 
+// 	VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]).acyclic)
+//       initialValue |= GREEN;
       
     VM_Magic.setIntAtOffset(ref, RC_HEADER_OFFSET, initialValue);
     int oldValue = VM_ObjectModel.readAvailableBitsWord(ref);

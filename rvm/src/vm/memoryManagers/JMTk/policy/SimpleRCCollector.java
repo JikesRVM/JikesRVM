@@ -147,16 +147,24 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
       if (root)
 	VM_Interface.getPlan().addToRootSet(object); 
       break;
-    case DECREMENT:
+    case DECREMENT: 
       VM_Interface.getPlan().addToDecBuf(object); 
       break;
-    case MARK:
-//       if (SimpleRCHeader.isPurple(object))
-// 	decRC(object);
+    case MARK_GREY: 
+      if (VM.VerifyAssertions) VM._assert(SimpleRCHeader.isLiveRC(object));
+      SimpleRCHeader.decRC(object);
+      markGrey(object); 
       break;
-    case SCAN:
-      if (SimpleRCHeader.isPurple(object))
-	incRC(object);
+    case SCAN: 
+      scan(object); 
+      break;
+    case SCAN_BLACK: 
+      SimpleRCHeader.incRC(object);
+      if (!SimpleRCHeader.isBlack(object))
+	scanBlack(object);
+      break;
+    case COLLECT:  
+      collectWhite(object, VM_Interface.getPlan()); 
       break;
     default:
       if (VM.VerifyAssertions) VM._assert(false);
@@ -164,6 +172,44 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     return object;
   }
  
+  public final void markGrey(VM_Address object)
+    throws VM_PragmaInline {
+    if (!SimpleRCHeader.isGrey(object)) {
+      SimpleRCHeader.makeGrey(object);
+      ScanObject.scan(object);
+    }
+  }
+  public final void scan(VM_Address object)
+    throws VM_PragmaInline {
+    if (SimpleRCHeader.isGrey(object)) {
+      if (SimpleRCHeader.isLiveRC(object)) {
+	phase = SCAN_BLACK;
+	scanBlack(object);
+	phase = SCAN;
+      } else {
+	SimpleRCHeader.makeWhite(object);
+	ScanObject.scan(object);
+      }
+    }
+  }
+
+  public final void scanBlack(VM_Address object) 
+    throws VM_PragmaInline {
+    SimpleRCHeader.makeBlack(object);
+    ScanObject.scan(object);
+  }
+
+  public final void collectWhite(VM_Address object, Plan plan)
+    throws VM_PragmaInline {
+    if (SimpleRCHeader.isWhite(object) && 
+	!SimpleRCHeader.isBuffered(object)) {
+      SimpleRCHeader.makeBlack(object);
+      ScanObject.scan(object);
+      plan.addToFreeBuf(object);
+    }
+  }
+
+
   /**
    * Return the initial value for the header of a new object instance.
    * The header for this collector includes a mark bit and a small
@@ -183,22 +229,36 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline {
     SimpleRCHeader.incRC(object);
     if (Plan.refCountCycleDetection && phase == PROCESS)
-      SimpleRCHeader.clearPurpleBit(object);
+      SimpleRCHeader.makeBlack(object);
   }
 
+  public final void decRC(VM_Address object) 
+    throws VM_PragmaInline {
+    decRC(object, null, null);
+  }
   public final void decRC(VM_Address object, SimpleRCAllocator allocator,
 			  Plan plan) 
     throws VM_PragmaInline {
-    if (SimpleRCHeader.decRC(object)) {
-      // this object is now dead, scan it for recursive decrement
-//       VM.sysWrite(object); VM.sysWrite(" k\n");
-      ScanObject.scan(object);
-      if (!(Plan.refCountCycleDetection && phase == DECREMENT && 
-	    SimpleRCHeader.isBuffered(object)))
+    if (!Plan.refCountCycleDetection) {
+      if (SimpleRCHeader.decRC(object)) {
+	// this object is now dead, scan it for recursive decrement
+	//       VM.sysWrite(object); VM.sysWrite(" k\n");
+	ScanObject.scan(object);
+	if (VM.VerifyAssertions) VM._assert(allocator != null);
 	free(object, allocator);
-    } else if (Plan.refCountCycleDetection && phase == DECREMENT) {
-      if (SimpleRCHeader.makePurple(object))
-	plan.addToCycleBuf(VM_Magic.objectAsAddress(object));
+      } 
+    } else {
+      if (VM.VerifyAssertions) VM._assert(phase == DECREMENT);
+      if (SimpleRCHeader.decRC(object)) {
+	ScanObject.scan(object);
+	if (VM.VerifyAssertions) VM._assert(allocator != null);
+	if (!SimpleRCHeader.isBuffered(object)) 
+	  free(object, allocator);
+      } else {
+	if (VM.VerifyAssertions) VM._assert(plan != null);
+	if (SimpleRCHeader.makePurple(object))
+	  plan.addToCycleBuf(VM_Magic.objectAsAddress(object));
+      }
     }
   }
 
@@ -207,7 +267,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     VM_Address ref = VM_JavaHeader.getPointerInMemoryRegion(object);
     boolean isSmall = SimpleRCHeader.isSmallObject(VM_Magic.addressAsObject(object));
     VM_Address cell = VM_JavaHeader.objectStartRef(object);
-//     VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(cell); VM.sysWrite(" k\n");
+//      VM.sysWrite(object); VM.sysWrite(" "); VM.sysWrite(cell); VM.sysWrite(" k\n");
     VM_Address sp = SimpleRCAllocator.getSuperPage(cell, isSmall);
     int sizeClass = SimpleRCAllocator.getSizeClass(sp);
     if (allocator == null)
@@ -219,13 +279,21 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline {
     phase = DECREMENT;
   }
-  public final void markPhase() 
+  public final void markGreyPhase() 
     throws VM_PragmaInline {
-    phase = MARK;
+    phase = MARK_GREY;
   }
   public final void scanPhase() 
     throws VM_PragmaInline {
     phase = SCAN;
+  }
+  public final void scanBlackPhase() 
+    throws VM_PragmaInline {
+    phase = SCAN_BLACK;
+  }
+  public final void collectPhase() 
+    throws VM_PragmaInline {
+    phase = COLLECT;
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -243,8 +311,10 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   private MemoryResource memoryResource;
   private int phase;
 
-  private static final int PROCESS = 0;
-  private static final int DECREMENT = 1;
-  private static final int MARK = 2;
-  private static final int SCAN = 3;
+  private static final int    PROCESS = 0;
+  private static final int  DECREMENT = 1;
+  private static final int  MARK_GREY = 2;
+  private static final int       SCAN = 3;
+  private static final int SCAN_BLACK = 4;
+  private static final int    COLLECT = 5;
 }

@@ -94,39 +94,21 @@ public abstract class SimpleRCBaseHeader implements VM_Constants {
     return newValue;
   }
 
-  public static boolean makePurple(Object object)
+  public static void print(Object object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    if (isGreenOrPurple(object))
-      return false;  // inherently acyclic or already purple, so do nothing
-
-    int oldValue, newValue;
-    boolean rtn;
-    do {
-      oldValue = VM_Magic.prepare(object, RC_HEADER_OFFSET);
-      newValue = oldValue | PURPLE_MASK | BUFFERED_MASK;
-      if ((oldValue & BUFFERED_MASK) == 0)
-	rtn = true; // need to add to buffer
-      else
-	rtn = false; // already buffered
-    } while (!VM_Magic.attempt(object, RC_HEADER_OFFSET, oldValue, newValue));
-    return rtn;
-  }
-
-  private static boolean isGreenOrPurple(Object object)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return getRCbits(object, GREEN_MASK | PURPLE_MASK) != 0;
-  }
-  public static boolean isPurple(Object object)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return getRCbits(object, PURPLE_MASK) != 0;
-  }
-  public static void setPurpleBit(Object object) 
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    setOrClearRCBit(object, PURPLE_MASK, true);
-  }
-  public static void clearPurpleBit(Object object) 
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    setOrClearRCBit(object, PURPLE_MASK, false);
+    VM.sysWrite(VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>CYCLE_DETECTION_BITS); 
+    VM.sysWrite(' ');
+    switch (getRCColor(object)) {
+    case BLACK: VM.sysWrite('b'); break;
+    case WHITE: VM.sysWrite('w'); break;
+    case PURPLE: VM.sysWrite('p'); break;
+    case GREEN: VM.sysWrite('x'); break;
+    case GREY: VM.sysWrite('g'); break;
+    }
+    if (isBuffered(object))
+      VM.sysWrite('b');
+    else
+      VM.sysWrite('u');
   }
   public static boolean isBuffered(Object object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
@@ -153,11 +135,91 @@ public abstract class SimpleRCBaseHeader implements VM_Constants {
     } while (!VM_Magic.attempt(object, RC_HEADER_OFFSET, oldValue, newValue));
   }
 
-  // see Bacon et al PLDI 2001 for notion of colors (purple, green)
-  private static final int BITS_USED = 3;
-  protected static final int GREEN_MASK  = 0x1;  //  .. 001
-  private static final int BUFFERED_MASK = 0x2;  //  .. 010
-  private static final int PURPLE_MASK   = 0x4;  //  .. 100
+  public static boolean isBlack(Object object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return getRCColor(object) == BLACK;
+  }
+  public static boolean isWhite(Object object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return getRCColor(object) == WHITE;
+  }
+  public static boolean isGreen(Object object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return getRCColor(object) >= GREEN;
+  }
+  public static boolean isPurple(Object object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return getRCColor(object) == PURPLE;
+  }
+  public static boolean isGreenOrPurple(Object object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return getRCColor(object) >= PURPLE;
+  }
+  public static boolean isGrey(Object object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return getRCColor(object) == GREY;
+  }
+  private static int getRCColor(Object object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return COLOR_MASK & VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
+  }
+  public static void makeBlack(Object object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    changeRCColor(object, BLACK);
+  }
+  public static void makeWhite(Object object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    changeRCColor(object, WHITE);
+  }
+  public static boolean makePurple(Object object)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    if (isGreenOrPurple(object))
+      return false;  // inherently acyclic or already purple, so do nothing
+
+    int oldValue, newValue;
+    boolean rtn;
+    do {
+      oldValue = VM_Magic.prepare(object, RC_HEADER_OFFSET);
+      newValue = (oldValue & ~BASE_COLOR_MASK) | PURPLE | BUFFERED_MASK;
+      if ((oldValue & BUFFERED_MASK) == 0)
+	rtn = true; // need to add to buffer
+      else
+	rtn = false; // already buffered
+    } while (!VM_Magic.attempt(object, RC_HEADER_OFFSET, oldValue, newValue));
+    return rtn;
+  }
+  public static void makeGrey(Object object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    changeRCColor(object, GREY);
+  }
+  private static void changeRCColor(Object object, int color)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int oldValue, newValue;
+    if (VM.VerifyAssertions) VM._assert(color != GREEN);
+    do {
+      oldValue = VM_Magic.prepare(object, RC_HEADER_OFFSET);
+      newValue = (oldValue & ~BASE_COLOR_MASK) | color;
+    } while (!VM_Magic.attempt(object, RC_HEADER_OFFSET, oldValue, newValue));
+  }
+
+  // See Bacon & Rajan ECOOP 2001 for notion of colors (purple, grey,
+  // black, green).  See also Jones & Lins for a description of "Lins'
+  // algorithm", on which Bacon & Rajan's is based.
+
+  // The following are arranged to try to make the most common tests
+  // fastest ("bufferd?", "green?" and "(green | purple)?") 
+  private static final int     BUFFERED_MASK = 0x1;  //  .. 00001
+  protected static final int      COLOR_MASK = 0xe;  //  .. 00110 
+  // we never change the color green, hence the color mask
+  protected static final int BASE_COLOR_MASK = 0x6;  //  .. 00110 
+  private static final int             BLACK = 0x0;  //  .. x000x
+  private static final int              GREY = 0x2;  //  .. x001x
+  private static final int             WHITE = 0x4;  //  .. x010x
+  // green & purple *MUST* remain the highest colors in order to
+  // preseve the (green | purple) test's precondition.
+  private static final int            PURPLE = 0x6;  //  .. x011x
+  protected static final int           GREEN = 0x8;  //  .. x100x
+  private static final int BITS_USED = 4;
 
   private static final int CYCLE_DETECTION_BITS = (Plan.refCountCycleDetection) ? BITS_USED : 0;
   protected static final int INCREMENT = 1<<CYCLE_DETECTION_BITS;
