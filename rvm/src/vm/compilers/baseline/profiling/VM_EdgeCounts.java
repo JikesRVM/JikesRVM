@@ -95,7 +95,7 @@ final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
       int[] cur = null;
       int curIdx = 0;
       for (String s = in.readLine(); s != null; s = in.readLine()) {
-	StringTokenizer parser = new StringTokenizer(s, " \t\n\r\f:{},");
+	StringTokenizer parser = new StringTokenizer(s, " \t\n\r\f,{}");
 	String firstToken = parser.nextToken();
 	if (firstToken.equals("M")) {
 	  int numCounts = Integer.parseInt(parser.nextToken());
@@ -107,23 +107,17 @@ final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
 	  cur = VM_EdgeCounterDictionary.getValue(id);
 	  curIdx = 0;
 	} else {
-	  String bracket = parser.nextToken(); // discard bytecode index, we don't care.
-	  if (bracket.equals("<")) {
-	    // conditional branch
-	    float freq = (float)Long.parseLong(parser.nextToken());
-	    float takenProb = Float.parseFloat(parser.nextToken());
-	    int yea = (int)(0x000000007fffffffL & (long)(0.5f + freq * takenProb));
-	    int nea = (int)(0x000000007fffffffL & (long)(0.5F + freq * (1.0f - takenProb)));
-	    cur[curIdx + TAKEN] = yea;
-	    cur[curIdx + NOT_TAKEN] = nea;
-	    curIdx += 2;
-	  } else if (bracket.equals("[")) {
-	    float freq = (float)Long.parseLong(parser.nextToken());
-	    for (String nt = parser.nextToken(); !nt.equals("]"); nt = parser.nextToken()) {
-	      float takenProb = Float.parseFloat(nt);
-	      int yea = (int)(0x000000007fffffffL & (long)(0.5f + freq * takenProb));
-	      cur[curIdx++] = yea;
+	  String type = parser.nextToken(); // discard bytecode index, we don't care.
+	  if (type.equals("switch")) {
+	    parser.nextToken(); // discard '<'
+	    for (String nt = parser.nextToken(); !nt.equals(">"); nt = parser.nextToken()) {
+	      cur[curIdx++] = Integer.parseInt(nt);
 	    }
+	  } else if (type.equals("forwbranch") || type.equals("backbranch")) {
+	    parser.nextToken(); // discard '<'
+	    cur[curIdx + TAKEN] = Integer.parseInt(parser.nextToken());
+	    cur[curIdx + NOT_TAKEN] = Integer.parseInt(parser.nextToken());
+	    curIdx += 2;
 	  } else {
 	    VM.sysFail("Format error in edge counter input file");
 	  }

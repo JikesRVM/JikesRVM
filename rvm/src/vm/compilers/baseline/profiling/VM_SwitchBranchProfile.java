@@ -11,45 +11,47 @@
 final class VM_SwitchBranchProfile extends VM_BranchProfile {
 
   /**
-   * The probabilities that the difference arms of a switch were
+   * The number of times that the different arms of a switch were
    * taken. By convention, the default case is the last entry.
    */
-  protected final float[] probs;
+  protected final float[] counts;
   
   /**
    * @param _bci the bytecode index of the source branch instruction
-   * @param yea the number of times the branch was taken
-   * @param nea the number of times the branch was not taken
+   * @param cs counts
+   * @param start idx of first entry in cs
+   * @param numEntries number of entries in cs for this switch
    */
-  VM_SwitchBranchProfile(int _bci, int[] counts, int start, int numEntries) {
-    super(_bci, sumCounts(counts, start, numEntries));
-    probs = new float[numEntries];
-    if (freq > 0) {
-      for (int i=0; i<numEntries; i++) {
-	probs[i] = (float)counts[start+i] / freq;
-      }
-    } else {
-      float p = 1.0f / (float)numEntries; // Never executed so even distribution seems most plausible?
-      for (int i=0; i<numEntries; i++) {
-	probs[i] = p;
-      }
+  VM_SwitchBranchProfile(int _bci, int[] cs, int start, int numEntries) {
+    super(_bci, sumCounts(cs, start, numEntries));
+    counts = new float[numEntries];
+    for (int i=0; i<numEntries; i++) {
+      counts[i] = (float)cs[start+i];
     }
   }
 
   public final float getDefaultProbability() {
-    return probs[probs.length-1];
+    return getProbability(counts.length-1);
   }
 
   public final float getCaseProbability(int n) {
-    return probs[n];
+    return getProbability(n);
+  }
+
+  protected final float getProbability(int n) {
+    if (freq > 0) {
+      return counts[n] / freq;
+    } else {
+      return 1.0f / counts.length;
+    }
   }
 
   final public String toString() {
-    String res = bci + ":\t[ " + (long)freq;
-    for (int i=0; i<probs.length; i++) {
-      res += ", "+probs[i];
+    String res = bci + "\tswitch     < " + (int)counts[0];
+    for (int i=1; i<counts.length; i++) {
+      res += ", "+(int)counts[i];
     }
-    return res + " ] switch";
+    return res + " >";
   }
 
   private static float sumCounts(int[] counts, int start, int numEntries) {
