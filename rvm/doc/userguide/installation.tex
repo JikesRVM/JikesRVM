@@ -307,27 +307,53 @@ access pthread-specific state.  We do not recommend such a setup.}
 \end{description}                
 The second section in the configuration file is used to define how to
 find tools that Jikes RVM needs. You must set the following variables:
+
 \begin{description}
-\item {\tt HOST\_JAVA\_HOME} the base directory for JDK JVM. If you
+
+\item {\tt HOST\_JAVA\_HOME} the base directory for JDK JVM.  If you
 have a nonstandard JDK, you may have to define a number of variables
-that are normally defined in terms of {\tt HOST\_JAVA\_HOME}.
+whose default values are defined with reference to {\tt HOST\_JAVA\_HOME}.
+
 \item {\tt CLASSPATH\_ROOT} the parent directory of the classpath src
 release, if you have decided to manually download the classpath
-libraries. 
+libraries (which you will usually want to do). 
+
+The setting of {\tt CLASSPATH\_ROOT} is a bit tricky, so we will go
+into some depth here.  For this example, we'll assume you downloaded {\tt classpath-0.05.tgz}.  Create a directory named something like {\tt
+\$RVM\_ROOT/classpath-0.05-build}.  
+A command like  {\tt /usr/gnu/tar -C \$\{RVM\_ROOT\}/classpath-0.05-build xzf classpath-0.05.tgz} will
+create the directory {\tt \$\{RVM\_ROOT\}/classpath-0.05-build/classpath-0.05}.  You should
+rename {\tt \$\{RVM\_ROOT\}/classpath-0.05-build/classpath-0.05} 
+to {\tt \$\{RVM\_ROOT\}/classpath-0.05-build/classpath}.  Now set your
+{\tt CLASSPATH\_ROOT} to {\tt \$\{RVM\_ROOT\}/classpath-0.05-build}.  
+
+The first time you run Jikes RVM's build process, it will
+automatically build the appropriate files in a directory named {\tt
+\$CLASSPATH\_ROOT}/{\it your-machine-type}.  (As of this writing,
+building GNU Classpath from scratch takes about three minutes on an
+AMD Athlon 700 processor with 512 MB of RAM.)
+
 \item {\tt GNU\_MAKE} the GNU {\tt make} executable
+
 \item {\tt JIKES} the Jikes\trademark compiler executable ({\tt jikes}).
+
 \item {\tt CC} how to invoke the C compiler.
+
 \item {\tt CPLUS} how to invoke the C++ compiler.
+
 \item {\tt LDSHARED} how to link a shared C++ library.
+
 \item {\em various basic Unix utilities} e.g., {\tt grep}, {\tt xargs}, etc.
+
 \end{description}
 
-Someday we should consider setting up an autoconf to automate this
-step.  Contributions are welcome!
+We would like to use GNU {\tt autoconf} to automate this
+step.  If you want to contribute to Jikes RVM, then this would be a
+great project to choose.
 
 \index{configurations}
 \index{jconfigure script}
-\item {\bf Choose configuration and populate your build directory.}
+\item {\bf Choose a configuration and populate your build directory.}
 You will use the {\tt jconfigure} script (in {\tt \$RVM\_ROOT/rvm/bin}) to
 populate your build ({\tt \$RVM\_BUILD}) directory with files.  You must
 first choose a Jikes RVM configuration.
