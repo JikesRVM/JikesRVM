@@ -322,10 +322,12 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	
 	processors[i].activeThread = target;
 	if (VM.BuildForPowerPC) {
+//-#if RVM_FOR_POWERPC
 	  VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
 				       VM_Magic.objectAsAddress(processors[i]),
 				       target.contextRegisters.gprs[THREAD_ID_REGISTER],
 				       target.contextRegisters.gprs[FRAME_POINTER]);
+//-#endif
 	} else if (VM.BuildForIA32) {
 	  VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
 				       VM_Magic.objectAsAddress(processors[i]),
@@ -342,10 +344,12 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	if (VM.TraceThreads)
 	  trace("VM_Scheduler.boot", "starting native daemon processor id", nativeDPndx);
 	if (VM.BuildForPowerPC) {
+//-#if RVM_FOR_POWERPC
 	  VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
 				       VM_Magic.objectAsAddress(processors[nativeDPndx]),
 				       target.contextRegisters.gprs[THREAD_ID_REGISTER],
 				       target.contextRegisters.gprs[FRAME_POINTER]);
+//-#endif
 	} else if (VM.BuildForIA32) {
 	  VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
 				       VM_Magic.objectAsAddress(processors[nativeDPndx]),
