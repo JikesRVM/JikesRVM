@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Helper routine to pull the parameters to multianewarray off the
  * Java expression stack maintained by the baseline compiler and 
@@ -16,7 +17,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Tony Cocchi 
  * @author Derek Lieber
  */
-public class VM_MultianewarrayHelper {
+public class VM_MultianewarrayHelper implements VM_Constants {
 
   /**
    * Allocate something like "new Foo[cnt0][cnt1]...[cntN-1]",
@@ -31,15 +32,16 @@ public class VM_MultianewarrayHelper {
    */
   static Object newArrayArray(int methodId, int numDimensions, int id, int argOffset)
     throws NegativeArraySizeException, 
-	   OutOfMemoryError
-  {
+	   OutOfMemoryError {
     // fetch number of elements to be allocated for each array dimension
     //
     int[] numElements = new int[numDimensions];
     VM.disableGC();
     VM_Address argp = VM_Magic.getMemoryAddress(VM_Magic.getFramePointer()).add(argOffset);
-    for (int i = 0; i < numDimensions; ++i)
-      numElements[i] = VM_Magic.getMemoryInt(argp.sub(4 * (i + 1)));
+    for (int i = 0; i < numDimensions; ++i) {
+      int offset = (BYTES_IN_STACKSLOT * i) + BYTES_IN_INT;
+      numElements[i] = VM_Magic.getMemoryInt(argp.sub(offset));
+    }
     VM.enableGC();
 
     // validate arguments
