@@ -38,7 +38,7 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
   }
       
   public final VM_Offset findCatchBlockForInstruction(VM_Offset instructionOffset, VM_Type exceptionType) {
-    return VM_Offset.fromInt(-1);
+    return VM_Offset.fromIntSignExtend(-1);
   }
    
   public final void getDynamicLink(VM_DynamicLink dynamicLink, VM_Offset instructionOffset) throws VM_PragmaUninterruptible {

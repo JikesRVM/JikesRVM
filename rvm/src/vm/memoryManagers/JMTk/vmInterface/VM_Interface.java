@@ -116,10 +116,11 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * Manipulate raw memory
    */
 
-  /** @return errno 
+  /** 
+   * @return errno 
    */
   public static int mmap(VM_Address start, int size) {
-    VM_Address result = VM_Memory.mmap(start, size,
+    VM_Address result = VM_Memory.mmap(start, VM_Extent.fromInt(size),
 				       VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC, 
 				       VM_Memory.MAP_PRIVATE | VM_Memory.MAP_FIXED | VM_Memory.MAP_ANONYMOUS);
     if (result.EQ(start)) return 0;
@@ -132,11 +133,11 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
   
   public static boolean mprotect(VM_Address start, int size) {
-    return VM_Memory.mprotect(start, size,VM_Memory.PROT_NONE);
+    return VM_Memory.mprotect(start, VM_Extent.fromInt(size), VM_Memory.PROT_NONE);
   }
 
   public static boolean munprotect(VM_Address start, int size) {
-    return VM_Memory.mprotect(start, size,
+    return VM_Memory.mprotect(start, VM_Extent.fromInt(size),
 			      VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC);
   }
 

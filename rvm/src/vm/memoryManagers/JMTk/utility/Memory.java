@@ -62,8 +62,8 @@ public class Memory implements VM_Uninterruptible {
   }
 
   public static void zeroSmall(VM_Address start, VM_Extent len) throws VM_PragmaInline {
-    for (int i=0; VM_Extent.fromInt(i).LT(len); i+=4) 
-	VM_Magic.setMemoryInt(start.add(i), 0);
+    for (int i=0; VM_Extent.fromIntZeroExtend(i).LT(len); i+=4) 
+      VM_Magic.setMemoryInt(start.add(i), 0);
   }
 
   public static void set (VM_Address start, int len, int v) throws VM_PragmaInline {
@@ -74,10 +74,10 @@ public class Memory implements VM_Uninterruptible {
   // start and len must both be 4-byte aligned
   //
   public static void zero(VM_Address start, VM_Extent len) throws VM_PragmaInline {
-    if (len.GT(VM_Extent.fromInt(256))) 
-	VM_Interface.zero(start, len);
+    if (len.GT(VM_Extent.fromIntZeroExtend(256))) 
+      VM_Interface.zero(start, len);
     else
-	zeroSmall(start, len);
+      zeroSmall(start, len);
   }
 
   // start and len must both be OS-page aligned

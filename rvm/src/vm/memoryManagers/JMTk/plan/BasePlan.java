@@ -98,14 +98,14 @@ public abstract class BasePlan
   protected static final int DEFAULT_MAX_NURSERY = MAX_INT;
 
   // Memory layout constants
-  protected static final VM_Extent     SEGMENT_SIZE = VM_Extent.fromInt(0x10000000);
+  protected static final VM_Extent     SEGMENT_SIZE = VM_Extent.fromIntZeroExtend(0x10000000);
   public    static final VM_Address      BOOT_START = VM_Interface.bootImageAddress;
   protected static final VM_Extent        BOOT_SIZE = SEGMENT_SIZE;
   protected static final VM_Address  IMMORTAL_START = BOOT_START.add(BOOT_SIZE);
-  protected static final VM_Extent    IMMORTAL_SIZE = VM_Extent.fromInt(32 * 1024 * 1024);
+  protected static final VM_Extent    IMMORTAL_SIZE = VM_Extent.fromIntZeroExtend(32 * 1024 * 1024);
   protected static final VM_Address    IMMORTAL_END = IMMORTAL_START.add(IMMORTAL_SIZE);
   protected static final VM_Address META_DATA_START = IMMORTAL_END;
-  protected static final VM_Extent  META_DATA_SIZE  = VM_Extent.fromInt(32 * 1024 * 1024);
+  protected static final VM_Extent  META_DATA_SIZE  = VM_Extent.fromIntZeroExtend(32 * 1024 * 1024);
   protected static final VM_Address   META_DATA_END = META_DATA_START.add(META_DATA_SIZE);  
   protected static final VM_Address      PLAN_START = META_DATA_END;
 

@@ -374,10 +374,17 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
     return ((val & ((long) pagesizeMask)) == 0);
   }
 
+  public static boolean isPageMultiple(VM_Extent val) {
+    //-#if RVM_FOR_32_ADDR
+    return isPageMultiple(val.toInt());
+    //-#elif RVM_FOR_64_ADDR
+    return isPageMultiple(val.toLong());
+    //-#endif
+  }
+
   public static boolean isPageAligned(VM_Address addr) {
     VM_Word pagesizeMask = VM_Word.fromIntZeroExtend(getPagesize() - 1);
     return addr.toWord().and(pagesizeMask).isZero();
-    //return isPageMultiple(addr.toInt());
   }
 
   // Round size (interpreted as an unsigned int) up to the next page
@@ -423,11 +430,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    *           file name (char *)
    * Returned: VM_Address (of region)
    */
-  public static VM_Address mmapFile(VM_Address address, int size, int fd, int prot) {
+  public static VM_Address mmapFile(VM_Address address, VM_Extent size, int fd, int prot) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMMapGeneralFile(address, VM_Extent.fromInt(size), 
-					 fd, prot);
+    return VM_SysCall.sysMMapGeneralFile(address, size, fd, prot);
   }
 
   /**
@@ -438,11 +444,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    *           flags (int)
    * Returned: VM_Address (of region) if successful; errno (1 to 127) otherwise
    */
-  public static VM_Address mmap(VM_Address address, int size, int prot, int flags) {
+  public static VM_Address mmap(VM_Address address, VM_Extent size, int prot, int flags) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMMapNonFile(address, VM_Extent.fromInt(size), 
-				     prot, flags);
+    return VM_SysCall.sysMMapNonFile(address, size, prot, flags);
   }
 
   /**
@@ -451,10 +456,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    *           size of address range 
    * Returned: VM_Address (of region)
    */
-  public static VM_Address mmap(VM_Address address, int size) {
+  public static VM_Address mmap(VM_Address address, VM_Extent size) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMMapDemandZeroFixed(address, VM_Extent.fromInt(size));
+    return VM_SysCall.sysMMapDemandZeroFixed(address, size);
   }
 
   /**
@@ -462,9 +467,9 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * Taken:    size of address range (VM_Address)
    * Returned: VM_Address (of region)
    */
-  public static VM_Address mmap(int size) {
+  public static VM_Address mmap(VM_Extent size) {
     if (VM.VerifyAssertions) VM._assert(isPageMultiple(size));
-    return VM_SysCall.sysMMapDemandZeroAny(VM_Extent.fromInt(size));
+    return VM_SysCall.sysMMapDemandZeroAny(size);
   }
 
   /**
@@ -473,10 +478,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    *           size of address range 
    * Returned: 0 if successfull; errno otherwise
    */
-  public static int munmap(VM_Address address, int size) {
+  public static int munmap(VM_Address address, VM_Extent size) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMUnmap(address, VM_Extent.fromInt(size));
+    return VM_SysCall.sysMUnmap(address, size);
   }
 
   /**
@@ -486,10 +491,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    *           protection (int)
    * Returned: true if success
    */
-  public static boolean mprotect(VM_Address address, int size, int prot) {
+  public static boolean mprotect(VM_Address address, VM_Extent size, int prot) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMProtect(address, VM_Extent.fromInt(size), prot) == 0;
+    return VM_SysCall.sysMProtect(address, size, prot) == 0;
   }
 
   /**
@@ -499,10 +504,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    *           flags (int)
    * Returned: true if success
    */
-  public static boolean msync(VM_Address address, int size, int flags) {
+  public static boolean msync(VM_Address address, VM_Extent size, int flags) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMSync(address, VM_Extent.fromInt(size), flags) == 0;
+    return VM_SysCall.sysMSync(address, size, flags) == 0;
   }
 
   /**
@@ -512,10 +517,10 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    *           advice (int)
    * Returned: true if success
    */
-  public static boolean madvise(VM_Address address, int size, int advice) {
+  public static boolean madvise(VM_Address address, VM_Extent size, int advice) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size));
-    return VM_SysCall.sysMAdvise(address, VM_Extent.fromInt(size), advice) == 0;
+    return VM_SysCall.sysMAdvise(address, size, advice) == 0;
   }
 
 
@@ -658,7 +663,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   // test routine
   static void test_mmap() {
     int psize = VM_Memory.getPagesize();
-    int size = 1024 * 1024;
+    VM_Extent size = VM_Extent.fromIntZeroExtend(1024 * 1024);
     int ro = VM_Memory.PROT_READ;
     VM_Address base = VM_Address.fromIntZeroExtend(0x38000000);
     VM_Address addr = VM_Memory.mmap(base, size);

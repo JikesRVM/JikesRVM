@@ -495,11 +495,11 @@ public class VM extends VM_Properties implements VM_Constants,
   }
 
   public static String addressAsHexString(VM_Address addr) throws VM_PragmaInterruptible {
-     //-#if RVM_FOR_64_ADDR
-     return longAsHexString(addr.toLong());
-     //-#else
-     return intAsHexString(addr.toInt());
-     //-#endif
+    //-#if RVM_FOR_32_ADDR
+    return intAsHexString(addr.toInt());
+    //-#elif RVM_FOR_64_ADDR
+    return longAsHexString(addr.toLong());
+    //-#endif
   }
 
   private static int sysWriteLock = 0;
@@ -652,24 +652,36 @@ public class VM extends VM_Properties implements VM_Constants,
     }
   }
 
-  /**
-   * Low level print to console.
-   * @param value	what is printed, as hex only
-   */
-  public static void writeHex(VM_Address value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-  //-#if RVM_FOR_64_ADDR
+  public static void writeHex(VM_Word value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    //-#if RVM_FOR_64_ADDR
     writeHex(value.toLong()); 
-  //-#else
+    //-#else
     writeHex(value.toInt()); 
-  //-#endif
+    //-#endif
   }
 
-  public static void writeHex(VM_Offset value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-  //-#if RVM_FOR_64_ADDR
+  public static void writeHex(VM_Address value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    //-#if RVM_FOR_64_ADDR
     writeHex(value.toLong()); 
-  //-#else
+    //-#else
     writeHex(value.toInt()); 
-  //-#endif
+    //-#endif
+  }
+
+  public static void writeHex(VM_Extent value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    //-#if RVM_FOR_64_ADDR
+    writeHex(value.toLong()); 
+    //-#else
+    writeHex(value.toInt()); 
+    //-#endif
+  }
+
+  public static void writeHex(VM_Offset value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    //-#if RVM_FOR_64_ADDR
+    writeHex(value.toLong()); 
+    //-#else
+    writeHex(value.toInt()); 
+    //-#endif
   }
 
   /**
@@ -758,16 +770,20 @@ public class VM extends VM_Properties implements VM_Constants,
     write(d, 2);
   }
 
+  public static void write (VM_Word addr) { 
+    writeHex(addr);
+  }
+
   public static void write (VM_Address addr) { 
     writeHex(addr);
   }
 
-  public static void write (VM_Offset offset) { 
-    writeHex(offset);
+  public static void write (VM_Offset addr) { 
+    writeHex(addr);
   }
 
-  public static void write (VM_Word w) {
-    writeHex(w.toAddress());
+  public static void write (VM_Extent addr) { 
+    writeHex(addr);
   }
 
   public static void write (boolean b) {
@@ -796,8 +812,11 @@ public class VM extends VM_Properties implements VM_Constants,
   public static void sysWrite   (VM_Address a)         throws VM_PragmaNoInline { swLock(); write(a); swUnlock(); }
   public static void sysWriteln (VM_Address a)         throws VM_PragmaNoInline { swLock(); write(a); writeln(); swUnlock(); }
   public static void sysWrite   (VM_Offset o)          throws VM_PragmaNoInline { swLock(); write(o); swUnlock(); }
-  public static void sysWriteln (VM_Offset o)         throws VM_PragmaNoInline { swLock(); write(o); writeln(); swUnlock(); }
+  public static void sysWriteln (VM_Offset o)          throws VM_PragmaNoInline { swLock(); write(o); writeln(); swUnlock(); }
   public static void sysWrite   (VM_Word w)            throws VM_PragmaNoInline { swLock(); write(w); swUnlock(); }
+  public static void sysWriteln (VM_Word w)            throws VM_PragmaNoInline { swLock(); write(w); writeln(); swUnlock(); }
+  public static void sysWrite   (VM_Extent e)          throws VM_PragmaNoInline { swLock(); write(e); swUnlock(); }
+  public static void sysWriteln (VM_Extent e)          throws VM_PragmaNoInline { swLock(); write(e); writeln(); swUnlock(); }
   public static void sysWrite   (boolean b)            throws VM_PragmaNoInline { swLock(); write(b); swUnlock(); }
   public static void sysWrite   (int i)                throws VM_PragmaNoInline { swLock(); write(i); swUnlock(); }
   public static void sysWriteln (int i)                throws VM_PragmaNoInline { swLock(); write(i);   writeln(); swUnlock(); }
