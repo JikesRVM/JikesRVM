@@ -91,7 +91,16 @@ public final class OPT_MIRBranchOptimizations
     if (MIR_Branch.conforms(targetInst)) {
       // unconditional branch to unconditional branch.
       // replace g with goto to targetInst's target
-      MIR_Branch.setTarget(g, MIR_Branch.getTarget(targetInst));
+      OPT_BranchOperand top = MIR_Branch.getTarget(targetInst);
+      if (top.similar(MIR_Branch.getTarget(g))) {
+	// Avoid an infinite recursion in the following bizarre scenario:
+	// g: goto L
+	// ...
+	// L: goto L
+	// This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
+	return false;
+      }
+      MIR_Branch.setTarget(g, top);
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
