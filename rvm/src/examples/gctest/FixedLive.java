@@ -25,14 +25,15 @@ class FixedLive {
   static double squaredSumTraceRate = 0.0;
   static double sumAllocRate = 0.0;
   static double squaredSumAllocRate = 0.0;
-  static int count = -2; // skips first two iterations
+  public static int exclude = 2;  // skips first two GCs
+  static int sampleCount = -exclude; 
 
-  public static boolean addSample(double traceElapsed, double traceRate, double allocRate) {
-    count++;
+  public static void addSample(double traceElapsed, double traceRate, double allocRate) {
+    sampleCount++;
     System.out.print("GC occurred (" + traceElapsed + " s) : tracing rate = " + traceRate + " Mb/s");
-    System.out.println("   allocation rate = " + allocRate + " Mb/s");
-    if (count < 1) {
-      System.out.println("  <--- Skipping in cumulative numbers");
+    System.out.print("   allocation rate = " + allocRate + " Mb/s");
+    if (sampleCount < 1) {
+      System.out.println("  <--- Skipping");
     }
     else {
       System.out.println();
@@ -41,37 +42,38 @@ class FixedLive {
       squaredSumTraceRate += traceRate * traceRate;
       squaredSumAllocRate += allocRate * allocRate;
     }
-    if (count == 5) {
-      double avgTraceRate = sumTraceRate / count;
-      double avgAllocRate = sumAllocRate / count;
-      double diffSquaredSumTraceRate = squaredSumTraceRate + count * (avgTraceRate * avgTraceRate) 
-                                                           - 2 * avgTraceRate * sumTraceRate;
-      double rmsTraceRate = Math.sqrt(diffSquaredSumTraceRate / count);
-      double diffSquaredSumAllocRate = squaredSumAllocRate + count * (avgAllocRate * avgAllocRate) 
-                                                           - 2 * avgAllocRate * sumAllocRate;
-      double rmsAllocRate = Math.sqrt(diffSquaredSumAllocRate / count);
-      avgTraceRate = ((int) (10000 * avgTraceRate) + 0.5) / 10000;
-      avgAllocRate = ((int) (10000 * avgAllocRate) + 0.5) / 10000;
-      rmsTraceRate = ((int) (10000 * rmsTraceRate) + 0.5) / 10000;
-      rmsAllocRate = ((int) (10000 * rmsAllocRate) + 0.5) / 10000;
-      System.out.print("Overall Rate:           tracing  rate = " + avgTraceRate + " Mb/s");
-      System.out.println("   allocation rate = " + avgAllocRate + " Mb/s");
-      System.out.print("Standard Deviation:     tracing sigma = " + rmsTraceRate + " Mb/s");
-      System.out.println("   allocation sigma = " + rmsAllocRate + " Mb/s");
-      return true;
-    }
-    return false;
   }
 
-  public static void allocateDie(int bytes) {
+  public static void showResults() {
+    double avgTraceRate = sumTraceRate / sampleCount;
+    double avgAllocRate = sumAllocRate / sampleCount;
+    double diffSquaredSumTraceRate = squaredSumTraceRate + sampleCount * (avgTraceRate * avgTraceRate) 
+      - 2 * avgTraceRate * sumTraceRate;
+    double rmsTraceRate = Math.sqrt(diffSquaredSumTraceRate / sampleCount);
+    double diffSquaredSumAllocRate = squaredSumAllocRate + sampleCount * (avgAllocRate * avgAllocRate) 
+      - 2 * avgAllocRate * sumAllocRate;
+    double rmsAllocRate = Math.sqrt(diffSquaredSumAllocRate / sampleCount);
+    avgTraceRate = ((int) (10000 * avgTraceRate) + 0.5) / 10000;
+    avgAllocRate = ((int) (10000 * avgAllocRate) + 0.5) / 10000;
+    rmsTraceRate = ((int) (10000 * rmsTraceRate) + 0.5) / 10000;
+    rmsAllocRate = ((int) (10000 * rmsAllocRate) + 0.5) / 10000;
+    System.out.print("Overall Rate:           tracing  rate = " + avgTraceRate + " Mb/s");
+    System.out.println("   allocation rate = " + avgAllocRate + " Mb/s");
+    System.out.print("Standard Deviation:     tracing sigma = " + rmsTraceRate + " Mb/s");
+    System.out.println("   allocation sigma = " + rmsAllocRate + " Mb/s");
+  }
 
-    int count = bytes / Node2I2A.objectSize;
-    System.out.println("Allocating " + (bytes >> 20) + " Mb or " + count + " nodes which immediately die");
+  // Allocate until either maxGC GC's have occurred or maxMb megabytes have been allocated
+  //
+  public static void allocateDie(int maxGC, int maxMb) {
+
+    int count = maxMb * ((1 << 20) / Node2I2A.objectSize);
+    System.out.println("Allocating " + maxMb + " Mb or until " + maxGC + " GCs have occurred.  First " + exclude + "GCs are excluded");
 
     int checkFreq = 64000 / Node2I2A.objectSize;
     long last = System.currentTimeMillis();
     double allocatedSize = 0;
-    for (int i=0; i< count / checkFreq; i++) {
+    for (int i=0; i< count / checkFreq && sampleCount < maxGC; i++) {
       long start = System.currentTimeMillis();
       for (int j=0; j<checkFreq; j++) 
 	junk = new Node2I2A();
@@ -82,13 +84,12 @@ class FixedLive {
       if (traceElapsed > 0.1) {
 	double traceRate = liveSize / traceElapsed; // Mb/s
 	double allocRate = (allocatedSize / 1e6) / allocElapsed; // Mb/s
-	if (addSample(traceElapsed, traceRate, allocRate)) {
-	  return;
-	}
+	addSample(traceElapsed, traceRate, allocRate);
 	allocatedSize = 0;
 	last = end;
       }
     }
+    showResults();
   }
 
   public static void runTest() throws Throwable {
@@ -99,10 +100,10 @@ class FixedLive {
     System.out.println("Estimated object size of a 4-field object (2 int, 2 ref) is " + Node2I2A.objectSize + " bytes");
 
     int count = (int) (liveSize << 20) / Node2I2A.objectSize;
-    System.out.println("Creating live tree with " + count + " nodes");
+    System.out.println("Creating tree with " + count + " nodes");
     root = Node2I2A.createTree(count);
 
-    allocateDie(1 << 30);
+    allocateDie(5, 2048);
   }
 
 
