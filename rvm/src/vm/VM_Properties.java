@@ -98,7 +98,7 @@ public class VM_Properties extends VM_Configuration {
    * these controls can
    * be enabled individually by editing this file while RVM_WITH_DIAGNOSTICS=0.)
    *
-   * (Note, some of the diagnostics may nolonger work.)
+   * (Note, some of the diagnostics may no longer work.)
    */
   //-#if RVM_WITH_DIAGNOSTICS
 
@@ -134,8 +134,6 @@ public class VM_Properties extends VM_Configuration {
   public static boolean ReferenceMapsStatistics       = false;
   public static boolean ReferenceMapsBitStatistics    = false;
   public static boolean DynamicReferenceMaps          = false;
-  public static boolean LiveReferenceMaps             = false;
-  public static boolean ReachableAndLiveReferenceMaps = false;
   public static boolean ReachLiveGCTwice              = false;
 
   // Event logging.
@@ -182,8 +180,6 @@ public class VM_Properties extends VM_Configuration {
   public static final boolean ReferenceMapsStatistics       = false;
   public static final boolean ReferenceMapsBitStatistics    = false;
   public static final boolean DynamicReferenceMaps          = false;
-  public static final boolean LiveReferenceMaps             = false;
-  public static final boolean ReachableAndLiveReferenceMaps = false;
   public static final boolean ReachLiveGCTwice              = false;
 
   // Event logging.

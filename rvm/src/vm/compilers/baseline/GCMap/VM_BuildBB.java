@@ -48,7 +48,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
   // Analyze the bytecodes and build the basic blocks with their predecessors.
   // The results will be used by VM_BuildReferenceMaps
   // 
-  boolean 
+  void 
   determineTheBasicBlocks(VM_Method method) {
 
    // Other local variables
@@ -453,15 +453,6 @@ final class VM_BuildBB implements VM_BytecodeConstants {
      if ( retList != null)  
        processRetList(basicBlocks, retList, nextRetList, byteToBlockMap);
    }
-
-   boolean returnRunLive = false;
-
-   // With the analysis complete, determine if live analysis is pauseable
-   if (VM.LiveReferenceMaps && retList == null && exceptions == null)
-     returnRunLive = true;
-
-   return returnRunLive;      
-
   } // end BuildBB(...)
 
 

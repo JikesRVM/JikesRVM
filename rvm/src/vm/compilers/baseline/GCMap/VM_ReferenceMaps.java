@@ -38,8 +38,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
       VM.sysWrite("\n");
      }
 
-    if (!VM.DynamicReferenceMaps)
-    {
+    if (!VM.DynamicReferenceMaps) {
       //  tracing and statistics
       if (VM.TraceTimes) VM_Timer.start(VM_Timer.REFERENCEMAP_GEN);
       if (VM.TraceStkMaps)
@@ -47,30 +46,18 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
 
       // define the basic blocks
       VM_BuildBB buildBB = new VM_BuildBB();
-      boolean runLiveMaps = buildBB.determineTheBasicBlocks(method);
-      // now the related reference maps
-      if (!runLiveMaps) {
-        VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
-        buildRefMaps.buildReferenceMaps(method, stackHeights, this, buildBB);
-      }
-      else {
-	VM_BuildLiveRefMaps buildLiveRefMaps = new VM_BuildLiveRefMaps();
-        buildLiveRefMaps.buildReferenceMaps(method, stackHeights, this, buildBB);
-      }
+      buildBB.determineTheBasicBlocks(method);
+      VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
+      buildRefMaps.buildReferenceMaps(method, stackHeights, this, buildBB);
 
       // tracing and statistics
       if (VM.TraceTimes) VM_Timer.stop(VM_Timer.REFERENCEMAP_GEN);
       if (VM.ReferenceMapsBitStatistics) {
             int    junk =  showReferenceMapStatistics(method);
        }
-
-
+    } else {
+      cacheMap = new byte[bytesPerMap];
     }
-    else
-    {
-       cacheMap = new byte[bytesPerMap];
-    }
-
   }
 
   //
@@ -121,87 +108,37 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
       VM.sysWrite("\n");
       }
 
-    boolean runLiveMaps = false;
     // test if maps are to be build dynamically
-    if(VM.DynamicReferenceMaps)
-    {
-      if (VM.TraceStkMaps)
-      {
-          VM.sysWrite("VM_ReferenceMaps-locateGCPoint.  doing dynamic reference maps\n");
-          VM.sysWrite("   bytesPerMap = ");
-          VM.sysWrite( bytesPerMap);
-          VM.sysWrite("   bitsPerMap = ");
-          VM.sysWrite( bitsPerMap);
+    if(VM.DynamicReferenceMaps) {
+      if (VM.TraceStkMaps) {
+	VM.sysWrite("VM_ReferenceMaps-locateGCPoint.  doing dynamic reference maps\n");
+	VM.sysWrite("   bytesPerMap = ");
+	VM.sysWrite( bytesPerMap);
+	VM.sysWrite("   bitsPerMap = ");
+	VM.sysWrite( bitsPerMap);
       }
 
       // test if they have been built previously and we have cached this site
-     if (cacheMCSite != machCodeOffset)
-       {
-	    // tracing and statistics
-        if (VM.TraceTimes) VM_Timer.start(VM_Timer.REFERENCEMAP_GEN);
-        if (VM.TraceStkMaps)
-            VM.sysWrite("VM_ReferenceMaps-locateGCPoint.  building reference maps\n");
+      if (cacheMCSite != machCodeOffset) {
+	// tracing and statistics
+	if (VM.TraceTimes) VM_Timer.start(VM_Timer.REFERENCEMAP_GEN);
+	if (VM.TraceStkMaps) VM.sysWrite("VM_ReferenceMaps-locateGCPoint.  building reference maps\n");
 
-     // define the basic blocks
-     VM_BuildBB buildBB = new VM_BuildBB();
-     runLiveMaps = buildBB.determineTheBasicBlocks(method);
+	// define the basic blocks
+	VM_BuildBB buildBB = new VM_BuildBB();
+	buildBB.determineTheBasicBlocks(method);
 
-        // now the related reference maps
-        if (!runLiveMaps) {
-          // build maps using reachability
-	  VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
-          buildRefMaps.buildReferenceMaps(method, null, this, buildBB);
-	}
-	else {
-          // test code to compare reachable vs live maps
-	  if (VM.ReachableAndLiveReferenceMaps) {
-	    VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
-	    buildRefMaps.buildReferenceMaps(method, null, this, buildBB);
-
-		int dist;
-		int distance = 0;
-		// get the first possible location
-		for ( int i = 0; i < mapCount; i++)
-		{
-		  // get an initial distance
-		 distance = machCodeOffset - MCSites[i];
-		 if (distance >= 0) break;
-		}
-		// scan to find any better location
-		int index = 0;
-		for( int i = 1; i < mapCount; i++){
-		   dist =  machCodeOffset- MCSites[i];
-		   if ( dist < 0 ) continue;
-		   if ( dist <= distance) {
-		     index = i;
-		     distance = dist;
-		   }
-		}
-	     VM.sysWrite("Reachable map for method");
-             VM.sysWrite(method.getName());
-             VM.sysWrite(" from class ");
-             VM.sysWrite(method.getDeclaringClass().getName());
-	     VM.sysWrite("\n");
-	     showAMap(index);
-	     cleanupPointers();
-	  }  // end reachableandlive maps
-          // build live maps
-	  VM_BuildLiveRefMaps buildLiveRefMaps = new VM_BuildLiveRefMaps();
-          buildLiveRefMaps.buildReferenceMaps(method, null, this, buildBB);
-	}
-        if (VM.TraceTimes) VM_Timer.stop(VM_Timer.REFERENCEMAP_GEN);
-
-       }
-      else
-       {
-
+	// now the related reference maps
+	VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
+	buildRefMaps.buildReferenceMaps(method, null, this, buildBB);
+      } else {
 	// cached site is valid - copy over map for the site
 	//  VM.sysWrite("VM_ReferenceMaps-locateGCPoint.cached map found\n");
 	referenceMaps = cacheMap; // use cached map
-        MCSites = new int[1];
-        MCSites[0] = cacheMCSite;
-        mapCount = 1;
-        return 0;
+	MCSites = new int[1];
+	MCSites[0] = cacheMCSite;
+	mapCount = 1;
+	return 0;
       }
     } // end dynamic reference map
 
@@ -282,13 +219,6 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
 
        if ( index >= 0)
        {
-	 if (VM.ReachableAndLiveReferenceMaps && runLiveMaps)
-         {
-	   VM.sysWrite("Live Map for machCodeOffset:");
-	   VM.sysWrite(machCodeOffset);
-	   VM.sysWrite("\n");
-	   showAMap(index);
-	 }
 	 // cache this site for future use
 	 cacheMCSite = machCodeOffset;        // location
 
