@@ -34,10 +34,9 @@ export RVM_WITH_HPM=1
 # PART II: Where to find tools and resources on this target
 ########## 
 
-#
+#export HOST_JAVA_HOME="/usr/java14"
 #export HOST_JAVA_HOME="/usr/java14_64" # Trying the latest 64-bit VM.
-# [[ ${HOST_JAVA_HOME-} ]] || export HOST_JAVA_HOME="/home/augart/java1.4.2-Service-Release-1-caix64142-20040917/sdk" # Trying the latest 64-bit VM on Excalibur.
-[[ ${HOST_JAVA_HOME-} ]] || export HOST_JAVA_HOME="/usr/java14"
+[[ ${HOST_JAVA_HOME-} ]] || export HOST_JAVA_HOME="/home/augart/java1.4.2-Service-Release-1-caix64142-20040917/sdk" # Trying the latest 64-bit VM on Excalibur.
 
 # the JDK java executable
 export HOST_VM_RT="${HOST_JAVA_HOME}/jre/bin/java"
