@@ -280,7 +280,7 @@ class breakpointList extends Vector implements jdpConstants {
   public void setLinkBreakpoint(int thread) {
     breakpoint bp = (breakpoint) elementAt(thread);
     int fp = owner.reg.currentFP();
-    bp.next_addr = owner.mem.read(fp + registerConstants.STACKFRAME_NEXT_INSTRUCTION_OFFSET);
+    bp.next_addr = owner.mem.read(fp + VM_Constants.STACKFRAME_RETURN_ADDRESS_OFFSET);
     bp.next_I = owner.mem.read(bp.next_addr);
     bp.branch_addr = -1;
     if (bp.next_addr != 0)
