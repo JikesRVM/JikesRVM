@@ -2605,7 +2605,7 @@ function run () {
 
 	cd ${SCRATCH_DIRECTORY_STR} &&\
 	  \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
-	    libvm.o sys.o bootThread.o \${CCLIBS}"
+	    libvm.o sys.o bootThread.o \${CCLIBS}
 	EOF
 	fi
 	echo 'echo -n "(booter linked)"'
