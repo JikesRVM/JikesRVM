@@ -218,6 +218,33 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     } else if (methodName == VM_MagicNames.invokeMethodReturningObject) {
       generateMethodInvocation(asm, spSaveAreaOffset); // call method
       asm.emitSTU(T0, -4, SP);       // push result
+    } else if (methodName == VM_MagicNames.addressArrayCreate) {
+	// Do NOT call an auxiliary method for that will obscure the true calling site
+	//   and confound the pickAllocator method's logic
+	//-#if RVM_FOR_32_ADDR
+	VM_Array arrayType = VM_Array.IntArray;
+	//-#elif RVM_FOR_64_ADDR
+	VM_Array arrayType = VM_Array.LongArray;
+	//-#endif
+	compiler.emit_resolved_newarray(arrayType);
+    } else if (methodName == VM_MagicNames.addressArrayLength) {
+      compiler.emit_arraylength();
+    } else if (methodName == VM_MagicNames.addressArrayGet) {
+	//-#if RVM_FOR_32_ADDR
+	compiler.emit_iaload();   
+	//-#elif RVM_FOR_64_ADDR
+	compiler.emit_laload();
+	//-#else
+	VM._assert(NOT_REACHED);
+	//-#endif
+    } else if (methodName == VM_MagicNames.addressArraySet) {
+	//-#if RVM_FOR_32_ADDR
+        compiler.emit_iastore();  
+	//-#elif RVM_FOR_64_ADDR
+	VM._assert(false);  // not implemented
+	//-#else
+	VM._assert(NOT_REACHED);
+	//-#endif
     } else if (methodName == VM_MagicNames.getIntAtOffset ||
 	       methodName == VM_MagicNames.getObjectAtOffset ||
 	       methodName == VM_MagicNames.getObjectArrayAtOffset) {

@@ -126,6 +126,7 @@ public class VM_MagicNames {
   public static final VM_Atom clearFloatingPointState       = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
   //-#endif
 
+  // atoms related to VM_Word, VM_Address, VM_Offset, VM_Extent
   public static final VM_Atom wordFromInt                   = VM_Atom.findOrCreateAsciiAtom("fromInt");
   public static final VM_Atom wordToInt                     = VM_Atom.findOrCreateAsciiAtom("toInt");
   public static final VM_Atom wordToWord                    = VM_Atom.findOrCreateAsciiAtom("toWord");
@@ -147,4 +148,10 @@ public class VM_MagicNames {
   public static final VM_Atom wordOr                        = VM_Atom.findOrCreateAsciiAtom("or");
   public static final VM_Atom wordNot                       = VM_Atom.findOrCreateAsciiAtom("not");
   public static final VM_Atom wordXor                       = VM_Atom.findOrCreateAsciiAtom("xor");
+
+  // atoms related to VM_AddressArray
+  public static final VM_Atom addressArrayCreate            = VM_Atom.findOrCreateAsciiAtom("create");
+  public static final VM_Atom addressArrayLength            = VM_Atom.findOrCreateAsciiAtom("length");
+  public static final VM_Atom addressArrayGet               = VM_Atom.findOrCreateAsciiAtom("get");
+  public static final VM_Atom addressArraySet               = VM_Atom.findOrCreateAsciiAtom("set");
 }

@@ -1540,7 +1540,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 
 	VM_MethodReference methodRef = bcodes.getMethodReference();
 	if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual " + methodRef);
-	if (methodRef.getType().isWordType()) {
+	if (methodRef.getType().isMagicType()) {
 	  if (emit_Magic(methodRef)) {
 	    break;
 	  }
@@ -1609,7 +1609,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 
 	VM_MethodReference methodRef = bcodes.getMethodReference();
 	if (shouldPrint) asm.noteBytecode(biStart, "invokestatic " + methodRef);
-	if (methodRef.getType().isMagicType() || methodRef.getType().isWordType()) {
+	if (methodRef.getType().isMagicType()) {
 	  if (emit_Magic(methodRef))
 	    break;
 	}

@@ -63,6 +63,7 @@ public class VM_TypeReference {
   public static final VM_TypeReference Word    = findOrCreate("Lcom/ibm/JikesRVM/VM_Word;");
   public static final VM_TypeReference Address = findOrCreate("Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_TypeReference Offset  = findOrCreate("Lcom/ibm/JikesRVM/VM_Offset;");
+  public static final VM_TypeReference AddressArray = findOrCreate("Lcom/ibm/JikesRVM/VM_AddressArray;");
   public static final VM_TypeReference Magic   = findOrCreate("Lcom/ibm/JikesRVM/VM_Magic;");
 
   public static final VM_TypeReference JavaLangObject = findOrCreate("Ljava/lang/Object;");
@@ -276,7 +277,7 @@ public class VM_TypeReference {
    * Does 'this' refer to VM_Magic?
    */
   public final boolean isMagicType() {
-    return this == Magic;
+    return this == Magic || this == AddressArray || isWordType();
   }
 
   /**

@@ -19,15 +19,22 @@ final public class VM_AddressArray implements VM_Uninterruptible {
   private long [] data;
   //-#endif
 
-  public VM_AddressArray (int size) {
-    //-#if RVM_FOR_32_ADDR
-    data = new int[size];
-    //-#elif RVM_FOR_64_ADDR
-    data = new long[size];
-    //-#endif
+
+  static public VM_AddressArray create (int size) throws VM_PragmaInterruptible {
+      if (VM.runningVM) VM._assert(false);  // should be hijacked
+      return new VM_AddressArray(size);
+  }
+
+  private VM_AddressArray (int size) throws VM_PragmaInterruptible {
+      //-#if RVM_FOR_32_ADDR
+      data = new int[size];
+      //-#elif RVM_FOR_64_ADDR
+      data = new long[size];
+      //-#endif
   }
 
   public VM_Address get (int index) throws VM_PragmaInline {
+    if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     //-#if RVM_FOR_32_ADDR
     if (VM.VerifyAssertions)
 	return VM_Address.fromInt(data[index]);
@@ -39,6 +46,7 @@ final public class VM_AddressArray implements VM_Uninterruptible {
   }
 
   public void set (int index, VM_Address v) throws VM_PragmaInline {
+    if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     //-#if RVM_FOR_32_ADDR
     if (VM.VerifyAssertions)
 	data[index] = v.toInt();
@@ -50,7 +58,14 @@ final public class VM_AddressArray implements VM_Uninterruptible {
   }
 
   public int length() throws VM_PragmaInline {
+    if (VM.runningVM || VM.writingImage) VM._assert(false);  // should be hijacked
     return data.length;
+  }
+
+  public Object getBacking() throws VM_PragmaInline {
+    if (!VM.writingImage)
+	VM.sysFail("VM_AddressArray.getBacking called when not writing boot image");
+    return data;
   }
 
 }

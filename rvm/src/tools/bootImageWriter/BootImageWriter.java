@@ -428,6 +428,8 @@ implements BootImageWriterConstants {
     // Copy rvm objects from host jdk into bootimage.
     ////////////////////////////////////////////////////
 
+    VM.writingImage = true;
+
     if (verbose >= 1) say("Memory available: ",
                           String.valueOf(Runtime.getRuntime().freeMemory()),
                           " bytes out of ",
@@ -1233,6 +1235,10 @@ implements BootImageWriterConstants {
           else
             fail("unexpected primitive array type: " + rvmArrayType);
         } else {
+	    if (rvmElementType.isMagicType()) {
+		VM.sysWriteln("Unhandled copying of array of magic type: " + rvmElementType.getDescriptor().toString());
+		VM.sysFail("incomplete boot image support");
+	    }
           // array element is reference type
           Object values[] = (Object []) jdkObject;
           Class jdkClass = jdkObject.getClass();
@@ -1256,6 +1262,18 @@ implements BootImageWriterConstants {
         }
       } else {
         VM_Class rvmScalarType = rvmType.asClass();
+
+	if (rvmScalarType == VM_Type.AddressArrayType) {
+	    if (verbose >= 2) depth--;
+	    VM_AddressArray addrArray = (VM_AddressArray) jdkObject;
+	    Object backing = addrArray.getBacking();
+	    return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
+	}
+
+	if (rvmScalarType.isMagicType()) {
+	    VM.sysWriteln("Unhandled copying of magic type: " + rvmScalarType.getDescriptor().toString());
+	    VM.sysFail("incomplete boot image support");
+	}
 
         //
         // allocate space in image

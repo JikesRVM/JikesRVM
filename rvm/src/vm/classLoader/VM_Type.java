@@ -77,6 +77,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
   public static VM_Type MagicType;             
   public static VM_Type WordType;             
   public static VM_Type AddressType;             
+  public static VM_Type AddressArrayType;             
   public static VM_Type OffsetType;             
   public static VM_Type InstructionArrayType;             
   public static VM_Type UninterruptibleType;   
@@ -467,10 +468,13 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
   public final boolean isJavaLangObjectType() throws VM_PragmaUninterruptible    { return this == JavaLangObjectType;    }
   public final boolean isJavaLangThrowableType() throws VM_PragmaUninterruptible { return this == JavaLangThrowableType; }
   public final boolean isJavaLangStringType() throws VM_PragmaUninterruptible    { return this == JavaLangStringType;    }
-  public final boolean isMagicType() throws VM_PragmaUninterruptible             { return this == MagicType;             }
+
   public final boolean isWordType() throws VM_PragmaUninterruptible              { return (this == WordType) ||
                                                                                           (this == AddressType) ||
 										          (this == OffsetType); }
+  public final boolean isMagicType() throws VM_PragmaUninterruptible             { return isWordType() ||
+										          (this == MagicType) ||
+										          (this == AddressArrayType); }
   public final boolean isUninterruptibleType() throws VM_PragmaUninterruptible   { return this == UninterruptibleType;   }
   public final boolean isSynchronizedObjectType() throws VM_PragmaUninterruptible{ return this == SynchronizedObjectType;   }
   public final boolean isDynamicBridgeType() throws VM_PragmaUninterruptible     { return this == DynamicBridgeType;     }
@@ -543,6 +547,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants {
 							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_NativeBridge;")).resolve();
     WordType = VM_TypeReference.Word.resolve();
     AddressType = VM_TypeReference.Address.resolve();
+    AddressArrayType = VM_TypeReference.AddressArray.resolve();
     OffsetType = VM_TypeReference.Offset.resolve();
     
     VM_Array.init();
