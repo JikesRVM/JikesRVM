@@ -1950,10 +1950,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    }
 	  }
 
-	  // OPT_RegisterOperand reg = (OPT_RegisterOperand)op2;
-	  if (gc.options.NO_CHECKCAST) {
-	    // Unsafely eliminate all checkcasts
-	  } else {
+	  if (!gc.options.NO_CHECKCAST) {
 	    if (classLoading) {
 	      s = TypeCheck.create(CHECKCAST_UNRESOLVED, op2, typeOp);
 	    } else {
@@ -1965,8 +1962,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    }
 	  }
 	  op2 = op2.copy();
-	  if (op2 instanceof OPT_RegisterOperand)
-	      ((OPT_RegisterOperand)op2).type = typeRef;
+	  if (op2 instanceof OPT_RegisterOperand) {
+	    ((OPT_RegisterOperand)op2).type = typeRef;
+	  }
 	  push(op2);
 	  VM_Class et = OPT_ClassLoaderProxy.JavaLangClassCastExceptionType;
 	  rectifyStateWithExceptionHandler(et);
@@ -1990,18 +1988,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    VM_Type type = getRefTypeOf(op2);                 // non-null
 	    int answer = 
 	      OPT_ClassLoaderProxy.includesType(typeRef, type);
-	    if (answer == YES) {
-	      if (isNonNull(op2)) {
-		push(new OPT_IntConstantOperand(1));
-		if (DBG_CF)
-		  db("skipped gen of instanceof of " + op2 + " from "
-		     + typeRef + " to " + type);
-		break;
-	      } else {
-                // !!TODO: For boolean variables, is any non-zero integer
-                // equivalent to true? If so, in this case, we can replace
-                // t <- o2 instanceof type with t <- o2. (SJF)
-	      }
+	    if (answer == YES && isNonNull(op2)) {
+	      push(new OPT_IntConstantOperand(1));
+	      if (DBG_CF)
+		db("skipped gen of instanceof of " + op2 + " from "
+		   + typeRef + " to " + type);
+	      break;
 	    } else if (answer == NO) {
 	      push(new OPT_IntConstantOperand(0));
 	      break;
@@ -2207,6 +2199,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           // Get/Create fallthrough BBLE and record it as 
           // currentBBLE's fallThrough.
           currentBBLE.fallThrough = getOrCreateBlock(bcInfo.currentInstruction());
+	  currentBBLE.block.insertOut(currentBBLE.fallThrough.block);
         }
         return;
       }
@@ -2336,7 +2329,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 					  OPT_Operand val, 
 					  VM_Type type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
-    pushDual(t.copyD2U());      // reg def -> last use
+    pushDual(t.copyD2U());
     OPT_Instruction s = Move.create(operator, t, val);
     s.position = gc.inlineSequence;
     s.bcIndex = instrIndex;
@@ -4068,8 +4061,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       // Create the InliningBlockLE and initialize fallThrough links.
       InliningBlockLE inlinedCallee = new InliningBlockLE(inlinedContext);
       currentBBLE.fallThrough = inlinedCallee;
+      currentBBLE.block.insertOut(inlinedCallee.gc.cfg.firstInCodeOrder());
       inlinedCallee.epilogueBBLE = epilogueBBLE;
       epilogueBBLE.fallThrough = afterBBLE;
+      epilogueBBLE.block.insertOut(epilogueBBLE.fallThrough.block);
     } else {
       // All exits from the callee were via throws.
       // Therefore the next basic block is unreachable (unless
@@ -4077,6 +4072,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       // which will naturally be handled when we generate the branch).
       InliningBlockLE inlinedCallee = new InliningBlockLE(inlinedContext);
       currentBBLE.fallThrough = inlinedCallee;
+      currentBBLE.block.insertOut(inlinedCallee.gc.cfg.firstInCodeOrder());
     }
     endOfBasicBlock = true;
     return true;
@@ -4341,19 +4337,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     /**
      * Rectify the given stack state with the state contained in the given 
      * BBLE, adding the necessary move instructions to the end of the given 
-     * basic block to make register numbers agree.
-     * <p>
-     * BASIC: Expression stacks are constrained to contain only
-     * OPT_RegisterOperands and ReturnAddressOperand across basic block 
-     * boundaries.
-     * <p>
-     * ADVANCED: TODO: Eliminate the BASIC restriction.
-     *  Key issue is being able to lazily insert the required moves
-     *  in each basic block.
-     *  An alternative approach would be to insert the moves eagerly
-     *  keeping track of the register assigned for a stack location,
-     *  but keep the restricted value on the stack until we are forced to 
-     *  lower it in the operand lattice to a register operand.
+     * basic block to make register numbers agree and rectify mis-matched constants.
      * <p>
      * @param block basic block to append move instructions to
      * @param stack stack to copy
@@ -4370,26 +4354,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	return;
       }
       boolean generated = p.isGenerated();
-      // (1) Don't allow constants on the expression stack across blocks.
-      //     (the BASIC assumption). We'd really like to weaken this 
-      //     restriction, but doing so is somewhat complex.  
-      //     Fixing this is feature 146581.
-      for (int i = 0; i < stack.getSize(); i++) {
-	OPT_Operand sop = stack.getFromTop(i);
-	if (sop.isConstant()) {
-	  OPT_RegisterOperand rop = gc.temps.makeTemp(sop);
-	  OPT_Instruction move = 
-	    Move.create(OPT_IRTools.getMoveOp(rop.type), rop, sop);
-	  move.bcIndex = RECTIFY_BCI;
-	  move.position = gc.inlineSequence;
-	  block.appendInstructionRespectingTerminalBranch(move);
-	  stack.replaceFromTop(i, rop.copyD2U());
-	  if (DBG_STACK || DBG_SELECTED)
-	    db("Inserted " + move + " into " + block + 
-	       " to remove constant from expression stack");
-	}
-      }
-      // (2) Rectify the stacks.
+      // (1) Rectify the stacks.
       if (!p.isStackKnown()) {
 	// First time we reached p. Thus, its expression stack 
 	// is implicitly top and the meet degenerates to a copy operation 
@@ -4406,10 +4371,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  OPT_Operand op = stack.getFromTop(i);
 	  if (op == DUMMY) {
 	    p.stackState.push(DUMMY);
-	  } else if (op instanceof ReturnAddressOperand) {
-	    p.stackState.push(op.copy());
-	  } else {
-	    // By BASIC assumption, op is a RegisterOperand.
+	  } else if (op instanceof OPT_RegisterOperand) {
 	    OPT_RegisterOperand rop = op.asRegister();
 	    if (rop.register.isLocal()) {
 	      OPT_RegisterOperand temp = gc.temps.makeTemp(rop);
@@ -4426,6 +4388,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    } else {
 	      p.stackState.push(rop.copy());
 	    }
+	  } else {
+	    p.stackState.push(op.copy());
 	  }
 	}
 	p.setStackKnown();
@@ -4452,39 +4416,77 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  OPT_Operand mop = p.stackState.getFromTop(i);
 	  if ((sop == DUMMY) || (sop instanceof ReturnAddressOperand)) {
 	    if (VM.VerifyAssertions) VM._assert(mop.similar(sop));
-	  } else {
-	    // By BASIC assumption, sop and mop must be OPT_RegisterOperands.
-	    OPT_RegisterOperand rsop = sop.asRegister();
-	    OPT_RegisterOperand rmop = mop.asRegister();
-	    if (rmop.register != rsop.register) {
-	      // must insert move at end of block to get register #s to match
-	      OPT_RegisterOperand temp = rsop.copyRO();
-	      temp.setRegister(rmop.register);
-	      OPT_Instruction move = 
-		Move.create(OPT_IRTools.getMoveOp(temp.type), temp, rsop);
-	      move.bcIndex = RECTIFY_BCI;
-	      move.position = gc.inlineSequence;
-	      block.appendInstructionRespectingTerminalBranch(move);
-	      if (DBG_STACK || DBG_SELECTED)
-		db("Inserted "+move+" into "+block+" to rectify reg numbers");
-	    }
-	    OPT_Operand meet = OPT_Operand.meet(rmop, rsop, rmop.register);
-	    if (DBG_STACK || DBG_SELECTED) db("Meet of "+rmop+" and "+rsop+" is "+ meet);
-	    if (meet != rmop) {
+	    continue;
+	  } else if (sop.isConstant() || mop.isConstant()) {
+	    if (mop.similar(sop)) {
+	      continue; // constants are similar; so we don't have to do anything.
+	    } 
+	    // sigh. Non-similar constants. 
+	    if (mop.isConstant()) {
+	      // Insert move instructions in all predecessor 
+	      // blocks except 'block' to move mop into a register.
+	      OPT_RegisterOperand mopTmp = gc.temps.makeTemp(mop);
+	      if (DBG_STACK || DBG_SELECTED) db("Merged stack has constant operand "+mop);
+	      for (OPT_BasicBlockEnumeration preds = p.block.getIn(); preds.hasMoreElements();) {
+		OPT_BasicBlock pred = preds.next();
+		if (pred == block) continue;
+		injectMove(pred, mopTmp, mop);
+	      }
+	      p.stackState.replaceFromTop(i, mopTmp.copy());
 	      if (generated) {
 		if (DBG_STACK || DBG_SELECTED)
-		  db("\t...forced to regenerate " + p + " (" + p.block + 
-		     ") because of this");
+		  db("\t...forced to regenerate " + p + " (" + p.block + ") because of this");
 		markBlockForRegeneration(p);
 		generated = false;
 		p.block.deleteOut();
 		if (DBG_CFG || DBG_SELECTED) db("Deleted all out edges of " + p.block);
 	      }
-	      p.stackState.replaceFromTop(i, meet);
+	      mop = mopTmp;
 	    }
+	    if (sop.isConstant()) {
+	      // Insert move instruction into block.
+	      OPT_RegisterOperand sopTmp = gc.temps.makeTemp(sop);
+	      if (DBG_STACK || DBG_SELECTED) db("incoming stack has constant operand "+sop);
+	      injectMove(block, sopTmp, sop);
+	      sop = sopTmp;
+	    }
+	  }
+
+	  // sop and mop are OPT_RegisterOperands (either originally or because
+	  // we forced them to be above due to incompatible constants.
+	  OPT_RegisterOperand rsop = sop.asRegister();
+	  OPT_RegisterOperand rmop = mop.asRegister();
+	  if (rmop.register != rsop.register) {
+	    // must insert move at end of block to get register #s to match
+	    OPT_RegisterOperand temp = rsop.copyRO();
+	    temp.setRegister(rmop.register);
+	    injectMove(block, temp, rsop);
+	  }
+	  OPT_Operand meet = OPT_Operand.meet(rmop, rsop, rmop.register);
+	  if (DBG_STACK || DBG_SELECTED) db("Meet of "+rmop+" and "+rsop+" is "+ meet);
+	  if (meet != rmop) {
+	    if (generated) {
+	      if (DBG_STACK || DBG_SELECTED)
+		db("\t...forced to regenerate " + p + " (" + p.block + ") because of this");
+	      markBlockForRegeneration(p);
+	      generated = false;
+	      p.block.deleteOut();
+	      if (DBG_CFG || DBG_SELECTED) db("Deleted all out edges of " + p.block);
+	    }
+	    p.stackState.replaceFromTop(i, meet);
 	  }
 	}
       }
+    }
+
+    private void injectMove(OPT_BasicBlock block, OPT_RegisterOperand res, OPT_Operand val) {
+      OPT_Instruction move = 
+	Move.create(OPT_IRTools.getMoveOp(res.type), res, val);
+      move.bcIndex = RECTIFY_BCI;
+      move.position = gc.inlineSequence;
+      block.appendInstructionRespectingTerminalBranch(move);
+      if (DBG_STACK || DBG_SELECTED)
+	db("Inserted " + move + " into " + block);
     }
 
     /**
@@ -4633,7 +4635,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  gc.cfg.breakCodeOrder(cop, forw);
 	  gc.cfg.linkInCodeOrder(cop, icurr.gc.cfg.firstInCodeOrder());
 	  gc.cfg.linkInCodeOrder(icurr.gc.cfg.lastInCodeOrder(), forw);
-	  cop.insertOut(calleeEntry);
 	  if (DBG_CFG || DBG_SELECTED)
 	    db("Added CFG edge from " + cop + " to " + calleeEntry);
 	  if (icurr.epilogueBBLE != null) {
@@ -4656,8 +4657,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	if (DBG_FLATTEN && next == null)
 	  db(curr + " has no fallthrough case, getting next block");
 	if (next != null) {
-	  // Add the CFG edge from currBBLE.block to nextBBLE.block
-	  curr.block.insertOut(next.block);
 	  if (DBG_CFG || DBG_SELECTED)
 	    db("Added CFG edge from " + curr.block + " to " + next.block);
 	  if (next.isInCodeOrder()) {
