@@ -7,6 +7,7 @@
 package org.vmmagic.unboxed;
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_SizeConstants;
 
 import org.vmmagic.pragma.*;
@@ -19,7 +20,7 @@ import org.vmmagic.pragma.*;
  * operations (Java does not have unsigned int types).
  * <p>
  * For efficiency and to avoid meta-circularity, the Address class is
- * intercepted like magic and converted into the base type so no
+ * intercepted like {@link VM_Magic} and converted into the base type so no
  * Address object is created run-time.
  *
  * @author Perry Cheng
@@ -71,7 +72,7 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * Return an {@link Address} instance that reflects the value
    * zero.
    *
-   * @return An address instance that reflects the value zero.
+   * @return An {@link Address} instance that reflects the value zero.
    */
   public static Address zero() throws UninterruptibleNoWarnPragma {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
