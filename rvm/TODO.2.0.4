@@ -1,0 +1,32 @@
+A TODO list for the 2.0.4 release.  Please add more items that you are
+aware of and delete items as they are completed.
+
+(1) Stabilize system
+
+(2) Userguide: large sections of the userguide need to be updated for
+    the 2.0.4 release.  See the TODO list in doc/userguide.
+
+(3) Memory Manager restructuring:
+  -- create two new subdirectories: heap and util and relocate files
+     in the top level directory accordingly
+  -- stabilize VM_Heap interface
+  -- at a minimum javadoc header comments on all classes; javadoc on
+     all methods of VM_Heap.
+
+(4) One word object model: ensure that all configurations measured in
+    the ecoop'02 paper still work.
+
+(5) All files must have copyright, id, and author tags.  Some of the
+    files added since 2.0.3 are missing them.
+
+(6) Write release notes.
+
+(7) Can we distribute the jazzlib jar file from dW like the jlibraries
+    jar file?  If so, extend jconfigure to make this work (minimize
+    user annoyance at new pre-req).
+
+(8) We could think about having a zero-tolerance for javadoc
+    compilation errors starting in 2.0.4.  There are currently about 400
+    of them, a few hours of work might be sufficient to fix this.
+
+
