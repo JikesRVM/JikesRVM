@@ -269,7 +269,7 @@ final class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_Baseli
   //
   VM_ReferenceMaps referenceMaps;
   // cache the bytecode map
-  private final boolean saveBytecodeMap = true;                 // !!TODO: needed for dynamic bridge, eventually we should extract a condensed version of called-method-map
+  private static final boolean saveBytecodeMap = true;                 // !!TODO: needed for dynamic bridge, eventually we should extract a condensed version of called-method-map
   private int[] _bytecodeMap;
   // Exception tables for use by "findCatchBlockForInstruction()".
   // Null tables mean "method has no try/catch/finally blocks".
