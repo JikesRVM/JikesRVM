@@ -54,7 +54,7 @@ export HOST_TOOLS="/opt/IBMJava2-13/lib/tools.jar"
 export GNU_MAKE="/usr/bin/make"
 
 # path for jikes.
-export JIKES="/homes/fury5/jalapeno/contrib/jikes-1.15/src/jikes"
+export JIKES="/homes/fury5/jalapeno/bin/jc-lintel"
 
 # what C compilers should be used?
 export CC='/usr/bin/gcc -w -O'
