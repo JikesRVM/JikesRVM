@@ -133,9 +133,7 @@ public class OPT_Compiler {
    * @exception VM_ResolutionException if the class cannot be resolved
    */
   private static void loadSpecialClass (String klassName, OPT_Options options) 
-            throws VM_ResolutionException {
-    // TODO: This could be phased out as the new DynamicBridge 
-    // magic comes on line.
+    throws VM_ResolutionException {
     VM_Class klass = 
       (VM_Class)OPT_ClassLoaderProxy.proxy.findOrCreateType(klassName);
     klass.load();
@@ -145,15 +143,14 @@ public class OPT_Compiler {
     VM_Method[] methods = klass.getDeclaredMethods();
     for (int j = 0; j < methods.length; j++) {
       VM_Method meth = methods[j];
-
       if (meth.isClassInitializer())
         continue;
       if (!meth.isCompiled() || 
-           meth.getMostRecentlyGeneratedCompilerInfo().getCompilerType()
-          != VM_CompilerInfo.OPT) {
-        OPT_CompilationPlan cp = new OPT_CompilationPlan(meth, 
-                      OPT_OptimizationPlanner.createOptimizationPlan(options), 
-                      null, options);
+	  meth.getMostRecentlyGeneratedCompiledMethod().getCompilerInfo().getCompilerType() != VM_CompilerInfo.OPT) {
+        OPT_CompilationPlan cp = 
+	  new OPT_CompilationPlan(meth, 
+				  OPT_OptimizationPlanner.createOptimizationPlan(options), 
+				  null, options);
         meth.replaceCompiledMethod(compile(cp));
       }
     }
@@ -161,7 +158,6 @@ public class OPT_Compiler {
 
   public static void preloadSpecialClass( OPT_Options options ) {
     String klassName = "L"+options.PRELOAD_CLASS+";";
-
 
     if (options.PRELOAD_AS_BOOT ) {
       setBootOptions( options  );

@@ -398,30 +398,18 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    */ 
   public final INSTRUCTION[] getMostRecentlyGeneratedInstructions() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
-
     if (VM.VerifyAssertions) VM.assert(isCompiled());
     return mostRecentlyGeneratedInstructions;
-
-    ///   if (isCompiled())
-    ///      return mostRecentlyGeneratedInstructions;
-    ///   VM.sysWrite("VM_Method.getMostRecentlyGeneratedInstructions: assuming lazy compilation of " + this + "\n");
-    ///   if (VM.VerifyAssertions) VM.assert(lazyMethodInvokerInstructions != null);
-    ///   return lazyMethodInvokerInstructions;
   }
 
   /**
-   * Get compiler info for most recently compiled version of this method.
-   * @return compiler info
-   * 
-   * !!TODO: temporary migration aid until opt compiler uses VM_CompiledMethod
-   *         instead of VM_Method to save state across compilations.
-   *         DON'T USE THIS METHOD IN NEWLY WRITTEN CODE. --DL
+   * Get compiled method for most recently compiled version of this method.
+   * @return compiled method
    */ 
-  public final VM_CompilerInfo getMostRecentlyGeneratedCompilerInfo() {
+  public final VM_CompiledMethod getMostRecentlyGeneratedCompiledMethod() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
-
     if (VM.VerifyAssertions) VM.assert(isCompiled());
-    return mostRecentlyGeneratedCompiledMethod.getCompilerInfo();
+    return mostRecentlyGeneratedCompiledMethod;
   }
 
   /**
@@ -430,7 +418,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   final void clearMostRecentCompilation() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
 
-    VM_CompiledMethods.setCompiledMethodObsolete( mostRecentlyGeneratedCompiledMethod );    
+    VM_CompiledMethods.setCompiledMethodObsolete(mostRecentlyGeneratedCompiledMethod);
     mostRecentlyGeneratedInstructions = null;
     mostRecentlyGeneratedCompiledMethod = null;
   }
