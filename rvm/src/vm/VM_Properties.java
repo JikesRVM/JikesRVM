@@ -15,7 +15,7 @@ package com.ibm.JikesRVM;
  * @author Stephen Fink
  * @author David Grove
  */
-public class VM_Properties extends VM_Configuration {
+public class VM_Properties extends VM_Options {
 
   // The VM class hierarchy is used in three ways:
   //    - by boot image writer to create an executable vm image
@@ -40,6 +40,7 @@ public class VM_Properties extends VM_Configuration {
    * are we in the boot-image-writing portion of boot-image-creation
    */
   public static boolean writingImage = false;
+
   /**
    * If true, don't exit from the process.  As of July, 2003, this has not
    * worked in a couple of years, nor has there been much interest in using it.
@@ -53,15 +54,15 @@ public class VM_Properties extends VM_Configuration {
   // setting the number of prologues between thread switches to infinity (-1).
   //
   public static int deterministicThreadSwitchInterval =
-	//-#if RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING 
-	  -1;
-	//-#else
-        //-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
-           1000;
-        //-#else // the normal case (timer-driven preemptive thread switching)
-	  0;
-	//-#endif
-	//-#endif
+    //-#if RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING 
+    -1;
+    //-#else
+      //-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
+      1000;
+      //-#else // the normal case (timer-driven preemptive thread switching)
+      0;
+      //-#endif
+    //-#endif
 
   /**
    * The following is set on by -verbose:class command line arg.
@@ -77,27 +78,11 @@ public class VM_Properties extends VM_Configuration {
    */
   public static boolean verboseJNI = false;
 
-  /** Turned on by -X:StackTraceVMSysWrite.  When true, we will always use
-   * VM.sysWrite() to generate our error messages. */
-  public static boolean stackTraceVMSysWrite = false;
-
-  /**
-   * The following is set on by -X:measureCompilation=true command line arg.
-   * When true, it times compilations and generates a report at VM exit.
-   */
-  public static boolean MeasureCompilation = false;  
-
   /**
    * Accumulate per java thread CPU time.
    * Used by AOS and MeasureCompilation to get accurate compilation times.
    */
   public static boolean EnableCPUMonitoring = VM_Configuration.BuildForAdaptiveSystem;
-
-  /**
-   * The following is set on by -X:verify=true command line arg.
-   * When true, it invokes the bytecode verifier
-   */
-  public static boolean VerifyBytecode = false;  
 
   // Runtime subsystem tracing.
   //
@@ -106,7 +91,6 @@ public class VM_Properties extends VM_Configuration {
   public static final boolean TraceFileSystem         = false;
   public static final boolean TraceThreads            = false;
   public static final boolean TraceStackTrace         = false;
-  public static boolean TraceClassLoading             = true;
 
   // Baseline compiler reference map tracing.
   //
@@ -124,9 +108,6 @@ public class VM_Properties extends VM_Configuration {
   public static final boolean TraceOnStackReplacement   = false; 
   //-#endif
 
-  /** If we get more than this deep in one of the System Trouble functions,
-   * then try to die. */
-  public static int maxSystemTroubleRecursionDepth = 3;
   /** How much farther? */
   public static int maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite = 3;
 }

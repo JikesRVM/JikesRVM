@@ -55,30 +55,28 @@ public class VM_CommandLineArgs {
   public static final int VERBOSE_CLS_ARG      =  6;
 
   // -----------------------------------------------//
-  // The following arguments are RVM-specific. //
+  // The following arguments are RVM-specific.      //
   // -----------------------------------------------//
   public static final int VM_CLASSES_ARG       =  7;
   public static final int CPUAFFINITY_ARG      =  8;
   public static final int PROCESSORS_ARG       =  9;
-  public static final int IRC_HELP_ARG         = 10;
-  public static final int IRC_ARG              = 11;
-  public static final int RECOMP_HELP_ARG      = 12;
-  public static final int RECOMP_ARG           = 13;
-  public static final int AOS_HELP_ARG         = 14;
-  public static final int AOS_ARG              = 15;
-  public static final int MEASURE_COMP_ARG     = 16;
-  public static final int BASE_HELP_ARG        = 17;
-  public static final int BASE_ARG             = 18;
-  public static final int OPT_ARG              = 19;
-  public static final int OPT_HELP_ARG         = 20;
-  public static final int PROF_ARG             = 21;
+  public static final int VM_HELP_ARG          = 10;
+  public static final int VM_ARG               = 11;
+  public static final int IRC_HELP_ARG         = 12;
+  public static final int IRC_ARG              = 13;
+  public static final int RECOMP_HELP_ARG      = 14;
+  public static final int RECOMP_ARG           = 15;
+  public static final int AOS_HELP_ARG         = 16;
+  public static final int AOS_ARG              = 17;
+  public static final int BASE_HELP_ARG        = 18;
+  public static final int BASE_ARG             = 19;
+  public static final int OPT_ARG              = 20;
+  public static final int OPT_HELP_ARG         = 21;
   public static final int VERIFY_ARG           = 22;
-  public static final int SCHEDULER_ARG        = 23;
-  public static final int GC_HELP_ARG          = 24;
-  public static final int GC_ARG               = 25;
-  public static final int VERBOSE_STACK_ARG    = 26;
-  public static final int HPM_HELP_ARG         = 27;
-  public static final int HPM_ARG              = 28;
+  public static final int GC_HELP_ARG          = 23;
+  public static final int GC_ARG               = 24;
+  public static final int HPM_HELP_ARG         = 25;
+  public static final int HPM_ARG              = 26;
 
   /**
    * A catch-all prefix to find application name.
@@ -123,20 +121,18 @@ public class VM_CommandLineArgs {
     new Prefix("-X:gc:help$",           GC_HELP_ARG),
     new Prefix("-X:gc$",                GC_HELP_ARG),
     new Prefix("-X:gc:",                GC_ARG),
-    new Prefix("-X:measureCompilation=",MEASURE_COMP_ARG),
     new Prefix("-X:base:help$",         BASE_HELP_ARG),
     new Prefix("-X:base$",              BASE_HELP_ARG),
     new Prefix("-X:base:",              BASE_ARG),
     new Prefix("-X:opt:help$",          OPT_HELP_ARG),
     new Prefix("-X:opt$",               OPT_HELP_ARG),
     new Prefix("-X:opt:",               OPT_ARG),
-    new Prefix("-X:prof:",              PROF_ARG),
-    new Prefix("-X:verify=",            VERIFY_ARG),
-    new Prefix("-X:verboseStackTrace=", VERBOSE_STACK_ARG),
-    new Prefix("-X:scheduler:",         SCHEDULER_ARG),
     new Prefix("-X:hpm:help$",          HPM_HELP_ARG),
     new Prefix("-X:hpm$",               HPM_HELP_ARG),
     new Prefix("-X:hpm:",               HPM_ARG),
+    new Prefix("-X:vm:help$",           VM_HELP_ARG),
+    new Prefix("-X:vm$",                VM_HELP_ARG),
+    new Prefix("-X:vm:",                VM_ARG),
     app_prefix
   };
 
@@ -214,9 +210,9 @@ public class VM_CommandLineArgs {
           }
           if (p == app_prefix) app_name_pos = i;
           break;
-        } // end for
-      } // end else
-    } // end for 
+        }
+      }
+    }
     /*
      * if no application is specified, set app_name_pos to numArgs to ensure
      * all command line arguments are processed.
@@ -285,14 +281,14 @@ public class VM_CommandLineArgs {
    * @return the environment arg, or null if there is none.
    */
   public static String getEnvironmentArg(String variable) {
-      String[] allEnvArgs = getArgs(ENVIRONMENT_ARG);
-      String prefix = variable + "=";
-      if (allEnvArgs != null)
-	  for(int i = 0; i < allEnvArgs.length; i++) 
-	      if (allEnvArgs[i].startsWith(prefix))
-		  return allEnvArgs[i].substring(variable.length()+1);
+    String[] allEnvArgs = getArgs(ENVIRONMENT_ARG);
+    String prefix = variable + "=";
+    if (allEnvArgs != null)
+      for(int i = 0; i < allEnvArgs.length; i++) 
+	if (allEnvArgs[i].startsWith(prefix))
+	  return allEnvArgs[i].substring(variable.length()+1);
 
-      return null;
+    return null;
   }
 
   /**
@@ -330,8 +326,8 @@ public class VM_CommandLineArgs {
       case VERBOSE_CLS_ARG:
 	VM.verboseClassLoading = true;
 	break;
-
-      case VERBOSE_JNI_ARG:
+ 
+     case VERBOSE_JNI_ARG:
 	VM.verboseJNI = true;
 	break;
 
@@ -352,6 +348,7 @@ public class VM_CommandLineArgs {
 	}
 	VM_Scheduler.cpuAffinity = cpuAffinity;
 	break;
+
       case PROCESSORS_ARG: // "-X:processors=<n>" or "-X:processors=all"
 	if (arg.equals("all")) {
 	  VM_Scheduler.numProcessors = VM_SysCall.sysNumProcessors();
@@ -374,40 +371,26 @@ public class VM_CommandLineArgs {
 	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	}
 	break;
-      case SCHEDULER_ARG: // "-X:scheduler:<option>"
-	VM_Scheduler.processArg(arg);
-	break;
 
 	// -------------------------------------------------------------------
-	// Enable measurement of compilation time 
+	// Other arguments to the core VM
 	// -------------------------------------------------------------------
-      case MEASURE_COMP_ARG:
-	if (arg.equals("true")) {
-	  VM.MeasureCompilation = true;
-	  VM.EnableCPUMonitoring = true;
-	} else if (arg.equals("false")) {
-	  VM.MeasureCompilation = false;
-	} else {
-	  VM.sysWrite("vm: -X:measureCompilation=[true|false]\n");
+      case VM_HELP_ARG:  // -X:vm passed 'help' as an option
+	VM_Options.printHelp();
+	break;
+      case VM_ARG: // "-X:vm:arg" pass 'arg' as an option
+	if (!VM_Options.process(arg)) {
+	  VM.sysWriteln("Unrecognized command line argument "+p.value+arg);
 	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	}
+	// Yuck.  A very small number of command line arguments
+	// really want to toggle multiple values.  We don't
+	// nicely support that in the template generated code,
+	// so we compenstate here.  If we ever get more than a very
+	// small number of these, then extend the templates to handle it.
+	if (VM.MeasureCompilation) VM.EnableCPUMonitoring = true;
 	break;
-
-	// -------------------------------------------------------------------
-	// Enable/disable bytecode verification
-	// -------------------------------------------------------------------
-      case VERIFY_ARG:
-	if (arg.equals("true")) {
-	  VM.VerifyBytecode = true;
-	} else if (arg.equals("false")) {
-	  VM.VerifyBytecode = false;
-	} else {
-	  VM.sysWrite("vm: -X:verify=[true|false]\n");
-	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	}
-	break;
-
-
+	
 	//-#if RVM_WITH_HPM
 	// -------------------------------------------------------------------
 	// HPM (Hardware Performance Monitor) arguments
@@ -551,33 +534,6 @@ public class VM_CommandLineArgs {
 	VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	//-#endif
 	break;
-      case PROF_ARG: // "-X:prof:arg"; pass 'arg' as an option
-	{ 
-	  int split = arg.indexOf('=');
-	  if (split == -1) {
-	    VM.sysWrite("  Illegal option specification!\n  \""+arg+
-			"\" must be specified as a name-value pair in the form of option=value\n");
-	    VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	  }
-	  String name = arg.substring(0,split);
-	  String value = arg.substring(split+1);
-	  if (name.equals("edge_counter_file")) {
-	    VM_EdgeCounts.setProfileFile(value);
-	  } else {
-	    VM.sysWriteln("Unrecognized profile argument "+p.value+arg);
-	    VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	  }
-	}
-	break;
-
-      case VERBOSE_STACK_ARG:
-	int period = Integer.parseInt(arg);
-	if (period < 1) {
-	  VM.sysWriteln("vm: -X:verboseStackTrace must be greater than 0");
-	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	} else {
-	  VM_StackTrace.verboseTracePeriod = period;
-	}
       }
     }
 

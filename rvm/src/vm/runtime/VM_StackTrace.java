@@ -24,7 +24,6 @@ import com.ibm.JikesRVM.PrintLN;
  */
 public class VM_StackTrace implements VM_Constants {
 
-  static int verboseTracePeriod = 0;
   static int verboseTraceIndex = 0;
 
   /** How many frames are "too many" to display fully? Let's say that zero is
@@ -57,9 +56,9 @@ public class VM_StackTrace implements VM_Constants {
     offsets = VM_OffsetArray.create(numFrames);
     walkFrames(true, skip+1);
     
-    /* I have no idea why this is here. --steve augart */
-    if (verboseTracePeriod > 0) {
-      if ((verboseTraceIndex++ % verboseTracePeriod) == 0) {
+    // Debugging trick: print every nth stack trace created
+    if (VM.VerboseStackTracePeriod > 0) {
+      if ((verboseTraceIndex++ % VM.VerboseStackTracePeriod) == 0) {
 	VM.disableGC();
 	VM_Scheduler.dumpStack();
 	VM.enableGC();

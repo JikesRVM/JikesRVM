@@ -31,10 +31,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * debug flag
    */
   private final static boolean trace = false;
-  /**
-   * debug flag
-   */
-  private final static boolean debugDeadVP = false;
 
   /**
    * Enumerate different types of yield points for sampling
@@ -849,10 +845,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */ 
   public final int getLockingId() { return threadSlot << VM_ThinLockConstants.TL_THREAD_ID_SHIFT; }
   
-  //------------------------------------------//
-  // Interface to memory management subsystem //
-  //------------------------------------------//
-
   private static final boolean traceAdjustments = false;
   
   /**
@@ -1015,60 +1007,60 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @param fp    pointer to its innermost frame
    * @param delta displacement to be applied to all its interior references
    */
-    private static void adjustStack(int[] stack, VM_Address fp, VM_Offset delta) {
-      if (traceAdjustments) VM.sysWrite("VM_Thread: adjustStack\n");
+  private static void adjustStack(int[] stack, VM_Address fp, VM_Offset delta) {
+    if (traceAdjustments) VM.sysWrite("VM_Thread: adjustStack\n");
 
-      while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
-	// adjust FP save area
-	//
-        VM_Magic.setCallerFramePointer(fp, VM_Magic.getCallerFramePointer(fp).add(delta));
-        if (traceAdjustments) {
-          VM.sysWrite(" fp=", fp.toWord());
-	}
-	
-        // advance to next frame
-        //
-        fp = VM_Magic.getCallerFramePointer(fp);
-      }
-    }
-
-    /**
-     * initialize new stack with live portion of stack 
-     * we're currently running on
-     *
-     * <pre>
-     *  lo-mem                                        hi-mem
-     *                           |<---myDepth----|
-     *                 +----------+---------------+
-     *                 |   empty  |     live      |
-     *                 +----------+---------------+
-     *                  ^myStack   ^myFP           ^myTop
-     * 
-     *       +-------------------+---------------+
-     *       |       empty       |     live      |
-     *       +-------------------+---------------+
-     *        ^newStack           ^newFP          ^newTop
-     *  </pre>
-     */ 
-    private static VM_Offset copyStack (int[] newStack) {
-      VM_Thread myThread = getCurrentThread();
-      int[]     myStack  = myThread.stack;
-
-      VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length  << LOG_BYTES_IN_ADDRESS);
-      VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length << LOG_BYTES_IN_ADDRESS);
-      VM_Address myFP    = VM_Magic.getFramePointer();
-      VM_Offset myDepth  = myTop.diff(myFP);
-      VM_Address newFP   = newTop.sub(myDepth);
-
-      // before copying, make sure new stack isn't too small
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
+      // adjust FP save area
       //
-      if (VM.VerifyAssertions)
-	  VM._assert(newFP.GE(VM_Magic.objectAsAddress(newStack).add(STACK_SIZE_GUARD)));
-
-      VM_Memory.aligned32Copy(newFP, myFP, myDepth.toInt());
-
-      return newFP.diff(myFP);
+      VM_Magic.setCallerFramePointer(fp, VM_Magic.getCallerFramePointer(fp).add(delta));
+      if (traceAdjustments) {
+	VM.sysWrite(" fp=", fp.toWord());
+      }
+	
+      // advance to next frame
+      //
+      fp = VM_Magic.getCallerFramePointer(fp);
     }
+  }
+
+  /**
+   * initialize new stack with live portion of stack 
+   * we're currently running on
+   *
+   * <pre>
+   *  lo-mem                                        hi-mem
+   *                           |<---myDepth----|
+   *                 +----------+---------------+
+   *                 |   empty  |     live      |
+   *                 +----------+---------------+
+   *                  ^myStack   ^myFP           ^myTop
+   * 
+   *       +-------------------+---------------+
+   *       |       empty       |     live      |
+   *       +-------------------+---------------+
+   *        ^newStack           ^newFP          ^newTop
+   *  </pre>
+   */ 
+  private static VM_Offset copyStack (int[] newStack) {
+    VM_Thread myThread = getCurrentThread();
+    int[]     myStack  = myThread.stack;
+
+    VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length  << LOG_BYTES_IN_ADDRESS);
+    VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length << LOG_BYTES_IN_ADDRESS);
+    VM_Address myFP    = VM_Magic.getFramePointer();
+    VM_Offset myDepth  = myTop.diff(myFP);
+    VM_Address newFP   = newTop.sub(myDepth);
+
+    // before copying, make sure new stack isn't too small
+    //
+    if (VM.VerifyAssertions)
+      VM._assert(newFP.GE(VM_Magic.objectAsAddress(newStack).add(STACK_SIZE_GUARD)));
+    
+    VM_Memory.aligned32Copy(newFP, myFP, myDepth.toInt());
+    
+    return newFP.diff(myFP);
+  }
 
   /**
    * Set the "isDaemon" status of this thread.
@@ -1183,10 +1175,10 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     VM_Scheduler.threadCreationMutex.unlock();
 
-//-#if !RVM_FOR_IA32 
+    //-#if !RVM_FOR_IA32 
     contextRegisters.gprs.set(THREAD_ID_REGISTER, 
 			      VM_Word.fromInt(getLockingId()));
-//-#endif
+    //-#endif
     VM.enableGC();
 
     // only do this at runtime because it will call VM_Magic
@@ -1458,12 +1450,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
   public VM_JNIEnvironment  jniEnv;
   
-  // Cpu utilization statistics, used if "VM_Properties.EnableCPUMonitoring == true".
+  // Cpu utilization statistics, used if "VM.EnableCPUMonitoring == true".
   //
   double cpuStartTime = -1;  // time at which this thread started running on a cpu (-1: has never run, 0: not currently running)
   double cpuTotalTime;       // total cpu time used by this thread so far, in seconds
 
-  // Network utilization statistics, used if "VM_BuildForNetworkMonitoring == true".
+  // Network utilization statistics, used if "VM.BuildForNetworkMonitoring == true".
   //
   public int     netReads;           // number of completed read operations
   public int     netWrites;          // number of completed write operations

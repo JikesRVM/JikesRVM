@@ -619,8 +619,6 @@ char *bootFilename     = 0;
 extern unsigned initialHeapSize;
 extern unsigned maximumHeapSize;
 
-unsigned traceClassLoading = 0;
- 
 // name of program that will load and run RVM
 char *me;
 
@@ -761,8 +759,6 @@ int createJVM(int vmInSeparateThread) {
    bootRecord.bootImageStart   = (int) bootRegion;
    bootRecord.bootImageEnd     = (int) bootRegion + roundedImageSize;
   
-   bootRecord.traceClassLoading = traceClassLoading;
-
    // set host o/s linkage information into boot record
    //
    if (lib_verbose) fprintf(SysTraceFile, "%s: setting linkage\n", me);

@@ -181,8 +181,6 @@ public class VM_BootRecord {
    */
   int externalSignalFlag;             
 
-  public int traceClassLoading;
-
   // Support for JNI Native functions
   //
   /**

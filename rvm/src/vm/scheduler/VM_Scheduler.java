@@ -61,7 +61,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   public static boolean              allProcessorsInitialized; // have all completed initialization?
   public static boolean              terminated;        // VM is terminated, clean up and exit
   public static int nativeDPndx;
-  public static int timeSlice = 10;  // in milliseconds
 
   // Thread creation and deletion.
   //
@@ -145,19 +144,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     // allocate lock structures
     //
     VM_Lock.init();
-  }
-
-  static void processArg(String arg) throws VM_PragmaInterruptible {
-    if (arg.startsWith("timeslice=")) {
-      String tmp = arg.substring(10);
-      int slice = Integer.parseInt(tmp);
-      if (slice< 10 || slice > 999) VM.sysFail("Time slice outside range (10..999) " + slice);
-      timeSlice = slice;
-    }
-    else if (arg.startsWith("verbose=")) {
-      String tmp = arg.substring(8);
-      VM_Processor.trace = Integer.parseInt(tmp);
-    }
   }
 
   /**
@@ -352,7 +338,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     // Start interrupt driven timeslicer to improve threading fairness and responsiveness.
     //
     if (!VM.BuildForDeterministicThreadSwitching) 
-     VM.sysVirtualProcessorEnableTimeSlicing(timeSlice);
+      VM.sysVirtualProcessorEnableTimeSlicing(VM.schedulingQuantum);
 
     // Start event logger.
     //

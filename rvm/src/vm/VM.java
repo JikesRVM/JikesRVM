@@ -96,8 +96,6 @@ public class VM extends VM_Properties
     if (!BuildForSingleVirtualProcessor)
       VM_Processor.getCurrentProcessor().pthread_id = VM_SysCall.sysPthreadSelf();
 
-    VM.TraceClassLoading = (VM_BootRecord.the_boot_record.traceClassLoading == 1);   
-
     // Initialize memory manager's write barrier.
     // This must happen before any putfield or arraystore of object refs
     // because the buffer is accessed by compiler-generated write barrier code.

@@ -6,11 +6,11 @@
 /*
  * C runtime support for virtual machine.
  *
- * This file deals with loading of the vm boot image into a memory segment and
- * branching to its startoff code. It also deals with interrupt and exception
- * handling.
- * The file "sys.C" contains the o/s support services required by the java
- * class libraries.
+ * This file deals with loading of the vm boot image into a memory segment,
+ * basic processing of command line arguments, and branching to VM.boot. 
+ * 
+ * The file "sys.C" contains the o/s support services to match
+ * the entrypoints declared by VM_SysCall.java
  *
  * @author Derek Lieber 03 Feb 1998
  * 17 Oct 2000 The system code (everything except command line parsing in main)
@@ -20,8 +20,6 @@
  *	       Add support to recognize quotes in command line arguments,
  *	       standardize command line arguments with JDK 1.3.
  *	       Eliminate order dependence on command line arguments
- *	       To add a new VM directive, 
- *	       add the directive to processCommandLineArguments()
  */
 
 #include <stdio.h>
@@ -32,7 +30,7 @@
 #include <errno.h>
 #include <sys/signal.h>
 #include <strings.h> /* bzero */
-#include <libgen.h>     /* basename */
+#include <libgen.h>  /* basename */
 #ifdef __linux__
 #include <asm/cache.h>
 #include <ucontext.h>
@@ -81,8 +79,6 @@ extern char *me;
 
 unsigned initialHeapSize;
 unsigned maximumHeapSize;
-
-extern unsigned traceClassLoading;
 
 extern "C" int createJVM(int);
 extern "C" void findMappable();
@@ -371,11 +367,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
       continue;
     }
 
-    if (!strncmp(token, nonStandardArgs[TCL_INDEX], 10)) {
-      traceClassLoading = 1;
-      continue;
-    } 
-    
     /*
      * JDK 1.3 standard command line arguments that are not supported.
      * TO DO: provide support
@@ -392,21 +383,18 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 
     // All VM directives that take one token
     if (!strncmp(token, "-D", 2) || 
+	!strncmp(token, nonStandardArgs[VM_INDEX], 5) ||
 	!strncmp(token, nonStandardArgs[GC_INDEX], 5) ||
 	!strncmp(token, nonStandardArgs[AOS_INDEX],6)   || 
         !strncmp(token, nonStandardArgs[IRC_INDEX], 6) ||
         !strncmp(token, nonStandardArgs[RECOMP_INDEX], 9) ||
 	!strncmp(token, nonStandardArgs[BASE_INDEX],7)  || 
         !strncmp(token, nonStandardArgs[OPT_INDEX], 6) ||
-	!strncmp(token, nonStandardArgs[PROF_INDEX], 7)  ||
 	!strcmp(token, "-verbose")    || !strcmp(token, "-verbose:class") ||
 	!strcmp(token, "-verbose:gc") || !strcmp(token, "-verbose:jni") || 
 	!strncmp(token, nonStandardArgs[VMCLASSES_INDEX], 13)  || 
 	!strncmp(token, nonStandardArgs[CPUAFFINITY_INDEX], 15) ||
-	!strncmp(token, nonStandardArgs[PROCESSORS_INDEX], 14)  ||
-	!strncmp(token, nonStandardArgs[MEASURE_COMPILATION_INDEX], 22) ||  
-	!strncmp(token, nonStandardArgs[VERIFY_INDEX], 10)  
-	) {
+	!strncmp(token, nonStandardArgs[PROCESSORS_INDEX], 14)) {
       JCLAs[n_JCLAs++]=token;
       continue;
     }
@@ -443,15 +431,6 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
  *   2) can be handled without starting the VM, or
  *   3) contain quotes
  * then call createJVM().
- *
- * Other command line arguments are handled by VM.java.
- *
- * TO DO:
- * Standardize all VM directives
- *   specified as one token with a name value pair specified as name=value.
- *   for example, -h, and -i. (Look in VM.java for others!)
- * Add support for all standard JDK 1.3 options; 
- *   for example, -jar.
  */
 int
 main(int argc, char **argv)
