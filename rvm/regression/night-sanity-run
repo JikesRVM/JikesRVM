@@ -306,7 +306,7 @@ function compResults () {
     # raw results in f:
     local f=$(echo $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastAdaptiveCopyMS.O${opt}.?proc.raw) 
     local -r analyzer=$RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk
-    if [[ -e $raw ]]; then
+    if [[ -e $f ]]; then
 	echo -e "\n\n Opt Level ${opt} compilation breakdown for SPECjvm98 size 100\n"
 	$AWK -f $analyzer $f
     elif (( have_boot_images )); then
@@ -319,7 +319,7 @@ function compResults () {
 ## However, I suppose three extra tests for a file's existence won't hurt.
 # if (( have_boot_images )); then
 for opt in 0 1 2; do
-    compResults >> $MSG
+    compResults $opt >> $MSG
 done
 
 # Finally!  Send the mail message to those who care
