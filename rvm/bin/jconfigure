@@ -1839,7 +1839,7 @@ function emitImageLinker
    fi
 
    if (( RVM_WITH_QUICK_COLLECTOR )); then
-      print ' OPT_ARGS="$OPT_ARGS -X:bc:include=JMTk"'
+      print ' OPT_ARGS="$OPT_ARGS -X:bc:include=memoryManager"'
    fi
    
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
