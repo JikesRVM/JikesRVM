@@ -36,10 +36,9 @@ else
 # TESTS that currently fail for one reason or another on AIX/PowerPC
 #       TEST			REASON FOR EXCLUSION
 # 	ArrayFunctions 		JDK claims that a native function attempts to unpin an object that is not pinned
-#       t3GT3	                broken on AIX - need to fix
 TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
         FieldAccess MethodInvocation MonitorTest NativeException \
-	StringFunctions TestGC 
+	StringFunctions TestGC t3GT3
 endif
 
 LIBS = $(TESTS:%=lib%.a) $(TESTS:%=lib%.so) 
