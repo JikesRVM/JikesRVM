@@ -51,8 +51,9 @@ abstract class SegregatedFreeList extends Allocator
   //
   // Class variables
   //
+  private static final boolean COMPACT_SIZE_CLASSES = false;
   protected static final VM_Address DEBUG_BLOCK = VM_Address.fromInt(0xffffffff);  // 0x5b098008
-  protected static final int SIZE_CLASSES = 40;
+  protected static final int SIZE_CLASSES = (COMPACT_SIZE_CLASSES) ? 28 : 40;
   protected static final int FREE_LIST_HEADER_BYTES = WORD_SIZE;
   private static final int FREE_LIST_OFFSET = 0;
   private static final int FREE_LIST_BITS = BlockAllocator.MAX_BLOCK_LOG;
@@ -426,12 +427,20 @@ abstract class SegregatedFreeList extends Allocator
 
     int sz1 = bytes - 1;
     int offset = 0;
-    return ((sz1 <=   63) ?      (sz1 >>  2): //    4 bytes apart
-	    (sz1 <=  127) ? 12 + (sz1 >>  4): //   16 bytes apart
-	    (sz1 <=  255) ? 16 + (sz1 >>  5): //   32 bytes apart
-	    (sz1 <=  511) ? 20 + (sz1 >>  6): //   64 bytes apart
-	    (sz1 <= 2047) ? 26 + (sz1 >>  8): //  256 bytes apart
-	                    32 + (sz1 >> 10));// 1024 bytes apart
+    if (COMPACT_SIZE_CLASSES)
+      return ((sz1 <=   31) ?      (sz1 >>  2): //    4 bytes apart
+	      (sz1 <=   63) ?  4 + (sz1 >>  3): //    8 bytes apart
+	      (sz1 <=   95) ?  8 + (sz1 >>  4): //   16 bytes apart
+	      (sz1 <=  223) ? 14 + (sz1 >>  6): //   64 bytes apart
+	      (sz1 <=  734) ? 17 + (sz1 >>  8): //  256 bytes apart
+                              20 + (sz1 >> 10));// 1024 bytes apart
+    else
+      return ((sz1 <=   63) ?      (sz1 >>  2): //    4 bytes apart
+	      (sz1 <=  127) ? 12 + (sz1 >>  4): //   16 bytes apart
+	      (sz1 <=  255) ? 16 + (sz1 >>  5): //   32 bytes apart
+	      (sz1 <=  511) ? 20 + (sz1 >>  6): //   64 bytes apart
+	      (sz1 <= 2047) ? 26 + (sz1 >>  8): //  256 bytes apart
+	                      32 + (sz1 >> 10));// 1024 bytes apart
   }
 
   /**
@@ -446,12 +455,20 @@ abstract class SegregatedFreeList extends Allocator
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert((sc >= 0) && (sc < SIZE_CLASSES));
 
-    return ((sc < 16) ? (sc +  1) <<  2:
-	    (sc < 19) ? (sc - 11) <<  4:
-	    (sc < 23) ? (sc - 15) <<  5:
-	    (sc < 27) ? (sc - 19) <<  6:
-	    (sc < 33) ? (sc - 25) <<  8:
-	                (sc - 31) << 10);
+    if (COMPACT_SIZE_CLASSES)
+      return ((sc <  8) ? (sc +  1) <<  2:
+	      (sc < 12) ? (sc -  3) <<  3:
+	      (sc < 16) ? (sc -  7) <<  4:
+	      (sc < 18) ? (sc - 13) <<  6:
+	      (sc < 21) ? (sc - 16) <<  8:
+	                  (sc - 19) << 10);
+    else
+      return ((sc < 16) ? (sc +  1) <<  2:
+	      (sc < 20) ? (sc - 11) <<  4:
+	      (sc < 24) ? (sc - 15) <<  5:
+	      (sc < 28) ? (sc - 19) <<  6:
+	      (sc < 34) ? (sc - 25) <<  8:
+	                  (sc - 31) << 10);
   }
 
   ////////////////////////////////////////////////////////////////////////////
