@@ -21,7 +21,8 @@ license_file=$lib_dir/$license_name
 license_cache=$HOME/.rvmrt
 jar_file=rvmrt.jar
 id_file=rvmrt
-jazzlib_dir=http://sourceforge.net/project/showfiles.php?group_id=16807
+#jazzlib_dir=http://sourceforge.net/project/showfiles.php?group_id=16807
+jazzlib_dir=http://people.debian.org/~jewel/jikes/jikesport/jazzlib
 jazzlib_file=$jazzlib_dir/jazzlib-binary-0.04-juz.jar
 ignore_HOST_CONFIG=""
 
