@@ -221,10 +221,6 @@ HOST_JIKES_STR1="HOST_JIKES"
 HOST_JIKES_STR="\$$HOST_JIKES_STR1"
 HOST_JAVA_STR1="HOST_JAVA_RT"
 HOST_JAVA_STR="\$$HOST_JAVA_STR1"
-HOST_J9_STR1="HOST_J9"
-HOST_J9_STR="\$$HOST_J9_STR1"
-HOST_J9_LIBS_STR1="HOST_J9_LIBS"
-HOST_J9_LIBS_STR="\$$HOST_J9_LIBS_STR1"
 HOST_JAVA_HOME_STR1="HOST_JAVA_HOME"
 HOST_JAVA_HOME="\$$HOST_JAVA_HOME_STR1"
 HOST_JAVADOC_STR1="HOST_JAVADOC"
@@ -752,8 +748,6 @@ function emitEnvironmentKsh
    print "export $HOST_JAR_STR1=\"$HOST_JAR\""
    print "export $HOST_REPOSITORIES_STR1=$HOST_REPOSITORIES"
    print "export $HOST_TOOLS_STR1=$HOST_TOOLS"
-   print "export $HOST_J9_STR1=\"$HOST_J9\""
-   print "export $HOST_J9_LIBS_STR1=\"$HOST_J9_LIBS\""
    print ""
    print "export $GNU_MAKE_STR1=$GNU_MAKE"
    print ""
@@ -819,8 +813,6 @@ function emitEnvironmentPerl
    print "\$ENV{HOST_JAR_STR1} = '$HOST_JAR';"
    print "\$ENV{HOST_REPOSITORIES_STR1} = '$HOST_REPOSITORIES';"
    print "\$ENV{HOST_TOOLS_STR1} = '$HOST_TOOLS';"
-   print "\$ENV{HOST_J9_STR1} = '$HOST_J9';"
-   print "\$ENV{HOST_J9_LIBS_STR1} = '$HOST_J9_LIBS';"
    print ""
    print "\$ENV{GNU_MAKE_STR1} = '$GNU_MAKE';"
    print ""
@@ -880,8 +872,6 @@ function emitMakefile
    print "HOST_JAR = $HOST_JAR"
    print "HOST_REPOSITORIES = $HOST_REPOSITORIES"
    print "HOST_TOOLS = $HOST_TOOLS"
-   print "HOST_J9 = $HOST_J9"
-   print "HOST_J9_LIBS = $HOST_J9_LIBS"
    print ""
    print "TARGET_INSTRUCTION_TYPE = $INSTRUCTION_TYPE"
    print ""
@@ -917,8 +907,6 @@ function emitMakefile
 #
 function emitController
    {
-   . $RVM_HOST_CONFIG
-
    print '#!/bin/ksh'
    print '# Run all phases of vm builder.'
    print 'set -e'
@@ -1328,12 +1316,12 @@ function emitCompiler
    print ""
    print "   rm -f jksvm.jar"
    print "   $HOST_JAR_STR cvf0 jksvm.jar Dummy.class > /dev/null 2>&1"
-   print "   $FIND . -name '*.class' | xargs $HOST_JAR_STR uvf0 jksvm.jar > /dev/null 2>&1"
+   print "   \$FIND . -name '*.class' | xargs $HOST_JAR_STR uvf0 jksvm.jar > /dev/null 2>&1"
    print '   print -n "(jksvm.jar built) "'
    print ""
    print "   rm -f jksvmsrc.jar"
    print "   $HOST_JAR_STR cvf jksvmsrc.jar Dummy.java > /dev/null 2>&1"
-   print "   $FIND . -name '*.java' | xargs $HOST_JAR_STR uvf jksvmsrc.jar > /dev/null 2>&1"
+   print "   \$FIND . -name '*.java' | xargs $HOST_JAR_STR uvf jksvmsrc.jar > /dev/null 2>&1"
    print '   print -n "(jksvmsrc.jar built) "'
    print ""
    print 'else'
@@ -2308,21 +2296,6 @@ function emitPluginBuilder
 # SECTION 6 - MAINLINE #
 #----------------------#
     
-# Do we have the correct libraries?
-#
-if (( ! BUILD_RVMRT_JAR )); then
- if (( ! RVM_WITH_GNU_CLASSPATH )); then
-  $RVM_ROOT/rvm/bin/jCheckLibs
- else
-  . $RVM_HOST_CONFIG
-  if [[ x$CLASSPATH_SRC = x ]]; then
-    $RVM_ROOT/rvm/bin/jBuildClasspathJar --full-build --check --destination $RVM_ROOT/classpath
-  else
-    $RVM_ROOT/rvm/bin/jBuildClasspathJar --full-build --check
-  fi
- fi
-fi
-
 print "$ME: setting up $BUILD_DIRECTORY for $CONFIGURATION_NAME"
 
 # Ensure configuration options are sensible.
