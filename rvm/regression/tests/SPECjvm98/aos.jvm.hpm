@@ -12,6 +12,9 @@
 #   input size      as either 1, 10, or 100    
 #   runs	    number of times benchmark is run in the same RVM
 #   output          where to put output files
+#   numProcessors   number of processors    
+#   setting         what events to count
+#   mode            mode of counting
 #
 # CONSTRAINT:
 # Expect RVM_BUILD to be set to an adaptive configuration.
@@ -26,7 +29,7 @@ if [[ $# = 0 || $1 = -help || $# < 1 ]] then
   image without adaptive inlining for a particular SPECjvm98 benchmark.
 
   Normally it is invoked as:
-    $0 benchmark inputSize|+ runs|+ outDir
+    $0 benchmark inputSize|+ runs|+ outDir|+ numProcessors|+ settings|+ mode
 
   Where 
     benchmark     SPECjvm98 benchmark name (e.g. _201_compress).
@@ -37,7 +40,14 @@ if [[ $# = 0 || $1 = -help || $# < 1 ]] then
                   The default is 1.		 
     outDir        where to put output files.
                   The default is the current directory.
-    
+    numProcessors number of processors.
+    		  The default is 1.   
+    setting       What events to count.  Default is 1.
+                   630 : 1 
+		   604e: 2 tlb, 3 cache, 4 ld/st, 5 branch, 6 floating-point, 7 general
+		   Power4: 10 LSU busy, 11 LSU miss, 12 LSU load, 13 branch, 14 L1 & TLB, 15 L2, 16 L3
+    mode          Mode: 1 IS_GROUP, 2 PROCESS, 4 KERNEL, 8 USER, 16 COUNT, 32 PROCTREE
+                  Default is 12 (KERNEL & USER).
 EOF
 exit 1
 fi
@@ -67,33 +77,6 @@ if [[ $RVM_SPECJVM98 = "" ]]; then
 fi
 
 echo "RVM: BUILD: $RVM_BUILD\n     SPECJVM98: $RVM_SPECJVM98"
-
-# If hpm events not set, then count nothing!    
-if [[ $HPM_EVENT_1 = "" ]]; then
-  HPM_EVENT_1=0
-fi
-if [[ $HPM_EVENT_2 = "" ]]; then
-  HPM_EVENT_2=0
-fi
-if [[ $HPM_EVENT_3 = "" ]]; then
-  HPM_EVENT_3=0
-fi
-if [[ $HPM_EVENT_4 = "" ]]; then
-  HPM_EVENT_4=0
-fi
-if [[ $HPM_EVENT_5 = "" ]]; then
-  HPM_EVENT_5=0
-fi
-if [[ $HPM_EVENT_6 = "" ]]; then
-  HPM_EVENT_6=0
-fi
-if [[ $HPM_EVENT_7 = "" ]]; then
-  HPM_EVENT_7=0
-fi
-if [[ $HPM_EVENT_8 = "" ]]; then
-  HPM_EVENT_8=0
-fi
-
 
 ##################
 # which benchmark?
@@ -131,27 +114,162 @@ if [[ $# = 4 || $# > 4 ]]; then
   fi
 fi
 
+#####################################
+# Determine where to put output files
 numProcessors=1
+if [[ $# = 5 || $# > 5 ]]; then
+  if [[ $5 != '+' ]]; then
+    numProcessors=$5
+  fi
+fi
 
-   aos_log="$outputDir/aos.$benchmark.$inputSize.$numProcessors.$runs.log"
-output_log="$outputDir/aos.$benchmark.$inputSize.$numProcessors.$runs.output"
+hpm_event1=0
+hpm_event2=0
+hpm_event3=0
+hpm_event4=0
+hpm_event5=0
+hpm_event6=0
+hpm_event7=0
+hpm_event8=0
+#####################################
+# Determine events
+setting=1
+if [[ $# = 6 || $# > 6 ]]; then
+  if [[ $6 != '+' ]]; then
+    setting=$6
+  fi
+fi
+
+if [[ $setting = 1 ]]; then
+  # RS64-III
+  hpm_event1=10  # PM_L1_ICACHE_MISS_LATENCY
+  hpm_event2=10  # PM_L1_ICACHE_MISS
+  hpm_event3=3   # PM_CMPL_INSTR
+  hpm_event4=1   # PM_CYC
+  hpm_event5=14  # PM_TLB_MISS_LATENCY
+  hpm_event6=12  # PM_L1_DCACHE_MISS_LATENCY
+  hpm_event7=12  # PM_L1_DCACHE_MISS
+  hpm_event8=2   # PM_ST_LATENCY
+elif [[ $setting = 2 ]]; then
+  # 604e: tlb
+  hpm_event1=6	# PM_DTLB_MISS
+  hpm_event2=7	# PM_ITLB_MISS
+  hpm_event3=1	# PM_CYC
+  hpm_event4=2	# PM_INST_CMPL
+elif [[ $setting = 3 ]]; then
+  # 604e: cache
+  hpm_event1=5	# PM_IC_MISS
+  hpm_event2=6	# PM_DC_MISS
+  hpm_event3=1	# PM_CYC
+  hpm_event4=2	# PM_INST_CMPL
+elif [[ $setting = 4 ]]; then
+  # 604e: ld/st
+  hpm_event1=2	# PM_INST_CMPL
+  hpm_event2=18	# PM_LD_CMPL
+  hpm_event3=1	# PM_CYC
+  hpm_event4=9	# PM_INST_INTO_SQ
+elif [[ $setting = 5 ]]; then
+  # branch
+  hpm_event1=7	# PM_BR_MPRED
+  hpm_event2=6	# PM_BR_CMPL
+  hpm_event3=1	# PM_CYC
+  hpm_event4=2	# PM_INST_CMPL
+elif [[ $setting = 6 ]]; then
+ # 604e: floating-point
+ hpm_event1=15	# PM_FPU_CMPL
+  hpm_event2=4	# PM_INST_DISP
+  hpm_event3=1	# PM_CYC
+  hpm_event4=2	# PM_INST_CMPL
+elif [[ $setting = 7 ]]; then
+  # 604e: general
+  hpm_event1=6	# PM_DTLB_MISS
+  hpm_event2=6	# PM_DC_MISS
+		# 5 PM_LD_MISS_CYC
+  hpm_event3=2 # PM_INST_CMPL
+  hpm_event4=1 # PM_CYC
+elif [[ $setting = 10 ]]; then
+  # Power4, group 23 pm_lsubusy		LSU Busy Events
+  #  1 LSU_SRQ_S0_VALID   2 LSU_SRQ_S0_ALLOC  3 LSU0_BUSY,        4 LSU1_BUSY
+  #  5 LSU_LRQ_S0_VALID   6 LSU_LRQ_S0_ALLOC  7 INST_CMPL         8 CYC
+  hpm_event1=23
+elif [[ $setting = 11 ]]; then
+  # Power4, group 34 pm_lsu_lmq		LSU Load Miss Queue Events
+  #  1 LSU_LMQ_LHR_MERGE  2 LSU_LMQ_FULL_CYC  3 LSU_LMQ_S0_ALLOC  4 LSU_LMQ_S0_VALID
+  #  5 CYC,               6 INST_CMPL         7 LSU_SRQ_SYNC_CYC  8 DATA_TABLEWALK_CYC
+  hpm_event1=34	
+elif [[ $setting = 12 ]]; then
+  # Power4, group 36 pm_lsu_load1	LSU Load Events
+  #  1 LSU0_FLUSH_ULD     2 LSU1_FLUSH_ULD    3 LD_REF_L1_LSU0    4 LD_REF_L1_LSU1
+  #  5 CYC                6 INST_CMPL         7 LD_MISS_L1_LSU0   8 LD_MISS_L1_LSU1
+  hpm_event1=36	
+elif [[ $setting = 13 ]]; then
+  # Power4, group 55 pm_pe_bench3 	Branch analysis
+  #  1 INST_CMPL          2 BIQ_IDU_FULL_CYC  3 BR_ISSUED         4 BR_MPRED_CR
+  #  5 BRQ_FULL_CYC       6 CYC               7 BR_MPRED_TA       8 L1_WRITE_CYC
+  hpm_event1=55	
+elif [[ $setting = 14 ]]; then
+  # Power4, group 56 pm_pe_bench4 	L1 and TLB analysis
+  #  1 DTLB_MISS          2 ITLB_MISS         3 LD_MISS_L1        4 ST_MISS_L1
+  #  5 CYC                6 INST_CMPL         7 ST_REF_L1         8 LD_REF_L1
+  hpm_event1=56	
+elif [[ $setting = 15 ]]; then
+  # Power4, group 57 pm_pe_bench5	L2 analysis
+  #  1 INST_CMPL          2 CYC                3 DATA_FROM_L35      4 MRK_DATA_FROM_L2
+  #  5 DATA_FROM_L25_SHR  6 DATA_FROM_L275_SHR 7 DATA_FROM_L275_MOD 8 DATA_FROM_L25_MOD
+  hpm_event1=57
+elif [[ $setting = 16 ]]; then
+  # Power4, group 58 pm_pe_bench6	L3 analysis
+  #  1 DATA_FROM_L3       2 DATA_FROM_MEM     3 DATA_FROM_L35      4 DATA_FROM_L2
+  #  5 DATA_FROM_L25_SHR  6 CYC               7 INST_CMPL          8 DATA_FROM_L25_MOD
+  hpm_event1=58
+else 
+  echo "setting $setting is invalid"
+  exit -1
+fi
+
+#####################################
+# mode settings:
+# IS_GROUP    1	/* is an event group (only event 1 should be defined) */
+# PROCESS     2	/* process level group indicator */
+# KERNEL      4	/* turns kernel mode counting on */
+# USER        8	/* turns user mode counting on */
+# COUNT      16	/* counting state */
+# PROCTREE   32	/* turns process tree counting on */
+hpm_mode=12
+if [[ $# = 7 || $# > 7 ]]; then
+  if [[ $7 != '+' ]]; then
+    hpm_mode=$7
+  fi
+fi
+
+echo "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode"
+
+
+   aos_log="$outputDir/log.$benchmark.$inputSize.$numProcessors.$runs.$setting"
+output_log="$outputDir/aos.$benchmark.$inputSize.$numProcessors.$runs.$setting"
 
 echo ""
-echo "inputSize: $inputSize, numProcessors: $numProcessors, runs: $runs"
+echo "inputSize: $inputSize, numProcessors: $numProcessors, runs: $runs, setting: $setting"
 echo "   aos_log: $aos_log"
 echo "output_log: $output_log"
 echo ""
 
 logging_level=1
+large_heap=200
+small_heap=600
+verbose=0
+trace_verbose=0
 ###############################
 # set up command line arguments
 # notify_vm_complete and measureCompilation results in compilation statistics
-jvm_options="-X:lh=50 -X:h=250 -verbose:gc -X:processors=$numProcessors -X:aos:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -X:aos:hardware_performance_monitors=true -X:aos:hpm_event1=$HPM_EVENT_1 -X:aos:hpm_event2=$HPM_EVENT_2 -X:aos:hpm_event3=$HPM_EVENT_3 -X:aos:hpm_event4=$HPM_EVENT_4  -X:aos:hpm_event5=$HPM_EVENT_5 -X:aos:hpm_event6=$HPM_EVENT_6 -X:aos:hpm_event7=$HPM_EVENT_7  -X:aos:hpm_event8=$HPM_EVENT_8"
+jvm_options="-X:lh=$large_heap -X:h=$small_heap -X:processors=$numProcessors -X:aos:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -verbose:gc" 
+
+hpm_options="-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4  -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7  -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$verbose -X:hpm:trace=true -X:hpm:trace_verbose=$trace_verbose -X:hpm:trace_verbose=1 -X:hpm:trace_file=HPM.$benchmark.$inputSize.$runs.$numProcessors"
 
 # don't append ":." because it doesn't work, and don't need ./cp
 cp="-classpath $RVM_SPECJVM98"
 spec_options="-d3000 -g -m$runs -M$runs -s$inputSize"
 
-echo "$RVM_ROOT/rvm/bin/rvm $jvm_options $cp SpecApplication  $spec_options -a $benchmark # > $output_log"
-$RVM_ROOT/rvm/bin/rvm $jvm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log
+echo "$RVM_ROOT/rvm/bin/rvm $jvm_options $hpm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log"
+      $RVM_ROOT/rvm/bin/rvm $jvm_options $hpm_options $cp SpecApplication $spec_options -a $benchmark # > $output_log
 
