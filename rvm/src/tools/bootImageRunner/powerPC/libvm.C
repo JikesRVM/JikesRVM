@@ -76,6 +76,20 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 // Third argument to signal handler is of type ucontext_t
 #define SIGNAL_ARG3_IS_UCONTEXT
 
+// The following comes from /usr/src/linux-2.4/arch/ppc/kernel/signal.c
+#define ELF_NGREG       48      /* includes nip, msr, lr, etc. */
+#define ELF_NFPREG      33      /* includes fpscr */
+typedef unsigned long elf_greg_t;
+typedef elf_greg_t elf_gregset_t[ELF_NGREG];
+struct linux_sigregs {
+	elf_gregset_t	gp_regs;
+	double		fp_regs[ELF_NFPREG];
+	unsigned long	tramp[2];
+	/* Programs using the rs6000/xcoff abi can save up to 19 gp regs
+	   and 18 fp regs below sp before decrementing it. */
+	int		abigap[56];
+};
+
 #endif
 
 #ifdef RVM_FOR_AIX
@@ -769,19 +783,18 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     
 #ifdef RVM_FOR_LINUX
     for (int i = 0; i < NGPRS; ++i)
-        gprs[i] = save->gpr[i];
-    for (int i = 0; i < NFPRS; ++i)  // linux on PPC does not save FPRs ?
-        fprs[i] = -1.0;   
+      gprs[i] = save->gpr[i];
+    for (int i = 0; i < 32; ++i) 
+      fprs[i] = ((struct linux_sigregs*)save)->fp_regs[i];
     *ipLoc = save->nip + 4; // +4 so it looks like return address
     *lrLoc = save->link;
 #endif
     
 #ifdef RVM_FOR_OSX
     {
-        for (int i = 0; i < NGPRS; ++i)
-            gprs[i] = GET_GPR(save, i);
-        //     for (i = 0; i < NFPRS; ++i)
-        //       fprs[i] = -1.0;   
+      for (int i = 0; i < NGPRS; ++i)
+        gprs[i] = GET_GPR(save, i);
+      *ipLoc = save->nip + 4; // +4 so it looks like return address
     }
     *ipLoc = save->srr0 + 4; // +4 so it looks like return address
     *lrLoc = save->lr;
