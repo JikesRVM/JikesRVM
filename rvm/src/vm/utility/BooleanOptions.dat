@@ -5,9 +5,6 @@ DECL
 # Structure of DECL FULL_NAME DEFAULT_VALUE {SHORT_NAME}
 DESCRIP
 
-VerifyBytecode false verify
-Should bytecodes be verified?  XXX Does not work reliably; user contributions welcome.
-
 MeasureCompilation false measureCompilation
 Time all compilations and report on exit
 

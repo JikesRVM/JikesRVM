@@ -164,10 +164,11 @@ public final class VM_NormalMethod
    * Generate the code for this method
    */
   protected VM_CompiledMethod genCode() throws VerifyError {
-    if (VM.VerifyBytecode) {
-      VM_Verifier verifier = new VM_Verifier();
-      verifier.verifyMethod(this);
-    }
+    // The byte code verifier is dead; needs replacement.
+//     if (VM.VerifyBytecode) {
+//       VM_Verifier verifier = new VM_Verifier();
+//       verifier.verifyMethod(this);
+//     }
 
     if (VM.writingBootImage) {
       return VM_BootImageCompiler.compile(this); 
