@@ -11,6 +11,27 @@ FILTER
 ENUMS
 #Structure of ENUMS "ITEM_NAME QUERY_NAME CMD_NAME"
 
+
+V verbose int 0 
+GC verbosity level
+if (val < 0) VM_Interface.sysFail("Unreasonable verbosity level " + val);
+
+
+V minNurseryPages int Plan.DEFAULT_MIN_NURSERY fixedNursery
+Bound the minimum and maximum size of the nursery to this value (MB)
+int val2 = Conversions.bytesToPagesUp(val<<20); \
+maxNurseryPages = val2; \
+if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + val); \
+val = val2;
+
+
+V maxNurseryPages int Plan.DEFAULT_MAX_NURSERY boundedNursery
+Bound the maximum size of the nursery to this value (MB)
+int val2 = Conversions.bytesToPagesUp(val<<20); \
+if (val2 <= 0) VM_Interface.sysFail("Unreasonable nursery size " + val); \
+val = val2;
+
+
 V growThreshold double 0.8
 Grow the heap when live ratio exceeds this value
 if (val <= 0.0 || val >= 1.0) VM_Interface.sysFail("Unreasonable growThreshold " + val);
@@ -19,11 +40,6 @@ if (val <= 0.0 || val >= 1.0) VM_Interface.sysFail("Unreasonable growThreshold "
 V growRatio double 1.2
 Grow the heap by this ratio
 if (val < 1.0) VM_Interface.sysFail("Unreasonable growRatio " + val);
-
-
-V verbose int 0 
-GC verbosity level
-if (val < 0) VM_Interface.sysFail("Unreasonable verbosity level " + val);
 
 
 V metaDataPages int 128 metadata_limit
@@ -55,19 +71,4 @@ if (val <= 0) VM_Interface.sysFail("Unreasonable time cap " + val);
 V stressTest int MAX_INT stress
 Perform GCs very frequently ??????
 val = 1<<val;
-
-
-V minNurseryPages int Plan.DEFAULT_MIN_NURSERY fixedNursery
-Use a fixed size nursery of this size
-int val2 = Conversions.bytesToPagesUp(val<<20); \
-maxNurseryPages = val2; \
-if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + val); \
-val = val2;
-
-
-V maxNurseryPages int Plan.DEFAULT_MAX_NURSERY boundedNursery
-Bound the maximum size of the nursery to this value
-int val2 = Conversions.bytesToPagesUp(val<<20); \
-if (val2 <= 0) VM_Interface.sysFail("Unreasonable nursery size " + val); \
-val = val2;
 
