@@ -310,8 +310,8 @@ public class VM_CollectorThread extends VM_Thread {
       if (count > 0) { // resume normal scheduling
         VM_Processor.getCurrentProcessor().enableThreadSwitching();
       }
-      VM_Thread.getCurrentThread().yield(VM_Scheduler.collectorQueue,
-                                         VM_Scheduler.collectorMutex);
+      VM_Thread.yield(VM_Scheduler.collectorQueue,
+                      VM_Scheduler.collectorMutex);
       
       /* block mutators from running on the current processor */
       VM_Processor.getCurrentProcessor().disableThreadSwitching();

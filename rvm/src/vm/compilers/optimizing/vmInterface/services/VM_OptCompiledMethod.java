@@ -526,7 +526,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 
       // do sync only when necessary 
       while (VM_Scheduler.toSyncProcessors > 0) {
-        VM_Thread.getCurrentThread().yield();
+        VM_Thread.yield();
       }
       
       if (DEBUG_CODE_PATCH) {
