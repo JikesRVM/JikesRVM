@@ -30,14 +30,14 @@ class VM_CompilerDNA implements VM_Constants {
    */
   //-#if RVM_FOR_AIX
   /*
-   *  These numbers were from a shadow on November 24, 2001 on AIX/PPC
+   *  These numbers were from a shadow on Feb 14, 2002 on AIX/PPC
    */
-  private static double[] compilationRates = {308.81, 6.91, 2.85, 0.85};
+  private static double[] compilationRates = {293.67, 6.69, 2.53, 0.87};
   //-#else
   /*
-   *  These numbers were from a shadow on November 17, 2001 on Linux/IA32
+   *  These numbers were from a shadow on Feb 14, 2002 on Linux/IA32
    */
-  private static double[] compilationRates = {494.43, 8.96, 5.02, 1.93};
+  private static double[] compilationRates = {504.51, 13.29, 5.89, 2.24};
   //-#endif
 
   /**
@@ -45,44 +45,16 @@ class VM_CompilerDNA implements VM_Constants {
    */
   //-#if RVM_FOR_AIX
   /*
-   *  These numbers were from a shadow on November 24, 2001 on AIX/PPC
+   *  These numbers were from a shadow on Feb 14, 2002 on AIX/PPC
    */
-  private static double[] speedupRates = {1.00, 4.09, 5.83, 6.14};
+  private static double[] speedupRates = {1.00, 4.08, 6.02, 6.30};
   //-#else
 
   /*
-   *  These numbers were from a shadow on November 17, 2001 on Linux/IA32
+   *  These numbers were from a shadow on Feb 14, 2002 on Linux/IA32
    */
-  private static double[] speedupRates = {1.00, 2.61, 3.99, 3.81};
+  private static double[] speedupRates = {1.00, 2.82, 4.21, 3.92};
   //-#endif
-
-  // Here are the Linux numbers in use from November 18, 2001 - Dec 11, 2001
-  // private static double[] compilationRates = {492.78, 8.95, 4.92, 1.92};
-  // private static double[] speedupRates = {1.00, 4.09, 5.83, 6.14};
-
-  // Here are the Linux numbers in use from October 20, 2001 - Nov 18, 2001
-  //  private static double[] speedupRates = {1.00, 1.98, 3.13, 3.00};
-  //  private static double[] compilationRates = {484.24, 9.36, 5.21, 2.14};
-
-  // Here are the (AIX) numbers in use from Aug 5, 2001 - Nov 24, 2001
-  //  private static double[] compilationRates = {255.35, 6.75, 3.16, 1.14};
-  //  private static double[] speedupRates = {1.00, 4.21, 5.84, 6.01};
-
-  // Here are the (AIX) numbers in use from June 8, 2001 - Aug 4, 2001
-  //  private static double[] compilationRates = {228.63, 6.52, 3.15, 1.33};
-  //  private static double[] speedupRates = {1.00, 4.27, 5.84, 6.18};
-
-  // Here are the numbers in use from June 3, 2001 - June 7, 2001
-  //  private static double[] compilationRates = {228.63, 6.52, 3.15, 1.33};
-  //  private static double[] speedupRates = {1.00, 2.95, 3.79, 4.01};
-
-  // Here are the numbers in use from Apr 29, 2001 - June 2, 2001
-  //  private static double[] compilationRates = {241.37, 10.03, 4.29, 1.92};
-  //  private static double[] speedupRates = {1.00, 2.93, 3.74, 3.86};
-
-  // Here are the numbers in use from Dec 12, 2000 - Apr 28, 2001
-  //  private static double[] compilationRates = {266.25, 16.25, 5.41, 1.28};
-  //  private static double[] speedupRates = {1.00, 2.89, 5.65, 6.04};
 
   /**
    * Benefits of moving from one compilation level to another
