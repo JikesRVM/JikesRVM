@@ -26,21 +26,26 @@ public class Lock implements VM_Uninterruptible {
 
   // Debugging
   private static double REPORT_SLOW_LOCK = 0.0; // 0.0 to disable
-  private static int MAX_RETRY = 1000000; // -1 to disable
+  private static int MAX_RETRY = 10000000; // -1 to disable
   public static int verbose = 0; // show who is acquiring and releasing the locks
   private static int lockCount = 0;
 
   // Instance fields
   private String name;        // logical name of lock
+  private int id;             // lock id (based on a non-resetting counter)
   private int lock;           // state of lock
   private VM_Thread thread;   // if locked, who locked it?
   private double start;       // if locked, when was it locked?
-  private int id;
+  private int where = -1;     // how far along has the lock owner progressed?
 
   public Lock(String str) { 
     lock = UNLOCKED; 
     name = str;
     id = lockCount++;
+  }
+
+  public void checkpoint(int w) {
+    where = w;
   }
 
   // Try to acquire a lock and spin-wait until acquired.
@@ -69,7 +74,7 @@ public class Lock implements VM_Uninterruptible {
 	VM.sysWrite(" times or ");
 	VM.sysWrite(1000000.0 * (end - localStart));
 	VM.sysWriteln(" micro-seconds");
-	VM.sysWrite("Locking thread: "); thread.dump(1); VM.sysWriteln();
+	VM.sysWrite("Locking thread: "); thread.dump(1); VM.sysWriteln(" at position ", where);
 	VM.sysWrite("Locked out thread: "); VM_Thread.getCurrentThread().dump(1); VM.sysWriteln();
 	VM.sysWriteln("Will now spin without trying to acquire lock");
         VM_Scheduler.dumpStack();
@@ -79,6 +84,7 @@ public class Lock implements VM_Uninterruptible {
     }
     start = VM_Time.now();
     thread = VM_Thread.getCurrentThread();
+    where = 0;
     if (verbose > 1) {
       VM.sysWrite("Thread ");
       thread.dump();
@@ -107,6 +113,7 @@ public class Lock implements VM_Uninterruptible {
       VM.sysWriteln(" micro-seconds");
     }
     thread = null;
+    where = -1;
     VM_Magic.sync();
     boolean success = VM_Synchronization.tryCompareAndSwap(this, lockFieldOffset, LOCKED, UNLOCKED); // guarantees flushing
     if (VM.VerifyAssertions) VM._assert(success);
