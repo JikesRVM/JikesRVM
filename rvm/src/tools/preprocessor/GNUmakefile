@@ -28,7 +28,7 @@ tool:
 ## We can compile this either as C or as C++.
 ## Maybe one compiler generates nicer warnings than the other?
 
-#$(TOOL): ${TOOL_NAME}.c
+# $(TOOL): ${TOOL_NAME}.c
 #     $(CC) --std=gnu99 $(CFLAGS) $< -o $@
 
 $(TOOL): ${TOOL_NAME}.C
@@ -37,7 +37,7 @@ $(TOOL): ${TOOL_NAME}.C
 # Preprocessor testing.
 # These rules make the executable anywhere; usually here if you're testing.
 
-TESTS:=test1 test2 test3 test4 test5 test6 test7a test7b test8a test8b test8c
+TESTS:=test1 test2 test3 test4 test5 test6 test7a test7b test8a test8b test8c test8d test9 test10
 .PHONY: tool test $(TESTS) cleantest clean
 
 test:			${TOOL} $(TESTS)
@@ -99,7 +99,7 @@ test7a: ${TOOL}
 test7b: ${TOOL}
 	sed 's@//-@@' testFancy.preprocessor | ${CPP} -DA=1 -DB=1 >test7b.expected
 	$(RM) /tmp/testFancy.preprocessor
-	${TEST_TOOL} -DA=1 -DB=1 --no-undefined-constants-in-conditions --only-boolean-constants-in-conditions /tmp testFancy.preprocessor  || (( $$? == 2 ))
+	{ ${TEST_TOOL} -DA=1 -DB=1 --no-undefined-constants-in-conditions --only-boolean-constants-in-conditions /tmp testFancy.preprocessor; (( $$? == 2 )) ; }
 #	grep -v '^$$' /tmp/testFancy.preprocessor >test7b.actual
 #	diff test7b.actual test7b.expected
 
@@ -114,25 +114,31 @@ test8b: ${TOOL}
 	sed 's@//-@@' testFancy.preprocessor | ${CPP} -DA=1 -DB=1 -DC=99 >test8b.expected
 	$(RM) /tmp/testFancy.preprocessor
 # Trigger the error on D, which is undefined.
-	${TEST_TOOL} --no-undefined-constants-in-conditions --only-boolean-constants-in-conditions -DA=1 -DB=1 -DC=99 /tmp testFancy.preprocessor || (( $$? == 2 ))
+	{ ${TEST_TOOL} --no-undefined-constants-in-conditions --only-boolean-constants-in-conditions -DA=1 -DB=1 -DC=99 /tmp testFancy.preprocessor; (( $$? == 2 )) ; }
 #	grep -v '^$$' /tmp/testFancy.preprocessor >test8b.actual
 #	diff test8b.actual test8b.expected
 
 test8c: ${TOOL}
 	sed 's@//-@@' testFancy.preprocessor | ${CPP} -DA=1 -DB=1 -DC=99 >test8c.expected
 	$(RM) /tmp/testFancy.preprocessor
-# Trigger the error on D, which is undefined.
-	${TEST_TOOL} --no-undefined-constants-in-conditions --only-boolean-constants-in-conditions -DA=1 -DB=1 -DC=99 -DD=0 /tmp testFancy.preprocessor || (( $$? == 2 ))
+# DON'T trigger the error on D, even though it is undefined.
+	{ ${TEST_TOOL} --undefined-constants-in-conditions --no-only-boolean-constants-in-conditions -DA=1 -DB=1 -DC=99 /tmp testFancy.preprocessor; }
 #	grep -v '^$$' /tmp/testFancy.preprocessor >test8c.actual
 #	diff test8c.actual test8c.expected
 
 test8d: ${TOOL}
-	sed 's@//-@@' testFancy.preprocessor | ${CPP} -DA=1 -DB=1 -DC=99 >test8d.expected
+	sed 's@//-@@' testFancy.preprocessor | ${CPP} -DA=1 -DB=0 -DC=99 >test8d.expected
 	$(RM) /tmp/testFancy.preprocessor
-# Trigger the error on D, which is undefined.
-	${TEST_TOOL} --no-undefined-constants-in-conditions --no-only-boolean-constants-in-conditions -DA=1 -DB=1 -DC=99 -DD=0 /tmp testFancy.preprocessor || (( $$? == 2 ))
-	grep -v '^$$' /tmp/testFancy.preprocessor >test8d.actual
-	diff test8d.actual test8d.expected
+# Trigger the error on C, which has value 99.
+# Also complain about D, which is undefined
+	{ ${TEST_TOOL} -k --no-undefined-constants-in-conditions --only-boolean-constants-in-conditions -DA=1 -DB=1 -DC=99 -DD=0 /tmp testFancy.preprocessor; (( $$? == 2 )) ; }
+	! [[ -f /tmp/testFancy.preprocessor ]]
+
+test9: ${TOOL}
+	{ ${TEST_TOOL} -DA=1 -DB=1 /tmp testNoEndif.preprocessor; (( $$? == 2 )) ; }
+
+test10: ${TOOL}
+	{ ${TEST_TOOL} -DA=1 -DB=1 /tmp testNoSuchFile.preprocessor; (( $$? == 2 )) ; }
 
 cleantest:
 	$(RM) ${TOOL} *.o test*.actual test*.expected /tmp/test*.preprocessor
