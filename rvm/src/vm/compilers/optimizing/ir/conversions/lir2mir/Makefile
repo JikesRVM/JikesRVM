@@ -11,14 +11,20 @@ MIR_LIR2MIR_DIR = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/i
 MIR_IR_DIR = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction
 JBURG_DIR  = $(SCRATCH_DIR)
 
-all:	$(GEN_FILES_DIR)/ir.brg $(GEN_FILES_DIR)/com/ibm/JikesRVM/OPT_BURS_STATE.java
+# define RULE_FILES
+include $(MIR_LIR2MIR_DIR)/Makefile
 
-$(GEN_FILES_DIR)/ir.brg: $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/ir/instruction/OperatorList.dat $(MIR_LIR2MIR_DIR)/LIR2MIR.rules ir.template
+all:	$(GEN_FILES_DIR)/com/ibm/JikesRVM/OPT_BURS_STATE.java
+
+$(GEN_FILES_DIR)/LIR2MIR.rules:	$(RULE_FILES)
+	cat $(RULE_FILES) > $(GEN_FILES_DIR)/LIR2MIR.rules
+
+$(GEN_FILES_DIR)/ir.brg: $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/ir/instruction/OperatorList.dat ir.template $(GEN_FILES_DIR)/LIR2MIR.rules
 	$(HOST_JAVA) -classpath $(SCRATCH_DIR)\
 	GenerateFromTemplate ir.template \
 	$(GEN_FILES_DIR)/ir.brg \
-	ARCHITECTURE_IR_DIR=$(MIR_IR_DIR)\
-	ARCHITECTURE_LIR2MIR_DIR=$(MIR_LIR2MIR_DIR)
+	ARCHITECTURE_IR_DIR=$(MIR_IR_DIR) \
+	THE_RULE_FILE=$(GEN_FILES_DIR)/LIR2MIR.rules
 
 $(GEN_FILES_DIR)/com/ibm/JikesRVM/OPT_BURS_STATE.java:	$(GEN_FILES_DIR)/ir.brg burg.template
 	(cd $(GEN_FILES_DIR) && $(JBURG_DIR)/jburg -p BURS ir.brg > $(ARCH_DIR).tmp)

@@ -6,12 +6,12 @@
 //$Id$
 
 /**
- * Type "make" or "make ir.brg" to automatically generate ir.brg from
- * ir.template.
+ * Generate from ir.template and assembled rules files.
  *
+ * @author Dave Grove
+ * @author Igor Pechtchanski
  * @author Vivek Sarkar
  * @author Mauricio Serrano
- * @author Igor Pechtchanski
  */
 %}
 $$$$ FOREACH OPERATOR ../../instruction/OperatorList.dat
@@ -29,7 +29,7 @@ $$$$ IF OPERATOR.SYMBOL == "ARCH_INDEPENDENT_END"
 $$$$ ENDIF
 $$$$ END FOREACH
 %%
-$$$$ FOREACH RULE ARCHITECTURE_LIR2MIR_DIR/LIR2MIR.rules
+$$$$ FOREACH RULE THE_RULE_FILE
 $$$$ IF "RULE.COST" =~ "?"
 RULE.PRODUCTION		"" (RULE.COST)
 $$$$ ELSE
@@ -38,12 +38,12 @@ $$$$ END IF
 $$$$ END FOREACH
 %%
 static final byte action[]={0
-$$$$ FOREACH RULE ARCHITECTURE_LIR2MIR_DIR/LIR2MIR.rules
+$$$$ FOREACH RULE THE_RULE_FILE
    ,RULE.FLAGS
 $$$$ END FOREACH
 };
 
-$$$$ FOREACH RULE ARCHITECTURE_LIR2MIR_DIR/LIR2MIR.rules
+$$$$ FOREACH RULE THE_RULE_FILE
 $$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"
   $$$$ LET CASE RULE.INDEX+1
 void codeCASE(OPT_BURS_TreeNode p) {
@@ -55,7 +55,7 @@ $$$$ END FOREACH
 
 void code(OPT_BURS_TreeNode p, int  n, int ruleno) {
   switch(ruleno) {
-$$$$ FOREACH RULE ARCHITECTURE_LIR2MIR_DIR/LIR2MIR.rules
+$$$$ FOREACH RULE THE_RULE_FILE
 $$$$ IF "RULE.FLAGS" =~ "EMIT_INSTRUCTION"
   $$$$ LET CASE RULE.INDEX+1
   case CASE: codeCASE(p); break;

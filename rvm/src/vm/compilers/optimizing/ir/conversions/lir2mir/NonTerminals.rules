@@ -1,0 +1,123 @@
+#
+# (C) Copyright IBM Corp. 2001,2002
+#
+#//$Id$
+#
+# @author Dave Grove
+#
+# BURS rules common to all platforms defining common nonterminals
+#
+# The format of PRODUCTION is 'non-terminal:	rule'
+PRODUCTION
+# COST is a Java expression that evaluates to an integer.
+# The following conventions are more or less followed:
+#   Each instruction generated has a base cost of 10
+#   A basic (r,r) or (r,riv) costs 3 more
+#   A (m,riv) costs 7
+#   A (r,m) costs 5
+#   Better basic opcodes (inc instead of add 1) decrease cost by 2
+COST
+# For definition of FLAGS bits see BURS_TreeNode.java
+FLAGS
+# Code
+TEMPLATE
+
+##################################
+# Definitions of non-terminals and
+# mapping of leaves into non-terminals
+##################################
+# the non-terminal r can be mapped to non-terminal stm at no cost
+stm:	r
+0
+NOFLAGS
+// No code emitted
+
+# the terminal REGISTER maps to non-terminal r
+r:	REGISTER
+0
+NOFLAGS
+// No code emitted
+
+# the nonterminal czr can map to non-terminal r
+# czr indicates that (1) a register result is produced
+# and (2) as a side-effect of producing that result the condition registers
+# are set as if the result was compared to 0.
+r:	czr
+0
+NOFLAGS
+// No code emitted
+
+# the nonterminal czr can map to non-terminal cz
+# cz indicates that the condition registers like a compare instruction
+cz:	czr
+0
+NOFLAGS
+// No code emitted
+
+# the terminal INT_CONSTANT maps to non-terminal iv
+iv:	INT_CONSTANT
+0
+NOFLAGS
+// No code emitted
+
+# the terminal ZERO can map to non-terminal iv
+iv:	ZERO
+0
+NOFLAGS
+// No code emitted
+
+# the terminal ONE can map to non-terminal iv
+iv:	ONE
+0
+NOFLAGS
+// No code emitted
+
+# the terminal LONG_CONSTANT maps to non-terminal lv
+lv:	LONG_CONSTANT
+0
+NOFLAGS
+// No code emitted
+
+# the non-terminal riv is either an r or an iv
+riv:	r
+0
+NOFLAGS
+// No code emitted
+
+riv:	iv
+0
+NOFLAGS
+// No code emitted
+
+# the non-terminal rlv is either an r or an lv
+rlv:	r
+0
+NOFLAGS
+// No code emitted
+
+rlv:	lv
+0
+NOFLAGS
+// No code emitted
+
+# calls can have any number of arguments and we don't care what they are.
+arg:	NULL
+0
+NOFLAGS
+// No code emitted
+
+arg:	riv
+0
+NOFLAGS
+// No code emitted
+
+arg:	lv
+0
+NOFLAGS
+// No code emitted
+
+arg:	OTHER_OPERAND(arg, arg)
+0
+NOFLAGS
+// No code emitted
+
