@@ -34,6 +34,7 @@ import com.ibm.JikesRVM.classloader.VM_Atom;
  *
  * @author Peter F. Sweeney
  * @author Dave Grove
+ * @modified Matthias Hauswirth  August 2003
  */
 public class VM_HardwarePerformanceMonitors 
 {
@@ -58,6 +59,7 @@ public class VM_HardwarePerformanceMonitors
   //BEGIN HRM
   static private int       METHOD_RECORD = 4;
   //END HRM
+  static private int       TRACE_FILE_RECORD = 5;
 
   // Set true in VM_HPMs.setUpHPMinfo() to tell VM_Processor when it is safe to collect hpm data!  
   static public  boolean safe = false;
@@ -297,8 +299,6 @@ public class VM_HardwarePerformanceMonitors
   {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
-      // set up callbacks
-      setUpCallbacks();
 
       // Needed to allocate the HPM counters for the primodial thread!
       VM_Thread thread = VM_Thread.getCurrentThread();
@@ -344,6 +344,9 @@ public class VM_HardwarePerformanceMonitors
 	VM_SysCall.sysHPMstartMyGroup();
       }
       //-#endif
+
+      // set up callbacks
+      setUpCallbacks();
     }
   }
   /**
@@ -739,7 +742,7 @@ public class VM_HardwarePerformanceMonitors
       final int numberOfMethodReferenceEntries = VM_MemberReference.getNextId();
       if (verbose>2) VM.sysWriteln("Number of member reference entries: ", numberOfMethodReferenceEntries);
       for (int mid=0; mid<numberOfMethodReferenceEntries; mid++) {
-	if (verbose>2) VM.sysWrite("mid: ", mid);
+	if (verbose>6) VM.sysWrite("mid: ", mid);
         VM_MemberReference mr = VM_MemberReference.getMemberRef(mid);
         if (mr!=null) {
           if (mr.isMethodReference()) {
