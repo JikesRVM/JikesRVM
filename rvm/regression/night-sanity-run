@@ -149,11 +149,10 @@ $RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/i
 
 # Archive result files and performance results
 
-declare -i skipped_archiving=0
+declare -i archived=0
 if [[ ! -d $ARCHIVE ]]; then
     echo "$ME: No archive directory named $ARCHIVE exists; skipping archiving." \
 	| tee -a $RUN_LOG $MSG 
-    skipped_archiving=1
 else
     echo -e "Archiving results into $ARCHIVE\n" >> $RUN_LOG
     tarfile=$ARCHIVE/archive.`date +"%A"`.${ARCH}.tar.gz
@@ -234,7 +233,7 @@ fi >> $MSG
 echo "  Sanity tests are specified in $CONFIG_DIR/$sanity_cfg" >> $MSG
 
 declare -i have_perf_log=0
-declare -i have_useful_perf_log
+declare -i have_useful_perf_log	# Do we have a PERF_LOG that we can make good use of?
 
 if [[ -f $PERF_LOG ]]; then
     have_perf_log=1
@@ -271,36 +270,26 @@ if (( have_useful_perf_log )); then
     $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98 ${PERF_LOG}
 fi >> $MSG
 
+function compResults () {
+    local opt="$1"		# Optimization level: 0, 1, or 2
+    # raw results in f:
+    local f=$(echo $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastAdaptiveCopyMS.O${opt}.?proc.raw) 
+    local -r analyzer=$RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk
+    if [[ -e $raw ]]; then
+	echo -e "\n\n Opt Level ${opt} compilation breakdown for SPECjvm98 size 100\n"
+	$AWK -f $analyzer $f
+    elif (( have_boot_images )); then
+	echo ""
+	echo  "$ME: Could not find Opt Level ${opt} compilation breakdown results."
+	echo  "$ME: I was looking in $f"
+    fi
+}
 ## Without boot images, it's unlikely we'll have compilation results either
 ## However, I suppose three extra tests for a file's existence won't hurt.
 # if (( have_boot_images )); then
-if :; then
-    ## Gather measure compilation results.  
-    f=$MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastAdaptiveCopyMS.O0.?proc.raw
-    if [[ -e $f ]]; then
-	echo -e "\n\n Opt Level 0 compilation breakdown for SPECjvm98 size 100\n"
-	$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $f
-    elif (( have_boot_images )); then
-	echo -e "\nCould not find Opt Level 0 compilation breakdown results.\n"
-	echo -e "Was looking in $f\n"
-    fi
-
-    f=$MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastAdaptiveCopyMS.O1.?proc.raw
-    if [[ -e $f ]]; then
-	echo -e "\n\n Opt Level 1 compilation breakdown for SPECjvm98 size 100\n"
-	$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $f
-    fi
-    elif (( have_boot_images )); then
-	echo -e "\nCould not find Opt Level 1 compilation breakdown results.\n"
-
-    f=$MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastAdaptiveCopyMS.O2.?proc.raw
-    if [[ -f $f ]]; then
-	echo -e "\n\n Opt Level 2 compilation breakdown for SPECjvm98 size 100\n" 
-	$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk  $f
-    elif (( have_boot_images )); then
-	echo -e "\nCould not find Opt Level 2 compilation breakdown results.\n"
-    fi
-fi >> $MSG 
+for opt in 0 1 2; do
+    compResults >> $MSG
+done
 
 # Finally!  Send the mail message to those who care
 # echo "mailing status to $RESULT_MAILING_LIST"
