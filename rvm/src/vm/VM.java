@@ -846,7 +846,7 @@ public class VM extends VM_Properties
 //   }
 
   public static boolean debugOOM = false; // debug out-of-memory exception. DEBUG
-  public static boolean doEmergencyGrowHeap = true; // DEBUG
+  public static boolean doEmergencyGrowHeap = !debugOOM; // DEBUG
   
   /**
    * Exit virtual machine.
@@ -892,8 +892,10 @@ public class VM extends VM_Properties
 							   String message) 
   {
     ++inSysFail;
-    if (inSysFail > 1 && inSysFail <= maxSystemTroubleRecursionDepth + 1) {
-      sysWriteln("VM.sysFail(): We're in a recursive call to VM.sysFail()");
+    if (inSysFail > 1 && inSysFail <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
+      sysWrite("VM.sysFail(): We're in a recursive call to VM.sysFail(), ");
+      sysWrite(inSysFail);
+      sysWriteln(" deep.");
       sysWrite("sysFail was called with the message: ");
       sysWriteln(message);
      }
@@ -908,8 +910,11 @@ public class VM extends VM_Properties
   private static void handlePossibleRecursiveCallToSysExit() {
     ++inSysExit;
     /* Message if we've been here before. */
-    if (inSysExit > 1 && inSysExit <= maxSystemTroubleRecursionDepth + 1)
-      sysWriteln("In a recursive call to VM.sysExit()");
+    if (inSysExit > 1 && inSysExit <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
+      sysWrite("In a recursive call to VM.sysExit(), ");
+      sysWrite(inSysExit);
+      sysWriteln(" deep.");
+    }
     
     if (inSysExit > maxSystemTroubleRecursionDepth ) {
       dieAbruptlyRecursiveSystemTrouble();
@@ -923,8 +928,10 @@ public class VM extends VM_Properties
     ++inShutdown;
     /* If we've been here only a few times, print message. */
     if (   inShutdown > 1 
-	&& inShutdown <= maxSystemTroubleRecursionDepth + 1) {
-      sysWriteln("We're in a recursive call to VM.shutdown()!");
+	&& inShutdown <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
+      sysWriteln("We're in a recursive call to VM.shutdown()");
+      sysWrite(inShutdown);
+      sysWriteln(" deep!");
     }
     if (inShutdown > maxSystemTroubleRecursionDepth ) {
       dieAbruptlyRecursiveSystemTrouble();
