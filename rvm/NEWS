@@ -11,6 +11,15 @@ The following four sections of the document will one day be the
 release notes for Jikes RVM following the 2.3.4 release.
 
 *Highlights after the Jikes RVM 2.3.4 release
+**We work with the new GNU Classpath 0.13.  Carefully read
+the comments before the definition of RVM_WITH_CLASSPATH_0_13 in
+rvm/bin/jconfigure if you want to work with Classpath 0.13.
+
+**We can build with Jikes versions 1.20, 1.21, 1.22, and CVS Head.
+
+**We detect the version of the Jikes compiler in use and print warning
+messages if that version has not been tested.
+
 **Quick Compiler (missing from the original 2.3.4 release notes)
 Release 2.3.4 marked the first public appearance 
 of the "Quick" compiler for the PowerPC architecture targets.
