@@ -26,15 +26,6 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   private static final byte COPY = 3;
   private static final int BITS_PER_MAP_ELEMENT = 8;
 
-  // statics for tracking statistics
-  private static int methodcount;
-  private static int mapcount;
-  public  static int bytecount;
-  private static int bytespermap;  // in words right now
-  private static int numMapsLE8;  // number of maps less than or equal 8 in size
-  private static int numMapsLE16;
-  private static int maxbytesPerMap;
-
   // The following field is used for serialization of JSR processing 
   static VM_ProcessorLock jsrLock = new VM_ProcessorLock();
 
@@ -434,10 +425,6 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
 
     }
 
-    if (VM.ReferenceMapsStatistics) {
-      methodcount = methodcount + 1;
-      mapcount = mapcount + gcPointCount;
-    }
   }
 
 
@@ -557,12 +544,6 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     // update stats
     if (VM.ReferenceMapsStatistics) {
       if (!replacemap) {
-        if (BBLastPtr < 8)
-          numMapsLE8++;
-        if (BBLastPtr <16)
-          numMapsLE16++;
-        if (BBLastPtr >  maxbytesPerMap)
-          maxbytesPerMap=BBLastPtr;
       }
     }
     return;
@@ -707,12 +688,6 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     // update stats
     if (VM.ReferenceMapsStatistics) {
       if (!replacemap) {
-        if (BBLastPtr < 8)
-          numMapsLE8++;
-        if (BBLastPtr <16)
-          numMapsLE16++;
-        if (BBLastPtr > maxbytesPerMap)
-          maxbytesPerMap=BBLastPtr;
       }
     }
     return;
@@ -904,9 +879,6 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    *   Can now sort or perform other cleanups
    */
   public void recordingComplete() {
-    if (VM.ReferenceMapsStatistics) {
-      bytespermap = bytespermap + mapCount;
-    }
   }
 
 
@@ -1553,29 +1525,6 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
         VM.sysWrite(toffset);
         if (toffset ==0) VM.sysWrite("---------------- end of map");
       }
-    }
-  }
-
-  public static void resetStats() {
-    methodcount = 0;
-    mapcount = 0;
-    bytecount = 0;
-    bytespermap = 0;
-    numMapsLE8 = 0;
-    numMapsLE16 = 0;
-    maxbytesPerMap = 0;
-  }
-
-  public static void showStats() {
-    if (VM.ReferenceMapsStatistics) {
-      VM.sysWrite(">> VM_StkVarMap statistics\n");
-      VM.sysWrite( "method count " + methodcount+"\n" );
-      VM.sysWrite( "number of maps " + mapcount+"\n" );
-      VM.sysWrite( "number of bytecodes processed " + bytecount +"\n");
-      VM.sysWrite( "numbers of shorts of maps " + bytespermap+"\n" );  // in words right now
-      VM.sysWrite( "number of maps LE 8 in size " + numMapsLE8 +"\n" );
-      VM.sysWrite( "number of maps LE 16 in size " + numMapsLE16+"\n" );
-      VM.sysWrite( "largest individual map " + (maxbytesPerMap+1) + "\n");
     }
   }
 
