@@ -45,7 +45,6 @@ o These new JNI library functions were added in Java 2 and are
 	ExceptionCheck                  228      
 	FromReflectedField              8      
 	FromReflectedMethod             7      
-	GetPrimitiveArrayCritical       222      
 	GetStringCritical               224      
 	GetStringRegion                 220      
 	GetStringUTFRegion              221      
@@ -53,7 +52,6 @@ o These new JNI library functions were added in Java 2 and are
 	NewWeakGlobalRef                226      
 	PopLocalFrame                   20      
 	PushLocalFrame                  19      
-	ReleasePrimitiveArrayCritical   223      
 	ReleaseStringCritical           225      
 	ToReflectedField                12      
 	ToReflectedMethod               9      
@@ -80,7 +78,7 @@ Tips:
 o To get a message for each JNI function, set the verboseJNI flag in 
   VM_JNIFunctions.java
 
-o The unit tests for JNI functions are in the directory tests/jni.  
-  Type "jmake all" to run all the tests and get a summary.
+o The unit tests for JNI functions are in the directory src/examples//jni.  
+  To run them, go to the directory regression/tests/jni and type 'make'.
 
 
