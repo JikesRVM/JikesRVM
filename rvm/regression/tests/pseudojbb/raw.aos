@@ -12,7 +12,7 @@
 #   numProcessors   number of processors    
 #   group number    what events to count
 #   mode            mode of counting
-#   execution       execution number
+#   id              identifier
 #   out_dir	    where to put results
 #   cml_options     additional command line options
 #
@@ -28,7 +28,7 @@ if [[ $# = 0 || $1 = -help || $# < 1 ]]; then
   This shell script executes JikesRVM image for pseudojbb.
 
   Normally it is invoked as:
-    $0 config|+ numProcs|+ settings|+ mode|+ execution|+ out_dir|+ cml_options
+    $0 config|+ numProcs|+ settings|+ mode|+ id|+ out_dir|+ cml_options
 
   Where 
     config        configuration file (default is pseudojbb_1.props; i.e. one warehouse)
@@ -50,7 +50,7 @@ if [[ $# = 0 || $1 = -help || $# < 1 ]]; then
 		           455 branch    456 L1 & TLB  457 L2         458 L3
     mode          Mode: 1 IS_GROUP, 2 PROCESS, 4 KERNEL, 8 USER, 16 COUNT, 32 PROCTREE
                   Default is 13 (IS_GROUP & KERNEL & USER).
-    execution     An integer used to differentiate executions.
+    id            A string to uniquely identify this run. E.g. id="aos.copyms.notfixed.$mode.$group.$execution"
                   Default is 0.
     out_dir       where to put output files.  Default is ".".
     cml_options   command line options
@@ -507,11 +507,11 @@ if [[ $# = 4 || $# > 4 ]]; then
   fi
 fi
 #####################################
-# execution number (used to distinguish multiple runs)
-execution=0
+# id string (used to distinguish multiple runs)
+id=0
 if [[ $# = 5 || $# > 5 ]]; then
   if [[ $5 != '+' ]]; then
-    execution=$5
+    id=$5
   fi
 fi
 
@@ -536,10 +536,10 @@ fi
 base=`basename $config`
 echo "basename $config = $base"
 
-out_file="$outDir/HPM.$base.$machine_type.$numProcs.$setting.$execution"
- aos_log="$outDir/log.$base.$machine_type.$numProcs.$setting.$execution"
+out_file="$outDir/HPM.$base.$machine_type.$numProcs.$setting.$id"
+ aos_log="$outDir/log.$base.$machine_type.$numProcs.$setting.$id"
 
-echo -e "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode; out_file: $out_file; execution: $execution\n"
+echo -e "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode; out_file: $out_file; id: $id\n"
 
 logging_level=1
 smallHeap=800
