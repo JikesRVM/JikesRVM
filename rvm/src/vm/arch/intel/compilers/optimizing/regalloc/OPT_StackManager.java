@@ -85,7 +85,7 @@ implements OPT_Operators {
    * registers in move instructions.  Note: as of Feb. 02, we think this
    * is a bad idea.
    */
-  private static boolean FLOAT_ESP = false;
+  private static boolean FLOAT_ESP = true;
 
   /**
    * We may rely on information from linear scan to choose scratch registers.
