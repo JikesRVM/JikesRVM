@@ -37,14 +37,14 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
   final boolean typeChecks;      
 
   /**
-   * Should this phase be performed?  This is a member of a composite
-   * phase, so always return true.  The parent composite phase will
-   * dictate.
+   * Should this phase be performed? 
+   * Only perform this when we are doing an SSA-based optimization
+   * that can benefit from PI nodes.
    * @param options controlling compiler options
    * @return 
    */
   final boolean shouldPerform (OPT_Options options) {
-    return true;
+    return options.GLOBAL_BOUNDS_CHECK;
   };
 
   /**
