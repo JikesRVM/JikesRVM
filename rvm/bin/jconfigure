@@ -597,131 +597,140 @@ function emitSourceList () {
    
     # Common components.
     #
-    echo $RVM_ROOT/rvm/src/vm
-    echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR
-    echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/runtime
-    echo $RVM_ROOT/rvm/src/vm/classLoader
-    echo $RVM_ROOT/rvm/src/vm/jni
-    echo $RVM_ROOT/rvm/src/vm/runtime
-    echo $RVM_ROOT/rvm/src/vm/scheduler
-    echo $RVM_ROOT/rvm/src/vm/utility
-    echo $RVM_ROOT/rvm/src/vm/verifier
-    echo $RVM_ROOT/rvm/src/vm/compilers/compiledCode
+    sed -e 's/[ 	]*#.*//' -e '/^$/d' <<- EOF
+	$RVM_ROOT/rvm/src/vm
+	$RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR
+	$RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/runtime
+	$RVM_ROOT/rvm/src/vm/classLoader
+	$RVM_ROOT/rvm/src/vm/jni
+	$RVM_ROOT/rvm/src/vm/runtime
+	$RVM_ROOT/rvm/src/vm/scheduler
+	$RVM_ROOT/rvm/src/vm/utility
+	$RVM_ROOT/rvm/src/vm/verifier
+	$RVM_ROOT/rvm/src/vm/compilers/compiledCode
     
 
-    echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/jni
+	$RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/jni
 
     # Baseline compiler components (always part of bootimage).
     #
-    echo ${RVM_ROOT}/rvm/src/vm/compilers/baseline           # architecture independent
-    echo ${RVM_ROOT}/rvm/src/vm/compilers/baseline/GCMap     # architecture independent
-    echo ${RVM_ROOT}/rvm/src/vm/compilers/baseline/profiling # architecture independent
-    echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/baseline    # architecture dependent
-    echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/baseline/GCMap
-    if [[ -e ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/assembler ]]; then
-	echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/assembler # architecture dependent
-    fi
+	${RVM_ROOT}/rvm/src/vm/compilers/baseline           # architecture independent
+	${RVM_ROOT}/rvm/src/vm/compilers/baseline/GCMap     # architecture independent
+	${RVM_ROOT}/rvm/src/vm/compilers/baseline/profiling # architecture independent
+
+	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/baseline    # architecture dependent
+	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/baseline/GCMap
+    	$( if [[ -e ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/assembler ]]; then
+	    echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/assembler # architecture dependent
+    	fi)
     
-    echo ${RVM_ROOT}/rvm/src/vm/objectModel
-    echo ${RVM_ROOT}/rvm/src/vm/objectModel/lockNursery
-    echo ${RVM_ROOT}/rvm/src/vm/${OBJECT_MODEL_PATH_STR}
+	${RVM_ROOT}/rvm/src/vm/objectModel
+	${RVM_ROOT}/rvm/src/vm/objectModel/lockNursery
+	${RVM_ROOT}/rvm/src/vm/${OBJECT_MODEL_PATH_STR}
 
     # other components
     #
-    echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/disassembler
+	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/disassembler
 
+EOF
     # Optimizing compiler components.
     #
     if (( RVM_WITH_OPT_COMPILER )); then
 	# core components
 	#
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/driver
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/instrumentation
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/cfg
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/conversions/bc2hir
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/conversions/hir2lir
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/conversions/lir2mir
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/conversions/mir2mc
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/gcmap
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/instruction
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/instruction/operand
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/util
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/control
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/control/dominators
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/coalesce
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/liveness
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/liveRangeSplitting
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/simpleSSA
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/simpleSSA/escape
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/abcd
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/builder
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/codePlacement
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/expressionFolding
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/gvn
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/loadElimination
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/redundantBranchElimination
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/storeElimination
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/ipa/inlining
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/ipa/specialization
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/ipa/summaries
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/local
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/local/depGraph
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/local/instructionScheduler
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/regalloc/linearScan
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/regalloc/util
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/dataflowUtil
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/exception
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/graph
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/graph/vis
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/graph/vis/vcg
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/graph/vis/dot
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/list
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/dotgraph
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/set
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/vmInterface/classLoader
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/vmInterface/classLoader/jikesrvm
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/vmInterface/services
-	echo ${RVM_ROOT}/rvm/src/vm/compilers/optimizing/vmInterface
+	sed -e 's/[ 	]*#.*//' -e '/^$/d' <<- EOF
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/driver
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/instrumentation
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/cfg
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/conversions/bc2hir
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/conversions/hir2lir
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/conversions/lir2mir
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/conversions/mir2mc
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/gcmap
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/instruction
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/instruction/operand
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/ir/util
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/control
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/control/dominators
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/coalesce
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/liveness
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/liveRangeSplitting
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/simpleSSA
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/simpleSSA/escape
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/abcd
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/builder
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/codePlacement
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/expressionFolding
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/gvn
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/loadElimination
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/redundantBranchElimination
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/global/ssa/storeElimination
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/ipa/inlining
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/ipa/specialization
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/ipa/summaries
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/local
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/local/depGraph
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/optimizations/local/instructionScheduler
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/regalloc/linearScan
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/regalloc/util
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/dataflowUtil
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/exception
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/graph
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/graph/vis
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/graph/vis/vcg
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/graph/vis/dot
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/list
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/dotgraph
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/util/set
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/vmInterface/classLoader
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/vmInterface/classLoader/jikesrvm
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/vmInterface/services
+	${RVM_ROOT}/rvm/src/vm/compilers/optimizing/vmInterface
 
 	# architecture-specific components
 	#
-	echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing
-	echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/ir/instruction
-	echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/ir/instruction/operand
-	echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/ir/conversions/lir2mir
-	echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/ir/conversions/mir2mc
-	echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/regalloc
-	echo ${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/vmInterface/services
+	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing
+	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/ir/instruction
+	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/ir/instruction/operand
+	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/ir/conversions/lir2mir
+	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/ir/conversions/mir2mc
+	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/regalloc
+	${RVM_ROOT}/rvm/src/vm/arch/${ARCH_DIR}/compilers/optimizing/vmInterface/services
+EOF
     fi
 
     # Adaptive compiler components.
     #
     if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-	echo ${RVM_ROOT}/rvm/src/vm/adaptive/controller
-	echo ${RVM_ROOT}/rvm/src/vm/adaptive/recompilation
-	echo ${RVM_ROOT}/rvm/src/vm/adaptive/runtimeMeasurements
-	echo ${RVM_ROOT}/rvm/src/vm/adaptive/runtimeMeasurements/listeners
-	echo ${RVM_ROOT}/rvm/src/vm/adaptive/runtimeMeasurements/organizers
-	echo ${RVM_ROOT}/rvm/src/vm/adaptive/database
-	echo ${RVM_ROOT}/rvm/src/vm/adaptive/database/methodSamples
-	echo ${RVM_ROOT}/rvm/src/vm/adaptive/database/callGraph
-	echo ${RVM_ROOT}/rvm/src/vm/adaptive/recompilation/instrumentation
-	echo ${RVM_ROOT}/rvm/src/vm/adaptive/runtimeMeasurements/instrumentation
-	echo ${RVM_ROOT}/rvm/src/vm/adaptive/utility
+    sed -e 's/[ 	]*#.*//' -e '/^$/d' <<- EOF
+	${RVM_ROOT}/rvm/src/vm/adaptive/controller
+	${RVM_ROOT}/rvm/src/vm/adaptive/recompilation
+	${RVM_ROOT}/rvm/src/vm/adaptive/runtimeMeasurements
+	${RVM_ROOT}/rvm/src/vm/adaptive/runtimeMeasurements/listeners
+	${RVM_ROOT}/rvm/src/vm/adaptive/runtimeMeasurements/organizers
+	${RVM_ROOT}/rvm/src/vm/adaptive/database
+	${RVM_ROOT}/rvm/src/vm/adaptive/database/methodSamples
+	${RVM_ROOT}/rvm/src/vm/adaptive/database/callGraph
+	${RVM_ROOT}/rvm/src/vm/adaptive/recompilation/instrumentation
+	${RVM_ROOT}/rvm/src/vm/adaptive/runtimeMeasurements/instrumentation
+	${RVM_ROOT}/rvm/src/vm/adaptive/utility
+EOF
     fi
 
     # On stack replacement components.
     #
     if (( RVM_WITH_OSR )); then
-        echo $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/executionState
-        echo $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/optCompilationWithOsr
-        echo $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/specialCompilation
-        echo $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/util
-        echo $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/executionState
-        echo $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/threadControls
+	sed -e 's/[ 	]*#.*//' -e '/^$/d' <<- EOF
+	$RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/executionState
+	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/optCompilationWithOsr
+	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/specialCompilation
+	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/util
+	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/executionState
+	$RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/threadControls
+EOF
     fi
 
     # architecture specific writebarrier support for baseline compilers
@@ -736,18 +745,20 @@ function emitSourceList () {
 	echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/bootImage/optimizing
     fi
 
+    sed -e 's/[ 	]*#.*//' -e '/^$/d' <<- EOF
     # Runtime compiler components.
     #
-    echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/runtime
+	${RVM_ROOT}/rvm/src/vm/compilers/harness/runtime
 
     # Common memory manager components.
     #
-    echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
-    echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
-    echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/header
-    echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan
-    echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/policy
-    echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility
+	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
+	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
+	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/header
+	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan
+	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/policy
+	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility
+EOF
     # collector specific classes
     #
     if (( $RVM_WITH_SEMI_SPACE )); then
@@ -1459,17 +1470,18 @@ function emitCopier () {
 	    FILES="\$(echo \${d}/*.java)"
 EOF
     emit_disable_exit_on_error
-    # The odd code below where I have $(echo  ...) is because I need to turn
-    # the PREPROCESSOR_DEFINITIONS from a newline-separated list to a space-separated list.
-    cat <<- EOF
+    ## Approach abandoned because xargs will exit with status 123
+    ## upon nonzero exit status from jbuild.prep.host, but 
+    ## jbuild.prep.host will exit with status 1 when files are modified.
+    ## So, all the non-zero return values get mapped to 123, and we 
+    ## want to distinguish 1 (OK) 
+    ## from other non-zero return values (trouble).
+    # The odd code below with $(echo  ...) is because 
+    # we need to turn the PREPROCESSOR_DEFINITIONS from a 
+    # newline-separated list to a space-separated list.
+    # echo \$FILES | \$XARGS -r ${BUILD_DIRECTORY_STR}/jbuild.prep.host \${PREPROC_FLAGS} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} 
 
-	    ## Approach abandoned because xargs will exit with status 123
-	    ## upon nonzero exit status from jbuild.prep.host, but 
-	    ## jbuild.prep.host will exit with status 1 when files are modified.
-	    ## So, all the non-zero return values get mapped to 123, and we 
-	    ## want to distinguish 1 (OK) 
-	    ## from other non-zero return values (trouble).
-	    # echo \$FILES | \$XARGS -r ${BUILD_DIRECTORY_STR}/jbuild.prep.host \${PREPROC_FLAGS} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} 
+    cat <<- EOF
 
 	    if [[ ! \$FILES ]]; then
 	        continue;
@@ -2449,24 +2461,29 @@ function emitBooterLinker () {
     # Create RunBootImage.h file.
     local tgt=RunBootImage.h
     local tmp=${tgt},tmp
-    echo "echo \"// RunBootImage.C boot-time constants\" >> ${tmp}"
-    echo "echo \"const unsigned heap_default_initial_size  = $DEFAULT_INITIAL_HEAP_SIZE*1024*1024;\" >> ${tmp}"
-    echo "echo \"const unsigned heap_default_maximum_size      = $DEFAULT_MAXIMUM_HEAP_SIZE*1024*1024;\" >> ${tmp}"
-    echo "echo \"const char *rvm_version              = \\\"$JIKESRVM_VERSION\\\";\" >> ${tmp}"
-    echo "echo \"const char *rvm_configuration        = \\\"$CONFIGURATION_NAME\\\";\" >> ${tmp}"
-    echo "echo \"const char *rvm_host_configuration   = \\\"$RVM_HOST_CONFIG\\\";\" >> ${tmp}"
-    echo "echo \"const char *rvm_target_configuration = \\\"$RVM_TARGET_CONFIG\\\";\" >> ${tmp}"
-    echo "{ [[ -f $tgt ]] && cmp -s $tgt $tmp ; } || mv -f $tmp $tgt"
-    echo "rm -f $tmp"
+    cat <<- EOF2
+    	cat << EOF_RUNBOOTIMAGE_H > ${tmp}
+	// RunBootImage.C boot-time constants
+	const unsigned heap_default_initial_size  = $DEFAULT_INITIAL_HEAP_SIZE*1024*1024;
+	const unsigned heap_default_maximum_size      = $DEFAULT_MAXIMUM_HEAP_SIZE*1024*1024;
+	const char *rvm_version              = "$JIKESRVM_VERSION";
+	const char *rvm_configuration        = "$CONFIGURATION_NAME";
+	const char *rvm_host_configuration   = "$RVM_HOST_CONFIG";
+	const char *rvm_target_configuration = "$RVM_TARGET_CONFIG";
+EOF_RUNBOOTIMAGE_H
+	{ [[ -f $tgt ]] && cmp -s $tgt $tmp ; } || mv -f $tmp $tgt
+	rm -f $tmp
 
-    # build the JNI library for creating processes
-    echo "cd \${JAL_ROOT}/rvm/src/tools/bootImageRunner/"
+	# build the JNI library for creating processes
+	cd \${JAL_ROOT}/rvm/src/tools/bootImageRunner/
+EOF2
     if (( RVM_FOR_AIX )); then
 	local -r shlib_suffix=.a
     else
 	local -r shlib_suffix=.so
     fi
-    echo '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST=$JAL_BUILD/libjpnexec'${shlib_suffix}' $JAL_BUILD/libjpnexec'${shlib_suffix}
+    DEST='$JAL_BUILD/libjpnexec'${shlib_suffix}
+    echo '$GNU_MAKE $SILENT_MAKE -f Makefile.proc DEST='$DEST $DEST 
 
     if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
 	CC_DEFINES="-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
@@ -2485,7 +2502,8 @@ function emitBooterLinker () {
 	CC_DEFINES="$CC_DEFINES -DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS"
     else
 	# Build the blocking system call wrapper library, if requested
-	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST=$JAL_BUILD/libsyswrap'${shlib_suffix}' CXXFLAGS+="'"$CC_DEFINES"'" $JAL_BUILD/libsyswrap'${shlib_suffix}
+	DEST='$JAL_BUILD/libsyswrap'${shlib_suffix}
+	echo '$GNU_MAKE $SILENT_MAKE -f Makefile.syswrap DEST="'$DEST'" CXXFLAGS+="'"$CC_DEFINES"\" "$DEST"
     fi
 
     echo "BOOTER_CXX=run_booter_cxx"
@@ -2580,44 +2598,50 @@ function run () {
 	        \$LDSHARED -o \$JAL_BUILD/libJava2HPM.a  Java2HPM.o\
 	        -L\"$RVM_HPM_DIR\" -lpmapi -L\"\$JAL_BUILD\" -lhpm > /dev/null 2>&1"
 	else
-	echo "cd ${BOOTIMAGE_RUNNER_DIR_STR} &&\
-	    \${BOOTER_CXX} -c -O -I${SCRATCH_DIRECTORY_STR}\
-	    -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C"
-	echo "cd ${SCRATCH_DIRECTORY_STR} &&\
-	    \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o libvm.o sys.o bootThread.o \${CCLIBS}"
+	    cat <<- EOF
+	cd ${BOOTIMAGE_RUNNER_DIR_STR} && \
+	  \${BOOTER_CXX} -c -O -I${SCRATCH_DIRECTORY_STR} \
+	    -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
+
+	cd ${SCRATCH_DIRECTORY_STR} &&\
+	  \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
+	    libvm.o sys.o bootThread.o \${CCLIBS}"
+	EOF
 	fi
 	echo 'echo -n "(booter linked)"'
 
     elif (( RVM_FOR_IA32 && RVM_FOR_LINUX )); then
-	echo "cd ${BOOTIMAGE_RUNNER_DIR_STR} &&\
-		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}\
-		\${IMAGE} -DRVM_BOOTIMAGE=\\\"${BOOTIMAGE_STR}\\\"\
-		-o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C"
-	echo "cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} &&\
-		\${BOOTER_CXX} -c -I. -I${SCRATCH_DIRECTORY_STR}\
-		-o ${SCRATCH_DIRECTORY_STR}/initBootRecord.o initBootRecord.C"
-	echo "cd ${BOOTIMAGE_RUNNER_DIR_STR} &&\
-		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}\
-		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C"
-	echo "cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} &&\
-		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}\
-		-o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S"
-	echo "cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} &&\
-		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}\
-	        -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler\
-		-o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C"
-	echo "cd ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler &&\
-		\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}\
-		-o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C"
-	echo "cd ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler &&\
-		\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}\
-		-o ${SCRATCH_DIRECTORY_STR}/ihnpdsm.o ihnpdsm.C"
-	echo "cd ${SCRATCH_DIRECTORY_STR} &&\
-	    \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o sys.o bootThread.o libvm.o\
-	                           disasm.o ihnpdsm.o \${CCLIBS}"
-	echo 'echo "(booter linked)"'
-	echo ""
+	cat <<- EOF
+	cd ${BOOTIMAGE_RUNNER_DIR_STR} && \
+	  \${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
+	  \${IMAGE} -DRVM_BOOTIMAGE=\"${BOOTIMAGE_STR}\" \
+	  -o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C
 
+	cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} && \
+		\${BOOTER_CXX} -c -I. -I${SCRATCH_DIRECTORY_STR} \
+		-o ${SCRATCH_DIRECTORY_STR}/initBootRecord.o initBootRecord.C
+	cd ${BOOTIMAGE_RUNNER_DIR_STR} && \
+		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
+		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
+	cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} && \
+		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
+		-o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S
+	cd ${BOOTIMAGE_RUNNER_SUBDIR_STR} && \
+		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
+	        -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler \
+		-o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C
+	cd ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler && \
+	    \${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR} \
+	    -o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C
+	cd ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler && \
+	   \${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR} \
+	   -o ${SCRATCH_DIRECTORY_STR}/ihnpdsm.o ihnpdsm.C
+	cd ${SCRATCH_DIRECTORY_STR} && \
+	    \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
+	    sys.o bootThread.o libvm.o disasm.o ihnpdsm.o \${CCLIBS}
+	echo "(booter linked)"
+
+EOF
     else
 	echo 'echo "I do not know how to link the booter"'
 	echo 'trap "" EXIT'
@@ -2630,64 +2654,65 @@ function run () {
 #
 # echo >&2  "HERE I AM! emitToolCompiler" # DBG
 function emitToolCompiler () {
-    echo '#! /bin/bash'
-    echo '# Generate class files for vm tools that are not part of the build.'
-    echo '# This runs the Jikes Compiler with the'
-    echo '# classpath and command-line flags set up so that we can just'
-    echo '# make .class files for Jikes RVM to run.'
-    emitBoilerplate
-    echo ". \${RVM_BUILD}/environment.target"
+    cat <<EOF
+	#! /bin/bash
+	# Generate class files for vm tools that are not part of the build.
+	# This runs the Jikes Compiler with the
+	# classpath and command-line flags set up so that we can just
+	# make .class files for Jikes RVM to run.
+$(emitBoilerplate)
+	. \${RVM_BUILD}/environment.target
 
-    echo "function usage () {"
-    echo '    echo 2>&1 "usage: ${ME} [ -trace[=<commands>] ] [ -classpath x:y:z ] [ -- ] java-file [ java-file... ]"'
-    echo '    trap "" EXIT'
-    echo "    exit $Exit_Status_Bad_Args"
-    echo '}'
+	function usage () {
+	    echo 2>&1 "usage: ${ME} [ -trace[=<commands>] ] [ -classpath x:y:z ] [ -- ] java-file [ java-file... ]"
+	    trap "" EXIT
+	    exit $Exit_Status_Bad_Args
+	}
 
-    echo 'if [[ '${BUILD_DIRECTORY_STR}' = "" ]]; then'
-    echo '    echo >&2 "${ME}: please set your' ${BUILD_DIRECTORY_STR1} 'environment variable (eg. ${HOME}/rvmBuild)"'
-    echo '    trap "" EXIT'
-    echo '    exit' $Exit_Status_Bad_Args
-    echo 'fi'
+	if [[ ${BUILD_DIRECTORY_STR} = "" ]]; then
+	    echo >&2 "${ME}: please set your ${BUILD_DIRECTORY_STR1} environment variable (eg. \${HOME}/rvmBuild)"
+	    trap "" EXIT
+	    exit $Exit_Status_Bad_Args
+	fi
 
-    echo 'if [[ '${HOST_JAVAC_STR}' = "" ]]; then'
-    echo '    echo >&2 "${ME}: please set your' ${HOST_JAVAC_STR1} 'environment variable"'
-    echo '    trap "" EXIT'
-    echo '    exit' $Exit_Status_Bad_Args
-    echo 'fi'
+	if [[ ${HOST_JAVAC_STR} = "" ]]; then
+	    echo >&2 "\${ME}: please set your ${HOST_JAVAC_STR1} environment variable"
+	    trap "" EXIT
+	    exit $Exit_Status_Bad_Args
+	fi
 
-    echo 'unset EXTRA_CPATH TRACE_FLAG XFLAG VFLAG || :'
-    echo 'while :; do'
-    echo '    arg="$1"'
-    echo '    [[ $arg != -- ]] || { shift ; break; }'
-    echo '    [[ \$arg != --?* ]] || arg="\${arg#-}"'
-    echo "    if [[ \$arg = -classpath ]]; then"
-    echo '        (( $# > 1 )) || usage'
-    echo '        EXTRA_CPATH=$2${EXTRA_CPATH+:}${EXTRA_CPATH}'
-    echo '        shift'
-    echo '        shift'
-    echo "    elif [[ \$arg = -v ]]; then"
-    echo "        VFLAG=-v"
-    echo '        shift'
-    echo "    elif [[ \$arg = -x ]]; then"
-    echo "        XFLAG=-x"
-    echo '        shift'
-    echo '    elif [[ $arg == -trace* ]]; then'
-    echo '        TRACE_FLAG=$arg'
-    echo '        shift'
-#    echo '    elif [[ $arg == -* ]]; then'
-#    echo '        echo >&2 "${ME}: Unknown argument: $arg"'
-#    echo '	  exit 33'
-    echo '    else'
-    echo '        break	# must be a regular argument or a flag we do not handle.'
-    echo '    fi'
-    echo 'done'
-    echo ""    
-    echo "CPATH=\${EXTRA_CPATH-.}:${BUILD_DIRECTORY_STR}/RVM.classes:${BUILD_DIRECTORY_STR}/RVM.classes/rvmrt.jar"
-    echo "! tracing jbuild || XFLAG=-x"
-    echo "[ ! \"\$VFLAG\$XFLAG\" ] || set \$VFLAG \$XFLAG"
-    echo ""
-    echo "exec $HOST_JAVAC_STR -nowarn -g -classpath \"\$CPATH\" -bootclasspath \"\$CPATH\" \"\$@\""
+	unset EXTRA_CPATH TRACE_FLAG XFLAG VFLAG || :
+	while :; do
+	    arg="\$1"
+	    [[ \$arg != -- ]] || { shift ; break; }
+	    [[ \$arg != --?* ]] || arg="\${arg#-}"
+	    if [[ \$arg = -classpath ]]; then
+	        (( \$# > 1 )) || usage
+	        EXTRA_CPATH=\$2\${EXTRA_CPATH+:}\${EXTRA_CPATH}
+	        shift
+	        shift
+	    elif [[ \$arg = -v ]]; then
+	        VFLAG=-v
+	        shift
+	    elif [[ \$arg = -x ]]; then
+	        XFLAG=-x
+	        shift
+	    elif [[ \$arg == -trace* ]]; then
+	        TRACE_FLAG=\$arg
+	        shift
+#	    elif [[ \$arg == -* ]]; then
+#		echo >&2 "\${ME}: Unknown argument: \$arg"
+#		exit 33
+	    else
+	        break # must be a regular argument or a flag we do not handle.
+	    fi
+	done
+	CPATH=\${EXTRA_CPATH-.}:${BUILD_DIRECTORY_STR}/RVM.classes:${BUILD_DIRECTORY_STR}/RVM.classes/rvmrt.jar
+	! tracing jbuild || XFLAG=-x
+	[ ! \"\$VFLAG\$XFLAG\" ] || set \$VFLAG \$XFLAG
+	
+	exec $HOST_JAVAC_STR -nowarn -g -classpath "\$CPATH" -bootclasspath "\$CPATH" "\$@"
+EOF
 }
   
 # Emit script to run jbuild.prep.target on java files that are not part of the build
@@ -2887,47 +2912,57 @@ function make_config_summary () {
 
 make_config_summary ${CONFIGURATION_SUMMARY}
 
-(( cleanse )) && touch                          ${CLEANSE_STATUS}
+(( cleanse )) && touch ${CLEANSE_STATUS}
 
-rm -f				$SOURCE_LIST
-emitSourceList                >${SOURCE_LIST}
-chmod ${PERM}                    ${SOURCE_LIST}
+f=$SOURCE_LIST
+rm -f			$f
+emitSourceList	      > $f
+chmod ${PERM}		$f
 
-rm -f				${BUILD_DIRECTORY}/jbuild
-emitController                >${BUILD_DIRECTORY}/jbuild
-chmod +x${PERM}                  ${BUILD_DIRECTORY}/jbuild
+f=${BUILD_DIRECTORY}/jbuild
+rm -f			$f
+emitController	      > $f
+chmod +x${PERM}		$f
 
-rm -f				${BUILD_DIRECTORY}/jbuild.expand
-emitExpander                  >${BUILD_DIRECTORY}/jbuild.expand
-chmod +x${PERM}                  ${BUILD_DIRECTORY}/jbuild.expand
+f=${BUILD_DIRECTORY}/jbuild.expand
+rm -f			$f
+emitExpander	      > $f
+chmod +x${PERM}		$f
 
-rm -f				${BUILD_DIRECTORY}/jbuild.copy
-emitCopier                    >${BUILD_DIRECTORY}/jbuild.copy
-chmod +x${PERM}                  ${BUILD_DIRECTORY}/jbuild.copy
+f=${BUILD_DIRECTORY}/jbuild.copy
+rm -f			$f
+emitCopier	      > $f
+chmod +x${PERM}		$f
 
-rm -f				${BUILD_DIRECTORY}/jbuild.compile
-emitCompiler                  >${BUILD_DIRECTORY}/jbuild.compile
-chmod +x${PERM}                  ${BUILD_DIRECTORY}/jbuild.compile
+f=${BUILD_DIRECTORY}/jbuild.compile
+rm -f			$f
+emitCompiler	      > $f
+chmod +x${PERM}		$f
 
-rm -f				${BUILD_DIRECTORY}/jbuild.linkImage
-emitImageLinker               >${BUILD_DIRECTORY}/jbuild.linkImage
-chmod +x${PERM}                  ${BUILD_DIRECTORY}/jbuild.linkImage
+f=${BUILD_DIRECTORY}/jbuild.linkImage
+rm -f			$f
+emitImageLinker       > $f  
+chmod +x${PERM}         $f
 
-rm -f				 ${BUILD_DIRECTORY}/jbuild.linkBooter
-emitBooterLinker              >${BUILD_DIRECTORY}/jbuild.linkBooter
-chmod +x${PERM}                  ${BUILD_DIRECTORY}/jbuild.linkBooter
+f=${BUILD_DIRECTORY}/jbuild.linkBooter
+rm -f			$f
+emitBooterLinker      > $f
+chmod +x${PERM}         $f
 
-rm -f				${BUILD_DIRECTORY}/jbuild.tool
-emitToolCompiler              >${BUILD_DIRECTORY}/jbuild.tool
-chmod +x${PERM}                  ${BUILD_DIRECTORY}/jbuild.tool
+f=${BUILD_DIRECTORY}/jbuild.tool
+rm -f			$f
+emitToolCompiler      > $f
+chmod +x${PERM}         $f
 
-rm -f				${BUILD_DIRECTORY}/jbuild.toolPrep
-emitToolPreprocessor          >$BUILD_DIRECTORY/jbuild.toolPrep
-chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.toolPrep
+f=${BUILD_DIRECTORY}/jbuild.toolPrep
+rm -f			$f
+emitToolPreprocessor  > $f
+chmod +x$PERM           $f
 
-rm -f			       ${BUILD_DIRECTORY}/jbuild.plugin
-emitPluginBuilder             >$BUILD_DIRECTORY/jbuild.plugin
-chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.plugin
+f=${BUILD_DIRECTORY}/jbuild.plugin
+rm -f			$f
+emitPluginBuilder     > $f
+chmod +x$PERM		$f
 
 # write the environment specific configuration files
 #
@@ -2935,25 +2970,30 @@ chmod +x$PERM                  $BUILD_DIRECTORY/jbuild.plugin
 # read the host environment file
 . ${RVM_HOST_CONFIG}
 export CURRENT_CONFIG_FILE=${RVM_HOST_CONFIG}
-rm -f			      ${BUILD_DIRECTORY}/Make.rules.host
-emitMakefile	      	      >${BUILD_DIRECTORY}/Make.rules.host
-chmod -x${PERM}		      ${BUILD_DIRECTORY}/Make.rules.host
 
-rm -f			      ${BUILD_DIRECTORY}/environment.host
-emitEnvironmentBash	      >${BUILD_DIRECTORY}/environment.host
-chmod -x${PERM}		      ${BUILD_DIRECTORY}/environment.host
+f=${BUILD_DIRECTORY}/Make.rules.host
+rm -f		$f
+emitMakefile	> $f
+chmod -x${PERM}	$f
+
+f=${BUILD_DIRECTORY}/environment.host
+rm -f			$f
+emitEnvironmentBash >	$f
+chmod -x${PERM}		$f
 
 # read the target environment file
 . ${RVM_TARGET_CONFIG}
 export CURRENT_CONFIG_FILE=${RVM_TARGET_CONFIG}
 
-rm -f			      ${BUILD_DIRECTORY}/Make.rules.target
-emitMakefile		      >${BUILD_DIRECTORY}/Make.rules.target
-chmod -x${PERM}		      ${BUILD_DIRECTORY}/Make.rules.target
+f=${BUILD_DIRECTORY}/Make.rules.target
+rm -f $f
+emitMakefile > $f
+chmod -x${PERM} $f
 
-rm -f			      ${BUILD_DIRECTORY}/environment.target
-emitEnvironmentBash	      >${BUILD_DIRECTORY}/environment.target
-chmod -x${PERM}		      ${BUILD_DIRECTORY}/environment.target
+f=${BUILD_DIRECTORY}/environment.target
+rm -f $f
+emitEnvironmentBash > $f
+chmod -x${PERM}	$f
 
 # write the GNU Classpath security properties file
 #
