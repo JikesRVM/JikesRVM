@@ -107,13 +107,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   /* Allocators */
   private static final byte LOW_SS_SPACE = 0;
   private static final byte HIGH_SS_SPACE = 1;
-  private static final byte LOS_SPACE = 2;
-  public static final byte DEFAULT_SPACE = 3; // logical space that maps to either LOW_SS_SPACE or HIGH_SS_SPACE
-  private static final byte TRACE_SPACE = 4;
+  public static final byte DEFAULT_SPACE = 2; // logical space that maps to either LOW_SS_SPACE or HIGH_SS_SPACE
+  private static final byte TRACE_SPACE = 3;
 
   /* Miscellaneous constants */
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  private static final int LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
   
   /* Memory layout constants */
   private static final VM_Extent      TRACE_SIZE = META_DATA_SIZE;
@@ -177,7 +175,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
     addSpace(LOW_SS_SPACE, "Lower Semi-Space");
     addSpace(HIGH_SS_SPACE, "Upper Semi-Space");
-    addSpace(LOS_SPACE, "LOS Space");
     addSpace(TRACE_SPACE, "Trace space");
     /* DEFAULT_SPACE is logical and does not actually exist */
   }
@@ -222,23 +219,16 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
-				AllocAdvice advice)
+  public final VM_Address alloc(int bytes, boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
-    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
-      return los.alloc(isScalar, bytes);
-    } else {
-      switch (allocator) {
-      case  DEFAULT_SPACE: return ss.alloc(isScalar, bytes);
-      case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
-      case      LOS_SPACE: return los.alloc(isScalar, bytes);
-      default: 
-	if (VM_Interface.VerifyAssertions)
-	  VM_Interface.sysFail("No such allocator");
-	return VM_Address.zero();
-      }
+    switch (allocator) {
+    case  DEFAULT_SPACE: return ss.alloc(isScalar, bytes);
+    case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
+    case      LOS_SPACE: return los.alloc(isScalar, bytes);
+    default: 
+      if (VM_Interface.VerifyAssertions)
+        VM_Interface.sysFail("No such allocator");
+      return VM_Address.zero();
     }
   }
 
@@ -255,21 +245,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    int linkSite = ((allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) ?
-                    LOS_SPACE : allocator);
     /* Make the trace generator aware of the new object. */
-    TraceGenerator.addTraceObject(ref, linkSite);
-    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
-      Header.initializeLOSHeader(ref, tib, bytes, isScalar);
-    } else {
-      switch (allocator) {
-      case  DEFAULT_SPACE: break;
-      case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); break;
-      case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes, isScalar); break;
-      default:
-	if (VM_Interface.VerifyAssertions) 
-	  VM_Interface.sysFail("No such allocator");
-      }
+    TraceGenerator.addTraceObject(ref, allocator);
+    switch (allocator) {
+    case  DEFAULT_SPACE: break;
+    case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); break;
+    case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes, isScalar); break;
+    default:
+      if (VM_Interface.VerifyAssertions) 
+        VM_Interface.sysFail("No such allocator");
     }
     /* Now have the trace process aware of the new allocation. */
     traceInducedGC = TraceGenerator.MERLIN_ANALYSIS;
@@ -303,7 +287,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param isScalar True if the object occupying this space will be a scalar
    */
   public final void postCopy(VM_Address ref, Object[] tib, int bytes,
-			     boolean isScalar) {} // do nothing
+			     boolean isScalar) {
+    CopyingHeader.clearGCBits(ref);
+  } // do nothing
 
   protected final byte getSpaceFromAllocator (Allocator a) {
     if (a == ss) return DEFAULT_SPACE;
@@ -316,8 +302,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     if (s == LOS_SPACE) return los;
     return super.getAllocatorFromSpace(s);
   }
-
-
+  
   /**
    * Give the compiler/runtime statically generated alloction advice
    * which will be passed to the allocation routine at runtime.
@@ -574,12 +559,19 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static void forwardObjectLocation(VM_Address location) 
     throws VM_PragmaInline {
-    VM_Address obj = VM_Magic.getMemoryAddress(location);
-    if (!obj.isZero()) {
-      VM_Address addr = VM_Interface.refToAddress(obj);
-      byte space = VMResource.getSpace(addr);
-      if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE))
-        VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(obj));
+    if (traceInducedGC) {
+      VM_Address obj = VM_Magic.getMemoryAddress(location);
+      if (!obj.isZero()) {
+        TraceGenerator.rootEnumerate(obj);
+      }
+    } else {
+      VM_Address obj = VM_Magic.getMemoryAddress(location);
+      if (!obj.isZero()) {
+        VM_Address addr = VM_Interface.refToAddress(obj);
+        byte space = VMResource.getSpace(addr);
+        if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE))
+          VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(obj));
+      }
     }
   }
 
@@ -602,7 +594,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     }
     return object;
   }
-
+  
   /**
    * Return true if the given reference is to an object that is within
    * one of the semi-spaces.
@@ -662,25 +654,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return super.isReachable(obj);
   }
 
-  /**
-   * Reset the GC bits in the header word of an object that has just
-   * been copied.  This may, for example, involve clearing a write
-   * barrier bit.  In this case nothing is required, so the header
-   * word is returned unmodified.
-   *
-   * @param fromObj The original (uncopied) object
-   * @param forwardingWord The integer containing the GC bits, which is the 
-   * GC word of the original object, and typically encodes some GC state as
-   * well as pointing to the copied object.
-   * @param bytes The size of the copied object in bytes.
-   * @return The updated GC word (in this case unchanged).
-   */
-  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj,
-						 VM_Word forwardingWord, 
-						 int bytes) {
-    return forwardingWord; // a no-op for this collector
-  }
-
   // XXX Missing Javadoc comment.
   public static boolean willNotMove (VM_Address obj) {
    if (traceInducedGC) return true;
@@ -711,13 +684,48 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   public final void writeBarrier(VM_Address src, VM_Address slot,
-                                 VM_Address tgt, int locationMetadata, int mode) 
+                                 VM_Address tgt, int locationMetadata,
+                                 int context) 
     throws VM_PragmaInline {
-    TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER,
+    TraceGenerator.processPointerUpdate(context == PUTFIELD_WRITE_BARRIER,
                                         src, slot, tgt);
     VM_Magic.setMemoryAddress(slot, tgt, locationMetadata);
   }
 
+  /**
+   * A number of references are about to be copied from object
+   * <code>src</code> to object <code>dst</code> (as in an array
+   * copy).  Thus, <code>dst</code> is the mutated object.  Take
+   * appropriate write barrier actions.<p>
+   *
+   * @param src The source of the values to be copied
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param dst The mutated object, i.e. the destination of the copy.
+   * @param dstOffset The offset of the first destination address, in
+   * bytes relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  public boolean writeBarrier(VM_Address src, int srcOffset,
+			      VM_Address dst, int dstOffset,
+			      int bytes) {
+    /* These names seem backwards, but are defined to be compatable with the
+     * previous writeBarrier method. */
+    VM_Address slot = dst.add(dstOffset);
+    VM_Address tgtLoc = src.add(srcOffset);
+    for (int i = 0; i < bytes; i += BYTES_IN_ADDRESS) {
+      VM_Address tgt = VM_Magic.getMemoryAddress(tgtLoc);
+      TraceGenerator.processPointerUpdate(false, dst, slot, tgt);
+      slot = slot.add(BYTES_IN_ADDRESS);
+      tgtLoc = tgtLoc.add(BYTES_IN_ADDRESS);
+    }
+    return false;
+  }
+  
   /****************************************************************************
    *
    * Space management
