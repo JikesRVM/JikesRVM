@@ -57,6 +57,10 @@ public class Memory implements VM_Uninterruptible {
     VM_Memory.zero(start, len);
   }
 
+  public static void zeroPages(VM_Address start, int len) {
+    VM_Memory.zeroPages(start, len);
+  }
+
   public static void dumpMemory(VM_Address addr, int before, int after) {
     VM_Memory.dumpMemory(addr, before, after);
   }
