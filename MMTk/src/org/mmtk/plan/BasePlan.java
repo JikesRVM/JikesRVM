@@ -61,6 +61,17 @@ public abstract class BasePlan
   private static MonotoneVMResource metaDataVM;
   protected static MemoryResource metaDataMR;
   protected static RawPageAllocator metaDataRPA;
+  public static MonotoneVMResource bootVM;
+  public static MemoryResource bootMR;
+  public static MonotoneVMResource immortalVM;
+  protected static MemoryResource immortalMR;
+
+  // Space constants
+  private static final String[] spaceNames = new String[128];
+  public static final byte UNUSED_SPACE = 127;
+  public static final byte BOOT_SPACE = 126;
+  public static final byte META_SPACE = 125;
+  public static final byte IMMORTAL_SPACE = 124;
 
   // Miscellaneous constants
   private static final int META_DATA_POLL_FREQUENCY = (1<<31) - 1; // never
@@ -72,11 +83,10 @@ public abstract class BasePlan
   // Memory layout constants
   protected static final EXTENT        SEGMENT_SIZE = 0x10000000;
   protected static final int           SEGMENT_MASK = SEGMENT_SIZE - 1;
-  protected static final VM_Address      BOOT_START = VM_Address.fromInt(VM_Interface.bootImageAddress);
-  protected static final EXTENT           BOOT_SIZE = SEGMENT_SIZE - (VM_Interface.bootImageAddress & SEGMENT_MASK);   // use the remainder of the segment
-  protected static final VM_Address        BOOT_END = BOOT_START.add(BOOT_SIZE);
-  protected static final VM_Address  IMMORTAL_START = BOOT_START;
-  protected static final EXTENT       IMMORTAL_SIZE = BOOT_SIZE + 16 * 1024 * 1024;
+  public    static final VM_Address      BOOT_START = VM_Address.fromInt(VM_Interface.bootImageAddress);
+  protected static final EXTENT           BOOT_SIZE = SEGMENT_SIZE;
+  protected static final VM_Address  IMMORTAL_START = BOOT_START.add(BOOT_SIZE);
+  protected static final EXTENT       IMMORTAL_SIZE = 32 * 1024 * 1024;
   protected static final VM_Address    IMMORTAL_END = IMMORTAL_START.add(IMMORTAL_SIZE);
   protected static final VM_Address META_DATA_START = IMMORTAL_END;
   protected static final EXTENT     META_DATA_SIZE  = 32 * 1024 * 1024;
@@ -88,7 +98,7 @@ public abstract class BasePlan
   // Instance variables
   //
   private int id = 0;                     // Zero-based id of plan instance
-
+  protected BumpPointer immortal;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -102,9 +112,20 @@ public abstract class BasePlan
    * into the boot image by the build process.
    */
   static {
-    metaDataMR = new MemoryResource(META_DATA_POLL_FREQUENCY);
-    metaDataVM = new MonotoneVMResource("Meta data", metaDataMR, META_DATA_START, META_DATA_SIZE, VMResource.META_DATA);
+    metaDataMR = new MemoryResource("meta", META_DATA_POLL_FREQUENCY);
+    metaDataVM = new MonotoneVMResource(META_SPACE, "Meta data", metaDataMR, META_DATA_START, META_DATA_SIZE, VMResource.META_DATA);
     metaDataRPA = new RawPageAllocator(metaDataVM, metaDataMR);
+
+    bootMR = new MemoryResource("boot", META_DATA_POLL_FREQUENCY);
+    bootVM = new ImmortalVMResource(BOOT_SPACE, "Boot", bootMR, BOOT_START, BOOT_SIZE);
+
+    immortalMR = new MemoryResource("imm", DEFAULT_POLL_FREQUENCY);
+    immortalVM = new ImmortalVMResource(IMMORTAL_SPACE, "Immortal", bootMR, IMMORTAL_START, IMMORTAL_SIZE);
+
+    addSpace(UNUSED_SPACE, "Unused");
+    addSpace(BOOT_SPACE, "Boot");
+    addSpace(META_SPACE, "Meta");
+    addSpace(IMMORTAL_SPACE, "Immortal");
   }
 
   /**
@@ -112,6 +133,7 @@ public abstract class BasePlan
    */
   BasePlan() {
     id = count++;
+    immortal = new BumpPointer(immortalVM);
   }
 
   /**
@@ -209,6 +231,9 @@ public abstract class BasePlan
     return newObj.add(offset);
   }
 
+  public static boolean willNotMove (VM_Address obj) {
+      return !VMResource.refIsMovable(obj);
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -319,6 +344,16 @@ public abstract class BasePlan
   // Space management
   //
 
+  static public void addSpace (byte sp, String name) {
+    if (spaceNames[sp] != null) VM.sysFail("addSpace called on already registed space");
+    spaceNames[sp] = name;
+  }
+
+  static public String getSpaceName (byte sp) {
+    if (spaceNames[sp] == null) VM.sysFail("getSpace called on unregisted space");
+    return spaceNames[sp];
+  }
+
   /**
    * Return the amount of <i>free memory</i>, in bytes (where free is
    * defined as not in use).  Note that this may overstate the amount
@@ -378,8 +413,8 @@ public abstract class BasePlan
    * @param str A string describing the error condition.
    */
   public void error(String str) {
-    Plan.showUsage(PAGES);
-    Plan.showUsage(MB);
+    MemoryResource.showUsage(PAGES);
+    MemoryResource.showUsage(MB);
     VM.sysFail(str);
   }
 
@@ -460,6 +495,8 @@ public abstract class BasePlan
 	VM.sysFail("writePages passed illegal printing mode");
     }
   }
+
+
 
 
 }
