@@ -436,7 +436,7 @@ extern "C" JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1JNIFunctions_createJ
 
 extern "C" void _init() {
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), 0);
+  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), 1);
 #else
   initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset());
 #endif
