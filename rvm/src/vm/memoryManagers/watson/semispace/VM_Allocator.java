@@ -234,16 +234,18 @@ public class VM_Allocator
     minLargeRef = largeHeapStartAddress-OBJECT_HEADER_OFFSET;   // first ref in large space
     maxLargeRef = largeHeapEndAddress+4;      // last ref in large space
     
-    // Get the (full sized) arrays that control large object space
-    largeSpaceMark  = new short[bootrecord.largeSize/4096 + 1];
+    // Get the (full sized) allocation array that control large object space
     short[] temp  = new short[bootrecord.largeSize/4096 + 1];
     // copy any existing large object allocations into new alloc array
     // ...with this simple allocator/collector there may be none
     for (i = 0; i < GC_INITIAL_LARGE_SPACE_PAGES; i++)
       temp[i] = largeSpaceAlloc[i];
     largeSpaceAlloc = temp;
-    
+
     maxHeapRef = maxLargeRef;                 // only used for debugging tests
+
+    // alloc full sized mark array used to collect large space
+    largeSpaceMark  = new short[bootrecord.largeSize/4096 + 1];    
     
     // to identify "int[]", for sync'ing arrays of ints that (may) contain code
     arrayOfIntType = VM_Array.getPrimitiveArrayType( 10 /*code for INT*/ );
