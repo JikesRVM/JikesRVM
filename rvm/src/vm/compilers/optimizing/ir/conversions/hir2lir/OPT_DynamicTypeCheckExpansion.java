@@ -363,10 +363,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       OPT_RegisterOperand arrayRef = StoreCheck.getClearRef(s).asRegister();
       OPT_Operand elemRef = StoreCheck.getClearVal(s);
       OPT_Operand guard = StoreCheck.getClearGuard(s);
-      if (!elemRef.isRegister()) {
-        if (VM.VerifyAssertions)
-          VM.assert(elemRef.isIntConstant() && 
-		    elemRef.asIntConstant().value == 0);
+      if (elemRef instanceof OPT_NullConstantOperand) {
         OPT_Instruction continueAt = s.prevInstructionInCodeOrder();
         s.remove();
         return continueAt;
@@ -431,8 +428,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       // (3) is lhs element type the same as rhs?
       continueAt = shortCircuitBlock2.lastInstruction();
       OPT_RegisterOperand rhsTIB = 
-	getTIB(continueAt, ir, elemRef.asRegister().copyU2U(), 
-	       rhsGuard.copyD2U());
+	getTIB(continueAt, ir, elemRef.copy(), rhsGuard.copyD2U());
       OPT_RegisterOperand lhsElemTIB = 
 	InsertUnary(continueAt, ir, GET_ARRAY_ELEMENT_TIB_FROM_TIB, 
 		    OPT_ClassLoaderProxy.JavaLangObjectArrayType, 

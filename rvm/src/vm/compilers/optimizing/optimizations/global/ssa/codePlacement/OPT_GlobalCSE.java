@@ -164,8 +164,6 @@ class OPT_GlobalCSE extends OPT_CompilerPhase implements OPT_Operators {
       return false;
     
     switch (inst.operator.opcode) {
-    case MATERIALIZE_CONSTANT_opcode:
-      return true; // Uses JTOC (a physical register) but doesn't matter 
     case INT_MOVE_opcode:
     case LONG_MOVE_opcode:
       //  OPT_Operand ival = Move.getVal(inst);

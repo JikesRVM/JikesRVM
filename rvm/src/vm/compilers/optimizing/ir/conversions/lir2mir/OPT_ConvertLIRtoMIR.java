@@ -21,18 +21,18 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
         // Stage 1: Reduce the LIR operator set to a core set of operators.
         new OPT_OptimizationPlanAtomicElement(new ReduceOperators()), 
 
-	// Stage 2: Normalize usage of int constants to simplify Stage 3.
+	// Stage 2: Normalize usage of constants to simplify Stage 3.
 	new OPT_OptimizationPlanAtomicElement(new NormalizeConstants()), 
 
 	// Stage 3a: Compute liveness information for DepGraph
         new OPT_OptimizationPlanAtomicElement(new DoLiveness()),
 
 	// Stage 3b: Block by block build DepGraph and do 
-	// BURS based instruction selection.
+	//           BURS based instruction selection.
 	new OPT_OptimizationPlanAtomicElement(new DoBURS()), 
 
 	// Stage 4: Handle complex operators 
-	// (those that expand to multiple basic blocks of MIR).
+	//          (those that expand to multiple basic blocks of MIR).
 	new OPT_OptimizationPlanAtomicElement(new ComplexOperators())
 	});
   }
@@ -44,11 +44,11 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
     implements VM_Constants, OPT_Operators, OPT_Constants {
 
     final String getName () {
-      return  "Reduce Operators";
+      return "Reduce Operators";
     }
 
     final OPT_CompilerPhase newExecution (OPT_IR ir) {
-      return  this;
+      return this;
     }
 
     final void perform (OPT_IR ir) {
@@ -178,70 +178,6 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	  }
 	  break;
 
-        case MATERIALIZE_CONSTANT_opcode:
-          {
-            OPT_Operand val = Binary.getClearVal2(s);
-            if (val instanceof OPT_IntConstantOperand) {
-              Move.mutate(s, INT_MOVE, Binary.getClearResult(s), val);
-            } else if (val instanceof OPT_LongConstantOperand) {
-              Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), val);
-            } else if (val instanceof OPT_StringConstantOperand) {
-              OPT_StringConstantOperand sc = (OPT_StringConstantOperand)val;
-              int offset = sc.value.offset();
-              if (offset == 0)
-                throw  new OPT_OptimizingCompilerException(
-                    "String constant w/o valid JTOC offset");
-              offset = offset << 2;
-              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-              Load.mutate(s, INT_LOAD, Binary.getClearResult(s), 
-			  Binary.getClearVal1(s), 
-			  OPT_NormalizeConstants.asImmediateOrReg(I(offset), 
-								  s, ir), 
-			  loc);
-            } else if (val instanceof OPT_DoubleConstantOperand) {
-              OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
-              int offset = dc.offset;
-              if (offset == 0) {
-                offset = VM_Statics.findOrCreateDoubleLiteral
-		  (VM_Magic.doubleAsLongBits(dc.value));
-              }
-	      offset = offset << 2;
-	      if (VM.BuildForIA32) {
-		// leave MATERIALIZE_CONSTANT in IR
-		dc.offset = offset;
-	      } else {
-		OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-		Load.mutate(s, DOUBLE_LOAD, 
-			    Binary.getClearResult(s), Binary.getClearVal1(s),
-			    OPT_NormalizeConstants.asImmediateOrReg(I(offset), 
-								    s, ir), 
-			    loc);
-	      }
-            } else if (val instanceof OPT_FloatConstantOperand) {
-              OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
-              int offset = fc.offset;
-              if (offset == 0) {
-                offset = VM_Statics.findOrCreateFloatLiteral
-		  (VM_Magic.floatAsIntBits(fc.value));
-              }
-	      offset = offset << 2;
-	      if (VM.BuildForIA32) {
-		// leave MATERIALIZE_CONSTANT in IR
-		fc.offset = offset;
-	      } else {
-		OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-		Load.mutate(s, FLOAT_LOAD, Binary.getClearResult(s), 
-			    Binary.getClearVal1(s),
-			    OPT_NormalizeConstants.asImmediateOrReg(I(offset), 
-								    s, ir), 
-			    loc);
-	      }
-            } else {
-              OPT_OptimizingCompilerException.UNREACHABLE(val.toString());
-            }
-          }
-          break;
-
 	default:
 	  break;
         }
@@ -249,7 +185,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
     }
 
     private final OPT_IntConstantOperand I (int i) {
-      return  new OPT_IntConstantOperand(i);
+      return new OPT_IntConstantOperand(i);
     }
   }
 
@@ -260,11 +196,11 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
   private static final class NormalizeConstants extends OPT_CompilerPhase {
 
     final String getName () {
-      return  "Normalize Constants";
+      return "Normalize Constants";
     }
 
     final OPT_CompilerPhase newExecution (OPT_IR ir) {
-      return  this;
+      return this;
     }
 
     final void perform (OPT_IR ir) {
@@ -277,11 +213,11 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
   private static final class DoLiveness extends OPT_CompilerPhase {
 
     final String getName () {
-      return  "Live Handlers";
+      return "Live Handlers";
     }
 
     final OPT_CompilerPhase newExecution (OPT_IR ir) {
-      return  this;
+      return this;
     }
 
     final void perform (OPT_IR ir) {
@@ -298,11 +234,11 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
   private static final class DoBURS extends OPT_CompilerPhase {
 
     final String getName () {
-      return  "DepGraph & BURS";
+      return "DepGraph & BURS";
     }
 
     final OPT_CompilerPhase newExecution (OPT_IR ir) {
-      return  this;
+      return this;
     }
 
     // IR is inconsistent state between DoBURS and ComplexOperators.
@@ -353,11 +289,11 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
   private static final class ComplexOperators extends OPT_CompilerPhase {
 
     final String getName () {
-      return  "Complex Operators";
+      return "Complex Operators";
     }
 
     final OPT_CompilerPhase newExecution (OPT_IR ir) {
-      return  this;
+      return this;
     }
 
     final void perform (OPT_IR ir) {

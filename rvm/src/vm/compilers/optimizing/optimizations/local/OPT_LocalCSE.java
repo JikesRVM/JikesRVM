@@ -389,12 +389,8 @@ class OPT_AvExCache
     } else if (GuardedUnary.conforms(inst)) {
       op1 = GuardedUnary.getVal(inst);
     } else if (Binary.conforms(inst)) {
-      if (inst.operator() == MATERIALIZE_CONSTANT) {
-	op1 = Binary.getVal2(inst); // semantically a unary; don't care about JTOC.
-      } else {
-	op1 = Binary.getVal1(inst);
-	op2 = Binary.getVal2(inst);
-      }
+      op1 = Binary.getVal1(inst);
+      op2 = Binary.getVal2(inst);
     } else if (GuardedBinary.conforms(inst)) {
       op1 = GuardedBinary.getVal1(inst);
       op2 = GuardedBinary.getVal2(inst);
@@ -451,12 +447,8 @@ class OPT_AvExCache
     } else if (GuardedUnary.conforms(inst)) {
       op1 = GuardedUnary.getVal(inst);
     } else if (Binary.conforms(inst)) {
-      if (inst.operator() == MATERIALIZE_CONSTANT) {
-	op1 = Binary.getVal2(inst); // semantically a unary; don't care about JTOC.
-      } else {
-	op1 = Binary.getVal1(inst);
-	op2 = Binary.getVal2(inst);
-      }
+      op1 = Binary.getVal1(inst);
+      op2 = Binary.getVal2(inst);
     } else if (GuardedBinary.conforms(inst)) {
       op1 = GuardedBinary.getVal1(inst);
       op2 = GuardedBinary.getVal2(inst);

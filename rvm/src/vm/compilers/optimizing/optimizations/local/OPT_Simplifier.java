@@ -408,9 +408,9 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
     case BOOLEAN_CMP_opcode:
       if (CF_INT) {
 	OPT_Operand op1 = BooleanCmp.getVal1(s);
-	if (op1.isIntConstant()) {
+	if (op1.isConstant()) {
 	  OPT_Operand op2 = BooleanCmp.getVal2(s);
-	  if (op2.isIntConstant()) {
+	  if (op2.isConstant()) {
 	    // BOTH CONSTANTS: FOLD
 	    Move.mutate(s, INT_MOVE, BooleanCmp.getResult(s), 
 			BooleanCmp.getCond(s).evaluate(op1, op2) ? I(1):I(0));

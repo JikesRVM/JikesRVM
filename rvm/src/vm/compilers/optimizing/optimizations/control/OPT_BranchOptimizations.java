@@ -713,7 +713,6 @@ public final class OPT_BranchOptimizations
       switch (s.operator.opcode) {
         case INT_MOVE_opcode:
         case REF_MOVE_opcode:
-        case MATERIALIZE_CONSTANT_opcode:
         case INT_ADD_opcode:
         case INT_SUB_opcode:
         case INT_MUL_opcode:

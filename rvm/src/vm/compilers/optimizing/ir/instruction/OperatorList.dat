@@ -596,15 +596,6 @@ none
 
 
 
-# Get a "large" constant into a register.
-# This instruction is only valid in the LIR
-# first operand is JTOC, second is the constant.
-MATERIALIZE_CONSTANT
-Binary
-none
-
-
-
 # Add two (register/constant) integer operands together putting
 # the result in a register operand.
 INT_ADD

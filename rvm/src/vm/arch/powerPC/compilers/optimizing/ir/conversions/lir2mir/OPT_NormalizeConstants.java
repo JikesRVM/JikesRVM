@@ -44,14 +44,70 @@ abstract class OPT_NormalizeConstants extends OPT_RVMIRTools {
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); 
 	 s != null; 
 	 s = s.nextInstructionInCodeOrder()) {
+
+      // STEP ONE: Get 'large' constants into a form that the PPC BURS rules
+      //           are prepared to deal with. 
+      // Constants can't appear as defs, so only scan the uses.
+      //
+      int numUses = s.getNumberOfUses();
+      if (numUses > 0) {
+        int numDefs = s.getNumberOfDefs();
+        for (int idx = numDefs; idx < numUses + numDefs; idx++) {
+          OPT_Operand use = s.getOperand(idx);
+          if (use != null) {
+            if (use instanceof OPT_StringConstantOperand) {
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.JavaLangStringType);
+	      OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
+              OPT_StringConstantOperand sc = (OPT_StringConstantOperand)use;
+              int offset = sc.value.offset();
+              if (offset == 0)
+                throw  new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
+              offset = offset << 2;
+              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+	      s.insertBefore(Load.create(INT_LOAD, rop, jtoc, asImmediateOrReg(I(offset), s, ir), loc));
+	      s.putOperand(idx, rop.copyD2U());
+            } else if (use instanceof OPT_LongConstantOperand) {
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.LongType);
+	      use.clear();
+	      s.insertBefore(Move.create(LONG_MOVE, rop, use));
+	      s.putOperand(idx, rop.copyD2U());
+            } else if (use instanceof OPT_DoubleConstantOperand) {
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.DoubleType);
+	      OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
+              OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use;
+              int offset = dc.offset;
+              if (offset == 0) {
+                offset = VM_Statics.findOrCreateDoubleLiteral(VM_Magic.doubleAsLongBits(dc.value));
+              }
+	      offset = offset << 2;
+	      OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+	      s.insertBefore(Load.create(DOUBLE_LOAD, rop, jtoc, asImmediateOrReg(I(offset), s, ir), loc));
+              s.putOperand(idx, rop.copyD2U());
+            } else if (use instanceof OPT_FloatConstantOperand) {
+              OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.FloatType);
+	      OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
+              OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use;
+              int offset = fc.offset;
+              if (offset == 0) {
+                offset = VM_Statics.findOrCreateFloatLiteral(VM_Magic.floatAsIntBits(fc.value));
+              }
+	      offset = offset << 2;
+	      OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+	      s.insertBefore(Load.create(FLOAT_LOAD, rop, jtoc, asImmediateOrReg(I(offset), s, ir), loc));
+              s.putOperand(idx, rop.copyD2U());
+            } else if (use instanceof OPT_NullConstantOperand) {
+              s.putOperand(idx, I(0));
+            }
+          }
+        }
+      }
+      
       // Calling OPT_Simplifier.simplify ensures that the instruction is 
       // in normalized form. This reduces the number of cases we have to 
       // worry about (and does last minute constant folding on the off chance
       // we've missed an opportunity...)
       OPT_Simplifier.simplify(s);
-
-      exterminateLongConstants (s, ir);
-
+      
       switch (s.getOpcode()) {
 	//////////
 	// LOAD/STORE
