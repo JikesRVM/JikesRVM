@@ -139,7 +139,7 @@ ROOT_DIRECTORY_STR="\$$ROOT_DIRECTORY_STR1"
 # source for configuration files not explicitely mentioned below
 # eg, BaseBasecopyingGCWithEagerCompilation
 #
-CONFIGURATION_FILE_SOURCE=$ROOT_DIRECTORY/config/build
+CONFIGURATION_FILE_SOURCE=$ROOT_DIRECTORY/rvm/config/build
 
 # Place to remember what configuration we've built.
 #
