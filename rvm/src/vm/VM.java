@@ -210,19 +210,6 @@ public class VM extends VM_Properties implements VM_Constants,
         if(VM_HardwarePerformanceMonitors.verbose>=2)
           VM.sysWriteln("VM.boot() call VM_HardwarePerformanceMonitors.boot()");
         VM_HardwarePerformanceMonitors.boot();
-        
-        // set hpm program for current pthread.  Inherited by other, to be created, pthreads.
-        if (! VM_HardwarePerformanceMonitors.thread_group) {
-          if(VM_HardwarePerformanceMonitors.verbose>=2)
-            VM.sysWriteln("VM.boot() call to sysHPMsetProgramMyThread() and sysHPMstartMyThread()");
-          VM_SysCall.sysHPMsetProgramMyThread();
-          VM_SysCall.sysHPMstartMyThread();
-        } else {
-          if(VM_HardwarePerformanceMonitors.verbose>=2)
-            VM.sysWriteln("VM.boot() call to sysHPMsetProgramMyGroup() and sysHPMstartMyGroup()");
-          VM_SysCall.sysHPMsetProgramMyGroup();
-          VM_SysCall.sysHPMstartMyGroup();
-        }
       }
     }
     //-#endif
