@@ -1616,6 +1616,10 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_tableswitch(int defaultval, int low, int high) {
     int n = high-low+1;       // n = number of normal cases (0..n-1)
+    if (options.EDGE_COUNTERS) {
+      // KLUDGE: allocate counters but don't actually use them
+      edgeCounterIdx += n + 1;
+    }
     asm.emitL   (T0, 0, SP);  // T0 is index
     asm.emitBL  (n+2);        // branch past table; establish base addr
     for (int i=0; i<n; i++) {
@@ -1659,6 +1663,10 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param npairs number of pairs in the lookup switch
    */
   protected final void emit_lookupswitch(int defaultval, int npairs) {
+    if (options.EDGE_COUNTERS) {
+      // KLUDGE: allocate counters but don't actually use them
+      edgeCounterIdx += npairs+1;
+    }
     asm.emitBL  ((npairs<<1)+3);// branch past table; establish base addr
     for (int i=0; i<npairs; i++) {
       int match   = fetch4BytesSigned();
@@ -2679,16 +2687,59 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget the target bytecode index
    */
   private void genCondBranch(int cc, int bTarget) {
-    int mTarget;
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardConditionalBranch(bTarget);
-    }
-    asm.emitBC(cc, mTarget);
-  }
+    if (options.EDGE_COUNTERS) {
+      // Allocate 2 counters, taken and not taken
+      int entry = edgeCounterIdx;
+      edgeCounterIdx += 2;
 
+      // Load counter array for this method
+      asm.emitLtoc (T0, VM_Entrypoints.edgeCountsArrayField.getOffset());
+      int offset = method.getDictionaryId() << 2;
+      if (asm.fits(offset, 16)) {
+	asm.emitL (T0, offset, T0);
+      } else if (0 == (offset&0x8000)) {
+	asm.emitCAU(T0, T0, offset>>16);
+	asm.emitL  (T0, offset&0xFFFF, T0);
+      } else {
+	asm.emitCAU(T0, T0, (offset>>16)+1);
+	asm.emitL  (T0, offset|0xFFFF0000, T0);
+      }
+
+      // Flip conditions so we can jump over the increment of the taken counter.
+      asm.emitBC(asm.flipCode(cc), 6); // GOTO NotTaken
+
+      // Increment taken counter & jump to target
+      asm.emitL    (T1, (entry+VM_EdgeCounts.TAKEN)<<2, T0);
+      asm.emitCAL  (T1, 1, T1);
+      asm.emitRLWINM(T1, T1, 0, 1, 31);
+      asm.emitST   (T1, (entry+VM_EdgeCounts.TAKEN)<<2, T0);
+
+      // Goto bTarget
+      int mTarget;
+      if (bTarget <= biStart) {
+	mTarget = asm.relativeMachineAddress(bTarget);
+      } else {
+	mTarget = 0;
+	asm.reserveForwardBranch(bTarget);
+      }
+      asm.emitB(mTarget);
+
+      // NotTaken:
+      asm.emitL    (T1, (entry+VM_EdgeCounts.NOT_TAKEN)<<2, T0);
+      asm.emitCAL  (T1, 1, T1);
+      asm.emitRLWINM(T1, T1, 0, 1, 31);
+      asm.emitST   (T1, (entry+VM_EdgeCounts.NOT_TAKEN)<<2, T0);
+    } else {
+      int mTarget;
+      if (bTarget <= biStart) {
+	mTarget = asm.relativeMachineAddress(bTarget);
+      } else {
+	mTarget = 0;
+	asm.reserveForwardConditionalBranch(bTarget);
+      }
+      asm.emitBC(cc, mTarget);
+    }
+  }
 
   /**
    * @param whereFrom is this thread switch from a PROLOGUE, BACKEDGE, or EPILOGUE?

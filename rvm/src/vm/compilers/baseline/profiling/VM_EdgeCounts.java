@@ -174,6 +174,9 @@ final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor,
       }
     }
 
+    // Make sure we are in sync
+    if (VM.VerifyAssertions) VM.assert(countIdx == cs.length); 
+
     if (dataIdx != data.length) {
       // We had a switch statment; shrink the array.
       VM_BranchProfile[] newData = new VM_BranchProfile[dataIdx];
