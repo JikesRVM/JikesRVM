@@ -671,10 +671,9 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
         input.readBytes(bytecodes);
 
         //-#if RVM_WITH_OPT_COMPILER
-        if (VM.writingBootImage || VM.runningVM)
-          VM_OptMethodSummary.summarizeMethod(this, bytecodes, 
-                                              (modifiers & ACC_SYNCHRONIZED) 
-                                              != 0);
+	VM_OptMethodSummary.summarizeMethod(this, bytecodes, 
+					    (modifiers & ACC_SYNCHRONIZED) 
+					    != 0);
         //-#endif
 
         int cnt = input.readUnsignedShort();
