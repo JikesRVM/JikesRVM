@@ -3672,6 +3672,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       if (methodName == VM_MagicNames.store) {
 
         if(types[0] == VM_TypeReference.Word ||
+	   types[0] == VM_TypeReference.ObjectReference ||
            types[0] == VM_TypeReference.Address) {
           if (types.length == 1) {
             popAddr(T1);                 // pop newvalue
