@@ -71,12 +71,14 @@ done
 ## Blow everything away if timestamps do not match
 ##
 if [[ -e $DEST_DIR/stamp ]]; then
-  if ( ! $DIFF -q $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp ); then
+  if ( $DIFF -q $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp ); then
+    true
+  else
     echo "Removing out-of-date GNU Classpath checkout"
     rm -rf $DEST_DIR
   fi
 else
-  echo "Removing out-of-date GNU Classpath checkout"
+  echo "Removing unknown GNU Classpath checkout"
   rm -rf $DEST_DIR
 fi
 
