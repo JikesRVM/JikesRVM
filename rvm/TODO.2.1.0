@@ -25,9 +25,9 @@ aware of and delete items as they are completed.
 (6) Write release notes.
   ongoing, need to read, enhance
 
-(7) Extend jconfigure to download the jazzlib jar file from ClassPath 
+DONE (7) Extend jconfigure to download the jazzlib jar file from ClassPath 
       like the jlibraries jar file.
-  Julian
+  Julian, Mike
 
 (8) We could think about having a zero-tolerance for javadoc
     compilation errors starting in 2.1.0.  There are currently about 400
