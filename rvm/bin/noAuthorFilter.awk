@@ -22,6 +22,7 @@
 /\/regression\/tests\/jBYTEmark\/jBYTEmark.java/ {next}
 /\/regression\/tests\/SPECjbb2000\/SPECjbb./ {next}
 /\/regression\/tests\/pseudojbb\/pseudojbb/ {next}
+/\/regression\/tests\/pseudojbb\/props/ {next}
 /\/regression\/tests\/mauve\/mauve-jikesrvm/ {next}
 
 /\/src\/examples\/opttests\/Linpack.java/ { next }
