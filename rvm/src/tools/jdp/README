@@ -16,10 +16,7 @@ jdp commands 	- commands, macro (text from typing "help" in jdp)
 Debugging tips 	- useful debugging tricks
 
 
-
-Ton Ngo
-ton@us.ibm.com
-t/l 862-2368
+Author: Ton Ngo
 
 -------------------------------------------------------------------------
 
@@ -51,8 +48,8 @@ corrupted.
 
 
    You can use jdp to start the VM for debugging as above, or if the
-JVM is already running and appears to be hung, you can attach jdp to
-this JVM by:
+VM is already running and appears to be hung, you can attach jdp to
+this VM by:
 
 	jdp -jdpattach<processID>
 
@@ -85,8 +82,7 @@ bytecodes in the reflection methods to obtain the internal values in
 the VM.
   
   jdp is not intended to be a general purpose debugger; it is driven
-by the needs of the VM group.  If jdp crashes or you would like to
-request a new feature, email to jvm-coders@fury.watson.ibm.com
+by the needs of the VM group and new command can be added easily.
 
 
 -------------------------------------------------------------------------
@@ -102,7 +98,7 @@ debugger in the appropriate mode.
 
 The debugger requires the following files:
 
-1. The JVM boot image:
+1. The VM boot image:
    This file is typically $RVM_BUILD/RVM.image but it could have other
    names with the .image extension.  You can specify a different boot image
    name.
@@ -112,7 +108,7 @@ The debugger requires the following files:
 2. The symbol map:
    This file is a symbol map of the boot image.  It contains a listing of the JTOC
    and the compiled methods.  It is generated when the build configuration 
-   in $RVM_ROOT/tools/builder/jconfigure contains the flag:
+   in $RVM_ROOT/rvm/bin/jconfigure contains the flag (true by default):
 	export GENERATE_MAP=1
    jdp uses offset values from this file to find all symbols in the boot image.
    In the dynamic mode, the interpreter also uses this file to find the base 
@@ -125,7 +121,7 @@ The debugger requires the following files:
    jdp argument:	-n classListName
    Default value: 	$RVM_BUILD/RVM.primordials
 
-4. The program to load and run the JVM boot image:
+4. The program to load and run the VM boot image:
    This file is typically $RVM_BUILD/JikesRVM
    Normally you don't have to be concerned about this file since it rarely
    changes.
@@ -136,10 +132,10 @@ The debugger requires the following files:
 
 Initial breakpoint:  
 
-   This is where jdp will stop first.  By default, jdp stops at line 24 in 
-   the assembler procedure:
-	$RVM_ROOT/tools/bootImageRunner/bootThread.s
-   This is after the JVM boot image has been loaded into memory and
+   This is where jdp will stop first.  By default, jdp stops after the 
+   first 4 instructions in the assembler procedure .bootThread in:
+	$RVM_ROOT/rvm/src/tools/bootImageRunner/bootThread.c
+   This is after the VM boot image has been loaded into memory and
    the 4 registers jtoc, proc, thread index and FP have been initialized.
    At this point, only one thread is running and the stack frame has only 
    one entry pointing to the booting C code.
@@ -170,7 +166,6 @@ stepbr        step current thread by instruction, over method
 stepline      step current thread by java source line, into method 
 steplineover  step current thread by java source line, over method 
 creturn       continue to last caller 
-cthread       continue current thread only
 cont          continue all threads
 kill          terminate program 
 run           start new program 
@@ -183,15 +178,15 @@ whereframe    print full stack trace
 stack         display formatted stack 
 mem           display memory
 memraw        display actual memory, jdp breakpoints visible
-wmem          write memory 
 reg           display registers 
-wreg          write register 
 printclass    print the class statics or the type of an object address
 print         print local variables or cast an address as an object
 listi         list machine instruction
 listt         list threads
 
 quit          exit debugger
+x2d	      convert number from hex to decimal
+d2x           convert number from decimal to hex
 preference    set user preference
 verbose       toggle verbose mode
 (macro name)  load and execute this macro (a text file with suffix .jdp)
@@ -227,7 +222,8 @@ Debugging tips
 --------------
 
 o Compiling with local variables:
-  The default boot image is built without the local variable tables. 
+  The default boot image is built without the local variable tables; 
+  therefore the "p" command would always display no variable in scope.  
   To get local variables:
 	jmake bootImageWithLocal
   or set this flag to true in your local shadow:
@@ -246,8 +242,9 @@ o Setting breakpoint:
   Then set a breakpoint on this method:
 	b VM.debugBreakpoint
   In the general debugging mode, when jdp stops at this breakpoint, the 
-  particular class has been loaded and you can set breakpoints in any method
-  of this class.
+  particular class has been loaded and you can then set breakpoints in any 
+  method of this class.  However, if the build configuration enable lazy 
+  compilation, then each method is compiled only then it is first invoked.
 
 
 o Setting breakpoint in the prolog:
@@ -279,7 +276,7 @@ o Getting the class name of an object address:
 
 
 o Printing string:
-  Strings are stored as VM_Atom in the JVM.	
+  Strings are stored as VM_Atom in the VM.	
   To print the string as character, print the memory at the address of
   the field VM_Atom.val:
 
@@ -296,10 +293,11 @@ o Printing string:
 	  0x30269634: 69 6e 74 00    i n t .
 	  0x30269638: 30 05 67 90    0 . g .
 
+  Note that on Lintel, the character columns are in reverse order.
 
 o Restarting your program:
   If your program runs to completion and you want to reexecute it,
-  type "run" in jdp.  A new JVM will be loaded and started in a new
+  type "run" in jdp.  A new VM will be loaded and started in a new
   process.  The existing breakpoints will be saved and set again 
   when the boot image has been loaded.
 
@@ -336,8 +334,8 @@ o Debugger error messages:
 
   "CAUTION, address not accessible: 0x80620420"
 	This means that jdp got an error when it reads an address
-	in the JVM space.  This may have occured because jdp is 
-	dereferencing an object from a bad address, or the JVM has
+	in the VM space.  This may have occured because jdp is 
+	dereferencing an object from a bad address, or the VM has
 	become corrupted.  This message does not mean that jdp
 	has crashed; you should be able to continue debugging.
 
@@ -346,8 +344,8 @@ o Debugger error messages:
 	In the general debugging mode (running with the interpreter),
   	this means that the interpreter has encountered an internal 
 	error and has entered its own internal debugging mode.  At this 
-	point, you can type "w" to see the interpreter stack and send the 
-	messages to jvm-coders.
+	point, you can type "w" to see the interpreter stack and report 
+	the error to Developer Works.
 
 
 
@@ -371,15 +369,10 @@ jdp accepts these options:
 	-jdpbootrunner	the C program that will load the boot image
 	-jdpviewboot	to stop in boot image
 	-jdpserver	running in server mode for a GUI client
-	-jdprecord	DejaVu record mode
-	-jdpreplay	DejaVu replay mode
 	-help
 	-jdpmacro
 
-The script file handles these options:
-	-
-and set these options automatically:
+The script file set the default value for these options automatically.
 	
-
 
 -------------------------------------------------------------------------
