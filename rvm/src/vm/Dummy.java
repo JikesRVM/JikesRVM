@@ -34,3 +34,4 @@ class Dummy {
   static ExtentArray             z;
   static org.vmmagic.pragma.Unpreemptible aa; // temp
 }
+	// Test of a TAB character.
