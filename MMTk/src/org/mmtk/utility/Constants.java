@@ -101,18 +101,18 @@ public interface Constants {
    * This value specifies the <i>minimum</i> allocation alignment
    * requirement of the VM.  When making allocation requests, both
    * <code>align</code> and <code>offset</code> must be multiples of
-   * <code>BYTES_IN_PARTICLE</code>.
+   * <code>MIN_ALIGNMENT</code>.
    *
    * This value is required to be a power of 2.
    */
-  static final byte LOG_BYTES_IN_PARTICLE = VMConstants.LOG_BYTES_IN_PARTICLE();
-  static final int BYTES_IN_PARTICLE = 1<<LOG_BYTES_IN_PARTICLE;
+  static final byte LOG_MIN_ALIGNMENT = VMConstants.LOG_MIN_ALIGNMENT();
+  static final int MIN_ALIGNMENT = 1<<LOG_MIN_ALIGNMENT;
 
   /**
    * The maximum alignment request the vm will make. This must be a 
-   * power of two multiple of bytes in particle.
+   * power of two multiple of the minimum alignment.
    */
-  static final int MAXIMUM_ALIGNMENT = BYTES_IN_PARTICLE<<VMConstants.MAXIMUM_ALIGNMENT_SHIFT(); 
+  static final int MAX_ALIGNMENT = MIN_ALIGNMENT<<VMConstants.MAX_ALIGNMENT_SHIFT(); 
   
   /**
    * The VM will add at most this value minus BYTES_IN_INT bytes of

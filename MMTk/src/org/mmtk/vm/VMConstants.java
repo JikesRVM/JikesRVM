@@ -36,10 +36,10 @@ public interface VMConstants {
   public static final byte LOG_BYTES_IN_WORD() { return 3; }
   /** @return The log base two of the size of an OS page */
   public static final byte LOG_BYTES_IN_PAGE() { return 12; }
-  /** @return The log base two of the size of an allocation particle */
-  public static final byte LOG_BYTES_IN_PARTICLE() { return 1; }
-  /** @return The log base two of (MAXIMUM_ALIGNMENT/PARTICLE) */
-  public static final byte MAXIMUM_ALIGNMENT_SHIFT() { return 1; }
+  /** @return The log base two of the minimum allocation alignment */
+  public static final byte LOG_MIN_ALIGNMENT() { return 1; }
+  /** @return The log base two of (MAX_ALIGNMENT/MIN_ALIGNMENT) */
+  public static final byte MAX_ALIGNMENT_SHIFT() { return 1; }
   /** @return The maximum number of bytes of padding to prepend to an object */
   public static final int MAX_BYTES_PADDING() { return 1; }
 }

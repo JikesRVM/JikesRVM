@@ -45,12 +45,12 @@ public class VMConstants {
   public static final byte LOG_BYTES_IN_PAGE() throws InlinePragma { 
     return 12; 
   }
-  /** @return The log base two of the size of an allocation particle */
-  public static final byte LOG_BYTES_IN_PARTICLE() throws InlinePragma { 
+  /** @return The log base two of the minimum allocation alignment */
+  public static final byte LOG_MIN_ALIGNMENT() throws InlinePragma { 
     return VM_SizeConstants.LOG_BYTES_IN_INT;
   }
-  /** @return The log base two of (MAXIMUM_ALIGNMENT/PARTICLE) */
-  public static final byte MAXIMUM_ALIGNMENT_SHIFT() throws InlinePragma { 
+  /** @return The log base two of (MAX_ALIGNMENT/MIN_ALIGNMENT) */
+  public static final byte MAX_ALIGNMENT_SHIFT() throws InlinePragma { 
     return VM_SizeConstants.LOG_BYTES_IN_LONG - VM_SizeConstants.LOG_BYTES_IN_INT; 
   }
   /** @return The maximum number of bytes of padding to prepend to an object */

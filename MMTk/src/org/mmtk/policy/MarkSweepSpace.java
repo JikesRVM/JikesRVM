@@ -42,7 +42,7 @@ public final class MarkSweepSpace extends Space
    */
   public static final int LOCAL_GC_BITS_REQUIRED = 1;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
-  public static final int GC_HEADER_BYTES_REQUIRED = 0;
+  public static final int GC_HEADER_WORDS_REQUIRED = 0;
   public static final Word MARK_BIT_MASK = Word.one();  // ...01
 
   /****************************************************************************

@@ -64,7 +64,7 @@ public abstract class SegregatedFreeList extends Allocator
   protected static final int MAX_CELLS = 99; //(1<<(INUSE_BITS-1))-1;
 
   // live bits etc
-  private static final int OBJECT_LIVE_SHIFT = LOG_BYTES_IN_PARTICLE; // 4 byte resolution
+  private static final int OBJECT_LIVE_SHIFT = LOG_MIN_ALIGNMENT; // 4 byte resolution
   private static final int LOG_BIT_COVERAGE = OBJECT_LIVE_SHIFT;
   protected static final int BYTES_PER_LIVE_BIT = 1<<LOG_BIT_COVERAGE;
   private static final int BYTES_PER_LIVE_WORD = 1<<(LOG_BIT_COVERAGE+LOG_BITS_IN_WORD);

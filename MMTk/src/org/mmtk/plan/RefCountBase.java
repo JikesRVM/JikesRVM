@@ -43,7 +43,7 @@ public abstract class RefCountBase extends StopTheWorldGC
    * Class variables
    */
   public static final boolean NEEDS_WRITE_BARRIER = true;
-  public static final int GC_HEADER_BYTES_REQUIRED = RefCountSpace.GC_HEADER_BYTES_REQUIRED;
+  public static final int GC_HEADER_WORDS_REQUIRED = RefCountSpace.GC_HEADER_WORDS_REQUIRED;
   public static final boolean REF_COUNT_CYCLE_DETECTION = true;
   public static final boolean SUPPORTS_PARALLEL_GC = false;
   protected static final boolean WITH_COALESCING_RC = true;

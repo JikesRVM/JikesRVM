@@ -39,7 +39,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    */
   public static final boolean MOVES_OBJECTS = false;
   public static final int GC_HEADER_BITS_REQUIRED = 0;
-  public static final int GC_HEADER_BYTES_REQUIRED = 0;
+  public static final int GC_HEADER_WORDS_REQUIRED = 0;
 
   // Allocators
   public static final int ALLOCATORS = BASE_ALLOCATORS;

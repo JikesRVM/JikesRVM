@@ -73,17 +73,17 @@ public abstract class Allocator implements Constants, Uninterruptible {
                                              int offset, int knownAlignment)
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) {
-      Assert._assert(knownAlignment >= BYTES_IN_PARTICLE);
-      Assert._assert(BYTES_IN_PARTICLE >= BYTES_IN_INT);
-      Assert._assert(alignment <= MAXIMUM_ALIGNMENT);
+      Assert._assert(knownAlignment >= MIN_ALIGNMENT);
+      Assert._assert(MIN_ALIGNMENT >= BYTES_IN_INT);
+      Assert._assert(alignment <= MAX_ALIGNMENT);
       Assert._assert(offset >= 0);
-      Assert._assert((region.toInt() & (BYTES_IN_PARTICLE-1)) == 0);
-      Assert._assert((alignment & (BYTES_IN_PARTICLE-1)) == 0);
-      Assert._assert((offset & (BYTES_IN_PARTICLE-1)) == 0);
+      Assert._assert((region.toInt() & (MIN_ALIGNMENT-1)) == 0);
+      Assert._assert((alignment & (MIN_ALIGNMENT-1)) == 0);
+      Assert._assert((offset & (MIN_ALIGNMENT-1)) == 0);
     }
 
     // No alignment ever required.
-    if (alignment <= knownAlignment || MAXIMUM_ALIGNMENT <= BYTES_IN_PARTICLE)
+    if (alignment <= knownAlignment || MAX_ALIGNMENT <= MIN_ALIGNMENT)
       return region; 
 
     // May require an alignment
@@ -107,7 +107,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
   final public static Address alignAllocation(Address region, int alignment, 
                                              int offset) 
     throws InlinePragma {
-    return alignAllocation(region, alignment, offset, BYTES_IN_PARTICLE);
+    return alignAllocation(region, alignment, offset, MIN_ALIGNMENT);
   }
 
   /**
@@ -119,7 +119,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
    */
   final public static int getMaximumAlignedSize(int size, int alignment) 
     throws InlinePragma {
-    return getMaximumAlignedSize(size, alignment, BYTES_IN_PARTICLE);
+    return getMaximumAlignedSize(size, alignment, MIN_ALIGNMENT);
   }
   
   /**
@@ -134,9 +134,8 @@ public abstract class Allocator implements Constants, Uninterruptible {
   final public static int getMaximumAlignedSize(int size, int alignment,
                                                 int knownAlignment) 
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(knownAlignment >= BYTES_IN_PARTICLE);
-    if (MAXIMUM_ALIGNMENT <= BYTES_IN_PARTICLE
-        || alignment <= knownAlignment) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(knownAlignment >= MIN_ALIGNMENT);
+    if (MAX_ALIGNMENT <= MIN_ALIGNMENT || alignment <= knownAlignment) {
       return size;
     } else {
       return size + alignment - knownAlignment;

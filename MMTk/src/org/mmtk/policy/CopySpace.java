@@ -38,7 +38,7 @@ public final class CopySpace extends Space
    */
   public static final int LOCAL_GC_BITS_REQUIRED = 2;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
-  public static final int GC_HEADER_BYTES_REQUIRED = 0;
+  public static final int GC_HEADER_WORDS_REQUIRED = 0;
 
   private static final Word GC_MARK_BIT_MASK = Word.one();
   private static final Word GC_FORWARDED        = Word.one().lsh(1);  // ...10

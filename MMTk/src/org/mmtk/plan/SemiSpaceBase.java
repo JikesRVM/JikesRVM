@@ -57,7 +57,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    */
   public static final boolean MOVES_OBJECTS = true;
   public static final int GC_HEADER_BITS_REQUIRED = CopySpace.LOCAL_GC_BITS_REQUIRED;
-  public static final int GC_HEADER_BYTES_REQUIRED = CopySpace.GC_HEADER_BYTES_REQUIRED;
+  public static final int GC_HEADER_WORDS_REQUIRED = CopySpace.GC_HEADER_WORDS_REQUIRED;
 
   // GC state
   protected static boolean hi = false; // True if allocing to "higher" semispace

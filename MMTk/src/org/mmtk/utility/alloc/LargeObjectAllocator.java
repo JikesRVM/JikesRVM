@@ -97,7 +97,7 @@ public abstract class LargeObjectAllocator extends Allocator implements Constant
    */
   final protected Address allocSlowOnce (int bytes, int align, int offset,
                                             boolean inGC) {
-    int header = superPageHeaderSize() + cellHeaderSize();  //must be multiple of BYTES_IN_PARTICLE
+    int header = superPageHeaderSize() + cellHeaderSize();  //must be multiple of MIN_ALIGNMENT
     int maxbytes = getMaximumAlignedSize(bytes + header, align);
     int pages = (maxbytes + BYTES_IN_PAGE - 1) >>LOG_BYTES_IN_PAGE;
     Address sp = space.acquire(pages);

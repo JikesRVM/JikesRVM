@@ -49,9 +49,9 @@ public final class RefCountSpace extends Space
   public static final int LOCAL_GC_BITS_REQUIRED = 2;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0; 
   /** How many bytes are used by all GC header fields? */
-  public static final int GC_HEADER_BYTES_REQUIRED = (RC_SANITY_CHECK) ? 2*BYTES_IN_ADDRESS : BYTES_IN_ADDRESS;
-  protected static final Offset RC_HEADER_OFFSET = Offset.fromInt(ObjectModel.GC_HEADER_OFFSET());
-  protected static final Offset RC_SANITY_HEADER_OFFSET = Offset.fromInt(ObjectModel.GC_HEADER_OFFSET() + BYTES_IN_ADDRESS);
+  public static final int GC_HEADER_WORDS_REQUIRED = (RC_SANITY_CHECK) ? 2 : 1;
+  protected static final Offset RC_HEADER_OFFSET = ObjectModel.GC_HEADER_OFFSET();
+  protected static final Offset RC_SANITY_HEADER_OFFSET = ObjectModel.GC_HEADER_OFFSET().add(BYTES_IN_ADDRESS);
 
 
   /* Mask bits to signify the start/finish of logging an object */

@@ -653,8 +653,8 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
                                        int allocator, ObjectReference from)
                                           
     throws UninterruptiblePragma, InlinePragma {
-    // MMTk requests must be in multiples of BYTES_IN_PARTICLE
-    bytes = VM_Memory.alignUp(bytes, BYTES_IN_PARTICLE);
+    // MMTk requests must be in multiples of MIN_ALIGNMENT
+    bytes = VM_Memory.alignUp(bytes, MIN_ALIGNMENT);
 
     /*
      * Now make the request
@@ -690,7 +690,7 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
                                           int offset)
     throws UninterruptiblePragma, InlinePragma {
     Address region = VM_Memory.alignUp(Address.fromInt(initialOffset),
-                                          BYTES_IN_PARTICLE);
+                                       MIN_ALIGNMENT);
     return Allocator.alignAllocation(region, align, offset).toInt();
   }
 

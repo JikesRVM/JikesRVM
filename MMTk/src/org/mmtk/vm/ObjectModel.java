@@ -177,8 +177,8 @@ public class ObjectModel {
    * @return the offset, relative the object reference address
    */
   /* AJG: Should this be a variable rather than method? */
-  public static int GC_HEADER_OFFSET() {
-    return 0;
+  public static Offset GC_HEADER_OFFSET() {
+    return Offset.zero();
   }
 
   /**

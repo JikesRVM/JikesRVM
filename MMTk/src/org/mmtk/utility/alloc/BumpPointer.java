@@ -74,7 +74,7 @@ public class BumpPointer extends Allocator
   // Data must start particle-aligned.
   private static final Offset DATA_START_OFFSET   = alignAllocation(
       Address.zero().add(DATA_END_OFFSET.add(BYTES_IN_ADDRESS)), 
-      BYTES_IN_PARTICLE, 0).toWord().toOffset();
+      MIN_ALIGNMENT, 0).toWord().toOffset();
  
   /****************************************************************************
    *
