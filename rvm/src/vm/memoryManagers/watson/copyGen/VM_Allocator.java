@@ -866,7 +866,8 @@ public class VM_Allocator
       // do here where a sync (below) will push value to memory
       
       if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "finishing minor collection");
-      
+      if (verbose >= 2 && variableNursery) appelHeap.show();
+
       // If GC was initiated by an outside call to gc(), then forceMajorCollection was set
       // to cause us here to do a major collection.
       if (forceMajorCollection) {
