@@ -66,7 +66,9 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
   }
 
   /**
-   * Allocate space for a new object
+   * Allocate space for a new object.  This is frequently executed code and 
+   * the coding is deliberaetly sensitive to the optimizing compiler.
+   * After changing this, always check the IR/MC that is generated.
    *
    * @param isScalar Is the object to be allocated a scalar (or array)?
    * @param bytes The number of bytes allocated
@@ -74,9 +76,10 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
    */
   public VM_Address alloc(boolean isScalar, EXTENT bytes) throws VM_PragmaInline {
     VM_Address oldbp = bp;
-    bp = bp.add(bytes);
-    VM_Word tmp = oldbp.toWord().xor(bp.toWord());
-    if (tmp.GE(VM_Word.fromInt(TRIGGER)))
+    VM_Address newbp = oldbp.add(bytes);
+    bp = newbp;
+    VM_Word tmp = oldbp.toWord().xor(newbp.toWord());
+    if (tmp.GT(VM_Word.fromInt(TRIGGER)))
       return allocSlowPath(bytes);
     return oldbp;
   }
@@ -110,7 +113,8 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
   //
   // Final class variables (aka constants)
   //
-  private static final EXTENT TRIGGER = VMResource.BLOCK_SIZE;
-  // this ensures the bump pointer will go through slow path on first alloc
-  private static final VM_Address INITIAL_BP_VALUE = VM_Address.fromInt(TRIGGER - 1);
+  // Must ensure the bump pointer will go through slow path on (first) alloc of initial value
+  //
+  private static final EXTENT TRIGGER = VMResource.BLOCK_SIZE - 1;
+  private static final VM_Address INITIAL_BP_VALUE = VM_Address.fromInt(TRIGGER);
 }
