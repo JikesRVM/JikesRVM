@@ -192,7 +192,7 @@ public class VM_StackTrace implements VM_Constants {
       This needs to be run-time configurable, but isn't.   Set it in the code
       and recompile.  
   */
-  final static private boolean alsoStackTraceToSysWrite = false;
+  final static public boolean alsoStackTraceToSysWrite = false;
 
   /** Show the context of an attempt to print a stack frame.  This is
       specifically to help figure out why Eclipse is dumping the stack in
@@ -200,7 +200,7 @@ public class VM_StackTrace implements VM_Constants {
       
       Needs to be made run-time configurable, but isn't. 
   */
-  final static boolean showPrintingContext = true;
+  final static public boolean showPrintingContext = false;
 
 
   /**
