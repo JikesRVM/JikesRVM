@@ -164,7 +164,6 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * range info and (optionally) GC map info as we go.
    *
    * @param ir the ir
-   * @return the IR-based GC Map for this method
    */
   void perform(OPT_IR ir) {
 
@@ -221,7 +220,13 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     // created, so we can't print them.
     if (!skipLocal) {
       performLocalPropagation(ir, createGCMaps);
+
       if (createGCMaps && dumpFinalMaps) {
+        System.out.println("**** START OF IR for method: " + ir.method.name
+          + " in class: " + ir.method.getDeclaringClass().getName());
+        ir.printInstructions();
+        System.out.println("**** END   OF IR INSTRUCTION DUMP ****");
+	
         printFinalMaps(ir);
       }
       if (dumpFinalLiveIntervals) {
