@@ -5,7 +5,9 @@
 # @author Derek Lieber
 # @modified Steven Augart
 
-include		$(RVM_BUILD)/Make.rules.host
+# include either Make.rules.host or Make.rules.target
+INCLUDED_MAKEFILE?=$(RVM_BUILD)/Make.rules.target
+include	$(INCLUDED_MAKEFILE)
 
 # This only affects testing, since SCRATCH_DIR will only be reset 
 # if we don't have a value (whether command-line or from the environment).

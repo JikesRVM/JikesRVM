@@ -1406,8 +1406,8 @@ function emitCopier () {
 #    	[[ \$XFLAG ]] || XFLAG=+x
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	# Make the preprocessor
-	${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
-	cp ${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles ${BUILD_DIRECTORY_STR}/jbuild.prep
+	${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.host tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
+	cp ${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles ${BUILD_DIRECTORY_STR}/jbuild.prep.host
 	echo -n '(preprocessor built) '
 
 	# This may be reset in the loop below.
@@ -1433,17 +1433,17 @@ EOF
     cat <<- EOF
 
 	    ## Approach abandoned because xargs will exit with status 123
-	    ## upon nonzero exit status from jbuild.prep, but 
-	    ## jbuild.prep will exit with status 1 when files are modified.
+	    ## upon nonzero exit status from jbuild.prep.host, but 
+	    ## jbuild.prep.host will exit with status 1 when files are modified.
 	    ## So, all the non-zero return values get mapped to 123, and we 
 	    ## want to distinguish 1 (OK) 
 	    ## from other non-zero return values (trouble).
-	    # echo \$FILES | \$XARGS -r ${BUILD_DIRECTORY_STR}/jbuild.prep \${PREPROC_FLAGS} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} 
+	    # echo \$FILES | \$XARGS -r ${BUILD_DIRECTORY_STR}/jbuild.prep.host \${PREPROC_FLAGS} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} 
 
 	    if [[ ! \$FILES ]]; then
 	        continue;
 	    fi
-	    ${BUILD_DIRECTORY_STR}/jbuild.prep \${PREPROC_TRACE_FLAG} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} \$FILES 
+	    ${BUILD_DIRECTORY_STR}/jbuild.prep.host \${PREPROC_TRACE_FLAG} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} \$FILES 
 	    status=\$?
 EOF
     emit_enable_exit_on_error
@@ -1451,7 +1451,7 @@ EOF
     if (( status == 1 )); then
 	FILES_HAVE_CHANGED=1
     elif (( status != 0 )); then
-	echo >&2 "$ME: Trouble while running jbuild.prep (exit status ${status}).
+	echo >&2 "$ME: Trouble while running jbuild.prep.host (exit status ${status}).
     Aborting execution."
 	trap "" EXIT
 	exit $status
@@ -1471,15 +1471,15 @@ fi
 FILES=$(${FIND} '${GENERATED_FILES_DIRECTORY_STR}'/ -name "*.java")'
     emit_disable_exit_on_error
     ## See above comment on xargs.
-    # echo 'echo $FILES | $XARGS -r '${BUILD_DIRECTORY_STR}'/jbuild.prep ${PREPROC_TRACE_FLAG}' ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR}'
-    echo ${BUILD_DIRECTORY_STR}/jbuild.prep "\${PREPROC_TRACE_FLAG}" ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR} "\${FILES}"
+    # echo 'echo $FILES | $XARGS -r '${BUILD_DIRECTORY_STR}'/jbuild.prep.host ${PREPROC_TRACE_FLAG}' ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR}'
+    echo ${BUILD_DIRECTORY_STR}/jbuild.prep.host "\${PREPROC_TRACE_FLAG}" ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR} "\${FILES}"
     echo 'status=$?'
     emit_enable_exit_on_error
     echo '
 if [[ ${status} = 1 ]]; then
     FILES_HAVE_CHANGED=1
 elif [[ ${status} != 0 ]]; then
-    echo >&2 "$ME: Trouble while running jbuild.prep (exit status ${status}); aborting execution."
+    echo >&2 "$ME: Trouble while running jbuild.prep.host (exit status ${status}); aborting execution."
     trap '' EXIT
     exit ${status}
 fi
@@ -2193,8 +2193,8 @@ EOF
     echo "    exit 2"
     echo "fi"
     # See above comment in jconfigure on xargs.
-    echo "echo \$FILES | \$XARGS -r \"$BUILD_DIRECTORY_STR/jbuild.prep\" --disable-modification-exit-status \$PREPROC_TRACE_FLAG" $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR 
-    # echo $BUILD_DIRECTORY_STR/jbuild.prep --disable-modification-exit-status '$PREPROC_TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR "\$FILES"
+    echo "echo \$FILES | \$XARGS -r \"$BUILD_DIRECTORY_STR/jbuild.prep.host\" --disable-modification-exit-status \$PREPROC_TRACE_FLAG" $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR 
+    # echo $BUILD_DIRECTORY_STR/jbuild.prep.host --disable-modification-exit-status '$PREPROC_TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR "\$FILES"
     echo "if tracing preprocessor; then"
     echo '    echo ""'
     echo 'fi'
@@ -2222,7 +2222,7 @@ EOF
     echo "fi"
     # We explicitly do not double-quote $PREPROCESSOR_DEFINITIONS, since we
     # need the newlines in that string to be replaced with spaces.
-    echo "$BUILD_DIRECTORY_STR/jbuild.prep --disable-modification-exit-status \$PREPROC_TRACE_FLAG" $PREPROCESSOR_DEFINITIONS "$SCRATCH_DIRECTORY_STR  \$FILE"
+    echo "$BUILD_DIRECTORY_STR/jbuild.prep.host --disable-modification-exit-status \$PREPROC_TRACE_FLAG" $PREPROCESSOR_DEFINITIONS "$SCRATCH_DIRECTORY_STR  \$FILE"
     echo "if tracing jbuild; then"
     echo '    echo ""'
     echo 'fi'
@@ -2407,8 +2407,8 @@ function emitBooterLinker () {
     echo -e "\necho -n '(classpath native libraries copied) '"
 
     # Make a target platform preprocessor for use in gctest
-    echo "${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
-    echo "cp ${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles ${BUILD_DIRECTORY_STR}/jbuild.tool.prep"
+    echo "${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.target tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}"
+    echo "cp ${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles ${BUILD_DIRECTORY_STR}/jbuild.prep.target"
 
     # Create RunBootImage.h file.
     echo "echo \"// RunBootImage.C boot-time constants\" >> RunBootImage.h"
@@ -2644,7 +2644,7 @@ function emitToolCompiler () {
     echo "exec $HOST_JAVAC_STR -nowarn -g -classpath \"\$CPATH\" -bootclasspath \"\$CPATH\" \"\$@\""
 }
   
-# Emit script to run jbuild.prep on java files that are not part of the build
+# Emit script to run jbuild.prep.target on java files that are not part of the build
 #
 function emitToolPreprocessor () {
     echo '#! /bin/bash'
@@ -2662,7 +2662,7 @@ function emitToolPreprocessor () {
     echo "    exit $Exit_Status_Bad_Args"
     echo 'fi'
 
-    echo 'exec "$RVM_BUILD/jbuild.tool.prep"' $PREPROCESSOR_DEFINITIONS '"$@"'
+    echo 'exec "$RVM_BUILD/jbuild.prep.target"' $PREPROCESSOR_DEFINITIONS '"$@"'
 }
   
 function emitPluginBuilder () {
