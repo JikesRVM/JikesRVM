@@ -3334,7 +3334,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    *  signature of the form "static native VM_Magic.xxx(...)".
    *  23 Jan 1998 Derek Lieber
    * 
-   *  NOTE: when adding a new "methodName" to "generate()", be sure to also 
+   * NOTE: when adding a new "methodName" to "generate()", be sure to also 
    * consider how it affects the values on the stack and update 
    * "checkForActualCall()" accordingly.
    * If no call is actually generated, the map will reflect the status of the 
@@ -3348,19 +3348,13 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @return true if there was magic defined for the method
    */
   private boolean  generateInlineCode(VM_MethodReference methodToBeCalled) {
-    VM_Atom      methodName       = methodToBeCalled.getName();
+    VM_Atom methodName = methodToBeCalled.getName();
       
     if (methodToBeCalled.getType() == VM_TypeReference.SysCall) {
       VM_TypeReference[] args = methodToBeCalled.getParameterTypes();
-      VM_TypeReference rtype = methodToBeCalled.getReturnType();
 
       // (1) Set up arguments according to OS calling convention
       int paramWords = methodToBeCalled.getParameterWords();
-      if (VM.VerifyAssertions) {
-	// Laziness.  We don't support sysCalls with so 
-	// many arguments that we would have to spill some to the stack.
-	VM._assert(paramWords <= (LAST_OS_PARAMETER_GPR - FIRST_OS_PARAMETER_GPR + 1));
-      }
       int gp = FIRST_OS_PARAMETER_GPR;
       int fp = FIRST_OS_PARAMETER_FPR;
       int stackIndex = paramWords;
@@ -3389,25 +3383,34 @@ public class VM_Compiler extends VM_BaselineCompiler
 	  peekAddr(gp++, stackIndex);
 	}
       }
-      if (VM.VerifyAssertions) VM._assert(stackIndex == 0);
+      if (VM.VerifyAssertions) {
+	VM._assert(stackIndex == 0);
+	// Laziness.  We don't support sysCalls with so 
+	// many arguments that we would have to spill some to the stack.
+	VM._assert(gp - 1 <= LAST_OS_PARAMETER_GPR);
+	VM._assert(fp - 1 <= LAST_OS_PARAMETER_FPR);
+      }
 
+      // (2) Call it
       int paramBytes = paramWords * BYTES_IN_STACKSLOT;
       VM_Field ip = VM_Entrypoints.getSysCallField(methodName.toString());
       generateSysCall(paramBytes, ip);
-      if (rtype.isVoidType()) {
-	generateSysCallRet_V(paramBytes);
+
+      // (3) Pop Java expression stack
+      discardSlots(paramWords);
+
+      // (4) Push return value (if any)
+      VM_TypeReference rtype = methodToBeCalled.getReturnType();
+      if (rtype.isIntLikeType()) {
+	pushInt(T0);
+      } else if (rtype.isWordType() || rtype.isReferenceType()) {
+	pushAddr(T0); 
       } else if (rtype.isDoubleType()) {
-	generateSysCallRet_D(paramBytes);
+	pushDouble(FIRST_OS_PARAMETER_FPR);
       } else if (rtype.isFloatType()) {
-	generateSysCallRet_F(paramBytes);
-      } else if (rtype.isWordType()) {
-	generateSysCallRet_A(paramBytes);
-      } else if (rtype.isIntLikeType()) {
-	generateSysCallRet_I(paramBytes);
+	pushFloat(FIRST_OS_PARAMETER_FPR);
       } else if (rtype.isLongType()) {
-	generateSysCallRet_L(paramBytes);
-      } else {
-	if (VM.VerifyAssertions) VM._assert(false);
+	pushLong(T0, VM.BuildFor64Addr?T0:T1);
       }
     } else if (methodName == VM_MagicNames.sysCallSigWait) {
       int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
@@ -3422,7 +3425,8 @@ public class VM_Compiler extends VM_BaselineCompiler
       peekInt(T0, 1);
       peekInt(T1, 0);
       generateSysCall1(2 * BYTES_IN_STACKSLOT);
-      generateSysCallRet_I(2 * BYTES_IN_STACKSLOT);
+      discardSlots(3); // 2 args + ip
+      pushInt(T0);
     } else if (methodName == VM_MagicNames.getFramePointer) {
       pushAddr(FP); 
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
@@ -3748,9 +3752,14 @@ public class VM_Compiler extends VM_BaselineCompiler
 	       methodName == VM_MagicNames.longBitsAsDouble) {
       // no-op (a type change, not a representation change)
     } else if (methodName == VM_MagicNames.getObjectType) {
-      generateGetObjectType();
+      popAddr(T0);                   // get object pointer
+      VM_ObjectModel.baselineEmitLoadTIB(asm,T0,T0);
+      asm.emitLAddr(T0,  TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS, T0); // get "type" field from type information block
+      pushAddr(T0);                   // *sp := type
     } else if (methodName == VM_MagicNames.getArrayLength) {
-      generateGetArrayLength();
+      popAddr(T0);                   // get object pointer
+      asm.emitLInt(T0,  VM_ObjectModel.getArrayLengthOffset(), T0); // get array length field
+      pushInt(T0);                   // *sp := length
     } else if (methodName == VM_MagicNames.sync) {
       asm.emitSYNC();
     } else if (methodName == VM_MagicNames.isync) {
@@ -3866,7 +3875,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (VM.BuildFor32Addr) {
       asm.emitCMPL(T0, T1);    // unsigned comparison
     } else {
-      asm.emitCMPLD(T0, T1);    // unsigned comparison
+      asm.emitCMPLD(T0, T1);   // unsigned comparison
     } 
     VM_ForwardReference fr = asm.emitForwardBC(cc);
     asm.emitLI(T2,  0);
@@ -3932,104 +3941,12 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
 
   /** 
-   * Generate code for "VM_Type VM_Magic.getObjectType(Object object)".
-    */
-  private void generateGetObjectType() {
-    // On entry the stack looks like this:
-    //
-    //                     hi-mem
-    //            +-------------------------+    \
-    //            |    (Object object)      |     |- java operand stack
-    //            +-------------------------+    /
-
-    popAddr(T0);                   // get object pointer
-    VM_ObjectModel.baselineEmitLoadTIB(asm,T0,T0);
-    asm.emitLAddr(T0,  TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS, T0); // get "type" field from type information block
-    pushAddr(T0);                   // *sp := type
-  }
-
-  /** 
-   * Generate code for "int VM_Magic.getArrayLength(Object object)".
-   */
-  private void generateGetArrayLength() {
-    // On entry the stack looks like this:
-    //
-    //                     hi-mem
-    //            +-------------------------+    \
-    //            |    (Object object)      |     |- java operand stack
-    //            +-------------------------+    /
-
-    popAddr(T0);                   // get object pointer
-    asm.emitLInt(T0,  VM_ObjectModel.getArrayLengthOffset(), T0); // get array length field
-    pushInt(T0);                   // *sp := length
-  }
-
-  /** 
-   * Generate code for "int VM_Magic.sysCallN(int ip, int val0, int val1, ..., valN-1)".
+   * Generate code for "int VM_Magic.sysCallSigWait(int ip, int val0, int val1)
+   * TODO: This code is almost dead....
+   * 
    * @param rawParameterSize: number of bytes in parameters (not including IP)
    */
   private void generateSysCall1(int rawParametersSize) {
-    // Create a linkage area that's compatible with RS6000 "C" calling conventions.
-    // Just before the call, the stack looks like this:
-    //
-    //                     hi-mem
-    //            +-------------------------+  . . . . . . . .
-    //            |          ...            |                  \
-    //            +-------------------------+                   |
-    //            |          ...            |    \              |
-    //            +-------------------------+     |             |
-    //            |       (int ip)          |     |             |
-    //            +-------------------------+     |             |
-    //            |       (int val0)        |     |  java       |- java
-    //            +-------------------------+     |-  operand   |   stack
-    //            |       (int val1)        |     |    stack    |    frame
-    //            +-------------------------+     |             |
-    //            |          ...            |     |             |
-    //            +-------------------------+     |             |
-    //            |      (int valN-1)       |     |             |
-    //            +-------------------------+    /              |
-    //            |          ...            |                   |
-    //            +-------------------------+                   |
-    //            |                         | <-- spot for this frame's callee's return address
-    //            +-------------------------+                   |
-    //            |          MI             | <-- this frame's method id
-    //            +-------------------------+                   |
-    //            |       saved FP          | <-- this frame's caller's frame
-    //            +-------------------------+  . . . . . . . . /
-    //            |      saved JTOC         |
-    //            +-------------------------+  . . . . . . . . . . . . . .
-    //            | parameterN-1 save area  | +  \                         \
-    //            +-------------------------+     |                         |
-    //            |          ...            | +   |                         |
-    //            +-------------------------+     |- register save area for |
-    //            |  parameter1 save area   | +   |    use by callee        |
-    //            +-------------------------+     |                         |
-    //            |  parameter0 save area   | +  /                          |  rs6000
-    //            +-------------------------+                               |-  linkage
-    //        +20 |       TOC save area     | +                             |    area
-    //            +-------------------------+                               |
-    //        +16 |       (reserved)        | -    + == used by callee      |
-    //            +-------------------------+      - == ignored by callee   |
-    //        +12 |       (reserved)        | -                             |
-    //            +-------------------------+                               |
-    //         +8 |       LR save area      | +                             |
-    //            +-------------------------+                               |
-    //         +4 |       CR save area      | +                             |
-    //            +-------------------------+                               |
-    //  FP ->  +0 |       (backlink)        | -                             |
-    //            +-------------------------+  . . . . . . . . . . . . . . /
-    //
-    // Notes:
-    // 1. C parameters are passed in registers R3...R10
-    // 2. space is also reserved on the stack for use by callee
-    //    as parameter save area
-    // 3. parameters are pushed on the java operand stack left to right
-    //    java conventions) but if callee saves them, they will
-    //    appear in the parameter save area right to left (C conventions)
-    //
-    // generateSysCall1  set ups the call
-    // generateSysCallRet_<type> fix stack pushes return values
- 
     int ipIndex = rawParametersSize >> LOG_BYTES_IN_STACKSLOT; // where to access IP parameter
     int linkageAreaSize   = rawParametersSize +		// values
       BYTES_IN_STACKSLOT +		 	        // saveJTOC
@@ -4055,9 +3972,67 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
 
   /** 
-   * generate call and return sequence to invoke a C function through the boot record
-   * field specificed by target,  See comments above in sysCall1 about AIX linkage conventions.
-   * Caller deals with expression stack (setting up args, pushing return, adjusting stack height)
+   * Generate call and return sequence to invoke a C function through the
+   * boot record field specificed by target. 
+   * Caller handles parameter passing and expression stack 
+   * (setting up args, pushing return, adjusting stack height).
+   *
+   * <pre>
+   *  Create a linkage area that's compatible with RS6000 "C" calling conventions.
+   * Just before the call, the stack looks like this:
+   *
+   *                     hi-mem
+   *            +-------------------------+  . . . . . . . .
+   *            |          ...            |                  \
+   *            +-------------------------+                   |
+   *            |          ...            |    \              |
+   *            +-------------------------+     |             |
+   *            |       (int val0)        |     |  java       |- java
+   *            +-------------------------+     |-  operand   |   stack
+   *            |       (int val1)        |     |    stack    |    frame
+   *            +-------------------------+     |             |
+   *            |          ...            |     |             |
+   *            +-------------------------+     |             |
+   *            |      (int valN-1)       |     |             |
+   *            +-------------------------+    /              |
+   *            |          ...            |                   |
+   *            +-------------------------+                   |
+   *            |                         | <-- spot for this frame's callee's return address
+   *            +-------------------------+                   |
+   *            |          MI             | <-- this frame's method id
+   *            +-------------------------+                   |
+   *            |       saved FP          | <-- this frame's caller's frame
+   *            +-------------------------+  . . . . . . . . /
+   *            |      saved JTOC         |
+   *            +-------------------------+  . . . . . . . . . . . . . .
+   *            | parameterN-1 save area  | +  \                         \
+   *            +-------------------------+     |                         |
+   *            |          ...            | +   |                         |
+   *            +-------------------------+     |- register save area for |
+   *            |  parameter1 save area   | +   |    use by callee        |
+   *            +-------------------------+     |                         |
+   *            |  parameter0 save area   | +  /                          |  rs6000
+   *            +-------------------------+                               |-  linkage
+   *        +20 |       TOC save area     | +                             |    area
+   *            +-------------------------+                               |
+   *        +16 |       (reserved)        | -    + == used by callee      |
+   *            +-------------------------+      - == ignored by callee   |
+   *        +12 |       (reserved)        | -                             |
+   *            +-------------------------+                               |
+   *         +8 |       LR save area      | +                             |
+   *            +-------------------------+                               |
+   *         +4 |       CR save area      | +                             |
+   *            +-------------------------+                               |
+   *  FP ->  +0 |       (backlink)        | -                             |
+   *            +-------------------------+  . . . . . . . . . . . . . . /
+   *
+   * Notes:
+   * 1. parameters are according to host OS calling convention.
+   * 2. space is also reserved on the stack for use by callee
+   *    as parameter save area
+   * 3. parameters are pushed on the java operand stack left to right
+   *    java conventions) but if callee saves them, they will
+   *    appear in the parameter save area right to left (C conventions)
    */
   private void generateSysCall(int parametersSize, VM_Field target) {
     int linkageAreaSize   = parametersSize + BYTES_IN_STACKSLOT + (6 * BYTES_IN_STACKSLOT);
@@ -4082,42 +4057,5 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLAddr(JTOC, linkageAreaSize - BYTES_IN_STACKSLOT, FP);    // restore JTOC
     asm.emitADDI (FP, linkageAreaSize, FP);        // remove linkage area
   }
-
-
-  private void generateSysCallRet_V(int rawParametersSize) {
-    int parameterAreaSize = rawParametersSize;
-    discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);      // pop args
-  }
-
-  private void generateSysCallRet_A(int rawParametersSize) {
-    int parameterAreaSize = rawParametersSize;
-    discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);    // pop args
-    pushAddr(T0);                         // deposit C return value (R3) on stacktop
-  }
-
-  private void generateSysCallRet_I(int rawParametersSize) {
-    int parameterAreaSize = rawParametersSize;
-    discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);    // pop args
-    pushInt(T0);                         // deposit C return value (R3) on stacktop
-  }
-
-  private void generateSysCallRet_L(int rawParametersSize) {
-    int parameterAreaSize = rawParametersSize;
-    discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);    // pop args
-    pushLong(T0, VM.BuildFor64Addr?T0:T1);                        // deposit C return value (R3, R4) on stacktop
-  }
-
-  private void generateSysCallRet_F(int rawParametersSize) {
-    int parameterAreaSize = rawParametersSize;
-    discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);     // pop args
-    pushFloat(FIRST_OS_PARAMETER_FPR);                             // deposit C return value on stacktop
-  }
-
-  private void generateSysCallRet_D(int rawParametersSize) {
-    int parameterAreaSize = rawParametersSize;
-    discardSlots(parameterAreaSize >> LOG_BYTES_IN_STACKSLOT);     // pop args
-    pushDouble(FIRST_OS_PARAMETER_FPR);                            // deposit C return value on stacktop
-  }
-
 }
 
