@@ -36,7 +36,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Create a thread with default stack.
    */ 
   public VM_Thread () {
-    this(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL));
+    this(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL>>2));
   }
 
   /**

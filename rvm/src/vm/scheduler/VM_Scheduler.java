@@ -278,7 +278,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       // create VM_Thread for virtual cpu to execute
       //
-      VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL)); 
+      VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL>>2)); 
 
       // create virtual cpu and wait for execution to enter target's code/stack.
       // this is done with gc disabled to ensure that garbage collector doesn't move
@@ -310,7 +310,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     if (VM.BuildWithNativeDaemonProcessor) {
 
-      VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL));
+      VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL>>2));
 
       processors[nativeDPndx].activeThread = target;
       processors[nativeDPndx].activeThreadStackLimit = target.stackLimit;
