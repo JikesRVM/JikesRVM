@@ -37,9 +37,6 @@ public abstract class RCBaseHeader implements Constants {
   public static final int REQUESTED_BITS    = 2;
   static final int GC_BITS_MASK      = 0x3;
 
-  static final int      BARRIER_BIT = 1;
-  static final int BARRIER_BIT_MASK  = 1<<BARRIER_BIT;  // ...10
-
   static final int DEC_KILL = 0;    // dec to zero RC --> reclaim obj
   static final int DEC_PURPLE = 1;  // dec to non-zero RC, already buf'd
   static final int DEC_BUFFER = -1; // dec to non-zero RC, need to bufr
