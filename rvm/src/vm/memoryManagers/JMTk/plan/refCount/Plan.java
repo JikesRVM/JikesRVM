@@ -331,6 +331,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   }
   private void writeBarrier(VM_Address src, VM_Address tgt) 
     throws VM_PragmaInline {
+    if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
     VM_Address old = VM_Magic.getMemoryAddress(src);
     if (old.GE(RC_START))
       decBuffer.push(old);
@@ -448,6 +449,14 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 	doCollectPhase();
       }
     }
+    if (GATHER_WRITE_BARRIER_STATS) { 
+      // This is printed independantly of the verbosity so that any
+      // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
+      // will know---it will have a noticable performance hit...
+      VM.sysWrite("<GC ", gcCount); VM.sysWrite(" "); 
+      VM.sysWrite(wbFastPathCounter, false); VM.sysWrite(" wb-fast>\n");
+      wbFastPathCounter = 0;
+    }
   }
 
   /**
@@ -461,6 +470,17 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       VM.sysWrite("->");
       VM.sysWrite(Conversions.pagesToBytes(getPagesUsed())>>10);
       VM.sysWrite("KB ");
+    }
+    if (verbose == 2) {
+      VM.sysWrite("<GC ", gcCount); VM.sysWrite(" "); 
+      VM.sysWrite(incCounter, false); VM.sysWrite(" incs, ");
+      VM.sysWrite(decCounter, false); VM.sysWrite(" decs, ");
+      VM.sysWrite(rootCounter, false); VM.sysWrite(" roots");
+      if (refCountCycleDetection) {
+	VM.sysWrite(", "); 
+	VM.sysWrite(purpleCounter, false); VM.sysWriteln(" purple");
+      }
+      VM.sysWrite(">\n");
     }
     if (verbose > 2) {
       VM.sysWrite("   After Collection: ");
@@ -476,27 +496,42 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   private final void processIncBufs() {
     VM_Address tgt;
-    while (!(tgt = incBuffer.pop()).isZero()) {
-//       VM.sysWrite(tgt); VM.sysWrite(" i\n");
-      rcCollector.incRC(tgt);
-    } 
-//     VM.sysWrite("done!\n");
+    if (verbose == 2) {
+      incCounter = 0;
+      while (!(tgt = incBuffer.pop()).isZero()) {
+	rcCollector.incRC(tgt);
+	incCounter++;
+      }
+    } else
+      while (!(tgt = incBuffer.pop()).isZero())
+	rcCollector.incRC(tgt);
  }
 
   private final void processDecBufs() {
     VM_Address tgt;
-    while (!(tgt = decBuffer.pop()).isZero()) {
-//       VM.sysWrite(tgt); VM.sysWrite(" d\n");
-      rcCollector.decRC(tgt, rc, this);
-    }
+    if (verbose == 2) {
+      decCounter = 0;
+      while (!(tgt = decBuffer.pop()).isZero()) {
+	rcCollector.decRC(tgt, rc, this);
+	decCounter++;
+      }
+    } else
+      while (!(tgt = decBuffer.pop()).isZero())
+	rcCollector.decRC(tgt, rc, this);
   }
 
+  // FIXME this is inefficient!
   private final void processRootBufs() {
     VM_Address tgt;
-    while (!(tgt = rootSet.pop()).isZero()) {
-//       VM.sysWrite(tgt); VM.sysWrite(" r\n");
-      decBuffer.push(tgt);
-    }
+    if (verbose == 2) {
+      rootCounter = 0;
+      while (!(tgt = rootSet.pop()).isZero()) {
+	decBuffer.push(tgt);
+	rootCounter++;
+      }
+    } else
+      while (!(tgt = rootSet.pop()).isZero())
+	decBuffer.push(tgt);
   }
 
   public void addToFreeBuf(VM_Address object) 
@@ -507,7 +542,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     VM_Address obj;
     AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
     AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
+    purpleCounter = 0;
     while (!(obj = src.pop()).isZero()) {
+      purpleCounter++;
       if (VM.VerifyAssertions) VM._assert(!SimpleRCHeader.isGreen(obj));
       if (SimpleRCHeader.isLiveRC(VM_Magic.addressAsObject(obj))) {
 	if (SimpleRCHeader.isPurple(VM_Magic.addressAsObject(obj)))
@@ -594,6 +631,12 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   private SimpleRCAllocator rc;
   private BumpPointer immortal;
   private int id;  
+  
+  private int incCounter;
+  private int decCounter;
+  private int rootCounter;
+  private int purpleCounter;
+  private int wbFastPathCounter;
 
   private AddressQueue incBuffer;
   private AddressQueue decBuffer;

@@ -57,6 +57,8 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
   protected static MemoryResource metaDataMR;
   protected static RawPageAllocator metaDataRPA;
 
+  protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
+
   protected static final EXTENT       SEGMENT_SIZE = 0x10000000;
   protected static final int          SEGMENT_MASK = SEGMENT_SIZE - 1;
   protected static final VM_Address     BOOT_START = VM_Address.fromInt(VM_Interface.bootImageAddress);

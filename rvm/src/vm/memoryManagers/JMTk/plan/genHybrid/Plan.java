@@ -339,7 +339,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   private void writeBarrier(VM_Address src, VM_Address tgt) 
     throws VM_PragmaInline {
+    if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
     if (src.LT(NURSERY_START) && tgt.GE(NURSERY_START)) {
+      if (GATHER_WRITE_BARRIER_STATS) wbSlowPathCounter++;
       remset.insert(src);
     }
 	
@@ -428,6 +430,15 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   }
 
   protected void allRelease(int count) {
+    if (GATHER_WRITE_BARRIER_STATS) { 
+      // This is printed independantly of the verbosity so that any
+      // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
+      // will know---it will have a noticable performance hit...
+      VM.sysWrite("<GC ", gcCount); VM.sysWrite(" "); 
+      VM.sysWrite(wbFastPathCounter, false); VM.sysWrite(" wb-fast, ");
+      VM.sysWrite(wbSlowPathCounter, false); VM.sysWrite(" wb-slow>\n");
+      wbFastPathCounter = wbSlowPathCounter = 0;
+    }
     remset.flushLocal(); // flush any remset entries collected during GC
     if (fullHeapGC) 
       ms.release();
@@ -472,6 +483,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   private BumpPointer nursery;
   private MarkSweepAllocator ms;
   private BumpPointer immortal;
+
+  private int wbFastPathCounter = 0;
+  private int wbSlowPathCounter = 0;
 
   ////////////////////////////////////////////////////////////////////////////
   //
