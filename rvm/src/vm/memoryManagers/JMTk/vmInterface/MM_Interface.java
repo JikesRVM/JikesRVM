@@ -209,7 +209,10 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    */
   public static void processCommandLineArg(String arg)
     throws VM_PragmaInterruptible {
-    Options.process(arg);
+      if ( ! Options.process(arg)) {
+	VM.sysWriteln("Unrecognized command line argument "+p.value+arg);
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+      }
   }
 
   /***********************************************************************
