@@ -1,7 +1,7 @@
 #! /bin/bash
 #
 # (C) Copyright IBM Corp. 2001, 2003, 2004
-#
+# $Id$
 #
 # This file defines a set of environment variables needed to build and
 # run Jikes RVM.  This file is sourced by the installation scripts; you
@@ -9,7 +9,7 @@
 #
 # IMPORTANT: You need to modify this file to reflect your environment!
 #
-
+# This file is pre-configured for x86 hosts running GNU/Linux
 #########
 # PART I: Preprocessor directives that hold for every config on this target
 #
@@ -50,7 +50,7 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
 # The configuration process can make use of auto-guessing features in
 # the RVM_ROOT/rvm/bin/jconfigure program.  You can see the results of
 # its guesses in "RVM_BUILD/environment.host".  (This particular file
-# doesn't use those features, though, since they get confused if
+# doesn't use those features, though, since they won't work if
 # you're doing a cross-build.)
 ########## 
 
@@ -94,28 +94,38 @@ export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 #
 # export CLASSPATH_INSTALLATION=/usr/local/classpath
 
-## If you don't have such an installation (most people don't), 
-## you can *instead* set CLASSPATH_ROOT: 
+## OR, if you haven't installed GNU Classpath (most people haven't),
+## you can set
+## CLASSPATH_SOURCE_DIR to the directory containing the Classpath sources
+## *and* set CLASSPATH_BUILD_DIR to the directory
+## from which you ran "${CLASSPATH_SOURCE_DIR}/configure"
+
+# export CLASSPATH_SOURCE_DIR=${HOME}/JikesRVM/ClasspathCVS/classpath
+# export CLASSPATH_BUILD_DIR=${HOME}/JikesRVM/ClasspathCVS/build2
+
+## OR, if you don't have the above, you can *instead* set CLASSPATH_ROOT:
 
 # CLASSPATH_ROOT: Directory containing the unpacked and built sources 
-# for GNU Classpath 0.10 
+# for GNU Classpath 0.10
 # (current stable version of Classpath)
 # Uncomment this line only if you manually downloaded the Classpath sources.
 # export CLASSPATH_ROOT=/opt/classpath-0.10
 
 ## OR you can leave all of the CLASSPATH_ variables unset and let the build 
-## process download and build GNU Classpath for you.
+## process download and build GNU Classpath for you.   This will work.
+## I don't recommend doing it more than once, though -- if you and 
+## others are all working on Jikes RVM, then please just put Classpath in one
+## place you can share.
 
 # Path for GNU make
 export GNU_MAKE="/usr/bin/make"
 
 # Path for the Jikes java-to-byte-code compiler.
 # Try Jikes 1.13 if you have trouble figuring out the error messages
-# from Jikes 1.18 or 1.19.  Don't use Jikes 1.14 -- 1.17 or 1.20.  
-# We haven't tested Jikes 1.21 yet. 
+# from Jikes 1.18 or 1.19.  Don't use Jikes 1.14 -- 1.17 or 1.20 or 1.21.
 export JIKES=/usr/bin/jikes
 
-# What C/C++ compiler should be used?
+# What C compiler should be used?
 export CC='/usr/bin/gcc -w -g -O'
 
 # what C++ compilers should be used?
