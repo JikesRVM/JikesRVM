@@ -17,16 +17,19 @@
 
 #define False	0
 #define True	1
-#define ERROR_CODE	-1
-#define OK_CODE		 0
+#define ERROR_CODE	  -1
+#define OK_CODE		   0
 
-#define MODE_IS_GROUP     1	/* is an event group (only event 1 should be defined) */
-#define MODE_PROCESS      2	/* process level group indicator */
-#define MODE_KERNEL       4	/* turns kernel mode counting on */
-#define MODE_USER         8	/* turns user mode counting on */
-#define MODE_COUNT       16	/* counting state */
-#define MODE_PROCTREE    32	/* turns process tree counting on */
-#define MODE_UPPER_BOUND 63	/* upper bound */
+#define MODE_IS_GROUP      1	/* is an event group (only event 1 should be defined) */
+#define MODE_PROCESS       2	/* process level group indicator */
+#define MODE_KERNEL        4	/* turns kernel mode counting on */
+#define MODE_USER          8	/* turns user mode counting on */
+#define MODE_COUNT        16	/* counting state */
+#define MODE_PROCTREE     32	/* turns process tree counting on */
+#define MODE_ALL          64	/* set on all modes */
+#define MODE_UPPER_BOUND 127	/* upper bound */
+
+int filter = 0;
 
 extern "C" int   hpm_init(int my_filter);
 extern "C" int   hpm_get_number_of_counters();
