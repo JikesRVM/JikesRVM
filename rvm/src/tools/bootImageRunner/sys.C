@@ -2151,10 +2151,6 @@ sysSyncCache(caddr_t POSSIBLY_UNUSED address, int POSSIBLY_UNUSED  size)
 #endif
 }
 
-void internalSyncCache(int address, int size) {
-  sysSyncCache((char*)address, size);
-}
-
 //-----------------//
 // SHM* operations //
 //-----------------//
