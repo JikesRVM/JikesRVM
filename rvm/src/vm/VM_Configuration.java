@@ -279,8 +279,8 @@ public abstract class VM_Configuration {
   public static boolean ParanoidGCCheck       = true;
   public static boolean ForceFrequentGC       = true;
   //-#else
-  public final static boolean ParanoidGCCheck  = false;
-  public final static boolean ForceFrequentGC  = false;
+  public final static boolean ParanoidGCCheck = false;
+  public final static boolean ForceFrequentGC = false;
   //-#endif
 
   public final static boolean CompileForGCTracing =
