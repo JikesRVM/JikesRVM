@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# (C) 2000, 2001 by DataPower Technology, Inc. All Rights Reserved.
+# 
+# This software is the confidential and proprietary information
+# of DataPower Technology, Inc. ("Confidential Information"), subject
+# to the Non-Disclosure Agreement and/or License Agreement you entered
+# into with DataPower. You shall use such Confidential Information only
+# in accordance with the terms of said Agreement(s). DataPower makes
+# no representations or warranties about the suitability of the
+# software. The software is provided with ABSOLUTELY NO WARRANTY
+# and DataPower will NOT BE LIABLE for ANY DAMAGES resulting from
+# the use of the software.
+# 
+# Contact xsltmark@datapower.com with any license-related questions.
+# 
+# http://www.datapower.com or info@datapower.com
+
+CONTRIB=/homes/meriadoc/jalapeno/contrib/benchmarks
+
+ARGS=XalanJDriver
+CLASSPATH=$CONTRIB/xalan-j_2_4_D1/bin/xalan.jar
+CLASSPATH=$CONTRIB/xalan-j_2_4_D1/bin/xml-apis.jar:$CLASSPATH
+CLASSPATH=$CONTRIB/xalan-j_2_4_D1/bin/xercesImpl.jar:$CLASSPATH
+CLASSPATH=$CONTRIB/XSLTMark-2.1.0/xsltmark/src/xsltmark.jar:$CLASSPATH
+CLASSPATH=$CONTRIB/XSLTMark-2.1.0/xsltmark/src/xmdrivers.jar:$CLASSPATH
+CLASSPATH=$CONTRIB/XSLTMark-2.1.0/xsltmark:$CLASSPATH
+export CLASSPATH
+
+#PYTHONPATH=$WORKDIR/third-party/4ss/lib/python
+#export PYTHONPATH
+#
+#LD_LIBRARY_PATH=$WORKDIR/third-party/xalan-c/xml-xalan/c/lib:$LD_LIBRARY_PATH
+#LD_LIBRARY_PATH=$WORKDIR/third-party/Sablot/Sablot/engine/.libs:$LD_LIBRARY_PATH
+#LD_LIBRARY_PATH=$WORKDIR/third-party/expat/expat-1.95.1/lib/.libs:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH
+
+PATH=./src:$PATH
+export PATH
+
+[ -d testcases ] && make -s -C testcases clean
+#cd $CONTRIB/XSLTMark-2.1.0/xsltmark && java com.datapower.xsltmark.XSLTMark $ARGS
+echo $CLASSPATH
+cd $CONTRIB/XSLTMark-2.1.0/xsltmark && rvm -cp $CLASSPATH com.datapower.xsltmark.XSLTMark $ARGS
