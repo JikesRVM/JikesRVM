@@ -192,6 +192,12 @@ public abstract class StopTheWorldGC extends BasePlan
     int order = VM_CollectorThread.gcBarrier.rendezvous();
     if (order == 1)
       baseGlobalPrepare(start);
+    if (order == 1)
+      for (int i=0; i<planCount; i++) {
+	Plan p = (Plan) plans[i];
+	if (VM_Interface.isNonParticipating(p))
+	  p.baseThreadLocalPrepare(NON_PARTICIPANT);
+      }
     baseThreadLocalPrepare(order);
     VM_CollectorThread.gcBarrier.rendezvous();
   }
@@ -233,7 +239,6 @@ public abstract class StopTheWorldGC extends BasePlan
     }
     globalPrepare();
     VM_Interface.resetComputeAllRoots();
-    VM_Interface.prepareNonParticipating(); // The will fix collector threads that are not participating in thie GC.
   }
 
   /**
@@ -248,8 +253,11 @@ public abstract class StopTheWorldGC extends BasePlan
    * @param order A unique ordering placed on the threads by the
    * caller's use of <code>rendezvous</code>.
    */
-  private final void baseThreadLocalPrepare(int order) {
-    VM_Interface.prepareParticipating();  // Every participating thread needs to adjust its context registers.
+  public final void baseThreadLocalPrepare(int order) {
+    if (order == NON_PARTICIPANT)
+      VM_Interface.prepareNonParticipating((Plan) this);  
+    else
+      VM_Interface.prepareParticipating((Plan) this);  
     VM_CollectorThread.gcBarrier.rendezvous();
     if (verbose > 3) VM.sysWriteln("  Preparing all collector threads for start");
     threadLocalPrepare(order);
@@ -262,6 +270,17 @@ public abstract class StopTheWorldGC extends BasePlan
     int order = VM_CollectorThread.gcBarrier.rendezvous();
     if (verbose > 3) VM.sysWriteln("  Preparing all collector threads for termination");
     threadLocalRelease(order);
+    if (order == 1) {
+      int count = 0;
+      for (int i=0; i<planCount; i++) {
+	Plan p = (Plan) plans[i];
+	if (VM_Interface.isNonParticipating(p)) {
+	  count++;
+	  p.threadLocalRelease(NON_PARTICIPANT);
+	}
+      }
+      if (verbose >= 3) VM.sysWriteln("  There were ", count, " non-participating GC threads");
+    }
     order = VM_CollectorThread.gcBarrier.rendezvous();
     if (order == 1)
       baseGlobalRelease();

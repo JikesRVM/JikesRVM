@@ -49,8 +49,8 @@ public abstract class BasePlan
   //
   public  static int verbose = 0;
   private static final int MAX_PLANS = 100;
-  private static BasePlan [] plans = new BasePlan[MAX_PLANS];
-  private static int planCount = 0;        // Number of plan instances in existence
+  protected static BasePlan [] plans = new BasePlan[MAX_PLANS];
+  protected static int planCount = 0;        // Number of plan instances in existence
 
   // GC state and control variables
   protected static boolean gcInProgress = false;  // Controlled by subclasses
@@ -78,7 +78,7 @@ public abstract class BasePlan
   private static final int META_DATA_POLL_FREQUENCY = (1<<31) - 1; // never
   protected static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_PAGE_SIZE;
   protected static final int DEFAULT_LOS_SIZE_THRESHOLD = 16 * 1024;
-  protected static final int NON_PARTICIPANT = 0;
+  public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
 
   // Memory layout constants
