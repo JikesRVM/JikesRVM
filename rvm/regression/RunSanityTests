@@ -98,7 +98,7 @@ function showHelp {
   echo '-measureCompilation         run benchmarks in measure-compilation mode'
   echo '-rc-args "args"             supply args to all runs'
   echo '-config-args "args"         supply args to jconfigure'
-  echo '-minimal                    run minimal test suite on OptOptSemispace image'
+  echo '-minimal                    run minimal test suite on OptOptSemiSpace image'
   echo '-classpath                  use GNU Classpath libraries'
   echo '-verbose                    produce lots of output'
   echo '-help                       display this message'
@@ -253,10 +253,10 @@ while [ $# != 0 ]; do
 	export EXTRA_CONFIG_ARGS="$EXTRA_CONFIG_ARGS -D RVM_WITH_GNU_CLASSPATH=1"
    ;;
 
-   ## set up to run a minimal test suite on OptOptSemispace
+   ## set up to run a minimal test suite on OptOptSemiSpace
    #
    -minimal)
-	export CONFIG_LIST=OptOptSemispace
+	export CONFIG_LIST=OptOptSemiSpace
         export TEST_LIST=`cat $RVM_ROOT/rvm/regression/config/small-sanity-tests`
    ;;
 
@@ -351,7 +351,7 @@ function doRun
      # Determine which set of runtime arguments to pass
      case $NAME in
        *Adaptive* ) export RC_ARGS=$DEFAULT_ADAPTIVE_RC_ARGS ;;
-       @(@(Base|Opt|Fast|Full|ExtremeAssertionsOpt)Opt*|FastMarkSweep|FastSemispace)  ) 
+       @(@(Base|Opt|Fast|Full|ExtremeAssertionsOpt)Opt*|FastMarkSweep|FastSemiSpace)  ) 
 	export RC_ARGS=$DEFAULT_NONADAPTIVE_OPT_RC_ARGS
         # use opt. level, if requested
         if [ x$OPT_LEVEL != x ]; then
