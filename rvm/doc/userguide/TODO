@@ -12,8 +12,6 @@ structure. (Mike).
 (6) Write section on class libraries (includes library support
 package). (Julian)
 
-(7) Write section on debugging. (Dave)
-
 (8) Rewrite memory management section to describe JMTk.  Either remove
 old watson collector text or create two subsections of memory
 management (JMTk and watson). If watson remains, need to note that we
