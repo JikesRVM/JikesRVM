@@ -226,6 +226,8 @@ public class OPT_OptimizationPlanner {
     addComponent(p,new OPT_InsertYieldpointCounters());
     // Insert counter on each HIR instruction
     addComponent(p,new OPT_InsertInstructionCounters());
+    // Insert method invocation counters
+    addComponent(p,new OPT_InsertMethodInvocationCounter());
     //-#endif
   }
 
