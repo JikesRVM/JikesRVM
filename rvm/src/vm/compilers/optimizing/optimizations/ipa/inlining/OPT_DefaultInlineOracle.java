@@ -234,11 +234,11 @@ public final class OPT_DefaultInlineOracle extends OPT_InlineTools
                     // Use weight and shape of call site distrubution to compute
                     // a higher maxCost.
                     double fractionOfSample = weight/callSiteWeight;
-                    if (needsGuard && fractionOfSample < 0.2) {
-                      // This call accounts for less than 20% of the profiled
-                      // targets at this call site.  It is highly unlikely to be
-                      // profitable to inline it.
-                      if (verbose) VM.sysWriteln("\t\tReject: less than 20% of distribution");
+                    if (needsGuard && fractionOfSample < opts.AI_MIN_CALLSITE_FRACTION) {
+                      // This call accounts for less than AI_MIN_CALLSITE_FRACTION
+                      // of the profiled targets at this call site.
+                      // It is highly unlikely to be profitable to inline it.
+                      if (verbose) VM.sysWriteln("\t\tReject: less than AI_MIN_CALLSITE_FRACTION of distribution");
                       maxCost = 0;
                     } else {
                       if (cost > maxCost) {
