@@ -53,7 +53,7 @@ public class VM extends VM_Properties implements VM_Constants,
     init(classpath, null);
   }
 
-  static int verbose = 1;  // Show progress of boot 
+  static int verbose = 0;  // Show progress of boot 
 
   /**
    * Begin vm execution.
