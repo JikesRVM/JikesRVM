@@ -96,6 +96,7 @@ INPUT_FILES = 	userguide.tex \
 		debugging.tex \
 		eclipse.tex \
 		faq.tex \
+		gcspy.tex \
 		installation.tex \
 		intro.tex \
 		JMTk.tex \
