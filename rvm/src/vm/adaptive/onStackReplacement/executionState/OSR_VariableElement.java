@@ -10,8 +10,8 @@ import org.vmmagic.unboxed.*;
 
 /** 
  * An instance of OSR_VariableElement represents a byte code variable
- * (local or stack element). It is used to generate prologue to
- * recover the runtime state. It refers to JVM architecture.
+ * (local or stack element).  It is used to generate prologue to
+ * recover the runtime state.  It refers to VM architecture.
  *
  * @author Feng Qian
  */

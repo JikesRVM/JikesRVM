@@ -38,7 +38,7 @@ public class OSR_ObjectHolder implements Uninterruptible, VM_SizeConstants {
   }
 
   /**
-   * The JVM scope descriptor extractor can hand in an object here
+   * The VM scope descriptor extractor can hand in an object here
    */
   public final static int handinRefs(Object[] objs) throws InterruptiblePragma {    
     int n = refs.length;

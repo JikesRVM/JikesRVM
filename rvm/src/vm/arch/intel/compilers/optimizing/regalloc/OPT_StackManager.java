@@ -401,7 +401,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     //       stackoverflow in the callee. We can't do this if the frame is too big, 
     //       because growing the stack in the callee and/or handling a hardware trap 
     //       in this frame will require most of the guard region to complete.
-    //       See libjvm.C.
+    //       See libvm.C.
     if (frameFixedSize >= 256) {
       // 1. Insert Stack overflow check.  
       insertBigFrameStackOverflowCheck(plg);

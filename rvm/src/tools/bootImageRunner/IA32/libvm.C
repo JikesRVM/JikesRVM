@@ -705,7 +705,7 @@ softwareSignalHandler(int signo,
 
 /* Returns 1 upon any errors.   Never returns except to report an error. */
 int
-createJVM(int UNUSED vmInSeparateThread)
+createVM(int UNUSED vmInSeparateThread)
 {
     /* don't buffer trace or error message output */
     setbuf (SysErrorFile, 0);
@@ -1007,7 +1007,7 @@ createJVM(int UNUSED vmInSeparateThread)
     // fprintf(SysTraceFile, "%s: here goes...\n", Me);
     int rc = boot (ip, jtoc, pr, (int) sp);
 
-    fprintf(SysErrorFile, "%s: CreateJVM(): boot() returned; failed to create a VM.  rc=%d.  Bye.\n", Me, rc);
+    fprintf(SysErrorFile, "%s: createVM(): boot() returned; failed to create a virtual machine.  rc=%d.  Bye.\n", Me, rc);
     return 1;
 }
 

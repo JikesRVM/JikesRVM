@@ -4,8 +4,8 @@
 //$Id$
 
 /** 
- * JVM scope descriptor (execution state) of a method activation. 
- * A descriptor has two parts: JVM architecture-depend, and execution context. 
+ * VM scope descriptor (execution state) of a method activation. 
+ * A descriptor has two parts: VM architecture-depend, and execution context. 
  * 
  * @author Feng Qian
  */

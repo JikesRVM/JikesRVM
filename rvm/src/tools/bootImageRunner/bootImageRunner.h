@@ -62,7 +62,7 @@ unsigned int parse_memory_size(
 extern int verboseBoot;
 
 /* Defined in libvm.C; used in RunBootImage.C */
-extern int createJVM(int);
+extern int createVM(int);
 /* Used in libvm.C; Defined in sys.C */
 extern int getArrayLength(void* ptr);
 

@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.OSR;
 import com.ibm.JikesRVM.VM_SizeConstants;
 /**
  * OSR_Constants defines constants used for on-stack-replacement mapping,
- * JVM scope descriptor, and pseudo bytecodes.
+ * VM scope descriptor, and pseudo bytecodes.
  *
  * @author Feng Qian
  * @date 19 Dec 2002
@@ -88,7 +88,7 @@ public interface OSR_Constants extends VM_SizeConstants {
 
 
   ////////////////////////////////////////////
-  //  Part II  constants used when extract JVM scope descriptor
+  //  Part II  constants used when extract VM scope descriptor
   ////////////////////////////////////////////
   /* the kind of element */
   public static final int LOCAL      = 0;

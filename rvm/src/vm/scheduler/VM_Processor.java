@@ -29,7 +29,7 @@ implements Uninterruptible, VM_Constants {
   public static final int BLOCKED_IN_NATIVE       = 3;
 
   // fields to track attached processors - processors created for user
-  // pthreads that "enter" the VM via attachJVM.
+  // pthreads that "enter" the VM via attachVM.
   //
   public static int            numberAttachedProcessors   = 0;
   public static VM_Processor[] attachedProcessors         = new VM_Processor[100];

@@ -450,7 +450,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
  *   1) affect the starting of the VM, 
  *   2) can be handled without starting the VM, or
  *   3) contain quotes
- * then call createJVM().
+ * then call createVM().
  */
 int
 main(int argc, const char **argv)
@@ -588,11 +588,11 @@ main(int argc, const char **argv)
         return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
     }
 
-    int ret = createJVM(0);
+    int ret = createVM(0);
     assert(ret == 1);           // must be 1 (error status for this func.)
     
   
-    fprintf(SysErrorFile, "%s: Could not create the Java Virtual Machine; goodbye\n", Me);
+    fprintf(SysErrorFile, "%s: Could not create the virtual machine; goodbye\n", Me);
     exit(1);
 }
 

@@ -11,7 +11,7 @@ import java.io.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * A OSR_ExecStateExtractor extracts a runtime state (JVM scope descriptor) 
+ * A OSR_ExecStateExtractor extracts a runtime state (VM scope descriptor) 
  * of a method activation. The implementation depends on compilers and 
  * hardware architectures
  * @see OSR_BaselineExecStateExtractor
@@ -26,7 +26,7 @@ import org.vmmagic.unboxed.*;
 
 public abstract class OSR_ExecStateExtractor implements VM_Constants{
   /** 
-   * Returns a JVM scope descriptor (OSR_ExecutionState) for a compiled method
+   * Returns a VM scope descriptor (OSR_ExecutionState) for a compiled method
    * on the top of a thread stack, (or a list of descriptors for an inlined
    * method).  
    *

@@ -12,7 +12,7 @@ import com.ibm.JikesRVM.opt.*;
 import org.vmmagic.unboxed.*;
 
 /**
- * OSR_BaselineExecStateExtractor retrieves the JVM scope descriptor
+ * OSR_BaselineExecStateExtractor retrieves the VM scope descriptor
  * from a suspended thread whose top method was compiled by the
  * baseline compiler.
  *

@@ -417,7 +417,7 @@ public class ScanThread implements VM_Constants, Uninterruptible {
     } // end of if (fp != STACKFRAME_SENTINEL_FP)
     
     // if we are scanning the stack of a thread that entered the VM
-    // via a createJVM or attachJVM then the "bottom" of the stack had
+    // via a createVM or attachVM then the "bottom" of the stack had
     // native C frames instead of the usual java frames.  The JNIEnv
     // for the thread may still contain jniRefs that have been
     // returned to the native C code, but have not been reported for

@@ -909,7 +909,7 @@ extern "C" void processTimerTick(void) {
                 " timer interrupt for %d ms.\n", 
                 Me, getTimeSlice_msec() * longest_stuck_ticks);
         fprintf(stderr, "This may indicate that a blocking system call"
-                " has occured and the JVM is deadlocked\n");
+                " has occured and the VM is deadlocked\n");
 #endif
     }
 #endif

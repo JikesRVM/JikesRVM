@@ -1077,7 +1077,7 @@ pageRoundUp(size_t size)
 // }
 
 int 
-createJVM(int vmInSeparateThread) 
+createVM(int vmInSeparateThread) 
 {
     // arguments processing moved to runboot.c
 
