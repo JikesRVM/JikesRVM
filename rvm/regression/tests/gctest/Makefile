@@ -26,14 +26,23 @@ BENCH_RVM_ARGS=
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
-sanity: 	$(TESTS)
+sanity: 	$(TESTS) InlineAllocation
 	echo DONE
 
 $(TESTS): %:
-	$(MAKE) START_NAME=$@ sanity-check-rule
+	$(MAKE) START_NAME=$@ sanity-check-rule MY_RULE='$(FGREP) -q "Overall:"'
+
+
+$(WORKING)/cp/InlineAllocation.class: $(BENCH_HOME)/InlineAllocation.java
+	$(RVM_BUILD)/jbuild.toolPrep /tmp $(BENCH_HOME)/InlineAllocation.java 
+	mv /tmp/InlineAllocation.java $(WORKING)/cp/InlineAllocation.java
+	$(RVM_BUILD)/jbuild.tool $(WORKING)/cp/InlineAllocation.java
+
+InlineAllocation: $(WORKING)/cp $(WORKING)/cp/InlineAllocation.class 
+	$(MAKE) START_NAME=$@ sanity-check-rule MY_RULE='$(FGREP) -q "SUCCESS"'
 
 check:
-	@$(FGREP) -q "Overall:" < $(OUT)
+	@$(MY_RULE) < $(OUT)
 
 do-gather-performance:
 	@$(FGREP) -q "Overall:" $(OUT) >> $(PERF_LOG)
