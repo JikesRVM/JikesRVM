@@ -812,8 +812,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
    *
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
-   * @param result the result/first operand
-   * @param value the second operand
+   * @param result the result operand
+   * @param val1 the first operand
+   * @param val2 the second operand
    * @param isDiv true for div, false for rem
    */
   final void INT_DIVIDES(OPT_BURS burs, OPT_Instruction s,
