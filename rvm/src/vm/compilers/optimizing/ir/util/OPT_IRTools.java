@@ -116,7 +116,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    *    ...<op>.create(...., AC(Address.zero()) ...
    * </pre>
    *
-   * @param value, the address constant
+   * @param value    The address constant
    * @return address constant operand
    */
   public static final OPT_AddressConstantOperand AC(Address value) {
@@ -130,7 +130,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    *    ...<op>.create(...., IC(0) ...
    * </pre>
    *
-   * @param value, the int constant
+   * @param value   The int constant
    * @return integer constant operand
    */
   public static final OPT_IntConstantOperand IC(int value) {
@@ -299,7 +299,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
   /**
    * Returns the correct operator for storing to the given field.
    *
-   * @param type desired type to store
+   * @param field  The field we're asking about
    * @return the OPT_Operator to use when storing to the given field
    */
   public static final OPT_Operator getStoreOp(VM_FieldReference field) {

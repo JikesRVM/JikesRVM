@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
@@ -160,11 +160,10 @@ public final class OPT_GenerationContext
    * Use this constructor to create an outermost (non-inlined) 
    * OPT_GenerationContext.
    * 
-   * @param meth the VM_NormalMethod whose IR will be generated
-   * @param cmid the compiled method id to be used for this compilation
-   * @param opts the OPT_Options to be used for the generation
-   * @param ip the OPT_InlineOracle to be used for the generation
-   * @param context the specialization context (null if none)
+   * @param meth The VM_NormalMethod whose IR will be generated
+   * @param cm   The compiled method id to be used for this compilation
+   * @param opts The OPT_Options to be used for the generation
+   * @param ip   The OPT_InlineOracle to be used for the generation
    */
   OPT_GenerationContext(VM_NormalMethod meth, 
                         VM_CompiledMethod cm, 

@@ -93,8 +93,8 @@ public final class OPT_MethodOperand extends OPT_Operand {
   /**
    * Returns a method operand representing a compiled method with designated
    * JTOC offset. (used by OPT_ConvertToLowLevelIR)
-   * @param callee, the callee method
-   * @param offset, designated jtop offset of compiled method of callee
+   * @param callee the callee method
+   * @param offset designated jtop offset of compiled method of callee
    * @return the method operand
    */
   public static OPT_MethodOperand COMPILED(VM_Method callee, int offset) {

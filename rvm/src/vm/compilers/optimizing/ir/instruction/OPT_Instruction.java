@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
@@ -246,7 +246,6 @@ public final class OPT_Instruction
    * The copy has the same operator and operands, but is not linked into
    * an instruction list.
    *
-   * @param ir the governing ir
    * @return the copy
    */
   public OPT_Instruction copyWithoutLinks() {
@@ -610,8 +609,8 @@ public final class OPT_Instruction
   /**
    * Replace all occurances of the first operand with the second.
    *
-   * @param old the operand to replace
-   * @param new the new one to replace it with
+   * @param oldOp   The operand to replace
+   * @param newOp   The new one to replace it with
    */
   public void replaceOperand(OPT_Operand oldOp, OPT_Operand newOp) {
     for (int i = 0; i < ops.length; i++) {
@@ -625,8 +624,8 @@ public final class OPT_Instruction
    * Replace any operands that are similar to the first operand 
    * with a copy of the second operand.
    *
-   * @param old the operand whose similar operands should be replaced
-   * @param new the new one to replace it with
+   * @param oldOp   The operand whose similar operands should be replaced
+   * @param newOp   The new one to replace it with
    */
   public void replaceSimilarOperands(OPT_Operand oldOp, OPT_Operand newOp) {
     for (int i = 0; i < ops.length; i++) {
@@ -1234,7 +1233,7 @@ public final class OPT_Instruction
    * Record the probability (in the range 0.0 - 1.0) that this two-way
    * branch instruction is taken (as opposed to falling through).
    *
-   * @param The probability that the branch is taken.  
+   * @param takenProbability    The probability that the branch is taken.  
    */
   public void setBranchProbability(float takenProbability) {
     if (VM.VerifyAssertions) VM._assert(isTwoWayBranch());
