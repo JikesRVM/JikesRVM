@@ -48,6 +48,7 @@ public class VM_Finalizer implements VM_Uninterruptible {
   //----------------//
 
   private static int INITIAL_SIZE = 32768;
+  private static double growthFactor = 2.0;
   private static Lock lock = new Lock("Finalizer");
   private static int [] candidate = new int[INITIAL_SIZE];    // should be VM_Address [] but compiler does not support that type properly
   private static int candidateEnd;                            // candidate[0] .. candidate[candidateEnd-1] contains non-zero entries
@@ -70,12 +71,12 @@ public class VM_Finalizer implements VM_Uninterruptible {
   //
   public static final void addCandidate(Object item) throws VM_PragmaNoInline {
     lock.acquire();
-    if (TRACE_DETAIL) VM_Scheduler.trace(" VM_Finalizer: ",
-					 " addElement	called, count = ", candidateEnd);
+    if (TRACE_DETAIL) VM_Scheduler.trace(" VM_Finalizer: ", " addElement called, count = ", candidateEnd);
     if (candidateEnd >= candidate.length) {
-      VM.sysWrite("finalizer queue exceeded - increase size (", candidate.length);
-      VM.sysWriteln(") or implement dynamic adjustment a la write buffer");
-      VM._assert(false);
+      int[] newCandidate = new int[(int) (growthFactor * candidate.length)];
+      for (int i=0; i<candidate.length; i++)
+	newCandidate[i] = candidate[i];
+      candidate = newCandidate;
     }
     candidate[candidateEnd++] = VM_Magic.objectAsAddress(item).toInt();
     lock.release();
@@ -111,14 +112,16 @@ public class VM_Finalizer implements VM_Uninterruptible {
    */
   private static void addLive(Object obj) throws VM_PragmaLogicallyUninterruptible {
     if (liveEnd == live.length) {
-      if (liveStart == 0) {
-	VM.sysWriteln("finalizer's live queue exceeded - increase size or implement dynamic adjustment a la write buffer");
-	VM._assert(false);
-      }
+      Object[] newLive = live;
+      if (liveStart == 0) 
+	newLive = new Object[(int) (growthFactor * live.length)];
       for (int i=liveStart; i<liveEnd; i++)
-	live[i-liveStart] = live[i];
+	newLive[i-liveStart] = live[i];
       for (int i=liveEnd - liveStart; i<live.length; i++)
-	live[i] = null;
+	newLive[i] = null;
+      liveEnd -= liveStart;
+      liveStart = 0;
+      live = newLive;
     }
     live[liveEnd++] = obj;
   }
