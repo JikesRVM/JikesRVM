@@ -74,7 +74,7 @@ public final class VM_RootBuffer
 
     public static boolean trace2 = false;
     private static boolean VOID_EXTRA_ROOTS = true;
-    private static int VOIDED_ROOT = 1;
+    private static VM_Address VOIDED_ROOT = VM_Address.fromInt(1);
     static int voidedRoots;
 
     // STATISTICS
@@ -113,7 +113,7 @@ public final class VM_RootBuffer
 	entries = 0;
     }
 
-    public final void add (int object) {
+    public final void add (VM_Address object) {
 	if (color(object) == GREEN) { // ignore statically acyclic objects
 	    if (CC_COUNT_EVENTS) green++;
 	    return;
@@ -132,7 +132,7 @@ public final class VM_RootBuffer
 	if (CC_COUNT_EVENTS) rootCount++;
 
 	setBufferedFlag(object);
-	roots[entries++] = object;
+	roots[entries++] = object.toInt();
 
 	if (entries == BUFFERSIZE)
 	    expand();
@@ -252,7 +252,7 @@ public final class VM_RootBuffer
 
 	    int dst = 0;
 	    for (int src = 0; src < bufEntries; src++) {
-		int object = bufRoots[src];
+		VM_Address object = VM_Address.fromInt(bufRoots[src]);
 
 		// if (VM.VerifyAssertions) VM.assert(isBuffered(object)); HACK!!!
 		if (! isBuffered(object)) println("|||| *************** <<<<<<<<<<<< NOT BUFFERED IN SWEEP >>>>>>>>>>>>> ******************");
@@ -267,7 +267,7 @@ public final class VM_RootBuffer
 		}
 		else {
 		    retained++;
-		    bufRoots[dst++] = object;
+		    bufRoots[dst++] = object.toInt();
 		}
 	    }
 
@@ -333,7 +333,7 @@ public final class VM_RootBuffer
 		// Subtract counts due to internal pointers, coloring objects gray as we go
 		// VM.sysWrite("* Mark Gray\n");
 		for (int i = 0; i < bufEntries; i++) {
-		    int object = bufRoots[i];
+		    VM_Address object = VM_Address.fromInt(bufRoots[i]);
 
 		    // dumpRefcountInfo("Mark gray ", object);
 
@@ -347,8 +347,8 @@ public final class VM_RootBuffer
 			if (CC_COUNT_EVENTS) tracedRoots++;
 		    }
 		    else if (VOID_EXTRA_ROOTS) {
-			clearBufferedFlag(bufRoots[i]);
-			bufRoots[i] = VOIDED_ROOT; // flag already found
+			clearBufferedFlag(VM_Address.fromInt(bufRoots[i]));
+			bufRoots[i] = VOIDED_ROOT.toInt(); // flag already found
 			if (CC_COUNT_EVENTS) voidedRoots++;
 		    }
 
@@ -374,9 +374,9 @@ public final class VM_RootBuffer
 		// Mark garbage white and live stuff black, re-incrementing blackened nodes
 		// VM.sysWrite("* Scan\n");
 		for (int i = 0; i < bufEntries; i++) {
-		    if (VOID_EXTRA_ROOTS && bufRoots[i] == VOIDED_ROOT)
+		    if (VOID_EXTRA_ROOTS && bufRoots[i] == VOIDED_ROOT.toInt())
 			continue; // found from other root?
-		    scanVisitor.scan(bufRoots[i]);
+		    scanVisitor.scan(VM_Address.fromInt(bufRoots[i]));
 		    if (trace1) VM.sysWrite("|");
 		}
 	    }
@@ -400,16 +400,17 @@ public final class VM_RootBuffer
 		// Collect white garbage
 		// VM.sysWrite("* Collect White\n");
 		for (int i = 0; i < bufEntries; i++) {
-		    if (VOID_EXTRA_ROOTS && bufRoots[i] == VOIDED_ROOT)
+		    VM_Address root = VM_Address.fromInt(bufRoots[i]);
+		    if (VOID_EXTRA_ROOTS && root.EQ(VOIDED_ROOT))
 			continue; // found from other root?
 
-		    clearBufferedFlag(bufRoots[i]);
-		    if (color(bufRoots[i]) == WHITE) {
+		    clearBufferedFlag(root);
+		    if (color(root) == WHITE) {
 			rootsFound++;
 			if (trace2) VM.sysWrite("\n\n");
 		    }
 
-		    whiteVisitor.collectWhite(bufRoots[i]);
+		    whiteVisitor.collectWhite(root);
 		    if (trace1) VM.sysWrite("|");
 		}
 		if (trace1) VM.sysWrite("\n\n");
@@ -432,14 +433,14 @@ public final class VM_RootBuffer
     }
 
     // release the object, and decref things it points to
-    static void release (int object) {
+    static void release (VM_Address object) {
 	initializeReferenceCount(object); // count = 0; color = black; unbuffered
 	VM_Allocator.freeObject(object);
     }
 
 
     // if object modified and gray/white/orange, scan its reachable graph of those colors black again
-    static void scanBlackOnUpdate(int object) {
+    static void scanBlackOnUpdate(VM_Address object) {
 	if (ASYNC && VM_Scheduler.numProcessors > 1) {
 	    int color = color(object);
 	    if (color == GRAY || color == WHITE || color == ORANGE) {
@@ -509,7 +510,7 @@ public final class VM_RootBuffer
 		// VM.sysWrite("* Mark Gray\n");
 		for (int i = 0; i < bufEntries; i++) {
 		    if (CC_COUNT_EVENTS) tracedRoots++;
-		    int object = bufRoots[i];
+		    VM_Address object = VM_Address.fromInt(bufRoots[i]);
 
 		    // int g = VM_AsyncGrayVisitor.grayVisited; // debug
 		    
@@ -518,8 +519,8 @@ public final class VM_RootBuffer
 		    if (color(object) != GRAY)
 			asyncGrayVisitor.markGray(object);
 		    else if (VOID_EXTRA_ROOTS) {
-			clearBufferedFlag(bufRoots[i]);
-			bufRoots[i] = VOIDED_ROOT; // flag already found
+			clearBufferedFlag(VM_Address.fromInt(bufRoots[i]));
+			bufRoots[i] = VOIDED_ROOT.toInt(); // flag already found
 			if (CC_COUNT_EVENTS) voidedRoots++;
 		    }
 
@@ -550,9 +551,9 @@ public final class VM_RootBuffer
 		// Mark garbage white and live stuff black
 		// VM.sysWrite("* Scan\n");
 		for (int i = 0; i < bufEntries; i++) {
-		    int object = bufRoots[i];
+		    VM_Address object = VM_Address.fromInt(bufRoots[i]);
 
-		    if (VOID_EXTRA_ROOTS && bufRoots[i] == VOIDED_ROOT)
+		    if (VOID_EXTRA_ROOTS && bufRoots[i] == VOIDED_ROOT.toInt())
 			continue; // found from other root?
 
 		    asyncScanVisitor.scan(object);
@@ -585,9 +586,9 @@ public final class VM_RootBuffer
 		// Find orange objects, mark them white, and put them in the cycle buffer
 		// VM.sysWrite("* Collect White\n");
 		for (int i = 0; i < bufEntries; i++) {
-		    int object = bufRoots[i];
+		    VM_Address object = VM_Address.fromInt(bufRoots[i]);
 
-		    if (VOID_EXTRA_ROOTS && bufRoots[i] == VOIDED_ROOT)
+		    if (VOID_EXTRA_ROOTS && bufRoots[i] == VOIDED_ROOT.toInt())
 			continue; // found from other root?
 
 		    if (color(object) == ORANGE) { // if not already part of cycle, check it
@@ -622,19 +623,19 @@ public final class VM_RootBuffer
 
     // DEBUG
 
-    public static void writeGraphStart(int object) {
+    public static void writeGraphStart(VM_Address object) {
 	VM_Scheduler.lockOutput();
 	print("@@@@graph: {    title:\"Cycle");  print(object);  println("\"  folding:0");
 	VM_Scheduler.unlockOutput();
     }
 
-    public static void writeGraphEnd(int object) {
+    public static void writeGraphEnd(VM_Address object) {
 	VM_Scheduler.lockOutput();
 	println("@@@@}");
 	VM_Scheduler.unlockOutput();
     }
 
-    public static void writeGraphNode(int object) {
+    public static void writeGraphNode(VM_Address object) {
 	VM_Scheduler.lockOutput();
 	print("@@@@    node: { title: \""); print(object);
 	print("\"  label: \"");  
@@ -655,7 +656,7 @@ public final class VM_RootBuffer
 	VM_Scheduler.unlockOutput();
     }
 
-    public static void writeGraphEdge(int fromObject, int object) {
+    public static void writeGraphEdge(VM_Address fromObject, VM_Address object) {
 	VM_Scheduler.lockOutput();
 	print("@@@@         edge: { sourcename: \""); print(fromObject); 
 	print("\"  targetname: \""); print(object);
@@ -667,7 +668,7 @@ public final class VM_RootBuffer
 
     private static void debugCycles(int[] bufRoots, int i, int g) {
 	if (TRACE_ROOTBUFFER && traceBigCycles && (VM_GrayVisitor.grayVisited - g > bigCycleCount)) { // debug
-	    int object = bufRoots[i];
+	    VM_Address object = VM_Address.fromInt(bufRoots[i]);
 	    VM.sysWrite("||||      ");
 	    VM.sysWrite(VM_GrayVisitor.grayVisited - g, false);
 	    VM.sysWrite(" traced for ");
@@ -684,20 +685,20 @@ public final class VM_RootBuffer
 		cl.getDescriptor().sysWrite();
 		VM.sysWrite("\n");
 	    }
-
+	
 	    if (traceArrayCycles && type.isArrayType() && type.asArray().getElementType().isClassType()) {
 		int len = VM_Magic.getArrayLength(objptr);
 		VM.sysWrite("||||        Object array of ");
 		VM.sysWrite(len, false);
 		VM.sysWrite(" elements containing ");
 		if (len > 0) {
-		    int i0 = VM_Magic.getMemoryWord(object);
-		    if (i0 != 0)
+		    VM_Address i0 = VM_Magic.getMemoryAddress(object);
+		    if (!i0.isZero()) 
 			VM_Allocator.printType(i0);
 		}
 		if (len > 1) {
-		    int i1 = VM_Magic.getMemoryWord(object+4);
-		    if (i1 != 0) {
+		    VM_Address i1 = VM_Magic.getMemoryAddress(object.add(4));
+		    if (!i1.isZero()) {
 			VM.sysWrite("||||        and ");
 			VM_Allocator.printType(i1);
 		    }
@@ -796,7 +797,7 @@ class VM_GrayVisitor
 {
     public static int grayVisited = 0;	// debug
 
-    public final void markGray(int object) {
+    public final void markGray(VM_Address object) {
 	if (VM.VerifyAssertions) VM.assert(! VM_RootBuffer.ASYNC);
 	if (VM.VerifyAssertions) VM.assert(color(object) != GREEN && color(object) != RED && color(object) != WHITE);
 
@@ -813,7 +814,7 @@ class VM_GrayVisitor
 	}
     }	
 
-    protected final boolean visit (int object) {
+    protected final boolean visit (VM_Address object) {
 	if (VM_RootBuffer.CC_COUNT_EVENTS) VM_RootBuffer.tracedReferences++;
 	int c = color(object);
 	if (c != GREEN && c != RED) { 	// if object isn't inherently acyclic...
@@ -829,7 +830,7 @@ class VM_BlackVisitor
     extends VM_ChildVisitor
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
 {
-    public final void scanBlack(int object) {
+    public final void scanBlack(VM_Address object) {
 	if (VM.VerifyAssertions) VM.assert(! VM_RootBuffer.ASYNC);
 
 	if (color(object) != BLACK) {
@@ -840,7 +841,7 @@ class VM_BlackVisitor
 	}
     }
 
-    protected final boolean visit(int object) {
+    protected final boolean visit(VM_Address object) {
 	if (VM_RootBuffer.CC_COUNT_EVENTS) VM_RootBuffer.tracedReferences++;
 	int c = color(object);
 	if (c != GREEN && c != RED) {
@@ -864,13 +865,13 @@ class VM_ScanVisitor
 	this.blackVisitor = blackVisitor;
     }
 
-    public final void scan(int object) {
+    public final void scan(VM_Address object) {
 	if (VM.VerifyAssertions) VM.assert(! VM_RootBuffer.ASYNC);
 
 	visit(object);
     }
 
-    protected final boolean visit(int object) {
+    protected final boolean visit(VM_Address object) {
 	if (VM_RootBuffer.CC_COUNT_EVENTS) VM_RootBuffer.tracedReferences++;
 	if (color(object) == GRAY) {
 	    if (isZeroReferenceCount(object)) {
@@ -894,7 +895,7 @@ class VM_WhiteVisitor
 {
     public static int whiteFreed;	// statistics
 
-    public final void collectWhite (int object) {
+    public final void collectWhite (VM_Address object) {
 	if (VM.VerifyAssertions) VM.assert(! VM_RootBuffer.ASYNC);
 
 	if (color(object) == WHITE && ! isBuffered(object)) { // DEAL WITH BUFFERED DIFFERENTLY?????????????
@@ -908,7 +909,7 @@ class VM_WhiteVisitor
 	}
     }
 
-    protected final boolean visit(int object) {
+    protected final boolean visit(VM_Address object) {
 	if (VM_RootBuffer.CC_COUNT_EVENTS) VM_RootBuffer.tracedReferences++;
 	if (color(object) != GREEN)
 	    collectWhite(object);
@@ -936,7 +937,7 @@ class VM_AsyncGrayVisitor
 
     public static int grayVisited;	// debug
 
-    public final void markGray(int object) {
+    public final void markGray(VM_Address object) {
 	if (VM.VerifyAssertions) VM.assert(VM_RootBuffer.ASYNC);
 	if (VM.VerifyAssertions) VM.assert(color(object) != GREEN && color(object) != RED && color(object) != WHITE);
 
@@ -950,7 +951,7 @@ class VM_AsyncGrayVisitor
 	}
     }	
 
-    protected final boolean visit(int object) {
+    protected final boolean visit(VM_Address object) {
 	if (VM_RootBuffer.CC_COUNT_EVENTS) VM_RootBuffer.tracedReferences++;
 
 	int color = color(object);
@@ -993,12 +994,12 @@ class VM_AsyncBlackVisitor
     extends VM_ChildVisitor
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
 {
-    public final void scanBlack(int object) {
+    public final void scanBlack(VM_Address object) {
 	if (VM.VerifyAssertions) VM.assert(VM_RootBuffer.ASYNC);
 	visit(object);
     }
 
-    protected final boolean visit(int object) {
+    protected final boolean visit(VM_Address object) {
 	if (VM_RootBuffer.CC_COUNT_EVENTS) VM_RootBuffer.tracedReferences++;
 	int color = color(object);
 
@@ -1026,13 +1027,13 @@ class VM_AsyncScanVisitor
 	this.blackVisitor = blackVisitor;
     }
 
-    public final void scan(int object) {
+    public final void scan(VM_Address object) {
 	if (VM.VerifyAssertions) VM.assert(VM_RootBuffer.ASYNC);
 
 	visit(object);
     }
 
-    protected final boolean visit(int object) {
+    protected final boolean visit(VM_Address object) {
 	if (VM_RootBuffer.CC_COUNT_EVENTS) VM_RootBuffer.tracedReferences++;
 	int color = color(object);
 
@@ -1057,18 +1058,18 @@ class VM_AsyncWhiteVisitor
 {
     public static int whiteFreed;	// statistics
 
-    public final void collectWhite (int object) {
+    public final void collectWhite (VM_Address object) {
 	if (VM.VerifyAssertions) VM.assert(VM_RootBuffer.ASYNC);
-	visit(0, object);
+	visit(VM_Address.zero(), object);
     }
 
-    protected final boolean visit(int fromObject, int object) {
+    protected final boolean visit(VM_Address fromObject, VM_Address object) {
 	if (VM_RootBuffer.CC_COUNT_EVENTS) VM_RootBuffer.tracedReferences++;
 
 	if (VM_RootBuffer.TRACE_CYCLE_MARKINGS) dumpRefcountInfo("WHITENING IF ORANGE ", object);
 	if (VM_RootBuffer.VISUALIZE_GRAPHS) {
 	    if (color(object) == ORANGE) VM_RootBuffer.writeGraphNode(object);
-	    if (fromObject != 0) VM_RootBuffer.writeGraphEdge(fromObject, object);
+	    if (!fromObject.isZero()) VM_RootBuffer.writeGraphEdge(fromObject, object);
 	}
 
 	if (color(object) == ORANGE) {
@@ -1088,11 +1089,11 @@ class VM_PrintChildVisitor
     extends VM_ChildVisitor
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
 {
-    public final void printChildren(int object) {
+    public final void printChildren(VM_Address object) {
 	visitChildren(object);
     }
 
-    protected final boolean visit(int object) {
+    protected final boolean visit(VM_Address object) {
 	dumpRefcountInfo("CHILD: ", object);
 
 	return true;

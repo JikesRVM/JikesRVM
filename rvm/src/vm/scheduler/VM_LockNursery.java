@@ -97,12 +97,12 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
 
     for (VM_LockBucket b = buckets[h]; b != null; b = b.next) 
       if (b.object == o) {
-        if (DEBUG) { VM.sysWrite(VM_Magic.objectAsAddress(o),false);  VM.sysWrite(": Found nursery lock\n"); }
+        if (DEBUG) { VM.sysWrite(VM_Magic.objectAsAddress(o));  VM.sysWrite(": Found nursery lock\n"); }
         return b.lock;
       }
 
     if (insert) {
-      if (DEBUG) { VM.sysWrite(VM_Magic.objectAsAddress(o),false);  VM.sysWrite(": Created nursery lock\n"); }
+      if (DEBUG) { VM.sysWrite(VM_Magic.objectAsAddress(o));  VM.sysWrite(": Created nursery lock\n"); }
       VM_LockBucket b = allocate();
       b.next = buckets[h];
       b.object = o;

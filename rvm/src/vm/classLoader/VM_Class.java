@@ -556,10 +556,10 @@ public class VM_Class extends VM_Type
    * caller to the method whose class's loader is required
    */
   public static ClassLoader getClassLoaderFromStackFrame(int frames) {
-    int i;
-    int fp = VM_Magic.getFramePointer();
+
+    VM_Address fp = VM_Magic.getFramePointer();
     fp = VM_Magic.getCallerFramePointer(fp);
-    for (i = 0; i < frames; i++)
+    for (int i = 0; i < frames; i++)
       fp = VM_Magic.getCallerFramePointer(fp);
 
     int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
@@ -570,8 +570,7 @@ public class VM_Class extends VM_Type
     if (DEBUG) { 
       if (theclassloader != null) VM_Scheduler.trace("getLoaderFromFrame: ",
                                                      theclassloader.toString(),
-                                                     VM_Magic.objectAsAddress
-                                                     (theclassloader) );
+                                                     VM_Magic.objectAsAddress(theclassloader).toInt());
       else VM_Scheduler.trace("getLoaderFromFrame:", "null classloader");
     }
     return theclassloader;

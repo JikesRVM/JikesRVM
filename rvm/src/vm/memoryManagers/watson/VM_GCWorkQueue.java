@@ -79,7 +79,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   private int     numRealProcessors;
   private int     numThreads;
   private int     numThreadsWaiting;   
-  private int     bufferHead;
+  private VM_Address bufferHead;
   private boolean completionFlag;
   
   //-----------------------
@@ -113,7 +113,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
     numThreads = n;
     numThreadsWaiting = 0;
     completionFlag = false;
-    bufferHead = 0;
+    bufferHead = VM_Address.zero();
 
     if ( ! VM.BuildForSingleVirtualProcessor) {
       // Set number of Real processors on the running computer. This will allow
@@ -171,22 +171,21 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
 
     if(trace) VM.sysWrite(" GCWorkQueue.resetWorkQBuffers entered\n");
 
-    if (myThread.putBufferStart == 0) {
+    if (myThread.putBufferStart.isZero()) 
       VM_GCWorkQueue.allocatePutBuffer(myThread);
-    }
     else {
       // reset TOP pointer for existing buffer
-      myThread.putBufferTop = myThread.putBufferStart + WORK_BUFFER_SIZE - 4;    
+      myThread.putBufferTop = myThread.putBufferStart.add(WORK_BUFFER_SIZE - 4);    
     }
 
     //check get buffer 
-    if (myThread.getBufferStart != 0 ) {
+    if (!myThread.getBufferStart.isZero()) {
       VM_GCWorkQueue.freeGetBuffer(myThread);  // release old work q buffer
-      myThread.getBufferStart = 0;
+      myThread.getBufferStart = VM_Address.zero();
     }
     //clear remaining pointers
-    myThread.getBufferTop = 0;
-    myThread.getBufferEnd = 0;
+    myThread.getBufferTop = VM_Address.zero();
+    myThread.getBufferEnd = VM_Address.zero();
   }
   
   /**
@@ -194,19 +193,18 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    *
    * @param bufferAddress address of buffer to add to shared queue
    */
-  void
-    addBuffer (int bufferAddress) {
+  void addBuffer (VM_Address bufferAddress) {
 
     synchronized (this) {
 
       if(trace) VM.sysWrite(" GCWorkQueue.addBuffer entered\n");
 
       // add to buffer list
-      int temp = bufferHead;
+      VM_Address temp = bufferHead;
       bufferHead = bufferAddress;
       
       // set forward ptr in first word of buffer
-      VM_Magic.setMemoryWord( bufferAddress, temp );   
+      VM_Magic.setMemoryAddress( bufferAddress, temp );
       
       // wake up any waiting threads (if any)
       if (numThreadsWaiting == 0) return;
@@ -220,14 +218,13 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    *
    * @return address of buffer or 0 if none available
    */
-  synchronized int
-    getBuffer() {
+  synchronized VM_Address getBuffer() {
     
     if(trace) VM.sysWrite(" GCWorkQueue.getBuffer entered\n");
 
-    if (bufferHead == 0) return 0;
-    int temp = bufferHead;
-    bufferHead =   VM_Magic.getMemoryWord( temp );
+    if (bufferHead.EQ(VM_Address.zero())) return bufferHead;
+    VM_Address temp = bufferHead;
+    bufferHead = VM_Address.fromInt(VM_Magic.getMemoryWord(temp));
     return temp; 
   }
 
@@ -245,8 +242,8 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    * @return address of a buffer
    *         zero if no buffers available & all participants waiting
    */
-  int getBufferAndWait () {
-    int  temp;
+  VM_Address getBufferAndWait () {
+    VM_Address  temp;
     int debug_counter = 0;
     int debug_counter_counter = 0;
 
@@ -255,13 +252,13 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
     synchronized(this) {
 
       // see if any work to do, if so, return next work buffer
-      if (bufferHead != 0) {
+      if (!bufferHead.isZero()) {
 	temp = bufferHead;
-	bufferHead =   VM_Magic.getMemoryWord( temp );
+	bufferHead = VM_Address.fromInt(VM_Magic.getMemoryWord(temp));
 	return temp; 
       }
 
-      if (numThreads == 1) return 0;  // only 1 thread, no work, just return
+      if (numThreads == 1) return VM_Address.zero();  // only 1 thread, no work, just return
 
       numThreadsWaiting++;   // add self to number of gc threads waiting
       
@@ -270,7 +267,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
       if (numThreadsWaiting == numThreads) {
 	numThreadsWaiting--;         // take ourself out of count
 	completionFlag = true;       // to lets waiting threads return
-	return 0;
+	return VM_Address.zero();
       }
     } // end of synchronized block
     
@@ -298,9 +295,9 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
       
       synchronized(this) {
 	// see if any work to do
-	if (bufferHead != 0) {
+	if (!bufferHead.isZero()) {
 	  temp = bufferHead;
-	  bufferHead =   VM_Magic.getMemoryWord( temp );
+	  bufferHead = VM_Magic.getMemoryAddress(temp);
 	  numThreadsWaiting--;
 	  return temp; 
 	}
@@ -309,7 +306,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
 	  numThreadsWaiting--;         // take ourself out of count
 	  if (numThreadsWaiting == 0)
 	    completionFlag = false;    // last thread out resets completion flag
-	  return 0; // are we complete
+	  return VM_Address.zero(); // are we complete
 	}
       } // end of synchronized block
       
@@ -330,15 +327,13 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    *
    * @param ref  object reference to add to the put buffer
    */
-  static void
-    putToWorkBuffer ( int ref ) {
-    int newbufaddress;
+  static void putToWorkBuffer (VM_Address ref ) {
 
     if (VALIDATE_BUFFER_PUTS) {
       if (!VM_GCUtil.validRef(ref)) {
-	VM_Scheduler.traceHex("GCWorkQueue:putToWorkBuffer:","bad ref =",ref);
+	VM_Scheduler.traceHex("GCWorkQueue:putToWorkBuffer:","bad ref =",ref.toInt());
 	VM_GCUtil.dumpRef(ref);
-	VM_GCUtil.dumpMemoryWords(ref-64, 32);  // dump 16 words on either side of bad ref
+	VM_Memory.dumpMemory(ref, 64, 64);  // dump 16 words on either side of bad ref
 	VM_Scheduler.trace("GCWorkQueue:putToWorkBuffer:","dumping executing stack");
 	VM_Scheduler.dumpStack();
 	/*** following may generate too much 
@@ -353,9 +348,9 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
 
     if (COUNT_GETS_AND_PUTS) myThread.putWorkCount++;
 
-    VM_Magic.setMemoryWord( myThread.putBufferTop, ref );
-    myThread.putBufferTop -= 4;
-    if (myThread.putBufferTop == myThread.putBufferStart) {
+    VM_Magic.setMemoryAddress(myThread.putBufferTop, ref);
+    myThread.putBufferTop = myThread.putBufferTop.sub(4);
+    if (myThread.putBufferTop.EQ(myThread.putBufferStart)) {
 
       // current buffer is full, give to common pool, get new buffer	    
       if (WORKQUEUE_COUNTS) myThread.putBufferCount++;
@@ -380,45 +375,45 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    * @return object reference from the get buffer
    *         zero when there are no more references to process
    */
-  static int getFromWorkBuffer () {
-    int newbufaddress;
-    int temp;
+  static VM_Address getFromWorkBuffer () {
+
+    VM_Address newbufaddress;
+    VM_Address temp;
     double temptime;
 
     VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
 
     if (COUNT_GETS_AND_PUTS) myThread.getWorkCount++;
 
-    myThread.getBufferTop += 4;
+    myThread.getBufferTop = myThread.getBufferTop.add(4);
 
-    if (myThread.getBufferTop < myThread.getBufferEnd)
+    if (myThread.getBufferTop.LT(myThread.getBufferEnd))
       //easy case- return next work q item
-      return  VM_Magic.getMemoryWord( myThread.getBufferTop);
+      return VM_Magic.getMemoryAddress( myThread.getBufferTop);
 
     // get buffer is empty, getBufferTop == getBufferEnd
 
     // get buffer from shared queue of work buffers
     newbufaddress = workQueue.getBuffer();
 
-    if ( newbufaddress != 0 ) {
+    if (!newbufaddress.isZero()) {
       if (WORKQUEUE_COUNTS) myThread.getBufferCount++;
-      if (myThread.getBufferStart != 0 ) {
-	VM_GCWorkQueue.freeGetBuffer(myThread);  // release old work q buffer
-      }
+      if (!myThread.getBufferStart.isZero())
+	  VM_GCWorkQueue.freeGetBuffer(myThread);  // release old work q buffer
       myThread.getBufferStart = newbufaddress;
       //set up pointers for new get buffer
-      myThread.getBufferTop = myThread.getBufferStart + 4;
-      myThread.getBufferEnd = myThread.getBufferStart + WORK_BUFFER_SIZE; 
-      return VM_Magic.getMemoryWord( myThread.getBufferTop);
+      myThread.getBufferTop = myThread.getBufferStart.add(4);
+      myThread.getBufferEnd = myThread.getBufferStart.add(WORK_BUFFER_SIZE); 
+      return VM_Magic.getMemoryAddress(myThread.getBufferTop);
     }
     
     // no buffers in work queue at this time.  if our putBuffer is not empty, swap
     // it with our empty get buffer, and start processing the items in it
-    if (myThread.putBufferTop < myThread.putBufferStart + WORK_BUFFER_SIZE - 4) {
+    if (myThread.putBufferTop.LT(myThread.putBufferStart.add(WORK_BUFFER_SIZE - 4))) {
       
       if (WORKQUEUE_COUNTS) myThread.swapBufferCount++;
       
-      if(myThread.getBufferStart != 0){
+      if (!myThread.getBufferStart.isZero()) {
 	// have get buffer, swap of get buffer and put buffer
 	if(trace) VM.sysWrite(" GCWorkQueue.getFromWorkBuffer swapping\n");
 	// swap start addresses
@@ -426,10 +421,10 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
 	myThread.putBufferStart = myThread.getBufferStart;
 	myThread.getBufferStart = temp;
 	//set end pointer of get buffer
-	myThread.getBufferEnd = myThread.getBufferStart + WORK_BUFFER_SIZE;
+	myThread.getBufferEnd = myThread.getBufferStart.add(WORK_BUFFER_SIZE);
 	// swap current top pointer
 	temp = myThread.putBufferTop;
-	myThread.putBufferTop = myThread.getBufferTop - 4;  // -4 to compensate for +4 above
+	myThread.putBufferTop = myThread.getBufferTop.sub(4);  // -4 to compensate for +4 above
 	myThread.getBufferTop = temp;           // points to empty slot preceding first occupied slot
       }
       else {
@@ -437,13 +432,13 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
 	if(trace) VM.sysWrite(" GCWorkQueue.getFromWorkBuffer swapping-no get buffer\n");
 	myThread.getBufferStart =  myThread.putBufferStart;
 	myThread.getBufferTop =  myThread.putBufferTop;    
-	myThread.getBufferEnd = myThread.getBufferStart + WORK_BUFFER_SIZE; 
+	myThread.getBufferEnd = myThread.getBufferStart.add(WORK_BUFFER_SIZE); 
 
 	VM_GCWorkQueue.allocatePutBuffer(myThread);  //get a new Put Buffer
       }
       //return first entry in new get buffer
-      myThread.getBufferTop += 4;
-      return  VM_Magic.getMemoryWord( myThread.getBufferTop);
+      myThread.getBufferTop = myThread.getBufferTop.add(4);
+      return VM_Magic.getMemoryAddress(myThread.getBufferTop);
     }
     // put buffer and get buffer are both empty
     // go wait for work or notification that gc is finished
@@ -458,7 +453,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
     if(trace) VM.sysWrite(" GCWorkQueue.getFromWorkBuffer return from getBuffernAndWait\n");
     
     // get a new buffer of work
-    if ( newbufaddress != 0) {
+    if (!newbufaddress.isZero()) {
       if (MEASURE_WAIT_TIMES || VM_CollectorThread.MEASURE_WAIT_TIMES)
 	myThread.bufferWaitTime += (VM_Time.now() - temptime); 
 
@@ -468,9 +463,9 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
       myThread.getBufferStart = newbufaddress;
 
       //set up pointers for new get buffer
-      myThread.getBufferTop = myThread.getBufferStart + 4;
-      myThread.getBufferEnd = myThread.getBufferStart + WORK_BUFFER_SIZE; 
-      return VM_Magic.getMemoryWord( myThread.getBufferTop);
+      myThread.getBufferTop = myThread.getBufferStart.add(4);
+      myThread.getBufferEnd = myThread.getBufferStart.add(WORK_BUFFER_SIZE); 
+      return VM_Magic.getMemoryAddress(myThread.getBufferTop);
     }
     
     // no more work and no more buffers ie end of work queue phase of gc
@@ -479,10 +474,10 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
       myThread.finishWaitTime = (VM_Time.now() - temptime);
 
     // reset top ptr for get buffer to its proper "empty" state
-    myThread.getBufferTop = myThread.getBufferStart + WORK_BUFFER_SIZE - 4;
+    myThread.getBufferTop = myThread.getBufferStart.add(WORK_BUFFER_SIZE - 4);
     
     if(trace) VM.sysWrite(" GCWorkQueue.getFromWorkBuffer no more work\n");
-    return 0;
+    return VM_Address.zero();
     
   }  // getFromWorkBuffer
 
@@ -495,25 +490,25 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    */
   private static void
     allocatePutBuffer (VM_CollectorThread myThread) { 
-    int bufferAddress;
+    VM_Address bufferAddress;
 
-    if (myThread.extraBuffer != 0) {
+    if (!myThread.extraBuffer.isZero()) {
       bufferAddress = myThread.extraBuffer;
-      myThread.extraBuffer = 0;
+      myThread.extraBuffer = VM_Address.zero();
     }
-    else if (myThread.extraBuffer2 != 0) {
+    else if (!myThread.extraBuffer2.isZero()) {
       bufferAddress = myThread.extraBuffer2;
-      myThread.extraBuffer2 = 0;
+      myThread.extraBuffer2 = VM_Address.zero();
     }
     else {
-      if ((bufferAddress = VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-						   WORK_BUFFER_SIZE)) == 0){
+      bufferAddress = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP, WORK_BUFFER_SIZE));
+      if (bufferAddress.isZero()) {
 	VM.sysWrite(" In VM_GCWorkQueue: call to sysMalloc for work buffer returned 0\n");
 	VM.shutdown(1901);
       }
     }
     myThread.putBufferStart = bufferAddress;
-    myThread.putBufferTop = bufferAddress + WORK_BUFFER_SIZE - 4;
+    myThread.putBufferTop = bufferAddress.add(WORK_BUFFER_SIZE - 4);
   }  // allocatePutBuffer
 
   /**
@@ -523,18 +518,15 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    *
    * @param   VM_CollectorThread with a get buffer to free
    */
-  private static void
-    freeGetBuffer (VM_CollectorThread myThread) { 
+  private static void freeGetBuffer (VM_CollectorThread myThread) { 
 
-    if (myThread.extraBuffer == 0) {
+    if (myThread.extraBuffer.isZero()) 
       myThread.extraBuffer = myThread.getBufferStart;
-    }
-    else if (myThread.extraBuffer2 == 0) {
+    else if (myThread.extraBuffer2.isZero())
       myThread.extraBuffer2 = myThread.getBufferStart;
-    }
-    else {
-      VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, myThread.getBufferStart);
-    }
+    else 
+      VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, myThread.getBufferStart.toInt());
+
   }  // freeGetBuffer
 
 
@@ -568,25 +560,24 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
   /**
    * Process references in work queue buffers until empty.
    */
-  static void  
-  emptyWorkQueue() {
-    int ref = VM_GCWorkQueue.getFromWorkBuffer();
+  static void emptyWorkQueue() {
+
+      VM_Address ref = VM_GCWorkQueue.getFromWorkBuffer();
     
-    if (WORKQUEUE_COUNTS) {
-      VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
-      myThread.rootWorkCount = myThread.putWorkCount;
-    }
-    
-    while ( ref != 0 ) {
-      VM_ScanObject.scanObjectOrArray( ref );	   
-      ref = VM_GCWorkQueue.getFromWorkBuffer();
-    }
+      if (WORKQUEUE_COUNTS) {
+	  VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
+	  myThread.rootWorkCount = myThread.putWorkCount;
+      }
+      
+      while (!ref.isZero()) {
+	  VM_ScanObject.scanObjectOrArray( ref );	   
+	  ref = VM_GCWorkQueue.getFromWorkBuffer();
+      }
   }  // emptyWorkQueue
 
   // methods for measurement statistics
 
-  static void
-  resetCounters ( VM_CollectorThread ct ) {
+  static void resetCounters ( VM_CollectorThread ct ) {
     ct.copyCount = 0;
     ct.rootWorkCount = 0;
     ct.putWorkCount = 0;

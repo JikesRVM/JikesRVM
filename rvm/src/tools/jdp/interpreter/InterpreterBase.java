@@ -60,7 +60,7 @@ implements VM_Constants
     // get bytecodes for this method
     byte_codes = new ByteCodeContext(method);
     
-    if (traceInterpreter) 
+    if (true || traceInterpreter >= 1) 
       {
 	System.out.print("InterpreterBase: begin interpreting "+method+" using "+params.length+" params=");
 	for (int i=0; i<params.length; ++i) System.out.print(params[i]+" ");
@@ -180,7 +180,7 @@ implements VM_Constants
   private ByteCodeContext debug_after_return;     // restart single stepping when we hit "XXreturn" from this context.
   
   
-  static boolean traceInterpreter = false;      // output for each bytecode 
+  static int traceInterpreter = 0;      // output for each bytecode 
 
   // NOTE: turn off to not come up in debugger mode on start up
   static boolean debug = false;                  // single stepping
@@ -227,7 +227,7 @@ implements VM_Constants
     // TODO:  cannot get the JTOC content and just convert from int to object, 
     // need to implement a hash table to hold object references in the JTOC
     else if (desc == VM_Statics.STRING_LITERAL) 
-      stack.push(VM_Magic.addressAsObject(getStaticWord(offset)));
+      stack.push(VM_Magic.addressAsObject(VM_Address.fromInt(getStaticWord(offset))));
     
     else    
       assert(NOT_IMPLEMENTED);
@@ -287,7 +287,7 @@ implements VM_Constants
     // 
     VM_Class receiver_class = null;
     if (receiver_type.isClassType()) {
-      if (traceInterpreter)    
+      if (traceInterpreter >= 2)    
 	System.out.println("InterpreterBase: converted to class type");
       receiver_class = (VM_Class)receiver_type;
     }  else if (receiver_type.isArrayType()) {
@@ -308,7 +308,7 @@ implements VM_Constants
 			   (mapVM) receiver);
     }
     
-    if (traceInterpreter)    {
+    if (traceInterpreter >= 2)    {
       System.out.println("InterpreterBase.getCalledVirtualMethodFromPoolIndex: called_method_prototype= "+called_method_prototype);
       System.out.println("InterpreterBase: correct_virtual_method= "+correct_virtual_method);
       System.out.println("InterpreterBase: receiver_class= "+receiver_class);
@@ -369,7 +369,7 @@ implements VM_Constants
       paramNum += 1;                 // for virtual methods, add one for "this" 
     
     
-    if (traceInterpreter) 
+    if (traceInterpreter >= 1) 
       println("invokespecial (" + called_method_prototype + ") with " +
 	      paramNum+" parameters, native=" + called_method.isNative());
     
@@ -479,12 +479,13 @@ implements VM_Constants
     Class classToInstantiate = getClassForVMType(newclass);
     try {
       constr = classToInstantiate.getConstructor(paramClass);
-      // System.out.println("_invokeInitializer: constructor is " + constr);
     } 
     catch (NoSuchMethodException e1) {
-      // System.out.println("_invokeInitializer: NoSuchMethodException " + called_method);
+      System.out.println("_invokeInitializer: NoSuchMethodException " + called_method);
       constr = null;
     }
+
+    // System.out.println("\n_invokeInitializer: constructor is " + constr);
 
     // make sure the class for this constructor is loaded,
     // then invoke this constructor with the matching parameters
@@ -492,10 +493,14 @@ implements VM_Constants
       newclass.load();
       newclass.resolve();
       newclass.instantiate();
-      if (constr==null)
+      if (constr==null) {
+	  // System.out.println("classToInstantiate.newInstance: " + called_method + " on " + newclass);
 	obj = classToInstantiate.newInstance();
-      else
+      }
+      else {
+	  // System.out.println("constr.newInstance: " + called_method + " on " + newclass);
 	obj = constr.newInstance(paramObj);      
+      }
     } catch (InstantiationException e2) {
       System.out.println("_invokeInitializer: InstantiationException, " + called_method + " on " + newclass);
       assert(NOT_REACHED);   // shouldn't be here 
@@ -509,7 +514,7 @@ implements VM_Constants
     } catch (InvocationTargetException e4) {
       // the reflected initializer method throws an exception
       // unwrap the exception and pass it on to the program 
-      if (traceInterpreter) {
+      if (traceInterpreter >= 1) {
 	println("exception caught in initializer " + called_method + " of " + newclass + ", " + e4.getTargetException());
 	if (constr==null)
 	  println("constructor was null");
@@ -586,7 +591,7 @@ implements VM_Constants
   /* new */
   protected final void _throwException(Throwable t) 
   {
-    if (traceInterpreter)
+    if (traceInterpreter >= 1)
       {
 	System.out.println("InterpreterBase: Exception thrown:"+t);
 	debug_methods_called();
@@ -600,7 +605,7 @@ implements VM_Constants
 	int handler_pc = byte_codes.getHandlerOffsetForExceptionsMatching(t);
 	if (byte_codes.getHandlerOffsetForExceptionsMatching(t) > 0)
 	  {
-	    if (traceInterpreter) System.out.println("InterpreterBase: found handler in "+byte_codes);
+	    if (traceInterpreter >= 1) System.out.println("InterpreterBase: found handler in "+byte_codes);
 	    
 	    // set up for continuation in handler.
 	    //   -- move the instruction counter
@@ -615,7 +620,7 @@ implements VM_Constants
 	    //
 	    stack.push(t);
 	    
-	    if (traceInterpreter)
+	    if (traceInterpreter >= 1)
 	      {
 		System.out.println("InterpreterBase: jumpException done.");
 		debug();
@@ -668,7 +673,7 @@ implements VM_Constants
 	    System.out.println("InterpreterBase: encountered a bytecode out of range="+byte_codes);
 	    debug();
 	  }
-	if (traceInterpreter || debug) System.out.println("InterpreterBase: "+byte_codes+";  stack_top = "+stack.describeTop());
+	if (traceInterpreter >= 2 || debug) System.out.println("InterpreterBase: "+byte_codes+";  stack_top = "+stack.describeTop());
 	if (debug) debug();
 	switch (code) 
 	  {
@@ -879,7 +884,7 @@ implements VM_Constants
 	      } else {
 		if (ref == null) _throwException( new NullPointerException());
 		_boundsCheck(ref, index);
-		if (traceInterpreter)
+		if (traceInterpreter >= 2)
 		  System.out.println("InterpreterBase: iastore gets val="+val+" index="+index+" and ref="+ref);
 		int a[] = (int []) ref; 
 		a[index] = val;
@@ -1692,7 +1697,7 @@ implements VM_Constants
 	      // On the stack top is the last arg.  Below it is the next to last, etc. Then "this" appears.
 	      VM_Class sender = getCurrentClass();
 	      VM_Method calledMethod = getCalledMethodFromPoolIndex(byte_codes.fetch2BytesUnsigned(), sender);
-	      
+	      if (traceInterpreter >= 1) println("invokevirtual (" + calledMethod+ ")");	      
 	      _invokevirtual(sender, calledMethod);
 	      break;
 	    }
@@ -1704,11 +1709,12 @@ implements VM_Constants
 	  case 0xb8: /* --- invokestatic --- */ 
 	    {
 	      VM_Method called_method =  getCalledMethodFromPoolIndex(byte_codes.fetch2BytesUnsigned(), getCurrentClass());
-	      if (traceInterpreter) println("invokestatic (" + called_method+ ")");
+	      if (traceInterpreter >= 1) println("invokestatic (" + called_method+ ")");
 	      VM_Class called_class = called_method.getDeclaringClass();
 	      // println("invokestatic (" + called_class+ ")");
 
-	      if (called_class.isMagicType())		
+// || called_class.isAddressType())
+	      if (called_class.isMagicType()) 
 		{
 		  /* intercept Magic calls */
 		  invokeMagic(called_method);
@@ -1740,20 +1746,20 @@ implements VM_Constants
 	    VM_Method called_method =  getCalledMethodFromPoolIndex(byte_codes.fetch2BytesUnsigned(), sender);
 	    int nargs = byte_codes.fetch1ByteUnsigned();
 	    byte_codes.fetch1ByteSigned(); // eat superfluous 0
-	    if (traceInterpreter) println("invokeinterface (" + called_method+ ") " + nargs + " 0");
+	    if (traceInterpreter >= 1) println("invokeinterface (" + called_method+ ") " + nargs + " 0");
 	    // same as invokevirtual
 	    _invokevirtual(getCurrentClass(), called_method);
 	    break;
 	  }
 	  case 0xba: /* --- unused --- */ {
-	    if (traceInterpreter) println("unused");
+	    if (traceInterpreter >= 2) println("unused");
 	    assert(NOT_REACHED);
 	    break;
 	  }
 	  case 0xbb: /* --- new --- */ {
 	    int index = byte_codes.fetch2BytesUnsigned();
 	    VM_Class klass = getClassFromPoolIndex(index, getCurrentClass()); 
-	    if (traceInterpreter) println("new " + index + " (" + klass + ")");
+	    if (traceInterpreter >= 2) println("new " + index + " (" + klass + ")");
 	    Object obj = _new(klass);
 	    stack.push(obj);
 	    break;
@@ -1761,7 +1767,7 @@ implements VM_Constants
 	  case 0xbc: /* --- newarray --- */ {
 	    int atype = byte_codes.fetch1ByteSigned();
 	    VM_Array array = VM_Array.getPrimitiveArrayType(atype);
-	    if (traceInterpreter) println("newarray " + atype + "(" + array + ")");
+	    if (traceInterpreter >= 2) println("newarray " + atype + "(" + array + ")");
 	    int count = stack.popInt();
 	    Object obj = _newarray(array, count);
 	    stack.push(obj);
@@ -1772,7 +1778,7 @@ implements VM_Constants
 	    VM_Type array_element_type = getCurrentClass().getTypeRef(index);
 	    VM_Array array = array_element_type.getArrayTypeForElementType();
 	    int count = stack.popInt();
-	    if (traceInterpreter) println("anewarray new " + index + " (" + array + ")");
+	    if (traceInterpreter >= 2) println("anewarray new " + index + " (" + array + ")");
 	    if (mapVM.isMapped(array_element_type.asClass()))
 	      stack.push(X_newarray(count));
 	    else
@@ -1780,7 +1786,7 @@ implements VM_Constants
 	    break;
 	  }
 	  case 0xbe: /* --- arraylength --- */ {
-	    if (traceInterpreter) println("arraylength");
+	    if (traceInterpreter >= 2) println("arraylength");
 	    Object ref = stack.popObject();
 	    int len;
 	    if (mapVM.isMappedObject(ref))
@@ -1791,7 +1797,7 @@ implements VM_Constants
 	    break;
 	  }
 	  case 0xbf: /* --- athrow --- */ {
-	    if (traceInterpreter) println("athrow");
+	    if (traceInterpreter >= 2) println("athrow");
 	    Object ref = stack.popObject();
 	    Throwable t;
 	    try 
@@ -1809,7 +1815,7 @@ implements VM_Constants
 	    {
 	      int index = byte_codes.fetch2BytesUnsigned();
 	      int type_ref_id = getCurrentClass().getTypeRefId(index);
-	      if (traceInterpreter) println("checkcast " + index + " (" + type_ref_id + ")");
+	      if (traceInterpreter >= 2) println("checkcast " + index + " (" + type_ref_id + ")");
 	      Object ref = stack.popObject();
 	      
 	      // test object type
@@ -1837,7 +1843,7 @@ implements VM_Constants
 	    {
 	      int index = byte_codes.fetch2BytesUnsigned();
 	      int type_ref_id = getCurrentClass().getTypeRefId(index);
-	      if (traceInterpreter) println("instanceof " + index + " (" + type_ref_id + ")");
+	      if (traceInterpreter >= 2) println("instanceof " + index + " (" + type_ref_id + ")");
 	      Object ref = stack.popObject();
 	      
 	      try {
@@ -1870,19 +1876,19 @@ implements VM_Constants
 	      break;
 	    }
 	  case 0xc2: /* --- monitorenter ---  */ {
-	    if (traceInterpreter) println("monitorenter -- not implemented");
+	    if (traceInterpreter >= 2) println("monitorenter -- not implemented");
 	    Object ref = stack.popObject();
 	    if (ref == null) _throwException(new NullPointerException());
 	    break;
 	  }
 	  case 0xc3: /* --- monitorexit --- */ {
-	    if (traceInterpreter) println("monitorexit -- not implemented");
+	    if (traceInterpreter >= 2) println("monitorexit -- not implemented");
 	    Object ref = stack.popObject();
 	    if (ref == null) _throwException(new NullPointerException());
 	    break;
 	  }
 	  case 0xc4: /* --- wide --- */ {
-	    if (traceInterpreter) println("wide");
+	    if (traceInterpreter >= 2) println("wide");
 	    int widecode = byte_codes.fetch1ByteUnsigned();
 	    switch (widecode) {
             case 0x15: /* --- wide iload --- */
@@ -1957,7 +1963,7 @@ implements VM_Constants
 		dims[number_of_dimensions - i - 1] = number_of_elements;
 	      }
 	    
-	    if (traceInterpreter) println("multianewarray " + index + " dim=" + number_of_dimensions + " type="+element_type);
+	    if (traceInterpreter >= 2) println("multianewarray " + index + " dim=" + number_of_dimensions + " type="+element_type);
 	    // Object multiarray  = VM_Runtime.buildMultiDimensionalArray(dims, 0, array);
 	    Class aclass = getClassForVMType(element_type);
 	    Object multiarray  = Array.newInstance(aclass, dims);
@@ -2011,7 +2017,7 @@ implements VM_Constants
     int si = getCurrentClass().getMethodRefId(index);     // constant pool to method dictionary 
     VM_Field field = VM_FieldDictionary.getValue(si);
 
-    if (traceInterpreter) System.out.println("InterpreterBase: resolved constant pool index="+index+" to "+si+" and found field "+field);
+    if (traceInterpreter >= 2) System.out.println("InterpreterBase: resolved constant pool index="+index+" to "+si+" and found field "+field);
     return field;
   }
   
@@ -2025,7 +2031,7 @@ implements VM_Constants
     // PROBLEM HERE! We shouldn't use toString() on object when it might not
     // be well-formed (e.g. we are interpreting the constructor)
     //if (traceInterpreter) println("get (" + field + ") from object="+obj);
-    if (traceInterpreter) 
+    if (traceInterpreter >= 2) 
       println("get (" + vmfield + ") from object=" + ((obj==null)?"<null>":obj));
     
     // this is for the field we are interested in
@@ -2064,7 +2070,7 @@ implements VM_Constants
   // void popFromStackToHeap(Object objectref, java.lang.reflect.Field field)
   void popFromStackToHeap(Object objectref, VM_Field vmfield)
   {
-    if (traceInterpreter) println(" put (" + vmfield + ") from "+stack.describeTop());
+    if (traceInterpreter >= 2) println(" put (" + vmfield + ") from "+stack.describeTop());
     // this is for the field we are interested in
     Class field_type = getClassForVMType(vmfield.getType());
 
@@ -2353,14 +2359,14 @@ implements VM_Constants
 		  }
 		else if (token.equals("t"))
 		  {
-		    if (traceInterpreter) {
+		    if (traceInterpreter > 0) {
 		      System.out.println("InterpreterBase: disable trace mode");
-		      traceInterpreter = false;
+		      traceInterpreter = 0;
 		      ByteCodeContext.traceByteCodes = false;
 		      InterpreterStack.trace = false;
 		    } else {
 		      System.out.println("InterpreterBase: enable trace mode");
-		      traceInterpreter = true;
+		      traceInterpreter = 10;
 		      ByteCodeContext.traceByteCodes = true;
 		      InterpreterStack.trace = true;
 		    }
@@ -2398,7 +2404,7 @@ implements VM_Constants
 		      {
 			try
 			  {
-			    int address = Integer.parseInt(tokens.nextToken(),16);
+			    VM_Address address = VM_Address.fromInt(Integer.parseInt(tokens.nextToken(),16));
 			    Object o = VM_Magic.addressAsObject(address);
 			    System.out.println("Object at address "+address+" toString():");
 			    System.out.println(o);

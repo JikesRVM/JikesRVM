@@ -98,25 +98,24 @@ class VM_Entrypoints implements VM_Constants {
 
   static final VM_Field deterministicThreadSwitchCountField = getField("LVM_Processor;", "deterministicThreadSwitchCount", "I");
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  static final VM_Field modifiedOldObjectsTopField = getField("LVM_Processor;", "modifiedOldObjectsTop", "I");
-  static final VM_Field modifiedOldObjectsMaxField = getField("LVM_Processor;", "modifiedOldObjectsMax", "I");
-  static final VM_Field incDecBufferTopField       = getField("LVM_Processor;", "incDecBufferTop", "I");
-  static final VM_Field incDecBufferMaxField       = getField("LVM_Processor;", "incDecBufferMax", "I");
+  static final VM_Field modifiedOldObjectsTopField = getField("LVM_Processor;", "modifiedOldObjectsTop", "LVM_Address;");
+  static final VM_Field modifiedOldObjectsMaxField = getField("LVM_Processor;", "modifiedOldObjectsMax", "LVM_Address;");
+  static final VM_Field incDecBufferTopField       = getField("LVM_Processor;", "incDecBufferTop", "LVM_Address;");
+  static final VM_Field incDecBufferMaxField       = getField("LVM_Processor;", "incDecBufferMax", "LVM_Address;");
   //-#endif
   static final VM_Field scratchSecondsField        = getField("LVM_Processor;", "scratchSeconds", "D");
   static final VM_Field scratchNanosecondsField    = getField("LVM_Processor;", "scratchNanoseconds", "D");
   static final VM_Field threadSwitchRequestedField = getField("LVM_Processor;", "threadSwitchRequested", "I");
   static final VM_Field activeThreadField          = getField("LVM_Processor;", "activeThread", "LVM_Thread;");
-  static final VM_Field activeThreadStackLimitField= getField("LVM_Processor;", "activeThreadStackLimit", "I");
+  static final VM_Field activeThreadStackLimitField= getField("LVM_Processor;", "activeThreadStackLimit", "LVM_Address;");
   static final VM_Field pthreadIDField             = getField("LVM_Processor;", "pthread_id", "I");
   static final VM_Field epochField                 = getField("LVM_Processor;", "epoch", "I");
   //-#if RVM_FOR_IA32
   static final VM_Field processorThreadIdField     = getField("LVM_Processor;", "threadId", "I");
-  static final VM_Field processorFPField           = getField("LVM_Processor;", "framePointer", "I");
+  static final VM_Field processorFPField           = getField("LVM_Processor;", "framePointer", "LVM_Address;");
   static final VM_Field processorJTOCField         = getField("LVM_Processor;", "jtoc", "Ljava/lang/Object;");
   static final VM_Field processorTrapParamField    = getField("LVM_Processor;", "arrayIndexTrapParam", "I");
   //-#endif
-
 
 
   //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
@@ -124,12 +123,12 @@ class VM_Entrypoints implements VM_Constants {
   //-#else
   // default implementation of jni
   static final VM_Field processorModeField         = getField("LVM_Processor;", "processorMode", "I");
-  static final VM_Field vpStatusAddressField       = getField("LVM_Processor;", "vpStatusAddress", "I");
+  static final VM_Field vpStatusAddressField       = getField("LVM_Processor;", "vpStatusAddress", "LVM_Address;");
   //-#endif
   //-#if RVM_FOR_IA32  
   static final VM_Field jtocField               = getField("LVM_Processor;", "jtoc", "Ljava/lang/Object;");
   static final VM_Field threadIdField           = getField("LVM_Processor;", "threadId", "I");
-  static final VM_Field framePointerField       = getField("LVM_Processor;", "framePointer", "I");
+  static final VM_Field framePointerField       = getField("LVM_Processor;", "framePointer", "LVM_Address;");
   static final VM_Field hiddenSignatureIdField  = getField("LVM_Processor;", "hiddenSignatureId", "I");
   static final VM_Field arrayIndexTrapParamField= getField("LVM_Processor;", "arrayIndexTrapParam", "I");
   //-#endif
@@ -140,9 +139,11 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Method threadYieldMethod              = getMethod("LVM_Thread;", "yield", "()V");
   static final VM_Method becomeNativeThreadMethod       = getMethod("LVM_Thread;", "becomeNativeThread", "()V");
   static final VM_Method becomeRVMThreadMethod          = getMethod("LVM_Thread;", "becomeRVMThread", "()V");
+
   static final VM_Method threadStartoffMethod           = getMethod("LVM_Thread;", "startoff", "()V");
   static final VM_Field threadStackField                = getField("LVM_Thread;", "stack", "[I");
-  static final VM_Field stackLimitField                 = getField("LVM_Thread;", "stackLimit", "I");
+  static final VM_Field stackLimitField                 = getField("LVM_Thread;", "stackLimit", "LVM_Address;");
+
   static final VM_Field beingDispatchedField            = getField("LVM_Thread;", "beingDispatched", "Z");
   static final VM_Field threadSlotField                 = getField("LVM_Thread;", "threadSlot", "I");
   static final VM_Field jniEnvField                     = getField("LVM_Thread;", "jniEnv", "LVM_JNIEnvironment;");
@@ -152,12 +153,12 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field threadHardwareExceptionRegistersField = getField("LVM_Thread;", "hardwareExceptionRegisters", "LVM_Registers;");
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  static final VM_Field areaCurrentAddressField        = getField("LVM_Allocator;", "areaCurrentAddress", "I");
-  static final VM_Field matureCurrentAddressField      = getField("LVM_Allocator;", "matureCurrentAddress", "I");
+  static final VM_Field areaCurrentAddressField        = getField("LVM_Allocator;", "areaCurrentAddress", "LVM_Address;");
+  static final VM_Field matureCurrentAddressField      = getField("LVM_Allocator;", "matureCurrentAddress", "LVM_Address;");
   //-#endif
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  static final VM_Field finalizerListElementValueField   = getField("LVM_FinalizerListElement;", "value", "I");
+  static final VM_Field finalizerListElementValueField   = getField("LVM_FinalizerListElement;", "value", "LVM_Address;");
   static final VM_Field finalizerListElementPointerField = getField("LVM_FinalizerListElement;", "pointer", "Ljava/lang/Object;");
   //-#endif
 
@@ -165,15 +166,15 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field allocCountField                = getField("LVM_BlockControl;", "allocCount", "I");
   //-#endif
 
-  static final VM_Field registersIPField   = getField("LVM_Registers;",   "ip",  "I");
+  static final VM_Field registersIPField   = getField("LVM_Registers;",   "ip",  "LVM_Address;");
   static final VM_Field registersFPRsField = getField("LVM_Registers;", "fprs", "[D");
   static final VM_Field registersGPRsField = getField("LVM_Registers;", "gprs", "[I");
   static final VM_Field registersInUseField= getField("LVM_Registers;", "inuse", "Z");
   //-#if RVM_FOR_POWERPC
-  static final VM_Field registersLRField   = getField("LVM_Registers;", "lr", "I");
+  static final VM_Field registersLRField   = getField("LVM_Registers;", "lr", "LVM_Address;");
   //-#endif
   //-#if RVM_FOR_IA32
-  static final VM_Field registersFPField   = getField("LVM_Registers;",   "fp",  "I");
+  static final VM_Field registersFPField   = getField("LVM_Registers;",   "fp",  "LVM_Address;");
   //-#endif
 
   //-#if RVM_WITH_CONCURRENT_GC
@@ -194,8 +195,8 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field processorsField                = getField("LVM_Scheduler;", "processors", "[LVM_Processor;");
   static final VM_Field threadsField                   = getField("LVM_Scheduler;", "threads", "[LVM_Thread;");
   static final VM_Field debugRequestedField            = getField("LVM_Scheduler;", "debugRequested", "Z");
-  static final VM_Field attachThreadRequestedField     = getField("LVM_Scheduler;", "attachThreadRequested", "I");
-  static final VM_Method dumpStackAndDieMethod         = getMethod("LVM_Scheduler;", "dumpStackAndDie", "(I)V");
+  static final VM_Field attachThreadRequestedField     = getField("LVM_Scheduler;", "attachThreadRequested", "LVM_Address;");
+  static final VM_Method dumpStackAndDieMethod         = getMethod("LVM_Scheduler;", "dumpStackAndDie", "(LVM_Address;)V");
 
   static final VM_Field latestContenderField            = getField("LVM_ProcessorLock;", "latestContender", "LVM_Processor;");
   static final VM_Method processorLockMethod            = getMethod("LVM_ProcessorLock;", "lock", "()V");
@@ -215,14 +216,14 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Method initializeClassIfNecessaryMethod = null; // GACK
   //-#endif
 
-  static final VM_Field JNIEnvAddressField         = getField("LVM_JNIEnvironment;", "JNIEnvAddress", "I");
+  static final VM_Field JNIEnvAddressField         = getField("LVM_JNIEnvironment;", "JNIEnvAddress", "LVM_Address;");
   static final VM_Field JNIEnvSavedTIField         = getField("LVM_JNIEnvironment;", "savedTIreg", "I");
   static final VM_Field JNIEnvSavedPRField         = getField("LVM_JNIEnvironment;", "savedPRreg", "LVM_Processor;");
   static final VM_Field JNIRefsField               = getField("LVM_JNIEnvironment;", "JNIRefs", "[I");
   static final VM_Field JNIRefsTopField            = getField("LVM_JNIEnvironment;", "JNIRefsTop", "I");
   static final VM_Field JNIRefsMaxField            = getField("LVM_JNIEnvironment;", "JNIRefsMax", "I");
   static final VM_Field JNIRefsSavedFPField        = getField("LVM_JNIEnvironment;", "JNIRefsSavedFP", "I");
-  static final VM_Field JNITopJavaFPField          = getField("LVM_JNIEnvironment;", "JNITopJavaFP", "I");
+  static final VM_Field JNITopJavaFPField          = getField("LVM_JNIEnvironment;", "JNITopJavaFP", "LVM_Address;");
   static final VM_Field JNIPendingExceptionField   = getField("LVM_JNIEnvironment;", "pendingException", "Ljava/lang/Throwable;");
   static final VM_Field JNIFunctionPointersField   = getField("LVM_JNIEnvironment;", "JNIFunctionPointers", "[I");
 
@@ -233,8 +234,6 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Field tocRegisterField                = getField("LVM_BootRecord;", "tocRegister", "I");
   static final VM_Field processorsOffsetField           = getField("LVM_BootRecord;", "processorsOffset", "I");
   static final VM_Field threadsOffsetField              = getField("LVM_BootRecord;", "threadsOffset", "I");
-  static final VM_Field startAddressField               = getField("LVM_BootRecord;", "startAddress", "I");
-  static final VM_Field endAddressField                 = getField("LVM_BootRecord;", "endAddress", "I");
   static final VM_Field globalGCInProgressFlagField     = getField("LVM_BootRecord;", "globalGCInProgressFlag", "I");
   static final VM_Field lockoutProcessorField           = getField("LVM_BootRecord;", "lockoutProcessor", "I");
   static final VM_Field sysVirtualProcessorYieldIPField = getField("LVM_BootRecord;", "sysVirtualProcessorYieldIP", "I");

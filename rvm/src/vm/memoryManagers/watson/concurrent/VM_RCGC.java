@@ -131,7 +131,7 @@ public abstract class VM_RCGC
 
 
 
-    private static final int bigCountIndex(int object) {
+    private static final int bigCountIndex(VM_Address object) {
 	return ((VM_Magic.addressAsObject(object).hashCode() & HASH_MASK) % OVERFLOW_TABLE_SIZE) << 1;
     }
 
@@ -139,11 +139,11 @@ public abstract class VM_RCGC
     // Simple hashing via open addressing.  Deletions handled by leaving behind a HASH_DELETED marker
     //
 
-    private static final int lookupEntry (int object, int table[]) {
+    private static final int lookupEntry (VM_Address object, int table[]) {
 	int index = bigCountIndex(object);
 	int i = index;
 	do {
-	    if (table[i] == object)
+	    if (table[i] == object.toInt())
 		return i;	// found
 	    if (table[i] == HASH_EMPTY)
 		return HASH_ERROR; // not found
@@ -152,14 +152,15 @@ public abstract class VM_RCGC
 	return HASH_ERROR;	// table full and not found
     }
 
-    private static final int createEntry (int object, int table[]) {
+    private static final int createEntry (VM_Address object, int table[]) {
 	int index = bigCountIndex(object);
 	int i = index;
 	do {
-	    if (table[i] == object)
+	    if (table[i] == object.toInt())
 		return HASH_ERROR; // found; not supposed to be there
-	    if (table[i] == HASH_EMPTY || table[i] == HASH_DELETED) {
-		table[i] = object;
+	    if (table[i] == HASH_EMPTY || 
+		table[i] == HASH_DELETED) {
+		table[i] = object.toInt();
 		table[i+1] = 0;
 		return i;	// found free slot
 	    }
@@ -172,21 +173,21 @@ public abstract class VM_RCGC
     // Add to an object's large reference count stored in a hash table.  If none stored yet, create one.
     //   If value is positive, returns true if new hash table entry created, false otherwise.
     //   If value is negative, returns true if hash table entry deleted, false otherwise.
-    private static final boolean addToBigCount(int object, int value) {
+    private static final boolean addToBigCount(VM_Address object, int value) {
 	return addToBigCount(object, value, overflowTable);
     }
 
-    private static final boolean addToBigCyclicCount(int object, int value) {
+    private static final boolean addToBigCyclicCount(VM_Address object, int value) {
 	return addToBigCount(object, value, cyclicOverflowTable);
     }
 
-    private static final void setBigCyclicCount(int object, int value) {
+    private static final void setBigCyclicCount(VM_Address object, int value) {
 	int i = createEntry(object, cyclicOverflowTable);
 	cyclicOverflowTable[i+1] = value;
     }
 
 
-    private static final void clearBigCyclicCount (int object) {
+    private static final void clearBigCyclicCount (VM_Address object) {
 	int i = lookupEntry(object, cyclicOverflowTable);
 	if (i != HASH_ERROR) {
 	    cyclicOverflowTable[i]   = HASH_DELETED;
@@ -195,7 +196,7 @@ public abstract class VM_RCGC
     }	
 
 
-    private static final boolean addToBigCount(int object, int value, int[] table) {
+    private static final boolean addToBigCount(VM_Address object, int value, int[] table) {
 	if (VM.VerifyAssertions) VM.assert(OVERFLOW_POSSIBLE);
 
 	if (DEBUG_BIGCOUNTS && color(object) != GREEN) dumpRefcountInfo("Non-green object getting big: ", object);
@@ -221,7 +222,7 @@ public abstract class VM_RCGC
     }
 
 
-    private static final int getBigCount(int object) {
+    private static final int getBigCount(VM_Address object) {
 	if (VM.VerifyAssertions) VM.assert(OVERFLOW_POSSIBLE);
 
 	int i = lookupEntry(object, overflowTable);
@@ -229,7 +230,7 @@ public abstract class VM_RCGC
     }
 
 
-    private static final int getBigCyclicCount(int object) {
+    private static final int getBigCyclicCount(VM_Address object) {
 	if (VM.VerifyAssertions) VM.assert(OVERFLOW_POSSIBLE);
 
 	int i = lookupEntry(object, cyclicOverflowTable);
@@ -260,7 +261,7 @@ public abstract class VM_RCGC
 	print("Cyclic Hashtable deleted:  ", celts); percentage(cdel,  OVERFLOW_TABLE_SIZE, "table size");
     }
 
-    public static void dumpRefcountInfo (String message, int object) {
+    public static void dumpRefcountInfo (String message, VM_Address object) {
 	VM.sysWrite("^^^^ ");  VM.sysWrite(message);  VM.sysWrite(object);
 	VM.sysWrite("\n^^^^    refcount ");  VM.sysWrite(refcount(object));
 	VM.sysWrite(" ["); 
@@ -273,7 +274,7 @@ public abstract class VM_RCGC
 	int x = 0;		// breakpoint
     }
 
-    public static String colorName(int object) {
+    public static String colorName(VM_Address object) {
 	int c = color(object);
 
 	if (c == BLACK)  return "B";
@@ -292,7 +293,7 @@ public abstract class VM_RCGC
 
     // HIGH-LEVEL REFCOUNT ACCESSOR FUNCTIONS
 
-    public static final int referenceCount(int object) {
+    public static final int referenceCount(VM_Address object) {
 	int rc = refcount(object);
 	int count = rc & COUNTMASK;
 	if ((rc & COUNTOVERFLOW) != 0)
@@ -301,33 +302,33 @@ public abstract class VM_RCGC
 	    return count;
     }
 
-    public static final boolean isZeroReferenceCount(int object) {
+    public static final boolean isZeroReferenceCount(VM_Address object) {
 	return (refcount(object) & COUNTFLDMASK) == 0;
     }
 
-    public static final boolean isGreaterThanOneReferenceCount(int object) {
+    public static final boolean isGreaterThanOneReferenceCount(VM_Address object) {
 	return (refcount(object) & COUNTFLDMASK) > 1;
     }
 
-    public static final int color(int object) {
+    public static final int color(VM_Address object) {
 	return refcount(object) & COLORMASK;
     }
 
-    public static final boolean isBuffered(int object) {
+    public static final boolean isBuffered(VM_Address object) {
 	return (refcount(object) & BUFFERED) != 0;
     }
 
     // HIGH-LEVEL REFCOUNT MODIFIER FUNCTIONS
 
-    public static final void initializeReferenceCount(int object) {
+    public static final void initializeReferenceCount(VM_Address object) {
 	setRefcount(object, 0);	// count = 0; color = black; unbuffered
     }
 
-    public static final void setReferenceCount(int object, int count) {
+    public static final void setReferenceCount(VM_Address object, int count) {
 	setRefcount(object, (refcount(object) & ~ COUNTMASK) | count);
     }
 	
-    public static final void incReferenceCount(int object) {
+    public static final void incReferenceCount(VM_Address object) {
 	int rc = refcount(object);
 	int count = rc & COUNTMASK;
 
@@ -342,7 +343,7 @@ public abstract class VM_RCGC
     }
 	
     // returns true if rc goes to 0
-    public static final boolean decReferenceCount(int object) {
+    public static final boolean decReferenceCount(VM_Address object) {
 	int rc = refcount(object);
 	int count = rc & COUNTMASK;
 	int buffered = rc & BUFFERED;
@@ -369,7 +370,7 @@ public abstract class VM_RCGC
 	return (rc & COUNTFLDMASK) == 0;
     }
 	
-    public static final void setColor(int object, int color) {
+    public static final void setColor(VM_Address object, int color) {
 	if (RCGC_COUNT_EVENTS) {
 	    switch (color) {
 	    case GREEN: setGreen++;  break;
@@ -385,30 +386,30 @@ public abstract class VM_RCGC
 	setRefcount(object, (refcount(object) & ~ COLORMASK) | color);
     }
 	
-    public static final void setBufferedFlag(int object) {
+    public static final void setBufferedFlag(VM_Address object) {
 	setRefcount(object, refcount(object) | BUFFERED);
     }
 
-    public static final void clearBufferedFlag(int object) {
+    public static final void clearBufferedFlag(VM_Address object) {
 	setRefcount(object, refcount(object) & ~BUFFERED);
     }
 
     // LOW-LEVEL FUNCTIONS
 
-    public static final int refcount(int object) { 
-	return VM_Magic.getMemoryWord(object + VM_AllocatorHeader.REFCOUNT_OFFSET);
+    public static final int refcount(VM_Address object) { 
+	return VM_Magic.getMemoryWord(object.add(VM_AllocatorHeader.REFCOUNT_OFFSET));
     }
 
-    public static final void setRefcount(int object, int value) { 
+    public static final void setRefcount(VM_Address object, int value) { 
 	if (VM.VerifyAssertions) VM.assert((value & EMPTYMASK) == 0);
 
-	VM_Magic.setMemoryWord(object + VM_AllocatorHeader.REFCOUNT_OFFSET, value);
+	VM_Magic.setMemoryWord(object.add(VM_AllocatorHeader.REFCOUNT_OFFSET), value);
     }
 
 
     // XCOUNT (SECONDARY COUNT) FUNCTIONS (used by asynchronous cycle collector)
 
-    public static final void cloneCount (int object) {
+    public static final void cloneCount (VM_Address object) {
 	int rc = refcount(object);
 	int cloned = (rc & ~ XCOUNTFLDMASK) | ((rc & COUNTFLDMASK) << COUNTFLDBITS);
 
@@ -420,11 +421,11 @@ public abstract class VM_RCGC
 	if (VM.VerifyAssertions) VM.assert(cyclicReferenceCount(object) == referenceCount(object));
     }
 
-    public static final boolean isZeroCyclicReferenceCount (int object) {
+    public static final boolean isZeroCyclicReferenceCount (VM_Address object) {
 	return (refcount(object) & XCOUNTFLDMASK) == 0;
     }
 
-    public static final void decCyclicReferenceCount (int object) {
+    public static final void decCyclicReferenceCount (VM_Address object) {
 	int rc    = refcount(object);
 	int count = rc & XCOUNTMASK;
 
@@ -441,7 +442,7 @@ public abstract class VM_RCGC
 	setRefcount(object, rc);
     }
 
-    public static final int cyclicReferenceCount (int object) {
+    public static final int cyclicReferenceCount (VM_Address object) {
 	int rc = refcount(object);
 	int count = (rc & XCOUNTMASK) >> XCOUNTSHIFT;
 	if ((rc & XCOUNTOVERFLOW) != 0)
@@ -450,7 +451,7 @@ public abstract class VM_RCGC
 	    return count;
     }
 
-    static final void clearCyclicReferenceCount(int object) {
+    static final void clearCyclicReferenceCount(VM_Address object) {
 	int rc = refcount(object);
 	if ((rc & XCOUNTOVERFLOW) != 0)
 	    clearBigCyclicCount(object);
@@ -458,7 +459,7 @@ public abstract class VM_RCGC
 	setRefcount(object, rc);
     }
 
-    static final void setCyclicReferenceCount (int object, int value) {
+    static final void setCyclicReferenceCount (VM_Address object, int value) {
 	if (VM.VerifyAssertions) VM.assert(value <= COUNTMASK && value >= 0);
 	int rc = refcount(object);
 	if ((rc & XCOUNTOVERFLOW) != 0)
@@ -476,6 +477,7 @@ public abstract class VM_RCGC
     static final void print(String s) { VM.sysWrite(s); }
     static final void println(String s) { print(s); println(); }
     static final void print(int i) { VM.sysWrite(i, false); }
+    static final void print(VM_Address addr) { VM.sysWrite(addr); }
     static final void println(int i) { print(i); println(); }
     static final void print(String s, int i) { print(s); print(i); }
     static final void println(String s, int i) { print(s,i); println(); }

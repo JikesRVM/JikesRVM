@@ -102,7 +102,7 @@ class VM_NativeDaemonThread extends VM_Thread {
       //-#endif
       VM_Magic.sysCallSigWait(VM_BootRecord.the_boot_record.sysPthreadSigWaitIP,
 			      TOC,
-		              myProcessor.vpStatusAddress,
+		              myProcessor.vpStatusAddress.toInt(),
 			      VM_Processor.IN_SIGWAIT,
 			      VM_Thread.getCurrentThread().contextRegisters);
 
@@ -263,7 +263,7 @@ class VM_NativeDaemonThread extends VM_Thread {
     // briefly, both processors have the "BLOCKED_IN_NATIVE" status word, until
     // the stuck thread is switched to the new processor.
     //
-    int tempStatusAddress = native_vp.vpStatusAddress;
+    VM_Address tempStatusAddress = native_vp.vpStatusAddress;
     int tempStatusIndex   = native_vp.vpStatusIndex;
     native_vp.vpStatusAddress = stuck_vp.vpStatusAddress;
     native_vp.vpStatusIndex   = stuck_vp.vpStatusIndex;
@@ -287,12 +287,12 @@ if (stuckEnv == null) {
 			VM.sysFail("quitting in switchpthread");
 }
     stuckEnv.savedPRreg = native_vp;
-    int topJavaFP = stuckEnv.JNITopJavaFP;
+    VM_Address topJavaFP = stuckEnv.JNITopJavaFP;
 //-#if RVM_FOR_IA32
-    VM_Magic.setMemoryWord(topJavaFP + VM_JNICompiler.JNI_PR_OFFSET, VM_Magic.objectAsAddress(native_vp));
+    VM_Magic.setMemoryAddress(topJavaFP.add(VM_JNICompiler.JNI_PR_OFFSET), VM_Magic.objectAsAddress(native_vp));
 //-#else 
-    int callerFP  = VM_Magic.getMemoryWord(topJavaFP);
-    VM_Magic.setMemoryWord(callerFP - JNI_PR_OFFSET, VM_Magic.objectAsAddress(native_vp));
+    VM_Address callerFP  = VM_Address.fromInt(VM_Magic.getMemoryWord(topJavaFP));
+    VM_Magic.setMemoryAddress(callerFP.sub(JNI_PR_OFFSET), VM_Magic.objectAsAddress(native_vp));
 //-#endif 
 
     // active thread of native vp should be its NativeIdleThread

@@ -16,6 +16,8 @@ class jdp {
     
   }
 
+  static boolean trace = false;
+
   public static void main(String args[])  {
     String  userArgs[] = null;  // args for user program
     int initial_bp = 0;
@@ -30,13 +32,15 @@ class jdp {
     int processID = 0;
     int cnt, i;
 
+    if (trace) System.out.println("*** Entered jdp.main ***");
+
     // parse the debugger arguments and separate those for the user program
     // Note that in the java convention, args[] does not include
     // the main program name.
     // So args[0] is not "jdp", it is really the first argument of jdp.
     for (i = 0; i < args.length; i++)  {
       
-      // System.out.println("parsing " + i + ": " + args[i]);
+      if (trace) System.out.println("parsing " + i + ": " + args[i]);
       String arg = args[i];    
       // pick up the initial breakpoint
       if (arg.equals("-jdpbreakpoint")) {
@@ -111,7 +115,9 @@ class jdp {
       else {
 	break;
       }
-    }
+    } // for i
+
+    if (trace) System.out.println("*** Processed args ***");
 
     // pick up the rest of the arguments to make up the user program args
     cnt = args.length - i;
@@ -135,6 +141,8 @@ class jdp {
       System.out.println("Please specify a boot runner: -r boot_runner ");
       System.exit(1);      
     } 
+
+    if (trace) System.out.println("*** Creating debugger ***");
 
     // Create the debugger: either create the user process or attach to a current one
     if (commandLine)

@@ -31,7 +31,7 @@ public class VM_DynamicLibrary {
     // known to require more than 20K of stack.
     VM_Thread myThread = VM_Thread.getCurrentThread();
     int stackNeededInBytes =  VM_StackframeLayoutConstants.STACK_SIZE_DLOPEN -
-      (VM_Magic.getFramePointer() - myThread.stackLimit);
+      (VM_Magic.getFramePointer().diff(myThread.stackLimit));
     if (stackNeededInBytes > 0 ) {
       if (myThread.hasNativeStackFrame())
         throw new java.lang.StackOverflowError("dlopen");
@@ -44,7 +44,7 @@ public class VM_DynamicLibrary {
     // PIN(asciiName);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     libHandler = VM.sysCall1(bootRecord.sysDlopenIP, 
-                             VM_Magic.objectAsAddress(asciiName));
+                             VM_Magic.objectAsAddress(asciiName).toInt());
     // UNPIN(asciiName);
 
     if (libHandler==0) {
@@ -70,7 +70,7 @@ public class VM_DynamicLibrary {
    * (actually an address to an AixLinkage triplet)
    *           (-1: not found or couldn't be created)
    */ 
-  public int getSymbol(String symbolName) {
+  public VM_Address getSymbol(String symbolName) {
     // convert file name from unicode to filesystem character set
     // (assume file name is ascii, for now)
     //
@@ -79,8 +79,8 @@ public class VM_DynamicLibrary {
 
     // PIN(asciiName);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    int address = VM.sysCall2(bootRecord.sysDlsymIP, libHandler, 
-                              VM_Magic.objectAsAddress(asciiName));
+    VM_Address address = VM_Address.fromInt(VM.sysCall2(bootRecord.sysDlsymIP, libHandler, 
+							VM_Magic.objectAsAddress(asciiName).toInt()));
     // UNPIN(asciiName);
 
     return address;

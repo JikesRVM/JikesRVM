@@ -55,8 +55,7 @@ class VM_Handshake implements VM_Uninterruptible {
    * for the collection. They reside in the thread dispatch queues of their
    * processors, until the collector threads re-enable thread switching.
    */
-  private void
-    initiateCollection() {
+  private void initiateCollection() {
 
     int maxCollectorThreads;
 
@@ -65,6 +64,7 @@ class VM_Handshake implements VM_Uninterruptible {
     if (!VM_Scheduler.allProcessorsInitialized) {
       VM.sysWrite(" Garbage collection required before system fully initialized\n");
       VM.sysWrite(" Specify larger than default heapsize on command line\n");
+      VM_Scheduler.dumpStack();
       VM.shutdown(-1);
     }
 
@@ -191,7 +191,7 @@ class VM_Handshake implements VM_Uninterruptible {
       else {
 	// first mutator initiates collection by making all gc threads runnable at high priority
 	if (trace) VM_Scheduler.trace("VM_Handshake", "mutator: initiating collection");
-	VM_CollectorThread.startTime = VM_Time.now();
+	VM_CollectorThread.gcBarrier.rendezvousStartTime = VM_Time.now();
 	requestFlag = true;
 	initiateCollection();
       }

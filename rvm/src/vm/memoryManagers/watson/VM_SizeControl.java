@@ -27,6 +27,7 @@ class VM_SizeControl implements VM_Constants {
   /// TODO: remove last_allocated.
   int last_allocated;
   int ndx;
-  int next_slot;
+  VM_Address next_slot;
   int lastBlockToKeep;        // GSC
+
 }

@@ -100,7 +100,7 @@ class DebuggerThread extends VM_Thread implements VM_Uninterruptible
 
             VM.sysWrite(thread.getIndex() + " " + thread + " " + getThreadState(thread) + "\n");
                
-            int fp = thread == VM_Thread.getCurrentThread()
+            VM_Address fp = (thread == VM_Thread.getCurrentThread()) 
                    ? VM_Magic.getFramePointer()
 	      : thread.contextRegisters.getInnermostFramePointer();
                

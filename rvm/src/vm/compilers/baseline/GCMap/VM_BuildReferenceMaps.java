@@ -1671,7 +1671,8 @@ processInvoke(VM_Method calledMethod, int byteindex, int currBBStkTop,
  boolean skipRecordingReferenceMap = false;
  int stkDepth = currBBStkTop;
 
- if (isStatic && calledMethod.getDeclaringClass().isMagicType()) {
+ if (calledMethod.getDeclaringClass().isMagicType() ||
+     calledMethod.getDeclaringClass().isAddressType()) {
    boolean producesCall = VM_MagicCompiler.checkForActualCall(calledMethod);
    if (producesCall) {
      stkDepth = currBBStkEmpty;   // register a map, but do NOT include any of the 

@@ -30,6 +30,8 @@ class VM_MagicCompiler implements VM_BaselineConstants {
   static final int SIZE_ADDRESS = 4;
   static final int SIZE_INTEGER = 4;
 
+  static final int DEBUG = 0;
+
   //-----------//
   // interface //
   //-----------//
@@ -424,7 +426,8 @@ class VM_MagicCompiler implements VM_BaselineConstants {
 		  return;
       }
 
-      if (methodName == VM_MagicNames.getMemoryWord)
+      if (methodName == VM_MagicNames.getMemoryWord ||
+	  methodName == VM_MagicNames.getMemoryAddress)
          {
          asm.emitL  (T0,  0, SP); // address
          asm.emitL  (T0,  0, T0); // *address
@@ -432,7 +435,8 @@ class VM_MagicCompiler implements VM_BaselineConstants {
          return;
          }
 
-      if (methodName == VM_MagicNames.setMemoryWord)
+      if (methodName == VM_MagicNames.setMemoryWord ||
+	  methodName == VM_MagicNames.setMemoryAddress)
          {
          asm.emitL  (T0,  4, SP); // address
          asm.emitL  (T1,  0, SP); // value
@@ -657,9 +661,135 @@ class VM_MagicCompiler implements VM_BaselineConstants {
 		 		  // forces baseline compilation
          }
 
+      if (methodName == VM_MagicNames.addressFromInt) {
+	  // no-op
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.fromInt as no-op");
+	  return;
+      }
+
+      if (methodName == VM_MagicNames.addressToInt) {
+	  // no-op
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.toInt as no-op");
+	  return;
+      }
+
+      if (methodName == VM_MagicNames.addressAdd) {
+	  // same as an integer add
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.add as integer add");
+          asm.emitL  (T0,  0, SP);
+          asm.emitL  (T1,  4, SP);
+          asm.emitA  (T2, T1, T0);
+          asm.emitSTU(T2,  4, SP);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressSub ||
+	  methodName == VM_MagicNames.addressDiff) {
+	  // same as an integer subtraction
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.sub/diff as integer sub");
+          asm.emitL  (T0,  0, SP);
+          asm.emitL  (T1,  4, SP);
+          asm.emitSF (T2, T0, T1);
+          asm.emitSTU(T2,  4, SP);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressLT) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.LT as unsigned comparison");
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBLT(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressLE) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.LE as unsigned comparison");
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBLE(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressEQ) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.EQ as unsigned comparison");
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBEQ(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressNE) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.NE as unsigned comparison");
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBNE(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressGT) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.GT as unsigned comparison");
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBGT(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressGE) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.GE as unsigned comparison");
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBGE(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressIsZero) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.isZero as unsigned comparison");
+	  asm.emitLIL (T0,  0);
+	  asm.emitSTU (T0, -4, SP);
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBEQ(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressIsMax) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.isMax as unsigned comparison");
+	  asm.emitLIL (T0, -1);
+	  asm.emitSTU (T0, -4, SP);
+	  generateInlinedComparisonBefore(asm);
+	  asm.emitBEQ(2);
+	  generateInlinedComparisonAfter(asm);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressZero) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.zero as 0");
+	  asm.emitLIL (T0,  0);
+	  asm.emitSTU (T0, -4, SP);
+	  return;
+      }
+      if (methodName == VM_MagicNames.addressMax) {
+	  // unsigned comparison generating a boolean
+	  if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.max as -1");
+	  asm.emitLIL (T0, -1);
+	  asm.emitSTU (T0, -4, SP);
+	  return;
+      }
       VM.sysWrite("VM_MagicCompiler.java: no magic for " + methodToBeCalled + "\n");
       if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
       }
+
+    private static void generateInlinedComparisonBefore(VM_Assembler asm) {
+	asm.emitL  (T1,  0, SP);
+	asm.emitL  (T0,  4, SP);
+	asm.emitLIL(T2,  1);
+	asm.emitCMPL(T0, T1);    // unsigned comparison
+    }
+
+    private static void generateInlinedComparisonAfter(VM_Assembler asm) {
+	asm.emitLIL(T2,  0);
+	asm.emitSTU(T2,  4, SP);
+    }
+
 
     // Indicate if specified VM_Magic method causes a frame to be created on the runtime stack.
     // Taken:   VM_Method of the magic method being called

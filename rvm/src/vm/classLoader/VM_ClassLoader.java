@@ -220,21 +220,19 @@ public class VM_ClassLoader
   static int findOrCreateMethodId(VM_Atom classDescriptor, 
 				  VM_Atom methodName, 
 				  VM_Atom methodDescriptor) {
+
     VM_Triplet methodKey = new VM_Triplet(classDescriptor, methodName, 
                                           methodDescriptor);
     int        methodId  = VM_MethodDictionary.findOrCreateId(methodKey, null);
-
     if (VM_MethodDictionary.getValue(methodId) == null) {
       VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor).asClass();
       VM_MethodDictionary.setValue(methodId, 
                                    new VM_Method(cls, methodName, 
                                                  methodDescriptor, methodId));
     }
-
     // keep size of co-indexed array in pace with dictionary
     //
     VM_TableBasedDynamicLinker.ensureMethodCapacity(methodId);
-
     return methodId;
   }
 

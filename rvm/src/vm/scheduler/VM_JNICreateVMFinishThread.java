@@ -20,7 +20,7 @@
 class VM_JNICreateVMFinishThread extends VM_Thread implements VM_Constants {
   static boolean trace = false;
 
-  int externalEnvAddress;
+  VM_Address externalEnvAddress;
   VM_Thread startUpThread;
 
   boolean ready = false;
@@ -38,8 +38,8 @@ class VM_JNICreateVMFinishThread extends VM_Thread implements VM_Constants {
    *
    */
   public VM_JNICreateVMFinishThread (VM_Thread JNIStartUpThread, 
-				      int externalEnvAddress_1, 
-				      VM_Processor affinity) {
+				     VM_Address externalEnvAddress_1, 
+				     VM_Processor affinity) {
 
     startUpThread = JNIStartUpThread;
     externalEnvAddress = externalEnvAddress_1;
@@ -76,7 +76,7 @@ class VM_JNICreateVMFinishThread extends VM_Thread implements VM_Constants {
     // For the JNIStartUp thread, set its stack limit to 0: this effectively disable 
     // stack overflow checking but it's OK since this Java thread will be using 
     // the external pthread stack and cannot resize it anyway
-    startUpThread.stackLimit = 0;
+    startUpThread.stackLimit = VM_Address.zero();
 
     // Don't remove the stack, save it to run the termination code 
     // Also remove its stack since it won't be using it anymore
@@ -107,13 +107,12 @@ class VM_JNICreateVMFinishThread extends VM_Thread implements VM_Constants {
 
     // fill in the JNIEnv address for the external pthread with the address of the 
     // pointer to the JNI function table
-    int envAddress = startUpThread.getJNIEnv().JNIEnvAddress;
+    VM_Address envAddress = startUpThread.getJNIEnv().JNIEnvAddress;
     if (trace)
-      System.out.println("JNICreateVMFinishThread: env " + VM.intAsHexString(envAddress) +
-			 " to external address " + VM.intAsHexString(externalEnvAddress));
+      System.out.println("JNICreateVMFinishThread: env " + VM.intAsHexString(envAddress.toInt()) +
+			 " to external address " + VM.intAsHexString(externalEnvAddress.toInt()));
 
-    VM_Magic.setMemoryWord(externalEnvAddress, envAddress);
-
+    VM_Magic.setMemoryAddress(externalEnvAddress, envAddress);
 
     if (trace)
       System.out.println("JNICreateVMFinishThread: done, exiting");

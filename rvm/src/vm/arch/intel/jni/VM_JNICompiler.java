@@ -653,7 +653,7 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
    */
 
   static void generateGlueCodeForJNIMethod(VM_Assembler asm, VM_Method method, int methodID) {
-    int bootRecordAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record);
+    VM_Address bootRecordAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record);
 
     // set 2nd word of header = return address already pushed by CALL
     // NOTE: C calling convention is that EBP contains the caller's framepointer.

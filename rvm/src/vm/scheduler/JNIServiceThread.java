@@ -25,8 +25,8 @@ class JNIServiceThread extends Thread   {
 
   public JNIServiceThread()  {
     // type cast to get around verifier problem when building the boot image
-    int       yy         = VM_Magic.objectAsAddress(this);
-    VM_Thread j = (VM_Thread)VM_Magic.addressAsObject(yy);
+    VM_Address yy  = VM_Magic.objectAsAddress(this);
+    VM_Thread  j   = (VM_Thread)VM_Magic.addressAsObject(yy);
     j.makeDaemon(true);
   }
 
@@ -55,20 +55,21 @@ class JNIServiceThread extends Thread   {
 	VM.sysWrite("JNIServiceThread:  external Thread request detected ");
 	VM.sysWrite(VM_Scheduler.attachThreadRequested);
 	VM.sysWrite(" at 0x");
-	VM.sysWrite(VM.intAsHexString(VM_BootRecord.the_boot_record.attachThreadRequestedOffset + 
-				      VM_Magic.getTocPointer()));
+	VM.sysWrite(VM.intAsHexString(VM_Magic.getTocPointer().add(VM_BootRecord.the_boot_record.attachThreadRequestedOffset).toInt()));
+
+	VM_Address args = VM_Scheduler.attachThreadRequested;
 	VM.sysWrite("parms = " + 
-		    VM.intAsHexString(VM_Magic.getMemoryWord(VM_Scheduler.attachThreadRequested)) +
+		    VM.intAsHexString(VM_Magic.getMemoryWord(args)) +
 		    ", " + 
-		    VM.intAsHexString(VM_Magic.getMemoryWord(VM_Scheduler.attachThreadRequested + 4)) +
+		    VM.intAsHexString(VM_Magic.getMemoryWord(args.add(4))) +
 		    ", " + 
-		    VM.intAsHexString(VM_Magic.getMemoryWord(VM_Scheduler.attachThreadRequested + 8)));
+		    VM.intAsHexString(VM_Magic.getMemoryWord(args.add(8))));
 		    
 	VM.sysWrite("\n");
       }
 
       /* verify that we have a good address to a struct requestParameter in C */
-      if (VM_Scheduler.attachThreadRequested == 0) {
+      if (VM_Scheduler.attachThreadRequested.isZero()) {
 	if (trace)
 	  VM.sysWrite("JNIServiceThread: caution, spurious request ignored. \n");
 	// go back to dormant mode
@@ -93,7 +94,7 @@ class JNIServiceThread extends Thread   {
         javaThread.start();                              // to miminize locked time
 
         // notify the external pthread that a Java thread has started
-        VM_Scheduler.attachThreadRequested = 0;   
+        VM_Scheduler.attachThreadRequested = VM_Address.zero();   
 	break;
             
 
@@ -113,7 +114,7 @@ class JNIServiceThread extends Thread   {
 	// It will use the stack originally installed for the Java thread
 
 	// obtain the JNIenv handle that the OS thread uses
-	int externalJNIEnvAddress = VM_Magic.getMemoryWord(VM_Scheduler.attachThreadRequested+4);
+	VM_Address externalJNIEnvAddress = VM_Magic.getMemoryAddress(VM_Scheduler.attachThreadRequested.add(4));
 	int externalJNIEnv = VM_Magic.getMemoryWord(externalJNIEnvAddress);
 
 	// This is an address into an entry in the static array VM_JNIEnvironment.JNIFunctionPointers
@@ -121,7 +122,7 @@ class JNIServiceThread extends Thread   {
 	// the associated VM_Thread.
 	// (compute with VM_Entrypoints.JNIFunctionPointersOffset because JNIFunctionPointers is private)
        	int threadOffset = externalJNIEnv - 
-	  VM_Magic.getMemoryWord(VM_Magic.getTocPointer() + VM_Entrypoints.JNIFunctionPointersField.getOffset());
+	  VM_Magic.getMemoryWord(VM_Magic.getTocPointer().add(VM_Entrypoints.JNIFunctionPointersField.getOffset()));
 	
 	if (trace)
 	  VM.sysWrite("JNIServiceThread:  externalJNIEnv = " + 
@@ -166,7 +167,7 @@ class JNIServiceThread extends Thread   {
         // notify the external pthread that detachment has started
 	// (also necessary to prevent the JNIServiceThread from being rescheduled again 
 	// during threadswitch)
-	VM_Scheduler.attachThreadRequested = 0;   
+	VM_Scheduler.attachThreadRequested = VM_Address.zero();
 
 
 	// for destroy, terminate this thread also

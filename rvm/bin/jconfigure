@@ -298,6 +298,8 @@ integer RVM_WITH_CONCURRENT_GC=0     # aka reference counting, aka RCGC
 integer RVM_WITH_REALTIME_GC=0
 integer RVM_WITH_NO_GC=0
 
+integer RVM_WITH_BOOT_HEAP_ONLY=0
+
 #
 # GCTk Options
 #
@@ -1539,10 +1541,12 @@ function emitImageLinker
 
    # (array) types needed to satisfy builder's "object not in bootimage" messages
    #
+   print "   print '[LVM_Address;'                    >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_LockNursery\$VM_LockBucket;' >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Atom;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[LVM_Heap;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Method;'                     >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_LocalVariable;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_Triplet;'                    >> $PRIMORDIAL_CLASSES_STR"
@@ -1910,6 +1914,12 @@ function emitBooterLinker
    fi
    print ""
 
+   if (( RVM_WITH_BOOT_HEAP_ONLY || RVM_WITH_GCTk )); then
+      print 'BootHeapOnly="-DBootImageOnly"'
+   else
+      print 'BootHeapOnly='
+   fi
+
    if ((RVM_WITH_GCTk)); then
       print 'GCTk="-DGCTk"'
    else
@@ -1937,7 +1947,7 @@ function emitBooterLinker
 		$SCRATCH_DIRECTORY_STR/bootThread.s"
       print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
 		\$BOOTER_CC -c -I. -I$SCRATCH_DIRECTORY_STR\
-		\$GCTk \$GCTkTrace \$IMAGE -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
+		\$GCTk \$GCTkTrace \$IMAGE \$BootHeapOnly -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
 		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C"
 
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\

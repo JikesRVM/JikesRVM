@@ -143,6 +143,9 @@ public class VM_Runtime implements VM_Constants {
       
     if (elmType == VM_Type.JavaLangObjectType) 
       return; // array of Object can receive anything
+
+    if (elmType == VM_Type.AddressType)
+      return; // array of Address can receive anything that was verifiable
       
     VM_Type rhsType = VM_Magic.getObjectType(arrayElement);
      
@@ -388,6 +391,11 @@ public class VM_Runtime implements VM_Constants {
      arrayType.resolve();
      arrayType.instantiate();
      
+     VM.sysWrite("buildMultiDimensionalArray: dimIndex = ", dimIndex);
+     VM.sysWriteln("                            numElements.len = ", numElements.length);
+     for (int i=0; i<numElements.length; i++)
+	 VM.sysWriteln("                            numElements[", i, "] = ", numElements[i]);
+
      int    nelts     = numElements[dimIndex];
      int    size      = ARRAY_HEADER_SIZE + (nelts << arrayType.getLogElementSize());
      Object newObject = VM_Allocator.allocateArray(nelts, size, arrayType.getTypeInformationBlock(), allocator);
@@ -533,7 +541,7 @@ public class VM_Runtime implements VM_Constants {
 	!myThread.hasNativeStackFrame()) { 
       // determine whether the method causing the overflow is native
       VM.disableGC();   // because we're holding raw addresses (ip)
-      int ip                 = exceptionRegisters.getInnermostInstructionAddress();
+      VM_Address ip                    = exceptionRegisters.getInnermostInstructionAddress();
       VM_CompiledMethod	compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
       VM.enableGC();
       VM_CompilerInfo	compilerInfo	= compiledMethod.getCompilerInfo();
@@ -692,6 +700,7 @@ public class VM_Runtime implements VM_Constants {
     // for "libjni.C" to make AttachCurrentThread request
     VM_BootRecord.the_boot_record.attachThreadRequestedOffset = 
       VM_Entrypoints.attachThreadRequestedField.getOffset();
+
   }
 
   /**
@@ -759,35 +768,30 @@ public class VM_Runtime implements VM_Constants {
     // walk stack and look for a catch block
     //
     VM_Type exceptionType = VM_Magic.getObjectType(exceptionObject);
-    int fp = exceptionRegisters.getInnermostFramePointer();
-    while (VM_Magic.getCallerFramePointer(fp) != STACKFRAME_SENTINAL_FP) {
+    VM_Address fp = exceptionRegisters.getInnermostFramePointer();
+    while (VM_Magic.getCallerFramePointer(fp).NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP))) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) { 
-	VM_CompiledMethod compiledMethod = VM_CompiledMethods.
-          getCompiledMethod(compiledMethodId);
-	VM_CompilerInfo compilerInfo = compiledMethod.getCompilerInfo();
-	VM_ExceptionDeliverer exceptionDeliverer = compilerInfo.
-          getExceptionDeliverer();
-	int ip = exceptionRegisters.getInnermostInstructionAddress();
-	int methodStartAddress = VM_Magic.objectAsAddress
-          (compiledMethod.getInstructions());
-	int catchBlockOffset   = compilerInfo.
-          findCatchBlockForInstruction(ip - methodStartAddress, exceptionType);
+	  VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+	  VM_CompilerInfo compilerInfo = compiledMethod.getCompilerInfo();
+	  VM_ExceptionDeliverer exceptionDeliverer = compilerInfo.getExceptionDeliverer();
+	  VM_Address ip = exceptionRegisters.getInnermostInstructionAddress();
+	  VM_Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+	  int catchBlockOffset = compilerInfo.findCatchBlockForInstruction(ip.diff(methodStartAddress), exceptionType);
 
-	if (catchBlockOffset >= 0) { 
-	  // found an appropriate catch block
-	  if (VM.TraceTimes) VM_Timer.stop(VM_Timer.EXCEPTION_HANDLING);
-	  exceptionDeliverer.deliverException(compiledMethod, 
-                                              methodStartAddress + 
-                                              catchBlockOffset, 
-                                              exceptionObject, 
-                                              exceptionRegisters);
-	  if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
-	}
-
-	exceptionDeliverer.unwindStackFrame(compiledMethod, exceptionRegisters);
+	  if (catchBlockOffset >= 0) { 
+	      // found an appropriate catch block
+	      if (VM.TraceTimes) VM_Timer.stop(VM_Timer.EXCEPTION_HANDLING);
+	      exceptionDeliverer.deliverException(compiledMethod, 
+						  methodStartAddress.add(catchBlockOffset), 
+						  exceptionObject, 
+						  exceptionRegisters);
+	      if (VM.VerifyAssertions) VM.assert(NOT_REACHED);
+	  }
+	  
+	  exceptionDeliverer.unwindStackFrame(compiledMethod, exceptionRegisters);
       } else {
-	unwindInvisibleStackFrame(exceptionRegisters);
+	  unwindInvisibleStackFrame(exceptionRegisters);
       }
       fp = exceptionRegisters.getInnermostFramePointer();
     }
@@ -814,17 +818,15 @@ public class VM_Runtime implements VM_Constants {
    * return address of the glue frame)
    * Ton Ngo 7/30/01
    */
-  public static int unwindNativeStackFrame(int currfp) {
-    int ip, callee_fp;
-    int fp = VM_Magic.getCallerFramePointer(currfp);
-    int vmStart = VM_BootRecord.the_boot_record.startAddress;
-    int vmEnd = VM_BootRecord.the_boot_record.largeStart + 
-      VM_BootRecord.the_boot_record.largeSize;
+  public static VM_Address unwindNativeStackFrame(VM_Address currfp) {
+    VM_Address ip, callee_fp;
+    VM_Address fp = VM_Magic.getCallerFramePointer(currfp);
+
     do {
       callee_fp = fp;
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
-    } while ( ( ip < vmStart || ip >= vmEnd ) && fp != STACKFRAME_SENTINAL_FP);
+    } while ( !VM_Heap.refInAnyHeap(ip) && fp.toInt() != STACKFRAME_SENTINAL_FP);
     return callee_fp;
   }
 

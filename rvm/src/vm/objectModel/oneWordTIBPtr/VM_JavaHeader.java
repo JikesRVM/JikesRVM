@@ -48,7 +48,7 @@ public final class VM_JavaHeader extends VM_NurseryObjectModel
   public static Object[] getTIB(Object o) { 
     VM_Magic.pragmaInline();
     int tibWord = VM_Magic.getIntAtOffset(o,TIB_OFFSET);
-    return VM_Magic.addressAsObjectArray(tibWord);
+    return VM_Magic.addressAsObjectArray(VM_Address.fromInt(tibWord));
   }
   
   /**
@@ -56,8 +56,8 @@ public final class VM_JavaHeader extends VM_NurseryObjectModel
    */
   public static void setTIB(Object ref, Object[] tib) {
     VM_Magic.pragmaInline();
-    ADDRESS tibPtr = VM_Magic.objectAsAddress(tib);
-    VM_Magic.setIntAtOffset(ref, TIB_OFFSET, tibPtr);
+    VM_Address tibPtr = VM_Magic.objectAsAddress(tib);
+    VM_Magic.setIntAtOffset(ref, TIB_OFFSET, tibPtr.toInt());
   }
 
   /**
@@ -71,7 +71,7 @@ public final class VM_JavaHeader extends VM_NurseryObjectModel
    * Process the TIB field during copyingGC.  NOT IMPLEMENTED, since
    * copyingGC not currently supported.
    */
-  public static void gcProcessTIB(int ref) {
+  public static void gcProcessTIB(VM_Address ref) {
     VM.assert(NOT_REACHED);
   }
 
@@ -81,8 +81,8 @@ public final class VM_JavaHeader extends VM_NurseryObjectModel
    * @param jdpService
    * @param address address of the object
    */
-  public static ADDRESS getTIB(JDPServiceInterface jdpService, ADDRESS ptr) {
-    return jdpService.readMemory(ptr + TIB_OFFSET);
+  public static VM_Address getTIB(JDPServiceInterface jdpService, VM_Address ptr) {
+    return VM_Address.fromInt(jdpService.readMemory(ptr.add(TIB_OFFSET).toInt()));
   }
 
   /**

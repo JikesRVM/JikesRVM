@@ -406,13 +406,13 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 	if (VM.VerifyAssertions) VM.assert(S0 < SP && SP <= LAST_SCRATCH_GPR); // need 2 scratch
       }      
 
-      int bootRecordAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record);
+      VM_Address bootRecordAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record);
       int lockoutLockOffset = VM_Entrypoints.lockoutProcessorField.getOffset();
-      int lockoutLockAddress = bootRecordAddress + lockoutLockOffset;
+      VM_Address lockoutLockAddress = bootRecordAddress.add(lockoutLockOffset);
       int sysTOCOffset      = VM_Entrypoints.sysTOCField.getOffset();
       int sysYieldIPOffset  = VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset();
 
-      int gCFlagAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record) + VM_Entrypoints.globalGCInProgressFlagField.getOffset();
+      VM_Address gCFlagAddress = VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record).add(VM_Entrypoints.globalGCInProgressFlagField.getOffset());
 
       int nativeIP  = method.getNativeIP();
       int nativeTOC = method.getNativeTOC();

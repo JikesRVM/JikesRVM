@@ -25,6 +25,12 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
   /** number of times i-th processor has entered barrier */
   private int[] entryCounts;
 
+  /** measure rendezvous times - outer index is processor id - inner index is which rendezvous point */
+  static double rendezvousStartTime;
+  static int rendezvousIn[][] = null;   
+  static int rendezvousOut[][] = null;
+  static int rendezvousCount[] = null;  // indicates which rendezvous a processor is at
+
   /**
    * Constructor
    */
@@ -32,18 +38,25 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
     // initialize numRealProcessors to 1. Will be set to actual value later.
     // Using without resetting will cause waitABit() to yield instead of spinning
     numRealProcessors = 1;
-    entryCounts = new int[1 + VM_Scheduler.MAX_PROCESSORS]; // 0-th slot unused
+    entryCounts     =  new int[1 + VM_Scheduler.MAX_PROCESSORS]; // 0-th slot unused
+    // No one will probably do more than 15 rendezvous without a reset
+    rendezvousIn    =  new int[1 + VM_Scheduler.MAX_PROCESSORS][15];
+    rendezvousOut   =  new int[1 + VM_Scheduler.MAX_PROCESSORS][15];
+    rendezvousCount =  new int[1 + VM_Scheduler.MAX_PROCESSORS];
   }
 
   /**
    * Wait for all other collectorThreads/processors to arrive at this barrier.
    */
-  void rendezvous () {
+  double rendezvous (boolean time) {
+
+    double start = time ? VM_Time.now() : 0.0;
     int myProcessorId = VM_Processor.getCurrentProcessorId();
     int myCount       = entryCounts[myProcessorId] + 1;
 
     // enter barrier
     //
+
     if (trace) VM_Scheduler.trace("VM_ProcessorSynchronizationBarrier", "rendezvous: enter ", myCount);
     entryCounts[myProcessorId] = myCount;
     VM_Magic.sync(); // update main memory so other processors will see it in "while" loop, below
@@ -74,6 +87,31 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
     // leave barrier
     //
     if (trace) VM_Scheduler.trace("VM_ProcessorSynchronizationBarrier", "rendezvous: leave ", myCount);
+    if (time) return rendezvousRecord(start, VM_Time.now());
+    return 0.0;
+  }
+
+  double rendezvousRecord(double start, double end) {
+    int myProcessorId = VM_Processor.getCurrentProcessorId();
+    int which = rendezvousCount[myProcessorId]++;
+    VM.assert(which < rendezvousIn[0].length);
+    rendezvousIn[myProcessorId][which]  = (int)((start - rendezvousStartTime)*1000000);
+    rendezvousOut[myProcessorId][which] = (int)((end - rendezvousStartTime)*1000000);
+    return end - start;
+  }
+
+  static void printRendezvousTimes() {
+
+    VM.sysWriteln("**** Rendezvous entrance & exit times (microsecs) **** ");
+    for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
+	VM.sysWrite("  Thread ", i, ": ");
+      for (int j = 0; j < rendezvousCount[i]; j++) {
+	  VM.sysWrite("   R", j, " in ", rendezvousIn[i][j]);
+	  VM.sysWrite(" out ", rendezvousOut[i][j]);
+      }
+      VM.sysWriteln();
+    }
+    VM.sysWriteln();
   }
 
   /**
@@ -90,6 +128,8 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
     int myProcessorId = VM_Processor.getCurrentProcessorId();
     int myNumber = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread()).getGCOrdinal();
     int numExcluded = 0;  // number of RVM VPs NOT participating
+
+    rendezvousCount[myProcessorId] = 0;  
 
     if (VM.VerifyAssertions) {
       if (entryCounts[myProcessorId]!=0) {
@@ -281,8 +321,7 @@ final class VM_GCSynchronizationBarrier implements VM_Uninterruptible {
    *
    * @param id  processor id of processor to be removed.
    */
-  private void
-  removeProcessor( int id ) {
+  private void removeProcessor( int id ) {
 
     VM_Processor vp = VM_Scheduler.processors[id];
 

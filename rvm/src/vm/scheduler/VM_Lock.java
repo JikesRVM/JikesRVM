@@ -599,7 +599,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   void dump() {
     if (!active) return;
     VM_Scheduler.writeString("Lock "); VM_Scheduler.writeDecimal(index); VM.sysWrite(":\n");
-    VM_Scheduler.writeString(" lockedObject: "); VM_Scheduler.writeHex(VM_Magic.objectAsAddress(lockedObject)); VM_Scheduler.writeString("\n");
+    VM_Scheduler.writeString(" lockedObject: "); VM_Scheduler.writeHex(VM_Magic.objectAsAddress(lockedObject).toInt()); VM_Scheduler.writeString("\n");
 
     VM_Scheduler.writeString(" ownerId: "); VM_Scheduler.writeDecimal(ownerId); VM_Scheduler.writeString(" recursionCount: "); VM_Scheduler.writeDecimal(recursionCount); VM_Scheduler.writeString("\n");
     VM_Scheduler.writeString(" entering: "); entering.dump();

@@ -17,20 +17,21 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
    * Pass control to a catch block.
    */
   void deliverException(VM_CompiledMethod compiledMethod,
-			int               catchBlockInstructionAddress,
+			VM_Address        catchBlockInstructionAddress,
 			Throwable         exceptionObject,
 			VM_Registers      registers) {
-    int       fp     = registers.getInnermostFramePointer();
+    VM_Address fp    = registers.getInnermostFramePointer();
     VM_Method method = compiledMethod.getMethod();
 
     // reset sp to "empty expression stack" state
     //
-    int sp = fp + VM_Compiler.getEmptyStackOffset(method);
+    VM_Address sp = fp.add(VM_Compiler.getEmptyStackOffset(method));
 
     // push exception object as argument to catch block
     //
-    VM_Magic.setMemoryWord(sp -= 4, VM_Magic.objectAsAddress(exceptionObject));
-    registers.gprs[SP] = sp;
+    sp = sp.sub(4);
+    VM_Magic.setMemoryWord(sp, VM_Magic.objectAsAddress(exceptionObject).toInt());
+    registers.gprs[SP] = sp.toInt();
 
     // set address at which to resume executing frame
     //
@@ -52,17 +53,19 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
   void unwindStackFrame(VM_CompiledMethod compiledMethod, VM_Registers registers) {
     VM_Method method = compiledMethod.getMethod();
     if (method.isSynchronized()) { 
-      int ip = registers.getInnermostInstructionAddress();
-      int instr = ip - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+      VM_Address ip = registers.getInnermostInstructionAddress();
+      VM_Address base = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+      int instr = ip.diff(base);
       VM_BaselineCompilerInfo info = (VM_BaselineCompilerInfo) compiledMethod.getCompilerInfo();
       if (instr < info.lockAcquisitionOffset) {       // in prologue, lock not owned
       } else if (method.isStatic()) {
 	Object lock = method.getDeclaringClass().getClassForType();
 	VM_Lock.unlock(lock);
       } else {
-	int fp = registers.getInnermostFramePointer();
-	Object lock = VM_Magic.addressAsObject(VM_Magic.getMemoryWord(fp + VM_Compiler.getFirstLocalOffset(method)));
-	VM_Lock.unlock(lock);
+	  VM_Address fp = registers.getInnermostFramePointer();
+	  int offset = VM_Compiler.getFirstLocalOffset(method);
+	  Object lock = VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(fp.add(offset)));
+	  VM_Lock.unlock(lock);
       }
     }
     registers.unwindStackFrame();

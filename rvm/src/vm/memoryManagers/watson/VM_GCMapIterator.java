@@ -20,7 +20,7 @@ abstract class VM_GCMapIterator {
   VM_Thread thread; 
   
   /** address of stackframe currently being scanned */
-  int       framePtr;
+  VM_Address  framePtr;
   
   /** address where each gpr register was saved by previously scanned stackframe(s) */
   int[]     registerLocations;
@@ -41,7 +41,7 @@ abstract class VM_GCMapIterator {
    * @param instructionOffset  offset of current instruction within that method's code
    * @param framePtr           address of stackframe to be visited
    */
-  abstract void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, int framePtr);
+  abstract void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address framePtr);
   
   /**
    * Get address of next object reference held by current stackframe.
@@ -55,7 +55,7 @@ abstract class VM_GCMapIterator {
    * @return address of word containing an object reference
    *         zero if no more references to report
    */
-  abstract int getNextReferenceAddress();
+  abstract VM_Address getNextReferenceAddress();
   
   /**
    * Get address of next JSR return address held by current stackframe.
@@ -63,7 +63,7 @@ abstract class VM_GCMapIterator {
    * @return address of word containing a JSR return address
    *         zero if no more return addresses to report
    */
-  abstract int getNextReturnAddressAddress();
+  abstract VM_Address getNextReturnAddressAddress();
   
   /**
    * Prepare to re-iterate on same stackframe, and to switch between

@@ -18,8 +18,8 @@ public class VM_ScanObject
    *
    * @param objRef  reference for object to be scanned (as int)
    */
-  static void
-  scanObjectOrArray ( int objRef ) {
+  static void scanObjectOrArray (VM_Address objRef ) {
+
     VM_Type    type;
     
     // First process the TIB to relocate it.
@@ -31,10 +31,21 @@ public class VM_ScanObject
     }
 
     type = VM_Magic.getObjectType(VM_Magic.addressAsObject(objRef));
+    if (VM.VerifyAssertions) {
+	if (type == null) {
+	    VM.sysWrite("VM_ScanObject: type is null\n");
+	    VM.sysWrite("               objRef = ");
+	    VM.sysWrite(objRef);
+	    VM.sysWrite("\nVM_ScanObject: objRef = ");
+	    VM.sysWrite(VM_Magic.objectAsAddress(type));
+	    VM.sysWrite("\n");
+	    VM.assert(type != null);
+	}
+    }
     if ( type.isClassType() ) {
       int[] referenceOffsets = type.asClass().getReferenceOffsets();
       for(int i = 0, n=referenceOffsets.length; i < n; i++) {
-	VM_Allocator.processPtrField( objRef + referenceOffsets[i] );
+	VM_Allocator.processPtrField( objRef.add(referenceOffsets[i]) );
       }
     }
     else {
@@ -42,32 +53,31 @@ public class VM_ScanObject
       VM_Type elementType = type.asArray().getElementType();
       if (elementType.isReferenceType()) {
 	int num_elements = VM_Magic.getArrayLength(VM_Magic.addressAsObject(objRef));
-	int location = objRef;    // for arrays = address of [0] entry
-	int end      = objRef + num_elements * WORDSIZE;
-	while ( location < end ) {
+	VM_Address location = objRef;    // for arrays = address of [0] entry
+	VM_Address end      = objRef.add(num_elements * WORDSIZE);
+	while ( location.LT(end) ) {
 	  VM_Allocator.processPtrField( location );
-	  location = location + WORDSIZE;  // is this size_of_pointer ?
+	  location = location.add(WORDSIZE);  // is this size_of_pointer ?
 	}
       }
     }
   } 
 
-  static void
-  scanObjectOrArray ( Object objRef ) {
+  static void scanObjectOrArray ( Object objRef ) {
     scanObjectOrArray( VM_Magic.objectAsAddress(objRef) );
   }
 
-  public static boolean
-  validateRefs ( int ref, int depth ) {
+  public static boolean validateRefs ( VM_Address ref, int depth ) {
+
     VM_Type    type;
 
-    if ( ref == 0 ) return true;   // null is always valid
+    if (ref.isZero()) return true;   // null is always valid
 
     // First check passed ref, before looking into it for refs
     if ( !VM_GCUtil.validRef(ref) ) {
       VM.sysWrite("ScanObject.validateRefs: Bad Ref = ");
       VM_GCUtil.dumpRef( ref );
-      VM_GCUtil.dumpMemoryWords( ref - 16*WORDSIZE, 32 );  // dump 16 words on either side of bad ref
+      VM_Memory.dumpMemory(ref, 32, 32 );  // dump 16 words on either side of bad ref
       return false;
     }
 
@@ -77,15 +87,15 @@ public class VM_ScanObject
     if ( type.isClassType() ) {
       int[] referenceOffsets = type.asClass().getReferenceOffsets();
       for (int i = 0, n=referenceOffsets.length; i < n; i++) {
-	int iref = VM_Magic.getMemoryWord(ref + referenceOffsets[i]);
-	if ( ! validateRefs( iref, depth-1 ) ) {
-	  VM.sysWrite("Referenced from Object: Ref = ");
+	  VM_Address iref = VM_Magic.getMemoryAddress(ref.add(referenceOffsets[i]));
+	  if ( ! validateRefs( iref, depth-1 ) ) {
+	      VM.sysWrite("Referenced from Object: Ref = ");
 	  VM_GCUtil.dumpRef( ref );
 	  VM.sysWrite("                  At Offset = ");
 	  VM.sysWrite(referenceOffsets[i],false);
 	  VM.sysWrite("\n");
 	  return false;
-	}
+	  }
       }
     }
     else {
@@ -95,17 +105,17 @@ public class VM_ScanObject
 	int location = 0;    // for arrays = offset of [0] entry
 	int end      = num_elements * 4;
 	for ( location = 0; location < end; location += 4 ) {
-	  int iref = VM_Magic.getMemoryWord(ref + location);
-	  if ( ! validateRefs( iref, depth-1 ) ) {
-	    VM.sysWrite("Referenced from Array: Ref = ");
-	    VM_GCUtil.dumpRef( ref );
-	    VM.sysWrite("                  At Index = ");
-	    VM.sysWrite((location>>2),false);
-	    VM.sysWrite("              Array Length = ");
-	    VM.sysWrite(num_elements,false);
-	    VM.sysWrite("\n");
-	    return false;
-	  }
+	    VM_Address iref = VM_Address.fromInt(VM_Magic.getMemoryWord(ref.add(location)));
+	    if ( ! validateRefs( iref, depth-1 ) ) {
+		VM.sysWrite("Referenced from Array: Ref = ");
+		VM_GCUtil.dumpRef( ref );
+		VM.sysWrite("                  At Index = ");
+		VM.sysWrite((location>>2),false);
+		VM.sysWrite("              Array Length = ");
+		VM.sysWrite(num_elements,false);
+		VM.sysWrite("\n");
+		return false;
+	    }
 	}
       }
     } 

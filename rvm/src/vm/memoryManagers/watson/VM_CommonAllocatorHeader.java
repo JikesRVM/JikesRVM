@@ -123,7 +123,7 @@ public class VM_CommonAllocatorHeader
    * if the object is already forwarded (or being forwarded)
    * or write the bit pattern that indicates that the object is being forwarded
    */
-  static ADDRESS attemptToForward(Object base) {
+  static int attemptToForward(Object base) {
     VM_Magic.pragmaInline();
     int oldValue;
     do {
@@ -136,7 +136,7 @@ public class VM_CommonAllocatorHeader
   /**
    * Non-atomic read of forwarding pointer word
    */
-  static ADDRESS getForwardingWord(Object base) {
+  static int getForwardingWord(Object base) {
     return VM_ObjectModel.readAvailableBitsWord(base);
   }
 
@@ -179,7 +179,8 @@ public class VM_CommonAllocatorHeader
    * Non-atomic read of forwarding pointer word
    */
   static Object getForwardingPointer(Object base) {
-    return VM_Magic.addressAsObject(getForwardingWord(base) & ~GC_FORWARDING_MASK);
+    int forwarded = getForwardingWord(base);
+    return VM_Magic.addressAsObject(VM_Address.fromInt(forwarded & ~GC_FORWARDING_MASK));
   }
 
   /**
@@ -188,6 +189,6 @@ public class VM_CommonAllocatorHeader
    *  and owns the right to copy the object)
    */
   static void setForwardingPointer(Object base, Object ptr) {
-    VM_ObjectModel.writeAvailableBitsWord(base, VM_Magic.objectAsAddress(ptr) | GC_FORWARDED);
+    VM_ObjectModel.writeAvailableBitsWord(base, VM_Magic.objectAsAddress(ptr).toInt() | GC_FORWARDED);
   }
 }

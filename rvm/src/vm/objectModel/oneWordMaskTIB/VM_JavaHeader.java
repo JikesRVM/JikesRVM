@@ -71,7 +71,7 @@ public final class VM_JavaHeader extends VM_NurseryObjectModel
       }
     }      
     tibWord &= TIB_MASK;
-    return VM_Magic.addressAsObjectArray(tibWord);
+    return VM_Magic.addressAsObjectArray(VM_Address.fromInt(tibWord));
   }
   
   /**

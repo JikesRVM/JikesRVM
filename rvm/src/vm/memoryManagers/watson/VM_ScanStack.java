@@ -46,8 +46,9 @@ public class VM_ScanStack
    */
   static int stackDumpCount = 0;
   static void 
-  scanStack (VM_Thread t, int top_frame, boolean relocate_code)  {
-    int       ip, fp, code, newip, newcode, delta, refaddr, prevFp;
+  scanStack (VM_Thread t, VM_Address top_frame, boolean relocate_code)  {
+    VM_Address       ip, fp, code, newip, newcode, refaddr, prevFp;
+    int                    delta;
     VM_Method              method;
     VM_CompiledMethod      compiledMethod;
     VM_GCMapIterator       iterator;
@@ -67,19 +68,19 @@ public class VM_ScanStack
       code = VM_Magic.objectAsAddress( compiledMethod.getInstructions() );
       newcode = VM_Allocator.processPtrValue( code );
       if (newcode != code) {
-	delta = newcode - code;  // amount to relocate return addresses
+	delta = newcode.diff(code);  // amount to relocate return addresses
  
 	// if the return address is in the BootImage ( in some OutOfLineMachineCode
 	// that called someone e.g. called native code ) do not relocate the return
 	// address.
 	//
-	if (! VM_GCUtil.addressInBootImage(ip)) {  // normal case
-	  newip = ip + delta;
+	if (! VM_GCUtil.addrInBootImage(ip)) {  // normal case
+	  newip = ip.add(delta);
 	} else {
 	  newip = ip;    // do not relocate
 	}
         if (TRACE_STACKS)
-          VM_Scheduler.traceHex("  moved code - ", "in ExceptionRegister ip=", ip);
+          VM_Scheduler.trace("  moved code - ", "in ExceptionRegister ip=", ip);
         t.hardwareExceptionRegisters.ip = newip;
       }                            
     }  
@@ -97,24 +98,24 @@ public class VM_ScanStack
 	VM.sysWrite("\n");
     }
 
-    if ( top_frame != 0 ) {
+    if (!top_frame.isZero()) {
       prevFp = top_frame;
       // start scan at caller of passed in fp
       ip = VM_Magic.getReturnAddress(top_frame);
       fp = VM_Magic.getCallerFramePointer(top_frame);
     }
     else {
-      prevFp = 0;
+      prevFp = VM_Address.zero();
       // start scan using fp & ip in threads saved context registers
       ip = t.contextRegisters.getInnermostInstructionAddress();
       fp = t.contextRegisters.getInnermostFramePointer();
     }
 
     if (TRACE_STACKS) {
-      VM.sysWrite("  top_frame = "); VM.sysWriteHex(top_frame); VM.sysWrite("\n");
-      VM.sysWrite("         ip = "); VM.sysWriteHex(ip); VM.sysWrite("\n");
-      VM.sysWrite("         fp = "); VM.sysWriteHex(fp); VM.sysWrite("\n");
-      VM.sysWrite("  registers.ip = "); VM.sysWriteHex(t.contextRegisters.ip); VM.sysWrite("\n");
+      VM.sysWrite("  top_frame = "); VM.sysWrite(top_frame); VM.sysWrite("\n");
+      VM.sysWrite("         ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
+      VM.sysWrite("         fp = "); VM.sysWrite(fp); VM.sysWrite("\n");
+      VM.sysWrite("  registers.ip = "); VM.sysWrite(t.contextRegisters.ip); VM.sysWrite("\n");
     }
     
     if (DUMP_STACK_REFS) {
@@ -127,7 +128,7 @@ public class VM_ScanStack
     // with a "topJavaFrame" = 0. There may be references in the threads
     // JNIrefs side stack that need to be processed, below after the loop.
 
-    if ( fp != STACKFRAME_SENTINAL_FP) {
+    if ( fp.NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP)) ) {
 
     if ( DUMP_STACK_REFS) {
       VM_Scheduler.dumpStack( ip, fp ); VM.sysWrite("\n");
@@ -137,7 +138,7 @@ public class VM_ScanStack
     //   fp -> frame for method invocation being processed
     //   ip -> instruction pointer in the method (normally a call site)
     
-    while (VM_Magic.getCallerFramePointer(fp) != STACKFRAME_SENTINAL_FP) {
+    while (VM_Magic.getCallerFramePointer(fp).NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP))) {
       
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
 
@@ -164,7 +165,7 @@ public class VM_ScanStack
       method = compiledMethod.getMethod();
 
       // initialize MapIterator for this frame
-      int offset = ip - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+      int offset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
       iterator = iteratorGroup.selectIterator(compiledMethod);
       iterator.setupIterator(compiledMethod, offset, fp);
       
@@ -188,44 +189,44 @@ public class VM_ScanStack
 	  VM.sysWrite(" at offset ");
 	  VM.sysWrite(offset,false);
 	  VM.sysWrite(".--- \n");
-	  VM.sysWrite(" fp = "); VM.sysWriteHex(fp);
-	  VM.sysWrite(" ip = "); VM.sysWriteHex(ip); VM.sysWrite("\n");
+	  VM.sysWrite(" fp = "); VM.sysWrite(fp);
+	  VM.sysWrite(" ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
 	  dumpStackFrame( fp, prevFp );
       }
 
       // scan the map for this frame and process each reference
       //
-      for (refaddr = iterator.getNextReferenceAddress();  refaddr != 0;
+      for (refaddr = iterator.getNextReferenceAddress();  !refaddr.isZero();
 	   refaddr = iterator.getNextReferenceAddress()) {
 
 	if (VM.VerifyAssertions && VALIDATE_STACK_REFS) {
-	  int ref = VM_Magic.getMemoryWord(refaddr);
-	  if (!VM_GCUtil.validRef(ref)) {
-	    VM.sysWrite("\nInvalid ref reported while scanning stack\n");
-	    VM.sysWrite("--- METHOD --- ");
-	    VM.sysWrite(method);
-	    VM.sysWrite(" at offset ");
-	    VM.sysWrite(offset,false);
-	    VM.sysWrite(".\n");
-	    VM.sysWrite(" fp = "); VM.sysWriteHex(fp);
-	    VM.sysWrite(" ip = "); VM.sysWriteHex(ip); VM.sysWrite("\n");
-	    // dump out bad ref
-	    VM.sysWriteHex(refaddr); VM.sysWrite(":"); VM_GCUtil.dumpRef(ref);
-	    // dump out contents of frame
-	    dumpStackFrame( fp, prevFp );
-	    // dump stack starting at current frame
-	    VM.sysWrite("\nDumping stack starting at frame with bad ref:\n");
-	    VM_Scheduler.dumpStack( ip, fp );
-	    // start stact starting at top
-	    int top_ip = t.contextRegisters.getInnermostInstructionAddress();
-	    int top_fp = t.contextRegisters.getInnermostFramePointer();
-	    VM_Scheduler.dumpStack( top_ip, top_fp );
-	    VM.sysFail("\n\nVM_ScanStack: Detected bad GC map; exiting RVM with fatal error");
-	  }
+	    VM_Address ref = VM_Address.fromInt(VM_Magic.getMemoryWord(refaddr));
+	    if (!VM_GCUtil.validRef(ref)) {
+		VM.sysWrite("\nInvalid ref reported while scanning stack\n");
+		VM.sysWrite("--- METHOD --- ");
+		VM.sysWrite(method);
+		VM.sysWrite(" at offset ");
+		VM.sysWrite(offset,false);
+		VM.sysWrite(".\n");
+		VM.sysWrite(" fp = "); VM.sysWrite(fp);
+		VM.sysWrite(" ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
+		// dump out bad ref
+		VM.sysWrite(refaddr); VM.sysWrite(":"); VM_GCUtil.dumpRef(ref);
+		// dump out contents of frame
+		dumpStackFrame( fp, prevFp );
+		// dump stack starting at current frame
+		VM.sysWrite("\nDumping stack starting at frame with bad ref:\n");
+		VM_Scheduler.dumpStack( ip, fp );
+		// start stact starting at top
+		VM_Address top_ip = t.contextRegisters.getInnermostInstructionAddress();
+		VM_Address top_fp = t.contextRegisters.getInnermostFramePointer();
+		VM_Scheduler.dumpStack( top_ip, top_fp );
+		VM.sysFail("\n\nVM_ScanStack: Detected bad GC map; exiting RVM with fatal error");
+	    }
 	}
 	if (DUMP_STACK_REFS) {
-	  int ref = VM_Magic.getMemoryWord(refaddr);
-	  VM.sysWriteHex(refaddr); VM.sysWrite(":"); VM_GCUtil.dumpRef(ref);
+	    VM_Address ref = VM_Magic.getMemoryAddress(refaddr);
+	    VM.sysWrite(refaddr); VM.sysWrite(":"); VM_GCUtil.dumpRef(ref);
 	}
 	
 	VM_Allocator.processPtrField( refaddr );
@@ -242,26 +243,26 @@ public class VM_ScanStack
 	newcode = VM_Allocator.processPtrValue( code );
 
 	if (newcode != code) {
-	  delta = newcode - code;  // amount to relocate return addresses
+	  delta = newcode.diff(code);  // amount to relocate return addresses
 	  
 	  // if the return address is in the BootImage ( in some OutOfLineMachineCode
 	  // that called someone e.g. called native code ) do not relocate the return 
 	  // address ... just the rest of the code that is in the normal heap.
 	  //
-	  if (! VM_GCUtil.addressInBootImage(ip)) {  // normal case
-	    newip = ip + delta;
+	  if (! VM_GCUtil.addrInBootImage(ip)) {  // normal case
+	    newip = ip.add(delta);
 	    if (TRACE_STACKS) {
-	      VM_Scheduler.traceHex("  moved code - ", "old ip", ip);
-	      VM_Scheduler.traceHex("               ", "new ip", newip);
+	      VM_Scheduler.trace("  moved code - ", "old ip", ip);
+	      VM_Scheduler.trace("               ", "new ip", newip);
 	    }
 	  } else {
 	    newip = ip;    // do not relocate
 	    if (TRACE_STACKS)
-	      VM_Scheduler.traceHex("  moved code - ", "ip in BootImage", ip);
+	      VM_Scheduler.trace("  moved code - ", "ip in BootImage", ip);
 	  }
 	  
 	  // relocate return address
-	  if (prevFp != 0) {
+	  if (!prevFp.isZero()) {
 	    // set return address:
 	    //    intel - pushed on stack by call instruction
 	    //    power - stored in frame header by prolog
@@ -274,11 +275,11 @@ public class VM_ScanStack
 	
 	  // scan for internal code pointers in the stack frame and relocate
 	  iterator.reset();
-	  for (int retaddr = iterator.getNextReturnAddressAddress();  retaddr != 0;
+	  for (VM_Address retaddr = iterator.getNextReturnAddressAddress();  !retaddr.isZero();
 	       retaddr = iterator.getNextReturnAddressAddress()) {
 	    // relocate internal code pointer
 	    if (TRACE_STACKS)
-	      VM_Scheduler.traceHex("  relocating return address", "at", retaddr);
+	      VM_Scheduler.trace("  relocating return address", "at", retaddr);
 	    VM_Magic.setMemoryWord( retaddr, VM_Magic.getMemoryWord(retaddr) + delta);
 	  }
 	}
@@ -316,7 +317,7 @@ public class VM_ScanStack
     //-#if RVM_FOR_AIX
     iterator = iteratorGroup.getJniIterator();
     refaddr =  iterator.getNextReferenceAddress();
-    while( refaddr!=0 ) {
+    while( !refaddr.isZero() ) {
       VM_Allocator.processPtrField( refaddr );
       refaddr =  iterator.getNextReferenceAddress();
     }
@@ -332,39 +333,38 @@ public class VM_ScanStack
   // dump contents of a stack frame. attempts to interpret each
   // word a an object reference
   //
-  static void
-  dumpStackFrame( int fp, int prevFp ) {
-    int start,end;
+  static void dumpStackFrame(VM_Address fp, VM_Address prevFp ) {
+    VM_Address start,end;
 //-#if RVM_FOR_IA32
-    if (prevFp==0) {
-      start = fp - 20*WORDSIZE;
+    if (prevFp.isZero()) {
+      start = fp.sub(20*WORDSIZE);
       VM.sysWrite("--- 20 words of stack frame with fp = ");
     }
     else {
       start = prevFp;    // start at callee fp
       VM.sysWrite("--- stack frame with fp = ");
     }
-    VM.sysWriteHex(fp);
+    VM.sysWrite(fp);
     VM.sysWrite(" ----\n");
     end = fp;            // end at fp
 //-#endif
 //-#if RVM_FOR_POWERPC
     VM.sysWrite("--- stack frame with fp = ");
-    VM.sysWriteHex(fp);
+    VM.sysWrite(fp);
     VM.sysWrite(" ----\n");
     start = fp;                         // start at fp
-    end = VM_Magic.getMemoryWord(fp);   // stop at callers fp
+    end = VM_Magic.getMemoryAddress(fp);   // stop at callers fp
 //-#endif
 
-    for ( int loc = start; loc <= end; loc+=WORDSIZE ) {
-      VM.sysWrite(loc-start,false);
+    for (VM_Address loc = start; loc.LE(end); loc = loc.add(WORDSIZE)) {
+      VM.sysWrite(loc.diff(start),false);
       VM.sysWrite(" ");
-      VM.sysWriteHex(loc);
+      VM.sysWrite(loc);
       VM.sysWrite(" ");
-      int value = VM_Magic.getMemoryWord(loc);
-      VM.sysWriteHex(value);
+      VM_Address value = VM_Address.fromInt(VM_Magic.getMemoryWord(loc));
+      VM.sysWrite(value);
       VM.sysWrite(" ");
-      if ( VM_GCUtil.referenceInVM(value) && (loc!=start) && (loc!=end) )
+      if ( VM_GCUtil.refInVM(value) && loc.NE(start) && loc.NE(end) )
 	VM_GCUtil.dumpRef(value);
       else
 	VM.sysWrite("\n");
@@ -372,4 +372,4 @@ public class VM_ScanStack
     VM.sysWrite("\n");
   }
 
-}   // VM_GCUtil
+}

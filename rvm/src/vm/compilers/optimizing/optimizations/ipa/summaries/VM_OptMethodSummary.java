@@ -557,16 +557,13 @@ final class VM_OptMethodSummary
           break;
           // Various flavors of calls. Assign them call cost (differentiate?)
         case JBC_invokevirtual:case JBC_invokespecial:
-          bcIndex += 2;
-          summary = setInvoke(summary);
-          calleeSize += CALL_COST;
-          break;
         case JBC_invokestatic:   // Special case VM_Magic's as being cheaper.
           int constantPoolIndex = (bytecodes[bcIndex++] & 0xFF) << 8;
           constantPoolIndex |= (bytecodes[bcIndex++] & 0xFF);
           VM_Method meth = method.getDeclaringClass().getMethodRef(
               constantPoolIndex);
-          if (meth.getDeclaringClass().isMagicType()) {
+          if (meth.getDeclaringClass().isMagicType() ||
+	      meth.getDeclaringClass().isAddressType()) {
             summary = setMagic(summary);
             summary = setInvoke(summary);
             calleeSize += MAGIC_COST;

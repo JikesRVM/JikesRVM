@@ -79,21 +79,19 @@ final class VM_GCMapIteratorGroup {
    * <p>
    * @param thread  VM_Thread whose registers and stack are to be scanned
    */
-  void
-    newStackWalk(VM_Thread thread) {
+  void newStackWalk(VM_Thread thread) {
     
-    int registerLocation = VM_Magic.objectAsAddress(thread.contextRegisters.gprs);
-    for (int i = 0; i < VM_Constants.NUM_GPRS; ++i)
-      {
-	registerLocations[i] = registerLocation;
-	registerLocation += 4;
+      VM_Address registerLocation = VM_Magic.objectAsAddress(thread.contextRegisters.gprs);
+      for (int i = 0; i < VM_Constants.NUM_GPRS; ++i) {
+	  registerLocations[i] = registerLocation.toInt();
+	  registerLocation = registerLocation.add(4);
       }
-    bootImageCompilerIterator.newStackWalk(thread);
-    runtimeCompilerIterator.newStackWalk(thread);
-    hardwareTrapIterator.newStackWalk(thread);
-    fallbackCompilerIterator.newStackWalk(thread);
-    if (testOptCompilerIterator != null) testOptCompilerIterator.newStackWalk(thread);
-    if (jniIterator != null) jniIterator.newStackWalk(thread);
+      bootImageCompilerIterator.newStackWalk(thread);
+      runtimeCompilerIterator.newStackWalk(thread);
+      hardwareTrapIterator.newStackWalk(thread);
+      fallbackCompilerIterator.newStackWalk(thread);
+      if (testOptCompilerIterator != null) testOptCompilerIterator.newStackWalk(thread);
+      if (jniIterator != null) jniIterator.newStackWalk(thread);
   }
   
   /**

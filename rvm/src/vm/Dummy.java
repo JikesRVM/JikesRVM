@@ -32,4 +32,5 @@ class Dummy {
   static VM_OptRCWriteBarrier       q; // not used by opt yet, but referenced in VM_Entrypoints
   //-#endif
   static VM_MultianewarrayHelper    r;
+  static VM_Address                 s;
 }

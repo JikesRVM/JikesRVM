@@ -37,29 +37,6 @@
  *                  +---------------+ /
  *                       hi-mem
 * </pre>
-* The "startAddress", "freeAddress", and "endAddress" fields of the boot
-* record point to the region of memory comprising the heap in which the 
-* virtual machine lives. The heap looks like this:
-* <pre>
-*
-*                       lo-mem
-*                  +---------------+
-*  startAddress -> |    object     |
-*                  +---------------+
-*                  |    object     |
-*                  +---------------+
-*                  |      ...      |
-*                  +---------------+
-*                  |    object     |
-*                  +---------------+
-*   freeAddress -> |   <empty>     |
-*                  +---------------+
-*                  |      ...      |
-*                  +---------------+
-*                  |   <empty>     |
-*                  +---------------+
-*    endAddress ->      hi-mem
-* </pre>
 *
 * The "spRegister" field of the boot record points to the word immediately
 * preceeding the top of a stack object (ie. it's ready to accept a "push" 
@@ -122,47 +99,27 @@ public class VM_BootRecord {
   /**
    * address at which image is to be loaded into memory
    */
-  int startAddress;        
-  int permaAddress;
+  VM_Address bootImageStart;
+  VM_Address bootImageEnd;
 
   /**
-   * address of first free word following end of image
+   * size of various spaces in bytes
    */
-  int freeAddress;         
-  /**
-   * address of first word following end of memory
-   */
-  int endAddress;          
-  /**
-   * address of first word of an array of offsets to all addresses in the image.
-   */
-  int relocaterAddress;    
-  /**
-   * number of 32 bit words of relocation addresses.
-   */
-  int relocaterLength;     
+  int smallSpaceSize; 	    // Always present
+  int largeSpaceSize; 	    // Almost always present
+  int nurserySize;          // Present in generational collectors
 
-  // Two fields used by MemoryManagers that maintain separate space for 
-  // large objects
-  /**
-   * address of start of large object space
-   */
-  int largeStart;	    
-  /**
-   * size of large object space in bytes
-   */
-  int largeSize; 	    
+  // int[] should be VM_Address[] but compiler erroneously emits barriers
+  int [] heapRanges;         // [start1, end1, ..., start_k, end_k, -1, -1]
+                             // C-style termination with sentinel values
 
-  /**
-   * size of the nursery for generational collectors that 
-   * use a fixed size nursery
-   */
-  int nurserySize;         // size of nursery in generational collector
+  int verboseGC;             // GC verbosity level 
 
-  /**
-   * Field added to enable signal trapping when dynamically resizing heap
-   */
-  int heapEnd;             // address of word beyond end of large object space
+  // Relocation not supported
+  //
+  // VM_Address relocaterAddress;    // address of first word of an array of offsets to all addresses in the image.
+  // int relocaterLength;     
+
 
   // RVM startoff
   //
@@ -271,7 +228,13 @@ public class VM_BootRecord {
   int sysBytesAvailableIP;
   int sysSyncFileIP;
 
-  // memory mapping
+  // shm* - memory mapping
+  int sysShmgetIP;
+  int sysShmctlIP;
+  int sysShmatIP;
+  int sysShmdtIP;
+
+  // mmap - memory mapping
   int sysMMapIP;
   int sysMMapNonFileIP;
   int sysMMapGeneralFileIP;

@@ -21,12 +21,11 @@ class VM_DynamicLinkerHelper implements VM_Constants, VM_Uninterruptible {
   static Object getReceiverObject() {
     VM_Magic.pragmaNoInline();
 
-    int callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
+    VM_Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);
-    int location = 0;
+    VM_Address location = VM_Address.zero();
     if (0 < NUM_PARAMETER_GPRS) {
-      location = VM_Magic.getMemoryWord(callingFrame + 
-					VM_BaselineConstants.STACKFRAME_FIRST_PARAMETER_OFFSET);
+      location = VM_Magic.getMemoryAddress(callingFrame.add(VM_BaselineConstants.STACKFRAME_FIRST_PARAMETER_OFFSET));
 
     } else {
       VM.sysFail("VM_DynamicLinerHelper: assumes at least one param passed in registers");

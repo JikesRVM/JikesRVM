@@ -15,16 +15,17 @@
  */
 public class VM_Allocator implements VM_Constants {
   
-  private static int    startAddress; // start of heap
-  private static int    freeAddress;  // start of free area within heap
-  private static int    endAddress;   // end of heap
-  private static VM_Synchronizer lock;         // lock for serializing heap accesses TODO: make getHeapSpace a static fync method and get rid of this lock
+  private static VM_ImmortalSpace     immortalSpace;
+  private static VM_Synchronizer lock;         // lock for serializing heap accesses
+
+  static int verbose = 0; // control chattering during progress of GC
   
   /**
    * Initialize for boot image.
    */
   static void init() {
     lock = new VM_Synchronizer();
+    immortalSpace = new VM_ImmortalSpace();
     VM_GCWorkQueue.init();
     VM_CollectorThread.init();
   }
@@ -35,8 +36,8 @@ public class VM_Allocator implements VM_Constants {
    * @param bootrecord  reference for the system VM_BootRecord
    */
   static void boot(VM_BootRecord bootrecord) {
-    startAddress = freeAddress = bootrecord.freeAddress;
-    endAddress   = bootrecord.endAddress;
+
+    immortalSpace.attach(bootrecord.smallSpaceSize);
 
     // if collection wants to use the utility methods of VM_GCUtil, ex. scanStack,
     // scanStatics, scanObjectOrArray, etc. then its boot method must by called.
@@ -47,7 +48,7 @@ public class VM_Allocator implements VM_Constants {
     
     // touch memory pages now (instead of during individual allocations, later)
     //
-    VM_Memory.zero(freeAddress, endAddress);
+    VM_Memory.zero(immortalSpace.start, immortalSpace.end);
   }
   
   /**
@@ -73,7 +74,7 @@ public class VM_Allocator implements VM_Constants {
    * @return the number of bytes
    */
   public static long totalMemory() {
-    return endAddress - startAddress;
+    return immortalSpace.size;
   }
   
   /**
@@ -82,7 +83,7 @@ public class VM_Allocator implements VM_Constants {
    * @return number of bytes available
    */
   public static long freeMemory() {
-    return endAddress - freeAddress;
+    return immortalSpace.available();
   }
   
   /**
@@ -96,7 +97,7 @@ public class VM_Allocator implements VM_Constants {
    * @return the reference for the allocated object
    */
   public static Object allocateScalar (int size, Object[] tib, boolean hasFinalizer) throws OutOfMemoryError {
-    int objAddress = getHeapSpace(size);
+    VM_Address objAddress = getHeapSpace(size);
     Object objRef = VM_ObjectModel.initializeScalar(objAddress, tib, size);
     if (hasFinalizer) VM_Finalizer.addElement(objRef);
     return objRef;
@@ -117,8 +118,8 @@ public class VM_Allocator implements VM_Constants {
    */
   public static Object cloneScalar (int size, Object[] tib, Object cloneSrc) throws OutOfMemoryError {
     boolean hasFinalizer =
-      VM_Magic.addressAsType(VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(tib))).hasFinalizer();
-    int objAddress = getHeapSpace(size);
+      VM_Magic.addressAsType(VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(tib))).hasFinalizer();
+    VM_Address objAddress = getHeapSpace(size);
     Object objRef = VM_ObjectModel.initializeScalar(objAddress, tib, size);
 
     // initialize object fields with data from passed in object to clone
@@ -144,7 +145,7 @@ public class VM_Allocator implements VM_Constants {
    */
   public static Object allocateArray (int numElements, int size, Object[] tib) throws OutOfMemoryError {
     size = (size + 3) & ~3; // preserve word alignment
-    int objAddress = getHeapSpace(size);
+    VM_Address objAddress = getHeapSpace(size);
     return VM_ObjectModel.initializeArray(objAddress, tib, numElements, size);
   }
   
@@ -165,7 +166,7 @@ public class VM_Allocator implements VM_Constants {
    */
   public static Object cloneArray (int numElements, int size, Object[] tib, Object cloneSrc) throws OutOfMemoryError {
     size = (size + 3) & ~3; // preserve word alignment
-    int objAddress = getHeapSpace(size);
+    VM_Address objAddress = getHeapSpace(size);
     Object objRef = VM_ObjectModel.initializeArray(objAddress, tib, numElements, size);
 
      // initialize array elements
@@ -180,18 +181,14 @@ public class VM_Allocator implements VM_Constants {
   /**
    * Allocate size bytes of heap space.
    */
-  private static int getHeapSpace(int size) {
-    if (VM.VerifyAssertions && VM_Thread.getCurrentThread().disallowAllocationsByThisThread)
-      VM.sysFail("VM_Allocator: allocation requested while gc disabled");
-    int objAddress;
-    synchronized (lock)
-      {
-	objAddress = VM_Allocator.freeAddress;
-	VM_Allocator.freeAddress += size;
-	if (VM_Allocator.freeAddress > VM_Allocator.endAddress)
-	  VM.sysFail("VM_Allocator: OutOfMemoryError");
-      }
-    return objAddress;
+  private static VM_Address getHeapSpace(int size) {
+    
+    VM_Address region;
+    size = ((size + 3) & ~3);
+    synchronized (lock) {
+	region = immortalSpace.allocate(size);
+    }
+    return region;
   }
   
   /**
@@ -204,8 +201,9 @@ public class VM_Allocator implements VM_Constants {
   // methods called from utility methods of VM_GCUtil, VM_ScanObject,
   // VM_ScanStack, VM_ScanStatics
   //
-  static final void    processPtrField( int location ) {}
-  static final int     processPtrValue( int reference ) { return 0; }
+  static final void       processPtrField( VM_Address location ) { VM.assert(false); }
+  static final VM_Address processPtrValue( VM_Address reference ) { VM.assert(false); return null; }
+  static final void       processWriteBufferEntry( VM_Address discard ) { VM.assert(false); }
 
   // Other fields and methods referenced from common GC classes or elsewhere
   // in VM (ex. VM_Entrypoints)
@@ -214,10 +212,12 @@ public class VM_Allocator implements VM_Constants {
   static final boolean movesObjects = false;
   static final boolean writeBarrier = false;
   static boolean       gcInProgress;
-  static int           areaCurrentAddress;
-  static int           matureCurrentAddress;
+  static VM_Address    areaCurrentAddress;
+  static VM_Address    matureCurrentAddress;
   static void          gcSetup(int numProcessors) {}
   static void          setupProcessor(VM_Processor p) {}
   static boolean       processFinalizerListElement (VM_FinalizerListElement le) { return true; }
   static void          processWriteBufferEntry (int wbref) {}
+
+  static int gcCount = 0;
 }

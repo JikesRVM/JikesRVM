@@ -50,7 +50,7 @@ abstract class VM_ExceptionDeliverer {
    * catch block
    */
   abstract void deliverException(VM_CompiledMethod compiledMethod,
-				 int               catchBlockInstructionAddress,
+				 VM_Address        catchBlockInstructionAddress,
 				 Throwable         exceptionObject,
 				 VM_Registers      registers);
 

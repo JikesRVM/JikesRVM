@@ -451,6 +451,17 @@ public abstract class OPT_Operand {
     return isStringConstant() || isNullConstant() ||
            (isRegister() && asRegister().type.isReferenceType());
   }
+
+  /**
+   * Does the operand represent a value of the reference data type?
+   * 
+   * @return <code>true</code> if the data type of <code>this</code> 
+   *         is an address as defined by {@link VM_Type#isAddressType}
+   *         or <code>false</code> if it is not.
+   */
+  final boolean isAddress() {
+    return (isRegister() && asRegister().type.isAddressType());
+  }
   /**
    * Does the operand definitely represent <code>null</code>?
    * 

@@ -52,7 +52,7 @@ public class VM_Finalizer
   // interface //
   //-----------//
 
-  public static void	
+  public static void 
     setup ()
     {
       locker = new VM_Synchronizer();
@@ -60,8 +60,7 @@ public class VM_Finalizer
 
   // Add item.
   //
-  static final void
-    addElement (int item)
+  static final void addElement (Object item)
     {
       // (SJF: This method must NOT be inlined into an inlined allocation
       // sequence, since it contains a lock!)
@@ -78,25 +77,6 @@ public class VM_Finalizer
 
     }
 
-  // Add item taking Object.
-  //
-  static final void
-    addElement (Object item)
-    {
-      // (SJF: This method must NOT be inlined into an inlined allocation
-      // sequence, since it contains a lock!)
-      VM_Magic.pragmaNoInline();
-      synchronized (locker) {
-        live_count++;
-        if (TRACE_DETAIL) VM_Scheduler.trace(" VM_Finalizer: ",
-                                             " addElement   called, count = ", live_count);
-        VM_FinalizerListElement le = new VM_FinalizerListElement(item);
-        VM_FinalizerListElement old = live_head;
-        live_head = le;
-        le.next   = old; 
-      }		// synchronized
-
-    }
 
   /**
    * Called from the mutator thread: return the first object queued 
@@ -145,7 +125,7 @@ public class VM_Finalizer
 	live_count--;
 	finalize_count++;
 
-	if (TRACE) VM_Scheduler.traceHex("\n in finalizeall:","le.value =",
+	if (TRACE) VM_Scheduler.trace("\n in finalizeall:","le.value =",
 					 VM_Magic.objectAsAddress(le.pointer));
 
 	// take this le out of the live_list
@@ -199,8 +179,8 @@ public class VM_Finalizer
 	live_count--;
 	finalize_count++;
 
-	if (TRACE) VM_Scheduler.traceHex("\n moving to finalizer:","le.value =",
-					 VM_Magic.objectAsAddress(le.pointer));
+	if (TRACE) VM_Scheduler.trace("\n moving to finalizer:","le.value =",
+				      VM_Magic.objectAsAddress(le.pointer));
 
 	// take this le out of the live_list
 	//
@@ -232,7 +212,7 @@ public class VM_Finalizer
       }
     }
     
-    if ( PRINT_FINALIZABLE_COUNT && VM.verboseGC ) {
+    if ( PRINT_FINALIZABLE_COUNT && VM_Allocator.verbose >= 1) {
       VM.sysWrite("<GC ");
       VM.sysWrite(VM_Collector.collectionCount(),false);
       VM.sysWrite(" moveToFinalizable: finalize_count: before = ");

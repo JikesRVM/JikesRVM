@@ -149,7 +149,7 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
    *         EPILOGUE?
    */
   private static int activateContextListeners_count = 0;
-  static void activateContextListeners(int sfp, int whereFrom) {
+  static void activateContextListeners(VM_Address sfp, int whereFrom) {
     activateContextListeners_count++;     
     VM_ContextListener[] tmp = contextListeners; // side-step dangerous race condition
     for (int i=0; i<tmp.length; i++) {

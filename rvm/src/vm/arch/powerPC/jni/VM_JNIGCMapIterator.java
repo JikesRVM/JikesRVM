@@ -46,24 +46,21 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
 
    // additional instance fields added by this subclass of VM_GCMapIterator
    int[]  jniRefs;
-   int    jniNextRef;
-   int    jniFramePtr;
-   int    jniSavedProcessorRegAddr;
-   int    jniSavedReturnAddr;
+   int jniNextRef;
+   int jniFramePtr;
+   VM_Address jniSavedProcessorRegAddr;
+   VM_Address jniSavedReturnAddr;
 
-   VM_JNIGCMapIterator(int[] registerLocations)
-      {
-      this.registerLocations = registerLocations;
-      }
+   VM_JNIGCMapIterator(int[] registerLocations) {
+       this.registerLocations = registerLocations;
+   }
 
   // Override newStackWalk() in parent class VM_GCMapIterator to
   // initialize iterator for scan of JNI JREFs stack of refs
   // Taken:    thread
   // Returned: nothing
   //
-  void 
-  newStackWalk(VM_Thread thread) 
-     {
+  void newStackWalk(VM_Thread thread) {
      super.newStackWalk(thread);   // sets this.thread
      VM_JNIEnvironment env = this.thread.getJNIEnv();
      // the "primordial" thread, created by JDK in the bootimage, does not have
@@ -72,29 +69,28 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
 	 this.jniRefs = env.JNIRefs;
 	 this.jniNextRef = env.JNIRefsTop;
 	 this.jniFramePtr = env.JNIRefsSavedFP;
-	 this.jniSavedProcessorRegAddr = 0;     // necessary so getNextRefAddr() can be used to report
-	                                        // jniRefs in a "frame", without calling setup.  
+	 this.jniSavedProcessorRegAddr = VM_Address.zero();     // necessary so getNextRefAddr() can be used to report
+	                                                      // jniRefs in a "frame", without calling setup.  
      }
      }
 
-   void
-   setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, int framePtr) //- implements VM_GCMapIterator
-      {
+   void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, 
+		      VM_Address framePtr) { //- implements VM_GCMapIterator
       this.framePtr = framePtr;
       // processore reg (R16) was saved in reg save area at offset -72 
       // from callers frameptr, and after GC will be used to set 
       // processor reg upon return to java.  it must be reported
       // so it will be relocated, if necessary
       //
-      int callers_fp = VM_Magic.getMemoryWord(this.framePtr);
-      jniSavedProcessorRegAddr = callers_fp - JNI_PR_OFFSET;
-      jniSavedReturnAddr       = callers_fp - JNI_PROLOG_RETURN_ADDRESS_OFFSET;
+      VM_Address callers_fp = VM_Address.fromInt(VM_Magic.getMemoryWord(this.framePtr));
+      jniSavedProcessorRegAddr = callers_fp.sub(JNI_PR_OFFSET);
+      jniSavedReturnAddr       = callers_fp.sub(JNI_PROLOG_RETURN_ADDRESS_OFFSET);
 
       // set the GC flag in the Java to C frame to indicate GC occurred
       // this forces saved non volatile regs to be restored from save area
       // where those containing refs have been relocated if necessary
       //
-      VM_Magic.setMemoryWord(callers_fp - JNI_GC_FLAG_OFFSET, 1);
+      VM_Magic.setMemoryWord(callers_fp.sub(JNI_GC_FLAG_OFFSET), 1);
       }
 
    // return (address of) next ref in the current "frame" on the
@@ -102,22 +98,20 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
    // When at the end of the current frame, update register locations to point
    // to the non-volatile registers saved in the JNI transition frame.
    //
-   int
-   getNextReferenceAddress() //- implements VM_GCMapIterator
-      {
+   VM_Address getNextReferenceAddress() { //- implements VM_GCMapIterator
       int nextFP;
-      int ref_address;
+      VM_Address ref_address;
 
       if ( jniNextRef > jniFramePtr ) {
-	  ref_address = jniNextRef + VM_Magic.objectAsAddress(jniRefs);
+	  ref_address = VM_Magic.objectAsAddress(jniRefs).add(jniNextRef);
 	  jniNextRef = jniNextRef - 4;
 	  return ref_address;
       }
 
       // report location of saved processor reg in the Java to C frame
-      if ( jniSavedProcessorRegAddr != 0 ) {
+      if ( !jniSavedProcessorRegAddr.isZero() ) {
           ref_address = jniSavedProcessorRegAddr;
-          jniSavedProcessorRegAddr = 0;
+          jniSavedProcessorRegAddr = VM_Address.zero();
           return ref_address;
       }
 
@@ -126,9 +120,9 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
       // last jni frame in the JNIRefs stack.  If more frames, initialize for a
       // later scan of those refs.
       //
-      if ( jniFramePtr > 0 ) {
+      if ( jniFramePtr > 0) {
 	  jniFramePtr = jniRefs[jniFramePtr >> 2];
-	  jniNextRef = jniNextRef - 4;
+	  jniNextRef = jniNextRef - 4 ;
       }
 
       // set register locations for non-volatiles to point to registers saved in
@@ -142,35 +136,26 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
       }
 
 
-      return 0;  // no more refs to report
+      return VM_Address.zero();  // no more refs to report
       }
 
-   int
-   getNextReturnAddressAddress() //- implements VM_GCMapIterator
-      {
-      int  ref_address;
-      if ( jniSavedReturnAddr != 0 ) {
+   VM_Address getNextReturnAddressAddress() { //- implements VM_GCMapIterator
+
+       VM_Address  ref_address;
+       if ( !jniSavedReturnAddr.isZero() ) {
           ref_address = jniSavedReturnAddr;
-          jniSavedReturnAddr = 0;
+          jniSavedReturnAddr = VM_Address.zero();
           return ref_address;
       }
 
-      return 0;
+      return VM_Address.zero();
       }
 
-   void
-   reset() //- implements VM_GCMapIterator
-     {
-     }
+   void reset() {}
 
-   void
-   cleanupPointers() //- implements VM_GCMapIterator
-      {
-      }
+   void cleanupPointers() {}
 
-   int
-   getType() //- implements VM_GCMapIterator
-      {
-      return VM_GCMapIterator.JNI;
-      }
+   int getType() {
+       return VM_GCMapIterator.JNI;
    }
+}

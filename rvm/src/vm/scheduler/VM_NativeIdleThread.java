@@ -216,7 +216,7 @@ class VM_NativeIdleThread extends VM_IdleThread {
       //-#endif
       VM_Magic.sysCallSigWait(VM_BootRecord.the_boot_record.sysPthreadSigWaitIP,
 			      TOC,
-		              myNativeProcessor.vpStatusAddress,
+		              myNativeProcessor.vpStatusAddress.toInt(),
 			      VM_Processor.IN_SIGWAIT,
 			      VM_Thread.getCurrentThread().contextRegisters);
 
@@ -299,7 +299,7 @@ class VM_NativeIdleThread extends VM_IdleThread {
       //-#endif
       VM_Magic.sysCallSigWait(VM_BootRecord.the_boot_record.sysPthreadSigWaitIP,
 			      TOC,
-		              myNativeProcessor.vpStatusAddress,
+		              myNativeProcessor.vpStatusAddress.toInt(),
 			      VM_Processor.IN_SIGWAIT,
 			      VM_Thread.getCurrentThread().contextRegisters);
 

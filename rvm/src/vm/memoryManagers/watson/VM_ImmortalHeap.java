@@ -11,63 +11,53 @@
  */
 
 final class VM_ImmortalHeap
+    extends VM_Heap
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
 {
-    int baseAddress;
-    int highAddress;
-    int minReference;
-    int maxReference;
-    int size;
 
+    private VM_Address allocationCursor;
 
-    int allocationCursor;
+    private VM_ProcessorLock lock = new VM_ProcessorLock();
 
-    VM_ProcessorLock lock = new VM_ProcessorLock();
-
-
-    void boot (int baseAddress, int size) {
-	this.baseAddress      = baseAddress;
-	this.size             = size;
-	this.highAddress      = baseAddress + size;
-	this.allocationCursor = baseAddress;
-	this.minReference     = VM_ObjectModel.minimumObjectRef(baseAddress);
-	this.maxReference     = VM_ObjectModel.maximumObjectRef(highAddress);
+    /**
+     * Initialize for boot image - called from init of various collectors or spaces
+     */
+    VM_ImmortalHeap() {
+	super("Immortal Heap");
+	lock = new VM_ProcessorLock();      
     }
 
+  /**
+   * Initialize for execution.
+   */
+  public void attach (int size) {
+    super.attach(size);
+    allocationCursor = start;
+  }
 
-    boolean contains (Object object) {
-	VM_Magic.pragmaInline();
-	return containsReference(VM_Magic.objectAsAddress(object));
-    }
-
-
-    boolean containsReference (int reference) {
-	VM_Magic.pragmaInline();
-	return (minReference <= reference) && (reference <= maxReference);
-    }
-
-
-    boolean containsAddress (int address) {
-	VM_Magic.pragmaInline();
-	return (baseAddress <= address) && (address < highAddress);
-    }
-
+  /**
+   * Get total amount of memory used by immortal space.
+   *
+   * @return the number of bytes
+   */
+  public int totalMemory () {
+    return size;
+  }
 
     /**
      * Allocate a chunk of memory of a given size.  Always inlined.
      *   @param size Number of bytes to allocate
      *   @return Address of allocated storage
      */
-    int allocateRawMemory (int size) {
+    VM_Address allocateRawMemory (int size) {
 	VM_Magic.pragmaInline();
 	lock.lock();
 
-	int result = internalAllocate(size);
+	VM_Address result = internalAllocate(size);
 
 	lock.unlock();
 	return result;
     }
-
 
 
     /**
@@ -76,7 +66,7 @@ final class VM_ImmortalHeap
      *   @param alignment Alignment specifier; must be a power of two
      *   @return Address of allocated storage
      */
-    int allocateRawMemory (int size, int alignment) {
+    VM_Address allocateRawMemory (int size, int alignment) {
 	VM_Magic.pragmaInline();
 	return allocateRawMemory(size, alignment, 0);
     }
@@ -90,16 +80,16 @@ final class VM_ImmortalHeap
      *   @param offset Offset within the object that must be aligned
      *   @return Address of allocated storage
      */
-    int allocateRawMemory (int size, int alignment, int offset) {
+    VM_Address allocateRawMemory (int size, int alignment, int offset) {
 	VM_Magic.pragmaInline();
 	lock.lock();
 	
 	// reserve space for offset bytes
-	allocationCursor += offset;
+	allocationCursor = allocationCursor.add(offset);
 	// align the interior portion of the requested space
 	allocationCursor = VM_Memory.align(allocationCursor, alignment);
 	// allocate remaining space and 
-	int result = internalAllocate(size - offset) - offset;
+	VM_Address result = internalAllocate(size - offset).sub(offset);
 
 	lock.unlock();
 	return result;
@@ -113,14 +103,24 @@ final class VM_ImmortalHeap
      *   @param size Number of bytes to allocate
      *   @return Address of allocated storage
      */
-    private int internalAllocate (int size) {
+    private VM_Address internalAllocate (int size) {
 	VM_Magic.pragmaInline();
 	
-	int result = allocationCursor;
-	allocationCursor += size;
-	if (allocationCursor > highAddress)
+	VM_Address result = allocationCursor;
+	allocationCursor = allocationCursor.add(size);
+	if (allocationCursor.GT(end))
 	    VM.sysFail("Immortal heap space exhausted");
 	return result;
     }
 
+    private static short[] dummyShortArray = new short[1];
+
+    public short[] allocateShortArray(int numElements) {
+	Object [] tib = VM_ObjectModel.getTIB(dummyShortArray);
+	// XXXXX Is this the right way to compute size in object model?
+	int size = ((2 * numElements + 3) & ~3) + VM_ObjectModel.computeHeaderSize(tib);
+	VM_Address region = allocateRawMemory(size);
+	return (short[]) VM_ObjectModel.initializeArray(region, tib,
+							numElements, size);
+    }
 }

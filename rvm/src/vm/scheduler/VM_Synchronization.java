@@ -55,14 +55,23 @@ class VM_Synchronization implements VM_Uninterruptible {
       return oldValue;
    }
 
-   static final int fetchAndAddWithBound(Object base, int offset, int increment, int bound) {
+   static final VM_Address fetchAndAddAddress(VM_Address addr, int increment) {
       VM_Magic.pragmaInline();
-      int oldValue, newValue;
+      VM_Address oldValue;
       do {
-         oldValue = VM_Magic.prepare(base, offset);
-         newValue = oldValue +increment;
-         if (newValue > bound) return  -1;
-      } while (!VM_Magic.attempt(base, offset, oldValue, newValue));
+         oldValue = VM_Address.fromInt(VM_Magic.prepare(VM_Magic.addressAsObject(addr), 0));
+      } while (!VM_Magic.attempt(VM_Magic.addressAsObject(addr), 0, oldValue.toInt(), oldValue.add(increment).toInt()));
+      return oldValue;
+   }
+
+   static final VM_Address fetchAndAddAddressWithBound(VM_Address addr, int increment, VM_Address bound) {
+      VM_Magic.pragmaInline();
+      VM_Address oldValue, newValue;
+      do {
+         oldValue = VM_Address.fromInt(VM_Magic.prepare(VM_Magic.addressAsObject(addr), 0));
+         newValue = oldValue.add(increment);
+         if (newValue.GT(bound)) return VM_Address.max();
+      } while (!VM_Magic.attempt(VM_Magic.addressAsObject(addr), 0, oldValue.toInt(), newValue.toInt()));
       return oldValue;
    }
 }

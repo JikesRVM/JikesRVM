@@ -59,14 +59,6 @@ public class VM_Properties extends VM_Configuration {
   public static boolean BuildForInterpreter;
 
   /**
-   * The following is set on by -verbosegc command line arg and causes output
-   * of GC number and seconds after each GC.  Additional output of counts 
-   * (like live objects)
-   * is controlled by the static final flag, verboseGCWithCounts, below
-   */ 
-  public static boolean verboseGC = false;
-
-  /**
    * The following is set on by -verbose:class command line arg.
    * When true, it generates messages to the sysWrite stream summarizing
    * class loading activities
@@ -142,10 +134,6 @@ public class VM_Properties extends VM_Configuration {
   public static       boolean EventLoggingEnabled       = false;
   public static       boolean BuildForNetworkMonitoring = false;
 
-  // Allocator/collector versions and debugging controls.
-  //
-  public static boolean verboseGCWithCounts   = false;  // additional statics for each reported GC
-
   //-#else // RVM_WITH_DIAGNOSTICS=0
 
   // 
@@ -187,10 +175,6 @@ public class VM_Properties extends VM_Configuration {
   public static final boolean BuildForEventLogging      = false;
   public static       boolean EventLoggingEnabled       = false;  // TODO!! make this final, see profiler/VM_EventLogger.java
   public static final boolean BuildForNetworkMonitoring = false;
-
-  // Allocator/collector versions and debugging controls.
-  //
-  public static final boolean verboseGCWithCounts    = false;
 
   //-#endif // RVM_WITH_DIAGNOSTICS
 

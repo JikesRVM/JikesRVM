@@ -118,7 +118,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
           }
           // real contention: wait (hope other thread unlocks o), try again
           if (traceContention) { // for performance tuning only (see section 5)
-            int fp = VM_Magic.getFramePointer();
+	    VM_Address fp = VM_Magic.getFramePointer();
             fp = VM_Magic.getCallerFramePointer(fp);
             int mid = VM_Magic.getCompiledMethodID(fp);
             VM_Method m1 = VM_CompiledMethods.getCompiledMethod(mid).getMethod();

@@ -170,11 +170,12 @@
       if (slot == nextSlot)
       { // new literal
         allocateSlot(STRING_LITERAL);
-        slots[slot] = VM_Magic.objectAsAddress(literal.toUnicodeString());
+	VM_Address slotContent = VM_Magic.objectAsAddress(literal.toUnicodeString());
+        slots[slot] = slotContent.toInt();
         if (VM.BuildForConcurrentGC && VM.runningVM) // enque increment for new ptr stored into jtoc (no decrement since a new entry)
         {
           //-#if RVM_WITH_CONCURRENT_GC // because VM_RCBuffers only available for concurrent memory managers
-          VM_RCBuffers.addIncrement(slots[slot], VM_Processor.getCurrentProcessor());
+          VM_RCBuffers.addIncrement(slotContent, VM_Processor.getCurrentProcessor());
           //-#endif
         }
       }
@@ -298,14 +299,14 @@
      * Fetch contents of a slot, as an object.
      */ 
     public static Object getSlotContentsAsObject(int slot) {
-      return VM_Magic.addressAsObject(slots[slot]);
+	return VM_Magic.addressAsObject(VM_Address.fromInt(slots[slot]));
     }
 
     /**
      * Fetch contents of a slot, as an object array.
      */ 
     public static Object[] getSlotContentsAsObjectArray(int slot) {
-      return VM_Magic.addressAsObjectArray(slots[slot]);
+      return VM_Magic.addressAsObjectArray(VM_Address.fromInt(slots[slot]));
     }
 
     /**
@@ -338,16 +339,17 @@
      * Set contents of a slot, as an object.
      */ 
     static void setSlotContents(int slot, Object object) {
+      VM_Address newContent = VM_Magic.objectAsAddress(object);
       if (VM.BuildForConcurrentGC && VM.runningVM) 
       {
-        int oldContents = slots[slot];    
-        slots[slot] = VM_Magic.objectAsAddress(object);
+	VM_Address oldContent = VM_Address.fromInt(slots[slot]);
+        slots[slot] = newContent.toInt();
         //-#if RVM_WITH_CONCURRENT_GC // because VM_RCBuffers only available for concurrent memory managers
-        VM_RCBuffers.addIncrementAndDecrement(VM_Magic.objectAsAddress(object), oldContents, VM_Processor.getCurrentProcessor());
+        VM_RCBuffers.addIncrementAndDecrement(newContent, oldContent, VM_Processor.getCurrentProcessor());
         //-#endif
       }
       else
-        slots[slot] = VM_Magic.objectAsAddress(object);
+        slots[slot] = newContent.toInt();
     }
 
     /**

@@ -48,6 +48,7 @@ class GenerateInterfaceDeclarations {
     VM.initForTool();
 
     System.out.print("/*------ MACHINE GENERATED: DO NOT EDIT ------*/\n\n");
+    System.out.println("#define VM_Address unsigned int");
     System.out.println("#ifdef NEED_BOOT_RECORD_DECLARATIONS");
     emitBootRecordDeclarations();
     System.out.println("#endif /* NEED_BOOT_RECORD_DECLARATIONS */");
@@ -102,11 +103,21 @@ class GenerateInterfaceDeclarations {
       VM_Field field = fields[i];
       if (field.isStatic())
         continue;
-      if (!field.getType().isIntType())
-        throw  new RuntimeException("unexpected field type");
-      // e. g.,
-      // int sysSprintfIP;
-      System.out.print("   int " + field.getName() + ";\n");
+      else if (field.getType().isIntType())
+	  System.out.print("   int " + field.getName() + ";\n");
+      else if (field.getType().isAddressType())
+	  System.out.print("   VM_Address " + field.getName() + ";\n");
+      else if (field.getType().isArrayType() &&
+	       field.getType().asArray().getElementType().isAddressType())
+	  System.out.print("   VM_Address * " + field.getName() + ";\n");
+      else if (field.getName().toString().equals("heapRanges") &&
+	       field.getType().isArrayType() &&
+	       field.getType().asArray().getElementType().isIntType())
+	  System.out.print("   unsigned int * " + field.getName() + ";\n");
+      else {
+	  System.err.print("Unexpected field " + field.getName().toString() + " with type " + field.getType() + "\n");
+	  throw new RuntimeException("unexpected field type");
+      }
     }
 
     // emit field initializers
@@ -355,7 +366,8 @@ class GenerateInterfaceDeclarations {
     int offset;
     offset = VM_Entrypoints.threadSwitchRequestedField.getOffset();
     System.out.print("static const int VM_Processor_threadSwitchRequested_offset = "
-		     + offset + ";\n");
+        + offset + ";\n");
+    offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
     offset = VM_Entrypoints.activeThreadStackLimitField.getOffset();
     System.out.print("static const int VM_Processor_activeThreadStackLimit_offset = "
 		     + offset + ";\n");

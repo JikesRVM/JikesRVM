@@ -52,11 +52,11 @@ class addressRemapper implements VM_ObjectAddressRemapper {
    * type conversion to store the object away in a hash table and
    * return a key that will be used later to retrieve the object
    */
-  public int objectAsAddress(Object object)
+  public VM_Address objectAsAddress(Object object)
   {
     index++;
     slots[index] = object;
-    return index;
+    return VM_Address.fromInt(index);
   }
 
   /**
@@ -66,9 +66,9 @@ class addressRemapper implements VM_ObjectAddressRemapper {
    * a legal Java object.  The address is used as the index to
    * retrieve the object from the object array kept here.
    */
-  public Object addressAsObject(int address)
+  public Object addressAsObject(VM_Address address)
   {
-    return slots[address];
+    return slots[address.toInt()];
   }
 
 }

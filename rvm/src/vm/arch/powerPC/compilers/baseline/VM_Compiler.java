@@ -2129,7 +2129,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
 		//-#if RVM_WITH_CONCURRENT_GC
 		if (wasResolved)
-		  VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset);
+		  VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
 		else
 		  VM_RCBarriers.compileDynamicPutstaticBarrier2(asm, spSaveAreaOffset, method, fieldRef);
 		//-#endif
@@ -2156,7 +2156,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      asm.emitCAL   (SP, 4, SP);
 	      if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
 		//-#if RVM_WITH_CONCURRENT_GC 
-		VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset);
+		VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
 		//-#endif
 	      } else { // see Appendix E of PowerPC Microprocessor Family: The Programming Environments
 		asm.emitLVAL  (T1, fieldOffset); // T1 = fieldOffset
@@ -2363,6 +2363,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int constantPoolIndex = fetch2BytesUnsigned();
           VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
           if (VM.TraceAssembler)  asm.noteBytecode("invokevirtual " + constantPoolIndex + " (" + methodRef + ")");
+          if (methodRef.getDeclaringClass().isAddressType()) {
+            VM_MagicCompiler.generateInlineCode(this, methodRef);
+	    break;
+          } 
           boolean classPreresolved = false;
 	  VM_Class methodRefClass = methodRef.getDeclaringClass();
 	  if (methodRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
@@ -2438,7 +2442,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
           int constantPoolIndex = fetch2BytesUnsigned();
           VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
           if (VM.TraceAssembler) asm.noteBytecode("invokestatic " + constantPoolIndex + " (" + methodRef + ")");
-          if (methodRef.getDeclaringClass().isMagicType()) {
+          if (methodRef.getDeclaringClass().isMagicType() ||
+	      methodRef.getDeclaringClass().isAddressType()) {
             VM_MagicCompiler.generateInlineCode(this, methodRef);
 	    break;
           } 

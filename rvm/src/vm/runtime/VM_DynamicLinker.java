@@ -67,13 +67,13 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
       // find call site 
       //
       VM.disableGC();
-      int callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
-      int returnAddress = VM_Magic.getReturnAddress(callingFrame);
+      VM_Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
+      VM_Address returnAddress = VM_Magic.getReturnAddress(callingFrame);
       callingFrame = VM_Magic.getCallerFramePointer(callingFrame);
       int callingCompiledMethodId  = VM_Magic.getCompiledMethodID(callingFrame);
       VM_CompiledMethod callingCompiledMethod = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
       VM_CompilerInfo callingCompilerInfo = callingCompiledMethod.getCompilerInfo();
-      int callingInstructionOffset = returnAddress - VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions());
+      int callingInstructionOffset = returnAddress.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions()));
       VM.enableGC();     
 
       // obtain symbolic method reference

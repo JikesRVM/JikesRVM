@@ -47,7 +47,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       }
     }else if (methodName == VM_MagicNames.getFramePointer) {
       gc.allocFrame = true;
-      OPT_RegisterOperand val = gc.temps.makeTempInt();
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
       VM_Field f = VM_Entrypoints.processorFPField;
       OPT_RegisterOperand pr = null;
       if (VM.dedicatedESI) {
@@ -62,7 +62,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.getJTOC || 
 	       methodName == VM_MagicNames.getTocPointer) {
-      VM_Type t = (methodName == VM_MagicNames.getJTOC ? OPT_ClassLoaderProxy.IntArrayType : VM_Type.IntType);
+      VM_Type t = (methodName == VM_MagicNames.getJTOC ? OPT_ClassLoaderProxy.IntArrayType : VM_Type.AddressType);
       OPT_RegisterOperand val = gc.temps.makeTemp(t);
       OPT_RegisterOperand pr = null;
       if (VM.dedicatedESI) {
@@ -72,8 +72,8 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
         bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
       }
       if (gc.options.FIXED_JTOC) {
-        int jtoc = VM_Magic.getTocPointer();
-        OPT_IntConstantOperand I = new OPT_IntConstantOperand(jtoc);
+        VM_Address jtoc = VM_Magic.getTocPointer();
+        OPT_IntConstantOperand I = new OPT_IntConstantOperand(jtoc.toInt());
         bc2ir.appendInstruction(Move.create(REF_MOVE, val, I));
       } else {
         bc2ir.appendInstruction(Unary.create(GET_JTOC, val, pr.copy()));
@@ -98,22 +98,22 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
 					  null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
-      OPT_Operand fp = bc2ir.popInt();
-      OPT_RegisterOperand val = gc.temps.makeTempInt();
+      OPT_Operand fp = bc2ir.popAddress();
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, 
 					  fp,
 					  new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
 					  null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setCallerFramePointer) {
-      OPT_Operand val = bc2ir.popInt();
-      OPT_Operand fp = bc2ir.popInt();
+      OPT_Operand val = bc2ir.popAddress();
+      OPT_Operand fp = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(INT_STORE, val, 
 					   fp, 
 					   new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
 					   null));
     } else if (methodName == VM_MagicNames.getCompiledMethodID) {
-      OPT_Operand fp = bc2ir.popInt();
+      OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, 
 					  fp,
@@ -122,22 +122,22 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setCompiledMethodID) {
       OPT_Operand val = bc2ir.popInt();
-      OPT_Operand fp = bc2ir.popInt();
+      OPT_Operand fp = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(INT_STORE, val, 
 					   fp, 
 					   new OPT_IntConstantOperand(STACKFRAME_METHOD_ID_OFFSET),
 					   null));
     } else if (methodName == VM_MagicNames.getReturnAddress) {
-      OPT_Operand fp = bc2ir.popInt();
-      OPT_RegisterOperand val = gc.temps.makeTempInt();
+      OPT_Operand fp = bc2ir.popAddress();
+      OPT_RegisterOperand val = gc.temps.makeTemp(VM_Type.AddressType);
       bc2ir.appendInstruction(Load.create(INT_LOAD, val, 
 					  fp,
 					  new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET),
 					  null));
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.setReturnAddress) {
-      OPT_Operand val = bc2ir.popInt();
-      OPT_Operand fp = bc2ir.popInt();
+      OPT_Operand val = bc2ir.popAddress();
+      OPT_Operand fp = bc2ir.popAddress();
       bc2ir.appendInstruction(Store.create(INT_STORE, val, 
 					   fp, 
 					   new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET),

@@ -7,8 +7,8 @@
 final class VM_SideMarkVector
     implements VM_Constants, VM_Uninterruptible 
 {
-    int baseAddress;
-    int highAddress;
+    VM_Address baseAddress;
+    VM_Address highAddress;
     int[] marks;
 
     static final int LOG_INT_SIZE = 5;
@@ -19,10 +19,10 @@ final class VM_SideMarkVector
     static final boolean DEBUG = false;
 
 
-    void boot (int baseAddress, int highAddress) {
+    void boot (VM_Address baseAddress, VM_Address highAddress) {
 	this.baseAddress = baseAddress;
 	this.highAddress = highAddress;
-	int bytes        = highAddress-baseAddress;
+	int bytes        = highAddress.diff(baseAddress);
 	int quanta       = bytes / ALIGNMENT;
 	this.marks       = new int[quanta / BITS_PER_INT + 1];
     }
@@ -30,8 +30,8 @@ final class VM_SideMarkVector
 
     private int wordIndex (Object object) {
 	VM_Magic.pragmaInline();
-	//int index = (VM_Magic.objectAsAddress(object) - baseAddress) >>> LOG_INT_SIZE;
-	int index = ((VM_Magic.objectAsAddress(object) - baseAddress) / ALIGNMENT) / BITS_PER_INT;
+	//int index = (VM_Magic.objectAsAddress(object).diff(baseAddress)) >>> LOG_INT_SIZE;
+	int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress)) / ALIGNMENT) / BITS_PER_INT;
 	if (VM.VerifyAssertions) VM.assert(index >= 0 && index < marks.length);
 	return index;
     }
@@ -39,8 +39,8 @@ final class VM_SideMarkVector
 
     private int bitIndex (Object object, int wordIndex) {
 	VM_Magic.pragmaInline();
-	//int index = (VM_Magic.objectAsAddress(object) - baseAddress) - (wordIndex << LOG_INT_SIZE);
-	int index = ((VM_Magic.objectAsAddress(object) - baseAddress) / ALIGNMENT) % BITS_PER_INT;
+	//int index = (VM_Magic.objectAsAddress(object).diff(baseAddress)) - (wordIndex << LOG_INT_SIZE);
+	int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress)) / ALIGNMENT) % BITS_PER_INT;
 	//	if (! (index >= 0 && index < BITS_PER_INT)) {
 	if (DEBUG) {
 	    VM.sysWrite(" {Length ", marks.length);

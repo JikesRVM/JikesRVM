@@ -859,25 +859,25 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     // get the library in VM_ClassLoader
     // resolve the native routine in the libraries
     VM_DynamicLibrary libs[] = VM_ClassLoader.getDynamicLibraries();
-    int symbolAddress = 0;
+    VM_Address symbolAddress = VM_Address.zero();
     if (libs!=null) {
-      for (int i=1; i<libs.length && symbolAddress==0; i++) {
+      for (int i=1; i<libs.length && symbolAddress.isZero(); i++) {
         VM_DynamicLibrary lib = libs[i];
         if (lib!=null)
           symbolAddress = lib.getSymbol(nativeProcedureName);
       }
     }
 
-    if (symbolAddress==0) {
+    if (symbolAddress.isZero()) {
       // native procedure not found in library
       return false;
     } else {
       //-#if RVM_FOR_IA32
-      nativeIP = symbolAddress;		// Intel use direct branch address
+      nativeIP = symbolAddress.toInt();		// Intel use direct branch address
       nativeTOC = 0;                          // not used
       //-#else
       nativeIP  = VM_Magic.getMemoryWord(symbolAddress);     // AIX use a triplet linkage
-      nativeTOC = VM_Magic.getMemoryWord(symbolAddress + 4);
+      nativeTOC = VM_Magic.getMemoryWord(symbolAddress.add(4));
       //-#endif
       // VM.sysWrite("resolveNativeMethod: " + nativeProcedureName + ", IP = " + VM.intAsHexString(nativeIP) + ", TOC = " + VM.intAsHexString(nativeTOC) + "\n");
       return true;

@@ -41,7 +41,7 @@ public class VM_GCLocks {
   static void reset() {
     for (int i = 2; i < NUM_LOCKS; i++) locks[i] = 0;
     VM_Memory.zero(VM_Magic.objectAsAddress(threadlocks),
-		   VM_Magic.objectAsAddress(threadlocks) + VM_Scheduler.MAX_THREADS * 4);
+		   VM_Magic.objectAsAddress(threadlocks).add(VM_Scheduler.MAX_THREADS * 4));
   }
   
   static void resetFinishLock() {

@@ -58,21 +58,10 @@ class VM_CollectorThread extends VM_Thread
   
   /** Measure & print entry & exit times for rendezvous */
   final static boolean RENDEZVOUS_TIMES = false;
-
-  /** for measuring times in GC - set in VM_Handshake.initiateCollection */
-  static double startTime;
-
+  
   static int[]  participantCount;    // array of size 1 to count arriving collector threads
 
   static VM_CollectorThread[] collectorThreads;   // maps processor id to assoicated collector thread
-  
-  // following used when RENDEZVOUS_TIMES is on
-  static int rendezvous1in[] = null;
-  static int rendezvous1out[] = null;
-  static int rendezvous2in[] = null;
-  static int rendezvous2out[] = null;
-  static int rendezvous3in[] = null;
-  static int rendezvous3out[] = null;
   
   static int collectionCount;             // number of collections
   
@@ -105,14 +94,6 @@ class VM_CollectorThread extends VM_Thread
 
     collectorThreads = new VM_CollectorThread[ 1 + VM_Scheduler.MAX_PROCESSORS ];
 
-    if (RENDEZVOUS_TIMES) {
-      rendezvous1in =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-      rendezvous1out =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-      rendezvous2in =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-      rendezvous2out =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-      rendezvous3in =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-      rendezvous3out =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-    }
   }
   
   /**
@@ -205,7 +186,7 @@ class VM_CollectorThread extends VM_Thread
       // record time it took to stop mutators on this processor and get this
       // collector thread dispatched
       //
-      if (MEASURE_WAIT_TIMES) stoppingTime = VM_Time.now() - startTime;
+      if (MEASURE_WAIT_TIMES) stoppingTime = VM_Time.now() - gcBarrier.rendezvousStartTime;
       
       gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, 0, 1) + 1;
       
@@ -245,7 +226,7 @@ class VM_CollectorThread extends VM_Thread
 	    //
 	    VM_Thread t = VM_Processor.nativeProcessors[i].activeThread;
 	    //	    t.contextRegisters.gprs[FRAME_POINTER] = t.jniEnv.JNITopJavaFP;
-	    t.contextRegisters.setInnermost( 0 /*ip*/, t.jniEnv.JNITopJavaFP );
+	    t.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, t.jniEnv.JNITopJavaFP );
 	  }
         }
 
@@ -256,23 +237,12 @@ class VM_CollectorThread extends VM_Thread
       }  // gcOrdinal==1
       //-#endif
 
-      /***
-      if (RENDEZVOUS_TIMES) {
-	mypid = VM_Processor.getCurrentProcessorId();
-	rendezvous1in[mypid] = (int)((VM_Time.now() - startTime)*1000000);
-	gcBarrier.rendezvous();     // wait for other collector threads to arrive here
-	rendezvous1out[mypid] = (int)((VM_Time.now() - startTime)*1000000);
-      }
-      else
-	gcBarrier.rendezvous();     // wait for other collector threads to arrive here
-      ***/
-
       // wait for other collector threads to arrive or be made non-participants
       gcBarrier.startupRendezvous();
 
       // record time it took for running collector thread to start GC
       //
-      if (MEASURE_WAIT_TIMES) startingTime = VM_Time.now() - startTime;
+      if (MEASURE_WAIT_TIMES) startingTime = VM_Time.now() - gcBarrier.rendezvousStartTime;
 
       // MOVE THIS INTO collect
       //
@@ -287,13 +257,8 @@ class VM_CollectorThread extends VM_Thread
       }
       if (trace) VM_Scheduler.trace("VM_CollectorThread", "finished collection");
       
-      if (RENDEZVOUS_TIMES) {
-	rendezvous2in[mypid] = (int)((VM_Time.now() - startTime)*1000000);
-	gcBarrier.rendezvous();              // wait for other collector threads to arrive here
-	rendezvous2out[mypid] = (int)((VM_Time.now() - startTime)*1000000);
-      }
-      else
-	gcBarrier.rendezvous();              // wait for other collector threads to arrive here
+      // wait for other collector threads to arrive here
+      rendezvousWaitTime += gcBarrier.rendezvous(RENDEZVOUS_TIMES);  
       
       // Wake up mutators waiting for this gc cycle and create new collection
       // handshake object to be used for next gc cycle.
@@ -319,19 +284,12 @@ class VM_CollectorThread extends VM_Thread
 	// VM_Finalizer.schedule();
       } 
       
+      // wait for other collector threads to arrive here
+      rendezvousWaitTime += gcBarrier.rendezvous(RENDEZVOUS_TIMES);  
       if (RENDEZVOUS_TIMES) {
-	rendezvous3in[mypid] = (int)((VM_Time.now() - startTime)*1000000);
-	gcBarrier.rendezvous();     // wait for other collector threads to arrive here
-	rendezvous3out[mypid] = (int)((VM_Time.now() - startTime)*1000000);
-      }
-      else
-	gcBarrier.rendezvous();     // wait for other collector threads to arrive here
-      
-      if (RENDEZVOUS_TIMES) {
-	// need extra barrier call to let all processors set rendezvouz3out time
-	gcBarrier.rendezvous();         
-	if (VM_Processor.getCurrentProcessorId() == 1)
-	  printRendezvousTimes();
+	  gcBarrier.rendezvous(false);  	  // need extra barrier call to let all processors set prev rendezvouz time
+	  if (VM_Processor.getCurrentProcessorId() == 1)
+	      gcBarrier.printRendezvousTimes();
       }
       
       // final cleanup for initial collector thread
@@ -450,7 +408,7 @@ class VM_CollectorThread extends VM_Thread
 	  // set running threads context regs ip & fp to where scan of threads 
 	  // stack should start.
 	  VM_Thread at = vp.activeThread;
-	  at.contextRegisters.setInnermost( 0 /*ip*/, at.jniEnv.JNITopJavaFP );
+	  at.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, at.jniEnv.JNITopJavaFP );
 	  break;
 	}
 	
@@ -570,26 +528,20 @@ class VM_CollectorThread extends VM_Thread
   //
   
   /** start of current work queue put buffer */
-  int putBufferStart;
+  VM_Address putBufferStart;
   /** current position in current work queue put buffer */
-  int putBufferTop;
+  VM_Address putBufferTop;
   /** start of current work queue get buffer */
-  int getBufferStart;
+  VM_Address getBufferStart;
   /** current position in current work queue get buffer */
-  int getBufferTop;
+  VM_Address getBufferTop;
   /** end of current work queue get buffer */
-  int getBufferEnd;
+  VM_Address getBufferEnd;
   /** extra Work Queue Buffer */
-  int extraBuffer;
+  VM_Address extraBuffer;
   /** second extra Work Queue Buffer */
-  int extraBuffer2;
+  VM_Address extraBuffer2;
   
-  // for statistics
-  //
-  int localcount1;            // copyCount
-  int localcount2;            // biggestByteCountCopied
-  int localcount3;            // markBootCount
-
   int timeInRendezvous;       // time waiting in rendezvous (milliseconds)
   
   double stoppingTime;        // mutator stopping time - until enter Rendezvous 1
@@ -640,37 +592,13 @@ class VM_CollectorThread extends VM_Thread
   
   // Record number of processors that will be participating in gc synchronization.
   //
-  static void 
-    boot(int numProcessors) {
+  static void boot(int numProcessors) {
     VM_Allocator.gcSetup(numProcessors);
   }
   
-  static void
-    printRendezvousTimes() {
-    VM.sysWrite("* * * * * * * * * * * * * *\n");
-    VM.sysWrite("COLLECTOR THREAD RENDEZVOUS entrance & exit times (microsecs) rendevous 1, 2 & 3\n");
-    
-    for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-      VM.sysWrite(i,false);
-      VM.sysWrite(" R1 in ");
-      VM.sysWrite(rendezvous1in[i],false);
-      VM.sysWrite(" out ");
-      VM.sysWrite(rendezvous1out[i],false);
-      VM.sysWrite(" R2 in ");
-      VM.sysWrite(rendezvous2in[i],false);
-      VM.sysWrite(" out ");
-      VM.sysWrite(rendezvous2out[i],false);
-      VM.sysWrite(" R3 in ");
-      VM.sysWrite(rendezvous3in[i],false);
-      VM.sysWrite(" out ");
-      VM.sysWrite(rendezvous3out[i],false);
-      VM.sysWrite("\n");
-    }
-    VM.sysWrite("* * * * * * * * * * * * * *\n");
-  }
 
-  void
-  incrementWaitTimeTotals() {
+
+  void incrementWaitTimeTotals() {
     totalBufferWait += bufferWaitTime + bufferWaitTime1;
     totalFinishWait += finishWaitTime + finishWaitTime1;
     totalRendezvousWait += rendezvousWaitTime;

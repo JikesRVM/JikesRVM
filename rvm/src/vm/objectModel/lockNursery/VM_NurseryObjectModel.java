@@ -135,8 +135,8 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
    * Given a reference, return an address which is guaranteed to be inside
    * the memory region allocated to the object.
    */
-  public static ADDRESS getPointerInMemoryRegion(ADDRESS ref) {
-    return ref + TIB_OFFSET;
+  public static VM_Address getPointerInMemoryRegion(VM_Address ref) {
+    return ref.add(TIB_OFFSET);
   }
 
   /**
@@ -145,9 +145,9 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
    */
-  public static Object initializeScalarHeader(int ptr, Object[] tib, int size) {
+  public static Object initializeScalarHeader(VM_Address ptr, Object[] tib, int size) {
     // (TIB set by VM_ObjectModel)
-    return VM_Magic.addressAsObject(ptr + size + SCALAR_PADDING_BYTES);
+    return VM_Magic.addressAsObject(ptr.add(size + SCALAR_PADDING_BYTES));
   }
 
   /**
@@ -168,9 +168,9 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
    */
-  public static Object initializeArrayHeader(int ptr, Object[] tib, int size) {
+  public static Object initializeArrayHeader(VM_Address ptr, Object[] tib, int size) {
     // (TIB and array length set by VM_ObjectModel)
-    return VM_Magic.addressAsObject(ptr + ARRAY_HEADER_SIZE);
+    return VM_Magic.addressAsObject(ptr.add(ARRAY_HEADER_SIZE));
   }
 
   /**
@@ -180,7 +180,7 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
    */
-  public static int initializeArrayHeader(BootImageInterface bootImage, int ptr, 
+  public static int initializeArrayHeader(BootImageInterface bootImage ,int ptr, 
 					   Object[] tib, int size) {
     // (TIB set by BootImageWriter2; array length set by VM_ObjectModel)
     return ptr + ARRAY_HEADER_SIZE;
@@ -191,8 +191,8 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
    */
   public static void initializeScalarClone(Object cloneDst, Object cloneSrc, int size) {
     int cnt = size - SCALAR_HEADER_SIZE;
-    int dst = VM_Magic.objectAsAddress(cloneDst) - (size + SCALAR_PADDING_BYTES);
-    int src = VM_Magic.objectAsAddress(cloneSrc) - (size + SCALAR_PADDING_BYTES);
+    VM_Address dst = VM_Magic.objectAsAddress(cloneDst).sub(size + SCALAR_PADDING_BYTES);
+    VM_Address src = VM_Magic.objectAsAddress(cloneSrc).sub(size + SCALAR_PADDING_BYTES);
     VM_Memory.aligned32Copy(dst, src, cnt); 
   }
 
@@ -201,8 +201,8 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
    */
   public static void initializeArrayClone(Object cloneDst, Object cloneSrc, int size) {
     int cnt = size - ARRAY_HEADER_SIZE;
-    int dst = VM_Magic.objectAsAddress(cloneDst);
-    int src = VM_Magic.objectAsAddress(cloneSrc);
+    VM_Address dst = VM_Magic.objectAsAddress(cloneDst);
+    VM_Address src = VM_Magic.objectAsAddress(cloneSrc);
     VM_Memory.aligned32Copy(dst, src, cnt);
   }
   
@@ -224,16 +224,16 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
    * Given the smallest base address in a region, return the smallest
    * object reference that could refer to an object in the region.
    */
-  public static int minimumObjectRef (int regionBaseAddr) {
-    return regionBaseAddr + ARRAY_HEADER_SIZE;
+  public static VM_Address minimumObjectRef (VM_Address regionBaseAddr) {
+    return regionBaseAddr.add(ARRAY_HEADER_SIZE);
   }
 
   /**
    * Given the largest base address in a region, return the largest
    * object reference that could refer to an object in the region.
    */
-  public static int maximumObjectRef (int regionHighAddr) {
-    return regionHighAddr + SCALAR_PADDING_BYTES;
+  public static VM_Address maximumObjectRef (VM_Address regionHighAddr) {
+    return regionHighAddr.add(SCALAR_PADDING_BYTES);
   }
 
   /**
@@ -258,7 +258,7 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
     if (VM_Collector.MOVES_OBJECTS) {
       int hashState = VM_Magic.getIntAtOffset(o, TIB_OFFSET) & HASH_STATE_MASK;
       if (hashState == HASH_STATE_HASHED) {
-	return VM_Magic.objectAsAddress(o) >>> 2;
+	return VM_Magic.objectAsAddress(o).toInt() >>> 2;
       } else if (hashState == HASH_STATE_HASHED_AND_MOVED) {
 	VM_Type t = VM_Magic.getObjectType(o);
 	if (t.isArrayType()) {
@@ -275,7 +275,7 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
 	return getObjectHashCode(o);
       }
     } else {
-      return VM_Magic.objectAsAddress(o) >>> 2;
+      return VM_Magic.objectAsAddress(o).toInt() >>> 2;
     }
   }
 
@@ -306,28 +306,28 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
   /**
    * Copy an object to the given raw storage address
    */
-  public static Object moveObject(ADDRESS toAddress, Object fromObj, int numBytes, 
+  public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
 				  VM_Class type, Object[] tib, int tibWord) {
     int hashState = tibWord & HASH_STATE_MASK;
     if (hashState == HASH_STATE_UNHASHED) {
-      int fromAddress = VM_Magic.objectAsAddress(fromObj) - numBytes - SCALAR_PADDING_BYTES;
+      VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(numBytes + SCALAR_PADDING_BYTES);
       VM_Memory.aligned32Copy(toAddress, fromAddress, numBytes); 
-      Object toObj = VM_Magic.addressAsObject(toAddress +  numBytes + SCALAR_PADDING_BYTES);
+      Object toObj = VM_Magic.addressAsObject(toAddress.add(numBytes + SCALAR_PADDING_BYTES));
       VM_Magic.setIntAtOffset(toObj, TIB_OFFSET, tibWord);
       return toObj;
     } else if (hashState == HASH_STATE_HASHED) {
       int data = numBytes - HASHCODE_BYTES;
-      int fromAddress = VM_Magic.objectAsAddress(fromObj) - data - SCALAR_PADDING_BYTES;
+      VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(data + SCALAR_PADDING_BYTES);
       VM_Memory.aligned32Copy(toAddress, fromAddress, data); 
-      Object toObj = VM_Magic.addressAsObject(toAddress + data + SCALAR_PADDING_BYTES);
-      VM_Magic.setIntAtOffset(toObj, HASHCODE_SCALAR_OFFSET, VM_Magic.objectAsAddress(fromObj));
+      Object toObj = VM_Magic.addressAsObject(toAddress.add(data + SCALAR_PADDING_BYTES));
+      VM_Magic.setIntAtOffset(toObj, HASHCODE_SCALAR_OFFSET, VM_Magic.objectAsAddress(fromObj).toInt());
       VM_Magic.setIntAtOffset(toObj, TIB_OFFSET, tibWord | HASH_STATE_HASHED_AND_MOVED);
       if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition2++;
       return toObj;
     } else { // HASHED_AND_MOVED; 'phanton word' contains hash code.
-      int fromAddress = VM_Magic.objectAsAddress(fromObj) - numBytes + HASHCODE_BYTES - SCALAR_PADDING_BYTES;
+      VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(numBytes - HASHCODE_BYTES + SCALAR_PADDING_BYTES);
       VM_Memory.aligned32Copy(toAddress, fromAddress, numBytes); 
-      Object toObj = VM_Magic.addressAsObject(toAddress + numBytes - HASHCODE_BYTES + SCALAR_PADDING_BYTES);
+      Object toObj = VM_Magic.addressAsObject(toAddress.add(numBytes - HASHCODE_BYTES + SCALAR_PADDING_BYTES));
       VM_Magic.setIntAtOffset(toObj, TIB_OFFSET, tibWord);
       return toObj;
     }
@@ -336,27 +336,27 @@ public class VM_NurseryObjectModel implements VM_Uninterruptible,
   /**
    * Copy an object to the given raw storage address
    */
-  public static Object moveObject(ADDRESS toAddress, Object fromObj, int numBytes, 
+  public static Object moveObject(VM_Address toAddress, Object fromObj, int numBytes, 
 				  VM_Array type, Object[] tib, int tibWord) {
     int hashState = tibWord & HASH_STATE_MASK;
     if (hashState == HASH_STATE_UNHASHED) {
-      int fromAddress = VM_Magic.objectAsAddress(fromObj) - ARRAY_HEADER_SIZE;
+      VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(ARRAY_HEADER_SIZE);
       VM_Memory.aligned32Copy(toAddress, fromAddress, numBytes); 
-      Object toObj = VM_Magic.addressAsObject(toAddress + ARRAY_HEADER_SIZE);
+      Object toObj = VM_Magic.addressAsObject(toAddress.add(ARRAY_HEADER_SIZE));
       VM_Magic.setIntAtOffset(toObj, TIB_OFFSET, tibWord);
       return toObj;
     } else if (hashState == HASH_STATE_HASHED) {
-      int fromAddress = VM_Magic.objectAsAddress(fromObj) - ARRAY_HEADER_SIZE;
-      VM_Memory.aligned32Copy(toAddress + HASHCODE_BYTES, fromAddress, numBytes - HASHCODE_BYTES); 
-      Object toObj = VM_Magic.addressAsObject(toAddress + ARRAY_HEADER_SIZE + HASHCODE_BYTES);
-      VM_Magic.setIntAtOffset(toObj, HASHCODE_ARRAY_OFFSET, VM_Magic.objectAsAddress(fromObj));
+      VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(ARRAY_HEADER_SIZE);
+      VM_Memory.aligned32Copy(toAddress.add(HASHCODE_BYTES), fromAddress, numBytes - HASHCODE_BYTES); 
+      Object toObj = VM_Magic.addressAsObject(toAddress.add(ARRAY_HEADER_SIZE + HASHCODE_BYTES));
+      VM_Magic.setIntAtOffset(toObj, HASHCODE_ARRAY_OFFSET, VM_Magic.objectAsAddress(fromObj).toInt());
       VM_Magic.setIntAtOffset(toObj, TIB_OFFSET, tibWord | HASH_STATE_HASHED_AND_MOVED);
       if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition2++;
       return toObj;
     } else { // HASHED_AND_MOVED: hash code to 'left' of array header
-      int fromAddress = VM_Magic.objectAsAddress(fromObj) - ARRAY_HEADER_SIZE - HASHCODE_BYTES;
+      VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(ARRAY_HEADER_SIZE + HASHCODE_BYTES);
       VM_Memory.aligned32Copy(toAddress, fromAddress, numBytes); 
-      Object toObj = VM_Magic.addressAsObject(toAddress + ARRAY_HEADER_SIZE + HASHCODE_BYTES);
+      Object toObj = VM_Magic.addressAsObject(toAddress.add(ARRAY_HEADER_SIZE + HASHCODE_BYTES));
       VM_Magic.setIntAtOffset(toObj, TIB_OFFSET, tibWord);
       return toObj;
     }

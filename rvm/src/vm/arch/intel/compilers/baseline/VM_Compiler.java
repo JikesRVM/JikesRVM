@@ -2149,6 +2149,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "invokevirtual " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ")");
+          if (methodRef.getDeclaringClass().isAddressType()) {
+	      genMagic(methodRef);
+	      break;
+          } 
 	boolean classPreresolved = false;
 	VM_Class methodRefClass = methodRef.getDeclaringClass();
 	if (methodRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
@@ -2224,7 +2228,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "invokestatic " + VM_Lister.decimal(constantPoolIndex) + " (" + methodRef + ")");
-	if (methodRef.getDeclaringClass().isMagicType()) {
+	if (methodRef.getDeclaringClass().isMagicType() ||
+	    methodRef.getDeclaringClass().isAddressType()) {
 	  genMagic(methodRef);
 	  break;
 	}
@@ -3319,6 +3324,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
      * This to be invoked from baseline code only.
      */
     if (methodName == VM_MagicNames.sysCallSigWait) {
+
       int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
       int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
       int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
@@ -3491,8 +3497,21 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPUSH_RegInd(T0); // pushes [T0+0]
       return;
     }
+
+    if (methodName == VM_MagicNames.getMemoryAddress) {
+      asm.emitPOP_Reg(T0);	// address
+      asm.emitPUSH_RegInd(T0); // pushes [T0+0]
+      return;
+    }
     
     if (methodName == VM_MagicNames.setMemoryWord) {
+      asm.emitPOP_Reg(T0);  // value
+      asm.emitPOP_Reg(S0);  // address
+      asm.emitMOV_RegInd_Reg(S0,T0); // [S0+0] <- T0
+      return;
+    }
+
+    if (methodName == VM_MagicNames.setMemoryAddress) {
       asm.emitPOP_Reg(T0);  // value
       asm.emitPOP_Reg(S0);  // address
       asm.emitMOV_RegInd_Reg(S0,T0); // [S0+0] <- T0
@@ -3689,10 +3708,84 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitMOV_RegInd_Imm(SP, 0);  // TEMP!! for now, return 0
       return;
     }
-    
+
+
+    if (methodName == VM_MagicNames.addressFromInt ||
+	methodName == VM_MagicNames.addressToInt) {
+	// no-op
+	return;
+    }
+
+    if (methodName == VM_MagicNames.addressAdd) {
+	asm.emitPOP_Reg(T0);
+	asm.emitADD_RegInd_Reg(SP, T0);
+	return;
+    }
+
+    if (methodName == VM_MagicNames.addressSub ||
+	methodName == VM_MagicNames.addressDiff) {
+	asm.emitPOP_Reg(T0);
+	asm.emitSUB_RegInd_Reg(SP, T0);
+	return;
+    }
+
+    if (methodName == VM_MagicNames.addressZero) {
+	asm.emitPUSH_Imm(0);
+	return;
+    }
+
+    if (methodName == VM_MagicNames.addressMax) {
+	asm.emitPUSH_Imm(-1);
+	return;
+    }
+
+    if (methodName == VM_MagicNames.addressLT) {
+	generateAddrComparison(asm.LT);
+	return;
+    }
+    if (methodName == VM_MagicNames.addressLE) {
+	generateAddrComparison(asm.LE);
+	return;
+    }
+    if (methodName == VM_MagicNames.addressGT) {
+	generateAddrComparison(asm.GT);
+	return;
+    }
+    if (methodName == VM_MagicNames.addressGE) {
+	generateAddrComparison(asm.GE);
+	return;
+    }
+    if (methodName == VM_MagicNames.addressEQ) {
+	generateAddrComparison(asm.EQ);
+	return;
+    }
+    if (methodName == VM_MagicNames.addressNE) {
+	generateAddrComparison(asm.NE);
+	return;
+    }
+    if (methodName == VM_MagicNames.addressIsZero) {
+	asm.emitPUSH_Imm(0);
+	generateAddrComparison(asm.EQ);
+	return;
+    }
+    if (methodName == VM_MagicNames.addressIsMax) {
+	asm.emitPUSH_Imm(-1);
+	generateAddrComparison(asm.EQ);
+	return;
+    }
+						     
     VM.sysWrite("WARNING: VM_Compiler compiling unimplemented magic: " + methodName + " in " + method + "\n");
     asm.emitINT_Imm(0xFF); // trap
     
+  }
+
+  void generateAddrComparison(byte comparator) {
+      asm.emitPOP_Reg(S0);
+      asm.emitPOP_Reg(T0);
+      asm.emitCMP_Reg_Reg(T0, S0);
+      asm.emitSET_Cond_Reg_Byte(comparator, T0);
+      asm.emitMOVZX_Reg_Reg_Byte(T0, T0);   // Clear upper 3 bytes
+      asm.emitPUSH_Reg(T0);
   }
 
   // Offset of Java local variable (off stack pointer)

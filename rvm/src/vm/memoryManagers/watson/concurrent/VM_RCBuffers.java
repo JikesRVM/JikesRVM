@@ -76,14 +76,10 @@ public class VM_RCBuffers
 	//   processor at startup that are never freed, and the rest dynamically as needed: if they block, will
 	//   force a synchronous collection anyway.
 
-	if ((p.incDecBuffer = VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-						INCDEC_BUFFER_SIZE)) == 0) {
-	    VM.sysWrite(" In VM_RCBuffers.allocateIncDecBuffer, call to sysMalloc returned 0\n");
-	    VM.sysExit(1800);
-	}
-	VM_Magic.setMemoryWord(p.incDecBuffer + INCDEC_BUFFER_NEXT_OFFSET, 0);
-	p.incDecBufferTop = p.incDecBuffer + INCDEC_BUFFER_FIRST_OFFSET;
-	p.incDecBufferMax = p.incDecBuffer + INCDEC_BUFFER_LAST_OFFSET;
+	p.incDecBuffer = VM_Allocator.mallocHeap.allocate(INCDEC_BUFFER_SIZE);
+	VM_Magic.setMemoryWord(p.incDecBuffer.add(INCDEC_BUFFER_NEXT_OFFSET), 0);
+	p.incDecBufferTop = p.incDecBuffer.add(INCDEC_BUFFER_FIRST_OFFSET);
+	p.incDecBufferMax = p.incDecBuffer.add(INCDEC_BUFFER_LAST_OFFSET);
 	if (COUNT_BUFFERS) {
 	    buffersUsed++;
 	    if (buffersUsed > maxBuffersUsed) maxBuffersUsed = buffersUsed;
@@ -92,18 +88,17 @@ public class VM_RCBuffers
 
     static void	growIncDecBuffer(VM_Processor p)
     {
-	int newBufAddr;
+	VM_Address newBufAddr;
 
-	if ((newBufAddr = VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-					    INCDEC_BUFFER_SIZE)) == 0) {
-
+	newBufAddr = VM_Allocator.mallocHeap.allocate(INCDEC_BUFFER_SIZE);
+	if (newBufAddr.isZero()) {
 	    if (!VM_Thread.getCurrentThread().isIdleThread) {
 		VM_Scheduler.gcWaitMutex.lock();
 		VM_Thread.getCurrentThread().yield(VM_Scheduler.gcWaitQueue, VM_Scheduler.gcWaitMutex);
 	    }
 
-	    if ((newBufAddr = VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-						INCDEC_BUFFER_SIZE)) == 0) {
+	    newBufAddr = VM_Allocator.mallocHeap.allocate(INCDEC_BUFFER_SIZE);
+	    if (newBufAddr.isZero()) {
 		VM_Scheduler.traceback("VM_RCBuffer::growIncDecBuffer");
 		VM.sysExit(1800);
 	    }
@@ -112,17 +107,16 @@ public class VM_RCBuffers
 
 	// VM_Scheduler.trace("growIncDecBuffer" , "incDecDepth = ", ++incDecDepth);
 
-
 	// if extra word left in buffer, set it to zero
-	if (p.incDecBufferTop == p.incDecBufferMax)
-	    VM_Magic.setMemoryWord(p.incDecBufferTop + 4, 0);
+	if (p.incDecBufferTop.EQ(p.incDecBufferMax))
+	    VM_Magic.setMemoryWord(p.incDecBufferTop.add(4), 0);
 	// set last word in current buffer to address of next buffer
-	VM_Magic.setMemoryWord(p.incDecBufferMax + INCDEC_BUFFER_ENTRY_SIZE, newBufAddr);
+	VM_Magic.setMemoryAddress(p.incDecBufferMax.add(INCDEC_BUFFER_ENTRY_SIZE), newBufAddr);
 	// set fptr in new buffer to null, to identify it as last
-	VM_Magic.setMemoryWord(newBufAddr + INCDEC_BUFFER_NEXT_OFFSET, 0);
+	VM_Magic.setMemoryWord(newBufAddr.add(INCDEC_BUFFER_NEXT_OFFSET), 0);
 	// set incDecBuffer pointers in processor object for stores into new buffer
-	p.incDecBufferTop = newBufAddr + INCDEC_BUFFER_FIRST_OFFSET;
-	p.incDecBufferMax = newBufAddr + INCDEC_BUFFER_LAST_OFFSET;
+	p.incDecBufferTop = newBufAddr.add(INCDEC_BUFFER_FIRST_OFFSET);
+	p.incDecBufferMax = newBufAddr.add(INCDEC_BUFFER_LAST_OFFSET);
 	if (COUNT_BUFFERS) {
 	    buffersUsed++;
 	    if (buffersUsed > maxBuffersUsed) maxBuffersUsed = buffersUsed;
@@ -131,29 +125,29 @@ public class VM_RCBuffers
 
 
     // add a single entry to the mutation buffer
-    static void addEntry(int entry, VM_Processor p) 
+    static void addEntry(VM_Address entry, VM_Processor p) 
     {
-	p.incDecBufferTop += 4;
-	VM_Magic.setMemoryWord(p.incDecBufferTop, entry); 
+	p.incDecBufferTop = p.incDecBufferTop.add(4);
+	VM_Magic.setMemoryAddress(p.incDecBufferTop, entry); 
 
 	// Check for overflow and expand if necessary
 	
-	if (p.incDecBufferTop >= p.incDecBufferMax) 
+	if (p.incDecBufferTop.GE( p.incDecBufferMax) )
 	    growIncDecBuffer(p);
     }
 
 
     // adds a reference as a decrement in incDecBuffer
-    static void	addDecrement(int object, VM_Processor p)
+    static void	addDecrement(VM_Address object, VM_Processor p)
     {
-	if (object != 0)
-	    addEntry(object | DECREMENT_FLAG, p);
+	if (!object.isZero())
+	    addEntry(VM_Address.fromInt(object.toInt() | DECREMENT_FLAG), p);
     }
 
     // adds a reference as an increment in incDecBuffer
-    static void	addIncrement(int object, VM_Processor p)
+    static void	addIncrement(VM_Address object, VM_Processor p)
     {
-	if (object != 0)
+	if (!object.isZero())
 	    addEntry(object, p);
     }
 
@@ -163,7 +157,7 @@ public class VM_RCBuffers
     // all of these TIB updates, so there is an option to leave them out.  As long as classes
     // are never unloaded, this should be OK.  Issue will have to be revisited later.
     //
-    static void addTibIncAndObjectDec(int tibobject, int newobject, VM_Processor p)
+    static void addTibIncAndObjectDec(VM_Address tibobject, VM_Address newobject, VM_Processor p)
     {
 	if (VM_RCBuffers.referenceCountTIBs)
 	    addIncrementAndDecrement(tibobject, newobject, p);
@@ -173,36 +167,37 @@ public class VM_RCBuffers
 
     // adds a <increment,decrement> pair of references to processors buffer
     //   note: buffer is designed so that it is always possible to write to entries with only one overflow check.
-    static void	addIncrementAndDecrement(int incrementRef, int decrementRef, VM_Processor p)
+    static void	addIncrementAndDecrement(VM_Address incrementRef, VM_Address decrementRef, VM_Processor p)
     {
 	// Write increment to buffer
 
-	if (incrementRef != 0) {
-	    p.incDecBufferTop += 4;
-	    VM_Magic.setMemoryWord(p.incDecBufferTop, incrementRef);  
+	if (!incrementRef.isZero()) {
+	    p.incDecBufferTop = p.incDecBufferTop.add(4);
+	    VM_Magic.setMemoryAddress(p.incDecBufferTop, incrementRef);  
 	}
 
 	// Write decrement to buffer 
 
-	if (decrementRef != 0) {
-	    p.incDecBufferTop += 4;
-	    VM_Magic.setMemoryWord(p.incDecBufferTop, decrementRef | DECREMENT_FLAG); 
+	if (!decrementRef.isZero()) {
+	    p.incDecBufferTop = p.incDecBufferTop.add(4);
+	    VM_Magic.setMemoryWord(p.incDecBufferTop, decrementRef.toInt() | DECREMENT_FLAG); 
 	}
 
 	// Check for overflow and expand if necessary
 	
-	if (p.incDecBufferTop >= p.incDecBufferMax) {
+	if (p.incDecBufferTop.GE(p.incDecBufferMax)) {
 	    growIncDecBuffer(p);
 	}
     }
 
 
-    static void	freeIncDecBuffer(int addr)
+    static void	freeIncDecBuffer(VM_Address addr)
     {
 	VM.assert(false);	// not used -- bufs freed incrementally in processMutationBuffer
 
-	for (int buf = addr, nextbuf = 0; buf != 0; buf = nextbuf) {
-	    nextbuf = VM_Magic.getMemoryWord(buf + INCDEC_BUFFER_NEXT_OFFSET);
+	for (VM_Address buf = addr, nextbuf = VM_Address.zero(); !buf.isZero(); buf = nextbuf) {
+
+	    nextbuf = VM_Magic.getMemoryAddress(buf.add(INCDEC_BUFFER_NEXT_OFFSET));
 
 	    freeBuffer(buf);
 
@@ -213,8 +208,8 @@ public class VM_RCBuffers
 	//   Removed it, but check if it had some purpose.
     }
 
-    static void freeBuffer (int buf) {
-	VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, buf);
+    static void freeBuffer (VM_Address buf) {
+	VM_Allocator.mallocHeap.free(buf);
 	if (COUNT_BUFFERS) buffersUsed--;
     }
 }

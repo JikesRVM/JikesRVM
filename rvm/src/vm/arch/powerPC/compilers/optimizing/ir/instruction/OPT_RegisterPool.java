@@ -44,7 +44,7 @@ class OPT_RegisterPool extends OPT_GenericRegisterPool {
    * @return the temp
    */ 
   public OPT_RegisterOperand makeJTOCOp(OPT_IR ir, OPT_Instruction s) {
-    return new OPT_RegisterOperand(getJTOC(),VM_Type.IntType);
+    return new OPT_RegisterOperand(getJTOC(),VM_Type.AddressType);
   }
 
   /**

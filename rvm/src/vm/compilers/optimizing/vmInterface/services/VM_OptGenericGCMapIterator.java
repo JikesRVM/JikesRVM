@@ -40,7 +40,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * This caches the spill location, so that we can check for missed refs
    * hiding in spills
    */
-  private int spillLoc;
+  private VM_Address spillLoc;
 
   /**
    * just used for debugging, all output statements use VM.syswrite
@@ -74,7 +74,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * @param framePtr the current frame pointer
    */
   public void setupIterator(VM_CompiledMethod compiledMethod, 
-			    int instructionOffset, int framePtr) {
+			    int instructionOffset, VM_Address framePtr) {
     if (DEBUG) {
       VM.sysWrite("\n\t   ==========================\n");
       VM.sysWrite("Reference map request made");
@@ -133,7 +133,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * Returns the next address that contains a reference
    * @return the value of the next reference
    */
-  public int getNextReferenceAddress() {
+  public VM_Address getNextReferenceAddress() {
     if (DEBUG) {   VM.sysWrite("  next => ");    }
 
     // make sure we have a map entry to look at 
@@ -147,7 +147,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 
       // make sure we update the registerLocations before returning!
       updateLocateRegisters();
-      return 0;
+      return VM_Address.zero();
     }
 
     // Have we gone through all the registers yet?
@@ -164,9 +164,9 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 
       // If we found a register, return the value
       if (currentRegisterIsValid()) {
-        int regLocation;
+        VM_Address regLocation;
         // currentRegister contains a reference, return that location
-        regLocation = registerLocations[getCurrentRegister()];
+        regLocation = VM_Address.fromInt(registerLocations[getCurrentRegister()]);
 	if (DEBUG) {
           VM.sysWrite(" *** Ref found in reg#");
           VM.sysWrite(getCurrentRegister());
@@ -194,13 +194,13 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       }
 
       if (lookForMissedReferencesInSpills) {
-	if (spillLoc == 0) {
+	if (spillLoc.isZero()) {
 	  // Didn't have any refs in spill locations, so we should
 	  // check for spills among the whole spill area
-	  checkForMissedSpills(0, 0);
+	  checkForMissedSpills(VM_Address.zero(), VM_Address.zero());
 	} else {
 	  // check for spills after the last one we saw
-	  checkForMissedSpills(spillLoc, 0);
+	  checkForMissedSpills(spillLoc, VM_Address.zero());
 	}
       }
 
@@ -208,11 +208,11 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       //   so now we must update the LocateRegister array for the next
       //   stack frame
       updateLocateRegisters();
-      return 0;
+      return VM_Address.zero();
     } else {
       // Determine the spill location given the frame ptr and spill offset.
       // (The location of spills varies among architectures.)
-      int newSpillLoc = getStackLocation(framePtr, 
+      VM_Address newSpillLoc = getStackLocation(framePtr, 
 					 map.gcMapInformation(mapIndex));
 
       if (DEBUG) {
@@ -241,13 +241,13 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    *  code moves.)
    * @return the next code pointer or 0 if no more exist
    */
-  public int getNextReturnAddressAddress() {
+  public VM_Address getNextReturnAddressAddress() {
     // Since the Opt compiler inlines JSRs, this method will always return 0
     //  signaling the end of the list of such pointers.
     if (DEBUG) {
       VM.sysWrite("\t\t getNextReturnAddressOffset returning 0\n");
     }
-    return 0;
+    return VM_Address.zero();
   }
 
   /**
@@ -274,7 +274,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    */
   public void reset() {
     currentRegister = FIRST_GCMAP_REG;
-    spillLoc = 0;
+    spillLoc = VM_Address.zero();
   }
 
   /**
@@ -315,7 +315,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    *  @param offset  the offset 
    *  @return the resulting stack location
    */
-  abstract int getStackLocation(int framePtr, int offset);
+  abstract VM_Address getStackLocation(VM_Address framePtr, int offset);
 
   /** 
    *  Get address of the first spill location for the given frame ptr
@@ -323,7 +323,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    *  @param the frame pointer
    *  @return the first spill location
    */
-  abstract int getFirstSpillLoc();
+  abstract VM_Address getFirstSpillLoc();
 
   /** 
    *  Get address of the last spill location for the given frame ptr
@@ -331,7 +331,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    *  @param the frame pointer
    *  @return the last spill location
    */
-  abstract int getLastSpillLoc();
+  abstract VM_Address getLastSpillLoc();
 
   /**
    * This method inspects the "current" register for values that look like refs.
@@ -368,12 +368,15 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    */
  void checkRegistersForMissedReferences(int firstReg, int lastReg) {
     for (int i = firstReg; i <= lastReg; i++) {
-      int regLocation = registerLocations[i];
-      if (VM_GCUtil.inRange(i)) {
+      VM_Address regLocation = VM_Address.fromInt(registerLocations[i]);
+      int regValue = VM_Magic.getMemoryWord(regLocation);
+      if (VM_GCUtil.refInVM(VM_Address.fromInt(regValue))) {
         VM.sysWrite("  reg#");
         VM.sysWrite(getCurrentRegister());
-        VM.sysWrite(" contains a suspicious value ==>");
+        VM.sysWrite(", location ==>");
         VM.sysWrite(regLocation);
+        VM.sysWrite(", suspicious value ==>");
+        VM.sysWrite(regValue);
         VM.sysWrite("\n");
       }
     }
@@ -387,8 +390,8 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
    * @param old the last spill found as a reference
    * @param new the next spill found as a reference
    */
-  void checkForMissedSpills(int ref1, int ref2) {
-    if (ref1 == 0) {
+  void checkForMissedSpills(VM_Address ref1, VM_Address ref2) {
+    if (ref1.isZero()) {
       // Search from start of spill area
       ref1 = getFirstSpillLoc();
       if (DEBUG) {
@@ -398,7 +401,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       }
     } 
 
-    if (ref2 == 0) {
+    if (ref2.isZero()) {
       // Search up to end of spill area
       ref2 = getLastSpillLoc();
       if (DEBUG) {
@@ -410,14 +413,14 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 
     // since different archs will have the relative order of ref1, ref2
     // differently, we normalize them by ensuring that ref1 < ref2; 
-    if (ref1 > ref2) {
-      int tmp = ref1;
+    if (ref1.GT(ref2)) {
+      VM_Address tmp = ref1;
       ref1 =ref2;
       ref2 = ref1;
     }
 
-    for (int i = ref1 + 4; i < ref2; i = i + 4) {
-      int ptr = VM_Magic.getMemoryWord(i);
+    for (VM_Address i = ref1.add(4); i.LT(ref2); i = i.add(4)) {
+      VM_Address ptr = VM_Magic.getMemoryAddress(i);
       if (DEBUG) {
 	VM.sysWrite(" Inspecting Spill: ");
 	VM.sysWrite(i);
@@ -426,7 +429,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 	VM.sysWrite("\n");
       }
 
-      if (VM_GCUtil.inRange(ptr)) {
+      if (VM_GCUtil.refInVM(ptr)) {
 	VM.sysWrite("  spill location:");
 	VM.sysWrite(i);
 	VM.sysWrite(" contains a suspicious value ==>");

@@ -169,7 +169,7 @@ public class VM_Reflection implements VM_Constants {
   public static long   unwrapLong(Object o)   { VM_Magic.pragmaNoInline(); return ((Long)      o).longValue();    }
   public static float  unwrapFloat(Object o)  { VM_Magic.pragmaNoInline(); return ((Float)     o).floatValue();   }
   public static double unwrapDouble(Object o) { VM_Magic.pragmaNoInline(); return ((Double)    o).doubleValue();  }
-  public static int    unwrapObject(Object o) { VM_Magic.pragmaNoInline(); return VM_Magic.objectAsAddress(o);    }
+  public static int    unwrapObject(Object o) { VM_Magic.pragmaNoInline(); return VM_Magic.objectAsAddress(o).toInt();    }
 
   //----------------//
   // implementation //

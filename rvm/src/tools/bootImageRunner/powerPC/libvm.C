@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <strings.h> // bzero ()
+#include <assert.h>
 
 #ifdef __linux__
 #include <pthread.h>
@@ -95,12 +96,6 @@ int startupRegs[4];
 //
 int FatalErrors = 0;
 
-// Boundaries of memory region(s) in which virtual machine image is running.
-//
-unsigned VmBottom; // lowest address      == start of boot image
-unsigned VmMiddle; //                     == end   of boot image
-unsigned VmTop;    // highest address + 1 == end of large object heap
-
 // Location of jtoc within virtual machine image.
 //
 unsigned VmToc;
@@ -141,21 +136,34 @@ typedef void (*SIGNAL_HANDLER)(int);
 pthread_t vm_pthreadid;
 
 
+static int inRVMAddressSpace(unsigned int addr) {
+
+   /* get the boot record */
+   VM_Address *heapRanges = theBootRecord->heapRanges;
+   int MaxHeaps = 10;  // update to match VM_Heap.MAX_HEAPS  XXXXX
+
+   for (int which = 0; ; which++) {
+       assert(which <= (MaxHeaps + 1));
+       VM_Address start = heapRanges[2 * which];
+       VM_Address end = heapRanges[2 * which + 1];
+       if (start == ~0 && end == ~0) break;
+       if (start <= addr  && addr  < end)
+	 return true;
+   }
+	
+   return false;
+}
+
 // Was unix signal raised while vm code was running?
 // Taken:    contents of "iar" and "jtoc" registers at time of signal
 // Returned: 1 --> vm code was running
 //           0 --> non-vm (eg. C library) code was running
 //
-static int
-isVmSignal(unsigned iar, unsigned jtoc)
-   {
-   /* get the boot record */
-   void *region1address = (void *) bootImageAddress;
-   VM_BootRecord & bootRecord = *(VM_BootRecord *) region1address;
+static int isVmSignal(unsigned iar, unsigned jtoc) {
 
-    return VmBottom <= iar   && iar  < bootRecord.heapEnd &&
-           VmBottom <= jtoc  && jtoc < bootRecord.heapEnd;
-   }
+  return inRVMAddressSpace(iar) && inRVMAddressSpace(jtoc);
+
+}
 
 #ifdef __linux__
 // The following code is factored out while getcontext() remains
@@ -389,7 +397,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
 #if __linux__
       if (signum == SIGSEGV && (unsigned)(siginfo->si_addr) == 0)
 #else
-      if (signum == SIGSEGV && (save->o_vaddr & 0x80000000) == 0x80000000)
+      if (signum == SIGSEGV && (save->o_vaddr & 0xffff0000) == 0xffff0000)
 #endif
          isRecoverable = 1;
 
@@ -417,6 +425,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
       fprintf(SysTraceFile,"             lr=0x%08x\n", save->lr);
       fprintf(SysTraceFile,"             fp=0x%08x\n", save->gpr[FP]);
       fprintf(SysTraceFile,"            tid=0x%08x\n", save->gpr[TID]);
+      fprintf(SysTraceFile,"           jtoc=0x%08x\n", save->gpr[VM_Constants_JTOC_POINTER]);
       fprintf(SysTraceFile,"             pr=0x%08x\n", save->gpr[VM_Constants_PROCESSOR_REGISTER]);
       fprintf(SysTraceFile,"        handler=0x%08x\n", javaExceptionHandlerAddress);
 #endif
@@ -519,7 +528,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
       {
       case SIGSEGV:
 #ifdef __linux__
-      if ((unsigned)(siginfo->si_addr) == 0)
+      if ((unsigned)(siginfo->si_addr) == 0) 
          { // touched top segment of memory, presumably by wrapping negatively off 0
          ANNOUNCE_TRAP("vm: null pointer trap\n");
          trapCode = VM_Runtime_TRAP_NULL_POINTER;
@@ -528,8 +537,8 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
       ANNOUNCE_TRAP("vm: unknown trap\n");
       trapCode = VM_Runtime_TRAP_UNKNOWN;
 #else
-      if ((save->o_vaddr & 0x80000000) == 0x80000000)
-         { // touched top segment of memory, presumably by wrapping negatively off 0
+      if ((save->o_vaddr & 0xffff0000) == 0xffff0000)
+         { // touched top 64K of memory, presumably by wrapping negatively off 0
          ANNOUNCE_TRAP("vm: null pointer trap\n");
          trapCode = VM_Runtime_TRAP_NULL_POINTER;
          break;
@@ -689,6 +698,7 @@ void *bootThreadCaller(void *);
 
 // startup configuration option with default values
 char *bootFilename     = 0;
+int verboseGC = 0;
 unsigned smallHeapSize = 20 * 1024 * 1024; // megs
 // make large heap size a percent of small heap, or what was specified
 // unsigned largeHeapSize = 10 * 1024 * 1024; // megs
@@ -701,9 +711,20 @@ unsigned permanentHeapSize = 0;
 // name of program that will load and run RVM
 char *me;
 
-int
-createJVM(int vmInSeparateThread)
-   {
+static int pageRoundUp(int size) {
+    int pageSize = 4096;
+    return (size + pageSize - 1) / pageSize * pageSize;
+}
+
+static unsigned min(unsigned a, unsigned b) {
+    return (a < b) ? a : b;
+}
+
+static unsigned max(unsigned a, unsigned b) {
+    return (a > b) ? a : b;
+}
+
+int createJVM(int vmInSeparateThread) {
 
    // arguments processing moved to runboot.c
 
@@ -720,209 +741,74 @@ createJVM(int vmInSeparateThread)
    // open image file
    //
    FILE *fin = fopen(bootFilename, "r");
-   if (!fin)
-      {
-      fprintf(SysTraceFile, "%s: can't find boot image \"%s\"\n", me, bootFilename);
-      return 1;
-      }
+   if (!fin) {
+       fprintf(SysTraceFile, "%s: can't find boot image \"%s\"\n", me, bootFilename);
+       return 1;
+   }
 
    // measure image size
    //
    if (lib_verbose) fprintf(SysTraceFile, "%s: loading from \"%s\"\n", me, bootFilename);
    fseek(fin, 0L, SEEK_END);
-   unsigned imageSize = ftell(fin);
-   unsigned permaHeap = imageSize;
-   if (permanentHeapSize > permaHeap)
-      permaHeap = permanentHeapSize;
+   unsigned actualImageSize = ftell(fin);
+   unsigned roundedImageSize = pageRoundUp(actualImageSize);
    fseek(fin, 0L, SEEK_SET);
+   
 
-   // Now check that permaHeap + smallHeapSize + largeHeapSize
-   // doesn't spill over into seg 8 (Java doesn't have logical
-   // arithmetic so allocators will fail
-   // CRA:
+   // allocate memory regions in units of system page size
    //
-   if ((permaHeap + smallHeapSize + largeHeapSize) >= 0x50000000)
-     {
-	do
-	{
-	  largeHeapSize = largeHeapSize >> 1;
-	  if (largeHeapSize < (10 * 1024 * 1024)) break; 	 
-        } while ((permaHeap + smallHeapSize + largeHeapSize) >= 0x50000000);
-
-	if (largeHeapSize < (10 * 1024 * 1024))
-	{ fprintf(SysTraceFile, "specified heap sizes too large\n");
-	  return 1;
-        }
-     }
-
-    fprintf(SysTraceFile, "small heap = %d, large heap = %d\n", 
-		smallHeapSize, largeHeapSize);
-	
-
-   // allocate memory regions in units of 4k (== system page size)
-   //
-   void    *region1address = (void *) bootImageAddress; // address used by boot image writer
-   unsigned region1size = (((permaHeap + smallHeapSize) / 4096) + 1) * 4096;
+   void    *bootRegion = 0;
+   
 #if USE_MMAP
-#ifdef GCTk
-   unsigned mmapsize = ((imageSize + 4095) & ~4095);
+   bootRegion = mmap(bootImageAddress, roundedImageSize,
+		  PROT_READ | PROT_WRITE | PROT_EXEC, 
+		  MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
+   if (bootRegion == (void *)-1) {
+       fprintf(SysErrorFile, "%s: mmap failed (errno=%d)\n", me, errno);
+       return 1;
+   }
 #else
-   unsigned mmapsize = region1size;
+   int id1 = shmget(IPC_PRIVATE, roundedImageSize, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
+   if (id1 == -1) {
+       fprintf(SysErrorFile, "%s: shmget failed (errno=%d)\n", me, errno);
+       return 1;
+   }
+   bootRegion = shmat(id1, (const void *) bootImageAddress, 0);
+   if (bootRegion == (void *)-1) {
+       fprintf(SysErrorFile, "%s: shmat failed (errno=%d)\n", me, errno);
+       return 1;
+   }
+   if (shmctl(id1, IPC_RMID, 0)) {  // free shmid to avoid persistence
+       fprintf(SysErrorFile, "%s: shmctl failed (errno=%d)\n", me, errno);
+       return 1;
+   }
 #endif
-#ifdef __linux__
-   void *region1 = mmap(region1address, mmapsize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
-#else
-   void *region1 = mmap(region1address, mmapsize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_FIXED, -1, 0);
-#endif
-   if (region1 == (void *)-1)
-      {
-      fprintf(SysErrorFile, "%s: mmap failed (errno=%d)\n", me, errno);
-      return 1;
-      }
-#else
-   int id1 = shmget(IPC_PRIVATE, region1size, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
-   if (id1 == -1)
-      {
-      fprintf(SysErrorFile, "%s: shmget failed (errno=%d)\n", me, errno);
-      return 1;
-      }
-   void *region1 = shmat(id1, region1address, 0);
-   if (region1 == (void *)-1)
-      {
-      fprintf(SysErrorFile, "%s: shmat failed (errno=%d)\n", me, errno);
-      return 1;
-      }
-   if (shmctl(id1, IPC_RMID, 0))
-      {
-      fprintf(SysErrorFile, "%s: shmctl failed (errno=%d)\n", me, errno);
-      return 1;
-      }
-#endif
-
-   void    *region2address = (void *)0; // any address is ok
-   unsigned region2size    = ((largeHeapSize / 4096) + 1) * 4096;
-   void    *region2        = region2address;
-#if USE_MMAP
-#ifdef GCTk
-   // we don't use region2 in GCTk, so don't mmap anything
-   region2 = (void *) ((unsigned int) region1 + (unsigned int) mmapsize + 4096);
-#else
-#ifdef __linux__
-   region2address = (void *) ((unsigned int) region1address + 0x10000000);  // using MAP_FIXED
-   region2 = mmap(region2address, region2size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
-#else
-   region2 = mmap(region2address, region2size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_VARIABLE, -1, 0);
-#endif
-#endif
-   if (region2 == (void *)-1)
-      {
-      fprintf(SysErrorFile, "%s: mmap failed (errno=%d)\n", me, errno);
-      return 1;
-      }
-#else
-   int id2 = shmget(IPC_PRIVATE, region2size, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
-   if (id2 == -1)
-      {
-      fprintf(SysErrorFile, "%s: shmget failed (errno=%d)\n", me, errno);
-      return 1;
-      }
-   region2 = shmat(id2, region2address, 0);
-   if (region2 == (void *)-1)
-      {
-      fprintf(SysErrorFile, "%s: shmat failed (errno=%d)\n", me, errno);
-      return 1;
-      }
-   if (shmctl(id2, IPC_RMID, 0))
-      {
-      fprintf(SysErrorFile, "%s: shmctl failed (errno=%d)\n", me, errno);
-      return 1;
-      }
-#endif
-
-   if (lib_verbose)
-      {
-      fprintf(SysTraceFile, "%s: 1st memory region: [0x%08x...0x%08x]\n", me, region1, (int)region1 + region1size);
-      fprintf(SysTraceFile, "%s: 2nd memory region: [0x%08x...0x%08x]\n", me, region2, (int)region2 + region2size);
-      }
 
    // read image into memory segment
    //
-   int cnt = fread(region1, 1, imageSize, fin);
+   int cnt = fread(bootRegion, 1, actualImageSize, fin);
    
-   if (cnt != imageSize)
-      {
-      fprintf(SysErrorFile, "%s: read failed (errno=%d)\n", me, errno);
+   if (actualImageSize % 4 != 0) {
+      fprintf(SysErrorFile, "%s: image format error: image size (%d) is not a word multiple\n", me, actualImageSize);
       return 1;
-      }
-   
-   if (imageSize % 4 != 0)
-      {
-      fprintf(SysErrorFile, "%s: image format error: image size (%d) is not a word multiple\n", me, imageSize);
-      return 1;
-      }
+   }
 
-   if (fclose(fin) != 0)
-      {
-      fprintf(SysErrorFile, "%s: close failed (errno=%d)\n", me, errno);
+   if (cnt != actualImageSize) {
+      fprintf(SysErrorFile, "%s: read of boot image failed (errno=%d)\n", me, errno);
       return 1;
-      }
+   }
+   
+   if (fclose(fin) != 0) {
+      fprintf(SysErrorFile, "%s: close of boot image failed (errno=%d)\n", me, errno);
+      return 1;
+   }
   
-   // fetch contents of boot record
+   // fetch contents of boot record which is at beginning of boot image
    //
-   VM_BootRecord& bootRecord	= *(VM_BootRecord *)region1;
-   theBootRecord		= (VM_BootRecord *) region1;
+   theBootRecord		= (VM_BootRecord *) bootRegion;
+   VM_BootRecord& bootRecord	= *theBootRecord;
    
-/******* NOT CURRENTLY IN USE
- * // see if fields make sense
- * //
- * if ((bootRecord.relocaterAddress % 4) != 0)
- *    {
- *    fprintf(SysErrorFile, "%s: image format error: relocaterAddress (0x%08x) is not word aligned\n", me, bootRecord.relocaterAddress);
- *    return 1;
- *    }
- *
- * if (! ( (bootRecord.relocaterAddress >= 0) && (bootRecord.relocaterAddress < bootRecord.endAddress)))
- *    {
- *    fprintf(SysErrorFile, "%s: image format error: relocaterAddress (0x%08x) is not within image\n", me, bootRecord.relocaterAddress);
- *    return 1;
- *    }
- *
- * if (! ( (bootRecord.relocaterLength >= 0) && (bootRecord.relocaterLength + bootRecord.relocaterAddress < bootRecord.endAddress)))
- *    {
- *    fprintf(SysErrorFile, "%s: image format error: relocaterLength (0x%08x) is not within image\n", me, bootRecord.relocaterLength);
- *    return 1;
- *    }
- *
- * if (bootRecord.startAddress != (int)region1)
- *    {
- *    // Relocate the image addresses
- *    //
- *    int delta = ((int)region1 - bootRecord.startAddress) * sizeof(int);  // new_base - old_base
- *    int map_offset = (bootRecord.relocaterAddress - bootRecord.startAddress)/4;  // Byte address to word offset in image
- *    int map_length = bootRecord.relocaterLength;
- *    if (lib_verbose) fprintf(SysErrorFile, "%s: delta=0x%08x, map_offset=0x%08x, map_length:=%d\n", me, delta, map_offset, map_length);
- *    int offset_of_address;
- *    int i;
- *    for (i = 0 ; i < map_length; i++)
- *       {
- *       offset_of_address = ((int *)region1)[i+map_offset];
- *       if (((int *)region1)[offset_of_address] != 0) ((int *)region1)[offset_of_address] +=  delta; // old + new_base - old_base
- *       }
- *
- *    // These fields are not treated as addresses in the BootImageWriter and so do not appear in the relocation map.
- *    //
- *    bootRecord.startAddress     += delta;
- *    bootRecord.freeAddress      += delta;
- *    bootRecord.endAddress       += delta;
- *    bootRecord.relocaterAddress += delta;
- *    bootRecord.spRegister       += delta;
- *    bootRecord.ipRegister       += delta;
- *    bootRecord.tocRegister      += delta;
- *
- *    if (lib_verbose) fprintf(SysErrorFile, "%s: image relocated to start address (0x%08x)\n", me, region1);
- *    }
- ******** NOT CURRENTLY IN USE */
-   
+
    if ((bootRecord.spRegister % 4) != 0)
       {
       // In the RISC6000 asm manual we read that sp had to be quad word aligned, but we don't align our stacks...yet.
@@ -948,48 +834,24 @@ createJVM(int vmInSeparateThread)
       return 1;
       }
 
-   if (bootRecord.startAddress != (int)region1)
+   if (bootRecord.bootImageStart != (int)bootRegion)
       {
-      fprintf(SysErrorFile, "%s: image load error: image was compiled for address (0x%08x) but loaded at (0x%08x)\n", me, bootRecord.startAddress, region1);
+      fprintf(SysErrorFile, "%s: image load error: image was compiled for address (0x%08x) but loaded at (0x%08x)\n", me, bootRecord.bootImageStart, bootRegion);
       return 1;
       }
   
-   // remember vm memory boundaries for later use by trap handler and instruction sampler
-   //
-   VmBottom = (unsigned)region1;                // start of boot image
-   VmMiddle = (unsigned)region1 + imageSize;    // end of boot image
-   VmTop    = (unsigned)region2 + region2size;  // end of heap
-   if (VmTop < VmBottom)
-      {
-      fprintf(SysErrorFile, "%s: image load error: memory segments allocated in unexpected order\n", me);
-      fprintf(SysErrorFile, "   bottom=0x%08x middle=0x%08x top=0x%08x\n", VmBottom, VmMiddle, VmTop);
-      return 1;
-      }
-
-   // remember jtoc location for later use by trap handler
+   // remember jtoc location for later use by trap handler - but jtoc might change
    //
    VmToc = bootRecord.tocRegister;
 
    // set freespace information into boot record
    //
-   bootRecord.permaAddress= (int)region1 + imageSize;
-   bootRecord.freeAddress = (int)region1 + permaHeap; 
-   bootRecord.endAddress  = (int)region1 + region1size;
-   bootRecord.largeStart  = (int)region2;
-   bootRecord.largeSize   = region2size;
-   #ifdef GCTk
-   bootRecord.heapEnd = (int)region1 + permaHeap;
-   #else
-   bootRecord.heapEnd     = (int)region2 + region2size;
-   #endif
-   bootRecord.nurserySize = nurserySize;
-   
-#if 0
-   // prepage freespace to avoid pagefaults during benchmarks
-   //
-   bzero((void *)bootRecord.freeAddress, bootRecord.endAddress - bootRecord.freeAddress);
-   bzero((void *)bootRecord.largeStart, bootRecord.largeSize);
-#endif
+   bootRecord.verboseGC        = verboseGC;
+   bootRecord.nurserySize      = nurserySize;
+   bootRecord.smallSpaceSize   = smallHeapSize;
+   bootRecord.largeSpaceSize   = largeHeapSize;
+   bootRecord.bootImageStart   = (int) bootRegion;
+   bootRecord.bootImageEnd     = (int) bootRegion + roundedImageSize;
    
    // set host o/s linkage information into boot record
    //
@@ -1023,15 +885,13 @@ createJVM(int vmInSeparateThread)
    //
    AttachThreadRequestedOffset = bootRecord.attachThreadRequestedOffset;
    
-   if (lib_verbose)
-      {
+   if (lib_verbose) {
       fprintf(SysTraceFile, "%s: boot record contents:\n", me);
-      fprintf(SysTraceFile, "   startAddress:         0x%08x\n",   bootRecord.startAddress);
-      fprintf(SysTraceFile, "   permaAddress:         0x%08x\n",   bootRecord.permaAddress);
-      fprintf(SysTraceFile, "   freeAddress:          0x%08x\n",   bootRecord.freeAddress);
-      fprintf(SysTraceFile, "   endAddress:           0x%08x\n",   bootRecord.endAddress);
-      fprintf(SysTraceFile, "   largeStart:           0x%08x\n",   bootRecord.largeStart);
-      fprintf(SysTraceFile, "   largeSize:            0x%08x\n",   bootRecord.largeSize);
+      fprintf(SysTraceFile, "   bootImageStart:       0x%08x\n",   bootRecord.bootImageStart);
+      fprintf(SysTraceFile, "   bootImageEnd:         0x%08x\n",   bootRecord.bootImageEnd);
+      fprintf(SysTraceFile, "   smallSpaceSize:       0x%08x\n",   bootRecord.smallSpaceSize);
+      fprintf(SysTraceFile, "   largeSpaceSize:       0x%08x\n",   bootRecord.largeSpaceSize);
+      fprintf(SysTraceFile, "   nurserySize:          0x%08x\n",   bootRecord.nurserySize);
       fprintf(SysTraceFile, "   tiRegister:           0x%08x\n",   bootRecord.tiRegister);
       fprintf(SysTraceFile, "   spRegister:           0x%08x\n",   bootRecord.spRegister);
       fprintf(SysTraceFile, "   ipRegister:           0x%08x\n",   bootRecord.ipRegister);
@@ -1165,7 +1025,7 @@ createJVM(int vmInSeparateThread)
    // written out to main memory so that it will be seen by icache when
    // instructions are fetched back
    //
-   sysSyncCache((caddr_t) region1, imageSize);
+   sysSyncCache((caddr_t) bootRegion, roundedImageSize);
 
    // execute vm startup thread
    //
@@ -1232,3 +1092,59 @@ void *bootThreadCaller(void *dummy) {
   return NULL;
 
 }
+
+
+
+
+/******* UNSUPPORTED RELOCATION CODE NOT CURRENTLY IN USE
+
+ * // see if fields make sense
+ * //
+ * if ((bootRecord.relocaterAddress % 4) != 0)
+ *    {
+ *    fprintf(SysErrorFile, "%s: image format error: relocaterAddress (0x%08x) is not word aligned\n", me, bootRecord.relocaterAddress);
+ *    return 1;
+ *    }
+ *
+ * if (! ( (bootRecord.relocaterAddress >= 0) && (bootRecord.relocaterAddress < bootRecord.endAddress)))
+ *    {
+ *    fprintf(SysErrorFile, "%s: image format error: relocaterAddress (0x%08x) is not within image\n", me, bootRecord.relocaterAddress);
+ *    return 1;
+ *    }
+ *
+ * if (! ( (bootRecord.relocaterLength >= 0) && (bootRecord.relocaterLength + bootRecord.relocaterAddress < bootRecord.endAddress)))
+ *    {
+ *    fprintf(SysErrorFile, "%s: image format error: relocaterLength (0x%08x) is not within image\n", me, bootRecord.relocaterLength);
+ *    return 1;
+ *    }
+ *
+ * if (bootRecord.startAddress != (int)region1)
+ *    {
+ *    // Relocate the image addresses
+ *    //
+ *    int delta = ((int)region1 - bootRecord.startAddress) * sizeof(int);  // new_base - old_base
+ *    int map_offset = (bootRecord.relocaterAddress - bootRecord.startAddress)/4;  // Byte address to word offset in image
+ *    int map_length = bootRecord.relocaterLength;
+ *    if (lib_verbose) fprintf(SysErrorFile, "%s: delta=0x%08x, map_offset=0x%08x, map_length:=%d\n", me, delta, map_offset, map_length);
+ *    int offset_of_address;
+ *    int i;
+ *    for (i = 0 ; i < map_length; i++)
+ *       {
+ *       offset_of_address = ((int *)region1)[i+map_offset];
+ *       if (((int *)region1)[offset_of_address] != 0) ((int *)region1)[offset_of_address] +=  delta; // old + new_base - old_base
+ *       }
+ *
+ *    // These fields are not treated as addresses in the BootImageWriter and so do not appear in the relocation map.
+ *    //
+ *    bootRecord.startAddress     += delta;
+ *    bootRecord.freeAddress      += delta;
+ *    bootRecord.endAddress       += delta;
+ *    bootRecord.relocaterAddress += delta;
+ *    bootRecord.spRegister       += delta;
+ *    bootRecord.ipRegister       += delta;
+ *    bootRecord.tocRegister      += delta;
+ *
+ *    if (lib_verbose) fprintf(SysErrorFile, "%s: image relocated to start address (0x%08x)\n", me, region1);
+ *    }
+ ******** NOT CURRENTLY IN USE */
+   

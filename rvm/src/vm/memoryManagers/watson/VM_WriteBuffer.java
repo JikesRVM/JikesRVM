@@ -54,30 +54,30 @@ public class VM_WriteBuffer
    * buffers are allocated from the C heap via sysMalloc.  This may change
    * to allcoate from the RVM Large Object Heap in the future.
    */
-  static void
-  growWriteBuffer ( ) {
-    int newBufAddr;
+  static void growWriteBuffer ( ) {
+
+    VM_Address newBufAddr;
     VM_Processor vp = VM_Processor.getCurrentProcessor();
 
     if (VM.VerifyAssertions) VM.assert(vp.modifiedOldObjectsTop==vp.modifiedOldObjectsMax);
 
-    if ((newBufAddr = VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-				  WRITE_BUFFER_SIZE)) == 0) {
+    newBufAddr = VM_Address.fromInt(VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
+					       WRITE_BUFFER_SIZE));
+    if (newBufAddr.isZero()) {
       VM.sysWrite(" In growWriteBuffer, call to sysMalloc returned 0 \n");
       VM.sysExit(1800);
     }
 
     // set last word in current buffer to address of next buffer
-    VM_Magic.setMemoryWord(vp.modifiedOldObjectsTop+4, newBufAddr);
+    VM_Magic.setMemoryAddress(vp.modifiedOldObjectsTop.add(4), newBufAddr);
     // set fptr in new buffer to null, to identify it as last
-    VM_Magic.setMemoryWord(newBufAddr+WRITE_BUFFER_SIZE-4,0);
+    VM_Magic.setMemoryWord(newBufAddr.add(WRITE_BUFFER_SIZE-4),0);
     // set writebuffer pointers in processor object for stores into new buffer
-    vp.modifiedOldObjectsTop = newBufAddr-4;
-    vp.modifiedOldObjectsMax = newBufAddr + WRITE_BUFFER_SIZE - 8;
+    vp.modifiedOldObjectsTop = newBufAddr.sub(4);
+    vp.modifiedOldObjectsMax = newBufAddr.add(WRITE_BUFFER_SIZE - 8);
   }
 
-  static void
-  setupProcessor ( VM_Processor p ) {
+  static void setupProcessor ( VM_Processor p ) {
 
     if (VM.VerifyAssertions) VM.assert(VM_Collector.NEEDS_WRITE_BARRIER == true);
 
@@ -94,8 +94,8 @@ public class VM_WriteBuffer
 	if (VM.VerifyAssertions) VM.assert(p.modifiedOldObjects != null);
 	// initialize write buffer pointers, setting "max" so as to reserve last slot
 	// for ptr to next write buffer (initially null). see also: VM.boot() write buffer init.
-	p.modifiedOldObjectsTop = VM_Magic.objectAsAddress(p.modifiedOldObjects) - 4;
-	p.modifiedOldObjectsMax = p.modifiedOldObjectsTop + (p.modifiedOldObjects.length << 2) - 4;
+	p.modifiedOldObjectsTop = VM_Magic.objectAsAddress(p.modifiedOldObjects).sub(4);
+	p.modifiedOldObjectsMax = p.modifiedOldObjectsTop.add((p.modifiedOldObjects.length << 2) - 4);
       }
     }
     else {
@@ -103,8 +103,8 @@ public class VM_WriteBuffer
       // allocate buffer and initialize integer pointers to TOP & MAX
       if (VM.VerifyAssertions) VM.assert(VM.runningVM == true);
       p.modifiedOldObjects = new int[WRITE_BUFFER_SIZE >> 2];
-      p.modifiedOldObjectsTop = VM_Magic.objectAsAddress(p.modifiedOldObjects) - 4;
-      p.modifiedOldObjectsMax = p.modifiedOldObjectsTop + (p.modifiedOldObjects.length << 2) - 4;
+      p.modifiedOldObjectsTop = VM_Magic.objectAsAddress(p.modifiedOldObjects).sub(4);
+      p.modifiedOldObjectsMax = p.modifiedOldObjectsTop.add((p.modifiedOldObjects.length << 2) - 4);
     }
     return;
   } // setupProcessor
@@ -117,11 +117,12 @@ public class VM_WriteBuffer
    *
    * @param vp  VM_Processor whose buffers are to be processed
    */
-  static void
-  processWriteBuffer(VM_Processor vp) {
-    int wbref, status, oldStatus;
+  static void processWriteBuffer(VM_Processor vp) {
+
+    VM_Address wbref;
+    int status, oldStatus;
     int count = 0;
-    int start, top, end, lastSlotAddr;
+    VM_Address start, top, end, lastSlotAddr;
     double startTime;
 
     // VM_RememberedSet rememberedSet = 
@@ -140,20 +141,20 @@ public class VM_WriteBuffer
     // collection...if it does, check out what they are
     //
     top = vp.modifiedOldObjectsTop; // last occuppied slot in "current" buffer at start of GC
-    vp.modifiedOldObjectsTop = VM_Magic.objectAsAddress(vp.modifiedOldObjects) - 4;
-    vp.modifiedOldObjectsMax = vp.modifiedOldObjectsTop + (vp.modifiedOldObjects.length << 2) - 4;
+    vp.modifiedOldObjectsTop = VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4);
+    vp.modifiedOldObjectsMax = vp.modifiedOldObjectsTop.add((vp.modifiedOldObjects.length << 2) - 4);
     
     start = VM_Magic.objectAsAddress(vp.modifiedOldObjects);  // first buffer
-    while ( start != 0 ) {
-      lastSlotAddr = start + WRITE_BUFFER_SIZE - 4;
+    while ( !start.isZero() ) {
+      lastSlotAddr = start.add(WRITE_BUFFER_SIZE - 4);
       // determine if this is last buffer or not, by seeing if there is a next ptr
       if ( VM_Magic.getMemoryWord(lastSlotAddr) == 0 )
 	end = top;  // last buffer, stop at last filled in slot in "current" buffer
       else
-	end = lastSlotAddr-4; // stop at last entry in buffer
+	end = lastSlotAddr.sub(4); // stop at last entry in buffer
       
-      while ( start <= end ) {
-	wbref = VM_Magic.getMemoryWord( start );
+      while ( start.LE(end) ) {
+	wbref = VM_Magic.getMemoryAddress( start );
 	
 	VM_AllocatorHeader.setBarrierBit(VM_Magic.addressAsObject(wbref));
 
@@ -166,14 +167,14 @@ public class VM_WriteBuffer
 	
 	if (trace) count++;
 
-	start = start + 4;
+	start = start.add(4);
       }
-      start = VM_Magic.getMemoryWord( lastSlotAddr );  // get addr of next buffer
+      start = VM_Magic.getMemoryAddress( lastSlotAddr );  // get addr of next buffer
     }
     
     if (VM.VerifyAssertions)
-      VM.assert( (vp.modifiedOldObjectsTop <= vp.modifiedOldObjectsMax) &&
-		 (vp.modifiedOldObjectsTop >= VM_Magic.objectAsAddress(vp.modifiedOldObjects) - 4) );
+      VM.assert( (vp.modifiedOldObjectsTop.LE(vp.modifiedOldObjectsMax)) &&
+		 (vp.modifiedOldObjectsTop.GE(VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4))) );
     
     freeBuffers(vp);
     
@@ -207,9 +208,11 @@ public class VM_WriteBuffer
    */
   static void
   resetBarrierBits(VM_Processor vp) {
-    int wbref;
+
+    VM_Address wbref;
+    int status, oldStatus;
     int count = 0;
-    int start, top, end, lastSlotAddr;
+    VM_Address start, top, end, lastSlotAddr;
     
     if (VM.VerifyAssertions) VM.assert(VM_Allocator.writeBarrier == true);
     
@@ -225,31 +228,31 @@ public class VM_WriteBuffer
     // collection...if it does, check out what they are
     //
     top = vp.modifiedOldObjectsTop; // last occuppied slot in "current" buffer at start of GC
-    vp.modifiedOldObjectsTop = VM_Magic.objectAsAddress(vp.modifiedOldObjects) - 4;
-    vp.modifiedOldObjectsMax = vp.modifiedOldObjectsTop + (vp.modifiedOldObjects.length << 2) - 4;
+    vp.modifiedOldObjectsTop = VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4);
+    vp.modifiedOldObjectsMax = vp.modifiedOldObjectsTop.add((vp.modifiedOldObjects.length << 2) - 4);
     
     start = VM_Magic.objectAsAddress(vp.modifiedOldObjects);  // first buffer
-    while ( start != 0 ) {
-      lastSlotAddr = start + WRITE_BUFFER_SIZE - 4;
+    while ( !start.isZero() ) {
+      lastSlotAddr = start.add(WRITE_BUFFER_SIZE - 4);
       // determine if this is last buffer or not, by seeing if there is a next ptr
       if ( VM_Magic.getMemoryWord(lastSlotAddr) == 0 )
 	end = top;  // last buffer, stop at last filled in slot in "current" buffer
       else
-	end = lastSlotAddr-4; // stop at last entry in buffer
+	end = lastSlotAddr.sub(4); // stop at last entry in buffer
       
-      if (trace) count = count + ( (end - start)>>2 );
+      if (trace) count += end.diff(start) >> 2;
       
-      while ( start <= end ) {
-	wbref = VM_Magic.getMemoryWord( start );
+      while ( start.LE(end) ) {
+	wbref = VM_Magic.getMemoryAddress( start );
 	VM_AllocatorHeader.setBarrierBit(VM_Magic.addressAsObject(wbref)); // IS THIS CORRECT???
-	start = start + 4;
+	start = start.add(4);
       }
-      start = VM_Magic.getMemoryWord( lastSlotAddr );  // get addr of next buffer
+      start = VM_Magic.getMemoryAddress( lastSlotAddr );  // get addr of next buffer
     }
     
     if (VM.VerifyAssertions)
-      VM.assert( (vp.modifiedOldObjectsTop <= vp.modifiedOldObjectsMax) &&
-		 (vp.modifiedOldObjectsTop >= VM_Magic.objectAsAddress(vp.modifiedOldObjects) - 4) );
+      VM.assert( (vp.modifiedOldObjectsTop.LE(vp.modifiedOldObjectsMax)) &&
+		 (vp.modifiedOldObjectsTop.GE(VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4))) );
     
     freeBuffers(vp);
     
@@ -269,45 +272,47 @@ public class VM_WriteBuffer
    *
    * @param vp  VM_Processor whose write buffer entries are to be moved
    */
-  static void
-  moveToWorkQueue (VM_Processor vp) {
-    int wbref;
+  static void  moveToWorkQueue (VM_Processor vp) {
+
+    VM_Address wbref;
+    int status, oldStatus;
+
     int count = 0;
-    int start, top, end, lastSlotAddr;
+    VM_Address start, top, end, lastSlotAddr;
     
     top = vp.modifiedOldObjectsTop;    // last occuppied slot in "current" buffer at start of GC
     
     // reset buffer to empty state...see above for why we do this early
     //
-    vp.modifiedOldObjectsTop = VM_Magic.objectAsAddress(vp.modifiedOldObjects) - 4;
-    vp.modifiedOldObjectsMax = vp.modifiedOldObjectsTop + (vp.modifiedOldObjects.length << 2) - 4;
+    vp.modifiedOldObjectsTop = VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4);
+    vp.modifiedOldObjectsMax = vp.modifiedOldObjectsTop.add((vp.modifiedOldObjects.length << 2) - 4);
     
     start = VM_Magic.objectAsAddress(vp.modifiedOldObjects);  // first buffer
-    while ( start != 0 ) {
-      lastSlotAddr = start + WRITE_BUFFER_SIZE - 4;
+    while ( !start.isZero() ) {
+      lastSlotAddr = start.add(WRITE_BUFFER_SIZE - 4);
       // determine if this is last buffer or not, by seeing if there is a next ptr
       if ( VM_Magic.getMemoryWord(lastSlotAddr) == 0 )
 	end = top;  // last buffer, stop at last filled in slot in "current" buffer
       else
-	end = lastSlotAddr-4; // stop at last entry in buffer
+	end = lastSlotAddr.sub(4); // stop at last entry in buffer
       
-      while ( start <= end ) {
-	wbref = VM_Magic.getMemoryWord( start );
+      while ( start.LE(end) ) {
+	wbref = VM_Magic.getMemoryAddress( start );
 	
 	VM_AllocatorHeader.setBarrierBit(VM_Magic.addressAsObject(wbref));
 
 	// added writebuffer ref to work queue of executing collector thread
 	VM_GCWorkQueue.putToWorkBuffer( wbref );
 	
-	start = start + 4;
+	start = start.add(4);
       }
       
-      start = VM_Magic.getMemoryWord( lastSlotAddr );  // get addr of next buffer
+      start = VM_Magic.getMemoryAddress(lastSlotAddr);  // get addr of next buffer
     }
     
     if (VM.VerifyAssertions)
-      VM.assert( (vp.modifiedOldObjectsTop <= vp.modifiedOldObjectsMax) &&
-		 (vp.modifiedOldObjectsTop >= VM_Magic.objectAsAddress(vp.modifiedOldObjects) - 4) );
+      VM.assert( (vp.modifiedOldObjectsTop.LE(vp.modifiedOldObjectsMax)) &&
+		 (vp.modifiedOldObjectsTop.GE(VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4))) );
     
     freeBuffers(vp);
 
@@ -321,22 +326,23 @@ public class VM_WriteBuffer
    *
    * @param vp VM_Processor to check
    */
-  static void
-  checkForEmpty(VM_Processor vp) {
-    int end,start,wbref,wbstatus;
-    
-    if ( vp.modifiedOldObjectsTop != VM_Magic.objectAsAddress(vp.modifiedOldObjects) - 4 ) {
+  static void checkForEmpty(VM_Processor vp) {
+
+    VM_Address end,start,wbref;
+    int wbstatus;
+
+    if ( vp.modifiedOldObjectsTop.NE(VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4)) ) {
       
       if (DEBUG_WRITEBUFFER) { 
 	VM_Scheduler.trace("VM_WriteBuffer","WARNING: BUFFER NOT EMPTY");
 	end = vp.modifiedOldObjectsTop;
 	start = VM_Magic.objectAsAddress(vp.modifiedOldObjects);
-	if ( end >= start && end < (start + WRITE_BUFFER_SIZE-8) )
-	  while ( start <= end ) {
-	    wbref = VM_Magic.getMemoryWord( start );
+	if ( end.GE(start) && end.LT(start.add(WRITE_BUFFER_SIZE-8)) )
+	  while ( start.LE(end) ) {
+	    wbref = VM_Magic.getMemoryAddress( start );
 	    VM_Scheduler.trace("************","value of ref",wbref);
 	    VM_ObjectModel.dumpHeader(wbref);
-	    start = start+4;
+	    start = start.add(4);
 	  }
       }  // DEBUG_WRITEBUFFER
       
@@ -345,8 +351,8 @@ public class VM_WriteBuffer
       // ... 12/01/98 - looks like these are putfields to stackmap iterators, so they
       // can be reset, since these are temporary values used during scanning a stack
       //
-      vp.modifiedOldObjectsTop = VM_Magic.objectAsAddress(vp.modifiedOldObjects) - 4;
-      vp.modifiedOldObjectsMax = vp.modifiedOldObjectsTop + (vp.modifiedOldObjects.length << 2) - 4;
+      vp.modifiedOldObjectsTop = VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4);
+      vp.modifiedOldObjectsMax = vp.modifiedOldObjectsTop.add((vp.modifiedOldObjects.length << 2) - 4);
       freeBuffers(vp);
     }
   } // checkForEmpty
@@ -357,17 +363,15 @@ public class VM_WriteBuffer
    *
    * @param vp VM_Processor whose extra buffers are to be freed
    */
-  private static void
-  freeBuffers(VM_Processor vp) {
-    int nextbuf,buf,temp;
-    
+  private static void freeBuffers(VM_Processor vp) {
+
     // remember address of last slot in first buffer (the next buffer pointer)
-    temp = VM_Magic.objectAsAddress(vp.modifiedOldObjects) + WRITE_BUFFER_SIZE - 4;
-    
-    buf = VM_Magic.getMemoryWord( temp );
-    while( buf != 0 ) {
-      nextbuf = VM_Magic.getMemoryWord( buf + WRITE_BUFFER_SIZE - 4 );
-      VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, buf);
+    VM_Address temp = VM_Magic.objectAsAddress(vp.modifiedOldObjects).add(WRITE_BUFFER_SIZE - 4);
+    VM_Address buf = VM_Address.fromInt(VM_Magic.getMemoryWord( temp ));
+
+    while( !buf.isZero() ) {
+      VM_Address nextbuf = VM_Magic.getMemoryAddress( buf.add(WRITE_BUFFER_SIZE - 4) );
+      VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, buf.toInt());
       buf = nextbuf;
     }
     // reset next pointer in first buffer to null

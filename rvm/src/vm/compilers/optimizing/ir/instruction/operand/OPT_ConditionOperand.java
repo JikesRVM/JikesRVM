@@ -361,6 +361,22 @@ public final class OPT_ConditionOperand extends OPT_Operand {
       return v1 >= v2;
     case LESS_EQUAL:
       return v1 <= v2;
+    case LOWER: 
+	if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return v1 < v2;
+	if (v1 < 0) return false;
+	return true;
+    case LOWER_EQUAL:
+	if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return v1 <= v2;
+	if (v1 < 0) return false;
+	return true;
+    case HIGHER: 
+	if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return v1 > v2;
+	if (v1 < 0) return true;
+	return false;
+    case HIGHER_EQUAL:
+	if ((v1 >= 0 && v2 >= 0) || (v1 < 0 && v2 < 0)) return v1 >= v2;
+	if (v1 < 0) return true;
+	return false;
     }
     throw  new OPT_OptimizingCompilerException("invalid condition" + this);
   }

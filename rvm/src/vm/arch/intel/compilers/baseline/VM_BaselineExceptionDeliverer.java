@@ -17,21 +17,22 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
    * Pass control to a catch block.
    */
   void deliverException(VM_CompiledMethod compiledMethod,
-			int               catchBlockInstructionAddress,
+			VM_Address        catchBlockInstructionAddress,
 			Throwable         exceptionObject,
 			VM_Registers      registers) {
-    int       fp     = registers.getInnermostFramePointer();
+    VM_Address fp     = registers.getInnermostFramePointer();
     VM_Method method = compiledMethod.getMethod();
     VM_Thread myThread = VM_Thread.getCurrentThread();
 
     // reset sp to "empty expression stack" state
     //
-    int sp = fp + VM_Compiler.getEmptyStackOffset(method);
+    VM_Address sp = fp.add(VM_Compiler.getEmptyStackOffset(method));
     
     // push exception object as argument to catch block
     //
-    VM_Magic.setMemoryWord(sp -= 4, VM_Magic.objectAsAddress(exceptionObject));
-    registers.gprs[SP] = sp;
+    sp = sp.sub(4);
+    VM_Magic.setMemoryAddress(sp, VM_Magic.objectAsAddress(exceptionObject));
+    registers.gprs[SP] = sp.toInt();
 
     // set address at which to resume executing frame
     registers.ip = catchBlockInstructionAddress;
@@ -49,7 +50,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     // the stacklimit should be harmless, since the stacklimit should already have exactly
     // the value we are setting it too. 
     if (!myThread.hardwareExceptionRegisters.inuse) {
-      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.stack) + STACK_SIZE_GUARD;
+      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.stack).add(STACK_SIZE_GUARD);
       VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
     }
 
@@ -63,25 +64,27 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
    */
   void unwindStackFrame(VM_CompiledMethod compiledMethod, VM_Registers registers) {
     VM_Method method = compiledMethod.getMethod();
-    int       fp     = registers.getInnermostFramePointer();
+    VM_Address fp     = registers.getInnermostFramePointer();
     if (method.isSynchronized()) { // release the lock, if it is being held
-      int ip = registers.getInnermostInstructionAddress();
-      int instr = ip - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+      VM_Address ip = registers.getInnermostInstructionAddress();
+      int instr = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
       VM_BaselineCompilerInfo info = (VM_BaselineCompilerInfo) compiledMethod.getCompilerInfo();
       if (instr < info.lockAcquisitionOffset) {       // in prologue, lock not owned
       } else if (method.isStatic()) {
 	Object lock = method.getDeclaringClass().getClassForType();
 	VM_Lock.unlock(lock);
       } else {
-	Object lock = VM_Magic.addressAsObject(VM_Magic.getMemoryWord(fp + VM_Compiler.getFirstLocalOffset(method)));
+	Object lock = VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(fp.add(VM_Compiler.getFirstLocalOffset(method))));
 	VM_Lock.unlock(lock);
       }
     }
 
     // Restore nonvolatile registers used by the baseline compiler.
     if (VM.VerifyAssertions) VM.assert(VM_Compiler.SAVED_GPRS == 1);
-    registers.gprs[JTOC] = VM_Magic.getMemoryWord(fp + VM_Compiler.JTOC_SAVE_OFFSET);
+    registers.gprs[JTOC] = VM_Magic.getMemoryWord(fp.add(VM_Compiler.JTOC_SAVE_OFFSET));
     
     registers.unwindStackFrame();
   }
 }
+
+

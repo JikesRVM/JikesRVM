@@ -67,7 +67,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     //-#else                                    (default implementation of jni)
     lastVPStatusIndex = (lastVPStatusIndex + VP_STATUS_STRIDE) % VP_STATUS_SIZE;
     this.vpStatusIndex = lastVPStatusIndex;
-    this.vpStatusAddress = VM_Magic.objectAsAddress(vpStatus) + (this.vpStatusIndex << 2);
+    this.vpStatusAddress = VM_Magic.objectAsAddress(vpStatus).add(this.vpStatusIndex << 2);
     if (VM.VerifyAssertions) VM.assert(vpStatus[this.vpStatusIndex] == UNASSIGNED_VP_STATUS);
     vpStatus[this.vpStatusIndex] = IN_JAVA;
     //-#endif
@@ -589,7 +589,7 @@ if (loopcheck++ >= 1000000) break;
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
 				 VM_Magic.objectAsAddress(newProcessor),
 				 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
-				 target.contextRegisters.gprs[VM.FRAME_POINTER]);
+				 target.contextRegisters.getInnermostFramePointer());
     while (!newProcessor.isInitialized)
       VM.sysVirtualProcessorYield();
     VM.enableGC();
@@ -733,7 +733,7 @@ if (loopcheck++ >= 1000000) break;
    * cached activeThread.stackLimit;
    * removes 1 load from stackoverflow sequence.
    */
-  int activeThreadStackLimit;
+  VM_Address activeThreadStackLimit;
 
 //-#if RVM_FOR_IA32
   // to free up (nonvolatile or) scratch registers
@@ -743,7 +743,7 @@ if (loopcheck++ >= 1000000) break;
    * FP for current frame (opt compiler wants FP register) 
    * TODO warn GC about this guy
    */
-  int    framePointer;        
+  VM_Address  framePointer;        
   /**
    * "hidden parameter" for interface invocation thru the IMT
    */
@@ -770,19 +770,19 @@ if (loopcheck++ >= 1000000) break;
   //            ^top            ^max                                ^top    ^max
   //
   int[]  modifiedOldObjects;          // the buffer
-  int    modifiedOldObjectsTop;       // address of most recently filled slot
-  int    modifiedOldObjectsMax;       // address of last available slot in buffer
+  VM_Address    modifiedOldObjectsTop;       // address of most recently filled slot
+  VM_Address    modifiedOldObjectsMax;       // address of last available slot in buffer
 
   // pointers for allocation from Processor local memory "chunks"
   //
   /**
    * current position within current allocation buffer
    */
-  int    localCurrentAddress;  
+  VM_Address    localCurrentAddress;  
   /**
    * end (1 byte beyond) of current allocation buffer
    */
-  int    localEndAddress;      
+  VM_Address    localEndAddress;      
 
   // pointers for allocation from processor local "chunks" or "ToSpace" memory,
   // for copying live objects during GC.
@@ -790,11 +790,11 @@ if (loopcheck++ >= 1000000) break;
   /**
    * current position within current "chunk"
    */
-  int    localMatureCurrentAddress;   
+  VM_Address  localMatureCurrentAddress;   
   /**
    * end (1 byte beyond) of current "chunk"
    */
-  int    localMatureEndAddress;       
+  VM_Address  localMatureEndAddress;       
 //-#endif
 
   /*
@@ -884,9 +884,9 @@ if (loopcheck++ >= 1000000) break;
 
 //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
   // Reference Counting Collector additions 
-  int    incDecBuffer;        // the buffer
-  int    incDecBufferTop;     // address of most recently filled slot in buffer
-  int    incDecBufferMax;     // address of last available slot in buffer
+  VM_Address incDecBuffer;        // the buffer
+  VM_Address incDecBufferTop;     // address of most recently filled slot in buffer
+  VM_Address incDecBufferMax;     // address of last available slot in buffer
   int    localEpoch;
 
   // misc. fields - probably should verify if still in use
@@ -897,8 +897,8 @@ if (loopcheck++ >= 1000000) break;
   long   totalObjectsAllocated; // used for instrumentation in allocators
   long   synchronizedObjectsAllocated; // used for instrumentation in allocators
 //-#endif
-//-#if RVM_WITH_GCTk
 
+//-#if RVM_WITH_GCTk
   // steve - add your stuff here - such as...
   GCTk_Collector collector;
   ADDRESS writeBuffer0;
@@ -961,7 +961,7 @@ if (loopcheck++ >= 1000000) break;
   /**
    * address of this processors status word in vpStatus array
    */
-  int   vpStatusAddress;          
+  VM_Address vpStatusAddress;          
 //-#endif
 
   /**

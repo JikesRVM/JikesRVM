@@ -231,7 +231,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       }
     }
 
-    if (VM_Scheduler.attachThreadRequested!=0) {
+    if (!VM_Scheduler.attachThreadRequested.isZero()) {
       // service AttachCurrentThread request from an external pthread
       VM_Scheduler.attachThreadMutex.lock();
       if (VM_Scheduler.attachThreadQueue.isEmpty())
@@ -278,7 +278,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       // First, get the cmid for the method in which the yieldpoint was taken.
 
       // Get pointer to my caller's frame
-      int fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); 
+      VM_Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()); 
 
       // Skip over wrapper to "real" method
       fp = VM_Magic.getCallerFramePointer(fp);                             
@@ -803,12 +803,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     //       +-------------------+---------------+
     //        ^newStack           ^newFP          ^newTop
     //
-    int myTop   = VM_Magic.objectAsAddress(myStack)  + (myStack.length  << 2);
-    int newTop  = VM_Magic.objectAsAddress(newStack) + (newStack.length << 2);
+    VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length  << 2);
+    VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length << 2);
 
-    int myFP    = VM_Magic.getFramePointer();
-    int myDepth = myTop - myFP;
-    int newFP   = newTop - myDepth;
+    VM_Address myFP    = VM_Magic.getFramePointer();
+    int myDepth        = myTop.diff(myFP);
+    VM_Address newFP   = newTop.sub(myDepth);
 
     // The frame pointer addresses the top of the frame on powerpc and 
     // the bottom
@@ -831,7 +831,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // install new stack
     //
     myThread.stack      = newStack;
-    myThread.stackLimit = VM_Magic.objectAsAddress(newStack) + STACK_SIZE_GUARD;
+    myThread.stackLimit = VM_Magic.objectAsAddress(newStack).add(STACK_SIZE_GUARD);
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
     
     // return to caller, resuming execution on new stack 
@@ -854,17 +854,15 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   final void fixupMovedStack(int delta) {
     if (traceAdjustments) VM.sysWrite("VM_Thread: fixupMovedStack\n");
 
-    if (contextRegisters.getInnermostFramePointer() != VM_NULL) {
+    if (!contextRegisters.getInnermostFramePointer().isZero()) 
       adjustRegisters(contextRegisters, delta);
-    }
     if ((hardwareExceptionRegisters.inuse) &&
-	(hardwareExceptionRegisters.getInnermostFramePointer() != VM_NULL)) {
+	(hardwareExceptionRegisters.getInnermostFramePointer().NE(VM_Address.zero()))) {
       adjustRegisters(hardwareExceptionRegisters, delta);
     }
-    if (contextRegisters.getInnermostFramePointer() != VM_NULL) {
+    if (!contextRegisters.getInnermostFramePointer().isZero())
       adjustStack(stack, contextRegisters.getInnermostFramePointer(), delta);
-    }
-    stackLimit += delta;
+    stackLimit = stackLimit.add(delta);
   }
 
   /**
@@ -879,8 +877,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // adjust FP
     //
-    int newFP = registers.getInnermostFramePointer() + delta;
-    int ip = registers.getInnermostInstructionAddress();
+    VM_Address newFP = registers.getInnermostFramePointer().add(delta);
+    VM_Address ip = registers.getInnermostInstructionAddress();
     registers.setInnermost(ip, newFP);
     if (traceAdjustments) {
       VM.sysWrite(" fp=");
@@ -929,20 +927,17 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @param fp    pointer to its innermost frame
    * @param delta displacement to be applied to all its interior references
    */
-    private static void adjustStack(int[] stack, int fp, int delta) {
+    private static void adjustStack(int[] stack, VM_Address fp, int delta) {
       if (traceAdjustments) VM.sysWrite("VM_Thread: adjustStack\n");
 
-      while (VM_Magic.getCallerFramePointer(fp) != STACKFRAME_SENTINAL_FP)
+      while (VM_Magic.getCallerFramePointer(fp).toInt() != STACKFRAME_SENTINAL_FP)
       {
         // adjust FP save area
         //
         VM_Magic.setCallerFramePointer(fp, 
-                                       VM_Magic.getCallerFramePointer(fp) + 
-                                       delta);
-        if (traceAdjustments) {
-          VM.sysWrite(" fp=");
-          VM.sysWrite(fp);
-        }
+                                       VM_Magic.getCallerFramePointer(fp).add(delta));
+        if (traceAdjustments) 
+          VM.sysWrite(" fp=", fp.toInt());
 
         // adjust SP save area (baseline frames only)
         //
@@ -955,13 +950,10 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
               VM_CompilerInfo.BASELINE) {
             int spOffset = VM_Compiler.getSPSaveAreaOffset
               (compiledMethod.getMethod());
-            VM_Magic.setMemoryWord(fp + spOffset, 
-                                   VM_Magic.getMemoryWord(fp + spOffset) + 
-                                   delta);
-            if (traceAdjustments) {
-              VM.sysWrite(" sp=");
-              VM.sysWrite(VM_Magic.getMemoryWord(fp + spOffset));
-            }
+            VM_Magic.setMemoryWord(fp.add(spOffset), 
+                                   VM_Magic.getMemoryWord(fp.add(spOffset)) + delta);
+            if (traceAdjustments) 
+              VM.sysWrite(" sp=", VM_Magic.getMemoryWord(fp.add(spOffset)));
           }
           if (traceAdjustments) {
             VM.sysWrite(" method=");
@@ -999,22 +991,20 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       VM_Thread myThread = getCurrentThread();
       int[]     myStack  = myThread.stack;
 
-      int myTop   = VM_Magic.objectAsAddress(myStack)  + (myStack.length  << 2);
-      int newTop  = VM_Magic.objectAsAddress(newStack) + (newStack.length << 2);
-
-      int myFP    = VM_Magic.getFramePointer();
-      int myDepth = myTop - myFP;
-      int newFP   = newTop - myDepth;
+      VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length  << 2);
+      VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length << 2);
+      VM_Address myFP    = VM_Magic.getFramePointer();
+      int myDepth        = myTop.diff(myFP);
+      VM_Address newFP          = newTop.sub(myDepth);
 
       // before copying, make sure new stack isn't too small
       //
       if (VM.VerifyAssertions)
-        VM.assert(newFP >= VM_Magic.objectAsAddress(newStack) + 
-                  STACK_SIZE_GUARD);
+	  VM.assert(newFP.GE(VM_Magic.objectAsAddress(newStack).add(STACK_SIZE_GUARD)));
 
       VM_Memory.aligned32Copy(newFP, myFP, myDepth);
 
-      return newFP - myFP;
+      return newFP.diff(myFP);
     }
 
   /**
@@ -1085,7 +1075,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     //
     //VM_Scheduler.trace("VM_Thread", "create");
       
-    stackLimit = VM_Magic.objectAsAddress(stack) + STACK_SIZE_GUARD;
+    stackLimit = VM_Magic.objectAsAddress(stack).add(STACK_SIZE_GUARD);
 
     // get instructions for method to be executed as thread startoff
     //
@@ -1095,23 +1085,23 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // initialize thread registers
     //
-    int ip = VM_Magic.objectAsAddress(instructions);
-    int sp = VM_Magic.objectAsAddress(stack) + (stack.length << 2);
-    int fp = STACKFRAME_SENTINAL_FP;
+    VM_Address ip = VM_Magic.objectAsAddress(instructions);
+    VM_Address sp = VM_Magic.objectAsAddress(stack).add(stack.length << 2);
+    VM_Address fp = VM_Address.fromInt(STACKFRAME_SENTINAL_FP);
 
 //-#if RVM_FOR_IA32 
 
     // initialize thread stack as if "startoff" method had been called
     // by an empty baseline-compiled "sentinal" frame with one local variable
     //
-    sp -= STACKFRAME_HEADER_SIZE;                   // last word of header
-    fp  = sp - VM_BaselineConstants.WORDSIZE - STACKFRAME_BODY_OFFSET;   // 
-    VM_Magic.setCallerFramePointer(fp, STACKFRAME_SENTINAL_FP);
+    sp = sp.sub(STACKFRAME_HEADER_SIZE);                   // last word of header
+    fp = sp.sub(VM_BaselineConstants.WORDSIZE + STACKFRAME_BODY_OFFSET);  
+    VM_Magic.setCallerFramePointer(fp, VM_Address.fromInt(STACKFRAME_SENTINAL_FP));
     VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
-    sp -= VM_BaselineConstants.WORDSIZE;                                 // allow for one local
-    contextRegisters.gprs[ESP] = sp;
-    contextRegisters.gprs[VM_BaselineConstants.JTOC]          = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
+    sp = sp.sub(VM_BaselineConstants.WORDSIZE);                                 // allow for one local
+    contextRegisters.gprs[ESP] = sp.toInt();
+    contextRegisters.gprs[VM_BaselineConstants.JTOC] = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).toInt();
     contextRegisters.fp  = fp;
     contextRegisters.ip  = ip;
 
@@ -1120,12 +1110,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // initialize thread stack as if "startoff" method had been called
     // by an empty "sentinal" frame  (with a single argument ???)
     //
-    VM_Magic.setMemoryWord(sp -= 4, ip);                  // STACKFRAME_NEXT_INSTRUCTION_OFFSET
-    VM_Magic.setMemoryWord(sp -= 4, INVISIBLE_METHOD_ID); // STACKFRAME_METHOD_ID_OFFSET
-    VM_Magic.setMemoryWord(sp -= 4, fp);                  // STACKFRAME_FRAME_POINTER_OFFSET
+    sp = sp.sub(4); VM_Magic.setMemoryWord(sp, ip.toInt());          // STACKFRAME_NEXT_INSTRUCTION_OFFSET
+    sp = sp.sub(4); VM_Magic.setMemoryWord(sp, INVISIBLE_METHOD_ID); // STACKFRAME_METHOD_ID_OFFSET
+    sp = sp.sub(4); VM_Magic.setMemoryWord(sp, fp.toInt());          // STACKFRAME_FRAME_POINTER_OFFSET
     fp = sp;
 
-    contextRegisters.gprs[FRAME_POINTER]  = fp;
+    contextRegisters.gprs[FRAME_POINTER]  = fp.toInt();
     contextRegisters.ip  = ip;
 //-#endif
 
@@ -1284,7 +1274,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Execution stack for this thread.
    */ 
   int[] stack;      // machine stack on which to execute this thread
-  int   stackLimit; // address of stack guard area
+  VM_Address   stackLimit; // address of stack guard area
   
   /**
    * Place to save register state when this thread is not actually running.
@@ -1393,6 +1383,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   VM_JNIEnvironment  jniEnv;
   
   // fields needed for RCGC reference counting collector
+  // int[] should be VM_Address array but compilers erroneously emit write barriers 
   boolean        stackBufferNeedScan;
   int[]          stackBuffer;        // the buffer
   int[]          stackBufferTop;     // pointer to most recently filled slot in buffer (an address, not an index)

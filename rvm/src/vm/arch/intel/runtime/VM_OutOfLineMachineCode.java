@@ -302,6 +302,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    */
   private static INSTRUCTION[] generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
+
     int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
     int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
     int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();

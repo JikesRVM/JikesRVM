@@ -82,7 +82,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
     
     RemoteInterpreter interpreter = new RemoteInterpreter();
     
-    if (traceInterpreter) System.out.println("ReflectiveInterpreter: interpreting "+mainMethod);
+    if (traceInterpreter >= 1) System.out.println("ReflectiveInterpreter: interpreting "+mainMethod);
     
     interpreter.interpretMethod(mainMethod, mainArgs);
     
@@ -102,7 +102,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
   // -- implemention of abstract methods of VM_InterperterBase
   //
   protected int getStaticWord(int index) {
-    if (traceInterpreter) 
+    if (traceInterpreter >= 1) 
       System.out.println("RemoteInterpreter: VM_Statics.getSlotContentsAsInt("+index+") (" +
 			 VM_Statics.getSlotDescriptionAsString(index)+")");
     return VM_Statics.getSlotContentsAsInt(index);
@@ -277,7 +277,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
     } catch (InvocationTargetException e2) {
       // the reflected method throws an exception
       // unwrap the exception and pass it on to the program 
-      if (traceInterpreter)
+      if (traceInterpreter >= 1)
 	println("exception caught in invokeReflective " + calledMethodName + ", " + e2.getTargetException());
       Throwable realEx = e2.getTargetException();
       _throwException(realEx);
@@ -297,7 +297,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
   protected void invokeMagic(VM_Method called_method)    {
       if (sysCall1 == null) super.init();  /// TODO: convince VM to do this
 
-      if (traceInterpreter) System.out.println("RemoteInterpreter: invokeMagic on "+called_method);
+      if (traceInterpreter >= 1) System.out.println("RemoteInterpreter: invokeMagic on "+called_method);
       
       VM_Atom methodName = called_method.getName();
      
@@ -364,8 +364,8 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
 	 }
       else if (methodName == getMemoryWord)
 	 {
-	 int address = stack.popInt();
-	 System.out.print("RemoteInterpreter: VM.Magic.getMemoryWord("+Integer.toHexString(address)+")=");
+	 VM_Address address = VM_Address.fromInt(stack.popInt());
+	 System.out.print("RemoteInterpreter: VM.Magic.getMemoryWord("+Integer.toHexString(address.toInt())+")=");
 	 int word = VM_Magic.getMemoryWord(address);
 	 System.out.println(Integer.toHexString(word));
 	 stack.push(word);
@@ -375,15 +375,25 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
 	 // VM_Type getObjectType(Object object);
 	 Object obj = stack.popObject();
 	 InterpreterBase.assert(obj != null);
-	 System.out.print("RemoteInterpreter: VM.Magic.getObjectType("+obj+")=");
+	 // System.out.print("RemoteInterpreter: VM.Magic.getObjectType("+obj+")=");
 	 VM_Type the_type = VM_Magic.getObjectType(obj);
 	 stack.push(the_type);
-	 if (traceInterpreter) System.out.println(the_type);
+	 // System.out.println(the_type);
 	 }
       else if (methodName == isync)
 	{
 	// Nothing to do 
 	  //  System.out.println("isync is being skipped");
+	}
+      else if (methodName == pragmaInline)
+	{
+	// Nothing to do 
+	  //  System.out.println("pragmaInline is being skipped");
+	}
+      else if (methodName == pragmaNoInline)
+	{
+	// Nothing to do 
+	  //  System.out.println("pragmaNoInline is being skipped");
 	}
       else
 	 {
@@ -426,7 +436,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    *  (5) find the type using the data structure in the interpreter
    */
   void X_ldc(VM_Class cls, int poolIndex) {
-    if (traceInterpreter) 
+    if (traceInterpreter >= 2) 
       System.out.println("X_ldc: load from constant pool index " + poolIndex);
 
     VM_Class currentClass = getCurrentClass();
@@ -480,7 +490,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    *  (5) find the type using the data structure in the interpreter
    */
   void X_ldc2_w(VM_Class cls, int poolIndex) {
-    if (traceInterpreter) 
+    if (traceInterpreter >= 2) 
       System.out.println("X_ldc2_w: new implementation");
 
     VM_Class currentClass = getCurrentClass();
@@ -671,7 +681,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    *
    */
   void X_getstatic() {
-    // if (traceInterpreter) 
+    // if (traceInterpreter >= 2) 
     VM_Class currentClass = getCurrentClass();
     int index = byte_codes.fetch2BytesUnsigned();      
 
@@ -763,7 +773,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
   void X_getfield(Object ref) {
     int index = byte_codes.fetch2BytesUnsigned();      
     mapVM mappedObject = (mapVM) ref;
-    // if (traceInterpreter) 
+    // if (traceInterpreter >= 2) 
     // System.out.println("X_getfield: constant pool index " + index + " of current class " + getCurrentClass() + ", for mapped object " + mappedObject);
 
     // (1) Compute pointer to the VM_Type, which should be VM_Class since we expect an object
@@ -878,7 +888,7 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
    * Currently we don't allow store into the JVM space
    */
   void X_putfield() {
-    // if (traceInterpreter) 
+    // if (traceInterpreter >= 2) 
     System.out.println("X_putfield: not implemented yet");
     debug();
   }

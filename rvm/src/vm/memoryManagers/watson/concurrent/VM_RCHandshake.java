@@ -75,7 +75,7 @@ class VM_RCHandshake extends VM_Handshake implements VM_Uninterruptible
 		    }
 		
 		if (trace) VM_Scheduler.trace("VM_RCHandshake", "mutator: initiating collection");
-		if (VM_CollectorThread.RENDEZVOUS_TIMES) VM_CollectorThread.startTime = VM_Time.now();
+		if (VM_CollectorThread.RENDEZVOUS_TIMES) VM_CollectorThread.gcBarrier.rendezvousStartTime = VM_Time.now();
 		this.requestFlag = true;
 		VM_Allocator.gcInProgress = true;
 		initiateCollection();

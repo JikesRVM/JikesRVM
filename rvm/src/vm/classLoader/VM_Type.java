@@ -75,8 +75,8 @@
    //
    public final boolean isClassType()     { return dimension == 0; } 
    public final boolean isArrayType()     { return dimension > 0;  }
-   public final boolean isPrimitiveType() { return dimension < 0;  }
-   public final boolean isReferenceType() { return dimension >= 0; }
+   public final boolean isPrimitiveType() { return (dimension < 0) || isAddressType();  }
+   public final boolean isReferenceType() { return !isPrimitiveType(); }
    
   // Downcasting.
   public final VM_Class asClass() { 
@@ -321,6 +321,14 @@
    */
   static VM_Type MagicType;             
   /**
+   * type used to represent machine addresses
+   */
+  static VM_Type AddressType;             
+  /**
+   * type used to represent code - array of INSTRUCTION
+   */
+  static VM_Type CodeType;             
+  /**
    * interface implemented to prevent compiler-inserted threadswitching
    */
   static VM_Type UninterruptibleType;   
@@ -357,6 +365,7 @@
   public final boolean isJavaLangThrowableType() { return this == JavaLangThrowableType; }
   public final boolean isJavaLangStringType()    { return this == JavaLangStringType;    }
   public final boolean isMagicType()             { return this == MagicType;             }
+  public final boolean isAddressType()           { return this == AddressType;           }
   public final boolean isUninterruptibleType()   { return this == UninterruptibleType;   }
   public final boolean isSynchronizedObjectType(){ return this == SynchronizedObjectType;   }
   public final boolean isDynamicBridgeType()     { return this == DynamicBridgeType;     }
@@ -563,7 +572,14 @@
     CharType    = VM_ClassLoader.findOrCreatePrimitiveType
       (VM_Atom.findOrCreateAsciiAtom("char"),    
        VM_Atom.findOrCreateAsciiAtom("C"));
-      
+
+    //-#if RVM_FOR_POWERPC
+    CodeType    =  VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[I")).asArray();
+    //-#endif
+    //-#if RVM_FOR_IA32
+    CodeType    =  VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B")).asArray();
+    //-#endif
+
     // create additional, frequently used, type descriptions
     //
     JavaLangObjectType    = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Object;"));
@@ -579,6 +595,7 @@
     DynamicBridgeType     = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_DynamicBridge;"));
     SaveVolatileType      = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_SaveVolatile;"));
     NativeBridgeType      = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_NativeBridge;"));
+    AddressType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_Address;"));
   }
 
   public String toString() {

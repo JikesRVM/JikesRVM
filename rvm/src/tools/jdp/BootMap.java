@@ -32,15 +32,6 @@ abstract class BootMap implements jdpConstants,
   int bootStart = -1; 
   int bootEnd = -1;
 
-  /**
-   * Cached address of the field VM_BootRecord.endAddress
-   * NOTE:  this only works if VM_BootRecord is not moved by GC
-   * for now this is a valid assumption
-   */
-  int vmEndAddress = -1;
-  int largeStartAddress = -1;
-  int largeSizeAddress = -1; 
-
   //**********************************************************************
   // The abstracts methods:  
   // the external implementation will rely on the boot map from BootImageWriter
@@ -1232,16 +1223,7 @@ abstract class BootMap implements jdpConstants,
    *  @return true if the address is in the RVM space, false otherwise 
    */
   public boolean isInRVMspace(int instructionAddress) {
-    int vmEnd = owner.mem.read(vmEndAddress); 
-    int largeStart = owner.mem.read(largeStartAddress);
-    int largeEnd = largeStart + owner.mem.read(largeSizeAddress);
-    if (instructionAddress>=bootStart && instructionAddress<=vmEnd) {
-      return true;
-    } else if (instructionAddress>=largeStart && instructionAddress<=largeEnd) {
-      return true;
-    } else {
-      return false;
-    }
+      return mapVM.addressInVM(instructionAddress);
   }
 
 

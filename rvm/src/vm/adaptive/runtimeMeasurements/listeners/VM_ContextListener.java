@@ -20,5 +20,5 @@ abstract class VM_ContextListener extends VM_Listener implements VM_Uninterrupti
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *            EPILOGUE?
    */
-  abstract public void update(int sfp, int whereFrom);
+  abstract public void update(VM_Address sfp, int whereFrom);
 }

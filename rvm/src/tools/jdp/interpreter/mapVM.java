@@ -114,8 +114,7 @@ class mapVM implements JDPServiceInterface {
   // these indicates the address space of the JVM
   // they are needed to support mixed stack frames of Java and native code
   // NOTE:  this assumes that VM_BootRecord is never moved by GC
-  static int vmStartAddress;         // address of field VM_BootRecord.startAddress
-  static int vmEndAddress;           // address of field VM_BootRecord.startAddress
+  static int heapRanges;             // value of VM_BootRecord.heapRanges which should not move
   static int cachedJTOC;             // last known value of JTOC, to use when in native code
 
 
@@ -309,22 +308,18 @@ class mapVM implements JDPServiceInterface {
 
       // bootstrap for the first time getJTOC is called,
       // assume we stop in a Java stack frame
-      if (vmStartAddress==0) {
-        VM_Field field = VM_Entrypoints.the_boot_recordField;
-        int bootRecordAddress ;
+      if (heapRanges==0) {
+        VM_Field field = (VM_Field) VM.getMember("LVM_BootRecord;", "the_boot_record", "LVM_BootRecord;");
+        int bootRecordAddress;
         if (cachedJTOC==0)
           bootRecordAddress = currentJTOC + field.getOffset();
         else
           bootRecordAddress = cachedJTOC + field.getOffset();
 
-        field = VM_Entrypoints.startAddressField;
-        vmStartAddress = bootRecordAddress + field.getOffset();
+        field = (VM_Field) VM.getMember("LVM_BootRecord;", "heapRanges", "[LVM_Address;");
+	int heapRangesAddress = bootRecordAddress + field.getOffset();
+	heapRanges = Platform.readmem(heapRangesAddress);
 
-        field = VM_Entrypoints.endAddressField;
-        vmEndAddress = bootRecordAddress + field.getOffset();
-
-        // System.out.println("getJTOC: " + Integer.toHexString(vmStartAddress) +
-        //                 " - " + Integer.toHexString(vmEndAddress));
       }
 
       if (cachedJTOC==0) {
@@ -333,10 +328,8 @@ class mapVM implements JDPServiceInterface {
       } else  {
 	// for other times, check if the JTOC is within the JVM space
 	// if not, just use the last known value
-	int start = Platform.readmem(vmStartAddress);
-	int end =  Platform.readmem(vmEndAddress);
-	if (currentJTOC>=vmStartAddress && currentJTOC<=vmEndAddress)
-	  cachedJTOC = currentJTOC;
+	  if (addressInVM(currentJTOC))
+	      cachedJTOC = currentJTOC;
       }
 
      } catch (Exception e1) {
@@ -347,6 +340,35 @@ class mapVM implements JDPServiceInterface {
     return cachedJTOC;
 
 
+  }
+
+
+  static boolean unsignedLT(int value1, int value2) {
+    if (value1 >= 0 && value2 >= 0) return value1 < value2;
+    if (value1 < 0 && value2 < 0) return value1 < value2;
+    if (value1 < 0) return true;
+    return false;
+  }
+
+  static boolean unsignedLE(int value1, int value2) {
+      return (value1 == value2) || unsignedLT(value1, value2);
+  }
+
+  static boolean unsignedGE(int value1, int value2) {
+      return unsignedLE(value2, value2);
+  }
+
+  static boolean addressInVM(int addr) {
+      VM.assert(heapRanges != 0);
+      for (int which = 0; ; which += 2) {
+ 	  int MaxHeaps = 20; // Surely there are not more than 20 heaps!  Array is probably malformed.
+	  VM.assert(which <= 2 * (MaxHeaps + 1));
+	  int start = Platform.readmem(heapRanges + 4 * (2 * which));
+	  int end = Platform.readmem(heapRanges + 4 * (2 * which + 1));
+	  if (start == -1 && end == -1) return false;
+	  if (unsignedGE(addr, start) && unsignedLT(addr, end))
+	      return true;
+      }
   }
 
 

@@ -29,7 +29,7 @@
 final class VM_BlockControl
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
 {
-    int baseAddr;
+    VM_Address baseAddr;
     int slotsize;		// slotsize
     byte[] mark;
     byte[] alloc;
@@ -60,6 +60,8 @@ final class VM_BlockControl
 
 
     static int getInstanceSize () {
+	if (VM.VerifyAssertions) VM.assert(instanceSize != 0);
 	return instanceSize;
     }
+
 }

@@ -69,7 +69,7 @@ public final class VM_JavaHeader extends VM_NurseryObjectModel
       }
     }      
     int offset = (tibWord & TIB_MASK) >>> (TIB_SHIFT - 2);
-    return VM_Magic.addressAsObjectArray(VM_Magic.getMemoryWord(VM_Magic.getTocPointer() + offset));
+    return VM_Magic.addressAsObjectArray(VM_Magic.getMemoryAddress(VM_Magic.getTocPointer() + offset));
   }
   
   /**
@@ -97,7 +97,7 @@ public final class VM_JavaHeader extends VM_NurseryObjectModel
   /**
    * Process the TIB field during copyingGC.
    */
-  public static void gcProcessTIB(int ref) {
+  public static void gcProcessTIB(VM_Address ref) {
     // nothing to do (TIB is not a pointer)
   }
 
@@ -107,7 +107,7 @@ public final class VM_JavaHeader extends VM_NurseryObjectModel
    * @param jdpService
    * @param address address of the object
    */
-  public static ADDRESS getTIB(JDPServiceInterface jdpService, ADDRESS ptr) {
+  public static VM_Address getTIB(JDPServiceInterface jdpService, VM_Address ptr) {
     int tibWord = jdpService.readMemory(ptr + TIB_OFFSET);
     if (VM_Collector.MOVES_OBJECTS) {
       int fmask = tibWord & VM_AllocatorHeader.GC_FORWARDING_MASK;

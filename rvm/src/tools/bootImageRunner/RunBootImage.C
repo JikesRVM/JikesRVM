@@ -92,6 +92,7 @@ extern unsigned smallHeapSize;  // megs
 extern unsigned largeHeapSize;  // megs
 extern unsigned nurserySize;    // megs
 extern unsigned permanentHeapSize;
+extern int verboseGC;
 
 int dejaVuMode;
 char * dejaVuClassName = "DejaVu";
@@ -342,6 +343,19 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     }
     if (!strcmp(token, "-showversion")) {
       fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
+      continue;
+    }
+    if (!strcmp(token, "-verbose:gc")) {
+      verboseGC = 1;
+      continue;
+    }
+    if (!strncmp(token, "-verbose:gc=",12)) {
+      subtoken = token + 12;
+      verboseGC = atoi(subtoken);
+      if (verboseGC < 0) {
+	fprintf(SysTraceFile, "%s: please specify GC verbose level \"-verbose:gc=<number>\"\n", me);
+	*fastExit = 1; break;
+      }
       continue;
     }
     if (!strncmp(token, "-X:h=", 5)) {

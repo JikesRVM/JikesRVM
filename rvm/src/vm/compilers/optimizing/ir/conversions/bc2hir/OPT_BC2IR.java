@@ -497,7 +497,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	    assertIsType(ref, OPT_ClassLoaderProxy.IntArrayType);
+	      assertIsType(ref, OPT_ClassLoaderProxy.IntArrayType);
 	  s = AStore.create(INT_ASTORE, val, ref, index,
 			    new OPT_LocationOperand(VM_Type.IntType),
 			    getCurrentGuard());
@@ -563,8 +563,9 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  VM_Type type = getRefTypeOf(ref).asArray().getElementType();
 	  if (VM.VerifyAssertions) VM.assert(type.isReferenceType());
 	  if (do_CheckStore(ref, val, type))
-	    break;
-	  s = AStore.create(REF_ASTORE, val, ref, index,
+	      break;
+	  s = AStore.create(REF_ASTORE, 
+			    val, ref, index,
 			    new OPT_LocationOperand(type),
 			    getCurrentGuard());
 	}
@@ -1448,6 +1449,27 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  }
 	  int constantPoolIndex = bcInfo.getMethodReferenceIndex();
 	  VM_Method meth = bcInfo.getMethodReference(constantPoolIndex);
+	  if (meth.getDeclaringClass().isAddressType()) {
+	    try {
+	      OPT_GenerateMagic.generateMagic(this, gc, meth);
+	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
+		OPT_InlineReport.isMagic(meth);
+	      }
+	      break;
+	    } catch (OPT_MagicNotImplementedException e) {
+	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
+		OPT_InlineReport.unimplementedMagic(Call.getMethod(s).method);
+	      }
+	      if (gc.options.SKIP_UNKNOWN_MAGIC) {
+		s = _callHelper(OPT_MethodOperand.STATIC(meth, false));
+		// CALL must be treated as potential throw of anything
+		rectifyStateWithExceptionHandlers();
+		break;
+	      } else {
+		throw  (e);
+	      }
+	    }
+	  }
 	  boolean unresolved = meth.needsDynamicLink(gc.method);
 	  if (!unresolved) meth = meth.resolve();
 	  OPT_MethodOperand methOp = 
@@ -1557,7 +1579,8 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  }
 	  int constantPoolIndex = bcInfo.getMethodReferenceIndex();
 	  VM_Method meth = bcInfo.getMethodReference(constantPoolIndex);
-	  if (meth.getDeclaringClass().isMagicType()) {
+	  if (meth.getDeclaringClass().isMagicType() ||
+	      meth.getDeclaringClass().isAddressType()) {
 	    try {
 	      OPT_GenerateMagic.generateMagic(this, gc, meth);
 	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
@@ -2431,7 +2454,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private OPT_Instruction do_aload(int index) {
     OPT_Operand r = getLocal(index);
-    if (VM.VerifyAssertions) VM.assert(r.isRef());
+    if (VM.VerifyAssertions) VM.assert(r.isRef() || r.isAddress());
     if (LOCALS_ON_STACK) {
       push(r);
       return null;
@@ -2717,7 +2740,16 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   OPT_Operand popRef() {
     OPT_Operand r = pop();
-    if (VM.VerifyAssertions) VM.assert(r.isRef());
+    if (VM.VerifyAssertions) VM.assert(r.isRef() || r.isAddress());
+    return r;
+  }
+
+  /**
+   * Pop a ref operand from the stack.
+   */
+  OPT_Operand popAddress() {
+    OPT_Operand r = pop();
+    if (VM.VerifyAssertions) VM.assert(r.isAddress());
     return r;
   }
 

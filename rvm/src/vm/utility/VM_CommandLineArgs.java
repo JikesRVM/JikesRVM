@@ -62,14 +62,16 @@ class VM_CommandLineArgs {
   public static final int AOS_HELP_ARG         = 17;
   public static final int AOS_ARG              = 18;
   public static final int MEASURE_COMP_ARG     = 19;
-  public static final int GCTK_HELP_ARG        = 20;
-  public static final int GCTK_ARG             = 21;
-  public static final int AOS_BASE_ARG         = 22;
-  public static final int AOS_BASE_HELP_ARG    = 23;
-  public static final int BASE_HELP_ARG        = 24;
-  public static final int BASE_ARG             = 25;
-  public static final int OPT_ARG              = 26;
-  public static final int OPT_HELP_ARG         = 27;
+  public static final int GC_HELP_ARG          = 20;
+  public static final int GC_ARG               = 21;
+  public static final int GCTK_HELP_ARG        = 22;
+  public static final int GCTK_ARG             = 23;
+  public static final int AOS_BASE_ARG         = 24;
+  public static final int AOS_BASE_HELP_ARG    = 25;
+  public static final int BASE_HELP_ARG        = 26;
+  public static final int BASE_ARG             = 27;
+  public static final int OPT_ARG              = 28;
+  public static final int OPT_HELP_ARG         = 29;
 
   /**
    * A catch-all prefix to find application name.
@@ -119,9 +121,12 @@ class VM_CommandLineArgs {
     new Prefix("-X:aos:help$",          AOS_HELP_ARG),
     new Prefix("-X:aos$",               AOS_HELP_ARG),
     new Prefix("-X:aos:",               AOS_ARG),
-    new Prefix("-X:gc:help$",           GCTK_HELP_ARG),
-    new Prefix("-X:gc$",                GCTK_HELP_ARG),
-    new Prefix("-X:gc:",                GCTK_ARG),
+    new Prefix("-X:gc:help$",           GC_HELP_ARG),
+    new Prefix("-X:gc$",                GC_HELP_ARG),
+    new Prefix("-X:gc:",                GC_ARG),
+    new Prefix("-X:gctk:help$",         GCTK_HELP_ARG),
+    new Prefix("-X:gctk$",              GCTK_HELP_ARG),
+    new Prefix("-X:gctk:",              GCTK_ARG),
     new Prefix("-X:measureCompilation=",MEASURE_COMP_ARG),
     new Prefix("-X:base:help$",         BASE_HELP_ARG),
     new Prefix("-X:base$",              BASE_HELP_ARG),
@@ -315,7 +320,7 @@ class VM_CommandLineArgs {
 	break;
       case VERBOSE_GC_ARG:
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
-	VM.verboseGC = true;
+	VM_BootRecord.the_boot_record.verboseGC = 1;
 	break;
       case VERBOSE_CLS_ARG:
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
@@ -542,9 +547,21 @@ class VM_CommandLineArgs {
 	break;
 
         // -------------------------------------------------------------------
+        // Access GC options
+        // -------------------------------------------------------------------
+      case GC_HELP_ARG:  // -X:gc passed 'help' as an option
+	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
+	VM_Collector.processCommandLineArg("help");
+	break;
+      case GC_ARG: // "-X:gc:arg" pass 'arg' as an option
+	VM_Collector.processCommandLineArg(arg);
+	break;
+
+
+        // -------------------------------------------------------------------
         // Access GCTk optios
         // -------------------------------------------------------------------
-      case GCTK_HELP_ARG:  // -X:gc passed 'help' as an option
+      case GCTK_HELP_ARG:  // -X:gctk passed 'help' as an option
 	if (VM.VerifyAssertions) VM.assert(arg.equals(""));
 	//-#if RVM_WITH_GCTk
 	GCTk_Collector.processCommandLineArg("help");
@@ -553,7 +570,7 @@ class VM_CommandLineArgs {
 	VM.sysExit(1);
 	//-#endif
 	break;
-      case GCTK_ARG: // "-X:gc:arg" pass 'arg' as an option
+      case GCTK_ARG: // "-X:gctk:arg" pass 'arg' as an option
 	//-#if RVM_WITH_GCTk
 	GCTk_Collector.processCommandLineArg(arg);
 	//-#else
@@ -670,7 +687,7 @@ class VM_CommandLineArgs {
   sysArg(int argno, byte buf[]) {
     // PIN(buf);
     int rc = VM.sysCall3(VM_BootRecord.the_boot_record.sysArgIP, 
-			 argno, VM_Magic.objectAsAddress(buf), buf.length);
+			 argno, VM_Magic.objectAsAddress(buf).toInt(), buf.length);
     // UNPIN(buf);
     return rc;
   }

@@ -30,26 +30,21 @@ public class VM_StackBuffer
 
     static void	allocateStackBuffer(VM_Thread t)
     {
-	int bufaddr;
-	if ((bufaddr = VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
-					 STACK_BUFFER_SIZE)) == 0) {
-	    VM.sysWrite(" In VM_RCBuffers.allocateStackBuffer, call to sysMalloc returned 0\n");
-	    VM.sysExit(1800);
-	}
-
-	VM_Magic.setMemoryWord(bufaddr + STACK_BUFFER_NEXT_OFFSET, 0);
+	VM_Address bufaddr = VM_Allocator.mallocHeap.allocate(STACK_BUFFER_SIZE);
+	VM_Magic.setMemoryWord(bufaddr.add(STACK_BUFFER_NEXT_OFFSET), 0);
 	int index = t.stackBufferCurrent;
 
-	t.stackBuffer[index]    = bufaddr;
-	t.stackBufferTop[index] = bufaddr + STACK_BUFFER_FIRST_OFFSET;
-	t.stackBufferMax[index] = bufaddr + STACK_BUFFER_LAST_OFFSET;
+	t.stackBuffer[index]    = bufaddr.toInt();
+	t.stackBufferTop[index] = bufaddr.add(STACK_BUFFER_FIRST_OFFSET).toInt();
+	t.stackBufferMax[index] = bufaddr.add(STACK_BUFFER_LAST_OFFSET).toInt();
     }
 
 
     static void	growStackBuffer(VM_Thread t)
     {
-	int bufaddr;
-	if ((bufaddr = VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
+	VM_Address bufaddr = VM_Allocator.mallocHeap.allocate(STACK_BUFFER_SIZE);
+	/*
+	  if ((bufaddr = VM.sysCall1(VM_BootRecord.the_boot_record.sysMallocIP,
 					 STACK_BUFFER_SIZE)) == 0) {
 	    VM_Scheduler.gcWaitMutex.lock();
 	    VM_Scheduler.assert(VM_Thread.getCurrentThread().isIdleThread == false);
@@ -61,42 +56,41 @@ public class VM_StackBuffer
 		// VM_Scheduler.traceback("VM_RCBuffer::growStackBuffer");
 	    }
 	}
-
-	// VM_Scheduler.trace("growStackBuffer" , "stackDepth = ", ++stackDepth);
+	*/
 
 	int index = t.stackBufferCurrent;
 
 	// set last word in current buffer to address of next buffer
-	VM_Magic.setMemoryWord(t.stackBufferTop[index] + 4, bufaddr);
+	VM_Magic.setMemoryAddress(VM_Address.fromInt(t.stackBufferTop[index]).add(4), bufaddr);
 	// set fptr in new buffer to null, to identify it as last
-	VM_Magic.setMemoryWord(bufaddr + STACK_BUFFER_NEXT_OFFSET, 0);
+	VM_Magic.setMemoryWord(bufaddr.add(STACK_BUFFER_NEXT_OFFSET), 0);
 	// set incDecBuffer pointers in processor object for stores into new buffer
-	t.stackBufferTop[index] = bufaddr + STACK_BUFFER_FIRST_OFFSET;
-	t.stackBufferMax[index] = bufaddr + STACK_BUFFER_LAST_OFFSET;
+	t.stackBufferTop[index] = bufaddr.add(STACK_BUFFER_FIRST_OFFSET).toInt();
+	t.stackBufferMax[index] = bufaddr.add(STACK_BUFFER_LAST_OFFSET).toInt();
     }
 
 
-    static void addToStackBuffer(int ref, VM_Thread t)
+    static void addToStackBuffer(VM_Address ref, VM_Thread t)
     {
 	int index = t.stackBufferCurrent;
-	int addr = t.stackBufferTop[index] + 4;
-	VM_Magic.setMemoryWord(addr, ref);
+	VM_Address addr = VM_Address.fromInt(t.stackBufferTop[index]).add(4);
+	VM_Magic.setMemoryAddress(addr, ref);
 
-	t.stackBufferTop[index] = addr;
+	t.stackBufferTop[index] = addr.toInt();
 
-	if (addr == t.stackBufferMax[index]) {
+	if (addr.EQ(VM_Address.fromInt(t.stackBufferMax[index]))) {
 	    growStackBuffer(t);
 	}
     }
 
 
 
-    static void	freeStackBuffer(int addr)
+    static void	freeStackBuffer(VM_Address addr)
     {
-	for (int buf = addr, nextbuf = 0; buf != 0; buf = nextbuf) {
-	    nextbuf = VM_Magic.getMemoryWord(buf + STACK_BUFFER_NEXT_OFFSET);
+	for (VM_Address buf = addr, nextbuf = VM_Address.zero(); !buf.isZero(); buf = nextbuf) {
+	    nextbuf = VM_Magic.getMemoryAddress(buf.add(STACK_BUFFER_NEXT_OFFSET));
 
-	    VM.sysCall1(VM_BootRecord.the_boot_record.sysFreeIP, buf);
+	    VM_Allocator.mallocHeap.free(buf);
 
 	    // VM_Scheduler.trace("freeStackBuffer" , "stackDepth = ", --stackDepth);
 	}
@@ -123,16 +117,17 @@ public class VM_StackBuffer
 
     protected static void processStackBuffer(VM_Thread t, boolean increment) {
 	int index = increment ? ((t.stackBufferCurrent == 0) ? 1 : 0) : t.stackBufferCurrent;
-	int top   = t.stackBufferTop[index];
+	VM_Address top  = VM_Address.fromInt(t.stackBufferTop[index]);
 
-	for (int start = t.stackBuffer[index], next = 0; start != 0; start = next) {
-	    int nextAddr = start + STACK_BUFFER_NEXT_OFFSET;
-	    next = VM_Magic.getMemoryWord(nextAddr);
+	for (VM_Address start = VM_Address.fromInt(t.stackBuffer[index]), next = VM_Address.zero(); 
+	     !start.isZero(); start = next) {
+	    VM_Address nextAddr = start.add(STACK_BUFFER_NEXT_OFFSET);
+	    next = VM_Magic.getMemoryAddress(nextAddr);
 	    // Determine size based on whether it is a full buffer (i.e. next != null)
-	    int end = (next == 0) ? top : start + STACK_BUFFER_LAST_OFFSET;
+	    VM_Address end = (next.isZero()) ? top : start.add(STACK_BUFFER_LAST_OFFSET);
 		    
-	    for (int bufptr = start; bufptr <= end; bufptr += 4) {
-		int object = VM_Magic.getMemoryWord(bufptr);
+	    for (VM_Address bufptr = start; bufptr.LE(end); bufptr = bufptr.add(4)) {
+		VM_Address object = VM_Magic.getMemoryAddress(bufptr);
 
 		if (VM_Allocator.GC_FILTER_MALLOC_REFS && VM_Allocator.isMalloc(object)) { // do at scan time?
 		    VM.sysWrite("Ignoring malloc ref in stack buffer: ");
@@ -156,7 +151,7 @@ public class VM_StackBuffer
 	}
 
 	if (! increment && ! t.stackBufferSame)        // free decrement buffer if not retained
-	    freeStackBuffer(t.stackBuffer[index]);
+	    freeStackBuffer(VM_Address.fromInt(t.stackBuffer[index]));
     }
 
 
@@ -234,16 +229,16 @@ public class VM_StackBuffer
 	    VM.sysWrite("\n");
 	}
 
-	int prevFp = 0;
+	VM_Address prevFp = VM_Address.zero();
 	// start scan using fp & ip in threads saved context registers
-	int ip = t.contextRegisters.getInnermostInstructionAddress();
-	int fp = t.contextRegisters.getInnermostFramePointer();
+	VM_Address ip = t.contextRegisters.getInnermostInstructionAddress();
+	VM_Address fp = t.contextRegisters.getInnermostFramePointer();
 
 	// At start of loop:
 	//   fp -> frame for method invocation being processed
 	//   ip -> instruction pointer in the method (normally a call site)
 
-	while (VM_Magic.getCallerFramePointer(fp) != STACKFRAME_SENTINAL_FP) {
+	while (VM_Magic.getCallerFramePointer(fp).NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP))) {
 
 	    if (GC_TRACESCANSTACK) {
 		VM.sysWrite("----- FRAME ----- fp = ");   VM.sysWrite(fp);
@@ -295,7 +290,7 @@ public class VM_StackBuffer
 
 
     protected static int
-    scanStackFrame(int fp, int ip, int compiledMethodId, VM_GCMapIteratorGroup iteratorGroup, VM_Thread t) {
+    scanStackFrame(VM_Address fp, VM_Address ip, int compiledMethodId, VM_GCMapIteratorGroup iteratorGroup, VM_Thread t) {
 
 	VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	VM_Method         method         = compiledMethod.getMethod();
@@ -314,20 +309,19 @@ public class VM_StackBuffer
 
 	// get stack map iterator
 
-	int offset = ip - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+	int offset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
 	VM_GCMapIterator iterator = iteratorGroup.selectIterator(compiledMethod);
 	iterator.setupIterator (compiledMethod, offset, fp);
 	       
 	// SCAN the map and process each reference in the stack
 
-	int previousrefaddr = 0;
-	int lastrefaddr = 0;
+	VM_Address previousrefaddr = VM_Address.zero();
+	VM_Address lastrefaddr =  VM_Address.zero();
 
 	if (CHECK_REF_MAPS) {
-	    previousrefaddr = fp + VM_Compiler.getFirstLocalOffset(method) + 4;  
+	    previousrefaddr = fp.add(VM_Compiler.getFirstLocalOffset(method) + 4);  
 	    // bumped first, then chked
-	    lastrefaddr = previousrefaddr - 
-		((method.getLocalWords() + method.getOperandWords()) * 4);
+	    lastrefaddr = previousrefaddr.sub(((method.getLocalWords() + method.getOperandWords()) * 4));
 	    displayTopStackLoop(method, previousrefaddr, iterator);
 	}
 
@@ -335,8 +329,8 @@ public class VM_StackBuffer
 
 	int stack_ref_count = 0;
 
-	for (int refaddr = iterator.getNextReferenceAddress();  refaddr != 0;
-	         refaddr = iterator.getNextReferenceAddress()) {
+	for (VM_Address refaddr = iterator.getNextReferenceAddress();  !refaddr.isZero();
+	     refaddr = iterator.getNextReferenceAddress()) {
 
 	    // Debug and trace support
 
@@ -348,9 +342,9 @@ public class VM_StackBuffer
 		   
 	    // If object pointer isn't null, add it to stack buffer
 
-	    int object = VM_Magic.getMemoryWord(refaddr);
+	    VM_Address object = VM_Magic.getMemoryAddress(refaddr);
 
-	    if (object != 0) {						
+	    if (!object.isZero()) {
 		if (VM.VerifyAssertions && ! FILTER_STACK_REFS) 
 		    VM.assert(VM_Allocator.isPossibleRefOrMalloc(object));
 
@@ -386,15 +380,15 @@ public class VM_StackBuffer
 
 	// Compute base and extent of stack
 	int[] myStack  = t.stack;
-	int   myTop    = VM_Magic.objectAsAddress(myStack) + (myStack.length << 2);
-	int   myFP     = t.contextRegisters.gprs[FRAME_POINTER];
-	int   myDepth  = myTop - myFP;
+	VM_Address  myTop = VM_Magic.objectAsAddress(myStack).add(myStack.length << 2);
+	VM_Address  myFP  = VM_Address.fromInt(t.contextRegisters.gprs[FRAME_POINTER]);
+	int   myDepth     = myTop.diff(myFP);
 
 	// Compute size required and allocate
 	int   newSize  = myDepth >> 2;
 	int[] newStack = new int[newSize];
-	int   newFP    = VM_Magic.objectAsAddress(newStack);
-	int   delta    = newFP - myFP;
+	VM_Address newFP    = VM_Magic.objectAsAddress(newStack);
+	int   delta    = newFP.diff(myFP);
 
 	// Copy stack of running thread
 	VM_Memory.aligned32Copy(newFP, myFP, myDepth);
@@ -416,29 +410,29 @@ public class VM_StackBuffer
     //
 
     private static void
-    dumpStackFrame (VM_Method method, int fp) {
+    dumpStackFrame (VM_Method method, VM_Address fp) {
 	// get callers frame pointer
-	int location =  VM_Magic.getCallerFramePointer(fp);
+	VM_Address location =  VM_Magic.getCallerFramePointer(fp);
 	int maxOffset = VM_Compiler.getFirstLocalOffset(method);  // bumped first, then chked
 	VM.sysWrite("scanStack: stack frame dump (caller_fp to fp) for method ");
 	VM.sysWrite(method.toString());
 	VM.sysWrite("\n");
 
-	while ( location >= fp ) {
+	while ( location.GE(fp) ) {
 	    int contents = VM_Magic.getMemoryWord( location );
 	    VM.sysWrite("   location ");
 	    VM.sysWrite(location);
 	    VM.sysWrite(" contents ");
 	    VM.sysWrite(contents);
-	    if (location == (fp + maxOffset))
+	    if (location.EQ(fp.add(maxOffset)))
 		VM.sysWrite("    <----- First Local Offset ");
 	    VM.sysWrite(".\n");
-	    location = location - 4;
+	    location = location.sub(4);
 	}
     }
 
     private static void
-    displayTopStackLoop (VM_Method method, int previousrefaddr, VM_GCMapIterator iterator ) {
+    displayTopStackLoop (VM_Method method, VM_Address previousrefaddr, VM_GCMapIterator iterator ) {
 
 	/****************
 			 int paramwords = method.getParameterWords();
@@ -461,7 +455,7 @@ public class VM_StackBuffer
     }
 
     private static void
-    displayRefInfo (int location) {
+    displayRefInfo (VM_Address location) {
 	int contents = VM_Magic.getMemoryWord(location);
 	VM.sysWrite("scanStack: processing ref at location(hex) = ");
 	VM.sysWrite(location);
@@ -470,12 +464,12 @@ public class VM_StackBuffer
 	VM.sysWrite(".\n");
     }
 
-    private static int
-    displayChkRef (int previousrefaddr, int refaddr) {
-	previousrefaddr -= 4;
-	while (previousrefaddr > refaddr) {
-	    int contents = VM_Magic.getMemoryWord(previousrefaddr);
-	    if (contents >= VM_Allocator.smallHeapStartAddress && contents <= VM_Allocator.largeHeapEndAddress ) {
+    private static VM_Address
+    displayChkRef (VM_Address previousrefaddr, VM_Address refaddr) {
+	previousrefaddr = previousrefaddr.sub(4);
+	while (previousrefaddr.GT(refaddr)) {
+	    VM_Address contents = VM_Magic.getMemoryAddress(previousrefaddr);
+	    if (VM_Heap.refInAnyHeap(contents)) {
 		VM.sysWrite("scanStack: Possibly missed reference? location(hex) = ");
 		VM.sysWrite(previousrefaddr);
 		VM.sysWrite(" contents(hex) = ");
@@ -483,19 +477,19 @@ public class VM_StackBuffer
 		VM.sysWrite(".\n");
 		if (VM_Allocator.GC_STATISTICS) VM_Allocator.numberOfAmbiguousRefs++;
 	    }
-	    previousrefaddr -= 4;
+	    previousrefaddr = previousrefaddr.sub(4);
 
 	}
 	return previousrefaddr;
     }
 
     private static void
-    displayChkRefLast (int previousrefaddr, int lastrefaddr) {
-	int contents;
-	previousrefaddr -= 4;
-	while (previousrefaddr >= lastrefaddr) {
-	    contents = VM_Magic.getMemoryWord(previousrefaddr);
-	    if (contents >= VM_Allocator.smallHeapStartAddress && contents <= VM_Allocator.largeHeapEndAddress ) {
+    displayChkRefLast (VM_Address previousrefaddr, VM_Address lastrefaddr) {
+
+	previousrefaddr = previousrefaddr.sub(4);
+	while (previousrefaddr.GE(lastrefaddr)) {
+	    VM_Address contents = VM_Magic.getMemoryAddress(previousrefaddr);
+	    if (VM_Heap.refInAnyHeap(contents)) {
 		VM.sysWrite("scanStack: Possibly missed reference? location(hex) = ");
 		VM.sysWrite(previousrefaddr);
 		VM.sysWrite(" contents(hex) = ");
@@ -503,31 +497,31 @@ public class VM_StackBuffer
 		VM.sysWrite(".\n");
 		if (VM_Allocator.GC_STATISTICS) VM_Allocator.numberOfAmbiguousRefs++;
 	    }
-	    previousrefaddr -= 4;
+	    previousrefaddr = previousrefaddr.sub(4);
 	}
     }
 
-    static void dumpBufferInfo(int bufptr, int object) {
-	if (bufptr != 0)
+    static void dumpBufferInfo(VM_Address bufptr, VM_Address object) {
+	if (!bufptr.isZero())
 	    dumpBuffer(bufptr);
 
-	if (object != 0) {
+	if (!object.isZero()) {
 	    VM.sysWrite("Object data:\n");
 	    dumpObject(object);
 	}
 
-	if (bufptr != 0) {
-	    VM.sysWrite("Type of previous object: "); VM_Allocator.printType(VM_Magic.getMemoryWord(bufptr-4));
-	    VM.sysWrite("Type of next     object: "); VM_Allocator.printType(VM_Magic.getMemoryWord(bufptr+4));
+	if (!bufptr.isZero()) {
+	    VM.sysWrite("Type of previous object: "); VM_Allocator.printType(VM_Magic.getMemoryAddress(bufptr.sub(4)));
+	    VM.sysWrite("Type of next     object: "); VM_Allocator.printType(VM_Magic.getMemoryAddress(bufptr.add(4)));
 	}
     }
 
-    static void dumpBuffer(int address) {
+    static void dumpBuffer(VM_Address address) {
 	dump(address, 64);
     }
 
-    static void dumpObject(int address) {
-	int segment = address >> 28;
+    static void dumpObject(VM_Address address) {
+	int segment = address.toInt() >> 28;
 	if (segment < 2 || segment > 4) {
 	    VM.sysWrite("Object in bad segment\n");
 	    return;
@@ -536,14 +530,14 @@ public class VM_StackBuffer
 	dump(address, 64);
     }
 
-    static void dump(int address, int delta) {
-	for (int p = address - delta; p < address + delta; p += 4) {
-	    if (p == address)
+    static void dump(VM_Address address, int delta) {
+	for (VM_Address p = address.sub(delta); p.LT(address.add(delta)); p = p.add(4)) {
+	    if (p.EQ(address))
 		VM.sysWrite("* ");
 	    else
 		VM.sysWrite("  ");
 
-	    VM_Scheduler.writeHex(p);
+	    VM_Scheduler.writeHex(p.toInt());
 	    VM.sysWrite(":  ");
 	    VM_Scheduler.writeHex(VM_Magic.getMemoryWord(p));
 	    VM.sysWrite("\n");

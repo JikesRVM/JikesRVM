@@ -528,9 +528,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	    if (!field.getType().isPrimitiveType()) {
 		    String className = 
 			field.getDeclaringClass().getDescriptor().toString();
-		    if (className.equals("LVM_BlockControl;")) {
-			VM.sysWrite("Omitting barrier for method " + ir.method
-				    + " field " + field + "\n");
+		    if (VM_RCBarriers.shouldOmitBarrier(method,field)) {
+			// shouldOmitBarrier already prints Omitting message
 		    } else {
 			if (opcode == PUTFIELD_opcode)
 			    Call.mutate3(inst, CALL, null, null, 

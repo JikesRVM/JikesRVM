@@ -60,6 +60,7 @@ extern "C" int sched_yield();
 #endif
 #include <strings.h>        /* bzero() */
 #include <sys/mman.h>       /* mmap & munmap() */
+#include <sys/shm.h>
 #include <errno.h>
 #include <dlfcn.h>
 
@@ -526,7 +527,7 @@ sysWriteBytes(int fd, char *buf, int cnt)
  // System timer operations. //
  //--------------------------//
 
- extern int VmBottom, VmMiddle, VmTop;
+ extern int VmBottom, VmTop;
  #ifdef _AIX
  #include <mon.h>
  #endif
@@ -1215,6 +1216,32 @@ sysSyncCache(int address, int size)
    }
 
 //-----------------//
+// SHM* operations //
+//-----------------//
+extern "C" int sysShmget(int key, int size, int flags) 
+{
+    return shmget(key, size,flags);
+}
+
+extern "C" void * sysShmat(int shmid, char * addr, int flags) 
+{
+    return shmat(shmid, addr, flags);
+}
+
+extern "C" int sysShmdt(char * addr)
+{
+    if (shmdt(addr) == 1)
+	return errno;
+    return 0;
+}
+
+extern "C" int sysShmctl(int shmid, int command)
+{
+    return shmctl(shmid, command, NULL);
+}
+
+
+//-----------------//
 // MMAP operations //
 //-----------------//
 
@@ -1246,7 +1273,15 @@ sysMMap(char *start, char *length, int protection, int flags, int fd, long long 
 extern "C" void *
 sysMMapNonFile(char *start, char *length, int protection, int flags)
    {
-   return mmap(start, (size_t)(length), protection, flags, -1, 0);
+       void *res = mmap(start, (size_t)(length), protection, flags, -1, 0);
+       if (res == (void *) -1) {
+	 printf("mmap(%d, %d, %d, %d, -1, 0) failed with %d\n", start, length, protection, flags, errno);
+	 return (void *) errno;
+       }
+       #ifdef DEBUG_SYS
+       printf("mmap worked - region = [0x%x ... 0x%x]    size = %d\n", res, ((int)res) + length, length);
+       #endif
+       return res;
    }
 
 // mmap - demand zero fixed address case

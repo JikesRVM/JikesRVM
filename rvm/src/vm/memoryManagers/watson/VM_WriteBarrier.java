@@ -99,10 +99,10 @@ class VM_WriteBarrier implements VM_Constants, VM_Uninterruptible {
 
     // (2) add reference to write buffer
     VM_Processor p = VM_Processor.getCurrentProcessor();
-    int wbTop = p.modifiedOldObjectsTop;
-    int wbMax = p.modifiedOldObjectsMax;
-    wbTop += 4;
-    VM_Magic.setMemoryWord(wbTop, VM_Magic.objectAsAddress(ref));
+    VM_Address wbTop = p.modifiedOldObjectsTop;
+    VM_Address wbMax = p.modifiedOldObjectsMax;
+    wbTop = wbTop.add(4);
+    VM_Magic.setMemoryAddress(wbTop, VM_Magic.objectAsAddress(ref));
     p.modifiedOldObjectsTop = wbTop;
 
     // (3) grow write buffer (if necessary)

@@ -62,15 +62,15 @@ public final class VM_CycleBuffer
 	last = this;
     }
 
-    public final void add (int object) {
-	last.objects[last.entries++] = object;
+    public final void add (VM_Address object) {
+	last.objects[last.entries++] = object.toInt();
 
-	if (VM.VerifyAssertions && object != 0) 
+	if (VM.VerifyAssertions && !object.isZero()) 
 	    VM.assert(isBuffered(object) && color(object) == WHITE && VM_Allocator.isPossibleRef(object));
-	if (CB_COUNT_EVENTS) { if (object == 0) cyclesFound++; else whiteObjects++; }
+	if (CB_COUNT_EVENTS) { if (object.isZero()) cyclesFound++; else whiteObjects++; }
 
 	if (TRACEADDS) {
-	    if (object == 0) VM.sysWrite("================\n");
+	    if (object.isZero()) VM.sysWrite("================\n");
 	    else {
 		dumpRefcountInfo("  Cycle buffering ", object);
 		dumpRefs(object);
@@ -92,7 +92,7 @@ public final class VM_CycleBuffer
 
     public final void addDelimiter() {
 	if (last.entries == 0 || last.objects[last.entries-1] != 0) {
-	    add(0);
+	    add(VM_Address.zero());
 	}
     }
 
@@ -124,8 +124,8 @@ public final class VM_CycleBuffer
 	    for (int pass = 1; pass <= 3; pass++) { // perform 3 passes
 		for (; c != null; i++) { // iterate over elements of a cycle
 		    if (i >= c.entries) { i = -1; c = c.next; continue; }
-		    int object = c.objects[i];
-		    if (object == 0) break;
+		    VM_Address object = VM_Address.fromInt(c.objects[i]);
+		    if (object.isZero()) break;
 
 		    switch (pass) {
 		    case 1:
@@ -202,8 +202,8 @@ public final class VM_CycleBuffer
 
 	for (; c != null; i--) { // loop over one cycle backwards
 	    if (i < 0) { c = c.prev; if (c != null) i = c.entries; continue; }
-	    int object = c.objects[i];
-	    if (object == 0) break;
+	    VM_Address object = VM_Address.fromInt(c.objects[i]);
+	    if (object.isZero()) break;
 
 	    size++;
 
@@ -245,8 +245,8 @@ public final class VM_CycleBuffer
 
 	for (; cc != null; ci--) { // loop over cycle backwards
 	    if (ci < 0) { cc = cc.prev; if (cc != null) ci = cc.entries; continue; }
-	    int object = cc.objects[ci];
-	    if (object == 0) { ci--; break; }
+	    VM_Address object = VM_Address.fromInt(cc.objects[ci]);
+	    if (object.isZero()) { ci--; break; }
 
 	    // HACK // if (VM.VerifyAssertions) VM.assert(isBuffered(object));
 
@@ -277,8 +277,8 @@ public final class VM_CycleBuffer
     private static final void recolorNodes (VM_CycleBuffer buffer, int index) {
 	for (; buffer != null; index--) { // loop over cycle backwards
 	    if (index < 0) { buffer = buffer.prev; if (buffer != null) index = buffer.entries; continue; }
-	    int object = buffer.objects[index];
-	    if (object == 0) { index--; break; }
+	    VM_Address object = VM_Address.fromInt(buffer.objects[index]);
+	    if (object.isZero()) { index--; break; }
 
 	    setColor(object, BLUE);
 	}
@@ -287,8 +287,8 @@ public final class VM_CycleBuffer
     private static final void decrementNodes (VM_CycleBuffer buffer, int index) {
 	for (; buffer != null; index--) { // loop over cycle backwards
 	    if (index < 0) { buffer = buffer.prev; if (buffer != null) index = buffer.entries; continue; }
-	    int object = buffer.objects[index];
-	    if (object == 0) { index--; break; }
+	    VM_Address object = VM_Address.fromInt(buffer.objects[index]);
+	    if (object.isZero()) { index--; break; }
 
 	    cyclicRemoveInternalPointers2(object);
 	}
@@ -297,8 +297,8 @@ public final class VM_CycleBuffer
     private static final void freeNodes (VM_CyclePointer p) {
 	for (; p.buffer != null; p.index--) { // loop over cycle backwards
 	    if (p.index < 0) { p.buffer = p.buffer.prev; if (p.buffer != null) p.index = p.buffer.entries; continue;}
-	    int object = p.buffer.objects[p.index];
-	    if (object == 0) { p.index--; break; }
+	    VM_Address object = VM_Address.fromInt(p.buffer.objects[p.index]);
+	    if (object.isZero()) { p.index--; break; }
 
 	    VM_RootBuffer.release(object);
 	}
@@ -308,12 +308,12 @@ public final class VM_CycleBuffer
 	VM_CycleBuffer cc = p.buffer;
 	int ci = p.index;
 
-	int firstObject = 0;
+	VM_Address firstObject = VM_Address.zero();
 
 	for (; cc != null; ci--) { // loop over cycle again
 	    if (ci < 0) { cc = cc.prev; if (cc != null) ci = cc.entries; continue; }
-	    int object = cc.objects[ci];
-	    if (object == 0) { ci--; break; }
+	    VM_Address object = VM_Address.fromInt(cc.objects[ci]);
+	    if (object.isZero()) { ci--; break; }
 
 	    // HACK // if (VM.VerifyAssertions) VM.assert(isBuffered(object));
 
@@ -342,7 +342,7 @@ public final class VM_CycleBuffer
 	p.index = ci;
     }
 
-    private static final void refurbish (int object) {
+    private static final void refurbish (VM_Address object) {
 	if (TRACEDETAIL) 
 	    VM_RootBuffer.dumpRefcountInfo("Refurbishing ", object);
 
@@ -364,7 +364,7 @@ public final class VM_CycleBuffer
     }
 
 
-    private static final void releaseWhite(int object) {
+    private static final void releaseWhite(VM_Address object) {
 	if (CB_COUNT_EVENTS) { whiteFreed++; totalFreed++; }
 	if (TRACEDETAIL)
 	    VM_RootBuffer.dumpRefcountInfo("Releasing ", object);
@@ -384,7 +384,7 @@ public final class VM_CycleBuffer
     }
 
 
-    private static void cyclicRemoveInternalPointers(int object) {
+    private static void cyclicRemoveInternalPointers(VM_Address object) {
 
 	if (color(object) == ORANGE) // if already decremented, don't do it again
 	    return;
@@ -397,8 +397,8 @@ public final class VM_CycleBuffer
 	if (type.isClassType()) { 
 	    int[] referenceOffsets = type.asClass().getReferenceOffsets();
 	    for (int i = 0, n = referenceOffsets.length; i < n; ++i) {
-		int objectRef = VM_Magic.getMemoryWord(object + referenceOffsets[i]);
-		if (objectRef != 0) {
+		VM_Address objectRef = VM_Magic.getMemoryAddress(object.add(referenceOffsets[i]));
+		if (!objectRef.isZero()) {
 		    if (TRACEDETAIL) VM_RootBuffer.dumpRefcountInfo("Decrementing ", objectRef);
 		    cyclicDecrementRC(objectRef);
 		}
@@ -408,8 +408,8 @@ public final class VM_CycleBuffer
 	    if (type.asArray().getElementType().isReferenceType()) { // ignore scalar arrays
 		int elements = VM_Magic.getArrayLength(VM_Magic.addressAsObject(object));
 		for (int i = 0; i < elements; i++) {
-		    int objectRef = VM_Magic.getMemoryWord(object + i*4);
-		    if (objectRef != 0) {
+		    VM_Address objectRef = VM_Magic.getMemoryAddress(object.add(i*4));
+		    if (!objectRef.isZero()) {
 			if (TRACEDETAIL) VM_RootBuffer.dumpRefcountInfo("Decrementing ", objectRef);
 			cyclicDecrementRC(objectRef);
 		    }
@@ -422,10 +422,10 @@ public final class VM_CycleBuffer
     }
 
 
-    private static void cyclicDecrementRC (int object) {
-	if (VM.VerifyAssertions) VM.assert(object != 0);
+    private static void cyclicDecrementRC (VM_Address object) {
+	if (VM.VerifyAssertions) VM.assert(!object.isZero());
     
-	if (VM.VerifyAssertions && object == VM_Allocator.refToWatch)
+	if (VM.VerifyAssertions && object.EQ(VM_Allocator.refToWatch))
 	    VM.sysWrite("#### Cyclic decrementing RC of watched object\n");
 
 	int color = color(object);
@@ -464,15 +464,15 @@ public final class VM_CycleBuffer
 
     //////////////////////////////////////////////////////////////////////
 
-    private static void cyclicRemoveInternalPointers2 (int object) {
+    private static void cyclicRemoveInternalPointers2 (VM_Address object) {
 
 	VM_Type type = VM_Magic.getObjectType(VM_Magic.addressAsObject(object));
 
 	if (type.isClassType()) { 
 	    int[] referenceOffsets = type.asClass().getReferenceOffsets();
 	    for (int i = 0, n = referenceOffsets.length; i < n; ++i) {
-		int objectRef = VM_Magic.getMemoryWord(object + referenceOffsets[i]);
-		if (objectRef != 0) {
+		VM_Address objectRef = VM_Magic.getMemoryAddress(object.add(referenceOffsets[i]));
+		if (!objectRef.isZero()) {
 		    if (TRACEDETAIL) VM_RootBuffer.dumpRefcountInfo("Decrementing ", objectRef);
 		    cyclicDecrementRC2(objectRef);
 		}
@@ -482,8 +482,8 @@ public final class VM_CycleBuffer
 	    if (type.asArray().getElementType().isReferenceType()) { // ignore scalar arrays
 		int elements = VM_Magic.getArrayLength(VM_Magic.addressAsObject(object));
 		for (int i = 0; i < elements; i++) {
-		    int objectRef = VM_Magic.getMemoryWord(object + i*4);
-		    if (objectRef != 0) {
+		    VM_Address objectRef = VM_Magic.getMemoryAddress(object.add(i*4));
+		    if (!objectRef.isZero()) {
 			if (TRACEDETAIL) VM_RootBuffer.dumpRefcountInfo("Decrementing ", objectRef);
 			cyclicDecrementRC2(objectRef);
 		    }
@@ -496,8 +496,8 @@ public final class VM_CycleBuffer
     }
 
 
-    private static void cyclicDecrementRC2 (int object) {
-	if (VM.VerifyAssertions) VM.assert(object != 0);
+    private static void cyclicDecrementRC2 (VM_Address object) {
+	if (VM.VerifyAssertions) VM.assert(!object.isZero());
     
 	int color = color(object);
 
@@ -520,8 +520,8 @@ public final class VM_CycleBuffer
     //////////////////////////////////////////////////////////////////////
 
 
-    private final void dumpRefs(int object) {
-	if (object == 0) {
+    private final void dumpRefs(VM_Address object) {
+	if (object.isZero()) {
 	    VM.sysWrite("    NULL\n");
 	    return;
 	}
@@ -531,8 +531,8 @@ public final class VM_CycleBuffer
 	if (type.isClassType()) { 
 	    int[] referenceOffsets = type.asClass().getReferenceOffsets();
 	    for (int i = 0, n = referenceOffsets.length; i < n; ++i) {
-		int objectRef = VM_Magic.getMemoryWord(object + referenceOffsets[i]);
-		if (objectRef != 0) {
+		VM_Address objectRef = VM_Magic.getMemoryAddress(object.add(referenceOffsets[i]));
+		if (!objectRef.isZero()) {
 		    VM_RootBuffer.dumpRefcountInfo("    Contains ref ", objectRef);
 		}
 	    }
@@ -541,8 +541,8 @@ public final class VM_CycleBuffer
 	    if (type.asArray().getElementType().isReferenceType()) { // ignore scalar arrays
 		int elements = VM_Magic.getArrayLength(VM_Magic.addressAsObject(object));
 		for (int i = 0; i < elements; i++) {
-		    int objectRef = VM_Magic.getMemoryWord(object + i*4);
-		    if (objectRef != 0) {
+		    VM_Address objectRef = VM_Magic.getMemoryAddress(object.add(i*4));
+		    if (!objectRef.isZero()) {
 			VM_RootBuffer.dumpRefcountInfo("    Contains ref ", objectRef);
 		    }
 		}
@@ -577,8 +577,8 @@ public final class VM_CycleBuffer
     private static final void findCycleStart (VM_CyclePointer cp) {
 	for (; cp.buffer != null; cp.index--) { // loop over cycle backwards
 	    if (cp.index < 0) { cp.buffer = cp.buffer.prev; if (cp.buffer != null) cp.index = cp.buffer.entries; continue; }
-	    int object = cp.buffer.objects[cp.index];
-	    if (object == 0) break;
+	    VM_Address object = VM_Address.fromInt(cp.buffer.objects[cp.index]);
+	    if (object.isZero()) break;
 	}
 
 	cp.index++;		// advance past 0 delimiter
@@ -592,9 +592,9 @@ public final class VM_CycleBuffer
 	boolean first = true;
 	for (; c != null; i++) { 
 	    if (i >= c.entries) { i = -1; c = c.next; continue; }
-	    int object = c.objects[i];
+	    VM_Address object = VM_Address.fromInt(c.objects[i]);
 
-	    if (object == 0)
+	    if (object.isZero())
 		break;
 
 	    if (first) {
@@ -605,7 +605,7 @@ public final class VM_CycleBuffer
 	    visualizeCycleChildVisitor.writeGraphEdges(object);
 	}
 
-	VM_RootBuffer.writeGraphEnd(0);
+	VM_RootBuffer.writeGraphEnd(VM_Address.zero());
     }
 
 }
@@ -621,12 +621,12 @@ class VM_CycleChildVisitor
     extends VM_ChildVisitor
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
 {
-    public final void decrementChildCounts(int object) {
+    public final void decrementChildCounts(VM_Address object) {
 	if (VM.VerifyAssertions) VM.assert(VM_RootBuffer.ASYNC);
 	visitChildren(object);
     }
 
-    protected final boolean visit(int object) {
+    protected final boolean visit(VM_Address object) {
 	if (VM_CycleBuffer.TRACE_CYCLE_VALIDATION) dumpRefcountInfo("DEC'ING OBJECT ", object);
 
 	if (color(object) == ORANGE) {
@@ -644,11 +644,11 @@ class VM_VisualizeCycleChildVisitor
     extends VM_ChildVisitor
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
 {
-    public final void writeGraphEdges(int object) {
+    public final void writeGraphEdges(VM_Address object) {
 	visitChildrenWithEdges(object);
     }
 
-    protected final boolean visit(int fromObject, int object) {
+    protected final boolean visit(VM_Address fromObject, VM_Address object) {
 	VM_RootBuffer.writeGraphEdge(fromObject, object);
 	return true;
     }

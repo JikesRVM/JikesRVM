@@ -36,6 +36,7 @@
  * @modified by Stephen Smith
  * @modified by David F. Bacon
  * 
+ * @modified by Perry Cheng  Heavily re-written to factor out common code and adding VM_Address
  */
 public class VM_Allocator
   implements VM_Constants, VM_GCConstants, VM_Uninterruptible,
@@ -44,11 +45,10 @@ public class VM_Allocator
 
   static final boolean IGNORE_EXPLICIT_GC_CALLS = false;
 
-  static final VM_Array intArrayType  = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[I")).asArray();
+  static final VM_Array BCArrayType  = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[LVM_BlockControl;")).asArray();
   static final VM_Array byteArrayType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B")).asArray();
   private static final int byteArrayHeaderSize = VM_ObjectModel.computeArrayHeaderSize(byteArrayType);
-  static Object[] byteArrayTIB;
-
+  static Object[] byteArrayTIB;  // we cache this because the code to get this is interruptible
 
   static final boolean GCDEBUG_PARTIAL = false; 
   static final boolean DEBUG_FREEBLOCKS = false; 
@@ -62,8 +62,8 @@ public class VM_Allocator
   static final int    TYPE =11;
 
   // DEBUG WORD TO FIND WHO POINTS TO SOME POINTER
-  static int interesting_ref = 0;
-  static int the_array     = 0;
+  static VM_Address interesting_ref = VM_Address.zero();
+  static VM_Address the_array     = VM_Address.zero();
 
   // maps processors to their collector threads
   static VM_CollectorThread[] proc_to_collector = null;  
@@ -102,7 +102,6 @@ public class VM_Allocator
   static final boolean GCDEBUG_PARALLEL          = false;   // for debugging parallel alloc
   static final boolean GC_TIMING                 = false ;  // for timing parallel GC
   static final boolean GC_MUTATOR_TIMES          = false;   // gc time as observed by mutator in gc1
-//static boolean VM.verboseGC              = VM.verboseGC;   // for knowing why GC triggered
   static final boolean GC_TRACEALLOCATOR         = false;   // for detailed tracing
 
   static double gcMinorTime;           // for timing gc times
@@ -136,27 +135,20 @@ public class VM_Allocator
   // pools dynamically
 
   static VM_ProcessorLock sysLockSmall;
-  static VM_ProcessorLock sysLockLarge;
   static VM_ProcessorLock sysLockFree;
   static VM_ProcessorLock sysLockBlock;
-
-  // temporary...following fields only for copying collector, 
-  // but field offsets are taken
-  // in VM_Entrypoints (unconditionally), so for now include the fields here also
-  static int areaCurrentAddress;
-  static int matureCurrentAddress;
 
   // following included because referenced by refcountGC files (but not used)
   static int bufCount;
 
+  static int verbose = 1;
+
   static final boolean  Debug = false;  
   static final boolean  Debug_torture = false;  
-  static final boolean  DebugLarge = false;  
   static final boolean  DebugInterest = false;  
   static final boolean  DebugLink = false;
   static final boolean  GC_CLOBBERFREE = false;  
-  static final boolean  Report = false;
-  static final boolean debug2Threads = false ;
+
 	// statistics reporting
 	//
 	static final boolean REPORT_BLOCKS = false;
@@ -166,7 +158,7 @@ public class VM_Allocator
 
   // 1 VM_BlockControl per GC-SIZES for initial use, before heap setup
   static VM_BlockControl[]  init_blocks;  // VM_BlockControl[] 1 per BLKSIZE block of the heap
-  static int[]            blocks;  // 1 per BLKSIZE block of the heap
+  static VM_BlockControl[]  blocks;  // 1 per BLKSIZE block of the heap
         
   static int    allocCount  = 0; // updated every entry to allocate<x>
   static int    fastAllocCount  = 0; // updated every entry to allocate<x>
@@ -175,43 +167,28 @@ public class VM_Allocator
   static int    gcMajorCount = 0; 
   static boolean gc_collect_now = false; // flag to do a collection (new logic)
 
-  static int         smallHeapStartAddress;
-  static int         smallHeapEndAddress;
-  static int         largeHeapStartAddress;
-  static int         largeHeapEndAddress;
-  static int         largeSpacePages;
-  static int         smallHeapSize;
-  static int         largeHeapSize;
+  private static VM_Heap bootHeap             = new VM_Heap("Boot Image Heap");   
+  private static VM_Heap smallHeap            = new VM_Heap("Small Object Heap");
+  private static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
+  private static VM_LargeHeap largeHeap       = new VM_LargeHeap(immortalHeap);
+  private static VM_MallocHeap mallocHeap     = new VM_MallocHeap();
+
+  // These two fields are unused but unconditionally needed in VM_EntryPoints.
+  static VM_Address areaCurrentAddress;    
+  static VM_Address matureCurrentAddress;  
+
   static int    num_blocks;    // number of blocks in the heap
   static int    first_freeblock;  // number of first available block
   static int    highest_block;    // number of highest available block
   static int    blocks_available;  // number of free blocks for small obj's
 
-  static int    large_last_allocated;
-
   static int[]       old_objects;            // array to track old objects
   static int         nextOldObject;          // next entry in old_objects to use
-  static short[]  largeSpaceAlloc;  // used to allocate 
-  static short[]  largeSpaceMark;    // used to mark
 
-  static int[]  countLive;    // for stats - count # live objects in bin
-  static int[]  countLargeAlloc;  //  - count sizes of large objects alloc'ed
-  static int[]  countLargeLive;    //  - count sizes of large objects live
+  static int[] countLive;
   static int[] countSmallFree;        // bytes allocated by size
   static int[] countSmallBlocksAlloc;  // blocks allocated by size
   static int[] countByteSizes;    // objects allocated by bytesize
-
-  // following used when RENDEZVOUS_TIMES is on: for timing waits in rendezvous
-  // copied from copyingGC
-  static int rendezvous1in[] = null;
-  static int rendezvous1out[] = null;
-  static int rendezvous2in[] = null;
-  static int rendezvous2out[] = null;
-  static int rendezvous3in[] = null;
-  static int rendezvous3out[] = null;
-  static int rendezvous4in[] = null;
-  static int rendezvous4out[] = null;
-
 
   static VM_BootRecord   bootrecord;
  
@@ -219,11 +196,6 @@ public class VM_Allocator
   static int total_markboot_count = 0;  // counter of times markboot called
 
   static int marklarge_count = 0;  // counter of large objects marked
-  static int largerefs_count = 0;  // counter of large objects marked
-  static int bootStartAddress;
-  static int bootEndAddress;
-  static int minBootRef;
-  static int maxBootRef;
 
   static boolean gcInProgress = false;
   static int OBJECT_GC_MARK_VALUE = 0;  // changes between this and 0
@@ -236,43 +208,27 @@ public class VM_Allocator
   /** "getter" function for gcInProgress
   */
   
-  static boolean
-  gcInProgress() {
-		return gcInProgress;
-	}
+  static boolean  gcInProgress() {
+      return gcInProgress;
+  }
 
-  static  void
-  init () {
+  static  void init () {
+
   int i, ii;
-
   VM_GCLocks.init();  
   VM_Processor st = VM_Scheduler.processors[VM_Scheduler.PRIMORDIAL_PROCESSOR_ID];
-  sysLockLarge        = new VM_ProcessorLock();
   sysLockBlock      = new VM_ProcessorLock();
   // create instance of Common work queue object
   VM_GCWorkQueue.workQueue = new VM_GCWorkQueue();
 
   partialBlockList = new int[GC_SIZES];          // GSC
-	for (i = 0; i < GC_SIZES; i++) partialBlockList[i] = OUT_OF_BLOCKS;
+  for (i = 0; i < GC_SIZES; i++) partialBlockList[i] = OUT_OF_BLOCKS;
 
   st.sizes = new VM_SizeControl[GC_SIZES];
   init_blocks = new VM_BlockControl[GC_SIZES];
   if (GC_COUNT_BYTE_SIZES) countByteSizes = new int[2048 + 1];
 
-  // if timing rendezvous:
-  if (RENDEZVOUS_TIMES) {
-    rendezvous1in =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-    rendezvous1out =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-    rendezvous2in =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-    rendezvous2out =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-    rendezvous3in =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-    rendezvous3out =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-    rendezvous4in =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-    rendezvous4out =  new int[ 1 + VM_Scheduler.MAX_PROCESSORS];
-  }
-
   VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary
-  														 // if doing detailed gc timing
 
   // On the jdk side, we allocate an array of VM_SizeControl Blocks, 
   // one for each size.
@@ -304,139 +260,78 @@ public class VM_Allocator
 
   if (GC_STATISTICS) countLive  = new int[GC_SIZES];
 
-  countLargeAlloc = new int[GC_LARGE_SIZES];
-  countLargeLive  = new int[GC_LARGE_SIZES];
   countSmallFree = new int[GC_SIZES];
   countSmallBlocksAlloc = new int[GC_SIZES];
 
-  for (i = 0; i < GC_LARGE_SIZES; i++) {
-    countLargeAlloc[i]  = 0;
-    countLargeLive[i]   = 0;
-  }
+  if (GC_STATISTICS) 
+      for (i = 0; i < GC_SIZES; i++) 
+	  countLive[i]  = 0;
 
-  if (GC_STATISTICS) for (i = 0; i < GC_SIZES; i++) {
-    countLive[i]  = 0;
-  }
-
-  largeSpaceAlloc = new short[GC_INITIAL_LARGE_SPACE_PAGES];
-  for (i = 0; i < GC_INITIAL_LARGE_SPACE_PAGES; i++) largeSpaceAlloc[i] = 0;
-  large_last_allocated = 0;
-  largeSpacePages = GC_INITIAL_LARGE_SPACE_PAGES;
-  
   }      // init(): all this done in bootimagebuilder context
 
 
-  static void
-  boot (VM_BootRecord thebootrecord) {
-  int i;
-  int blocks_storage, blocks_array_storage;
-  VM_Processor st = VM_Scheduler.processors[VM_Scheduler.PRIMORDIAL_PROCESSOR_ID];
-    blocks = VM_Magic.addressAsIntArray(VM_Magic.objectAsAddress(init_blocks));
+  static void boot (VM_BootRecord thebootrecord) {
+
   bootrecord = thebootrecord;  
+  verbose = bootrecord.verboseGC;
 
-  // first ref in bootimage
-  minBootRef = VM_ObjectModel.minimumObjectRef(bootrecord.startAddress);
-  maxBootRef = VM_ObjectModel.maximumObjectRef(bootrecord.freeAddress);    // last ref in bootimage
+  int smallHeapSize = bootrecord.smallSpaceSize;
+  smallHeapSize = (smallHeapSize / GC_BLOCKALIGNMENT) * GC_BLOCKALIGNMENT;
+  smallHeapSize = VM_Memory.roundUpPage(smallHeapSize);
+  int immortalSize = VM_Memory.roundUpPage(4 * (bootrecord.largeSpaceSize / VM_Memory.getPagesize()) + 
+					 ((int) (0.05 * smallHeapSize)) + 
+					 4 * VM_Memory.getPagesize());
 
-  bootStartAddress = bootrecord.startAddress;  // start of boot image
-  bootEndAddress = bootrecord.freeAddress;    // end of boot image
-  smallHeapStartAddress = ((bootEndAddress + GC_BLOCKALIGNMENT - 1)/
-    GC_BLOCKALIGNMENT)*GC_BLOCKALIGNMENT;
-  smallHeapEndAddress = (bootrecord.endAddress/GC_BLOCKALIGNMENT)* GC_BLOCKALIGNMENT;
+  VM_Heap.boot(bootHeap, thebootrecord);
+  immortalHeap.attach(immortalSize);
+  largeHeap.attach(bootrecord.largeSpaceSize);
+  smallHeap.attach(smallHeapSize);
+  mallocHeap.attach(bootrecord);
 
   // now touch all the pages in the heap, when 
   // preparing for a timing run to avoid cost of page fault during timing
+  if (COMPILE_FOR_TIMING_RUN) {
+      largeHeap.touchPages();
+      smallHeap.touchPages();
+  }
 
-  if (COMPILE_FOR_TIMING_RUN) 
-    for (i = smallHeapEndAddress - 4096; i >= smallHeapStartAddress; i = i - 4096)
-    VM_Magic.setMemoryWord(i, 0);
- 
-  largeHeapStartAddress = bootrecord.largeStart;
-  largeHeapEndAddress = bootrecord.largeStart + bootrecord.largeSize;
-  smallHeapSize = smallHeapEndAddress - smallHeapStartAddress;
-  largeHeapSize = largeHeapEndAddress - largeHeapStartAddress;
-      
+  VM_Processor st = VM_Scheduler.processors[VM_Scheduler.PRIMORDIAL_PROCESSOR_ID];
+  blocks = (VM_BlockControl []) init_blocks;
+
   // Now set the beginning address of each block into each VM_BlockControl
   // Note that init_blocks is in the boot image, but heap pages are controlled by it
 
-  for (i =0; i < GC_SIZES; i++)  {
-    init_blocks[i].baseAddr = smallHeapStartAddress + i * GC_BLOCKSIZE;
+  for (int i=0; i < GC_SIZES; i++)  {
+    init_blocks[i].baseAddr = smallHeap.start.add(i * GC_BLOCKSIZE);
     build_list_for_new_block(init_blocks[i], st.sizes[i]);
   }
 
-  // Get the three arrays that control large object space
-  short[] temp  = new short[bootrecord.largeSize/4096 + 1];
-
-  for (i = 0; i < GC_INITIAL_LARGE_SPACE_PAGES; i++)
-    temp[i] = largeSpaceAlloc[i];
-
-  // At this point temp contains the up-to-now allocation information
-  // for large objects; so it now becomes largeSpaceAlloc
-  largeSpaceAlloc = temp;
-  largeSpacePages = bootrecord.largeSize/4096;
-  if (Report) {
-    VM_Scheduler.trace("LOADBALANCED COMMON WORK QUEUE","buffer size =", 
-      VM_GCWorkQueue.WORK_BUFFER_SIZE);
-
-    VM.sysWrite(bootStartAddress);
-    VM.sysWrite("  is the bootStartAddress \n");
-    VM.sysWrite(bootEndAddress);
-    VM.sysWrite("  is the bootEndAddress \n");
-
-    VM.sysWrite(smallHeapStartAddress);
-    VM.sysWrite("  is the smallHeapStartAddress \n");
-
-    VM.sysWrite(smallHeapEndAddress);
-    VM.sysWrite("  is the smallHeapEndAddress \n");
-
-    VM.sysWrite(largeHeapStartAddress);
-    VM.sysWrite("  is the largeHeapStartAddress \n");
-
-    VM.sysWrite(largeHeapEndAddress);
-    VM.sysWrite("  is the largeHeapEndAddress \n");
-
-    VM.sysWrite(smallHeapSize);
-    VM.sysWrite("  is the smallHeapSize \n");
-
-  }
-
-  // At this point it is possible to allocate 
-  // (1 GC_BLOCKSIZE worth of) objects for each size
-
-  byteArrayTIB = byteArrayType.getTypeInformationBlock();
-  Object[] intArrayTIB = intArrayType.getTypeInformationBlock();
 
   VM_BlockControl.boot();
 
   // Now allocate the blocks array - which will be used to allocate blocks to sizes
 
-  num_blocks = smallHeapSize/GC_BLOCKSIZE;
-  large_last_allocated = 0;
 
-  // GET STORAGE FOR BLOCKS ARRAY FROM OPERATING SYSTEM
+  // GET STORAGE FOR BLOCKS ARRAY 
   //    storage for entries in blocks array: 4 bytes/ ref
-  int blocks_array_size = intArrayType.getInstanceSize(num_blocks);
-  if ((blocks_array_storage = malloc(blocks_array_size)) == 0) {
-    VM.sysWrite(" In boot, call to sysMalloc returned 0 \n");
-    VM.sysExit(1800);
-  }
+  num_blocks = smallHeap.size / GC_BLOCKSIZE;
+  int blocks_array_size = BCArrayType.getInstanceSize(num_blocks);
+  VM_Address blocks_array_storage = immortalHeap.allocateRawMemory(blocks_array_size);
+  VM_Address blocks_storage = immortalHeap.allocateRawMemory((num_blocks-GC_SIZES) * VM_BlockControl.getInstanceSize());
 
-  if ((blocks_storage = malloc((num_blocks-GC_SIZES) * VM_BlockControl.getInstanceSize())) == 0) {
-     VM.sysWrite(" In boot, call to sysMalloc returned 0 \n");
-     VM.sysExit(1900);
-  }
-
-  blocks = (int[])(VM_ObjectModel.initializeArray(blocks_array_storage, intArrayTIB, num_blocks, blocks_array_size));
+  // available from before
+  Object[] BCArrayTIB = BCArrayType.getTypeInformationBlock();
+  blocks = (VM_BlockControl []) (VM_ObjectModel.initializeArray(blocks_array_storage, BCArrayTIB, num_blocks, blocks_array_size));
 
   // index for highest page in heap
   highest_block = num_blocks -1;
   blocks_available = highest_block - GC_SIZES;   // available to allocate
   
   // Now fill in blocks with values from blocks_init
-  for (i = 0; i < GC_SIZES; i++) {
+  for (int i = 0; i < GC_SIZES; i++) {
     // NOTE: if blocks are identified by index, st.sizes[] need not be changed; if
     // blocks are identified by address, then updates st.sizes[0-GC_SIZES] here
-    blocks[i]      = VM_Magic.objectAsAddress(init_blocks[i]);
+    blocks[i] = init_blocks[i];
   }
 
   // At this point we have assigned the first GC_SIZES blocks, 
@@ -453,18 +348,15 @@ public class VM_Allocator
   // Now allocate the rest of the VM_BlockControls
   int bcSize = VM_BlockControl.getInstanceSize();
   Object[] bcTIB = VM_BlockControl.getTIB();
-
-  for (i = GC_SIZES; i < num_blocks; i++) {
-    int bcAddress = blocks_storage + (i - GC_SIZES) * bcSize;
-    blocks[i] = VM_Magic.objectAsAddress(VM_ObjectModel.initializeScalar(bcAddress, bcTIB, bcSize));
-    VM_Magic.addressAsBlockControl(blocks[i]).baseAddr = 
-      smallHeapStartAddress + i * GC_BLOCKSIZE; 
-    VM_Magic.addressAsBlockControl(blocks[i]).nextblock = i + 1;
-  // set alloc pointer = 0 here
-    VM_Magic.addressAsBlockControl(blocks[i]).mark = null;
+  for (int i = GC_SIZES; i < num_blocks; i++) {
+      VM_Address bcAddress = blocks_storage.add((i - GC_SIZES) * bcSize);
+      VM_BlockControl bc = (VM_BlockControl) VM_ObjectModel.initializeScalar(bcAddress, bcTIB, bcSize);
+      blocks[i] = bc;
+      bc.baseAddr = smallHeap.start.add(i * GC_BLOCKSIZE); 
+      bc.nextblock = (i == num_blocks - 1) ? OUT_OF_BLOCKS : i + 1;
+      // set alloc pointer = 0 here
+      bc.mark = null;
   }
-  
-  VM_Magic.addressAsBlockControl(blocks[num_blocks -1]).nextblock = OUT_OF_BLOCKS;
   
   // create synchronization objects
   sysLockSmall = new VM_ProcessorLock();
@@ -475,20 +367,32 @@ public class VM_Allocator
   // create the finalizer object 
   VM_Finalizer.setup();
 
-	// statistics arrays for blocks usage
+  // statistics arrays for blocks usage
   if (REPORT_BLOCKS) {
-		total = new int[GC_SIZES];
-		accum = new int[GC_SIZES];
-	}
+      total = new int[GC_SIZES];
+      accum = new int[GC_SIZES];
+  }
 
-  largeSpaceMark  = new short[bootrecord.largeSize/4096 + 1];
-
-  VM_AllocatorHeader.boot(bootStartAddress, bootEndAddress);
+  VM_Address min = bootHeap.start.LT(immortalHeap.start) ? bootHeap.start : immortalHeap.start;
+  VM_Address max = bootHeap.end.GT(immortalHeap.start) ? bootHeap.end : immortalHeap.end;
+  VM_AllocatorHeader.boot(min, max);
 
   VM_Callbacks.addExitMonitor(new VM_Allocator());
   VM_Callbacks.addAppRunStartMonitor(new VM_Allocator());
 
+  if (verbose >= 1) showParameter();
+  } // boot
+
+  static void showParameter() {
+      VM.sysWriteln("\nMark-Sweep Collector (verbose = ", verbose, ")");
+      VM.sysWrite("         Boot Image: "); bootHeap.show(); VM.sysWriteln();
+      VM.sysWrite("      Immortal Heap: "); immortalHeap.show(); VM.sysWriteln();
+      VM.sysWrite("  Small Object Heap: "); smallHeap.show(); VM.sysWriteln();
+      VM.sysWrite("  Large Object Heap: "); largeHeap.show(); VM.sysWriteln();
+      VM.sysWriteln("  Work queue buffer size = ", VM_GCWorkQueue.WORK_BUFFER_SIZE);
+      VM.sysWrite("\n");
   }
+
 
   /**
    * To be called when the application starts a run
@@ -504,8 +408,8 @@ public class VM_Allocator
    * @param value the exit value
    */
   public void notifyExit(int value) {
-		if (VM_Finalizer.finalizeOnExit) VM_Finalizer.finalizeAll();
-    printSummaryStatistics();
+      if (VM_Finalizer.finalizeOnExit) VM_Finalizer.finalizeAll();
+      printSummaryStatistics();
   }
 
   /**
@@ -524,7 +428,7 @@ public class VM_Allocator
       VM_Magic.pragmaInline();  // make sure this method is inlined
 
       // Allocate the memory
-      int objaddr = allocateRawMemory(size, tib, hasFinalizer);
+      VM_Address objaddr = allocateRawMemory(size, tib, hasFinalizer);
       // Initialize the object header
       Object ret = VM_ObjectModel.initializeScalar(objaddr, tib, size);
       // If it has a finalizer, put it on the queue
@@ -543,17 +447,18 @@ public class VM_Allocator
    *   @param hasFinalizer Does the object have a finalizer method? (debug only)
    *   @return Address of allocated storage
    */
-  public static int allocateRawMemory (int size, Object[] tib, boolean hasFinalizer) {
+  public static VM_Address allocateRawMemory (int size, Object[] tib, boolean hasFinalizer) {
       VM_Magic.pragmaInline();
 
       debugAlloc(size, tib, hasFinalizer); // debug: usually inlined away to nothing
 
-      int objaddr;
+      VM_Address objaddr;
       if (size <= GC_MAX_SMALL_SIZE) {
 	  // Use magic to avoid spurious array bounds check on common case allocation path.
-  	  int rs = VM_Magic.getIntAtOffset(VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY, size << 2);
+	  VM_Address loc = VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY).add(size << 2);
+  	  VM_Address rs = VM_Magic.getMemoryAddress(loc);
 	  VM_SizeControl the_size = VM_Magic.addressAsSizeControl(rs);
-	  if (the_size.next_slot != 0)
+	  if (!the_size.next_slot.isZero()) 
 	      objaddr = allocateSlotFast(the_size); // inlined: get available memory
 	  else
 	      objaddr = allocateSlot(the_size, size); // slow path: find a new block to allocate from
@@ -615,23 +520,23 @@ public class VM_Allocator
    *   @param the_size Header record for the given slot size
    *   @return Address of free, zero-filled storage
    */
-  static int allocateSlotFast (VM_SizeControl the_size) {
+  static VM_Address allocateSlotFast (VM_SizeControl the_size) {
       VM_Magic.pragmaInline();
 
-      if (VM.VerifyAssertions) VM.assert(the_size.next_slot != 0);
+      if (VM.VerifyAssertions) VM.assert(!the_size.next_slot.isZero());
       if (GC_COUNT_FAST_ALLOC) fastAllocCount++;
 
       // Get the next object from the head of the list
-      int objaddr = the_size.next_slot;
+      VM_Address objaddr = the_size.next_slot;
       if (DebugLink) {
-	  if (!isValidSmallHeapPtr(objaddr)) VM.sysFail("Bad ptr");
+	  if (!smallHeap.addrInHeap(objaddr)) VM.sysFail("Bad ptr");
 	  if (!isPtrInBlock(objaddr, the_size)) VM.sysFail("Pointer out of block");
       }
 
       // Update the next pointer
-      the_size.next_slot = VM_Magic.getMemoryWord(objaddr);
-      if (DebugLink && (the_size.next_slot != 0)) {
-	  if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
+      the_size.next_slot = VM_Magic.getMemoryAddress(objaddr);
+      if (DebugLink && (!the_size.next_slot.isZero())) {
+	  if (!smallHeap.addrInHeap(the_size.next_slot)) VM.sysFail("Bad ptr");
 	  if (!isPtrInBlock(the_size.next_slot, the_size)) VM.sysFail("Pointer out of block");
       }
 
@@ -651,21 +556,20 @@ public class VM_Allocator
    *   @param size Size in bytes to allocate
    *   @return Address of free, zero-filled storage
    */
-  static int allocateSlot (VM_SizeControl the_size, int size)
+  static VM_Address allocateSlot (VM_SizeControl the_size, int size)
   {
       VM_Magic.pragmaNoInline(); // make sure this method is not inlined
 
       for (int control = 0; control < GC_RETRY_COUNT; control++) {
-	  int objaddr = allocateSlotFromBlocks(the_size, size);
-	  if (objaddr != 0)
+
+	  VM_Address objaddr = allocateSlotFromBlocks(the_size, size);
+	  if (!objaddr.isZero())
 	      return objaddr;
 
-	  if (VM.verboseGC) 
-	      VM_Scheduler.trace(" garbage collection triggered by", " small scalar request \n", size);
 	  if (control > 0)
 	      flag2nd = true;
 
-	  gc1();
+	  gc1("Garbage collection triggered by small scalar request of ", size);
 
 	  // reset the_size in case we are on a different processor after GC
 	  the_size  = VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY[size];
@@ -678,12 +582,12 @@ public class VM_Allocator
 	  // the one to run after gc is finished; therefore failing here is
 	  // not a permanent failure necessarily
 
-	  if (the_size.next_slot != 0)  // try fast path again
+	  if (!the_size.next_slot.isZero())  // try fast path again
 	      return allocateSlotFast(the_size);
       }
 
-      outOfMemory(size, 1300);
-      return 0; // never reached: outOfMemory() does not return
+      outOfMemory(size, "Fail to allocateSlot after GC");
+      return VM_Address.zero(); // never reached: outOfMemory() does not return
   }
 
 
@@ -697,15 +601,16 @@ public class VM_Allocator
    *   @param size Size in bytes to allocate
    *   @return Address of free storage or 0 if none is available
    */
-  static int allocateSlotFromBlocks (VM_SizeControl the_size, int size) {
-      VM_BlockControl the_block = VM_Magic.addressAsBlockControl(blocks[the_size.current_block]);
+  static VM_Address allocateSlotFromBlocks (VM_SizeControl the_size, int size) {
+
+      VM_BlockControl the_block = blocks[the_size.current_block];
 
       if (VM.VerifyAssertions) VM.assert(gcCount != 0 || the_block.nextblock == OUT_OF_BLOCKS);	// If no GC yet, no blocks after current
 
       // First, look for a slot in the blocks on the existing list
       while (the_block.nextblock != OUT_OF_BLOCKS) {
 	  the_size.current_block = the_block.nextblock;
-	  the_block = VM_Magic.addressAsBlockControl(blocks[the_block.nextblock]);
+	  the_block = blocks[the_block.nextblock];
 	  if (build_list(the_block, the_size))
 	      return allocateSlotFast(the_size);
       }
@@ -722,7 +627,7 @@ public class VM_Allocator
 	  }
 
 	  the_size.current_block = the_block.nextblock;
-	  the_block = VM_Magic.addressAsBlockControl(blocks[the_block.nextblock]);
+	  the_block = blocks[the_block.nextblock];
 
 	  if (build_list(the_block, the_size))
 	      return allocateSlotFast(the_size);
@@ -737,13 +642,13 @@ public class VM_Allocator
       // Finally, try to allocate a free block and format it to the given size
       if (getnewblock(the_size.ndx) == 0) {
 	  the_size.current_block = the_block.nextblock;
-	  build_list_for_new_block(VM_Magic.addressAsBlockControl(blocks[the_size.current_block]), the_size);
+	  build_list_for_new_block(blocks[the_size.current_block], the_size);
 
 	  return allocateSlotFast(the_size);
       }
   
       // All attempts failed; time to GC
-      return 0;
+      return VM_Address.zero();
   } 
 
 
@@ -753,42 +658,39 @@ public class VM_Allocator
    *   @param size Size in bytes to allocate
    *   @return Address of zero-filled free storage
    */
-  static int allocateLarge (int size) 
+  static VM_Address allocateLarge (int size) 
   {
       VM_Magic.pragmaNoInline(); // make sure this method is not inlined
 
       for (int control = 0; control < GC_RETRY_COUNT; control++) {
-	  int objaddr = getlargeobj(size);
-	  if (objaddr >= 0)
+	  VM_Address objaddr = largeHeap.allocate(size);
+	  if (!objaddr.isZero())
 	      return objaddr;
-
-	  if (VM.verboseGC) 
-	      VM_Scheduler.trace(" Garbage collection triggered by large request \n", "XX");
 	  if (control > 0)
 	      flag2nd = true;
-	  gc1();
+	  gc1("Garbage collection triggered by large request ", size);
       }
 
-      outOfMemory(size, 2300);
-      return 0; // never executed
+      outOfMemory(size, "Out of memory while trying to allocate large object");
+      return VM_Address.zero(); // never executed
   }
 
   // build, in the block, the list of free slot pointers, and update the
   // associated VM_SizeControl.next_slot; return true if a free slot was found,
   // or false if not
   //
-  static boolean
-  build_list (VM_BlockControl the_block, VM_SizeControl the_size) 
-  {
+  static boolean build_list (VM_BlockControl the_block, VM_SizeControl the_size) {
+
   byte[] the_mark = the_block.mark;
-  int first_free = 0, i = 0, j, current, next;
+  int first_free = 0, i = 0, j;
+  VM_Address current, next;
     
-  if (VM.VerifyAssertions) VM.assert(the_mark != null);
-  if (false && the_mark == null) {
+  if (VM.VerifyAssertions && the_mark == null) {
       VM.sysWriteln("mark = ", VM_Magic.objectAsAddress(the_mark));
       VM.sysWriteln("size = ", GC_SIZEVALUES[the_size.ndx]);
   }
 
+  if (VM.VerifyAssertions) VM.assert(the_mark != null);
 
   for (; i < the_mark.length ; i++) 
     if (the_mark[i] == 0) break;
@@ -800,16 +702,16 @@ public class VM_Allocator
 
     // Reset control info for this block, for next collection 
     VM_Memory.zero(VM_Magic.objectAsAddress(the_mark),
-    VM_Magic.objectAsAddress(the_mark) + the_mark.length);
+		   VM_Magic.objectAsAddress(the_mark).add(the_mark.length));
     the_block.live = false;
     return false;  // no free slots in this block
   }
   // here is the first
-  else current = the_block.baseAddr + i * the_block.slotsize;  
-  VM_Memory.zero(current + 4, current + the_block.slotsize);
+  else current = the_block.baseAddr.add(i * the_block.slotsize);
+  VM_Memory.zero(current.add(4), current.add(the_block.slotsize));
   the_size.next_slot = current;
-  if (DebugLink && (the_size.next_slot != 0)) {
-    if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
+  if (DebugLink && (!the_size.next_slot.isZero())) {
+    if (!smallHeap.addrInHeap(the_size.next_slot)) VM.sysFail("Bad ptr");
     if (!isPtrInBlock(the_size.next_slot, the_size)) VM.sysFail("Pointer out of block");
   }
 
@@ -826,23 +728,23 @@ public class VM_Allocator
 
     // Reset control info for this block, for next collection 
     VM_Memory.zero(VM_Magic.objectAsAddress(the_mark),
-    VM_Magic.objectAsAddress(the_mark) + the_mark.length);
+		   VM_Magic.objectAsAddress(the_mark).add(the_mark.length));
     the_block.live = false;
     return true;
   }
 
-  next = the_block.baseAddr + i * the_block.slotsize;
-  VM_Magic.setMemoryWord(current, next);
+  next = the_block.baseAddr.add(i * the_block.slotsize);
+  VM_Magic.setMemoryAddress(current, next);
   current = next; 
-  VM_Memory.zero(current + 4, current + the_block.slotsize);
+  VM_Memory.zero(current.add(4), current.add(the_block.slotsize));
 
   // build the rest of the list; there is at least 1 more free slot
   for (i = i + 1; i < the_mark.length ; i++) {
     if (the_mark[i] == 0) {  // This slot is free
-      next = the_block.baseAddr + i * the_block.slotsize;
-      VM_Magic.setMemoryWord(current, next);  // enter list pointer
+      next = the_block.baseAddr.add(i * the_block.slotsize);
+      VM_Magic.setMemoryAddress(current, next);  // enter list pointer
       current = next;
-      VM_Memory.zero(current + 4, current + the_block.slotsize);
+      VM_Memory.zero(current.add(4), current.add(the_block.slotsize));
     }
   }
 
@@ -850,69 +752,67 @@ public class VM_Allocator
   if (DebugLink) do_check(the_block, the_size);
   // Reset control info for this block, for next collection 
   VM_Memory.zero(VM_Magic.objectAsAddress(the_mark),
-  VM_Magic.objectAsAddress(the_mark) + the_mark.length);
+		 VM_Magic.objectAsAddress(the_mark).add(the_mark.length));
   the_block.live = false;
   return true;
   } 
 
-  // A debugging routine: called to validate the result of build_list 
-  // and build_list_for_new_block
-  // 
-  private static void
-  do_check (VM_BlockControl the_block, VM_SizeControl the_size) 
-  {
-  int count = 0;
-  if (VM_Magic.addressAsBlockControl(blocks[the_size.current_block]) != the_block) {
-    VM_Scheduler.trace("do_check", "BlockControls don't match");
-    VM.sysFail("BlockControl Inconsistency");
-  }
-  if (the_size.next_slot == 0) VM_Scheduler.trace("do_check", "no free slots in block");
-  int temp = the_size.next_slot;
-  while (temp != 0) {
-    if ((temp < the_block.baseAddr) || (temp > the_block.baseAddr + GC_BLOCKSIZE))  {
-      VM_Scheduler.trace("do_check: TILT:", "invalid slot ptr", temp);
-      VM.sysFail("Bad freelist");
+    // A debugging routine: called to validate the result of build_list 
+    // and build_list_for_new_block
+    // 
+    private static void do_check (VM_BlockControl the_block, VM_SizeControl the_size) {
+	
+	int count = 0;
+	if (blocks[the_size.current_block] != the_block) {
+	    VM_Scheduler.trace("do_check", "BlockControls don't match");
+	    VM.sysFail("BlockControl Inconsistency");
+	}
+	if (the_size.next_slot.isZero()) VM_Scheduler.trace("do_check", "no free slots in block");
+	VM_Address temp = the_size.next_slot;
+	while (!temp.isZero()) {
+	    if ((temp.LT(the_block.baseAddr)) || (temp.GT(the_block.baseAddr.add(GC_BLOCKSIZE))))  {
+		VM_Scheduler.trace("do_check: TILT:", "invalid slot ptr", temp);
+		VM.sysFail("Bad freelist");
+	    }
+	    count++;
+	    temp = VM_Magic.getMemoryAddress(temp);
+	}
+	
+	if (count > the_block.mark.length)  {
+	    VM_Scheduler.trace("do_check: TILT:", "too many slots in block");
+	    VM.sysFail("too many slots");
+	}
     }
-  count++;
-  temp = VM_Magic.getMemoryWord(temp);
-  }
-
-  if (count > the_block.mark.length)  {
-    VM_Scheduler.trace("do_check: TILT:", "too many slots in block");
-    VM.sysFail("too many slots");
-  }
-  }
-
-  // Input: a VM_BlockControl that was just assigned to a size; the VM_SizeControl
-  // associated with the block
-  // return: the address of the first slot in the block
-  //
-  static void
-  build_list_for_new_block (VM_BlockControl the_block, VM_SizeControl the_size)
-  {
-  byte[] the_mark = the_block.mark;
-  int i, current, delta;
-  current = the_block.baseAddr;
-  VM_Memory.zero(current, current + GC_BLOCKSIZE);
-  delta  = the_block.slotsize;
-  the_size.next_slot = current ;  // next one to allocate
-  if (DebugLink && (the_size.next_slot != 0)) {
-    if (!isValidSmallHeapPtr(the_size.next_slot)) VM.sysFail("Bad ptr");
-    if (!isPtrInBlock(the_size.next_slot, the_size)) VM.sysFail("Pointer out of block");
-  }
-  for (i = 0; i < the_mark.length -1; i++) {
-    VM_Magic.setMemoryWord(current, current + delta);
-    current += delta;
-  }
-  // last slot does not point forward - already zeroed
-  //  
-  if (DebugLink) do_check(the_block, the_size);
-  // Reset control info for this block, for next collection 
-  VM_Memory.zero(VM_Magic.objectAsAddress(the_mark),
-  VM_Magic.objectAsAddress(the_mark) + the_mark.length);
-  the_block.live = false;
-  return ;
-  }
+      
+    // Input: a VM_BlockControl that was just assigned to a size; the VM_SizeControl
+    // associated with the block
+    // return: the address of the first slot in the block
+    //
+    static void build_list_for_new_block (VM_BlockControl the_block, VM_SizeControl the_size) {
+	  
+	byte[] the_mark = the_block.mark;
+	int i, delta;
+	VM_Address current = the_block.baseAddr;
+	VM_Memory.zero(current, current.add(GC_BLOCKSIZE));
+	delta  = the_block.slotsize;
+	the_size.next_slot = current ;  // next one to allocate
+	if (DebugLink && (!the_size.next_slot.isZero())) {
+	    if (!smallHeap.addrInHeap(the_size.next_slot)) VM.sysFail("Bad ptr");
+	    if (!isPtrInBlock(the_size.next_slot, the_size)) VM.sysFail("Pointer out of block");
+	}
+	for (i = 0; i < the_mark.length -1; i++) {
+	    VM_Magic.setMemoryAddress(current, current.add(delta));
+	    current = current.add(delta);
+	}
+	// last slot does not point forward - already zeroed
+	//  
+	if (DebugLink) do_check(the_block, the_size);
+	// Reset control info for this block, for next collection 
+	VM_Memory.zero(VM_Magic.objectAsAddress(the_mark),
+		       VM_Magic.objectAsAddress(the_mark).add(the_mark.length));
+	the_block.live = false;
+	return ;
+    }
   
     
   /**
@@ -927,7 +827,8 @@ public class VM_Allocator
     throws OutOfMemoryError {
     if (DebugLink) VM_Scheduler.trace("cloneScalar", "called");
 
-    boolean hasFinalizer = VM_Magic.addressAsType(VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(tib))).hasFinalizer();
+    VM_Type type = VM_Magic.addressAsType(VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(tib)));
+    boolean hasFinalizer = type.hasFinalizer();
     Object objref = allocateScalar(size, tib, hasFinalizer);
     VM_ObjectModel.initializeScalarClone(objref, cloneSrc, size);
 
@@ -949,17 +850,17 @@ public class VM_Allocator
   {
       VM_Magic.pragmaInline();  // make sure this method is inlined
 
-      int objaddr = allocateRawMemory(size, tib, false);
+      VM_Address objaddr = allocateRawMemory(size, tib, false);
       Object objptr = VM_ObjectModel.initializeArray(objaddr, tib, numElements, size);
 
-      if (DebugInterest && VM_Magic.objectAsAddress(objptr) == the_array) 
+      if (DebugInterest && VM_Magic.objectAsAddress(objptr).EQ(the_array) )
           VM.sysWrite (" Allocating the_array in new page \n");
 
       return objptr;
   }
 
 
-  /**
+  /*
    * Allocate an array of the given size and the clone the data from
    * the given source array into the newly allocated array.
    *   @param numElements Number of array elements
@@ -969,8 +870,8 @@ public class VM_Allocator
    *   @return Initialized, cloned array
    */
   public static Object cloneArray (int numElements, int size, Object[] tib, Object cloneSrc)
-      throws OutOfMemoryError
-  {
+      throws OutOfMemoryError {
+
       if (DebugLink) VM_Scheduler.trace("cloneArray", "called");
 
       Object objref = allocateArray(numElements, size, tib);
@@ -978,78 +879,17 @@ public class VM_Allocator
       return objref;
   }
 
-
-  // made public so it could be called from VM_WriteBuffer
-  public static int
-  getlargeobj (int size) {
-  int i, num_pages, num_blocks, first_free, start, temp, result;
-  int last_possible;
-  num_pages = (size + 4095)/4096;    // Number of pages needed
-  last_possible = largeSpacePages - num_pages;
-  sysLockLarge.lock();
-
-  while (largeSpaceAlloc[large_last_allocated] != 0)
-    large_last_allocated += largeSpaceAlloc[large_last_allocated];
-  first_free = large_last_allocated;
-
-  while (first_free <= last_possible) {
-    // Now find contiguous pages for this object
-    // first find the first available page
-    // i points to an available page: remember it
-    for (i = first_free + 1; i < first_free + num_pages ; i++) 
-      if (largeSpaceAlloc[i] != 0) break;
-    if (i == (first_free + num_pages )) {  
-      // successful: found num_pages contiguous pages
-      // mark the newly allocated pages
-      // mark the beginning of the range with num_pages
-      // mark the end of the range with -num_pages
-      // so that when marking (ref is input) will know which extreme 
-      // of the range the ref identifies, and then can find the other
-
-      largeSpaceAlloc[first_free + num_pages - 1] = (short)(-num_pages);
-      largeSpaceAlloc[first_free] = (short)(num_pages);
-
-      if (GC_STATISTICS) {
-        // increment count of large objects alloc'd
-        if (num_pages < GC_LARGE_SIZES) countLargeAlloc[num_pages]++;  
-        else countLargeAlloc[GC_LARGE_SIZES - 1]++;
-      }
-
-    sysLockLarge.unlock();  //release lock *and synch changes*
-    int target = largeHeapStartAddress + 4096 * first_free;
-    // zero space before return
-    VM_Memory.zero(target, target + size);
-    return target;
-    
-    }  // found space for the new object without skipping any space    
-
-    else {  // first free area did not contain enough contig. pages
-      first_free = i + largeSpaceAlloc[i]; 
-      while (largeSpaceAlloc[first_free] != 0) 
-        first_free += largeSpaceAlloc[first_free];
-    }
-  }    // go to top and try again
-
-  // fall through if reached the end of large space without finding 
-  // enough space
-  sysLockLarge.release();  //release lock: won't keep change to large_last_alloc'd
-  return -2;  // reached end of largeHeap w/o finding numpages
-  }
-
   
   // A routine to obtain a free VM_BlockControl and return it
   // to the caller.  First use is for the VM_Processor constructor: 
-  static int
-  getnewblockx (int ndx) {
-  int location;
+  static int getnewblockx (int ndx) {
+
   sysLockBlock.lock();
   if (first_freeblock == OUT_OF_BLOCKS) {
-  if (VM.verboseGC) 
-    VM_Scheduler.trace(" gc collection triggered by getnewblockx call ", "XX");
-  gc1();
+  gc1("GC collection triggered by getnewblockx call ", 0);
   }  
   
-  VM_BlockControl alloc_block = VM_Magic.addressAsBlockControl(blocks[first_freeblock]);
+  VM_BlockControl alloc_block = blocks[first_freeblock];
   int theblock = first_freeblock;
   first_freeblock = alloc_block.nextblock;
   sysLockBlock.unlock();
@@ -1063,31 +903,25 @@ public class VM_Allocator
       return theblock;
     }
     else {    // free the existing array space
-      free(VM_Magic.objectAsAddress(alloc_block.mark) - byteArrayHeaderSize);
+	mallocHeap.free(VM_Magic.objectAsAddress(alloc_block.mark).sub(byteArrayHeaderSize));
     }
   }
-  // get space for alloc arrays from AIX.
+
+  // get space for alloc arrays 
   int mark_array_size = getByteArrayInstanceSize(size);
-  if ((location = malloc(mark_array_size)) == 0) {
-    VM.sysWrite(" In getnewblockx, call to sysMalloc returned 0 \n");
-    VM.sysExit(1800);
-  }
-
-  if (VM.VerifyAssertions) VM.assert((location & 3) == 0);// check word alignment
-
-  alloc_block.mark = VM_Magic.objectAsByteArray(VM_ObjectModel.initializeArray(location, byteArrayTIB, size, mark_array_size));
+  byteArrayTIB = byteArrayType.getTypeInformationBlock();
+  VM_Address region = mallocHeap.allocate(mark_array_size);
+  alloc_block.mark = VM_Magic.objectAsByteArray(VM_ObjectModel.initializeArray(region, byteArrayTIB, size, mark_array_size));
 
   return theblock;
   }
 
 
-  private static int
-  getPartialBlock (int ndx) {
+  private static int getPartialBlock (int ndx) {
 
     VM_Processor st = VM_Processor.getCurrentProcessor();
     VM_SizeControl this_size = st.sizes[ndx];
-    VM_BlockControl currentBlock =
-      VM_Magic.addressAsBlockControl(blocks[this_size.current_block]);
+    VM_BlockControl currentBlock = blocks[this_size.current_block];
 
     sysLockBlock.lock();
 
@@ -1105,16 +939,16 @@ public class VM_Allocator
     // get first partial block of same slot size
     //
     currentBlock.nextblock = partialBlockList[ndx];
-    VM_BlockControl allocBlock =
-      VM_Magic.addressAsBlockControl(blocks[partialBlockList[ndx]]);
+    VM_BlockControl allocBlock = blocks[partialBlockList[ndx]];
+
     partialBlockList[ndx] = allocBlock.nextblock;
     allocBlock.nextblock = OUT_OF_BLOCKS;
 
     if (GSC_TRACE) {
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
       VM.sysWrite("getPartialBlock: ndx = "); VM.sysWrite(ndx,false);
-      VM.sysWrite(" allocating "); VM.sysWrite(currentBlock.nextblock,false);
-      VM.sysWrite(" baseAddr "); VM.sysWriteHex(allocBlock.baseAddr);
+      VM.sysWrite(" allocating "); VM.sysWrite(currentBlock.nextblock);
+      VM.sysWrite(" baseAddr "); VM.sysWrite(allocBlock.baseAddr);
       VM.sysWrite("\n");
       if (VM.VerifyAssertions) VM.assert(allocBlock.slotsize==GC_SIZEVALUES[ndx]);
       VM_Processor.getCurrentProcessor().enableThreadSwitching();
@@ -1128,24 +962,25 @@ public class VM_Allocator
   private static int
   getnewblock (int ndx) 
   {
-  int i, save, size, location;
+  int i, save, size;
   VM_Processor st = VM_Processor.getCurrentProcessor();
+
   VM_SizeControl this_size = st.sizes[ndx];
-  VM_BlockControl alloc_block = 
-    VM_Magic.addressAsBlockControl(blocks[this_size.current_block]);
+  VM_BlockControl alloc_block = blocks[this_size.current_block];
+
   // some debugging code in generational collector available if needed 
    
   // return -1 to indicate small object triggered gc.
   sysLockBlock.lock();
   if (first_freeblock == OUT_OF_BLOCKS) {
-  if (VM.verboseGC) 
-    VM_Scheduler.trace(" gc collection triggered by getnewblock call ", "XX");
+  if (verbose >= 1)
+    VM_Scheduler.trace(" gc collection triggered by getnewblock call", "");
     sysLockBlock.release();
     return -1;
   }
 
   alloc_block.nextblock = first_freeblock;
-  alloc_block = VM_Magic.addressAsBlockControl(blocks[first_freeblock]);
+  alloc_block = blocks[first_freeblock];
   first_freeblock = alloc_block.nextblock;  // new first_freeblock
   sysLockBlock.unlock();
 
@@ -1163,25 +998,18 @@ public class VM_Allocator
   // alloc_block.alloc_size.  This value only goes up during the running
   // of the VM.
 
-  int temp;
   if (alloc_block.mark != null) {
     if (size <= alloc_block.alloc_size) {
       VM_ObjectModel.setArrayLength(alloc_block.mark, size);
       return 0;
     }
     else {    // free the existing array space
-      free(VM_Magic.objectAsAddress(alloc_block.mark) - byteArrayHeaderSize);
+	mallocHeap.free(VM_Magic.objectAsAddress(alloc_block.mark).sub(byteArrayHeaderSize));
     }
   }
 
   int mark_array_size = getByteArrayInstanceSize(size);
-  if ((location = malloc(mark_array_size)) == 0) {
-    VM.sysWrite(" In getnewblock, call to sysMalloc returned 0 \n");
-    VM.sysExit(1800);
-  }
-
-  if (VM.VerifyAssertions) VM.assert((location & 3) == 0);// check full wd
-
+  VM_Address location = mallocHeap.allocate(mark_array_size);
   alloc_block.alloc_size = size;  // remember allocated size
   alloc_block.mark = VM_Magic.objectAsByteArray(VM_ObjectModel.initializeArray(location, byteArrayTIB, size, mark_array_size));
 
@@ -1189,8 +1017,7 @@ public class VM_Allocator
   }
 
 
-  private static int  
-  getndx(int size) {
+  private static int getndx(int size) {
   if (size <= GC_SIZEVALUES[0]) return 0;  // special case most common
   if (size <= GC_SIZEVALUES[1]) return 1;  // special case most common
   if (size <= GC_SIZEVALUES[2]) return 2;  // special case most common
@@ -1208,9 +1035,9 @@ public class VM_Allocator
  Garbage Collection routines begin here.
    scan jtoc for pointers to objects.
    then scan stack for pointers to objects
-   gc_processPtrFieldValue() is the routine that processes a pointer, marks 
+   processPtrValue() is the routine that processes a pointer, marks 
    the object as live, then scans the object pointed to for pointer,
-   and calls gc_processPtrFieldValue()
+   and calls processPtrValue()
 */
 
   // following is called from VM_CollectorThread.boot() - to set the number
@@ -1246,7 +1073,7 @@ public class VM_Allocator
 	  //
 	  VM_Thread thr = vp.activeThread;
 	  //        thr.contextRegisters.gprs[FRAME_POINTER] = thr.jniEnv.JNITopJavaFP;
-	  thr.contextRegisters.setInnermost( 0 /*ip*/, thr.jniEnv.JNITopJavaFP );
+	  thr.contextRegisters.setInnermost( VM_Address.zero(), thr.jniEnv.JNITopJavaFP );
 	}
 
 	zeromarks(vp);		// reset mark bits for nonparticipating vps
@@ -1275,7 +1102,7 @@ public class VM_Allocator
       if ((vpStatus == VM_Processor.BLOCKED_IN_NATIVE) || 
 				(vpStatus == VM_Processor.BLOCKED_IN_SIGWAIT))
       {
-       vp.modifiedOldObjectsTop = VM_Magic.objectAsAddress(vp.modifiedOldObjects) - 4;
+       vp.modifiedOldObjectsTop = VM_Magic.objectAsAddress(vp.modifiedOldObjects).sub(4);
 		   // at this point we do _not_ attempt to reclaim free blocks - an
        // expensive operation - for non participating vps, since this would
        // not be done in parallel; we assume that, in general, in the next
@@ -1286,16 +1113,15 @@ public class VM_Allocator
     //-#endif
   }
 
-  private static void
-  setupallocation(VM_Processor st) {
-    for (int i = 0; i < GC_SIZES; i++) {
-      VM_BlockControl this_block = VM_Magic.addressAsBlockControl(blocks[st.sizes[i].first_block]);
-      VM_SizeControl this_size  = st.sizes[i];
-      // begin scan in 1st block again
-      this_size.current_block = this_size.first_block;
-      if (!build_list(this_block, this_size)) this_size.next_slot = 0;
-		}
-	}
+  private static void  setupallocation(VM_Processor st) {
+      for (int i = 0; i < GC_SIZES; i++) {
+	  VM_BlockControl this_block = blocks[st.sizes[i].first_block];
+	  VM_SizeControl this_size  = st.sizes[i];
+	  // begin scan in 1st block again
+	  this_size.current_block = this_size.first_block;
+	  if (!build_list(this_block, this_size)) this_size.next_slot = VM_Address.zero();
+      }
+  }
 
 
   private static void
@@ -1306,17 +1132,17 @@ public class VM_Allocator
 
       //  NEED TO INITIALIZE THE BLOCK AFTER CURRENT_BLOCK, FOR
       //  EACH SIZE, SINCE THIS WAS NOT DONE DURING MUTATOR EXECUTION
-      VM_BlockControl this_block = VM_Magic.addressAsBlockControl(blocks[st.sizes[i].current_block]);
+      VM_BlockControl this_block = blocks[st.sizes[i].current_block];
 
       int next = this_block.nextblock;
       if (GC_TRACEALLOCATOR) block_count++;
       while (next != OUT_OF_BLOCKS) {
         if (GC_TRACEALLOCATOR) block_count++;
-        this_block = VM_Magic.addressAsBlockControl(blocks[next]);
+        this_block = blocks[next];
         if (Debug && (this_block.mark == null))
           VM.sysWrite(" In collect, found block with no mark \n");
         VM_Memory.zero(VM_Magic.objectAsAddress(this_block.mark),
-           VM_Magic.objectAsAddress(this_block.mark) + this_block.mark.length);
+		       VM_Magic.objectAsAddress(this_block.mark).add(this_block.mark.length));
         this_block.live = false;
         next = this_block.nextblock;
       }
@@ -1324,26 +1150,17 @@ public class VM_Allocator
   }
 
 
-  static void
-  collect () {
-    int i, ii;
-    byte[]  blocktemp;  // used to exchange alloc and mark
-    byte[]  bytetemp;    // used to exchange Alloc and Mark
-    short[]  shorttemp;    // used to exchange Alloc and Mark
+  static void collect () {
 
-    // following just for timing GC time
-    double tempTime;        // in milliseconds
+    int i;
 
     int start, end;
     VM_BlockControl this_block;
     VM_BlockControl next_block;
     VM_SizeControl this_size;
     if (!gc_collect_now) {
-			VM_Scheduler.trace(" gc entered with collect_now off","xx");
-			return;  // to avoid cascading gc
-		}
-    if (debug2Threads) {
-      VM_Scheduler.trace("Entering gc", "XXXXXXXXXXXXXXXXXXXXXX");
+	VM_Scheduler.trace(" gc entered with collect_now off", "");
+	return;  // to avoid cascading gc
     }
 
     VM_CollectorThread mylocal = 
@@ -1355,13 +1172,10 @@ public class VM_Allocator
     // since store with update will increment first
     // then store
     VM_Processor st = VM_Processor.getCurrentProcessor();
-    st.modifiedOldObjectsTop =
-       VM_Magic.objectAsAddress(st.modifiedOldObjects) - 4;
+    st.modifiedOldObjectsTop = VM_Magic.objectAsAddress(st.modifiedOldObjects).sub(4);
 
     //   SYNCHRONIZATION CODE for parallel gc
     if (VM_GCLocks.testAndSetInitLock()) {
-
-    if (DebugLarge) freeLargeSpaceDetail();
 
     if (flag2nd) {
 			VM_Scheduler.trace(" collectstart:", "flag2nd on");
@@ -1369,11 +1183,11 @@ public class VM_Allocator
 		}
 
     gcStartTime = VM_Time.now();         // start time for GC
-    totalStartTime += gcStartTime - VM_CollectorThread.startTime; //time since GC requested
+    totalStartTime += gcStartTime - VM_CollectorThread.gcBarrier.rendezvousStartTime; //time since GC requested
 
     gcCount++;
 
-    if (GC_TRACEALLOCATOR) VM_Scheduler.trace(" Inside Mutex1", "xx");
+    if (GC_TRACEALLOCATOR) VM_Scheduler.trace(" Inside Mutex1", "");
 
     // setup common workqueue for num VPs participating, used to be called once.
     // now count varies for each GC, so call for each GC   SES 050201
@@ -1381,11 +1195,6 @@ public class VM_Allocator
     VM_GCWorkQueue.workQueue.initialSetup(VM_CollectorThread.numCollectors());
 
     blocks_available = 0;    // not decremented during allocation
-
-    if (debug2Threads) {
-      VM_Scheduler.trace("Allocator: gcCounts ", "  ", gcCount);
-      VM_Scheduler.trace("Allocator: allocates", "  ", allocCount);
-    }
 
     if ( gcInProgress ) {
       VM.sysWrite("VM_Allocator: Garbage Collection entered recursively \n");
@@ -1403,8 +1212,7 @@ public class VM_Allocator
       OBJECT_GC_MARK_VALUE = 0;
 
     // Now initialize the large object space mark array
-    VM_Memory.zero(VM_Magic.objectAsAddress(largeSpaceMark), 
-      VM_Magic.objectAsAddress(largeSpaceMark) + 2*largeSpaceMark.length);
+    largeHeap.startCollect();
 
     // zero mark arrays in global partial blocks list
     //
@@ -1415,9 +1223,9 @@ public class VM_Allocator
       int index = partialBlockList[i];
       while ( index != OUT_OF_BLOCKS ) {
     if (GSC_TRACE) counter++;
-	  this_block = VM_Magic.addressAsBlockControl(blocks[index]);
+	  this_block = blocks[index];
         VM_Memory.zero(VM_Magic.objectAsAddress(this_block.mark),
-		       VM_Magic.objectAsAddress(this_block.mark) + this_block.mark.length);
+		       VM_Magic.objectAsAddress(this_block.mark).add(this_block.mark.length));
         this_block.live = false;
         index = this_block.nextblock;
       }
@@ -1434,13 +1242,8 @@ public class VM_Allocator
     }
     //   END OF SYNCHRONIZED INITIALIZATION BLOCK
 
-    if (RENDEZVOUS_TIMES) rendezvous1in[mypid] = 
-     (int)((VM_Time.now() - gcStartTime)*1000000);
-    if (RENDEZVOUS_WAIT_TIME) tempTime = VM_Time.now();
-    VM_CollectorThread.gcBarrier.rendezvous();
-    if (RENDEZVOUS_WAIT_TIME) mylocal.rendezvousWaitTime += VM_Time.now() - tempTime;
-    if (RENDEZVOUS_TIMES) rendezvous1out[mypid] = 
-		 (int)((VM_Time.now() - gcStartTime)*1000000);
+
+    VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
 
     // reset collector thread local work queue buffers
     VM_GCWorkQueue.resetWorkQBuffers();
@@ -1452,17 +1255,17 @@ public class VM_Allocator
 
       //  NEED TO INITIALIZE THE BLOCK AFTER CURRENT_BLOCK, FOR 
       //  EACH SIZE, SINCE THIS WAS NOT DONE DURING MUTATOR EXECUTION
-      this_block = VM_Magic.addressAsBlockControl(blocks[st.sizes[i].current_block]);
+      this_block = blocks[st.sizes[i].current_block];
 
       int next = this_block.nextblock;
       if (GC_TRACEALLOCATOR) block_count++;
       while (next != OUT_OF_BLOCKS) {
         if (GC_TRACEALLOCATOR) block_count++;
-        this_block = VM_Magic.addressAsBlockControl(blocks[next]);
+        this_block = blocks[next];
         if (Debug && (this_block.mark == null)) 
           VM.sysWrite(" In collect, found block with no mark \n");
         VM_Memory.zero(VM_Magic.objectAsAddress(this_block.mark),
-		       VM_Magic.objectAsAddress(this_block.mark) + this_block.mark.length);
+		       VM_Magic.objectAsAddress(this_block.mark).add(this_block.mark.length));
         this_block.live = false;
         next = this_block.nextblock;
       }
@@ -1478,29 +1281,21 @@ public class VM_Allocator
 
     //   SYNCHRONIZATION CODE
     
-    if (RENDEZVOUS_WAIT_TIME) tempTime = VM_Time.now();
-    if (RENDEZVOUS_TIMES) rendezvous2in[mypid] = (int)((VM_Time.now() - gcStartTime)*1000000);
-    VM_CollectorThread.gcBarrier.rendezvous();
-    if (RENDEZVOUS_TIMES) rendezvous2out[mypid] = (int)((VM_Time.now() - gcStartTime)*1000000);
-    if (RENDEZVOUS_WAIT_TIME) mylocal.rendezvousWaitTime += VM_Time.now() - tempTime;
-    
+    VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
+
     //   END OF SYNCHRONIZING CODE
 
 
     VM_ScanStatics.scanStatics();     // all threads scan JTOC in parallel
 
+    if (verbose >= 1) VM.sysWriteln("Scanning Stacks");
     gc_scanStacks();
-    if (debug2Threads) 
-      VM_Scheduler.trace("Allocator: after scanStacks ", "XXXXXXXX");
 
     gc_emptyWorkQueue();
 
     // have processor 1 record timestamp for end of scan/mark/copy phase
     if (TIME_GC_PHASES && (mylocal.gcOrdinal == 1))
       gcScanningDoneTime = VM_Time.now();
-
-    if (Debug) 
-      VM_Scheduler.trace("Allocator: after emptyworkqueue", "XXXXXXXXX");
 
     // If counting or timing in VM_GCWorkQueue, save current counter values
     //
@@ -1514,13 +1309,7 @@ public class VM_Allocator
     //
     if (VM_Finalizer.existObjectsWithFinalizers()) {
 
-      if (RENDEZVOUS_WAIT_TIME) tempTime = VM_Time.now();
-      if (RENDEZVOUS_TIMES) rendezvous3in[mypid] = 
-			     (int)((VM_Time.now() - gcStartTime)*1000000);
-      VM_CollectorThread.gcBarrier.rendezvous();
-      if (RENDEZVOUS_TIMES) rendezvous3out[mypid] = 
-			     (int)((VM_Time.now() - gcStartTime)*1000000);
-      if (RENDEZVOUS_WAIT_TIME) mylocal.rendezvousWaitTime += VM_Time.now() - tempTime;
+	VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
 
       // Now handle finalization 
       if (mylocal.gcOrdinal == 1) {
@@ -1529,11 +1318,7 @@ public class VM_Allocator
 	      VM_Finalizer.moveToFinalizable();
       }
 
-      if (RENDEZVOUS_WAIT_TIME) tempTime = VM_Time.now();
-      if (RENDEZVOUS_TIMES) rendezvous4in[mypid] = 
-			     (int)((VM_Time.now() - gcStartTime)*1000000);
-      VM_CollectorThread.gcBarrier.rendezvous();
-      if (RENDEZVOUS_WAIT_TIME) mylocal.rendezvousWaitTime += VM_Time.now() - tempTime;
+	VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
       
       // Now test if following stanza is needed - iff
       // garbage objects were moved to the finalizer queue
@@ -1541,16 +1326,10 @@ public class VM_Allocator
 
 	gc_emptyWorkQueue();
 
-	if (RENDEZVOUS_WAIT_TIME) tempTime = VM_Time.now();
-	VM_CollectorThread.gcBarrier.rendezvous();
-	if (RENDEZVOUS_TIMES) rendezvous4out[mypid] = 
-				(int)((VM_Time.now() - gcStartTime)*1000000);
-        if (RENDEZVOUS_WAIT_TIME) mylocal.rendezvousWaitTime += VM_Time.now() - tempTime;
+	VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
 	
       }	// if foundFinalizableObject
       else {
-	if (RENDEZVOUS_TIMES) rendezvous4out[mypid] =
-				(int)((VM_Time.now() - gcStartTime)*1000000);
       }
     }	// if existObjectsWithFinalizers
       
@@ -1562,175 +1341,169 @@ public class VM_Allocator
     // Following local variables for free_block logic
     int local_first_free_ndx = OUT_OF_BLOCKS; 
     int local_blocks_available = 0; 
-		int temp;
-    VM_BlockControl local_first_free_block = VM_Magic.addressAsBlockControl(VM_NULL);
+    int temp;
+    VM_BlockControl local_first_free_block = null;
+
+
 
     for (i = 0; i < GC_SIZES; i++) {
-      this_block = VM_Magic.addressAsBlockControl(blocks[st.sizes[i].first_block]);
-      this_size  = st.sizes[i];
-      // begin scan in 1st block again
-      this_size.current_block = this_size.first_block; 
-      if (!build_list(this_block, this_size)) this_size.next_slot = 0;
-      int next = this_block.nextblock;
-
-      this_size.lastBlockToKeep = -1;      // GSC
-      int blockCounter = 0;               // GSC
-
-      int counter = 0;
-      while (next != OUT_OF_BLOCKS) {
-        /*DEBUG CODE - catch loop of blocks */
-        if (Debug) if (counter++ == 500000) {
-          dumpblocks();  // dump size controls and blocks
-          VM.sysExit(2000);
-        }
-
-        next_block = VM_Magic.addressAsBlockControl(blocks[next]);
-        if (!next_block.live) {
-          if (local_first_free_block == VM_Magic.addressAsBlockControl(VM_NULL)) 
-	    local_first_free_block  = next_block;
-          //  In this stanza, we make the next's next the next of this_block, and put
-          //  original next on the freelist
-          this_block.nextblock = next_block.nextblock;  // out of live list
-          next_block.nextblock  = local_first_free_ndx;
-          local_first_free_ndx  = next;
-          local_blocks_available++;
-        }
-        else  {  // found that next block is live
-    			if (++blockCounter == numBlocksToKeep)            // GSC
+	this_block = blocks[st.sizes[i].first_block];
+	this_size  = st.sizes[i];
+	// begin scan in 1st block again
+	this_size.current_block = this_size.first_block; 
+	if (!build_list(this_block, this_size)) this_size.next_slot = VM_Address.zero();
+	int next = this_block.nextblock;
+	
+	this_size.lastBlockToKeep = -1;      // GSC
+	int blockCounter = 0;               // GSC
+	
+	int counter = 0;
+	while (next != OUT_OF_BLOCKS) {
+	    /*DEBUG CODE - catch loop of blocks */
+	    if (Debug) if (counter++ == 500000) {
+		dumpblocks();  // dump size controls and blocks
+		VM.sysExit(2000);
+	    }
+	    
+	    next_block = blocks[next];
+	    if (!next_block.live) {
+		if (local_first_free_block == null)
+		    local_first_free_block  = next_block;
+		//  In this stanza, we make the next's next the next of this_block, and put
+		//  original next on the freelist
+		this_block.nextblock = next_block.nextblock;  // out of live list
+		next_block.nextblock  = local_first_free_ndx;
+		local_first_free_ndx  = next;
+		local_blocks_available++;
+	    }
+	    else  {  // found that next block is live
+		if (++blockCounter == numBlocksToKeep)            // GSC
 				//TESTING:
-//    			this_size.lastBlockToKeep = next;             // GSC
-      			this_size.lastBlockToKeep = 
-  					(this_block.baseAddr - smallHeapStartAddress)/GC_BLOCKSIZE;
-
-          this_block = next_block;
-        }
-        next  = this_block.nextblock; 
-      }
-      // this_block -> last block in list, with next==0. remember its
-      // index for possible moving of partial blocks to global lists below
-      //
-      this_size.last_allocated =
- (this_block.baseAddr - smallHeapStartAddress)/GC_BLOCKSIZE;
-
+		    //    			this_size.lastBlockToKeep = next;             // GSC
+		    this_size.lastBlockToKeep = this_block.baseAddr.diff(smallHeap.start) / GC_BLOCKSIZE;
+		
+		this_block = next_block;
+	    }
+	    next  = this_block.nextblock; 
+	}
+	// this_block -> last block in list, with next==0. remember its
+	// index for possible moving of partial blocks to global lists below
+	//
+	this_size.last_allocated = this_block.baseAddr.diff(smallHeap.start) / GC_BLOCKSIZE;
+	
     }
-		if (DEBUG_FREEBLOCKS) 
-			VM_Scheduler.trace(" Found assigned", " freeblocks", local_blocks_available);
 
-//  VM_CollectorThread.gcBarrier.rendezvous();
+    if (DEBUG_FREEBLOCKS) 
+	VM_Scheduler.trace(" Found assigned", " freeblocks", local_blocks_available);
 
-		// Now scan through all blocks on the partial blocks list
-		// putting empty ones onto the local list of free blocks
-		//
+    // Now scan through all blocks on the partial blocks list
+    // putting empty ones onto the local list of free blocks
+    //
     for (i = mylocal.gcOrdinal - 1; i < GC_SIZES; 
-			i+= VM_CollectorThread.numCollectors()) {
-      if (GCDEBUG_PARTIAL) {
-        VM_Scheduler.trace("Allocator: doing partials"," index", i);
-        VM_Scheduler.trace("   value in ", "list = ", partialBlockList[i]);
+	 i+= VM_CollectorThread.numCollectors()) {
+	if (GCDEBUG_PARTIAL) {
+	    VM_Scheduler.trace("Allocator: doing partials"," index", i);
+	    VM_Scheduler.trace("   value in ", "list = ", partialBlockList[i]);
     	}
-      if (partialBlockList[i] == OUT_OF_BLOCKS) continue;
-      this_block = VM_Magic.addressAsBlockControl(blocks[partialBlockList[i]]);
-			int id = 0;
-			temp = this_block.nextblock;
-			while (!this_block.live) {
-        local_blocks_available++;
-				if (GCDEBUG_PARTIAL) VM_Scheduler.trace(" Found an empty block at",
-					" head of partial list", partialBlockList[i]);
-        if (Debug) if (id++ == 500000) 
-          VM.sysFail(" Loop in block controls in first of partial list");
-        if (local_first_free_block == VM_Magic.addressAsBlockControl(VM_NULL))  
-					{
-     			  if (VM.VerifyAssertions) VM.assert(local_first_free_ndx == OUT_OF_BLOCKS);
-						local_first_free_block = this_block;
-					}
-				temp = this_block.nextblock;
-				this_block.nextblock = local_first_free_ndx;
-				local_first_free_ndx = (this_block.baseAddr - smallHeapStartAddress)/GC_BLOCKSIZE;
-				partialBlockList[i] = temp;
-				if (temp == OUT_OF_BLOCKS) break;
-  		  this_block = VM_Magic.addressAsBlockControl(blocks[temp]);
-			}
-
-			if (temp == OUT_OF_BLOCKS) continue;
-			int next = this_block.nextblock;
-			id = 0;
-      while (next != OUT_OF_BLOCKS) {
-        if (Debug) if (id++ == 500000) {
-          VM.sysFail(" Loop in block controls in partial list");
-        }
-        next_block = VM_Magic.addressAsBlockControl(blocks[next]);
-        if (!next_block.live) {
-				  if (GCDEBUG_PARTIAL) VM_Scheduler.trace(" Found an empty block ",
-					" in partial list", next);
-        // In this stanza, we make the next's next the next of this_block, and put
-        // original next on the freelist
-          if (local_first_free_block == VM_Magic.addressAsBlockControl(VM_NULL))
-					  {
-     			    if (VM.VerifyAssertions) VM.assert(local_first_free_ndx == OUT_OF_BLOCKS);
-              local_first_free_block = next_block;
-						}
-          this_block.nextblock = next_block.nextblock; // out of live list
-
-          next_block.nextblock = local_first_free_ndx;
-          local_first_free_ndx = next;
-          local_blocks_available++;
-
-        }
-        else this_block = next_block;  // live block done
-        next = this_block.nextblock;
-      }
+	if (partialBlockList[i] == OUT_OF_BLOCKS) continue;
+	this_block = blocks[partialBlockList[i]];
+	temp = this_block.nextblock;
+	while (!this_block.live) {
+	    local_blocks_available++;
+	    if (GCDEBUG_PARTIAL) VM_Scheduler.trace(" Found an empty block at",
+						    " head of partial list", partialBlockList[i]);
+	    if (local_first_free_block == null) {
+		if (VM.VerifyAssertions) VM.assert(local_first_free_ndx == OUT_OF_BLOCKS);
+		local_first_free_block = this_block;
+	    }
+	    temp = this_block.nextblock;
+	    this_block.nextblock = local_first_free_ndx;
+	    local_first_free_ndx = (this_block.baseAddr.diff(smallHeap.start))/GC_BLOCKSIZE;
+	    partialBlockList[i] = temp;
+	    if (temp == OUT_OF_BLOCKS) break;
+	    this_block = blocks[temp];
+	}
+	
+	if (temp == OUT_OF_BLOCKS) continue;
+	int next = this_block.nextblock;
+	while (next != OUT_OF_BLOCKS) {
+	    next_block = blocks[next];
+	    if (!next_block.live) {
+		if (GCDEBUG_PARTIAL) VM_Scheduler.trace(" Found an empty block ",
+							" in partial list", next);
+		// In this stanza, we make the next's next the next of this_block, and put
+		// original next on the freelist
+		if (local_first_free_block == null) {
+		    if (VM.VerifyAssertions) VM.assert(local_first_free_ndx == OUT_OF_BLOCKS);
+		    local_first_free_block = next_block;
 		}
-		if (DEBUG_FREEBLOCKS) 
-			VM_Scheduler.trace(" Found partial ", " freeblocks", local_blocks_available);
-
-		// Rendezvous here because below and above, partialBlocklist can be modified
-    VM_CollectorThread.gcBarrier.rendezvous();
+		this_block.nextblock = next_block.nextblock; // out of live list
+		
+		next_block.nextblock = local_first_free_ndx;
+		local_first_free_ndx = next;
+		local_blocks_available++;
+		
+	    }
+	    else this_block = next_block;  // live block done
+	    next = this_block.nextblock;
+	}
+    }
+    if (DEBUG_FREEBLOCKS) 
+	VM_Scheduler.trace(" Found partial ", " freeblocks", local_blocks_available);
+    
+    // Rendezvous here because below and above, partialBlocklist can be modified
+    VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
 
     sysLockFree.lock();   // serialize access to global block data
 
-    // If this processor found empty blocks, add them to global free list
-    //
-    if (local_first_free_block != VM_Magic.addressAsBlockControl(VM_NULL)) {
-    if (DEBUG_FREEBLOCKS) if (local_first_free_ndx == OUT_OF_BLOCKS) 
-			VM_Scheduler.trace(" LFFB not NULL", "LFFI = out_of_Blocks");
-      local_first_free_block.nextblock = first_freeblock;
-      first_freeblock = local_first_free_ndx;
-      blocks_available += local_blocks_available;
+    // Sweep large space
+    if (mylocal.gcOrdinal == 1) {
+	if (verbose >= 1) VM.sysWrite("Sweeping large space");
+	largeHeap.endCollect();
     }
 
+    // If this processor found empty blocks, add them to global free list
+    //
+    if (local_first_free_block != null) {
+	if (DEBUG_FREEBLOCKS) if (local_first_free_ndx == OUT_OF_BLOCKS) 
+	    VM_Scheduler.trace(" LFFB not NULL", "LFFI = out_of_Blocks");
+	local_first_free_block.nextblock = first_freeblock;
+	first_freeblock = local_first_free_ndx;
+	blocks_available += local_blocks_available;
+    }
+    
     // Add excess partially full blocks (maybe full ???) blocks
     // of each size to the global list for that size
     //
     if (GSC_TRACE) VM.sysWrite("\nAdding to global partial block lists\n");
-
+    
     for (i = 0; i < GC_SIZES; i++) {
-
-      this_size = st.sizes[i];
-      if (this_size.lastBlockToKeep != -1 ) {
-  VM_BlockControl lastToKeep = VM_Magic.addressAsBlockControl(blocks[this_size.lastBlockToKeep]);
-  int firstToGiveUp = lastToKeep.nextblock;
-  if (firstToGiveUp != OUT_OF_BLOCKS) {
-    VM_Magic.addressAsBlockControl(blocks[ this_size.last_allocated ]).nextblock =
-      partialBlockList[i];
-    partialBlockList[i] = firstToGiveUp;
-    lastToKeep.nextblock = OUT_OF_BLOCKS;
-  }
-      }
-      if (GSC_TRACE) {
-  VM.sysWrite(" size = "); VM.sysWrite(i,false);
-  VM.sysWrite(" new first = "); VM.sysWrite(partialBlockList[i],false);
-        VM.sysWrite("\n");
-      }
+	
+	this_size = st.sizes[i];
+	if (this_size.lastBlockToKeep != -1 ) {
+	    VM_BlockControl lastToKeep = blocks[this_size.lastBlockToKeep];
+	    int firstToGiveUp = lastToKeep.nextblock;
+	    if (firstToGiveUp != OUT_OF_BLOCKS) {
+		blocks[ this_size.last_allocated].nextblock =
+		    partialBlockList[i];
+		partialBlockList[i] = firstToGiveUp;
+		lastToKeep.nextblock = OUT_OF_BLOCKS;
+	    }
+	}
+	if (GSC_TRACE) {
+	    VM.sysWrite(" size = "); VM.sysWrite(i,false);
+	    VM.sysWrite(" new first = "); VM.sysWrite(partialBlockList[i],false);
+	    VM.sysWrite("\n");
+	}
     }
-
+    
     sysLockFree.unlock();  // release lock on global block data
 
 
     // I ADDED THIS 03/18 to prevent mypid==1 from proceeding before all others
     // have completed the above, especially if mypid=1 did NOT free any blocks
     // SES 03/18
-    if (RENDEZVOUS_WAIT_TIME) tempTime = VM_Time.now();
-    VM_CollectorThread.gcBarrier.rendezvous();
-    if (RENDEZVOUS_WAIT_TIME) mylocal.rendezvousWaitTime += VM_Time.now() - tempTime;
+    VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
 
     // Each GC thread increments adds its wait times for this collection
     // into its total wait time - for printSummaryStatistics output
@@ -1740,20 +1513,7 @@ public class VM_Allocator
 
     if (mylocal.gcOrdinal != 1) return;
 
-    shorttemp      = largeSpaceAlloc;
-    largeSpaceAlloc  = largeSpaceMark;
-    largeSpaceMark  =  shorttemp;
-
-    if (GC_TRACEALLOCATOR) {
-      //  report last value of large_last_allocated
-      VM.sysWrite(large_last_allocated);
-      VM.sysWrite("  was the base page number of the last_allocated large object \n");
-    }
-
-		prepareNonParticipatingVPsForAllocation();
-
-    //  reset value large_last_allocated
-    large_last_allocated  = 0;
+    prepareNonParticipatingVPsForAllocation();
 
     gc_collect_now  = false;  // reset flag
     gcInProgress    = false;
@@ -1764,10 +1524,7 @@ public class VM_Allocator
     if (GC_COUNT_BYTE_SIZES) {
       for (i = 0; i <= 2048; i++) {
          if (countByteSizes[i] != 0) {
-          VM.sysWrite(i);
-          VM.sysWrite("       ");
-          VM.sysWrite(countByteSizes[i]);
-          VM.sysWrite("\n");
+          VM.sysWriteln(i, "       ", countByteSizes[i]);
           countByteSizes[i]  = 0;
         }
       }
@@ -1775,56 +1532,28 @@ public class VM_Allocator
 
     if (GC_COUNT_LIVE_OBJECTS) {
       int  small = 0;
-      int  large = 0;
       for (i = 1; i < VM_Scheduler.numProcessors + 1; i++) {
         small  += VM_Scheduler.processors[i].small_live; 
         VM_Scheduler.processors[i].small_live  = 0; 
-        large  += VM_Scheduler.processors[i].large_live; 
-        VM_Scheduler.processors[i].large_live  = 0; 
       }
       VM_Scheduler.trace("AFTER  GC", "small live =", small);
-      VM_Scheduler.trace("AFTER  GC", "large live =", large);
     }
     
     //TODO: complete the support for these data
     if (GC_STATISTICS) {
     //  report  high-water marks, then reset hints to the freeblock scanner 
-      for (i = 0; i < GC_SIZES; i++) {
-        VM.sysWrite(countLive[i]);
-        VM.sysWrite("  objects alive in pool \n");
-        VM.sysWrite("  \n");
-      }
+      for (i = 0; i < GC_SIZES; i++) 
+        VM.sysWriteln(countLive[i], "  objects alive in pool \n");
 
-      for (i = 0; i < GC_LARGE_SIZES; i++) {
-        VM.sysWrite(countLargeLive[i]);
-        VM.sysWrite("  large objects live after this cycle \n \n");
-      }
-
-      VM.sysWrite("VM_Allocator:  markbootcount      = " );
-      VM.sysWrite(  markboot_count); 
-      VM.sysWrite("\nVM_Allocator:  total_markbootcount  = " );
-      VM.sysWrite(  total_markboot_count );
-      VM.sysWrite("\nVM_Allocator:  total_marklargecount = ");
-      VM.sysWrite(  marklarge_count );
-      VM.sysWrite("\nVM_Allocator:  total_largerefs    = " );
-      VM.sysWrite(  largerefs_count );
-      VM.sysWrite("  \n");
+      VM.sysWriteln("VM_Allocator:  markbootcount      = ", markboot_count); 
+      VM.sysWriteln("VM_Allocator:  total_markbootcount  = ", total_markboot_count );
       //  report current value of available blocks
-      VM.sysWrite(blocks_available);
-      VM.sysWrite("  blocks available after this collection \n");
+      VM.sysWriteln(blocks_available, "  blocks available after this collection");
       //  report number of collections so far
-      VM.sysWrite(gcCount);
-      VM.sysWrite("th  collection just completed \n");
+      VM.sysWriteln(gcCount, "th  collection just completed");
     
-      for (i = 0; i < GC_LARGE_SIZES; i++) {
-        countLargeAlloc[i]  = 0;
-        countLargeLive[i]  = 0;
-      }
-
       markboot_count  = 0;
       total_markboot_count  = 0;
-      marklarge_count  = 0;
-      largerefs_count  = 0;
     }  // end of statistics report  
 
     // always get time - for printSummaryStatistics
@@ -1833,19 +1562,14 @@ public class VM_Allocator
     gcTotalTime  += gcMinorTime;
     if (gcMinorTime > gcMaxTime) gcMaxTime = gcMinorTime;
 
-    if (VM.verboseGC||GC_TIMING) {
-      if (VM.verboseGC) {
-        VM.sysWrite("\n<GC ");
-        VM.sysWrite(gcCount,false);
-        VM.sysWrite("  time ");
-        VM.sysWrite((int)(gcMinorTime * 1000), false);
-        VM.sysWrite(" (ms)>\n"); 
-      }
+    if (verbose >= 1 || GC_TIMING) {
+        VM.sysWrite("\n<GC ", gcCount);
+	VM.sysWriteln("  time ", ((int)(gcMinorTime * 1000)), " (ms)>"); 
     }
 
     if (TIME_GC_PHASES) accumulateGCPhaseTimes();  	
 
-    if (VM.verboseGC && VM_CollectorThread.MEASURE_WAIT_TIMES)
+    if (verbose >= 1 && VM_CollectorThread.MEASURE_WAIT_TIMES)
       VM_CollectorThread.printThreadWaitTimes();
     else {
       if (VM_GCWorkQueue.MEASURE_WAIT_TIMES) {
@@ -1867,27 +1591,21 @@ public class VM_Allocator
 			VM_GCWorkQueue.resetAllCounters();
     }
 
-    if (RENDEZVOUS_TIMES) printRendezvousTimes();
+    if (RENDEZVOUS_TIMES) VM_CollectorThread.gcBarrier.printRendezvousTimes();
 
-    if (Report) {
-      VM.sysWrite(gcCount);
-      VM.sysWrite("  collections ");
-      VM.sysWrite(highest_block);
-      VM.sysWrite("  is the highest_block \n");
-      VM.sysWrite(blocks_available);
-      VM.sysWrite("  blocks are available \n");
+    if (verbose >= 2) {
+      VM.sysWrite(gcCount, "  collections ");
+      VM.sysWrite(highest_block, "  is the highest_block \n");
+      VM.sysWrite(blocks_available, "  blocks are available \n");
     }    
     if (GC_COUNT_FAST_ALLOC) {
-      VM.sysWrite(allocCount);
-      VM.sysWrite("  total allocations \n");
-      VM.sysWrite(fastAllocCount);
-      VM.sysWrite("  total fastAllocations \n");
+      VM.sysWrite(allocCount, "  total allocations \n");
+      VM.sysWrite(fastAllocCount, "  total fastAllocations \n");
     }
 
-    if (DebugLarge) freeLargeSpaceDetail();
-    if (GC_COUNT_BY_TYPES && VM.verboseGC) printCountsByType();
+    if (verbose >= 1 && GC_COUNT_BY_TYPES) printCountsByType();
 
-		if (REPORT_BLOCKS) reportBlocks();
+    if (REPORT_BLOCKS) reportBlocks();
 	  if (DEBUG_FREEBLOCKS || flag2nd) {
 			if (flag2nd) VM_Scheduler.trace(" End of gc:", "flag2nd on");
 			else VM_Scheduler.trace(" End of gc:", ".. debugging..");
@@ -1906,14 +1624,14 @@ public class VM_Allocator
   *  be pointers to objects which have not been initialized.
    */
 
-  static  void
-  gc_scanStacks () {
-    VM_Thread  t, mythread;
-    int  fp;
+  static  void gc_scanStacks () {
+
     //  get thread ptr of running (the GC) thread
-    mythread  = VM_Thread.getCurrentThread();  
+    VM_Thread mythread  = VM_Thread.getCurrentThread();  
+
     for (int i = 0; i < VM_Scheduler.threads.length; i++) {
-      t  = VM_Scheduler.threads[i];
+	VM_Address fp;
+	VM_Thread t  = VM_Scheduler.threads[i];
       //  exclude GCThreads and "Empty" threads
       if ( (t != null) && !t.isGCThread ) 
 			{
@@ -1921,9 +1639,6 @@ public class VM_Allocator
       //  SYNCHRONIZING STATEMENT
       if (VM_GCLocks.testAndSetThreadLock(i)) 
       {
-        if (debug2Threads) VM_Scheduler.trace(
-          "Allocator: Selecting thread", "XXXXXX", i);
-
 	  // with use of generic scanStack in VM_ScanStack (08/01/01 SES)
 	  // all "running" threads BLOCKED_IN_SIGWAIT set their contextRegisters
 	  // ip & fp so that scanning their stacks will start at the "top" java frame.
@@ -1954,7 +1669,7 @@ public class VM_Allocator
 	  fp = t.contextRegisters.getInnermostFramePointer();
 		//-#endif
   
-          VM_ScanStack.scanStack( t, VM_NULL, false /*relocate_code*/ );
+          VM_ScanStack.scanStack( t, VM_Address.zero(), false /*relocate_code*/ );
         }
         else continue;  // some other gc thread has seized this thread
       }  // not a null pointer, not a gc thread
@@ -1962,73 +1677,59 @@ public class VM_Allocator
   }      // scanStacks()
 
 
-  /**  a routine to make sure a pointer is into the heap
-   */
-  private  static boolean
-  isValidSmallHeapPtr (int slotAddress) {
-      return addressInSmallHeap(slotAddress);
-  }
-
-
   //  a debugging routine: to make sure a pointer is into the give block
-  private  static boolean
-  isPtrInBlock (int ptr, VM_SizeControl the_size) 
-  {
-    VM_BlockControl  the_block =  
-      VM_Magic.addressAsBlockControl(blocks[the_size.current_block]);
-    int  base = the_block.baseAddr;
-    int  offset = ptr - base;
-    int  endofslot = ptr + the_block.slotsize;
+  private  static boolean isPtrInBlock (VM_Address ptr, VM_SizeControl the_size) {
+
+    VM_BlockControl  the_block = blocks[the_size.current_block]; 
+    VM_Address base = the_block.baseAddr;
+    int  offset = ptr.diff(base);
+    VM_Address  endofslot = ptr.add(the_block.slotsize);
     if (offset%the_block.slotsize != 0) VM.sysFail("Ptr not to beginning of slot");
-    int  bound = base + GC_BLOCKSIZE;
-    if ((ptr >= base) && (endofslot <= bound)) return true;
-    else  return false;
+    VM_Address  bound = base.add(GC_BLOCKSIZE);
+    return  ptr.GE(base) && endofslot.LE(bound);
   }
 
 
-  static  void
-  gc_scanObjectOrArray (int objRef ) {
-    VM_Type    type;
+  static void gc_scanObjectOrArray (VM_Address objRef ) {
 
     //  First process the header
     //  The header has one pointer in it - 
     //  namely the pointer to the TIB (type info block).
     //
-    /// following call not needed for noncopying: all tibs found through JTOC
-//  gc_processPtrFieldValue(VM_Magic.getMemoryWord(objRef  + OBJECT_TIB_OFFSET));
 
-    type  = VM_Magic.getObjectType(VM_Magic.addressAsObject(objRef));
+    // following call not needed for noncopying: all tibs found through JTOC
+    //  processPtrValue(getTib(objRef))
+
+    VM_Type type  = VM_Magic.getObjectType(VM_Magic.addressAsObject(objRef));
 
     if ( type.isClassType() ) { 
       int[]  referenceOffsets = type.asClass().getReferenceOffsets();
       for (int i = 0, n = referenceOffsets.length; i < n; ++i) {
         if (DebugInterest) {
-          if (VM_Magic.getMemoryWord(objRef + referenceOffsets[i])
-            == interesting_ref) {
-            VM_Scheduler.trace("  In a ref", " found int. ref in ", objRef);
-            printclass(objRef);
-            VM_Scheduler.trace("  is the type of the pointing ref ", " ");
-          }
+	    if (VM_Magic.getMemoryAddress(objRef.add(referenceOffsets[i])).EQ(interesting_ref)) {
+		VM_Scheduler.trace("  In a ref", " found int. ref in ", objRef);
+		printclass(objRef);
+		VM_Scheduler.trace("  is the type of the pointing ref ", " ");
+	    }
         }
-        gc_processPtrFieldValue( VM_Magic.getMemoryWord(objRef + 
-          referenceOffsets[i])  );
+        processPtrValue( VM_Magic.getMemoryAddress(objRef.add(referenceOffsets[i]))  );
       }
     }
     else  if ( type.isArrayType() ) {
       if (type.asArray().getElementType().isReferenceType()) {
         int  num_elements = VM_Magic.getArrayLength(VM_Magic.addressAsObject(objRef));
-        int  location = objRef;   // for arrays = address of [0] entry
-        int  end    = objRef + num_elements * 4;
-        while ( location < end ) {
+        VM_Address  location = objRef;   // for arrays = address of [0] entry
+        VM_Address  end      = objRef.add(num_elements * 4);
+        while ( location.LT(end) ) {
           if (DebugInterest) {
-            if (VM_Magic.getMemoryWord(location) == interesting_ref) {
-            VM_Scheduler.trace("  In array of refs", " found int. ref in ", objRef);
-            VM.sysWrite(type.getDescriptor());
+	      if (VM_Magic.getMemoryAddress(location).EQ(interesting_ref)) {
+		  VM_Scheduler.trace("  In array of refs", " found int. ref in ", objRef);
+		  VM.sysWrite(type.getDescriptor());
             }
           }
-          gc_processPtrFieldValue(VM_Magic.getMemoryWord(location));
+          processPtrValue(VM_Magic.getMemoryAddress(location));
           //  USING  "4" where should be using "size_of_pointer" (for 64-bits)
-          location  = location + 4;
+          location  = location.add(4);
         }
       }
     }
@@ -2039,63 +1740,16 @@ public class VM_Allocator
   }  //  gc_scanObjectOrArray
 
     
-  static  boolean
-  gc_setMarkLarge (int tref) { 
-    int  ij;
-    int  page_num = (tref - largeHeapStartAddress ) >> 12;
-    if (GC_STATISTICS) largerefs_count++;
-    boolean  result = (largeSpaceMark[page_num] != 0);
-    if (result) return true;  // fast, no synch case
-    
-    sysLockLarge.lock();    //  get sysLock for large objects
-    result  = (largeSpaceMark[page_num] != 0);
-    if (result) {  // need to recheck
-      sysLockLarge.release();
-      return true;  
-    }
-
-    if (GC_STATISTICS) {
-      marklarge_count++;  // count large objects marked
-      ij = largeSpaceAlloc[page_num];
-      if (ij < 0) ij = -ij;
-      if (ij < GC_LARGE_SIZES) countLargeLive[ij]++;
-      else countLargeLive[GC_LARGE_SIZES -1]++;
-    }
-
-    int  temp = largeSpaceAlloc[page_num];
-    if (temp == 1) {
-      largeSpaceMark[page_num] = 1;
-    }
-    else  {
-      // mark entries for both ends of the range of allocated pages
-      if (temp > 0) {
-        ij = page_num + temp -1;
-        largeSpaceMark[ij] = (short)-temp;
-      }
-      else {
-        ij = page_num + temp + 1;
-        largeSpaceMark[ij] = (short)-temp;
-      }
-      largeSpaceMark[page_num] = (short)temp;
-    }
-
-    sysLockLarge.unlock();  //  INCLUDES sync()
-    if (GC_COUNT_LIVE_OBJECTS)
-      VM_Processor.getCurrentProcessor().large_live++;
-    return  false;
-  }  //  gc_setMarkLarge
-
-  
   /**  given an address in the small objec heap (as an int), 
   *  set the corresponding mark byte on
   */
-  static  boolean
-  gc_setMarkSmall (int tref) {
+  static  boolean  gc_setMarkSmall (VM_Address tref) {
+
     boolean  result; 
     int  blkndx, slotno, size, ij;
-    blkndx  = (tref - smallHeapStartAddress) >> LOG_GC_BLOCKSIZE ;
-    VM_BlockControl  this_block = VM_Magic.addressAsBlockControl(blocks[blkndx]);
-    int  offset   = tref - this_block.baseAddr; 
+    blkndx  = (tref.diff(smallHeap.start)) >> LOG_GC_BLOCKSIZE ;
+    VM_BlockControl  this_block = blocks[blkndx];
+    int  offset   = tref.diff(this_block.baseAddr); 
     int  slotndx  = offset/this_block.slotsize;
     result  = (this_block.mark[slotndx] != 0);
 
@@ -2129,207 +1783,115 @@ public class VM_Allocator
   }  //  gc_setMarkSmall
 
 
-  static  void
-  gc_processPtrField (int refloc) {
-    gc_processPtrFieldValue(VM_Magic.getMemoryWord(refloc));
-  }
-
-
-  static  void
-  gc_processPtrFieldValue (int ref) 
-  {
-  if (ref == 0) return;  // TEST FOR NULL POINTER
-
-  if (Debug) {
-    // DEBUG AID: try to filter out non-object pointers into the heap
-    int tibptr = VM_Magic.objectAsAddress(VM_ObjectModel.getTIB(ref));  // check that TIB pointer really is
-    if (! inHeap(tibptr)) {
-      VM.sysWrite(ref);
-      VM.sysWrite("  is  bogus pointer into heap, was found \n");
-      return;
-    }
-  }  //  Debug
-
-  //  accommodate that ref might be outside space
-  int  tref = VM_ObjectModel.getPointerInMemoryRegion(ref);
-
-  if (referenceInSmallHeap(ref)) {
-    // object allocated in small object runtime heap
-    if (!gc_setMarkSmall(tref)) {
-      if (GC_COUNT_BY_TYPES) {
-        VM_Type type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
-        type.liveCount++;
-        if (type.isArrayType()) {
-          int  num_elements = VM_Magic.getArrayLength(VM_Magic.addressAsObject(ref));
-          int  full_size = type.asArray().getInstanceSize(num_elements);
-          type.liveSpace+=  full_size;
-        }
-      }
-    VM_GCWorkQueue.putToWorkBuffer(ref);
-    }
-    return;
-  }  
-
-  if (referenceInLargeHeap(ref)) {
-    //  object allocated in small object runtime heap
-    if (!gc_setMarkLarge(tref)) 
-      VM_GCWorkQueue.putToWorkBuffer(ref);
-    return;
-  }
-
-  if (VM_GCUtil.referenceInBootImage(ref)) {
-    if (VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), OBJECT_GC_MARK_VALUE))
-      VM_GCWorkQueue.putToWorkBuffer(ref);
-    return;
-  }
-
-  if (referenceInMallocedStorage(ref)) {
-      return;
-  }
-
-    VM.sysWrite(tref);
-    VM.sysFail(" gc_processPtrFieldValue ptr:  not in heap or boot image \n");
-  }  //  gc_processPtrFieldValue   
-
 
   //  process objects in the work queue buffers until no more buffers to process
   //
-  static  void
-  gc_emptyWorkQueue()  {
-  int  ref = VM_GCWorkQueue.getFromWorkBuffer();
+  static  void gc_emptyWorkQueue()  {
 
-  if (VM_GCWorkQueue.WORKQUEUE_COUNTS) {
-    VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
-    myThread.rootWorkCount = myThread.putWorkCount;
-  }
-
-  //    VM.sysWrite(" gc_emptyworkqueue first ref =");   VM.sysWrite(ref);   VM.sysWrite("\n");
-
-  while ( ref != 0 ) {
-    gc_scanObjectOrArray( ref );
-    ref = VM_GCWorkQueue.getFromWorkBuffer();
-  }
+      VM_Address ref = VM_GCWorkQueue.getFromWorkBuffer();
+      
+      if (VM_GCWorkQueue.WORKQUEUE_COUNTS) {
+	  VM_CollectorThread myThread = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
+	  myThread.rootWorkCount = myThread.putWorkCount;
+      }
+      
+      while ( !ref.isZero() ) {
+	  gc_scanObjectOrArray( ref );
+	  ref = VM_GCWorkQueue.getFromWorkBuffer();
+      }
   }    // gc_emptyWorkQueue
 
 
   //  To be able to be called from java/lang/runtime, or internally
   //
-  public  static void
-  gc ()  {
+  public  static void gc ()  {
     if (IGNORE_EXPLICIT_GC_CALLS) {
 	if (Debug) VM.sysWrite("Skipped external call to collect garbage.\n");
 	return;
     }
-
-    if (VM.verboseGC)
-      VM_Scheduler.trace("  gc triggered by external call to gc() \n \n", "XX");
-
-    gc1();
+    gc1("GC triggered by external call to gc() ", 0);
   }
 
 
-  public static void
-  gc1 ()
-  {
-    double  time;
-    gc_collect_now  = true;
-    if (GC_MUTATOR_TIMES) time = VM_Time.now();
+  public static void gc1 (String why, int size) {
 
-    int mypid_before, mypid_after;
+    gc_collect_now  = true;
+
+    if (verbose >= 1) VM.sysWriteln(why, size);
 
     //  Tell gc thread to reclaim space, then wait for it to complete its work.
     //  The gc thread will do its work by calling collect(), below.
     //
+    double time = GC_MUTATOR_TIMES ? VM_Time.now() : 0.0;
     VM_CollectorThread.collect(VM_CollectorThread.collect);
-
     if (GC_MUTATOR_TIMES) {
       time = VM_Time.now() - time;
       VM_Scheduler.trace("GC time at mutator","(millisec)",(int)(time*1000.0));
       VM_Scheduler.trace("GC - time","     (millisec)",(int)(gcMinorTime*1000.0));
       VM_Scheduler.trace("GC TOTAL - time"," (millisec)",(int)(gcTotalTime*1000.0));
-      VM_Scheduler.trace("GC TOTAL COLLECTIONS = ", "XXX", gcCount);
+      VM_Scheduler.trace("GC TOTAL COLLECTIONS = ", "", gcCount);
     }
-
   }  //  gc1
 
 
-  static void
-  dumpblocks (VM_Processor st)  {
-    VM.sysWrite("\n-- Processor ");
-		VM.sysWrite(st.id, false);
-		VM.sysWrite(" --\n");
-    for (int i = 0; i < GC_SIZES; i++) {
-			VM.sysWrite(" Size ");
-		  VM.sysWrite(GC_SIZEVALUES[i], false);
-			VM.sysWrite("  ");
-			VM_BlockControl the_block = VM_Magic.addressAsBlockControl(blocks[st.sizes[i].first_block]);
-			VM.sysWrite(st.sizes[i].first_block, false);
-			while (true) {
-				VM.sysWrite("  ");
-				VM.sysWrite(the_block.nextblock, false);
-				if (the_block.nextblock == OUT_OF_BLOCKS) break;
-				the_block = VM_Magic.addressAsBlockControl(blocks[the_block.nextblock]);
-			}		
-			VM.sysWrite("\n");
-		}
-	}
+  static void dumpblocks (VM_Processor st)  {
 
-  static  void
-  dumpblocks () {
+      VM.sysWriteln("\n-- Processor ", st.id, " --");
+      for (int i = 0; i < GC_SIZES; i++) {
+	  VM.sysWrite(" Size ", GC_SIZEVALUES[i], "  ");
+	  VM_BlockControl the_block = blocks[st.sizes[i].first_block];
+	  VM.sysWrite(st.sizes[i].first_block, false);
+	  while (true) {
+	      VM.sysWrite("  ", the_block.nextblock);
+	      if (the_block.nextblock == OUT_OF_BLOCKS) break;
+	      the_block = blocks[the_block.nextblock];
+	  }		
+	  VM.sysWriteln();
+      }
+  }
+
+  static  void dumpblocks () {
+
     VM_Processor  st = VM_Processor.getCurrentProcessor();
-    VM.sysWrite(first_freeblock);
-    VM.sysWrite("  is the first freeblock index \n");
-    for (int iii = 0; iii < GC_SIZES; iii++) {
-    VM.sysWrite(iii);
-    VM.sysWrite("th VM_SizeControl first_block = " );
-    VM.sysWrite( st.sizes[iii].first_block);
-    VM.sysWrite(" current_block = "); 
-    VM.sysWrite(st.sizes[iii].current_block);
-    VM.sysWrite("\n\n");
+    VM.sysWrite(first_freeblock, "  is the first freeblock index \n");
+    for (int i = 0; i < GC_SIZES; i++) {
+	VM.sysWrite(i, "th VM_SizeControl first_block = ", st.sizes[i].first_block);
+	VM.sysWrite(" current_block = ", st.sizes[i].current_block, "\n\n");
     }
     
-    for (int iii = 0; iii < num_blocks; iii++) {
-      VM.sysWrite(iii);
-      VM.sysWrite("th VM_BlockControl   ");
-      if (VM_Magic.addressAsBlockControl(blocks[iii]).live) VM.sysWrite("   live"); 
-      else VM.sysWrite("not live");
-      VM.sysWrite("  "); 
-      VM.sysWrite(" \nbaseaddr = "); 
-      VM.sysWrite(VM_Magic.addressAsBlockControl(blocks[iii]).baseAddr);
-      VM.sysWrite(" \nnextblock = "); 
-      VM.sysWrite(VM_Magic.addressAsBlockControl(blocks[iii]).nextblock);
-      VM.sysWrite("\n");
+    for (int i = 0; i < num_blocks; i++) {
+	VM.sysWriteln(i, "th VM_BlockControl   ", (blocks[i].live) ? "   live  " : "not live  ");
+	VM.sysWriteln("baseaddr = ", blocks[i].baseAddr);
+	VM.sysWriteln("nextblock = ", blocks[i].nextblock);
     }
     
   }  //  dumpblocks
 
 
-  static  void
-  clobber (int addr, int length) {
-    int value = 0xdeaddead;
-    int i;
-    for (i = 0; i + 3 < length; i = i+4) VM_Magic.setMemoryWord(addr + i, value);
+  static  void clobber (VM_Address addr, int length) {
+      int value = 0xdeaddead;
+      int i;
+      for (i = 0; i + 3 < length; i = i+4) 
+	  VM_Magic.setMemoryWord(addr.add(i), value);
   }
 
 
-  static  void
-  clobberfree () {
+  static  void clobberfree () {
+
     VM_Processor  st = VM_Processor.getCurrentProcessor();
     for (int i = 0; i < GC_SIZES; i ++) {
-      VM_BlockControl this_block = 
-        VM_Magic.addressAsBlockControl(blocks[st.sizes[i].first_block]);  
+      VM_BlockControl this_block = blocks[st.sizes[i].first_block];  
       byte[] this_alloc      = this_block.mark;
       for (int ii = 0; ii < this_alloc.length; ii ++) {
-        if (this_alloc[ii] == 0) clobber(this_block.baseAddr + 
-          ii * GC_SIZEVALUES[i], GC_SIZEVALUES[i]);
+	  if (this_alloc[ii] == 0) clobber(this_block.baseAddr.add(ii * GC_SIZEVALUES[i]), GC_SIZEVALUES[i]);
       }
       int next = this_block.nextblock;
       while (next != OUT_OF_BLOCKS) {
-        this_block = VM_Magic.addressAsBlockControl(blocks[next]);
+        this_block = blocks[next];
         this_alloc      = this_block.mark;
         for (int ii = 0; ii < this_alloc.length; ii ++) {
           if (this_alloc[ii] == 0)
-            clobber(this_block.baseAddr  + ii * GC_SIZEVALUES[i], GC_SIZEVALUES[i]);
+            clobber(this_block.baseAddr.add(ii * GC_SIZEVALUES[i]), GC_SIZEVALUES[i]);
         }
         next = this_block.nextblock;
       }
@@ -2339,7 +1901,7 @@ public class VM_Allocator
     sysLockBlock.lock();
     VM_BlockControl block;
     for (int freeIndex = first_freeblock; freeIndex != OUT_OF_BLOCKS; freeIndex = block.nextblock) {
-	block = VM_Magic.addressAsBlockControl(blocks[freeIndex]);
+	block = blocks[freeIndex];
 	clobber(block.baseAddr, GC_BLOCKSIZE);
     }
     sysLockBlock.unlock();
@@ -2347,131 +1909,48 @@ public class VM_Allocator
 
 
 
-  public  static long
-  totalMemory () {
-    return smallHeapSize + largeHeapSize;
+  public  static long totalMemory () {
+    return smallHeap.size + largeHeap.size;
   }
 
-/*** REPLACE THIS WITH VERSION BELOW; KEEP OLD FOR NOW
-  public  static long
-  freeMemory () {
-    
-    total_blocks_in_use  = 0;     
-    long  total = 0;
-    for (int i = 1; i <= VM_Scheduler.numProcessors; i++) 
-      total = total + freeSmallSpace(VM_Scheduler.processors[i]);
-    
-    return (freeLargeSpace() + total + (highest_block - total_blocks_in_use) * 
-      GC_BLOCKSIZE);
-  }  //  freeMemory
-***/
 
-  public static long
-  freeMemory () {
+  public static long freeMemory () {
     return freeBlocks() * GC_BLOCKSIZE;
   }
 
 
-  public  static long
-  freeLargeSpace () {
-
-    int  total = 0;
-    for (int i = 0 ; i < largeSpacePages;) {
-      if (largeSpaceAlloc[i] == 0) {
-        total++;
-        i++;
-      }
-      else i = i + largeSpaceAlloc[i]; // negative value in largeSpA
-    }
-    
-    return (total * 4096);     // number of bytes free in largespace
-  }  //  freeLargeSpace
-
-  public  static void
-  freeLargeSpaceDetail () {
-  
-  int  total = 0;
-  int  largelarge = 0;
-  int  largesize = 0;
-  int  i,templarge = 0;
-  VM.sysWrite(largeHeapSize);
-  VM.sysWrite("  is the large object heap size in bytes \n");
-  for (i = 0 ; i < largeSpacePages;) {
-    if (largeSpaceAlloc[i] == 0) {
-      templarge++;
-      if (templarge > largesize) largesize = templarge;
-      total++;
-      i++;
-    }
-    else  {
-      templarge  = 0;
-      int  temp = largeSpaceAlloc[i];
-      if (temp < GC_LARGE_SIZES) countLargeLive[temp]++;
-      else  {
-        VM.sysWrite(temp);
-        VM.sysWrite("  pages of a very large object \n");
-        largelarge++;
-      }
-      i  = i + largeSpaceAlloc[i]; // negative value in largeSpA
-    }
-  }
-  
-  VM.sysWrite(total);
-  VM.sysWrite("  pages free in large space \n ");
-  VM.sysWrite(largesize);
-  VM.sysWrite("  is largest block in pages available \n");
-
-  for (i = 0; i < GC_LARGE_SIZES; i++) {
-    if (countLargeLive[i] > 0) {
-      VM.sysWrite(countLargeLive[i]);
-      VM.sysWrite("  large objects of size ");
-      VM.sysWrite(i);
-      VM.sysWrite("  live \n");
-      countLargeLive[i]  = 0;  // for next time
-    }
-  }
-  VM.sysWrite(largelarge);
-  VM.sysWrite("  very large objects live \n ");
-  
-  }  //  freeLargeSpaceDetail
-
   static  int total_blocks_in_use; // count blocks in use during this calculation
 
-  public  static long
-  freeSmallSpace (VM_Processor st) {
+    public  static long  freeSmallSpace (VM_Processor st) {
 
-  int  total = 0;
-  int  i, next, temp;
-  VM_BlockControl  this_block;
-	int current_pointer;
+	int  total = 0;
 
-  for (i = 0; i < GC_SIZES; i++) {
-    total_blocks_in_use+= blocksToCurrent(st.sizes[i]);
-    this_block  = VM_Magic.addressAsBlockControl(blocks[st.sizes[i].current_block]);
-		current_pointer = st.sizes[i].next_slot;
-    total+= emptyOfCurrentBlock(this_block, current_pointer); 
-    next  = this_block.nextblock;
-    while (next != OUT_OF_BLOCKS) {
-    	if (GCDEBUG_FREESPACE) 
-			  VM_Scheduler.trace(" In freesmallspace ", "next = ", next);
-      this_block  = VM_Magic.addressAsBlockControl(blocks[next]);
-      total_blocks_in_use++;
-    
-      total  += emptyof(i, this_block.mark);
-      next  = this_block.nextblock;
+	for (int i = 0; i < GC_SIZES; i++) {
+	    total_blocks_in_use += blocksToCurrent(st.sizes[i]);
+	    VM_BlockControl this_block  = blocks[st.sizes[i].current_block];
+	    VM_Address current_pointer = st.sizes[i].next_slot;
+	    total += emptyOfCurrentBlock(this_block, current_pointer); 
+	    int next  = this_block.nextblock;
+	    while (next != OUT_OF_BLOCKS) {
+		if (GCDEBUG_FREESPACE) 
+		    VM_Scheduler.trace(" In freesmallspace ", "next = ", next);
+		this_block  = blocks[next];
+		total_blocks_in_use++;
+		
+		total  += emptyof(i, this_block.mark);
+		next  = this_block.nextblock;
+	    }
+	}
+	
+	return  total;
     }
-  }
-  
-  return  total;
-  }
 
-  private static int
-  emptyOfCurrentBlock(VM_BlockControl the_block, int current_pointer) {
-    int i = current_pointer;
+  private static int emptyOfCurrentBlock(VM_BlockControl the_block, VM_Address current_pointer) {
+
     int sum = 0;
-    while (i != 0) {
+    while (!current_pointer.isZero()) {
       sum += the_block.slotsize;
-      i = VM_Magic.getMemoryWord(i);
+      current_pointer = VM_Magic.getMemoryAddress(current_pointer);
     }
     return sum;
   }
@@ -2497,69 +1976,37 @@ public class VM_Allocator
 		while (next != OUT_OF_BLOCKS) {
       if (GCDEBUG_FREESPACE) VM_Scheduler.trace(" In blocksinChain", "next = ", next); 
 			count++; 
-			the_block = VM_Magic.addressAsBlockControl(blocks[next]); 
+			the_block = blocks[next]; 
 			next = the_block.nextblock;
 		}
 		return count;
 	}
 
-	// Count the blocks in the size_control input from first to current
-	// 
-  private static int
-	blocksToCurrent (VM_SizeControl the_size) {
-		int count = 1;
-		if (the_size.first_block == the_size.current_block) return 1;
-		VM_BlockControl the_block = VM_Magic.addressAsBlockControl(blocks[the_size.first_block]);	
-		int next = the_block.nextblock;
-		while (next != the_size.current_block) {
-      if (GCDEBUG_FREESPACE) {
-        VM_Scheduler.trace(" In blocksToCurrent", "next = ", next);
-        VM_Scheduler.trace("                   ", "firs = ", the_size.first_block);
+    // Count the blocks in the size_control input from first to current
+    // 
+    private static int blocksToCurrent (VM_SizeControl the_size) {
+
+	int count = 1;
+	if (the_size.first_block == the_size.current_block) return 1;
+	VM_BlockControl the_block = blocks[the_size.first_block];	
+	int next = the_block.nextblock;
+	while (next != the_size.current_block) {
+	    if (GCDEBUG_FREESPACE) {
+		VM_Scheduler.trace(" In blocksToCurrent", "next = ", next);
+		VM_Scheduler.trace("                   ", "firs = ", the_size.first_block);
         VM_Scheduler.trace("                   ", "curr = ", the_size.current_block);
-			}
-			count++;
-			the_block = VM_Magic.addressAsBlockControl(blocks[next]);
-			next = the_block.nextblock;
-		}
-		return count;
+	    }
+	    count++;
+	    the_block = blocks[next];
+	    next = the_block.nextblock;
 	}
+	return count;
+    }
 	
-  static  void
-  printRendezvousTimes()  {
+      
+  private static void accumulateGCPhaseTimes () {
 
-  VM.sysWrite("RENDEZVOUS ENTRANCE & EXIT TIMES (microsecs) rendezvous 1, 2 & 3\n");
-
-  for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-    VM.sysWrite(i,false);
-    VM.sysWrite("  R1 in ");
-    VM.sysWrite(rendezvous1in[i],false);
-    VM.sysWrite("  out ");
-    VM.sysWrite(rendezvous1out[i],false);
-    VM.sysWrite("  R2 in ");
-    VM.sysWrite(rendezvous2in[i],false);
-    VM.sysWrite("  out ");
-    VM.sysWrite(rendezvous2out[i],false);
-    VM.sysWrite("  for ");
-    VM.sysWrite(rendezvous2out[i]  - rendezvous2in[i], false);
-    VM.sysWrite("  R3 in ");
-    VM.sysWrite(rendezvous3in[i],false);
-    VM.sysWrite("  out ");
-    VM.sysWrite(rendezvous3out[i],false);
-    VM.sysWrite("  for ");
-    VM.sysWrite(rendezvous3out[i]  - rendezvous3in[i], false);
-    VM.sysWrite(" R4 in ");
-    VM.sysWrite(rendezvous4in[i],false);
-    VM.sysWrite(" out ");
-    VM.sysWrite(rendezvous4out[i],false);
-    VM.sysWrite("  for ");
-    VM.sysWrite(rendezvous4out[i]  - rendezvous4in[i], false);
-    VM.sysWrite("\n");
-  }
-  }
-
-  private static void
-  accumulateGCPhaseTimes () {
-    double start    = gcStartTime - VM_CollectorThread.startTime;
+    double start    = gcStartTime - VM_CollectorThread.gcBarrier.rendezvousStartTime;
     double init     = gcInitDoneTime - gcStartTime;
     double scanning = gcScanningDoneTime - gcInitDoneTime;
     double finalize = gcFinalizeDoneTime - gcScanningDoneTime;
@@ -2573,154 +2020,114 @@ public class VM_Allocator
     totalFinishTime += finish;
 
     // if invoked with -verbose:gc print output line for this last GC
-    if (VM.verboseGC) {
-      VM.sysWrite("<GC ");
-      VM.sysWrite(gcCount,false);
-      VM.sysWrite(" startTime ");
-      VM.sysWrite( (int)(start*1000000.0), false);
-      VM.sysWrite("(us) init ");
-      VM.sysWrite( (int)(init*1000000.0), false);
-      VM.sysWrite("(us) scanning ");
-      VM.sysWrite( (int)(scanning*1000.0), false );
-      VM.sysWrite("(ms) finalize ");
-      VM.sysWrite( (int)(finalize*1000000.0), false);
-      VM.sysWrite("(us) finish ");
-      VM.sysWrite( (int)(finish*1000000.0), false);
-      VM.sysWrite("(us)>\n");
+    if (verbose >= 1) {
+      VM.sysWrite("<GC ", gcCount);
+      VM.sysWrite(   (int)   (start*1000000.0), "(us) init ");
+      VM.sysWrite(   (int)    (init*1000000.0), "(us) scanning ");
+      VM.sysWrite(   (int)   (scanning*1000.0), "(ms) finalize ");
+      VM.sysWrite(   (int)(finalize*1000000.0), "(us) finish ");
+      VM.sysWriteln( (int)  (finish*1000000.0), "(us)>");
     }
   }
 
 
-  /** Following routine required for compilation
-   *  compatibility with generational collectors
-   */
-  static  boolean
-  gc_isOldObject (int dummy) {
-  VM.assert(NOT_REACHED);
-  return  false;
-  }  
 
-  static  boolean
-  gc_isLive (int ref) {
-    int  tref = VM_ObjectModel.getPointerInMemoryRegion(ref);
+  static  boolean gc_isLive (VM_Address ref) {
 
-    if (VM_GCUtil.referenceInBootImage(ref)) {
-      if (GC_STATISTICS) total_markboot_count++;  
+    VM_Address tref = VM_ObjectModel.getPointerInMemoryRegion(ref);
+    Object obj = VM_Magic.addressAsObject(ref);
 
-      //  test mark bit to see if already marked
-      return VM_AllocatorHeader.testMarkBit(VM_Magic.addressAsObject(ref), OBJECT_GC_MARK_VALUE);
+    if ( bootHeap.refInHeap(ref) ||
+	 immortalHeap.refInHeap(ref) ) {
+	return VM_AllocatorHeader.testMarkBit(obj, OBJECT_GC_MARK_VALUE);
     }
 
-    if (referenceInSmallHeap(ref)) {
+    if ( smallHeap.refInHeap(ref) ) {
       //  check for live small object
       int  blkndx, slotno, size, ij;
-      blkndx  = (tref - smallHeapStartAddress) >> LOG_GC_BLOCKSIZE ;
-      VM_BlockControl  this_block = VM_Magic.addressAsBlockControl(blocks[blkndx]);
-      int  offset   = tref - this_block.baseAddr;
+      blkndx  = (tref.diff(smallHeap.start)) >> LOG_GC_BLOCKSIZE ;
+      VM_BlockControl  this_block = blocks[blkndx];
+      int  offset   = tref.diff(this_block.baseAddr);
       int  slotndx  = offset/this_block.slotsize;
       return (this_block.mark[slotndx] != 0);
     }
+  
+    if (largeHeap.refInHeap(ref))
+	return largeHeap.isLive(ref);
 
-    if (referenceInLargeHeap(ref)) {   // check for live large object
-      int  page_num = (tref - largeHeapStartAddress ) >> 12;
-      return (largeSpaceMark[page_num] != 0);
-    }
-
-    if (referenceInMallocedStorage(ref)) {
-	return true;
-    }
-
-    VM.sysFail("gc_isLive: pointer not in a vaid heap region");
-    return false;
+     VM.sysWrite("gc_isLive: ref not in any known heap: ", ref);
+     VM.assert(false);
+     return false;
   }
 
-
-  static  boolean
-  validRef ( int ref ) {
-  VM.assert(NOT_REACHED);
-  return  false;
-  }
   
 
-  // called from constructor of VM_Processor, also called a second time
-  // for the PRIMORDIAL processor during VM.boot
-  static  void
-  setupProcessor (VM_Processor st) 
-  {
-  // for the PRIMORDIAL processor allocation of sizes, etc occurs
-  // during init(), nothing more needs to be done
-  //
-  if (st.id <= VM_Scheduler.PRIMORDIAL_PROCESSOR_ID) 
-    return;
+    // Normally called from constructor of VM_Processor
+    // Also called a second time for the PRIMORDIAL processor during VM.boot
+    //
+    static  void setupProcessor (VM_Processor st) {
 
-  //  Get VM_SizeControl array 
-  st.sizes  =  new VM_SizeControl[GC_SIZES];
-  for (int i = 0; i < GC_SIZES; i++) {
-    st.sizes[i] = new VM_SizeControl();
-    int ii = VM_Allocator.getnewblockx(i);
-    st.sizes[i].first_block = ii;   // 1 block/size initially
-    st.sizes[i].current_block = ii;
-    st.sizes[i].ndx = i;    // to fit into old code
-    build_list_for_new_block(VM_Magic.addressAsBlockControl(blocks[ii]),
-          st.sizes[i]);
-  }
-
-  st.GC_INDEX_ARRAY  = new VM_SizeControl[GC_MAX_SMALL_SIZE + 1];
-  st.GC_INDEX_ARRAY[0]  = st.sizes[0];  // for size = 0
-  //  set up GC_INDEX_ARRAY for this Processor
-  int  j = 1;
-  for (int i = 0; i < GC_SIZES; i++) 
-    for (; j <= GC_SIZEVALUES[i]; j++) st.GC_INDEX_ARRAY[j] = st.sizes[i];
-  }
-
-
-/**  A routine to report number of live objects by type: numbers
-*  collected in processPtrFieldValue at return from gc_setMarkSmall()
-*/
-  private  static void
-  printCountsByType()  {
-
-  VM.sysWrite("  Counts of live objects by type \n");
-  int  nextId = VM_TypeDictionary.getNumValues();
-  int  totalObjects = 0, totalSpace = 0;
-  for (int i = 1; i < nextId; i++) {
-    VM_Type type = VM_TypeDictionary.getValue(i);
-    if (type.liveCount == 0) continue;
-    VM.sysWrite(type.liveCount, false);
-    totalObjects += type.liveCount;
-    if (type.liveCount < 10) VM.sysWrite   ("      ");
-    else if (type.liveCount < 100) VM.sysWrite ("     ");
-    else if (type.liveCount < 1000) VM.sysWrite ("    ");
-    else if (type.liveCount < 10000) VM.sysWrite ("   ");
-    else if (type.liveCount < 100000) VM.sysWrite ("  ");
-    VM.sysWrite(type.getDescriptor());
-    if (type.isClassType() && type.isResolved()) {
-      int size = type.asClass().getInstanceSize();
-      VM.sysWrite ("  space is ");
-      VM.sysWrite(size * type.liveCount, false);
-      totalSpace += size * type.liveCount;
+     // for the PRIMORDIAL processor allocation of sizes, etc occurs
+     // during init(), nothing more needs to be done
+     //
+	if (st.id <= VM_Scheduler.PRIMORDIAL_PROCESSOR_ID) 
+	  return;
+	
+     //  Get VM_SizeControl array 
+	st.sizes  =  new VM_SizeControl[GC_SIZES];
+	for (int i = 0; i < GC_SIZES; i++) {
+	    st.sizes[i] = new VM_SizeControl();
+	    int ii = VM_Allocator.getnewblockx(i);
+	    st.sizes[i].first_block = ii;   // 1 block/size initially
+	    st.sizes[i].current_block = ii;
+	    st.sizes[i].ndx = i;    // to fit into old code
+	    build_list_for_new_block(blocks[ii], st.sizes[i]);
+	}
+	
+	st.GC_INDEX_ARRAY  = new VM_SizeControl[GC_MAX_SMALL_SIZE + 1];
+	st.GC_INDEX_ARRAY[0]  = st.sizes[0];  // for size = 0
+	//  set up GC_INDEX_ARRAY for this Processor
+	int  j = 1;
+	for (int i = 0; i < GC_SIZES; i++) 
+	    for (; j <= GC_SIZEVALUES[i]; j++) 
+		st.GC_INDEX_ARRAY[j] = st.sizes[i];
     }
-    else {
-      VM.sysWrite("   space is ");
-      VM.sysWrite(type.liveSpace, false);
-      totalSpace += type.liveSpace;
-    }
-    VM.sysWrite("\n");
-    type.liveCount = 0;  // reset
-    type.liveSpace = 0;  // reset
-  }
-  VM.sysWrite(totalObjects, false);
-  if (totalObjects < 100) VM.sysWrite ("     ");
-  else if (totalObjects < 1000) VM.sysWrite ("    ");
-  else if (totalObjects < 10000) VM.sysWrite ("   ");
-  else if (totalObjects < 100000) VM.sysWrite ("  ");
-  else VM.sysWrite (" ");
-  VM.sysWrite ("Live objects   space is "+totalSpace+"\n");
-  VM.sysWrite("  End of counts of live objects by type \n");
-  }
+      
 
-  public  static void
-  printclass (int ref) {
+    //  A routine to report number of live objects by type: numbers
+    //  collected in processPtrFieldValue at return from gc_setMarkSmall()
+    //
+    private  static void printCountsByType()  {
+
+	VM.sysWrite("  Counts of live objects by type \n");
+	int  nextId = VM_TypeDictionary.getNumValues();
+	int  totalObjects = 0, totalSpace = 0;
+	for (int i = 1; i < nextId; i++) {
+	    VM_Type type = VM_TypeDictionary.getValue(i);
+	    totalObjects += type.liveCount;
+	    if (type.liveCount == 0) continue;
+	    VM.sysWriteField(7, type.liveCount);
+	    VM.sysWrite(type.getDescriptor());
+	    if (type.isClassType() && type.isResolved()) {
+	      int size = type.asClass().getInstanceSize();
+	      VM.sysWrite ("  space is ", size * type.liveCount);
+	      totalSpace += size * type.liveCount;
+	    }
+	    else {
+		VM.sysWrite("   space is ", type.liveSpace);
+		totalSpace += type.liveSpace;
+	    }
+	    VM.sysWriteln();
+	    type.liveCount = 0;  // reset
+	    type.liveSpace = 0;  // reset
+	}
+	VM.sysWriteField(7, totalObjects);
+	VM.sysWrite ("Live objects   space is ", totalSpace, "\n");
+	VM.sysWrite("  End of counts of live objects by type \n");
+    } // printCountsByType
+
+
+  public  static void printclass (VM_Address ref) {
     VM_Type  type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
     VM.sysWrite(type.getDescriptor());
   }
@@ -2729,23 +2136,15 @@ public class VM_Allocator
   Print Summaries routine removed: if needed, consult previous version
 **************/
 
-  //  called during Finalization for copying collectors
-  static  int    gc_makeLive (int foo) { return 0;}
-
-  private  static int
-  gc_copyObject(int  foo) { return -1;}
-
-
   // Called from WriteBuffer code for generational collectors.
   // Argument is a modified old object which needs to be scanned
   //
-  static void
-  processWriteBufferEntry (int ref) {
+  static void processWriteBufferEntry (VM_Address ref) {
     VM_ScanObject.scanObjectOrArray(ref);
   }
 
-  static  boolean
-  processFinalizerListElement(VM_FinalizerListElement  le) {
+  static  boolean processFinalizerListElement(VM_FinalizerListElement  le) {
+
     boolean is_live = gc_isLive(le.value);
     if ( !is_live ) {
       // now set pointer field of list element, which will keep 
@@ -2754,11 +2153,10 @@ public class VM_Allocator
       //
       le.pointer = VM_Magic.addressAsObject(le.value);
       // process the ref, to mark it live & enqueue for scanning
-      VM_Allocator.gc_processPtrFieldValue(le.value);	
+      VM_Allocator.processPtrValue(le.value);	
     }
     return is_live;
   }
-
 
   static void clearSummaryStatistics () {
       VM_Processor st;
@@ -2771,293 +2169,230 @@ public class VM_Allocator
   }
 
 
-  static void
-  printSummaryStatistics () {
+  static void  printSummaryStatistics () {
     int avgTime=0, avgStartTime=0;
     int np = VM_Scheduler.numProcessors;
 
-    // produce summary system exit output if -verbose:gc was specified of if
-    // compiled with measurement flags turned on
+	// produce summary system exit output if -verbose:gc was specified of if
+	// compiled with measurement flags turned on
+	//
+	
+	VM.sysWriteln("\nGC stats: Mark Sweep Collector (", np, " Collector Threads ):");
+	VM.sysWriteln("          Heap Size ", smallHeap.size / 1024, " Kb");
+	VM.sysWriteln("  Large Object Heap Size ", largeHeap.size / 1024, " Kb");
+	
+	if (gcCount>0) {
+	    avgTime = (int)( ((gcTotalTime/(double)gcCount)*1000.0) );
+	    avgStartTime = (int)( ((totalStartTime/(double)gcCount)*1000000.0) );
+	}
+	VM.sysWrite(gcCount, " Collections: avgTime ");
+	VM.sysWrite(avgTime," (ms) maxTime ");
+	VM.sysWrite((int)(gcMaxTime*1000.0)," (ms) totalTime ");
+	VM.sysWrite((int)(gcTotalTime*1000.0)," (ms) avgStartTime ");
+	VM.sysWrite(avgStartTime, " (us)\n\n");
+	
+	if (TIME_GC_PHASES) { 
+	    int avgStart=0, avgInit=0, avgScan=0, avgFinalize=0, avgFinish=0;
+	    if (gcCount>0) {
+		avgStart = (int)((totalStartTime/(double)gcCount)*1000000.0);
+		avgInit = (int)((totalInitTime/(double)gcCount)*1000000.0);
+		avgScan = (int)((totalScanningTime/(double)gcCount)*1000.0);
+		avgFinalize = (int)((totalFinalizeTime/(double)gcCount)*1000000.0);
+		avgFinish = (int)((totalFinishTime/(double)gcCount)*1000000.0);
+	    }
+	    VM.sysWrite("Average Time in Phases of Collection:\n");
+	    VM.sysWrite("startTime ", avgStart, "(us) init ");
+	    VM.sysWrite( avgInit, "(us) scanning ");
+	    VM.sysWrite( avgScan, "(ms) finalize ");
+	    VM.sysWrite( avgFinalize, "(us) finish ");
+	    VM.sysWrite( avgFinish, "(us)>\n\n");
+	}
+	
+	if (VM_CollectorThread.MEASURE_WAIT_TIMES) {
+	    double totalBufferWait = 0.0;
+	    double totalFinishWait = 0.0;
+	    double totalRendezvousWait = 0.0;  
+	    int avgBufferWait=0, avgFinishWait=0, avgRendezvousWait=0;
+
+	    VM_CollectorThread ct;
+	    for (int i=1; i <= np; i++ ) {
+		ct = VM_CollectorThread.collectorThreads[VM_Scheduler.processors[i].id];
+		totalBufferWait += ct.totalBufferWait;
+		totalFinishWait += ct.totalFinishWait;
+		totalRendezvousWait += ct.totalRendezvousWait;
+	    }
+	    if (gcCount>0) {
+		avgBufferWait = ((int)((totalBufferWait/(double)gcCount)*1000000.0))/np;
+		avgFinishWait = ((int)((totalFinishWait/(double)gcCount)*1000000.0))/np;
+		avgRendezvousWait = ((int)((totalRendezvousWait/(double)gcCount)*1000000.0))/np;
+	    }
+	    VM.sysWrite("Average Wait Times For Each Collector Thread In A Collection:\n");
+	    VM.sysWrite("Buffer Wait ", avgBufferWait, " (us) Finish Wait ");
+	    VM.sysWrite( avgFinishWait, " (us) Rendezvous Wait ");
+	    VM.sysWrite( avgRendezvousWait, " (us)\n\n");
+	    
+	    VM.sysWriteln("Sum of Wait Times For All Collector Threads ( ", np, " Collector Threads ):");
+	    VM.sysWrite("Buffer Wait ", (int)(totalBufferWait*1000.0), " (ms) Finish Wait ");
+	    VM.sysWrite( (int)(totalFinishWait*1000.0), " (ms) Rendezvous Wait ");
+	    VM.sysWrite( (int)(totalRendezvousWait*1000.0), " (ms) TOTAL ");
+	    VM.sysWrite( (int)((totalRendezvousWait+totalFinishWait+totalBufferWait)*1000.0), " (ms)\n");
+	}
+	
+	if (COUNT_ALLOCATIONS) {
+	    VM.sysWrite(" Total No. of Objects Allocated in this run ");
+	    long bytes = 0, objects = 0;
+	    VM_Processor st;
+	    for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
+		st = VM_Scheduler.processors[i];
+		bytes += st.totalBytesAllocated;
+		objects += st.totalObjectsAllocated;
+	    }
+	    VM.sysWrite(Long.toString(objects));
+	    VM.sysWrite("\n Total No. of bytes Allocated in this run ");
+	    VM.sysWrite(Long.toString(bytes));
+	    VM.sysWrite("\n");
+	}
+	
+	VM.sysWrite(" Number of threads found stuck in native code = ");
+	VM.sysWrite(VM_NativeDaemonThread.switch_count);
+	VM.sysWrite("\n");
+	
+    }
+      
+    // This routine scans all blocks for all sizes for all processors,
+    // beginning with current block; at the end of gc, this gives a
+    // correct count of allocated blocks; at the beginning of gc, it
+    // does not, since the scan starts from current-block always.(at
+    // the end, current_block == first_block
     //
-    if ( ! (TIME_GC_PHASES || VM_CollectorThread.MEASURE_WAIT_TIMES || VM.verboseGC) )
+
+    private static void	freeSmallSpaceDetails (boolean block_count) {
+
+    if ( ! (TIME_GC_PHASES || VM_CollectorThread.MEASURE_WAIT_TIMES || verbose >= 1) )
       return;     // not verbose, no flags on, so don't produce output
 
-    VM.sysWrite("\nGC stats: Mark Sweep Collector (");
-    VM.sysWrite(np,false);
-    VM.sysWrite(" Collector Threads ):\n");
-    VM.sysWrite("          Heap Size ");
-    VM.sysWrite(smallHeapSize,false);
-    VM.sysWrite("  Large Object Heap Size ");
-    VM.sysWrite(largeHeapSize,false);
-    VM.sysWrite("\n");
-
-    if (gcCount>0) {
-      avgTime = (int)( ((gcTotalTime/(double)gcCount)*1000.0) );
-      avgStartTime = (int)( ((totalStartTime/(double)gcCount)*1000000.0) );
-    }
-    VM.sysWrite(gcCount,false);
-    VM.sysWrite(" Collections: avgTime ");
-    VM.sysWrite(avgTime,false);
-    VM.sysWrite(" (ms) maxTime ");
-    VM.sysWrite((int)(gcMaxTime*1000.0),false);
-    VM.sysWrite(" (ms) totalTime ");
-    VM.sysWrite((int)(gcTotalTime*1000.0),false);
-    VM.sysWrite(" (ms) avgStartTime ");
-    VM.sysWrite(avgStartTime,false);
-    VM.sysWrite(" (us)\n\n");
-
-    if (TIME_GC_PHASES) { 
-      int avgStart=0, avgInit=0, avgScan=0, avgFinalize=0, avgFinish=0;
-      if (gcCount>0) {
-	avgStart = (int)((totalStartTime/(double)gcCount)*1000000.0);
-	avgInit = (int)((totalInitTime/(double)gcCount)*1000000.0);
-	avgScan = (int)((totalScanningTime/(double)gcCount)*1000.0);
-	avgFinalize = (int)((totalFinalizeTime/(double)gcCount)*1000000.0);
-	avgFinish = (int)((totalFinishTime/(double)gcCount)*1000000.0);
-      }
-      VM.sysWrite("Average Time in Phases of Collection:\n");
-      VM.sysWrite("startTime ");
-      VM.sysWrite( avgStart, false);
-      VM.sysWrite("(us) init ");
-      VM.sysWrite( avgInit, false);
-      VM.sysWrite("(us) scanning ");
-      VM.sysWrite( avgScan, false );
-      VM.sysWrite("(ms) finalize ");
-      VM.sysWrite( avgFinalize, false);
-      VM.sysWrite("(us) finish ");
-      VM.sysWrite( avgFinish, false);
-      VM.sysWrite("(us)>\n\n");
-    }
-
-    if (VM_CollectorThread.MEASURE_WAIT_TIMES) {
-      double totalBufferWait = 0.0;
-      double totalFinishWait = 0.0;
-      double totalRendezvousWait = 0.0;  
-      int avgBufferWait=0, avgFinishWait=0, avgRendezvousWait=0;
-
-      VM_CollectorThread ct;
-      for (int i=1; i <= np; i++ ) {
-	ct = VM_CollectorThread.collectorThreads[VM_Scheduler.processors[i].id];
-	totalBufferWait += ct.totalBufferWait;
-	totalFinishWait += ct.totalFinishWait;
-	totalRendezvousWait += ct.totalRendezvousWait;
-      }
-      if (gcCount>0) {
-	avgBufferWait = ((int)((totalBufferWait/(double)gcCount)*1000000.0))/np;
-	avgFinishWait = ((int)((totalFinishWait/(double)gcCount)*1000000.0))/np;
-	avgRendezvousWait = ((int)((totalRendezvousWait/(double)gcCount)*1000000.0))/np;
-      }
-      VM.sysWrite("Average Wait Times For Each Collector Thread In A Collection:\n");
-      VM.sysWrite("Buffer Wait ");
-      VM.sysWrite( avgBufferWait, false);
-      VM.sysWrite(" (us) Finish Wait ");
-      VM.sysWrite( avgFinishWait, false);
-      VM.sysWrite(" (us) Rendezvous Wait ");
-      VM.sysWrite( avgRendezvousWait, false);
-      VM.sysWrite(" (us)\n\n");
-
-      VM.sysWrite("Sum of Wait Times For All Collector Threads ( ");
-      VM.sysWrite(np,false);
-      VM.sysWrite(" Collector Threads ):\n");
-      VM.sysWrite("Buffer Wait ");
-      VM.sysWrite( (int)(totalBufferWait*1000.0), false);
-      VM.sysWrite(" (ms) Finish Wait ");
-      VM.sysWrite( (int)(totalFinishWait*1000.0), false);
-      VM.sysWrite(" (ms) Rendezvous Wait ");
-      VM.sysWrite( (int)(totalRendezvousWait*1000.0), false);
-      VM.sysWrite(" (ms) TOTAL ");
-      VM.sysWrite( (int)((totalRendezvousWait+totalFinishWait+totalBufferWait)*1000.0), false);
-      VM.sysWrite(" (ms)\n");
-    }
-
-    if (COUNT_ALLOCATIONS) {
-      long bytes = 0, objects = 0, syncObjects = 0;
-      VM_Processor st;
-      for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-        st = VM_Scheduler.processors[i];
-        bytes += st.totalBytesAllocated;
-        objects += st.totalObjectsAllocated;
-        syncObjects += st.synchronizedObjectsAllocated;
-      }
-      VM.sysWrite(" Total No. of Objects Allocated in this run ");
-      VM.sysWrite(Long.toString(objects));
-      VM.sysWrite("\n Total No. of Synchronized Objects Allocated in this run ");
-      VM.sysWrite(Long.toString(syncObjects));
-      VM.sysWrite("\n Total No. of bytes Allocated in this run ");
-      VM.sysWrite(Long.toString(bytes));
-      VM.sysWrite("\n");
-    }
-
-    VM.sysWrite(" Number of threads found stuck in native code = ");
-    VM.sysWrite(VM_NativeDaemonThread.switch_count);
-    VM.sysWrite("\n");
-
-  }
-
-// This routine scans all blocks for all sizes for all processors,
-// beginning with current block; at the end of gc, this gives a
-// correct count of allocated blocks; at the beginning of gc, it
-// does not, since the scan starts from current-block always.(at
-// the end, current_block == first_block
-//
-  private static void
-	freeSmallSpaceDetails (boolean block_count) {
-		int i, next;
-		int blocks_in_use = 0, blocks_in_partial = 0;
-		VM_Processor st;
-		for (i = 1; i <= VM_Scheduler.numProcessors; i++) {
-			st = VM_Scheduler.processors[i];
-			VM.sysWrite(" \n Details of small space usage: \n Processor");
-			VM.sysWrite(i, false);
-			VM.sysWrite(" \n");
-			blocks_in_use = blocks_in_use + freeSmallSpaceDetail(st);
-		}
-		if (block_count) {
-			VM.sysWrite("\n Blocks alloc'd to procs = ");
-			VM.sysWrite(blocks_in_use, false);
-			for (i = 0; i < GC_SIZES; i++) {
-				if (partialBlockList[i] == OUT_OF_BLOCKS) continue;
-	      VM_BlockControl this_block = VM_Magic.addressAsBlockControl(blocks[partialBlockList[i]]);
-				if (this_block == null) continue;
-				blocks_in_partial++;
-				next = this_block.nextblock;
-				while (next != OUT_OF_BLOCKS) {
-					blocks_in_partial++;
-				  this_block = VM_Magic.addressAsBlockControl(blocks[next]);
-					next = this_block.nextblock;
-				}
-			}
-			VM.sysWrite("\n Blocks part'l lists = ");
-			VM.sysWrite(blocks_in_partial, false);
-			VM.sysWrite("\n Total blocks not free = ");
-			VM.sysWrite(blocks_in_use + blocks_in_partial, false);
-			VM.sysWrite(" Total blocks in sys = ");
-			VM.sysWrite(num_blocks, false);
-			VM.sysWrite("\n");
-    }
-		VM.sysWrite("Number of Free Blocks is ");
-		VM.sysWrite(freeBlocks(), false);
-		VM.sysWrite("\n");
+	int next;
+	int blocks_in_use = 0, blocks_in_partial = 0;
+	for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
+	    VM_Processor st = VM_Scheduler.processors[i];
+	    VM.sysWriteln(" \nDetails of small space usage: Processor", i);
+	    blocks_in_use = blocks_in_use + freeSmallSpaceDetail(st);
 	}
+	if (block_count) {
+	    VM.sysWrite("\n Blocks allocated to procs = ", blocks_in_use);
+	    for (int i = 0; i < GC_SIZES; i++) {
+		if (partialBlockList[i] == OUT_OF_BLOCKS) continue;
+		VM_BlockControl this_block = blocks[partialBlockList[i]];
+		if (this_block == null) continue;
+		blocks_in_partial++;
+		next = this_block.nextblock;
+		while (next != OUT_OF_BLOCKS) {
+		    blocks_in_partial++;
+		    this_block = blocks[next];
+		    next = this_block.nextblock;
+		}
+	    }
+	    VM.sysWriteln("\nBlocks partial lists = ", blocks_in_partial);
+	    VM.sysWrite("Total blocks not free = ", blocks_in_use + blocks_in_partial);
+	    VM.sysWriteln("Total blocks in sys = ", num_blocks);
+	}
+	VM.sysWriteln("Number of Free Blocks is ", freeBlocks());
+    }
 			
-  private static int
-	freeSmallSpaceDetail (VM_Processor st) {
-		int blocks_in_use = 0;
-	  for (int i = 0; i < GC_SIZES; i++) {
-			VM_BlockControl this_block = VM_Magic.addressAsBlockControl(blocks[st.sizes[i].first_block]);
-			blocks_in_use++;
-			int temp = emptyOfCurrentBlock(this_block, st.sizes[i].next_slot);
-			int next = this_block.nextblock;
-			while (next != OUT_OF_BLOCKS) {
-				this_block = VM_Magic.addressAsBlockControl(blocks[next]);
-				blocks_in_use++;
-				temp += emptyof(i, this_block.mark);
-				next = this_block.nextblock;
-			}
-			VM.sysWrite(GC_SIZEVALUES[i], false);
-			VM.sysWrite(" sized slots have ");
-			VM.sysWrite(temp/GC_SIZEVALUES[i], false);
-			VM.sysWrite(" slots free in ");
-			VM.sysWrite(blocksInChain(VM_Magic.addressAsBlockControl(blocks[st.sizes[i].first_block])), false);
-			VM.sysWrite(" alloc'd blocks\n");
-		}
-		return blocks_in_use;
-	}
+   private static int freeSmallSpaceDetail (VM_Processor st) {
+       int blocks_in_use = 0;
+       for (int i = 0; i < GC_SIZES; i++) {
+	   VM_BlockControl this_block = blocks[st.sizes[i].first_block];
+	   blocks_in_use++;
+	   int temp = emptyOfCurrentBlock(this_block, st.sizes[i].next_slot);
+	   int next = this_block.nextblock;
+	   while (next != OUT_OF_BLOCKS) {
+	       this_block = blocks[next];
+	       blocks_in_use++;
+	       temp += emptyof(i, this_block.mark);
+	       next = this_block.nextblock;
+	   }
+	   VM.sysWrite(GC_SIZEVALUES[i]," sized slots have ");
+	   VM.sysWrite(temp/GC_SIZEVALUES[i]," slots free in ");
+	   VM.sysWriteln(blocksInChain(blocks[st.sizes[i].first_block]), " allocated blocks");
+       }
+       return blocks_in_use;
+   }
 
-  static int
-  freeBlocks () {
-    sysLockBlock.lock();
-	  if (first_freeblock == OUT_OF_BLOCKS) {
-			sysLockBlock.unlock();
-			return 0;
-		}
-    VM_BlockControl the_block = VM_Magic.addressAsBlockControl(blocks[first_freeblock]);
-		int i = 1;
+      static int freeBlocks () {
+	sysLockBlock.lock();
+	if (first_freeblock == OUT_OF_BLOCKS) {
+	    sysLockBlock.unlock();
+	    return 0;
+	}
+	VM_BlockControl the_block = blocks[first_freeblock];
+	int i = 1;
+	int next = the_block.nextblock;
+	while (next != OUT_OF_BLOCKS) {
+	    the_block = blocks[next];
+	    i++;
+	    next = the_block.nextblock;
+	}
+	sysLockBlock.unlock();
+	
+	return i;
+      }
+      
+    private static void reportBlocks() {
+
+	for (int j = 0; j < GC_SIZES; j++) 
+	    total[j] = 0;  
+	for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
+	    VM.sysWriteln(" Processor ", i);
+	    VM_Processor st = VM_Scheduler.processors[i];
+	    for (int j = 0; j < GC_SIZES; j++) {
+		VM_SizeControl the_size = st.sizes[j];
+		accum[j] = 1;		// count blocks allocated to this size
+		VM_BlockControl the_block = blocks[the_size.first_block];
 		int next = the_block.nextblock;
 		while (next != OUT_OF_BLOCKS) {
-			the_block = VM_Magic.addressAsBlockControl(blocks[next]);
-			i++;
-			next = the_block.nextblock;
-	   }
-     sysLockBlock.unlock();
-
-		 return i;
-	}
-
-  private static void
-	reportBlocks() {
-		int i, j, next, sum = 0;
-		VM_Processor st;
-		for (j = 0; j < GC_SIZES; j++) total[j] = 0;  
-		for (i = 1; i <= VM_Scheduler.numProcessors; i++) {
-			VM.sysWrite(" Processor ");
-			VM.sysWrite(i);
-			VM.sysWrite("\n");
-		  st = VM_Scheduler.processors[i];
-			for (j = 0; j < GC_SIZES; j++) {
-				VM_SizeControl the_size = st.sizes[j];
-				accum[j] = 1;		// count blocks allocated to this size
-				VM_BlockControl the_block = VM_Magic.addressAsBlockControl(blocks[the_size.first_block]);
-				next = the_block.nextblock;
-				while (next != OUT_OF_BLOCKS) {
-					accum[j]++;
-					the_block = VM_Magic.addressAsBlockControl(blocks[next]);	
-					next = the_block.nextblock;
-				}
-				total[j] += accum[j];
-				VM.sysWrite(" blocksize = ");
-				VM.sysWrite(GC_SIZEVALUES[j]);
-				VM.sysWrite(" allocated blocks = ");
-				VM.sysWrite(accum[j]);
-				VM.sysWrite("\n");
-				accum[j] = 0;
-			}
-		}	// all processors
-		VM.sysWrite("\n");
-		for (j = 0; j < GC_SIZES; j++) {
-			VM.sysWrite(" blocksize = ");
-			VM.sysWrite(GC_SIZEVALUES[j]);
-			VM.sysWrite(" total allocated blocks = ");
-			VM.sysWrite(total[j]);
-			VM.sysWrite("\n");
-			sum += total[j];
+		    accum[j]++;
+		    the_block = blocks[next];
+		    next = the_block.nextblock;
 		}
-		
-		VM.sysWrite(" Total blocks allocated = ");
-		VM.sysWrite(sum);
-		VM.sysWrite(" total blocks in system = ");
-		VM.sysWrite(num_blocks);
-		VM.sysWrite(" available blocks = ");
-		VM.sysWrite(blocks_available);
-		VM.sysWrite("\n");
+	      total[j] += accum[j];
+	      VM.sysWrite(" blocksize = ", GC_SIZEVALUES[j]);
+	      VM.sysWriteln(" allocated blocks = ", accum[j]);
+	      accum[j] = 0;
+	    }
+	}	// all processors
+	VM.sysWriteln();
+	int sum = 0;
+	for (int j = 0; j < GC_SIZES; j++) {
+	    VM.sysWrite(" blocksize = ", GC_SIZEVALUES[j]);
+	    VM.sysWriteln(" total allocated blocks = ", total[j]);
+	    sum += total[j];
 	}
+	
+	VM.sysWrite(" Total blocks allocated = ", sum);
+	VM.sysWrite(" total blocks in system = ", num_blocks);
+	VM.sysWriteln(" available blocks = ", blocks_available);
+    }
+     
 
-  private static void
-  outOfMemory (int size, int code) {
-    VM_Scheduler.trace(" Out of memory", " could not satisfy bytes = ", size);
-    VM_Scheduler.trace("              ", " code =                    ", code);
-    VM_Scheduler.trace(" Current small object heapsize ", "=", smallHeapSize);
-    VM_Scheduler.trace(" Specify more space with", " -X:h=");
-    VM.shutdown(-5);
-  }
 
-  private static void
-  outOfLargeMemory (int size, int code) {
-    VM_Scheduler.trace(" Out of largeobjectspace", " could not satisfy bytes = ", size);
-    VM_Scheduler.trace("  ", " code =  ", code);
-    VM_Scheduler.trace(" Current large object heapsize ", "=", largeHeapSize);
-    VM_Scheduler.trace(" Specify more space with", " -X:lh=");
-    VM.shutdown(-5);
-  }
+ 
+    private static void outOfMemory (int size, String why) {
+	VM_Scheduler.trace(" Out of memory", " could not satisfy bytes = ", size);
+	VM_Scheduler.trace("              ", why);
+	VM_Scheduler.trace(" Current small object heapsize ", "=", smallHeap.size);
+	VM_Scheduler.trace(" Specify more space with", " -X:h=");
+	VM.shutdown(-5);
+    }
+
 
   /**
    * Process an object reference field during collection.
    *
    * @param location  address of a reference field
    */
-  static void
-  processPtrField ( int location ) {
-    gc_processPtrFieldValue(VM_Magic.getMemoryWord( location));
+  static void processPtrField ( VM_Address location ) {
+      VM_Magic.setMemoryAddress(location, processPtrValue(VM_Magic.getMemoryAddress(location)));
   }
 
   /**
@@ -3065,69 +2400,51 @@ public class VM_Allocator
    *
    * @param ref  object reference (value)
    */
-  static int
-  processPtrValue ( int ref ) {
-    gc_processPtrFieldValue(ref);
-    return ref;
-  }
+  static VM_Address processPtrValue (VM_Address ref) {
 
+     if (ref.isZero()) return ref;  // TEST FOR NULL POINTER
 
+     //  accommodate that ref might be outside space
+     VM_Address tref = VM_ObjectModel.getPointerInMemoryRegion(ref);
 
-      static int malloc (int size) {
-	  return VM.sysCall1(bootrecord.sysMallocIP, size);
-      }
+     if ( smallHeap.refInHeap(ref) ) {
+	 // object allocated in small object runtime heap
+	 if (!gc_setMarkSmall(tref)) {
+	     if (GC_COUNT_BY_TYPES) {
+		 VM_Type type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
+		 type.liveCount++;
+		 if (type.isArrayType()) {
+		     int  num_elements = VM_Magic.getArrayLength(VM_Magic.addressAsObject(ref));
+		     int  full_size = type.asArray().getInstanceSize(num_elements);
+		     type.liveSpace+=  full_size;
+		 }
+	     }
+	     VM_GCWorkQueue.putToWorkBuffer(ref);
+	 }
+	 return ref;
+     }  
 
+     if ( largeHeap.refInHeap(ref) ) {
+	 //  object allocated in small object runtime heap
+	 if (!largeHeap.mark(ref))
+	     VM_GCWorkQueue.putToWorkBuffer(ref);
+	 return ref;
+     }
 
-      static void free (int address) {
-	  VM.sysCall1(bootrecord.sysFreeIP, address);
-      }
+     if ( bootHeap.refInHeap(ref) ||
+	  immortalHeap.refInHeap(ref) ) {
+	 if (VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), OBJECT_GC_MARK_VALUE))
+	     VM_GCWorkQueue.putToWorkBuffer(ref);
+	 return ref;
+     }
 
+     if (mallocHeap.refInHeap(ref))
+	 return ref;
 
-
-      static boolean inHeap (int objptr) {
-	  return addrInHeap(VM_ObjectModel.getPointerInMemoryRegion(objptr));
-      }
-
-      static boolean addrInHeap (int tref) {
-	  return VM_GCUtil.addressInBootImage(tref) || addressInSmallHeap(tref) || addressInLargeHeap(tref);
-      }
-
-
-
-      static boolean referenceInSmallHeap (int objptr) {
-	  return addressInSmallHeap(VM_ObjectModel.getPointerInMemoryRegion(objptr));
-      }
-
-      static boolean addressInSmallHeap (int tref) {
-	  return tref >= smallHeapStartAddress && tref < smallHeapEndAddress;
-      }
-
-
-      static boolean referenceInLargeHeap (int objptr) {
-	  return addressInLargeHeap(VM_ObjectModel.getPointerInMemoryRegion(objptr));
-      }
-
-      static boolean addressInLargeHeap (int tref) {
-	  return tref >= largeHeapStartAddress && tref < largeHeapEndAddress;
-      }
-
-
-    // MASSIVE KLUDGE UNTIL WE GET PERRY'S FIXES FOR MALLOCED HEAP.
-    //-#if RVM_FOR_AIX
-      static final int mallocHeapStartAddress = 0x20000000;
-      static final int mallocHeapEndAddress   = 0x30000000;
-    //-#else
-      static final int mallocHeapStartAddress = 0x08000000;
-      static final int mallocHeapEndAddress   = 0x10000000;
-    //-#endif
-
-      static boolean referenceInMallocedStorage (int objptr) {
-	  return addressInMallocedStorage(VM_ObjectModel.getPointerInMemoryRegion(objptr));
-      }
-
-      static boolean addressInMallocedStorage (int tref) {
-	  return tref >= mallocHeapStartAddress && tref < mallocHeapEndAddress;
-      }
+     VM.sysWrite("processPtrValue: ref not in any known heap: ", ref);
+     VM.assert(false);
+     return VM_Address.zero();
+  }  // processPtrValue
 
 
       static int getByteArrayInstanceSize (int numelts) {

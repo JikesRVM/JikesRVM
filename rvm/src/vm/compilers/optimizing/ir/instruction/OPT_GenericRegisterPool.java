@@ -409,7 +409,7 @@ abstract class OPT_GenericRegisterPool {
    * @return the temp
    */ 
   public OPT_RegisterOperand makeFPOp() {
-    return new OPT_RegisterOperand(getFP(),VM_Type.IntType);
+    return new OPT_RegisterOperand(getFP(),VM_Type.AddressType);
   }
 
   /**

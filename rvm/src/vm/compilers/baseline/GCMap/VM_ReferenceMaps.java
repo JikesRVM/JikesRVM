@@ -1005,7 +1005,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
    */
 
   public void
-  setupJSRSubroutineMap(int frameAddress, int mapid, VM_CompiledMethod compiledMethod)
+  setupJSRSubroutineMap(VM_Address frameAddress, int mapid, VM_CompiledMethod compiledMethod)
   {
 
     // first clear the  maps in the extraUnusualMap
@@ -1050,15 +1050,14 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     // from the unusual map and the frame - get the location of the jsr invoker
     //
     int jsrAddressOffset = unusualMap.getReturnAddressOffset();
-    int callerAddress    = VM_Magic.getMemoryWord(frameAddress + jsrAddressOffset);
+    VM_Address callerAddress = VM_Magic.getMemoryAddress(frameAddress.add(jsrAddressOffset));
     // NOTE: -4 is subtracted when the map is determined ie locateGCpoint
 
     // from the invoker address and the code base address - get the machine code offset
     //
-    int machineCodeOffset = callerAddress - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+    int machineCodeOffset = callerAddress.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
 
-    if (true || VM.TraceStkMaps)
-       {
+    if (VM.TraceStkMaps) {
         VM.sysWrite("VM_ReferenceMaps-setupJSRMap- inputMapid = ");
         VM.sysWrite( mapid);
         VM.sysWrite( "\n");
@@ -1116,8 +1115,8 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
       //
       VM_UnusualMaps thisMap = unusualMaps[unusualMapIndex];
       int thisJsrAddressOffset = thisMap.getReturnAddressOffset();
-      int nextCallerAddress    = VM_Magic.getMemoryWord(frameAddress + thisJsrAddressOffset);
-      int nextMachineCodeOffset = nextCallerAddress - VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+      VM_Address nextCallerAddress = VM_Magic.getMemoryAddress(frameAddress.add(thisJsrAddressOffset));
+      int nextMachineCodeOffset = nextCallerAddress.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
       jsrMapid = locateGCPoint(nextMachineCodeOffset, compiledMethod.getMethod());
 
       if (VM.TraceStkMaps) {

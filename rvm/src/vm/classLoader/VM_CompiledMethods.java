@@ -85,21 +85,21 @@ public class VM_CompiledMethods
    // Note: this method is highly inefficient. Normally you should use the following instead:
    //   VM_ClassLoader.getCompiledMethod(VM_Magic.getCompiledMethodID(fp))
    //
-  static VM_CompiledMethod findMethodForInstruction(int ip) {
+  static VM_CompiledMethod findMethodForInstruction(VM_Address ip) {
     for (int i = 0, n = numCompiledMethods(); i < n; ++i) {
       VM_CompiledMethod compiledMethod = compiledMethods[i];
       if (compiledMethod == null)
 	continue; // empty slot
 
       INSTRUCTION[] instructions = compiledMethod.getInstructions();
-      int           beg          = VM_Magic.objectAsAddress(instructions);
-      int           end          = beg + (instructions.length << VM.LG_INSTRUCTION_WIDTH);
+      VM_Address    beg          = VM_Magic.objectAsAddress(instructions);
+      VM_Address    end          = beg.add(instructions.length << VM.LG_INSTRUCTION_WIDTH);
 
       // note that "ip" points to a return site (not a call site)
       // so the range check here must be "ip <= beg || ip >  end"
       // and not                         "ip <  beg || ip >= end"
       //
-      if (ip <= beg || ip > end)
+      if (ip.LE(beg) || ip.GT(end))
 	continue;
 
       return compiledMethod;

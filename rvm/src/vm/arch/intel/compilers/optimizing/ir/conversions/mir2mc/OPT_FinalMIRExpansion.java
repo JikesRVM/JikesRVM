@@ -358,7 +358,7 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
     OPT_LocationOperand loc = new OPT_LocationOperand(offset);
     OPT_Operand guard = TG();
     OPT_Operand target = 
-      OPT_MemoryOperand.D(offset + VM_Magic.getTocPointer(), (byte)4, loc, guard);
+      OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset).toInt(), (byte)4, loc, guard);
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, 
 		     OPT_MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);

@@ -23,7 +23,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    *
    * This is the entry point for all build-time activity in the collector.
    */
-  public static final void init() {
+  public static final void init () {
     VM_Allocator.init();
   }
 
@@ -32,7 +32,7 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    * initialization).  This is only executed by one processor (the
    * primordial thread).
    */
-  public static final void boot(VM_BootRecord theBootRecord) {
+  public static final void boot (VM_BootRecord theBootRecord) {
     VM_Allocator.boot(theBootRecord);
   }
 
@@ -42,6 +42,21 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
    * which is necessarily after the basic allocator boot).
    */
   public static void postBoot() {
+      if (useMemoryController) 
+	  VM_MemoryState.attach(false);  // attach as slave 
+  }
+
+  /** 
+   *  Process GC parameters.
+   */
+  public static void processCommandLineArg(String arg) {
+      if (arg.compareTo("slave") == 0) {
+	  useMemoryController = true;
+      }
+      else {
+	  VM.sysWriteln("Unrecognized collection option: ", arg);
+	  VM.sysExit(1);
+      }
   }
 
   /**
@@ -108,5 +123,6 @@ public class VM_Collector implements VM_Constants, VM_Uninterruptible {
   static final int MARK_VALUE = VM_Allocator.MARK_VALUE;
   static final boolean NEEDS_WRITE_BARRIER = VM_Allocator.writeBarrier;
   static final boolean MOVES_OBJECTS = VM_Allocator.movesObjects;
+  static boolean useMemoryController = false;
 
 }

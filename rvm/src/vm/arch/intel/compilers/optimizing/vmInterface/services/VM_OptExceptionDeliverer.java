@@ -18,11 +18,11 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
    * Pass control to a catch block.
    */
   void deliverException(VM_CompiledMethod compiledMethod,
-			int catchBlockInstructionAddress,
+			VM_Address catchBlockInstructionAddress,
 			Throwable exceptionObject,
 			VM_Registers registers)  {
     VM_OptCompilerInfo info = (VM_OptCompilerInfo)compiledMethod.getCompilerInfo();
-    int fp = registers.getInnermostFramePointer();
+    VM_Address fp = registers.getInnermostFramePointer();
     VM_Thread myThread = VM_Thread.getCurrentThread();
     
     if (TRACE) {
@@ -34,8 +34,8 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     }
 
     // reset sp to "empty params" state (ie same as it was after prologue)
-    int sp = fp - info.getFrameFixedSize();
-    registers.gprs[STACK_POINTER] = sp;
+    VM_Address sp = fp.sub(info.getFrameFixedSize());
+    registers.gprs[STACK_POINTER] = sp.toInt();
 
     // store exception object for later retrieval by catch block
     int offset = info.getUnsignedExceptionOffset();
@@ -87,7 +87,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     // the stacklimit should be harmless, since the stacklimit should already have exactly
     // the value we are setting it too. 
     if (!myThread.hardwareExceptionRegisters.inuse) {
-      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.stack) + STACK_SIZE_GUARD;
+      myThread.stackLimit = VM_Magic.objectAsAddress(myThread.stack).add(STACK_SIZE_GUARD);
       VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
     }
 
@@ -102,7 +102,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
    */
   void unwindStackFrame(VM_CompiledMethod compiledMethod, 
 			VM_Registers registers) {
-    int fp = registers.getInnermostFramePointer();
+    VM_Address fp = registers.getInnermostFramePointer();
     VM_OptCompilerInfo info = (VM_OptCompilerInfo)compiledMethod.getCompilerInfo();
     
     if (TRACE) {
@@ -122,7 +122,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     for (int i = info.getFirstNonVolatileGPR(); 
 	 i<NUM_NONVOLATILE_GPRS; 
 	 i++, frameOffset += 4) {
-      registers.gprs[NONVOLATILE_GPRS[i]] = VM_Magic.getMemoryWord(fp - frameOffset);
+      registers.gprs[NONVOLATILE_GPRS[i]] = VM_Magic.getMemoryWord(fp.sub(frameOffset));
     }
     if (VM.VerifyAssertions) VM.assert(NUM_NONVOLATILE_FPRS == 0);
     
