@@ -1,7 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
+/**
+ * @author Anthony Cocchi
+ */
 class VM_ReferenceMaps  implements VM_BaselineConstants {
   // class that provides stack (and local var) map for a method
   // GC uses the methods provided here

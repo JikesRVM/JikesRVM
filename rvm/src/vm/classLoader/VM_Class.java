@@ -17,6 +17,9 @@ import java.io.InputStream;
  * 
  * @see VM_Array
  * @see VM_Primitive
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public class VM_Class extends VM_Type
   implements VM_Constants, VM_ClassLoaderConstants {

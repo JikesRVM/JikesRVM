@@ -1,6 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author Julian Dolby
+ */
 interface OPT_SpecializationGraphEdge extends OPT_GraphEdge {
 
     VM_Method genericTargetMethod();

@@ -1,18 +1,17 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /*
- * VM_NullListeners.java  
- *
- * @author Peter Sweeney
- * @date   2 June 2000
- *
  * A VM_NullListener is an object that is invoked when
  * online measurement information must be collected.
  *
  * Defines update's interface.
  *
- **/
+ * @author Peter Sweeney
+ * @date   2 June 2000
+ */
 
 abstract class VM_NullListener extends VM_Listener implements VM_Uninterruptible {
   /**

@@ -5,6 +5,9 @@
 
 /**
  * The machine state comprising a thread's execution context.
+ *
+ * @author Stephen Fink
+ * @author David Grove
  */
 class VM_Registers implements VM_Constants {
 

@@ -2,6 +2,8 @@
  * (C) Copyright IBM Corp. 2001
  */
 
+//$Id$
+
 /**
  *  This class is the low-level assembler for Intel; it contains functionality
  * for encoding specific instructions into an array of bytes.  The methods for 
@@ -84,6 +86,8 @@
  *    </UL>
  *  </DL>
  * </DL>
+ *
+ * @author Julian Dolby
  */
 class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   

@@ -1,19 +1,20 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/*
+//$Id$
+
+import java.lang.reflect.Method;
+import java.lang.Thread;
+
+/**
  * A thread to service JNI AttachCurrentThread request
  * This thread is normally dormant and only scheduled for execution
  * by VM_Thread.threadSwitch() when a value is stored into 
  * VM_Scheduler.attachThreadRequested by an external pthread
  * 
- * Ton Ngo, October 24 2000
+ * @author Ton Ngo 
+ * @date October 24 2000
  */
-
-
-import java.lang.reflect.Method;
-import java.lang.Thread;
-
 class JNIServiceThread extends Thread   {
   // constant must match #define in libjni.C
   static final int ATTACHREQUEST  = 0;     

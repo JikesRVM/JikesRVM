@@ -1,20 +1,24 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// A list of threads waiting for i/o data to become available.
-//
-// To avoid blocking a virtual processor on an i/o operation, and to
-// avoid polling, we maintain a list of file/socket descriptors (fd's) that 
-// need to be checked for data availability. When data becomes available
-// on an fd, as indicated by the unix "select()" system call, we allow the
-// corresponding thread to resume execution.
-//
-// At the moment we only use this technique for network i/o. The same could be
-// done for disk i/o, but we currently don't bother: we use blocking disk i/o 
-// and assume that it will complete immediately.
-//
-// 25 June 1999 Derek Lieber
-//
+//$Id$
+
+/**
+ * A list of threads waiting for i/o data to become available.
+ *
+ * To avoid blocking a virtual processor on an i/o operation, and to
+ * avoid polling, we maintain a list of file/socket descriptors (fd's) that 
+ * need to be checked for data availability. When data becomes available
+ * on an fd, as indicated by the unix "select()" system call, we allow the
+ * corresponding thread to resume execution.
+ *
+ * At the moment we only use this technique for network i/o. The same could be
+ * done for disk i/o, but we currently don't bother: we use blocking disk i/o 
+ * and assume that it will complete immediately.
+ *
+ * @author Derek Lieber
+ * @date 25 June 1999 
+ */
 public final class VM_ThreadIOQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible
    {
    //----------------//

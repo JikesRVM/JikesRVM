@@ -1,9 +1,17 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Perform dynamic linking as call sites and load/store sites are encountered at execution time.
-// 13 Apr 1999 Bowen Alpern, Tony Cocchi, Derek Lieber
-//
+// $Id$
+
+/**
+ * Perform dynamic linking as call sites and load/store sites are encountered 
+ * at execution time.
+ *
+ * @author Bowen Alpern
+ * @author Tony Cocchi 
+ * @author Derek Lieber
+ * @date 13 Apr 1999 
+ */
 class VM_Linker implements VM_BaselineConstants {
 
   //-----------//

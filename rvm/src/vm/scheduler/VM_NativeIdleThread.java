@@ -1,6 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
+
 //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
 // alternate implementation of jni
 

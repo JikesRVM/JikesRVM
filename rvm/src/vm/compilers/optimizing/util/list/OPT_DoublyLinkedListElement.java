@@ -1,11 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * An element in a doubly-linked list. It contains no fields. Subclass this
  * to add fields.
  *
  * @see DoublyLinkedList
+ *
+ * @author Mauricio J. Serrano
+ * @author John Whaley
  */
 abstract class OPT_DoublyLinkedListElement {
   /**

@@ -5,6 +5,9 @@
 
 /**
  * Constants used in the dependence graph
+ *
+ * @author David Grove
+ * @author Maricio J. Serrano
  */
 public interface OPT_DepGraphConstants {
 

@@ -1,6 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ *
+ * @author Stephen Smith
+ */
 class VM_Barriers implements VM_BaselineConstants {
 
   static void compileArrayStoreBarrier (VM_Assembler asm, int spSaveAreaOffset) {

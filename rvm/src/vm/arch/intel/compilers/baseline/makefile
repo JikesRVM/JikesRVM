@@ -1,6 +1,10 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
+
+# author Bowen Alpern
+
 include		$(RVM_ROOT)/Make.rules
 
 default: 	test

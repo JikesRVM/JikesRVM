@@ -1,14 +1,17 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Primitive accumulating timer that detects if a gc
-// occurs during the timing interval and doesn't count it.
-// May not be appropriate for all circumstances, but useful in some.
-// In particular, it is the responsibility of the user to ensure
-// non-concurrent access. 
-//
-// author Dave Grove
-//
+//$Id$
+
+/**
+ * Primitive accumulating timer that detects if a gc
+ * occurs during the timing interval and doesn't count it.
+ * May not be appropriate for all circumstances, but useful in some.
+ * In particular, it is the responsibility of the user to ensure
+ * non-concurrent access. 
+ *
+ * @author Dave Grove
+ */
 class VM_Stopwatch {
   int count;
   double elapsedTime;

@@ -1,6 +1,12 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
+#
+# @author Stephen Fink
+# @author David Grove
+# @author Michael Hind
+
 include		$(RVM_ROOT)/rvm/build.Make.rules
 
 default: 	$(GEN_FILES_DIR)/OPT_Options.java 

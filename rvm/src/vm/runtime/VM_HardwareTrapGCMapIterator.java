@@ -1,11 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Iterator for stack frames inserted by hardware trap handler.
-// Such frames are purely used as markers.
-// They contain no object references or JSR return addresses.
-// 02 Jun 1999 Derek Lieber
-//
+//$Id$
+
+/**
+ * Iterator for stack frames inserted by hardware trap handler.
+ * Such frames are purely used as markers.
+ * They contain no object references or JSR return addresses.
+ *
+ * @author Derek Lieber
+ * @date 02 Jun 1999 
+ */
 final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator
    {
    VM_HardwareTrapGCMapIterator(int[] registerLocations)

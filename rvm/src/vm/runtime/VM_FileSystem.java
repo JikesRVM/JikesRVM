@@ -1,9 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Interface to filesystem of underlying operating system.
-// !!TODO: think about how i/o operations should interface with thread scheduler.
-//
+//$Id$
+
+/**
+ * Interface to filesystem of underlying operating system.
+ * !!TODO: think about how i/o operations should interface with thread 
+ * scheduler.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 public class VM_FileSystem
    {
    // options for open()

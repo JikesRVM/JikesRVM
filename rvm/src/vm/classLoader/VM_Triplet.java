@@ -1,9 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id:
 
 /**
  * A triplet of atoms, ie. classDescriptor + memberName + memberDescriptor
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 class VM_Triplet {
   //-----------//

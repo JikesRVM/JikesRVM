@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * A method that has been compiled into machine code by one of our compilers.
  * @author Bowen Alpern

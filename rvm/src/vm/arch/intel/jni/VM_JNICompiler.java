@@ -1,7 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/******************************************************************
+//$Id$
+
+/**
  * This class compiles the prolog and epilog for all code that makes
  * the transition between Java and Native C
  * 2 cases:

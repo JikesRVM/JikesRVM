@@ -1,9 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.util.Enumeration;
 import instructionFormats.*;
 import java.util.Vector;
+
 /**
  * An instance of this class encapsulates restrictions on register
  * assignment.

@@ -22,6 +22,8 @@
  * 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers 
  * could inline these methods if they wanted.  We do not believe this would 
  * be very easy since they return assuming the return address is on the stack.)
+ *
+ * @author Maria Butrico
  */
 class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   //-----------//

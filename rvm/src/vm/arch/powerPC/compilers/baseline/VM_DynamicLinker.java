@@ -1,16 +1,22 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Compiler-independent dynamic linker.
-// Eventually this will be used for all dynamic linking:
-//    - unresolved field & method accesses
-//    - lazy method compilation
-//    - interface invocation
-// This may eventually replace:
-//    VM_Linker
-//    VM_OptLinker
-// 17 Sep 1999  Bowen Alpern & Derek Lieber
-//
+//$Id$
+
+/**
+ * Compiler-independent dynamic linker.
+ * Eventually this will be used for all dynamic linking:
+ *    - unresolved field & method accesses
+ *    - lazy method compilation
+ *    - interface invocation
+ * This may eventually replace:
+ *    VM_Linker
+ *    VM_OptLinker
+ *
+ * @author Bowen Alpern 
+ * @author Derek Lieber
+ * @date 17 Sep 1999  
+ */
 class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
 
   // Resolve and call a non-interface method.

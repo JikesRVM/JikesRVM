@@ -1,8 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Fields and methods of the virtual machine that are needed by compiler-generated machine code.
-//
+//$Id$
+
+/**
+ * Fields and methods of the virtual machine that are needed by 
+ * compiler-generated machine code.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 class VM_Entrypoints implements VM_Constants
    {
    // Methods of VM (method description + offset of code pointer within jtoc).

@@ -1,6 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+import java.io.UTFDataFormatException;
+import java.lang.reflect.*;
+
 /**
  * This class implements the 211 JNI functions
  * All methods here will be specially compiled with the necessary prolog to
@@ -46,10 +51,6 @@
  *
  * @author Ton Ngo, Steve Smith  2/1/00
  */
-
-import java.io.UTFDataFormatException;
-import java.lang.reflect.*;
-
 public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants
 {
   static boolean verboseJNI = false;   // one message for each JNI function called from native

@@ -4,8 +4,11 @@
 //$Id$
 
 /**
- *  Handle exception delivery and stack unwinding for methods compiled by baseline compiler.
- *  18 Sep 1998 Derek Lieber
+ *  Handle exception delivery and stack unwinding for methods compiled 
+ * by baseline compiler.
+ *
+ * @author Derek Lieber
+ * @date 18 Sep 1998 
  */
 class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer 
   implements VM_BaselineConstants {

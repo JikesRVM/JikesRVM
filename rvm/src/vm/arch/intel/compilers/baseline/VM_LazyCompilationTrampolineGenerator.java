@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Generate a "trampoline" that jumps to the shared lazy compilation stub.
  * We do this to enable the optimizing compiler to use ptr equality of

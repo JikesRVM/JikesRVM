@@ -1,9 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Machine dependent portion of Reflective method invoker.
-// 15 Jul 1998 Bowen Alpern & Derek Lieber
-//
+//$Id$
+
+/**
+ * Machine dependent portion of Reflective method invoker.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ * @date 15 Jul 1998 
+ */
 public class VM_MachineReflection 
    implements VM_BaselineConstants
    {

@@ -1,9 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Display per-thread cpu utilization information in real time.
-// 09 Nov 1999 Derek Lieber
-//
+//$Id$
+
+/**
+ * Display per-thread cpu utilization information in real time.
+ * @authorDerek Lieber
+ * @date 09 Nov 1999 
+ */
 class CpuMonitor extends VM_Thread
    {
    // Invoked by VM_Debugger.

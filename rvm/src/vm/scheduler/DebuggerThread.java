@@ -1,17 +1,22 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// An interactive debugger that runs inside the virtual machine.
-// This thread is normally dormant and only scheduled for execution
-// by VM_Thread.threadSwitch() following receipt of a debug request signal (SIGQUIT).
-//
-// 28 April 1999 Derek Lieber
-//
+//$Id$
+
 import java.lang.reflect.Method;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Vector;
 
+/**
+ * An interactive debugger that runs inside the virtual machine.
+ * This thread is normally dormant and only scheduled for execution
+ * by VM_Thread.threadSwitch() following receipt of a debug request 
+ * signal (SIGQUIT).
+ *
+ * @author Derek Lieber
+ * @date 28 April 1999 
+ */
 class DebuggerThread extends VM_Thread implements VM_Uninterruptible
    {
    DebuggerThread()

@@ -1,6 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author Julian Dolby
+ */
+
 import java.io.*;
 import java.util.*;
 import java.lang.reflect.*;

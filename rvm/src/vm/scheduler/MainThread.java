@@ -5,6 +5,9 @@
 
 /**
  * Thread in which user's "main" program runs.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 class MainThread extends Thread {
   private String[] args;

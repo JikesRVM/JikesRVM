@@ -1,20 +1,24 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /** 
- * This class builds the LIVE reference and non-reference maps for a given method.
- * The maps are recorded with VM_ReferenceMaps. This class works with the 
- * baseline compiler, calculating the maps for local variables (including 
- * parameters), and the operand stack. Given the basic blocks mapped out by 
- * VM_BuildBB determine for each GC point (call sites and new's, etc) what the 
- * stack and variable maps are. For the variable maps calculate which must be kept
- * live because later code refers to them. Note that this class deals with 
- * reference maps (the term "stack maps" was not used as it is too ambiguous - does
+ * This class builds the LIVE reference and non-reference maps for a given 
+ * method.  The maps are recorded with VM_ReferenceMaps. This class works 
+ * with the baseline compiler, calculating the maps for local variables 
+ * (including parameters), and the operand stack. Given the basic blocks 
+ * mapped out by VM_BuildBB determine for each GC point (call sites and new's,
+ * etc) what the stack and variable maps are. For the variable maps calculate 
+ * which must be kept live because later code refers to them. Note that this 
+ * class deals with reference maps (the term "stack maps" was not used as 
+ * it is too ambiguous - does
  * "stack" refer to the java operand stack or a C-like stack; when processing
  * bytecodes it seemed best to use "stack" for java operand stack.)
- * @author Janice and Tony
+ *
+ * @author Janice Sheperd 
+ * @author Tony Cocchi
  */
-
 final class VM_BuildLiveRefMaps implements VM_BytecodeConstants {
 
   // ------------------ Static Class Data ------------------

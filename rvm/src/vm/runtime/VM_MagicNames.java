@@ -6,6 +6,9 @@
 /**
  * Method names that are treated specially by compiler.
  * See also: VM_Magic, various magic compilers (eg VM_MagicCompiler)
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 class VM_MagicNames {
   //-----------//

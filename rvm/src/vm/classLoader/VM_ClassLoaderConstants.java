@@ -1,6 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 interface VM_ClassLoaderConstants {
   // Attribute modifiers for class-, method-, and field- descriptions.
   //

@@ -1,19 +1,24 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Generate inline machine instructions for special methods that cannot be implemented
-// in java bytecodes. These instructions are generated whenever we encounter an 
-// "invokestatic" bytecode that calls a method with a signature of 
-// the form "static native VM_Magic.xxx(...)".
-// 23 Jan 1998 Derek Lieber
-//
-// NOTE: when adding a new "methodName" to "generate()", be sure to also consider
-// how it affects the values on the stack and update "checkForActualCall()" accordingly.
-// If no call is actually generated, the map will reflect the status of the 
-// locals (including parameters) at the time of the call but nothing on the 
-// operand stack for the call site will be mapped.
-// 7 Jul 1998 Janice Shepherd
-//
+//$Id$
+
+/**
+ * Generate inline machine instructions for special methods that cannot be implemented
+ * in java bytecodes. These instructions are generated whenever we encounter an 
+ * "invokestatic" bytecode that calls a method with a signature of 
+ * the form "static native VM_Magic.xxx(...)".
+ * 23 Jan 1998 Derek Lieber
+ *
+ * NOTE: when adding a new "methodName" to "generate()", be sure to also consider
+ * how it affects the values on the stack and update "checkForActualCall()" accordingly.
+ * If no call is actually generated, the map will reflect the status of the 
+ * locals (including parameters) at the time of the call but nothing on the 
+ * operand stack for the call site will be mapped.
+ *
+ * @author Janice Shepherd
+ * @date 7 Jul 1998 
+ */
 class VM_MagicCompiler implements VM_BaselineConstants, VM_ObjectLayoutConstants 
    {
    //-----------//

@@ -1,6 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * 
+ * @author Bowen Alpern
+ * @author Maria Butrico
+ * @author Anthony Cocchi
+ */
 public class VM_Compiler implements VM_BaselineConstants {
 
   //-----------//

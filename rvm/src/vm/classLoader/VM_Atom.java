@@ -1,14 +1,19 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
-/** A utf8-encoded byte string.
+/** 
+ * A utf8-encoded byte string.
  *
  * VM_Atom's of a given value are stored only once in the vm,
  * so they may be compared for equality using the "==" operator.
  *
  * Atoms are used to represent names, descriptors, and string literals
  * appearing in a class's constant pool.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
 

@@ -1,7 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/*
+//$Id$
+
+/**
  * This thread executes in a distinct daemon thread: its
  * functions are as follows:
  * 
@@ -34,8 +36,10 @@
  *     an appropriate idle thread becomes current on the
  *     previous vp - which thread will yield to its idle
  *     queue, triggering schedule in the new pthread. 
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */ 
-
 class VM_NativeDaemonThread extends VM_Thread {
 
   static final boolean DEBUG = false;

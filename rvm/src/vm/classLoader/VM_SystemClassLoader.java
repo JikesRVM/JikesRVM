@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.io.*;
 
 /** 
@@ -8,6 +10,9 @@ import java.io.*;
  *
  * Implements an object that functions as a system class loader.
  * This class is a Singleton pattern.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 

@@ -1,10 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 
 /**
  * Code that deals with interface methods.
- *  An interface method signature is a pair of atoms: interfaceMethodName + interfaceMethodDescriptor.
+ *  An interface method signature is a pair of atoms: 
+ *  interfaceMethodName + interfaceMethodDescriptor.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 class VM_InterfaceMethodSignature implements VM_ObjectLayoutConstants {
   //-----------//

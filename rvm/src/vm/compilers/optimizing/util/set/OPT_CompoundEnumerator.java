@@ -1,8 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.util.*;
 
+/** 
+ * @author Mauricio J. Serrano
+ * @author John Whaley
+ */
 class OPT_CompoundEnumerator implements Enumeration {
     private final Enumeration first;    
     private final Enumeration second;

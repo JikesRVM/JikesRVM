@@ -1,9 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
-// graph node for LST (Loop Structure Tree)
-//
+/**
+ * graph node for LST (Loop Structure Tree)
+ *
+ * @author: Mauricio J. Serrano
+ */
 final class OPT_LSTNode extends OPT_SpaceEffGraphNode {
   OPT_BasicBlock header;
   OPT_BitVector loop;

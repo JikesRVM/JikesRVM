@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import instructionFormats.*;
 import java.util.Vector;
 
@@ -9,7 +11,6 @@ import java.util.Vector;
  *
  * @author Walter Lee
  */
-
 public class VM_OptInstrumentor
 {
   static void init()

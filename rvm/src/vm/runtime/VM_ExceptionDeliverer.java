@@ -11,13 +11,18 @@
  * The exception delivery implementation is specific to the compiler
  * that generated the method's machine instructions.
  * <p>
- * Note that the "deliverException" and "unwindStackFrame" methods of this class will be
- * called in an environment that does not permit garbage collection: see VM.disableGC().
- * We must do this because some of the parameters to these methods are raw machine 
- * addresses. They are not recognized by the garbage collector as Object references and
- * so would not be correctly fixed up in the event of object motion during gc. As a 
+ * Note that the "deliverException" and "unwindStackFrame" methods of this 
+ * class will be called in an environment that does not permit garbage 
+ * collection: see VM.disableGC().
+ * We must do this because some of the parameters to these methods are raw 
+ * machine addresses. They are not recognized by the garbage collector as 
+ * Object references and so would not be correctly fixed up in the event of 
+ * object motion during gc. As a 
  * consequence, implementors of these methods must not cause object allocations
  * to take place (ie. by calling "new" either directly or indirectly).
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 abstract class VM_ExceptionDeliverer {
   /**

@@ -1,6 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * 
+ * @author Bowen Alpern
+ * @author Maria Butrico
+ * @author Anthony Cocchi
+ */
 class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
 
   // Resolve and call a non-interface method.

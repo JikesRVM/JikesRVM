@@ -2,7 +2,10 @@
 # (C) Copyright IBM Corp. 2001
 #
 #//ppc.dat
+#
 #//$Id$
+#
+# author David Grove
 #
 # The format of PRODUCTION is 'non-terminal:	rule'
 PRODUCTION

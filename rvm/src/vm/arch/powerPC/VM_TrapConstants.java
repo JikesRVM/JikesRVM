@@ -1,6 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * Trap Conventions
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 interface VM_TrapConstants {
   //--------------------------------------------------------------------------------------------//
   //                              Trap Conventions.                                             //

@@ -121,6 +121,8 @@
  *              |(object header)|
  *  low-memory  +---------------+
  *
+ * @author David Grove
+ * @author Bowen Alpern
  */
 interface VM_StackframeLayoutConstants  {
 

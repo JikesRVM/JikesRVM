@@ -1,10 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// A queue to handle threads that have died.
-// We keep references to threads whose "phantom stacks" are in use by a dispatcher
-// and recycle thread id's whose stacks have been abandoned.
-//
+//$Id$
+
+/**
+ * A queue to handle threads that have died.
+ * We keep references to threads whose "phantom stacks" are in use by a dispatcher
+ * and recycle thread id's whose stacks have been abandoned.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 final class VM_DeadThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
 
   private VM_ThreadQueue queue;

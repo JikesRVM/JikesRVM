@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /** 
  *  
  *  A forward reference has a machine-code-index source and normally a
@@ -38,6 +40,9 @@
  *  is next.  A separate linked list (other is the link) contains all
  *  forward references with the same target.
  *
+ * @author Bowen Alpern
+ * @author Anthony Cocchi
+ * @author Derek Lieber
  */
 public abstract class VM_ForwardReference {
 

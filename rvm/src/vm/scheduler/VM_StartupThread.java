@@ -1,8 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Thread in which a processor ("virtual cpu") begins its work.
-//
+//$Id$
+
+/**
+ * Thread in which a processor ("virtual cpu") begins its work.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 class VM_StartupThread extends VM_Thread
    {
    VM_StartupThread(int[] stack)

@@ -2,8 +2,13 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
+#
 # Produce a ".java" file from a "VM_Dictionary.template" file.
 #
+# author Bowen Alpern
+# author Anthony Cocchi
+# author Derek Lieber
 
 if [ $# != 6 ]; then
    echo "usage: $0 dictionaryClassName keyTypeName valueTypeName hasherClassName templateFileName outputFileName"

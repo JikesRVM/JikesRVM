@@ -1,9 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
 /** 
  * A java method's try/catch/finally information.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 class VM_ExceptionHandlerMap {
   //-----------//

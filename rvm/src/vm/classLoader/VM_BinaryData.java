@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 
 import java.io.File;
 import java.io.InputStream;
@@ -9,9 +11,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-/** Contents of a binary data file.
- *  The access methods provided here are similar to those of 
+/** 
+ * Contents of a binary data file.
+ * The access methods provided here are similar to those of 
  * java.io.DataInputStream, but faster.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public class VM_BinaryData {
   private byte data[];

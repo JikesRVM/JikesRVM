@@ -1,6 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author Dick Attanasio
+ * @author Stephen Smith
+ */
 interface VM_GCConstants
 
    {

@@ -1,8 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Low priority thread to run when there's nothing else to do.
-//
+//$Id$
+
+/**
+ * Low priority thread to run when there's nothing else to do.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 class VM_IdleThread extends VM_Thread {
 
   VM_IdleThread(VM_Processor processorAffinity) {

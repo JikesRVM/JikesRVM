@@ -1,19 +1,23 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Finalizer thread.
-//
-// This thread is created by VM_Scheduler.boot() at runtime startup.
-// Its "run" method does the following:
-//    1. yield to the gcwaitqueue, until scheduled by g.c.
-//    2. For all objects on finalize Q, run the finalize() method
-//    3. Go to 1
-//
-// This thread comes out of wait state via notify from the garbage collector  
-//
-// 10 Nov 1999 Dick Attanasio
+//$Id$
 
-   public class FinalizerThread extends VM_Thread 
+/**
+ * Finalizer thread.
+ *
+ * This thread is created by VM_Scheduler.boot() at runtime startup.
+ * Its "run" method does the following:
+ *    1. yield to the gcwaitqueue, until scheduled by g.c.
+ *    2. For all objects on finalize Q, run the finalize() method
+ *    3. Go to 1
+ *
+ * This thread comes out of wait state via notify from the garbage collector  
+ *
+ * @author Dick Attanasio
+ * @date 10 Nov 1999 
+ */
+public class FinalizerThread extends VM_Thread 
    {
    private final static boolean TRACE        = false; // emit trace messages?
    private final static boolean TRACE_DETAIL = false; // emit detail messages?

@@ -1,8 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Primitives from which to build interval and absolute timers.
-//
+//$Id$
+
+/**
+ * Primitives from which to build interval and absolute timers.
+ * 
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 public class VM_Time 
    implements VM_Uninterruptible // so it can be called safely from inside scheduler code
    {

@@ -3,10 +3,12 @@
  */
 //$Id$
 
-
-//
-// Use baseline compiler to compile methods at runtime. 
-//
+/**
+ * Use baseline compiler to compile methods at runtime. 
+ *
+ * @author Stephen Fink
+ * @author David Grove
+ */
 class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
   public static final int COMPILER_TYPE = VM_CompilerInfo.BASELINE;
 

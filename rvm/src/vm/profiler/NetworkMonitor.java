@@ -1,9 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Display per-thread network utilization information in real time.
-// 10 Nov 1999 Derek Lieber
-//
+//$Id$
+
+/**
+ * Display per-thread network utilization information in real time.
+ *
+ * @author Derek Lieber
+ * @date 10 Nov 1999 
+ */
 class NetworkMonitor extends VM_Thread
    {
    // Invoked by VM_Debugger.

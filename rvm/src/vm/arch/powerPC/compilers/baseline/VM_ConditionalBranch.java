@@ -1,7 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
+/**
+ * @author Bowen Alpern
+ */
 class VM_ConditionalBranch extends VM_ForwardReference {
 
   VM_ConditionalBranch (int source) {

@@ -1,60 +1,66 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// The static fields and methods comprising a running virtual machine image.
-//
-// These fields and methods form the "root set" of all the objects in the
-// running virtual machine. They are stored in an array whose first element
-// is always pointed to by the virtual machine's "table of contents" (jtoc)
-// register. The slots of this array hold either primitives (byte, int,
-// long, float, etc), object pointers, or array pointers. A second
-// table, co-indexed with the array, describes the contents of each
-// slot in the jtoc.
-//
-// Consider the following declarations:
-//
-//      class A { static int    i = 123;    }
-//      class B { static String s = "abc";  }
-//      class C { static double d = 4.56;   }
-//      class D { static void m() {} }
-//
-// Here's a picture of what the corresponding jtoc and descriptive
-// table would look like in memory:
-//
-//                     +---------------+
-// jtoc:               |   (header)    |
-//                     +---------------+
-// [jtoc register]-> 0:|      0        |
-//                     +---------------+       +---------------+
-//                   1:|     123       |       |   (header)    |
-//                     +---------------+       +---------------+
-//                   2:|  (objref)   --------->|    "abc"      |
-//                     +---------------+       +---------------+
-//                   3:|   4.56 (hi)   |
-//                     +---------------+
-//                   4:|   4.56 (lo)   |
-//                     +---------------+       +---------------+
-//                   5:|  (coderef)  -----+    |   (header)    |
-//                     +---------------+  |    +---------------+
-//                   6:|     ...       |  +--->|  machine code |
-//                     +---------------+       |    for "m"    |
-//                                             +---------------+
-//                     +--------------------+
-// descriptions:       |     (header)       |
-//                     +--------------------+
-//                   0:|      EMPTY         |  ( unused )
-//                     +--------------------+
-//                   1:|    NUMERIC_FIELD   |  ( A.i )
-//                     +--------------------+
-//                   2:|   REFERENCE_FIELD  |  ( B.s )
-//                     +--------------------+
-//                   3:| WIDE_NUMERIC_FIELD |  ( C.d )
-//                     +--------------------+
-//                     |     (unused)       |
-//                     +--------------------+
-//                   4:|      METHOD        |  ( D.m )
-//                     +--------------------+
-//
+//$Id$
+
+/**
+ * The static fields and methods comprising a running virtual machine image.
+ *
+ * These fields and methods form the "root set" of all the objects in the
+ * running virtual machine. They are stored in an array whose first element
+ * is always pointed to by the virtual machine's "table of contents" (jtoc)
+ * register. The slots of this array hold either primitives (byte, int,
+ * long, float, etc), object pointers, or array pointers. A second
+ * table, co-indexed with the array, describes the contents of each
+ * slot in the jtoc.
+ *
+ * Consider the following declarations:
+ *
+ *      class A { static int    i = 123;    }
+ *      class B { static String s = "abc";  }
+ *      class C { static double d = 4.56;   }
+ *      class D { static void m() {} }
+ *
+ * Here's a picture of what the corresponding jtoc and descriptive
+ * table would look like in memory:
+ *
+ *                     +---------------+
+ * jtoc:               |   (header)    |
+ *                     +---------------+
+ * [jtoc register]-> 0:|      0        |
+ *                     +---------------+       +---------------+
+ *                   1:|     123       |       |   (header)    |
+ *                     +---------------+       +---------------+
+ *                   2:|  (objref)   --------->|    "abc"      |
+ *                     +---------------+       +---------------+
+ *                   3:|   4.56 (hi)   |
+ *                     +---------------+
+ *                   4:|   4.56 (lo)   |
+ *                     +---------------+       +---------------+
+ *                   5:|  (coderef)  -----+    |   (header)    |
+ *                     +---------------+  |    +---------------+
+ *                   6:|     ...       |  +--->|  machine code |
+ *                     +---------------+       |    for "m"    |
+ *                                             +---------------+
+ *                     +--------------------+
+ * descriptions:       |     (header)       |
+ *                     +--------------------+
+ *                   0:|      EMPTY         |  ( unused )
+ *                     +--------------------+
+ *                   1:|    NUMERIC_FIELD   |  ( A.i )
+ *                     +--------------------+
+ *                   2:|   REFERENCE_FIELD  |  ( B.s )
+ *                     +--------------------+
+ *                   3:| WIDE_NUMERIC_FIELD |  ( C.d )
+ *                     +--------------------+
+ *                     |     (unused)       |
+ *                     +--------------------+
+ *                   4:|      METHOD        |  ( D.m )
+ *                     +--------------------+
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 public class VM_Statics implements VM_Constants
    {
    //-----------//

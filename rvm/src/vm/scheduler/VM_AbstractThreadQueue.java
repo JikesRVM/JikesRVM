@@ -1,8 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Base class for queues of VM_Threads.
-//
+//$Id$
+
+/**
+ * Base class for queues of VM_Threads.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 abstract class VM_AbstractThreadQueue {
 
   // Are any threads on the queue?

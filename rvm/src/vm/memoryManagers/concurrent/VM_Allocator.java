@@ -1,19 +1,23 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// See also: allocator/copyingGC/VM_Allocator.java
-// Note: both copying and noncopying versions of VM_Allocator
-//       provide identical "interfaces":
-//           init()
-//           boot()
-//           allocateScalar()
-//           allocateArray()
-//           allocateScalarClone()
-//           allocateArrayClone()
-// Selection of copying vs. noncopying allocators is a choice
-// made at boot time by specifying appropriate directory in CLASSPATH.
-//
+//$Id$
 
+/**
+ * See also: allocator/copyingGC/VM_Allocator.java
+ * Note: both copying and noncopying versions of VM_Allocator
+ *       provide identical "interfaces":
+ *           init()
+ *           boot()
+ *           allocateScalar()
+ *           allocateArray()
+ *           allocateScalarClone()
+ *           allocateArrayClone()
+ * Selection of copying vs. noncopying allocators is a choice
+ * made at boot time by specifying appropriate directory in CLASSPATH.
+ *
+ * @author David Bacon
+ */
 public class VM_Allocator
     extends VM_RCGC
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible,

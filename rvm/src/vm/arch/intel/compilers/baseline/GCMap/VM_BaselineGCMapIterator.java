@@ -7,7 +7,12 @@
  * Iterator for stack frame  built by the Baseline compiler
  * An Instance of this class will iterate through a particular 
  * reference map of a method returning the offsets of any refereces
- * that are part of the input parameters, local variables, and java stack for the stack frame.
+ * that are part of the input parameters, local variables, and 
+ * java stack for the stack frame.
+ *
+ * @author Bowen Alpern
+ * @author Maria Butrico
+ * @author Anthony Cocchi
  */
 final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants {

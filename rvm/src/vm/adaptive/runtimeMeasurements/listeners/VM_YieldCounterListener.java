@@ -1,18 +1,18 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /*
- * VM_YieldCounterListener.java  
- *
- * @author Stephen Fink
- * @modified Peter Sweeney
- *
  * A VM_YieldCounterListener samples yield points, and
  * notifies an Organizer when a threshold is reached.
  *
  * In effect, this class provides a way to "wake up" an infrequent
  * service periodically.
- **/
+ *
+ * @author Stephen Fink
+ * @modified Peter Sweeney
+ */
 
 import java.util.*;
 

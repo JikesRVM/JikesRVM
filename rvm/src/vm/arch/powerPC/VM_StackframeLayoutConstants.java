@@ -4,7 +4,8 @@
 
 //$Id$
 
-/**--------------------------------------------------------------------------
+/**
+ *--------------------------------------------------------------------------
  *                     Stackframe layout conventions           
  *---------------------------------------------------------------------------
  *
@@ -67,7 +68,11 @@
  *                 |(object header)|
  *  low-memory     +---------------+              
  *
- * note: (++) means "baseline compiler frame layout and register usage conventions"
+ * note: (++) means "baseline compiler frame layout and register 
+ * usage conventions"
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 interface VM_StackframeLayoutConstants  {
 

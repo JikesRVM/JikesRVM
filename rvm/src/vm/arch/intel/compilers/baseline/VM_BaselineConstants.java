@@ -1,8 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Registers used by baseline compiler implementation of virtual machine.
-//
+// $Id$
+
+/**
+ * Registers used by baseline compiler implementation of virtual machine.
+ *
+ * @author Bowen Alpern
+ * @author Maria Butrico
+ * @author Anthony Cocchi
+ */
 interface VM_BaselineConstants extends VM_Constants {
   
   static final int    WORDSIZE = 4; // bytes

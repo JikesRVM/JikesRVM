@@ -1,6 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ *
+ * @author Bowen Alpern
+ */
 
 class VM_UnconditionalBranch extends VM_ForwardReference {
 

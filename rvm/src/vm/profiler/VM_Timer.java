@@ -1,8 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Measure time spent in various vm activities.
-//
+//$Id$
+
+/**
+ * Measure time spent in various vm activities.
+ *
+ * @author Derek Lieber
+ */
 class VM_Timer
    {
    //-----------//

@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  *  This graph represents a set of specializations to perform.
  * Specializations to perform are represented by the nodes in the
@@ -15,6 +17,7 @@
  * compilation of the appropriate methods giving it the specialization
  * contexts that are hte nodes of the graph.
  *
+ * @author Julian Dolby
  */
 interface OPT_SpecializationGraph extends OPT_Graph {
 

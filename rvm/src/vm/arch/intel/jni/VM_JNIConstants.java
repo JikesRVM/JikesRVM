@@ -1,11 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /*
  * Constants for JNI support
- * @author Ton Ngo, Steve Smith
+ *
+ * @author Ton Ngo
+ * @author Steve Smith
  */
-
 interface VM_JNIConstants
 {
   // number of JNI function entries

@@ -1,8 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// See VM_Proxy
-//
+//$Id$
+
+/**
+ * See VM_Proxy
+ *
+ * @author Susan Flynn Hummel
+ * @author Bowen Alpern
+ */
 class VM_ProxyWaitingQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
 
   private VM_Proxy tail;

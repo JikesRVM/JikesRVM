@@ -1,18 +1,17 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/**
- * A <code>FilterEnumerator</code> filters and maps a source
- * <code>Enumeration</code> to generate a new one.
- */
-
+//$Id$
 
 import  java.util.Enumeration;
 import  java.util.NoSuchElementException;
 
-
 /**
- * put your documentation comment here
+ * A <code>FilterEnumerator</code> filters and maps a source
+ * <code>Enumeration</code> to generate a new one.
+ *
+ * @author Mauricio J. Serrano
+ * @author John Whaley
  */
 public class OPT_FilterEnumerator
     implements Enumeration {

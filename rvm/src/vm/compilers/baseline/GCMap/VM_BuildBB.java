@@ -1,10 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Analyze the byte codes and determine the boundaries of the 
  * basic blocks. Used for building the reference maps for a 
  * method.
+ *
+ * @author Anthony Cocchi
  */
 
 final class VM_BuildBB implements VM_BytecodeConstants {

@@ -1,16 +1,21 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Information associated with artifical stackframe inserted at the
-// transition from Jave to JNI Native C.  
-//
-// Exception delivery should never see Native C frames, or the Java to C 
-// transition frame.  Native C code is redispatched during exception
-// handling to either process/handle and clear the exception or to return
-// to Java leaving the exception pending.  If it returns to the transition
-// frame with a pending exception. JNI causes an athrow to happen as if it
-// was called at the call site of the call to the native method.
-//
+//$Id$
+
+/**
+ * Information associated with artifical stackframe inserted at the
+ * transition from Jave to JNI Native C.  
+ *
+ * Exception delivery should never see Native C frames, or the Java to C 
+ * transition frame.  Native C code is redispatched during exception
+ * handling to either process/handle and clear the exception or to return
+ * to Java leaving the exception pending.  If it returns to the transition
+ * frame with a pending exception. JNI causes an athrow to happen as if it
+ * was called at the call site of the call to the native method.
+ *
+ * @author Ton Ngo
+ */
 class VM_JNICompilerInfo extends VM_CompilerInfo {
 
   final int 

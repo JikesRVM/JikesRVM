@@ -1,8 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Constants exported by the assembler
-//
+// $Id$
+/**
+ * Constants exported by the assembler
+ * @author Julian Dolby
+ */
 interface VM_AssemblerConstants {
   static final String [] CONDITION = {
    "O", "NO", "LLT", "LGE", "EQ", "NE", "LLE", "LGT", "S", "NS", "PE", "PO", "LT", "GE", "LE", "GT" 

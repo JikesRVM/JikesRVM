@@ -1,6 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author David Bacon
+ */
 public final class VM_CycleBuffer
     extends VM_RCGC
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible

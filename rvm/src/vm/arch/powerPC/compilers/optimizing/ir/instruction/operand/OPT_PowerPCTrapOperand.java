@@ -1,8 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//OPT_PowerPCTrapOperand.java
-
+//$Id$
 
 /**
  * Encodes the T0 field for trap operations 

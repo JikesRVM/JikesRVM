@@ -1,14 +1,19 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// This class is used during the processing of reference maps for a method.
-//
-// When a JSR has been processed the processing of a RET is pending. 
-// Need to track which JSR was processed, and where the "return address" value is
-// being held (ie is it on the operand stack, or in a local variable). The value
-// starts on the top of the stack, but is usually quickly moved to a local 
-// variable. 
+//$Id$
 
+/**
+ * This class is used during the processing of reference maps for a method.
+ *
+ * When a JSR has been processed the processing of a RET is pending. 
+ * Need to track which JSR was processed, and where the "return address" value
+ * is being held (ie is it on the operand stack, or in a local variable). 
+ * The value starts on the top of the stack, but is usually quickly moved to 
+ * a local variable. 
+ *
+ * @author Anthony Cocchi
+ */
 final class VM_PendingRETInfo {
 
   // --------------------- Instance Data -------------------

@@ -1,9 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//OPT_SortedGraphNode.java
+//$Id$
 /**
- * @created by Jong Choi
+ * @author Jong Choi
  */
 
 

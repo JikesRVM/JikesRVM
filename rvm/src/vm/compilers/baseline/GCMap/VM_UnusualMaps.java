@@ -1,12 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Unusual maps are maps to track references that don't take the usual format.
  * Currently unusual maps include:
  *    maps of locations within JSR subroutines (includes return address map)
  * In the future the return address maps may be expanded to include other
  * internal pointers or internal/external pointers may be handled separately.
+ *
+ * @author Anthony Cocchi
  */
 class VM_UnusualMaps {
 

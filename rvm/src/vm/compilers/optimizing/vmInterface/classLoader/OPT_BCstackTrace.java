@@ -1,11 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.*;
 
-
 /**
- * put your documentation comment here
+ * @author Ton Ngo
  */
 class OPT_BCstackTrace {
   VM_Method methodAtOffset;

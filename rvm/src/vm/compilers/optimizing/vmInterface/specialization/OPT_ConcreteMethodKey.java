@@ -1,6 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author Julian Dolby
+ */
 class OPT_ConcreteMethodKey {
     private final VM_Type dispatchClass;
     private final VM_Atom name;

@@ -1,6 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+
+// $Id$
+
 // Information required to start the virtual machine and communicate with the outside world.
 //
 // The virtual machine image consists entirely of java objects.
@@ -83,6 +86,11 @@
 // The remaining fields of the boot record serve as a function linkage area
 // between services residing in the host operating system and services
 // residing in the virtual machine.
+
+/*
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 
 public
 class VM_BootRecord

@@ -1,12 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.Enumeration;
 import  java.util.NoSuchElementException;
 
-
 /**
- * put your documentation comment here
+ * @author Mauricio J. Serrano
+ * @author John Whaley
  */
 final class OPT_DepthFirstEnumerator
     implements Enumeration {

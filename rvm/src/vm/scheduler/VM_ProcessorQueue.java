@@ -1,16 +1,23 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// A queue to handle a set of  virtual processors  
-//  For Example A Native Virtual Processor VM_Thread has terminated and  can be reused.
-//    When a normal thread (VM_Thread) first does a call to native 
-//      a special virtual processor and pthread are created just for that VM_Thread
-//      they run together as a pair until the VMThread terminates
-//      then the VP and pthread are enqueued onto a DeadVP queue
-//      until some subsequent VM_Thread first performs a calltonative
-//      then a request is made to reuse a previous VP and pthread
-//    so the result is that the VP and pthread are recycled
-//
+//$Id$
+
+/**
+ * A queue to handle a set of  virtual processors  
+ *  For Example A Native Virtual Processor VM_Thread has terminated and
+ *  can be reused.
+ *    When a normal thread (VM_Thread) first does a call to native 
+ *      a special virtual processor and pthread are created just for that 
+ *      VM_Thread they run together as a pair until the VMThread terminates
+ *      then the VP and pthread are enqueued onto a DeadVP queue
+ *      until some subsequent VM_Thread first performs a calltonative
+ *      then a request is made to reuse a previous VP and pthread
+ *    so the result is that the VP and pthread are recycled
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 final class VM_ProcessorQueue
        implements VM_Uninterruptible {
 

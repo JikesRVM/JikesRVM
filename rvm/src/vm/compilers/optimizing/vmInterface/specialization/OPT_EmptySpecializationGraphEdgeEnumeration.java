@@ -1,8 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.util.NoSuchElementException;
 
+/**
+ * @author Julian Dolby
+ */
 class OPT_EmptySpecializationGraphEdgeEnumeration
     implements OPT_SpecializationGraphEdgeEnumeration 
 {

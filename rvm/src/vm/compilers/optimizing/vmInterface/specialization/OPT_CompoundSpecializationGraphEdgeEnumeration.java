@@ -1,6 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author Julian Dolby
+ */
 class OPT_CompoundSpecializationGraphEdgeEnumeration
     extends OPT_CompoundEnumerator
     implements OPT_SpecializationGraphEdgeEnumeration

@@ -1,6 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ *
+ * @author Bowen Alpern
+ * @author David Grove
+ */
 interface VM_TrapConstants
    {
 

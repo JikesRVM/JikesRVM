@@ -1,8 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * put your documentation comment here
+ *
+ * @author Walter Lee
  */
 class VM_CircularBuffer {
 

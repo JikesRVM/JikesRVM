@@ -8,6 +8,10 @@
  *
  * Note: Final controls require the whole vm to be recompiled and 
  *       rebuilt after their values are changed.
+ *
+ * @author Bowen Alpern
+ * @author Stephen Fink
+ * @author David Grove
  */
 public abstract class VM_Configuration {
 

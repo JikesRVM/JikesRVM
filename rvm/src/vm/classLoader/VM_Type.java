@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id:
 
 /**
  * A description of a java object.
@@ -40,6 +41,9 @@
  * VM_Primitive's are constructed ab initio. 
  * They have no "forward reference", "load", 
  * "resolution", "instantiation", or "initialization" phases.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
  public abstract class VM_Type implements VM_ClassLoaderConstants {
    //-----------//

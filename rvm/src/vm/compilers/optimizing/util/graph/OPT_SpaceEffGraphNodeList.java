@@ -1,14 +1,18 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.Enumeration;
 
 
-//
-// List of Graph nodes. 
-// 
-// author Harini Srinivasan.
-// comments: should a doubly linked list implement Enumeration?
+/**
+ * List of Graph nodes. 
+ * 
+ * comments: should a doubly linked list implement Enumeration?
+ *
+ * @author Harini Srinivasan.
+ */
 class OPT_SpaceEffGraphNodeList
     implements Enumeration {
   OPT_SpaceEffGraphNode _node;

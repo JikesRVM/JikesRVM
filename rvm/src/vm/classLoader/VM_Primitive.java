@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
 /**
  * Description of a java "primitive" type (int, float, etc.)
@@ -16,6 +17,9 @@
  *
  * @see VM_Class
  * @see VM_Array
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public class VM_Primitive extends VM_Type
   implements VM_Constants, VM_ClassLoaderConstants {

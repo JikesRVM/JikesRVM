@@ -1,6 +1,10 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
+
+# author Julian Dolby
+
 include                 $(JAL_ROOT)/rvm/build.Make.rules
 
 ARCH_IFS = $(JAL_ROOT)/rvm/src/vm/arch/intel/compilers/optimizing/ir/instruction/InstructionFormatList.dat

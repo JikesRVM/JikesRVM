@@ -9,6 +9,9 @@ import java.io.PrintWriter;
 /**
  * A list of method/instructionOffset pairs that describe the
  * state of the call stack at a particular instant.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public class VM_StackTrace implements VM_Constants {
    //-----------//

@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+// $Id$
 /** 
  *  
  *  A forward reference has a machine-code-index source and optionally
@@ -24,6 +25,8 @@
  *  references with strictly increasing targets.  The link for this list
  *  is "next".  A separate linked list ("other" is the link) contains all
  *  forward references with the same target.
+ *
+ * @author Julian Dolby
  * */
 abstract class VM_ForwardReference {
 

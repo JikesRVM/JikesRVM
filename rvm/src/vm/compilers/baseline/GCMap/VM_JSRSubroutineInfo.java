@@ -1,12 +1,17 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// This class is used during the building of reference/nonreference maps for a method.
+//$Id$
 
-// Once a JSR/RET combination has been processed, other JSR may be encountered that
-// "jump" to the same subroutine. To calculate the maps of the instruction that is
-// immediately after the JSR, we need the maps at the time of the JSR and the maps at
-// the time of the RET.
+/**
+ * This class is used during the building of reference/nonreference maps for 
+ * a method.  Once a JSR/RET combination has been processed, other JSR may 
+ * be encountered that "jump" to the same subroutine. To calculate the maps 
+ * of the instruction that is immediately after the JSR, we need the maps at 
+ * the time of the JSR and the maps at the time of the RET.
+ * 
+ * @author Anthony Cocchi
+ */
 class VM_JSRSubroutineInfo {
 
   public int subroutineByteCodeStart;

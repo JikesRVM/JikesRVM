@@ -1,17 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /*
- * VM_ContextListeners.java  
+ * This object that is invoked when online measurement information must 
+ * be collected.
  *
  * @author Peter Sweeney
  * @date   2 June 2000
- *
- * A VM_ContextListener is an object that is invoked when
- * online measurement information must be collected.
- *
- **/
-
+ */
 abstract class VM_ContextListener extends VM_Listener implements VM_Uninterruptible {
 
   /**

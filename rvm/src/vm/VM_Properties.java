@@ -9,6 +9,10 @@
  * Typically these are properties that can be set from the command line
  * (and thus are NOT final).  All final properties should be 
  * declared in VM_Configuration
+ *
+ * @author Bowen Alpern
+ * @author Stephen Fink
+ * @author David Grove
  */
 public class VM_Properties extends VM_Configuration {
 

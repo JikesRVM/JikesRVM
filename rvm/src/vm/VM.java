@@ -8,7 +8,8 @@
  * Implements VM_Uninterruptible to suppress thread switching in boot() and
  * sysCall() prologues.
  *
- * 21 Nov 1997 Derek Lieber (project start).
+ * @author Derek Lieber (project start).
+ * @date 21 Nov 1997 
  */
 public class VM extends VM_Properties implements VM_Constants, 
 						 VM_Uninterruptible { 

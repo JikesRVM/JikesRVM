@@ -11,6 +11,9 @@
  * java code. Their names are recognized by RVM's compilers 
  * and cause inline machine code to be generated instead of 
  * actual method calls.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public class VM_Magic {
 

@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 
 /**
  * Data structures and code for fast dynamic type checking.

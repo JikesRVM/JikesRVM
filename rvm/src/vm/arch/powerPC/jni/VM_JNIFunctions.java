@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * This class implements the 211 JNI functions
  * All methods here will be specially compiled with the necessary prolog to
@@ -44,9 +46,10 @@
  * 
  * @see VM_Compiler.prologueForNative()
  *
- * @author Ton Ngo, Steve Smith  2/1/00
+ * @author Ton Ngo 
+ * @author Steve Smith  
+ * @date 2/1/00
  */
-
 import java.io.UTFDataFormatException;
 import java.lang.reflect.*;
 

@@ -1,6 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author David Bacon
+ */
 class VM_RCBarriers implements VM_BaselineConstants {
 
     static final boolean DONT_BARRIER_BLOCK_CONTROLS = true;

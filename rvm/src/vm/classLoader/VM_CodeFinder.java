@@ -1,8 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.util.Enumeration;
 
+/**
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 class VM_CodeFinder {
 
   private static boolean containsMethod(VM_CompiledMethod c, VM_Method m) {

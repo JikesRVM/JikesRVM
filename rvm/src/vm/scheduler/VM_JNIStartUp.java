@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * This class supports the JNI functions that originate from C programs 
  * without an existing JNI environment:
@@ -16,10 +18,10 @@
  * associated with the pthread that call JNI_CreateJavaVM
  * When 
  * 
- * Ton Ngo, Steve Smith 10/2/00
+ * @author Ton Ngo 
+ * @author Steve Smith
+ * @date 10/2/00
  */
-
-
 // public class VM_JNIStartUp extends VM_Thread {
 public class VM_JNIStartUp implements Runnable {
 

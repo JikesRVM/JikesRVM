@@ -1,10 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 
 /**
  * Compiler-specific information associated with a method's 
  * machine instructions.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 abstract class VM_CompilerInfo  {
   final static int TRAP      = 0; // no code: special trap handling stackframe

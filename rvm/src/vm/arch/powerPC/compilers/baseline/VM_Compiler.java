@@ -4,9 +4,12 @@
 //$Id$
 
 /**
-   VM_Compiler is the baseline compiler class for powerPC architectures.
-   The compiler() method translates the bytecodes of a method to 
-   straightforward machine code.
+ * VM_Compiler is the baseline compiler class for powerPC architectures.
+ * The compiler() method translates the bytecodes of a method to 
+ * straightforward machine code.
+ * 
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public class VM_Compiler implements VM_BaselineConstants {
 

@@ -1,8 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Place for VM_CompilerInfo.getDynamicLink() to deposit return information.
-//
+//$Id$
+
+/**
+ * Place for VM_CompilerInfo.getDynamicLink() to deposit return information.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 final class VM_DynamicLink implements VM_BytecodeConstants
    {
    private VM_Method methodRef; // method referenced at a call site

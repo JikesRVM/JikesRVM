@@ -1,8 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Registers used by virtual machine.
-//
+//$Id$
+
+/**
+ * Registers used by virtual machine.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 interface VM_BaselineConstants extends VM_Constants {
 
   // Dedicated registers

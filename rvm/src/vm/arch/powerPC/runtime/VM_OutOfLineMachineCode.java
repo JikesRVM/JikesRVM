@@ -1,22 +1,29 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// A place to put hand written machine code typically invoked by VM_Magic methods.
-//
-// Hand coding of small inline instruction sequences is typically handled by each
-// compiler's implementation of VM_Magic methods.  A few VM_Magic methods are so complex
-// that their implementations require many instructions.  But our compilers do not inline 
-// arbitrary amounts of machine code. We therefore write such code blocks here, out of line.
-//
-// These code blocks can be shared by all compilers. They can be branched to
-// via a jtoc offset (obtained from VM_Entrypoints.XXXInstructionsOffset).
-//
-// 17 Mar 1999 Derek Lieber
-//
-// 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers could inline these
-// methods if they wanted.  We do not believe this would be very easy since they return thru
-// the LR.)
-//
+//$Id$
+
+/**
+ * A place to put hand written machine code typically invoked by VM_Magic 
+ * methods.
+ *
+ * Hand coding of small inline instruction sequences is typically handled by 
+ * each compiler's implementation of VM_Magic methods.  A few VM_Magic methods
+ * are so complex that their implementations require many instructions.  
+ * But our compilers do not inline arbitrary amounts of machine code. 
+ * We therefore write such code blocks here, out of line.
+ *
+ * These code blocks can be shared by all compilers. They can be branched to
+ * via a jtoc offset (obtained from VM_Entrypoints.XXXInstructionsOffset).
+ *
+ * 17 Mar 1999 Derek Lieber
+ *
+ * 15 Jun 2001 Dave Grove and Bowen Alpern (Derek believed that compilers 
+ * could inline these methods if they wanted.  We do not believe this would 
+ * be very easy since they return thru the LR.)
+ *
+ * @author Derek Lieber
+ */
 class VM_OutOfLineMachineCode implements VM_BaselineConstants
    {
    //-----------//

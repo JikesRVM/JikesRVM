@@ -1,13 +1,21 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Class to provide synchronization methods where java language synchronization is insufficient 
-//  and VM_Magic.prepare and VM_Magic.attempt are at too low a level
-//
-// Do not add a method to this class without there is a compelling performance or correctness need.
-//
-// 07/25/2000 Bowen Alpern and Tony Cocchi (initially stolen from VM_MagicMacros by Mauricio J. Serrano)
-//
+//$Id$
+
+/**
+ * Class to provide synchronization methods where java language 
+ * synchronization is insufficient and VM_Magic.prepare and VM_Magic.attempt 
+ * are at too low a level
+ *
+ * Do not add a method to this class without there is a compelling performance
+ * or correctness need.
+ *
+ * 07/25/2000 Bowen Alpern and Tony Cocchi (initially stolen from VM_MagicMacros by Mauricio J. Serrano)
+ *
+ * @author Bowen Alpern
+ * @author Anthony Cocchi
+ */
 class VM_Synchronization implements VM_Uninterruptible {
 
    static final boolean testAndSet(Object base, int offset, int newValue) {

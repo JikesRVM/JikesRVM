@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Structure for opcode 31 and 63, PowerPC instruction set: 
  * these include the X, XO, XFL, XFX and A form

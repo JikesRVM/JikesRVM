@@ -1,9 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// A queue of VM_Threads
-// 30 August 1998 Bowen Alpern
-//
+//$Id$
+
+/**
+ * A queue of VM_Threads
+ *
+ * @author Bowen Alpern
+ * @date 30 August 1998 
+ */
 final class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
 
   private int       id;     // id of this queue, for event logging

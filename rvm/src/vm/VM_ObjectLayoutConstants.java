@@ -1,6 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * Object Layout Conventions
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 interface VM_ObjectLayoutConstants {
    //--------------------------------------------------------------------------------------------//
    //                                 Object layout conventions.                                 //

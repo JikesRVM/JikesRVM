@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * An element in the opt compiler's optimization plan
  * that consists of a single OPT_CompilerPhase.

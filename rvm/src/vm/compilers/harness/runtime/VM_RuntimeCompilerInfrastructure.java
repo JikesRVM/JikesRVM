@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * A place to put code common to all runtime compilers.
  * This includes instrumentation code to get equivalent data for
@@ -21,8 +23,9 @@
  *        (under the assumption that there is no (excessive) padding in the
  *         machine code array and thus VM_Method.getInstructions().length
  *         is a close enough approximation of the number of machinecodes generated)
- *   Note that even if 3 & 4 are inflated due to padding, the numbers will still be 
- *   an accurate measure of the space costs of the compile-only approach.
+ *   Note that even if 3 & 4 are inflated due to padding, the numbers will 
+ *   still be an accurate measure of the space costs of the compile-only 
+ *   approach.
  *
  */
 

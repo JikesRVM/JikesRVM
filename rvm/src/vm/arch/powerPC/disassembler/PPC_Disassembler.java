@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/* Disassembler for Rios instruction set.
+//$Id$
+
+/**
+ * Disassembler for Rios instruction set.
  * @author Ton Ngo
  *
  * Defined: disasm(inst, addr, buf, reg)
@@ -96,7 +99,6 @@
  *  mtibatl		
  *  mtibatu		
  */
-
 class PPC_Disassembler implements VM_BaselineConstants {
   // special register name copied from /usr/include/sys/reg.h
   static final int IAR = 128;

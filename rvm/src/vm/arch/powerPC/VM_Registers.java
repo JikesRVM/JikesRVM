@@ -1,8 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// The machine state comprising a thread's execution context.
-//
+//$Id$
+
+/**
+ * The machine state comprising a thread's execution context.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 class VM_Registers implements VM_Constants {
   // The following are used both for thread context switching
   // and for hardware exception reporting/delivery.

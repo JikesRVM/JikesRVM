@@ -1,7 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author Anthony Cocchi
+ */
 final class VM_BasicBlock {
+
  // structure to describe the basic blocks of the byte code
  // Used in calculating stack map and local variable map for
  // the garabage collector.

@@ -1,11 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Class called from baseline compiler to generate architecture specific
  * write barrier for generational garbage collectors.
  *
  * Not Yet Implemented For Intel
+ *
+ * @author Stephen Smith
  */
 class VM_Barriers implements VM_BaselineConstants {
 

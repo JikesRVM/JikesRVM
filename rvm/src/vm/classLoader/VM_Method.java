@@ -1,11 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//VM_Method.java
 //$Id$
-//
-// A method of a java class.
-//
+
+/**
+ * A method of a java class.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 import java.util.Stack;
 
 public

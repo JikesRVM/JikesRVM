@@ -1,9 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * A <code>FilterIterator</code> filters and maps a source
  * <code>Iterator</code> to generate a new one.
+ *
+ * @author Mauricio J. Serrano
+ * @author John Whaley
  */
 public class OPT_FilterIterator
     implements java.util.Iterator {

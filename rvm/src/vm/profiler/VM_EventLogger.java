@@ -1,10 +1,18 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Keep a log of interesting virtual machine activity.
-// Instrument your code using this style: "if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logXXXEvent();"
-// 03 Feb 1999 Derek Lieber
-//
+//$Id$
+
+/**
+ * Keep a log of interesting virtual machine activity.
+ * Instrument your code using this style: 
+ * "if (VM.BuildForEventLogging && VM.EventLoggingEnabled) 
+ *    VM_EventLogger.logXXXEvent();"
+ * 
+ * @author Derek Lieber
+ * @date 03 Feb 1999
+ * 
+ */
 import java.io.FileOutputStream;
 import java.io.IOException;
 

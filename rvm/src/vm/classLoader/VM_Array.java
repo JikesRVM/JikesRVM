@@ -11,6 +11,9 @@
  * 
  * @see VM_Class
  * @see VM_Primitive
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public class VM_Array extends VM_Type
   implements VM_Constants, VM_ClassLoaderConstants  {

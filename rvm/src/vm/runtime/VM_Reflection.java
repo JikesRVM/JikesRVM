@@ -1,9 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Reflective method invoker.
-// 15 Jul 1998 Bowen Alpern & Derek Lieber
-//
+//$Id$
+
+/**
+ * Reflective method invoker.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ * @date 15 Jul 1998
+ */
 public class VM_Reflection 
    implements VM_BaselineConstants
    {

@@ -1,9 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//OPT_PowerPCConditionOperand.java
-
-
+//$Id$
 
 /**
  * Encodes the BO & BI condition fields for PowerPC

@@ -1,17 +1,17 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/// OPT_Stack
-// OPT_Stack is a smaller implementation of java.util.Stack, that uses a linked
-// list rather than a vector.
-// John Whaley - 3/18/98
-
+//$Id$
 
 import  java.util.Enumeration;
 
-
 /**
- * put your documentation comment here
+ * OPT_Stack
+ * OPT_Stack is a smaller implementation of java.util.Stack, that uses a linked
+ * list rather than a vector.
+ *
+ * @author John Whaley
+ * @date  3/18/98
  */
 class OPT_Stack {
   OPT_LinkedListObjectElement head;

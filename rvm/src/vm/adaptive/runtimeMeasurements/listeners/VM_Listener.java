@@ -1,12 +1,9 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /*
- * VM_Listeners.java  
- *
- * @author Peter Sweeney
- * @modified Dave Grove
- *
  * A VM_Listener object is invoked when online measurement information 
  * needs to be collected.
  *
@@ -23,8 +20,9 @@
  * expected to complete execution quickly, and therefore, 
  * must do a minimal amount of work.
  *
- **/
-
+ * @author Peter Sweeney
+ * @modified Dave Grove
+ */
 abstract class VM_Listener implements VM_Uninterruptible {
 
   /**

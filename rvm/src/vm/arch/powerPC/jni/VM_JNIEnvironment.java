@@ -1,11 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  *   This class implements the JNI environment, it includes:
  * -The array of JNI function pointers accessible from C
  * -Implementation of all the JNI functions
- * @author Ton Ngo, Steve Smith
+ *
+ * @author Ton Ngo 
+ * @author Steve Smith
  */
 import java.lang.reflect.*;
 

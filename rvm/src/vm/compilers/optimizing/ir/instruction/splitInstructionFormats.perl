@@ -2,8 +2,10 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
+#
 # split InstructionFormats.RAW into 1 class per file
-# Dave Grove 01/08/2001.
+# author Dave Grove 01/08/2001.
 
 $outputDir = shift(@ARGV);
 $infile = 0;

@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
- * put your documentation comment here
+ * @author Igor Pechtchanski
  */
 class VM_TooManyCallBacks extends RuntimeException {
 

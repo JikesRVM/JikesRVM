@@ -1,6 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author Bowen Alpern
+ * @author Maria Butrico
+ * @author Anthony Cocchi
+ * @author Derek Lieber
+ */
 class VM_Assembler implements VM_BaselineConstants {
 
   /* Machine code generators:

@@ -1,11 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.Enumeration;
 
-
 /**
- * put your documentation comment here
+ * @author Mauricio J. Serrano
+ * @author John Whaley
  */
 final class OPT_Queue {
   OPT_LinkedListElement head;

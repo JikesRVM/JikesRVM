@@ -1,9 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/*
- * put your module comment here
- * formatted with JxBeauty (c) johann.langhofer@nextra.at
+//$Id$
+
+/**
+ * @author Mauricio J. Serrano
+ * @author John Whaley
  */
 
 

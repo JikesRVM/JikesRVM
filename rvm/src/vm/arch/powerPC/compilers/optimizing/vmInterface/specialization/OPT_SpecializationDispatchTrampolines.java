@@ -1,6 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author Julian Dolby
+ */
 class OPT_SpecializationDispatchTrampolines implements VM_BaselineConstants {
     
     static private INSTRUCTION[] generate(OPT_ConcreteMethodKey key) {

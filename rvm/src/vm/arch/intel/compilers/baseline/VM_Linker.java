@@ -1,8 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Perform dynamic linking as call sites and load/store sites are encountered at execution time.
-//
+//$Id$
+
+/**
+ * Perform dynamic linking as call sites and load/store sites are 
+ * encountered at execution time.
+ * 
+ * @author Bowen Alpern
+ * @author Maria Butrico
+ * @author Anthony Cocchi
+ */
 class VM_Linker {
 
   // Load a class dynamically

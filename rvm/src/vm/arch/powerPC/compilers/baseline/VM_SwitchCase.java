@@ -1,7 +1,12 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
+/**
+ *
+ * @author Bowen Alpern
+ */
 class VM_SwitchCase extends VM_ForwardReference {
 
   VM_SwitchCase (int source, int btarget) {

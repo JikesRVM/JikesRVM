@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/* This class create a thread that will follow the JNIStartUp thread
+//$Id$
+
+/**
+ * This class create a thread that will follow the JNIStartUp thread
  * to complete the sequence for transfering logical control from the
  * JNIStartUp thread to the external pthread.
  * The tasks include:
@@ -11,11 +14,9 @@
  *    is expecting.  This will also signal the external pthread that
  *    the VM is ready and it can return to the caller.
  *
- *
- *
- * Ton Ngo 10/13/00
+ * @author Ton Ngo 
+ * @date 10/13/00
  */
-
 class VM_JNICreateVMFinishThread extends VM_Thread implements VM_BaselineConstants {
   static boolean trace = false;
 

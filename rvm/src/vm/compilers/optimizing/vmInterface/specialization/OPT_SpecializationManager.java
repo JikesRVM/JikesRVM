@@ -1,8 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.util.*;
 
+/**
+ * @author Julian Dolby
+ */
 class OPT_SpecializationManager {
     
     static public final boolean DEBUG = true;

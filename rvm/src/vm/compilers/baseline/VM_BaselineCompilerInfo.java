@@ -3,8 +3,12 @@
  */
 //$Id$
 
-// Compiler-specific information associated with a method's machine instructions.
-//
+/**
+ * Compiler-specific information associated with a method's machine 
+ * instructions.
+ *
+ * @author Bowen Alpern
+ */
 class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_BaselineConstants {
 
   //-----------//

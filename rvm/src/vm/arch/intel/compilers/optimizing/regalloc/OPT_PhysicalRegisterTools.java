@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import instructionFormats.*;
+
 /**
  * This abstract class provides a set of useful methods for
  * manipulating physical registers for an IR.

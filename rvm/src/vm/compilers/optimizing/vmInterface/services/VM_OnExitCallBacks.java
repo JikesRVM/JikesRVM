@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
- * put your documentation comment here
+ * @author Igor Pechtchanski
  */
 public class VM_OnExitCallBacks {
   private static final int MAX_EXIT_CALL_BACKS = 10;

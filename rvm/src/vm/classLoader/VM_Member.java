@@ -1,11 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.io.DataInputStream;
 import java.io.IOException;
 
 /**
  * A field or method of a java class.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
   //-----------//
@@ -174,8 +179,10 @@ abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants {
    
   /**
     * Access the member's modifier flags.
-    * @return 32 bits of modifier flags exactly like they come out of the class file.
-    * @author jjb 5/98
+    * @return 32 bits of modifier flags exactly like they come out of 
+    * the class file.
+    * @author John J. Barton
+    * @date 5/98
     */
   public final int getModifiers() {
     return modifiers;

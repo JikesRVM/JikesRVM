@@ -1,14 +1,18 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/* Disassembler for the Intel instruction set
+//$Id$
+
+/**
+ * Disassembler for the Intel instruction set
  *
  * Source code in C borrowed from C++ VisualAge, 
  * provided by Steve Turner (IBM Austin)
  * Minor change:  change output to lower case
- * @author Ton Ngo 2/12/2001 
+ *
+ * @author Ton Ngo 
+ * @date 2/12/2001 
  */
-
 class IntelDisassembler {
 
   public static byte[] intToByteArray(int[] intArray) {

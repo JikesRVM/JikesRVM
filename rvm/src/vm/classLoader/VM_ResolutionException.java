@@ -1,11 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
 /**
  * An exception to indicate that a method in the vm failed to return
  * a value due to a class-loading, class-initialization,
  * or name-resolution problem.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public class VM_ResolutionException extends Exception {
   //-----------//

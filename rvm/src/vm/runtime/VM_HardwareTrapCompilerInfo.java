@@ -1,9 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Information associated with artifical stackframe inserted by hardware trap handler.
-// 02 Jun 1999 Derek Lieber
-//
+//$Id$
+
+/**
+ * Information associated with artifical stackframe inserted by hardware 
+ * trap handler.
+ *
+ * @author Derek Lieber
+ * @date 02 Jun 1999 
+ */
 class VM_HardwareTrapCompilerInfo extends VM_CompilerInfo
    {
    final int 

@@ -1,6 +1,10 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
+#
+# author Igor Pechtchanski
+
 include		$(RVM_ROOT)/rvm/build.Make.rules
 
 MIR_IR_DIR = $(RVM_ROOT)/rvm/src/vm/arch/$(ARCH_DIR)/compilers/optimizing/ir/instruction

@@ -9,6 +9,9 @@
  *    - threads
  *    - queues
  *    - locks
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   // Index of processor in which "VM.boot()" runs.

@@ -1,12 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Abstract parent class for events from organizers to the controller. 
  *
  * @author Stephen Fink 
  */
-
 interface VM_ControllerInputEvent {
 
    /** 

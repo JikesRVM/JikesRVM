@@ -1,8 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Interface to dynamic libraries of underlying operating system.
-//
+//$Id$
+
+/**
+ * Interface to dynamic libraries of underlying operating system.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 public class VM_DynamicLibrary
 {
   private String libName;

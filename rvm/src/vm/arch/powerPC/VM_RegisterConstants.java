@@ -1,6 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * Register Usage Conventions
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 interface VM_RegisterConstants
    {
    //--------------------------------------------------------------------------------------------//

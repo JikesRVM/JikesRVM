@@ -1,14 +1,21 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.util.Vector;
 
-// A block of machine code in the running virtual machine image.
-//
-// Machine code is an array of "instructions", declared formally as integers,
-// produced by VM_Compiler, typically by translating the bytecodes
-// of a VM_Method. The code entrypoint is the first word in the array.
-//
+/*
+ * A block of machine code in the running virtual machine image.
+ *
+ * Machine code is an array of "instructions", declared formally as integers,
+ * produced by VM_Compiler, typically by translating the bytecodes
+ * of a VM_Method. The code entrypoint is the first word in the array.
+ *
+ * @author Bowen Alpern
+ * @author Tony Cocchi 
+ * @author Derek Lieber
+ */
 class VM_MachineCode 
    {
    //-----------//

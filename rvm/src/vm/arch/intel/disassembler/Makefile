@@ -1,6 +1,8 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
+#
 # @author Ton Ngo
 JNI_INCLUDE = /opt/IBMJava2-13/include
 

@@ -1,8 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
- * put your documentation comment here
+ * @author Mauricio J. Serrano
+ * @author John Whaley
  */
 class OPT_EmptyIterator
     implements java.util.Iterator {

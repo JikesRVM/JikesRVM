@@ -1,6 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
+/**
+ * @author Dick Attanasio
+ */
 class VM_FinalizerListElement {
 
 int value;

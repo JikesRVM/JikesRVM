@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Manages a set of lockwords used by the collection threads during 
  * collection to gain exclusive access to objects or critical sections
@@ -8,6 +10,9 @@
  * <p>
  * TestAndSet methods implemented with compare and swap logic are
  * provided for each lockword.
+ *
+ * @author Dick Attanasio
+ * @author Stephen Smith
  */
 public class VM_GCLocks {
   

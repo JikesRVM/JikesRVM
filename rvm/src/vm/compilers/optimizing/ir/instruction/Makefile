@@ -1,6 +1,9 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
+#
+# author David Grove
 include                 $(RVM_ROOT)/rvm/build.Make.rules
 
 default:		$(GEN_FILES_DIR)/OPT_Operator.java \

@@ -10,6 +10,9 @@
  *	  Eliminate necessity of VM option order.
  * 22 May 2001 Igor Pechtchanski
  *      Arbitrary prefix support
+ *
+ * @author Peter Sweeney
+ * @modified Igor Pechtchanski
  */
 class VM_CommandLineArgs { 
   private static final boolean DEBUG = false;

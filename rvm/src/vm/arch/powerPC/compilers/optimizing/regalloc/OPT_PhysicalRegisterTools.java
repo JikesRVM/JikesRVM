@@ -1,8 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import instructionFormats.*;
 import java.util.Enumeration;
+
 /**
  * This abstract class provides a set of useful methods for
  * manipulating physical registers for an IR.

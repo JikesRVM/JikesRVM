@@ -21,6 +21,9 @@ import java.util.Hashtable;
  *       model that allows multiple concurrent readers and only serializes
  *       writers (possibly using multiple write locks, one for each data
  *       structure arranged in a lock hierarchy to prevent deadlock). <p>
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public class VM_ClassLoader
   implements VM_Constants, VM_ClassLoaderConstants {

@@ -1,8 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Use optimizing compiler to compile code at run time.
-//
+//$Id$
+
+/**
+ * Use optimizing compiler to compile code at run time.
+ *
+ * @author Stephen Fink
+ * @author David Grove
+ */
 class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 
   public static final int COMPILER_TYPE = VM_CompilerInfo.OPT;

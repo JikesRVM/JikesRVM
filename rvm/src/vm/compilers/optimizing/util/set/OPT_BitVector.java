@@ -1,15 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /** 
  * OPT_BitVector.java
  *
  * implements a bit vector
  *
- * @author John Whaley?
+ * @author John Whaley
  * @modified by Stephen Fink
  */
-
 public final class OPT_BitVector implements Cloneable, java.io.Serializable {
 
   private final static int LOG_BITS_PER_UNIT = 5;

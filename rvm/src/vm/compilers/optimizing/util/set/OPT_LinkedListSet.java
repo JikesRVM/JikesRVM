@@ -1,11 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import  java.util.NoSuchElementException;
 
-
 /**
- * put your documentation comment here
+ * @author Mauricio J. Serrano
+ * @author John Whaley
  */
 class OPT_LinkedListSet extends java.util.AbstractSet {
   OPT_LinkedListObjectElement tos;

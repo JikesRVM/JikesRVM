@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Iterator for stack frames inserted at the transition from Java to
  * JNI Native C.  It will report JREFs associated with the executing

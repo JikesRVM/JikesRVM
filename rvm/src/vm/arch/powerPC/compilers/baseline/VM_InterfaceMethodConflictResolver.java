@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * Generates a custom IMT-conflict resolution stub.
  * We create a binary search tree.

@@ -1,8 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/*
- * @author Ton Ngo, Steve Smith
+//$Id$
+
+/**
+ * @author Ton Ngo 
+ * @author Steve Smith
  */
 public class VM_JNICompiler implements VM_BaselineConstants {
 

@@ -1,11 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 
 /**
  * Constants describing vm object, stack, and register characteristics.
  * Some of these constants are architecture-specific
  * and some are (at the moment) architecture-neutral.
+ *
+ * @author Bowen Alpern
+ * @author Stephen Fink
+ * @author David Grove
  */
 interface VM_Constants
 extends   VM_ObjectLayoutConstants,     // architecture-neutral

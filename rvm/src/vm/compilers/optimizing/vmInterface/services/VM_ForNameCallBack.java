@@ -1,8 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
- * put your documentation comment here
+ * @author Igor Pechtchanski
  */
 interface VM_ForNameCallBack {
 

@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-//$Id 
+//$Id$
 
 /**
  * This class splits live ranges for certain special cases before register

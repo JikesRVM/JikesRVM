@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * VM_AOSDatabase.java
  * 
@@ -8,10 +10,7 @@
  * AOS database.  
  *
  * @author Matthew Arnold 
- *
- **/
-
-
+ */
 public final class VM_AOSDatabase 
 {
   /** 

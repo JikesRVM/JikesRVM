@@ -1,9 +1,13 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id:
 
 /**
  * A java method's local variable information (for use by debuggers).
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 class VM_LocalVariable {
   VM_Atom name;               // name of this variable

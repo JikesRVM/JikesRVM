@@ -1,6 +1,11 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
+
+# author Bowen Alpern
+# author Derek Lieber
+
 include			$(RVM_ROOT)/rvm/build.Make.rules
 
 MakeTemplates:		$(GEN_FILES_DIR)/VM_AtomDictionary.java \

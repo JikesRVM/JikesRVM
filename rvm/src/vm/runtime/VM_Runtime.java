@@ -2,6 +2,7 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+
 /**
  * Entrypoints into the runtime of the virtual machine.
  *
@@ -35,6 +36,8 @@
  *   - "ip" values that point to interiors of "code" objects
  *   - "fp" values that point to interior of "stack" objects
  *
+ * @author Bowen Alpern
+ * @author Derek Lieber
  */
 public class VM_Runtime implements VM_Constants {
    
