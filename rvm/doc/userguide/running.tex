@@ -70,19 +70,13 @@ print usage on nonstandard options
 print out additional information for GC and hardware trap handling
 
 \item[{\tt -X:h=<number>}]
-allocate {\tt <number>} megabytes of small object heap
+set the initial heap size to {\tt <number>} megabytes
+
+\item[{\tt -Xms<number>}]
+set the initial heap size to {\tt <number>} megabytes (same as -X:h=<number>)
 
 \item[{\tt -Xmx<number>}]
-allocate {\tt <number>} megabytes of small object heap
-
-\item[{\tt -X:lh=<number>}]
-allocate {\tt <number>} megabytes of large object heap
-
-\item[{\tt -X:nh=<number>}]
-allocate {\tt <number>} megabytes of nursery object heap 
-
-\item[{\tt -X:ph=<number>}]
-allocate {\tt <number>} megabytes of permanent object heap 
+set the maximum heap size to {\tt <number>} megabytes
 
 \item[{\tt -X:sysLogfile=<filename>}]
 writes standard error message to {\tt <filename>}
@@ -142,10 +136,6 @@ number of processors to use on a multiprocessor
 
 \item[{\tt -X:measureCompilation=<boolean>}]
 produce a report on compilation time
-
-\item[{\tt -X:measureClassLoading=<int>}]
-produce a report on class loading time (1 dump at end of run, 2 dump
-at every load).
 
 \item[{\tt -X:verify=<boolean>}] verify bytecodes
 \end{description}
