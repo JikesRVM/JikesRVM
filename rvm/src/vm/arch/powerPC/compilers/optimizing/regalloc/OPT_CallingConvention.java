@@ -107,23 +107,16 @@ implements OPT_PhysicalRegisterConstants {
     // we are restoring the methodID after a sysCall. 
     OPT_Instruction s2 = Store.create(REF_STORE, ir.regpool.makeJTOCOp(ir,s), 
                                       ir.regpool.makeFPOp(), 
-                                      I(20), null);         // TODO: valid location?
+                                      I(5*BYTES_IN_ADDRESS), null);         // TODO: valid location?
     s.insertBack(s2);
     s.insertBack(Move.create(REF_MOVE, ir.regpool.makeJTOCOp(ir,s), toc));
     Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
     s2 = Load.create(REF_LOAD, ir.regpool.makeJTOCOp(ir,s), ir.regpool.makeFPOp(),
-                     I(20), null);         // TODO: valid location?
+                     I(5*BYTES_IN_ADDRESS), null);         // TODO: valid location?
     s.insertFront(s2);
-    //-#if RVM_FOR_32_ADDR
     OPT_RegisterOperand temp = ir.regpool.makeTempInt();
-    s2 = Move.create(REF_MOVE, temp, I(ir.compiledMethod.getId()));
-    //-#endif
-    //-#if RVM_FOR_64_ADDR
-    // KV: to get it stored in the right half:
-    OPT_RegisterOperand temp = ir.regpool.makeTempLong();
-    s2 = Move.create(REF_MOVE, temp, LC(ir.compiledMethod.getId()));
-    //-#endif
-    OPT_Instruction s3 = Store.create(REF_STORE, temp.copy(), 
+    s2 = Move.create(INT_MOVE, temp, I(ir.compiledMethod.getId()));
+    OPT_Instruction s3 = Store.create(INT_STORE, temp.copy(), 
                                       ir.regpool.makeFPOp(), 
                                       I(STACKFRAME_METHOD_ID_OFFSET), null);  // TODO: valid location?
     s.insertFront(s3);

@@ -1325,6 +1325,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(MIR_Binary.create(PPC_SUBFE, R(defReg), 
                            R(leftReg), R(rightReg)));
     //-#endif
+    //KV: TODO is this needed? --> taken care of by BURS
     //-#if RVM_FOR_64_ADDR
     EMIT(MIR_Binary.create(PPC_SUBF,
                            L(regpool.getSecondReg(defReg)),
@@ -1981,13 +1982,28 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_MethodOperand meth = OPT_MethodOperand.STATIC(target);
     meth.setIsNonReturningCall(true);
     if (SI16(offset)) {
+      //-#if RVM_FOR_32_ADDR
       EMIT(MIR_Load.create(PPC_LWZ, tmp, R(JTOC), I(offset)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      EMIT(MIR_Load.create(PPC64_LD, tmp, L(JTOC), I(offset)));
+      //-#endif
     } else {
       OPT_RegisterOperand tmp2 = regpool.makeTempInt();
       IntConstant(tmp2.register, offset);
+      //-#if RVM_FOR_32_ADDR
       EMIT(MIR_Load.create(PPC_LWZX, tmp, R(JTOC), tmp2));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      EMIT(MIR_Load.create(PPC64_LDX, tmp, L(JTOC), tmp2));
+      //-#endif
     }
+    //-#if RVM_FOR_32_ADDR
     EMIT(MIR_Move.create(PPC_MTSPR, R(CTR), tmp.copyD2U()));
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    EMIT(MIR_Move.create(PPC_MTSPR, L(CTR), tmp.copyD2U()));
+    //-#endif
     EMIT(MIR_Call.mutate0(s, PPC_BCTRL, null, null, meth));
   }
 
