@@ -34,9 +34,9 @@ public final class Barrier implements VM_Uninterruptible {
   int currentCounter = 0;
 
   // Debugging constants
-  private static final int TIME_CHECK = 1000000;    // Check time every TIME_CHECK-th iteration
-  private static final double BEGIN_TIME_OUT = 5.0; // Begin verbosity after BEGIN_TIME_OUT seconds
-  private static final double END_TIME_OUT = 10.0;  // Die after END_TIME_OUT seconds
+  private static final int TIME_CHECK = 1000000;   // Check time every TIME_CHECK-th iteration
+  private static final double WARN_PERIOD = 3.0;   // Print msg every WARN_PERIOD seconds
+  private static final double TIME_OUT    = 30.0;  // Die after TIME_OUT seconds
 
   public Barrier () {
     counters = new SynchronizedCounter[NUM_COUNTERS];
@@ -75,6 +75,7 @@ public final class Barrier implements VM_Uninterruptible {
     }
     else {                       // everyone else
       double startCheck = 0.0;
+      double lastElapsed = 0.0;
       for (int i=0; ; i++) {
 	if (target != -1 && c.peek() == target) 
 	  return myValue;
@@ -83,13 +84,14 @@ public final class Barrier implements VM_Uninterruptible {
 	    startCheck = VM_Interface.now();
 	  else {
 	    double elapsed = VM_Interface.now() - startCheck;
-	    if (elapsed >= END_TIME_OUT) 
-	      VM.sysFail("Barrier Timeout");
-	    if (elapsed >= BEGIN_TIME_OUT) {
-	      VM.sysWrite("GC Error: Barrier timed out after ", elapsed);
+	    if (elapsed - lastElapsed > WARN_PERIOD) {
+	      VM.sysWrite("GC Warning: Barrier wait has reached ", elapsed);
 	      VM.sysWrite(" seconds.  Called from ", where, ".  myOrder = ", myValue);
 	      VM.sysWriteln("  count is ", c.peek(), " waiting for ", target - 1);
+	      lastElapsed = elapsed;
 	    }
+	    if (elapsed > TIME_OUT)
+	      VM.sysFail("GC Error: Barrier Timeout");
 	  }
 	}
       }
