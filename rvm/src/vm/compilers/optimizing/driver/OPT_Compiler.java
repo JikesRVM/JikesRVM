@@ -97,11 +97,6 @@ public class OPT_Compiler {
     // Disable things that we think are a bad idea in this context
     options.GUARDED_INLINE = false;        // badly hurts pBOB performance if enabled (25% reduction in TPM).
 
-    // would increase build time by some 25%
-    options.GCP = false;
-    options.TURN_WHILES_INTO_UNTILS = false;
-    options.GCSE=false;
-	 
     // Pre-existence based inlining isn't supported for bootimage writing.
     // Similarly, we need to avoid IG_CODE_PATCH (uses same dependency database)
     // The problem is that some subset of bootimage methods can't be safely invalidated.
