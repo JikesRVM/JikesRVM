@@ -69,7 +69,7 @@ public class VM_CollectorThread extends VM_Thread {
 
   private final static boolean debug_native = false;
   
-  private final static int trace = 1;
+  private final static int trace = 0;
 
   /** When true, causes RVM collectors to display heap configuration at startup */
   static final boolean DISPLAY_OPTIONS_AT_BOOT = false;
@@ -308,6 +308,8 @@ public class VM_CollectorThread extends VM_Thread {
       
       // wait for other collector threads to arrive here
       rendezvousWaitTime += gcBarrier.rendezvous(MEASURE_RENDEZVOUS_TIMES);  
+      if (trace > 2) VM.sysWriteln("VM_CollectorThread: past rendezvous 1 after collection");
+
       if (MEASURE_RENDEZVOUS_TIMES) {
 	  gcBarrier.rendezvous(false);  	  // need extra barrier call to let all processors set prev rendezvouz time
 	  if (VM_Processor.getCurrentProcessorId() == 1)
@@ -319,6 +321,7 @@ public class VM_CollectorThread extends VM_Thread {
 	// unblock any native processors executing in native that were blocked
 	// in native at the start of GC
 	//
+	if (trace > 3) VM.sysWriteln("VM_CollectorThread: unblocking native procs");
 	for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
 	  VM_Processor vp = VM_Processor.nativeProcessors[i];
 	  if (VM.VerifyAssertions) VM._assert(vp != null);
@@ -333,6 +336,7 @@ public class VM_CollectorThread extends VM_Thread {
 	// found in C, and were BLOCKED_IN_NATIVE, during the collection, and now
 	// need to be unblocked.
 	//
+	if (trace > 3) VM.sysWriteln("VM_CollectorThread: unblocking native procs blocked during GC");
 	for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
 	  VM_Processor vp = VM_Scheduler.processors[i];
 	  if (VM.VerifyAssertions) VM._assert(vp != null);
@@ -358,6 +362,7 @@ public class VM_CollectorThread extends VM_Thread {
 	  resumeAttachedProcessors();
 	}
 
+	if (trace > 3) VM.sysWriteln("VM_CollectorThread: clearing lock out field");
 	VM_Magic.setIntAtOffset(VM_BootRecord.the_boot_record, VM_Entrypoints.lockoutProcessorField.getOffset(), 0); // clear the GC flag
       }
 
@@ -368,6 +373,7 @@ public class VM_CollectorThread extends VM_Thread {
       // threads go back to the top of the run loop, to place themselves
       // back on the collectorQueue, to wait for the next collection.
       //
+      if (trace > 2) VM.sysWriteln("enabling thread switching");
       VM_Processor.getCurrentProcessor().enableThreadSwitching();  // resume normal scheduling
       
     }  // end of while(true) loop
