@@ -83,10 +83,14 @@ public class Thread extends ThreadBase implements Runnable {
 	if (group == null) {
 	    SecurityManager currentManager = System.getSecurityManager();
 	    // if there is a security manager...
-	    if (currentManager != null)
-		// Ask SecurityManager for ThreadGroup
+	    if (currentManager != null) {
+		// Ask SecurityManager for ThreadGroup...
 		group = currentManager.getThreadGroup();
-	    else
+		
+		// ...but use the creator's group otherwise
+		if (group == null)
+		    group = currentThread.getThreadGroup();
+	    } else
 		// Same group as Thread that created us
 		group = currentThread.getThreadGroup();
 	}
