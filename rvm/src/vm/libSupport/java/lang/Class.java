@@ -67,10 +67,7 @@ public final class Class implements java.io.Serializable {
     throw new VM_UnimplementedError();
   }
   
-  public static Class forName(String typeName) 
-    throws ClassNotFoundException,
-	   IllegalArgumentException // malformed typeName
-  {
+  public static Class forName(String typeName) throws ClassNotFoundException {
     ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
     return forNameInternal(typeName, true, parentCL);
   }
@@ -80,9 +77,7 @@ public final class Class implements java.io.Serializable {
 			      ClassLoader classLoader) 
     throws ClassNotFoundException,
 	   LinkageError,
-	   ExceptionInInitializerError,
-	   IllegalArgumentException // malformed className
-  {
+	   ExceptionInInitializerError {
     if (classLoader == null) {
       SecurityManager security = System.getSecurityManager();
       if (security != null) {
@@ -667,15 +662,12 @@ public final class Class implements java.io.Serializable {
 				       ClassLoader classLoader)
     throws ClassNotFoundException,
 	   LinkageError,
-	   ExceptionInInitializerError ,
-	   IllegalArgumentException // malformed className
-  {
+	   ExceptionInInitializerError {
     try {
       if (className.startsWith("[")) {
-	if (!validArrayDescriptor(className)) 
-	  throw new IllegalArgumentException(
- 	       "Could not look up a class named \"" + className 
-	       + "\"; starts with '[', but it's not a valid array descriptor");
+	if (!validArrayDescriptor(className)) {
+	  throw new ClassNotFoundException(className);
+	}
       }
       VM_Atom descriptor = VM_Atom
 	.findOrCreateAsciiAtom(className.replace('.','/'))
