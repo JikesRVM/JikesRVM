@@ -1,0 +1,21 @@
+#! /bin/bash
+#
+# (C) Copyright IBM Corp. 2001, 2003, 2004
+#
+# This file contains deltas from i686-pc-linux-gnu
+# to reflect the environment at watson.
+
+# This file is specifically used to run the classpath/mauve 
+# nightly regression tests.
+
+export HOST_JAVA_HOME="/homes/meriadoc/jalapeno/contrib/j2sdk1.4.1"
+
+. $RVM_ROOT/rvm/config/i686-pc-linux-gnu
+
+export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.10
+export JIKES=/homes/meriadoc/jalapeno/bin/i686/jikes-1.19
+export ANT_CMD=/homes/meriadoc/jalapeno/contrib/jakarta-ant-1.4.1/bin/ant
+export BENCHMARK_ROOT=/homes/meriadoc/jalapeno/contrib/benchmarks
+export RVM_WITH_CLASSPATH_0_10_OR_LATER=1
+export RVM_WITH_CLASSPATH_0_11_OR_LATER=1
+export RVM_WITH_CLASSPATH_POST_0_11_CVS_HEAD=1
