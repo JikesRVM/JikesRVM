@@ -161,7 +161,7 @@ public class VM_StackTrace implements VM_Constants {
 //     try {
 //       Class c = Class.forName("com.ibm.JikesRVM.MainThread");
 //       Method m = c.getDeclaredMethod("run", new Class[0]);
-//       return m.getVM_Method();
+//       return java.lang.reflect.JikesRVMSupport.getMethodOf(m);
 //     } catch (ClassNotFoundException cnf) {
 //       return null;
 //     } catch (NoSuchMethodException nsm) {
