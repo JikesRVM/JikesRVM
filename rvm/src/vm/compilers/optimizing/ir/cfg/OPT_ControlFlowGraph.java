@@ -342,6 +342,25 @@ final class OPT_ControlFlowGraph extends OPT_SpaceEffGraph {
     bb2.prev = null;
   }
 
+  /**
+   * Clear the code ordering information for the CFG.
+   * NOTE: This method should only be called as part of a 
+   *       whole scale recomputation of the code order, for example
+   *       by OPT_ReorderingPhase
+   */
+  void clearCodeOrder() {
+    OPT_SpaceEffGraphNode cur = _firstNode;
+    if (cur == null) return;
+    while (true) {
+      OPT_SpaceEffGraphNode next = cur.next;
+      if (next == null) break;
+      cur.next = null;
+      next.prev = null;
+      cur = next;
+    }
+    _firstNode = null;
+    _lastNode = null;
+  }
 
   // VCG Graph stuff (visualization of FCFG using VCG tool)
   private static final class NodeEnumeration implements Enumeration {
