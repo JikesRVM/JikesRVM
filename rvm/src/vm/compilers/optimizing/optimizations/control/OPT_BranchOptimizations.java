@@ -15,6 +15,7 @@ import java.util.HashSet;
  * @author Stephen Fink
  * @author Dave Grove
  * @author Mauricio Serrano
+ * @author Martin Trapp
  */
 public final class OPT_BranchOptimizations
   extends OPT_BranchOptimizationDriver {
@@ -236,6 +237,20 @@ public final class OPT_BranchOptimizations
       // generateCondMove does all necessary CFG fixup.
       return true;
     }
+
+    // do we fall through to a block that has only a goto?
+    OPT_BasicBlock fallThrough = bb.getFallThroughBlock();
+    if (fallThrough != null) {
+      OPT_Instruction
+	fallThroughInstruction = fallThrough.firstRealInstruction();
+      if ((  fallThroughInstruction != null)
+	  && Goto.conforms (fallThroughInstruction)) {
+	// copy goto to bb
+	bb.appendInstruction (fallThroughInstruction.copyWithoutLinks());
+	bb.recomputeNormalOut(ir);
+      }                                                                  
+    }
+    
     if (Goto.conforms(targetInst)) {
       // conditional branch to unconditional branch.
       // change conditional branch target to latter's target
