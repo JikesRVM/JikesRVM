@@ -955,7 +955,11 @@ final class OPT_StackManager extends OPT_GenericStackManager
             } else {
               // r is currently NOT assigned to a scratch register.
               // Do we need to create a new scratch register to hold r?
-              if (!isScratchFreeMove(s) && (s.hasMemoryOperand())) {
+              // Note that we never need scratch floating point register
+              // for FMOVs, since we already have a scratch stack location
+              // reserved.
+              if ((r.isFloatingPoint() && s.operator == IA32_FMOV) ||
+                 (!isScratchFreeMove(s) && (s.hasMemoryOperand()))) {
                 // We must create a new scratch register.
                 boolean used = usedIn(r,s) || usesSpillLocation(r,s);
                 boolean defined = definedIn(r,s) || definesSpillLocation(r,s);
@@ -1152,6 +1156,9 @@ final class OPT_StackManager extends OPT_GenericStackManager
       boolean delayPushESP = false;
       if (s.operator() == IA32_MOV && !isPEIWithCatch(s)) {
         delayPushESP = rewriteMoveInstruction(s);
+      } else if (s.operator() == IA32_FMOV) {
+        // don't do anything, just rewrite the stack location operand as a
+        // memory location operand.
       } else if (appearsIn(ESP,s) || isPEIWithCatch(s) || s.isCall()) {
         // The instruction uses the fixed value of ESP.  Reset ESP before
         // s.
