@@ -90,7 +90,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /**
    * Bytecodes for the method being generated.
    */
-  private OPT_BytecodeInfo bcInfo;
+  private VM_BytecodeStream bcodes;
 
   // Fields to support generation of instructions/blocks
   /**
@@ -188,7 +188,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
       
     }
-    bcInfo = OPT_BytecodeInfoFactory.create( context.method );
+    bcodes = context.method.getBytecodes();
     // initialize the local state from context.arguments
     _localState = new OPT_Operand[context.method.getLocalWords()];
   }
@@ -197,7 +197,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // Initialize simulated stack.
     stack = new OperandStack(context.method.getOperandWords());
     // Initialize BBSet.
-    blocks = new BBSet(context, bcInfo, _localState);
+    blocks = new BBSet(context, bcodes, _localState);
     // Finish preparing to generate from bytecode 0
     currentBBLE = blocks.getEntry();
     gc.prologue.insertOut(currentBBLE.block);
@@ -252,13 +252,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     currentBBLE.setGenerated();
     endOfBasicBlock = fallThrough = false;
     lastInstr = null;
-    bcInfo.setInstruction(fromIndex);
+    bcodes.reset(fromIndex);
     while (true) {
       // Must keep currentBBLE.high up-to-date in case we try to jump into 
       // the middle of the block we're currently generating.  Simply updating 
       // high once endsBasicBlock is true doesn't enable us to catch this case.
-      currentBBLE.high = instrIndex = bcInfo.currentInstruction();
-      int code = bcInfo.getNextInstruction();
+      currentBBLE.high = instrIndex = bcodes.index();
+      int code = bcodes.nextInstruction();
       if (DBG_BCPARSE) {
         db("parsing " + instrIndex + " " + code + " : 0x" + Integer.toHexString(code));
       }
@@ -302,43 +302,43 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	break;
 
       case JBC_bipush:
-	push(new OPT_IntConstantOperand(bcInfo.getByteValue()));
+	push(new OPT_IntConstantOperand(bcodes.getByteValue()));
 	break;
 	
       case JBC_sipush:
-	push(new OPT_IntConstantOperand(bcInfo.getShortValue()));
+	push(new OPT_IntConstantOperand(bcodes.getShortValue()));
 	break;
 
       case JBC_ldc:
-	push(bcInfo.getConstantOperand(false));
+	push(getConstantOperand(bcodes.getConstantIndex()));
 	break;
 
       case JBC_ldc_w:
-	push(bcInfo.getConstantOperand(true));
+	push(getConstantOperand(bcodes.getWideConstantIndex()));
 	break;
 
       case JBC_ldc2_w:
-	pushDual(bcInfo.getConstantOperand(true));
+	pushDual(getConstantOperand(bcodes.getWideConstantIndex()));
 	break;
 
       case JBC_iload:
-	s = do_iload(bcInfo.getLocalNumber());
+	s = do_iload(bcodes.getLocalNumber());
 	break;
 
       case JBC_lload:
-	s = do_lload(bcInfo.getLocalNumber());
+	s = do_lload(bcodes.getLocalNumber());
 	break;
 
       case JBC_fload:
-	s = do_fload(bcInfo.getLocalNumber());
+	s = do_fload(bcodes.getLocalNumber());
 	break;
 
       case JBC_dload:
-	s = do_dload(bcInfo.getLocalNumber());
+	s = do_dload(bcodes.getLocalNumber());
 	break;
 
       case JBC_aload:
-	s = do_aload(bcInfo.getLocalNumber());
+	s = do_aload(bcodes.getLocalNumber());
 	break;
 
       case JBC_iload_0:case JBC_iload_1:case JBC_iload_2:case JBC_iload_3:
@@ -472,23 +472,23 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	break;
 
       case JBC_istore:
-	s = do_store(bcInfo.getLocalNumber(), popInt());
+	s = do_store(bcodes.getLocalNumber(), popInt());
 	break;
 
       case JBC_lstore:
-	s = do_store(bcInfo.getLocalNumber(), popLong());
+	s = do_store(bcodes.getLocalNumber(), popLong());
 	break;
 
       case JBC_fstore:
-	s = do_store(bcInfo.getLocalNumber(), popFloat());
+	s = do_store(bcodes.getLocalNumber(), popFloat());
 	break;
 
       case JBC_dstore:
-	s = do_store(bcInfo.getLocalNumber(), popDouble());
+	s = do_store(bcodes.getLocalNumber(), popDouble());
 	break;
 
       case JBC_astore:
-	s = do_astore(bcInfo.getLocalNumber());
+	s = do_astore(bcodes.getLocalNumber());
 	break;
 
       case JBC_istore_0:case JBC_istore_1:case JBC_istore_2:case JBC_istore_3:
@@ -1037,8 +1037,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_iinc:
 	{
-	  int index = bcInfo.getLocalNumber();
-	  s = do_iinc(index, bcInfo.getByteValue());
+	  int index = bcodes.getLocalNumber();
+	  s = do_iinc(index, bcodes.getIncrement());
 	}
 	break;
 
@@ -1200,38 +1200,35 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_goto:
 	{
-	  int offset = bcInfo.getBranchTarget();
+	  int offset = bcodes.getBranchOffset();
 	  if (offset != 3)   // skip generating frivolous goto's
 	    s = _gotoHelper(offset);
 	}
 	break;
 
       case JBC_jsr:
-	s = _jsrHelper(bcInfo.getBranchTarget());
+	s = _jsrHelper(bcodes.getBranchOffset());
 	break;
 
       case JBC_ret:
-	s = _retHelper(bcInfo.getLocalNumber());
+	s = _retHelper(bcodes.getLocalNumber());
 	break;
 
       case JBC_tableswitch:
 	{
+	  bcodes.alignSwitch();
 	  OPT_Operand op0 = popInt();
-	  int defaultoff = bcInfo.getSwitchDefaultTarget();
-	  int low = bcInfo.getSwitchLowValue();
-	  int high = bcInfo.getSwitchHighValue();
+	  int defaultoff = bcodes.getDefaultSwitchOffset();
+	  int low = bcodes.getLowSwitchValue();
+	  int high = bcodes.getHighSwitchValue();
 	  int number = high - low + 1;
 	  if (CF_TABLESWITCH && op0 instanceof OPT_IntConstantOperand) {
 	    int v1 = ((OPT_IntConstantOperand)op0).value;
-	    int offset;
-	    if ((v1 < low) || (v1 > high))
-	      offset = defaultoff; 
-	    else 
-	      offset = bcInfo.getTableSwitchOffsetForConstant(v1, low, high);
-	    bcInfo.skipTableSwitchTargets(number);
+	    int match = bcodes.computeTableSwitchOffset(v1, low, high);
+	    int offset = match == 0 ? defaultoff : match;
+	    bcodes.skipTableSwitchOffsets(number);
 	    if (DBG_CF) {
-	      db("changed tableswitch to goto because index (" + v1 + 
-		 ") is constant");
+	      db("changed tableswitch to goto because index (" + v1 + ") is constant");
 	    }
 	    s = _gotoHelper(offset);
 	    break;
@@ -1243,8 +1240,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 				 null,
 				 number*2);
 	  for (int i = 0; i < number; ++i) {
-	    TableSwitch.setTarget(s, i, generateTarget(bcInfo.getSwitchTarget(i)));
+	    TableSwitch.setTarget(s, i, generateTarget(bcodes.getTableSwitchOffset(i)));
 	  }
+	  bcodes.skipTableSwitchOffsets(number);
 	  
 	  // Set branch probabilities
 	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex);
@@ -1265,29 +1263,21 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_lookupswitch:
 	{
+	  bcodes.alignSwitch();
 	  OPT_Operand op0 = popInt();
-	  int defaultoff = bcInfo.getSwitchDefaultTarget();
-	  int numpairs = bcInfo.getLookupSwitchNumberOfPairs();
+	  int defaultoff = bcodes.getDefaultSwitchOffset();
+	  int numpairs = bcodes.getSwitchLength();
 	  if (numpairs == 0) {
 	    s = _gotoHelper(defaultoff);
 	    break;
 	  }
 	  if (CF_LOOKUPSWITCH && op0 instanceof OPT_IntConstantOperand) {
 	    int v1 = ((OPT_IntConstantOperand)op0).value;
-	    int offset = defaultoff;
-	    for (int i = 0; i < numpairs; ++i) {
-	      int match = bcInfo.getSwitchValue(i);
-	      if (match == v1) {
-		offset = bcInfo.getSwitchTarget(i);
-		bcInfo.skipLookupSwitchPairs(numpairs, i + 1);
-		break;        // for
-	      } else {
-		bcInfo.skipSwitchValue(i);
-	      }
-	    }
+	    int match = bcodes.computeLookupSwitchOffset(v1, numpairs);
+	    int offset = match == 0 ? defaultoff : match;
+	    bcodes.skipLookupSwitchPairs(numpairs);
 	    if (DBG_CF) {
-	      db("changed lookupswitch to goto because index (" + v1
-		 + ") is constant");
+	      db("changed lookupswitch to goto because index (" + v1 + ") is constant");
 	    }
 	    s = _gotoHelper(offset);
 	    break;
@@ -1298,9 +1288,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 				  generateTarget(defaultoff), 
 				  null,  numpairs*3);
 	  for (int i = 0; i < numpairs; ++i) {
-	    LookupSwitch.setMatch(s, i, new OPT_IntConstantOperand(bcInfo.getSwitchValue(i)));
-	    LookupSwitch.setTarget(s, i, generateTarget(bcInfo.getSwitchTarget(i)));
+	    LookupSwitch.setMatch(s, i, new OPT_IntConstantOperand(bcodes.getLookupSwitchValue(i)));
+	    LookupSwitch.setTarget(s, i, generateTarget(bcodes.getLookupSwitchOffset(i)));
 	  }
+	  bcodes.skipLookupSwitchPairs(numpairs);
 
 	  // Set branch probabilities
 	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex);
@@ -1355,7 +1346,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_getstatic:
 	{
-	  VM_Field field = bcInfo.getFieldReference();
+	  VM_Field field = bcodes.getFieldReference();
 	  // use results of field analysis to refine type.
 	  VM_Type fieldType = field.getType();
           OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
@@ -1433,7 +1424,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_putstatic:
 	{
-	  VM_Field field = bcInfo.getFieldReference();
+	  VM_Field field = bcodes.getFieldReference();
 	  VM_Type fieldType = field.getType();
 	  OPT_Operand r = pop(fieldType);
 	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
@@ -1451,7 +1442,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  clearCurrentGuard();
 	  if (do_NullCheck(op1))
 	    break;
-	  VM_Field field = bcInfo.getFieldReference();
+	  VM_Field field = bcodes.getFieldReference();
 	  VM_Type fieldType = field.getType();
           OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
 	  // use results of field analysis to refine type.
@@ -1481,7 +1472,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_putfield:
 	{
-	  VM_Field field = bcInfo.getFieldReference();
+	  VM_Field field = bcodes.getFieldReference();
 	  VM_Type fieldType = field.getType();
 	  OPT_Operand val = pop(fieldType);
 	  OPT_Operand obj = popRef();
@@ -1504,7 +1495,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    OPT_InlineReport.beginNewDecision();
 	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_VIRTUAL);
 	  }
-	  VM_Method meth = bcInfo.getMethodReference();
+	  VM_Method meth = bcodes.getMethodReference();
 	  if (meth.getDeclaringClass().isWordType()) {
 	    try {
 	      boolean generated = OPT_GenerateMagic.generateMagic(this, gc, meth);
@@ -1592,7 +1583,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    OPT_InlineReport.beginNewDecision();
 	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_SPECIAL);
 	  }
-	  VM_Method meth = bcInfo.getMethodReference();
+	  VM_Method meth = bcodes.getMethodReference();
 	  // Note: this is not the usual needsDynamicLink 
 	  // due to semantics of invokespecial
 	  // See comments in VM_OptLinker, OPT_Convert2Low, VM_Linker.  
@@ -1627,7 +1618,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    OPT_InlineReport.beginNewDecision();
 	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_STATIC);
 	  }
-	  VM_Method meth = bcInfo.getMethodReference();
+	  VM_Method meth = bcodes.getMethodReference();
 	  if (meth.getDeclaringClass().isMagicType() ||
 	      meth.getDeclaringClass().isWordType()) {
 	    try {
@@ -1675,8 +1666,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    OPT_InlineReport.beginNewDecision();
 	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_INTERFACE);
 	  }
-	  VM_Method meth = bcInfo.getMethodReference();
-	  bcInfo.eatInvokeInterfaceGarbage();
+	  VM_Method meth = bcodes.getMethodReference();
+	  bcodes.alignInvokeInterface();
 	  OPT_MethodOperand methOp = OPT_MethodOperand.INTERFACE(meth, false);
 	  s = _callHelper(methOp);
 	  if (s == null) {
@@ -1818,7 +1809,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_new:
 	{
-	  VM_Type klass = bcInfo.getTypeReference();
+	  VM_Type klass = bcodes.getTypeReference();
 	  OPT_TypeOperand klassOp = makeTypeOperand(klass);
 	  OPT_RegisterOperand t = gc.temps.makeTemp(klass);
 	  t.setPreciseType();
@@ -1837,8 +1828,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_newarray:
 	{
-	  byte atype = (byte)bcInfo.getByteValue();
-	  VM_Array array = OPT_ClassLoaderProxy.getPrimitiveArrayType(atype);
+	  VM_Array array = bcodes.getPrimitiveArrayType().asArray();
 	  OPT_TypeOperand arrayOp = makeTypeOperand(array);
 	  OPT_RegisterOperand t = gc.temps.makeTemp(array);
 	  t.setPreciseType();
@@ -1853,7 +1843,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_anewarray:
 	{
-	  VM_Type elementTypeRef = bcInfo.getTypeReference();
+	  VM_Type elementTypeRef = bcodes.getTypeReference();
 	  VM_Array array = elementTypeRef.getArrayTypeForElementType();
 	  OPT_TypeOperand arrayOp = makeTypeOperand(array);
 	  OPT_RegisterOperand t = gc.temps.makeTemp(array);
@@ -1928,7 +1918,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_checkcast:
 	{
-	  VM_Type typeRef = bcInfo.getTypeReference();
+	  VM_Type typeRef = bcodes.getTypeReference();
 	  boolean classLoading = couldCauseClassLoading(typeRef);
 	  OPT_TypeOperand typeOp = makeTypeOperand(typeRef);
 	  OPT_Operand op2 = pop();
@@ -1973,7 +1963,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_instanceof:
 	{
-	  VM_Type typeRef = bcInfo.getTypeReference();
+	  VM_Type typeRef = bcodes.getTypeReference();
 	  boolean classLoading = couldCauseClassLoading(typeRef);
 	  OPT_TypeOperand typeOp = makeTypeOperand(typeRef);
 	  OPT_Operand op2 = pop();
@@ -2049,8 +2039,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_wide:
 	{
-	  int widecode = bcInfo.getWideOpcode();
-	  int index = bcInfo.getWideLocalNumber();
+	  int widecode = bcodes.getWideOpcode();
+	  int index = bcodes.getWideLocalNumber();
 	  switch (widecode) {
 	  case JBC_iload:
 	    s = do_iload(index);
@@ -2093,7 +2083,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    break;
 
 	  case JBC_iinc:
-	    s = do_iinc(index, bcInfo.getShortValue());
+	    s = do_iinc(index, bcodes.getWideIncrement());
 	    break;
 
 	  case JBC_ret:
@@ -2109,9 +2099,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_multianewarray:
 	{
-	  VM_Type arrayType = bcInfo.getTypeReference();
+	  VM_Type arrayType = bcodes.getTypeReference();
 	  OPT_TypeOperand typeOp = makeTypeOperand(arrayType);
-	  int dimensions = bcInfo.getArrayDimension();
+	  int dimensions = bcodes.getArrayDimension();
 
 	  // Step 1: Create an int array to hold the dimensions.
 	  OPT_TypeOperand dimArrayType = 
@@ -2154,14 +2144,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_goto_w:
 	{
-	  int offset = bcInfo.getWideBranchTarget();
+	  int offset = bcodes.getWideBranchOffset();
 	  if (offset != 5)         // skip generating frivolous goto's
 	    s = _gotoHelper(offset);
 	}
 	break;
 
       case JBC_jsr_w:
-	s = _jsrHelper(bcInfo.getWideBranchTarget());
+	s = _jsrHelper(bcodes.getWideBranchOffset());
 	break;
 	
       default:
@@ -2173,11 +2163,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         appendInstruction(s);
       }
 
-      bcInfo.finishedInstruction();
-
       // check runoff
-      if (VM.VerifyAssertions) VM._assert(bcInfo.currentInstruction() <= runoff);
-      if (!endOfBasicBlock && bcInfo.currentInstruction() == runoff) {
+      if (VM.VerifyAssertions) VM._assert(bcodes.index() <= runoff);
+      if (!endOfBasicBlock && bcodes.index() == runoff) {
         if (DBG_BB || DBG_SELECTED)
           db("runoff occurred! current basic block: " + currentBBLE + 
 	     ", runoff = " + runoff);
@@ -2194,10 +2182,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           return;
         }
         if (fallThrough) {
-          if (VM.VerifyAssertions) VM._assert(bcInfo.currentInstruction() < bcInfo.getLength());
+          if (VM.VerifyAssertions) VM._assert(bcodes.index() < bcodes.length());
           // Get/Create fallthrough BBLE and record it as 
           // currentBBLE's fallThrough.
-          currentBBLE.fallThrough = getOrCreateBlock(bcInfo.currentInstruction());
+          currentBBLE.fallThrough = getOrCreateBlock(bcodes.index());
 	  currentBBLE.block.insertOut(currentBBLE.fallThrough.block);
         }
         return;
@@ -2475,6 +2463,32 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (type.isArrayType()) return !type.isResolved();
     if (type.isClassType() && type.asClass().isInBootImage()) return false;
     return true;
+  }
+
+  /**
+   * Fetch the value of the next operand, a constant, from the bytecode
+   * stream. 
+   * @return the value of a literal constant from the bytecode stream,
+   * encoding as a constant IR operand
+   */
+  public final OPT_Operand getConstantOperand(int index) {
+    byte desc = bcodes.getConstantType(index);
+    VM_Class declaringClass = bcodes.declaringClass();
+    switch (desc) {
+    case VM_Statics.INT_LITERAL:
+      return  OPT_ClassLoaderProxy.getIntFromConstantPool(declaringClass, index);
+    case VM_Statics.FLOAT_LITERAL:
+      return  OPT_ClassLoaderProxy.getFloatFromConstantPool(declaringClass, index);
+    case VM_Statics.STRING_LITERAL:
+      return  OPT_ClassLoaderProxy.getStringFromConstantPool(declaringClass, index);
+    case VM_Statics.LONG_LITERAL:
+      return  OPT_ClassLoaderProxy.getLongFromConstantPool(declaringClass, index);
+    case VM_Statics.DOUBLE_LITERAL:
+      return  OPT_ClassLoaderProxy.getDoubleFromConstantPool(declaringClass, index);
+    default:
+      VM._assert(VM.NOT_REACHED, "invalid literal type: 0x" + Integer.toHexString(desc));
+      return  null;
+    }
   }
 
   //// LOAD LOCAL VARIABLE ONTO STACK.
@@ -2867,7 +2881,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     blocks.seenJSR(); 
 
     // (2) push return address on expression stack
-    push(new ReturnAddressOperand(bcInfo.getReturnAddress()));
+    push(new ReturnAddressOperand(bcodes.index()));
 
     // (3) generate GOTO to subroutine body.
     OPT_BranchOperand branch = generateTarget(offset);
@@ -3087,9 +3101,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
     if (ref instanceof OPT_RegisterOperand) {
       OPT_RegisterOperand rop = (OPT_RegisterOperand)ref;
-      if ( gc.options.ANNOTATIONS &&
-	   bcInfo.queryAnnotation(instrIndex, VM_Method.annotationNullCheck)) {
-        if ( DBG_ANNOTATIONS )
+      if (gc.options.ANNOTATIONS &&
+	  gc.method.queryAnnotationForBytecode(instrIndex, VM_Method.annotationNullCheck)) {
+        if (DBG_ANNOTATIONS)
 	  db("\tEliminate null check of "+ref+" based on annotations\n" );
 	OPT_Operand guard = new OPT_TrueGuardOperand();
         setCurrentGuard(guard);
@@ -3176,8 +3190,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // Unsafely eliminate all bounds checks
     if (gc.options.NO_BOUNDS_CHECK)
       return false;
-    if ( gc.options.ANNOTATIONS &&
-	bcInfo.queryAnnotation(instrIndex, VM_Method.annotationBoundsCheck )) {
+    if (gc.options.ANNOTATIONS &&
+	gc.method.queryAnnotationForBytecode(instrIndex, VM_Method.annotationBoundsCheck)) {
       if ( DBG_ANNOTATIONS )
 	db("\tEliminate bounds check of "+ref+" based on annotations\n" );
       return false;
@@ -3311,7 +3325,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Get or create a block at the specified target.
    * Rectifies current state with target state. 
    * Instructions to rectify state are appended to currentBBLE.
-   * If the target is between bcInfo.currentInstruction() and runoff, runoff is
+   * If the target is between bcodes.index() and runoff, runoff is
    * updated to be target.
    *
    * @param target target index
@@ -3325,7 +3339,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * If simStack is non-null, rectifies stack state with target stack state.
    * If simLocals is non-null, rectifies local state with target local state.
    * Any instructions needed to rectify stack/local state are appended to from.
-   * If the target is between bcInfo.currentInstruction() and runoff, runoff is
+   * If the target is between bcodes.index() and runoff, runoff is
    * updated to be target.
    *
    * @param target target index
@@ -3338,7 +3352,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 					BasicBlockLE from, 
 					OperandStack simStack, 
 					OPT_Operand[] simLocals) {
-    if ((target > bcInfo.currentInstruction()) && (target < runoff)) {
+    if ((target > bcodes.index()) && (target < runoff)) {
       if (DBG_BB || DBG_SELECTED) db("updating runoff from " + runoff + " to " + target);
       runoff = target;
     }
@@ -3362,7 +3376,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   // helper function for if?? bytecodes
   private OPT_Instruction _intIfHelper(OPT_ConditionOperand cond) {
-    int offset = bcInfo.getBranchTarget();
+    int offset = bcodes.getBranchOffset();
     OPT_Operand op0 = popInt();
     if (offset == 3)
       return null;             // remove frivolous IFs
@@ -3599,7 +3613,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   // helper function for if_icmp?? bytecodes
   private OPT_Instruction _intIfCmpHelper(OPT_ConditionOperand cond) {
-    int offset = bcInfo.getBranchTarget();
+    int offset = bcodes.getBranchOffset();
     OPT_Operand op1 = popInt();
     OPT_Operand op0 = popInt();
     if (offset == 3)
@@ -3638,7 +3652,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   // helper function for ifnull/ifnonnull bytecodes
   private OPT_Instruction _refIfNullHelper(OPT_ConditionOperand cond) {
     if (VM.VerifyAssertions) VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL());
-    int offset = bcInfo.getBranchTarget();
+    int offset = bcodes.getBranchOffset();
     OPT_Operand op0 = popRef();
     if (offset == 3)
       return null;             // remove frivolous REF_IFs
@@ -3716,7 +3730,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   // helper function for if_acmp?? bytecodes
   private OPT_Instruction _refIfCmpHelper(OPT_ConditionOperand cond) {
     if (VM.VerifyAssertions) VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL());
-    int offset = bcInfo.getBranchTarget();
+    int offset = bcodes.getBranchOffset();
     OPT_Operand op1 = popRef();
     OPT_Operand op0 = popRef();
     if (offset == 3)
@@ -4055,8 +4069,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
       epilogueBBLE.copyIntoLocalState(_localState);
       BasicBlockLE afterBBLE = 
-	blocks.getOrCreateBlock(bcInfo.getReturnAddress(), epilogueBBLE, 
-				stack, _localState);
+	blocks.getOrCreateBlock(bcodes.index(), epilogueBBLE, stack, _localState);
       // Create the InliningBlockLE and initialize fallThrough links.
       InliningBlockLE inlinedCallee = new InliningBlockLE(inlinedContext);
       currentBBLE.fallThrough = inlinedCallee;
@@ -4160,7 +4173,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     private OPT_GenerationContext gc;
 
     /** associated bytecodes */
-    private OPT_BytecodeInfo bcInfo;
+    private VM_BytecodeStream bcodes;
 
     // Fields to support generation/identification of catch blocks
     /** Start bytecode index for each exception handler ranges */
@@ -4180,15 +4193,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * Initialize the BBSet to handle basic block generation for the argument
      * generation context and bytecode info.
      * @param gc the generation context to generate blocks for
-     * @param bcInfo the bytecodes of said generation context
+     * @param bcodes the bytecodes of said generation context
      * @param localState the state of the local variables for the block
      *                   beginning at bytecode 0.
      */
     BBSet(OPT_GenerationContext gc, 
-	  OPT_BytecodeInfo bcInfo,
+	  VM_BytecodeStream bcodes,
 	  OPT_Operand[] localState) {
       this.gc = gc;
-      this.bcInfo = bcInfo;
+      this.bcodes = bcodes;
       
       // Set up internal data structures to deal with exception handlers
       parseExceptionTables();
@@ -4219,13 +4232,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     /**
      * Gets the bytecode index of the block in the set which has the
      * next-higher bytecode index.
-     * Returns bcInfo.getLength() if x is currently the block with the highest
+     * Returns bcodes.length() if x is currently the block with the highest
      * starting bytecode index.
      * @param x basic block to start at.
      */
     int getNextBlockBytecodeIndex(BasicBlockLE x) {
       BasicBlockLE nextBBLE = getSuccessor(x, x.low);
-      return nextBBLE == null ? bcInfo.getLength() : nextBBLE.low;
+      return nextBBLE == null ? bcodes.length() : nextBBLE.low;
     }
 
     /**
@@ -4405,7 +4418,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    System.err.println("stack size " + stack.getSize());
 	    System.err.println(stack);
 	    System.err.println(p.stackState);
-	    bcInfo.print(System.err);
+	    System.err.println(gc.method.toString());
 	    block.printExtended();
 	    p.block.printExtended();
 	    throw e;
@@ -4799,7 +4812,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param bcIndex the start bytecode index
      */
     private int exceptionEndRange(int bcIndex) {
-      int max = bcInfo.getLength();
+      int max = bcodes.length();
       if (startPCs != null) {
 	for (int i = 0; i < startPCs.length; i++) {
 	  int spc = startPCs[i];
@@ -5228,7 +5241,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     private void verifyTree() {
       if (VM.VerifyAssertions) {
 	VM._assert(root.isBlack());
-	verifyTree(root, -1, bcInfo.getLength());
+	verifyTree(root, -1, bcodes.length());
 	countBlack(root);
       }
     }
