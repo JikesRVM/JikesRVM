@@ -1314,7 +1314,7 @@ function emitExpander () {
 EOF
     if (( RVM_WITH_OPT_COMPILER )); then
 	echo "
-declare -a cmd=(${GNU_MAKE_STR} \${SILENT_MAKE} -f ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg/GNUmakefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool)
+declare -a cmd=(${GNU_MAKE_STR} \${SILENT_MAKE} -f ${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg/Makefile -C ${SCRATCH_DIRECTORY_STR} VPATH=${ROOT_DIRECTORY_STR}/rvm/src/tools/jburg tool)
 ! tracing make || echo \"\${cmd[@]}\"
 \"\${cmd[@]}\"
 "
