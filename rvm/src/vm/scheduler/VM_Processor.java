@@ -580,21 +580,18 @@ implements VM_Uninterruptible, VM_Constants {
    * returns true if BLOCKED_IN_NATIVE
    */ 
   public boolean lockInCIfInC () {
-    int newState, oldState;
-    boolean result = true;
+    int oldState;
     do {
       oldState = VM_Magic.prepareInt(VM_Magic.addressAsObject(vpStatusAddress), 0);
       if (VM.VerifyAssertions) VM._assert(oldState != BLOCKED_IN_NATIVE) ;
       if (oldState != IN_NATIVE) {
         if (VM.VerifyAssertions) 
           VM._assert((oldState==IN_JAVA)||(oldState==IN_SIGWAIT)) ;
-        result = false;
-        break;
+        return false;
       }
-      newState = BLOCKED_IN_NATIVE;
     } while (!(VM_Magic.attemptInt(VM_Magic.addressAsObject(vpStatusAddress), 
-                                0, oldState, newState)));
-    return result;
+                                0, oldState, BLOCKED_IN_NATIVE)));
+    return true;
   }
 
   // sets the VP state to BLOCKED_IN_SIGWAIT if it is currently IN_SIGWAIT
