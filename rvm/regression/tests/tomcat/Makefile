@@ -17,8 +17,8 @@ TOMCAT_TEST_HOME=$(JAL_ROOT)/rvm/regression/tests/tomcat
 ###############################################################################
 # Tomcat's contexts (i.e. the stuff it will be serving)
 #
-HOME_WAR_FILES=$(wildcard $(TOMCAT_TEST_HOME)/webapps/*.war)
-WAR_FILES=$(subst $(TOMCAT_TEST_HOME), $(WORKING), $(HOME_WAR_FILES))
+HOME_WAR_FILES=$(wildcard $(BENCH_HOME)/webapps/*.war)
+WAR_FILES=$(subst $(BENCH_HOME), $(WORKING), $(HOME_WAR_FILES))
 
 CONTEXT_DIRS=$(basename $(WAR_FILES))
 
