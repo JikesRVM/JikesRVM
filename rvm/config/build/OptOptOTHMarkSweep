@@ -1,4 +1,4 @@
    . $1/OptOptMarkSweep
    export RVM_WITH_OPT_TEST_HARNESS=1 
    
-   CONF_SPECIFIC_SOURCES_LIST="$CONF_SPECIFIC_SOURCE_LIST rvm/src/tools/optTestHarness"
+   CONF_SPECIFIC_SOURCES_LIST="$CONF_SPECIFIC_SOURCES_LIST rvm/src/tools/optTestHarness"
