@@ -943,10 +943,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   public final synchronized void resolve() {
     if (isResolved()) return;
 
-    if (!typeRef.isResolved()) {
-      VM.sysWriteln("type ref not resolved for "+this);
-    }
-
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("VM_Class: (begin) resolve "+this);
     if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
 
