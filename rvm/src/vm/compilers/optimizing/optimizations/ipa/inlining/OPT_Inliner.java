@@ -204,7 +204,7 @@ class OPT_Inliner implements OPT_Operators, OPT_Constants {
 	  }
 	  if (requiresImplementsTest) {
 	    OPT_Instruction dtc = 
-	      TypeCheck.create(CHECKCAST_INTERFACE_NOTNULL,
+	      TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
 			       receiver.copyU2U(),
 			       new OPT_TypeOperand(interfaceType),
 			       Call.getGuard(callSite).copy());
