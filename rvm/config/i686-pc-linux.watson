@@ -20,11 +20,13 @@ export RVM_FOR_32_ADDR=1
 # target OS is Linux
 export RVM_FOR_LINUX=1
 
-# pthread library will work on our machines so default this to 0.
-# NOTE: the key requirement is that you have a 2.4 kernel and
-#       that glibc is compiled to use the GS segment register
-#       to access pthread-local storage.  See discussion in rvm-researchers 
-#       archive and the userguide FAQ.
+# NOTE: the key requirement for setting this to 0 (ie having SMP support)
+#       is that you have a 2.4 kernel and that glibc is compiled 
+#       to use the GS segment register to access pthread-local storage.  
+#       See discussion in rvm-researchers archive and the userguide FAQ.
+#  This is now quite common. For example, in Red Hat 7 and later.  
+#  So, the default is 0
+# Pthread library will work on our machines so default this to 0 for us too.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 
 export BOOTIMAGE_LOAD_ADDRESS=0x43000000
@@ -63,20 +65,21 @@ export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
 # the JDK tools jar
 export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 
-# sources for classpath 0.06 (current stable version of classpath)
+# sources for GNU Classpath 0.06 (current stable version of Classpath)
+# Uncomment this line only if you have the Classpath sources downloaded.
 export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.06-test
 
 # path for GNU make
 export GNU_MAKE="/usr/bin/make"
 
-# path for Jikes.
+# path for the Jikes java-to-byte-code compiler
 export JIKES=/homes/meriadoc/jalapeno/bin/i686/jikes-1.18
 
 # what C compilers should be used?
-export CC='/usr/bin/gcc -w -O'
- 
+export CC='/usr/bin/gcc -w -g -O'
+
 # what C++ compilers should be used?
-export CPLUS='/usr/bin/g++ -g'   
+export CPLUS='/usr/bin/g++ -g -O'
 
 # how to link a shared C++ library
 export LDSHARED="/usr/bin/g++ -shared"
@@ -107,6 +110,8 @@ export UNZIP_CMD="/usr/bin/unzip"
 ##########
 # PART III: Additional variables for running Eclipse on Jikes RVM
 ########## 
+# These are used only by the jbuild.plugin build script.
+
 export ANT_CMD=/homes/meriadoc/jalapeno/contrib/jakarta-ant-1.4.1/bin/ant
 
 export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"

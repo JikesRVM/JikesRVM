@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 #
 # This file defines a set of environment variables needed to build and
@@ -13,18 +13,19 @@
 #########
 # PART I: Preprocessor directives that hold for every config on this target
 #########
-# target architecutre is IA32
+# target architecture is IA32
 export RVM_FOR_IA32=1
 export RVM_FOR_32_ADDR=1
 
 # target OS is Linux
 export RVM_FOR_LINUX=1
 
-# This is now quite common. For example, Red Hat 7 and later.
 # NOTE: the key requirement for setting this to 0 (ie having SMP support)
 #       is that you have a 2.4 kernel and that glibc is compiled 
 #       to use the GS segment register to access pthread-local storage.  
 #       See discussion in rvm-researchers archive and the userguide FAQ.
+#  This is now quite common. For example, in Red Hat 7 and later.  
+#  So, the default is 0
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 
 export BOOTIMAGE_LOAD_ADDRESS=0x43000000
@@ -47,7 +48,7 @@ export HOST_JAVA="$HOST_JAVA_HOME/jre/bin/java"
 # Here's how to do it to using the IBM 1.4.1 DK 
 #export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/bin/classic:$HOST_JAVA_HOME/jre/bin/"
 
-# the JDK javadoc executable
+# the JDK Javadoc executable
 export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
 
 # the JDK javac executable
@@ -62,17 +63,21 @@ export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
 # the JDK tools jar
 export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 
+# sources for GNU Classpath 0.06 (current stable version of Classpath)
+# Uncomment this line only if you have the Classpath sources downloaded.
+# export CLASSPATH_ROOT=/opt/classpath-0.06
+
 # path for GNU make
 export GNU_MAKE="/usr/bin/make"
 
-# path for jikes.
+# path for the Jikes java-to-byte-code compiler
 export JIKES=/usr/bin/jikes
 
 # what C compilers should be used?
-export CC='/usr/bin/gcc -w -O'
+export CC='/usr/bin/gcc -w -g -O'
 
 # what C++ compilers should be used?
-export CPLUS='/usr/bin/g++ -g'
+export CPLUS='/usr/bin/g++ -g -O'
 
 # how to link a shared C++ library
 export LDSHARED="/usr/bin/g++ -shared"
@@ -85,17 +90,26 @@ export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads
 export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
 #  some Unix commands
-export AWK=/bin/awk
+export AWK="/bin/awk"
 export BASH="/bin/bash"
 export CVS="/usr/bin/cvs"
-export DIFF=/usr/bin/diff
-export FGREP=/bin/fgrep
-export FIND=/usr/bin/find
+export DIFF="/usr/bin/diff"
+export FGREP="/bin/fgrep"
+export FIND="/usr/bin/find"
 export GNU_TAR=/bin/tar
-export GREP=/bin/grep
-export MD5SUM=/usr/bin/md5sum
-export PS=/bin/ps
-export SED=/bin/sed
-export WGET=/usr/bin/wget
+export GREP="/bin/grep"
+export MD5SUM="/usr/bin/md5sum"
+export PS="/bin/ps"
+export SED="/bin/sed"
+export WGET="/usr/bin/wget"
 export XARGS="/usr/bin/xargs"
 export UNZIP_CMD="/usr/bin/unzip"
+
+##########
+# PART III: Additional variables for running Eclipse on Jikes RVM
+########## 
+# These are used only by the jbuild.plugin build script.
+
+export ANT_CMD=/opt/jakarta-ant-1.5.3/bin/ant
+
+export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
