@@ -168,6 +168,17 @@ public abstract class OPT_Operand {
   }
 
   /**
+   * Is the operand an {@link OPT_TrueGuardOperand}?
+   * 
+   * @return <code>true</code> if <code>this</code> is an
+   *         <code>instanceof</code> an {@link OPT_TrueGuardOperand}
+   *         or <code>false</code> if it is not.
+   */
+  final boolean isTrueGuard() { 
+    return this instanceof OPT_TrueGuardOperand; 
+  }
+
+  /**
    * Is the operand an {@link OPT_BranchOperand}?
    * 
    * @return <code>true</code> if <code>this</code> is an
@@ -526,6 +537,8 @@ public abstract class OPT_Operand {
       return VM_Type.LongType;
     if (isDoubleConstant())
       return VM_Type.DoubleType;
+    if (isTrueGuard())
+      return OPT_ClassLoaderProxy.VALIDATION_TYPE;
     throw new OPT_OptimizingCompilerException("unknown operand type: "+this);
   }
 
