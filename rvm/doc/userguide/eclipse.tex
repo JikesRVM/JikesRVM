@@ -1,30 +1,31 @@
 \newcommand{\eclipseURL}{http://www.eclipse.org}
 \newcommand{\antURL}{http://ant.apache.org}
+\newcommand{\xalanURL}{http://xml.apache.org/xalan-j/}
 
 \xname{eclipse_overview}
 \subsection{Overview}
 \index{Eclipse IDE, running under Jikes RVM}
-Since version 2.2.1, Jikes RVM runs
+Since version 2.2.1, Jikes RVM has run
 \xlink{Eclipse}{\eclipseURL}.  This is really a technology preview and
 for that reason we start with some caveats, the most obvious being
 that production-mode use of Eclipse with Jikes RVM
 is not recommended at this time.  Furthermore:
 \begin{itemize}
-\item We strongly recommend you run a
-recent --- 7.3 or newer --- version of Red Hat\TMweb{} Linux\Rweb for Intel\Rweb{} IA-32/AMD\Rweb{}~x86-32;
-one of us has also had good results with SuSE\Rweb{} Linux 8.1 and 8.2.
+%% \item We strongly recommend you run a
+%% recent --- 7.3 or newer --- version of Red Hat\TMweb{} Linux\Rweb for Intel\Rweb{} IA-32/AMD\Rweb{}~x86-32;
+%% one of us has also had good results with SuSE\Rweb{} Linux 8.1 and 8.2.
 
-\item We would suggest using either the {\tt prototype} or {\tt
-development} configurations to run Eclipse.
+\item We would suggest using either the {\tt prototype} or 
+{\tt development} configurations to run Eclipse.
 
 \item Under Linux, use the Eclipse builds for the GTK windowing
 toolkit.  There are Linux builds for the Motif toolkit, but we never
 test these and work on Eclipse seems to focus on the GTK version.
 
-\item We recommend Eclipse 2.1.1, currently the latest release
+\item We recommend Eclipse 3.0.1, currently the latest release
 from \xlink{{\tt \eclipseURL}}{\eclipseURL}; this is what we use and
-test at Watson.  We have also successfully run Eclipse 2.1.0 and the
-Eclipse 3.0 prerelease CVS head.  Eclipse 2.0.x releases may also
+test at Watson.  In the past we have successfully run Eclipse 2.1.0 and the
+Eclipse 3.0 prerelease CVS head.  The Eclipse 2.0.x releases may also
 work.  Do not try to use Eclipse 1.x versions.
 
 \item The Eclipse debugging support for Java programs --- which relies
@@ -37,14 +38,6 @@ Jikes RVM has yet to implement this protocol.  (\link{It's on our TODO
 select interception mechanism (which is required to run Eclipse on
 Jikes RVM) does not work if this variable is set to 1 }[(see defect \#
 3583)]{http://www-124.ibm.com/developerworks/bugs/?func=detailbug\&bug\_id=3583\&group\_id=95}.
-
-\item As of this writing (September 2, 2003), 
-\xlink{Jikes RVM defect \#
-  2046}{http://www-124.ibm.com/developerworks/bugs/?func=detailbug\&bug\_id=2046\&group\_id=95} is still outstanding:
-Jikes RVM's {\tt VM\_IdleThread} chews up CPU time when waiting for
-something to happen.  This idle thread competes for CPU time
-with any activities you're engaged in outside of the Jikes RVM process
-running Eclipse.  We plan to have this fixed soon.
 
 \end{itemize}
 
@@ -67,12 +60,19 @@ have to install Jikes RVM and Eclipse themselves first, and, after
 that, there are just a few steps:
 \begin{enumerate}
 \index{Ant, a build tool}
+\item \xlink{Install Xalan-Java.}[  You can get Xalan-Java from {\tt
+\xalanURL}.]{\xalanURL}  We suggest you download one of the {\it binary}
+distributions; otherwise, if you build Xalan-Java from source,  you'll have to
+separately download and build Xerces.
 \item \xlink{Install Ant.}[  You can get Ant from {\tt \antURL}.]{\antURL} 
-\item Add two variables to your Jikes RVM configuration file:
+\item Add three variables to your Jikes RVM configuration file:
  \begin{description}
+ \item[\IndexTexttt{XALAN\_J\_DIR}] is the root of your Xalan binary
+ installation.  
  \item[\IndexTexttt{ANT\_CMD}] is the full pathname of the executable Ant command
  \item[\IndexTexttt{ECLIPSE\_INSTALL\_DIR}] is the root of your Eclipse install
  \end{description}
+ Xalan-Java.
 \item In a fresh build directory, run {\tt ./jbuild.plugin} to install
 support for Eclipse to use Jikes RVM.\@
 \end{enumerate}
@@ -106,7 +106,8 @@ another, the {\em inferior JVM}, that the Eclipse Java Development
 Tool subsystem uses to run your Java applications.
 
 The {\tt rvmeclipse} command launches the Eclipse IDE itself on top of
-Jikes RVM.\@  The Jikes RVM Eclipse plugin lets you use Jikes RVM as
+Jikes RVM.\@  So, {\tt rvmeclipse} lets Eclipse use Jikes RVM as the
+{\em primary JVM}.  The Jikes RVM Eclipse plugin lets you use Jikes RVM as
 your {\em inferior JVM} for running your user programs {\em under} Eclipse.
 
 The plugin will only work in an Eclipse session that itself is already
