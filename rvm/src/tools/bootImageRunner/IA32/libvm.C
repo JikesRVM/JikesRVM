@@ -1,0 +1,859 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+/**
+ * C runtime support for virtual machine.
+ *
+ * This file deals with loading of the vm boot image into a memory segment and
+ * branching to its startoff code. It also deals with interrupt and exception handling.
+ * The file "sys.C" contains the o/s support services required by the java class libraries.
+ *
+ * IA32 version for Linux
+ *
+ * @author Derek Lieber
+ * @date 06 Apr 2000
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+#include <sys/mman.h>		/* mmap */
+#include <errno.h>
+#include <string.h>
+#include <asm/ucontext.h>
+#if (defined __linuxsmp__)
+#include <pthread.h>
+#endif
+
+#ifdef __CYGWIN__
+#include <w32api/windows.h>
+#endif
+
+/*
+ * internal check of the trap handler used to debug the
+ * trap handler itself
+ */
+#define DEBUG_TRAP_HANDLER	0
+
+/* Interface to virtual machine data structures. */
+#define NEED_BOOT_RECORD_DECLARATIONS
+#define NEED_VIRTUAL_MACHINE_DECLARATIONS
+#include <InterfaceDeclarations.h>
+
+/* Sink for messages relating to serious errors detected by C runtime. */
+FILE *SysErrorFile;
+int SysErrorFd;
+
+/* Sink for trace messages produced by VM.sysWrite(). */
+FILE *SysTraceFile;
+int SysTraceFd;
+
+/* Command line arguments to be passed to virtual machine. */
+char **JavaArgs;
+int JavaArgc;
+
+/* Emit trace information? */
+int lib_verbose = 0;
+
+/* Memory segments in which virtual machine image is running. */
+unsigned VmBottom;		/* lowest address      == start of bootimage */
+unsigned VmMiddle;		/*                     == end   of bootimage */
+unsigned VmTop;			/* highest address + 1 == end of large object heap */
+
+/* Location of jtoc within virtual machine image. */
+unsigned VmToc;
+
+/* TOC offset of VM_Scheduler.dumpStackAndDie */
+int DumpStackAndDieOffset;
+
+/* TOC offset of VM_Scheduler.processors[] */
+int ProcessorsOffset;
+
+/* name of program that will load and run RVM */
+char *me;
+
+extern "C" int createJVM (int);
+extern "C" int bootThread (int ip, int jtoc, int pr, int sp);
+
+
+/*
+ * Bootimage is loaded and ready for execution:
+ * you can set a breakpoint here with gdb.
+ */
+int
+boot (int ip, int jtoc, int pr, int sp)
+{
+  return bootThread (ip, jtoc, pr, sp);
+}
+
+
+#ifdef __linux__
+#include <ihnpdsm.h>
+extern "C" PARLIST *Disassemble(
+  char *pHexBuffer,                /* output: hex dump of instruction bytes  */
+  char *pMnemonicBuffer,           /* output: instruction mnemonic string    */
+  char *pOperandBuffer,            /* output: operands string                */
+  char *pDataBuffer,               /* input:  buffer of bytes to disassemble */
+  int  *fInvalid,                  /* output: disassembly successful: 1 or 0 */
+  int   WordSize);                 /* input:  Segment word size: 2 or 4      */ 
+unsigned int
+getInstructionFollowing (unsigned int faultingInstructionAddress)
+{
+  int Illegal = 0;
+  char HexBuffer[256], MnemonicBuffer[256], OperandBuffer[256], AddrBuffer[256];
+  PARLIST *p;
+
+  p = Disassemble(HexBuffer,
+                  MnemonicBuffer,
+                  OperandBuffer,
+                  (char *) faultingInstructionAddress,
+                  &Illegal,
+                  4);
+  if (Illegal)
+    return faultingInstructionAddress;
+  else
+  {
+    if ( lib_verbose)
+      fprintf(SysTraceFile, "failing instruction : %s %s\n",
+		 MnemonicBuffer, OperandBuffer);
+    return faultingInstructionAddress + p->retleng;    
+  }
+}
+
+VM_BootRecord *bootRecord;
+
+#define IN_RVM_ADDRESS_SPACE(a) (VmBottom<=(a)&&(a)<bootRecord.heapEnd )
+static int
+isVmSignal(unsigned int ip, unsigned int jtoc)
+{
+  /* get the boot record */
+  void *region1address = (void *) bootImageAddress;
+  VM_BootRecord & bootRecord = *(VM_BootRecord *) region1address;
+
+  return IN_RVM_ADDRESS_SPACE(ip) 
+	 && IN_RVM_ADDRESS_SPACE(jtoc);
+}
+
+#ifdef DEBUG_TRAP_HANDLER
+static int debug_in_use = 0;
+#endif
+
+void
+hardwareTrapHandler (int signo, siginfo_t *si, void *context)
+{
+  unsigned int localInstructionAddress;
+  unsigned int localVirtualProcessorAddress;
+  unsigned int localFrameAddress;
+  unsigned int localJTOC = VmToc;
+
+  int isRecoverable;
+
+  unsigned int instructionFollowing;
+  char buf[100];
+
+
+  #ifdef DEBUG_TRAP_HANDLER
+  if (debug_in_use) {
+    write (SysErrorFd, buf, sprintf (buf, "single threaded recursive trap\n"));
+    exit (1);
+  }
+  debug_in_use = 1;
+  #endif
+
+  /*
+   * The "5" here was obtained by experiment.
+   * Perhaps it derives from our 3 parameters + saved fp + saved ip?
+   * !!TODO: Figure out how to get pointer via a documented interface.
+   * It seems likely that getcontext() would do the job, but gcc warns "not implemented".
+   */
+  // sigcontext *sc = (sigcontext *) ((char *) context + 5 * 4);
+  sigcontext *sc = &((ucontext *) context)->uc_mcontext;
+
+  /*
+   * fill local working variables from context saved by OS trap handler
+   * mechanism
+   */
+  localInstructionAddress	= sc->eip;
+  localVirtualProcessorAddress	= sc->esi;
+
+   // We are prepared to handle these kinds of "recoverable" traps:
+   //
+   //  1. SIGSEGV - a null object dereference of the form "obj[-fieldOffset]"
+   //               that wraps around to segment 0xf0000000.
+   //
+   //  2. SIGFPE  - interger divide by zero trap
+   //
+   //  3. SIGTRAP - stack overflow trap
+   //
+   // Anything else indicates some sort of unrecoverable vm error.
+   //                                                                                        
+  isRecoverable = 0;
+
+  if (isVmSignal(localInstructionAddress, localVirtualProcessorAddress))
+  {
+    if (signo == SIGSEGV /*&& check the adddress TODO */)
+      isRecoverable = 1;
+
+    else if (signo == SIGFPE)
+      isRecoverable = 1;
+   
+    else if (signo == SIGTRAP)
+      isRecoverable = 0;
+  }
+
+
+  if (lib_verbose || !isRecoverable)
+  {
+    write (SysErrorFd, buf, sprintf (buf, 
+		"%s: trap %d (%s)\n", 
+		me, signo, 
+		signo < _NSIG ? sys_siglist[signo] : "Unrecognized signal"));
+
+    write (SysErrorFd, buf, sprintf (buf, "gs            0x%08x\n", sc->gs));
+    write (SysErrorFd, buf, sprintf (buf, "fs            0x%08x\n", sc->fs));
+    write (SysErrorFd, buf, sprintf (buf, "es            0x%08x\n", sc->es));
+    write (SysErrorFd, buf, sprintf (buf, "ds            0x%08x\n", sc->ds));
+    write (SysErrorFd, buf, sprintf (buf, "edi --(JTOC?) 0x%08x\n", sc->edi));
+    write (SysErrorFd, buf, sprintf (buf, "esi -- PR/VP  0x%08x\n", sc->esi));
+    write (SysErrorFd, buf, sprintf (buf, "ebp --(FP?)   0x%08x\n", sc->ebp));
+    write (SysErrorFd, buf, sprintf (buf, "esp -- SP     0x%08x\n", sc->esp));
+    write (SysErrorFd, buf, sprintf (buf, "ebx           0x%08x\n", sc->ebx));
+    write (SysErrorFd, buf, sprintf (buf, "edx -- T1     0x%08x\n", sc->edx));
+    write (SysErrorFd, buf, sprintf (buf, "ecx -- S0     0x%08x\n", sc->ecx));
+    write (SysErrorFd, buf, sprintf (buf, "eax -- T0     0x%08x\n", sc->eax));
+    write (SysErrorFd, buf, sprintf (buf, "trapno        0x%08x\n", sc->trapno));
+    write (SysErrorFd, buf, sprintf (buf, "err           0x%08x\n", sc->err));
+    write (SysErrorFd, buf, sprintf (buf, "eip           0x%08x\n", sc->eip));
+    write (SysErrorFd, buf, sprintf (buf, "cs            0x%08x\n", sc->cs));
+    write (SysErrorFd, buf, sprintf (buf, "eflags        0x%08x\n", sc->eflags));
+    write (SysErrorFd, buf, sprintf (buf, "esp_at_signal 0x%08x\n", sc->esp_at_signal));
+    write (SysErrorFd, buf, sprintf (buf, "ss            0x%08x\n", sc->ss));
+    write (SysErrorFd, buf, sprintf (buf, "fpstate       0x%08x\n", sc->fpstate));	/* null if fp registers haven't been used yet */
+    write (SysErrorFd, buf, sprintf (buf, "oldmask       0x%08x\n", sc->oldmask));
+    write (SysErrorFd, buf, sprintf (buf, "cr2           0x%08x\n", sc->cr2));	/* seems to contain mem address that faulting instruction was trying to access */
+
+    /*
+     * There are 8 floating point registers, each 10 bytes wide.
+     * See /usr/include/asm/sigcontext.h
+     */
+    if (sc->fpstate) {
+      struct _fpstate *fpstate = sc->fpstate;
+      struct _fpreg *fpreg = fpstate->_st;
+
+      for (int i = 0; i < 8; ++i)
+        write (SysErrorFd, buf, sprintf (buf, "fp%d 0x%04x%04x%04x%04x%04x\n",
+				       i,
+				       fpreg[i].significand[0] & 0xffff,
+				       fpreg[i].significand[1] & 0xffff,
+				       fpreg[i].significand[2] & 0xffff,
+				       fpreg[i].significand[3] & 0xffff,
+				       fpreg[i].exponent & 0xffff
+	     ));
+    }
+
+    if (isRecoverable)
+      fprintf (SysTraceFile, "vm: normal trap\n");
+    else
+    {
+      fprintf (SysTraceFile, "vm: internal error\n");
+      exit(1);
+    }
+  }
+
+  /* get the boot record */
+  void *region1address = (void *) bootImageAddress;
+  VM_BootRecord & bootRecord = *(VM_BootRecord *) region1address;
+
+  /* test validity of virtual processor address */
+  {
+  unsigned int vp_hn;  /* the high nibble of the vp address value */
+  vp_hn = localVirtualProcessorAddress >> 28;  
+  if (vp_hn < 3 || !IN_RVM_ADDRESS_SPACE(localVirtualProcessorAddress)) 
+    {
+      write (SysErrorFd, buf,
+             sprintf (buf,
+                   "invalid vp address (not an address - high nibble %d)\n", vp_hn) );
+      exit (1);
+    }
+  }
+
+
+  /* get the frame pointer from processor object  */
+  localFrameAddress = 
+	*(unsigned *) (localVirtualProcessorAddress + VM_Processor_framePointer_offset);
+
+  /* test validity of frame address */
+  {
+  unsigned int fp_hn;
+  fp_hn = localFrameAddress >> 28;  
+  if (fp_hn < 3 || !IN_RVM_ADDRESS_SPACE(localFrameAddress)) 
+    {
+      write (SysErrorFd, buf,
+             sprintf (buf,
+                   "invalid frame address (not an address - high nibble %d)\n", fp_hn) );
+      exit (1);
+    }
+  }
+
+
+  int HardwareTrapMethodId = bootRecord.hardwareTrapMethodId;
+  unsigned int javaExceptionHandlerAddress = 
+		*(unsigned int *) (localJTOC + bootRecord.deliverHardwareExceptionOffset);
+
+  DumpStackAndDieOffset = bootRecord.dumpStackAndDieOffset;
+
+  /* get the thread id */
+  int threadID = *(int *) (localVirtualProcessorAddress + VM_Processor_threadId_offset);
+  /* get the index of the thread in the threads array multiplied by the array element
+     size (4) */
+  int threadIndex = threadID >> (VM_Constants_OBJECT_THREAD_ID_SHIFT - 2);
+
+  /* get the address of the threads array  */
+  unsigned int threadsArrayAddress =
+		*(unsigned int *) (localJTOC + bootRecord.threadsOffset);
+  /* the thread object itself */
+  unsigned int threadObjectAddress = 
+		*(unsigned int *) (threadsArrayAddress + threadIndex);
+  unsigned int registers = 
+		*(unsigned int *) (threadObjectAddress +
+			       VM_Thread_hardwareExceptionRegisters_offset);
+
+  /* get the addresses of the gps and other fields in the VM_Registers object */
+  unsigned *vmr_gprs  = *(unsigned **) ((char *) registers + VM_Registers_gprs_offset);
+  unsigned *vmr_ip    =  (unsigned *)  ((char *) registers + VM_Registers_ip_offset);
+  unsigned *vmr_fp    =  (unsigned *)  ((char *) registers + VM_Registers_fp_offset);
+  unsigned *vmr_inuse =  (unsigned *)  ((char *) registers + VM_Registers_inuse_offset);
+
+  long unsigned int *sp;
+  long unsigned int *fp;
+
+  /* test for recursive errors- if so, take one final stacktrace and exit */
+  if (*vmr_inuse) {
+    fprintf (SysTraceFile, 
+	"vm: internal error: recursive use of hardware exception registers (exiting)\n");
+    /*
+     * Things went badly wrong, so attempt to generate a useful error dump
+     * before exiting by returning to VM_Scheduler.dumpStackAndDie passing it the fp
+     * of the offending thread.
+     * We could try to continue, but sometimes doing so results in cascading failures
+     * and it's hard to tell what the real problem was.
+     */
+    int dumpStack = *(int *) ((char *) localJTOC + DumpStackAndDieOffset);
+
+    /* setup stack frame to contain the frame pointer */
+    sp = (long unsigned int *) sc->esp;
+
+    /* put fp as a  parameter on the stack  */
+    sc->esp = sc->esp - 4;
+    sp = (long unsigned int *) sc->esp;
+    *sp = localFrameAddress;
+    sc->eax = localFrameAddress; // must pass localFrameAddress in first param register!
+
+    /* put a return address of zero on the stack */
+    sc->esp = sc->esp - 4;
+    sp = (long unsigned int *) sc->esp;
+    *sp = 0;
+
+    /* set up to goto dumpStackAndDie routine ( in VM_Scheduler) as if called */
+    sc->eip = dumpStack;
+    *vmr_inuse = false;
+
+    #ifdef DEBUG_TRAP_HANDLER
+    debug_in_use = 0;
+    #endif
+
+    return;
+  }
+
+  *vmr_inuse = 1;			/* mark in use to avoid infinite loop */
+
+  /* move gp registers to VM_Registers object */
+  vmr_gprs[VM_Constants_EAX] = sc->eax;
+  vmr_gprs[VM_Constants_ECX] = sc->ecx;
+  vmr_gprs[VM_Constants_EDX] = sc->edx;
+  vmr_gprs[VM_Constants_EBX] = sc->ebx;
+  vmr_gprs[VM_Constants_ESP] = sc->esp;
+  vmr_gprs[VM_Constants_EBP] = sc->ebp;
+  vmr_gprs[VM_Constants_ESI] = sc->esi;
+  vmr_gprs[VM_Constants_EDI] = sc->edi;
+
+  /* set the next instruction for the failing frame */
+  instructionFollowing = getInstructionFollowing(localInstructionAddress);
+
+  /* Insert artificial stackframe at site of trap. */
+  /* This frame marks the place where "hardware exception registers" were saved. */
+  sp = (long unsigned int *) sc->esp;
+  sp = (long unsigned int *) ((char *) sp - VM_Constants_STACKFRAME_HEADER_SIZE);
+  fp = (long unsigned int *) ((char *) sp - 4 - VM_Constants_STACKFRAME_BODY_OFFSET);
+  					/*  4 = wordsize  */
+
+  /* fill in artificial stack frame */
+  *(int *) ((char *) fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET) = localFrameAddress;
+  *(int *) ((char *) fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET) = HardwareTrapMethodId;
+  *(int *) ((char *) fp + VM_Constants_STACKFRAME_RETURN_ADDRESS_OFFSET) =
+			instructionFollowing;
+
+  /* fill in call to "deliverHardwareException" */
+  sp = (long unsigned int *) ((char *) sp - 4);	/* first parameter is type of trap */
+
+  if (signo == SIGSEGV) {
+    *(int *) sp = VM_Runtime_TRAP_NULL_POINTER;
+
+    /* an int immediate instruction produces a SIGSEGV signal.  An int 3 instruction a
+       trap fault */
+    if (*(unsigned char *)(localInstructionAddress) == 0xCD) {
+      // is INT imm instruction
+      unsigned char code = *(unsigned char*)(localInstructionAddress+1);
+      code -= VM_Constants_RVM_TRAP_BASE;
+      switch (code) {
+      case VM_Runtime_TRAP_STACK_OVERFLOW:
+        {
+	*(int *) sp = code;
+        unsigned stackLimit = *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset);
+        unsigned stackStart = *(unsigned *)(threadObjectAddress + VM_Thread_stack_offset); 
+        stackLimit -= VM_Constants_STACK_SIZE_GUARD;
+        *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset) = stackLimit;
+        }
+	break;
+
+      case VM_Runtime_TRAP_NULL_POINTER:
+      case VM_Runtime_TRAP_ARRAY_BOUNDS:
+      case VM_Runtime_TRAP_DIVIDE_BY_ZERO:
+      case VM_Runtime_TRAP_CHECKCAST:
+      case VM_Runtime_TRAP_REGENERATE:
+	*(int *) sp = code;
+	break;
+      default:
+	break;
+      }
+    }
+  }
+
+  else if (signo == SIGFPE)
+  {
+    *(int *) sp = VM_Runtime_TRAP_DIVIDE_BY_ZERO;
+  }
+
+  else if (signo == SIGTRAP) {
+    *(int *) sp = VM_Runtime_TRAP_UNKNOWN;
+
+    //fprintf(SysTraceFile, "op code is 0x%x",*(unsigned char *)(localInstructionAddress));
+    //fprintf(SysTraceFile, "next code is 0x%x",*(unsigned char *)(localInstructionAddress+1));
+    if (*(unsigned char *)(localInstructionAddress - 1) == 0xCC) {
+      // is INT 3 instruction
+    }
+
+  }
+
+  else {
+      *(int *) sp = VM_Runtime_TRAP_UNKNOWN;
+  }
+
+  sc->eax = *(int *)sp; // also pass first param in EAX.
+  if (lib_verbose)
+    fprintf(SysTraceFile, "Trap code is 0x%x\n", sc->eax);
+
+  sp = (long unsigned int *) ((char *) sp - 4);	/* next parameter is info for array bounds trap */
+  *(int *) sp = *(unsigned *) (localVirtualProcessorAddress + VM_Processor_arrayIndexTrapParam_offset);
+  sc->edx = *(int *)sp; // also pass second param in EDX.
+  sp = (long unsigned int *) ((char *) sp - 4);	/* return address - looks like called from failing instruction */
+  *(int *) sp = instructionFollowing;
+
+  /* store instructionFollowing and fp in VM_Registers,ip and VM_Registers.fp */
+  *vmr_ip = instructionFollowing;
+  *vmr_fp = localFrameAddress;
+
+  if (lib_verbose)
+    fprintf(SysTraceFile, "Set vmr_fp to 0x%x\n", localFrameAddress);
+  
+  /* set up context block to look like the artificial stack frame is returning  */
+  sc->esp = (int) sp;
+  sc->ebp = (int) fp;
+
+  /* setup to return to deliver hardware exception routine */
+  sc->eip = javaExceptionHandlerAddress;
+
+  #ifdef DEBUG_TRAP_HANDLER
+  debug_in_use = 0;
+  #endif
+}
+#endif
+
+
+
+// #define ANNOUNCE_TICK(message) write(SysTraceFd, message, strlen(message))
+// #define ANNOUNCE(message) write(SysTraceFd, message, strlen(message))
+   #define ANNOUNCE(message)
+   #define ANNOUNCE_TICK(message)
+
+void 
+#ifdef __CYGWIN__
+softwareSignalHandler (int signo)
+#else
+softwareSignalHandler (int signo, siginfo_t * si, void *unused)
+#endif
+{
+
+  if (signo == SIGALRM) {	/* asynchronous signal used for time slicing */
+
+    if (!VM_Configuration_BuildForThreadSwitchUsingControlRegisterBit) {
+      /*
+       * Turn on thread-switch flag in each virtual processor.
+       * Note that "jtoc" is not necessairly valid, because we might have interrupted
+       * C-library code, so we use boot image jtoc address (== VmToc) instead.
+       * !!TODO: if vm moves table, it must tell us so we can update "VmToc".
+       * For now, we assume table is fixed in boot image and never moves.
+       */
+      unsigned *processors = *(unsigned **) ((char *) VmToc + ProcessorsOffset);
+      unsigned cnt = processors[-1];
+
+      /* with new (7/2001) threading the last processor entry is for 
+       * the NativeDaemonThread
+       * and may be null (IA32 without pthreads or if compiled for 
+       * a single processor),
+       * so allow for possibility of a null entry in the processors array
+       */
+         int     i;
+#ifndef RVM_WITH_DEDICATED_NATIVE_PROCESSORS
+// line added here - ndp is now the last processor - and cnt includes it
+         cnt = cnt - 1;
+   // check for gc in progress: if so, return
+   //
+         if (bootRecord -> lockoutProcessor == 0x0CCCCCCC) return;
+
+         int       val;
+         int       sendit = 0;
+         int       MISSES = -2;     // tuning parameter
+         for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i)
+         {
+           val = *(int *)((char *)processors[i] + 
+                 VM_Processor_threadSwitchRequested_offset);
+           if (val <= MISSES) sendit++;
+           *(int *)((char *)processors[i] + 
+                  VM_Processor_threadSwitchRequested_offset) = val - 1;
+         }
+         if (sendit != 0) // some processor "stuck in native"
+         {
+           if (processors[i] != 0 /*null*/ ) {  // have a NativeDaemon 
+                                                // Processor (the last one)
+             ANNOUNCE(" got NDprocessor value\n ");
+             int pthread_id = *(int *)((char *)processors[i] 
+                 + VM_Processor_pthread_id_offset) ;
+             ANNOUNCE(" got pthread_id  value\n ");
+#ifdef __linuxsmp__
+             pthread_t thread = (pthread_t)pthread_id;
+             int i_thread = (int)thread;
+             pthread_kill(thread, SIGCONT);
+#else
+             ANNOUNCE(" Cannot send signal without pthread library");
+#endif
+           }
+         }
+#else
+      for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt; ++i)
+	if (processors[i] != 0 /*null*/)
+	  *(int *) ((char *) processors[i] + VM_Processor_threadSwitchRequested_offset) = -1;
+									/* -1: all bits on */
+
+      ANNOUNCE_TICK ("[tick]\n");
+#endif
+    }
+  }
+}
+
+/* startup configuration option with default values */
+char *bootFilename = 0;
+unsigned smallHeapSize = 20 * 1024 * 1024;	/* megs */
+unsigned largeHeapSize = 10 * 1024 * 1024;	/* megs */
+
+unsigned nurserySize = 10 * 1024 * 1024;	/* megs */
+unsigned permanentHeapSize = 0;
+
+/* timer tick interval, in milliseconds     (10 <= delay <= 999) */
+static int TimerDelay = 10;
+
+int
+createJVM (int vmInSeparateThread)
+{
+  SysErrorFile = stderr;
+  SysErrorFd = 2;
+  SysTraceFile = stderr;
+  SysTraceFd = 2;
+
+  /* don't buffer trace or error message output */
+  setbuf (SysErrorFile, 0);
+  setbuf (SysTraceFile, 0);
+
+  if (lib_verbose)
+  {
+    #if (defined __linux__)
+       fprintf(SysTraceFile, "IA32 linux build");
+       #if (defined __linuxsmp__)
+         fprintf(SysTraceFile, " for SMP\n");
+       #else
+         fprintf(SysTraceFile, "\n");
+       #endif
+    #elif (defined __CYGWIN__)
+       fprintf(SysTraceFile, "IA32 CYGWIN build\n");
+    #endif
+  }
+
+  /* open and mmap the image file. 
+   * create region1 and region2 portions of address space.
+   */
+  FILE *fin = fopen (bootFilename, "r");
+  if (!fin) {
+    fprintf (SysTraceFile, "%s: can't find bootimage \"%s\"\n", me, bootFilename);
+    return 1;
+  }
+
+  /* measure image size */
+  if (lib_verbose)
+    fprintf (SysTraceFile, "%s: loading from \"%s\"\n", me, bootFilename);
+  fseek (fin, 0L, SEEK_END);
+  unsigned imageSize = ftell (fin);
+
+  fseek (fin, 0L, SEEK_SET);
+
+  /* allocate memory regions in units of 4k (== system page size) */
+  void *region1address = (void *) bootImageAddress;	/* address used by bootimage writer */
+  unsigned region1size = (((imageSize + smallHeapSize) / 4096) + 1) * 4096;
+
+  void *region2address = (void *) 0;	/* any address is ok */
+  unsigned region2size = ((largeHeapSize / 4096) + 1) * 4096;
+
+  if (lib_verbose)
+    fprintf (SysTraceFile, "region1 size %08x, region 2 size %08x\n", 
+	     region1size, region2size);
+
+  // allocate region 1 and 2
+#ifdef __linux__  
+  void *region1 = mmap (region1address, region1size + region2size, 
+			PROT_READ | PROT_WRITE | PROT_EXEC,
+			MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
+
+  if (region1 == (void *) -1) {
+    fprintf (SysErrorFile, "%s: mmap failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+#else
+  /* cygwin mmap doesn't appear to really work, so use win32 VirtualAlloc */
+  void *region1 = VirtualAlloc(region1address, region1size + region2size,
+			       MEM_RESERVE | MEM_COMMIT,
+			       PAGE_EXECUTE_READWRITE);
+  if (region1 != region1address) {
+    fprintf (SysTraceFile, "%s: error allocating region1\n", me);
+    return 1;
+  }
+#endif
+
+  region2address = (void*)((int)region1address + region1size);
+  void *region2 = region2address;
+
+  if (lib_verbose) {
+    fprintf (SysTraceFile, "%s: 1st memory region: [0x%08x...0x%08x]\n",
+		me, region1, (int) region1 + region1size);
+    fprintf (SysTraceFile, "%s: 2nd memory region: [0x%08x...0x%08x]\n",
+		me, region2, (int) region2 + region2size);
+  }
+
+  /* read image into memory segment */
+  int cnt = fread (region1, 1, imageSize, fin);
+  if (cnt != imageSize) {
+    fprintf (SysErrorFile, "%s: read failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+
+  if (imageSize % 4 != 0) {
+    fprintf (SysErrorFile, "%s: image format error: image size (%d) is not a word multiple\n",
+			me, imageSize);
+    return 1;
+  }
+
+  if (fclose (fin) != 0) {
+    fprintf (SysErrorFile, "%s: close failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+
+  if (lib_verbose) {
+    fprintf (SysTraceFile, "%s: 1st memory region: [0x%08x...0x%08x]\n",
+		me, region1, (int) region1 + region1size);
+    fprintf (SysTraceFile, "%s: 2nd memory region: [0x%08x...0x%08x]\n",
+		me, region2, (int) region2 + region2size);
+  }
+
+  /* remember memory segments for later use by trap handler and instruction sampler */
+  VmBottom = (unsigned) region1;		/* start of bootimage */
+  VmMiddle = (unsigned) region1 + imageSize;	/* end of bootimage */
+  VmTop = (unsigned) region2 + region2size;	/* end of heap */
+  if (VmTop < VmBottom) {
+    fprintf (SysErrorFile,
+	"%s: image load error: memory segments allocated in unexpected order\n", me);
+    fprintf (SysErrorFile,
+	"   bottom=0x%08x middle=0x%08x top=0x%08x\n", VmBottom, VmMiddle, VmTop);
+    return 1;
+  }
+
+  /* validate contents of boot record */
+  bootRecord = (VM_BootRecord *) region1;
+
+  if (bootRecord->startAddress != (int) region1) {
+    fprintf (SysErrorFile, "%s: image load error: built for 0x%08x but loaded at 0x%08x\n",
+		me, bootRecord->startAddress, region1);
+    return 1;
+  }
+
+  if ((bootRecord->spRegister % 4) != 0) {
+    fprintf (SysErrorFile, "%s: image format error: sp (0x%08x) is not word aligned\n",
+		me, bootRecord->spRegister);
+    return 1;
+  }
+
+  if ((bootRecord->ipRegister % 4) != 0) {
+    fprintf (SysErrorFile, "%s: image format error: ip (0x%08x) is not word aligned\n",
+		me, bootRecord->ipRegister);
+    return 1;
+  }
+
+  if (((int *) bootRecord->spRegister)[-1] != 0xdeadbabe) {
+    fprintf (SysErrorFile,
+	"%s: image format error: missing stack sanity check marker (0x%08x)\n",
+	me, ((int *) bootRecord->spRegister)[-1]);
+    return 1;
+  }
+
+  /* remember jtoc location for later use by trap handler */
+  VmToc = bootRecord->tocRegister;
+
+  /* get and remember JTOC offset of VM_Scheduler.processors[] */
+  ProcessorsOffset = bootRecord->processorsOffset;
+
+  /* write freespace information into boot record */
+  bootRecord->freeAddress = (int) region1 + imageSize;
+  bootRecord->endAddress = (int) region1 + region1size;
+  bootRecord->largeStart = (int) region2;
+  bootRecord->largeSize = region2size;
+  bootRecord->heapEnd    = (int) region1 + region1size + region2size;
+
+  bootRecord->nurserySize = nurserySize;
+
+  /* write sys.C linkage information into boot record */
+  bootRecord->setLinkage ();
+  if (lib_verbose) {
+    fprintf (SysTraceFile, "%s: boot record contents:\n", me);
+    fprintf (SysTraceFile, "   startAddress:         0x%08x\n", bootRecord->startAddress);
+    fprintf (SysTraceFile, "   freeAddress:          0x%08x\n", bootRecord->freeAddress);
+    fprintf (SysTraceFile, "   endAddress:           0x%08x\n", bootRecord->endAddress);
+    fprintf (SysTraceFile, "   largeStart:           0x%08x\n", bootRecord->largeStart);
+    fprintf (SysTraceFile, "   largeSize:            0x%08x\n", bootRecord->largeSize);
+    fprintf (SysTraceFile, "   tiRegister:           0x%08x\n", bootRecord->tiRegister);
+    fprintf (SysTraceFile, "   spRegister:           0x%08x\n", bootRecord->spRegister);
+    fprintf (SysTraceFile, "   ipRegister:           0x%08x\n", bootRecord->ipRegister);
+    fprintf (SysTraceFile, "   tocRegister:          0x%08x\n", bootRecord->tocRegister);
+    fprintf (SysTraceFile, "   sysWriteCharIP:       0x%08x\n", bootRecord->sysWriteCharIP);
+    fprintf (SysTraceFile, "   ...etc...                   \n");
+  }
+
+  /* install a stack for hardwareTrapHandler() to run on */
+#ifdef __linux__
+  stack_t stack;
+
+  memset (&stack, 0, sizeof stack);
+  stack.ss_sp = new char[SIGSTKSZ];
+
+  stack.ss_size = SIGSTKSZ;
+  if (sigaltstack (&stack, 0)) {
+    fprintf (SysErrorFile, "%s: sigaltstack failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+
+  /* install hardware trap signal handler */
+  struct sigaction action;
+
+  memset (&action, 0, sizeof action);
+  action.sa_sigaction = &hardwareTrapHandler;
+  /*
+   * mask all signal from reaching the signal handler while the signal
+   * handler is running
+   */
+  if (sigfillset(&(action.sa_mask))) {
+    fprintf (SysErrorFile, "%s: sigfillset failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+  /*
+   * exclude the signal used to wake up the daemons
+   */
+  if (sigdelset(&(action.sa_mask), SIGCONT)) {
+    fprintf (SysErrorFile, "%s: sigdelset failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+
+  action.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESTART;
+  if (sigaction (SIGSEGV, &action, 0)) {
+    fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+  if (sigaction (SIGFPE, &action, 0)) {
+    fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+  if (sigaction (SIGTRAP, &action, 0)) {
+    fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+
+  /* install software signal handler */
+  action.sa_sigaction = &softwareSignalHandler;
+  if (sigaction (SIGALRM, &action, 0)) {	/* catch timer ticks (so we can timeslice user level threads) */
+    fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+    return 1;
+  }
+
+#else
+  struct sigaction action;
+  
+  fprintf (SysErrorFile, "%s: Warning, no hardware trap handler is installed\n", me);
+
+  if (true) {
+    fprintf (SysErrorFile, "%s: Warning, no timer tick handler is installed\n", me);
+  } else {
+    /* install software trap handler */
+    action.sa_handler = &softwareSignalHandler;
+    if (sigaction (SIGALRM, &action, 0)) {	/* catch timer ticks (so we can timeslice user level threads) */
+      fprintf (SysErrorFile, "%s: sigaction failed (errno=%d)\n", me, errno);
+      return 1;
+    }
+  }
+#endif
+
+  /* set up initial stack frame */
+  int ip   = bootRecord->ipRegister;
+  int jtoc = bootRecord->tocRegister;
+  int pr;
+  {
+  unsigned *processors = *(unsigned **)(bootRecord->tocRegister +
+                                        bootRecord->processorsOffset);
+  pr       = processors[VM_Scheduler_PRIMORDIAL_PROCESSOR_ID];
+
+  /* initialize the thread id field and the jtoc field in the primordial
+   * processor object.
+   */
+  *(unsigned int *) (pr + VM_Processor_threadId_offset) =
+		VM_Scheduler_PRIMORDIAL_THREAD_INDEX << VM_Constants_OBJECT_THREAD_ID_SHIFT;
+  *(unsigned int *) (pr + VM_Processor_jtoc_offset) = jtoc;
+  } 
+  int *sp  = (int *) bootRecord->spRegister;
+
+  *--sp = 0xdeadbabe;		/* STACKFRAME_RETURN_ADDRESS_OFFSET */
+  *--sp = VM_Constants_STACKFRAME_SENTINAL_FP;	/* STACKFRAME_FRAME_POINTER_OFFSET */
+  *--sp = VM_Constants_INVISIBLE_METHOD_ID;	/* STACKFRAME_METHOD_ID_OFFSET */
+  *--sp = 0;			/* STACKFRAME_NEXT_INSTRUCTION_OFFSET (for AIX compatability) */
+
+  // fprintf (SysTraceFile, "%s: here goes...\n", me);
+  int rc = boot (ip, jtoc, pr, (int) sp);
+
+  fprintf (SysTraceFile, "%s: we're back! rc=%d. bye.\n", me, rc);
+  return 1;
+}
