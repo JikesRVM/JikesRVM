@@ -126,3 +126,13 @@ else
   cat $MSG | mail -s "[$ARCH] regression FAILED $numfailed tests" jikesrvm-regression@www-124.ibm.com
 fi
 
+# Check that files contain an @author tag, a CVS Id tag, and a Copyright notice.
+export CHECK_DIR=$RVM_ROOT/results
+
+# Check files
+$RVM_ROOT/rvm/bin/findDeviantFiles $RVM_ROOT/rvm $CHECK_DIR rvm
+ 
+# Email results 
+cat $CHECK_DIR/noAuthor.rvm    | mail -s "files without an @author tag"     pfs 
+cat $CHECK_DIR/noId.rvm        | mail -s "files without a CVS Id tag"       pfs 
+cat $CHECK_DIR/noCopyright.rvm | mail -s "files without a Copyright notice" pfs 
