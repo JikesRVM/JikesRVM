@@ -9,6 +9,7 @@ import java.util.Stack;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Arrays;
 
 import java.io.*;
 
@@ -26,6 +27,7 @@ import java.lang.reflect.Field;
  *    -littleEndian            write words to bootimage in little endian format?
  *    -trace                   talk while we work?
  *    -detailed                print detailed info on traversed objects
+ *    -demographics            show summary of how boot space is used
  *    -o <filename>            place to put bootimage
  *    -m <filename>            place to put bootimage map
  *    -sf <filename>           OBSOLETE compatibility aid
@@ -151,6 +153,11 @@ public class BootImageWriter2 extends BootImageWriterMessages
   private static boolean littleEndian = false;
 
   /**
+   * Show how boot space is used by type
+   */
+  private static boolean demographics = false;
+
+  /**
    * A wrapper around the calling context to aid in tracing.
    */
   private static class TraceContext extends Stack {
@@ -233,6 +240,9 @@ public class BootImageWriter2 extends BootImageWriterMessages
 
     private static Object sillyhack;
 
+
+
+
   /**
    * Main.
    * @param args command line arguments
@@ -313,6 +323,11 @@ public class BootImageWriter2 extends BootImageWriterMessages
         verbose = 1;
         continue;
       }
+      // generate info by type
+      if (args[i].equals("-demographics")) {
+	demographics = true;
+        continue;
+      }
       // generate detailed information about traversed objects (for debugging)
       if (args[i].equals("-detailed")) {
 	verbose = 2;
@@ -321,6 +336,10 @@ public class BootImageWriter2 extends BootImageWriterMessages
       // write words to bootimage in little endian format
       if (args[i].equals("-littleEndian")) {
         littleEndian = true;
+        continue;
+      }
+      if (args[i].equals("-demographics")) {
+	demographics = true;
         continue;
       }
       fail("unrecognized command line argument: " + args[i]);
@@ -417,7 +436,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
     int bootRecordImageOffset = 0;
     try {
       // copy just the boot record
-      bootRecordImageOffset = copyToBootImage(bootRecord, false, -1); 
+      bootRecordImageOffset = copyToBootImage(bootRecord, false, -1, null); 
       if (bootRecordImageOffset == OBJECT_NOT_PRESENT)
         fail("can't copy boot record");
     } catch (IllegalAccessException e) {
@@ -431,7 +450,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
     int[] jtoc = VM_Statics.getSlots();
     int jtocImageOffset = 0;
     try {
-      jtocImageOffset = copyToBootImage(jtoc, true, -1);
+      jtocImageOffset = copyToBootImage(jtoc, true, -1, null);
       if (jtocImageOffset == OBJECT_NOT_PRESENT)
         fail("can't copy jtoc");
     } catch (IllegalAccessException e) {
@@ -464,7 +483,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
 
         if (verbose >= 1) traceContext.push(jdkObject.getClass().getName(),
 					    getRvmStaticFieldName(i));
-        int imageOffset = copyToBootImage(jdkObject, true, -1);
+        int imageOffset = copyToBootImage(jdkObject, true, -1, jtoc);
         if (imageOffset == OBJECT_NOT_PRESENT) {
           // object not part of bootimage: install null reference
           if (verbose >= 1) traceContext.traceObjectNotInBootImage();
@@ -513,7 +532,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
     //
     if (verbose >= 1) say("re-copying boot record (and its TIB)");
     try {
-	int newBootRecordImageOffset = copyToBootImage(bootRecord, true, bootRecordImageOffset); 
+	int newBootRecordImageOffset = copyToBootImage(bootRecord, true, bootRecordImageOffset, null); 
 	if (newBootRecordImageOffset != bootRecordImageOffset) {
 	    VM.sysWriteln("bootRecordImageOffset = ", bootRecordImageOffset);
 	    VM.sysWriteln("newBootRecordImageOffset = ", newBootRecordImageOffset);
@@ -533,37 +552,85 @@ public class BootImageWriter2 extends BootImageWriterMessages
     }
 
     //
+    // Show space usage in boot image by type
+    //
+    if (demographics) {
+	VM_Type[] types = VM_TypeDictionary.getValues();
+	VM_Type[] tempTypes = new VM_Type[types.length - FIRST_TYPE_DICTIONARY_INDEX];
+	for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) 
+	    tempTypes[i - FIRST_TYPE_DICTIONARY_INDEX] = types[i];
+	Arrays.sort(tempTypes, new TypeComparator());
+	int totalCount = 0, totalBytes = 0;
+	for (int i = 0; i < tempTypes.length; i++) {
+	    VM_Type type = tempTypes[i];
+	    totalCount += type.bootCount;
+	    totalBytes += type.bootBytes;
+	}
+	VM.sysWriteln("\nBoot image space usage by types:");
+	VM.sysWriteln("Type                                      Count             Bytes");
+	VM.sysWriteln("-----------------------------------------------------------------");
+	VM.sysWriteField(35, "TOTAL");
+	VM.sysWriteField(15, totalCount);
+	VM.sysWriteField(15, totalBytes);
+	VM.sysWriteln();
+	for (int i = 0; i < tempTypes.length; i++) {
+	    VM_Type type = tempTypes[i];
+	    if (type.bootCount > 0) {
+		VM.sysWriteField(35, type.toString());
+		VM.sysWriteField(15, type.bootCount);
+		VM.sysWriteField(15, type.bootBytes);
+		VM.sysWriteln();
+	    }
+	}
+	VM.sysWriteln("\nBoot image space usage of code:");
+	VM_CompiledMethod[] cmethods = VM_CompiledMethods.getCompiledMethods();
+	int codeCount = 0, codeBytes = 0, dataBytes = 0;
+	VM_Array codeArray = VM_Type.CodeType.asArray();
+	for (int i=0; i<cmethods.length; i++) {
+	    VM_CompiledMethod cm = cmethods[i];
+	    if (cm == null) continue;
+	    INSTRUCTION[] code = cm.getInstructions();
+	    codeCount++;
+	    int size = codeArray.getInstanceSize(code.length);
+	    codeBytes += ((size + 3) & ~3);
+	    VM_CompilerInfo ci = cm.getCompilerInfo();
+	    if (ci instanceof VM_BaselineCompilerInfo) {
+		dataBytes += ((VM_BaselineCompilerInfo)ci).dataSize();
+	    }
+	}
+	VM.sysWriteln("Number of methods = ", codeCount);
+	VM.sysWriteln("Total size of code (bytes) = ", codeBytes);
+	VM.sysWriteln("Total size of code-related int and char arrays (bytes) = ", dataBytes);
+    }
+
+
+    //
     // Summarize status of types that were referenced by objects we put into
     // the bootimage but which are not, themselves, in the bootimage.  Any
     // such types had better not be needed to dynamically link in the
     // remainder of the virtual machine at run time!
     //
-    // Note: currently disabled
-    //
     if (false) {
-      say("summarizing status of object types placed in bootimage");
-      VM_Type[] types = VM_TypeDictionary.getValues();
-      for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) {
-        VM_Type type = types[i];
-        if (type.isPrimitiveType())
-          continue;
-        if (!type.isLoaded()) {
-          say("type referenced but not loaded: ", type.toString());
-          continue;
-        }
-        if (!type.isResolved()) {
-          say("type referenced but not resolved: ", type.toString());
-          continue;
-        }
-        if (!type.isInstantiated()) {
-          say("type referenced but not instantiated: ", type.toString());
-          continue;
-        }
-        if (!type.isInitialized()) {
-          say("type referenced but not initialized: ", type.toString());
-          continue;
-        }
-      }
+	VM_Type[] types = VM_TypeDictionary.getValues();
+	for (int i = FIRST_TYPE_DICTIONARY_INDEX; i < types.length; ++i) {
+	    VM_Type type = types[i];
+	    if (!type.isLoaded()) {
+		say("type referenced but not loaded: ", type.toString());
+		continue;
+	    }
+	    if (!type.isResolved()) {
+		say("type referenced but not resolved: ", type.toString());
+		continue;
+	    }
+	    if (!type.isInstantiated()) {
+		say("type referenced but not instantiated: ", type.toString());
+		continue;
+	    }
+	    if (!type.isInitialized()) {
+		say("type referenced but not initialized: ", type.toString());
+		continue;
+	    }
+	}
     }
 
     //
@@ -1058,16 +1125,15 @@ public class BootImageWriter2 extends BootImageWriterMessages
    *         (OBJECT_NOT_PRESENT --> object not copied:
    *            it's not part of bootimage)
    */
-  private static int copyToBootImage(Object jdkObject, boolean copyTIB, int overwriteOffset)
+  private static int copyToBootImage(Object jdkObject, boolean copyTIB, int overwriteOffset, Object parentObject)
     throws IllegalAccessException
   {
     //
-    // don't copy an object twice
+    // Return object if it is already copied and not being overwritten
     //
-    BootImageMap.Entry mapEntry =
-      BootImageMap.findOrCreateEntry(jdkObject);
+    BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(jdkObject);
     if (mapEntry.imageOffset != OBJECT_NOT_ALLOCATED && overwriteOffset == -1)
-      return mapEntry.imageOffset; // object already copied and not being overwritten
+      return mapEntry.imageOffset;
 
     if (verbose >= 2) depth++;
 
@@ -1114,11 +1180,24 @@ public class BootImageWriter2 extends BootImageWriterMessages
 	  }
       }
 
+      VM_Type rvmElementType = rvmArrayType.getElementType();
+
+      // Show info on reachability of int arrays
+      //
+      if (false && rvmElementType.equals(VM_Type.IntType)) {
+	  if (parentObject != null) {
+	      Class parentObjectType = parentObject.getClass();
+	      VM.sysWrite("Copying int array (", 4 * ((int []) jdkObject).length);
+	      VM.sysWriteln(" bytes) from parent object of type ", parentObjectType.toString());
+	  }
+	  else
+	      VM.sysWriteln("Copying int array from no parent object");
+      }
+
       //
       // copy array elements from host jdk address space into image
       // recurse on values that are references
       //
-      VM_Type rvmElementType = rvmArrayType.getElementType();
       if (rvmElementType.isPrimitiveType()) {
         // array element is logical or numeric type
         if (rvmElementType.equals(VM_Type.BooleanType)) {
@@ -1190,7 +1269,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
           if (values[i] != null) {
             if (verbose >= 1) traceContext.push(values[i].getClass().getName(),
                                          jdkClass.getName(), i);
-            int imageOffset = copyToBootImage(values[i], copyTIB, -1);
+            int imageOffset = copyToBootImage(values[i], copyTIB, -1, jdkObject);
             if (imageOffset == OBJECT_NOT_PRESENT) {
               // object not part of bootimage: install null reference
 
@@ -1316,7 +1395,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
             if (verbose >= 1) traceContext.push(value.getClass().getName(),
                                          jdkClass.getName(),
                                          jdkFieldAcc.getName());
-            int imageOffset = copyToBootImage(value, copyTIB, -1);
+            int imageOffset = copyToBootImage(value, copyTIB, -1, jdkObject);
             if (imageOffset == OBJECT_NOT_PRESENT) {
               // object not part of bootimage: install null reference
               if (verbose >= 1) traceContext.traceObjectNotInBootImage();
@@ -1337,7 +1416,7 @@ public class BootImageWriter2 extends BootImageWriterMessages
     if (copyTIB) {
 
       if (verbose >= 1) traceContext.push("", jdkObject.getClass().getName(), "tib");
-      int tibImageOffset = copyToBootImage(rvmType.getTypeInformationBlock(), copyTIB, -1);
+      int tibImageOffset = copyToBootImage(rvmType.getTypeInformationBlock(), copyTIB, -1, jdkObject);
       if (verbose >= 1) traceContext.pop();
       if (tibImageOffset == OBJECT_NOT_ALLOCATED)
 	fail("can't copy tib for " + jdkObject);
