@@ -100,7 +100,7 @@ class VM_Memory implements VM_Uninterruptible {
 	      VM_Magic.objectAsAddress(src) + (srcPos<<1), 
 	      len<<1);
     } else {
-      if ((srcPos & 0x1) == (dstPos & 0x1)) {
+      if (len > 1 && (srcPos & 0x1) == (dstPos & 0x1)) {
 	// alignment is the same
 	int byteStart = srcPos<<1;
 	int wordStart = (byteStart + 3) & ~0x3;
@@ -146,7 +146,7 @@ class VM_Memory implements VM_Uninterruptible {
 	      VM_Magic.objectAsAddress(src) + (srcPos<<1), 
 	      len<<1);
     } else {
-      if ((srcPos & 0x1) == (dstPos & 0x1)) {
+      if (len > 1 && (srcPos & 0x1) == (dstPos & 0x1)) {
 	// alignment is the same
 	int byteStart = srcPos<<1;
 	int wordStart = (byteStart + 3) & ~0x3;
