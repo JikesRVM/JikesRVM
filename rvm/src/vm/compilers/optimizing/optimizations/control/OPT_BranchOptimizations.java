@@ -54,6 +54,8 @@ public final class OPT_BranchOptimizations
       return processGoto(ir, s, bb);
     else if (IfCmp.conforms(s))
       return processConditionalBranch(ir, s, bb);
+    else if (InlineGuard.conforms(s))
+      return processInlineGuard(ir, s, bb);
     else if (IfCmp2.conforms(s)) 
       return processTwoTargetConditionalBranch(ir, s, bb);
     else 
@@ -263,6 +265,86 @@ public final class OPT_BranchOptimizations
     }
     if (isFlipCandidate(cb, targetInst)) {
       flipConditionalBranch(cb);
+      bb.recomputeNormalOut(ir); // fix the CFG 
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Perform optimizations for an inline guard.  
+   *
+   * <pre>
+   * 1)   IF .. GOTO A	        replaced by  IF .. GOTO B
+   *      ...
+   *   A: GOTO B
+   * 2)   IF .. GOTO A	     replaced by  IF .. GOTO B
+   *   A: LABEL	     
+   *   	  BBEND
+   *   B: 
+   * 3)   conditional branch to next instruction eliminated
+   * 4)  fallthrough to a goto: replicate goto to enable other optimizations.
+   * </pre>
+   *
+   * <p> Precondition: InlineGuard.conforms(cb)
+   *
+   * @param ir the governing IR
+   * @param cb the instruction to optimize
+   * @param bb the basic block holding if
+   * @returns true iff made a transformation
+   */
+  private boolean processInlineGuard(OPT_IR ir, 
+				     OPT_Instruction cb, 
+				     OPT_BasicBlock bb) {
+    OPT_BasicBlock targetBlock = cb.getBranchTarget();
+    OPT_Instruction targetLabel = targetBlock.firstInstruction();
+    // get the first real instruction at the branch target
+    // NOTE: this instruction is not necessarily in targetBlock,
+    // iff targetBlock has no real instructions
+    OPT_Instruction targetInst = firstRealInstructionFollowing(targetLabel);
+    if (targetInst == null || targetInst == cb) {
+      return false;
+    }
+    boolean endsBlock = cb.getNext().operator() == BBEND;
+    if (endsBlock) {
+      OPT_Instruction nextLabel = firstLabelFollowing(cb);
+      if (targetLabel == nextLabel) {
+	// found a conditional branch to the next instruction.  just remove it.
+	cb.remove();
+	return true;
+      }
+      OPT_Instruction nextI = firstRealInstructionFollowing(nextLabel);
+      if (nextI != null && Goto.conforms(nextI)) {
+	// replicate Goto
+	cb.insertAfter(nextI.copyWithoutLinks());
+	bb.recomputeNormalOut(ir); // fix the CFG 
+	return true;
+      }
+    }
+    // do we fall through to a block that has only a goto?
+    OPT_BasicBlock fallThrough = bb.getFallThroughBlock();
+    if (fallThrough != null) {
+      OPT_Instruction
+	fallThroughInstruction = fallThrough.firstRealInstruction();
+      if ((  fallThroughInstruction != null)
+	  && Goto.conforms (fallThroughInstruction)) {
+	// copy goto to bb
+	bb.appendInstruction (fallThroughInstruction.copyWithoutLinks());
+	bb.recomputeNormalOut(ir);
+      }                                                                  
+    }
+    
+    if (Goto.conforms(targetInst)) {
+      // conditional branch to unconditional branch.
+      // change conditional branch target to latter's target
+      InlineGuard.setTarget(cb, Goto.getTarget(targetInst));
+      bb.recomputeNormalOut(ir); // fix the CFG 
+      return true;
+    }
+    if (targetBlock.isEmpty()) {
+      // branch to an empty block.  Change target to the next block.
+      OPT_BasicBlock nextBlock = targetBlock.getFallThroughBlock();
+      InlineGuard.setTarget(cb, nextBlock.makeJumpTarget());
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
