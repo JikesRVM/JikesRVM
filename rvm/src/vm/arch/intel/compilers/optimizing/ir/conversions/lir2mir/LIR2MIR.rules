@@ -1239,18 +1239,280 @@ FP_OP_MOV(burs, P(p), IA32_FMUL, IA32_FSTP, Binary.getResult(P(p)), myFP0(), con
 #####
 # FP_SUB (handles both float and double; both are 80 bit anyways...)
 #####
+fp0:	FP_SUB(r, r)
+p.child1.isREGISTERNode()?43:26
+EMIT_INSTRUCTION
+FP_MOV_OP(burs, P(p), IA32_FSUB, Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+fp0:	FP_SUB(r, r)
+p.child2.isREGISTERNode()?43:26
+EMIT_INSTRUCTION
+FP_MOV_OP(burs, P(p), IA32_FSUBR, Binary.getVal2(P(p)), Binary.getVal1(P(p)));
+
+fp0:	FP_SUB(r, fpload)
+p.child1.isREGISTERNode()?45:28
+EMIT_INSTRUCTION
+FP_MOV_OP(burs, P(p), IA32_FSUB, Binary.getVal1(P(p)), consumeMO());
+
+fp0:	FP_SUB(fpload, r)
+p.child2.isREGISTERNode()?45:28
+EMIT_INSTRUCTION
+FP_MOV_OP(burs, P(p), IA32_FSUBR, Binary.getVal2(P(p)), consumeMO());
+
+fp0:	FP_SUB(pfp0, r)
+p.child2.isREGISTERNode()?48:31
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_MOV_OP(burs, P(p), IA32_FSUBRP, Binary.getVal2(P(p)), myFP0());
+
+fp0:	FP_SUB(r, pfp0)
+p.child1.isREGISTERNode()?48:31
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_MOV_OP(burs, P(p), IA32_FSUBP, Binary.getVal1(P(p)), myFP0());
+
+fp0:	FP_SUB(fp0, r)
+13
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FSUB, D(getFPR(0)), Binary.getVal2(P(p)));
+
+fp0:	FP_SUB(r, fp0)
+13
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FSUBR, D(getFPR(0)), Binary.getVal1(P(p)));
+
+fp0:	FP_SUB(fp0, fpload)
+15
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FSUB, D(getFPR(0)), consumeMO());
+
+fp0:	FP_SUB(fpload, fp0)
+15
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FSUBR, D(getFPR(0)), consumeMO());
+
+pfp0:	FP_SUB(r, r)
+31
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FLD, myFP0(), Binary.getVal1(P(p)))); \
+FP_OP(burs, P(p), IA32_FSUB, myFP0(), Binary.getVal2(P(p)));
+
+pfp0:	FP_SUB(pfp0, r)
+13
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FSUB, myFP0(), Binary.getVal2(P(p)));
+
+pfp0:	FP_SUB(r, pfp0)
+13
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FSUBR, myFP0(), Binary.getVal1(P(p)));
+
+pfp0:	FP_SUB(pfp0, fpload)
+15
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FSUB, myFP0(), consumeMO());
+
+pfp0:	FP_SUB(fpload, pfp0)
+15
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FSUBR, myFP0(), consumeMO());
+
 r:	FP_SUB(r, r)
-39
+p.child1.isREGISTERNode()?56:39
 EMIT_INSTRUCTION
 FP_MOV_OP_MOV(burs, P(p), IA32_FSUB, Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
 
+r:	FP_SUB(r, r)
+p.child2.isREGISTERNode()?56:39
+EMIT_INSTRUCTION
+FP_MOV_OP_MOV(burs, P(p), IA32_FSUBR, Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
+
+r:	FP_SUB(r, fpload)
+p.child1.isREGISTERNode()?58:41
+EMIT_INSTRUCTION
+FP_MOV_OP_MOV(burs, P(p), IA32_FSUB, Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+r:	FP_SUB(fpload, r)
+p.child2.isREGISTERNode()?58:41
+EMIT_INSTRUCTION
+FP_MOV_OP_MOV(burs, P(p), IA32_FSUBR, Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+
+r:	FP_SUB(r, fp0)
+26
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FSUBR, IA32_FMOV, Binary.getResult(P(p)), D(getFPR(0)), Binary.getVal1(P(p)));
+
+r:	FP_SUB(fp0, r)
+26
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FSUB, IA32_FMOV, Binary.getResult(P(p)), D(getFPR(0)), Binary.getVal2(P(p)));
+
+r:	FP_SUB(fpload, fp0)
+28
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FSUBR, IA32_FMOV, Binary.getResult(P(p)), D(getFPR(0)), consumeMO());
+
+r:	FP_SUB(fp0, fpload)
+28
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FSUB, IA32_FMOV, Binary.getResult(P(p)), D(getFPR(0)), consumeMO());
+
+r:	FP_SUB(r, pfp0)
+31
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FSUBR, IA32_FSTP, Binary.getResult(P(p)), myFP0(), Binary.getVal1(P(p)));
+
+r:	FP_SUB(pfp0, r)
+31
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FSUB, IA32_FSTP, Binary.getResult(P(p)), myFP0(), Binary.getVal2(P(p)));
+
+r:	FP_SUB(fpload, pfp0)
+31
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FSUBR, IA32_FSTP, Binary.getResult(P(p)), myFP0(), consumeMO());
+
+r:	FP_SUB(pfp0, fpload)
+31
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FSUB, IA32_FSTP, Binary.getResult(P(p)), myFP0(), consumeMO());
+
 #####
-# FP_DIV_ACC (handles both float and double; both are 80 bit anyways...)
+# FP_DIV (handles both float and double; both are 80 bit anyways...)
 #####
+fp0:	FP_DIV(r, r)
+p.child1.isREGISTERNode()?43:26
+EMIT_INSTRUCTION
+FP_MOV_OP(burs, P(p), IA32_FDIV, Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+fp0:	FP_DIV(r, r)
+p.child2.isREGISTERNode()?43:26
+EMIT_INSTRUCTION
+FP_MOV_OP(burs, P(p), IA32_FDIVR, Binary.getVal2(P(p)), Binary.getVal1(P(p)));
+
+fp0:	FP_DIV(r, fpload)
+p.child1.isREGISTERNode()?45:28
+EMIT_INSTRUCTION
+FP_MOV_OP(burs, P(p), IA32_FDIV, Binary.getVal1(P(p)), consumeMO());
+
+fp0:	FP_DIV(fpload, r)
+p.child2.isREGISTERNode()?45:28
+EMIT_INSTRUCTION
+FP_MOV_OP(burs, P(p), IA32_FDIVR, Binary.getVal2(P(p)), consumeMO());
+
+fp0:	FP_DIV(pfp0, r)
+p.child2.isREGISTERNode()?48:31
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_MOV_OP(burs, P(p), IA32_FDIVRP, Binary.getVal2(P(p)), myFP0());
+
+fp0:	FP_DIV(r, pfp0)
+p.child1.isREGISTERNode()?48:31
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_MOV_OP(burs, P(p), IA32_FDIVP, Binary.getVal1(P(p)), myFP0());
+
+fp0:	FP_DIV(fp0, r)
+13
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FDIV, D(getFPR(0)), Binary.getVal2(P(p)));
+
+fp0:	FP_DIV(r, fp0)
+13
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FDIVR, D(getFPR(0)), Binary.getVal1(P(p)));
+
+fp0:	FP_DIV(fp0, fpload)
+15
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FDIV, D(getFPR(0)), consumeMO());
+
+fp0:	FP_DIV(fpload, fp0)
+15
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FDIVR, D(getFPR(0)), consumeMO());
+
+pfp0:	FP_DIV(r, r)
+31
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FLD, myFP0(), Binary.getVal1(P(p)))); \
+FP_OP(burs, P(p), IA32_FDIV, myFP0(), Binary.getVal2(P(p)));
+
+pfp0:	FP_DIV(pfp0, r)
+13
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FDIV, myFP0(), Binary.getVal2(P(p)));
+
+pfp0:	FP_DIV(r, pfp0)
+13
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FDIVR, myFP0(), Binary.getVal1(P(p)));
+
+pfp0:	FP_DIV(pfp0, fpload)
+15
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FDIV, myFP0(), consumeMO());
+
+pfp0:	FP_DIV(fpload, pfp0)
+15
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP(burs, P(p), IA32_FDIVR, myFP0(), consumeMO());
+
 r:	FP_DIV(r, r)
-39
+p.child1.isREGISTERNode()?56:39
 EMIT_INSTRUCTION
 FP_MOV_OP_MOV(burs, P(p), IA32_FDIV, Binary.getResult(P(p)), Binary.getVal1(P(p)), Binary.getVal2(P(p)));
+
+r:	FP_DIV(r, r)
+p.child2.isREGISTERNode()?56:39
+EMIT_INSTRUCTION
+FP_MOV_OP_MOV(burs, P(p), IA32_FDIVR, Binary.getResult(P(p)), Binary.getVal2(P(p)), Binary.getVal1(P(p)));
+
+r:	FP_DIV(r, fpload)
+p.child1.isREGISTERNode()?58:41
+EMIT_INSTRUCTION
+FP_MOV_OP_MOV(burs, P(p), IA32_FDIV, Binary.getResult(P(p)), Binary.getVal1(P(p)), consumeMO());
+
+r:	FP_DIV(fpload, r)
+p.child2.isREGISTERNode()?58:41
+EMIT_INSTRUCTION
+FP_MOV_OP_MOV(burs, P(p), IA32_FDIVR, Binary.getResult(P(p)), Binary.getVal2(P(p)), consumeMO());
+
+r:	FP_DIV(r, fp0)
+26
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FDIVR, IA32_FMOV, Binary.getResult(P(p)), D(getFPR(0)), Binary.getVal1(P(p)));
+
+r:	FP_DIV(fp0, r)
+26
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FDIV, IA32_FMOV, Binary.getResult(P(p)), D(getFPR(0)), Binary.getVal2(P(p)));
+
+r:	FP_DIV(fpload, fp0)
+28
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FDIVR, IA32_FMOV, Binary.getResult(P(p)), D(getFPR(0)), consumeMO());
+
+r:	FP_DIV(fp0, fpload)
+28
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FDIV, IA32_FMOV, Binary.getResult(P(p)), D(getFPR(0)), consumeMO());
+
+r:	FP_DIV(r, pfp0)
+31
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FDIVR, IA32_FSTP, Binary.getResult(P(p)), myFP0(), Binary.getVal1(P(p)));
+
+r:	FP_DIV(pfp0, r)
+31
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FDIV, IA32_FSTP, Binary.getResult(P(p)), myFP0(), Binary.getVal2(P(p)));
+
+r:	FP_DIV(fpload, pfp0)
+31
+EMIT_INSTRUCTION | LEFT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FDIVR, IA32_FSTP, Binary.getResult(P(p)), myFP0(), consumeMO());
+
+r:	FP_DIV(pfp0, fpload)
+31
+EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
+FP_OP_MOV(burs, P(p), IA32_FDIV, IA32_FSTP, Binary.getResult(P(p)), myFP0(), consumeMO());
 
 #####
 # FP_REM (handles both float and double; both are 80 bit anyways...)
