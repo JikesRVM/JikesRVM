@@ -5,6 +5,9 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
+//-#if RVM_WITH_ADAPTIVE_SYSTEM
+import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
+//-#endif
 
 /**
  * A place to put code common to all runtime compilers.

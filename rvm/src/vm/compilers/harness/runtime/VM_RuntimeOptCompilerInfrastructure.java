@@ -311,9 +311,9 @@ OPT_CompilationPlan plan) {
    * It was originally (and still?) called from VM_CompilationProfiler.
    * @param explain should we provide more details
    */
-  static void detailedCompilationReport(boolean explain) {
+  public static void detailedCompilationReport(boolean explain) {
     // If/when the baseline compiler gets these, invoke them here.
-    
+
     // Get the opt's report
     VM_Type theType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_OptimizationPlanner;"), VM_SystemClassLoader.getVMClassLoader());
     if (theType.asClass().isInitialized()) {
