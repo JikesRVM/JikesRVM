@@ -255,17 +255,6 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verboseBoot >= 1) VM.sysWriteln("Compiler processing rest of boot options");
     VM_BaselineCompiler.postBootOptions();
 
-    /* We already have full multi-processing, so this might get interrupted,
-       right? */
-    if (applicationArguments.length > 0 
-	&& ! isJavaClassName(applicationArguments[0])) 
-      {
-	VM.sysWrite("vm: \"");
-	VM.sysWrite(applicationArguments[0]);
-	VM.sysWrite("\" is not a legal Java class name.\n");
-	pleaseSpecifyAClass();
-      }
-
     // Allow profile information to be read in from a file
     VM_EdgeCounts.boot();
 
@@ -283,10 +272,25 @@ public class VM extends VM_Properties implements VM_Constants,
        idiom: 
        rvm -X:irc[:help] */
 
+    /* It is now OK to start switching threads.   So we can begin to call
+       interruptible methods, such as pleaseSpecifyAClass(), and
+       isJavaClassName(). */ 
+
     // The first argument must be a class name.
     if (applicationArguments.length == 0)
       pleaseSpecifyAClass();
     
+    /* We already have full multi-processing, so this might get interrupted,
+       right? */
+    if (applicationArguments.length > 0 
+	&& ! isJavaClassName(applicationArguments[0])) 
+      {
+	VM.sysWrite("vm: \"");
+	VM.sysWrite(applicationArguments[0]);
+	VM.sysWrite("\" is not a legal Java class name.\n");
+	pleaseSpecifyAClass();
+      }
+
     // Create main thread.
     // Work around class incompatibilities in boot image writer
     // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
@@ -328,7 +332,7 @@ public class VM extends VM_Properties implements VM_Constants,
   }
 
   private static void pleaseSpecifyAClass() 
-    throws VM_PragmaLogicallyUninterruptible
+    throws VM_PragmaInterruptible
   {
     VM.sysWrite("vm: Please specify a class to execute.\n");
     VM.sysWrite("vm:   You can invoke the VM with the \"-help\" flag for usage information.\n");
@@ -344,7 +348,7 @@ public class VM extends VM_Properties implements VM_Constants,
   private static boolean isJavaClassName(String s) 
     // This is really a lie.  But would it be so bad if we did do some thread
     // switching at this point?  I don't get why it would be so awful.
-    throws VM_PragmaLogicallyUninterruptible
+    throws VM_PragmaInterruptible
   {
     boolean identStart = true;	// pretend we just saw a .
     for (int i = 0; i < s.length(); ++i) {
@@ -415,7 +419,18 @@ public class VM extends VM_Properties implements VM_Constants,
       VM_Method clinit = cls.getClassInitializerMethod();
       clinit.compile();
       if (verboseBoot >= 10) VM.sysWriteln("invoking method " + clinit);
-      VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
+      try {
+	VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
+      } catch (Error e) {
+	throw e;
+      } catch (Throwable t) {
+	ExceptionInInitializerError eieio
+	  = new ExceptionInInitializerError(
+		    "Caught exception while invoking the class initializer for"
+		    +  className);
+	eieio.initCause(t);
+	throw eieio;
+      }
       cls.setAllFinalStaticJTOCEntries();
     }
   }
