@@ -919,16 +919,10 @@ implements OPT_Operators {
    * Rewrite a move instruction if it has 2 memory operands.
    * One of the 2 memory operands must be a stack location operand.  Move
    * the SP to the appropriate location and use a push or pop instruction.
-   *
-   * @return true iff the move instruction was mutated to a PUSH
-   * instruction (used for computation of effective addresses).
    */
-  private boolean rewriteMoveInstruction(OPT_Instruction s) {
-
+  private void rewriteMoveInstruction(OPT_Instruction s) {
     // first attempt to mutate the move into a noop
-    if (mutateMoveToNop(s)) {
-      return false;
-    }
+    if (mutateMoveToNop(s)) return;
 
     OPT_Register ESP = ir.regpool.getPhysicalRegisterSet().getESP();
     OPT_Operand result = MIR_Move.getResult(s);
@@ -941,17 +935,6 @@ implements OPT_Operators {
         offset = FPOffset2SPOffset(offset) + size;
         moveESPBefore(s,offset);
         MIR_UnaryNoRes.mutate(s,IA32_PUSH,val);
-
-        // if val uses ESP, fix it up. Note that PUSH computes the
-        // effective address BEFORE decrementing ESP
-        if (val instanceof OPT_MemoryOperand) {
-          OPT_RegisterOperand base = val.asMemory().base;
-          if (base != null && base.register == ESP) {
-            val.asMemory().disp -= ESPOffset;
-          }
-        }
-
-        return true;
       }
     } else {
       if (result instanceof OPT_MemoryOperand) {
@@ -961,15 +944,8 @@ implements OPT_Operators {
           moveESPBefore(s,offset);
           MIR_Nullary.mutate(s,IA32_POP,result);
 	}
-        // if result uses ESP, fix it up. Note that POP computes the
-        // effective address AFTER incrementing ESP.
-        OPT_RegisterOperand base = result.asMemory().base;
-        if (base != null && base.register == ESP) {
-          result.asMemory().disp -= (ESPOffset + 4);
-        }
       }
     }
-    return false;
   }
 
   /**
@@ -1030,6 +1006,13 @@ implements OPT_Operators {
         rewriteMoveInstruction(s);
       }
 
+      // pop computes the effective address of its operand after ESP
+      // is incremented.  Therefore update ESPOffset before rewriting 
+      // stacklocation and memory operands.
+      if (s.operator() == IA32_POP) {
+	ESPOffset  += 4; 
+      }	
+
       for (OPT_OperandEnumeration ops = s.getOperands(); ops.hasMoreElements(); ) {
         OPT_Operand op = ops.next();
         if (op instanceof OPT_StackLocationOperand) {
@@ -1043,16 +1026,23 @@ implements OPT_Operators {
           OPT_MemoryOperand M = 
 	    OPT_MemoryOperand.BD(R(ESP),offset,
 				 size, null, null); 
-          s.replaceOperand(op,M);
-        }
+          s.replaceOperand(op, M);
+        } else if (op instanceof OPT_MemoryOperand) {
+	  OPT_MemoryOperand M = op.asMemory();
+	  if ((M.base != null && M.base.register == ESP) ||
+	      (M.index != null && M.index.register == ESP)) {
+	    VM.sysWrite("AJA "+s+"\n");
+	    M.disp -= ESPOffset;
+	    VM.sysWrite("\t"+s+"\n");
+	  }
+	}
       }
 
-      // push/pop update ESP after they compute the effective address of their operand
-      // so update ESPOffset after rewriting stackLocationOperands!
+      // push computes the effective address of its operand after ESP
+      // is decremented.  Therefore update ESPOffset after rewriting 
+      // stacklocation and memory operands.
       if (s.operator() == IA32_PUSH) {
 	ESPOffset -= 4;
-      } else if (s.operator() == IA32_POP) {
-	ESPOffset  += 4; 
       }
     }
   }
