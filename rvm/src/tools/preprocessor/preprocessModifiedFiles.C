@@ -4,6 +4,12 @@
 
    Documentation for this program is in the variables short_help_msg and
    long_help_msg, immediately below.
+
+   Jikes RVM is distribed under the Common Public License (CPL),
+   which has been approved by the Open Source Initiative
+   as a fully certified open source license.
+
+   Jikes is a trademark of IBM Corp.
 */
 
 static const char short_help_msg[] = ""
