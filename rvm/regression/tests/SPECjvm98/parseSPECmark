@@ -41,4 +41,4 @@ do
 done
 one_seventh=0.1428571428571
 geo_mean=`perl -e 'printf("%1.2f",@ARGV[0]**@ARGV[1])' $product $one_seventh`
-perl -e 'printf("Bottom Line: Result: %10s\n",@ARGV[0])' $geo_mean
+perl -e 'printf("First Run Result: %10s\n",@ARGV[0])' $geo_mean
