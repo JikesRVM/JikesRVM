@@ -5,6 +5,8 @@
 // $Id$
 
 /*
+ * @author Maria Butrico
+ * @author Julian Dolby
  * @author Tracy Ferguson 
  */
 
