@@ -5,7 +5,9 @@
 
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
+import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
+import com.ibm.JikesRVM.memoryManagers.JMTk.HeapGrowthManager;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
@@ -229,8 +231,8 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @param handshake VM_Handshake for the requested collection
    */
-  public static void collect(VM_Handshake handshake) {
-    handshake.requestAndAwaitCompletion();
+  public static void collect (VM_Handshake handshake, int why) {
+    handshake.requestAndAwaitCompletion(why);
   }
   
   /**
@@ -321,7 +323,7 @@ public class VM_CollectorThread extends VM_Thread {
       if (verbose > 2) VM.sysWriteln("GC Message: VM_CT.run entering first rendezvous - gcOrdinal =", gcOrdinal);
 
       /* the first RVM VP will wait for all the native VPs not blocked
-       * in nativeto reach a SIGWAIT state */
+       * in native to reach a SIGWAIT state */
       if (gcOrdinal == 1) {
         if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run quiescing native VPs");
         for (int i = 1; i <= VM_Processor.numberNativeProcessors; i++) {
@@ -363,11 +365,19 @@ public class VM_CollectorThread extends VM_Thread {
       if (isActive) VM_Interface.getPlan().collect(); // gc
       if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
       
-      /* wait for other collector threads to arrive here */
       gcBarrier.rendezvous(5200);
       
-      /* Wake up mutators waiting for this gc cycle and create new
-       * collection handshake object to be used for next gc cycle.
+      if (gcOrdinal == 1 && Plan.isLastGCFull()) {
+        boolean heapSizeChanged = false;
+	if (Options.variableSizeHeap && handshake.gcTrigger != VM_Interface.EXTERNAL_GC_TRIGGER) {
+	  // Don't consider changing the heap size if gc was forced by System.gc()
+	  heapSizeChanged = HeapGrowthManager.considerHeapSize();
+	}
+	HeapGrowthManager.reset();
+      } 
+
+      /* Wake up mutators waiting for this gc cycle and reset
+       * the handshake object to be used for next gc cycle.
        * Note that mutators will not run until after thread switching
        * is enabled, so no mutators can possibly arrive at old
        * handshake object: it's safe to replace it with a new one. */

@@ -96,30 +96,35 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
      );
 
   /**
+   * An unknown GC trigger reason.  Signals a logic bug.
+   */ 
+  public static final int UNKNOWN_GC_TRIGGER = 0;  
+  /**
    * Externally triggered garbage collection.  For example, the
    * application called System.gc().
    */
-  public static final int EXTERNALLY_TRIGGERED_GC = 0;
+  public static final int EXTERNAL_GC_TRIGGER = 1;
   /**
    * Resource triggered garbage collection.  For example, an
    * allocation request would take the number of pages in use beyond
    * the number available.
    */
-  public static final int RESOURCE_TRIGGERED_GC = 1;
+  public static final int RESOURCE_GC_TRIGGER = 2;
   /**
    * Internally triggered garbage collection.  For example, the memory
    * manager attempting another collection after the first failed to
    * free space.
    */
-  public static final int INTERNALLY_TRIGGERED = 2;
+  public static final int INTERNAL_GC_TRIGGER = 3;
   /**
    * The number of garbage collection trigger reasons.
    */
-  public static final int TRIGGER_REASONS = 3;
+  public static final int TRIGGER_REASONS = 4;
   /**
    * Short descriptions of the garbage collection trigger reasons.
    */
   private static final String[] triggerReasons = {
+    "unknown",
     "external request",
     "resource exhaustion",
     "internal request"
@@ -213,7 +218,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 				       VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC, 
 				       VM_Memory.MAP_PRIVATE | VM_Memory.MAP_FIXED | VM_Memory.MAP_ANONYMOUS);
     if (result.EQ(start)) return 0;
-    if (result.GT(VM_Address.fromInt(127))) {
+    if (result.GT(VM_Address.fromIntZeroExtend(127))) {
       VM.sysWrite("mmap with MAP_FIXED on ", start);
       VM.sysWriteln(" returned some other address", result);
       VM.sysFail("mmap with MAP_FIXED has unexpected behavior");
@@ -429,30 +434,23 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       VM.sysWriteln("Entered VM_Interface.triggerCollection().  Stack:");
       VM_Scheduler.dumpStack();
     }
-    if (why == EXTERNALLY_TRIGGERED_GC) {
+    if (why == EXTERNAL_GC_TRIGGER) {
       Plan.userTriggeredGC();
       if (Options.verbose == 1 || Options.verbose == 2) 
 	VM.sysWrite("[Forced GC]");
     }
     if (Options.verbose > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
+    int sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
     double start = VM_Time.now();
-    VM_CollectorThread.collect(VM_CollectorThread.handshake);
+    VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
     double end = VM_Time.now();
     double gcTime = end - start;
     HeapGrowthManager.recordGCTime(gcTime);
     if (Options.verbose > 2) VM.sysWriteln("Collection finished (ms): ", VM_Time.toMilliSecs(gcTime));
+
+    if (sizeBeforeGC == HeapGrowthManager.getCurrentHeapSize()) 
+      checkForExhaustion(why, false);
     
-    if (Plan.isLastGCFull()) {
-      boolean heapSizeChanged = false;
-      if (Options.variableSizeHeap && why != EXTERNALLY_TRIGGERED_GC) {
-	// Don't consider changing the heap size if gc was forced by System.gc()
-	heapSizeChanged = HeapGrowthManager.considerHeapSize();
-      }
-      HeapGrowthManager.reset();
-      if (!heapSizeChanged) {
-	checkForExhaustion(why, false);
-      }
-    } // isLastGCFull
     Plan.checkForAsyncCollection();
   }
 
@@ -462,7 +460,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static final void triggerAsyncCollection()
     throws VM_PragmaUninterruptible {
-    checkForExhaustion(RESOURCE_TRIGGERED_GC, true);
+    checkForExhaustion(RESOURCE_GC_TRIGGER, true);
     Plan.collectionInitiated();
     if (Options.verbose >= 1) VM.sysWrite("[Async GC]");
     VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake);
@@ -493,7 +491,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     
     //    if (Plan.totalMemory() - Plan.reservedMemory() < 64<<10) {
     if (usage > OUT_OF_MEMORY_THRESHOLD) {
-      if (why == INTERNALLY_TRIGGERED) {
+      if (why == INTERNAL_GC_TRIGGER) {
 	if (Options.verbose >= 2) {
 	  VM.sysWriteln("OutOfMemoryError: usage = ", usage);
 	  VM.sysWriteln("          reserved (kb) = ",(int)(Plan.reservedMemory() / 1024));
@@ -509,7 +507,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       /* clear all possible reference objects */
       ReferenceProcessor.setClearSoftReferences(true);
       if (!async)
-	triggerCollection(INTERNALLY_TRIGGERED);
+	triggerCollection(INTERNAL_GC_TRIGGER);
     }
   }
    

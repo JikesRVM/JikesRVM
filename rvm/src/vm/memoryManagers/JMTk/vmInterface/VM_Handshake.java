@@ -58,9 +58,14 @@ public class VM_Handshake {
    *
    * Instance variables
    */
+  private Lock lock = new Lock("handshake");
   protected boolean requestFlag;
   protected boolean completionFlag;
-  private Lock lock = new Lock("handshake");
+  public int gcTrigger;  // reason for this GC
+
+  public VM_Handshake () {
+    reset();
+  }
   
   /**
    * Called by mutators to request a garbage collection and wait for
@@ -70,8 +75,9 @@ public class VM_Handshake {
    * collector thread, which will disable further thread switching on
    * the processor until it has completed the collection.
    */
-  public void requestAndAwaitCompletion() throws VM_PragmaInterruptible {
+  public void requestAndAwaitCompletion(int why) throws VM_PragmaInterruptible {
     if (request()) {
+      gcTrigger = why;
       if (verbose >= 1) VM.sysWriteln("GC Message: VM_Handshake.requestAndAwaitCompletion - yielding");
       /* allow a gc thread to run */
       VM_Thread.getCurrentThread().yield();
@@ -91,6 +97,7 @@ public class VM_Handshake {
   }
 
   public void reset() throws VM_PragmaUninterruptible {
+    gcTrigger = VM_Interface.UNKNOWN_GC_TRIGGER;
     requestFlag = false;
     completionFlag = false;
   }

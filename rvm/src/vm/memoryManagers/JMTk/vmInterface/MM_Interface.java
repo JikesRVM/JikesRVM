@@ -28,9 +28,9 @@ import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Class;
 import com.ibm.JikesRVM.classloader.VM_Method;
 
-
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_CodeArray;
 import com.ibm.JikesRVM.VM_CompiledMethod;
@@ -141,7 +141,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * @param theBootRecord the boot record. Contains information about
    * the heap size.
    */
-  public static final void boot(VM_BootRecord theBootRecord)
+  public static final void boot (VM_BootRecord theBootRecord)
     throws VM_PragmaInterruptible {
     int pageSize = VM_Memory.getPagesize();  // Cannot be determined at init-time
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
@@ -314,7 +314,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   public static final void gc() throws VM_PragmaInterruptible {
     Statistics.gcExternalCount++;
     if (!Options.ignoreSystemGC)
-	VM_Interface.triggerCollection(VM_Interface.EXTERNALLY_TRIGGERED_GC);
+	VM_Interface.triggerCollection(VM_Interface.EXTERNAL_GC_TRIGGER);
   }
 
   /****************************************************************************
@@ -586,8 +586,8 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
       AllocAdvice advice = VM_Interface.getPlan().getAllocAdvice(null, fullSize, null, null);
       VM_Address fullRegion = VM_Interface.getPlan().alloc(fullSize, false, Plan.IMMORTAL_SPACE, advice);
       VM_Address tmp = fullRegion.add(alignment);
-      int mask = ~((1 << logAlignment) - 1);
-      VM_Address region = VM_Address.fromInt(tmp.toInt() & mask).sub(offset);
+      VM_Word mask = VM_Word.one().lsh(logAlignment).sub(VM_Word.one()).not();
+      VM_Address region = tmp.toWord().and(mask).sub(VM_Word.fromIntSignExtend(offset)).toAddress();
       Object result = VM_ObjectModel.initializeArray(region, stackTib, n, arraySize);
       VM_Interface.getPlan().postAlloc(VM_Magic.objectAsAddress(result), stackTib, arraySize, false, Plan.IMMORTAL_SPACE);
       return (int []) result;
