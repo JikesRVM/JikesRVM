@@ -978,14 +978,19 @@ function emitController
    print '   fi'
    print 'else'
    print '   ./jbuild.expand     $TRACE_FLAG'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.copy       $TRACE_FLAG'
+   print '   print " $SECONDS s "'
    print '   ./jbuild.compile    $TRACE_FLAG'
+   print '   print " $SECONDS s "'
    print '   if [[ $NOLINK_FLAG != -nolink ]]; then'
    print '      ./jbuild.linkImage  $TRACE_FLAG $DEMOGRAPHICS_FLAG'
+   print '       print " $SECONDS s "'
    print '      if [[ X"$RVM_BUILD_COPY" != X ]]; then'
    print '          $RVM_BUILD_COPY'
    print '      elif [[ $NOBOOTER_FLAG != -nobooter ]]; then'
    print '          ./jbuild.linkBooter $TRACE_FLAG'
+   print '          print " $SECONDS s "'
    print '      fi'
    print '   fi'
    print 'fi'
@@ -1199,7 +1204,7 @@ function emitCopier
        print "$HOST_JAR -uf $CLASSES_DIRECTORY_STR/rvmrt.jar java com"
        print "cd $BUILD_DIRECTORY_STR"
        print "rm -rf $SCRATCH_DIRECTORY_STR/tempLib"
-       print "\nprint -n '(rvmrt.jar copied) \n'"
+       print "\nprint -n '(rvmrt.jar copied) '"
      fi
    fi
   
@@ -1899,7 +1904,7 @@ function emitBooterLinker
    print "rm -f libjni.a"
    print "cd $SCRATCH_DIRECTORY_STR"
    print "rm -f $BOOTER_STR RunBootImage.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h"
-   print 'print -n "(booter cleaned)"'
+   print 'print -n "(booter cleaned) "'
    print 'if [[ $1 = -clean ]]; then'
 
    print '   exit 0'
@@ -2078,7 +2083,7 @@ function emitBooterLinker
       fi
       print "ar r libjni.a libjni.so"
       print "cp -p $SCRATCH_DIRECTORY_STR/libjni.a $BUILD_DIRECTORY_STR"
-      print 'print "(JNI libraries linked)"'
+      print 'print -n "(JNI libraries linked)"'
       print ""
 
 
@@ -2369,9 +2374,7 @@ emitEnvironmentPerl	      >$BUILD_DIRECTORY/environment.pl
 chmod +x$PERM		      $BUILD_DIRECTORY/environment.pl
 
 
-print -n "(control files and scripts installed) "
-
-print ""
+print "(control files and scripts installed) "
 
 if [[ $quiet != 1 ]]; then
   if tty -s; then # keyboard is live (ie. this is not an automated build)
