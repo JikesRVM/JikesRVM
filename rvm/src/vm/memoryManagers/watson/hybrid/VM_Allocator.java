@@ -389,18 +389,19 @@ public class VM_Allocator
    * @return      the address of first byte of allocated area
    */
   public static VM_Address getHeapSpaceFast ( int size ) {
-
     VM_Magic.pragmaInline();
 
-    VM_Processor st = VM_Processor.getCurrentProcessor();
-    VM_Address new_current = st.localCurrentAddress.add(size);
-      
-    if (size <= SMALL_SPACE_MAX) {
-	if ( new_current.LE(st.localEndAddress) ) {
-	    VM_Address region = st.localCurrentAddress;
-	    st.localCurrentAddress = new_current;   // increment allocation pointer
-	    return region;
-	}
+    if (size < SMALL_SPACE_MAX) {
+      // NOTE: This code sequence is carefully written to generate
+      //       optimal code when inlined by the optimzing compiler.  
+      //       If you change it you must verify that the efficient 
+      //       inlined allocation sequence isn't hurt! --dave
+      VM_Address oldCurrent = VM_Processor.getCurrentProcessor().localCurrentAddress;
+      VM_Address newCurrent = oldCurrent.add(size);
+      if (newCurrent.LE(VM_Processor.getCurrentProcessor().localEndAddress)) {
+	VM_Processor.getCurrentProcessor().localCurrentAddress = newCurrent;
+	return oldCurrent;
+      }
     }
     return getHeapSpaceSlow(size);
   } // getHeapSpaceFast

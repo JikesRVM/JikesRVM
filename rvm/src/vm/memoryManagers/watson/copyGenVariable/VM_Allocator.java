@@ -306,23 +306,26 @@ public class VM_Allocator
    * @return the address of the first byte of the allocated region
    */
   static VM_Address getHeapSpaceFast ( int size ) {
+    VM_Magic.pragmaInline();
 
-    VM_Magic.pragmaInline();	     // make sure this method is inlined
-
-    if (PROCESSOR_LOCAL_ALLOCATE) {  // should be compiled away
-      VM_Processor st = VM_Processor.getCurrentProcessor();
-      if (size < SMALL_SPACE_MAX && st.localCurrentAddress.add(size).LE(st.localEndAddress)) {
-	 VM_Address addr = st.localCurrentAddress;
-  	 st.localCurrentAddress = st.localCurrentAddress.add(size);
-	 // if from space was filled with strange bits, then must zero now
-	 // UNLESS we are allocating blocks to processors, and those block are
-	 // being zeroed when allocated 
-	 if (! ZERO_BLOCKS_ON_ALLOCATION)
-	     VM_Memory.zeroTemp(addr, size);
-	 return addr;
+    if (PROCESSOR_LOCAL_ALLOCATE) { 
+      if (size < SMALL_SPACE_MAX) {
+	// NOTE: This code sequence is carefully written to generate
+	//       optimal code when inlined by the optimzing compiler.  
+	//       If you change it you must verify that the efficient 
+	//       inlined allocation sequence isn't hurt! --dave
+	VM_Address oldCurrent = VM_Processor.getCurrentProcessor().localCurrentAddress;
+	VM_Address newCurrent = oldCurrent.add(size);
+	if (newCurrent.LE(VM_Processor.getCurrentProcessor().localEndAddress)) {
+	  VM_Processor.getCurrentProcessor().localCurrentAddress = newCurrent;
+	  // if we didn't zero the block when we gave it to the processor,
+	  // then we must zero it now.
+	  if (!ZERO_BLOCKS_ON_ALLOCATION) VM_Memory.zeroTemp(oldCurrent, size);
+	  return oldCurrent;
+	}
       }
-    }
-    return getHeapSpaceSlow(size);     // don't bother being clever if no local allocate
+    } 
+    return getHeapSpaceSlow(size);
   }  // getHeapSpaceFast
 
   public static VM_Address getHeapSpaceSlow (int size) {

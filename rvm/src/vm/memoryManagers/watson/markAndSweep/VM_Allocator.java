@@ -455,6 +455,10 @@ public class VM_Allocator
       VM_Address objaddr;
       if (size <= GC_MAX_SMALL_SIZE) {
 	  // Use magic to avoid spurious array bounds check on common case allocation path.
+	  // NOTE: This code sequence is carefully written to generate
+	  //       optimal code when inlined by the optimzing compiler.  
+	  //       If you change it you must verify that the efficient 
+	  //       inlined allocation sequence isn't hurt! --dave
 	  VM_Address loc = VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor().GC_INDEX_ARRAY).add(size << 2);
   	  VM_Address rs = VM_Magic.getMemoryAddress(loc);
 	  VM_SizeControl the_size = VM_Magic.addressAsSizeControl(rs);
