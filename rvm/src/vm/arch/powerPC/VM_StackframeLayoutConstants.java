@@ -32,7 +32,7 @@ package com.ibm.JikesRVM;
  *                 +---------------+
  *                 |     MI=-1     |   <-- "invisible method" id
  *                 +---------------+
- *             +-> |     FP=0      |   <-- "end of vm stack" sentinal
+ *             +-> |     FP=0      |   <-- "end of vm stack" sentinel
  *             |   +===============+ . . . . . . . . . . . . . . . . . . . . . . . . . . .
  *             |   |   saved FPRs  |  \                                                  .
  *             |   +---------------+   \_nonvolatile register save area                  .
@@ -91,7 +91,7 @@ public interface VM_StackframeLayoutConstants  {
    static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET =  4;
    static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0;
 //-#endif
-   static final VM_Address STACKFRAME_SENTINAL_FP = VM_Address.fromIntSignExtend(-2); // fp value indicating end of stack walkback
+   static final VM_Address STACKFRAME_SENTINEL_FP = VM_Address.fromIntSignExtend(-2); // fp value indicating end of stack walkback
    static final int INVISIBLE_METHOD_ID    = -1; // marker for "assembler" frames that have no associated VM_Method
 
    // Stackframe alignment.

@@ -28,7 +28,7 @@ package com.ibm.JikesRVM;
  *              +---------------+                                            ...
  *              |     IP=0      |                                             .
  *              +---------------+                                             .
- *          +-> |     FP=0      |   <-- "end of vm stack" sentinal            .
+ *          +-> |     FP=0      |   <-- "end of vm stack" sentinel            .
  *          |   +---------------+                                             . caller's frame
  *          |   |    cmid=0      |   <-- "invisible method" id                .
  *          |   +---------------+                                          ---.
@@ -73,7 +73,7 @@ package com.ibm.JikesRVM;
  *              +---------------+                                            ...
  *              |     IP=0      |                                             .
  *              +---------------+                                             .
- *          +-> |     FP=0      |   <-- "end of vm stack" sentinal           .
+ *          +-> |     FP=0      |   <-- "end of vm stack" sentinel           .
  *          |   +---------------+                                             . caller's frame
  *          |   |    cmid=-1    |   <-- "invisible method" id                .
  *          |   +---------------+                                          ---.
@@ -143,7 +143,7 @@ public interface VM_StackframeLayoutConstants  {
    static final int FPU_STATE_SIZE       	       = 108;
 
   /** fp value indicating end of stack walkback */
-  static final VM_Address STACKFRAME_SENTINAL_FP = VM_Address.fromIntSignExtend(-2);
+  static final VM_Address STACKFRAME_SENTINEL_FP = VM_Address.fromIntSignExtend(-2);
   /** marker for "assembler" frames that have no associated VM_Method */
   static final int INVISIBLE_METHOD_ID    = -1;
 

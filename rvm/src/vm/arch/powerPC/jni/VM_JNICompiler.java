@@ -1197,8 +1197,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitCMPI (S0, 0);
     VM_ForwardReference fr6 = asm.emitForwardBC(EQ);
 
-    // check to see if this frame address is the sentinal since there may be no further Java frame below
-    asm.emitCMPI (T3, VM_Constants.STACKFRAME_SENTINAL_FP.toInt());
+    // check to see if this frame address is the sentinel since there may be no further Java frame below
+    asm.emitCMPI (T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
     VM_ForwardReference fr5 = asm.emitForwardBC(NE);
     
     // save result GPRS 3-4  and FPRS 1
@@ -1235,8 +1235,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     fr6.resolve(asm);
     fr5.resolve(asm);
     
-    // check to see if this frame address is the sentinal since there may be no further Java frame below
-    asm.emitCMPI (T3, VM_Constants.STACKFRAME_SENTINAL_FP.toInt());
+    // check to see if this frame address is the sentinel since there may be no further Java frame below
+    asm.emitCMPI (T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
     VM_ForwardReference fr4 = asm.emitForwardBC(EQ);
     asm.emitLWZ (S0, 0, T3);                   // get fp for caller of prev J to C transition frame
     asm.emitSTW(PROCESSOR_REGISTER, -JNI_PR_OFFSET, S0);  // store PR back into transition frame

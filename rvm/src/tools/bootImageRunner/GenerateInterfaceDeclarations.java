@@ -302,8 +302,8 @@ class GenerateInterfaceDeclarations {
         + VM_Constants.STACKFRAME_METHOD_ID_OFFSET + ";\n");
     System.out.print("static const int VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET    = "
         + VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET + ";\n");
-    System.out.print("static const int VM_Constants_STACKFRAME_SENTINAL_FP             = "
-        + VM_Constants.STACKFRAME_SENTINAL_FP.toInt() + ";\n");
+    System.out.print("static const int VM_Constants_STACKFRAME_SENTINEL_FP             = "
+        + VM_Constants.STACKFRAME_SENTINEL_FP.toInt() + ";\n");
     System.out.print("\n");
 
     // values in VM_Scheduler

@@ -261,10 +261,10 @@ abstract class SegregatedFreeList extends Allocator
 
     int cellExtent = cellSize[sizeClass];
     VM_Address cursor = block.add(blockHeaderSize[sizeClass]);
-    VM_Address sentinal = block.add(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+    VM_Address sentinel = block.add(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
     VM_Address lastCell = VM_Address.zero();
     int cellCount = 0;
-    while (cursor.add(cellExtent).LE(sentinal)) {
+    while (cursor.add(cellExtent).LE(sentinel)) {
       setNextCell(cursor, lastCell); 
       lastCell = cursor;
       cursor = cursor.add(cellExtent);

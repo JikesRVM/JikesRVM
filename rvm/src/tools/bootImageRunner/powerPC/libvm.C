@@ -1032,7 +1032,7 @@ int createJVM(int vmInSeparateThread) {
 	
    *(int *)(fp + VM_Constants_STACKFRAME_NEXT_INSTRUCTION_OFFSET) = ip;
    *(int *)(fp + VM_Constants_STACKFRAME_METHOD_ID_OFFSET) = VM_Constants_INVISIBLE_METHOD_ID;
-   *(int *)(fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET) = VM_Constants_STACKFRAME_SENTINAL_FP;
+   *(int *)(fp + VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET) = VM_Constants_STACKFRAME_SENTINEL_FP;
    
    // force any machine code within image that's still in dcache to be
    // written out to main memory so that it will be seen by icache when

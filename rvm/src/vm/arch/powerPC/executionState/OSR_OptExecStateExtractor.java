@@ -551,7 +551,7 @@ public final class OSR_OptExecStateExtractor
   /* walk on stack frame, print out methods
    */
   private static void walkOnStack(int[] stack, int fpOffset) {
-    int cmid = STACKFRAME_SENTINAL_FP.toInt();
+    int cmid = STACKFRAME_SENTINEL_FP.toInt();
     do {
       cmid = VM_Magic.getIntAtOffset(stack, 
 				       fpOffset+STACKFRAME_METHOD_ID_OFFSET);
@@ -566,6 +566,6 @@ public final class OSR_OptExecStateExtractor
 			       fpOffset+STACKFRAME_FRAME_POINTER_OFFSET));
       fpOffset = callerfp.diff(VM_Magic.objectAsAddress(stack)).toInt();
       VM.enableGC();
-    } while (cmid != STACKFRAME_SENTINAL_FP.toInt());
+    } while (cmid != STACKFRAME_SENTINEL_FP.toInt());
   }
 }

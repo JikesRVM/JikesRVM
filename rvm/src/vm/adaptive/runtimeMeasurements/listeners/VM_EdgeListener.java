@@ -121,7 +121,7 @@ class VM_EdgeListener extends VM_ContextListener
     int callerCMID    = 0;
     VM_Address returnAddress = VM_Address.zero();
 
-    if (VM_Magic.getMemoryAddress(sfp) == STACKFRAME_SENTINAL_FP) {
+    if (VM_Magic.getMemoryAddress(sfp) == STACKFRAME_SENTINEL_FP) {
       if (DEBUG) VM.sysWrite(" Walking off end of stack!\n");	
       return;
     }
@@ -137,7 +137,7 @@ class VM_EdgeListener extends VM_ContextListener
 
     returnAddress = VM_Magic.getReturnAddress(sfp); // return address in caller
     sfp = VM_Magic.getCallerFramePointer(sfp);      // caller's frame pointer
-    if(VM_Magic.getMemoryAddress(sfp) == STACKFRAME_SENTINAL_FP) {
+    if(VM_Magic.getMemoryAddress(sfp) == STACKFRAME_SENTINEL_FP) {
       if (DEBUG) VM.sysWrite(" Walking off end of stack\n");	
       return;
     }

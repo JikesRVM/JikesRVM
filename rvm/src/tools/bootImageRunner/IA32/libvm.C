@@ -866,7 +866,7 @@ createJVM (int vmInSeparateThread)
   } 
 
   *--sp = 0xdeadbabe;		/* STACKFRAME_RETURN_ADDRESS_OFFSET */
-  *--sp = VM_Constants_STACKFRAME_SENTINAL_FP;	/* STACKFRAME_FRAME_POINTER_OFFSET */
+  *--sp = VM_Constants_STACKFRAME_SENTINEL_FP;	/* STACKFRAME_FRAME_POINTER_OFFSET */
   *--sp = VM_Constants_INVISIBLE_METHOD_ID;	/* STACKFRAME_METHOD_ID_OFFSET */
   *--sp = 0;			/* STACKFRAME_NEXT_INSTRUCTION_OFFSET (for AIX compatability) */
 

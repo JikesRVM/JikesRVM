@@ -142,7 +142,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
   }
 
 
-  static private VM_Address sentinelFP = STACKFRAME_SENTINAL_FP;
+  static private VM_Address sentinelFP = STACKFRAME_SENTINEL_FP;
 
   /**
    * Scans a threads stack during collection to find object references.
@@ -363,7 +363,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
       
       } // end of while != sentinel
       
-    } // end of if (fp != STACKFRAME_SENTINAL_FP)
+    } // end of if (fp != STACKFRAME_SENTINEL_FP)
     
     // if we are scanning the stack of a thread that entered the VM
     // via a createJVM or attachJVM then the "bottom" of the stack had

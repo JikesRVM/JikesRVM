@@ -279,7 +279,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     while (true) {
       VM_Address caller_ip = VM_Magic.getReturnAddress(fp);
       VM_Address caller_fp = VM_Magic.getCallerFramePointer(fp);
-      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINAL_FP)) 
+      if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINEL_FP)) 
 	VM.sysFail("prepareParticipating: Could not locate VM_CollectorThread.run");
       int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);

@@ -572,7 +572,7 @@ public final class OSR_OptExecStateExtractor
     
     VM_Address fp = VM_Magic.objectAsAddress(stack).add(fpOffset);
 	
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINAL_FP) ){
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
       int cmid = VM_Magic.getCompiledMethodID(fp);
       
       if (cmid == INVISIBLE_METHOD_ID) {

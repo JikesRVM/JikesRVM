@@ -44,7 +44,7 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
     VM_Address fp = VM_Magic.objectAsAddress(stack).add(osrFPoff);
     VM_Address ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINAL_FP) ){
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
       int cmid = VM_Magic.getCompiledMethodID(fp);
 
       if (cmid == INVISIBLE_METHOD_ID) {

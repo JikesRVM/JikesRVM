@@ -38,10 +38,10 @@ public final class VM_StackBrowser implements VM_Constants {
 
 	VM_Address prevFP = fp;
 	VM_Address newFP = VM_Magic.getCallerFramePointer(fp);
-	if (newFP.EQ(STACKFRAME_SENTINAL_FP) )
+	if (newFP.EQ(STACKFRAME_SENTINEL_FP) )
 	    return false;
 	// getReturnAddress has to be put here, consider the case
-	// on ppc, when fp is the frame above SENTINAL FP
+	// on ppc, when fp is the frame above SENTINEL FP
 	VM_Address newIP = VM_Magic.getReturnAddress(prevFP);
 
 	int cmid = VM_Magic.getCompiledMethodID(newFP);
@@ -50,7 +50,7 @@ public final class VM_StackBrowser implements VM_Constants {
 
 	    prevFP = newFP;
 	    newFP = VM_Magic.getCallerFramePointer( newFP );
-	    if (newFP.EQ(STACKFRAME_SENTINAL_FP) )
+	    if (newFP.EQ(STACKFRAME_SENTINEL_FP) )
 		return false;
 		newIP = VM_Magic.getReturnAddress(prevFP);
 		

@@ -389,7 +389,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       //    Caller is top-of-stack psuedo-frame
       //    Caller is out-of-line assembly (no VM_Method object)
       //    Caller is a native method
-      if (ypTakenInCallerCMID == STACKFRAME_SENTINAL_FP.toInt() ||
+      if (ypTakenInCallerCMID == STACKFRAME_SENTINEL_FP.toInt() ||
           ypTakenInCallerCMID == INVISIBLE_METHOD_ID    ||
           ypTakenInCM.getMethod().getDeclaringClass().isBridgeFromNative()) { 
         ypTakenInCallerCMIDValid = false;
@@ -1025,7 +1025,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     private static void adjustStack(int[] stack, VM_Address fp, VM_Offset delta) {
       if (traceAdjustments) VM.sysWrite("VM_Thread: adjustStack\n");
 
-      while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINAL_FP))
+      while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP))
       {
 	 // adjust FP save area
 	//
@@ -1168,16 +1168,16 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     //
     VM_Address ip = VM_Magic.objectAsAddress(instructions);
     VM_Address sp = VM_Magic.objectAsAddress(stack).add(stack.length << LOG_BYTES_IN_ADDRESS);
-    VM_Address fp = STACKFRAME_SENTINAL_FP;
+    VM_Address fp = STACKFRAME_SENTINEL_FP;
 
 //-#if RVM_FOR_IA32 
 
     // initialize thread stack as if "startoff" method had been called
-    // by an empty baseline-compiled "sentinal" frame with one local variable
+    // by an empty baseline-compiled "sentinel" frame with one local variable
     //
     sp = sp.sub(STACKFRAME_HEADER_SIZE);                   // last word of header
     fp = sp.sub(BYTES_IN_ADDRESS + STACKFRAME_BODY_OFFSET);  
-    VM_Magic.setCallerFramePointer(fp, STACKFRAME_SENTINAL_FP);
+    VM_Magic.setCallerFramePointer(fp, STACKFRAME_SENTINEL_FP);
     VM_Magic.setCompiledMethodID(fp, INVISIBLE_METHOD_ID);
 
     sp = sp.sub(BYTES_IN_ADDRESS);                                 // allow for one local
@@ -1192,7 +1192,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // align stack frame
     int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
     fp = VM_Memory.alignDown(sp.sub(INITIAL_FRAME_SIZE), STACKFRAME_ALIGNMENT);
-    VM_Magic.setMemoryAddress(fp.add(STACKFRAME_FRAME_POINTER_OFFSET), STACKFRAME_SENTINAL_FP);
+    VM_Magic.setMemoryAddress(fp.add(STACKFRAME_FRAME_POINTER_OFFSET), STACKFRAME_SENTINEL_FP);
     VM_Magic.setMemoryAddress(fp.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET), ip); // need to fix
     VM_Magic.setMemoryInt(fp.add(STACKFRAME_METHOD_ID_OFFSET), INVISIBLE_METHOD_ID);
 	

@@ -124,7 +124,7 @@ public class VM_JNIStartUp implements VM_SizeConstants, Runnable {
     // to make JNI calls
     VM_JNIEnvironment myEnv = VM_Thread.getCurrentThread().getJNIEnv();
     myEnv.setFromNative(
-      VM_Constants.STACKFRAME_SENTINAL_FP,
+      VM_Constants.STACKFRAME_SENTINEL_FP,
       nativeVP,
       VM_Magic.getThreadId());
 
@@ -284,7 +284,7 @@ public class VM_JNIStartUp implements VM_SizeConstants, Runnable {
     VM_JNIEnvironment myEnv = VM_Thread.getCurrentThread().getJNIEnv();
 
     myEnv.setFromNative(
-      VM_Constants.STACKFRAME_SENTINAL_FP,
+      VM_Constants.STACKFRAME_SENTINEL_FP,
       nativeVP,
       VM_Magic.getThreadId());
     

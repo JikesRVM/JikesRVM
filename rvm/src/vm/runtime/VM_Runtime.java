@@ -770,7 +770,7 @@ public class VM_Runtime implements VM_Constants {
     //
     VM_Type exceptionType = VM_Magic.getObjectType(exceptionObject);
     VM_Address fp = exceptionRegisters.getInnermostFramePointer();
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINAL_FP) ){
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) { 
 	  VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
@@ -824,12 +824,12 @@ public class VM_Runtime implements VM_Constants {
       callee_fp = fp;
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
-    } while ( !MM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINAL_FP)) ;
+    } while ( !MM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP)) ;
 
 	//-#if RVM_FOR_POWERPC && RVM_FOR_LINUX
 	// for SVR4 convention, a Java-to-C frame has two mini frames,
 	// stop before the mini frame 1 whose ip is in VM (out of line machine
-	// code), in the case of sentinal fp, it has to return the callee's fp
+	// code), in the case of sentinel fp, it has to return the callee's fp
 	// because GC ScanThread uses it to get return address and so on.
 	if (MM_Interface.refInVM(ip)) {
       return fp;

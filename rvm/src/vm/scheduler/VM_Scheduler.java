@@ -626,7 +626,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    */
   public static void dumpStack (VM_Address ip, VM_Address fp) {
     writeString("\n-- Stack --\n");
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINAL_FP) ){
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
 
       // if code is outside of RVM heap, assume it to be native code,
       // skip to next frame
