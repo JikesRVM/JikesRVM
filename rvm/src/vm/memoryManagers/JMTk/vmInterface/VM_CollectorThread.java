@@ -130,7 +130,7 @@ public class VM_CollectorThread extends VM_Thread {
   private int       gcOrdinal;
 
   /** used by each CollectorThread when scanning stacks for references */
-  public VM_GCMapIteratorGroup iteratorGroup;
+  public final VM_GCMapIteratorGroup iteratorGroup = new VM_GCMapIteratorGroup();
   
   /** time waiting in rendezvous (milliseconds) */
   int timeInRendezvous;
@@ -167,7 +167,6 @@ public class VM_CollectorThread extends VM_Thread {
     this.isActive          = isActive;
     this.isGCThread        = true;
     this.processorAffinity = processorAffinity;
-    this.iteratorGroup     = new VM_GCMapIteratorGroup();
 
     /* associate this collector thread with its affinity processor */
     collectorThreads[processorAffinity.id] = this;

@@ -22,6 +22,7 @@ import org.mmtk.utility.PreCopyEnumerator;
 import org.mmtk.utility.MMType;
 import org.mmtk.utility.Scan;
 import org.mmtk.vm.SynchronizedCounter;
+import org.mmtk.vm.ReferenceGlue;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
@@ -442,7 +443,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
     }
     return VM_Magic.objectAsType(type).isAcyclicReference();
   }
- 
+
   /***********************************************************************
    *
    * Trigger collections
@@ -857,75 +858,65 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
 
   /**
    * Copy an object using a plan's allocCopy to get space and install
-   * the forwarding pointer.  On entry, <code>fromObj</code> must have
+   * the forwarding pointer.  On entry, <code>from</code> must have
    * been reserved for copying by the caller.  This method calls the
-   * plan's <code>PostCopy</code> method after making the copy.
+   * plan's <code>getStatusForCopy()</code> method to establish a new
+   * status word for the copied object and <code>postCopy()</code> to
+   * allow the plan to perform any post copy actions.
    *
-   * @param fromObj the address of the object to be copied
-   * @param forwardingPtr the value the forwarding pointer in the copy
-   * is to be set to.  This value is first modified by the plan's
-   * <code>resetGCBitsForCopy</code> method.  AJG: Not sure why this
-   * value passed in, it seems that it could be simply copied from the
-   * old object.
+   * @param from the address of the object to be copied
    * @return the address of the new object
    */
-  public static VM_Address copy(VM_Address fromObj, VM_Word forwardingPtr)
+  public static VM_Address copy(VM_Address from)
     throws VM_PragmaInline {
-    Object[] tib = VM_ObjectModel.getTIB(fromObj);
-
+    Object[] tib = VM_ObjectModel.getTIB(from);
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+    
+    if (type.isClassType())
+      return copyScalar(from, tib, type.asClass());
+    else
+      return copyArray(from, tib, type.asArray());
+  }
+
+  private static VM_Address copyScalar(VM_Address from, Object[] tib,
+				       VM_Class type)
+    throws VM_PragmaInline {
+    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type);
+    int align = VM_ObjectModel.getAlignment(type, from);
+    int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
     Plan plan = getPlan();
+    VM_Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
+						   from);
+    Object toObj = VM_ObjectModel.moveObject(region, from, bytes, type);
+    VM_Address to = VM_Magic.objectAsAddress(toObj);
+    plan.postCopy(to, tib, bytes);
+    MMType mmType = (MMType) type.getMMType();
+    mmType.profileCopy(bytes);
+    return to;
+  }
 
-    VM_Address toRef;
-    if (type.isClassType()) {
-      VM_Class classType = type.asClass();
-      int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
-      int align = VM_ObjectModel.getAlignment(classType, fromObj);
-      int offset = VM_ObjectModel.getOffsetForAlignment(classType, fromObj);
-      int rawSize = (align > BYTES_IN_INT) ? (numBytes + align) : numBytes;
-      forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
-      VM_Address region = plan.allocCopy(VM_Magic.objectAsAddress(fromObj), rawSize, true);
-      if (align > BYTES_IN_INT) {
-        // This code is based on some fancy modulo artihmetic.
-        // It ensures the property (region + offset) % alignment == 0
-        VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
-        VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
-        VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
-        region = region.add(delta);
-      }
-      Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
-      plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, rawSize, true);
-      toRef = VM_Magic.objectAsAddress(toObj);
-      ((MMType) type.getMMType()).profileCopy(numBytes);
-    } else {
-      VM_Array arrayType = type.asArray();
-      int numElements = VM_Magic.getArrayLength(fromObj);
-      int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
-      int align = VM_ObjectModel.getAlignment(arrayType, fromObj);
-      int offset = VM_ObjectModel.getOffsetForAlignment(arrayType, fromObj);
-      int rawSize = (align > BYTES_IN_INT) ? (numBytes + align) : numBytes;
-      forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
-      VM_Address region = getPlan().allocCopy(VM_Magic.objectAsAddress(fromObj), rawSize, false);
-      if (align > BYTES_IN_INT) {
-        // This code is based on some fancy modulo artihmetic.
-        // It ensures the property (region + offset) % alignment == 0
-        VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
-        VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
-        VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
-        region = region.add(delta);
-      }
-      Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
-      plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, rawSize, false);
-      toRef = VM_Magic.objectAsAddress(toObj);
-      if (arrayType == VM_Type.CodeArrayType) {
-        // sync all moved code arrays to get icache and dcache in sync immediately.
-        int dataSize = numBytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
-        VM_Memory.sync(toRef, dataSize);
-      }
-      ((MMType) type.getMMType()).profileCopy(numBytes);
+  private static VM_Address copyArray(VM_Address from, Object[] tib,
+				      VM_Array type)
+    throws VM_PragmaInline {
+    int elements = VM_Magic.getArrayLength(from);
+    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type, elements);
+    int align = VM_ObjectModel.getAlignment(type, from);
+    int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
+    Plan plan = getPlan();
+    VM_Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
+						   from);
+    Object toObj = VM_ObjectModel.moveObject(region, from, bytes, type);
+    VM_Address to = VM_Magic.objectAsAddress(toObj);
+    plan.postCopy(to, tib, bytes);
+    if (type == VM_Type.CodeArrayType) {
+      // sync all moved code arrays to get icache and dcache in sync
+      // immediately.
+      int dataSize = bytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
+      VM_Memory.sync(to, dataSize);
     }
-    return toRef;
-
+    MMType mmType = (MMType) type.getMMType();
+    mmType.profileCopy(bytes);
+    return to;
   }
 
   /**
@@ -941,40 +932,6 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   public static Object cloneArray(Object [] array, int allocator, int length)
       throws VM_PragmaUninterruptible {
     return MM_Interface.cloneArray(array, allocator, length);
-  }
-
-  /***********************************************************************
-   *
-   * References
-   */
-
-  /**
-   * Determine whether this reference has ever been enqueued.
-   *
-   * @param r the Reference object
-   * @return <code>true</code> if reference has ever been enqueued
-   */
-  public static final boolean referenceWasEverEnqueued(Reference r) {
-    return r.wasEverEnqueued();
-  }
-
-  /**
-   * Put this Reference object on its ReferenceQueue (if it has one)
-   * when its referent is no longer sufficiently reachable. The
-   * definition of "reachable" is defined by the semantics of the
-   * particular subclass of Reference. The implementation of this
-   * routine is determined by the the implementation of
-   * java.lang.ref.ReferenceQueue in GNU classpath. It is in this
-   * class rather than the public Reference class to ensure that Jikes
-   * has a safe way of enqueueing the object, one that cannot be
-   * overridden by the application program.
-   * 
-   * @see java.lang.ref.ReferenceQueue
-   * @param r the Reference object
-   * @return <code>true</code> if the reference was enqueued
-   */
-  public static final boolean enqueueReference(Reference r) {
-    return r.enqueue();
   }
 
   /***********************************************************************
@@ -1054,7 +1011,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   }
 
   /**
-   * Returnt the size required to copy an object
+   * Return the size required to copy an object
    *
    * @param obj The object whose size is to be queried
    * @return The size required to copy <code>obj</code>
@@ -1175,6 +1132,49 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   }
 
   /**
+   * Perform the actual write of the write barrier.
+   *
+   * @param ref The object that has the reference field
+   * @param slot The slot that holds the reference
+   * @param target The value that the slot will be updated to
+   * @param offset The offset from the ref (metaDataA)
+   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param mode The context in which the write is occuring
+   */
+  public static void performWriteInBarrier(VM_Address ref, VM_Address slot, 
+                                           VM_Address target, int offset, 
+                                           int locationMetadata, int mode) 
+    throws VM_PragmaInline {
+    Object obj = VM_Magic.addressAsObject(ref);
+    VM_Magic.setObjectAtOffset(obj, offset, target, locationMetadata);  
+  }
+
+  /**
+   * Atomically write a reference field of an object or array and return 
+   * the old value of the reference field.
+   * 
+   * @param ref The object that has the reference field
+   * @param slot The slot that holds the reference
+   * @param target The value that the slot will be updated to
+   * @param offset The offset from the ref (metaDataA)
+   * @param locationMetadata An index of the FieldReference (metaDataB)
+   * @param mode The context in which the write is occuring
+   * @return The value that was replaced by the write.
+   */
+  public static VM_Address performWriteInBarrierAtomic(VM_Address ref, 
+                                    VM_Address slot, VM_Address target, 
+                                    int offset, int locationMetadata, int mode)
+    throws VM_PragmaInline {                                
+    Object obj = VM_Magic.addressAsObject(ref);
+    Object newObject = VM_Magic.addressAsObject(target);
+    Object oldObject;
+    do {
+      oldObject = VM_Magic.prepareObject(obj, offset);
+    } while (!VM_Magic.attemptObject(obj, offset, oldObject, newObject));
+    return VM_Magic.objectAsAddress(oldObject); 
+  }
+
+  /**
    * Gets an element of a char array without invoking any read
    * barrier.  This method is called by the Log method, as it will be
    * used during garbage collection and needs to manipulate character
@@ -1254,27 +1254,6 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
     return descriptor.toByteArray();
   }
 
-  /* Used in processing weak references etc */
-
-  public static VM_Address getReferent (VM_Address addr) {
-    return VM_Magic.getMemoryAddress(addr.add(VM_Entrypoints.referenceReferentField.getOffset()));    
-  }
-  
-  public static void setReferent (VM_Address addr, VM_Address referent) {
-    VM_Magic.setMemoryAddress(addr.add(VM_Entrypoints.referenceReferentField.getOffset()), referent);    
-  }
-  
-  public static VM_Address getNextReferenceAsAddress (VM_Address ref) {
-    return VM_Magic.getMemoryAddress(ref.add(VM_Entrypoints.referenceNextAsAddressField.getOffset()));
-    
-  }
-  
-  public static void setNextReferenceAsAddress (VM_Address ref, VM_Address next) {
-    VM_Magic.setMemoryAddress(ref.add(VM_Entrypoints.referenceNextAsAddressField.getOffset()),
-                              next);
-    
-  }
-
   /**
    * Rendezvous with all other processors, returning the rank
    * (that is, the order this processor arrived at the barrier).
@@ -1286,11 +1265,16 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   /**
    * Primitive parsing facilities for strings
    */
-  public static int primitiveParseInt(String value) throws VM_PragmaInterruptible {
+  public static int primitiveParseInt(String value) 
+    throws VM_PragmaInterruptible
+  {
     return VM_CommandLineArgs.primitiveParseInt(value);
   }
-  public static float primitiveParseFloat(String value) throws VM_PragmaInterruptible {
-    return VM_CommandLineArgs.primitiveParseInt(value);
+
+  public static float primitiveParseFloat(String value) 
+      throws VM_PragmaInterruptible 
+  {
+      return VM_CommandLineArgs.primitiveParseFloat(value);
   }
 
   /**

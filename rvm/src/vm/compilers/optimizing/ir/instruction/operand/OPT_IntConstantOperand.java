@@ -107,6 +107,10 @@ public final class OPT_IntConstantOperand extends OPT_ConstantOperand {
    * @return a string representation of this operand.
    */
   public String toString() {
-    return Integer.toString(value);
+    if (value > 0xffff || value < -0xffff) {
+      return "0x"+Integer.toHexString(value);
+    } else {
+      return Integer.toString(value);
+    }
   }
 }

@@ -39,7 +39,7 @@ import java.util.Enumeration;
  * @author Stephen Fink
  *
  */
-public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
+public class OPT_Compiler implements VM_Callbacks.StartupMonitor {
 
   ////////////////////////////////////////////
   // Initialization
@@ -68,8 +68,8 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
         loadSpecialClass("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", options);
 
       }
-      // want to be notified by app start event
-          VM_Callbacks.addAppRunStartMonitor(new OPT_Compiler());
+      // want to be notified when VM boot is done and ready to start application
+      VM_Callbacks.addStartupMonitor(new OPT_Compiler());
       isInitialized = true;
     } catch (OPT_OptimizingCompilerException e) {
       // failures during initialization can't be ignored
@@ -84,15 +84,15 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
   }
 
   /*
-   * callback when application is about to startup.
+   * callback when application is about to start.
    */
-  public void notifyAppRunStart(String app, int n) {
+  public void notifyStartup() {
   //-#if RVM_WITH_OSR
-  if (VM.TraceOnStackReplacement) {
-    VM.sysWriteln("OPT_Compiler got notified of AppRunStart");
-  }
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWriteln("OPT_Compiler got notified of app ready to begin");
+    }
   //-#endif
-  setAppStarted();
+    setAppStarted();
   }
 
   /**

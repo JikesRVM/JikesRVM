@@ -21,7 +21,10 @@ import java.util.Enumeration;
  * @author Stephen Fink
  */
 public class VM_Controller implements VM_Callbacks.ExitMonitor,
-                               VM_Callbacks.AppRunCompleteMonitor {
+                                      VM_Callbacks.AppStartMonitor,
+                                      VM_Callbacks.AppCompleteMonitor,
+                                      VM_Callbacks.AppRunStartMonitor,
+                                      VM_Callbacks.AppRunCompleteMonitor {
 
   /**
    * Signals when the options and (optional) logging mechanism are enabled
@@ -119,13 +122,12 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
     // Initialize the controller input queue
     controllerInputQueue = 
-      new VM_BlockingPriorityQueue(options.CONTROLLER_INPUT_QUEUE_SIZE,
-                                   new VM_BlockingPriorityQueue.CallBack() {
+      new VM_BlockingPriorityQueue(new VM_BlockingPriorityQueue.CallBack() {
                                        void aboutToWait() { controllerThread.aboutToWait(); }
                                        void doneWaiting() { controllerThread.doneWaiting(); }
                                      });
 
-    compilationQueue = new VM_BlockingPriorityQueue(options.COMPILATION_QUEUE_SIZE);
+    compilationQueue = new VM_BlockingPriorityQueue();
 
     // Create the analytic model used to make cost/benefit decisions.
     recompilationStrategy = new VM_MultiLevelAdaptiveModel();
@@ -148,6 +150,9 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
 
     VM_Controller controller = new VM_Controller();
     VM_Callbacks.addExitMonitor(controller);
+    VM_Callbacks.addAppStartMonitor(controller);
+    VM_Callbacks.addAppCompleteMonitor(controller);
+    VM_Callbacks.addAppRunStartMonitor(controller);
     VM_Callbacks.addAppRunCompleteMonitor(controller);
 
     booted=true;
@@ -162,17 +167,49 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   }
 
   /**
-   * To be called when the application completes one of its run
+   * To be called when the application starts
+   * @param app the application name
    */
-  public void notifyAppRunStart(String app, int run) {
-    if (VM.LogAOSEvents) VM_AOSLogging.appRunStart(app, run);
+  public void notifyAppStart(String app) {
+    if (VM.LogAOSEvents) {
+      VM_AOSLogging.appStart(app);
+      VM_AOSLogging.recordRecompAndThreadStats();
+    }
+  }
+
+  /**
+   * To be called when the application completes
+   * @param app the application name
+   */
+  public void notifyAppComplete(String app) {
+    if (VM.LogAOSEvents) {
+      VM_AOSLogging.appComplete(app);
+      VM_AOSLogging.recordRecompAndThreadStats();
+    }
   }
 
   /**
    * To be called when the application completes one of its run
+   * @param app the application name
+   * @param run the run number, i.e. what iteration of the app we have started
+   */
+  public void notifyAppRunStart(String app, int run) {
+    if (VM.LogAOSEvents) {
+      VM_AOSLogging.appRunStart(app, run);
+      VM_AOSLogging.recordRecompAndThreadStats();
+    }
+  }
+
+  /**
+   * To be called when the application completes one of its run
+   * @param app the application name
+   * @param run the run number, i.e. what iteration of the app we have completed
    */
   public void notifyAppRunComplete(String app, int run) {
-    if (VM.LogAOSEvents) VM_AOSLogging.appRunComplete(app, run);
+    if (VM.LogAOSEvents) {
+      VM_AOSLogging.appRunComplete(app, run);
+      VM_AOSLogging.recordRecompAndThreadStats();
+    }
   }
 
   // Create the ControllerThread

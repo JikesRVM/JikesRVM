@@ -117,7 +117,9 @@ public final class MarkSweepLocal extends SegregatedFreeList
         bitmaps[sc] = (cells+BITS_IN_BITMAP-1)>>LOG_BITS_IN_BITMAP;
         blockSizeClass[sc] = blk;
         cellsInBlock[sc] = cells;
-        blockHeaderSize[sc] = FREE_LIST_HEADER_BYTES + (bitmaps[sc]<<LOG_BYTES_IN_BITMAP);
+        /*cells must start at multiple of BYTES_IN_PARTICLE
+           because cellSize is also supposed to be multiple, this should do the trick: */
+        blockHeaderSize[sc] = BlockAllocator.blockSize(blk) - cells * cellSize[sc];
         int remainder = cells & (BITS_IN_BITMAP - 1);
         if (remainder == 0)
           finalBitmapMask[sc] =  -1;

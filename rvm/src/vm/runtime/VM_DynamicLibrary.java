@@ -4,21 +4,38 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import java.util.HashMap;
+import java.util.Iterator;
+
 /**
  * Interface to the dynamic libraries of our underlying operating system.
  *
  * @author Bowen Alpern
+ * @author Dave Grove
  * @author Derek Lieber
  */
-public class VM_DynamicLibrary implements VM_SizeConstants{
+public class VM_DynamicLibrary {
+
+  /**
+   * Currently loaded dynamic libraries.
+   */
+  private static HashMap dynamicLibraries = new HashMap();
+
+  /**
+   * The name of the library
+   */
   private String libName;
+
+  /**
+   * Value returned from dlopen
+   */
   private VM_Address libHandler;
 
   /**
    * Load a dynamic library and maintain it in this object.
    * @param libraryName library name
    */ 
-  public VM_DynamicLibrary(String libraryName) {
+  private VM_DynamicLibrary(String libraryName) {
     // Convert file name from unicode to filesystem character set.
     // (Assume file name is ASCII, for now).
     //
@@ -30,7 +47,7 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
     VM_Thread myThread = VM_Thread.getCurrentThread();
     VM_Offset remaining = VM_Magic.getFramePointer().diff(myThread.stackLimit);
     int stackNeededInBytes = VM_StackframeLayoutConstants.STACK_SIZE_DLOPEN - remaining.toInt();
-    if (stackNeededInBytes > 0 ) {
+    if (stackNeededInBytes > 0) {
       if (myThread.hasNativeStackFrame()) {
         throw new java.lang.StackOverflowError("dlopen");
       } else {
@@ -41,8 +58,7 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
     libHandler = VM_SysCall.sysDlopen(asciiName);
 
     if (libHandler.isZero()) {
-      VM.sysWrite("error loading library: " + libraryName);
-      VM.sysWrite("\n");
+      VM.sysWriteln("error loading library: " + libraryName);
       throw new UnsatisfiedLinkError();
     }
 
@@ -76,7 +92,6 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
 
   /**
    * unload a dynamic library
-   * should destroy this object, maybe this should be in the finalizer?
    */
   public void unload() {
     VM.sysWrite("VM_DynamicLibrary.unload: not implemented yet \n");
@@ -92,5 +107,37 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
 
   public String toString() {
     return "dynamic library " + libName + ", handler=" + libHandler;
+  }
+
+  /**
+   * Load a dynamic library
+   * @param libname the name of the library to load.
+   * @return 0 on failure, 1 on success
+   */
+  public static synchronized int load(String libname) {
+    VM_DynamicLibrary dl = (VM_DynamicLibrary)dynamicLibraries.get(libname);
+    if (dl != null) return 1; // success: already loaded
+    
+    if (VM_FileSystem.stat(libname, VM_FileSystem.STAT_EXISTS) == 1) {
+      dynamicLibraries.put(libname, new VM_DynamicLibrary(libname));
+      return 1;
+    } else {
+      return 0; // fail; file does not exist
+    }
+  }
+
+  /**
+   * Resolve a symbol to an address in a currently loaded dynamic library.
+   * @return the address of the symbol of VM_Address.zero() if it cannot be resolved
+   */
+  public static synchronized VM_Address resolveSymbol(String symbol) {
+    for (Iterator i = dynamicLibraries.values().iterator(); i.hasNext();) {
+      VM_DynamicLibrary lib = (VM_DynamicLibrary)i.next();
+      VM_Address symbolAddress = lib.getSymbol(symbol);
+      if (!symbolAddress.isZero()) {
+        return symbolAddress;
+      }
+    }
+    return VM_Address.zero();
   }
 }

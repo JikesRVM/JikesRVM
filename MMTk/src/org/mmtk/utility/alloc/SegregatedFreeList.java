@@ -123,22 +123,21 @@ public abstract class SegregatedFreeList extends Allocator
    *
    * This code first tries the fast version and, if needed, the slow path.
    *
-   * @param isScalar True if the object to occupy this space will be a
-   * scalar.
    * @param bytes The size of the object to occupy this space, in bytes.
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @param inGC If true, this allocation is occuring with respect to
    * a space that is currently being collected.
    * @return The address of the first word of <code>bytes</code>
    * contigious bytes of zeroed memory.
    */
-  public final VM_Address alloc(boolean isScalar, int bytes, boolean inGC) 
+  public final VM_Address alloc(int bytes, int align, int offset, boolean inGC) 
     throws VM_PragmaInline {
-    if (Plan.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
     if (FRAGMENTATION_CHECK)
       bytesAlloc += bytes;
-    VM_Address cell = allocFast(isScalar, bytes, inGC);
+    VM_Address cell = allocFast(bytes, align, offset, inGC);
     if (cell.isZero()) 
-      return allocSlow(isScalar, bytes, inGC);
+      return allocSlow(bytes, align, offset, inGC);
     else
       return cell;
   }
@@ -152,27 +151,35 @@ public abstract class SegregatedFreeList extends Allocator
    * compiler.  We have a call to an abstract method that allows
    * subclasses to customize post-allocation.
    *
-   * @param isScalar True if the object to occupy this space will be a
-   * scalar.
    * @param bytes The size of the object to occupy this space, in bytes.
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @param inGC If true, this allocation is occuring with respect to
    * a space that is currently being collected.
    * @return The address of the first word of <code>bytes</code>
    * contigious bytes of zeroed memory.
    */
-  public final VM_Address allocFast(boolean isScalar, int bytes, boolean inGC) 
+  public final VM_Address allocFast(int bytes, int align, 
+                                    int offset, boolean inGC) 
     throws VM_PragmaInline {
 
-    int sizeClass = getSizeClass(bytes);
+    int alignedBytes = getMaximumAlignedSize(bytes, align);
+    int sizeClass = getSizeClass(alignedBytes);
     VM_Address cell = freeList.get(sizeClass);
     if (!cell.isZero()) {
       if (maintainInUse()) cellsInUse[sizeClass]++;
       freeList.set(sizeClass, getNextCell(cell));
       setNextCell(cell, VM_Address.zero()); // clear out the free list link
-      postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
-    } 
-    return cell;
+      postAlloc(cell, currentBlock.get(sizeClass), sizeClass, alignedBytes, inGC);
 
+      if (alignedBytes != bytes) {
+        // Ensure aligned as requested.
+        return alignAllocation(cell, align, offset);
+      } 
+    } 
+
+    // Alignment request guaranteed or cell.isZero().
+    return cell;
   }
 
   abstract public void postAlloc(VM_Address cell, VM_Address block, 
@@ -197,22 +204,24 @@ public abstract class SegregatedFreeList extends Allocator
    * free list data structures.  The free list itself is not updated
    * (the caller must do so).<p>
    * 
-   * @param isScalar True if the object to occupy this space will be a
-   * scalar.
    * @param bytes The size of the object to occupy this space, in bytes.
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @param inGC If true, this allocation is occuring with respect to
    * a space that is currently being collected.
    * @return The address of the first word of the <code>bytes</code>
    * contigious bytes of zerod memory.
    */
-  public final VM_Address allocSlowOnce(boolean isScalar, int bytes,
+  public final VM_Address allocSlowOnce(int bytes, int align, int offset,
                                         boolean inGC) 
     throws VM_PragmaNoInline {
     
-    VM_Address cell = allocFast(isScalar, bytes, inGC);
+    VM_Address cell = allocFast(bytes, align, offset, inGC);
     if (!cell.isZero()) 
       return cell;
     
+    // Bytes within which we can guarantee an aligned allocation.
+    bytes = getMaximumAlignedSize(bytes, align); 
     int sizeClass = getSizeClass(bytes);
     VM_Address current = currentBlock.get(sizeClass);
     if (!current.isZero()) {
@@ -231,7 +240,7 @@ public abstract class SegregatedFreeList extends Allocator
           freeList.set(sizeClass, getNextCell(cell));
           setNextCell(cell, VM_Address.zero()); // clear out the free list link
           postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
-          return cell;
+          return alignAllocation(cell, align, offset);
         }
         current = BlockAllocator.getNextBlock(current);
       }
@@ -245,7 +254,7 @@ public abstract class SegregatedFreeList extends Allocator
     freeList.set(sizeClass, getNextCell(cell));
     postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
     Memory.zeroSmall(cell, VM_Extent.fromIntZeroExtend(bytes));
-    return cell;
+    return alignAllocation(cell, align, offset);
   }
 
   abstract protected boolean preserveFreeList();
@@ -422,8 +431,11 @@ public abstract class SegregatedFreeList extends Allocator
    * This method may segregate arrays and scalars (currently it does
    * not).
    *
-   * @param isScalar True if the object to occupy the allocated space
-   * will be a scalar (i.e. not a array).
+   * This method should be more intelligent and take alignment requests
+   * into consideration. The issue with this is that the block header 
+   * which can be varied by subclasses can change the alignment of the 
+   * cells. 
+   *
    * @param bytes The number of bytes required to accommodate the
    * object to be allocated.
    * @return The size class capable of accomodating the allocation
@@ -437,21 +449,39 @@ public abstract class SegregatedFreeList extends Allocator
     if (VM_Interface.VerifyAssertions) VM_Interface._assert((bytes > 0) && (bytes <= 8192));
 
     int sz1 = bytes - 1;
-    int offset = 0;
-    if (COMPACT_SIZE_CLASSES)
-      return ((sz1 <=   31) ?      (sz1 >>  2): //    4 bytes apart
+
+    if (BYTES_IN_ADDRESS == BYTES_IN_INT) { //32-bit
+      if (COMPACT_SIZE_CLASSES) 
+        return ((sz1 <= 31) ?      (sz1 >>  2): //    4 bytes apart
               (sz1 <=   63) ?  4 + (sz1 >>  3): //    8 bytes apart
               (sz1 <=   95) ?  8 + (sz1 >>  4): //   16 bytes apart
               (sz1 <=  223) ? 14 + (sz1 >>  6): //   64 bytes apart
               (sz1 <=  734) ? 17 + (sz1 >>  8): //  256 bytes apart
                               20 + (sz1 >> 10));// 1024 bytes apart
-    else
-      return ((sz1 <=   63) ?      (sz1 >>  2): //    4 bytes apart
+      else 
+        return ((sz1 <=   63) ?    (sz1 >>  2): //    4 bytes apart
               (sz1 <=  127) ? 12 + (sz1 >>  4): //   16 bytes apart
               (sz1 <=  255) ? 16 + (sz1 >>  5): //   32 bytes apart
               (sz1 <=  511) ? 20 + (sz1 >>  6): //   64 bytes apart
               (sz1 <= 2047) ? 26 + (sz1 >>  8): //  256 bytes apart
                               32 + (sz1 >> 10));// 1024 bytes apart
+    } else { //64-bit 
+      if (COMPACT_SIZE_CLASSES) 
+        return ((sz1 <= 95) ?      (sz1 >>  3): //    8 bytes apart
+              (sz1 <=  127) ?  6 + (sz1 >>  4): //   16 bytes apart
+              (sz1 <=  191) ? 10 + (sz1 >>  5): //   32 bytes apart
+              (sz1 <=  383) ? 13 + (sz1 >>  6): //   64 bytes apart
+              (sz1 <=  511) ? 16 + (sz1 >>  7): //  128 bytes apart
+              (sz1 <= 1023) ? 19 + (sz1 >>  9): //  512 bytes apart
+                              20 + (sz1 >> 10));// 1024 bytes apart
+      else 
+        return ((sz1 <= 111) ?     (sz1 >>  3): //    8 bytes apart
+              (sz1 <=  223) ?  7 + (sz1 >>  4): //   16 bytes apart
+              (sz1 <=  319) ? 14 + (sz1 >>  5): //   32 bytes apart
+              (sz1 <=  575) ? 19 + (sz1 >>  6): //   64 bytes apart
+              (sz1 <= 2047) ? 26 + (sz1 >>  8): //  256 bytes apart
+                              32 + (sz1 >> 10));// 1024 bytes apart
+    }
   }
 
   /**
@@ -466,20 +496,38 @@ public abstract class SegregatedFreeList extends Allocator
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert((sc >= 0) && (sc < SIZE_CLASSES));
 
-    if (COMPACT_SIZE_CLASSES)
-      return ((sc <  8) ? (sc +  1) <<  2:
-              (sc < 12) ? (sc -  3) <<  3:
-              (sc < 16) ? (sc -  7) <<  4:
-              (sc < 18) ? (sc - 13) <<  6:
-              (sc < 21) ? (sc - 16) <<  8:
-                          (sc - 19) << 10);
-    else
-      return ((sc < 16) ? (sc +  1) <<  2:
-              (sc < 20) ? (sc - 11) <<  4:
-              (sc < 24) ? (sc - 15) <<  5:
-              (sc < 28) ? (sc - 19) <<  6:
-              (sc < 34) ? (sc - 25) <<  8:
-                          (sc - 31) << 10);
+    if (BYTES_IN_ADDRESS == BYTES_IN_INT) { //32-bit
+      if (COMPACT_SIZE_CLASSES)
+        return ((sc <  8) ? (sc +  1) <<  2:
+                (sc < 12) ? (sc -  3) <<  3:
+                (sc < 16) ? (sc -  7) <<  4:
+                (sc < 18) ? (sc - 13) <<  6:
+                (sc < 21) ? (sc - 16) <<  8:
+                            (sc - 19) << 10);
+      else
+        return ((sc < 16) ? (sc +  1) <<  2:
+                (sc < 20) ? (sc - 11) <<  4:
+                (sc < 24) ? (sc - 15) <<  5:
+                (sc < 28) ? (sc - 19) <<  6:
+                (sc < 34) ? (sc - 25) <<  8:
+                            (sc - 31) << 10);
+    } else { //64-bit
+      if (COMPACT_SIZE_CLASSES)
+        return ((sc < 12) ? (sc +  1) <<  3:
+                (sc < 14) ? (sc -  5) <<  4:
+                (sc < 16) ? (sc -  9) <<  5:
+                (sc < 19) ? (sc - 12) <<  6:
+                (sc < 20) ? (sc - 15) <<  7:
+                (sc < 21) ? (sc - 18) <<  9:
+                            (sc - 19) << 10);
+      else
+        return ((sc < 14) ? (sc +  1) <<  3:        
+                (sc < 21) ? (sc -  6) <<  4:
+                (sc < 24) ? (sc - 13) <<  5:
+                (sc < 28) ? (sc - 18) <<  6:
+                (sc < 34) ? (sc - 25) <<  8:
+                            (sc - 31) << 10);
+    }
   }
 
   /****************************************************************************

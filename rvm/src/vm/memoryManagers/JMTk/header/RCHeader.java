@@ -29,10 +29,8 @@ public class RCHeader extends RCBaseHeader {
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
-   * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(VM_Address ref, Object[] tib, int size,
-                                      boolean isScalar)
+  public static void initializeHeader(VM_Address ref, Object[] tib, int size)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     // all objects are birthed with an RC of INCREMENT
     int initialValue = INCREMENT;
@@ -49,11 +47,9 @@ public class RCHeader extends RCBaseHeader {
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for
    * this object.
-   * @param isScalar are we initializing a scalar (true) or array
-   * (false) object?
    */
   public static VM_Word getBootTimeAvailableBits(int ref, Object[] tib,
-                                                 int size, boolean isScalar,
+                                                 int size, 
                                                  VM_Word status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return status;  // do nothing

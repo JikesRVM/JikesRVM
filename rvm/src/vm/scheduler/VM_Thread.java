@@ -1397,23 +1397,32 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
  
   /**
    * Is an exception waiting to be delivered to this thread?
-   * A non-null value means next yield() should deliver specified 
-   * exception to this thread.
+   * A non-null value means the next {@link #yield} should deliver the
+   * specified exception to this thread.
    */ 
   Throwable externalInterrupt; 
 
   /**
-   * Should <code>VM_Thread.morph()</code> throw the external
+   * Should {@link #morph} throw the external
    * interrupt object?
    */
   boolean throwInterruptWhenScheduled;
   
   /**
-   * Assertion checking while manipulating raw addresses - 
-   * see disableGC/enableGC.
+   * Assertion checking while manipulating raw addresses --
+   * see {@link VM#disableGC}/{@link VM#enableGC}.
    * A value of "true" means it's an error for this thread to call "new".
+   * This is only used for assertion checking; we do not bother to set it when
+   * {@link VM#VerifyAssertions} is false.
    */ 
   public boolean disallowAllocationsByThisThread; 
+
+  /**
+   * Counts the depth of outstanding calls to {@link VM#disableGC}.  If this
+   * is set, then we should also have {@link #disallowAllocationsByThisThread}
+   * set.  The converse also holds.  
+   */
+  int disableGCDepth = 0;
 
   /**
    * Execution stack for this thread.
@@ -1518,10 +1527,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   
   /** 
    * Value returned from {@link VM_Time#cycles()} when this thread 
-   * started running.
-   * (-1: has never run, 0: not currently running).
+   * started running. If not currently running, then it has the value 0.
    */
-  private long startCycle = -1; 
+  private long startCycle; 
 
   /**
    * Accumulated cycle count as measured by {@link VM_Time#cycles()} 
@@ -1555,10 +1563,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * executing.
    */
   void endQuantum(long now) {
-    // primordial thread: ignore first time slice when startCycle == -1
-    if (startCycle != -1) {
-      totalCycles += now - startCycle;
-    }
+    totalCycles += now - startCycle;
     startCycle = 0;
   }
 

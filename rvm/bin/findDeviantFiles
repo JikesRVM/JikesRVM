@@ -39,7 +39,7 @@ Usage: $ME <input-subtree> <output-directory> [ <suffix> ]
   This script finds all files in a directory subtree 
   that don't contain either:
     1) an @author javadoc tag, 
-    2) an IBM copyright notice, or
+    2) a copyright notice, or
     3) an \$Id: tag.
 
   Output files:
@@ -47,7 +47,7 @@ Usage: $ME <input-subtree> <output-directory> [ <suffix> ]
     "<output-directory>/noAuthors[.<suffix>]"
 	      Names of files without the @author tag
     "<output-directory>/noCopyright[.<suffix>]"   
-	      Names of files without an IBM copyright notice
+	      Names of files without a copyright notice
     "<output-directory>/noId[.<suffix>]"   
 	      Names of files without an \$Id: tag.
 
@@ -168,7 +168,7 @@ declare -r find_optsSTR="-name CVS -prune -o \! -name *~ \! -name .*~ \! -name .
 find . "${find_optsA[@]}" -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$out/noAuthor$suffix"
 #find . ${find_opts} -exec fgrep -c "@author" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noAuthorFilter.awk" > "$out/noAuthor$suffix"
 
-#echo "find all plain files with copyright notices"
+#echo "find all plain files without copyright notices"
 find . "${find_optsA[@]}" -exec egrep -c "\([cC]\) Copyright|Copyright ©|Copyright \([cC]\)" {} \; | "$bin_dir/findMatchedFiles.perl" | awk -f "$bin_dir/noCopyrightFilter.awk" > "$out/noCopyright${suffix}"
 
 #echo "find all plain files without \$Id: tags"

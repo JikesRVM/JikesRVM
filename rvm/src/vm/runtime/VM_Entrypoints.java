@@ -145,7 +145,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field SQBEField = getField("Lorg/mmtk/utility/SharedDeque;", "bufsenqueued","I");
   public static final VM_Field synchronizedCounterField = getField("Lorg/mmtk/vm/SynchronizedCounter;", "count", "I");
   public static final VM_NormalMethod arrayStoreWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "arrayStoreWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
-  public static final VM_NormalMethod putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
+  public static final VM_NormalMethod putfieldWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "putfieldWriteBarrier", "(Ljava/lang/Object;ILjava/lang/Object;I)V");
   public static final VM_NormalMethod putstaticWriteBarrierMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "putstaticWriteBarrier", "(ILjava/lang/Object;)V");
   public static final VM_NormalMethod modifyCheckMethod = getMethod("Lcom/ibm/JikesRVM/memoryManagers.mmInterface/MM_Interface;", "modifyCheck", "(Ljava/lang/Object;)V");
 

@@ -5,12 +5,6 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-import java.io.DataInputStream;
-import java.io.IOException;
-
-//-#if RVM_WITH_OPT_COMPILER
-import com.ibm.JikesRVM.opt.*;
-//-#endif
 
 /**
  * A native method of a java class.
@@ -31,7 +25,7 @@ public final class VM_NativeMethod extends VM_Method {
    */
   private VM_Address nativeIP;                               
 
-  //-#if RVM_WITH_LINKAGE_TRIPLETS
+  //-#if RVM_WITH_POWEROPEN_ABI
   /**
    * the TOC of the native procedure
    */
@@ -72,12 +66,12 @@ public final class VM_NativeMethod extends VM_Method {
   public final VM_Address getNativeIP() { 
     return nativeIP;
   }
-
+  
   /**
    * get the native TOC for this method
    */
   public VM_Address getNativeTOC() { 
-    //-#if RVM_WITH_LINKAGE_TRIPLETS
+    //-#if RVM_WITH_POWEROPEN_ABI
     return nativeTOC;
     //-#else
     return VM_Address.zero();
@@ -142,50 +136,27 @@ public final class VM_NativeMethod extends VM_Method {
     // VM.sysWrite("getMangledName:  " + mangledName + " \n");
 
     return mangledName;
-
   }
 
   private boolean resolveNativeMethod() {
     nativeProcedureName = getMangledName(false);
-    String nativeProcedureNameWithSigniture = getMangledName(true);
+    String nativeProcedureNameWithSignature = getMangledName(true);
 
-    // get the library in VM_ClassLoader
-    // resolve the native routine in the libraries
-    VM_DynamicLibrary libs[] = VM_ClassLoader.getDynamicLibraries();
-    VM_Address symbolAddress = VM_Address.zero();
-    if (libs!=null) {
-      for (int i=1; i<libs.length && symbolAddress.isZero(); i++) {
-        VM_DynamicLibrary lib = libs[i];
-
-        if (lib!=null && symbolAddress==VM_Address.zero()) {
-          symbolAddress = lib.getSymbol(nativeProcedureNameWithSigniture);
-          if (symbolAddress != VM_Address.zero()) {
-              nativeProcedureName = nativeProcedureNameWithSigniture;
-              break;
-          }
-        }
-
-        if (lib != null && symbolAddress==VM_Address.zero()) {
-          symbolAddress = lib.getSymbol(nativeProcedureName);
-          if (symbolAddress != VM_Address.zero()) {
-              nativeProcedureName = nativeProcedureName;
-              break;
-          }
-        }
-      }
+    VM_Address symbolAddress = VM_DynamicLibrary.resolveSymbol(nativeProcedureNameWithSignature);
+    if (symbolAddress.isZero()) {
+      symbolAddress = VM_DynamicLibrary.resolveSymbol(nativeProcedureName);
     }
 
     if (symbolAddress.isZero()) {
       // native procedure not found in library
       return false;
     } else {
-      //-#if RVM_WITH_LINKAGE_TRIPLETS
+      //-#if RVM_WITH_POWEROPEN_ABI
       nativeIP  = VM_Magic.getMemoryAddress(symbolAddress);
       nativeTOC = VM_Magic.getMemoryAddress(symbolAddress.add(BYTES_IN_ADDRESS));
       //-#else
       nativeIP = symbolAddress;
       //-#endif
-      // VM.sysWrite("resolveNativeMethod: " + nativeProcedureName + ", IP = " + VM.intAsHexString(nativeIP) + ", TOC = " + VM.intAsHexString(nativeTOC) + "\n");
       return true;
     }
   }

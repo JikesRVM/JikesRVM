@@ -33,7 +33,7 @@ export MAXIMUM_MAPPABLE_ADDRESS=0xd0000000
 export HOST_JAVA_HOME="/usr/local"
 
 # the JDK java executable
-export HOST_JAVA="$HOST_JAVA_HOME/jre/sh/java"
+export HOST_VM_RT="$HOST_JAVA_HOME/jre/sh/java"
 
 # the JDK javadoc executable
 export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"

@@ -47,7 +47,7 @@ JNIEXPORT jint JNICALL Java_CriticalCopy_primitiveIntegerArray
 
   if (verbose) {
     printf("Array length is %d\n", length);
-    printf("Array address is 0x%8X\n", nativeArray);
+    printf("Array address is %p\n", nativeArray);
     printf("Current contents: \n");
     for (i=0; i<length; i++) {
       printf("    %d = %d\n", i, nativeArray[i]);

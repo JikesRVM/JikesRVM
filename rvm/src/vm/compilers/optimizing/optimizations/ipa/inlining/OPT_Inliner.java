@@ -346,6 +346,39 @@ public class OPT_Inliner implements OPT_Operators,
                                    testFailed.makeJumpTarget(),
                                    OPT_BranchProfileOperand.unlikely());
         } else if (guards[i] == OPT_Options.IG_METHOD_TEST) {
+          // method test for interface requires additional check if
+          // the reciever's class is a subclass of inlined method's
+          // declaring class.
+          if (isInterface) {
+            OPT_RegisterOperand t = parent.temps.makeTempInt();
+            OPT_Instruction test = InstanceOf.create(INSTANCEOF_NOTNULL, t,
+                                                     new OPT_TypeOperand(target.getDeclaringClass().getTypeRef()),
+                                                     receiver);
+            test.copyPosition(callSite);
+            lastIfBlock.appendInstruction(test);
+
+            OPT_Instruction cmp = IfCmp.create(INT_IFCMP,
+                                               parent.temps.makeTempValidation(),
+                                               t, new OPT_IntConstantOperand(0),
+                                               OPT_ConditionOperand.EQUAL(),
+                                               testFailed.makeJumpTarget(),
+                                               OPT_BranchProfileOperand.unlikely());
+            cmp.copyPosition(callSite);
+            lastIfBlock.appendInstruction(cmp);
+
+            OPT_BasicBlock subclassTest =
+              new OPT_BasicBlock(callSite.bcIndex, callSite.position,
+                                 parent.cfg);
+
+            lastIfBlock.insertOut(testFailed);
+            lastIfBlock.insertOut(subclassTest);
+
+            container.cfg.linkInCodeOrder(lastIfBlock,
+                                          subclassTest);
+
+            lastIfBlock = subclassTest;
+          }
+
           tmp = InlineGuard.create(IG_METHOD_TEST, receiver.copyU2U(), 
                                    Call.getGuard(callSite).copy(), 
                                    OPT_MethodOperand.VIRTUAL(target.getMemberRef().asMethodReference(), target), 

@@ -100,12 +100,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // Allocators
   public static final byte RC_SPACE = 0;
-  public static final byte LOS_SPACE = 1;
   public static final byte DEFAULT_SPACE = RC_SPACE;
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  private static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
@@ -212,26 +210,21 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Allocate space (for an object)
    *
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @param allocator The allocator number to be used for this allocation
-   * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
-                                AllocAdvice advice)
+  public final VM_Address alloc(int bytes, int align, int offset, int allocator)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
-    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
-      return los.alloc(isScalar, bytes);
-    } else {
-      switch (allocator) {
-      case       RC_SPACE: return rc.alloc(isScalar, bytes, false);
-      case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
-      case      LOS_SPACE: return los.alloc(isScalar, bytes);
-      default:
-        if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator");
-        return VM_Address.zero();
-      }
+    switch (allocator) {
+    case       RC_SPACE: return rc.alloc(bytes, align, offset, false);
+    case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
+    case      LOS_SPACE: return los.alloc(bytes, align, offset);
+    default:
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface.sysFail("No such allocator");
+      return VM_Address.zero();
     }
   }
 
@@ -242,26 +235,30 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
-                              boolean isScalar, int allocator)
+                              int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
     case RC_SPACE: 
     case LOS_SPACE: 
-      if (WITH_COALESCING_RC) modBuffer.pushOOL(ref);
+      if (WITH_COALESCING_RC)
+	modBuffer.pushOOL(ref);
       decBuffer.pushOOL(VM_Magic.objectAsAddress(ref));
       if (RefCountSpace.RC_SANITY_CHECK) RefCountLocal.sanityAllocCount(ref); 
+      Header.initializeHeader(ref, tib, bytes);
       return;
     case IMMORTAL_SPACE: 
-      if (WITH_COALESCING_RC) 
-        modBuffer.pushOOL(ref);
+      if (WITH_COALESCING_RC)
+	modBuffer.pushOOL(ref);
       else
         ImmortalSpace.postAlloc(ref);
       return;
-    default: if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator"); return;
+    default:
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface.sysFail("No such allocator");
+      return;
     }
   }
 
@@ -271,11 +268,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    *
    * @param original A reference to the original object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address allocCopy(VM_Address original, int bytes,
-                                    boolean isScalar) throws VM_PragmaInline {
+                                    int align, int offset) throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     // return VM_Address.zero();  this trips some Intel assembler bug
     return VM_Address.max();
@@ -287,10 +285,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    */
-  public final void postCopy(VM_Address ref, Object[] tib, int bytes,
-                             boolean isScalar) {} // do nothing
+  public final void postCopy(VM_Address ref, Object[] tib, int bytes) {}
 
   protected final byte getSpaceFromAllocator (Allocator a) {
     if (a == rc) return DEFAULT_SPACE;
@@ -608,27 +604,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return object;
   }
 
-  /**
-   * Reset the GC bits in the header word of an object that has just
-   * been copied.  This may, for example, involve clearing a write
-   * barrier bit.  In this case nothing is required, so the header
-   * word is returned unmodified.
-   *
-   * @param fromObj The original (uncopied) object
-   * @param forwardingWord The integer containing the GCbits , which
-   * is the GC word of the original object, and typically encodes some
-   * GC state as well as pointing to the copied object.
-   * @param bytes The size of the copied object in bytes.
-   * @return The updated GC word (in this case unchanged).
-   */
-  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj,
-						 VM_Word forwardingWord,
-						 int bytes) {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(false);  // not a copying collector!
-    return forwardingWord;
-  }
-
   public static boolean willNotMove (VM_Address obj) {
     return true;
   }
@@ -652,15 +627,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
+   * @param metaDataA An int that assists the host VM in creating a store 
+   * @param metaDataB An int that assists the host VM in creating a store 
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   public final void writeBarrier(VM_Address src, VM_Address slot,
-                                 VM_Address tgt, int mode) 
+                                 VM_Address tgt, int metaDataA, int metaDataB, int mode) 
     throws VM_PragmaInline {
     if (INLINE_WRITE_BARRIER)
-      writeBarrier(src, slot, tgt);
+      writeBarrierInternal(src, slot, tgt, metaDataA, metaDataB, mode);
     else 
-      writeBarrierOOL(src, slot, tgt);
+      writeBarrierInternalOOL(src, slot, tgt, metaDataA, metaDataB, mode);
   }
 
   /**
@@ -676,21 +653,22 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param src The object being mutated.
    * @param slot The address of the word (slot) being mutated.
    * @param tgt The target of the new reference (about to be stored into src).
+   * @param metaDataA An int that assists the host VM in creating a store 
+   * @param metaDataB An int that assists the host VM in creating a store 
+   * @param mode The mode of the store (eg putfield, putstatic)
    */
-  private final void writeBarrier(VM_Address src, VM_Address slot,
-                                  VM_Address tgt) 
+  private final void writeBarrierInternal(VM_Address src, VM_Address slot,
+                                  VM_Address tgt, int metaDataA, 
+                                  int metaDataB, int mode) 
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
       if (Header.logRequired(src)) {
         coalescingWriteBarrierSlow(src);
       }
-      VM_Magic.setMemoryAddress(slot, tgt);
+      VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
     } else {      
-      VM_Address old;
-      do {
-        old = VM_Magic.prepareAddress(slot, 0);
-      } while (!VM_Magic.attemptAddress(slot, 0, old, tgt));
+      VM_Address old = VM_Interface.performWriteInBarrierAtomic(src, slot, tgt, metaDataA, metaDataB, mode);
       if (old.GE(RC_START))
         decBuffer.pushOOL(old);
       if (tgt.GE(RC_START))
@@ -706,25 +684,76 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param src The object being mutated.
    * @param slot The address of the word (slot) being mutated.
    * @param tgt The target of the new reference (about to be stored into src).
+   * @param metaDataA An int that assists the host VM in creating a store 
+   * @param metaDataB An int that assists the host VM in creating a store 
+   * @param mode The mode of the store (eg putfield, putstatic)
    */
-  private final void writeBarrierOOL(VM_Address src, VM_Address slot,
-                                     VM_Address tgt) 
+  private final void writeBarrierInternalOOL(VM_Address src, VM_Address slot,
+                                     VM_Address tgt, int metaDataA,
+                                     int metaDataB, int mode) 
     throws VM_PragmaNoInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
       if (Header.logRequired(src)) {
         coalescingWriteBarrierSlow(src);
       }
-      VM_Magic.setMemoryAddress(slot, tgt);
+      VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
     } else {
-      VM_Address old;
-      do {
-        old = VM_Magic.prepareAddress(slot, 0);
-      } while (!VM_Magic.attemptAddress(slot, 0, old, tgt));
+      VM_Address old = VM_Interface.performWriteInBarrierAtomic(src, slot, tgt, metaDataA, metaDataB, mode);
       if (old.GE(RC_START))
         decBuffer.push(old);
       if (tgt.GE(RC_START))
         RCBaseHeader.incRC(tgt);
+    }
+  }
+
+  /**
+   * A number of references are about to be copied from object
+   * <code>src</code> to object <code>dst</code> (as in an array
+   * copy).  Thus, <code>dst</code> is the mutated object.  Take
+   * appropriate write barrier actions.<p>
+   *
+   * In this case, we simply remember the mutated source object, or we
+   * enumerate the copied pointers and perform appropriate actions on
+   * each.
+   *
+   * @param src The source of the values to copied
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param dst The mutated object, i.e. the destination of the copy.
+   * @param dstOffset The offset of the first destination address, in
+   * bytes relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (this depends on which style of barrier is
+   * being used).
+   */
+  public boolean writeBarrier(VM_Address src, int srcOffset,
+			      VM_Address dst, int dstOffset,
+			      int bytes) {
+    if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
+    if (WITH_COALESCING_RC) {
+      if (Header.logRequired(dst))
+	coalescingWriteBarrierSlow(dst);
+      return false;
+    } else {
+      while (bytes > 0) {
+	VM_Address tgt = VM_Magic.getMemoryAddress(src);
+	VM_Address old;
+	do {
+	  old = VM_Magic.prepareAddress(dst, 0);
+	} while (!VM_Magic.attemptAddress(dst, 0, old, tgt));
+	if (old.GE(RC_START))
+	  decBuffer.push(old);
+	if (tgt.GE(RC_START))
+	  RCBaseHeader.incRC(tgt);
+	src = src.add(BYTES_IN_ADDRESS);
+	dst = dst.add(BYTES_IN_ADDRESS);
+	bytes -= BYTES_IN_ADDRESS;
+      }
+      return true;
     }
   }
 

@@ -40,7 +40,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants
    */
   private static VM_CodeArray[] JNIFunctions;
 
-  //-#if RVM_WITH_LINKAGE_TRIPLETS
+  //-#if RVM_WITH_POWEROPEN_ABI
   /**
    * On some platforms we need a linkage triple instead of just
    * a function pointer.  
@@ -67,7 +67,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants
    * this object that points directly to this field.
    */ 
   private final VM_Address externalJNIFunctions = 
-  //-#if RVM_WITH_LINKAGE_TRIPLETS
+  //-#if RVM_WITH_POWEROPEN_ABI
     VM_Magic.objectAsAddress(LinkageTriplets);
   //-#else
     VM_Magic.objectAsAddress(JNIFunctions);
@@ -314,7 +314,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants
   public static void initFunctionTable(VM_CodeArray[] functions) {
     JNIFunctions = functions;
 
-    //-#if RVM_WITH_LINKAGE_TRIPLETS
+    //-#if RVM_WITH_POWEROPEN_ABI
     // Allocate the linkage triplets in the bootimage too (so they won't move)
     LinkageTriplets = new VM_AddressArray[functions.length];
     for (int i=0; i<functions.length; i++) {
@@ -328,7 +328,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants
    * we are on a platform that needs linkage triplets.
    */
   public static void boot() {
-    //-#if RVM_WITH_LINKAGE_TRIPLETS
+    //-#if RVM_WITH_POWEROPEN_ABI
     // fill in the TOC and IP entries for each linkage triplet
     for (int i=0; i<JNIFunctions.length; i++) {
       VM_AddressArray triplet = LinkageTriplets[i];

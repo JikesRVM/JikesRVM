@@ -23,24 +23,26 @@ class VM_Barriers implements VM_BaselineConstants {
 
   //  on entry java stack contains ...|target_ref|ref_to_store|
   // T1 already contains the offset of the field on entry
-  static void compilePutfieldBarrier (VM_Compiler comp) {
+  static void compilePutfieldBarrier (VM_Compiler comp, int locationMetadata) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
     comp.peekAddr(T0, 1);           // object base
     comp.peekAddr(T2, 0);           // value to store
-    asm.emitBCCTRL(); // MM_Interface.putfieldWriteBarrier(T0,T1,T2)
+    asm.emitLVAL(T3, locationMetadata);
+    asm.emitBCCTRL(); // MM_Interface.putfieldWriteBarrier(T0,T1,T2,T3)
   }
 
   //  on entry java stack contains ...|target_ref|ref_to_store|
-  static void compilePutfieldBarrierImm (VM_Compiler comp, int fieldOffset) {
+  static void compilePutfieldBarrierImm (VM_Compiler comp, int fieldOffset, int locationMetadata) {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
     comp.peekAddr(T0, 1);            // object base
     asm.emitLVAL (T1, fieldOffset);  // offset 
     comp.peekAddr(T2, 0);            // value to store
-    asm.emitBCCTRL();  // MM_Interface.putfieldWriteBarrier(T0,T1,T2)
+    asm.emitLVAL(T3, locationMetadata);
+    asm.emitBCCTRL();  // MM_Interface.putfieldWriteBarrier(T0,T1,T2,T3)
   }
 
   // currently do not have a "write barrier for putstatic, emit nothing, for now...

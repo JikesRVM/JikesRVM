@@ -30,6 +30,9 @@ JNIEXPORT void JNICALL Java_MonitorTest_setVerboseOff
  * Class:     MonitorTest
  * Method:    accessMonitorFromNative
  * Signature: (Ljava/lang/Object;)I
+ *
+ * Return 0 on success, non-zero on failure.
+ *
  */
 JNIEXPORT jint JNICALL Java_MonitorTest_accessMonitorFromNative
   (JNIEnv *env, jclass cls, jobject lockObj) {
@@ -46,7 +49,7 @@ JNIEXPORT jint JNICALL Java_MonitorTest_accessMonitorFromNative
   if (methodID == NULL) {
     if (verbose)
       printf("> GetStaticMethodID: fail to get method ID for static method accessCountUnderNativeLock\n");
-    return NULL;
+    return -1;
   }
 
 

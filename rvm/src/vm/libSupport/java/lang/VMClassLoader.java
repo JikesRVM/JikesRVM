@@ -113,6 +113,6 @@ final class VMClassLoader {
   }
 
   static ClassLoader getSystemClassLoader() {
-    return VM_SystemClassLoader.getVMClassLoader();
+    return VM_ClassLoader.getApplicationClassLoader();
   }
 }

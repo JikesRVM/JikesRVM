@@ -119,7 +119,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
       // Don't allow the static inline oracle to inline recursive calls.
       // It isn't smart enough to do this effectively.
       OPT_InlineSequence seq = state.getSequence();
-      if (seq.containsMethod(callee)) {
+      if (seq.containsMethod(singleImpl)) {
         return OPT_InlineDecision.NO("recursive call");
       }
 

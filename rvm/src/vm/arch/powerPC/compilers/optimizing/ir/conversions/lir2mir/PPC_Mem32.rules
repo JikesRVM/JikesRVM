@@ -1,0 +1,69 @@
+#
+# (C) Copyright IBM Corp. 2001,2002
+#
+#//$Id$
+#
+# @author Dave Grove
+# @author Mauricio J. Serrano
+#
+# BURS rules for memory access (load/stores) 
+# that are specific to a 32 bit platform.
+#
+# See PPC_Common.rules for the format of this file
+#
+#####
+# LONG_LOAD
+#####
+r:	LONG_LOAD(r,INT_CONSTANT)
+21
+EMIT_INSTRUCTION
+LONG_LOAD_addi(P(p), Load.getResult(P(p)),                  \
+                           R(Load.getAddress(P(p))), I(Load.getOffset(P(p))), \
+			   Load.getLocation(P(p)), Load.getGuard(P(p))); 
+
+r:      LONG_LOAD(r,INT_MOVE(INT_CONSTANT))
+21
+EMIT_INSTRUCTION
+LONG_LOAD_addis(P(p), Load.getResult(P(p)),                 \
+                            R(Load.getAddress(P(p))),                         \
+                            R(Load.getOffset(P(p))), I(Move.getVal(PR(p))),   \
+		            Load.getLocation(P(p)), Load.getGuard(P(p)));
+
+r:	LONG_LOAD(r,r)
+21
+EMIT_INSTRUCTION
+LONG_LOAD_addx(P(p), Load.getResult(P(p)),                  \
+                           R(Load.getAddress(P(p))), R(Load.getOffset(P(p))), \
+			   Load.getLocation(P(p)), Load.getGuard(P(p)));
+
+#####
+# LONG_STORE
+#####
+stm:	LONG_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
+22
+EMIT_INSTRUCTION
+LONG_STORE_addi(P(p), R(Store.getValue(P(p))),              \
+                            R(Store.getAddress(P(p))),                        \
+                            I(Store.getOffset(P(p))),                         \
+			    Store.getLocation(P(p)),                          \
+                            Store.getGuard(P(p)));
+
+stm:      LONG_STORE(r,OTHER_OPERAND(r,INT_MOVE(INT_CONSTANT)))
+22
+EMIT_INSTRUCTION
+LONG_STORE_addis(P(p), R(Store.getValue(P(p))),             \
+                             R(Store.getAddress(P(p))),                       \
+                             R(Store.getOffset(P(p))),                        \
+                             I(Move.getVal(PRR(p))),                          \
+			     Store.getLocation(P(p)),                         \
+                             Store.getGuard(P(p)));
+
+stm:	LONG_STORE(r,OTHER_OPERAND(r,r))
+22
+EMIT_INSTRUCTION
+LONG_STORE_addx(P(p), R(Store.getValue(P(p))),              \
+                            R(Store.getAddress(P(p))),                        \
+                            R(Store.getOffset(P(p))),                         \
+			    Store.getLocation(P(p)),                          \
+                            Store.getGuard(P(p)));
+

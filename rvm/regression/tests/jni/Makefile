@@ -19,14 +19,25 @@ START_NAME=
 EXPECTED=
 BENCH_JDK_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
 BENCH_RVM_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
+CFLAGS+=-Wno-unused -Wno-conversion		#for GCC
+CFLAGS+=-std=gnu99
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
-TESTS = Allocation ArgumentPassing ArrayFunctions ClassQuery CriticalCopy \
+## TODO: We need to add SelectTest, as soon as it works with 
+## RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.
+
+# Tests for JNI 1.1
+TESTS_11 := Allocation ArgumentPassing ArrayFunctions ClassQuery CriticalCopy \
         FieldAccess MethodInvocation MonitorTest NativeException \
 	StringFunctions TestGC t3GT3
 
-LIBS = $(TESTS:%=lib%.a) $(TESTS:%=lib%.so) 
+# Tests for JNI 1.2
+TESTS_12 := JNI12 StringRegion
+
+TESTS := $(TESTS_11) $(TESTS_12)
+
+LIBS = $(TESTS:%=lib%.a) $(TESTS:%=lib%.so) $(TESTS:%=lib%.jnilib) 
 
 sanity: $(LIBS) $(TESTS)
 	@$(MAKE) START_NAME="jni" do-sanity-finish
@@ -36,7 +47,7 @@ check:
 	@$(FGREP) -v "FAIL:" < $(OUT)
 
 
-ONE_TEST_LIB = $(ONE_TEST:%=lib%.a) $(ONE_TEST:%=lib%.so)
+ONE_TEST_LIB = $(ONE_TEST:%=lib%.a) $(ONE_TEST:%=lib%.so) $(ONE_TEST:%=lib%.jnilib)
 
 single:	$(ONE_TEST_LIB)
 	$(MAKE) START_NAME=$(ONE_TEST) START_ARGS=-quiet do-sanity-compare
@@ -52,6 +63,9 @@ lib%.a:	%.c %.h
 	$(LDSHARED) $(CXXFLAGS) -o $(BENCH_CLASS_CP)/$@ -I$(BENCH_CLASS_CP) -I$(JAL_ROOT)/rvm/src/include $(BENCH_CLASS_CP)/$(basename $(notdir $<)).o
 
 %.so:	%.a
+	cp -f $(BENCH_CLASS_CP)/$< $(BENCH_CLASS_CP)/$@
+
+%.jnilib:	%.a
 	cp -f $(BENCH_CLASS_CP)/$< $(BENCH_CLASS_CP)/$@
 
 $(TESTS): % :

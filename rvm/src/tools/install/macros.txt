@@ -1,0 +1,30 @@
+We must define these macros to turn the .in files into real ones.
+These are the values we'll use for an installation on a
+Debian system:
+
+
+@DOC_DIR@
+
+Always  /usr/share/doc/jikesrvm
+
+
+@USER_MANUAL@
+
+/usr/share/doc/jikesrvm
+
+Where the user's manual is on the local machine.
+
+
+
+@BIN_DIR@
+
+/usr/bin
+
+
+@RVM_ROOT@
+/usr/share/jikesrvm
+
+@RVM_BUILD@
+/usr/lib/jikesrvm
+
+

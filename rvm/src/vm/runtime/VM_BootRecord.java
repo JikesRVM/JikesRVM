@@ -196,10 +196,13 @@ public class VM_BootRecord {
   VM_Address sysIP;            
   //-#endif
 
-  // startup/shutdown
+  // lowlevel write to console
   public VM_Address sysWriteCharIP;    
   public VM_Address sysWriteIP;            
   public VM_Address sysWriteLongIP;
+  public VM_Address sysWriteDoubleIP;
+  
+  // startup/shutdown
   public VM_Address sysExitIP;                     
   public VM_Address sysArgIP;
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2003
+ * (C) Copyright IBM Corp 2003, 2004
  */
 //$Id$
 package java.lang;
@@ -15,11 +15,6 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.*;
  * Jikes RVM implementation of GNU Classpath's java.lang.VMRuntime.
  * See reference implementation for javadoc.
  *
- * NOTE: Only some of these methods are actually used with classpath 0.07
- *       because we have out own copy of java.lang.Runtime.
- *       Once classpath 0.08 comes out, we can delete our implementation of
- *       java.lang.Runtime and use the classpath version + this class.
- *       
  * @author Julian Dolby
  * @author Dave Grove
  */
@@ -79,7 +74,7 @@ final class VMRuntime {
   }    
 
   static int nativeLoad(String libName) {
-    return VM_ClassLoader.load(libName);
+    return VM_DynamicLibrary.load(libName);
   }
 
   static String nativeGetLibname(String pathname, String libname) {
@@ -225,6 +220,11 @@ final class VMRuntime {
         p.put(prop, s);
       }
     }
+
+    /* Tell GNU Classpath that we need the portable-native-sync
+     * implementation.   This is not yet in Classpath CVS, but will be
+     * soon. --Steve Augart, 19 June 2004 */ 
+    p.put("gnu.classpath.awt.gtk.portable.native.sync", "true");
 
   }
     

@@ -50,14 +50,21 @@ public interface Constants extends VM_SizeConstants {
   static final int LOG_BYTES_IN_ADDRESS_SPACE = BITS_IN_ADDRESS;
 
   /**
-   * All allocations made to JMTk are required to be in multiples of
-   * this constant and in return JMTk guarentees that the start of all
-   * allocated regions will be aligned to this value.
-   * This value is required to be a power of 2 and must be greater than
-   * or equal to BYTES_IN_INT.
+   * This value specifies the <i>minimum</i> allocation alignment
+   * requirement of the VM.  When making allocation requests, both
+   * <code>align</code> and <code>offset</code> must be multiples of
+   * <code>BYTES_IN_PARTICLE</code>.
+   *
+   * This value is required to be a power of 2.
    */
-  static final int BYTES_IN_PARTICLE = BYTES_IN_ADDRESS;
+  static final int BYTES_IN_PARTICLE = BYTES_IN_INT;
 
+  /**
+   * The maximum alignment request the vm will make. This must be a 
+   * power of two multiple of bytes in particle.
+   */
+  static final int MAXIMUM_ALIGNMENT = BYTES_IN_LONG; 
+  
   /**
    * The VM will add at most this value minus BYTES_IN_INT bytes of
    * padding to the front of an object that it places in a region of

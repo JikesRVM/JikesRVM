@@ -49,25 +49,33 @@ public class CopyingHeader {
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
-   * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(VM_Address ref, Object[] tib, int size, boolean isScalar) throws VM_PragmaUninterruptible {
+  public static void initializeHeader(VM_Address ref, Object[] tib, int size) throws VM_PragmaUninterruptible {
     // nothing to do (no bytes of GC header)
   }
 
   /**
-   * Perform any required initialization of the GC portion of the header.
-   * Called for objects created at boot time.
+   * Clear the GC portion of the header for an object.
+   * 
+   * @param ref the object ref to the storage to be initialized
+   */
+  public static void clearGCBits(VM_Address ref)
+    throws VM_PragmaUninterruptible {
+    VM_Word header = VM_Interface.readAvailableBitsWord(ref);
+    VM_Interface.writeAvailableBitsWord(ref, header.and(GC_FORWARDING_MASK.not()));
+  }
+
+  /**
+   * Perform any required initialization of the GC portion of the
+   * header.  Called for objects created at boot time.
    * 
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for
    * this object.
-   * @param isScalar are we initializing a scalar (true) or array
-   * (false) object?
    */
   public static VM_Word getBootTimeAvailableBits(int ref, Object[] tib,
-                                                 int size, boolean isScalar,
+                                                 int size, 
                                                  VM_Word status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return status; // nothing to do (no bytes of GC header)

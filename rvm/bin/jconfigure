@@ -777,7 +777,7 @@ if [[ ! -f  $f ]]; then
 fi
 # Current version of RVM
 CVS_TIMESTAMP=$(cat $f)
-JIKESRVM_VERSION="Jikes RVM 2.3.2"
+JIKESRVM_VERSION="Jikes RVM 2.3.3"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -812,8 +812,6 @@ declare -i RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via Op
 
 # Include support for hardware performance monitors (HPM)
 declare -i RVM_WITH_HPM=0
-
-declare -x -i RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH=0
 
 ## Memory Allocators and Garbage Collector options (JMTk)
 declare -i RVM_WITH_SEMI_SPACE=0
@@ -855,6 +853,14 @@ declare -i RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
 #
 declare -x -i RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=0
 
+##
+## Which ABI should VM_JNICompiler.java build for?
+##
+declare -i RVM_WITH_MACH_O_ABI=0 # OSX (Darwin)
+declare -i RVM_WITH_POWEROPEN_ABI=0 # AIX; Linux: ppc64
+declare -i RVM_WITH_SVR4_ABI=0	# Linux: x86, ppc32
+
+
 # controls for diagnostic flags
 declare -i RVM_FOR_STRESSGC=0
 
@@ -884,6 +890,13 @@ declare -i RVM_WITH_NOFLUSH=0
 ## These are overridden in the OSX config file.
 declare -i HAS_DLCOMPAT=0
 # : ${HAS_DLCOMPAT=0}
+
+## These should be flushed, since they are now almost hardwired
+## with these values set (I added these definitions to shut up the
+## "paranoid preprocessor". 
+declare -r -i RVM_WITH_JNI_SETBOOLSTAR=1
+declare -r -i RVM_WITH_OPT_INSTRUMENTATION=0
+declare -r -i RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH=0
 
 #---------------------------------------#
 # SECTION 3 - PROCESS RVM_TARGET_CONFIG # 
@@ -1028,10 +1041,20 @@ if (( RVM_FOR_AIX || RVM_FOR_SINGLE_VIRTUAL_PROCESSOR == 1 )); then
     RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 fi
 
-if (( (( RVM_FOR_AIX )) || (( (( RVM_FOR_LINUX )) && (( RVM_FOR_POWERPC )) && (( RVM_FOR_64_ADDR )))) )); then
-    RVM_WITH_LINKAGE_TRIPLETS=1
-else
-    RVM_WITH_LINKAGE_TRIPLETS=0
+if (( RVM_FOR_OSX )); then
+    RVM_WITH_MACH_O_ABI=1
+    RVM_WITH_POWEROPEN_ABI=0
+    RVM_WITH_SVR4_ABI=0
+elif (( RVM_FOR_AIX
+	|| (( RVM_FOR_LINUX && RVM_FOR_POWERPC && RVM_FOR_64_ADDR )) ))
+then
+    RVM_WITH_MACH_O_ABI=0
+    RVM_WITH_POWEROPEN_ABI=1
+    RVM_WITH_SVR4_ABI=0
+else				# Linux/x86; Linux/ppc32
+    RVM_WITH_MACH_O_ABI=0
+    RVM_WITH_POWEROPEN_ABI=0
+    RVM_WITH_SVR4_ABI=1
 fi
 
 
@@ -1540,6 +1563,17 @@ EOF
     # The configuration for building the user guide.
     # You may have to edit this file.
     [[ ! ${USER_GUIDE_CONFIG-} ]] || echo "USER_GUIDE_CONFIG := ${RVM_ROOT}/rvm/doc/userguide/config.mk"
+
+    if (( RVM_FOR_32_ADDR )); then
+	echo "RVM_FOR_32_ADDR := 1"
+	echo "ADDRESS_SIZE := 32"
+    elif (( RVM_FOR_64_ADDR )); then
+	echo "RVM_FOR_64_ADDR := 1"
+	echo "ADDRESS_SIZE := 64"
+    else
+	croak_nonusage "The configuration must specify one of RVM_FOR_32_ADDR or RVM_FOR_64_ADDR; it does not."
+    fi
+	
 
     [[ ! ${HOST_JAVA_HOME-} ]] || echo "HOST_JAVA_HOME = $HOST_JAVA_HOME"
     [[ ! ${DO_NOT_RUN_JAVAH-} ]] || echo "DO_NOT_RUN_JAVAH = $DO_NOT_RUN_JAVAH"
@@ -2332,17 +2366,33 @@ EOF
 	    exit 0
 	fi
 
-	# copy and preprocess $generator_classes.java
+	## Where are our sources?
+	generator_class="GenerateInterfaceDeclarations"
+	old_generator_dir=${BOOTIMAGE_RUNNER_DIR_STR}
+	# The new_generator_dir is scaffolding for a work-in-progress
+	# feature --Steve Augart, 26 May 2004
+
+	new_generator_dir=${ROOT_DIRECTORY_STR}/rvm/src/tools/generateInterfaceDeclarations
+	if [[ \${INTERFACE_GENERATOR_DIR-} ]]; then
+	    generator_dir=\${INTERFACE_GENERATOR_DIR}
+	elif [[ -f \$new_generator_dir/\${generator_class}.java ]]; then
+	    generator_dir=\$new_generator_dir
+	elif [[ -d \$old_generator_dir ]]; then
+	    generator_dir=\$old_generator_dir
+	fi
+
+	# Preprocess and copy the java source files for the Generator.
 	#
 
 	PREPROC_FLAGS="--only-boolean-constants-in-conditions ${PARANOID_PREPROCESSOR_FLAG}"
 	if tracing preprocessor; then
 	    cleanline >&2
-	    echo >&2 -n "\$ME: $BOOTIMAGE_RUNNER_DIR_STR"/
+	    echo >&2 -n "\$ME: \${generator_dir}"/
 	fi
 	
-	cd ${BOOTIMAGE_RUNNER_DIR_STR}
-	generator_sources=\$(for file in ${generator_classes}.java; do [[ ! -e \$file ]] || echo \$file; done)
+	cd \${generator_dir}
+	generator_sources=\$(for file in ${generator_classes}.java; do [[ ! -f \$file ]] || echo \$file; done)
+
  	run $BUILD_DIRECTORY_STR/jbuild.prep.host \
  		--disable-modification-exit-status \$PREPROC_FLAGS \
  		$(echo $PREPROCESSOR_DEFINITIONS) \
@@ -2480,9 +2530,6 @@ function emitImageLinker () {
 	# skip: JikesRVMSocketImpl; do not load native libs unless needed
 	    JikesRVMSocketImpl.class
 
-	# skip: do not put application class loader in, due to static data issues
-	    ApplicationClassLoader.class
-
 	# We can not carry these from bootimage writing to runtime 
 	# without special treatment
 	    java/lang/ref/PhantomReference.class
@@ -2605,6 +2652,7 @@ java/lang/Integer
 java/lang/Long
 java/lang/Number
 java/lang/Short
+java/lang/Void
 
     # class loading errors
     #
@@ -2652,6 +2700,17 @@ java/security/Principal
 gnu/java/locale/Calendar
 java/lang/reflect/InvocationTargetException
 
+    # ApplicationClassLoader
+com/ibm/JikesRVM/classloader/ApplicationClassLoader # Uses URLClassLoader
+java/net/URLClassLoader		# Uses java.util.HashMap
+java/net/URL			# Used by URLClassLoader's initializer
+gnu/java/net/protocol/file/Handler # by java/net/URL
+
+# Not necessary, since we can class load from regular files at the point 
+# it's needed, but used while booting, so it should save us time at 
+# startup to just include it.
+gnu/java/lang/reflect/TypeSignature # Used by ObjectStreamField
+
     # class loading from regular files
     #
 java/io/File
@@ -2661,11 +2720,8 @@ java/io/FilterInputStream
 java/io/InputStream
 java/io/FileInputStream
 java/io/FileDescriptor
+gnu/java/nio/channels/FileChannelImpl
 EOF
-
-    if (( RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH )); then
-	echo "java/io/VMFileDescriptor"
-    fi
 
 	cat <<EOF
     # class loading from zip files

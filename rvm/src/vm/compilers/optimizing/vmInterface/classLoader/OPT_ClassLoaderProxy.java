@@ -204,7 +204,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
         VM_Class childClass = (VM_Class)childType.peekResolvedType();
         VM_Class parentClass = (VM_Class)parentType.peekResolvedType();
         if (childClass != null && parentClass != null) {
-          if (parentClass.isInitialized() && childClass.isInitialized() ||
+          if (parentClass.isResolved() && childClass.isResolved() ||
               (VM.writingBootImage && parentClass.isInBootImage() && childClass.isInBootImage())) {
             if (parentClass.isInterface()) {
               if (VM_Runtime.isAssignableWith(parentClass, childClass)) {

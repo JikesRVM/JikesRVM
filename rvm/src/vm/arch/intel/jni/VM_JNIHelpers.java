@@ -28,21 +28,14 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @return a new object created by the specified constructor
    */
   static Object invokeInitializer(Class cls, int methodID, VM_Address argAddress, 
-                                         boolean isJvalue, boolean isDotDotStyle) 
-    throws Exception  {
+                                  boolean isJvalue, boolean isDotDotStyle) throws Exception {
 
     // get the parameter list as Java class
     VM_Method mth = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
-    VM_TypeReference[] argTypes = mth.getParameterTypes();
-    Class[]   argClasses = new Class[argTypes.length];
-    for (int i=0; i<argClasses.length; i++) {
-      argClasses[i] = argTypes[i].resolve().getClassForType();
+    Constructor constMethod = java.lang.reflect.JikesRVMSupport.createConstructor(mth);
+    if (!mth.isPublic()) {
+      constMethod.setAccessible(true);
     }
-
-    Constructor constMethod = cls.getConstructor(argClasses);
-    if (constMethod==null)
-      throw new Exception("Constructor not found");
-
 
     // Package the parameters for the constructor
     VM_Address varargAddress;
@@ -167,7 +160,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *                  if false, the calling JNI function has 3 args before the vararg
    * @return the starting address of the vararg in the caller stack frame
    */
-  private static VM_Address getVarArgAddress(boolean skip4Args) {
+  private static VM_Address getVarArgAddress(boolean skip4Args) throws VM_PragmaNoInline {
     VM_Address fp = VM_Magic.getFramePointer();
     fp = VM_Magic.getMemoryAddress(fp);
     fp = VM_Magic.getMemoryAddress(fp);

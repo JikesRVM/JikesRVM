@@ -151,7 +151,7 @@ public class EventCounter extends Counter
    */
   final public void printTotal() {
     long total = 0;
-    for (int p = 0; p < Stats.phase; p++) {
+    for (int p = 0; p <= Stats.phase; p++) {
       total += count[p];
     }
     printValue(total);
@@ -165,7 +165,7 @@ public class EventCounter extends Counter
    */
   final protected void printTotal(boolean mutator) {
     long total = 0;
-    for (int p = (mutator) ? 0 : 1; p < Stats.phase; p += 2) {
+    for (int p = (mutator) ? 0 : 1; p <= Stats.phase; p += 2) {
       total += count[p];
     }
     printValue(total);

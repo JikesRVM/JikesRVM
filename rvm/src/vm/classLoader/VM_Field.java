@@ -218,7 +218,7 @@ public final class VM_Field extends VM_Member {
         VM_Statics.setSlotContents(offset>>>LOG_BYTES_IN_INT, ref);
     } else {
       if (MM_Interface.NEEDS_WRITE_BARRIER)
-        MM_Interface.putfieldWriteBarrier(obj, offset, ref);
+        MM_Interface.putfieldWriteBarrier(obj, offset, ref, getId());
       else
         VM_Magic.setObjectAtOffset(obj, offset, ref);
     }

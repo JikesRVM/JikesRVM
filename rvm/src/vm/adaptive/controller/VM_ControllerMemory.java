@@ -313,6 +313,7 @@ public final class VM_ControllerMemory implements VM_Constants {
 
     final int MAX_BIT_PATTERN = 7;
     int summaryArray[] = new int[MAX_BIT_PATTERN+1];
+    int recompsAtLevel2Array[] = new int[MAX_BIT_PATTERN+1];
     int totalRecompsAtLevel2 = 0;
 
     // traverse table and give a summary of all actions that have occurred
@@ -351,7 +352,8 @@ public final class VM_ControllerMemory implements VM_Constants {
       }
 
       summaryArray[bitPattern]++;
-      totalRecompsAtLevel2 = totalRecompsAtLevel2 + recompsAtLevel2;
+      // track level 2 recomps per pattern
+      recompsAtLevel2Array[bitPattern] += recompsAtLevel2;
     }
 
     // Print the summary
@@ -363,7 +365,14 @@ public final class VM_ControllerMemory implements VM_Constants {
           log.print(" -> "+ optLevel);
         }
       }
-      log.println(": "+ summaryArray[i]);
+      log.print(": "+ summaryArray[i]);
+      // print any level 2 recomps for this pattern
+      if (recompsAtLevel2Array[i] > 0) {
+        totalRecompsAtLevel2 += recompsAtLevel2Array[i];
+        log.println(" ("+ recompsAtLevel2Array[i] +" opt level 2 recomps)");
+      } else {
+        log.println();
+      }
       totalUniqueMethods = totalUniqueMethods + summaryArray[i];
     }
     log.println("  Num recompilations At level 2: "+ totalRecompsAtLevel2);

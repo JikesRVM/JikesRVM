@@ -41,14 +41,14 @@ public final class VM_MiscHeader implements VM_Uninterruptible, VM_Constants {
   // Support for YYY (an example of how to add a word to all objects)
   /////////////////////////  
   // offset from object ref to yet-to-be-defined instrumentation word
-  // static final int YYY_DATA_OFFSET_1 = (VM.YYY ? MISC_HEADER_START + GC_TRACING_HEADER_WORDS : 0)
-  // static final int YYY_DATA_OFFSET_2 = (VM.YYY ? MISC_HEADER_START + GC_TRACING_HEADER_WORDS + 4 : 0)    
-  // static final int YYY_HEADER_BYTES = (VM.YYY ? 8 : 0)
+  // static final int YYY_DATA_OFFSET_1 = (VM.YYY ? MISC_HEADER_START + GC_TRACING_HEADER_WORDS : 0);
+  // static final int YYY_DATA_OFFSET_2 = (VM.YYY ? MISC_HEADER_START + GC_TRACING_HEADER_WORDS + 4 : 0);
+  // static final int YYY_HEADER_BYTES = (VM.YYY ? 8 : 0);
 
   /**
    * How many bytes are used by all misc header fields?
    */
-  static final int NUM_BYTES_HEADER = GC_TRACING_HEADER_BYTES; // + YYY_HEADER_BYTES
+  static final int NUM_BYTES_HEADER = GC_TRACING_HEADER_BYTES; // + YYY_HEADER_BYTES;
 
   /**
    * How many available bits does the misc header want to use?

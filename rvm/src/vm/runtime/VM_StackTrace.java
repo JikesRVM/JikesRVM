@@ -326,7 +326,7 @@ public class VM_StackTrace implements VM_Constants {
          code will handle that correctly.. */
       for (int i = 0; i <= lastFrame; ++i) {
         VM_CompiledMethod cm = compiledMethods[i];
-        if (cm == null)
+        if (cm == null || cm.getCompilerType() == VM_CompiledMethod.TRAP)
           continue;
         VM_Method m = cm.getMethod();
         /* Declaring class of the method whose call is recorded in this stack

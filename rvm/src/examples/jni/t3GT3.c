@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 
@@ -16,7 +16,7 @@
  * Method:    nativeBlocking
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_t3GT3_nativeBlocking
+JNIEXPORT void JNICALL Java_t3GT3_nativeBlocking
 (JNIEnv * env, jclass cls, jint time) {
 
 //  printf("nativeBlocking: sleeping for time =%d \n", time);
@@ -25,6 +25,3 @@ JNIEXPORT jint JNICALL Java_t3GT3_nativeBlocking
 
 // printf("nativeBlocking: returning\n");
 }
-
-
-

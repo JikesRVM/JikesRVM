@@ -11,7 +11,7 @@ package com.ibm.JikesRVM.jni;
  * @author Steve Smith
  */
 interface VM_JNIConstants {
-  //-#if RVM_WITH_LINKAGE_TRIPLETS
+  //-#if RVM_WITH_POWEROPEN_ABI
   // index of IP in the linkage triplet
   static final int IP = 0;                    
 

@@ -43,10 +43,9 @@ however, building Jikes RVM is a good way to find bugs in a JVM.\@
 Making a {\tt Full} build of Jikes RVM will make most JVMs exit abnormally.
 
 \index{Kaffe Virtual Machine}%
-Starting with Jikes RVM version 2.3.2 (or the Jikes RVM 2.3.1 CVS head
-as of March 17th, 2004), you can also use the Kaffe open-source (GPL)
-virtual machine to boot Jikes RVM.  You can download Kaffe from
-\xlink{{\tt \KaffeURL}}{\KaffeURL} or, under SuSE Linux, install the
+Starting with Jikes RVM version 2.3.2 you can also use the Kaffe
+open-source (GPL) virtual machine to boot Jikes RVM.  You can download
+Kaffe from \xlink{{\tt \KaffeURL}}{\KaffeURL} or, under SuSE Linux, install the 
 {\tt kaffe} RPM.
 
 Please see 
@@ -67,10 +66,16 @@ JVM and will not suffice for building Jikes RVM.\@
 compiler, if you have not already 
 done so (it is included in the standard SuSE Linux install, but not in
 the standard Red Hat Linux install).  You can 
-obtain Jikes from \xlink{the Jikes developerWorks site}{\jikesURL}.
-Use the pre-built RPM file for {\tt jikes-1.18} or higher.   
+obtain Jikes from \xlink{the Jikes developerWorks site}{\jikesURL};
+use the pre-build RPM file.
 If you're using SuSE Linux~8.2 or newer, Jikes~1.18 is on the install
 CD in the package {\tt jikes}.
+
+We have had mixed experiences with different releases of the Jikes
+compiler. Versions 1.13 and 1.18 are known to work for building Jikes
+RVM. Versions 1.14 through 1.17 and 1.20 are known to {\em not}\/
+work. Version 1.19 has worked for many people, but we have had
+problems reported on OSX. 
 
 
 \begin{small}
@@ -84,17 +89,21 @@ better error messages than {\tt jikes-1.18}.
 
 \item Download Jikes RVM from the \xlink{Jikes RVM
 download page}{\RVMDownloadURL}, and unpack it.   You can either
-  download a tarball via FTP or download directly from CVS.  (Until
-  the 2.3.2 release comes out, the only way to use Kaffe to boot Jikes
-  RVM is to download directly from CVS.)  We shall
+  download a tarball via FTP or download directly from CVS.  We shall
 hereinafter call the location of the unpacked RVM distribution {\tt
   \$RVM\_\-ROOT\-/\-rvm}.   
 
 
 \index{GNU Classpath: Java class libraries}%
 \index{Classpath, GNU: Java class libraries}%
-\item You will need version \classpathversion{} of the GNU Classpath
-libraries.  The Jikes RVM build process can automatically download, 
+\item You will need version \classpathversion{} of the GNU
+Classpath libraries.  The cvs head of Jikes RVM also works with the
+cvs head of GNU Classpath and with GNU Classpath 0.09 on Linux/IA32.
+However, we are currently recommending that users do not upgrade to
+Classpath 0.09.  There is a severe performance problem with Classpath
+0.09's I/O layer and Classpath 0.09 does not compile out-of-the-box on
+AIX.  We hope that these issues will be resolved for Classpath 0.10.
+The Jikes RVM build process can automatically download, 
 configure, and build the appropriate version of Classpath for you.
 
 This has historically sometimes led to confusion on the part of the
@@ -183,7 +192,7 @@ GNU make       & 3.79+    & \xlink{\tt \makeURL}{\makeURL}         \\
 GNU tar        & 1.13+    & \xlink{\tt \tarURL}{\tarURL}           \\ 
 {\tt gcc}            & 2.95+    & \xlink{\tt \gccURL}{\gccURL}           \\
 {\tt unzip}          & 5.50+    & \xlink{\tt \unzipURL}{\unzipURL}       \\
-Jikes\TMweb{} Compiler & 1.18+ or 1.13 & \xlink{\tt \jikesURL}{\jikesURL}       \\
+Jikes\TMweb{} Compiler & 1.19, 1.18 or 1.13 & \xlink{\tt \jikesURL}{\jikesURL}       \\
 Yacc or Bison &	{\it any} & \xlink{\tt \bisonURL}{\bisonURL} \\
 \hline
 \hline \multicolumn{3}{|c|}{\em If \link{automatically Building GNU
@@ -254,8 +263,14 @@ to work, then the Jikes RVM build process won't require {\tt
 \end{Label}
 
 \item \texttt{glibc} for Linux/x86 must use the GS register for
-thread-local state.  See the build instructions for \texttt{glibc} for details;
-if that scares you, use a recent Red Hat or SuSE Linux distribution.
+thread-local state.  
+% See the build instructions for \texttt{glibc} for details;
+You can build \texttt{glibc} yourself, being sure to specify the flag
+``\texttt{--enable-kernel=2.4.0}'';
+if that scares you, use a recent Red Hat or SuSE Linux distribution,
+or use Debian/Sarge with a 2.6 kernel.  More information about why
+this is important and how to check on this is
+\link{in the FAQ}[.  See section~\Ref on Page~\Pageref]{singleProcessorQuestion}.
 
 \item It is possible to use 2.2 Linux kernels with multiprocessor
 support disabled in Jikes RVM.\@  We do not recommend this; if you
@@ -453,21 +468,21 @@ whose default values are defined with reference to \texttt{HOST\_JAVA\_HOME}.
 
 {\bf The setting of \texttt{CLASSPATH\_ROOT} is tricky}, so we will go
 into some depth here.  For this example, we'll assume you downloaded
-\texttt{classpath-0.08.tgz}.  Create a directory to hold it.  You can
+\texttt{classpath-0.10.tgz}.  Create a directory to hold it.  You can
 name that directory anything; we'll name it 
-{\it \texttt{\$RVM\_\-ROOT/}classpath-0.08-build}.  
+{\it \texttt{\$RVM\_\-ROOT/}classpath-0.10-build}.  
 A command like 
 ``\texttt{/usr/gnu/tar -C
-  {\rm \it \texttt{\$\{RVM\_\-ROOT\}/}\-classpath-0.08-build} xzf classpath-0.08.tgz}''
+  {\rm \it \texttt{\$\{RVM\_\-ROOT\}/}\-classpath-0.10-build} xzf classpath-0.10.tgz}''
 will create the directory
-``{\rm \it \texttt{\$\{RVM\_\-ROOT\}}/\-class\-path-0.08-build}\texttt{/\-class\-path-0.08}''.  
+``{\rm \it \texttt{\$\{RVM\_\-ROOT\}}/\-class\-path-0.10-build}\texttt{/\-class\-path-0.10}''.  
 
 You {\bf must rename} ``\texttt{\$\{RVM\_\-ROOT\}/{\it
-    class\-path-0.08-build}/\-class\-path-0.08}'' to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it
-    class\-path-0.08-build}/\-class\-path}''.  Now set your {\tt
-  CLASS\-PATH\_\-ROOT} to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it class\-path-0.08-build}}''
+    class\-path-0.10-build}/\-class\-path-0.10}'' to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it
+    class\-path-0.10-build}/\-class\-path}''.  Now set your {\tt
+  CLASS\-PATH\_\-ROOT} to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it class\-path-0.10-build}}''
 ({\bf not} to \texttt{\$\{RVM\_\-ROOT\}/\-{\it
-    class\-path-0.08-build}/\-class\-path}).
+    class\-path-0.10-build}/\-class\-path}).
 
 
 The first time you run Jikes RVM's build process, it will
@@ -586,12 +601,18 @@ viability, \texttt{jbuild} will exit with non-zero (error) status.
 \subsubsection{Mac OS X}\label{OSX-install}
 
 \begin{enumerate}
+
+\item As of OS~X~10.3, Apple's developer tools include the Jikes
+compiler; if you have the developer tools installed on OS~X~10.3, you
+can try building without installing any special libraries etc.\ at
+all; it will probably work just fine. You will still need to install
+\texttt{wget} if you want automatically retrieve GNU Classpath. If GNU
+Classpath fails to compile, see below for more information.
+
 \item
-If your Mac OS~X build complains about a missing file  \texttt{dlfcn.h}, then 
-you need to have the \texttt{dlcompat} library installed, available from 
-\xlink{\texttt{http://www.o\-pendar\-win.org/\-pro\-jects/\-dl\-compat/}}{http://www.opendarwin.org/projects/dlcompat/}
----~the 2003-06-29 release of \texttt{dlcompat} works, according to a posting to
-the \texttt{jikesrvm-researchers} mailing list dated 2003-10-26.
+If you want to build Jikes RVM for Mac OS~X, you will need to patch
+your copy of GNU Classpath with the patch file located
+in \texttt{\$RVM\_\-ROOT/\-rvm/\-etc/\-gnu-classpath-on-mac-osx.patch}.
 
 \item
 One of the \xlink{\texttt{jikesrvm-researchers} readers contributed
@@ -611,19 +632,24 @@ respective websites and installed from source.
 \end{quote}
 
 \item
-If you want to build Jikes RVM for Mac OS~X, you will need to patch
-your copy (version 0.08 or CVS head) of GNU Classpath with the patch
-file located
-in \texttt{\$RVM\_\-ROOT/\-rvm/\-etc/\-gnu-classpath-on-mac-osx.patch}.
+If your Mac OS~X build complains about a missing file  \texttt{dlfcn.h}, then 
+you need to have the \texttt{dlcompat} library installed, available from 
+\xlink{\texttt{http://www.o\-pendar\-win.org/\-pro\-jects/\-dl\-compat/}}{http://www.opendarwin.org/projects/dlcompat/}
+---~the 2003-06-29 release of \texttt{dlcompat} works, according to a posting to
+the \texttt{jikesrvm-researchers} mailing list dated 2003-10-26.
+
+\item
+If you want to \texttt{make tags} using
+\texttt{\$RVM\_ROOT/rvm/GNUmakefile}, you will need \texttt{xargs}
+from GNU findutils.
+
+\item
+If you want to \texttt{make conditionals} using
+\texttt{\$RVM\_ROOT/rvm/GNUmakefile}, you will need GNU sed.
 
 \item
 Check the \link{list of OS~X prerequisites}[ on page~\Pageref]{prereqs} for additional
 information. 
-
-\item As of OS~X~10.3, Apple's developer tools include the Jikes
-  compiler; if you have the developer tools installed on OS~X~10.3,
-  you can try building without installing any special libraries
-  etc.\ at all; it will probably work just fine.
 
 \end{enumerate}
 

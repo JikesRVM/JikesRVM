@@ -47,6 +47,11 @@ public class VM_Properties extends VM_Options {
   public static boolean fullyBooted = false;
 
   /**
+   * Is dynamic class loading enabled?  Set by VM.boot at the appropriate time.
+   */
+  public static boolean dynamicClassLoadingEnabled = false;
+
+  /**
    * If true, don't exit from the process.  As of July, 2003, this has not
    * worked in a couple of years, nor has there been much interest in using it.
    * If it is resurrected, we need to check the code that calls dieAbruptlyRecursiveSystemTrouble(), to make

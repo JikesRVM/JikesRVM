@@ -113,26 +113,28 @@ public class Plan extends Generational implements VM_Uninterruptible {
   /**
    * Allocate space (for an object) in the mature space
    *
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureAlloc(boolean isScalar, int bytes) 
+  protected final VM_Address matureAlloc(int bytes, int align, int offset) 
     throws VM_PragmaInline {
-    return mature.alloc(isScalar, bytes, false);
+    return mature.alloc(bytes, align, offset, false);
   }
 
   /**
    * Allocate space for copying an object in the mature space (this
    * method <i>does not</i> copy the object, it only allocates space)
    *
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureCopy(boolean isScalar, int bytes) 
+  protected final VM_Address matureCopy(int bytes, int align, int offset) 
     throws VM_PragmaInline {
-    return mature.alloc(isScalar, bytes, matureSpace.inMSCollection());
+    return mature.alloc(bytes, align, offset, matureSpace.inMSCollection());
   }
 
   /**
@@ -182,7 +184,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * <i>all threads</i> execute this.
    */
   protected final void threadLocalMaturePrepare(int count) {
-    mature.prepare();
+    if (fullHeapGC) mature.prepare();
   }
 
   /**
@@ -192,7 +194,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * that <i>all threads</i> execute this.<p>
    */
   protected final void threadLocalMatureRelease(int count) {
-    mature.release();
+    if (fullHeapGC) mature.release();
   }
 
   /**
@@ -225,6 +227,19 @@ public class Plan extends Generational implements VM_Uninterruptible {
     if (VM_Interface.VerifyAssertions && space != MATURE_SPACE)
       spaceFailure(obj, space, "Plan.traceMatureObject()");
     return matureSpace.traceObject(obj, VMResource.getTag(addr));
+  }
+
+  /**  
+   * Perform any post-copy actions.  In this case set the mature space
+   * mark bit.
+   *
+   * @param ref The newly allocated object
+   * @param tib The TIB of the newly allocated object
+   * @param bytes The size of the space to be allocated (in bytes)
+   */
+  public final void postCopy(VM_Address ref, Object[] tib, int size)
+    throws VM_PragmaInline {
+    HybridHeader.writeMarkBit(ref, matureSpace.getInitialHeaderValue());
   }
 
   /**
@@ -293,24 +308,6 @@ public class Plan extends Generational implements VM_Uninterruptible {
         spaceFailure(obj, space, "Plan.isLive()");
       return false;
     }
-  }
-
-  /**
-   * Reset the GC bits in the header word of an object that has just
-   * been copied.  This may, for example, involve clearing a write
-   * barrier bit.  In this case the word has to be initialized for the
-   * mark-sweep collector.
-   *
-   * @param fromObj The original (uncopied) object
-   * @param forwardingWord The integer containing the GC bits, which is the GC word
-   * of the original object, and typically encodes some GC state as
-   * well as pointing to the copied object.
-   * @param bytes The size of the copied object in bytes.
-   * @return The updated GC word (in this case unchanged).
-   */
-  public final static VM_Word resetGCBitsForCopy(VM_Address fromObj,
-					     VM_Word forwardingWord, int bytes) {
-    return forwardingWord.and(HybridHeader.GC_BITS_MASK.not()).or(matureSpace.getInitialHeaderValue());
   }
 
   /****************************************************************************

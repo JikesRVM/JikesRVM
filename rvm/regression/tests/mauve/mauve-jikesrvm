@@ -13,9 +13,6 @@ JDBC2.0
 # that causes all subsequent tests to fail
 !java.net.Socket.setSocketImplFactory # avoid bashing our sockets
 
-# Tests are not useful and give rise to spurious failures.
-!java.lang.Character.unicode
-
 # Tests are not useful...can't be this precise in how JVM deals with references
 !java.lang.ref.
 
@@ -29,4 +26,4 @@ JDBC2.0
 !java.net.ServerSocket       # hangs Jikes RVM
 !java.net.URLClassLoader.getResourceRemote # hangs Jikes RVM
 
-!java.awt.image.PixelGrabber # problem with gtkpeer?
+!java.awt.image.PixelGrabber # problem with gtkpeer function vector?

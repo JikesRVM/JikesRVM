@@ -26,7 +26,6 @@ import java.util.ListIterator;
  * status states:
  * UNINITIALIZED -> IN_PROGRESS -> COMPLETED -> OUTDATED
  *             \              \--> ABORTED_COMPILATION_ERROR (never recompile method)
- *             \--> ABORTED_QUEUE_FULL
  *
  * @author Michael Hind
  */
@@ -41,18 +40,15 @@ public final class VM_ControllerPlan {
   // Compilation began the method, but failed in an error
   public static final byte ABORTED_COMPILATION_ERROR = 2;
 
-  // The plan was aborted because the compilation queue was full
-  public static final byte ABORTED_QUEUE_FULL = 3;
-
   // The compilation is still in progress
-  public static final byte IN_PROGRESS = 4;
+  public static final byte IN_PROGRESS = 3;
 
   // The compilation completed, but a new plan for the same method also 
   // completed, so this is not the most recent completed plan
-  public static final byte OUTDATED = 5;
+  public static final byte OUTDATED = 4;
 
   // The compilation plan is for a promotion from BASE to OPT
-  public static final byte OSR_BASE_2_OPT = 6;
+  public static final byte OSR_BASE_2_OPT = 5;
   
   // This is used by clients to initialize local variables for Java semantics
   public static final byte UNKNOWN = 99;   
@@ -151,26 +147,14 @@ public final class VM_ControllerPlan {
       
     if (VM_Controller.options.BACKGROUND_RECOMPILATION ||
         getCompPlan().getMethod().getDeclaringClass().isInBootImage()) {
-      // Attempt to add plan to compilation queue.
-      boolean succeeded = 
-        VM_Controller.compilationQueue.insert(getPriority(), this);
-
-      // Logging, and record failure in plan if necessary.
-      if (succeeded) {
-        if (VM.LogAOSEvents) 
-          VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority()); 
-      } else {
-        if (VM.LogAOSEvents) 
-          VM_AOSLogging.recompilationQueueFull(getCompPlan()); 
-        setStatus(VM_ControllerPlan.ABORTED_QUEUE_FULL); 
-      }
-      return succeeded;
+      VM_Controller.compilationQueue.insert(getPriority(), this);
+      if (VM.LogAOSEvents) VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority()); 
+      return true;
     } else {
       getCompPlan().getMethod().replaceCompiledMethod(null);
       return true;
     }
   }
-
 
 
   /**
@@ -326,7 +310,6 @@ public final class VM_ControllerPlan {
     case UNINITIALIZED:             return "UNINITIALIZED";
     case COMPLETED:                 return "COMPLETED";
     case ABORTED_COMPILATION_ERROR: return "ABORTED_COMPILATION_ERROR";
-    case ABORTED_QUEUE_FULL:        return "ABORTED_QUEUE_FULL";
     case IN_PROGRESS:               return "IN_PROGRESS";
     case OUTDATED:                  return "OUTDATED";
         case OSR_BASE_2_OPT:                    return "OSR_BASE_2_OPT";

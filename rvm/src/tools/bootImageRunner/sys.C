@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002,2004
  */
 //$Id$
 
@@ -41,6 +41,7 @@ extern "C" int sched_yield(void);
 
 #ifdef RVM_FOR_LINUX
 #include <asm/cache.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <netinet/in.h>
@@ -194,6 +195,20 @@ sysWriteLong(long long value, int hexToo)
         int value1 = (value >> 32) & 0xFFFFFFFF;
         int value2 = value & 0xFFFFFFFF;
         fprintf(SysTraceFile, "0x%08x%08x", value1, value2);
+    }
+}
+
+// Console write (java double).
+//
+extern "C" void
+sysWriteDouble(double value,  int postDecimalDigits)
+{
+    if (value != value) {
+        fprintf(SysTraceFile, "NaN");
+    } else {
+        if (postDecimalDigits > 9) postDecimalDigits = 9;
+        char tmp[5] = {'%', '.', '0'+postDecimalDigits, 'f', 0};
+        fprintf(SysTraceFile, tmp, value);
     }
 }
 
@@ -852,8 +867,12 @@ setTimeSlicer(int msTimerDelay)
                 Me, strerror(errorCode));
         sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
-#elif (defined RVM_FOR_LINUX)  || (defined __MACH__)// && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    // NOTE: This code is ONLY called if we have defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.
+#elif (defined RVM_FOR_LINUX)  || (defined __MACH__) 
+    /* && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR */
+
+    /* NOTE: This code is ONLY called if we have defined
+     * RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.  */
+
     // set it to issue a periodic SIGALRM (or 0 to disable timer)
     //
 
@@ -871,7 +890,8 @@ setTimeSlicer(int msTimerDelay)
         perror(NULL);
         sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
-#else  // RMV_FOR_SINGLE_VIRTUAL_PROCESSOR, ! RVM_FOR_LINUX
+#else  /* RMV_FOR_SINGLE_VIRTUAL_PROCESSOR &&  ! defined RVM_FOR_LINUX && !
+          defined __MACH__ */
     // fetch system timer
     //
     timer_t timerId = gettimerid(TIMERID_REAL, DELIVERY_SIGNALS);
@@ -910,7 +930,7 @@ sysVirtualProcessorEnableTimeSlicing(int timeSlice)
         fprintf(stderr,"Using a time-slice of %d ms\n", timeSlice);
     // timeSlice could be less than 1!
     if (timeSlice < 1 || timeSlice > 999) {
-        fprintf(SysErrorFile, "%s: timeslice of %d is outside range 1..999\n",
+        fprintf(SysErrorFile, "%s: timeslice of %d msec is outside range 1 msec ..999 msec\n",
                 Me, timeSlice);
         sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
@@ -1962,32 +1982,72 @@ sysDoubleRemainder(double a, double b)
 }
 #endif
 
-// Used to parse command line arguments that are
-// doubles and floats early in booting before it
-// is safe to call Float.valueOf or Double.valueOf
+/* Used to parse command line arguments that are
+   doubles and floats early in booting before it
+   is safe to call Float.valueOf or Double.valueOf.   This is only used in
+   parsing command-line arguments, so we can safely print error messages that
+   assume the user specified this number as part of a command-line argument. */
 extern "C" float
-sysPrimitiveParseFloat(char * buf)
+sysPrimitiveParseFloat(const char * buf)
 {
-    float a;
-    if (sscanf(buf, "%f", &a) != 1) {
-        fprintf(SysErrorFile, "%s: invalid float/double value %s\n", Me, buf);
-        exit(EXIT_STATUS_SYSCALL_TROUBLE);
+    if (! buf[0] ) {
+	fprintf(SysErrorFile, "%s: Got an empty string as a command-line"
+		" argument that is supposed to be a"
+		" floating-point number\n", Me);
+        exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
-    return a;
+    char *end;			// This prototype is kinda broken.  It really
+				// should be char *.  But isn't.
+    errno = 0;
+    float f = (float)strtod(buf, &end);
+    if (errno) {
+	fprintf(SysErrorFile, "%s: Trouble while converting the"
+		" command-line argument \"%s\" to a"
+		" floating-point number: %s\n", Me, buf, strerror(errno));
+	exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    if (*end != '\0') {
+        fprintf(SysErrorFile, "%s: Got a command-line argument that"
+		" is supposed to be a floating-point value,"
+		" but isn't: %s\n", Me, buf);
+        exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    return f;
 }
 
 // Used to parse command line arguments that are
 // ints and bytes early in booting before it
 // is safe to call Integer.parseInt and Byte.parseByte
+// This is only used in
+// parsing command-line arguments, so we can safely print error messages that
+// assume the user specified this number as part of a command-line argument.
 extern "C" int
-sysPrimitiveParseInt(char * buf)
+sysPrimitiveParseInt(const char * buf)
 {
-    int a;
-    if (sscanf(buf, "%d", &a) != 1) {
-        fprintf(SysErrorFile, "%s: invalid byte/int value %s\n", Me, buf);
-        exit(EXIT_STATUS_SYSCALL_TROUBLE);
+    if (! buf[0] ) {
+	fprintf(SysErrorFile, "%s: Got an empty string as a command-line"
+		" argument that is supposed to be an integer\n", Me);
+        exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
-    return a;
+    char *end;
+    errno = 0;
+    long l = strtol(buf, &end, 0);
+    if (errno) {
+	fprintf(SysErrorFile, "%s: Trouble while converting the"
+		" command-line argument \"%s\" to an integer: %s\n",
+		Me, buf, strerror(errno));
+	exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    if (*end != '\0') {
+        fprintf(SysErrorFile, "%s: Got a command-line argument that is supposed to be an integer, but isn't: %s\n", Me, buf);
+        exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    int32_t ret = l;
+    if ((long) ret != l) {
+        fprintf(SysErrorFile, "%s: Got a command-line argument that is supposed to be an integer, but its value does not fit into a Java 32-bit integer: %s\n", Me, buf);
+        exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    return ret;
 }
 
 //-------------------//
@@ -1997,7 +2057,7 @@ sysPrimitiveParseInt(char * buf)
 // Memory to memory copy.
 //
 extern "C" void
-sysCopy(void *dst, void *src, int cnt)
+sysCopy(void *dst, const void *src, int cnt)
 {
     memcpy(dst, src, cnt);
 }
@@ -2031,7 +2091,7 @@ sysFree(void *location)
 extern "C" void
 sysZero(void *dst, int cnt)
 {
-    bzero(dst, cnt);
+    memset(dst, 0x00, cnt);
 }
 
 // Zero a range of memory pages.
@@ -2054,7 +2114,7 @@ sysZeroPages(void *dst, int cnt)
     // Disadvantage: more page faults during collection, at least until
     //               steady state working set is achieved
     //
-    bzero(dst, cnt);
+    sysZero(dst, cnt);
 #endif
 
 #if (STRATEGY == 2)
@@ -2270,11 +2330,7 @@ sysMAdvise(char POSSIBLY_UNUSED      *start,
            size_t POSSIBLY_UNUSED   length,
            int POSSIBLY_UNUSED      advice)
 {
-#if (defined RVM_FOR_LINUX) || (defined RVM_FOR_OSX)
-    return -1; // unimplemented in Linux
-#else
-    return madvise(start, length, advice);
-#endif
+  return madvise(start, length, advice);
 }
 
 // getpagesize
@@ -3160,7 +3216,7 @@ sysNetSelect(
         // Ensure that select() call below
         // calls the real C library version, not our hijacked version
 #if defined(RVM_WITH_INTERCEPT_BLOCKING_SYSTEM_CALLS)
-        SelectFunc realSelect = getLibcSelect();
+        SelectFunc_t realSelect = getLibcSelect();
         if (realSelect == 0) {
             fprintf(SysErrorFile, "%s: could not get pointer to real select()\n", Me);
             sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
@@ -3508,7 +3564,7 @@ extern "C" void
 gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
 //#ifndef __linux__
 //  printf("I am not Linux!");
-//  exit(-1);
+//  exit(1);
 //#endif __linux__
   if (GCSPY_TRACE)
     fprintf(SysTraceFile, "gcspyStartserver: starting thread, wait=%d\n", wait);
@@ -3517,7 +3573,7 @@ gcspyStartserver (gcspy_main_server_t *server, int wait, void *loop) {
 		       (pthread_start_routine_t) loop,  server);
   if (res != 0) {
     printf("Couldn't create thread.\n");
-    exit(-1);
+    exit(1);
   }
 
   if(wait) {

@@ -1,6 +1,13 @@
 -*-text-*-
 $Id$
 
+classpath-0.08-sizeof-void-p.patch
+
+    If you want to build Jikes RVM for the 64-bit PowerPC, you will
+    need to patch your copy of GNU Classpath 0.08 with this patch
+    file, or else Double.toString() won't work.  Thanks to Sergiy
+    Kyrylkov for tracking down the problem.
+
 gnu-classpath-on-mac-osx.patch: 
 
     If you want to build Jikes RVM for Mac OSX, you will need to patch

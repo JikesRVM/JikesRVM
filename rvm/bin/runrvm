@@ -142,7 +142,14 @@ prog="$rvm_build/JikesRVM"
 ## misleading message.
 shopt -s execfail
 
-exec "$prog" "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"
+declare -r syswrap="${rvm_build}/libsyswrap.so"
+if [[ -f ${syswrap} ]]; then
+    ## Turn on libsyswrap, which is to say, make sure that we will properly
+    ## intercept the select() call.
+    LD_PRELOAD="${syswrap}" exec "$prog" "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"
+else
+    exec "$prog" "${sys_args[@]}" "${classpath_arg[@]}" "${user_args[@]}"
+fi
 declare -r -i status=$?
 echo >&2  "$ME: Failed to execute $prog; can't run Jikes RVM"
 exit $status

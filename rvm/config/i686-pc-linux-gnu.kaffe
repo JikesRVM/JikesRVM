@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001, 2003
+# (C) Copyright IBM Corp. 2001, 2003, 2004
 #
 #
 # This file defines a set of environment variables needed to build and
@@ -19,7 +19,9 @@
 #########
 # PART I: Preprocessor directives that hold for every config on this target
 #
-# You will probably not need to change anything in this section.
+# If you're using Debian GNU/Linux with a 2.2 or 2.4 kernel, then 
+# you'll want to enable RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.  Otherwise, 
+# you should not need to change anything in this section.
 #########
 # target architecture is Intel x86 (IA32)
 export RVM_FOR_IA32=1
@@ -31,10 +33,19 @@ export RVM_FOR_LINUX=1
 # NOTE: the key requirement for setting this to 0 (ie having SMP support)
 #       is that you have a 2.4 kernel and that glibc is compiled 
 #       to use the GS segment register to access pthread-local storage.  
-#       See discussion in rvm-researchers archive and the userguide FAQ.
-#  This is now quite common. For example, in Red Hat 7 and later.  
-#  So, the default is 0
-export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+#	(Another way of saying this is that glibc is compiled to 
+#	 handle "floating stacks").
+#       See the FAQ in the Jikes RVM User's Guide.
+#
+#       This is now quite common. For example, in Red Hat 7 and later.  
+#       So, the default is 0.  The Big Exception is if you are using Debian
+#       GNU/Linux with a 2.4 or 2.2 kernel.  Debian with a 2.6 kernel will 
+#	work, but it won't work with a 2.4 or 2.2 kernel.
+#
+[[ $RVM_FOR_SINGLE_VIRTUAL_PROCESSOR ]] || export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+## Use this for Debian GNU/Linux with a Linux 2.4 kernel, 
+## and for any Linux 2.2 kernel:
+# export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
 
 export BOOTIMAGE_LOAD_ADDRESS=0x43000000
 export MAXIMUM_MAPPABLE_ADDRESS=0xc0000000
@@ -58,6 +69,14 @@ HOST_VM_TYPE=Kaffe
 ## You can learn about other configuration options by reading the
 ## i686-pc-linux-gnu file, which documents all of them.  You probably won't
 ## need to set most of them.
+
+## CLASSPATH_INSTALLATION
+## If you built GNU Classpath with the default install directory (if
+## unspecified, "--prefix=/usr/local/classpath" is implied) and
+## installed it with "make install", then uncomment this line:
+#
+# export CLASSPATH_INSTALLATION=/usr/local/classpath
+
 
 ##########
 # PART III: Additional variables for running Eclipse on Jikes RVM

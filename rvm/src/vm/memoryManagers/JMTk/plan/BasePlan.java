@@ -70,7 +70,7 @@ public abstract class BasePlan
   public static final boolean REF_COUNT_SANITY_TRACING = false;
   public static final boolean SUPPORTS_PARALLEL_GC = true;
   public static final boolean MOVES_TIBS = false;
-  public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
+  public static final boolean STEAL_NURSERY_GC_HEADER = false;
   public static final boolean GENERATE_GC_TRACE = false;
 
   private static final int MAX_PLANS = 100;
@@ -109,6 +109,7 @@ public abstract class BasePlan
   public static final byte META_SPACE = 125;
   public static final byte IMMORTAL_SPACE = 124;
   public static final byte GCSPY_SPACE = IMMORTAL_SPACE;
+  public static final byte LOS_SPACE = 123;
 
   // Statistics
   public static Timer totalTime;
@@ -118,7 +119,7 @@ public abstract class BasePlan
   // Miscellaneous constants
   public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
   protected static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  protected static final int DEFAULT_LOS_SIZE_THRESHOLD = 16 * 1024;
+  protected static final int LOS_SIZE_THRESHOLD = 8 * 1024;
   public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
   public static final boolean GATHER_MARK_CONS_STATS = false;
@@ -223,6 +224,27 @@ public abstract class BasePlan
    *
    * Allocation
    */
+
+  /**
+   * Run-time check of the allocator to use for a given allocation
+   * 
+   * At the moment this method assumes that allocators will use the simple 
+   * (worst) method of aligning to determine if the object is a large object
+   * to ensure that no objects are larger than other allocators can handle. 
+   * 
+   * @param bytes The number of bytes to be allocated
+   * @param align The requested alignment.
+   * @param allocator The allocator statically assigned to this allocation
+   * @return The allocator dyncamically assigned to this allocation
+   */
+  public static int checkAllocator(int bytes, int align, int allocator) 
+    throws VM_PragmaInline {
+    if (allocator == Plan.DEFAULT_SPACE && 
+        Allocator.getMaximumAlignedSize(bytes, align) > LOS_SIZE_THRESHOLD)
+      return LOS_SPACE;
+    else 
+      return allocator;
+  }
 
   protected byte getSpaceFromAllocator(Allocator a) {
     if (a == immortal) return IMMORTAL_SPACE;
@@ -447,13 +469,42 @@ public abstract class BasePlan
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
-   * @param context The context in which the store occured
+   * @param metaDataA An int that assists the host VM in creating a store 
+   * @param metaDataB An int that assists the host VM in creating a store 
+   * @param mode The context in which the store occured
    */
   public void writeBarrier(VM_Address src, VM_Address slot,
-                           VM_Address tgt, int context) {
+                           VM_Address tgt, int metaDataA, int metaDataB, int mode) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+  }
+
+  /**
+   * A number of references are about to be copied from object
+   * <code>src</code> to object <code>dst</code> (as in an array
+   * copy).  Thus, <code>dst</code> is the mutated object.  Take
+   * appropriate write barrier actions.<p>
+   *
+   * @param src The source of the values to be copied
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param dst The mutated object, i.e. the destination of the copy.
+   * @param dstOffset The offset of the first destination address, in
+   * bytes relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  public boolean writeBarrier(VM_Address src, int srcOffset,
+			      VM_Address dst, int dstOffset,
+			      int bytes) {
+    // Either: write barriers are used and this is overridden, or 
+    //         write barriers are not used and this is never called
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+    return false;
   }
 
   /**

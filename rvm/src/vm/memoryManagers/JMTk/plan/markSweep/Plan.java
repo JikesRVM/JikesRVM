@@ -85,7 +85,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // Allocators
   public static final byte MS_SPACE = 0;
-  private static final byte LOS_SPACE = 1;
   public static final byte DEFAULT_SPACE = MS_SPACE;
 
   // Miscellaneous constants
@@ -93,8 +92,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final int MS_PAGE_RESERVE = (512<<10)>>>LOG_BYTES_IN_PAGE; // 1M
   private static final double MS_RESERVE_FRACTION = 0.1;
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  // XXX Can 8 * 1024 be calculated from other constants?
-  private static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
@@ -168,33 +165,22 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Allocate space (for an object)
    *
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @param allocator The allocator number to be used for this allocation
-   * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(int bytes, boolean isScalar, int allocator, 
-                                AllocAdvice advice)
+  public final VM_Address alloc(int bytes, int align, int offset, int allocator)
     throws VM_PragmaInline {
-    if (GATHER_MARK_CONS_STATS) cons.inc(bytes);
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
-    VM_Address region;
-    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
-      region = los.alloc(isScalar, bytes);
-    } else {
-      switch (allocator) {
-      case       MS_SPACE: region = ms.alloc(isScalar, bytes, false); break;
-      case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
-      case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
-      default:
-        if (VM_Interface.VerifyAssertions) 
-          VM_Interface.sysFail("No such allocator"); 
-        region = VM_Address.zero();
-      }
+    switch (allocator) {
+    case       MS_SPACE: return ms.alloc(bytes, align, offset, false);
+    case      LOS_SPACE: return los.alloc(bytes, align, offset);
+    case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
+    default:
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface.sysFail("No such allocator"); 
+      return VM_Address.zero();
     }
-    if (VM_Interface.VerifyAssertions) Memory.assertIsZeroed(region, bytes);
-    return region;
   }
   
   /**
@@ -204,23 +190,18 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(VM_Address ref, Object[] tib, int size,
-                              boolean isScalar, int allocator)
+  public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
+                              int allocator)
     throws VM_PragmaInline {
-    if (allocator == DEFAULT_SPACE && size > LOS_SIZE_THRESHOLD) {
-      Header.initializeLOSHeader(ref, tib, size, isScalar);
-    } else {
-      switch (allocator) {
-      case       MS_SPACE: return;
-      case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, size, isScalar); return;
-      case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
-      default:
-        if (VM_Interface.VerifyAssertions)
-          VM_Interface.sysFail("No such allocator");
-      }
+    switch (allocator) {
+    case  MS_SPACE: Header.initializeHeader(ref, tib, bytes); return;
+    case LOS_SPACE: Header.initializeLOSHeader(ref, tib, bytes); return;
+    case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
+    default:
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface.sysFail("No such allocator");
     }
   }
 
@@ -230,11 +211,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    *
    * @param original A reference to the original object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address allocCopy(VM_Address original, int bytes,
-                                    boolean isScalar) throws VM_PragmaInline {
+                                    int align, int offset) throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     // return VM_Address.zero();  this trips some Intel assembler bug
     return VM_Address.max();
@@ -246,10 +228,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    */
-  public final void postCopy(VM_Address ref, Object[] tib, int size,
-                             boolean isScalar) {} // do nothing
+  public final void postCopy(VM_Address ref, Object[] tib, int size) {}
 
   /**
    * Give the compiler/runtime statically generated alloction advice
@@ -486,26 +466,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       return false;
     }
   }
-
-  /**
-   * Reset the GC bits in the header word of an object that has just
-   * been copied.  This may, for example, involve clearing a write
-   * barrier bit.  <i>This is not a copying collector, so this method
-   * should never be called</i>.
-   *
-   * @param fromObj The original (uncopied) object
-   * @param forwardingWord The integer containing the GC bits, which is the GC word
-   * of the original object, and typically encodes some GC state as
-   * well as pointing to the copied object.
-   * @param bytes The size of the copied object in bytes.
-   * @return The updated GC word (in this case unchanged).
-   */
-  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj, 
-					     VM_Word forwardingWord, int bytes) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);  // not a copying collector!
-    return forwardingWord;
-  }
-
 
   /****************************************************************************
    *

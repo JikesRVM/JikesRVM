@@ -72,9 +72,23 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #define USE_MMAP 1 // choose mmap() for Linux --SB
 #define NGPRS 32
 // Linux on PPC does not save FPRs - is this true still?
-#define NFPRS  0
+#define NFPRS  32
 // Third argument to signal handler is of type ucontext_t
 #define SIGNAL_ARG3_IS_UCONTEXT
+
+// The following comes from /usr/src/linux-2.4/arch/ppc/kernel/signal.c
+#define ELF_NGREG       48      /* includes nip, msr, lr, etc. */
+#define ELF_NFPREG      33      /* includes fpscr */
+typedef unsigned long elf_greg_t;
+typedef elf_greg_t elf_gregset_t[ELF_NGREG];
+struct linux_sigregs {
+	elf_gregset_t	gp_regs;
+	double		fp_regs[ELF_NFPREG];
+	unsigned long	tramp[2];
+	/* Programs using the rs6000/xcoff abi can save up to 19 gp regs
+	   and 18 fp regs below sp before decrementing it. */
+	int		abigap[56];
+};
 
 #endif
 
@@ -413,7 +427,7 @@ getLinuxSavedRegisters(int signum, void* arg3)
        fprintf(stderr, "%12p %p arg3[%d]\n", (void *) ((void**) arg3)[i], ((void**) arg3) + i, i);
      }
      fprintf(stderr, "trap: %d link: %p nip: %p\n", context->regs->trap, context->regs->link, context->regs->nip);
-     exit(-1);
+     exit(1);
    }
 
    return context->regs;
@@ -578,7 +592,7 @@ getFaultingAddress(mstsave *save)
             faultingAddressLocation = 0;
         else {
             fprintf(SysTraceFile, "Could not figure out where faulting address is stored - exiting\n");
-            exit(-1);
+            exit(1);
         }
     }
     return save->except[0];
@@ -589,7 +603,7 @@ getFaultingAddress(mstsave *save)
         } else {
             fprintf(SysTraceFile, "Could not figure out where"
                     " faulting address is stored - exiting\n");
-            exit(-1);
+            exit(1);
         }
     }
     return save->o_vaddr;
@@ -623,6 +637,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 {
     struct mcontext* info = context->uc_mcontext;
     ppc_thread_state_t *save = &info->ss;
+    ppc_float_state_t       *fs = &info->fs;
     unsigned ip  =  save->srr0;
     uintptr_t lr = save->lr;
     VM_Address jtoc =  GET_GPR(save, VM_Constants_JTOC_POINTER);
@@ -716,7 +731,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
        } else {
            fprintf(SysErrorFile, "%s: internal error trap\n", Me);
            if (--remainingFatalErrors <= 0)
-               exit(-1); 
+               exit(1); 
        }
     }
     
@@ -769,19 +784,19 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     
 #ifdef RVM_FOR_LINUX
     for (int i = 0; i < NGPRS; ++i)
-        gprs[i] = save->gpr[i];
-    for (int i = 0; i < NFPRS; ++i)  // linux on PPC does not save FPRs ?
-        fprs[i] = -1.0;   
+      gprs[i] = save->gpr[i];
+    for (int i = 0; i < NFPRS; ++i) 
+      fprs[i] = ((struct linux_sigregs*)save)->fp_regs[i];
     *ipLoc = save->nip + 4; // +4 so it looks like return address
     *lrLoc = save->link;
 #endif
     
 #ifdef RVM_FOR_OSX
     {
-        for (int i = 0; i < NGPRS; ++i)
-            gprs[i] = GET_GPR(save, i);
-        //     for (i = 0; i < NFPRS; ++i)
-        //       fprs[i] = -1.0;   
+      for (int i = 0; i < NGPRS; ++i)
+        gprs[i] = GET_GPR(save, i);
+      for (int i=0; i < NFPRS; i++) 
+        fprs[i] = fs->fpregs[i];
     }
     *ipLoc = save->srr0 + 4; // +4 so it looks like return address
     *lrLoc = save->lr;
@@ -894,7 +909,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
             //!!TODO: someday use logic similar to stack guard page to force a gc
             if (lib_verbose) fprintf(SysTraceFile, "%s: write buffer overflow trap\n", Me);
             fprintf(SysErrorFile,"%s: write buffer overflow trap\n", Me);
-            exit(-1);
+            exit(1);
         } else if (((instruction & VM_Constants_STACK_OVERFLOW_MASK) 
                     == VM_Constants_STACK_OVERFLOW_TRAP) 
                  || ((instruction & VM_Constants_STACK_OVERFLOW_MASK) 
@@ -1372,7 +1387,7 @@ createJVM(int vmInSeparateThread)
 
 #if (defined RVM_FOR_LINUX) && defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
         fprintf(stderr, "%s: Unsupported operation (no linux pthreads)\n", Me);
-        exit(-1);
+        exit(1);
 #else
 
         pthread_create(&vm_pthreadid, NULL, bootThreadCaller, NULL);

@@ -128,6 +128,13 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
       loaded.put(className, ans);
       return ans.getClassForType();
     } else {    
+      if ( ! VM.dynamicClassLoadingEnabled ) {
+        VM.sysWrite("Trying to load a class (");
+        VM.sysWrite(className);
+        VM.sysWrite(") too early in the booting process, before dynamic");
+        VM.sysWriteln(" class loading is enabled; aborting.");
+        VM.sysFail("Trying to load a class too early in the booting process");
+      }
       // class types: try to find the class file
       try {         
         if (className.startsWith("L") && className.endsWith(";")) {

@@ -5,9 +5,11 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.Allocator;
 import org.mmtk.utility.BumpPointer;
 import org.mmtk.utility.Log;
+import org.mmtk.utility.MMType;
 import org.mmtk.utility.MonotoneVMResource;
 import org.mmtk.utility.VMResource;
 import org.mmtk.vm.VM_Interface;
@@ -119,26 +121,28 @@ public class Plan extends Generational implements VM_Uninterruptible {
   /**
    * Allocate space (for an object) in the mature space
    *
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureAlloc(boolean isScalar, int bytes) 
+  protected final VM_Address matureAlloc(int bytes, int align, int offset) 
     throws VM_PragmaInline {
-    return mature.alloc(isScalar, bytes);
+    return mature.alloc(bytes, align, offset);
   }
 
   /**
    * Allocate space for copying an object in the mature space (this
    * method <i>does not</i> copy the object, it only allocates space)
    *
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param bytes The size of the space to be allocated (in bytes)
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureCopy(boolean isScalar, int bytes) 
+  protected final VM_Address matureCopy(int bytes, int align, int offset) 
     throws VM_PragmaInline {
-    return mature.alloc(isScalar, bytes);
+    return mature.alloc(bytes, align, offset);
   }
 
   /**
@@ -176,8 +180,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * <i>only one thread</i> executes this.
    */
   protected final void globalMaturePrepare() {
-    matureMR.reset(); // reset the nursery semispace memory resource
-    hi = !hi;         // flip the semi-spaces
+    if (fullHeapGC) {
+      matureMR.reset(); // reset the nursery semispace memory resource
+      hi = !hi;         // flip the semi-spaces
+    }
   }
 
   /**
@@ -187,7 +193,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * <i>all threads</i> execute this.
    */
   protected final void threadLocalMaturePrepare(int count) {
-    mature.rebind(((hi) ? mature1VM : mature0VM)); 
+    if (fullHeapGC) mature.rebind(((hi) ? mature1VM : mature0VM)); 
   }
 
   /**
@@ -206,7 +212,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * <i>only one</i> thread executes this.<p>
    */
   protected final void globalMatureRelease() {
-    ((hi) ? mature0VM : mature1VM).release();
+    if (fullHeapGC) ((hi) ? mature0VM : mature1VM).release();
   }
 
   /****************************************************************************
@@ -229,6 +235,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
   protected static final void forwardMatureObjectLocation(VM_Address location,
                                                           VM_Address object,
                                                           byte space) {
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(fullHeapGC);
     if ((hi && space == LOW_MATURE_SPACE) || 
         (!hi && space == HIGH_MATURE_SPACE))
       VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(object));
@@ -244,6 +251,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   static final VM_Address getForwardedMatureReference(VM_Address object,
                                                       byte space) {
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(fullHeapGC);
     if ((hi && space == LOW_MATURE_SPACE) || 
         (!hi && space == HIGH_MATURE_SPACE)) {
       if (VM_Interface.VerifyAssertions) 
@@ -270,11 +278,26 @@ public class Plan extends Generational implements VM_Uninterruptible {
     if (VM_Interface.VerifyAssertions && space != LOW_MATURE_SPACE
         && space != HIGH_MATURE_SPACE)
       spaceFailure(obj, space, "Plan.traceMatureObject()");
-    if ((hi && addr.LT(MATURE_HI_START)) ||
-        (!hi && addr.GE(MATURE_HI_START)))
+    if ((!IGNORE_REMSET || fullHeapGC) && ((hi && addr.LT(MATURE_HI_START)) ||
+					   (!hi && addr.GE(MATURE_HI_START))))
       return CopySpace.traceObject(obj);
-    else
-      return obj;
+    else if (IGNORE_REMSET)
+      CopySpace.markObject(obj, ImmortalSpace.immortalMarkState);
+    return obj;
+  }
+
+  /**  
+   * Perform any post-copy actions.
+   *
+   * @param ref The newly allocated object
+   * @param tib The TIB of the newly allocated object
+   * @param bytes The size of the space to be allocated (in bytes)
+   */
+  public final void postCopy(VM_Address ref, Object[] tib, int size)
+    throws VM_PragmaInline {
+    CopyingHeader.clearGCBits(ref);
+    if (IGNORE_REMSET)
+      ImmortalSpace.postAlloc(ref);
   }
 
   /**
@@ -319,25 +342,6 @@ public class Plan extends Generational implements VM_Uninterruptible {
    if (!movable) return true;
    VM_Address addr = VM_Interface.refToAddress(obj);
    return (hi ? mature1VM : mature0VM).inRange(addr);
-  }
-
-  /**
-   * Reset the GC bits in the header word of an object that has just
-   * been copied.  This may, for example, involve clearing a write
-   * barrier bit.  In this case nothing is required, so the header word
-   * is returned unmodified.
-   *
-   * @param fromObj The original (uncopied) object
-   * @param forwardingWord The integer containing the GC bits, which is the GC word
-   * of the original object, and typically encodes some GC state as
-   * well as pointing to the copied object.
-   * @param bytes The size of the copied object in bytes.
-   * @return The updated GC word (in this case unchanged).
-   */
-  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj,
-						 VM_Word forwardingWord,
-						 int bytes) {
-    return forwardingWord; // a no-op for this collector
   }
 
   /****************************************************************************

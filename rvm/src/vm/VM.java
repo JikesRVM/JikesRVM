@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001, 2002, 2003
+ * (C) Copyright IBM Corp 2001, 2002, 2003, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -10,7 +10,8 @@ import java.lang.ref.Reference;
 
 /**
  * A virtual machine.
- * Implements VM_Uninterruptible to suppress thread switching in boot().
+ * Implements {@link VM_Uninterruptible} to suppress thread switching in 
+ * the {@link VM#boot()} method.
  *
  * @author Derek Lieber (project start).
  * @date 21 Nov 1997 
@@ -19,9 +20,9 @@ import java.lang.ref.Reference;
  *                          such as when out of memory)
  * @date 10 July 2003
  */
-public class VM extends VM_Properties implements VM_Constants, 
-                                                 VM_Uninterruptible { 
-
+public class VM extends VM_Properties 
+  implements VM_Constants, VM_Uninterruptible 
+{ 
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
   //----------------------------------------------------------------------//
@@ -89,7 +90,8 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_Thread currentThread = VM_Processor.getCurrentProcessor().activeThread;
     currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).add(STACK_SIZE_GUARD);
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
-
+    currentThread.startQuantum(VM_Time.cycles());
+    
     // get pthread_id from OS and store into vm_processor field
     // 
     if (!BuildForSingleVirtualProcessor)
@@ -163,6 +165,7 @@ public class VM extends VM_Properties implements VM_Constants,
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
     runClassInitializer("java.io.File");
+    runClassInitializer("java.lang.Void");
     runClassInitializer("java.lang.Boolean");
     runClassInitializer("java.lang.Byte");
     runClassInitializer("java.lang.Short");
@@ -181,6 +184,10 @@ public class VM extends VM_Properties implements VM_Constants,
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     runClassInitializer("java.security.Policy");
     runClassInitializer("java.util.WeakHashMap");
+    runClassInitializer("java.net.URL"); // needed for URLClassLoader
+    /* Needed for ApplicationClassLoader, which in turn is needed by
+       VMClassLoader.getSystemClassLoader()  */
+    runClassInitializer("java.net.URLClassLoader"); 
     runClassInitializer("java.lang.ClassLoader");
     runClassInitializer("java.lang.Math");
     runClassInitializer("java.util.TimeZone");
@@ -220,6 +227,7 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
     VM_Scheduler.boot();
 
+    VM.dynamicClassLoadingEnabled = true;
     // Create JNI Environment for boot thread.  
     // After this point the boot thread can invoke native methods.
     com.ibm.JikesRVM.jni.VM_JNIEnvironment.boot();
@@ -233,6 +241,7 @@ public class VM extends VM_Properties implements VM_Constants,
 
     // Run class intializers that require JNI
     if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
+    runClassInitializer("gnu.java.nio.channels.FileChannelImpl");
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.util.PropertyPermission");
@@ -297,11 +306,6 @@ public class VM extends VM_Properties implements VM_Constants,
     Thread      xx         = new MainThread(applicationArguments);
     VM_Address  yy         = VM_Magic.objectAsAddress(xx);
     VM_Thread   mainThread = (VM_Thread)VM_Magic.addressAsObject(yy);
-
-    //-#if RVM_WITH_OSR
-    // Notify application run start
-    VM_Callbacks.notifyAppRunStart("VM", 0);
-    //-#endif
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
@@ -399,6 +403,8 @@ public class VM extends VM_Properties implements VM_Constants,
           eieio.initCause(t);
           throw eieio;
         }
+        // <clinit> is no longer needed: reclaim space by removing references to it
+        clinit.invalidateCompiledMethod(clinit.getCurrentCompiledMethod());
       } else {
         if (verboseBoot >= 10) VM.sysWriteln("has no clinit method ");
       } 
@@ -597,31 +603,15 @@ public class VM extends VM_Properties implements VM_Constants,
 
 
   /**
-   * Low level print of double to console.  Can't pass doubles so printing code in Java.
+   * Low level print of double to console.
    *
    * @param value   double to be printed
    * @param int     number of decimal places
    */
   public static void write(double value, int postDecimalDigits) 
-    throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline 
-    /* don't waste code space inlining these --dave */ {
-    if (runningVM) {
-      boolean negative = (value < 0.0);
-      value = (value < 0.0) ? (-value) : value;
-      int ones = (int) value;
-      int multiplier = 1;
-      while (postDecimalDigits-- > 0)
-        multiplier *= 10;
-      int remainder = (int) (multiplier * (value - ones));
-      if (negative) write('-');
-      write(ones, false); 
-      write('.');
-      while (multiplier > 1) {
-        multiplier /= 10;
-        write(remainder / multiplier);
-        remainder %= multiplier;
-      }
-    }
+    throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    if (runningVM)
+      VM_SysCall.sysWriteDouble(value, postDecimalDigits);
     else
       System.err.print(value);
   }
@@ -957,7 +947,10 @@ public class VM extends VM_Properties implements VM_Constants,
 
     // print a traceback and die
     VM_Scheduler.traceback(message);
-    VM.shutdown(exitStatusSysFail);
+    if (VM.runningVM)
+      VM.shutdown(exitStatusSysFail);
+    else
+      VM.sysExit(exitStatusSysFail);
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
@@ -1009,9 +1002,7 @@ public class VM extends VM_Properties implements VM_Constants,
   }
 
   private static int inSysFail = 0;
-  private static void handlePossibleRecursiveCallToSysFail(
-                                                           String message) 
-  {
+  private static void handlePossibleRecursiveCallToSysFail(String message) {
     ++inSysFail;
     if (inSysFail > 1 && inSysFail <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
       sysWrite("VM.sysFail(): We're in a recursive call to VM.sysFail(), ");
@@ -1118,8 +1109,8 @@ public class VM extends VM_Properties implements VM_Constants,
   }
 
   /**
-   * The following two methods are for use as guards to protect code that 
-   * must deal with raw object addresses in a collection-safe manner 
+   * The disableGC() and enableGC() methods are for use as guards to protect
+   * code that must deal with raw object addresses in a collection-safe manner
    * (ie. code that holds raw pointers across "gc-sites").
    *
    * Authors of code running while gc is disabled must be certain not to 
@@ -1146,7 +1137,21 @@ public class VM extends VM_Properties implements VM_Constants,
    * should test "VM_Thread.disallowAllocationsByThisThread" to verify that 
    * they are never called while gc is disabled.
    */
-  public static void disableGC() throws VM_PragmaInline, VM_PragmaInterruptible  { 
+  public static void disableGC()
+    throws VM_PragmaInline, VM_PragmaInterruptible  
+  {
+    disableGC(false);           // Recursion is not allowed in this context.
+  }
+  
+  /**
+   * disableGC: Disable GC if it hasn't already been disabled.  This
+   * enforces a stack discipline; we need it for the JNI Get*Critical and
+   * Release*Critical functions.  Should be matched with a subsequent call to
+   * enableGC().
+   */
+  public static void disableGC(boolean recursiveOK) 
+    throws VM_PragmaInline, VM_PragmaInterruptible  
+  {
     // current (non-gc) thread is going to be holding raw addresses, therefore we must:
     //
     // 1. make sure we have enough stack space to run until gc is re-enabled
@@ -1164,9 +1169,17 @@ public class VM extends VM_Properties implements VM_Constants,
 
     VM_Thread myThread = VM_Thread.getCurrentThread();
 
+    // 0. Sanity Check; recursion
+    if (VM.VerifyAssertions) VM._assert(myThread.disableGCDepth >= 0);
+    if (myThread.disableGCDepth++ > 0)
+      return;                   // We've already disabled it.
+
     // 1.
     //
-    if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED).LT(myThread.stackLimit) && !myThread.hasNativeStackFrame()) {
+    if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED)
+        .LT(myThread.stackLimit) 
+        && !myThread.hasNativeStackFrame()) 
+      {
       VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_GCDISABLED, null);
     }
 
@@ -1177,21 +1190,40 @@ public class VM extends VM_Properties implements VM_Constants,
     // 3.
     //
     if (VM.VerifyAssertions) {
-      VM._assert(myThread.disallowAllocationsByThisThread == false); // recursion not allowed
+      if (!recursiveOK)
+        VM._assert(myThread.disallowAllocationsByThisThread == false); // recursion not allowed
       myThread.disallowAllocationsByThisThread = true;
     }
   }
 
   /**
-   * enable GC
+   * enable GC; entry point when recursion is not OK.
    */
   public static void enableGC() throws VM_PragmaInline { 
+    enableGC(false);            // recursion not OK.
+  }
+
+  
+  /**
+   * enableGC(): Re-Enable GC if we're popping off the last
+   * possibly-recursive disableGC request.  This enforces a stack discipline;
+   * we need it for the JNI Get*Critical and Release*Critical functions.
+   * Should be matched with a preceding call to disableGC().
+   */
+  public static void enableGC(boolean recursiveOK) 
+    throws VM_PragmaInline 
+  { 
+    VM_Thread myThread = VM_Thread.getCurrentThread();
     if (VM.VerifyAssertions) {
-      VM_Thread myThread = VM_Thread.getCurrentThread();
-      // recursion not allowed
+      VM._assert(myThread.disableGCDepth >= 1);
       VM._assert(myThread.disallowAllocationsByThisThread == true); 
-      myThread.disallowAllocationsByThisThread = false;
     }
+    --myThread.disableGCDepth;
+    if (myThread.disableGCDepth > 0)
+      return;
+    
+    // Now the actual work of re-enabling GC.
+    myThread.disallowAllocationsByThisThread = false;
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
   }
 

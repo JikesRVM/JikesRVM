@@ -8,6 +8,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.TreadmillSpace;
 import org.mmtk.policy.TreadmillLocal;
+import org.mmtk.utility.AddressPairDeque;
 import org.mmtk.utility.AllocAdvice;
 import org.mmtk.utility.Allocator;
 import org.mmtk.utility.BumpPointer;
@@ -22,6 +23,7 @@ import org.mmtk.utility.MonotoneVMResource;
 import org.mmtk.utility.MMType;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.Scan;
+import org.mmtk.utility.SharedDeque;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.WriteBuffer;
 import org.mmtk.utility.VMResource;
@@ -76,6 +78,10 @@ public abstract class Generational extends StopTheWorldGC
    */
   public static final boolean NEEDS_WRITE_BARRIER = true;
   public static final boolean MOVES_OBJECTS = true;
+  public static final boolean IGNORE_REMSET = false;    // always do full trace
+
+  // Global pool for shared remset queue
+  private static SharedDeque arrayRemsetPool = new SharedDeque(metaDataRPA, 2);
 
   // virtual memory resources
   protected static MonotoneVMResource nurseryVM;
@@ -93,6 +99,8 @@ public abstract class Generational extends StopTheWorldGC
   protected static boolean fullHeapGC = false;  // Whether next GC will be full - set at end of last GC
   protected static boolean lastGCFull = false;  // Whether previous GC was full - set during full GC
 
+  private static Timer fullHeapTime = new Timer("majorGCTime", false, true);
+
   protected static EventCounter wbFast;
   protected static EventCounter wbSlow;
   protected static BooleanCounter fullHeap;
@@ -102,7 +110,6 @@ public abstract class Generational extends StopTheWorldGC
   // Allocators
   protected static final byte NURSERY_SPACE = 0;
   protected static final byte MATURE_SPACE = 1;
-  protected static final byte LOS_SPACE = 2;
   public static final byte DEFAULT_SPACE = NURSERY_SPACE;
   public static final byte TIB_SPACE = DEFAULT_SPACE;
 
@@ -110,7 +117,6 @@ public abstract class Generational extends StopTheWorldGC
   // Miscellaneous constants
   protected static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
-  protected static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
   // Note: The write barrier depends on the nursery being the highest
@@ -129,6 +135,8 @@ public abstract class Generational extends StopTheWorldGC
   protected static final VM_Address   NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   protected static final VM_Address      HEAP_END = NURSERY_END;
 
+
+
   /****************************************************************************
    *
    * Instance variables
@@ -140,6 +148,7 @@ public abstract class Generational extends StopTheWorldGC
 
   // write buffer (remembered set)
   protected WriteBuffer remset;
+  protected AddressPairDeque arrayRemset;
 
   /****************************************************************************
    *
@@ -182,6 +191,8 @@ public abstract class Generational extends StopTheWorldGC
     nursery = new BumpPointer(nurseryVM);
     los = new TreadmillLocal(losSpace);
     remset = new WriteBuffer(remsetPool);
+    arrayRemset = new AddressPairDeque(arrayRemsetPool);
+    arrayRemsetPool.newClient();
   }
 
   /**
@@ -197,41 +208,31 @@ public abstract class Generational extends StopTheWorldGC
    *
    * Allocation
    */
-  abstract VM_Address matureAlloc(boolean isScalar, int bytes);
-  abstract VM_Address matureCopy(boolean isScalar, int bytes);
+  abstract VM_Address matureAlloc(int bytes, int align, int offset);
+  abstract VM_Address matureCopy(int bytes, int align, int offset);
 
   /**
    * Allocate space (for an object)
    *
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @param allocator The allocator number to be used for this allocation
-   * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
-                                AllocAdvice advice)
+  public final VM_Address alloc(int bytes, int align, int offset, int allocator)
     throws VM_PragmaInline {
-    if (GATHER_MARK_CONS_STATS) nurseryCons.inc(bytes);
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
-    VM_Address region;
-    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
-      region = los.alloc(isScalar, bytes);
-    } else {
-      switch (allocator) {
-      case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
-      case   MATURE_SPACE: region = matureAlloc(isScalar, bytes); break;
-      case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
-      case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
-      default:
-        if (VM_Interface.VerifyAssertions) 
-          VM_Interface.sysFail("No such allocator");
-        region = VM_Address.zero();
-      }
+    switch (allocator) {
+    case  NURSERY_SPACE: if (GATHER_MARK_CONS_STATS) nurseryCons.inc(bytes);
+                         return nursery.alloc(bytes, align, offset);
+    case   MATURE_SPACE: return matureAlloc(bytes, align, offset);
+    case IMMORTAL_SPACE: return immortal.alloc(bytes, align, offset);
+    case      LOS_SPACE: return los.alloc(bytes, align, offset);
+    default:
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface.sysFail("No such allocator");
+      return VM_Address.zero();
     }
-    if (VM_Interface.VerifyAssertions) Memory.assertIsZeroed(region, bytes);
-    return region;
   }
 
   /**
@@ -241,24 +242,19 @@ public abstract class Generational extends StopTheWorldGC
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
-                              boolean isScalar, int allocator)
+                              int allocator)
     throws VM_PragmaInline {
-    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
-      Header.initializeLOSHeader(ref, tib, bytes, isScalar);
-    } else {
-      switch (allocator) {
-      case  NURSERY_SPACE: return;
-      case   MATURE_SPACE: if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-      case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
-      case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-      default:
-        if (VM_Interface.VerifyAssertions)
-          VM_Interface.sysFail("No such allocator");
-      }
+    switch (allocator) {
+    case  NURSERY_SPACE: return;
+    case   MATURE_SPACE: if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes); return;
+    case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
+    case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes); return;
+    default:
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface.sysFail("No such allocator");
     }
   }
 
@@ -268,31 +264,19 @@ public abstract class Generational extends StopTheWorldGC
    *
    * @param original A reference to the original object
    * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
+   * @param align The requested alignment.
+   * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
   public final VM_Address allocCopy(VM_Address original, int bytes,
-                                    boolean isScalar) 
+                                    int align, int offset) 
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes <= LOS_SIZE_THRESHOLD);
     if (GATHER_MARK_CONS_STATS) {
-      cons.inc(bytes);
-      if (fullHeapGC) mark.inc(bytes);
       if (original.GE(NURSERY_START)) nurseryMark.inc(bytes);
     }
-    return matureCopy(isScalar, bytes);
+    return matureCopy(bytes, align, offset);
   }
-
-  /**  
-   * Perform any post-copy actions.  In this case nothing is required.
-   *
-   * @param ref The newly allocated object
-   * @param tib The TIB of the newly allocated object
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
-   */
-  public final void postCopy(VM_Address ref, Object[] tib, int size,
-                             boolean isScalar) {} // do nothing
 
   protected byte getSpaceFromAllocator (Allocator a) {
     if (a == nursery) return NURSERY_SPACE;
@@ -412,7 +396,8 @@ public abstract class Generational extends StopTheWorldGC
   protected final void globalPrepare() {
     nurseryMR.reset(); // reset the nursery
     lastGCFull = fullHeapGC;
-    if (fullHeapGC) {
+    if (fullHeapGC || IGNORE_REMSET) {
+      if (fullHeapGC) fullHeapTime.start();
       if (Stats.gatheringStats()) fullHeap.set();
       // prepare each of the collected regions
       losSpace.prepare(losVM, losMR);
@@ -436,7 +421,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   protected final void threadLocalPrepare(int count) {
     nursery.rebind(nurseryVM);
-    if (fullHeapGC) {
+    if (fullHeapGC || IGNORE_REMSET) {
       threadLocalMaturePrepare(count);
       los.prepare();
       remset.resetLocal();  // we can throw away remsets for a full heap GC
@@ -448,6 +433,15 @@ public abstract class Generational extends StopTheWorldGC
    * Flush any remembered sets pertaining to the current collection.
    */
   protected final void flushRememberedSets() {
+    arrayRemset.flushLocal();
+    while (!arrayRemset.isEmpty()) {
+      VM_Address start = arrayRemset.pop1();
+      VM_Address guard = arrayRemset.pop2();
+      while (start.LT(guard)) {
+       	remset.insert(start);
+	start = start.add(BYTES_IN_ADDRESS);
+      }
+    }
     remset.flushLocal();
   }
 
@@ -464,7 +458,7 @@ public abstract class Generational extends StopTheWorldGC
    * the mature space.
    */
   protected final void threadLocalRelease(int count) {
-    if (fullHeapGC) { 
+    if (fullHeapGC || IGNORE_REMSET) { 
       los.release();
       threadLocalMatureRelease(count);
     }
@@ -485,10 +479,11 @@ public abstract class Generational extends StopTheWorldGC
     // release each of the collected regions
     nurseryVM.release();
     remsetPool.clearDeque(1); // flush any remset entries collected during GC
-    if (fullHeapGC) {
+    if (fullHeapGC || IGNORE_REMSET) {
       losSpace.release();
       globalMatureRelease();
       ImmortalSpace.release(immortalVM, null);
+      if (fullHeapGC) fullHeapTime.stop();
     }
     fullHeapGC = (getPagesAvail() < Options.minNurseryPages);
     if (getPagesReserved() + required >= getTotalPages()) {
@@ -524,7 +519,7 @@ public abstract class Generational extends StopTheWorldGC
     byte space = VMResource.getSpace(addr);
     if (space == NURSERY_SPACE)
       return CopySpace.traceObject(obj);
-    if (!fullHeapGC)
+    if (!fullHeapGC && !IGNORE_REMSET)
       return obj;
     switch (space) {
     case LOS_SPACE:      return losSpace.traceObject(obj);
@@ -625,17 +620,50 @@ public abstract class Generational extends StopTheWorldGC
    * @param slot The address into which the new reference will be
    * stored.
    * @param tgt The target of the new reference
+   * @param metaDataA A field used by the VM to create a correct store.
+   * @param metaDataB A field used by the VM to create a correct store.
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   public final void writeBarrier(VM_Address src, VM_Address slot,
-                                 VM_Address tgt, int mode) 
+                                 VM_Address tgt, int metaDataA, 
+                                 int metaDataB, int mode) 
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (slot.LT(NURSERY_START) && tgt.GE(NURSERY_START)) {
       if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
       remset.insert(slot);
     }
-    VM_Magic.setMemoryAddress(slot, tgt);
+    VM_Interface.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
+  }
+
+  /**
+   * A number of references are about to be copied from object
+   * <code>src</code> to object <code>dst</code> (as in an array
+   * copy).  Thus, <code>dst</code> is the mutated object.  Take
+   * appropriate write barrier actions.<p>
+   *
+   * In this case, we remember the mutated source address range and
+   * will scan that address range at GC time.
+   *
+   * @param src The source of the values to copied
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param dst The mutated object, i.e. the destination of the copy.
+   * @param dstOffset The offset of the first destination address, in
+   * bytes relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  public final boolean writeBarrier(VM_Address src, int srcOffset,
+				    VM_Address dst, int dstOffset,
+				    int bytes) 
+    throws VM_PragmaInline {
+    if (dst.LT(NURSERY_START))
+      arrayRemset.insert(dst.add(dstOffset), dst.add(dstOffset + bytes));
+    return false;
   }
 
   /****************************************************************************

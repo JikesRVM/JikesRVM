@@ -9,6 +9,7 @@
  * @date   3/24/00
  */
 #include <stdio.h>
+#include <stdlib.h>             /* malloc() */
 #include "NativeException.h"
 #include <jni.h>
 

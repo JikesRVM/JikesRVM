@@ -6,6 +6,7 @@
 package org.mmtk.plan;
 
 import org.mmtk.vm.VM_Interface;
+import org.mmtk.utility.MMType;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -127,14 +128,12 @@ public class Header extends RCHybridHeader {
    * Called for objects created at boot time.
    * 
    * @param ref the object ref to the storage to be initialized
-   * @param tib the TIB of the instance being created
+   * @param tib The TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for
    * this object.
-   * @param isScalar are we initializing a scalar (true) or array
-   * (false) object?
    */
   public static VM_Word getBootTimeAvailableBits(int ref, Object[] tib, 
-                                                 int size, boolean isScalar,
+                                                 int size,
                                                  VM_Word status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (Plan.WITH_COALESCING_RC) 
@@ -146,16 +145,14 @@ public class Header extends RCHybridHeader {
    * Perform any required initialization of the GC portion of the header.
    * 
    * @param ref the object ref to the storage to be initialized
-   * @param tib the TIB of the instance being created
+   * @param tib The TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for
    * this object.
-   * @param isScalar are we initializing a scalar (true) or array
-   * (false) object?
    * @param initialInc do we want to initialize this header with an
    * initial increment?
    */
   public static void initializeRCHeader(VM_Address ref, Object[] tib, int size,
-                                        boolean isScalar, boolean initialInc)
+                                        boolean initialInc)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int initialValue = (initialInc) ? INCREMENT : 0;
     if (Plan.REF_COUNT_CYCLE_DETECTION && VM_Interface.isAcyclic(tib))

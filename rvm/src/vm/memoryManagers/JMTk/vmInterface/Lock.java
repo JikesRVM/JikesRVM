@@ -106,22 +106,25 @@ public class Lock implements VM_Uninterruptible {
             VM.sysWrite(" with ticket ", ticket);
             VM.sysWrite(" failed to acquire lock ",id);
             VM.sysWrite(" (",name);
-            VM.sysWriteln(") serving ", serving);
+            VM.sysWrite(") serving ", serving);
             VM.sysWriteln(" after ",VM_Time.cyclesToMillis(waitTime)," ms");
             VM_Thread t = thread;
             if (t == null) 
-                VM.sysWriteln("GC Warning: Locking thread unknown");
+              VM.sysWriteln("GC Warning: Locking thread unknown");
             else {
-                VM.sysWrite("GC Warning:  Locking thread: "); t.dump(1); 
-                VM.sysWriteln(" at position ",where);
+              VM.sysWrite("GC Warning: Locking thread: "); t.dump(1); 
+              VM.sysWriteln(" at position ",where);
             }
-            VM.sysWriteln("*** my start = ", localStart);
-            for (int i=(serving - 10) % 100; i<=(serving % 100); i++) {
-                VM.sysWrite(i, ": index ", servingHistory[i]);
-                VM.sysWrite("   tid ", tidHistory[i]);
-                VM.sysWrite("    start = ", startHistory[i]);
-                VM.sysWrite("    end = ", endHistory[i]);
-                VM.sysWriteln("    start-myStart = ", VM_Time.cyclesToMillis(startHistory[i] - localStart));
+            VM.sysWriteln("GC Warning: my start = ", localStart);
+	    // Print the last 10 entries preceding serving
+            for (int i=(serving + 90) % 100; i != serving; i = (i+1)%100) {
+	      if (VM.VerifyAssertions) VM._assert(i >= 0 && i < 100);
+	      VM.sysWrite("GC Warning: ");
+	      VM.sysWrite(i, ": index ", servingHistory[i]);
+	      VM.sysWrite("   tid ", tidHistory[i]);
+	      VM.sysWrite("    start = ", startHistory[i]);
+	      VM.sysWrite("    end = ", endHistory[i]);
+	      VM.sysWriteln("    start-myStart = ", VM_Time.cyclesToMillis(startHistory[i] - localStart));
             }
         }
         if (waitTime > TIME_OUT) {

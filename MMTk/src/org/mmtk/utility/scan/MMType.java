@@ -159,7 +159,7 @@ public final class MMType implements Constants, VM_Uninterruptible {
   boolean isReferenceArray() { return isReferenceArray; }
 
   /** @return True if this type is known to be inherently acyclic */
-  boolean isAcyclic() { return isAcyclic; }
+  public boolean isAcyclic() { return isAcyclic; }
 
   /** @return The allocator to be used by default for this type */
   public int getAllocator() { return allocator; }

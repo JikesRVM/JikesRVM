@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>             /* malloc() */
 
 #include "Allocation.h"
 #include <jni.h>

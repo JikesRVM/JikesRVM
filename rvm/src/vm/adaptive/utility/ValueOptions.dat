@@ -71,14 +71,6 @@ V OFFLINE_INLINE_PLAN_NAME String \"AI_plan\" offlinePlan
 Name of offline inline plan to be read and used for inlining
 
 
-V CONTROLLER_INPUT_QUEUE_SIZE int 40
-The size of the controllerInputQueue
-
-
-V COMPILATION_QUEUE_SIZE int 20
-The size of the compilation queue
-
-
 V EARLY_EXIT_TIME int 1000
 Value of controller clock at which AOS should exit if EARLY_EXIT is true
 

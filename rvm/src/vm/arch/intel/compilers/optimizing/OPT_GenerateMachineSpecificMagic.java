@@ -49,7 +49,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
         String msg = " Unexpected operand VM_Magic.setProcessorRegister";
         throw OPT_MagicNotImplementedException.UNEXPECTED(msg);
       }
-    }else if (methodName == VM_MagicNames.getFramePointer) {
+    } else if (methodName == VM_MagicNames.getFramePointer) {
       gc.allocFrame = true;
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
       VM_Field f = VM_Entrypoints.framePointerField;

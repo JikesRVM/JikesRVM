@@ -17,8 +17,9 @@
 # include <pthread.h>
 #endif
 
-typedef int (*SelectFunc)(int, fd_set*, fd_set*, fd_set*, struct timeval*);
-typedef int (*PollFunc)(struct pollfd*, long unsigned int, int);
+/* Patterns for Functions from the C library. */
+typedef int (*SelectFunc_t)(int, fd_set*, fd_set*, fd_set*, struct timeval*);
+typedef int (*PollFunc_t)(struct pollfd*, long unsigned int, int);
 
 // Init function for the syscall wrapper library.
 #if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
@@ -30,6 +31,6 @@ extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset);
 
 // Accessor for real (libc) system call functions;
 // allows bypassing our wrapper functions.
-extern "C" SelectFunc getLibcSelect(void);
+extern "C" SelectFunc_t getLibcSelect(void);
 
 #endif // SYSWRAP_H

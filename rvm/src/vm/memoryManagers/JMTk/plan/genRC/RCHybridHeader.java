@@ -28,12 +28,10 @@ public class RCHybridHeader extends RCBaseHeader {
    * Perform any required initialization of the GC portion of the header.
    * 
    * @param ref the object ref to the storage to be initialized
-   * @param tib the TIB of the instance being created
+   * @param tib The TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
-   * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(VM_Address ref, Object[] tib, int size,
-                                      boolean isScalar)
+  public static void initializeHeader(VM_Address ref, Object[] tib, int size)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     // nothing here because this is for default allocation, which is
     // to the nursery, which requires nothing to be done.
@@ -43,16 +41,14 @@ public class RCHybridHeader extends RCBaseHeader {
    * Perform any required initialization of the GC portion of the header.
    * 
    * @param ref the object ref to the storage to be initialized
-   * @param tib the TIB of the instance being created
+   * @param tib The TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for
    * this object.
-   * @param isScalar are we initializing a scalar (true) or array
-   * (false) object?
    * @param initialInc do we want to initialize this header with an
    * initial increment?
    */
   public static void initializeRCHeader(VM_Address ref, Object[] tib, int size,
-                                        boolean isScalar, boolean initialInc)
+                                        boolean initialInc)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int initialValue = (initialInc) ? INCREMENT : 0;
     if (Plan.REF_COUNT_CYCLE_DETECTION && VM_Interface.isAcyclic(tib))

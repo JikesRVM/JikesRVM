@@ -193,8 +193,9 @@ public class Log implements Constants, VM_Uninterruptible {
    * decimal point is a full stop (.) and is logged even if
    * <postDecimcalDigits</code> is zero. If <code>d</code> is greater
    * than the largest representable value of type <code>int</code>, it
-   * is logged as that largest value.  Similarly, if it is less than
-   * the smallest representable value, it is logged as that value.
+   * is logged as "TooBig".  Similarly, if it is less than
+   * the negative of the largest representable value, it is logged as
+   * "TooSmall".  If <code>d</code> is NaN is is logged as "NaN".
    *
    * @param d the double to be logged
    * @param postDecimaldigits the number of digits to be logged after
@@ -202,8 +203,19 @@ public class Log implements Constants, VM_Uninterruptible {
    * logged, but the decimal point is.
    */
   public static void write(double d, int postDecimalDigits) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(d >= Integer.MIN_VALUE && d <= Integer.MAX_VALUE);
+    if (d != d) {
+      write("NaN");
+      return;
+    }
+    if (d > Integer.MAX_VALUE) {
+      write("TooBig");
+      return;
+    }
+    if (d < -Integer.MAX_VALUE) {
+      write("TooSmall");
+      return;
+    }
+      
     boolean negative = (d < 0.0);
     d = (d < 0.0) ? (-d) : d;
     int ones = (int) d;
