@@ -300,7 +300,7 @@ class GenerateInterfaceDeclarations {
       if (suffixIndex > 0) {
         // java field "xxxIP" corresponds to C function "xxx"
         String functionName = fieldName.substring(0, suffixIndex);
-        if (VM.BuildForAix) {
+        if (VM.BuildForAix || (VM.BuildForLinux && VM.BuildFor64Addr)) {
           // e. g.,
           // sysFOOIP = ((AixLinkageLayout *)&sysFOO)->ip;
           p("  br->" + fieldName + " = ((AixLinkageLayout *)&" + functionName + ")->ip;\n"); 
@@ -315,7 +315,7 @@ class GenerateInterfaceDeclarations {
       if (suffixIndex > 0) {
         // java field "xxxTOC" corresponds to C function "xxx"
         String functionName = fieldName.substring(0, suffixIndex);
-        if (VM.BuildForAix) {
+        if (VM.BuildForAix || (VM.BuildForLinux && VM.BuildFor64Addr)) {
           // e. g.,
           // sysTOC = ((AixLinkageLayout *)&sys)->toc;
           p("  br->" + fieldName + " = ((AixLinkageLayout *)&" + functionName + ")->toc;\n"); 
