@@ -450,7 +450,7 @@ function on_host_set_JIKES_test_Jikes_version () {
 	## unregressed indicates a version that can run "Hello, World", but has
 	## not been through a full nightly Jikes RVM regression test.
 	local -i unregressed=0
-	local -r known_good="1.13, 1.18, and 1.19"
+	local -r known_good="1.13, 1.18, 1.19, and 1.22"
 	case "$jikes_msg" in
 	    *"Version 1.13"*)
 		host_jikes_version=1.13 
@@ -522,7 +522,7 @@ function on_host_set_JIKES_test_Jikes_version () {
 		host_jikes_version=1.22 
 		bad_byte_code=0	# Verified by Steve Augart, at least as far as
 				# running "Hello, World" works.
-		unregressed=1
+		unregressed=0   # Regression tests run by Dave Grove on Linux/IA32.
 		jikes_dependency_flag= # +U triggers a Jikes assertion.
 		JIKES_WARNING_FLAGS=-nowarn
 		;;
@@ -762,6 +762,7 @@ function rationalize_classpath_version () {
 	&& ! (( RVM_WITH_CLASSPATH_0_11 )) \
 	&& ! (( RVM_WITH_CLASSPATH_0_12 )) \
 	&& ! (( RVM_WITH_CLASSPATH_0_13 )) \
+	&& ! (( RVM_WITH_CLASSPATH_0_14 )) \
 	&& ! (( RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD ))
     then
 	## Set the default.
@@ -776,6 +777,7 @@ function rationalize_classpath_version () {
     local -i sum
     let "sum=(  RVM_WITH_CLASSPATH_0_10 + RVM_WITH_CLASSPATH_0_11 \
 	      + RVM_WITH_CLASSPATH_0_12 + RVM_WITH_CLASSPATH_0_13 \
+	      + RVM_WITH_CLASSPATH_0_14 \
 	      + RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD)"
     if (( sum > 1 )); then
 	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_0_10, RVM_WITH_CLASSPATH_0_11, RVM_WITH_CLASSPATH_0_12, RVM_WITH_CLASSPATH_0_13, and RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD is defined.  Your configuration files are inconsistent."
@@ -794,6 +796,7 @@ function rationalize_classpath_version () {
 			-e '/^RVM_WITH_CLASSPATH_0_11=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_12=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_0_13=/d'		\
+			-e '/^RVM_WITH_CLASSPATH_0_14=/d'		\
 			-e '/^RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD=/d' \
 		)"
     if [[ $unk ]]; then
@@ -1353,6 +1356,9 @@ declare -i RVM_WITH_CLASSPATH_0_13=0
 
 ## Classpath's CVS Head, as of January 15, 2005, runs just fine.
 declare -i RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD=0
+
+## We are running most of our regression tests against Classpath 0.14
+declare -i RVM_WITH_CLASSPATH_0_14=0
 
 ## There are a few syscalls that seem to have fallen into disuse -- 
 ## I've surrounded them with this. --Steve Augart
