@@ -96,7 +96,7 @@ public class PrintContainer {
     extends PrintLN
   {
     WithSysWriteln() {}
-    public boolean isVMSysWriteln() {
+    public boolean isSysWrite() {
       return true;
     }
     public void flush() {
