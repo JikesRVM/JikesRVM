@@ -124,6 +124,9 @@ public class VM_Properties extends VM_Configuration {
   public static final boolean TraceOnStackReplacement   = false; 
   //-#endif
 
-  /* System trouble, recursion depth, etc. */
+  /** If we get more than this deep in one of the System Trouble functions,
+   * then try to die. */
   public static int maxSystemTroubleRecursionDepth = 3;
+  /** How much farther? */
+  public static int maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite = 3;
 }
