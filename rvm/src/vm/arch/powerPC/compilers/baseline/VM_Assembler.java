@@ -1259,10 +1259,14 @@ public final class VM_Assembler implements VM_BaselineConstants,
   }
 
   // new PowerPC instuctions
-
-  static final int SYNCtemplate = 31<<26 | 598<<1;
+    
+  // The "sync" on Power 4 architectures are expensive and so we use "lwsync" instead to
+  //   implement SYNC.  On older arhictectures, there is no problem but the weaker semantics
+  //   of lwsync means that there are memory consistency bugs we might need to flush out.
+  // static final int SYNCtemplate = 31<<26 | 598<<1;
   // static final int LWSYNCtemplate = 31<<26 | 1 << 21 | 598<<1;
-  
+  static final int SYNCtemplate = 31<<26 | 1 << 21 | 1598<<1;
+
   final void emitSYNC () {
     INSTRUCTION mi = SYNCtemplate;
     mIP++;
