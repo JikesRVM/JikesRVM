@@ -675,6 +675,10 @@ public class VM extends VM_Properties
   public static void write(char[] value, int len) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     for (int i = 0, n = len; i < n; ++i) {
       if (runningVM)
+        /*  Avoid triggering a potential read barrier
+         *
+         *  TODO: Convert this to use org.mmtk.vm.Barriers.getArrayNoBarrier
+         */  
         write(VM_Magic.getCharAtOffset(value, i << LOG_BYTES_IN_CHAR));
       else
         write(value[i]);
