@@ -174,7 +174,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
   /**
    * The array holding the generated binary code.  
    */
-  private INSTRUCTION [] machineCodes;
+  private byte [] machineCodes;
 
   /**
    * The current end of the generated machine code
@@ -204,7 +204,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @param shouldPrint whether to dump generated machine code.
    */
   public VM_Assembler (int bytecodeSize, boolean shouldPrint) {
-    machineCodes = new INSTRUCTION [bytecodeSize*CODE_EXPANSION_FACTOR + CODE_OVERHEAD_TERM];
+    machineCodes = new byte[bytecodeSize*CODE_EXPANSION_FACTOR + CODE_OVERHEAD_TERM];
     lister = shouldPrint ? new VM_Lister(this) : null;
   }
 
@@ -267,8 +267,8 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
   }
     
   private void growMachineCodes(int index, byte data) throws VM_PragmaNoInline {
-      INSTRUCTION [] old = machineCodes;
-      machineCodes = new INSTRUCTION [2 * old.length ];
+      byte [] old = machineCodes;
+      machineCodes = new byte [2 * old.length ];
       System.arraycopy(old, 0, machineCodes, 0, old.length);
       machineCodes[index] = data;
   }
@@ -287,11 +287,11 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    *
    * @return a copy of the generated code.
    */
-  public final INSTRUCTION [] getMachineCodes () {
-      INSTRUCTION[] trimmed = new INSTRUCTION [ getMachineCodeIndex() ];
-      for(int i = 0; i < getMachineCodeIndex(); i++) 
-	  trimmed[i] = machineCodes[i];
-      
+  public final VM_CodeArray getMachineCodes () {
+      VM_CodeArray trimmed = VM_CodeArray.create(getMachineCodeIndex());
+      for(int i = 0; i < getMachineCodeIndex(); i++) {
+	  trimmed.set(i, machineCodes[i]);
+      }
       return trimmed;
   }
     
@@ -708,9 +708,9 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    * @param rel32       the new immediate to use in the branch instruction
    *                    the code patcher is going to lay down before patchOffset
    */
-  public final static void patchCode(INSTRUCTION[] code,
-			      int patchOffset,
-			      int rel32) {
+  public final static void patchCode(VM_CodeArray code,
+			             int patchOffset,
+			             int rel32) {
     byte p0 = (byte)0xE9;
     byte p1 = (byte) (rel32 & 0x000000ff);
     byte p2 = (byte)((rel32 & 0x0000ff00) >>>  8);
@@ -720,19 +720,19 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       // (a) lay down p4,p3,p2 one byte at a time
       // (b) pick up the two bytes before p0 and then
       //     lay down b2b1p0p1 as a word.
-      code[patchOffset--] = p4;
-      code[patchOffset--] = p3;
-      code[patchOffset--] = p2;
+      code.set(patchOffset--, p4);
+      code.set(patchOffset--, p3);
+      code.set(patchOffset--, p2);
       patchOffset -= 2; // skip over p1, p0
-      byte b1 = code[patchOffset--];
-      byte b2 = code[patchOffset];
+      byte b1 = code.get(patchOffset--);
+      byte b2 = code.get(patchOffset);
       int patch = (((int)p1&0xff) << 24) | (((int)p0&0xff) << 16) | 
 	          (((int)b1&0xff) << 8)  |  ((int)b2&0xff);
       VM_Magic.setIntAtOffset(code, patchOffset, patch);
     } else {
       // (a) lay down p4
       // (b) lay down p0p1p2p3 as a word
-      code[patchOffset--] = p4;
+      code.set(patchOffset--, p4);
       patchOffset -= 3; // skip over p0p1p2p3
       int patch = (((int)p3&0xff) << 24) | (((int)p2&0xff) << 16) |
         	  (((int)p1&0xff) << 8)  |  ((int)p0&0xff);

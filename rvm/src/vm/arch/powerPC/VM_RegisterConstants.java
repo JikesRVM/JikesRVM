@@ -19,7 +19,6 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
    //
   static final int    LG_INSTRUCTION_WIDTH = 2;           // log2 of instruction width in bytes, powerPC
   static final int    INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;           // log2 of instruction width in bytes, powerPC
-  static final String INSTRUCTION_ARRAY_SIGNATURE = "[I"; // for powerPC
 
   // General purpose register usage. (GPR's are 32 bits wide).
   //

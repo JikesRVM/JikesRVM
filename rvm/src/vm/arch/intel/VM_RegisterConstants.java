@@ -15,7 +15,6 @@ public interface VM_RegisterConstants {
   //---------------------------------------------------------------------------------------//
     
   static final byte LG_INSTRUCTION_WIDTH = 0;             // log2 of instruction width in bytes
-  static final String INSTRUCTION_ARRAY_SIGNATURE = "[B"; // signature for "array of instructions"
     
   // Symbolic values for fixed-point registers.
   // These values are used to assemble instructions and as indices into:

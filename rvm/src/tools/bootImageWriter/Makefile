@@ -43,7 +43,6 @@ $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
 
 # Create a boot image.
 # Parameters from 'make' command line are:
-#   RVM_INSTRUCTION_TYPE = datatype used for representing machine instructions
 #   RVM_BOOTIMAGE = place to put boot image
 #   RVM_REPOSITORIES = path to search for classes
 #   RVM_BOOTIMAGE_CLASSES = place to read names of classes to be put in boot image

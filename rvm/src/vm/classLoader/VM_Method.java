@@ -295,7 +295,7 @@ public abstract class VM_Method extends VM_Member {
   /**
    * Get the current instructions for the given method.
    */
-  public final synchronized INSTRUCTION[] getCurrentInstructions() {
+  public final synchronized VM_CodeArray getCurrentInstructions() {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (isCompiled()) {
       return currentCompiledMethod.getInstructions();

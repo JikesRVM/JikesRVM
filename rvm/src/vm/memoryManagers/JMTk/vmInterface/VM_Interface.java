@@ -449,7 +449,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
       plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, numBytes, false);
       toRef = VM_Magic.objectAsAddress(toObj);
-      if (arrayType == VM_Type.InstructionArrayType) {
+      if (arrayType == VM_Type.CodeArrayType) {
 	// sync all moved code arrays to get icache and dcache in sync immediately.
 	int dataSize = numBytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
 	VM_Memory.sync(toRef, dataSize);

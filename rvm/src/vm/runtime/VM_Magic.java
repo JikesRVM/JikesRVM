@@ -706,22 +706,22 @@ public class VM_Magic {
    * never returns (target method returns to caller of dynamic bridge method)
    * @param instructions target method
    */
-  public static void dynamicBridgeTo(INSTRUCTION[] instructions) {
+  public static void dynamicBridgeTo(VM_CodeArray instructions) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call "main" method with argument list. */
-  public static void invokeMain(Object argv, INSTRUCTION[] main) {
+  public static void invokeMain(Object argv, VM_CodeArray main) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call "<clinit>" method with no argument list. */
-  public static void invokeClassInitializer(INSTRUCTION[] clinit) {
+  public static void invokeClassInitializer(VM_CodeArray clinit) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call arbitrary method with argument list. */
-  public static void invokeMethodReturningVoid(INSTRUCTION[] code, 
+  public static void invokeMethodReturningVoid(VM_CodeArray code, 
 					       int[] gprs, 
 					       double[] fprs, 
 					       int[] spills) {
@@ -729,7 +729,7 @@ public class VM_Magic {
   }
 
   /** Call arbitrary method with argument list. */
-  public static int invokeMethodReturningInt(INSTRUCTION[] code, 
+  public static int invokeMethodReturningInt(VM_CodeArray code, 
 					     int[] gprs, 
 					     double[] fprs, 
 					     int[] spills) {
@@ -738,7 +738,7 @@ public class VM_Magic {
   }
 
   /** Call arbitrary method with argument list. */
-  public static long invokeMethodReturningLong(INSTRUCTION[] code, 
+  public static long invokeMethodReturningLong(VM_CodeArray code, 
 					       int[] gprs, 
 					       double[] fprs, 
 					       int[] spills) {
@@ -747,7 +747,7 @@ public class VM_Magic {
   }
 
   /** Call arbitrary method with argument list. */
-  public static float invokeMethodReturningFloat(INSTRUCTION[] code, 
+  public static float invokeMethodReturningFloat(VM_CodeArray code, 
 						 int[] gprs, 
 						 double[] fprs, 
 						 int[] spills) {
@@ -756,7 +756,7 @@ public class VM_Magic {
   }
 
   /** Call arbitrary method with argument list. */
-  public static double invokeMethodReturningDouble(INSTRUCTION[] code, 
+  public static double invokeMethodReturningDouble(VM_CodeArray code, 
 						   int[] gprs, 
 						   double[] fprs, 
 						   int[] spills) {
@@ -765,7 +765,7 @@ public class VM_Magic {
   }
 
   /** Call arbitrary method with argument list. */
-  public static Object invokeMethodReturningObject(INSTRUCTION[] code, 
+  public static Object invokeMethodReturningObject(VM_CodeArray code, 
 						   int[] gprs, 
 						   double[] fprs, 
 						   int[] spills) {

@@ -106,7 +106,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
 			    VM_CompiledMethod compiledMethod) {
     total_methods[compiler]++;
     total_bcodeLen[compiler] += method.getBytecodeLength();
-    total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
+    total_mcodeLen[compiler] += compiledMethod.getInstructions().length();
     total_time[compiler] += compiledMethod.getCompilationTime();
   }
 
@@ -122,7 +122,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
 			    VM_CompiledMethod compiledMethod) {
     total_methods[compiler]++;
     total_bcodeLen[compiler] += 1; // lie to avoid divide by zero!
-    total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
+    total_mcodeLen[compiler] += compiledMethod.getInstructions().length();
     total_time[compiler] += compiledMethod.getCompilationTime();
   }
 

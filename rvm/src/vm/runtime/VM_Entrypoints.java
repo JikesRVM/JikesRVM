@@ -50,7 +50,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method deliverHardwareExceptionMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "deliverHardwareException", "(II)V");
   public static final VM_Method unlockAndThrowMethod      = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
 
-  public static final VM_Method invokeInterfaceMethod                          = getMethod("Lcom/ibm/JikesRVM/classloader/VM_InterfaceInvocation;", "invokeInterface", "(Ljava/lang/Object;I)"+INSTRUCTION_ARRAY_SIGNATURE);
+  public static final VM_Method invokeInterfaceMethod                          = getMethod("Lcom/ibm/JikesRVM/classloader/VM_InterfaceInvocation;", "invokeInterface", "(Ljava/lang/Object;I)Lcom/ibm/JikesRVM/VM_CodeArray;");
   public static final VM_Method findItableMethod                               = getMethod("Lcom/ibm/JikesRVM/classloader/VM_InterfaceInvocation;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");
   public static final VM_Method invokeinterfaceImplementsTestMethod            = getMethod("Lcom/ibm/JikesRVM/classloader/VM_InterfaceInvocation;", "invokeinterfaceImplementsTest", "(Lcom/ibm/JikesRVM/classloader/VM_Class;[Ljava/lang/Object;)V");
   public static final VM_Method unresolvedInvokeinterfaceImplementsTestMethod  = getMethod("Lcom/ibm/JikesRVM/classloader/VM_InterfaceInvocation;", "unresolvedInvokeinterfaceImplementsTest", "(I[Ljava/lang/Object;)V");
@@ -86,14 +86,14 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field FPUControlWordField = getField("Lcom/ibm/JikesRVM/VM_Math;", "FPUControlWord", "I");
   //-#endif
    
-  public static final VM_Field reflectiveMethodInvokerInstructionsField       = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "reflectiveMethodInvokerInstructions", INSTRUCTION_ARRAY_SIGNATURE);
-  public static final VM_Field saveThreadStateInstructionsField               = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "saveThreadStateInstructions", INSTRUCTION_ARRAY_SIGNATURE);
-  public static final VM_Field threadSwitchInstructionsField                  = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "threadSwitchInstructions", INSTRUCTION_ARRAY_SIGNATURE);
-  public static final VM_Field restoreHardwareExceptionStateInstructionsField = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "restoreHardwareExceptionStateInstructions", INSTRUCTION_ARRAY_SIGNATURE);
+  public static final VM_Field reflectiveMethodInvokerInstructionsField       = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "reflectiveMethodInvokerInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
+  public static final VM_Field saveThreadStateInstructionsField               = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "saveThreadStateInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
+  public static final VM_Field threadSwitchInstructionsField                  = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "threadSwitchInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
+  public static final VM_Field restoreHardwareExceptionStateInstructionsField = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "restoreHardwareExceptionStateInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
   //-#if RVM_FOR_POWERPC
-  public static final VM_Field getTimeInstructionsField                       = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "getTimeInstructions", INSTRUCTION_ARRAY_SIGNATURE);
+  public static final VM_Field getTimeInstructionsField                       = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "getTimeInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
   //-#endif
-  public static final VM_Field invokeNativeFunctionInstructionsField          = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "invokeNativeFunctionInstructions", INSTRUCTION_ARRAY_SIGNATURE);
+  public static final VM_Field invokeNativeFunctionInstructionsField          = getField("Lcom/ibm/JikesRVM/VM_OutOfLineMachineCode;", "invokeNativeFunctionInstructions", "Lcom/ibm/JikesRVM/VM_CodeArray;");
 
   public static final VM_Field deterministicThreadSwitchCountField = getField("Lcom/ibm/JikesRVM/VM_Processor;", "deterministicThreadSwitchCount", "I");
 
@@ -240,7 +240,7 @@ public class VM_Entrypoints implements VM_Constants {
   ////////////////// 
   // Entrypoints that are valid only when the opt compiler is included in the build
   //////////////////
-  public static final VM_Field specializedMethodsField = getField("Lcom/ibm/JikesRVM/opt/OPT_SpecializedMethodPool;", "specializedMethods", "["+INSTRUCTION_ARRAY_SIGNATURE);
+  public static final VM_Field specializedMethodsField = getField("Lcom/ibm/JikesRVM/opt/OPT_SpecializedMethodPool;", "specializedMethods", "[Lcom/ibm/JikesRVM/VM_CodeArray;");
 
 //-#if RVM_WITH_OSR
   public static final VM_Field osrOrganizerQueueLockField = getField("Lcom/ibm/JikesRVM/adaptive/OSR_OrganizerThread;", "queueLock", "I");

@@ -27,13 +27,13 @@ public class OSR_PostThreadSwitch implements VM_BaselineConstants, VM_Uninterrup
      * the new code get executed.
      */
     // add branch instruction from CTR.
-    INSTRUCTION[] bridge   = myThread.bridgeInstructions;
+    VM_CodeArray bridge   = myThread.bridgeInstructions;
       
     VM_Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
 
-	if (VM.TraceOnStackReplacement) {
-	  VM.sysWrite("osr post processing\n");
-	}
+    if (VM.TraceOnStackReplacement) {
+      VM.sysWrite("osr post processing\n");
+    }
 	
     VM_Magic.setMemoryAddress(VM_Magic.objectAsAddress(myThread.stack).add(
 			    myThread.tsFPOffset + STACKFRAME_RETURN_ADDRESS_OFFSET),

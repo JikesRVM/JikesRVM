@@ -1119,7 +1119,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // get instructions for method to be executed as thread startoff
     //
-    INSTRUCTION[] instructions = VM_Entrypoints.threadStartoffMethod.getCurrentInstructions();
+    VM_CodeArray instructions = VM_Entrypoints.threadStartoffMethod.getCurrentInstructions();
 
     VM.disableGC();
 
@@ -1523,7 +1523,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
  
   // before call new instructions, we need a bridge to recover register
   // states from the stack frame.
-  public INSTRUCTION[] bridgeInstructions = null;
+  public VM_CodeArray bridgeInstructions = null;
   public int fooFPOffset = 0;
   public int tsFPOffset = 0;
 

@@ -50,7 +50,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
   /**
    * The compiled machine code for said method.
    */
-  protected INSTRUCTION[] instructions; 
+  protected VM_CodeArray instructions; 
 
   //-#if RVM_WITH_OSR
   /**
@@ -123,7 +123,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
   /**
    * Return the machine code for this compiled method
    */
-  public final INSTRUCTION[] getInstructions() throws VM_PragmaUninterruptible { 
+  public final VM_CodeArray getInstructions() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM._assert((bitField1 & COMPILED) != 0);
     return instructions; 
   }
@@ -131,7 +131,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
   /**
    * Record that the compilation is complete.
    */
-  public final void compileComplete(INSTRUCTION[] code) {
+  public final void compileComplete(VM_CodeArray code) {
     instructions = code;
     bitField1 |= COMPILED;
   }

@@ -7,5 +7,5 @@ package com.ibm.JikesRVM;
  * @author Dave Grove 
  */
 class VM_MachineCode {
-  VM_MachineCode(byte[] x, int[] y) {} 
+  VM_MachineCode(VM_CodeArray x, int[] y) {} 
 }

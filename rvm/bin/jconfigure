@@ -490,7 +490,6 @@ PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS} $(set     \
 		-e 's/^RVM_FOR_/-DRVM_FOR_/p'		\
 		-e 's/^RVM_WITH_/-DRVM_WITH_/p'		\
 		-e 's/^JIKES/-DJIKES/p'		\
-		-e 's/^BYTE_SIZED_INSTRUCTION/-DBYTE_SIZED_INSTRUCTION/p' \
 		-e 's/^BLOCK_COUNTER_WORKS=/-DBLOCK_COUNTER_WORKS=/p'	  \
 		-e 's/RVM_WITHOUT_/-DRVM_WITHOUT_/p')"
 
@@ -961,8 +960,6 @@ function emitMakefile () {
 	HOST_JAR = $HOST_JAR
 	HOST_REPOSITORIES = $HOST_REPOSITORIES
 	HOST_TOOLS = $HOST_TOOLS
-	
-	TARGET_INSTRUCTION_TYPE = $INSTRUCTION_TYPE
 	
 	CC = $CC
 	CPLUS = $CPLUS
@@ -1452,19 +1449,11 @@ EOF
     TOP_LEVEL_SOURCES="${TOP_LEVEL_SOURCES} ${CONF_SPECIFIC_TOP_LEVEL_SOURCES}"
     TOP_LEVEL_CLASSES="$(echo ${TOP_LEVEL_SOURCES}| sed 's@\.java@.class@g')"
 
-    if (( RVM_FOR_POWERPC )); then
-	INSTRUCTION_TYPE="int"
-    elif (( RVM_FOR_IA32 )); then
-	INSTRUCTION_TYPE="byte"
-    else
-	INSTRUCTION_TYPE="UNSPECIFED_INSTRUCTION_TYPE"
-    fi
-    
     cat <<- EOF
 	if [[ -e $CLASSES_INVALID_STR ]]; then
 	    cd $CLASSES_DIRECTORY_STR
 	    rm -f $TOP_LEVEL_CLASSES
-	    $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES
+	    $HOST_JIKES_STR -nowarn +F +Z +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES
 	    echo -n '(classes compiled) '
 
 	    rm -f jksvm.jar
@@ -1952,6 +1941,9 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lcom/ibm/JikesRVM/VM_Word;
 	[Lcom/ibm/JikesRVM/VM_Offset;
 	[Lcom/ibm/JikesRVM/VM_Extent;
+	[Lcom/ibm/JikesRVM/VM_Code;
+	    
+	[Lcom/ibm/JikesRVM/VM_CodeArray;
 
 	[Lcom/ibm/JikesRVM/classloader/VM_Class;
 	[Lcom/ibm/JikesRVM/VM_UnusualMaps;
@@ -2004,17 +1996,6 @@ EOF
     echo "\
 # Create bootimage.
 #"
-    if (( RVM_FOR_POWERPC )); then
-	ARCHITECTURE="PowerPC"
-	INSTRUCTION_TYPE="int"
-    elif (( RVM_FOR_IA32 )); then
-	ARCHITECTURE="Intel"
-	INSTRUCTION_TYPE="byte"
-    else
-	ARCHITECTURE="UNSPECIFED_ARCHITECTURE"
-	INSTRUCTION_TYPE="UNSPECIFED_INSTRUCTION_TYPE"
-    fi
-    
     BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$TRACE_FLAG"
 
     BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -ia $BOOTIMAGE_LOAD_ADDRESS"
@@ -2063,7 +2044,7 @@ EOF
     # compile BootImageWriter.java
     #
     echo "cd $SCRATCH_DIRECTORY_STR &&\
-	  $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U\
+	  $HOST_JIKES_STR -nowarn +F +Z +E -g +U\
 	  -classpath $BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
 	  BootImageWriter.java"
 
@@ -2090,7 +2071,7 @@ EOF
 # compile GenerateInterfaceDeclarations.java
 #'
     echo "cd $SCRATCH_DIRECTORY_STR &&\
-	  $HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U\
+	  $HOST_JIKES_STR -nowarn +F +Z +E -g +U\
 	  -classpath $BUILD_DIRECTORY_STR/RVM.classes:$BUILD_DIRECTORY_STR/RVM.classes/rvmrt.jar\
 	  GenerateInterfaceDeclarations.java"
 
@@ -2445,14 +2426,6 @@ function emitToolCompiler () {
     echo '    exit 33'
     echo '}'
 
-    if (( RVM_FOR_POWERPC )); then
-	INSTRUCTION_TYPE="int"
-    elif (( RVM_FOR_IA32 )); then
-	INSTRUCTION_TYPE="byte"
-    else
-	INSTRUCTION_TYPE="UNSPECIFED_INSTRUCTION_TYPE"
-    fi
-
     echo 'if [[ '${BUILD_DIRECTORY_STR}' = "" ]]; then'
     echo '    echo >&2 "${ME}: please set your' ${BUILD_DIRECTORY_STR1} 'environment variable (eg. ${HOME}/rvmBuild)"'
     echo '    trap "" EXIT'
@@ -2488,7 +2461,7 @@ function emitToolCompiler () {
     echo "! [[ \$TRACE_FLAG ]] || XFLAG=-x"
     echo "! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG"
 
-    echo "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U -classpath \"\$CPATH\" \"\$@\""
+    echo "$HOST_JIKES_STR -nowarn +F +Z +E -g +U -classpath \"\$CPATH\" \"\$@\""
 }
   
 # Emit script to run jbuild.prep on java files that are not part of the build

@@ -18,7 +18,7 @@ public class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   // 
-  public static INSTRUCTION[] createStub(int[] sigIds, VM_Method[] targets) {
+  public static VM_CodeArray createStub(int[] sigIds, VM_Method[] targets) {
     // (1) Create an assembler.
     int numEntries = sigIds.length;
     VM_Assembler asm = new VM_Assembler(numEntries); // pretend each entry is a bytecode
@@ -40,11 +40,11 @@ public class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants,
     insertStubPrologue(asm);
     insertStubCase(asm, sigIds, targets, bcIndices, 0, numEntries-1);
     
-    INSTRUCTION[] stub = asm.makeMachineCode().getInstructions();
+    VM_CodeArray stub = asm.makeMachineCode().getInstructions();
 
     // (5) synchronize icache with generated machine code that was written through dcache
     if (VM.runningVM)    
-      VM_Memory.sync(VM_Magic.objectAsAddress(stub), stub.length << LG_INSTRUCTION_WIDTH); 
+      VM_Memory.sync(VM_Magic.objectAsAddress(stub), stub.length() << LG_INSTRUCTION_WIDTH); 
 
     return stub;
   }

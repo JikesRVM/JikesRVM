@@ -11,6 +11,7 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_CodeArray;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_CompiledMethod;
@@ -271,10 +272,10 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	}
 
 	// initialize MapIterator for this frame
-	INSTRUCTION[] codeArray = compiledMethod.getInstructions();
+	VM_CodeArray codeArray = compiledMethod.getInstructions();
 	int offset = ip.diff(VM_Magic.objectAsAddress(codeArray)).toInt();
 	if (compiledMethodType != VM_CompiledMethod.JNI) {
-	  int possibleLen = codeArray.length << LG_INSTRUCTION_WIDTH;
+	  int possibleLen = codeArray.length() << LG_INSTRUCTION_WIDTH;
 	  if (offset < 0 || possibleLen < offset) {
 	    // We have an invalid offset
 	    if (offset < 0) {

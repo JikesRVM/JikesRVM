@@ -103,7 +103,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
       if (instructionOffset < 0) {
 	VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset", instructionOffset);
       } else {
-	int possibleLen = cm.getInstructions().length << VM.LG_INSTRUCTION_WIDTH;
+	int possibleLen = cm.getInstructions().length() << VM.LG_INSTRUCTION_WIDTH;
 	if (possibleLen < instructionOffset) {
 	  VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
 	  VM.sysWriteln("offset is", instructionOffset, " bytes of machine code for method ",possibleLen);

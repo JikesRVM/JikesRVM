@@ -78,7 +78,7 @@ public final class OSR_OptExecStateExtractor
      * activities, and avoid lazy compilation.
      */
     // get the next machine code offset of the real method
-    INSTRUCTION[] instructions = fooCM.getInstructions();
+    VM_CodeArray instructions = fooCM.getInstructions();
     VM.disableGC();
     VM_Address methFP = VM_Magic.objectAsAddress(stack).add(methFPoff);
     VM_Address nextIP     = VM_Magic.getNextInstructionAddress(methFP);

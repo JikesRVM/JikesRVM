@@ -75,13 +75,30 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_Operand index = bc2ir.popInt();
       OPT_Operand ref = bc2ir.popRef();
       OPT_RegisterOperand offset = gc.temps.makeTempInt();
-      OPT_RegisterOperand result = gc.temps.makeTemp(elementType);
-      bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, 
-					    new OPT_IntConstantOperand(LOG_BYTES_IN_ADDRESS)));
-      OPT_Operator op = VM.BuildFor32Addr ? INT_LOAD : (VM.BuildFor64Addr ? LONG_LOAD : null);
-      bc2ir.appendInstruction(Load.create(op, result, ref, offset.copy(),
-					  new OPT_LocationOperand(elementType),
-					  new OPT_TrueGuardOperand()));
+      OPT_RegisterOperand result;
+      if (meth.getType().isCodeArrayType()) {
+	if (VM.BuildForIA32) {
+	  result = gc.temps.makeTemp(VM_TypeReference.Byte);
+	  bc2ir.appendInstruction(Load.create(BYTE_LOAD, result, ref, index,
+					      new OPT_LocationOperand(elementType),
+					      new OPT_TrueGuardOperand()));
+	} else if (VM.BuildForPowerPC) {
+	  result = gc.temps.makeTemp(VM_TypeReference.Int);
+	  bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, 
+						new OPT_IntConstantOperand(LOG_BYTES_IN_INT)));
+	  bc2ir.appendInstruction(Load.create(INT_LOAD, result, ref, offset.copy(),
+					      new OPT_LocationOperand(elementType),
+					      new OPT_TrueGuardOperand()));
+	}
+      } else { 
+	result = gc.temps.makeTemp(elementType);
+	bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, 
+					      new OPT_IntConstantOperand(LOG_BYTES_IN_ADDRESS)));
+	OPT_Operator op = VM.BuildFor32Addr ? INT_LOAD : (VM.BuildFor64Addr ? LONG_LOAD : null);
+	bc2ir.appendInstruction(Load.create(op, result, ref, offset.copy(),
+					    new OPT_LocationOperand(elementType),
+					    new OPT_TrueGuardOperand()));
+      }
       bc2ir.push(result.copyD2U());
     } else if (methodName == VM_MagicNames.addressArraySet) {
       VM_TypeReference elementType = meth.getType().getArrayElementType();
@@ -89,12 +106,26 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_Operand index = bc2ir.popInt();
       OPT_Operand ref = bc2ir.popRef();
       OPT_RegisterOperand offset = gc.temps.makeTempInt();
-      bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, 
-					    new OPT_IntConstantOperand(LOG_BYTES_IN_ADDRESS)));
-      OPT_Operator op = VM.BuildFor32Addr ? INT_STORE : (VM.BuildFor64Addr ? LONG_STORE : null);
-      bc2ir.appendInstruction(Store.create(op, val, ref, offset.copy(),
-					   new OPT_LocationOperand(elementType),
-					   new OPT_TrueGuardOperand()));
+      if (meth.getType().isCodeArrayType()) {
+	if (VM.BuildForIA32) {
+	  bc2ir.appendInstruction(Store.create(BYTE_STORE, val, ref, index,
+					       new OPT_LocationOperand(elementType),
+					       new OPT_TrueGuardOperand()));
+	} else if (VM.BuildForPowerPC) {
+	  bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, 
+						new OPT_IntConstantOperand(LOG_BYTES_IN_INT)));
+	  bc2ir.appendInstruction(Store.create(INT_STORE, val, ref, offset.copy(),
+					       new OPT_LocationOperand(elementType),
+					       new OPT_TrueGuardOperand()));
+	}
+      } else {
+	bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, 
+					      new OPT_IntConstantOperand(LOG_BYTES_IN_ADDRESS)));
+	OPT_Operator op = VM.BuildFor32Addr ? INT_STORE : (VM.BuildFor64Addr ? LONG_STORE : null);
+	bc2ir.appendInstruction(Store.create(op, val, ref, offset.copy(),
+					     new OPT_LocationOperand(elementType),
+					     new OPT_TrueGuardOperand()));
+      }
     } else if (methodName == VM_MagicNames.getIntAtOffset) {
       OPT_Operand offset = bc2ir.popInt();
       OPT_Operand object = bc2ir.popRef();

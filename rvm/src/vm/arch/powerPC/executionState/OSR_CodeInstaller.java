@@ -108,7 +108,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
       VM_Magic.objectAsAddress(thread.bridgeInstructions);
 
     VM_Memory.sync(bridgeaddr, 
-                   thread.bridgeInstructions.length << LG_INSTRUCTION_WIDTH);
+                   thread.bridgeInstructions.length() << LG_INSTRUCTION_WIDTH);
 
     if (VM.LogAOSEvents) {
       VM_AOSLogging.logOsrEvent("OSR code installation succeeded");

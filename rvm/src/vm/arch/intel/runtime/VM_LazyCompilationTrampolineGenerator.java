@@ -18,7 +18,7 @@ package com.ibm.JikesRVM;
 public class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstants {
 
   /** Generate a new lazy compilation trampoline. */
-  public static INSTRUCTION[] getTrampoline (){
+  public static VM_CodeArray getTrampoline (){
     VM_Assembler asm = new VM_Assembler(0); 
     // get JTOC into ECX
     VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX,

@@ -42,7 +42,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    * @param mid id of the VM_MemberReference for the target interface method.
    * @return machine code corresponding to desired interface method
    */
-  public static INSTRUCTION[] invokeInterface(Object target, int mid) 
+  public static VM_CodeArray invokeInterface(Object target, int mid) 
     throws IncompatibleClassChangeError, ClassNotFoundException {
 
     VM_MethodReference mref = VM_MemberReference.getMemberRef(mid).asMethodReference();
@@ -52,7 +52,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
     if (VM.BuildForITableInterfaceInvocation) {
       Object[] tib = C.getTypeInformationBlock();
       Object[] iTable = findITable(tib, I.getInterfaceId());
-      return (INSTRUCTION[])iTable[getITableIndex(I, mref.getName(), mref.getDescriptor())];
+      return (VM_CodeArray)iTable[getITableIndex(I, mref.getName(), mref.getDescriptor())];
     } else { 
       if (!VM_Runtime.isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
       VM_Method found  = C.findVirtualMethod(sought.getName(), 
@@ -232,7 +232,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
    */
   private static void populateIndirectIMT(VM_Class klass, IMTDict d) {
     Object[] tib = klass.getTypeInformationBlock();
-    INSTRUCTION[][] IMT = new INSTRUCTION[IMT_METHOD_SLOTS][];
+    VM_CodeArray[] IMT = new VM_CodeArray[IMT_METHOD_SLOTS];
     d.populateIMT(tib, IMT);
     tib[TIB_IMT_TIB_INDEX] = IMT;
   }
@@ -313,7 +313,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
 	vm.compile();
 	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = vm.getCurrentInstructions();
       } else {
-	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = (INSTRUCTION []) tib[vm.getOffset()>>LOG_BYTES_IN_ADDRESS];
+	iTable[getITableIndex(I, im.getName(), im.getDescriptor())] = (VM_CodeArray) tib[vm.getOffset()>>LOG_BYTES_IN_ADDRESS];
       }
     }
     return iTable;
@@ -356,7 +356,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
 	for (int i = 0; i<IMT_METHOD_SLOTS; i++) {
 	  if (map[i] == m) {
 	    if (VM.BuildForIndirectIMT) {
-	      INSTRUCTION[][] IMT = (INSTRUCTION[][])tib[TIB_IMT_TIB_INDEX];
+	      VM_CodeArray[] IMT = (VM_CodeArray[])tib[TIB_IMT_TIB_INDEX];
               IMT[i] = m.getCurrentInstructions();
             } else {
 	      tib[i+TIB_FIRST_INTERFACE_METHOD_INDEX] = m.getCurrentInstructions();
@@ -457,7 +457,7 @@ public class VM_InterfaceInvocation implements VM_TIBLayoutConstants, VM_SizeCon
 	    target.compile();
 	    IMT[extSlot] = target.getCurrentInstructions();
 	  } else {
-	    IMT[extSlot] = (INSTRUCTION []) tib[target.getOffset()>>LOG_BYTES_IN_ADDRESS];
+	    IMT[extSlot] = (VM_CodeArray) tib[target.getOffset()>>LOG_BYTES_IN_ADDRESS];
 	    if (klass.noIMTConflictMap == null) {
 	      klass.noIMTConflictMap = new VM_Method[IMT_METHOD_SLOTS];
 	    }

@@ -20,11 +20,13 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
   /**
    * This is the JNI function table, the address of this array will be
    * passed to the native code
+   * TODO: This is horrible and must be rewritten.
+   *       These are NOT int[][]'s by any stretch of the imagination!!!!
    */
   //-#if RVM_FOR_LINUX
-  private static INSTRUCTION[][]   JNIFunctions;
+  private static int[][]   JNIFunctions;
   //-#elif RVM_FOR_AIX
-  private static INSTRUCTION[][][] JNIFunctions;
+  private static int[][][] JNIFunctions;
   //-#endif
   
   /**
@@ -86,7 +88,9 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
 	//-#if RVM_FOR_LINUX
 	JNIFunctions[jniIndex]     = mths[i].getCurrentInstructions();
 	//-#elif RVM_FOR_AIX
-	JNIFunctions[jniIndex][IP] = mths[i].getCurrentInstructions();
+	// GACK.  We need this horrible kludge because the array is not well typed.
+	Object array = JNIFunctions[jniIndex];
+	VM_Magic.setObjectAtOffset(array, IP, mths[i].getCurrentInstructions());
 	//-#endif
       } 
     }
@@ -121,7 +125,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
   }
 
-  public INSTRUCTION[] getInstructions(int id) {    
+  public int[] getInstructions(int id) {    
     //-#if RVM_FOR_AIX
     return JNIFunctions[id][IP];
     //-#elif RVM_FOR_LINUX

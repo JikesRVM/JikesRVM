@@ -18,8 +18,8 @@ import  java.util.Enumeration;
 public class OPT_SpecializedMethodPool {
   private static final int SPECIALIZED_METHOD_COUNT = 1024;
   static int specializedMethodCount = 0;
-  static INSTRUCTION[][] specializedMethods = 
-      new INSTRUCTION[SPECIALIZED_METHOD_COUNT][];
+  static VM_CodeArray[] specializedMethods = 
+    new VM_CodeArray[SPECIALIZED_METHOD_COUNT];
 
   /**
    * Return the number of specialized methods
@@ -73,7 +73,7 @@ public class OPT_SpecializedMethodPool {
   public static void growSpecializedMethods () {
     int org_length = specializedMethods.length;
     int new_length = 2*org_length;
-    INSTRUCTION[][] temp = new INSTRUCTION[new_length][];
+    VM_CodeArray[] temp = new VM_CodeArray[new_length];
     for (int i = 0; i < org_length; i++) {
       temp[i] = specializedMethods[i];
     }

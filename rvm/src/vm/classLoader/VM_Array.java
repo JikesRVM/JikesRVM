@@ -87,6 +87,9 @@ public final class VM_Array extends VM_Type implements VM_Constants,
    * @return log base 2 of array element size
    */
   public final int getLogElementSize() throws VM_PragmaUninterruptible {
+    if (this == VM_Type.CodeArrayType) {
+      return LG_INSTRUCTION_WIDTH;
+    }
     switch (getDescriptor().parseForArrayElementTypeCode()) {
     case VM_Atom.ClassTypeCode:   return LOG_BYTES_IN_ADDRESS;
     case VM_Atom.ArrayTypeCode:   return LOG_BYTES_IN_ADDRESS;

@@ -515,7 +515,7 @@ abstract class OPT_AssemblerBase
       
     ir.MIRInfo.machinecode = asm.getMachineCodes();
 
-    return ir.MIRInfo.machinecode.length;
+    return ir.MIRInfo.machinecode.length();
   }
 
 }

@@ -521,14 +521,14 @@ public class BootImageWriter extends BootImageWriterMessages
     int initProc = VM_Scheduler.PRIMORDIAL_PROCESSOR_ID;
     VM_Thread startupThread = VM_Scheduler.processors[initProc].activeThread;
     int[] startupStack = startupThread.stack;
-    INSTRUCTION[] startupCode  = VM_Entrypoints.bootMethod.getCurrentInstructions();
+    VM_CodeArray startupCode  = VM_Entrypoints.bootMethod.getCurrentInstructions();
 
     bootRecord.tiRegister  = startupThread.getLockingId();
     bootRecord.spRegister  = VM_Address.fromInt(bootImageAddress +
 						BootImageMap.getImageOffset(startupStack) +
 						(startupStack.length << LOG_BYTES_IN_INT));
     bootRecord.ipRegister  = VM_Address.fromInt(bootImageAddress +
-						BootImageMap.getImageOffset(startupCode));
+						BootImageMap.getImageOffset(startupCode.getBacking()));
 
     bootRecord.processorsOffset = VM_Entrypoints.processorsField.getOffset();
     bootRecord.threadsOffset = VM_Entrypoints.threadsField.getOffset();
@@ -1251,65 +1251,10 @@ public class BootImageWriter extends BootImageWriterMessages
             for (int i = 0; i < arrayCount; ++i)
               bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_DOUBLE),
                                       Double.doubleToLongBits(values[i]));
-          }
-          else if (rvmElementType.equals(VM_Type.AddressType)) {
-            VM_Address values[] = (VM_Address[]) jdkObject;
-            for (int i=0; i<arrayCount; i++) {
-              VM_Address addr = values[i];
-              String msg = "VM_Address array element " + i;
-	      if (VM.BuildFor32Addr)
-		bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), 
-				      (int)getAddressValue(addr, msg, true));
-	      else if (VM.BuildFor64Addr)
-		bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), 
-					getAddressValue(addr, msg, true));
-	    }
-          }
-          else if (rvmElementType.equals(VM_Type.WordType)) {
-            VM_Word values[] = (VM_Word[]) jdkObject;
-            for (int i = 0; i < arrayCount; i++)
-	      if (VM.BuildFor32Addr)
-		bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toInt());
-	      else if (VM.BuildFor64Addr)
-		bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toLong());
-          }
-          else if (rvmElementType.equals(VM_Type.OffsetType)) {
-            VM_Offset values[] = (VM_Offset[]) jdkObject;
-            for (int i = 0; i < arrayCount; i++)
-	      if (VM.BuildFor32Addr)
-		bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toInt());
-	      else if (VM.BuildFor64Addr)
-		bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toLong());
-          }
-          else if (rvmElementType.equals(VM_Type.ExtentType)) {
-            VM_Extent values[] = (VM_Extent[]) jdkObject;
-            for (int i = 0; i < arrayCount; i++)
-	      if (VM.BuildFor32Addr)
-		bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toInt());
-	      else if (VM.BuildFor64Addr)
-		bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toLong());
-          }
-          else if (rvmElementType.equals(VM_Type.CodeType)) {
-	    if (VM.BuildForPowerPC) {
-	      int values[] = (int[]) jdkObject;
-	      for (int i = 0; i < arrayCount; ++i)
-		bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_INT), values[i]);
-	    } else if (VM.BuildForIA32) {
-	      byte values[] = (byte[]) jdkObject;
-	      for (int i = 0; i < arrayCount; ++i)
-		bootImage.setByte(arrayImageOffset + i, values[i]);
-	    } else {
-	      fail("unexpected architecture");
-	    }
-          }
+          } 
           else
             fail("unexpected primitive array type: " + rvmArrayType);
         } else {
-	  if (rvmElementType.isMagicType()) {
-	    VM.sysWriteln("Unhandled copying of array of magic type: " + rvmElementType.getDescriptor().toString());
-	    VM.sysFail("incomplete boot image support");
-	  }
-
           // array element is reference type
           Object values[] = (Object []) jdkObject;
           Class jdkClass = jdkObject.getClass();
@@ -1337,35 +1282,35 @@ public class BootImageWriter extends BootImageWriterMessages
 	  if (verbose >= 2) depth--;
 	  VM_AddressArray addrArray = (VM_AddressArray) jdkObject;
 	  Object backing = addrArray.getBacking();
-	  return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
+	  return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
 	}
 
 	if (rvmType == VM_Type.OffsetArrayType) {
 	  if (verbose >= 2) depth--;
 	  VM_OffsetArray addrArray = (VM_OffsetArray) jdkObject;
 	  Object backing = addrArray.getBacking();
-	  return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
+	  return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
 	}
 
 	if (rvmType == VM_Type.WordArrayType) {
 	  if (verbose >= 2) depth--;
 	  VM_WordArray addrArray = (VM_WordArray) jdkObject;
 	  Object backing = addrArray.getBacking();
-	  return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
+	  return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
 	}
 
 	if (rvmType == VM_Type.ExtentArrayType) {
 	  if (verbose >= 2) depth--;
 	  VM_ExtentArray addrArray = (VM_ExtentArray) jdkObject;
 	  Object backing = addrArray.getBacking();
-	  return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
+	  return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
 	}
 
 	if (rvmType == VM_Type.CodeArrayType) {
 	  if (verbose >= 2) depth--;
 	  VM_CodeArray codeArray = (VM_CodeArray) jdkObject;
 	  Object backing = codeArray.getBacking();
-	  return copyToBootImage(backing, allocOnly, overwriteOffset, parentObject);
+	  return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
 	}
 
 	if (rvmType.isMagicType()) {
@@ -1516,6 +1461,106 @@ public class BootImageWriter extends BootImageWriterMessages
 
       return mapEntry.imageOffset;
     }
+
+
+  private static int copyMagicArrayToBootImage(Object jdkObject, 
+					       VM_Array rvmArrayType,
+					       boolean allocOnly, 
+					       int overwriteOffset, 
+					       Object parentObject) 
+    throws IllegalAccessException {
+    //
+    // Return object if it is already copied and not being overwritten
+    //
+    BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(jdkObject);
+    if (mapEntry.imageOffset != OBJECT_NOT_ALLOCATED && overwriteOffset == -1)
+      return mapEntry.imageOffset;
+
+    if (verbose >= 2) depth++;
+    
+    // allocate space in image
+    int arrayCount       = Array.getLength(jdkObject);
+    int arrayImageOffset = (overwriteOffset == -1) ? bootImage.allocateArray(rvmArrayType, arrayCount) : overwriteOffset;
+    mapEntry.imageOffset = arrayImageOffset;
+
+    if (verbose >= 2) {
+      if (depth == depthCutoff) 
+	say(SPACES.substring(0,depth+1), "TOO DEEP: cutting off");
+      else if (depth < depthCutoff) {
+	String tab = SPACES.substring(0,depth+1);
+	if (depth == 0 && jtocCount >= 0)
+	  tab = tab + "jtoc #" + String.valueOf(jtocCount) + ": ";
+	int arraySize = rvmArrayType.getInstanceSize(arrayCount);
+	say(tab, "Copying array  ", rvmArrayType.toString(), 
+	    "   length=", String.valueOf(arrayCount),
+	    (arraySize >= LARGE_ARRAY_SIZE) ? " large object!!!" : "");
+      }
+    }
+
+    // copy array elements from host jdk address space into image
+    VM_Type rvmElementType = rvmArrayType.getElementType();
+    if (rvmElementType.equals(VM_Type.CodeType)) {
+      if (VM.BuildForIA32) {
+	byte values[] = (byte[]) jdkObject;
+	for (int i = 0; i < arrayCount; ++i)
+	  bootImage.setByte(arrayImageOffset + i, values[i]);
+      } else {
+	int values[] = (int[]) jdkObject;
+	for (int i = 0; i < arrayCount; ++i)
+	  bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_INT), values[i]);
+      }
+    } else if (rvmElementType.equals(VM_Type.AddressType)) {
+      VM_Address values[] = (VM_Address[]) jdkObject;
+      for (int i=0; i<arrayCount; i++) {
+	VM_Address addr = values[i];
+	String msg = "VM_Address array element " + i;
+	if (VM.BuildFor32Addr)
+	  bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), 
+				(int)getAddressValue(addr, msg, true));
+	else if (VM.BuildFor64Addr)
+	  bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), 
+				  getAddressValue(addr, msg, true));
+      }
+    } else if (rvmElementType.equals(VM_Type.WordType)) {
+      VM_Word values[] = (VM_Word[]) jdkObject;
+      for (int i = 0; i < arrayCount; i++)
+	if (VM.BuildFor32Addr)
+	  bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toInt());
+	else if (VM.BuildFor64Addr)
+	  bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toLong());
+    } else if (rvmElementType.equals(VM_Type.OffsetType)) {
+      VM_Offset values[] = (VM_Offset[]) jdkObject;
+      for (int i = 0; i < arrayCount; i++)
+	if (VM.BuildFor32Addr)
+	  bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toInt());
+	else if (VM.BuildFor64Addr)
+	  bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toLong());
+    } else if (rvmElementType.equals(VM_Type.ExtentType)) {
+      VM_Extent values[] = (VM_Extent[]) jdkObject;
+      for (int i = 0; i < arrayCount; i++)
+	if (VM.BuildFor32Addr)
+	  bootImage.setFullWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toInt());
+	else if (VM.BuildFor64Addr)
+	  bootImage.setDoubleWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), values[i].toLong());
+    } else {
+      fail("unexpected magic array type: " + rvmArrayType);
+    }
+
+    // copy object's TIB into image, if it's not there already
+    if (!allocOnly) {
+      if (verbose >= 1) traceContext.push("", jdkObject.getClass().getName(), "tib");
+      int tibImageOffset = copyToBootImage(rvmArrayType.getTypeInformationBlock(), allocOnly, -1, jdkObject);
+      if (verbose >= 1) traceContext.pop();
+      if (tibImageOffset == OBJECT_NOT_ALLOCATED)
+	fail("can't copy tib for " + jdkObject);
+      int tibAddress = bootImageAddress + tibImageOffset;
+      VM_ObjectModel.setTIB(bootImage, mapEntry.imageOffset, VM_Address.fromInt(tibAddress), rvmArrayType);
+    }
+
+    if (verbose >= 2) depth--;
+    
+    return mapEntry.imageOffset;
+  }
 
   private static final int OBJECT_HEADER_SIZE = 8;
   private static Hashtable traversed = null;

@@ -8,9 +8,9 @@
 CONTRIB=/homes/meriadoc/jalapeno/contrib/benchmarks
 
 ARGS=XalanJDriver
-CLASSPATH=$CONTRIB/xalan-j_2_4_D1/bin/xalan.jar
-CLASSPATH=$CONTRIB/xalan-j_2_4_D1/bin/xml-apis.jar:$CLASSPATH
-CLASSPATH=$CONTRIB/xalan-j_2_4_D1/bin/xercesImpl.jar:$CLASSPATH
+CLASSPATH=$CONTRIB/xalan-j_2_5_1/bin/xalan.jar
+CLASSPATH=$CONTRIB/xalan-j_2_5_1/bin/xml-apis.jar:$CLASSPATH
+CLASSPATH=$CONTRIB/xalan-j_2_5_1/bin/xercesImpl.jar:$CLASSPATH
 CLASSPATH=$CONTRIB/XSLTMark-2.1.0/xsltmark/src/xsltmark.jar:$CLASSPATH
 CLASSPATH=$CONTRIB/XSLTMark-2.1.0/xsltmark/src/xmdrivers.jar:$CLASSPATH
 CLASSPATH=$CONTRIB/XSLTMark-2.1.0/xsltmark:$CLASSPATH
@@ -20,5 +20,5 @@ PATH=./src:$PATH
 export PATH
 
 [ -d testcases ] && make -s -C testcases clean
-#cd $CONTRIB/XSLTMark-2.1.0/xsltmark && /opt/IBMJava2-13/bin/java com.datapower.xsltmark.XSLTMark $ARGS
-cd $CONTRIB/XSLTMark-2.1.0/xsltmark && rvm -verbose -verbose:gc -X:mx300 -cp $CLASSPATH com.datapower.xsltmark.XSLTMark $ARGS
+#cd $CONTRIB/XSLTMark-2.1.0/xsltmark && /opt/IBMJava2-13/bin/java -cp $CLASSPATH com.datapower.xsltmark.XSLTMark $ARGS
+cd $CONTRIB/XSLTMark-2.1.0/xsltmark && rvm -Xmx300 -cp $CLASSPATH com.datapower.xsltmark.XSLTMark $ARGS

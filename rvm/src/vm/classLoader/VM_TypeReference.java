@@ -97,7 +97,6 @@ public class VM_TypeReference implements VM_SizeConstants{
   public static final VM_TypeReference VM_Type = findOrCreate("Lcom/ibm/JikesRVM/classloader/VM_Type;");
   public static final VM_TypeReference VM_Class = findOrCreate("Lcom/ibm/JikesRVM/classloader/VM_Class;");
   public static final VM_TypeReference VM_Array = findOrCreate("Lcom/ibm/JikesRVM/classloader/VM_Array;");
-  public static final VM_TypeReference InstructionArray  = findOrCreate(VM.INSTRUCTION_ARRAY_SIGNATURE);
 
   //-#if RVM_WITH_OPT_COMPILER
   // Synthetic types used by the opt compiler 
@@ -324,7 +323,7 @@ public class VM_TypeReference implements VM_SizeConstants{
   /**
    * Does 'this' refer to VM_CodeArray
    */
-  final boolean isCodeArrayType() throws VM_PragmaUninterruptible {
+  public final boolean isCodeArrayType() throws VM_PragmaUninterruptible {
     return this == CodeArray;
   }
 

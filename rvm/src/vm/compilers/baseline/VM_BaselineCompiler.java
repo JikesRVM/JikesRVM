@@ -215,7 +215,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
     //-#endif
 
     VM_MachineCode  machineCode  = genCode();
-    INSTRUCTION[]   instructions = machineCode.getInstructions();
+    VM_CodeArray    instructions = machineCode.getInstructions();
     int[]           bcMap        = machineCode.getBytecodeMap();
 
     //-#if RVM_WITH_OSR
@@ -241,7 +241,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
     if (method.isSynchronized()) {
       compiledMethod.setLockAcquisitionOffset(lockOffset);
     }
-    compiledMethod.encodeMappingInfo(refMaps, bcMap, instructions.length);
+    compiledMethod.encodeMappingInfo(refMaps, bcMap, instructions.length());
     compiledMethod.compileComplete(instructions);
     if (edgeCounterIdx > 0) {
       VM_EdgeCounts.allocateCounters(method, edgeCounterIdx);

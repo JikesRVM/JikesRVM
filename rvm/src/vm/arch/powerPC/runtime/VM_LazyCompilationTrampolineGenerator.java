@@ -20,7 +20,7 @@ public class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstan
   /** 
    * Generate a new lazy compilation trampoline. 
    */
-  public static INSTRUCTION[] getTrampoline () {
+  public static VM_CodeArray getTrampoline () {
     VM_Assembler asm = new VM_Assembler(0);
     asm.emitLAddrToc (S0, VM_Entrypoints.lazyMethodInvokerMethod.getOffset());
     asm.emitMTCTR(S0);

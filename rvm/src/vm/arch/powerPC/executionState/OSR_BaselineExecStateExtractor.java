@@ -70,7 +70,7 @@ public final class OSR_BaselineExecStateExtractor
     VM_NormalMethod fooM = (VM_NormalMethod)fooCM.getMethod();
 
     // get the next bc index 
-    INSTRUCTION[] instructions = fooCM.getInstructions();
+    VM_CodeArray instructions = fooCM.getInstructions();
 
     VM.disableGC();
     VM_Address rowIP     = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(methFPoff + STACKFRAME_NEXT_INSTRUCTION_OFFSET));
@@ -174,8 +174,8 @@ public final class OSR_BaselineExecStateExtractor
   private static void getVariableValue(int[] stack,
 				       int   offset,
 				       byte[] types,
-			            VM_BaselineCompiledMethod compiledMethod,
-				       INSTRUCTION[] instructions,
+				       VM_BaselineCompiledMethod compiledMethod,
+				       VM_CodeArray instructions,
 				       int   kind,
 				       OSR_ExecutionState state) {
     int size = types.length;

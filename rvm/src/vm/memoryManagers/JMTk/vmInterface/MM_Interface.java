@@ -31,6 +31,7 @@ import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_CodeArray;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_DynamicLibrary;
@@ -396,14 +397,17 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   /**
-   * Allocate an array of instructions
+   * Allocate an array of instructions.
+   * NOTE: We don't use this at all for Jikes RVM right now.
+   *       It might be useful to think about expanding the interface
+   *       to take hints on the likely hot/coldness of the code and
+   *       other code placement hints.
    * @param n The number of instructions to allocate
    * @return The instruction array
-   */ 
-  public static INSTRUCTION[] newInstructions(int n) throws VM_PragmaInline, VM_PragmaInterruptible {
-    return new INSTRUCTION[n];
+   */
+  public static VM_CodeArray newInstructions(int n) throws VM_PragmaInline, VM_PragmaInterruptible {
+    return VM_CodeArray.create(n);
   }
-
 
   /**
    * Allocate a stack array

@@ -44,12 +44,12 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   // implementation //
   //----------------//
 
-  private static INSTRUCTION[] reflectiveMethodInvokerInstructions;
-  private static INSTRUCTION[] saveThreadStateInstructions;
-  private static INSTRUCTION[] threadSwitchInstructions;
-  private static INSTRUCTION[] restoreHardwareExceptionStateInstructions;
-  private static INSTRUCTION[] getTimeInstructions;
-  private static INSTRUCTION[] invokeNativeFunctionInstructions;
+  private static VM_CodeArray reflectiveMethodInvokerInstructions;
+  private static VM_CodeArray saveThreadStateInstructions;
+  private static VM_CodeArray threadSwitchInstructions;
+  private static VM_CodeArray restoreHardwareExceptionStateInstructions;
+  private static VM_CodeArray getTimeInstructions;
+  private static VM_CodeArray invokeNativeFunctionInstructions;
    
   // Machine code for reflective method invocation.
   // See also: "VM_Compiler.generateMethodInvocation".
@@ -67,8 +67,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   //   artificial stackframe created and destroyed
   //   R0, volatile, and scratch registers destroyed
   //
-  private static INSTRUCTION[]
-    generateReflectiveMethodInvokerInstructions() {
+  private static VM_CodeArray generateReflectiveMethodInvokerInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
       
     //
@@ -173,7 +172,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   // Side effects at runtime:
   //   T1 destroyed
   //
-  private static INSTRUCTION[] generateSaveThreadStateInstructions() {
+  private static VM_CodeArray generateSaveThreadStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
     int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
@@ -223,7 +222,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
    *    restores new thread's VM_Registers nonvolatile hardware state.
    *    execution resumes at address specificed by restored thread's VM_Registers ip field
    */
-  private static INSTRUCTION[] generateThreadSwitchInstructions() {
+  private static VM_CodeArray generateThreadSwitchInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
     int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
@@ -291,7 +290,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   //   all registers are restored except condition registers, count register,
   //   JTOC_POINTER, and PROCESSOR_REGISTER with execution resuming at "registers.ip"
   //
-  private static INSTRUCTION[] generateRestoreHardwareExceptionStateInstructions() {
+  private static VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
     int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
@@ -358,7 +357,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   //   T0..T3 and F0..F3 are destroyed
   //   scratch fields used in VM_Processor object
   //
-  private static INSTRUCTION[] generateGetTimeInstructions() {
+  private static VM_CodeArray generateGetTimeInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
     int scratchSecondsOffset     = VM_Entrypoints.scratchSecondsField.getOffset();
@@ -418,7 +417,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   // 
   //   GPR3 (T0), S1, PR regs are available for scratch regs on entry
   //
-  private static INSTRUCTION[] generateInvokeNativeFunctionInstructions() {
+  private static VM_CodeArray generateInvokeNativeFunctionInstructions() {
 
     VM_Assembler asm = new VM_Assembler(0);
     int lockoutLockOffset = VM_Entrypoints.lockoutProcessorField.getOffset();

@@ -73,16 +73,15 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   public static VM_Class JavaIoSerializableType; 
   public static VM_Type MagicType;             
   public static VM_Type WordType;             
-  public static VM_Type WordArrayType;             
+  public static VM_Array WordArrayType;             
   public static VM_Type AddressType;             
-  public static VM_Type AddressArrayType;             
+  public static VM_Array AddressArrayType;             
   public static VM_Type OffsetType;             
-  public static VM_Type OffsetArrayType;             
+  public static VM_Array OffsetArrayType;             
   public static VM_Type ExtentType;             
-  public static VM_Type ExtentArrayType;             
-  public static VM_Type InstructionArrayType;             
+  public static VM_Array ExtentArrayType;             
   public static VM_Type CodeType;
-  public static VM_Type CodeArrayType;
+  public static VM_Array CodeArrayType;
   public static VM_Type UninterruptibleType;   
   public static VM_Type SynchronizedObjectType;   
   public static VM_Type DynamicBridgeType;     
@@ -532,10 +531,8 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     DoubleType  = VM_TypeReference.Double.resolve();
     CharType    = VM_TypeReference.Char.resolve();
 
-    InstructionArrayType = VM_TypeReference.InstructionArray.resolve();
-
     CodeType = VM_TypeReference.Code.resolve();
-    CodeArrayType = VM_TypeReference.CodeArray.resolve();
+    CodeArrayType = VM_TypeReference.CodeArray.resolve().asArray();
 
     JavaLangObjectType = VM_TypeReference.JavaLangObject.resolve();
     JavaLangObjectArrayType = (VM_Array)VM_TypeReference.JavaLangObjectArray.resolve();
@@ -556,13 +553,13 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     NativeBridgeType      = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
 							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_NativeBridge;")).resolve();
     WordType = VM_TypeReference.Word.resolve();
-    WordArrayType = VM_TypeReference.WordArray.resolve();
+    WordArrayType = VM_TypeReference.WordArray.resolve().asArray();
     AddressType = VM_TypeReference.Address.resolve();
-    AddressArrayType = VM_TypeReference.AddressArray.resolve();
+    AddressArrayType = VM_TypeReference.AddressArray.resolve().asArray();
     OffsetType = VM_TypeReference.Offset.resolve();
-    OffsetArrayType = VM_TypeReference.OffsetArray.resolve();
+    OffsetArrayType = VM_TypeReference.OffsetArray.resolve().asArray();
     ExtentType = VM_TypeReference.Extent.resolve();
-    ExtentArrayType = VM_TypeReference.ExtentArray.resolve();
+    ExtentArrayType = VM_TypeReference.ExtentArray.resolve().asArray();
     
     VM_Array.init();
   }

@@ -44,11 +44,11 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   // implementation //
   //----------------//
 
-  private static INSTRUCTION[] reflectiveMethodInvokerInstructions;
-  private static INSTRUCTION[] saveThreadStateInstructions;
-  private static INSTRUCTION[] threadSwitchInstructions;
-  private static INSTRUCTION[] restoreHardwareExceptionStateInstructions;
-  private static INSTRUCTION[] invokeNativeFunctionInstructions;
+  private static VM_CodeArray reflectiveMethodInvokerInstructions;
+  private static VM_CodeArray saveThreadStateInstructions;
+  private static VM_CodeArray threadSwitchInstructions;
+  private static VM_CodeArray restoreHardwareExceptionStateInstructions;
+  private static VM_CodeArray invokeNativeFunctionInstructions;
    
   private static final int PARAMS_FP_OFFSET	= WORDSIZE * 2;
   private static final int FPRS_FP_OFFSET	= WORDSIZE * 3;
@@ -102,7 +102,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *   volatile, and scratch registers destroyed
    *
   */
-  private static INSTRUCTION[] generateReflectiveMethodInvokerInstructions() {
+  private static VM_CodeArray generateReflectiveMethodInvokerInstructions() {
     VM_Assembler asm = new VM_Assembler(100);
 
     /* write at most 2 parameters from registers in the stack.  This is
@@ -217,7 +217,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *    S0, T1 destroyed
    *    Thread state stored into VM_Registers object 
    */
-  private static INSTRUCTION[] generateSaveThreadStateInstructions() {
+  private static VM_CodeArray generateSaveThreadStateInstructions() {
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new VM_Assembler(0);
     int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
@@ -252,7 +252,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *    restores new thread's VM_Registers nonvolatile hardware state.
    *    execution resumes at address specificed by restored thread's VM_Registers ip field
    */
-  private static INSTRUCTION[] generateThreadSwitchInstructions() {
+  private static VM_CodeArray generateThreadSwitchInstructions() {
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new VM_Assembler(0);
     int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
@@ -301,7 +301,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
    *    all registers are restored except PROCESSOR_REGISTER and EFLAGS;
    *    execution resumes at "registers.ip"
    */
-  private static INSTRUCTION[] generateRestoreHardwareExceptionStateInstructions() {
+  private static VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
     int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
@@ -346,8 +346,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   //   TOC = TOC for native call
   //   S0  = address of native function to branch to
   //
-  private static INSTRUCTION[]
-  generateInvokeNativeFunctionInstructions() {
+  private static VM_CodeArray generateInvokeNativeFunctionInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
     // save PR in glue frame - to be relocated by GC

@@ -21,7 +21,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
    * This is the JNI function table, the address of this array will be
    * passed to the native code
    */
-  private static INSTRUCTION[][] JNIFunctions;
+  private static VM_CodeArray[] JNIFunctions;
 
   /**
    * This is a table of pointers to the shared JNI function table.  All entries 
@@ -40,7 +40,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     // since the VM_JNIEnvironment object will contain a field pointing to this array
 
     // An extra entry is allocated, to hold the RVM JTOC 07/01 SES
-    JNIFunctions = new INSTRUCTION[FUNCTIONCOUNT+1][];
+    JNIFunctions = new VM_CodeArray[FUNCTIONCOUNT+1];
 
     // First word is a pointer to the JNIFunction table
     // Second word is address of current processors vpStatus word
@@ -95,7 +95,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
   }
 
-  public INSTRUCTION[] getInstructions(int id) {    
+  public VM_CodeArray getInstructions(int id) {    
     return JNIFunctions[id];
   }
 

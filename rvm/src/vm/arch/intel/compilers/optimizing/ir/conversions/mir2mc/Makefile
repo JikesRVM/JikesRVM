@@ -23,7 +23,7 @@ OPCODE_CLASS=$(SCRATCH_DIR)/OPT_OperatorFormatTables.class
 VM_ASM_JAVA=$(SCRATCH_DIR)/com/ibm/JikesRVM/VM_Assembler.java
 VM_ASM_CLASS=$(SCRATCH_DIR)/com/ibm/JikesRVM/VM_Assembler.class
 
-FAKES =	VM_Lister.fake VM.fake VM_Magic.fake VM_MachineCode.fake VM_PragmaNoInline.fake VM_Compiler.fake
+FAKES =	VM_CodeArray.fake VM_Lister.fake VM.fake VM_Magic.fake VM_MachineCode.fake VM_PragmaNoInline.fake VM_Compiler.fake
 FAKE_JAVA = $(patsubst %.fake,%.java,$(FAKES))
 FAKE_SRC = $(patsubst %.fake,$(SCRATCH_DIR)/com/ibm/JikesRVM/%.java,$(FAKES))
 FAKE_CLS = $(patsubst %.java,%.class,$(FAKE_SRC))
@@ -39,7 +39,7 @@ SRCS=   $(TABLES_JAVA) \
 default:		assembler clean
 
 $(VM_ASM_JAVA):
-	$(SED) s/\\\<INSTRUCTION\\\>/byte/g $(GEN_FILES_DIR)/VM_Assembler.java > $(VM_ASM_JAVA)
+	cp $(GEN_FILES_DIR)/VM_Assembler.java $(VM_ASM_JAVA)
 
 $(TABLES_JAVA):		OPT_InstructionFormatTables.template $(ARCH_IFS)
 	$(GENERATE) OPT_InstructionFormatTables.template $(TABLES_JAVA) FORMAT_FILE=$(ARCH_IFS)
