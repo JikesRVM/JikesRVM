@@ -1,6 +1,7 @@
 %      $Id$    
 
 \newcommand{\vmInterfacePackageURL}{{\RVMJavadocURL}/memoryManagers/vmInterface/package-frame.html}
+\newcommand{\JMTkPackageURL}{{\RVMJavadocURL}/memoryManagers/JMTk/package-frame.html}
 \newcommand{\BaseFreeListURL}{{\RVMJavadocURL}/BaseFreeList.html}
 \newcommand{\MarkSweepCollectorURL}{{\RVMJavadocURL}/MarkSweepCollector.html}
 \newcommand{\BumpPointerURL}{{\RVMJavadocURL}/BumpPointer.html}
@@ -10,14 +11,28 @@
 \newcommand{\StopTheWorldGCURL}{{\RVMJavadocURL}/StopTheWorldGC.html}
 \newcommand{\GenerationalURL}{{\RVMJavadocURL}/Generational.html}
 \newcommand{\VMResourceURL}{{\RVMJavadocURL}/VMResource.html}
+\newcommand{\CopyURL}{{\RVMJavadocURL}/Copy.html}
+\newcommand{\AddressQueueURL}{{\RVMJavadocURL}/AddressQueue.html}
+\newcommand{\MemoryResourceURL}{{\RVMJavadocURL}/MemoryResource.html}
+\newcommand{\MonotoneVMResourceURL}{{\RVMJavadocURL}/MonotoneVMResource.html}
+\newcommand{\FreeListVMResourceURL}{{\RVMJavadocURL}/FreeListVMResource.html}
+\newcommand{\LazyMmapperURL}{{\RVMJavadocURL}/LazyMmapper.html}
+\newcommand{\RawPageAllocatorURL}{{\RVMJavadocURL}/RawPageAllocator.html}
+\newcommand{\VMInterfaceURL}{{\RVMJavadocURL}/VM\_Interface.html}
+\newcommand{\ScanObjectURL}{{\RVMJavadocURL}/ScanObject.html}
+\newcommand{\ScanStaticsURL}{{\RVMJavadocURL}/ScanStatics.html}
+\newcommand{\ScanThreadURL}{{\RVMJavadocURL}/ScanThread.html}
+\newcommand{\VMGCMapIteratorURL}{{\RVMJavadocURL}/VM\_GCMapIterator.html}
+\newcommand{\VMCollectorThreadURL}{{\RVMJavadocURL}/VM\_CollectorThread.html}
+\newcommand{\VMHandshakeURL}{{\RVMJavadocURL}/VM\_Handshake.html}
 
 This section provides information on the implementation of JMTk, the
 memory management component of Jikes\trademark RVM runtime system.
 
-From Jikes\trademark RVM 2.2.0 onwards, JMTk (Java Memory management
-Toolkit) replaced the `watson collectors' and GCTk.  JMTk is intended
-to be a portable toolkit, with Jikes\trademark RVM-specific code
-factored out as far as possible.
+From Jikes\trademark RVM 2.2.0 onward, JMTk (Java Memory management
+Toolkit) became the default memory management system for Jikes RVM.
+JMTk is designed to be a portable toolkit, with Jikes\trademark
+RVM-specific code factored out as far as possible.
 
 \subsection{Directory Structure and Packages} \label{sssec:directories}
 
@@ -25,26 +40,26 @@ JMTk classes are contained in the
 \texttt{\$RVM\_ROOT/rvm/src/vm/memoryManagers/JMTk} directory.
 
 In keeping with the goal of modularity and portability, as far as
-possible Jikes\trademark RVM-specific code is factored out.  Such
-VM-specific code resides in a separate package,
-(\xlink{{\texttt{com.ibm.JikesRVM.memoryManagers.vmInterface}}{\vmInterfacePackageURL}}),
+possible Jikes RVM-specific code is factored out.  Such VM-specific
+code resides in a separate package,
+(\xlink{\texttt{com.ibm.JikesRVM.memoryManagers.vmInterface}}{\vmInterfacePackageURL}),
 and can be found in the \texttt{vmInterface} sub-directory.  All other
 code is part of the
-\xlink{{\texttt{com.ibm.JikesRVM.memoryManagers.JMTk}}{\JMTkPackageURL}}
+\xlink{\texttt{com.ibm.JikesRVM.memoryManagers.JMTk}}{\JMTkPackageURL}
 package.
 
 The \texttt{plan} sub-directory contains classes that define
 \emph{memory management plans}.  A plan specifies a particular
 configuration of JMTk components which together define the memory
-management strategy for a particular build of Jike\trademark RVM.  The
+management strategy for a particular build of Jikes RVM.  The
 \texttt{policy} sub-directory contains classes implementing various
-memory management policies (such as \xlink{{mark-sweep
-    collection}{\MarkSweepCollectorURL}}, \xlink{{free-list
-    allocation}{\BaseFreeListURL}}, \xlink{{bump-pointer
-    allocation}{\BumpPointerURL}}, etc.).  The \texttt{utility}
+memory management policies (such as \xlink{mark-sweep
+    collection}{\MarkSweepCollectorURL}, \xlink{free-list
+    allocation}{\BaseFreeListURL}, \xlink{bump-pointer
+    allocation}{\BumpPointerURL}, etc.).  The \texttt{utility}
 sub-directory contains classes implementing generic utilities (such as
-\xlink{{load-balancing parallel queues}{\SharedQueueURL}},
-\xlink{{sequential store buffers}{\LocalSSBURL}}, etc.).
+\xlink{load-balancing parallel queues}{\SharedQueueURL},
+\xlink{sequential store buffers}{\LocalSSBURL}, etc.).
 
 \subsection{Choosing a Garbage Collector} \label{ssec:choosinggc}
 
@@ -56,8 +71,9 @@ of the following plans:
 \item \texttt{GenCopy} (classic copying generational),
 \item \texttt{GenMS} (generational with mark-sweep mature space), or
 \item \texttt{CopyMS} (non-generational copy/mark-sweep hybrid)
+\item \texttt{NoGC} (allocation only, no garbage collection)
 \end{itemize}
-The relative performance of these collectors is highly dependant on
+The relative performance of these collectors is highly dependent on
 the application.  \texttt{GenMS} is probably a good starting point as
 it has good performance in a wide range of situations.
 
@@ -70,13 +86,13 @@ from returning to Java code for the duration of that collection.
 \index{garbage collection}
 \index{stop-the-world garbage collection}
 
-All plans must inherit from
-\xlink{{\texttt{BasePlan}}{\BumpPointerURL}}, and all plans in
-this release are ``stop the world'' collectors, so they all inherit
-from \xlink{{\texttt{StopTheWorldGC}}{\StopTheWorldGCRL}}, which
-implements basic stop the world GC functionality.  The two
-generational collectors both inherit from
-\xlink{{\texttt{Generational}}{\GenerationalURL}}, which includes
+All plans inherit from \xlink{\texttt{BasePlan}}{\BumpPointerURL},
+and all plans in this release are ``stop the world'' collectors, so
+they all inherit from
+\xlink{\texttt{StopTheWorldGC}}{\StopTheWorldGCURL}, which implements
+basic stop the world GC functionality.  The two generational
+collectors both inherit from
+\xlink{\texttt{Generational}}{\GenerationalURL}, which includes
 common nursery and write barrier implementations.
 
 All JMTk plans support parallel allocation and collection.  To
@@ -85,13 +101,13 @@ actions are distinguished from \emph{global} actions, which must only
 be performed by a single thread.  Global state is held in each plan's
 class variables, while instance variables reflect thread-local state,
 each \texttt{Plan} instance bound to a
-\xlink{{\texttt{VM\_Processor}}{\VMProcessorURL}} instance.
+\xlink{\texttt{VM\_Processor}}{\VMProcessorURL} instance.
 
 The basic functions of each plan include:
 \begin{itemize}
 \item Identifying a virtual memory layout (using
-  \xlink{{\texttt{VMResource}}{\VMResourceURL}} to, for example, bind
-  semi-spaces or the nursery to particular address ranges).
+  \xlink{\texttt{VMResource}}{\VMResourceURL} to, for example, bind
+  a semi-space or the nursery to a particular address range).
 \item Providing allocation by binding suitable allocators to different
   \texttt{VMResource}s.
 \item Invoking collection when necessary through the use of a
@@ -116,19 +132,69 @@ The basic steps are:
 \begin{enumerate}
 \item Create a new directory within the plan subdirectory, such as
   ``NewGC''.
-\item Add a new configuration in {\tt \$RVM\_ROOT/rvm/config/build}
+\item Add a new configuration in \texttt{\$RVM\_ROOT/rvm/config/build}
   which includes your new directory in the build.  Name it
   appropriately, such as ``BaseBaseNewGC''.
-\item Modify {\tt \$RVM\_ROOT/rvm/bin/jconfigure} to handle the new
+\item Modify \texttt{\$RVM\_ROOT/rvm/bin/jconfigure} to handle the new
   collector sub-directory.
-\item Copy some existing \texttt{Plan.java} file into your new
-  directory, and modify it, choosing one that has similar properties,
-  such as copying or non-copying.
+\item Copy the contents of some existing plan directory into your new
+  directory, and modify the files (\texttt{Plan.java} and
+  \texttt{Header.java}), choosing a starting point that has similar
+  properties, such as copying or non-copying, generational or
+  non-generational.
 \end{enumerate}
 
 \subsection{Policy} \label{sssec:policy}
+
+The \texttt{policy} sub-directory contains implementations of key
+memory management policy choices, such as \xlink{bump-pointer
+    allocation}{\BumpPointerURL} and \xlink{free-list
+    allocation}{\BaseFreeListURL}, \xlink{copying
+    collection}{\CopyURL} and \xlink{mark-sweep
+  collection}{\MarkSweepCollectorURL}.
+
 \subsection{Utility} \label{sssec:utility}
+
+The \texttt{utility} sub-directory contains basic utilities and
+mechanisms, including:
+\begin{itemize}
+\item \xlink{Load-balancing shared parallel
+      queues}{\SharedQueueURL}, which provide load balancing queue
+  management for \xlink{address queues}{\AddressQueueURL} (used by
+  the GC work queue), and \xlink{sequential store
+      buffers}{\LocalSSBURL} (used by some write barriers as a
+  remembering mechanism).
+\item \xlink{Memory resources}{\MemoryResourceURL}, which are the
+  mechanism for space \emph{accounting}.  Memory resources are used
+  for accounting for all space, including space used by meta data
+  (such as queues, etc.).
+\item \xlink{Virtual Memory Resources}{\VMResourceURL} (VM
+  Resources), which are mechanism for virtual memory \emph{mapping}.
+  VM resources are used to associate regions of virtual memory with
+  particular policies or needs (such as the nursery of a generational
+  collector, or a region of memory where meta data resides, etc), and
+  allow multiple allocators to consume each such space. There are a
+  number of different VM resources, for \xlink{monotonic
+      allocation}{\MonotoneVMResourceURL} (used by bump pointer
+  allocators), \xlink{free list allocation}{\FreeListVMResourceURL}
+  (used by free list allocators), etc.
+\item Low level tools for \xlink{\texttt{mmap}ping}{\LazyMmapperURL}
+  memory on demand, and for \xlink{allocating raw
+      memory}{\RawPageAllocatorURL} (for use by meta data, for example).
+\end{itemize}
+
 \subsection{VMInterface} \label{sssec:vminterface}
 
-\end{description}
+The \texttt{vmInterface} sub-directory provides the interface between
+Jikes RVM and JMTk.  The primary interface is provided by
+\xlink{\texttt{VMInterface.java}}{\VMInterfaceURL}.  Key
+VM-dependent mechanisms include:
+
+\begin{itemize}
+\item \xlink{Object}{\ScanObjectURL},
+  \xlink{statics}{\ScanStaticsURL}, and
+  \xlink{thread}{\ScanThreadURL} scanning,
+\item \xlink{GC map iteration}{\VMGCMapIteratorURL}, and
+\item GC \xlink{initiation}{\VMCollectorThreadURL} and \xlink{synchronization}{\VMHandshakeURL}.
+\end{itemize}
 
