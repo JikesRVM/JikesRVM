@@ -32,13 +32,28 @@ and build Jikes RVM for this platform:
 \index{Java Virtual Machine (JVM)}%
 \index{JVM (Java Virtual Machine)}%
 \item Download and install a Java\TMweb{} Virtual Machine if you have not
-already done so.  We currently recommend the Blackdown VM v1.4.1. 
+already done so.  The most well-tested one is the Blackdown VM,
+v1.4.1, with a close runner-up being the Sun VM, v1.4.2.
 For versions of Jikes RVM prior to 2.2.2, we recommend
-the Blackdown VM, v1.3.1.  You can download these VMs from 
+the Blackdown VM, v1.3.1.  You can download the Blackdown VMs from 
 \xlink{{\tt \BlackdownURL}}{\BlackdownURL}, or, if you have SuSE
 Linux~8.2, install the RPMs {\tt Black\-downJa\-va2-JRE} and {\tt java2}. 
 It is possible to use other 1.3 or 1.4 JVMs to build Jikes RVM;
 however, building Jikes RVM is a good way to find bugs in a JVM.\@
+Making a {\tt Full} build of Jikes RVM will make most JVMs exit abnormally.
+
+\index{Kaffe Virtual Machine}%
+Starting with Jikes RVM version 2.3.2 (or the Jikes RVM 2.3.1 CVS head
+as of March 17th, 2004), you can also use the Kaffe open-source (GPL)
+virtual machine to boot Jikes RVM.  You can download Kaffe from
+\xlink{{\tt \KaffeURL}}{\KaffeURL} or, under SuSE Linux, install the
+{\tt kaffe} RPM.
+
+Please see the section XXX
+
+If you want to build under Kaffe, please remember that the Kaffe VM is
+not nearly as well-tested as the sun VM.  So far, we have only 
+
 
 \index{IBM JVM on Linux}%
 JVMs that are known to fail on Linux/x86-32 include the IBM\Rweb{}~1.3.1 and
@@ -68,9 +83,13 @@ time we tried it (August 8, 2003) works fine, and sometimes generates
 better error messages than {\tt jikes-1.18}.
 \end{small}
 
-\item Download Jikes RVM from developerWorks and unpack it.  We shall
-hereinafter call the location of the RVM distribution {\tt
-  \$RVM\_\-ROOT\-/\-rvm}. 
+\item Download Jikes RVM from the \xlink{Jikes RVM
+download page}{\RVMDownloadURL}, and unpack it.   You can either
+  download a tarball via FTP or download directly from CVS.  (Until
+  the 2.3.2 release comes out, the only way to use Kaffe to boot Jikes
+  RVM is to download directly from CVS.)  We shall
+hereinafter call the location of the unpacked RVM distribution {\tt
+  \$RVM\_\-ROOT\-/\-rvm}.   
 
 
 \index{GNU Classpath: Java class libraries}%
@@ -139,6 +158,7 @@ IA-32/AMD\Rweb{} x86-32, installation can be more complicated.  We present a lis
 prerequisites, and then a series of install steps that assumes you
 have those.
 
+\xname{installation_Prerequisites}
 \subsubsection{System Prerequisites}
 
 \newcommand{\SeeBelow}{{\small \em (See Below)}}
