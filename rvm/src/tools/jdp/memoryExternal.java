@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /*
  * This is the implementation for memory that provides access from an external process
  * @author Ton Ngo  2/98

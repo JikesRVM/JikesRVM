@@ -1,7 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/* AIX native implementation for creating and managing process
+/*$Id$
+ * AIX native implementation for creating and managing process
  * @author Ton Ngo   (1/9/98)
  */
 

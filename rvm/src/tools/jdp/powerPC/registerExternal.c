@@ -1,7 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/* AIX native implementation to access the registers of a process
+/*$Id$
+ * AIX native implementation to access the registers of a process
  * under debugging control, based on ptrace()
  * @author Ton Ngo
  */

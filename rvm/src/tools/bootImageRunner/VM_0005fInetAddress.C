@@ -1,3 +1,7 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
 #include <jni.h>
 
 #include <errno.h>
@@ -18,6 +22,10 @@
 
 #include "VM_0005fInetAddress.h"
 
+/**
+ * @author Julian Dolby
+ */
+/*
 #ifdef __i386__
 #define MANGLE32(i) ({ unsigned int r = 0; r |= (i&0xFF)<<24; r |= (i&0xFF00)<<8; r |= (i&0xFF0000)>>8; r |= (i&0xFF000000)>>24; r; })
 #define MANGLE16(i) ({ unsigned short r = 0; r |= (i&0xFF)<<8; r |= (i&0xFF00)>>8; r; })

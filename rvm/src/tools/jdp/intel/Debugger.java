@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  * This class is the front end to the jdp debugger.  
  * A user jdp_console is established to accept commands to debug the program 

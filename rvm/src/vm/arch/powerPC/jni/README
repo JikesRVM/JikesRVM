@@ -6,8 +6,8 @@ $Id$
 Current status of the JNI implementation
 
 Last updated:  9/6/2001
-author Ton Ngo 
-author Steve Smith
+@author Ton Ngo 
+@author Steve Smith
 
 o These JNI library calls are packaged in the library $RVM_BUILD/libjni.a
   They can be called directly from C by linking to this library(use the options  

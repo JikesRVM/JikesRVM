@@ -1,10 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// O/S support services required by the java class libraries.
-// See also: VM_BootRecord.java
-// 20 Apr 1998 Derek Lieber
-//
+//$Id$
+/**
+ * O/S support services required by the java class libraries.
+ * See also: VM_BootRecord.java
+ *
+ * @author Derek Lieber
+ * @date 20 Apr 1998
+ */
 
 // Work around AIX headerfile differences: AIX 4.3 vs earlier releases
 //

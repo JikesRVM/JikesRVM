@@ -1,6 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 import java.util.*;
 import java.lang.reflect.InvocationTargetException;
 import java.io.*;
@@ -31,6 +33,9 @@ import java.io.*;
  * -methodOpt <class> <method> [-|<descrip>] Compile method with opt compiler
  * -methodBase <class> <method> [-|<descrip>] Compile method with base compiler
  * -er <class> <method> [-|<descrip>] {args} Compile with default compiler and execute a method
+ *
+ * @author Stephen Fink
+ * @author David Grove
  */
 class OptTestHarness {
   static boolean EXECUTE_WITH_REFLECTION = false;

@@ -1,7 +1,11 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
+ * @author John Barton
+ * 
  *  Java VM Stack implemented as three parallel stacks,
  *   primitives, objects, and type
  *  

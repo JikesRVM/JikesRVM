@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  * Constants for AIX registers, copied from /usr/include/sys/reg.h
  * @author Ton Ngo

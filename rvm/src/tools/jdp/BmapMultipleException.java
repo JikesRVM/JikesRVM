@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  * Exception for BootMap:  thrown when there are multiple matches in the BootMap 
  * for a name

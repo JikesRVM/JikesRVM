@@ -1,13 +1,15 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /*****************************************************************
  *  Implement the JNI functions that are called without the JNI Environment
  * These are called directly from C so the bottom stack frame is not a
  * Java frame.
  *
- *
- * Ton Ngo, Steve Smith 18/10/00
+ * @author Ton Ngo
+ * @author Steve Smith 
+ * @date 18/10/00
  */
 
 #ifdef _AIX43

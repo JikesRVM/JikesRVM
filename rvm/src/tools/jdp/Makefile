@@ -1,8 +1,11 @@
 #
 # (C) Copyright IBM Corp. 2001
+#$Id$
 #
 # This Makefile is to be called from the jdp script file where the appropriate
 # environment variables are set for the platform
+#
+# @author Ton Ngo
 
 include $(RVM_ROOT)/rvm/Make.rules
 

@@ -1,6 +1,7 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#$Id$
 include			$(JAL_BUILD)/Make.rules
 
 $(DEST):		VM_0005fInetAddress.C VM_0005fInetAddress.h

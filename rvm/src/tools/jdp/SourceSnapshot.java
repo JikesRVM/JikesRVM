@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /*
  * A string buffer that finds and holds a Java source file
  *   understand the Java file convention

@@ -1,7 +1,10 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
+ * @author John Barton
+ *
  * This class is an extension of the interpreter to map an interpreted class 
  * from the debuggee side to the debugger side
  *

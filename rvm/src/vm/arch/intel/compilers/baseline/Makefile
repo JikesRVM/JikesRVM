@@ -3,7 +3,7 @@
 #
 #$Id$
 
-# author Bowen Alpern
+# @author Bowen Alpern
 
 include		$(RVM_ROOT)/Make.rules
 

@@ -1,7 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/* Intel native implementation to access memory of a process
+/*$Id$
+ * Intel native implementation to access memory of a process
  * under debugging control, based on ptrace()
  * @author Ton Ngo 
  */

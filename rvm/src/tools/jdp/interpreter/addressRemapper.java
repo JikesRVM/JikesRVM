@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  * This class captures the type conversion between address and object reference
  * The RVM stores all statics as integer in the JTOC;  it uses this type 

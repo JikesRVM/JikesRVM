@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  * Exception for BootMap:  thrown for methods that do not contain line number map
  * because they were not compiled with -g 

@@ -2,8 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 /*
+ *$Id$ 
  * Begin execution of a VM_Thread "startoff" method.
- * 21 Oct 1998 Derek Lieber
+ * @author Derek Lieber
+ * @date 21 Oct 1998
  *
  * Signature:
  *    void bootThread(int jtoc, int pr, int ti, int fp);

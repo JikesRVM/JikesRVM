@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  * An special type used as a place holder for an uninitialized object
  * This is used to implement the "new" bytecode using reflection

@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  * Constants for Intel registers
  * @author Ton Ngo (3/5/01)

@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 // Preprocess source files that are new or have changed.
 //
 // The timestamp of each input file is compared with that of the corresponding
@@ -23,7 +24,8 @@
 //    //-#else  <optional-comment>
 //    //-#endif <optional-comment>
 //
-// 13 Oct 1999 Derek Lieber
+// @author Derek Lieber
+// @date 13 Oct 1999
 //
 #include <stdio.h>
 #include <errno.h>

@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  *   This class extends the InterpreterBase by adding methods that are specific
  * to environment, e.g. access methods through ptrace for remote process or 

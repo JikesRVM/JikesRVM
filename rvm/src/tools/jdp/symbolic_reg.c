@@ -1,7 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/* This native code is shared between native implementation
+/*$Id$
+ * This native code is shared between native implementation
  * for memory.java and register.java
  * It converts between register number and symbolic name used in JVM
  * @author Ton Ngo (1/22/98)

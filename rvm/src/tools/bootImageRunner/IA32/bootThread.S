@@ -1,6 +1,10 @@
 //
 // (C) Copyright IBM Corp. 2001
 //
+//$Id$
+/**
+ * @author  Derek Lieber
+ */
 /*
  * Called as: bootThread(int ip, int jtoc, int pr, int rvm_sp)
  *

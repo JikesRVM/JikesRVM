@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /*
  * Search local filesystem for java source files.
  * 13 Jun 1997 Derek Lieber

@@ -1,7 +1,8 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-/* Lintel native implementation for creating and managing process
+/*$Id$
+ * Lintel native implementation for creating and managing process
  * @author Ton Ngo   (1/9/98)
  */
 

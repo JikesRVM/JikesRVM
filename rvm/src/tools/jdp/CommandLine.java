@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  * Read one line from the console (standard input) and 
  * return selected words found therein.

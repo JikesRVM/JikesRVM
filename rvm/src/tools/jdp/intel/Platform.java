@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /*
  * This is the native interface to the Intel platform
  * The native code is based on fork() and ptrace()

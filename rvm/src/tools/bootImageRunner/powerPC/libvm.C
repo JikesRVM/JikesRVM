@@ -1,18 +1,21 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// C runtime support for virtual machine.
-//
-// This file deals with loading of the vm boot image into a memory segment and
-// branching to its startoff code. It also deals with interrupt and exception handling.
-// The file "sys.C" contains the o/s support services required by the java class libraries.
-//
-// PowerPC version for AIX and Linux
-//
-// 03 Feb 1998 Derek Lieber
-// 17 Oct 2000 Splitted from the original RunBootImage, contains everything except the 
-//             command line parsing in main
-//
+//$Id$
+/**
+ * C runtime support for virtual machine.
+ *
+ * This file deals with loading of the vm boot image into a memory segment and
+ * branching to its startoff code. It also deals with interrupt and exception handling.
+ * The file "sys.C" contains the o/s support services required by the java class libraries.
+ *
+ * PowerPC version for AIX and Linux
+ *
+ * @author  Derek Lieber
+ * @date    03 Feb 1998
+ * 17 Oct 2000 Splitted from the original RunBootImage, contains everything except the 
+ *             command line parsing in main
+ */
 
 
 #include <stdio.h>

@@ -1,7 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-
+//$Id$
 /**
  * This interface is implemented by any class which
  * renders debugger output for the user

@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /**
  * External implementation for BootMap.
  * Load the method map for the JVM boot image from disk

@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 /*
  *   A string buffer that holds jdp command for macro processing
  *   This can be nested for nested macro

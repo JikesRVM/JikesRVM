@@ -3,7 +3,7 @@
 #
 #$Id$
 
-# author Michael Hind
+# @author Michael Hind
 
 include		$(RVM_ROOT)/rvm/build.Make.rules
 

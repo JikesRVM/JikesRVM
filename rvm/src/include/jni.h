@@ -1,8 +1,12 @@
 /*
- * (c) Copyright IBM Corp. 1998, 1999 All Rights Reserved
- *
+ * (C) Copyright IBM Corp. 1998, 1999 All Rights Reserved
+ */
+//$Id$
+/**
  * Adapted for RVM
- * Ton Ngo, Steve Smith 4/12/00
+ * @author Ton Ngo
+ * @author Steve Smith 
+ * @date 4/12/00
  */
 
 

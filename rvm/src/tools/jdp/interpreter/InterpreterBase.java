@@ -1,12 +1,16 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
+
 /**
  * This interpreter uses a type-safe expression stack and local-variable 
  * storage implementation.
  * Each method call has its own local-variable storage object.
  * The call chain results in a LIFO stack of methods and a deeper and deeper 
  * expression stack
+ *
+ * @author John Barton
  */
 import java.io.*;
 import java.util.*;

@@ -1,6 +1,7 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
+//$Id$
 // Layout of an AIX function linkage area.
 //
 struct AixLinkageLayout

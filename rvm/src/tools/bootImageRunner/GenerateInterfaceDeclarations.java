@@ -1,11 +1,14 @@
 /*
  * (C) Copyright IBM Corp. 2001
  */
-// Emit a header file containing declarations required to access VM data structures from C++.
-// Posix version: AIX PPC, Linux PPC, Linux IA32
-//
-// 20 Apr 1998 Derek Lieber.
-//
+//$Id$
+/**
+ * Emit a header file containing declarations required to access VM data structures from C++.
+ * Posix version: AIX PPC, Linux PPC, Linux IA32
+ *
+ * @author Derek Lieber
+ * @date 20 Apr 1998
+ */
 
 
 import  java.io.*;
