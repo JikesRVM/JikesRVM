@@ -873,11 +873,11 @@ print_header(pm_mode_t mode, int threadapi)
 
 	fprintf(stdout,"*** Configuration :\n");
 	if ( mode.b.user && mode.b.kernel )
-		sprintf(mode_str, "%s", "kernel and user");
+		snprintf(mode_str, sizeof mode_str, "%s", "kernel and user");
 	else if (mode.b.user)
-		sprintf(mode_str, "%s", "user only");
+		snprintf(mode_str, sizeof mode_str, "%s", "user only");
 	else if (mode.b.kernel)
-		sprintf(mode_str, "%s", "kernel only");
+		snprintf(mode_str, sizeof mode_str, "%s", "kernel only");
 
 	fprintf(stdout, "Mode = %s; ", mode_str);
 
@@ -1025,7 +1025,7 @@ print_events(int *ev_list)
 		fprintf(stdout,"PMC%2d     ", pmcid+1);
 		len = strlen(str);
 		str[len] = ' ';
-		sprintf(str+len,"%s","=====     ");
+		snprintf(str+len, sizeof str - len, "%s","=====     ");
 	}
 	fprintf(stdout,"\n%s\n", str);	
 }

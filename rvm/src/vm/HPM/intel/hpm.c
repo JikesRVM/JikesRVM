@@ -807,17 +807,15 @@ hpm_print_mygroup()
 void
 hpm_print_header(int mode, int threadapi)
 {
-  char mode_str[20];
-  
-  fprintf(stderr,"*** Configuration :\n");
+  fprintf(stderr,"*** Configuration :\n"
+          "Mode= ");
   if ( mode==PAPI_DOM_ALL )
-    sprintf(mode_str, "%s", "kernel and user");
+    fprintf(stderr, "kernel and user");
   else if (mode==PAPI_DOM_USER)
-    sprintf(mode_str, "%s", "user only");
+    fprintf(stderr, "user only");
   else if (mode==PAPI_DOM_KERNEL)
-    sprintf(mode_str, "%s", "kernel only");
-  
-  fprintf(stderr, "Mode = %s;\n", mode_str);
+    fprintf(stderr, "kernel only");
+  fprintf(stderr, ";\n");
 }
 
 /*
@@ -884,12 +882,14 @@ print_events(int *ev_list)
   
   fprintf(stdout,"\n*** Results :\n");
   
+  /** XXX This code will not print correct results if there are more than
+      100/9 events. */
   str[0] = '\0';
   for (pmcid=0; pmcid<set_program.n_events; pmcid++) {
     fprintf(stdout,"PMC%2d     ", pmcid+1);
     len = strlen(str);
     str[len] = ' ';
-    sprintf(str+len,"%s","=====     ");
+    snprintf(str+len, str - len, "%s","=====     ");
   }
   fprintf(stdout,"\n%s\n", str);	
   return OK_CODE;

@@ -3435,9 +3435,9 @@ extern "C" void
 gcspyDriverSetTileName (gcspy_gc_driver_t *driver, int tile, VM_Address start, VM_Address end) {
   char name[256];
 #ifdef RVM_FOR_64_ADDR
-  sprintf(name, "   [%016llx-%016llx)", start, end);
+  snprintf(name, sizeof name, "   [%016llx-%016llx)", start, end);
 #else
-  sprintf(name, "   [%08x-%08x)", start, end); 
+  snprintf(name, sizeof name, "   [%08x-%08x)", start, end); 
 #endif
   if (GCSPY_TRACE > 1)
     fprintf(SysTraceFile, "gcspyDriverSetTileName: driver=%x, tile %d %s\n", driver, tile, name);
