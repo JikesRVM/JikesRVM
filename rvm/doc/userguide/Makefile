@@ -54,7 +54,7 @@ TEX_FILES = $(INPUT_FILES) $(GEN_INPUTS)
 
 TEX_GEN_FILES = userguide.aux userguide.bbl userguide.blg userguide.dvi userguide.log userguide.lof userguide.toc userguide.idx userguide.ilg userguide.ind adaptive_options.aux opt_options.aux
 
-HTML_GRAPHICS = object.gif jtoc.gif stack.gif arch-AOSOverview.gif
+HTML_GRAPHICS = jtoc.gif stack.gif arch-AOSOverview.gif
 
 # do not add more white spaces to the following line
 NAV_GIFS=blank.gif next.gif previous.gif up.gif
