@@ -52,7 +52,13 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 
     // Ok, the size looks good, attempt to do it.
     if (needsGuard) {
+
+      if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
+	  return OPT_InlineDecision.NO("Forbidden speculation");
+      }
+
       if (preEx) {
+
 	if (OPT_ClassLoadingDependencyManager.TRACE || 
 	    OPT_ClassLoadingDependencyManager.DEBUG) {
 	  VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "
@@ -63,7 +69,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 	return OPT_InlineDecision.YES(callee, "PREEX_INLINE passed size checks");
       } else if (opts.GUARDED_INLINE && isCurrentlyFinal(callee, !opts.guardWithClassTest())) {
 	return OPT_InlineDecision.guardedYES(callee, 
-					     chooseGuard(caller, callee, state, true), 
+					     chooseGuard(caller, callee, callee, state, true), 
 					     "static guarded inline passsed size checks");
       }
       return OPT_InlineDecision.NO(callee, "non-final virtual method");
@@ -89,8 +95,13 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     if (!opts.GUARDED_INLINE_INTERFACE)
       return OPT_InlineDecision.NO("invokeinterface");
       
-    callee = OPT_InterfaceHierarchy.getUniqueImplementation(callee);
-    if (callee != null) {
+    if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
+	return OPT_InlineDecision.NO("Forbidden speculation");
+    }
+
+    VM_Method singleImpl = 
+	OPT_InterfaceHierarchy.getUniqueImplementation(callee);
+    if (singleImpl != null) {
       // Don't allow the static inline oracle to inline recursive calls.
       // It isn't smart enough to do this effectively.
       OPT_InlineSequence seq = state.getSequence();
@@ -99,19 +110,19 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
       }
 
       // got a unique target in the current hierarchy. Attempt to inline it.
-      if (!legalToInline(caller,callee) || !hasBody(callee))
+      if (!legalToInline(caller,singleImpl) || !hasBody(singleImpl))
         return OPT_InlineDecision.NO("Illegal interface inline");
       
-      int inlinedSizeEstimate = inlinedSizeEstimate(callee, state);
+      int inlinedSizeEstimate = inlinedSizeEstimate(singleImpl, state);
       int cost = inliningActionCost(inlinedSizeEstimate, true, false, opts);
 
-      OPT_InlineDecision sizeCheck = sizeHeuristics(caller, callee, state, cost);
+      OPT_InlineDecision sizeCheck = sizeHeuristics(caller, singleImpl, state, cost);
       if (sizeCheck != null) return sizeCheck;
 
       // passed size heuristics. Do it.
       OPT_InlineDecision d = 
 	OPT_InlineDecision.guardedYES(callee,
-				      chooseGuard(caller, callee, state, false), 
+				      chooseGuard(caller, singleImpl, callee, state, false), 
 				      "static GUARDED interface inline passsed size checks");
       return d;
     } else {
@@ -161,10 +172,15 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     OPT_InlineDecision sizeCheck = sizeHeuristics(caller, singleImpl, state, cost);
     if (sizeCheck != null) return sizeCheck;
 
+    if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
+	return OPT_InlineDecision.NO("Forbidden speculation");
+    }
+
     // Ok, the size looks good, attempt to do it.
     if (preEx) {
       if (OPT_ClassLoadingDependencyManager.TRACE || 
 	  OPT_ClassLoadingDependencyManager.DEBUG) {
+
 	VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "
 					+ singleImpl + " into " + caller + "\n");
       }
@@ -175,7 +191,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
       return OPT_InlineDecision.YES(singleImpl, "PREEX_INLINE passed size checks");
     } else if (opts.GUARDED_INLINE && isCurrentlyFinal(singleImpl, !opts.guardWithClassTest())) {
       return OPT_InlineDecision.guardedYES(singleImpl, 
-					   chooseGuard(caller, singleImpl, state, true), 
+					   chooseGuard(caller, singleImpl, callee, state, true), 
 					   "static guarded inline passsed size checks");
     }
     return OPT_InlineDecision.NO(callee, "abstract method with multiple implementations");

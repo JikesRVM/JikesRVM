@@ -30,6 +30,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
     if (!state.getOptions().INLINE) {
       return OPT_InlineDecision.NO("inlining not enabled");
     }
+
     VM_Method caller = state.getMethod();
     VM_Method callee = state.obtainTarget();
 
@@ -117,6 +118,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
    * @param codePatchSupported can we use code patching at this call site?
    */
   protected byte chooseGuard(VM_Method caller,
+			     VM_Method singleImpl,
 			     VM_Method callee,
 			     OPT_CompilationState state,
 			     boolean codePatchSupported) {
@@ -126,7 +128,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
 	if (OPT_ClassLoadingDependencyManager.TRACE || 
 	    OPT_ClassLoadingDependencyManager.DEBUG) {
 	  VM_Class.OptCLDepManager.report("CODE PATCH: Inlined "
-					  + callee + " into " + caller + "\n");
+					  + singleImpl + " into " + caller + "\n");
 	}
 	VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
 							    state.getCompiledMethod());
@@ -136,7 +138,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
     }
 
     if (guard == OPT_Options.IG_METHOD_TEST && 
-	callee.getDeclaringClass().isFinal()) {
+	singleImpl.getDeclaringClass().isFinal()) {
       // class test is more efficient and just as effective
       guard = OPT_Options.IG_CLASS_TEST;
     }
