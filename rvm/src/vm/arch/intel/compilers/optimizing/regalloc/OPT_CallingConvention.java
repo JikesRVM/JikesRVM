@@ -57,26 +57,17 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     boolean isSysCall = call.operator() == IA32_SYSCALL;
 
-    // -1. Clear the floating-point stack if dirty.
-    if (ir.options.fclearWithFNINIT()) {
-      if (ir.hasFloatingPoint() && call.operator != CALL_SAVE_VOLATILE) {
-        call.insertBefore(MIR_Empty.create(IA32_FNINIT));
-      }
-    }
-    
     // 0. Handle the parameters
     int parameterBytes = isSysCall ? expandParametersToSysCall(call,ir) : 
       expandParametersToCall(call,ir);
 
     // 1. Clear the floating-point stack if dirty.
-    if (!ir.options.fclearWithFNINIT() && call.operator != CALL_SAVE_VOLATILE) {
-      if (ir.hasFloatingPoint() && call.operator != CALL_SAVE_VOLATILE) {
-        int FPRRegisterParams= countFPRParams(call);
-        FPRRegisterParams = Math.min(FPRRegisterParams, 
-                                     phys.getNumberOfFPRParams());
-        call.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR,
-                                                I(FPRRegisterParams)));
-      }
+    if (call.operator != CALL_SAVE_VOLATILE) {
+      int FPRRegisterParams= countFPRParams(call);
+      FPRRegisterParams = Math.min(FPRRegisterParams, 
+				   phys.getNumberOfFPRParams());
+      call.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR,
+					      I(FPRRegisterParams)));
     }
     
     // 2. Move the return value into a register
@@ -111,13 +102,6 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
   private static void returnExpand(OPT_Instruction ret, OPT_IR ir) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
-    // Clear floating-point stack if dirty
-    if (ir.options.fclearWithFNINIT()) {
-      if (ir.hasFloatingPoint()) {
-        ret.insertBefore(MIR_Empty.create(IA32_FNINIT));
-      }
-    }
-    
     if (MIR_Return.hasVal(ret)) {
       OPT_Operand symb1 = MIR_Return.getClearVal(ret);
       MIR_Return.setVal(ret, null);
@@ -146,19 +130,15 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
     }
 
     // Clear the floating-point stack if dirty.
-    if (!ir.options.fclearWithFNINIT()) {
-      if (ir.hasFloatingPoint()) {
-        int nSave=0;
-        if (MIR_Return.hasVal(ret)) {
-          OPT_Operand symb1 = MIR_Return.getClearVal(ret);
-          VM_Type type = symb1.getType();
-          if (type.isFloatType() || type.isDoubleType()) {
-            nSave=1;
-          }
-        }
-        ret.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR,I(nSave)));
+    int nSave=0;
+    if (MIR_Return.hasVal(ret)) {
+      OPT_Operand symb1 = MIR_Return.getClearVal(ret);
+      VM_Type type = symb1.getType();
+      if (type.isFloatType() || type.isDoubleType()) {
+	nSave=1;
       }
     }
+    ret.insertBefore(MIR_UnaryNoRes.create(IA32_FCLEAR,I(nSave)));
 
     // Set the first 'Val' in the return instruction to hold an integer
     // constant which is the number of words to pop from the stack while 
@@ -552,6 +532,7 @@ final class OPT_CallingConvention extends OPT_RVMIRTools
     // count the number of FPR params in a pre-pass
     int FPRRegisterParams= countFPRParamsInPrologue(p);
     FPRRegisterParams = Math.min(FPRRegisterParams, phys.getNumberOfFPRParams());
+    ir.MIRInfo.fpStackHeight = Math.max(ir.MIRInfo.fpStackHeight, FPRRegisterParams);
 
     // deal with each parameter
     for (OPT_OperandEnumeration e = p.getDefs(); e.hasMoreElements(); ) {
