@@ -1367,7 +1367,12 @@ function emitImageLinker
    # dynamically load remaining portions of the system).
       
    print "   cd $CLASSES_DIRECTORY_STR"
-   print "   find . -name '*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
+   if (( RVM_WITH_ALL_CLASSES )); then
+     print "   find . -name '*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
+   else
+     print "   find . -name 'VM*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
+     print "   find ./com/ibm/JikesRVM/librarySupport -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
+   fi
    print "   fgrep -v $EXCLUDED_CLASSES_STR $PRIMORDIAL_CLASSES_STR.1 > $PRIMORDIAL_CLASSES_STR.2"
    print "   sed 's@./\(.*\)\.class@L\1;@' $PRIMORDIAL_CLASSES_STR.2 > $PRIMORDIAL_CLASSES_STR"
    #print "   rm $PRIMORDIAL_CLASSES_STR.1"
