@@ -3363,11 +3363,6 @@ public class VM_Compiler implements VM_BaselineConstants {
       return;
     }
     
-    if (methodName == VM_MagicNames.setFramePointer) {
-      asm.emitPOP_Reg(FP);
-      return;
-    }
-
     if (methodName == VM_MagicNames.getCallerFramePointer) {
       asm.emitPOP_Reg(T0);                                       // Callee FP
       asm.emitPUSH_RegDisp(T0, STACKFRAME_FRAME_POINTER_OFFSET); // Caller FP

@@ -60,20 +60,6 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
 					      new OPT_LocationOperand(f), 
 					      new OPT_TrueGuardOperand()));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.setFramePointer) {
-      gc.allocFrame = true;
-      VM_Field f = (VM_Field)VM.getMember("LVM_Processor;", "framePointer", "I");
-      OPT_RegisterOperand pr = null;
-      if (VM.dedicatedESI) {
-        pr = OPT_IRTools.R(phys.getESI());
-      } else {
-        pr = gc.temps.makeTemp(OPT_ClassLoaderProxy.VM_ProcessorType);
-        bc2ir.appendInstruction(Nullary.create(GET_CURRENT_PROCESSOR,pr)); 
-      }
-      bc2ir.appendInstruction(PutField.create(PUTFIELD, bc2ir.popInt(),
-                                              pr.copy(), 
-					      new OPT_LocationOperand(f), 
-					      new OPT_TrueGuardOperand()));
     } else if (methodName == VM_MagicNames.getJTOC || 
 	       methodName == VM_MagicNames.getTocPointer) {
       VM_Type t = (methodName == VM_MagicNames.getJTOC ? OPT_ClassLoaderProxy.IntArrayType : VM_Type.IntType);

@@ -27,11 +27,6 @@ public class VM_Magic {
     return -1;
   }
 
-  /** Set contents of stack frame pointer register. */
-  public static void setFramePointer(int fp) {
-    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-
   /** Get contents of "jtoc" register. */
   public static int getTocPointer() {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler

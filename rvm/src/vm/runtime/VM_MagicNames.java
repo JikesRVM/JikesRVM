@@ -35,7 +35,6 @@ class VM_MagicNames {
   static VM_Atom invokeMethodReturningObject;
 
   static VM_Atom getFramePointer;          
-  static VM_Atom setFramePointer; 
   static VM_Atom getTocPointer;            
   static VM_Atom getJTOC;
   static VM_Atom getThreadId;
@@ -154,7 +153,6 @@ class VM_MagicNames {
     invokeMethodReturningObject   = VM_Atom.findOrCreateAsciiAtom("invokeMethodReturningObject");
 
     getFramePointer               = VM_Atom.findOrCreateAsciiAtom("getFramePointer");
-    setFramePointer               = VM_Atom.findOrCreateAsciiAtom("setFramePointer");
     getTocPointer                 = VM_Atom.findOrCreateAsciiAtom("getTocPointer");
     getJTOC                       = VM_Atom.findOrCreateAsciiAtom("getJTOC");
     getThreadId                   = VM_Atom.findOrCreateAsciiAtom("getThreadId");

@@ -172,14 +172,6 @@ class VM_MagicCompiler implements VM_BaselineConstants,
          return;
          }
 
-      /* added for rewriting */
-      if (methodName == VM_MagicNames.setFramePointer)
-         {
-         asm.emitL  (FP, 0, SP); // FP frame pointer register
-         asm.emitCAL(SP, 4, SP); // pop frame pointer
-         return;
-         }
-
       if (methodName == VM_MagicNames.getCallerFramePointer)
          {
          asm.emitL (T0, 0, SP);                               // pop  frame pointer of callee frame
