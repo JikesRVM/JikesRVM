@@ -1976,32 +1976,72 @@ sysDoubleRemainder(double a, double b)
 }
 #endif
 
-// Used to parse command line arguments that are
-// doubles and floats early in booting before it
-// is safe to call Float.valueOf or Double.valueOf
+/* Used to parse command line arguments that are
+   doubles and floats early in booting before it
+   is safe to call Float.valueOf or Double.valueOf.   This is only used in
+   parsing command-line arguments, so we can safely print error messages that
+   assume the user specified this number as part of a command-line argument. */
 extern "C" float
-sysPrimitiveParseFloat(char * buf)
+sysPrimitiveParseFloat(const char * buf)
 {
-    float a;
-    if (sscanf(buf, "%f", &a) != 1) {
-        fprintf(SysErrorFile, "%s: invalid float/double value %s\n", Me, buf);
-        exit(EXIT_STATUS_SYSCALL_TROUBLE);
+    if (! buf[0] ) {
+	fprintf(SysErrorFile, "%s: Got an empty string as a command-line"
+		" argument that is supposed to be a"
+		" floating-point number\n", Me);
+        exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
-    return a;
+    char *end;			// This prototype is kinda broken.  It really
+				// should be char *.  But isn't.
+    errno = 0;
+    float f = strtof(buf, &end);
+    if (errno) {
+	fprintf(SysErrorFile, "%s: Trouble while converting the"
+		" command-line argument \"%s\" to a"
+		" floating-point number: %s\n", Me, buf, strerror(errno));
+	exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    if (*end != '\0') {
+        fprintf(SysErrorFile, "%s: Got a command-line argument that"
+		" is supposed to be a floating-point value,"
+		" but isn't: %s\n", Me, buf);
+        exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    return f;
 }
 
 // Used to parse command line arguments that are
 // ints and bytes early in booting before it
 // is safe to call Integer.parseInt and Byte.parseByte
+// This is only used in
+// parsing command-line arguments, so we can safely print error messages that
+// assume the user specified this number as part of a command-line argument.
 extern "C" int
-sysPrimitiveParseInt(char * buf)
+sysPrimitiveParseInt(const char * buf)
 {
-    int a;
-    if (sscanf(buf, "%d", &a) != 1) {
-        fprintf(SysErrorFile, "%s: invalid byte/int value %s\n", Me, buf);
-        exit(EXIT_STATUS_SYSCALL_TROUBLE);
+    if (! buf[0] ) {
+	fprintf(SysErrorFile, "%s: Got an empty string as a command-line"
+		" argument that is supposed to be an integer\n", Me);
+        exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
-    return a;
+    char *end;
+    errno = 0;
+    long l = strtol(buf, &end, 0);
+    if (errno) {
+	fprintf(SysErrorFile, "%s: Trouble while converting the"
+		" command-line argument \"%s\" to an integer: %s\n",
+		Me, buf, strerror(errno));
+	exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    if (*end != '\0') {
+        fprintf(SysErrorFile, "%s: Got a command-line argument that is supposed to be an integer, but isn't: %s\n", Me, buf);
+        exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    int32_t ret = l;
+    if ((long) ret != l) {
+        fprintf(SysErrorFile, "%s: Got a command-line argument that is supposed to be an integer, but its value does not fit into a Java 32-bit integer: %s\n", Me, buf);
+        exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
+    return ret;
 }
 
 //-------------------//
@@ -2011,7 +2051,7 @@ sysPrimitiveParseInt(char * buf)
 // Memory to memory copy.
 //
 extern "C" void
-sysCopy(void *dst, void *src, int cnt)
+sysCopy(void *dst, const void *src, int cnt)
 {
     memcpy(dst, src, cnt);
 }
