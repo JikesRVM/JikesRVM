@@ -1617,8 +1617,10 @@ EOF
     # For self-booting with Jikes RVM (work in progress)
     [[ ! ${DONOR_RVM_ROOT-} ]] || echo "export DONOR_RVM_ROOT=$DONOR_RVM_ROOT"
     [[ ! ${DONOR_RVM_BUILD-} ]] || echo "export DONOR_RVM_BUILD=$DONOR_RVM_BUILD"
-    echo ""
-    [[ ! $OBJECT_MODE ]] || echo "export OBJECT_MODE=$OBJECT_MODE   # Horrible kludge for AIX"
+    if [[ ${OBJECT_MODE-} ]]; then
+	echo ""
+	echo "export OBJECT_MODE=$OBJECT_MODE   # Horrible kludge for AIX"
+    fi
 }
 
 #
