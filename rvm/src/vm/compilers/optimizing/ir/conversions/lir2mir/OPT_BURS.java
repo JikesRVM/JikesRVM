@@ -78,7 +78,7 @@ final class OPT_BURS implements OPT_Operators {
    */
   public void prepareForBlock (OPT_BasicBlock bb) {
     if (DEBUG) {
-      VM.sysWrite("FINAL LIR\n");
+      VM.sysWrite("BLOCK\n");
       bb.printExtended();
     }
     lastInstr = bb.firstInstruction();
@@ -91,10 +91,6 @@ final class OPT_BURS implements OPT_Operators {
   public void finalizeBlock (OPT_BasicBlock bb) {
     lastInstr.linkWithNext(bb.lastInstruction());
     lastInstr = null;
-    if (DEBUG) {
-      VM.sysWrite("INITIAL MIR\n");
-      bb.printExtended();
-    }
   }
 
 
@@ -278,19 +274,17 @@ final class OPT_BURS implements OPT_Operators {
       OPT_SpaceEffGraphNode src = e.fromNode();
       OPT_SpaceEffGraphNode dst = e.toNode();
       OPT_BURS_TreeNode n = (OPT_BURS_TreeNode)src.scratchObject;
-      if (n.isTreeRoot()) continue; // some other problem edge already forced it
+      if (n.isTreeRoot()) continue; // some other problem edge already forced iut
       OPT_SpaceEffGraphNode srcRoot = src.nextSorted;
       OPT_SpaceEffGraphNode dstRoot = dst.nextSorted;
-      if (srcRoot == dstRoot && srcRoot != dst) {
+      if (srcRoot == dstRoot) {
 	// potential for intra-tree cycle
-	if (!trueEdgeRedundant(src, dst, srcRoot)) {
-	  if (DEBUG) {
-	    VM.sysWrite("Potential intra-tree cycle with edge "+e+
-			" forcing "+n+" to be a tree root\n");
-	  }
-	  makeTreeRoot(n);
-	  problemEdgePrep(n, n.dg_node);
+	if (DEBUG) {
+	  VM.sysWrite("Potential intra-tree cycle with edge "+e+
+		      " forcing "+n+" to be a tree root\n");
 	}
+	makeTreeRoot(n);
+	problemEdgePrep(n, n.dg_node);
       } else {
 	// potential for inter-tree cycle
 	if (reachableRoot(dstRoot, srcRoot, ++searchnum)) {
@@ -304,26 +298,6 @@ final class OPT_BURS implements OPT_Operators {
       }
     }
   }
-  // routine to identify harmless intra-tree edges.
-  // if the edge is redundant wrt regTrue edges, then it
-  // can be ignored.
-  private boolean trueEdgeRedundant(OPT_SpaceEffGraphNode current,
-				    OPT_SpaceEffGraphNode goal,
-				    OPT_SpaceEffGraphNode root) {
-    if (current == goal) return true;
-    if (current.nextSorted != root) return false; // don't cross tree boundaries
-    for (OPT_SpaceEffGraphEdge out = current.firstOutEdge();
-	 out != null;
-	 out = out.getNextOut()) {
-      if (OPT_DepGraphEdge.isRegTrue(out) && 
-	  trueEdgeRedundant(out.toNode(), goal, root)) {
-	return true;
-      }
-    }
-    return false;
-  }
-  // routine to identify harmless inter-tree edges.
-  // Is goal reachable via any edge in the current tree?
   private boolean reachableRoot(OPT_SpaceEffGraphNode current,
 				OPT_SpaceEffGraphNode goal,
 				int searchnum) {
@@ -364,6 +338,7 @@ final class OPT_BURS implements OPT_Operators {
    */
   private void orderTrees(OPT_DepGraph dg) {
     // Initialize tree root field for all nodes
+    if (DEBUG) VM.sysWrite("Setting tree roots\n");
     for (int i=0; i<numTreeRoots; i++) {
       OPT_BURS_TreeNode n = treeRoots[i];
       n.dg_node.scratch = 0; 
@@ -398,8 +373,13 @@ final class OPT_BURS implements OPT_Operators {
   private void labelTrees(OPT_BURS_STATE burs) {
     for (int i=0; i<numTreeRoots; i++) {
       OPT_BURS_TreeNode n = treeRoots[i];
+      if (DEBUG) {
+	VM.sysWrite("START OF PROCESSING FOR TREE #" + (i) + ": ");
+	OPT_BURS_STATE.dumpTree(n);
+      }
       burs.label(n);
       OPT_BURS_STATE.mark(n, /* goalnt */(byte)1);
+      if (DEBUG) VM.sysWrite("\nEND OF PROCESSING FOR TREE #" + i + "\n");
     }
   }
 
@@ -425,12 +405,10 @@ final class OPT_BURS implements OPT_Operators {
       OPT_BURS_TreeNode k = readySetRemove();
       // Invoke burs.code on the supernodes of k in a post order walk of the
       // tree (thus code for children is emited before code for the parent).
-      if (DEBUG) {
-	VM.sysWrite("PROCESSING TREE ROOTED AT "+ k.dg_node + "\n");
-	OPT_BURS_STATE.dumpTree(k);
-      }
+      if (DEBUG) VM.sysWrite("PROCESSING FOR TREEROOT #" + k.dg_node + "\n");
       numTreeRoots--;
       generateTree(k, burs);
+      if (DEBUG) VM.sysWrite("END OF PROCESSING FOR TREEROOT #\n");
     }  
     if (numTreeRoots != 0)
       throw new OPT_OptimizingCompilerException("BURS", 
@@ -483,8 +461,12 @@ final class OPT_BURS implements OPT_Operators {
       int nonterminal = k.getNonTerminal();
       int rule = k.rule(nonterminal);
       burs.code(k, nonterminal, rule);
-      if (DEBUG) VM.sysWrite(k + " " + OPT_BURS_Debug.string[rule] + "\n");
-    }
+      if (DEBUG) {
+        VM.sysWrite("PROCESSING FOR SUPERNODE #" + k.dg_node + "\n");
+        VM.sysWrite(k + " " + OPT_BURS_Debug.string[rule] + "\n");
+        VM.sysWrite("END OF PROCESSING FOR SUPERNODE #\n");
+      }
+    }      
 
     OPT_DepGraphNode dgnode = k.dg_node;
     if (dgnode != null) {

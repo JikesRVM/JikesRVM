@@ -3272,12 +3272,10 @@ tib));
 
   VM.sysWrite("  Counts of live objects by type \n");
   int  nextId = VM_TypeDictionary.getNumValues();
-  int  totalObjects = 0, totalSpace = 0;
   for (int i = 1; i < nextId; i++) {
     VM_Type type = VM_TypeDictionary.getValue(i);
     if (type.liveCount == 0) continue;
     VM.sysWrite(type.liveCount, false);
-    totalObjects += type.liveCount;
     if (type.liveCount < 10) VM.sysWrite   ("      ");
     else if (type.liveCount < 100) VM.sysWrite ("     ");
     else if (type.liveCount < 1000) VM.sysWrite ("    ");
@@ -3288,24 +3286,15 @@ tib));
       int size = type.asClass().getInstanceSize();
       VM.sysWrite ("  space is ");
       VM.sysWrite(size * type.liveCount, false);
-      totalSpace += size * type.liveCount;
     }
     else {
       VM.sysWrite("   space is ");
       VM.sysWrite(type.liveSpace, false);
-      totalSpace += type.liveSpace;
     }
     VM.sysWrite("\n");
     type.liveCount = 0;  // reset
     type.liveSpace = 0;  // reset
   }
-  VM.sysWrite(totalObjects, false);
-  if (totalObjects < 100) VM.sysWrite ("     ");
-  else if (totalObjects < 1000) VM.sysWrite ("    ");
-  else if (totalObjects < 10000) VM.sysWrite ("   ");
-  else if (totalObjects < 100000) VM.sysWrite ("  ");
-  else VM.sysWrite (" ");
-  VM.sysWrite ("Live objects   space is "+totalSpace+"\n");
   VM.sysWrite("  End of counts of live objects by type \n");
   }
 
