@@ -257,19 +257,16 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Copy a scalar object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
-                                  int numBytes, VM_Class type, 
-                                  VM_Word availBitsWord) {
-    return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type,
-                                    availBitsWord);
+                                  int numBytes, VM_Class type) {
+    return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type);
   }
 
   /**
    * Copy an array object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
-                                  int numBytes, VM_Array type,
-                                  VM_Word availBitsWord) {
-    return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type, availBitsWord);
+                                  int numBytes, VM_Array type) {
+    return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type);
   }
 
   /**
@@ -562,9 +559,9 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param tib the type information block
    * @param size number of bytes of raw storage allocated.
    */
-  public static Object initializeScalar(VM_Address ptr, Object[] tib, int size) throws VM_PragmaInline {
+  public static Object initializeScalar(VM_Address ptr, Object[] tib, int size)
+    throws VM_PragmaInline {
     Object ref = VM_JavaHeader.initializeScalarHeader(ptr, tib, size);
-    VM_AllocatorHeader.initializeHeader(ref, tib, size, true);
     VM_MiscHeader.initializeHeader(ref, tib, size, true);
     setTIB(ref, tib);
     return ref;
@@ -604,7 +601,6 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    */
   public static Object initializeArray(VM_Address ptr, Object[] tib, int numElems, int size) throws VM_PragmaInline {
     Object ref = VM_JavaHeader.initializeArrayHeader(ptr, tib, size);
-    VM_AllocatorHeader.initializeHeader(ref, tib, size, false);
     VM_MiscHeader.initializeHeader(ref, tib, size, false);
     setTIB(ref, tib);
     setArrayLength(ref, numElems);

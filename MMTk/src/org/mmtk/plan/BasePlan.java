@@ -109,6 +109,7 @@ public abstract class BasePlan
   public static final byte META_SPACE = 125;
   public static final byte IMMORTAL_SPACE = 124;
   public static final byte GCSPY_SPACE = IMMORTAL_SPACE;
+  public static final byte LOS_SPACE = 123;
 
   // Statistics
   public static Timer totalTime;
@@ -118,7 +119,7 @@ public abstract class BasePlan
   // Miscellaneous constants
   public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
   protected static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  protected static final int DEFAULT_LOS_SIZE_THRESHOLD = 16 * 1024;
+  protected static final int LOS_SIZE_THRESHOLD = 8 * 1024;
   public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
   public static final boolean GATHER_MARK_CONS_STATS = false;
@@ -223,6 +224,22 @@ public abstract class BasePlan
    *
    * Allocation
    */
+
+  /**
+   * Run-time check of the allocator to use for a given allocation
+   * 
+   * @param bytes The number of bytes to be allocated
+   * @param isScalar True if the object occupying this space will be a scalar
+   * @param allocator The allocator statically assigned to this allocation
+   * @return The allocator dyncamically assigned to this allocation
+   */
+  public static int checkAllocator(int bytes, boolean isScalar, int allocator) 
+    throws VM_PragmaInline {
+    if (allocator == Plan.DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD)
+      return LOS_SPACE;
+    else 
+      return allocator;
+  }
 
   protected byte getSpaceFromAllocator(Allocator a) {
     if (a == immortal) return IMMORTAL_SPACE;

@@ -227,6 +227,20 @@ public class Plan extends Generational implements VM_Uninterruptible {
     return matureSpace.traceObject(obj, VMResource.getTag(addr));
   }
 
+  /**  
+   * Perform any post-copy actions.  In this case set the mature space
+   * mark bit.
+   *
+   * @param ref The newly allocated object
+   * @param tib The TIB of the newly allocated object
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param isScalar True if the object occupying this space will be a scalar
+   */
+  public final void postCopy(VM_Address ref, Object[] tib, int size,
+                             boolean isScalar) throws VM_PragmaInline {
+    HybridHeader.writeMarkBit(ref, matureSpace.getInitialHeaderValue());
+  }
+
   /**
    * Forward the mature space object referred to by a given address
    * and update the address if necessary.  This <i>does not</i>
@@ -293,24 +307,6 @@ public class Plan extends Generational implements VM_Uninterruptible {
         spaceFailure(obj, space, "Plan.isLive()");
       return false;
     }
-  }
-
-  /**
-   * Reset the GC bits in the header word of an object that has just
-   * been copied.  This may, for example, involve clearing a write
-   * barrier bit.  In this case the word has to be initialized for the
-   * mark-sweep collector.
-   *
-   * @param fromObj The original (uncopied) object
-   * @param forwardingWord The integer containing the GC bits, which is the GC word
-   * of the original object, and typically encodes some GC state as
-   * well as pointing to the copied object.
-   * @param bytes The size of the copied object in bytes.
-   * @return The updated GC word (in this case unchanged).
-   */
-  public final static VM_Word resetGCBitsForCopy(VM_Address fromObj,
-					     VM_Word forwardingWord, int bytes) {
-    return forwardingWord.and(HybridHeader.GC_BITS_MASK.not()).or(matureSpace.getInitialHeaderValue());
   }
 
   /****************************************************************************

@@ -89,7 +89,7 @@ public final class CopySpace extends BasePolicy
 
     // We are the designated copier
     //
-    VM_Address newObject = VM_Interface.copy(object, forwardingPtr);
+    VM_Address newObject = VM_Interface.copy(object);
     CopyingHeader.setForwardingPointer(object, newObject);
     if (scan) {
       Plan.enqueue(newObject);       // Scan it later

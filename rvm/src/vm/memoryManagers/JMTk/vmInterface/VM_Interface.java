@@ -857,93 +857,63 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
 
   /**
    * Copy an object using a plan's allocCopy to get space and install
-   * the forwarding pointer.  On entry, <code>fromObj</code> must have
+   * the forwarding pointer.  On entry, <code>from</code> must have
    * been reserved for copying by the caller.  This method calls the
-   * plan's <code>PostCopy</code> method after making the copy.
+   * plan's <code>getStatusForCopy()</code> method to establish a new
+   * status word for the copied object and <code>postCopy()</code> to
+   * allow the plan to perform any post copy actions.
    *
-   * @param fromObj the address of the object to be copied
-   * @param forwardingPtr the value the forwarding pointer in the copy
-   * is to be set to.  This value is first modified by the plan's
-   * <code>resetGCBitsForCopy</code> method.  AJG: Not sure why this
-   * value passed in, it seems that it could be simply copied from the
-   * old object.
+   * @param from the address of the object to be copied
    * @return the address of the new object
    */
-  public static VM_Address copy(VM_Address fromObj, VM_Word forwardingPtr)
+  public static VM_Address copy(VM_Address from)
     throws VM_PragmaInline {
-    Object[] tib = VM_ObjectModel.getTIB(fromObj);
-
+    Object[] tib = VM_ObjectModel.getTIB(from);
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
+    
+    if (type.isClassType())
+      return copyScalar(from, tib, type.asClass());
+    else
+      return copyArray(from, tib, type.asArray());
+  }
+
+  private static VM_Address copyScalar(VM_Address from, Object[] tib,
+				       VM_Class type)
+    throws VM_PragmaInline {
+    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type);
+    int align = VM_ObjectModel.getAlignment(type, from);
+    int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
     Plan plan = getPlan();
+    VM_Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
+						   from, true);
+    Object toObj = VM_ObjectModel.moveObject(region, from, bytes, type);
+    VM_Address to = VM_Magic.objectAsAddress(toObj);
+    plan.postCopy(to, tib, bytes, true);
+    ((MMType) type.getMMType()).profileCopy(bytes);
+    return to;
+  }
 
-    VM_Address toRef;
-    if (type.isClassType()) {
-      VM_Class classType = type.asClass();
-      int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
-      int align = VM_ObjectModel.getAlignment(classType, fromObj);
-      int offset = VM_ObjectModel.getOffsetForAlignment(classType, fromObj);
-      int rawSize = numBytes;
-      //assuming BYTES_IN_PARTICLE >= BYTES_IN_INT
-      if (align > BYTES_IN_PARTICLE) { //mainly used for objects with doubles and floats on 32-bit 
-        rawSize += align - BYTES_IN_PARTICLE; //most wasteful case: e.g. align==8 or even align==16; BYTES_IN_PARTICLE==4;
-      } else if (align > BYTES_IN_INT) { //mainly used on 64-bit 
-        rawSize +=VM_Memory.alignUp(offset, align) - offset; //add pre alignment if necessary e.g. align==8; BYTES_IN_PARTICLE==8
-      }
-      if (BYTES_IN_PARTICLE > BYTES_IN_INT) {//mainly used on 64-bit
-        rawSize = VM_Memory.alignUp(rawSize, BYTES_IN_PARTICLE);//add post alignment if necessary
-      }
-      forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
-      VM_Address region = plan.allocCopy(VM_Magic.objectAsAddress(fromObj), rawSize, true);
-      if (align > BYTES_IN_INT) {
-        // This code is based on some fancy modulo artihmetic.
-        // It ensures the property (region + offset) % alignment == 0
-        VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
-        VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
-        VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
-        region = region.add(delta);
-        numBytes = rawSize - delta.toInt();
-      }
-      Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
-      plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, rawSize, true);
-      toRef = VM_Magic.objectAsAddress(toObj);
-      ((MMType) type.getMMType()).profileCopy(numBytes);
-    } else {
-      VM_Array arrayType = type.asArray();
-      int numElements = VM_Magic.getArrayLength(fromObj);
-      int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
-      int align = VM_ObjectModel.getAlignment(arrayType, fromObj);
-      int offset = VM_ObjectModel.getOffsetForAlignment(arrayType, fromObj);
-      int rawSize = numBytes;
-      //assuming BYTES_IN_PARTICLE >= BYTES_IN_INT
-      if (align > BYTES_IN_PARTICLE) { //mainly used for objects with doubles and floats on 32-bit 
-        rawSize += align - BYTES_IN_PARTICLE; //most wasteful case: e.g. align==8 or even align==16; BYTES_IN_PARTICLE==4;
-      } else if (align > BYTES_IN_INT) { //mainly used on 64-bit 
-        rawSize +=VM_Memory.alignUp(offset, align) - offset; //add pre alignment if necessary e.g. align==8; BYTES_IN_PARTICLE==8
-      }
-      rawSize = VM_Memory.alignUp(rawSize, BYTES_IN_PARTICLE);//JMTk expects multiple of BYTES_IN_PARTICLE
-      forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
-      VM_Address region = getPlan().allocCopy(VM_Magic.objectAsAddress(fromObj), rawSize, false);
-      if (align > BYTES_IN_INT) {
-        // This code is based on some fancy modulo artihmetic.
-        // It ensures the property (region + offset) % alignment == 0
-        VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
-        VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
-        VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
-        region = region.add(delta);
-        numBytes = rawSize - delta.toInt();
-      }
-      Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
-      plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, rawSize, false);
-      toRef = VM_Magic.objectAsAddress(toObj);
-      if (arrayType == VM_Type.CodeArrayType) {
-        // sync all moved code arrays to get icache and dcache in sync immediately.
-        int dataSize = numBytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
-        VM_Memory.sync(toRef, dataSize);
-      }
-      ((MMType) type.getMMType()).profileCopy(numBytes);
+  private static VM_Address copyArray(VM_Address from, Object[] tib,
+				      VM_Array type)
+    throws VM_PragmaInline {
+    int elements = VM_Magic.getArrayLength(from);
+    int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type, elements);
+    int align = VM_ObjectModel.getAlignment(type, from);
+    int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
+    Plan plan = getPlan();
+    VM_Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
+						   from, false);
+    Object toObj = VM_ObjectModel.moveObject(region, from, bytes, type);
+    VM_Address to = VM_Magic.objectAsAddress(toObj);
+    plan.postCopy(to, tib, bytes, false);
+    if (type == VM_Type.CodeArrayType) {
+      // sync all moved code arrays to get icache and dcache in sync
+      // immediately.
+      int dataSize = bytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
+      VM_Memory.sync(to, dataSize);
     }
-    return toRef;
-
+    ((MMType) type.getMMType()).profileCopy(bytes);
+    return to;
   }
 
   /**

@@ -277,6 +277,19 @@ public class Plan extends Generational implements VM_Uninterruptible {
       return obj;
   }
 
+  /**  
+   * Perform any post-copy actions.
+   *
+   * @param ref The newly allocated object
+   * @param tib The TIB of the newly allocated object
+   * @param bytes The size of the space to be allocated (in bytes)
+   * @param isScalar True if the object occupying this space will be a scalar
+   */
+  public final void postCopy(VM_Address ref, Object[] tib, int size,
+                             boolean isScalar) throws VM_PragmaInline {
+    CopyingHeader.clearGCBits(ref);
+  }
+
   /**
    * Return true if the object resides in a copying space (in this
    * case mature and nursery objects are in a copying space).
@@ -319,25 +332,6 @@ public class Plan extends Generational implements VM_Uninterruptible {
    if (!movable) return true;
    VM_Address addr = VM_Interface.refToAddress(obj);
    return (hi ? mature1VM : mature0VM).inRange(addr);
-  }
-
-  /**
-   * Reset the GC bits in the header word of an object that has just
-   * been copied.  This may, for example, involve clearing a write
-   * barrier bit.  In this case nothing is required, so the header word
-   * is returned unmodified.
-   *
-   * @param fromObj The original (uncopied) object
-   * @param forwardingWord The integer containing the GC bits, which is the GC word
-   * of the original object, and typically encodes some GC state as
-   * well as pointing to the copied object.
-   * @param bytes The size of the copied object in bytes.
-   * @return The updated GC word (in this case unchanged).
-   */
-  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj,
-						 VM_Word forwardingWord,
-						 int bytes) {
-    return forwardingWord; // a no-op for this collector
   }
 
   /****************************************************************************

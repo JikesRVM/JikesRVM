@@ -39,17 +39,6 @@ public final class VM_AllocatorHeader extends Header {
     VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }
 
-  /**
-   * Impedance matching for Jikes RVM which expects to pass
-   * Object references to the header
-   */
-
-  public static void initializeHeader(Object ref, Object[] tib, int size,
-                                      boolean isScalar)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    Header.initializeHeader(VM_Magic.objectAsAddress(ref),tib,size,isScalar);
-  }
-
   public static void dumpHeader(Object ref) throws VM_PragmaUninterruptible {
     Header.dumpHeader(VM_Magic.objectAsAddress(ref));
   }

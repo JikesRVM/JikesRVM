@@ -186,10 +186,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Copy a scalar to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, 
-                                  int numBytes, VM_Class type, 
-				  VM_Word availBitsWord) throws VM_PragmaInline {
-    VM_Word hashState = HASH_STATE_UNHASHED;
-    if (ADDRESS_BASED_HASHING) hashState = availBitsWord.and(HASH_STATE_MASK);
+                                  int numBytes, VM_Class type) 
+    throws VM_PragmaInline {
     int objectEndOffset = objectEndOffset(type);
     VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).add(objectEndOffset);
     int copyBytes = numBytes;
@@ -197,13 +195,15 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
       copyBytes -= GC_HEADER_BYTES;
     VM_Memory.aligned32Copy(toAddress, fromAddress, copyBytes); 
     Object toObj = VM_Magic.addressAsObject(toAddress.sub(objectEndOffset));
-    if (hashState.EQ(HASH_STATE_HASHED)) {
-      int hashCode = VM_Magic.objectAsAddress(fromObj).toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();  
-      VM_Magic.setIntAtOffset(toObj, HASHCODE_SCALAR_OFFSET, hashCode);
-      VM_Magic.setWordAtOffset(toObj, STATUS_OFFSET, availBitsWord.or(HASH_STATE_HASHED_AND_MOVED));
-      if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition2++;
-    } else {
-      VM_Magic.setWordAtOffset(toObj, STATUS_OFFSET, availBitsWord);
+    if (ADDRESS_BASED_HASHING) {
+      VM_Word availBitsWord = VM_Magic.getWordAtOffset(fromObj, STATUS_OFFSET);
+      VM_Word hashState = availBitsWord.and(HASH_STATE_MASK);
+      if (hashState.EQ(HASH_STATE_HASHED)) {
+	int hashCode = VM_Magic.objectAsAddress(fromObj).toWord().rshl(LOG_BYTES_IN_ADDRESS).toInt();  
+	VM_Magic.setIntAtOffset(toObj, HASHCODE_SCALAR_OFFSET, hashCode);
+	VM_Magic.setWordAtOffset(toObj, STATUS_OFFSET, availBitsWord.or(HASH_STATE_HASHED_AND_MOVED));
+	if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition2++;
+      }
     }
     return toObj;
  }
@@ -212,15 +212,15 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Copy an array to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
-                                  int numBytes, VM_Array type,
-				  VM_Word availBitsWord) throws VM_PragmaInline {
-    int headersize; 
+                                  int numBytes, VM_Array type)
+    throws VM_PragmaInline {
+    int headersize = ARRAY_HEADER_SIZE; 
     VM_Word hashState = HASH_STATE_UNHASHED;
-    if (ADDRESS_BASED_HASHING) hashState = availBitsWord.and(HASH_STATE_MASK);
-    if (hashState.EQ(HASH_STATE_UNHASHED)) {
-      headersize = ARRAY_HEADER_SIZE; 
-    } else {
-      headersize = ARRAY_HEADER_SIZE + HASHCODE_BYTES;
+    VM_Word availBitsWord = VM_Magic.getWordAtOffset(fromObj, STATUS_OFFSET);
+    if (ADDRESS_BASED_HASHING) {
+      hashState = availBitsWord.and(HASH_STATE_MASK);
+      if (hashState.NE(HASH_STATE_UNHASHED))
+	headersize += HASHCODE_BYTES;
     }
     VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(headersize);
     VM_Memory.aligned32Copy(toAddress, fromAddress, numBytes); 
@@ -230,8 +230,6 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
       VM_Magic.setIntAtOffset(toObj, HASHCODE_ARRAY_OFFSET, hashCode);
       VM_Magic.setWordAtOffset(toObj, STATUS_OFFSET, availBitsWord.or(HASH_STATE_HASHED_AND_MOVED));
       if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition2++;
-    } else {
-      VM_Magic.setWordAtOffset(toObj, STATUS_OFFSET, availBitsWord);
     }
     return toObj;
   }

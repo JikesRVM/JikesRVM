@@ -119,17 +119,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
-   * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc (int bytes, boolean isScalar, int allocator,
-                                AllocAdvice advice)
+  public final VM_Address alloc(int bytes, boolean isScalar, int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
-      case  DEFAULT_SPACE:  return def.alloc(isScalar, bytes);
-      case IMMORTAL_SPACE:  return immortal.alloc(isScalar, bytes);
-      default:              if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator"); 
-                            return VM_Address.zero();
+    case  DEFAULT_SPACE:  return def.alloc(isScalar, bytes);
+    case IMMORTAL_SPACE:  return immortal.alloc(isScalar, bytes);
+    default:
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface.sysFail("No such allocator"); 
+      return VM_Address.zero();
     }
   }
 
@@ -147,9 +147,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                               boolean isScalar, int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
-      case  DEFAULT_SPACE: return;
-      case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
-      default:             if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator");
+    case  DEFAULT_SPACE: Header.initializeHeader(ref, tib, bytes, isScalar); return;
+    case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
+    default:
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface.sysFail("No such allocator");
     }
   }
 
@@ -386,13 +388,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   public static boolean willNotMove (VM_Address obj) {
     return true;
-  }
-
-
-  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj,
-					     VM_Word forwardingWord, int bytes) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-    return forwardingWord;
   }
 
   /****************************************************************************

@@ -94,12 +94,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // Allocators
   public static final byte NURSERY_SPACE = 0;
   public static final byte RC_SPACE = 1;
-  public static final byte LOS_SPACE = 2;
   public static final byte DEFAULT_SPACE = NURSERY_SPACE;
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
-  private static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
   public    static final long           AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
@@ -219,39 +217,32 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param allocator The allocator number to be used for this allocation
    * @param bytes The size of the space to be allocated (in bytes)
    * @param isScalar True if the object occupying this space will be a scalar
-   * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(int bytes, boolean isScalar, int allocator, 
-                                AllocAdvice advice)
+  public final VM_Address alloc(int bytes, boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
-    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
-      return los.alloc(isScalar, bytes);
-    } else {
-      if (STEAL_NURSERY_SCALAR_GC_HEADER && isScalar 
-          && allocator == NURSERY_SPACE) {
-        // steal the GC header word for scalar nursery objects
-        if (VM_Interface.VerifyAssertions) 
-          VM_Interface._assert(Header.RC_HEADER_OFFSET == -Header.NUM_BYTES_HEADER);
-        bytes -= Header.NUM_BYTES_HEADER;
-      }
-      switch (allocator) {
-      case  NURSERY_SPACE: return nursery.alloc(isScalar, bytes);
-      case       RC_SPACE: return rc.alloc(isScalar, bytes, false);
-      case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
-      case      LOS_SPACE: return los.alloc(isScalar, bytes);
-      default:
-        if (VM_Interface.VerifyAssertions) 
-          VM_Interface.sysFail("No such allocator");
-        return VM_Address.zero();
-      }
+    if (STEAL_NURSERY_SCALAR_GC_HEADER && isScalar 
+	&& allocator == NURSERY_SPACE) {
+      // steal the GC header word for scalar nursery objects
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface._assert(Header.RC_HEADER_OFFSET == -Header.NUM_BYTES_HEADER);
+      bytes -= Header.NUM_BYTES_HEADER;
+    }
+    switch (allocator) {
+    case  NURSERY_SPACE: return nursery.alloc(isScalar, bytes);
+    case       RC_SPACE: return rc.alloc(isScalar, bytes, false);
+    case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
+    case      LOS_SPACE: return los.alloc(isScalar, bytes);
+    default:
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface.sysFail("No such allocator");
+      return VM_Address.zero();
     }
   }
 
   /**
    * Perform post-allocation actions.  For many allocators none are
-   * required.mp/
+   * required.
    *
    * @param ref The newly allocated object
    * @param tib The TIB of the newly allocated object
@@ -262,15 +253,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
                               boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
-      modBuffer.pushOOL(ref);
-      Header.initializeRCHeader(ref, tib, bytes, isScalar, true);
-      decBuffer.pushOOL(ref);
-      if (RefCountSpace.RC_SANITY_CHECK) {
-        RefCountLocal.sanityAllocCount(ref); 
-      }
-      return;
-    }
     switch (allocator) {
     case NURSERY_SPACE: return;
     case RC_SPACE:
@@ -292,6 +274,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       return;
     } 
   }
+
   /**
    * Allocate space for copying an object (this method <i>does not</i>
    * copy the object, it only allocates space)
@@ -305,6 +288,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
                                     boolean isScalar) throws VM_PragmaInline {
     return rc.alloc(isScalar, bytes, false);  // FIXME is this right???
   }
+
   /**  
    * Perform any post-copy actions.  In this case nothing is required.
    *
@@ -314,7 +298,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param isScalar True if the object occupying this space will be a scalar
    */
   public final void postCopy(VM_Address ref, Object[] tib, int bytes,
-                             boolean isScalar) {
+                             boolean isScalar) throws VM_PragmaInline {
+    CopyingHeader.clearGCBits(ref);
     Header.initializeRCHeader(ref, tib, bytes, isScalar, false);
     Header.makeUnlogged(ref);
     if (RefCountSpace.RC_SANITY_CHECK) {
@@ -738,24 +723,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
         RCBaseHeader.clearFinalizer(object);
     }
     return object;
-  }
-
-  /**
-   * Reset the GC bits in the header word of an object that has just
-   * been copied.  This may, for example, involve clearing a write
-   * barrier bit.  In this case nothing is required, so the header
-   * word is returned unmodified.
-   *
-   * @param fromObj The original (uncopied) object
-   * @param forwardingWord The integer containing the GC bits, which
-   * is the GC word of the original object, and typically encodes some
-   * GC state as well as pointing to the copied object.
-   * @param bytes The size of the copied object in bytes.
-   * @return The updated GC word (in this case unchanged).
-   */
-  public static final VM_Word resetGCBitsForCopy(VM_Address fromObj,
-					     VM_Word forwardingWord, int bytes) {
-    return forwardingWord.and(RCHybridHeader.GC_BITS_MASK.not()).or(rcSpace.getInitialHeaderValue(bytes));
   }
 
   public static boolean willNotMove (VM_Address object) {

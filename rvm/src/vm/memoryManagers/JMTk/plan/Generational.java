@@ -102,7 +102,6 @@ public abstract class Generational extends StopTheWorldGC
   // Allocators
   protected static final byte NURSERY_SPACE = 0;
   protected static final byte MATURE_SPACE = 1;
-  protected static final byte LOS_SPACE = 2;
   public static final byte DEFAULT_SPACE = NURSERY_SPACE;
   public static final byte TIB_SPACE = DEFAULT_SPACE;
 
@@ -110,7 +109,6 @@ public abstract class Generational extends StopTheWorldGC
   // Miscellaneous constants
   protected static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final float SURVIVAL_ESTIMATE = (float) 0.8; // est yield
-  protected static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
   // Note: The write barrier depends on the nursery being the highest
@@ -206,32 +204,21 @@ public abstract class Generational extends StopTheWorldGC
    * @param bytes The size of the space to be allocated (in bytes)
    * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
-   * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
-                                AllocAdvice advice)
+  public final VM_Address alloc(int bytes, boolean isScalar, int allocator)
     throws VM_PragmaInline {
     if (GATHER_MARK_CONS_STATS) nurseryCons.inc(bytes);
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
-    VM_Address region;
-    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
-      region = los.alloc(isScalar, bytes);
-    } else {
-      switch (allocator) {
-      case  NURSERY_SPACE: region = nursery.alloc(isScalar, bytes); break;
-      case   MATURE_SPACE: region = matureAlloc(isScalar, bytes); break;
-      case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
-      case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
-      default:
-        if (VM_Interface.VerifyAssertions) 
-          VM_Interface.sysFail("No such allocator");
-        region = VM_Address.zero();
-      }
+    switch (allocator) {
+    case  NURSERY_SPACE: return nursery.alloc(isScalar, bytes);
+    case   MATURE_SPACE: return matureAlloc(isScalar, bytes);
+    case IMMORTAL_SPACE: return immortal.alloc(isScalar, bytes);
+    case      LOS_SPACE: return los.alloc(isScalar, bytes);
+    default:
+      if (VM_Interface.VerifyAssertions) 
+	VM_Interface.sysFail("No such allocator");
+      return VM_Address.zero();
     }
-    if (VM_Interface.VerifyAssertions) Memory.assertIsZeroed(region, bytes);
-    return region;
   }
 
   /**
@@ -247,18 +234,14 @@ public abstract class Generational extends StopTheWorldGC
   public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
                               boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
-      Header.initializeLOSHeader(ref, tib, bytes, isScalar);
-    } else {
-      switch (allocator) {
-      case  NURSERY_SPACE: return;
-      case   MATURE_SPACE: if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-      case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
-      case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
-      default:
-        if (VM_Interface.VerifyAssertions)
-          VM_Interface.sysFail("No such allocator");
-      }
+    switch (allocator) {
+    case  NURSERY_SPACE: return;
+    case   MATURE_SPACE: if (!Plan.copyMature) Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
+    case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
+    case      LOS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
+    default:
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface.sysFail("No such allocator");
     }
   }
 
@@ -282,17 +265,6 @@ public abstract class Generational extends StopTheWorldGC
     }
     return matureCopy(isScalar, bytes);
   }
-
-  /**  
-   * Perform any post-copy actions.  In this case nothing is required.
-   *
-   * @param ref The newly allocated object
-   * @param tib The TIB of the newly allocated object
-   * @param bytes The size of the space to be allocated (in bytes)
-   * @param isScalar True if the object occupying this space will be a scalar
-   */
-  public final void postCopy(VM_Address ref, Object[] tib, int size,
-                             boolean isScalar) {} // do nothing
 
   protected byte getSpaceFromAllocator (Allocator a) {
     if (a == nursery) return NURSERY_SPACE;
