@@ -774,18 +774,18 @@ public class VM_JNICompiler implements VM_BaselineConstants,
   //-#if RVM_WITH_POWEROPEN_ABI
   /**
    * Generates instructions to copy parameters from RVM convention to OS convention.
-   * @param asm, the VM_Assembler object
-   * @param types, the parameter types
-   * @param nextVMArgReg, the first parameter GPR in RVM convention,
+   * @param asm   The VM_Assembler object
+   * @param types The parameter types
+   * @param nextVMArgReg  The first parameter GPR in RVM convention,
    *                      the last parameter GPR is defined as LAST_VOLATILE_GPR.
-   * @param nextVMArgFloatReg, the first parameter FPR in RVM convention,
+   * @param nextVMArgFloatReg  The first parameter FPR in RVM convention,
    *                           the last parameter FPR is defined as LAST_VOLATILE_FPR.
-   * @param spillOffsetVM, the spill offset (related to FP) in RVM convention
-   * @param nextOSArgReg, the first parameter GPR in OS convention,
+   * @param spillOffsetVM  The spill offset (related to FP) in RVM convention
+   * @param nextOSArgReg  The first parameter GPR in OS convention,
    *                      the last parameter GPR is defined as LAST_OS_PARAMETER_GPR.
-   * @param nextOSArgFloatReg, the first parameter FPR in OS convention,
+   * @param nextOSArgFloatReg  The first parameter FPR in OS convention,
    *                           the last parameter FPR is defined as LAST_OS_PARAMETER_FPR.
-   * @param spillOffsetOS, the spill offset (related to FP) in OS convention
+   * @param spillOffsetOS  The spill offset (related to FP) in OS convention
    */   
   private static void generateParameterPassingCode(VM_Assembler asm,
                                                    VM_TypeReference[] types,
