@@ -1189,7 +1189,7 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	if (op.isFloatConstant()) {
 	  // CONSTANT: FOLD
 	  float val = op.asFloatConstant().value;
-	  Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), FC(-val));
+	  Move.mutate(s, FLOAT_MOVE, Unary.getClearResult(s), FC(-val));
 	  return MOVE_FOLDED;
 	}
       }
@@ -1335,7 +1335,7 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
 	if (op.isDoubleConstant()) {
 	  // CONSTANT: FOLD
 	  double val = op.asDoubleConstant().value;
-	  Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), DC(-val));
+	  Move.mutate(s, DOUBLE_MOVE, Unary.getClearResult(s), DC(-val));
 	  return MOVE_FOLDED;
 	}
       }
