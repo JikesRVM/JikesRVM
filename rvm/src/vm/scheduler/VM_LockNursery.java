@@ -34,9 +34,11 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
 
   private static final VM_LockNursery nursery = new VM_LockNursery();
 
-  private VM_LockBucket buckets[];
+  private final VM_LockBucket buckets[];
 
   private VM_LockBucket freeBuckets;
+
+  private final VM_ProcessorLock myLock = new VM_ProcessorLock();
 
   public VM_LockNursery () {
     buckets = new VM_LockBucket[SIZE];
@@ -89,28 +91,33 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
    * @param insert if true, create bucket if none found
    * @return the lock bucket or null
    */
-  private synchronized VM_Lock findOrInsert (Object o, boolean insert) {
-    int h = o.hashCode() % SIZE;
-    if (h < 0) h = -1 * h;
+  private VM_Lock findOrInsert (Object o, boolean insert) {
+    int h = VM_ObjectModel.getObjectHashCode(o) % SIZE;
+    if (h < 0) h = -h;
 
-    for (VM_LockBucket b = buckets[h]; b != null; b = b.next) 
+    myLock.lock();
+    for (VM_LockBucket b = buckets[h]; b != null; b = b.next) {
       if (b.object == o) {
         if (DEBUG) { VM.sysWrite(VM_Magic.objectAsAddress(o));  VM.sysWrite(": Found nursery lock\n"); }
+	myLock.unlock();
         return b.lock;
       }
+    }
 
     if (insert) {
       if (DEBUG) { VM.sysWrite(VM_Magic.objectAsAddress(o));  VM.sysWrite(": Created nursery lock\n"); }
       VM_LockBucket b = allocate();
       b.next = buckets[h];
-      b.object = o;
       b.lock = VM_Lock.allocate();
+      b.object = o;
       b.lock.lockedObject = o;
       buckets[h] = b;
+      myLock.unlock();
       return b.lock;
+    } else {
+      myLock.unlock();
+      return null;
     }
-
-    return null;
   }
 
   /**

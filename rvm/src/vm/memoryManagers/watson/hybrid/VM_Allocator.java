@@ -50,7 +50,7 @@ public class VM_Allocator extends VM_GCStatistics
   /**
    * Initialize for boot image - executed when bootimage is being build
    */
-  static  void init () {
+  static  void init () throws VM_PragmaInterruptible {
     VM_CollectorThread.init();  // to alloc rendezvous arrays, if necessary
     smallHeap.init(VM_Scheduler.processors[VM_Scheduler.PRIMORDIAL_PROCESSOR_ID]);
   } 
@@ -58,7 +58,7 @@ public class VM_Allocator extends VM_GCStatistics
   /**
    * Initialize for execution - executed when VM starts up.
    */
-  static void boot (VM_BootRecord bootrecord) {
+  static void boot (VM_BootRecord bootrecord) throws VM_PragmaInterruptible {
     verbose = bootrecord.verboseGC;
 
     int smallHeapSize = bootrecord.smallSpaceSize;
@@ -955,7 +955,7 @@ public class VM_Allocator extends VM_GCStatistics
   // this second call must cause writebuffer pointers to be initialized
   // see VM_WriteBuffer.setupProcessor().
   //
-  static void setupProcessor (VM_Processor st) {
+  static void setupProcessor (VM_Processor st) throws VM_PragmaInterruptible {
     VM_WriteBuffer.setupProcessor( st );
 
     if (PROCESSOR_LOCAL_ALLOCATE) 

@@ -93,8 +93,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    * Reset the shared work queue, setting the number of
    * participating gc threads.
    */
-  synchronized void
-    initialSetup (int n) {
+  synchronized void initialSetup (int n) throws VM_PragmaLogicallyUninterruptible {
     
     if(trace) VM.sysWrite(" GCWorkQueue.initialSetup entered\n");
     
@@ -181,7 +180,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    *
    * @param bufferAddress address of buffer to add to shared queue
    */
-  void addBuffer (VM_Address bufferAddress) {
+  void addBuffer (VM_Address bufferAddress) throws VM_PragmaLogicallyUninterruptible {
 
     synchronized (this) {
 
@@ -206,7 +205,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    *
    * @return address of buffer or 0 if none available
    */
-  synchronized VM_Address getBuffer() {
+  synchronized VM_Address getBuffer() throws VM_PragmaLogicallyUninterruptible {
     
     if(trace) VM.sysWrite(" GCWorkQueue.getBuffer entered\n");
 
@@ -230,7 +229,7 @@ class VM_GCWorkQueue  implements VM_Uninterruptible {
    * @return address of a buffer
    *         zero if no buffers available & all participants waiting
    */
-  VM_Address getBufferAndWait () {
+  VM_Address getBufferAndWait () throws VM_PragmaLogicallyUninterruptible {
     VM_Address  temp;
     int debug_counter = 0;
     int debug_counter_counter = 0;

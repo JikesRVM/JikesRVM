@@ -85,14 +85,14 @@ public class VM_Allocator
   /**
    * Initialize for boot image.
    */
-  static void init () {
+  static void init () throws VM_PragmaInterruptible {
     VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary
   }
   
   /**
    * Initialize for execution.
    */
-  static void boot (VM_BootRecord bootrecord) { 
+  static void boot (VM_BootRecord bootrecord) throws VM_PragmaInterruptible { 
     verbose = bootrecord.verboseGC;
 
     smallHeapSize = bootrecord.smallSpaceSize;
@@ -1280,7 +1280,7 @@ public class VM_Allocator
   // Called from VM_Processor constructor: 
   // Must alloc & initialize write buffer
   // allocation chunk associated with nursery
-  static void setupProcessor (VM_Processor p) {
+  static void setupProcessor (VM_Processor p) throws VM_PragmaInterruptible {
     VM_WriteBuffer.setupProcessor(p);
     if (PROCESSOR_LOCAL_ALLOCATE) 
       VM_Chunk.resetChunk1(p, nurseryHeap, false);

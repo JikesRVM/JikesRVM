@@ -59,7 +59,8 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(BootImageInterface bootImage, int refOffset, int tibAddr, VM_Type type) {
+  public static void setTIB(BootImageInterface bootImage, int refOffset, 
+			    int tibAddr, VM_Type type) throws VM_PragmaInterruptible {
     bootImage.setAddressWord(refOffset + TIB_OFFSET, tibAddr);
   }
 
@@ -77,7 +78,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * @param jdpService
    * @param address address of the object
    */
-  public static VM_Address getTIB(JDPServiceInterface jdpService, VM_Address ptr) {
+  public static VM_Address getTIB(JDPServiceInterface jdpService, VM_Address ptr) throws VM_PragmaInterruptible {
     return VM_Address.fromInt(jdpService.readMemory(ptr.add(TIB_OFFSET).toInt()));
   }
 
@@ -91,12 +92,12 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    */
   //-#if RVM_FOR_POWERPC
   public static void baselineEmitLoadTIB(VM_Assembler asm, int dest, 
-                                         int object) {
+                                         int object) throws VM_PragmaInterruptible {
     asm.emitL(dest, TIB_OFFSET, object);
   }
   //-#elif RVM_FOR_IA32
   public static void baselineEmitLoadTIB(VM_Assembler asm, byte dest, 
-                                         byte object) {
+                                         byte object) throws VM_PragmaInterruptible {
     asm.emitMOV_Reg_RegDisp(dest, object, TIB_OFFSET);
   }
   //-#endif
@@ -109,7 +110,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * @param s the GET_OBJ_TIB instruction to lower
    * @param ir the enclosing OPT_IR
    */
-  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) {
+  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) throws VM_PragmaInterruptible {
     OPT_Operand address = GuardedUnary.getClearVal(s);
     OPT_RegisterOperand result = GuardedUnary.getClearResult(s);
     Load.mutate(s,INT_LOAD, result.copyRO(),
