@@ -3551,9 +3551,10 @@ public class VM_Compiler implements VM_BaselineConstants {
       // Store the FPU Control Word to a JTOC slot
       asm.emitFNSTCW_RegDisp(JTOC, VM_Entrypoints.FPUControlWordOffset);
       // Set the bits in the status word that control round to zero.
-      // Note that we use a 32-bit and, even though we only care about the
-      // high-order 16 bits
-      asm.emitOR_RegDisp_Imm(JTOC,VM_Entrypoints.FPUControlWordOffset, 0x0c00);
+      // Note that we use a 32-bit OR, even though we only care about the
+      // low-order 16 bits
+      asm.emitOR_RegDisp_Imm(JTOC,VM_Entrypoints.FPUControlWordOffset,
+                             0x00000c00);
       // Now store the result back into the FPU Control Word
       asm.emitFLDCW_RegDisp(JTOC,VM_Entrypoints.FPUControlWordOffset);
       return;
