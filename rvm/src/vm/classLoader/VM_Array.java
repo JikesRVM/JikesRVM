@@ -282,22 +282,23 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   //--------------------------------------------------------------------------------------------------//
 
   // NOTE: arraycopy for byte[] and boolean[] are identical
-  public static void arraycopy(byte[] src, int srcPos, byte[] dst, int dstPos, int len) {
+  public static void arraycopy(byte[] src, int srcIdx, byte[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
-	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
+    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
+	(srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
+	(dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= (dstPos+BYTES_IN_ADDRESS)) {
-	VM_Memory.arraycopy8Bit(src, srcPos, dst, dstPos, len);
-      } else if (srcPos < dstPos) {
-	srcPos += len;
-	dstPos += len;
+      if (src != dst || srcIdx >= (dstIdx+BYTES_IN_ADDRESS)) {
+	VM_Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
+      } else if (srcIdx < dstIdx) {
+	srcIdx += len;
+	dstIdx += len;
 	while (len-- != 0)
-	  dst[--dstPos] = src[--srcPos];
+	  dst[--dstIdx] = src[--srcIdx];
       } else {
 	while (len-- != 0)
-	  dst[dstPos++] = src[srcPos++];
+	  dst[dstIdx++] = src[srcIdx++];
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -305,22 +306,23 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
    
   // NOTE: arraycopy for byte[] and boolean[] are identical
-  public static void arraycopy(boolean[] src, int srcPos, boolean[] dst, int dstPos, int len) {
+  public static void arraycopy(boolean[] src, int srcIdx, boolean[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
-	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
+    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
+	(srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
+	(dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= (dstPos+BYTES_IN_ADDRESS/BYTES_IN_BOOLEAN)) {
-	VM_Memory.arraycopy8Bit(src, srcPos, dst, dstPos, len);
-      } else if (srcPos < dstPos) {
-	srcPos += len;
-	dstPos += len;
+      if (src != dst || srcIdx >= (dstIdx+BYTES_IN_ADDRESS/BYTES_IN_BOOLEAN)) {
+	VM_Memory.arraycopy8Bit(src, srcIdx, dst, dstIdx, len);
+      } else if (srcIdx < dstIdx) {
+	srcIdx += len;
+	dstIdx += len;
 	while (len-- != 0)
-	  dst[--dstPos] = src[--srcPos];
+	  dst[--dstIdx] = src[--srcIdx];
       } else {
 	while (len-- != 0)
-	  dst[dstPos++] = src[srcPos++];
+	  dst[dstIdx++] = src[srcIdx++];
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -328,22 +330,23 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
    
   // NOTE: arraycopy for short[] and char[] are identical
-  public static void arraycopy(short[] src, int srcPos, short[] dst, int dstPos, int len) {
+  public static void arraycopy(short[] src, int srcIdx, short[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
-	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
+    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
+	(srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
+	(dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= (dstPos+BYTES_IN_ADDRESS/BYTES_IN_SHORT)) {
-	VM_Memory.arraycopy(src, srcPos, dst, dstPos, len);
-      } else if (srcPos < dstPos) {
-	srcPos += len;
-	dstPos += len;
+      if (src != dst || srcIdx >= (dstIdx+BYTES_IN_ADDRESS/BYTES_IN_SHORT)) {
+	VM_Memory.arraycopy(src, srcIdx, dst, dstIdx, len);
+      } else if (srcIdx < dstIdx) {
+	srcIdx += len;
+	dstIdx += len;
 	while (len-- != 0)
-	  dst[--dstPos] = src[--srcPos];
+	  dst[--dstIdx] = src[--srcIdx];
       } else {
 	while (len-- != 0)
-	  dst[dstPos++] = src[srcPos++];
+	  dst[dstIdx++] = src[srcIdx++];
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -351,22 +354,23 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
    
   // NOTE: arraycopy for short[] and char[] are identical
-  public static void arraycopy(char[] src, int srcPos, char[] dst, int dstPos, int len) {
+  public static void arraycopy(char[] src, int srcIdx, char[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
-	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
+    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
+	(srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
+	(dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= (dstPos+BYTES_IN_ADDRESS/BYTES_IN_CHAR)) {
-	VM_Memory.arraycopy(src, srcPos, dst, dstPos, len);
-      } else if (srcPos < dstPos) {
-	srcPos += len;
-	dstPos += len;
+      if (src != dst || srcIdx >= (dstIdx+BYTES_IN_ADDRESS/BYTES_IN_CHAR)) {
+	VM_Memory.arraycopy(src, srcIdx, dst, dstIdx, len);
+      } else if (srcIdx < dstIdx) {
+	srcIdx += len;
+	dstIdx += len;
 	while (len-- != 0)
-	  dst[--dstPos] = src[--srcPos];
+	  dst[--dstIdx] = src[--srcIdx];
       } else {
 	while (len-- != 0)
-	  dst[dstPos++] = src[srcPos++];
+	  dst[dstIdx++] = src[srcIdx++];
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -375,24 +379,25 @@ public final class VM_Array extends VM_Type implements VM_Constants,
 
    
   // NOTE: arraycopy for int[] and float[] are identical
-  public static void arraycopy(int[] src, int srcPos, int[] dst, int dstPos, int len) {
+  public static void arraycopy(int[] src, int srcIdx, int[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
-	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
+    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
+	(srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
+	(dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos >= dstPos) {
-	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<< LOG_BYTES_IN_INT),
-				VM_Magic.objectAsAddress(src).add(srcPos << LOG_BYTES_IN_INT),
+      if (src != dst || srcIdx >= dstIdx) {
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstIdx<< LOG_BYTES_IN_INT),
+				VM_Magic.objectAsAddress(src).add(srcIdx << LOG_BYTES_IN_INT),
 				len<< LOG_BYTES_IN_INT);
-      } else if (srcPos < dstPos) {
-	srcPos += len;
-	dstPos += len;
+      } else if (srcIdx < dstIdx) {
+	srcIdx += len;
+	dstIdx += len;
 	while (len-- != 0)
-	  dst[--dstPos] = src[--srcPos];
+	  dst[--dstIdx] = src[--srcIdx];
       } else {
 	while (len-- != 0)
-	  dst[dstPos++] = src[srcPos++];
+	  dst[dstIdx++] = src[srcIdx++];
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -400,24 +405,25 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
    
   // NOTE: arraycopy for int[] and float[] are identical
-  public static void arraycopy(float[] src, int srcPos, float[] dst, int dstPos, int len) {
+  public static void arraycopy(float[] src, int srcIdx, float[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
-	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
+    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
+	(srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
+	(dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos > dstPos) {
-	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos << LOG_BYTES_IN_FLOAT),
-				VM_Magic.objectAsAddress(src).add(srcPos << LOG_BYTES_IN_FLOAT),
+      if (src != dst || srcIdx > dstIdx) {
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstIdx << LOG_BYTES_IN_FLOAT),
+				VM_Magic.objectAsAddress(src).add(srcIdx << LOG_BYTES_IN_FLOAT),
 				len << LOG_BYTES_IN_FLOAT);
-      } else if (srcPos < dstPos) {
-	srcPos += len;
-	dstPos += len;
+      } else if (srcIdx < dstIdx) {
+	srcIdx += len;
+	dstIdx += len;
 	while (len-- != 0)
-	  dst[--dstPos] = src[--srcPos];
+	  dst[--dstIdx] = src[--srcIdx];
       } else {
 	while (len-- != 0)
-	  dst[dstPos++] = src[srcPos++];
+	  dst[dstIdx++] = src[srcIdx++];
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -425,24 +431,25 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
    
   // NOTE: arraycopy for long[] and double[] are identical
-  public static void arraycopy(long[] src, int srcPos, long[] dst, int dstPos, int len) {
+  public static void arraycopy(long[] src, int srcIdx, long[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
-	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
+    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
+	(srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
+	(dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos > dstPos) {
-	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_LONG),
-				VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_LONG),
+      if (src != dst || srcIdx > dstIdx) {
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstIdx<<LOG_BYTES_IN_LONG),
+				VM_Magic.objectAsAddress(src).add(srcIdx<<LOG_BYTES_IN_LONG),
 				len<<LOG_BYTES_IN_LONG);
-      } else if (srcPos < dstPos) {
-	srcPos += len;
-	dstPos += len;
+      } else if (srcIdx < dstIdx) {
+	srcIdx += len;
+	dstIdx += len;
 	while (len-- != 0)
-	  dst[--dstPos] = src[--srcPos];
+	  dst[--dstIdx] = src[--srcIdx];
       } else {
 	while (len-- != 0)
-	  dst[dstPos++] = src[srcPos++];
+	  dst[dstIdx++] = src[srcIdx++];
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -450,24 +457,25 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   }
    
   // NOTE: arraycopy for long[] and double[] are identical
-  public static void arraycopy(double[] src, int srcPos, double[] dst, int dstPos, int len) {
+  public static void arraycopy(double[] src, int srcIdx, double[] dst, int dstIdx, int len) {
     // Don't do any of the assignments if the offsets and lengths
     // are in error
-    if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
-	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
+    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
+	(srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
+	(dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       // handle as two cases, for efficiency and in case subarrays overlap
-      if (src != dst || srcPos > dstPos) {
-	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_DOUBLE),
-				VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_DOUBLE),
+      if (src != dst || srcIdx > dstIdx) {
+	VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstIdx<<LOG_BYTES_IN_DOUBLE),
+				VM_Magic.objectAsAddress(src).add(srcIdx<<LOG_BYTES_IN_DOUBLE),
 				len<<LOG_BYTES_IN_DOUBLE);
-      } else if (srcPos < dstPos) {
-	srcPos += len;
-	dstPos += len;
+      } else if (srcIdx < dstIdx) {
+	srcIdx += len;
+	dstIdx += len;
 	while (len-- != 0)
-	  dst[--dstPos] = src[--srcPos];
+	  dst[--dstIdx] = src[--srcIdx];
       } else {
 	while (len-- != 0)
-	  dst[dstPos++] = src[srcPos++];
+	  dst[dstIdx++] = src[srcIdx++];
       }
     } else {
       failWithIndexOutOfBoundsException();
@@ -488,8 +496,9 @@ public final class VM_Array extends VM_Type implements VM_Constants,
   public static void arraycopy(Object[] src, int srcIdx, Object[] dst, 
 			       int dstIdx, int len) {
     // Check offsets and lengths before doing anything
-    if ((srcIdx >= 0) && (dstIdx >= 0) && (len >= 0) && 
-	((srcIdx + len) <= src.length) && ((dstIdx + len) <= dst.length)) {
+    if (srcIdx >= 0 && dstIdx >= 0 && len >= 0 && 
+	(srcIdx + len) >=0 && (srcIdx+len) <= src.length && 
+	(dstIdx + len) >= 0 && (dstIdx+len) <= dst.length) {
       VM_Type lhs = VM_Magic.getObjectType(dst).asArray().getElementType();
       VM_Type rhs = VM_Magic.getObjectType(src).asArray().getElementType();
       if ((lhs == rhs) || (lhs == VM_Type.JavaLangObjectType)
