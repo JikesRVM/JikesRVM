@@ -121,11 +121,12 @@ void usage()
   fprintf(SysTraceFile,"              enable verbose output (:jni not supported)\n");
   fprintf(SysTraceFile,"    -version  print version\n");
   fprintf(SysTraceFile,"    -showversion\n");
+  fprintf(SysTraceFile,"              print version and continue\n");
   fprintf(SysTraceFile,"    -fullversion\n");
   fprintf(SysTraceFile,"              like version but with more information\n");
   fprintf(SysTraceFile,"    -? -help  print this message\n");
   fprintf(SysTraceFile,"    -X        print help on non-standard options\n");
-  fprintf(SysTraceFile,"              print version and continue\n");
+
   fprintf(SysTraceFile,"    -jar      not supported\n");
   fprintf(SysTraceFile,"\n For more information look at URL: www.ibm.com/developerworks/oss/jikesrvm\n");
 
@@ -157,10 +158,14 @@ void nonstandard_usage()
   fprintf(SysTraceFile,"    -X:measureCompilation=<boolean>\n");
   fprintf(SysTraceFile,"                    produce a report on compilation time\n");
   fprintf(SysTraceFile,"    -X:verbose      print out additional information for GC\n");
-  fprintf(SysTraceFile,"    -X:irc[:help]   print options supported by initial runtime compiler when in a nonadaptive configuration\n");
+  fprintf(SysTraceFile,"    -X:irc[:help]   print options supported by the initial runtime compiler when in a nonadaptive configuration\n");
   fprintf(SysTraceFile,"    -X:irc:<option> pass <option> on to the initial runtime compiler when in a nonadaptive configuration\n");
   fprintf(SysTraceFile,"    -X:aos[:help]   print options supported by adaptive optimization system when in an adaptive configuration\n");
   fprintf(SysTraceFile,"    -X:aos:<option> pass <option> on to the adaptive optimization system when in an adaptive configuration\n");
+  fprintf(SysTraceFile,"    -X:opt[:help]   print options supported by the optimizing compiler when in a nonadaptive configuration\n");
+  fprintf(SysTraceFile,"    -X:opt:<option> pass <option> on to the optimizing compiler when in a nonadaptive configuration\n");
+  fprintf(SysTraceFile,"    -X:base[:help]  print options supported by the baseline compiler when in a nonadaptive configuration\n");
+  fprintf(SysTraceFile,"    -X:base:<option> pass <option> on to the baseline compiler when in a nonadaptive configuration\n");
   fprintf(SysTraceFile,"    -X:gc[:help]    print options supported by GCTk garbage collection toolkit\n");
   fprintf(SysTraceFile,"    -X:gc:<option>  pass <option> on to GCTk\n");
   fprintf(SysTraceFile,"    -X:record  run under DejaVu control and produce a trace file for replay\n");
@@ -429,6 +434,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     // All VM directives that take one token
     if (!strncmp(token, "-D", 2) || !strncmp(token, "-X:gc", 5) ||
 	!strncmp(token, "-X:aos",6)   || !strncmp(token, "-X:irc", 6) ||
+	!strncmp(token, "-X:base",7)  || !strncmp(token, "-X:opt", 6) ||
 	!strcmp(token, "-verbose")    || !strcmp(token, "-verbose:class") ||
 	!strcmp(token, "-verbose:gc") ||
 	!strncmp(token, "-X:vmClasses=", 13)  || 
