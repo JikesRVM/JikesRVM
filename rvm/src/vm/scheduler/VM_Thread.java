@@ -1397,7 +1397,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
  
   /**
    * Is an exception waiting to be delivered to this thread?
-   * A non-null value means the next {@link #yield()} should deliver the
+   * A non-null value means the next {@link #yield} should deliver the
    * specified exception to this thread.
    */ 
   Throwable externalInterrupt; 
@@ -1418,7 +1418,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public boolean disallowAllocationsByThisThread; 
 
   /**
-   * Counts the depth of outstanding calls to {@link VM#disableGC()}.  If this
+   * Counts the depth of outstanding calls to {@link VM#disableGC}.  If this
    * is set, then we should also have {@link #disallowAllocationsByThisThread}
    * set.  The converse also holds.  
    */
