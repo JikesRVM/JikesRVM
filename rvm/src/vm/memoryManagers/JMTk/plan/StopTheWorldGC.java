@@ -63,7 +63,7 @@ public abstract class StopTheWorldGC extends BasePlan
   protected static boolean progress = true;  // are we making progress?
   protected static int required; // how many pages must this GC yeild? 
 
- ////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
   //
   // Instance variables
   //
