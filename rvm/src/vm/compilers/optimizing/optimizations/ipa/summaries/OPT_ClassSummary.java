@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001,2005
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -16,7 +16,7 @@ import com.ibm.JikesRVM.classloader.*;
 public class OPT_ClassSummary {
 
   /**
-   * @param v lightweith class corresponding to this OPT_Class
+   * @param v lightweight class corresponding to this OPT_Class
    */
   OPT_ClassSummary (VM_Class v) {
     vmClass = v;
