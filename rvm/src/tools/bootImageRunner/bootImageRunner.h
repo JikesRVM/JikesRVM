@@ -50,6 +50,9 @@ extern int createJVM(int);
 /* Used in libvm.C; Defined in sys.C */
 extern int getArrayLength(void* ptr);
 
+/* Used in libvm.C; Defined in sys.C */
+extern int getTimeSlice_msec(void);
+
 /* sys.C and RunBootImage.C */
 extern void findMappable(void);
 

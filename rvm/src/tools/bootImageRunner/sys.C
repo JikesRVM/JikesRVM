@@ -828,6 +828,8 @@ setTimeSlicer(int msTimerDelay)
     // fprintf(SysTraceFile, "%s: timeslice is %dms\n", Me, msTimerDelay);
 }
 
+static int timeSlice_msec;
+
 extern "C" void
 sysVirtualProcessorEnableTimeSlicing(int timeSlice)
 {
@@ -839,8 +841,16 @@ sysVirtualProcessorEnableTimeSlicing(int timeSlice)
 		Me, timeSlice);
 	sysExit(EXIT_STATUS_TIMER_TROUBLE);
     }
+    timeSlice_msec = timeSlice;
     setTimeSlicer(timeSlice);
 }
+
+int
+getTimeSlice_msec(void)
+{
+    return timeSlice_msec;
+}
+
 
 //
 // returns the time of day in the buffer provided
@@ -1474,7 +1484,7 @@ sysVirtualProcessorCreate(int jtoc, int pr, int ti_or_ip, int fp)
     }
 
     if (VERBOSE_PTHREAD)
-	fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, sysVirtualProcessorHandle);
+	fprintf(SysTraceFile, "%s: pthread_create 0x%08x\n", Me, (unsigned) sysVirtualProcessorHandle);
 
     return (int)sysVirtualProcessorHandle;
 #endif
@@ -2167,7 +2177,8 @@ sysMMapNonFile(char *start, char *length, int protection, int flags)
 {
     void *res = mmap(start, (size_t)(length), protection, flags, -1, 0);
     if (res == (void *) -1) {
-	fprintf(stderr, "mmap (%x, %d, %d, %d, -1, 0) failed with %d: ", start, length, protection, flags, errno);
+	fprintf(stderr, "mmap (%x, %u, %d, %d, -1, 0) failed with %d: ",
+		(unsigned) start, (unsigned) length, protection, flags, errno);
 	perror(NULL);
 	return (void *) errno;
     }
@@ -2289,7 +2300,7 @@ findMappable()
 	int flag = MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED;
 	void *result = mmap (start, (size_t) pageSize, prot, flag, -1, 0);
 	int fail = (result == (void *) -1);
-	printf("0x%x: ", start);
+	printf("0x%x: ", (unsigned) start);
 	if (fail) {
 	    printf("FAILED with errno %d: %s\n", errno, strerror(errno));
 	} else {
@@ -2729,13 +2740,15 @@ sysNetSocketConnect(int fd, int family, int remoteAddress, int remotePort)
 	if (connect(fd, (sockaddr *)&address, sizeof(address)) == -1) {
 
 	    if (errno == EINTR) {
-		fprintf(SysTraceFile, "%s: connect on %d interrupted, retrying\n", Me);
+		fprintf(SysTraceFile, 
+			"%s: connect on %d interrupted, retrying\n", Me, fd);
 		connectInterrupts++;
 		interruptsThisTime++;
 		continue;
 	    } else if (errno == EINPROGRESS) {
 #ifdef DEBUG_NET
-		fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", Me, fd, strerror( errno ));
+		fprintf(SysTraceFile, "%s: connect on %d failed: %s \n", 
+			Me, fd, strerror(errno ));
 #endif
 		return -2;
 	    } else if (errno == EISCONN) {

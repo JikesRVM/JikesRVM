@@ -219,9 +219,9 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 	       sprintf(buf, "%s: trap %d (%s)\n", Me, signo, 
 			signo < _NSIG ? sys_siglist[signo] : "Unrecognized signal"));
 
-	write (SysErrorFd, buf, sprintf(buf, "handler stack 0x%x\n", &buf));
+	write (SysErrorFd, buf, sprintf(buf, "handler stack 0x%x\n", (unsigned) &buf));
 	if (signo == SIGSEGV)
-	    write (SysErrorFd, buf, sprintf(buf, "si->si_addr   0x%08x\n", si->si_addr));
+	    write (SysErrorFd, buf, sprintf(buf, "si->si_addr   0x%08x\n", (unsigned) si->si_addr));
 	write (SysErrorFd, buf, sprintf(buf, "gs            0x%08x\n", gregs[REG_GS]));
 	write (SysErrorFd, buf, sprintf(buf, "fs            0x%08x\n", gregs[REG_FS]));
 	write (SysErrorFd, buf, sprintf(buf, "es            0x%08x\n", gregs[REG_ES]));
@@ -241,9 +241,9 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 	write (SysErrorFd, buf, sprintf(buf, "eflags        0x%08x\n", gregs[REG_EFL]));
 	write (SysErrorFd, buf, sprintf(buf, "esp_at_signal 0x%08x\n", gregs[REG_UESP]));
 	write (SysErrorFd, buf, sprintf(buf, "ss            0x%08x\n", gregs[REG_SS]));
-	write (SysErrorFd, buf, sprintf(buf, "fpstate       0x%08x\n", mc->fpregs));	/* null if fp registers haven't been used yet */
-	write (SysErrorFd, buf, sprintf(buf, "oldmask       0x%08x\n", mc->oldmask));
-	write (SysErrorFd, buf, sprintf(buf, "cr2           0x%08x\n", mc->cr2));	/* seems to contain mem address that faulting instruction was trying to access */
+	write (SysErrorFd, buf, sprintf(buf, "fpstate       0x%08x\n", (unsigned) mc->fpregs));	/* null if fp registers haven't been used yet */
+	write (SysErrorFd, buf, sprintf(buf, "oldmask       0x%08lx\n", (unsigned long) mc->oldmask));
+	write (SysErrorFd, buf, sprintf(buf, "cr2           0x%08lx\n", (unsigned long) mc->cr2));	/* seems to contain mem address that faulting instruction was trying to access */
 
 	/*
 	 * There are 8 floating point registers, each 10 bytes wide.
@@ -518,33 +518,55 @@ processTimerTick(void)
 
     // line added here - ndp is now the last processor - and cnt includes it
     cnt = cnt - 1;
+    // In fact, we have not yet (8/2003) gotten around to do this (creating
+    // the native daemon processor) on Linux :(  So this will always be zero.
+//#ifdef __linuxsmp__
+    unsigned ndp_index = cnt;
+//#endif
+    
     // check for gc in progress: if so, return
     //
     if (bootRecord -> lockoutProcessor == 0x0CCCCCCC) return;
   
-    int       val;
     int       sendit = 0;
     int       MISSES = -2;     // tuning parameter
+    unsigned longest_stuck_ticks = 0; // How many ticks has the longest one
+				      // been stuck for?
+
     for (i = VM_Scheduler_PRIMORDIAL_PROCESSOR_ID; i < cnt ; ++i) {
-	val = *(int *)((char *)processors[i] + 
-		       VM_Processor_threadSwitchRequested_offset);
-	if (val <= MISSES) sendit++;
-	*(int *)((char *)processors[i] + 
-		 VM_Processor_threadSwitchRequested_offset) = val - 1;
+	// During how many ticks has this VM_Processor ignored 
+	// a thread switch request? 
+	int val = (*(int *)((char *)processors[i] + 
+		       VM_Processor_threadSwitchRequested_offset))--;
+	if (val <= MISSES) {
+	    sendit++;
+	    assert(val < 0);
+	    if (longest_stuck_ticks < (unsigned) -val)
+		longest_stuck_ticks = -val;
+	}
     }
     if (sendit != 0) {
-	// some processor "stuck in native"
-	if (processors[i] != 0 /*null*/ ) {  
-#ifdef __linuxsmp__
+	// some processor is "stuck in native"
+	// If we have a NativeDaemon Processor, (the last one) then we can
+	// use it to recover
+//#ifdef __linuxsmp__
+	if (processors[ndp_index]) {  
 	    // have a NativeDaemon Processor (the last one) and can use it to recover
 	    int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset) ;
 	    pthread_t thread = (pthread_t)pthread_id;
-	    int i_thread = (int)thread;
+//	    int i_thread = (int)thread;
 	    pthread_kill(thread, SIGCONT);
-#endif
-	} else {
-	    if (val <= -500 && (val % 50) == 0) {
-		fprintf(stderr, "%s: WARNING: Virtual processor has ignored timer interrupt for %d ms.\n", Me, 10 * (-val));
+	} else 
+//#endif
+	{
+	    // After 500 timer intervals (often == 5 seconds), print a message
+	    // every 50 timer intervals (often == 1/2 second), so we don't
+	    // just appear to be hung.  (The messages probably appear faster
+	    // and faster as more processors get stuck, but so what?)
+	    if (longest_stuck_ticks >= 500 
+		&& (longest_stuck_ticks % 50) == 0) 
+	    {
+		fprintf(stderr, "%s: WARNING: Virtual processor has ignored timer interrupt for %d ms.\n", Me, getTimeSlice_msec() * longest_stuck_ticks);
 		fprintf(stderr, "This may indicate that a blocking system call has occured and the JVM is deadlocked\n");
 	    }
 	}
