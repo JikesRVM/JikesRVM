@@ -76,12 +76,12 @@ class MainThread extends Thread {
     setContextClassLoader(cl); 
 
     // find method to run
-    String[]      mainArgs = null;
     // load class specified by args[0]
-    //
     VM_Class cls = null;
     try {
-      cls = java.lang.JikesRVMSupport.getTypeForClass(cl.loadClass(args[0])).asClass();
+      VM_Atom mainAtom = VM_Atom.findOrCreateUnicodeAtom(args[0].replace('.','/'));
+      VM_TypeReference mainClass = VM_TypeReference.findOrCreate(cl, mainAtom.descriptorFromClassName());
+      cls = mainClass.resolve().asClass();
       cls.resolve();
       cls.instantiate();
       cls.initialize();
@@ -102,7 +102,7 @@ class MainThread extends Thread {
 
     // create "main" argument list
     //
-    mainArgs = new String[args.length - 1];
+    String[] mainArgs = new String[args.length - 1];
     for (int i = 0, n = mainArgs.length; i < n; ++i)
       mainArgs[i] = args[i + 1];
     
