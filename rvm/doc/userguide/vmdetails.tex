@@ -2,8 +2,9 @@ This section provides some information on various
 implementation details for the Jikes\TMweb{} RVM runtime system.
 
 
-\subsection{Object Model} \label{sssec:objects}
+\subsection{Object Model}\label{sssec:objects}
 \index{object model}
+
 An {\em object model} dictates how to represent objects in storage;
 the best object model will maximize efficiency of frequent language
 operations while minimizing storage overhead. \jrvm's
@@ -46,7 +47,7 @@ an array, its {\em length}, resides just before its first
 element. Thus, compiled code can access array elements via base +
 scaled index addressing.
 
-\index{NullPointerException}
+\Indextt{NullPointerException}
 The Java programming language requires that an attempt to access an
 object through a {\tt null} 
 object reference generates a {\tt NullPointerException}.  In Jikes RVM, references
