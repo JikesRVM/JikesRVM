@@ -453,7 +453,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     default:
       if (VM_Interface.VerifyAssertions) {
 	VM_Interface.sysWrite(addr);
-	VM_Interface.sysWriteln("Plan.traceObject: unknown space",space);
+	VM_Interface.sysWrite("Plan.traceObject: VMResource.getSpace() returned an unknown space with code # ");
+	VM_Interface.sysWriteln(space);
 	VM_Interface.sysFail("Plan.traceObject: unknown space");
       }
       return obj;
