@@ -53,7 +53,7 @@ final class JikesRVMSocketImpl extends SocketImpl implements VM_SizeConstants {
   /**
    * Connects to the remote hostname and port specified as arguments.
    *
-   * @param removeHost The remote hostname to connect to
+   * @param remoteHost The remote hostname to connect to
    * @param remotePort The remote port to connect to
    *
    * @exception IOException If an error occurs
