@@ -72,8 +72,12 @@ public abstract class OPT_Operand {
   /**
    * clear the {@link #instruction} field (done when moving the 
    * operand from one instruction to another
+   * @return <code>this</code>
    */
-  final void clear() { instruction = null; }
+  final OPT_Operand clear() { 
+    instruction = null; 
+    return this;
+  }
 
   /**
    * Is the operand an {@link OPT_RegisterOperand}?
