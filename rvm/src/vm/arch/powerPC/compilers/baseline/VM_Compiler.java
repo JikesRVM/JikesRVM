@@ -3349,7 +3349,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
 
   /** Generate inline code sequence for specified method.
-   * @param methodToBeCalled: method whose name indicates semantics of code to be generated
+   * @param methodToBeCalled method whose name indicates semantics of code to be generated
    * @return true if there was magic defined for the method
    */
   private boolean  generateInlineCode(VM_MethodReference methodToBeCalled) {
@@ -4209,7 +4209,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
 
   /** Emit code to perform an unsigned comparison on 2 address values
-    * @param cc: condition to test
+    * @param cc condition to test
     */ 
   private void generateAddrComparison(boolean signed, int cc) {
     popAddr(T1);
