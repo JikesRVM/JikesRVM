@@ -68,6 +68,9 @@ public class PrintContainer
   }
 
   public void print(String s) {
+    if (s == null)
+      s = "(*null String pointer*)";
+
     if (writer != null)
       writer.print(s);
     else if (stream != null)
@@ -78,10 +81,11 @@ public class PrintContainer
   }
 
   public void println(String s) {
+    print(s);
     if (writer != null)
-      writer.println(s);
+      writer.println();
     else if (stream != null)
-      stream.println(s);
+      stream.println();
     else
       inconsistentState();
   }
@@ -166,7 +170,6 @@ public class PrintContainer
     extends PrintLN
   {
     public VMSysWriteln() {}
-
     public boolean isSystemErr() {
       return false;
     }
@@ -179,10 +182,14 @@ public class PrintContainer
       VM.sysWriteln();
     }
     public void print(String s) {
+      if (s == null)
+	s = "(*null String pointer*)";
+      
       VM.sysWrite(s);
     }
     public void println(String s) {
-      VM.sysWriteln(s);
+      print(s);
+      println();
     }
     public void print(int i) {
       VM.sysWrite(i);
