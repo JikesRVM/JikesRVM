@@ -246,7 +246,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static final void gc() throws VM_PragmaInterruptible {
     Statistics.gcExternalCount++;
-    triggerCollection(EXTERNALLY_TRIGGERED_GC);
+    if (!Options.ignoreSystemGC)
+	triggerCollection(EXTERNALLY_TRIGGERED_GC);
   }
 
   public static final int EXTERNALLY_TRIGGERED_GC = 0;
