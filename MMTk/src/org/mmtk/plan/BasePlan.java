@@ -49,7 +49,7 @@ public abstract class BasePlan
   //
   public  static int verbose = 0;
   private static final int MAX_PLANS = 100;
-  protected static BasePlan [] plans = new BasePlan[MAX_PLANS];
+  protected static Plan [] plans = new Plan[MAX_PLANS];
   protected static int planCount = 0;        // Number of plan instances in existence
 
   // GC state and control variables
@@ -134,7 +134,7 @@ public abstract class BasePlan
    */
   BasePlan() {
     id = planCount++;
-    plans[id] = this;
+    plans[id] = (Plan) this;
     immortal = new BumpPointer(immortalVM);
   }
 

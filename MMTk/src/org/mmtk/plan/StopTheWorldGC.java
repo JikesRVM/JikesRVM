@@ -195,7 +195,7 @@ public abstract class StopTheWorldGC extends BasePlan
     VM_CollectorThread.gcBarrier.rendezvous();
     if (order == 1)
       for (int i=0; i<planCount; i++) {
-	Plan p = (Plan) plans[i];
+	Plan p = plans[i];
 	if (VM_Interface.isNonParticipating(p))
 	  p.baseThreadLocalPrepare(NON_PARTICIPANT);
       }
@@ -271,7 +271,7 @@ public abstract class StopTheWorldGC extends BasePlan
     if (order == 1) {
       int count = 0;
       for (int i=0; i<planCount; i++) {
-	Plan p = (Plan) plans[i];
+	Plan p = plans[i];
 	if (VM_Interface.isNonParticipating(p)) {
 	  count++;
 	  ((StopTheWorldGC) p).baseThreadLocalRelease(NON_PARTICIPANT);
