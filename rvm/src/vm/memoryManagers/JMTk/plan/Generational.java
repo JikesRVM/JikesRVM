@@ -412,12 +412,18 @@ public abstract class Generational extends StopTheWorldGC
    * space and LOS.
    */
   protected final void threadLocalPrepare(int count) {
-    remset.flushLocal();
     nursery.rebind(nurseryVM);
     if (fullHeapGC) {
       threadLocalMaturePrepare(count);
       if (Plan.usesLOS) los.prepare();
     }
+  }
+
+  /**
+   * Flush any remembered sets pertaining to the current collection.
+   */
+  protected final void flushRememberedSets() {
+    remset.flushLocal();
   }
 
   /**

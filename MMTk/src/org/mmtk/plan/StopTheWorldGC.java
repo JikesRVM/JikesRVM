@@ -357,6 +357,7 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void processAllWork() throws VM_PragmaNoInline {
 
     if (verbose >= 4) VM.psysWriteln("  Working on GC in parallel");
+    flushRememberedSets();
     do {
       if (verbose >= 5) VM.psysWriteln("    processing root locations");
       while (!rootLocations.isEmpty()) {
@@ -381,7 +382,7 @@ public abstract class StopTheWorldGC extends BasePlan
 	VM_Address loc = locations.pop();
 	traceObjectLocation(loc, false);
       }
-      
+      flushRememberedSets();
     } while (!(rootLocations.isEmpty() && interiorRootLocations.isEmpty()
 	       && values.isEmpty() && locations.isEmpty()));
 
@@ -389,6 +390,10 @@ public abstract class StopTheWorldGC extends BasePlan
     VM_CollectorThread.gcBarrier.rendezvous();
   }
 
-
+  /**
+   * Flush any remembered sets pertaining to the current collection.
+   * Non-generational collectors do nothing.
+   */
+  protected void flushRememberedSets() {}
 
 }
