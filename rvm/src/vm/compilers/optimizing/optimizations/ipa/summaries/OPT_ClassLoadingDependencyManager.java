@@ -21,7 +21,7 @@ final class OPT_ClassLoadingDependencyManager {
   ////////////////////////
   // Entrypoints from VM_Class
   ////////////////////////
-  public synchronized void classInitialized (VM_Class c) {
+  public synchronized void classInitialized(VM_Class c) {
     // Process any dependencies on methods not being overridden.
     if (DEBUG)
       report("CLDM: " + c + " is about to be marked as initialized.\n");
@@ -38,11 +38,11 @@ final class OPT_ClassLoadingDependencyManager {
    * Record that the code currently being compiled (cmid) must be 
    * invalidated if source is overridden.
    */
-  public void addNotOverriddenDependency (VM_Method source, int cmid) {
+  public void addNotOverriddenDependency(VM_Method source, int cmid) {
     if (VM.VerifyAssertions) VM.assert(VM_Lock.owns(this), "Opt compiler failed to lock out class loading");
+    if (VM.VerifyAssertions) VM.assert(VM.runningVM, "pre-existance not supported for boot image");
     if (TRACE || DEBUG)
-      report("CLDM: " + cmid + " is dependent on " + source + 
-             " not being overridden\n");
+      report("CLDM: " + cmid + " is dependent on " + source + " not being overridden\n");
     db.addNotOverriddenDependency(source, cmid);
   }
 
@@ -50,7 +50,7 @@ final class OPT_ClassLoadingDependencyManager {
    * Record that the code currently being compiled (cmid) must be 
    * invalidated if source ever has a subclass.
    */
-  public void addNoSubclassDependency (VM_Class source, int cmid) {
+  public void addNoSubclassDependency(VM_Class source, int cmid) {
     if (VM.VerifyAssertions) VM.assert(VM_Lock.owns(this), "Opt compiler failed to lock out class loading");
     if (TRACE || DEBUG)
       report("CLDM: " + cmid + " is dependent on " + source + 
@@ -61,7 +61,7 @@ final class OPT_ClassLoadingDependencyManager {
   ////////////////////////
   // Implementation
   ////////////////////////
-  OPT_ClassLoadingDependencyManager () {
+  OPT_ClassLoadingDependencyManager() {
     if (TRACE || DEBUG) {
       try {
         log = new PrintStream(new FileOutputStream("PREEX_OPTS.TRACE"));
@@ -75,7 +75,7 @@ final class OPT_ClassLoadingDependencyManager {
    * Take action when a method is overridden.
    * @param c a class that has just been loaded.
    */
-  private void handleOverriddenMethods (VM_Class c) {
+  private void handleOverriddenMethods(VM_Class c) {
     VM_Class sc = c.getSuperClass();
     if (sc == null)
       return;                   // c == java.lang.Object.
@@ -102,7 +102,7 @@ final class OPT_ClassLoadingDependencyManager {
     }
   }
 
-  private void handleSubclassing (VM_Class c) {
+  private void handleSubclassing(VM_Class c) {
     VM_Class sc = c.getSuperClass();
     if (sc == null)
       return;                   // c == java.lang.Object.
@@ -122,7 +122,7 @@ final class OPT_ClassLoadingDependencyManager {
   /**
    * helper method to invalidate a particular compiled method
    */
-  private void invalidate (VM_CompiledMethod cm) {
+  private void invalidate(VM_CompiledMethod cm) {
     VM_Method m = cm.getMethod();
     if (TRACE || DEBUG)
       report("CLDM: Invalidating compiled method " + cm.getId() + "(" + m + ")\n");
@@ -144,12 +144,9 @@ final class OPT_ClassLoadingDependencyManager {
   static final boolean DEBUG = false;
   static final boolean TRACE = false;
 
-  void report (String s) {
+  void report(String s) {
     log.print(s);
   }
   private OPT_InvalidationDatabase db = new OPT_InvalidationDatabase();
   private static PrintStream log;
 }
-
-
-
