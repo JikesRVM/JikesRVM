@@ -20,6 +20,8 @@ final class OPT_AdaptiveInlineOracle extends OPT_GenericInlineOracle {
   // The issue is that the callee extracted from the state may not
   // be the method that we want to inline (allow profile-directed guarded 
   // inlining of virtual calls to work as expected).
+  // We also don't need to make as sharp a distinction between invokeinterface
+  // and other invokes when using profile information to identify the hot targets.
   public OPT_InlineDecision shouldInline(OPT_CompilationState state) {
     OPT_Options opts = state.getOptions();
     
@@ -42,35 +44,34 @@ final class OPT_AdaptiveInlineOracle extends OPT_GenericInlineOracle {
       VM_Method callee = targets[0];
       VM_Method computedTarget = state.getComputedTarget();
       if (computedTarget != null && callee != computedTarget) {
-	VM_AdaptiveInlining.recordRefusalToInlineHotEdge
-	  (state.getCompiledMethodId(), caller, bcX, callee);
-	return OPT_InlineDecision.NO
-	  ("AI: mismatch between computed target and profile data");
+	VM_AdaptiveInlining.recordRefusalToInlineHotEdge(state.getCompiledMethodId(), 
+							 caller, bcX, callee);
+	return OPT_InlineDecision.NO("AI: mismatch between computed target and profile data");
       }
       if (!viableCandidate(caller, callee, state)) {
-	VM_AdaptiveInlining.recordRefusalToInlineHotEdge
-	  (state.getCompiledMethodId(), caller, bcX, callee);
+	VM_AdaptiveInlining.recordRefusalToInlineHotEdge(state.getCompiledMethodId(), 
+							 caller, bcX, callee);
 	return OPT_InlineDecision.NO("AI: candidate judged to be nonviable");
       }
       if (computedTarget != null) {
-	return OPT_InlineDecision.YES
-	  (computedTarget, "AI: hot edge matches computed target");
+	return OPT_InlineDecision.YES(computedTarget, "AI: hot edge matches computed target");
       } 
       VM_Method staticCallee = state.obtainTarget();
       if (candidateNeedsGuard(caller, staticCallee, state)) {
-	if (opts.EAGER_INLINE) {
-	  return OPT_InlineDecision.unsafeYES
-	    (callee, "AI: guarded inline of hot edge");
+	if (opts.GUARDED_INLINE) {
+	  byte guard = chooseGuard(caller, staticCallee, state, !state.isInvokeInterface());
+	  if (guard == OPT_Options.IG_METHOD_TEST) {
+	    // see if we can get away with the cheaper class test on the actual target 
+	    guard = chooseGuard(caller, callee, state, false);
+	  }
+	  return OPT_InlineDecision.guardedYES(callee, guard,
+					       "AI: guarded inline of hot edge");
 	} else {
-	  VM_AdaptiveInlining.recordRefusalToInlineHotEdge
-	    (state.getCompiledMethodId(), caller, bcX, callee);
-	  return OPT_InlineDecision.NO("AI: eager inlining disabled");
+	  VM_AdaptiveInlining.recordRefusalToInlineHotEdge(state.getCompiledMethodId(), 
+							   caller, bcX, callee);
+	  return OPT_InlineDecision.NO("AI: guarded inlining disabled");
 	}
       } else {
-        // TODO: the following exception test is extraneous ..
-	if (staticCallee != callee) throw new OPT_OptimizingCompilerException
-	  ("Profile target "+callee+
-	   " doesn't match sole static target "+staticCallee);
 	return OPT_InlineDecision.YES(callee, "AI: hot edge");
       }
     } else {
@@ -80,48 +81,43 @@ final class OPT_AdaptiveInlineOracle extends OPT_GenericInlineOracle {
 	for (int i=0; i<targets.length; i++) {
 	  if (targets[i] == computedTarget) {
 	    if (viableCandidate(caller, targets[i], state)) {
-	      return OPT_InlineDecision.YES
-		(computedTarget, "AI: hot edge matches computed target");
+	      return OPT_InlineDecision.YES(computedTarget, "AI: hot edge matches computed target");
 	    }
 	  }
 	}
 	for (int i=0; i<targets.length; i++) {
-	  VM_AdaptiveInlining.recordRefusalToInlineHotEdge
-	    (state.getCompiledMethodId(), caller, bcX, targets[i]);
+	  VM_AdaptiveInlining.recordRefusalToInlineHotEdge(state.getCompiledMethodId(), 
+							   caller, bcX, targets[i]);
 	}
-	return OPT_InlineDecision.NO
-	  ("AI: multiple hot edges, but none match computed target");
+	return OPT_InlineDecision.NO("AI: multiple hot edges, but none match computed target");
       } else {
-	if (!opts.EAGER_INLINE) 
-	  return OPT_InlineDecision.NO("AI: eager inlining disabled");
+	if (!opts.GUARDED_INLINE) 
+	  return OPT_InlineDecision.NO("AI: guarded inlining disabled");
 	int viable = 0;
 	for (int i=0; i<targets.length; i++) {
 	  if (viableCandidate(caller, targets[i], state)) {
 	    viable++;
 	  } else {
-	    VM_AdaptiveInlining.recordRefusalToInlineHotEdge
-	      (state.getCompiledMethodId(), caller, bcX, targets[i]);
+	    VM_AdaptiveInlining.recordRefusalToInlineHotEdge(state.getCompiledMethodId(), 
+							     caller, bcX, targets[i]);
 	    targets[i] = null;
 	  }
 	}
 	if (viable > 0) {
 	  VM_Method[] viableTargets = new VM_Method[viable];
+	  byte[] guards = new byte[viable];
 	  viable = 0;
 	  for (int i=0; i<targets.length; i++) {
 	    if (targets[i] != null) {
-	      viableTargets[viable++] = targets[i];
+	      viableTargets[viable] = targets[i];
+	      guards[viable++] = chooseGuard(caller, targets[i], state, false);
 	    }
 	  }
-	  if (viable == 1) {
-	    return OPT_InlineDecision.unsafeYES(viableTargets[0], 
-					"AI: one viable hot edge found");
-	  } else {
-	    return OPT_InlineDecision.unsafeYES(viableTargets, 
-					"AI: multiple viable hot edges found");
-	  }
+	  return OPT_InlineDecision.guardedYES(viableTargets, 
+					       guards,
+					       "AI: viable hot edge(s) found");
 	} else {
-	  return OPT_InlineDecision.NO(
-			       "AI: all candidates judged to be nonviable");
+	  return OPT_InlineDecision.NO("AI: all candidates judged to be nonviable");
 	}
       }
     }
@@ -140,8 +136,8 @@ final class OPT_AdaptiveInlineOracle extends OPT_GenericInlineOracle {
     if (OPT_InlineTools.hasInlinePragma(callee, state)) return true;
     if (OPT_InlineTools.hasNoInlinePragma(callee, state)) return false;
 
-    int inlinedSizeEstimate = OPT_InlineTools.inlinedSizeEstimate
-      (callee, state);
+    int inlinedSizeEstimate = 
+      OPT_InlineTools.inlinedSizeEstimate(callee, state);
     
     // Callees above a certain size are too big to be considered 
     // even if the call arc is hot.
@@ -184,12 +180,18 @@ final class OPT_AdaptiveInlineOracle extends OPT_GenericInlineOracle {
     return false;
   }
 	      
-
   
   protected OPT_InlineDecision shouldInlineInternal(VM_Method caller, 
 						    VM_Method callee, 
 						    OPT_CompilationState state,
 						    int inlinedSizeEstimate)  {
+    OPT_OptimizingCompilerException.UNREACHABLE();
+    return null; // placate jikes.
+  }
+
+  protected OPT_InlineDecision shouldInlineInterfaceInternal(VM_Method caller, 
+							     VM_Method callee, 
+							     OPT_CompilationState state) {
     OPT_OptimizingCompilerException.UNREACHABLE();
     return null; // placate jikes.
   }
@@ -205,12 +207,6 @@ final class OPT_AdaptiveInlineOracle extends OPT_GenericInlineOracle {
   OPT_AdaptiveInlineOracle(OPT_ContextFreeInlinePlan plan) {
     this.plan = plan;
   }
-  // TODO: eliminate the need for the following, which is needed by
-  // OPT_InlineOracleDictionary
-  public OPT_AdaptiveInlineOracle() {
-    this.plan = null;
-  }
-
 
   /**
    * Return the upper limit on the machine code instructions for the 

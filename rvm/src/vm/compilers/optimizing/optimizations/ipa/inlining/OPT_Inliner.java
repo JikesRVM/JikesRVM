@@ -15,12 +15,11 @@ import instructionFormats.*;
  * @see OPT_GenerationContext
  */
 class OPT_Inliner implements OPT_Operators, OPT_Constants {
-  private static final boolean DEBUG_METHOD_GUARD = false;
 
   // The following flag requires an adaptive boot image and flag
   // "INSERT_DEBUGGING_COUNTERS" to be true.  See instrumentation
   // section of the user guide for more information.
-  private static final boolean COUNT_FAILED_METHOD_GUARDS = false;
+  private static final boolean COUNT_FAILED_GUARDS = false;
 
   /**
    * Execute an inlining decision inlDec for the CALL instruction
@@ -88,313 +87,258 @@ class OPT_Inliner implements OPT_Operators, OPT_Constants {
 					      OPT_ExceptionHandlerBasicBlockBag ebag, 
 					      OPT_Instruction callSite) {
     if (inlDec.needsGuard()) {
-      if (parent.options.guardWithTrap()) {
-        // Insert checktype instruction into current (caller block) 
-        // for unsafe inlining of virtual calls
-        if (VM.VerifyAssertions) VM.assert(inlDec.getNumberOfTargets() == 1);
-        VM_Method callee = inlDec.getTargets()[0];
-        if (parent.options.PRINT_INLINE_REPORT) {
-          VM.sysWrite("\tGuarded inline (trap) " + callee + " into " + 
-		      callSite.position.getMethod() + " at bytecode " 
-		      + callSite.bcIndex + "\n");
-        }
-        OPT_GenerationContext child = 
-	  OPT_GenerationContext.createChildContext(parent, ebag, callee, 
-						   callSite);
-        OPT_BC2IR.generateHIR(child);
-        OPT_GenerationContext.transferState(parent, child);
-        OPT_RegisterOperand thisPtr = 
-	  ((OPT_RegisterOperand)Call.getParam(callSite, 0)).copyU2U();
-        OPT_TypeOperand typeOp = 
-	  new OPT_TypeOperand(callee.getDeclaringClass());
-        OPT_Instruction guard = TypeCheck.create(CHECKTYPE, thisPtr, typeOp);
-        guard.bcIndex  = callSite.bcIndex;
-        guard.position = callSite.position;
-        child.prologue.firstInstruction().insertAfter(guard);
-        child.prologue.setCanThrowExceptions();
-        child.prologue.setMayThrowUncaughtException();
-        return  child;
-      } else {
-        //Step 1: create the synthetic generation context we'll 
-        // return to our caller.
-        OPT_GenerationContext container = 
-	  OPT_GenerationContext.createSynthetic(parent, ebag);
-        container.cfg.breakCodeOrder(container.prologue, container.epilogue);
-        // Step 2: (a)Determine the type of guard required for each callee.
-        //         (b) Print a message (optional)
-        //         (c) Generate the child GC for each target
-        VM_Method[] targets = inlDec.getTargets();
-        byte[] guards = new byte[targets.length];
-        OPT_GenerationContext[] children = 
-	  new OPT_GenerationContext[targets.length];
-        for (int i = 0; i < targets.length; i++) {
-          VM_Method callee = targets[i];
-          // (a) 
-          if (parent.options.guardWithClassTest()) {
-            guards[i] = OPT_Options.IG_CLASS_TEST;
-          } else if (parent.options.guardWithMethodTest()) {
-	    // Optimization: if the callee method is declared on a final
-	    // class, then the class test is more efficient and can be used
-	    // without losing coverage. This situation arises when a 
-	    // final class overrides an inherited method.
-	    if (callee.getDeclaringClass().isFinal()) {
-	      guards[i] = OPT_Options.IG_CLASS_TEST;
-	    } else {
-	      guards[i] = OPT_Options.IG_METHOD_TEST;
-	    }
-          } else {
-            OPT_OptimizingCompilerException.UNREACHABLE();
-          }
-          // (b)
-          if (parent.options.PRINT_INLINE_REPORT) {
-            String guard = guards[i] == 
-	      OPT_Options.IG_CLASS_TEST ? " (class test) " : " (method test) ";
-            VM.sysWrite("\tGuarded inline" + guard + " " + callee 
-			+ " into " + callSite.position.getMethod() 
-			+ " at bytecode " + callSite.bcIndex + "\n");
-          }
-          // (c) 
-          children[i] = 
-	    OPT_GenerationContext.createChildContext(parent, ebag, 
-						     callee, callSite);
-          OPT_BC2IR.generateHIR(children[i]);
-          OPT_GenerationContext.transferState(parent, children[i]);
-        }
-        // Step 3: Merge together result from children into container.
-        if (Call.hasResult(callSite)) {
-          OPT_Register reg = Call.getResult(callSite).register;
-          container.result = children[0].result;
-          for (int i = 1; i < targets.length; i++) {
-            container.result = 
-	      OPT_Operand.meet(container.result, children[i].result, reg);
-          }
-          // Account for the non-predicted case as well...
-          // Most likely this means that we shouldn't even bother 
-          // with the above meet operations
-          // and simply pick up Call.getResult(callsite) directly.
-          // SJF: However, it's good to keep this around; maybe
-          //      IPA will give us more information about the result.
-          container.result = 
-	    OPT_Operand.meet(container.result, Call.getResult(callSite), reg);
-        }
-        // Step 4: Create a block to contain a copy of the original call 
-        // in case all predictions fail. It falls through to container.epilogue
-        OPT_BasicBlock testFailed = 
-	  new OPT_BasicBlock(callSite.bcIndex, callSite.position, parent.cfg);
-        testFailed.exceptionHandlers = ebag;
-        OPT_Instruction call = callSite.copyWithoutLinks();
-	Call.getMethod(call).setIsGuardedInlineOffBranch(true);
-        call.bcIndex = callSite.bcIndex;
-        call.position = callSite.position;
-        if (DEBUG_METHOD_GUARD) {
-          // insert an instruction to print a message at runtime.
-          String msg = "METHOD TEST FAILED: " + callSite.position.getMethod()
-	    + " at bytecode " + callSite.bcIndex + "\n";
-          int msgID = OPT_Debug.registerMessage(msg);
-          OPT_IntConstantOperand msgOp = new OPT_IntConstantOperand(msgID);
-          OPT_Instruction dbg = 
-	    Call.create1(CALL, null, null, 
-			 OPT_MethodOperand.STATIC(OPT_Debug.debugSayMethod),
-			 msgOp);
-          dbg.position = call.position;
-          dbg.bcIndex = INSTRUMENTATION_BCI;
+      //Step 1: create the synthetic generation context we'll 
+      // return to our caller.
+      OPT_GenerationContext container = 
+	OPT_GenerationContext.createSynthetic(parent, ebag);
+      container.cfg.breakCodeOrder(container.prologue, container.epilogue);
+      // Step 2: (a) Print a message (optional)
+      //         (b) Generate the child GC for each target
+      VM_Method[] targets = inlDec.getTargets();
+      byte[] guards = inlDec.getGuards();
+      OPT_GenerationContext[] children = 
+	new OPT_GenerationContext[targets.length];
+      for (int i = 0; i < targets.length; i++) {
+	VM_Method callee = targets[i];
+	// (a)
+	if (parent.options.PRINT_INLINE_REPORT) {
+	  String guard = guards[i] == 
+	    OPT_Options.IG_CLASS_TEST ? " (class test) " : " (method test) ";
+	  VM.sysWrite("\tGuarded inline" + guard + " " + callee 
+		      + " into " + callSite.position.getMethod() 
+		      + " at bytecode " + callSite.bcIndex + "\n");
 	}
+	// (b) 
+	children[i] = 
+	  OPT_GenerationContext.createChildContext(parent, ebag, 
+						   callee, callSite);
+	OPT_BC2IR.generateHIR(children[i]);
+	OPT_GenerationContext.transferState(parent, children[i]);
+      }
+      // Step 3: Merge together result from children into container.
+      if (Call.hasResult(callSite)) {
+	OPT_Register reg = Call.getResult(callSite).register;
+	container.result = children[0].result;
+	for (int i = 1; i < targets.length; i++) {
+	  container.result = 
+	    OPT_Operand.meet(container.result, children[i].result, reg);
+	}
+	// Account for the non-predicted case as well...
+	// Most likely this means that we shouldn't even bother 
+	// with the above meet operations
+	// and simply pick up Call.getResult(callsite) directly.
+	// SJF: However, it's good to keep this around; maybe
+	//      IPA will give us more information about the result.
+	container.result = 
+	  OPT_Operand.meet(container.result, Call.getResult(callSite), reg);
+      }
+      // Step 4: Create a block to contain a copy of the original call 
+      // in case all predictions fail. It falls through to container.epilogue
+      OPT_BasicBlock testFailed = 
+	new OPT_BasicBlock(callSite.bcIndex, callSite.position, parent.cfg);
+      testFailed.exceptionHandlers = ebag;
+      OPT_Instruction call = callSite.copyWithoutLinks();
+      Call.getMethod(call).setIsGuardedInlineOffBranch(true);
+      call.bcIndex = callSite.bcIndex;
+      call.position = callSite.position;
 
-	// Get a runtime count of how many times guards fail at runtime	
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	if (COUNT_FAILED_METHOD_GUARDS && 
-	    VM_Controller.options.INSERT_DEBUGGING_COUNTERS) {
-	  // Need a name for the event to count.  In this example, a
-	  // separate counter for each method by using the method name
-	  // as the event name.  You could also have used just the string 
-	  // "Method Test Failed" to keep only one counter.
-	  String eventName = "Method Guard Failed: " + 
-	    callSite.position.getMethod().toString();
-
-	  // Create instruction that will increment the counter
-	  // corresponding to the named event.
-	  OPT_Instruction counterInst = VM_AOSDatabase.debuggingCounterData.
-	    getCounterInstructionForEvent(eventName);
-
-          testFailed.appendInstruction(counterInst);
-        }
-	//-#endif
+      //-#if RVM_WITH_ADAPTIVE_SYSTEM
+      if (COUNT_FAILED_GUARDS && 
+	  VM_Controller.options.INSERT_DEBUGGING_COUNTERS) {
+	// Get a dynamic count of how many times guards fail at runtime.
+	// Need a name for the event to count.  In this example, a
+	// separate counter for each method by using the method name
+	// as the event name.  You could also have used just the string 
+	// "Guarded inline failed" to keep only one counter.
+	String eventName = 
+	  "Guarded inline failed: " + callSite.position.getMethod().toString();
+	// Create instruction that will increment the counter
+	// corresponding to the named event.
+	OPT_Instruction counterInst = 
+	  VM_AOSDatabase.debuggingCounterData.getCounterInstructionForEvent(eventName);
+	testFailed.appendInstruction(counterInst);
+      }
+      //-#endif
 	
-        testFailed.appendInstruction(call);
-        testFailed.insertOut(container.epilogue);
-        container.cfg.linkInCodeOrder(testFailed, container.epilogue);
-        // This is ugly....since we didn't call BC2IR to generate the 
-        // block with callSite we have to initialize the block's exception 
-	// behavior manually.
-        // We can't call createSubBlock to do it because callSite may not
-        // be in a basic block yet (when execute is invoked from 
-	// BC2IR.maybeInlineMethod).
-        if (ebag != null) {
-          for (OPT_BasicBlockEnumeration e = ebag.enumerator(); 
-	       e.hasMoreElements();) {
-            OPT_BasicBlock handler = e.next();
-            testFailed.insertOut(handler);
-          }
-        }
-        testFailed.setCanThrowExceptions();
-        testFailed.setMayThrowUncaughtException();
-        testFailed.setInfrequent();
-        // Step 5: Patch together all the callees by generating guard blocks
-        OPT_BasicBlock firstIfBlock = testFailed;
-        // Note: We know that receiver must be a register 
-	// operand (and not a string constant) because we are doing a 
-	// guarded inlining....if it was a string constant we'd have
-        // been able to inline without a guard.
-        OPT_RegisterOperand receiver = Call.getParam(callSite, 0).asRegister();
-	OPT_MethodOperand mo = Call.getMethod(callSite);
-        boolean isInterface = mo.isInterface();
-	if (isInterface) {
-	  if (VM.BuildForIMTInterfaceInvocation ||
-	      (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
-	    VM_Type interfaceType = mo.method.getDeclaringClass();
-	    VM_Class refType = receiver.type.asClass();
-	    // Attempt to avoid inserting the check by seeing if the 
-	    // known static type of the receiver implements the interface.
-	    boolean requiresImplementsTest = true;
-	    if (refType.isResolved() && !refType.isInterface()) {
-	      byte doesImplement = 
-		OPT_ClassLoaderProxy.proxy.isAssignableWith(interfaceType, 
-							    refType);
-	      requiresImplementsTest = doesImplement != OPT_Constants.YES;
-	    }
-	    if (requiresImplementsTest) {
-	      OPT_Instruction dtc = 
-		TypeCheck.create(CHECKCAST_INTERFACE_NOTNULL,
-				 receiver.copyU2U(),
-				 new OPT_TypeOperand(interfaceType),
-				 Call.getGuard(callSite).copy());
-	      dtc.copyPosition(callSite);
-	      testFailed.prependInstruction(dtc);
-	    }
+      testFailed.appendInstruction(call);
+      testFailed.insertOut(container.epilogue);
+      container.cfg.linkInCodeOrder(testFailed, container.epilogue);
+      // This is ugly....since we didn't call BC2IR to generate the 
+      // block with callSite we have to initialize the block's exception 
+      // behavior manually.
+      // We can't call createSubBlock to do it because callSite may not
+      // be in a basic block yet (when execute is invoked from 
+      // BC2IR.maybeInlineMethod).
+      if (ebag != null) {
+	for (OPT_BasicBlockEnumeration e = ebag.enumerator(); 
+	     e.hasMoreElements();) {
+	  OPT_BasicBlock handler = e.next();
+	  testFailed.insertOut(handler);
+	}
+      }
+      testFailed.setCanThrowExceptions();
+      testFailed.setMayThrowUncaughtException();
+      testFailed.setInfrequent();
+      // Step 5: Patch together all the callees by generating guard blocks
+      OPT_BasicBlock firstIfBlock = testFailed;
+      // Note: We know that receiver must be a register 
+      // operand (and not a string constant) because we are doing a 
+      // guarded inlining....if it was a string constant we'd have
+      // been able to inline without a guard.
+      OPT_RegisterOperand receiver = Call.getParam(callSite, 0).asRegister();
+      OPT_MethodOperand mo = Call.getMethod(callSite);
+      boolean isInterface = mo.isInterface();
+      if (isInterface) {
+	if (VM.BuildForIMTInterfaceInvocation ||
+	    (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
+	  VM_Type interfaceType = mo.method.getDeclaringClass();
+	  VM_Class refType = receiver.type.asClass();
+	  // Attempt to avoid inserting the check by seeing if the 
+	  // known static type of the receiver implements the interface.
+	  boolean requiresImplementsTest = true;
+	  if (refType.isResolved() && !refType.isInterface()) {
+	    byte doesImplement = 
+	      OPT_ClassLoaderProxy.proxy.isAssignableWith(interfaceType, 
+							  refType);
+	    requiresImplementsTest = doesImplement != OPT_Constants.YES;
+	  }
+	  if (requiresImplementsTest) {
+	    OPT_Instruction dtc = 
+	      TypeCheck.create(CHECKCAST_INTERFACE_NOTNULL,
+			       receiver.copyU2U(),
+			       new OPT_TypeOperand(interfaceType),
+			       Call.getGuard(callSite).copy());
+	    dtc.copyPosition(callSite);
+	    testFailed.prependInstruction(dtc);
 	  }
 	}
-	// Basic idea of loop: Path together an if...else if.... else...
-	// chain from the bottom (testFailed). Some excessive cuteness
-	// to allow us to have multiple if blocks for a single
-	// "logical" test and to share test insertion for interfaces/virtuals.
-        for (int i = children.length - 1; 
-	     i >= 0; 
-	     i--, testFailed = firstIfBlock) {
-          firstIfBlock = 
-	    new OPT_BasicBlock(callSite.bcIndex, callSite.position, 
-			       parent.cfg);
-          firstIfBlock.exceptionHandlers = ebag;
-	  OPT_BasicBlock lastIfBlock = firstIfBlock;
-          VM_Method target = children[i].method;
-	  OPT_Instruction tmp;
+      }
+      // Basic idea of loop: Path together an if...else if.... else...
+      // chain from the bottom (testFailed). Some excessive cuteness
+      // to allow us to have multiple if blocks for a single
+      // "logical" test and to share test insertion for interfaces/virtuals.
+      for (int i = children.length - 1; 
+	   i >= 0; 
+	   i--, testFailed = firstIfBlock) {
+	firstIfBlock = 
+	  new OPT_BasicBlock(callSite.bcIndex, callSite.position, 
+			     parent.cfg);
+	firstIfBlock.exceptionHandlers = ebag;
+	OPT_BasicBlock lastIfBlock = firstIfBlock;
+	VM_Method target = children[i].method;
+	OPT_Instruction tmp;
 
-	  if (isInterface) {
-	    VM_Class callDeclClass = mo.method.getDeclaringClass();
-	    if (!callDeclClass.isInterface()) {
-	      // Part of ensuring that we catch IncompatibleClassChangeErrors
-	      // is making sure that we know that callDeclClass is an
-	      // interface before we attempt to side-step the usual invoke
-	      // interface sequence.
-	      // If we don't know at least this much, we can't do the inlining.
-	      // We used online profile data to tell us that the target was a 
-	      // frequently called method from this (interface invoke) 
-	      // callSite, so it would be truly bizarre for us to not be able
-	      // to establish that callDeclClass is an interface now.
-	      // If we were using static heuristics to do guarded inlining
-	      // of interface calls, then we'd probably need to do the 
-	      // "right" thing and detect this situation
-	      // before we generated all of the childCFG's and got them
-	      // entangled into the parent (due to exceptional control flow).
-	      // This potential entanglement is what forces us to bail on 
-	      // the entire compilation.
-	      throw new OPT_OptimizingCompilerException("Attempted guarded inline of invoke interface when decl class of target method may not be an interface");
-	    }
-	    
-	    // We potentially have to generate IR to perform two tests here:
-	    // (1) Does the receiver object implement callDeclClass?
-	    // (2) Given that it does, is target the method that would 
-	    //     be invoked for this receiver?
-	    // It is quite common to be able to answer (1) "YES" at compile
-	    // time, in which case we only have to generate IR to establish 
-	    // (2) at runtime.
-	    byte doesImplement = OPT_ClassLoaderProxy.proxy.
-	            isAssignableWith(callDeclClass, 
-				     target.getDeclaringClass());
-	    if (doesImplement != OPT_Constants.YES) {
-	      // We can't be sure at compile time that the receiver implements
-	      // the interface. So, inject a test to make sure that it does.
-	      // Unlike the above case, this can actually happen (when 
-	      // the method is inherited but only the child actually 
-	      // implements the interface).
-	      if (parent.options.PRINT_INLINE_REPORT) {
-		VM.sysWrite("\t\tRequired additional instanceof "
-			    +callDeclClass+" test\n");
-	      }
-	      firstIfBlock = 
-		new OPT_BasicBlock(callSite.bcIndex, callSite.position, 
-				   parent.cfg);
-	      firstIfBlock.exceptionHandlers = ebag;
-
-	      OPT_RegisterOperand instanceOfResult = 
-		parent.temps.makeTempInt();
-	      tmp = InstanceOf.create(INSTANCEOF_NOTNULL, 
-				      instanceOfResult,
-				      new OPT_TypeOperand(callDeclClass),
-				      receiver.copy(),
-				      Call.getGuard(callSite));
-	      tmp.copyPosition(callSite);
-	      firstIfBlock.appendInstruction(tmp);
-
-	      tmp = IfCmp.create(INT_IFCMP,
-				 parent.temps.makeTempValidation(),
-				 instanceOfResult.copyD2U(),
-				 new OPT_IntConstantOperand(0),
-				 OPT_ConditionOperand.EQUAL(),
-				 testFailed.makeJumpTarget(),
-				 new OPT_BranchProfileOperand());
-	      tmp.copyPosition(callSite);
-	      firstIfBlock.appendInstruction(tmp);
-
-	      firstIfBlock.insertOut(testFailed);
-	      firstIfBlock.insertOut(lastIfBlock);
-	      container.cfg.linkInCodeOrder(firstIfBlock, lastIfBlock);
-	    }
+	if (isInterface) {
+	  VM_Class callDeclClass = mo.method.getDeclaringClass();
+	  if (!callDeclClass.isInterface()) {
+	    // Part of ensuring that we catch IncompatibleClassChangeErrors
+	    // is making sure that we know that callDeclClass is an
+	    // interface before we attempt to side-step the usual invoke
+	    // interface sequence.
+	    // If we don't know at least this much, we can't do the inlining.
+	    // We used online profile data to tell us that the target was a 
+	    // frequently called method from this (interface invoke) 
+	    // callSite, so it would be truly bizarre for us to not be able
+	    // to establish that callDeclClass is an interface now.
+	    // If we were using static heuristics to do guarded inlining
+	    // of interface calls, then we'd probably need to do the 
+	    // "right" thing and detect this situation
+	    // before we generated all of the childCFG's and got them
+	    // entangled into the parent (due to exceptional control flow).
+	    // This potential entanglement is what forces us to bail on 
+	    // the entire compilation.
+	    throw new OPT_OptimizingCompilerException("Attempted guarded inline of invoke interface when decl class of target method may not be an interface");
 	  }
+	    
+	  // We potentially have to generate IR to perform two tests here:
+	  // (1) Does the receiver object implement callDeclClass?
+	  // (2) Given that it does, is target the method that would 
+	  //     be invoked for this receiver?
+	  // It is quite common to be able to answer (1) "YES" at compile
+	  // time, in which case we only have to generate IR to establish 
+	  // (2) at runtime.
+	  byte doesImplement = OPT_ClassLoaderProxy.proxy.
+	    isAssignableWith(callDeclClass, 
+			     target.getDeclaringClass());
+	  if (doesImplement != OPT_Constants.YES) {
+	    // We can't be sure at compile time that the receiver implements
+	    // the interface. So, inject a test to make sure that it does.
+	    // Unlike the above case, this can actually happen (when 
+	    // the method is inherited but only the child actually 
+	    // implements the interface).
+	    if (parent.options.PRINT_INLINE_REPORT) {
+	      VM.sysWrite("\t\tRequired additional instanceof "
+			  +callDeclClass+" test\n");
+	    }
+	    firstIfBlock = 
+	      new OPT_BasicBlock(callSite.bcIndex, callSite.position, 
+				 parent.cfg);
+	    firstIfBlock.exceptionHandlers = ebag;
 
-	  if (guards[i] == OPT_Options.IG_CLASS_TEST) {
-	    tmp = TypeIfCmp.create(TYPE_IFCMP, receiver.copyU2U(), 
+	    OPT_RegisterOperand instanceOfResult = 
+	      parent.temps.makeTempInt();
+	    tmp = InstanceOf.create(INSTANCEOF_NOTNULL, 
+				    instanceOfResult,
+				    new OPT_TypeOperand(callDeclClass),
+				    receiver.copy(),
+				    Call.getGuard(callSite));
+	    tmp.copyPosition(callSite);
+	    firstIfBlock.appendInstruction(tmp);
+
+	    tmp = IfCmp.create(INT_IFCMP,
+			       parent.temps.makeTempValidation(),
+			       instanceOfResult.copyD2U(),
+			       new OPT_IntConstantOperand(0),
+			       OPT_ConditionOperand.EQUAL(),
+			       testFailed.makeJumpTarget(),
+			       new OPT_BranchProfileOperand());
+	    tmp.copyPosition(callSite);
+	    firstIfBlock.appendInstruction(tmp);
+
+	    firstIfBlock.insertOut(testFailed);
+	    firstIfBlock.insertOut(lastIfBlock);
+	    container.cfg.linkInCodeOrder(firstIfBlock, lastIfBlock);
+	  }
+	}
+
+	if (guards[i] == OPT_Options.IG_CLASS_TEST) {
+	  tmp = TypeIfCmp.create(TYPE_IFCMP, receiver.copyU2U(), 
+				 Call.getGuard(callSite).copy(), 
+				 new OPT_TypeOperand(target.getDeclaringClass()), 
+				 OPT_ConditionOperand.NOT_EQUAL(), 
+				 testFailed.makeJumpTarget(),
+				 OPT_BranchProfileOperand.unlikely());
+	} else if (guards[i] == OPT_Options.IG_METHOD_TEST) {
+	  tmp = MethodIfCmp.create(METHOD_IFCMP, receiver.copyU2U(), 
 				   Call.getGuard(callSite).copy(), 
-				   new OPT_TypeOperand(target.getDeclaringClass()), 
+				   OPT_MethodOperand.VIRTUAL(target, false), 
 				   OPT_ConditionOperand.NOT_EQUAL(), 
 				   testFailed.makeJumpTarget(),
-				   new OPT_BranchProfileOperand());
-	  } else {
-	    tmp = MethodIfCmp.create(METHOD_IFCMP, receiver.copyU2U(), 
-				     Call.getGuard(callSite).copy(), 
-				     OPT_MethodOperand.VIRTUAL(target, false), 
-				     OPT_ConditionOperand.NOT_EQUAL(), 
-				     testFailed.makeJumpTarget(),
-				     new OPT_BranchProfileOperand());
-	  }
-	  tmp.copyPosition(callSite);
-	  lastIfBlock.appendInstruction(tmp);
+				   OPT_BranchProfileOperand.unlikely());
+	} else {
+	  tmp = PatchPoint.create(PATCH_POINT, 
+				  parent.temps.makeTempValidation(),
+				  testFailed.makeJumpTarget(),
+				  OPT_BranchProfileOperand.unlikely());
+	}
+	tmp.copyPosition(callSite);
+	lastIfBlock.appendInstruction(tmp);
 
-          lastIfBlock.insertOut(testFailed);
-          lastIfBlock.insertOut(children[i].prologue);
-          container.cfg.linkInCodeOrder(lastIfBlock, 
-					children[i].cfg.firstInCodeOrder());
-          if (children[i].epilogue != null) {
-            children[i].epilogue.appendInstruction(container.epilogue.makeGOTO());
-            children[i].epilogue.insertOut(container.epilogue);
-          }
-          container.cfg.linkInCodeOrder(children[i].cfg.lastInCodeOrder(), 
-					testFailed);
-        }
-        //Step 6: finsh by linking container.prologue & testFailed
-        container.prologue.insertOut(testFailed);
-        container.cfg.linkInCodeOrder(container.prologue, testFailed);
-        return  container;
+	lastIfBlock.insertOut(testFailed);
+	lastIfBlock.insertOut(children[i].prologue);
+	container.cfg.linkInCodeOrder(lastIfBlock, 
+				      children[i].cfg.firstInCodeOrder());
+	if (children[i].epilogue != null) {
+	  children[i].epilogue.appendInstruction(container.epilogue.makeGOTO());
+	  children[i].epilogue.insertOut(container.epilogue);
+	}
+	container.cfg.linkInCodeOrder(children[i].cfg.lastInCodeOrder(), 
+				      testFailed);
       }
+      //Step 6: finsh by linking container.prologue & testFailed
+      container.prologue.insertOut(testFailed);
+      container.cfg.linkInCodeOrder(container.prologue, testFailed);
+      return  container;
     } else {
       if (VM.VerifyAssertions) VM.assert(inlDec.getNumberOfTargets() == 1);
       VM_Method callee = inlDec.getTargets()[0];

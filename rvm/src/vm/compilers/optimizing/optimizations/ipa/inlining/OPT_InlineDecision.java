@@ -11,92 +11,105 @@
 final class OPT_InlineDecision {
 
   /** 
-   * Return a decision NOT to inline
+   * Return a decision NOT to inline.
+   * 
+   * @param target the method that is not being inlined.
    * @param reason a rationale for not inlining
    * @return a decision NOT to inline
    */
-  public static OPT_InlineDecision NO (VM_Method target, String reason) {
-    VM_Method targets[] = new VM_Method[1];
+  public static OPT_InlineDecision NO(VM_Method target, String reason) {
+    VM_Method[] targets = new VM_Method[1];
     targets[0] = target;
-    return  new OPT_InlineDecision(targets, DECIDE_NO, reason);
+    return new OPT_InlineDecision(targets, null, DECIDE_NO, reason);
   }
 
   /**
-   * Return a decision NOT to inline
+   * Return a decision NOT to inline.
+   * 
    * @param reason a rationale for not inlining
    * @return a decision NOT to inline
    */
-  public static OPT_InlineDecision NO (String reason) {
-    return  new OPT_InlineDecision(null, DECIDE_NO, reason);
+  public static OPT_InlineDecision NO(String reason) {
+    return new OPT_InlineDecision(null, null, DECIDE_NO, reason);
   }
 
   /** 
-   * Return a decision YES to inline.  This decision is safe
-   * under all situations.
+   * Return a decision to inline without a guard.
    * @param target the method to inline
    * @param reason a rationale for inlining
    * @return a decision YES to inline
    */
-  public static OPT_InlineDecision YES (VM_Method target, String reason) {
-    VM_Method targets[] = new VM_Method[1];
+  public static OPT_InlineDecision YES(VM_Method target, String reason) {
+    VM_Method[] targets = new VM_Method[1];
     targets[0] = target;
-    return  new OPT_InlineDecision(targets, DECIDE_YES, reason);
+    return new OPT_InlineDecision(targets, null, DECIDE_YES, reason);
   }
 
   /** 
-   * Return a decision YES to inline, but it is not always safe. 
-   * In this case, the calling code must likely insert a guard
-   * to protect the inlined code
+   * Return a decision YES to do a guarded inline.
+   * 
    * @param target the method to inline
+   * @param guard  the type of guard to use
    * @param reason a rationale for inlining
    * @return a decision YES to inline, but it is not always safe. 
    */
-  public static OPT_InlineDecision unsafeYES (VM_Method target, String reason) {
-    VM_Method targets[] = new VM_Method[1];
+  public static OPT_InlineDecision guardedYES(VM_Method target, 
+					      byte guard, 
+					      String reason) {
+    VM_Method[] targets = new VM_Method[1];
+    byte[] guards = new byte[1];
     targets[0] = target;
-    return  new OPT_InlineDecision(targets, UNSAFE_YES, reason);
+    guards[0] = guard;
+    return new OPT_InlineDecision(targets, guards, GUARDED_YES, reason);
   }
 
   /** 
-   * Return a decision YES to inline, but it is not always safe. 
-   * In this case, the calling code must likely insert a guard
-   * to protect the inlined code
+   * Return a decision YES to do a guarded inline.
+   * 
    * @param target the method to inline
+   * @param guard  the type of guard to use
    * @param reason a rationale for inlining
    * @return a decision YES to inline, but it is not always safe. 
    */
-  public static OPT_InlineDecision unsafeYES (
-      VM_Method[] targets, String reason) {
-    return  new OPT_InlineDecision(targets, UNSAFE_YES, reason);
+  public static OPT_InlineDecision guardedYES(VM_Method[] targets, 
+					      byte[] guards,
+					      String reason) {
+    return new OPT_InlineDecision(targets, guards, GUARDED_YES, reason);
   }
 
   /**
    * Is this inline decision a YES?
    */
   public boolean isYES () {
-    return  !isNO();
+    return !isNO();
   }
 
   /**
    * Is this inline decision a NO?
    */
   public boolean isNO () {
-    return  (code == DECIDE_NO);
+    return (code == DECIDE_NO);
   }
 
   /**
-   * Does this inline site need a guard, due to possibly mispredicted
-   * virtual invocation?
+   * Does this inline site need a guard?
    */
   public boolean needsGuard () {
-    return  (code == UNSAFE_YES);
+    return (code == GUARDED_YES);
   }
 
   /**
    * Return the methods to inline according to this decision.
    */
   public VM_Method[] getTargets () {
-    return  targets;
+    return targets;
+  }
+
+  /**
+   * Return the guards to use according to this decision.
+   */
+  public byte[] getGuards () {
+    return guards;
   }
 
   /**
@@ -104,16 +117,8 @@ final class OPT_InlineDecision {
    */
   public int getNumberOfTargets () {
     if (targets == null)
-      return  0;
-    return  targets.length;
-  }
-
-  /**
-   * Mark this decision as SAFE (needs no guard)
-   */
-  public void setSafe () {
-    if (code == UNSAFE_YES)
-      code = DECIDE_YES;
+      return 0;
+    return targets.length;
   }
 
   /**
@@ -127,7 +132,7 @@ final class OPT_InlineDecision {
   /**
    * Symbolic constant coding internal state.
    */
-  private static final short UNSAFE_YES = 2;
+  private static final short GUARDED_YES = 2;
   /**
    * Rationale for this decision
    */
@@ -139,15 +144,23 @@ final class OPT_InlineDecision {
   /**
    * The set of methods to inline.
    */
-  private VM_Method targets[];
+  private VM_Method[] targets;
+  /**
+   * The set of guards to use
+   * (only valid when code == GUARDED_YES)
+   */
+  private byte[] guards;
+
 
   /** 
    * @param target the methods to inline
    * @param code the decision code
    * @param reason a string rationale
    */
-  private OPT_InlineDecision (VM_Method targets[], short code, String reason) {
+  private OPT_InlineDecision (VM_Method[] targets, byte[] guards,
+			      short code, String reason) {
     this.targets = targets;
+    this.guards = guards;
     this.code = code;
     this.rationale = reason;
   }
@@ -167,14 +180,28 @@ final class OPT_InlineDecision {
       s = "DECIDE_NO"; 
     else if (code == DECIDE_YES)
       s = "DECIDE_YES"; 
-    else if (code == UNSAFE_YES)
-      s = "UNSAFE_YES";
+    else if (code == GUARDED_YES)
+      s = "GUARDED_YES";
     s += ":" + rationale;
     if (targets != null) {
-      for (int i = 0; i < targets.length; i++)
+      for (int i = 0; i < targets.length; i++) {
         s += " " + targets[i];
+	if (guards != null) {
+	  switch (guards[i]) {
+	  case OPT_Options.IG_METHOD_TEST:
+	    s += " (method test)";
+	    break;
+	  case OPT_Options.IG_CLASS_TEST:
+	    s += " (class test)";
+	    break;
+	  case OPT_Options.IG_CODE_PATCH:
+	    s += " (code patch)";
+	    break;
+	  }
+	}
+      }
     }
-    return  s;
+    return s;
   }
 }
 
