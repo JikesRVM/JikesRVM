@@ -44,7 +44,7 @@ public class OSR_OnStackReplacementTrigger {
     // consumer:
     thread.requesting_osr = true;
         
-        // osr organizer must be initialized already
+    // osr organizer must be initialized already
     if (VM_Controller.osrOrganizer.osr_flag == false) {
       VM_Controller.osrOrganizer.osr_flag = true;
       VM_Controller.osrOrganizer.activate();
