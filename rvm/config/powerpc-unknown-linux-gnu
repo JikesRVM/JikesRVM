@@ -51,4 +51,5 @@ export GREP="/usr/bin/grep"
 export FIND="/usr/bin/find"
 export FGREP="/usr/bin/fgrep"
 export AWK="/usr/bin/awk"
-
+export WGET=
+export MD5SUM=

@@ -51,5 +51,6 @@ export FIND=/bin/find
 export FGREP=/bin/fgrep
 export AWK=/bin/awk
 export PS=/bin/ps
-
+export WGET=
+export MD5SUM=/usr/bin/md5sum
 

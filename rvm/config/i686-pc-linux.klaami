@@ -64,6 +64,8 @@ export SED="/bin/sed"
 export DIFF="/usr/bin/diff"
 export TAR="/bin/tar"
 export XARGS="/usr/bin/xargs"
+export WGET=
+export MD5SUM=
 
 # where to find Jazzlib
 export JAZZLIBDIR=~dolby/stuff/jazzlib-0.02

@@ -54,5 +54,7 @@ export AWK=/bin/awk
 export PS=/bin/ps
 export BASH=/usr/bin/bash
 export SED=/usr/bin/sed
+export WGET=
+export MD5SUM=
 
 
