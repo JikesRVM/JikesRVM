@@ -311,7 +311,65 @@ $$$$ END LOOP
   }    
 
   // print the options values
-  public void printOptions() {
+  public String toString() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
+    StringBuffer result = new StringBuffer();
+
+    // Begin generated option value printing 
+$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+$$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME OPT_LEVEL DEFAULT_VALUE SHORT_NAME
+     $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
+    result.append("\tCMD_NAME = ").append(FULL_NAME).append("\n");
+     $$$$ END LET CMD_NAME
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == V
+          $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
+    result.append("\tCMD_NAME = ").append(FULL_NAME).append("\n");
+          $$$$ END LET CMD_NAME
+     $$$$ END IF TAG == V
+     $$$$ END SPLIT OPTION.DECL
+$$$$ END FOREACH
+$$$$ END LOOP
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == E
+          $$$$ LET PCMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
+          $$$$ LOOP CONSTNAME OPTION.ENUMS
+               $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
+    if (FULL_NAME == ITEM_NAME)
+       result.append("\tPCMD_NAME = ITEM_NAME").append("\n");
+               $$$$ END LET PCMD
+               $$$$ END SPLIT CONSTNAME
+          $$$$ END LOOP CONSTNAME
+     $$$$ END IF TAG == E
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == S
+          $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
+    {
+      String val = (FULL_NAME==null)?"[]":FULL_NAME.toString();
+      result.append("\tCMD_NAME = ").append(val).append("\n");
+    }
+          $$$$ END LET CMD_NAME
+     $$$$ END IF TAG == V
+     $$$$ END SPLIT OPTION.DECL
+$$$$ END FOREACH
+$$$$ END LOOP
+    return result.toString();
+    //End generated toString()
+  }
+  // return a String value of this options object
+  public void printOptions() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
     printOptionsHeader();
 
     // Begin generated option value printing 
