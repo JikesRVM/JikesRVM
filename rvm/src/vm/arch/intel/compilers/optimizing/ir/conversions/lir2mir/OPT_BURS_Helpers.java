@@ -556,6 +556,18 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
     int offset = - burs.ir.stackManager.allocateSpaceForCaughtException();
     OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
+
+    // The following two instructions are unfortunate.  Unfortunately,
+    // SPECjbb requires some 'strict' FP semantics.  Naturally, we don't
+    // normally implement strict semantics, but we try to slide by in
+    // order to pass the benchmark.  
+    // In order to pass SPECjbb, it turns out we need to enforce 'strict'
+    // semantics before doing a particular f2int conversion.  The
+    // following two instructions put 'value' into IEEE mode.
+    // The following two instructions could be commented out for
+    // non-fp-strict mode.
+    burs.append(MIR_Move.create(IA32_FMOV, sl, value));
+    burs.append(MIR_Move.create(IA32_FMOV, value, sl));
     
     // FP0 := value
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), value));
