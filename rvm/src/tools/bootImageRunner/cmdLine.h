@@ -81,7 +81,7 @@ static const char* nonStandardUsage[] = {
    "          :help              print usage choices for -X:opt",
    "    -X:vmClasses=<path>      load the com.ibm.JikesRVM.* and java.* classes",
    "                             from <path>, a list like one would give to the",
-   "                             -classpath argument."
+   "                             -classpath argument.",
    "    -X:cpuAffinity=<number>  physical cpu to which 1st VP is bound",
    "    -X:processors=<number|\"all\">  no. of virtual processors",
    NULL                         /* End of messages */
