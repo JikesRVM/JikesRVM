@@ -286,13 +286,16 @@ public class VM_Entrypoints implements VM_Constants {
 
   //-#if RVM_WITH_ADAPTIVE_SYSTEM
   ////////////////// 
-  // Entrypoints that are valid only when the opt compiler is included in the build
+  // Entrypoints that are valid only when the adaptive optimization system is included in the build
   //////////////////
   public static final VM_Field methodListenerNextIndexField      = getField("Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;", "nextIndex", "I");
   public static final VM_Field methodListenerNumSamplesField     = getField("Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;", "numSamples", "I");
 
   public static final VM_Field edgeListenerNextIndexField        = getField("Lcom/ibm/JikesRVM/adaptive/VM_EdgeListener;", "nextIndex", "I");
   public static final VM_Field edgeListenerSamplesTakenField     = getField("Lcom/ibm/JikesRVM/adaptive/VM_EdgeListener;", "samplesTaken", "I");
+
+  public static final VM_Field yieldCountListenerNumYieldsField= getField("Lcom/ibm/JikesRVM/adaptive/VM_YieldCounterListener;", "numYields", "I");
+  
   public static final VM_Field counterArrayManagerCounterArraysField = getField("Lcom/ibm/JikesRVM/adaptive/VM_CounterArrayManager;","counterArrays","[[D");
   //-#endif
 

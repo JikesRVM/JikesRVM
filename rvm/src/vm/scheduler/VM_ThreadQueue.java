@@ -16,7 +16,7 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
   protected VM_Thread head;   // first thread on list
   protected VM_Thread tail;   // last thread on list
   
-  VM_ThreadQueue(int id) {
+  public VM_ThreadQueue(int id) {
     this.id = id;
   }
 

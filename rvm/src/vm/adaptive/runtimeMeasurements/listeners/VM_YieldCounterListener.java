@@ -4,8 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.adaptive;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import com.ibm.JikesRVM.*;
 import java.util.*;
 
 /**
@@ -36,26 +35,21 @@ class VM_YieldCounterListener extends VM_NullListener implements VM_Uninterrupti
    *             EPILOGUE?
    */
   public void update(int whereFrom) {
-     nYields++;
-     if (nYields >= yieldThreshold) {
-	synchronized(this) {
-	  // now that we're in a critical section, double-check that
-	  // another thread has not yet processed this threshold reached event.
-     	  if (nYields >= yieldThreshold) {
-	    passivate();
-            notifyOrganizer();
-            totalYields += nYields;
-            nYields = 0;
-	  }
-        }
-     }
+    int yp = VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.yieldCountListenerNumYieldsField.getOffset(), 1) + 1;
+    if (yp == yieldThreshold) {
+      totalYields += yp;
+      numYields = 0;
+      activateOrganizer();
+    }
   }
 
   public void report() {
      VM.sysWriteln("Yield points counted: ", totalYields);
   }
 
+  public final void reset() { }
+
   private int yieldThreshold;
-  private int nYields = 0;
+  private int numYields = 0;
   private int totalYields = 0;
 }

@@ -4,18 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.adaptive;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Processor;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Method;
-import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.VM_CompiledMethods;
-import com.ibm.JikesRVM.VM_StackframeLayoutConstants;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Entrypoints;
-import com.ibm.JikesRVM.VM_Synchronization;
-import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import com.ibm.JikesRVM.*;
 import java.util.*;
 
 /**
@@ -36,7 +25,6 @@ import java.util.*;
  * @date   May 18, 2000
  *
  */
-
 class VM_EdgeListener extends VM_ContextListener 
   implements VM_Uninterruptible, VM_StackframeLayoutConstants {
 
@@ -247,8 +235,9 @@ class VM_EdgeListener extends VM_ContextListener
 					     VM_Entrypoints.edgeListenerNextIndexField.getOffset(),
 					     3);
 
-    // Ensure that we got slots for our sample, if we don't (because another
-    // thread is racing with us) we'll just ignore this sample
+    // If we got buffer slots that are beyond the end of the buffer, that means
+    // that we're actually not supposed to take the sample at all (the system
+    // is in the process of activating our organizer and processing the buffer).
     if (idx < buffer.length) {
       buffer[idx+0] = calleeCMID;
       buffer[idx+1] = callerCMID;
@@ -262,9 +251,9 @@ class VM_EdgeListener extends VM_ContextListener
 				       VM_Entrypoints.edgeListenerSamplesTakenField.getOffset(),
 				       1) + 1;
 
-      // If we are the last sample, we need to take action
+      // If we are the last sample, we need to activate the organizer.
       if (sampleNumber == desiredSamples) {
-	thresholdReached();
+	activateOrganizer();
       } 
     } 
   }
@@ -273,19 +262,6 @@ class VM_EdgeListener extends VM_ContextListener
    *  report() noop
    */
   public final void report() {}
-
-  /**
-   * Called when threshold is reached.
-   */
-  public void thresholdReached() {
-    if (DEBUG) VM.sysWrite("VM_EdgeListener.thresholdReached(): enter\n");
-
-    passivate();
-    
-    // Notify the organizer thread
-    notifyOrganizer();
-    if (DEBUG) VM.sysWrite("VM_EdgeListener.thresholdReached(): exit\n");
-  }
 
   /**
    * Reset (in preparation of starting a new sampling window)

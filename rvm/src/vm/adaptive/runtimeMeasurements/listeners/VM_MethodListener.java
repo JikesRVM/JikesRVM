@@ -15,7 +15,8 @@ import com.ibm.JikesRVM.VM_Synchronization;
  * A VM_MethodListener defines a listener to collect method invocation samples.
  *
  * Samples are collected in a buffer.  
- * When sampleSize samples have been collected, thresholdReached is called.
+ * When sampleSize samples have been collected they are either processed by 
+ * the listener directly or the listener's organizer is activate to process the samples.
  *  
  * Defines update's interface to be a compiled method identifier, CMID.
  * 
@@ -29,7 +30,7 @@ abstract class VM_MethodListener extends VM_Listener
   implements VM_Uninterruptible {
 
   /**
-   * Number of samples to be processed before calling thresholdReached
+   * Number of samples to be gathered before they are processed 
    */
   protected int sampleSize;  
   
@@ -68,7 +69,7 @@ abstract class VM_MethodListener extends VM_Listener
 
 
   /** 
-   * This method is called when a time based sample occurs.
+   * This method is called when a sample is taken.
    * It parameter "cmid" represents the compiled method ID of the method
    * which was executing at the time of the sample.  This method
    * bumps the counter and checks whether a threshold is reached.
@@ -76,9 +77,7 @@ abstract class VM_MethodListener extends VM_Listener
    * NOTE: There can be multiple threads executing this method at the 
    *       same time. We attempt to ensure that the resulting race conditions
    *       are safely handled, but make no guarentee that every sample is
-   *       actually recorded. We do try to make it somewhat likely that 
-   *       thresholdReached is called exactly once when numSamples reaches 
-   *       sampleSize, but there are still no guarentees.
+   *       actually recorded.
    *
    * @param cmid the compiled method ID to update
    * @param callerCmid a compiled method id for the caller, -1 if none
@@ -94,12 +93,12 @@ abstract class VM_MethodListener extends VM_Listener
 	// Before getting a sample index, make sure we have something to insert
 	if (callerCmid != -1) {
 	  int sampleNumber = recordSample(callerCmid);
-	  checkSampleSize(sampleNumber);
+	  checkThresholdReached(sampleNumber);
         } // nothing to insert
       } else { 
         // loop backedge or epilogue.  
 	int sampleNumber = recordSample(cmid);
-	checkSampleSize(sampleNumber);
+	checkThresholdReached(sampleNumber);
       }
     } else {
       // Original scheme: No epilogue yieldpoints.  We increment two samples
@@ -111,13 +110,13 @@ abstract class VM_MethodListener extends VM_Listener
 	if (callerCmid != -1) {
 	  sampleNumber = recordSample(callerCmid);
 	}
-	checkSampleSize(sampleNumber);
+	checkThresholdReached(sampleNumber);
       } else { 
         // loop backedge.  We're only called once, so need to take
         // two samples to avoid penalizing methods with loops.
 	int sampleNumber = recordSample(cmid);
 	sampleNumber = recordSample(cmid);
-	checkSampleSize(sampleNumber);
+	checkThresholdReached(sampleNumber);
       }
     }
   }
@@ -137,7 +136,7 @@ abstract class VM_MethodListener extends VM_Listener
    *  we simply don't insert the sample.
    */
   private int recordSample(int CMID) {  
-    // reserved the next available slot
+    // reserve the next available slot
     int idx = VM_Synchronization.fetchAndAdd(this, VM_Entrypoints.methodListenerNextIndexField.getOffset(), 1);
     // make sure it is valid
     if (idx < sampleSize) {
@@ -154,40 +153,24 @@ abstract class VM_MethodListener extends VM_Listener
 
   /**
    * This method checks to see if the parameter passed was the last sample
-   * If so, it passivates this listener and reports that the threshold has
-   * been reached.
+   * If so, it either notifies the organizer or processes the samples itself.
    *
    * @param sampleNumber the sample number was just taken 
    *      valid samples will be in [1..sampleSize]
    *      invalid sample will be -1 
    */
-  private void checkSampleSize(int sampleNumber) {
+  private void checkThresholdReached(int sampleNumber) {
     if (sampleNumber == sampleSize) { 
-      passivate();
-      thresholdReached();
+      if (notifyOrganizer) {
+	activateOrganizer();
+      } else {
+	passivate();
+	processSamples();
+	reset();
+	activate();
+      }
     }
   }
-
-  /**
-   * When the threshold is reached either notify our organizer or
-   * handle it ourselves by processing the samples, resetting, and 
-   * activating ourselves again.
-   */
-  public void thresholdReached() {
-    int numSamples = getNumSamples();
-    for (int i=0; i<numSamples; i++) {
-      int id = samples[i];
-    }
-
-    if (notifyOrganizer) {
-      notifyOrganizer();
-    } else {
-      processSamples();
-      reset();
-      activate();
-    }
-  }
-
 
   /**
    * process the buffer of samples
@@ -202,7 +185,6 @@ abstract class VM_MethodListener extends VM_Listener
     nextIndex = 0;
     numSamples = 0;
   }
-
 
   /**
    * updates the sample size for this listener

@@ -4,8 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.adaptive;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.*;
 
 /**
  * An VM_Organizer acts an an intermediary between the low level 
@@ -19,33 +18,29 @@ import com.ibm.JikesRVM.VM_Thread;
 abstract class VM_Organizer extends VM_Thread {
 
   /**
+   * The listener associated with this organizer.
+   * May be null if the organizer has no associated listener.
+   */
+  protected VM_Listener listener;
+
+  /**
+   * A queue to hold the organizer thread when it isn't executing
+   */
+  private VM_ThreadQueue tq = new VM_ThreadQueue(0);
+
+  /**
    * Called when thread is scheduled.
    */
   public void run() {
-
     initialize();
-
     while (true) {
-      // sleep until awoken
-      synchronized(this) {
-        try {
-	  wait();
-        }
-        catch (InterruptedException e) {
-	  e.printStackTrace();
-        }
-      }
-      // we've been awoken, process the information
+      passivate(); // wait until externally scheduled to run
       try {
-	thresholdReached();
-      }
-      catch (Exception e) {
-	VM.sysWrite("AOS: WARNING: exception in organizer "+this+"\n");
+	thresholdReached();       // we've been scheduled; do our job!
+	if (listener != null) listener.reset();
+      } catch (Exception e) {
 	e.printStackTrace();
-
-	// Is there a more elegant way to make this exception fatal to
-	// the application?
-	System.exit(-1);
+	VM.sysFail("Exception in organizer "+this);
       }
     } 
   }
@@ -66,4 +61,30 @@ abstract class VM_Organizer extends VM_Thread {
    */
   abstract protected void initialize();
 
+  /*
+   * Can access the thread queue without locking because 
+   * Only listener and organizer operate on the thread queue and the
+   * listener uses its own protocol to ensure that exactly 1 
+   * thread will attempt to activate the organizer.
+   */
+  private void passivate() throws VM_PragmaUninterruptible {
+    if (listener != null) {
+      if (VM.VerifyAssertions) VM._assert(!listener.isActive());
+      listener.activate();
+    }
+    VM_Thread.yield(tq);
+  }
+
+  /**
+   * Called to activate the organizer thread (ie schedule it for execution).
+   */
+  void activate() throws VM_PragmaUninterruptible {
+    if (listener != null) {
+      if (VM.VerifyAssertions) VM._assert(listener.isActive());
+      listener.passivate();
+    }
+    VM_Thread org = tq.dequeue();
+    if (VM.VerifyAssertions) VM._assert(org != null);
+    org.schedule();
+  }
 }

@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.adaptive;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
-import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.opt.VM_OptCompiledMethod;
 
 /**
  * An organizer for method listener information. 
@@ -29,11 +29,6 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
   private int filterOptLevel;
 
   /**
-   *  The listener
-   */
-  private VM_BasicMethodListener listener;
-
-  /**
    * @param listener         the associated listener
    * @param filterOptLevel   filter out all opt-compiled methods that 
    *                         were compiled at this level or higher
@@ -53,9 +48,8 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
     if (VM.LogAOSEvents) 
       VM_AOSLogging.methodSampleOrganizerThreadStarted(filterOptLevel);
 
-    // Install and activate my listener
-    VM_RuntimeMeasurements.installMethodListener(listener);
-    listener.activate();
+    // Install my listener
+    VM_RuntimeMeasurements.installMethodListener((VM_MethodListener)listener);
   }
 
   /**
@@ -64,8 +58,8 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
   void thresholdReached() {
     if (VM.LogAOSEvents) VM_AOSLogging.organizerThresholdReached();
 
-    int numSamples = listener.getNumSamples();
-    int[] samples = listener.getSamples();
+    int numSamples = ((VM_MethodListener)listener).getNumSamples();
+    int[] samples = ((VM_MethodListener)listener).getSamples();
 
     // (1) Update the global (cumulative) sample data
     VM_Controller.methodSamples.update(samples, numSamples);
@@ -89,14 +83,7 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
 
     // (3) For all samples in 0...uniqueIdx, if the method represented by
     //     the sample is compiled at an opt level below filterOptLevel
-    //     and the total (cumulative) number of samples attributed to the
-    //     method is above our absolute minimum, then report it to the
-    //     controller. We have an absolute minimum value to avoid
-    //     considering methods that haven't been sampled enough times to
-    //     give us at least some reason to think that the fact that they
-    //     were sampled wasn't just random bad luck.
-    //     NOTE: this minimum is since the beginning of time, not
-    //           just the current window.
+    //     then report it to the controller. 
     for (int i=0; i<uniqueIdx; i++) {
       int cmid = samples[i];
       double ns = VM_Controller.methodSamples.getData(cmid);
@@ -119,10 +106,5 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
 	}
       }
     }
-    
-    // (4) Get the listener ready to go and activate it for the next 
-    //     sampling window.
-    listener.reset();
-    listener.activate();
   }
 }

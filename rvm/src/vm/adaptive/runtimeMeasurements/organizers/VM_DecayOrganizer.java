@@ -28,7 +28,6 @@ final class VM_DecayOrganizer extends VM_Organizer {
    */
   public void initialize() {
     VM_RuntimeMeasurements.installNullListener(listener);
-    listener.activate();
   }
 
   /**
@@ -37,7 +36,6 @@ final class VM_DecayOrganizer extends VM_Organizer {
    */
   void thresholdReached() {
     VM_RuntimeMeasurements.decayDecayableObjects();
-    listener.activate();
   }  
 }
 
