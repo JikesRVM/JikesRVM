@@ -190,17 +190,19 @@ public class VM_StackTrace implements VM_Constants {
       
       Disabled by default.
   */
-  static public boolean alsoPrintToSysWrite = VM_Options.stackTraceAlsoToVMSysWrite;
+  final static public boolean alsoPrintToSysWrite = VM_Options.stackTraceAlsoToVMSysWrite;
 
-  /** Announce via VM.syswrite() when we're printing a stack trace.   
+  /** Announce when we're printing a stack trace.  Announce the fact and the
+      serial # of the stack trace via a line sent to VM.sysWriteln().
+      
       Disabled by default; otherwise, the Eclipse regression test output would
       get loaded with these. */
-  static public boolean announceWhenPrintingStackTrace = VM_Options.stackTraceAnnounceWhenPrinting;
+  final static public boolean announceWhenPrintingStackTrace = VM_Options.stackTraceAnnounceWhenPrinting;
 
   /** Print (via VM.sysWrite()) the context of every attempt to print a stack
       frame.  This is specifically to help figure out errors that happen when
       printing the stack.  Disabled by default. */
-  static public boolean showPrintingContext = VM_Options.stackTraceShowPrintingContext;
+  final static public boolean showPrintingContext = VM_Options.stackTraceShowPrintingContext;
 
 
   /**
