@@ -94,15 +94,29 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
    */
   static {
     resources = new VMResource[MAX_VMRESOURCE];
-    resourceTable = new VMResource[NUM_BLOCKS];
     statusTable = new byte[NUM_BLOCKS];
-    for (int blk = 0; blk < NUM_BLOCKS; blk++) {
-      resourceTable[blk] = null;
+    for (int blk = 0; blk < NUM_BLOCKS; blk++) 
       statusTable[blk] = 0;
+  }
+
+  public static void boot() {
+    resourceTable = new VMResource[NUM_BLOCKS];
+    for (int i=0; i<resources.length; i++) {
+      VMResource vm = resources[i];
+      if (vm == null) continue;
+      int startblk = Conversions.addressToBlocks(vm.start);
+      int blocks = Conversions.pagesToBlocks(vm.pages);
+      for (int blk = startblk; blk < (startblk + blocks); blk++) {
+	if (resourceTable[blk] != null) 
+	  VM.sysFail("conflicting VMResource");
+	resourceTable[blk] = vm;
+      }
     }
   }
 
   private static VMResource resourceForBlock(VM_Address addr) {
+    if (resourceTable == null)
+      VM.sysFail("resourceForBlock called when resourceTable is null");
     return resourceTable[addr.toInt() >>> LOG_BLOCK_SIZE];
   }
 
@@ -131,14 +145,8 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
       VM.sysWriteln("misaligned VMResource");
       VM._assert(false);
     }
-    for (int blk = startblk; blk < (startblk + blocks); blk++) {
-      if (resourceTable[blk] != null) {
-	VM.sysWriteln("conflicting VMResource");
-	VM._assert(false);
-      }
-      resourceTable[blk] = this;
+    for (int blk = startblk; blk < (startblk + blocks); blk++) 
       statusTable[blk] = status;
-    }
     VM_Interface.setHeapRange(index, start, end);
   }
 
