@@ -8,7 +8,9 @@ from the previous section.
 \newcommand{\Mlsq}{{\bf [}}	%left-square
 \newcommand{\Mrsq}{{\bf ]}}	%right-brace
 \newcommand{\Mmeta}[1]{{\it $<$#1$>$}} %meta-token
-\newcommand{\Mlitch}[1]{{\rm \bf ``{\tt #1}''}}	%literal char or txt
+% TEX only: \newcommand{\Mlitch}[1]{{\rm  \bf ``{\tt #1}''}}	%literal char or txt
+% HyperLatex only:
+\newcommand{\Mlitch}[1]{{ \bf ``{\tt #1}''}}	%literal char or txt
 \newcommand{\MZeroOrMore}[1]{{\(\Mlsq\mbox{#1}\Mrsq_+\)}}
 %%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Running \jrvm}
