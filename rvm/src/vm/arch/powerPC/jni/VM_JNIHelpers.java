@@ -746,7 +746,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
                                      Address overflowarea, int gpr, int fpr,
                                      VM_JNIEnvironment env) {
     // also make overflow offset, we may need to round it
-    Offset overflowoffset = Offset.zero()
+    Offset overflowoffset = Offset.zero();
     int argCount = argTypes.length;
 
     // now interpret values by types, see PPC ABI
