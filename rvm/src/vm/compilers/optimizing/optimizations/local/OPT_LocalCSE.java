@@ -28,7 +28,8 @@ public class OPT_LocalCSE extends OPT_CompilerPhase implements OPT_Operators {
 
   public final boolean shouldPerform (OPT_Options options) {
     // only perform when the following options are set.
-    return options.LOCAL_CSE || options.LOCAL_SCALAR_REPLACEMENT;
+    return options.LOCAL_CSE || options.LOCAL_SCALAR_REPLACEMENT ||
+      options.LOCAL_CHECK;
   }
 
   public final String getName () {

@@ -20,10 +20,7 @@ public abstract class OPT_BranchOptimizationDriver
   implements OPT_Operators {
 
   /**
-   * Optimization level.  TODO: This is kludge, right?  I think this
-   * can go when GCP is mainstreamed.  Martin?
-   * I think we might still need this (maybe could be fixed by tweaking
-   * composite phases??) --dave
+   * Optimization level at which phase should be performed.
    */
   private int _level;
 

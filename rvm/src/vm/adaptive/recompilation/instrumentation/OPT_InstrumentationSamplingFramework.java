@@ -118,7 +118,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
   private static void cleanUp(OPT_IR ir) {
 
     // Clean up the ir with simple optimizations
-    OPT_Simple simple = new OPT_Simple(false, false);
+    OPT_Simple simple = new OPT_Simple(-1, false, false);
     simple.perform(ir);
 
     // Perform branch optimizations (level 0 is passed because if we 

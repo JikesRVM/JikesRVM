@@ -9,14 +9,14 @@ DESCRIP
 # First all the non-printing, non-debugging options
 # Should not start with PRINT_ or DEBUG_ prefix
 ##########
-LOCAL_CSE 1 true
-Perform local common subexpression elimination
-
-LOCAL_CONSTANT_PROP 1 true
+LOCAL_CONSTANT_PROP 0 true
 Perform local constant propagation
 
-LOCAL_COPY_PROP 1 true
+LOCAL_COPY_PROP 0 true
 Perform local copy propagation
+
+LOCAL_CSE 1 true
+Perform local common subexpression elimination
 
 LOCAL_SCALAR_REPLACEMENT 1 true local_sr
 Perform local scalar replacement
@@ -27,9 +27,6 @@ Perform local elimination of redundant null checks and array bounds checks
 # ABCD is currently incomplete; it doesn't check lower bounds
 GLOBAL_BOUNDS_CHECK -1 false global_bounds
 Perform global Array Bound Check elimination on Demand 
-
-SIMPLE_OPT 1 true simple
-Perform suite of simple flow-insensitive optimizations
 
 MONITOR_REMOVAL 1 true
 Try to remove unnecessary monitor operations
@@ -91,17 +88,6 @@ Should we try to fold expressions with constants in SSA form?
 LIVE_RANGE_SPLITTING -1 false
 Split live ranges using LIR SSA pass?
 
-## (SJF): The following optimization is not on by default because
-## it is usually expensive and ineffective.
-## 9/15/2001: This optimization is causing stability problems on IA32.
-## I'm dropping it from the regression test, so this optimization is no
-## longer being maintained.
-STORE_ELIMINATION -1 false
-Should we perform dead store elimination during SSA pass?
-
-VALUE_PROP -1 false value_prop
-Perform value propagation
-
 GCP 2 false gcp
 Perform global code placement
 
@@ -162,23 +148,11 @@ Should we treat all monitorenter/monitorexit bytecodes as nops?
 STATIC_STATS -1 false
 Should we dump out compile-time statistics for basic blocks?
 
-LOOP_DEPTH_EDGE_COUNTS -1 false
-Use loop depth to approximate edge counts
-
 FIXED_JTOC -1 VM.BuildForIA32
 Exploit knowledge that the value of JTOC is a constant?
 
 CODE_PATCH_NOP -1 false
 Should all patch point be (unsafely) eliminated (at initial HIR)?
-
-CW_REFERENCED_CLASSES -1 true
-Apply Class Writer to referenced classes
-
-CW_GUARDS -1 false
-Leave guards in before BURS
-
-CW_STACK -1 true
-Process Stack to eliminate Loads/Stores
 
 INSTRUMENTATION_SAMPLING -1 false
 Perform code transformation to sample instrumentation code.
@@ -266,21 +240,6 @@ Print IR before and after register allocation
 PRINT_CALLING_CONVENTIONS -1 false 
 Print IR after expanding calling conventions
 
-PRINT_CW_BURS -1 false 
-Verbose dump of Class Writer BURS processing
-
-PRINT_CW_BURS_NOISY -1 false 
-Verbose dump of Class Writer BURS processing
-
-PRINT_CW_ALLOC -1 false 
-Verbose dump of Class Writer Allocation of Locals
-
-PRINT_CW_STACK -1 false 
-Verbose dump of Class Writer Stack processing to eliminate Load/Store
-
-PRINT_CW_PRODUCE -1 false 
-Dump of Class Writer Byte Code Production
-
 VCG_DG_BURS -1 false 
 Dump dependence graph before BURS in vcg form
 
@@ -297,20 +256,11 @@ Dump dependence graph before postpass scheduling in vcg form
 DEBUG_CODEGEN -1 false cgd
 Enable debugging support for final assembly
 
-DEBUG_ABCD -1 false
-Enable debugging support for ABCD (Array Bound Check elimination on Demand)
-
 DEBUG_INSTRU_SAMPLING -1 false
 Enable debugging statements for instrumentation sampling
 
 DEBUG_INSTRU_SAMPLING_DETAIL -1 false
 Enable detailed debugging statements for instrumentation sampling
-
-###########
-# Profiling options
-###########
-PRINT_MC_SIZE -1 false
-Report generated machine code size
 
 ###########
 # OnStackReplacement options, use this when guarded_inlining 

@@ -510,7 +510,8 @@ final class OPT_CallingConvention extends OPT_IRTools
    * Expand the prologue instruction.
    */
   private static void expandPrologue(OPT_IR ir) {
-    if (ir.options.SIMPLE_OPT) {
+    boolean useDU = ir.options.getOptLevel() >= 1;
+    if (useDU) {
       // set up register lists for dead code elimination.
       OPT_DefUse.computeDU(ir);
     }
@@ -538,7 +539,7 @@ final class OPT_CallingConvention extends OPT_IRTools
 	int size = rType.isFloatType() ? 4 : 8;
 	paramByteOffset -= size;
         // if optimizing, only define the register if it has uses
-        if (!ir.options.SIMPLE_OPT || symbOp.register.useList != null) {
+        if (!useDU || symbOp.register.useList != null) {
           if (fprIndex < phys.getNumberOfFPRParams()) {
             // insert a MOVE symbolic register = parameter
             // Note that if k FPRs are passed in registers, 
@@ -558,7 +559,7 @@ final class OPT_CallingConvention extends OPT_IRTools
       } else {
         // if optimizing, only define the register if it has uses
 	paramByteOffset -= 4;
-        if (!ir.options.SIMPLE_OPT || symbOp.register.useList != null) {
+        if (!useDU || symbOp.register.useList != null) {
           // t is object, 1/2 of a long, int, short, char, byte, or boolean
           if (gprIndex < phys.getNumberOfGPRParams()) {
 	    // to give the register allocator more freedom, we

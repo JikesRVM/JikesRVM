@@ -192,7 +192,7 @@ public class OPT_OptimizationPlanner {
                       });
 
     // Simple flow-insensitive optimizations
-    addComponent(p, new OPT_Simple(true, true));
+    addComponent(p, new OPT_Simple(1, true, true));
 
     // Simple escape analysis and related transformations
     addComponent(p, new OPT_EscapeTransformations());
@@ -204,7 +204,7 @@ public class OPT_OptimizationPlanner {
     // restructure loops
     addComponent(p, new OPT_CFGTransformations());
     // Simple flow-insensitive optimizations
-    addComponent(p, new OPT_Simple(true, true));
+    addComponent(p, new OPT_Simple(1, true, true));
     // Loop unrolling
     addComponent(p, new OPT_LoopUnrolling());
 
@@ -260,7 +260,7 @@ public class OPT_OptimizationPlanner {
         // Insert PI Nodes
         new OPT_PiNodes(true), 
         // branch optimization
-        new OPT_BranchOptimizations(0, true, true),
+        new OPT_BranchOptimizations(2, true, true),
         // Compute dominators
         new OPT_DominatorsPhase(true), 
         // compute dominance frontier
@@ -299,7 +299,7 @@ public class OPT_OptimizationPlanner {
           ("Post SSA cleanup", new Object[] {
            new OPT_LocalCopyProp(),
            new OPT_LocalConstantProp(),
-           new OPT_Simple(true, true),
+           new OPT_Simple(2, true, true),
            new OPT_EscapeTransformations(),
            new OPT_BranchOptimizations(2, true, true) 
            }) {
@@ -361,7 +361,7 @@ public class OPT_OptimizationPlanner {
        new Object[] {
        new OPT_LocalCopyProp(),
        new OPT_LocalConstantProp(),
-       new OPT_Simple(true, true),
+       new OPT_Simple(2, true, true),
        new OPT_BranchOptimizations(2, true, true) 
        }) {
         public boolean shouldPerform(OPT_Options options) {
@@ -424,7 +424,7 @@ public class OPT_OptimizationPlanner {
     // Perform local common-subexpression elimination for a factored basic block.
     addComponent(p, new OPT_LocalCSE());
     // Simple flow-insensitive optimizations
-    addComponent(p, new OPT_Simple(false, false));
+    addComponent(p, new OPT_Simple(0, false, false));
     // Late expansion of counter-based yieldpoints
     addComponent(p, new OPT_DeterministicYieldpoints());
 
@@ -440,7 +440,7 @@ public class OPT_OptimizationPlanner {
     addComponent(p, new OPT_BranchOptimizations(1, false, true));
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
-
+    // Arnold & Ryder instrumentation sampling framework
     addComponent(p, new OPT_InstrumentationSamplingFramework());
 
     // Convert high level place holder instructions into actual instrumenation

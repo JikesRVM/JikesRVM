@@ -41,10 +41,6 @@ V AI_MAX_METHOD_SIZE int 4096
 Adaptive inlining heuristic: Upper bound on absolute size of caller due to inlining
 
 
-V MAX_DEADSTORE_SYSTEM_SIZE int 100 
-Maximum number of dataflow equations for dead store elimination
-
-
 E INLINING_GUARD byte IG_CODE_PATCH
 Selection of guard mechanism for inlined virtual calls that cannot be statically bound
 "IG_METHOD_TEST guardWithMethodTest ig_method_test" \
@@ -62,7 +58,7 @@ Exclude methods from being opt compiled
 
 
 V UNROLL_LOG int 2
-Unroll loops. Duplicates the loop body n times.
+Unroll loops. Duplicates the loop body 2^n times.
 
 
 V COND_MOVE_CUTOFF int 5

@@ -27,6 +27,10 @@ public final class OPT_Simple extends OPT_CompilerPhase
   private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, false, false);
 
   /**
+   * At what optimization level should this phase be run?
+   */
+  private int level;
+  /**
    * Perform type propagation?
    */
   private final boolean typeProp;
@@ -40,7 +44,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
   private final boolean foldBranches;
 
   public final boolean shouldPerform (OPT_Options options) {
-    return options.SIMPLE_OPT;
+    return options.getOptLevel() >= level;
   }
 
   public final String getName () {
@@ -49,6 +53,13 @@ public final class OPT_Simple extends OPT_CompilerPhase
 
   public final boolean printingEnabled (OPT_Options options, boolean before) {
     return false;
+  }
+
+  /**
+   * By default, perform all optimizations at O1 and higher.
+   */
+  OPT_Simple () {
+    this(1, true, true, true);
   }
 
   /**
@@ -62,9 +73,22 @@ public final class OPT_Simple extends OPT_CompilerPhase
    * @param foldChecks should we attempt to eliminate boundscheck
    */
   public OPT_Simple (boolean typeProp, boolean foldChecks) {
-    this.typeProp = typeProp;
-    this.foldChecks = foldChecks;
-    this.foldBranches = true;
+    this(1, typeProp, foldChecks, false);
+  }
+
+  /**
+   * The constructor is used to specify what pieces of OPT_Simple will
+   * be enabled for this instance.  Some pieces are always enabled. 
+   * Customizing can be useful because some of the optimizations are not 
+   * valid/useful on LIR or even on "late stage" HIR.  With this
+   * constructor, branches will be folded.
+   * 
+   * @param level at what optimization level should the phase be enabled?
+   * @param typeProp should type propagation be peformed
+   * @param foldChecks should we attempt to eliminate boundscheck
+   */
+  public OPT_Simple (int level, boolean typeProp, boolean foldChecks) {
+    this(level, typeProp, foldChecks, true);
   }
 
   /**
@@ -79,18 +103,26 @@ public final class OPT_Simple extends OPT_CompilerPhase
    * branches?
    */
   OPT_Simple (boolean typeProp, boolean foldChecks, boolean foldBranches) {
-    this.typeProp = typeProp;
-    this.foldChecks = foldChecks;
-    this.foldBranches = foldBranches;
+    this(1, typeProp, foldChecks, foldBranches);
   }
 
   /**
-   * By default, perform all optimizations.
+   * The constructor is used to specify what pieces of OPT_Simple will
+   * be enabled for this instance.  Some pieces are always enabled. 
+   * Customizing can be useful because some of the optimizations are not 
+   * valid/useful on LIR or even on "late stage" HIR.  
+   * 
+   * @param level at what optimization level should the phase be enabled?
+   * @param typeProp should type propagation be peformed?
+   * @param foldChecks should we attempt to eliminate boundscheck?
+   * @param foldBranches should we attempt to constant fold conditional
+   * branches?
    */
-  OPT_Simple () {
-    typeProp = true;
-    foldChecks = true;
-    foldBranches = true;
+  OPT_Simple (int level, boolean typeProp, boolean foldChecks, boolean foldBranches) {
+    this.level = level;
+    this.typeProp = typeProp;
+    this.foldChecks = foldChecks;
+    this.foldBranches = foldBranches;
   }
 
   /**

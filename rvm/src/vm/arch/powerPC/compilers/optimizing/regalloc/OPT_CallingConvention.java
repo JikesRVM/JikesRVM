@@ -128,8 +128,9 @@ implements OPT_PhysicalRegisterConstants {
    */
   private static void prologueExpand(OPT_IR ir) {
     
-  // set up register lists for dead code elimination.
-    if (ir.options.SIMPLE_OPT) {
+    // set up register lists for dead code elimination.
+    boolean useDU = ir.options.getOptLevel() >= 1;
+    if (useDU) {
       OPT_DefUse.computeDU(ir);
     }
 
@@ -153,7 +154,7 @@ implements OPT_PhysicalRegisterConstants {
         // if optimizing, skip dead parameters
         // SJF: This optimization current breaks the paranoid sanity test.
         // Why? TODO: figure this out and remove the 'true' case below
-        if (true || !ir.options.SIMPLE_OPT || symParam.useList != null) {
+        if (true || !useDU || symParam.useList != null) {
 
           if (double_index < NUMBER_DOUBLE_PARAM) {
             OPT_Register param = phys.get(FIRST_DOUBLE_PARAM + (double_index));
@@ -170,7 +171,7 @@ implements OPT_PhysicalRegisterConstants {
         // if optimizing, skip dead parameters
         // SJF: This optimization current breaks the paranoid sanity test.
         // Why? TODO: figure this out and remove the 'true' case below
-        if (true || !ir.options.SIMPLE_OPT || symParam.useList != null) {
+        if (true || !useDU || symParam.useList != null) {
           if (double_index < NUMBER_DOUBLE_PARAM) {
             OPT_Register param = phys.get(FIRST_DOUBLE_PARAM + (double_index));
             start.insertBack(MIR_Move.create(PPC_FMR, D(symParam), D(param)));
@@ -186,7 +187,7 @@ implements OPT_PhysicalRegisterConstants {
         // if optimizing, skip dead parameters
         // SJF: This optimization current breaks the paranoid sanity test.
         // Why? TODO: figure this out and remove the 'true' case below
-        if (true || !ir.options.SIMPLE_OPT || symParam.useList != null) {
+        if (true || !useDU || symParam.useList != null) {
           if (int_index < NUMBER_INT_PARAM) {
             OPT_Register param = phys.get(FIRST_INT_PARAM + (int_index));
             start.insertBack(MIR_Move.create(PPC_MOVE, 

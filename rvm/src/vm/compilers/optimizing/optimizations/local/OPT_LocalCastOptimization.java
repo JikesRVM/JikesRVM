@@ -28,10 +28,6 @@ import com.ibm.JikesRVM.opt.ir.*;
 public final class OPT_LocalCastOptimization extends OPT_CompilerPhase
     implements OPT_Operators {
 
-  public boolean shouldPerform(OPT_Options options) {
-    return options.SIMPLE_OPT;
-  }
-
   public String getName() {
     return "Local Cast Optimizations";
   }
