@@ -1698,7 +1698,15 @@ implements VM_Constants
 	      VM_Class sender = getCurrentClass();
 	      VM_Method calledMethod = getCalledMethodFromPoolIndex(byte_codes.fetch2BytesUnsigned(), sender);
 	      if (traceInterpreter >= 1) println("invokevirtual (" + calledMethod+ ")");	      
-	      _invokevirtual(sender, calledMethod);
+	      VM_Class called_class = calledMethod.getDeclaringClass();
+	      if (called_class.isAddressType()) 
+		{
+		  /* intercept Magic calls */
+		  invokeMagic(calledMethod);
+		}
+	      else {
+		_invokevirtual(sender, calledMethod);
+	      }
 	      break;
 	    }
 	  case 0xb7: /* --- invokespecial --- */ 
@@ -1713,8 +1721,7 @@ implements VM_Constants
 	      VM_Class called_class = called_method.getDeclaringClass();
 	      // println("invokestatic (" + called_class+ ")");
 
-// || called_class.isAddressType())
-	      if (called_class.isMagicType()) 
+	      if (called_class.isMagicType() || called_class.isAddressType()) 
 		{
 		  /* intercept Magic calls */
 		  invokeMagic(called_method);

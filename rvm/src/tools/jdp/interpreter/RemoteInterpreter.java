@@ -395,13 +395,28 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
 	// Nothing to do 
 	  //  System.out.println("pragmaNoInline is being skipped");
 	}
+      else if (methodName == addressFromInt)
+	{
+	  stack.push(VM_Address.fromInt(stack.popInt())); 
+	}
+      else if (methodName == addressToInt)
+	{
+	  Object obj = stack.popObject();
+	  stack.push(((VM_Address)obj).toInt());
+	}
+      else if (methodName == addressAdd)
+	{
+	  int value = stack.popInt();
+	  Object obj = stack.popObject();
+	  InterpreterBase.assert(obj != null);
+	  stack.push(((VM_Address)(obj)).add(value));
+	}
       else
 	 {
 	 System.out.println(called_method+" not implemented");
 	 InterpreterBase.assert(NOT_IMPLEMENTED);
 	 }
   }
-   
 
   protected VM_StackTrace[] extendStackTrace(VM_StackTrace base[])  {
     int size = base.length;
