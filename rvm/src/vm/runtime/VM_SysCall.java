@@ -247,7 +247,7 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static int sysHPMstartMyThread() { return 0; }
   public static int sysHPMstopMyThread() { return 0; }
   public static int sysHPMresetMyThread() { return 0; }
-  public static int sysHPMgetCounterMyThread(int counter) { return 0; }
+  public static long sysHPMgetCounterMyThread(int counter) { return 0; }
   public static int sysHPMsetProgramMyGroup() { return 0; }
   public static int sysHPMstartMyGroup() { return 0; }
   public static int sysHPMstopMyGroup() { return 0; }
