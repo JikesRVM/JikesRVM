@@ -3,7 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 
 import  java.util.*;
 import com.ibm.JikesRVM.opt.ir.*;
@@ -61,7 +63,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     OPT_DefUse.computeDU(ir);
     OPT_DefUse.recomputeSSA(ir);
     // pass through registers, and mark escape information
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
         reg != null; reg = reg.getNext()) {
       // skip the following types of registers:
       if (reg.isFloat())
@@ -218,8 +220,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
-      case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
+      case GETFIELD_opcode:case GETSTATIC_opcode:
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:
       case FLOAT_ALOAD_opcode:case DOUBLE_ALOAD_opcode:
       case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
@@ -235,7 +236,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case PUTFIELD_opcode:case PUTFIELD_UNRESOLVED_opcode:
+      case PUTFIELD_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = PutField.getValue(inst);
@@ -245,7 +246,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case PUTSTATIC_opcode:case PUTSTATIC_UNRESOLVED_opcode:
+      case PUTSTATIC_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = PutStatic.getValue(inst);
@@ -255,7 +256,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case BYTE_STORE_opcode: case SHORT_STORE_opcode: 
+      case BYTE_STORE_opcode: case SHORT_STORE_opcode: case REF_STORE_opcode:
       case INT_STORE_opcode:  case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
@@ -298,20 +299,12 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         OPT_MethodOperand mop = Call.getMethod(inst);
         if (mop == null)
           return  true;
-        VM_Method m = mop.method;
-        // if we're not sure of the dynamic target, give up
-        if (m == null)
-          return  true;
-        if (m.getDeclaringClass() == null)
-          return  true;
-        if (!m.getDeclaringClass().isLoaded()) {
-          return  true;
-        }
-        if (OPT_InlineTools.needsGuard(m)) {
-          return  true;
-        }
+	if (!mop.hasPreciseTarget()) {
+	  // if we're not sure of the dynamic target, give up
+	  return true;
+	}
         // try to get a method summary for the called method
-        OPT_MethodSummary summ = findOrCreateMethodSummary(m, ir.options);
+        OPT_MethodSummary summ = findOrCreateMethodSummary(mop.getTarget(), ir.options);
         if (summ == null) {
           // couldn't get one. assume the object escapes
           return  true;
@@ -351,6 +344,11 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
+//-#if RVM_WITH_OSR
+      case YIELDPOINT_OSR_opcode:
+        // on stack replacement really a part of the current method, but
+        // we do not know exactly, so be conservative
+//-#endif
         return  true;
       default:
         throw  new OPT_OptimizingCompilerException("OPT_SimpleEscape: Unexpected " 
@@ -360,7 +358,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
 
   /** 
    * Check a single use, to see if this use may cause the object
-   * referenced to escape from this methdo.
+   * referenced to escape from this method.
    *
    * @param use the use to check
    * @param ir the governing IR
@@ -384,8 +382,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
-      case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
+      case GETFIELD_opcode:case GETSTATIC_opcode:
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
       case DOUBLE_ALOAD_opcode:case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
       case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
@@ -399,7 +396,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case PUTFIELD_opcode:case PUTFIELD_UNRESOLVED_opcode:
+      case PUTFIELD_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = PutField.getValue(inst);
@@ -409,7 +406,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case PUTSTATIC_opcode:case PUTSTATIC_UNRESOLVED_opcode:
+      case PUTSTATIC_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
         value = PutStatic.getValue(inst);
@@ -419,7 +416,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  true;
         }
-      case BYTE_STORE_opcode:case SHORT_STORE_opcode:
+      case BYTE_STORE_opcode:case SHORT_STORE_opcode: case REF_STORE_opcode:
       case INT_STORE_opcode:case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
         // as long as we don't store this operand elsewhere, all
         // is OK. TODO: add more smarts.
@@ -469,6 +466,9 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
 //-#if RVM_FOR_IA32
       case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
 //-#endif
+//-#if RVM_WITH_OSR
+      case YIELDPOINT_OSR_opcode:
+//-#endif
         // we don't currently analyze these instructions,
         // so conservatively assume everything escapes
         // TODO: add more smarts
@@ -517,13 +517,11 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
    * Perform the simple escape analysis for a method.
    */
   private static void performSimpleEscapeAnalysis (VM_Method m, 
-      OPT_Options options) {
+						   OPT_Options options) {
     if (!options.SIMPLE_ESCAPE_IPA)
       return;
     // do not perform for unloaded methods
     VM_Class c = m.getDeclaringClass();
-    if (!c.isLoaded())
-      return;
     OPT_MethodSummary summ = OPT_SummaryDatabase.findMethodSummary(m);
     if (summ != null) {
       // do not attempt to perform escape analysis recursively
@@ -531,7 +529,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         return;
     }
     OPT_CompilationPlan plan = 
-      new OPT_CompilationPlan(m, escapePlan, 
+      new OPT_CompilationPlan((VM_NormalMethod)m, escapePlan, 
 			      null, options);
     plan.analyzeOnly = true;
     try {

@@ -12,3 +12,6 @@ DESCRIP
 EDGE_COUNTERS -1 VM.BuildForAdaptiveSystem
 Insert edge counters on all bytecode-level conditional branches
 
+INVOCATION_COUNTERS -1 false
+Select methods for optimized recompilation by using invocation counters
+

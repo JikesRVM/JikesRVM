@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
 
 /**
@@ -62,7 +63,7 @@ public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
    * @return the temp
    */ 
   public OPT_RegisterOperand makeFPOp() {
-    return new OPT_RegisterOperand(getFP(),OPT_ClassLoaderProxy.AddressType);
+    return new OPT_RegisterOperand(getFP(), VM_TypeReference.Address);
   }
 
   /**
@@ -71,8 +72,7 @@ public class OPT_GenericRegisterPool extends OPT_AbstractRegisterPool {
    * @return the temp
    */ 
   public OPT_RegisterOperand makePROp() {
-    return new OPT_RegisterOperand(physical.getPR(),
-				   OPT_ClassLoaderProxy.getVMProcessorType());
+    return new OPT_RegisterOperand(physical.getPR(), VM_TypeReference.VM_Processor);
   }
 
 }

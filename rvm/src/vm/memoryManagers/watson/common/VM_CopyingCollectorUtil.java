@@ -6,17 +6,15 @@
 package com.ibm.JikesRVM.memoryManagers.watson;
 
 import  com.ibm.JikesRVM.memoryManagers.vmInterface.*;
+import com.ibm.JikesRVM.classloader.*;
 
 import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM_Type;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_Array;
 import com.ibm.JikesRVM.VM_Memory;
-import com.ibm.JikesRVM.VM_Class;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
@@ -92,7 +90,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
       VM_Address region = VM_Allocator.gc_getMatureSpace(numBytes);
       toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
-      if (arrayType == VM_Type.CodeType) {
+      if (arrayType == VM_Type.InstructionArrayType) {
 	// sync all moved code arrays to get icache and dcache in sync immediately.
 	int dataSize = numBytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
 	VM_Memory.sync(toRef, dataSize);

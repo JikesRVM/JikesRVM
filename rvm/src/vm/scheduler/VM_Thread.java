@@ -5,10 +5,19 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.classloader.*;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.adaptive.VM_RuntimeMeasurements;
 import com.ibm.JikesRVM.adaptive.VM_Controller;
+import com.ibm.JikesRVM.adaptive.VM_ControllerMemory;
+//-#endif
+
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.adaptive.OSR_OnStackReplacementTrigger;
+import com.ibm.JikesRVM.adaptive.OSR_OnStackReplacementEvent;
+import com.ibm.JikesRVM.OSR.OSR_PostThreadSwitch;
+import com.ibm.JikesRVM.OSR.OSR_ObjectHolder;
 //-#endif
 
 /**
@@ -33,12 +42,30 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public final static int PROLOGUE = 0;
   public final static int BACKEDGE = 1;
   public final static int EPILOGUE = 2;
+  //-#if RVM_WITH_OSR
+  public final static int OSRBASE = 98;
+  public final static int OSROPT  = 99;
+  //-#endif
   
+  //-#if RVM_WITH_HPM
+  /*
+   * Keep counter values for each Java thread.
+   */
+  public HPM_counters hpm_counters;
+  // when thread is scheduled, record real time
+  public long startOfRealTime;
+  //-#endif
+
   /**
    * Create a thread with default stack.
    */ 
   public VM_Thread () {
     this(VM_Interface.newStack(STACK_SIZE_NORMAL>>2));
+
+    //-#if RVM_WITH_HPM
+    //    VM.sysWriteln("VM_Thread() call new HPM_counters");
+    hpm_counters = new HPM_counters();
+    //-#endif
   }
 
   /**
@@ -66,10 +93,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    *        true afterward
    */
   public final boolean hasNativeStackFrame() {
-    if (jniEnv!=null)
-      if (jniEnv.alwaysHasNativeFrame || jniEnv.JNIRefsTop!=0)
-        return true;
-    return false;
+      return jniEnv != null && jniEnv.hasNativeStackFrame();
   }
 
   public String toString() throws VM_PragmaInterruptible {
@@ -105,7 +129,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Resume execution of a thread that has been suspended.
    * Call only if caller has appropriate security clearance.
    */ 
-  public void resume () {
+  public void resume () throws VM_PragmaInterruptible {
     suspendLock.lock();
     suspendPending = false;
     if (suspended) { // this thread is not on any queue
@@ -117,6 +141,18 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     }
   }
 
+  //-#if RVM_WITH_OSR
+  /**
+   * Suspends the thread waiting for OSR (rescheduled by recompilation
+   * thread when OSR is done).
+   */
+  public final void osrSuspend() {
+	suspendLock.lock();
+	suspendPending  = true;
+	suspendLock.unlock();
+  }
+  //-#endif
+  
   /**
    * Put given thread to sleep.
    */
@@ -217,12 +253,20 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     threadSwitch(EPILOGUE);
   }
 
+  //-#if RVM_WITH_OSR
+  public static void threadSwitchFromOsrBase() {
+    threadSwitch(OSRBASE);
+  }
+  public static void threadSwitchFromOsrOpt() {
+    threadSwitch(OSROPT);
+  }
+  //-#endif
+
   /**
    * Preempt execution of current thread.
    * Called by compiler-generated yieldpoints approx. every 10ms.
    */ 
   public static void threadSwitch(int whereFrom) throws VM_PragmaNoInline {
-    if (VM.BuildForThreadSwitchUsingControlRegisterBit) VM_Magic.clearThreadSwitchBit();
     VM_Processor.getCurrentProcessor().threadSwitchRequested = 0;
 
     //-#if RVM_FOR_POWERPC
@@ -317,8 +361,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       // Determine if ypTakenInCallerCMID actually corresponds to a real 
       // Java stackframe.
       boolean ypTakenInCallerCMIDValid = true;
-      VM_CompiledMethod ypTakenInCM = 
-        VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
+      VM_CompiledMethod ypTakenInCM = VM_CompiledMethods.getCompiledMethod(ypTakenInCMID);
 
       // Check for one of the following:
       //    Caller is top-of-stack psuedo-frame
@@ -329,6 +372,42 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
           ypTakenInCM.getMethod().getDeclaringClass().isBridgeFromNative()) { 
         ypTakenInCallerCMIDValid = false;
       } 
+
+      //-#if RVM_WITH_OSR   
+      // check if there are pending osr request
+      if ((VM_Controller.osrOrganizer != null) 
+		&& (VM_Controller.osrOrganizer.osr_flag)) {
+	VM_Controller.osrOrganizer.activate(); 
+      }
+     
+      if (!VM_Thread.getCurrentThread().isSystemThread) {
+        boolean baseToOptOSR = false;
+	if (whereFrom == VM_Thread.BACKEDGE) {
+	  if (ypTakenInCM.isOutdated()) {
+	    baseToOptOSR = true;
+	  }
+	}
+
+	if (baseToOptOSR || (whereFrom == VM_Thread.OSROPT)) {	
+	  // get this fram pointer
+	  VM_Address tsFP = VM_Magic.getFramePointer(); 	
+	  // Get pointer to my caller's frame
+	  VM_Address tsFromFP = VM_Magic.getCallerFramePointer(tsFP);
+	  // Skip over wrapper to "real" method
+	  VM_Address realFP = VM_Magic.getCallerFramePointer(tsFromFP);
+	  
+	  VM_Address stackbeg = VM_Magic.objectAsAddress(VM_Thread.getCurrentThread().stack);
+	  
+	  int tsFromFPoff = tsFromFP.diff(stackbeg).toInt();
+	  int realFPoff = realFP.diff(stackbeg).toInt();
+	  
+	  OSR_OnStackReplacementTrigger.trigger(ypTakenInCMID, 
+						tsFromFPoff,
+						realFPoff,
+						whereFrom);
+	}
+      }
+      //-#endif
 
       // Now that we have the basic information we need, 
       // notify all currently registered listeners
@@ -362,6 +441,13 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // VM_Scheduler.trace("VM_Thread", "threadSwitch");
     timerTickYield();
+
+    //-#if RVM_WITH_OSR
+    VM_Thread myThread = getCurrentThread();
+    if (myThread.isWaitingForOsr) {
+      OSR_PostThreadSwitch.postProcess(myThread);
+    }
+    //-#endif 
   }
 
   /**
@@ -373,7 +459,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     VM_Processor.getCurrentProcessor().scheduleThread(myThread);
-    morph();
+    morph(true);
   }
 
   /**
@@ -383,7 +469,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     VM_Processor.getCurrentProcessor().readyQueue.enqueue(myThread);
-    morph();
+    morph(false);
   }
 
   /**
@@ -395,7 +481,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
     q.enqueue(myThread);
-    morph();
+    morph(false);
   }
   
   /**
@@ -408,7 +494,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     myThread.beingDispatched = true;
     q.enqueue(myThread);
     l.unlock();
-    morph();
+    morph(false);
   }
 
   /**
@@ -429,7 +515,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     q2.enqueue(myThread.proxy); // proxy has been cached before locks were obtained
     l1.unlock();
     l2.unlock();
-    morph();
+    morph(false);
   }
 
   // Suspend execution of current thread in favor of some other thread.
@@ -460,14 +546,18 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     p.transferQueue.enqueue(myThread);
     VM_Processor.vpStatus[p.vpStatusIndex] = VM_Processor.IN_NATIVE;
     p.transferMutex.unlock();
-    morph();
+    morph(false);
   }
 
+  static void morph () {
+    morph(false);
+  }
   /**
    * Current thread has been placed onto some queue. Become another thread.
+   * @param timerTick   timer interrupted if true
    */ 
-  static void morph () {
-    if (trace) VM_Scheduler.trace("VM_Thread", "morph");
+  static void morph (boolean timerTick) {
+    if (trace) VM_Scheduler.trace("VM_Thread", "morph ");
     VM_Thread myThread = getCurrentThread();
 
     if (VM.VerifyAssertions) {
@@ -481,17 +571,22 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // become another thread
     //
-    VM_Processor.getCurrentProcessor().dispatch();
+    VM_Processor.getCurrentProcessor().dispatch(timerTick);
 
     // respond to interrupt sent to this thread by some other thread
     //
     if (myThread.externalInterrupt != null && myThread.throwInterruptWhenScheduled) {
-      Throwable t = myThread.externalInterrupt;
-      myThread.externalInterrupt = null;
-      myThread.throwInterruptWhenScheduled = false;
-      t.fillInStackTrace();
-      VM_Runtime.athrow(t);
+      postExternalInterrupt(myThread);
     }
+  }
+
+
+  private static void postExternalInterrupt(VM_Thread myThread) throws VM_PragmaLogicallyUninterruptible {
+    Throwable t = myThread.externalInterrupt;
+    myThread.externalInterrupt = null;
+    myThread.throwInterruptWhenScheduled = false;
+    t.fillInStackTrace();
+    VM_Runtime.athrow(t);
   }
 
   /**
@@ -629,7 +724,6 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     q.enqueue(this);
   }
 
- 
   /**
    * Terminate execution of current thread by abandoning all 
    * references to it and
@@ -637,16 +731,15 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    */ 
   static void terminate () throws VM_PragmaInterruptible {
     boolean terminateSystem = false;
-
     if (trace) VM_Scheduler.trace("VM_Thread", "terminate");
-
-    VM_Thread myThread = getCurrentThread();
-    // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
-    myThread.exit(); 
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     VM_RuntimeMeasurements.monitorThreadExit();
     //-#endif
+
+    VM_Thread myThread = getCurrentThread();
+    // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
+    myThread.exit(); 
 
     synchronized (myThread) { // release anybody waiting on this thread - 
 
@@ -699,15 +792,16 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 //-#endif
     }   
 
-
     // become another thread
     // begin critical section
     //
     VM_Scheduler.threadCreationMutex.lock();
+    myThread.releaseThreadSlot();
+    
     myThread.beingDispatched = true;
     VM_Scheduler.threadCreationMutex.unlock();
 
-    VM_Processor.getCurrentProcessor().dispatch();
+    VM_Processor.getCurrentProcessor().dispatch(false);
 
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
@@ -921,10 +1015,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
           VM_CompiledMethod compiledMethod = 
             VM_CompiledMethods.getCompiledMethod(compiledMethodId);
           if (compiledMethod.getCompilerType() == VM_CompiledMethod.BASELINE) {
-            int spOffset = VM_Compiler.getSPSaveAreaOffset
-              (compiledMethod.getMethod());
-            VM_Magic.setMemoryWord(fp.add(spOffset), 
-                                   VM_Magic.getMemoryWord(fp.add(spOffset)) + delta);
+            int spOffset = VM_Compiler.getSPSaveAreaOffset((VM_NormalMethod)compiledMethod.getMethod());
+            VM_Magic.setMemoryAddress(fp.add(spOffset), 
+				      VM_Magic.getMemoryAddress(fp.add(spOffset)).add(delta));
             if (traceAdjustments) 
               VM.sysWrite(" sp=", VM_Magic.getMemoryWord(fp.add(spOffset)));
           }
@@ -1068,13 +1161,22 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
 //-#else
 
+	// align stack frame
+	int INITIAL_FRAME_SIZE = STACKFRAME_HEADER_SIZE;
+	fp = VM_Address.fromInt(sp.sub(INITIAL_FRAME_SIZE).toInt() & ~STACKFRAME_ALIGNMENT_MASK);
+	VM_Magic.setMemoryInt(fp.add(STACKFRAME_FRAME_POINTER_OFFSET), STACKFRAME_SENTINAL_FP);
+	VM_Magic.setMemoryInt(fp.add(STACKFRAME_NEXT_INSTRUCTION_OFFSET), ip.toInt()); // need to fix
+	VM_Magic.setMemoryInt(fp.add(STACKFRAME_METHOD_ID_OFFSET), INVISIBLE_METHOD_ID);
+	
     // initialize thread stack as if "startoff" method had been called
     // by an empty "sentinal" frame  (with a single argument ???)
     //
+	/*
     sp = sp.sub(4); VM_Magic.setMemoryWord(sp, ip.toInt());          // STACKFRAME_NEXT_INSTRUCTION_OFFSET
     sp = sp.sub(4); VM_Magic.setMemoryWord(sp, INVISIBLE_METHOD_ID); // STACKFRAME_METHOD_ID_OFFSET
     sp = sp.sub(4); VM_Magic.setMemoryWord(sp, fp.toInt());          // STACKFRAME_FRAME_POINTER_OFFSET
     fp = sp;
+    */
 
     contextRegisters.gprs[FRAME_POINTER]  = fp.toInt();
     contextRegisters.ip  = ip;
@@ -1099,6 +1201,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (VM.runningVM)
          jniEnv = new VM_JNIEnvironment(threadSlot);
 
+    //-#if RVM_WITH_OSR
+    onStackReplacementEvent = new OSR_OnStackReplacementEvent();
+    //-#endif
   }
   
   /**
@@ -1128,6 +1233,10 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * Release this thread's threads[] slot.
    * Assumption: call is guarded by threadCreationMutex.
+   * Note that after a thread calls this method, it can no longer 
+   * make JNI calls.  This matters when exiting the VM, because it
+   * implies that this method must be called after the exit callbacks
+   * are invoked if they are to be able to do JNI.
    */ 
   final void releaseThreadSlot() {
     //  Problem:
@@ -1371,11 +1480,38 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     return isGCThread;
   }
 
-  public boolean isDaemonThread() {
+  public boolean isDaemonThread() throws VM_PragmaInterruptible {
     return isDaemon;
   }
 
-  public boolean isAlive() {
+  public boolean isAlive() throws VM_PragmaInterruptible {
     return isAlive;
   }
+
+  //-#if RVM_WITH_OSR
+  public boolean isSystemThread() {
+    return isSystemThread;
+  }
+
+  protected boolean isSystemThread = true;
+
+  public OSR_OnStackReplacementEvent onStackReplacementEvent;
+
+  ///////////////////////////////////////////////////////////
+  // flags should be packaged or replaced by other solutions
+
+  // the flag indicates whether this thread is waiting for on stack replacement
+  // before being rescheduled.
+  public boolean isWaitingForOsr = false;
+ 
+  // before call new instructions, we need a bridge to recover register
+  // states from the stack frame.
+  public INSTRUCTION[] bridgeInstructions = null;
+  public int fooFPOffset = 0;
+  public int tsFPOffset = 0;
+
+  // flag to synchronize with osr organizer, the trigger sets osr requests
+  // the organizer clear the requests
+  public boolean requesting_osr = false;
+  //-#endif 
 }

@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Place for VM_CompiledMethod.getDynamicLink() to deposit return information.
  *
@@ -12,15 +14,15 @@ package com.ibm.JikesRVM;
  */
 public final class VM_DynamicLink implements VM_BytecodeConstants, 
 				      VM_Uninterruptible {
-  private VM_Method methodRef; // method referenced at a call site
+  private VM_MethodReference methodRef; // method referenced at a call site
   private int       bytecode;  // how method was called at that site
 
-  public void set(VM_Method methodRef, int bytecode) {
+  public void set(VM_MethodReference methodRef, int bytecode) {
     this.methodRef = methodRef;
     this.bytecode  = bytecode;
   }
 
-  VM_Method methodRef() {
+  VM_MethodReference methodRef() {
     return methodRef;
   }
 

@@ -3,10 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import  java.util.Vector;
-import  java.util.Enumeration;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.classloader.VM_NormalMethod;
 
 /**
  * This is the top-level class to support specialized versions of Java methods
@@ -16,11 +15,16 @@ import  java.util.Enumeration;
  * @modified by Stephen Fink
  */
 public class OPT_SpecializedMethod {
-  VM_Method method;
+  /**
+   * The method that was specialized
+   */
+  VM_NormalMethod method;
+
   /**
    * Corresponding compiled method
    */
   VM_CompiledMethod compiledMethod;             
+
   /** 
    * Specialized Method index into the SpecializedMethods table
    */
@@ -34,7 +38,7 @@ public class OPT_SpecializedMethod {
   /**
    * constructor for OPT compiler.
    */
-  OPT_SpecializedMethod (VM_Method source, OPT_SpecializationContext context) {
+  OPT_SpecializedMethod (VM_NormalMethod source, OPT_SpecializationContext context) {
     this.method = source;
     this.context = context;
     this.smid = OPT_SpecializedMethodPool.createSpecializedMethodID();
@@ -47,28 +51,28 @@ public class OPT_SpecializedMethod {
     compiledMethod = context.specialCompile(method);
   }
 
-  public VM_Method getMethod () {
-    return  method;
+  public VM_NormalMethod getMethod () {
+    return method;
   }
 
   public OPT_SpecializationContext getSpecializationContext () {
-    return  context;
+    return context;
   }
 
   public VM_CompiledMethod getCompiledMethod () {
-    return  compiledMethod;
+    return compiledMethod;
   }
 
-  public void setCompiledMethod (VM_CompiledMethod cm) {
+  public void setCompiledMethod(VM_CompiledMethod cm) {
     compiledMethod = cm;
   }
 
   public int getSpecializedMethodIndex () {
-    return  smid;
+    return smid;
   }
 
   public String toString () {
-    return  "Specialized " + method + "  (Context: " + context + ")";
+    return "Specialized " + method + "  (Context: " + context + ")";
   }
 }
 

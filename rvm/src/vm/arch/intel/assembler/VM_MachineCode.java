@@ -23,8 +23,14 @@ class VM_MachineCode {
     return bytecodeMap;
   }
 
-  /* implementation */
+  //-#if RVM_WITH_OSR
+  void setBytecodeMap(int b2m[]) {
+	bytecodeMap = b2m;
+  }
+  //-#endif
 
+  
+  /* implementation */
   private INSTRUCTION[] instructions;
   private int  [] bytecodeMap;
 

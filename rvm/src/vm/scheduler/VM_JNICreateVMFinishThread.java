@@ -95,7 +95,7 @@ class VM_JNICreateVMFinishThread extends VM_Thread implements VM_Constants {
 
     // New way to save termination context
     VM_JNIEnvironment env = startUpThread.getJNIEnv();
-    env.savedContextForTermination = startUpThread.contextRegisters;
+    env.setSavedTerminationContext( startUpThread.contextRegisters );
     startUpThread.contextRegisters = new VM_Registers();
     
     //     if (trace)
@@ -106,7 +106,7 @@ class VM_JNICreateVMFinishThread extends VM_Thread implements VM_Constants {
 
     // fill in the JNIEnv address for the external pthread with the address of the 
     // pointer to the JNI function table
-    VM_Address envAddress = startUpThread.getJNIEnv().JNIEnvAddress;
+    VM_Address envAddress = startUpThread.getJNIEnv().getJNIenvAddress();
     if (trace)
       System.out.println("JNICreateVMFinishThread: env " + VM.intAsHexString(envAddress.toInt()) +
 			 " to external address " + VM.intAsHexString(externalEnvAddress.toInt()));

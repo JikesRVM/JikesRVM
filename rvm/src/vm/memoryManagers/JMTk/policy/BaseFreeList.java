@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_AddressArray;
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
@@ -37,7 +38,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-abstract class BaseFreeList implements Constants, VM_Uninterruptible {
+abstract class BaseFreeList extends Allocator implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
   
   ////////////////////////////////////////////////////////////////////////////
@@ -67,8 +68,8 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
   //
   protected FreeListVMResource vmResource;
   protected MemoryResource memoryResource;
-  protected int[] superPageFreeList;  // should be VM_Address [] 
-  protected int[] superPageUsedList;  // should be VM_Address []
+  protected VM_AddressArray superPageFreeList;
+  protected VM_AddressArray superPageUsedList;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -86,8 +87,8 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
   BaseFreeList(FreeListVMResource vmr, MemoryResource mr) {
     vmResource = vmr;
     memoryResource = mr;
-    superPageFreeList = new int[SIZE_CLASSES];
-    superPageUsedList = new int[SIZE_CLASSES];
+    superPageFreeList = new VM_AddressArray(SIZE_CLASSES);
+    superPageUsedList = new VM_AddressArray(SIZE_CLASSES);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -122,12 +123,12 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     if (isSmall(sizeClass)) {
       VM_Address cell = allocCell(isScalar, sizeClass);
       if (!cell.isZero()) {
-	postAlloc(cell, isScalar, bytes, true, false, copy);
+	postAlloc(cell, isScalar, bytes, true, false);
 	Memory.zeroSmall(cell, bytes);
 	return cell;
       }
     }
-    return allocSlow(isScalar, bytes, copy);
+    return allocSlow(isScalar, bytes);
   }
 
   /**
@@ -143,21 +144,16 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    * @return The address of the first byte of the allocated cell Will
    * not return zero.
    */
-  private final VM_Address allocSlow(boolean isScalar, EXTENT bytes,
-				     boolean copy) 
+  protected final VM_Address allocSlowOnce (boolean isScalar, EXTENT bytes)
     throws VM_PragmaNoInline {
     int sizeClass = getSizeClass(isScalar, bytes);
     boolean large = isLarge(sizeClass);
     boolean small = isSmall(sizeClass);
-    VM_Address cell;
-    for (int count = 0; ; count++) {
-      cell = large ? allocLarge(isScalar, bytes) : allocCell(isScalar, sizeClass);
-      if (!cell.isZero()) break;
-      VM_Interface.getPlan().poll(true, memoryResource);
-      if (count > 2) VM.sysFail("Out of memory in BaseFreeList.alloc");
+    VM_Address cell = large ? allocLarge(isScalar, bytes) : allocCell(isScalar, sizeClass);
+    if (!cell.isZero()) {
+      postAlloc(cell, isScalar, bytes, small, large);
+      Memory.zero(cell, bytes);
     }
-    postAlloc(cell, isScalar, bytes, small, large, copy);
-    Memory.zero(cell, bytes);
     return cell;
   }
 
@@ -175,7 +171,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
 
   abstract protected void postAlloc(VM_Address cell, boolean isScalar,
 				    EXTENT bytes, boolean small,
-				    boolean large, boolean copy);
+				    boolean large);
     
   /**
    * Allocate a cell. Cells are maintained on free lists (as opposed
@@ -195,7 +191,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     if (VM.VerifyAssertions) VM._assert(!isLarge(sizeClass));
 
     // grab a superpage from the superpage freelist
-    VM_Address headSP = VM_Address.fromInt(superPageFreeList[sizeClass]);
+    VM_Address headSP = superPageFreeList.get(sizeClass);
     if (headSP.isZero())
       return slowUnlinkCell(sizeClass);
     else 
@@ -235,9 +231,10 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    */
   private final VM_Address slowUnlinkCell(int sizeClass)
     throws VM_PragmaNoInline {
-    if (expandSizeClass(sizeClass))
-      return unlinkCell(VM_Address.fromInt(superPageFreeList[sizeClass]),
+      if (expandSizeClass(sizeClass)) {
+      return unlinkCell(superPageFreeList.get(sizeClass),
 			sizeClass);
+      }
     else
       return VM_Address.zero();
   }
@@ -647,17 +644,15 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
 		 (free && !getSuperPageFreeList(sp).isZero()) ||
 		 (!free && getSuperPageFreeList(sp).isZero()));
     }
-    VM_Address next = VM_Address.fromInt(free ? superPageFreeList[sizeClass] : superPageUsedList[sizeClass]);
+    VM_Address next = free ? superPageFreeList.get(sizeClass) : superPageUsedList.get(sizeClass);
     setNextSuperPage(sp, next);
     setPrevSuperPage(sp, VM_Address.zero());
     if (!next.isZero()) {
       setPrevSuperPage(next, sp);
     }
-    // use magic to avoid aastores & therefore preserve interruptibility
-    if (free)
-      VM_Magic.setIntAtOffset(superPageFreeList, sizeClass<<LOG_WORD_SIZE, VM_Magic.objectAsAddress(sp).toInt());
-    else
-      VM_Magic.setIntAtOffset(superPageUsedList, sizeClass<<LOG_WORD_SIZE, VM_Magic.objectAsAddress(sp).toInt());
+
+    (free ? superPageFreeList : superPageUsedList).set(sizeClass, VM_Magic.objectAsAddress(sp));
+
   }
 
   /**
@@ -676,17 +671,14 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     VM_Address prev = getPrevSuperPage(sp);
 
     if (VM.VerifyAssertions) {
-      VM_Address head = VM_Address.fromInt(free ? superPageFreeList[sizeClass] : superPageUsedList[sizeClass]);
+      VM_Address head = free ? superPageFreeList.get(sizeClass) : superPageUsedList.get(sizeClass);
       VM._assert(!head.EQ(sp) || prev.isZero());
     }
     if (!prev.isZero())
       setNextSuperPage(prev, next);
     else {
       // use magic to avoid aastores & therefore preserve interruptibility
-      if (free)
-	VM_Magic.setIntAtOffset(superPageFreeList, sizeClass<<LOG_WORD_SIZE, VM_Magic.objectAsAddress(next).toInt());
-      else
-	VM_Magic.setIntAtOffset(superPageUsedList, sizeClass<<LOG_WORD_SIZE, VM_Magic.objectAsAddress(next).toInt());
+	(free ? superPageFreeList : superPageUsedList).set(sizeClass, VM_Magic.objectAsAddress(next));
     }
     if (!next.isZero())
       setPrevSuperPage(next, prev);
@@ -752,9 +744,9 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
       VM._assert(link.toWord().EQ(link.toWord().and(PAGE_MASK)));
     }
     VM_Address loc = sp.add(prev ? PREV_SP_OFFSET : NEXT_SP_OFFSET);
-    VM_Word wd = VM_Word.fromInt(VM_Magic.getMemoryWord(loc));
+    VM_Word wd = VM_Magic.getMemoryWord(loc);
     wd = wd.and(PAGE_MASK.not()).or(link.toWord());
-    VM_Magic.setMemoryWord(loc, wd.toInt());
+    VM_Magic.setMemoryWord(loc, wd);
     // VM.sysWrite(prev ? "setting prev link of " : "setting next link of ", sp);
     // VM.sysWrite(" to ", link); VM.sysWriteln(" logically ", wd);
   }
@@ -782,7 +774,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
       VM._assert(sp.toWord().EQ(sp.toWord().and(PAGE_MASK)));
 
     VM_Address loc = sp.add(prev ? PREV_SP_OFFSET : NEXT_SP_OFFSET);
-    VM_Word wd = VM_Word.fromInt(VM_Magic.getMemoryWord(loc));
+    VM_Word wd = VM_Magic.getMemoryWord(loc);
     return wd.and(PAGE_MASK).toAddress();
   }
 
@@ -798,9 +790,9 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
       VM._assert(sp.toWord().EQ(sp.toWord().and(PAGE_MASK)));
     
     sp = sp.add(SIZE_CLASS_WORD_OFFSET);
-    VM_Word wd = VM_Word.fromInt(VM_Magic.getMemoryWord(sp));
+    VM_Word wd = VM_Magic.getMemoryWord(sp);
     wd = wd.and(PAGE_MASK).or(VM_Word.fromInt(sizeClass));
-    VM_Magic.setMemoryWord(sp, wd.toInt());
+    VM_Magic.setMemoryWord(sp, wd);
   }
 
   /**
@@ -815,7 +807,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
       VM._assert(sp.toWord().EQ(sp.toWord().and(PAGE_MASK)));
     
     sp = sp.add(SIZE_CLASS_WORD_OFFSET);
-    VM_Word wd = VM_Word.fromInt(VM_Magic.getMemoryWord(sp));
+    VM_Word wd = VM_Magic.getMemoryWord(sp);
     return wd.and(PAGE_MASK.not()).toInt();
   }
 
@@ -831,8 +823,8 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
       VM._assert(sp.toWord().EQ(sp.toWord().and(PAGE_MASK)));
 
     sp = sp.add(IN_USE_WORD_OFFSET);
-    VM_Word wd = VM_Word.fromInt(VM_Magic.getMemoryWord(sp)).and(PAGE_MASK);;
-    VM_Magic.setMemoryWord(sp, wd.toInt());
+    VM_Word wd = VM_Magic.getMemoryWord(sp).and(PAGE_MASK);;
+    VM_Magic.setMemoryWord(sp, wd);
   }
 
   /**
@@ -847,7 +839,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
       VM._assert(sp.toWord().EQ(sp.toWord().and(PAGE_MASK)));
 
     sp = sp.add(IN_USE_WORD_OFFSET);
-    VM_Word wd = VM_Word.fromInt(VM_Magic.getMemoryWord(sp)).and(PAGE_MASK.not());
+    VM_Word wd = VM_Magic.getMemoryWord(sp).and(PAGE_MASK.not());
     return wd.toInt();
   }
 
@@ -864,8 +856,8 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
       changeInUse(sp, 1);
     else {
       VM_Address addr = sp.add(IN_USE_WORD_OFFSET);
-      int old = VM_Magic.getMemoryWord(addr);
-      VM_Magic.setMemoryWord(addr, old + 1);
+      VM_Word old = VM_Magic.getMemoryWord(addr);
+      VM_Magic.setMemoryWord(addr, old.add(VM_Word.fromInt(1)));
     }
   }
   private static final int decInUse(VM_Address sp)
@@ -882,11 +874,11 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     if (VM.VerifyAssertions)
       oldref = VM_Magic.getMemoryAddress(addr).toWord().and(PAGE_MASK);
       
-    VM_Word wd = VM_Word.fromInt(VM_Magic.getMemoryWord(addr)).add(VM_Word.fromInt(delta));
+    VM_Word wd = VM_Magic.getMemoryWord(addr).add(VM_Word.fromInt(delta));
     int value = wd.and(PAGE_MASK.not()).toInt();
     if (VM.VerifyAssertions)
       VM._assert(value < PAGE_SIZE);
-    VM_Magic.setMemoryWord(addr, wd.toInt());
+    VM_Magic.setMemoryWord(addr, wd);
     if (VM.VerifyAssertions)
       VM._assert(oldref.EQ(VM_Magic.getMemoryAddress(addr).toWord().and(PAGE_MASK)));
 
@@ -901,8 +893,8 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
 
   protected final void dump() {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
-      dump(VM_Address.fromInt(superPageFreeList[sizeClass]));
-      dump(VM_Address.fromInt(superPageUsedList[sizeClass]));
+      dump(superPageFreeList.get(sizeClass));
+      dump(superPageUsedList.get(sizeClass));
     }
   }
 
@@ -975,7 +967,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
    */
   private final boolean isOnSuperPageList(VM_Address sp, int sizeClass,
 					  boolean free) {
-    VM_Address next = VM_Address.fromInt(free ? superPageFreeList[sizeClass] : superPageUsedList[sizeClass]);
+    VM_Address next = free ? superPageFreeList.get(sizeClass) : superPageUsedList.get(sizeClass);
     while (!next.isZero()) {
       if (next.EQ(sp))
 	return true;

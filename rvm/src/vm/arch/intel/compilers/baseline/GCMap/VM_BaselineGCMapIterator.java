@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
 /**
@@ -98,7 +99,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       int               callingInstructionOffset = ip.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions())).toInt();
 
       callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
-      bridgeTarget                    = dynamicLink.methodRef();
+      bridgeTarget                    = dynamicLink.methodRef().getResolvedMember();
       bridgeParameterTypes            = bridgeTarget.getParameterTypes();
       if (dynamicLink.isInvokedWithImplicitThisParameter()) {
 	bridgeParameterInitialIndex     = -1;
@@ -154,7 +155,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       VM.sysWriteHex(mapOffset);
       VM.sysWrite(".\n");
       VM.sysWrite("Reference is ");
-      VM.sysWriteHex ( VM_Magic.getMemoryWord ( framePtr.add(mapOffset) ) );
+      VM.sysWriteHex ( VM_Magic.getMemoryInt ( framePtr.add(mapOffset) ) );
       VM.sysWrite(".\n");
       if (mapId < 0) 
 	VM.sysWrite("Offset is a JSR return address ie internal pointer.\n");
@@ -202,7 +203,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       // now the remaining parameters
       //
       while(bridgeParameterIndex < bridgeParameterTypes.length) {
-	VM_Type bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
+	VM_TypeReference bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
 	
 	if (bridgeParameterType.isReferenceType()) {
 	  bridgeRegisterIndex        += 1;
@@ -310,8 +311,8 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // Additional iterator state for mapping dynamic bridge stackframes.
   //
   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
-  private VM_Method      bridgeTarget;                   // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
-  private VM_Type[]      bridgeParameterTypes;           // parameter types passed by that method
+  private VM_Method bridgeTarget;                        // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
+  private VM_TypeReference[]      bridgeParameterTypes;           // parameter types passed by that method
   private boolean        bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
   private boolean        bridgeSpilledParameterMappingRequired; // do we need to map spilled params (baseline compiler = no, opt = yes)
   private boolean        bridgeRegistersLocationUpdated; // have the register location been updated

@@ -50,12 +50,20 @@ class VM_NativeIdleThread extends VM_IdleThread {
     super ( processorAffinity );
     super.isNativeIdleThread = true;
     forAttachJVM = false;
+    
+    //-#if RVM_WITH_OSR
+    super.isSystemThread = true;
+    //-#endif
   }        
 
   VM_NativeIdleThread (VM_Processor processorAffinity, boolean asAttached) {
     super ( processorAffinity );
     super.isNativeIdleThread = true;
     forAttachJVM = asAttached;
+
+    //-#if RVM_WITH_OSR
+    super.isSystemThread = true;
+    //-#endif
   }        
 
   public String toString() { // overrides VM_IdleThread
@@ -78,20 +86,18 @@ class VM_NativeIdleThread extends VM_IdleThread {
       run_ForNormalJava();
   }
 
-  public void run_ForNormalJava() { // original 3GT run loop
-
+  public void run_ForNormalJava() throws VM_PragmaNoOptCompile {
     // Make sure Opt compiler does not compile this method.  Although GC will scan
     // this run methods frame, fixing references, any references saved in register
     // save areas would not get reported, so we prevent OPT compilation.
     //
-    VM_Magic.pragmaNoOptCompile();
 
     // Save current frame pointer in threads JNIEnv, 
     // and set flag recognized by GC
     // which will cause this (NativeIdleThread) thread to have its stack scanned
     // starting at this frame, if it is in a sigwait syscall during a collection.
     //
-    VM_Thread.getCurrentThread().jniEnv.JNITopJavaFP = VM_Magic.getFramePointer();
+    VM_Thread.getCurrentThread().jniEnv.setTopJavaFP(VM_Magic.getFramePointer());
 
     // Get the Native Processor this NativeIdleThread is running on. 
     // It will always
@@ -127,7 +133,7 @@ class VM_NativeIdleThread extends VM_IdleThread {
       //
       inSysWait = true;  // temporary...GC code looks for this flag in native idle threads
 
-      int TOC = 0;
+      VM_Address TOC = VM_Address.fromInt(0);
       //-#if RVM_FOR_POWERPC
       TOC = VM_BootRecord.the_boot_record.sysTOC;
       //-#endif
@@ -183,16 +189,13 @@ class VM_NativeIdleThread extends VM_IdleThread {
 
   }  // end of run
 
-  public void run_ForAttachJVM() { // similar to run() for Red/Blue threads
-    VM_Processor myNativeProcessor = VM_ProcessorLocalState.getCurrentProcessor();
-
-    //  make sure Opt compiler does not compile this method
-    //  references stored in registers by the opt compiler 
-    //  will not be relocated by GC
-    // (SJF: once again, what does this mean??  If you think there's a bug
-    // in the opt-compiler, please report it.)
+  public void run_ForAttachJVM() throws VM_PragmaNoOptCompile { // similar to run() for Red/Blue threads
+    // Make sure Opt compiler does not compile this method.  Although GC will scan
+    // this run methods frame, fixing references, any references saved in register
+    // save areas would not get reported, so we prevent OPT compilation.
     //
-    VM_Magic.pragmaNoOptCompile();
+
+    VM_Processor myNativeProcessor = VM_ProcessorLocalState.getCurrentProcessor();
 
     // save current frame pointer in threads JNIEnv, and 
     // set flag recognized by GC
@@ -210,7 +213,7 @@ class VM_NativeIdleThread extends VM_IdleThread {
 
       inSysWait = true;  // temporary...GC code looks for this flag in native idle threads
 
-      int TOC = 0;
+      VM_Address TOC = VM_Address.fromInt(0);
       //-#if RVM_FOR_POWERPC
       TOC = VM_BootRecord.the_boot_record.sysTOC;
       //-#endif

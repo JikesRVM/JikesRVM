@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Thread;
+import com.ibm.JikesRVM.VM_BaselineCompiler;
 import java.util.Vector;
 import java.util.Enumeration;
 
@@ -25,6 +26,10 @@ import java.util.Enumeration;
  *  @author Peter Sweeney
  */
 class VM_ControllerThread extends VM_Thread {
+
+  public String toString() {
+    return "VM_ControllerThread";
+  }
 
   /**
    * constructor
@@ -96,8 +101,15 @@ class VM_ControllerThread extends VM_Thread {
     }
   }
 
-  // Now that we're done initializing, signal the sentinel object.
+  // Now that we're done initializing, Schedule all the organizer threads
+  // and signal the sentinel object.
   private void controllerInitDone() {
+    for (Enumeration e = VM_Controller.organizers.elements(); 
+	 e.hasMoreElements(); ) {
+      VM_Organizer o = (VM_Organizer)e.nextElement();
+      o.start();
+    }
+
     try {
       synchronized(sentinel) {
 	sentinel.notify();
@@ -148,13 +160,11 @@ class VM_ControllerThread extends VM_Thread {
     VM_AOSOptions opts = VM_Controller.options;
 
     if (opts.GATHER_PROFILE_DATA) {
-      VM_MethodCountData tmp = new VM_MethodCountData();
-      VM_RuntimeMeasurements.registerReportableObject(tmp);
       VM_MethodListener methodListener = 
-        new VM_AccumulatingMethodListener(opts.INITIAL_SAMPLE_SIZE, 
-					  false, tmp);
-      VM_RuntimeMeasurements.installMethodListener(methodListener);
-      methodListener.activate();
+	new VM_MethodListener(opts.INITIAL_SAMPLE_SIZE);
+      VM_Organizer methodOrganizer = 
+	new VM_AccumulatingMethodSampleOrganizer(methodListener);
+      VM_Controller.organizers.addElement(methodOrganizer);
     }
   }
 
@@ -165,34 +175,38 @@ class VM_ControllerThread extends VM_Thread {
   private void createOrganizerThreads() {
     VM_AOSOptions opts = VM_Controller.options;
 
-    // Primary backing store for method sample data
-    VM_Controller.methodSamples = new VM_MethodCountData();
+    if (opts.sampling()) {
+      // Primary backing store for method sample data
+      VM_Controller.methodSamples = new VM_MethodCountData();
 
-    // Instal organizer to drive method recompilation 
-    VM_BasicMethodListener methodListener = 
-      new VM_BasicMethodListener(opts.INITIAL_SAMPLE_SIZE);
-    VM_Organizer methodOrganizer = 
-      new VM_MethodSampleOrganizer(methodListener, opts.FILTER_OPT_LEVEL);
-    VM_Controller.organizers.addElement(methodOrganizer);
+      // Instal organizer to drive method recompilation 
+      VM_MethodListener methodListener = 
+	new VM_MethodListener(opts.INITIAL_SAMPLE_SIZE);
+      VM_Organizer methodOrganizer = 
+	new VM_MethodSampleOrganizer(methodListener, opts.FILTER_OPT_LEVEL);
+      VM_Controller.organizers.addElement(methodOrganizer);
 
-    // Decay runtime measurement data 
-    if (opts.ADAPTIVE_INLINING) {
-      VM_Organizer decayOrganizer = 
-	new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));
-      VM_Controller.organizers.addElement(decayOrganizer);
+      // Decay runtime measurement data 
+      if (opts.ADAPTIVE_INLINING) {
+	VM_Organizer decayOrganizer = 
+	  new VM_DecayOrganizer(new VM_YieldCounterListener(opts.DECAY_FREQUENCY));
+	VM_Controller.organizers.addElement(decayOrganizer);
+      }
+    
+      if (opts.ADAPTIVE_INLINING) {
+	VM_Organizer AIOrganizer = 
+	  new VM_AIByEdgeOrganizer(new VM_EdgeListener());
+	VM_Controller.organizers.addElement(AIOrganizer);
+      }
+    } else if (opts.counters()) {
+      VM_InvocationCounts.createOptimizationPlan();
+      VM_BaselineCompiler.options.INVOCATION_COUNTERS=true;
     }
     
-    if (opts.ADAPTIVE_INLINING) {
-      VM_Organizer AIOrganizer = 
-	new VM_AIByEdgeOrganizer(new VM_EdgeListener());
-      VM_Controller.organizers.addElement(AIOrganizer);
-    }
-
-    for (Enumeration e = VM_Controller.organizers.elements(); 
-	 e.hasMoreElements(); ) {
-      VM_Organizer o = (VM_Organizer)e.nextElement();
-      o.start();
-    }
+    //-#if RVM_WITH_OSR
+    VM_Controller.osrOrganizer = new OSR_OrganizerThread();
+    VM_Controller.osrOrganizer.start();
+    //-#endif
   }
 
 

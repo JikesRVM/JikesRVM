@@ -3,7 +3,9 @@
  */
 // $Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import  java.util.*;
 import  java.io.*;
 
@@ -30,7 +32,6 @@ public final class OPT_ClassLoadingDependencyManager {
     handleOverriddenMethods(c);
     handleSubclassing(c);
     OPT_InterfaceHierarchy.notifyClassInitialized(c);
-    VM_OptStaticProgramStats.newClass();
   }
 
   /////////////////////////
@@ -126,11 +127,9 @@ public final class OPT_ClassLoadingDependencyManager {
 	return;
       }
 
-      //-#if RVM_FOR_IA32
       // (2) Apply any code patches to protect invocations already executing
       //     in the soon to be invalid code.
       ((VM_OptCompiledMethod)cm).applyCodePatches(cm);
-      //-#endif
 
       cm.setInvalid();
     }

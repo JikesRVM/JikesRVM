@@ -5,9 +5,9 @@
 package java.lang;
 
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Type;
+import com.ibm.JikesRVM.classloader.VM_Type;
 import com.ibm.JikesRVM.VM_StackBrowser;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
 
 /**
  * Library support interface of Jikes RVM

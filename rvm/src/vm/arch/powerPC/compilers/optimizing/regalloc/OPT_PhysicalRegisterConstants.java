@@ -74,4 +74,5 @@ public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
   static final int CR = FIRST_SPECIAL + 3;      // condition register
   static final int TU = FIRST_SPECIAL + 4;      // time upper
   static final int TL = FIRST_SPECIAL + 5;      // time lower
+
 }

@@ -5,18 +5,12 @@
 
 package com.ibm.JikesRVM.memoryManagers.watson;
 
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_ClassLoader;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
-import com.ibm.JikesRVM.VM_Atom;
-import com.ibm.JikesRVM.VM_Type;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Method;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -129,9 +123,7 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants {
         if ( ! validateRefs( iref, depth-1 ) ) {
           VM.sysWrite("Referenced from Object: Ref = ");
           VM_GCUtil.dumpRef( ref );
-          VM.sysWrite("                  At Offset = ");
-          VM.sysWrite(referenceOffsets[i],false);
-          VM.sysWrite("\n");
+          VM.sysWriteln("                  At Offset = ", referenceOffsets[i]);
           return false;
         }
       }
@@ -143,15 +135,13 @@ public class VM_ScanObject implements VM_Constants, VM_GCConstants {
         int location = 0;    // for arrays = offset of [0] entry
         int end      = num_elements * 4;
         for ( location = 0; location < end; location += 4 ) {
-          VM_Address iref = VM_Address.fromInt(VM_Magic.getMemoryWord(ref.add(location)));
+          VM_Address iref = VM_Magic.getMemoryAddress(ref.add(location));
           if ( ! validateRefs( iref, depth-1 ) ) {
             VM.sysWrite("Referenced from Array: Ref = ");
             VM_GCUtil.dumpRef( ref );
             VM.sysWrite("                  At Index = ");
-            VM.sysWrite((location>>2),false);
-            VM.sysWrite("              Array Length = ");
-            VM.sysWrite(num_elements,false);
-            VM.sysWrite("\n");
+            VM.sysWrite((location>>2));
+            VM.sysWriteln("              Array Length = ", num_elements);
             return false;
           }
         }

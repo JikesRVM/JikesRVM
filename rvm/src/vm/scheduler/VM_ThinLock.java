@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Implementation of thin locks.
  * 
@@ -105,23 +107,8 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
           if ((old & TL_FAT_LOCK_MASK) != 0) { // o has a heavy lock
             int index = old & TL_LOCK_ID_MASK;
             index >>>= TL_LOCK_ID_SHIFT;
-            if (VM.VerifyAssertions) {
-              if (index >= VM_Scheduler.locks.length) {
-                VM.sysWrite("Error in VM_ThinLock.lock:\n");
-                VM.sysWrite("  VM_Scheduler.locks.length: ");
-                VM.sysWrite(VM_Scheduler.locks.length,false);
-                VM.sysWrite("\n");
-                VM.sysWrite("  index: ");
-                VM.sysWrite(index,false);
-                VM.sysWrite("\n");
-                VM.sysWrite("  old status word: ");
-                VM.sysWrite(index,true);
-                VM.sysWrite("\n");
-                VM.sysWrite("  Object class: ");
-                VM.sysWrite(VM_Magic.getObjectType(o).getDescriptor());
-                VM.sysWrite("\n");
-              }
-            }
+	    while (index >= VM_Scheduler.locks.length) 
+	      VM_Lock.growLocks();
             if (VM_Scheduler.locks[index].lockHeavy(o)) {
               break major; // lock succeeds (note that lockHeavy has issued an isync)
             }
@@ -141,7 +128,7 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
             mid = VM_Magic.getCompiledMethodID(fp);
             VM_Method m2 = VM_CompiledMethods.getCompiledMethod(mid).getMethod();
             String s = m1.getDeclaringClass() + "." + m1.getName() + " " + m2.getDeclaringClass() + "." + m2.getName();
-            VM_Scheduler.trace(VM_Magic.getObjectType(o).getName(), s, -2-retries);
+            VM_Scheduler.trace(VM_Magic.getObjectType(o).toString(), s, -2-retries);
           }
           if (0 != retries && VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
             VM_Thread.yield(); // wait, hope o gets unlocked
@@ -398,9 +385,9 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
 
   static void notifyExit (int value) {
     if (!STATS) return;
-    VM.sysWrite("ThinLocks: "); VM.sysWrite(fastLocks, false);      VM.sysWrite(" fast locks");
+    VM.sysWrite("ThinLocks: "); VM.sysWrite(fastLocks);      VM.sysWrite(" fast locks");
     VM_Stats.percentage(fastLocks, value, "all lock operations");
-    VM.sysWrite("ThinLocks: "); VM.sysWrite(slowLocks, false);      VM.sysWrite(" slow locks");
+    VM.sysWrite("ThinLocks: "); VM.sysWrite(slowLocks);      VM.sysWrite(" slow locks");
     VM_Stats.percentage(slowLocks, value, "all lock operations");
   }
 

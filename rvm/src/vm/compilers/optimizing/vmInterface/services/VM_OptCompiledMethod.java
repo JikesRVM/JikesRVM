@@ -6,7 +6,11 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.OSR.*;
+//-#endif
 
 /** 
  * An implementation of VM_CompiledMethod for the OPT compiler.
@@ -62,13 +66,10 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    */ 
   public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) {
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
-    VM_Method realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
+    VM_NormalMethod realMethod = _mcMap.getMethodForMCOffset(instructionOffset);
     if (bci == -1 || realMethod == null)
       VM.sysFail( "Mapping to source code location not available at Dynamic Linking point\n");
-    byte[] bytecodes = realMethod.getBytecodes();
-    int bc = bytecodes[bci] & 0xFF;
-    int cpi = ((bytecodes[bci + 1] & 0xFF) << 8) | (bytecodes[bci + 2] & 0xFF);
-    dynamicLink.set(realMethod.getDeclaringClass().getMethodRef(cpi), bc);
+    realMethod.getDynamicLink(dynamicLink, bci);
   }
 
   /**
@@ -79,10 +80,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     if (bci < 0)
       return 0;
-    VM_LineNumberMap lmap = method.getLineNumberMap();
-    if (lmap == null)
-      return 0;
-    return lmap.getLineNumberForBCIndex(bci);
+    return ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
   }
 
   /**
@@ -98,7 +96,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       browser.setInlineEncodingIndex(iei);
       browser.setBytecodeIndex(map.getBytecodeIndexForMCOffset(instr));
       browser.setCompiledMethod(this);
-      browser.setMethod(VM_MethodDictionary.getValue(mid));
+      browser.setMethod(VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
 
       if (VM.TraceStackTrace) {
 	  VM.sysWrite("setting stack to frame (opt): ");
@@ -125,7 +123,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 
       browser.setInlineEncodingIndex( next );
       browser.setBytecodeIndex( bci );
-      browser.setMethod( VM_MethodDictionary.getValue(mid) );
+      browser.setMethod(VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
 
       if (VM.TraceStackTrace) {
 	  VM.sysWrite("up within frame stack (opt): ");
@@ -156,12 +154,8 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	   j >= 0; 
 	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-        VM_Method m = VM_MethodDictionary.getValue(mid);
-        VM_LineNumberMap lmap = m.getLineNumberMap();
-        int lineNumber = 0;
-        if (lmap != null) {
-          lineNumber = lmap.getLineNumberForBCIndex(bci);
-        }
+        VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
+        int lineNumber = m.getLineNumberForBCIndex(bci);
         out.println("\tat " 
 		    + m.getDeclaringClass().getDescriptor().classNameFromDescriptor()
 		    + "." + m.getName() + " (" + 
@@ -198,12 +192,8 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	   j >= 0; 
 	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-        VM_Method m = VM_MethodDictionary.getValue(mid);
-        VM_LineNumberMap lmap = m.getLineNumberMap();
-        int lineNumber = 0;
-        if (lmap != null) {
-          lineNumber = lmap.getLineNumberForBCIndex(bci);
-        }
+        VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
+        int lineNumber = m.getLineNumberForBCIndex(bci);
         out.println("\tat " 
 		    + m.getDeclaringClass().getDescriptor().classNameFromDescriptor()
 		    + "." + m.getName() + " (" + 
@@ -224,12 +214,13 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     }
   }
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"));
   public final int size() throws VM_PragmaInterruptible {
-    int size = TYPE.getInstanceSize();
+    int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     size += _mcMap.size();
-    if (eTable != null) size += VM_Array.arrayOfIntType.getInstanceSize(eTable.length);
-    if (patchMap != null) size += VM_Array.arrayOfIntType.getInstanceSize(patchMap.length);
+    if (eTable != null) size += VM_Array.IntArray.getInstanceSize(eTable.length);
+    if (patchMap != null) size += VM_Array.IntArray.getInstanceSize(patchMap.length);
     return size;
   }
 
@@ -253,6 +244,18 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   //----------------//
   private static final VM_OptExceptionDeliverer exceptionDeliverer = 
     new VM_OptExceptionDeliverer();
+
+//-#if RVM_WITH_OSR
+  private OSR_EncodedOSRMap _osrMap;
+
+  public void createFinalOSRMap(OPT_IR ir) throws VM_PragmaInterruptible {
+    this._osrMap = new OSR_EncodedOSRMap(ir.MIRInfo.osrVarMap);
+  }
+
+  public OSR_EncodedOSRMap getOSRMap() {
+    return this._osrMap;
+  }
+//-#endif
 
   //////////////////////////////////////
   // Information the opt compiler needs to persistently associate 
@@ -370,7 +373,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Return the number of non-volatile GPRs used by this method.
    */
-  int getNumberOfNonvolatileGPRs() {
+  public int getNumberOfNonvolatileGPRs() {
     //-#if RVM_FOR_POWERPC
     return VM_RegisterConstants.NUM_GPRS - getFirstNonVolatileGPR();
     //-#elif RVM_FOR_IA32
@@ -380,7 +383,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Return the number of non-volatile FPRs used by this method.
    */
-  int getNumberOfNonvolatileFPRs() {
+  public int getNumberOfNonvolatileFPRs() {
     //-#if RVM_FOR_POWERPC
     return VM_RegisterConstants.NUM_FPRS - getFirstNonVolatileFPR();
     //-#elif RVM_FOR_IA32
@@ -390,7 +393,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Set the number of non-volatile GPRs used by this method.
    */
-  void setNumberOfNonvolatileGPRs(short n) {
+  public void setNumberOfNonvolatileGPRs(short n) {
     //-#if RVM_FOR_POWERPC
     setFirstNonVolatileGPR(VM_RegisterConstants.NUM_GPRS - n);
     //-#elif RVM_FOR_IA32
@@ -400,7 +403,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Set the number of non-volatile FPRs used by this method.
    */
-  void setNumberOfNonvolatileFPRs(short n) {
+  public void setNumberOfNonvolatileFPRs(short n) {
     //-#if RVM_FOR_POWERPC
     setFirstNonVolatileFPR(VM_RegisterConstants.NUM_FPRS - n);
     //-#elif RVM_FOR_IA32
@@ -537,11 +540,8 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	}
       }
 
-      if (DEBUG_CODE_PATCH) {
-	VM.sysWrite("processors to be synchronized : ");
-	VM.sysWrite(VM_Scheduler.toSyncProcessors, false);
-	VM.sysWrite("\n");
-      }
+      if (DEBUG_CODE_PATCH) 
+	VM.sysWriteln("processors to be synchronized : ", VM_Scheduler.toSyncProcessors);
 
       // do sync only when necessary 
       while (VM_Scheduler.toSyncProcessors > 0) {

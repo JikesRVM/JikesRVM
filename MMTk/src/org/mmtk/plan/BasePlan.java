@@ -47,12 +47,13 @@ public abstract class BasePlan
   //
   // Class variables
   //
-  public static int verbose = 0;
+  public  static int verbose = 0;
+  private static final int MAX_PLANS = 100;
+  protected static Plan [] plans = new Plan[MAX_PLANS];
+  protected static int planCount = 0;        // Number of plan instances in existence
 
   // GC state and control variables
-  private static int count = 0;        // Number of plan instances in existence
   protected static boolean gcInProgress = false;  // Controlled by subclasses
-  protected static int gcCount = 0;    // Number of GCs initiated
 
   // Timing variables
   protected static double bootTime;
@@ -61,22 +62,32 @@ public abstract class BasePlan
   private static MonotoneVMResource metaDataVM;
   protected static MemoryResource metaDataMR;
   protected static RawPageAllocator metaDataRPA;
+  public static MonotoneVMResource bootVM;
+  public static MemoryResource bootMR;
+  public static MonotoneVMResource immortalVM;
+  protected static MemoryResource immortalMR;
+
+  // Space constants
+  private static final String[] spaceNames = new String[128];
+  public static final byte UNUSED_SPACE = 127;
+  public static final byte BOOT_SPACE = 126;
+  public static final byte META_SPACE = 125;
+  public static final byte IMMORTAL_SPACE = 124;
 
   // Miscellaneous constants
   private static final int META_DATA_POLL_FREQUENCY = (1<<31) - 1; // never
   protected static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_PAGE_SIZE;
   protected static final int DEFAULT_LOS_SIZE_THRESHOLD = 16 * 1024;
-  protected static final int NON_PARTICIPANT = 0;
+  public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
 
   // Memory layout constants
   protected static final EXTENT        SEGMENT_SIZE = 0x10000000;
   protected static final int           SEGMENT_MASK = SEGMENT_SIZE - 1;
-  protected static final VM_Address      BOOT_START = VM_Address.fromInt(VM_Interface.bootImageAddress);
-  protected static final EXTENT           BOOT_SIZE = SEGMENT_SIZE - (VM_Interface.bootImageAddress & SEGMENT_MASK);   // use the remainder of the segment
-  protected static final VM_Address        BOOT_END = BOOT_START.add(BOOT_SIZE);
-  protected static final VM_Address  IMMORTAL_START = BOOT_START;
-  protected static final EXTENT       IMMORTAL_SIZE = BOOT_SIZE + 16 * 1024 * 1024;
+  public    static final VM_Address      BOOT_START = VM_Address.fromInt(VM_Interface.bootImageAddress);
+  protected static final EXTENT           BOOT_SIZE = SEGMENT_SIZE;
+  protected static final VM_Address  IMMORTAL_START = BOOT_START.add(BOOT_SIZE);
+  protected static final EXTENT       IMMORTAL_SIZE = 32 * 1024 * 1024;
   protected static final VM_Address    IMMORTAL_END = IMMORTAL_START.add(IMMORTAL_SIZE);
   protected static final VM_Address META_DATA_START = IMMORTAL_END;
   protected static final EXTENT     META_DATA_SIZE  = 32 * 1024 * 1024;
@@ -88,7 +99,7 @@ public abstract class BasePlan
   // Instance variables
   //
   private int id = 0;                     // Zero-based id of plan instance
-
+  public BumpPointer immortal;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -102,16 +113,29 @@ public abstract class BasePlan
    * into the boot image by the build process.
    */
   static {
-    metaDataMR = new MemoryResource(META_DATA_POLL_FREQUENCY);
-    metaDataVM = new MonotoneVMResource("Meta data", metaDataMR, META_DATA_START, META_DATA_SIZE, VMResource.META_DATA);
+    metaDataMR = new MemoryResource("meta", META_DATA_POLL_FREQUENCY);
+    metaDataVM = new MonotoneVMResource(META_SPACE, "Meta data", metaDataMR, META_DATA_START, META_DATA_SIZE, VMResource.META_DATA);
     metaDataRPA = new RawPageAllocator(metaDataVM, metaDataMR);
+
+    bootMR = new MemoryResource("boot", META_DATA_POLL_FREQUENCY);
+    bootVM = new ImmortalVMResource(BOOT_SPACE, "Boot", bootMR, BOOT_START, BOOT_SIZE);
+
+    immortalMR = new MemoryResource("imm", DEFAULT_POLL_FREQUENCY);
+    immortalVM = new ImmortalVMResource(IMMORTAL_SPACE, "Immortal", bootMR, IMMORTAL_START, IMMORTAL_SIZE);
+
+    addSpace(UNUSED_SPACE, "Unused");
+    addSpace(BOOT_SPACE, "Boot");
+    addSpace(META_SPACE, "Meta");
+    addSpace(IMMORTAL_SPACE, "Immortal");
   }
 
   /**
    * Constructor
    */
   BasePlan() {
-    id = count++;
+    id = planCount++;
+    plans[id] = (Plan) this;
+    immortal = new BumpPointer(immortalVM);
   }
 
   /**
@@ -135,6 +159,34 @@ public abstract class BasePlan
     if (verbose > 2) VMResource.showAll();
   }
 
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Allocation
+  //
+
+  protected byte getSpaceFromAllocator (Allocator a) {
+    if (a == immortal) return IMMORTAL_SPACE;
+    return UNUSED_SPACE;
+  }
+
+  protected Allocator getAllocatorFromSpace (byte s) {
+    if (s == BOOT_SPACE) VM.sysFail("BasePlan.getAllocatorFromSpace given boot space");
+    if (s == META_SPACE) VM.sysFail("BasePlan.getAllocatorFromSpace given meta space");
+    if (s == IMMORTAL_SPACE) return immortal;
+    VM.sysFail("BasePlan.getAllocatorFromSpace given unknown space");
+    return null;
+  }
+
+  static Allocator getOwnAllocator (Allocator a) {
+    byte space = UNUSED_SPACE;
+    for (int i=0; i<plans.length && space == UNUSED_SPACE; i++)
+      space = plans[i].getSpaceFromAllocator(a);
+    if (space == UNUSED_SPACE)
+      VM.sysFail("BasePlan.getOwnAllocator could not obtain space");
+    Plan plan = VM_Interface.getPlan();
+    return plan.getAllocatorFromSpace(space);
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -209,6 +261,9 @@ public abstract class BasePlan
     return newObj.add(offset);
   }
 
+  public static boolean willNotMove (VM_Address obj) {
+      return !VMResource.refIsMovable(obj);
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -255,43 +310,10 @@ public abstract class BasePlan
    * stored (the address of the static field being stored into).
    * @param tgt The target of the new reference
    */
-  public void putStaticWriteBarrier(VM_Address slot, VM_Address tgt){}
-
-  /**
-   * An array of reference type has <i>just been copied</i> into.  For
-   * each new reference, take appropriate write barrier actions.<p>
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * FIXME  The call in VM_Array should be changed to invoke this
-   * <i>prior</i> to the copy, not after the copy.  Although this
-   * makes no difference in the case of the standard generational
-   * barrier, in general, write barriers should be invoked immediately
-   * <i>prior</i> to the copy, not immediately after the copy.<p>
-   *
-   * <i>This way of dealing with array copy write barriers is
-   * suboptimal...</i>
-   *
-   * @param src The array containing the source of the new references
-   * (i.e. the destination of the copy).
-   * @param startIndex The index into the array where the first new
-   * reference resides (the index is the "natural" index into the
-   * array, i.e. a[index]).
-   * @param endIndex
-   */
-  public void arrayCopyWriteBarrier(VM_Address ref, int startIndex,
-				    int endIndex) {}
-
-  /**
-   * An array copy is underway, and <code>VM_Array</code> is iterating
-   * through the references as it copies them.  This method is called
-   * once for each method immediately prior to the copy of that
-   * reference occuring.
-   *
-   * @param src The source of the new reference (i.e. the slot
-   * containing the pointer about to be stored into).
-   * @param tgt The value about to be stored into <code>src</code>
-   */
-  public void arrayCopyRefCountWriteBarrier(VM_Address src, VM_Address tgt) {}
+  public final void putStaticWriteBarrier(VM_Address slot, VM_Address tgt) {
+    // putstatic barrier currently unimplemented
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
 
   /**
    * A reference is about to be read by a getField bytecode.  Take
@@ -302,7 +324,10 @@ public abstract class BasePlan
    * about to be read
    * @param offset The offset from tgt of the field to be read from
    */
-  public void getFieldReadBarrier(VM_Address tgt, int offset) {}
+  public final void getFieldReadBarrier(VM_Address tgt, int offset) {
+    // getfield barrier currently unimplemented
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
 
   /**
    * A reference is about to be read by a getStatic bytecode. Take
@@ -312,12 +337,25 @@ public abstract class BasePlan
    * @param slot The location from which the reference will be read
    * (the address of the static field being read).
    */
-  public void getStaticReadBarrier(VM_Address slot) {}
+  public final void getStaticReadBarrier(VM_Address slot) {
+    // getstatic barrier currently unimplemented
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   //
   // Space management
   //
+
+  static public void addSpace (byte sp, String name) throws VM_PragmaInterruptible {
+    if (spaceNames[sp] != null) VM.sysFail("addSpace called on already registed space");
+    spaceNames[sp] = name;
+  }
+
+  static public String getSpaceName (byte sp) {
+    if (spaceNames[sp] == null) VM.sysFail("getSpace called on unregisted space");
+    return spaceNames[sp];
+  }
 
   /**
    * Return the amount of <i>free memory</i>, in bytes (where free is
@@ -378,7 +416,8 @@ public abstract class BasePlan
    * @param str A string describing the error condition.
    */
   public void error(String str) {
-    Plan.showUsage();
+    MemoryResource.showUsage(PAGES);
+    MemoryResource.showUsage(MB);
     VM.sysFail(str);
   }
 
@@ -399,7 +438,7 @@ public abstract class BasePlan
    * each GC).
    */
   public static int gcCount() { 
-    return gcCount;
+    return Statistics.gcCount;
   }
 
   /**
@@ -416,10 +455,44 @@ public abstract class BasePlan
    *
    * @param value The exit value
    */
-  public static void notifyExit(int value) {
+  public void notifyExit(int value) {
     if (verbose == 1) {
-      VM.sysWrite("[End ", ((VM_Interface.now() - bootTime)*1000));
-      VM.sysWrite("ms]\n");
+      // VM.sysWrite("[End ", (VM_Interface.now() - bootTime));
+      // VM.sysWrite(" s]\n");
     }
   }
+
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Miscellaneous
+  //
+
+  final static int PAGES = 0;
+  final static int MB = 1;
+  final static int PAGES_MB = 2;
+  final static int MB_PAGES = 3;
+
+  /**
+   * Print out the number of pages and or megabytes, depending on the mode.
+   * A prefix string is outputted first.
+   *
+   * @param prefix A prefix string
+   * @param pages The number of pages
+   */
+  public static void writePages(int pages, int mode) {
+    double mb = Conversions.pagesToBytes(pages) / (1024.0 * 1024.0);
+    switch (mode) {
+      case PAGES: VM.sysWrite(pages, " pgs"); break; 
+      case MB:    VM.sysWrite(mb, " Mb"); break;
+      case PAGES_MB: VM.sysWrite(pages, " pgs ("); VM.sysWrite(mb, " Mb)"); break;
+      case MB_PAGES: VM.sysWrite(mb, " Mb ("); VM.sysWrite(pages, " pgs)"); break;
+      default: VM.sysFail("writePages passed illegal printing mode");
+    }
+  }
+
+
+
+
 }

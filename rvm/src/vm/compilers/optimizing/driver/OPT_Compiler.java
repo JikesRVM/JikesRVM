@@ -5,8 +5,9 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import  java.util.Enumeration;
+import java.util.Enumeration;
 
 /**
  * <p> The main driver of the OPT_Compiler. 
@@ -38,7 +39,7 @@ import  java.util.Enumeration;
  * @author Stephen Fink
  *
  */
-public class OPT_Compiler {
+public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
 
   ////////////////////////////////////////////
   // Initialization
@@ -75,19 +76,41 @@ public class OPT_Compiler {
         // TODO: This could be phased out as the new DynamicBridge 
         // magic comes on line.
         loadSpecialClass("Lcom/ibm/JikesRVM/opt/VM_OptSaveVolatile;", options);
+
       }
+      // want to be notified by app start event
+	  VM_Callbacks.addAppRunStartMonitor(new OPT_Compiler());
       isInitialized = true;
     } catch (OPT_OptimizingCompilerException e) {
       // failures during initialization can't be ignored
       e.isFatal = true;
       throw e;
     } catch (Throwable e) {
-	e.printStackTrace();
+	VM.sysWriteln( e.toString() );
 	throw new OPT_OptimizingCompilerException("OPT_Compiler", 
 						  "untrapped failure during init, "
 						  + " Converting to OPT_OptimizingCompilerException");
     }
   }
+
+  /*
+   * callback when application is about to startup.
+   */
+  public void notifyAppRunStart(String app, int n) {
+  //-#if RVM_WITH_OSR
+  if (VM.TraceOnStackReplacement) {
+    VM.sysWriteln("OPT_Compiler got notified of AppRunStart");
+  }
+  //-#endif
+  setAppStarted();
+  }
+
+  /**
+   * indicate when the application has started
+   */
+  private static boolean appStarted = false;
+  public static synchronized boolean getAppStarted() { return appStarted; }
+  public static synchronized void setAppStarted() { appStarted = true; }  
 
   /**
    * Set up option used while compiling the boot image
@@ -110,7 +133,7 @@ public class OPT_Compiler {
 
     // Static inlining controls. 
     // Be more aggressive when building the boot image then we are normally.
-    options.IC_MAX_TARGET_SIZE = 5*VM_OptMethodSummary.CALL_COST;
+    options.IC_MAX_TARGET_SIZE = 5*VM_NormalMethod.CALL_COST;
     options.IC_MAX_INLINE_DEPTH = 6;
     options.IC_MAX_INLINE_EXPANSION_FACTOR = 7;
     OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
@@ -120,15 +143,11 @@ public class OPT_Compiler {
    * Load a class which must be compiled by the opt compiler in a special way
    * @param klassName the class to load
    * @param options compiler options for compiling the class
-   * @exception VM_ResolutionException if the class cannot be resolved
    */
-  private static void loadSpecialClass (String klassName, OPT_Options options) 
-    throws VM_ResolutionException {
-    VM_Class klass = (VM_Class)OPT_ClassLoaderProxy.findOrCreateType(klassName, VM_SystemClassLoader.getVMClassLoader());
-    klass.load();
-    klass.resolve();
-    klass.instantiate();
-    klass.initialize();
+  private static void loadSpecialClass (String klassName, OPT_Options options) {
+    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), 
+							  VM_Atom.findOrCreateAsciiAtom(klassName));
+    VM_Class klass = (VM_Class)tRef.peekResolvedType();
     VM_Method[] methods = klass.getDeclaredMethods();
     for (int j = 0; j < methods.length; j++) {
       VM_Method meth = methods[j];
@@ -137,7 +156,7 @@ public class OPT_Compiler {
       if (!meth.isCompiled() || 
 	  meth.getCurrentCompiledMethod().getCompilerType() != VM_CompiledMethod.OPT) {
         OPT_CompilationPlan cp = 
-	  new OPT_CompilationPlan(meth, 
+	  new OPT_CompilationPlan((VM_NormalMethod)meth, 
 				  OPT_OptimizationPlanner.createOptimizationPlan(options), 
 				  null, options);
         meth.replaceCompiledMethod(compile(cp));
@@ -145,7 +164,7 @@ public class OPT_Compiler {
     }
   }
 
-  public static void preloadSpecialClass( OPT_Options options ) {
+  public static void preloadSpecialClass(OPT_Options options) {
     String klassName = "L"+options.PRELOAD_CLASS+";";
 
     if (options.PRELOAD_AS_BOOT ) {
@@ -170,7 +189,6 @@ public class OPT_Compiler {
     OPT_InlineOracleDictionary.registerDefault(new OPT_StaticInlineOracle());
     OPT_InvokeeThreadLocalContext.init();
     VM_Class.OptCLDepManager = new OPT_ClassLoadingDependencyManager();
-    VM_OptStaticProgramStats.reset();
   }
 
   /**
@@ -208,18 +226,12 @@ public class OPT_Compiler {
    * @return the VM_CompiledMethod object that is the result of compilation
    */
   public static VM_CompiledMethod compile (OPT_CompilationPlan cp) {
-    VM_Method method = cp.method;
+    VM_NormalMethod method = cp.method;
     OPT_Options options = cp.options;
     checkSupported(method, options);
     try {
       printMethodMessage(method, options);
       OPT_IR ir = cp.execute();
-      // Temporary workaround memory retention problems
-      /* TODO: delete me!
-      if (!cp.irGeneration) {
-	cleanIR(ir);
-      }
-      */
       // if doing analysis only, don't try to return an object
       if (cp.analyzeOnly || cp.irGeneration)
 	return null;
@@ -236,41 +248,6 @@ public class OPT_Compiler {
       return null;
     }
   }
-
-  /**
-   * For some unknown reasons this is needed for the GC to free completely 
-   * the IR.
-   * TODO: Find out why and avoid the overhead of explictly nulling everything
-   * My guess is that the problem is that the physical register 
-   * (OPT_Registers 0-80)
-   * are "globals" and persistient.  This keeps much of the IR reachable 
-   * after compilation
-   * completes.  If we ever make the opt compiler truly reentrant, 
-   * this would be fixed. --dave.
-  static void cleanIR (OPT_IR ir) {
-    OPT_DefUse.clearDU(ir);
-    for (OPT_Instruction instr = ir.firstInstructionInCodeOrder(); instr
-        != null;) {
-      int numberOperands = instr.getNumberOfOperands();
-      OPT_Instruction next = instr.nextInstructionInCodeOrder();
-      for (int i = 0; i < numberOperands; i++) {
-        OPT_Operand op = instr.getOperand(i);
-        instr.putOperand(i, null);
-        if (op == null)
-          continue;
-        op.instruction = null;
-        if (op instanceof OPT_RegisterOperand) {
-          OPT_RegisterOperand regOp = (OPT_RegisterOperand)op;
-          regOp.scratchObject = null;
-          regOp.register = null;
-        }
-      }
-      instr.scratchObject = null;
-      instr.clearLinks();
-      instr = next;
-    }
-  }
-  */
 
   /**
    * Debugging aid.
@@ -299,7 +276,7 @@ public class OPT_Compiler {
    * @param what a string message to print
    * @param method the method being compiled
    */
-  public static void header (String what, VM_Method method) {
+  public static void header (String what, VM_NormalMethod method) {
     System.out.println("********* START OF:  " + what + "   FOR " + method);
   }
 
@@ -308,7 +285,7 @@ public class OPT_Compiler {
    * @param what a string message to print
    * @param method the method being compiled
    */
-  public static void bottom (String what, VM_Method method) {
+  public static void bottom (String what, VM_NormalMethod method) {
     System.out.println("*********   END OF:  " + what + "   FOR " + method);
   }
 
@@ -328,7 +305,7 @@ public class OPT_Compiler {
    * @param method
    * @param options
    */
-  private static void printMethodMessage (VM_Method method, 
+  private static void printMethodMessage (VM_NormalMethod method, 
                                           OPT_Options options) {
     if (options.PRINT_METHOD || options.PRINT_INLINE_REPORT)
       VM.sysWrite("-methodOpt "+ method.getDeclaringClass() + ' ' 
@@ -341,7 +318,7 @@ public class OPT_Compiler {
    * @param e The exception thrown by a compiler phase
    * @param method The method being compiled
    */
-  private static void fail (Throwable e, VM_Method method) {
+  private static void fail (Throwable e, VM_NormalMethod method) {
     VM.sysWrite("OPT_Compiler failure during compilation of " 
               + method.toString() + "\n");
     e.printStackTrace();
@@ -353,7 +330,7 @@ public class OPT_Compiler {
    * Check whether opt compilation of a particular method is supported.
    * If not, throw a non-fatal run-time exception.
    */
-  private static void checkSupported (VM_Method method, OPT_Options options) {
+  private static void checkSupported (VM_NormalMethod method, OPT_Options options) {
     if (method.getDeclaringClass().isDynamicBridge()) {
       String msg = "Dynamic Bridge register save protocol not implemented";
       throw OPT_MagicNotImplementedException.EXPECTED(msg);
@@ -362,9 +339,9 @@ public class OPT_Compiler {
       String msg = "Native Bridge prologue not implemented";
       throw OPT_MagicNotImplementedException.EXPECTED(msg);
     }
-    if (method.isNative()) {
-      String msg = "OPT compiler is not to be used for JNI stub generation";
-      throw new OPT_OperationNotImplementedException(msg);
+    if (method.hasNoOptCompilePragma()) {
+      String msg = "Method throws VM_PragmaNoOptCompile";
+      throw OPT_MagicNotImplementedException.EXPECTED(msg);
     }
     if (options.hasEXCLUDE()) {
       String name = method.getDeclaringClass().toString() + "." + method.getName();

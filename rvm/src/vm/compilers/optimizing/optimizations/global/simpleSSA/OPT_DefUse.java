@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
+import java.util.Enumeration;
 
 import com.ibm.JikesRVM.opt.ir.*;
 
@@ -29,13 +30,22 @@ public final class OPT_DefUse implements OPT_Operators {
    * @param ir the IR in question 
    */
   public static void clearDU(OPT_IR ir) {
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
         reg != null; reg = reg.getNext()) {
       reg.defList = null;
       reg.useList = null;
       reg.scratch = -1;
       reg.clearSeenUse();
     }
+    for (Enumeration e = ir.regpool.getPhysicalRegisterSet().enumerateAll();
+         e.hasMoreElements(); ) {
+      OPT_Register reg = (OPT_Register)e.nextElement();
+      reg.defList = null;
+      reg.useList = null;
+      reg.scratch = -1;
+      reg.clearSeenUse();
+    }
+
     if (TRACE_DU_ACTIONS || DEBUG)
       VM.sysWrite("Cleared DU\n");
   }
@@ -74,7 +84,7 @@ public final class OPT_DefUse implements OPT_Operators {
     // Remove any symbloic registers with no uses/defs from
     // the register pool.  We'll waste analysis time keeping them around.
     OPT_Register next;
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); reg != null; 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; 
         reg = next) {
       next = reg.getNext();
       if (reg.defList == null && reg.useList == null) {
@@ -276,21 +286,6 @@ public final class OPT_DefUse implements OPT_Operators {
     return  (reg.useList != null) && (reg.useList.getNext() == null);
   }
 
-  /** 
-   * Print the register list for an IR.
-   *
-   * @param ir the IR in question
-   */
-  static void printDU(OPT_IR ir) {
-    OPT_Compiler.header("DU", ir.method);
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); 
-        reg != null; reg = reg.getNext()) {
-      printDefs(reg);
-      printUses(reg);
-      VM.sysWrite("\n");
-    }
-  }
-
   /**
    * Print all the instructions that def a register.
    * @param reg
@@ -322,7 +317,7 @@ public final class OPT_DefUse implements OPT_Operators {
    */
   static void recomputeSSA(OPT_IR ir) {
     // Use register /ist to enumerate register objects (FAST)
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
         reg != null; reg = reg.getNext()) {
       // Set isSSA = true iff reg has exactly one static definition.
       reg.putSSA((reg.defList != null && reg.defList.getNext() == null));
@@ -388,7 +383,7 @@ public final class OPT_DefUse implements OPT_Operators {
    */
   public static void recomputeSpansBasicBlock(OPT_IR ir) {
     // clear fields
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
         reg != null; reg = reg.getNext()) {
       reg.scratch = -1;
       reg.clearSpansBasicBlock();

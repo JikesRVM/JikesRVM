@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Stack;
 
@@ -29,24 +30,10 @@ public abstract class OPT_InlineTools implements OPT_Constants {
   }
 
   /**
-   * Is it possible to inline the callee into the caller?
-   * @param caller the caller method
+   * Does the callee method have a body?
    * @param callee the callee method
-   * @return true if legal, false otherwise
+   * @return true if it has bytecodes, false otherwise.
    */
-  public static boolean legalToInline(VM_Method caller, VM_Method callee) {
-    if (callee == null) {
-      return false;            // Unable to idenitfy callee
-    }
-    if (!callee.getDeclaringClass().isLoaded()) {
-      return false;
-    }
-    if (OPT_ClassLoaderProxy.needsDynamicLink(callee, caller.getDeclaringClass())) {
-      return false;  // Can't inline due to class loading state of callee
-    }
-    return true;
-  }
-
   public static boolean hasBody(VM_Method callee) {
     return !(callee.isNative() || callee.isAbstract());
   }
@@ -114,9 +101,9 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    *              is to be inlined
    * @return an inlined size estimate (number of machine code instructions)
    */
-  public static int inlinedSizeEstimate(VM_Method callee, 
+  public static int inlinedSizeEstimate(VM_NormalMethod callee, 
 					OPT_CompilationState state) {
-    int sizeEstimate = VM_OptMethodSummary.inlinedSizeEstimate(callee);
+    int sizeEstimate = callee.inlinedSizeEstimate();
     // Adjust size estimate downward to account for optimizations enabled 
     // by constant parameters.
     OPT_Instruction callInstr = state.getCallInstruction();
@@ -163,25 +150,23 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     //       There have to be other methods with similar properties.
     if (callee == VM_Entrypoints.sysArrayCopy) {
       OPT_Operand src = Call.getParam(state.getCallInstruction(), 0);
-      return src.getType() != OPT_ClassLoaderProxy.JavaLangObjectType;
+      return src.getType() != VM_TypeReference.JavaLangObject;
     }
     // More arraycopy hacks.  If we the two starting indices are constant and
     // it's not the object array version 
     // (too big...kills other inlining), then inline it.
-    if (callee.getDeclaringClass() == OPT_ClassLoaderProxy.VM_Array_type
-        && callee.getName() == arraycopyName && callee.getDescriptor()
-        != objectArrayCopyDescriptor) {
+    if (callee.getDeclaringClass().getTypeRef() == VM_TypeReference.VM_Array &&
+        callee.getName() == arraycopyName && 
+	callee.getDescriptor() != objectArrayCopyDescriptor) {
       return Call.getParam(state.getCallInstruction(), 1).isConstant()
           && Call.getParam(state.getCallInstruction(), 3).isConstant();
     }
     return false;
   }
 
-  private static VM_Atom arraycopyName = 
-    VM_Atom.findOrCreateAsciiAtom("arraycopy");
+  private static VM_Atom arraycopyName = VM_Atom.findOrCreateAsciiAtom("arraycopy");
   private static VM_Atom objectArrayCopyDescriptor = 
-      VM_Atom.findOrCreateAsciiAtom(
-      "([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
+    VM_Atom.findOrCreateAsciiAtom("([Ljava/lang/Object;I[Ljava/lang/Object;II)V");
 
   /**
    * Should the callee method be barred from ever being considered for inlining?
@@ -193,25 +178,49 @@ public abstract class OPT_InlineTools implements OPT_Constants {
    */
   public static boolean hasNoInlinePragma (VM_Method callee, 
 					   OPT_CompilationState state) {
-
-    // Ugh.  Inlining this method into boot image classes potentially
-    // allows invalidations, and this method is called in many places
-    // where invalidations are not possible (i.e. VM_Runtime.deliverExceptions)
-    // The solution for now is to not inline it.
-    if (VM.writingBootImage && 
-	callee.getDeclaringClass() == 
-	    OPT_ClassLoaderProxy.JavaLangThrowableType &&
-	callee.getName() == printStackTraceName &&
-	callee.getDescriptor() == printStackTraceDescriptor)
-	return true;
-
     return callee.hasNoInlinePragma();
   }
 
-    private static final VM_Atom printStackTraceName =
-	VM_Atom.findOrCreateAsciiAtom("printStackTrace");
-    private static final VM_Atom printStackTraceDescriptor =
-	VM_Atom.findOrCreateAsciiAtom("()V");
+  private static final VM_Atom[] thirdRailClasses = new VM_Atom[]{
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_InvalidationDatabase;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/VM_OptCompiledMethod;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Barriers;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BasicBlock;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiler;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineExceptionTable;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineOptions;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BuildBB;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BuildReferenceMaps;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Compiler;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicLink;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicLinker;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicLinker$DL_Helper;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ForwardReference;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_HardwareTrapCompiledMethod;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_JSRSubroutineInfo;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_MagicCompiler;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_MultianewarrayHelper;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_PendingRETInfo;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Runtime;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_TableBasedDynamicLinker;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_UnusualMaps;"),
+    VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Runtime;"),
+    VM_Atom.findOrCreateAsciiAtom("Ljava/lang/System;")
+  };
+
+
+  public static boolean isForbiddenSpeculation(VM_Method caller, VM_Method callee) {
+    if (!callee.getDeclaringClass().toString().startsWith("com.ibm.JikesRVM.VM_")) {
+      VM_Atom defn = caller.getDeclaringClass().getDescriptor();
+      for(int i = 0; i < thirdRailClasses.length; i++) {
+	if (defn == thirdRailClasses[i])
+	  return true;
+      }
+    }
+    return false;
+  }
 }
 
 

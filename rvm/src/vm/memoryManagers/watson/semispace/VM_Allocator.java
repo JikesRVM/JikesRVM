@@ -7,6 +7,7 @@
 package com.ibm.JikesRVM.memoryManagers.watson;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
+import com.ibm.JikesRVM.classloader.*;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
@@ -14,11 +15,6 @@ import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_JavaHeader;
-import com.ibm.JikesRVM.VM_Atom;
-import com.ibm.JikesRVM.VM_Type;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Method;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
@@ -127,6 +123,8 @@ public class VM_Allocator extends VM_GCStatistics
     VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary
   }
 
+  public static double bootTime;
+
   /**
    * Initialize for execution.
    */
@@ -149,6 +147,7 @@ public class VM_Allocator extends VM_GCStatistics
     largeHeap.attach(largeSize);
 
     fromHeap.reset();
+    bootTime = VM_Time.now();
 
     if (verbose >= 1) showParameter();
   }
@@ -455,7 +454,11 @@ public class VM_Allocator extends VM_GCStatistics
 
     double tempStart = 0.0, tempEnd = 0.0;
  
+    double beginTime = 0.0;
+
     if ( VM_GCLocks.testAndSetInitLock() ) {
+
+      beginTime = VM_Time.now();
 
       // Start timers to measure time since GC requested
       //
@@ -680,7 +683,7 @@ public class VM_Allocator extends VM_GCStatistics
     //
     if (mylocal.getGCOrdinal() == 1) {
 	updateGCStats(DEFAULT, fromHeap.current().diff(fromHeap.start).toInt());
-	printGCStats(DEFAULT);
+	printGCStats(DEFAULT, beginTime - bootTime, VM_Time.now() - bootTime);
     }
 
     return;

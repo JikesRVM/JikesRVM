@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
@@ -107,7 +108,7 @@ public class OPT_Inliner implements OPT_Operators,
       OPT_GenerationContext[] children = 
 	new OPT_GenerationContext[targets.length];
       for (int i = 0; i < targets.length; i++) {
-	VM_Method callee = targets[i];
+	VM_NormalMethod callee = (VM_NormalMethod)targets[i];
 	// (a)
 	if (parent.options.PRINT_INLINE_REPORT) {
 	  String guard = guards[i] == 
@@ -168,7 +169,21 @@ public class OPT_Inliner implements OPT_Operators,
       }
       //-#endif
 	
+      //-#if RVM_WITH_OSR
+      if (inlDec.OSRTestFailed()) {
+        // note where we're storing the osr barrier instruction
+        OPT_Instruction lastOsrBarrier = (OPT_Instruction)callSite.scratchObject;
+        OPT_Instruction s = OPT_BC2IR._osrHelper(lastOsrBarrier);
+        s.position = callSite.position;
+        s.bcIndex = callSite.bcIndex;
+        testFailed.appendInstruction(s);
+//      testFailed.appendInstruction(call);
+      } else {
+        testFailed.appendInstruction(call);
+      }
+      //-#else
       testFailed.appendInstruction(call);
+      //-#endif
       testFailed.insertOut(container.epilogue);
       container.cfg.linkInCodeOrder(testFailed, container.epilogue);
       // This is ugly....since we didn't call BC2IR to generate the 
@@ -199,14 +214,15 @@ public class OPT_Inliner implements OPT_Operators,
       if (isInterface) {
 	if (VM.BuildForIMTInterfaceInvocation ||
 	    (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables)) {
-	  VM_Type interfaceType = mo.method.getDeclaringClass();
-	  VM_Class refType = receiver.type.asClass();
+	  VM_Type interfaceType = mo.getTarget().getDeclaringClass();
+	  VM_TypeReference recTypeRef = receiver.type;
+	  VM_Class recType = (VM_Class)recTypeRef.peekResolvedType();
 	  // Attempt to avoid inserting the check by seeing if the 
 	  // known static type of the receiver implements the interface.
 	  boolean requiresImplementsTest = true;
-	  if (refType.isResolved() && !refType.isInterface()) {
+	  if (recType != null && recType.isResolved() && !recType.isInterface()) {
 	    byte doesImplement = 
-	      OPT_ClassLoaderProxy.includesType(interfaceType, refType);
+	      OPT_ClassLoaderProxy.includesType(interfaceType.getTypeRef(), recTypeRef);
 	    requiresImplementsTest = doesImplement != OPT_Constants.YES;
 	  }
 	  if (requiresImplementsTest) {
@@ -236,7 +252,7 @@ public class OPT_Inliner implements OPT_Operators,
 	OPT_Instruction tmp;
 
 	if (isInterface) {
-	  VM_Class callDeclClass = mo.method.getDeclaringClass();
+	  VM_Class callDeclClass = mo.getTarget().getDeclaringClass();
 	  if (!callDeclClass.isInterface()) {
 	    // Part of ensuring that we catch IncompatibleClassChangeErrors
 	    // is making sure that we know that callDeclClass is an
@@ -265,7 +281,7 @@ public class OPT_Inliner implements OPT_Operators,
 	  // time, in which case we only have to generate IR to establish 
 	  // (2) at runtime.
 	  byte doesImplement = OPT_ClassLoaderProxy.
-	    includesType(callDeclClass, target.getDeclaringClass());
+	    includesType(callDeclClass.getTypeRef(), target.getDeclaringClass().getTypeRef());
 	  if (doesImplement != OPT_Constants.YES) {
 	    // We can't be sure at compile time that the receiver implements
 	    // the interface. So, inject a test to make sure that it does.
@@ -316,13 +332,13 @@ public class OPT_Inliner implements OPT_Operators,
 	} else if (guards[i] == OPT_Options.IG_METHOD_TEST) {
 	  tmp = InlineGuard.create(IG_METHOD_TEST, receiver.copyU2U(), 
 				   Call.getGuard(callSite).copy(), 
-				   OPT_MethodOperand.VIRTUAL(target, false), 
+				   OPT_MethodOperand.VIRTUAL(target.getMemberRef().asMethodReference(), target), 
 				   testFailed.makeJumpTarget(),
 				   OPT_BranchProfileOperand.unlikely());
 	} else {
 	  tmp = InlineGuard.create(IG_PATCH_POINT, receiver.copyU2U(), 
 				   Call.getGuard(callSite).copy(), 
-				   OPT_MethodOperand.VIRTUAL(target, false), 
+				   OPT_MethodOperand.VIRTUAL(target.getMemberRef().asMethodReference(), target), 
 				   testFailed.makeJumpTarget(),
 				   OPT_BranchProfileOperand.unlikely());
 	}
@@ -346,7 +362,7 @@ public class OPT_Inliner implements OPT_Operators,
       return  container;
     } else {
       if (VM.VerifyAssertions) VM._assert(inlDec.getNumberOfTargets() == 1);
-      VM_Method callee = inlDec.getTargets()[0];
+      VM_NormalMethod callee = (VM_NormalMethod)inlDec.getTargets()[0];
       if (parent.options.PRINT_INLINE_REPORT) {
         VM.sysWrite("\tInline " + callee 
 		    + " into " + callSite.position.getMethod()

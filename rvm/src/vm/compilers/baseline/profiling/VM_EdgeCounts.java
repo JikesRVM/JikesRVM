@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 import java.util.*;
 import java.io.*;
 
@@ -18,35 +19,54 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
   static final int NOT_TAKEN = 1;
 
   private static boolean registered = false;
-  
+  private static String inputFile = null;
+
+  private static int[][] data;
+
+  public static void setProfileFile(String fn) { inputFile = fn; }
+
   public void notifyExit(int value) { dumpCounts(); }
 
-  public static int findOrCreateId(VM_Method m) {
+  public static void boot() {
+    if (inputFile != null) {
+      readCounts(inputFile);
+    }
+  }
+
+  static synchronized void allocateCounters(VM_NormalMethod m, int numEntries) {
+    if (numEntries == 0) return;
     if (!VM.BuildForAdaptiveSystem && !registered) {
       // Assumption: If edge counters were enabled in a non-adaptive system
-      //             then the user must want use to dump them when the system
+      //             then the user must want us to dump them when the system
       //             exits.  Otherwise why would they have enabled them...
       registered = true;
       VM_Callbacks.addExitMonitor(new VM_EdgeCounts());
     }
-    VM_Triplet key = m.getDictionaryKey();
-    return VM_EdgeCounterDictionary.findOrCreateId(key, null);
+    allocateCounters(m.getId(), numEntries);
   }
 
-  public static int findId(VM_Method m) {
-    VM_Triplet key = m.getDictionaryKey();
-    return VM_EdgeCounterDictionary.findId(key);
+  private static synchronized void allocateCounters(int id, int numEntries) {
+    if (data == null) {
+      data = new int[id+500][];
+    }
+    if (id >= data.length) {
+      int newSize = data.length*2;
+      if (newSize <= id) newSize = id+500;
+      int[][] tmp = new int[newSize][];
+      System.arraycopy(data, 0, tmp, 0, data.length);
+      VM_Magic.sync();
+      data = tmp;
+    }
+    data[id] = new int[numEntries];
   }
 
-  public static VM_BranchProfiles getBranchProfiles(VM_Method m) {
-    if (!m.getDeclaringClass().isLoaded() || m.getBytecodes() == null) return null;
-    int id = findId(m);
-    if (id == -1) return null;
-    int[] cs = VM_EdgeCounterDictionary.getValue(id);
-    if (cs == null) return null;
-    return new VM_BranchProfiles(m, id, cs);
+  public static VM_BranchProfiles getBranchProfiles(VM_NormalMethod m) {
+    int id = m.getId();
+    if (data == null || id >= data.length) return null;
+    if (data[id] == null) return null;
+    return new VM_BranchProfiles(m, data[id]);
   }
-
+  
   /**
    * Dump all the profile data to the file VM_BaselineCompiler.options.EDGE_COUNTER_FILE
    */
@@ -66,15 +86,12 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
       VM.sysWrite("\n\nVM_EdgeCounts.dumpCounts: Error opening output file!!\n\n");
       return;
     }
-    int n = VM_EdgeCounterDictionary.getNumValues();
-    for (int i=0; i<n; i++) {
-      VM_Triplet key = VM_EdgeCounterDictionary.getKey(i);
-      int mid = VM_MethodDictionary.findId(key);
-      if (mid == -1) continue; // only should happen when we've read in a file of offline data.
-      VM_Method m = VM_MethodDictionary.getValue(mid);
-      if (!m.isLoaded()) continue; // ditto -- came from offline data
-      int[] counters = VM_EdgeCounterDictionary.getValue(i);
-      if (counters != null) new VM_BranchProfiles(m, i, counters).print(f);
+    if (data == null) return;
+    for (int i=0; i<data.length; i++) {
+      if (data[i] != null) {
+	VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(i).asMethodReference().peekResolvedMethod();
+	new VM_BranchProfiles(m, data[i]).print(f);
+      }
     }
   }
 
@@ -94,12 +111,26 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
 	String firstToken = parser.nextToken();
 	if (firstToken.equals("M")) {
 	  int numCounts = Integer.parseInt(parser.nextToken());
+	  parser.nextToken(); // discard '<'
+	  String clName = parser.nextToken();
 	  VM_Atom dc = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
 	  VM_Atom mn = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
 	  VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
-	  VM_Triplet key = new VM_Triplet(dc, mn, md);
-	  int id = VM_EdgeCounterDictionary.findOrCreateId(key, new int[numCounts]);
-	  cur = VM_EdgeCounterDictionary.getValue(id);
+	  parser.nextToken(); // discard '>'
+	  ClassLoader cl;
+	  if (clName.equals("SystemCL")) {
+	    cl = VM_SystemClassLoader.getVMClassLoader();
+	  } else if (clName.equals("AppCL")) {
+	    cl = VM_ClassLoader.getApplicationClassLoader();
+	  } else {
+	    VM.sysFail("Unable to match classloader "+clName);
+	    cl = null;
+	  }
+	  VM_TypeReference tref = VM_TypeReference.findOrCreate(cl, dc);
+	  VM_MemberReference key = VM_MemberReference.findOrCreate(tref, mn, md);
+	  int id = key.getId();
+	  allocateCounters(id, numCounts);
+	  cur = data[id];
 	  curIdx = 0;
 	} else {
 	  String type = parser.nextToken(); // discard bytecode index, we don't care.

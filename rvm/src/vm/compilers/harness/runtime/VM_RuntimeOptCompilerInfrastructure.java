@@ -5,9 +5,8 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
-//-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
-//-#endif
 
 /**
  * A place to put code common to all runtime compilers that use the OPT
@@ -18,8 +17,6 @@ import com.ibm.JikesRVM.opt.*;
  */
 public class VM_RuntimeOptCompilerInfrastructure 
   extends VM_RuntimeCompilerInfrastructure {
-  
-//-#if RVM_WITH_OPT_COMPILER
   
   // is the opt compiler usable?
   protected static boolean compilerEnabled;  
@@ -40,8 +37,8 @@ public class VM_RuntimeOptCompilerInfrastructure
   protected static boolean preloadChecked = false;
 
   // Cache objects needed to cons up compilation plans
-  protected static OPT_Options options;
-  protected static OPT_OptimizationPlanElement[] optimizationPlan;
+  public static OPT_Options options;
+  public static OPT_OptimizationPlanElement[] optimizationPlan;
 
   /**
    * Perform intitialization for OPT compiler
@@ -70,7 +67,7 @@ public class VM_RuntimeOptCompilerInfrastructure
    * @param method the method to compile
    * @param plan the plan to use for compiling the method
    */
-  private static VM_CompiledMethod optCompile(VM_Method method, 
+  private static VM_CompiledMethod optCompile(VM_NormalMethod method, 
 					      OPT_CompilationPlan plan) 
     throws OPT_OptimizingCompilerException {
     if (VM.VerifyAssertions) {
@@ -109,7 +106,7 @@ public class VM_RuntimeOptCompilerInfrastructure
    * Be absolutely sure you know what you're doing before changing it !!!
    * @param method the method to compile
    */
-  public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method) {
+  public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_NormalMethod method) {
     if (compilationInProgress) {
       return fallback(method);
     } else {
@@ -133,7 +130,7 @@ public class VM_RuntimeOptCompilerInfrastructure
    * @param method the method to compile
    * @param plan the compilation plan to use for the compile
    */
-  public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method, 
+  public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_NormalMethod method, 
 								      OPT_CompilationPlan plan) {
     if (compilationInProgress) {
       return fallback(method);
@@ -147,38 +144,14 @@ public class VM_RuntimeOptCompilerInfrastructure
     }
   }
 
-  //-#if RVM_WITH_SPECIALIZATION
-  /**
-   * This method tries to compile the passed method with the OPT_Compiler
-   * using the specialization context passed.  If
-   * this fails we will use the quicker compiler (baseline for now)
-   * The following is carefully crafted to avoid (infinte) recursive opt
-   * compilation for all combinations of bootimages & lazy/eager compilation.
-   * Be absolutely sure you know what you're doing before changing it !!!
-   * @param method the method to compile
-   * @param context the specialization context to use for the compilation
-   */
-  public static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method, OPT_SpecializationGraphNode context) {
-    if (compilationInProgress) {
-      return fallback(method);
-    } else {
-      try {
-	compilationInProgress = true;
-	OPT_CompilationPlan plan = new OPT_CompilationPlan(method, optimizationPlan, null, options, context);
-	return optCompileWithFallBackInternal(method, plan);
-      } finally {
-	compilationInProgress = false;
-      }
-    }
-  }
-  //-#endif
-
   /**
    * This real method that performs the opt compilation.  
    * @param method the method to compile
    * @param plan the compilation plan to use
    */
-  private static VM_CompiledMethod optCompileWithFallBackInternal(VM_Method method, OPT_CompilationPlan plan) {
+  private static VM_CompiledMethod optCompileWithFallBackInternal(VM_NormalMethod method, 
+								  OPT_CompilationPlan plan) {
+    if (method.hasNoOptCompilePragma()) return fallback(method);
     try {
       return optCompile(method, plan);
     } catch (OPT_OptimizingCompilerException e) {
@@ -196,6 +169,46 @@ public class VM_RuntimeOptCompilerInfrastructure
       return fallback(method);
     } 
   }
+
+
+  //-#if RVM_WITH_OSR
+  /* recompile the specialized method with OPT_Compiler. */ 
+  public static VM_CompiledMethod
+    recompileWithOptOnStackSpecialization(OPT_CompilationPlan plan) {
+
+    if (VM.VerifyAssertions) { VM._assert(plan.method.isForOsrSpecialization());}
+
+    if (compilationInProgress) {
+      return null;
+    }
+
+    try {
+      compilationInProgress = true;
+
+      // the compiler will check if isForOsrSpecialization of the method
+      VM_CompiledMethod cm = optCompile(plan.method, plan);
+
+      // we donot replace the compiledMethod of original method, 
+      // because it is temporary method
+      return cm;
+
+    } catch (OPT_OptimizingCompilerException e) {
+		e.printStackTrace();
+      String msg = "Optimizing compiler " 
+	+"(via recompileWithOptOnStackSpecialization): "
+	+"can't optimize \"" + plan.method + "\" (error was: " + e + ")\n"; 
+
+      if (e.isFatal && plan.options.ERRORS_FATAL) {
+	VM.sysFail(msg);
+      } else {
+	VM.sysWrite(msg);
+      }
+      return null;	
+    } finally {
+      compilationInProgress = false;
+    }
+  }
+  //-#endif 
 
 
   /**
@@ -249,7 +262,7 @@ public class VM_RuntimeOptCompilerInfrastructure
    * optimization plans
    * @param method the method to recompile
    */
-  static int recompileWithOpt(VM_Method method) {
+  public static int recompileWithOpt(VM_NormalMethod method) {
     OPT_CompilationPlan plan = new OPT_CompilationPlan(method, 
 						       optimizationPlan, 
 						       null, 
@@ -262,7 +275,7 @@ public class VM_RuntimeOptCompilerInfrastructure
    * It is typically called when a more aggressive compilation fails.
    * This method is safe to invoke from VM_RuntimeCompiler.compile
    */
-  protected static VM_CompiledMethod fallback(VM_Method method) {
+  protected static VM_CompiledMethod fallback(VM_NormalMethod method) {
     // call the inherited method "baselineCompile"
     return baselineCompile(method);
   }
@@ -299,13 +312,14 @@ public class VM_RuntimeOptCompilerInfrastructure
     // If/when the baseline compiler gets these, invoke them here.
 
     // Get the opt's report
-    VM_Type theType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_OptimizationPlanner;"), VM_SystemClassLoader.getVMClassLoader());
-    if (theType.asClass().isInitialized()) {
+    VM_TypeReference theTypeRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+								VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_OptimizationPlanner;"));
+    VM_Type theType = theTypeRef.peekResolvedType();
+    if (theType != null && theType.asClass().isInitialized()) {
       OPT_OptimizationPlanner.generateOptimizingCompilerSubsystemReport(explain);
     } else {
       VM.sysWrite("\n\tNot generating Optimizing Compiler SubSystem Report because \n");
       VM.sysWrite("\tthe opt compiler was never invoked.\n\n");
     }
   }
-//-#endif
 }

@@ -114,7 +114,7 @@ $$$$ END LOOP
    * @param arg a String to try to process as an option command
    * @return true if successful, false otherwise
    */
-  public boolean processAsOption(String prefix, String arg) {
+  public boolean processAsOption(String prefix, String arg)  throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
 
     // First handle the "option commands"
     if (arg.equals("help")) {
@@ -237,10 +237,9 @@ $$$$ END LOOP
   }
 
   // Print a short description of every option
-  public static void printHelp(String prefix) {
-    // The following is an attempt to avoid occasional OutOfMemory errors when
-    // boot image writing.
-    VM_Magic.pragmaNoOptCompile();
+  // Throws VM_PragmaNoOptCompile to avoid occasional OutOfMemory errors when
+  // boot image writing.
+  public static void printHelp(String prefix) throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
 
     instancePrintHelpHeader(prefix);
 
@@ -318,7 +317,7 @@ $$$$ END LOOP
     VM.sysWrite(toString());
   }
 
-  public String toString() {
+  public String toString() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
     String s = printToStringHeader();
     //Begin generated option value printing 
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES

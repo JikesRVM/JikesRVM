@@ -15,8 +15,8 @@ import com.ibm.JikesRVM.VM_Synchronization;
  * A VM_MethodListener defines a listener to collect method invocation samples.
  *
  * Samples are collected in a buffer.  
- * When sampleSize samples have been collected they are either processed by 
- * the listener directly or the listener's organizer is activated to process them.
+ * When sampleSize samples have been collected 
+ * the listener's organizer is activated to process them.
  *  
  * Defines update's interface to be a compiled method identifier, CMID.
  * 
@@ -26,7 +26,7 @@ import com.ibm.JikesRVM.VM_Synchronization;
  * @author Michael Hind
  * @author Peter Sweeney
  */
-abstract class VM_MethodListener extends VM_Listener 
+final class VM_MethodListener extends VM_Listener 
   implements VM_Uninterruptible {
 
   /**
@@ -46,22 +46,12 @@ abstract class VM_MethodListener extends VM_Listener
   protected int[] samples;
   
   /**
-   * Is this listener supposed to notify its organizer when thresholdReached?
-   */
-  protected boolean notifyOrganizer;
-  
-
-  /**
    * @param sampleSize the initial sampleSize for the listener
-   * @param notifyOrganizer should the listener notify an organizer
-   *                    when its threshold is reached?
    */
-  public VM_MethodListener(int sampleSize, boolean notifyOrganizer) {
+  public VM_MethodListener(int sampleSize) {
     this.sampleSize = sampleSize;
-    this.notifyOrganizer = notifyOrganizer;
     samples = new int[sampleSize];
   }
-
 
   /** 
    * This method is called when a sample is taken.
@@ -131,22 +121,11 @@ abstract class VM_MethodListener extends VM_Listener
     }
     if (idx+1 == sampleSize) {
       // The last sample. 
-      if (notifyOrganizer) {
-	activateOrganizer(); // organizer will process
-      } else { // must process them ourself
-	passivate();
-	processSamples();
-	reset();
-	activate();
-      }
+      activateOrganizer(); 
     }
   }
 
-  /**
-   * process the buffer of samples
-   */
-  public abstract void processSamples(); 
-
+  public void report() { }
 
   /**
    * Reset the buffer to prepare to take more samples.
@@ -156,40 +135,14 @@ abstract class VM_MethodListener extends VM_Listener
   }
 
   /**
-   * updates the sample size for this listener
-   * doesn't worry about any samples in the current buffer
-   * @param newSampleSize the new sample size value to use, 
-   */
-  public final void setSampleSize(int newSampleSize) throws VM_PragmaInterruptible {
-    sampleSize = newSampleSize; 
-    if (sampleSize > samples.length) {
-      samples = new int[newSampleSize];
-      numSamples = 0;
-    }
-  }
-
-  /**
-   * @return the current sample size/threshold value
-   */
-  public final int getSampleSize() { return sampleSize; }
-
-  /**
    * @return the buffer of samples
    */
   public final int[] getSamples() { return samples; }
 
   /**
-   * @return how many samples have been taken
-   */
-  public final int getSamplesTaken() { return numSamples; }
-
-  /**
-   * @return how many samples in the array returned by getSamples
-   *         are valid (min(getSamplesTaken(), getSampleSize())).
+   * @return how many samples in the array returned by getSamples are valid 
    */
   public final int getNumSamples() {
-    int x = getSamplesTaken();
-    int y = getSampleSize();
-    return (x < y) ? x : y;
+    return (numSamples < sampleSize) ? numSamples : sampleSize;
   }
 } 

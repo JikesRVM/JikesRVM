@@ -3,6 +3,29 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_BootRecord;
+import com.ibm.JikesRVM.VM_ObjectModel;
+import com.ibm.JikesRVM.VM_ClassLoader;
+import com.ibm.JikesRVM.VM_SystemClassLoader;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_Memory;
+import com.ibm.JikesRVM.VM_Time;
+import com.ibm.JikesRVM.VM_Entrypoints;
+import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Synchronization;
+import com.ibm.JikesRVM.VM_EventLogger;
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_Thread;
 
 /**
  * VM_Handshake handles mutator requests to initiate a collection, 
@@ -21,35 +44,6 @@
  * @author Bowen Alpern
  * @author Stephen Smith
  */
-package com.ibm.JikesRVM.memoryManagers.watson;
-
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_BootRecord;
-import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_ClassLoader;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
-import com.ibm.JikesRVM.VM_Atom;
-import com.ibm.JikesRVM.VM_Type;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Method;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_Memory;
-import com.ibm.JikesRVM.VM_Time;
-import com.ibm.JikesRVM.VM_Entrypoints;
-import com.ibm.JikesRVM.VM_Reflection;
-import com.ibm.JikesRVM.VM_Synchronization;
-import com.ibm.JikesRVM.VM_EventLogger;
-import com.ibm.JikesRVM.VM_Processor;
-import com.ibm.JikesRVM.VM_Thread;
-
 public class VM_Handshake {
   
   private static final boolean trace = false;

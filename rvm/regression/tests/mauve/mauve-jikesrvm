@@ -1,0 +1,18 @@
+JDK1.0
+JDK1.1
+JDK1.2
+JDK1.3
+JDK1.4
+!java.applet
+!java.awt
+!javax.naming
+!java.lang.Character.unicode
+
+# exclusions due to defects in Jikes RVM
+!java.lang.Object.clone      # Jikes RVM defect 2905
+!java.net.Socket.setSocketImplFactory # avoid bashing our sockets
+!java.net.DatagramSocket     # hangs Jikes RVM
+!java.net.MulticastSocket    # hangs Jikes RVM
+!java.net.ServerSocket       # hangs Jikes RVM
+!java.net.URLClassLoader.getResourceRemote # hangs Jikes RVM
+

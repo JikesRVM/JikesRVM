@@ -3,7 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 
 import  java.util.*;
 import com.ibm.JikesRVM.opt.ir.*;
@@ -47,7 +49,7 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
     // pass through registers. look for registers that point
     // to objects that do not escape. When found,
     // perform the transformations
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); reg != null; 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); reg != null; 
         reg = reg.getNext()) {
       // check if register is SSA
       if (!reg.isSSA())
@@ -129,11 +131,12 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
       //	2. it is actually invoked on the register operand in question
       //	3. the method is synchronized
       if (Call.conforms(s)) {
-        VM_Method m = Call.getMethod(s).method;
-        if (!m.isStatic()) {
-          OPT_RegisterOperand invokee = Call.getParam(s, 0).asRegister();
+        OPT_MethodOperand mo = Call.getMethod(s);
+        if (!mo.isStatic()) {
+	  OPT_RegisterOperand invokee = Call.getParam(s, 0).asRegister();
           if (invokee == use) {
-            if (m.isSynchronized()) {
+	    if (!mo.hasPreciseTarget()) return true; // if I don't know exactly what is called, assume the worse
+	    if (mo.getTarget().isSynchronized()) {
               return  true;
             }
           }
@@ -156,25 +159,24 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
    *		null if no legal transformation found
    */
   private OPT_AggregateReplacer getAggregateReplacer (OPT_Instruction inst, 
-      OPT_IR ir) {
+						      OPT_IR ir) {
     OPT_Options options = ir.options;
     VM_Type t = null;
-    if (inst.getOpcode() == NEW_opcode)
-      t = New.getType(inst).type; 
-    else if (inst.getOpcode() == NEWARRAY_opcode) {
-      t = NewArray.getType(inst).type;
-    } 
-    else 
-      throw  new OPT_OptimizingCompilerException(
-          "Logic Error in OPT_EscapeTransformations", true);
-    OPT_AggregateReplacer s = null;
+    if (inst.getOpcode() == NEW_opcode) {
+      t = New.getType(inst).getVMType();
+    } else if (inst.getOpcode() == NEWARRAY_opcode) {
+      t = NewArray.getType(inst).getVMType();
+    } else {
+      throw new OPT_OptimizingCompilerException("Logic Error in OPT_EscapeTransformations");
+    }
+    
     // first attempt to perform scalar replacement for an object
     if (t.isClassType() && options.SCALAR_REPLACE_AGGREGATES) {
-      return  OPT_ObjectReplacer.getReplacer(inst, ir);
+      return OPT_ObjectReplacer.getReplacer(inst, ir);
     }
     // attempt to perform scalar replacement on a short array
     if (t.isArrayType() && options.SCALAR_REPLACE_AGGREGATES) {
-      return  OPT_ShortArrayReplacer.getReplacer(inst, ir);
+      return OPT_ShortArrayReplacer.getReplacer(inst, ir);
     }
     return  null;
   }

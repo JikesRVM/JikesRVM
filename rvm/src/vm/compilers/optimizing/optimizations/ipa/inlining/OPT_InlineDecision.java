@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 
 /**
  * Instances of this class represent decisions to inline.
@@ -124,6 +125,15 @@ public final class OPT_InlineDecision {
     return targets.length;
   }
 
+  /**
+   * Should the test-failed block be replaced with an OSR point?
+   */
+  //-#if RVM_WITH_OSR
+  private boolean testFailedOSR = false;
+  public void setOSRTestFailed() { testFailedOSR = true; }
+  public boolean OSRTestFailed() { return testFailedOSR; }
+  //-#endif
+  
   /**
    * Symbolic constant coding internal state.
    */

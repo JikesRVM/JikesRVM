@@ -2,7 +2,9 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
+
+import com.ibm.JikesRVM.*;
 
 /**
  * Data structures and code for fast dynamic type checking.
@@ -47,7 +49,8 @@ package com.ibm.JikesRVM;
  *        or, this dimensionality is k and the baseclass is NOT primitive
  * <p>
  * (3) Otherwise, is the LHS unresolved?
- *    If so, fall back to calling instanceOfUnresolved at runtime.
+ *    If so, fall back to calling VM_Runtime.instanceOf at runtime which will
+ *    load/resolve the types and then call VM_DynamicTypeCheck.instanceOf.
  * <p>
  * (4) Otherwise, is the LHS an interface?  
  *    If so, query the doesImplement array of the RHS's TIB at the entry 
@@ -97,7 +100,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     short[] tsi = new short[size];
     VM_Type p;                          
     if (depth == 0) {        // t is Object (or eventually some interfaces TODO!!)
-      int id = t.getDictionaryId();
+      int id = t.getId();
       if (VM.VerifyAssertions) VM._assert(id <= 0xFFFF); // when this fails, make superclassIds int[] 
       tsi[0] = (short) id;
       return tsi;
@@ -114,7 +117,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     for (int i=0; i<depth; i++) {
       tsi[i] = psi[i];
     }
-    int id = t.getDictionaryId();
+    int id = t.getId();
     if (VM.VerifyAssertions) VM._assert(id <= 0xFFFF); // when this fails, make superclassIds int[] 
     tsi[depth] = (short) id;
     return tsi;
@@ -195,25 +198,6 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
 
 
   /**
-   * Handle the case when LHSclass is unresolved at compile time.
-   *     If necessary load LHSclass and then answer is rhsTIB the TIB 
-   *     of an instanceof LHSclass?
-   * 
-   * @param LHSclass a class or interface that may not be fully loaded
-   * @param rhsTIB the TIB of an object that might be an instance of LHSclass
-   * @return <code>true</code> if the object is an instance of LHSClass
-   *         or <code>false</code> if it is not
-   */
-  static boolean instanceOfUnresolved(VM_Class LHSclass, Object[] rhsTIB)  
-    throws VM_ResolutionException {
-    if (!LHSclass.isInitialized()) {
-      VM_Runtime.initializeClassForDynamicLink(LHSclass);
-    }
-    return instanceOfResolved(LHSclass, rhsTIB);
-  }   
-
-
-  /**
    * LHSclass is a fully loaded class or interface.  
    *   Is rhsTIB the TIB of an instanceof LHSclass?
    * 
@@ -222,8 +206,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfResolved(VM_Class LHSclass, Object[] rhsTIB) 
-    throws VM_ResolutionException {
+  public static boolean instanceOfNonArray(VM_Class LHSclass, Object[] rhsTIB) {
     if (LHSclass.isInterface()) {
       return instanceOfInterface(LHSclass, rhsTIB);
     } else {
@@ -241,11 +224,11 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) {
+  public static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) throws VM_PragmaUninterruptible {
     short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB[TIB_SUPERCLASS_IDS_INDEX]);
     int LHSDepth = LHSclass.getTypeDepth();
     if (LHSDepth >= superclassIds.length) return false;
-    int LHSId = LHSclass.getDictionaryId();
+    int LHSId = LHSclass.getId();
     return superclassIds[LHSDepth] == LHSId;
   }    
 
@@ -259,83 +242,16 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfInterface(VM_Class LHSclass, Object[] rhsTIB) throws VM_ResolutionException {
+  public static boolean instanceOfInterface(VM_Class LHSclass, Object[] rhsTIB) {
     int[] doesImplement = VM_Magic.objectAsIntArray(rhsTIB[TIB_DOES_IMPLEMENT_INDEX]);
     int idx = LHSclass.getDoesImplementIndex();
     int mask = LHSclass.getDoesImplementBitMask();
     return idx < doesImplement.length && ((doesImplement[idx] & mask) != 0);
   }
 
-
-  /**
-   * LHSArray is an unresolved [^LHSDimension of LHSInnermostClass
-   *   Is rhsType an instance of LHSArray?
-   * 
-   * @param LHSInnermostElementclass the innermost element type
-   * @param LHSDimension the dimensionality of the array
-   * @param RHStype the TIB of an object that might be an instanceof 
-   *        [^LHSDimension of LHSInnermostClass
-   * @return <code>true</code> if RHStype is an instanceof
-   *        [^LHSDimension of LHSInnermostClass
-   *         or <code>false</code> if it is not
-   */
-  static boolean instanceOfUnresolvedArray(VM_Class LHSInnermostElementClass, 
-					   int LHSDimension,  VM_Type RHSType) 
-    throws VM_ResolutionException {
-    if (!LHSInnermostElementClass.isInitialized()) {
-      VM_Runtime.initializeClassForDynamicLink(LHSInnermostElementClass);
-    }
-    return instanceOfArray(LHSInnermostElementClass, LHSDimension, RHSType);
-  }
-    
-
-  /**
-   * LHSArray is [^LHSDimension of java.lang.Object
-   *   Is rhsType an instance of LHSArray?
-   * 
-   * @param LHSDimension the dimensionality of the array
-   * @param RHSType a type that might be an instanceof 
-   *        [^LHSDimension of java.lang.Object
-   * @return <code>true</code> if RHStype is an instanceof
-   *       [^LHSDimension of LHSInnermostClass
-   *         or <code>false</code> if it is not
-   */
-  static boolean instanceOfObjectArray(int LHSDimension, VM_Type RHSType) {
-    int RHSDimension = RHSType.getDimensionality();
-    if (RHSDimension < LHSDimension) return false;
-    if (RHSDimension > LHSDimension) return true;
-    return RHSType.asArray().getInnermostElementType().isClassType(); // !primitive 
-  }
-
-
-  /**
-   * LHSArray is [^LHSDimension of LHSInnermostClass, LHSInnermostClass 
-   * is not java.lang.Object.
-   *   Is rhsType an instance of LHSArray?
-   * 
-   * @param LHSInnermostElementclass the innermost element type
-   * @param LHSDimension the dimensionality of the array
-   * @param RHStype a type that might be an instanceof 
-   *        [^LHSDimension of LHSInnermostClass
-   * @return <code>true</code> if RHStype is an instanceof
-   *        [^LHSDimension of LHSInnermostClass
-   *         or <code>false</code> if it is not
-   */
-  static boolean instanceOfArray(VM_Class LHSInnermostElementClass, 
-				 int LHSDimension,  VM_Type RHSType) 
-    throws VM_ResolutionException {
-    int RHSDimension = RHSType.getDimensionality();
-    if (RHSDimension != LHSDimension) return false;
-    VM_Type RHSInnermostElementType = RHSType.asArray().
-                                      getInnermostElementType();
-    if (RHSInnermostElementType.isPrimitiveType()) return false;
-    return instanceOfResolved(LHSInnermostElementClass, 
-			      RHSInnermostElementType.
-                                getTypeInformationBlock());
-  }
-  
   /**
    * Can we store an object of type RHSType in a variable of type LHSType?
+   * Assumption. LHSType and RHSType are already resolved.
    * 
    * @param LHSType the left-hand-side type
    * @param RHSType the right-hand-size type
@@ -343,28 +259,23 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    *         RHSType into a variable of type LSType
    *         or <code>false</code> if we cannot.
    */
-  static boolean instanceOf(VM_Type LHSType, VM_Type RHSType) 
-    throws VM_ResolutionException {
-    if (LHSType == RHSType) return true;
-    if (!LHSType.isResolved()) {
-      LHSType.load();
-      LHSType.resolve();
-    }
-    if (!RHSType.isResolved()) {
-      RHSType.load();
-      RHSType.resolve();
-    }
+  public static boolean instanceOfResolved(VM_Type LHSType, VM_Type RHSType) {
     int LHSDimension = LHSType.getDimensionality();
     int RHSDimension = RHSType.getDimensionality();
     if (LHSDimension < 0 || RHSDimension < 0) return false;
-    if (LHSDimension == 0) return instanceOfResolved(LHSType.asClass(), 
+    if (LHSDimension == 0) return instanceOfNonArray(LHSType.asClass(), 
                                                      RHSType.getTypeInformationBlock());
     VM_Type LHSInnermostElementType = LHSType.asArray().getInnermostElementType();
     if (LHSInnermostElementType == VM_Type.JavaLangObjectType){
-      return instanceOfObjectArray(LHSDimension, RHSType);
+      if (RHSDimension < LHSDimension) return false;
+      if (RHSDimension > LHSDimension) return true;
+      return RHSType.asArray().getInnermostElementType().isClassType(); // !primitive 
     } else if (!LHSInnermostElementType.isPrimitiveType()) {
-      return instanceOfArray(LHSInnermostElementType.asClass(), 
-                             LHSDimension, RHSType);
+      if (RHSDimension != LHSDimension) return false;
+      VM_Type RHSInnermostElementType = RHSType.asArray().getInnermostElementType();
+      if (RHSInnermostElementType.isPrimitiveType()) return false;
+      return instanceOfNonArray(LHSInnermostElementType.asClass(), 
+				RHSInnermostElementType.getTypeInformationBlock());
     } else {
       return false;
     }

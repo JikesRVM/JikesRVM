@@ -42,6 +42,14 @@ public class VM_HardwarePerformanceMonitors {
   }
   
   /**
+   * Initialize the hardware performance monitors after JNI environment is initialized.
+   */
+  public static void setUpHPMinfo() {
+    if (VM.BuildForHPM && enabled) {
+    }
+  }
+
+  /**
    * Print a report.
    */
   public static void report() {

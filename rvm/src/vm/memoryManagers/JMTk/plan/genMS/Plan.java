@@ -62,14 +62,14 @@ public class Plan extends Generational implements VM_Uninterruptible {
   //
   // Class variables
   //
-  protected static final boolean usesLOS = false;
+  protected static final boolean usesLOS = true;
   protected static final boolean copyMature = false;
   
   // virtual memory resources
   private static FreeListVMResource matureVM;
 
   // mature space collector
-  private static MarkSweepCollector matureCollector;
+  private static MarkSweepSpace matureSpace;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -77,7 +77,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
   //
 
   // allocators
-  private MarkSweepAllocator mature;
+  private MarkSweepLocal mature;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -91,8 +91,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * into the boot image by the build process.
    */
   static {
-    matureVM = new FreeListVMResource("Mature", MATURE_START, MATURE_SIZE, VMResource.MOVABLE);
-    matureCollector = new MarkSweepCollector(matureVM, matureMR);
+    matureVM = new FreeListVMResource(MATURE_SPACE, "Mature", MATURE_START, MATURE_SIZE, VMResource.IN_VM);
+    matureSpace = new MarkSweepSpace(matureVM, matureMR);
   }
 
   /**
@@ -100,7 +100,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   public Plan() {
     super();
-    mature = new MarkSweepAllocator(matureCollector);
+    mature = new MarkSweepLocal(matureSpace, this);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -130,7 +130,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   protected final VM_Address matureCopy(boolean isScalar, EXTENT bytes) 
     throws VM_PragmaInline {
-    return mature.allocCopy(isScalar, bytes);
+    return mature.alloc(isScalar, bytes);
   }
 
   /**
@@ -142,7 +142,20 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   public final static int getInitialHeaderValue(EXTENT bytes)
     throws VM_PragmaInline {
-    return matureCollector.getInitialHeaderValue(bytes);
+    if (bytes > LOS_SIZE_THRESHOLD)
+      return losSpace.getInitialHeaderValue(bytes);
+    else
+      return matureSpace.getInitialHeaderValue();
+  }
+
+  protected final byte getSpaceFromAllocator (Allocator a) {
+    if (a == mature) return MATURE_SPACE;
+    return super.getSpaceFromAllocator(a);
+  }
+
+  protected final Allocator getAllocatorFromSpace (byte s) {
+    if (s == MATURE_SPACE) return mature;
+    return super.getAllocatorFromSpace(s);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -157,7 +170,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * <i>only one thread</i> executes this.
    */
   protected final void globalMaturePrepare() {
-    matureCollector.prepare(matureVM, matureMR);
+    matureSpace.prepare(matureVM, matureMR);
   }
 
   /**
@@ -187,7 +200,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * <i>only one</i> thread executes this.<p>
    */
   protected final void globalMatureRelease() {
-    matureCollector.release();
+    matureSpace.release();
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -204,22 +217,12 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  protected static final VM_Address traceMatureObject(VM_Address obj,
+  protected static final VM_Address traceMatureObject(byte space,
+						      VM_Address obj,
 						      VM_Address addr) {
-    return matureCollector.traceObject(obj);
+    return matureSpace.traceObject(obj, VMResource.getTag(addr));
   }
 
-  /**
-   * Return true if the given reference to a mature object will not
-   * move in this GC (always true for this non-moving mature space).
-   *
-   * @param obj The object in question
-   * @return True
-   */
-  protected final boolean willNotMoveMature(VM_Address addr) 
-    throws VM_PragmaInline {
-    return true;
-  }
 
   /**
    * Return true if the object resides in a copying space (in this
@@ -240,16 +243,22 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @return True if <code>obj</code> is a live object.
    */
   public final static boolean isLive(VM_Address obj) {
+    if (obj.isZero()) return false;
     VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
-    if (addr.LE(HEAP_END)) {
-      if (addr.GE(NURSERY_START))
-	return Copy.isLive(obj);
-      else if (addr.GE(MATURE_START))
-	return matureCollector.isLive(obj);
-      else if (addr.GE(IMMORTAL_START))
-	return true;
-    } 
-    return false;
+    byte space = VMResource.getSpace(addr);
+    switch (space) {
+      case NURSERY_SPACE:   return Copy.isLive(obj);
+      case MATURE_SPACE:    return (!fullHeapGC) || matureSpace.isLive(obj);
+      case LOS_SPACE:       return losSpace.isLive(obj);
+      case IMMORTAL_SPACE:  return true;
+      case BOOT_SPACE:	    return true;
+      case META_SPACE:	    return true;
+      default:              if (VM.VerifyAssertions) {
+	                      VM.sysWriteln("Plan.traceObject: unknown space", space);
+			      VM.sysFail("Plan.traceObject: unknown space");
+                            }
+			    return false;
+    }
   }
 
   /**
@@ -267,7 +276,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   public final static int resetGCBitsForCopy(VM_Address fromObj,
 					     int forwardingPtr, int bytes) {
-    return (forwardingPtr & ~HybridHeader.GC_BITS_MASK) | matureCollector.getInitialHeaderValue(bytes);
+    return (forwardingPtr & ~HybridHeader.GC_BITS_MASK) | matureSpace.getInitialHeaderValue();
   }
 
   ////////////////////////////////////////////////////////////////////////////

@@ -26,18 +26,18 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  * @modified Dave Grove
  */
-final class VM_Assembler implements VM_BaselineConstants,
+public final class VM_Assembler implements VM_BaselineConstants,
 				    VM_AssemblerConstants {
 
   private VM_MachineCode mc;
   private int mIP; // current machine code instruction
   private boolean shouldPrint;
 
-  VM_Assembler (int length) {
+  public VM_Assembler (int length) {
     this(length, false);
   }
 
-  VM_Assembler (int length, boolean sp) {
+  public VM_Assembler (int length, boolean sp) {
     mc = new VM_MachineCode();
     mIP = 0;
     shouldPrint = sp;
@@ -126,6 +126,45 @@ final class VM_Assembler implements VM_BaselineConstants,
       throw new InternalError("Long offset doesn't fit in short branch\n");
     }
   }
+
+  //-#if RVM_WITH_OSR
+  private int toBePatchedMCAddr;
+  private int targetBCpc = -1;
+ 
+  final void registerLoadAddrConst(int target) {
+    toBePatchedMCAddr = mIP;
+    targetBCpc = target;
+  }
+ 
+  /* the prologue is always before any real bytecode index.
+   *
+   * CAUTION: the machine code to be patched has following pattern:
+   *          BL 4
+   *          MFLR T1                   <- address in LR
+   *          CAL  T1, offset, T1       <- toBePatchedMCAddr
+   *          STU
+   *
+   * The third instruction should be patched with accurate relative address.
+   * It is computed by (mIP - toBePatchedMCAddr + 1)*4;
+   * */
+  final void patchLoadAddrConst(int bIP){
+    if (bIP != targetBCpc) return;
+ 
+    int offset = (mIP - toBePatchedMCAddr + 1)*4;
+    INSTRUCTION mi = CAL(T1, offset, T1);
+    mc.putInstruction(toBePatchedMCAddr, mi);
+    targetBCpc = -1;
+  }
+ 
+  final INSTRUCTION CAL(int RT, int D, int RA) {
+	return CALtemplate | RT << 21 | RA << 16 | (D&0xFFFF);
+  }
+
+  public final VM_ForwardReference generatePendingJMP(int bTarget) {
+    return this.emitForwardB();
+  }
+
+  //-#endif RVM_WITH_OSR
 
   final void patchSwitchCase(int sourceMachinecodeIndex) {
     int delta = (mIP - sourceMachinecodeIndex) << 2;
@@ -330,7 +369,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int BCTRtemplate = 19<<26 | 0x14<<21 | 528<<1;
 
-  final void emitBCTR () {
+  public final void emitBCTR () {
     INSTRUCTION mi = BCTRtemplate;
     mIP++;
     mc.addInstruction(mi);
@@ -581,7 +620,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int Ltemplate = 32<<26;
 
-  final void emitL (int RT, int D, int RA) {
+  public final void emitL (int RT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = Ltemplate  | RT<<21 | RA<<16 | (D&0xFFFF);
     mIP++;
@@ -625,7 +664,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int LFDtemplate = 50<<26;
 
-  final void emitLFD (int FRT, int D, int RA) {
+  public final void emitLFD (int FRT, int D, int RA) {
     if (VM.VerifyAssertions) VM._assert(fits(D, 16));
     INSTRUCTION mi = LFDtemplate | FRT<<21 | RA<<16 | (D&0xFFFF);
     mIP++;
@@ -723,14 +762,6 @@ final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  static final int MFCRtemplate = 31<<26 | 19<<1;
-
-  final void emitMFCR (int RT) {
-    INSTRUCTION mi = MFCRtemplate | RT<<21;
-    mIP++;
-    mc.addInstruction(mi);
-  }
-  
   static final int MFSPRtemplate = 31<<26 | 339<<1;
 
   final void emitMFSPR (int RT, int SPR) {
@@ -741,24 +772,15 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int MTLRtemplate = 31<<26 | 0x08<<16 | 467<<1;
 
-  final void emitMTLR (int RS) {
+  public final void emitMTLR (int RS) {
     INSTRUCTION mi = MTLRtemplate | RS<<21;
     mIP++;
     mc.addInstruction(mi);
   }
 
-  static final int MTCRFtemplate = 31<<26 | 144<<1;
-
-  final void emitMTCRF (int mask, int RS) {
-    INSTRUCTION mi = MTCRFtemplate | mask<<12 | RS<<21;
-    mIP++;
-    mc.addInstruction(mi);
-  }
-
-
   static final int MTCTRtemplate = 31<<26 | 0x09<<16 | 467<<1;
 
-  final void emitMTCTR (int RS) {
+  public final void emitMTCTR (int RS) {
     INSTRUCTION mi = MTCTRtemplate | RS<<21;
     mIP++;
     mc.addInstruction(mi);
@@ -1097,16 +1119,6 @@ final class VM_Assembler implements VM_BaselineConstants,
     mc.addInstruction(mi);
   }
 
-  // branch conditional -- don't thread switch
-  static final int BNTStemplate = BCtemplate | GE | THREAD_SWITCH_BIT<<16;
-  final VM_ForwardReference emitBNTS () {
-    VM_ForwardReference fr = new VM_ForwardReference.ShortBranch(mIP);
-    INSTRUCTION mi = BNTStemplate;
-    mIP++;
-    mc.addInstruction(mi);
-    return fr;
-  }
-
   final void emitLoffset(int RT, int RA, int offset) {
     if (fits(offset, 16)) {
       emitL  (RT, offset, RA);
@@ -1120,7 +1132,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   }
     
 
-  final void emitLtoc (int RT, int offset) {
+  public final void emitLtoc (int RT, int offset) {
     emitLoffset(RT, JTOC, offset);
   }
 
@@ -1215,7 +1227,7 @@ final class VM_Assembler implements VM_BaselineConstants,
     return makeMachineCode();
   }
 
-  VM_MachineCode makeMachineCode () {
+  public VM_MachineCode makeMachineCode () {
     mc.finish();
     if (shouldPrint) {
       VM.sysWriteln();
@@ -1251,6 +1263,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   // new PowerPC instuctions
 
   static final int SYNCtemplate = 31<<26 | 598<<1;
+  // static final int LWSYNCtemplate = 31<<26 | 1 << 21 | 598<<1;
   
   final void emitSYNC () {
     INSTRUCTION mi = SYNCtemplate;
@@ -1377,7 +1390,7 @@ final class VM_Assembler implements VM_BaselineConstants,
   static final int CALL_INSTRUCTIONS = 3; // number of instructions generated by emitCall()
   void emitCall (int spSaveAreaOffset) {
     emitST(SP, spSaveAreaOffset, FP); // save SP
-    emitBLRL  ();
+    emitBCTRL  ();
     emitL (SP, spSaveAreaOffset, FP); // restore SP
   }
 
@@ -1391,52 +1404,8 @@ final class VM_Assembler implements VM_BaselineConstants,
   void emitCallWithHiddenParameter (int spSaveAreaOffset, int hiddenParameter) {
     emitST  (SP, spSaveAreaOffset, FP); // save SP
     emitLVAL(SP, hiddenParameter);      // pass "hidden" parameter in SP scratch  register
-    emitBLRL();
+    emitBCTRL();
     emitL   (SP, spSaveAreaOffset, FP); // restore SP
   }
 
-  //-#if RVM_WITH_SPECIALIZATION
-
-  // Emit baseline call instruction sequence.
-  // Taken:    offset of sp save area within current (baseline) stackframe, in bytes
-  //           call site number for specialization
-  //
-  // Before:   LR is address to call
-  //           FP is address of current frame
-  // After:    no registers changed
-  //
-  void emitSpecializationCall (int spSaveAreaOffset, VM_Method m, int bIP) {
-    int callSiteNumber = 0;
-    if (VM_SpecializationSentry.isValid()) {
-      callSiteNumber = VM_SpecializationCallSites.getCallSiteNumber(null, m, bIP);
-    }
-    emitST  (SP, spSaveAreaOffset, FP); // save SP
-    emitLVAL(0, callSiteNumber<<2);      // pass call site in reg. 0
-    emitBLRL();
-    emitL   (SP, spSaveAreaOffset, FP); // restore SP
-  }
-
-  // Emit baseline call instruction sequence.
-  // Taken:    offset of sp save area within current (baseline) stackframe, in bytes
-  //           call site number for specialization
-  //
-  // Before:   LR is address to call
-  //           FP is address of current frame
-  // After:    no registers changed
-  //
-  void emitSpecializationCallWithHiddenParameter(int spSaveAreaOffset, 
-						 int hiddenParameter,
-						 VM_Method m,
-						 int bIP) {
-    int callSiteNumber = 0;
-    if (VM_SpecializationSentry.isValid()) {
-      callSiteNumber = VM_SpecializationCallSites.getCallSiteNumber(null, m, bIP);
-    }
-    emitST  (SP, spSaveAreaOffset, FP); // save SP
-    emitLVAL(SP, hiddenParameter);    // pass "hidden" parameter in reg. SP 
-    emitLVAL(0, callSiteNumber<<2);      // pass call site in reg. 0
-    emitBLRL();
-    emitL   (SP, spSaveAreaOffset, FP); // restore SP
-  }
-  //-#endif
 }

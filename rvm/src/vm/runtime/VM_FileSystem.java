@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import java.io.*;
+
 /**
  * Interface to filesystem of underlying operating system.
  * These methods use nonblocking I/O for reads and writes and, if necessary,
@@ -57,13 +59,33 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     byte[] asciiName = new byte[fileName.length() + 1]; //+1 for null terminator
     fileName.getBytes(0, fileName.length(), asciiName, 0);
 
-    // PIN(asciiName);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int rc = VM.sysCall2(bootRecord.sysStatIP, 
                          VM_Magic.objectAsAddress(asciiName).toInt(), kind);
-    // UNPIN(asciiName);
 
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.stat: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
+    return rc;
+  }
+
+  /**
+   * Get user's perms for a file.
+   * @param fileName file name
+   * @param kind     kind of access perm(s) to check for (ACCESS_W_OK,...)
+   * @return 0 if access ok (-1 -> error)
+   */ 
+  public static int access(String fileName, int kind) {
+    // convert file name from unicode to filesystem character set
+    // (assume file name is ascii, for now)
+    byte[] asciiName = new byte[fileName.length() + 1]; //+1 for null terminator
+    fileName.getBytes(0, fileName.length(), asciiName, 0);
+
+    // PIN(asciiName);
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    int rc = VM.sysCall2(bootRecord.sysAccessIP, 
+                         VM_Magic.objectAsAddress(asciiName).toInt(), kind);
+    // UNPIN(asciiName);
+
+    if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.access: name=" + fileName + " kind=" + kind + " rc=" + rc + "\n");
     return rc;
   }
 
@@ -96,11 +118,9 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     byte[] asciiName = new byte[fileName.length() + 1]; //+1 for null terminator
     fileName.getBytes(0, fileName.length(), asciiName, 0);
 
-    // PIN(asciiName);
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int fd = VM.sysCall2(bootRecord.sysOpenIP, 
                          VM_Magic.objectAsAddress(asciiName).toInt(), how);
-    // UNPIN(asciiName);
 
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.open: name=" + fileName + " mode=" + how + " fd=" + fd + "\n");
     return fd;
@@ -282,15 +302,33 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     if (!blockingReadHack(fd))
       return -2;
 
+    int read = 0;
     for (;;) {
       int rc = VM.sysCall3(bootRecord.sysReadBytesIP, fd,
                          VM_Magic.objectAsAddress(buf).add(off).toInt(), cnt);
 
-      if (rc >= 0)
-	// Read succeeded, or EOF was reached
-	return rc;
+      if (rc == 0) {
+	  // EOF
+	  return read;
+      } else if (rc > 0) {
+	  // Read succeeded, perhaps partially
+	  read += rc;
+	  off += rc;
+	  cnt -= rc;
+	  if (cnt == 0)
+	      return read;
+	  else 
+	      // did not get everything, let's try again
+	      continue;
+      }
       else if (rc == -1) {
-	// Read would have blocked: put thread on IO wait queue
+	// last read would have blocked
+
+	// perhaps we have read some stuff already, if so, return just that
+	if (read != 0)
+	    return read;
+
+	// Put thread on IO wait queue
 	if (VM.VerifyAssertions) VM._assert(!hasTimeout || totalWaitTime >= 0.0);
 	VM_ThreadIOWaitData waitData = VM_Wait.ioWaitRead(fd, totalWaitTime);
 
@@ -396,6 +434,9 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
    */ 
   public static int close(int fd) {
     if (VM.TraceFileSystem) VM.sysWrite("VM_FileSystem.close: fd=" + fd + "\n");
+
+    if (fd == 87 || fd == 88) (new Throwable()).printStackTrace();
+
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     return VM.sysCall1(bootRecord.sysCloseIP, fd);
   }
@@ -421,15 +462,9 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     int    len;
     for (int max = 1024;;) {
       asciiList = new byte[max];
-
-      // PIN(asciiName);
-      // PIN(asciiList);
       len = VM.sysCall3(bootRecord.sysListIP, 
                         VM_Magic.objectAsAddress(asciiName).toInt(), 
                         VM_Magic.objectAsAddress(asciiList).toInt(), max);
-      // UNPIN(asciiName);
-      // UNPIN(asciiList);
-
       if (len < max)
         break;
 
@@ -534,6 +569,21 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
     return VM.sysCall1(bootRecord.sysBytesAvailableIP, fd);
   }	   
 
+  public static boolean isValidFD(int fd) {
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    return VM.sysCall1(bootRecord.sysIsValidFDIP, fd) == 0;
+  }	   
+
+  public static int length(int fd) {
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    return VM.sysCall1(bootRecord.sysLengthIP, fd);
+  }	   
+
+  public static int setLength(int fd, int len) {
+    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
+    return VM.sysCall2(bootRecord.sysSetLengthIP, fd, len);
+  }	   
+
   /**
    * File descriptor registration hook.
    * All (valid) FileDescriptor objects created in the system should
@@ -587,33 +637,6 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
   }
 
   /**
-   * Return the file descriptor for standard input.
-   * To be used to create System.in.
-   */
-  public static int getStdinFileDescriptor() {
-    prepareStandardFd(0);
-    return 0;
-  }
-
-  /**
-   * Return the file descriptor for standard output.
-   * To be used to create System.out.
-   */
-  public static int getStdoutFileDescriptor() {
-    prepareStandardFd(1);
-    return 1;
-  }
-
-  /**
-   * Return the file descriptor for standard error.
-   * To be used to create System.err.
-   */
-  public static int getStderrFileDescriptor() {
-    prepareStandardFd(2);
-    return 2;
-  }
-
-  /**
    * Prepare a standard file descriptor (stdin, stdout, or stderr)
    * for use in a Java IO stream.  Basically, we try to set it
    * to be nonblocking if we think it wouldn't cause problems.
@@ -635,9 +658,42 @@ public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
       if (rc == 0) {
 	// Groovy
 	standardFdIsNonblocking[fd] = true;
-      }
-      else
+      } else {
 	VM.sysWrite("VM: warning: could not set file descriptor " + fd + " to nonblocking\n");
+      }
     }
+  }
+  
+  /**
+   * Called from VM.boot to set up java.lang.System.in, java.lang.System.out,
+   * and java.lang.System.err
+   */
+  static void initializeStandardStreams() {
+    VM_FileSystem.prepareStandardFd(0);
+    VM_FileSystem.prepareStandardFd(1);
+    VM_FileSystem.prepareStandardFd(2);
+    
+    //-#if !RVM_WITH_GNU_CLASSPATH
+    java.io.JikesRVMSupport.setFd(FileDescriptor.in, 0);
+    java.io.JikesRVMSupport.setFd(FileDescriptor.out, 1);
+    java.io.JikesRVMSupport.setFd(FileDescriptor.err, 2);
+    //-#endif
+
+    FileInputStream  fdIn  = new FileInputStream(FileDescriptor.in);
+    FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
+    FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);
+    System.setIn(new BufferedInputStream(fdIn));
+    System.setOut(new PrintStream(new BufferedOutputStream(fdOut, 128), true));
+    System.setErr(new PrintStream(new BufferedOutputStream(fdErr, 128), true));
+    VM_Callbacks.addExitMonitor( new VM_Callbacks.ExitMonitor() {
+	public void notifyExit(int value) {
+	  try {
+	    System.err.flush();
+	    System.out.flush();
+	  } catch (Throwable e) {
+	    VM.sysWrite("vm: error flushing stdout, stderr");
+	  }
+	}
+      });
   }
 }

@@ -85,6 +85,10 @@ final class OPT_MinimalBURS extends OPT_BURS {
 	child = LongConstant;
       } else if (op instanceof OPT_BranchOperand && s.isCall()) {
 	child = BranchTarget;
+      //-#if RVM_WITH_OSR
+      } else if (op instanceof OPT_InlinedOsrTypeInfoOperand && s.isYieldPoint()) {
+	child = NullTreeNode;
+      //-#endif	
       } else {
 	continue;
       }
@@ -110,6 +114,9 @@ final class OPT_MinimalBURS extends OPT_BURS {
     switch (s.getOpcode()) {
     case CALL_opcode:
     case SYSCALL_opcode:
+    //-#if RVM_WITH_OSR
+    case YIELDPOINT_OSR_opcode:
+    //-#endif
       if (cur.child2 == null)
 	cur.child2 = NullTreeNode;
       // fall through

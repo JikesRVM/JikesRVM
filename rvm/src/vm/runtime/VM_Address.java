@@ -91,8 +91,8 @@ final public class VM_Address {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     if (value >= 0 && addr2.value >= 0) return value < addr2.value;
     if (value < 0 && addr2.value < 0) return value < addr2.value;
-    if (value < 0) return true;
-    return false;
+    if (value < 0) return false; 
+    return true;
   }
 
   public boolean LE (VM_Address addr2) {

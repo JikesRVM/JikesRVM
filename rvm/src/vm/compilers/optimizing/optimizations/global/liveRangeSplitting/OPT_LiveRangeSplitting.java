@@ -3,14 +3,16 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
+
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.opt.ir.*;
 
 import java.util.Map;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Enumeration;
 import java.util.Iterator;
-import com.ibm.JikesRVM.opt.ir.*;
 
 /**
  * Perform live-range splitting.
@@ -240,7 +242,7 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
               s = Unary.create(SPLIT,lhs,rhs);
               // fix up types: only split live ranges when the type is
               // consistent at all defs
-              VM_Type t = null;
+              VM_TypeReference t = null;
               OPT_RegisterOperandEnumeration e = OPT_DefUse.defs(r);
               if (!e.hasMoreElements()) {
                 s = null;

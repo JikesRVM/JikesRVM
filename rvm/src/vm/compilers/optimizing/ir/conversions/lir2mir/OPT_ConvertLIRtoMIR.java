@@ -3,8 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -62,18 +63,12 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
         switch (s.getOpcode()) {
 	case ARRAYLENGTH_opcode:
 	  {
-	    if (VM.BuildForRealtimeGC) {
-	    //-#if RVM_WITH_REALTIME_GC
-		VM_SegmentedArray.optArrayLength(ir,s);
-	    //-#endif
-	    }
-	    else 
-		// array_ref[VM_ObjectModel.getArrayLengthOffset()] contains the length
-		Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
-			    GuardedUnary.getClearVal(s),
-                            I(VM_ObjectModel.getArrayLengthOffset()), 
-			    new OPT_LocationOperand(), 
-			    GuardedUnary.getClearGuard(s));
+	    // array_ref[VM_ObjectModel.getArrayLengthOffset()] contains the length
+	    Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
+			GuardedUnary.getClearVal(s),
+			I(VM_ObjectModel.getArrayLengthOffset()), 
+			new OPT_LocationOperand(), 
+			GuardedUnary.getClearGuard(s));
 	  }
 	  break;
 
@@ -83,21 +78,10 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	  }
 	  break;
 
-	  //-#if RVM_WITH_REALTIME_GC
-	case GET_OBJ_RAW_opcode:
-	  {
-	    OPT_Operand address = GuardedUnary.getClearVal(s);
-	    Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
-			address, I(OBJECT_REDIRECT_OFFSET), OPT_LocationOperand.createRedirection(),
-			GetField.getClearGuard(s));
-	  }
-	  break;
-	  //-#endif
-
 	case GET_CLASS_TIB_opcode:
 	  {
 	    OPT_TypeOperand type = (OPT_TypeOperand)Unary.getVal(s);
-	    int offset = type.type.getTibOffset();
+	    int offset = type.getVMType().getTibOffset();
 	    Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
 			ir.regpool.makeJTOCOp(ir,s), 
 			I(offset), new OPT_LocationOperand(offset));
@@ -269,7 +253,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
     private final OPT_Operand ensureRegister(OPT_Operand op, OPT_Instruction s, OPT_IR ir) {
       if (op.isConstant()) {
-	VM_Type opType = op.getType();
+	VM_TypeReference opType = op.getType();
 	OPT_RegisterOperand rop = ir.regpool.makeTemp(opType);
 	s.insertBefore(Move.create(OPT_IRTools.getMoveOp(opType), rop, op));
 	return rop.copy();
@@ -337,8 +321,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 
     public void reportAdditionalStats() {
       VM.sysWrite("  ");
-      VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
-						       container.counter2);
+      VM.sysWrite(container.counter1/container.counter2*100, 2);
       VM.sysWrite("% Infrequent BBs");
     }
 

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_Method;
 
 /**
  * The representation of a call site as a triple: a caller, 

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
+import com.ibm.JikesRVM.classloader.VM_Type;
 
 //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
 import com.ibm.JikesRVM.memoryManagers.watson.VM_BlockControl;
@@ -38,7 +39,7 @@ public class VM_Magic {
   /** Get contents of "jtoc" register. */
   public static VM_Address getTocPointer() {
     if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return VM_Address.fromInt(VM_BootRecord.the_boot_record.tocRegister);
+    return VM_BootRecord.the_boot_record.tocRegister;
   }
 
   /** Set contents of "jtoc" register. */
@@ -117,16 +118,6 @@ public class VM_Magic {
     return -1;
   }
 
-  /** Set bit in thread switch condition register. */ // TODO: remove me!
-  public static void setThreadSwitchBit() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-
-  /** Clear bit in thread switch condition register. */
-  public static void clearThreadSwitchBit() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-     
   //---------------------------------------//
   //       Stackframe Manipulation         //
   //---------------------------------------//
@@ -226,7 +217,7 @@ public class VM_Magic {
 
   /**
    * Get int at arbitrary (byte) offset from object.
-   * Use getIntAtOffset(obj, ofs) instead of getMemoryWord(objectAsAddress(obj)+ofs)
+   * Use getIntAtOffset(obj, ofs) instead of getMemoryInt(objectAsAddress(obj)+ofs)
    */
   public static int getIntAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -236,7 +227,7 @@ public class VM_Magic {
   /**
    * Get Object at arbitrary (byte) offset from object.
    * Use getObjectAtOffset(obj, ofs) instead of 
-   * addressAsObject(getMemoryWord(objectAsAddress(obj)+ofs))
+   * addressAsObject(getMemoryAddress(objectAsAddress(obj)+ofs))
    */
   public static Object getObjectAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -246,7 +237,7 @@ public class VM_Magic {
   /**
    * Get Object[] at arbitrary (byte) offset from object.
    * Use getObjectArrayAtOffset(obj, ofs) instead of 
-   * (Object[])addressAsObject(getMemoryWord(objectAsAddress(obj)+ofs))
+   * (Object[])addressAsObject(getMemoryAddr(objectAsAddress(obj)+ofs))
    */
   public static Object[] getObjectArrayAtOffset(Object object, int offset) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -266,9 +257,14 @@ public class VM_Magic {
    * Get contents of a memory location.
    * @deprecated  Use getIntAtOffset / getObjectAtOffset where possible.
    */
-  public static int getMemoryWord(VM_Address address) {
+  public static int getMemoryInt(VM_Address address) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return -1;
+    return 0;
+  }
+
+  public static VM_Word getMemoryWord(VM_Address address) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return null;
   }
 
   public static VM_Address getMemoryAddress(VM_Address address) {
@@ -319,7 +315,11 @@ public class VM_Magic {
    * Set contents of memory location.
    * @deprecated Use setIntAtOffset / setObjectAtOffset where possible.
    */
-  public static void setMemoryWord(VM_Address address, int value) {
+  public static void setMemoryInt(VM_Address address, int value) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+
+  public static void setMemoryWord(VM_Address address, VM_Word value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -787,44 +787,44 @@ public class VM_Magic {
    *
    */
 //-#if RVM_FOR_POWERPC
-   public static int  sysCall0(int ip, int toc)                                 { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall1(int ip, int toc, int p0)                         { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall2(int ip, int toc, int p0, int p1)                 { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall3(int ip, int toc, int p0, int p1, int p2)         { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCall4(int ip, int toc, int p0, int p1, int p2, int p3) { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall0(VM_Address ip, VM_Address toc)                                 { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall1(VM_Address ip, VM_Address toc, int p0)                         { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall2(VM_Address ip, VM_Address toc, int p0, int p1)                 { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall3(VM_Address ip, VM_Address toc, int p0, int p1, int p2)         { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCall4(VM_Address ip, VM_Address toc, int p0, int p1, int p2, int p3) { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
 
-   public static long sysCall_L_0(int ip, int toc)                              { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static long sysCall_L_I(int ip, int toc, int p0)                      { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
-   public static int  sysCallAD(int ip, int toc, int p0, double p1)             { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static long sysCall_L_0(VM_Address ip, VM_Address toc)                              { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static long sysCall_L_I(VM_Address ip, VM_Address toc, int p0)                      { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
+   public static int  sysCallAD(VM_Address ip, VM_Address toc, int p0, double p1)             { if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; }
 //-#endif
 
 //-#if RVM_FOR_IA32
-   public static int  sysCall0(int ip) { 
+   public static int  sysCall0(VM_Address ip) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static int  sysCall1(int ip, int p0) { 
+   public static int  sysCall1(VM_Address ip, int p0) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static int  sysCall2(int ip, int p0, int p1) { 
+   public static int  sysCall2(VM_Address ip, int p0, int p1) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static int  sysCall3(int ip, int p0, int p1, int p2) { 
+   public static int  sysCall3(VM_Address ip, int p0, int p1, int p2) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static int  sysCall4(int ip, int p0, int p1, int p2, int p3) { 
+   public static int  sysCall4(VM_Address ip, int p0, int p1, int p2, int p3) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static long sysCall_L_0(int ip) { 
+   public static long sysCall_L_0(VM_Address ip) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static long sysCall_L_I(int ip, int p0) { 
+   public static long sysCall_L_I(VM_Address ip, int p0) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
-   public static int  sysCallAD(int ip, int p0, double p1) { 
+   public static int  sysCallAD(VM_Address ip, int p0, double p1) { 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
 //-#endif
-   public static int  sysCallSigWait(int ip, int toc, int p0, 
+   public static int sysCallSigWait(VM_Address ip, VM_Address toc, int p0, 
                                      int p1, VM_Registers r){ 
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
@@ -882,17 +882,5 @@ public class VM_Magic {
     if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
-  //----------------------//
-  // Pragmas              //
-  //----------------------//
-
-  /**
-   * User directive that the method containing this pragma should be not be
-   * compiled by the optimizing compiler.  Only used by VM_NativeIdleThread.
-   */
-  public static void pragmaNoOptCompile() {
-    if (VM.runningVM && VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-  
 }
 

@@ -3,10 +3,11 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import  java.util.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import java.util.*;
 
 
 /**
@@ -319,9 +320,9 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
         Copy c = (Copy)workList.getValue();
         workList = (OPT_LinkedListObjectElement)workList.getNext();
         OPT_Register r = c.destination.register;
-        VM_Type tt = c.destination.type;
+        VM_TypeReference tt = c.destination.type;
         if (VM.VerifyAssertions && tt == null) {
-          tt = OPT_ClassLoaderProxy.IntType;
+          tt = VM_TypeReference.Int;
           VM.sysWrite("OPT_SSA, warning: null type in " + c.destination + "\n");
         }
 
@@ -607,7 +608,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
     }
 
     // visit all guard registers, init union/find
-    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.getNext()) {
+    for (OPT_Register r=ir.regpool.getFirstSymbolicRegister(); r != null; r = r.getNext()) {
       if (!r.isValidation()) continue;
       r.scratch = 1;
       r.scratchObject = r;
@@ -642,7 +643,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
    */
   private void unSSAGuardsFinalize(OPT_IR ir) {
     OPT_DefUse.computeDU(ir);
-    for (OPT_Register r=ir.regpool.getFirstRegister(); r != null; r = r.getNext()) {
+    for (OPT_Register r=ir.regpool.getFirstSymbolicRegister(); r != null; r = r.getNext()) {
       if (!r.isValidation()) continue;
       OPT_Register nreg = guardFind(r);
       OPT_RegisterOperandEnumeration uses = OPT_DefUse.uses(r);

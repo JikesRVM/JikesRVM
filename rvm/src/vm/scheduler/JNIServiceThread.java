@@ -29,6 +29,10 @@ class JNIServiceThread extends VM_Thread   {
     VM_Address yy  = VM_Magic.objectAsAddress(this);
     VM_Thread  j   = (VM_Thread)VM_Magic.addressAsObject(yy);
     j.makeDaemon(true);
+
+    //-#if RVM_WITH_OSR
+    super.isSystemThread = true;
+    //-#endif
   }
 
   public String toString() // overrides VM_Thread
@@ -60,11 +64,11 @@ class JNIServiceThread extends VM_Thread   {
 
 	VM_Address args = VM_Scheduler.attachThreadRequested;
 	VM.sysWrite("parms = " + 
-		    VM.intAsHexString(VM_Magic.getMemoryWord(args)) +
+		    VM.intAsHexString(VM_Magic.getMemoryInt(args)) +
 		    ", " + 
-		    VM.intAsHexString(VM_Magic.getMemoryWord(args.add(4))) +
+		    VM.intAsHexString(VM_Magic.getMemoryInt(args.add(4))) +
 		    ", " + 
-		    VM.intAsHexString(VM_Magic.getMemoryWord(args.add(8))));
+		    VM.intAsHexString(VM_Magic.getMemoryInt(args.add(8))));
 		    
 	VM.sysWrite("\n");
       }
@@ -78,7 +82,7 @@ class JNIServiceThread extends VM_Thread   {
 	((VM_Thread) this).yield(VM_Scheduler.attachThreadQueue, VM_Scheduler.attachThreadMutex);
       } 
 	
-      int requestType = VM_Magic.getMemoryWord(VM_Scheduler.attachThreadRequested);
+      int requestType = VM_Magic.getMemoryInt(VM_Scheduler.attachThreadRequested);
       
       switch (requestType) {
       case ATTACHREQUEST:
@@ -116,14 +120,14 @@ class JNIServiceThread extends VM_Thread   {
 
 	// obtain the JNIenv handle that the OS thread uses
 	VM_Address externalJNIEnvAddress = VM_Magic.getMemoryAddress(VM_Scheduler.attachThreadRequested.add(4));
-	int externalJNIEnv = VM_Magic.getMemoryWord(externalJNIEnvAddress);
+	int externalJNIEnv = VM_Magic.getMemoryInt(externalJNIEnvAddress);
 
 	// This is an address into an entry in the static array VM_JNIEnvironment.JNIFunctionPointers
 	// Since the array is co-indexed with VM_Scheduler.threads, the offset is used to derive
 	// the associated VM_Thread.
 	// (compute with VM_Entrypoints.JNIFunctionPointersOffset because JNIFunctionPointers is private)
        	int threadOffset = externalJNIEnv - 
-	  VM_Magic.getMemoryWord(VM_Magic.getTocPointer().add(VM_Entrypoints.JNIFunctionPointersField.getOffset()));
+	  VM_Magic.getMemoryInt(VM_Magic.getTocPointer().add(VM_Entrypoints.JNIFunctionPointersField.getOffset()));
 	
 	if (trace)
 	  VM.sysWrite("JNIServiceThread:  externalJNIEnv = " + 
@@ -138,7 +142,7 @@ class JNIServiceThread extends VM_Thread   {
 
 	// restore the original Java context and stack to run the termination code
 	// (discard the current context since this thread is exiting)
-	attachedThread.contextRegisters = attachedThread.getJNIEnv().savedContextForTermination;
+	attachedThread.contextRegisters = attachedThread.getJNIEnv().savedTerminationContext();
 
 	// // First adjust the context of the Java thread to resume execution on this stack
 	// // point the FP register into the old stack frame
@@ -186,7 +190,7 @@ class JNIServiceThread extends VM_Thread   {
       default:
 	// bad requestType value from C
 	VM.sysWrite("JNIServiceThread: bad request value from external pthread.\n");
-	VM_Scheduler._assert(VM.NOT_REACHED);
+	VM._assert(VM.NOT_REACHED);
       }
 
 

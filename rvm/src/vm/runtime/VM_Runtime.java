@@ -5,8 +5,8 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-
 import com.ibm.JikesRVM.librarySupport.SystemSupport;
+import com.ibm.JikesRVM.classloader.*;
 
 /**
  * Entrypoints into the runtime of the virtual machine.
@@ -69,32 +69,39 @@ public class VM_Runtime implements VM_Constants {
    * Test if object is instance of target class/array or 
    * implements target interface.
    * @param object object to be tested
-   * @param targetTibOffset jtoc offset of "tib" corresponding to target 
-   *           class/array/interface
+   * @param id type reference id corresponding to target class/array/interface
    * @return true iff is object instance of target type?
    */ 
-  static boolean instanceOf(Object object, int targetTibOffset)
-    throws VM_ResolutionException {
+  static boolean instanceOf(Object object, int id) throws ClassNotFoundException {
     if (object == null)
       return false; // null is not an instance of any type
 
-    Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), 
-                                               targetTibOffset);
-    Object rhsTib = VM_ObjectModel.getTIB(object);
-    if (lhsTib == rhsTib)
-      return true; // exact match
-         
-    // not an exact match, do more involved lookups
-    //
-    VM_Type lhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset
-                                            (lhsTib,TIB_TYPE_INDEX));
-    VM_Type rhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset
-                                            (rhsTib,TIB_TYPE_INDEX));
-    return isAssignableWith(lhsType, rhsType);
+    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
+    VM_Type lhsType = tRef.resolve();
+    VM_Type rhsType = VM_ObjectModel.getObjectType(object);
+    return lhsType == rhsType || isAssignableWith(lhsType, rhsType);
+  }
+
+  /**
+   * Uninterruptible version for fully resolved proper classes.
+   * @param object object to be tested
+   * @param id type id corresponding to target class.
+   * @return true iff is object instance of target type?
+   */
+  static boolean instanceOfResolvedClass(Object object, int id) throws VM_PragmaUninterruptible {
+    if (object == null)
+      return false; // null is not an instance of any type
+    
+    VM_Class lhsType = VM_Type.getType(id).asClass();
+    Object[] rhsTIB = VM_ObjectModel.getTIB(object);
+    return VM_DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB);
   }
 
   /**
    * quick version for final classes, array of final class or array of primitives
+   * @param object object to be tested
+   * @param jtoc offset of TIB of target type
+   * @return true iff is object instance of target type?
    */
   static boolean instanceOfFinal(Object object, int targetTibOffset) throws VM_PragmaUninterruptible {
     if (object == null)
@@ -102,34 +109,47 @@ public class VM_Runtime implements VM_Constants {
 
     Object lhsTib= VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), targetTibOffset);
     Object rhsTib= VM_ObjectModel.getTIB(object);
-    return (lhsTib == rhsTib);
+    return lhsTib == rhsTib;
   }
+
 
   /**
    * Throw exception unless object is instance of target 
    * class/array or implements target interface.
    * @param object object to be tested
-   * @param targetTibOffset jtoc offset of "tib" corresponding to 
-   *           target class/array/interface
+   * @param id of type reference corresponding to target class/array/interface
    */ 
-  static void checkcast(Object object, int targetTibOffset)
-    throws VM_ResolutionException, ClassCastException {
+  static void checkcast(Object object, int id) 
+    throws ClassCastException,
+	   ClassNotFoundException {
     if (object == null)
       return; // null may be cast to any type
-      
-    Object lhsTib = VM_Magic.getObjectAtOffset(VM_Magic.getJTOC(), 
-                                               targetTibOffset);
-    Object rhsTib= VM_ObjectModel.getTIB(object);
-    if (lhsTib == rhsTib)
+
+    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
+    VM_Type lhsType = tRef.resolve();
+    VM_Type rhsType = VM_ObjectModel.getObjectType(object);
+    if (lhsType == rhsType)
       return; // exact match
 
     // not an exact match, do more involved lookups
     //
-    VM_Type lhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset
-                                            (lhsTib,TIB_TYPE_INDEX));
-    VM_Type rhsType = VM_Magic.objectAsType(VM_Magic.getObjectAtOffset
-                                            (rhsTib,TIB_TYPE_INDEX));
     if (!isAssignableWith(lhsType, rhsType)) {
+      raiseCheckcastException(lhsType, rhsType);
+    }
+  }
+
+  /**
+   * Throw exception unless object is instance of target resolved proper class.
+   * @param object object to be tested
+   * @param id of type corresponding to target class
+   */ 
+  static void checkcastResolvedClass(Object object, int id) throws VM_PragmaUninterruptible {
+    if (object == null) return; // null can be cast to any type
+
+    VM_Class lhsType = VM_Type.getType(id).asClass();
+    Object[] rhsTIB = VM_ObjectModel.getTIB(object);
+    if (!VM_DynamicTypeCheck.instanceOfClass(lhsType, rhsTIB)) {
+      VM_Type rhsType = VM_ObjectModel.getObjectType(object);
       raiseCheckcastException(lhsType, rhsType);
     }
   }
@@ -158,8 +178,7 @@ public class VM_Runtime implements VM_Constants {
   /**
    * Throw exception iff array assignment is illegal.
    */
-  static void checkstore(Object array, Object arrayElement)
-    throws VM_ResolutionException, ArrayStoreException {
+  static void checkstore(Object array, Object arrayElement) throws ArrayStoreException {
     if (arrayElement == null)
       return; // null may be assigned to any type
 
@@ -194,9 +213,14 @@ public class VM_Runtime implements VM_Constants {
    * (exact type match)
    *             so we need not repeat it here
    */ 
-  public static boolean isAssignableWith(VM_Type lhs, VM_Type rhs) 
-    throws VM_ResolutionException {
-    return VM_DynamicTypeCheck.instanceOf(lhs, rhs);
+  public static boolean isAssignableWith(VM_Type lhs, VM_Type rhs) {
+    if (!lhs.isResolved()) {
+      lhs.resolve();
+    }
+    if (!rhs.isResolved()) {
+      rhs.resolve();
+    }
+    return VM_DynamicTypeCheck.instanceOfResolved(lhs, rhs);
   }
 
       
@@ -209,16 +233,16 @@ public class VM_Runtime implements VM_Constants {
 
   /**
    * Allocate something like "new Foo()".
-   * @param dictionaryId type of object (VM_TypeDictionary id)
+   * @param id id of type reference of class to create.
    * @return object with header installed and all fields set to zero/null
    *           (ready for initializer to be run on it)
    * See also: bytecode 0xbb ("new")
    */ 
-  static Object unresolvedNewScalar(int dictionaryId) 
-    throws VM_ResolutionException, OutOfMemoryError { 
-
-    VM_Class cls = VM_TypeDictionary.getValue(dictionaryId).asClass();
-    if (VM.VerifyAssertions) VM._assert(cls.isClassType());
+  static Object unresolvedNewScalar(int id) 
+    throws ClassNotFoundException, 
+	   OutOfMemoryError { 
+    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
+    VM_Class cls = tRef.resolve().asClass();
     if (!cls.isInitialized()) 
       initializeClassForDynamicLink(cls);
 
@@ -267,17 +291,16 @@ public class VM_Runtime implements VM_Constants {
    
   /**
    * Allocate something like "new Foo[]".
-   * @param dictionaryId type of object (VM_TypeDictionary id)
+   * @param id id of type reference of class to create.
    * @param numElements number of array elements
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
    */ 
-  static Object unresolvedNewArray(int numElements, int dictionaryId) 
-    throws VM_ResolutionException, OutOfMemoryError, NegativeArraySizeException { 
-    VM_Array array = VM_TypeDictionary.getValue(dictionaryId).asArray();
+  static Object unresolvedNewArray(int numElements, int id) 
+    throws ClassNotFoundException, OutOfMemoryError, NegativeArraySizeException { 
+    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
+    VM_Array array = tRef.resolve().asArray();
     if (!array.isInitialized()) {
-      VM_Type elementType = array.getElementType();
-      array.load();
       array.resolve();
       array.instantiate();
     }
@@ -361,7 +384,7 @@ public class VM_Runtime implements VM_Constants {
       VM_Field[] instanceFields = cls.getInstanceFields();
       for (int i=0; i<instanceFields.length; i++) {
 	VM_Field f = instanceFields[i];
-	VM_Type ft = f.getType();
+	VM_TypeReference ft = f.getType();
 	if (ft.isReferenceType()) {
 	  // Do via slower "pure" reflection to enable
 	  // collectors to do the right thing wrt reference counting
@@ -437,26 +460,18 @@ public class VM_Runtime implements VM_Constants {
    * Prepare a class for use prior to first allocation, 
    * field access, or method invocation.
    * Made public so that it is accessible from java.lang.reflect.*.
-   * @see VM_Member#needsDynamicLink
+   * @see VM_MemberReference#needsDynamicLink
    */ 
-  public static void initializeClassForDynamicLink(VM_Class cls) 
-    throws VM_ResolutionException {
-      if (VM.TraceClassLoading) 
-      VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " 
-                  + cls + "\n");
+  public static void initializeClassForDynamicLink(VM_Class cls) {
+    if (VM.TraceClassLoading) 
+      VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " + cls + "\n");
 
-    try {
-      cls.getClassLoader().loadClass(cls.getDescriptor().classNameFromDescriptor());
-      cls.resolve();
-      cls.instantiate();
-      cls.initialize();
-    } catch (ClassNotFoundException e) {
-      throw new VM_ResolutionException(cls.getDescriptor(), e, cls.getClassLoader());
-    }
+    cls.resolve();
+    cls.instantiate();
+    cls.initialize();
 
     if (VM.TraceClassLoading) 
-      VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (end)   " 
-                  + cls + "\n");
+      VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (end)   " + cls + "\n");
   }
 
   //---------------------------------------------------------------//
@@ -518,7 +533,7 @@ public class VM_Runtime implements VM_Constants {
    *     (for TRAP_STACK_OVERFLOW)
    * 
    * <p> Note:     Control reaches here by the actions of an 
-   * external "C" signal handler
+   *           external "C" signal handler
    *           which saves the register state of the trap site into the 
    *           "hardwareExceptionRegisters" field of the current 
    *           VM_Thread object. 
@@ -630,6 +645,15 @@ public class VM_Runtime implements VM_Constants {
   }
 
   /**
+   * Create and throw a java.lang.ArrayStoreException
+   * Used in a few circumstances to reduce code space costs
+   * of inlining (see java.lang.System.arraycopy()). 
+   */
+  public static void raiseArrayStoreException() throws VM_PragmaNoInline {
+    throw new java.lang.ArrayStoreException();
+  }
+
+  /**
    * Create and throw a java.lang.ArithmeticException
    * Used to raise an arithmetic exception without going through
    * the hardware trap handler; currently this is only done when the
@@ -668,7 +692,7 @@ public class VM_Runtime implements VM_Constants {
     // whenever the host operating system detects a hardware trap
     //
     VM_BootRecord.the_boot_record.hardwareTrapMethodId = 
-      VM_ClassLoader.createHardwareTrapCompiledMethodId();
+      VM_CompiledMethods.createHardwareTrapCompiledMethod().getId();
     VM_BootRecord.the_boot_record.deliverHardwareExceptionOffset = 
       VM_Entrypoints.deliverHardwareExceptionMethod.getOffset();
 
@@ -693,9 +717,8 @@ public class VM_Runtime implements VM_Constants {
    */ 
   public static Object buildMultiDimensionalArray(int[] numElements, 
 						  int dimIndex, 
-						  VM_Array arrayType) throws VM_ResolutionException {
+						  VM_Array arrayType) {
     if (!arrayType.isInstantiated()) {
-      arrayType.load();
       arrayType.resolve();
       arrayType.instantiate();
     }
@@ -711,9 +734,9 @@ public class VM_Runtime implements VM_Constants {
     Object[] newArray     = (Object[]) newObject;
     VM_Array newArrayType = arrayType.getElementType().asArray();
    
-    for (int i = 0; i < nelts; ++i)
-      newArray[i] = buildMultiDimensionalArray(numElements, dimIndex, 
-                                               newArrayType);
+    for (int i = 0; i < nelts; ++i) {
+      newArray[i] = buildMultiDimensionalArray(numElements, dimIndex, newArrayType);
+    }
 
     return newArray;
   }
@@ -800,7 +823,20 @@ public class VM_Runtime implements VM_Constants {
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
     } while ( !VM_Interface.refInVM(ip) && fp.toInt() != STACKFRAME_SENTINAL_FP);
-    return callee_fp;
+
+	//-#if RVM_FOR_POWERPC && RVM_FOR_LINUX
+	// for SVR4 convention, a Java-to-C frame has two mini frames,
+	// stop before the mini frame 1 whose ip is in VM (out of line machine
+	// code), in the case of sentinal fp, it has to return the callee's fp
+	// because GC ScanThread uses it to get return address and so on.
+	if (VM_Interface.refInVM(ip)) {
+      return fp;
+	} else {
+	  return callee_fp;
+	}
+	//-#else
+	return callee_fp;
+	//-#endif
   }
 
   /**

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -29,21 +30,19 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
     if (!state.getOptions().INLINE) {
       return OPT_InlineDecision.NO("inlining not enabled");
     }
+
     VM_Method caller = state.getMethod();
     VM_Method callee = state.obtainTarget();
-
+    
     if (state.isInvokeInterface()) {
-      if (!callee.getDeclaringClass().isLoaded()) {
-	return OPT_InlineDecision.NO("Cannot inline interface before it is loaded");
-      } 
       return shouldInlineInterfaceInternal(caller, callee, state);
     } else {
       // invokestatic, invokevirtual, invokespecial
       // perform generic checks to test common inlining cases.
       
       // Is inlining forbidden?
-      if (!legalToInline(caller, callee) || callee.isNative())
-        return OPT_InlineDecision.NO("illegal inlining");
+      if (callee.isNative())
+        return OPT_InlineDecision.NO("native method");
       if (hasNoInlinePragma(callee, state))
         return OPT_InlineDecision.NO("pragmaNoInline");
 
@@ -55,8 +54,8 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
       // dynamically this call site is never executed.  If the 
       // callee is sufficiently small and can be inlined without a guard
       // then we save compile time and code space by inlining it.
-      int inlinedSizeEstimate = inlinedSizeEstimate(callee, state);
-      boolean guardless = state.getComputedTarget() != null || !needsGuard(callee);
+      int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)callee, state);
+      boolean guardless = state.getHasPreciseTarget() || !needsGuard(callee);
       if (inlinedSizeEstimate < state.getOptions().IC_MAX_ALWAYS_INLINE_TARGET_SIZE && 
 	  guardless &&
 	  !state.getSequence().containsMethod(callee)) { 
@@ -116,6 +115,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
    * @param codePatchSupported can we use code patching at this call site?
    */
   protected byte chooseGuard(VM_Method caller,
+			     VM_Method singleImpl,
 			     VM_Method callee,
 			     OPT_CompilationState state,
 			     boolean codePatchSupported) {
@@ -125,7 +125,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
 	if (OPT_ClassLoadingDependencyManager.TRACE || 
 	    OPT_ClassLoadingDependencyManager.DEBUG) {
 	  VM_Class.OptCLDepManager.report("CODE PATCH: Inlined "
-					  + callee + " into " + caller + "\n");
+					  + singleImpl + " into " + caller + "\n");
 	}
 	VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
 							    state.getCompiledMethod());
@@ -135,7 +135,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
     }
 
     if (guard == OPT_Options.IG_METHOD_TEST && 
-	callee.getDeclaringClass().isFinal()) {
+	singleImpl.getDeclaringClass().isFinal()) {
       // class test is more efficient and just as effective
       guard = OPT_Options.IG_CLASS_TEST;
     }
@@ -158,13 +158,13 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
 				   OPT_Options opts) {
     int guardCost = 0;
     if (needsGuard & !preEx) {
-      guardCost += VM_OptMethodSummary.CALL_COST;
+      guardCost += VM_NormalMethod.CALL_COST;
       if (opts.guardWithMethodTest()) {
-	guardCost += 3*VM_OptMethodSummary.SIMPLE_OPERATION_COST;
+	guardCost += 3*VM_NormalMethod.SIMPLE_OPERATION_COST;
       } else if (opts.guardWithCodePatch()) {
-	guardCost += 1*VM_OptMethodSummary.SIMPLE_OPERATION_COST;
+	guardCost += VM_NormalMethod.SIMPLE_OPERATION_COST;
       } else { // opts.guardWithClassTest()
-	guardCost += 2*VM_OptMethodSummary.SIMPLE_OPERATION_COST;
+	guardCost += 2*VM_NormalMethod.SIMPLE_OPERATION_COST;
       }
     }
     return guardCost + inlinedBodyEstimate;

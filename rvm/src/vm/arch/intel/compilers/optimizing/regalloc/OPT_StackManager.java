@@ -651,6 +651,11 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     // FMOV instruction.
     if (r.isFloatingPoint() && s.operator==IA32_FMOV) return false;
 
+    //-#if RVM_WITH_OSR
+    // never need a scratch register for a YIELDPOINT_OSR
+    if (s.operator == YIELDPOINT_OSR) return false;
+    //-#endif
+
     // Some MOVEs never need scratch registers
     if (isScratchFreeMove(s)) return false;
 

@@ -41,7 +41,7 @@ public abstract class VM_OptEncodedCallSiteTree implements VM_Uninterruptible {
     return  encoding[entryOffset];
   }
 
-  static int[] getEncoding(OPT_CallSiteTree tree) throws VM_PragmaInterruptible {
+  public static int[] getEncoding(OPT_CallSiteTree tree) throws VM_PragmaInterruptible {
     int size = 0;
     if (tree.isEmpty())
       return  null; 
@@ -71,7 +71,7 @@ public abstract class VM_OptEncodedCallSiteTree implements VM_Uninterruptible {
       x.encodedOffset = j;
       int byteCodeIndex = x.callSite.bcIndex;
       encoding[j++] = (byteCodeIndex >= 0) ? byteCodeIndex : -1;
-      encoding[j++] = x.callSite.getMethod().getDictionaryId();
+      encoding[j++] = x.callSite.getMethod().getId();
       x = (OPT_CallSiteTreeNode)x.getRightSibling();
     }
     x = current;

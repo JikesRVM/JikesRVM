@@ -88,17 +88,17 @@ chmod -R 755 $RVM_ROOT 2>> $RUN_LOG
 # Archive result files and performance results
 echo "Archiving results into $ARCHIVE\n" >> $RUN_LOG
 tarfile=$ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz
-(find $RVM_ROOT/results -name cp -exec rm -rf {} \;; cd $RVM_ROOT; $GNU_TAR czvf $tarfile results) >> $VERBOSE_LOG 2>> $VERBOSE_LOG
+($RVM_ROOT/rvm/regression/copyBuildTraceFiles $RVM_ROOT/images $RVM_ROOT/results; find $RVM_ROOT/results -name cp -exec rm -rf {} \;; cd $RVM_ROOT; $GNU_TAR czvf $tarfile results) >> $VERBOSE_LOG 2>> $VERBOSE_LOG
 
 echo "sending tar to dW" >> $VERBOSE_LOG 2>> $VERBOSE_LOG
 cd $RVM_ROOT/sanityResults
-transfer=`uname`.tar.gz
-cp $tarfile $transfer
-$CVS add $transfer >> $VERBOSE_LOG 2>> $VERBOSE_LOG
-$CVS commit -m "night sanity" $transfer >> $VERBOSE_LOG 2>> $VERBOSE_LOG
-rm -f $transfer
+TRANSFER_FILE_NAME=`date +"%A"`.`uname`.tar.gz
+cp $tarfile $TRANSFER_FILE_NAME
+$CVS add $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>> $VERBOSE_LOG
+$CVS commit -m "night sanity" $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>> $VERBOSE_LOG
+rm -f $TRANSFER_FILE_NAME
 mv CVS/Entries CVS/tmp
-grep -v $transfer < CVS/tmp > CVS/Entries
+grep -v $TRANSFER_FILE_NAME < CVS/tmp > CVS/Entries
 rm -f CVS/tmp
 cd $RVM_ROOT
 
@@ -145,11 +145,7 @@ if [[ $numjavadocErrors -gt 0 && $numjavadocErrors -lt 50 ]] then
 fi
 
 # Describe where the information can be found
-if [[ $ARCH = 'Linux' ]] then
-  echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/Linux.tar.gz" >> $MSG
-else
-  echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/AIX.tar.gz" >> $MSG
-fi
+echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/$TRANSFER_FILE_NAME" >> $MSG
 echo "  Sanity tests are specified in $CONFIG_DIR/$1" >> $MSG
 echo "  Performance tests are specified in $CONFIG_DIR/$2" >> $MSG
 
@@ -167,13 +163,13 @@ $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98
 
 # gather measure compilation results
 echo "\n\n Opt Level 0 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastWatsonSemispace.O0.?proc.raw >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemiSpace.O0.?proc.raw >> $MSG
 #
 echo "\n\n Opt Level 1 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastWatsonSemispace.O1.?proc.raw >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemiSpace.O1.?proc.raw >> $MSG
 #
 echo "\n\n Opt Level 2 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastWatsonSemispace.O2.?proc.raw >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemiSpace.O2.?proc.raw >> $MSG
 
 # Finally!  Send the mail message to those who care
 # echo "mailing status to $RESULT_MAILING_LIST"

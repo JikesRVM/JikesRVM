@@ -297,13 +297,18 @@ public final class OPT_ConditionOperand extends OPT_Operand {
 			v2.asAddressConstant().value.toInt());
       } else if (v2.isNullConstant()) {
 	return evaluate(v1.asAddressConstant().value.toInt(), 0); 
+      } else if (v2.isIntConstant()) {
+	return evaluate(v1.asAddressConstant().value.toInt(), 
+			v2.asIntConstant().value); 
       }
     } else if (v1.isIntConstant()) {
       if (v2.isIntConstant()) {
-        return evaluate(v1.asIntConstant().value, 
-			v2.asIntConstant().value);
+        return evaluate(v1.asIntConstant().value, v2.asIntConstant().value);
       } else if (v2.isNullConstant()) {
 	return evaluate(v1.asIntConstant().value, 0); 
+      } else if (v2.isAddressConstant()) {
+	return evaluate(v1.asIntConstant().value,
+			v2.asAddressConstant().value.toInt());
       }
     } else if (v1.isLongConstant()) {
       if (v2.isLongConstant()) {

@@ -27,14 +27,10 @@ TESTS=_200_check _201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_
 
 
 $(WORKING)/spec:	$(WORKING)
-ifneq ($(WORKING),.)
 	ln -fs $(BENCH_HOME)/spec $(WORKING)/spec
-endif
 
 $(WORKING)/props:	$(WORKING)
-ifneq ($(WORKING),.)
 	ln -fs $(BENCH_HOME)/props $(WORKING)/props
-endif
 
 $(WORKING)/Makefile:	$(WORKING) $(JAL_ROOT)/rvm/regression/tests/SPECjvm98/Makefile
 ifneq ($(WORKING),.)

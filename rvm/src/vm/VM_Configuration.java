@@ -61,17 +61,8 @@ public abstract class VM_Configuration {
         //-#endif
 
   // Verify that Uninterruptible methods actually cannot be interrupted.
-  // Disabled generally for just a little longer since we get too many false positives
-  // Enabled for BaseBase configurations.
-  //-#if RVM_WITH_BASE_BOOTIMAGE_COMPILER
-  //-#if RVM_WITH_BASE_RUNTIME_COMPILER
-  public static final boolean VerifyUnint = false && VerifyAssertions;
-  //-#else
-  public static final boolean VerifyUnint = false && VerifyAssertions;
-  //-#endif
-  //-#else
-  public static final boolean VerifyUnint = false && VerifyAssertions;
-  //-#endif
+  // Disable until we can fix the last couple problem cases.
+  public static final boolean VerifyUnint = true && VerifyAssertions;
 
   // Ignore supression pragma and print all warning messages.
   public static final boolean ParanoidVerifyUnint = false;
@@ -102,22 +93,6 @@ public abstract class VM_Configuration {
         //-#else
           false;
 	//-#endif
-	//-#endif
-
-  // Normally, a word in memory is used to signal need for a thread switch
-  // On PowerPC a control register can be used (and will be set by the interrupt handler).
-  // However, this distribution of virtual processors interrupted is very unfair on a multiprocessor.
-  // Therefore, the control register is only used for single-virtual-processor builds.
-  //
-  public static final boolean BuildForThreadSwitchUsingControlRegisterBit = 
-	//-#if RVM_FOR_POWERPC
-	//-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-          true;
-        //-#else
-          false;
-	//-#endif
-	//-#else
-          false;
 	//-#endif
 
   // Does this build include support for Hardware Performance Monitors
@@ -153,39 +128,6 @@ public abstract class VM_Configuration {
   public static final boolean BuildForITableInterfaceInvocation = true && 
                                               !BuildForIMTInterfaceInvocation;
   public static final boolean DirectlyIndexedITables = false;
-
-  // Compiler support for real-time garbage collection
-  //
-  public static final boolean BuildForRealtimeGC =
-      //-#if RVM_WITH_REALTIME_GC
-        true;
-      //-#else
-        false;
-      //-#endif
-
-  // Brooks-style redirection barrier
-  public static final boolean BuildWithRedirectSlot =
-      //-#if RVM_WITH_REDIRECT_SLOT
-        true;
-      //-#else
-        false;
-      //-#endif
-
-  // Brooks-style redirection barrier
-  public static final boolean BuildWithLazyRedirect =
-      //-#if RVM_WITH_LAZY_REDIRECT
-        true;
-      //-#else
-        false;
-      //-#endif
-
-  // Brooks-style redirection barrier
-  public static final boolean BuildWithEagerRedirect =
-      //-#if RVM_WITH_EAGER_REDIRECT
-        true;
-      //-#else
-        false;
-      //-#endif
 
   // Epilogue yieldpoints increase sampling accuracy for adaptive recompilation.
   // In particular, they are key for large, leaf, loop-free methods.
@@ -236,12 +178,7 @@ public abstract class VM_Configuration {
   public final static boolean ForceFrequentGC = false;
   //-#endif
 
-  public final static boolean CompileForGCTracing =
-      //-#if RVM_WITH_GCTk_GCTRACE
-	true;
-      //-#else
-        false;
-      //-#endif
+  public final static boolean CompileForGCTracing = false;
 
   //-#if RVM_FOR_IA32
   /**

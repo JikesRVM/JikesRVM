@@ -37,8 +37,8 @@ optimized by the bootimage compiler. By convention, configurations
 that include the opt compiler in the bootimage have the {\tt Full} or
 {\tt Fast} prefix.  Configurations where {\tt RVM\_WITH\_ALL\_CLASSES}
 is not set to 1 that use the optimizing compiler will dynamically load
-it (which will force it to be baseline compiled, {\em even if
-RVM\_WITH\_OPT\_RUNTIME\_COMPILER is set to 1}).
+it (which will force it to be baseline compiled, even if
+{\tt RVM\_WITH\_OPT\_RUNTIME\_COMPILER} is set to 1).
 \end{itemize}
 
 \subsection{What command-line arguments should I use?}
@@ -89,11 +89,6 @@ system will compete with the product on short-running codes of a few seconds.
 VolanoMark.  However, if you have a code with many threads, each using
 JNI, Jikes RVM performance will suffer due to factors in the design of
 the current thread system.
-\index{on-stack replacement}
-\item Jikes RVM does {\em not} yet support on-stack replacement for
-optimizing methods.  The adaptive system will not optimize a single
-invocation of a long-running 
-method.
 \index{quasi-preemption}
 \item Performance on tight loops may suffer.  The Jikes RVM thread system
 relies on quasi-preemption; the optimizing compiler inserts a thread-switch

@@ -6,7 +6,8 @@ package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.VM_CompiledMethod;
-import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_NormalMethod;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
 
@@ -73,29 +74,27 @@ abstract class VM_RecompilationStrategy {
    *                 by executing this plan.
    * @return the compilation plan to be used 
    */
-
-   VM_ControllerPlan createControllerPlan(VM_Method method, 
-					  int optLevel,
-					  OPT_InstrumentationPlan instPlan,
-					  int prevCMID,
-					  double expectedSpeedup,
-					  double priority) {
+  VM_ControllerPlan createControllerPlan(VM_Method method, 
+					 int optLevel,
+					 OPT_InstrumentationPlan instPlan,
+					 int prevCMID,
+					 double expectedSpeedup,
+					 double priority) {
 
      // Construct the compilation plan (varies depending on strategy)
-     OPT_CompilationPlan compPlan = createCompilationPlan(method,
-							optLevel,
-							instPlan);
+     OPT_CompilationPlan compPlan = 
+       createCompilationPlan((VM_NormalMethod)method, optLevel, instPlan);
 
-    if (VM_Controller.options.ADAPTIVE_INLINING) {
-      OPT_InlineOracle inlineOracle = 
-	VM_AdaptiveInlining.getInlineOracle(method);
-      compPlan.setInlineOracle(inlineOracle);
-    }
+     if (VM_Controller.options.ADAPTIVE_INLINING) {
+       OPT_InlineOracle inlineOracle = 
+	 VM_AdaptiveInlining.getInlineOracle(method);
+       compPlan.setInlineOracle(inlineOracle);
+     }
 
-    // Create the controller plan
-    return new VM_ControllerPlan(compPlan, VM_Controller.controllerClock, 
-				 prevCMID, expectedSpeedup, priority);
-   }
+     // Create the controller plan
+     return new VM_ControllerPlan(compPlan, VM_Controller.controllerClock, 
+				  prevCMID, expectedSpeedup, priority);
+  }
 
 
   /**
@@ -106,7 +105,7 @@ abstract class VM_RecompilationStrategy {
    * @param optLevel The opt-level to recompile at 
    * @param instPlan The instrumentation plan
    */
-  OPT_CompilationPlan createCompilationPlan(VM_Method method, 
+  OPT_CompilationPlan createCompilationPlan(VM_NormalMethod method, 
 					    int optLevel,
 					    OPT_InstrumentationPlan instPlan) {
 
@@ -215,10 +214,18 @@ abstract class VM_RecompilationStrategy {
 	  // The opt compiler does not implement this calling convention.
 	  return -1;
 	}
-	if (VM_Interface.MOVES_OBJECTS && !cmpMethod.getMethod().isInterruptible()) {
+	if (cmpMethod.getMethod().hasNoOptCompilePragma()) {
+	  // Explict declaration that the method should not be opt compiled.
+	  return -1;
+	}
+	if (!cmpMethod.getMethod().isInterruptible()) {
 	  // A crude filter to identify the subset of core VM methods that 
 	  // can't be recompiled because we require their code to be non-moving.
 	  // We really need to do a better job of this to avoid missing too many opportunities.
+	  // NOTE: it doesn't matter whether or not the GC is non-moving here, 
+	  //       because recompiling effectively moves the code to a new location even if 
+	  //       GC never moves it again!!!
+	  //      (C code may have a return address or other naked pointer into the old instruction array)
 	  return -1;
 	}
 	return 0;
@@ -240,14 +247,13 @@ abstract class VM_RecompilationStrategy {
   }
 
 
+  private  OPT_OptimizationPlanElement[][] _optPlans;
+  private  OPT_Options[] _options;
   /**
    * Create the default set of <optimization plan, options> pairs
    * Process optimizing compiler command line options.
    */
-  private  OPT_OptimizationPlanElement[][] _optPlans;
-  private  OPT_Options[] _options;
-
-   void createOptimizationPlans() {
+  void createOptimizationPlans() {
     OPT_Options options = new OPT_Options();
 
     int maxOptLevel = getMaxOptLevel();

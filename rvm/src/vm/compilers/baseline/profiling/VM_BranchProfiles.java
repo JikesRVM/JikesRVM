@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * Profile data for all conditional branches (including switches)
  * of a single VM_Method.
@@ -11,8 +12,8 @@ package com.ibm.JikesRVM;
  * @author Dave Grove
  */
 public final class VM_BranchProfiles implements VM_BytecodeConstants {
-  private VM_Method method;
-  private int counterId;
+  private VM_NormalMethod method;
+  private int numCounters;
   private VM_BranchProfile[] data;
 
   /**
@@ -43,18 +44,17 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
   }
 
   public void print(java.io.PrintStream ps) {
-    ps.println("M "+VM_EdgeCounterDictionary.getValue(counterId).length+" "+
-	       VM_EdgeCounterDictionary.getKey(counterId));
+    ps.println("M "+numCounters+" "+method.getMemberRef());
     for (int j=0; j<data.length; j++) {
       ps.println("\t"+data[j]);
     }
   }
 
-  VM_BranchProfiles(VM_Method m, int id, int[] cs) {
+  VM_BranchProfiles(VM_NormalMethod m, int[] cs) {
     method = m;
-    counterId = id;
+    numCounters = cs.length;
     data = new VM_BranchProfile[cs.length/2];
-    byte[] bytecodes = m.getBytecodes();
+    VM_BytecodeStream bcodes = m.getBytecodes();
     int dataIdx = 0;
     int countIdx = 0;
     
@@ -62,12 +62,10 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
     // Therefore we must now recover that information.
     // We exploit the fact that the baseline compiler generates code in 
     // a linear pass over the bytecodes to make this possible.
-
-    int bcIndex = 0;
-    while (bcIndex < bytecodes.length) {
-      int code = (int)(bytecodes[bcIndex] & 0xFF);
+    while(bcodes.hasMoreBytecodes()) {
+      int bcIndex = bcodes.index();
+      int code = bcodes.nextInstruction();
       switch (code) {
-	
       case JBC_ifeq:case JBC_ifne:case JBC_iflt:case JBC_ifge:
       case JBC_ifgt:case JBC_ifle:case JBC_if_icmpeq:case JBC_if_icmpne:
       case JBC_if_icmplt:case JBC_if_icmpge:case JBC_if_icmpgt:
@@ -75,51 +73,38 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
       case JBC_ifnull:case JBC_ifnonnull: {
 	int yea = cs[countIdx + VM_EdgeCounts.TAKEN];
 	int nea = cs[countIdx + VM_EdgeCounts.NOT_TAKEN];
-	boolean backwards = ((bytecodes[bcIndex+1] & 0x80) != 0);
+	int offset = bcodes.getBranchOffset();
+	boolean backwards = offset < 0;
 	countIdx += 2;
 	data[dataIdx++] = new VM_ConditionalBranchProfile(bcIndex, yea, nea, backwards);
-	bcIndex += 3;
 	break;
       }
 
       case JBC_tableswitch: {
-	int saved = bcIndex++;
-	bcIndex = alignSwitch(bcIndex);
-	bcIndex += 4;         // skip over default
-	int low = getIntOffset(bcIndex, bytecodes);
-	bcIndex += 4;
-	int high = getIntOffset(bcIndex, bytecodes);
-	bcIndex += 4;
-	bcIndex += (high - low + 1)*4;        // skip over rest of tableswitch
-	int numPairs = high - low + 1;
-	data[dataIdx++] = new VM_SwitchBranchProfile(saved, cs, countIdx, numPairs+1);
-	countIdx += numPairs + 1;
+	bcodes.alignSwitch();
+	int def = bcodes.getDefaultSwitchOffset();
+	int low = bcodes.getLowSwitchValue();
+	int high = bcodes.getHighSwitchValue();
+	int n = high - low + 1;
+	data[dataIdx++] = new VM_SwitchBranchProfile(bcIndex, cs, countIdx, n+1);
+	countIdx += n + 1;
+	bcodes.skipTableSwitchOffsets(n);
 	break;
       }
 
       case JBC_lookupswitch: { 
-	int saved = bcIndex++;
-	bcIndex = alignSwitch(bcIndex);
-	bcIndex += 4;         // skip over default 
-	int numPairs = getIntOffset(bcIndex, bytecodes);
-	bcIndex += 4 + (numPairs*8);          // skip rest of lookupswitch
-	data[dataIdx++] = new VM_SwitchBranchProfile(saved, cs, countIdx, numPairs+1);
+	bcodes.alignSwitch();
+	int def = bcodes.getDefaultSwitchOffset();
+	int numPairs = bcodes.getSwitchLength();
+	data[dataIdx++] = new VM_SwitchBranchProfile(bcIndex, cs, countIdx, numPairs+1);
 	countIdx += numPairs + 1;
+	bcodes.skipLookupSwitchPairs(numPairs);
 	break;
       }
 
-      case JBC_wide: {
-	int w_code = (int)(bytecodes[bcIndex+1] & 0xFF);
-	bcIndex += (w_code == JBC_iinc) ? 6 : 4;
+      default:
+	bcodes.skipInstruction();
 	break;
-      }
-
-      default: { 
-	int size = JBC_length[code];
-	if (VM.VerifyAssertions) VM._assert(size > 0);
-	bcIndex += size;
-	break;
-      }
       }
     }
 
@@ -135,18 +120,4 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
       data = newData;
     }
   }
-
-  private static int alignSwitch(int bcIndex) {
-    int align = bcIndex & 3;
-    if (align != 0) bcIndex += 4 - align;                     // eat padding
-    return bcIndex;
-  }
-
-  private static int getIntOffset(int index, byte[] bytecodes) {
-    return (int)((((int)bytecodes[index]) << 24) 
-		 | ((((int)bytecodes[ index + 1]) & 0xFF) << 16) 
-		 | ((((int)bytecodes[index + 2]) & 0xFF) << 8) 
-		 | (((int)bytecodes[ index + 3]) & 0xFF));
-  }
-
 }

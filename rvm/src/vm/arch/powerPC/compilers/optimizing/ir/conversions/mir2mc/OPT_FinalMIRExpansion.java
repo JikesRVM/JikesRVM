@@ -3,8 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -87,9 +88,8 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
 	    if (MIR_Call.hasMethod(p)) {
 	      OPT_MethodOperand mo = MIR_Call.getMethod(p);
 	      if (mo.isInterface()) {
-		int signatureId = VM_ClassLoader.
-		  findOrCreateInterfaceMethodSignatureId(mo.method.getName(), 
-							 mo.method.getDescriptor());
+		VM_InterfaceMethodSignature sig = VM_InterfaceMethodSignature.findOrCreate(mo.getMemberRef());
+		int signatureId = sig.getId();
 		OPT_Instruction s;
 		if (OPT_Bits.fits(signatureId, 16)) {
 		  s = MIR_Unary.create(PPC_LDI, 
@@ -112,27 +112,6 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
 	    }
 	  }
 	  instructionCount++;
-
-	  //-#if RVM_WITH_SPECIALIZATION
-	  if (MIR_Call.hasMethod(p)) {
-	    GNO_InstructionLocation loc = new GNO_InstructionLocation(p);
-	    if (loc.isCallInstruction()) {
-	      int callSiteNumber = 0;
-
-	      if (VM_SpecializationSentry.isValid()) {
-		OPT_SpecializationGraphNode c = ir.context;
-		callSiteNumber =
-		  VM_SpecializationCallSites.getCallSiteNumber(c, loc);
-	      }
-		
-	      OPT_Instruction ss = MIR_Unary.create(PPC_LDI, 
-						    R(phys.getGPR(0)), 
-						    I(callSiteNumber<<2));
-	      p.insertBack(ss);
-	      instructionCount++;
-	    }
-	  }
-	  //-#endif
 	}
 	break;
       case LABEL_opcode:case BBEND_opcode:case UNINT_BEGIN_opcode:
@@ -185,15 +164,12 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
                                         VM_Thread.BACKEDGE);                    
             OPT_Register zero = phys.getGPR(0);
             OPT_Register TSR = phys.getTSR();
-            if (!VM.BuildForThreadSwitchUsingControlRegisterBit) {
-              OPT_Register PR = phys.getPR();
-              p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), 
-                             R(PR), 
-                             I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
-              p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), 
-                             I(0)));
-              instructionCount += 2;
-            }
+	    OPT_Register PR = phys.getPR();
+	    p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), 
+					   R(PR), 
+					   I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+	    p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), I(0)));
+	    instructionCount += 2;
             // Because the GC Map code holds a reference to the original
             // instruction, it is important that we mutate the last instruction
             // because this will be the GC point.
@@ -209,14 +185,12 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
                                         VM_Thread.EPILOGUE);                    
             OPT_Register zero = phys.getGPR(0);
             OPT_Register TSR = phys.getTSR();
-            if (!VM.BuildForThreadSwitchUsingControlRegisterBit) {
-              OPT_Register PR = phys.getPR();
-              p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), 
-					     R(PR), 
-					     I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
-	      p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), I(0)));
-              instructionCount += 2;
-            }
+	    OPT_Register PR = phys.getPR();
+	    p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), 
+					   R(PR), 
+					   I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+	    p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), I(0)));
+	    instructionCount += 2;
             // Because the GC Map code holds a reference to the original
             // instruction, it is important that we mutate the last instruction
             // because this will be the GC point.
@@ -226,6 +200,21 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             conditionalBranchCount++;
           }
           break;
+        //-#if RVM_WITH_OSR
+        case YIELDPOINT_OSR_opcode:
+          {
+	    // unconditionally branch to yield point.
+            OPT_BasicBlock yieldpoint = findOrCreateYieldpointBlock(ir,
+                                        VM_Thread.OSROPT);
+            // Because the GC Map code holds a reference to the original
+            // instruction, it is important that we mutate the last instruction
+            // because this will be the GC point.
+	    MIR_Call.mutate0(p, PPC_BL, null, null, 
+			     yieldpoint.makeJumpTarget());
+          }
+	  instructionCount++;
+          break;
+        //-#endif
         case IR_ENDPROLOGUE_opcode:
           {
 	    // Remember where the end of prologue is for debugger
@@ -251,6 +240,12 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
       machinecodeLength = instructionCount + 2*conditionalBranchCount; 
     else 
       machinecodeLength = instructionCount + conditionalBranchCount;
+
+    //-#if RVM_WITH_OSR
+    // reserver more space for thread swith basic blocks
+    int OSR_TS_BLOCK_SIZE = 5;
+    machinecodeLength += OSR_TS_BLOCK_SIZE;
+    //-#endif
     if ((machinecodeLength & ~OPT_Assembler.MAX_24_BITS) != 0)
       throw new OPT_OptimizingCompilerException("CodeGen", 
 						"method too large to compile:", 
@@ -290,6 +285,14 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
       else 
         meth = VM_Entrypoints.optThreadSwitchFromEpilogueMethod;
     }
+    //-#if RVM_WITH_OSR
+    else if (whereFrom == VM_Thread.OSROPT) {
+      if (ir.MIRInfo.osrYieldpointBlock != null)
+	return ir.MIRInfo.osrYieldpointBlock;
+      else
+	meth = VM_Entrypoints.optThreadSwitchFromOsrOptMethod;
+    }
+    //-#endif 
 
     // Not found.  create new basic block holding the requested yieldpoint
     // method
@@ -315,8 +318,12 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
       ir.MIRInfo.prologueYieldpointBlock = result;
     else if (whereFrom == VM_Thread.BACKEDGE) 
       ir.MIRInfo.backedgeYieldpointBlock = result;
-    else                                      
+    else if (whereFrom == VM_Thread.EPILOGUE) 
       ir.MIRInfo.epilogueYieldpointBlock = result;
+    //-#if RVM_WITH_OSR
+    else if (whereFrom == VM_Thread.OSROPT)
+      ir.MIRInfo.osrYieldpointBlock = result;
+    //-#endif 
 
     return result;
   }

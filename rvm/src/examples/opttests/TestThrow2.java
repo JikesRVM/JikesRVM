@@ -52,7 +52,7 @@ class TestThrow2
          }
       catch (IOException e)
          {
-         System.out.println("caught: " + e);
+         System.out.println("caught: " + e.getClass());
          }
       }
 

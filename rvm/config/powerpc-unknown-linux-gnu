@@ -15,6 +15,7 @@
 #########
 # target architecutre is PowerPC
 export RVM_FOR_POWERPC=1
+export RVM_FOR_32_ADDR=1
 
 # target OS is Linux
 export RVM_FOR_LINUX=1
@@ -23,14 +24,16 @@ export RVM_FOR_LINUX=1
 # pthread library doesn't play nicely with RVM since it wants to
 # mask the bottom bits of stackpointer to find phtread local storage.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
+export RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 
 export BOOTIMAGE_LOAD_ADDRESS="0x31000000"
+export MAXIMUM_MAPPABLE_ADDRESS="0x90000000"
 
 ##########
 # PART II: Where to find tools and resources on this target
 ########## 
 
-export HOST_JAVA_HOME=/usr/local/jre13
+export HOST_JAVA_HOME=/opt/j2sdk1.3.1
 
 # the JDK java executable
 export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
@@ -76,17 +79,17 @@ export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads
 export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
 
-export AWK="/usr/bin/awk"
-export BASH="/bin/bash"
-export CVS="/usr/bin/cvs"
+export AWK=/bin/awk
+export BASH=/bin/bash
+export CVS=/usr/bin/cvs
 export DIFF=/usr/bin/diff
-export FGREP="/usr/bin/fgrep"
-export FIND="/usr/bin/find"
-export GNU_TAR="/usr/bin/tar"
-export GREP="/usr/bin/grep"
-export MD5SUM=md5sum
+export FGREP=/bin/fgrep
+export FIND=/usr/bin/find
+export GNU_TAR=/bin/tar
+export GREP=/bin/grep
+export MD5SUM=/usr/bin/md5sum
 export PS=/bin/ps
-export SED=/usr/bin/sed
-export WGET=wget
-export XARGS="/usr/bin/xargs"
-export UNZIP="/usr/bin/unzip"
+export SED=/bin/sed
+export WGET=/usr/bin/wget
+export XARGS=/usr/bin/xargs
+export UNZIP_CMD=/usr/bin/unzip

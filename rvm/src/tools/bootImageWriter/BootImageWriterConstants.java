@@ -17,7 +17,7 @@ public interface BootImageWriterConstants extends VM_Constants {
   /**
    * Maximum size image that we can write (in bytes)
    */
-  public static final int IMAGE_SIZE = 50 * 1024 * 1024;
+  public static final int IMAGE_SIZE = 60 * 1024 * 1024;
 
   /**
    * Offset to associate with objects that haven't yet been placed into image.

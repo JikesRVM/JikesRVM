@@ -94,7 +94,7 @@ class OPT_ValueGraph implements OPT_Operators {
     } else if (name instanceof OPT_StringConstantOperand) {
       name = ((OPT_StringConstantOperand)name).value;
     }
-    return  (OPT_ValueGraphVertex)nameMap.get(name);
+    return (OPT_ValueGraphVertex)nameMap.get(name);
   }
 
   /**
@@ -129,7 +129,7 @@ class OPT_ValueGraph implements OPT_Operators {
    * @param ir the governing IR
    */
   private void addRegisterNodes(OPT_IR ir) {
-    for (OPT_Register reg = ir.regpool.getFirstRegister(); 
+    for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
         reg != null; reg = reg.getNext())
       findOrCreateVertex(reg);
   }
@@ -201,6 +201,12 @@ class OPT_ValueGraph implements OPT_Operators {
    * @param s the instruction in question
    */
   private void processMove(OPT_Instruction s) {
+    // ignore instructions that define physical registers
+    for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements(); ) {
+      OPT_Operand current = e.next();
+      if (current instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) current).register.isPhysical()) return;
+    }
+
     OPT_Register result = Move.getResult(s).register;
     OPT_ValueGraphVertex v = findOrCreateVertex(result);
     OPT_Operand val = Move.getVal(s);
@@ -556,13 +562,13 @@ class OPT_ValueGraph implements OPT_Operators {
    */
   private OPT_ValueGraphVertex findOrCreateVertex(Object var) {
     if (var instanceof OPT_Register)
-      return  findOrCreateVertex((OPT_Register)var); 
+      return findOrCreateVertex((OPT_Register)var); 
     else if (var instanceof OPT_RegisterOperand)
-      return  findOrCreateVertex(((OPT_RegisterOperand)var).register); 
+      return findOrCreateVertex(((OPT_RegisterOperand)var).register); 
     else if (var instanceof OPT_ConstantOperand)
-      return  findOrCreateVertex((OPT_ConstantOperand)var); 
+      return findOrCreateVertex((OPT_ConstantOperand)var); 
     else if (var instanceof OPT_TypeOperand)
-      return  findOrCreateVertex((OPT_TypeOperand)var); 
+      return findOrCreateVertex((OPT_TypeOperand)var); 
     else if (var instanceof OPT_MethodOperand)
       return findOrCreateVertex((OPT_MethodOperand)var); 
     else if (var instanceof OPT_ConditionOperand)
@@ -588,7 +594,7 @@ class OPT_ValueGraph implements OPT_Operators {
       graph.addGraphNode(v);
       nameMap.put(r, v);
     }
-    return  v;
+    return v;
   }
 
   /**
@@ -629,7 +635,7 @@ class OPT_ValueGraph implements OPT_Operators {
       graph.addGraphNode(v);
       nameMap.put(name, v);
     }
-    return  v;
+    return v;
   }
 
   /**
@@ -640,7 +646,7 @@ class OPT_ValueGraph implements OPT_Operators {
    * @return a value graph vertex corresponding to this type
    */
   private OPT_ValueGraphVertex findOrCreateVertex(OPT_TypeOperand op) {
-    Object name = op.type;
+    Object name = op.getTypeRef();
     OPT_ValueGraphVertex v = getVertex(name);
     if (v == null) {
       v = new OPT_ValueGraphVertex(op);
@@ -648,7 +654,7 @@ class OPT_ValueGraph implements OPT_Operators {
       graph.addGraphNode(v);
       nameMap.put(name, v);
     }
-    return  v;
+    return v;
   }
 
   /**
@@ -659,7 +665,12 @@ class OPT_ValueGraph implements OPT_Operators {
    * @return a value graph vertex corresponding to this type
    */
   private OPT_ValueGraphVertex findOrCreateVertex(OPT_MethodOperand op) {
-    Object name = op.method;
+    Object name;
+    if (op.hasTarget()) {
+      name = op.getTarget();
+    } else {
+      name = op.getMemberRef();
+    }
     OPT_ValueGraphVertex v = getVertex(name);
     if (v == null) {
       v = new OPT_ValueGraphVertex(op);
@@ -667,7 +678,7 @@ class OPT_ValueGraph implements OPT_Operators {
       graph.addGraphNode(v);
       nameMap.put(name, v);
     }
-    return  v;
+    return v;
   }
 
   /**
@@ -712,22 +723,22 @@ class OPT_ValueGraph implements OPT_Operators {
    * @param op the OPT_RegisterOperand
    */
   private OPT_Operand bypassMoves(OPT_Operand op) {
-    if (!op.isRegister()) return  op;
+    if (!op.isRegister()) return op;
     OPT_Register r = op.asRegister().register;
     OPT_Instruction def = r.getFirstDef();
     if (def == null)
-      return  op;
+      return op;
     if (r.isPhysical())
-      return  op;
+      return op;
     if (Move.conforms(def)) {
       //   In a perfect world, this shouldn't happen. Copy propagation
       //   in SSA form should remove all 'normal' moves.  
       //   We can't simply bypass this move, since it may lead to
       //   infinite mutual recursion.
-      return  op;
+      return op;
     } else if (def.operator == PI) {
-      return  bypassMoves(GuardedUnary.getVal(def));
+      return bypassMoves(GuardedUnary.getVal(def));
     } else 
-      return  op;
+      return op;
   }
 }

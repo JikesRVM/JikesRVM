@@ -15,7 +15,7 @@ final class VM_Stats implements VM_Uninterruptible {
   static final void println() { VM.sysWrite("\n"); }
   static final void print(String s) { VM.sysWrite(s); }
   static final void println(String s) { print(s); println(); }
-  static final void print(int i) { VM.sysWrite(i, false); }
+  static final void print(int i) { VM.sysWrite(i); }
   static final void println(int i) { print(i); println(); }
   static final void print(String s, int i) { print(s); print(i); }
   static final void println(String s, int i) { print(s,i); println(); }

@@ -15,16 +15,10 @@ import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_ClassLoader;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
-import com.ibm.JikesRVM.VM_Atom;
-import com.ibm.JikesRVM.VM_Type;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Method;
 import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaNoOptCompile;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
@@ -200,13 +194,10 @@ public class VM_CollectorThread extends VM_Thread
    * will be different for the different allocators/collectors
    * that the RVM can be configured to use.
    */
-  public void run() throws VM_PragmaLogicallyUninterruptible /* YUCK...a bold face lie -- dave */ {
+  public void run() throws VM_PragmaLogicallyUninterruptible, /* YUCK...a bold face lie -- dave */
+                           VM_PragmaNoOptCompile /* refs stored in registers by opt compiler will not be relocated by GC */{
     int mypid;   // id of processor thread is running on - constant for the duration
     // of each collection - actually should always be id of associated processor
-    
-    //  make sure Opt compiler does not compile this method
-    //  references stored in registers by the opt compiler will not be relocated by GC
-    VM_Magic.pragmaNoOptCompile();
     
     while (true) {
       
@@ -263,8 +254,8 @@ public class VM_CollectorThread extends VM_Thread
 	    // these frames, so can be set to 0.
 	    //
 	    VM_Thread t = VM_Processor.nativeProcessors[i].activeThread;
-	    //	    t.contextRegisters.gprs[FRAME_POINTER] = t.jniEnv.JNITopJavaFP;
-	    t.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, t.jniEnv.JNITopJavaFP );
+	    //	    t.contextRegisters.gprs[FRAME_POINTER] = t.jniEnv.topJavaFP();
+	    t.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, t.jniEnv.topJavaFP() );
 	  }
         }
 
@@ -429,13 +420,13 @@ public class VM_CollectorThread extends VM_Thread
 	    VM_Scheduler.trace("VM_CollectorThread", "Attached Processor BLOCKED_IN_NATIVE", i);
 	  
 	  // XXX SES TON XXX
-	  // TON !! what is in jniEnv.JNITopJavaFP when thread returns to user C code.
+	  // TON !! what is in jniEnv.topJavaFP() when thread returns to user C code.
 	  // AND what will happen when we scan its stack with that fp
 	  
 	  // set running threads context regs ip & fp to where scan of threads 
 	  // stack should start.
 	  VM_Thread at = vp.activeThread;
-	  at.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, at.jniEnv.JNITopJavaFP );
+	  at.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, at.jniEnv.topJavaFP() );
 	  break;
 	}
 	
@@ -661,31 +652,31 @@ public class VM_CollectorThread extends VM_Thread
     VM.sysWrite("*** Collector Thread Wait Times (in micro-secs)\n");
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
       ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.processors[i].activeThread );
-      VM.sysWrite(i,false);
+      VM.sysWrite(i);
       VM.sysWrite(" stop ");
-      VM.sysWrite( (int)((ct.stoppingTime)*1000000.0), false);
+      VM.sysWrite( (int)((ct.stoppingTime)*1000000.0));
       VM.sysWrite(" start ");
-      VM.sysWrite( (int)((ct.startingTime)*1000000.0), false);
+      VM.sysWrite( (int)((ct.startingTime)*1000000.0));
       VM.sysWrite(" SBW ");
       if (ct.bufferWaitCount1 > 0)
-	VM.sysWrite(ct.bufferWaitCount1-1,false);  // subtract finish wait
+	VM.sysWrite(ct.bufferWaitCount1-1);  // subtract finish wait
       else
-	VM.sysWrite(0,false);
+	VM.sysWrite(0);
       VM.sysWrite(" SBWT ");
-      VM.sysWrite( (int)((ct.bufferWaitTime1)*1000000.0), false);
+      VM.sysWrite( (int)((ct.bufferWaitTime1)*1000000.0));
       VM.sysWrite(" SFWT ");
-      VM.sysWrite( (int)((ct.finishWaitTime1)*1000000.0), false);
+      VM.sysWrite( (int)((ct.finishWaitTime1)*1000000.0));
       VM.sysWrite(" FBW ");
       if (ct.bufferWaitCount > 0)
-	VM.sysWrite(ct.bufferWaitCount-1,false);  // subtract finish wait
+	VM.sysWrite(ct.bufferWaitCount-1);  // subtract finish wait
       else
-	VM.sysWrite(0,false);
+	VM.sysWrite(0);
       VM.sysWrite(" FBWT ");
-      VM.sysWrite( (int)((ct.bufferWaitTime)*1000000.0), false);
+      VM.sysWrite( (int)((ct.bufferWaitTime)*1000000.0));
       VM.sysWrite(" FFWT ");
-      VM.sysWrite( (int)((ct.finishWaitTime)*1000000.0), false);
+      VM.sysWrite( (int)((ct.finishWaitTime)*1000000.0));
       VM.sysWrite(" RWT ");
-      VM.sysWrite( (int)((ct.rendezvousWaitTime)*1000000.0), false);
+      VM.sysWrite( (int)((ct.rendezvousWaitTime)*1000000.0));
       VM.sysWrite("\n");
 
       ct.stoppingTime = 0.0;

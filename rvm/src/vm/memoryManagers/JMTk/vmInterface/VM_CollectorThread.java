@@ -5,22 +5,19 @@
 
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.WorkQueue;
+// import com.ibm.JikesRVM.memoryManagers.JMTk.WorkQueue;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_Atom;
-import com.ibm.JikesRVM.VM_Type;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Method;
 import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaNoOptCompile;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
@@ -133,6 +130,19 @@ public class VM_CollectorThread extends VM_Thread {
     handshake.requestAndAwaitCompletion();
   }
   
+  /**
+   * Initiate a garbage collection at next GC safe point.  Called by a
+   * mutator thread at any time.  The caller should pass the
+   * VM_Handshake that was referenced by the static variable "collect".
+   *
+   * @param handshake VM_Handshake for the requested collection
+   */
+  public static void asyncCollect(VM_Handshake handshake) 
+    throws VM_PragmaUninterruptible  {
+    handshake.requestAndContinue();
+  }
+
+
   // FOLLOWING NO LONGER TRUE... we now scan the stack frame for the run method,
   // so references will get updated, and "getThis" should not be necessary.
   // 
@@ -181,13 +191,10 @@ public class VM_CollectorThread extends VM_Thread {
    * will be different for the different allocators/collectors
    * that the RVM can be configured to use.
    */
-  public void run() throws VM_PragmaLogicallyUninterruptible /* YUCK...a bold face lie -- dave */ {
+  public void run() throws VM_PragmaLogicallyUninterruptible /* YUCK...a bold face lie -- dave */,
+                           VM_PragmaNoOptCompile /* refs stored in registers by opt compiler will not be relocated by GC */{
     int mypid;   // id of processor thread is running on - constant for the duration
     // of each collection - actually should always be id of associated processor
-    
-    //  make sure Opt compiler does not compile this method
-    //  references stored in registers by the opt compiler will not be relocated by GC
-    VM_Magic.pragmaNoOptCompile();
     
     while (true) {
       
@@ -250,7 +257,7 @@ public class VM_CollectorThread extends VM_Thread {
 	    //
 	    VM_Thread t = VM_Processor.nativeProcessors[i].activeThread;
 	    //	    t.contextRegisters.gprs[FRAME_POINTER] = t.jniEnv.JNITopJavaFP;
-	    t.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, t.jniEnv.JNITopJavaFP );
+	    t.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, t.jniEnv.topJavaFP() );
 	  }
         }
 
@@ -272,7 +279,7 @@ public class VM_CollectorThread extends VM_Thread {
       //
       // setup common workqueue for num VPs participating, used to be called once.
       // now count varies for each GC, so call for each GC
-      if ( gcOrdinal == 1 ) WorkQueue.workQueue.initialSetup(participantCount[0]);
+      // if ( gcOrdinal == 1 ) WorkQueue.workQueue.initialSetup(participantCount[0]);
     
       if (trace > 2) VM_Scheduler.trace("VM_CollectorThread", "starting collection");
       if (getThis().isActive) 
@@ -302,8 +309,7 @@ public class VM_CollectorThread extends VM_Thread {
 	handshake.reset();
 
 	// schedule the FinalizerThread, if there is work to do & it is idle
-	// THIS NOW HAPPENS DURING GC - SWITCH TO DOING IT HERE 
-	// VM_Finalizer.schedule();
+	VM_Interface.scheduleFinalizerThread();
       } 
       
       // wait for other collector threads to arrive here
@@ -426,7 +432,7 @@ public class VM_CollectorThread extends VM_Thread {
 	  // set running threads context regs ip & fp to where scan of threads 
 	  // stack should start.
 	  VM_Thread at = vp.activeThread;
-	  at.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, at.jniEnv.JNITopJavaFP );
+	  at.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, at.jniEnv.topJavaFP() );
 	  break;
 	}
 	
@@ -643,37 +649,37 @@ public class VM_CollectorThread extends VM_Thread {
     VM.sysWrite("*** Collector Thread Wait Times (in micro-secs)\n");
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
       ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.processors[i].activeThread );
-      VM.sysWrite(i,false);
+      VM.sysWrite(i);
       VM.sysWrite(" stop ");
-      VM.sysWrite( (int)((ct.stoppingTime)*1000000.0), false);
+      VM.sysWrite(ct.stoppingTime * 1000000.0);
       VM.sysWrite(" start ");
-      VM.sysWrite( (int)((ct.startingTime)*1000000.0), false);
+      VM.sysWrite(ct.startingTime * 1000000.0);
       VM.sysWrite(" SBW ");
       if (ct.bufferWaitCount1 > 0)
-	VM.sysWrite(ct.bufferWaitCount1-1,false);  // subtract finish wait
+	VM.sysWrite(ct.bufferWaitCount1-1);  // subtract finish wait
       else
-	VM.sysWrite(0,false);
+	VM.sysWrite(0);
       VM.sysWrite(" SBWT ");
-      VM.sysWrite( (int)((ct.bufferWaitTime1)*1000000.0), false);
+      VM.sysWrite(ct.bufferWaitTime1*1000000.0);
       VM.sysWrite(" SFWT ");
-      VM.sysWrite( (int)((ct.finishWaitTime1)*1000000.0), false);
+      VM.sysWrite(ct.finishWaitTime1*1000000.0);
       VM.sysWrite(" FBW ");
       if (ct.bufferWaitCount > 0)
-	VM.sysWrite(ct.bufferWaitCount-1,false);  // subtract finish wait
+	VM.sysWrite(ct.bufferWaitCount-1);  // subtract finish wait
       else
-	VM.sysWrite(0,false);
+	VM.sysWrite(0);
       VM.sysWrite(" FBWT ");
-      VM.sysWrite( (int)((ct.bufferWaitTime)*1000000.0), false);
+      VM.sysWrite(ct.bufferWaitTime*1000000.0);
       VM.sysWrite(" FFWT ");
-      VM.sysWrite( (int)((ct.finishWaitTime)*1000000.0), false);
+      VM.sysWrite(ct.finishWaitTime*1000000.0);
       VM.sysWrite(" RWT ");
-      VM.sysWrite( (int)((ct.rendezvousWaitTime)*1000000.0), false);
-      VM.sysWrite("\n");
+      VM.sysWrite(ct.rendezvousWaitTime*1000000.0);
+      VM.sysWriteln();
 
       ct.stoppingTime = 0.0;
       ct.startingTime = 0.0;
       ct.rendezvousWaitTime = 0.0;
-      WorkQueue.resetWaitTimes(ct);
+      // WorkQueue.resetWaitTimes(ct);
     }
   }
 }

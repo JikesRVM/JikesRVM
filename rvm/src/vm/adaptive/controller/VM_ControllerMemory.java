@@ -6,8 +6,9 @@ package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
-import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_CompiledMethods;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -112,8 +113,7 @@ public final class VM_ControllerMemory implements VM_Constants {
       planList.addLast(plan);
 
       // insert in the hashtable using the method ID as the hash value
-      table.put(new Integer(plan.getCompPlan().method.getDictionaryId()), 
-		planList);
+      table.put(new Integer(plan.getCompPlan().method.getId()), planList);
     } else {
       // add the current plan to the end of the list
       synchronized(planList) {
@@ -134,7 +134,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    *         otherwise, null
    */
   static LinkedList findPlan(VM_Method method) {
-    return (LinkedList) table.get(new Integer(method.getDictionaryId()));
+    return (LinkedList)table.get(new Integer(method.getId()));
   }
 
   /**
@@ -142,7 +142,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    *  @param cmpMethod the compiled method of interest
    *  @return the matching plan or null if none exists.
    */
-  static VM_ControllerPlan findMatchingPlan(VM_CompiledMethod cmpMethod) {
+  public static VM_ControllerPlan findMatchingPlan(VM_CompiledMethod cmpMethod) {
     VM_Method method = cmpMethod.getMethod();
 
     LinkedList planList = findPlan(method);
@@ -237,9 +237,27 @@ public final class VM_ControllerMemory implements VM_Constants {
     return false;
   }
 
+  //-#if RVM_WITH_OSR
+  /**
+   * Return true iff there is a plan to transition from Base to Opt for a
+   * given CMID.
+   */
+  public static boolean requestedOSR(int cmid) {
+    VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+    
+    // make sure that the cm in question is baseline-compiled
+    if (cm.getCompilerType() != VM_CompiledMethod.BASELINE) return false; 
+
+    // OK; now check for an OSR plan 
+    VM_Method m = cm.getMethod();
+    if (m == null) return false;
+    return planWithStatus(m,VM_ControllerPlan.OSR_BASE_2_OPT);
+  }
+  //-#endif
+
   /**
    * Return true if there is a completed plan with the given opt level for 
-   * the give method
+   * the given method
    *
    * @param method the method of interest
    * @param optLevel the opt level of interest
@@ -273,7 +291,7 @@ public final class VM_ControllerMemory implements VM_Constants {
    * @return the last controller plan for this method if it exists, 
    *         otherwise, null
    */
-  static VM_ControllerPlan findLatestPlan(VM_Method method) {
+  public static VM_ControllerPlan findLatestPlan(VM_Method method) {
     LinkedList planList = findPlan(method);
     if (planList == null) {
       return null;

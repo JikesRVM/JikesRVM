@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
@@ -47,7 +48,6 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
 
     public final void perform (OPT_IR ir) {
       OPT_Options options = ir.options;
-      VM_Method method = ir.method;
 
       if (OPT_IR.SANITY_CHECK) {
         ir.verify("right before Final MIR Expansion", true);
@@ -79,8 +79,6 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
   
     public final void perform (OPT_IR ir) {
       OPT_Options options = ir.options;
-      VM_Method method = ir.method;
-  
       boolean shouldPrint =
         (options.PRINT_MACHINECODE) &&
         (!ir.options.hasMETHOD_TO_PRINT() ||
@@ -106,6 +104,11 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
       ir.compiledMethod.createFinalExceptionTable(ir);
       // 3b: Create the primary machine code map
       ir.compiledMethod.createFinalMCMap(ir, codeLength);
+
+      //-#if RVM_WITH_OSR
+      ir.compiledMethod.createFinalOSRMap(ir);
+      //-#endif
+
       // 3c: Create code patching maps
       if (ir.options.guardWithCodePatch()) {
 	ir.compiledMethod.createCodePatchMaps(ir);
@@ -114,9 +117,9 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
       if (shouldPrint) {
         // print exception tables (if any)
 	ir.compiledMethod.printExceptionTable();
-        OPT_Compiler.bottom("Final machine code", method);
+        OPT_Compiler.bottom("Final machine code", ir.method);
       }
-  
+      
       if (VM.runningVM)
         VM_Memory.sync(VM_Magic.objectAsAddress(ir.MIRInfo.machinecode), 
   		     codeLength << LG_INSTRUCTION_WIDTH);

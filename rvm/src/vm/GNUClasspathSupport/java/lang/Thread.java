@@ -13,9 +13,12 @@ import com.ibm.JikesRVM.librarySupport.UnimplementedError;
  * Library support interface of Jikes RVM
  *
  * @author Julian Dolby
- *
  */
 public class Thread extends ThreadBase implements Runnable {
+
+  public final static int MIN_PRIORITY = 1;
+  public final static int MAX_PRIORITY = 10;
+  public final static int NORM_PRIORITY = 5;
 
     private static int createCount = 0;
     
@@ -36,6 +39,7 @@ public class Thread extends ThreadBase implements Runnable {
     // ugh. protected, should probably be default. fix this.
     //
     protected Thread(String argv[]){
+        priority = NORM_PRIORITY;
 	name = "main";
 	group = ThreadGroup.root;
 	group.addThread(this);
@@ -70,6 +74,7 @@ public class Thread extends ThreadBase implements Runnable {
 	if (threadName==null) throw new NullPointerException();
 	this.name = threadName;
 	this.runnable = runnable;
+	this.priority = NORM_PRIORITY;
 	Thread currentThread  = currentThread();
 
 	if (currentThread.isDaemon())
@@ -78,10 +83,14 @@ public class Thread extends ThreadBase implements Runnable {
 	if (group == null) {
 	    SecurityManager currentManager = System.getSecurityManager();
 	    // if there is a security manager...
-	    if (currentManager != null)
-		// Ask SecurityManager for ThreadGroup
+	    if (currentManager != null) {
+		// Ask SecurityManager for ThreadGroup...
 		group = currentManager.getThreadGroup();
-	    else
+		
+		// ...but use the creator's group otherwise
+		if (group == null)
+		    group = currentThread.getThreadGroup();
+	    } else
 		// Same group as Thread that created us
 		group = currentThread.getThreadGroup();
 	}
@@ -139,14 +148,13 @@ public class Thread extends ThreadBase implements Runnable {
 	return String.valueOf(name);
     }
 
-    // TODO: implement this
-    public final int getPriority() {
-	return 0;
-    }
+  public final int getPriority() {
+    return priority;
+  }
 
-    public final ThreadGroup getThreadGroup() {
-	return group;
-    }
+  public final ThreadGroup getThreadGroup() {
+    return group;
+  }
 
     public synchronized void interrupt() {
 	checkAccess();
@@ -254,9 +262,14 @@ public class Thread extends ThreadBase implements Runnable {
 	else throw new NullPointerException();
     }
 
-    // TODO: implement this
-    public final synchronized void setPriority(int priority){
-
+    public final synchronized void setPriority(int newPriority){
+      checkAccess();
+      if (newPriority < MIN_PRIORITY || newPriority > MAX_PRIORITY) {
+	throw new IllegalArgumentException();
+      }
+      int tgmax = getThreadGroup().getMaxPriority();
+      if (newPriority > tgmax) newPriority = tgmax;
+      priority = newPriority;
     }
     
     public static void sleep (long time) throws InterruptedException {

@@ -70,10 +70,6 @@ public class VM_Properties extends VM_Configuration {
    */
   public static boolean verboseJNI = false;
 
-  // Symbolic info to support debugger.
-  //
-  public static boolean LoadLocalVariableTables = false;
-
   /**
    * The following is set on by -X:measureCompilation=true command line arg.
    * When true, it times compilations and generates a report at VM exit.
@@ -128,4 +124,8 @@ public class VM_Properties extends VM_Configuration {
   public static final boolean BuildForEventLogging      = false;
   public static       boolean EventLoggingEnabled       = false;  // TODO!! make this final, see profiler/VM_EventLogger.java
   public static final boolean BuildForNetworkMonitoring = false;
+
+  //-#if RVM_WITH_OSR
+  public static final boolean TraceOnStackReplacement   = false; 
+  //-#endif
 }

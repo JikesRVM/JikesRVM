@@ -49,6 +49,7 @@ INPUT_FILES = 	userguide.tex \
 		codingstyle.tex \
 		componentOverview.tex \
 		debugging.tex \
+		eclipse.tex \
 		faq.tex \
 		installation.tex \
 		intro.tex \
@@ -60,7 +61,6 @@ INPUT_FILES = 	userguide.tex \
 		optdetails.tex \
 		performance.tex \
 		profiling.tex \
-		runEclipse.tex \
 		regression.tex \
 		running.tex \
 		remark.tex \

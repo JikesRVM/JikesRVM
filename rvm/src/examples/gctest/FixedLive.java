@@ -28,6 +28,8 @@ class FixedLive {
     if (liveSize < 0)
       System.out.println("Amount of live data must be positive");
     runTest();
+
+    System.exit(0);
   }
 
   static double setupTime = 0.0;
@@ -74,6 +76,9 @@ class FixedLive {
   }
 
   public static void updateStats() {
+    setupTime = chop(setupTime);
+    sumAllocTime = chop(sumAllocTime);
+    sumTraceTime = chop(sumTraceTime);
     avgTraceRate = sumTraceRate / sampleCount;
     avgAllocRate = sumAllocRate / sampleCount;
     diffSquaredSumTraceRate = squaredSumTraceRate + sampleCount * (avgTraceRate * avgTraceRate) 
@@ -95,12 +100,12 @@ class FixedLive {
   public static void showResults() {
     updateStats();
     System.out.println();
-    System.out.print("Overall:           tracing    rate = " + avgTraceRate + " Mb/s");
-    System.out.println("   allocation     rate = " + avgAllocRate + " Mb/s");
-    System.out.print("Overall:     tracing   sigma = " + rmsTraceRate + " Mb/s");
-    System.out.println("   allocation    sigma = " + rmsAllocRate + " Mb/s");
-    System.out.print("Overall:           tracing z-score = " + zTraceRate);
-    System.out.println("           allocation z-score = " + zAllocRate);
+    System.out.print("Overall:          tracing    rate = " + avgTraceRate + " Mb/s");
+    System.out.println("            allocation     rate = " + avgAllocRate + " Mb/s");
+    System.out.print("Overall:          tracing   sigma = " + rmsTraceRate + " Mb/s");
+    System.out.println("            allocation    sigma = " + rmsAllocRate + " Mb/s");
+    System.out.print("Overall:          tracing z-score = " + zTraceRate);
+    System.out.println("             allocation z-score = " + zAllocRate);
     System.out.println("Overall:  Total Setup      Time = " + setupTime + " s");
     System.out.println("Overall:  Total Allocation Time = " + sumAllocTime + " s");
     System.out.println("Overall:  Total Tracing    Time = " + sumTraceTime + " s");
@@ -132,8 +137,8 @@ class FixedLive {
       double allocElapsed = (start - last) / 1000.0;
       double totalElapsed = traceElapsed + allocElapsed;
       if (traceElapsed > 0.1) {
-	double traceRate = liveSize / traceElapsed; // Mb/s
-	double allocRate = (allocatedSize / 1e6) / allocElapsed; // Mb/s
+	double traceRate = chop(liveSize / traceElapsed); // Mb/s
+	double allocRate = chop((allocatedSize / 1e6) / allocElapsed); // Mb/s
 	addSample(traceElapsed, allocElapsed, traceRate, allocRate);
 	allocatedSize = 0;
 	last = end;
@@ -144,6 +149,7 @@ class FixedLive {
     showResults();
   }
 
+
   public static void runTest() throws Throwable {
 
     System.out.println("FixedLive running with " + liveSize + " Mb fixed live data\n");
@@ -151,6 +157,8 @@ class FixedLive {
     long start = System.currentTimeMillis();
     Node2I2A.computeObjectSize();
     System.out.println("Estimated object size of a 4-field object (2 int, 2 ref) is " + Node2I2A.objectSize + " bytes");
+    System.out.println("Header size is probably " + (Node2I2A.objectSize - 16) + " bytes");
+    System.out.println("Note that the results of this test are not too meaningful for a generational collector"); 
 
     int count = (int) (liveSize << 20) / Node2I2A.objectSize;
     System.out.println("Creating live data: tree with " + count + " nodes");

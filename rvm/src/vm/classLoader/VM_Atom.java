@@ -2,53 +2,121 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
+
+import com.ibm.JikesRVM.*;
+import java.util.HashMap;
 
 /** 
- * A utf8-encoded byte string.
+ * An  utf8-encoded byte string.
  *
- * <p> VM_Atom's of a given value are stored only once in the vm,
+ * VM_Atom's are interned (cannonicalized) 
  * so they may be compared for equality using the "==" operator.
  *
- * <p> Atoms are used to represent names, descriptors, and string literals
+ * VM_Atoms are used to represent names, descriptors, and string literals
  * appearing in a class's constant pool.
  *
  * @author Bowen Alpern
+ * @author Dave Grove
  * @author Derek Lieber
  */
-public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
+public final class VM_Atom implements VM_ClassLoaderConstants {
 
-   /**
-    * Find or create an atom.
-    * @param str atom value, as string literal whose characters are unicode
-    * @return atom
-    */
+  /**
+   * Used to cannonicalize VM_Atoms
+   */
+  private static HashMap dictionary = new HashMap();
+
+  /**
+   * Dictionary of all VM_Atom instances.
+   */
+  private static VM_Atom[] atoms = new VM_Atom[16000];
+
+  /**
+   * Used to assign ids. Don't use id 0 to allow clients to use id 0 as a 'null'.
+   */
+  private static int nextId = 1; 
+  
+  /**
+   * The utf8 value this atom represents
+   */
+  private final byte val[];  
+
+  /**
+   * Cached hash code for this atom.
+   */
+  private final int  hash;  
+   
+  /**
+   * The id of this atom
+   */
+  private int id;
+
+  /**
+   *@return the id of this atom.
+   */
+  final int getId() { return id; }
+
+  /**
+   * Find or create an atom.
+   * @param str atom value, as string literal whose characters are unicode
+   * @return atom
+   */
   public static VM_Atom findOrCreateUnicodeAtom(String str) {
     byte[] utf8 = VM_UTF8Convert.toUTF8(str);
-    return VM_AtomDictionary.getValue(findOrCreateAtomId(utf8));
+    return findOrCreate(utf8);
   }
 
   /**
    * Find or create an atom.
    * @param str atom value, as string literal whose characters are from 
-   * ascii subset of unicode (not including null)
+   *            ascii subset of unicode (not including null)
    * @return atom
    */ 
   public static VM_Atom findOrCreateAsciiAtom(String str) {
     int    len   = str.length();
     byte[] ascii = new byte[len];
     str.getBytes(0, len, ascii, 0);
-    return VM_AtomDictionary.getValue(findOrCreateAtomId(ascii));
+    return findOrCreate(ascii);
   }
    
   /**
    * Find or create an atom.
    * @param utf8 atom value, as utf8 encoded bytes
-   * @return id, for use by VM_AtomDictionary.getValue()
+   * @return atom
    */
-  static int findOrCreateAtomId(byte[] utf8) {
-    VM_Atom atom = new VM_Atom(utf8);
-    return VM_AtomDictionary.findOrCreateId(atom, atom);
+  public static VM_Atom findOrCreateUtf8Atom(byte[] utf8) {
+    return findOrCreate(utf8);
+  }
+
+  /**
+   * @param id the id of an Atom
+   * @return the VM_Atom whose id was given
+   */
+  public static VM_Atom getAtom(int id) throws VM_PragmaUninterruptible {
+    return atoms[id];
+  }
+
+  private static VM_Atom findOrCreate(byte utf8[], int off, int len) {
+    byte val[] = new byte[len];
+    for (int i = 0; i < len; ++i)
+      val[i] = utf8[off++];
+    return findOrCreate(val);
+  }
+
+  private static synchronized VM_Atom findOrCreate(byte[] bytes) {
+    VM_Atom key = new VM_Atom(bytes);
+    VM_Atom val = (VM_Atom)dictionary.get(key);
+    if (val != null)  return val;
+    key.id = nextId++;
+    if (key.id == atoms.length) {
+      VM_Atom[] tmp = new VM_Atom[atoms.length+1000];
+      System.arraycopy(atoms, 0, tmp, 0, atoms.length);
+      atoms = tmp;
+    }
+    atoms[key.id] = key;
+    dictionary.put(key, key);
+    return key;
   }
 
   //-------------//
@@ -66,7 +134,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
   /**
    * Return printable representation of "this" atom.
    */ 
-  final String toUnicodeString() throws java.io.UTFDataFormatException { 
+  public final String toUnicodeString() throws java.io.UTFDataFormatException { 
     return VM_UTF8Convert.fromUTF8(val);
   }
 
@@ -80,7 +148,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
     sig[0] = (byte)'[';
     for (int i = 0, n = val.length; i < n; ++i)
       sig[i + 1] = val[i];
-    return findOrCreateAtom(sig);
+    return findOrCreate(sig);
   }
 
   /**
@@ -95,7 +163,7 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
     for (int i = 0, n = val.length; i < n; ++i)
       sig[i + 1] = val[i];
     sig[sig.length - 1] = (byte)';';
-    return findOrCreateAtom(sig);
+    return findOrCreate(sig);
   }
 
   /**
@@ -104,9 +172,8 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return class name       - something like "java.lang.String"
    */ 
   public final String classNameFromDescriptor() {
-    if (VM.VerifyAssertions) VM._assert(val[0] == 'L'); // !!TODO: should we also handle "array" type descriptors?
-    // return new String(val,    1, val.length - 2).replace('/','.');  // preferred (unicode)
-    return new String(val, 0, 1, val.length - 2).replace('/','.');  // deprecated (ascii)
+    if (VM.VerifyAssertions) VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
+    return new String(val, 0, 1, val.length - 2).replace('/','.'); 
   }
    
   /**
@@ -115,9 +182,8 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return class file name  - something like "java/lang/String.class"
    */ 
   public final String classFileNameFromDescriptor() {
-    if (VM.VerifyAssertions && val[0] != 'L') VM._assert(false, toString());
-    // return new String(val,    1, val.length - 2) + ".class"; // preferred (unicode)
-    return new String(val, 0, 1, val.length - 2) + ".class"; // deprecated (ascii)
+    if (VM.VerifyAssertions) VM._assert(val[0] == 'L' && val[val.length-1] == ';'); 
+    return new String(val, 0, 1, val.length - 2) + ".class";
   }
 
   //----------------//
@@ -129,28 +195,28 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * Note: Sun has reserved all member names starting with '<' for future use.
    *       At present, only <init> and <clinit> are used.
    */ 
-  final boolean isReservedMemberName() {
+  public final boolean isReservedMemberName() throws VM_PragmaUninterruptible {
     return val[0] == '<';
   }
 
   /**
    * Is "this" atom a class descriptor?
    */ 
-  final boolean isClassDescriptor() {
+  public final boolean isClassDescriptor() throws VM_PragmaUninterruptible {
     return val[0] == 'L';
   }
       
   /**
    * Is "this" atom an array descriptor?
    */ 
-  final boolean isArrayDescriptor() {
+  public final boolean isArrayDescriptor() throws VM_PragmaUninterruptible {
     return val[0] == '[';
   }
       
   /**
    * Is "this" atom a method descriptor?
    */ 
-  final boolean isMethodDescriptor() {
+  public final boolean isMethodDescriptor() throws VM_PragmaUninterruptible {
     return val[0] == '(';
   }
       
@@ -164,25 +230,25 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: method descriptor - something like "(III)V"
    * @return type description
    */
-  final VM_Type parseForReturnType(ClassLoader classloader) {
+  public final VM_TypeReference parseForReturnType(ClassLoader cl) {
     if (VM.VerifyAssertions) VM._assert(val[0] == '(');
 
     int i = 0;
     while (val[i++] != ')');
     switch (val[i])
       {
-      case VoidTypeCode:    return VM_Type.VoidType;
-      case BooleanTypeCode: return VM_Type.BooleanType;
-      case ByteTypeCode:    return VM_Type.ByteType;
-      case ShortTypeCode:   return VM_Type.ShortType;
-      case IntTypeCode:     return VM_Type.IntType;
-      case LongTypeCode:    return VM_Type.LongType;
-      case FloatTypeCode:   return VM_Type.FloatType;
-      case DoubleTypeCode:  return VM_Type.DoubleType;
-      case CharTypeCode:    return VM_Type.CharType;
+      case VoidTypeCode:    return VM_TypeReference.Void;
+      case BooleanTypeCode: return VM_TypeReference.Boolean;
+      case ByteTypeCode:    return VM_TypeReference.Byte;
+      case ShortTypeCode:   return VM_TypeReference.Short;
+      case IntTypeCode:     return VM_TypeReference.Int;
+      case LongTypeCode:    return VM_TypeReference.Long;
+      case FloatTypeCode:   return VM_TypeReference.Float;
+      case DoubleTypeCode:  return VM_TypeReference.Double;
+      case CharTypeCode:    return VM_TypeReference.Char;
       case ClassTypeCode:   // fall through
-      case ArrayTypeCode:   return VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, i, val.length - i), classloader);
-      default:              if (VM.VerifyAssertions) VM._assert(NOT_REACHED); return null;
+      case ArrayTypeCode:   return VM_TypeReference.findOrCreate(cl, findOrCreate(val, i, val.length - i));
+      default:              if (VM.VerifyAssertions) VM._assert(false); return null;
       }
   }
       
@@ -192,40 +258,41 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: method descriptor     - something like "(III)V"
    * @return parameter descriptions
    */ 
-  public final VM_Type[] parseForParameterTypes(ClassLoader classloader) {
+  public final VM_TypeReference[] parseForParameterTypes(ClassLoader cl) {
     if (VM.VerifyAssertions) VM._assert(val[0] == '(');
 
-    VM_TypeVector sigs = new VM_TypeVector();
-    for (int i = 1;;)
-      switch (val[i++])
-	{
-	case VoidTypeCode:    sigs.addElement(VM_Type.VoidType);     continue;
-	case BooleanTypeCode: sigs.addElement(VM_Type.BooleanType);  continue;
-	case ByteTypeCode:    sigs.addElement(VM_Type.ByteType);     continue;
-	case ShortTypeCode:   sigs.addElement(VM_Type.ShortType);    continue;
-	case IntTypeCode:     sigs.addElement(VM_Type.IntType);      continue;
-	case LongTypeCode:    sigs.addElement(VM_Type.LongType);     continue;
-	case FloatTypeCode:   sigs.addElement(VM_Type.FloatType);    continue;
-	case DoubleTypeCode:  sigs.addElement(VM_Type.DoubleType);   continue;
-	case CharTypeCode:    sigs.addElement(VM_Type.CharType);     continue;
-	case ClassTypeCode: {
-	  int off = i - 1;
-	  while (val[i++] != ';');
-	  sigs.addElement(VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, off, i - off), classloader));
-	  continue;
-	}
-	case ArrayTypeCode: {
-	  int off = i - 1;
-	  while (val[i] == ArrayTypeCode) ++i;
-	  if (val[i++] == ClassTypeCode) while (val[i++] != ';');
-	  sigs.addElement(VM_ClassLoader.findOrCreateType(findOrCreateAtom(val, off, i - off), classloader));
-	  continue;
-	}
-	case (byte)')': // end of parameter list
-	  return sigs.finish();
+    VM_TypeReferenceVector sigs = new VM_TypeReferenceVector();
+    int i = 1;
+    while (true) {
+      switch (val[i++])	{
+      case VoidTypeCode:    sigs.addElement(VM_TypeReference.Void);     continue;
+      case BooleanTypeCode: sigs.addElement(VM_TypeReference.Boolean);  continue;
+      case ByteTypeCode:    sigs.addElement(VM_TypeReference.Byte);     continue;
+      case ShortTypeCode:   sigs.addElement(VM_TypeReference.Short);    continue;
+      case IntTypeCode:     sigs.addElement(VM_TypeReference.Int);      continue;
+      case LongTypeCode:    sigs.addElement(VM_TypeReference.Long);     continue;
+      case FloatTypeCode:   sigs.addElement(VM_TypeReference.Float);    continue;
+      case DoubleTypeCode:  sigs.addElement(VM_TypeReference.Double);   continue;
+      case CharTypeCode:    sigs.addElement(VM_TypeReference.Char);     continue;
+      case ClassTypeCode: {
+	int off = i - 1;
+	while (val[i++] != ';');
+	sigs.addElement(VM_TypeReference.findOrCreate(cl, findOrCreate(val, off, i - off)));
+	continue;
+      }
+      case ArrayTypeCode: {
+	int off = i - 1;
+	while (val[i] == ArrayTypeCode) ++i;
+	if (val[i++] == ClassTypeCode) while (val[i++] != ';');
+	sigs.addElement(VM_TypeReference.findOrCreate(cl, findOrCreate(val, off, i - off)));
+	continue;
+      }
+      case (byte)')': // end of parameter list
+	return sigs.finish();
             
-	default: if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
-	}
+      default: if (VM.VerifyAssertions) VM._assert(false);
+      }
+    }
   }
 
   /**
@@ -253,17 +320,17 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    *            CharTypeCode         'C'
    * </pre>
    */
-  final byte parseForTypeCode() {
+  public final byte parseForTypeCode() {
     return val[0];
   }
-
+  
   /**
    * Parse "this" array descriptor to obtain number of dimensions in 
    * corresponding array type.
    * this: descriptor     - something like "[Ljava/lang/String;" or "[[I"
    * @return dimensionality - something like "1" or "2"
    */ 
-  final int parseForArrayDimensionality() {
+  public final int parseForArrayDimensionality() {
     if (VM.VerifyAssertions) VM._assert(val[0] == '[');
     for (int i = 0; ; ++i)
       if (val[i] != '[')
@@ -276,9 +343,19 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * @return type code  - something like VM.ObjectTypeCode or VM.IntTypeCode
    * The type code will be one of the constants appearing in the table above.
    */ 
-  final byte parseForArrayElementTypeCode() throws VM_PragmaUninterruptible {
+  public final byte parseForArrayElementTypeCode() throws VM_PragmaUninterruptible {
     if (VM.VerifyAssertions) VM._assert(val[0] == '[');
     return val[1];
+  }
+
+  /**
+   * Return the innermost element type reference for an array
+   */
+  public final VM_Atom parseForInnermostArrayElementDescriptor() {
+    if (VM.VerifyAssertions) VM._assert(val[0] == '[');
+    int i=0; 
+    while (val[i] == '[') i++;
+    return findOrCreate(val, i, val.length -i);
   }
 
   /**
@@ -287,100 +364,70 @@ public final class VM_Atom implements VM_Constants, VM_ClassLoaderConstants {
    * this: array descriptor         - something like "[I"
    * @return array element descriptor - something like "I"
    */
-  final VM_Atom parseForArrayElementDescriptor() {
+  public final VM_Atom parseForArrayElementDescriptor() {
     if (VM.VerifyAssertions) VM._assert(val[0] == '[');
-    return findOrCreateAtom(val, 1, val.length - 1);
+    return findOrCreate(val, 1, val.length - 1);
   }
+
+  private static final byte[][] systemClasses = { "Ljava/".getBytes(), "Lcom/ibm/JikesRVM/".getBytes()};
+
+  /**
+   * @return true if this is a class descriptor of a system class
+   * (ie a class that must be loaded by the system class loader
+   */
+  public final boolean isSystemClassDescriptor() {
+  outer:
+    for (int i=0; i<systemClasses.length; i++) {
+      byte[] test = systemClasses[i];
+      for (int j=0; j<test.length; j++) {
+	if (val[j] != test[j]) continue outer;
+      }
+      return true;
+    }
+    return false;
+  }
+    
 
   //-----------//
   // debugging //
   //-----------//
    
-  final void sysWrite() throws VM_PragmaUninterruptible {
+  public final void sysWrite() throws VM_PragmaUninterruptible {
     for (int i = 0, n = val.length; i < n; ++i)
       VM.sysWrite((char)val[i]);
   }
 
-  final int length() throws VM_PragmaUninterruptible {
+  public final int length() throws VM_PragmaUninterruptible {
     return val.length;
   }
 
   /**
-   * Access internal representation.
-   * (Note: this is intended for the debugger only)
-   */ 
-  public final byte[] getBytes() {
-    return val;
-  }
-
-  //----------------//
-  // implementation //
-  //----------------//
-
-  private byte val[];  
-  private int  hash;  
-   
-  /**
-   * To guarantee uniqueness, only the VM_Atom class may construct 
-   * VM_Atom instances.
-   * All VM_Atom creation should be performed by calling 
-   * "VM_Atom.findOrCreate" methods.
-   */ 
-  private VM_Atom() {}
-   
-  /**
    * Create atom from given utf8 sequence.
    */ 
   private VM_Atom(byte utf8[]) {
-    int hash = 99989;
+    int tmp = 99989;
     for (int i = utf8.length; --i >= 0; )
-      hash = 99991 * hash + utf8[i];
-          
+      tmp = 99991 * tmp + utf8[i];
     this.val  = utf8;
-    this.hash = hash;
-  }
-
-  private static VM_Atom findOrCreateAtom(byte utf8[]) {
-    return VM_AtomDictionary.getValue(findOrCreateAtomId(utf8));
-  }
-
-  private static VM_Atom findOrCreateAtom(byte utf8[], int off, int len) {
-    byte val[] = new byte[len];
-    for (int i = 0; i < len; ++i)
-      val[i] = utf8[off++];
-    return VM_AtomDictionary.getValue(findOrCreateAtomId(val));
+    this.hash = tmp;
   }
 
   public final int hashCode() {
     return hash;
   }
-   
-  /**
-   * Hash VM_Dictionary keys.
-   */ 
-  static int dictionaryHash(VM_Atom atom) {
-    return atom.hash;
+
+  public final boolean equals(Object other) {
+    if (this == other) return true;
+    if (other instanceof VM_Atom) {
+      VM_Atom that = (VM_Atom)other;
+      if (hash != that.hash) return false;
+      if (val.length != that.val.length) return false;
+      for (int i=0; i<val.length; i++) {
+	if (val[i] != that.val[i]) return false;
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
-
-  /**
-   * Compare VM_Dictionary keys.
-   * @return 0 iff "leftKey" is null
-   *           1 iff "leftKey" is to be considered a duplicate of "rightKey"
-   *          -1 otherwise
-   */
-  static int dictionaryCompare(VM_Atom left, VM_Atom right) {
-    if (left == null)
-      return 0;
-         
-    if (left.val.length != right.val.length)
-      return -1;
-
-    byte[] leftVal  = left.val;
-    byte[] rightVal = right.val;
-    for (int i = leftVal.length; --i >= 0; )
-      if (leftVal[i] != rightVal[i])
-	return -1;
-
-    return 1;
-  }  
 }

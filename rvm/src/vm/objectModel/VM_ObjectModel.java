@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 //-#if RVM_WITH_JMTK
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
 //-#endif
@@ -142,9 +144,9 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
     for (int i = 0, n = fields.length; i < n; ++i) {
       VM_Field field = fields[i];
       if (!field.isStatic()) {
-	int fieldSize = field.getSize();
+	int fieldSize = field.getType().getSize();
 	fieldOffset -= fieldSize; // lay out fields 'backwards'
-	field.offset = fieldOffset;
+	field.setOffset(fieldOffset);
 	klass.increaseInstanceSize(fieldSize);
       }
     }
@@ -418,7 +420,11 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Compute the header size of an instance of the given type.
    */
   public static int computeHeaderSize(VM_Type type) throws VM_PragmaInline {
-    return (type.dimension>0)?computeArrayHeaderSize(type.asArray()):computeScalarHeaderSize(type.asClass());
+    if (type.isArrayType()) {
+      return computeArrayHeaderSize(type.asArray());
+    } else {
+      return computeScalarHeaderSize(type.asClass());
+    }
   }
 
   /**
@@ -520,8 +526,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
 				  int numElements) throws VM_PragmaInterruptible {
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
-    boolean align = array.getElementType().isClassType(); // Approximation for "is it an array of Object[]?", ie a TIB pointer
-    int ptr = align ? bootImage.allocateAlignedStorage(size) : bootImage.allocateStorage(size);
+    int ptr = bootImage.allocateStorage(size);
 
     int ref = VM_JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
     bootImage.setFullWord(ref + getArrayLengthOffset(), numElements);

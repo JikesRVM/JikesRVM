@@ -44,7 +44,7 @@ public class VM_JNIStartUp implements Runnable {
     // obtain the JNIEnv pointer and the pthread ID
     // based on the struct parms defined in libjni.C
     externalJNIEnvAddress = VM_Magic.getMemoryAddress(argAddress.add(4));
-    pthreadID             = VM_Magic.getMemoryWord(argAddress.add(8));
+    pthreadID             = VM_Magic.getMemoryInt(argAddress.add(8));
 
     if (trace) 
       System.out.println("VM_JNIStartUp: " + VM.intAsHexString(argAddress.toInt()) +
@@ -123,13 +123,11 @@ public class VM_JNIStartUp implements Runnable {
     // Set up the JNI environment for this thread for the external pthread
     // to make JNI calls
     VM_JNIEnvironment myEnv = VM_Thread.getCurrentThread().getJNIEnv();
-    myEnv.alwaysHasNativeFrame = true;     // indicate that no stack resize should occur
-    myEnv.JNITopJavaFP = VM_Address.fromInt(VM_Constants.STACKFRAME_SENTINAL_FP);      // indicate to GC that no Java stack frame below this point
-    myEnv.savedPRreg = nativeVP;
-   
-    // make sure no locking is done after this point or lock info may be lost
-    myEnv.savedTIreg = VM_Magic.getThreadId();  
-    
+    myEnv.setFromNative(
+      VM_Address.fromInt(VM_Constants.STACKFRAME_SENTINAL_FP),
+      nativeVP,
+      VM_Magic.getThreadId());
+
     // set affinity so JNI calls will get scheduled on this VM_Processor
     VM_Thread.getCurrentThread().returnAffinity = VM_Processor.getCurrentProcessor();
 
@@ -280,12 +278,11 @@ public class VM_JNIStartUp implements Runnable {
     // Set up the JNI environment for this thread for the external pthread
     // to make JNI calls
     VM_JNIEnvironment myEnv = VM_Thread.getCurrentThread().getJNIEnv();
-    myEnv.alwaysHasNativeFrame = true;     // indicate that no stack resize should occur
-    myEnv.JNITopJavaFP = VM_Address.fromInt(VM_Constants.STACKFRAME_SENTINAL_FP);    // indicate to GC that no Java stack frame below this point
-    myEnv.savedPRreg = nativeVP;
-   
-    // make sure no locking is done after this point or lock info may be lost
-    myEnv.savedTIreg = VM_Magic.getThreadId();  
+
+    myEnv.setFromNative(
+      VM_Address.fromInt(VM_Constants.STACKFRAME_SENTINAL_FP),
+      nativeVP,
+      VM_Magic.getThreadId());
     
     // set affinity so JNI calls will get scheduled on this VM_Processor
     VM_Thread.getCurrentThread().returnAffinity = VM_Processor.getCurrentProcessor();

@@ -52,17 +52,17 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
   /**
    * Dump state for debugging.
    */
-  void dump() {
+  void dump() throws VM_PragmaInterruptible {
     dump(" ");
   }
  
   /**
    * Dump state for debugging.
    */
-  void dump(String prefix) {
+  void dump(String prefix) throws VM_PragmaInterruptible {
     VM.sysWrite(prefix);
     for (VM_Thread t = head; t != null; t = t.next) {
-      VM.sysWrite(t.getIndex(), false);
+      VM.sysWrite(t.getIndex());
       //VM.sysWrite(getWaitDescription(t));
       dumpWaitDescription(t);
     }
@@ -73,19 +73,13 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
    * Dump description of what given thread is waiting for.
    * For debugging.
    */
-  abstract void dumpWaitDescription(VM_Thread thread);
+  abstract void dumpWaitDescription(VM_Thread thread) throws VM_PragmaInterruptible;
 
   /**
    * Get string describing what given thread is waiting for.
    * This method must be interruptible!
    */
-  abstract String getWaitDescription(VM_Thread thread);
-
-/*
-  // DEBUG
-  boolean dequeueCheck;
-  // end DEBUG
-*/
+  abstract String getWaitDescription(VM_Thread thread) throws VM_PragmaInterruptible;
 
   /**
    * Check to see if any threads are ready to run, either because
@@ -95,7 +89,7 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
     if (length == 0)
       return false; // no threads waiting
 
-    if (VM.VerifyAssertions) VM_Scheduler._assert(ready >= 0); 
+    if (VM.VerifyAssertions) VM._assert(ready >= 0); 
 
     if (ready == 0) {
       // No threads are ready, so try to find some that are...
@@ -106,12 +100,6 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
 
       VM_Thread thread = head;
       double currentTime = VM_Time.now(); 
-
-/*
-      // DEBUG
-      dequeueCheck = false;
-      // end DEBUG
-*/
 
       // See if any threads have become ready to run
       while (thread != null) {
@@ -127,7 +115,7 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
 	  // Subclass has decided that the thread is ready to schedule;
 	  // it should have updated waitFlags appropriately
 	  if (VM.VerifyAssertions)
-	    VM_Scheduler._assert((waitData.waitFlags & WAIT_FINISHED) != 0); 
+	    VM._assert((waitData.waitFlags & WAIT_FINISHED) != 0); 
 	  ++ready;
 	}
 	else
@@ -135,12 +123,6 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
 
 	thread = thread.next;
       }
-
-/*
-      // DEBUG
-      if (VM.VerifyAssertions) VM_Scheduler._assert(!dequeueCheck); 
-      // end DEBUG
-*/
     }
 
     return ready != 0;
@@ -169,9 +151,9 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
    */
   public void enqueue(VM_Thread thread) {
     if (VM.VerifyAssertions) {
-      VM_Scheduler._assert(thread.waitData.waitFlags == WAIT_PENDING ||
+      VM._assert(thread.waitData.waitFlags == WAIT_PENDING ||
 			  thread.waitData.waitFlags == WAIT_NATIVE); 
-      VM_Scheduler._assert(thread.next == null); 
+      VM._assert(thread.next == null); 
     }
 
     // Add to queue
@@ -189,16 +171,10 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
    *   this queue are ready
    */
   public VM_Thread dequeue() {
-/*
-    // DEBUG
-    dequeueCheck = true;
-    // end DEBUG
-*/
-
     VM_Thread prev = null;
     VM_Thread thread = head;
 
-    if (VM.VerifyAssertions) VM_Scheduler._assert(ready >= 0); 
+    if (VM.VerifyAssertions) VM._assert(ready >= 0); 
 
     // See if a thread is finished waiting
     while (thread != null) {
@@ -223,7 +199,7 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
       --ready;
     }
     else /* thread == null */ {
-      if (VM.VerifyAssertions) VM_Scheduler._assert(ready == 0); 
+      if (VM.VerifyAssertions) VM._assert(ready == 0); 
     }
 
     return thread;

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
 
 /**
@@ -42,8 +43,7 @@ public class OPT_RegisterPool extends OPT_GenericRegisterPool implements OPT_Ope
       VM_Address jtoc = VM_Magic.getTocPointer();
       return new OPT_IntConstantOperand(jtoc.toInt());
     } else {
-      OPT_RegisterOperand res = ir.regpool.makeTemp
-	(OPT_ClassLoaderProxy.IntArrayType);
+      OPT_RegisterOperand res = ir.regpool.makeTemp(VM_TypeReference.IntArray);
       s.insertBefore(Unary.create(GET_JTOC, res, 
                                   OPT_IRTools.
                                   R(ir.regpool.getPhysicalRegisterSet().

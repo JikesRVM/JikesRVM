@@ -12,46 +12,31 @@ import com.ibm.JikesRVM.memoryManagers.watson.VM_GCWorkQueue;
 import com.ibm.JikesRVM.memoryManagers.watson.VM_GCStatistics;
 import com.ibm.JikesRVM.memoryManagers.watson.VM_Heap;
 
+import com.ibm.JikesRVM.classloader.*;
+
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_ClassLoader;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
 import com.ibm.JikesRVM.VM_EventLogger;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Type;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Atom;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_DynamicLibrary;
 
 
-/*
+/**
  * @author Perry Cheng  
  */  
-
 public class VM_Interface implements VM_Constants {
 
   public static void logGarbageCollection() throws VM_PragmaUninterruptible {
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
       VM_EventLogger.logGarbageCollectionEvent();
-  }
-
-  public static VM_Class createScalarType(String descriptor) {
-    VM_Atom atom = VM_Atom.findOrCreateAsciiAtom(descriptor);
-    return VM_ClassLoader.findOrCreateType(atom, VM_SystemClassLoader.getVMClassLoader()).asClass();
-  }
-
-  public static VM_Array createArrayType(String descriptor) {
-    VM_Atom atom = VM_Atom.findOrCreateAsciiAtom(descriptor);
-    return VM_ClassLoader.findOrCreateType(atom, VM_SystemClassLoader.getVMClassLoader()).asArray();
   }
 
   public static VM_Address malloc(int size) throws VM_PragmaUninterruptible {
@@ -161,16 +146,20 @@ public class VM_Interface implements VM_Constants {
     br.heapRanges[2 * id + 1] = end.toInt();
   }
 
-  public static void resolvedPutfieldWriteBarrier(Object ref, int offset, Object value) {
+  public static void putfieldWriteBarrier(Object ref, int offset, Object value) {
     if (NEEDS_WRITE_BARRIER) 
-      VM_WriteBarrier.resolvedPutfieldWriteBarrier(ref, offset, value);
+      VM_WriteBarrier.putfieldWriteBarrier(ref, offset, value);
   }
 
-  public static void resolvedPutStaticWriteBarrier(int offset, Object value) { 
+  public static void putstaticWriteBarrier(int offset, Object value) { 
     if (NEEDS_WRITE_BARRIER) 
-      VM_WriteBarrier.resolvedPutStaticWriteBarrier(offset, value);
+      VM_WriteBarrier.putstaticWriteBarrier(offset, value);
   }
 
+  public static void arrayStoreWriteBarrier(Object ref, int index, Object value){
+    // unimplemented --- generational Watson collectors no longer supported
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
   public static void arrayCopyWriteBarrier(Object ref, int start, int end) {
     if (NEEDS_WRITE_BARRIER) 
       VM_WriteBarrier.arrayCopyWriteBarrier(ref, start, end);
@@ -307,13 +296,6 @@ public class VM_Interface implements VM_Constants {
    * @return The instruction array
    */ 
   public static INSTRUCTION[] newInstructions(int n) throws VM_PragmaInline {
-
-    if (VM.BuildForRealtimeGC) {
-      //-#if RVM_WITH_REALTIME_GC
-      return VM_SegmentedArray.newInstructions(n);
-      //-#endif
-    }
-
     return new INSTRUCTION[n];
   }
 
@@ -324,13 +306,6 @@ public class VM_Interface implements VM_Constants {
    * @return The stack array
    */ 
   public static int[] newStack(int n) throws VM_PragmaInline {
-
-    if (VM.BuildForRealtimeGC) {
-      //-#if RVM_WITH_REALTIME_GC
-      return VM_SegmentedArray.newStack(n);
-      //-#endif
-    }
-
     return new int[n];
   }
 
@@ -343,7 +318,7 @@ public class VM_Interface implements VM_Constants {
   public static int[] newImmortalStack (int n) {
 
     if (VM.runningVM) {
-      int[] stack = (int[]) VM_Allocator.immortalHeap.allocateAlignedArray(VM_Array.arrayOfIntType, n, 4096);
+      int[] stack = (int[]) VM_Allocator.immortalHeap.allocateAlignedArray(VM_Array.IntArray, n, 4096);
       return stack;
     }
 
@@ -356,13 +331,6 @@ public class VM_Interface implements VM_Constants {
    * @return The contiguous int array
    */ 
   public static int[] newContiguousIntArray(int n) throws VM_PragmaInline {
-
-    if (VM.BuildForRealtimeGC) {
-      //-#if RVM_WITH_REALTIME_GC
-      return VM_SegmentedArray.newIntArray(n);
-      //-#endif
-    }
-
     return new int[n];
   }
 
@@ -371,17 +339,9 @@ public class VM_Interface implements VM_Constants {
    * @param n The number of objects
    * @return The contiguous object array
    */ 
-  public static VM_CompiledMethod[] newContiguousCompiledMethodArray(int n) throws
-    VM_PragmaInline {
-
-      if (VM.BuildForRealtimeGC) {
-        //-#if RVM_WITH_REALTIME_GC
-        return VM_SegmentedArray.newContiguousCompiledMethodArray(n);
-        //-#endif
-      }
-
-      return new VM_CompiledMethod[n];
-    }
+  public static VM_CompiledMethod[] newContiguousCompiledMethodArray(int n) throws VM_PragmaInline {
+    return new VM_CompiledMethod[n];
+  }
 
   /**
    * Allocate a contiguous VM_DynamicLibrary array
@@ -389,19 +349,11 @@ public class VM_Interface implements VM_Constants {
    * @return The contiguous object array
    */ 
   public static VM_DynamicLibrary[] newContiguousDynamicLibraryArray(int n) throws VM_PragmaInline {
-
-    if (VM.BuildForRealtimeGC) {
-      //-#if RVM_WITH_REALTIME_GC
-      return VM_SegmentedArray.newContiguousDynamicLibraryArray(n);
-      //-#endif
-    }
-
     return new VM_DynamicLibrary[n];
   }
 
 
   public static Object[] newTIB (int n) throws VM_PragmaInline {
-
     if (true) {
       //-#if RVM_WITH_COPYING_GC
       //-#if RVM_WITH_ONE_WORD_MASK_OBJECT_MODEL
@@ -418,6 +370,10 @@ public class VM_Interface implements VM_Constants {
   }
 
   public static void checkBootImageAddress (int addr) {
+  }
+
+  public static Object getFinalizedObject () throws VM_PragmaInterruptible {
+    return VM_Finalizer.get();
   }
 
 }

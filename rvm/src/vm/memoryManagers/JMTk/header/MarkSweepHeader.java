@@ -96,7 +96,7 @@ public class MarkSweepHeader {
    */
   static public boolean testMarkBit(Object ref, int value)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return (VM_ObjectModel.readAvailableBitsWord(ref)& MARK_BIT_MASK) != value;
+    return (VM_ObjectModel.readAvailableBitsWord(ref) & MARK_BIT_MASK) == value;
   }
 
   static public boolean isSmallObject(Object ref)

@@ -7,17 +7,11 @@ package com.ibm.JikesRVM.memoryManagers.watson;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
 
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_ClassLoader;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
-import com.ibm.JikesRVM.VM_Atom;
-import com.ibm.JikesRVM.VM_Type;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Method;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
@@ -240,7 +234,7 @@ public class VM_GCWorkQueue {
 
     if (bufferHead.EQ(VM_Address.zero())) return bufferHead;
     VM_Address temp = bufferHead;
-    bufferHead = VM_Address.fromInt(VM_Magic.getMemoryWord(temp));
+    bufferHead = VM_Magic.getMemoryAddress(temp);
     return temp; 
   }
 
@@ -270,7 +264,7 @@ public class VM_GCWorkQueue {
       // see if any work to do, if so, return next work buffer
       if (!bufferHead.isZero()) {
 	temp = bufferHead;
-	bufferHead = VM_Address.fromInt(VM_Magic.getMemoryWord(temp));
+	bufferHead = VM_Magic.getMemoryAddress(temp);
 	return temp; 
       }
 
@@ -677,13 +671,13 @@ public class VM_GCWorkQueue {
     VM_CollectorThread ct;
     for (i = 1; i <= VM_Scheduler.numProcessors; i++) {
       ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.processors[i].activeThread );
-      VM.sysWrite(i,false);
+      VM.sysWrite(i);
       VM.sysWrite(" number of waits ");
-      VM.sysWrite(ct.bufferWaitCount1,false);
+      VM.sysWrite(ct.bufferWaitCount1);
       VM.sysWrite("  buffer wait time ");
-      VM.sysWrite( (int)((ct.bufferWaitTime1)*1000000.0), false);
+      VM.sysWrite( (int)((ct.bufferWaitTime1)*1000000.0));
       VM.sysWrite("(us)  finish wait time ");
-      VM.sysWrite( (int)((ct.finishWaitTime1)*1000000.0), false);
+      VM.sysWrite( (int)((ct.finishWaitTime1)*1000000.0));
       VM.sysWrite("(us)\n");
     }
   }  // printAllWaitTimes
@@ -696,21 +690,21 @@ public class VM_GCWorkQueue {
 
     for (i = 1; i <= VM_Scheduler.numProcessors; i++) {
       ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.processors[i].activeThread );
-      VM.sysWrite(i, false);
+      VM.sysWrite(i);
       VM.sysWrite(" copied ");
-      VM.sysWrite(ct.copyCount1,false);
+      VM.sysWrite(ct.copyCount1);
       VM.sysWrite(" roots ");
-      VM.sysWrite(ct.rootWorkCount1,false);
+      VM.sysWrite(ct.rootWorkCount1);
       VM.sysWrite(" puts ");
-      VM.sysWrite(ct.putWorkCount1,false);
+      VM.sysWrite(ct.putWorkCount1);
       VM.sysWrite(" gets ");
-      VM.sysWrite(ct.getWorkCount1,false);
+      VM.sysWrite(ct.getWorkCount1);
       VM.sysWrite(" put bufs ");
-      VM.sysWrite(ct.putBufferCount1,false);
+      VM.sysWrite(ct.putBufferCount1);
       VM.sysWrite(" get bufs ");
-      VM.sysWrite(ct.getBufferCount1,false);
+      VM.sysWrite(ct.getBufferCount1);
       VM.sysWrite(" swaps ");
-      VM.sysWrite(ct.swapBufferCount1,false);
+      VM.sysWrite(ct.swapBufferCount1);
       VM.sysWrite("\n");
     }
   }

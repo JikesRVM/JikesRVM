@@ -9,7 +9,7 @@ package com.ibm.JikesRVM.opt;
  *
  * @author Michael Hind
  */
-interface VM_OptGCMapIteratorConstants extends OPT_PhysicalRegisterConstants {
+public interface VM_OptGCMapIteratorConstants extends OPT_PhysicalRegisterConstants {
   
   // NOTE: The following two constants seem to imply that registers 
   //       that can hold references are contiguous.  This is not true,

@@ -104,6 +104,10 @@ final class OPT_NormalBURS extends OPT_BURS {
           child = LongConstant;
         } else if (op instanceof OPT_BranchOperand && instr.isCall()) {
 	  child = BranchTarget;
+	//-#if RVM_WITH_OSR
+	} else if (op instanceof OPT_InlinedOsrTypeInfoOperand && instr.isYieldPoint()) {
+	  child = NullTreeNode;	
+	//-#endif
         } else {
 	  continue;
         }
@@ -129,6 +133,9 @@ final class OPT_NormalBURS extends OPT_BURS {
       switch (instr.getOpcode()) {
       case CALL_opcode:
       case SYSCALL_opcode:
+      //-#if RVM_WITH_OSR
+      case YIELDPOINT_OSR_opcode:
+      //-#endif
 	if (cur_parent.child2 == null)
 	  cur_parent.child2 = NullTreeNode;
 	// fall through

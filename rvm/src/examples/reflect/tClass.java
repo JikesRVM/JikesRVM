@@ -74,7 +74,7 @@ public class tClass
 	 }
       catch (ClassNotFoundException e)
 	 {
-	 System.out.println(e);
+	 System.out.println("caught ClassNotFoundException");
 	 }
       
       // -----------------------------  Class.isArray()

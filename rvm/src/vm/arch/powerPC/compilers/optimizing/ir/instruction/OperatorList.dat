@@ -60,22 +60,6 @@ none
 # We begin with machine specific HIR/LIR instructions.
 # These operators are only used to implement VM_Magics.
 ########################################
-# Implements the magic to clear the thread switch bit
-CLEAR_THREAD_SWITCH_BIT
-Empty
-none
-
-
--1
-
-# Implements the magic to clear the thread switch bit
-SET_THREAD_SWITCH_BIT
-Empty
-none
-
-
--1
-
 # PowerPC dcbf instruction
 DCBF
 CacheOp
@@ -1422,22 +1406,6 @@ move
 
 
 (31<<26 | 467<<1)
-
-####################
-PPC_MFCR
-MIR_Move
-move
-
-
-(31<<26 | 19<<1)
-
-####################
-PPC_MTCR
-MIR_Move
-move
-
-
-(31<<26 | 144<<1)
 
 ####################
 PPC_MFTB

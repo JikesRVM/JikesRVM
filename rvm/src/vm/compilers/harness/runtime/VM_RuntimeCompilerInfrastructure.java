@@ -4,6 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.VM_NativeMethod;
+import com.ibm.JikesRVM.classloader.VM_NormalMethod;
+
 /**
  * A place to put code common to all runtime compilers.
  * This includes instrumentation code to get equivalent data for
@@ -54,7 +57,7 @@ public class VM_RuntimeCompilerInfrastructure
    * @param value the exit value
    */
   public void notifyExit(int value) {
-    report(true);
+    report(false);
   }
 
   /**
@@ -65,24 +68,28 @@ public class VM_RuntimeCompilerInfrastructure
    * @param compiledMethod the resulting compiled method
    * @param timer the timer hold the time used for compilation
    */
-  public static void record(byte compiler, VM_Method method, 
+  public static void record(byte compiler, VM_NormalMethod method, 
 			    VM_CompiledMethod compiledMethod) {
-    
-    if (method.isNative()) {
-      total_methods[compiler]++;
-      total_bcodeLen[compiler] += 1; // lie!
-      total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
-      if (VM.MeasureCompilation) {
-	total_time[compiler] += compiledMethod.getCompilationTime();
-      }
-    } else {
-      total_methods[compiler]++;
-      total_bcodeLen[compiler] += method.getBytecodes().length;
-      total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
-      if (VM.MeasureCompilation) {
-	total_time[compiler] += compiledMethod.getCompilationTime();
-      }
-    }
+    total_methods[compiler]++;
+    total_bcodeLen[compiler] += method.getBytecodeLength();
+    total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
+    total_time[compiler] += compiledMethod.getCompilationTime();
+  }
+
+  /**
+   * This method records the time and sizes (bytecode and machine code) for
+   * a compilation
+   * @param compiler the compiler used
+   * @param method the resulting VM_Method
+   * @param compiledMethod the resulting compiled method
+   * @param timer the timer hold the time used for compilation
+   */
+  public static void record(byte compiler, VM_NativeMethod method, 
+			    VM_CompiledMethod compiledMethod) {
+    total_methods[compiler]++;
+    total_bcodeLen[compiler] += 1; // lie!
+    total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
+    total_time[compiler] += compiledMethod.getCompilationTime();
   }
 
   /**
@@ -96,22 +103,22 @@ public class VM_RuntimeCompilerInfrastructure
       if (total_methods[i]>0) {
 	VM.sysWrite(name[i]);
 	// Number of methods
-	VM.sysWrite(total_methods[i], false);
+	VM.sysWrite(total_methods[i]);
 	VM.sysWrite("\t");
 	// Compilation time
-	VM.sysWrite((int)total_time[i], false);
+	VM.sysWrite(VM_Time.toSecs(total_time[i]));
 	VM.sysWrite("\t");
 	// Bytecode bytes per millisecond
-	printRatio(total_bcodeLen[i], (int)total_time[i], 2);
+	VM.sysWrite((double)total_bcodeLen[i]/total_time[i], 2);
 	VM.sysWrite("\t");
 	// Ratio of machine code bytes to bytecode bytes
-	printRatio(total_mcodeLen[i] << LG_INSTRUCTION_WIDTH, total_bcodeLen[i], 2);
+	VM.sysWrite((double)(total_mcodeLen[i] << LG_INSTRUCTION_WIDTH)/(double)total_bcodeLen[i], 2);
 	VM.sysWrite("\t");
 	// Generated machine code Kbytes
-	printRatio(total_mcodeLen[i] << LG_INSTRUCTION_WIDTH, 1024, 1);
+	VM.sysWrite((double)(total_mcodeLen[i] << LG_INSTRUCTION_WIDTH)/1024, 1);
 	VM.sysWrite("\t");
 	// Compiled bytecode Kbytes
-	printRatio(total_bcodeLen[i], 1024, 1); 
+	VM.sysWrite((double)total_bcodeLen[i]/1024, 1); 
 	VM.sysWrite("\n");
       }
     }
@@ -128,53 +135,20 @@ public class VM_RuntimeCompilerInfrastructure
     VM_RuntimeCompiler.detailedCompilationReport(explain);
   }
    
-
   /**
-   * Prints the ratio of first two parameters using the number of digits
-   * specified by the 3rd parameter.
-
-   * NOTE: Printing a double or float requires a fair amount of work and
-   * furthermore may result in class loading and/or allocation.  We could
-   * call Math.round, but that might also cause classloading, so instead
-   * we do something fairly simple, but slow and ugly that more or less
-   * works in most cases.
-   *
-   * TODO: Move this somewhere else (general profiling utility file).
-   *
-   * @param numerator the numerator
-   * @param denominator the denominator
-   * @param places the number of decimal places to be used in the result
+   * Return the current estimate of basline-compiler rate, in bcb/sec
    */
-  public static void printRatio(int numerator, int denominator, int places) {
-    if (denominator == 0) return;
-    int divide = 10;
-    for (int i = 0; i<places; i++)
-      divide = divide*10;
-    float value = ((float)numerator)/((float)denominator) + (5.0f/(float)divide); //Add in fudge to get rounding
-    int approx = (int)value;
-    VM.sysWrite(approx, false);
-    if (places > 0) VM.sysWrite(".");
-    for (int i = 0; i<places; i++) {
-      value = (value - (float)approx)*10.0f;
-      approx = (int)(value);
-      VM.sysWrite(approx, false);
-    }
-  }
-
-  /**
-   * Prints the percentage of total time taken by the first parameter.
-   * @param phaseTime the time take by a phase
-   * @param time the total time
-   */
-  public static void printPercentage(double phaseTime, double time) {
-    printRatio((int)(phaseTime*100), (int)time, 2);
+  public static double getBaselineRate() {
+    double bytes = (double) total_bcodeLen[BASELINE_COMPILER];
+    double time = VM_Time.toSecs(total_time[BASELINE_COMPILER]);
+    return bytes/time;
   }
 
   /**
    * This method will compile the passed method using the baseline compiler.
    * @param method the method to compile
    */
-  public static VM_CompiledMethod baselineCompile(VM_Method method) {
+  public static VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     double start = 0;
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
@@ -199,7 +173,7 @@ public class VM_RuntimeCompilerInfrastructure
    * This method will compile the passed method using the baseline compiler.
    * @param method the method to compile
    */
-  public static VM_CompiledMethod jniCompile(VM_Method method) {
+  public static VM_CompiledMethod jniCompile(VM_NativeMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
     double start = 0;
     if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
@@ -210,7 +184,7 @@ public class VM_RuntimeCompilerInfrastructure
     VM_CompiledMethod cm = VM_JNICompiler.compile(method);
     if (VM.verboseJNI) {
       VM.sysWriteln("[Dynamic-linking native method " + 
-		    method.getDeclaringClass().getName() + "." + method.getName() + 
+		    method.getDeclaringClass() + "." + method.getName() + 
 		    " ... JNI]");
     }
 
@@ -234,4 +208,5 @@ public class VM_RuntimeCompilerInfrastructure
     t.setCPUStartTime(now);
     return t.getCPUTotalTime();
   }
+
 }

@@ -176,24 +176,10 @@ load
 
 
 
-# load a static field, but may require dynamic class loading
-GETSTATIC_UNRESOLVED
-GetStatic
-load | immedPEI | dynLink
-
-
-
 # store to a static field of a ready-to-go class.
 PUTSTATIC
 PutStatic
 store
-
-
-
-# store to a static field of a class that may require dynamic class loading
-PUTSTATIC_UNRESOLVED
-PutStatic
-store | immedPEI | dynLink
 
 
 
@@ -204,24 +190,10 @@ load
 
 
 
-# load an instance field of a class that may require dynamic class loading
-GETFIELD_UNRESOLVED
-GetField
-load | immedPEI | dynLink
-
-
-
 # store a value to a ready-to-go instance field. due to guard cannot be a PEI
 PUTFIELD
 PutField
 store
-
-
-
-# store to an instance field that may require dynamic class loading.
-PUTFIELD_UNRESOLVED
-PutField
-store | immedPEI | dynLink
 
 
 
@@ -1348,6 +1320,20 @@ tsp | yieldPoint
 
 
 
+# explict thread switch point, must success
+YIELDPOINT_OSR
+OsrPoint
+tsp | yieldPoint
+
+
+
+# On stack replacement barrier
+OSR_BARRIER
+OsrBarrier
+none
+
+
+
 # a pseudo instruction to represent the prologue
 IR_PROLOGUE
 Prologue
@@ -1362,10 +1348,20 @@ none
 
 
 
-# handles unresolved methods, fields, and others ...
+# LIR operator for resolution. Expanded very late in MIR
+# to a call to VM_OptSaveVolatile.resolve.
 RESOLVE
 CacheOp
-tsp | dynLink
+tsp | dynLink | immedPEI
+
+
+
+# HIR operator for field/methodresolution. 
+# Represents the operation of forcing class loading (if necessary)
+# and retreiving the offset of the argument member.
+RESOLVE_MEMBER
+Unary
+tsp | dynLink | immedPEI
 
 
 
@@ -1438,13 +1434,6 @@ none
 ##########
 # Get the TIB ptr of an object 
 GET_OBJ_TIB
-GuardedUnary
-none
-
-
-
-# Get the raw ptr of an object in an access barrier model
-GET_OBJ_RAW
 GuardedUnary
 none
 

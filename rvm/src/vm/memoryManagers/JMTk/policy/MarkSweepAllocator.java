@@ -143,10 +143,9 @@ final class MarkSweepAllocator extends BaseFreeList
    * fresh allocation.
    */
   protected final void postAlloc(VM_Address cell, boolean isScalar,
-				 EXTENT bytes, boolean small, boolean large,
-				 boolean copy) 
+				 EXTENT bytes, boolean small, boolean large)
     throws VM_PragmaInline {
-    collector.postAlloc(cell, isScalar, bytes, small, large, copy, this);
+    collector.postAlloc(cell, isScalar, bytes, small, large, this);
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -202,8 +201,8 @@ final class MarkSweepAllocator extends BaseFreeList
    */
   public final void sweepSuperPages() {
     for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
-      sweepSuperPages(VM_Address.fromInt(superPageFreeList[sizeClass]), sizeClass, true);
-      sweepSuperPages(VM_Address.fromInt(superPageUsedList[sizeClass]), sizeClass, false);
+      sweepSuperPages(superPageFreeList.get(sizeClass), sizeClass, true);
+      sweepSuperPages(superPageUsedList.get(sizeClass), sizeClass, false);
     }
     if (PARANOID)
       sanity();
@@ -390,8 +389,8 @@ final class MarkSweepAllocator extends BaseFreeList
    */
   private final void sanity() {
     for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
-      sanity(VM_Address.fromInt(superPageFreeList[sizeClass]), sizeClass);
-      sanity(VM_Address.fromInt(superPageUsedList[sizeClass]), sizeClass);
+      sanity(superPageFreeList.get(sizeClass), sizeClass);
+      sanity(superPageUsedList.get(sizeClass), sizeClass);
     }
   }
 

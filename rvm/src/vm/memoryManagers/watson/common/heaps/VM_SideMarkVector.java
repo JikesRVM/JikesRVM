@@ -12,7 +12,7 @@ import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Array;
+import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
@@ -41,7 +41,7 @@ final class VM_SideMarkVector implements VM_Constants {
     highAddress = high;
     int bytes   = high.diff(base).toInt();
     int quanta  = bytes / ALIGNMENT;
-    marks       = (int[])mh.allocateArray(VM_Array.arrayOfIntType, quanta / BITS_PER_INT + 1);
+    marks       = (int[])mh.allocateArray(VM_Array.IntArray, quanta / BITS_PER_INT + 1);
   }
 
   private int wordIndex (Object object) throws VM_PragmaUninterruptible {

@@ -4,10 +4,11 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import java.util.*;
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.opt.OPT_IndexPropagation.*;
+import java.util.*;
 
 /**
  * Represents a set of dataflow equations used to solve the
@@ -57,10 +58,9 @@ implements OPT_Operators {
                                                  "OPT_IndexPropagation:makeCell");
     OPT_DF_LatticeCell result = null;
     Object heapType = ((OPT_HeapVariable)o).getHeapType();
-    if (heapType instanceof VM_Type) {
+    if (heapType instanceof VM_TypeReference) {
       result = new ArrayCell((OPT_HeapVariable)o);
-    } 
-    else {
+    } else {
       result = new ObjectCell((OPT_HeapVariable)o);
     }
     return  result;

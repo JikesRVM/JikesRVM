@@ -15,12 +15,12 @@ package com.ibm.JikesRVM;
  * 
  * @author Dave Grove
  */
-class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstants {
+public class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstants {
 
   /** 
    * Generate a new lazy compilation trampoline. 
    */
-  static INSTRUCTION[] getTrampoline () {
+  public static INSTRUCTION[] getTrampoline () {
     VM_Assembler asm = new VM_Assembler(0);
     asm.emitLtoc (S0, VM_Entrypoints.lazyMethodInvokerMethod.getOffset());
     asm.emitMTCTR(S0);

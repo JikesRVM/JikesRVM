@@ -7,12 +7,12 @@ package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.*;
 
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Processor;
-import com.ibm.JikesRVM.VM_Method;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_Scheduler;
@@ -39,18 +39,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
   // MULTIPLE GC THREADS WILL PRODUCE SCRAMBLED OUTPUT so only
   // use these when running with PROCESSORS=1
 
-  // includes in output a dump of the contents of each frame
-  // forces DUMP_STACK_REFS & TRACE_STACKS on (ie. everything!!)
-   static final boolean DUMP_STACK_FRAMES = false;
-
-  // includes in output the refs reported by map iterators
-  // forces TRACE_STACKS on 
-  static final boolean DUMP_STACK_REFS = DUMP_STACK_FRAMES || false;
-
-  // outputs names of methods as their frames are scanned
-  static final boolean TRACE_STACKS = DUMP_STACK_REFS || false;
-
-  static int stackDumpCount = 0;
+  static int DUMP_STACK = 0;
 
   // Threads, stacks,  jni environments,  and register objects  have a
   // complex  interaction  in terms  of  scanning.   The operation  of
@@ -103,14 +92,14 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)).toInt());
 	
 	if (VM.VerifyAssertions) {
-	  VM._assert(plan.willNotMove(VM_Magic.objectAsAddress(t)));
-	  VM._assert(plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));
-	  VM._assert(t.jniEnv == null || plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv)));
-	  VM._assert(t.jniEnv == null || t.jniEnv.JNIRefs == null || plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv.JNIRefs)));
-	  VM._assert(plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters)));
-	  VM._assert(plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters.gprs)));
-	  VM._assert(plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters)));
-	  VM._assert(plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters.gprs)));
+	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t)));
+	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));
+	  VM._assert(t.jniEnv == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv)));
+	  VM._assert(t.jniEnv == null || t.jniEnv.refsArray() == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv.refsArray())));
+	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters)));
+	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters.gprs)));
+	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters)));
+	  VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters.gprs)));
 	}
 
 	// all threads in "unusual" states, such as running threads in
@@ -124,7 +113,36 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	// sidestack
 
 	scanThreadInternal(rootLocations, codeLocations, t, VM_Address.zero());
+	if (failed == t) {
+	    VM.sysWriteln("RESCANNING with verbose on");
+	    DUMP_STACK = 3;
+	    scanThreadInternal(rootLocations, codeLocations, t, VM_Address.zero());
+	    VM._assert(false);
+	}
   }
+
+    static VM_Thread failed = null;
+
+  private static void codeLocationsPush (AddressPairQueue codeLocations,
+					 VM_Address code, VM_Address ipLoc, 
+					 int where, VM_Thread t) {
+    VM_Address ip = VM_Magic.getMemoryAddress(ipLoc);
+    int offset = ip.diff(code).toInt();
+    if (offset< 0 || offset > (1<<24)) {  // There is probably no object this large
+	VM.sysWriteln("ERROR: Suspiciously large delta of interior pointer from object base");
+	VM.sysWriteln("       object base = ", code);
+	VM.sysWriteln("       interior reference = ", ip);
+	VM.sysWriteln("       delta = ", offset);
+	VM.sysWriteln("       interior ref loc = ", ipLoc);
+	VM.sysWriteln("       where = ", where);
+	if (failed == null) failed = t;
+	// VM._assert(false);
+    }
+    codeLocations.push(code, ipLoc);
+  }
+
+
+  static private VM_Address sentinelFP = VM_Address.fromInt(STACKFRAME_SENTINAL_FP);
 
   /**
    * Scans a threads stack during collection to find object references.
@@ -137,7 +155,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
    * @param rootLocations  set to store addresses containing roots
    * @param relocate_code  set to store addresses containing return addresses (if null, skip)
    */
-  public static void scanThreadInternal (AddressQueue rootLocations, AddressPairQueue codeLocations,
+  private static void scanThreadInternal (AddressQueue rootLocations, AddressPairQueue codeLocations,
 					 VM_Thread t, VM_Address top_frame) {
     
     VM_CollectorThread collector = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
@@ -151,37 +169,38 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
       compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
       if (VM.VerifyAssertions) VM._assert(compiledMethod != null);
       compiledMethod.setObsolete( false );
-      VM_Address code = VM_Magic.objectAsAddress( compiledMethod.getInstructions() );
-      codeLocations.push(code, t.hardwareExceptionRegisters.getIPLocation());
+      VM_Address code = VM_Magic.objectAsAddress( compiledMethod.getInstructions());
+      VM_Address ipLoc = t.hardwareExceptionRegisters.getIPLocation();
+      codeLocationsPush(codeLocations, code, ipLoc, 1, t);
     }
 
     // get gc thread local iterator group from our VM_CollectorThread object
     VM_GCMapIteratorGroup iteratorGroup = collector.iteratorGroup;
     iteratorGroup.newStackWalk(t);
     
-    if (TRACE_STACKS) VM_Scheduler.trace("VM_ScanStack", "Thread id", t.getIndex());
+    if (DUMP_STACK >= 1) VM.sysWriteln("Scanning thread ", t.getIndex());
 
-    if (!top_frame.isZero()) {
-      prevFp = top_frame;
-      // start scan at caller of passed in fp
-      ip = VM_Magic.getReturnAddress(top_frame);
-      fp = VM_Magic.getCallerFramePointer(top_frame);
-    }
-    else {
+    if (top_frame.isZero()) {
       prevFp = VM_Address.zero();
       // start scan using fp & ip in threads saved context registers
       ip = t.contextRegisters.getInnermostInstructionAddress();
       fp = t.contextRegisters.getInnermostFramePointer();
     }
+    else {
+      prevFp = top_frame;
+      // start scan at caller of passed in fp
+      ip = VM_Magic.getReturnAddress(top_frame);
+      fp = VM_Magic.getCallerFramePointer(top_frame);
+    }
 
-    if (TRACE_STACKS) {
+    if (DUMP_STACK >= 1) {
       VM.sysWrite("  top_frame = "); VM.sysWrite(top_frame); VM.sysWrite("\n");
       VM.sysWrite("         ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
       VM.sysWrite("         fp = "); VM.sysWrite(fp); VM.sysWrite("\n");
       VM.sysWrite("  registers.ip = "); VM.sysWrite(t.contextRegisters.ip); VM.sysWrite("\n");
     }
     
-    if (DUMP_STACK_REFS && t.jniEnv != null) t.jniEnv.dumpJniRefsStack();
+    if (DUMP_STACK >= 2 && t.jniEnv != null) t.jniEnv.dumpJniRefsStack();
 
     // It is possible to have a stack with only Native C frames, for a thread
     // that started in C, "attached" to the VM, made JNIFunction calls, and
@@ -189,17 +208,13 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
     // with a "topJavaFrame" = 0. There may be references in the threads
     // JNIrefs side stack that need to be processed, below after the loop.
 
-    if ( fp.NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP)) ) {
-
-      if ( DUMP_STACK_REFS) {
-	VM_Scheduler.dumpStack( ip, fp ); VM.sysWrite("\n");
-      }
+    if ( fp.NE(sentinelFP)) {
 
       // At start of loop:
       //   fp -> frame for method invocation being processed
       //   ip -> instruction pointer in the method (normally a call site)
       
-      while (VM_Magic.getCallerFramePointer(fp).NE(VM_Address.fromInt(STACKFRAME_SENTINAL_FP))) {
+      while (VM_Magic.getCallerFramePointer(fp).NE(sentinelFP)) {
 	
 	int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
 	
@@ -210,7 +225,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	//
 	if (compiledMethodId == VM_Constants.INVISIBLE_METHOD_ID) {
 	  
-	  if (TRACE_STACKS) VM.sysWrite("\n--- METHOD --- <invisible method>\n");
+	  if (DUMP_STACK >= 1) VM.sysWrite("\n--- METHOD --- <invisible method>\n");
 	  
 	  // skip "invisible" frame
 	  prevFp = fp;
@@ -222,6 +237,8 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	// following is for normal Java (and JNI Java to C transition) frames
 	compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	compiledMethod.setObsolete( false );
+	int compiledMethodType = compiledMethod.getCompilerType();
+	if (compiledMethodType == VM_CompiledMethod.TRAP) continue;
 	VM_Method method = compiledMethod.getMethod();
 	
 	// initialize MapIterator for this frame
@@ -229,29 +246,17 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	VM_GCMapIterator iterator = iteratorGroup.selectIterator(compiledMethod);
 	iterator.setupIterator(compiledMethod, offset, fp);
 	
-	if (TRACE_STACKS) {
+	if (DUMP_STACK >= 1) {
 	  VM_Scheduler.outputMutex.lock();
 	  VM.sysWrite("\n--- METHOD --- ");
 	  VM.sysWrite(method);
-	  VM.sysWrite(" at offset ", offset);
-	  VM.sysWrite(".\n");
+	  VM.sysWriteln(" at offset ", offset);
 	  VM_Scheduler.outputMutex.unlock();
 	}
-	if (DUMP_STACK_FRAMES) dumpStackFrame( fp, prevFp );
+	if (DUMP_STACK >= 2) dumpStackFrame( fp, prevFp );
 	
-	if (DUMP_STACK_REFS) 
+	if (DUMP_STACK >= 3)
 	  VM.sysWrite("--- Refs Reported By GCMap Iterator ---\n");
-	
-	if (false) {
-	  VM.sysWrite("--- FRAME DUMP of METHOD ");
-	  VM.sysWrite(method);
-	  VM.sysWrite(" at offset ");
-	  VM.sysWrite(offset,false);
-	  VM.sysWrite(".--- \n");
-	  VM.sysWrite(" fp = "); VM.sysWrite(fp);
-	  VM.sysWrite(" ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
-	  dumpStackFrame( fp, prevFp );
-	}
 	
 	// scan the map for this frame and process each reference
 	//
@@ -259,16 +264,13 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	     refaddr = iterator.getNextReferenceAddress()) {
 	  
 	  if (VM.VerifyAssertions && VALIDATE_STACK_REFS) {
-	    VM_Address ref = VM_Address.fromInt(VM_Magic.getMemoryWord(refaddr));
+	    VM_Address ref = VM_Magic.getMemoryAddress(refaddr);
 	    if (!VM_Interface.validRef(ref)) {
 	      VM.sysWrite("\nInvalid ref reported while scanning stack\n");
 	      VM.sysWrite("--- METHOD --- ");
 	      VM.sysWrite(method);
-	      VM.sysWrite(" at offset ");
-	      VM.sysWrite(offset,false);
-	      VM.sysWrite(".\n");
-	      VM.sysWrite(" fp = "); VM.sysWrite(fp);
-	      VM.sysWrite(" ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
+	      VM.sysWriteln(" at offset ", offset);
+	      VM.sysWrite(" fp = ", fp, "   ip = ", ip);
 	      // dump out bad ref
 	      VM.sysWrite(refaddr); VM.sysWrite(":"); VM_Interface.dumpRef(ref);
 	      // dump out contents of frame
@@ -283,9 +285,14 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	      VM.sysFail("\n\nVM_ScanStack: Detected bad GC map; exiting RVM with fatal error");
 	    }
 	  }
-	  if (DUMP_STACK_REFS) {
+	  if (DUMP_STACK >= 3) {
 	    VM_Address ref = VM_Magic.getMemoryAddress(refaddr);
-	    VM.sysWrite(refaddr); VM.sysWrite(":"); VM_Interface.dumpRef(ref);
+	    VM.sysWrite(refaddr); 
+	    if (DUMP_STACK >= 4) {
+		VM.sysWrite(":"); VM_Interface.dumpRef(ref);
+	    }
+	    else
+		VM.sysWriteln();
 	  }
 	  
 	  rootLocations.push(refaddr);
@@ -306,20 +313,29 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 
 	  if (prevFp.isZero()) {
 	    // top-most stack frame, ip saved in threads context regs
-               codeLocations.push(code, t.contextRegisters.getIPLocation());
+	      if (DUMP_STACK >= 2) {
+		VM.sysWriteln(" t.contextRegisters.ip    = ", t.contextRegisters.ip);
+		VM.sysWriteln("*t.contextRegisters.iploc = ", VM_Magic.getMemoryAddress(t.contextRegisters.getIPLocation()));
+	      }
+	      if (compiledMethodType != VM_CompiledMethod.JNI)
+		codeLocationsPush(codeLocations, code, t.contextRegisters.getIPLocation(), 2, t);
+	      else {
+		if (DUMP_STACK >= 3)
+		    VM.sysWriteln("GC Warning: SKIPPING return address for JNI code");
+	      }
 	  }
 	  else {
               VM_Address returnAddressLoc = VM_Magic.getReturnAddressLocation(prevFp);
 	      VM_Address returnAddress = VM_Magic.getMemoryAddress(returnAddressLoc);
 	      if (!Util.addrInBootImage(returnAddress))
-		codeLocations.push(code, returnAddressLoc);
+		  codeLocationsPush(codeLocations, code, returnAddressLoc, 3, t);
 	  }
 
 	  // scan for internal code pointers in the stack frame and relocate
 	  iterator.reset();
 	  for (VM_Address retaddrLoc = iterator.getNextReturnAddressAddress();  !retaddrLoc.isZero();
 	       retaddrLoc = iterator.getNextReturnAddressAddress()) {
-	    codeLocations.push(code, retaddrLoc);
+	    codeLocationsPush(codeLocations, code, retaddrLoc, 4, t);
 	  }
 	}
       } 
@@ -333,7 +349,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	// Java To C transition frame
 	fp = VM_Runtime.unwindNativeStackFrame(fp);
 	
-	if ( TRACE_STACKS ) VM.sysWrite("scanStack skipping native C frames\n");
+	if (DUMP_STACK >= 1) VM.sysWrite("scanStack skipping native C frames\n");
       }       
       
       // set fp & ip for next frame
@@ -366,7 +382,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
     // exclude PPC FOR LINUX
     //-#endif
     
-    if (TRACE_STACKS) VM.sysWrite("--- End Of Stack Scan ---\n");
+    if (DUMP_STACK >= 1) VM.sysWrite("--- End Of Stack Scan ---\n");
     
   } // scanStack
   
@@ -400,10 +416,10 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
     for (VM_Address loc = start; loc.LE(end); loc = loc.add(WORD_SIZE)) {
       VM.sysWrite(loc.diff(start).toInt(), " ");
       VM.sysWrite(loc); VM.sysWrite(" ");
-      VM_Address value = VM_Address.fromInt(VM_Magic.getMemoryWord(loc));
+      VM_Address value = VM_Magic.getMemoryAddress(loc);
       VM.sysWrite(value);
       VM.sysWrite(" ");
-      if ( VM_Interface.refInVM(value) && loc.NE(start) && loc.NE(end) )
+      if (DUMP_STACK >= 3 && VM_Interface.refInVM(value) && loc.NE(start) && loc.NE(end) )
 	VM_Interface.dumpRef(value);
       else
 	VM.sysWrite("\n");

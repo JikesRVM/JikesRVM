@@ -4,6 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Contains routines that must be compiled with special prologues and eplilogues that
  * save/restore all registers (both volatile and non-volatile).
@@ -18,8 +21,6 @@ package com.ibm.JikesRVM.opt;
  * @author Mauricio Serrano
  * @author Dave Grove
  */
-import com.ibm.JikesRVM.*;
-
 public class VM_OptSaveVolatile implements VM_SaveVolatile {
  
   /**
@@ -58,11 +59,18 @@ public class VM_OptSaveVolatile implements VM_SaveVolatile {
     VM_Thread.threadSwitch(VM_Thread.BACKEDGE);
   }
 
+  //-#if RVM_WITH_OSR
+  public static void OPT_threadSwitchFromOsrOpt() 
+    throws VM_PragmaUninterruptible {
+    VM_Thread.threadSwitch(VM_Thread.OSROPT);
+  }
+  //-#endif 
+
   /**
    * Wrapper to save/restore volatile registers when a class needs to be
    * dynamically loaded/resolved/etc.
    */
-  public static void OPT_resolve()  throws VM_ResolutionException {
+  public static void OPT_resolve() throws ClassNotFoundException {
     VM.disableGC();
     // (1) Get the compiled method & compilerInfo for the (opt) 
     // compiled method that called OPT_resolve

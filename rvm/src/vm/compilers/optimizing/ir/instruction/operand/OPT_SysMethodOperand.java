@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 
 /**
  * This class represents the targets of sysCalls,

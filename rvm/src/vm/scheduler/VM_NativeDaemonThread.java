@@ -66,21 +66,17 @@ class VM_NativeDaemonThread extends VM_Thread {
     }
 
 
-  public void run () { // overrides VM_Thread
+  public void run () throws VM_PragmaNoOptCompile /* refs stored in registers by opt compiler will not be relocated by GC */{
 
     if (trace) VM_Scheduler.trace(" Entering run method of NDT ", "  ");
     VM_Processor myProcessor = VM_ProcessorLocalState.getCurrentProcessor();
     int i, transferCount=0, stuckCount=0;
 
-    //  make sure Opt compiler does not compile this method
-    //  references stored in registers by the opt compiler will not be relocated by GC
-    VM_Magic.pragmaNoOptCompile();
-
     // save current frame pointer in threads JNIEnv, and set flag recognized by GC
     // which will cause this (NativeIdleThread) thread to have its stack scanned
     // starting at this frame
     //
-    VM_Thread.getCurrentThread().jniEnv.JNITopJavaFP = VM_Magic.getFramePointer();
+    VM_Thread.getCurrentThread().jniEnv.setTopJavaFP(VM_Magic.getFramePointer());
 
     // remember status word index for executing processor. It will remain valid
     // even if GC moves the processor object
@@ -96,11 +92,11 @@ class VM_NativeDaemonThread extends VM_Thread {
       // which will cause this (NativeIdleThread) thread to have its stack scanned
       // starting at this frame, if it is in a sigwait syscall during a collection.
       //
-      VM_Thread.getCurrentThread().jniEnv.JNITopJavaFP = VM_Magic.getFramePointer();
+      VM_Thread.getCurrentThread().jniEnv.setTopJavaFP(VM_Magic.getFramePointer());
 
       inSysWait = true;  // temporary...GC code looks for this flag in native idle threads
 
-      int TOC = 0;
+      VM_Address TOC = VM_Address.fromInt(0);
       //-#if RVM_FOR_POWERPC
       TOC = VM_BootRecord.the_boot_record.sysTOC;
       //-#endif
@@ -290,12 +286,13 @@ if (stuckEnv == null) {
       native_vp.dumpProcessorState();
 			VM.sysFail("quitting in switchpthread");
 }
-    stuckEnv.savedPRreg = native_vp;
-    VM_Address topJavaFP = stuckEnv.JNITopJavaFP;
+
+    stuckEnv.setSavedPRreg( native_vp );
+    VM_Address topJavaFP = stuckEnv.topJavaFP();
 //-#if RVM_FOR_IA32
     VM_Magic.setMemoryAddress(topJavaFP.add(VM_JNICompiler.JNI_PR_OFFSET), VM_Magic.objectAsAddress(native_vp));
 //-#else 
-    VM_Address callerFP  = VM_Address.fromInt(VM_Magic.getMemoryWord(topJavaFP));
+    VM_Address callerFP  = VM_Magic.getMemoryAddress(topJavaFP);
     VM_Magic.setMemoryAddress(callerFP.sub(JNI_PR_OFFSET), VM_Magic.objectAsAddress(native_vp));
 //-#endif 
 

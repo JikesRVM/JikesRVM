@@ -87,7 +87,7 @@ public class VM_WriteBuffer implements VM_Constants,
     // set last word in current buffer to address of next buffer
     VM_Magic.setMemoryAddress(vp.modifiedOldObjectsTop.add(4), newBufAddr);
     // set fptr in new buffer to null, to identify it as last
-    VM_Magic.setMemoryWord(newBufAddr.add(WRITE_BUFFER_SIZE-4),0);
+    VM_Magic.setMemoryInt(newBufAddr.add(WRITE_BUFFER_SIZE-4),0);
     // set writebuffer pointers in processor object for stores into new buffer
     vp.modifiedOldObjectsTop = newBufAddr.sub(4);
     vp.modifiedOldObjectsMax = newBufAddr.add(WRITE_BUFFER_SIZE - 8);
@@ -162,14 +162,14 @@ public class VM_WriteBuffer implements VM_Constants,
       com.ibm.JikesRVM.VM.sysWrite( "\n" );
 
       // determine if this is last buffer or not, by seeing if there is a next ptr
-      if ( VM_Magic.getMemoryWord(lastSlotAddr) == 0 )
+      if ( VM_Magic.getMemoryInt(lastSlotAddr) == 0 )
 	end = top;  // last buffer, stop at last filled in slot in "current" buffer
       else
 	end = lastSlotAddr.sub(4); // stop at last entry in buffer
       
       while ( start.LE(end) ) {
 	VM_Address wbref = VM_Magic.getMemoryAddress( start );
-	
+/*	
 	if (start.EQ(VM_WriteBarrier.xxx)) {
 	    com.ibm.JikesRVM.VM.sysWrite(start.toInt(), true);
 	    com.ibm.JikesRVM.VM.sysWrite( "\n" );
@@ -177,7 +177,7 @@ public class VM_WriteBuffer implements VM_Constants,
 	    com.ibm.JikesRVM.VM.sysWrite( "\n" );
 	    VM_WriteBarrier.xxx = VM_Address.zero();
 	}
-
+*/
 	VM_AllocatorHeader.setBarrierBit(VM_Magic.addressAsObject(wbref));
 
 	// Call method in specific collector to process write buffer entry
@@ -198,12 +198,10 @@ public class VM_WriteBuffer implements VM_Constants,
     
     if (trace) {
       VM_Scheduler.outputMutex.lock();
-      VM.sysWrite(VM_Processor.getCurrentProcessorId(),false);
+      VM.sysWrite(VM_Processor.getCurrentProcessorId());
       VM.sysWrite(" VM_WriteBuffer processing time = ");
-      VM.sysWrite((int)((VM_Time.now() - startTime)*1000),false);
-      VM.sysWrite(" ms, number of entries processed = ");
-      VM.sysWrite(count,false);
-      VM.sysWrite("\n");
+      VM.sysWrite((int)((VM_Time.now() - startTime)*1000));
+      VM.sysWriteln(" ms, number of entries processed = ", count);
       VM_Scheduler.outputMutex.unlock();
     }
   }
@@ -249,7 +247,7 @@ public class VM_WriteBuffer implements VM_Constants,
       VM_Address lastSlotAddr = start.add(WRITE_BUFFER_SIZE - 4);
       // determine if this is last buffer or not, by seeing if there is a next ptr
       VM_Address end;
-      if ( VM_Magic.getMemoryWord(lastSlotAddr) == 0 )
+      if ( VM_Magic.getMemoryInt(lastSlotAddr) == 0 )
 	end = top;  // last buffer, stop at last filled in slot in "current" buffer
       else
 	end = lastSlotAddr.sub(4); // stop at last entry in buffer
@@ -300,7 +298,7 @@ public class VM_WriteBuffer implements VM_Constants,
       VM_Address lastSlotAddr = start.add(WRITE_BUFFER_SIZE - 4);
       // determine if this is last buffer or not, by seeing if there is a next ptr
       VM_Address end;
-      if ( VM_Magic.getMemoryWord(lastSlotAddr) == 0 )
+      if ( VM_Magic.getMemoryInt(lastSlotAddr) == 0 )
 	end = top;  // last buffer, stop at last filled in slot in "current" buffer
       else
 	end = lastSlotAddr.sub(4); // stop at last entry in buffer
@@ -372,7 +370,7 @@ public class VM_WriteBuffer implements VM_Constants,
 
     // remember address of last slot in first buffer (the next buffer pointer)
     VM_Address temp = VM_Magic.objectAsAddress(vp.modifiedOldObjects).add(WRITE_BUFFER_SIZE - 4);
-    VM_Address buf = VM_Address.fromInt(VM_Magic.getMemoryWord( temp ));
+    VM_Address buf = VM_Address.fromInt(VM_Magic.getMemoryInt( temp ));
 
     while( !buf.isZero() ) {
       VM_Address nextbuf = VM_Magic.getMemoryAddress( buf.add(WRITE_BUFFER_SIZE - 4) );
@@ -380,6 +378,6 @@ public class VM_WriteBuffer implements VM_Constants,
       buf = nextbuf;
     }
     // reset next pointer in first buffer to null
-    VM_Magic.setMemoryWord( temp, 0 );
+    VM_Magic.setMemoryInt( temp, 0 );
   }
 }

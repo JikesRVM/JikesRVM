@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
 import com.ibm.JikesRVM.opt.OPT_IndexPropagation.*;
@@ -15,7 +16,6 @@ import com.ibm.JikesRVM.opt.OPT_IndexPropagation.*;
  *
  * @author Stephen Fink
  */
-
 final class OPT_LoadElimination extends
 OPT_OptimizationPlanCompositeElement implements OPT_Operators {
 
@@ -113,9 +113,6 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
           && !GetStatic.conforms(s) 
           && !ALoad.conforms(s))
         continue;
-      // do not attempt to optimize the load if it may case dynamic linking
-      if (s.isDynamicLinkingPoint())  
-        continue;
       // this instruction is a USE of heap variable H.
       // get the lattice cell that holds the available indices
       // for this heap variable
@@ -141,18 +138,18 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
         ObjectCell cell = (ObjectCell)available.lookup(H[0].getHeapVariable());
         if (cell == null)
           continue;           // nothing available
+
         // .. if H{valueNumber} is available ...
         if (cell.contains(valueNumber)) {
           result.add(H[0].getHeapVariable(), valueNumber);
-          VM_Type type = ResultCarrier.getResult(s).getType();
+          VM_TypeReference type = ResultCarrier.getResult(s).getType();
           OPT_Register r = findOrCreateRegister(H[0].getHeapType(), 
                                                 valueNumber, registers, ir.regpool, type);
           if (DEBUG)
             System.out.println("ELIMINATING LOAD " + s);
           replaceLoadWithMove(r, s);
         }
-      } 
-      else {                  // ALoad.conforms(s)
+      } else {                  // ALoad.conforms(s)
         Object array = ALoad.getArray(s);
         Object index = ALoad.getIndex(s);
         ArrayCell cell = (ArrayCell)available.lookup(H[0].getHeapVariable());
@@ -163,9 +160,8 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
         // .. if H{<v1,v2>} is available ...
         if (cell.contains(v1, v2)) {
           result.add(H[0].getHeapVariable(), v1, v2);
-          VM_Type type = ALoad.getResult(s).getType();
-          OPT_Register r = findOrCreateRegister(
-                                                H[0].getHeapVariable().getHeapType(), 
+          VM_TypeReference type = ALoad.getResult(s).getType();
+          OPT_Register r = findOrCreateRegister(H[0].getHeapVariable().getHeapType(), 
                                                 v1, v2, registers, ir.regpool, type);
           if (DEBUG)
             System.out.println("ELIMINATING LOAD " + s);
@@ -205,8 +201,6 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
           && !AStore.conforms(s))
         continue;
       if (!ssa.defsHeapVariable(s))
-        continue;
-      if (s.isDynamicLinkingPoint())
         continue;
       // this instruction is a DEF of heap variable H.
       // Check if UseRepSet needs the scalar assigned by this def
@@ -250,7 +244,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
             value = PutStatic.getValue(s); 
           else if (GetField.conforms(s) || GetStatic.conforms(s))
             value = ResultCarrier.getResult(s);
-          VM_Type type = value.getType();
+          VM_TypeReference type = value.getType();
           OPT_Register r = findOrCreateRegister(H[0].getHeapType(), 
                                                 valueNumber, registers, ir.regpool, type);
           appendMove(r, value, s);
@@ -266,7 +260,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
             value = AStore.getValue(s); 
           else if (ALoad.conforms(s))
             value = ALoad.getResult(s);
-          VM_Type type = value.getType();
+          VM_TypeReference type = value.getType();
           OPT_Register r = findOrCreateRegister(H[0].getHeapType(), 
                                                 v1, v2, registers, ir.regpool, type);
           appendMove(r, value, s);
@@ -280,7 +274,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * value in register r.
    */
   static void appendMove(OPT_Register r, OPT_Operand src, OPT_Instruction store) {
-    VM_Type type = src.getType();
+    VM_TypeReference type = src.getType();
     OPT_RegisterOperand rop = new OPT_RegisterOperand(r, type);
     store.insertAfter(Move.create(OPT_IRTools.getMoveOp(type), 
                                   rop, src));
@@ -290,7 +284,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * Given a value number, return the temporary register allocated
    * for that value number.  Create one if necessary.
    *
-   * @param heapType a VM_Type or VM_Field identifying the array SSA
+   * @param heapType a VM_TypeReference or VM_Field identifying the array SSA
    *			heap type
    * @param valueNumber
    * @param registers a mapping from value number to temporary register
@@ -299,7 +293,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    */
   static OPT_Register findOrCreateRegister(Object heapType, int valueNumber, 
                                             HashMap registers, 
-                                            OPT_RegisterPool pool, VM_Type type) {
+                                            OPT_RegisterPool pool, VM_TypeReference type) {
     UseRecord key = new UseRecord(heapType, valueNumber);
     OPT_Register result = (OPT_Register)registers.get(key);
     if (result == null) {
@@ -314,7 +308,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * Given a pair of value numbers, return the temporary register 
    * allocated for that pair.  Create one if necessary.
    *
-   * @param heapType a VM_Type identifying the array SSA
+   * @param heapType a VM_TypeReference identifying the array SSA
    *			heap type
    * @param v1, v2 valueNumbers
    * @param registers a mapping from value number to temporary register
@@ -322,7 +316,8 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
    * @param type the type to store in the new register
    */
   static OPT_Register findOrCreateRegister(Object heapType, int v1, int v2, 
-                                            HashMap registers, OPT_RegisterPool pool, VM_Type type) {
+					   HashMap registers, OPT_RegisterPool pool, 
+					   VM_TypeReference type) {
     UseRecord key = new UseRecord(heapType, v1, v2);
     OPT_Register result = (OPT_Register)registers.get(key);
     if (result == null) {
@@ -335,7 +330,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
 
   // A UseRecord represents a load that will be eliminated
   static class UseRecord {
-    Object type;              // may be either a VM_Type or a VM_Field
+    Object type;              // may be either a VM_TypeReference or a VM_Field
     int v1;                   // first value number (object pointer)
     int v2;                   // second value number (array index)
     final static int NONE = -2;
@@ -354,7 +349,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
 
     public boolean equals(Object o) {
       UseRecord u = (UseRecord)o;
-      return  ((u.type == type) && (u.v1 == v1) && (u.v2 == v2));
+      return  ((u.type.equals(type)) && (u.v1 == v1) && (u.v2 == v2));
     }
 
     public int hashCode() {
@@ -422,6 +417,7 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
     // which static fields have we seen stores for?
     HashSet seenStore = new HashSet(10);
     HashSet resultSet = new HashSet(10);
+    HashSet forbidden = new HashSet(10);
     // for each type T, indices(T) gives the set of value number (pairs)
     // that identify the indices seen in memory accesses to type T.
     HashMap indices = new HashMap(10);
@@ -432,70 +428,89 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
         for (OPT_InstructionEnumeration e = bb.forwardInstrEnumerator(); e.hasMoreElements();) {
           OPT_Instruction s = e.next();
           switch (s.operator().opcode) {
-            case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
+            case GETFIELD_opcode:
               {
                 OPT_Operand ref = GetField.getRef(s);
-                VM_Field f = GetField.getLocation(s).field;
-                HashSet numbers = findOrCreateIndexSet(indices,f);
-                int v = valueNumbers.getValueNumber(ref);
-                Integer V = new Integer(v);
-                if (numbers.contains(V)) {
-                  resultSet.add(f);
-                } else {
-                  numbers.add(V);
-                }
-                seenLoad.add(f);
-              }
+                VM_FieldReference fr = GetField.getLocation(s).getFieldRef();
+		VM_Field f = fr.peekResolvedField();
+		if (f == null) {
+		  forbidden.add(fr);
+		} else {
+		  HashSet numbers = findOrCreateIndexSet(indices,f);
+		  int v = valueNumbers.getValueNumber(ref);
+		  Integer V = new Integer(v);
+		  if (numbers.contains(V)) {
+		    resultSet.add(f);
+		  } else {
+		    numbers.add(V);
+		  }
+		  seenLoad.add(f);
+		}
+	      }
               break;
-            case PUTFIELD_opcode:case PUTFIELD_UNRESOLVED_opcode:
+            case PUTFIELD_opcode:
               {
                 OPT_Operand ref = PutField.getRef(s);
-                VM_Field f = PutField.getLocation(s).field;
-                HashSet numbers = findOrCreateIndexSet(indices,f);
-                int v = valueNumbers.getValueNumber(ref);
-                Integer V = new Integer(v);
-                if (numbers.contains(V)) {
-                  if (seenLoad.contains(f)) {
-                    resultSet.add(f);
-                  }
-                } else {
-                  numbers.add(V);
-                }
+                VM_FieldReference fr = PutField.getLocation(s).getFieldRef();
+		VM_Field f = fr.peekResolvedField();
+		if (f == null) {
+		  forbidden.add(fr);
+		} else {
+		  HashSet numbers = findOrCreateIndexSet(indices,f);
+		  int v = valueNumbers.getValueNumber(ref);
+		  Integer V = new Integer(v);
+		  if (numbers.contains(V)) {
+		    if (seenLoad.contains(f)) {
+		      resultSet.add(f);
+		    }
+		  } else {
+		    numbers.add(V);
+		  }
+		}
+	      }
+              break;
+            case GETSTATIC_opcode:
+              {
+                VM_FieldReference fr = GetStatic.getLocation(s).getFieldRef();
+		VM_Field f = fr.peekResolvedField();
+		if (f == null) {
+		  forbidden.add(fr);
+		} else {
+		  if (seenLoad.contains(f) || seenStore.contains(f)) {
+		    resultSet.add(f);
+		  }
+		  seenLoad.add(f);
+		}
               }
               break;
-            case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
+            case PUTSTATIC_opcode:
               {
-                VM_Field f = GetStatic.getLocation(s).field;
-                if (seenLoad.contains(f) || seenStore.contains(f)) {
-                  resultSet.add(f);
-                }
-                seenLoad.add(f);
-              }
-              break;
-            case PUTSTATIC_opcode:case PUTSTATIC_UNRESOLVED_opcode:
-              {
-                VM_Field f = PutStatic.getLocation(s).field;
-                if (seenLoad.contains(f)) {
-                  resultSet.add(f);
-                }
-                seenStore.add(f);
-              }
+                VM_FieldReference fr = PutStatic.getLocation(s).getFieldRef();
+		VM_Field f = fr.peekResolvedField();
+		if (f == null) {
+		  forbidden.add(fr);
+		} else {
+		  if (seenLoad.contains(f)) {
+		    resultSet.add(f);
+		  }
+		  seenStore.add(f);
+		}
+	      }
               break;
             case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
             case DOUBLE_ALOAD_opcode:case REF_ALOAD_opcode:case BYTE_ALOAD_opcode:
             case UBYTE_ALOAD_opcode:case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:
-
               {
                 OPT_Operand ref = ALoad.getArray(s);
-                VM_Type type = ref.getType();
+                VM_TypeReference type = ref.getType();
                 if (type.isArrayType()) {
-                  if (!type.asArray().getElementType().isPrimitiveType()) {
-                    type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+                  if (!type.getArrayElementType().isPrimitiveType()) {
+                    type = VM_TypeReference.JavaLangObjectArray;
                   }
                 }
                 OPT_Operand index = ALoad.getIndex(s);
 
-                HashSet numbers = findOrCreateIndexSet(indices,type);
+                HashSet numbers = findOrCreateIndexSet(indices, type);
                 int v1 = valueNumbers.getValueNumber(ref);
                 int v2 = valueNumbers.getValueNumber(index);
                 OPT_ValueNumberPair V = new OPT_ValueNumberPair(v1,v2);
@@ -516,10 +531,10 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
 
               {
                 OPT_Operand ref = AStore.getArray(s);
-                VM_Type type = ref.getType();
+                VM_TypeReference type = ref.getType();
                 if (type.isArrayType()) {
-                  if (!type.asArray().getElementType().isPrimitiveType()) {
-                    type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+                  if (!type.getArrayElementType().isPrimitiveType()) {
+                    type = VM_TypeReference.JavaLangObjectArray;
                   }
                 }
                 OPT_Operand index = AStore.getIndex(s);
@@ -545,7 +560,22 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
         }
       }
     }
-    return  resultSet;
+
+    // If we have found an unresolved field reference, then conservatively
+    // remove all fields that it might refer to from the resultSet.
+    for (Iterator i1 = forbidden.iterator(); i1.hasNext(); ) {
+      VM_FieldReference forbid = (VM_FieldReference)i1.next();
+      for (Iterator i2 = resultSet.iterator(); i2.hasNext(); ) {
+	Object it = i2.next();
+	if (it instanceof VM_Field) {
+	  if (!forbid.definitelyDifferent(((VM_Field)it).getMemberRef().asFieldReference())) {
+	    i2.remove();
+	  }
+	}
+      }
+    }
+
+    return resultSet;
   }
 
   /**

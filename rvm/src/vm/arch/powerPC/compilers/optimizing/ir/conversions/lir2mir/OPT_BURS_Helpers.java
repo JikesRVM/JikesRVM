@@ -3,8 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -323,14 +324,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int numFormals = Prologue.getNumberOfFormals(s);
     int numLongs = 0;
     for (int i=0; i<numFormals; i++) {
-      if (Prologue.getFormal(s, i).type == VM_Type.LongType) numLongs ++;
+      if (Prologue.getFormal(s, i).type.isLongType()) numLongs ++;
     }
     if (numLongs != 0) {
       OPT_Instruction s2 = Prologue.create(IR_PROLOGUE, numFormals+numLongs);
       for (int sidx=0, s2idx=0; sidx<numFormals; sidx++) {
 	OPT_RegisterOperand sForm = Prologue.getClearFormal(s, sidx);
 	Prologue.setFormal(s2, s2idx++, sForm);
-	if (sForm.type == VM_Type.LongType) {
+	if (sForm.type.isLongType()) {
 	  Prologue.setFormal(s2, s2idx++, 
                              R(regpool.getSecondReg(sForm.register)));
 	}
@@ -353,7 +354,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int numParams = Call.getNumberOfParams(s);
     int longParams = 0;
     for (int pNum = 0; pNum < numParams; pNum++) {
-      if (Call.getParam(s, pNum).getType() == VM_Type.LongType) {
+      if (Call.getParam(s, pNum).getType().isLongType()) {
         longParams++;
       }
     }
@@ -361,7 +362,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     // Step 2: Figure out what the result and result2 values will be
     OPT_RegisterOperand result = Call.getClearResult(s);
     OPT_RegisterOperand result2 = null;
-    if (result != null && result.type == VM_Type.LongType) {
+    if (result != null && result.type.isLongType()) {
       result2 = R(regpool.getSecondReg(result.register));
     }
 
@@ -399,7 +400,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       MIR_Call.setParam(s, mirCallIdx++, param);
       if (param instanceof OPT_RegisterOperand) {
         OPT_RegisterOperand rparam = (OPT_RegisterOperand)param;
-        if (rparam.type == VM_Type.LongType) {
+        if (rparam.type.isLongType()) {
           MIR_Call.setParam(s, mirCallIdx++, 
 			    L(regpool.getSecondReg(rparam.register)));
         }
@@ -419,7 +420,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int numParams = CallSpecial.getNumberOfParams(s);
     int longParams = 0;
     for (int pNum = 0; pNum < numParams; pNum++) {
-      if (CallSpecial.getParam(s, pNum).getType() == VM_Type.LongType) {
+      if (CallSpecial.getParam(s, pNum).getType().isLongType()) {
         longParams++;
       }
     }
@@ -427,7 +428,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     // Step 2: Figure out what the result and result2 values will be
     OPT_RegisterOperand result = CallSpecial.getClearResult(s);
     OPT_RegisterOperand result2 = null;
-    if (result != null && result.type == VM_Type.LongType) {
+    if (result != null && result.type.isLongType()) {
       result2 = R(regpool.getSecondReg(result.register));
     }
 
@@ -465,7 +466,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       MIR_Call.setParam(s, mirCallIdx++, param);
       if (param instanceof OPT_RegisterOperand) {
         OPT_RegisterOperand rparam = (OPT_RegisterOperand)param;
-        if (rparam.type == VM_Type.LongType) {
+        if (rparam.type.isLongType()) {
           MIR_Call.setParam(s, mirCallIdx++, 
 			    L(regpool.getSecondReg(rparam.register)));
         }
@@ -476,7 +477,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   protected final void RETURN(OPT_Instruction s, OPT_Operand value) {
     if (value != null) {
       OPT_RegisterOperand rop = (OPT_RegisterOperand)value;
-      if (value.getType() == VM_Type.LongType) {
+      if (value.getType().isLongType()) {
 	OPT_Register pair = regpool.getSecondReg(rop.register);
         EMIT(MIR_Return.mutate(s, PPC_BLR, rop.copyU2U(), R(pair)));
       } else {
@@ -1585,7 +1586,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
 	// A slightly ugly matter, but we need to deal with combining
 	// the two pieces of a long register from a LONG_ZERO_CHECK.  
 	// A little awkward, but probably the easiest workaround...
-	if (v1.type == VM_Type.LongType) {
+	if (v1.type.isLongType()) {
 	  OPT_RegisterOperand rr = regpool.makeTempInt();
 	  EMIT(MIR_Binary.create(PPC_OR, rr, v1, 
 				 R(regpool.getSecondReg(v1.register))));
@@ -1663,7 +1664,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   private final void mutateTrapToCall(OPT_Instruction s, 
 				      VM_Method target) {
     int offset = target.getOffset();
-    OPT_RegisterOperand tmp = regpool.makeTemp(OPT_ClassLoaderProxy.JavaLangObjectArrayType);
+    OPT_RegisterOperand tmp = regpool.makeTemp(VM_TypeReference.JavaLangObjectArray);
     OPT_Register JTOC = regpool.getPhysicalRegisterSet().getJTOC();
     OPT_MethodOperand meth = OPT_MethodOperand.STATIC(target);
     meth.setIsNonReturningCall(true);
@@ -1676,5 +1677,59 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     }
     EMIT(MIR_Move.create(PPC_MTSPR, R(CTR), tmp.copyD2U()));
     EMIT(MIR_Call.mutate0(s, PPC_BCTRL, null, null, meth));
+  }
+
+  /* special case handling OSR instructions */
+  void OSR(OPT_BURS burs, OPT_Instruction s) {
+//-#if RVM_WITH_OSR
+    if (VM.VerifyAssertions) VM._assert(OsrPoint.conforms(s));
+
+    // 1. how many params
+    int numparam = OsrPoint.getNumberOfElements(s);
+    int numlong = 0;
+    for (int i = 0; i < numparam; i++) {
+      if (OsrPoint.getElement(s, i).getType().isLongType()) {
+        numlong++;
+      }
+    }
+
+    // 2. collect params
+    OPT_Operand[] params = new OPT_Operand[numparam];
+    for (int i = 0; i <numparam; i++) {
+      params[i] = OsrPoint.getClearElement(s, i);
+    }
+
+    OPT_InlinedOsrTypeInfoOperand typeInfo = 
+      OsrPoint.getClearInlinedTypeInfo(s);
+
+    if (VM.VerifyAssertions) VM._assert(typeInfo != null);
+
+    // 3: only makes second half register of long being used
+    //    creates room for long types.
+    burs.append(OsrPoint.mutate(s, YIELDPOINT_OSR, 
+				typeInfo,
+				numparam + numlong));
+
+    // set the number of valid params in osr type info, used
+    // in LinearScan
+    typeInfo.validOps = numparam;
+
+    int pidx = numparam;
+    for (int i = 0; i < numparam; i++) {
+      OPT_Operand param = params[i];
+      OsrPoint.setElement(s, i, param);
+      if (param instanceof OPT_RegisterOperand) {
+        OPT_RegisterOperand rparam = (OPT_RegisterOperand)param;
+	// the second half is appended at the end
+	// OPT_LinearScan will update the map.
+        if (rparam.type.isLongType()) {
+          OsrPoint.setElement(s, pidx++, 
+			    L(burs.ir.regpool.getSecondReg(rparam.register)));
+        }
+      }
+    }
+
+    if (VM.VerifyAssertions) VM._assert(pidx == (numparam+numlong));
+//-#endif
   }
 }

@@ -65,7 +65,7 @@ PPC_FCMPU PPC_FCMPO
 
 
 fxuc_serial
-PPC_MFSPR PPC_MFCR PPC_MTCR
+PPC_MFSPR
 "ISSUE, 1" "FXUC, 3"
 "any_insn, 3"
 

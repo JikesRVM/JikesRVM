@@ -54,8 +54,7 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
 
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
-    VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
-						     container.counter2);
+    VM.sysWrite(container.counter1/container.counter2*100, 2);
     VM.sysWrite("% Infrequent BBs");
   }
 
@@ -182,10 +181,6 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     n.initializeLoopExits();
     computeNodeWeights(n);
     float loopExitWeight = computeLoopExitWeight(n);
-    if (loopExitWeight == 0f) { 
-      // loop with no normal exits
-      loopExitWeight = 0.2f; // loop executes 5 times.
-    }
     n.loopMultiplier = 1.0f / loopExitWeight;
   }
   
@@ -256,7 +251,7 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       n.addLoopExit(source, target, prob);
     }
   }
-
+  
 
   private float computeLoopExitWeight(OPT_LSTNode n) {
     float exitWeight = 0f;
@@ -264,7 +259,9 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       OPT_LSTNode.Edge exit = (OPT_LSTNode.Edge)i.next();
       exitWeight += (exit.source.getExecutionFrequency() * exit.probability);
     }
-    return exitWeight;
+    // Kludge: if we think the loop has no exits, lets pretend that there is a 1%
+    //         chance of exiting to avoid getting NaN's in our computation.
+    return exitWeight == 0f ? 0.01f : exitWeight;
   }
 
 

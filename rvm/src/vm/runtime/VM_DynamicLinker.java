@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  * Implement lazy compilation.
  *
@@ -19,7 +20,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
    *  Taken:    nothing (calling context is implicit)
    *  Returned: does not return (method dispatch table is updated and method is executed)
    */
-  static void lazyMethodInvoker() throws VM_ResolutionException {
+  static void lazyMethodInvoker() throws ClassNotFoundException {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
     VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
     DL_Helper.compileMethod(dl, targMethod);
@@ -34,7 +35,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
    *  Taken:    nothing (calling context is implicit)
    *  Returned: does not return (throws UnsatisfiedLinkError)
    */
-  static void unimplementedNativeMethod() throws VM_ResolutionException {
+  static void unimplementedNativeMethod() throws ClassNotFoundException {
     VM_DynamicLink dl = DL_Helper.resolveDynamicInvocation();
     VM_Method targMethod = DL_Helper.resolveMethodRef(dl);
     throw new UnsatisfiedLinkError(targMethod.toString());
@@ -53,7 +54,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Taken:       nothing (call stack is examined to find invocation site)
      * Returned:    VM_DynamicLink that describes call site.
      */
-    static VM_DynamicLink resolveDynamicInvocation() throws VM_ResolutionException, VM_PragmaNoInline {
+    static VM_DynamicLink resolveDynamicInvocation() throws VM_PragmaNoInline {
 
       // find call site 
       //
@@ -80,63 +81,27 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Taken:       VM_DynamicLink that describes call site.
      * Returned:    VM_Method that should be invoked.
      */
-    static VM_Method resolveMethodRef(VM_DynamicLink dynamicLink) throws VM_ResolutionException, VM_PragmaNoInline {
-
+    static VM_Method resolveMethodRef(VM_DynamicLink dynamicLink) 
+      throws ClassNotFoundException, VM_PragmaNoInline {
       // resolve symbolic method reference into actual method
       //
-      VM_Method methodRef = dynamicLink.methodRef();
-      VM_Method targetMethod = null;
+      VM_MethodReference methodRef = dynamicLink.methodRef();
       if (dynamicLink.isInvokeSpecial()) {
-	targetMethod = VM_Class.findSpecialMethod(methodRef);
+	return methodRef.resolveInvokeSpecial();
       } else if (dynamicLink.isInvokeStatic()) {
-	targetMethod = methodRef;
-      } else { // invokevirtual or invokeinterface
+	return methodRef.resolve();
+      } else {
+	// invokevirtual or invokeinterface
 	VM.disableGC();
 	Object targetObject = VM_DynamicLinkerHelper.getReceiverObject();
 	VM.enableGC();
 	VM_Class targetClass = VM_Magic.getObjectType(targetObject).asClass();
-	targetMethod = targetClass.findVirtualMethod(methodRef.getName(), methodRef.getDescriptor());
+	VM_Method targetMethod = targetClass.findVirtualMethod(methodRef.getName(), methodRef.getDescriptor());
 	if (targetMethod == null) {
-	  VM.sysWrite("Could not find method ");
-	  VM.sysWrite(VM_Magic.objectAsAddress(methodRef.getName()));  	     VM.sysWrite("  ");
-	  VM.sysWrite(methodRef.getName());	                             VM.sysWrite("  ");
-	  VM.sysWrite(VM_Magic.objectAsAddress(methodRef.getDescriptor()));  VM.sysWrite("  ");
-	  VM.sysWrite(methodRef.getDescriptor());                            VM.sysWrite("  ");
-	  VM.sysWrite(" in class ");
-	  VM.sysWrite(targetClass.getName());
-	  VM.sysWrite(" of object at ");
-	  VM.sysWrite(VM_Magic.objectAsAddress(targetObject));
-	  VM.sysWriteln();
-	  VM_Method methods[] = targetClass.getVirtualMethods();
-	  VM.sysWriteln("targetClass = ", VM_Magic.objectAsAddress(targetClass));
-	  VM.sysWriteln("methods = ", VM_Magic.objectAsAddress(methods));
-	  for (int i = 0, n = methods.length; i < n; ++i) {
-	    VM_Method method = methods[i];
-	    boolean same = (method.getName() == methodRef.getName() && 
-			    method.getDescriptor() == methodRef.getDescriptor());
-	    VM.sysWrite(same ? "HIT  " : "MISS ");
-	    VM.sysWrite("Method ", i); VM.sysWrite(":   "); 
-	    VM.sysWrite(VM_Magic.objectAsAddress(method.getName()));  	    VM.sysWrite("   ");  
-	    VM.sysWrite(method.getName());  	    VM.sysWrite("   ");  
-	    VM.sysWrite(VM_Magic.objectAsAddress(method.getDescriptor()));  	    VM.sysWrite("   ");  
-	    VM.sysWrite(method.getDescriptor());  	    VM.sysWrite("   ");  
-	    VM.sysWriteln();
-	  }
-	  VM_Type types[] = VM_TypeDictionary.getValuesPointer();
-	  for (int i=0; i<types.length; i++) {
-	    VM_Type t = types[i];
-	    if (t == null) continue;
-	    VM.sysWrite("Type at ", VM_Magic.objectAsAddress(t));
-	    VM.sysWrite(t.getName());
-	    VM.sysWriteln();
-	  }
-	  throw new VM_ResolutionException(targetClass.getDescriptor(), 
-					   new IncompatibleClassChangeError(targetClass.getDescriptor().classNameFromDescriptor()));
+	  throw new IncompatibleClassChangeError(targetClass.getDescriptor().classNameFromDescriptor());
 	}
+	return targetMethod;
       }
-      targetMethod = targetMethod.resolve();
-
-      return targetMethod;
     }
 
 
@@ -144,7 +109,7 @@ public class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
      * Compile (if necessary) targetMethod and patch the appropriate disaptch tables
      * @param targetMethod the VM_Method to compile (if not already compiled)
      */
-    static void compileMethod(VM_DynamicLink dynamicLink, VM_Method targetMethod) throws VM_ResolutionException, VM_PragmaNoInline {
+    static void compileMethod(VM_DynamicLink dynamicLink, VM_Method targetMethod) throws VM_PragmaNoInline {
 
       VM_Class targetClass = targetMethod.getDeclaringClass();
 

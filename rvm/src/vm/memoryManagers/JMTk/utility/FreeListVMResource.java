@@ -16,7 +16,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * This class implements a "free list" virtual memory resource.  The unit of
- * managment for virtual memory resources is the <code>BLOCK</code><p>
+ * managment for virtual memory resources is the <code>PAGE</code><p>
  *
  * Instances of this class respond to requests for virtual address
  * space by consuming the resource.  Consumers may also free resources
@@ -37,8 +37,8 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   /**
    * Constructor
    */
-  FreeListVMResource(String vmName, VM_Address vmStart, EXTENT bytes, byte status) {
-    super(vmName, vmStart, bytes, (byte) (VMResource.IN_VM | status));
+  FreeListVMResource(byte space_, String vmName, VM_Address vmStart, EXTENT bytes, byte status) {
+    super(space_, vmName, vmStart, bytes, (byte) (VMResource.IN_VM | status));
     freeList = new GenericFreeList(Conversions.bytesToPages(bytes));
     gcLock = new Lock("NewFreeListVMResrouce.gcLock");
     mutatorLock = new Lock("NewFreeListVMResrouce.gcLock");
@@ -46,28 +46,43 @@ public final class FreeListVMResource extends VMResource implements Constants, V
 
 
  /**
-   * Acquire a number of contigious blocks from the virtual memory resource.
+   * Acquire a number of contigious pages from the virtual memory resource.
    *
-   * @param request The number of blocks requested
+   * @param request The number of pages requested
    * @return The address of the start of the virtual memory region, or
    * zero on failure.
    */
   public final VM_Address acquire(int pages, MemoryResource mr) {
-
+    return acquire(pages, mr, true);
+  }
+  public final VM_Address acquire(int pages, MemoryResource mr, byte tag) {
+    return acquire(pages, mr, tag, true);
+  }
+  public final VM_Address acquire(int pages, MemoryResource mr, byte tag,
+				  boolean chargeMR) {
+    VM_Address rtn = acquire(pages, mr, chargeMR);
+    setTag(rtn, pages, tag);
+    return rtn;
+  }
+  public final VM_Address acquire(int pages, MemoryResource mr,
+				  boolean chargeMR) {
     if (VM.VerifyAssertions) VM._assert(mr != null);
-    while (!mr.acquire(pages));
-
+    if (chargeMR && !mr.acquire(pages))
+      return VM_Address.zero();
     lock();
-    int page = freeList.alloc(pages);
-    if (page == -1) {
+    int startPage = freeList.alloc(pages);
+    if (startPage == -1) {
       unlock();
-      mr.release(pages);
+      if (chargeMR)
+	mr.release(pages);
+      VM_Interface.getPlan().poll(true, mr);
       return VM_Address.zero();
     }
     pagetotal += pages;
     unlock();
-    VM_Address rtn = start.add(Conversions.pagesToBytes(page));
-    LazyMmapper.ensureMapped(rtn, Conversions.pagesToBlocks(pages));
+    VM_Address rtn = start.add(Conversions.pagesToBytes(startPage));
+    LazyMmapper.ensureMapped(rtn, pages);
+    acquireHelp(rtn, pages);
     return rtn;
   }
 
@@ -77,12 +92,25 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   }
 
   public final void release(VM_Address addr, MemoryResource mr) {
+    release(addr, mr, true);
+  }
+  public final void release(VM_Address addr, MemoryResource mr, byte tag) {
+    release(addr, mr, tag, true);
+  }
+  public final void release(VM_Address addr, MemoryResource mr, byte tag,
+			    boolean chargeMR) {
+    clearTag(addr, getSize(addr), tag);
+    release(addr, mr, chargeMR);
+  }
+  public final void release(VM_Address addr, MemoryResource mr, 
+			    boolean chargeMR) {
     lock();
     int offset = addr.diff(start).toInt();
-    int page = Conversions.bytesToPages(offset);
-    int freedpages = freeList.free(page);
-    pagetotal -= freedpages;
-    mr.release(freedpages);
+    int startPage = Conversions.bytesToPages(offset);
+    int freedPages = freeList.free(startPage);
+    pagetotal -= freedPages;
+    if (chargeMR)
+      mr.release(freedPages);
     unlock();
   }
   

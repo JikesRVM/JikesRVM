@@ -7,6 +7,7 @@ import java.util.*;
 import java.lang.reflect.InvocationTargetException;
 import java.io.*;
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 
 /**
@@ -87,7 +88,7 @@ class OptTestHarness {
   static Vector reflectMethodVector;
   static Vector reflectMethodArgsVector;
 
-  static int parseMethodArgs(VM_Type[] argDesc, String[] args, int i,
+  static int parseMethodArgs(VM_TypeReference[] argDesc, String[] args, int i,
 			     Object[] methodArgs){
     try {
       for (int argNum = 0; argNum < argDesc.length; ++argNum) {
@@ -111,14 +112,14 @@ class OptTestHarness {
 	  // TODO
 	  System.err.println("Parsing args of type " + argDesc[argNum] + " not implemented");
 	} else if (argDesc[argNum].isArrayType()) {
-          VM_Type element = argDesc[argNum].asArray().getElementType();
+          VM_TypeReference element = argDesc[argNum].getArrayElementType();
           if (element.isClassType() && 
-              element.asClass().getName().startsWith("java.lang.String")) {
-             String[] array = new String[args.length-i-1];
-             for (int j = 0; j < array.length; j++) {
-	       array[j] = args[++i];
-	     }
-             methodArgs[argNum] = array; 
+              element.getName().toString().startsWith("java.lang.String")) {
+	    String[] array = new String[args.length-i-1];
+	    for (int j = 0; j < array.length; j++) {
+	      array[j] = args[++i];
+	    }
+	    methodArgs[argNum] = array; 
           } else {// TODO
 	    System.err.println("Parsing args of array of " + element + 
 			       " not implemented");
@@ -170,7 +171,8 @@ class OptTestHarness {
 
     s = s.replace('.','/');
 
-    return (VM_Class)java.lang.Class.forName(s, true, cl).getVMType();
+    return (VM_Class)
+	java.lang.JikesRVMSupport.getTypeForClass(Class.forName(s, true, cl));
   }
 
   static void printFormatString() {
@@ -242,7 +244,7 @@ class OptTestHarness {
 	  // -inlineplan is used to read an inline plan from a file
 	  i++;
 	  OPT_ContextFreeInlinePlan plan = new OPT_ContextFreeInlinePlan();
-	  plan.readObject(new LineNumberReader(new FileReader(args[i])), VM_SystemClassLoader.getVMClassLoader());
+	  plan.readObject(new LineNumberReader(new FileReader(args[i])));
 	  System.out.println(plan.toString());
 	  OPT_InlineOracleDictionary.registerDefault(new OPT_ProfileDirectedInlineOracle(plan));
         } else if (arg.equals("+baseline")) {
@@ -292,7 +294,7 @@ class OptTestHarness {
 	  VM_Class  klass      = loadClass(args[++i]);
 	  String    name = args[++i];
 	  String    desc = args[++i];
-	  VM_Method method = findDeclaredOrFirstMethod(klass, name, desc);
+	  VM_NormalMethod method = (VM_NormalMethod)findDeclaredOrFirstMethod(klass, name, desc);
 	  VM_CompiledMethod cm = null;
 	  if (BASELINE) 
 	    cm = VM_Compiler.compile(method);
@@ -309,10 +311,10 @@ class OptTestHarness {
 	    }
 	  }
 	  if (cm != null) method.replaceCompiledMethod(cm);
-	  VM_Type[] argDesc    = method.getDescriptor().parseForParameterTypes(klass.getClassLoader()) ;
+	  VM_TypeReference[] argDesc  = method.getDescriptor().parseForParameterTypes(klass.getClassLoader()) ;
 	  Object[]  reflectMethodArgs = new Object[argDesc.length] ;
 	  i = parseMethodArgs(argDesc, args, i, reflectMethodArgs) ;
-	  java.lang.reflect.Method reflectoid = new java.lang.reflect.Method(method) ;
+	  java.lang.reflect.Method reflectoid = java.lang.reflect.JikesRVMSupport.createMethod(method) ;
           reflectoidVector.addElement(reflectoid) ;
           reflectMethodVector.addElement(method) ;
           reflectMethodArgsVector.addElement(reflectMethodArgs) ;
@@ -334,13 +336,13 @@ class OptTestHarness {
     }
   }
 
-  private static void compileMethodsInVector() throws VM_ResolutionException {
+  private static void compileMethodsInVector() {
     // Compile all baseline methods first
     int size = baselineMethodVector.size() ;
     VM.sysWrite("Compiling " + size + " methods baseline\n");
     // Compile all methods in baseline vector
     for(int i = 0; i < size ; i++) {
-      VM_Method method = (VM_Method) baselineMethodVector.elementAt(i);
+      VM_NormalMethod method = (VM_NormalMethod) baselineMethodVector.elementAt(i);
       VM_CompiledMethod cm = null;
       cm = VM_BaselineCompiler.compile(method);
       method.replaceCompiledMethod(cm);
@@ -350,7 +352,7 @@ class OptTestHarness {
     size = optMethodVector.size() ;
     VM.sysWrite("Compiling " + size + " methods opt\n");
     for(int i = 0; i < size ; i++) {
-      VM_Method method = (VM_Method) optMethodVector.elementAt(i) ;
+      VM_NormalMethod method = (VM_NormalMethod) optMethodVector.elementAt(i) ;
       OPT_Options opts = (OPT_Options) optOptionsVector.elementAt(i) ;
       try {
 	VM_CompiledMethod cm = null;
@@ -375,8 +377,9 @@ class OptTestHarness {
   }
 
   private static void executeCommand() 
-   throws InvocationTargetException, IOException,
-     IllegalAccessException, VM_ResolutionException {
+   throws InvocationTargetException, 
+	  IOException,
+	  IllegalAccessException {
     compileMethodsInVector();
 
     if(EXECUTE_WITH_REFLECTION == true) {
@@ -406,10 +409,8 @@ class OptTestHarness {
   public static void main(String args[]) 
     throws InvocationTargetException, 
 	   IOException,
-	   IllegalAccessException, 
-	   VM_ResolutionException {
-
-    cl = new ApplicationClassLoader(VM_ClassLoader.getApplicationRepositories());
+	   IllegalAccessException {
+    cl = VM_ClassLoader.getApplicationClassLoader();
     optMethodVector = new Vector(50);
     optOptionsVector = new Vector(50);
     baselineMethodVector = new Vector(50);

@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * Information associated with artifical stackframe inserted at the
  * transition from Jave to JNI Native C.  

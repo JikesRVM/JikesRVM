@@ -99,7 +99,7 @@ function showHelp {
   echo '-rc-args "args"             supply args to all runs'
   echo '-config-args "args"         supply args to jconfigure'
   echo '-minimal                    run minimal test suite on OptOptSemiSpace image'
-  echo '-classpath                  use GNU Classpath libraries'
+  echo '-old-libraries              use obsolete hybrid libraries'
   echo '-verbose                    produce lots of output'
   echo '-help                       display this message'
 }
@@ -249,8 +249,8 @@ while [ $# != 0 ]; do
 	shift
    ;;
 
-   -classpath)
-	export EXTRA_CONFIG_ARGS="$EXTRA_CONFIG_ARGS -D RVM_WITH_GNU_CLASSPATH=1"
+   -old-libraries)
+	export EXTRA_CONFIG_ARGS="$EXTRA_CONFIG_ARGS -D RVM_WITH_GNU_CLASSPATH=0"
    ;;
 
    ## set up to run a minimal test suite on OptOptSemiSpace
@@ -323,7 +323,7 @@ function doBuild
      fi
 
      say "building $NAME"
-     cd $RVM_BUILD && ./jbuild -trace >RVM.trace 2>&1
+     cd $RVM_BUILD && ./jbuild -trace -demographics >RVM.trace 2>&1
 
      if [[ x$WAIT != x ]]; then
        # Leave a marker to signify the building is done.
@@ -334,6 +334,10 @@ function doBuild
        while [[ ! -a $RVM_BUILD/$WAIT ]]; do
          sleep $SLEEP_DURATION;
        done
+     fi
+     if [[ (! -e $RVM_BUILD/JikesRVM) && (-e $RVM_BUILD/RVM.image)]]; then
+       say "linking $NAME"
+       cd $RVM_BUILD && ./jbuild -trace -booter >> RVM.trace 2>&1
      fi
    fi
    }
@@ -500,12 +504,7 @@ function runTests {
 #
 function main {
   if [[ $CONFIG_LIST = "NIGHT_SANITY" ]]; then
-     ARCH=`arch`
-     if [[ $ARCH = 'power' ]] then
-       exec $RVM_ROOT/rvm/regression/NightSanityDriver -config night-sanity-powerpc
-     else
-       exec $RVM_ROOT/rvm/regression/NightSanityDriver -config night-sanity-lintel
-     fi
+     exec $RVM_ROOT/rvm/regression/NightSanityDriver -config night-sanity
      exit
   fi
 

@@ -5,8 +5,11 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
-
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.adaptive.VM_Controller;
+//-#endif
 /**
  * Inlining oracle using static size heuristics during on-the-fly compilation.
  *
@@ -40,7 +43,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 
     OPT_Options opts = state.getOptions();
     // more or less figure out the guard situation early -- impacts size estimate.
-    boolean needsGuard = state.getComputedTarget() == null && needsGuard(callee);
+    boolean needsGuard = !state.getHasPreciseTarget() && needsGuard(callee);
     boolean preEx = 
       needsGuard && state.getIsExtant() && opts.PREEX_INLINE && isCurrentlyFinal(callee, true);
     
@@ -51,7 +54,13 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 
     // Ok, the size looks good, attempt to do it.
     if (needsGuard) {
+
+      if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
+	  return OPT_InlineDecision.NO("Forbidden speculation");
+      }
+
       if (preEx) {
+
 	if (OPT_ClassLoadingDependencyManager.TRACE || 
 	    OPT_ClassLoadingDependencyManager.DEBUG) {
 	  VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "
@@ -61,9 +70,19 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 							    state.getCompiledMethod());
 	return OPT_InlineDecision.YES(callee, "PREEX_INLINE passed size checks");
       } else if (opts.GUARDED_INLINE && isCurrentlyFinal(callee, !opts.guardWithClassTest())) {
-	return OPT_InlineDecision.guardedYES(callee, 
-					     chooseGuard(caller, callee, state, true), 
+	OPT_InlineDecision YES = OPT_InlineDecision.guardedYES(callee, 
+					     chooseGuard(caller, callee, callee, state, true), 
 					     "static guarded inline passsed size checks");
+	//-#if RVM_WITH_OSR
+        if (opts.OSR_GUARDED_INLINING && 
+            OPT_Compiler.getAppStarted() &&
+			(VM_Controller.options != null) &&
+			VM_Controller.options.adaptive()) {
+	  // note that we will OSR the failed case.
+	  YES.setOSRTestFailed();
+        }
+	//-#endif
+	return YES;
       }
       return OPT_InlineDecision.NO(callee, "non-final virtual method");
     } else {
@@ -88,8 +107,13 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     if (!opts.GUARDED_INLINE_INTERFACE)
       return OPT_InlineDecision.NO("invokeinterface");
       
-    callee = OPT_InterfaceHierarchy.getUniqueImplementation(callee);
-    if (callee != null) {
+    if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
+	return OPT_InlineDecision.NO("Forbidden speculation");
+    }
+
+    VM_Method singleImpl = 
+	OPT_InterfaceHierarchy.getUniqueImplementation(callee);
+    if (singleImpl != null) {
       // Don't allow the static inline oracle to inline recursive calls.
       // It isn't smart enough to do this effectively.
       OPT_InlineSequence seq = state.getSequence();
@@ -98,19 +122,19 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
       }
 
       // got a unique target in the current hierarchy. Attempt to inline it.
-      if (!legalToInline(caller,callee) || !hasBody(callee))
+      if (!hasBody(singleImpl))
         return OPT_InlineDecision.NO("Illegal interface inline");
       
-      int inlinedSizeEstimate = inlinedSizeEstimate(callee, state);
+      int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)singleImpl, state);
       int cost = inliningActionCost(inlinedSizeEstimate, true, false, opts);
 
-      OPT_InlineDecision sizeCheck = sizeHeuristics(caller, callee, state, cost);
+      OPT_InlineDecision sizeCheck = sizeHeuristics(caller, singleImpl, state, cost);
       if (sizeCheck != null) return sizeCheck;
 
       // passed size heuristics. Do it.
       OPT_InlineDecision d = 
-	OPT_InlineDecision.guardedYES(callee,
-				      chooseGuard(caller, callee, state, false), 
+	OPT_InlineDecision.guardedYES(singleImpl,
+				      chooseGuard(caller, singleImpl, callee, state, false), 
 				      "static GUARDED interface inline passsed size checks");
       return d;
     } else {
@@ -137,7 +161,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     if (subClasses.length != 1) return OPT_InlineDecision.NO("abstract class doesn't have exactly one subclass");
     VM_Method singleImpl = 
       subClasses[0].findDeclaredMethod(callee.getName(), callee.getDescriptor());
-    if (singleImpl == null || !legalToInline(caller, singleImpl) || !hasBody(singleImpl)) {
+    if (singleImpl == null || !hasBody(singleImpl)) {
       return OPT_InlineDecision.NO("Implementation of abstract method is illegal candidate");
     }
     if (hasNoInlinePragma(singleImpl, state))
@@ -155,15 +179,20 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     boolean preEx = state.getIsExtant() && opts.PREEX_INLINE && isCurrentlyFinal(singleImpl, true);
     
     // See if inlining action passes simple size heuristics
-    int inlinedSizeEstimate = inlinedSizeEstimate(singleImpl, state);
+    int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)singleImpl, state);
     int cost = inliningActionCost(inlinedSizeEstimate, true, preEx, opts);
     OPT_InlineDecision sizeCheck = sizeHeuristics(caller, singleImpl, state, cost);
     if (sizeCheck != null) return sizeCheck;
+
+    if (isForbiddenSpeculation(state.getRootMethod(), callee)) {
+	return OPT_InlineDecision.NO("Forbidden speculation");
+    }
 
     // Ok, the size looks good, attempt to do it.
     if (preEx) {
       if (OPT_ClassLoadingDependencyManager.TRACE || 
 	  OPT_ClassLoadingDependencyManager.DEBUG) {
+
 	VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "
 					+ singleImpl + " into " + caller + "\n");
       }
@@ -174,7 +203,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
       return OPT_InlineDecision.YES(singleImpl, "PREEX_INLINE passed size checks");
     } else if (opts.GUARDED_INLINE && isCurrentlyFinal(singleImpl, !opts.guardWithClassTest())) {
       return OPT_InlineDecision.guardedYES(singleImpl, 
-					   chooseGuard(caller, singleImpl, state, true), 
+					   chooseGuard(caller, singleImpl, callee, state, true), 
 					   "static guarded inline passsed size checks");
     }
     return OPT_InlineDecision.NO(callee, "abstract method with multiple implementations");
@@ -214,7 +243,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     // (2) Check space limits.
     int totalMCGenerated = state.getMCSizeEstimate();
     int maxRootSize = getMaxRootSize(state);
-    if ((totalMCGenerated + cost - VM_OptMethodSummary.CALL_COST) > maxRootSize)
+    if ((totalMCGenerated + cost - VM_NormalMethod.CALL_COST) > maxRootSize)
       return OPT_InlineDecision.NO("Inlining size limit exceeded");
 
     return null; // size check passes
@@ -229,7 +258,7 @@ public final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
    */
   private int getMaxRootSize (OPT_CompilationState state) {
     OPT_Options opts = state.getOptions();
-    int rootSize = VM_OptMethodSummary.inlinedSizeEstimate(state.getRootMethod());
+    int rootSize = state.getRootMethod().inlinedSizeEstimate();
     return Math.min(opts.IC_MAX_INLINE_EXPANSION_FACTOR*rootSize, 
 		    opts.IC_MAX_METHOD_SIZE + rootSize);
   }

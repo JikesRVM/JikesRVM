@@ -38,7 +38,6 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
    * @param ir
    */
   static void staticPerform(OPT_IR ir) {
-
     if (ir.hasReachableExceptionHandlers()) return;
 
     // Note: the following unfactors the CFG.

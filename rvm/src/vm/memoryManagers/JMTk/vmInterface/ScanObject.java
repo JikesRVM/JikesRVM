@@ -8,16 +8,12 @@ package com.ibm.JikesRVM.memoryManagers.vmInterface;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Statistics;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_Atom;
-import com.ibm.JikesRVM.VM_Type;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Method;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -59,21 +55,19 @@ public class ScanObject implements VM_Constants, Constants {
     Object[] tib = VM_ObjectModel.getTIB(obj);
     if (VM.VerifyAssertions) {
       if (tib == null || VM_ObjectModel.getObjectType(tib) != VM_Type.JavaLangObjectArrayType) {
-        VM.sysWrite("ScanObject: tib is not Object[]\n");
-        VM.sysWrite("               objRef = ", objRef);
-        VM.sysWriteln("               tib = ", VM_Magic.objectAsAddress(tib));
+	VM.sysWriteln("ScanObject: objRef = ", objRef, "   tib = ", VM_Magic.objectAsAddress(tib));
+	VM.sysWriteln("            tib's type is not Object[]");
+        VM._assert(false);
       }
     }
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
     if (VM.VerifyAssertions) {
       if (type == null) {
-        VM.sysWriteln("ScanObject: type is null");
-        VM.sysWriteln("               objRef = ",objRef);
-        VM.sysWriteln("ScanObject: objRef = ", VM_Magic.objectAsAddress(type));
-        VM._assert(type != null);
+        VM.sysWriteln("ScanObject: null type for objRef = ", objRef);
+        VM._assert(false);
       }
     }
-    if ( type.isClassType() ) {
+    if (type.isClassType()) {
       int[] referenceOffsets = type.asClass().getReferenceOffsets();
       for(int i = 0, n=referenceOffsets.length; i < n; i++) {
 	VM_Interface.processPtrField( objRef.add(referenceOffsets[i]), root );
@@ -97,29 +91,29 @@ public class ScanObject implements VM_Constants, Constants {
     }
   } 
 
-  static void scan (Object objRef) throws VM_PragmaUninterruptible {
+  static void scan (Object objRef) throws VM_PragmaUninterruptible, VM_PragmaInline {
     scan(VM_Magic.objectAsAddress(objRef), false);
   }
-  public static void scan (VM_Address object) throws VM_PragmaUninterruptible {
+  public static void scan (VM_Address object) throws VM_PragmaUninterruptible, VM_PragmaInline {
     scan(object, false);
   }
-  public static void rootScan (Object objRef) throws VM_PragmaUninterruptible {
+  public static void rootScan (Object objRef) throws VM_PragmaUninterruptible, VM_PragmaNoInline {
     scan(VM_Magic.objectAsAddress(objRef), true);
   }
-  public static void rootScan (VM_Address object) throws VM_PragmaUninterruptible {
+  public static void rootScan (VM_Address object) throws VM_PragmaUninterruptible, VM_PragmaNoInline {
     scan(object, true);
   }
 
-  public static boolean validateRefs( VM_Address ref, int depth ) throws VM_PragmaUninterruptible {
+  public static boolean validateRefs( VM_Address ref, int depth ) 
+      throws VM_PragmaUninterruptible, VM_PragmaNoInline {
 
     VM_Type    type;
 
     if (ref.isZero()) return true;   // null is always valid
 
     // First check passed ref, before looking into it for refs
-    if ( !Util.validRef(ref) ) {
+    if ( !Util.validRef (ref) ) {
       VM.sysWrite("ScanObject.validateRefs: Bad Ref = ");
-      Util.dumpRef( ref );
       VM_Memory.dumpMemory(ref, 32, 32 );  // dump 16 words on either side of bad ref
       return false;
     }
@@ -132,11 +126,9 @@ public class ScanObject implements VM_Constants, Constants {
       for (int i = 0, n=referenceOffsets.length; i < n; i++) {
         VM_Address iref = VM_Magic.getMemoryAddress(ref.add(referenceOffsets[i]));
         if ( ! validateRefs( iref, depth-1 ) ) {
-          VM.sysWrite("Referenced from Object: Ref = ");
-          Util.dumpRef( ref );
+          VM.sysWrite("Referenced from Object: Ref = ", ref);
           VM.sysWrite("                  At Offset = ");
-          VM.sysWrite(referenceOffsets[i],false);
-          VM.sysWrite("\n");
+          VM.sysWriteln(referenceOffsets[i]);
           return false;
         }
       }
@@ -148,15 +140,11 @@ public class ScanObject implements VM_Constants, Constants {
         int location = 0;    // for arrays = offset of [0] entry
         int end      = num_elements * 4;
         for ( location = 0; location < end; location += 4 ) {
-          VM_Address iref = VM_Address.fromInt(VM_Magic.getMemoryWord(ref.add(location)));
+          VM_Address iref = VM_Magic.getMemoryAddress(ref.add(location));
           if ( ! validateRefs( iref, depth-1 ) ) {
-            VM.sysWrite("Referenced from Array: Ref = ");
-            Util.dumpRef( ref );
-            VM.sysWrite("                  At Index = ");
-            VM.sysWrite((location>>2),false);
-            VM.sysWrite("              Array Length = ");
-            VM.sysWrite(num_elements,false);
-            VM.sysWrite("\n");
+            VM.sysWrite("Referenced from Array: Ref = ", ref);
+            VM.sysWrite("                  At Index = ", location>>2);
+            VM.sysWriteln("              Array Length = ", num_elements);
             return false;
           }
         }

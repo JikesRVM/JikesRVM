@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.adaptive.VM_RuntimeMeasurements;
 //-#endif
@@ -47,7 +48,7 @@ public final class VM_RecompilationManager {
 	      if (DEBUG) VM.sysWrite("Not recompiling native method "+meth+"("+cmid+")\n");
 	    } else {
 	      if (DEBUG||report) VM.sysWrite("Recompiling "+meth+"("+cmid+") ");
-	      recompile(meth);
+	      recompile((VM_NormalMethod)meth);
 	      if (DEBUG||report) VM.sysWrite("...done\n");
 	    }
 	  }
@@ -68,7 +69,7 @@ public final class VM_RecompilationManager {
   /**
    * recompile and replace the argument method by invoking the runtime compiler
    */
-  public static void recompile(VM_Method meth) {
+  public static void recompile(VM_NormalMethod meth) {
     try {
       VM_CompiledMethod cm = VM_RuntimeCompiler.compile(meth);
       meth.replaceCompiledMethod(cm);

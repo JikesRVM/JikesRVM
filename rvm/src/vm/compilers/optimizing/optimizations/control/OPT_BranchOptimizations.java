@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.JikesRVM.classloader.VM_TypeReference;
 import java.util.HashMap;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -528,7 +529,7 @@ public final class OPT_BranchOptimizations
 				    OPT_Operand val2, 
 				    OPT_ConditionOperand cond) {
     if ((val1 instanceof OPT_RegisterOperand) && 
-        ((OPT_RegisterOperand)val1).type == OPT_ClassLoaderProxy.BooleanType && 
+        ((OPT_RegisterOperand)val1).type.isBooleanType() && 
 	(val2 instanceof OPT_IntConstantOperand)) {
       int value = ((OPT_IntConstantOperand)val2).value;
       if (VM.VerifyAssertions && (value != 0) && (value != 1))
@@ -1053,7 +1054,7 @@ public final class OPT_BranchOptimizations
       int fv = ((OPT_IntConstantOperand)fr).value;
       if (!((tv == 1 && fv == 0) || (tv == 1 && fv == 0)))
         return false;
-      OPT_RegisterOperand t = ir.regpool.makeTemp(OPT_ClassLoaderProxy.BooleanType);
+      OPT_RegisterOperand t = ir.regpool.makeTemp(VM_TypeReference.Boolean);
       // Cases 1) and 2)
       if (tv == 0)
         condition = condition.flipCode();

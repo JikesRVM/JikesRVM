@@ -9,6 +9,9 @@ import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.adaptive.OSR_OnStackReplacementPlan;
+//-#endif
 
 /**
  *  This class is a separate thread whose job is to monitor a (priority)
@@ -23,6 +26,10 @@ import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
  *  @author David Grove
  */
 class VM_CompilationThread extends VM_Thread {
+
+  public String toString() {
+    return "VM_CompilationThread";
+  }
 
   /**
    * constructor
@@ -42,9 +49,17 @@ class VM_CompilationThread extends VM_Thread {
     // Make a blocking call to deleteMin to get a plan and then execute it. 
     // Repeat...
     while (true) {
-      VM_ControllerPlan plan = 
-	(VM_ControllerPlan)VM_Controller.compilationQueue.deleteMin();
+      //-#if RVM_WITH_OSR
+      Object plan = VM_Controller.compilationQueue.deleteMin();
+      if (plan instanceof VM_ControllerPlan) {
+	recompile((VM_ControllerPlan)plan);
+      } else if (plan instanceof OSR_OnStackReplacementPlan) {
+	((OSR_OnStackReplacementPlan)plan).execute();
+      }
+      //-#else
+      VM_ControllerPlan plan = (VM_ControllerPlan)VM_Controller.compilationQueue.deleteMin();
       recompile(plan);
+      //-#endif
     }
   }
 
@@ -69,17 +84,19 @@ class VM_CompilationThread extends VM_Thread {
     
     // Compile the method.
     int newCMID = VM_RuntimeOptCompilerInfrastructure.recompileWithOpt(cp);
-
-    // transfer the samples from the old CMID to the new CMID.
-    // scale the number of samples down by the expected speedup 
-    // in the newly compiled method.
     int prevCMID = plan.getPrevCMID();
-    double expectedSpeedup = plan.getExpectedSpeedup();
-    double oldNumSamples = VM_Controller.methodSamples.getData(prevCMID);
-    double newNumSamples = oldNumSamples / expectedSpeedup;
-    VM_Controller.methodSamples.reset(prevCMID);
-    if (newCMID > -1) {
-      VM_Controller.methodSamples.augmentData(newCMID, newNumSamples);
+
+    if (VM_Controller.options.sampling()) {
+      // transfer the samples from the old CMID to the new CMID.
+      // scale the number of samples down by the expected speedup 
+      // in the newly compiled method.
+      double expectedSpeedup = plan.getExpectedSpeedup();
+      double oldNumSamples = VM_Controller.methodSamples.getData(prevCMID);
+      double newNumSamples = oldNumSamples / expectedSpeedup;
+      VM_Controller.methodSamples.reset(prevCMID);
+      if (newCMID > -1) {
+	VM_Controller.methodSamples.augmentData(newCMID, newNumSamples);
+      }
     }
 
     // set the status of the plan accordingly
@@ -97,6 +114,7 @@ class VM_CompilationThread extends VM_Thread {
 	VM_AOSLogging.recompilationAborted(cp);
       } else {
 	VM_AOSLogging.recompilationCompleted(cp);
+        VM_AOSLogging.debug("New CMID " + newCMID);
       }
     }
   }

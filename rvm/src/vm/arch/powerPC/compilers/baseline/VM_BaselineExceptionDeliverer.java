@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  *  Handle exception delivery and stack unwinding for methods compiled 
  * by baseline compiler.
@@ -18,11 +19,11 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
    * Pass control to a catch block.
    */
   public void deliverException(VM_CompiledMethod compiledMethod,
-			VM_Address        catchBlockInstructionAddress,
-			Throwable         exceptionObject,
-			VM_Registers      registers) {
+			       VM_Address        catchBlockInstructionAddress,
+			       Throwable         exceptionObject,
+			       VM_Registers      registers) {
     VM_Address fp    = registers.getInnermostFramePointer();
-    VM_Method method = compiledMethod.getMethod();
+    VM_NormalMethod method = (VM_NormalMethod)compiledMethod.getMethod();
 
     // reset sp to "empty expression stack" state
     //
@@ -31,7 +32,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     // push exception object as argument to catch block
     //
     sp = sp.sub(4);
-    VM_Magic.setMemoryWord(sp, VM_Magic.objectAsAddress(exceptionObject).toInt());
+    VM_Magic.setMemoryAddress(sp, VM_Magic.objectAsAddress(exceptionObject));
     registers.gprs[SP] = sp.toInt();
 
     // set address at which to resume executing frame
@@ -52,7 +53,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
    * Unwind a stackframe.
    */
   public void unwindStackFrame(VM_CompiledMethod compiledMethod, VM_Registers registers) {
-    VM_Method method = compiledMethod.getMethod();
+    VM_NormalMethod method = (VM_NormalMethod)compiledMethod.getMethod();
     if (method.isSynchronized()) { 
       VM_Address ip = registers.getInnermostInstructionAddress();
       VM_Address base = VM_Magic.objectAsAddress(compiledMethod.getInstructions());

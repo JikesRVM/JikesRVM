@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
+
 /**
  * A pragma that can be used to declare that a 
  * particular method is interruptible.  
@@ -13,8 +15,8 @@ package com.ibm.JikesRVM;
  * @author Dave Grove
  */
 public class VM_PragmaInterruptible extends VM_PragmaException {
-  private static final VM_Class vmClass = getVMClass(VM_PragmaInterruptible.class);
+  private static final VM_TypeReference me = getTypeRef("Lcom/ibm/JikesRVM/VM_PragmaInterruptible;");
   public static boolean declaredBy(VM_Method method) {
-    return declaredBy(vmClass, method);
+    return declaredBy(me, method);
   }
 }

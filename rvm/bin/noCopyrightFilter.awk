@@ -9,12 +9,14 @@
 #
 # Files that don't have a copyright notice
 #
+/\/bin\/classpath.stamp/ { next }
 /\/bin\/ids\/rvmrt.stamp/ { next }
 /\/bin\/ids\/set\/R-/ { next }
 
 /\/doc\/userguide\// { next }
 
 /\/regression\/tests\/SPECjbb2000\/SPECjbb./ { next }
+/\/regression\/tests\/mauve\/mauve-jikesrvm/ {next}
 
 /\/tests\/javalex\/qb1.lex.ref/ { next }
 

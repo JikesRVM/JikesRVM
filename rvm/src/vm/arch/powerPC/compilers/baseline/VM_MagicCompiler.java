@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 /**
  *  Generate inline machine instructions for special methods that cannot be 
  *  implemented in java bytecodes. These instructions are generated whenever  
@@ -43,7 +44,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
   //           method whose name indicates semantics of code to be generated
   // Returned: true if there was magic defined for the method
   //
-  static boolean  generateInlineCode(VM_Compiler compiler, VM_Method methodToBeCalled) {
+  static boolean  generateInlineCode(VM_Compiler compiler, VM_MethodReference methodToBeCalled) {
     VM_Atom      methodName       = methodToBeCalled.getName();
     VM_Assembler asm              = compiler.asm;
     int          spSaveAreaOffset = compiler.spSaveAreaOffset;
@@ -184,12 +185,12 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitL  (T0, 0, SP); // t0 := address of VM_Processor object
       asm.emitCAL(SP, 4, SP); // pop arg
       asm.emitLtoc(S0, VM_Entrypoints.getTimeInstructionsField.getOffset());
-      asm.emitMTLR(S0);
+      asm.emitMTCTR(S0);
       asm.emitCall(spSaveAreaOffset);             // call out of line machine code
       asm.emitSTFDU (F0, -8, SP); // push return value
     } else if (methodName == VM_MagicNames.invokeMain) {
       asm.emitL   (T0, 0, SP); // t0 := ip
-      asm.emitMTLR(T0);
+      asm.emitMTCTR(T0);
       asm.emitCAL (SP, 4, SP); // pop ip
       asm.emitL   (T0, 0, SP); // t0 := parameter
       asm.emitCall(spSaveAreaOffset);          // call
@@ -197,7 +198,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     } else if (methodName == VM_MagicNames.invokeClassInitializer) {
       asm.emitL   (T0, 0, SP); // t0 := address to be called
       asm.emitCAL (SP, 4, SP); // pop ip
-      asm.emitMTLR(T0);
+      asm.emitMTCTR(T0);
       asm.emitCall(spSaveAreaOffset);          // call
     } else if (methodName == VM_MagicNames.invokeMethodReturningVoid) {
       generateMethodInvocation(asm, spSaveAreaOffset); // call method
@@ -260,12 +261,14 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitL  (T2, +4, SP); // pop newvalue high 
       asm.emitSTX(T2, T1, T0); // *(object+offset) = newvalue high
       asm.emitCAL(SP, 16, SP); // drop all args
-    } else if (methodName == VM_MagicNames.getMemoryWord ||
+    } else if (methodName == VM_MagicNames.getMemoryInt ||
+	       methodName == VM_MagicNames.getMemoryWord ||
 	       methodName == VM_MagicNames.getMemoryAddress) {
       asm.emitL  (T0,  0, SP); // address
       asm.emitL  (T0,  0, T0); // *address
       asm.emitST (T0,  0, SP); // *sp := *address
-    } else if (methodName == VM_MagicNames.setMemoryWord ||
+    } else if (methodName == VM_MagicNames.setMemoryInt ||
+	       methodName == VM_MagicNames.setMemoryWord ||
 	       methodName == VM_MagicNames.setMemoryAddress) {
       asm.emitL  (T0,  4, SP); // address
       asm.emitL  (T1,  0, SP); // value
@@ -296,21 +299,17 @@ class VM_MagicCompiler implements VM_BaselineConstants,
 	fr.resolve(asm);
 	asm.emitSTU   (T0,  12, SP);  // push success of conditional store
       }
-    } else if (methodName == VM_MagicNames.setThreadSwitchBit) {
-      asm.emitCRORC(THREAD_SWITCH_BIT, 0, 0);
-    } else if (methodName == VM_MagicNames.clearThreadSwitchBit) {
-      asm.emitCRANDC(THREAD_SWITCH_BIT, 0, 0);
     } else if (methodName == VM_MagicNames.saveThreadState) {
       asm.emitL   (T0, 0, SP); // T0 := address of VM_Registers object
       asm.emitLtoc(S0, VM_Entrypoints.saveThreadStateInstructionsField.getOffset());
-      asm.emitMTLR(S0);
+      asm.emitMTCTR(S0);
       asm.emitCall(spSaveAreaOffset); // call out of line machine code
       asm.emitCAL(SP, 4, SP);  // pop arg
     } else if (methodName == VM_MagicNames.threadSwitch) {
       asm.emitL(T0, 4, SP); // T0 := address of previous VM_Thread object
       asm.emitL(T1, 0, SP); // T1 := address of VM_Registers of new thread
       asm.emitLtoc(S0, VM_Entrypoints.threadSwitchInstructionsField.getOffset());
-      asm.emitMTLR(S0);
+      asm.emitMTCTR(S0);
       asm.emitCall(spSaveAreaOffset);
       asm.emitCAL(SP, 8, SP);  // pop two args
     } else if (methodName == VM_MagicNames.restoreHardwareExceptionState) {
@@ -401,8 +400,6 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitL(T0, 0, SP);    // address
       asm.emitCAL(SP, 4, SP);  // pop
       asm.emitICBI(0, T0);
-    } else if (methodName == VM_MagicNames.pragmaNoOptCompile) {
-      // meaningless;  for the optimizing compiler forces baseline compilation
     } else if (methodName == VM_MagicNames.wordFromInt ||
 	       methodName == VM_MagicNames.wordToInt ||
 	       methodName == VM_MagicNames.wordToAddress ||
@@ -513,7 +510,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
   // Taken:   VM_Method of the magic method being called
   // Returned: true if method causes a stackframe to be created
   //
-  public static boolean checkForActualCall(VM_Method methodToBeCalled) {
+  public static boolean checkForActualCall(VM_MethodReference methodToBeCalled) {
     VM_Atom methodName = methodToBeCalled.getName();
     return methodName == VM_MagicNames.invokeMain                  ||
       methodName == VM_MagicNames.invokeClassInitializer      ||
@@ -556,7 +553,7 @@ class VM_MagicCompiler implements VM_BaselineConstants,
     //
     asm.emitLtoc (S0, VM_Entrypoints.reflectiveMethodInvokerInstructionsField.getOffset());
     asm.emitL    (T0, 12, SP);        // t0 := code
-    asm.emitMTLR (S0);
+    asm.emitMTCTR (S0);
     asm.emitL    (T1,  8, SP);        // t1 := gprs
     asm.emitL    (T2,  4, SP);        // t2 := fprs
     asm.emitL    (T3,  0, SP);        // t3 := spills

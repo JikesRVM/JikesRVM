@@ -5,6 +5,8 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+
 import com.ibm.JikesRVM.BootImageInterface;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
@@ -24,7 +26,7 @@ import com.ibm.JikesRVM.VM_Memory;
  * 
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  */
-public abstract class SimpleRCBaseHeader implements VM_Constants {
+public abstract class SimpleRCBaseHeader implements VM_Constants, Constants {
 
   /**
    * How many bytes are used by all GC header fields?
@@ -71,7 +73,10 @@ public abstract class SimpleRCBaseHeader implements VM_Constants {
 
   public static boolean isLiveRC(Object obj) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return VM_Magic.getIntAtOffset(obj, RC_HEADER_OFFSET) >= INCREMENT;
+    if (Plan.sanityTracing) {
+      return (VM_Magic.getIntAtOffset(obj, RC_HEADER_OFFSET) & INCREMENT_MASK) >= INCREMENT;
+    } else
+      return VM_Magic.getIntAtOffset(obj, RC_HEADER_OFFSET) >= INCREMENT;
   }
 
   public static void incRC(Object object)
@@ -81,7 +86,37 @@ public abstract class SimpleRCBaseHeader implements VM_Constants {
 
   public static boolean decRC(Object object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    return (changeRC(object, -INCREMENT) < INCREMENT);
+    int result = changeRC(object, -INCREMENT);
+    if (Plan.sanityTracing) {
+      return (result & INCREMENT_MASK) < INCREMENT;
+    } else
+      return (result < INCREMENT);
+  }
+
+  public static int getRC(Object object)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    if (Plan.sanityTracing) {
+      int rc = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) & INCREMENT_MASK;
+      return rc>>INCREMENT_SHIFT;
+    } else {
+      return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>INCREMENT_SHIFT;
+    }
+  }
+
+  public static boolean incTraceRC(Object object)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return (changeRC(object, SANITY_INCREMENT) >> SANITY_SHIFT) == 1;
+  }
+  public static int getTracingRC(Object object)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
+    return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>SANITY_SHIFT;
+  }
+  public static void clearTracingRC(Object object)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
+    int old = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
+    VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, old & ~SANITY_MASK);
   }
 
   private static int changeRC(Object object, int delta)
@@ -228,6 +263,12 @@ public abstract class SimpleRCBaseHeader implements VM_Constants {
   private static final int BITS_USED = 4;
 
   private static final int CYCLE_DETECTION_BITS = (Plan.refCountCycleDetection) ? BITS_USED : 0;
-  protected static final int INCREMENT = 1<<CYCLE_DETECTION_BITS;
-
+  protected static final int INCREMENT_SHIFT = CYCLE_DETECTION_BITS;
+  protected static final int INCREMENT = 1<<INCREMENT_SHIFT;
+  protected static final int AVAILABLE_BITS = WORD_BITS - CYCLE_DETECTION_BITS;
+  protected static final int INCREMENT_BITS = (Plan.sanityTracing) ? AVAILABLE_BITS>>1 : AVAILABLE_BITS;
+  protected static final int INCREMENT_MASK = ((1<<INCREMENT_BITS)-1)<<INCREMENT_SHIFT;
+  protected static final int SANITY_SHIFT = INCREMENT_SHIFT + INCREMENT_BITS;
+  protected static final int SANITY_INCREMENT = 1<<SANITY_SHIFT;
+  protected static final int SANITY_MASK = ((1<<INCREMENT_BITS)-1)<<SANITY_SHIFT;
 }

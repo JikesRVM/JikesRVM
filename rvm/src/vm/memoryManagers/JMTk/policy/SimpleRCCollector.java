@@ -19,6 +19,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_JavaHeader;
+import com.ibm.JikesRVM.VM_Scheduler; // remove, just for debugging
 /**
  * Each instance of this class corresponds to one mark-sweep *space*.
  * Each of the instance methods of this class may be called by any
@@ -41,6 +42,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   // particular space that is collected under a mark-sweep policy).
   //
 
+  public static boolean bootMark = false;
   /**
    * Constructor
    *
@@ -80,22 +82,17 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
    * Prepare for a new collection increment.  For the mark-sweep
    * collector we must flip the state of the mark bit between
    * collections.
-   *
-   * @param vm (unused)
-   * @param mr (unused)
    */
-  public void prepare(VMResource vm, MemoryResource mr) { 
+  public void prepare() { 
+    bootMark = !bootMark;
     phase = PROCESS;
   }
 
   /**
    * A new collection increment has completed.  For the mark-sweep
    * collector this means we can perform the sweep phase.
-   *
-   * @param vm (unused)
-   * @param mr (unused)
    */
-  public void release(SimpleRCAllocator allocator) { 
+  public void release() { 
   }
 
 
@@ -117,7 +114,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
    */
   public final void postAlloc(VM_Address cell, boolean isScalar,
 			      EXTENT bytes, boolean small, boolean large,
-			      boolean copy, SimpleRCAllocator allocator)
+			      SimpleRCAllocator allocator)
     throws VM_PragmaInline {
   }
 
@@ -132,7 +129,26 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline {
      return SimpleRCBaseHeader.isLiveRC(obj);
    }
-
+  public static void postAllocImmortal(VM_Address object) {
+    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
+    
+    if (bootMark) {
+      SimpleRCBaseHeader.setBufferedBit(object);
+    } else {
+      SimpleRCBaseHeader.clearBufferedBit(object);
+    }
+  }
+  public final VM_Address traceBootObject(VM_Address object) {
+    if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
+    if (bootMark && !SimpleRCBaseHeader.isBuffered(object)) {
+      SimpleRCBaseHeader.setBufferedBit(object);
+      Plan.enqueue(object);
+    } else if (!bootMark && SimpleRCBaseHeader.isBuffered(object)) {
+      SimpleRCBaseHeader.clearBufferedBit(object);
+      Plan.enqueue(object);
+    }
+    return object;
+  }
   /**
    * Trace a reference to an object.
    *
@@ -145,9 +161,18 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline {
     switch (phase) {
     case PROCESS:  
-      increment(object);
-      if (root)
-	VM_Interface.getPlan().addToRootSet(object); 
+      if (Plan.sanityTracing) {
+	incrementTraceCount(object);
+	if (root) {
+	  increment(object);
+	  VM_Interface.getPlan().addToRootSet(object); 
+	}
+      } else {
+	//	if (VM.VerifyAssertions) VM._assert(root);
+	increment(object);
+	if (root)
+	  VM_Interface.getPlan().addToRootSet(object); 
+      }
       break;
     case DECREMENT: 
       VM_Interface.getPlan().addToDecBuf(object); 
@@ -189,6 +214,14 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
       return SimpleRCBaseHeader.SMALL_OBJECT_MASK;
     else
       return 0;
+  }
+
+  public final void incrementTraceCount(VM_Address object) 
+    throws VM_PragmaInline {
+    if (SimpleRCBaseHeader.incTraceRC(object)) {
+      VM_Interface.getPlan().addToTraceBuffer(object); 
+      Plan.enqueue(object);
+    }
   }
 
   public final void increment(VM_Address object) 
@@ -239,6 +272,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   }
   public final void scanPhase() 
     throws VM_PragmaInline {
+    resetVisitCount();
     phase = SCAN;
   }
   public final void scanBlackPhase() 
@@ -282,10 +316,18 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
     if (SimpleRCBaseHeader.makePurple(object))
       plan.addToCycleBuf(VM_Magic.objectAsAddress(object));
   }
-
+  private int visitCount;
+  public void resetVisitCount() {
+    visitCount = 0;
+  }
+  public int getVisitCount() throws VM_PragmaInline {
+    return visitCount;
+  }
   public final void markGrey(VM_Address object)
     throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
+      visitCount++;
       if (!SimpleRCBaseHeader.isGrey(object)) {
 	SimpleRCBaseHeader.makeGrey(object);
 	ScanObject.scan(object);
@@ -295,6 +337,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   }
   public final void scan(VM_Address object)
     throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
       if (SimpleRCBaseHeader.isGrey(object)) {
 	if (SimpleRCBaseHeader.isLiveRC(object)) {
@@ -305,14 +348,16 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
 	  SimpleRCBaseHeader.makeWhite(object);
 	  ScanObject.scan(object);
 	}
-      }
+      } 
       object = workQueue.pop();
     }
   }
   public final void scanBlack(VM_Address object) 
     throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(blackQueue.pop().isZero());
     while (!object.isZero()) {
-      if (!SimpleRCBaseHeader.isGreen(object)) {
+      //      if (!SimpleRCBaseHeader.isGreen(object)) {
+      if (!SimpleRCBaseHeader.isGreen(object) && !SimpleRCBaseHeader.isBlack(object)) {  // FIXME can't this just be if (isGrey(object)) ??
 	SimpleRCBaseHeader.makeBlack(object);
 	ScanObject.scan(object);
       }
@@ -321,6 +366,7 @@ final class SimpleRCCollector implements Constants, VM_Uninterruptible {
   }
   public final void collectWhite(VM_Address object, Plan plan)
     throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
       if (SimpleRCBaseHeader.isWhite(object) && 
 	  !SimpleRCBaseHeader.isBuffered(object)) {

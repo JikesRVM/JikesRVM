@@ -240,12 +240,7 @@ public class JikesRVMRunner implements IVMRunner {
       if (arg.equals("-verify")) continue;
       if (validateVMArgument(arg, result)) result.add(arg);
     }
-    //XXX This is basically a shitty hack
-    String rvmBuild = install().getRvmBuild();
-    if (rvmBuild != null && rvmBuild.indexOf("Adaptive") != -1) {
-      result.add("-X:aos:primary_strategy=baseonly");
-      result.add("-X:aos:gather_profile_data=true");
-    }
+
     return (String[])result.toArray(new String[0]);
   }
 

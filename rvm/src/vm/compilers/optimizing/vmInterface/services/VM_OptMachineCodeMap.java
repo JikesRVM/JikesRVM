@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -94,7 +95,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * @param MCOffset the machine code offset of interest
    * @return null if unknown
    */
-  public final VM_Method getMethodForMCOffset(int MCOffset) {
+  public final VM_NormalMethod getMethodForMCOffset(int MCOffset) {
     int entry = findMCEntry(MCOffset);
     if (entry == -1)
       return  null;
@@ -102,7 +103,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
     if (iei == -1)
       return  null;
     int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-    return VM_MethodDictionary.getValue(mid);
+    return (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
   }
 
   /**
@@ -150,7 +151,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
         int iei = getInlineEncodingIndex(entry);
         if (iei != -1) {
           int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-          if (mid == caller.getDictionaryId()) {        // caller matches
+          if (mid == caller.getId()) {        // caller matches
 	    int callInfo = getCallInfo(entry);
 	    if (callInfo == IS_UNGUARDED_CALL) return true;
           }
@@ -501,7 +502,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
       boolean first = true;
       while (iei >= 0) {
 	int mid = VM_OptEncodedCallSiteTree.getMethodID(iei, inlineEncoding);
-	VM_Method meth = VM_MethodDictionary.getValue(mid);
+	VM_Method meth = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
 	if (first) {
 	  first = false;
 	  VM.sysWrite("\n\tIn method    " + meth + " at bytecode " + bci);
@@ -549,10 +550,10 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * Total bytes used by arrays of primitives to encode the machine code map
    */
   int size() {
-    int size = TYPE.getInstanceSize();
-    size += VM_Array.arrayOfLongType.getInstanceSize(MCInformation.length);
-    if (inlineEncoding != null) size += VM_Array.arrayOfIntType.getInstanceSize(inlineEncoding.length);
-    if (gcMaps != null) size += VM_Array.arrayOfIntType.getInstanceSize(gcMaps.length);
+    int size = TYPE.peekResolvedType().asClass().getInstanceSize();
+    if (MCInformation != null) size += VM_Array.LongArray.getInstanceSize(MCInformation.length);
+    if (inlineEncoding != null) size += VM_Array.IntArray.getInstanceSize(inlineEncoding.length);
+    if (gcMaps != null) size += VM_Array.IntArray.getInstanceSize(gcMaps.length);
     return size;
   }
 
@@ -653,5 +654,6 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
   private static int totalMCSize = 0;
   private static int totalMapSize = 0;
 
-  private static final VM_Class TYPE = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/VM_OptMachineCodeMap;"), VM_SystemClassLoader.getVMClassLoader()).asClass();
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/VM_OptMachineCodeMap;"));
 }

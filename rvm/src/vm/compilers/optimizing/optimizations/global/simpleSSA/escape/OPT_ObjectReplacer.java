@@ -3,10 +3,11 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
-import  java.util.*;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import java.util.*;
 
 /**
  * Class that performs scalar replacement of aggregates for non-array
@@ -33,7 +34,7 @@ public class OPT_ObjectReplacer
     // TODO :handle these cases
     if (containsUnsupportedUse(ir, r))
       return  null;
-    VM_Class klass = New.getType(inst).type.asClass();
+    VM_Class klass = New.getType(inst).getVMType().asClass();
     return  new OPT_ObjectReplacer(r, klass, ir);
   }
 
@@ -60,7 +61,7 @@ public class OPT_ObjectReplacer
     OPT_DefUse.removeInstructionAndUpdateDU(defI);
     // now handle the uses
     for (OPT_RegisterOperand use = reg.useList; use != null; 
-        use = (OPT_RegisterOperand)use.getNext()) {
+	 use = (OPT_RegisterOperand)use.getNext()) {
       scalarReplace(use, scalars);
     }
   }
@@ -114,14 +115,16 @@ public class OPT_ObjectReplacer
    *		      the object's fields with
    */
   private void scalarReplace (OPT_RegisterOperand use, 
-      OPT_RegisterOperand[] scalars) {
+			      OPT_RegisterOperand[] scalars) {
     OPT_Instruction inst = use.instruction;
     switch (inst.getOpcode()) {
       case PUTFIELD_opcode:
         {
-          VM_Field f = PutField.getLocation(inst).field;
+          VM_FieldReference fr = PutField.getLocation(inst).getFieldRef();
+	  if (VM.VerifyAssertions) VM._assert(fr.isResolved());
+	  VM_Field f = fr.peekResolvedField();
           int index = fields.indexOf(f);
-          VM_Type type = scalars[index].type;
+          VM_TypeReference type = scalars[index].type;
           OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
           OPT_Instruction i = Move.create(moveOp, scalars[index], 
               PutField.getValue(inst));
@@ -132,9 +135,11 @@ public class OPT_ObjectReplacer
         break;
       case GETFIELD_opcode:
         {
-          VM_Field f = GetField.getLocation(inst).field;
+          VM_FieldReference fr = GetField.getLocation(inst).getFieldRef();
+	  if (VM.VerifyAssertions) VM._assert(fr.isResolved());
+	  VM_Field f = fr.peekResolvedField();
           int index = fields.indexOf(f);
-          VM_Type type = scalars[index].type;
+          VM_TypeReference type = scalars[index].type;
           OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
           OPT_Instruction i = Move.create(moveOp, GetField.getClearResult(inst), 
               scalars[index]);

@@ -7,9 +7,6 @@
  */
 
 import com.ibm.JikesRVM.VM_PragmaNoInline;
-//-#if RVM_WITH_JMTK
-import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
-//-#endif
 
 class LargeAlloc {
 
@@ -28,18 +25,17 @@ class LargeAlloc {
       base = true;
     allocSize = base ? 500 : 3000;
     runTest();
+
+    System.exit(0);
   }
 
+  static double timeLimit = 300.0;
 
   public static void runTest() throws Throwable {
 
     System.out.println("LargeAlloc running with " + allocSize + " Mb of allocation");
     System.out.println("Run with verbose GC on and make sure space accounting is not leaking");
     System.out.println();
-
-    //-#if RVM_WITH_JMTK
-    Plan.verbose = 3;
-    //-#endif
 
     long lastUsed = 0;
     long used = 0;
@@ -58,6 +54,12 @@ class LargeAlloc {
 	long cur = System.currentTimeMillis();
 	System.out.println("Allocated " + (used >> 20) + " Mb at time " + ((cur - start) / 1000.0) + " sec");
 	lastUsed = used;
+      }
+      long cur = System.currentTimeMillis();
+      double elapsed = (cur - start) / 1000.0;
+      if (elapsed > timeLimit) {
+	System.out.println("Exitting because exceeded time limit of " + timeLimit + " seconds");
+	break;
       }
     }
     System.gc();

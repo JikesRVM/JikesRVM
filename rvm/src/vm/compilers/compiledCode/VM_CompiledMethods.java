@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
@@ -34,8 +35,6 @@ public class VM_CompiledMethods {
       //-#if RVM_WITH_OPT_COMPILER
       cm = new VM_OptCompiledMethod(id, m);
       //-#endif
-    } else if (compilerType == VM_CompiledMethod.TRAP) {
-      cm = new VM_HardwareTrapCompiledMethod(id, m);
     } else if (compilerType == VM_CompiledMethod.JNI) {
       cm = new VM_JNICompiledMethod(id, m);
     } else {
@@ -45,6 +44,20 @@ public class VM_CompiledMethods {
     return cm;
   }
 
+  /**
+   * Create a VM_CompiledMethod for the synthetic hardware trap frame
+   */
+  static synchronized VM_CompiledMethod createHardwareTrapCompiledMethod() {
+    int id = ++currentCompiledMethodId;
+    if (id == compiledMethods.length) {
+      compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length); 
+    }
+    VM_CompiledMethod cm = new VM_HardwareTrapCompiledMethod(id, null);
+    compiledMethods[id] = cm;
+    return cm;
+  }
+
+
   // Fetch a previously compiled method.
   //
   public static VM_CompiledMethod getCompiledMethod(int compiledMethodId) throws VM_PragmaUninterruptible {
@@ -52,8 +65,7 @@ public class VM_CompiledMethods {
 
     if (VM.VerifyAssertions) {
 	if (!(0 < compiledMethodId && compiledMethodId <= currentCompiledMethodId)) {
-	    VM.sysWrite(compiledMethodId, true);
-	    VM.sysWrite("\n");
+	    VM.sysWriteln(compiledMethodId);
 	    VM._assert(false);
 	}
     }
@@ -124,7 +136,7 @@ public class VM_CompiledMethods {
   // can only be collected once we are certain that they are no longer being
   // executed. Here, we keep track of them until we know they are no longer
   // in use.
-  static synchronized void setCompiledMethodObsolete(VM_CompiledMethod compiledMethod) {
+  public static synchronized void setCompiledMethodObsolete(VM_CompiledMethod compiledMethod) {
     if (compiledMethod.isObsolete()) return; // someone else already marked it as obsolete.
     int	cmid = compiledMethod.getId();
 
@@ -133,7 +145,7 @@ public class VM_CompiledMethods {
     // and are not updated on recompilation.
     // !!TODO: When replacing a java.lang.Object method, find arrays in JTOC
     //	and update TIB to use newly recompiled method.
-    if (compiledMethod.getMethod().declaringClass.isJavaLangObjectType())
+    if (compiledMethod.getMethod().getDeclaringClass().isJavaLangObjectType())
       return;
 
     if (VM.VerifyAssertions) VM._assert(compiledMethods[cmid] != null);
@@ -185,7 +197,7 @@ public class VM_CompiledMethods {
     int[] codeCount = new int[5];
     int[] codeBytes = new int[5];
     int[] mapBytes = new int[5];
-    VM_Array codeArray = VM_Type.CodeType.asArray();
+    VM_Array codeArray = VM_Type.InstructionArrayType.asArray();
     for (int i=0; i<compiledMethods.length; i++) {
       VM_CompiledMethod cm = compiledMethods[i];
       if (cm == null || !cm.isCompiled()) continue;

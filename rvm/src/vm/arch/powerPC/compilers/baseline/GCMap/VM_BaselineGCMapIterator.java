@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
+import com.ibm.JikesRVM.classloader.*;
 
 /**
  * Iterator for stack frame  built by the Baseline compiler
@@ -32,8 +33,8 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //
   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
   private VM_Method      bridgeTarget;                   // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
-  private VM_Method      currentMethod;                  // method for the frame
-  private VM_Type[]      bridgeParameterTypes;           // parameter types passed by that method
+  private VM_NormalMethod currentMethod;                  // method for the frame
+  private VM_TypeReference[]      bridgeParameterTypes;           // parameter types passed by that method
   private boolean        bridgeParameterMappingRequired; // have all bridge parameters been mapped yet?
   private boolean        bridgeRegistersLocationUpdated; // have the register location been updated
   private int            bridgeParameterInitialIndex;    // first parameter to be mapped (-1 == "this")
@@ -67,7 +68,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //  NOTE: An iterator may be reused to scan a different method and map.
   //
   public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address fp) {
-    currentMethod = compiledMethod.getMethod();
+    currentMethod = (VM_NormalMethod)compiledMethod.getMethod();
 
     // setup superclass
     //
@@ -109,7 +110,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       int               callingInstructionOffset = ip.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions())).toInt();
 
       callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
-      bridgeTarget                = dynamicLink.methodRef();
+      bridgeTarget                = dynamicLink.methodRef().getResolvedMember();
       bridgeParameterInitialIndex = dynamicLink.isInvokedWithImplicitThisParameter() ? -1 : 0;
       bridgeParameterTypes        = bridgeTarget.getParameterTypes();
     }
@@ -129,7 +130,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       bridgeParameterMappingRequired = true;
       bridgeParameterIndex   = bridgeParameterInitialIndex;
       bridgeRegisterIndex    = FIRST_VOLATILE_GPR;
-      bridgeRegisterLocation = VM_Address.fromInt(VM_Magic.getMemoryWord(framePtr));
+      bridgeRegisterLocation = VM_Magic.getMemoryAddress(framePtr);
       bridgeRegisterLocation = bridgeRegisterLocation.sub(8 * (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) +
 							  4 * (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1));
     }
@@ -190,7 +191,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
 	  bridgeParameterMappingRequired = false;
 	  break;
 	}
-	VM_Type bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
+	VM_TypeReference bridgeParameterType = bridgeParameterTypes[bridgeParameterIndex++];
 	if (bridgeParameterType.isReferenceType()) {
 	  bridgeRegisterIndex    += 1;
 	  bridgeRegisterLocation = bridgeRegisterLocation.add(4);

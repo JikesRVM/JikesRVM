@@ -93,8 +93,8 @@ final class OPT_TailRecursionElimination extends OPT_CompilerPhase
   final boolean isTailRecursion(OPT_Instruction call, OPT_IR ir) {
     if (!Call.hasMethod(call)) return false;
     OPT_MethodOperand methOp = Call.getMethod(call);
-    if (!methOp.isSingleTarget()) return false;
-    if (methOp.method != ir.method) return false;
+    if (!methOp.hasPreciseTarget()) return false;
+    if (methOp.getTarget() != ir.method) return false;
     OPT_RegisterOperand result = Call.getResult(call);
     OPT_Instruction s = call.nextInstructionInCodeOrder();
     while (true) {

@@ -149,8 +149,8 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
   }
   static void notifyExit(int value) {
     if (!STATS) return;
-    VM.sysWrite("LockNursery: "); VM.sysWrite(lockNumber, false); VM.sysWrite(" nursery locks created\n");
-    VM.sysWrite("LockNursery: "); VM.sysWrite(lockOperations, false); VM.sysWrite(" nursery lock operations");
+    VM.sysWrite("LockNursery: "); VM.sysWrite(lockNumber); VM.sysWrite(" nursery locks created\n");
+    VM.sysWrite("LockNursery: "); VM.sysWrite(lockOperations); VM.sysWrite(" nursery lock operations");
     VM_Stats.percentage(lockOperations, value, "all lock operations");
   }
 }

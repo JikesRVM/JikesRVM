@@ -4,6 +4,7 @@
 // $Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
@@ -14,7 +15,6 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
  * @author Dave Grove
  * @author Derek Lieber
  */
-
 public class VM_BootImageCompiler {
 
   // If excludePattern is null, all methods are opt-compiled (or attempted).
@@ -25,7 +25,7 @@ public class VM_BootImageCompiler {
   private static boolean match(VM_Method method) {
     if (excludePattern == null) return true;
     VM_Class cls = method.getDeclaringClass();
-    String clsName = cls.getName();
+    String clsName = cls.toString();
     if (clsName.compareTo("com.ibm.JikesRVM.opt.VM_OptSaveVolatile") == 0) return true;
     String methodName = method.getName().toString();
     String fullName = clsName + "." + methodName;
@@ -78,23 +78,19 @@ public class VM_BootImageCompiler {
 
 
   /** 
-   * Compile a method.
+   * Compile a method with bytecodes.
    * @param method the method to compile
    * @return the compiled method
    */
-  public static VM_CompiledMethod compile(VM_Method method) {
-    if (method.isNative()) {
-      VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
-      return VM_JNICompiler.compile(method);
+  public static VM_CompiledMethod compile(VM_NormalMethod method) {
+    if (method.hasNoOptCompilePragma()) {
+      return baselineCompile(method);
     } else {
       VM_CompiledMethod cm = null;
       OPT_OptimizingCompilerException escape =  new OPT_OptimizingCompilerException(false);
       try {
 	VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.OPT);
 	boolean include = match(method);
-	// VM.sysWrite("Method ", method.getDeclaringClass().getName());
-	// VM.sysWrite(".", method.getName().toString());
-	// VM.sysWriteln(include ? " Opt-Compiled" : " Base-Compiled");
 	if (!include)
 	  throw escape;
 	long start = System.currentTimeMillis();
@@ -120,26 +116,39 @@ public class VM_BootImageCompiler {
 	    if (e.toString().indexOf("method excluded") >= 0) {
 	      String msg = "VM_BootImageCompiler: " + method + " excluded from opt-compilation\n"; 
 	      VM.sysWrite(msg);
-	    }
-	    else {
+	    } else {
 	      String msg = "VM_BootImageCompiler: can't optimize \"" + method + "\" (error was: " + e + ")\n"; 
 	      VM.sysWrite(msg);
 	    }
 	  }
 	}
-	VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
-	cm = VM_BaselineCompiler.compile(method);
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	// Must estimate compilation time by using offline ratios.
-	// It is tempting to time via System.currentTimeMillis()
-	// but 1 millisecond granularity isn't good enough because the 
-	// the baseline compiler is just too fast.
-	double compileTime = method.getBytecodes().length / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
-	cm.setCompilationTime(compileTime);
-	//-#endif
-	return cm;
+	return baselineCompile(method);
       }
     }
+  }
+
+  /** 
+   * Compile a native method.
+   * @param method the method to compile
+   * @return the compiled method
+   */
+  public static VM_CompiledMethod compile(VM_NativeMethod method) {
+    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
+    return VM_JNICompiler.compile(method);
+  }
+
+  private static VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
+    VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
+    VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
+    // Must estimate compilation time by using offline ratios.
+    // It is tempting to time via System.currentTimeMillis()
+    // but 1 millisecond granularity isn't good enough because the 
+    // the baseline compiler is just too fast.
+    double compileTime = method.getBytecodeLength() / com.ibm.JikesRVM.adaptive.VM_CompilerDNA.getBaselineCompilationRate();
+    cm.setCompilationTime(compileTime);
+    //-#endif
+    return cm;
   }
 
   /**

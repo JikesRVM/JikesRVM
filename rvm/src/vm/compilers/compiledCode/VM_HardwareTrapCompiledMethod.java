@@ -4,6 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.VM_Type;
+import com.ibm.JikesRVM.classloader.VM_Method;
+
 /**
  * Information associated with artifical stackframe inserted by hardware 
  * trap handler.

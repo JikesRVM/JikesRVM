@@ -28,8 +28,7 @@ import java.util.Enumeration;
  * <li> The non-volatile FPRs form a linked list, starting with
  * FIRST_NONVOLATILE_FPR and ending with LAST_NONVOLATILE_FPR
  * <li> The condition registers from a linked list, starting with
- * FIRST_CONDITION and ending with LAST_CONDITION, but excluding
- * THREAD_SWITCH_REGISTER
+ * FIRST_CONDITION and ending with LAST_CONDITION-1, which opt reserves for yieldpoints.
  * </ul>
  * <P> The register allocator allocates registers according to the order
  * in these lists.  For volatile registers, it traverses the lists in
@@ -54,6 +53,18 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
    * The set of volatile registers; cached for efficiency
    */
   private OPT_BitSet volatileSet;
+
+  /**
+   * The condition registers that we allocate
+   * To avoid expensive save/restores when
+   * making a JNI transition Jikes RVM only uses the
+   * CR that AIX defines to be volatile
+   * 
+   * We reserve one of the volatiles, CR7 for use only in yieldpoints.
+   * This ensures that a yieldpoint won't bash an allocated CR.
+   */
+  private static final int[] CR_NUMS = new int[] {0, 1, 5, 6};
+  private static final int TSR_REG = 7;
 
   /**
    * Return the total number of physical registers.
@@ -169,17 +180,14 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
     // 10. set up the condition registers
     int firstCR = -1;
     int prevCR = -1;
-    for (int i = 0; i < NUM_CRS; i++) {
-      // TSR is non-allocatable
-      if (i == THREAD_SWITCH_REGISTER)
-        continue;
+    for (int idx = 0; idx < CR_NUMS.length; idx++) {
+      int i = CR_NUMS[idx];
       reg[FIRST_CONDITION + i].setVolatile();
       if (prevCR != -1)
-        reg[FIRST_CONDITION + prevCR].linkWithNext(reg[FIRST_CONDITION 
-                                                   + i]);
+	reg[FIRST_CONDITION + prevCR].linkWithNext(reg[FIRST_CONDITION + i]);
       prevCR = i;
       if (firstCR == -1)
-        firstCR = i;
+	firstCR = i;
     }
 
     // 11. cache the volatiles for efficiency
@@ -198,7 +206,6 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
     reg[FRAME_POINTER].setExcludedLiveA();
     reg[JTOC_POINTER].setExcludedLiveA();
     reg[LR].setExcludedLiveA();
-
   }
 
   /**
@@ -212,7 +219,7 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
       case THREAD_ID_REGISTER:
         return false;
       default:
-        return  (r.number < FIRST_SPECIAL);
+        return (r.number < FIRST_SPECIAL);
     }
   }
 
@@ -220,168 +227,168 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
    * @return the XER register.
    */
   public OPT_Register getXER() {
-    return  reg[XER];
+    return reg[XER];
   }
 
   /**
    * @return the LR register;.
    */
   public OPT_Register getLR() {
-    return  reg[LR];
+    return reg[LR];
   }
 
   /**
    * @return the CTR register
    */
   public OPT_Register getCTR() {
-    return  reg[CTR];
+    return reg[CTR];
   }
 
   /**
    * @return the TU register
    */
   public OPT_Register getTU() {
-    return  reg[TU];
+    return reg[TU];
   }
 
   /**
    * @return the TL register
    */
   public OPT_Register getTL() {
-    return  reg[TL];
+    return reg[TL];
   }
 
   /**
    * @return the CR register
    */
   public OPT_Register getCR() {
-    return  reg[CR];
+    return reg[CR];
   }
 
   /**
    * @return the JTOC register
    */
   public OPT_Register getJTOC() {
-    return  reg[JTOC_POINTER];
+    return reg[JTOC_POINTER];
   }
 
   /**
    * @return the FP registers
    */
   public OPT_Register getFP() {
-    return  reg[FRAME_POINTER];
+    return reg[FRAME_POINTER];
   }
 
   /**
    * @return the TI register
    */
   public OPT_Register getTI() {
-    return  reg[THREAD_ID_REGISTER];
+    return reg[THREAD_ID_REGISTER];
   }
 
   /**
    * @return the processor register
    */
   public OPT_Register getPR() {
-    return  reg[PROCESSOR_REGISTER];
+    return reg[PROCESSOR_REGISTER];
   }
 
   /**
    * @return the thread-switch register
    */
   public OPT_Register getTSR() {
-    return  reg[FIRST_CONDITION + THREAD_SWITCH_REGISTER];
+    return reg[FIRST_CONDITION + TSR_REG]; 
   }
 
   /**
    * @return the nth physical GPR 
    */
   public OPT_Register getGPR(int n) {
-    return  reg[FIRST_INT + n];
+    return reg[FIRST_INT + n];
   }
 
   /**
    * @return the first scratch GPR
    */
   public OPT_Register getFirstScratchGPR() {
-    return  reg[FIRST_SCRATCH_GPR];
+    return reg[FIRST_SCRATCH_GPR];
   }
 
   /**
    * @return the last scratch GPR
    */
   public OPT_Register getLastScratchGPR() {
-    return  reg[LAST_SCRATCH_GPR];
+    return reg[LAST_SCRATCH_GPR];
   }
 
   /**
    * @return the first volatile GPR
    */
   public OPT_Register getFirstVolatileGPR() {
-    return  reg[FIRST_INT + FIRST_VOLATILE_GPR];
+    return reg[FIRST_INT + FIRST_VOLATILE_GPR];
   }
 
   /**
    * @return the first nonvolatile GPR
    */
   public OPT_Register getFirstNonvolatileGPR() {
-    return  reg[FIRST_INT + FIRST_NONVOLATILE_GPR];
+    return reg[FIRST_INT + FIRST_NONVOLATILE_GPR];
   }
 
   /**
    * @return the last nonvolatile GPR
    */
   public OPT_Register getLastNonvolatileGPR() {
-    return  reg[FIRST_INT + LAST_NONVOLATILE_GPR];
+    return reg[FIRST_INT + LAST_NONVOLATILE_GPR];
   }
 
   /**
    * @return the first GPR return
    */
   public OPT_Register getFirstReturnGPR() {
-    return  reg[FIRST_INT_RETURN];
+    return reg[FIRST_INT_RETURN];
   }
 
   /**
    * @return the nth physical FPR 
    */
   public OPT_Register getFPR(int n) {
-    return  reg[FIRST_DOUBLE + n];
+    return reg[FIRST_DOUBLE + n];
   }
 
   /**
    * @return the first scratch FPR
    */
   public OPT_Register getFirstScratchFPR() {
-    return  reg[FIRST_DOUBLE + FIRST_SCRATCH_FPR];
+    return reg[FIRST_DOUBLE + FIRST_SCRATCH_FPR];
   }
 
   /**
    * @return the first volatile FPR
    */
   public OPT_Register getFirstVolatileFPR() {
-    return  reg[FIRST_DOUBLE + FIRST_VOLATILE_FPR];
+    return reg[FIRST_DOUBLE + FIRST_VOLATILE_FPR];
   }
 
   /**
    * @return the last scratch FPR
    */
   public OPT_Register getLastScratchFPR() {
-    return  reg[FIRST_DOUBLE + LAST_SCRATCH_FPR];
+    return reg[FIRST_DOUBLE + LAST_SCRATCH_FPR];
   }
 
   /**
    * @return the first nonvolatile FPR
    */
   public OPT_Register getFirstNonvolatileFPR() {
-    return  reg[FIRST_DOUBLE + FIRST_NONVOLATILE_FPR];
+    return reg[FIRST_DOUBLE + FIRST_NONVOLATILE_FPR];
   }
 
   /**
    * @return the last nonvolatile FPR
    */
   public OPT_Register getLastNonvolatileFPR() {
-    return  reg[FIRST_DOUBLE + LAST_NONVOLATILE_FPR];
+    return reg[FIRST_DOUBLE + LAST_NONVOLATILE_FPR];
   }
 
 
@@ -389,14 +396,14 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
    * @return the nth physical condition register 
    */
   public OPT_Register getConditionRegister(int n) {
-    return  reg[FIRST_CONDITION + n];
+    return reg[FIRST_CONDITION + n];
   }
 
   /**
    * @return the first condition
    */
   public OPT_Register getFirstConditionRegister() {
-    return  reg[FIRST_CONDITION];
+    return reg[FIRST_CONDITION];
   }
 
   /**
@@ -406,13 +413,13 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
     if (VM.VerifyAssertions) {
       VM._assert(getFirstConditionRegister() != getTSR());
     }
-    return  getFirstConditionRegister();
+    return getFirstConditionRegister();
   }
   /**
    * @return the nth physical register in the pool. 
    */
   public OPT_Register get(int n) {
-    return  reg[n];
+    return reg[n];
   }
 
   /**
@@ -523,14 +530,14 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
    */
   static final int TEMP = FIRST_INT;   // temporary register (currently r0)
   public OPT_Register getTemp() {
-    return  reg[TEMP];
+    return reg[TEMP];
   }
   /**
    * Get the register name for a register with a particular number in the
    * pool
    */
   public static String getName(int number) {
-    return  registerName[number];
+    return registerName[number];
   }
   /**
    * Get the spill size for a register with a particular type
@@ -641,9 +648,15 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
    * Note that the TSR is non-volatile.
    */
   public Enumeration enumerateVolatileConditionRegisters() {
-    return new
-      PhysicalRegisterEnumeration(FIRST_CONDITION, FIRST_SPECIAL-1,
-                                  FIRST_CONDITION+THREAD_SWITCH_REGISTER);
+    return new Enumeration() {
+	private int idx = 0;
+	public Object nextElement() {
+	  return reg[FIRST_CONDITION + CR_NUMS[idx++]];
+	}
+	public boolean hasMoreElements() {
+	  return idx < CR_NUMS.length;
+	}
+      };
   }
 
   /**
@@ -759,24 +772,16 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
     private int start;
     private int end;
     private int index;
-    private int exclude = -1; // an index in the register range to exclude
+
     PhysicalRegisterEnumeration(int start, int end) {
       this.start = start;
       this.end = end;
       this.index = start;
     }
-    PhysicalRegisterEnumeration(int start, int end, int exclude) {
-      this.start = start;
-      this.end = end;
-      this.exclude = exclude;
-      this.index = start;
-    }
     public Object nextElement() {
-      if (index == exclude) index++;
       return reg[index++];
     }
     public boolean hasMoreElements() {
-      if (index == exclude) index++;
       return (index <= end);
     }
   }

@@ -9,17 +9,14 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
+import com.ibm.JikesRVM.classloader.*;
+
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_JavaHeader;
-import com.ibm.JikesRVM.VM_Atom;
-import com.ibm.JikesRVM.VM_Type;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Method;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -36,7 +33,6 @@ import com.ibm.JikesRVM.VM_Synchronizer;
 import com.ibm.JikesRVM.VM_Callbacks;
 import com.ibm.JikesRVM.VM_Statistic;
 import com.ibm.JikesRVM.VM_TimeStatistic;
-import com.ibm.JikesRVM.VM_TypeDictionary;
 
 /**
  * Contains common statistic, profiling, and debugging code
@@ -49,7 +45,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
 
   // Number and types of GC
-  static int gcExternalCount = 0;   // number of calls from System.gc
+  public static int gcExternalCount = 0;   // number of calls from System.gc
   static int gcCount = 0;           // number of minor collections
   static int gcMajorCount = 0;      // number of major collections
 
@@ -59,7 +55,6 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
   static final VM_Statistic majorBytesCopied = bytesCopied;
 
   // time spend in various phases
-  static final VM_TimeStatistic startTime = new VM_TimeStatistic();
   static final VM_TimeStatistic initTime = new VM_TimeStatistic();
   static final VM_TimeStatistic rootTime = new VM_TimeStatistic();
   static final VM_TimeStatistic scanTime = new VM_TimeStatistic();
@@ -131,25 +126,6 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
       printVerboseOutputLine(GCType);
       if (VM_CollectorThread.MEASURE_WAIT_TIMES)
         VM_CollectorThread.printThreadWaitTimes();
-      else {
-        if (WorkQueue.MEASURE_WAIT_TIMES) {
-          VM.sysWrite("*** Wait Times for Scanning \n");
-          WorkQueue.printAllWaitTimes();
-          WorkQueue.saveAllWaitTimes();
-          VM.sysWrite("*** Wait Times for Finalization \n");
-          WorkQueue.printAllWaitTimes();
-          WorkQueue.resetAllWaitTimes();
-        }
-      }
-
-      if (WorkQueue.WORKQUEUE_COUNTS) {
-        VM.sysWrite("*** Work Queue Counts for Scanning \n");
-        WorkQueue.printAllCounters();
-        WorkQueue.saveAllCounters();
-        VM.sysWrite("*** WorkQueue Counts for Finalization \n");
-        WorkQueue.printAllCounters();
-        WorkQueue.resetAllCounters();
-      }
 
       if (VM_CollectorThread.SHOW_RENDEZVOUS_TIMES) 
         VM_CollectorThread.gcBarrier.printRendezvousTimes();
@@ -160,7 +136,6 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
     // if invoked with -verbose:gc print output line for this last GC
     VM.sysWrite("<GC ", gcCount, "> ");
-    VM.sysWrite("startTime ", (int)(startTime.last()*1000000.0), "(us) ");
     VM.sysWrite("init ", (int)(initTime.last()*1000000.0), "(us) ");
     VM.sysWrite("stacks & statics ", (int)(rootTime.last()*1000000.0), "(us) ");
     VM.sysWrite("scanning ", (int)(scanTime.last()*1000.0), "(ms) ");
@@ -242,13 +217,13 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     }
 
     if (VM_Interface.verbose() >= 1 && gcCount>0) {
-      VM.sysWrite("Average Time in Phases of Collection:\n");
-      VM.sysWrite("startTime ", startTime.avgUs(), "(us) init ");
-      VM.sysWrite( initTime.avgUs(), "(us) stacks & statics ");
-      VM.sysWrite( rootTime.avgUs(), "(us) scanning ");
-      VM.sysWrite( scanTime.avgMs(), "(ms) finalize ");
-      VM.sysWrite( finalizeTime.avgUs(), "(us) finish ");
-      VM.sysWrite( finishTime.avgUs(), "(us)>\n\n");
+      VM.sysWrite("GC Summary: Average Phase Time:");
+      VM.sysWrite("  init ", initTime.avg() * 1000.0, " ms");
+      VM.sysWrite("  roots ", rootTime.avg() * 1000.0, " ms");
+      VM.sysWrite("  scan ", scanTime.avg() * 1000.0, " ms");
+      VM.sysWrite("  finalize ", finalizeTime.avg() * 1000.0, " ms");
+      VM.sysWrite("  finish ", finishTime.avg() * 1000.0, " ms");
+      VM.sysWriteln();
     }
 
     if (VM_CollectorThread.MEASURE_WAIT_TIMES && (gcCount>0)) {
@@ -327,9 +302,9 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     int  allocCount = 0, allocBytes = 0;
     int  copyCount = 0, copyBytes = 0;
     int  scanCount = 0, scanBytes = 0;
-    int  maxId = VM_TypeDictionary.getNumValues();
+    int  maxId = VM_Type.numTypes();
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
+      VM_Type type = VM_Type.getType(i);
       allocCount += type.allocCount;
       allocBytes += type.allocBytes;
       copyCount += type.copyCount;
@@ -338,7 +313,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
       scanBytes += type.scanBytes;
     }
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
+      VM_Type type = VM_Type.getType(i);
       if (type.allocBytes >= 1024 * 1024)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
@@ -346,7 +321,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
                         type.scanCount, type.scanBytes);
     }
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
+      VM_Type type = VM_Type.getType(i);
       if (type.allocBytes >= 10 * 1024 && type.allocBytes < 1024 * 1024)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
@@ -354,7 +329,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
                         type.scanCount, type.scanBytes);
     }
     for (int i = 1; i < maxId; i++) {
-      VM_Type type = VM_TypeDictionary.getValue(i);
+      VM_Type type = VM_Type.getType(i);
       if (type.allocBytes < 1024 && type.allocBytes > 0)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
@@ -403,7 +378,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
       st.totalBytesAllocated += size;
       st.totalObjectsAllocated++;
       VM_Type t = VM_Magic.objectAsType(tib[0]);
-      if (t.thinLockOffset != -1) {
+      if (t.getThinLockOffset() != -1) {
         st.synchronizedObjectsAllocated++;
       }
     }
@@ -420,7 +395,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
     if (VERIFY_ZEROED_ALLOCATIONS) {
       for (int i=0; i<size; i+= 4) {
-        int val = VM_Magic.getMemoryWord(addr.add(i));
+        int val = VM_Magic.getMemoryInt(addr.add(i));
         if (val != 0) {
           VM.sysWrite("Non-zeroed memory allocated ");
           VM.sysWriteln("\taddress is ",addr.toInt());

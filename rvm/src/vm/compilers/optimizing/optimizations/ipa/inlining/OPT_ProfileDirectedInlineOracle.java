@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -25,7 +26,8 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
   // and other invokes when using profile information to identify the hot targets.
   public OPT_InlineDecision shouldInline(OPT_CompilationState state) {
     OPT_Options opts = state.getOptions();
-    
+    VM_Method originalCallee = state.obtainTarget();
+
     if (!opts.INLINE) return OPT_InlineDecision.NO("inlining not enabled");
     
     // (1) If the static heuristics will inline this call, we're done.
@@ -43,8 +45,7 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     } else if (targets.length == 1) {
       // (2b) We have a single hot edge in the profile data for this call site
       VM_Method callee = targets[0];
-      VM_Method computedTarget = state.getComputedTarget();
-      if (computedTarget != null && callee != computedTarget) {
+      if (state.getHasPreciseTarget() && callee != originalCallee) {
 	recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
 	return OPT_InlineDecision.NO("AI: mismatch between computed target and profile data");
       }
@@ -52,18 +53,18 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 	recordRefusalToInlineHotEdge(state.getCompiledMethod(), caller, bcX, callee);
 	return OPT_InlineDecision.NO("AI: candidate judged to be nonviable");
       }
-      if (computedTarget != null) {
-	return OPT_InlineDecision.YES(computedTarget, "AI: hot edge matches computed target");
+      if (state.getHasPreciseTarget()) {
+	return OPT_InlineDecision.YES(originalCallee, "AI: hot edge matches computed target");
       } 
       VM_Method staticCallee = state.obtainTarget();
       if (candidateNeedsGuard(caller, staticCallee, state)) {
 	if (opts.GUARDED_INLINE) {
 	  boolean codePatch = opts.guardWithCodePatch() && !state.isInvokeInterface() &&
 	    isCurrentlyFinal(staticCallee, true);
-	  byte guard = chooseGuard(caller, staticCallee, state, codePatch);
+	  byte guard = chooseGuard(caller, staticCallee, originalCallee, state, codePatch);
 	  if (guard == OPT_Options.IG_METHOD_TEST) {
 	    // see if we can get away with the cheaper class test on the actual target 
-	    guard = chooseGuard(caller, callee, state, false);
+	    guard = chooseGuard(caller, callee, originalCallee, state, false);
 	  }
 	  return OPT_InlineDecision.guardedYES(callee, guard,
 					       "AI: guarded inline of hot edge");
@@ -76,12 +77,11 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
       }
     } else {
       // (2c) We have multiple hot edges to consider.
-      VM_Method computedTarget = state.getComputedTarget();
-      if (computedTarget != null) {
+      if (state.getHasPreciseTarget()) {
 	for (int i=0; i<targets.length; i++) {
-	  if (targets[i] == computedTarget) {
+	  if (targets[i] == originalCallee) {
 	    if (viableCandidate(caller, targets[i], state)) {
-	      return OPT_InlineDecision.YES(computedTarget, "AI: hot edge matches computed target");
+	      return OPT_InlineDecision.YES(originalCallee, "AI: hot edge matches computed target");
 	    }
 	  }
 	}
@@ -108,7 +108,7 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 	  for (int i=0; i<targets.length; i++) {
 	    if (targets[i] != null) {
 	      viableTargets[viable] = targets[i];
-	      guards[viable++] = chooseGuard(caller, targets[i], state, false);
+	      guards[viable++] = chooseGuard(caller, targets[i], originalCallee, state, false);
 	    }
 	  }
 	  return OPT_InlineDecision.guardedYES(viableTargets, 
@@ -124,8 +124,6 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
 
   protected boolean viableCandidate(VM_Method caller, VM_Method callee, 
 				    OPT_CompilationState state) {
-    if (!legalToInline(caller, callee)) return false;
-
     // TODO: for now, don't inline recursively
     OPT_InlineSequence seq = state.getSequence();
     if (seq.containsMethod(callee)) return false;
@@ -134,7 +132,7 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     if (hasInlinePragma(callee, state)) return true;
     if (hasNoInlinePragma(callee, state)) return false;
 
-    int inlinedSizeEstimate = inlinedSizeEstimate(callee, state);
+    int inlinedSizeEstimate = inlinedSizeEstimate((VM_NormalMethod)callee, state);
     
     // Callees above a certain size are too big to be considered 
     // even if the call arc is hot.
@@ -145,13 +143,13 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     // over its upper space bounds.
     int totalMCGenerated = state.getMCSizeEstimate();
     if (totalMCGenerated + inlinedSizeEstimate - 
-        VM_OptMethodSummary.CALL_COST > getMaxRootSize(state)) return false;
+        VM_NormalMethod.CALL_COST > getMaxRootSize(state)) return false;
 
     return true;
   }
 
 
-  // note: state.getComputedTarget() is known to be null.
+  // note: !state.getHasPreciseTarget is known to be null.
   protected boolean candidateNeedsGuard(VM_Method caller, VM_Method callee, 
 				      OPT_CompilationState state) {
     // for now, guard all inlined interface invocations.
@@ -224,7 +222,7 @@ public class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
   protected int getMaxRootSize(OPT_CompilationState state) {
     OPT_Options opts = state.getOptions();
     int rootSize = 
-      VM_OptMethodSummary.inlinedSizeEstimate(state.getRootMethod());
+      state.getRootMethod().inlinedSizeEstimate();
     return Math.min(opts.AI_MAX_INLINE_EXPANSION_FACTOR * rootSize, 
 		    opts.AI_MAX_METHOD_SIZE+rootSize);
   }

@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 //-#if RVM_WITH_JMTK
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
@@ -176,11 +177,9 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     return size;
   }
 
-  public static VM_Address objectStartRef(VM_Address obj)
-    throws VM_PragmaInline {
+  public static VM_Address objectStartRef(VM_Address obj) throws VM_PragmaInline {
     Object[] tib = VM_ObjectModel.getTIB(obj);
     VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
-//     VM.sysWrite("obj: "); VM.sysWrite(obj); 
     VM_Address rtn;
     if (type.isClassType()) {
 //       VM.sysWrite(", scalar cell: ");

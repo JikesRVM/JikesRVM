@@ -1066,11 +1066,18 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
                   // replace the register in the target instruction.
                   replaceRegisterWithScratch(s,r,scratch.scratch);
                 } else {
+                  //-#if RVM_WITH_OSR
+                  if (s.operator != YIELDPOINT_OSR) {
+                  //-#endif
+                  
                   //-#if RVM_FOR_IA32
                   // No need to use a scratch register here.
                   replaceOperandWithSpillLocation(s,op.asRegister());
                   //-#else
                   VM._assert(NOT_REACHED);
+                  //-#endif
+                  //-#if RVM_WITH_OSR
+                  }
                   //-#endif
                 }
               }

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 
 /**
  * Pool of symbolic registers.
@@ -47,7 +48,7 @@ public class OPT_RegisterPool extends OPT_GenericRegisterPool {
    * @return the temp
    */ 
   public OPT_RegisterOperand makeJTOCOp(OPT_IR ir, OPT_Instruction s) {
-    return new OPT_RegisterOperand(getJTOC(),VM_Type.AddressType);
+    return new OPT_RegisterOperand(getJTOC(),VM_TypeReference.Address);
   }
 
   /**
@@ -56,7 +57,7 @@ public class OPT_RegisterPool extends OPT_GenericRegisterPool {
    * @return the temp
    */ 
   public OPT_RegisterOperand makeTocOp() {
-    return new OPT_RegisterOperand(getJTOC(),VM_Type.JavaLangObjectType);
+    return new OPT_RegisterOperand(getJTOC(),VM_TypeReference.JavaLangObject);
   }
 
 }

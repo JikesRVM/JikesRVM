@@ -27,6 +27,9 @@ public interface OPT_Constants {
   final int EXTANT_ANALYSIS_BCI = -12;
   final int PROLOGUE_BLOCK_BCI = -13;
   final int EPILOGUE_BLOCK_BCI = -14;
+  //-#if RVM_WITH_OSR
+  final int OSR_PROLOGUE = -15;
+  //-#endif
 
   // The following are used as trinary return values in OptCompiler code
   public final byte NO = 0;

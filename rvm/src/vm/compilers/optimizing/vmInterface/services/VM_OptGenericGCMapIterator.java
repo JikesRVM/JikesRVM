@@ -398,15 +398,11 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
   final void checkRegistersForMissedReferences(int firstReg, int lastReg) {
     for (int i = firstReg; i <= lastReg; i++) {
       VM_Address regLocation = VM_Address.fromInt(registerLocations[i]);
-      int regValue = VM_Magic.getMemoryWord(regLocation);
-      if (VM_Interface.refInVM(VM_Address.fromInt(regValue))) {
-        VM.sysWrite("  reg#");
-        VM.sysWrite(getCurrentRegister());
-        VM.sysWrite(", location ==>");
-        VM.sysWrite(regLocation);
-        VM.sysWrite(", suspicious value ==>");
-        VM.sysWrite(regValue);
-        VM.sysWrite("\n");
+      VM_Address regValue = VM_Magic.getMemoryAddress(regLocation);
+      if (VM_Interface.refInVM(regValue)) {
+        VM.sysWrite("  reg#", getCurrentRegister());
+        VM.sysWrite(", location ==>", regLocation);
+        VM.sysWriteln(", suspicious value ==>", regValue);
       }
     }
   }

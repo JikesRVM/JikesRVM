@@ -22,6 +22,7 @@ import com.ibm.JikesRVM.memoryManagers.watson.VM_SegregatedListHeap;
  *
  * @author Bowen Alpern 
  * @author Derek Lieber
+ * @author Peter F. Sweeney (add HPM support)
  */
 public final class VM_Processor 
 //-#if RVM_WITH_JMTK_INLINE_PLAN
@@ -58,6 +59,24 @@ implements VM_Uninterruptible, VM_Constants {
   public static VM_Processor[] attachedProcessors         = new VM_Processor[100];
 
 
+  //-#if RVM_WITH_HPM
+  /*  one per virtual processor  */
+  /*
+   * Keep counter values for each Virtual Processor.
+   */
+  public HPM_counters hpm_counters;
+
+  /* one per Jikes RVM */
+  /*
+   * set true in VM.boot() when we can collect hpm data!  
+   */
+  public  static boolean hpm_safe = false;
+  /*
+   * trace hpm events?
+   */
+  public static boolean hpm_trace = false;  
+  //-#endif
+
 
   /**
    * Create data object to be associated with an o/s kernel thread 
@@ -91,11 +110,14 @@ implements VM_Uninterruptible, VM_Constants {
     if (VM.VerifyAssertions) VM._assert(vpStatus[this.vpStatusIndex] == UNASSIGNED_VP_STATUS);
     vpStatus[this.vpStatusIndex] = IN_JAVA;
 
-    if (VM.BuildForDeterministicThreadSwitching) { // where we set THREAD_SWITCH_BIT every N method calls
+    if (VM.BuildForDeterministicThreadSwitching) { // where we yield every N yieldpoints executed
       this.deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
     }
 
     VM_Interface.setupProcessor(this);
+    //-#if RVM_WITH_HPM
+    hpm_counters = new HPM_counters();
+    //-#endif
   }
 
   /**
@@ -145,8 +167,9 @@ implements VM_Uninterruptible, VM_Constants {
   /**
    * Become next "ready" thread.
    * Note: This method is ONLY intended for use by VM_Thread.
+   * @param timerTick   timer interrupted if true
    */ 
-  void dispatch () {
+  void dispatch (boolean timerTick) {
 
     if (VM.VerifyAssertions) VM._assert(lockCount == 0);// no processor locks should be held across a thread switch
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logDispatchEvent();
@@ -162,9 +185,6 @@ implements VM_Uninterruptible, VM_Constants {
     previousThread = activeThread;
     activeThread   = newThread;
 
-    //-#if RVM_FOR_IA32
-    threadId       = newThread.getLockingId();
-    //-#endif
     if (!previousThread.isDaemon && 
         idleProcessor != null && !readyQueue.isEmpty() 
         && getCurrentProcessor().processorMode != NATIVEDAEMON) { 
@@ -187,8 +207,76 @@ implements VM_Uninterruptible, VM_Constants {
       newThread.cpuStartTime = now;  // this thread has started running
     }
 
+    if (VM.BuildForHPM) {	      // update HPM counters
+      updateHPMcounters(previousThread, newThread, timerTick);
+    }
+
+    //-#if RVM_FOR_IA32
+    threadId       = newThread.getLockingId();
+    //-#endif
     activeThreadStackLimit = newThread.stackLimit; // Delay this to last possible moment so we can sysWrite
     VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
+  }
+
+  /**
+   * Update HPM counters.
+   * @param previous_thread     thread that is being switched out
+   * @param current_thread      thread that is being scheduled
+   * @param timerTick   	timer interrupted if true
+   */
+  public void updateHPMcounters(VM_Thread previous_thread, VM_Thread current_thread, boolean timerTick)
+  {
+    //-#if RVM_WITH_HPM
+    // native calls cause stack to be grown and cause an assertion failure.
+    if (hpm_safe) {
+      if (previousThread.hpm_counters == null) {
+	previous_thread.hpm_counters = new HPM_counters();
+	VM.sysWriteln("***VM_Processor.dispatch() Previous thread id ",
+		      previous_thread.getIndex(),"'s hpm_counters was null!***");
+      }
+      int n_counters = VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMgetCountersIP);
+
+      if (hpm_trace) {
+	int processor_id = VM_Processor.getCurrentProcessorId();
+	int thread_id    = previous_thread.getIndex();
+	if (! timerTick) {
+	  thread_id = -thread_id;
+	}
+	VM.sysWrite("VP ", processor_id,", tid ",thread_id);
+      }
+
+      // dump real time and change in real time
+      long real_time       = VM_Magic.getTimeBase();
+      long real_time_delta = real_time - previous_thread.startOfRealTime;
+      if (real_time_delta < 0) {
+	VM.sysWrite("***VM_Processor.updateHPMcounters(");
+	VM.sysWrite(previous_thread.getClass().getName());
+	VM.sysWrite(") real time overflowed: start ",previous_thread.startOfRealTime);
+	VM.sysWrite(" current ",real_time);
+	VM.sysWrite(" delta ",real_time_delta);VM.sysWriteln("!***");
+      } else {
+	previous_thread.hpm_counters.counters[0] += real_time_delta;
+                        hpm_counters.counters[0] += real_time_delta;
+      }
+      if (current_thread != null) 
+	current_thread.startOfRealTime = real_time;
+      if (hpm_trace) {
+	VM.sysWrite(" RT "); VM.sysWriteLong(real_time);
+	VM.sysWrite(" D "); VM.sysWriteLong(real_time_delta);
+      }
+      // dump counters
+      for (int i=1; i<=n_counters; i++) {
+	long value = VM.sysCall_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterIP,i);
+	if (hpm_trace && value > 0) { 
+	  VM.sysWrite(" ",i,": "); VM.sysWrite(value);
+	}
+                        hpm_counters.counters[i] += value;// update virtual processor HPM counters
+	previous_thread.hpm_counters.counters[i] += value;// update thread HPM counters
+      }
+      if (hpm_trace) VM.sysWriteln();
+      VM.sysCall0(VM_BootRecord.the_boot_record.sysHPMresetCountersIP);
+    }
+    //-#endif
   }
 
   /**
@@ -491,8 +579,7 @@ implements VM_Uninterruptible, VM_Constants {
 
     VM.disableGC();
 
-    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    //-#else
+    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     // Need to set startuplock here
     VM.sysInitializeStartupLocks(1);
     //-#endif
@@ -524,8 +611,7 @@ implements VM_Uninterruptible, VM_Constants {
   // System call interception support //
   //----------------------------------//
 
-  //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-  //-#else
+  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   /**
    * Called during thread startup to stash the ID of the
    * {@link VM_Processor} in its pthread's thread-specific storage,
@@ -657,11 +743,8 @@ implements VM_Uninterruptible, VM_Constants {
   int    arrayIndexTrapParam; 
   //-#endif
 
-  //-#if RVM_WITH_JMTK
-  //-#if RVM_WITH_JMTK_INLINE_PLAN
-  //-#else
+  //-#if RVM_WITH_JMTK && !RVM_WITH_JMTK_INLINE_PLAN
   final public Plan mmPlan = new Plan();
-  //-#endif
   //-#endif
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
@@ -867,7 +950,7 @@ implements VM_Uninterruptible, VM_Constants {
   private double   scratchSeconds;
   private double   scratchNanoseconds;
 
-  public void dumpProcessorState() {
+  public void dumpProcessorState() throws VM_PragmaInterruptible {
     VM_Scheduler.writeString("Processor "); 
     VM_Scheduler.writeDecimal(id);
     if (this == VM_Processor.getCurrentProcessor()) VM_Scheduler.writeString(" (me)");

@@ -3,8 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -53,8 +54,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
    * @param ir the governing IR 
    */
   final public void perform (OPT_IR ir) {
-
-    OPT_RegisterOperand tempReg = ir.regpool.makeTemp(VM_Type.IntType);
+    OPT_RegisterOperand tempReg = ir.regpool.makeTempInt();
 
     // For each basic block
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
@@ -96,7 +96,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 	    m = VM_Entrypoints.threadSwitchFromBackedgeMethod;
 	  
 	  OPT_Instruction c = 
-	    Call.create0(CALL, null, null, OPT_MethodOperand.STATIC(m));
+	    Call.create0(CALL, null, new OPT_IntConstantOperand(m.getOffset()), OPT_MethodOperand.STATIC(m));
 	  c.position = ir.gc.inlineSequence;
 	  c.bcIndex = INSTRUMENTATION_BCI;
 
@@ -115,7 +115,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 	  i.remove();
 
 	  // We're in LIR so lower the new call
-	  OPT_ConvertToLowLevelIR.call(c,ir);
+	  OPT_ConvertToLowLevelIR.callHelper(c,ir);
 
 	  // pfs: need insert before instruction for Intel.
 	  OPT_Instruction dummy = new OPT_Instruction(OPT_Operator.OperatorArray[1], 4);

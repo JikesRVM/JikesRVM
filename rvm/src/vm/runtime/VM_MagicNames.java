@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.classloader.VM_Atom;
+
 /**
  * Method names that are treated specially by compiler.
  * See also: VM_Magic, various magic compilers (eg VM_MagicCompiler)
@@ -67,6 +69,8 @@ public class VM_MagicNames {
   public static final VM_Atom setLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("setLongAtOffset");
   public static final VM_Atom setDoubleAtOffset             = VM_Atom.findOrCreateAsciiAtom("setDoubleAtOffset");
 
+  public static final VM_Atom getMemoryInt                  = VM_Atom.findOrCreateAsciiAtom("getMemoryInt");
+  public static final VM_Atom setMemoryInt                  = VM_Atom.findOrCreateAsciiAtom("setMemoryInt");
   public static final VM_Atom getMemoryWord                 = VM_Atom.findOrCreateAsciiAtom("getMemoryWord");
   public static final VM_Atom setMemoryWord                 = VM_Atom.findOrCreateAsciiAtom("setMemoryWord");
   public static final VM_Atom getMemoryAddress              = VM_Atom.findOrCreateAsciiAtom("getMemoryAddress");
@@ -75,9 +79,6 @@ public class VM_MagicNames {
   public static final VM_Atom prepare                       = VM_Atom.findOrCreateAsciiAtom("prepare");
   public static final VM_Atom attempt                       = VM_Atom.findOrCreateAsciiAtom("attempt");
 
-  public static final VM_Atom setThreadSwitchBit            = VM_Atom.findOrCreateAsciiAtom("setThreadSwitchBit");
-  public static final VM_Atom clearThreadSwitchBit          = VM_Atom.findOrCreateAsciiAtom("clearThreadSwitchBit");
-    
   public static final VM_Atom saveThreadState               = VM_Atom.findOrCreateAsciiAtom("saveThreadState");
   public static final VM_Atom threadSwitch                  = VM_Atom.findOrCreateAsciiAtom("threadSwitch");
   public static final VM_Atom restoreHardwareExceptionState = VM_Atom.findOrCreateAsciiAtom("restoreHardwareExceptionState");
@@ -124,8 +125,6 @@ public class VM_MagicNames {
   public static final VM_Atom roundToZero                   = VM_Atom.findOrCreateAsciiAtom("roundToZero");
   public static final VM_Atom clearFloatingPointState       = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
   //-#endif
-
-  public static final VM_Atom pragmaNoOptCompile            = VM_Atom.findOrCreateAsciiAtom("pragmaNoOptCompile");
 
   public static final VM_Atom wordFromInt                   = VM_Atom.findOrCreateAsciiAtom("fromInt");
   public static final VM_Atom wordToInt                     = VM_Atom.findOrCreateAsciiAtom("toInt");

@@ -64,26 +64,13 @@ done
 #
 # Need to make some more defines
 #
-ARGS="$ARGS -Djava.vm.name=JikesRVM"
 ARGS="$ARGS -Drvm.root=$rvm_root"
 ARGS="$ARGS -Drvm.build=$rvm_build"
 ARGS="$ARGS -Djava.home=$rvm_root"
+ARGS="$ARGS -Dgnu.classpath.home.url=file:${rvm_build}"
+ARGS="$ARGS -Dgnu.classpath.vm.shortname=JikesRVM"
 
 ARGS="$ARGS -Duser.home=$home -Duser.dir=`pwd` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
-
-#  echo "=== args ==="
-#  echo $ARGS
-#  echo "=== args ==="
-
-LOADPATH=$rvm_build:$HOST_JAVA_HOME/jre/bin:$HOST_JAVA_HOME/jre/bin/classic
-
-typeset -x LIBPATH=$LIBPATH:$LOADPATH
-typeset -x LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$LOADPATH
-
-# Add the rvm_build directory to the dynamic library path,
-# in order to get the system call wrapper library.
-LD_LIBRARY_PATH=$rvm_build:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH
 
 # Now execute the VM
 exec $rvm_build/JikesRVM $ARGS "$@"

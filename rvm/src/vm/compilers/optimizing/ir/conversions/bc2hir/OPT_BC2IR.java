@@ -2,14 +2,18 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-
-
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
+//-#if RVM_WITH_OSR
+import com.ibm.JikesRVM.OSR.*;
+import com.ibm.JikesRVM.adaptive.*;
+import java.util.*;
+//-#endif
 
 /**
  * This class translates from bytecode to HIR.
@@ -49,9 +53,13 @@ import java.util.NoSuchElementException;
  * @see OPT_ConvertBCtoHIR
  */
 public final class OPT_BC2IR implements OPT_IRGenOptions, 
-				 OPT_Operators, 
-				 VM_BytecodeConstants, 
-				 OPT_Constants {
+					OPT_Operators, 
+					VM_BytecodeConstants, 
+					OPT_Constants 
+//-#if RVM_WITH_OSR
+                   , OSR_Constants
+//-#endif
+{
   /**
    * Dummy slot.
    * Used to deal with the fact the longs/doubles take
@@ -91,7 +99,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /**
    * Bytecodes for the method being generated.
    */
-  private OPT_BytecodeInfo bcInfo;
+  private VM_BytecodeStream bcodes;
 
   // Fields to support generation of instructions/blocks
   /**
@@ -103,6 +111,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Bytecode index of current instruction.
    */
   private int instrIndex;
+
+  //-#if RVM_WITH_OSR
+  private boolean osrGuardedInline = false;
+
+  /* adjustment of bcIndex of instructions because of
+   * specialized bytecode.
+   */
+  private int bciAdjustment;
+  //-#endif
 
   /**
    * Last instruction generated (for ELIM_COPY_LOCALS)
@@ -165,7 +182,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private OPT_BC2IR(OPT_GenerationContext context) {
     start(context);
     for (int argIdx = 0, localIdx = 0; argIdx < context.arguments.length;) {
-      VM_Type argType = context.arguments[argIdx].getType();
+      VM_TypeReference argType = context.arguments[argIdx].getType();
       _localState[localIdx++] = context.arguments[argIdx++];
       if (argType.isLongType() || argType.isDoubleType()) {
         _localState[localIdx++] = DUMMY;
@@ -189,16 +206,38 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       }
       
     }
-    bcInfo = OPT_BytecodeInfoFactory.create( context.method );
+
+    //-#if RVM_WITH_OSR
+    if (context.method.isForOsrSpecialization())
+      bcodes = context.method.getOsrSynthesizedBytecodes();
+    else
+      //-#endif
+      bcodes = context.method.getBytecodes();
+
     // initialize the local state from context.arguments
     _localState = new OPT_Operand[context.method.getLocalWords()];
+
+    //-#if RVM_WITH_OSR
+    if (context.method.isForOsrSpecialization()) {
+      this.bciAdjustment = context.method.getOsrPrologueLength();
+    } else {
+      this.bciAdjustment = 0;
+    }
+
+    this.osrGuardedInline = VM.runningVM &&
+      context.options.OSR_GUARDED_INLINING &&
+      !context.method.isForOsrSpecialization() &&
+	  OPT_Compiler.getAppStarted() &&
+	  (VM_Controller.options != null) &&
+	  VM_Controller.options.adaptive();
+    //-#endif
   }
 
   private void finish(OPT_GenerationContext context) {
     // Initialize simulated stack.
     stack = new OperandStack(context.method.getOperandWords());
     // Initialize BBSet.
-    blocks = new BBSet(context, bcInfo, _localState);
+    blocks = new BBSet(context, bcodes, _localState);
     // Finish preparing to generate from bytecode 0
     currentBBLE = blocks.getEntry();
     gc.prologue.insertOut(currentBBLE.block);
@@ -253,17 +292,22 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     currentBBLE.setGenerated();
     endOfBasicBlock = fallThrough = false;
     lastInstr = null;
-    bcInfo.setInstruction(fromIndex);
+    bcodes.reset(fromIndex);
     while (true) {
       // Must keep currentBBLE.high up-to-date in case we try to jump into 
       // the middle of the block we're currently generating.  Simply updating 
       // high once endsBasicBlock is true doesn't enable us to catch this case.
-      currentBBLE.high = instrIndex = bcInfo.currentInstruction();
-      int code = bcInfo.getNextInstruction();
+      currentBBLE.high = instrIndex = bcodes.index();
+      int code = bcodes.nextInstruction();
       if (DBG_BCPARSE) {
         db("parsing " + instrIndex + " " + code + " : 0x" + Integer.toHexString(code));
       }
       OPT_Instruction s = null;
+
+      //-#if RVM_WITH_OSR
+      lastOsrBarrier = null;
+      //-#endif
+
       switch (code) {
       case JBC_nop:
 	break;
@@ -303,43 +347,43 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	break;
 
       case JBC_bipush:
-	push(new OPT_IntConstantOperand(bcInfo.getByteValue()));
+	push(new OPT_IntConstantOperand(bcodes.getByteValue()));
 	break;
 	
       case JBC_sipush:
-	push(new OPT_IntConstantOperand(bcInfo.getShortValue()));
+	push(new OPT_IntConstantOperand(bcodes.getShortValue()));
 	break;
 
       case JBC_ldc:
-	push(bcInfo.getConstantOperand(false));
+	push(getConstantOperand(bcodes.getConstantIndex()));
 	break;
 
       case JBC_ldc_w:
-	push(bcInfo.getConstantOperand(true));
+	push(getConstantOperand(bcodes.getWideConstantIndex()));
 	break;
 
       case JBC_ldc2_w:
-	pushDual(bcInfo.getConstantOperand(true));
+	pushDual(getConstantOperand(bcodes.getWideConstantIndex()));
 	break;
 
       case JBC_iload:
-	s = do_iload(bcInfo.getLocalNumber());
+	s = do_iload(bcodes.getLocalNumber());
 	break;
 
       case JBC_lload:
-	s = do_lload(bcInfo.getLocalNumber());
+	s = do_lload(bcodes.getLocalNumber());
 	break;
 
       case JBC_fload:
-	s = do_fload(bcInfo.getLocalNumber());
+	s = do_fload(bcodes.getLocalNumber());
 	break;
 
       case JBC_dload:
-	s = do_dload(bcInfo.getLocalNumber());
+	s = do_dload(bcodes.getLocalNumber());
 	break;
 
       case JBC_aload:
-	s = do_aload(bcInfo.getLocalNumber());
+	s = do_aload(bcodes.getLocalNumber());
 	break;
 
       case JBC_iload_0:case JBC_iload_1:case JBC_iload_2:case JBC_iload_3:
@@ -370,8 +414,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	    assertIsType(ref, OPT_ClassLoaderProxy.IntArrayType);
-	  s = _aloadHelper(INT_ALOAD, ref, index, OPT_ClassLoaderProxy.IntType);
+	    assertIsType(ref, VM_TypeReference.IntArray);
+	  s = _aloadHelper(INT_ALOAD, ref, index, VM_TypeReference.Int);
 	}
 	break;
 
@@ -383,8 +427,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	    assertIsType(ref, OPT_ClassLoaderProxy.LongArrayType);
-	  s = _aloadHelper(LONG_ALOAD, ref, index, OPT_ClassLoaderProxy.LongType);
+	    assertIsType(ref, VM_TypeReference.LongArray);
+	  s = _aloadHelper(LONG_ALOAD, ref, index, VM_TypeReference.Long);
 	}
 	break;
 
@@ -396,8 +440,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	    assertIsType(ref, OPT_ClassLoaderProxy.FloatArrayType);
-	  s = _aloadHelper(FLOAT_ALOAD, ref, index, OPT_ClassLoaderProxy.FloatType);
+	    assertIsType(ref, VM_TypeReference.FloatArray);
+	  s = _aloadHelper(FLOAT_ALOAD, ref, index, VM_TypeReference.Float);
 	}
 	break;
 	  
@@ -409,8 +453,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	    assertIsType(ref, OPT_ClassLoaderProxy.DoubleArrayType);
-	  s = _aloadHelper(DOUBLE_ALOAD, ref, index, OPT_ClassLoaderProxy.DoubleType);
+	    assertIsType(ref, VM_TypeReference.DoubleArray);
+	  s = _aloadHelper(DOUBLE_ALOAD, ref, index, VM_TypeReference.Double);
 	}
 	break;
 
@@ -421,7 +465,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  clearCurrentGuard();
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
-	  VM_Type type = getRefTypeOf(ref).asArray().getElementType();
+	  VM_TypeReference type = getRefTypeOf(ref).getArrayElementType();
 	  if (VM.VerifyAssertions) VM._assert(type.isReferenceType());
 	  s = _aloadHelper(REF_ALOAD, ref, index, type);
 	}
@@ -434,15 +478,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  clearCurrentGuard();
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
-	  VM_Type type = getArrayTypeOf(ref);
+	  VM_TypeReference type = getArrayTypeOf(ref);
 	  if (VM.VerifyAssertions) {
-	    VM._assert(type == OPT_ClassLoaderProxy.ByteArrayType || 
-		      type == OPT_ClassLoaderProxy.BooleanArrayType);
+	    VM._assert(type == VM_TypeReference.ByteArray || 
+		       type == VM_TypeReference.BooleanArray);
 	  }
-	  if (type == OPT_ClassLoaderProxy.ByteArrayType)
-	    s = _aloadHelper(BYTE_ALOAD, ref, index, OPT_ClassLoaderProxy.ByteType);
+	  if (type == VM_TypeReference.ByteArray)
+	    s = _aloadHelper(BYTE_ALOAD, ref, index, VM_TypeReference.Byte);
 	  else 
-	    s = _aloadHelper(UBYTE_ALOAD, ref, index, OPT_ClassLoaderProxy.BooleanType);
+	    s = _aloadHelper(UBYTE_ALOAD, ref, index, VM_TypeReference.Boolean);
 	}
 	break;
 
@@ -454,8 +498,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	    assertIsType(ref, OPT_ClassLoaderProxy.CharArrayType);
-	  s = _aloadHelper(USHORT_ALOAD, ref, index, OPT_ClassLoaderProxy.CharType);
+	    assertIsType(ref, VM_TypeReference.CharArray);
+	  s = _aloadHelper(USHORT_ALOAD, ref, index, VM_TypeReference.Char);
 	}
 	break;
 	
@@ -467,29 +511,29 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	    assertIsType(ref, OPT_ClassLoaderProxy.ShortArrayType);
-	  s = _aloadHelper(SHORT_ALOAD, ref, index, OPT_ClassLoaderProxy.ShortType);
+	    assertIsType(ref, VM_TypeReference.ShortArray);
+	  s = _aloadHelper(SHORT_ALOAD, ref, index, VM_TypeReference.Short);
 	}
 	break;
 
       case JBC_istore:
-	s = do_store(bcInfo.getLocalNumber(), popInt());
+	s = do_store(bcodes.getLocalNumber(), popInt());
 	break;
 
       case JBC_lstore:
-	s = do_store(bcInfo.getLocalNumber(), popLong());
+	s = do_store(bcodes.getLocalNumber(), popLong());
 	break;
 
       case JBC_fstore:
-	s = do_store(bcInfo.getLocalNumber(), popFloat());
+	s = do_store(bcodes.getLocalNumber(), popFloat());
 	break;
 
       case JBC_dstore:
-	s = do_store(bcInfo.getLocalNumber(), popDouble());
+	s = do_store(bcodes.getLocalNumber(), popDouble());
 	break;
 
       case JBC_astore:
-	s = do_astore(bcInfo.getLocalNumber());
+	s = do_astore(bcodes.getLocalNumber());
 	break;
 
       case JBC_istore_0:case JBC_istore_1:case JBC_istore_2:case JBC_istore_3:
@@ -521,9 +565,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	      assertIsType(ref, OPT_ClassLoaderProxy.IntArrayType);
+	      assertIsType(ref, VM_TypeReference.IntArray);
 	  s = AStore.create(INT_ASTORE, val, ref, index,
-			    new OPT_LocationOperand(OPT_ClassLoaderProxy.IntType),
+			    new OPT_LocationOperand(VM_TypeReference.Int),
 			    getCurrentGuard());
 	}
 	break;
@@ -537,9 +581,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	    assertIsType(ref, OPT_ClassLoaderProxy.LongArrayType);
+	    assertIsType(ref, VM_TypeReference.LongArray);
 	  s = AStore.create(LONG_ASTORE, val, ref, index, 
-			    new OPT_LocationOperand(OPT_ClassLoaderProxy.LongType),
+			    new OPT_LocationOperand(VM_TypeReference.Long),
 			    getCurrentGuard());
 	}
 	break;
@@ -553,9 +597,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	    assertIsType(ref, OPT_ClassLoaderProxy.FloatArrayType);
+	    assertIsType(ref, VM_TypeReference.FloatArray);
 	  s = AStore.create(FLOAT_ASTORE, val, ref, index, 
-			    new OPT_LocationOperand(OPT_ClassLoaderProxy.FloatType),
+			    new OPT_LocationOperand(VM_TypeReference.Float),
 			    getCurrentGuard());
 	}
 	break;
@@ -569,9 +613,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	    assertIsType(ref, OPT_ClassLoaderProxy.DoubleArrayType);
+	    assertIsType(ref, VM_TypeReference.DoubleArray);
 	  s = AStore.create(DOUBLE_ASTORE, val, ref, index, 
-			    new OPT_LocationOperand(OPT_ClassLoaderProxy.DoubleType),
+			    new OPT_LocationOperand(VM_TypeReference.Double),
 			    getCurrentGuard());
 	}
 	break;
@@ -584,7 +628,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  clearCurrentGuard();
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
-	  VM_Type type = getRefTypeOf(ref).asArray().getElementType();
+	  VM_TypeReference type = getRefTypeOf(ref).getArrayElementType();
 	  if (VM.VerifyAssertions) VM._assert(type.isReferenceType());
 	  if (do_CheckStore(ref, val, type))
 	      break;
@@ -603,15 +647,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  clearCurrentGuard();
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
-	  VM_Type type = getArrayTypeOf(ref);
+	  VM_TypeReference type = getArrayTypeOf(ref);
 	  if (VM.VerifyAssertions) {
-	    VM._assert(type == OPT_ClassLoaderProxy.ByteArrayType || 
-		      type == OPT_ClassLoaderProxy.BooleanArrayType);
+	    VM._assert(type == VM_TypeReference.ByteArray || 
+		      type == VM_TypeReference.BooleanArray);
 	  }
-	  if (type == OPT_ClassLoaderProxy.ByteArrayType)
-	    type = OPT_ClassLoaderProxy.ByteType;
+	  if (type == VM_TypeReference.ByteArray)
+	    type = VM_TypeReference.Byte;
 	  else 
-	    type = OPT_ClassLoaderProxy.BooleanType;
+	    type = VM_TypeReference.Boolean;
 	  s = AStore.create(BYTE_ASTORE, val, ref, index,
 			    new OPT_LocationOperand(type),
 			    getCurrentGuard());
@@ -627,9 +671,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	    assertIsType(ref, OPT_ClassLoaderProxy.CharArrayType);
+	    assertIsType(ref, VM_TypeReference.CharArray);
 	  s = AStore.create(SHORT_ASTORE, val, ref, index,
-			    new OPT_LocationOperand(OPT_ClassLoaderProxy.CharType),
+			    new OPT_LocationOperand(VM_TypeReference.Char),
 			    getCurrentGuard());
 	}
 	break;
@@ -643,9 +687,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_NullCheck(ref) || do_BoundsCheck(ref, index))
 	    break;
 	  if (VM.VerifyAssertions)
-	    assertIsType(ref, OPT_ClassLoaderProxy.ShortArrayType);
+	    assertIsType(ref, VM_TypeReference.ShortArray);
 	  s = AStore.create(SHORT_ASTORE, val, ref, index,
-			    new OPT_LocationOperand(OPT_ClassLoaderProxy.ShortType),
+			    new OPT_LocationOperand(VM_TypeReference.Short),
 			    getCurrentGuard());
 	}
 	break;
@@ -752,7 +796,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popInt();
 	  OPT_Operand op1 = popInt();
-	  s = _binaryHelper(INT_ADD, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(INT_ADD, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -760,7 +804,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popLong();
 	  OPT_Operand op1 = popLong();
-	  s = _binaryDualHelper(LONG_ADD, op1, op2, OPT_ClassLoaderProxy.LongType);
+	  s = _binaryDualHelper(LONG_ADD, op1, op2, VM_TypeReference.Long);
 	}
 	break;
 
@@ -768,7 +812,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popFloat();
 	  OPT_Operand op1 = popFloat();
-	  s = _binaryHelper(FLOAT_ADD, op1, op2, OPT_ClassLoaderProxy.FloatType);
+	  s = _binaryHelper(FLOAT_ADD, op1, op2, VM_TypeReference.Float);
 	}
 	break;
 
@@ -776,7 +820,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popDouble();
 	  OPT_Operand op1 = popDouble();
-	  s = _binaryDualHelper(DOUBLE_ADD, op1, op2, OPT_ClassLoaderProxy.DoubleType);
+	  s = _binaryDualHelper(DOUBLE_ADD, op1, op2, VM_TypeReference.Double);
 	}
 	break;
 
@@ -784,7 +828,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popInt();
 	  OPT_Operand op1 = popInt();
-	  s = _binaryHelper(INT_SUB, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(INT_SUB, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -792,7 +836,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popLong();
 	  OPT_Operand op1 = popLong();
-	  s = _binaryDualHelper(LONG_SUB, op1, op2, OPT_ClassLoaderProxy.LongType);
+	  s = _binaryDualHelper(LONG_SUB, op1, op2, VM_TypeReference.Long);
 	}
 	break;
 
@@ -800,7 +844,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popFloat();
 	  OPT_Operand op1 = popFloat();
-	  s = _binaryHelper(FLOAT_SUB, op1, op2, OPT_ClassLoaderProxy.FloatType);
+	  s = _binaryHelper(FLOAT_SUB, op1, op2, VM_TypeReference.Float);
 	}
 	break;
 
@@ -808,7 +852,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popDouble();
 	  OPT_Operand op1 = popDouble();
-	  s = _binaryDualHelper(DOUBLE_SUB, op1, op2, OPT_ClassLoaderProxy.DoubleType);
+	  s = _binaryDualHelper(DOUBLE_SUB, op1, op2, VM_TypeReference.Double);
 	}
 	break;
 
@@ -816,7 +860,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popInt();
 	  OPT_Operand op1 = popInt();
-	  s = _binaryHelper(INT_MUL, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(INT_MUL, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -824,7 +868,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popLong();
 	  OPT_Operand op1 = popLong();
-	  s = _binaryDualHelper(LONG_MUL, op1, op2, OPT_ClassLoaderProxy.LongType);
+	  s = _binaryDualHelper(LONG_MUL, op1, op2, VM_TypeReference.Long);
 	}
 	break;
 
@@ -832,7 +876,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popFloat();
 	  OPT_Operand op1 = popFloat();
-	  s = _binaryHelper(FLOAT_MUL, op1, op2, OPT_ClassLoaderProxy.FloatType);
+	  s = _binaryHelper(FLOAT_MUL, op1, op2, VM_TypeReference.Float);
 	}
 	break;
 
@@ -840,7 +884,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popDouble();
 	  OPT_Operand op1 = popDouble();
-	  s = _binaryDualHelper(DOUBLE_MUL, op1, op2, OPT_ClassLoaderProxy.DoubleType);
+	  s = _binaryDualHelper(DOUBLE_MUL, op1, op2, VM_TypeReference.Double);
 	}
 	break;
 
@@ -852,7 +896,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_IntZeroCheck(op2))
 	    break;
 	  s = _guardedBinaryHelper(INT_DIV, op1, op2, getCurrentGuard(), 
-				   OPT_ClassLoaderProxy.IntType);
+				   VM_TypeReference.Int);
 	}
 	break;
 
@@ -864,7 +908,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_LongZeroCheck(op2))
 	    break;
 	  s = _guardedBinaryDualHelper(LONG_DIV, op1, op2, getCurrentGuard(), 
-				       OPT_ClassLoaderProxy.LongType);
+				       VM_TypeReference.Long);
 	}
 	break;
 
@@ -872,7 +916,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popFloat();
 	  OPT_Operand op1 = popFloat();
-	  s = _binaryHelper(FLOAT_DIV, op1, op2, OPT_ClassLoaderProxy.FloatType);
+	  s = _binaryHelper(FLOAT_DIV, op1, op2, VM_TypeReference.Float);
 	}
 	break;
 
@@ -880,7 +924,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popDouble();
 	  OPT_Operand op1 = popDouble();
-	  s = _binaryDualHelper(DOUBLE_DIV, op1, op2, OPT_ClassLoaderProxy.DoubleType);
+	  s = _binaryDualHelper(DOUBLE_DIV, op1, op2, VM_TypeReference.Double);
 	}
 	break;
 
@@ -892,7 +936,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_IntZeroCheck(op2))
 	    break;
 	  s = _guardedBinaryHelper(INT_REM, op1, op2, getCurrentGuard(), 
-				   OPT_ClassLoaderProxy.IntType);
+				   VM_TypeReference.Int);
 	}
 	break;
 
@@ -904,7 +948,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (do_LongZeroCheck(op2))
 	    break;
 	  s = _guardedBinaryDualHelper(LONG_REM, op1, op2, getCurrentGuard(), 
-				       OPT_ClassLoaderProxy.LongType);
+				       VM_TypeReference.Long);
 	}
 	break;
 
@@ -912,7 +956,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popFloat();
 	  OPT_Operand op1 = popFloat();
-	  s = _binaryHelper(FLOAT_REM, op1, op2, OPT_ClassLoaderProxy.FloatType);
+	  s = _binaryHelper(FLOAT_REM, op1, op2, VM_TypeReference.Float);
 	}
 	break;
 
@@ -920,31 +964,31 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popDouble();
 	  OPT_Operand op1 = popDouble();
-	  s = _binaryDualHelper(DOUBLE_REM, op1, op2, OPT_ClassLoaderProxy.DoubleType);
+	  s = _binaryDualHelper(DOUBLE_REM, op1, op2, VM_TypeReference.Double);
 	}
 	break;
 
       case JBC_ineg:
-	s = _unaryHelper(INT_NEG, popInt(), OPT_ClassLoaderProxy.IntType);
+	s = _unaryHelper(INT_NEG, popInt(), VM_TypeReference.Int);
 	break;
 
       case JBC_lneg:
-	s = _unaryDualHelper(LONG_NEG, popLong(), OPT_ClassLoaderProxy.LongType);
+	s = _unaryDualHelper(LONG_NEG, popLong(), VM_TypeReference.Long);
 	break;
 
       case JBC_fneg:
-	s = _unaryHelper(FLOAT_NEG, popFloat(), OPT_ClassLoaderProxy.FloatType);
+	s = _unaryHelper(FLOAT_NEG, popFloat(), VM_TypeReference.Float);
 	break;
 
       case JBC_dneg:
-	s = _unaryDualHelper(DOUBLE_NEG, popDouble(), OPT_ClassLoaderProxy.DoubleType);
+	s = _unaryDualHelper(DOUBLE_NEG, popDouble(), VM_TypeReference.Double);
 	break;
 
       case JBC_ishl:
 	{
 	  OPT_Operand op2 = popInt();
 	  OPT_Operand op1 = popInt();
-	  s = _binaryHelper(INT_SHL, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(INT_SHL, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -952,7 +996,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popInt();
 	  OPT_Operand op1 = popLong();
-	  s = _binaryDualHelper(LONG_SHL, op1, op2, OPT_ClassLoaderProxy.LongType);
+	  s = _binaryDualHelper(LONG_SHL, op1, op2, VM_TypeReference.Long);
 	}
 	break;
       
@@ -960,7 +1004,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popInt();
 	  OPT_Operand op1 = popInt();
-	  s = _binaryHelper(INT_SHR, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(INT_SHR, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -968,7 +1012,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popInt();
 	  OPT_Operand op1 = popLong();
-	  s = _binaryDualHelper(LONG_SHR, op1, op2, OPT_ClassLoaderProxy.LongType);
+	  s = _binaryDualHelper(LONG_SHR, op1, op2, VM_TypeReference.Long);
 	} 
 	break;
 
@@ -976,7 +1020,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popInt();
 	  OPT_Operand op1 = popInt();
-	  s = _binaryHelper(INT_USHR, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(INT_USHR, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -984,7 +1028,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popInt();
 	  OPT_Operand op1 = popLong();
-	  s = _binaryDualHelper(LONG_USHR, op1, op2, OPT_ClassLoaderProxy.LongType);
+	  s = _binaryDualHelper(LONG_USHR, op1, op2, VM_TypeReference.Long);
 	}
 	break;
       
@@ -992,7 +1036,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popInt();
 	  OPT_Operand op1 = popInt();
-	  s = _binaryHelper(INT_AND, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(INT_AND, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -1000,7 +1044,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popLong();
 	  OPT_Operand op1 = popLong();
-	  s = _binaryDualHelper(LONG_AND, op1, op2, OPT_ClassLoaderProxy.LongType);
+	  s = _binaryDualHelper(LONG_AND, op1, op2, VM_TypeReference.Long);
 	}
 	break;
 
@@ -1008,7 +1052,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popInt();
 	  OPT_Operand op1 = popInt();
-	  s = _binaryHelper(INT_OR, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(INT_OR, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -1016,7 +1060,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popLong();
 	  OPT_Operand op1 = popLong();
-	  s = _binaryDualHelper(LONG_OR, op1, op2, OPT_ClassLoaderProxy.LongType);
+	  s = _binaryDualHelper(LONG_OR, op1, op2, VM_TypeReference.Long);
 	}
 	break;
 
@@ -1024,7 +1068,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popInt();
 	  OPT_Operand op1 = popInt();
-	  s = _binaryHelper(INT_XOR, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(INT_XOR, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -1032,82 +1076,82 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popLong();
 	  OPT_Operand op1 = popLong();
-	  s = _binaryDualHelper(LONG_XOR, op1, op2, OPT_ClassLoaderProxy.LongType);
+	  s = _binaryDualHelper(LONG_XOR, op1, op2, VM_TypeReference.Long);
 	}
 	break;
 
       case JBC_iinc:
 	{
-	  int index = bcInfo.getLocalNumber();
-	  s = do_iinc(index, bcInfo.getByteValue());
+	  int index = bcodes.getLocalNumber();
+	  s = do_iinc(index, bcodes.getIncrement());
 	}
 	break;
 
       case JBC_i2l:
-	s = _unaryDualHelper(INT_2LONG, popInt(), OPT_ClassLoaderProxy.LongType);
+	s = _unaryDualHelper(INT_2LONG, popInt(), VM_TypeReference.Long);
 	break;
 
       case JBC_i2f:
-	s = _unaryHelper(INT_2FLOAT, popInt(), OPT_ClassLoaderProxy.FloatType);
+	s = _unaryHelper(INT_2FLOAT, popInt(), VM_TypeReference.Float);
 	break;
 
       case JBC_i2d:
-	s = _unaryDualHelper(INT_2DOUBLE, popInt(), OPT_ClassLoaderProxy.DoubleType);
+	s = _unaryDualHelper(INT_2DOUBLE, popInt(), VM_TypeReference.Double);
 	break;
 
       case JBC_l2i:
-	s = _unaryHelper(LONG_2INT, popLong(), OPT_ClassLoaderProxy.IntType);
+	s = _unaryHelper(LONG_2INT, popLong(), VM_TypeReference.Int);
 	break;
 
       case JBC_l2f:
-	s = _unaryHelper(LONG_2FLOAT, popLong(), OPT_ClassLoaderProxy.FloatType);
+	s = _unaryHelper(LONG_2FLOAT, popLong(), VM_TypeReference.Float);
 	break;
 
       case JBC_l2d:
-	s = _unaryDualHelper(LONG_2DOUBLE, popLong(), OPT_ClassLoaderProxy.DoubleType);
+	s = _unaryDualHelper(LONG_2DOUBLE, popLong(), VM_TypeReference.Double);
 	break;
 
       case JBC_f2i:
-	s = _unaryHelper(FLOAT_2INT, popFloat(), OPT_ClassLoaderProxy.IntType);
+	s = _unaryHelper(FLOAT_2INT, popFloat(), VM_TypeReference.Int);
 	break;
 
       case JBC_f2l:
-	s = _unaryDualHelper(FLOAT_2LONG, popFloat(), OPT_ClassLoaderProxy.LongType);
+	s = _unaryDualHelper(FLOAT_2LONG, popFloat(), VM_TypeReference.Long);
 	break;
 
       case JBC_f2d:
-	s = _unaryDualHelper(FLOAT_2DOUBLE, popFloat(), OPT_ClassLoaderProxy.DoubleType);
+	s = _unaryDualHelper(FLOAT_2DOUBLE, popFloat(), VM_TypeReference.Double);
 	break;
 
       case JBC_d2i:
-	s = _unaryHelper(DOUBLE_2INT, popDouble(), OPT_ClassLoaderProxy.IntType);
+	s = _unaryHelper(DOUBLE_2INT, popDouble(), VM_TypeReference.Int);
 	break;
 
       case JBC_d2l:
-	s = _unaryDualHelper(DOUBLE_2LONG, popDouble(), OPT_ClassLoaderProxy.LongType);
+	s = _unaryDualHelper(DOUBLE_2LONG, popDouble(), VM_TypeReference.Long);
 	break;
 
       case JBC_d2f:
-	s = _unaryHelper(DOUBLE_2FLOAT, popDouble(), OPT_ClassLoaderProxy.FloatType);
+	s = _unaryHelper(DOUBLE_2FLOAT, popDouble(), VM_TypeReference.Float);
 	break;
 
       case JBC_int2byte:
-	s = _unaryHelper(INT_2BYTE, popInt(), OPT_ClassLoaderProxy.ByteType);
+	s = _unaryHelper(INT_2BYTE, popInt(), VM_TypeReference.Byte);
 	break;
 
       case JBC_int2char:
-	s = _unaryHelper(INT_2USHORT, popInt(), OPT_ClassLoaderProxy.CharType);
+	s = _unaryHelper(INT_2USHORT, popInt(), VM_TypeReference.Char);
 	break;
 
       case JBC_int2short:
-	s = _unaryHelper(INT_2SHORT, popInt(), OPT_ClassLoaderProxy.ShortType);
+	s = _unaryHelper(INT_2SHORT, popInt(), VM_TypeReference.Short);
 	break;
 
       case JBC_lcmp:
 	{
 	  OPT_Operand op2 = popLong();
 	  OPT_Operand op1 = popLong();
-	  s = _binaryHelper(LONG_CMP, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(LONG_CMP, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -1115,7 +1159,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popFloat();
 	  OPT_Operand op1 = popFloat();
-	  s = _binaryHelper(FLOAT_CMPL, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(FLOAT_CMPL, op1, op2, VM_TypeReference.Int);
 	}
 	break;
       
@@ -1123,7 +1167,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popFloat();
 	  OPT_Operand op1 = popFloat();
-	  s = _binaryHelper(FLOAT_CMPG, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(FLOAT_CMPG, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -1131,7 +1175,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popDouble();
 	  OPT_Operand op1 = popDouble();
-	  s = _binaryHelper(DOUBLE_CMPL, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(DOUBLE_CMPL, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -1139,7 +1183,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op2 = popDouble();
 	  OPT_Operand op1 = popDouble();
-	  s = _binaryHelper(DOUBLE_CMPG, op1, op2, OPT_ClassLoaderProxy.IntType);
+	  s = _binaryHelper(DOUBLE_CMPG, op1, op2, VM_TypeReference.Int);
 	}
 	break;
 
@@ -1201,38 +1245,35 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_goto:
 	{
-	  int offset = bcInfo.getBranchTarget();
+	  int offset = bcodes.getBranchOffset();
 	  if (offset != 3)   // skip generating frivolous goto's
 	    s = _gotoHelper(offset);
 	}
 	break;
 
       case JBC_jsr:
-	s = _jsrHelper(bcInfo.getBranchTarget());
+	s = _jsrHelper(bcodes.getBranchOffset());
 	break;
 
       case JBC_ret:
-	s = _retHelper(bcInfo.getLocalNumber());
+	s = _retHelper(bcodes.getLocalNumber());
 	break;
 
       case JBC_tableswitch:
 	{
+	  bcodes.alignSwitch();
 	  OPT_Operand op0 = popInt();
-	  int defaultoff = bcInfo.getSwitchDefaultTarget();
-	  int low = bcInfo.getSwitchLowValue();
-	  int high = bcInfo.getSwitchHighValue();
+	  int defaultoff = bcodes.getDefaultSwitchOffset();
+	  int low = bcodes.getLowSwitchValue();
+	  int high = bcodes.getHighSwitchValue();
 	  int number = high - low + 1;
 	  if (CF_TABLESWITCH && op0 instanceof OPT_IntConstantOperand) {
 	    int v1 = ((OPT_IntConstantOperand)op0).value;
-	    int offset;
-	    if ((v1 < low) || (v1 > high))
-	      offset = defaultoff; 
-	    else 
-	      offset = bcInfo.getTableSwitchOffsetForConstant(v1, low, high);
-	    bcInfo.skipTableSwitchTargets(number);
+	    int match = bcodes.computeTableSwitchOffset(v1, low, high);
+	    int offset = match == 0 ? defaultoff : match;
+	    bcodes.skipTableSwitchOffsets(number);
 	    if (DBG_CF) {
-	      db("changed tableswitch to goto because index (" + v1 + 
-		 ") is constant");
+	      db("changed tableswitch to goto because index (" + v1 + ") is constant");
 	    }
 	    s = _gotoHelper(offset);
 	    break;
@@ -1244,11 +1285,16 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 				 null,
 				 number*2);
 	  for (int i = 0; i < number; ++i) {
-	    TableSwitch.setTarget(s, i, generateTarget(bcInfo.getSwitchTarget(i)));
+	    TableSwitch.setTarget(s, i, generateTarget(bcodes.getTableSwitchOffset(i)));
 	  }
+	  bcodes.skipTableSwitchOffsets(number);
 	  
 	  // Set branch probabilities
+//-#if RVM_WITH_OSR
+  	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex-bciAdjustment);
+//-#else
 	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex);
+//-#endif
 	  if (sp == null) {
 	    float approxProb = 1.0f/(float)(number+1); // number targets + default
 	    TableSwitch.setDefaultBranchProfile(s, new OPT_BranchProfileOperand(approxProb));
@@ -1266,29 +1312,21 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_lookupswitch:
 	{
+	  bcodes.alignSwitch();
 	  OPT_Operand op0 = popInt();
-	  int defaultoff = bcInfo.getSwitchDefaultTarget();
-	  int numpairs = bcInfo.getLookupSwitchNumberOfPairs();
+	  int defaultoff = bcodes.getDefaultSwitchOffset();
+	  int numpairs = bcodes.getSwitchLength();
 	  if (numpairs == 0) {
 	    s = _gotoHelper(defaultoff);
 	    break;
 	  }
 	  if (CF_LOOKUPSWITCH && op0 instanceof OPT_IntConstantOperand) {
 	    int v1 = ((OPT_IntConstantOperand)op0).value;
-	    int offset = defaultoff;
-	    for (int i = 0; i < numpairs; ++i) {
-	      int match = bcInfo.getSwitchValue(i);
-	      if (match == v1) {
-		offset = bcInfo.getSwitchTarget(i);
-		bcInfo.skipLookupSwitchPairs(numpairs, i + 1);
-		break;        // for
-	      } else {
-		bcInfo.skipSwitchValue(i);
-	      }
-	    }
+	    int match = bcodes.computeLookupSwitchOffset(v1, numpairs);
+	    int offset = match == 0 ? defaultoff : match;
+	    bcodes.skipLookupSwitchPairs(numpairs);
 	    if (DBG_CF) {
-	      db("changed lookupswitch to goto because index (" + v1
-		 + ") is constant");
+	      db("changed lookupswitch to goto because index (" + v1 + ") is constant");
 	    }
 	    s = _gotoHelper(offset);
 	    break;
@@ -1299,12 +1337,17 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 				  generateTarget(defaultoff), 
 				  null,  numpairs*3);
 	  for (int i = 0; i < numpairs; ++i) {
-	    LookupSwitch.setMatch(s, i, new OPT_IntConstantOperand(bcInfo.getSwitchValue(i)));
-	    LookupSwitch.setTarget(s, i, generateTarget(bcInfo.getSwitchTarget(i)));
+	    LookupSwitch.setMatch(s, i, new OPT_IntConstantOperand(bcodes.getLookupSwitchValue(i)));
+	    LookupSwitch.setTarget(s, i, generateTarget(bcodes.getLookupSwitchOffset(i)));
 	  }
+	  bcodes.skipLookupSwitchPairs(numpairs);
 
 	  // Set branch probabilities
+//-#if RVM_WITH_OSR
+	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex-bciAdjustment);
+//-#else
 	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex);
+//-#endif
 	  if (sp == null) {
 	    float approxProb = 1.0f/(float)(numpairs+1); // num targets + default
 	    LookupSwitch.setDefaultBranchProfile(s, new OPT_BranchProfileOperand(approxProb));
@@ -1340,10 +1383,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  OPT_Operand op0 = popRef();
 	  if (VM.VerifyAssertions && !op0.isDefinitelyNull()) {
-	    VM_Type retType = getRefTypeOf(op0);
+	    VM_TypeReference retType = getRefTypeOf(op0);
 	    // fudge to deal with conservative approximation 
 	    // in OPT_ClassLoaderProxy.findCommonSuperclass
-	    if (retType != OPT_ClassLoaderProxy.JavaLangObjectType)
+	    if (retType != VM_TypeReference.JavaLangObject)
 	      assertIsAssignable(gc.method.getReturnType(), getRefTypeOf(op0));
 	  }
 	  _returnHelper(REF_MOVE, op0);
@@ -1356,458 +1399,494 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_getstatic:
 	{
-	  VM_Field field = bcInfo.getFieldReference();
-	  // use results of field analysis to refine type.
-	  VM_Type fieldType = field.getType();
+	  // field resolution
+	  VM_FieldReference ref = bcodes.getFieldReference();
+	  boolean unresolved = ref.needsDynamicLink(bcodes.method());
+	  OPT_LocationOperand fieldOp = makeStaticFieldRef(ref);
+	  OPT_Operand offsetOp;
+	  VM_TypeReference fieldType = ref.getFieldContentsType();
           OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
-	  if (field.getType().isClassType() && 
-	      field.getType().asClass().isLoaded()) {
-	    VM_Type concreteType = OPT_FieldAnalysis.getConcreteType(field);
-	    if (concreteType != null) {
-	      t.setPreciseType();
-	      if (concreteType == fieldType) {
-		t.setDeclaredType();
-	      } else {
-		fieldType = concreteType;
-		t.type = concreteType;
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
+	    offsetOp = offsetrop;
+	    rectifyStateWithErrorHandler();
+	  } else {
+	    VM_Field field = ref.peekResolvedField();
+	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
+	  
+	    // use results of field analysis to refine type of result
+	    VM_Type ft = fieldType.peekResolvedType();
+	    if (ft != null && ft.isClassType()) {
+	      VM_TypeReference concreteType = OPT_FieldAnalysis.getConcreteType(field);
+	      if (concreteType != null) {
+		t.setPreciseType();
+		if (concreteType == fieldType) {
+		  t.setDeclaredType();
+		} else {
+		  fieldType = concreteType;
+		  t.type = concreteType;
+		}
 	      }
 	    }
-	  }
-	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
-	  OPT_Operator operator = unresolved?GETSTATIC_UNRESOLVED:GETSTATIC;
-	  if (!unresolved) field = field.resolve();
-	  s = GetStatic.create(operator, t, makeStaticFieldRef(field));
 
-	  // optimization: 
-	  // if the field is final and either initialized or
-	  // in the bootimage, then get the value at compile time.
-	  // TODO: applying this optimization to Floats or Doubles 
-	  //       causes problems.  Figure out why and fix it!
-	  if (!fieldType.isDoubleType() && !fieldType.isFloatType()) {
-	    if (!unresolved && field.isFinal()) {
-	      VM_Class declaringClass = field.getDeclaringClass();
-	      if (declaringClass.isInitialized() ||
-		  (VM.writingBootImage && declaringClass.isInBootImage())) {
-		try {
-		  if (fieldType.isPrimitiveType()) {
-		    operator = OPT_IRTools.getMoveOp(field.getType());
-		    OPT_ConstantOperand rhs = OPT_StaticFieldReader.getStaticFieldValue(field);
-		    // VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
-		    push (rhs, fieldType);
-		    s = null;
-		    break;
-		  } else {
-		    if (OPT_StaticFieldReader.isStaticFieldNull(field)) {
-		      // VM.sysWrite("Replaced getstatic of "+field+" with <null>\n");
-		      push(new OPT_NullConstantOperand(), fieldType);
-		      s = null;
+	    // optimization: 
+	    // if the field is final and either initialized or
+	    // in the bootimage, then get the value at compile time.
+	    // TODO: applying this optimization to Floats or Doubles 
+	    //       causes problems.  Figure out why and fix it!
+	    if (!fieldType.isDoubleType() && !fieldType.isFloatType()) {
+	      if (field.isFinal()) {
+		VM_Class declaringClass = field.getDeclaringClass();
+		if (declaringClass.isInitialized() ||
+		    (VM.writingBootImage && declaringClass.isInBootImage())) {
+		  try {
+		    if (fieldType.isPrimitiveType()) {
+		      OPT_ConstantOperand rhs = OPT_StaticFieldReader.getStaticFieldValue(field);
+		      // VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
+		      push (rhs, fieldType);
 		      break;
 		    } else {
-		      VM_Type rtType = OPT_StaticFieldReader.getTypeFromStaticField(field);
-		      if (rtType == VM_Type.JavaLangStringType) {
-			OPT_ConstantOperand rhs = OPT_StaticFieldReader.getStaticFieldValue(field);
-			// VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
-			push (rhs, fieldType);
-			s = null;
+		      if (OPT_StaticFieldReader.isStaticFieldNull(field)) {
+			// VM.sysWrite("Replaced getstatic of "+field+" with <null>\n");
+			push(new OPT_NullConstantOperand(), fieldType);
 			break;
 		      } else {
-			t.type = rtType;
-			if (rtType != fieldType) t.clearDeclaredType();
-			t.setPreciseType();
-			markGuardlessNonNull(t);
-			// VM.sysWrite("Tightened type info for getstatic of "+field+" to "+t+"\n");
+			VM_TypeReference rtType = OPT_StaticFieldReader.getTypeFromStaticField(field);
+			if (rtType == VM_TypeReference.JavaLangString) {
+			  OPT_ConstantOperand rhs = OPT_StaticFieldReader.getStaticFieldValue(field);
+			  // VM.sysWrite("Replaced getstatic of "+field+" with "+rhs+"\n");
+			  push (rhs, fieldType);
+			  break;
+			} else {
+			  t.type = rtType;
+			  if (rtType != fieldType) t.clearDeclaredType();
+			  t.setPreciseType();
+			  markGuardlessNonNull(t);
+			  // VM.sysWrite("Tightened type info for getstatic of "+field+" to "+t+"\n");
+			}
 		      }
 		    }
+		  } catch (NoSuchFieldException e) {
+		    // Sigh, host JDK java.* class didn't have this RVM field.
+		    // VM.sysWrite("Field "+field+" does not exist on host JDK\n");
 		  }
-		} catch (NoSuchFieldException e) {
-		  // Sigh, host JDK java.* class didn't have this RVM field.
-		  // VM.sysWrite("Field "+field+" does not exist on host JDK\n");
 		}
 	      }
 	    }
 	  }
+
+	  s = GetStatic.create(GETSTATIC, t, offsetOp, fieldOp);
 	  push(t.copyD2U(), fieldType);
-	  if (unresolved)
-	    rectifyStateWithErrorHandler();
 	}
 	break;
 
       case JBC_putstatic:
 	{
-	  VM_Field field = bcInfo.getFieldReference();
-	  VM_Type fieldType = field.getType();
-	  OPT_Operand r = pop(fieldType);
-	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
-	  OPT_Operator operator = unresolved?PUTSTATIC_UNRESOLVED:PUTSTATIC;
-	  if (!unresolved) field = field.resolve();
-	  s = PutStatic.create(operator, r, makeStaticFieldRef(field));
-	  if (unresolved)
+	  // field resolution
+	  VM_FieldReference ref = bcodes.getFieldReference();
+	  boolean unresolved = ref.needsDynamicLink(bcodes.method());
+	  OPT_LocationOperand fieldOp = makeStaticFieldRef(ref);
+	  OPT_Operand offsetOp;
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
+	    offsetOp = offsetrop;
 	    rectifyStateWithErrorHandler();
+	  } else {
+	    VM_Field field = ref.peekResolvedField();
+	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
+	  }
+
+	  VM_TypeReference fieldType = ref.getFieldContentsType();
+	  OPT_Operand r = pop(fieldType);
+	  s = PutStatic.create(PUTSTATIC, r, offsetOp, fieldOp);
 	}
 	break;
 
       case JBC_getfield:
 	{
+	  // field resolution
+	  VM_FieldReference ref = bcodes.getFieldReference();
+	  boolean unresolved = ref.needsDynamicLink(bcodes.method());
+	  OPT_LocationOperand fieldOp = makeInstanceFieldRef(ref);
+	  OPT_Operand offsetOp;
+	  VM_TypeReference fieldType = ref.getFieldContentsType();
+          OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
+	    offsetOp = offsetrop;
+	    rectifyStateWithErrorHandler();
+	  } else {
+	    VM_Field field = ref.peekResolvedField();
+	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
+
+	    // use results of field analysis to refine type.
+	    VM_Type ft = fieldType.peekResolvedType();
+	    if (ft != null && ft.isClassType()) {
+	      VM_TypeReference concreteType = OPT_FieldAnalysis.getConcreteType(field);
+	      if (concreteType != null) {
+		t.setPreciseType();
+		if (concreteType == fieldType) {
+		  t.setDeclaredType();
+		} else {
+		  fieldType = concreteType;
+		  t.type = concreteType;
+		}
+	      }
+	    }
+	  }
+	  
 	  OPT_Operand op1 = pop();
 	  clearCurrentGuard();
 	  if (do_NullCheck(op1))
 	    break;
-	  VM_Field field = bcInfo.getFieldReference();
-	  VM_Type fieldType = field.getType();
-          OPT_RegisterOperand t = gc.temps.makeTemp(fieldType);
-	  // use results of field analysis to refine type.
-	  if (field.getType().isClassType() && 
-	      field.getType().asClass().isLoaded()) {
-	    VM_Type concreteType = OPT_FieldAnalysis.getConcreteType(field);
-	    if (concreteType != null) {
-	      t.setPreciseType();
-	      if (concreteType == fieldType) {
-		t.setDeclaredType();
-	      } else {
-		fieldType = concreteType;
-		t.type = concreteType;
-	      }
-	    }
-	  }
-	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
-	  OPT_Operator operator = unresolved?GETFIELD_UNRESOLVED:GETFIELD;
-	  if (!unresolved) field = field.resolve();
-	  s = GetField.create(operator, t, op1, makeInstanceFieldRef(field), 
-			      getCurrentGuard());
+	  
+	  s = GetField.create(GETFIELD, t, op1, offsetOp, fieldOp, getCurrentGuard());
 	  push(t.copyD2U(), fieldType);
-	  if (unresolved)
-	    rectifyStateWithErrorHandler();
 	}
 	break;
 
       case JBC_putfield:
 	{
-	  VM_Field field = bcInfo.getFieldReference();
-	  VM_Type fieldType = field.getType();
+	  // field resolution
+	  VM_FieldReference ref = bcodes.getFieldReference();
+	  boolean unresolved = ref.needsDynamicLink(bcodes.method());
+	  OPT_LocationOperand fieldOp = makeInstanceFieldRef(ref);
+	  VM_TypeReference fieldType = ref.getFieldContentsType();
+	  OPT_Operand offsetOp;
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), fieldOp.copy()));
+	    offsetOp = offsetrop;
+	    rectifyStateWithErrorHandler();
+	  } else {
+	    VM_Field field = ref.peekResolvedField();
+	    offsetOp = new OPT_IntConstantOperand(field.getOffset());
+	  }
+	  
 	  OPT_Operand val = pop(fieldType);
 	  OPT_Operand obj = popRef();
 	  clearCurrentGuard();
 	  if (do_NullCheck(obj))
 	    break;
-	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(field, gc.method.getDeclaringClass());
-	  OPT_Operator operator = unresolved?PUTFIELD_UNRESOLVED:PUTFIELD;
-	  if (!unresolved) field = field.resolve();
-	  s = PutField.create(operator, val, obj, makeInstanceFieldRef(field), 
-			      getCurrentGuard());
-	  if (unresolved)
-	    rectifyStateWithErrorHandler();
+
+	  s = PutField.create(PUTFIELD, val, obj, offsetOp, fieldOp, getCurrentGuard());
 	}
 	break;
 
       case JBC_invokevirtual:
 	{
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	    OPT_InlineReport.beginNewDecision();
-	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_VIRTUAL);
-	  }
-	  VM_Method meth = bcInfo.getMethodReference();
-	  if (meth.getDeclaringClass().isWordType()) {
-	    try {
-	      boolean generated = OPT_GenerateMagic.generateMagic(this, gc, meth);
-	      if (generated) {
-		if (gc.options.PRINT_DETAILED_INLINE_REPORT) 
-		  OPT_InlineReport.isMagic(meth);
-		break;
-	      }
-	    } catch (OPT_MagicNotImplementedException e) {
-	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-		OPT_InlineReport.unimplementedMagic(Call.getMethod(s).method);
-	      }
-	      throw e;
-	    }
-	  }
-	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
-	  if (!unresolved) meth = meth.resolve();
-	  OPT_MethodOperand methOp = 
-	    OPT_MethodOperand.VIRTUAL(meth, unresolved);
-	  s = _callHelper(methOp);
-	  if (s == null) {
-	    if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	      OPT_InlineReport.instructionNull();
-	    }
-	    break;
+	  VM_MethodReference ref = bcodes.getMethodReference();
+
+	  // See if this is a magic method (VM_Address, VM_Word, etc.)
+	  // If it is, generate the inline code and we are done.
+	  if (ref.getType().isWordType()) {
+	    boolean generated = OPT_GenerateMagic.generateMagic(this, gc, ref);
+	    if (generated) break; // all done.
 	  }
 
-	  // try to reduce the number of targets.
-	  // If we succeed, we'll update meth, unresolved, 
-	  // and s's method operand.
-	  OPT_Operand ref = Call.getParam(s, 0);
-	  boolean receiverClassResolved = false;
-	  boolean isExtant = false;
-	  VM_Type type = null;
-	  if (ref.isRegister()) {
-	    isExtant = ref.asRegister().isExtant();
-	    type = ref.asRegister().type;
-	  } else if (ref.isStringConstant()) {
-	    isExtant = true;
-	    type = OPT_ClassLoaderProxy.JavaLangStringType;
-	  } else if (VM.VerifyAssertions)
-	    VM._assert(false, "unexpected receiver");
-	  receiverClassResolved = type.isResolved();
-	  if ((meth.getDeclaringClass() != type) && type.isClassType()) {
-	    VM_Method vmeth = 
-		OPT_ClassLoaderProxy.lookupMethod(type.asClass(), meth);
-	    if (vmeth != null && vmeth != meth) {
-	      // Update meth to be the refined vmeth
-	      meth = vmeth;
-	      unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
-	      Call.setMethod(s, OPT_MethodOperand.VIRTUAL(meth, unresolved, true));
-	    }
-	  }
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT)
-	    OPT_InlineReport.classUnresolved(unresolved, meth);
-	  // If we don't need dynamic linking code, think about inlining
-	  if (!unresolved) {
-	    // if the type is precise and receiverClassResolved is true
-	    // then we know FOR CERTAIN that this call will resolve to meth.
-	    // By ensuring that recieverClassResolved, we make sure that 
-	    // lookupMethod was able to actually search the class hierarchy 
-	    // and set meth appropriately.
-	    VM_Method computedTarget = null;
-	    if (receiverClassResolved && 
-		((ref.isStringConstant()) || 
-		 ref.asRegister().isPreciseType())) {
-	      computedTarget = meth;
-	      if (gc.options.PRINT_DETAILED_INLINE_REPORT)
-		OPT_InlineReport.isPreciseType();
-	    }
-            OPT_InlineDecision id = shouldInline(s, computedTarget, isExtant);
-            if (maybeInlineMethod(id, s)) {
-              return;
-            }
+	  // A non-magical invokevirtual.  Create call instruction.
+	  boolean unresolved = ref.needsDynamicLink(bcodes.method());
+	  VM_Method target = ref.peekResolvedMethod();
+	  OPT_MethodOperand methOp = OPT_MethodOperand.VIRTUAL(ref, target);
+
+	  //-#if RVM_WITH_OSR
+	  /* just create an osr barrier right before _callHelper
+	   * changes the states of locals and stacks.
+	   */
+	  if (this.osrGuardedInline)  {
+	    lastOsrBarrier = _createOsrBarrier();
           }
+	  //-#endif
 
-	  // CALL must be treated as potential throw of anything
+	  s = _callHelper(ref, methOp);
+
+	  // Handle possibility of dynamic linking. Must be done before null_check!
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
+	    Call.setAddress(s, offsetrop);
+	    rectifyStateWithErrorHandler();
+	  } else {
+	    if (VM.VerifyAssertions) VM._assert(target != null);
+	    Call.setAddress(s, new OPT_IntConstantOperand(target.getOffset()));
+	  }
+
+	  // null check receiver
+	  OPT_Operand receiver = Call.getParam(s, 0);
+	  clearCurrentGuard();
+	  if (do_NullCheck(receiver)) {
+	    // call will always raise null pointer exception
+	    s = null; 
+	    break; 
+	  }
+	  Call.setGuard(s, getCurrentGuard());
+
+	  // Use compile time type of receiver to try reduce the number of targets.
+	  // If we succeed, we'll update meth and s's method operand.
+	  boolean isExtant = false;
+	  boolean isPreciseType = false;
+	  VM_TypeReference tr = null;
+	  if (receiver.isRegister()) {
+	    OPT_RegisterOperand rop = receiver.asRegister();
+	    isExtant = rop.isExtant();
+	    isPreciseType = rop.isPreciseType();
+	    tr = rop.type;
+	  } else if (receiver.isStringConstant()) {
+	    isExtant = true;
+	    isPreciseType = true;
+	    tr = VM_TypeReference.JavaLangString;
+	  } else if (VM.VerifyAssertions) {
+	    VM._assert(false, "unexpected receiver");
+	  }
+	  VM_Type type = tr.peekResolvedType();
+	  if (type != null && type.isResolved() && type.isClassType() && target != null && type != target.getDeclaringClass()) {
+	    VM_Method vmeth = OPT_ClassLoaderProxy.lookupMethod(type.asClass(), ref);
+	    if (vmeth != null && vmeth != target) {
+	      methOp.refine(vmeth, isPreciseType);
+	    }
+	  }
+
+	  // Consider inlining it. 
+	  if (maybeInlineMethod(shouldInline(s, isExtant), s)) {
+	    return;
+          } 
+
+	  // noninlined CALL must be treated as potential throw of anything
 	  rectifyStateWithExceptionHandlers(); 
 	}
 	break;
 
       case JBC_invokespecial:
 	{
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	    OPT_InlineReport.beginNewDecision();
-	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_SPECIAL);
-	  }
-	  VM_Method meth = bcInfo.getMethodReference();
-	  // Note: this is not the usual needsDynamicLink 
-	  // due to semantics of invokespecial
-	  // See comments in VM_OptLinker, OPT_Convert2Low, VM_Linker.  
-	  boolean unresolved = 
-	    !meth.getDeclaringClass().isResolved() ||
-	    (OPT_ClassLoaderProxy.findSpecialMethod(meth) == null);
-	  if (!unresolved) meth = meth.resolve();
-	  s = _callHelper(OPT_MethodOperand.SPECIAL(meth, unresolved));
-	  if (s == null) {
-	    if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	      OPT_InlineReport.instructionNull();
-	    }
-	    break;
-	  }
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT)
-	    OPT_InlineReport.classUnresolved(unresolved, meth);
-	  // If we don't need dynamic linking code, think about inlining
-	  if (!unresolved) {
-	    if (maybeInlineMethod(shouldInline(s, null, false), s)) {
-	      return;
-	    }
+	  VM_MethodReference ref = bcodes.getMethodReference();
+	  VM_Method target = ref.resolveInvokeSpecial();
+
+	  //-#if RVM_WITH_OSR
+	  /* just create an osr barrier right before _callHelper
+	   * changes the states of locals and stacks.
+	   */
+	  if (this.osrGuardedInline) 
+	    lastOsrBarrier = _createOsrBarrier();
+	  //-#endif
+
+	  s = _callHelper(ref, OPT_MethodOperand.SPECIAL(ref, target));
+
+	  // Handle possibility of dynamic linking. Must be done before null_check!
+	  // NOTE: different definition of unresolved due to semantics of invokespecial.
+	  if (target == null) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
+	    Call.setAddress(s, offsetrop);
+	    rectifyStateWithErrorHandler();
+	  } else {
+	    Call.setAddress(s, new OPT_IntConstantOperand(target.getOffset()));
 	  }
 
-	  // CALL must be treated as potential throw of anything
+	  // null check receiver
+	  OPT_Operand receiver = Call.getParam(s, 0);
+	  clearCurrentGuard();
+	  if (do_NullCheck(receiver)) {
+	    // call will always raise null pointer exception
+	    s = null; 
+	    break; 
+	  }
+	  Call.setGuard(s, getCurrentGuard());
+
+	  // Consider inlining it. 
+	  if (maybeInlineMethod(shouldInline(s, false), s)) {
+	    return;
+	  }
+	  
+	  // noninlined CALL must be treated as potential throw of anything
 	  rectifyStateWithExceptionHandlers(); 
 	}
 	break;
 
       case JBC_invokestatic:
 	{
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	    OPT_InlineReport.beginNewDecision();
-	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_STATIC);
-	  }
-	  VM_Method meth = bcInfo.getMethodReference();
-	  if (meth.getDeclaringClass().isMagicType() ||
-	      meth.getDeclaringClass().isWordType()) {
-	    try {
-	      boolean generated = OPT_GenerateMagic.generateMagic(this, gc, meth);
-	      if (generated) {
-		if (gc.options.PRINT_DETAILED_INLINE_REPORT) 
-		  OPT_InlineReport.isMagic(meth);
-		break;
-	      }
-	    } catch (OPT_MagicNotImplementedException e) {
-	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-		OPT_InlineReport.unimplementedMagic(Call.getMethod(s).method);
-	      }
-	      if (gc.options.SKIP_UNKNOWN_MAGIC) {
-		s = _callHelper(OPT_MethodOperand.STATIC(meth, false));
-		// CALL must be treated as potential throw of anything
-		rectifyStateWithExceptionHandlers();
-		break;
-	      } else {
-		throw  (e);
-	      }
-	    }
-	  }
-	  boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(meth, gc.method.getDeclaringClass());
-	  if (!unresolved) meth = meth.resolve();
-	  s = _callHelper(OPT_MethodOperand.STATIC(meth, unresolved));
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT)
-	    OPT_InlineReport.classUnresolved(unresolved, meth);
+	  VM_MethodReference ref = bcodes.getMethodReference();
 
-	  // If we don't need dynamic linking code, think about inlining
-	  if (!unresolved) {
-	    if (maybeInlineMethod(shouldInline(s, null, false), s)) {
-	      return;
-	    }
+	  // See if this is a magic method (VM_Magic, VM_Address, VM_Word, etc.)
+	  // If it is, generate the inline code and we are done.
+	  if (ref.getType().isMagicType() || ref.getType().isWordType()) {
+	    boolean generated = OPT_GenerateMagic.generateMagic(this, gc, ref);
+	    if (generated) break;
+	  }
+	  
+	  // A non-magical invokestatic.  Create call instruction.
+	  boolean unresolved = ref.needsDynamicLink(bcodes.method());
+	  VM_Method target = ref.peekResolvedMethod();
+	  
+	  //-#if RVM_WITH_OSR
+	  /* just create an osr barrier right before _callHelper
+	   * changes the states of locals and stacks.
+	   */
+	  if (this.osrGuardedInline) 
+	    lastOsrBarrier = _createOsrBarrier();
+	  //-#endif
+
+	  s = _callHelper(ref, OPT_MethodOperand.STATIC(ref, target));
+	  
+	  // Handle possibility of dynamic linking.
+	  if (unresolved) {
+	    OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+	    appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
+	    Call.setAddress(s, offsetrop);
+	    rectifyStateWithErrorHandler();
+	  } else {
+	    Call.setAddress(s, new OPT_IntConstantOperand(target.getOffset()));
 	  }
 
-	  // CALL must be treated as potential throw of anything
-	  rectifyStateWithExceptionHandlers();
+	  // Consider inlining it. 
+	  if (maybeInlineMethod(shouldInline(s, false), s)) {
+	    return;
+	  }
+	  
+	  // noninlined CALL must be treated as potential throw of anything
+	  rectifyStateWithExceptionHandlers(); 
 	}
 	break;
 
       case JBC_invokeinterface:
 	{
-	  if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	    OPT_InlineReport.beginNewDecision();
-	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_INTERFACE);
-	  }
-	  VM_Method meth = bcInfo.getMethodReference();
-	  bcInfo.eatInvokeInterfaceGarbage();
-	  OPT_MethodOperand methOp = OPT_MethodOperand.INTERFACE(meth, false);
-	  s = _callHelper(methOp);
-	  if (s == null) {
-	    if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-	      OPT_InlineReport.instructionNull();
-	    }
-	    break;
-	  }
+	  VM_MethodReference ref = bcodes.getMethodReference();
+	  bcodes.alignInvokeInterface();
+	  VM_Method resolvedMethod = null;
+	  resolvedMethod = ref.peekInterfaceMethod();
 
-	  OPT_RegisterOperand ref = Call.getParam(s, 0).asRegister();
-	  VM_Class refType = ref.type.asClass();
-	  VM_Type interfaceType = meth.getDeclaringClass();
+	  //-#if RVM_WITH_OSR
+	  /* just create an osr barrier right before _callHelper
+	   * changes the states of locals and stacks.
+	   */
+	  if (this.osrGuardedInline) 
+	    lastOsrBarrier = _createOsrBarrier();
+	  //-#endif
+
+	  s = _callHelper(ref, OPT_MethodOperand.INTERFACE(ref, resolvedMethod));
+	  OPT_RegisterOperand receiver = Call.getParam(s, 0).asRegister();
+	  VM_Class receiverType = (VM_Class)receiver.type.peekResolvedType();
+	  // null check on this parameter of call
+	  // TODO: Strictly speaking we need to do dynamic linking of the interface
+	  //       type BEFORE we do the null check. FIXME.
+	  clearCurrentGuard();
+	  if (do_NullCheck(receiver)) {
+	    // call will always raise null pointer exception
+	    s = null; 
+	    break; 
+	  }
+	  Call.setGuard(s, getCurrentGuard());
+
 	  boolean requiresImplementsTest = 
 	    VM.BuildForIMTInterfaceInvocation ||
 	    (VM.BuildForITableInterfaceInvocation && VM.DirectlyIndexedITables);
 
-	  // Step 1: handle the possibility of ghost references
-	  try {
-	    VM_Method resolvedMethodRef = meth.resolveInterfaceMethod(false);
-	    if (resolvedMethodRef == null
-		// Include this here in case it is needed later
-		) {
-	      if (requiresImplementsTest) {
-		// might be a ghost reference. 
-		// Must do the more involved typechecking sequence
-		OPT_RegisterOperand tibPtr = 
-		  gc.temps.makeTemp(OPT_ClassLoaderProxy.JavaLangObjectArrayType);
-		OPT_Instruction getTib = 
-		    GuardedUnary.create(GET_OBJ_TIB, tibPtr, 
-		      ref.copyU2U(), 
-		      getCurrentGuard());
-		appendInstruction(getTib);
-		getTib.bcIndex = RUNTIME_SERVICES_BCI;
-
-		OPT_MethodOperand dtcRoutine = 
-		  OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod);
-		OPT_Instruction callCheck =
-		    Call.create2(CALL, null, null, dtcRoutine, 
-		      new OPT_IntConstantOperand(meth.getDictionaryId()),
-		      tibPtr.copyD2U());
-                if (gc.options.NO_CALLEE_EXCEPTIONS) {
-                  callCheck.markAsNonPEI();
-                }
-
-		appendInstruction(callCheck);
-		callCheck.bcIndex = RUNTIME_SERVICES_BCI;
-
-		requiresImplementsTest = false; // the above call subsumes the test
-	      }
-	    } else {
-	      meth = resolvedMethodRef;
-	      Call.setMethod(s, OPT_MethodOperand.INTERFACE(meth, false));
-	    }
-	  } catch (Exception e) {
-	      // bogus catch of VM_ResolutionException to keep java happy
-	      // actually can't be thrown when we pass false for canLoad.
-	  }
-
-	  // Step 2: Invokeinterface requires a dynamic type check
-	  //         to ensure that the receiver object actually
-	  //         implements the interface.  This is necessary
-	  //         because the verifier does not detect incompatible class changes.
-	  //         If we're building for FastInterfaceInvocation then
-	  //         this test must be made explicit in the calling sequence.
-	  //         In the slow interface invocation path, it is handled
-	  //         deep in the guts of the dispatching code.
-	  // NOTE:   We don't insert the test here if we are doing to
-	  //         do a guarded inline of an interface call.  That case
-	  //         is handled within OPT_Inliner.java.  However, if 
-	  //         we virtualize the call, we do need to handle the DTC
-	  //         here, since OPT_Inliner won't have enough information
-	  //         to determine what the right thing to do is.
+	  // Invokeinterface requires a dynamic type check
+	  // to ensure that the receiver object actually
+	  // implements the interface.  This is necessary
+	  // because the verifier does not detect incompatible class changes.
+	  // Depending on the implementation of interface dispatching
+	  // we are using, we may have to make this test explicit 
+	  // in the calling sequence if we can't prove at compile time
+	  // that it is not needed. 
 	  if (requiresImplementsTest) {
-	    // Attempt to avoid inserting the check by seeing if the 
-	    // known static type of the receiver implements the interface.
-	    if (refType.isResolved() && !refType.isInterface()) {
-	      byte doesImplement = 
-		OPT_ClassLoaderProxy.includesType(interfaceType, refType);
-	      requiresImplementsTest = doesImplement != YES;
+	    if (resolvedMethod == null) {
+	      // Sigh.  Can't even resolve the reference to figure out what interface
+	      // method we are trying to call. Therefore we must make generate a call 
+	      // to an out-of-line typechecking routine to handle it at runtime.
+	      OPT_RegisterOperand tibPtr = 
+		gc.temps.makeTemp(VM_TypeReference.JavaLangObjectArray);
+	      OPT_Instruction getTib = 
+		GuardedUnary.create(GET_OBJ_TIB, tibPtr, receiver.copyU2U(), getCurrentGuard());
+	      appendInstruction(getTib);
+	      getTib.bcIndex = RUNTIME_SERVICES_BCI;
+
+	      VM_Method target = VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod;
+	      OPT_Instruction callCheck =
+		Call.create2(CALL, null, new OPT_IntConstantOperand(target.getOffset()), 
+			     OPT_MethodOperand.STATIC(target),
+			     new OPT_IntConstantOperand(ref.getId()),
+			     tibPtr.copyD2U());
+	      if (gc.options.NO_CALLEE_EXCEPTIONS) {
+		callCheck.markAsNonPEI();
+	      }
+	      
+	      appendInstruction(callCheck);
+	      callCheck.bcIndex = RUNTIME_SERVICES_BCI;
+	      
+	      requiresImplementsTest = false; // the above call subsumes the test
+	      rectifyStateWithErrorHandler(); // Can raise incompatible class change error.
+	    } else {
+	      // We know what interface method the program wants to invoke.
+	      // Attempt to avoid inserting the type check by seeing if the 
+	      // known static type of the receiver implements the desired interface.
+	      VM_Type interfaceType = resolvedMethod.getDeclaringClass();
+	      if (receiverType != null && receiverType.isResolved() && !receiverType.isInterface()) {
+		byte doesImplement = 
+		  OPT_ClassLoaderProxy.includesType(interfaceType.getTypeRef(), receiverType.getTypeRef());
+		requiresImplementsTest = doesImplement != YES;
+	      }
 	    }
 	  }
 
-	  // Step 3: Attempt to resolve the interface call to 
-	  //         a particular virtual method.
-	  //         Note: step 2 and step 3 are independent
-	  //         and it is not that case that being able 
-	  //         to do 2 implies 3 or that doing 3 implies 2.  
-	  VM_Method vmeth;
-	  if (refType.isResolved() && !refType.isInterface() &&
-	      (vmeth=OPT_ClassLoaderProxy.lookupMethod(refType, meth))!=null) {
-	    // We're going to virtualize it. Must deal with the DTC here.
-	    if (requiresImplementsTest) {
-	      appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
-						 ref.copyU2U(),
-						 makeTypeOperand(interfaceType),
-						 getCurrentGuard()));
-	    }
-	    boolean unresolved = OPT_ClassLoaderProxy.needsDynamicLink(vmeth, gc.method.getDeclaringClass());
-	    Call.setMethod(s, OPT_MethodOperand.VIRTUAL(vmeth, unresolved, true));
-	    if (gc.options.PRINT_DETAILED_INLINE_REPORT)
-	      OPT_InlineReport.classUnresolved(unresolved, meth);
-	    // Think about trying to inline it
-	    if (!unresolved) {
-	      // if the type is precise, then we know FOR CERTAIN that
-	      // this call will resolve to meth
-	      VM_Method computedTarget = ref.isPreciseType() ? vmeth : null;
-	      if (computedTarget != null && 
-		  gc.options.PRINT_DETAILED_INLINE_REPORT)
-		OPT_InlineReport.isPreciseType();
-		
-	      OPT_InlineDecision id = 
-		shouldInline(s, computedTarget, ref.isExtant());
-              if (maybeInlineMethod(id, s)) {
-                return;
-              }
+	  // Attempt to resolve the interface call to a particular virtual method.
+	  // This is independent of whether or not the static type of the receiver is 
+	  // known to implement the interface and it is not that case that being able
+	  // to prove one implies the other.
+	  if (receiverType != null && receiverType.isInitialized() && !receiverType.isInterface()) {
+	    VM_Method vmeth = OPT_ClassLoaderProxy.lookupMethod(receiverType, ref);
+	    if (vmeth != null) {
+	      VM_MethodReference vmethRef = vmeth.getMemberRef().asMethodReference();
+	      // We're going to virtualize the call.  Must inject the
+	      // DTC to ensure the receiver implements the interface if
+	      // requiresImplementsTest is still true.
+	      // Note that at this point requiresImplementsTest => resolvedMethod != null 
+	      if (requiresImplementsTest) {
+		appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
+						   receiver.copyU2U(),
+						   makeTypeOperand(resolvedMethod.getDeclaringClass()),
+						   getCurrentGuard()));
+		rectifyStateWithErrorHandler(); // Can raise incompatible class change error.
+	      }
+	      OPT_MethodOperand mop = OPT_MethodOperand.VIRTUAL(vmethRef, vmeth);
+	      if (receiver.isPreciseType()) {
+		mop.refine(vmeth, true);
+	      }
+	      Call.setMethod(s, mop);
+	      boolean unresolved = vmethRef.needsDynamicLink(bcodes.method());
+	      if (unresolved) {
+		OPT_RegisterOperand offsetrop = gc.temps.makeTempInt();
+		appendInstruction(Unary.create(RESOLVE_MEMBER, offsetrop.copyRO(), Call.getMethod(s).copy()));
+		Call.setAddress(s, offsetrop);
+		rectifyStateWithErrorHandler();
+	      } else {
+		Call.setAddress(s, new OPT_IntConstantOperand(vmeth.getOffset()));
+	      }
+
+
+	      // Attempt to inline virtualized call.
+	      if (maybeInlineMethod(shouldInline(s, receiver.isExtant()), s)) {
+		return;
+	      }
 	    }
 	  } else {
 	    // try to inline a predicted target for the interface invocation
-            OPT_InlineDecision id = shouldInline(s, null, false);
-            if (maybeInlineMethod(id, s)) {
+	    // inline code will include DTC to ensure receiver implements the interface.
+            if (resolvedMethod != null && maybeInlineMethod(shouldInline(s, false), s)) {
               return;
             } else {
 	      if (requiresImplementsTest) {
 		appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
-						   ref.copyU2U(),
-						   makeTypeOperand(interfaceType),
+						   receiver.copyU2U(),
+						   makeTypeOperand(resolvedMethod.getDeclaringClass()),
 						   getCurrentGuard()));
+		// don't have to rectify with error handlers; rectify call below subsusmes.
 	      }
 	    }
 	  }
+
 	  // CALL must be treated as potential throw of anything
 	  rectifyStateWithExceptionHandlers(); 
 	}
@@ -1819,16 +1898,19 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_new:
 	{
-	  VM_Type klass = bcInfo.getTypeReference();
-	  OPT_TypeOperand klassOp = makeTypeOperand(klass);
+	  VM_TypeReference klass = bcodes.getTypeReference();
 	  OPT_RegisterOperand t = gc.temps.makeTemp(klass);
 	  t.setPreciseType();
 	  markGuardlessNonNull(t);
 	  OPT_Operator operator;
-	  if (klass.isInitialized() || klass.asClass().isInBootImage()) {
+	  OPT_TypeOperand klassOp;
+	  VM_Class klassType = (VM_Class)klass.peekResolvedType();
+	  if (klassType != null && (klassType.isInitialized() || klassType.isInBootImage())) {
+	    klassOp = makeTypeOperand(klassType);
 	    operator = NEW;
 	  } else { 
 	    operator = NEW_UNRESOLVED;
+	    klassOp = makeTypeOperand(klass);
 	  }
 	  s = New.create(operator, t, klassOp);
 	  push(t.copyD2U());
@@ -1838,49 +1920,48 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_newarray:
 	{
-	  byte atype = (byte)bcInfo.getByteValue();
-	  VM_Array array = OPT_ClassLoaderProxy.getPrimitiveArrayType(atype);
+	  VM_Type array = bcodes.getPrimitiveArrayType();
 	  OPT_TypeOperand arrayOp = makeTypeOperand(array);
-	  OPT_RegisterOperand t = gc.temps.makeTemp(array);
+	  OPT_RegisterOperand t = gc.temps.makeTemp(array.getTypeRef());
 	  t.setPreciseType();
 	  markGuardlessNonNull(t);
 	  s = NewArray.create(NEWARRAY, t, arrayOp, popInt());
 	  push(t.copyD2U()); 
-	  VM_Class et = 
-	    OPT_ClassLoaderProxy.JavaLangNegativeArraySizeExceptionType;
-	  rectifyStateWithExceptionHandler(et);
+	  rectifyStateWithExceptionHandler(VM_TypeReference.JavaLangNegativeArraySizeException);
 	}
 	break;
 
       case JBC_anewarray:
 	{
-	  VM_Type elementTypeRef = bcInfo.getTypeReference();
-	  VM_Array array = elementTypeRef.getArrayTypeForElementType();
-	  OPT_TypeOperand arrayOp = makeTypeOperand(array);
+	  VM_TypeReference elementTypeRef = bcodes.getTypeReference();
+	  VM_TypeReference array = elementTypeRef.getArrayTypeForElementType();
 	  OPT_RegisterOperand t = gc.temps.makeTemp(array);
 	  t.setPreciseType();
 	  markGuardlessNonNull(t);
 	  // We can do early resolution of the array type if the element type 
 	  // is already initialized.
-	  if (!(array.isInitialized() || array.isInBootImage())) {
-	    if (elementTypeRef.isInitialized() || elementTypeRef.isInBootImage()) {
-	      try {
-		array.load();
-		array.resolve();
-		array.instantiate();
-	      } catch (VM_ResolutionException e) {
-		// can't raise any errors if the element type is already initialized/or in boot image
-		if (VM.VerifyAssertions) VM._assert(false); 
+	  VM_Type arrayType = array.peekResolvedType();
+	  OPT_Operator op = NEWARRAY_UNRESOLVED;
+	  OPT_TypeOperand arrayOp = makeTypeOperand(array);
+	  if (arrayType != null) {
+	    if (!(arrayType.isInitialized() || arrayType.isInBootImage())) {
+	      VM_Type elementType = elementTypeRef.peekResolvedType();
+	      if (elementType != null) {
+		if (elementType.isInitialized() || elementType.isInBootImage()) {
+		  arrayType.resolve();
+		  arrayType.instantiate();
+		}
 	      }
 	    }
+	    if (arrayType.isInitialized()) {
+	      op = NEWARRAY;
+	      arrayOp = makeTypeOperand(arrayType);
+	    }
 	  }
-	  s = NewArray.create(array.isInitialized() ? NEWARRAY : NEWARRAY_UNRESOLVED, 
-			      t, arrayOp, popInt());
+	  s = NewArray.create(op, t, arrayOp, popInt());
 	  push(t.copyD2U()); 
 	  rectifyStateWithErrorHandler();
-	  VM_Class et = 
-	    OPT_ClassLoaderProxy.JavaLangNegativeArraySizeExceptionType;
-	  rectifyStateWithExceptionHandler(et);
+	  rectifyStateWithExceptionHandler(VM_TypeReference.JavaLangNegativeArraySizeException);
 	}
 	break;
 
@@ -1904,12 +1985,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  clearCurrentGuard();
 	  if (do_NullCheck(op0))
 	    break;
-	  VM_Type type = getRefTypeOf(op0);
+	  VM_TypeReference type = getRefTypeOf(op0);
 	  if (VM.VerifyAssertions) {
 	    // fudge to handle conservative approximation of 
 	    // OPT_ClassLoaderProxy.findCommonSuperclass
-	    if (type != OPT_ClassLoaderProxy.JavaLangObjectType)
-	      assertIsAssignable(OPT_ClassLoaderProxy.JavaLangThrowableType, type);
+	    if (type != VM_TypeReference.JavaLangObject)
+	      assertIsAssignable(VM_TypeReference.JavaLangThrowable, type);
 	  }
 	  if (!gc.method.isInterruptible()) {
 	    // prevent code motion in or out of uninterruptible code sequence
@@ -1929,9 +2010,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_checkcast:
 	{
-	  VM_Type typeRef = bcInfo.getTypeReference();
+	  VM_TypeReference typeRef = bcodes.getTypeReference();
 	  boolean classLoading = couldCauseClassLoading(typeRef);
-	  OPT_TypeOperand typeOp = makeTypeOperand(typeRef);
 	  OPT_Operand op2 = pop();
 	  if (VM.VerifyAssertions) VM._assert(op2.isRef());
 	  if (CF_CHECKCAST && !classLoading) {
@@ -1940,7 +2020,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      if (DBG_CF) db("skipped gen of null checkcast");
 	      break;
 	    }
-	    VM_Type type = getRefTypeOf(op2);  // non-null, null case above
+	    VM_TypeReference type = getRefTypeOf(op2);  // non-null, null case above
 	    if (OPT_ClassLoaderProxy.includesType(typeRef,type)==YES){
 	      push(op2);
 	      if (DBG_CF)
@@ -1952,8 +2032,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
 	  if (!gc.options.NO_CHECKCAST) {
 	    if (classLoading) {
-	      s = TypeCheck.create(CHECKCAST_UNRESOLVED, op2, typeOp);
+	      s = TypeCheck.create(CHECKCAST_UNRESOLVED, op2, makeTypeOperand(typeRef));
 	    } else {
+	      OPT_TypeOperand typeOp = makeTypeOperand(typeRef.peekResolvedType());
 	      if (isNonNull(op2)) {
 		s = TypeCheck.create(CHECKCAST_NOTNULL, op2, typeOp, getGuard(op2));
 	      } else {
@@ -1966,17 +2047,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    ((OPT_RegisterOperand)op2).type = typeRef;
 	  }
 	  push(op2);
-	  VM_Class et = OPT_ClassLoaderProxy.JavaLangClassCastExceptionType;
-	  rectifyStateWithExceptionHandler(et);
+	  rectifyStateWithExceptionHandler(VM_TypeReference.JavaLangClassCastException);
 	  if (classLoading) rectifyStateWithErrorHandler();
 	}
 	break;
 
       case JBC_instanceof:
 	{
-	  VM_Type typeRef = bcInfo.getTypeReference();
+	  VM_TypeReference typeRef = bcodes.getTypeReference();
 	  boolean classLoading = couldCauseClassLoading(typeRef);
-	  OPT_TypeOperand typeOp = makeTypeOperand(typeRef);
 	  OPT_Operand op2 = pop();
 	  if (VM.VerifyAssertions) VM._assert(op2.isRef());
 	  if (CF_INSTANCEOF && !classLoading) {
@@ -1985,16 +2064,17 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	      if (DBG_CF) db("skipped gen of null instanceof");
 	      break;
 	    }
-	    VM_Type type = getRefTypeOf(op2);                 // non-null
+	    VM_TypeReference type = getRefTypeOf(op2);                 // non-null
 	    int answer = 
 	      OPT_ClassLoaderProxy.includesType(typeRef, type);
 	    if (answer == YES && isNonNull(op2)) {
 	      push(new OPT_IntConstantOperand(1));
 	      if (DBG_CF)
-		db("skipped gen of instanceof of " + op2 + " from "
-		   + typeRef + " to " + type);
+		db(op2 + " instanceof " + typeRef + " is always true ");
 	      break;
 	    } else if (answer == NO) {
+	      if (DBG_CF)
+		db(op2 + " instanceof " + typeRef + " is always false ");
 	      push(new OPT_IntConstantOperand(0));
 	      break;
 	    }
@@ -2002,8 +2082,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
 	  OPT_RegisterOperand t = gc.temps.makeTempInt();
 	  if (classLoading) {
-	    s = InstanceOf.create(INSTANCEOF_UNRESOLVED, t, typeOp, op2);
+	    s = InstanceOf.create(INSTANCEOF_UNRESOLVED, t, makeTypeOperand(typeRef), op2);
 	  } else {
+	    OPT_TypeOperand typeOp = makeTypeOperand(typeRef.peekResolvedType());
 	    if (isNonNull(op2)) {
 	      s = InstanceOf.create(INSTANCEOF_NOTNULL, t, typeOp, op2, getGuard(op2));
 	    } else {
@@ -2042,16 +2123,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  } else {
 	    s = MonitorOp.create(MONITOREXIT, op0, getCurrentGuard());
 	  }
-	  VM_Class et =  
-	    OPT_ClassLoaderProxy.JavaLangIllegalMonitorStateExceptionType;
-	  rectifyStateWithExceptionHandler(et);
+	  rectifyStateWithExceptionHandler(VM_TypeReference.JavaLangIllegalMonitorStateException);
 	}
 	break;
 
       case JBC_wide:
 	{
-	  int widecode = bcInfo.getWideOpcode();
-	  int index = bcInfo.getWideLocalNumber();
+	  int widecode = bcodes.getWideOpcode();
+	  int index = bcodes.getWideLocalNumber();
 	  switch (widecode) {
 	  case JBC_iload:
 	    s = do_iload(index);
@@ -2094,7 +2173,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    break;
 
 	  case JBC_iinc:
-	    s = do_iinc(index, bcInfo.getShortValue());
+	    s = do_iinc(index, bcodes.getWideIncrement());
 	    break;
 
 	  case JBC_ret:
@@ -2110,22 +2189,20 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_multianewarray:
 	{
-	  VM_Type arrayType = bcInfo.getTypeReference();
+	  VM_TypeReference arrayType = bcodes.getTypeReference();
 	  OPT_TypeOperand typeOp = makeTypeOperand(arrayType);
-	  int dimensions = bcInfo.getArrayDimension();
+	  int dimensions = bcodes.getArrayDimension();
 
 	  // Step 1: Create an int array to hold the dimensions.
-	  OPT_TypeOperand dimArrayType = 
-	    makeTypeOperand(OPT_ClassLoaderProxy.IntArrayType);
-	  OPT_RegisterOperand dimArray = 
-	    gc.temps.makeTemp(OPT_ClassLoaderProxy.IntArrayType);
+	  OPT_TypeOperand dimArrayType = makeTypeOperand(VM_Array.IntArray);
+	  OPT_RegisterOperand dimArray = gc.temps.makeTemp(VM_TypeReference.IntArray);
 	  markGuardlessNonNull(dimArray);
 	  dimArray.setPreciseType();
 	  appendInstruction(NewArray.create(NEWARRAY, dimArray, dimArrayType, 
 					    new OPT_IntConstantOperand(dimensions)));
 	  // Step 2: Assign the dimension values to dimArray
 	  for (int i = dimensions; i > 0; i--) {
-	    OPT_LocationOperand loc = new OPT_LocationOperand(OPT_ClassLoaderProxy.IntType);
+	    OPT_LocationOperand loc = new OPT_LocationOperand(VM_TypeReference.Int);
 	    appendInstruction(AStore.create(INT_ASTORE, popInt(), 
 					    dimArray.copyD2U(), 
 					    new OPT_IntConstantOperand(i - 1), 
@@ -2139,9 +2216,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 					    typeOp, dimArray.copyD2U()));
 	  push(result.copyD2U());
 	  rectifyStateWithErrorHandler();
-	  VM_Class et = 
-	    OPT_ClassLoaderProxy.JavaLangNegativeArraySizeExceptionType;
-	  rectifyStateWithExceptionHandler(et);
+	  rectifyStateWithExceptionHandler(VM_TypeReference.JavaLangNegativeArraySizeException);
 	}
 	break;
 
@@ -2155,15 +2230,165 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
       case JBC_goto_w:
 	{
-	  int offset = bcInfo.getWideBranchTarget();
+	  int offset = bcodes.getWideBranchOffset();
 	  if (offset != 5)         // skip generating frivolous goto's
 	    s = _gotoHelper(offset);
 	}
 	break;
 
       case JBC_jsr_w:
-	s = _jsrHelper(bcInfo.getWideBranchTarget());
+	s = _jsrHelper(bcodes.getWideBranchOffset());
 	break;
+
+      //-#if RVM_WITH_OSR
+      case JBC_impdep1: {
+        int pseudo_opcode = bcodes.nextPseudoInstruction();
+        switch (pseudo_opcode) {
+        case PSEUDO_LoadIntConst: {
+          int value = bcodes.readIntConst();
+
+	  if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("PSEUDO_LoadIntConst "+value);
+
+          push(new OPT_IntConstantOperand(value));
+
+          // used for PSEUDO_InvokeStatic to recover the type info
+          param1 = param2;
+          param2 = value;
+
+          break;
+        }
+        case PSEUDO_LoadLongConst: {
+          long value = bcodes.readLongConst();
+
+          if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("PSEUDO_LoadLongConst "+value);
+
+          // put on jtoc
+          int offset = VM_Statics.findOrCreateLongLiteral(value);
+
+          pushDual(new OPT_LongConstantOperand(value, offset));
+          break;
+        }
+        case PSEUDO_LoadFloatConst:
+        {
+          int ibits = bcodes.readIntConst();
+          float value = Float.intBitsToFloat(ibits);
+
+          if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("PSEUDO_LoadFloatConst "+value);
+
+          int offset = VM_Statics.findOrCreateFloatLiteral(ibits);
+
+          push(new OPT_FloatConstantOperand(value, offset));
+          break;
+        }
+
+        case PSEUDO_LoadDoubleConst:
+        {
+          long lbits = bcodes.readLongConst();
+
+          double value = VM_Magic.longBitsAsDouble(lbits);
+
+          if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("PSEUDO_LoadDoubleConst "+ lbits);
+
+          // put on jtoc
+          int offset = VM_Statics.findOrCreateDoubleLiteral(lbits);
+
+          pushDual(new OPT_DoubleConstantOperand(value, offset));
+          break;
+        }
+
+        case PSEUDO_LoadAddrConst:
+        {
+          int value = bcodes.readIntConst();
+
+	      if (VM.TraceOnStackReplacement) 
+	        VM.sysWriteln("PSEUDO_LoadAddrConst "+value);
+
+          push(new ReturnAddressOperand(value));
+          break;
+        }
+        case PSEUDO_InvokeStatic:
+        {
+	  /* pseudo invoke static for getRefAt and cleanRefAt, both must be resolved already */
+	  VM_Method meth = null;
+	  int targetidx = bcodes.readIntConst();
+	  switch (targetidx) {
+	  case GETREFAT:
+	    meth = VM_Entrypoints.osrGetRefAtMethod;
+	    break;
+	  case CLEANREFS:
+	    meth = VM_Entrypoints.osrCleanRefsMethod;
+	    break;
+	  default:
+	    if (VM.TraceOnStackReplacement) VM.sysWriteln("pseudo_invokestatic, unknown target index "+targetidx);
+	    OPT_OptimizingCompilerException.UNREACHABLE();
+	    break;
+	  }
+				 
+          if (VM.TraceOnStackReplacement) 
+	        VM.sysWriteln("PSEUDO_Invoke "+meth+"\n");
+
+          s = _callHelper(meth.getMemberRef().asMethodReference(), OPT_MethodOperand.STATIC(meth));
+	  Call.setAddress(s, new OPT_IntConstantOperand(meth.getOffset()));
+
+          /* try to set the type of return register */
+          if (targetidx == GETREFAT) {
+            Object realObj = OSR_ObjectHolder.getRefAt(param1, param2);
+
+	    if (VM.VerifyAssertions) VM._assert(realObj != null);
+
+	    VM_TypeReference klass = VM_Magic.getObjectType(realObj).getTypeRef();
+
+	    OPT_RegisterOperand op0 = gc.temps.makeTemp(klass);
+	    Call.setResult(s, op0);
+	    pop();    // pop the old one and push the new return type.
+	    push(op0.copyD2U(), klass);
+	  }
+  
+          // CALL must be treated as potential throw of anything
+          rectifyStateWithExceptionHandlers();
+          break;
+        }
+	case PSEUDO_InvokeCompiledMethod: {
+          int cmid = bcodes.readIntConst();
+	  int origBCIdx = bcodes.readIntConst(); // skip it
+	  VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+          VM_Method meth = cm.getMethod();
+
+          if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("PSEUDO_InvokeCompiledMethod "+meth+"\n");
+
+	  /* the bcIndex should be adjusted to the original */ 
+	  s = _callHelper(meth.getMemberRef().asMethodReference(),
+			  OPT_MethodOperand.COMPILED(meth, cm.getOsrJTOCoffset()));
+
+	  // adjust the bcindex of s to the original bytecode's index
+	  // it should be able to give the correct exception handling
+	  s.bcIndex = origBCIdx + bciAdjustment;
+	  
+      	  rectifyStateWithExceptionHandlers();
+	  break;
+	}
+	case PSEUDO_ParamInitEnd: {
+	  // indicates the place to insert method prologue and stack
+	  // overflow checks.
+	  // opt compiler should consider this too
+
+	  break;
+	}
+        default:
+          if (VM.TraceOnStackReplacement) 
+	    VM.sysWriteln("OSR Error, no such pseudo opcode : "+pseudo_opcode);
+
+          OPT_OptimizingCompilerException.UNREACHABLE();
+          break;
+        }
+        break;
+      }
+     //-#endif
 	
       default:
 	OPT_OptimizingCompilerException.UNREACHABLE();
@@ -2174,11 +2399,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         appendInstruction(s);
       }
 
-      bcInfo.finishedInstruction();
-
       // check runoff
-      if (VM.VerifyAssertions) VM._assert(bcInfo.currentInstruction() <= runoff);
-      if (!endOfBasicBlock && bcInfo.currentInstruction() == runoff) {
+      if (VM.VerifyAssertions) VM._assert(bcodes.index() <= runoff);
+      if (!endOfBasicBlock && bcodes.index() == runoff) {
         if (DBG_BB || DBG_SELECTED)
           db("runoff occurred! current basic block: " + currentBBLE + 
 	     ", runoff = " + runoff);
@@ -2195,10 +2418,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
           return;
         }
         if (fallThrough) {
-          if (VM.VerifyAssertions) VM._assert(bcInfo.currentInstruction() < bcInfo.getLength());
+          if (VM.VerifyAssertions) VM._assert(bcodes.index() < bcodes.length());
           // Get/Create fallthrough BBLE and record it as 
           // currentBBLE's fallThrough.
-          currentBBLE.fallThrough = getOrCreateBlock(bcInfo.currentInstruction());
+          currentBBLE.fallThrough = getOrCreateBlock(bcodes.index());
 	  currentBBLE.block.insertOut(currentBBLE.fallThrough.block);
         }
         return;
@@ -2206,9 +2429,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     } 
   }
 
+  //-#if RVM_WITH_OSR
+  int param1, param2;
+  //-#endif
+
   private OPT_Instruction _unaryHelper(OPT_Operator operator, 
 				       OPT_Operand val, 
-				       VM_Type type) {
+				       VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = Unary.create(operator, t, val);
     byte simp = OPT_Simplifier.simplify(s);
@@ -2225,7 +2452,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   private OPT_Instruction _unaryDualHelper(OPT_Operator operator, 
 					   OPT_Operand val, 
-					   VM_Type type) {
+					   VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = Unary.create(operator, t, val);
     byte simp = OPT_Simplifier.simplify(s);
@@ -2243,7 +2470,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private OPT_Instruction _binaryHelper(OPT_Operator operator, 
 					OPT_Operand op1, 
 					OPT_Operand op2, 
-					VM_Type type) {
+					VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = Binary.create(operator, t, op1, op2);
     byte simp = OPT_Simplifier.simplify(s);
@@ -2262,7 +2489,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 					       OPT_Operand op1, 
 					       OPT_Operand op2, 
 					       OPT_Operand guard, 
-					       VM_Type type) {
+					       VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = GuardedBinary.create(operator, t, op1, op2, guard);
     byte simp = OPT_Simplifier.simplify(s);
@@ -2280,7 +2507,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private OPT_Instruction _binaryDualHelper (OPT_Operator operator, 
                                              OPT_Operand op1, 
                                              OPT_Operand op2, 
-                                             VM_Type type) {
+                                             VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = Binary.create(operator, t, op1, op2);
     byte simp = OPT_Simplifier.simplify(s);
@@ -2299,7 +2526,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 						   OPT_Operand op1, 
 						   OPT_Operand op2, 
 						   OPT_Operand guard, 
-						   VM_Type type) {
+						   VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     OPT_Instruction s = GuardedBinary.create(operator, t, op1, op2, guard);
     byte simp = OPT_Simplifier.simplify(s);
@@ -2316,7 +2543,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   private OPT_Instruction _moveHelper(OPT_Operator operator, 
 				      OPT_Operand val, 
-				      VM_Type type) {
+				      VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     push(t.copyD2U()); 
     OPT_Instruction s = Move.create(operator, t, val);
@@ -2327,7 +2554,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   private OPT_Instruction _moveDualHelper(OPT_Operator operator, 
 					  OPT_Operand val, 
-					  VM_Type type) {
+					  VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     pushDual(t.copyD2U());
     OPT_Instruction s = Move.create(operator, t, val);
@@ -2339,14 +2566,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   private OPT_Instruction _aloadHelper(OPT_Operator operator, 
 				       OPT_Operand ref, 
 				       OPT_Operand index, 
-				       VM_Type type) {
+				       VM_TypeReference type) {
     OPT_RegisterOperand t = gc.temps.makeTemp(type);
     t.setDeclaredType();
     OPT_LocationOperand loc = new OPT_LocationOperand(type);
     OPT_Instruction s = ALoad.create(operator, t, ref, index, loc, 
                                      getCurrentGuard());
     t = t.copyD2U();
-    if (type == OPT_ClassLoaderProxy.LongType || type == OPT_ClassLoaderProxy.DoubleType)
+    if (type.isLongType() || type.isDoubleType())
       pushDual(t); 
     else 
       push(t);
@@ -2358,34 +2585,31 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * If a non-void return, then create a result operand and push it 
    * on the stack.
    * Create the call instruction and initialize all it's operands.
-   * Return the created call instruction 
-   * (or null if do_NullCheck replaced it with an athrow).
    */
-  private OPT_Instruction _callHelper(OPT_MethodOperand methOp) {
+  private OPT_Instruction _callHelper(VM_MethodReference meth, OPT_MethodOperand methOp) {
     int numHiddenParams = methOp.isStatic() ? 0 : 1;
-    VM_Type[] params = methOp.method.getParameterTypes();
+    VM_TypeReference[] params = meth.getParameterTypes();
     OPT_Instruction s = Call.create(CALL, null, null, null, null,  
 				    params.length + numHiddenParams);
     if (gc.options.NO_CALLEE_EXCEPTIONS) {
       s.markAsNonPEI();
     }
-    for (int i = params.length - 1; i >= 0; i--)
+    for (int i = params.length - 1; i >= 0; i--) {
       Call.setParam(s, i + numHiddenParams, pop(params[i]));
+    }
     if (numHiddenParams != 0) {
       OPT_Operand ref = pop();
       Call.setParam(s, 0, ref);
-      clearCurrentGuard();
-      if (do_NullCheck(ref))
-        return null;
-      Call.setGuard(s, getCurrentGuard());
     }
-    VM_Type rtype = methOp.method.getReturnType();
+    VM_TypeReference rtype = meth.getReturnType();
     if (!rtype.isVoidType()) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(rtype);
       Call.setResult(s, op0);
       push(op0.copyD2U(), rtype);
     }
     Call.setMethod(s, methOp);
+
+    /* need to set it up early because inlining oracle use it */
     s.position = gc.inlineSequence;
     s.bcIndex = instrIndex;
     return s;
@@ -2393,7 +2617,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   private void _returnHelper(OPT_Operator operator, OPT_Operand val) {
     if (gc.resultReg != null) {
-      VM_Type returnType = val.getType();
+      VM_TypeReference returnType = val.getType();
       OPT_RegisterOperand ret = 
 	new OPT_RegisterOperand(gc.resultReg, returnType);
       boolean returningRegister = false;
@@ -2453,11 +2677,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    *
    * @param f desired field
    */
-  private OPT_LocationOperand makeStaticFieldRef(VM_Field f) {
+  private OPT_LocationOperand makeStaticFieldRef(VM_FieldReference f) {
     return new OPT_LocationOperand(f);
   }
 
-  private OPT_LocationOperand makeInstanceFieldRef(VM_Field f) {
+  private OPT_LocationOperand makeInstanceFieldRef(VM_FieldReference f) {
     return new OPT_LocationOperand(f);
   }
 
@@ -2467,15 +2691,52 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    *
    * @param typ desired type
    */
-  private OPT_TypeOperand makeTypeOperand(VM_Type typ) {
-    return new OPT_TypeOperand(typ);
+  private OPT_TypeOperand makeTypeOperand(VM_TypeReference type) {
+    return new OPT_TypeOperand(type);
   }
 
-  private boolean couldCauseClassLoading(VM_Type type) {
+  /**
+   * Make a type operand that refers to the given type.
+   *
+   * @param typ desired type
+   */
+  private OPT_TypeOperand makeTypeOperand(VM_Type type) {
+    return new OPT_TypeOperand(type);
+  }
+
+  private boolean couldCauseClassLoading(VM_TypeReference typeRef) {
+    VM_Type type = typeRef.peekResolvedType();
+    if (type == null) return true;
     if (type.isInitialized()) return false;
     if (type.isArrayType()) return !type.isResolved();
     if (type.isClassType() && type.asClass().isInBootImage()) return false;
     return true;
+  }
+
+  /**
+   * Fetch the value of the next operand, a constant, from the bytecode
+   * stream. 
+   * @return the value of a literal constant from the bytecode stream,
+   * encoding as a constant IR operand
+   */
+  public final OPT_Operand getConstantOperand(int index) {
+    byte desc = bcodes.getConstantType(index);
+    VM_Class declaringClass = bcodes.declaringClass();
+    switch (desc) {
+    case VM_Statics.INT_LITERAL:
+      return  OPT_ClassLoaderProxy.getIntFromConstantPool(declaringClass, index);
+    case VM_Statics.FLOAT_LITERAL:
+      return  OPT_ClassLoaderProxy.getFloatFromConstantPool(declaringClass, index);
+    case VM_Statics.STRING_LITERAL:
+      return  OPT_ClassLoaderProxy.getStringFromConstantPool(declaringClass, index);
+    case VM_Statics.LONG_LITERAL:
+      return  OPT_ClassLoaderProxy.getLongFromConstantPool(declaringClass, index);
+    case VM_Statics.DOUBLE_LITERAL:
+      return  OPT_ClassLoaderProxy.getDoubleFromConstantPool(declaringClass, index);
+    default:
+      VM._assert(VM.NOT_REACHED, "invalid literal type: 0x" + Integer.toHexString(desc));
+      return  null;
+    }
   }
 
   //// LOAD LOCAL VARIABLE ONTO STACK.
@@ -2492,7 +2753,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       push(r);
       return null;
     } else 
-      return _moveHelper(INT_MOVE, r, OPT_ClassLoaderProxy.IntType);
+      return _moveHelper(INT_MOVE, r, VM_TypeReference.Int);
   }
 
   /**
@@ -2508,7 +2769,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       push(r);
       return null;
     } else 
-      return _moveHelper(FLOAT_MOVE, r, OPT_ClassLoaderProxy.FloatType);
+      return _moveHelper(FLOAT_MOVE, r, VM_TypeReference.Float);
   }
 
   /**
@@ -2540,7 +2801,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       pushDual(r);
       return null;
     } else 
-      return _moveDualHelper(LONG_MOVE, r, OPT_ClassLoaderProxy.LongType);
+      return _moveDualHelper(LONG_MOVE, r, VM_TypeReference.Long);
   }
 
   /**
@@ -2556,7 +2817,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       pushDual(r);
       return null;
     } else 
-      return _moveDualHelper(DOUBLE_MOVE, r, OPT_ClassLoaderProxy.DoubleType);
+      return _moveDualHelper(DOUBLE_MOVE, r, VM_TypeReference.Double);
   }
 
   //// INCREMENT A LOCAL VARIABLE.
@@ -2571,9 +2832,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_Operand r = getLocal(index);
     if (VM.VerifyAssertions) VM._assert(r.isIntLike());
     if (LOCALS_ON_STACK) {
-      replaceLocalsOnStack(index, OPT_ClassLoaderProxy.IntType);
+      replaceLocalsOnStack(index, VM_TypeReference.Int);
     }
-    OPT_RegisterOperand op0 = gc.makeLocal(index, OPT_ClassLoaderProxy.IntType);
+    OPT_RegisterOperand op0 = gc.makeLocal(index, VM_TypeReference.Int);
     if (r instanceof OPT_IntConstantOperand) {
       // do constant folding.
       int res = amount + ((OPT_IntConstantOperand)r).value;
@@ -2599,8 +2860,8 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param index local variable number
    */
   private OPT_Instruction do_store(int index, OPT_Operand op1) {
-    VM_Type type = op1.getType();
-    boolean Dual = (type == OPT_ClassLoaderProxy.LongType) || (type == OPT_ClassLoaderProxy.DoubleType);
+    VM_TypeReference type = op1.getType();
+    boolean Dual = (type.isLongType() || type.isDoubleType());
     if (LOCALS_ON_STACK) {
       replaceLocalsOnStack(index, type);
     }
@@ -2657,7 +2918,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (op1 instanceof OPT_NullConstantOperand) {
       doConstantProp = true;
     }
-    VM_Type type = op1.getType();
+    VM_TypeReference type = op1.getType();
     if (LOCALS_ON_STACK)
       replaceLocalsOnStack(index, type);
     if (ELIM_COPY_LOCALS) {
@@ -2727,7 +2988,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param r operand to push
    * @param type data type of operand
    */
-  void push(OPT_Operand r, VM_Type type) {
+  void push(OPT_Operand r, VM_TypeReference type) {
     if (VM.VerifyAssertions) VM._assert(r.instruction == null);
     if (type.isVoidType())
       return;
@@ -2849,7 +3110,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   /**
    * Pop an operand of the given type from the stack.
    */
-  OPT_Operand pop(VM_Type type) {
+  OPT_Operand pop(VM_TypeReference type) {
     OPT_Operand r = pop();
     // Can't assert the following due to approximations by 
     // OPT_ClassLoaderProxy.findCommonSuperclass
@@ -2868,7 +3129,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     blocks.seenJSR(); 
 
     // (2) push return address on expression stack
-    push(new ReturnAddressOperand(bcInfo.getReturnAddress()));
+    push(new ReturnAddressOperand(bcodes.index()));
 
     // (3) generate GOTO to subroutine body.
     OPT_BranchOperand branch = generateTarget(offset);
@@ -2896,7 +3157,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    *
    * @param op operand to get type of
    */
-  private VM_Type getArrayTypeOf(OPT_Operand op) {
+  private VM_TypeReference getArrayTypeOf(OPT_Operand op) {
     if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
     return op.asRegister().type;
   }
@@ -2907,11 +3168,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    *
    * @param op operand to get type of
    */
-  private VM_Type getRefTypeOf(OPT_Operand op) {
+  private VM_TypeReference getRefTypeOf(OPT_Operand op) {
     if (VM.VerifyAssertions) VM._assert(!op.isDefinitelyNull());
     // op must be a RegisterOperand or StringConstantOperand
     if (op instanceof OPT_StringConstantOperand)
-      return OPT_ClassLoaderProxy.JavaLangStringType; 
+      return VM_TypeReference.JavaLangString; 
     else 
       return op.asRegister().type;
   }
@@ -2924,14 +3185,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param op operand to check
    * @param type expected type of operand
    */
-  private void assertIsType(OPT_Operand op, VM_Type type) {
+  private void assertIsType(OPT_Operand op, VM_TypeReference type) {
     if (VM.VerifyAssertions) {
       if (op.isDefinitelyNull()) {
         VM._assert(type.isReferenceType());
       } else if (op.isIntLike()) {
         VM._assert(type.isIntLikeType());
       } else {
-        VM_Type type1 = op.getType();
+        VM_TypeReference type1 = op.getType();
 	if (OPT_ClassLoaderProxy.includesType(type, type1) == NO)
 	    VM._assert(false, op + ": " + type + " is not assignable with " + type1);
       }
@@ -2944,7 +3205,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param parentType parent type
    * @param childType child type
    */
-  private void assertIsAssignable(VM_Type parentType, VM_Type childType) {
+  private void assertIsAssignable(VM_TypeReference parentType, VM_TypeReference childType) {
     if (VM.VerifyAssertions)
 	if (OPT_ClassLoaderProxy.includesType(parentType, childType) == NO)
 	    VM._assert(false, parentType + " not assignable with " + childType);
@@ -2957,9 +3218,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @param val string to print
    */
   private void db(String val) {
-    VM.sysWrite("IRGEN " + gc.method.getDeclaringClass().getName() + "."
+    VM.sysWrite("IRGEN " + bcodes.declaringClass() + "."
 		+ gc.method.getName() + ":" + val + "\n");
   }
+
   /**
    * Return a string representation of the current basic block set.
    */
@@ -3088,15 +3350,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
     if (ref instanceof OPT_RegisterOperand) {
       OPT_RegisterOperand rop = (OPT_RegisterOperand)ref;
-      if ( gc.options.ANNOTATIONS &&
-	   bcInfo.queryAnnotation(instrIndex, VM_Method.annotationNullCheck)) {
-        if ( DBG_ANNOTATIONS )
-	  db("\tEliminate null check of "+ref+" based on annotations\n" );
-	OPT_Operand guard = new OPT_TrueGuardOperand();
-        setCurrentGuard(guard);
-	setGuard(rop, guard);
-        return false;
-      }
       if (hasGuard(rop)) {
         OPT_Operand guard = getGuard(rop);
         setCurrentGuard(guard);
@@ -3177,12 +3430,6 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // Unsafely eliminate all bounds checks
     if (gc.options.NO_BOUNDS_CHECK)
       return false;
-    if ( gc.options.ANNOTATIONS &&
-	bcInfo.queryAnnotation(instrIndex, VM_Method.annotationBoundsCheck )) {
-      if ( DBG_ANNOTATIONS )
-	db("\tEliminate bounds check of "+ref+" based on annotations\n" );
-      return false;
-    } 
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     appendInstruction(BoundsCheck.create(BOUNDS_CHECK, guard, ref.copy(), 
 					 index.copy(), getCurrentGuard()));
@@ -3248,7 +3495,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * @return true if an unconditional throw is generated, false otherwise
    */
   private boolean do_CheckStore(OPT_Operand ref, OPT_Operand elem, 
-                                 VM_Type elemType) {
+                                 VM_TypeReference elemType) {
     if (gc.options.NO_CHECKSTORE)
       return false;     // Unsafely eliminate all store checks
     if (CF_CHECKSTORE) {
@@ -3259,25 +3506,28 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         return false;
       }
       if (elemType.isArrayType()) {
-        VM_Type elemType2 = elemType;
+        VM_TypeReference elemType2 = elemType;
         do {
-          elemType2 = ((VM_Array)elemType2).getElementType();
+          elemType2 = elemType2.getArrayElementType();
         } while (elemType2.isArrayType());
-        if (elemType2.isPrimitiveType() || 
-	    (elemType2.isLoaded() && ((VM_Class)elemType2).isFinal())) {
-          VM_Type myElemType = getRefTypeOf(elem);
-          if (myElemType == elemType) {
-            if (DBG_TYPE)
-              db("eliminating checkstore to an array with a final element type "
-		 + elemType);
-            return false;
-          } else {
-	    // run time check is still necessary
-          }
-        }
+	VM_Type et2 = elemType2.peekResolvedType();
+        if (et2 != null) {
+	  if (et2.isPrimitiveType() || ((VM_Class)et2).isFinal()) {
+	    VM_TypeReference myElemType = getRefTypeOf(elem);
+	    if (myElemType == elemType) {
+	      if (DBG_TYPE)
+		db("eliminating checkstore to an array with a final element type "
+		   + elemType);
+	      return false;
+	    } else {
+	      // run time check is still necessary
+	    }
+	  }
+	}
       } else {
         // elemType is class
-        if (elemType.isLoaded() && ((VM_Class)elemType).isFinal()) {
+	VM_Type et = elemType.peekResolvedType();
+        if (et != null && ((VM_Class)et).isFinal()) {
           if (getRefTypeOf(elem) == elemType) {
             if (DBG_TYPE)
               db("eliminating checkstore to an array with a final element type "
@@ -3312,7 +3562,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Get or create a block at the specified target.
    * Rectifies current state with target state. 
    * Instructions to rectify state are appended to currentBBLE.
-   * If the target is between bcInfo.currentInstruction() and runoff, runoff is
+   * If the target is between bcodes.index() and runoff, runoff is
    * updated to be target.
    *
    * @param target target index
@@ -3326,7 +3576,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * If simStack is non-null, rectifies stack state with target stack state.
    * If simLocals is non-null, rectifies local state with target local state.
    * Any instructions needed to rectify stack/local state are appended to from.
-   * If the target is between bcInfo.currentInstruction() and runoff, runoff is
+   * If the target is between bcodes.index() and runoff, runoff is
    * updated to be target.
    *
    * @param target target index
@@ -3339,7 +3589,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 					BasicBlockLE from, 
 					OperandStack simStack, 
 					OPT_Operand[] simLocals) {
-    if ((target > bcInfo.currentInstruction()) && (target < runoff)) {
+    if ((target > bcodes.index()) && (target < runoff)) {
       if (DBG_BB || DBG_SELECTED) db("updating runoff from " + runoff + " to " + target);
       runoff = target;
     }
@@ -3363,7 +3613,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   // helper function for if?? bytecodes
   private OPT_Instruction _intIfHelper(OPT_ConditionOperand cond) {
-    int offset = bcInfo.getBranchTarget();
+    int offset = bcodes.getBranchOffset();
     OPT_Operand op0 = popInt();
     if (offset == 3)
       return null;             // remove frivolous IFs
@@ -3388,8 +3638,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       return IfCmp.create(INT_IFCMP, guard, op0, 
 			  new OPT_IntConstantOperand(0), 
 			  cond, generateTarget(offset),
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else			  
 			  gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
-    }
+//-#endif 
+	}
     OPT_RegisterOperand val = (OPT_RegisterOperand)op0;
     OPT_BranchOperand branch = null;
     if (lastInstr != null) {
@@ -3410,7 +3664,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  // Propagate types and non-nullness along the CFG edge where we 
 	  // know that refReg is an instanceof type2
 	  OPT_RegisterOperand refReg = (OPT_RegisterOperand)ref;
-	  VM_Type type2 = InstanceOf.getType(lastInstr).type;
+	  VM_TypeReference type2 = InstanceOf.getType(lastInstr).getTypeRef();
 	  if (cond.isNOT_EQUAL()) {
 	    // IS an instance of on the branch-taken edge
 	    boolean generated = false;
@@ -3468,8 +3722,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  return IfCmp.create(INT_IFCMP, guard, val, 
 			      new OPT_IntConstantOperand(0), 
 			      cond, branch,
+//-#if RVM_WITH_OSR
+ 	gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else
 			      gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
-
+//-#endif
 	}
       case INSTANCEOF_NOTNULL_opcode:
 	{
@@ -3486,7 +3743,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  // Propagate types along the CFG edge where we know that 
 	  // refReg is an instanceof type2
 	  OPT_RegisterOperand refReg = (OPT_RegisterOperand)ref;
-	  VM_Type type2 = InstanceOf.getType(lastInstr).type;
+	  VM_TypeReference type2 = InstanceOf.getType(lastInstr).getTypeRef();
 	  if (cond.isNOT_EQUAL()) {
 	    // IS an instance of on the branch-taken edge
 	    boolean generated = false;
@@ -3539,7 +3796,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  return IfCmp.create(INT_IFCMP, guard, val, 
 			      new OPT_IntConstantOperand(0), 
 			      cond, branch,
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else				  
 			      gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
+//-#endif
 	}
       case DOUBLE_CMPG_opcode:case DOUBLE_CMPL_opcode:
       case FLOAT_CMPG_opcode:case FLOAT_CMPL_opcode:case LONG_CMP_opcode:
@@ -3582,8 +3843,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  branch = generateTarget(offset);
 	  OPT_RegisterOperand guard = gc.temps.makeTempValidation();
 	  return IfCmp.create(operator, guard, val1, val2, cond, 
-			      branch, 
+			      branch,
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else
 			      gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
+//-#endif
 	}
       default:
 	// Fall through and Insert INT_IFCMP
@@ -3595,12 +3860,16 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     return IfCmp.create(INT_IFCMP, guard, val, 
 			new OPT_IntConstantOperand(0), 
 			cond, branch,
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else
 			gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
+//-#endif
   }
 
   // helper function for if_icmp?? bytecodes
   private OPT_Instruction _intIfCmpHelper(OPT_ConditionOperand cond) {
-    int offset = bcInfo.getBranchTarget();
+    int offset = bcodes.getBranchOffset();
     OPT_Operand op1 = popInt();
     OPT_Operand op0 = popInt();
     if (offset == 3)
@@ -3633,13 +3902,17 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     return IfCmp.create(INT_IFCMP, guard, op0, op1, cond, 
 			generateTarget(offset),
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else
 			gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
+//-#endif
   }
 
   // helper function for ifnull/ifnonnull bytecodes
   private OPT_Instruction _refIfNullHelper(OPT_ConditionOperand cond) {
     if (VM.VerifyAssertions) VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL());
-    int offset = bcInfo.getBranchTarget();
+    int offset = bcodes.getBranchOffset();
     OPT_Operand op0 = popRef();
     if (offset == 3)
       return null;             // remove frivolous REF_IFs
@@ -3711,13 +3984,17 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       guard = gc.temps.makeTempValidation();
     return IfCmp.create(REF_IFCMP, guard, ref, 
 			new OPT_NullConstantOperand(), cond, branch,
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else
 			gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
+//-#endif
   }
   
   // helper function for if_acmp?? bytecodes
   private OPT_Instruction _refIfCmpHelper(OPT_ConditionOperand cond) {
     if (VM.VerifyAssertions) VM._assert(cond.isEQUAL() || cond.isNOT_EQUAL());
-    int offset = bcInfo.getBranchTarget();
+    int offset = bcodes.getBranchOffset();
     OPT_Operand op1 = popRef();
     OPT_Operand op0 = popRef();
     if (offset == 3)
@@ -3744,14 +4021,18 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
     return IfCmp.create(REF_IFCMP, guard, op0, op1, 
 			cond, generateTarget(offset),
+//-#if RVM_WITH_OSR
+    gc.getConditionalBranchProfileOperand(instrIndex-bciAdjustment, offset<0));
+//-#else
 			gc.getConditionalBranchProfileOperand(instrIndex, offset<0));
+//-#endif
   }
 
   //// REPLACE LOCALS ON STACK.
   // Replaces copies of local <#index,type> with 
   // newly-generated temporaries, and
   // generates the necessary move instructions.
-  private void replaceLocalsOnStack(int index, VM_Type type) {
+  private void replaceLocalsOnStack(int index, VM_TypeReference type) {
     int i;
     int size = stack.getSize();
     for (i = 0; i < size; ++i) {
@@ -3773,7 +4054,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 
   //////////
   // EXCEPTION HANDLERS.
-  //////////
+//////////
   // Some common cases to make the code more readable...
   private OPT_BasicBlock rectifyStateWithNullPtrExceptionHandler() {
     return rectifyStateWithNullPtrExceptionHandler(false);
@@ -3794,34 +4075,34 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     rectifyStateWithExceptionHandlers(false);
   }
 
-  private OPT_BasicBlock rectifyStateWithExceptionHandler(VM_Type exceptionType) {
+  private OPT_BasicBlock rectifyStateWithExceptionHandler(VM_TypeReference exceptionType) {
     return rectifyStateWithExceptionHandler(exceptionType, false);
   }
   private OPT_BasicBlock rectifyStateWithNullPtrExceptionHandler(boolean linkToExitIfUncaught) {
-    VM_Type et = OPT_ClassLoaderProxy.JavaLangNullPointerExceptionType;
+    VM_TypeReference et = VM_TypeReference.JavaLangNullPointerException;
     return rectifyStateWithExceptionHandler(et, linkToExitIfUncaught);
   }
   private OPT_BasicBlock rectifyStateWithArrayBoundsExceptionHandler(boolean linkToExitIfUncaught) {
-    VM_Type et = OPT_ClassLoaderProxy.JavaLangArrayIndexOutOfBoundsExceptionType;
+    VM_TypeReference et = VM_TypeReference.JavaLangArrayIndexOutOfBoundsException;
     return rectifyStateWithExceptionHandler(et, linkToExitIfUncaught);
   }
   private OPT_BasicBlock rectifyStateWithArithmeticExceptionHandler(boolean linkToExitIfUncaught) {
-    VM_Type et = OPT_ClassLoaderProxy.JavaLangArithmeticExceptionType;
+    VM_TypeReference et = VM_TypeReference.JavaLangArithmeticException;
     return rectifyStateWithExceptionHandler(et, linkToExitIfUncaught);
   }
   private OPT_BasicBlock rectifyStateWithArrayStoreExceptionHandler(boolean linkToExitIfUncaught) {
-    VM_Type et = OPT_ClassLoaderProxy.JavaLangArrayStoreExceptionType;
+    VM_TypeReference et = VM_TypeReference.JavaLangArrayStoreException;
     return rectifyStateWithExceptionHandler(et, linkToExitIfUncaught);
   }
   private OPT_BasicBlock rectifyStateWithErrorHandler(boolean linkToExitIfUncaught) {
-    VM_Type et = OPT_ClassLoaderProxy.JavaLangErrorType;
+    VM_TypeReference et = VM_TypeReference.JavaLangError;
     return rectifyStateWithExceptionHandler(et, linkToExitIfUncaught);
   }
 
   // If exactly 1 catch block is guarenteed to catch the exception, 
   // then we return it.
   // Returning null means that no such block was found.
-  private OPT_BasicBlock rectifyStateWithExceptionHandler(VM_Type exceptionType, 
+  private OPT_BasicBlock rectifyStateWithExceptionHandler(VM_TypeReference exceptionType, 
 							  boolean linkToExitIfUncaught) {
     currentBBLE.block.setCanThrowExceptions();
     int catchTargets = 0;
@@ -3951,25 +4232,31 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Should we inline a call site?
    *
    * @param call the call instruction being considered for inlining
-   * @param computedTarget non-NULL => we're CERTAIN that the call will 
-   *         resolve to this target
+   * @param target target of the resolved method reference
+   * @param preciseTarget non-NULL => we're CERTAIN that the call will resolve to this target
    * @param isExtant is the receiver of a virtual method an extant object?
    */
   private OPT_InlineDecision shouldInline(OPT_Instruction call, 
-					  VM_Method computedTarget, 
 					  boolean isExtant) {
+    if (Call.getMethod(call).getTarget() == null) {
+      return OPT_InlineDecision.NO("Target method is null");
+    }
     OPT_CompilationState state = 
       new OPT_CompilationState(call, 
 			       gc.localMCSizeEstimate+gc.parentMCSizeEstimate,
-			       computedTarget, isExtant, gc.options, 
-			       gc.original_cm);
+			       isExtant, gc.options, gc.original_cm);
     OPT_InlineDecision d = gc.inlinePlan.shouldInline(state);
-    if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-      OPT_InlineReport.setValues(state);
-      OPT_InlineReport.setDecision(d);
-    }
     return d;
   }
+
+  //-#if RVM_WITH_OSR
+  /* osr barrier needs type information of locals and stacks,
+   * it has to be created before a _callHelper.
+   * only when the call site is going to be inlined, the instruction
+   * is inserted before the call site.
+   */
+  private OPT_Instruction lastOsrBarrier = null;
+  //-#endif
 
   /**
    * Attempt to inline a method. This may fail.
@@ -3983,6 +4270,19 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (inlDec.isNO()) {
       return false;
     }
+
+    //-#if RVM_WITH_OSR
+    // Insert OsrBarrier point before the callsite which is going to be
+    // inlined, attach the OsrBarrier instruction to callsite's scratch
+    // object, then the callee can find this barrier
+    
+    // verify it
+    if (this.osrGuardedInline) {
+      if (VM.VerifyAssertions) VM._assert(lastOsrBarrier != null);
+      callSite.scratchObject = lastOsrBarrier;
+    }
+    //-#endif
+
     // Execute the inline decision.
     // NOTE: It is tempting to wrap the call to OPT_Inliner.execute in 
     // a try/catch block that suppresses MagicNotImplemented failures
@@ -4046,18 +4346,17 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         // _before_ we copy the stack state into epilogueBBLE!
         // Otherwise we'll end up with bogus code in the inlined 
         // method's prologue due to stack saving!!!!
-        VM_Type resultType = Call.getResult(callSite).type;
+        VM_TypeReference resultType = Call.getResult(callSite).type;
         pop(resultType);        // throw away callSite.result
       }
       blocks.rectifyStacks(currentBBLE.block, stack, epilogueBBLE);
       if (inlinedContext.result != null) {
-        VM_Type resultType = Call.getResult(callSite).type;
+        VM_TypeReference resultType = Call.getResult(callSite).type;
         push(inlinedContext.result, resultType);
       }
       epilogueBBLE.copyIntoLocalState(_localState);
       BasicBlockLE afterBBLE = 
-	blocks.getOrCreateBlock(bcInfo.getReturnAddress(), epilogueBBLE, 
-				stack, _localState);
+	blocks.getOrCreateBlock(bcodes.index(), epilogueBBLE, stack, _localState);
       // Create the InliningBlockLE and initialize fallThrough links.
       InliningBlockLE inlinedCallee = new InliningBlockLE(inlinedContext);
       currentBBLE.fallThrough = inlinedCallee;
@@ -4077,6 +4376,205 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     endOfBasicBlock = true;
     return true;
   }
+
+  //-#if RVM_WITH_OSR
+  /* create an OSR Barrier instruction at the current position.
+   */
+  private OPT_Instruction _createOsrBarrier() {
+    LinkedList livevars = new LinkedList();
+ 
+    /* for local variables, we have to use helper to make a register. */
+    /* ltypes and stypes should be the full length
+     * WARNING: what's the order of DUMMY and LONG?
+     */
+    int localnum = _localState.length;
+    byte[] ltypes = new byte[localnum];
+ 
+    int num_llocals = 0;
+    for (int i=0, n=_localState.length; i<n; i++) {
+      OPT_Operand op = _localState[i];
+
+      if ((op != null) && (op != DUMMY)) {
+        livevars.add(_loadLocalForOSR(op));
+        num_llocals++;
+ 
+        if (op instanceof ReturnAddressOperand) {
+          ltypes[i] = AddressTypeCode;
+        } else {
+          ltypes[i] = op.getType().getName().parseForTypeCode();
+        }
+ 
+      } else {
+        ltypes[i] = VoidTypeCode;
+      }
+    }
+    int stacknum = stack.getSize();
+    byte[] stypes = new byte[stacknum];
+ 
+    /* the variabel on stack can be used directly ? */
+    int num_lstacks = 0;
+    for (int i=0, n=stack.getSize(); i<n; i++) {
+      OPT_Operand op = stack.peekAt(i);
+ 
+      if ((op != null) && (op != DUMMY)) {
+ 
+	if (op.isRegister()) {
+	  livevars.add(op.asRegister().copyU2U());
+	} else {
+	  livevars.add(op);
+	}
+
+        num_lstacks++;
+ 
+        if (op instanceof ReturnAddressOperand) {
+          stypes[i] = AddressTypeCode;
+        } else {
+          /* for stack operand, reverse the order for long and double */
+          byte tcode = op.getType().getName().parseForTypeCode();
+          if ((tcode == LongTypeCode)
+              || (tcode == DoubleTypeCode)) {
+            stypes[i-1] = tcode;
+            stypes[i] = VoidTypeCode;
+          } else {
+            stypes[i] = op.getType().getName().parseForTypeCode();
+          }
+        }
+ 
+      } else {
+        stypes[i] = VoidTypeCode;
+      }
+    }
+ 
+    OPT_Instruction barrier = OsrBarrier.create(OSR_BARRIER,
+                                                null, // temporarily
+                                                num_llocals+num_lstacks);
+
+    for (int i=0, n=livevars.size(); i<n; i++) {
+      OPT_Operand op = (OPT_Operand)livevars.get(i);
+      if (op instanceof ReturnAddressOperand) {
+        int tgtpc = ((ReturnAddressOperand)op).retIndex
+                        - gc.method.getOsrPrologueLength();
+        op = new OPT_IntConstantOperand(tgtpc);
+      } else if (op instanceof OPT_LongConstantOperand) {
+        op = _prepareLongConstant(op);
+      } else if (op instanceof OPT_DoubleConstantOperand) {
+        op = _prepareDoubleConstant(op);
+      }
+
+      if (VM.VerifyAssertions) VM._assert(op != null);
+
+      OsrBarrier.setElement(barrier, i, op);
+    }
+ 
+    // patch type info operand
+    OPT_OsrTypeInfoOperand typeinfo =
+      new OPT_OsrTypeInfoOperand(ltypes, stypes);
+ 
+    OsrBarrier.setTypeInfo(barrier, typeinfo);
+
+    /* if the current method is for specialization, the bcIndex
+     * has to be adjusted at "OPT_OsrPointConstructor".
+     */
+    barrier.position = gc.inlineSequence;
+    barrier.bcIndex = instrIndex;   
+
+    return barrier;
+  }
+
+  /* special process for long/double constants */
+  private OPT_Operand _prepareLongConstant(OPT_Operand op) {
+    /* for long and double constants, always move them to a register,
+     * therefor, BURS will split it in two registers.
+     */
+    OPT_RegisterOperand t = gc.temps.makeTemp(op.getType());
+    appendInstruction(Move.create(LONG_MOVE, t, op));
+    t.copyD2U();
+ 
+    return t;
+  }
+ 
+  /* special process for long/double constants */
+  private OPT_Operand _prepareDoubleConstant(OPT_Operand op) {
+    /* for long and double constants, always move them to a register,
+     * therefor, BURS will split it in two registers.
+     */
+    OPT_RegisterOperand t = gc.temps.makeTemp(op.getType());
+    appendInstruction(Move.create(DOUBLE_MOVE, t, op));
+    t.copyD2U();
+ 
+    return t;
+  }
+ 
+  /* make a temporary register, and create a move instruction
+   * @param op, the local variable.
+   * @return operand marked as use.
+   */
+  private OPT_Operand _loadLocalForOSR(OPT_Operand op) {
+ 
+    /* if it is LOCALS ON STACK, do nothing. */
+/*
+	if (LOCALS_ON_STACK) {
+      return op;
+    }
+*/
+		  
+    /* otherwise, create move instructions. */
+    /* return address is processed specially */
+    if (op instanceof ReturnAddressOperand) {
+      return op;
+    }
+ 
+    OPT_RegisterOperand t = gc.temps.makeTemp(op.getType());
+    t.copyD2U();
+ 
+    byte tcode = op.getType().getName().parseForTypeCode();
+ 
+    OPT_Operator operator = null;
+ 
+    switch (tcode) {
+    case ClassTypeCode:
+    case ArrayTypeCode:
+      operator = REF_MOVE;
+      break;
+    case BooleanTypeCode:
+    case ByteTypeCode:
+    case ShortTypeCode:
+    case CharTypeCode:
+    case IntTypeCode:
+      operator = INT_MOVE;
+      break;
+    case LongTypeCode:
+      operator = LONG_MOVE;
+      break;
+    case FloatTypeCode:
+      operator = FLOAT_MOVE;
+      break;
+    case DoubleTypeCode:
+      operator = DOUBLE_MOVE;
+      break;
+    case VoidTypeCode:
+      return null;
+    }
+ 
+    appendInstruction(Move.create(operator, t, op));
+    return t;
+  }
+
+
+  /**
+   * Creates an OSR point instruction with its dependent OsrBarrier
+   * which provides type and variable information.
+   * The OsrPoint instruction is going to be refilled immediately 
+   * after BC2IR, before any other optimizations.
+   */
+  public static OPT_Instruction _osrHelper(OPT_Instruction barrier) {
+    OPT_Instruction inst = OsrPoint.create(YIELDPOINT_OSR,
+					   null,  // currently unknown 
+					   0);    // currently unknown
+    inst.scratchObject = barrier;
+    return inst;
+  }
+  //-#endif RVM_WITH_OSR
 
 
   //// LOCAL STATE.
@@ -4161,7 +4659,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     private OPT_GenerationContext gc;
 
     /** associated bytecodes */
-    private OPT_BytecodeInfo bcInfo;
+    private VM_BytecodeStream bcodes;
 
     // Fields to support generation/identification of catch blocks
     /** Start bytecode index for each exception handler ranges */
@@ -4181,15 +4679,15 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * Initialize the BBSet to handle basic block generation for the argument
      * generation context and bytecode info.
      * @param gc the generation context to generate blocks for
-     * @param bcInfo the bytecodes of said generation context
+     * @param bcodes the bytecodes of said generation context
      * @param localState the state of the local variables for the block
      *                   beginning at bytecode 0.
      */
     BBSet(OPT_GenerationContext gc, 
-	  OPT_BytecodeInfo bcInfo,
+	  VM_BytecodeStream bcodes,
 	  OPT_Operand[] localState) {
       this.gc = gc;
-      this.bcInfo = bcInfo;
+      this.bcodes = bcodes;
       
       // Set up internal data structures to deal with exception handlers
       parseExceptionTables();
@@ -4220,13 +4718,13 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     /**
      * Gets the bytecode index of the block in the set which has the
      * next-higher bytecode index.
-     * Returns bcInfo.getLength() if x is currently the block with the highest
+     * Returns bcodes.length() if x is currently the block with the highest
      * starting bytecode index.
      * @param x basic block to start at.
      */
     int getNextBlockBytecodeIndex(BasicBlockLE x) {
       BasicBlockLE nextBBLE = getSuccessor(x, x.low);
-      return nextBBLE == null ? bcInfo.getLength() : nextBBLE.low;
+      return nextBBLE == null ? bcodes.length() : nextBBLE.low;
     }
 
     /**
@@ -4406,7 +4904,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    System.err.println("stack size " + stack.getSize());
 	    System.err.println(stack);
 	    System.err.println(p.stackState);
-	    bcInfo.print(System.err);
+	    System.err.println(gc.method.toString());
 	    block.printExtended();
 	    p.block.printExtended();
 	    throw e;
@@ -4731,9 +5229,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * Print a debug string to the sysWrite stream.
      * @param val string to print
      */
-    private final void db(String val) {
-      VM.sysWrite("IRGEN " + gc.method.getDeclaringClass().getName() + "."
-		  + gc.method.getName() + ":" + val + "\n");
+   private final void db(String val) {
+      VM.sysWrite("IRGEN " + bcodes.declaringClass() + "."
+	          + gc.method.getName() + ":" + val + "\n");
     }
 
     /**
@@ -4766,9 +5264,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     private void initializeExceptionHandlers(BasicBlockLE bble, 
 					     OPT_Operand[] simLocals) {
       if (startPCs != null) {
-	java.util.HashSet caughtTypes = new java.util.HashSet();
+        java.util.HashSet caughtTypes = new java.util.HashSet();
 	for (int i = 0; i < startPCs.length; i++) {
-	  VM_Type caughtType = exceptionTypes[i].type;
+        VM_TypeReference caughtType = exceptionTypes[i].getTypeRef();
 	  if (bble.low >= startPCs[i] && bble.max <= endPCs[i] && 
 	      !caughtTypes.contains(caughtType)) {
 	    // bble's basic block is contained within this handler's range.
@@ -4800,7 +5298,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * @param bcIndex the start bytecode index
      */
     private int exceptionEndRange(int bcIndex) {
-      int max = bcInfo.getLength();
+      int max = bcodes.length();
       if (startPCs != null) {
 	for (int i = 0; i < startPCs.length; i++) {
 	  int spc = startPCs[i];
@@ -5229,7 +5727,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     private void verifyTree() {
       if (VM.VerifyAssertions) {
 	VM._assert(root.isBlack());
-	verifyTree(root, -1, bcInfo.getLength());
+	verifyTree(root, -1, bcodes.length());
 	countBlack(root);
       }
     }
@@ -5338,7 +5836,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     void push(OPT_Operand val) {
-      if (VM.VerifyAssertions) VM._assert(val.instruction == null);
+//      if (VM.VerifyAssertions) VM._assert(val.instruction == null);
       stack[top++] = val;
     }
 
@@ -5349,6 +5847,12 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     OPT_Operand peek(int depth) {
       return stack[top - depth - 1];
     }
+
+    //-#if RVM_WITH_OSR
+    OPT_Operand peekAt(int pos) {
+      return stack[pos];
+    }
+    //-#endif
 
     void pop2() {
       pop();
@@ -5594,7 +6098,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       // new type of caught exception is added. Since we shouldn't care about
       // the performance of code in exception handling blocks, this 
       // should be the right tradeoff.
-      exceptionObject = temps.makeTemp(OPT_ClassLoaderProxy.JavaLangThrowableType);
+      exceptionObject = temps.makeTemp(VM_TypeReference.JavaLangThrowable);
       setGuard(exceptionObject, new OPT_TrueGuardOperand());	// know not null 
       low = loc;
       high = loc;
@@ -5615,11 +6119,11 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       entryBlock.addCaughtException(et);
     }
 
-    byte mayCatchException(VM_Type et) {
+    byte mayCatchException(VM_TypeReference et) {
       return entryBlock.mayCatchException(et);
     }
 
-    byte mustCatchException(VM_Type et) {
+    byte mustCatchException(VM_TypeReference et) {
       return entryBlock.mustCatchException(et);
     }
   }

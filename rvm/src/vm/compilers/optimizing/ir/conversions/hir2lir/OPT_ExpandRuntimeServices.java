@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
@@ -36,8 +37,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 
   public void reportAdditionalStats() {
     VM.sysWrite("  ");
-    VM_RuntimeCompilerInfrastructure.printPercentage(container.counter1, 
-						     container.counter2);
+    VM.sysWrite(container.counter1/container.counter2*100, 2);
     VM.sysWrite("% Infrequent RS calls");
   }
 
@@ -49,8 +49,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
    * @param OPT_IR HIR to expand
    */
   public void perform (OPT_IR ir) {
-    // resync generation context
-    ir.gc.resync();
+    ir.gc.resync(); // resync generation context -- yuck...
     
     OPT_Instruction next;
     for (OPT_Instruction inst = ir.firstInstructionInCodeOrder(); 
@@ -60,397 +59,211 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       int opcode = inst.getOpcode();
 
       switch (opcode) {
-
-      case NEW_opcode:
-	{ 
-	  OPT_TypeOperand Type = New.getClearType(inst);
-	  VM_Class cls = (VM_Class)Type.type;
-	  OPT_IntConstantOperand hasFinalizer = new OPT_IntConstantOperand(cls.hasFinalizer() ? 1 : 0);
-	  OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(VM_Interface.pickAllocator(cls));
-	  Call.mutate4(inst, CALL, New.getClearResult(inst), null, 
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.resolvedNewScalarMethod), 
-		       new OPT_IntConstantOperand(cls.getInstanceSize()),
-		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type), 
-		       hasFinalizer,
-		       allocator);
-	  if (ir.options.INLINE_NEW) {
-	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
-	    container.counter2++;
-            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
-              inline(inst, ir);
-            }
-	  }
-	}
-	break;
-
-      case NEW_UNRESOLVED_opcode:
-	{
-	  int typeRefId = New.getType(inst).type.getDictionaryId();
-	  Call.mutate1(inst, CALL, New.getClearResult(inst), null,
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedNewScalarMethod), 
-		       new OPT_IntConstantOperand(typeRefId));
-	}
-	break;
-
-      case NEWARRAY_opcode:
-	{
-	  OPT_TypeOperand Array = NewArray.getClearType(inst);
-	  VM_Array array = (VM_Array)Array.type;
-	  OPT_Operand numberElements = NewArray.getClearSize(inst);
-	  OPT_Operand size = null;
-	  if (numberElements instanceof OPT_RegisterOperand) {
-	    int width = array.getLogElementSize();
-	    OPT_RegisterOperand temp = numberElements.asRegister();
-	    if (width != 0) {
-	      temp = OPT_ConvertToLowLevelIR.InsertBinary(inst, ir, INT_SHL, 
-							  VM_Type.IntType, 
-							  temp, 
-							  new OPT_IntConstantOperand(width));
-	    }
-	    size = OPT_ConvertToLowLevelIR.InsertBinary(inst, ir, INT_ADD, 
-							VM_Type.IntType, temp,
-							new OPT_IntConstantOperand(VM_ObjectModel.computeArrayHeaderSize(array)));
-	  } else { 
-	    size = new OPT_IntConstantOperand(array.getInstanceSize(numberElements.asIntConstant().value));
-	  }
-	  OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(VM_Interface.pickAllocator(array));
-	  Call.mutate4(inst, CALL, NewArray.getClearResult(inst), null, 
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.resolvedNewArrayMethod), 
-		       numberElements.copy(), 
-		       size, 
-		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array),
-		       allocator);
-	  if (ir.options.INLINE_NEW) {
-	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
-	    container.counter2++;
-            if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
-              inline(inst, ir);
-            }
-	  } 
-	}
-	break;
-
-
-      case NEWARRAY_UNRESOLVED_opcode:
-	{
-	  int typeRefId = NewArray.getType(inst).type.getDictionaryId();
-	  OPT_Operand numberElements = NewArray.getClearSize(inst);
-	  Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null, 
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedNewArrayMethod), 
-		       numberElements, 
-		       new OPT_IntConstantOperand(typeRefId));
-	}
-	break;
-
-      case NEWOBJMULTIARRAY_opcode:
-	{
-	  int typeRefId = NewArray.getType(inst).type.getDictionaryId();
-	  Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null,
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.optNewArrayArrayMethod), 
-		       NewArray.getClearSize(inst),
-		       new OPT_IntConstantOperand(typeRefId));
-	}
-	break;
 	
-      case ATHROW_opcode:
-	OPT_MethodOperand methodOp =
-	  OPT_MethodOperand.STATIC(VM_Entrypoints.athrowMethod);
+      case NEW_opcode: { 
+	OPT_TypeOperand Type = New.getClearType(inst);
+	VM_Class cls = (VM_Class)Type.getVMType();
+	OPT_IntConstantOperand hasFinalizer = new OPT_IntConstantOperand(cls.hasFinalizer() ? 1 : 0);
+	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(VM_Interface.pickAllocator(cls));
+	VM_Method target = VM_Entrypoints.resolvedNewScalarMethod;
+	Call.mutate4(inst, CALL, New.getClearResult(inst), 
+		     new OPT_IntConstantOperand(target.getOffset()),
+		     OPT_MethodOperand.STATIC(target),
+		     new OPT_IntConstantOperand(cls.getInstanceSize()),
+		     OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type), 
+		     hasFinalizer,
+		     allocator);
+	if (ir.options.INLINE_NEW) {
+	  if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+	  container.counter2++;
+	  if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+	    inline(inst, ir);
+	  }
+	}
+      }
+      break;
 
-	// Record the fact that this is a non-returning call.
-	methodOp.setIsNonReturningCall(true);
+      case NEW_UNRESOLVED_opcode: {
+	int typeRefId = New.getType(inst).getTypeRef().getId();
+	VM_Method target = VM_Entrypoints.unresolvedNewScalarMethod;
+	Call.mutate1(inst, CALL, New.getClearResult(inst), 
+		     new OPT_IntConstantOperand(target.getOffset()),
+		     OPT_MethodOperand.STATIC(target),
+		     new OPT_IntConstantOperand(typeRefId));
+      }
+      break;
 
-	Call.mutate1(inst, CALL, null, null, 
+      case NEWARRAY_opcode: {
+	OPT_TypeOperand Array = NewArray.getClearType(inst);
+	VM_Array array = (VM_Array)Array.getVMType();
+	OPT_Operand numberElements = NewArray.getClearSize(inst);
+	OPT_Operand size = null;
+	if (numberElements instanceof OPT_RegisterOperand) {
+	  int width = array.getLogElementSize();
+	  OPT_RegisterOperand temp = numberElements.asRegister();
+	  if (width != 0) {
+	    temp = OPT_ConvertToLowLevelIR.InsertBinary(inst, ir, INT_SHL, 
+							VM_TypeReference.Int, 
+							temp, 
+							new OPT_IntConstantOperand(width));
+	  }
+	  size = OPT_ConvertToLowLevelIR.InsertBinary(inst, ir, INT_ADD, 
+						      VM_TypeReference.Int, temp,
+						      new OPT_IntConstantOperand(VM_ObjectModel.computeArrayHeaderSize(array)));
+	} else { 
+	  size = new OPT_IntConstantOperand(array.getInstanceSize(numberElements.asIntConstant().value));
+	}
+	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(VM_Interface.pickAllocator(array));
+	VM_Method target = VM_Entrypoints.resolvedNewArrayMethod;
+	Call.mutate4(inst, CALL, NewArray.getClearResult(inst),  
+		     new OPT_IntConstantOperand(target.getOffset()),
+		     OPT_MethodOperand.STATIC(target),
+		     numberElements.copy(), 
+		     size, 
+		     OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array),
+		     allocator);
+	if (ir.options.INLINE_NEW) {
+	  if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+	  container.counter2++;
+	  if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+	    inline(inst, ir);
+	  }
+	} 
+      }
+      break;
+
+      case NEWARRAY_UNRESOLVED_opcode: {
+	int typeRefId = NewArray.getType(inst).getTypeRef().getId();
+	OPT_Operand numberElements = NewArray.getClearSize(inst);
+	VM_Method target = VM_Entrypoints.unresolvedNewArrayMethod;
+	Call.mutate2(inst, CALL, NewArray.getClearResult(inst), 
+		     new OPT_IntConstantOperand(target.getOffset()),
+		     OPT_MethodOperand.STATIC(target),
+		     numberElements, 
+		     new OPT_IntConstantOperand(typeRefId));
+      }
+      break;
+
+      case NEWOBJMULTIARRAY_opcode: {
+	int typeRefId = NewArray.getType(inst).getTypeRef().getId();
+	VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
+	Call.mutate2(inst, CALL, NewArray.getClearResult(inst),
+		     new OPT_IntConstantOperand(target.getOffset()),
+		     OPT_MethodOperand.STATIC(target),
+		     NewArray.getClearSize(inst),
+		     new OPT_IntConstantOperand(typeRefId));
+      }
+      break;
+	
+      case ATHROW_opcode: {
+	VM_Method target = VM_Entrypoints.athrowMethod;
+	OPT_MethodOperand methodOp = OPT_MethodOperand.STATIC(target);
+	methodOp.setIsNonReturningCall(true); 	// Record the fact that this is a non-returning call.
+	Call.mutate1(inst, CALL, null, new OPT_IntConstantOperand(target.getOffset()),
 		     methodOp, Athrow.getClearValue(inst));
-	break;
+      }
+      break;
 
-      case MONITORENTER_opcode:
+      case MONITORENTER_opcode: {
 	if (ir.options.NO_SYNCHRO) {
 	  inst.remove();
 	} else {
 	  OPT_Operand ref = MonitorOp.getClearRef(inst);
-	  VM_Type refType = ref.getType();
-	  if (refType.thinLockOffset != -1) {
-	    Call.mutate2(inst, CALL, null, null, 
-			 OPT_MethodOperand.STATIC(VM_Entrypoints.inlineLockMethod), 
+	  VM_Type refType = ref.getType().peekResolvedType();
+	  if (refType != null && refType.getThinLockOffset() != -1) {
+	    VM_Method target = VM_Entrypoints.inlineLockMethod;
+	    Call.mutate2(inst, CALL, null, new OPT_IntConstantOperand(target.getOffset()),
+			 OPT_MethodOperand.STATIC(target),
 			 MonitorOp.getClearGuard(inst), 
 			 ref,
-			 new OPT_IntConstantOperand(refType.thinLockOffset));
+			 new OPT_IntConstantOperand(refType.getThinLockOffset()));
 	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
 	    container.counter2++;
             if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
               inline(inst, ir);
             }
 	  } else {
-	    Call.mutate1(inst, CALL, null, null, 
-			 OPT_MethodOperand.STATIC(VM_Entrypoints.lockMethod),
+	    VM_Method target = VM_Entrypoints.lockMethod;
+	    Call.mutate1(inst, CALL, null, new OPT_IntConstantOperand(target.getOffset()), 
+			 OPT_MethodOperand.STATIC(target),
 			 MonitorOp.getClearGuard(inst), 
 			 ref);
 	  }
 	}
 	break;
+      }
 
-      case MONITOREXIT_opcode:	
+      case MONITOREXIT_opcode: {
 	if (ir.options.NO_SYNCHRO) {
 	  inst.remove();
 	} else {
-	    OPT_Operand ref = MonitorOp.getClearRef(inst);
-	    VM_Type refType = ref.getType();
-	    if (refType.thinLockOffset != -1) {
-		Call.mutate2(inst, CALL, null, null, 
-			     OPT_MethodOperand.STATIC(VM_Entrypoints.inlineUnlockMethod), 
-			     MonitorOp.getClearGuard(inst), 
-			     ref,
-			     new OPT_IntConstantOperand(refType.thinLockOffset));
-		if (inst.getBasicBlock().getInfrequent()) container.counter1++;
-		container.counter2++;
-                if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
-                  inline(inst, ir);
-                }
-	    } else {
-		Call.mutate1(inst, CALL, null, null, 
-			     OPT_MethodOperand.STATIC(VM_Entrypoints.unlockMethod),
-			     MonitorOp.getClearGuard(inst), 
-			     ref);
+	  OPT_Operand ref = MonitorOp.getClearRef(inst);
+	  VM_Type refType = ref.getType().peekResolvedType();
+	  if (refType != null && refType.getThinLockOffset() != -1) {
+	    VM_Method target = VM_Entrypoints.inlineUnlockMethod;
+	    Call.mutate2(inst, CALL, null, new OPT_IntConstantOperand(target.getOffset()), 
+			 OPT_MethodOperand.STATIC(target),
+			 MonitorOp.getClearGuard(inst), 
+			 ref,
+			 new OPT_IntConstantOperand(refType.getThinLockOffset()));
+	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
+	    container.counter2++;
+	    if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
+	      inline(inst, ir);
 	    }
+	  } else {
+	    VM_Method target = VM_Entrypoints.unlockMethod;
+	    Call.mutate1(inst, CALL, null, new OPT_IntConstantOperand(target.getOffset()),
+			 OPT_MethodOperand.STATIC(target),
+			 MonitorOp.getClearGuard(inst), 
+			 ref);
+	  }
 	} 
-	break;
+      }
+      break;
 
-      case BYTE_ALOAD_opcode:
-      case UBYTE_ALOAD_opcode:
-      case SHORT_ALOAD_opcode:  
-      case USHORT_ALOAD_opcode:
-      case INT_ALOAD_opcode: 
-      case FLOAT_ALOAD_opcode:
-      case REF_ALOAD_opcode:
-      case LONG_ALOAD_opcode:
-      case DOUBLE_ALOAD_opcode: {
-	  // Lazy Redirect redirects the source array operand
-	  // Realtime GC will do segmented array access
-	  // Eager Redirect redirects the result if it is a ref type and not null
-	    OPT_RegisterOperand result = ALoad.getResult(inst);
-	    if (VM_Configuration.BuildWithLazyRedirect) {
-		// This barrier completely replaces all access instruction.
-		OPT_Operand origArray = AStore.getClearArray(inst);
-		OPT_RegisterOperand newArray = ir.regpool.makeTemp(origArray);
-		OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newArray, origArray, OPT_IRTools.TG());
-		redirectInst.bcIndex = inst.bcIndex;
-		inst.insertBefore(redirectInst);
-		ALoad.setArray(inst, newArray);  // let standard conversion take care of this
-	    }
-	    OPT_Instruction lastInst = inst;  // last instruction of possibly expanded code
-	    //-#if RVM_WITH_REALTIME_GC
-	    if (VM.BuildForRealtimeGC) {
-	      lastInst = VM_SegmentedArray.optSegmentedArrayAccess(ir, inst, opcode);
-	      inst = null;                   // no unique load instr anymore
-	      next = lastInst.nextInstructionInCodeOrder();
-	    }
-	    //-#endif
-	    if (VM_Configuration.BuildWithEagerRedirect) {
-		if (opcode == REF_ALOAD_opcode) {
-		    OPT_RedirectResult rr = conditionalRedirect(ir, lastInst, result);
-		    next = rr.next;
-		}
-	    }
-	  }
-	  break;
+      case REF_ASTORE_opcode: {
+	if (VM_Interface.NEEDS_WRITE_BARRIER) {
+	  VM_Method target = VM_Entrypoints.arrayStoreWriteBarrierMethod;
+	  OPT_Instruction wb =
+	    Call.create3(CALL, null, new OPT_IntConstantOperand(target.getOffset()),
+			 OPT_MethodOperand.STATIC(target),
+			 AStore.getArray(inst).copy(), 
+			 AStore.getIndex(inst).copy(), 
+			 AStore.getValue(inst).copy());
+	  wb.bcIndex = RUNTIME_SERVICES_BCI;
+	  wb.position = inst.position;
+	  inst.replace(wb);
+	  next = wb.nextInstructionInCodeOrder(); 
+	  inline(wb, ir, true);
+	}
+      }
+      break;
 
-      case BYTE_ASTORE_opcode:
-      case SHORT_ASTORE_opcode:
-      case INT_ASTORE_opcode:
-      case FLOAT_ASTORE_opcode:
-      case REF_ASTORE_opcode:
-      case LONG_ASTORE_opcode:
-      case DOUBLE_ASTORE_opcode:
-
-	  if (VM_Configuration.BuildWithLazyRedirect) {
-	      // (0) Leave ASTORE_? opcode for further translation
-	      // (1) Get real object for ASTORE_? opcode 
-	      // (2) Get real object for value to put if field is a reference type
-	      // (3) It is safe to use the real version for the lazy barrier
-	      OPT_Operand array = AStore.getClearArray(inst);
-	      OPT_RegisterOperand newArray = ir.regpool.makeTemp(array);
-	      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newArray,
-								  array, OPT_IRTools.TG());
-	      redirectInst.bcIndex = inst.bcIndex;
-	      inst.insertBefore(redirectInst);
-	      AStore.setArray(inst,newArray);
-	      if (opcode == REF_ASTORE_opcode) {
-		  OPT_Operand value = AStore.getClearValue(inst);
-		  OPT_RedirectResult rr = conditionalRedirect(ir, inst.prevInstructionInCodeOrder(), value);  
-		  AStore.setValue(inst,rr.newValue.copy());
-		  next = inst.nextInstructionInCodeOrder();  // don't use rr.next
-	      }
+      case PUTFIELD_opcode: {
+	if (VM_Interface.NEEDS_WRITE_BARRIER) {
+	  OPT_LocationOperand loc = PutField.getClearLocation(inst);
+	  VM_FieldReference field = loc.getFieldRef();
+	  if (!field.getFieldContentsType().isPrimitiveType()) {
+	    VM_Method target = VM_Entrypoints.putfieldWriteBarrierMethod;
+	    OPT_Instruction wb = 
+	      Call.create3(CALL, null, new OPT_IntConstantOperand(target.getOffset()), 
+			   OPT_MethodOperand.STATIC(target),
+			   PutField.getRef(inst).copy(), 
+			   PutField.getOffset(inst).copy(),
+			   PutField.getValue(inst).copy());
+	    wb.bcIndex = RUNTIME_SERVICES_BCI;
+	    wb.position = inst.position;
+	    inst.replace(wb);
+	    next = wb.nextInstructionInCodeOrder();
+	    inline(wb, ir);
 	  }
-	  //-#if RVM_WITH_REALTIME_GC
-	  if (VM.BuildForRealtimeGC) {  
-	      OPT_Instruction lastInst = VM_SegmentedArray.optSegmentedArrayAccess(ir, inst, opcode);
-	      inst = null;  // no unique store isntruction anymore
-	      next = lastInst.nextInstructionInCodeOrder();
-	  }
-	  //-#endif
-	  if (VM_Configuration.BuildWithEagerRedirect) {
-	      // no modifications needed for eager version on stores
-	  }
-	  if (VM_Interface.NEEDS_WRITE_BARRIER) {
-	      if (opcode == REF_ASTORE_opcode) {
-		  OPT_Instruction wb =
-		      Call.create3(CALL, null, null, 
-				   OPT_MethodOperand.STATIC(VM_Entrypoints.arrayStoreWriteBarrierMethod), 
-				   AStore.getArray(inst).copy(), 
-				   AStore.getIndex(inst).copy(), 
-				   AStore.getValue(inst).copy());
-		  wb.bcIndex = RUNTIME_SERVICES_BCI;
-		  wb.position = inst.position;
-		  inst.insertBefore(wb);
-		  inline(wb, ir, true);
-		  next = inst.nextInstructionInCodeOrder(); 
-	      }
-	  }
-	break;
-
-    case GETFIELD_opcode:
-    case GETFIELD_UNRESOLVED_opcode:
-	  // Leave the opcode of the final GetField so we don't have to handle UNRESOLVED stuff
-	  if (VM_Configuration.BuildWithLazyRedirect) {
-	      OPT_Operand object = GetField.getClearRef(inst);
-	      OPT_RegisterOperand newObject = ir.regpool.makeTemp(object);
-	      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newObject, object, 
-								 GetField.getGuard(inst).copy());
-	      redirectInst.bcIndex = inst.bcIndex;
-	      inst.insertBefore(redirectInst);
-	      GetField.setRef(inst,newObject.copy());
-	  }
-	  if (VM_Configuration.BuildWithEagerRedirect) {
-	      OPT_LocationOperand dataLoc = GetField.getLocation(inst);
-	      VM_Field dataField = dataLoc.field;
-	      OPT_Operand origObject = GetField.getClearRef(inst);
-	      if (VM_Configuration.BuildWithLazyRedirect) {
-		  OPT_RegisterOperand realObject = ir.regpool.makeTemp(origObject);
-		  OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, realObject, origObject, 
-								     GetField.getGuard(inst).copy());
-		  redirectInst.bcIndex = inst.bcIndex;
-		  inst.insertBefore(redirectInst);
-		  GetField.setRef(inst,realObject);
-	      }
-	      else {  // VM_Configuration.BuildWithEagerRedirect
-		  if (!dataField.getType().isPrimitiveType()) {
-		      OPT_RegisterOperand result = GetField.getClearResult(inst);
-		      OPT_RegisterOperand temp = ir.regpool.makeTemp(result);
-		      GetField.setResult(inst,temp);
-		      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
-		      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir, .99f); 
-		      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
-		      ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
-		      ir.cfg.linkInCodeOrder(redirectBB, afterBB);
-		      beforeBB.insertOut(afterBB);   // unusual path
-		      OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, temp,
-							    new OPT_IntConstantOperand(0),  // NULL is 0
-							    OPT_ConditionOperand.EQUAL(),
-							    afterBB.makeJumpTarget(),
-							    OPT_BranchProfileOperand.unlikely());
-		      OPT_Instruction moveInst = Move.create(INT_MOVE, result, temp); // no REF_MOVE in lir
-		      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, result, temp, OPT_IRTools.TG());
-		      ifInst.bcIndex = moveInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
-		      beforeBB.appendInstruction(moveInst);
-		      beforeBB.appendInstruction(ifInst);
-		      redirectBB.appendInstruction(redirectInst);
-		  }
-	      }
-	  }
+	}
+      }
+      break;
 	  
-          //-#if RVM_WITH_READ_BARRIER2
-            if ( (VM.CompileForIBGCinst || VM.CompileForCBGCinstrumentation || VM.CompileForDCacheSimulation) &&
-		 safeToInlineForInstrumentation(field, ir) ) {
-                // Sharad: load of a ref, instrument for both CBGC and cacheSimulator
-		boolean isResolved = (opcode == GETFIELD_opcode);
-		OPT_Instruction rb = Call.create2(CALL, null, null,
-						  OPT_MethodOperand.STATIC(isResolved ? 
-									   VM_Entrypoints.resolvedGetfieldReadBarrierMethod :
-									   VM_Entrypoints.unresolvedGetfieldReadBarrierMethod),
-						  GetField.getRef(inst).copy(),
-						  new OPT_IntConstantOperand(isResolved ? 
-									     field.getOffset() : 
-									     field.getDictionaryId()));
-		rb.bcIndex = RUNTIME_SERVICES;
-		rb.position = inst.position;
-		inst.insertBefore(rb);
-		inline(rb, ir);
-		next = inst.nextInstructionInCodeOrder();
-	    }
-	  //-#endif RVM_WITH_READ_BARRIER2
-	
-	break;
-
-
-        case PUTFIELD_opcode:
-        case PUTFIELD_UNRESOLVED_opcode:
-          {
-	    OPT_LocationOperand loc = PutField.getClearLocation(inst);
-	    VM_Field field = loc.field;
-	    if (VM_Configuration.BuildWithLazyRedirect) {
-		// (0) Leave PUTFIELD_? opcode for further translation
-                // (1) Get real object for PUTFIELD_? opcode 
-                // (2) Get real object for value to put if field is a reference type
-                // (3) It is safe to use the real version for the lazy barrier
-		OPT_Operand object = PutField.getClearRef(inst);
-		OPT_RegisterOperand newObject = ir.regpool.makeTemp(object);
-		OPT_Instruction redirectInst1 = GuardedUnary.create(GET_OBJ_RAW, newObject, object,
-								    PutField.getGuard(inst).copy());
-		redirectInst1.bcIndex = inst.bcIndex;
-		inst.insertBefore(redirectInst1);
-		PutField.setRef(inst,newObject.copy());
-		if (!field.getType().isPrimitiveType()) {
-		    OPT_Operand value = PutField.getClearValue(inst);
-		    OPT_RedirectResult rr = conditionalRedirect(ir, inst.prevInstructionInCodeOrder(), value);
-		    PutField.setValue(inst,rr.newValue.copy());
-		    next = inst.nextInstructionInCodeOrder();  // don't use rr.next
-		}
-	    }
-	    if (VM_Configuration.BuildWithEagerRedirect) {
-		// No modification needed
-	    }
-	    if (VM_Interface.NEEDS_WRITE_BARRIER) {
-		if (!field.getType().isPrimitiveType()) {
-		    boolean isResolved = (opcode == PUTFIELD_opcode);
-		    OPT_Instruction wb = 
-		      Call.create3(CALL, null, null, 
-				   OPT_MethodOperand.STATIC(isResolved ? 
-							    VM_Entrypoints.resolvedPutfieldWriteBarrierMethod :
-							    VM_Entrypoints.unresolvedPutfieldWriteBarrierMethod),
-				   PutField.getRef(inst).copy(), 
-				   new OPT_IntConstantOperand(isResolved ? 
-							      field.getOffset() :
-							      field.getDictionaryId()),
-				   PutField.getValue(inst).copy());
-		    wb.bcIndex = RUNTIME_SERVICES_BCI;
-		    wb.position = inst.position;
-		    inst.insertBefore(wb);
-		    inline(wb, ir);
-		    next = inst.nextInstructionInCodeOrder();
-		}
-	    } // NEEDS_WRITE_BARRIER
-	  }
-	  break;
-
-      case GETSTATIC_opcode: 
-      case GETSTATIC_UNRESOLVED_opcode: 
-	  if (VM_Configuration.BuildWithLazyRedirect) {
-	      // no modification needed
-	  }
-	  if (VM_Configuration.BuildWithEagerRedirect) {
-	      // Leave the opcode here for further translation so we can avoid dealing with UNRESOLVED
-	      OPT_LocationOperand loc = GetStatic.getClearLocation(inst);
-	      VM_Field field = loc.field;
-	      if (!field.getType().isPrimitiveType()) {
-		  OPT_RegisterOperand result = GetStatic.getResult(inst);
-		  OPT_RedirectResult rr = conditionalRedirect(ir, inst, result);
-		  next = rr.next;
-	      }
-	  }
-	  break;
-	  
-      default:
-          break;
+    default:
+      break;
       }
     }
 
@@ -483,14 +296,21 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
     boolean savedExceptionOption = ir.options.NO_CALLEE_EXCEPTIONS;
     ir.options.INLINE = true;
     ir.options.NO_CALLEE_EXCEPTIONS = noCalleeExceptions;
+    //-#if RVM_WITH_OSR
+    boolean savedOsrGI = ir.options.OSR_GUARDED_INLINING;
+    ir.options.OSR_GUARDED_INLINING=false;
+    //-#endif
     try {
       OPT_InlineDecision inlDec = 
-	OPT_InlineDecision.YES(Call.getMethod(inst).method, 
+	OPT_InlineDecision.YES(Call.getMethod(inst).getTarget(), 
 			       "Expansion of runtime service");
       OPT_Inliner.execute(inlDec, ir, inst);
     } finally {
       ir.options.INLINE = savedInliningOption;
       ir.options.NO_CALLEE_EXCEPTIONS = savedExceptionOption;
+      //-#if RVM_WITH_OSR
+      ir.options.OSR_GUARDED_INLINING = savedOsrGI;
+      //-#endif
     }
     didSomething = true;
   }
@@ -498,47 +318,5 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
   private OPT_Simple _os = new OPT_Simple(false, false);
   private OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
   private boolean didSomething = false;
-
-  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-  static private final boolean debug_alloc_advice = false;
-  //-#endif
-
-  private static final class OPT_RedirectResult {
-      OPT_Instruction next;
-      OPT_RegisterOperand newValue;
-      public OPT_RedirectResult(OPT_Instruction i, OPT_RegisterOperand ro) {
-	  next = i;
-	  newValue = ro;
-      }
-  }
-
-  // Insert basic blocks AFTER the given instructions that will check the contents of
-  // the given register.  If the value is not null, the register is replaced with GET_RAW_OBJ
-  // of the original register value.  
-  // The value operand is udpated in place if it is a register.  Otherwise, a new register is allocated
-  // and returned along with the first instruction after the added code is returned.
-  private OPT_RedirectResult conditionalRedirect(OPT_IR ir, OPT_Instruction inst, OPT_Operand value) {
-	
-      OPT_RegisterOperand newValue = value.isRegister() ? (OPT_RegisterOperand) value.copy() 
-	                                                : ir.regpool.makeTemp(value);
-      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
-      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir, .99f); 
-      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
-      ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
-      ir.cfg.linkInCodeOrder(redirectBB, afterBB);
-      beforeBB.insertOut(afterBB);   // unusual path
-      OPT_Instruction moveInst = Move.create(REF_MOVE, newValue.copyRO(), value.copy());
-      OPT_Instruction ifInst = IfCmp.create(INT_IFCMP, null, value.copy(),
-					    new OPT_IntConstantOperand(0),  // NULL is 0
-					    OPT_ConditionOperand.EQUAL(),
-					    afterBB.makeJumpTarget(),
-					    OPT_BranchProfileOperand.unlikely());
-      OPT_Instruction redirectInst = GuardedUnary.create(GET_OBJ_RAW, newValue.copyRO(), value.copy(), OPT_IRTools.TG());
-      ifInst.bcIndex = redirectInst.bcIndex = inst.bcIndex;
-      beforeBB.appendInstruction(moveInst);
-      beforeBB.appendInstruction(ifInst);
-      redirectBB.appendInstruction(redirectInst);
-      return new OPT_RedirectResult(afterBB.firstInstruction(), newValue);
-  }
 
 }

@@ -11,7 +11,7 @@ import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Processor;
-import com.ibm.JikesRVM.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_Scheduler;
@@ -197,7 +197,7 @@ public class ScanStack implements VM_Constants, VM_GCConstants {
 	  VM.sysWrite("--- FRAME DUMP of METHOD ");
 	  VM.sysWrite(method);
 	  VM.sysWrite(" at offset ");
-	  VM.sysWrite(offset,false);
+	  VM.sysWrite(offset);
 	  VM.sysWrite(".--- \n");
 	  VM.sysWrite(" fp = "); VM.sysWrite(fp);
 	  VM.sysWrite(" ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
@@ -209,13 +209,13 @@ public class ScanStack implements VM_Constants, VM_GCConstants {
 	     refaddr = iterator.getNextReferenceAddress()) {
 	  
 	  if (VM.VerifyAssertions && VALIDATE_STACK_REFS) {
-	    VM_Address ref = VM_Address.fromInt(VM_Magic.getMemoryWord(refaddr));
+	    VM_Address ref = VM_Magic.getMemoryAddress(refaddr);
 	    if (!VM_GCUtil.validRef(ref)) {
 	      VM.sysWrite("\nInvalid ref reported while scanning stack\n");
 	      VM.sysWrite("--- METHOD --- ");
 	      VM.sysWrite(method);
 	      VM.sysWrite(" at offset ");
-	      VM.sysWrite(offset,false);
+	      VM.sysWrite(offset);
 	      VM.sysWrite(".\n");
 	      VM.sysWrite(" fp = "); VM.sysWrite(fp);
 	      VM.sysWrite(" ip = "); VM.sysWrite(ip); VM.sysWrite("\n");
@@ -338,11 +338,11 @@ public class ScanStack implements VM_Constants, VM_GCConstants {
 //-#endif
 
     for (VM_Address loc = start; loc.LE(end); loc = loc.add(WORDSIZE)) {
-      VM.sysWrite(loc.diff(start).toInt(),false);
+      VM.sysWrite(loc.diff(start).toInt());
       VM.sysWrite(" ");
       VM.sysWrite(loc);
       VM.sysWrite(" ");
-      VM_Address value = VM_Address.fromInt(VM_Magic.getMemoryWord(loc));
+      VM_Address value = VM_Magic.getMemoryAddress(loc);
       VM.sysWrite(value);
       VM.sysWrite(" ");
       if ( VM_GCUtil.refInVM(value) && loc.NE(start) && loc.NE(end) )

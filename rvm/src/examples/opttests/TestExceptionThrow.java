@@ -85,7 +85,7 @@ class TestExceptionThrow
          }
       catch (IOException e)
          {
-         System.out.println("caught: " + e);
+         System.out.println("caught: " + e.getClass());
          }
       return true;
       }
@@ -238,8 +238,7 @@ class TestExceptionThrow
          }
       catch (IOException e)
          {
-         System.out.println("caught: " + e);
-      // e.printStackTrace(System.out);     // !!TODO: fix backtrace so it omits <init> functions for throwables
+         System.out.println("caught: " + e.getClass());
          }
       return true;
       }

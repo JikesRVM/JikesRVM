@@ -8,7 +8,12 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import java.net.URL;
+
 import java.util.Properties;
+
+import com.ibm.JikesRVM.classloader.VM_ClassLoader;
+import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
 
 import com.ibm.JikesRVM.librarySupport.ClassLoaderSupport;
 import com.ibm.JikesRVM.librarySupport.SystemSupport;
@@ -45,10 +50,11 @@ public class Runtime {
 	defaultProperties.put("path.separator", ":");
 	defaultProperties.put("line.separator", "\n");
 	
-	defaultProperties.put("java.compiler", "Jikes RVM");
+	defaultProperties.put("java.compiler", "JikesRVM");
 	defaultProperties.put("java.vendor", "IBM");
 	defaultProperties.put("java.version", "1.3.0");
 	defaultProperties.put("java.vm.version", "1.3.0");
+	defaultProperties.put("java.vm.name", "JikesRVM");
 	defaultProperties.put("file.encoding", "8859_1");
 	defaultProperties.put("java.io.tmpdir", "/tmp");
 
@@ -119,23 +125,30 @@ public class Runtime {
     }
 
     public synchronized void load(String pathName) {
-	SecurityManager smngr = System.getSecurityManager();
-	if (smngr != null)
-	    smngr.checkLink(pathName);
-        ClassLoaderSupport.load(pathName);
+	VM_ClassLoader.load(pathName);
     }
-
+    
     public void loadLibrary(String libName) {
-	ClassLoaderSupport.loadLibrary(libName);
+	Class[] classes = VMSecurityManager.getClassContext();
+	loadLibraryWithClassLoader(libName, classes[1].getClassLoader());
     }
-
-    synchronized void loadLibraryWithClassLoader(String libName, ClassLoader loader) {
+    
+    void loadLibraryWithClassLoader(String libName, ClassLoader loader) {
 	SecurityManager smngr = System.getSecurityManager();
 	if (smngr != null)
 	    smngr.checkLink(libName);
-	UnimplementedError.unimplemented("Runtime.loadLibraryWithClassLoader"); //!!TODO
-    }
+	
+	if (loader == null) loader = VM_SystemClassLoader.getVMClassLoader();
 
+	String libPath = loader.findLibrary( libName );
+	if (libPath != null) {
+	    VM_ClassLoader.load( libPath );
+	    return;
+	}
+
+	VM_ClassLoader.loadLibrary( libName );
+    }
+    
     public void runFinalization() {
 	SystemSupport.runFinalization();
     }
@@ -163,12 +176,18 @@ public class Runtime {
 	return stream;
     }
 
+    private static final String LIB_SUFFIX =
+	//-#if RVM_FOR_LINUX
+	".so";
+        //-#else
+        ".a";
+        //-#endif
+
     static String nativeGetLibname(String pathname, String libname) {
-    //-#if RVM_FOR_LINUX
-	return pathname + File.separator + "lib" + libname + ".so";
-    //-#else
-	return pathname + File.separator + "lib" + libname + ".a";
-    //-#endif
+	if (pathname != null && !("".equals(pathname)))
+	    return pathname + File.separator + "lib" + libname + LIB_SUFFIX;
+	else
+	    return "lib" + libname + LIB_SUFFIX;
     }
 
 }

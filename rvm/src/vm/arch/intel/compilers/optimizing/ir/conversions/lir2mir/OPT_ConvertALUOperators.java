@@ -3,8 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
-import com.ibm.JikesRVM.*;
 
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -97,7 +98,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       OPT_DefUse.computeDU(ir);
       OPT_DefUse.recomputeSSA(ir);
       OPT_DefUse.recomputeSpansBasicBlock(ir);
-      for (OPT_Register reg = ir.regpool.getFirstRegister(); 
+      for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
 	   reg != null; 
 	   reg = reg.getNext()) {
 	markDead(reg);
@@ -407,7 +408,7 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
     UnaryAcc.mutate(s, opCode, result);
   }
 
-  private static OPT_Operator getMoveOp(VM_Type t) {
+  private static OPT_Operator getMoveOp(VM_TypeReference t) {
     OPT_Operator op = OPT_IRTools.getMoveOp(t);
     if (op == REF_MOVE) { 
       return INT_MOVE;

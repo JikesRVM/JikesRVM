@@ -88,6 +88,7 @@ extern unsigned traceClassLoading;
 extern int verboseGC;
 
 extern "C" int createJVM(int);
+extern "C" void findMappable();
 
 int DEBUG = 0;
 char * emptyString = "";
@@ -296,6 +297,10 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     if (!strcmp(token, "-showversion")) {
       fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
       continue;
+    }
+    if (!strcmp(token, "-findMappable")) {
+      findMappable();
+      *fastExit = 1; break;
     }
     if (!strncmp(token, "-verbose:gc", 11)) {
       int level;

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 
 /**
  * Routines for dynamic linking and other misc hooks from opt-compiled code to
@@ -27,37 +28,24 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
    * then calling VM_TableBasedDynamicLinker to do the actually work.
    */
   public static void resolveDynamicLink (VM_OptCompiledMethod cm, int offset) 
-    throws VM_ResolutionException {
+    throws ClassNotFoundException {
     VM_OptMachineCodeMap map = cm.getMCMap();
     int bci = map.getBytecodeIndexForMCOffset(offset);
-    VM_Method realMethod = map.getMethodForMCOffset(offset);
+    VM_NormalMethod realMethod = map.getMethodForMCOffset(offset);
     if (bci == -1 || realMethod == null)
       VM.sysFail("Mapping to source code location not available at Dynamic Linking point\n");
-    byte[] bytecodes = realMethod.getBytecodes();
-    int bytecode = bytecodes[bci] & 0xFF;
-    int cpi = ((bytecodes[bci + 1] & 0xFF) << 8) | (bytecodes[bci + 2] & 0xFF);
-    switch (bytecode) {
+    VM_BytecodeStream bcodes = realMethod.getBytecodes();
+    bcodes.reset(bci);
+    int opcode = bcodes.nextInstruction();
+    switch (opcode) {
     case JBC_getfield: case JBC_putfield: 
     case JBC_getstatic: case JBC_putstatic: 
-      { 
-	int fid = realMethod.getDeclaringClass().getFieldRefId(cpi);
-	VM_TableBasedDynamicLinker.resolveField(fid);
-      }
+      VM_TableBasedDynamicLinker.resolveMember(bcodes.getFieldReference());
       break;
-    case JBC_invokevirtual:case JBC_invokestatic:
-      {
-	int mid = realMethod.getDeclaringClass().getMethodRefId(cpi);
-	VM_TableBasedDynamicLinker.resolveMethod(mid);
-      }
+    case JBC_invokevirtual:case JBC_invokestatic:case JBC_invokespecial:       
+      VM_TableBasedDynamicLinker.resolveMember(bcodes.getMethodReference());
       break;
     case JBC_invokeinterface:
-      // We believe that in the RVM this cannot cause dynamic linking
-    case JBC_invokespecial:       
-      // We believe that the offsets will always be valid for an 
-      // invokespecial; As part of creating the uninitialized instance 
-      // of an object, the runtime system must have invoked the class loader 
-      // to load the class and therefore by the time the call to the init 
-      // code is executed, the method offset table will contain a valid value.
     default:
       if (VM.VerifyAssertions)
 	VM._assert(VM.NOT_REACHED, 
@@ -66,41 +54,17 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     }
   }
 
-  public static Object newArrayArray (int[] dimensions, int dictionaryId) 
-      throws VM_ResolutionException, 
-	     NegativeArraySizeException, 
-	     OutOfMemoryError {
+  public static Object newArrayArray (int[] dimensions, int id) 
+    throws ClassNotFoundException,
+	   NegativeArraySizeException, 
+	   OutOfMemoryError {
     // validate arguments
     for (int i = 0; i < dimensions.length; i++) {
       if (dimensions[i] < 0) throw new NegativeArraySizeException();
     }
     // create array
     //
-    VM_Array aType = VM_TypeDictionary.getValue(dictionaryId).asArray();
+    VM_Array aType = (VM_Array)VM_TypeReference.getTypeRef(id).resolve();
     return VM_Runtime.buildMultiDimensionalArray(dimensions, 0, aType);
   }
-
-  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-  public static Object allocAdviceNewArrayArray(int[] dimensions, 
-						int dictionaryId, 
-						int generation) 
-    throws VM_ResolutionException, 
-	   NegativeArraySizeException, 
-	   OutOfMemoryError { 
-    
-    // validate arguments
-    for (int i = 0; i < dimensions.length; i++) {
-      if (dimensions[i] < 0)
-	throw new NegativeArraySizeException();
-    }
-    
-    // create array
-    //
-    return VM_Runtime.buildMultiDimensionalArray(dimensions, 
-						 0, VM_TypeDictionary.getValue(dictionaryId).asArray(), generation);
-  }
-  //-#endif
 }
-
-
-

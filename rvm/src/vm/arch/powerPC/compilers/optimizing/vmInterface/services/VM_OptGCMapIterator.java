@@ -15,7 +15,9 @@ import com.ibm.JikesRVM.*;
  *
  * @author Michael Hind
  */
-public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
+public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator 
+  implements VM_Uninterruptible {
+
 
   private final static boolean DEBUG = false;
 

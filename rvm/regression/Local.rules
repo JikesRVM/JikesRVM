@@ -71,7 +71,7 @@ HTTPClient_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/WebServer/HTTPClient
 #
 # Java Grande Forum Benchmarks v2.0
 #
-JGF_HOME=/u/sfink/tmp/jgf_v2.0
+JGF_HOME=//homes/meriadoc/jalapeno/contrib/benchmarks/JavaGrandeForum
 
 #
 # Soot v1.2.3

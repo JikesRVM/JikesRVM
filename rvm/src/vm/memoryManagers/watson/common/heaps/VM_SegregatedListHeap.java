@@ -7,10 +7,9 @@
 package com.ibm.JikesRVM.memoryManagers.watson;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
+import com.ibm.JikesRVM.classloader.*;
 
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Atom;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_ProcessorLock;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -21,9 +20,7 @@ import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
 import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_ClassLoader;
 
 /**
  * The heap is divided into chunks of size GC_BLOCKSIZE bytes 
@@ -65,8 +62,6 @@ public final class VM_SegregatedListHeap extends VM_Heap
   private final static int OUT_OF_BLOCKS =  -1;
 
   private int total_blocks_in_use;
-
-  private static final VM_Array byteArrayType = VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom("[B"), VM_SystemClassLoader.getVMClassLoader()).asArray();
 
   // value below is a tuning parameter: for single threaded appl, on multiple processors
   private static final int         numBlocksToKeep = 10;     // GSC 
@@ -165,7 +160,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
     // Now allocate the blocks array - which will be used to allocate blocks to sizes
     
     num_blocks = size / GC_BLOCKSIZE;
-    blocks = (VM_BlockControl[]) immortalHeap.allocateArray(VM_BlockControl.ARRAY_TYPE, num_blocks);
+    blocks = (VM_BlockControl[]) immortalHeap.allocateArray(VM_BlockControl.ARRAY_TYPE.peekResolvedType().asArray(), num_blocks);
 
     // index for highest page in heap
     highest_block = num_blocks -1;
@@ -189,7 +184,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
 
     // Now allocate the rest of the VM_BlockControls
     for (int i = GC_SIZES; i < num_blocks; i++) {
-      VM_BlockControl bc = (VM_BlockControl) immortalHeap.allocateScalar(VM_BlockControl.TYPE);
+      VM_BlockControl bc = (VM_BlockControl) immortalHeap.allocateScalar(VM_BlockControl.TYPE.peekResolvedType().asClass());
       blocks[i] = bc;
       bc.baseAddr = start.add(i * GC_BLOCKSIZE); 
       bc.nextblock = (i == num_blocks - 1) ? OUT_OF_BLOCKS : i + 1;
@@ -342,7 +337,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
     // Zero out the old next pointer 
     // NOTE: Possible MP bug on machines with relaxed memory models....
     //       technically we need a store barrier after we zero this word!
-    VM_Magic.setMemoryWord(objaddr, 0);
+    VM_Magic.setMemoryInt(objaddr, 0);
 
     // Return zero-filled storage
     return objaddr;
@@ -412,9 +407,9 @@ public final class VM_SegregatedListHeap extends VM_Heap
     while (getPartialBlock(the_size.ndx) == 0) {
       if (GSC_TRACE) {
 	VM_Processor.getCurrentProcessor().disableThreadSwitching();
-	VM.sysWrite("allocatex: adding partial block: ndx "); VM.sysWrite(the_size.ndx,false);
-	VM.sysWrite(" current was "); VM.sysWrite(the_size.current_block,false);
-	VM.sysWrite(" new current is "); VM.sysWrite(the_block.nextblock,false);
+	VM.sysWrite("allocatex: adding partial block: ndx "); VM.sysWrite(the_size.ndx);
+	VM.sysWrite(" current was "); VM.sysWrite(the_size.current_block);
+	VM.sysWrite(" new current is "); VM.sysWrite(the_block.nextblock);
 	VM.sysWrite("\n");
 	VM_Processor.getCurrentProcessor().enableThreadSwitching();
       }
@@ -501,7 +496,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
 
     if (i == the_mark.length) {    
       // this block has only 1 free slot, so..
-      VM_Magic.setMemoryWord(current, 0);  // null pointer to next
+      VM_Magic.setMemoryInt(current, 0);  // null pointer to next
 
       if (DEBUG_LINK) {
 	VM_Scheduler.trace("build_list: ", "found blk w 1 free slot", the_block.slotsize);
@@ -530,7 +525,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
       }
     }
 
-    VM_Magic.setMemoryWord(current,0);    // set the end of the list
+    VM_Magic.setMemoryInt(current,0);    // set the end of the list
     if (DEBUG_LINK) do_check(the_block, the_size);
     // Reset control info for this block, for next collection 
     VM_Memory.zero(VM_Magic.objectAsAddress(the_mark),
@@ -621,7 +616,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
       }
     }
     // allocate a mark array from the malloc heap.
-    alloc_block.mark = VM_Magic.objectAsByteArray(mallocHeap.atomicAllocateArray(byteArrayType, size));
+    alloc_block.mark = VM_Magic.objectAsByteArray(mallocHeap.atomicAllocateArray(VM_Array.ByteArray, size));
     return theblock;
   }
 
@@ -654,7 +649,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
 
     if (GSC_TRACE) {
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
-      VM.sysWrite("getPartialBlock: ndx = "); VM.sysWrite(ndx,false);
+      VM.sysWrite("getPartialBlock: ndx = "); VM.sysWrite(ndx);
       VM.sysWrite(" allocating "); VM.sysWrite(currentBlock.nextblock);
       VM.sysWrite(" baseAddr "); VM.sysWrite(allocBlock.baseAddr);
       VM.sysWrite("\n");
@@ -708,7 +703,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
       }
     }
 
-    alloc_block.mark = VM_Magic.objectAsByteArray(mallocHeap.atomicAllocateArray(byteArrayType, size));
+    alloc_block.mark = VM_Magic.objectAsByteArray(mallocHeap.atomicAllocateArray(VM_Array.ByteArray, size));
     return 0;
   }
 
@@ -744,7 +739,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
     for (int i = 0; i < GC_SIZES; i++) {
       VM.sysWrite(" Size ", GC_SIZEVALUES[i], "  ");
       VM_BlockControl the_block = blocks[st.sizes[i].first_block];
-      VM.sysWrite(st.sizes[i].first_block, false);
+      VM.sysWrite(st.sizes[i].first_block);
       while (true) {
 	VM.sysWrite("  ", the_block.nextblock);
 	if (the_block.nextblock == OUT_OF_BLOCKS) break;
@@ -774,7 +769,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
     int value = 0xdeaddead;
     int i;
     for (i = 0; i + 3 < length; i = i+4) 
-      VM_Magic.setMemoryWord(addr.add(i), value);
+      VM_Magic.setMemoryInt(addr.add(i), value);
   }
 
 
@@ -874,9 +869,9 @@ public final class VM_SegregatedListHeap extends VM_Heap
 	
 
   void setupProcessor (VM_Processor st) throws VM_PragmaInterruptible {
-    VM_Array scArrayType = VM_SizeControl.TYPE.getArrayTypeForElementType();
+    VM_Array scArrayType = VM_SizeControl.TYPE.peekResolvedType().getArrayTypeForElementType();
     int scArraySize = scArrayType.getInstanceSize(GC_SIZES);
-    int scSize = VM_SizeControl.TYPE.getInstanceSize();
+    int scSize = VM_SizeControl.TYPE.peekResolvedType().asClass().getInstanceSize();
     int regionSize = scArraySize + scSize * GC_SIZES;
 
     // Allocate objects for processor-local meta data from backing malloc heap.
@@ -890,7 +885,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
     for (int i = 0; i < GC_SIZES; i++) {
       st.sizes[i] = 
 	(VM_SizeControl)VM_ObjectModel.initializeScalar(region, 
-							VM_SizeControl.TYPE.getTypeInformationBlock(), 
+							VM_SizeControl.TYPE.peekResolvedType().getTypeInformationBlock(), 
 							scSize);
       region = region.add(scSize);
     }
@@ -1073,9 +1068,9 @@ public final class VM_SegregatedListHeap extends VM_Heap
 	index = this_block.nextblock;
       }
       if (GSC_TRACE) {
-	VM.sysWrite(" size = "); VM.sysWrite(i,false);
-	VM.sysWrite(" first = "); VM.sysWrite(partialBlockList[i],false);
-	VM.sysWrite(" count = "); VM.sysWrite(counter,false); VM.sysWrite("\n");
+	VM.sysWrite(" size = "); VM.sysWrite(i);
+	VM.sysWrite(" first = "); VM.sysWrite(partialBlockList[i]);
+	VM.sysWrite(" count = "); VM.sysWrite(counter); VM.sysWrite("\n");
       }
     }
   }
@@ -1267,8 +1262,8 @@ public final class VM_SegregatedListHeap extends VM_Heap
 	}
       }
       if (GSC_TRACE) {
-	VM.sysWrite(" size = "); VM.sysWrite(i,false);
-	VM.sysWrite(" new first = "); VM.sysWrite(partialBlockList[i],false);
+	VM.sysWrite(" size = "); VM.sysWrite(i);
+	VM.sysWrite(" new first = "); VM.sysWrite(partialBlockList[i]);
 	VM.sysWrite("\n");
       }
     }

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import  java.util.*;
 
@@ -366,7 +367,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
         return  true;
       }
     }
-    return  false;
+    return false;
   }
 
   /**
@@ -577,16 +578,16 @@ public final class OPT_SSADictionary implements OPT_Operators {
 	registerUse (s, exceptionState);
 	registerDef (s, b, exceptionState);
 	break;
-      case GETFIELD_opcode:case GETFIELD_UNRESOLVED_opcode:
+      case GETFIELD_opcode:
         getFieldHelper(s, b);
         break;
-      case PUTFIELD_opcode:case PUTFIELD_UNRESOLVED_opcode:
+      case PUTFIELD_opcode:
         putFieldHelper(s, b);
         break;
-      case GETSTATIC_opcode:case GETSTATIC_UNRESOLVED_opcode:
+      case GETSTATIC_opcode:
         getStaticHelper(s, b);
         break;
-      case PUTSTATIC_opcode:case PUTSTATIC_UNRESOLVED_opcode:
+      case PUTSTATIC_opcode:
         putStaticHelper(s, b);
         break;
       case NEW_opcode:case NEW_UNRESOLVED_opcode:
@@ -632,7 +633,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
       case INT_LOAD_opcode: case LONG_LOAD_opcode: case REF_LOAD_opcode:
         // !!TODO: how to handle this special case?
         break;
-      case BYTE_STORE_opcode: case SHORT_STORE_opcode:
+      case BYTE_STORE_opcode: case SHORT_STORE_opcode: case REF_STORE_opcode:
       case INT_STORE_opcode: case LONG_STORE_opcode: case DOUBLE_STORE_opcode:
         // !!TODO: how to handle this special case?
         break;
@@ -771,7 +772,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    */
   private void getFieldHelper (OPT_Instruction s, OPT_BasicBlock b) {
     OPT_LocationOperand locOp = GetField.getLocation(s);
-    VM_Field field = locOp.field;
+    VM_FieldReference field = locOp.getFieldRef();
     registerUse(s, field);
     if (uphi)
       registerDef(s, b, field);
@@ -787,7 +788,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    */
   private void putFieldHelper (OPT_Instruction s, OPT_BasicBlock b) {
     OPT_LocationOperand locOp = PutField.getLocation(s);
-    VM_Field field = locOp.field;
+    VM_FieldReference field = locOp.getFieldRef();
     registerUse(s, field);
     registerDef(s, b, field);
   }
@@ -803,7 +804,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    */
   private void getStaticHelper (OPT_Instruction s, OPT_BasicBlock b) {
     OPT_LocationOperand locOp = GetStatic.getLocation(s);
-    VM_Field field = locOp.field;
+    VM_FieldReference field = locOp.getFieldRef();
     registerUse(s, field);
     if (uphi)
       registerDef(s, b, field);
@@ -819,7 +820,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    */
   private void putStaticHelper (OPT_Instruction s, OPT_BasicBlock b) {
     OPT_LocationOperand locOp = PutStatic.getLocation(s);
-    VM_Field field = locOp.field;
+    VM_FieldReference field = locOp.getFieldRef();
     registerUse(s, field);
     registerDef(s, b, field);
   }
@@ -878,13 +879,13 @@ public final class OPT_SSADictionary implements OPT_Operators {
    */
   private void aloadHelper (OPT_Instruction s, OPT_BasicBlock b) {
     // TODO: use some class hierarchy analysis
-    VM_Type type = ALoad.getArray(s).getType();
+    VM_TypeReference type = ALoad.getArray(s).getType();
 
     // After cond branch splitting, operand may be a Null constant
     // filter out it now  -- Feng
     if (type.isArrayType()) { 
-      if (!type.asArray().getElementType().isPrimitiveType())
-	type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+      if (!type.getArrayElementType().isPrimitiveType())
+	type = VM_TypeReference.JavaLangObjectArray;
       registerUse(s, type);
       if (uphi)
 	registerDef(s, b, type);
@@ -901,13 +902,13 @@ public final class OPT_SSADictionary implements OPT_Operators {
    */
   private void astoreHelper (OPT_Instruction s, OPT_BasicBlock b) {
     // TODO: use some class hierarchy analysis
-    VM_Type type = AStore.getArray(s).getType();
+    VM_TypeReference type = AStore.getArray(s).getType();
 
     // After cond branch splitting, operand may be a Null constant
     // filter out it now  -- Feng
     if (type.isArrayType()) {
-      if (!type.asArray().getElementType().isPrimitiveType())
-	type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+      if (!type.getArrayElementType().isPrimitiveType())
+	type = VM_TypeReference.JavaLangObjectArray;
       registerUse(s, type);
       registerDef(s, b, type);
     }
@@ -922,13 +923,13 @@ public final class OPT_SSADictionary implements OPT_Operators {
    */
   private void arraylengthHelper (OPT_Instruction s, OPT_BasicBlock b) {
     // TODO: use some class hierarchy analysis
-    VM_Type type = GuardedUnary.getVal(s).getType();
+    VM_TypeReference type = GuardedUnary.getVal(s).getType();
     
     // After cond branch splitting, operand may be a Null constant
     // filter out it now  -- Feng
     if (type.isArrayType()) {
-      if (!type.asArray().getElementType().isPrimitiveType())
-	type = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
+      if (!type.getArrayElementType().isPrimitiveType())
+	type = VM_TypeReference.JavaLangObjectArray;
       registerUse(s, type);
     }
   }
@@ -1022,13 +1023,14 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * @param s the instruction in question
    * @param t the type of the heap variable the instruction uses
    */
-  private void registerUse (OPT_Instruction s, VM_Type t) {
+  private void registerUse (OPT_Instruction s, VM_TypeReference t) {
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
     if (heapTypes != null) {
-      if (!heapTypes.contains(t))
+      if (!heapTypes.contains(t)) {
         return;
+      }
     }
     OPT_HeapVariable H = findOrCreateHeapVariable(t);
     OPT_HeapOperand[] Hprime = new OPT_HeapOperand[1];
@@ -1045,14 +1047,17 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * @param b s's basic block
    * @param t the type of the heap variable the instruction modifies
    */
-  private void registerDef (OPT_Instruction s, OPT_BasicBlock b, VM_Type t) {
+  private void registerDef (OPT_Instruction s, 
+			    OPT_BasicBlock b, 
+			    VM_TypeReference t) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
     // if the heapTypes set is defined, then we only build Array
     // SSA for these types.  So, ignore uses of types that are
     // not included in the set
     if (heapTypes != null) {
-      if (!heapTypes.contains(t))
+      if (!heapTypes.contains(t)) {
         return;
+      }
     }
     OPT_HeapVariable H = findOrCreateHeapVariable(t);
     H.registerDef(b);
@@ -1069,16 +1074,26 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * @param s the instruction in question
    * @param t the field heap variable the instruction uses
    */
-  private void registerUse (OPT_Instruction s, VM_Field f) {
+  private void registerUse (OPT_Instruction s, VM_FieldReference fr) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
-    // if the heapTypes set is defined, then we only build Array
-    // SSA for these types.  So, ignore uses of types that are
-    // not included in the set
-    if (heapTypes != null) {
-      if (!heapTypes.contains(f))
-        return;
+    VM_Field f = fr.peekResolvedField();
+    OPT_HeapVariable H;
+    if (f == null) {
+      // can't resolve field at compile time.
+      // This isn't quite correct, but is somewhat close.
+      // See defect 3481.
+      H = findOrCreateHeapVariable(fr);
+    } else {
+      // if the heapTypes set is defined, then we only build Array
+      // SSA for these types.  So, ignore uses of types that are
+      // not included in the set
+      if (heapTypes != null) {
+	if (!heapTypes.contains(f)) {
+	  return;
+	}
+      }
+      H = findOrCreateHeapVariable(f);
     }
-    OPT_HeapVariable H = findOrCreateHeapVariable(f);
     OPT_HeapOperand[] Hprime = new OPT_HeapOperand[1];
     Hprime[0] = new OPT_HeapOperand(H);
     Hprime[0].setInstruction(s);
@@ -1093,16 +1108,26 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * @param b s's basic block
    * @param t the field heap variable the instruction modifies
    */
-  private void registerDef (OPT_Instruction s, OPT_BasicBlock b, VM_Field f) {
+  private void registerDef (OPT_Instruction s, OPT_BasicBlock b, VM_FieldReference fr) {
     if (VM.VerifyAssertions) VM._assert(s.operator != PHI);
-    // if the heapTypes set is defined, then we only build Array
-    // SSA for these types.  So, ignore uses of types that are
-    // not included in the set
-    if (heapTypes != null) {
-      if (!heapTypes.contains(f))
-        return;
+    VM_Field f = fr.peekResolvedField();
+    OPT_HeapVariable H;
+    if (f == null) {
+      // can't resolve field at compile time.
+      // This isn't quite correct, but is somewhat close.
+      // See defect 3481.
+      H = findOrCreateHeapVariable(fr);
+    } else {
+      // if the heapTypes set is defined, then we only build Array
+      // SSA for these types.  So, ignore uses of types that are
+      // not included in the set
+      if (heapTypes != null) {
+	if (!heapTypes.contains(f)) {
+	  return;
+	}
+      }
+      H = findOrCreateHeapVariable(f);
     }
-    OPT_HeapVariable H = findOrCreateHeapVariable(f);
     H.registerDef(b);
     OPT_HeapOperand[] Hprime = new OPT_HeapOperand[1];
     Hprime[0] = new OPT_HeapOperand(H);
@@ -1216,7 +1241,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * If no heap variable yet exits for this type or field, create a new
    * one.
    *
-   * @param type the <code> VM_Type </code> or <code> VM_Field </code>
+   * @param type the <code> VM_TypeReference </code> or <code> VM_Field </code>
    * identifying the desired heap variable
    * @return the desired heap variable
    */
@@ -1244,7 +1269,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
    * Get the next number to be assigned to a new heap variable
    * for a given type or field.
    *
-   * @param type the <code> VM_Type </code> or <code> VM_Field </code>
+   * @param type the <code> VM_TypeReference </code> or <code> VM_Field </code>
    * identifying the heap variable
    * @return the next integer (monotonically increasing) to identify a new
    * name for this heap variable
@@ -1309,7 +1334,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
      * 
      * @param     number the number, a unique integer from SSA renaming
      * @param     type   the type (a <code> VM_Field </code> or <code>
-     * VM_Type </code>
+     * VM_TypeReference </code>
      */
     HeapKey (int number, Object type) {
       this.number = number;
@@ -1327,7 +1352,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
       if (!(key instanceof HeapKey))
         return  false;
       HeapKey k = (HeapKey)key;
-      return  ((type == k.type) && (number == k.number));
+      return  ((type.equals(k.type)) && (number == k.number));
     }
 
     /**

@@ -10,16 +10,17 @@
 # @author Anthony Cocchi
 # @author Derek Lieber
 
-if [ $# != 4 ]; then
-   echo "usage: $0 vectorClassName elementTypeName templateFileName outputFileName"
+if [ $# != 5 ]; then
+   echo "usage: $0 packageName vectorClassName elementTypeName templateFileName outputFileName"
    exit 1
 fi
 
-CNAME=$1
-ENAME=$2
-IFILE=$3
-OFILE=$4
+PNAME=$1
+CNAME=$2
+ENAME=$3
+IFILE=$4
+OFILE=$5
 
 echo '/* THIS FILE IS MACHINE GENERATED FROM "'$IFILE'" -- DO NOT EDIT */'  >$OFILE
 echo                                                                       >>$OFILE
-sed -e s/CCC/$CNAME/g -e s/EEE/$ENAME/g <$IFILE >>$OFILE
+sed -e s/PPP/$PNAME/g -e s/CCC/$CNAME/g -e s/EEE/$ENAME/g <$IFILE >>$OFILE

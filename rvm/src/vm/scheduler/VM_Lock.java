@@ -326,7 +326,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     if (t != null) t.scheduleHighPriority();
     else if (entering.isEmpty() && waiting.isEmpty()) { // heavy lock can be deflated
       // Possible project: decide on a heuristic to control when lock should be deflated
-      int lockOffset = VM_Magic.getObjectType(o).thinLockOffset;
+      int lockOffset = VM_Magic.getObjectType(o).getThinLockOffset();
       if (lockOffset != -1) { // deflate heavy lock
 	deflate(o, lockOffset);
 	deflated = true;
@@ -375,6 +375,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   private static final int LOCK_ALLOCATION_UNIT_SIZE  =  100;
   private static final int LOCK_ALLOCATION_UNIT_COUNT =  2500;  // TEMP SUSAN
           static final int MAX_LOCKS = LOCK_ALLOCATION_UNIT_SIZE * LOCK_ALLOCATION_UNIT_COUNT ;
+          static final int INIT_LOCKS = 4096;
 
   private static VM_ProcessorLock lockAllocationMutex;
   private static int              lockUnitsAllocated;
@@ -386,12 +387,23 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    */
   static void init() throws VM_PragmaInterruptible {
     lockAllocationMutex = new VM_ProcessorLock();
-    VM_Scheduler.locks  = new VM_Lock[MAX_LOCKS+1]; // don't use slot 0
+    VM_Scheduler.locks  = new VM_Lock[INIT_LOCKS+1]; // don't use slot 0
     if (VM.VerifyAssertions) // check that each potential lock is addressable
       VM._assert((VM_Scheduler.locks.length-1<=(VM_ThinLockConstants.TL_LOCK_ID_MASK>>>VM_ThinLockConstants.TL_LOCK_ID_SHIFT))
                 || (VM_ThinLockConstants.TL_LOCK_ID_MASK==-1));
   }
   
+  static void growLocks() throws VM_PragmaLogicallyUninterruptible /* ok because the caller is prepared to lose control when it allocates a lock -- dave */ {
+    VM_Lock [] oldLocks = VM_Scheduler.locks;
+    int newSize = 2 * oldLocks.length;
+    if (newSize > MAX_LOCKS + 1)
+      VM.sysFail("Cannot grow lock array greater than maximum possible index");
+    VM_Lock [] newLocks = new VM_Lock[newSize];
+    for (int i=0; i<oldLocks.length; i++)
+      newLocks[i] = oldLocks[i];
+    VM_Scheduler.locks = newLocks;
+  }
+
   /**
    * Delivers up an unassigned heavy-weight lock.  Locks are allocated
    * from processor specific regions or lists, so normally no synchronization
@@ -401,7 +413,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    *
    * @return a free VM_Lock; or <code>null</code>, if garbage collection is not enabled
    */
-  static VM_Lock allocate () throws VM_PragmaLogicallyUninterruptible /* ok because the code is prepared to lose control when it allocates a lock -- dave */ {
+  static VM_Lock allocate () throws VM_PragmaLogicallyUninterruptible /* ok because the caller is prepared to lose control when it allocates a lock -- dave */ {
     VM_Processor mine = VM_Processor.getCurrentProcessor();
     if (mine.isInitialized && !mine.threadSwitchingEnabled()) return null; // Collector threads can't use heavy locks because they don't fix up their stacks after moving objects
     if ((mine.freeLocks == 0) && (0 < globalFreeLocks) && balanceFreeLocks) {
@@ -428,6 +440,8 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
 	}
       }
       l.index = mine.nextLockIndex++;
+      while (l.index >= VM_Scheduler.locks.length)
+	growLocks();
       VM_Scheduler.locks[l.index] = l;
       l.active = true;
       VM_Magic.sync(); // make sure other processors see lock initialization.  Note: Derek and I BELIEVE that an isync is not required in the other processor because the lock is newly allocated - Bowen
@@ -579,7 +593,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM_Scheduler.writeString("Lock "); VM_Scheduler.writeDecimal(index); VM.sysWrite(":\n");
     VM_Scheduler.writeString(" lockedObject: 0x"); VM_Scheduler.writeHex(VM_Magic.objectAsAddress(lockedObject).toInt()); 
     VM_Scheduler.writeString("   thin lock = "); 
-    VM_Scheduler.writeHex(VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(lockedObject).add(VM_ObjectModel.defaultThinLockOffset())));
+    VM_Scheduler.writeHex(VM_Magic.getMemoryInt(VM_Magic.objectAsAddress(lockedObject).add(VM_ObjectModel.defaultThinLockOffset())));
     VM_Scheduler.writeString("\n");
 
     VM_Scheduler.writeString(" ownerId: "); VM_Scheduler.writeDecimal(ownerId); VM_Scheduler.writeString(" recursionCount: "); VM_Scheduler.writeDecimal(recursionCount); VM_Scheduler.writeString("\n");
@@ -609,8 +623,8 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @return true if the currently executing thread owns obj, false otherwise
    */
   static boolean owns(Object o, int tid) {
-    VM_Type t = VM_Magic.getObjectType(o);
-    int thinLockOffset = t.thinLockOffset;
+    com.ibm.JikesRVM.classloader.VM_Type t = VM_Magic.getObjectType(o);
+    int thinLockOffset = t.getThinLockOffset();
     if (thinLockOffset == -1) {
       VM_Lock l = VM_LockNursery.findOrCreate(o, false);
       return l != null && l.ownerId == tid;
@@ -659,14 +673,14 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
 
       int totalLocks = lockOperations + VM_ThinLock.fastLocks + VM_ThinLock.slowLocks;
 
-      VM.sysWrite("FatLocks: "); VM.sysWrite(waitOperations, false);      VM.sysWrite(" wait operations\n");
-      VM.sysWrite("FatLocks: "); VM.sysWrite(timedWaitOperations, false); VM.sysWrite(" timed wait operations\n");
-      VM.sysWrite("FatLocks: "); VM.sysWrite(notifyOperations, false);    VM.sysWrite(" notify operations\n");
-      VM.sysWrite("FatLocks: "); VM.sysWrite(notifyAllOperations, false); VM.sysWrite(" notifyAll operations\n");
-      VM.sysWrite("FatLocks: "); VM.sysWrite(lockOperations, false);      VM.sysWrite(" locks");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(waitOperations);      VM.sysWrite(" wait operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(timedWaitOperations); VM.sysWrite(" timed wait operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(notifyOperations);    VM.sysWrite(" notify operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(notifyAllOperations); VM.sysWrite(" notifyAll operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(lockOperations);      VM.sysWrite(" locks");
       VM_Stats.percentage(lockOperations, totalLocks, "all lock operations");
-      VM.sysWrite("FatLocks: "); VM.sysWrite(unlockOperations, false);    VM.sysWrite(" unlock operations\n");
-      VM.sysWrite("FatLocks: "); VM.sysWrite(deflations, false);          VM.sysWrite(" deflations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(unlockOperations);    VM.sysWrite(" unlock operations\n");
+      VM.sysWrite("FatLocks: "); VM.sysWrite(deflations);          VM.sysWrite(" deflations\n");
 
       VM_ThinLock.notifyExit(totalLocks);
       VM_LockNursery.notifyExit(totalLocks);

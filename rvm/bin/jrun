@@ -50,43 +50,9 @@ if (!(-e "$ENV{RVM_BUILD}/JikesRVM")) {
   exit 1;
 }
 
-# Setup target environment variables
-#
-if (!(-e "$ENV{RVM_BUILD}/environment.pl")) {
-  print "$ME: missing environment file \"$ENV{RVM_BUILD}/environment.pl\"\n";
-  exit 1;
-}
+$RVM_ROOT = $ENV{RVM_ROOT};
+$rvm = "$RVM_ROOT/rvm/bin/rvm";
 
-eval `cat $ENV{RVM_BUILD}/environment.pl`;
-
-# Create additional arguments: image, class path
-#
-push @ARGS, "-X:i=$ENV{RVM_BUILD}/RVM.image";
-if (-e "$ENV{RVM_BUILD}/javamath.jar") {
-  push @ARGS, "-X:vmClasses=$ENV{RVM_BUILD}/RVM.classes/jksvm.jar:$ENV{JAL_ROOT}/support/lib/jazzlib.jar:$ENV{RVM_BUILD}/javamath.jar:$ENV{RVM_BUILD}/RVM.classes/rvmrt.jar";
-} else {
-    push @ARGS, "-X:vmClasses=$ENV{RVM_BUILD}/RVM.classes/jksvm.jar:$ENV{JAL_ROOT}/support/lib/jazzlib.jar:$ENV{RVM_BUILD}/RVM.classes/rvmrt.jar";
-}
-
-sub runCommand {
-  my $arg = shift @_;
-  my $result = `$arg`;
-  chomp($result);
-  return $result;
-}
-
-push @ARGS, "-Duser.home=$ENV{HOME}";
-push @ARGS, "-Duser.dir=" . (runCommand("pwd"));
-push @ARGS, "-Dos.name=" . (runCommand("uname -s"));
-push @ARGS, "-Dos.version=" . (runCommand("uname -r"));
-push @ARGS, "-Dos.arch=" . (runCommand("uname -m"));
-$LOADPATH = "$ENV{RVM_BUILD}:$ENV{HOST_JAVA_HOME}/jre/bin:$ENV{HOST_JAVA_HOME}/jre/bin/classic";
-$ENV{LIBPATH} = "$ENV{LIBPATH}:$LOADPATH";
-$ENV{LD_LIBRARY_PATH} = "$ENV{LD_LIBRARY_PATH}:$LOADPATH";
-
-# Run it!
-#
-# print "$ENV{RVM_BUILD}/JikesRVM", @ARGS, @ARGV;
-exec "$ENV{RVM_BUILD}/JikesRVM", @ARGS, @ARGV;
+exec $rvm, @ARGV;
 
 

@@ -191,7 +191,7 @@ extends OPT_IRTools
    */
   static OPT_RegisterOperand insertGetCurrentProcessor(OPT_BURS burs) {
     OPT_RegisterOperand result =
-      burs.ir.regpool.makeTemp(OPT_ClassLoaderProxy.VM_ProcessorType);
+      burs.ir.regpool.makeTemp(com.ibm.JikesRVM.classloader.VM_TypeReference.VM_Processor);
     OPT_Register ESI = burs.ir.regpool.getPhysicalRegisterSet().getESI();
 
     burs.append(MIR_Move.create(IA32_MOV,result,R(ESI)));
@@ -204,8 +204,8 @@ extends OPT_IRTools
    */
   static OPT_RegisterOperand insertGetCurrentProcessor(OPT_IR ir,
                                                        OPT_Instruction s) {
-    OPT_RegisterOperand result = ir.regpool.makeTemp
-                                 (OPT_ClassLoaderProxy.VM_ProcessorType);
+    OPT_RegisterOperand result = 
+      ir.regpool.makeTemp(com.ibm.JikesRVM.classloader.VM_TypeReference.VM_Processor);
     OPT_Register ESI = ir.regpool.getPhysicalRegisterSet().getESI();
 
     s.insertBefore(MIR_Move.create(IA32_MOV,result,R(ESI)));

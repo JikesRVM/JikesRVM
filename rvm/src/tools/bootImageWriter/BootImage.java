@@ -6,6 +6,7 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.*;
 
 /**
  * Memory image of virtual machine that will be written to disk file and later
@@ -139,23 +140,6 @@ public class BootImage extends BootImageWriterMessages
     if (freeOffset > endOffset)
       fail("bootimage full (need " + size + " more bytes)");
     return lowAddr;
-  }
-
-
-  /**
-   * Allocate space in bootimage. Moral equivalent of 
-   * memory managers allocating raw storage at runtime.
-   * @param size the number of bytes to allocate
-   */
-  public int allocateAlignedStorage(int size) {
-      // DFB: MAJOR HACK
-      freeOffset += 8;
-      freeOffset = VM_Memory.align(freeOffset, 16);
-      int result = freeOffset - 8;
-      freeOffset = VM_Memory.align(freeOffset + size - 8, 4);
-      if (freeOffset > endOffset)
-	  fail("bootimage full (need " + size + " more bytes)");
-      return result;
   }
 
 

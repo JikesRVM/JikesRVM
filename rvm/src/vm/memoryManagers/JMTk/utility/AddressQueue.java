@@ -63,6 +63,17 @@ public class AddressQueue extends LocalQueue implements Constants, VM_Uninterrup
   }
 
   /**
+   * Push an address onto the address queue, force this out of line
+   * ("OOL"), in some circumstnaces it is too expensive to have the
+   * push inlined, so this call is made.
+   *
+   * @param addr the address to be pushed onto the address queue
+   */
+  public final void pushOOL(VM_Address addr) throws VM_PragmaNoInline {
+    push(addr);
+  }
+
+  /**
    * Pop an address from the address queue, return zero if the queue
    * is empty.
    *

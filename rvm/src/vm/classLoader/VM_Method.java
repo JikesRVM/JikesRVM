@@ -2,54 +2,158 @@
  * (C) Copyright IBM Corp 2001,2002
  */
 //$Id$
-package com.ibm.JikesRVM;
+package com.ibm.JikesRVM.classloader;
 
+import com.ibm.JikesRVM.*;
 import java.io.DataInputStream;
 import java.io.IOException;
-
-//-#if RVM_WITH_OPT_COMPILER
-import com.ibm.JikesRVM.opt.*;
-//-#endif
 
 /**
  * A method of a java class.
  *
  * @author Bowen Alpern
+ * @author Dave Grove
  * @author Derek Lieber
  */
-public final class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
-  //-----------//
-  // Interface //
-  //-----------//
-
-  //----------------------------------------------------------------//
-  //                      Section 0.                                //
-  // The following are always available.                            //
-  //----------------------------------------------------------------//
+public abstract class VM_Method extends VM_Member {
 
   /**
-   * Classifiers.
+   * current compiled method for this method
+   */
+  protected VM_CompiledMethod currentCompiledMethod;
+
+  /**
+   * exceptions this method might throw (null --> none)
+   */
+  protected final VM_TypeReference[] exceptionTypes;      
+
+  /**
+   * @param declaringClass the VM_Class object of the class that declared this field
+   * @param memRef the cannonical memberReference for this member.
+   * @param modifiers modifiers associated with this member.
+   * @param exceptionTypes exceptions thrown by this method.
+   */
+  protected VM_Method(VM_Class declaringClass, VM_MemberReference memRef, 
+		      int modifiers, VM_TypeReference[] exceptionTypes) {
+    super(declaringClass, memRef, modifiers & APPLICABLE_TO_METHODS);
+    memRef.asMethodReference().setResolvedMember(this);
+    this.exceptionTypes = exceptionTypes;
+  }
+  
+  /**
+   * Called from {@link VM_Class#VM_Class(VM_TypeReference, DataInputStream)} to create an
+   * instance of a VM_Method by reading the relevant data from the argument bytecode stream.
+   * 
+   * @param declaringClass the VM_Class object of the class that declared this method
+   * @param memRef the cannonical memberReference for this member.
+   * @param modifiers modifiers associated with this member.
+   * @param input the DataInputStream to read the method's attributes from
+   */
+  static VM_Method readMethod(VM_Class declaringClass, VM_MemberReference memRef,
+			      int modifiers, DataInputStream input) throws IOException, ClassNotFoundException {
+    ClassLoader cl = declaringClass.getClassLoader();
+
+    int tmp_localWords = 0;
+    int tmp_operandWords = 0;      
+    byte[] tmp_bytecodes = null;       
+    VM_ExceptionHandlerMap tmp_exceptionHandlerMap = null;
+    VM_TypeReference[] tmp_exceptionTypes = null;
+    int[] tmp_lineNumberMap = null;      
+
+    // Read the attributes
+    for (int i = 0, n = input.readUnsignedShort(); i<n; i++) {
+      VM_Atom attName   = declaringClass.getUtf(input.readUnsignedShort());
+      int     attLength = input.readInt();
+
+      // Only bother to interpret non-boring Method attributes
+      if (attName == VM_ClassLoader.codeAttributeName) {
+        tmp_operandWords = input.readUnsignedShort();
+        tmp_localWords   = input.readUnsignedShort();
+        tmp_bytecodes = new byte[input.readInt()];
+        input.readFully(tmp_bytecodes);
+        int cnt = input.readUnsignedShort();
+        if (cnt != 0) {
+          tmp_exceptionHandlerMap = new VM_ExceptionHandlerMap(input, declaringClass, cnt);
+	}
+	// Read the attributes portion of the code attribute
+	for (int j = 0, n2 = input.readUnsignedShort(); j<n2; j++) {
+	  attName   = declaringClass.getUtf(input.readUnsignedShort());
+	  attLength = input.readInt();
+
+	  if (attName == VM_ClassLoader.lineNumberTableAttributeName) {
+	    cnt = input.readUnsignedShort();
+	    if (cnt != 0) {
+	      tmp_lineNumberMap = new int[cnt];
+	      for (int k = 0; k<cnt; k++) {
+		int startPC = input.readUnsignedShort();
+		int lineNumber = input.readUnsignedShort();
+		tmp_lineNumberMap[k] = (lineNumber << 16) | startPC;
+	      }
+	    }
+	  } else {
+	    // All other entries in the attribute portion of the code attribute are boring.
+	    input.skipBytes(attLength);
+	  }
+	}
+      } else if (attName == VM_ClassLoader.exceptionsAttributeName) {
+        int cnt = input.readUnsignedShort();
+        if (cnt != 0) {
+          tmp_exceptionTypes = new VM_TypeReference[cnt];
+          for (int j = 0, m = tmp_exceptionTypes.length; j < m; ++j) {
+            tmp_exceptionTypes[j] = declaringClass.getTypeRef(input.readUnsignedShort());
+	  }
+        }
+      } else {
+	// all other method attributes are boring
+        input.skipBytes(attLength);
+      }
+    }
+
+    if ((modifiers & ACC_NATIVE) != 0) {
+      return new VM_NativeMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes);
+    } else if ((modifiers & ACC_ABSTRACT) != 0) {
+      return new VM_AbstractMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes);
+    } else {
+      return new VM_NormalMethod(declaringClass, memRef, modifiers, tmp_exceptionTypes,
+				 tmp_localWords, tmp_operandWords, tmp_bytecodes, 
+				 tmp_exceptionHandlerMap, tmp_lineNumberMap);
+    }
+  }
+
+  /**
+   * Is this method a class initializer?
    */
   public final boolean isClassInitializer() throws VM_PragmaUninterruptible { 
-    return name == VM_ClassLoader.StandardClassInitializerMethodName;  
+    return getName() == VM_ClassLoader.StandardClassInitializerMethodName;  
   }
+
+  /**
+   * Is this method an object initializer?
+   */
   public final boolean isObjectInitializer() throws VM_PragmaUninterruptible { 
-    return name == VM_ClassLoader.StandardObjectInitializerMethodName; 
+    return getName() == VM_ClassLoader.StandardObjectInitializerMethodName; 
+  }
+
+  /**
+   * Is this method a compiler-generated object initializer helper?
+   */
+  public final boolean isObjectInitializerHelper() throws VM_PragmaUninterruptible { 
+    return getName() == VM_ClassLoader.StandardObjectInitializerHelperMethodName; 
   }
 
   /**
    * Type of this method's return value.
    */
-  public final VM_Type getReturnType() throws VM_PragmaUninterruptible {
-    return returnType;
+  public final VM_TypeReference getReturnType() throws VM_PragmaUninterruptible {
+    return memRef.asMethodReference().getReturnType();
   }
 
   /**
    * Type of this method's parameters.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  public final VM_Type[] getParameterTypes() throws VM_PragmaUninterruptible {
-    return parameterTypes;
+  public final VM_TypeReference[] getParameterTypes() throws VM_PragmaUninterruptible {
+    return memRef.asMethodReference().getParameterTypes();
   }
 
   /**
@@ -57,106 +161,29 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Note: does *not* include implicit "this" parameter, if any.
    */
   public final int getParameterWords() throws VM_PragmaUninterruptible {
-    return parameterWords;
+    return memRef.asMethodReference().getParameterWords();
   }
 
   /**
    * Has machine code been generated for this method's bytecodes?
    */
   public final boolean isCompiled() {
-    if (VM.VerifyAssertions) 
-      VM._assert(!declaringClass.isLoaded() || isLoaded());
     return currentCompiledMethod != null;
   }
 
   /**
-   * Find source line number corresponding to one of this method's bytecodes.
-   * @param pc offset of bytecode from start of this method, in bytes
-   * @return source line number 
-   * (0 == no line info available, 1 == first line of source file)
-   *
-   * Note: this method is for use by VM_Interpreter. 
-   * It is not needed for the core vm.
-   */
-  final int findLineNumberForBytecode(int pc) {
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-
-    if (lineNumberMap == null)
-      return 0; // javac didn't provide any info
-
-    // since "pc" points just beyond the desired instruction,
-    // we scan for the line whose "pc" most-closely-preceeds
-    // the desired instruction
-    //
-    int[] startPCs       = lineNumberMap.startPCs;
-    int[] lineNumbers    = lineNumberMap.lineNumbers;
-    int   candidateIndex = -1;
-    for (int i = 0, n = startPCs.length; i < n; ++i) {
-      if (startPCs[i] >= pc)
-        break;
-      candidateIndex = i;
-    }
-
-    if (candidateIndex == -1)
-      return 0; // not found
-
-    return lineNumbers[candidateIndex];
+   * Get the current compiled method for this method.
+   * Will return null if there is no current compiled method!
+   * @return compiled method
+   */ 
+  public final synchronized VM_CompiledMethod getCurrentCompiledMethod() {
+    return currentCompiledMethod;
   }
-
-  // Annotations are sparse and sorted in bytecode order. State for the last
-  // successful lookup is kept. We first check it to catch repeated quries
-  // for the same bytecode. Failing this, we perform a binary search where the
-  // first probe is either the next sequential entry or 0 (typical cases).
-  public final boolean queryAnnotationForBytecode( int pc, byte mask ) {
-
-    if ( annotationNum == 0 ) return false;		// none
-
-    int currPC = annotationPC[ annotationPrior ];	// prior pc found
-    int annotationIndex, Lo, Hi;
-
-    if ( currPC == pc )					// same as last match
-      annotationIndex = annotationPrior;
-    else {
-      if ( currPC < pc ) {
-	Lo = annotationPrior+1;
-	Hi = annotationNum-1;
-      }
-      else {
-	Lo = 0;
-	Hi = annotationPrior-1;
-      }
-      annotationIndex = Lo;		// start with next sequential entry
-      while( true ) {
-	if ( Lo > Hi ) return false;	// not found
-	currPC = annotationPC[ annotationIndex ];
-	if ( currPC == pc ) break;	// found
-	if ( currPC < pc )
-	  Lo = annotationIndex+1;
-	else
-	  Hi = annotationIndex-1;
-	annotationIndex = (Lo+Hi) >> 1;	// split for next probe
-      }
-    }
-    annotationPrior = annotationIndex;
-    return (annotationValue[ annotationIndex ] & mask) == mask;
-  }
-
-  //-------------------------------------------------------------------//
-  //                             Section 1.                            //
-  // The following are available after the declaring class has been    //
-  // "loaded".                                                         //
-  //-------------------------------------------------------------------//
-
-  //
-  // Attributes.
-  //
 
   /**
    * Declared as statically dispatched?
    */
   public final boolean isStatic() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_STATIC) != 0;
   }
 
@@ -164,8 +191,6 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Declared as non-overridable by subclasses?
    */
   public final boolean isFinal() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_FINAL) != 0;
   }
 
@@ -173,8 +198,6 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Guarded by monitorenter/monitorexit?
    */
   public final boolean isSynchronized() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_SYNCHRONIZED) != 0;
   }
 
@@ -182,8 +205,6 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Not implemented in java?
    */
   public final boolean isNative() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_NATIVE) != 0;
   }
 
@@ -191,87 +212,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * Implemented in subclass?
    */
   public final boolean isAbstract() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
     return (modifiers & ACC_ABSTRACT) != 0;
-  }
-
-  /**
-   * Space required by this method for its local variables, in words.
-   * Note: local variables include parameters
-   */
-  public final int getLocalWords() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-    return localWords;
-  }
-
-  /**
-   * setter for localWords
-   */
-  final void setLocalWords(int lwords) throws VM_PragmaUninterruptible {
-    localWords = lwords;
-  }
-
-  /**
-   * Space required by this method for its operand stack, in words.
-   */
-  public final int getOperandWords() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-    return operandWords;
-  }
-
-  /**
-   * setter for operandWords
-   */
-  final void setOperandWords(int owords) {
-    operandWords = owords;
-  }
-
-  /**
-   * Bytecodes to be executed by this method.
-   * @return bytecodes (null --> native or abstract: no code)
-   */
-  public final byte[] getBytecodes() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-    return bytecodes;
-  }
-
-  /**
-   * setter for bytecodes
-   */
-  final void setBytecodes(byte[] bcodes) {
-    bytecodes = bcodes;
-  }
-
-
-  /**
-   * Local variables defined by this method.
-   * @return info (null --> no locals or method wasn't compiled with "-g")
-   */
-  public final VM_LocalVariable[] getLocalVariables() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-    return localVariables;
-  }
-
-  /**
-   * Exceptions caught by this method.
-   * @return info (null --> method doesn't catch any exceptions)
-   */
-  public final VM_ExceptionHandlerMap getExceptionHandlerMap() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-    return exceptionHandlerMap;
-  }
-
-  /**
-   * setter for exception handler map
-   */
-  final void setExceptionHandlerMap(VM_ExceptionHandlerMap ehm) {
-    exceptionHandlerMap = ehm;
   }
 
   /**
@@ -279,32 +220,8 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * something like { "java/lang/IOException", "java/lang/EOFException" }
    * @return info (null --> method doesn't throw any exceptions)
    */
-  public final VM_Type[] getExceptionTypes() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
+  public final VM_TypeReference[] getExceptionTypes() throws VM_PragmaUninterruptible {
     return exceptionTypes;
-  }
-
-  /**
-   * Line numbers for this method.
-   * @return info (null --> native or abstract: no code, no exception map)
-   */
-  public final VM_LineNumberMap getLineNumberMap() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-    return lineNumberMap;
-  }
-
-  /**
-   * setter for line number map
-   */
-  final void setLineNumberMap(VM_LineNumberMap lnm) {
-    lineNumberMap = lnm;
-  }
-
-  public final int getModifiers() {
-    return modifiers & (ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED | 
-      ACC_STATIC | ACC_FINAL | ACC_SYNCHRONIZED | ACC_NATIVE | ACC_ABSTRACT | ACC_STRICT);
   }
 
   /**
@@ -317,6 +234,8 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * A method is Uninterruptible if 
    * <ul>
    * <li> It is not a <clinit> or <init> method.
+   * <li> It is not the synthetic 'this' method used by jikes to
+   *      factor out default initializers for <init> methods.
    * <li> it throws the <CODE>VM_PragmaUninterruptible</CODE> exception.
    * <li> it's declaring class directly implements the <CODE>VM_Uninterruptible</CODE>
    *      interface and the method does not throw the <CODE>VM_PragmaInterruptible</CODE>
@@ -325,6 +244,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    */
   public final boolean isInterruptible() {
     if (isClassInitializer() || isObjectInitializer()) return true;
+    if (isObjectInitializerHelper()) return true;
     if (VM_PragmaInterruptible.declaredBy(this)) return true;
     if (VM_PragmaUninterruptible.declaredBy(this)) return false;
     VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
@@ -344,12 +264,28 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     
   /**
    * Has this method been marked as forbidden to inline?
-   * ie., it throws the <CODE>VM_PragmaNoInline</CODE> exception?
+   * ie., it throws the <CODE>VM_PragmaNoInline</CODE> or
+   * the <CODE>VM_PragmaNoOptCompile</CODE> exception?
    */
   public final boolean hasNoInlinePragma() {
-    return VM_PragmaNoInline.declaredBy(this);
+    return VM_PragmaNoInline.declaredBy(this) || VM_PragmaNoOptCompile.declaredBy(this);
   }
     
+  /**
+   * Has this method been marked as no opt compile?
+   * ie., it throws the <CODE>VM_PragmaNoOptCompile</CODE> exception?
+   */
+  public final boolean hasNoOptCompilePragma() {
+    return VM_PragmaNoOptCompile.declaredBy(this);
+  }
+    
+  /**
+   * @return true if the method may write to a given field
+   */
+  public boolean mayWrite(VM_Field field) {
+    return true; // be conservative.  native methods can write to anything
+  }
+
   //------------------------------------------------------------------//
   //                        Section 2.                                //
   // The following are available after the declaring class has been   //
@@ -357,44 +293,10 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
   //------------------------------------------------------------------//
 
   /**
-   * The actual method that this object represents
-   */
-  public final VM_Method resolve() {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
-    if (!isLoaded()) return VM_ClassLoader.repairMethod(this);
-    return this;
-  }
-
-  /**
-   * NB: Different semantics than resolve.
-   *     If canLoad == false, this method may return null to signify that
-   *     the method could not be resolved.
-   */
-  public final VM_Method resolveInterfaceMethod(boolean canLoad) throws VM_ResolutionException {
-    if (!isLoaded()) return VM_ClassLoader.repairInterfaceMethod(this, canLoad);
-    return this;
-  }
-
-  /**
-   * Get offset of method pointer (for standard method dispatching), in bytes.
-   *
-   * <p> For static method, offset is with respect to
-   * virtual machine's "table of contents" (jtoc).
-   *
-   * <p> For non-static method, offset is with respect to
-   * object's type information block.
-   */
-  public final int getOffset() throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-    return offset;
-  }
-
-
-  /**
    * Get the current instructions for the given method.
    */
-  public synchronized INSTRUCTION[] getCurrentInstructions() {
+  public final synchronized INSTRUCTION[] getCurrentInstructions() {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (isCompiled()) {
       return currentCompiledMethod.getInstructions();
     } else if (VM.BuildForLazyCompilation && (!VM.writingBootImage || isNative())) {
@@ -405,7 +307,6 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     }
   }
 
-
   /**
    * Generate machine code for this method if valid
    * machine code doesn't already exist. 
@@ -413,43 +314,14 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * 
    * @return VM_CompiledMethod object representing the result of the compilation.
    */
-  final synchronized void compile() {
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-
+  public final synchronized void compile() {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (isCompiled()) return;
 
-    if (VM.VerifyBytecode) {
-      VM_Verifier verifier = new VM_Verifier();
-      try {
-        boolean success = verifier.verifyMethod(this);
-        if (!success) {
-          VM.sysWrite("Method " + this + " fails bytecode verification!\n");
-        }
-      } catch(Exception e) {
-        VM.sysWrite("Method " + this + " fails bytecode verification!\n");
-      }
-    }
-
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logCompilationEvent();
-    if (VM.VerifyAssertions)   VM._assert(declaringClass.isResolved());
     if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (begin) compiling " + this + "\n");
 
-    VM_CompiledMethod cm;
-    if (isAbstract()) {
-      VM_Entrypoints.unexpectedAbstractMethodCallMethod.compile();
-      cm = VM_Entrypoints.unexpectedAbstractMethodCallMethod.getCurrentCompiledMethod();
-    } else if (isNative() && !resolveNativeMethod()) {
-      // if fail to resolve native, get code to throw unsatifiedLinkError
-      VM_Entrypoints.unimplementedNativeMethodMethod.compile();
-      cm = VM_Entrypoints.unimplementedNativeMethodMethod.getCurrentCompiledMethod();
-    } else {
-      // Normal case. Compile the method.
-      //
-      if (VM.writingBootImage)
-        cm = VM_BootImageCompiler.compile(this); // use compiler specified by RVM_BOOT_IMAGE_COMPILER_PATH
-      else 
-        cm = VM_RuntimeCompiler.compile(this);   // use compiler specified by RVM_RUNTIME_COMPILER_PATH
-    }
+    VM_CompiledMethod cm = genCode();
 
     // Ensure that cm wasn't invalidated while it was being compiled.
     synchronized(cm) {
@@ -463,22 +335,13 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (end)   compiling " + this + "\n");
   }
 
+  protected abstract VM_CompiledMethod genCode();
+
   //----------------------------------------------------------------//
   //                        Section 3.                              //
   // The following are available after the declaring class has been // 
   // "instantiated".                                                //
   //----------------------------------------------------------------//
-
-  /**
-   * Get the current compiled method for this method.
-   * Will return null if there is no current compiled method!
-   * @return compiled method
-   */ 
-  public final synchronized VM_CompiledMethod getCurrentCompiledMethod() {
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-    return currentCompiledMethod;
-  }
-
 
   /**
    * Change machine code that will be used by future executions of this method 
@@ -489,8 +352,7 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    *              for this class and its subclasses
    */ 
   public final synchronized void replaceCompiledMethod(VM_CompiledMethod compiledMethod) {
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isInstantiated());
     // If we're replacing with a non-null compiledMethod, ensure that is still valid!
     if (compiledMethod != null) {
       synchronized(compiledMethod) {
@@ -516,409 +378,9 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
    * If CM is the current compiled code for this, then invaldiate it. 
    */
   public final synchronized void invalidateCompiledMethod(VM_CompiledMethod cm) {
+    if (VM.VerifyAssertions) VM._assert(declaringClass.isInstantiated());
     if (currentCompiledMethod == cm) {
       replaceCompiledMethod(null);
     }
-  }
-
-  /**
-   * Find "catch" block for a bytecode of this method that might be guarded
-   * against specified class of exceptions by a "try" block .
-   * 
-   * @param pc offset of bytecode from start of this method, in bytes
-   * @param exceptionType type of exception being thrown - 
-   * something like "NullPointerException"
-   * @return offset of bytecode for catch block (-1 --> no catch block)
-   * 
-   * Note: this method is for use by VM_Interpreter. 
-   * It is not needed for the core vm.
-   */ 
-  public final int findCatchBlockForBytecode(int pc, VM_Type exceptionType) {
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isInstantiated());
-    if (VM.VerifyAssertions) VM._assert(exceptionType.isInstantiated());
-
-    if (exceptionHandlerMap == null)
-      return -1;
-
-    int[] startPCs = exceptionHandlerMap.startPCs;
-    int[] endPCs   = exceptionHandlerMap.endPCs;
-
-    for (int i = 0, n = startPCs.length; i < n; ++i) {
-      // note that "pc" points to a return site (not a call site)
-      // so the range check here must be "pc <= beg || pc >  end"
-      // and not                         "pc <  beg || pc >= end"
-      //
-      if (pc <= startPCs[i] || pc >  endPCs[i])
-        continue;
-
-      if (exceptionHandlerMap.exceptionTypes[i] == null) {
-	// catch block handles any exception
-        return exceptionHandlerMap.handlerPCs[i];
-      }
-
-      try {
-        VM_Type lhs = exceptionHandlerMap.exceptionTypes[i];
-        if ((lhs == exceptionType) ||
-            (lhs.isInstantiated() &&
-             VM_Runtime.isAssignableWith(lhs, exceptionType))) { 
-	  // catch block handles specified exception
-          return exceptionHandlerMap.handlerPCs[i];
-        }
-      } catch (VM_ResolutionException e) { 
-	// "exceptionTypes[i]" (or one of its superclasses) doesn't exist
-        // so it couldn't possibly be a match for "exceptionType"
-      }
-    }
-
-    return -1;
-  }
-
-  //----------------//
-  // Implementation //
-  //----------------//
-
-  //
-  // The following are set during "creation".
-  //
-  /**
-   * type of return value
-   */
-  private VM_Type                returnType;          
-  /**
-   * types of parameters (not including "this", if virtual)
-   */
-  private VM_Type[]              parameterTypes;      
-  /**
-   * words needed for parameters (not including "this", if virtual)
-   */
-  private int                    parameterWords;      
-
-  //
-  // The following are set during "loading".
-  //
-  /**
-   * words needed for local variables (including parameters)
-   */
-  private int                    localWords;          
-  /**
-   * words needed for operand stack (high water mark)
-   */
-  private int                    operandWords;        
-  /**
-   * bytecodes for this method
-   */
-  private byte[]                 bytecodes;           
-  /**
-   * try/catch/finally blocks for this method (null --> none)
-   */
-  private VM_ExceptionHandlerMap exceptionHandlerMap; 
-  /**
-   * exceptions this method might throw (null --> none)
-   */
-  private VM_Type[]              exceptionTypes;      
-  /**
-   * pc to source-line info (null --> none)
-   */
-  private VM_LineNumberMap       lineNumberMap;       
-  /**
-   * info for use by debugger (null --> none)
-   */
-  private VM_LocalVariable[]     localVariables;      
-
-  // Byte Code Annotations
-  private short[]	annotationPC;
-  private byte[]	annotationValue;
-  public static final byte	annotationNullCheck = 4;
-  public static final byte	annotationBoundsCheck = 3;	// Both Upper/Lower
-  private int		annotationNum;
-  private int		annotationPrior;
-
-  //
-  // The following is set during "resolution".
-  //
-  /**
-   * jtoc/tib offset for standard method dispatch, in bytes
-   */
-  int                            offset;              
-
-  /**
-   * current compiled method for this method
-   */
-  private VM_CompiledMethod currentCompiledMethod;
-
-  /**
-   * the name of the native procedure in the native library
-   */
-  private String nativeProcedureName;                 
-  /**
-   * the IP of the native p rocedure
-   */
-  private int nativeIP;                               
-  /**
-   * the TOC of the native procedure
-   */
-  private int nativeTOC;                              
-
-  /**
-   * To guarantee uniqueness, only the VM_ClassLoader class may construct 
-   * VM_Method instances.
-   * All VM_Method creation should be performed by calling 
-   * "VM_ClassLoader.findOrCreate" methods.
-   */ 
-  private VM_Method() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-  }
-
-  /**
-   * Standard initialization.
-   */
-  VM_Method(VM_Class declaringClass, VM_Atom name, VM_Atom descriptor, 
-            int dictionaryId, ClassLoader classloader) {
-    super(declaringClass, name, descriptor, dictionaryId);
-    returnType = descriptor.parseForReturnType(classloader);
-    parameterTypes = descriptor.parseForParameterTypes(classloader);
-    for (int i = 0, n = parameterTypes.length; i < n; ++i)
-      parameterWords += parameterTypes[i].getStackWords();
-    offset = VM_Member.UNINITIALIZED_OFFSET;
-  }
-
-  final void load(DataInputStream input, int modifiers) throws IOException {
-    this.modifiers = modifiers;
-    readAttributes(input);
-    this.modifiers |= ACC_LOADED;
-  }
-
-  private void readAttributes(DataInputStream input) throws IOException {
-    for (int i = 0, n = input.readUnsignedShort(); i < n; ++i)
-    {
-      VM_Atom attName   = declaringClass.getUtf(input.readUnsignedShort());
-      int     attLength = input.readInt();
-
-      // Method attributes
-      if (attName == VM_ClassLoader.codeAttributeName)
-      {
-        operandWords = input.readUnsignedShort();
-        localWords   = input.readUnsignedShort();
-
-        bytecodes = new byte[input.readInt()];
-        input.readFully(bytecodes);
-
-        //-#if RVM_WITH_OPT_COMPILER
-	VM_OptMethodSummary.summarizeMethod(this, bytecodes, 
-					    (modifiers & ACC_SYNCHRONIZED) 
-					    != 0);
-        //-#endif
-
-        int cnt = input.readUnsignedShort();
-        if (cnt != 0)
-          exceptionHandlerMap = new VM_ExceptionHandlerMap(input, 
-                                                           declaringClass, 
-							   cnt);
-
-        readAttributes(input);
-        continue;
-      }
-
-      if (attName == VM_ClassLoader.exceptionsAttributeName)
-      {
-        int cnt = input.readUnsignedShort();
-        if (cnt != 0)
-        {
-          exceptionTypes = new VM_Type[cnt];
-          for (int j = 0, m = exceptionTypes.length; j < m; ++j)
-            exceptionTypes[j] = declaringClass.getTypeRef(input.readUnsignedShort());
-        }
-        continue;
-      }
-
-      if (attName == VM_ClassLoader.deprecatedAttributeName)
-      { // boring
-        input.skipBytes(attLength);
-        continue;
-      }
-
-      if (attName == VM_ClassLoader.syntheticAttributeName)
-      { // boring
-        input.skipBytes(attLength);
-        continue;
-      }
-
-      // Code attributes
-      if (attName == VM_ClassLoader.lineNumberTableAttributeName)
-      {
-        int cnt = input.readUnsignedShort();
-        if (cnt != 0)
-          lineNumberMap = new VM_LineNumberMap(input, cnt);
-        continue;
-      }
-
-      if (attName == VM_ClassLoader.localVariableTableAttributeName)
-      {
-        if (VM.LoadLocalVariableTables)
-        { // load extra info for use by debugger
-          int cnt = input.readUnsignedShort();
-          if (cnt != 0)
-          {
-            localVariables = new VM_LocalVariable[cnt];
-            for (int j = 0, m = localVariables.length; j < m; ++j)
-              localVariables[j] = new VM_LocalVariable(declaringClass, input);
-          }
-        }
-        else
-          input.skipBytes(attLength);
-        continue;
-      }
-
-      annotationNum = 0;
-      if (attName == VM_ClassLoader.arrayNullCheckAttributeName)
-      {
-	int attNum = attLength/3;
-	annotationPC = new short[ attNum ];
-	annotationValue = new byte[ attNum ];
-	for ( int attIndex = 0; attIndex < attNum; attIndex++ )
-	{
-	  short pc	= (short) input.readUnsignedShort();
-	  byte  value	= (byte)  input.readUnsignedByte();
-	  if ( value != 0 ) {		// exclude non-interesting 0 values
-					// seen coming from soot
-	    annotationPC[ annotationNum ] = pc;
-	    annotationValue[ annotationNum++ ] = value;
-	  }
-	}
-	if ( annotationNum == 0 ) {	// no entries of interest
-	  annotationPC = null;		// allow storage to be reclaimed
-	  annotationValue = null;
-	}
-	else {
-	  annotationPrior = 0;		// 1st probe
-	}
-	continue;
-      }
-
-      input.skipBytes(attLength);
-    }
-  }
-
-  //////////////////////////////////////////////////////////////
-  // TODO: fix the following to work with dummy methods! (IP)
-  //////////////////////////////////////////////////////////////
-
-  int getNativeIP() { 
-    return nativeIP;
-  }
-
-  int getNativeTOC() { 
-    return nativeTOC;
-  }
-
-  /**
-   * replace a character in a string with a string
-   */
-  private String replaceCharWithString(String originalString, 
-                                       char targetChar, 
-                                       String replaceString) {
-    String returnString;
-    int first = originalString.indexOf(targetChar);
-    int next  = originalString.indexOf(targetChar, first+1);
-    if (first!=-1) {
-      returnString = originalString.substring(0,first) + replaceString;
-      while (next!=-1) {
-        returnString += originalString.substring(first+1, next) + replaceString;
-        first = next;
-        next = originalString.indexOf(targetChar, next+1);
-      }
-      returnString += originalString.substring(first+1);
-    } else {
-      returnString = originalString;
-    }
-    return returnString;
-  }
-
-
-  /**
-   * Compute the mangled name of the native routine: Java_Class_Method_Sig
-   */
-  private String getMangledName(boolean sig) {
-    String mangledClassName, mangledMethodName;
-    String className = declaringClass.getName().toString();
-    String methodName = name.toString();
-    int first, next;
-
-    // Mangled Class name
-    // Special case: underscore in class name
-    mangledClassName = replaceCharWithString(className, '_', "_1");
-
-    // Mangled Method name
-    // Special case: underscore in method name
-    //   class._underscore  -> class__1underscore
-    //   class.with_underscore  -> class_with_1underscore
-    mangledMethodName = replaceCharWithString(methodName, '_', "_1");
-
-    if (sig) {
-      String sigName = getDescriptor().toString();
-      sigName = sigName.substring( sigName.indexOf('(')+1, sigName.indexOf(')') );
-      sigName = replaceCharWithString(sigName, '[', "_3");
-      sigName = replaceCharWithString(sigName, ';', "_2");
-      sigName = sigName.replace( '/', '_');
-      mangledMethodName += "__" + sigName;
-    }
-
-
-    String mangledName = "Java_" + mangledClassName + "_" + mangledMethodName;
-    mangledName = mangledName.replace( '.', '_' );
-    // VM.sysWrite("getMangledName:  " + mangledName + " \n");
-
-    return mangledName;
-
-  }
-
-
-  private boolean resolveNativeMethod() {
-
-    nativeProcedureName = getMangledName(false);
-    String nativeProcedureNameWithSigniture = getMangledName(true);
-
-    // get the library in VM_ClassLoader
-    // resolve the native routine in the libraries
-    VM_DynamicLibrary libs[] = VM_ClassLoader.getDynamicLibraries();
-    VM_Address symbolAddress = VM_Address.zero();
-    if (libs!=null) {
-      for (int i=1; i<libs.length && symbolAddress.isZero(); i++) {
-        VM_DynamicLibrary lib = libs[i];
-
-        if (lib!=null && symbolAddress==VM_Address.zero()) {
-          symbolAddress = lib.getSymbol(nativeProcedureNameWithSigniture);
-	  if (symbolAddress != VM_Address.zero()) {
-	      nativeProcedureName = nativeProcedureNameWithSigniture;
-	      break;
-	  }
-	}
-
-        if (lib != null && symbolAddress==VM_Address.zero()) {
-          symbolAddress = lib.getSymbol(nativeProcedureName);
-	  if (symbolAddress != VM_Address.zero()) {
-	      nativeProcedureName = nativeProcedureName;
-	      break;
-	  }
-	}
-      }
-    }
-
-    if (symbolAddress.isZero()) {
-      // native procedure not found in library
-      return false;
-    } else {
-      //-#if RVM_FOR_IA32
-      nativeIP = symbolAddress.toInt();		// Intel use direct branch address
-      nativeTOC = 0;                          // not used
-      //-#else
-      nativeIP  = VM_Magic.getMemoryWord(symbolAddress);     // AIX use a triplet linkage
-      nativeTOC = VM_Magic.getMemoryWord(symbolAddress.add(4));
-      //-#endif
-      // VM.sysWrite("resolveNativeMethod: " + nativeProcedureName + ", IP = " + VM.intAsHexString(nativeIP) + ", TOC = " + VM.intAsHexString(nativeTOC) + "\n");
-      return true;
-    }
-
   }
 }
