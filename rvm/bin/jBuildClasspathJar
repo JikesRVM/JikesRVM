@@ -1,10 +1,11 @@
-#!/bin/sh
-#  /bin/sh
+#! /bin/bash
 #
-# (C) Copyright IBM 2002
+# (C) Copyright IBM 2002, 2003
 #
 # $Id$
 # @author Julian Dolby
+# @modified Steven Augart
+#   (Bash conversion)
 #
 
 ##
@@ -24,20 +25,20 @@ CVS_SLEEP_ATTEMPTS=5
 ##
 export CHECK=0
 export DEST_DIR=$RVM_ROOT/classpath
-export OS_VER=`uname -v`
+export OS_VER=$(uname -v)
 
-if [ `uname` = Linux ]; then
-  CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:/cvsroot/classpath
+if [ $(uname) = Linux ]; then
+    CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:/cvsroot/classpath
 else
-  CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:2401/cvsroot/classpath
+    CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:2401/cvsroot/classpath
 fi
-CLASSPATH_CVS_DATESPEC_ARG=`cat $RVM_ROOT/rvm/bin/classpath.stamp`
+CLASSPATH_CVS_DATESPEC_ARG=$(cat $RVM_ROOT/rvm/bin/classpath.stamp)
 
 if [[ -e $CLASSPATH_ROOT/classpath/config.guess ]]; then
-  export USE_LOCAL_CLASSPATH="yes"
-  export DEST_DIR=$CLASSPATH_ROOT
+    export USE_LOCAL_CLASSPATH="yes"
+    export DEST_DIR=$CLASSPATH_ROOT
 else
-  export USE_LOCAL_CLASSPATH="no"
+    export USE_LOCAL_CLASSPATH="no"
 fi
 
 
@@ -45,126 +46,116 @@ fi
 ## process arguments
 ##
 while [[ $# > 0 ]] ; do
-  case $1 in
-    --datespec) 
-	CLASSPATH_CVS_DATESPEC_ARG="$2"
-	shift ;;
-
-    --root)
-	CLASSPATH_CVS_ROOT=$2
-	shift ;;
-
-    --destination)
-        DEST_DIR=$2
-	shift ;;
-
-    --check)
-        CHECK=1 ;;
-  esac	
-  shift
+    case $1 in
+	--datespec) 
+	    CLASSPATH_CVS_DATESPEC_ARG="$2"
+	    shift ;;
+	
+	--root)
+	    CLASSPATH_CVS_ROOT=$2
+	    shift ;;
+	
+	--destination)
+	    DEST_DIR=$2
+	    shift ;;
+	
+	--check)
+	    CHECK=1 ;;
+    esac	
+    shift
 done
 
 ##
 ## Blow everything away if timestamps do not match
 ##
 if [[ "$USE_LOCAL_CLASSPATH" = "no" ]]; then
-  if [[ -e $DEST_DIR/stamp ]]; then
-    if ( $DIFF -q $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp ); then
-      true
+    if [[ -e $DEST_DIR/stamp ]]; then
+	if ! $DIFF -q $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp ; then
+	    echo "Removing out-of-date GNU Classpath checkout"
+	    rm -rf $DEST_DIR
+	fi
     else
-      echo "Removing out-of-date GNU Classpath checkout"
-      rm -rf $DEST_DIR
+	echo "Removing unknown GNU Classpath checkout"
+	rm -rf $DEST_DIR
     fi
-  else
-    echo "Removing unknown GNU Classpath checkout"
-    rm -rf $DEST_DIR
-  fi
 fi
 
 ##
 ## check if requested
 ##
-if [[ $CHECK = 1 ]]; then
-  if [[ -e $DEST_DIR/classpath/config.guess ]]; then
-    system_type=`$DEST_DIR/classpath/config.guess`  
-    if [[ -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
-     exit 0
-    fi
-  fi
+if [[ $CHECK = 1 ]] && [[ -e $DEST_DIR/classpath/config.guess ]]; then
+    system_type="$($DEST_DIR/classpath/config.guess)"
+    [[ -e $DEST_DIR/$system_type/lib/glibj.zip ]] && exit 0
 fi
 
 ##
 ## download classpath if needed
 ##
 if [[ ! -e $DEST_DIR/classpath/TODO ]]; then
-  if [[ $USE_LOCAL_CLASSPATH = "no" ]]; then
+    if [[ $USE_LOCAL_CLASSPATH != "no" ]]; then
+	echo >&2 "Please download GNU Classpath and unpack it in $DEST_DIR"
+	echo >&2 "(You should use classpath-0.05 or newer for best results)"
+	exit 1
+    fi
     echo "Downloading GNU Classpath"
     rm -rf $DEST_DIR
     mkdir -p $DEST_DIR
     cd $DEST_DIR
-
+    
     if [[ x$CLASSPATH_CVS_DATESPEC_ARG = x ]]; then
-      CVS_CMD="$CVS -Q -d $CLASSPATH_CVS_ROOT co classpath"
+	CVS_CMD="$CVS -Q -d $CLASSPATH_CVS_ROOT co classpath"
     else
-      CVS_CMD="$CVS -Q -d $CLASSPATH_CVS_ROOT co -D "$CLASSPATH_CVS_DATESPEC_ARG" classpath"
-
-      # ugh.  we sometimes have trouble with subversions.gnu.org, so we
-      # retry a few times.
-      done=false
-      sleep=0
-      while test $sleep -lt $CVS_SLEEP_ATTEMPTS -a $done == "false"; do
-	  spin=0
-	  while test $spin -lt $CVS_SPIN_ATTEMPTS -a $done == "false"; do
-	      if $CVS_CMD; then
-		  done="true"
-              fi
-
-	      spin=`expr $spin + 1`
-          done
-
-          sleep=`expr $sleep + 1`
-      done
-
-      cp $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp
+	CVS_CMD="$CVS -Q -d $CLASSPATH_CVS_ROOT co -D "$CLASSPATH_CVS_DATESPEC_ARG" classpath"
+	
+        # ugh.  we sometimes have trouble with subversions.gnu.org, so we
+	# retry a few times.
+	done=false
+	sleep=0
+	while (( sleep++ < CVS_SLEEP_ATTEMPTS )) &&  [[ $done = "false" ]]
+	do
+	    spin=0
+	    while (( spin++ < CVS_SPIN_ATTEMPTS )) && [[ $done = "false" ]]
+	    do
+	        if $CVS_CMD; then
+		    done="true"
+	        fi
+	    done
+	done
+	cp $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp
     fi 
-  else
-    echo "Please download GNU Classpath and unpack it in $DEST_DIR"
-    echo "(You should use classpath-0.05 or newer for best results)"
-    exit -1
-  fi
 else
-  cd $DEST_DIR
+    cd $DEST_DIR
 fi
 
 # stuff checked out into this dir
 cd classpath
 
-# setup directory for building if needed
+# set up the directory for building if needed
 if [[ ! -e $DEST_DIR/classpath/configure ]]; then
-  echo "Setting up source tree"
-  if [[ $RVM_FOR_IA32 = 1 ]]; then
-    aclocal
-  else
-    aclocal -I $RVM_ROOT/rvm/config/m4
-  fi
-  autoheader
-  automake
-  autoconf
+    echo "Setting up source tree"
+    if [[ $RVM_FOR_IA32 = 1 ]]; then
+	aclocal
+    else
+	aclocal -I $RVM_ROOT/rvm/config/m4
+    fi
+    autoheader
+    automake
+    autoconf
 fi
 
 # configure and build library
-system_type=`$DEST_DIR/classpath/config.guess`  
+system_type=$($DEST_DIR/classpath/config.guess)
 if [[ ! -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
-  mkdir $DEST_DIR/$system_type
-  echo "Configuring for $system_type"
-  cd $DEST_DIR/$system_type
-  if [[ $RVM_FOR_IA32 = 1 ]]; then
-    ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --enable-portable-native-sync
-  else
-    FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --disable-gtk-peer
-  fi   
-  echo "Building the library"
-  $GNU_MAKE
+    mkdir $DEST_DIR/$system_type
+    echo "Configuring for $system_type"
+    cd $DEST_DIR/$system_type
+    if [[ $RVM_FOR_IA32 = 1 ]]; then
+	../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --enable-portable-native-sync
+    else
+	FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --disable-gtk-peer
+    fi   
+    echo "Building the library"
+    $GNU_MAKE
 fi
 
 # build classpath source jar
@@ -174,5 +165,5 @@ mkdir -p $RVM_ROOT/support/lib
 touch $RVM_ROOT/support/lib/classpathsrc.jar
 cd $DEST_DIR/classpath
 for p in $TOP_LEVEL_PACKAGES; do
-  $FIND $p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpathsrc.jar
+    $FIND $p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpathsrc.jar
 done
