@@ -581,6 +581,18 @@ final class OPT_IR implements OPT_Operators {
       return cfg.numberOfNodes();
   }
 
+  /**
+   * Prune the exceptional out edges for each basic block in the IR.
+   */
+  public void pruneExceptionalOut() {
+    if (hasReachableExceptionHandlers()) {
+      for (Enumeration e = getBasicBlocks(); e.hasMoreElements(); ) {
+        OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
+        bb.pruneExceptionalOut();
+      } 
+    }      
+  }
+
 
   /**
    * @return <code>true</code> if it is possible that the IR contains
