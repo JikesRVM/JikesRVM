@@ -20,6 +20,10 @@
  *	       Add support to recognize quotes in command line arguments,
  *	       standardize command line arguments with JDK 1.3.
  *	       Eliminate order dependence on command line arguments
+ * @modified Steven Augart
+ * @date 18 Aug 2003
+ *	Cleaned up memory management.  Made the handling of numeric args
+ *	robust. 
  */
 
 #include <stdio.h>
@@ -40,7 +44,7 @@
 #else
 #include <sys/cache.h>
 #include <sys/context.h>
-extern "C" char *sys_siglist[];
+// extern "C" char *sys_siglist[];
 #endif
 #include "RunBootImage.h"	// Automatically generated for us by
 				// jbuild.linkBooter 
@@ -68,7 +72,10 @@ int verboseBoot;		/* Declared in bootImageRunner.h */
  * If you change this value, change it there too. */
 const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 98;
 
-int DEBUG = 10;
+int DEBUG = 0;			// have to set this from a debugger
+
+static bool strequal(const char *s1, const char *s2);
+static bool strnequal(const char *s1, const char *s2, size_t n);
 
 /*
  * What standard command line arguments are supported?
@@ -115,6 +122,26 @@ nonstandard_usage()
 	fprintf(SysTraceFile,"\n");
     }
 }
+
+static void
+shortVersion()
+{
+    fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
+}
+
+static void
+fullVersion()
+{
+    shortVersion();
+    fprintf(SysTraceFile, "configuration info:\n\thost %s\n\ttarget %s\n",
+	    rvm_host_configuration, rvm_target_configuration);
+    fprintf(SysTraceFile, "\theap default initial size: %u MBytes\n",
+	    heap_default_initial_size/(1024*1024));
+    fprintf(SysTraceFile, "\theap default maximum size: %u MBytes\n",
+	    heap_default_maximum_size/(1024*1024));
+}
+
+
 
 // /**
 //  * Maximum number of tokens
@@ -214,46 +241,55 @@ nonstandard_usage()
  * Return an array containing application arguments and VM arguments that 
  *        are not processed here.
  * Side Effect  global varable JavaArgc is set.
+ *
+ * This is a bit sneaky -- we reuse the array 'CLAs'.  We're
+ * guaranteed that we will not generate any new command-line arguments, but
+ * only consume them. So, n_JCLAs indexes 'CLAs', and it's always the case
+ * that n_JCLAs <= n_CLAs, and is always true that n_JCLAs <= i (CLA index).
+ *
+ * By reusing CLAs, we avoid any unpleasantries with memory allocation.
+ *
+ * In case of trouble, we set fastExit.  We call exit(0) if no trouble, but
+ * still want to exit.
  */
 static char ** 
-processCommandLineArguments(char **CLAs, int n_CLAs, bool *fastExit) 
+processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit) 
 {
-    char *JCLAs[n_CLAs];
-    int n_JCLAs=0;
-    int startApplicationOptions = 0;
+    int n_JCLAs = 0;
+    bool startApplicationOptions = false;
     char *subtoken;
 
     for (int i = 0; i < n_CLAs; i++) {
-	char *token=CLAs[i];
+	char *token = CLAs[i];
 	subtoken = NULL;	// strictly, not needed.
 
 	// examining application options?
-	if (startApplicationOptions == 1) {
-	    JCLAs[n_JCLAs++]=token;
+	if (startApplicationOptions) {
+	    CLAs[n_JCLAs++]=token;
 	    continue;
 	}
 	// pass on all command line arguments that do not start with a dash, '-'.
 	if (token[0] != '-') {
-	    JCLAs[n_JCLAs++]=token;
-	    startApplicationOptions = 1;
+	    CLAs[n_JCLAs++]=token;
+	    ++startApplicationOptions;
 	    continue;
 	}
 
 	//   while (*argv && **argv == '-')    {
-	if (!strcmp(token, "-help") || !strcmp(token, "--help") || !strcmp(token, "-?") ) {
+	if (strequal(token, "-help") || strequal(token, "--help") || strequal(token, "-?") ) {
 	    usage();
 	    *fastExit = 1;
 	    break;
 	}
-	if (!strcmp(token, nonStandardArgs[HELP_INDEX])) {
+	if (strequal(token, nonStandardArgs[HELP_INDEX])) {
 	    nonstandard_usage();
 	    *fastExit = 1; break;
 	}
-	if (!strcmp(token, nonStandardArgs[VERBOSE_INDEX])) {
+	if (strequal(token, nonStandardArgs[VERBOSE_INDEX])) {
 	    ++lib_verbose;
 	    continue;
 	}
-	if (!strncmp(token, nonStandardArgs[VERBOSE_BOOT_INDEX], 15)) {
+	if (strnequal(token, nonStandardArgs[VERBOSE_BOOT_INDEX], 15)) {
 	    subtoken = token + 15;
 	    errno = 0;
 	    char *endp;
@@ -275,30 +311,27 @@ processCommandLineArguments(char **CLAs, int n_CLAs, bool *fastExit)
 	    verboseBoot = vb;
 	    continue;
 	}
-	if (!strcmp(token, "-version")) {
-	    fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
-	    *fastExit = 1; break;
+	if (strequal(token, "-version")) {
+	    shortVersion();
+	    // *fastExit = 1; break;
+	    exit(0);
 	}
-	if (!strcmp(token, "-fullversion")) {
-	    fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
-	    fprintf(SysTraceFile, "configuration info:\n\thost %s\n\ttarget %s\n",
-		    rvm_host_configuration, rvm_target_configuration);
-	    fprintf(SysTraceFile, "\theap default initial size: %u MBytes\n",
-		    heap_default_initial_size/(1024*1024));
-	    fprintf(SysTraceFile, "\theap default maximum size: %u MBytes\n",
-		    heap_default_maximum_size/(1024*1024));
-	    *fastExit = 1; break;
+	if (strequal(token, "-fullversion")) {
+	    fullVersion();
+	    // *fastExit = 1; break;
+	    exit(0);
 	}
-	if (!strcmp(token, "-showversion")) {
-	    fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
+	if (strequal(token, "-showversion")) {
+	    shortVersion();
 	    continue;
 	}
-	if (!strcmp(token, "-findMappable")) {
+	if (strequal(token, "-findMappable")) {
 	    findMappable();
-	    *fastExit = 1; break;
+	    // *fastExit = 1; break;
+	    exit(0);		// success, no?
 	}
-	if (!strncmp(token, "-verbose:gc", 11)) {
-	    long level;		// long since we need to use strtol()
+	if (strnequal(token, "-verbose:gc", 11)) {
+	    long level;		// a long, since we need to use strtol()
 	    if (token[11] == '\0') {
 		level = 1;
 	    } else {
@@ -329,18 +362,18 @@ processCommandLineArguments(char **CLAs, int n_CLAs, bool *fastExit)
 		// canonicalize the argument
 		char *buf = (char *) malloc(20); 
 		sprintf(buf, "-X:gc:verbose=%ld", level);
-		JCLAs[n_JCLAs++]=buf;
+		CLAs[n_JCLAs++]=buf;
 	    }
 	    continue;
 	}
-	if (!strncmp(token, nonStandardArgs[INITIAL_HEAP_INDEX], 5)) {
+	if (strnequal(token, nonStandardArgs[INITIAL_HEAP_INDEX], 5)) {
 	    subtoken = token + 5;
 	    fprintf(SysTraceFile, "%s: Warning: -X:h=<number> is deprecated; please use \"-Xms\" and/or \"-Xmx\".\n", me);
 	    fprintf(SysTraceFile, "\tI am interpreting -X:h=%s as if it was -Xms%s.\n", subtoken, subtoken);
 	    fprintf(SysTraceFile, "\tFor a fixed heap size H, you must use -XmsH -X:gc:variableSizeHeap=false\n");
 	    goto set_initial_heap_size;
 	}
-	if (!strncmp(token, nonStandardArgs[MS_INDEX], 4)) {
+	if (strnequal(token, nonStandardArgs[MS_INDEX], 4)) {
 	    subtoken = token + 4;
 	set_initial_heap_size:
 	    long ihsMB;		// initial heap size in MB
@@ -367,7 +400,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, bool *fastExit)
 	    initialHeapSize = ihsMB * 1024U * 1024U;
 	    continue;
 	}
-	if (!strncmp(token, nonStandardArgs[MX_INDEX], 4)) {
+	if (strnequal(token, nonStandardArgs[MX_INDEX], 4)) {
 	    subtoken = token + 4;
 	    long mhsMB;		// maximum heap size in MB
 	    errno = 0;
@@ -394,7 +427,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, bool *fastExit)
 	    continue;
 	}
 
-	if (!strncmp(token, nonStandardArgs[SYSLOGFILE_INDEX],14)) {
+	if (strnequal(token, nonStandardArgs[SYSLOGFILE_INDEX],14)) {
 	    subtoken = token + 14;
 	    FILE* ftmp = fopen(subtoken, "a");
 	    if (!ftmp) {
@@ -406,7 +439,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, bool *fastExit)
 	    SysTraceFd = fileno(ftmp);
 	    continue;
 	}
-	if (!strncmp(token, nonStandardArgs[BOOTIMAGE_FILE_INDEX], 5)) {
+	if (strnequal(token, nonStandardArgs[BOOTIMAGE_FILE_INDEX], 5)) {
 	    bootFilename = token + 5;
 	    continue;
 	}
@@ -415,55 +448,52 @@ processCommandLineArguments(char **CLAs, int n_CLAs, bool *fastExit)
 	 * JDK 1.3 standard command line arguments that are not supported.
 	 * TO DO: provide support
 	 */
-	if (!strcmp(token, "-jar")) {
+	if (strequal(token, "-jar")) {
 	    fprintf(SysTraceFile, "%s: -jar is not supported\n", me);
 	    continue;
 	}
 
 	//
 	// All VM directives that are not handled here but in VM.java
-	//  must be identified.
+	// must be identified.
 	//
 
 	// All VM directives that take one token
-	if (!strncmp(token, "-D", 2) || 
-	    !strncmp(token, nonStandardArgs[VM_INDEX], 5) ||
-	    !strncmp(token, nonStandardArgs[GC_INDEX], 5) ||
-	    !strncmp(token, nonStandardArgs[AOS_INDEX],6)   || 
-	    !strncmp(token, nonStandardArgs[IRC_INDEX], 6) ||
-	    !strncmp(token, nonStandardArgs[RECOMP_INDEX], 9) ||
-	    !strncmp(token, nonStandardArgs[BASE_INDEX],7)  || 
-	    !strncmp(token, nonStandardArgs[OPT_INDEX], 6) ||
-	    !strcmp(token, "-verbose")    || !strcmp(token, "-verbose:class") ||
-	    !strcmp(token, "-verbose:gc") || !strcmp(token, "-verbose:jni") || 
-	    !strncmp(token, nonStandardArgs[VMCLASSES_INDEX], 13)  || 
-	    !strncmp(token, nonStandardArgs[CPUAFFINITY_INDEX], 15) ||
-	    !strncmp(token, nonStandardArgs[PROCESSORS_INDEX], 14)) {
-	    JCLAs[n_JCLAs++]=token;
+	if (strnequal(token, "-D", 2) 
+	    || strnequal(token, nonStandardArgs[VM_INDEX], 5) 
+	    || strnequal(token, nonStandardArgs[GC_INDEX], 5) 
+	    || strnequal(token, nonStandardArgs[AOS_INDEX],6) 
+	    || strnequal(token, nonStandardArgs[IRC_INDEX], 6) 
+	    || strnequal(token, nonStandardArgs[RECOMP_INDEX], 9) 
+	    || strnequal(token, nonStandardArgs[BASE_INDEX],7)  
+	    || strnequal(token, nonStandardArgs[OPT_INDEX], 6) 
+	    || strequal(token, "-verbose")
+	    || strequal(token, "-verbose:class")
+	    || strequal(token, "-verbose:gc") 
+	    || strequal(token, "-verbose:jni") 
+	    || strnequal(token, nonStandardArgs[VMCLASSES_INDEX], 13)  
+	    || strnequal(token, nonStandardArgs[CPUAFFINITY_INDEX], 15) 
+	    || strnequal(token, nonStandardArgs[PROCESSORS_INDEX], 14)) 
+	{
+	    CLAs[n_JCLAs++]=token;
 	    continue;
 	}
 	// All VM directives that take two tokens
-	if (!strcmp(token, "-cp") || !strcmp(token, "-classpath")) {
-	    JCLAs[n_JCLAs++]=token;
+	if (strequal(token, "-cp") || strequal(token, "-classpath")) {
+	    CLAs[n_JCLAs++]=token;
 	    token=CLAs[++i];
-	    JCLAs[n_JCLAs++]=token;
+	    CLAs[n_JCLAs++]=token;
 	    continue;
 	}
 
-	JCLAs[n_JCLAs++]=token;
-	startApplicationOptions = 1;
-    }
-  
-    // Copy only those command line arguments that are needed.
-    char **Arguments = new char*[n_JCLAs];
-    for (int i = 0; i < n_JCLAs; i++) {
-	Arguments[i] = JCLAs[i];
-    }
+	CLAs[n_JCLAs++]=token;
+	++startApplicationOptions; // found one that we do not recognize;
+				   // start to copy them all blindly
+    } // for()
 
     /* and set the count */
     JavaArgc = n_JCLAs;
-
-    return Arguments;
+    return CLAs;
 }
 
 /*
@@ -553,4 +583,17 @@ main(int argc, char **argv)
     exit(-1);
 }
 
+
+static bool 
+strequal(const char *s1, const char *s2)
+{
+    return strcmp(s1, s2) == 0;
+}
+
+
+static bool 
+strnequal(const char *s1, const char *s2, size_t n)
+{
+    return strncmp(s1, s2, n) == 0;
+}
 
