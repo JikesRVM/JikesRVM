@@ -10,8 +10,8 @@ import java.lang.ref.Reference;
 
 /**
  * A virtual machine.
- * Implements {@link VM_Uninterruptible} to suppress thread switching in {@link
- * boot()}.
+ * Implements {@link VM_Uninterruptible} to suppress thread switching in 
+ * the {@link VM#boot()} method.
  *
  * @author Derek Lieber (project start).
  * @date 21 Nov 1997 

@@ -61,7 +61,8 @@ import java.lang.reflect.*;
  *      creates and destroys virtual machines.
  * <li>Similarly, we can not attach and detach a native threads to and from
  *     the VM.
- * <li>We don't really free local refs when we call {@link PopLocalFrame()}
+ * <li>We don't really free local refs when we call the 
+ *      {@link #PopLocalFrame} method.
  * </ol>
  * @author Ton Ngo 
  * @author Steve Smith  
