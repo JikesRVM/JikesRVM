@@ -53,7 +53,8 @@
 
 %Define URLs
 %\newcommand{\RVMHomeURL}{http://www.ibm.com/developerworks/oss/jikesrvm}
-\newcommand{\RVMHomeURL}{http://\-www.ibm.com/\-de\-vel\-o\-per\-works/\-oss/\-jikes\-rvm}
+\newcommand{\dWossURL}{http://\-www.ibm.com/\-de\-vel\-o\-per\-works/\-oss}
+\newcommand{\RVMHomeURL}{\dWossURL/\-jikes\-rvm}
 \newcommand{\RVMBugURL}{{\RVMHomeURL}/so\-lu\-tions}
 \newcommand{\JalapenoHomeURL}{http://\-www.research.ibm.com/\-ja\-la\-pe\-no}
 \newcommand{\QandAURL}{{\RVMHomeURL}/\-info/\-overview.shtml}
@@ -65,9 +66,14 @@
 \newcommand{\RVMJavadocURL}{{\RVMHomeURL}/api}
 
 \newcommand{\RVMDownloadURL}{{\RVMHomeURL}/download}
-\newcommand{\RVMCVSURL}{\RVMDownloadURL}
+\newcommand{\RVMCVSURL}{\RVMHomeURL/cvsweb.html}
 %\newcommand{\RVMUserListURL}{{\RVMHomeURL}/info/users.shtml}
-\newcommand{\RVMResearcherMailingListURL}{{\RVMDownloadURL}}
+\newcommand{\RVMMailingListURL}{http://www.ibm.com/developerworks/oss/mailman/listinfo/}
+\newcommand{\RVMResearcherMailingListURL}{\RVMMailingListURL/jikesrvm-researchers}
+\newcommand{\RVMResearcherMailingListArchiveURL}{http://www-124.ibm.com/pipermail/jikesrvm-researchers}
+\newcommand{\RVMRegressionMailingListURL}{\RVMMailingListURL/jikesrvm-researchers}
+\newcommand{\RVMCoreMailingListURL}{\RVMMailingListURL/jikesrvm-core}
+\newcommand{\RVMAnnounceMailingListURL}{\RVMMailingListURL/jikesrvm-announce}
 %\newcommand{\RVMBugURL}{\RVMDownloadURL}
 %\newcommand{\RVMBugURL}{http://www-124.ibm.com/developerworks/bugs/?group\_id=95}
 \newcommand{\RVMContribURL}{{\RVMHomeURL}/info/contributions.shtml}
