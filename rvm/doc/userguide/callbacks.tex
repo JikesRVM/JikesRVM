@@ -11,7 +11,8 @@ The callbacks are accessed through the nested interfaces defined in the
 class.  There is one interface per event type.  To be notified
 of an event, register an instance of a class that implements the corresponding
 interface with {\tt VM\_Callbacks} by calling the corresponding {\tt add...()}
-method.  For example, to be notified \link{when a class is instantiated}[ (see section~\Ref)]{sssec:classLoading}, first implement the {\tt
+method.  For example, to be notified \link{when a class is
+instantiated}[ (see section~\Ref, page~\Pageref{})]{sssec:classLoading}, first implement the {\tt
 VM\_Callbacks.ClassInstantiatedMonitor} interface, and then call {\tt
 VM\_\-Call\-backs.add\-Class\-In\-stan\-ti\-a\-ted\-Mon\-i\-tor()} with an instance of your class.
 When any class is instantiated, the {\tt notifyClassInstantiated} method in
