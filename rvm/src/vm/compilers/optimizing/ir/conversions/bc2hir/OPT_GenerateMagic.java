@@ -562,6 +562,26 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_RegisterOperand reg = gc.temps.makeTempInt();
       bc2ir.appendInstruction(Move.create(INT_MOVE, reg, bc2ir.popAddress()));
       bc2ir.push(reg.copyD2U());
+
+    } else if (methodName == VM_MagicNames.wordToLong) {
+      if (VM.BuildFor32Addr) {
+        // This is a really crappy implementation.
+        // The theory is that this magic isn't going to be used anywhere we
+        // care about performance so we do something stupid here instead of
+        // making a new IR operator that we have to plumb all the way through the compiler.
+        OPT_RegisterOperand reg = gc.temps.makeTempInt();
+        OPT_RegisterOperand lreg = gc.temps.makeTempLong();
+        bc2ir.appendInstruction(Move.create(INT_MOVE, reg, bc2ir.popAddress()));
+        bc2ir.appendInstruction(Unary.create(INT_2LONG, lreg, reg.copyD2U()));
+        bc2ir.appendInstruction(Binary.create(LONG_AND, lreg.copyD2D(), lreg.copyD2U(),
+                                              new OPT_LongConstantOperand(0x00000000ffffffffL)));
+        bc2ir.pushDual(lreg.copyD2U());
+      } else {
+        // a no-op without even a type-conversion
+        OPT_RegisterOperand reg = gc.temps.makeTempLong();
+        bc2ir.appendInstruction(Move.create(LONG_MOVE, reg, bc2ir.popAddress()));
+        bc2ir.pushDual(reg.copyD2U());
+      }
     } else if (methodName == VM_MagicNames.wordToWord) {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Word);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
