@@ -181,7 +181,19 @@ public abstract class OPT_InlineTools implements OPT_Constants {
     return callee.hasNoInlinePragma();
   }
 
+  /**
+   *  This table is the list of classes of which some or all methods
+   * cannot be invalidated without breaking the virtual machine. These
+   * are, more-or-less, the set of classes crucial to the lazy
+   * compilation process.  If such classes are invalidated, then
+   * subsequent baseline compilation requires that these methods be
+   * recompiled first, which is rather a problem.
+   */
   private static final VM_Atom[] thirdRailClasses = new VM_Atom[]{
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/classloader/VM_Atom;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/classloader/VM_InterfaceMethodSignature;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/classloader/VM_MemberReference;"),
+    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/classloader/VM_TypeReference;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_InvalidationDatabase;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/VM_OptCompiledMethod;"),
     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Barriers;"),
