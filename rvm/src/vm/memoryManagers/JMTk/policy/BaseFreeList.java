@@ -166,12 +166,9 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
   private final VM_Address alloc(boolean isScalar, EXTENT bytes, boolean copy) 
     throws VM_PragmaInline {
     int sizeClass = getSizeClass(isScalar, bytes);
-    boolean large = isLarge(sizeClass);
-    boolean small = isSmall(sizeClass);
-    if (small) {
+    if (isSmall(sizeClass)) {
       VM_Address cell = allocCell(isScalar, sizeClass);
       if (!cell.isZero()) {
-	postAlloc(cell, isScalar, bytes, small, large, copy);
 	Memory.zeroSmall(cell, bytes);
 	return cell;
       }
@@ -192,7 +189,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
       if (count > 2) VM.sysFail("Out of memory in BaseFreeList.alloc");
     }
     postAlloc(cell, isScalar, bytes, small, large, copy);
-    Memory.zeroSmall(cell, bytes);
+    Memory.zero(cell, bytes);
     return cell;
   }
 
@@ -272,8 +269,7 @@ abstract class BaseFreeList implements Constants, VM_Uninterruptible {
     // take off free list
     VM_Address sp = head;
     VM_Address cell = getSuperPageFreeList(sp);
-    if (VM.VerifyAssertions)
-      VM._assert(sp.EQ(getSuperPage(cell, isSmall(sizeClass))));
+    if (VM.VerifyAssertions) VM._assert(sp.EQ(getSuperPage(cell, isSmall(sizeClass))));
     VM_Address next = getNextCell(cell);
     setSuperPageFreeList(sp, next);
     incInUse(sp);
