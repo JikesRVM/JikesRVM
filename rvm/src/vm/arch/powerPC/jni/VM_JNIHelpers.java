@@ -480,11 +480,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     // spill area offset
     VM_Address overflowarea = nativeFP.add(NATIVE_FRAME_HEADER_SIZE);
     
-    // -#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX
     //overflowarea is aligned to 8 bytes
     if (VM.VerifyAssertions) VM._assert((overflowarea.toInt() & 0x07) == 0);
     
-    // -#endif
+    //-#endif
     
     //adjust gpr and fpr to normal numbering, make life easier
     int gpr = (skip4Args) ? 7:6;       // r3 - env, r4 - cls, r5 - method id
@@ -550,11 +550,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     va_list_addr = va_list_addr.add(BYTES_IN_ADDRESS);
     VM_Address regsavearea = VM_Magic.getMemoryAddress(va_list_addr);
     
-    // -#if RVM_FOR_LINUX
+    //-#if RVM_FOR_LINUX
     //overflowarea is aligned to 8 bytes
     if (VM.VerifyAssertions) VM._assert((overflowarea.toInt() & 0x07) == 0);
     
-    // -#endif
+    //-#endif
     
     //adjust gpr and fpr to normal numbering, make life easier
     gpr += 3;
