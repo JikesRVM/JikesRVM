@@ -318,17 +318,7 @@ implements OPT_Operators {
           // remove frivolous moves
           OPT_Operand result = MIR_Move.getResult(inst);
           OPT_Operand val = MIR_Move.getValue(inst);
-          // SJF: for some unknown reason, the following code doesn't
-          // work. It appears that we're actually getting two different
-          // OPT_Register objects that both represent EAX.  How does this
-          // happen?  TODO: figure this out.
-          // if (result.similar(val)) {
-          //  inst = inst.remove();
-          // }
-          // In the meantime, use the following hack instead.
-          if (result.isRegister() && val.isRegister() &&
-              result.asRegister().register.number ==
-              val.asRegister().register.number) {
+          if (result.similar(val)) {
             inst = inst.remove();
           }
           break;
@@ -336,17 +326,7 @@ implements OPT_Operators {
           // remove frivolous moves
           result = MIR_Move.getResult(inst);
           val = MIR_Move.getValue(inst);
-          // SJF: for some unknown reason, the following code doesn't
-          // work. It appears that we're actually getting two different
-          // OPT_Register objects that both represent EAX.  How does this
-          // happen?  TODO: figure this out.
-          // if (result.similar(val)) {
-          //  inst = inst.remove();
-          // }
-          // In the meantime, use the following hack instead.
-          if (result.isRegister() && val.isRegister() &&
-              result.asRegister().register.number ==
-              val.asRegister().register.number) {
+          if (result.similar(val)) {
             inst = inst.remove();
           }
           break;
@@ -1445,14 +1425,6 @@ implements OPT_Operators {
       phys = getFirstDeadFPRNotUsedIn(r,s,reservedScratch);
     } else {
       phys = getFirstDeadGPRNotUsedIn(r,s,reservedScratch);
-    }
-    // The following is a horrendous hack.  For unknown reasons, applying this
-    // optimization to a boot image with assertions turned off causes the
-    // resultant image to crash.  TODO: come back and address this problem
-    // when jdp works and problems with building FastBase images are
-    // fixed.
-    if (VM.writingBootImage && !VM.VerifyAssertions) {
-      phys = null;
     }
 
     // if the version above failed, default to the dumber heuristics
