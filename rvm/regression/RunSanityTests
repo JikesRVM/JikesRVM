@@ -8,13 +8,14 @@
 #
 # Invocation: RunSanityTests [-help|...]
 #
+# @author Derek Lieber
+# @date 09 Mar 2000 
 #
-# 09 Mar 2000 Derek Lieber
-# modified by Steve Fink
-# modified by Mike Hind, June 2, 2000
-# modified by Peter F. Sweeney
+# @modified by Steve Fink
+# @modified by Mike Hind, June 2, 2000
+# @modified by Peter F. Sweeney
 #     Passes the correct runtime arguments to adaptive and nonadaptive systems.
-# modified by Julian Dolby (9/27/01)
+# @modified by Julian Dolby (9/27/01)
 #     heavily rewritten
 
 # sigh

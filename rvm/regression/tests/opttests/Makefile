@@ -1,6 +1,12 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+#
+# $Id$
+#
+# @author Julian Dolby
+#
+
 ALL_TESTS	= fibo tak_int tak_long tak_fp tak_db table TestLookupSwitch \
 	  DeBruijn hello virtual sieve hanoi logic unresolved stPutGet \
 	  virtUnPutGet virtUnresolved interf CheckStore \

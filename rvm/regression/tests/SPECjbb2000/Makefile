@@ -1,6 +1,10 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
+#
+# @author Julian Dolby
+
 include		$(RVM_BUILD)/Make.rules
  
 BENCH_NAME=SPECjbb2000

@@ -1,6 +1,10 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
+#
+# @author Julian Dolby
+#
 BEGIN { 
     yes = "yes"
     no = "no"

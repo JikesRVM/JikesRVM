@@ -3,6 +3,8 @@
 # (C) Copyright IBM Corp. 2001
 #
 # $Id$
+#
+# @author Julian Dolby
 
 # do nothing by default
 NOBUILD=

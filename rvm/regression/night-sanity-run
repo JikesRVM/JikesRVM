@@ -3,6 +3,8 @@
 # (C) Copyright IBM Corp. 2001
 #
 # $Id$
+#
+# @author Julian Dolby
 
 # This script will run sanity and performance tests.  
 # It assumes the boot images have 

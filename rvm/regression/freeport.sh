@@ -1,4 +1,10 @@
 #!/bin/sh
+#
+# (C) Copyright IBM Corp. 2001
+#
+# $Id$
+#
+# @author Julian Dolby
 
 if [ $# != 0 ]; then
     SKIP=$1

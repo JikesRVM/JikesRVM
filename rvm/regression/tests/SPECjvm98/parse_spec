@@ -1,11 +1,14 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
+#
+# @author Stephen Fink
+#
 
 # This script extracts the best running time from a
 # SPEC output file called "tmp"
-#
-# author: Stephen Fink
+
 eval "exec perl $0 $*"
 	if 0;
 open(INPUT,"tmp");
