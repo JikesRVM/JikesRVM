@@ -207,8 +207,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
       // start scan using fp & ip in threads saved context registers
       ip = t.contextRegisters.getInnermostInstructionAddress();
       fp = t.contextRegisters.getInnermostFramePointer();
-    }
-    else {
+    } else {
       prevFp = top_frame;
       // start scan at caller of passed in fp
       ip = VM_Magic.getReturnAddress(top_frame);
@@ -263,7 +262,7 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	int compiledMethodType = compiledMethod.getCompilerType();
 
 	if (DUMP_STACK >= 1) 
-	    printMethodHeader(compiledMethod, fp, ip);
+	  printMethodHeader(compiledMethod, fp, ip);
 
 	if (compiledMethodType == VM_CompiledMethod.TRAP) {
 	  ip = VM_Magic.getReturnAddress(fp);
@@ -272,8 +271,35 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	}
 
 	// initialize MapIterator for this frame
-	VM_Address codeBase = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-	int offset = ip.diff(codeBase).toInt();
+	INSTRUCTION[] codeArray = compiledMethod.getInstructions();
+	int offset = ip.diff(VM_Magic.objectAsAddress(codeArray)).toInt();
+	if (compiledMethodType != VM_CompiledMethod.JNI) {
+	  int possibleLen = codeArray.length << LG_INSTRUCTION_WIDTH;
+	  if (offset < 0 || possibleLen < offset) {
+	    // We have an invalid offset
+	    if (offset < 0) {
+	      VM.sysWriteln("ScanThread: computed instruction offset is negative ", offset);
+	    } else {
+	      VM.sysWriteln("ScanThread: computed instruction offset is too big");
+	      VM.sysWriteln("\toffset is", offset, " bytes of machine code for method ",possibleLen);
+	    }
+	    VM.sysWrite("\tSupposed method: ");
+	    VM.sysWrite(method);
+	    VM.sysWriteln("\n\tBase of its code array", VM_Magic.objectAsAddress(codeArray));
+	    VM_Address ra = VM_Magic.objectAsAddress(codeArray).add(offset);
+	    VM.sysWriteln("\tCalculated actual return address is ", ra);
+	    VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(ra);
+	    if (realCM == null) {
+	      VM.sysWriteln("\tUnable to find compiled method corresponding to this return address");
+	    } else {
+	      VM.sysWrite("\tFound compiled method ");
+	      VM.sysWrite(realCM.getMethod());
+	      VM.sysWriteln(" whose code contains this return address");
+	    }
+	    VM.sysWriteln("Attempting to dump suspect stack and then exit\n");
+	    VM_Scheduler.dumpStackAndDie(top_frame);
+	  }
+	}
 	VM_GCMapIterator iterator = iteratorGroup.selectIterator(compiledMethod);
 	iterator.setupIterator(compiledMethod, offset, fp);
 	
@@ -326,34 +352,33 @@ public class ScanThread implements VM_Constants, Constants, VM_Uninterruptible {
 	VM_Address code = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
 
 	if (prevFp.isZero()) {
-	    // top-most stack frame, ip saved in threads context regs
-	    if (DUMP_STACK >= 2) {
-		VM.sysWriteln(" t.contextRegisters.ip    = ", t.contextRegisters.ip);
-		VM.sysWriteln("*t.contextRegisters.iploc = ", 
-			      VM_Magic.getMemoryAddress(t.contextRegisters.getIPLocation()));
-	    }
-	    if (compiledMethodType != VM_CompiledMethod.JNI)
-		codeLocationsPush(codeLocations, code, t.contextRegisters.getIPLocation(), 2, t);
-	    else {
-		if (DUMP_STACK >= 3)
-		    VM.sysWriteln("GC Warning: SKIPPING return address for JNI code");
-	    }
-	}
-	else {
-	    VM_Address returnAddressLoc = VM_Magic.getReturnAddressLocation(prevFp);
-	    VM_Address returnAddress = VM_Magic.getMemoryAddress(returnAddressLoc);
+	  // top-most stack frame, ip saved in threads context regs
+	  if (DUMP_STACK >= 2) {
+	    VM.sysWriteln(" t.contextRegisters.ip    = ", t.contextRegisters.ip);
+	    VM.sysWriteln("*t.contextRegisters.iploc = ", 
+			  VM_Magic.getMemoryAddress(t.contextRegisters.getIPLocation()));
+	  }
+	  if (compiledMethodType != VM_CompiledMethod.JNI) {
+	    codeLocationsPush(codeLocations, code, t.contextRegisters.getIPLocation(), 2, t);
+	  } else {
 	    if (DUMP_STACK >= 3)
-		VM.sysWriteln("--- Processing return address ", returnAddress,
-			      " located at ", returnAddressLoc);
-	    if (!Util.addrInBootImage(returnAddress))
-		codeLocationsPush(codeLocations, code, returnAddressLoc, 3, t);
+	      VM.sysWriteln("GC Warning: SKIPPING return address for JNI code");
+	  }
+	} else {
+	  VM_Address returnAddressLoc = VM_Magic.getReturnAddressLocation(prevFp);
+	  VM_Address returnAddress = VM_Magic.getMemoryAddress(returnAddressLoc);
+	  if (DUMP_STACK >= 3)
+	    VM.sysWriteln("--- Processing return address ", returnAddress,
+			  " located at ", returnAddressLoc);
+	  if (!Util.addrInBootImage(returnAddress))
+	    codeLocationsPush(codeLocations, code, returnAddressLoc, 3, t);
 	}
 	
 	// scan for internal code pointers in the stack frame and relocate
 	iterator.reset();
 	for (VM_Address retaddrLoc = iterator.getNextReturnAddressAddress();  !retaddrLoc.isZero();
 	     retaddrLoc = iterator.getNextReturnAddressAddress()) {
-	    codeLocationsPush(codeLocations, code, retaddrLoc, 4, t);
+	  codeLocationsPush(codeLocations, code, retaddrLoc, 4, t);
 	}
       }
       
