@@ -146,7 +146,7 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
       // Heap size is going to change
       currentHeapSize = (int) newSize;
       if (Options.verbose >= 2) { 
-	Log.write("Heap changed from "); Log.write((int) (oldSize / 1024)); 
+	Log.write("GC Message: Heap changed from "); Log.write((int) (oldSize / 1024)); 
 	Log.write("KB to "); Log.write((int) (newSize / 1024)); 
 	Log.writeln("KB"); 
       } 
