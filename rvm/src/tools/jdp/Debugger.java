@@ -756,7 +756,7 @@ class Debugger implements jdpConstants {
     }
 
     else {
-      jdp_console.writeOutput("Command not implemented. Please use help to see list of commands");
+      jdp_console.writeOutput("Sorry, you've specified an unknown command. Please use help to see the list of known commands");
     }
     return false;
 
@@ -2259,7 +2259,7 @@ class Debugger implements jdpConstants {
       ret.append("x2d, d2x      convert number between hex and decimal\n");
       ret.append("(enter)       repeat last command\n\n");
       
-      ret.append("To get more information on a specific command, type: \n \thelp thiscommand\n");
+      ret.append("To get more information on a specific command including what arguments it can process, type: \n \thelp thiscommand\n");
 
     }
     jdp_console.writeOutput(ret.toString());
