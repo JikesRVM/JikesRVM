@@ -61,6 +61,7 @@ import com.ibm.JikesRVM.VM_Synchronization;
  * @author Derek Lieber
  * @author Bowen Alpern 
  * @author Stephen Smith
+ * @modified Perry Cheng
  */ 
 public class VM_CollectorThread extends VM_Thread {
 					//  implements VM_GCConstants 
@@ -139,20 +140,6 @@ public class VM_CollectorThread extends VM_Thread {
   }
 
 
-  // FOLLOWING NO LONGER TRUE... we now scan the stack frame for the run method,
-  // so references will get updated, and "getThis" should not be necessary.
-  // 
-  // The gc algorithm currently doesn't scan collector stacks, so we cannot use
-  // local variables (eg. "this"). This method is a temporary workaround
-  // until gc scans gc stacks too. Eventually we should be able to
-  // replace "getThis()" with "this" and everything should work ok.
-  //
-  // Use this to access all instance variables:
-  //
-  private static VM_CollectorThread  getThis() throws VM_PragmaUninterruptible {
-    return VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
-  }
-  
   // overrides VM_Thread.toString
   public String toString() throws VM_PragmaUninterruptible {
     return "VM_CollectorThread";
@@ -213,11 +200,6 @@ public class VM_CollectorThread extends VM_Thread {
       
       if (trace >= 2) VM.sysWriteln("GC Message: VM_CT.run waking up");
 
-      // record time it took to stop mutators on this processor and get this
-      // collector thread dispatched
-      //
-      if (MEASURE_WAIT_TIMES) stoppingTime = 0;
-      
       gcOrdinal = VM_Synchronization.fetchAndAdd(participantCount, 0, 1) + 1;
       
       if (trace > 2)
@@ -267,12 +249,12 @@ public class VM_CollectorThread extends VM_Thread {
       gcBarrier.startupRendezvous();
 
       if (trace >= 2) VM.sysWriteln("GC Message: VM_CT.run  starting collection");
-      if (getThis().isActive) 
+      if (isActive) 
 	VM_Interface.getPlan().collect();     // gc
       if (trace >= 2) VM.sysWriteln("GC Message: VM_CT.run  finished collection");
       
       // wait for other collector threads to arrive here
-      rendezvousWaitTime += gcBarrier.rendezvous(5200);
+      gcBarrier.rendezvous(5200);
       
       // Wake up mutators waiting for this gc cycle and create new collection
       // handshake object to be used for next gc cycle.
@@ -298,7 +280,7 @@ public class VM_CollectorThread extends VM_Thread {
       } 
       
       // wait for other collector threads to arrive here
-      rendezvousWaitTime += gcBarrier.rendezvous(5210);
+      gcBarrier.rendezvous(5210);
       if (trace > 2) VM.sysWriteln("VM_CollectorThread: past rendezvous 1 after collection");
 
       // final cleanup for initial collector thread
@@ -484,8 +466,8 @@ public class VM_CollectorThread extends VM_Thread {
     return new VM_CollectorThread(stack, false,  processorAffinity);
   }
 
-  public void rendezvous(int where) throws VM_PragmaUninterruptible {
-      rendezvousWaitTime += gcBarrier.rendezvous(where);
+  public int rendezvous(int where) throws VM_PragmaUninterruptible {
+    return gcBarrier.rendezvous(where);
   }
   
   //-----------------//
@@ -533,10 +515,6 @@ public class VM_CollectorThread extends VM_Thread {
   
   int timeInRendezvous;       // time waiting in rendezvous (milliseconds)
   
-  double stoppingTime;        // mutator stopping time - until enter Rendezvous 1
-  double startingTime;        // time leaving Rendezvous 1
-  double rendezvousWaitTime;  // accumulated wait time in GC Rendezvous's
-
   // for measuring load balancing of work queues
   //
   public int copyCount;              // for saving count of objects copied
@@ -563,7 +541,6 @@ public class VM_CollectorThread extends VM_Thread {
 
   public double totalBufferWait;      // total time waiting for get buffers
   public double totalFinishWait;      // total time waiting for no more buffers
-  public double totalRendezvousWait;  // total time waiting for no more buffers
 
   // constructor
   //
@@ -590,7 +567,6 @@ public class VM_CollectorThread extends VM_Thread {
   public void incrementWaitTimeTotals() throws VM_PragmaUninterruptible {
     totalBufferWait += bufferWaitTime + bufferWaitTime1;
     totalFinishWait += finishWaitTime + finishWaitTime1;
-    totalRendezvousWait += rendezvousWaitTime;
   }
 
   public void resetWaitTimers() throws VM_PragmaUninterruptible {
@@ -598,20 +574,14 @@ public class VM_CollectorThread extends VM_Thread {
     bufferWaitTime1 = 0.0;
     finishWaitTime = 0.0;
     finishWaitTime1 = 0.0;
-    rendezvousWaitTime = 0.0;
   }
 
   public static void printThreadWaitTimes() throws VM_PragmaUninterruptible {
-    VM_CollectorThread ct;
 
     VM.sysWrite("*** Collector Thread Wait Times (in micro-secs)\n");
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
-      ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.processors[i].activeThread );
+      VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.processors[i].activeThread );
       VM.sysWrite(i);
-      VM.sysWrite(" stop ");
-      VM.sysWrite(ct.stoppingTime * 1000000.0);
-      VM.sysWrite(" start ");
-      VM.sysWrite(ct.startingTime * 1000000.0);
       VM.sysWrite(" SBW ");
       if (ct.bufferWaitCount1 > 0)
 	VM.sysWrite(ct.bufferWaitCount1-1);  // subtract finish wait
@@ -630,14 +600,8 @@ public class VM_CollectorThread extends VM_Thread {
       VM.sysWrite(ct.bufferWaitTime*1000000.0);
       VM.sysWrite(" FFWT ");
       VM.sysWrite(ct.finishWaitTime*1000000.0);
-      VM.sysWrite(" RWT ");
-      VM.sysWrite(ct.rendezvousWaitTime*1000000.0);
       VM.sysWriteln();
 
-      ct.stoppingTime = 0.0;
-      ct.startingTime = 0.0;
-      ct.rendezvousWaitTime = 0.0;
-      // WorkQueue.resetWaitTimes(ct);
     }
   }
 }
