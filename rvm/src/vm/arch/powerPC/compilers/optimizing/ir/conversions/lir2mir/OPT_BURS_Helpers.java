@@ -1480,7 +1480,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(MIR_Move.mutate(s, PPC_MOVE, def, I(srcLow)));
     //-#endif
     //-#if RVM_FOR_64_ADDR
-    EMIT(MIR_Unary.create(PPC_MOVE, def, left)); 
+    EMIT(MIR_Move.create(PPC_MOVE, def, left)); 
     //-#endif
   }
 
