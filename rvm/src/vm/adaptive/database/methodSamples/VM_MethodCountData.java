@@ -121,13 +121,18 @@ public final class VM_MethodCountData
 		" times counted (undecayed  "+undecayedTotalCountsTaken+")\n");
     for (int i=1; i<nextIndex; i++) {
       double percent = 100 * countsToHotness(counts[i]);
-      VM_Method m = VM_CompiledMethods.getCompiledMethod(cmids[i]).getMethod();
-      VM.sysWrite(counts[i] + " ("+percent+"%) "+m+"\n");
-      if (m.getDeclaringClass().isInBootImage()) {
-	VM.sysWrite(" BOOT\n");
-      } else {
-	VM.sysWrite("\n");
+      VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmids[i]);
+      VM.sysWrite(counts[i] + " ("+percent+"%) ");
+      if ( cm == null )
+        VM.sysWrite("OBSOLETE");		// Compiled Method Obsolete
+      else {
+        VM_Method m = cm.getMethod();
+        VM.sysWrite(m);
+        if (m.getDeclaringClass().isInBootImage()) {
+	  VM.sysWrite("\n\tBOOT");
+        }
       }
+      VM.sysWrite("\n");
     }    
   }
 
@@ -348,13 +353,21 @@ public final class VM_MethodCountData
     if (index < nextIndex) {
       if (counts[index] > threshold) {
 	int cmid = cmids[index];
-	VM_CompilerInfo info = 
-	  VM_CompiledMethods.getCompiledMethod(cmid).getCompilerInfo();
-	int compilerType = info.getCompilerType();
-	if (compilerType == VM_CompilerInfo.OPT && 
-	    ((VM_OptCompilerInfo)info).getOptLevel() == optLevel) {
-	  double ns = numCountsForModel(counts[index]);
-	  collect.add(new VM_HotMethodRecompilationEvent(cmid, ns));
+	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+	if ( cm == null ) {			// obsolete and deleted
+	  reset(cmid);				// free up this slot
+	  // Visit new one in the slot
+	  collectHotOptNMethodsInternal(index, collect, threshold, optLevel);
+	  return;
+	}
+	else {
+	  VM_CompilerInfo info = cm.getCompilerInfo();
+	  int compilerType = info.getCompilerType();
+	  if (compilerType == VM_CompilerInfo.OPT && 
+	      ((VM_OptCompilerInfo)info).getOptLevel() == optLevel) {
+	    double ns = numCountsForModel(counts[index]);
+	    collect.add(new VM_HotMethodRecompilationEvent(cmid, ns));
+	  }
 	}
 	
 	// Since I was hot enough, also consider my children.
@@ -498,7 +511,6 @@ public final class VM_MethodCountData
       }
       for (int i=1; i<nextIndex; i++) {
 	VM.assert(map[cmids[i]] == i);
-	VM.assert(VM_CompiledMethods.getCompiledMethod(cmids[i]) != null);
       }
 
       // Verify that heap property holds on data.

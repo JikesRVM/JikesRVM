@@ -94,24 +94,25 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
       int cmid = samples[i];
       double ns = VM_Controller.methodSamples.getData(cmid);
       if (ns > 3.0) {
-	VM_CompilerInfo info = 
-	  VM_CompiledMethods.getCompiledMethod(cmid).getCompilerInfo();
-	int compilerType = info.getCompilerType();
+	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+	if ( cm != null ) {		// not already recompiled
+	  VM_CompilerInfo info = cm.getCompilerInfo();
+	  int compilerType = info.getCompilerType();
 
-	// Enqueue it unless it's either a trap method or already opt compiled
-	// at filterOptLevel or higher.
-	if (!(compilerType == VM_CompilerInfo.TRAP ||
-	      (compilerType == VM_CompilerInfo.OPT && 
-	       (((VM_OptCompilerInfo)info).getOptLevel() >= filterOptLevel)))) {
-	  VM_HotMethodRecompilationEvent event = 
-	    new VM_HotMethodRecompilationEvent(cmid, ns);
-	  if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
-	    if (VM.LogAOSEvents) {
-	      VM_CompiledMethod m = VM_CompiledMethods.getCompiledMethod(cmid);
-	      VM_AOSLogging.controllerNotifiedForHotness(m, ns);
+	  // Enqueue it unless it's either a trap method or already opt
+	  // compiled at filterOptLevel or higher.
+	  if (!(compilerType == VM_CompilerInfo.TRAP ||
+	        (compilerType == VM_CompilerInfo.OPT && 
+	         (((VM_OptCompilerInfo)info).getOptLevel() >= filterOptLevel)))) {
+	    VM_HotMethodRecompilationEvent event = 
+	      new VM_HotMethodRecompilationEvent(cmid, ns);
+	    if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
+	      if (VM.LogAOSEvents) {
+	        VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
+	      }
+	    } else {
+	      if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
 	    }
-	  } else {
-	    if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
 	  }
 	}
       }
