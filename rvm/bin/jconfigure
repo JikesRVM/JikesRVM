@@ -1198,6 +1198,16 @@ function emitCopier
    print 'fi'
    print ''
 
+<<<<<<< jconfigure
+   if test $RVM_WITH_GNU_CLASSPATH -eq 1 -a -d $CLASSPATH_SRC/; then
+     if (( RVM_FOR_IA32 )); then
+       print "cp -f $CLASSPATH_SRC/../i686/native/jni/*/.libs/*.so $BUILD_DIRECTORY_STR"
+     else
+       print "cp -f $CLASSPATH_SRC/../aix/native/jni/*/.libs/*.so $BUILD_DIRECTORY_STR"
+     fi
+     print "\nprint -n '(classpath native libraries copied) '"
+     print "cp -f $CLASSPATH_SRC/lib/glibj.zip $CLASSES_DIRECTORY_STR/rvmrt.jar"
+=======
    if test $RVM_WITH_GNU_CLASSPATH -eq 1; then
      if [[ x$CLASSPATH_SRC = x ]]; then
        CPS=$RVM_ROOT/classpath
@@ -1216,6 +1226,7 @@ function emitCopier
        print "\nprint -n '(classpath native libraries copied) '"
        print "cp -f $CPS/i686/lib/glibj.zip $CLASSES_DIRECTORY_STR/rvmrt.jar"
      fi
+>>>>>>> 1.144
    else
      print "cp -f $ROOT_DIRECTORY_STR/support/lib/classpath.jar $CLASSES_DIRECTORY_STR/rvmrt.jar"
    fi
@@ -2208,7 +2219,7 @@ if (( ! BUILD_RVMRT_JAR )); then
  else
   . $RVM_HOST_CONFIG
   if [[ x$CLASSPATH_SRC = x ]]; then
-    $RVM_ROOT/rvm/bin/jBuildClasspathJar --current --full-build --check --destination $RVM_ROOT/classpath
+    $RVM_ROOT/rvm/bin/jBuildClasspathJar --current --full-build --check --destination $RVM_ROOT/classpath --datespec "2003-01-14 12:00 EST"
   fi
  fi
 fi
