@@ -1479,6 +1479,10 @@ EOF
    echo "   echo 'com/ibm/JikesRVM/MainThread' >> ${PRIMORDIAL_CLASSES_STR}.1"
    echo "   echo 'com/ibm/JikesRVM/DebuggerThread' >> ${PRIMORDIAL_CLASSES_STR}.1"
 
+   # Classes needed for OutOfMemory servicing which we can't afford to load when we are actually out of memory
+   echo "   echo 'com/ibm/JikesRVM/PrintLN' >> ${PRIMORDIAL_CLASSES_STR}.1"
+   echo "   echo 'com/ibm/JikesRVM/PrintContainer' >> ${PRIMORDIAL_CLASSES_STR}.1"
+
    # fundamental java classes
    #
    echo "   echo 'java/lang/Class'           >> ${PRIMORDIAL_CLASSES_STR}.1"
