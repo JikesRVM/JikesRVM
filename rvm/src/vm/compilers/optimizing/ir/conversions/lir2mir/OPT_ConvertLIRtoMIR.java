@@ -120,12 +120,12 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	  }
 	  break;
 
-	case GET_IMPLEMENTS_TRITS_FROM_TIB_opcode:
+	case GET_DOES_IMPLEMENT_FROM_TIB_opcode:
 	  {
 	    // TODO: Valid location operand?
 	    Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
 			Unary.getClearVal(s), 
-			I(TIB_IMPLEMENTS_TRITS_INDEX << 2), null);
+			I(TIB_DOES_IMPLEMENT_INDEX << 2), null);
 	  }
 	  break;
 

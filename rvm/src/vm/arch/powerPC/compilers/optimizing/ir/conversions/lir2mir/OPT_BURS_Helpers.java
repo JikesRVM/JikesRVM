@@ -1566,6 +1566,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 	}
       }
       break;
+
     default:
       throw new OPT_OptimizingCompilerException("Unexpected case of trap_if"+s);
     }
@@ -1601,7 +1602,14 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
       {
 	burs.append(MIR_Trap.mutate(s, PPC_TWI, gRes, 
 				    OPT_PowerPCTrapOperand.ALWAYS(),
-				    R(12), I(0), tc));
+				    R(12), I(VM_TrapConstants.CHECKCAST_TRAP & 0xffff), tc));
+      }
+      break;
+    case VM_Runtime.TRAP_MUST_IMPLEMENT:
+      {
+	burs.append(MIR_Trap.mutate(s, PPC_TWI, gRes, 
+				    OPT_PowerPCTrapOperand.ALWAYS(),
+				    R(12), I(VM_TrapConstants.MUST_IMPLEMENT_TRAP & 0xffff), tc));
       }
       break;
     default:

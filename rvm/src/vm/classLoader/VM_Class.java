@@ -1208,7 +1208,7 @@ public class VM_Class extends VM_Type
     typeInformationBlock[0] = this;
     if (VM.BuildForFastDynamicTypeCheck) {
       typeInformationBlock[TIB_SUPERCLASS_IDS_INDEX] = VM_DynamicTypeCheck.buildSuperclassIds(this);
-      typeInformationBlock[TIB_IMPLEMENTS_TRITS_INDEX] = VM_DynamicTypeCheck.buildImplementsTrits(this);
+      typeInformationBlock[TIB_DOES_IMPLEMENT_INDEX] = VM_DynamicTypeCheck.buildDoesImplement(this);
       // element type for arrays (empty for classes)
     }
 
@@ -1378,6 +1378,8 @@ public class VM_Class extends VM_Type
         VM_Statics.setSlotContents(method.getOffset() >> 2, 
                                    getInitialInstructions(method));
     }
+
+    VM_InterfaceInvocation.initializeDispatchStructures(this);
 
     if (VM.writingBootImage) { 
       // host jvm will initialize this class as side effect of building
@@ -1596,12 +1598,10 @@ public class VM_Class extends VM_Type
    * class tib then reset its tib slot to point to a newly-compiled
    * version of the method (if lazy compilation is off) or the lazy
    * compilation stub.
-   * Also scan the IMT for cm and reset it if necessary.
    */
   void resetTIBEntry(VM_CompiledMethod cm) {
     resetTIBEntry(cm, getInitialInstructions(cm));
   }
-
   synchronized void resetTIBEntry(VM_CompiledMethod cm, INSTRUCTION[] code) {
     if (VM.VerifyAssertions) VM.assert(isResolved());
     VM_Method m = cm.getMethod();
@@ -1609,43 +1609,10 @@ public class VM_Class extends VM_Type
       VM.assert(!m.isStatic() && !m.isObjectInitializer() && 
                 !m.isClassInitializer());
     int offset = m.getOffset() >>> 2;
-    if (typeInformationBlock[offset] == cm.getInstructions())
+    if (typeInformationBlock[offset] == cm.getInstructions()) {
       typeInformationBlock[offset] = code;
-
-    if (VM.BuildForIMTInterfaceInvocation) {
-      if (VM.BuildForIndirectIMT) {
-        INSTRUCTION[][] IMT = (INSTRUCTION[][])
-	  typeInformationBlock[TIB_IMT_TIB_INDEX];
-        if (IMT != null) {
-          for (int i=0; i<IMT.length; i++) {
-            if (IMT[i] == cm.getInstructions()) {
-              IMT[i] = code;
-            }
-          }
-        }
-      } else {
-        for (int i = TIB_FIRST_INTERFACE_METHOD_INDEX; 
-             i < TIB_FIRST_VIRTUAL_METHOD_INDEX; i++) {
-          if (typeInformationBlock[i] == cm.getInstructions()) {
-            typeInformationBlock[i] = code;
-          }
-        }
-      } 
-    } else if (VM.BuildForITableInterfaceInvocation) {
-      Object[] iTables = (Object[])typeInformationBlock[TIB_ITABLES_TIB_INDEX];
-      if (iTables != null) {
-        for (int i=0; i<iTables.length; i++) {
-          Object[] iTable = (Object[])iTables[i];
-          if (iTable != null) {
-            for (int j=0; j<iTable.length; j++) {
-              if (iTable[j] == cm.getInstructions()) {
-                iTable[j] = code;
-              }
-            }
-          }
-        }
-      }
     }
+    VM_InterfaceInvocation.resetTIBEntry(this, cm, code);
   }
 
   /**
@@ -1653,7 +1620,7 @@ public class VM_Class extends VM_Type
    * instruction array
    */
   synchronized void resetTIBEntry(VM_Method m) {
-    resetTIBEntry( m, m.getMostRecentlyGeneratedInstructions() );
+    resetTIBEntry(m, m.getMostRecentlyGeneratedInstructions());
   }
 
   synchronized void resetTIBEntry(VM_Method m, INSTRUCTION[] code) {
@@ -1663,44 +1630,7 @@ public class VM_Class extends VM_Type
                 !m.isClassInitializer());
     int offset = m.getOffset() >>> 2;
     typeInformationBlock[offset] = code;
-    if (VM.BuildForIMTInterfaceInvocation && IMTslotLists != null) {
-      if (VM.BuildForIndirectIMT) {
-        INSTRUCTION[][] IMT = (INSTRUCTION[][])typeInformationBlock[
-								    TIB_IMT_TIB_INDEX];
-        if (IMT != null) {
-          for (int i = 0; i < IMT_METHOD_SLOTS; i++) {
-            if (getIMTslotPopulation(i) == 1 && IMTslotLists[i].method == m) {
-              IMT[i] = code;
-            }
-          }
-        }
-      } else {
-        for (int i = 0; i < IMT_METHOD_SLOTS; i++) {
-          if (getIMTslotPopulation(i) == 1 && IMTslotLists[i].method == m) {
-            typeInformationBlock[i+TIB_FIRST_INTERFACE_METHOD_INDEX] = code;
-          }
-        }
-      }
-    } else if (VM.BuildForITableInterfaceInvocation) {
-      if (typeInformationBlock[TIB_ITABLES_TIB_INDEX] != null) {
-        Object[] iTables = (Object[])typeInformationBlock[
-							  TIB_ITABLES_TIB_INDEX];
-        for (int i=0; i<iTables.length; i++) {
-          Object[] iTable = (Object[])iTables[i];
-          if (iTable != null) {
-            VM_Class I = (VM_Class)iTable[0];
-            VM_Method [] interfaceMethods = I.getDeclaredMethods();
-            for (int j=0; j<interfaceMethods.length; j++) {
-              VM_Method im = interfaceMethods[j];
-              if (im.getName() == m.getName() && 
-                  im.getDescriptor() == m.getDescriptor()) {
-                iTable[I.getITableIndex(im)] = code;
-              }
-            }
-          }
-        }
-      }
-    }
+    VM_InterfaceInvocation.resetTIBEntry(this, m, code);
   }
 
   /**
@@ -1795,77 +1725,39 @@ public class VM_Class extends VM_Type
 
   private static final Object interfaceCountLock = new VM_Synchronizer();
   private static int          interfaceCount     = 0;
+  private static VM_Class[]   interfaces         = new VM_Class[100];
   private int                 interfaceId        = -1; 
+  VM_Method[]                 noIMTConflictMap; // used by VM_InterfaceInvocation to support resetTIB
 
   /**
-   * Track with interface method signatures are found in each slot.
-   * (Only needed if VM.BuildForIMTInterfaceInvocation).
-   * Each slot list is kept sorted in ascending order of signatureId.
-   */ 
-  VM_InterfaceMethodSignature.Link [] IMTslotLists;
-
-  static int getInterfaceCount () {
-    return interfaceCount;
-  }
-
-  /**
-   * VM_Classes used as Interfaces get assigned an interface id
-   *   if the class is not an interface, attempting to use this
+   * VM_Classes used as Interfaces get assigned an interface id.
+   *   If the class is not an interface, attempting to use this
    *   id will cause an IncompatibleClassChangeError to be thrown
    */ 
   int getInterfaceId () {
     if (interfaceId == -1) {
       synchronized (interfaceCountLock) {
 	interfaceId = interfaceCount++;
+	if (interfaceId == interfaces.length) {
+	  VM_Class[] tmp = new VM_Class[interfaces.length*2];
+	  System.arraycopy(interfaces, 0, tmp, 0, interfaces.length);
+	  interfaces = tmp;
+	}
+	interfaces[interfaceId] = this;
       }
     }
     return interfaceId;
   }
 
-  /**
-   * Return the index of the interface method m in the itable
-   */
-  int getITableIndex(VM_Method m) {
-    if (VM.VerifyAssertions) VM.assert(VM.BuildForITableInterfaceInvocation);
-    if (VM.VerifyAssertions) VM.assert(isLoaded() && isInterface());
-    for (int i=0; i<declaredMethods.length; i++) {
-      if (declaredMethods[i] == m) return i+1;
-    }
-    return -1;
+  int getDoesImplementIndex() {
+    return getInterfaceId() >>> 5;
   }
 
-  /**
-   * Add an element to the specified IMS list.
-   * We maintain the lists sorted in ascending order of signatureId to support
-   * generation of binary-search based conflict resolution stubs.
-   */
-  void addIMTslotElement(int index, int id, VM_Method vm) {
-    VM_InterfaceMethodSignature.Link p = IMTslotLists[index];
-    if (p == null || p.signatureId > id) {
-      IMTslotLists[index] = new VM_InterfaceMethodSignature.Link(id, vm, p);
-    } else {
-      VM_InterfaceMethodSignature.Link q = p;
-      while (p != null && p.signatureId < id) {
-	q = p;
-	p = p.next;
-      }
-      q.next = new VM_InterfaceMethodSignature.Link(id, vm, p);
-    }
+  int getDoesImplementBitMask() {
+    return 1 << (getInterfaceId() & 31);
   }
 
-  /**
-   * Return the number of interface signatures assigned to the specified 
-   * IMTSlot.
-   */
-  int getIMTslotPopulation(int index) {
-    if (IMTslotLists == null) return 0;
-    VM_InterfaceMethodSignature.Link p = IMTslotLists[index];
-    int count = 0;
-    while (p != null) {
-      count++;
-      p = p.next;
-    }
-    return count;
+  static VM_Class getInterface(int id) {
+    return interfaces[id];
   }
-
 }

@@ -311,11 +311,11 @@
   /**
    * all arrays are Cloneable, needed for type checking
    */
-  static VM_Type JavaLangCloneableType; 
+  static VM_Class JavaLangCloneableType; 
   /**
    * all arrays are Serializable, needed for type checking
    */
-  static VM_Type JavaIoSerializableType; 
+  static VM_Class JavaIoSerializableType; 
   /**
    * type used to extend java semantics for vm implementation
    */
@@ -382,20 +382,11 @@
   }
 
   /**
-   * get implements trits vector (@see VM_DynamicTypeCheck)
+   * get doesImplement vector (@see VM_DynamicTypeCheck)
    */ 
-  final byte[] getImplementsTrits () {
+  final int[] getDoesImplement () {
     if (VM.VerifyAssertions) VM.assert(VM.BuildForFastDynamicTypeCheck);
-    return VM_Magic.objectAsByteArray(getTypeInformationBlock()
-                                      [VM.TIB_IMPLEMENTS_TRITS_INDEX]);
-  }
-
-  /**
-   * set implements trits vector (@see VM_DynamicTypeCheck)
-   */ 
-  final void setImplementsTrits (byte[] it) {
-    if (VM.VerifyAssertions) VM.assert(VM.BuildForFastDynamicTypeCheck);
-    getTypeInformationBlock()[VM.TIB_IMPLEMENTS_TRITS_INDEX] = it;
+    return VM_Magic.objectAsIntArray(getTypeInformationBlock()[VM.TIB_DOES_IMPLEMENT_INDEX]);
   }
 
   /**
@@ -463,31 +454,35 @@
     rhs.resolve();
 
     if (lhs.asClass().isInterface()) { 
-      // rhs interface (or one of its superinterfaces) must 
+      // rhs (or one of its superclasses/superinterfaces) must 
       // implement interface of lhs
-      if (lhs == rhs) 
-	return true;
+      if (lhs == rhs) return true;
       VM_Class Y = rhs.asClass();
       VM_Class I = lhs.asClass();
-      while (Y != null && !VM_DynamicTypeCheck.explicitImplementsTest(I, Y)) 
+      while (Y != null && !explicitImplementsTest(I, Y)) {
 	Y = Y.getSuperClass();
-      return !(Y == null);
+      }
+      return (Y != null);
     } else { 
       // rhs must be same class as lhs, or a subclass of it
-      while (true) {
-	if (lhs == rhs)
-	  return true;
-
+      while (rhs != null) {
+	if (lhs == rhs) return true;
 	rhs = rhs.asClass().getSuperClass();
-	if (rhs == null)
-	  return false;
-
-	rhs.load();
-	rhs.resolve();
       }
+      return false;
     }
   }
 
+   private static boolean explicitImplementsTest (VM_Class I, VM_Class J) throws VM_ResolutionException {
+     VM_Class [] superInterfaces = J.getDeclaredInterfaces();
+     if (superInterfaces == null) return false;
+     for (int i=0; i<superInterfaces.length; i++) {
+       VM_Class superInterface = superInterfaces[i];
+       if (!superInterface.isInterface()) throw new VM_ResolutionException(superInterface.getDescriptor(), new IncompatibleClassChangeError());
+       if (I==superInterface || explicitImplementsTest(I, superInterface)) return true;
+     }
+     return false;
+   }
        
   //----------------//
   // implementation //
@@ -576,8 +571,8 @@
     JavaLangObjectArrayType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("[Ljava/lang/Object;")).asArray();
     JavaLangThrowableType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Throwable;"));
     JavaLangStringType    = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/String;"));
-    JavaLangCloneableType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Cloneable;"));
-    JavaIoSerializableType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/io/Serializable;"));
+    JavaLangCloneableType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Cloneable;")).asClass();
+    JavaIoSerializableType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Ljava/io/Serializable;")).asClass();
     MagicType             = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_Magic;"));
     UninterruptibleType   = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_Uninterruptible;"));
     SynchronizedObjectType = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("LVM_SynchronizedObject;"));

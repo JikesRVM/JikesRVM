@@ -1553,6 +1553,7 @@ function emitImageLinker
    print "   print '[LVM_SizeControl;'                >> $PRIMORDIAL_CLASSES_STR"
    fi
    print "   print '[Ljava/lang/Object;'              >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[[Ljava/lang/Object;'             >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/String;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/Class;'               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/reflect/Field;'       >> $PRIMORDIAL_CLASSES_STR"
@@ -1575,7 +1576,6 @@ function emitImageLinker
    print "   print '[LVM_Lock;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_CompiledMethod;'             >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[LVM_DynamicLibrary;'             >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[LVM_InterfaceMethodSignature\$Link;' >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[D'                               >> $PRIMORDIAL_CLASSES_STR"
 
    print "   print '[LVM_InterfaceMethodSignature;'   >> $PRIMORDIAL_CLASSES_STR" # for fast interface method invoker

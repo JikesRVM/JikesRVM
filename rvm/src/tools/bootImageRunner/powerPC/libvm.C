@@ -561,6 +561,12 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
          trapCode = VM_Runtime_TRAP_DIVIDE_BY_ZERO;
          break;
          }
+      if ((instruction & VM_Constants_MUST_IMPLEMENT_MASK) == VM_Constants_MUST_IMPLEMENT_TRAP)
+         {
+         ANNOUNCE_TRAP("vm: must implement trap\n");
+         trapCode = VM_Runtime_TRAP_MUST_IMPLEMENT;
+         break;
+         }
       if ((instruction & VM_Constants_CHECKCAST_MASK ) == VM_Constants_CHECKCAST_TRAP)
          {
          ANNOUNCE_TRAP("vm: checkcast trap\n");

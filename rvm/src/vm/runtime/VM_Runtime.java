@@ -53,6 +53,7 @@ public class VM_Runtime implements VM_Constants {
   static final int TRAP_CHECKCAST      =  4; // opt-compiler
   static final int TRAP_REGENERATE     =  5; // opt-compiler
   static final int TRAP_JNI_STACK      =  6; // jni
+  static final int TRAP_MUST_IMPLEMENT =  7; 
    
   //---------------------------------------------------------------//
   //                     Type Checking.                            //
@@ -455,99 +456,6 @@ public class VM_Runtime implements VM_Constants {
   }
 
   //---------------------------------------------------------------//
-  //                        Interface invocation.                  //
-  //---------------------------------------------------------------//
-
-  
-  /**
-   * Resolve an interface method call.
-   * @param target object to which interface method is to be applied
-   * @param dictionaryId interface method sought (VM_MethodDictionary id)
-   * @return machine code corresponding to desired interface method
-   * See also: bytecode 0xb9 ("invokeinterface")
-   *           VM_DynamicTypeCheck.populateITable
-   */
-  static INSTRUCTION[] invokeInterface(Object target, int dictionaryId) 
-    throws IncompatibleClassChangeError, VM_ResolutionException {
-    
-    VM_Method sought = 
-      VM_MethodDictionary.getValue(dictionaryId).resolveInterfaceMethod(true);
-    VM_Class I = sought.getDeclaringClass();
-    VM_Class C = VM_Magic.getObjectType(target).asClass(); 
-    if (VM.BuildForITableInterfaceInvocation) {
-      Object[] tib = C.getTypeInformationBlock();
-      Object[] iTable = findITable(tib, I.getDictionaryId());
-      return (INSTRUCTION[])iTable[I.getITableIndex(sought)];
-    } else { 
-      if (!isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
-      VM_Method found  = C.findVirtualMethod(sought.getName(), 
-                                             sought.getDescriptor());
-      if (found == null) throw new IncompatibleClassChangeError();
-      if (!found.isCompiled()) 
-        synchronized(VM_ClassLoader.lock) { found.compile(); }
-      INSTRUCTION[] instructions = 
-	found.getMostRecentlyGeneratedInstructions();
-      return instructions;
-    }
-  }
-  
-  /**
-   * Return a reference to the itable for a given class, interface pair
-   * If no itable is found, this version performs a dynamic type check
-   * and instantiates the itable.
-   * @param tib the TIB for the class
-   * @param id id of the interface sought
-   * @return iTable for desired interface
-   * See also: bytecode 0xb9 ("invokeinterface")
-   *           VM_DynamicTypeCheck.populateITable
-   */
-  public static Object[] findITable(Object[] tib, int id) 
-    throws IncompatibleClassChangeError, VM_ResolutionException {
-    Object[] iTables = 
-      (Object[])tib[VM_TIBLayoutConstants.TIB_ITABLES_TIB_INDEX];
-    if (VM.DirectlyIndexedITables) {
-      // ITable is at fixed offset
-      return (Object[])iTables[id];
-    } else {
-      // Search for the right ITable
-      VM_Type I = VM_TypeDictionary.getValue(id);
-      if (iTables != null) {
-	// check the cache at slot 0
-	Object[] iTable = (Object[])iTables[0];
-	if (iTable[0] == I) { 
-	  return iTable; // cache hit :)
-	}
-	  
-	// cache miss :(
-	// Have to search the 'real' entries for the iTable
-	for (int i=1; i<iTables.length; i++) {
-	  iTable = (Object[])iTables[i];
-	  if (iTable[0] == I) { 
-	    // found it; update cache
-	    iTables[0] = iTable;
-	    return iTable;
-	  }
-        }
-      }
-
-      // Didn't find the itable, so we don't yet know if 
-      // the class implements the interface. :((( 
-      // Therefore, we need to establish that and then 
-      // look for the iTable again.
-      VM_Class C = (VM_Class)tib[0];
-      if (VM.BuildForFastDynamicTypeCheck) {
-        VM_DynamicTypeCheck.mandatoryInstanceOfInterface((VM_Class)I, tib);
-      } else {
-        if (!isAssignableWith(I, C)) throw new IncompatibleClassChangeError();
-        VM_DynamicTypeCheck.populateITable(C, (VM_Class)I);
-      }
-      Object[] iTable = findITable(tib, id);
-      if (VM.VerifyAssertions) VM.assert(iTable != null);
-      return iTable;
-    }
-  }
-
-  //---------------------------------------------------------------//
   //                    Implementation Errors.                     //
   //---------------------------------------------------------------//
 
@@ -666,6 +574,9 @@ public class VM_Runtime implements VM_Constants {
     case TRAP_CHECKCAST:
       exceptionObject = new java.lang.ClassCastException();
       break;
+    case TRAP_MUST_IMPLEMENT:
+      exceptionObject = new java.lang.IncompatibleClassChangeError();
+      break;
     default:
       exceptionObject = new java.lang.UnknownError();
       VM_Scheduler.traceback("UNKNOWN ERROR");
@@ -737,6 +648,25 @@ public class VM_Runtime implements VM_Constants {
     VM_Magic.pragmaNoInline();
     throw new java.lang.ArithmeticException();
   }
+
+  /**
+   * Create and throw a java.lang.AbstractMethodError.
+   * Used to handle error cases in invokeinterface dispatching.
+   */
+  static void raiseAbstractMethodError() {
+    VM_Magic.pragmaNoInline();
+    throw new java.lang.AbstractMethodError();
+  }
+
+  /**
+   * Create and throw a java.lang.IllegalAccessError.
+   * Used to handle error cases in invokeinterface dispatching.
+   */
+  static void raiseIllegalAccessError() {
+    VM_Magic.pragmaNoInline();
+    throw new java.lang.IllegalAccessError();
+  }
+
 
 
   //----------------//

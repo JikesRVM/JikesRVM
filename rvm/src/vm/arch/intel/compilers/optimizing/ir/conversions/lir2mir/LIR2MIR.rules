@@ -1117,12 +1117,12 @@ szpr:	INT_AND_ACC(r, load32)
 EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, BinaryAcc.getResult(P(p)), consumeMO()));
 
-szp:	INT_AND_ACC(r, load32)
+szp:	INT_AND_ACC(riv, load32)
 13
 EMIT_INSTRUCTION
 EMIT(MIR_Test.mutate(P(p), IA32_TEST, BinaryAcc.getResult(P(p)), consumeMO()));
 
-szp:	INT_AND_ACC(load32, r)
+szp:	INT_AND_ACC(load32, riv)
 13
 EMIT_INSTRUCTION
 EMIT(MIR_Test.mutate(P(p), IA32_TEST, BinaryAcc.getValue(P(p)), consumeMO()));

@@ -88,11 +88,10 @@ interface VM_TIBLayoutConstants {
    static final int TIB_SUPERCLASS_IDS_INDEX = 
      TIB_TYPE_INDEX + (VM.BuildForFastDynamicTypeCheck ? 1 : 0);
 
-   // A vector of maybe, yes, or no answers to the question 
    // "Does this class implement the ith interface?"  
    // (see vm/classLoader/VM_DynamicTypeCheck.java)
    //
-   static final int TIB_IMPLEMENTS_TRITS_INDEX = 
+   static final int TIB_DOES_IMPLEMENT_INDEX = 
      TIB_SUPERCLASS_IDS_INDEX + (VM.BuildForFastDynamicTypeCheck ? 1 : 0);
     
    // The TIB of the elements type of an array (may be null in fringe cases
@@ -100,7 +99,7 @@ interface VM_TIBLayoutConstants {
    // Will be null when not an array.
    //
    static final int TIB_ARRAY_ELEMENT_TIB_INDEX = 
-     TIB_IMPLEMENTS_TRITS_INDEX + (VM.BuildForFastDynamicTypeCheck ? 1 : 0);
+     TIB_DOES_IMPLEMENT_INDEX + (VM.BuildForFastDynamicTypeCheck ? 1 : 0);
 
    // If !VM.BuildForFastDynamicTypeChecking then allocate 1 TIB entry to 
    // hold type cache

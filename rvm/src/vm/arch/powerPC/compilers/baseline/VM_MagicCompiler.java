@@ -577,6 +577,7 @@ class VM_MagicCompiler implements VM_BaselineConstants {
           methodName == VM_MagicNames.objectAsType            ||
           methodName == VM_MagicNames.objectAsByteArray       ||
           methodName == VM_MagicNames.objectAsShortArray      ||
+          methodName == VM_MagicNames.objectAsIntArray        ||
           methodName == VM_MagicNames.addressAsThread         ||
           methodName == VM_MagicNames.objectAsThread          ||
           methodName == VM_MagicNames.objectAsProcessor       ||

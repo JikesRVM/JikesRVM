@@ -14,19 +14,15 @@ class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants {
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   // 
-  static INSTRUCTION[] createStub(VM_InterfaceMethodSignature.Link l, int numEntries) {
+  static INSTRUCTION[] createStub(int[] sigIds, VM_Method[] targets) {
     // (1) Create an assembler.
+    int numEntries = sigIds.length;
     VM_Assembler asm = new VM_Assembler(numEntries); // pretend each entry is a bytecode
 
-    // (2) Convert links into array for easier handling.
-    VM_InterfaceMethodSignature.Link[] entries = new VM_InterfaceMethodSignature.Link[numEntries];
-    for (int i=0; i<entries.length; i++) {
-      entries[i] = l;
-      l = l.next;
-    }
+    // (2) signatures must be in ascending order (to build binary search tree).
     if (VM.VerifyAssertions) {
-      for (int i=1; i<entries.length; i++) {
-	VM.assert(entries[i-1].signatureId < entries[i].signatureId);
+      for (int i=1; i<sigIds.length; i++) {
+	VM.assert(sigIds[i-1] < sigIds[i]);
       }
     }
 
@@ -38,7 +34,7 @@ class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants {
     
     // (4) Generate the stub.
     insertStubPrologue(asm);
-    insertStubCase(asm, entries, bcIndices, 0, numEntries-1);
+    insertStubCase(asm, sigIds, targets, bcIndices, 0, numEntries-1);
     
     INSTRUCTION[] stub = asm.makeMachineCode().getInstructions();
 
@@ -76,18 +72,24 @@ class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants {
 
   // Generate a subtree covering from low to high inclusive.
   private static void insertStubCase(VM_Assembler asm,  
-				     VM_InterfaceMethodSignature.Link[] entries,
+				     int[] sigIds, 
+				     VM_Method[] targets,
 				     int[] bcIndices, int low, int high) {
     int middle = (high + low)/2;
-    VM_InterfaceMethodSignature.Link l = entries[middle];
     asm.resolveForwardReferences(bcIndices[middle]);
     if (low == middle && middle == high) {
       // a leaf case; can simply invoke the method directly.
-      asm.emitL    (S0, l.method.getOffset(), S0);
+      VM_Method target = targets[middle];
+      if (target.isStatic()) {
+	// an error case.
+	asm.emitLtoc(S0, target.getOffset());
+      } else {
+	asm.emitL   (S0, target.getOffset(), S0);
+      }
       asm.emitMTCTR(S0);
       asm.emitBCTR ();
     } else {
-      asm.emitCMPI (SP, l.signatureId);
+      asm.emitCMPI (SP, sigIds[middle]);
       if (low < middle) {
 	asm.reserveShortForwardConditionalBranch(bcIndices[(low+middle-1)/2]);
 	asm.emitBLT(0);
@@ -97,15 +99,21 @@ class VM_InterfaceMethodConflictResolver implements VM_BaselineConstants {
 	asm.emitBGT(0);
       }
       // invoke the method for middle.
-      asm.emitL    (S0, l.method.getOffset(), S0);
+      VM_Method target = targets[middle];
+      if (target.isStatic()) {
+	// an error case.
+	asm.emitLtoc(S0, target.getOffset());
+      } else {
+	asm.emitL   (S0, target.getOffset(), S0);
+      }
       asm.emitMTCTR(S0);
       asm.emitBCTR ();
       // Recurse.
       if (low < middle) {
-	insertStubCase(asm, entries, bcIndices, low, middle-1);
+	insertStubCase(asm, sigIds, targets, bcIndices, low, middle-1);
       } 
       if (middle < high) {
-	insertStubCase(asm, entries, bcIndices, middle+1, high);
+	insertStubCase(asm, sigIds, targets, bcIndices, middle+1, high);
       }
     }
   }

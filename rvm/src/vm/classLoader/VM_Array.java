@@ -605,7 +605,7 @@ public class VM_Array extends VM_Type
     typeInformationBlock[0] = this;
     if (VM.BuildForFastDynamicTypeCheck) {
       typeInformationBlock[TIB_SUPERCLASS_IDS_INDEX] = VM_DynamicTypeCheck.buildSuperclassIds(this);
-      typeInformationBlock[TIB_IMPLEMENTS_TRITS_INDEX] = VM_DynamicTypeCheck.buildImplementsTrits(this);
+      typeInformationBlock[TIB_DOES_IMPLEMENT_INDEX] = VM_DynamicTypeCheck.buildDoesImplement(this);
       if (!elementType.isPrimitiveType() && elementType.isResolved()) {
 	typeInformationBlock[TIB_ARRAY_ELEMENT_TIB_INDEX] = elementType.getTypeInformationBlock();
       }

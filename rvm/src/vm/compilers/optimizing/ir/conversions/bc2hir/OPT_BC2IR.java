@@ -1637,7 +1637,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 		getTib.bcIndex = RUNTIME_SERVICES_BCI;
 
 		OPT_MethodOperand dtcRoutine = 
-		  OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedInterfaceMethodMethod);
+		  OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod);
 		OPT_Instruction callCheck =
 		    Call.create2(CALL, null, null, dtcRoutine, 
 		      new OPT_IntConstantOperand(meth.getDictionaryId()),
@@ -1661,9 +1661,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  // Step 2: Invokeinterface requires a dynamic type check
 	  //         to ensure that the receiver object actually
 	  //         implements the interface.  This is necessary
-	  //         because loading a class does not load the interfaces
-	  //         that class implements, and thus the verifier cannot
-	  //         detect incompatible class changes.
+	  //         because the verifier does not detect incompatible class changes.
 	  //         If we're building for FastInterfaceInvocation then
 	  //         this test must be made explicit in the calling sequence.
 	  //         In the slow interface invocation path, it is handled

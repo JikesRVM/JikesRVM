@@ -94,6 +94,7 @@ class VM_MagicNames {
   static VM_Atom addressAsIntArray;
   static VM_Atom objectAsByteArray;
   static VM_Atom objectAsShortArray;
+  static VM_Atom objectAsIntArray;
   static VM_Atom addressAsThread;
   static VM_Atom objectAsThread;
   static VM_Atom objectAsProcessor;
@@ -214,6 +215,7 @@ class VM_MagicNames {
     addressAsIntArray             = VM_Atom.findOrCreateAsciiAtom("addressAsIntArray");
     objectAsByteArray             = VM_Atom.findOrCreateAsciiAtom("objectAsByteArray");
     objectAsShortArray            = VM_Atom.findOrCreateAsciiAtom("objectAsShortArray");
+    objectAsIntArray              = VM_Atom.findOrCreateAsciiAtom("objectAsIntArray");
 
     addressAsThread               = VM_Atom.findOrCreateAsciiAtom("addressAsThread");
     objectAsThread                = VM_Atom.findOrCreateAsciiAtom("objectAsThread");

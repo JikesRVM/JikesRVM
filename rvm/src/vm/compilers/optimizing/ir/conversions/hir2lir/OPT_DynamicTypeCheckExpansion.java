@@ -235,72 +235,59 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * if the type check fails. 
    * Ref is known to never contain a null ptr at runtime.
    *
-   * @param s a CHECKCAST_NOTNULL instruction to expand 
+   * @param s a CHECKCAST_INTERFACE_NOTNULL instruction to expand 
    * @param ir the enclosing OPT_IR
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
   static OPT_Instruction checkcastInterfaceNotNull (OPT_Instruction s, 
 						    OPT_IR ir) {
     OPT_RegisterOperand ref = (OPT_RegisterOperand)TypeCheck.getClearRef(s);
-    VM_Type LHStype = TypeCheck.getType(s).type;
+    VM_Class LHSClass = TypeCheck.getType(s).type.asClass();
+    int interfaceIndex = LHSClass.getDoesImplementIndex();
+    int interfaceMask = LHSClass.getDoesImplementBitMask();
     OPT_Operand guard = TypeCheck.getClearGuard(s);
-    int LHSInterfaceId = LHStype.asClass().getInterfaceId();
+    OPT_BasicBlock myBlock = s.getBasicBlock();
+    OPT_BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir);
+    OPT_BasicBlock succBlock = myBlock.splitNodeAt(s, ir);
+    myBlock.insertOut(failBlock);
+    myBlock.insertOut(succBlock);
+    ir.cfg.linkInCodeOrder(myBlock, succBlock);
+    failBlock.setInfrequent(true);
+    ir.cfg.addLastInCodeOrder(failBlock);
+    OPT_Instruction raiseError = 
+      Trap.create(TRAP, null, OPT_TrapCodeOperand.MustImplement());
+    raiseError.copyPosition(s);
+    failBlock.appendInstruction(raiseError);
+    
+    OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard);
+    OPT_RegisterOperand doesImpl = 
+      InsertUnary(s, ir, GET_DOES_IMPLEMENT_FROM_TIB, 
+		  OPT_ClassLoaderProxy.IntArrayType, RHStib);
 
-    OPT_BasicBlock testBlock = s.getBasicBlock();
-    OPT_BasicBlock outOfLineBlock = testBlock.createSubBlock(s.bcIndex, ir);
-    OPT_BasicBlock succBlock = testBlock.splitNodeAt(s, ir);
-    testBlock.insertOut(outOfLineBlock);
-    testBlock.insertOut(succBlock);
-    outOfLineBlock.insertOut(succBlock);
-    ir.cfg.linkInCodeOrder(testBlock, succBlock);
-    outOfLineBlock.setInfrequent(true);
-    ir.cfg.addLastInCodeOrder(outOfLineBlock);
-
-    s.remove();
-
-    // insert the inline portion of the dynamic type check into testBlock;
-    OPT_Instruction ptr = testBlock.lastInstruction();
-    OPT_RegisterOperand RHStib = getTIB(ptr, ir, ref.copyU2U(), guard.copy());
-    OPT_RegisterOperand trits = 
-      InsertUnary(ptr, ir, GET_IMPLEMENTS_TRITS_FROM_TIB, 
-		  OPT_ClassLoaderProxy.ByteArrayType, RHStib);
-    if (VM_DynamicTypeCheck.MIN_IMPLEMENTS_TRITS_SIZE <= LHSInterfaceId){
-      OPT_RegisterOperand tritsLength = 
-	InsertGuardedUnary(ptr, ir, ARRAYLENGTH, VM_Type.IntType, trits, TG());
+    if (VM_DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
+      OPT_RegisterOperand doesImplLength = 
+	InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_Type.IntType, 
+			   doesImpl.copyD2U(), TG());
       OPT_Instruction lengthCheck = 
-	IfCmp.create(INT_IFCMP, null, 
-		     tritsLength, I(LHSInterfaceId),
+	IfCmp.create(INT_IFCMP, null, doesImplLength, I(interfaceIndex),
 		     OPT_ConditionOperand.LESS_EQUAL(), 
-		     outOfLineBlock.makeJumpTarget(),
-		     OPT_BranchProfileOperand.unlikely());
-      ptr.insertBefore(lengthCheck);
-      OPT_BasicBlock oldBlock = testBlock;
-      testBlock = testBlock.splitNodeWithLinksAt(lengthCheck, ir);
-      oldBlock.insertOut(outOfLineBlock); // required due to splitNode!
-      ptr = testBlock.lastInstruction();
+		     failBlock.makeJumpTarget(),
+		     new OPT_BranchProfileOperand());
+      s.insertBefore(lengthCheck);
+      myBlock.splitNodeWithLinksAt(lengthCheck, ir);
+      myBlock.insertOut(failBlock); // required due to splitNode!
     }
-    OPT_RegisterOperand trit = 
-      InsertLoadOffset(ptr, ir, UBYTE_LOAD, VM_Type.ByteType,
-		       trits.copyU2U(), LHSInterfaceId);
-    ptr.insertBefore(IfCmp.create(INT_IFCMP, null, 
-				  trit, I(VM_DynamicTypeCheck.YES),
-				  OPT_ConditionOperand.NOT_EQUAL(), 
-				  outOfLineBlock.makeJumpTarget(),
-				  OPT_BranchProfileOperand.unlikely()));
-
-    // insert code in outOfLineBlock to handle the type check 
-    // returning MAYBE or NO.
-    ptr = outOfLineBlock.lastInstruction();
-    OPT_RegisterOperand LHSRuntimeClass = getVMType(ptr, ir, LHStype);
-    OPT_Instruction tcCall = 
-      Call.create2(CALL, null, null, 
-		   OPT_MethodOperand.STATIC(VM_Entrypoints.mandatoryInstanceOfInterfaceMethod),
-		   LHSRuntimeClass, RHStib.copyD2U());
-    tcCall.copyPosition(s);
-    ptr.insertBefore(tcCall);
-    ptr.insertBefore(Goto.create(GOTO, succBlock.makeJumpTarget()));
-
-    return testBlock.lastInstruction();
+    OPT_RegisterOperand entry = 
+      InsertLoadOffset(s, ir, INT_LOAD, VM_Type.IntType,
+		       doesImpl, interfaceIndex << 2, 
+		       new OPT_LocationOperand(VM_Type.IntType), 
+		       TG());
+    OPT_RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_Type.IntType, entry, I(interfaceMask));
+    IfCmp.mutate(s, INT_IFCMP, null, bit, I(0),
+		 OPT_ConditionOperand.EQUAL(), 
+		 failBlock.makeJumpTarget(),
+		 new OPT_BranchProfileOperand());
+    return s;
   }
 
 
@@ -522,58 +509,38 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	  // resolved class or interface
 	  if (LHSclass.isInterface()) {
 	    // A resolved interface (case 4)
-	    int LHSInterfaceId = LHSclass.getInterfaceId();
-	    OPT_BasicBlock myBlock = s.getBasicBlock();
-	    OPT_BasicBlock contBlock = myBlock.splitNodeAt(s, ir);
-	    OPT_BasicBlock maybeBlock = myBlock.createSubBlock(s.bcIndex, ir);
-	    myBlock.insertOut(contBlock);
-	    myBlock.insertOut(maybeBlock);
-	    maybeBlock.insertOut(contBlock);
-	    ir.cfg.linkInCodeOrder(myBlock, contBlock);
-	    maybeBlock.setInfrequent(true);
-	    ir.cfg.addLastInCodeOrder(maybeBlock);
-	    OPT_RegisterOperand trits = 
-	      InsertUnary(s, ir,  GET_IMPLEMENTS_TRITS_FROM_TIB, 
-			  OPT_ClassLoaderProxy.ByteArrayType, RHStib);
-	    if (VM_DynamicTypeCheck.MIN_IMPLEMENTS_TRITS_SIZE <= LHSInterfaceId){
-	      OPT_RegisterOperand tritsLength = 
-		InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_Type.IntType, 
-				   trits, TG());
-	      OPT_Instruction lengthCheck = 
-		IfCmp.create(INT_IFCMP, null, 
-			     tritsLength, I(LHSInterfaceId),
-			     OPT_ConditionOperand.LESS_EQUAL(), 
-			     maybeBlock.makeJumpTarget(),
-			     OPT_BranchProfileOperand.unlikely());
-	      s.insertBefore(lengthCheck);
-	      OPT_BasicBlock oldBlock = myBlock;
-	      myBlock = myBlock.splitNodeWithLinksAt(lengthCheck, ir);
-	      oldBlock.insertOut(maybeBlock); // required due to splitNode!
+	    int interfaceIndex = LHSclass.getDoesImplementIndex();
+	    int interfaceMask = LHSclass.getDoesImplementBitMask();
+	    OPT_RegisterOperand doesImpl = 
+	      InsertUnary(s, ir,  GET_DOES_IMPLEMENT_FROM_TIB, 
+			  OPT_ClassLoaderProxy.IntArrayType, RHStib);
+	    OPT_RegisterOperand entry = 
+	      InsertLoadOffset(s, ir, INT_LOAD, VM_Type.IntType, 
+			       doesImpl, interfaceIndex << 2, 
+			       new OPT_LocationOperand(VM_Type.IntType), 
+			       TG());
+	    OPT_RegisterOperand bit = InsertBinary(s, ir, INT_AND, VM_Type.IntType,
+						   entry, I(interfaceMask));
+	    s.insertBefore(BooleanCmp.create(BOOLEAN_CMP, result, 
+					     bit,
+					     I(0),
+					     OPT_ConditionOperand.NOT_EQUAL(),
+					     new OPT_BranchProfileOperand()));
+
+	    if (VM_DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
+	      OPT_RegisterOperand doesImplLength = 
+		InsertGuardedUnary(s, ir, ARRAYLENGTH, VM_Type.IntType, doesImpl.copy(), TG());
+	      OPT_RegisterOperand boundscheck = ir.regpool.makeTempInt();
+	      s.insertBefore(BooleanCmp.create(BOOLEAN_CMP, boundscheck, 
+					       doesImplLength,
+					       I(interfaceIndex),
+					       OPT_ConditionOperand.GREATER(),
+					       new OPT_BranchProfileOperand()));
+	      s.insertBefore(Binary.create(INT_AND, result.copyD2D(), 
+					   result.copyD2U(), boundscheck));
 	    }
-	    // NOTE: Assuming that VM_OptDynamicTypeCheck.NO = 0, 
-	    // YES = 1, MAYBE = 2.
-	    s.insertBefore(Load.create(UBYTE_LOAD, result, trits.copyU2U(), 
-				       I(LHSInterfaceId), 
-				       new OPT_LocationOperand(VM_Type.ByteType),
-				       TG()));
-	    OPT_Instruction continueAt = 
-	      IfCmp.create(INT_IFCMP, null,
-			   result.copyD2U(), I(VM_DynamicTypeCheck.MAYBE),
-			   OPT_ConditionOperand.EQUAL(), 
-			   maybeBlock.makeJumpTarget(),
-			   OPT_BranchProfileOperand.unlikely());
-	    s.insertBefore(continueAt);
+	    OPT_Instruction continueAt = s.prevInstructionInCodeOrder();
 	    s.remove();
-	    OPT_RegisterOperand LHSRuntimeClass = 
-	      getVMType(maybeBlock.lastInstruction(), ir, LHSclass);
-	    OPT_Instruction maybeCall = 
-	      Call.create2(CALL, result.copyD2D(), null, 
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.initialInstanceOfInterfaceMethod), 
-			   LHSRuntimeClass, RHStib.copyD2U());
-	    maybeCall.copyPosition(s);
-	    maybeBlock.appendInstruction(maybeCall);
-	    maybeBlock.appendInstruction(Goto.create(GOTO, 
-						     contBlock.makeJumpTarget()));
 	    return continueAt;
 	  } else {
 	    // A resolved class (cases 5 and 6 in VM_DynamicTypeCheck)
@@ -722,8 +689,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 							    OPT_RegisterOperand RHStib, 
 							    OPT_BasicBlock trueBlock, 
 							    OPT_BasicBlock falseBlock,
-                                                            OPT_RegisterOperand 
-oldGuard) {
+                                                            OPT_RegisterOperand oldGuard) {
     OPT_Instruction continueAt = Goto.create(GOTO, trueBlock.makeJumpTarget());
     continueAt.copyPosition(s);
     s.insertBefore(continueAt);
@@ -737,60 +703,39 @@ oldGuard) {
 	  // class or interface
 	  if (LHSclass.isInterface()) {
 	    // A resolved interface (case 4)
-	    int LHSInterfaceId = LHSclass.getInterfaceId();
-	    OPT_BasicBlock myBlock = continueAt.getBasicBlock();
-	    OPT_BasicBlock maybeBlock = 
-	      myBlock.createSubBlock(continueAt.bcIndex, ir);
-	    myBlock.insertOut(maybeBlock);
-	    maybeBlock.insertOut(trueBlock);
-	    maybeBlock.insertOut(falseBlock);
-	    maybeBlock.setInfrequent(true);
-	    ir.cfg.addLastInCodeOrder(maybeBlock);
-	    OPT_RegisterOperand trits = 
-	      InsertUnary(continueAt, ir, GET_IMPLEMENTS_TRITS_FROM_TIB, 
-			  OPT_ClassLoaderProxy.ByteArrayType, RHStib);
-	    if (VM_DynamicTypeCheck.MIN_IMPLEMENTS_TRITS_SIZE <= LHSInterfaceId){
-	      OPT_RegisterOperand tritsLength = 
-		InsertGuardedUnary(continueAt, ir, ARRAYLENGTH, VM_Type.IntType,
-				   trits, TG());
+	    int interfaceIndex = LHSclass.getDoesImplementIndex();
+	    int interfaceMask = LHSclass.getDoesImplementBitMask();
+	    OPT_RegisterOperand doesImpl = 
+	      InsertUnary(continueAt, ir, GET_DOES_IMPLEMENT_FROM_TIB, 
+			  OPT_ClassLoaderProxy.IntArrayType, RHStib);
+
+	    if (VM_DynamicTypeCheck.MIN_DOES_IMPLEMENT_SIZE <= interfaceIndex) {
+	      OPT_RegisterOperand doesImplLength = 
+		InsertGuardedUnary(continueAt, 
+				   ir, ARRAYLENGTH, VM_Type.IntType, 
+				   doesImpl.copyD2U(), TG());
 	      OPT_Instruction lengthCheck = 
-		IfCmp.create(INT_IFCMP, oldGuard, tritsLength, I(LHSInterfaceId),
+		IfCmp.create(INT_IFCMP, oldGuard, doesImplLength, I(interfaceIndex),
 			     OPT_ConditionOperand.LESS_EQUAL(), 
-			     maybeBlock.makeJumpTarget(),
-			     OPT_BranchProfileOperand.unlikely());
+			     falseBlock.makeJumpTarget(),
+			     new OPT_BranchProfileOperand());
 	      continueAt.insertBefore(lengthCheck);
-	      OPT_BasicBlock oldBlock = myBlock;
-	      myBlock = myBlock.splitNodeWithLinksAt(lengthCheck, ir);
-	      oldBlock.insertOut(maybeBlock); // required due to splitNode!
+	      OPT_BasicBlock oldBlock = continueAt.getBasicBlock();
+	      oldBlock.splitNodeWithLinksAt(lengthCheck, ir);
+	      oldBlock.insertOut(falseBlock); // required due to splitNode!
 	    }
-	    // NOTE: Assuming that VM_DynamicTypeCheck.NO = 0, YES = 1, MAYBE = 2
-	    OPT_RegisterOperand trit = 
-	      InsertLoadOffset(continueAt, ir, UBYTE_LOAD, VM_Type.ByteType, 
-			       trits.copyU2U(), LHSInterfaceId, 
-			       new OPT_LocationOperand(VM_Type.ByteType), TG());
-	    continueAt.insertBefore(IfCmp2.create(INT_IFCMP2, oldGuard, trit, 
-						  I(VM_DynamicTypeCheck.YES),
-						  OPT_ConditionOperand.GREATER(),
-						  maybeBlock.makeJumpTarget(),
-						  new OPT_BranchProfileOperand(),
-						  OPT_ConditionOperand.LESS(), 
-						  falseBlock.makeJumpTarget(),
-						  new OPT_BranchProfileOperand()));
-	    OPT_RegisterOperand LHSRuntimeClass = 
-	      getVMType(maybeBlock.lastInstruction(), ir, LHSclass);
-	    OPT_Instruction maybeCall = 
-	      Call.create2(CALL, trit.copyD2D(), null, 
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.initialInstanceOfInterfaceMethod), 
-			   LHSRuntimeClass, RHStib.copyD2U());
-	    maybeCall.copyPosition(s);
-	    maybeBlock.appendInstruction(maybeCall);
-	    maybeBlock.appendInstruction(IfCmp.create(INT_IFCMP, oldGuard, 
-						      trit.copyD2U(), I(0),
-						      OPT_ConditionOperand.EQUAL(), 
-						      falseBlock.makeJumpTarget(),
-						      new OPT_BranchProfileOperand()));
-	    maybeBlock.appendInstruction(Goto.create(GOTO, 
-						     trueBlock.makeJumpTarget()));
+	    OPT_RegisterOperand entry = 
+	      InsertLoadOffset(continueAt, ir, INT_LOAD, VM_Type.IntType,
+			       doesImpl, interfaceIndex << 2, 
+			       new OPT_LocationOperand(VM_Type.IntType), 
+			       TG());
+	    OPT_RegisterOperand bit = 
+	      InsertBinary(continueAt, ir, INT_AND, VM_Type.IntType, entry, I(interfaceMask));
+	    continueAt.insertBefore(IfCmp.create(INT_IFCMP, oldGuard, 
+						 bit, I(0),
+						 OPT_ConditionOperand.EQUAL(), 
+						 falseBlock.makeJumpTarget(),
+						 new OPT_BranchProfileOperand()));
 	    return continueAt;
 	  } else {
 	    // A resolved class (cases 5 and 6 in VM_DynamicTypeCheck)

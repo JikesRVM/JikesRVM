@@ -2506,7 +2506,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    if (resolvedMethodRef == null) {
 	      // might be a ghost ref. Call uncommon case typechecking routine 
               // to deal with this
-	      asm.emitLtoc(T0, VM_Entrypoints.unresolvedInterfaceMethodMethod.getOffset());
+	      asm.emitLtoc(T0, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());
 	      asm.emitMTLR(T0);
 	      asm.emitLIL (T0, methodRef.getDictionaryId());  // dictionaryId of method we are trying to call
 	      asm.emitL   (T1, (count-1) << 2, SP);           // the "this" object
@@ -2514,7 +2514,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      asm.emitCall(spSaveAreaOffset);                 // throw exception, if link error
 	    } else {
 	      // normal case.  Not a ghost ref.
-	      asm.emitLtoc(T0, VM_Entrypoints.mandatoryInstanceOfInterfaceMethod.getOffset());
+	      asm.emitLtoc(T0, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());
 	      asm.emitMTLR(T0);
 	      asm.emitLtoc(T0, methodRef.getDeclaringClass().getTibOffset()); // tib of the interface method
 	      asm.emitL   (T0, TIB_TYPE_INDEX << 2, T0);                   // type of the interface method
@@ -2528,8 +2528,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    int signatureId = VM_ClassLoader.
               findOrCreateInterfaceMethodSignatureId(methodRef.getName(), 
                                                      methodRef.getDescriptor());
-            int offset      = VM_InterfaceMethodSignature.getOffset
-                                                          (signatureId);
+            int offset      = VM_InterfaceInvocation.getIMTOffset(signatureId);
             genMoveParametersToRegisters(true, methodRef); // T0 is "this"
             VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
             if (VM.BuildForIndirectIMT) {
@@ -2554,7 +2553,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
             VM_ObjectModel.baselineEmitLoadTIB(asm,S0,T0);
 	    asm.emitL   (S0, TIB_ITABLES_TIB_INDEX << 2, S0); // iTables 
 	    asm.emitL   (S0, I.getInterfaceId() << 2, S0);  // iTable
-	    asm.emitL   (S0, I.getITableIndex(methodRef) << 2, S0); // the method to call
+	    asm.emitL   (S0, VM_InterfaceInvocation.getITableIndex(I, methodRef) << 2, S0); // the method to call
 	    asm.emitMTLR(S0);
 	    //-#if RVM_WITH_SPECIALIZATION
 	    asm.emitSpecializationCall(spSaveAreaOffset, method, bIP);
@@ -2567,7 +2566,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    if (VM.BuildForITableInterfaceInvocation) {
 	      // get the index of the method in the Itable
 	      if (I.isLoaded()) {
-		itableIndex = I.getITableIndex(methodRef);
+		itableIndex = VM_InterfaceInvocation.getITableIndex(I, methodRef);
 	      }
 	    }
             if (itableIndex == -1) {
@@ -2595,7 +2594,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
               asm.emitMTLR(T0);
               asm.emitL   (T0, (count-1) << 2, SP);     // object
               VM_ObjectModel.baselineEmitLoadTIB(asm,T0,T0);
-              asm.emitLVAL(T1, I.getDictionaryId());    // interface id
+              asm.emitLVAL(T1, I.getInterfaceId());    // interface id
               asm.emitCall(spSaveAreaOffset);   // T0 := itable reference
               asm.emitL   (T0, itableIndex << 2, T0); // T0 := the method to call
               asm.emitMTLR(T0);

@@ -27,13 +27,18 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Method quickNewScalarMethod     = getMethod("LVM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;Z)Ljava/lang/Object;");
   static final VM_Method unimplementedBytecodeMethod = getMethod("LVM_Runtime;", "unimplementedBytecode", "(I)V");
   static final VM_Method unexpectedAbstractMethodCallMethod = getMethod("LVM_Runtime;", "unexpectedAbstractMethodCall", "()V");
-  static final VM_Method invokeInterfaceMethod    = getMethod("LVM_Runtime;", "invokeInterface", "(Ljava/lang/Object;I)"+INSTRUCTION_ARRAY_SIGNATURE);
-  static final VM_Method findItableMethod         = getMethod("LVM_Runtime;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");
   static final VM_Method raiseNullPointerException= getMethod("LVM_Runtime;", "raiseNullPointerException", "()V");
   static final VM_Method raiseArrayBoundsException= getMethod("LVM_Runtime;", "raiseArrayIndexOutOfBoundsException", "(I)V");
   static final VM_Method raiseArithmeticException = getMethod("LVM_Runtime;", "raiseArithmeticException", "()V");
+  static final VM_Method raiseAbstractMethodError = getMethod("LVM_Runtime;", "raiseAbstractMethodError", "()V");
+  static final VM_Method raiseIllegalAccessError  = getMethod("LVM_Runtime;", "raiseIllegalAccessError", "()V");
   static final VM_Method deliverHardwareExceptionMethod = getMethod("LVM_Runtime;", "deliverHardwareException", "(II)V");
   static final VM_Method unlockAndThrowMethod      = getMethod("LVM_Runtime;", "unlockAndThrow", "(Ljava/lang/Object;Ljava/lang/Throwable;)V");
+
+  static final VM_Method invokeInterfaceMethod                          = getMethod("LVM_InterfaceInvocation;", "invokeInterface", "(Ljava/lang/Object;I)"+INSTRUCTION_ARRAY_SIGNATURE);
+  static final VM_Method findItableMethod                               = getMethod("LVM_InterfaceInvocation;", "findITable", "([Ljava/lang/Object;I)[Ljava/lang/Object;");
+  static final VM_Method invokeinterfaceImplementsTestMethod            = getMethod("LVM_InterfaceInvocation;", "invokeinterfaceImplementsTest", "(LVM_Class;[Ljava/lang/Object;)V");
+  static final VM_Method unresolvedInvokeinterfaceImplementsTestMethod  = getMethod("LVM_InterfaceInvocation;", "unresolvedInvokeinterfaceImplementsTest", "(I[Ljava/lang/Object;)V");
 
   //-#if RVM_WITH_GCTk_ALLOC_ADVICE
   static final VM_Method allocAdviceNewScalarMethod = getMethod("LVM_Runtime;", "newScalar", "(II)Ljava/lang/Object;");
@@ -42,9 +47,6 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Method allocAdviceQuickNewScalarMethodNEW = getMethod("LVM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;ZI)Ljava/lang/Object;");
   //-#endif
 
-  static final VM_Method mandatoryInstanceOfInterfaceMethod = getMethod("LVM_DynamicTypeCheck;", "mandatoryInstanceOfInterface", "(LVM_Class;[Ljava/lang/Object;)V");
-  static final VM_Method unresolvedInterfaceMethodMethod    = getMethod("LVM_DynamicTypeCheck;", "unresolvedInterfaceMethod", "(I[Ljava/lang/Object;)V");
-  static final VM_Method initialInstanceOfInterfaceMethod   = getMethod("LVM_DynamicTypeCheck;", "initialInstanceOfInterface", "(LVM_Class;[Ljava/lang/Object;)Z");
   static final VM_Method instanceOfUnresolvedMethod         = getMethod("LVM_DynamicTypeCheck;", "instanceOfUnresolved", "(LVM_Class;[Ljava/lang/Object;)Z");
   static final VM_Method instanceOfArrayMethod              = getMethod("LVM_DynamicTypeCheck;", "instanceOfArray", "(LVM_Class;ILVM_Type;)Z");
   static final VM_Method instanceOfUnresolvedArrayMethod    = getMethod("LVM_DynamicTypeCheck;", "instanceOfUnresolvedArray", "(LVM_Class;ILVM_Type;)Z");

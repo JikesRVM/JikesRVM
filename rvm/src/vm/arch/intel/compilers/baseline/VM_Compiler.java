@@ -2286,7 +2286,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
 	    asm.emitPUSH_Reg(S0);
 	    genParameterRegisterLoad(2);                                            // pass 2 parameter word
-	    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedInterfaceMethodMethod.getOffset());// check that "this" class implements the interface
+	    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedInvokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
 	  } else {
 	    asm.emitMOV_Reg_RegDisp (T0, JTOC, methodRef.getDeclaringClass().getTibOffset()); // tib of the interface method
 	    asm.emitMOV_Reg_RegDisp (T1, SP, (count-1) << 2);                                 // "this" object
@@ -2294,14 +2294,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T1);
 	    asm.emitPUSH_Reg(S0);
 	    genParameterRegisterLoad(2);                                          // pass 2 parameter word
-	    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.mandatoryInstanceOfInterfaceMethod.getOffset());// check that "this" class implements the interface
+	    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.invokeinterfaceImplementsTestMethod.getOffset());// check that "this" class implements the interface
 	  }
 	}
 
 	// (2) Emit interface invocation sequence.
 	if (VM.BuildForIMTInterfaceInvocation) {
 	  int signatureId = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(methodRef.getName(), methodRef.getDescriptor());
-	  int offset      = VM_InterfaceMethodSignature.getOffset(signatureId);
+	  int offset      = VM_InterfaceInvocation.getIMTOffset(signatureId);
           
           // squirrel away signature ID
           VM_ProcessorLocalState.emitMoveImmToField(asm, 
@@ -2326,14 +2326,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	  asm.emitMOV_Reg_RegDisp (S0, S0, TIB_ITABLES_TIB_INDEX << 2);                     // iTables
 	  asm.emitMOV_Reg_RegDisp (S0, S0, I.getInterfaceId() << 2);                        // iTable
 	  genParameterRegisterLoad(methodRef, true);
-	  asm.emitCALL_RegDisp(S0, I.getITableIndex(methodRef) << 2);                       // the interface call
+	  asm.emitCALL_RegDisp(S0, VM_InterfaceInvocation.getITableIndex(I, methodRef) << 2); // the interface call
 	} else {
 	  VM_Class I = methodRef.getDeclaringClass();
 	  int itableIndex = -1;
 	  if (false && VM.BuildForITableInterfaceInvocation) {
 	    // get the index of the method in the Itable
 	    if (I.isLoaded()) {
-	      itableIndex = I.getITableIndex(methodRef);
+	      itableIndex = VM_InterfaceInvocation.getITableIndex(I, methodRef);
 	    }
 	  }
 	  if (itableIndex == -1) {
@@ -2355,7 +2355,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    asm.emitMOV_Reg_RegDisp (T0, SP, (count-1) << 2);             // "this" object
 	    VM_ObjectModel.baselineEmitLoadTIB(asm, S0, T0);
 	    asm.emitPUSH_Reg(S0);
-	    asm.emitPUSH_Imm        (I.getDictionaryId());                // interface id
+	    asm.emitPUSH_Imm        (I.getInterfaceId());                // interface id
 	    genParameterRegisterLoad(2);                                  // pass 2 parameter words
 	    asm.emitCALL_RegDisp    (JTOC,  VM_Entrypoints.findItableMethod.getOffset()); // findItableOffset(tib, id) returns iTable
 	    asm.emitMOV_Reg_Reg     (S0, T0);                             // S0 has iTable
@@ -3504,6 +3504,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	methodName == VM_MagicNames.objectAsType            ||
 	methodName == VM_MagicNames.objectAsShortArray      ||
 	methodName == VM_MagicNames.objectAsByteArray       ||
+	methodName == VM_MagicNames.objectAsIntArray       ||
 	methodName == VM_MagicNames.pragmaNoOptCompile      ||
 	methodName == VM_MagicNames.addressAsThread         ||
 	methodName == VM_MagicNames.objectAsThread          ||
@@ -3674,13 +3675,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
 
     if (methodName == VM_MagicNames.getTime) {
-    VM.sysWrite("WARNING: VM_Compiler compiling unimplemented magic: getTime in " + method + "\n");
+      VM.sysWrite("WARNING: VM_Compiler compiling unimplemented magic: getTime in " + method + "\n");
       asm.emitMOV_RegInd_Imm(SP, 0);  // TEMP!! for now, return 0
       return;
     }
 
     if (methodName == VM_MagicNames.getTimeBase) {
-    VM.sysWrite("WARNING: VM_Compiler compiling unimplemented magic: getTimeBase in " + method + "\n");
+      VM.sysWrite("WARNING: VM_Compiler compiling unimplemented magic: getTimeBase in " + method + "\n");
       asm.emitMOV_RegInd_Imm(SP, 0);  // TEMP!! for now, return 0
       return;
     }

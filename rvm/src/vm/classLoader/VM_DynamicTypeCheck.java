@@ -44,19 +44,9 @@
  *    method) at runtime.
  * <p>
  * (4) Otherwise, is the LHS an interface?  
- *    If so, query the implementsTrits of the RHS's TIB at the entry 
- *    for the interface ID.  This will answer MAYBE, YES, or NO.  
- *    Check for YES first.  If this succeeds, so does the test.  If 
- *    the answer is NO, the test fails. If maybe, the RHS has never
- *    been tested as to whether it implements this interface before;
- *    perform the test now and update the RHS's implementsTrits vector.
- *    Note: most classes do not implement any interfaces (except
- *    those they inherit from java.lang.Object).  It will save space 
- *    to start implementsTrits off as a short vector and grow it the 
- *    first time a class is tested.  (Note: it may be useful to 
- *    define equivalence classes of classes that have a common ancestor 
- *    that implements the same interfaces.  Such classes can share the 
- *    same implementsTrits vector.  Growing this vector will be harder.)
+ *    If so, query the doesImplement array of the RHS's TIB at the entry 
+ *    for the interface ID. If a class does not directly implement any
+ *    interfaces then it inherits the doesImplement array from its superclass.
  * <p>
  * (5) Otherwise, is the depth of the LHS greater than 
  * MIN_SUPERCLASS_IDS_SIZE? If so, if LHS depth is greater that 
@@ -80,22 +70,14 @@ class VM_DynamicTypeCheck implements VM_Constants {
    * Note: this array is padded to save a index out of
    * bounds test for classes with shallow class depth.
    */
-  static final int MIN_SUPERCLASS_IDS_SIZE = 6; // a short, so div by 2.
+  static final int MIN_SUPERCLASS_IDS_SIZE = 6; // a short[], so multiple of 2.
 
   /**
-   * Minimum length of the implements trits array in TIB.
+   * Minimum length of the doesImplements array in TIB.
    * Note: this array is padded to save a index out of
-   * bounds test for some (hopefully most common) interfaces.
-   *
+   * bounds test for the first 32 * MIN_DOES_IMPLEMENT_SIZE interfaces loaded.
    */
-  static final int MIN_IMPLEMENTS_TRITS_SIZE = 20; // a byte, so div by 4.
-
-  /*
-   * Trit values for answering class implements interface queries.
-   */
-  static final byte MAYBE = 2;
-  static final byte YES   = 1;
-  static final byte NO    = 0;
+  static final int MIN_DOES_IMPLEMENT_SIZE = 5; // an int[]
 
   /**
    * Create the superclass Id vector for a VM_Type.
@@ -103,7 +85,7 @@ class VM_DynamicTypeCheck implements VM_Constants {
    * @param t a VM_Type to create a superclass Id vector for
    * @return the superclass Id vector
    */
-  static short[] buildSuperclassIds (VM_Type t) {
+  static short[] buildSuperclassIds(VM_Type t) {
     int depth   = t.getTypeDepth();
     int size    = MIN_SUPERCLASS_IDS_SIZE <= depth ? depth+1 : MIN_SUPERCLASS_IDS_SIZE;
     short[] tsi = new short[size];
@@ -132,116 +114,79 @@ class VM_DynamicTypeCheck implements VM_Constants {
     return tsi;
   }
 
+  private static int[] arrayDoesImplement;
   /**
-   * Create the implements trits vector for a VM_Type.
+   * Create the doesImplement vector for a VM_Array.
+   * All arrays implement exactly java.io.Serializable and java.lang.Cloneable.
    * 
-   * @param t a VM_Type to create a superclass Id vector for
-   * @return the implements trits vector
+   * @param t a VM_Array to create a doesImplement vector for
+   * @return the doesImplement vector
    */
-  static byte[] buildImplementsTrits (VM_Type t) {
-    return initialImplementsTrits;
+  static int[] buildDoesImplement(VM_Array t) {
+    if (arrayDoesImplement == null) {
+      int cloneIdx = VM_Type.JavaLangCloneableType.getDoesImplementIndex();
+      int serialIdx = VM_Type.JavaIoSerializableType.getDoesImplementIndex();
+      int size = Math.max(cloneIdx, serialIdx);
+      size = Math.max(MIN_DOES_IMPLEMENT_SIZE, size+1);
+      int [] tmp = new int[size];
+      tmp[cloneIdx] = VM_Type.JavaLangCloneableType.getDoesImplementBitMask();
+      tmp[serialIdx] |= VM_Type.JavaIoSerializableType.getDoesImplementBitMask();
+      arrayDoesImplement = tmp;
+    }
+    return arrayDoesImplement;
   }
-
-
+  
   /**
-   * Handle maybe case: 
-   *    does class X implement interface I ?
-   *    cache the answer in the implementsTrits vector
-   *
-   * @param I an interface
-   * @param rhsTIB the TIB of an object that might implement the interface
-   * @return <code>true</code> if the object implements the interface
-   *         or <code>false</code> if it does not
+   * Create the doesImplement vector for a VM_Class.
+   * 
+   * @param t a VM_Class to create a doesImplement vector for
+   * @return the doesImplement vector
    */
-  static boolean initialInstanceOfInterface (VM_Class I, Object[] rhsTIB) 
-    throws VM_ResolutionException {
-    VM_Type rhsType = VM_Magic.objectAsType(rhsTIB[VM.TIB_TYPE_INDEX]);
-    boolean answer;
-    if (rhsType.isClassType()) {
-      VM_Class Y = rhsType.asClass();
-      while (Y != null && !explicitImplementsTest(I, Y)) {
-	Y = Y.getSuperClass();
+  static int[] buildDoesImplement(VM_Class t) {
+    if (t.isJavaLangObjectType()) {
+      // object implements no interfaces.
+      return new int[MIN_DOES_IMPLEMENT_SIZE];
+    }
+
+    VM_Class [] superInterfaces = t.getDeclaredInterfaces();
+
+    if (!t.isInterface() && superInterfaces.length == 0) {
+      // I add nothing new; share with parent.
+      return t.getSuperClass().getDoesImplement();
+    }
+
+    // I need one of my own; first figure out how big it needs to be.
+    int size = t.isInterface() ? t.getDoesImplementIndex() : 0;
+    for (int i=0; i<superInterfaces.length; i++) {
+      VM_Class superInterface = superInterfaces[i];
+      size = Math.max(size, superInterface.getDoesImplement().length);
+    }
+    if (t.getSuperClass() != null) {
+      size = Math.max(size, t.getSuperClass().getDoesImplement().length);
+    }
+    size = Math.max(MIN_DOES_IMPLEMENT_SIZE, size+1);
+
+    // then create and populate it
+    int[] mine = new int[size];
+    if (t.isInterface()) {
+      mine[t.getDoesImplementIndex()] = t.getDoesImplementBitMask();
+    }
+    if (t.getSuperClass() != null) {
+      int[] parent = t.getSuperClass().getDoesImplement();
+      for (int j=0; j<parent.length; j++) {
+	mine[j] |= parent[j];
       }
-      answer = !(Y == null);
-      if (VM.BuildForIMTInterfaceInvocation & answer) 
-        populateIMT(rhsType.asClass(), I);
-      if (VM.BuildForITableInterfaceInvocation & answer) 
-        populateITable(rhsType.asClass(), I);
-    } else {
-      // arrays implement java.io.Serializable and java.lang.Cloneable 
-      // and nothing else.
-      // primitives implement nothing.
-      answer = rhsType.isArrayType() &&	((I == VM_Type.JavaLangCloneableType) ||
-					 (I == VM_Type.JavaIoSerializableType));
-      // don't have to populate IMT for arrays since Cloneable and Serializable
-      // are both empty "marker" interfaces (and thus have no interface methods)
     }
-    byte [] it = rhsType.getImplementsTrits();
-    int id = I.getInterfaceId();
-    //// if (id >= MIN_IMPLEMENTS_TRITS_SIZE) VM.sysWrite("\n!!!! IMT: Interface id "+id+" of "+I+" is large enough to require bounds checking code\n");
-    if (it == initialImplementsTrits || it.length <= id) {
-      it = growImplementsTrits (it);
-      rhsType.setImplementsTrits(it);
+    for (int i=0; i<superInterfaces.length; i++) {
+      int[] parent = superInterfaces[i].getDoesImplement();
+      for (int j=0; j<parent.length; j++) {
+	mine[j] |= parent[j];
+      }
     }
-    it[id] = answer ? YES : NO;
-    return answer;    
-  }
-
-  /**
-   * Returns true if it is known at compile time that rhsType implements I
-   * 
-   * @param I an interface
-   * @param rhsType a VM_Type that might implement the interface
-   * @return <code>true</code> if the type implements the interface
-   *         or <code>false</code> if it does not
-   */
-  static boolean compileTimeImplementsInterface(VM_Class I, VM_Type rhsType) 
-    throws VM_ResolutionException {
-    byte [] it = rhsType.getImplementsTrits();
-    int id = I.getInterfaceId();
-    if (it == initialImplementsTrits || it.length <= id) {
-      it = growImplementsTrits (it);
-      rhsType.setImplementsTrits(it);
-    }
-    if (it[id] == YES) return true;
-    if (it[id] == NO) return false;
     
-    //// if (id >= MIN_IMPLEMENTS_TRITS_SIZE) VM.sysWrite("\n!!!! IMT: Interface id "+id+" of "+I+" is large enough to require bounds checking code\n");
-    boolean answer;
-    if (rhsType.isClassType()) {
-      VM_Class Y = rhsType.asClass();
-      while (Y != null && !compileTimeExplicitImplementsTest(I, Y)) {
-	Y = Y.getSuperClass();
-      }
-      answer = !(Y == null);
-      if (answer && rhsType.isInstantiated() && 
-          !rhsType.asClass().isInterface()) {
-	// At compile time rhsType may not be instantiated and therefore 
-        // the TIB entries
-	// for target virtual method may still be null 
-        // (haven't been compiled yet)!
-	if (VM.BuildForIMTInterfaceInvocation) 
-	  populateIMT(rhsType.asClass(), I);
-	if (VM.BuildForITableInterfaceInvocation) 
-          populateITable(rhsType.asClass(), I);
-      }
-    } else {
-      // arrays implement java.io.Serializable and java.lang.Cloneable and 
-      // nothing else
-      // primitives implement nothing.
-      answer = rhsType.isArrayType() &&	((I == VM_Type.JavaLangCloneableType) ||
-					 (I == VM_Type.JavaIoSerializableType));
-      // don't have to populate IMT for arrays since Cloneable and Serializable
-      // are both empty "marker" interfaces (and thus have no interface methods)
-    }
-    if (answer) {
-      if (!(VM.BuildForIMTInterfaceInvocation || 
-	    VM.BuildForITableInterfaceInvocation) || 
-	  rhsType.isInstantiated())
-	it[id] = YES;
-    }
-    return answer;
+    return mine;
   }
+
 
   /**
    * Handle the case when LHSclass is unresolved at compile time.
@@ -253,7 +198,7 @@ class VM_DynamicTypeCheck implements VM_Constants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfUnresolved (VM_Class LHSclass, Object[] rhsTIB)  
+  static boolean instanceOfUnresolved(VM_Class LHSclass, Object[] rhsTIB)  
     throws VM_ResolutionException {
     if (!LHSclass.isInitialized()) {
       VM_Runtime.initializeClassForDynamicLink(LHSclass);
@@ -270,7 +215,7 @@ class VM_DynamicTypeCheck implements VM_Constants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfResolved (VM_Class LHSclass, Object[] rhsTIB) 
+  static boolean instanceOfResolved(VM_Class LHSclass, Object[] rhsTIB) 
     throws VM_ResolutionException {
     if (LHSclass.isInterface()) {
       return instanceOfInterface(LHSclass, rhsTIB);
@@ -289,7 +234,7 @@ class VM_DynamicTypeCheck implements VM_Constants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfClass (VM_Class LHSclass, Object[] rhsTIB) {
+  static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) {
     short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB[VM.TIB_SUPERCLASS_IDS_INDEX]);
     int LHSDepth = LHSclass.getTypeDepth();
     if (LHSDepth >= superclassIds.length) return false;
@@ -307,56 +252,11 @@ class VM_DynamicTypeCheck implements VM_Constants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfInterface (VM_Class LHSclass, Object[] rhsTIB) throws VM_ResolutionException {
-    byte[] implementsTrits = VM_Magic.objectAsByteArray(rhsTIB[VM.TIB_IMPLEMENTS_TRITS_INDEX]);
-    int LHSId = LHSclass.getInterfaceId();
-    byte trit;
-    if (LHSId >= implementsTrits.length || ((trit = implementsTrits[LHSId]) == MAYBE)) {
-      return initialInstanceOfInterface(LHSclass, rhsTIB);
-    }
-    return trit == YES;
-  }
-
-
-  /**
-   * LHSclass is an interface that RHS class must implement.
-   * Raises a VM_ResolutionException if RHStib does not implement LHSclass
-   * 
-   * @param LHSclass an class (should be an interface)
-   * @param RHStib the TIB of an object that must implement LHSclass
-   */
-  static void mandatoryInstanceOfInterface (VM_Class LHSclass, Object[] RHStib) 
-    throws VM_ResolutionException {
-    if (!LHSclass.isInitialized()) {
-      VM_Runtime.initializeClassForDynamicLink(LHSclass);
-    }
-    if (LHSclass.isInterface() && instanceOfInterface(LHSclass, RHStib)) return;
-    // Raise an IncompatibleClassChangeError.
-    VM_Type RHStype =  VM_Magic.objectAsType(RHStib[VM.TIB_TYPE_INDEX]);
-    throw new VM_ResolutionException(RHStype.getDescriptor(), 
-                                     new IncompatibleClassChangeError());
-  }
-
-
-  /**
-   * mid is the dictionary id of an interface method we are trying to invoke
-   * RHStib is the TIB of an object on which we are attempting to invoke it
-   * We were unable to tell at compile time if mid is a real or ghost reference,
-   * Therefore we must resolve it now and then call mandatoryInstanceOfInterface
-   * with the right LHSclass.  This ensures that the IMT is populated before 
-   * we return 
-   * to our caller who will actually invoke the interface method 
-   * through the IMT.
-   * 
-   * @param mid the dictionary id of the target interface method
-   * @param RHStib, the TIB of the object on which we are attempting to 
-   * invoke the interface method
-   */
-  static void unresolvedInterfaceMethod(int mid, Object[] RHStib) 
-    throws VM_ResolutionException {
-    VM_Method m = VM_MethodDictionary.getValue(mid);
-    VM_Method nm = m.resolveInterfaceMethod(true);
-    mandatoryInstanceOfInterface(nm.getDeclaringClass(), RHStib);
+  static boolean instanceOfInterface(VM_Class LHSclass, Object[] rhsTIB) throws VM_ResolutionException {
+    int[] doesImplement = VM_Magic.objectAsIntArray(rhsTIB[VM.TIB_DOES_IMPLEMENT_INDEX]);
+    int idx = LHSclass.getDoesImplementIndex();
+    int mask = LHSclass.getDoesImplementBitMask();
+    return idx < doesImplement.length && ((doesImplement[idx] & mask) != 0);
   }
 
 
@@ -372,8 +272,8 @@ class VM_DynamicTypeCheck implements VM_Constants {
    *        [^LHSDimension of LHSInnermostClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfUnresolvedArray (VM_Class LHSInnermostElementClass, 
-                                            int LHSDimension,  VM_Type RHSType) 
+  static boolean instanceOfUnresolvedArray(VM_Class LHSInnermostElementClass, 
+					   int LHSDimension,  VM_Type RHSType) 
     throws VM_ResolutionException {
     if (!LHSInnermostElementClass.isInitialized()) {
       VM_Runtime.initializeClassForDynamicLink(LHSInnermostElementClass);
@@ -393,7 +293,7 @@ class VM_DynamicTypeCheck implements VM_Constants {
    *       [^LHSDimension of LHSInnermostClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfObjectArray (int LHSDimension, VM_Type RHSType) {
+  static boolean instanceOfObjectArray(int LHSDimension, VM_Type RHSType) {
     int RHSDimension = RHSType.getDimensionality();
     if (RHSDimension < LHSDimension) return false;
     if (RHSDimension > LHSDimension) return true;
@@ -414,8 +314,8 @@ class VM_DynamicTypeCheck implements VM_Constants {
    *        [^LHSDimension of LHSInnermostClass
    *         or <code>false</code> if it is not
    */
-  static boolean instanceOfArray (VM_Class LHSInnermostElementClass, 
-                                  int LHSDimension,  VM_Type RHSType) 
+  static boolean instanceOfArray(VM_Class LHSInnermostElementClass, 
+				 int LHSDimension,  VM_Type RHSType) 
     throws VM_ResolutionException {
     int RHSDimension = RHSType.getDimensionality();
     if (RHSDimension != LHSDimension) return false;
@@ -438,7 +338,7 @@ class VM_DynamicTypeCheck implements VM_Constants {
    *         RHSType into a variable of type LSType
    *         or <code>false</code> if we cannot.
    */
-  static boolean instanceOf (VM_Type LHSType, VM_Type RHSType) 
+  static boolean instanceOf(VM_Type LHSType, VM_Type RHSType) 
     throws VM_ResolutionException {
     if (LHSType == RHSType) return true;
     if (!LHSType.isResolved()) {
@@ -475,7 +375,7 @@ class VM_DynamicTypeCheck implements VM_Constants {
    * @param LHSType the left-hand-side type
    * @param RHSType the right-hand-size type
    */
-  static void checkstoreNotArrayOfPrimitive (VM_Type LHSType, VM_Type RHSType) 
+  static void checkstoreNotArrayOfPrimitive(VM_Type LHSType, VM_Type RHSType) 
     throws VM_ResolutionException, ArrayStoreException  {
     int LHSDimension = LHSType.getDimensionality();
     if (LHSDimension == 0) {
@@ -508,8 +408,8 @@ class VM_DynamicTypeCheck implements VM_Constants {
    * @param LHSType the left-hand-side type
    * @param RHSType the right-hand-size type
    */
-  static void checkstorePossibleArrayOfPrimitive (VM_Type LHSType, 
-                                                  VM_Type RHSType) 
+  static void checkstorePossibleArrayOfPrimitive(VM_Type LHSType, 
+						 VM_Type RHSType) 
     throws VM_ResolutionException, ArrayStoreException {
     int LHSDimension = LHSType.getDimensionality();
     if (LHSDimension == 0) {
@@ -529,234 +429,5 @@ class VM_DynamicTypeCheck implements VM_Constants {
     }
     
     throw new ArrayStoreException();
-  }
-
-  
-  ////////////////////
-  // Implementation //
-  ////////////////////
-
-
-  // Most classes don't implement interfaces (or don't use the
-  // interfaces they claim to implement.  Such classes will share
-  // an initial implements trits vector filled with MAYBE values.
-  //
-  private static byte [] initialImplementsTrits; 
-  static {
-    initialImplementsTrits = new byte[MIN_IMPLEMENTS_TRITS_SIZE];
-    for (int i=0; i<MIN_IMPLEMENTS_TRITS_SIZE; i++) {
-      initialImplementsTrits[i] = MAYBE;
-    }
-  }
-
-  /**
-   * add methods of interface I to the IMT for class C
-   */
-  private static void populateIMT (VM_Class C, VM_Class I) {
-    if (VM.VerifyAssertions) VM.assert(I.isInterface());
-    if (C.isAbstract()) return; // no need to populate IMT for abstract class; 
-                                // it will never be used.
-    if (VM.BuildForEmbeddedIMT) {
-      populateEmbeddedIMT(C,I);
-    } else {
-      populateIndirectIMT(C,I);
-    }
-  }
-
-  /**
-   * add methods of interface I to the IMT for class C
-   */
-  private static void populateEmbeddedIMT (VM_Class C, VM_Class I) {
-    VM_Method [] interfaceMethods = I.getDeclaredMethods();
-    synchronized (C) {
-      if (C.IMTslotLists == null) {
-	C.IMTslotLists = new VM_InterfaceMethodSignature.Link[IMT_METHOD_SLOTS];
-      }
-      for (int i=0; i<interfaceMethods.length; i++) {
-	VM_Method m = interfaceMethods[i];
-	if (m.isClassInitializer()) continue; 
-	if (VM.VerifyAssertions) VM.assert(m.isPublic() && m.isAbstract()); 
-	int id = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId(m.getName(), m.getDescriptor());
-	int index = VM_InterfaceMethodSignature.getIndex(id);
-	if (VM_InterfaceMethodSignature.Link.isOn(C.IMTslotLists[index], id)) continue;
-	VM_Method vm = C.findVirtualMethod(m.getName(), m.getDescriptor());
-        
-        // TODO!! when this fails: populate IMT with error stub 
-	if (VM.VerifyAssertions) VM.assert(vm !=null && vm.isPublic() && !vm.isAbstract()); 
-
-	Object [] tib = C.getTypeInformationBlock();
-	C.addIMTslotElement(index, id, vm);
-	int l = C.getIMTslotPopulation(index);
-	if (l == 1) {
-	  INSTRUCTION [] code = (INSTRUCTION []) tib[vm.getOffset()>>2];
-	  tib[index+TIB_FIRST_INTERFACE_METHOD_INDEX] = code;
-	} else {
-	  INSTRUCTION[] stub = VM_InterfaceMethodConflictResolver.createStub(C.IMTslotLists[index], l);
-	  tib[index+TIB_FIRST_INTERFACE_METHOD_INDEX] = stub;
-	}
-      }
-    }
-  }
-  /**
-   * add methods of interface I to the IMT for class C
-   */
-  private static void populateIndirectIMT (VM_Class C, VM_Class I) {
-    VM_Method [] interfaceMethods = I.getDeclaredMethods();
-    Object [] tib = C.getTypeInformationBlock();
-    synchronized (C) {
-      INSTRUCTION[][] IMT= (INSTRUCTION[][])tib[TIB_IMT_TIB_INDEX];
-      // if needed, allocate the IMT
-      if (IMT == null) {
-        IMT = new INSTRUCTION[IMT_METHOD_SLOTS][];
-        tib[TIB_IMT_TIB_INDEX] = IMT;
-      }
-      if (C.IMTslotLists == null) {
-	C.IMTslotLists = new VM_InterfaceMethodSignature.Link[IMT_METHOD_SLOTS];
-      }
-      for (int i=0; i<interfaceMethods.length; i++) {
-	VM_Method m = interfaceMethods[i];
-	if (m.isClassInitializer()) continue; 
-	if (VM.VerifyAssertions) VM.assert(m.isPublic() && m.isAbstract()); 
-	int id = VM_ClassLoader.findOrCreateInterfaceMethodSignatureId
-          (m.getName(), m.getDescriptor());
-	int index = VM_InterfaceMethodSignature.getIndex(id);
-	if (VM_InterfaceMethodSignature.Link.isOn(C.IMTslotLists[index], id)) continue;
-	VM_Method vm = C.findVirtualMethod(m.getName(), m.getDescriptor());
-        
-        // TODO!! when this fails: populate IMT with error stub 
-	if (VM.VerifyAssertions) VM.assert(vm != null && vm.isPublic() && !vm.isAbstract()); 
-
-	C.addIMTslotElement(index, id, vm);
-	int l = C.getIMTslotPopulation(index);
-	if (l == 1) {
-	  INSTRUCTION [] code = (INSTRUCTION []) tib[vm.getOffset()>>2];
-	  IMT[index] = code;
-	} else {
-	  INSTRUCTION[] stub = VM_InterfaceMethodConflictResolver.createStub(C.IMTslotLists[index], l);
-	  IMT[index] = stub;
-	}
-      }
-    }
-  }
-
-
-  // create the iTable of interface I for class C
-  //
-  static void populateITable (VM_Class C, VM_Class I) {
-    if (VM.VerifyAssertions) VM.assert(I.isInterface());
-    if (C.isAbstract()) return; // no need to populate ITable for 
-                                // abstract class; it will never be used.
-    if (I.getDeclaredMethods().length == 0) return; // no need to 
-                                     // populate when interface has no methods
-    synchronized(C) {
-      Object [] tib = C.getTypeInformationBlock();
-      Object[] iTables = (Object[])tib[TIB_ITABLES_TIB_INDEX];
-      int iTableIdx = -1;
-      if (VM.DirectlyIndexedITables) {
-	iTableIdx = I.getInterfaceId();
-	if (iTables == null) {
-	  iTables = new Object[iTableIdx+1];
-	  tib[TIB_ITABLES_TIB_INDEX] = iTables;
-	} else if (iTables.length <= iTableIdx) {
-	  Object[] tmp = new Object[iTableIdx+1];
-	  for (int i=0; i<iTables.length; i++) {
-	    tmp[i] = iTables[i];
-	  }
-	  iTables = tmp;
-	  tib[TIB_ITABLES_TIB_INDEX] = iTables;
-	}
-      } else {
-	if (iTables == null) {
-	  iTables = new Object[2];
-	  iTableIdx = 1;
-	  tib[TIB_ITABLES_TIB_INDEX] = iTables;
-	} else {
-	  for (int i=0; i<iTables.length; i++) {
-	    if (((Object[])iTables[i])[0] == I) {
-	      iTableIdx = i;
-	      break;
-	    }
-	  }
-	  if (iTableIdx == -1) {
-	    iTableIdx = iTables.length;
-	    Object[] tmp = new Object[iTables.length+1];
-	    for (int i=0; i<iTables.length; i++) {
-	      tmp[i] = iTables[i];
-	    }
-	    iTables = tmp;
-	    tib[TIB_ITABLES_TIB_INDEX] = iTables;
-	  }
-	}
-      }
-      if (iTables[iTableIdx] == null) {
-	VM_Method [] interfaceMethods = I.getDeclaredMethods();
-	Object[] iTable = new Object[interfaceMethods.length+1];
-	iTable[0] = I; // to support installing new compiled versions 
-                       // of virtual methods
-	for (int i=0; i<interfaceMethods.length; i++) {
-	  VM_Method m = interfaceMethods[i];
-	  if (m.isClassInitializer()) continue; 
-	  if (VM.VerifyAssertions) VM.assert(m.isPublic() && m.isAbstract()); 
-	  VM_Method vm = C.findVirtualMethod(m.getName(), m.getDescriptor());
-
-	  // TODO!! when this fails: populate ITable with error stub
-	  if (VM.VerifyAssertions) VM.assert(vm != null && vm.isPublic() && !vm.isAbstract()); 
-
-	  iTable[I.getITableIndex(m)] = (INSTRUCTION []) tib[vm.getOffset()>>2];
-	}
-	iTables[iTableIdx] = iTable;
-	// iTables[0] is a move to front cache; fill it here so we can
-	// assume it always contains some iTable.
-	iTables[0] = iTable;
-      }
-    }
-  }
-
-  // Grow trit vector
-  //
-  private static byte[] growImplementsTrits (byte[] oldIT) {
-    int size = VM_Class.getInterfaceCount();
-    if (size < MIN_IMPLEMENTS_TRITS_SIZE) {
-      size = MIN_IMPLEMENTS_TRITS_SIZE;
-    }
-    byte[] newIT = new byte[size];
-    for (int i=0; i<oldIT.length; i++) {
-      newIT[i] = oldIT[i];
-    }
-    for (int i=oldIT.length; i<newIT.length; i++) {
-      newIT[i] = MAYBE;
-    }
-    return newIT;
-  }
-
-  // TODO: restore me to private once VM_Type.isAssignableWith gets nuked.
-  /*private*/ static boolean explicitImplementsTest (VM_Class I, VM_Class J) throws VM_ResolutionException {
-    VM_Class [] superInterfaces = J.getDeclaredInterfaces();
-    if (superInterfaces == null) return false;
-    for (int i=0; i<superInterfaces.length; i++) {
-      VM_Class superInterface = superInterfaces[i];
-      if (!superInterface.isResolved()) {
-	synchronized (VM_ClassLoader.lock) {
-	  superInterface.load();
-	  superInterface.resolve();
-	}
-      }
-      if (!superInterface.isInterface()) throw new VM_ResolutionException(superInterface.getDescriptor(), new IncompatibleClassChangeError());
-      if (I==superInterface || explicitImplementsTest(I, superInterface)) return true;
-    }
-    return false;
-  }
-
-  
-  // TODO: restore me to private once VM_Type.isAssignableWith gets nuked.
-  /* private */ static boolean compileTimeExplicitImplementsTest (VM_Class I, VM_Class J) {
-    VM_Class [] superInterfaces = J.getDeclaredInterfaces();
-    if (superInterfaces == null) return false;
-    for (int i=0; i<superInterfaces.length; i++) {
-      VM_Class superInterface = superInterfaces[i];
-      if (superInterface.isResolved() && (I==superInterface || compileTimeExplicitImplementsTest(I, superInterface))) 
-	return true;
-    }
-    return false;
   }
 }

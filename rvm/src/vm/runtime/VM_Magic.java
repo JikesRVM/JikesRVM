@@ -578,6 +578,17 @@ public class VM_Magic {
   }
 
   /**
+   * Cast object.
+   * Note:     for use in dynamic type checking (avoid dynamic type checking in impl. of dynamic type checking)
+   * @param object
+   * @return int array (int[])  object reference
+   */
+  public static int[] objectAsIntArray(Object object) {
+    if (VM.runningVM && VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return (int[])object;
+  }
+
+  /**
    * To allow noncopying collectors to treat blocks array as array of ints
    */
   public static int[] addressAsIntArray(int int_array) {

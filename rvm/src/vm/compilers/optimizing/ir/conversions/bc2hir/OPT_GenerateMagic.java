@@ -209,6 +209,11 @@ class OPT_GenerateMagic implements OPT_Operators, VM_RegisterConstants {
 	gc.temps.makeTemp(OPT_ClassLoaderProxy.ShortArrayType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.objectAsIntArray) {
+      OPT_RegisterOperand reg = 
+	gc.temps.makeTemp(OPT_ClassLoaderProxy.IntArrayType);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
+      bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.addressAsStack) {
       OPT_RegisterOperand reg = 
 	gc.temps.makeTemp(OPT_ClassLoaderProxy.IntArrayType);

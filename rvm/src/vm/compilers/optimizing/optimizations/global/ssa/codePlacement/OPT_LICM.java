@@ -212,7 +212,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     case GET_CLASS_TIB_opcode:
     case GET_TYPE_FROM_TIB_opcode:
     case GET_SUPERCLASS_IDS_FROM_TIB_opcode:
-    case GET_IMPLEMENTS_TRITS_FROM_TIB_opcode:
+    case GET_DOES_IMPLEMENT_FROM_TIB_opcode:
     case GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode:
       return !(OPT_GCP.usesOrDefsPhysicalRegister(inst));
     }

@@ -169,40 +169,26 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
         }
       } else {                    // parentType.isClassType()
         if (!childType.isClassType())
-          return NO;           // we know that parentType is 
-                               // not java.lang.Object (see above)
+          return NO; // we know that parentType is not java.lang.Object (see above)
         if (parentType.isInitialized() && childType.isInitialized() ||
 	    (VM.writingBootImage && 
 	     parentType.asClass().isInBootImage() && 
 	     childType.asClass().isInBootImage())) {
           if (parentType.asClass().isInterface()) {
-	    VM_Class Y = childType.asClass();
-	    while (Y != null && !VM_DynamicTypeCheck.compileTimeExplicitImplementsTest(parentType.asClass(), Y)) {
-	      Y = Y.getSuperClass();
-	    }
-	    if (Y != null) {
+	    if (VM_Runtime.isAssignableWith(parentType, childType)) {
 	      return YES;
 	    } else {
-              // Can't return NO, since implemented interfaces may 
-              // not be loaded even though childType is fully loaded.
-              // Also, if childType is not a final class, it is 
+              // If childType is not a final class, it is 
               // possible that a subclass will implement parentType.
-              return  MAYBE;
+              return childType.asClass().isFinal() ? NO : MAYBE;
             }
           } else if (childType.asClass().isInterface()) {
             // parentType is a proper class, childType is an interface
-            return  MAYBE;
+            return MAYBE;
           } else {
             // parentType & childType are both proper classes.
-	    if (VM.BuildForFastDynamicTypeCheck) {
-	      if (VM_DynamicTypeCheck.instanceOfClass(parentType.asClass(), 
-						      childType.getTypeInformationBlock())) {
-		return  YES;
-	      }
-	    } else {
-	      if (VM_Runtime.isAssignableWith(parentType, childType)) {
-		return YES;
-	      }
+	    if (VM_Runtime.isAssignableWith(parentType, childType)) {
+	      return YES;
 	    }
 	    // If childType is a final class, then 
 	    // !instanceOfClass(parentType, childType) lets us return NO.
@@ -214,18 +200,10 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
 	    if (childType.asClass().isFinal())
 	      return  NO; 
 	    else {
-	      if (VM.BuildForFastDynamicTypeCheck) {
-		if (VM_DynamicTypeCheck.instanceOfClass(childType.asClass(), 
-							parentType.getTypeInformationBlock()))
-		  return  MAYBE; 
-		else 
-		  return  NO;
-	      } else {
-		if (VM_Runtime.isAssignableWith(childType, parentType))
-		  return  MAYBE; 
-		else 
-		  return  NO;
-	      }
+	      if (VM_Runtime.isAssignableWith(childType, parentType))
+		return  MAYBE; 
+	      else 
+		return  NO;
             }
           }
         } else {
