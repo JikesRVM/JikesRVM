@@ -228,7 +228,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
       VM.sysWrite("  init ", initTime.avg() * 1000.0, " ms");
       VM.sysWrite("  roots ", rootTime.avg() * 1000.0, " ms");
       VM.sysWrite("  scan ", scanTime.avg() * 1000.0, " ms");
-      VM.sysWrite("  finalize ", finalizeTime.avg() * 1000.0, " ms");
+      if (!Options.noFinalizer)
+	VM.sysWrite("  finalize ", finalizeTime.avg() * 1000.0, " ms");
       VM.sysWrite("  finish ", finishTime.avg() * 1000.0, " ms");
       VM.sysWriteln();
     }
