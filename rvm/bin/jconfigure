@@ -2503,9 +2503,6 @@ function emitImageLinker () {
 	# skip: JikesRVMSocketImpl; do not load native libs unless needed
 	    JikesRVMSocketImpl.class
 
-	# skip: do not put application class loader in, due to static data issues
-	    ApplicationClassLoader.class
-
 	# We can not carry these from bootimage writing to runtime 
 	# without special treatment
 	    java/lang/ref/PhantomReference.class
@@ -2675,6 +2672,17 @@ java/security/Permissions
 java/security/Principal
 gnu/java/locale/Calendar
 java/lang/reflect/InvocationTargetException
+
+    # ApplicationClassLoader
+com/ibm/JikesRVM/classloader/ApplicationClassLoader # Uses URLClassLoader
+java/net/URLClassLoader		# Uses java.util.HashMap
+java/net/URL			# Used by URLClassLoader's initializer
+gnu/java/net/protocol/file/Handler # by java/net/URL
+
+# Not necessary, since we can class load from regular files at the point 
+# it's needed, but used while booting, so it should save us time at 
+# startup to just include it.
+gnu/java/lang/reflect/TypeSignature # Used by ObjectStreamField
 
     # class loading from regular files
     #
