@@ -111,8 +111,8 @@ public final class OPT_BranchOptimizations
     if (Goto.conforms(targetInst)) {
       // unconditional branch to unconditional branch.
       // replace g with goto to targetInst's target
-      OPT_BranchOperand top = Goto.getTarget(targetInst);
-      if (top.similar(Goto.getTarget(g))) {
+      OPT_Instruction target2 = firstRealInstructionFollowing(targetInst.getBranchTarget().firstInstruction());
+      if (target2 == targetInst) {
 	// Avoid an infinite recursion in the following bizarre scenario:
 	// g: goto L
 	// ...
@@ -120,7 +120,7 @@ public final class OPT_BranchOptimizations
 	// This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
 	return false;
       }
-      Goto.setTarget(g, top);
+      Goto.setTarget(g, Goto.getTarget(targetInst));
       bb.recomputeNormalOut(ir); // fix the CFG 
       return true;
     }
@@ -261,8 +261,8 @@ public final class OPT_BranchOptimizations
     if (Goto.conforms(targetInst)) {
       // conditional branch to unconditional branch.
       // change conditional branch target to latter's target
-      OPT_BranchOperand top = Goto.getTarget(targetInst);
-      if (top.similar(IfCmp.getTarget(cb))) {
+      OPT_Instruction target2 = firstRealInstructionFollowing(targetInst.getBranchTarget().firstInstruction());
+      if (target2 == targetInst) {
 	// Avoid an infinite recursion in the following scenario:
 	// g: if (...) goto L
 	// ...
