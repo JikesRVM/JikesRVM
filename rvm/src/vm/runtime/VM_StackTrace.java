@@ -179,6 +179,27 @@ public class VM_StackTrace implements VM_Constants {
 //   }
   
 
+  /** If printing a stack trace, also dump it via VM.sysWrite if not doing so
+      already.  This is specifically in order to figure out why Eclipse blows
+      up in certain cases, since Eclipse snags the stack trace output to 
+      use internally!  So we need a copy.
+      
+      Disabled by default.
+
+      This needs to be run-time configurable, but isn't.   Set it in the code
+      and recompile.  
+  */
+  final static private boolean alsoStackTraceToSysWrite = false;
+
+  /** Show the context of an attempt to print a stack frame.  This is
+      specifically to help figure out why Eclipse is dumping the stack in
+      certain cases.  Also useful for other problems.  Enabled by default. 
+      
+      Needs to be made run-time configurable, but isn't. 
+  */
+  final static boolean showPrintingContext = true;
+
+
   /**
    * Print the stack trace.  This is a safety net around print4Real(), a
    * private method that does the actual work.  Here we just catch any stray
@@ -203,7 +224,27 @@ public class VM_StackTrace implements VM_Constants {
   public void print(PrintLN out, Throwable trigger, Throwable effect) {
     boolean printed = false;
     try {
-      VM.sysWriteln("VM_StackTrace.print(): Printing Stack Trace # ", traceIndex);
+      VM.sysWriteln("VM_StackTrace.print(): Printing Stack Trace # ",
+                    traceIndex);
+      if (alsoStackTraceToSysWrite) {
+	if (! out.isSysWrite()) {
+	  VM.sysWriteln("[ VM_StackTrace.print(#", traceIndex,
+                        "): Here's the copy to sysWrite:");
+	  print(PrintContainer.readyPrinter, trigger, effect);
+	  VM.sysWriteln("... END VM_StackTrace.print():"
+                        + " sysWrote Stack Trace # ", traceIndex, "]");
+	}
+      }
+      if (showPrintingContext) {
+        VM.disableGC();
+        VM.sysWriteln("[Here is the context of the attempt"
+                      + " to print stack trace #:", traceIndex);
+        VM_Scheduler.dumpStack();
+        VM.sysWriteln("... END context of the attempt"
+                      + " to print Stack Trace # ", traceIndex, "]");
+        VM.enableGC();
+      }
+
       print4Real(out, trigger);
       printed = true;
     } catch (OutOfMemoryError e) {
