@@ -20,7 +20,9 @@ it now works in the common case where a thread is already attached to the VM.
 **RVM_BOOTCLASSPATH_APPEND is a new environment variable that Jikes RVM
 will recognize when booting.  You can use it to add extensions to the
 VM.  Set it as you would set the CLASSPATH environment variable.
-
+**Major re-implementation of AOS's feedback-directed inlining and the opt 
+compiler's default inlining policy. Result is simpler code, lower
+overhead profiling, and more effective inlining decisions. 
 *Bug Fixes:
 **The JNI AttachCurrentThread function now returns proper error status if it
 cannot complete properly.  It used to (incorrectly) always return
