@@ -460,20 +460,27 @@ class TraceFileReader
     TraceRecord tr = null;
     
     try {
-      int record_format = input_file.readInt();
+      int encoding = input_file.readInt();
+      int record_format = encoding & 0x0000000F; 	// last 4 bits
       if (record_format == 0) {
 	// EOF
  	return tr;
       } else if (record_format == TraceRecord.COUNTER_TYPE) {
 	TraceCounterRecord tcr = new TraceCounterRecord(n_counters);
-	int encoding    = input_file.readInt();
-	tcr.buffer_code = encoding >> 16;
-	tcr.vpid         = encoding & 0x00FF;
-	tcr.tid          = input_file.readInt();
-	tcr.local_tid    = input_file.readInt();
-	if(options.debug>=5)
-	  System.out.print(tcr.buffer_code+" VPID "+tcr.vpid+" TID "+tcr.tid+" LTID "+tcr.local_tid);
-
+	tcr.local_tid     =  encoding >> 16;
+	tcr.buffer_code   = (encoding >> 15) & 0x00000001;
+	int bit           = (encoding >> 14) & 0x00000001;
+	tcr.vpid          = (encoding >>  4) & 0x000003FF;
+	tcr.thread_switch = (bit==1?true:false);
+	tcr.tid           = input_file.readInt();
+	if(options.debug>=5){
+	  if (tcr.thread_switch) {
+	    System.out.print(tcr.buffer_code+" VPID "+tcr.vpid);
+	  } else {
+	    System.out.print(tcr.buffer_code+"*VPID "+tcr.vpid);
+	  }
+	  System.out.print(" TID "+tcr.tid+" LTID "+tcr.local_tid);
+	}
 	tcr.start_wall_time   = input_file.readLong();
 	// translate end wall time to relative wall time.
 	tcr.counters[0] = input_file.readLong() - tcr.start_wall_time;
@@ -539,7 +546,8 @@ class TraceFileReader
 	tr = new TracePaddingRecord(trace_file_vpid, length);
 
       } else {
-	System.out.println("***TraceFileReader.readTraceRecord() record format "+record_format+" unknown!***");
+	System.out.println("***TraceFileReader.readTraceRecord() record format "+record_format+
+			   " unknown with encoding "+encoding+"!***");
 	int value;
 	int BOUND = 100;
 	System.out.print("***"+BOUND+" additional values: ");
@@ -651,7 +659,11 @@ class TraceFileReader
       TraceCounterRecord tcr = (TraceCounterRecord)tr;
       if (options.tid != CommandLineOptions.UNINITIALIZED && options.tid != Math.abs(tcr.tid)) return;
       if (options.no_yields && tcr.tid < 0) return;
-      if(options.verbose>=1) System.out.print(index+" ");
+      if(options.verbose>=1) {
+	System.out.print(index);
+      }
+      if (tcr.thread_switch) System.out.print(" ");
+      else                   System.out.print("*");
       if(options.verbose>=3) System.out.print(tcr.buffer_code+" ");
       tcr.print();
     } else {

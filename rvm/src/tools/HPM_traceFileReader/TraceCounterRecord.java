@@ -18,8 +18,10 @@ public class TraceCounterRecord extends TraceRecord
   /*
    * record's fields
    */
-  // which buffer was this record written from?
-  public int  buffer_code = -1;
+  // which buffer was this record written from?  (values 1 or 0)
+  public int  buffer_code   = -1;
+  // thread switch occurred? (1 yes, 0 no)
+  public boolean  thread_switch = false;
   // virtual processor id
   public int vpid = -1;
   // local thread id (assume always positive)
@@ -75,6 +77,8 @@ public class TraceCounterRecord extends TraceRecord
   {
     // System.out.println("TraceRecord.print() # of counters "+info.numberOfCounters);
     boolean notZero = false;
+    //    if (thread_switch) System.out.print(" ");
+    //    else               System.out.print("*");
     System.out.print("VP "+vpid+" TID ");
     if (         tid  > -1) System.out.print(" ");
     if (Math.abs(tid) < 10) System.out.print(" ");
