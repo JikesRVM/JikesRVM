@@ -39,7 +39,9 @@ import com.ibm.JikesRVM.VM_ObjectModel;
  * @version $Revision$
  * @date $Date$
  */
-public abstract class BasePlan implements Constants, VM_Uninterruptible {
+public abstract class BasePlan 
+  // extends BumpPointer 
+implements Constants, VM_Uninterruptible {
 
   public final static String Id = "$Id$"; 
 
@@ -86,6 +88,7 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
     rootLocationPool = new SharedQueue(metaDataRPA, 1);
     interiorRootPool = new SharedQueue(metaDataRPA, 2);
   }
+
 
   BasePlan() {
     id = count++;
@@ -290,6 +293,16 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
   }
 
   private static int heapPages;
+
+
+  public static void showPlans() {
+    for (int i=0; i<VM_Scheduler.processors.length; i++) {
+      VM_Processor p = VM_Scheduler.processors[i];
+      if (p == null) continue;
+      VM.sysWrite(i, ": ");
+      VM_Interface.getPlanFromProcessor(p).show();
+    }
+  }
 
   /*
    * This method should be called whenever an error is encountered.

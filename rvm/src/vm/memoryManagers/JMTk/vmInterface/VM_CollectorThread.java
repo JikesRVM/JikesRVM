@@ -198,7 +198,7 @@ public class VM_CollectorThread extends VM_Thread {
       VM_Scheduler.collectorMutex.lock();
       if (trace > 1) {
 	VM_Scheduler.trace("VM_CollectorThread", "yielding");
-	VM_Processor.getCurrentProcessor().mmPlan.show();
+	VM_Interface.getPlan().show();
       }
 
       VM_Thread.getCurrentThread().yield(VM_Scheduler.collectorQueue,
