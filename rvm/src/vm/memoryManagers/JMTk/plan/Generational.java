@@ -341,7 +341,8 @@ public abstract class Generational extends StopTheWorldGC
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
-    if (collectionInitiated || !initialized || mr == metaDataMR) return false;
+    if (collectionsInitiated > 0 || !initialized || mr == metaDataMR)
+      return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurseryMR.reservedPages() > Options.maxNurseryPages;
@@ -409,6 +410,7 @@ public abstract class Generational extends StopTheWorldGC
       globalMaturePrepare();
       ImmortalSpace.prepare(immortalVM, null);
     }
+    VM_Interface.resetThreadCounter();  // necessary for preCopyGCInstances()
   }
 
   abstract void threadLocalMaturePrepare(int count);
@@ -427,6 +429,7 @@ public abstract class Generational extends StopTheWorldGC
       threadLocalMaturePrepare(count);
       if (Plan.usesLOS) los.prepare();
     }
+    VM_Interface.preCopyGCInstances();   // Pre-copy objects the GC uses
   }
 
   /**
@@ -554,6 +557,29 @@ public abstract class Generational extends StopTheWorldGC
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
+
+  /**
+   * Forward the object referred to by a given address and update the
+   * address if necessary.  This <i>does not</i> enqueue the referent
+   * for processing; the referent must be explicitly enqueued if it is
+   * to be processed.
+   *
+   * @param location The location whose referent is to be forwarded if
+   * necessary.  The location will be updated if the referent is
+   * forwarded.
+   */
+  public static final void forwardObjectLocation(VM_Address location) 
+    throws VM_PragmaInline {
+    VM_Address obj = VM_Magic.getMemoryAddress(location);
+    if (!obj.isZero()) {
+      VM_Address addr = VM_Interface.refToAddress(obj);
+      byte space = VMResource.getSpace(addr);
+      if (space == NURSERY_SPACE) 
+	VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(obj));
+      else if (fullHeapGC) 
+	Plan.forwardMatureObjectLocation(location, obj, space);
+    }
+  }
 
   /****************************************************************************
    *

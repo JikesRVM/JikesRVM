@@ -330,7 +330,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr)
     throws VM_PragmaLogicallyUninterruptible {
-    if (collectionInitiated || !initialized || mr == metaDataMR) return false;
+    if (collectionsInitiated > 0 || !initialized || mr == metaDataMR)
+      return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurseryMR.reservedPages() > Options.maxNurseryPages;
@@ -372,6 +373,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     msSpace.prepare(msVM, msMR);
     ImmortalSpace.prepare(immortalVM, null);
     losSpace.prepare(losVM, losMR);
+    VM_Interface.resetThreadCounter();  // necessary for preCopyGCInstances()
   }
 
   /**
@@ -386,6 +388,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     nursery.reset();
     ms.prepare();
     los.prepare();
+    VM_Interface.preCopyGCInstances();
   }
 
   /**
@@ -478,6 +481,25 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
+  /**
+   * Forward the object referred to by a given address and update the
+   * address if necessary.  This <i>does not</i> enqueue the referent
+   * for processing; the referent must be explicitly enqueued if it is
+   * to be processed.
+   *
+   * @param location The location whose referent is to be forwarded if
+   * necessary.  The location will be updated if the referent is
+   * forwarded.
+   */
+  public static void forwardObjectLocation(VM_Address location) 
+    throws VM_PragmaInline {
+    VM_Address obj = VM_Magic.getMemoryAddress(location);
+    if (!obj.isZero()) {
+      VM_Address addr = VM_Interface.refToAddress(obj);
+      if (VMResource.getSpace(addr) == NURSERY_SPACE) 
+	VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(obj));
+    }
+  }
 
   /**
    * Return true if the given reference is to an object that is within

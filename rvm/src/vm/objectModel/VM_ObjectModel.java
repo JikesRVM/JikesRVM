@@ -209,9 +209,6 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   public static void gcProcessTIB(VM_Address ref) {
     VM_JavaHeader.gcProcessTIB(ref);
   }
-  public static void gcProcessTIB(VM_Address ref, boolean root) {
-    VM_JavaHeader.gcProcessTIB(ref, root);
-  }
 
   public static int bytesRequiredWhenCopied(Object obj) {
     Object[] tib = getTIB(obj);

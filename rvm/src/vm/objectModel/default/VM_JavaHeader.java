@@ -136,10 +136,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Process the TIB field during copyingGC
    */
   public static void gcProcessTIB(VM_Address ref) {
-    MM_Interface.processPtrLocation(ref.add(TIB_OFFSET), false);
-  }
-  public static void gcProcessTIB(VM_Address ref, boolean root) {
-    MM_Interface.processPtrLocation(ref.add(TIB_OFFSET), root);
+    MM_Interface.processPtrLocation(ref.add(TIB_OFFSET));
   }
 
   /**

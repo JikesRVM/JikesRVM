@@ -6,6 +6,7 @@
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.Enumerate;
+import com.ibm.JikesRVM.memoryManagers.JMTk.AddressDeque;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
@@ -40,17 +41,7 @@ public class ScanObject implements VM_Constants {
    */
   public static void scan(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    scan(object, false, null, true);
-  }
-
-  /**
-   * Scan a root object, processing each pointer field encountered.
-   *
-   * @param object The root object to be scanned.
-   */
-  public static void rootScan(Object objRef)
-    throws VM_PragmaUninterruptible, VM_PragmaNoInline {
-    scan(VM_Magic.objectAsAddress(objRef), true, null, true);
+    scan(object, null);
   }
 
   /**
@@ -64,20 +55,31 @@ public class ScanObject implements VM_Constants {
    */
   public static void enumeratePointers(VM_Address object, Enumerate enum) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    scan(object, false, enum, false);
+    scan(object, enum);
+  }
+
+  /**
+   * Enumerate the pointers in an object, calling back to a given plan
+   * for each pointer encountered. <i>NOTE</i> that only the "real"
+   * pointer fields are enumerated, not the TIB.
+   *
+   * @param object The object to be scanned.
+   * @param enum the Enumerate object through which the callback
+   * is made
+   */
+  public static void enumeratePointers(Object object, Enumerate enum) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    scan(VM_Magic.objectAsAddress(object), enum);
   }
 
   /**
    * Scans an object or array for internal object references and
    * processes those references (calls processPtrLocation)
    *
-   * @param objRef  reference for object to be scanned (as int)
-   * @param root XXX missin param description
+   * @param objRef  reference for object to be scanned
    * @param enum the Enumerate object though which the callback is made
-   * @param trace XXX missing param description
    */
-  private static void scan(VM_Address objRef, boolean root, Enumerate enum,
-			   boolean trace)
+  private static void scan(VM_Address objRef, Enumerate enum)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
 
     if (VM.VerifyAssertions) VM._assert(!objRef.isZero());
@@ -88,8 +90,9 @@ public class ScanObject implements VM_Constants {
     //
     // Since it is hidden, the TIB is not considered a "pointer" when
     // enumerating pointers, so is not enumerated.
-    if (trace && MM_Interface.MOVES_TIBS)
-      VM_ObjectModel.gcProcessTIB(objRef, root);
+    if (MM_Interface.MOVES_TIBS && enum == null) {
+      VM_ObjectModel.gcProcessTIB(objRef);
+    }
 
     Object obj = VM_Magic.addressAsObject(objRef);
     Object[] tib = VM_ObjectModel.getTIB(obj);
@@ -109,15 +112,15 @@ public class ScanObject implements VM_Constants {
     }
     if (type.isClassType()) {
       int[] referenceOffsets = type.asClass().getReferenceOffsets();
-      for(int i = 0, n=referenceOffsets.length; i < n; i++) {
-	if (trace)
-	  MM_Interface.processPtrLocation(objRef.add(referenceOffsets[i]), root);
+      for(int i = 0, n = referenceOffsets.length; i < n; i++) {
+	VM_Address location = objRef.add(referenceOffsets[i]);
+	if (enum != null)
+	  enum.enumeratePointerLocation(location);
 	else
-	  enum.enumeratePointerLocation(objRef.add(referenceOffsets[i]));
+	  MM_Interface.processPtrLocation(location);
       }
       Statistics.profileScan(obj, 4 * referenceOffsets.length, tib);
-    }
-    else {
+    } else {
       if (VM.VerifyAssertions) VM._assert(type.isArrayType());
       VM_Type elementType = type.asArray().getElementType();
       if (elementType.isReferenceType()) {
@@ -125,18 +128,17 @@ public class ScanObject implements VM_Constants {
         int numBytes = num_elements * BYTES_IN_ADDRESS;
         VM_Address location = objRef;    // for arrays = address of [0] entry
         VM_Address end      = objRef.add(numBytes);
-        while ( location.LT(end) ) {
-	  if (trace)
-	    MM_Interface.processPtrLocation(location, root);
-	  else
+        while (location.LT(end)) {
+	  if (enum != null)
 	    enum.enumeratePointerLocation(location);
-          location = location.add(BYTES_IN_ADDRESS);  // is this size_of_pointer ?
+	  else
+	    MM_Interface.processPtrLocation(location);
+          location = location.add(BYTES_IN_ADDRESS);
         }
         Statistics.profileScan(obj, numBytes, tib);
       }
     }
   } 
-
 
   public static boolean validateRefs( VM_Address ref, int depth ) 
       throws VM_PragmaUninterruptible, VM_PragmaNoInline {

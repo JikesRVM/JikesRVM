@@ -321,7 +321,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
-    if (collectionInitiated || !initialized) return false;
+    if (collectionsInitiated > 0 || !initialized) return false;
     if (mustCollect || getPagesReserved() > getTotalPages() ||
 	(progress &&
 	 ((rcMR.committedPages() - lastRCPages) > Options.maxNurseryPages ||

@@ -19,6 +19,8 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
 import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
 import com.ibm.JikesRVM.memoryManagers.JMTk.HeapGrowthManager;
+import com.ibm.JikesRVM.memoryManagers.JMTk.PreCopyEnumerator;
+import com.ibm.JikesRVM.memoryManagers.JMTk.RootEnumerator;
 
 import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Atom;
@@ -157,6 +159,11 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   private static VM_Atom runAtom;
 
+  /**
+   * An enumerator used to forward root objects
+   */
+  private static PreCopyEnumerator preCopyEnum;
+
   /***********************************************************************
    *
    * Initialization
@@ -174,6 +181,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom(
       "Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;");
     runAtom = VM_Atom.findOrCreateAsciiAtom("run");
+    preCopyEnum = new PreCopyEnumerator();
   }
 
   /***********************************************************************
@@ -615,47 +623,93 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
 
   /**
-   * Prepares for using the <code>computeAllRoots</code> method.
+   * Prepares for using the <code>computeAllRoots</code> method.  The
+   * thread counter allows multiple GC threads to co-operatively
+   * iterate through the thread data structure (if load balancing
+   * parallel GC threads were not important, the thread counter could
+   * simply be replaced by a for loop).
    */
-  public static void resetComputeAllRoots() {
+  public static void resetThreadCounter() {
     threadCounter.reset();
   }
 
   /**
-   * Computes all roots.
+   * Pre-copy all potentially movable instances used in the course of
+   * GC.  This includes the thread objects representing the GC threads
+   * themselves.  It is crucial that these instances are forwarded
+   * <i>prior</i> to the GC proper.  Since these instances <i>are
+   * not</i> enqueued for scanning, it is important that when roots
+   * are computed the same instances are explicitly scanned and
+   * included in the set of roots.  The existence of this method
+   * allows the actions of calculating roots and forwarding GC
+   * instances to be decoupled. The <code>threadCounter</code> must be
+   * reset so that load balancing parallel GC can share the work of
+   * scanning threads.
+   */
+  public static void preCopyGCInstances() {
+    /* pre-copy all thread objects in parallel */
+    if (rendezvous(4201) == 1) /* one thread forwards the threads object */
+      ScanObject.enumeratePointers(VM_Scheduler.threads, preCopyEnum);
+    rendezvous(4202);
+    while (true) {
+      int threadIndex = threadCounter.increment();
+      if (threadIndex >= VM_Scheduler.threads.length) break;
+      VM_Thread thread = VM_Scheduler.threads[threadIndex];
+      if (thread != null) {
+ 	ScanObject.enumeratePointers(thread, preCopyEnum);
+ 	ScanObject.enumeratePointers(thread.contextRegisters, preCopyEnum);
+ 	ScanObject.enumeratePointers(thread.hardwareExceptionRegisters, preCopyEnum);
+ 	if (thread.jniEnv != null) {
+ 	  if (VM.VerifyAssertions)
+	    VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(thread.jniEnv)));
+ 	  ScanObject.enumeratePointers(thread.jniEnv, preCopyEnum);
+ 	}
+      }
+    }    
+    rendezvous(4203);
+  }
+ 
+  /**
+   * Computes all roots.  This method establishes all roots for
+   * collection and places them in the root values, root locations and
+   * interior root locations queues.  This method should not have side
+   * effects (such as copying or forwarding of objects).  There are a
+   * number of important preconditions:
    *
+   * <ul> 
+   * <li> All objects used in the course of GC (such as the GC thread
+   * objects) need to be "pre-copied" prior to calling this method.
+   * <li> The <code>threadCounter</code> must be reset so that load
+   * balancing parallel GC can share the work of scanning threads.
+   * </ul>
+   *
+   * @param rootEnum an enumerator used to enumerate object references
+   * and place the references in the root values queue.
    * @param rootLocations set to store addresses containing roots
    * @param interiorRootLocations set to store addresses containing
    * return adddresses, or <code>null</code> if not required
    */
-  public static void computeAllRoots(AddressDeque rootLocations,
-				     AddressPairDeque interiorRootLocations) {
+  public static void computeAllRoots(RootEnumerator rootEnum,
+ 				     AddressDeque rootLocations,
+  				     AddressPairDeque interiorRootLocations) {
     AddressPairDeque codeLocations = MM_Interface.MOVES_OBJECTS ? interiorRootLocations : null;
-
+    
+     /* scan statics */
     ScanStatics.scanStatics(rootLocations);
+ 
+    /* scan all threads */
     while (true) {
       int threadIndex = threadCounter.increment();
       if (threadIndex >= VM_Scheduler.threads.length) break;
-      VM_Thread th = VM_Scheduler.threads[threadIndex];
-      if (th == null) continue;
-      // See comment of ScanThread.scanThread
-      //
-      VM_Address thAddr = VM_Magic.objectAsAddress(th);
-      VM_Thread th2 = VM_Magic.addressAsThread(Plan.traceObject(thAddr, true));
-      if (VM_Magic.objectAsAddress(th2).EQ(thAddr))
-	ScanObject.rootScan(th);
-      ScanObject.rootScan(th.stack);
-      if (th.jniEnv != null) {
-	ScanObject.rootScan(th.jniEnv);
-	ScanObject.rootScan(th.jniEnv.refsArray());
-      }
-      ScanObject.rootScan(th.contextRegisters);
-      ScanObject.rootScan(th.contextRegisters.gprs);
-      ScanObject.rootScan(th.hardwareExceptionRegisters);
-      ScanObject.rootScan(th.hardwareExceptionRegisters.gprs);
-      ScanThread.scanThread(th2, rootLocations, codeLocations);
+      if (threadIndex == 0)  /* the first one scans the threads object too */
+ 	ScanObject.enumeratePointers(VM_Scheduler.threads, rootEnum);
+      
+      VM_Thread thread = VM_Scheduler.threads[threadIndex];
+      if (thread == null) continue;
+      
+      /* scan the thread (stack etc.) */
+       ScanThread.scanThread(thread, rootEnum, rootLocations, codeLocations);
     }
-    ScanObject.rootScan(VM_Magic.objectAsAddress(VM_Scheduler.threads));
     rendezvous(4200);
   }
 

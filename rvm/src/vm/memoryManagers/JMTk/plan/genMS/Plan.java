@@ -221,6 +221,23 @@ public class Plan extends Generational implements VM_Uninterruptible {
     return matureSpace.traceObject(obj, VMResource.getTag(addr));
   }
 
+  /**
+   * Forward the mature space object referred to by a given address
+   * and update the address if necessary.  This <i>does not</i>
+   * enqueue the referent for processing; the referent must be
+   * explicitly enqueued if it is to be processed.<p>
+   *
+   * <i>In this case do nothing since the mature space is non-copying.</i>
+   *
+   * @param location The location whose referent is to be forwarded if
+   * necessary.  The location will be updated if the referent is
+   * forwarded.
+   * @param object The referent object.
+   * @param space The space in which the referent object resides.
+   */
+  protected static void forwardMatureObjectLocation(VM_Address location,
+						    VM_Address object,
+						    byte space) {}
 
   /**
    * Return true if the object resides in a copying space (in this

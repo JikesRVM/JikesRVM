@@ -78,29 +78,34 @@ public class ScanThread implements VM_Constants, VM_Uninterruptible {
    *   t.hardwareExceptionRegisters
    *   t.hardwareExceptionRegisters.gprs 
    */
-  public static void scanThread(VM_Thread t, AddressDeque rootLocations, 
+  public static void scanThread(VM_Thread t, RootEnumerator rootEnum,
+				AddressDeque rootLocations, 
 				AddressPairDeque codeLocations) {
 	
     Plan plan = VM_Interface.getPlan();
 
     if (VM.VerifyAssertions) {
-      // Currently we do not allow stacks to be moved.
-      // If a stack contains native stack frames, then it is impossible
-      // for us to safely move it.
-      // Prior to the implementation of JNI, Jikes RVM did allow the GC
-      // system to move thread stacks, and called a special fixup routine,
-      // thread.fixupMovedStack to adjust all of the special interior
-      // pointers (SP, FP).
-      // If we implement split C & Java stacks then we could allow 
-      // the Java stacks to be moved, but we can't move the native stack.
+      /* Currently we do not allow stacks to be moved.  If a stack
+       * contains native stack frames, then it is impossible for us to
+       * safely move it.  Prior to the implementation of JNI, Jikes
+       * RVM did allow the GC system to move thread stacks, and called
+       * a special fixup routine, thread.fixupMovedStack to adjust all
+       * of the special interior pointers (SP, FP).  If we implement
+       * split C & Java stacks then we could allow the Java stacks to
+       * be moved, but we can't move the native stack. */
       VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));
     }				  
 
-    ScanObject.rootScan(t);
-    if (t.jniEnv != null) ScanObject.rootScan(t.jniEnv);
-    ScanObject.rootScan(t.contextRegisters);
-    ScanObject.rootScan(t.hardwareExceptionRegisters);
-	
+    ScanObject.enumeratePointers(t, rootEnum);
+    if (t.jniEnv != null) {
+      ScanObject.enumeratePointers(t.jniEnv, rootEnum);
+      ScanObject.enumeratePointers(t.jniEnv.refsArray(), rootEnum);
+    }
+    ScanObject.enumeratePointers(t.contextRegisters, rootEnum);
+    ScanObject.enumeratePointers(t.contextRegisters.gprs, rootEnum);
+    ScanObject.enumeratePointers(t.hardwareExceptionRegisters, rootEnum);
+    ScanObject.enumeratePointers(t.hardwareExceptionRegisters.gprs, rootEnum);
+
     if (VM.VerifyAssertions) {
       VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t)));
       VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));

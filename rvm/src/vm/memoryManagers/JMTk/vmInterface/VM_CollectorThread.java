@@ -446,14 +446,11 @@ public class VM_CollectorThread extends VM_Thread {
 	  resumeAttachedProcessors();
 	}
 
-	/* clear the GC flag */
+	/* clear the GC flags */
+	Plan.collectionComplete();
 	if (verbose >= 2) VM.sysWriteln("GC Message: VM_CT.run clearing lock out field");
 	VM_Magic.setIntAtOffset(VM_BootRecord.the_boot_record, VM_Entrypoints.lockoutProcessorField.getOffset(), 0);
       }
-
-      if (gcOrdinal == 1)
-	Plan.collectionComplete();
-
     }  // end of while(true) loop
     
   }  // run

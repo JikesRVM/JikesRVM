@@ -721,11 +721,10 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    *
    * @param location the address of a reference to the object to be
    * processed
-   * @param root <code>true</code> if the location is within a root
    */
-  public static void processPtrLocation(VM_Address location, boolean root)
+  public static void processPtrLocation(VM_Address location)
     throws VM_PragmaUninterruptible, VM_PragmaInline { 
-    Plan.traceObjectLocation(location, root);
+    Plan.traceObjectLocation(location, false);
   }
 
   /***********************************************************************

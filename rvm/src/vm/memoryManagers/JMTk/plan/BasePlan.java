@@ -64,7 +64,7 @@ public abstract class BasePlan
   // GC state and control variables
   protected static boolean initialized = false;
   protected static boolean awaitingCollection = false;
-  protected static boolean collectionInitiated = false;
+  protected static int collectionsInitiated = 0;
   protected static boolean gcInProgress = false;
   protected static int exceptionReserve = 0;
 
@@ -489,24 +489,21 @@ public abstract class BasePlan
   }
 
   /**
-   * A collection has been initiated.  Set the collectionInitiated
+   * A collection has been initiated.  Increment the collectionInitiated
    * state variable appropriately.
-   *
-   * @param why The reason the collection was initiated (one of
-   * <code>VM_Interface.TRIGGER_REASONS</code>).  <i>(Ignored)</i>
    */
   public static void collectionInitiated() throws VM_PragmaUninterruptible {
-    collectionInitiated = true;
+    collectionsInitiated++;
   }
 
   /**
-   * A collection has fully completed.  Set the collectionInitiated
+   * A collection has fully completed.  Decrement the collectionInitiated
    * state variable appropriately.
    */
   public static void collectionComplete() throws VM_PragmaUninterruptible {
-//     if (VM_Interface.VerifyAssertions) 
-//       VM_Interface._assert(collectionInitiated);
-    collectionInitiated = false;
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(collectionsInitiated > 0);
+    collectionsInitiated--;
   }
 
   /**

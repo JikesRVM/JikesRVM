@@ -317,7 +317,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
-    if (collectionInitiated || !initialized || mr == metaDataMR) return false;
+    if (collectionsInitiated > 0 || !initialized || mr == metaDataMR)
+      return false;
     mustCollect |= stressTestGCRequired();
     if (mustCollect || getPagesReserved() > getTotalPages()) {
       required = mr.reservedPages() - mr.committedPages();
@@ -358,6 +359,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     CopySpace.prepare(((hi) ? ss0VM : ss1VM), ssMR);
     ImmortalSpace.prepare(immortalVM, null);
     losSpace.prepare(losVM, losMR);
+    VM_Interface.resetThreadCounter();  // necessary for preCopyGCInstances()
   }
 
   /**
@@ -372,6 +374,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     // rebind the semispace bump pointer to the appropriate semispace.
     ss.rebind(((hi) ? ss1VM : ss0VM)); 
     los.prepare();
+    VM_Interface.preCopyGCInstances();
   }
 
   /**
@@ -419,6 +422,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * Object processing and tracing
    */
 
+
   /**
    * Trace a reference during GC.  This involves determining which
    * collection policy applies and calling the appropriate
@@ -462,6 +466,26 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
+  /**
+   * Forward the object referred to by a given address and update the
+   * address if necessary.  This <i>does not</i> enqueue the referent
+   * for processing; the referent must be explicitly enqueued if it is
+   * to be processed.
+   *
+   * @param location The location whose referent is to be forwarded if
+   * necessary.  The location will be updated if the referent is
+   * forwarded.
+   */
+  public static void forwardObjectLocation(VM_Address location) 
+    throws VM_PragmaInline {
+    VM_Address obj = VM_Magic.getMemoryAddress(location);
+    if (!obj.isZero()) {
+      VM_Address addr = VM_Interface.refToAddress(obj);
+      byte space = VMResource.getSpace(addr);
+      if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE))
+	VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(obj));
+    }
+  }
 
   /**
    * Return true if the given reference is to an object that is within

@@ -54,6 +54,7 @@ public abstract class StopTheWorldGC extends BasePlan
   // Global pools for load-balancing queues
   protected static SharedDeque valuePool;
   protected static SharedDeque locationPool;
+  protected static SharedDeque rootValuePool;
   protected static SharedDeque rootLocationPool;
   protected static SharedDeque interiorRootPool;
 
@@ -74,10 +75,12 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   protected AddressDeque values;          // gray objects
   protected AddressDeque locations;       // locations containing white objects
+  protected AddressDeque rootValues;      // gray root objects
   protected AddressDeque rootLocations;   // root locs containing white objects
   protected AddressPairDeque interiorRootLocations; // interior root locations
 
-
+  private RootEnumerator rootEnum;        // enumerator of root values
+    
   /****************************************************************************
    *
    * Initialization
@@ -92,6 +95,7 @@ public abstract class StopTheWorldGC extends BasePlan
   static {
     valuePool = new SharedDeque(metaDataRPA, 1);
     locationPool = new SharedDeque(metaDataRPA, 1);
+    rootValuePool = new SharedDeque(metaDataRPA, 1);
     rootLocationPool = new SharedDeque(metaDataRPA, 1);
     interiorRootPool = new SharedDeque(metaDataRPA, 2);
   }
@@ -104,10 +108,13 @@ public abstract class StopTheWorldGC extends BasePlan
     valuePool.newClient();
     locations = new AddressDeque("loc", locationPool);
     locationPool.newClient();
+    rootValues = new AddressDeque("rootValue", rootValuePool);
+    rootValuePool.newClient();
     rootLocations = new AddressDeque("rootLoc", rootLocationPool);
     rootLocationPool.newClient();
     interiorRootLocations = new AddressPairDeque(interiorRootPool);
     interiorRootPool.newClient();
+    rootEnum = new RootEnumerator(rootValues);
   }
 
   /****************************************************************************
@@ -157,8 +164,8 @@ public abstract class StopTheWorldGC extends BasePlan
    *      4. globalRelease()
    */
   public void collect () {
-//     if (VM_Interface.VerifyAssertions) 
-//       VM_Interface._assert(collectionInitiated);
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(collectionsInitiated > 0);
 
     boolean designated = (VM_Interface.rendezvous(4210) == 1);
     if (designated) Statistics.initTime.start();
@@ -166,7 +173,7 @@ public abstract class StopTheWorldGC extends BasePlan
     if (designated) Statistics.initTime.stop();
 
     if (designated) Statistics.rootTime.start();
-    VM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
+    VM_Interface.computeAllRoots(rootEnum, rootLocations, interiorRootLocations);
     if (designated) Statistics.rootTime.stop();
 
     if (designated) Statistics.scanTime.start();
@@ -226,6 +233,7 @@ public abstract class StopTheWorldGC extends BasePlan
 	  p.baseThreadLocalPrepare(NON_PARTICIPANT);
       }
     baseThreadLocalPrepare(order);
+    if (order == 1) VM_Interface.resetThreadCounter();
     VM_Interface.rendezvous(4250);
   }
 
@@ -272,7 +280,6 @@ public abstract class StopTheWorldGC extends BasePlan
       }
     }
     globalPrepare();
-    VM_Interface.resetComputeAllRoots();
   }
 
   /**
@@ -340,6 +347,7 @@ public abstract class StopTheWorldGC extends BasePlan
     gcInProgress = false;    // GC is in progress until after release!
     valuePool.reset();
     locationPool.reset();
+    rootValuePool.reset();
     rootLocationPool.reset();
     interiorRootPool.reset();
   }
@@ -353,6 +361,7 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void baseThreadLocalRelease(int order) {
     values.reset();
     locations.reset();
+    rootValues.reset();
     rootLocations.reset();
     interiorRootLocations.reset();
     threadLocalRelease(order);
@@ -366,6 +375,11 @@ public abstract class StopTheWorldGC extends BasePlan
 
     if (Options.verbose >= 4) { Log.prependThreadId(); Log.writeln("  Working on GC in parallel"); }
     do {
+      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing root values"); }
+      while (!rootValues.isEmpty()) {
+	VM_Address v = rootValues.pop();
+	ScanObject.scan(v);  // NOT traceObject
+      }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing root locations"); }
       while (!rootLocations.isEmpty()) {
 	VM_Address loc = rootLocations.pop();
@@ -396,6 +410,20 @@ public abstract class StopTheWorldGC extends BasePlan
     if (Options.verbose >= 4) { Log.prependThreadId(); Log.writeln("    waiting at barrier"); }
     VM_Interface.rendezvous(4300);
   }
+
+  /**
+   * Forward the object referred to by a given address and update the
+   * address if necessary.  This <i>does not</i> enqueue the referent
+   * for processing; the referent must be explicitly enqueued if it is
+   * to be processed.<p>
+   *
+   * <i>Non-copying collectors do nothing.</i>
+   *
+   * @param location The location whose referent is to be forwarded if
+   * necessary.  The location will be updated if the referent is
+   * forwarded.
+   */
+  public static void forwardObjectLocation(VM_Address location) {}
 
   /**
    * Flush any remembered sets pertaining to the current collection.

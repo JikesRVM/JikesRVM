@@ -210,6 +210,27 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
 
   /**
+   * Forward the mature space object referred to by a given address
+   * and update the address if necessary.  This <i>does not</i>
+   * enqueue the referent for processing; the referent must be
+   * explicitly enqueued if it is to be processed.<p>
+   *
+   * @param location The location whose referent is to be forwarded if
+   * necessary.  The location will be updated if the referent is
+   * forwarded.
+   * @param object The referent object.
+   * @param space The space in which the referent object resides.
+   */
+  protected static void forwardMatureObjectLocation(VM_Address location,
+						    VM_Address object,
+						    byte space) 
+    throws VM_PragmaInline {
+    if ((hi && space == LOW_MATURE_SPACE) || 
+	(!hi && space == HIGH_MATURE_SPACE))
+      VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(object));
+  }
+
+  /**
    * Trace a reference into the mature space during GC.  This involves
    * determining whether the instance is in from space, and if so,
    * calling the <code>traceObject</code> method of the Copy
