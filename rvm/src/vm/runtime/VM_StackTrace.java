@@ -184,7 +184,6 @@ public class VM_StackTrace implements VM_Constants {
    *  If null, then we print a full stack trace, without eliding the
    *  methods used internally to gather the stack trace.
    */
-  
   public void print(PrintLN out, Throwable trigger) {
     try {
       print4Real(out, trigger);
@@ -192,13 +191,14 @@ public class VM_StackTrace implements VM_Constants {
       trigger.tallyOutOfMemoryError();
       printDegradingToVMSysWrite(out, trigger);
     } catch (Throwable e) {
+      e.printStackTrace();
       trigger.tallyWeirdError();
       VM.sysWriteln("VM_StackTrace.print(): *UNEXPECTED* random exception while displaying the stack trace.  I can't go on; this is too strange.");
     }
   }
 
   public void printDegradingToVMSysWrite(PrintLN out, Throwable trigger) {
-    if (! out.isSystemErr()) {
+    if (!out.isSystemErr()) {
       VM.sysWriteln("VM_StackTrace.print() got an *UNEXPECTED* out-of-memory error while displaying the stack trace.  I give up; what you see is what you got.");
       /* Now, if we were triggered by an uncaught exception, processing will
        * continue normally. */
@@ -284,6 +284,15 @@ public class VM_StackTrace implements VM_Constants {
     }
     /* foundTriggerAt should either be between 0 and lastFrame
        or it should be -1. */
+
+    // Handle case where an out of line machine code frame is
+    // at compiledMethods[foundTriggerAt +1].
+    // Happens when the exception object being thrown is created via
+    // reflection (which is how JNI does it). 
+    while (foundTriggerAt+2 < compiledMethods.length &&
+	   compiledMethods[foundTriggerAt +1] == null) {
+      foundTriggerAt++;
+    }
 
     /* Now check to see if the triggering frame is VM_Runtime.deliverHardwareException.
        If it is, then skip two more frames to avoid showing it and the
