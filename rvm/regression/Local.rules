@@ -41,6 +41,11 @@ SPECjvm98_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98
 VolanoMark_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/VolanoMark-2.1.2
  
 #
+# ipsixql 1.0.2
+#
+ipsixql_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/ipsixql-1_0_2
+
+#
 # Jakarta Tomcat
 #
 Tomcat_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/WebServer/jakarta-tomcat-3.2.3
