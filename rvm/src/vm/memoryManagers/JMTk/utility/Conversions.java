@@ -18,6 +18,10 @@ import com.ibm.JikesRVM.VM;
  */
 public class Conversions implements Constants, VM_Uninterruptible {
 
+  public static int roundDownMB (EXTENT bytes) {
+    return (bytes >>> LOG_MBYTE_SIZE) << LOG_MBYTE_SIZE;
+  }
+
   // Round up (if necessary)
   //
   public static int MBToPages(EXTENT megs) {

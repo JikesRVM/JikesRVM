@@ -69,9 +69,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
 
   // Memory layout constants
-  public  static final int              MAX_SIZE = 1640 * 1024 * 1024;
+  public  static final int             AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toInt();
+  private static final EXTENT            MS_SIZE = AVAILABLE;
+  public  static final int              MAX_SIZE = MS_SIZE;
   private static final VM_Address       MS_START = PLAN_START;
-  private static final EXTENT            MS_SIZE = 1640 * 1024 * 1024;
   private static final VM_Address         MS_END = MS_START.add(MS_SIZE);
   private static final VM_Address       HEAP_END = MS_END;
 

@@ -55,13 +55,14 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   public final VM_Address acquire(int pages, MemoryResource mr) {
 
     if (VM.VerifyAssertions) VM._assert(mr != null);
-    while (!mr.acquire(pages));
-
+    if (!mr.acquire(pages))
+	return VM_Address.zero();
     lock();
     int startPage = freeList.alloc(pages);
     if (startPage == -1) {
       unlock();
       mr.release(pages);
+      VM_Interface.getPlan().poll(true, mr);
       return VM_Address.zero();
     }
     pagetotal += pages;

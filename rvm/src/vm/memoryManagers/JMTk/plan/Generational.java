@@ -92,16 +92,17 @@ public abstract class Generational extends StopTheWorldGC
   protected static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
 
   // Memory layout constants
-  public  static final int               MAX_SIZE = 1000 * 1024 * 1024;
+  public  static final int              AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toInt();
+  protected static final EXTENT    MATURE_SS_SIZE = Conversions.roundDownMB((int)(AVAILABLE / 3.3));
+  protected static final EXTENT      NURSERY_SIZE = MATURE_SS_SIZE;
+  protected static final EXTENT          LOS_SIZE = Conversions.roundDownMB((int)(MATURE_SS_SIZE * 0.3));
+  public    static final int             MAX_SIZE = 2 * MATURE_SS_SIZE;
   protected static final VM_Address     LOS_START = PLAN_START;
-  protected static final EXTENT          LOS_SIZE = 200 * 1024 * 1024;
   protected static final VM_Address       LOS_END = LOS_START.add(LOS_SIZE);
   protected static final VM_Address  MATURE_START = LOS_END;
-  protected static final EXTENT    MATURE_SS_SIZE = 500 * 1024 * 1024;
   protected static final EXTENT       MATURE_SIZE = MATURE_SS_SIZE<<1;
   protected static final VM_Address    MATURE_END = MATURE_START.add(MATURE_SIZE);
   protected static final VM_Address NURSERY_START = MATURE_END;
-  protected static final EXTENT      NURSERY_SIZE = 500 * 1024 * 1024;
   protected static final VM_Address   NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   protected static final VM_Address      HEAP_END = NURSERY_END;
 

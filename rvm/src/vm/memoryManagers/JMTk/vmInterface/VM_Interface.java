@@ -168,18 +168,14 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     return  VM_BootRecord.the_boot_record.bootImageEnd;
   }
 
-  //
-  // Returns maximum address mappable (non-inclusive).
-  // This is the same as saying the minimum address not mappable.
-  //
-  public static VM_Address maximumMappable() throws VM_PragmaUninterruptible {
-    //-#if RVM_FOR_AIX
-    return VM_Address.fromInt(0xf0000000);
-    //-#endif
-    //-#if RVM_FOR_LINUX
-    return VM_Address.fromInt(0xc0000000);
-    //-#endif
-  }
+
+  //-#if RVM_FOR_AIX
+  static public VM_Address MAXIMUM_MAPPABLE = VM_Address.fromInt(0xf0000000);
+  //-#endif
+  //-#if RVM_FOR_LINUX
+  static public VM_Address MAXIMUM_MAPPABLE = VM_Address.fromInt(0xc0000000);
+  //-#endif
+
 
   public static void setHeapRange(int id, VM_Address start, VM_Address end) throws VM_PragmaUninterruptible {
     VM_BootRecord.the_boot_record.setHeapRange(id, start, end);
