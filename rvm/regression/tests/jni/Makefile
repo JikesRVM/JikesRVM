@@ -22,27 +22,22 @@ BENCH_RVM_ARGS="-Djava.library.path=$(BENCH_CLASS_CP)"
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
-ifeq ($(shell uname),Linux) 
-# TESTS that currently fail for one reason or another on Linux/IA32
+# TESTS that currently fail for one reason or another and are excluded
 #       TEST			REASON FOR EXCLUSION
 # 	ArrayFunctions 		JDK claims that a native function attempts to unpin an object that is not pinned
 TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
         FieldAccess MethodInvocation MonitorTest NativeException \
 	StringFunctions TestGC t3GT3
-else
-# TESTS that currently fail for one reason or another on AIX/PowerPC
-#       TEST			REASON FOR EXCLUSION
-# 	ArrayFunctions 		JDK claims that a native function attempts to unpin an object that is not pinned
-#       MonitorTest             JDK hangs
-TESTS = Allocation ArgumentPassing ClassQuery CriticalCopy \
-        FieldAccess MethodInvocation NativeException \
-	StringFunctions TestGC t3GT3
-endif
 
 LIBS = $(TESTS:%=lib%.a) $(TESTS:%=lib%.so) 
 
 sanity: $(LIBS) $(TESTS)
-	$(MAKE) do-sanity-finish
+	@$(MAKE) START_NAME="jni" do-sanity-finish
+
+check:
+	@$(FGREP) -q "PASS:" < $(OUT) > /dev/null
+	@$(FGREP) -v "FAIL:" < $(OUT)
+
 
 ONE_TEST_LIB = $(ONE_TEST:%=lib%.a) $(ONE_TEST:%=lib%.so)
 
@@ -63,5 +58,6 @@ lib%.a:	%.c %.h
 	cp -f $(BENCH_CLASS_CP)/$< $(BENCH_CLASS_CP)/$@
 
 $(TESTS): % :
-	$(MAKE) START_NAME=$@ START_ARGS=-quiet do-sanity-compare
+	$(MAKE) START_NAME=$@ START_ARGS=-quiet do-sanity-check-rule
+
 
