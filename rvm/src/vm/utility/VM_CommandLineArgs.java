@@ -401,6 +401,12 @@ public class VM_CommandLineArgs {
       case HPM_HELP_ARG:
 	VM_HardwarePerformanceMonitors.printHelp();
 	break;
+	//-#else
+      case HPM_ARG: // "-X:hpm:<option>"
+      case HPM_HELP_ARG:
+	VM.sysWriteln("-X:hpm command line arguments not supported.  Build system with RVM_WITH_HPM defined.");
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+	break;
         //-#endif
       }
     }
