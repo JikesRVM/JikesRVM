@@ -1,9 +1,10 @@
 -*-outline-*-
-Jikes RVM NEWS -- history of significant changes
-
 $Id$
 
-TODO: Add copies of the old release notes to this file.
+Jikes RVM NEWS -- History of significant changes
+
+This file contains the release notes since Jikes RVM 2.0.0, released
+on October 14, 2001,
 
 *Changes after Jikes RVM 2.3.4: future release notes
 The following four sections of the document will one day be the
@@ -42,13 +43,22 @@ the old ReleaseNotes-<revision-number> files.  Further, NEWS
 is an archive; it is intended to contain release notes for past
 versions as well as the most recent release.
 
+**The java.version system property is now at 1.4.2 
+(This is missing from the original 2.3.4 release notes)
+
+Claiming to be at java.version 1.4.2 is a lie, of course -- we don't
+really support all 1.4 features, such as assertions.  However, it is a
+necessary lie, since Eclipse 3.0 explicitly tests java.version and
+insists upon at least 1.4.1 to run.
+
+Similarly, java.specification.version is up to 1.4 and
+java.vm.version is at 1.4.2.
 
 *Bug Fixes after the Jikes RVM 2.3.4 release:
+
 *Internal Changes after the Jikes RVM 2.3.4 release:
 
-
-
-*Jikes RVM 2.3.4 release notes sections:
+*Jikes RVM 2.3.4 Release Notes (released December 21, 2004)
 THe following four sections of the document contain the Jikes RVM
 2.3.4 release notes.  They are:
 **Highlights
@@ -93,7 +103,7 @@ timeouts.  It now sleeps properly, which is nice if you're trying
 to do something else on your workstation at the same time that you're
 using Jikes RVM.  This closes long-standing defect # 2046.
 
-*Other notes on the Jikes RVM 2.3.4 release:
+*Other Notes for the Jikes RVM 2.3.4 release:
 **The memory size options now all take sizes in bytes by default.  (INCOMPATIBLE CHANGE)
 They used to use a mix of default units: Megabytes (Mebibytes),
 Kilobytes (Kibibytes), and "Log 2 of the frequency (in bytes)".  They
@@ -130,3 +140,786 @@ it no longer inappropriately elides frames.
 and rationalized. Further work on refactoring magic usage (mainly in Jikes 
 RVM as opposed to MMTk) is ongoing.
 
+*Jikes RVM 2.3.3 release notes sections
+THe following three sections of the document contain the Jikes RVM
+2.3.3 release notes.  They are:
+**Highlights
+**Other Notes
+**Bug Fixes
+
+*Highlights of the Jikes RVM 2.3.3 release include:
+
+**GNU Classpath 0.10
+Jikes RVM now uses GNU Classpath version 0.10 on all platforms.  Jikes
+RVM 2.3.3 should work with classpath version 0.08, 0.09 or 0.10.
+However, we recommend that users switch to classpath 0.10, to get the
+new features and because we run our nightly regression tests against
+Classpath 0.10.
+
+(If hand-building GNU Classpath 0.10 or 0.09 on AIX, follow the
+directions in rvm/doc/classpath-0.10-on-AIX.txt)
+
+**GCspy garbage collection visualization tool
+
+Jikes RVM now includes support for the GCspy tool for visualizing the
+garbage collector's behaviour.  Many thanks to Richard Jones of the
+University of Kent for this contribution.  (This item should have been
+included in the 2.3.2 release notes, but was inadvertently omitted.)
+Documentation is in the user's guide.
+
+**PowerPC/Linux/64 support with baseline compiler
+Jikes RVM now runs on 64-bit PowerPC Linux to the same extent as it
+does on 64-bit PowerPC AIX.  All regression tests pass with the
+baseline compiler.  Porting of the opt compiler to 64 bit PowerPC is
+an open work item; contributions welcome!
+
+**Startup time slashed
+The startup time for Jikes RVM to run a simple "Hello World" program
+on Linux/x86 went down by a factor of 8.  This is because we now use
+mmap()'s copy-on-write feature, instead of reading all 30 MB of boot
+image into an area mmap()'d with MAP_ANONYMOUS.
+(There is a long comment in src/tools/bootImageRunner/IA32/libvm.C
+describing this; search for the preprocessor condition #ifdef
+MMAP_COPY_ON_WRITE).  If this creates problems, disable them by
+#undefining MMAP_COPY_ON_WRITE in libvm.C.  
+
+This change should be ported to PowerPC Linux by someone who runs that
+platform.
+
+**Jikes RVM installable as a production runtime environment
+You can install Jikes RVM on your system as a production runtime
+environment for Java.  Once you've built Jikes RVM, cd to
+src/tools/install and read the file README to find out how to
+install a Jikes RVM executable as /usr/bin/rvm (or in some other
+location of your choice). 
+
+**JNI 1.2 and 1.4 implemented
+We have implemented all of the missing functions from JNI 1.2 and 1.4.
+There are still aspects of the JNI implementation that can be
+improved; volunteers welcome.
+
+**MMTk
+Improvements to write barrier implementation, cleanup to mechanisms
+for specifying alignment constraints in allocation code, and
+refactoring of reference processing (java.lang.ref.*).
+
+*Other Notes for the Jikes RVM 2.3.3 release:
+
+**Compiler DNA updated -- x86 adaptive system now uses Opt level O2 sometimes.
+The compiler DNA (the precomputed cost & benefit of using various
+compiler/optimization levels) has been updated.  Due to improvements
+over the past 10 months, the optimizing compiler's level 2 is now
+better than level 1, on average, on both platforms.  (Previously,
+this was not the case on IA32.)  The result is that the adaptive
+system may now choose to use Opt level 2 on some methods because
+its model can now determine that it will sometimes be beneficial 
+to do so. 
+
+*Bug Fixes for the Jikes RVM 2.3.3 release:
+** Calls to the JNI function pair 
+GetPrimitiveArrayCritical/ReleasePrimitiveArrayCritical can now be nested. 
+** Fixed a bug in the GC map iterator code (both platforms) that was returning 
+references multiple times in dynamic linking frames.
+** Fixed a bug in the GC map iterator code on PPC that was failing to return 
+spilled parameters in dynamic linking frames.
+
+*Jikes RVM 2.3.2 release notes sections:
+The following three sections of the document contain the Jikes RVM
+2.3.2 release notes.  They are:
+**Highlights
+**Other Notes
+**Bug Fixes
+
+*Highlights of the Jikes RVM 2.3.2 release include:
+** Jikes RVM 2.3.2 requires classpath 0.08. 
+
+**64-bit port of baseline compiler and runtime system to PowerPC64/AIX is 
+complete. We have been passing all regression tests on PPC64/AIX for
+over a month. NOTE: porting of the optimizing compiler has not yet begun
+(contributions/collaborations welcome) and therefore no configuration
+with the optimizing compiler will work in 64 bit mode.
+
+** The default GC plan for the prototype, prototype-opt, development, 
+and production configurations has been changed from CopyMS to GenMS. 
+GenMS is a generational collector with an Appel-style nursery and a 
+mark-sweep mature space.
+
+** Jikes RVM now runs on newer versions of Linux/PowerPC that store the 
+pthread id in R2.  Building Jikes RVM with RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+is reported to work on top of these newer Linux releases, which resolves a
+long-standing limitation of Jikes RVM on Linux/PowerPC.
+
+**Source Code editing support
+There are now VIM and Emacs style files supporting the Jikes RVM coding
+style for C, Java, and C++.  See rvm/etc/README.  (This should have
+been in the 2.3.1 release announcement but was not.)
+
+**You can build Jikes RVM entirely with free software tools
+You can now build Jikes RVM using the Kaffe virtual machine.  Details
+in the installation section in the user's guide. 
+
+*Other Notes for the Jikes RVM 2.3.2 release:
+
+**Performance improvements in VM_Memory copying routines used by 
+System.arraycopy and copying GC resulted in 10% improvement in
+SPECjbb2000 throughput. 
+
+*Bug Fixes for the Jikes RVM 2.3.2 release:
+** Fixed problems in alignment support in JMTk that were causing crashes
+in GC on PowerPC/AIX when doubleword alignment of long[] and double[]
+was enabled. This is a bug that was introduced in version 2.3.1 and is
+fixed in 2.3.2.
+
+** Fixed performance problem in profile-directed inlining where the 
+AI Organizer forces recompilation of methods in an attempt to inline
+runtime service routines that won't be inlined no matter how many
+times we try.  Problem has always existed, but became much more severe
+in 2.3.0 release when we disabled the inlining of allocation sequences
+if the size of the object was not known at compile time.
+
+** Fixed bug in which non-virtualizable interface calls where not being
+considered as candidates for feedback-directed inlining.
+
+** We now provide all of the mandatory system properties
+for the Java 1.4.2 API.
+
+** Fixed bug in which the time zone code always thought 
+the user was on New York time. 
+
+** We now can print a meaningful message when we get
+an ErrorInInitializerError in the early stages of booting the VM
+before it is able to load in new classes.  We had incorrectly left
+ErrorInInitializerError out of the VM's list of boot classes.
+
+** If an uncaught exception is thrown while booting, 
+we no longer try to print to the uninitialized System.err stream.
+That used to trigger a NullPointerException.
+
+*Jikes RVM 2.3.1 Release Notes (released on December 10, 2003)
+The following three sections of the document contain the Jikes RVM
+2.3.1 release notes.  They are:
+**Highlights
+**Other Notes
+**Bug Fixes
+
+*Highlights of Jikes RVM 2.3.1 include:
+
+**Mac OSX is now supported!  
+Generously contributed by Chris Hoffman of the University of
+Massachusetts (USA).
+***Details:
+If you want to build Jikes RVM for Mac OSX, you will need to patch
+your copy (version 0.06 or better) of GNU Classpath with the patch
+file located in etc/gnu-classpath-on-mac-osx.patch.
+
+** Seven user contributions incorporated since 2.3.0
+*** Contributions were improvements to JMTk from Robin Garner,  
+port to OSX from Chris Hoffman, refCount coalescing extension from Ian
+Warrington, bug fixes for the OSX port and opt compiler on PPC from
+Alan Lawrence, implementation of -jar cmd line arg from Anders Biehl
+Norgaard, and support for getting the classpath from CLASSPATH envar
+from Philippe Faes.
+
+** Switched to classpath 0.07
+*** Classpath 0.06 is expected to also work with this release of Jikes RVM, 
+but we recommend upgrading to the latest classpath release.
+
+**Source Code editing support
+There are now VIM and Emacs style files supporting the Jikes RVM coding
+style for C, Java, and C++.  See rvm/etc/README.
+
+**Build system improvements:
+***If you run "jbuild" with --trace, 
+you actually get all of the relevant shell commands printed out.
+
+***Under jbuild --trace=make, whenever we change directories, we report it
+This is parseable by Emacs's compilation-mode.  --trace=make is
+enabled automatically by "--trace" without any arguments.
+
+***More error-checking functionality added to the build system.  
+
+***Cleaned up a couple of bogus warnings
+one could get in some versions of the Bourne-Again Shell (Bash).
+
+***We can make automatic binary installations of Jikes RVM
+There's a new generated script, "$RVM_BUILD/jbuild.install", that does
+this.  Handy way to save off a configuration that works before making
+changes.  Also lets us make a binary distribution of Jikes RVM, should
+it be desirable.
+
+***New build options, JAVAC_WARNING_FLAGS and JIKES_WARNING_FLAGS
+These variables replace the former hardcoded "-nowarn", and can be set
+arbitrarily. They default to "-nowarn" for historical compatibility.
+It means you can now get helpful warnings from the Java compiler.
+
+**Improvements to automatic download of GNU Classpath libraries. 
+***We now use wget to download a classpath release instead of doing a 
+cvs checkout.  This avoids the problematic aclocal/autoconf/etc step
+and means that automatic downloading should work for all users and is
+now the recommended default. 
+
+**Progress in PowerPC64 port: we can run hello world
+***The Jikes RVM port to PPC64 has progressed to the point where a prototype 
+configuration boots and can run many simple programs.
+Getting this far requires that lots of things are working, so it is a
+fairly significant step.  However, there is more work to do with
+prototype and we haven't started work on the opt compiler. This is very
+much a work in progress (and members of the community are encouraged
+to help!).
+
+*Other notes for Jikes RVM 2.3.1:
+
+***We have fixed all C and C++ compiler warnings in the Linux/x86 source
+code, under GCC 2.96, GCC 3.3, and GCC 3.3.1.  The only exception is
+warnings from GCC 2.96 of the form:
+
+        ihnpdsm.C:4942: warning: `unused' attribute ignored
+
+They are benign; ignore them.
+
+***__linuxsmp__ has now been officially exorcised from the source.
+
+*Bug Fixes in Jikes RVM 2.3.1:
+
+***Debugging output no longer can drift into InterfaceDeclarations.h;
+GenerateInterfaceDeclarations.java takes a new "-out" option.
+
+***--trace=preprocessor now lists all of the directories consistently.
+
+***Cross-building from Linux to AIX now works better.
+You can now set RVM_ROOT and RVM_BUILD to different values on the host
+and the target machines.  
+****Details:
+If you don't have RVM_ROOT and/or RVM_BUILD set in your environment
+when you run the booter on the target, then "jbuild -booter" will use
+the (recorded) values from the host.  If you do have one or both of
+them set, they'll be used as appropriate.
+
+It is now the case that, when you run "jconfigure" and "jbuild", you
+should have your PATH set so that there is some Bash version in it
+somewhere under the name "bash".
+
+*** Other misc bugs fixed as well; see the bug tracking software.
+
+*Jikes RVM 2.3.0.1 Release Notes (released on September 3, 2003)
+2.3.0.1 is minor release of Jikes RVM to fix a few regressions in Jikes
+RVM 2.3.0.
+
+(1) Fixed build on Linux/IA32 with RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1.
+
+The following three sections of the document contain the Jikes RVM
+2.3.2 release notes.  They are:
+**Highlights
+**Other Notes
+**Bug Fixes
+
+*Jikes RVM 2.3.0 Release Notes (released on August 28, 2003)
+This is release 2.3.0 of the Jikes RVM. 
+
+There are a number of major changes and significant improvements in
+overall system stability and functionality since Jikes RVM 2.2.2. 
+
+Highlights of this release include:
+ + Now using classpath version 0.06
+   - lots of improved functionality in classpath
+   - fixes several critical defects in Jikes RVM
+ + Build process:
+   - ksh has been replaced with bash
+   - improved robustness and error detection in all build tools
+ + GC/Memory management:
+   - MarkSweep and CopyMS Plans are considered stable
+   - CopyMS is now recommended as the default memory manager
+   - RefCount plan is functional (does not support finalization or parallel GC)
+   - heapsize dynamically grows/shrinks based on utilization and load
+   - implementation of soft, weak, and phantom references from Chris Hoffman
+   - numerous bug fixes and performance improvements
+   - numerous code cleanups from Robin Garner and Andrew Grey.
+ + Simplified configuration of Jikes RVM
+   - Added 4 logical configs to help new users pick a 'good' one
+   - All builds with opt compiler use adaptive system
+ + Baseline compiler is re-entrant; parallel baseline compilation enabled
+ + includes Arnold and Ryder Instrumentation Sampling Framework (PLDI'01)
+ + Some progress on port to 64 bit PowerPC
+    - Numerous code cleanups
+    - More use of VM_Address, VM_Word, etc.
+    - Complete reimplementation of syscalls (see VM_SysCall)
+ + Includes 9 user contributions since 2.2.2;
+
+Other notes:
+
+We fixed all Javadoc warnings in the source code. 
+
+VM_Time.now() replaced by VM_Time.cycles(). Internal interval timing 
+should now be done using hardware cycle counters (VM_Time.cycles)
+instead of getting the time of day. VM_Time.currentTimeMicros() can be
+used to get the same functionality as VM_Time.now(), but is less
+efficient than VM_Time.cycles().
+
+A number of other miscellaneous bugs in version 2.2.2
+are fixed in the 2.3.0 release.  See the developerWorks bug 
+tracking software tool and CVS history for details.
+
+
+Expansions of some of the highlights listed above:
+
++ Classpath 0.06 
+  Although many programs may still work with Jikes RVM 2.3.0 and 
+  GNU classpath 0.05 we strongly recommend switching to classpath 0.06. 
+  We no longer test Jikes RVM with classpath 0.05.
+
++ logical configurations
+  There are a large number of possible Jikes RVM configurations.
+  Therefore we define four ``logical'' configurations that are most
+  suitable for casual or novice users of the system. 
+  The mapping of logical to actual configurations may vary from release
+  to release.  In particular, it is expected that the choice of garbage
+  collector for these logical configurations may be different as JMTk
+  evolves. The four configurations are: 
+  (1) prototype 
+      A simple, fast to build, but low performance configuration of
+      Jikes RVM.   This configuration does not include the
+      optimizing compiler or adaptive system.  Most useful for rapid
+      prototyping of the core virtual machine.
+  (2) prototype-opt
+      A simple, fast to build, but low performance configuration of 
+      Jikes RVM.  Unlike prototype, this configuration does
+      include the optimizing compiler and adaptive system. Most useful
+      for rapid prototyping of the core virtual machine, adaptive
+      system, and optimizing compiler. 
+  (3) development 
+      A fully functional configuration of Jikes RVM with reasonable 
+      performance that includes the adaptive system and optimizing
+      compiler. This configuration takes longer to build than the two 
+      prototype configurations.
+  (4) production 
+      The same as the development configuration, except all assertions
+      are disabled.  This is the highest performance configuration of 
+      Jikes RVM and is the one to use for benchmarking and
+      performance analysis. Build times are similar to the development
+      configuration. 
+
++ Jikes RVM's Java preprocessor documented, and more robust:
+  The preprocessor is now documented, both in the User's Guide and via a
+  --help option.  It is also a lot more robust than it used to be.
+  We wrote up-to-date documentation for the preprocessor.  We also fixed
+  some deficiencies where certain errors in using the preprocessor would
+  lead to silent failures.  The preprocessor was generating incorrect
+  exit status codes under some failure conditions; these are fixed.  All
+  buffer overflows are now caught and fixed.  All GCC warnings fixed in
+  the preprocessor.
+
+  The preprocessor now notices incorrect syntax (extra trailing
+  characters after a conditional) and correctly complains about it.
+
+  The preprocessor now handles failures and fatal signals by
+  conservatively deleting the output file in progress.  This keeps us
+  from having half-updated files sitting around.
+
++ improvements in build process to make it stop on errors:
+  Any error occurring during a build of Jikes RVM now cause the build
+  process to immediately abort.  We had, in the past, at least twice a
+  month received reports that a built RVM failed to work, where upon
+  investigation we discovered that the build process had encountered
+  errors earlier, and these earlier errors were the real source of the
+  problem.
+
++ ksh => bash
+  Jikes RVM's build process is now entirely free of KSH.  This makes it
+  more convenient for Linux users to install the system.  
+
++ The optimizing compiler now contains an implementation of the
+  Instrumentation Sampling Framework from the Arnold and Ryder PLDI'01
+  paper.    This infrastructure can be used to reduce the overhead of
+  collecting profiling information using instrumentation.   For details,
+  see the user guide section "Using the Jikes RVM to Profile an
+  Application -> Instrumentation Sampling Framework."
+
+
+*Jikes RVM 2.2.2 Release Notes (released on June 6, 2003)
+This is release 2.2.2 of the Jikes RVM. 
+
+Highlights of this release include:
+  + Support for the hybrid library configuration has been
+    removed and the library support code refactored to simplify
+    the interface between the GNU Classpath libraries and Jikes RVM.
+  + Defect 3383 has been resolved.  We now recomend using the 
+    Blackdown 1.4.1 SDK to build Jikes RVM on Linux/IA32 and the 
+    IBM 1.4 SDK to build Jikes RVM on AIX/PowerPC.
+  + PowerPC hardware performance monitor tracing support for
+    multiprocessors on AIX 5.
+  + Work has stated on a port of Jikes RVM to 64 bit PowerPC. 
+    This release includes a number of source code cleanups 
+    (some complete, other still in progress) to make the system portable
+    across 32 and 64 bit systems.  
+  + A major rewrite of the PowerPC baseline compiler to enable it to
+    generate code for both 32 and 64 bit PowerPC. As part of the redesign,
+    the use of an explict SP register was eliminated and all accesses to 
+    the expression stack are done by computing offsets from the FP at 
+    compile time. 
+    NOTE: The 64 bit PowerPC version of the baseline compiler 
+    is very much a work in progress and is NOT expected to work in this 
+    release.
+  + Magic class (VM_AddressArray, etc) were added to enable arrays of 
+    addresses to be safely created.  The classloader was enhanced to 
+    treat VM_Address etc as primitive types.
+  + Changed PowerPC version of VM_Assembler.java to uniformly use PowerPC 
+    mnemonics for the instructions. 
+  + The OutOfMemoryError exception is now thrown by the GC system.
+
+Other notes:
+  + Changes to configuration files:
+        added MAXIMUM_MAPPABLE_ADDRESS and dropped the "" from 
+        BOOTIMAGE_LOAD_ADDRESS
+  + sysCalls were moved from VM to VM_SysCall.  Naming conventions were 
+    changed to make parameter/return types explicit in name.
+  + a number of obsolete command line arguments were removed. 
+    Do rvm -help and rvm -X to see the current set of supported options.
+
+A number of other miscellaneous bugs in version 2.2.1
+are fixed in the 2.2.2 release.  See the developerWorks bug 
+tracking software tool and CVS history for details.
+
+
+*Jikes RVM 2.2.1 Release Notes (released on April 7, 2003)
+This is release 2.2.1 of the Jikes RVM. 
+This release includes several major pieces of new 
+functionality and a number of bug fixes.
+
+Highlights of this release include:
+  + Jikes RVM is now based entirely on the GNU Classpath libraries.  
+    The prior hybrid library solution is still supported in
+    this release, but will be removed in subsequent releases. 
+    See the userguide for details on how to build with the hybrid libraries.
+  + Jikes RVM can run a significant subset of the Eclipse IDE.
+  + Separate name spaces for classloaders.
+  + Implementation of JNI for Linux/PowerPC.
+  + The addition of an on-stack replacement mechanism to
+    enable the adaptive system transfer execution from long-running 
+    baseline compiled frames and to recover from speculative 
+    optimizations.  More details can be found in a CGO 2003 paper.
+  + Extensions for PowerPC hardware performance counters on AIX 5.
+
+Other notes:
+  + Future release of Jikes RVM will not support using the OTI 
+    class libaries.
+  + We continue to anticipate moving completely to JMTk and removing 
+    support for the watson collectors in a future release of Jikes RVM.
+    This should happen in the 2.2.2 release depending on the 
+    performance of the JMTk MarkSweep collector.
+
+A number of other miscellaneous bugs in version 2.2.0
+are fixed in the 2.2.1 release.  See the developerWorks bug 
+tracking software tool and CVS history for details.
+
+
+*Jikes RVM 2.2.0 Release Notes (released on December 17, 2002)
+This is release 2.2.0 of the Jikes RVM. 
+This release includes several major pieces of new 
+functionality and a number of bug fixes.
+
+Highlights of this release include:
+  + Jikes RVM now mostly uses the GNU Classpath class 
+    libraries. All library packages except java.lang, 
+    java.lang.ref, java.lang.reflect, java.io, java.net, 
+    and java.util are from Classpath. 
+    We are optimistic that release 2.2.1 of Jikes RVM will
+    be based entirely on the GNU Classpath libraries.  
+  + The introduction of JMTk (Java Memory management Tool kit).
+  + Numerous extensions and bug fixes to core VM functionality
+    to support running a wider range of applications.
+  + Support for gathering and exploiting dynamic 
+    branch probabilities for conditional and multi-way branches.
+  + Introduction of packages in the Jikes RVM source code.
+  + A bytecode verifier contributed by L. Zhang (UCSB)
+  + Support for Intel cycle counter contributed by 
+    H. Lee and J. Palm (Colorado)
+  + Support for PowerPC hardware performance counters on AIX 5.
+
+Other notes:
+  + As announced in the 2.1.1 release notes support for 
+    VM_Magic.pragmaInline and VM_Magic.pragmaNoInline 
+    has been removed.  Code must use the exception-based 
+    pragma mechanism.
+  + jdp is no longer supported. See the userguide for details.
+  + We anticipate moving completely to JMTk and removing support
+    for the watson collectors in a future release of Jikes RVM.
+    This may happen as soon as the 2.2.1 release depending on JMTk 
+    performance and stability.
+
+A large number of other miscellaneous bugs in version 2.1.1 
+are fixed in the 2.2.0 release.  See the developerWorks bug 
+tracking software tool and CVS history for details.
+
+
+*Jikes RVM 2.1.1 Release Notes (released on July 2, 2002)
+This is release 2.1.1 of the Jikes RVM. The main purpose of
+this release is bug fixes.
+
+IMPORTANT NOTE: We are aware of a bug in the IBM DK for 
+  Linux/IA32 v1.3.1 when building Jikes RVM.  Stick with 
+  version v1.3.0 until this bug can be resolved.
+
+Highlights of this release include:
+ - Introduction of a new method-level runtime exception 
+   pragma mechanism, contributed by Chapman Flack.  The 
+   system now relies on this mechanism for method-level 
+   pragmas for uninterruptibility and inlining directives.
+ - Restructuring of baseline compiler to increase the 
+   amount of platform-independent shared code.
+ - Stricter enforcement of uninterruptibility rules.
+ - Improvements to SSA optimization package to reduce 
+   register pressure.  These changes make O2 profitable
+   for use by the adaptive system on IA32.
+ - The VM_CompilerInfo classes were folded into the 
+   VM_CompiledMethod classes. 
+
+NOTE: VM_Magic.pragmaInline and VM_Magic.pragmaNoInline 
+are deprecated, and will not be supported in the 2.1.2 
+release.  Migrate code to use the new runtime exception
+pragma mechanism.
+
+To see more details on other miscellaneous bug fixes, see
+the developerWorks bug tracking software tool and CVS 
+history.  The following bugs in version 2.1.0 are 
+fixed in 2.1.1: 
+  2094: PPC: frem and drem incorrect
+  2104: don't put <clinit> method for bootimage classes 
+        in bootimage
+  2916: Race condition: installing code and invalidation 
+        of speculative opts
+  2938: jazzlib documentation in userguide
+  2949: OptAdaptive hangs on SPECjbb2000
+  2988: VM_Lock.allocate can result in threadswitch
+
+
+*Jikes RVM 2.1.0 Release Notes (released on June 10, 2002)
+This is release 2.1.0 of the Jikes RVM. This release 
+provides some significant refactoring and new functionality,
+as well as bug fixes.
+
+IMPORTANT: new prerequisite!  The Jikes RVM now requires 
+  JazzLib. The jconfigure script will download it automatically.
+
+IMPORTANT NOTE: We are aware of a bug in the IBM DK for 
+  Linux/IA32 v1.3.1 when building Jikes RVM.  Stick with 
+  version v1.3.0 until this bug can be resolved.
+
+IMPORTANT NOTE: The concurrent collector is no longer 
+  functional in Jikes RVM 2.1.0.
+
+Highlights of this release include:
+ - Introduction of a plug-in parameterized object model, as
+   described in the ECOOP 2002 paper by Bacon, Fink & Grove. 
+   The MarkSweep configurations now have a one-word header
+   for most objects.  All configurations now use 32-bit 
+   address-based hashing.
+ - Introduction of a "magic" VM_Address type, representing 
+   a raw address manipulated by the VM.  Currently both 
+   platforms implement VM_Address as an unsigned 
+   32-bit integer.
+ - Significant refactoring of the memory management system,
+   to reduce replicated code and support more functionality.
+ - Signficant refactoring of the VM interface to the 
+   standard libraries, introducing the 
+   com.ibm.JikesRVM.librarySupport package to help porting
+   to use another standard library implementation.
+ - The original PowerPC linear scan implementation is 
+   deleted, and the new IA32 linear scan implementation 
+   has been refactored and ported to support both IA32 and 
+   PowerPC.
+ - The optimizing compiler now inlines trivial callees even
+   at optimization level zero.
+ - Significant improvements in speed of the optimizing 
+   compiler's register allocation and Heap Array SSA 
+   construction phases.
+ - Some more support for miscellaneous library functions
+   including class loaders and some system services.
+ - Miscellaneous enhancements to JDP.
+ - Support for reading/using Soot-style class file annotations.
+ - Elimination of the classloading lock (VM_ClassLoader.lock).
+
+To see more details on other miscellaneous bug fixes, see
+the developerWorks bug tracking software tool and CVS 
+history.  The following bugs in version 2.0.3 are 
+fixed in 2.1.0: 
+ 2128: getMostRecentlyGeneratedCompilerInfo
+ 2359: update RunSanityTests default
+ 2739: static synchronized methods in boot image
+ 2763: jdp 'thread' command broken
+ 2772: IA32: problems with physical registers in LIR
+ 2794: Classes resolved but not in boot image
+ 2806: IA32: genThreadSwitchTest for deterministic thread
+       switching
+ 2823: VM_Lister of CMPXCHG
+ 2831: BaseBase GC Map bug for Native Bridge
+
+*Jikes RVM 2.0.3 Release Notes (released on March 11, 2002)
+This is release 2.0.3 of the Jikes RVM. The main purpose
+of this release is bug fixes.
+
+Highlights include:
+  -- Linux/IA32 jdp improvements including: many bug 
+     fixes for BaseOpt and OptOpt bootimages; requiring 
+     hex values to be prefixed with '0x' or '0X'; 
+     clarifications in the help messages and userguide; 
+     stepline command fixed for BaseBase builds; print 
+     variable-name command fixed for BaseBase when 
+     LoadLocalVariableTable is true. jdp still works
+     better with BaseBase builds. 
+  -- Regression tests now have test-specific timeout 
+     values
+  -- Improvements in opt's code placement phase:
+       (1) callee's with pragmaNoInline are marked 
+           as infrequent
+       (2) uses dominator information to propagate 
+           infrequency
+  -- Code cleanups in opt compiler's LIR: 
+       (1) constant materialization delayed until 
+           translation to LIR
+       (2) REF_ operators maintained through LIR.
+  -- Backpatching-based dynamic linking eliminated 
+     from baseline PPC; table-based dynamic linking now 
+     used by all compilers on all platforms.
+  -- Updated compiler DNA values for both AIX/PPC and 
+     Linux/IA32; these values are used by the adaptive 
+     system's cost/benefit model.
+
+To see more details on other miscellaneous bug fixes, see
+the developerWorks bug tracking software tool and CVS 
+history.  The following bugs in version 2.0.2 are 
+fixed in 2.0.3: 
+   2526: Invalid ref reported while scanning stack 
+         (BaseBaseSemispace)
+   2585: IA32 baseline compiler - pragmaInline warnings 
+         unreachable
+   2586: VM_EdgeListener.update not thread safe
+   2594: Method.getParameterTypes() doesn't resolve 
+         returned classes
+   2616: LINTEL: bad GC map on SPECjbb2000
+   2623: Array index out of bounds in 
+         OPT_ShortArrayReplacer
+   2629: Null Ptr exception in adaptive code using a 
+         saved cmid
+   2664: Reflective operations on primitive types
+   2665: GC points moving into uninterruptible regions
+   2719: Threads on IO queue can starve
+   2736: java.lang.Math.random is not properly initialized 
+         in boot image
+
+
+*Jikes RVM 2.0.2 Release Notes (released on January 17, 2002)
+This is release 2.0.2 of the Jikes RVM. The main purposes
+of this release are bug fixes, performance improvements for 
+IA32, and minor improvements to the build process.  
+
+Important:
+  Starting in the 2.0.2 release, jconfigure now requires that 
+  your RVM_TARGET_CONFIG file defines preprocessor directives 
+  that specify the target architecture, operating system, and 
+  whether or not your pthread library can support JikesRVM.  
+  See the sample files in $RVM_ROOT/rvm/config. 
+  Set RVM_FOR_SINGLE_VIRTUAL_PROCESSOR as follows:
+    -- AIX/PowerPC:    0 (SMP is supported)
+    -- Linux/PowerPC:  1 (SMP is not supported)
+    -- Linux/IA32:     1 with a 2.2 kernel (SMP is not supported)
+                       0 with a 2.4 kernel and glibc compiled to 
+                         use the GS segment register to access
+                         pthread-specific state. 
+                
+Highlights include:
+  -- Improved IA32 performance (15% on specJVM98)
+  -- Change in IA32 register convention to make EBP 
+     a nonvolatile regster (RVM 2.0.2 does not use a 
+     register to hold the framepointer on IA32).
+  -- Simple static splitting transformation to create 
+     intraprocedural hot traces based on static infrequent bit
+  -- Redundant conditional branch elimination based on
+     global value numbers and dominator information.
+  -- Code-patch guard for guarded inlining (IA32 only).
+  -- Adaptive configurations now GC dead code.
+  -- Baseline compiler now recognizes some options. See -X:base
+  -- Some improvements to speed of building bootImage
+  
+
+To see more details on other miscellaneous bug fixes, see
+the developerWorks bug tracking software tool.  
+The following bugs in version 2.0.1 are fixed in 2.0.2:
+  -- 2035 LINTEL: clear FP state when delivering an exception
+  -- 2044 LINTEL: VM_Magic.resumeThreadExecution
+  -- 2126 LINTEL: RegisterOperands in memory operands
+  -- 2368 LINTEL: FastBaseBaseSemispace build takes forever
+  -- 2391 Expression Folding Fast image bug
+  -- 2412 JVM_FOR_SINGLE_VIRTUAL_PROCESSOR does not compile
+  -- 2414 race condition in generational GC write barrier       
+  -- 2455 LINTEL: O0 compilation of _202_jess
+  -- 2493 Cross-platform linux builds broken
+  -- 2501 race condition in VM_Type.getClassForType
+  -- 2543 Large (>512M) large heap crash
+  -- miscellaneous latent bugs with SSA construction after CFG transformations
+
+
+*Jikes RVM 2.0.1 Release Notes (released on November 14, 2001)
+This is release 2.0.1 of the Jikes RVM. The main purposes
+of this release are bug fixes, performance improvements for 
+IA32, and improvements to the build process.  
+
+Highlights include:
+
+  - Linux/IA32 SMP (pthreads) support on Linux 2.4. 
+    (Handling for threads that are stuck in native code
+    is not fully supported on Linux at this time.)    
+  - Improved IA32 floating-point instruction selection in 
+    optimizing compiler.
+  - IA32 optimizer generates conditional moves.
+  - Improved load balancing.
+  - New optimization to coalesce moves after leaving SSA 
+    form.
+  - New branch straightening optimization.
+  - New expression folding optimization.
+  - Improved iterative Heap Array SSA load elimination.
+  - Improvements in BURS infrastructure that increase the
+    effectiveness of opt compiler's instruction selection.      
+  - IA32 baseline compiler support for write barriers.
+  - Numerous fixes for PowerPC/Linux build.
+  - New MethodCompilation callback.
+
+To see more details on other miscellaneous bug fixes, see
+the developerWorks bug tracking software tool.  
+The following bugs in version 2.0.0 are fixed in 2.0.1:
+  - 2015: GC crashes if invoked during exception delivery
+  - 2123: missing defs of guard registers in opts' IR. 
+  - 2164: PPC/Linux build 
+  - 2221: adaptive system hangs/exits
+  - 2227: rvm hangs instead of throwing NoSuchFieldError
+  - 2245: PPC/Linux build 
+  - 2248: hangs during BC2IR due to operand lattice bug
+  - 2286: PPC defined TSR as nonvolatile register
+
+
+*Jikes RVM 2.0.0 Release Notes (released on October 14, 2001)
+This release is the first open source release of the Jikes
+RVM. Previous releases, (1.0, 1.1), were released under a different
+license (and name!) to 16 academic universities. This release features
+major improvements to the code base and project infrastructure. Below
+we highlight these changes.  
+
+Code base
+
+    * better functionality on Linux/IA32, including the release of the
+      optimizing compiler and adaptive system for this architecture 
+    * concurrent reference counting memory manager
+    * improved file documentation and user s guide
+    * compatibility with the UMass GC toolkit
+    * many bug fixes
+
+Project infrastructure
+
+    * visible CVS repository, allowing users to use the same code base
+      as Jikes RVM developers 
+    * developerWorks tools to submit/track bugs/features
+    * browsable CVS repository that allows easy diffs of any revisions
+      of a file, as well as annotation of files based on who wrote
+      which line 
+    * online javadoc-produced API and user s guide
+    * 4 mailing lists, including one that reports nightly regression
+      tests results 
