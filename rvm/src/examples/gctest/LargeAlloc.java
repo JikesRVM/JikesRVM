@@ -7,9 +7,6 @@
  */
 
 import com.ibm.JikesRVM.VM_PragmaNoInline;
-//-#if RVM_WITH_JMTK
-import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
-//-#endif
 
 class LargeAlloc {
 
@@ -36,10 +33,6 @@ class LargeAlloc {
     System.out.println("LargeAlloc running with " + allocSize + " Mb of allocation");
     System.out.println("Run with verbose GC on and make sure space accounting is not leaking");
     System.out.println();
-
-    //-#if RVM_WITH_JMTK
-    Plan.verbose = 3;
-    //-#endif
 
     long lastUsed = 0;
     long used = 0;
