@@ -2585,8 +2585,14 @@ function emitCheckIfIAmTheTarget () {
 	echo "    exit $Exit_Status_Run_Linker"
 	echo 'fi'
 
-	if (( RVM_FOR_POWERPC )); then
-	    echo "if [[ \$(uname -m) != ppc ]]; then"
+        if (( RVM_FOR_POWERPC && RVM_FOR_64_ADDR )); then
+            echo "if [[ \$(uname -m) != ppc64 ]]; then"
+            echo '    echo "please run me on 64-bit Linux PowerPC"'
+            echo '    trap "" EXIT'
+            echo "    exit $Exit_Status_Run_Linker"
+            echo 'fi'
+	elif (( RVM_FOR_POWERPC )); then
+	    echo "if [[ (\$(uname -m) != ppc) && (\$(uname -m) != ppc64)]]; then"
 	    echo '    echo "please run me on Linux PowerPC"'
 	    echo '    trap "" EXIT'
 	    echo "    exit $Exit_Status_Run_Linker"
