@@ -1,3 +1,11 @@
+;;; -*- coding: iso-8859-1; -*-
+;;;
+;;; Copyright © IBM Corp 2003
+;;;
+;;; $Id$
+
+;;; @author Steven Augart
+
 ;; If you're going to use the Jikes RVM Emacs LISP code, I'd recommend 
 ;; adding something like the following to a file in your home directory named
 ;; ~/.emacs: 
