@@ -91,7 +91,7 @@ public class VM_Allocator
   static final boolean GCDEBUG_PARALLEL          = false;   // for debugging parallel alloc
   static final boolean GC_TIMING                 = false ;  // for timing parallel GC
   static final boolean GC_MUTATOR_TIMES          = false;   // gc time as observed by mutator in gc1
-  static final boolean GC_TRIGGERGC              = false;   // for knowing why GC triggered
+//static boolean VM.verboseGC              = VM.verboseGC;   // for knowing why GC triggered
   static final boolean GC_TRACEALLOCATOR         = false;   // for detailed tracing
 
   static final int OBJECT_ADDR_POSITION = SCALAR_HEADER_SIZE + OBJECT_HEADER_OFFSET;
@@ -515,6 +515,7 @@ public class VM_Allocator
 /// DEBUG CODE
 if (st.processorMode == VM_Processor.NATIVE) {
 		VM_Scheduler.trace("VM_Allocator:"," About to quit", st.id);
+		VM_Scheduler.dumpVirtualMachine();
 		VM_Scheduler.traceback(" traceback coming");
 		VM.sysExit(1234);
 }
@@ -575,7 +576,7 @@ if (st.processorMode == VM_Processor.NATIVE) {
   VM_Magic.pragmaNoInline(); // make sure this method is not inlined
   int objaddr = allocatex(the_size, tib, size, the_size.ndx);
   if (objaddr == 0) {
-    if (GC_TRIGGERGC) 
+    if (VM.verboseGC) 
       VM_Scheduler.trace(" gc collection triggered by small scalar request \n", "XX");
     gc1();
     // reset the_size in case we are on a different processor after GC
@@ -617,7 +618,7 @@ if (st.processorMode == VM_Processor.NATIVE) {
   }
   else objaddr = allocatex(the_size, tib, size, the_size.ndx);
   if (objaddr == 0) {   // failure
-    if (GC_TRIGGERGC) 
+    if (VM.verboseGC) 
       VM_Scheduler.trace(" 2nd gc collection triggered by", " small scalar request \n", size);
 		flag2nd = true;
     gc1();
@@ -642,7 +643,7 @@ if (st.processorMode == VM_Processor.NATIVE) {
   VM_Magic.pragmaNoInline(); // make sure this method is not inlined
   int objaddr = getlargeobj(size);            // address of new object
   if (objaddr < 0) {
-    if (GC_TRIGGERGC) 
+    if (VM.verboseGC) 
       VM_Scheduler.trace(" gc collection triggered by large scalar request \n", "XX");
     gc1();
     objaddr = getlargeobj(size);
@@ -1031,7 +1032,7 @@ tib));
 
   else objaddr = allocatex(the_size, tib, size, the_size.ndx);
   if (objaddr == 0) {
-    if (GC_TRIGGERGC) 
+    if (VM.verboseGC) 
       VM_Scheduler.trace(" gc collection triggered by small scalarclone request", "XX");
     gc1();
     // reset the_size in case we are on a different processor after GC
@@ -1082,7 +1083,7 @@ tib));
   else objaddr = allocatex(the_size, tib, size, the_size.ndx);
 
   if (objaddr == 0) {    // failure
-    if (GC_TRIGGERGC) 
+    if (VM.verboseGC) 
       VM_Scheduler.trace(" 2nd gc collection trigg. by small scalar request \n", "CL", size);
 		flag2nd = true;
     gc1();
@@ -1106,7 +1107,7 @@ tib));
   // a large object is requested: use old code
   objaddr = getlargeobj(size);                // address of new object
   if (objaddr < 0) {
-    if (GC_TRIGGERGC)
+    if (VM.verboseGC)
       VM_Scheduler.trace(" gc collection triggered by large scalar request \n", "XX");
     gc1();
     objaddr = getlargeobj(size);
@@ -1220,7 +1221,7 @@ tib));
   VM_Magic.pragmaNoInline(); // make sure this method is not inlined
   int objaddr = allocatey(the_size, tib, numElements, size, ndx);
   if (objaddr == 0) {
-    if (GC_TRIGGERGC) 
+    if (VM.verboseGC) 
       VM_Scheduler.trace(" gc collection triggered by small array request \n", "XX");
     gc1();
     // reset the_size in case we are on a different processor after GC
@@ -1260,7 +1261,7 @@ tib));
   else objaddr = allocatey(the_size, tib, numElements, size, ndx);
 
   if (objaddr == 0) {    // failure
-    if (GC_TRIGGERGC) 
+    if (VM.verboseGC) 
       VM_Scheduler.trace(" 2nd gc collection triggered by small array request ", "XX", size);
 		flag2nd = true;
     gc1();
@@ -1286,7 +1287,7 @@ tib));
   VM_Magic.pragmaNoInline(); // make sure this method is not inlined
   int memAddr = getlargeobj(size);    // address of head of new object
   if (memAddr < 0) {
-    if (GC_TRIGGERGC) 
+    if (VM.verboseGC) 
       VM_Scheduler.trace(" gc collection triggered by large array request \n", "XX");
     gc1();
     memAddr = getlargeobj(size);
@@ -1360,7 +1361,7 @@ tib));
       }
       else objaddr = allocatey(the_size, tib, numElements, size, the_size.ndx);
        if (objaddr == 0) {
-        if (GC_TRIGGERGC) 
+        if (VM.verboseGC) 
         VM_Scheduler.trace(" gc collection triggered by smallarrayclone request ", "XX");
         gc1();
 	// reset the_size in case we are on a different processor after GC
@@ -1411,7 +1412,7 @@ tib));
       }
       else objaddr = allocatey(the_size, tib, numElements, size, the_size.ndx);
       if (objaddr == 0) {    // failure
-        if (GC_TRIGGERGC) 
+        if (VM.verboseGC) 
           VM_Scheduler.trace(" 2nd gc collection triggered by small array request", "CL", size);
 		    flag2nd = true;
         gc1();
@@ -1432,7 +1433,7 @@ tib));
     
     int memAddr = getlargeobj(size);    // address of head of new object
     if (memAddr < 0) {
-      if (GC_TRIGGERGC) 
+      if (VM.verboseGC) 
       VM_Scheduler.trace(" gc collection triggered by large array clone", "XX");
       gc1();
       memAddr = getlargeobj(size);
@@ -1531,7 +1532,7 @@ tib));
   int location;
   sysLockBlock.lock();
   if (first_freeblock == OUT_OF_BLOCKS) {
-  if (GC_TRIGGERGC) 
+  if (VM.verboseGC) 
     VM_Scheduler.trace(" gc collection triggered by getnewblockx call ", "XX");
   gc1();
   }  
@@ -1633,7 +1634,7 @@ tib));
   // return -1 to indicate small object triggered gc.
   sysLockBlock.lock();
   if (first_freeblock == OUT_OF_BLOCKS) {
-  if (GC_TRIGGERGC) 
+  if (VM.verboseGC) 
     VM_Scheduler.trace(" gc collection triggered by getnewblock call ", "XX");
     sysLockBlock.release();
     return -1;
@@ -2778,7 +2779,7 @@ tib));
   //
   public  static void
   gc ()  {
-    if (GC_TRIGGERGC)
+    if (VM.verboseGC)
       VM_Scheduler.trace("  gc triggered by external call to gc() \n \n", "XX");
     gc1();
   }
@@ -3345,8 +3346,8 @@ tib));
     // produce summary system exit output if -verbose:gc was specified of if
     // compiled with measurement flags turned on
     //
-    if ( ! (TIME_GC_PHASES || VM_CollectorThread.MEASURE_WAIT_TIMES || VM.verboseGC) )
-      return;     // not verbose, no flags on, so don't produce output
+//  if ( ! (TIME_GC_PHASES || VM_CollectorThread.MEASURE_WAIT_TIMES || VM.verboseGC) )
+ //   return;     // not verbose, no flags on, so don't produce output
 
     VM.sysWrite("\nGC stats: Mark Sweep Collector (");
     VM.sysWrite(np,false);
@@ -3530,7 +3531,10 @@ tib));
   static int
   freeBlocks () {
     sysLockBlock.lock();
-	  if (first_freeblock == OUT_OF_BLOCKS) return 0;
+	  if (first_freeblock == OUT_OF_BLOCKS) {
+			sysLockBlock.unlock();
+			return 0;
+		}
     VM_BlockControl the_block = VM_Magic.addressAsBlockControl(blocks[first_freeblock]);
 		int i = 1;
 		int next = the_block.nextblock;
