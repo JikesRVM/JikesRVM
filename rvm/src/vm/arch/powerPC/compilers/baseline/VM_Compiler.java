@@ -3184,7 +3184,7 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
         
 	// If counter reaches zero, set threadswitch bit
 	asm.emitCMPI(T2, 0);
-	asm.emitBGT(2);
+	asm.emitBGT(VM_Assembler.CALL_INSTRUCTIONS + 5);
 	asm.emitCRORC(THREAD_SWITCH_BIT, 0, 0); // set thread switch bit
       } else if (!VM.BuildForThreadSwitchUsingControlRegisterBit) {
 	asm.emitL(S0, VM_Entrypoints.threadSwitchRequestedOffset, PROCESSOR_REGISTER);
