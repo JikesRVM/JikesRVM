@@ -2,14 +2,15 @@ This section provides some information on various
 implementation details for the Jikes\TMweb{} RVM optimizing compiler.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Method Compilation}
-\label{sec:optdriver}
-\index{compilation}
-\index{optimizations}
-\index{IR}
-\index{HIR}
-\index{LIR}
-\index{MIR}
+\subsection{Method Compilation}%
+\label{sec:optdriver}%
+\index{compilation}%
+\index{optimizations}%
+\index{IR}%
+\index{HIR}%
+\index{LIR}%
+\index{MIR}%
+
 The fundamental unit for optimization in Jikes RVM is a single method. 
 The optimization of a method consists of a series of 
 compiler phases performed on the method. These 
@@ -20,9 +21,9 @@ LIR (low-level intermediate representation), and
 MIR (machine intermediate representation) and finally into machine code. 
 Various optimizing transformations are performed at each level of IR.
 
-\index{OPT\_CompilationPlan class}
-\index{VM\_Method class}
-\index{OPT\_OptimizationPlanElement class}
+\IndexttClass{OPT\_CompilationPlan}%
+\IndexttClass{VM\_Method}%
+\IndexttClass{OPT\_OptimizationPlanElement}%
 An object of the class 
 \xlink{{\tt OPT\_CompilationPlan}}{\OPTCompilationPlanURL} 
 contains all the  
@@ -39,7 +40,7 @@ invokes the optimizing compiler to generate machine code for the method,
 executing the compiler phases as listed in the plan's
 {\tt OPT\_OptimizationPlanElement}s.
 
-\index{OPT\_OptimizationPlanner class}
+\IndexttClass{OPT\_OptimizationPlanner}
 The 
 \xlink{{\tt OPT\_OptimizationPlanner}}{\OPTOptimizationPlannerURL} 
 class defines the standard phases used in a compilation.
@@ -84,7 +85,7 @@ method will modify the IR.
 The perform method of an aggregate element will invoke the 
 perform methods of its elements.
 
-\index{OPT\_CompilerPhase class}
+\IndexttClass{OPT\_CompilerPhase}
 Each atomic element is an object of the final class 
 {\tt OPT\_Optimization\-Plan\-A\-to\-mic\-El\-e\-ment}. The main work of this class
 is performed by its {\em phase}, an object of type 
@@ -123,8 +124,8 @@ The optimizing compiler intermediate representation (IR) includes a list
 of instructions.  Each instruction includes an operator and zero or
 more operands.
 
-\index{OPT\_Operators class}
-\index{OperatorList.dat}
+\IndexttClass{OPT\_Operators}%
+\Indextt{OperatorList.dat}%
 The IR operators are defined by the class {\tt OPT\_Operators}, which in
 turn is automatically generated from a template by a driver.  The input to the
 driver are two files, both called {\tt OperatorList.dat}.  One input
@@ -170,7 +171,7 @@ for details.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Instruction Formats}\label{iformats}
 \index{instructions}
-\index{instructionFormats.java}
+\Indextt{instructionFormats.java}
 
 Every IR instruction fits one of the pre-defined {\em Instruction Formats}.
 The Java package {\tt instructionFormats} defines roughly 75 architecture-independent
@@ -204,7 +205,7 @@ instructions into Move instructions, and check the index of a particular
 operand field in the instruction.  See the Javadoc reference for a complete
 description of the API.
 
-\index{InstructionFormatList.dat}
+\Indextt{InstructionFormatList.dat}
 Each fixed-length instruction format is defined in the text file 
 {\tt \$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-com\-pi\-lers/\-op\-ti\-mi\-zing/\-ir/\-in\-struction/InstructionFormatList.dat}.
 Each record in this file has four lines:
