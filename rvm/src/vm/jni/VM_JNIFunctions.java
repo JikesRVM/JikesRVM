@@ -5215,35 +5215,20 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
     if (traceJNI) VM.sysWrite("JNI called: SetObjectArrayElement  \n");
 
 
-    VM_JNIEnvironment env;
+    VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
     try {
-      env = VM_Thread.getCurrentThread().getJNIEnv();
-      Object sourceArray[] = (Object []) env.getJNIRef(arrayJREF);
-      Object elem = (Object) env.getJNIRef(objectJREF);
-
-      if (sourceArray==null)
-        return;
-
-      VM_Array arrayType = VM_Magic.getObjectType(sourceArray).asArray();
-
-      if (VM_Magic.getObjectType(elem) != arrayType.getElementType()) {
-        env.recordException(new ArrayStoreException());
-        return;
-      }
-
-      if (index >= VM_Magic.getArrayLength(sourceArray)) {
-        env.recordException(new ArrayIndexOutOfBoundsException());
-        return;
-      }
-
-      sourceArray[index] = elem;
-
-    } catch (Throwable unexpected) {
-      env = VM_Thread.getCurrentThread().getJNIEnv();
-      env.recordException(unexpected);
-      return;
+	env = VM_Thread.getCurrentThread().getJNIEnv();
+	
+	Object sourceArray[] = (Object []) env.getJNIRef(arrayJREF);
+	Object elem = (Object) env.getJNIRef(objectJREF);
+	
+	// array exceptions thrown normally, recorded below per spec
+	sourceArray[index] = elem;
+	
+    } catch (Throwable e) {
+	env.recordException(e);
+	return;
     }
-
   }
 
 
