@@ -90,7 +90,7 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
    * @return the thread ID, also an index to VM_Scheduler.threads
    */
   public int threadPointerToIndex(int tp) {
-    return owner.mem.read(tp + VM_Entrypoints.threadSlotOffset);
+    return owner.mem.read(tp + VM_Entrypoints.threadSlotField.getOffset());
   }
 
   /**
@@ -178,7 +178,7 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
   public boolean threadIsLoaded(int threadID) throws Exception {
     int thisThread = owner.getVMThreadForIndex(threadID);
     int proc = read("PR");
-    int loadedThread = owner.mem.read(proc + VM_Entrypoints.activeThreadOffset);
+    int loadedThread = owner.mem.read(proc + VM_Entrypoints.activeThreadField.getOffset());
     return (thisThread==loadedThread || thisThread==0);
   }
 

@@ -1431,7 +1431,7 @@ abstract class BootMap implements jdpConstants  {
     
       int vp = owner.reg.read("PR");
       // get the current thread
-      int objectAddr = owner.mem.read(vp + VM_Entrypoints.activeThreadOffset);  
+      int objectAddr = owner.mem.read(vp + VM_Entrypoints.activeThreadField.getOffset());  
       
       // get the type string for this thread
       String currentClassName = addressToClassString(objectAddr);   
@@ -1439,7 +1439,7 @@ abstract class BootMap implements jdpConstants  {
       // chopoff the L and ; from the type descriptor
       currentClassName = currentClassName.substring(1, currentClassName.length()-1);  
       return objectToJDPClass(currentClassName, 
-			      (vp + VM_Entrypoints.activeThreadOffset), false);
+			      (vp + VM_Entrypoints.activeThreadField.getOffset()), false);
     } catch (Exception e) {
       System.out.println("currentThreadToJDPClass: fail to get current thread, " + 
 			 e.getMessage());

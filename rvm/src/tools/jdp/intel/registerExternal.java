@@ -102,7 +102,7 @@ class registerExternal extends register implements VM_BaselineConstants, registe
    */
   public int hardwareTP(){
     int proc = read(PR);
-    int thread = owner.mem.read(proc + VM_Entrypoints.activeThreadOffset);    
+    int thread = owner.mem.read(proc + VM_Entrypoints.activeThreadField.getOffset());    
     return thread;
   }
 
@@ -144,7 +144,7 @@ class registerExternal extends register implements VM_BaselineConstants, registe
       if (!owner.bmap.isInRVMspace(currentIP)) {
 	// System.out.println("cacheJTOC: cached " + VM.intAsHexString(currentJTOC));
 	int currentPROC = read("PR");
-	cachedJTOC = owner.mem.read(currentPROC + VM_Entrypoints.jtocOffset);
+	cachedJTOC = owner.mem.read(currentPROC + VM_Entrypoints.jtocField.getOffset());
       } 
       // else {
       //   System.out.println("cacheJTOC: not cached " + VM.intAsHexString(currentJTOC) +

@@ -1250,7 +1250,7 @@ abstract class OsProcess implements jdpConstants, VM_BaselineConstants {
 
     try {
       // get the thread ID from the thread object
-      int id = mem.read(threadPointer + VM_Entrypoints.threadSlotOffset);
+      int id = mem.read(threadPointer + VM_Entrypoints.threadSlotField.getOffset());
       result += id + " @" + VM.intAsHexString(threadPointer);
       
       // Find the name of the top stack frame
