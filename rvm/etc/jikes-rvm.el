@@ -99,7 +99,7 @@ JikesRVM Java style guidelines on your own"))
 	  ;; no substatement-close?
 	  (substatement-open after))))
 
-(defun add-jikes-rvm-cc-styles ()
+(defun jikes-rvm-add-cc-styles ()
   (interactive)
   ;; Most of the things we set aren't buffer-local, so we have to use the hook
   ;; to do it.  Pity. :(
@@ -111,7 +111,7 @@ JikesRVM Java style guidelines on your own"))
 			       (c-special-indent-hook . nil)
 			       (c-basic-offset . 4))))
 
-(eval-after-load "cc-styles" #'(add-jikes-rvm-cc-styles))
+(eval-after-load "cc-styles" #'(jikes-rvm-add-cc-styles))
 
 ;; This sets up our Java.
 
