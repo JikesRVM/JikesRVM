@@ -229,7 +229,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       !context.method.isForOsrSpecialization() &&
 	  OPT_Compiler.getAppStarted() &&
 	  (VM_Controller.options != null) &&
-	  VM_Controller.options.adaptive();
+           VM_Controller.options.ENABLE_RECOMPILATION;
     //-#endif
   }
 
@@ -294,14 +294,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     if (arrayType != null) {
       if (!(arrayType.isInitialized() || arrayType.isInBootImage())) {
 	VM_Type elementType = elementTypeRef.peekResolvedType();
-	if (elementType != null) {
+ 	if (elementType != null) {
 	  if (elementType.isInitialized() || elementType.isInBootImage()) {
 	    arrayType.resolve();
 	    arrayType.instantiate();
 	  }
 	}
       }
-      if (arrayType.isInitialized()) {
+      if (arrayType.isInitialized() || arrayType.isInBootImage()) {
 	op = NEWARRAY;
 	arrayOp = makeTypeOperand(arrayType);
       }
@@ -2601,7 +2601,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    * Pop method parameters off the expression stack.
    * If a non-void return, then create a result operand and push it 
    * on the stack.
-   * Create the call instruction and initialize all it's operands.
+   * Create the call instruction and initialize all its operands.
    */
   private OPT_Instruction _callHelper(VM_MethodReference meth, OPT_MethodOperand methOp) {
     int numHiddenParams = methOp.isStatic() ? 0 : 1;
@@ -3065,7 +3065,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   OPT_Operand popInt() {
     OPT_Operand r = pop();
-    if (VM.VerifyAssertions) VM._assert(r.isIntLike(), r.toString());
+    if (VM.VerifyAssertions) VM._assert(r.isIntLike());
     return r;
   }
 

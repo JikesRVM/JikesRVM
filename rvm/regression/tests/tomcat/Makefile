@@ -10,7 +10,7 @@
 ###############################################################################
 # generic benchmark framework setup
 #
-include			$(RVM_BUILD)/Make.rules
+include			$(RVM_BUILD)/Make.rules.target
 
 BENCH_NAME=Tomcat
 BENCH_INCLUDE=Servlet

@@ -14,8 +14,9 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
  * @author Maria Butrico
  * @author Anthony Cocchi
  * @author Dave Grove
+ * @author Perry Cheng
  */
-public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants , VM_SizeConstants{
+public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants, VM_SizeConstants {
 
   private final int parameterWords;
   private int firstLocalOffset;
@@ -112,7 +113,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param val the lower 32 bits of long constant (upper32 are 0).
    */
   protected final void emit_lconst(int val) {
-    asm.emitPUSH_Imm(0);  // high part
+    asm.emitPUSH_Imm(0);    // high part
     asm.emitPUSH_Imm(val);  //  low part
   }
 
@@ -2271,13 +2272,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int headerSize = VM_ObjectModel.computeHeaderSize(array);
     int whichAllocator = MM_Interface.pickAllocator(array, method);
     // count is already on stack- nothing required
-    asm.emitMOV_Reg_RegInd (T0, SP);               // get number of elements
-    asm.emitSHL_Reg_Imm (T0, width);              // compute array size
-    asm.emitADD_Reg_Imm(T0, headerSize);
-    asm.emitPUSH_Reg(T0);      
-    asm.emitPUSH_RegDisp(JTOC, tibOffset);        // put tib on stack    
-    asm.emitPUSH_Imm(whichAllocator);
-    genParameterRegisterLoad(4);          // pass 4 parameter words
+    asm.emitPUSH_Imm(width);                 // logElementSize
+    asm.emitPUSH_Imm(headerSize);            // headerSize
+    asm.emitPUSH_RegDisp(JTOC, tibOffset);   // tib
+    asm.emitPUSH_Imm(whichAllocator);        // allocator
+    genParameterRegisterLoad(5);             // pass 5 parameter words
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
@@ -2301,12 +2300,19 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param dictionaryId, the dictionaryId of typeRef
    */
   protected final void emit_multianewarray(VM_TypeReference typeRef, int dimensions) {
+    // Calculate the offset from FP on entry to newarray: 
+    //      1 word for each parameter, plus 1 for return address on
+    //      stack and 1 for code technique in VM_Linker
+    final int PARAMETERS = 4;
+    final int OFFSET_WORDS = PARAMETERS + 2;
+
     // setup parameters for newarrayarray routine
-    asm.emitPUSH_Imm (dimensions);                     // dimension of arays
-    asm.emitPUSH_Imm (typeRef.getId());                   // type of array elements               
-    asm.emitPUSH_Imm ((dimensions + 5)<<LG_WORDSIZE);  // offset to dimensions from FP on entry to newarray 
-    // NOTE: 5 extra words- 3 for parameters, 1 for return address on stack, 1 for code technique in VM_Linker
-    genParameterRegisterLoad(3);                   // pass 3 parameter words
+    asm.emitPUSH_Imm (method.getId());           // caller
+    asm.emitPUSH_Imm (dimensions);               // dimension of arays
+    asm.emitPUSH_Imm (typeRef.getId());          // type of array elements
+    asm.emitPUSH_Imm ((dimensions + OFFSET_WORDS)<<LG_WORDSIZE);  // offset to dimensions from FP on entry to newarray 
+    
+    genParameterRegisterLoad(PARAMETERS);
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.newArrayArrayMethod.getOffset()); 
     for (int i = 0; i < dimensions ; i++) asm.emitPOP_Reg(S0); // clear stack of dimensions (todo use and add immediate to do this)
     asm.emitPUSH_Reg(T0);                              // push array ref on stack
@@ -2958,11 +2964,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (methodName == VM_MagicNames.attemptInt ||
 	methodName == VM_MagicNames.attemptObject ||
 	methodName == VM_MagicNames.attemptAddress) {
-      // attempt gets called with four arguments
-      //   base
-      //   offset
-      //   oldVal
-      //   newVal
+      // attempt gets called with four arguments: base, offset, oldVal, newVal
       // returns ([base+offset] == oldVal)
       // if ([base+offset] == oldVal) [base+offset] := newVal
       // (operation on memory is atomic)
@@ -3021,171 +3023,68 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return true;
     }
     
-    /*
-     * sysCall0, sysCall1, sysCall2, sysCall3 and sysCall4 return
-     * an integer (32 bits).
-     *
-     *	hi mem
-     *	  branch address	<- SP
-     *
-     * before call to C
-     *  hi mem
-     *	  branch address
-     *	  saved ebx
-     *	  saved pr
-     *	  saved jtoc		<- SP
-     */
-    if (methodName == VM_MagicNames.sysCall0) {
-      asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
-      asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
+    if (m.getType() == VM_TypeReference.SysCall) {
+      VM_TypeReference[] args = m.getParameterTypes();
+      VM_TypeReference rtype = m.getReturnType();
+      int offsetToJavaArg = 3*WORDSIZE; // the three regs saved in (2)
+      int paramBytes = 0;
+      
+      // (1) save three RVM nonvolatile/special registers
+      //     we don't have to save EBP: the callee will
+      //     treat it as a framepointer and save/restore
+      //     it for us.
+      asm.emitPUSH_Reg(EBX);
       asm.emitPUSH_Reg(ESI);	
-      asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
-      asm.emitCALL_RegInd(T0);	// branch to C code
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T0);	// store return value
-      return true;
-    }
-    
-    if (methodName == VM_MagicNames.sysCall1) {
-      asm.emitPOP_Reg(S0);	// first and only argument
-      asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
-      asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(ESI);	
-      asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
-      asm.emitPUSH_Reg(S0);	// push arg on stack
-      asm.emitCALL_RegInd(T0);	// branch to C code
-      asm.emitPOP_Reg(S0);	// pop the argument 
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T0);	// store return value
-      return true;
-    }
-    
-    if (methodName == VM_MagicNames.sysCall2) {
-      // C require its arguments reversed
-      asm.emitPOP_Reg(T1);	// second arg
-      asm.emitPOP_Reg(S0);	// first arg
-      asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
-      asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(ESI);	
-      asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
-      asm.emitPUSH_Reg(T1);	// reorder arguments for C 
-      asm.emitPUSH_Reg(S0);	// reorder arguments for C
-      asm.emitCALL_RegInd(T0);	// branch to C code
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*2);	// pop the arguments 
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T0);	// store return value
-      return true;
-    }
-    
-    if (methodName == VM_MagicNames.sysCall3) {
-      // C require its arguments reversed
-      asm.emitMOV_Reg_RegInd(T0, SP);			// load 3rd arg
-      asm.emitMOV_RegDisp_Reg(SP, -1*WORDSIZE, T0);	// store 3rd arg
-      asm.emitMOV_Reg_RegDisp(T0, SP, WORDSIZE);	// load 2nd arg
-      asm.emitMOV_RegDisp_Reg(SP, -2*WORDSIZE, T0);	// store 2nd arg
-      asm.emitMOV_Reg_RegDisp(T0, SP, 2*WORDSIZE);	// load 1st arg
-      asm.emitMOV_RegDisp_Reg(SP, -3*WORDSIZE, T0);	// store 1st arg
-      asm.emitMOV_Reg_Reg(T0, SP);			// T0 <- SP
-      asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, EBX);	// save three nonvolatiles: EBX
-      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, ESI);
-      asm.emitMOV_RegInd_Reg(SP, JTOC);			// JTOC aka EDI
-      asm.emitADD_Reg_Imm(SP, -3*WORDSIZE);		// grow the stack
-      asm.emitCALL_RegDisp(T0, 3*WORDSIZE); // fourth arg on stack is address to call
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*3);		// pop the arguments 
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T0);			// store return value
-      return true;
-    }
-    
-    if (methodName == VM_MagicNames.sysCall4) {
-      // C require its arguments reversed
-      asm.emitMOV_Reg_RegDisp(T0, SP, WORDSIZE);	// load 3rd arg
-      asm.emitMOV_RegDisp_Reg(SP, -1*WORDSIZE, T0);	// store 3th arg
-      asm.emitMOV_Reg_RegDisp(T0, SP, 2*WORDSIZE);	// load 2nd arg
-      asm.emitMOV_RegDisp_Reg(SP, -2*WORDSIZE, T0);	// store 2nd arg
-      asm.emitMOV_Reg_RegDisp(T0, SP, 3*WORDSIZE);	// load 1st arg
-      asm.emitMOV_RegDisp_Reg(SP, -3*WORDSIZE, T0);	// store 1st arg
-      asm.emitMOV_Reg_Reg(T0, SP);			// T0 <- SP
-      asm.emitMOV_RegDisp_Reg(SP, 3*WORDSIZE, EBX);	// save three nonvolatiles: EBX
-      asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, ESI);	
-      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, JTOC);	// JTOC aka EDI
-      asm.emitADD_Reg_Imm(SP, -3*WORDSIZE);		// grow the stack
-      asm.emitCALL_RegDisp(T0, 4*WORDSIZE); // fifth arg on stack is address to call
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*4);		// pop the arguments 
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T0);			// store return value
-      return true;
-    }
-    
-    /*
-     * sysCall_L_0  returns a long and takes no arguments
-     */
-    if (methodName == VM_MagicNames.sysCall_L_0) {
-      asm.emitMOV_Reg_Reg(T0, SP);
-      asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(ESI);	
-      asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
-      asm.emitCALL_RegInd(T0);	// first arg on stack is address to call
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T1);	// store return value: hi half
-      asm.emitPUSH_Reg(T0);	// low half
-      return true;
-    }
-    
-    /*
-     * sysCall_L_I  returns a long and takes an integer argument
-     */
-    if (methodName == VM_MagicNames.sysCall_L_I) {
-      asm.emitPOP_Reg(S0);	// the one integer argument
-      asm.emitMOV_Reg_Reg(T0, SP);	// T0 <- SP
-      asm.emitPUSH_Reg(EBX);	// save three nonvolatiles: EBX
-      asm.emitPUSH_Reg(ESI);	
-      asm.emitPUSH_Reg(JTOC);	// JTOC aka EDI
-      asm.emitPUSH_Reg(S0);	// push arg on stack
-      asm.emitCALL_RegInd(T0);	// branch to C code
-      asm.emitPOP_Reg(S0);	// pop the argument 
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T1);	// store return value: hi half
-      asm.emitPUSH_Reg(T0);	// low half
-      return true;
-    }
-    
-    if (methodName == VM_MagicNames.sysCallAD) {  // address, double
-      // C require its arguments reversed
-      asm.emitMOV_Reg_RegInd(T0, SP);			// load 2nd arg
-      asm.emitMOV_RegDisp_Reg(SP, -2*WORDSIZE, T0);	// store 2nd arg
-      asm.emitMOV_Reg_RegDisp(T0, SP, WORDSIZE);	// load 2nd arg
-      asm.emitMOV_RegDisp_Reg(SP, -1*WORDSIZE, T0);	// store 2nd arg
-      asm.emitMOV_Reg_RegDisp(T0, SP, 2*WORDSIZE);	// load 1st arg
-      asm.emitMOV_RegDisp_Reg(SP, -3*WORDSIZE, T0);	// store 1st arg
-      asm.emitMOV_Reg_Reg(T0, SP);			// T0 <- SP
-      asm.emitMOV_RegDisp_Reg(SP, 2*WORDSIZE, EBX);	// save three nonvolatiles: EBX
-      asm.emitMOV_RegDisp_Reg(SP, 1*WORDSIZE, ESI);	
-      asm.emitMOV_RegInd_Reg(SP, JTOC);			// JTOC aka EDI
-      asm.emitADD_Reg_Imm(SP, -3*WORDSIZE);		// grow the stack
-      asm.emitCALL_RegDisp(T0, 3*WORDSIZE); // 4th word on orig. stack is address to call
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*3);		// pop the arguments 
-      asm.emitPOP_Reg(JTOC);	// restore the three nonvolatiles
-      asm.emitPOP_Reg(ESI);
-      asm.emitPOP_Reg(EBX);
-      asm.emitMOV_RegInd_Reg(SP, T0);			// store return value
-      return true;
-    }
+      asm.emitPUSH_Reg(EDI);
 
+      // (2) Push args to target function (reversed)
+      for (int i=args.length-1; i>=0; i--) {
+	VM_TypeReference arg = args[i];
+	if (arg.isLongType() || arg.isDoubleType()) {
+	  asm.emitPUSH_RegDisp(SP, offsetToJavaArg + 4);
+	  asm.emitPUSH_RegDisp(SP, offsetToJavaArg + 4);
+	  offsetToJavaArg += 16;
+	  paramBytes += 8;
+	} else {
+	  asm.emitPUSH_RegDisp(SP, offsetToJavaArg);
+	  offsetToJavaArg += 8;
+	  paramBytes += 4;
+	}
+      }	  
+
+      // (3) invoke target function
+      VM_Field ip = VM_Entrypoints.getSysCallField(m.getName().toString());
+      asm.emitMOV_Reg_RegDisp(S0, JTOC, VM_Entrypoints.the_boot_recordField.getOffset());
+      asm.emitCALL_RegDisp(S0, ip.getOffset());
+      
+      // (4) pop space for arguments
+      asm.emitADD_Reg_Imm(SP, paramBytes);
+
+      // (5) restore RVM registers
+      asm.emitPOP_Reg(EDI);
+      asm.emitPOP_Reg(ESI);
+      asm.emitPOP_Reg(EBX);
+
+      // (6) pop expression stack
+      asm.emitADD_Reg_Imm(SP, paramBytes);
+
+      // (7) push return value
+      if (rtype.isLongType()) {
+	asm.emitPUSH_Reg(T1);
+	asm.emitPUSH_Reg(T0);
+      } else if (rtype.isDoubleType()) {
+	asm.emitSUB_Reg_Imm(SP, 8);
+	asm.emitFSTP_RegInd_Reg_Quad(SP, FP0);
+      } else if (rtype.isFloatType()) {
+	asm.emitSUB_Reg_Imm(SP, 4);
+	asm.emitFSTP_RegInd_Reg(SP, FP0);
+      } else if (!rtype.isVoidType()) {
+	asm.emitPUSH_Reg(T0);
+      }
+      
+      return true;
+    }	
+    
     /*
      * A special version of sysCall2, for invoking sigWait and allowing
      * collection of the frame making the call.  The signature of the
@@ -3340,6 +3239,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPUSH_Reg (T0);
       return true;
     }
+
+    if (methodName == VM_MagicNames.getCharAtOffset) {
+      asm.emitPOP_Reg (T0);                  // object ref
+      asm.emitPOP_Reg (S0);                  // offset
+      asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, asm.BYTE, 0); // load and zero extend char [T0+S0]
+      asm.emitPUSH_Reg (T0);
+      return true;
+    }
     
     if (methodName == VM_MagicNames.setIntAtOffset ||
 	methodName == VM_MagicNames.setObjectAtOffset ) {
@@ -3355,6 +3262,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       asm.emitPOP_Reg(S0);                   // offset
       asm.emitPOP_Reg(T1);                   // obj ref
       asm.emitMOV_RegIdx_Reg_Byte(T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- (byte) T0
+      return true;
+    }
+    
+    if (methodName == VM_MagicNames.setCharAtOffset) {
+      asm.emitPOP_Reg(T0);                   // value
+      asm.emitPOP_Reg(S0);                   // offset
+      asm.emitPOP_Reg(T1);                   // obj ref
+      asm.emitMOV_RegIdx_Reg_Word(T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- (char) T0
       return true;
     }
     
@@ -3379,13 +3294,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
 
     if (methodName == VM_MagicNames.addressArrayCreate) {
-      try {
-	emit_resolved_newarray(m.getType().resolve().asArray());
-      } catch (ClassNotFoundException e) {
-	InternalError ex = new InternalError();
-	e.initCause(ex);
-	throw ex;
-      }
+      // no resolution problem possible.
+      emit_resolved_newarray(m.getType().resolve().asArray());
       return true;
     }
 
@@ -3395,23 +3305,31 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
 
     if (methodName == VM_MagicNames.addressArrayGet) {
-      if (VM.BuildFor32Addr) {
-	emit_iaload();   
-      } else if (VM.BuildFor64Addr) {
-	emit_laload();
+      if (m.getType() == VM_TypeReference.CodeArray) {
+	emit_baload();
       } else {
-	VM._assert(NOT_REACHED);
+	if (VM.BuildFor32Addr) {
+	  emit_iaload();   
+	} else if (VM.BuildFor64Addr) {
+	  emit_laload();
+	} else {
+	  VM._assert(NOT_REACHED);
+	}
       }
       return true;
     }
 
     if (methodName == VM_MagicNames.addressArraySet) {
-      if (VM.BuildFor32Addr) {
-	emit_iastore();  
-      } else if (VM.BuildFor64Addr) {
-	VM._assert(false);  // not implemented
+      if (m.getType() == VM_TypeReference.CodeArray) {
+	emit_bastore();
       } else {
-	VM._assert(NOT_REACHED);
+	if (VM.BuildFor32Addr) {
+	  emit_iastore();  
+	} else if (VM.BuildFor64Addr) {
+	  VM._assert(false);  // not implemented
+	} else {
+	  VM._assert(NOT_REACHED);
+	}
       }
       return true;
     }
@@ -3597,14 +3515,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       return true;
     }
     
-    if (methodName == VM_MagicNames.getTime) {
-      VM.sysWrite("WARNING: VM_Compiler compiling unimplemented magic: getTime in " + method + "\n");
-      asm.emitMOV_RegInd_Imm(SP, 0);  // TEMP!! for now, return 0
-      return true;
-    }
-
     if (methodName == VM_MagicNames.getTimeBase) {
-      asm.emitRDTSC();  // read timestamp counter instruction
+      asm.emitRDTSC();       // read timestamp counter instruction
       asm.emitPUSH_Reg(EDX); // upper 32 bits
       asm.emitPUSH_Reg(EAX); // lower 32 bits
       return true;
@@ -3615,9 +3527,21 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	methodName == VM_MagicNames.wordFromIntSignExtend ||
 	methodName == VM_MagicNames.wordToInt ||
 	methodName == VM_MagicNames.wordToAddress ||
+	methodName == VM_MagicNames.wordToOffset ||
+	methodName == VM_MagicNames.wordToExtent ||
 	methodName == VM_MagicNames.wordToWord) {
-	// no-op
+	if (VM.BuildFor32Addr) return true; 	// no-op for 32-bit
+	if (VM.VerifyAssertions) VM._assert(false);
+    }
+
+    if (methodName == VM_MagicNames.wordToLong) {
+      if (VM.BuildFor32Addr) {
+	asm.emitPOP_Reg(T0);
+	asm.emitPUSH_Imm(0); // upper 32 bits
+	asm.emitPUSH_Reg(T0); // lower 32 bits
 	return true;
+      } // else no-op
+      if (VM.VerifyAssertions) VM._assert(false);
     }
 
     if (methodName == VM_MagicNames.wordAnd) {
@@ -3661,6 +3585,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	return true;
     }
 
+    if (methodName == VM_MagicNames.wordOne) {
+	asm.emitPUSH_Imm(1);
+	return true;
+    }
+
     if (methodName == VM_MagicNames.wordMax) {
 	asm.emitPUSH_Imm(-1);
 	return true;
@@ -3682,6 +3611,22 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	generateAddrComparison(asm.LGE);
 	return true;
     }
+    if (methodName == VM_MagicNames.wordsLT) {
+	generateAddrComparison(asm.LT);
+	return true;
+    }
+    if (methodName == VM_MagicNames.wordsLE) {
+	generateAddrComparison(asm.LE);
+	return true;
+    }
+    if (methodName == VM_MagicNames.wordsGT) {
+	generateAddrComparison(asm.GT);
+	return true;
+    }
+    if (methodName == VM_MagicNames.wordsGE) {
+	generateAddrComparison(asm.GE);
+	return true;
+    }
     if (methodName == VM_MagicNames.wordEQ) {
 	generateAddrComparison(asm.EQ);
 	return true;
@@ -3700,7 +3645,33 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	generateAddrComparison(asm.EQ);
 	return true;
     }
-						     
+    if (methodName == VM_MagicNames.wordLsh) {
+	if (VM.BuildFor32Addr) {
+	  asm.emitPOP_Reg(ECX);
+	  asm.emitSHL_RegInd_Reg(SP, ECX);   
+	}
+	else
+	  VM._assert(false);  
+	return true;
+    }
+    if (methodName == VM_MagicNames.wordRshl) {
+      if (VM.BuildFor32Addr) {
+	asm.emitPOP_Reg (ECX);
+	asm.emitSHR_RegInd_Reg (SP, ECX);  
+      }
+      else
+	VM._assert(false);  
+      return true;
+    }
+    if (methodName == VM_MagicNames.wordRsha) {
+      if (VM.BuildFor32Addr) {
+	asm.emitPOP_Reg (ECX);
+	asm.emitSAR_RegInd_Reg (SP, ECX);  
+      }
+      else
+	VM._assert(false);  
+      return true;
+    }
     return false;
     
   }

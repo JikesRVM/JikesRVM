@@ -33,8 +33,6 @@ final class VM_BasicBlock {
   static final byte INJSR = 32;
   static final byte TRYHANDLERSTART = 64;
 
-  static int nextBlockNumber = STARTBBNUMBER;
-
   // --------------------- Instance Fields ---------------------
 
   int     blockNumber;       // ID number (index into block array)
@@ -51,10 +49,9 @@ final class VM_BasicBlock {
 
   // --------------- Constructor --------------------------------
 
- // This should be the usual constructor, we know the start, but don't
- // yet know the end. No predecessors.
- VM_BasicBlock(int startval) {
-   blockNumber = nextBlockNumber ++;
+ // This should be called only from the factory.
+ VM_BasicBlock (int startval, int bn) {
+   blockNumber = bn;
    start = startval;
  }
 
@@ -68,14 +65,6 @@ final class VM_BasicBlock {
  }
 
   // ------------------ Static Methods -------------------------
-
- static void resetBlockNumber() {
-   nextBlockNumber = STARTBBNUMBER;
- }
-
- static int getNumberofBlocks() {
-   return (nextBlockNumber -1);
- }
 
  void setStart(int startval) {
    start = startval;

@@ -103,12 +103,6 @@ class OPT_GenerateMachineSpecificMagic
 					    callerFP,
 					    new OPT_IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
       bc2ir.push(val.copyD2U());
-    } else if (methodName == VM_MagicNames.getTime) {
-      OPT_RegisterOperand val = gc.temps.makeTempDouble();
-      VM_Field target = VM_Entrypoints.getTimeInstructionsField;
-      OPT_MethodOperand mo = OPT_MethodOperand.STATIC(target);
-      bc2ir.appendInstruction(Call.create1(CALL, val, new OPT_IntConstantOperand(target.getOffset()), mo, bc2ir.popRef()));
-      bc2ir.push(val.copyD2U(), VM_TypeReference.Double);
     } else if (methodName == VM_MagicNames.isync) {
       if (!gc.options.NO_CACHE_FLUSH)
         bc2ir.appendInstruction(Empty.create(READ_CEILING));

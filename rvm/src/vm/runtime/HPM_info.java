@@ -15,8 +15,10 @@ public final class HPM_info
   public static final int MAX_VALUES   = MAX_COUNTERS+1;
   /*
    * Version number
+   *  1) initial 
+   *  2) better compression of trace format (eliminate a doubleword)
    */
-  public int version_number = 1;
+  public int version_number = 2;
   /*
    * Possible HPM counters
    */

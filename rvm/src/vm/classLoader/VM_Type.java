@@ -7,43 +7,36 @@ package com.ibm.JikesRVM.classloader;
 import com.ibm.JikesRVM.*;
 
 /**
- * A description of a java object.
- *
+ * A description of a java type.
+ * 
  * This class is the base of the java type system. 
  * To the three kinds of java objects
  * (class-instances, array-instances, primitive-instances) 
  * there are three corresponding
  * subclasses of VM_Type: VM_Class, VM_Array, VM_Primitive.
- *
- * VM_Class's are constructed in four phases:
- *
+ * <p>
+ * A VM_Class is constructed in four phases:
  * <ul>
- * <li> A "forward reference" phase records the type descriptor but 
- * does not attempt to read
- *   the ".class" file.
- *
  * <li> A "load" phase reads the ".class" file but does not attempt to 
- * examine any of the symbolic references present there.
+ *      examine any of the symbolic references present there. This is done
+ *      by the VM_Class constructor as a result of a VM_TypeReference being
+ *      resolved.
  *
  * <li> A "resolve" phase follows symbolic references as needed to discover
  *   ancestry, to measure field sizes, and to allocate space in the jtoc
  *   for the class's static fields and methods.
  *
- * <li>  An "instantiate" phase compiles the class's methods, 
- * installs the type information block,
- *   static fields, and static methods into the jtoc.
+ * <li>  An "instantiate" phase initializes and 
+ * installs the type information block and static methods.
  *
  * <li> An "initialize" phase runs the class's static initializer.
  * </ul>
  *
- * VM_Array's are constructed in similar fashion to VM_Class's, 
- * except there is no 
- * "forward reference" or "load" phase, because the descriptions are 
- * completely self contained.
- *
+ * VM_Array's are constructed in a similar fashion.
+ * 
  * VM_Primitive's are constructed ab initio. 
- * They have no "forward reference", "load", 
- * "resolution", "instantiation", or "initialization" phases.
+ * Their "resolution", "instantiation", and "initialization" phases
+ * are no-ops.
  *
  * @author Bowen Alpern
  * @author Dave Grove
@@ -73,14 +66,15 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   public static VM_Class JavaIoSerializableType; 
   public static VM_Type MagicType;             
   public static VM_Type WordType;             
-  public static VM_Type WordArrayType;             
+  public static VM_Array WordArrayType;             
   public static VM_Type AddressType;             
-  public static VM_Type AddressArrayType;             
+  public static VM_Array AddressArrayType;             
   public static VM_Type OffsetType;             
-  public static VM_Type OffsetArrayType;             
+  public static VM_Array OffsetArrayType;             
   public static VM_Type ExtentType;             
-  public static VM_Type ExtentArrayType;             
-  public static VM_Type InstructionArrayType;             
+  public static VM_Array ExtentArrayType;             
+  public static VM_Type CodeType;
+  public static VM_Array CodeArrayType;
   public static VM_Type UninterruptibleType;   
   public static VM_Type SynchronizedObjectType;   
   public static VM_Type DynamicBridgeType;     
@@ -90,7 +84,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   private static VM_Type[] types = new VM_Type[1000];
 
   /**
-   * Cannonical type reference for this VM_Type instance
+   * Canonical type reference for this VM_Type instance
    */
   protected final VM_TypeReference typeRef;
 
@@ -164,7 +158,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
 
   /**
    * Create an instance of a VM_Type
-   * @param typeRef the cannonical type reference for this type.
+   * @param typeRef the canonical type reference for this type.
    */
   protected VM_Type(VM_TypeReference tr) {
     this.typeRef = tr;
@@ -183,7 +177,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   }
   
   /**
-   * Cannonical type reference for this type.
+   * Canonical type reference for this type.
    */
   public final VM_TypeReference getTypeRef() throws VM_PragmaUninterruptible {
     return typeRef;
@@ -476,8 +470,10 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
                                                                                           (this == AddressArrayType) ||
 										          (this == ExtentArrayType) || 
 										          (this == OffsetArrayType); }
+  final boolean isCodeType() throws VM_PragmaUninterruptible { return this == CodeType; }
+  final boolean isCodeArrayType() throws VM_PragmaUninterruptible { return this == CodeArrayType; }
   public final boolean isMagicType() throws VM_PragmaUninterruptible             { return isWordType() || isWordArrayType() ||
-										     (this == MagicType); }
+										     this == MagicType || this == CodeArrayType; }
   public final boolean isUninterruptibleType() throws VM_PragmaUninterruptible   { return this == UninterruptibleType;   }
   public final boolean isSynchronizedObjectType() throws VM_PragmaUninterruptible{ return this == SynchronizedObjectType;   }
   public final boolean isDynamicBridgeType() throws VM_PragmaUninterruptible     { return this == DynamicBridgeType;     }
@@ -490,15 +486,10 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   public final VM_Array getArrayTypeForElementType() {
     if (cachedElementType == null) {
       VM_TypeReference tr = typeRef.getArrayTypeForElementType();
-      try {
-	cachedElementType = tr.resolve().asArray();
-      } catch (ClassNotFoundException e) {
-	// can't happen because the element type already exists (it is 'this')
-	// and the VM creates array types itself without any possibility of 
-	// error if the element type is already loaded.
-	if (VM.VerifyAssertions) VM._assert(false);
-	return null;
-      }
+      cachedElementType = tr.resolve().asArray();
+      /*  Can't fail to resolve the type, because the element type already
+	  exists (it is 'this') and the VM creates array types itself without
+	  any possibility of error if the element type is already loaded. */
     }
     return cachedElementType;
   }
@@ -517,7 +508,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     return VM_Magic.objectAsIntArray(getTypeInformationBlock()[VM.TIB_DOES_IMPLEMENT_INDEX]);
   }
 	 
-  static void init() throws ClassNotFoundException {
+  static void init() {
     VoidType    = VM_TypeReference.Void.resolve();
     BooleanType = VM_TypeReference.Boolean.resolve();
     ByteType    = VM_TypeReference.Byte.resolve();
@@ -528,7 +519,8 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     DoubleType  = VM_TypeReference.Double.resolve();
     CharType    = VM_TypeReference.Char.resolve();
 
-    InstructionArrayType = VM_TypeReference.InstructionArray.resolve();
+    CodeType = VM_TypeReference.Code.resolve();
+    CodeArrayType = VM_TypeReference.CodeArray.resolve().asArray();
 
     JavaLangObjectType = VM_TypeReference.JavaLangObject.resolve();
     JavaLangObjectArrayType = (VM_Array)VM_TypeReference.JavaLangObjectArray.resolve();
@@ -549,13 +541,13 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     NativeBridgeType      = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
 							  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_NativeBridge;")).resolve();
     WordType = VM_TypeReference.Word.resolve();
-    WordArrayType = VM_TypeReference.WordArray.resolve();
+    WordArrayType = VM_TypeReference.WordArray.resolve().asArray();
     AddressType = VM_TypeReference.Address.resolve();
-    AddressArrayType = VM_TypeReference.AddressArray.resolve();
+    AddressArrayType = VM_TypeReference.AddressArray.resolve().asArray();
     OffsetType = VM_TypeReference.Offset.resolve();
-    OffsetArrayType = VM_TypeReference.OffsetArray.resolve();
+    OffsetArrayType = VM_TypeReference.OffsetArray.resolve().asArray();
     ExtentType = VM_TypeReference.Extent.resolve();
-    ExtentArrayType = VM_TypeReference.ExtentArray.resolve();
+    ExtentArrayType = VM_TypeReference.ExtentArray.resolve().asArray();
     
     VM_Array.init();
   }

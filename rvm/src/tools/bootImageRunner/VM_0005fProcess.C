@@ -164,7 +164,10 @@ static void closePipe(int descriptors[])
 // (from Runtime.exec()) if we can't change into the
 // working directory the caller specified.
 // Instead, we'll just return this value as the exit code.
-const int BAD_WORKING_DIR = 2;
+// See the definition (in VM.java) of VM.exitStatusJNITrouble; if you change
+// this value, change it there too.
+const int EXIT_STATUS_JNI_TROUBLE = 98;
+const int EXIT_STATUS_BAD_WORKING_DIR = EXIT_STATUS_JNI_TROUBLE;
 
 //////////////////////////////////////////////////////////////
 // Implementation of native methods
@@ -248,7 +251,7 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
 #ifdef DEBUG
 	fprintf(stderr, "chdir() failed: %s\n", strerror(errno));
 #endif
-	exit(BAD_WORKING_DIR);
+	exit(EXIT_STATUS_BAD_WORKING_DIR);
       }
     }
 
@@ -281,11 +284,15 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
 #endif
 
     // Execute the program.
-    int err = execvp(programString.get(), argv.get());
-
-    //fprintf(stderr, "execvp() failed: %s\n", strerror(errno));
-
+    // XXX See comment below on error handling.
+    // int err = execvp(programString.get(), argv.get());
+    (void) execvp(programString.get(), argv.get());
     // We get here only if an error occurred.
+    
+#ifdef DEBUG
+    fprintf(stderr, "execvp() failed: %s\n", strerror(errno));
+#endif
+
     programString.release();
     argv.release();
     envp.release();
@@ -297,7 +304,14 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
     // actually execute the program.  We could use shared memory
     // or a special pipe to send the error information.
     // For now, just exit with a non-zero status.
-    exit(1);
+    /* However, traditionally the shell and xargs use status 127 to mean that
+     * they were unable to find something to execute.
+     * To quote the bash manpage, "If a command is found
+     *  but is not executable, the return status is 126.¨
+     * We shall adopt those customs here. --Steve Augart*/
+    if (errno == ENOENT || errno == ENOTDIR)
+	exit(127);
+    exit(126);			// couldn't be executed for some other reason.
   } else if (fid > 0) {
     // parent
 

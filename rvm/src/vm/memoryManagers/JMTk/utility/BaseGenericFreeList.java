@@ -97,10 +97,10 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
 
   /**
    * Allocate <code>size</code> units.  Return the unit ID
@@ -155,10 +155,10 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
     return getSize(unit);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private fields and methods
-  //
+  /****************************************************************************
+   *
+   * Private fields and methods
+   */
 
   /**
    * Initialize a new heap.  Fabricate a free list entry containing
@@ -249,22 +249,22 @@ abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
    */
   private void dbgPrintFree() {
     if (DEBUG) {
-      VM_Interface.sysWrite("FL[");
+      Log.write("FL[");
       int i = HEAD;
       while ((i = getNext(i)) != HEAD) {
 	boolean f = getFree(i);
 	int s = getSize(i);
 	if (!f)
-	  VM_Interface.sysWrite("->");
-	VM_Interface.sysWrite(i);
+	  Log.write("->");
+	Log.write(i);
 	if (!f)
-	  VM_Interface.sysWrite("<-");
-	VM_Interface.sysWrite("[");
-	VM_Interface.sysWrite(s);
-	VM_Interface.sysWrite("]");
-	VM_Interface.sysWrite(" ");
+	  Log.write("<-");
+	Log.write("[");
+	Log.write(s);
+	Log.write("]");
+	Log.write(" ");
       }
-      VM_Interface.sysWrite("]FL\n");
+      Log.write("]FL\n");
     }
   }
 

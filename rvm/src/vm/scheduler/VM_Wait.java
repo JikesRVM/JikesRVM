@@ -31,9 +31,9 @@ public class VM_Wait {
    */ 
   public static void sleep (long millis) throws InterruptedException {
     VM_Thread myThread = VM_Thread.getCurrentThread();
-    myThread.wakeupTime = VM_Time.now() + millis * .001;
+    myThread.wakeupCycle = VM_Time.cycles() + VM_Time.millisToCycles(millis);
     // cache the proxy before obtaining lock
-    VM_Proxy proxy = new VM_Proxy (myThread, myThread.wakeupTime); 
+    VM_Proxy proxy = new VM_Proxy (myThread, myThread.wakeupCycle); 
     myThread.proxy = proxy;
 
     VM_Thread.sleepImpl(myThread);
@@ -41,18 +41,18 @@ public class VM_Wait {
 
   /**
    * Given a total number of seconds to wait, computes timestamp
-   * of time when the wait should time out.  Leaves negative
-   * times unchanged, since these indicate infinite waits.
+   * of time when the wait should time out.  
+   * Leaves negative times unchanged, since these indicate infinite waits.
    */
-  private static double getMaxWaitTime(double totalWaitTimeInSeconds) {
+  private static long getMaxWaitCycle(double totalWaitTimeInSeconds) {
     // If a non-negative wait time was specified, it specifies the total
     // number of seconds to wait, so convert it to a timestamp (number of
     // seconds past the epoch).  Negative value indicates indefinite wait,
     // in which case nothing needs to be done.
-    double maxWaitTime = totalWaitTimeInSeconds;
-    if (maxWaitTime >= 0.0d)
-      maxWaitTime += VM_Time.now();
-    return maxWaitTime;
+    long maxWaitCycle = VM_Time.secsToCycles(totalWaitTimeInSeconds);
+    if (maxWaitCycle >= 0)
+      maxWaitCycle += VM_Time.cycles();
+    return maxWaitCycle;
   }
 
   /**
@@ -64,13 +64,11 @@ public class VM_Wait {
    * @return the wait data object indicating the result of the wait
    */ 
   public static VM_ThreadIOWaitData ioWaitRead (int fd, double totalWaitTime) {
-    //VM.sysWrite("VM_Thread: ioWaitRead " + fd);
-
     // Create wait data to represent the event the thread is
     // waiting for
-    double maxWaitTime = getMaxWaitTime(totalWaitTime);
-    VM_ThreadIOWaitData waitData =
-      createIOWaitDataForRead(fd, maxWaitTime);
+    long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
+    VM_ThreadIOWaitData waitData = new VM_ThreadIOWaitData(maxWaitCycle);
+    waitData.readFds = new int[] { fd };
 
     if (noIoWait)
       waitData.markAllAsReady();
@@ -96,14 +94,12 @@ public class VM_Wait {
    *   indicate an infinite wait time
    * @return the wait data object indicating the result of the wait
    */ 
-  public static VM_ThreadIOWaitData ioWaitWrite (int fd, double totalWaitTime) {
-    //VM.sysWrite("VM_Thread: ioWaitWrite " + fd);
-
+  public static VM_ThreadIOWaitData ioWaitWrite (int fd, double totalWaitTime){
     // Create wait data to represent the event the thread is
     // waiting for
-    double maxWaitTime = getMaxWaitTime(totalWaitTime);
-    VM_ThreadIOWaitData waitData =
-      createIOWaitDataForWrite(fd, maxWaitTime);
+    long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
+    VM_ThreadIOWaitData waitData = new VM_ThreadIOWaitData(maxWaitCycle);
+    waitData.writeFds = new int[] { fd };
 
     if (noIoWait)
       waitData.markAllAsReady();
@@ -139,13 +135,17 @@ public class VM_Wait {
    *   from native code
    */
   public static void ioWaitSelect(int[] readFds, int[] writeFds,
-    int[] exceptFds, double totalWaitTime, boolean fromNative) {
-
+				  int[] exceptFds, double totalWaitTime, 
+				  boolean fromNative) {
+    
     // Create wait data to represent the event that the thread is
     // waiting for
-    double maxWaitTime = getMaxWaitTime(totalWaitTime);
-    VM_ThreadIOWaitData waitData =
-      createIOWaitDataForSelect(readFds, writeFds, exceptFds, maxWaitTime);
+    long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
+    VM_ThreadIOWaitData waitData = new VM_ThreadIOWaitData(maxWaitCycle);
+    waitData.readFds = readFds;
+    waitData.writeFds = writeFds;
+    waitData.exceptFds = exceptFds;
+
     if (fromNative)
       waitData.waitFlags |= VM_ThreadEventConstants.WAIT_NATIVE;
 
@@ -165,64 +165,19 @@ public class VM_Wait {
    * @return the <code>VM_ThreadProcessWaitData</code> representing
    *   the state of the process
    */
-  public static VM_ThreadProcessWaitData processWait(VM_Process process, double totalWaitTime)
+  public static VM_ThreadProcessWaitData processWait(VM_Process process, 
+						     double totalWaitTime)
     throws InterruptedException {
 
     // Create wait data to represent the event the thread is
     // waiting for
-    double maxWaitTime = getMaxWaitTime(totalWaitTime);
+    long maxWaitCycle = getMaxWaitCycle(totalWaitTime);
     VM_ThreadProcessWaitData waitData =
-      new VM_ThreadProcessWaitData(process.getPid(), maxWaitTime);
+      new VM_ThreadProcessWaitData(process.getPid(), maxWaitCycle);
 
     // Put the thread on the processWaitQueue
     VM_Thread.processWaitImpl(waitData, process);
 
     return waitData;
   }
-
-  /**
-   * Create a VM_ThreadIOWaitData object for reading a single
-   * file descriptor.
-   * @param fd the file descriptor
-   * @return the event wait data object
-   */
-  private static VM_ThreadIOWaitData createIOWaitDataForRead(int fd, double maxWaitTime) {
-    VM_ThreadIOWaitData data = new VM_ThreadIOWaitData(maxWaitTime);
-    data.readFds = new int[1];
-    data.readFds[0] = fd;
-    return data;
-  }
-
-  /**
-   * Create a VM_ThreadIOWaitData object for writing a single
-   * file descriptor.
-   * @param fd the file descriptor
-   * @return the event wait data object
-   */
-  private static VM_ThreadIOWaitData createIOWaitDataForWrite(int fd, double maxWaitTime) {
-    VM_ThreadIOWaitData data = new VM_ThreadIOWaitData(maxWaitTime);
-    data.writeFds = new int[1];
-    data.writeFds[0] = fd;
-    return data;
-  }
-
-  /**
-   * Create a VM_ThreadIOWaitData object for performing a
-   * select on an arbitrary set of file descriptors.
-   * @param readFds set of read file descriptors
-   * @param writeFds set of write file descriptors
-   * @param exceptFds set of exception file descriptors
-   * @param maxWaitTime timestamp indicating end of wait
-   * @return the event wait data object
-   */
-  private static VM_ThreadIOWaitData createIOWaitDataForSelect(int[] readFds,
-    int[] writeFds, int[] exceptFds, double maxWaitTime) {
-    VM_ThreadIOWaitData data = new VM_ThreadIOWaitData(maxWaitTime);
-    data.readFds = readFds;
-    data.writeFds = writeFds;
-    data.exceptFds = exceptFds;
-    return data;
-  }
-
-
 }

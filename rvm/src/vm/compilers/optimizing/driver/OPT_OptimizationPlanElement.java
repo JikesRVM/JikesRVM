@@ -60,7 +60,7 @@ public abstract class OPT_OptimizationPlanElement {
 
   /**
    * Report the elapsed time spent in the PlanElement
-   * @return time spend in the plan (in seconds)
+   * @return time spend in the plan (in ms)
    */
   public abstract double elapsedTime ();
 
@@ -68,7 +68,7 @@ public abstract class OPT_OptimizationPlanElement {
    * Helper function for <code> reportStats </code>
    */
   protected void prettyPrintTime (double time, double totalTime) {
-    int t = VM_Time.toMilliSecs(time);
+    int t = (int)time;
     if (t < 1000000)
       VM.sysWrite(" ");
     if (t < 100000)

@@ -5,8 +5,7 @@
 
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.Statistics;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
+import com.ibm.JikesRVM.memoryManagers.JMTk.Enumerate;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
@@ -31,7 +30,7 @@ import com.ibm.JikesRVM.VM_Synchronization;
  *
  * @author Stephen Smith
  */  
-public class ScanObject implements VM_Constants, Constants {
+public class ScanObject implements VM_Constants {
 
   /**
    * Scan a object, processing each pointer field encountered.  The
@@ -60,20 +59,24 @@ public class ScanObject implements VM_Constants, Constants {
    * pointer fields are enumerated, not the TIB.
    *
    * @param object The object to be scanned.
-   * @param plan The plan with respect to which the callback should be made.
+   * @param enum the Enumerate object through which the callback
+   * is made
    */
-  public static void enumeratePointers(VM_Address object, Plan plan) 
+  public static void enumeratePointers(VM_Address object, Enumerate enum) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    scan(object, false, plan, false);
+    scan(object, false, enum, false);
   }
 
   /**
    * Scans an object or array for internal object references and
-   * processes those references (calls processPtrField)
+   * processes those references (calls processPtrLocation)
    *
    * @param objRef  reference for object to be scanned (as int)
+   * @param root XXX missin param description
+   * @param enum the Enumerate object though which the callback is made
+   * @param trace XXX missing param description
    */
-  private static void scan(VM_Address objRef, boolean root, Plan plan,
+  private static void scan(VM_Address objRef, boolean root, Enumerate enum,
 			   boolean trace)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
 
@@ -82,8 +85,10 @@ public class ScanObject implements VM_Constants, Constants {
     // First process the TIB to relocate it.
     // Necessary only if the allocator/collector moves objects
     // and the object model is actually storing the TIB as a pointer.
-    // 
-    if (MM_Interface.MOVES_OBJECTS) 
+    //
+    // Since it is hidden, the TIB is not considered a "pointer" when
+    // enumerating pointers, so is not enumerated.
+    if (trace && MM_Interface.MOVES_TIBS)
       VM_ObjectModel.gcProcessTIB(objRef, root);
 
     Object obj = VM_Magic.addressAsObject(objRef);
@@ -106,9 +111,9 @@ public class ScanObject implements VM_Constants, Constants {
       int[] referenceOffsets = type.asClass().getReferenceOffsets();
       for(int i = 0, n=referenceOffsets.length; i < n; i++) {
 	if (trace)
-	  MM_Interface.processPtrField(objRef.add(referenceOffsets[i]), root);
+	  MM_Interface.processPtrLocation(objRef.add(referenceOffsets[i]), root);
 	else
-	  VM_Interface.enumeratePtrLoc(objRef.add(referenceOffsets[i]), plan);
+	  enum.enumeratePointerLocation(objRef.add(referenceOffsets[i]));
       }
       Statistics.profileScan(obj, 4 * referenceOffsets.length, tib);
     }
@@ -117,15 +122,15 @@ public class ScanObject implements VM_Constants, Constants {
       VM_Type elementType = type.asArray().getElementType();
       if (elementType.isReferenceType()) {
         int num_elements = VM_Magic.getArrayLength(obj);
-        int numBytes = num_elements * WORD_SIZE;
+        int numBytes = num_elements * BYTES_IN_ADDRESS;
         VM_Address location = objRef;    // for arrays = address of [0] entry
         VM_Address end      = objRef.add(numBytes);
         while ( location.LT(end) ) {
 	  if (trace)
-	    MM_Interface.processPtrField(location, root);
+	    MM_Interface.processPtrLocation(location, root);
 	  else
-	    VM_Interface.enumeratePtrLoc(location, plan);
-          location = location.add(WORD_SIZE);  // is this size_of_pointer ?
+	    enum.enumeratePointerLocation(location);
+          location = location.add(BYTES_IN_ADDRESS);  // is this size_of_pointer ?
         }
         Statistics.profileScan(obj, numBytes, tib);
       }

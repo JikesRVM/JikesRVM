@@ -1,9 +1,10 @@
-#!/bin/ksh
+#! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 # $Id$
 #
 # @author Steve Fink
+# @modified Steven Augart
 #
-exec $RVM_ROOT/rvm/regression/RunSanityTests "$@"
+exec "$RVM_ROOT/rvm/regression/RunSanityTests" "$@"

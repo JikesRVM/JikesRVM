@@ -5,9 +5,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -31,15 +29,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final String Id = "$Id$"; 
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
-  public static final boolean needsWriteBarrier = false;
-  public static final boolean needsPutStaticWriteBarrier = false;
-  public static final boolean needsTIBStoreWriteBarrier = false;
-  public static final boolean refCountCycleDetection = false;
-  public static final boolean movesObjects = false;
+  /****************************************************************************
+   *
+   * Class variables
+   */
+  public static final boolean MOVES_OBJECTS = false;
 
   // virtual memory resources
   private static MonotoneVMResource defaultVM;
@@ -55,7 +49,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final VM_Extent    DEFAULT_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(0.5 * AVAILABLE)));
+  private static final VM_Extent    DEFAULT_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(0.5 * AVAILABLE)));
   public  static final VM_Extent        MAX_SIZE = DEFAULT_SIZE;
 
   private static final VM_Address  DEFAULT_START = PLAN_START;
@@ -63,18 +57,18 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final VM_Address       HEAP_END = DEFAULT_END;
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
 
   // allocators
   private BumpPointer def;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -106,10 +100,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Allocate space (for an object)
@@ -141,7 +135,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Object ref, Object[] tib, int bytes,
+  public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
@@ -176,7 +170,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param isScalar True if the object occupying this space will be a scalar
    */
-  public final void postCopy(Object ref, Object[] tib, int bytes,
+  public final void postCopy(VM_Address ref, Object[] tib, int bytes,
 			     boolean isScalar) {
     VM_Interface.sysFail("no postCopy in noGC");
   } 
@@ -330,10 +324,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Trace a reference during GC.  This involves determining which
@@ -344,9 +338,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject (VM_Address obj) throws VM_PragmaInline {
+  public static final VM_Address traceObject (VM_Address obj) 
+    throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-    return VM_Address.zero();
+    return obj;
   }
 
   /**
@@ -377,15 +372,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-      case DEFAULT_SPACE:   return true;
-      case IMMORTAL_SPACE:  return true;
-      case BOOT_SPACE:	    return true;
-      case META_SPACE:	    return true;
-      default:              if (VM_Interface.VerifyAssertions) {
-	                      VM_Interface.sysWriteln("Plan.isLive: unknown space",space);
-			      VM_Interface.sysFail("Plan.isLive: unknown space");
-                            }
-			    return false;
+    case DEFAULT_SPACE:   return true;
+    case IMMORTAL_SPACE:  return true;
+    case BOOT_SPACE:	  return true;
+    case META_SPACE:	  return true;
+    default:
+      if (VM_Interface.VerifyAssertions)
+	spaceFailure(obj, space, "Plan.isLive()");
+      return false;
     }
   }
 
@@ -401,10 +395,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return forwardingWord;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Space management
-  //
+  /****************************************************************************
+   *
+   * Space management
+   */
 
   /**
    * Return the number of pages reserved for use given the pending
@@ -448,10 +442,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   /**
    * Show the status of each of the allocators.

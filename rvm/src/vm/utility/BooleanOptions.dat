@@ -1,0 +1,19 @@
+#
+# (C) Copyright IBM Corp. 2003
+#
+DECL
+# Structure of DECL FULL_NAME DEFAULT_VALUE {SHORT_NAME}
+DESCRIP
+
+VerifyBytecode false verify
+Should bytecodes be verified?
+
+MeasureCompilation false measureCompilation
+Time all compilations and report on exit
+
+stackTraceVMSysWrite false 
+Exclusively use VM.sysWrite to generate stack dumps
+
+TraceClassLoading false verboseTraceClassLoading
+More detailed tracing then -verbose:class
+

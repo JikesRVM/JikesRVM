@@ -30,6 +30,7 @@ public interface VM_TrapConstants {
   static final int CONSTANT_ARRAY_INDEX_INFO  = 0x0000ffff;
   static final int STACK_OVERFLOW_MASK        = 0xFFE0077E; // opcode and condition mask
   static final int STACK_OVERFLOW_TRAP        = 0x7E000008; // tlt stackPointer, stackLimit
+  static final int STACK_OVERFLOW_HAVE_FRAME_TRAP = 0x7D000008; // tgt stackLimit, stackPointer
   static final int WRITE_BUFFER_OVERFLOW_MASK = 0xFFE0077E; // opcode and condition mask
   static final int WRITE_BUFFER_OVERFLOW_TRAP = 0x7E800008; // tle modifiedOldObjectMax, modifiedOldObjectAddr
 

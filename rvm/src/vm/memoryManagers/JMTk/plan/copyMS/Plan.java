@@ -5,9 +5,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -49,15 +47,11 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
-  public static final boolean needsWriteBarrier = false;
-  public static final boolean needsPutStaticWriteBarrier = false;
-  public static final boolean needsTIBStoreWriteBarrier = false;
-  public static final boolean refCountCycleDetection = false;
-  public static final boolean movesObjects = true;
+  /****************************************************************************
+   *
+   * Class variables
+   */
+  public static final boolean MOVES_OBJECTS = true;
 
   // virtual memory resources
   private static MonotoneVMResource nurseryVM;
@@ -85,9 +79,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final VM_Extent    NURSERY_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 2.3)));
+  private static final VM_Extent    NURSERY_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE / 2.3)));
   private static final VM_Extent         MS_SIZE = NURSERY_SIZE;
-  protected static final VM_Extent      LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE / 2.3 * 0.3)));
+  protected static final VM_Extent      LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE / 2.3 * 0.3)));
   public  static final VM_Extent        MAX_SIZE = MS_SIZE;
   protected static final VM_Address    LOS_START = PLAN_START;
   protected static final VM_Address      LOS_END = LOS_START.add(LOS_SIZE);
@@ -97,20 +91,20 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final VM_Address    NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   private static final VM_Address       HEAP_END = NURSERY_END;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
 
   // allocators
   private BumpPointer nursery;
   private MarkSweepLocal ms;
   private TreadmillLocal los;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -153,10 +147,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Allocate space (for an object)
@@ -170,7 +164,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator, 
 				AllocAdvice advice)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(WORD_SIZE-1))));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     VM_Address region;
     if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       region = los.alloc(isScalar, bytes);
@@ -180,11 +174,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case       MS_SPACE: region = ms.alloc(isScalar, bytes, false); break;
       case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
-      default:             if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator");
+      default:
+	if (VM_Interface.VerifyAssertions) 
+	  VM_Interface.sysFail("No such allocator");
 	region = VM_Address.zero();
       }
     }
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Memory.assertIsZeroed(region, bytes));
+    if (VM_Interface.VerifyAssertions) Memory.assertIsZeroed(region, bytes);
     return region;
   }
   
@@ -198,7 +194,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Object ref, Object[] tib, int bytes,
+  public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
     if (allocator == NURSERY_SPACE && bytes > LOS_SIZE_THRESHOLD) {
@@ -210,7 +206,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case       MS_SPACE: Header.initializeMarkSweepHeader(ref, tib, bytes, isScalar); return;
       case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
       default:
-	if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator");
+	if (VM_Interface.VerifyAssertions) 
+	  VM_Interface.sysFail("No such allocator");
       }
     }
   }
@@ -227,6 +224,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address allocCopy(VM_Address original, int bytes,
 				    boolean isScalar) 
     throws VM_PragmaInline {
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(bytes <= LOS_SIZE_THRESHOLD);
     return ms.alloc(isScalar, bytes, true);
   }
 
@@ -238,7 +237,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param isScalar True if the object occupying this space will be a scalar
    */
-  public final void postCopy(Object ref, Object[] tib, int bytes,
+  public final void postCopy(VM_Address ref, Object[] tib, int bytes,
 			     boolean isScalar) {}
 
   /**
@@ -256,7 +255,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final int getAllocator(Type type, int bytes, CallSite callsite,
 				AllocAdvice hint) {
-    return (bytes >= LOS_SIZE_THRESHOLD) ? LOS_SPACE : NURSERY_SPACE;
+    return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : NURSERY_SPACE;
   }
 
   /**
@@ -331,33 +330,33 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr)
     throws VM_PragmaLogicallyUninterruptible {
-    if (gcInProgress) return false;
+    if (collectionInitiated || !initialized || mr == metaDataMR) return false;
     mustCollect |= stressTestGCRequired();
-    if (mustCollect || getPagesReserved() > getTotalPages()) {
-      if (VM_Interface.VerifyAssertions) VM_Interface._assert(mr != metaDataMR);
+    boolean heapFull = getPagesReserved() > getTotalPages();
+    boolean nurseryFull = nurseryMR.reservedPages() > Options.maxNurseryPages;
+    if (mustCollect || heapFull || nurseryFull) {
       required = mr.reservedPages() - mr.committedPages();
-      if (mr == nurseryMR)
-	required = required<<1;  // must account for copy reserve
-      VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
+      if (mr == nurseryMR) required = required<<1;  // account for copy reserve
+      VM_Interface.triggerCollection(VM_Interface.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
-  // Important notes:
-  //   . Global actions are executed by only one thread
-  //   . Thread-local actions are executed by all threads
-  //   . The following order is guaranteed by BasePlan, with each
-  //     separated by a synchronization barrier.:
-  //      1. globalPrepare()
-  //      2. threadLocalPrepare()
-  //      3. threadLocalRelease()
-  //      4. globalRelease()
-  //
+  /****************************************************************************
+   *
+   * Collection
+   *
+   * Important notes:
+   *   . Global actions are executed by only one thread
+   *   . Thread-local actions are executed by all threads
+   *   . The following order is guaranteed by BasePlan, with each
+   *     separated by a synchronization barrier.:
+   *      1. globalPrepare()
+   *      2. threadLocalPrepare()
+   *      3. threadLocalRelease()
+   *      4. globalRelease()
+   */
 
   /**
    * Perform operations with <i>global</i> scope in preparation for a
@@ -369,6 +368,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected final void globalPrepare() {
     nurseryMR.reset();
+    CopySpace.prepare(nurseryVM, nurseryMR);
     msSpace.prepare(msVM, msMR);
     ImmortalSpace.prepare(immortalVM, null);
     losSpace.prepare(losVM, losMR);
@@ -383,7 +383,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * preparing the mark sweep allocator.
    */
   protected final void threadLocalPrepare(int count) {
-    nursery.rebind(nurseryVM);
+    nursery.reset();
     ms.prepare();
     los.prepare();
   }
@@ -431,10 +431,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Trace a reference during GC.  This involves determining which
@@ -450,18 +450,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-    case NURSERY_SPACE:   return CopySpace.traceObject(obj);
-    case MS_SPACE:        return msSpace.traceObject(obj, VMResource.getTag(addr));
-    case LOS_SPACE:       return losSpace.traceObject(obj);
-    case IMMORTAL_SPACE:  return ImmortalSpace.traceObject(obj);
-    case BOOT_SPACE:	  return ImmortalSpace.traceObject(obj);
-    case META_SPACE:	  return obj;
+    case NURSERY_SPACE:  return CopySpace.traceObject(obj);
+    case MS_SPACE:       return msSpace.traceObject(obj, VMResource.getTag(addr));
+    case LOS_SPACE:      return losSpace.traceObject(obj);
+    case IMMORTAL_SPACE: return ImmortalSpace.traceObject(obj);
+    case BOOT_SPACE:	 return ImmortalSpace.traceObject(obj);
+    case META_SPACE:	 return obj;
     default:
-      if (VM_Interface.VerifyAssertions) {
-	VM_Interface.sysWrite(addr);
-	VM_Interface.sysWriteln("Plan.traceObject: unknown space",space);
-	VM_Interface.sysFail("Plan.traceObject: unknown space");
-      }
+      if (VM_Interface.VerifyAssertions) 
+	spaceFailure(obj, space, "Plan.traceObject()");
       return obj;
     }
   }
@@ -490,7 +487,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return True if the given reference is to an object that is within
    * one of the semi-spaces.
    */
-  public static final boolean isNurseryObject(Object base) {
+  public static final boolean isNurseryObject(VM_Address base) {
     VM_Address addr =VM_Interface.refToAddress(VM_Magic.objectAsAddress(base));
     return (addr.GE(NURSERY_START) && addr.LE(HEAP_END));
   }
@@ -512,11 +509,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case IMMORTAL_SPACE:  return true;
       case BOOT_SPACE:	    return true;
       case META_SPACE:	    return true;
-      default:              if (VM_Interface.VerifyAssertions) {
-	                      VM_Interface.sysWriteln("Plan.traceObject: unknown space",space);
-			      VM_Interface.sysFail("Plan.traceObject: unknown space");
-                            }
-			    return false;
+      default:
+	if (VM_Interface.VerifyAssertions) 
+	  spaceFailure(obj, space, "Plan.isLive()");
+	return false;
     }
   }
 
@@ -539,10 +535,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Space management
-  //
+  /****************************************************************************
+   *
+   * Space management
+   */
 
   /**
    * Return the number of pages reserved for use given the pending
@@ -585,19 +581,20 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   /**
    * Return the mark sweep collector
    *
    * @return The mark sweep collector.
    */
-  public final MarkSweepSpace getMS() {
-    return msSpace;
-  }
+  // AJ: Could not find any uses of this method.
+//   public final MarkSweepSpace getMS() {
+//     return msSpace;
+//   }
 
   /**
    * Show the status of each of the allocators.

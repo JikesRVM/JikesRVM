@@ -22,10 +22,6 @@ package com.ibm.JikesRVM;
 final class VM_ProcessorQueue implements VM_Uninterruptible {
 
   /**
-   * id of this queue, for event logging
-   */
-  private int          id;     
-  /**
    * first thread on list
    */
   private VM_Processor head;   
@@ -34,10 +30,6 @@ final class VM_ProcessorQueue implements VM_Uninterruptible {
    */
   private VM_Processor tail;   
  
-  VM_ProcessorQueue (int i) {
-    id = i;
-  }  
-
   /**
    * is the queue empty
    */ 

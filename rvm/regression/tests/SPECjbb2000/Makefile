@@ -5,7 +5,7 @@
 #
 # @author Julian Dolby
 
-include		$(RVM_BUILD)/Make.rules
+include		$(RVM_BUILD)/Make.rules.target
  
 BENCH_NAME=SPECjbb2000
 include		$(JAL_ROOT)/rvm/regression/Local.rules
@@ -17,7 +17,12 @@ vpath %.jar	$(BENCH_HOME)
 
 START_NAME=spec.jbb.JBBmain
 
+INITIAL_HEAPSIZE=200
+ifeq ($(MODE),PERFORMANCE)
 HEAPSIZE=600
+else
+HEAPSIZE=400
+endif
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 

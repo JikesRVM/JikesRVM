@@ -5,9 +5,8 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.BootImageInterface;
-
-
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -46,12 +45,12 @@ public class MarkSweepHeader {
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(Object ref, Object[] tib, int size,
+  public static void initializeHeader(VM_Address ref, Object[] tib, int size,
 				      boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int oldValue = VM_Interface.readAvailableBitsWord(ref);
+    int oldValue = VM_Interface.readAvailableBitsWord(VM_Magic.objectAsAddress(ref));
     int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);
-    VM_Interface.writeAvailableBitsWord(ref,newValue);
+    VM_Interface.writeAvailableBitsWord(VM_Magic.objectAsAddress(ref),newValue);
   }
 
   /**
@@ -62,27 +61,29 @@ public class MarkSweepHeader {
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeLOSHeader(Object ref, Object[] tib, int size,
+  public static void initializeLOSHeader(VM_Address ref, Object[] tib, int size,
 					 boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
-    int oldValue = VM_Interface.readAvailableBitsWord(ref);
+    int oldValue = VM_Interface.readAvailableBitsWord(VM_Magic.objectAsAddress(ref));
     int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);
-    VM_Interface.writeAvailableBitsWord(ref, newValue);
+    VM_Interface.writeAvailableBitsWord(VM_Magic.objectAsAddress(ref), newValue);
   }
 
   /**
    * Perform any required initialization of the GC portion of the header.
+   * Called for objects created at boot time.
    * 
-   * @param bootImage the bootimage being written
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
-   * @param size the number of bytes allocated by the GC system for this object.
-   * @param isScalar are we initializing a scalar (true) or array (false) object?
+   * @param size the number of bytes allocated by the GC system for
+   * this object.
+   * @param isScalar are we initializing a scalar (true) or array
+   * (false) object?
    */
-  public static void initializeHeader(BootImageInterface bootImage, int ref, 
-				      Object[] tib, int size, boolean isScalar)
-    throws VM_PragmaUninterruptible {
-    // nothing to do for boot image objects
+  public static int getBootTimeAvailableBits(int ref, Object[] tib, int size,
+					     boolean isScalar, int status)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return status; // nothing to do (no bytes of GC header)
   }
 
   /**
@@ -90,14 +91,14 @@ public class MarkSweepHeader {
    * Dump the header word(s) of the given object reference.
    * @param ref the object reference whose header should be dumped 
    */
-  public static void dumpHeader(Object ref) throws VM_PragmaUninterruptible {
-//     VM.sysWrite("(");
-//     VM.sysWrite(VM_Magic.objectAsAddress(ref));
-//     VM.sysWrite(" ");
-//     VM.sysWrite((isSmall(ref))  ? "S" : "s");
-//     VM.sysWrite((isArray(ref))  ? "A" : "a");
-//     VM.sysWrite((isMarked(ref)) ? "M" : "m");
-//     VM.sysWrite(")\n");
+  public static void dumpHeader(VM_Address ref) throws VM_PragmaUninterruptible {
+//     Log.write("(");
+//     Log.write(VM_Magic.objectAsAddress(ref));
+//     Log.write(" ");
+//     Log.write((isSmall(ref))  ? "S" : "s");
+//     Log.write((isArray(ref))  ? "A" : "a");
+//     Log.write((isMarked(ref)) ? "M" : "m");
+//     Log.writeln(")");
     // nothing to do (no bytes of GC header)
   }
 
@@ -108,12 +109,12 @@ public class MarkSweepHeader {
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
    */
-  static public boolean testMarkBit(Object ref, int value)
+  static public boolean testMarkBit(VM_Address ref, int value)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return (VM_Interface.readAvailableBitsWord(ref) & MARK_BIT_MASK) == value;
   }
 
-  static public boolean isSmallObject(Object ref)
+  static public boolean isSmallObject(VM_Address ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return (VM_Interface.readAvailableBitsWord(ref) & SMALL_OBJECT_MASK) == SMALL_OBJECT_MASK;
   }
@@ -124,7 +125,7 @@ public class MarkSweepHeader {
    * @param ref The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
    */
-  public static void writeMarkBit(Object ref, int value)
+  public static void writeMarkBit(VM_Address ref, int value)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue = VM_Interface.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~MARK_BIT_MASK) | value;
@@ -137,7 +138,7 @@ public class MarkSweepHeader {
    * @param ref The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
    */
-  public static void atomicWriteMarkBit(Object ref, int value)
+  public static void atomicWriteMarkBit(VM_Address ref, int value)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     do {
@@ -153,7 +154,7 @@ public class MarkSweepHeader {
    * @param ref The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
    */
-  public static boolean testAndMark(Object ref, int value)
+  public static boolean testAndMark(VM_Address ref, int value)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, markBit;
     do {

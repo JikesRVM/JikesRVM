@@ -4,8 +4,8 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
-
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -19,7 +19,6 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 final class RefCountLOSLocal extends LargeObjectAllocator
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
@@ -28,10 +27,10 @@ final class RefCountLOSLocal extends LargeObjectAllocator
     super(vmr, mr);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    *  This is called each time a cell is alloced (i.e. if a cell is
@@ -43,10 +42,10 @@ final class RefCountLOSLocal extends LargeObjectAllocator
    */
   protected final void postAlloc(VM_Address cell) throws VM_PragmaInline {};
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous size-related methods
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous size-related methods
+   */
   /**
    * Return the size of the per-superpage header required by this
    * system.  In this case it is just the underlying superpage header

@@ -22,21 +22,27 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Derek Lieber
  * @author Janice Shepherd
  */
-public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_SizeConstants
-//-#if RVM_WITH_OSR
-  , OSR_Constants
-//-#endif
+public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, 
+						     VM_SizeConstants
+						     //-#if RVM_WITH_OSR
+						     , OSR_Constants
+						     //-#endif
 {
+
+  private static long gcMapCycles;
+  private static long osrSetupCycles;
+  private static long codeGenCycles;
+  private static long encodingCycles;
 
   /** 
    * Options used during base compiler execution 
    */
   public static VM_BaselineOptions options;
 
-  /** 
-   * Holds the options as the command line is being processed. 
+  /**
+   * has fullyBootedVM been called by VM.boot?
    */
-  protected static VM_BaselineOptions setUpOptions;
+  protected static boolean fullyBootedVM = false;
 
   /**
    * The method being compiled
@@ -111,6 +117,14 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
 		    (!options.hasMETHOD_TO_PRINT() ||
 		     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
 
+    if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
+    if (shouldPrint && VM.runningVM && !fullyBootedVM) {
+      shouldPrint = false;
+      if (options.PRINT_METHOD) {
+	VM.sysWriteln("\ttoo early in VM.boot() to print machine code");
+      }
+    }
+
     klass = method.getDeclaringClass();
     //-#if RVM_WITH_OSR
     // new synthesized bytecodes for osr
@@ -129,30 +143,29 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
    */
   static void initOptions() {
     options = new VM_BaselineOptions();
-    setUpOptions = new VM_BaselineOptions();
   }
 
   /**
-   * After all the command line options have been processed, set up the official version of the options
-   * that will be used during execution. Do any error checks that are needed.
+   * Now that VM is fully booted, enable options 
+   * such as PRINT_MACHINE_CODE that require a fully booted VM.
    */
-  static void postBootOptions() {
-    // If the user has requested machine code dumps, then force a test of method to print option so
-    // extra classes needed to process matching will be loaded and compiled upfront. Thus avoiding getting
-    // stuck looping by just asking if we have a match in the middle of compilation. Pick an obsure string
-    // for the check.
-    if (setUpOptions.hasMETHOD_TO_PRINT() && setUpOptions.fuzzyMatchMETHOD_TO_PRINT("???")) {
+  static void fullyBootedVM() {
+    // If the user has requested machine code dumps, then force a test 
+    // of method to print option so extra classes needed to process 
+    // matching will be loaded and compiled upfront. Thus avoiding getting
+    // stuck looping by just asking if we have a match in the middle of 
+    // compilation. Pick an obsure string for the check.
+    if (options.hasMETHOD_TO_PRINT() && options.fuzzyMatchMETHOD_TO_PRINT("???")) {
       VM.sysWrite("??? is not a sensible string to specify for method name");
     }
     //-#if !RVM_WITH_ADAPTIVE_SYSTEM
-    if (setUpOptions.PRELOAD_CLASS != null) {
+    if (options.PRELOAD_CLASS != null) {
       VM.sysWrite("Option preload_class should only be used when the optimizing compiler is the runtime");
       VM.sysWrite(" compiler or in an adaptive system\n");
-      VM.sysExit(1);
+      VM.sysExit(VM.exitStatusBogusCommandLineArg);
     }
     //-#endif
-
-    options = setUpOptions;   // Switch to the version with the user command line processed
+    fullyBootedVM = true;
   }
 
   /**
@@ -161,18 +174,50 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
    * @param arg     Command line argument with prefix stripped off
    */
   public static void processCommandLineArg(String prefix, String arg) {
-    if (setUpOptions != null) {
-      if (setUpOptions.processAsOption(prefix, arg)) {
-	return;
-      } else {
-	VM.sysWrite("VM_BaselineCompiler: Unrecognized argument \""+ arg + "\"\n");
-	VM.sysExit(1);
-      }
+    if (options.processAsOption(prefix, arg)) {
+      return;
     } else {
-      VM.sysWrite("VM_BaselineCompiler: Compiler setUpOptions not enabled; Ignoring argument \""+ arg + "\"\n");
+      VM.sysWrite("VM_BaselineCompiler: Unrecognized argument \""+ arg + "\"\n");
+      VM.sysExit(VM.exitStatusBogusCommandLineArg);
     }
   }
 
+  /**
+   * Generate a report of time spent in various phases of the baseline compiler.
+   * <p> NB: This method may be called in a context where classloading and/or 
+   * GC cannot be allowed.
+   * Therefore we must use primitive sysWrites for output and avoid string 
+   * appends and other allocations.
+   *
+   * @param explain Should an explanation of the metrics be generated?
+   */
+  public static void generateBaselineCompilerSubsystemReport(boolean explain) {
+    VM.sysWriteln("\n\t\tBaseline Compiler SubSystem");
+    VM.sysWriteln("\tPhase\t\t\t    Time");
+    VM.sysWriteln("\t\t\t\t(ms)    (%ofTotal)");
+
+    double gcMapTime = VM_Time.cyclesToMillis(gcMapCycles);
+    double osrSetupTime = VM_Time.cyclesToMillis(osrSetupCycles);
+    double codeGenTime = VM_Time.cyclesToMillis(codeGenCycles);
+    double encodingTime = VM_Time.cyclesToMillis(encodingCycles);
+    double total = gcMapTime + osrSetupTime + codeGenTime + encodingTime;
+    
+    VM.sysWrite("\tCompute GC Maps\t\t", gcMapTime);
+    VM.sysWriteln("\t",100*gcMapTime/total);
+
+    if (osrSetupTime > 0) {
+      VM.sysWrite("\tOSR setup \t\t", osrSetupTime);
+      VM.sysWriteln("\t",100*osrSetupTime/total);
+    }
+
+    VM.sysWrite("\tCode generation\t\t", codeGenTime);
+    VM.sysWriteln("\t",100*codeGenTime/total);
+
+    VM.sysWrite("\tEncode GC/MC maps\t", encodingTime);
+    VM.sysWriteln("\t",100*encodingTime/total);
+
+    VM.sysWriteln("\tTOTAL\t\t\t", total);
+  }
 
   /**
    * Compile the given method with the baseline compiler.
@@ -180,7 +225,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
    * @param method the VM_NormalMethod to compile.
    * @return the generated VM_CompiledMethod for said VM_NormalMethod.
    */
-  public static synchronized VM_CompiledMethod compile (VM_NormalMethod method) {
+  public static VM_CompiledMethod compile (VM_NormalMethod method) {
     VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
     new VM_Compiler(cm).compile();
     return cm;
@@ -191,16 +236,25 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
    * Top level driver for baseline compilation of a method.
    */
   protected void compile() {
-    if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
     if (shouldPrint) printStartHeader(method);
 
+    // Phase 1: GC map computation
+    long start = 0;
+    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     VM_ReferenceMaps refMaps = new VM_ReferenceMaps(compiledMethod, stackHeights);
+    if (VM.MeasureCompilation) {
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      gcMapCycles += end - start;
+    }
+
     //-#if RVM_WITH_OSR
     /* reference map and stackheights were computed using original bytecodes
      * and possibly new operand words
      * recompute the stack height, but keep the operand words of the code 
      * generation consistant with reference map 
      */
+    // Phase 2: OSR setup
+    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     boolean edge_counters = options.EDGE_COUNTERS;
     if (method.isForOsrSpecialization()) {
       options.EDGE_COUNTERS = false;
@@ -212,16 +266,28 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
       // compute stack height for prologue
       new OSR_BytecodeTraverser().prologueStackHeights(method, method.getOsrPrologue(), stackHeights);
     } 
+    if (VM.MeasureCompilation) {
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      osrSetupCycles += end - start;
+    }
     //-#endif
-
+    
+    // Phase 3: Code gen
+    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     VM_MachineCode  machineCode  = genCode();
-    INSTRUCTION[]   instructions = machineCode.getInstructions();
+    VM_CodeArray    instructions = machineCode.getInstructions();
     int[]           bcMap        = machineCode.getBytecodeMap();
+    if (VM.MeasureCompilation) {
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      codeGenCycles += end - start;
+    }
 
     //-#if RVM_WITH_OSR
     /* adjust machine code map, and restore original bytecode
      * for building reference map later.
      */
+    // Phase 4: OSR part 2
+    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     if (method.isForOsrSpecialization()) {
       int[] newmap = new int[bcMap.length - method.getOsrPrologueLength()];
       System.arraycopy(bcMap,
@@ -236,12 +302,18 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
       // restore options
       options.EDGE_COUNTERS = edge_counters;     
     }
+    if (VM.MeasureCompilation) {
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      osrSetupCycles += end - start;
+    }
     //-#endif
 	
+    // Phase 5: Encode machine code maps
+    if (VM.MeasureCompilation) start = VM_Thread.getCurrentThread().accumulateCycles();
     if (method.isSynchronized()) {
       compiledMethod.setLockAcquisitionOffset(lockOffset);
     }
-    compiledMethod.encodeMappingInfo(refMaps, bcMap, instructions.length);
+    compiledMethod.encodeMappingInfo(refMaps, bcMap, instructions.length());
     compiledMethod.compileComplete(instructions);
     if (edgeCounterIdx > 0) {
       VM_EdgeCounts.allocateCounters(method, edgeCounterIdx);
@@ -249,6 +321,10 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
     if (shouldPrint) {
       compiledMethod.printExceptionTable();
       printEndHeader(method);
+    }
+    if (VM.MeasureCompilation) {
+      long end = VM_Thread.getCurrentThread().accumulateCycles();
+      encodingCycles += end - start;
     }
   }
 
@@ -1743,14 +1819,14 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
 	    } else if (type.isResolved() && !type.asClass().isInterface()) {
 	      emit_checkcast_resolvedClass(type);
 	      break;
-	    }
+	    } // else fall through to emit_checkcast
 	  } else if (type.isArrayType()) {
 	    VM_Type elemType = type.asArray().getElementType();
 	    if (elemType.isPrimitiveType() || 
 		(elemType.isClassType() && elemType.asClass().isFinal())) {
 	      emit_checkcast_final(type);
 	      break;
-	    }
+	    } // else fall through to emit_checkcast
 	  } else {
 	    // checkcast to a primitive. Must be a word type.
 	    if (VM.VerifyAssertions) VM._assert(type.isWordType());

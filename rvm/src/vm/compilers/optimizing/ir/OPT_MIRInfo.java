@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.opt.*;
+import com.ibm.JikesRVM.VM_CodeArray;
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.OSR.*;
 //-#endif
@@ -20,7 +21,7 @@ public final class OPT_MIRInfo {
   /**
    * The generated machinecodes produced by this compilation of 'method'
    */
-  public INSTRUCTION[] machinecode;
+  public VM_CodeArray machinecode;
 
   /**
    * The IRMap for the method (symbolic GCMapping info)

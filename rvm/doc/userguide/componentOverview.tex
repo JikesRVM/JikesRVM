@@ -5,7 +5,7 @@ sections.
 \subsection{Major Components of \jrvm}
 
 
-The \jrvm\ can be divided into the following major components:
+\jrvm\ can be divided into the following major components:
 \begin{description}
 \item [Core runtime] (thread scheduler, class loader, library support,
 verifier, etc.) This component is responsible for 
@@ -33,7 +33,7 @@ The 2.2.0 release introduced packages into the system.  Prior releases
 did not use packages explicitly, which resulted in all classes being in
 the unnamed package.  
 
-There are currently nine packages in \jrvm. All classes are in
+There are currently eight packages in \jrvm. All classes are in
 one of these packages
 \begin{description}
 \item [com.ibm.JikesRVM] Classes for the core runtime, except for library
@@ -47,13 +47,8 @@ compilers.
 and associated data structures including the VM representation of classes,
 methods, etc. 
 
-\item [com.ibm.JikesRVM.librarySupport] Classes for library support
-
 \item [com.ibm.JikesRVM.memoryManagers.JMTk] Classes in the newer JMTk
 (Java Memory Management Toolkit) collection of memory managers
-
-\item [com.ibm.JikesRVM.memoryManagers.watson] Classes in the older
-Watson collection of memory managers
 
 \item [com.ibm.JikesRVM.memoryManagers.vmInterface] Classes related to
 memory management that deal with the interface to the VM

@@ -6,7 +6,8 @@
 package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_RuntimeCompilerInfrastructure;
+import com.ibm.JikesRVM.VM_Scheduler;
+import com.ibm.JikesRVM.VM_RuntimeCompiler;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.classloader.VM_NormalMethod;
@@ -98,7 +99,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 
     //-#if RVM_WITH_OSR
     // for a outdated hot method from baseline, we consider OSR, and execute plan
-    // in the rountine, no more action here
+    // in the routine, no more action here
     if (considerOSRRecompilation(cmpMethod, hme, plan)) return null;
     //-#endif
 
@@ -174,7 +175,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
    * code
    */
   private double estimatePrevCompileTime(VM_HotMethodEvent hme) {
-    double baselineRate = VM_RuntimeCompilerInfrastructure.getBaselineRate();
+    double baselineRate = VM_RuntimeCompiler.getBaselineRate();
     VM_NormalMethod m = (VM_NormalMethod)hme.getMethod();
     double bytes = (double)m.getBytecodeLength();
     double baselineSecs = bytes / baselineRate;
@@ -346,12 +347,12 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
       // NOTE: we take two samples per timer interrupt, so we have to
       // adjust here (otherwise we'd give the method twice as much time
       // as it actually deserves).
-      timePerSample = opts.SAMPLE_FREQ_MILLIS / 2.0;
+      timePerSample = ((double)VM_Scheduler.schedulingQuantum) / 2.0;
     } else {
       // If we use epilogue yield points, we only have 1 sample per interrupt
       //  prologue => calling method
       //  backedge/epilogue => current method
-      timePerSample = opts.SAMPLE_FREQ_MILLIS;
+      timePerSample = ((double)VM_Scheduler.schedulingQuantum);
     }
     double timeInMethodSoFar = numSamples * timePerSample;
     return timeInMethodSoFar;

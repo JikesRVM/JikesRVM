@@ -1312,7 +1312,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       }
 
       if (nextAIXReg > LAST_OS_PARAMETER_GPR + 1) {
-	VM.sysWrite("ERROR: "+meth+" has two many int or long parameters\n");
+	VM.sysWrite("ERROR: "+meth+" has too many int or long parameters\n");
 	VM.sysExit(-1);
       }
     }

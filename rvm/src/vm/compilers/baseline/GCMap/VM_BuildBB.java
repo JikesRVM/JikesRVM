@@ -34,6 +34,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
   /** 
    * basic blocks of the byte code 
    */
+  VM_BasicBlockFactory      bbf;
   VM_BasicBlock             basicBlocks[];       
 
   /** 
@@ -79,7 +80,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
     byteToBlockMap = new short[bytelength];
     basicBlocks    = new VM_BasicBlock[2];  // many methods only have one block (+1 for EXIT)
 
-    VM_BasicBlock.resetBlockNumber();
+    bbf = new VM_BasicBlockFactory();
 
     exceptions = method.getExceptionHandlerMap();
 
@@ -94,7 +95,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
     //
     // Get the first basic block
     //
-    currentBB = new VM_BasicBlock(0);
+    currentBB = bbf.newBlock(0);
     addBasicBlock(currentBB);
     currentBB.setState(VM_BasicBlock.METHODENTRY);
     lastInstrType = NONBRANCH;
@@ -139,7 +140,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
 	  currentBB.setEnd(lastInstrStart);
 	  // See if we need a new block
 	  if (byteToBlockMap[bcodes.index()] == VM_BasicBlock.NOTBLOCK) {
-	    VM_BasicBlock newBB = new VM_BasicBlock(bcodes.index());
+	    VM_BasicBlock newBB = bbf.newBlock(bcodes.index());
 	    addBasicBlock(newBB);
 	    newBB.addPredecessor(currentBB);
 	    currentBB = newBB;
@@ -155,7 +156,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
 	    currentBB.setEnd(lastInstrStart);
 	    // See if we need a new block
 	    if (byteToBlockMap[bcodes.index()] == VM_BasicBlock.NOTBLOCK) {
-	      VM_BasicBlock newBB = new VM_BasicBlock(bcodes.index());
+	      VM_BasicBlock newBB = bbf.newBlock(bcodes.index());
 	      addBasicBlock(newBB);
 	      currentBB = newBB;
 	      // Make note of current block 
@@ -437,7 +438,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
 
     VM_BasicBlock newBB, currentBB;
     if (byteToBlockMap[branchtarget] == VM_BasicBlock.NOTBLOCK) {
-      newBB = new VM_BasicBlock(branchtarget);
+      newBB = bbf.newBlock(branchtarget);
       addBasicBlock(newBB);		 
       byteToBlockMap[branchtarget] = (short)newBB.getBlockNumber();
       currentBB = basicBlocks[byteToBlockMap[index]];
@@ -472,7 +473,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
       // block to end at the instruction before the target and the existing
       // block to start at the target. That way the tail stays the same. 
 
-      newBB = new VM_BasicBlock(existingBB.getStart());
+      newBB = bbf.newBlock(existingBB.getStart());
       addBasicBlock(newBB);
       newBlockNum = newBB.getBlockNumber();
       existingBB.setStart(branchtarget);
@@ -526,7 +527,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
     for (int i = 0; i<nextRetList; i++) {
       int retBlockNum       = retList[i];
       VM_BasicBlock retBB   = basicBlocks[retBlockNum];
-      boolean[] seenAlready = new boolean[VM_BasicBlock.getNumberofBlocks()+1]; 
+      boolean[] seenAlready = new boolean[bbf.getNumberofBlocks()+1]; 
       otherRetCount = 0;
       findAndSetJSRCallSite(retBlockNum, retBB, otherRetCount, seenAlready);
     }
@@ -591,7 +592,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
     int tryLength = tryHandlerPC.length;
     for (int i=0; i<tryLength; i++) {
       if (byteToBlockMap[tryHandlerPC[i]] == VM_BasicBlock.NOTBLOCK) {
-	VM_BasicBlock handlerBB = new VM_BasicBlock(tryHandlerPC[i]);
+	VM_BasicBlock handlerBB = bbf.newBlock(tryHandlerPC[i]);
 	handlerBB.setState(VM_BasicBlock.TRYHANDLERSTART);
 	addBasicBlock(handlerBB); 
 	byteToBlockMap[tryHandlerPC[i]] = (short)handlerBB.getBlockNumber();
@@ -608,7 +609,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
     int tryLength = tryStartPC.length;
     for (int i=0; i< tryLength; i++) {
       if (byteToBlockMap[tryStartPC[i]] == VM_BasicBlock.NOTBLOCK) {
-	VM_BasicBlock tryStartBB = new VM_BasicBlock(tryStartPC[i]);
+	VM_BasicBlock tryStartBB = bbf.newBlock(tryStartPC[i]);
 	addBasicBlock(tryStartBB); 
 	byteToBlockMap[tryStartPC[i]] = (short)tryStartBB.getBlockNumber();
 	tryStartBB.setState(VM_BasicBlock.TRYSTART);

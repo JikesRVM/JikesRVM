@@ -24,8 +24,8 @@ public class OSR_PostThreadSwitch implements VM_BaselineConstants, VM_Uninterrup
      * We have to make sure that no GC happens from here and before 
      * the new code get executed.
      */
-	// add branch instruction from CTR.
-    INSTRUCTION[] bridge   = myThread.bridgeInstructions;
+    // add branch instruction from CTR.
+    VM_CodeArray bridge   = myThread.bridgeInstructions;
       
     VM_Address bridgeaddr = VM_Magic.objectAsAddress(bridge);
 	

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.PrintLN; // not needed.
 
 /**
  * Compiler-specific information associated with a method's machine 
@@ -79,17 +80,17 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     return exceptionDeliverer;
   }
 
-  public final VM_Offset findCatchBlockForInstruction (VM_Offset instructionOffset, VM_Type exceptionType) {
+  public final int findCatchBlockForInstruction (int instructionOffset, VM_Type exceptionType) {
     if (eTable == null) {
-      return VM_Offset.fromInt(-1);
+      return -1;
     } else {
       return VM_ExceptionTable.findCatchBlockForInstruction(eTable, instructionOffset, exceptionType);
     }
   }
 
-  public final void getDynamicLink (VM_DynamicLink dynamicLink, VM_Offset instructionOffset) throws VM_PragmaUninterruptible {
+  public final void getDynamicLink (VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible {
     int bytecodeIndex = -1;
-    int instructionIndex = instructionOffset.toInt() >>> LG_INSTRUCTION_WIDTH;
+    int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH;
     for (int i = 0, n = _bytecodeMap.length; i < n; ++i) {
       if (_bytecodeMap[i] == 0)
         continue;               // middle of a bytecode
@@ -100,8 +101,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     ((VM_NormalMethod)method).getDynamicLink(dynamicLink, bytecodeIndex);
   }
 
-  public final int findLineNumberForInstruction (VM_Offset instructionOffset) throws VM_PragmaUninterruptible {
-    int instructionIndex = instructionOffset.toInt() >>> LG_INSTRUCTION_WIDTH; 
+  public final int findLineNumberForInstruction (int instructionOffset) throws VM_PragmaUninterruptible {
+    int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH; 
     int bci = findBytecodeIndexForInstruction(instructionIndex);
     if (bci == -1) return 0;
     return ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
@@ -149,10 +150,10 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  public final void set(VM_StackBrowser browser, VM_Offset instr) {
+  public final void set(VM_StackBrowser browser, int instr) {
     browser.setMethod(method);
     browser.setCompiledMethod(this);
-    browser.setBytecodeIndex(findBytecodeIndexForInstruction(instr.toInt()>>>LG_INSTRUCTION_WIDTH));
+    browser.setBytecodeIndex(findBytecodeIndexForInstruction(instr>>>LG_INSTRUCTION_WIDTH));
 
     if (VM.TraceStackTrace) {
 	VM.sysWrite("setting stack to frame (base): ");
@@ -171,17 +172,24 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
 
   // Print this compiled method's portion of a stack trace 
   // Taken:   offset of machine instruction from start of method
-  //          the PrintStream to print the stack trace to.
-  public final void printStackTrace (VM_Offset instructionOffset, com.ibm.JikesRVM.PrintLN out) {
+  //          the PrintLN to print the stack trace to.
+  public final void printStackTrace(int instructionOffset, PrintLN out) {
+    out.print("\tat ");
+    out.print(method.getDeclaringClass()); // VM_Class
+    out.print('.');
+    out.print(method.getName()); // a VM_Atom, returned via VM_MemberReference.getName().
+    out.print("(");
+    out.print(method.getDeclaringClass().getSourceName()); // a VM_Atom
     int lineNumber = findLineNumberForInstruction(instructionOffset);
     if (lineNumber <= 0) {      // unknown line
-      out.println("\tat " + method + " (offset: " + VM.intAsHexString(instructionOffset.toInt())
-		  + ")");
-    } else {      // print class name + method name + file name + line number
-      out.println("\tat " + method.getDeclaringClass().getDescriptor().classNameFromDescriptor()
-		  + "." + method.getName() + " (" + method.getDeclaringClass().getSourceName()
-		  + ":" + lineNumber + ")");
+      out.print("; machine code offset: ");
+      out.printHex(instructionOffset);
+    } else {
+      out.print(':');
+      out.print(lineNumber);
     }
+    out.print(')');
+    out.println();
   }
 
   /**

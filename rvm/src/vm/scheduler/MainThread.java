@@ -21,6 +21,7 @@ import com.ibm.JikesRVM.adaptive.VM_Controller;
 class MainThread extends Thread {
   private String[] args;
   private VM_Method mainMethod;
+  protected boolean launched = false;
    
   /**
    * Create "main" thread.
@@ -82,7 +83,7 @@ class MainThread extends Thread {
       cls.resolve();
       cls.instantiate();
       cls.initialize();
-    } catch (ClassNotFoundException e) { 
+    } catch (NoClassDefFoundError e) { 
       // no such class
       VM.sysWrite(e+"\n");
       return;
@@ -113,6 +114,7 @@ class MainThread extends Thread {
     // (needed for the default option of stopping in the main method on start up)
     VM.debugBreakpoint();
 
+    launched = true;
     // invoke "main" method with argument list
     VM_Magic.invokeMain(mainArgs, mainMethod.getCurrentCompiledMethod().getInstructions());
   }

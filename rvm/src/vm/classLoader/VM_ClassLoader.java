@@ -166,7 +166,7 @@ public class VM_ClassLoader implements VM_Constants,
   /**
    * Initialize for bootimage.
    */
-  public static void init(String vmClassPath) throws ClassNotFoundException {
+  public static void init(String vmClassPath) {
     // specify place where vm classes and resources live
     //
     setVmRepositories(vmClassPath);
@@ -256,13 +256,13 @@ public class VM_ClassLoader implements VM_Constants,
 						  byte[] classRep, 
 						  int offset, 
 						  int length, 
-						  ClassLoader classloader) throws ClassFormatError, ClassNotFoundException {
+						  ClassLoader classloader) throws ClassFormatError {
     return defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
   }
 
   public static final VM_Type defineClassInternal(String className, 
 						  InputStream is, 
-						  ClassLoader classloader) throws ClassFormatError, ClassNotFoundException {
+						  ClassLoader classloader) throws ClassFormatError {
     VM_TypeReference tRef;
     if (className == null) {
       // NUTS: Our caller hasn't bothered to tell us what this class is supposed
@@ -273,7 +273,9 @@ public class VM_ClassLoader implements VM_Constants,
 	tRef = getClassTypeRef(new DataInputStream(is), classloader);
 	is.reset();
       } catch (IOException e) {
-	throw new ClassFormatError(e.getMessage());
+	ClassFormatError cfe = new ClassFormatError(e.getMessage());
+	cfe.initCause(e);
+	throw cfe;
       }
     } else {
       VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
@@ -283,13 +285,14 @@ public class VM_ClassLoader implements VM_Constants,
     try {
       if (VM.VerifyAssertions) VM._assert(tRef.isClassType());
       if (VM.TraceClassLoading  && VM.runningVM)
-	VM.sysWrite("loading " + tRef.getName() + " with " + classloader);
+	VM.sysWriteln("loading \"" + tRef.getName() + "\" with " + classloader);
       VM_Class ans = new VM_Class(tRef, new DataInputStream(is));
       tRef.setResolvedType(ans);
       return ans;
     } catch (IOException e) {
-      e.printStackTrace();
-      throw new ClassFormatError(e.getMessage());
+      ClassFormatError cfe = new ClassFormatError(e.getMessage());
+      cfe.initCause(e);
+      throw cfe;
     }
   }
 
@@ -312,7 +315,8 @@ public class VM_ClassLoader implements VM_Constants,
 
     // note: slot 0 is unused
     for (int i = 1; i <constantPool.length; i++) {
-      switch (tmpTags[i] = input.readByte()) {
+      tmpTags[i] = input.readByte();
+      switch (tmpTags[i]) {
       case TAG_UTF:  {
 	byte utf[] = new byte[input.readUnsignedShort()];
 	input.readFully(utf);
@@ -343,7 +347,7 @@ public class VM_ClassLoader implements VM_Constants,
 	break;
 
       default:
-	throw new ClassFormatError("bad constant pool");
+	throw new ClassFormatError("bad constant pool entry: " + tmpTags[i]);
       }
     }
     

@@ -4,7 +4,7 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
@@ -33,23 +33,23 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 final class RefCountSpace implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   public boolean bootImageMark = false;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Constructor
@@ -64,10 +64,10 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
     memoryResource = mr;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
   /**
    * Return the initial value for the header of a new object instance.
    * The header for this collector includes a mark bit and a small
@@ -80,10 +80,10 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
     return 0;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
+  /****************************************************************************
+   *
+   * Collection
+   */
 
   /**
    * Prepare for a new collection increment.  Flip the state of the
@@ -101,10 +101,10 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
   public void release() {
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * An object has been encountered in a traversal of the object
@@ -116,14 +116,12 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    */
   public final VM_Address traceObject(VM_Address object, boolean root)
     throws VM_PragmaInline {
-
-    if (Plan.sanityTracing) 
+    if (Plan.REF_COUNT_SANITY_TRACING) 
       incrementTraceCount(object);
 
-    if (root) {
-      increment(object);
+    increment(object);
+    if (root)
       VM_Interface.getPlan().addToRootSet(object);
-    } // else we were called via the finalizer mechanism, we need to ignore
 
     return object;
   }
@@ -139,10 +137,10 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
     return RCBaseHeader.isLiveRC(object);
   }
   
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Methods for sanity tracing (tracing to check ref counts)
-  //
+  /****************************************************************************
+   *
+   * Methods for sanity tracing (tracing to check ref counts)
+   */
 
   /**
    * An (reference counted) object has been encountered in a sanity
@@ -170,7 +168,8 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    * @return The object (a no-op in this case).
    */
   public final VM_Address traceBootObject(VM_Address object) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     if (bootImageMark && !RCBaseHeader.isBuffered(object)) {
       RCBaseHeader.setBufferedBit(object);
       Plan.enqueue(object);
@@ -181,10 +180,10 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
     return object;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Misc
-  //
+  /****************************************************************************
+   *
+   * Misc
+   */
 
   /**
    * Increment the reference count for an object.
@@ -193,9 +192,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    */
   public final void increment(VM_Address object) 
     throws VM_PragmaInline {
-    RCBaseHeader.incRC(object);
-    if (Plan.refCountCycleDetection && !RCBaseHeader.isGreen(object))
-      RCBaseHeader.makeBlack(object);
+    RCBaseHeader.incRC(object, true);
   }
 
   public final FreeListVMResource getVMResource() { return vmResource;}

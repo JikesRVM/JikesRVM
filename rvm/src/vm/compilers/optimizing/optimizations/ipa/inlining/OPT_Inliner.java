@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.opt.ir;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
+import java.util.Enumeration;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.adaptive.VM_Controller;
@@ -40,14 +41,14 @@ public class OPT_Inliner implements OPT_Operators,
    */
   public static void execute (OPT_InlineDecision inlDec, OPT_IR ir, 
 			      OPT_Instruction callSite) {
-    // Find out where the call site is and isolate it in it's own basic block.
+    // Find out where the call site is and isolate it in its own basic block.
     OPT_BasicBlock bb = 
       callSite.getBasicBlock().segregateInstruction(callSite, ir);
     OPT_BasicBlock in = bb.prevBasicBlockInCodeOrder();
     OPT_BasicBlock out = bb.nextBasicBlockInCodeOrder();
     // Clear the sratch object of any register operands being 
     // passed as parameters.
-    // BC2IR uses this field for it's own purposes, and will be confused 
+    // BC2IR uses this field for its own purposes, and will be confused 
     // if the scratch object has been used by someone else and not cleared.
     for (int i = 0; i < Call.getNumberOfParams(callSite); i++) {
       OPT_Operand arg = Call.getParam(callSite, i);
@@ -55,9 +56,24 @@ public class OPT_Inliner implements OPT_Operators,
         ((OPT_RegisterOperand)arg).scratchObject = null;
       }
     }
+    // We need to ensure that inlining the CALL instruction does not
+    // insert any new exceptional edges into the CFG that were not
+    // present before the inlining.  Note that inlining the CALL may
+    // introduce new CALLS, for which we don't know the exception
+    // behavior.  However, we know that any new PEIs introduced in the
+    // inlined code had better not add exceptional edges to the
+    // original CFG.  So, create a new ExceptionHandlerBasicBlockBag
+    // which will enforce this behavior.
+    OPT_ExceptionHandlerBasicBlock[] catchBlocks = new OPT_ExceptionHandlerBasicBlock[bb.getNumberOfExceptionalOut()];
+    Enumeration e = bb.getExceptionalOut();
+    for (int i=0; i<catchBlocks.length; i++) {
+       catchBlocks[i] = (OPT_ExceptionHandlerBasicBlock)e.nextElement();
+    }
+    OPT_ExceptionHandlerBasicBlockBag bag = new OPT_ExceptionHandlerBasicBlockBag(catchBlocks,null);    
+
     // Execute the inlining decision, updating ir.gc's state.
     OPT_GenerationContext childgc = 
-      execute(inlDec, ir.gc, bb.exceptionHandlers, callSite);
+      execute(inlDec, ir.gc, bag, callSite);
     // Splice the callee into the caller's code order
     ir.cfg.removeFromCFGAndCodeOrder(bb);
     ir.cfg.breakCodeOrder(in, out);

@@ -11,34 +11,23 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 /**
- * VM_ManagedCounterData
- *
  * This class provides the basic functionality for instrumented data
  * that use counters allocated from a VM_InstrumentedEventCounterManager.  
  * It provides the basic interface to access counters,  forwarding
  * those requests to the counter manager.
  *
  * @author Matthew Arnold
- *
-**/
-
-class VM_ManagedCounterData
-{
-
-  static final boolean DEBUG=false;
+ */
+public class VM_ManagedCounterData {
 
   /**
-   *  Constructor
-   *
    * @param counterManager The counterManager that will provide the counter space
    */
-  VM_ManagedCounterData(OPT_InstrumentedEventCounterManager counterManager) 
-  {
+  VM_ManagedCounterData(OPT_InstrumentedEventCounterManager counterManager) {
     // Basic block instrumentation is performed using a common counter
     // allocation for the whole method.  It requests that space here.
     this.counterManager = counterManager;
   }
-
 
   /**
    * This method must be called before creating any counters for this
@@ -50,8 +39,7 @@ class VM_ManagedCounterData
    *
    * @param countersNeeded How many counters are needed by this data
    */
-  public void initializeCounters(int countersNeeded)
-  {
+  public void initializeCounters(int countersNeeded) {
     // Confirm that this method is called only once.  Once a handle is
     // assigned, it should not be changed.  Use resizeCounters(int) to
     // change the size of the data.
@@ -69,7 +57,7 @@ class VM_ManagedCounterData
    *
    * @param autoGrow Whether the counters should grow automatically. 
    */
-  public void automaticallyGrowCounters(boolean autoGrow){
+  public void automaticallyGrowCounters(boolean autoGrow) {
 
     final int INITIAL_COUNTER_SIZE = 20;
 
@@ -83,8 +71,7 @@ class VM_ManagedCounterData
    * 
    * @param countersNeeded The number of counters needed
    */
-  public void resizeCounters(int countersNeeded)
-  {
+  public void resizeCounters(int countersNeeded) {
     // Confirm that counters have been initialized (using initializeCounters(int))
     if (VM.VerifyAssertions)
       VM._assert(handle != -1);
@@ -99,8 +86,7 @@ class VM_ManagedCounterData
    * @param counterNumber The event number within the data
    * @return The count associated with this counter
    */
-  public double getCounter(int counterNumber)
-  {
+  public double getCounter(int counterNumber) {
     // Confirm that counters have been initialized 
     //  (using initializeCounters(int))
     if (VM.VerifyAssertions)
@@ -114,8 +100,7 @@ class VM_ManagedCounterData
    * @param counterNumber The event number within the data
    * @param value The new value of the counter
    */
-  public void setCounter(int counterNumber, double value)
-  {
+  public void setCounter(int counterNumber, double value) {
     // Confirm that counters have been initialized (using initializeCounters(int))
     if (VM.VerifyAssertions) {
       VM._assert(handle != -1);
@@ -139,8 +124,7 @@ class VM_ManagedCounterData
    *
    *  @return the number of counters 
    */
-  public int getNumCounters()
-  {
+  public int getNumCounters() {
     // Confirm that counters have been initialized (using initializeCounters(int))
     if (VM.VerifyAssertions)
       VM._assert(handle != -1);
@@ -153,8 +137,7 @@ class VM_ManagedCounterData
    *
    * @return The handle given to this data object by the counter manager.
    **/
-  public int getHandle()
-  {
+  public int getHandle() {
     return handle;
   }
   
@@ -163,8 +146,7 @@ class VM_ManagedCounterData
    * 
    * @return the counter manager object
    */
-  public OPT_InstrumentedEventCounterManager getCounterManager()
-  {
+  public OPT_InstrumentedEventCounterManager getCounterManager() {
     return counterManager;
   }
 
@@ -176,7 +158,7 @@ class VM_ManagedCounterData
    * @param counterNumber The number of the counter to increment 
    * @return The instruction that will update the given counter
    */
-  OPT_Instruction createEventCounterInstruction(int counterNumber) {
+  public OPT_Instruction createEventCounterInstruction(int counterNumber) {
     return createEventCounterInstruction(counterNumber,1.0);
   }
 
@@ -189,8 +171,7 @@ class VM_ManagedCounterData
    * @return The instruction that will update the given counter
    */
   OPT_Instruction createEventCounterInstruction(int counterNumber,
-						double incrementValue)
-  {
+						double incrementValue) {
     // Confirm that counters have been initialized 
     if (VM.VerifyAssertions) {
       VM._assert(handle != -1);
@@ -271,8 +252,6 @@ class VM_ManagedCounterData
      vec.setElementAt(vec.elementAt(j),i);
      vec.setElementAt(t,j);
   }
-
- 
 
   /* -----   Implementation   ---- */
 

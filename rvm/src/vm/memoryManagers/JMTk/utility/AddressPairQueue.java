@@ -22,10 +22,10 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 public class AddressPairQueue extends LocalQueue implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
  
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
 
   /**
    * Constructor
@@ -75,7 +75,7 @@ public class AddressPairQueue extends LocalQueue implements Constants, VM_Uninte
    */
   public final VM_Address pop1() {
      if (checkPop(2))
-      return VM_Address.fromInt(uncheckedPop());
+      return uncheckedPop();
     else
       return VM_Address.zero();
   }
@@ -86,7 +86,7 @@ public class AddressPairQueue extends LocalQueue implements Constants, VM_Uninte
    * @return The next address in the address queue
    */
   public final VM_Address pop2() {
-    return VM_Address.fromInt(uncheckedPop());
+    return uncheckedPop();
   }
 
   public final boolean isEmpty() {

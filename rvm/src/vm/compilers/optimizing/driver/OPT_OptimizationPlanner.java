@@ -60,7 +60,7 @@ public class OPT_OptimizationPlanner {
     }
 
     VM.sysWrite("\n\tTOTAL COMPILATION TIME\t\t");
-    int t = VM_Time.toMilliSecs(total);
+    int t = (int)total;
     if (t < 1000000)
       VM.sysWrite(" ");
     if (t < 100000)
@@ -226,6 +226,8 @@ public class OPT_OptimizationPlanner {
     addComponent(p,new OPT_InsertYieldpointCounters());
     // Insert counter on each HIR instruction
     addComponent(p,new OPT_InsertInstructionCounters());
+    // Insert method invocation counters
+    addComponent(p,new OPT_InsertMethodInvocationCounter());
     //-#endif
   }
 
@@ -438,6 +440,9 @@ public class OPT_OptimizationPlanner {
     addComponent(p, new OPT_BranchOptimizations(1, false, true));
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
+
+    addComponent(p, new OPT_InstrumentationSamplingFramework());
+
     // Convert high level place holder instructions into actual instrumenation
     addComponent(p, new OPT_LowerInstrumentation());
     //-#endif

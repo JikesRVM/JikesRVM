@@ -160,6 +160,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
       boolean isLoad = p.isLoad();
       if (isStore || isLoad) {
         // If readsKill then add memory model memory dependence from prior load
+	// NOTE: In general alias relationships are not transitive and therefore
+	//       we cannot exit this loop early.
         if (readsKill && isLoad) {
           for (OPT_DepGraphNode lnode = lastLoadNode; 
                lnode != null;
@@ -168,14 +170,13 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
 		OPT_LocationOperand.mayBeAliased(getLocation(p),
                                                  getLocation(lnode.instruction()))) {
               lnode.insertOutEdge(pnode, MEM_READS_KILL);
-              // We can break out of the loop without checking
-              // additional prior loads, because of transitivity.
-              break;
             }
           } 
           lastLoadNode = pnode;
         }
-        // Add output/flow memory dependence from prior store
+        // Add output/flow memory dependence from prior potentially aliased stores.
+	// NOTE: In general alias relationships are not transitive and therefore
+	//       we cannot exit this loop early.
         for (OPT_DepGraphNode snode = lastStoreNode; 
              snode != null;
              snode = (OPT_DepGraphNode) snode.getPrev()) {
@@ -183,9 +184,6 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
 	      OPT_LocationOperand.mayBeAliased(getLocation(p),
                                                getLocation(snode.instruction())))  {
 	    snode.insertOutEdge(pnode, isStore?MEM_OUTPUT:MEM_TRUE);
-            // We can break out of the loop without checking additional
-            // prior stores, because of transitivity.
-            break;
           }
 	}
         if (isStore) {
@@ -256,6 +254,8 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
 	}
         lastStoreNode = pnode;
       } else if (isLoad) {
+	// NOTE: In general alias relationships are not transitive and therefore
+	//       we cannot exit this loop early.
         for (OPT_DepGraphNode snode = lastStoreNode; 
              snode != null;
              snode = (OPT_DepGraphNode)snode.getNext()) {
@@ -263,9 +263,6 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
 	      OPT_LocationOperand.mayBeAliased(getLocation(p),
                                                getLocation(snode.instruction()))) {
             pnode.insertOutEdge(snode, MEM_ANTI);
-            // We can break out of the loop without checking additional
-            // prior stores, because of transitivity.
-            break;
           }
         }
       }

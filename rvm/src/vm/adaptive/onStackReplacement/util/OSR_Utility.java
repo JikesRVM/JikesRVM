@@ -82,10 +82,10 @@ public class OSR_Utility {
   /**
    * Disassemble instruction array
    */
-  public static final void disassemble(INSTRUCTION[] instructions) {
+  public static final void disassemble(VM_CodeArray instructions) {
     //-#if RVM_FOR_POWERPC
     for (int i=0; i<instructions.length; i++) {
-      VM.sysWrite(i + " : " + PPC_Disassembler.disasm(instructions[i],0)+"\n");
+      VM.sysWrite(i + " : " + PPC_Disassembler.disasm(instructions,get(i),0)+"\n");
     }
     //-#endif
 

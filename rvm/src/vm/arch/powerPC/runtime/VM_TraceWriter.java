@@ -8,7 +8,7 @@ import com.ibm.JikesRVM.*;
 import java.io.*;
 
 /**
- * A VM_TraceWriter offloads interruptible work during a thread switch.
+ * A VM_TraceWriter thread offloads interruptible work when in uninterruptible code.
  * Because a trace record is procuced when Jikes RVM is in the midst of a 
  * thread switch, the operations that can be perform are limited.
  * More complicated operations, such as IO, must be off loaded to the VM_TraceWriter.
@@ -41,11 +41,48 @@ import java.io.*;
  * @author Peter Sweeney
  * @date 2/6/2003
  */
-class VM_TraceWriter extends VM_ThreadSwitchConsumer 
-implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
-            VM_Callbacks.AppStartMonitor,    VM_Callbacks.AppCompleteMonitor,
-         VM_Callbacks.AppRunStartMonitor, VM_Callbacks.AppRunCompleteMonitor
+class VM_TraceWriter extends VM_Thread 
+  implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
+              VM_Callbacks.AppStartMonitor,    VM_Callbacks.AppCompleteMonitor,
+           VM_Callbacks.AppRunStartMonitor, VM_Callbacks.AppRunCompleteMonitor
 {
+
+  /**
+   * The producer associated with this consumer.
+   * May be null if the consumer has no associated producer.
+   */
+  private  VM_HardwarePerformanceMonitor hpm;
+
+  /**
+   * A queue to hold the consumer thread when it isn't executing
+   */
+  private   VM_ThreadQueue tq = new VM_ThreadQueue();
+
+  // Flag for when to close the trace file.
+  // At notifyExit time, producer sets flag to true.
+  public boolean notifyExit = false;
+
+  /**
+   * Called when thread is scheduled.
+   */
+  public void run() {
+    initialize();
+    while (true) {
+      passivate(); // wait until externally scheduled to run
+      if (notifyExit == true) {
+	// do nothing 
+	return;
+      } else {
+	try {
+	  thresholdReached();       // we've been scheduled; do our job!
+	} catch (Exception e) {
+	  e.printStackTrace();
+	  VM.sysFail("Exception in VM_ConsumerThread "+this);
+	}
+      }
+    } 
+  }
+
   /*
    * output trace file
    */
@@ -54,24 +91,65 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
   private int pid                = 0;
   public int getPid() throws VM_PragmaUninterruptible { return pid; }
 
-  // Flag for when to close the trace file.
-  // At notifyExit time, producer sets flag to true.
-  public boolean notifyExit = false;
+  /**
+   * Start consuming.
+   * Called (by producer) to activate the consumer thread (i.e. schedule it for execution).
+   */
+  public void activate() throws VM_PragmaUninterruptible 
+  {
+    if (active == true) {
+      VM.sysWriteln("***VM_TraceWriter.activate() active == true!  PID ",
+		    ((VM_TraceWriter)this).getPid(),"***");
+      VM.shutdown(VM.exitStatusMiscTrouble);
+    }
+    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_TraceWriter.activate()");
+    active = true;
+    VM_Thread org = tq.dequeue();
+    if (VM.VerifyAssertions) VM._assert(org != null);
+    org.schedule();
+  }
+  /**
+   * The field active (manipulated by producer) determines when we consume
+   */
+  protected boolean active = false;
+  /*
+   * Let the outside world know if I am active?
+   */
+  public final boolean isActive() throws VM_PragmaUninterruptible
+  { 
+    return active; 
+  }
+
+  /*
+   * Stop consuming.
+   * Called (by consumer in run()) to stop consuming.
+   * Can access the thread queue without locking because 
+   * only producer and consumer operate on the thread queue and the
+   * producer uses its own protocol to ensure that exactly 1 
+   * thread will attempt to activate the consumer.
+   */
+  private void passivate() throws VM_PragmaUninterruptible 
+  {
+    if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_TraceWriter.passivate()");
+    active = false;
+    VM_Thread.yield(tq);
+  }
+
   /**
    * Consumer Constructor
    *
    * @param producer         the associated producer
    */
-  VM_TraceWriter(VM_ThreadSwitchProducer producer, int pid) 
+  VM_TraceWriter(VM_HardwarePerformanceMonitor producer, int pid) 
   { 
     if(VM_HardwarePerformanceMonitors.verbose>=2) {
       VM.sysWriteln("VM_TraceWriter(",pid,") constructor");
     }
-    this.producer = producer;
+    this.hpm = producer;
     this.pid      = pid;
     // virtual processor that this thread wants to run on!
     processorAffinity = VM_Scheduler.processors[pid];
-    producer.setConsumer(this);
+    hpm.setConsumer(this);
     if (VM_HardwarePerformanceMonitors.hpm_trace) {
       setupCallbacks();
     }
@@ -85,7 +163,7 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
   }
 
   /**
-   * An abstract VM_ThreadSwitchConsumer method.
+   * An abstract VM_HPM_Consumer method.
    *
    * Called when:
    * 1) the trace buffer is full.
@@ -95,25 +173,13 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
    */
   void thresholdReached() 
   {
-    VM_HardwarePerformanceMonitor hpm = (VM_HardwarePerformanceMonitor)producer;
-    if (notifyExit == true) {
-      // flush current buffer
-      if(VM_HardwarePerformanceMonitors.verbose>=4)
-	VM.sysWriteln("VM_TraceWriter.thresholdReached() notifyExit flush current buffer ",
-		      hpm.getNameOfCurrentBuffer());
-      byte[] buffer = hpm.getCurrentBuffer();
-      int    index  = hpm.getCurrentIndex();
-      writeFileOutputStream(buffer, index);
-      closeFileOutputStream();
-    } else {
-      // flush full buffer
-      if(VM_HardwarePerformanceMonitors.verbose>=4)
-	VM.sysWriteln("VM_TraceWriter.thresholdReached() write full buffer ",hpm.getNameOfFullBuffer());
-      byte[] buffer = hpm.getFullBuffer();
-      int    index  = hpm.getFullIndex();
-      writeFileOutputStream(buffer, index);
-      hpm.resetFull();    
-    }
+    // flush full buffer
+    if(VM_HardwarePerformanceMonitors.verbose>=4)
+      VM.sysWriteln("VM_TraceWriter.thresholdReached() write full buffer ",hpm.getNameOfFullBuffer());
+    byte[] buffer = hpm.getFullBuffer();
+    int    index  = hpm.getFullIndex();
+    writeFileOutputStream(buffer, index);
+    hpm.resetFull();    
   }
 
   /*
@@ -133,23 +199,23 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
 
     if (trace_file != null) {	// constraint
       VM.sysWriteln("***VM_TraceWriter.openFileOutputStream(",trace_file_name,") trace_file != null!***");      
-      new Exception().printStackTrace(); VM.shutdown(-1);
+      new Exception().printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
     }
 
     try {
       trace_file = new FileOutputStream(trace_file_name);
     } catch (FileNotFoundException e) {
       VM.sysWriteln("***VM_TraceWriter.openFileOutputStream() FileNotFound exception with new FileOutputStream("+trace_file_name+")");
-      e.printStackTrace(); VM.shutdown(-1);
+      e.printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
     } catch (SecurityException e) {
       VM.sysWriteln("***VM_TraceWriter.openFileOutputStream() Security exception with new FileOutputStream("+trace_file_name+")");
-      e.printStackTrace(); VM.shutdown(-1);
+      e.printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
     } 
     writeHeader();
-    ((VM_HardwarePerformanceMonitor)producer).resetCurrent();
+    hpm.resetCurrent();
 
     // tell producer it is okay to produce
-    ((VM_HardwarePerformanceMonitor)producer).activate();
+    hpm.activate();
   }
   /*
    * Write header information whenever a HPM OutputFileStream is opened!
@@ -191,8 +257,8 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
     if(VM_HardwarePerformanceMonitors.verbose>=4)VM.sysWriteln("VM_TraceWriter.writeFileOutputStream(buffer, 0, ",length,")");
     if (length <= 0) return;
     if (trace_file == null) { 	// constraint
-      VM.sysWriteln("\n***VM_TraceWriter.writeFileOutputStream() trace_file == null!  Call VM.shutdown(-9)***");
-      VM.shutdown(-9);
+      VM.sysWriteln("\n***VM_TraceWriter.writeFileOutputStream() trace_file == null!  Call VM.shutdown(VM.exitStatusMiscTrouble)***");
+      VM.shutdown(VM.exitStatusMiscTrouble);
     }
     try {
       // allow only one writer at a time to trace file.
@@ -201,7 +267,7 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
       }
     } catch (IOException e) {
       VM.sysWriteln("***VM_TraceWriter.writeFileOutputStream(",length,") throws IOException!***");
-      e.printStackTrace(); VM.shutdown(-1);
+      e.printStackTrace(); VM.shutdown(-VM.exitStatusMiscTrouble);
     }
   }
   /*
@@ -223,13 +289,13 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
        trace_file.close();
     } catch (IOException e) {
       VM.sysWriteln("***VM_TraceWriter.closeFileOutputStream() throws IOException!***");
-      e.printStackTrace(); VM.shutdown(-1);
+      e.printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
     }
 
     trace_file = null;
 
-    if(VM_HardwarePerformanceMonitors.verbose>=3){
-      ((VM_HardwarePerformanceMonitor)producer).dumpStatistics();
+    if(VM_HardwarePerformanceMonitors.verbose>=2){
+      hpm.dumpStatistics();
     }
   }
 
@@ -239,8 +305,7 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
   /**
    * If tracing, set up call backs to manipulate files
    * Manages tracing functionality.
-   * Because anyone can place a call back anywhere, these
-   * methods must be robust.
+   * Because anyone can place a call back anywhere, these methods can be interruptible.
    */
   private void setupCallbacks()
   {
@@ -294,8 +359,30 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
 	VM.sysWriteln("\n***VM_TraceWriter.notifyExit() PID ",pid," trace_file == null! notifyStartup never called!***\n");
 	VM.sysExit(-1);
       }
+      // Only called once from producer when notify exit occurs.
+      // Flush current buffer
+      hpm.passivate();
 
-      ((VM_HardwarePerformanceMonitor)producer).notifyExit(value);
+      byte[] buffer = hpm.getCurrentBuffer();
+      int    index  = hpm.getCurrentIndex();
+      writeFileOutputStream(buffer, index);
+
+      // write Exit record
+      index = 0;
+      byte[] buffer2 = new byte[10];
+      VM_Magic.setIntAtOffset( buffer2, index, VM_HardwarePerformanceMonitor.EXIT_FORMAT);// format
+      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+      VM_Magic.setIntAtOffset( buffer2, index, value);					// value
+      index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+      writeFileOutputStream(buffer2, index);
+
+      if (VM_HardwarePerformanceMonitors.verbose>=3) {
+	VM.sysWrite  ("VM_TraceWriter.notifyExit(");
+	VM.sysWrite  (") n_records ",hpm.numberOfRecords()+1);
+	VM.sysWriteln(", missed ",hpm.missedRecords());
+      }
+
+      closeFileOutputStream();
     }
   }
 
@@ -315,7 +402,7 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
 	return;
 	//	VM.sysExit(-1);
       }
-      ((VM_HardwarePerformanceMonitor)producer).notifyAppStart(app);
+      hpm.notifyAppStart(app);
     }
   }
   /**
@@ -335,7 +422,7 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
 	return;
 	//	VM.sysExit(-1);
       }
-      ((VM_HardwarePerformanceMonitor)producer).notifyAppComplete(app);
+      hpm.notifyAppComplete(app);
     }
   }
   /**
@@ -360,7 +447,7 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
 	return;
 	// VM.sysExit(-1);
       }
-      ((VM_HardwarePerformanceMonitor)producer).notifyAppRunStart(app,run);
+      hpm.notifyAppRunStart(app,run);
     } 
   }
   /**
@@ -381,7 +468,7 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
 	return;
 	//	VM.sysExit(-1);
       }
-      ((VM_HardwarePerformanceMonitor)producer).notifyAppRunComplete(app,run);
+      hpm.notifyAppRunComplete(app,run);
     }
   }
   /**

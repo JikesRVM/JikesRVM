@@ -10,32 +10,45 @@
 \T \newcommand{\trademark}{\ }
 \W \newcommand{\trademark}{\xmlsym{##8482}\ }
 
+%%%% These are grammatical commands.
+\newcommand{\Mor}{{\bf \tt |}}	%meta-Or
+\newcommand{\Mlbr}{{\bf \{}}	%left-brace
+\newcommand{\Mrbr}{{\bf \}}}	%right-brace
+\newcommand{\Mlsq}{{\bf [}}	%left-square
+\newcommand{\Mrsq}{{\bf ]}}	%right-brace
+\newcommand{\Mmeta}[1]{{\it $<$#1$>$}} %meta-token
+%%% Hyperlatex doesn't seem to know about \rm.  
+\W \newcommand{\rm}{}
+\newcommand{\Mlitch}[1]{{ \bf ``{\tt #1}''}} %literal char or txt
+\newcommand{\MZeroOrMore}[1]{{\(\Mlsq\mbox{#1}\Mrsq_+\)}}
+
+
 \newcommand{\JikesTMFootnote}{{\texonly \texttrademark}{\htmlonly
 \trademark}\texonly{\footnote{{\bf Jikes} is a
 trademark or registered trademark of International Business Machines
 Corporation in the United States, other countries, or both.}}}
 
-\newcommand{\JikesTMFooter}{\W \hline \small {\bf Jikes} is a
+\newcommand{\JikesTMFooter}{\W \hline {\small {\bf Jikes} is a
 trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}
+Corporation in the United States, other countries, or both.}}
 
 \newcommand{\AIXTMFootnote}{{\texonly \texttrademark}{\htmlonly
 \trademark}\texonly{\footnote{{\bf AIX} is a
 trademark or registered trademark of International Business Machines
 Corporation in the United States, other countries, or both.}}}
 
-\newcommand{\AIXTMFooter}{\W \hline \small {\bf AIX} is a
+\newcommand{\AIXTMFooter}{\W \hline {\small {\bf AIX} is a
 trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}
+Corporation in the United States, other countries, or both.}}
 
 \newcommand{\PowerPCTMFootnote}{{\texonly \texttrademark}{\htmlonly
 \trademark}\texonly{\footnote{{\bf PowerPC} is a
 trademark or registered trademark of International Business Machines
 Corporation in the United States, other countries, or both.}}}
 
-\newcommand{\PowerPCTMFooter}{\W \hline \small {\bf PowerPC} is a
+\newcommand{\PowerPCTMFooter}{\W \hline {\small {\bf PowerPC} is a
 trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}
+Corporation in the United States, other countries, or both.}}
 
 \newcommand{\JavaTMFootnote}{{\texonly {\texttrademark}}{\htmlonly
 \trademark}\texonly{\footnote{\small {\bf Java} and all Java-based
@@ -43,23 +56,29 @@ trademarks and
 logos are trademarks or registered trademarks of Sun Microsystems,
 Inc.\ in the United States, other countries, or both.}}}
 
-\newcommand{\JavaTMFooter}{\W \hline \small {\bf Java} and all Java-based trademarks and
+\newcommand{\JavaTMFooter}{\W \hline {\small {\bf Java} and all Java-based trademarks and
 logos are trademarks or registered trademarks of Sun Microsystems,
-Inc.\ in the United States, other countries, or both.}
+Inc.\ in the United States, other countries, or both.}}
 
-\newcommand{\AIXPPCTMFooter}{\W \hline \small {\bf AIX} and {\bf
+\newcommand{\AIXPPCTMFooter}{\W \hline {\small {\bf AIX} and {\bf
 PowerPC} are
 trademarks or registered trademarks of International Business Machines
-Corporation in the United States, other countries, or both.}
+Corporation in the United States, other countries, or both.}}
 
-\newcommand{\JikesAIXTMFooter}{\W \hline \small {\bf Jikes} and {\bf AIX} are
+\newcommand{\JikesAIXTMFooter}{\W \hline {\small {\bf Jikes} and {\bf AIX} are
 trademarks or registered trademarks of International Business Machines
-Corporation in the United States, other countries, or both.}
+Corporation in the United States, other countries, or both.}}
 
-\newcommand{\AIXPPCJikesTMFooter}{\W \hline \small {\bf AIX}, {\bf
+\newcommand{\AIXPPCJikesTMFooter}{\W \hline {\small {\bf AIX}, {\bf
 PowerPC}, and {\bf Jikes} are
 trademarks or registered trademarks of International Business Machines
-Corporation in the United States, other countries, or both.}
+Corporation in the United States, other countries, or both.}}
+
+%% I do not know how to get the (R) symbol, so we'll substitute with
+%% TM for now.
+\newcommand{\LinuxRegisteredTMFootnote}{{\texonly {\texttrademark}}{\htmlonly
+\trademark}\texonly{\footnote{\small {\bf Linux} is a registered
+      trademark of Linux Torvalds.}}}
 
 
 
@@ -77,12 +96,14 @@ Corporation in the United States, other countries, or both.}
 %%     December, 2002: 2.2.0
 %%     April, 2003: 2.2.1
 %%     June, 2003: 2.2.2
-\newcommand{\version}{2.2.2}
-\newcommand{\classpathversion}{0.05}
+%%     August, 2003: 2.3.0
+\newcommand{\version}{2.3.0}
+\newcommand{\classpathversion}{0.06}
 \newcommand{\jp}{Jalape\~{n}o}
 \newcommand{\jrvm}{Jikes RVM}
 \newcommand{\ignore}[1]{{}}
 \newcommand{\spec}{SPECjvm98}
+\newcommand{\instruction}{\it}
 
 \newcommand{\RVMTarFile}{jikesrvm-{\version}.tar.gz}
 
@@ -111,6 +132,7 @@ Corporation in the United States, other countries, or both.}
 \newcommand{\SOOTURL}{http://www.sable.mcgill.ca/soot}
 \newcommand{\classpathURL}{http://www.gnu.org/software/classpath}
 \newcommand{\classpathftp}{ftp://alpha.gnu.org/pub/gnu/classpath}
+\newcommand{\tempclasspathftp}{http://www.klomp.org/mark/classpath/classpath-0.06.tar.gz}
 \newcommand{\osiURL}{http://www.opensource.org}
 
 % package com.ibm.JikesRVM
@@ -132,6 +154,7 @@ Corporation in the United States, other countries, or both.}
 \newcommand{\VMProxyURL}{{\JikesRVMJavadocURL}/VM\_Proxy.html}
 \newcommand{\VMRuntimeCompilerURL}{{\JikesRVMJavadocURL}/VM\_RuntimeCompiler.html}
 \newcommand{\VMSynchronizationURL}{{\JikesRVMJavadocURL}/VM\_Synchronization.html}
+\newcommand{\VMSysCallURL}{{\JikesRVMJavadocURL}/VM\_SysCall.html}
 \newcommand{\VMThinLockURL}{{\JikesRVMJavadocURL}/VM\_ThinLock.html}
 \newcommand{\VMThreadURL}{{\JikesRVMJavadocURL}/VM\_Thread.html}
 \newcommand{\VMThreadthreadSwitchURL}{{\JikesRVMJavadocURL}/VM\_Thread.html\#threadSwitch(int)}
@@ -192,8 +215,6 @@ Corporation in the United States, other countries, or both.}
 \newcommand{\VMGCMapIteratorURL}{{\VMInterfaceJavadocURL}/VM\_GCMapIterator.html}
 \newcommand{\VMHandshakeURL}{{\VMInterfaceJavadocURL}/VM\_Handshake.html}
 \newcommand{\VMInterfaceURL}{{\VMInterfaceJavadocURL}/VM\_Interface.html}
-% package com.ibm.JikesRVM.librarySupport
-\newcommand{\LibSupportJavadocURL}{{\JikesRVMJavadocURL}/librarySupport}
 % package com.ibm.JikesRVM.opt
 \newcommand{\OptJavadocURL}{{\JikesRVMJavadocURL}/opt}
 \newcommand{\OPTCompilationPlanURL}{{\OptJavadocURL}/OPT\_CompilationPlan.html}
@@ -230,7 +251,6 @@ Corporation in the United States, other countries, or both.}
 \newcommand{\AIXJdkURL}{http://www.ibm.com/java/jdk/aix/index.html}
 \newcommand{\LinuxJdkURL}{http://www.ibm.com/java/jdk/aix/index.html}
 \newcommand{\BlackdownURL}{http://www.blackdown.org}
-\newcommand{\pdkshURL}{http://www.cs.mun.ca/\~{}michael/pdksh}
 \newcommand{\SystemJournalPaperURL}{{\RVMPubsURL}\#ibmsj00}
 \newcommand{\JavaGrandePaperURL}{{\RVMPubsURL}\#grande99}
 \newcommand{\OOPSLAPaperURL}{{\RVMPubsURL}\#oopsla00\_aos}
@@ -341,6 +361,7 @@ User's Guide} \\ {\huge \version} \\ { } \texonly{\vfill} }
 
 \T \newpage
 \section{Memory Management Details}
+\label{section:JMTk}
 \input{JMTk}
 
 \T \newpage
@@ -351,6 +372,11 @@ User's Guide} \\ {\huge \version} \\ { } \texonly{\vfill} }
 \T \newpage
 \section{Magic}
 \input{magic}
+
+\T \newpage
+\section{Java Preprocessor}
+\label{section:preprocessor}
+\input{preprocessor}
 
 \T \newpage
 \section{JNI Implementation Details}
@@ -376,8 +402,14 @@ User's Guide} \\ {\huge \version} \\ { } \texonly{\vfill} }
 \input{performance}
 
 \T \newpage
-\section{Coding Style Guidelines}
+\section{Java Coding Style Guidelines and Conventions}
+\label{section:javacodingstyle}
 \input{codingstyle}
+
+\T \newpage
+\section{Coding Style Guidelines for other Programming Languages}
+\label{section:codingstyle-nonjava}
+\input{codingstyle-nonjava}
 
 \T \newpage
 \section{FAQ}

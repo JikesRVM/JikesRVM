@@ -862,9 +862,6 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   private OPT_SSA ssa;
   private OPT_SSADictionary ssad;
   private OPT_DominatorTree dominator;
-  //-#if BLOCK_COUNTER_WORKS
-  private OPT_BasicBlockCounts basicBlockCounter;
-  //-#endif
   private OPT_IR ir;
   private OPT_FI_EscapeSummary escapeSummary;
   private static java.util.HashSet moved = new java.util.HashSet();

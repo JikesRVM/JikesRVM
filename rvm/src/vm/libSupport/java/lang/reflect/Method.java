@@ -68,11 +68,7 @@ public final class Method extends AccessibleObject implements Member {
   }
 
   public Class getReturnType() {
-    try {
-      return method.getReturnType().resolve().getClassForType();
-    } catch (ClassNotFoundException e) {
-      throw new InternalError(e.toString()); // Should never happen.
-    }
+    return method.getReturnType().resolve().getClassForType();
   }
 
   public int hashCode() {
@@ -103,11 +99,7 @@ public final class Method extends AccessibleObject implements Member {
       throw new IllegalArgumentException("argument count mismatch");
     }
     for (int i = 0, n = parameterTypes.length; i < n; ++i) {
-      try {
-	args[i] = JikesRVMSupport.makeArgumentCompatible(parameterTypes[i].resolve(), args[i]);
-      } catch (ClassNotFoundException e) {
-	throw new InternalError(e.toString()); // Should never happen.
-      }
+      args[i] = JikesRVMSupport.makeArgumentCompatible(parameterTypes[i].resolve(), args[i]);
     }
 
     // Accessibility checks
@@ -130,9 +122,12 @@ public final class Method extends AccessibleObject implements Member {
     // Invoke method
     try {
       return VM_Reflection.invoke(method, receiver, args);
-    } catch (Throwable e) {
-      throw new InvocationTargetException(e);
-    }
+    } catch (Throwable t) {
+      throw new InvocationTargetException(t,
+		"While invoking the method:\n\t\"" + method + "\"\n"
+		+ " on the object:\n\t\"" + receiver + "\"\n"
+		+ " it threw the exception:\n\t\"" + t + "\"");
+     }
   }
 
   public String toString() {

@@ -52,7 +52,7 @@ while(<in_file>){
 	
 	# Base	310	65	505.80	5.36	172.0	32.1
 	if ($run==0) {
-	    if (m/Base\t(\d+)\t(\d+)\t(\S+)/) {
+	    if (m/Base\s+(\S+)\s+(\S+)\s+(\S+)/) {
 		$rate = $3;
 		&pad_with_tab($benchmark);
 		print "\t".$rate;
@@ -60,9 +60,9 @@ while(<in_file>){
 		$run++;
 	    }
 	} else {
-	    if (m/Opt.*\t(\d+)\t(\d+)\t(\S+)/) {
+	    if (m/Opt\s+(\S+)\s+(\S+)\s+(\S+)/) {
 		$rate = $3;
-#	    print $benchmark." opt ".($run-1)." rate: ".$rate."\n";
+#         print $benchmark." opt ".($run-1)." rate: ".$rate."\n";
 		print "\t".$rate;
 		$rates{$benchmark}{$run} = $rate;
 		$run++;

@@ -1,11 +1,11 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
 package com.ibm.JikesRVM;
 
 /**
- * Interface to dynamic libraries of underlying operating system.
+ * Interface to the dynamic libraries of our underlying operating system.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
@@ -15,13 +15,12 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
   private int libHandler;
 
   /**
-   * load a dynamic library and maintain it in this object
+   * Load a dynamic library and maintain it in this object.
    * @param libraryName library name
-   * @return library system handler (-1: not found or couldn't be created)
    */ 
   public VM_DynamicLibrary(String libraryName) {
-    // convert file name from unicode to filesystem character set
-    // (assume file name is ascii, for now)
+    // Convert file name from unicode to filesystem character set.
+    // (Assume file name is ASCII, for now).
     //
     byte[] asciiName = new byte[libraryName.length() + 1]; // +1 for null terminator
     libraryName.getBytes(0, libraryName.length(), asciiName, 0);
@@ -29,8 +28,8 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
     // make sure we have enough stack to load the library.  
     // This operation has been known to require more than 20K of stack.
     VM_Thread myThread = VM_Thread.getCurrentThread();
-    int stackNeededInBytes =  VM_StackframeLayoutConstants.STACK_SIZE_DLOPEN -
-      (VM_Magic.getFramePointer().diff(myThread.stackLimit)).toInt();
+    VM_Offset remaining = VM_Magic.getFramePointer().diff(myThread.stackLimit);
+    int stackNeededInBytes = VM_StackframeLayoutConstants.STACK_SIZE_DLOPEN - remaining.toInt();
     if (stackNeededInBytes > 0 ) {
       if (myThread.hasNativeStackFrame()) {
         throw new java.lang.StackOverflowError("dlopen");
@@ -40,9 +39,7 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
       }
     }
 
-    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    libHandler = VM_SysCall.call_I_A(bootRecord.sysDlopenIP, 
-                             VM_Magic.objectAsAddress(asciiName));
+    libHandler = VM_SysCall.sysDlopen(asciiName);
 
     if (libHandler==0) {
       VM.sysWrite("error loading library: " + libraryName);
@@ -65,19 +62,17 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
   /**
    * look up this dynamic library for a symbol
    * @param symbolName symbol name
-   * @return symbol system handler 
-   * (actually an address to an AixLinkage triplet)
+   * @return The <code>VM_Address</code> of the symbol system handler
+   * (actually an address to an AixLinkage triplet).
    *           (-1: not found or couldn't be created)
    */ 
   public VM_Address getSymbol(String symbolName) {
-    // convert file name from unicode to filesystem character set
-    // (assume file name is ascii, for now)
+    // Convert file name from unicode to filesystem character set
+    // (assume file name is ascii, for now).
     //
     byte[] asciiName = new byte[symbolName.length() + 1]; // +1 for null terminator
     symbolName.getBytes(0, symbolName.length(), asciiName, 0);
-    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    return VM_SysCall.call_A_I_A(bootRecord.sysDlsymIP, libHandler, 
-							VM_Magic.objectAsAddress(asciiName));
+    return VM_SysCall.sysDlsym(libHandler, asciiName);
   }
 
   /**

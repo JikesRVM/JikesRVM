@@ -39,26 +39,29 @@ final class VM_JNICompiledMethod extends VM_CompiledMethod {
     return null;
   }
       
-  public final void getDynamicLink(VM_DynamicLink dynamicLink, VM_Offset instructionOffset) throws VM_PragmaUninterruptible { 
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible { 
     // this method should never get called.
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  public final VM_Offset findCatchBlockForInstruction(VM_Offset instructionOffset, VM_Type exceptionType) {
-    return VM_Offset.fromInt(-1);
+  public final int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType) {
+    return -1;
   }
    
-  public final void printStackTrace(VM_Offset instructionOffset, com.ibm.JikesRVM.PrintLN out) {
+  public final void printStackTrace(int instructionOffset, com.ibm.JikesRVM.PrintLN out) {
     if (method != null) {
       // print name of native method
-      out.println("\tat " + method.getDeclaringClass().getDescriptor().classNameFromDescriptor()
-		  + "." + method.getName() + " (native method)");
+      out.print("\tat ");
+      out.print(method.getDeclaringClass());
+      out.print(".");
+      out.print(method.getName());
+      out.println(" (native method)");
     } else {
       out.println("\tat <native method>");
     }
   }
 
-  public final void set(VM_StackBrowser browser, VM_Offset instr) {
+  public final void set(VM_StackBrowser browser, int instr) {
     browser.setBytecodeIndex(-1);
     browser.setCompiledMethod(this);
     browser.setMethod(method);

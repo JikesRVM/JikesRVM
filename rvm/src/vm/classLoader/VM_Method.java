@@ -29,7 +29,7 @@ public abstract class VM_Method extends VM_Member {
 
   /**
    * @param declaringClass the VM_Class object of the class that declared this field
-   * @param memRef the cannonical memberReference for this member.
+   * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param exceptionTypes exceptions thrown by this method.
    */
@@ -45,12 +45,12 @@ public abstract class VM_Method extends VM_Member {
    * instance of a VM_Method by reading the relevant data from the argument bytecode stream.
    * 
    * @param declaringClass the VM_Class object of the class that declared this method
-   * @param memRef the cannonical memberReference for this member.
+   * @param memRef the canonical memberReference for this member.
    * @param modifiers modifiers associated with this member.
    * @param input the DataInputStream to read the method's attributes from
    */
   static VM_Method readMethod(VM_Class declaringClass, VM_MemberReference memRef,
-			      int modifiers, DataInputStream input) throws IOException, ClassNotFoundException {
+			      int modifiers, DataInputStream input) throws IOException {
     ClassLoader cl = declaringClass.getClassLoader();
 
     int tmp_localWords = 0;
@@ -237,7 +237,7 @@ public abstract class VM_Method extends VM_Member {
    * <li> It is not the synthetic 'this' method used by jikes to
    *      factor out default initializers for <init> methods.
    * <li> it throws the <CODE>VM_PragmaUninterruptible</CODE> exception.
-   * <li> it's declaring class directly implements the <CODE>VM_Uninterruptible</CODE>
+   * <li> its declaring class directly implements the <CODE>VM_Uninterruptible</CODE>
    *      interface and the method does not throw the <CODE>VM_PragmaInterruptible</CODE>
    *      exception.
    * </ul>
@@ -295,7 +295,7 @@ public abstract class VM_Method extends VM_Member {
   /**
    * Get the current instructions for the given method.
    */
-  public final synchronized INSTRUCTION[] getCurrentInstructions() {
+  public final synchronized VM_CodeArray getCurrentInstructions() {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (isCompiled()) {
       return currentCompiledMethod.getInstructions();
@@ -318,7 +318,6 @@ public abstract class VM_Method extends VM_Member {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (isCompiled()) return;
 
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logCompilationEvent();
     if (VM.TraceClassLoading && VM.runningVM)  VM.sysWrite("VM_Method: (begin) compiling " + this + "\n");
 
     VM_CompiledMethod cm = genCode();

@@ -114,9 +114,9 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       if (compiledMethod == null || !compiledMethod.isCompiled())
 	continue; // empty slot
 
-      INSTRUCTION[] instructions = compiledMethod.getInstructions();
-      VM_Address    beg          = VM_Magic.objectAsAddress(instructions);
-      VM_Address    end          = beg.add(instructions.length << VM.LG_INSTRUCTION_WIDTH);
+      VM_CodeArray instructions = compiledMethod.getInstructions();
+      VM_Address   beg          = VM_Magic.objectAsAddress(instructions);
+      VM_Address   end          = beg.add(instructions.length() << VM.LG_INSTRUCTION_WIDTH);
 
       // note that "ip" points to a return site (not a call site)
       // so the range check here must be "ip <= beg || ip >  end"
@@ -197,14 +197,14 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     int[] codeCount = new int[5];
     int[] codeBytes = new int[5];
     int[] mapBytes = new int[5];
-    VM_Array codeArray = VM_Type.InstructionArrayType.asArray();
+    VM_Array codeArray = VM_Type.CodeArrayType.asArray();
     for (int i=0; i<compiledMethods.length; i++) {
       VM_CompiledMethod cm = compiledMethods[i];
       if (cm == null || !cm.isCompiled()) continue;
       int ct = cm.getCompilerType();
-      INSTRUCTION[] code = cm.getInstructions();
+      VM_CodeArray code = cm.getInstructions();
       codeCount[ct]++;
-      int size = codeArray.getInstanceSize(code.length);
+      int size = codeArray.getInstanceSize(code.length());
       codeBytes[ct] += VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
       mapBytes[ct] += cm.size();
     }

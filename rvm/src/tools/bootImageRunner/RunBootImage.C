@@ -6,11 +6,11 @@
 /*
  * C runtime support for virtual machine.
  *
- * This file deals with loading of the vm boot image into a memory segment and
- * branching to its startoff code. It also deals with interrupt and exception
- * handling.
- * The file "sys.C" contains the o/s support services required by the java
- * class libraries.
+ * This file deals with loading of the vm boot image into a memory segment,
+ * basic processing of command line arguments, and branching to VM.boot. 
+ * 
+ * The file "sys.C" contains the o/s support services to match
+ * the entrypoints declared by VM_SysCall.java
  *
  * @author Derek Lieber 03 Feb 1998
  * 17 Oct 2000 The system code (everything except command line parsing in main)
@@ -20,8 +20,10 @@
  *	       Add support to recognize quotes in command line arguments,
  *	       standardize command line arguments with JDK 1.3.
  *	       Eliminate order dependence on command line arguments
- *	       To add a new VM directive, 
- *	       add the directive to processCommandLineArguments()
+ * @modified Steven Augart
+ * @date 18 Aug 2003
+ *	Cleaned up memory management.  Made the handling of numeric args
+ *	robust. 
  */
 
 #include <stdio.h>
@@ -31,8 +33,10 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/signal.h>
+#include <ctype.h>		// isspace()
+#include <limits.h>		// INT_MAX
 #include <strings.h> /* bzero */
-#include <libgen.h>     /* basename */
+#include <libgen.h>  /* basename */
 #ifdef __linux__
 #include <asm/cache.h>
 #include <ucontext.h>
@@ -40,10 +44,12 @@
 #else
 #include <sys/cache.h>
 #include <sys/context.h>
-extern "C" char *sys_siglist[];
+// extern "C" char *sys_siglist[];
 #endif
-#include "RunBootImage.h"
-#include "cmdLine.h"
+#include "RunBootImage.h"	// Automatically generated for us by
+				// jbuild.linkBooter 
+#include "bootImageRunner.h"	// In rvm/src/tools/bootImageRunner
+#include "cmdLine.h"		// Command line args.
 
 // Interface to VM data structures.
 //
@@ -56,163 +62,85 @@ extern "C" char *sys_siglist[];
 
 #include <InterfaceDeclarations.h>
 
-// Sink for messages relating to serious errors detected by C runtime.
-//
-extern FILE *SysErrorFile;
 
-// Sink for trace messages produced by VM.sysWrite().
-//
-extern FILE *SysTraceFile;
-extern int   SysTraceFd;
+unsigned initialHeapSize;  /* Declared in bootImageRunner.h */
+unsigned maximumHeapSize;  /* Declared in bootImageRunner.h */
 
-// Command line arguments to be passed to boot image.
-//
-extern char **	JavaArgs;
-extern int	JavaArgc; 
+int verboseBoot;		/* Declared in bootImageRunner.h */
 
-// Emit trace information?
-//
-extern int lib_verbose;
+/* See VM.exitStatusBogusCommandLineArg in VM.java.  
+ * If you change this value, change it there too. */
+const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 98;
 
-// command line arguments
+static int DEBUG = 0;			// have to set this from a debugger
 
-extern char *bootFilename;
-extern char *me;
-
-extern unsigned initialHeapSize;
-extern unsigned maximumHeapSize;
-
-extern unsigned traceClassLoading;
-
-extern int verboseGC;
-
-extern "C" int createJVM(int);
-extern "C" void findMappable();
-
-int DEBUG = 0;
-char * emptyString = "";
+static bool strequal(const char *s1, const char *s2);
+static bool strnequal(const char *s1, const char *s2, size_t n);
 
 /*
  * What standard command line arguments are supported?
  */
-void usage() 
+static void 
+usage(void) 
 {
-  fprintf(SysTraceFile,"Usage: rvm [-options] class [args...]\n");
-  fprintf(SysTraceFile,"          (to execute a class)\n");
-  //  fprintf(SysTraceFile,"   or  %s -jar [-options] jarfile [args...]\n",me);
-  //  fprintf(SysTraceFile,"          (to execute a jar file)\n");
-  fprintf(SysTraceFile,"\nwhere options include:\n");
-  fprintf(SysTraceFile,"    -cp -classpath <directories and zip/jar files separated by :>\n");
-  fprintf(SysTraceFile,"              set search path for application classes and resources\n");
-  fprintf(SysTraceFile,"    -D<name>=<value>\n");
-  fprintf(SysTraceFile,"              set a system property\n");
-  fprintf(SysTraceFile,"    -verbose[:class|:gc|:jni]\n");
-  fprintf(SysTraceFile,"              enable verbose output\n");
-  fprintf(SysTraceFile,"    -version  print version\n");
-  fprintf(SysTraceFile,"    -showversion\n");
-  fprintf(SysTraceFile,"              print version and continue\n");
-  fprintf(SysTraceFile,"    -fullversion\n");
-  fprintf(SysTraceFile,"              like version but with more information\n");
-  fprintf(SysTraceFile,"    -? -help  print this message\n");
-  fprintf(SysTraceFile,"    -X        print help on non-standard options\n");
+    fprintf(SysTraceFile,"Usage: %s [-options] class [args...]\n", Me);
+    fprintf(SysTraceFile,"          (to execute a class)\n");
+    //  fprintf(SysTraceFile,"   or  %s -jar [-options] jarfile [args...]\n",Me);
+    //  fprintf(SysTraceFile,"          (to execute a jar file)\n");
+    fprintf(SysTraceFile,"\nwhere options include:\n");
+    fprintf(SysTraceFile,"    -cp -classpath <directories and zip/jar files separated by :>\n");
+    fprintf(SysTraceFile,"              set search path for application classes and resources\n");
+    fprintf(SysTraceFile,"    -D<name>=<value>\n");
+    fprintf(SysTraceFile,"              set a system property\n");
+    fprintf(SysTraceFile,"    -verbose[:class|:gc|:jni]\n");
+    fprintf(SysTraceFile,"              enable verbose output\n");
+    fprintf(SysTraceFile,"    -version  print version\n");
+    fprintf(SysTraceFile,"    -showversion\n");
+    fprintf(SysTraceFile,"              print version and continue\n");
+    fprintf(SysTraceFile,"    -fullversion\n");
+    fprintf(SysTraceFile,"              like version but with more information\n");
+    fprintf(SysTraceFile,"    -? -help  print this message\n");
+    fprintf(SysTraceFile,"    -X        print help on non-standard options\n");
 
-  fprintf(SysTraceFile,"    -jar      not supported\n");
-  fprintf(SysTraceFile,"\n For more information look at URL: www.ibm.com/developerworks/oss/jikesrvm\n");
+    fprintf(SysTraceFile,"    -jar      not supported\n");
+    fprintf(SysTraceFile,"\n For more information look at URL: www.ibm.com/developerworks/oss/jikesrvm\n");
 
-  fprintf(SysTraceFile,"\n");
+    fprintf(SysTraceFile,"\n");
 }
 
 /*
  * What nonstandard command line arguments are supported?
  */
-void nonstandard_usage() 
+static void 
+nonstandard_usage() 
 {
-  fprintf(SysTraceFile,"Usage: %s [options] class [args...]\n",me);
-  fprintf(SysTraceFile,"          (to execute a class)\n");
-  fprintf(SysTraceFile,"where options include\n");
-  for (int i=0; i<numNonStandardUsageLines; i++) {
-     fprintf(SysTraceFile,nonStandardUsage[i]);
-     fprintf(SysTraceFile,"\n");
-  }
-}
-
-/**
- * Maximum length of token
- */
-const int maxToken = 2048;
-
-/**
- * Maximum number of tokens
- */
-const int maxTokens = 256;
-
-/*
- * function findAndRemoveQuotes
- * input:  token
- * output: boolean that is true if the string contains an open quote, otherwise
- *	   returns false.
- * A string contains an open quote if the string contains an odd number of 
- * double quotes.
- */
-int findAndRemoveQuotes(char **tokenContainer) 
-{
-  char *token	   =*tokenContainer;
-  int length       =strlen(token);
-  int n_quotes     =0; 
-  int n_backSlashes=0;
-  char buffer[maxToken];
-  int b_index=0;
-  int i;
-  for (i=0; i<length; i++) {
-    if (token[i]=='"' && ((n_backSlashes%2)==0)) { 
-      // found double quote, remove quote
-      n_quotes++;
-    } else {
-      buffer[b_index++]=token[i];
-      if (token[i]=='\\') {
-	// found backslash, keep running count
-	n_backSlashes++;
-      } else {
-	n_backSlashes=0;
-      }
+    fprintf(SysTraceFile,"Usage: %s [options] class [args...]\n",Me);
+    fprintf(SysTraceFile,"          (to execute a class)\n");
+    fprintf(SysTraceFile,"where options include\n");
+    for (int i=0; i<numNonStandardUsageLines; i++) {
+	fprintf(SysTraceFile,nonStandardUsage[i]);
+	fprintf(SysTraceFile,"\n");
     }
-  }
-  buffer[b_index++]='\0';
-  if(n_quotes) {
-    // found at least one quote, update tokenContainer
-    char *buf = (char*)malloc(b_index);
-    for(i=0;i<b_index;i++) {
-      buf[i]=buffer[i];
-    }
-    *tokenContainer = buf;
-  }
-  return (n_quotes%2);
 }
 
-/*
- * function stringAppendWithSpace
- *   given two strings, first and second, return a new string that consists
- *   of first, followed by a space, followed by second.
- */
-char *stringAppendWithSpace(char *first, char *second) 
+static void
+shortVersion()
 {
-  if (second == "") {
-  }
-  int l_first  = strlen(first);
-  int l_second = strlen(second);
-  int length   = l_first+l_second+2;
-  char *result = (char*)malloc(length);
-  int i=0;
-  for(; i<l_first; i++) {
-    result[i]=first[i]; 
-  }
-  result[i++]=' ';
-  for (int j=0; j<l_second; j++) {
-    result[i++]=second[j];
-  }
-  result[i++]='\0';
-  return result;
+    fprintf(SysTraceFile, "%s %s using GNU Classpath %s\n",rvm_configuration, rvm_version, classpath_version);
 }
+
+static void
+fullVersion()
+{
+    shortVersion();
+    fprintf(SysTraceFile, "configuration info:\n\thost %s\n\ttarget %s\n",
+	    rvm_host_configuration, rvm_target_configuration);
+    fprintf(SysTraceFile, "\theap default initial size: %u MBytes\n",
+	    heap_default_initial_size/(1024*1024));
+    fprintf(SysTraceFile, "\theap default maximum size: %u MBytes\n",
+	    heap_default_maximum_size/(1024*1024));
+}
+
 
 /*
  * Identify all command line arguments that are VM directives.
@@ -225,295 +153,362 @@ char *stringAppendWithSpace(char *first, char *second)
  *   Any informational messages (e.g. -help).
  *
  * Input an array of command line arguments.
- * Return an array for Application arguments, and for VM arguments that 
+ * Return an array containing application arguments and VM arguments that 
  *        are not processed here.
- * Side Effect  global JavaArgc set.
+ * Side Effect  global varable JavaArgc is set.
+ *
+ * We reuse the array 'CLAs' to contain the return values.  We're
+ * guaranteed that we will not generate any new command-line arguments, but
+ * only consume them. So, n_JCLAs indexes 'CLAs', and it's always the case
+ * that n_JCLAs <= n_CLAs, and is always true that n_JCLAs <= i (CLA index).
+ *
+ * By reusing CLAs, we avoid any unpleasantries with memory allocation.
+ *
+ * In case of trouble, we set fastExit.  We call exit(0) if no trouble, but
+ * still want to exit.
  */
-char ** 
-processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit) 
+static char ** 
+processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit) 
 {
-  char *autoJCLAs[maxTokens];
-  char **JCLAs;
-  int n_JCLAs=0;
-  int startApplicationOptions = 0;
-  char *subtoken;
-  int i;
+    int n_JCLAs = 0;
+    bool startApplicationOptions = false;
+    char *subtoken;
 
-  if ( n_CLAs > maxTokens )
-    JCLAs = new char*[n_CLAs];
-  else
-    JCLAs = autoJCLAs;
+    for (int i = 0; i < n_CLAs; i++) {
+	char *token = CLAs[i];
+	subtoken = NULL;	// strictly, not needed.
 
-  for (i=0; i<n_CLAs; i++) {
-
-    char *token=CLAs[i];
-
-    #ifdef __linux__
-    if ( NULL == token ) token = emptyString;
-    #endif
-
-    subtoken='\0';
-
-    // examining application options?
-    if (startApplicationOptions == 1) {
-      JCLAs[n_JCLAs++]=token;
-      continue;
-    }
-    // pass on all command line arguments that do not start with a dash, '-'.
-    if (token[0] != '-') {
-      JCLAs[n_JCLAs++]=token;
-      startApplicationOptions = 1;
-      continue;
-    }
-
-    //   while (*argv && **argv == '-')    {
-    if (!strcmp(token, "-help") || !strcmp(token, "-?")) {
-      usage();
-      *fastExit = 1;
-      break;
-    }
-    if (!strcmp(token, nonStandardArgs[HELP_INDEX])) {
-      nonstandard_usage();
-      *fastExit = 1; break;
-    }
-    if (!strcmp(token, nonStandardArgs[VERBOSE_INDEX])) {
-      ++lib_verbose;
-      //      JCLAs[n_JCLAs++]=token;
-      continue;
-    }
-    if (!strcmp(token, "-version")) {
-      fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
-      *fastExit = 1; break;
-    }
-    if (!strcmp(token, "-fullversion")) {
-      fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
-      fprintf(SysTraceFile, "configurations: host %s\n\t target %s\n",
-	      rvm_host_configuration, rvm_target_configuration);
-      fprintf(SysTraceFile, "heap default size: %d MBytes\n",
-	      heap_default_size);
-      *fastExit = 1; break;
-    }
-    if (!strcmp(token, "-showversion")) {
-      fprintf(SysTraceFile, "%s %s\n",rvm_configuration, rvm_version);
-      continue;
-    }
-    if (!strcmp(token, "-findMappable")) {
-      findMappable();
-      *fastExit = 1; break;
-    }
-    if (!strncmp(token, "-verbose:gc", 11)) {
-      int level;
-      if (token[11] == 0) 
-	level = 1;
-      else {
-	level = atoi(token+12); // skip the "=" in "-verbose:gc=<num?"
-	if (level < 0) {
-	  fprintf(SysTraceFile, "%s: please specify GC verbose level \"-verbose:gc=<number>\"\n", me);
-	  *fastExit = 1; break;
+	// examining application options?
+	if (startApplicationOptions) {
+	    CLAs[n_JCLAs++]=token;
+	    continue;
 	}
-      }
-      verboseGC = level; // only for watson
-      {
-	char *buf = (char *) malloc(20);
-	sprintf(buf, "-X:gc:verbose=%d", level);
-	JCLAs[n_JCLAs++]=buf;
-      }
-      continue;
-    }
-    if (!strncmp(token, nonStandardArgs[INITIAL_HEAP_INDEX], 5)) {
-      subtoken = token + 5;
-      initialHeapSize = atoi(subtoken) * 1024 * 1024;
-      if (initialHeapSize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify initial heap size (in megabytes) using \"-X:h=<number>\"\n", me);
-	*fastExit = 1; break;
-      }
-      JCLAs[n_JCLAs++]=token;
-      continue;
-    }
-    if (!strncmp(token, nonStandardArgs[MS_INDEX], 4)) {
-      subtoken = token + 4;
-      initialHeapSize = atoi(subtoken) * 1024 * 1024;
-      if (initialHeapSize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify initial heap size (in megabytes) using \"-Xms<number>\"\n", me);
-	*fastExit = 1; break;
-      }
-      JCLAs[n_JCLAs++]=token;
-      continue;
-    }
-    if (!strncmp(token, nonStandardArgs[MX_INDEX], 4)) {
-      subtoken = token + 4;
-      maximumHeapSize = atoi(subtoken) * 1024 * 1024;
-      if (maximumHeapSize <= 0) {
-	fprintf(SysTraceFile, "%s: please specify maximum heap size (in megabytes) using \"-Xmx<number>\"\n", me);
-	*fastExit = 1; break;
-      }
-      JCLAs[n_JCLAs++]=token;
-      continue;
-    }
+	// pass on all command line arguments that do not start with a dash, '-'.
+	if (token[0] != '-') {
+	    CLAs[n_JCLAs++]=token;
+	    ++startApplicationOptions;
+	    continue;
+	}
 
-    if (!strncmp(token, nonStandardArgs[SYSLOGFILE_INDEX],14)) {
-      subtoken = token + 14;
-      FILE* ftmp = fopen(subtoken, "a");
-      if (!ftmp) {
-	fprintf(SysTraceFile, "%s: can't open SysTraceFile \"%s\"\n", me, subtoken);
-      } else {
-	fprintf(SysTraceFile, "%s: redirecting sysWrites to \"%s\"\n",me, subtoken);
-	SysTraceFile = ftmp;
-#ifdef __linux__
-	SysTraceFd   = ftmp->_fileno;
-#else
-	SysTraceFd   = ftmp->_file;
-#endif
-      }	
-      continue;
-    }
-    if (!strncmp(token, nonStandardArgs[BOOTIMAGE_FILE_INDEX], 5)) {
-      bootFilename = token + 5;
-      continue;
-    }
+	//   while (*argv && **argv == '-')    {
+	if (strequal(token, "-help") || strequal(token, "--help") || strequal(token, "-?") ) {
+	    usage();
+	    *fastExit = 1;
+	    break;
+	}
+	if (strequal(token, nonStandardArgs[HELP_INDEX])) {
+	    nonstandard_usage();
+	    *fastExit = 1; break;
+	}
+	if (strequal(token, nonStandardArgs[VERBOSE_INDEX])) {
+	    ++lib_verbose;
+	    continue;
+	}
+	if (strnequal(token, nonStandardArgs[VERBOSE_BOOT_INDEX], 15)) {
+	    subtoken = token + 15;
+	    errno = 0;
+	    char *endp;
+	    long vb = strtol(subtoken, &endp, 0);
+	    while (*endp && isspace(*endp)) // gobble trailing spaces
+		++endp;
 
-    if (!strncmp(token, nonStandardArgs[TCL_INDEX], 10)) {
-      traceClassLoading = 1;
-      continue;
-    } 
-    
-    /*
-     * JDK 1.3 standard command line arguments that are not supported.
-     * TO DO: provide support
-     */
-    if (!strcmp(token, "-jar")) {
-      fprintf(SysTraceFile, "%s: -jar is not supported\n", me);
-      continue;
-    }
+	    if (vb < 0) {
+		fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative verboseBoot value\n", Me, token);
+		*fastExit = 1; break;
+	    } else if (errno == ERANGE || vb > INT_MAX ) {
+		fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
+		*fastExit = 1; break;
+	    } else if (*endp) {
+		fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);		
+		*fastExit = 1; break;
+	    }
+	    
+	    verboseBoot = vb;
+	    continue;
+	}
+	if (strequal(token, "-version")) {
+	    shortVersion();
+	    // *fastExit = 1; break;
+	    exit(0);
+	}
+	if (strequal(token, "-fullversion")) {
+	    fullVersion();
+	    // *fastExit = 1; break;
+	    exit(0);
+	}
+	if (strequal(token, "-showversion")) {
+	    shortVersion();
+	    continue;
+	}
+	if (strequal(token, "-findMappable")) {
+	    findMappable();
+	    // *fastExit = 1; break;
+	    exit(0);		// success, no?
+	}
+	if (strnequal(token, "-verbose:gc", 11)) {
+	    long level;		// a long, since we need to use strtol()
+	    if (token[11] == '\0') {
+		level = 1;
+	    } else {
+		/* skip to after the "=" in "-verbose:gc=<num>" */
+		subtoken = token + 12;
+		errno = 0;
+		char *endp;
+		level = strtol(subtoken, &endp, 0); 
+		while (*endp && isspace(*endp)) // gobble trailing spaces
+		    ++endp;
 
-    //
-    // All VM directives that are not handled here but in VM.java
-    //  must be identified.
-    //
+		if (level < 0) {
+		    fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative GC verbose value\n", Me, token);
+		    *fastExit = 1; 
+		} else if (errno == ERANGE || level > INT_MAX ) {
+		    fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
+		    *fastExit = 1;
+		} else if (*endp) {
+		    fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);		
+		    *fastExit = 1;
+		}
+		if (*fastExit) {
+		    fprintf(SysTraceFile, "%s: please specify GC verbose level as  \"-verbose:gc=<number>\" or as \"-verbose:gc\"\n", Me);
+		    break;
+		}
+	    }
+	    {
+		// canonicalize the argument
+		char *buf = (char *) malloc(20); 
+		sprintf(buf, "-X:gc:verbose=%ld", level);
+		CLAs[n_JCLAs++]=buf;
+	    }
+	    continue;
+	}
+	if (strnequal(token, nonStandardArgs[INITIAL_HEAP_INDEX], 5)) {
+	    subtoken = token + 5;
+	    fprintf(SysTraceFile, "%s: Warning: -X:h=<number> is deprecated; please use \"-Xms\" and/or \"-Xmx\".\n", Me);
+	    fprintf(SysTraceFile, "\tI am interpreting -X:h=%s as if it was -Xms%s.\n", subtoken, subtoken);
+	    fprintf(SysTraceFile, "\tFor a fixed heap size H, you must use -XmsH -X:gc:variableSizeHeap=false\n");
+	    goto set_initial_heap_size;
+	}
+	if (strnequal(token, nonStandardArgs[MS_INDEX], 4)) {
+	    subtoken = token + 4;
+	set_initial_heap_size:
+	    long ihsMB;		// initial heap size in MB
+	    errno = 0;
+	    char *endp;
+	    ihsMB = strtol(subtoken, &endp, 0);
+	    if (ihsMB <= 0) {
+		fprintf(SysTraceFile, "%s: You may not specify a %s initial heap size;", Me, ihsMB < 0 ? "negative" : "zero");
+		fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
+		*fastExit = 1;
+	    } else if (ihsMB > (int) (UINT_MAX / (1024U * 1024U ))
+		       || errno == ERANGE) 
+	    {
+		fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
+		*fastExit = 1;
+	    } else if (*endp) {
+		fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);		
+		*fastExit = 1;
+	    }
+	    if (*fastExit) {
+		fprintf(SysTraceFile, "\tPlease specify initial heap size (in megabytes) using \"-Xms<positive number>\"\n");
+		break;
+	    }
+	    initialHeapSize = ihsMB * 1024U * 1024U;
+	    continue;
+	}
+	if (strnequal(token, nonStandardArgs[MX_INDEX], 4)) {
+	    subtoken = token + 4;
+	    long mhsMB;		// maximum heap size in MB
+	    errno = 0;
+	    char *endp;
+	    mhsMB = strtol(subtoken, &endp, 0);
+	    if (mhsMB <= 0) {
+		fprintf(SysTraceFile, "%s: You may not specify a %s maximum heap size;", Me, mhsMB < 0 ? "negative" : "zero");
+		fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
+		*fastExit = 1;
+	    } else if (mhsMB > (int) (UINT_MAX / (1024U * 1024U ))
+		       || errno == ERANGE) 
+	    {
+		fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
+		*fastExit = 1;
+	    } else if (*endp) {
+		fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a number\n", Me, token, subtoken);		
+		*fastExit = 1;
+	    }
+	    if (*fastExit) {
+		fprintf(SysTraceFile, "\tPlease specify maximum heap size (in megabytes) using \"-Xms<positive number>\"\n");
+		break;
+	    }
+	    maximumHeapSize = mhsMB * 1024U * 1024U;
+	    continue;
+	}
 
-    // All VM directives that take one token
-    if (!strncmp(token, "-D", 2) || !strncmp(token, nonStandardArgs[GC_INDEX], 5) ||
-	!strncmp(token, nonStandardArgs[AOS_INDEX],6)   || 
-        !strncmp(token, nonStandardArgs[IRC_INDEX], 6) ||
-	!strncmp(token, nonStandardArgs[BASE_INDEX],7)  || 
-        !strncmp(token, nonStandardArgs[OPT_INDEX], 6) ||
-	!strncmp(token, nonStandardArgs[PROF_INDEX], 7)  ||
-	!strcmp(token, "-verbose")    || !strcmp(token, "-verbose:class") ||
-	!strcmp(token, "-verbose:gc") || !strcmp(token, "-verbose:jni") || 
-	!strncmp(token, nonStandardArgs[VMCLASSES_INDEX], 13)  || 
-	!strncmp(token, nonStandardArgs[CPUAFFINITY_INDEX], 15) ||
-	!strncmp(token, nonStandardArgs[PROCESSORS_INDEX], 14)  ||
-	!strncmp(token, nonStandardArgs[MEASURE_COMPILATION_INDEX], 22) ||  
-	!strncmp(token, nonStandardArgs[VERIFY_INDEX], 10)  
-	) {
-      JCLAs[n_JCLAs++]=token;
-      continue;
-    }
-    // All VM directives that take two tokens
-    if (!strcmp(token, "-cp") || !strcmp(token, "-classpath")) {
-      JCLAs[n_JCLAs++]=token;
-      token=CLAs[++i];
-      JCLAs[n_JCLAs++]=token;
-      continue;
-    }
+	if (strnequal(token, nonStandardArgs[SYSLOGFILE_INDEX],14)) {
+	    subtoken = token + 14;
+	    FILE* ftmp = fopen(subtoken, "a");
+	    if (!ftmp) {
+		fprintf(SysTraceFile, "%s: can't open SysTraceFile \"%s\": %s\n", Me, subtoken, strerror(errno));
+		continue;
+	    }
+	    fprintf(SysTraceFile, "%s: redirecting sysWrites to \"%s\"\n",Me, subtoken);
+	    SysTraceFile = ftmp;
+	    SysTraceFd = fileno(ftmp);
+	    continue;
+	}
+	if (strnequal(token, nonStandardArgs[BOOTIMAGE_FILE_INDEX], 5)) {
+	    bootFilename = token + 5;
+	    continue;
+	}
 
-    JCLAs[n_JCLAs++]=token;
-    startApplicationOptions = 1;
-  }
-  
-  // Copy only those command line arguments that are needed.
-  char **Arguments = new char*[n_JCLAs];
-  for (i=0; i<n_JCLAs; i++) {
-    Arguments[i]=JCLAs[i];
-  }
+	/*
+	 * JDK 1.3 standard command line arguments that are not supported.
+	 * TO DO: provide support
+	 */
+	if (strequal(token, "-jar")) {
+	    fprintf(SysTraceFile, "%s: -jar is not supported\n", Me);
+	    continue;
+	}
 
-  /* and set the count */
-  JavaArgc = n_JCLAs == 0 ? 0 : n_JCLAs - 1;
+	//
+	// All VM directives that are not handled here but in VM.java
+	// must be identified.
+	//
 
-  if ( n_CLAs > maxTokens )
-    free (JCLAs);
+	// All VM directives that take one token
+	if (strnequal(token, "-D", 2) 
+	    || strnequal(token, nonStandardArgs[VM_INDEX], 5) 
+	    || strnequal(token, nonStandardArgs[GC_INDEX], 5) 
+	    || strnequal(token, nonStandardArgs[AOS_INDEX],6) 
+	    || strnequal(token, nonStandardArgs[IRC_INDEX], 6) 
+	    || strnequal(token, nonStandardArgs[RECOMP_INDEX], 9) 
+	    || strnequal(token, nonStandardArgs[BASE_INDEX],7)  
+	    || strnequal(token, nonStandardArgs[OPT_INDEX], 6) 
+	    || strequal(token, "-verbose")
+	    || strequal(token, "-verbose:class")
+	    || strequal(token, "-verbose:gc") 
+	    || strequal(token, "-verbose:jni") 
+	    || strnequal(token, nonStandardArgs[VMCLASSES_INDEX], 13)  
+	    || strnequal(token, nonStandardArgs[CPUAFFINITY_INDEX], 15) 
+	    || strnequal(token, nonStandardArgs[PROCESSORS_INDEX], 14)) 
+	{
+	    CLAs[n_JCLAs++]=token;
+	    continue;
+	}
+	// All VM directives that take two tokens
+	if (strequal(token, "-cp") || strequal(token, "-classpath")) {
+	    CLAs[n_JCLAs++]=token;
+	    token=CLAs[++i];
+	    CLAs[n_JCLAs++]=token;
+	    continue;
+	}
 
-  return Arguments;
+	CLAs[n_JCLAs++]=token;
+	++startApplicationOptions; // found one that we do not recognize;
+				   // start to copy them all blindly
+    } // for ()
+
+    /* and set the count */
+    JavaArgc = n_JCLAs;
+    return CLAs;
 }
 
 /*
  * Parse command line arguments to find those arguments that 
- *   1) effect the starting of the VM, 
+ *   1) affect the starting of the VM, 
  *   2) can be handled without starting the VM, or
  *   3) contain quotes
  * then call createJVM().
- *
- * Other command line arguments are handled by VM.java.
- *
- * TO DO:
- * Standardize all VM directives
- *   specified as one token with a name value pair specified as name=value.
- *   for example, -h, and -i. (Look in VM.java for others!)
- * Add support for all standard JDK 1.3 options; 
- *   for example, -jar.
  */
 int
 main(int argc, char **argv)
 {
-  SysErrorFile = stderr;
-  SysTraceFile = stderr;
-  SysTraceFd   = 2;
+    SysErrorFile = stderr;
+    SysTraceFile = stderr;
+    SysTraceFd   = 2;
   
-  me            = basename(*argv++);
-  initialHeapSize = heap_default_size*1024*1024; // megs
+    Me            = basename(*argv++);
+    --argc;
+    initialHeapSize = heap_default_initial_size;
+    maximumHeapSize = heap_default_maximum_size;
   
-  /*
-   * Debugging: print out command line arguments.
-   */
-  if (DEBUG) {
-    printf("RunBootImage.main(): process %d command line arguments\n",argc);
-    for (int j=0; j<argc; j++) {
-      printf("\targv[%d] is \"%s\"\n",j,*(argv+j));
+    /*
+     * Debugging: print out command line arguments.
+     */
+    if (DEBUG) {
+	printf("RunBootImage.main(): process %d command line arguments\n",argc);
+	for (int j=0; j<argc; j++) {
+	    printf("\targv[%d] is \"%s\"\n",j, argv[j]);
+	}
     }
-  }
   
-  // call process command line arguments.
-  int fastBreak = 0;
-  char **Arguments = processCommandLineArguments(argv, argc, &fastBreak);
-  if (fastBreak==1) {
-    return 1;
-  }
+    // call processCommandLineArguments().
+    bool fastBreak = false;
+    // Sets JavaArgc
+    JavaArgs = processCommandLineArguments(argv, argc, &fastBreak);
+    if (fastBreak) {
+	exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
+    }
 
-  if (maximumHeapSize == 0) {
-    maximumHeapSize = initialHeapSize;
-  }
+    if (DEBUG) {
+	printf("RunBootImage.main(): after processCommandLineArguments: %d command line arguments\n", JavaArgc);
+	for (int j = 0; j < JavaArgc; j++) {
+	    printf("\tJavaArgs[%d] is \"%s\"\n", j, JavaArgs[j]);
+	}
+    }
+  
+    if (initialHeapSize == heap_default_initial_size &&
+	maximumHeapSize != heap_default_maximum_size &&
+	initialHeapSize > maximumHeapSize) {
+	initialHeapSize = maximumHeapSize;
+    }
 
-  if (maximumHeapSize < initialHeapSize) {
-    fprintf(SysTraceFile, "%s: maximum heap size %d is less than initial heap size %d\n", 
-	    me, initialHeapSize/(1024*1024), maximumHeapSize/(1024*1024));
-    return 1;
-  }
+    if (maximumHeapSize == heap_default_maximum_size &&
+	initialHeapSize != heap_default_initial_size &&
+	initialHeapSize > maximumHeapSize) {
+	maximumHeapSize = initialHeapSize;
+    }
 
-  if(DEBUG){
-    printf("\nRunBootImage.main(): VM variable settings\n");
-    printf("initialHeapSize %d\nmaxHeapSize %d\nbootFileName |%s|\nlib_verbose %d\n",
-	   initialHeapSize, maximumHeapSize, bootFilename, lib_verbose);
-  }
+    if (maximumHeapSize < initialHeapSize) {
+	fprintf(SysTraceFile, "%s: maximum heap size %d is less than initial heap size %d\n", 
+		Me, maximumHeapSize/(1024*1024), initialHeapSize/(1024*1024));
+	return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+    }
 
-  if (!bootFilename) {
+    if (DEBUG){
+	printf("\nRunBootImage.main(): VM variable settings\n");
+	printf("initialHeapSize %d\nmaxHeapSize %d\nbootFileName |%s|\nlib_verbose %d\n",
+	       initialHeapSize, maximumHeapSize, bootFilename, lib_verbose);
+    }
+
+    if (!bootFilename) {
 #ifdef RVM_BOOTIMAGE
-    bootFilename = RVM_BOOTIMAGE;
+	bootFilename = RVM_BOOTIMAGE;
 #endif
-  }
+    }
 
-  if (!bootFilename) {
-    fprintf(SysTraceFile, "%s: please specify name of boot image file using \"-i<filename>\"\n", me);
-    return 1;
-  }
+    if (!bootFilename) {
+	fprintf(SysTraceFile, "%s: please specify name of boot image file using \"-i<filename>\"\n", Me);
+	return EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
+    }
 
-  JavaArgs = Arguments;
-
-  createJVM(0);
+    createJVM(0);
   
-  // not reached
-  //
-  fprintf(SysErrorFile, "%s: unexpected return from vm startup thread\n", me);
-  exit(1);
+    // not reached
+    //
+    fprintf(SysErrorFile, "%s: unexpected return from vm startup thread\n", Me);
+    exit(-1);
 }
 
+
+static bool 
+strequal(const char *s1, const char *s2)
+{
+    return strcmp(s1, s2) == 0;
+}
+
+
+static bool 
+strnequal(const char *s1, const char *s2, size_t n)
+{
+    return strncmp(s1, s2, n) == 0;
+}
 

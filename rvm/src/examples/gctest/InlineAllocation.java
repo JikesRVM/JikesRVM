@@ -27,25 +27,23 @@ class InlineAllocation {
   int b;
 
   // We allow some pork for assertion checking in the inline allocation sequence,
-  // However, we can't allow this to get out of hand...otherwise builds that way too long.
-  static int assertionFactor = VM.VerifyAssertions ? 2 : 1;
+  // However, we can't allow this to get out of hand...otherwise builds take way too long.
+  static int assertionSpace = VM.VerifyAssertions ? (VM.BuildForIA32 ? 40 : 15) : 0;
 
   // Limits on sizes of allocation sequences.
   // Make them specific to the allocator so we can make them reasonably tight.
   //-#if RVM_WITH_SEMI_SPACE || RVM_WITH_GEN_COPY || RVM_WITH_GEN_MS || RVM_WITH_COPY_MS
-  static int alloc1Limit = assertionFactor * (VM.BuildForIA32 ? 75 : 22); // small object
-  static int alloc3Limit = assertionFactor * (VM.BuildForIA32 ? 75 : 22); // large object
-  static int alloc4Limit = assertionFactor * (VM.BuildForIA32 ? 250: 60); // unknown size object GACK!!
+  static int alloc1Limit = assertionSpace + (VM.BuildForIA32 ? 75 : 22); // small object
+  static int alloc3Limit = assertionSpace + (VM.BuildForIA32 ? 100: 30); // large object
   //-#elif RVM_WITH_MARK_SWEEP
-  static int alloc1Limit = assertionFactor * (VM.BuildForIA32 ? 100 : 30); // small object
-  static int alloc3Limit = assertionFactor * (VM.BuildForIA32 ? 100 : 30); // large object
-  static int alloc4Limit = assertionFactor * (VM.BuildForIA32 ? 250: 60);  // unknown size object GACK!!
+  static int alloc1Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // small object
+  static int alloc3Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // large object
   //-#else
-  static int alloc1Limit = assertionFactor * (VM.BuildForIA32 ? 100 : 30); // small object
-  static int alloc3Limit = assertionFactor * (VM.BuildForIA32 ? 100 : 30); // large object
-  static int alloc4Limit = assertionFactor * (VM.BuildForIA32 ? 200 : 50); // unknown size object
+  static int alloc1Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // small object
+  static int alloc3Limit = assertionSpace + (VM.BuildForIA32 ? 100 : 30); // large object
   //-#endif 
-  static int alloc2Limit = alloc1Limit + (VM.BuildForIA32 ? 8 : 1); // small array.  Should be only the store of the length different than small object
+  static int alloc2Limit = alloc1Limit + (VM.BuildForIA32 ? 8 : 2); // small array.  Should be only the store of the length different than small object
+  static int alloc4Limit = (VM.BuildForIA32 ? 40 : 10); // unknown size object. Should not be inlined at all.
 
   /**
    * A trivial method that should require the full prologue/epilogue
@@ -105,15 +103,15 @@ class InlineAllocation {
     VM_Method alloc4 = java.lang.reflect.JikesRVMSupport.getMethodOf(alloc4J);
 
     trivial.compile();
-    int trivialSize = trivial.getCurrentInstructions().length;
+    int trivialSize = trivial.getCurrentInstructions().length();
     alloc1.compile();
-    int alloc1Size = alloc1.getCurrentInstructions().length;
+    int alloc1Size = alloc1.getCurrentInstructions().length();
     alloc2.compile();
-    int alloc2Size = alloc2.getCurrentInstructions().length;
+    int alloc2Size = alloc2.getCurrentInstructions().length();
     alloc3.compile();
-    int alloc3Size = alloc3.getCurrentInstructions().length;
+    int alloc3Size = alloc3.getCurrentInstructions().length();
     alloc4.compile();
-    int alloc4Size = alloc4.getCurrentInstructions().length;
+    int alloc4Size = alloc4.getCurrentInstructions().length();
 
     // System.out.println("Trivial method is "+trivialSize);
     // System.out.println("Scalar allocation size is "+alloc1Size);

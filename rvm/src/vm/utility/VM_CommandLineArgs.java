@@ -4,12 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-//-#if RVM_WITH_OPT_COMPILER
-import com.ibm.JikesRVM.opt.*;
-//-#endif
-
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.adaptive.VM_Controller;
+import com.ibm.JikesRVM.opt.*;
 //-#endif
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
@@ -54,42 +51,32 @@ public class VM_CommandLineArgs {
   // -----------------------------------------------//
   public static final int CLASSPATH_ARG	       =  2;
   public static final int ENVIRONMENT_ARG      =  3;
-  public static final int VERBOSE_GC_ARG       =  4;
   public static final int VERBOSE_JNI_ARG      =  5;
   public static final int VERBOSE_CLS_ARG      =  6;
 
   // -----------------------------------------------//
-  // The following arguments are RVM-specific. //
+  // The following arguments are RVM-specific.      //
   // -----------------------------------------------//
   public static final int VM_CLASSES_ARG       =  7;
   public static final int CPUAFFINITY_ARG      =  8;
   public static final int PROCESSORS_ARG       =  9;
-  public static final int IRC_HELP_ARG         = 11;
-  public static final int IRC_ARG              = 12;
-  public static final int AOS_IRC_HELP_ARG     = 13;
-  public static final int AOS_IRC_ARG          = 14;
-  public static final int AOS_OPT_HELP_ARG     = 15;
-  public static final int AOS_OPT_ARG          = 16;
-  public static final int AOS_SHARE_ARG        = 17;
-  public static final int AOS_HELP_ARG         = 18;
-  public static final int AOS_ARG              = 19;
-  public static final int MEASURE_COMP_ARG     = 20;
-  public static final int AOS_BASE_ARG         = 22;
-  public static final int AOS_BASE_HELP_ARG    = 23;
-  public static final int BASE_HELP_ARG        = 24;
-  public static final int BASE_ARG             = 25;
-  public static final int OPT_ARG              = 26;
-  public static final int OPT_HELP_ARG         = 27;
-  public static final int PROF_ARG             = 28;
-  public static final int VERIFY_ARG           = 29;
-  public static final int SCHEDULER_ARG        = 30;
-  public static final int GC_HELP_ARG          = 31;
-  public static final int GC_ARG               = 32;
-  public static final int INITIAL_HEAP_ARG     = 33;
-  public static final int MAX_HEAP_ARG         = 34;
-  public static final int VERBOSE_STACK_ARG    = 36;
-  public static final int HPM_ARG              = 37;
-  public static final int HPM_HELP_ARG         = 38;
+  public static final int VM_HELP_ARG          = 10;
+  public static final int VM_ARG               = 11;
+  public static final int IRC_HELP_ARG         = 12;
+  public static final int IRC_ARG              = 13;
+  public static final int RECOMP_HELP_ARG      = 14;
+  public static final int RECOMP_ARG           = 15;
+  public static final int AOS_HELP_ARG         = 16;
+  public static final int AOS_ARG              = 17;
+  public static final int BASE_HELP_ARG        = 18;
+  public static final int BASE_ARG             = 19;
+  public static final int OPT_ARG              = 20;
+  public static final int OPT_HELP_ARG         = 21;
+  public static final int VERIFY_ARG           = 22;
+  public static final int GC_HELP_ARG          = 23;
+  public static final int GC_ARG               = 24;
+  public static final int HPM_HELP_ARG         = 25;
+  public static final int HPM_ARG              = 26;
 
   /**
    * A catch-all prefix to find application name.
@@ -113,10 +100,9 @@ public class VM_CommandLineArgs {
    * have the same type.
    */
   private static final Prefix[] prefixes = {
-    new Prefix("-classpath ",           CLASSPATH_ARG), // Note: space is significant
-    new Prefix("-cp ",                  CLASSPATH_ARG),        // Note: space is significant
+    new Prefix("-classpath ",           CLASSPATH_ARG),  // Note: space is significant
+    new Prefix("-cp ",                  CLASSPATH_ARG),  // Note: space is significant
     new Prefix("-D",                    ENVIRONMENT_ARG),
-    new Prefix("-verbose:gc$",          VERBOSE_GC_ARG),
     new Prefix("-verbose:class$",       VERBOSE_CLS_ARG),
     new Prefix("-verbose:jni$",         VERBOSE_JNI_ARG),
     new Prefix("-verbose$",             VERBOSE_CLS_ARG),
@@ -126,44 +112,34 @@ public class VM_CommandLineArgs {
     new Prefix("-X:irc:help$",          IRC_HELP_ARG),
     new Prefix("-X:irc$",               IRC_HELP_ARG),
     new Prefix("-X:irc:",               IRC_ARG),
-    new Prefix("-X:aos:irc:help$",      AOS_IRC_HELP_ARG),
-    new Prefix("-X:aos:irc$",           AOS_IRC_HELP_ARG),
-    new Prefix("-X:aos:irc:",           AOS_IRC_ARG),
-    new Prefix("-X:aos:opt:help$",      AOS_OPT_HELP_ARG),
-    new Prefix("-X:aos:opt$",           AOS_OPT_HELP_ARG),
-    new Prefix("-X:aos:opt",            AOS_OPT_ARG),
-    new Prefix("-X:aos:share",          AOS_SHARE_ARG),
-    new Prefix("-X:aos:base:",          AOS_BASE_ARG),
-    new Prefix("-X:aos:base:help$",     AOS_BASE_HELP_ARG),
-    new Prefix("-X:aos:base$",          AOS_BASE_HELP_ARG),
+    new Prefix("-X:recomp:help$",       RECOMP_HELP_ARG),
+    new Prefix("-X:recomp$",            RECOMP_HELP_ARG),
+    new Prefix("-X:recomp",             RECOMP_ARG),
     new Prefix("-X:aos:help$",          AOS_HELP_ARG),
     new Prefix("-X:aos$",               AOS_HELP_ARG),
     new Prefix("-X:aos:",               AOS_ARG),
     new Prefix("-X:gc:help$",           GC_HELP_ARG),
     new Prefix("-X:gc$",                GC_HELP_ARG),
     new Prefix("-X:gc:",                GC_ARG),
-    new Prefix("-X:h=",                 INITIAL_HEAP_ARG),
-    new Prefix("-Xms",                  INITIAL_HEAP_ARG), // JDK compatibility
-    new Prefix("-Xmx",                  MAX_HEAP_ARG),     // JDK compatability
-    new Prefix("-X:measureCompilation=",MEASURE_COMP_ARG),
     new Prefix("-X:base:help$",         BASE_HELP_ARG),
     new Prefix("-X:base$",              BASE_HELP_ARG),
     new Prefix("-X:base:",              BASE_ARG),
     new Prefix("-X:opt:help$",          OPT_HELP_ARG),
     new Prefix("-X:opt$",               OPT_HELP_ARG),
     new Prefix("-X:opt:",               OPT_ARG),
-    new Prefix("-X:prof:",              PROF_ARG),
-    new Prefix("-X:verify=",            VERIFY_ARG),
-    new Prefix("-X:verboseStackTrace=", VERBOSE_STACK_ARG),
-    new Prefix("-X:scheduler:",         SCHEDULER_ARG),
-    new Prefix("-X:hpm:",               HPM_ARG),
-    new Prefix("-X:hpm:help",           HPM_HELP_ARG),
+    new Prefix("-X:hpm:help$",          HPM_HELP_ARG),
     new Prefix("-X:hpm$",               HPM_HELP_ARG),
+    new Prefix("-X:hpm:",               HPM_ARG),
+    new Prefix("-X:vm:help$",           VM_HELP_ARG),
+    new Prefix("-X:vm$",                VM_HELP_ARG),
+    new Prefix("-X:vm:",                VM_ARG),
     app_prefix
   };
 
   static {
     // Bubble sort the prefixes (yeah, yeah, I know)
+    // 
+    // Besides, this is done only at boot image writing time, not at runtime.
     for (int i = 0; i < prefixes.length; i++)
       for (int j = i + 1; j < prefixes.length; j++)
         if (prefixes[j].value.compareTo(prefixes[i].value) >= 0) {
@@ -196,52 +172,73 @@ public class VM_CommandLineArgs {
    * Fetch arguments from program command line.
    */
   static void fetchCommandLineArguments() {
-    if (args != null) return;
+    if (args != null)		// if already been here...
+      return;	
+    ArgReader argRdr = new ArgReader();
 
-    byte[]   buf  = new byte[10*1024];
-    int numArgs = sysArg(-1, buf);
+    int numArgs = argRdr.numArgs();
     args = new String[numArgs];
     arg_types = new int[numArgs];
-    boolean app_name_found = false;
+
     for (int i = 0; i < numArgs; ++i) {
-      int cnt = sysArg(i, buf);
-      // !!TODO: if i-th arg too long, enlarge buf[] and try again
-      if (VM.VerifyAssertions) VM._assert(cnt != -1); 
-      String arg = new String(buf, 0, 0, cnt);
+      String arg = argRdr.getArg(i);
+      
       if (app_prefix.count > 0) {
+	/* We're already into the application arguments.  Here's another
+	 * one. */ 
         args[i] = arg;
         arg_types[i] = APPLICATION_ARG;
         app_prefix.count++;
-      } else {
-        // Note: should never run out of bounds
-        for (int j = 0; j < prefixes.length; j++) {
-          Prefix p = prefixes[j];
-          String v = p.value;
-          if (!matches(arg, v)) continue;
-          args[i] = arg.substring(length(v));
-          arg_types[i] = p.type;
-          p = findPrefix(p.type);
-          p.count++;
-          if (v.endsWith(" ")) {
-            if (++i >= numArgs) { 
-              VM.sysWrite("vm: "+v+"needs an argument\n"); 
-              VM.sysExit(1); 
-            }
-            cnt = sysArg(i, buf);
-            // !!TODO: if i-th arg too long, enlarge buf[] and try again
-            if (VM.VerifyAssertions) VM._assert(cnt != -1);
-            String val = new String(buf, 0, 0, cnt);
-            args[i-1] += val;
-            args[i] = null;
-          }
-          if (p == app_prefix) app_name_pos = i;
-          break;
-        } // end for
-      } // end else
-    } // end for 
+	continue;
+      } 
+      
+      // Note: This loop will never run to the end.
+      for (int j = 0; j < prefixes.length; j++) {
+	Prefix p = prefixes[j];
+	String v = p.value;
+	if (!matches(arg, v)) 
+	  continue;
+	// Chop off the prefix (which we've already matched) and store the
+	// value portion of the string (the unique part) in args[i].  Store
+	// information about the prefix itself in arg_types[i].   
+	args[i] = arg.substring(length(v));
+	if (DEBUG) {
+	  VM.sysWrite("length(v) = ");
+	  VM.sysWrite(length(v));
+
+	  VM.sysWrite("; v = \"");
+	  VM.sysWrite(v);
+	  VM.sysWriteln("\"");
+	  VM.sysWrite("args[");
+	  VM.sysWrite(i);
+	  VM.sysWrite("] = \"");
+	  VM.sysWrite(args[i]);
+	  VM.sysWrite("\"; arg = \"");
+	  VM.sysWrite(arg);
+	  VM.sysWriteln("\"");
+	}
+	
+	arg_types[i] = p.type;
+	p = findPrefix(p.type);	// Find the canonical prefix for this type...
+	p.count++;		// And increment the usage count for that
+				// canonical prefix.
+	if (v.endsWith(" ")) {
+	  if (++i >= numArgs) { 
+	    VM.sysWrite("vm: " + v + "needs an argument\n"); 
+	    VM.sysExit(VM.exitStatusBogusCommandLineArg); 
+	  }
+	  args[ i - 1 ] += argRdr.getArg(i);
+	  args[i] = null;
+	}
+	if (p == app_prefix) 
+	  app_name_pos = i;
+	break;
+      }
+    } // for (i = 0; i < numArgs...)
     /*
-     * if no application is specified, set app_name_pos to numArgs to ensure
-     * all command line arguments are processed.
+     * If no application is specified, set app_name_pos to numArgs (that is,
+     * to one past the last item in the array of arguments) to ensure all
+     * command-line arguments are processed.
      */
     if (app_name_pos == -1) 
       app_name_pos = numArgs;
@@ -307,14 +304,14 @@ public class VM_CommandLineArgs {
    * @return the environment arg, or null if there is none.
    */
   public static String getEnvironmentArg(String variable) {
-      String[] allEnvArgs = getArgs(ENVIRONMENT_ARG);
-      String prefix = variable + "=";
-      if (allEnvArgs != null)
-	  for(int i = 0; i < allEnvArgs.length; i++) 
-	      if (allEnvArgs[i].startsWith(prefix))
-		  return allEnvArgs[i].substring(variable.length()+1);
+    String[] allEnvArgs = getArgs(ENVIRONMENT_ARG);
+    String prefix = variable + "=";
+    if (allEnvArgs != null)
+      for(int i = 0; i < allEnvArgs.length; i++) 
+	if (allEnvArgs[i].startsWith(prefix))
+	  return allEnvArgs[i].substring(variable.length()+1);
 
-      return null;
+    return null;
   }
 
   /**
@@ -332,9 +329,9 @@ public class VM_CommandLineArgs {
 
   /**
    * Stage1 processing of virtual machine directives appearing in argument list.
-   * This function is responsible for processing the subset of the
-   * command line arguments that must be handled early in booting.
-   * Most command line arguments are deferred until lateProcessCommandLineArguments.
+   * We try to process as many classes of command line arguments as possible here.
+   * Only those command line arguments that require a more or less
+   * fully booted VM to handle are delayed until lateProcessCommandLineArguments.
    */
   static void earlyProcessCommandLineArguments() {
     for (int i = 0; i<app_name_pos; i++) {
@@ -344,23 +341,11 @@ public class VM_CommandLineArgs {
       Prefix p = findPrefix(type);
       if (DEBUG) VM.sysWrite(" VM_CommandLineArgs.earlyProcessCLA("+p.value+arg+")\n");
       switch (type) {
-      case CLASSPATH_ARG:
-	// arguments of the form "-classpath a:b:c" or "-cp a:b:c"
-	VM_ClassLoader.setApplicationRepositories(arg);
-	break;
-
-      case VERBOSE_GC_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	VM_BootRecord.the_boot_record.verboseGC = 1;
-	break;
-
       case VERBOSE_CLS_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	VM.verboseClassLoading = true;
 	break;
-
-      case VERBOSE_JNI_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
+ 
+     case VERBOSE_JNI_ARG:
 	VM.verboseJNI = true;
 	break;
 
@@ -369,92 +354,148 @@ public class VM_CommandLineArgs {
 	// -------------------------------------------------//	
       case CPUAFFINITY_ARG:
 	int cpuAffinity = 0;
-	try { cpuAffinity = Integer.parseInt(arg); }
+	try { cpuAffinity = primitiveParseInt(arg); }
 	catch (NumberFormatException e) { cpuAffinity = -1; }
 	if (cpuAffinity < 0) {
 	  VM.sysWrite("vm: "+p.value+" needs a cpu number (0..N-1), but found '"+arg+"'\n");
-	  VM.sysExit(1);
+	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	}
 	if (VM.BuildForSingleVirtualProcessor && cpuAffinity != 0) { 
 	  VM.sysWrite("vm: I wasn't compiled to support multiple processors\n");
-	  VM.sysExit(1);
+	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	}
 	VM_Scheduler.cpuAffinity = cpuAffinity;
 	break;
+
       case PROCESSORS_ARG: // "-X:processors=<n>" or "-X:processors=all"
 	if (arg.equals("all")) {
-	  VM_Scheduler.numProcessors =
-	    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysNumProcessorsIP);
+	  VM_Scheduler.numProcessors = VM_SysCall.sysNumProcessors();
 	} else {
-	  try { VM_Scheduler.numProcessors = Integer.parseInt(arg);
-	  } catch (NumberFormatException e) {
-	    VM_Scheduler.numProcessors = 0;
-	    VM.sysWrite("vm: "+p.value+" needs a number, but found '"+arg+"'\n");
-	    VM.sysExit(1);
-	  }
+	  VM_Scheduler.numProcessors = primitiveParseInt(arg);
 	}
 	if (VM_Scheduler.numProcessors < 1 ||
 	    VM_Scheduler.numProcessors > (VM_Scheduler.MAX_PROCESSORS-1)) {
 	  VM.sysWrite("vm: "+p.value+arg+" needs an argument between 1 and " + (VM_Scheduler.MAX_PROCESSORS-1) + " (inclusive)\n");
-	  VM.sysExit(1);
+	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	}
 	if (VM.BuildForSingleVirtualProcessor &&
 	    VM_Scheduler.numProcessors != 1) {
 	  VM.sysWrite("vm: I wasn't compiled to support multiple processors\n");
-	  VM.sysExit(1);
+	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	}
-	break;
-      case SCHEDULER_ARG: // "-X:scheduler:<option>"
-	VM_Scheduler.processArg(arg);
 	break;
 
 	// -------------------------------------------------------------------
 	// GC options
 	// -------------------------------------------------------------------
       case GC_HELP_ARG:  // -X:gc passed 'help' as an option
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	MM_Interface.processCommandLineArg("help");
 	break;
       case GC_ARG: // "-X:gc:arg" pass 'arg' as an option
 	MM_Interface.processCommandLineArg(arg);
 	break;
-      case INITIAL_HEAP_ARG: 
-	MM_Interface.processCommandLineArg("initial=" + arg);
+	
+	// ----------------------------------------------------
+	// Access initial runtime compiler (may be baseline or optimizing).
+	// ----------------------------------------------------
+      case IRC_HELP_ARG:
+	VM_RuntimeCompiler.processCommandLineArg("help");
 	break;
-      case MAX_HEAP_ARG: 
-	MM_Interface.processCommandLineArg("max=" + arg);
+      case IRC_ARG: // "-X:irc:arg"; pass 'arg' as an option
+	VM_RuntimeCompiler.processCommandLineArg(arg);
+	break;
+
+	// --------------------------------------------------------------------
+	// Access adaptive system's recompilation compilers
+	// Currently this means the opt compiler, but in general we could be
+	// talking to several different compilers used by AOS for recompilation.
+	// --------------------------------------------------------------------
+      case RECOMP_HELP_ARG:
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
+	VM_Controller.addOptCompilerOption("opt:help");
+	//-#else
+	VM.sysWrite("vm: nonadaptive configuration; -X:recomp is not a legal prefix in this configuration\n");
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+	//-#endif
+	break;
+      case RECOMP_ARG:
+	// "-X:recomp[?]:arg" process as 'opt[?]:arg' to opt
+	// Note arg actually includes the optional opt level and :
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
+	VM_Controller.addOptCompilerOption("opt"+arg);
+	//-#else
+	VM.sysWrite("vm: nonadaptive configuration; -X:recomp is not a legal prefix in this configuration\n");
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+	//-#endif
+	break;
+
+	// -------------------------------------------------------------------
+	// Access adaptive optimization system
+	// -------------------------------------------------------------------
+      case AOS_HELP_ARG:  // -X:aos passed 'help' as an option
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
+	VM_Controller.processCommandLineArg("help");
+	//-#else
+	VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+	//-#endif
+	break;
+      case AOS_ARG: // "-X:aos:arg" pass 'arg' as an option
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
+	VM_Controller.processCommandLineArg(arg);
+	//-#else
+	VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+	//-#endif
+	break;
+
+	// ----------------------------------------------------
+	// Access baseline compiler
+	// ----------------------------------------------------
+      case BASE_HELP_ARG:
+	VM_BaselineOptions.printHelp("-X:base:");
+	break;
+      case BASE_ARG: // "-X:base:arg"; pass 'arg' as an option
+	VM_BaselineCompiler.processCommandLineArg(p.value,arg);
+	break;
+
+	// ----------------------------------------------------
+	// Access all 'logical' optimizing compilers
+	// (both irc and recomp compilers)
+	// ----------------------------------------------------
+      case OPT_HELP_ARG:
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
+	VM_RuntimeCompiler.processOptCommandLineArg("help");
+	//-#else
+	VM.sysWrite("vm: You are not using a system that includes the optimizing compiler.");
+	VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+	//-#endif
+	break;
+      case OPT_ARG: // "-X:opt:arg"; pass 'arg' as an option
+	//-#if RVM_WITH_ADAPTIVE_SYSTEM
+	VM_RuntimeCompiler.processOptCommandLineArg(arg);
+	VM_Controller.addOptCompilerOption("opt:"+arg);
+	//-#else
+	VM.sysWrite("vm: You are not using a system that includes the optimizing compiler.");
+	VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+	//-#endif
+	break;
+
+	// -------------------------------------------------------------------
+	// Other arguments to the core VM
+	// -------------------------------------------------------------------
+      case VM_HELP_ARG:  // -X:vm passed 'help' as an option
+	VM_Options.printHelp();
+	break;
+      case VM_ARG: // "-X:vm:arg" pass 'arg' as an option
+	if (!VM_Options.process(arg)) {
+	  VM.sysWriteln("Unrecognized command line argument "+p.value+arg);
+	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
+	}
 	break;
 	
-	// -------------------------------------------------------------------
-	// Enable meausrement of compilation time 
-	// -------------------------------------------------------------------
-      case MEASURE_COMP_ARG:
-	if (arg.equals("true")) {
-	  VM.MeasureCompilation = true;
-	  VM.EnableCPUMonitoring = true;
-	} else if (arg.equals("false")) {
-	  VM.MeasureCompilation = false;
-	} else {
-	  VM.sysWrite("vm: -X:measureCompilation=<option>, where option is true or false\n");
-	  VM.sysExit(1);
-	}
-	break;
-
-	// -------------------------------------------------------------------
-	// Enable/disable bytecode verification
-	// -------------------------------------------------------------------
-      case VERIFY_ARG:
-	if (arg.equals("true")) {
-	  VM.VerifyBytecode = true;
-	} else if (arg.equals("false")) {
-	  VM.VerifyBytecode = false;
-	} else {
-	  VM.sysWrite("vm: -X:verify=<option>, where option is true or false\n");
-	  VM.sysExit(1);
-	}
-	break;
-
-
 	//-#if RVM_WITH_HPM
 	// -------------------------------------------------------------------
 	// HPM (Hardware Performance Monitor) arguments
@@ -463,8 +504,13 @@ public class VM_CommandLineArgs {
 	VM_HardwarePerformanceMonitors.processArg(arg);
 	break;
       case HPM_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	VM_HardwarePerformanceMonitors.printHelp();
+	break;
+	//-#else
+      case HPM_ARG: // "-X:hpm:<option>"
+      case HPM_HELP_ARG:
+	VM.sysWriteln("-X:hpm command line arguments not supported.  Build system with RVM_WITH_HPM defined.");
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	break;
         //-#endif
       }
@@ -473,8 +519,8 @@ public class VM_CommandLineArgs {
 
   /**
    * Stage2 processing of virtual machine directives appearing in argument list.
-   * This function is responsible for processing the rest of the
-   * command line arguments that should be handled late in booting.
+   * This function is responsible for processing the few 
+   * command line arguments that need to be handled late in booting.
    * It also returns the application's command line arguments.
    * 
    * @return application arguments (first is application class name)
@@ -494,7 +540,7 @@ public class VM_CommandLineArgs {
 	  int mid = arg.indexOf('=');
 	  if (mid == -1 || mid + 1 == arg.length()) {
 	    VM.sysWrite("vm: bad property setting: \""+arg+"\"\n");
-	    VM.sysExit(1);
+	    VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	  }
 	  String name  = arg.substring(0, mid);
 	  String value = arg.substring(mid + 1);
@@ -502,259 +548,11 @@ public class VM_CommandLineArgs {
 	}
 	break;
 
-	// ----------------------------------------------------
-	// Access nonadaptive configuration's initial runtime
-	// compiler (may be baseline or optimizing).
-	// ----------------------------------------------------
-      case IRC_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
-	VM.sysExit(1);
-	//-#else
-	VM_RuntimeCompiler.processCommandLineArg("help");
-	//-#endif
-	break;
-      case IRC_ARG: // "-X:irc:arg"; pass 'arg' as an option
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM.sysWrite("vm: adaptive configuration; "+p.value+arg+" has an illegal command line argument prefix '-X:irc'\n");
-	VM.sysExit(1);
-	//-#else
-	VM_RuntimeCompiler.processCommandLineArg(arg);
-	//-#endif
+      case CLASSPATH_ARG:
+	// arguments of the form "-classpath a:b:c" or "-cp a:b:c"
+	VM_ClassLoader.setApplicationRepositories(arg);
 	break;
 
-	// --------------------------------------------------------------------
-	// Access adaptive configuration's initial runtime optimizing compiler.
-	// --------------------------------------------------------------------
-      case AOS_IRC_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_BaselineOptions.printHelp("-X:aos:base");
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
-	VM.sysExit(1);
-	//-#endif
-	break;
-      case AOS_IRC_ARG:
-	// "-X:aos:irc:arg" pass 'arg' as option to initial runtime compiler
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_RuntimeCompiler.processCommandLineArg(arg);
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+p.value+arg+"' has an illegal prefix '-X:aos:'\n");
-	VM.sysExit(1);
-	//-#endif
-	break;
-
-	// --------------------------------------------------------------------
-	// Access adaptive configuration's optimizing compiler (recompilation and other uses)
-	// --------------------------------------------------------------------
-      case AOS_OPT_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_Controller.addOptCompilerOption("opt:help");
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
-	VM.sysExit(1);
-	//-#endif
-	break;
-      case AOS_OPT_ARG:
-	// "-X:aos:opt[?]:arg" defer processing of 'opt[?]:arg' to
-	// the optimizing compiler.  Note arg actually includes the optional opt level and :
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_Controller.addOptCompilerOption("opt"+arg);
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+p.value+arg+"' has an illegal prefix '-X:aos:'\n");
-	VM.sysExit(1);
-	//-#endif
-	break;
-
-	// --------------------------------------------------------------------
-	// Access adaptive configuration's baseline compiler 
-	// --------------------------------------------------------------------
-      case AOS_BASE_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_BaselineOptions.printHelp("-X:aos:base");
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
-	VM.sysExit(1);
-	//-#endif
-	break;
-      case AOS_BASE_ARG:
-	// "-X:aos:base:arg" defer processing of 'base:arg' to
-	// the baseline compiler.
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_BaselineCompiler.processCommandLineArg(p.value, arg);
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+p.value+arg+"' has an illegal prefix '-X:aos:'\n");
-	VM.sysExit(1);
-	//-#endif
-	break;
-
-	// -------------------------------------------------------------------
-	// In adaptive configurations:
-	// Access both aos and recompilation compiler with the same argument
-	// -------------------------------------------------------------------
-      case AOS_SHARE_ARG:
-	// -X:aos:share[?]:o=v expands to -X:aos:o=v and -X:aos:opt[?]:o=v.
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	String optCompilerOption  = "opt";
-	String shareOption        = "";
-	boolean optLevelSpecified = false;
-	if (!arg.startsWith(":") && arg.length() > 0) {
-	  // optimization level specified: peel off and use with opt
-	  // compiler directive.
-	  String optLevel_S = arg.substring(0,1);
-	  try { Integer.parseInt(optLevel_S); }
-	  catch (NumberFormatException e) { 
-	    VM.sysWrite("vm: illegal VM directive "+p.value+arg+"\n"+
-			" '"+optLevel_S+"' must be an integer that specifies an optimization level.\n"+
-			"  Correct syntax is -X:aos:share[?]:option=value where ? is optional.\n");
-	    VM.sysExit(1);
-	  }
-	  // Could test that optLevel is a integer in some range!
-	  optCompilerOption += optLevel_S;
-	  arg = arg.substring(1);	// consume ? optimization level
-	  optLevelSpecified = true;
-	}
-	if (arg.startsWith(":") && arg.length() > 0) {
-	  optCompilerOption += arg;
-	  shareOption = arg.substring(1); // consume ":"
-	}
-	if (shareOption.length() == 0) {
-	  VM.sysWrite("vm: illegal VM directive "+p.value+arg+"\n"+
-		      "  Correct syntax is -X:aos:share[?]:option=value where ? is optional.\n");
-	  VM.sysExit(1);
-	}
-	if (!optLevelSpecified) {
-	  VM_RuntimeCompiler.processCommandLineArg(shareOption);
-	}
-	VM_Controller.addOptCompilerOption(optCompilerOption);
-	VM_Controller.processCommandLineArg(shareOption);
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+p.value+arg+"' has an illegal prefix '-X:aos:'\n");
-	VM.sysExit(1);
-	//-#endif
-	break;
-	// -------------------------------------------------------------------
-	// Access adaptive configuration's AOS
-	// -------------------------------------------------------------------
-      case AOS_HELP_ARG:  // -X:aos passed 'help' as an option
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_Controller.processCommandLineArg("help");
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"'\n");
-	VM.sysExit(1);
-	//-#endif
-	break;
-      case AOS_ARG: // "-X:aos:arg" pass 'arg' as an option
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_Controller.processCommandLineArg(arg);
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+arg+"' has an illegal prefix '"+p.value+"'\n");
-	VM.sysExit(1);
-	//-#endif
-	break;
-
-	// -------------------------------------------------------------------
-	// Access runtime compiler to support compilation time measure.
-	// -------------------------------------------------------------------
-      case MEASURE_COMP_ARG:
-	if (arg.equals("true")) {
-	  VM.MeasureCompilation = true;
-	  VM.EnableCPUMonitoring = true;
-	} else if (arg.equals("false")) {
-	  VM.MeasureCompilation = false;
-	} else {
-	  VM.sysWrite("vm: -X:measureCompilation=<option>, where option is true or false\n");
-	  VM.sysExit(1);
-	}
-	break;
-
-	// ----------------------------------------------------
-	// Access nonadaptive configuration's baseline compiler
-	// (Note the initial runtime compiler may be baseline or
-	// optimizing - these options go to the baseline only)
-	// ----------------------------------------------------
-      case BASE_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
-	VM.sysExit(1);
-	//-#else
-	VM_BaselineOptions.printHelp("-X:base");
-	//-#endif
-	break;
-      case BASE_ARG: // "-X:base:arg"; pass 'arg' as an option
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM.sysWrite("vm: adaptive configuration; "+p.value+arg+" has an illegal command line argument prefix '-X:base'\n");
-	VM.sysExit(1);
-	//-#else
-	VM_BaselineCompiler.processCommandLineArg(p.value,arg);
-	//-#endif
-	break;
-
-
-	// ----------------------------------------------------
-	// Access nonadaptive configuration's optimizing compiler
-	//  If the runtime compiler is not optimizing 
-	//  this is an invalid request as the optimizing compiler
-	//  would not be used to compile anything
-	// ----------------------------------------------------
-      case OPT_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
-	VM.sysExit(1);
-	//-#elif RVM_WITH_OPT_RUNTIME_COMPILER
-	VM_RuntimeCompiler.processCommandLineArg("help");
-	//-#else
-	VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
-	VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
-	VM.sysExit(1);
-	//-#endif
-	break;
-      case OPT_ARG: // "-X:opt:arg"; pass 'arg' as an option
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM.sysWrite("vm: adaptive configuration; "+p.value+arg+" has an illegal command line argument prefix '-X:irc'\n");
-	VM.sysExit(1);
-	//-#elif RVM_WITH_OPT_RUNTIME_COMPILER
-	VM_RuntimeCompiler.processCommandLineArg(arg);
-	//-#else
-	VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
-	VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
-	VM.sysExit(1);
-	//-#endif
-	break;
-      case PROF_ARG: // "-X:prof:arg"; pass 'arg' as an option
-	{ 
-	  int split = arg.indexOf('=');
-	  if (split == -1) {
-	    VM.sysWrite("  Illegal option specification!\n  \""+arg+
-			"\" must be specified as a name-value pair in the form of option=value\n");
-	    VM.sysExit(1);
-	  }
-	  String name = arg.substring(0,split);
-	  String value = arg.substring(split+1);
-	  if (name.equals("edge_counter_file")) {
-	    VM_EdgeCounts.setProfileFile(value);
-	  } else {
-	    VM.sysWriteln("Unrecognized profile argument "+p.value+arg);
-	    VM.sysExit(1);
-	  }
-	}
-	break;
-
-      case VERBOSE_STACK_ARG:
-	int period = Integer.parseInt(arg);
-	if (period < 1) {
-	  VM.sysWriteln("vm: -X:verboseStackTrace must be greater than 0");
-	  VM.sysExit(-1);
-	} else {
-	  VM_StackTrace.verboseTracePeriod = period;
-	}
       }
     }
 
@@ -780,9 +578,77 @@ public class VM_CommandLineArgs {
    *         for argument to fit)
    */
   private static int sysArg(int argno, byte buf[]) {
-    return VM_SysCall.call_I_I_A_I(VM_BootRecord.the_boot_record.sysArgIP, 
-				   argno, VM_Magic.objectAsAddress(buf), buf.length);
+    return VM_SysCall.sysArg(argno, buf, buf.length);
   }
+
+  /**
+   * Primitive parsing of float/double values.
+   * Done this way to enable us to parse command line arguments
+   * early in VM booting before we are able to do the JNI call
+   * that using Double.valueOf would require.
+   * Does not support the full Java spec.
+   */
+  public static float primitiveParseFloat(String arg) {
+    int len = arg.length();
+    byte[] b = new byte[len+1];
+    for (int i = 0; i < len; i++) {
+      char c = arg.charAt(i);
+      if (c > 127) {
+	VM.sysWriteln("vm: Invalid floating point argument ",arg);
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+      }
+      b[i] = (byte)c;
+    }
+    return VM_SysCall.sysPrimitiveParseFloat(b);
+  }
+
+  /**
+   * Primitive parsing of byte/inte values.
+   * Done this way to enable us to parse command line arguments
+   * early in VM booting before we are able call
+   * Byte.parseByte or Integer.parseInt.
+   */
+  public static int primitiveParseInt(String arg) {
+    int len = arg.length();
+    byte[] b = new byte[len+1];
+    for (int i = 0; i < len; i++) {
+      char c = arg.charAt(i);
+      if (c > 127) {
+	VM.sysWriteln("vm: Invalid int/byte argument ",arg);
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+      }
+      b[i] = (byte)c;
+    }
+    return VM_SysCall.sysPrimitiveParseInt(b);
+  }
+
+  private static final class ArgReader {
+    //    int buflen = 10;		// for testing; small enough to force
+				// reallocation really soon.
+    int buflen = 512;
+    
+    byte[] buf;			// gets freed with the class instance.
+    ArgReader() {
+      buf = new byte[buflen];
+    }
+
+    /** Read argument # @param i */
+    String getArg(int i) {
+      int cnt;
+      for (;;) {
+	cnt = sysArg(i, buf);
+	if (cnt >= 0)
+	  break;
+	buflen += 1024;
+	buf = new byte[buflen];
+      }
+      if (VM.VerifyAssertions) VM._assert(cnt != -1); 
+      return new String(buf, 0, 0, cnt);
+    }
+    int numArgs() {
+      return sysArg(-1, buf);
+    }
+  }
+
+
 }
-
-

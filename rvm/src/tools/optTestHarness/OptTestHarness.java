@@ -43,28 +43,6 @@ import com.ibm.JikesRVM.opt.*;
  * @author Stephen Fink
  * @author David Grove
  */
-
-class Performance implements VM_Callbacks.ExitMonitor {
-
-  private double start = 0.0;
-  private double end = 0.0;
-
-  void reset() { start = VM_Time.now(); }
-  void stop() { if (end == 0.0) end = VM_Time.now(); }
-
-  void show() {
-      stop();  // In case we got here due to a System.exit
-      System.out.println("");
-      System.out.println("Performance of executed method");
-      System.out.println("------------------------------");
-      System.out.print("Elapsed wallclock time: "); 
-      System.out.print(end - start); 
-      System.out.println(" sec");
-  }
-
-    public void notifyExit(int discard) { show(); }
-}
-
 class OptTestHarness {
   static boolean DISABLE_CLASS_LOADING   = false;
   static boolean EXECUTE_WITH_REFLECTION = false;
@@ -87,6 +65,7 @@ class OptTestHarness {
   static Vector reflectoidVector;
   static Vector reflectMethodVector;
   static Vector reflectMethodArgsVector;
+
 
   static int parseMethodArgs(VM_TypeReference[] argDesc, String[] args, int i,
 			     Object[] methodArgs){
@@ -426,5 +405,26 @@ class OptTestHarness {
     executeCommand();
     if (perf != null)
 	perf.show();
+  }
+
+
+  private static class Performance implements VM_Callbacks.ExitMonitor {
+    private long start = 0;
+    private long end = 0;
+
+    void reset() { start = VM_Time.cycles(); }
+    void stop() { if (end == 0) end = VM_Time.cycles(); }
+
+    void show() {
+      stop();  // In case we got here due to a System.exit
+      System.out.println("");
+      System.out.println("Performance of executed method");
+      System.out.println("------------------------------");
+      System.out.print("Elapsed wallclock time: "); 
+      System.out.print(VM_Time.cyclesToMillis(end - start)); 
+      System.out.println(" msec");
+    }
+
+    public void notifyExit(int discard) { show(); }
   }
 }

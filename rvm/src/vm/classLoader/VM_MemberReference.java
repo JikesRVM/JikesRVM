@@ -18,7 +18,7 @@ import java.util.HashMap;
  * <li> a descriptor
  * </ul>
  * Resolving a VM_MemberReference to a VM_Member can
- * be an expensive operation.  Therefore we cannonicalize
+ * be an expensive operation.  Therefore we canonicalize
  * VM_MemberReference instances and cache the result of resolution.
  * 
  * @author Bowen Alpern
@@ -28,7 +28,7 @@ import java.util.HashMap;
 public abstract class VM_MemberReference {
 
   /**
-   * Used to cannonicalize memberReferences
+   * Used to canonicalize memberReferences
    */
   private static HashMap dictionary = new HashMap();
 
@@ -63,21 +63,21 @@ public abstract class VM_MemberReference {
   protected int id;
 
   /**
-   * Find or create the cannonical VM_MemberReference instance for
+   * Find or create the canonical VM_MemberReference instance for
    * the given tuple.
-   * @param cl the type reference
+   * @param tRef the type reference
    * @param mn the name of the member
    * @param md the descriptor of the member
    */
-  public static synchronized VM_MemberReference findOrCreate(VM_TypeReference tref, VM_Atom mn, VM_Atom md) {
+  public static synchronized VM_MemberReference findOrCreate(VM_TypeReference tRef, VM_Atom mn, VM_Atom md) {
     VM_MemberReference key;
     if (md.isMethodDescriptor()) {
-      if (tref.isArrayType() && !tref.isWordArrayType()) {
-	tref = VM_Type.JavaLangObjectType.getTypeRef();
+      if (tRef.isArrayType() && !(tRef.isWordArrayType() || tRef.isCodeArrayType())) {
+	tRef = VM_Type.JavaLangObjectType.getTypeRef();
       }
-      key = new VM_MethodReference(tref, mn, md);
+      key = new VM_MethodReference(tRef, mn, md);
     } else {
-      key = new VM_FieldReference(tref, mn, md);
+      key = new VM_FieldReference(tRef, mn, md);
     }
     VM_MemberReference val = (VM_MemberReference)dictionary.get(key);
     if (val != null)  return val;
@@ -93,17 +93,23 @@ public abstract class VM_MemberReference {
     return key;
   }
 
+  //BEGIN HRM
+  public static final int getNextId() {
+    return nextId;
+  }
+  //END HRM
+
   public static VM_MemberReference getMemberRef(int id) throws VM_PragmaUninterruptible {
     return members[id];
   }
 
   /**
-   * @param tr the type reference
+   * @param tRef the type reference
    * @param mn the field or method name
    * @param d the field or method descriptor
    */
-  protected VM_MemberReference(VM_TypeReference tref, VM_Atom mn, VM_Atom d) {
-    type = tref;
+  protected VM_MemberReference(VM_TypeReference tRef, VM_Atom mn, VM_Atom d) {
+    type = tRef;
     name = mn;
     descriptor = d;
   }

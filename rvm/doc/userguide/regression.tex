@@ -1,10 +1,8 @@
-
  The Jikes\trademark RVM distribution includes a harness for running
-regression and 
-performance tests, and several example applications that use this
-harness.  It is located in the {\tt \$RVM\_ROOT/rvm/regression}
-subtree in the 
-distribution, and consists of three parts: 
+regression and performance tests, and several example applications
+that use this harness.  It is located in the {\tt
+\$RVM\_ROOT/rvm/regression} subtree in the distribution, and consists
+of three parts:
 \begin{itemize}
 \item support for running sanity and performance tests, 
 \item individual benchmark test subdirectories, and 
@@ -24,10 +22,10 @@ described in more detail.
 
 \subsubsection{Testing Support}
 
-  The top-level driver for running sanity tests is called
+The top-level driver for running sanity tests is called
 {\tt{RunSanityTests}}; it is located in the {\tt
 \$RVM\_ROOT/rvm/regression} directory 
-and requires {\tt{ksh}} and {{\tt make}} to run.  When it
+and requires {\tt{bash}} and {{\tt make}} to run.  When it
 is invoked, it will, by default, build a variety of boot images and
 run several test programs with each boot image.  The behavior of
 RunSanityTests is highly customizable: most of its behavior can be
@@ -63,9 +61,9 @@ in most Unix shells); the {\tt{-test-list}} option takes a single
 filename as the next argument, and that file must contain a list of
 tests to run.  If the filename is an absolute path, that file is read,
 if it is a relative path, it is assumed to be relative to
-\$RVM\_ROOT/rvm/regression/config.  In either case, the items in the
+{\tt \$RVM\_ROOT/rvm/regression/config}.  In either case, the items in the
 list of tests to run must be subdirectories of
-\$RVM\_ROOT/rvm/regression/tests (the directory that contains the
+{\tt \$RVM\_ROOT/rvm/regression/tests} (the directory that contains the
 individual tests).
 
 \item{\tt{-configuration}} ``{\em{configuration names}}''
@@ -81,7 +79,7 @@ expects that the next command line word be a filename, and that the
 named file contain a list of boot image configuration names understood
 by jconfigure.  If the filename is an absolute path, that file is
 read, if it is a relative path, it is assumed to be relative to
-\$RVM\_ROOT/rvm/regression/config.
+{\tt \$RVM\_ROOT/rvm/regression/config}.
 
 \item{\tt{-result}} {\em root directory}
 
@@ -183,12 +181,12 @@ multiple options must be enclosed in quotations.
 
 \paragraph{{\tt{Local.rules}} Configuration File}
 
- The {\tt Local.rules} file is located in the \$RVM\_ROOT/regression/
+ The {\tt Local.rules} file is located in the {\tt \$RVM\_ROOT/regression/}
 directory and is used to customize the testing harness to your local
 setup.  Essentially, it contains the information needed to find test
 programs not provided as part of the Jikes RVM distribution, such as
 SPECjvm98\trademark and SPECjbb2000\trademark.  Each test harness
-provided as part of the Jikes RVM for which the benchmark itself is
+provided as part of Jikes RVM for which the benchmark itself is
 not part of the distribution will have an entry in this file telling
 the test harness where to find the program itself.  In order to use
 the test harness for those benchmarks, you must obtain the benchmark,
@@ -214,11 +212,11 @@ must be one that is understood by jconfigure.  With the {\tt
 -test-list} options, you can provide a filename that the set of tests
 to run.  Similar to the configuration list file, this file is plain
 text, and has one test name per line.  Both types of file should be
-placed in the \$RVM\_ROOT/rvm/regression/config directory; when placed
+placed in the {\tt \$RVM\_ROOT/rvm/regression/config} directory; when placed
 there, you can refer to them with an unqualified file name on the
 RunSanityTests command line.  You can use files from other places as
 control files, but those require an absolute path (i.e. one beginning
-with a /) on the command line.
+with a ``{\tt /}'') on the command line.
 
 
 \subsubsection{Individual Test Programs}
@@ -242,11 +240,11 @@ sections will be discussed below.
 \begin{description}
 \item[Include the environment rules from the current build directory]
 This is simply the include statement given below.  It is required so
-that subsequent portions of the makefile can find the Jikes RVM itself
+that subsequent portions of the makefile can find Jikes RVM itself
 and information needed from the boot image directory.  This section
-always the one line shown below.
+is always the one line shown below:
 \begin{verbatim}
-include         $(RVM_BUILD)/Make.rules
+include         $(RVM_BUILD)/Make.rules.target
 \end{verbatim}
 
 \item[Set the benchmark name] This is the name by which the benchmark
@@ -291,7 +289,8 @@ list.
 which to find Java class files that are used by this benchmark.  This
 is not a colon-separated classpath, but a normal whitespace-separated
 makefile list.  
-\item[HEAPSIZE] is the initial and maximum heap size in megabytes.
+\item[INITIAL\_HEAPSIZE] is the maximum heap size in megabytes.
+\item[HEAPSIZE] is the maximum heap size in megabytes.
 \item[BENCH\_RVM\_ARGS] is extra boot time arguments to provide to
 RVM. 
 \end{description}
@@ -399,16 +398,16 @@ situation is a program (such as the SPECjvm98 benchmarks)
 that does not provide the ability to specify where to look for input
 files; the files simply must be in the working directory.  In that
 case, you will need rules to copy any needed input files into the
-directory WORKING, where the program is actually run.  See the SPECjvm98
+directory {\tt WORKING}, where the program is actually run.  See the SPECjvm98
 benchmark makefiles for examples of this.  Another case we have
 encountered is needing explicit dependencies telling the test harness
-that some .class files are located in a .jar file.
+that some {\tt .class} files are located in a {\tt .jar} file.
 
 \end{description}
 
 \subsubsection{Night Sanity Support}
-
- One common use of regression tests is running them periodically to
+ 
+One common use of regression tests is running them periodically to
 keep track of system state over time; the Jikes RVM test harness
 provides a {\tt{NightSanityDriver}} to simplify this process.  This
 script is a wrapper around {\tt{RunSanityTests}} that takes a
@@ -420,7 +419,7 @@ command line arguments:
 invocations of {\tt{RunSanityTests}}.  This is optional.
 \item[-config {\em filename}] is a configuration file that specifies a
 series of invocations of {\tt{RunSanityTests}}.  If this filename is
-relative, it is assumed to be in \$RVM\_ROOT/rvm/regression/config; if
+relative, it is assumed to be in {\tt \$RVM\_ROOT/rvm/regression/config}; if
 it is absolute, it is used as it is given.  The format of this file is
 discussed below.
 \end{description}
@@ -429,7 +428,7 @@ discussed below.
 {\tt{RunSanityTests}} as instructed on each line of the config file,
 appending the common options, if any.
 
-\paragraph{The {\tt{NightSanityDriver}} Config File}
+\paragraph{The {\tt{NightSanityDriver}} Configuration File}
 
  The config file for {\tt{NightSanityDriver}} specifies a series of
 invocations of {\tt{RunSanityTests}}, one per line of the file.  Each
@@ -443,7 +442,7 @@ invoked to run just that boot image with the options specified.
 and {\tt{NightSanityDriver}} can be used, we include a simplified
 version of the night sanity configuration used at Watson.  All
 configuration files discussed go in the
-\$RVM\_ROOT/rvm/regression/config directory. Since it is
+{\tt \$RVM\_ROOT/rvm/regression/config} directory. Since it is
 too time consuming to test every possible variation of Jikes RVM on
 every program, we have selected a representative sample to run every
 night.  The first level is to define two sets of benchmark programs, a
@@ -494,31 +493,30 @@ compiler, we chose one optimizing configuration (FullOptMarkSweep) on
 which to run with all the different optimization levels.
 
 \begin{verbatim}
-BaseBaseSemiSpace                -test-list nightly-tests
-BaseAdaptiveSemiSpace            -test-list nightly-tests-short
-FullAdaptiveSemiSpace            -test-list nightly-tests
-BaseBaseMarkSweep                -test-list nightly-tests
 BaseBaseCopyMS                   -test-list nightly-tests
+BaseAdaptiveCopyMS               -test-list nightly-tests-short
+FullAdaptiveCopyMS               -test-list nightly-tests
+BaseBaseMarkSweep                -test-list nightly-tests
+FullAdaptiveMarkSweep            -test-list nightly-tests
+BaseBaseSemiSpace                -test-list nightly-tests
 BaseBaseGenCopy                  -test-list nightly-tests
 BaseBaseGenMS                    -test-list nightly-tests
-ExtremeAssertionsOptOptSemiSpace -test-list nightly-tests-short
-FullOptSemiSpace -use-opt-levels "O0 O1 O2" -test-list nightly-tests-short
-FastAdaptiveSemiSpace            -test-list nightly-tests-short
-FastSemiSpace                    -test-list nightly-tests-short
-FastMarkSweep                    -test-list nightly-tests-short
-FastWatsonMarkSweep              -test-list nightly-tests-short
+ExtremeAssertionsOptOptCopyMS    -test-list nightly-tests-short
+FullAdaptiveSemiSpace            -use-opt-levels "O0 O1 O2" -test-list nightly-tests-short
+FastAdaptiveCopyMS               -test-list nightly-tests-short
+FastAdaptiveMarkSweep            -test-list nightly-tests-short
 \end{verbatim}
 
  To make all of this run every night, it is necessary merely to put a
-NightSanityDriver invocation in a crontab; we actually use a more
-involved setup, which we distribute in the night-sanity-build and
-night-sanity-run scripts.  These are somewhat specific to what we want
+{\tt NightSanityDriver} invocation in a {\tt crontab}; we actually use a more
+involved setup, which we distribute in the {\tt night-sanity-build} and
+{\tt night-sanity-run scripts}.  These are somewhat specific to what we want
 to test, but they will hopefully make a good model.
 
 \subsection{Mauve tests}
 Mauve is an open source test suite for class libraries.  The directory 
 {\tt{\$RVM\_ROOT/rvm/regression/tests/mauve}} contains a file
-mauve-jikesrvm that contains the current KEYS used to run mauve tests
+{\tt mauve-jikesrvm} that contains the current KEYS used to run mauve tests
 on Jikes RVM. 
 
 \JikesTMFooter

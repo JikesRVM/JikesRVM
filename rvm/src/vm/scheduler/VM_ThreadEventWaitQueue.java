@@ -99,27 +99,26 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
 	return false; // possibly transient error; try again later
 
       VM_Thread thread = head;
-      double currentTime = VM_Time.now(); 
+      long currentCycle = VM_Time.cycles(); 
 
       // See if any threads have become ready to run
       while (thread != null) {
 	VM_ThreadEventWaitData waitData = thread.waitData;
-	double maxWaitTime = waitData.maxWaitTime;
+	long maxWaitCycle = waitData.maxWaitCycle;
 
-	if (maxWaitTime > 0.0d && maxWaitTime < currentTime) {
+	if (maxWaitCycle > 0 && maxWaitCycle < currentCycle) {
 	  // Wait timed out
 	  waitData.waitFlags = WAIT_FINISHED | WAIT_TIMEOUT;
 	  ++ready;
-	}
-	else if (isReady(thread)) { 
+	} else if (isReady(thread)) { 
 	  // Subclass has decided that the thread is ready to schedule;
 	  // it should have updated waitFlags appropriately
 	  if (VM.VerifyAssertions)
 	    VM._assert((waitData.waitFlags & WAIT_FINISHED) != 0); 
 	  ++ready;
-	}
-	else
+	} else {
 	  waitData.waitFlags &= ~(WAIT_FINISHED);
+	}
 
 	thread = thread.next;
       }

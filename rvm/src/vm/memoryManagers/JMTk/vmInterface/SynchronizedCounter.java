@@ -41,9 +41,15 @@ public final class SynchronizedCounter implements VM_Uninterruptible {
     return oldValue;
   }
 
+  // Returns the value before the add
+  //
   public int increment() {
-    // int offset = VM_Interface.synchronizedCounterOffset;
+    if (VM.VerifyAssertions) VM._assert(offset != -1);
     return VM_Synchronization.fetchAndAdd(this, offset, 1);
+  }
+
+  public int peek () {
+    return count;
   }
 
 }

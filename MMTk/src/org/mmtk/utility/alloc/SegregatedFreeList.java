@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_AddressArray;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -46,13 +47,14 @@ abstract class SegregatedFreeList extends Allocator
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
-  protected static final VM_Address DEBUG_BLOCK = VM_Address.fromInt(0xffffffff);  // 0x5b098008
-  protected static final int SIZE_CLASSES = 40;
-  protected static final int FREE_LIST_HEADER_BYTES = WORD_SIZE;
+  /****************************************************************************
+   *
+   * Class variables
+   */
+  private static final boolean COMPACT_SIZE_CLASSES = false;
+  protected static final VM_Address DEBUG_BLOCK = VM_Address.max();  // 0x5b098008
+  protected static final int SIZE_CLASSES = (COMPACT_SIZE_CLASSES) ? 28 : 40;
+  protected static final int FREE_LIST_HEADER_BYTES = BYTES_IN_ADDRESS;
   private static final int FREE_LIST_OFFSET = 0;
   private static final int FREE_LIST_BITS = BlockAllocator.MAX_BLOCK_LOG;
   private static final int SIZE_CLASS_BITS = 6;
@@ -76,10 +78,10 @@ abstract class SegregatedFreeList extends Allocator
   private long[] fragInuseCellBytes;
   private int[] fragUsedPages;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   protected BlockAllocator blockAllocator;
   protected VM_AddressArray freeList; 
   protected VM_AddressArray firstBlock;
@@ -87,10 +89,10 @@ abstract class SegregatedFreeList extends Allocator
   protected VM_AddressArray currentBlock;
   protected int [] cellsInUse;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Constructor
@@ -110,10 +112,10 @@ abstract class SegregatedFreeList extends Allocator
     if (maintainInUse()) cellsInUse = new int[SIZE_CLASSES];
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Allocate <code>bytes</code> contigious bytes of zeroed memory.<p>
@@ -164,8 +166,8 @@ abstract class SegregatedFreeList extends Allocator
     if (!cell.isZero()) {
       if (maintainInUse()) cellsInUse[sizeClass]++;
       freeList.set(sizeClass, getNextCell(cell));
+      setNextCell(cell, VM_Address.zero()); // clear out the free list link
       postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
-      Memory.zeroSmall(cell, bytes);
     } 
     return cell;
 
@@ -212,7 +214,7 @@ abstract class SegregatedFreeList extends Allocator
     int sizeClass = getSizeClass(bytes);
     VM_Address current = currentBlock.get(sizeClass);
     if (!current.isZero()) {
-      // flush the current (empty) free list if necessary
+      // zero the current (empty) free list if necessary
       if (preserveFreeList())
 	flushFreeList(current, sizeClass, VM_Address.zero());
 
@@ -225,9 +227,8 @@ abstract class SegregatedFreeList extends Allocator
 	  currentBlock.set(sizeClass, current);
 	  if (maintainInUse()) cellsInUse[sizeClass] = getInUse(current) + 1;
 	  freeList.set(sizeClass, getNextCell(cell));
-	  postAlloc(cell, currentBlock.get(sizeClass),
-		    sizeClass, bytes, inGC);
-	  Memory.zeroSmall(cell, bytes);
+	  setNextCell(cell, VM_Address.zero()); // clear out the free list link
+	  postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
 	  return cell;
 	}
 	current = BlockAllocator.getNextBlock(current);
@@ -241,7 +242,7 @@ abstract class SegregatedFreeList extends Allocator
     if (maintainInUse()) cellsInUse[sizeClass]++;
     freeList.set(sizeClass, getNextCell(cell));
     postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
-    Memory.zeroSmall(cell, bytes);
+    Memory.zeroSmall(cell, VM_Extent.fromInt(bytes));
     return cell;
   }
 
@@ -254,12 +255,14 @@ abstract class SegregatedFreeList extends Allocator
    * Expand a particular size class, allocating a new block, breaking
    * the block into cells and placing those cells on a free list for
    * that block.  The block becomes the current head for this size
-   * class and the address of the first available cell is returned.
+   * class and the address of the first available cell is returned.<p>
+   *
+   * <b>This is guaranteed to return pre-zeroed cells</b>
    *
    * @param sizeClass The size class to be expanded
    * @return The address of the first available cell in the newly
-   * allocated block, or zero if there were insufficient resources to
-   * allocate a new block.
+   * allocated block of pre-zeroed cells, or return zero if there were
+   * insufficient resources to allocate a new block.
    */
   private final VM_Address expandSizeClass(int sizeClass) 
     throws VM_PragmaInline {
@@ -271,9 +274,16 @@ abstract class SegregatedFreeList extends Allocator
 
     int cellExtent = cellSize[sizeClass];
     VM_Address cursor = block.add(blockHeaderSize[sizeClass]);
-    VM_Address sentinel = block.add(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+    int blockSize = BlockAllocator.blockSize(blockSizeClass[sizeClass]);
+    int useableBlockSize = blockSize - blockHeaderSize[sizeClass];
+    VM_Address sentinel = block.add(blockSize);
     VM_Address lastCell = VM_Address.zero();
     int cellCount = 0;
+
+    // pre-zero the block
+    Memory.zero(cursor, VM_Extent.fromInt(useableBlockSize));
+
+    // construct the free list
     while (cursor.add(cellExtent).LE(sentinel)) {
       setNextCell(cursor, lastCell); 
       lastCell = cursor;
@@ -281,7 +291,7 @@ abstract class SegregatedFreeList extends Allocator
       cellCount++;
     }
     if (maintainInUse()) cellsInUse[sizeClass] = 0;
-    setSizeClass(block, sizeClass);
+    setBlockSizeClass(block, sizeClass);
     postExpandSizeClass(block, sizeClass);
     
     if (VM_Interface.VerifyAssertions)
@@ -314,15 +324,15 @@ abstract class SegregatedFreeList extends Allocator
     VM_Magic.setMemoryAddress(cell, next);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Freeing
-  //
+  /****************************************************************************
+   *
+   * Freeing
+   */
 
   /**
    * Free a cell.  The cell is added to the free list for the given
    * block, and the inuse count for the block is decremented, the
-   * block freed if empty.
+   * block freed if empty.  <b>The cell is zeroed as it is freed.</b>
    *
    * @param cell The cell to be freed
    * @param block The block on which the cell resides
@@ -330,6 +340,7 @@ abstract class SegregatedFreeList extends Allocator
    */
   protected final void free(VM_Address cell, VM_Address block, int sizeClass)
     throws VM_PragmaInline {
+    Memory.zeroSmall(cell, VM_Extent.fromInt(cellSize[sizeClass]));
     addToFreeList(cell, block);
     if (maintainInUse() && (decInUse(block) == 0))
       freeBlock(block, sizeClass);
@@ -348,10 +359,10 @@ abstract class SegregatedFreeList extends Allocator
     setFreeList(block, cell);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Block management
-  //
+  /****************************************************************************
+   *
+   * Block management
+   */
 
   /**
    * Install a new block. The block needs to be added to the size
@@ -391,10 +402,10 @@ abstract class SegregatedFreeList extends Allocator
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Size classes
-  //
+  /****************************************************************************
+   *
+   * Size classes
+   */
 
   /**
    * Get the size class for a given number of bytes.<p>
@@ -425,12 +436,20 @@ abstract class SegregatedFreeList extends Allocator
 
     int sz1 = bytes - 1;
     int offset = 0;
-    return ((sz1 <=   63) ?      (sz1 >>  2): //    4 bytes apart
-	    (sz1 <=  127) ? 12 + (sz1 >>  4): //   16 bytes apart
-	    (sz1 <=  255) ? 16 + (sz1 >>  5): //   32 bytes apart
-	    (sz1 <=  511) ? 20 + (sz1 >>  6): //   64 bytes apart
-	    (sz1 <= 2047) ? 26 + (sz1 >>  8): //  256 bytes apart
-	                    32 + (sz1 >> 10));// 1024 bytes apart
+    if (COMPACT_SIZE_CLASSES)
+      return ((sz1 <=   31) ?      (sz1 >>  2): //    4 bytes apart
+	      (sz1 <=   63) ?  4 + (sz1 >>  3): //    8 bytes apart
+	      (sz1 <=   95) ?  8 + (sz1 >>  4): //   16 bytes apart
+	      (sz1 <=  223) ? 14 + (sz1 >>  6): //   64 bytes apart
+	      (sz1 <=  734) ? 17 + (sz1 >>  8): //  256 bytes apart
+                              20 + (sz1 >> 10));// 1024 bytes apart
+    else
+      return ((sz1 <=   63) ?      (sz1 >>  2): //    4 bytes apart
+	      (sz1 <=  127) ? 12 + (sz1 >>  4): //   16 bytes apart
+	      (sz1 <=  255) ? 16 + (sz1 >>  5): //   32 bytes apart
+	      (sz1 <=  511) ? 20 + (sz1 >>  6): //   64 bytes apart
+	      (sz1 <= 2047) ? 26 + (sz1 >>  8): //  256 bytes apart
+	                      32 + (sz1 >> 10));// 1024 bytes apart
   }
 
   /**
@@ -445,18 +464,26 @@ abstract class SegregatedFreeList extends Allocator
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert((sc >= 0) && (sc < SIZE_CLASSES));
 
-    return ((sc < 16) ? (sc +  1) <<  2:
-	    (sc < 19) ? (sc - 11) <<  4:
-	    (sc < 23) ? (sc - 15) <<  5:
-	    (sc < 27) ? (sc - 19) <<  6:
-	    (sc < 33) ? (sc - 25) <<  8:
-	                (sc - 31) << 10);
+    if (COMPACT_SIZE_CLASSES)
+      return ((sc <  8) ? (sc +  1) <<  2:
+	      (sc < 12) ? (sc -  3) <<  3:
+	      (sc < 16) ? (sc -  7) <<  4:
+	      (sc < 18) ? (sc - 13) <<  6:
+	      (sc < 21) ? (sc - 16) <<  8:
+	                  (sc - 19) << 10);
+    else
+      return ((sc < 16) ? (sc +  1) <<  2:
+	      (sc < 20) ? (sc - 11) <<  4:
+	      (sc < 24) ? (sc - 15) <<  5:
+	      (sc < 28) ? (sc - 19) <<  6:
+	      (sc < 34) ? (sc - 25) <<  8:
+	                  (sc - 31) << 10);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Misc
-  //
+  /****************************************************************************
+   *
+   * Misc
+   */
 
   public final void flushFreeLists() {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++)
@@ -508,7 +535,7 @@ abstract class SegregatedFreeList extends Allocator
     if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(inuse == getInUse(block));
       VM_Interface._assert(cell == getFreeList(block));
-      VM_Interface._assert(sizeClass == getSizeClass(block));
+      VM_Interface._assert(sizeClass == getBlockSizeClass(block));
     }
   }
 
@@ -529,14 +556,14 @@ abstract class SegregatedFreeList extends Allocator
     VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
   }
 
-  protected static final int getSizeClass(VM_Address block) 
+  protected static final int getBlockSizeClass(VM_Address block) 
     throws VM_PragmaInline {
     int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
     value = (value & SIZE_CLASS_MASK)>>SIZE_CLASS_SHIFT;
     return value;
   }
 
-  private static final void setSizeClass(VM_Address block, int sizeClass)
+  private static final void setBlockSizeClass(VM_Address block, int sizeClass)
     throws VM_PragmaInline {
     int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
     value = (value & ~SIZE_CLASS_MASK) | (sizeClass<<SIZE_CLASS_SHIFT);
@@ -569,10 +596,10 @@ abstract class SegregatedFreeList extends Allocator
     return count;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
   public void show() {
   }
 }

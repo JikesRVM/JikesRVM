@@ -68,17 +68,43 @@ public class VM_Runtime implements VM_Constants {
    * Test if object is instance of target class/array or 
    * implements target interface.
    * @param object object to be tested
-   * @param id type reference id corresponding to target class/array/interface
+   * @param targetID type reference id corresponding to target
+   *                 class/array/interface 
    * @return true iff is object instance of target type?
    */ 
-  static boolean instanceOf(Object object, int id) throws ClassNotFoundException {
+  static boolean instanceOf(Object object, int targetID)
+    throws NoClassDefFoundError {
+
+    /*  Here, LHS and RHS refer to the way we would treat these if they were
+	arguments to an assignment operator and we were testing for
+	assignment-compatibility.  In Java, "rhs instanceof lhs" means that 
+	the operation "lhs = rhs" would succeed.   This of course is backwards
+	if one is looking at it from the point of view of the "instanceof"
+	operator.  */
+    VM_TypeReference tRef = VM_TypeReference.getTypeRef(targetID);
+    VM_Type lhsType = tRef.peekResolvedType();
+    if (lhsType == null) {
+      lhsType = tRef.resolve();
+    }
+    if (!lhsType.isResolved()) {
+      lhsType.resolve(); // forces loading/resolution of super class/interfaces
+    }
+
+    /* Test for null only AFTER we have resolved the type of targetID. */
     if (object == null)
       return false; // null is not an instance of any type
 
-    VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Type lhsType = tRef.resolve();
     VM_Type rhsType = VM_ObjectModel.getObjectType(object);
-    return lhsType == rhsType || isAssignableWith(lhsType, rhsType);
+    /* RHS must already be resolved, since we have a non-null object that is 
+       an instance of RHS  */
+    if (VM.VerifyAssertions)  VM._assert(rhsType.isResolved());
+    if (VM.VerifyAssertions)  VM._assert(lhsType.isResolved());
+
+    /* Short-circuit call to isAssignableWith, since we must already be
+     * resolved.  */ 
+    // isAssignableWith(lhsType, rhsType);
+    
+    return lhsType == rhsType || VM_DynamicTypeCheck.instanceOfResolved(lhsType, rhsType);
   }
 
   /**
@@ -120,12 +146,15 @@ public class VM_Runtime implements VM_Constants {
    */ 
   static void checkcast(Object object, int id) 
     throws ClassCastException,
-	   ClassNotFoundException {
+	   NoClassDefFoundError {
     if (object == null)
       return; // null may be cast to any type
 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Type lhsType = tRef.resolve();
+    VM_Type lhsType = tRef.peekResolvedType();
+    if (lhsType == null) {
+      lhsType = tRef.resolve();
+    }
     VM_Type rhsType = VM_ObjectModel.getObjectType(object);
     if (lhsType == rhsType)
       return; // exact match
@@ -235,10 +264,14 @@ public class VM_Runtime implements VM_Constants {
    * See also: bytecode 0xbb ("new")
    */ 
   static Object unresolvedNewScalar(int id) 
-    throws ClassNotFoundException, 
+    throws NoClassDefFoundError, 
 	   OutOfMemoryError { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Class cls = tRef.resolve().asClass();
+    VM_Type t = tRef.peekResolvedType();
+    if (t == null) {
+      t = tRef.resolve();
+    }
+    VM_Class cls = t.asClass();
     if (!cls.isInitialized()) 
       initializeClassForDynamicLink(cls);
 
@@ -272,9 +305,6 @@ public class VM_Runtime implements VM_Constants {
       }
     }
     
-    // Event logging and stat gathering
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-      VM_EventLogger.logObjectAllocationEvent();
     // Allocate the object and initialize its header
     Object newObj = MM_Interface.allocateScalar(size, tib, allocator);
 
@@ -286,38 +316,58 @@ public class VM_Runtime implements VM_Constants {
    
   /**
    * Allocate something like "new Foo[]".
-   * @param id id of type reference of class to create.
    * @param numElements number of array elements
+   * @param id id of type reference of array to create.
    * @return array with header installed and all fields set to zero/null
    * See also: bytecode 0xbc ("anewarray")
    */ 
   static Object unresolvedNewArray(int numElements, int id) 
-    throws ClassNotFoundException, OutOfMemoryError, NegativeArraySizeException { 
+    throws NoClassDefFoundError, OutOfMemoryError, NegativeArraySizeException { 
     VM_TypeReference tRef = VM_TypeReference.getTypeRef(id);
-    VM_Array array = tRef.resolve().asArray();
+    VM_Type t = tRef.peekResolvedType();
+    if (t == null) {
+      t = tRef.resolve();
+    }
+    VM_Array array = t.asArray();
     if (!array.isInitialized()) {
       array.resolve();
       array.instantiate();
     }
 
-    int allocator = MM_Interface.pickAllocator(array);
+    return resolvedNewArray(numElements, array);
+  }
+
+  /**
+   * Allocate something like "new Foo[]".
+   * @param numElements number of array elements
+   * @param array VM_Array of array to create 
+   * @return array with header installed and all fields set to zero/null
+   * See also: bytecode 0xbc ("anewarray")
+   */ 
+  public static Object resolvedNewArray(int numElements, VM_Array array) 
+    throws OutOfMemoryError, NegativeArraySizeException { 
+
     return resolvedNewArray(numElements, 
-			    array.getInstanceSize(numElements),
+			    array.getLogElementSize(),
+			    VM_ObjectModel.computeArrayHeaderSize(array),
 			    array.getTypeInformationBlock(),
-			    allocator);
+			    MM_Interface.pickAllocator(array));
   }
    
   /**
    * Allocate something like "new int[cnt]" or "new Foo[cnt]".
    * @param numElements number of array elements
-   * @param size size of array object (including header), in bytes
+   * @param logElementSize size in bytes of an array element, log base 2.
+   * @param headerSize size in bytes of array header
    * @param tib type information block for array object
+   * @param allocator int that encodes which allocator should be used
    * @return array object with header installed and all elements set 
-   * to zero/null
+   *         to zero/null
    * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
    */ 
   public static Object resolvedNewArray(int numElements, 
-					int size, 
+					int logElementSize,
+					int headerSize, 
 					Object[] tib,
 					int allocator)
     throws OutOfMemoryError, NegativeArraySizeException {
@@ -333,12 +383,9 @@ public class VM_Runtime implements VM_Constants {
       }
     }
 
-    // Event logging and stat gathering
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-      VM_EventLogger.logObjectAllocationEvent();
-
     // Allocate the array and initialize its header
-    return MM_Interface.allocateArray(numElements, size, tib, allocator);
+    return MM_Interface.allocateArray(numElements, logElementSize, 
+				      headerSize, tib, allocator);
   }
 
 
@@ -364,9 +411,7 @@ public class VM_Runtime implements VM_Constants {
     if (type.isArrayType()) {
       VM_Array ary   = type.asArray();
       int      nelts = VM_ObjectModel.getArrayLength(obj);
-      int      size  = ary.getInstanceSize(nelts);
-      Object[] tib   = ary.getTypeInformationBlock();
-      Object newObj  = resolvedNewArray(nelts, size, tib, allocator);
+      Object newObj  = resolvedNewArray(nelts, ary);
       System.arraycopy(obj, 0, newObj, 0, nelts);
       return newObj;
     } else {
@@ -402,16 +447,16 @@ public class VM_Runtime implements VM_Constants {
   }
 
   /**
-   * initiate a garbage collection
-   * called from java/lang/Runtime
+   * Initiate a garbage collection.
+   * Called from java/lang/Runtime.
    */ 
   public static void gc () {
     MM_Interface.gc();
   }
 
   /**
-   * return amout of free memory available for allocation (approx.)
-   * called from /java/lang/Runtime
+   * Return the approximate amount of free memory available for allocation.
+   * Called from /java/lang/Runtime
    */
   public static long freeMemory() {
     return MM_Interface.freeMemory();
@@ -419,8 +464,8 @@ public class VM_Runtime implements VM_Constants {
 
 
   /**
-   * return amout of total memory in the system
-   * called from /java/lang/Runtime
+   * Return amount of total memory in the system.
+   * Called from /java/lang/Runtime.
    */
   public static long totalMemory() {
     return MM_Interface.totalMemory();
@@ -438,10 +483,12 @@ public class VM_Runtime implements VM_Constants {
 
   /**
    * Get an object's "hashcode" value.
-   * @return object's hashcode
+   *
    * Side effect: hash value is generated and stored into object's 
-   * status word
-   * @see java.lang.Object#hashCode
+   * status word.
+   * 
+   * @return object's hashcode.
+   * @see java.lang.Object#hashCode().
    */ 
   public static int getObjectHashCode(Object object) {
       return VM_ObjectModel.getObjectHashCode(object);
@@ -457,13 +504,14 @@ public class VM_Runtime implements VM_Constants {
    * Made public so that it is accessible from java.lang.reflect.*.
    * @see VM_MemberReference#needsDynamicLink
    */ 
-  public static void initializeClassForDynamicLink(VM_Class cls) {
+  public static void initializeClassForDynamicLink(VM_Class cls) 
+  {
     if (VM.TraceClassLoading) 
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " + cls + "\n");
 
     cls.resolve();
-    cls.instantiate();
-    cls.initialize();
+    cls.instantiate();	
+    cls.initialize();	// throws ExceptionInInitializerError
 
     if (VM.TraceClassLoading) 
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (end)   " + cls + "\n");
@@ -716,18 +764,26 @@ public class VM_Runtime implements VM_Constants {
    * @param arrayType type of array that will result
    * @return array object
    */ 
-  public static Object buildMultiDimensionalArray(int[] numElements, 
-						  int dimIndex, 
+  public static Object buildMultiDimensionalArray(int methodId,
+						  int[] numElements, 
 						  VM_Array arrayType) {
+    VM_Method method = VM_MemberReference.getMemberRef(methodId).asMethodReference().peekResolvedMethod();
+    if (VM.VerifyAssertions) VM._assert(method != null);
+    return buildMDAHelper(method, numElements, 0, arrayType);
+  }
+
+  public static Object buildMDAHelper (VM_Method method,
+				       int[] numElements, 
+				       int dimIndex, 
+				       VM_Array arrayType) {
+
     if (!arrayType.isInstantiated()) {
       arrayType.resolve();
       arrayType.instantiate();
     }
 
     int    nelts     = numElements[dimIndex];
-    int    size      = arrayType.getInstanceSize(nelts);
-    int allocator    = MM_Interface.pickAllocator(arrayType);
-    Object newObject = resolvedNewArray(nelts, size, arrayType.getTypeInformationBlock(), allocator);
+    Object newObject = resolvedNewArray(nelts, arrayType);
 
     if (++dimIndex == numElements.length)
       return newObject; // all dimensions have been built
@@ -736,7 +792,7 @@ public class VM_Runtime implements VM_Constants {
     VM_Array newArrayType = arrayType.getElementType().asArray();
    
     for (int i = 0; i < nelts; ++i) {
-      newArray[i] = buildMultiDimensionalArray(numElements, dimIndex, newArrayType);
+      newArray[i] = buildMDAHelper(method, numElements, dimIndex, newArrayType);
     }
 
     return newArray;
@@ -761,12 +817,17 @@ public class VM_Runtime implements VM_Constants {
    */
   private static void deliverException(Throwable exceptionObject, 
 				       VM_Registers exceptionRegisters) {
+    if (VM.debugOOM) {
+      VM.sysWriteln("VM_Runtime.deliverException() entered; just got an exception object.");
+    }
     //-#if RVM_FOR_IA32
     VM_Magic.clearFloatingPointState();
     //-#endif
     
     // walk stack and look for a catch block
     //
+    if(VM.debugOOM)
+      VM.sysWrite("Hunting for a catch block...");
     VM_Type exceptionType = VM_Magic.getObjectType(exceptionObject);
     VM_Address fp = exceptionRegisters.getInnermostFramePointer();
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
@@ -775,31 +836,67 @@ public class VM_Runtime implements VM_Constants {
 	  VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	  VM_ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
 	  VM_Address ip = exceptionRegisters.getInnermostInstructionAddress();
-	  VM_Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-	  VM_Offset catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ip.diff(methodStartAddress), exceptionType);
+	  int ipOffset = compiledMethod.getInstructionOffset(ip);
+	  int catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ipOffset, exceptionType);
 
-	  if (catchBlockOffset.toInt() >= 0  ){ 
-	      // found an appropriate catch block
-	      exceptionDeliverer.deliverException(compiledMethod, 
-						  methodStartAddress.add(catchBlockOffset), 
-						  exceptionObject, 
-						  exceptionRegisters);
-	      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+	  if (catchBlockOffset >= 0  ){ 
+	    // found an appropriate catch block
+	    if (VM.debugOOM)
+	      VM.sysWriteln("found one; delivering.");
+	    VM_Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+	    exceptionDeliverer.deliverException(compiledMethod, 
+						methodStartAddress.add(catchBlockOffset), 
+						exceptionObject, 
+						exceptionRegisters);
+	    if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
 	  }
 	  
 	  exceptionDeliverer.unwindStackFrame(compiledMethod, exceptionRegisters);
       } else {
-	  unwindInvisibleStackFrame(exceptionRegisters);
+	unwindInvisibleStackFrame(exceptionRegisters);
       }
       fp = exceptionRegisters.getInnermostFramePointer();
     }
 
-    // no appropriate catch block found
-    //
-    VM.enableGC();
+    if (VM.debugOOM) {
+      VM.sysWriteln("Nope.");
+      VM.sysWriteln("VM_Runtime.deliverException() found no catch block.");
+    }
+    /* No appropriate catch block found. */
+
+    VM_Thread.getCurrentThread().dyingWithUncaughtException = true;
+    
+    /* This should be (but isn't) undoable; ugh.  The heap is shared but the
+     * thread isn't.  No way to just give the memory to this particular
+     * thread, I think. */
+    if (VM.doEmergencyGrowHeap && exceptionObject instanceof OutOfMemoryError)
+      MM_Interface.emergencyGrowHeap(5 * (1<<20)); // ask for 5 megs and pray
+    handlePossibleRecursiveException();
+    VM.enableGC();    
     exceptionObject.printStackTrace();
     VM_Thread.terminate();
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+  }
+
+  private static int handlingUncaughtException = 0; // used by handlePossibleRecursiveException()
+    
+
+  /** Handle the case of exception handling triggering new exceptions. */
+  private static void handlePossibleRecursiveException() {
+    ++handlingUncaughtException;
+    if (handlingUncaughtException > 1 
+	&& handlingUncaughtException <= VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
+      VM.sysWrite("We got an uncaught exception while (recursively) handling ");
+      VM.sysWrite(handlingUncaughtException - 1);
+      VM.sysWrite(" uncaught exception");
+      if (handlingUncaughtException - 1 != 1)
+	VM.sysWrite("s");
+      VM.sysWriteln(".");
+    }
+    if (handlingUncaughtException > VM.maxSystemTroubleRecursionDepth) {
+      VM.dieAbruptlyRecursiveSystemTrouble();
+      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+    }
   }
 
   /**

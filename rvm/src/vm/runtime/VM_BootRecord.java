@@ -38,46 +38,45 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
  *                  |  lock word    |  |
  *                  +---------------+ /
  *                       hi-mem
-* </pre>
-*
-* The "spRegister" field of the boot record points to the word immediately
-* preceeding the top of a stack object (ie. it's ready to accept a "push" 
-                                        * instruction). The stack object is an array of words that looks like this:
-*
-* <pre>
-*                       lo-mem
-*                  +---------------+ \
-*                  |  tib pointer  |  |
-*                  +---------------+  | array
-*                  |  lock word    |  |   object
-*                  +---------------+  |      header
-*                  |    .length    |  | 
-*                  +---------------+ /
-*                  |    <empty>    |
-*                  +---------------+
-*                  |     ...       |
-*                  +---------------+
-*                  |    <empty>    |
-*                  +---------------+
-*    spRegister ->      hi-mem
-* </pre>
-*
-* <P> The "ipRegister" field of the boot record points to the first word
-* of an array of machine instructions comprising
-* the virtual machine's startoff code -- see "VM.boot()".
-*
-* <P> The "tocRegister" field of the boot record points to an array of words
-* containing the static fields and method addresses of the virtual
-* machine image -- see "VM_Statics.slots[]".
-*
-* <P> The remaining fields of the boot record serve as a function linkage area
-* between services residing in the host operating system and services
-* residing in the virtual machine.
-*
-* @author Bowen Alpern
-* @author Derek Lieber
-*/
-
+ * </pre>
+ *
+ * The "spRegister" field of the boot record points to the word immediately
+ * preceeding the top of a stack object (ie. it's ready to accept a "push" 
+ * instruction). The stack object is an array of words that looks like this:
+ *
+ * <pre>
+ *                       lo-mem
+ *                  +---------------+ \
+ *                  |  tib pointer  |  |
+ *                  +---------------+  | array
+ *                  |  lock word    |  |   object
+ *                  +---------------+  |      header
+ *                  |    .length    |  | 
+ *                  +---------------+ /
+ *                  |    <empty>    |
+ *                  +---------------+
+ *                  |     ...       |
+ *                  +---------------+
+ *                  |    <empty>    |
+ *                  +---------------+
+ *    spRegister ->      hi-mem
+ * </pre>
+ *
+ * <P> The "ipRegister" field of the boot record points to the first word
+ * of an array of machine instructions comprising
+ * the virtual machine's startoff code -- see "VM.boot()".
+ *
+ * <P> The "tocRegister" field of the boot record points to an array of words
+ * containing the static fields and method addresses of the virtual
+ * machine image -- see "VM_Statics.slots[]".
+ *
+ * <P> The remaining fields of the boot record serve as a function linkage area
+ * between services residing in the host operating system and services
+ * residing in the virtual machine.
+ *
+ * @author Bowen Alpern
+ * @author Derek Lieber
+ */
 public class VM_BootRecord {
   /**
    * The following static field is initialized by the boot image writer.
@@ -89,24 +88,26 @@ public class VM_BootRecord {
   public static VM_BootRecord the_boot_record;
 
   public VM_BootRecord() {
-    heapRanges = new int[2 * (1 + MM_Interface.getMaxHeaps())];
+    int len = 2 * (1 + MM_Interface.getMaxHeaps());
+    heapRanges = VM_AddressArray.create(len);
     // Indicate end of array with sentinel value
-    heapRanges[heapRanges.length - 1] = -1;
-    heapRanges[heapRanges.length - 2] = -1;
+    heapRanges.set(len -1, VM_Address.fromIntSignExtend(-1));
+    heapRanges.set(len -2, VM_Address.fromIntSignExtend(-1));
   }
 
   public void showHeapRanges() {
-    for (int i=0; i<heapRanges.length / 2; i++) {
+    for (int i=0; i<heapRanges.length() / 2; i++) {
       VM.sysWrite(i, "  ");
-      VM.sysWrite(heapRanges[2 * i], "  ");
-      VM.sysWriteln(heapRanges[2 * i + 1], "  ");
+      VM.sysWrite(heapRanges.get(2 * i));
+      VM.sysWrite("  ", heapRanges.get(2 * i + 1));
+      VM.sysWrite("  ");
     }
   }
 
   public void setHeapRange(int id, VM_Address start, VM_Address end) throws VM_PragmaUninterruptible {
-    if (VM.VerifyAssertions) VM._assert(id < heapRanges.length - 2); 
-    heapRanges[2 * id] = start.toInt();
-    heapRanges[2 * id + 1] = end.toInt();
+    if (VM.VerifyAssertions) VM._assert(id < heapRanges.length() - 2); 
+    heapRanges.set(2 * id, start);
+    heapRanges.set(2 * id + 1, end);
   }
   
   // The following fields are written when the virtual machine image
@@ -116,8 +117,6 @@ public class VM_BootRecord {
   // If you add/remove/change fields here, be sure to change the 
   // corresponding code in RunBootImage.
 
-  // RVM image
-  //
   /**
    * address at which image is to be loaded into memory
    */
@@ -128,23 +127,27 @@ public class VM_BootRecord {
    * initial size of heap
    */
   public int initialHeapSize;
+
   /**
    * maximum size of heap
    */
   public int maximumHeapSize;
 
-  // int[] should be VM_Address[] but compiler erroneously emits barriers
-  public int [] heapRanges;         // [start1, end1, ..., start_k, end_k, -1, -1]
-                                    // C-style termination with sentinel values
-
-  public int verboseGC;             // GC verbosity level 
-
+  public VM_AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
+                                     // C-style termination with sentinel values
+  /**
+   * Verbosity level for booting
+   * set by -X:verboseBoot=
+   */
+  int verboseBoot = 0;
+  
+  
   // RVM startoff
   //
   public int tiRegister;          // value to place into TI register
-  public VM_Address spRegister;          // value to place into SP register
-  public VM_Address ipRegister;          // value to place into IP register
-  public VM_Address tocRegister;         // value to place into TOC register
+  public VM_Address spRegister;   // value to place into SP register
+  public VM_Address ipRegister;   // value to place into IP register
+  public VM_Address tocRegister;  // value to place into JTOC register
 
   /**
    * flag to indicate RVM has completed booting and ready to run Java programs
@@ -182,8 +185,6 @@ public class VM_BootRecord {
    * an external signal has been sent e.g. kill -signalnumber processid
    */
   int externalSignalFlag;             
-
-  public int traceClassLoading;
 
   // Support for JNI Native functions
   //
@@ -289,17 +290,19 @@ public class VM_BootRecord {
   //-#endif
 
   // arithmetic 
-  VM_Address sysLongDivideIP;
-  VM_Address sysLongRemainderIP;
-  VM_Address sysLongToFloatIP;
-  VM_Address sysLongToDoubleIP;
-  VM_Address sysFloatToIntIP;
-  VM_Address sysDoubleToIntIP;
-  VM_Address sysFloatToLongIP;
-  VM_Address sysDoubleToLongIP;
+  public VM_Address sysLongDivideIP;
+  public VM_Address sysLongRemainderIP;
+  public VM_Address sysLongToFloatIP;
+  public VM_Address sysLongToDoubleIP;
+  public VM_Address sysFloatToIntIP;
+  public VM_Address sysDoubleToIntIP;
+  public VM_Address sysFloatToLongIP;
+  public VM_Address sysDoubleToLongIP;
   //-#if RVM_FOR_POWERPC
-  VM_Address sysDoubleRemainderIP;
+  public VM_Address sysDoubleRemainderIP;
   //-#endif
+  public VM_Address sysPrimitiveParseFloatIP;
+  public VM_Address sysPrimitiveParseIntIP;
 
   // time
   VM_Address sysGetTimeOfDayIP;
@@ -331,8 +334,6 @@ public class VM_BootRecord {
 
   // process management
   public VM_Address sysWaitPidsIP;
-
-  public VM_Address sysSprintfIP;
 
   //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   // system startup pthread sync. primitives

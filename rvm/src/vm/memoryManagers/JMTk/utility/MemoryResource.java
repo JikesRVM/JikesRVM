@@ -5,13 +5,12 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-
-
-import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.VM_Magic;
 
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Uninterruptible;
 
 /**
  * This class implements a memory resource.  The unit of managment for
@@ -28,10 +27,33 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
 
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
+  static private final int MAX_MEMORY_RESOURCES = 20;
+  static private final MemoryResource [] allMR = new MemoryResource[MAX_MEMORY_RESOURCES];
+  static private int allMRCount = 0;
+  static private Lock classLock;
+  static private long cumulativeCommitted = 0;
+
+  /****************************************************************************
+   *
+   * Instance variables
+   */
+  public final String name;
+  private int reserved;
+  private int committed;
+  private int pageBudget;
+  private Lock gcLock;       // used during GC
+  private Lock mutatorLock;  // used by mutators
+
+  /**
+   * Class initializer
+   */
+  static {
+    classLock = new Lock("MemoryResource.classLock");
+  }
 
   /**
    * Constructor
@@ -53,6 +75,7 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
     this.pageBudget = pageBudget;
     allMR[allMRCount++] = this;
   }
+
 
   /**
    * Set the page budget
@@ -107,6 +130,8 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
       lock();
     }
     committed += pages;
+    if (!Plan.gcInProgress())
+      addToCommitted(pages);   // only count mutator pages
     unlock();
     return true;
   }
@@ -139,6 +164,26 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
    */
   public int committedPages() {
     return committed;
+  }
+
+  /**
+   * Return the cumulative number of committed pages
+   *
+   * @return The cumulative number of committed pages.
+   */
+  static long getCumulativeCommittedPages() {
+    return cumulativeCommitted;
+  }
+
+  /**
+   * Add to the total cumulative committed page count.
+   *
+   * @param pages The number of pages to be added.
+   */
+  private static void addToCommitted(int pages) {
+    classLock.acquire();
+    cumulativeCommitted += pages;
+    classLock.release();
   }
 
   /**
@@ -186,36 +231,18 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
    * Excludes boot resource.
    */
   public static final void showUsage(int mode) {
-    VM_Interface.sysWrite("used = ");
+    Log.write("used = ");
     BasePlan.writePages(getPagesUsed(), mode);
     boolean first = true;
     for (int i=0; i<allMRCount; i++) {
       MemoryResource mr = allMR[i];
       if (mr == null || mr == Plan.bootMR) continue;
-      VM_Interface.sysWrite(first ? " = " : " + ");
+      Log.write(first ? " = " : " + ");
       first = false;
-      VM_Interface.sysWrite(mr.name," ");
+      Log.write(mr.name); Log.write(" ");
       BasePlan.writePages(mr.reservedPages(), mode);
     }
-    VM_Interface.sysWriteln();
+    Log.writeln();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
-  static private final int MAX_MEMORY_RESOURCES = 20;
-  static private final MemoryResource [] allMR = new MemoryResource[MAX_MEMORY_RESOURCES];
-  static private       int allMRCount = 0;
-
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
-  public final String name;
-  private int reserved;
-  private int committed;
-  private int pageBudget;
-  private Lock gcLock;       // used during GC
-  private Lock mutatorLock;  // used by mutators
 }

@@ -5,9 +5,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -42,15 +40,11 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
-  public static final boolean needsWriteBarrier = false;
-  public static final boolean needsPutStaticWriteBarrier = false;
-  public static final boolean needsTIBStoreWriteBarrier = false;
-  public static final boolean refCountCycleDetection = false;
-  public static final boolean movesObjects = false;
+  /****************************************************************************
+   *
+   * Class variables
+   */
+  public static final boolean MOVES_OBJECTS = false;
 
   // virtual memory resources
   private static FreeListVMResource msVM;
@@ -64,19 +58,27 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static MarkSweepSpace msSpace;
   private static TreadmillSpace losSpace;
 
+  // GC state
+  private static int msReservedPages;
+  private static int availablePreGC;
+
   // Allocators
   public static final byte MS_SPACE = 0;
   private static final byte LOS_SPACE = 1;
   public static final byte DEFAULT_SPACE = MS_SPACE;
 
   // Miscellaneous constants
+  // XXX 512<<10 should be a named constant
+  private static final int MS_PAGE_RESERVE = (512<<10)>>>LOG_BYTES_IN_PAGE; // 1M
+  private static final double MS_RESERVE_FRACTION = 0.1;
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
+  // XXX Can 8 * 1024 be calculated from other constants?
   private static final int LOS_SIZE_THRESHOLD = 8 * 1024; // largest size supported by MS
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final VM_Extent        LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE * 0.3)));
-  private static final VM_Extent         MS_SIZE = Conversions.roundDownMB(VM_Extent.fromInt((int)(AVAILABLE * 0.7)));
+  private static final VM_Extent        LOS_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.3)));
+  private static final VM_Extent         MS_SIZE = Conversions.roundDownMB(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.7)));
   public  static final VM_Extent        MAX_SIZE = MS_SIZE;
 
   private static final VM_Address      LOS_START = PLAN_START;
@@ -85,19 +87,19 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final VM_Address         MS_END = MS_START.add(MS_SIZE);
   private static final VM_Address       HEAP_END = MS_END;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
 
   // allocators
   private MarkSweepLocal ms;
   private TreadmillLocal los;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -132,13 +134,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final void boot()
     throws VM_PragmaInterruptible {
     StopTheWorldGC.boot();
+    msReservedPages = (int) (getTotalPages() * MS_RESERVE_FRACTION);
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Allocate space (for an object)
@@ -152,7 +155,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address alloc(int bytes, boolean isScalar, int allocator, 
 				AllocAdvice advice)
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(WORD_SIZE-1))));
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
     VM_Address region;
     if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       region = los.alloc(isScalar, bytes);
@@ -161,10 +165,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case       MS_SPACE: region = ms.alloc(isScalar, bytes, false); break;
       case      LOS_SPACE: region = los.alloc(isScalar, bytes); break;
       case IMMORTAL_SPACE: region = immortal.alloc(isScalar, bytes); break;
-      default:             if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator"); region = VM_Address.zero();
+      default:
+	if (VM_Interface.VerifyAssertions) 
+	  VM_Interface.sysFail("No such allocator"); 
+	region = VM_Address.zero();
       }
     }
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Memory.assertIsZeroed(region, bytes));
+    if (VM_Interface.VerifyAssertions) Memory.assertIsZeroed(region, bytes);
     return region;
   }
   
@@ -178,7 +185,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Object ref, Object[] tib, int size,
+  public final void postAlloc(VM_Address ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
     if (allocator == DEFAULT_SPACE && size > LOS_SIZE_THRESHOLD) {
@@ -188,7 +195,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       case       MS_SPACE: return;
       case      LOS_SPACE: Header.initializeLOSHeader(ref, tib, size, isScalar); return;
       case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
-      default: if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator");
+      default:
+	if (VM_Interface.VerifyAssertions)
+	  VM_Interface.sysFail("No such allocator");
       }
     }
   }
@@ -217,7 +226,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param isScalar True if the object occupying this space will be a scalar
    */
-  public final void postCopy(Object ref, Object[] tib, int size,
+  public final void postCopy(VM_Address ref, Object[] tib, int size,
 			     boolean isScalar) {} // do nothing
 
   /**
@@ -235,7 +244,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final int getAllocator(Type type, int bytes, CallSite callsite,
 				AllocAdvice hint) {
-    return (bytes >= LOS_SIZE_THRESHOLD) ? LOS_SPACE : DEFAULT_SPACE;
+    return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : DEFAULT_SPACE;
   }
 
   /**
@@ -300,35 +309,38 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * In practice, this means that, after this call, processor-specific
    * values must be reloaded.
    *
+   * XXX No Javadoc params.
+   *
    * @return Whether a collection is triggered
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr)
     throws VM_PragmaLogicallyUninterruptible {
-    if (gcInProgress) return false;
-    mustCollect |= ms.mustCollect();
-    mustCollect |= stressTestGCRequired();
-    if (mustCollect || getPagesReserved() > getTotalPages()) {
+    if (collectionInitiated || !initialized || mr == metaDataMR) return false;
+    mustCollect |= stressTestGCRequired() || ms.mustCollect();
+    availablePreGC = getTotalPages() - getPagesReserved();
+    int reserve = (mr == msMR) ? msReservedPages : 0;
+    if (mustCollect || availablePreGC <= reserve) {
       required = mr.reservedPages() - mr.committedPages();
-      VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
+      VM_Interface.triggerCollection(VM_Interface.RESOURCE_GC_TRIGGER);
       return true;
     }
     return false;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
-  // Important notes:
-  //   . Global actions are executed by only one thread
-  //   . Thread-local actions are executed by all threads
-  //   . The following order is guaranteed by BasePlan, with each
-  //     separated by a synchronization barrier.:
-  //      1. globalPrepare()
-  //      2. threadLocalPrepare()
-  //      3. threadLocalRelease()
-  //      4. globalRelease()
-  //
+  /****************************************************************************
+   *
+   * Collection
+   *
+   * Important notes:
+   *   . Global actions are executed by only one thread
+   *   . Thread-local actions are executed by all threads
+   *   . The following order is guaranteed by BasePlan, with each
+   *     separated by a synchronization barrier.:
+   *      1. globalPrepare()
+   *      2. threadLocalPrepare()
+   *      3. threadLocalRelease()
+   *      4. globalRelease()
+   */
 
   /**
    * Perform operations with <i>global</i> scope in preparation for a
@@ -349,6 +361,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * will ensure that <i>all threads</i> execute this.<p>
    *
    * In this case, it means resetting mark sweep allocator.
+   * XXX No Javadoc params.
    */
   protected final void threadLocalPrepare(int count) {
     ms.prepare();
@@ -371,6 +384,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    *
    * In this case, it means releasing the mark sweep space (which
    * triggers the sweep phase of the mark-sweep collector).
+   * XXX No Javadoc params.
    */
   protected final void threadLocalRelease(int count) {
     ms.release();
@@ -390,17 +404,25 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     losSpace.release();
     msSpace.release();
     ImmortalSpace.release(immortalVM, null);
-    if (getPagesReserved() + required >= getTotalPages()) {
-      progress = false;
-    } else
-      progress = true;
+    int available = getTotalPages() - getPagesReserved();
+
+    progress = (available > availablePreGC) && (available > exceptionReserve);
+    if (progress) {
+      msReservedPages = (int) (available * MS_RESERVE_FRACTION);
+      int threshold = 2 * exceptionReserve;
+      if (threshold < MS_PAGE_RESERVE) threshold = MS_PAGE_RESERVE;
+      if (msReservedPages < threshold) 
+	msReservedPages = threshold;
+    } else {
+      msReservedPages = msReservedPages/2;
+    }
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Trace a reference during GC.  This involves determining which
@@ -411,7 +433,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject (VM_Address obj) {
+  public static final VM_Address traceObject(VM_Address obj) {
     if (obj.isZero()) return obj;
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
@@ -422,10 +444,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     case BOOT_SPACE:	  return ImmortalSpace.traceObject(obj);
     case META_SPACE:	  return obj;
     default:
-      if (VM_Interface.VerifyAssertions) {
-	VM_Interface.sysWriteln("Plan.traceObject: unknown space",space);
-	VM_Interface.sysFail("Plan.traceObject: unknown space");
-      }
+      if (VM_Interface.VerifyAssertions) 
+	spaceFailure(obj, space, "Plan.traceObject()");
       return obj;
     }
   }
@@ -463,10 +483,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     case BOOT_SPACE:	  return true;
     case META_SPACE:	  return true;
     default:
-      if (VM_Interface.VerifyAssertions) {
-	VM_Interface.sysWriteln("Plan.traceObject: unknown space",space);
-	VM_Interface.sysFail("Plan.traceObject: unknown space");
-      }
+      if (VM_Interface.VerifyAssertions) 
+	spaceFailure(obj, space, "Plan.isLive()");
       return false;
     }
   }
@@ -491,10 +509,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Space management
-  //
+  /****************************************************************************
+   *
+   * Space management
+   */
 
   /**
    * Return the number of pages reserved for use given the pending
@@ -532,10 +550,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   /**
    * Show the status of each of the allocators.

@@ -6,7 +6,6 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
 /**
  * Use optimizing compiler to build virtual machine boot image.
@@ -69,7 +68,7 @@ public class VM_BootImageCompiler {
       String msg = "VM_BootImageCompiler: OPT_Compiler failed during initialization: "+e+"\n";
       if (e.isFatal && options.ERRORS_FATAL) {
 	e.printStackTrace();
-	System.exit(101);
+	System.exit(VM.exitStatusOptCompilerFailed);
       } else {
 	VM.sysWrite(msg);
       }
@@ -105,7 +104,7 @@ public class VM_BootImageCompiler {
       } catch (OPT_OptimizingCompilerException e) {
 	if (e.isFatal && options.ERRORS_FATAL) {
 	  e.printStackTrace();
-	  System.exit(101);
+	  System.exit(VM.exitStatusOptCompilerFailed);
 	} else {
 	  boolean printMsg = true;
 	  if (e instanceof OPT_MagicNotImplementedException) 
@@ -149,13 +148,6 @@ public class VM_BootImageCompiler {
     cm.setCompilationTime(compileTime);
     //-#endif
     return cm;
-  }
-
-  /**
-   * Create stackframe mapper appropriate for this compiler.
-   */
-  public static VM_GCMapIterator createGCMapIterator(VM_WordArray registerLocations) {
-    return new VM_OptGCMapIterator(registerLocations);
   }
 
   // Cache objects needed to cons up compilation plans

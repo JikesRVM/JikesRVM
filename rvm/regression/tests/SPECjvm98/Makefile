@@ -5,7 +5,7 @@
 #
 # @author Julian Dolby
 #
-include         $(RVM_BUILD)/Make.rules
+include         $(RVM_BUILD)/Make.rules.target
 
 BENCH_NAME=SPECjvm98
 include		$(JAL_ROOT)/rvm/regression/Local.rules
@@ -14,7 +14,8 @@ BENCH_CLASS_PATH=$(BENCH_HOME)
 START_NAME=SpecApplication
 
 ifeq ($(MODE),PERFORMANCE)
-  HEAPSIZE=500
+  HEAPSIZE=512
+  INITIAL_HEAPSIZE=256
 else
   HEAPSIZE=300
 endif

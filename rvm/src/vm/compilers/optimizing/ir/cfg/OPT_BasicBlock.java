@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
@@ -1529,7 +1529,7 @@ public class OPT_BasicBlock extends OPT_SortedGraphNode
   }
 
   /**
-   * Creates a new basic block that inherits it's exception handling, 
+   * Creates a new basic block that inherits its exception handling, 
    * etc from 'this'. This method is intended to be used in conjunction 
    * with splitNodeAt when splitting instructions in one original block 
    * into a sequence of sublocks

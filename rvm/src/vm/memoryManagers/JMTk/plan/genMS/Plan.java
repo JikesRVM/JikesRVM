@@ -54,10 +54,10 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 public class Plan extends Generational implements VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   protected static final boolean usesLOS = true;
   protected static final boolean copyMature = false;
   
@@ -67,18 +67,18 @@ public class Plan extends Generational implements VM_Uninterruptible {
   // mature space collector
   private static MarkSweepSpace matureSpace;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
 
   // allocators
   private MarkSweepLocal mature;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -99,10 +99,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
     mature = new MarkSweepLocal(matureSpace, this);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    * Allocate space (for an object) in the mature space
@@ -154,10 +154,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
     return super.getAllocatorFromSpace(s);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
+  /****************************************************************************
+   *
+   * Collection
+   */
 
   /**
    * Perform operations pertaining to the mature space with
@@ -199,10 +199,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
     matureSpace.release();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Trace a reference into the mature space during GC.  This simply
@@ -216,6 +216,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
   protected static final VM_Address traceMatureObject(byte space,
 						      VM_Address obj,
 						      VM_Address addr) {
+    if (VM_Interface.VerifyAssertions && space != MATURE_SPACE)
+      spaceFailure(obj, space, "Plan.traceMatureObject()");
     return matureSpace.traceObject(obj, VMResource.getTag(addr));
   }
 
@@ -227,8 +229,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param obj The object in question
    * @return True if the object resides in a copying space.
    */
-  public final static boolean isCopyObject(Object obj) {
-    VM_Address addr = VM_Interface.refToAddress(VM_Magic.objectAsAddress(obj));
+  public final static boolean isCopyObject(VM_Address obj) {
+    VM_Address addr = VM_Interface.refToAddress(obj);
     return (addr.GE(NURSERY_START) && addr.LE(HEAP_END));
   }
 
@@ -243,17 +245,16 @@ public class Plan extends Generational implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-      case NURSERY_SPACE:   return CopySpace.isLive(obj);
-      case MATURE_SPACE:    return (!fullHeapGC) || matureSpace.isLive(obj);
-      case LOS_SPACE:       return losSpace.isLive(obj);
-      case IMMORTAL_SPACE:  return true;
-      case BOOT_SPACE:	    return true;
-      case META_SPACE:	    return true;
-      default:              if (VM_Interface.VerifyAssertions) {
-	                      VM_Interface.sysWriteln("Plan.traceObject: unknown space",space);
-			      VM_Interface.sysFail("Plan.traceObject: unknown space");
-                            }
-			    return false;
+    case NURSERY_SPACE:   return CopySpace.isLive(obj);
+    case MATURE_SPACE:    return (!fullHeapGC) || matureSpace.isLive(obj);
+    case LOS_SPACE:       return losSpace.isLive(obj);
+    case IMMORTAL_SPACE:  return true;
+    case BOOT_SPACE:	    return true;
+    case META_SPACE:	    return true;
+    default:
+      if (VM_Interface.VerifyAssertions) 
+	spaceFailure(obj, space, "Plan.isLive()");
+      return false;
     }
   }
 
@@ -275,10 +276,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
     return (forwardingWord & ~HybridHeader.GC_BITS_MASK) | matureSpace.getInitialHeaderValue();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   /**
    * Show the status of the mature allocator.

@@ -5,7 +5,8 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -28,14 +29,13 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @date $Date$
  *
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 final class RawPageAllocator implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
 
   /**
    * Constructor
@@ -63,7 +63,7 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
     }
     int pageIndex = freeList.alloc(pages);
     if (pageIndex == -1) {
-      VM_Interface.sysWriteln("RawPageAllocator: unable to satisfy raw page allocation request");
+      Log.writeln("RawPageAllocator: unable to satisfy raw page allocation request");
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     }
     VM_Address result = base.add(Conversions.pagesToBytes(pageIndex));
@@ -103,10 +103,10 @@ final class RawPageAllocator implements Constants, VM_Uninterruptible {
     return freeList.size(Conversions.bytesToPages(start.diff(base).toInt()));
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private fields and methods
-  //
+  /****************************************************************************
+   *
+   * Private fields and methods
+   */
   private VM_Address base;       // beginning of available region
   private VM_Address top;        // end of available region
   private int totalPages;       // number of pages in entire VM region

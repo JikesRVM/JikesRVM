@@ -103,7 +103,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @see java.lang.Object#wait()
    */
   public static void wait (Object o) throws VM_PragmaLogicallyUninterruptible /* only loses control at expected points -- I think -dave */{
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitBegin(); }
     if (STATS) waitOperations++;
     VM_Thread t = VM_Thread.getCurrentThread();
     t.proxy = new VM_Proxy(t); // cache the proxy before obtaining lock
@@ -136,7 +135,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     if (rethrow != null) {
       VM_Runtime.athrow(rethrow); // doesn't return
     }
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitEnd(); }
   }
 
   /**
@@ -149,11 +147,10 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   public static void wait (Object o, long millis) throws VM_PragmaLogicallyUninterruptible /* only loses control at expected points -- I think -dave */{
     double time;
     VM_Thread t = VM_Thread.getCurrentThread();
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitBegin(); }
     if (STATS) timedWaitOperations++;
     // Get proxy and set wakeup time
-    t.wakeupTime = VM_Time.now() + millis * .001;
-    t.proxy = new VM_Proxy(t, t.wakeupTime); // cache the proxy before obtaining locks
+    t.wakeupCycle = VM_Time.cycles() + VM_Time.millisToCycles(millis);
+    t.proxy = new VM_Proxy(t, t.wakeupCycle); // cache the proxy before obtaining locks
     // Get monitor lock
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, true);
     // this thread is supposed to own the lock on o
@@ -184,7 +181,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     }
     if (rethrow != null)
 	VM_Runtime.athrow(rethrow);
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logWaitEnd(); }
   }
 
   /**
@@ -194,7 +190,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @see java.lang.Object#notify
    */
   public static void notify (Object o) {
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logNotifyBegin(); }
     if (STATS) notifyOperations++;
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
     if (l == null) return;
@@ -211,7 +206,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       if (t != null) l.entering.enqueue(t);
     }
     l.mutex.unlock(); // thread-switching benign
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logNotifyEnd(); }
   }
 
   /**
@@ -221,7 +215,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @see java.lang.Object#notifyAll
    */
   public static void notifyAll (Object o) {
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logNotifyAllBegin(); }
     if (STATS) notifyAllOperations++;
     VM_Lock l = VM_ObjectModel.getHeavyLock(o, false);
     if (l == null) return;
@@ -234,7 +227,6 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       t = l.waiting.dequeue();
     }
     l.mutex.unlock(); // thread-switching benign
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logNotifyAllEnd(); }
   }
 
   ///////////////////////////////////////////////////
@@ -259,8 +251,8 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * synchronization.
    */
   VM_Lock () {
-    entering = new VM_ThreadQueue(VM_EventLogger.ENTERING_QUEUE);
-    waiting  = new VM_ProxyWaitingQueue(VM_EventLogger.WAITING_QUEUE);
+    entering = new VM_ThreadQueue();
+    waiting  = new VM_ProxyWaitingQueue();
     mutex    = new VM_ProcessorLock();
   }
 
@@ -589,21 +581,22 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * Reports the state of a heavy-weight lock.
    */
   void dump() {
-    if (!active) return;
-    VM_Scheduler.writeString("Lock "); VM_Scheduler.writeDecimal(index); VM.sysWrite(":\n");
-    VM_Scheduler.writeString(" lockedObject: 0x"); VM_Scheduler.writeHex(VM_Magic.objectAsAddress(lockedObject)); 
-    VM_Scheduler.writeString("   thin lock = "); 
-    VM_Scheduler.writeHex(VM_Magic.getMemoryInt(VM_Magic.objectAsAddress(lockedObject).add(VM_ObjectModel.defaultThinLockOffset())));
-    VM_Scheduler.writeString("\n");
+    if (!active) 
+      return;
+    VM.sysWrite("Lock "); VM.sysWriteInt(index); VM.sysWrite(":\n");
+    VM.sysWrite(" lockedObject: 0x"); VM.sysWriteHex(VM_Magic.objectAsAddress(lockedObject)); 
+    VM.sysWrite("   thin lock = "); 
+    VM.sysWriteHex(VM_Magic.getMemoryInt(VM_Magic.objectAsAddress(lockedObject).add(VM_ObjectModel.defaultThinLockOffset())));
+    VM.sysWrite("\n");
 
-    VM_Scheduler.writeString(" ownerId: "); VM_Scheduler.writeDecimal(ownerId); VM_Scheduler.writeString(" recursionCount: "); VM_Scheduler.writeDecimal(recursionCount); VM_Scheduler.writeString("\n");
-    VM_Scheduler.writeString(" entering: "); entering.dump();
-    VM_Scheduler.writeString(" waiting: ");  waiting.dump();
+    VM.sysWrite(" ownerId: "); VM.sysWriteInt(ownerId); VM.sysWrite(" recursionCount: "); VM.sysWriteInt(recursionCount); VM.sysWrite("\n");
+    VM.sysWrite(" entering: "); entering.dump();
+    VM.sysWrite(" waiting: ");  waiting.dump();
 
-    VM_Scheduler.writeString(" mutexLatestContender: ");
-    if (mutex.latestContender == null) VM_Scheduler.writeString("<null>");
-    else                     VM_Scheduler.writeHex(mutex.latestContender.id);
-    VM_Scheduler.writeString("\n");
+    VM.sysWrite(" mutexLatestContender: ");
+    if (mutex.latestContender == null) VM.sysWrite("<null>");
+    else                     VM.sysWriteHex(mutex.latestContender.id);
+    VM.sysWrite("\n");
   }
 
 

@@ -7,7 +7,7 @@
 # @author Julian Dolby
 # @author Stephen Fink
 
-include         $(RVM_BUILD)/Make.rules
+include         $(RVM_BUILD)/Make.rules.target
 
 BENCH_NAME=Xalan
 include		$(JAL_ROOT)/rvm/regression/Local.rules

@@ -38,6 +38,10 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
     return  new OPT_PowerPCTrapOperand(LESS);
   }
 
+  public static OPT_PowerPCTrapOperand GREATER() {
+    return  new OPT_PowerPCTrapOperand(GREATER);
+  }
+
   public static OPT_PowerPCTrapOperand LOWER() {
     return  new OPT_PowerPCTrapOperand(LOWER);
   }

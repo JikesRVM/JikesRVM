@@ -6,8 +6,8 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
@@ -71,7 +71,9 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
 	return result;
       current = BasePlan.getOwnAllocator(current);
     }
-    VM_Interface.sysFail("Out of Memory after multiple retries");
+    Log.write("GC Warning: OutOfMemory from allocSlowBody - possible VM range imbalance");
+    MM_Interface.failWithOutOfMemoryError();
+    /* NOTREACHED */
     return VM_Address.zero();
   }
 

@@ -58,7 +58,7 @@ class VM_ControllerThread extends VM_Thread {
     // adaptive recompilation
     createProfilers();
 
-    if (!VM_Controller.options.adaptive()) {
+    if (!VM_Controller.options.ENABLE_RECOMPILATION) {
       // We're running an AOS bootimage with a non-adaptive primary strategy. 
       // We already set up any requested profiling infrastructure, so nothing
       // left to do but exit.
@@ -77,8 +77,13 @@ class VM_ControllerThread extends VM_Thread {
     // Create the compilationThread and schedule it
     createCompilationThread();
 
-    // Create our set of standard optimization plans.
-    VM_Controller.recompilationStrategy.init();
+    if (VM_Controller.options.sampling()) {
+      // Create our set of standard optimization plans.
+      VM_Controller.recompilationStrategy.init();
+    } else if (VM_Controller.options.counters()) {
+      VM_InvocationCounts.init();
+
+    }
 
     controllerInitDone();
 
@@ -195,11 +200,8 @@ class VM_ControllerThread extends VM_Thread {
 	  new VM_AIByEdgeOrganizer(new VM_EdgeListener());
 	VM_Controller.organizers.addElement(AIOrganizer);
       }
-    } else if (opts.counters()) {
-      VM_InvocationCounts.createOptimizationPlan();
-      VM_BaselineCompiler.options.INVOCATION_COUNTERS=true;
-    }
-    
+    }    
+
     //-#if RVM_WITH_OSR
     VM_Controller.osrOrganizer = new OSR_OrganizerThread();
     VM_Controller.osrOrganizer.start();

@@ -16,6 +16,9 @@ import com.ibm.JikesRVM.classloader.*;
  */
 public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_SizeConstants {
 
+  /*
+   * constants for compiler types
+   */
   public final static int TRAP      = 0; // no code: special trap handling stackframe
   public final static int BASELINE  = 1; // baseline code
   public final static int OPT       = 3; // opt code
@@ -47,7 +50,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
   /**
    * The compiled machine code for said method.
    */
-  protected INSTRUCTION[] instructions; 
+  protected VM_CodeArray instructions; 
 
   //-#if RVM_WITH_OSR
   /**
@@ -120,15 +123,46 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
   /**
    * Return the machine code for this compiled method
    */
-  public final INSTRUCTION[] getInstructions() throws VM_PragmaUninterruptible { 
+  public final VM_CodeArray getInstructions() throws VM_PragmaUninterruptible { 
     if (VM.VerifyAssertions) VM._assert((bitField1 & COMPILED) != 0);
     return instructions; 
   }
 
   /**
+   * Return the offset in bytes of the given VM_Address from the start
+   * of the machine code array.
+   * @param ip a VM_Address (should be an interior pointer to instructions)
+   * @return offset of addr from start of instructions in bytes
+   */
+  public final int getInstructionOffset(VM_Address ip) throws VM_PragmaUninterruptible {
+    if (getCompilerType() == JNI || getCompilerType() == TRAP) {
+      return 0;
+    } else {
+      VM_CodeArray code = getInstructions();
+      VM_Offset offset = ip.diff(VM_Magic.objectAsAddress(code));
+      if (VM.VerifyAssertions) {
+	int max = (code.length()+1)<< VM_Constants.LG_INSTRUCTION_WIDTH;
+	if (!offset.toWord().LT(VM_Word.fromIntZeroExtend(max))) {
+	  VM.sysWrite(method);
+	  VM.sysWriteln();
+	  VM.sysWriteln(offset);
+	  VM.sysWriteln(VM_Offset.fromInt(max));
+	  VM.sysWriteln(ip);
+	  VM.sysWriteln(VM_Magic.objectAsAddress(code));
+	  VM._assert(false);
+	}
+      }
+      // NOTE: we are absolutely positive that offset will fit in 32 bits
+      // because we don't create VM_CodeArrays that are so massive it won't.
+      // Thus, we do the assertion checking above to ensure that ip is in range.
+      return offset.toInt();
+    }
+  }
+
+  /**
    * Record that the compilation is complete.
    */
-  public final void compileComplete(INSTRUCTION[] code) {
+  public final void compileComplete(VM_CodeArray code) {
     instructions = code;
     bitField1 |= COMPILED;
   }
@@ -201,6 +235,16 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    */ 
   public abstract int getCompilerType() throws VM_PragmaUninterruptible;
 
+  public static final String compilerTypeToString (int compilerType) throws VM_PragmaUninterruptible {
+    switch (compilerType) {
+      case TRAP: return "TRAP";
+      case BASELINE: return "BASELINE";
+      case OPT: return "OPT";
+      case JNI: return "JNI";
+      default: if (VM.VerifyAssertions) VM._assert(false); return null;
+    }
+  }
+
   /**
    * @return Name of the compiler that produced this compiled method.
    */ 
@@ -242,7 +286,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * gc disabled when called by VM_Runtime.deliverException().
    * </ul>
    */
-  public abstract VM_Offset findCatchBlockForInstruction(VM_Offset instructionOffset, VM_Type exceptionType);
+  public abstract int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType);
 
   /**
    * Fetch symbolic reference to a method that's called by one of 
@@ -271,7 +315,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * <ul>
    */
   public abstract void getDynamicLink(VM_DynamicLink dynamicLink, 
-                               VM_Offset instructionOffset) throws VM_PragmaUninterruptible;
+				      int instructionOffset) throws VM_PragmaUninterruptible;
 
    /**
     * Find source line number corresponding to one of this method's 
@@ -294,7 +338,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
     * instruction pointer
     * to point to the "call site" or "exception site".
     */
-  public int findLineNumberForInstruction(VM_Offset instructionOffset) throws VM_PragmaUninterruptible {
+  public int findLineNumberForInstruction(int instructionOffset) throws VM_PragmaUninterruptible {
     return 0;
   }
 
@@ -303,12 +347,12 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * @param instructionOffset offset of machine instruction from start of method
    * @param out the PrintLN to print the stack trace to.
    */
-  public abstract void printStackTrace(VM_Offset instructionOffset, com.ibm.JikesRVM.PrintLN out);
+  public abstract void printStackTrace(int instructionOffset, com.ibm.JikesRVM.PrintLN out);
 
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  public abstract void set(VM_StackBrowser browser, VM_Offset instr);
+  public abstract void set(VM_StackBrowser browser, int instr);
 
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible

@@ -8,7 +8,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
- * Simplify and cannonicalize conditional branches with constant operands.
+ * Simplify and canonicalize conditional branches with constant operands.
  *
  * <p> This module performs no analysis, it simply attempts to 
  * simplify any branching instructions of a basic block that have constant 
@@ -67,7 +67,7 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
 	    didSomething = true;
 	    continue;
 	  } else {
-	    // Cannonicalize by making second argument the constant
+	    // Canonicalize by making second argument the constant
 	    IfCmp.setVal1(s, val2);
 	    IfCmp.setVal2(s, val1);
 	    IfCmp.setCond(s, IfCmp.getCond(s).flipOperands());
@@ -130,7 +130,7 @@ abstract class OPT_BranchSimplifier implements OPT_Operators {
 	    bb.recomputeNormalOut(ir);
 	    didSomething = true;
 	  } else {
-	    // Cannonicalize by making second argument the constant
+	    // Canonicalize by making second argument the constant
 	    IfCmp2.setVal1(s, val2);
 	    IfCmp2.setVal2(s, val1);
 	    IfCmp2.setCond1(s, IfCmp2.getCond1(s).flipOperands());

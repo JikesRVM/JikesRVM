@@ -12,7 +12,6 @@ package com.ibm.JikesRVM;
  * @author Peter Sweeney
  * creation date 6/27/2001
  */
-
 public class Java2HPM 
 {
   private static final int debug = 0;
@@ -68,7 +67,7 @@ public class Java2HPM
 	System.loadLibrary("Java2HPM");
       } catch (Exception e) {
 	VM.sysWriteln("\nJava2HPM.<init>() Exception with System.loadLibrary(Java2HPM)\n");
-	VM.shutdown(-1);
+	VM.shutdown(VM.exitStatusHPMTrouble);
       }
       if(debug>=1)VM.sysWrite("Java2HPM static initializer called System.loadLibrary(\"Java2HPM\")\n");
     }
@@ -135,21 +134,20 @@ public class Java2HPM
   {
     //-#if RVM_WITH_HPM
 
-    // time in seconds
-    double startTime = VM_Time.now();
+    long start = VM_Time.cycles();
     if (jni == JNI) {
       Java2HPM.resetMyThread();
       Java2HPM.startMyThread();
     } else {
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
+      VM_SysCall.sysHPMresetMyThread();
+      VM_SysCall.sysHPMstartMyThread();
     }
 
     for (int i = 0; i < iterations; i++) {	
       if (jni == JNI) {
 	Java2HPM.test();
       } else {
-	VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMtestIP);
+	VM_SysCall.sysHPMtest();
       }
     }
 
@@ -157,14 +155,14 @@ public class Java2HPM
     if (jni == JNI) {
       cycles = Java2HPM.getCounterMyThread(cycle_counter);
     } else {
-      cycles = VM_SysCall.call_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterMyThreadIP,cycle_counter);
+      cycles = VM_SysCall.sysHPMgetCounterMyThread(cycle_counter);
     }
 
-    double endTime = VM_Time.now();
+    long end = VM_Time.cycles();
 
     // time in milliseconds
-    double time          = (endTime - startTime)*1000;
-    VM.sysWriteln("\ttime "+time+" = (end "+endTime+" - start "+startTime+")/1000");
+    double time          = VM_Time.cyclesToMillis(end - start);
+    VM.sysWriteln("\ttime "+time);
     // time in nano seconds 
     double averageTime   = sixDigitDecimal((time / (double) iterations)*1000000);
     double averageCycles = ((cycles*100)/iterations)  / (double) 100;
@@ -193,13 +191,13 @@ public class Java2HPM
   {
     //-#if RVM_WITH_HPM
     // time in seconds
-    double startTime = VM_Time.now();
+    long start = VM_Time.cycles();
     if (jni == JNI) {
       Java2HPM.resetMyThread();
       Java2HPM.startMyThread();
     } else {
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
+      VM_SysCall.sysHPMresetMyThread();
+      VM_SysCall.sysHPMstartMyThread();
     }
 
     long count;
@@ -207,7 +205,7 @@ public class Java2HPM
       if (jni == JNI) {
 	count = Java2HPM.getCounterMyThread(counter);
       } else {
-	count = VM_SysCall.call_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterMyThreadIP,counter);
+	count = VM_SysCall.sysHPMgetCounterMyThread(counter);
       }
     }
 
@@ -215,12 +213,12 @@ public class Java2HPM
     if (jni == JNI) {
       cycles = Java2HPM.getCounterMyThread(cycle_counter);
     } else {
-      cycles = VM_SysCall.call_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterMyThreadIP,cycle_counter);
+      cycles = VM_SysCall.sysHPMgetCounterMyThread(cycle_counter);
     }
 
-    double endTime       = VM_Time.now();
+    long end       = VM_Time.cycles();
     // time in milliseconds
-    double time          = (endTime - startTime)*1000;
+    double time          = VM_Time.cyclesToMillis(end - start);
     // time in nano seconds
     double averageTime   = sixDigitDecimal((time / (double) iterations)*1000000);
     double averageCycles = ((cycles*100)/ iterations) / (double) 100;

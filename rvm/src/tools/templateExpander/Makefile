@@ -5,7 +5,7 @@
 # @author John Whaley            
 # @author Igor Pechtchanski      
 
-include			$(RVM_ROOT)/rvm/build.Make.rules
+include			$(RVM_BUILD)/Make.rules.host
 
 default:	tool
 

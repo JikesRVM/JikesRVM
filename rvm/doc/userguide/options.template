@@ -1,3 +1,9 @@
+$$$$ IF OPTION_TYPE == "VM"
+% From VM_Options.template
+$$$$ END IF
+$$$$ IF OPTION_TYPE == "JMTK"
+% From Options.template
+$$$$ END IF
 $$$$ IF OPTION_TYPE == "OPTIMIZE"
 % From OPT_Options.template
 $$$$ END IF
@@ -16,31 +22,57 @@ OPTPREFIX:O1			Select optimization level 1, modest optimizations
 OPTPREFIX:O2			Select optimization level 2
 OPTPREFIX:O3			Select optimization level 3
 $$$$ END IF
-
 $$$$ IF OPTION_TYPE == "ADAPTIVE"
 OPTPREFIX[:help]        Print a brief description of AOS command-line options
 OPTPREFIX:printOptions  Print the current option values of AOS
-OPTPREFIX:o=v           Pass the option-value pair, o=v, to AOS
-OPTPREFIX:irc[:help]    Print a brief description of intial runtime compiler's command-line options that initially compiles a method
-OPTPREFIX:base[:help]   Print a brief description of baseline compiler's command-line options that initially compiles a method
-OPTPREFIX:opt[:help]    Print a brief description of optimizing compiler's command-line options that recompiles a method
-OPTPREFIX:share[?]:o=v  Pass the option-value pair, o=v, to AOS and to the optimizing compiler.  If the optimization level is specified, then only that optimization level is affected when recompiling a method
 $$$$ END IF
-
 $$$$ IF OPTION_TYPE == "BASELINE"
--X:base[:help]			Print brief description of baseline compiler's command-line arguments
--X:base:printOptions		Print the current values of the active baseline compiler options
+OPTPREFIX[:help]		Print brief description of baseline compiler's command-line arguments
+OPTPREFIX:printOptions		Print the current values of the active baseline compiler options
+$$$$ END IF
+$$$$ IF OPTION_TYPE == "JMTK"
+OPTPREFIX[:help]		Print brief description of JMTk's command-line arguments
+OPTPREFIX:printOptions		Print the current values of JTMk's options
+$$$$ END IF
+$$$$ IF OPTION_TYPE == "VM"
+OPTPREFIX[:help]		Print brief description of the core VM's command-line arguments
+OPTPREFIX:printOptions		Print the current values of the core VM's options
 $$$$ END IF
 
-
+$$$$ IF OPTION_TYPE == "JMTK" 
 Boolean Options (OPTPREFIX:<option>=true or OPTPREFIX:<option>=false)
-$$$$ IF USE_OPT_LEVELS == "YES"
-Option                      OptLevel   Description
-$$$$ ELSE
 Option                                 Description
-$$$$ END IF
-$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
-$$$$ FOREACH OPTION BDATFILE
+  $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+  $$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
+     $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+CMD_NAME OPTION.DESCRIP
+     $$$$ END LET CMD_NAME
+     $$$$ END SPLIT
+  $$$$ END FOREACH
+  $$$$ END LOOP
+$$$$ ELSE
+$$$$ IF OPTION_TYPE == "VM" 
+Boolean Options (OPTPREFIX:<option>=true or OPTPREFIX:<option>=false)
+Option                                 Description
+  $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+  $$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
+     $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+CMD_NAME OPTION.DESCRIP
+     $$$$ END LET CMD_NAME
+     $$$$ END SPLIT
+  $$$$ END FOREACH
+  $$$$ END LOOP
+$$$$ ELSE
+Boolean Options (OPTPREFIX:<option>=true or OPTPREFIX:<option>=false)
+  $$$$ IF USE_OPT_LEVELS == "YES"
+Option                      OptLevel   Description
+  $$$$ ELSE
+Option                                 Description
+  $$$$ END IF
+  $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+  $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME OPT_LEVEL DEFAULT_VALUE SHORT_NAME
      $$$$ LET PRETTY_LEVEL @IF(OPT_LEVEL == -1, "       ", @PAD(OPT_LEVEL,7," "))
      $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
@@ -48,13 +80,45 @@ CMD_NAME PRETTY_LEVEL OPTION.DESCRIP
      $$$$ END LET CMD_NAME
      $$$$ END LET PRETTY_LEVEL
      $$$$ END SPLIT
-$$$$ END FOREACH
-$$$$ END LOOP
+  $$$$ END FOREACH
+  $$$$ END LOOP
+$$$$ END IF
+$$$$ END IF
 
 Value Options (OPTPREFIX<option>=<value>)
 Option                         Type    Description
-$$$$ LOOP VDATFILE VALUE_DAT_FILES
-$$$$ FOREACH OPTION VDATFILE
+$$$$ IF OPTION_TYPE == "JMTK"
+  $$$$ LOOP VDATFILE VALUE_DAT_FILES
+  $$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == V
+          $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+          $$$$ LET TNAME @PAD("TYPE", 7, " ")
+CMD_NAME TNAME OPTION.DESCRIP
+          $$$$ END LET TYPE_NAME
+          $$$$ END LET CMD_NAME
+     $$$$ END IF TAG == V
+     $$$$ END SPLIT OPTION.DECL
+  $$$$ END FOREACH
+  $$$$ END LOOP
+$$$$ ELSE
+$$$$ IF OPTION_TYPE == "VM"
+  $$$$ LOOP VDATFILE VALUE_DAT_FILES
+  $$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == V
+          $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+          $$$$ LET TNAME @PAD("TYPE", 7, " ")
+CMD_NAME TNAME OPTION.DESCRIP
+          $$$$ END LET TYPE_NAME
+          $$$$ END LET CMD_NAME
+     $$$$ END IF TAG == V
+     $$$$ END SPLIT OPTION.DECL
+  $$$$ END FOREACH
+  $$$$ END LOOP
+$$$$ ELSE
+  $$$$ LOOP VDATFILE VALUE_DAT_FILES
+  $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == V
           $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, @LOWER("FULL_NAME"), "SHORT_NAME"), 30, " ")
@@ -64,8 +128,10 @@ CMD_NAME TNAME OPTION.DESCRIP
           $$$$ END LET CMD_NAME
      $$$$ END IF TAG == V
      $$$$ END SPLIT OPTION.DECL
-$$$$ END FOREACH
-$$$$ END LOOP
+  $$$$ END FOREACH
+  $$$$ END LOOP
+$$$$ END IF
+$$$$ END IF
 
 Selection Options (set option to one of an enumeration of possible values)
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
@@ -98,6 +164,8 @@ I_ENUMS_NUM
 $$$$ END FOREACH
 $$$$ END LOOP
 
+$$$$ IF OPTION_TYPE != "JMTK"
+$$$$ IF OPTION_TYPE != "VM"
 Set Options (option is a set of values)
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
@@ -110,4 +178,7 @@ CMD_NAME OPTION.DESCRIP
      $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
+$$$$ END IF
+$$$$ END IF
+
 \end{verbatim}

@@ -42,7 +42,7 @@ interface OPT_GraphNode extends OPT_GraphElement
   /**
    *  The index of this node in its graph.  In general, this can e
    * anarbitrary number, but after a call to
-   * @{link OPT_Graph#compactNodeNumbering
+   * {@link OPT_Graph#compactNodeNumbering
    * OPT_Graph.compactNodeNumbering} the nodes of a graph should be
    * numbered 0 thru (# of nodes in graph - 1). 
    *

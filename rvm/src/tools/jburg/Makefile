@@ -1,21 +1,60 @@
-#
-# (C) Copyright IBM Corp. 2001
-#
-#$Id$
+# -*-Makefile-*-
+## EXPERIMENTAL makefile for jburg.
+## Normally run from inside $(SCRATCH_DIR).
+## Caller sets VPATH if needed.
 
-include		$(RVM_ROOT)/rvm/build.Make.rules
+## Copyright © IBM Corporation, 2003
+## Or, for compatibility with rvm/bin/findDeviantFiles: 
+# (C) Copyright IBM Corp. 2003
+#
+# @author Steven Augart
+##
+## $Id$
+##
+
+
+ifdef VPATH
+    CPPFLAGS+=-I$(VPATH)
+endif
+
+include		$(RVM_BUILD)/Make.rules.host
+
+CFLAGS+=-W -Wall -Wbad-function-cast -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wmissing-prototypes -Wmissing-declarations -fkeep-static-consts  -fkeep-inline-functions -Wundef -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn -Wnested-externs -Wtrigraphs -Wconversion -Wsign-compare -Wno-unused -Wno-strict-prototypes
+
+## For GCC version 3.3, we can add:
+## but we don't have the infrastructure to do this programmatically right now.
+## -Wfloat-equal -Wendif-labels -Wmissing-format-attribute -Wunreachable-code -Wno-long-long
 
 YFLAGS=
 
-tool:
-	@$(MAKE) $(SCRATCH_DIR)/jburg
+tool:	jburg
 
-$(SCRATCH_DIR)/jburg:	jburg.c gram.y jburg.h
-	$(CP) jburg.c $(SCRATCH_DIR)
-	$(CP) jburg.h $(SCRATCH_DIR)
-	$(CP) gram.y  $(SCRATCH_DIR)
-	(cd $(SCRATCH_DIR) && (export TMPDIR=.; $(MAKE) gram.c; $(CC) -o jburg jburg.c gram.c))
+## We need to explicitly make the temporary files (the .o files) so that 
+## we can use the $^ Make target.
+jburg.o gram.o: jburg.h
 
-.PHONY:	tool
+jburg:	jburg.o gram.o
+#	(cd $(SCRATCH_DIR) && (export TMPDIR=.; $(MAKE) gram.c; $(CC) -o jburg jburg.c gram.c))
+#	$(MAKE) TMPDIR=. -C $(SCRATCH_DIR) gram.c
+#	$(CC) -o $(SCRATCH_DIR)/jburg $(SCRATCH_DIR)/jburg.c $(SCRATCH_DIR)/gram.c
+#	$(CC) -o $@ jburg.c gram.c
+	$(CC) -o $@ $^
 
 
+## This is necessary because there is an ugly little bug in GNU Make 3.80
+## where the rule to run YACC is broken.
+##
+## It also modifies the error #file info for us that is written 
+## into y.tab.c, so that we do not face the same problem..
+
+gram.c: gram.y
+	$(YACC) $<
+	$(RM) $@
+	sed -e 's/"y\.tab\.c"/"gram.c"/' y.tab.c > $@
+	$(RM) y.tab.c
+	chmod -w $@
+
+clean:
+	$(RM) gram.c *.o jburg OPT_BURS_*.java BURS_State.template
+
+.PHONY:	tool clean

@@ -20,7 +20,7 @@ public abstract class VM_ThreadEventWaitData
    * Timestamp at which time the thread should return from its
    * wait if the event it is waiting for has not occurred.
    */ 
-  double maxWaitTime;
+  long maxWaitCycle;
 
   /**
    * Flags describing state and outcome of wait.
@@ -30,10 +30,10 @@ public abstract class VM_ThreadEventWaitData
 
   /**
    * Constructor.
-   * @param maxWaitTime the timestamp when the wait should end
+   * @param maxWaitCycle the timestamp when the wait should end
    */
-  public VM_ThreadEventWaitData(double maxWaitTime) {
-    this.maxWaitTime = maxWaitTime;
+  public VM_ThreadEventWaitData(long maxWaitCycle) {
+    this.maxWaitCycle = maxWaitCycle;
     this.waitFlags = WAIT_PENDING;
   }
 

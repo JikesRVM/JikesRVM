@@ -154,6 +154,8 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       if (bb.getExecutionFrequency() < threshold) {
         bb.setInfrequent();
 	container.counter1++;
+      } else {
+	bb.clearInfrequent();
       }
       container.counter2++;
     }

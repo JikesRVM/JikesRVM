@@ -1,0 +1,34 @@
+#
+# (C) Copyright IBM Corp. 2003
+#
+DECL
+# Structure of DECL FULL_NAME DEFAULT_VALUE {SHORT_NAME}
+DESCRIP
+
+noFinalizer false
+Should finalization be disabled?
+
+noReferenceTypes false
+Should reference type processing be disabled?
+
+ignoreSystemGC false
+Should we ignore calls to java.lang.System.gc?
+
+fullHeapSystemGC false
+Should a major GC be performed when a system GC is triggered?
+
+genCycleDetection false
+Should we use a generational approach to cycle detection
+
+fragmentationStats false
+Should we print fragmentation statistics for the free list allocator?
+
+verboseFragmentationStats false
+Should we print verbose fragmentation statistics for the free list allocator?
+
+verboseTiming false
+Should we display detailed breakdown of where GC time is spent?
+
+variableSizeHeap true
+Should we shrink/grow the heap to adjust to application working set?
+

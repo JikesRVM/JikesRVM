@@ -94,7 +94,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
 
   /**
    * Create an instance of a VM_Primitive
-   * @param typeRef the cannonical type reference for this primitive
+   * @param typeRef the canonical type reference for this primitive
    */
   VM_Primitive(VM_TypeReference tr) {
     super(tr);
@@ -142,7 +142,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
       if (tr == VM_TypeReference.Address ||
 	  tr == VM_TypeReference.Word ||
 	  tr == VM_TypeReference.Offset ||
-	  tr == VM_TypeReference.Extent) {
+	  tr == VM_TypeReference.Extent ||
+	  tr == VM_TypeReference.Code) {
 	stackWords = 1; //Kris Venstermans: dependant of Magic or not ?
 	name = tr.getName();
       } else {

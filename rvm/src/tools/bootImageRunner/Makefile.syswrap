@@ -5,7 +5,8 @@
 #
 # @author David Hovemeyer
 #
-include			$(JAL_BUILD)/Make.rules
+include			$(JAL_BUILD)/Make.rules.target
+CXXFLAGS+=-Wno-unused-parameter
 
 $(DEST):		syswrap.C syswrap.h
-	$(LDSHARED) -nostartfiles -Wl,--export-dynamic -o $(DEST) $(CXXFLAGS) -I$(JAL_ROOT)/rvm/src/include -I$(JAL_BUILD)/RVM.scratch -O -g $<
+	$(LDSHARED) -nostartfiles -Wl,--export-dynamic -o $@ -I$(JAL_ROOT)/rvm/src/include -I$(JAL_BUILD)/RVM.scratch $<

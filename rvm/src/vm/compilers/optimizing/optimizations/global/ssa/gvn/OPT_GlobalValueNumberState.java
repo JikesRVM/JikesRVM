@@ -246,7 +246,7 @@ public final class OPT_GlobalValueNumberState {
    * Return the (integer) value number for a given variable
    * 
    * @param name name of the variable to look up
-   * @return it's value number
+   * @return its value number
    */
   public int getValueNumber (Object name) {
     OPT_ValueGraphVertex v = valueGraph.getVertex(name);

@@ -1,22 +1,27 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001, 2002, 2003
  */
 //$Id$
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import java.lang.ref.Reference;
 
 /**
  * A virtual machine.
- * Implements VM_Uninterruptible to suppress thread switching in boot() and
- * sysCall() prologues.
+ * Implements VM_Uninterruptible to suppress thread switching in boot().
  *
  * @author Derek Lieber (project start).
  * @date 21 Nov 1997 
+ *
+ * @modified Steven Augart (to catch recursive shutdowns, 
+ *			    such as when out of memory)
+ * @date 10 July 2003
  */
-public class VM extends VM_Properties 
-    implements VM_Constants, VM_Uninterruptible { 
+public class VM extends VM_Properties implements VM_Constants, 
+						 VM_Uninterruptible { 
+
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
   //----------------------------------------------------------------------//
@@ -28,7 +33,7 @@ public class VM extends VM_Properties
    */ 
   public static void initForBootImageWriter(String classPath, 
 					    String[] bootCompilerArgs) 
-    throws VM_PragmaInterruptible, ClassNotFoundException {
+    throws VM_PragmaInterruptible {
     writingBootImage = true;
     init(classPath, bootCompilerArgs);
   }
@@ -37,7 +42,7 @@ public class VM extends VM_Properties
    * Prepare vm classes for use by tools.
    */
   public static void initForTool() 
-    throws VM_PragmaInterruptible, ClassNotFoundException   {
+    throws VM_PragmaInterruptible {
     runningTool = true;
     init(System.getProperty("java.class.path"), null);
   }
@@ -47,12 +52,10 @@ public class VM extends VM_Properties
    * @param classpath class path to be used by VM_ClassLoader
    */
   public static void initForTool(String classpath) 
-    throws VM_PragmaInterruptible, ClassNotFoundException {
+    throws VM_PragmaInterruptible {
     runningTool = true;
     init(classpath, null);
   }
-
-  static int verbose = 0;  // Show progress of boot 
 
   /**
    * Begin vm execution.
@@ -63,25 +66,27 @@ public class VM extends VM_Properties
    *    THREAD_ID_REGISTER  - required for method prolog (stack overflow check)
    * @exception Exception
    */
-  public static void boot() throws Exception, VM_PragmaLogicallyUninterruptible {
-    VM.writingBootImage = false;
-    VM.runningVM        = true;
-    VM.runningAsSubsystem = false;
+  public static void boot() throws Exception, 
+				   VM_PragmaLogicallyUninterruptible {
+    writingBootImage = false;
+    runningVM        = true;
+    runningAsSubsystem = false;
+    verboseBoot = VM_BootRecord.the_boot_record.verboseBoot;
 
     sysWriteLockOffset = VM_Entrypoints.sysWriteLockField.getOffset();
-    if (verbose >= 1) VM.sysWriteln("Booting");
+    if (verboseBoot >= 1) VM.sysWriteln("Booting");
 
     // Set up the current VM_Processor object.  The bootstrap program
     // has placed a pointer to the current VM_Processor in a special
     // register.
-    if (verbose >= 1) VM.sysWriteln("Setting up current VM_Processor");
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up current VM_Processor");
     VM_ProcessorLocalState.boot();
 
     // Finish thread initialization that couldn't be done in boot image.
     // The "stackLimit" must be set before any interruptible methods are called
     // because it's accessed by compiler-generated stack overflow checks.
     //
-    if (verbose >= 1) VM.sysWriteln("Doing thread initialization");
+    if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
     VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> VM_ThinLockConstants.TL_THREAD_ID_SHIFT];
     currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).add(STACK_SIZE_GUARD);
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
@@ -89,49 +94,63 @@ public class VM extends VM_Properties
     // get pthread_id from OS and store into vm_processor field
     // 
     if (!BuildForSingleVirtualProcessor)
-      VM_Processor.getCurrentProcessor().pthread_id = 
-        VM_SysCall.call0(VM_BootRecord.the_boot_record.sysPthreadSelfIP);
+      VM_Processor.getCurrentProcessor().pthread_id = VM_SysCall.sysPthreadSelf();
 
-    VM.TraceClassLoading = (VM_BootRecord.the_boot_record.traceClassLoading == 1);   
-
-    // Initialize memory manager's write barrier.
+    // Initialize memory manager's virtual processor local state.
     // This must happen before any putfield or arraystore of object refs
     // because the buffer is accessed by compiler-generated write barrier code.
     //
-    if (verbose >= 1) VM.sysWriteln("Setting up write barrier");
-    MM_Interface.setupProcessor( VM_Processor.getCurrentProcessor() );
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up write barrier");
+    MM_Interface.setupProcessor(VM_Processor.getCurrentProcessor());
 
     // Initialize memory manager.
     //    This must happen before any uses of "new".
     //
-    if (verbose >= 1) VM.sysWriteln("Setting up memory manager: bootrecord = ", VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record));
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up memory manager: bootrecord = ", VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record));
     MM_Interface.boot(VM_BootRecord.the_boot_record);
+    
+    // Start calculation of cycles to millsecond conversion factor
+    if (verboseBoot >= 1) VM.sysWriteln("Stage one of booting VM_Time");
+    VM_Time.bootStageOne();
 
-    VM_Time.boot();
-
-    // Reset the options for the baseline compiler to avoid carrying them over from
-    // bootimage writing time.
+    // Reset the options for the baseline compiler to avoid carrying 
+    // them over from bootimage writing time.
     // 
-    if (verbose >= 1) VM.sysWriteln("Setting up baseline compiler options");
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing baseline compiler options to defaults");
     VM_BaselineCompiler.initOptions();
 
     // Create class objects for static synchronized methods in the bootimage.
-    // This must happen before any static synchronized methods of bootimage classes
-    // can be invoked.
-    if (verbose >= 1) VM.sysWriteln("Creating class objects for static synchronized methods");
+    // This must happen before any static synchronized methods of bootimage 
+    // classes can be invoked.
+    if (verboseBoot >= 1) VM.sysWriteln("Creating class objects for static synchronized methods");
     createClassObjects();
 
     // Fetch arguments from program command line.
     //
-    if (verbose >= 1) VM.sysWriteln("Fetching command-line arguments");
+    if (verboseBoot >= 1) VM.sysWriteln("Fetching command-line arguments");
     VM_CommandLineArgs.fetchCommandLineArguments();
+
+    // Process most virtual machine command line arguments.
+    //
+    if (verboseBoot >= 1) VM.sysWriteln("Early stage processing of command line");
+    VM_CommandLineArgs.earlyProcessCommandLineArguments();
+
+    // Allow Memory Manager to respond to its command line arguments
+    //
+    if (verboseBoot >= 1) VM.sysWriteln("Collector processing rest of boot options");
+    MM_Interface.postBoot();
 
     // Initialize class loader.
     //
-    if (verbose >= 1) VM.sysWriteln("Initializing class loader");
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing class loader");
     String vmClasses = VM_CommandLineArgs.getVMClasses();
     VM_ClassLoader.boot(vmClasses);
     VM_SystemClassLoader.boot();
+
+    // Complete calculation of cycles to millsecond conversion factor
+    // Must be done before any dynamic compilation occurs.
+    if (verboseBoot >= 1) VM.sysWriteln("Stage two of booting VM_Time");
+    VM_Time.bootStageTwo();
 
     // Initialize statics that couldn't be placed in bootimage, either 
     // because they refer to external state (open files), or because they 
@@ -141,10 +160,7 @@ public class VM extends VM_Properties
     // "object not part of bootimage" messages printed out by bootimage 
     // writer.
     //
-
-    if (verbose >= 1) VM.sysWriteln("Running various class initializers");
-    java.lang.ref.JikesRVMSupport.setReferenceLock(new VM_Synchronizer());
-
+    if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
     runClassInitializer("java.io.File");
@@ -162,6 +178,7 @@ public class VM extends VM_Properties
     runClassInitializer("java.io.PrintWriter");
     runClassInitializer("gnu.java.lang.SystemClassLoader");
     runClassInitializer("java.lang.String");
+    runClassInitializer("java.lang.VMString");
     runClassInitializer("gnu.java.security.provider.DefaultPolicy");
     runClassInitializer("java.security.Policy");
     runClassInitializer("java.util.WeakHashMap");
@@ -183,17 +200,7 @@ public class VM extends VM_Properties
     runClassInitializer("java.util.jar.Attributes$Name");
     //-#endif
 
-    // Process virtual machine directives.
-    //
-    if (verbose >= 1) VM.sysWriteln("Early stage processing of VM directives");
-    VM_CommandLineArgs.earlyProcessCommandLineArguments();
-
-    // Allow Collector to respond to command line arguments
-    //
-    if (verbose >= 1) VM.sysWriteln("Collector processing rest of boot options");
-    MM_Interface.postBoot();
-
-    if (verbose >= 1) VM.sysWriteln("Booting VM_Lock");
+    if (verboseBoot >= 1) VM.sysWriteln("Booting VM_Lock");
     VM_Lock.boot();
     
     // set up HPM
@@ -209,8 +216,8 @@ public class VM extends VM_Properties
 	if (! VM_HardwarePerformanceMonitors.hpm_thread_group) {
 	  if(VM_HardwarePerformanceMonitors.verbose>=1)
 	    VM.sysWriteln("VM.boot()","call to sysHPMsetSettings() and sysHPMstartMyThread()\n");
-	  VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMsetProgramMyThreadIP);
-	  VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMstartMyThreadIP);
+	  VM_SysCall.sysHPMsetProgramMyThread();
+	  VM_SysCall.sysHPMstartMyThread();
 	}
 	// start tracing
       }
@@ -220,11 +227,12 @@ public class VM extends VM_Properties
     // Enable multiprocessing.
     // Among other things, after this returns, GC and dynamic class loading are enabled.
     // 
-    if (verbose >= 1) VM.sysWriteln("Booting scheduler");
+    if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
     VM_Scheduler.boot();
 
-    // Create JNI Environment for boot thread.  At this point the boot thread can invoke native methods.
-    if (verbose >= 1) VM.sysWriteln("Initializing JNI for boot thread");
+    // Create JNI Environment for boot thread.  
+    // After this point the boot thread can invoke native methods.
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
     VM_Thread.getCurrentThread().initializeJNIEnv();
 
     //-#if RVM_WITH_HPM
@@ -232,8 +240,8 @@ public class VM extends VM_Properties
     VM_HardwarePerformanceMonitors.setUpHPMinfo();
     //-#endif
 
-    // Run class intializers that require fully booted VM
-    if (verbose >= 1) VM.sysWriteln("Running late class initializers");
+    // Run class intializers that require JNI
+    if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.util.PropertyPermission");
@@ -242,40 +250,50 @@ public class VM extends VM_Properties
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
 
-    // Process most of the VM's command line arguments.
-    // The VM is fully booted at this point. 
-    if (verbose >= 1) VM.sysWriteln("Late stage processing of VM directives");
-    String[] applicationArguments = VM_CommandLineArgs.lateProcessCommandLineArguments();
-    if (applicationArguments.length == 0) {  
-      VM.sysWrite("vm: please specify a class to execute\n");
-      VM.sysExit(1);
-    }
-
-    // Allow Baseline compiler to respond to command line arguments.
-    // The baseline compiler ignores command line arguments until all are processed
-    // otherwise printing may occur because of compilations ahead of processing the
-    // method_to_print restriction
-    //
-    if (verbose >= 1) VM.sysWriteln("Compiler processing rest of boot options");
-    VM_BaselineCompiler.postBootOptions();
+    ///////////////////////////////////////////////////////////////
+    // The VM is now fully booted.                               //
+    // By this we mean that we can execute arbitrary Java code.  //
+    ///////////////////////////////////////////////////////////////
+    if (verboseBoot >= 1) VM.sysWriteln("VM is now fully booted");
+    
+    // Inform interested subsystems that VM is fully booted.
+    VM.fullyBooted = true;
+    MM_Interface.fullyBootedVM();
+    VM_BaselineCompiler.fullyBootedVM();
 
     // Allow profile information to be read in from a file
+    // 
     VM_EdgeCounts.boot();
 
     // Initialize compiler that compiles dynamically loaded classes.
     //
-    if (VM.verbose >= 1) VM.sysWriteln("Initializing runtime compiler");
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing runtime compiler");
     VM_RuntimeCompiler.boot();
 
-    // At this point, all of the virtual processors should be running,
-    // and thread switching should be enabled.
-    if (VM.verboseClassLoading) VM.sysWrite("[VM booted]\n");
+    // Process remainder of the VM's command line arguments.
+    if (verboseBoot >= 1) VM.sysWriteln("Late stage processing of command line");
+    String[] applicationArguments = VM_CommandLineArgs.lateProcessCommandLineArguments();
+
+    if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWrite("[VM booted]\n");
+
+    // The first argument must be a class name.
+    if (verboseBoot >= 1) VM.sysWriteln("Extracting name of class to execute");
+    if (applicationArguments.length == 0) {
+      pleaseSpecifyAClass();
+    }
+    if (applicationArguments.length > 0 && 
+	! VM_TypeDescriptorParsing.isJavaClassName(applicationArguments[0])) {
+      VM.sysWrite("vm: \"");
+      VM.sysWrite(applicationArguments[0]);
+      VM.sysWrite("\" is not a legal Java class name.\n");
+      pleaseSpecifyAClass();
+    }
 
     // Create main thread.
     // Work around class incompatibilities in boot image writer
     // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
-    // Rework this when we do feature 3601.
-    if (VM.verbose >= 1) VM.sysWriteln("Constructing mainThread");
+    // Junk this when we do feature 3601.
+    if (verboseBoot >= 1) VM.sysWriteln("Constructing mainThread");
     Thread      xx         = new MainThread(applicationArguments);
     VM_Address  yy         = VM_Magic.objectAsAddress(xx);
     VM_Thread   mainThread = (VM_Thread)VM_Magic.addressAsObject(yy);
@@ -286,7 +304,7 @@ public class VM extends VM_Properties
     //-#endif
 
     // Schedule "main" thread for execution.
-    if (verbose >= 1) VM.sysWriteln("Starting main thread");
+    if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
     mainThread.start();
 
     // Create one debugger thread.
@@ -299,17 +317,24 @@ public class VM extends VM_Properties
       if (!VM_HardwarePerformanceMonitors.hpm_thread_group) {
 	if(VM_HardwarePerformanceMonitors.verbose>=1)
 	  VM.sysWrite(" VM.boot() call sysHPMresetMyThread()\n");
-	VM_SysCall.call0(VM_BootRecord.the_boot_record.sysHPMresetMyThreadIP);
+	VM_SysCall.sysHPMresetMyThread();
       }
     }
     //-#endif
 
-    // End of boot thread. Relinquish control to next job on work queue.
+    // End of boot thread.
     //
     if (VM.TraceThreads) VM_Scheduler.trace("VM.boot", "completed - terminating");
     VM_Thread.terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
+
+  private static void pleaseSpecifyAClass() throws VM_PragmaInterruptible {
+    VM.sysWrite("vm: Please specify a class to execute.\n");
+    VM.sysWrite("vm:   You can invoke the VM with the \"-help\" flag for usage information.\n");
+    VM.sysExit(VM.exitStatusBogusCommandLineArg);
+  }
+
 
   private static VM_Class[] classObjects = new VM_Class[0];
   /**
@@ -325,15 +350,15 @@ public class VM extends VM_Properties
     tmp[classObjects.length] = c;
     classObjects = tmp;
   }
+
   /**
    * Create the java.lang.Class objects needed for 
    * static synchronized methods in the bootimage.
    */
   private static void createClassObjects() throws VM_PragmaInterruptible {
     for (int i=0; i<classObjects.length; i++) {
-      if (verbose >= 2) {
-	VM.sysWrite(classObjects[i].toString()); 
-	VM.sysWriteln();
+      if (verboseBoot >= 2) {
+	VM.sysWriteln(classObjects[i].toString()); 
       }
       classObjects[i].getClassForType();
     }
@@ -341,24 +366,42 @@ public class VM extends VM_Properties
 
   /**
    * Run <clinit> method of specified class, if that class appears 
-   * in bootimage.
+   * in bootimage and actually has a clinit method (we are flexible to
+   * allow one list of classes to work with different bootimages and 
+   * different version of classpath (eg 0.05 vs. cvs head).
+   * 
+   * This method is called only while the VM boots.
+   * 
    * @param className
    */
   static void runClassInitializer(String className) throws VM_PragmaInterruptible {
-    if (verbose >= 2) {
+    if (verboseBoot >= 2) {
       sysWrite("running class intializer for ");
-      sysWriteln( className );
+      sysWriteln(className);
     }
-
     VM_Atom  classDescriptor = 
       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor);
     VM_Class cls = (VM_Class)tRef.peekResolvedType();
     if (cls != null && cls.isInBootImage()) {
       VM_Method clinit = cls.getClassInitializerMethod();
-      clinit.compile();
-      if (verbose >= 10) VM.sysWriteln("invoking method " + clinit);
-      VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
+      if (clinit != null) {
+	clinit.compile();
+	if (verboseBoot >= 10) VM.sysWriteln("invoking method " + clinit);
+	try {
+	  VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
+	} catch (Error e) {
+	  throw e;
+	} catch (Throwable t) {
+	  ExceptionInInitializerError eieio
+	    = new ExceptionInInitializerError("Caught exception while invoking the class initializer for"
+					      +  className);
+	  eieio.initCause(t);
+	  throw eieio;
+	}
+      } else {
+	if (verboseBoot >= 10) VM.sysWriteln("has no clinit method ");
+      }	
       cls.setAllFinalStaticJTOCEntries();
     }
   }
@@ -385,21 +428,40 @@ public class VM extends VM_Properties
    * @param message the message to print if the assertion is false
    */
   public static void _assert(boolean b, String message) {
-    if (!VM.VerifyAssertions) {
-      // somebody forgot to conditionalize their call to assert with
-      // "if (VM.VerifyAssertions)"
-      _assertionFailure("vm internal error: assert called when !VM.VerifyAssertions");
-    }
-
-    if (!b) _assertionFailure(message);
+    _assert(b, message, null);
   }
 
-  private static void _assertionFailure(String message) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
-    if (message == null) message = "vm internal error at:";
-    if (VM.runningVM) {
-      sysFail(message);
+  public static void _assert(boolean b, String msg1, String msg2) {
+    if (!VM.VerifyAssertions) {
+      sysWriteln("vm: somebody forgot to conditionalize their call to assert with");
+      sysWriteln("vm: if (VM.VerifyAssertions)");
+      _assertionFailure("vm internal error: assert called when !VM.VerifyAssertions", null);
     }
-    throw new RuntimeException(message);
+    if (!b) _assertionFailure(msg1, msg2);
+  }
+
+
+
+
+  private static void _assertionFailure(String msg1, String msg2) 
+    throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline 
+  {
+    if (msg1 == null && msg2 == null)
+      msg1 = "vm internal error at:";
+    if (msg2 == null) {
+      msg2 = msg1;
+      msg1 = null;
+    }
+    if (VM.runningVM) {
+      if (msg1 != null) {
+	sysWrite(msg1);
+	//	sysWrite(": ");
+      }
+      sysFail(msg2);
+    }
+    throw new RuntimeException((msg1 != null ? msg1 : "") 
+			       // + ( (msg1 != null) ? ": " : "") 
+			       + msg2);
   }
 
 
@@ -447,11 +509,11 @@ public class VM extends VM_Properties
   }
 
   public static String addressAsHexString(VM_Address addr) throws VM_PragmaInterruptible {
-     //-#if RVM_FOR_64_ADDR
-     return longAsHexString(addr.toLong());
-     //-#else
-     return intAsHexString(addr.toInt());
-     //-#endif
+    //-#if RVM_FOR_32_ADDR
+    return intAsHexString(addr.toInt());
+    //-#elif RVM_FOR_64_ADDR
+    return longAsHexString(addr.toLong());
+    //-#endif
   }
 
   private static int sysWriteLock = 0;
@@ -501,13 +563,31 @@ public class VM extends VM_Properties
    * @param value   what is printed
    */
   public static void write(String value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-    if (runningVM) {
-      VM_Processor.getCurrentProcessor().disableThreadSwitching();
-      for (int i = 0, n = value.length(); i < n; ++i) 
-        write(value.charAt(i));
-      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    if (value == null) {
+      write("null");
     } else {
-      System.err.print(value);
+      if (runningVM) {
+	VM_Processor.getCurrentProcessor().disableThreadSwitching();
+	for (int i = 0, n = value.length(); i < n; ++i) 
+	  write(value.charAt(i));
+	VM_Processor.getCurrentProcessor().enableThreadSwitching();
+      } else {
+	System.err.print(value);
+      }
+    }
+  }
+
+  /**
+   * Low level print to console.
+   * @param value character array that is printed
+   * @param len number of characters printed
+   */
+  public static void write(char [] value, int len) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    for (int i = 0, n = len; i < n; ++i) {
+      if (runningVM)
+	write(VM_Magic.getCharAtOffset(value, i << LOG_BYTES_IN_CHAR));
+      else
+	write(value[i]);
     }
   }
 
@@ -517,7 +597,7 @@ public class VM extends VM_Properties
    */
   public static void write(char value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
-      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysWriteCharIP, value);
+      VM_SysCall.sysWriteChar(value);
     else
       System.err.print(value);
   }
@@ -560,7 +640,7 @@ public class VM extends VM_Properties
   public static void write(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM) {
       int mode = (value < -(1<<20) || value > (1<<20)) ? 2 : 0; // hex only or decimal only
-      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, mode);
+      VM_SysCall.sysWrite(value, mode);
     } else {
       System.err.print(value);
     }
@@ -572,7 +652,7 @@ public class VM extends VM_Properties
    */
   public static void writeHex(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
-      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, 2 /*just hex*/);
+      VM_SysCall.sysWrite(value, 2 /*just hex*/);
     else {
       System.err.print(Integer.toHexString(value));
     }
@@ -584,32 +664,42 @@ public class VM extends VM_Properties
    */
   public static void writeHex(long value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM){
-      int val1 = (int)(value>>32);
-      int val2 = (int)(value & 0xFFFFFFFF);
-      VM_SysCall.call3(VM_BootRecord.the_boot_record.sysWriteLongIP, val1, val2, 2);
+      VM_SysCall.sysWriteLong(value, 2);
     } else {
       System.err.print(Long.toHexString(value));
     }
   }
 
-  /**
-   * Low level print to console.
-   * @param value	what is printed, as hex only
-   */
-  public static void writeHex(VM_Address value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-  //-#if RVM_FOR_64_ADDR
+  public static void writeHex(VM_Word value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    //-#if RVM_FOR_64_ADDR
     writeHex(value.toLong()); 
-  //-#else
+    //-#else
     writeHex(value.toInt()); 
-  //-#endif
+    //-#endif
   }
 
-  public static void writeHex(VM_Offset value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-  //-#if RVM_FOR_64_ADDR
+  public static void writeHex(VM_Address value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    //-#if RVM_FOR_64_ADDR
     writeHex(value.toLong()); 
-  //-#else
+    //-#else
     writeHex(value.toInt()); 
-  //-#endif
+    //-#endif
+  }
+
+  public static void writeHex(VM_Extent value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    //-#if RVM_FOR_64_ADDR
+    writeHex(value.toLong()); 
+    //-#else
+    writeHex(value.toInt()); 
+    //-#endif
+  }
+
+  public static void writeHex(VM_Offset value) throws VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
+    //-#if RVM_FOR_64_ADDR
+    writeHex(value.toLong()); 
+    //-#else
+    writeHex(value.toInt()); 
+    //-#endif
   }
 
   /**
@@ -618,7 +708,7 @@ public class VM extends VM_Properties
    */
   public static void writeInt(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
-      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0 /*just decimal*/);
+      VM_SysCall.sysWrite(value, 0 /*just decimal*/);
     else {
       System.err.print(value);
     }
@@ -632,7 +722,7 @@ public class VM extends VM_Properties
    */
   public static void write(int value, boolean hexToo) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
-      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, hexToo?1:0);
+      VM_SysCall.sysWrite(value, hexToo?1:0);
     else
       System.err.print(value);
   }
@@ -652,12 +742,9 @@ public class VM extends VM_Properties
    *                              false - print as decimal only
    */
   public static void write(long value, boolean hexToo) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-    if (runningVM) {
-      int val1, val2;
-      val1 = (int)(value>>32);
-      val2 = (int)(value & 0xFFFFFFFF);
-      VM_SysCall.call3(VM_BootRecord.the_boot_record.sysWriteLongIP, val1, val2, hexToo?1:0);
-    } else
+    if (runningVM) 
+      VM_SysCall.sysWriteLong(value, hexToo?1:0);
+    else
       System.err.print(value);
   }
 
@@ -678,7 +765,7 @@ public class VM extends VM_Properties
     while (temp >= 10) { len++; temp /= 10; }
     while (fieldWidth > len++) write(" ");
     if (runningVM) 
-      VM_SysCall.call2(VM_BootRecord.the_boot_record.sysWriteIP, value, 0);
+      VM_SysCall.sysWrite(value, 0);
     else 
       System.err.print(value);
   }
@@ -701,16 +788,20 @@ public class VM extends VM_Properties
     write(d, 2);
   }
 
+  public static void write (VM_Word addr) { 
+    writeHex(addr);
+  }
+
   public static void write (VM_Address addr) { 
     writeHex(addr);
   }
 
-  public static void write (VM_Offset offset) { 
-    writeHex(offset);
+  public static void write (VM_Offset addr) { 
+    writeHex(addr);
   }
 
-  public static void write (VM_Word w) {
-    writeHex(w.toAddress());
+  public static void write (VM_Extent addr) { 
+    writeHex(addr);
   }
 
   public static void write (boolean b) {
@@ -735,11 +826,15 @@ public class VM extends VM_Properties
   public static void sysWrite   (double d, int p)      throws VM_PragmaNoInline { swLock(); write(d, p); swUnlock(); }
   public static void sysWrite   (double d)             throws VM_PragmaNoInline { swLock(); write(d); swUnlock(); }
   public static void sysWrite   (String s)             throws VM_PragmaNoInline { swLock(); write(s); swUnlock(); }
+  public static void sysWrite   (char [] c, int l)     throws VM_PragmaNoInline { swLock(); write(c, l); swUnlock(); }
   public static void sysWrite   (VM_Address a)         throws VM_PragmaNoInline { swLock(); write(a); swUnlock(); }
   public static void sysWriteln (VM_Address a)         throws VM_PragmaNoInline { swLock(); write(a); writeln(); swUnlock(); }
   public static void sysWrite   (VM_Offset o)          throws VM_PragmaNoInline { swLock(); write(o); swUnlock(); }
-  public static void sysWriteln (VM_Offset o)         throws VM_PragmaNoInline { swLock(); write(o); writeln(); swUnlock(); }
+  public static void sysWriteln (VM_Offset o)          throws VM_PragmaNoInline { swLock(); write(o); writeln(); swUnlock(); }
   public static void sysWrite   (VM_Word w)            throws VM_PragmaNoInline { swLock(); write(w); swUnlock(); }
+  public static void sysWriteln (VM_Word w)            throws VM_PragmaNoInline { swLock(); write(w); writeln(); swUnlock(); }
+  public static void sysWrite   (VM_Extent e)          throws VM_PragmaNoInline { swLock(); write(e); swUnlock(); }
+  public static void sysWriteln (VM_Extent e)          throws VM_PragmaNoInline { swLock(); write(e); writeln(); swUnlock(); }
   public static void sysWrite   (boolean b)            throws VM_PragmaNoInline { swLock(); write(b); swUnlock(); }
   public static void sysWrite   (int i)                throws VM_PragmaNoInline { swLock(); write(i); swUnlock(); }
   public static void sysWriteln (int i)                throws VM_PragmaNoInline { swLock(); write(i);   writeln(); swUnlock(); }
@@ -813,6 +908,8 @@ public class VM extends VM_Properties
 
   public static void ptsysWriteln (String s)             throws VM_PragmaNoInline { swLock(); showProc(); showThread(); write(s); writeln(); swUnlock(); }
 
+  public static void psysWrite    (char [] c, int l)     throws VM_PragmaNoInline { swLock(); showProc(); write(c, l); swUnlock(); }
+
   public static void psysWriteln (VM_Address a)         throws VM_PragmaNoInline { swLock(); showProc(); write(a); writeln(); swUnlock(); }
   public static void psysWriteln (String s)             throws VM_PragmaNoInline { swLock(); showProc(); write(s); writeln(); swUnlock(); }
   public static void psysWriteln (String s, int i)             throws VM_PragmaNoInline { swLock(); showProc(); write(s); write(i); writeln(); swUnlock(); }
@@ -821,22 +918,75 @@ public class VM extends VM_Properties
   public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3) throws VM_PragmaNoInline { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); writeln(); swUnlock(); }
   public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3, String s4, VM_Address a4) throws VM_PragmaNoInline { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); writeln(); swUnlock(); }
   public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3, String s4, VM_Address a4, String s5, VM_Address a5) throws VM_PragmaNoInline { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); write(s5); write(a5); writeln(); swUnlock(); }
+  
+  // Exit statuses, pending a better location.
+  // We also use the explicit constant -1 as an exit status (that gets mapped
+  // to 255).  -1 is for things that are particularly bad.
+  public static int exitStatusRecursivelyShuttingDown = 128;
+  public static int exitStatusDumpStackAndDie = 124;
+  public static int exitStatusMainThreadCouldNotLaunch = 123;
+  public static int exitStatusMiscTrouble = 122;
+  public static int exitStatusSysFail = exitStatusDumpStackAndDie;
+
+  /* See sys.C; if you change one of the following macros here,
+     change them there too! */
+
+  // EXIT_STATUS_SYSCALL_TROUBLE
+  final public static int exitStatusSyscallTrouble = 121;
+  // EXIT_STATUS_TIMER_TROUBLE
+  final public static int exitStatusTimerTrouble = exitStatusSyscallTrouble;
+
+  // EXIT_STATUS_UNEXPECTED_CALL_TO_SYS
+  final public static int exitStatusUnexpectedCallToSys = 120;
+  // EXIT_STATUS_UNSUPPORTED_INTERNAL_OP
+  final public static int exitStatusUnsupportedInternalOp = exitStatusUnexpectedCallToSys;
+
+  public static int exitStatusDyingWithUncaughtException = 113;
+  /** Trouble with the Hardware Performance Monitors */
+  public static int exitStatusHPMTrouble = 110;
+  public static int exitStatusOptCompilerFailed = 101;
+  /* See EXIT_STATUS_BOGUS_COMMAND_LINE_ARG in RunBootImage.C.  If you change
+   * this value, change it there too. */
+  public static int exitStatusBogusCommandLineArg = 100;
+  public static int exitStatusTooManyThrowableErrors = 99;
+  public static int exitStatusTooManyOutOfMemoryErrors = exitStatusTooManyThrowableErrors;
+  /* See EXIT_STATUS_BAD_WORKING_DIR, in VM_0005fProcess.C.  If you change
+     this value, change it there too.  */
+  public static int exitStatusJNITrouble = 98;
+  
 
   /**
    * Exit virtual machine due to internal failure of some sort.
    * @param message  error message describing the problem
    */
   public static void sysFail(String message) throws VM_PragmaNoInline {
+    handlePossibleRecursiveCallToSysFail(message);
+
     // print a traceback and die
     VM_Scheduler.traceback(message);
-    VM.shutdown(1);
+    VM.shutdown(exitStatusSysFail);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
+//   /* This could be made public. */
+//   private static boolean alreadyShuttingDown() {
+//     return (inSysExit != 0) || (inShutdown != 0);
+//   }
+
+  public static boolean debugOOM = false; // debug out-of-memory exception. DEBUG
+  public static boolean doEmergencyGrowHeap = !debugOOM; // DEBUG
+  
   /**
    * Exit virtual machine.
    * @param value  value to pass to host o/s
    */
   public static void sysExit(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
+    handlePossibleRecursiveCallToSysExit();
+    if (debugOOM) {
+      sysWrite("entered VM.sysExit(");
+      sysWrite(value);
+      sysWriteln(")");
+    }
     if (runningVM) {
       VM_Wait.disableIoWait(); // we can't depend on thread switching being enabled
       VM_Callbacks.notifyExit(value);
@@ -844,6 +994,7 @@ public class VM extends VM_Properties
     } else {
       System.exit(value);
     }
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -852,79 +1003,96 @@ public class VM extends VM_Properties
    * @param value  exit value
    */
   public static void shutdown(int value) {
+    handlePossibleRecursiveShutdown();
+    
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
     if (VM.runningAsSubsystem) {
       // Terminate only the system threads that belong to the VM
       VM_Scheduler.processorExit(value);
     } else {
-      VM_SysCall.call1(VM_BootRecord.the_boot_record.sysExitIP, value);
+      VM_SysCall.sysExit(value);
+    }
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  private static int inSysFail = 0;
+  private static void handlePossibleRecursiveCallToSysFail(
+							   String message) 
+  {
+    ++inSysFail;
+    if (inSysFail > 1 && inSysFail <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
+      sysWrite("VM.sysFail(): We're in a recursive call to VM.sysFail(), ");
+      sysWrite(inSysFail);
+      sysWriteln(" deep.");
+      sysWrite("sysFail was called with the message: ");
+      sysWriteln(message);
+     }
+    if (inSysFail > maxSystemTroubleRecursionDepth) {
+      dieAbruptlyRecursiveSystemTrouble();
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
 
-  /**
-   * Create a virtual processor (aka "unix kernel thread", "pthread").
-   * @param jtoc  register values to use for thread startup
-   * @param pr
-   * @param ti
-   * @param fp
-   * @return virtual processor's o/s handle
-   */
-  static int sysVirtualProcessorCreate(VM_Address jtoc, VM_Address pr, 
-                                       VM_Address ti, VM_Address fp) {
-    return VM_SysCall.call_I_A_A_A_A(VM_BootRecord.the_boot_record.sysVirtualProcessorCreateIP,
-                    jtoc, pr, ti, fp);
+
+  private static int inSysExit = 0;
+  private static void handlePossibleRecursiveCallToSysExit() {
+    ++inSysExit;
+    /* Message if we've been here before. */
+    if (inSysExit > 1 && inSysExit <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
+      sysWrite("In a recursive call to VM.sysExit(), ");
+      sysWrite(inSysExit);
+      sysWriteln(" deep.");
+    }
+    
+    if (inSysExit > maxSystemTroubleRecursionDepth ) {
+      dieAbruptlyRecursiveSystemTrouble();
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    }
   }
 
-  /**
-   * Bind execution of current virtual processor to specified physical cpu.
-   * @param cpuId  physical cpu id (0, 1, 2, ...)
-   */
-  static void sysVirtualProcessorBind(int cpuId) {
-    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysVirtualProcessorBindIP, cpuId);
+  private static int inShutdown = 0;
+  /** Used only by VM.shutdown() */
+  private static void handlePossibleRecursiveShutdown() {
+    ++inShutdown;
+    /* If we've been here only a few times, print message. */
+    if (   inShutdown > 1 
+	&& inShutdown <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
+      sysWriteln("We're in a recursive call to VM.shutdown()");
+      sysWrite(inShutdown);
+      sysWriteln(" deep!");
+    }
+    if (inShutdown > maxSystemTroubleRecursionDepth ) {
+      dieAbruptlyRecursiveSystemTrouble();
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    }
   }
+  
+  /** Have we already called dieAbruptlyRecursiveSystemTrouble()?  
+      Only for use if we're recursively shutting down!  Used by
+      dieAbruptlyRecursiveSystemTrouble() only.  */
+
+  private static boolean inDieAbruptlyRecursiveSystemTrouble = false;
+
+  public static void dieAbruptlyRecursiveSystemTrouble() {
+    if (! inDieAbruptlyRecursiveSystemTrouble) {
+      inDieAbruptlyRecursiveSystemTrouble = true;
+      VM.sysWrite("VM.dieAbruptlyRecursiveSystemTrouble(): Dying abruptly");
+      VM.sysWriteln("; we're stuck in a recursive shutdown/exit.");
+    }
+    /* Emergency death. */
+    VM_SysCall.sysExit(exitStatusRecursivelyShuttingDown);
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
 
   /**
    * Yield execution of current virtual processor back to o/s.
    */
   public static void sysVirtualProcessorYield() {
-    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    return;
-    //-#else
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
+    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    VM_SysCall.sysVirtualProcessorYield();
     //-#endif
   }
-
-  /**
-   * Start interrupt generator for thread timeslicing.
-   * The interrupt will be delivered to whatever virtual processor happens 
-   * to be running when the timer expires.
-   */
-  static void sysVirtualProcessorEnableTimeSlicing(int timeSlice) {
-    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysVirtualProcessorEnableTimeSlicingIP, timeSlice);
-  }
-
-  //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-  //-#else
-
-  //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-  //-#else
-  static void sysCreateThreadSpecificDataKeys() {
-      VM_SysCall.call0(VM_BootRecord.the_boot_record.sysCreateThreadSpecificDataKeysIP);
-  }
-  //-#endif
-
-  static void sysWaitForVirtualProcessorInitialization() {
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysWaitForVirtualProcessorInitializationIP);
-  }
-
-  static void sysWaitForMultithreadingStart() {
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysWaitForMultithreadingStartIP);
-  }
-
-  static void sysInitializeStartupLocks(int howMany) {
-    VM_SysCall.call1(VM_BootRecord.the_boot_record.sysInitializeStartupLocksIP, howMany);
-  }
-  //-#endif
 
   //----------------//
   // implementation //
@@ -938,7 +1106,7 @@ public class VM extends VM_Properties
    *                         boot compiler's init routine.
    */
   private static void init(String vmClassPath, String[] bootCompilerArgs) 
-    throws VM_PragmaInterruptible, ClassNotFoundException {
+    throws VM_PragmaInterruptible {
     // create dummy boot record
     //
     VM_BootRecord.the_boot_record = new VM_BootRecord();

@@ -13,11 +13,10 @@ V INITIAL_SAMPLE_SIZE int 20
 Initial value of how many samples to take before reporting method hotness to controller
 
 
-E PRIMARY_STRATEGY byte PS_ADAPTIVE
-Selection of primary controller strategy
-"PS_BASE_ONLY baselineOnly baseonly" \
-"PS_OPT_ONLY optOnly optonly" \
-"PS_ADAPTIVE adaptive adaptive" 
+E INITIAL_COMPILER byte IRC_BASE
+Selection of initial compiler 
+"IRC_BASE baseIRC base" \
+"IRC_OPT optIRC opt"
 
 E RECOMPILATION_STRATEGY byte RS_SAMPLING
 Selection of mechanism for identifying methods for optimizing recompilation
@@ -28,20 +27,16 @@ V LOGFILE_NAME String \"AOSLog.txt\" lf
 Name of log file
 
 
-V COMPILER_DNA_FILE_NAME String \"CompilerDNA.txt\" dna
-Name of compiler DNA file
+V COMPILER_DNA_FILE_NAME String \"\" dna
+Name of compiler DNA file (no name ==> use default DNA)
 
 
-V LOGGING_LEVEL int 1
+V LOGGING_LEVEL int 0
 Control amount of event logging (larger ==> more)
 
 
 V FINAL_REPORT_LEVEL int 0
 Control amount of info reported on exit (larger ==> more)
-
-
-V SAMPLE_FREQ_MILLIS double 10.0
-Sample frequency, in milliseconds
 
 
 V DECAY_FREQUENCY int 100
@@ -98,5 +93,9 @@ Invocation count at which a baseline compiled method should be recompiled
 
 V INVOCATION_COUNT_OPT_LEVEL int 1
 Opt level for recompilation in invocation count based system
+
+
+V COUNTER_BASED_SAMPLE_INTERVAL int 1000
+What is the sample interval for counter-based sampling
 
 

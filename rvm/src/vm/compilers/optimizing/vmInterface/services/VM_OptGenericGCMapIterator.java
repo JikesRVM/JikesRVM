@@ -98,12 +98,12 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     // this method and instructionOffset
     compiledMethod = (VM_OptCompiledMethod)cm;
     map = compiledMethod.getMCMap();
-    mapIndex = map.findGCMapIndex(VM_Offset.fromInt(instructionOffset));
+    mapIndex = map.findGCMapIndex(instructionOffset);
     if (mapIndex == VM_OptGCMap.ERROR) {
       if (instructionOffset < 0) {
 	VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset", instructionOffset);
       } else {
-	int possibleLen = cm.getInstructions().length << VM.LG_INSTRUCTION_WIDTH;
+	int possibleLen = cm.getInstructions().length() << VM.LG_INSTRUCTION_WIDTH;
 	if (possibleLen < instructionOffset) {
 	  VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
 	  VM.sysWriteln("offset is", instructionOffset, " bytes of machine code for method ",possibleLen);

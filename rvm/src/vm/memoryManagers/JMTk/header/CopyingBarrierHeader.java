@@ -35,14 +35,14 @@ public class CopyingBarrierHeader extends CopyingHeader {
   /**
    * test to see if the barrier bit is set
    */
-  static boolean testBarrierBit(Object ref) throws VM_PragmaUninterruptible {
+  static boolean testBarrierBit(VM_Address ref) throws VM_PragmaUninterruptible {
     return VM_Interface.testAvailableBit(ref,GC_BARRIER_BIT_IDX);
   }
 
   /**
    * clear the barrier bit (indicates that object is in write buffer)
    */
-  static void clearBarrierBit(Object ref) throws VM_PragmaUninterruptible {
+  static void clearBarrierBit(VM_Address ref) throws VM_PragmaUninterruptible {
     VM_Interface.setAvailableBit(ref,GC_BARRIER_BIT_IDX,false);
   }
 
@@ -50,7 +50,7 @@ public class CopyingBarrierHeader extends CopyingHeader {
    * set the barrier bit (indicates that object needs to be put in write buffer
    * if a reference is stored into it).
    */
-  static void setBarrierBit(Object ref) throws VM_PragmaUninterruptible {
+  static void setBarrierBit(VM_Address ref) throws VM_PragmaUninterruptible {
     VM_Interface.setAvailableBit(ref,GC_BARRIER_BIT_IDX,true);
   }
 
@@ -58,14 +58,14 @@ public class CopyingBarrierHeader extends CopyingHeader {
   /**
    * test to see if the mark bit has the given value
    */
-  static boolean testMarkBit(Object ref, int value) throws VM_PragmaUninterruptible {
+  static boolean testMarkBit(VM_Address ref, int value) throws VM_PragmaUninterruptible {
     return (VM_Interface.readAvailableBitsWord(ref) & value) != 0;
   }
 
   /**
    * write the given value in the mark bit.
    */
-  static void writeMarkBit(Object ref, int value) throws VM_PragmaUninterruptible {
+  static void writeMarkBit(VM_Address ref, int value) throws VM_PragmaUninterruptible {
     int oldValue = VM_Interface.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
     VM_Interface.writeAvailableBitsWord(ref,newValue);
@@ -74,7 +74,7 @@ public class CopyingBarrierHeader extends CopyingHeader {
   /**
    * atomically write the given value in the mark bit.
    */
-  static void atomicWriteMarkBit(Object ref, int value) throws VM_PragmaUninterruptible {
+  static void atomicWriteMarkBit(VM_Address ref, int value) throws VM_PragmaUninterruptible {
     while (true) {
       int oldValue = VM_Interface.prepareAvailableBits(ref);
       int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;

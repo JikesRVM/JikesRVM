@@ -8,7 +8,8 @@ import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
-import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
+import com.ibm.JikesRVM.VM_RuntimeCompiler;
+
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -184,7 +185,7 @@ public final class VM_ControllerPlan {
     }
     
     // Compile the method.
-    int newCMID = VM_RuntimeOptCompilerInfrastructure.recompileWithOpt(cp);
+    int newCMID = VM_RuntimeCompiler.recompileWithOpt(cp);
     int prevCMID = getPrevCMID();
 
     if (VM_Controller.options.sampling()) {
@@ -286,24 +287,25 @@ public final class VM_ControllerPlan {
     // for this method should be marked as OUTDATED
     if (newStatus == COMPLETED) {
       // iterate over the planList until we get to this item
-      ListIterator iter = planList.listIterator();
-      while (iter.hasNext()) {
-	VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
+      synchronized(planList) {
+	ListIterator iter = planList.listIterator();
+	while (iter.hasNext()) {
+	  VM_ControllerPlan curPlan = (VM_ControllerPlan) iter.next();
 
-	// exit when we find ourselves
-	if (curPlan == this) break;
-
-	if (curPlan.getStatus() == COMPLETED) {
-	  curPlan.status = OUTDATED;
-	}
-      } // more to process
+	  // exit when we find ourselves
+	  if (curPlan == this) break;
+	  
+	  if (curPlan.getStatus() == COMPLETED) {
+	    curPlan.status = OUTDATED;
+	  }
+	} // more to process
+      }
     }
   }
 
   /**
    * List of plans for a source method
    */
-  public LinkedList getPlanList() { return planList; }
   public void setPlanList(LinkedList list) { planList = list; }
 
   public String getStatusString() {

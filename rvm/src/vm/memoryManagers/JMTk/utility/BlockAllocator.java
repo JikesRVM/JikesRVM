@@ -15,6 +15,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
+import com.ibm.JikesRVM.VM_Word;
 
 /**
  * This class implements "block" data structures of various sizes.<p>
@@ -32,30 +33,30 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
 
   // block freelist
   private static final byte MIN_BLOCK_LOG = 9;  // 512 bytes
   public static final byte MAX_BLOCK_LOG = 15; // 32K bytes
   public static final int MAX_BLOCK_SIZE = 1<<MAX_BLOCK_LOG;
-  private static final byte MAX_BLOCK_PAGES = 1<<(MAX_BLOCK_LOG - LOG_PAGE_SIZE);
+  private static final byte MAX_BLOCK_PAGES = 1<<(MAX_BLOCK_LOG - LOG_BYTES_IN_PAGE);
   private static final byte MAX_BLOCK_SIZE_CLASS = MAX_BLOCK_LOG - MIN_BLOCK_LOG;
-  private static final byte PAGE_BLOCK_SIZE_CLASS = LOG_PAGE_SIZE - MIN_BLOCK_LOG;
+  private static final byte PAGE_BLOCK_SIZE_CLASS = LOG_BYTES_IN_PAGE - MIN_BLOCK_LOG;
   public static final int BLOCK_SIZE_CLASSES = MAX_BLOCK_SIZE_CLASS + 1;
   private static final int FREE_LIST_BITS = 4;
   private static final int FREE_LIST_ENTRIES = 1<<(FREE_LIST_BITS*2);
 
   // Block header and field offsets
-  public static final int BLOCK_HEADER_SIZE = 2 * WORD_SIZE;
-  private static final int NEXT_FIELD_OFFSET = -(WORD_SIZE);
-  private static final int PREV_FIELD_OFFSET = -(2 * WORD_SIZE);
-  private static final int FL_MARKER_OFFSET = -(2 * WORD_SIZE);
-  private static final int FL_NEXT_FIELD_OFFSET = -(WORD_SIZE);
+  public static final int BLOCK_HEADER_SIZE = 2 * BYTES_IN_ADDRESS;
+  private static final int NEXT_FIELD_OFFSET = -(BYTES_IN_ADDRESS);
+  private static final int PREV_FIELD_OFFSET = -(2 * BYTES_IN_ADDRESS);
+  private static final int FL_MARKER_OFFSET = -(2 * BYTES_IN_ADDRESS);
+  private static final int FL_NEXT_FIELD_OFFSET = -(BYTES_IN_ADDRESS);
   private static final int FL_PREV_FIELD_OFFSET = 0;
-  private static final VM_Address BASE_FL_MARKER = VM_Address.fromInt(-1);
+  private static final VM_Address BASE_FL_MARKER = VM_Address.max(); // -1
   private static final VM_Address MIN_FL_MARKER = BASE_FL_MARKER.sub(FREE_LIST_ENTRIES);
   private static final VM_Address USED_MARKER = VM_Address.zero();
   private static int[] blockMask;
@@ -66,20 +67,20 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
 
   private static final boolean PARANOID = false;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   private VM_AddressArray freeList;
   private Plan plan;
   private int pagesInUse;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
   BlockAllocator(FreeListVMResource vmr, MemoryResource mr, Plan thePlan) {
     vmResource = vmr;
     memoryResource = mr;
@@ -98,10 +99,10 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation & freeing
-  //
+  /****************************************************************************
+   *
+   * Allocation & freeing
+   */
   public final VM_Address alloc(byte blockSizeClass) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert((blockSizeClass >= 0) && (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
@@ -128,8 +129,10 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
 	return VM_Address.zero(); // need to GC & retry...
     }
     
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(rtn.EQ(VM_Address.fromInt(rtn.toInt() & blockMask[blockSizeClass]).add(BLOCK_HEADER_SIZE)));
+    if (VM_Interface.VerifyAssertions) {
+      VM_Word mask = VM_Word.fromIntZeroExtend(blockMask[blockSizeClass]);
+      VM_Interface._assert(rtn.EQ(rtn.toWord().and(mask).add(VM_Word.fromInt(BLOCK_HEADER_SIZE)).toAddress()));
+    }
 
     if (PARANOID)
       sanity();
@@ -148,7 +151,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
 
     if (requestedSC == MAX_BLOCK_SIZE_CLASS) {
       // coarsest grain request satisfied by VM resource request
-      rtn = vmResource.acquire(1<<(MAX_BLOCK_LOG-LOG_PAGE_SIZE), 
+      rtn = vmResource.acquire(1<<(MAX_BLOCK_LOG-LOG_BYTES_IN_PAGE), 
 			       memoryResource, originalSC, false);
       if (rtn.isZero())
 	return VM_Address.zero(); // need to GC & retry...
@@ -200,7 +203,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   public final void free(VM_Address block, byte blockSizeClass) {
     if (PARANOID)
       sanity();
-    //    VM.sysWrite("f["); VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(blockSizeClass);     VM.sysWrite("]\n");
+    //    Log.write("f["); Log.write(block); Log.write(" "); Log.write(blockSizeClass);     Log.writeln("]");
     if (blockSizeClass >= PAGE_BLOCK_SIZE_CLASS) {
       decPageCharge(1<<(blockSizeClass-PAGE_BLOCK_SIZE_CLASS));
     }
@@ -240,25 +243,25 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   }
 
   private final void sanity() {
-    for (byte fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
-      VM_Address block = freeList.get(fl);
-      VM_Address prev = VM_Address.zero();
-      while (!block.isZero()) {
-	if (VM_Interface.VerifyAssertions) {
-	  VM_Interface._assert(isFree(block));
-	  VM_Interface._assert(fl == getFreeListID(block));
-	  VM_Interface._assert(prev.EQ(getPrevFLBlock(block)));
-	  VM_Interface._assert(freeListEntries(block) == 1);
-	}
-	prev = block;
-	block = getNextFLBlock(block);
-      }
-    }
+    for (int fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
+       VM_Address block = freeList.get(fl);
+       VM_Address prev = VM_Address.zero();
+       while (!block.isZero()) {
+	 if (VM_Interface.VerifyAssertions) {
+	   VM_Interface._assert(isFree(block));
+	   VM_Interface._assert(fl == getFreeListID(block));
+	   VM_Interface._assert(prev.EQ(getPrevFLBlock(block)));
+	   VM_Interface._assert(freeListEntries(block) == 1);
+	 }
+	 prev = block;
+	 block = getNextFLBlock(block);
+       }
+     }
   }
 
   private final int freeListEntries(VM_Address block) {
     int entries = 0;
-    for (byte fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
+    for (int fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
       VM_Address blk = freeList.get(fl);
       while (!blk.isZero()) {
 	if (blk.EQ(block))
@@ -269,12 +272,34 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     return entries;
   }
 
+  /**
+   * Return the number of bytes consumed by unused blocks.
+   *
+   * @return The number of bytes consumed by unused blocks.
+   */
+  public final int unusedBytes() {
+    int minipgs = 0;
+    for (int fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
+      VM_Address block = freeList.get(fl);
+      while (!block.isZero()) {
+	int sc;
+	if ((fl & ((1<<FREE_LIST_BITS)-1)) != 0)
+	  sc = fl & ((1<<FREE_LIST_BITS)-1);
+	else 
+	  sc = fl>>>FREE_LIST_BITS;
+	minipgs += 1<<sc;
+	block = getNextFLBlock(block);
+      }
+    }
+    return (minipgs<<MIN_BLOCK_LOG);
+  }
+
   private final void merge(VM_Address child, byte childSC, byte originalSC) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(originalSC == VMResource.getTag(child));
     if (childSC == MAX_BLOCK_SIZE_CLASS)
       release(child, originalSC);
     else {
-      VM_Address buddy = VM_Address.fromInt(child.toInt() ^ buddyMask[childSC]);
+      VM_Address buddy = child.toWord().xor(VM_Word.fromInt(buddyMask[childSC])).toAddress();
       byte flid = getFreeListID(childSC, originalSC);
       if (isFree(buddy) && (getFreeListID(buddy) == flid)) {
 	removeFromFreeList(buddy, flid);
@@ -299,11 +324,11 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     if (!next.isZero())
       VM_Magic.setMemoryAddress(next.add(FL_PREV_FIELD_OFFSET), block);
     freeList.set(freeListID, block);
-    //    VM.sysWrite("a["); VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(freeListID); VM.sysWrite(" "); VM.sysWrite(getNextFLBlock(block)); VM.sysWrite(" "); VM.sysWrite(getPrevFLBlock(block)); VM.sysWrite("]\n");
+    //    Log.write("a["); Log.write(block); Log.write(" "); Log.write(freeListID); Log.write(" "); Log.write(getNextFLBlock(block)); Log.write(" "); Log.write(getPrevFLBlock(block)); Log.writeln("]");
   }
 
   private final void removeFromFreeList(VM_Address block, byte freeListID) {
-    //    VM.sysWrite("r["); VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(freeListID); VM.sysWrite(" "); VM.sysWrite(getNextFLBlock(block)); VM.sysWrite(" "); VM.sysWrite(getPrevFLBlock(block)); VM.sysWrite(" "); VM.sysWrite(freeList.get(freeListID));
+    //    Log.write("r["); Log.write(block); Log.write(" "); Log.write(freeListID); Log.write(" "); Log.write(getNextFLBlock(block)); Log.write(" "); Log.write(getPrevFLBlock(block)); Log.write(" "); Log.write(freeList.get(freeListID));
     if (freeList.get(freeListID).EQ(block)) {
       freeList.set(freeListID, getNextFLBlock(block));
       if (!getNextFLBlock(block).isZero())
@@ -317,14 +342,14 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
       if (!next.isZero())
 	setPrevFLBlock(next, prev);
     }
-    //    VM.sysWrite("]\n");
+    //    Log.writeln("]");
   }
 
   
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Linked list operations
-  //
+  /****************************************************************************
+   *
+   * Linked list operations
+   */
 
 
   public static final VM_Address getNextBlock(VM_Address block) {
@@ -378,10 +403,10 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Misc
-  //
+  /****************************************************************************
+   *
+   * Misc
+   */
 
   private final boolean incPageCharge(int pages) {
     boolean rtn = true;
@@ -407,12 +432,8 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
    */
   public static final VM_Address getBlockStart(VM_Address cell,
 					       byte blockSizeClass) {
-//     VM_Word addr = cell.toWord();
-//     VM_Address sb = addr.and(SUPER_BLOCK_MASK).toAddress();
-//     VM_Word mask = VM_Word.fromInt(VM_Magic.getMemoryWord(sb));
-//     return (addr.and(mask).toAddress()).add(BLOCK_HEADER_SIZE);
-    //    return VM_Address.fromInt((cell.toInt() & ~((1<<MAX_BLOCK_LOG)-1)) | BLOCK_HEADER_SIZE);
-    return VM_Address.fromInt((cell.toInt() & blockMask[blockSizeClass]) | BLOCK_HEADER_SIZE);
+    VM_Word mask = VM_Word.fromIntZeroExtend(blockMask[blockSizeClass]);
+    return cell.toWord().and(mask).or(VM_Word.fromIntZeroExtend(BLOCK_HEADER_SIZE)).toAddress();
   }
 
   public static final int blockSize(int blockSizeClass) {

@@ -5,7 +5,8 @@
 
 /**
  * Generic driver to run a program <N> times.
- * This driver notifies the Jikes RVM of each application run start.
+ * This driver notifies the RVM of the start of each application's run.  The
+ * notification is via VM_Callbacks.notifyAppRunStart().
  *
  * Usage: java Driver <N> <main class> <main routine> [program args .. .. ]
  *

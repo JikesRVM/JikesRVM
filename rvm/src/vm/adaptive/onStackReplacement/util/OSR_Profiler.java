@@ -96,7 +96,7 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
 	// we have to reset it back
 	boolean savedOsr = cmplplan.options.OSR_GUARDED_INLINING;
 	cmplplan.options.OSR_GUARDED_INLINING = false;
-	int newcmid = VM_RuntimeOptCompilerInfrastructure.recompileWithOpt(cmplplan);
+	int newcmid = VM_RuntimeCompiler.recompileWithOpt(cmplplan);
 	cmplplan.options.OSR_GUARDED_INLINING = savedOsr;
 	
 	if (newcmid != -1) {
@@ -118,7 +118,7 @@ public class OSR_Profiler implements VM_Callbacks.ExitMonitor {
     } 
     
     if (!recmplsucc) {
-      int newcmid = VM_RuntimeOptCompilerInfrastructure.recompileWithOpt(state.meth);
+      int newcmid = VM_RuntimeCompiler.recompileWithOpt(state.meth);
       if (newcmid == -1) {
 	if (VM.TraceOnStackReplacement) {VM.sysWriteln("  opt recompilation failed!");}
 	state.meth.invalidateCompiledMethod(mostRecentlyCompiledMethod);      

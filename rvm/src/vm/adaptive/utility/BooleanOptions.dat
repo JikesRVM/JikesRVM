@@ -8,6 +8,9 @@ DECL
 # the template files. --dave
 DESCRIP  
 
+ENABLE_RECOMPILATION -1 true
+Should the adaptive system recompile hot methods?
+
 GATHER_PROFILE_DATA -1 false
 Should profile data be gathered and reported at the end of the run?
 
@@ -20,9 +23,6 @@ After completion, should we dump inlining decisions?
 USE_OFFLINE_INLINE_PLAN -1 false
 Should we read a inlining plan from disk and use it to perform inlining?
 
-USE_COMPILER_DNA_FILE -1 false
-Should we read the compiler DNA (relative cost/benefits) from a file?
-
 EARLY_EXIT -1 false
 Should AOS exit when the controller clock reaches EARLY_EXIT_VALUE?
 
@@ -31,3 +31,17 @@ Should AOS promote baseline-compiled methods to opt?
 
 BACKGROUND_RECOMPILATION -1 true
 Should recompilation be done on a background thread or on next invocation?
+
+INSERT_YIELDPOINT_COUNTERS -1 false
+Insert instrumentation in opt recompiled code to count yieldpoints executed?
+
+INSERT_METHOD_COUNTERS_OPT -1 false 
+Insert intrusive method counters in opt recompiled code?
+
+INSERT_INSTRUCTION_COUNTERS -1 false
+Insert counters on all instructions in opt recompiled code?
+
+INSERT_DEBUGGING_COUNTERS -1 false
+Enable easy insertion of (debugging) counters in opt recompiled code.
+
+

@@ -8,6 +8,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Extent;
 
 
@@ -20,16 +21,17 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class Conversions implements Constants, VM_Uninterruptible {
 
   public static VM_Extent roundDownMB (VM_Extent bytes) {
-    return VM_Extent.fromInt((bytes.toInt() >>> LOG_MBYTE_SIZE) << LOG_MBYTE_SIZE);
+    VM_Word mask = VM_Word.one().lsh(LOG_BYTES_IN_MBYTE).sub(VM_Word.one()).not();
+    return bytes.toWord().and(mask).toExtent();
   }
 
   // Round up (if necessary)
   //
   public static int MBToPages(int megs) {
-    if (VMResource.LOG_PAGE_SIZE <= LOG_MBYTE_SIZE)
-      return (megs << (LOG_MBYTE_SIZE - VMResource.LOG_PAGE_SIZE));
+    if (VMResource.LOG_BYTES_IN_PAGE <= LOG_BYTES_IN_MBYTE)
+      return (megs << (LOG_BYTES_IN_MBYTE - VMResource.LOG_BYTES_IN_PAGE));
     else
-      return (megs + ((VMResource.PAGE_SIZE >>> LOG_MBYTE_SIZE) - 1)) >>> (VMResource.LOG_PAGE_SIZE - LOG_MBYTE_SIZE);
+      return (megs + ((VMResource.BYTES_IN_PAGE >>> LOG_BYTES_IN_MBYTE) - 1)) >>> (VMResource.LOG_BYTES_IN_PAGE - LOG_BYTES_IN_MBYTE);
   }
 
   public static int bytesToMmapChunksUp(int bytes) {
@@ -41,11 +43,13 @@ public class Conversions implements Constants, VM_Uninterruptible {
   }
 
   public static int addressToMmapChunksDown (VM_Address addr) {
-    return (addr.toInt()) >>> LazyMmapper.LOG_MMAP_CHUNK_SIZE;
+    VM_Word chunk = addr.toWord().rshl(LazyMmapper.LOG_MMAP_CHUNK_SIZE);
+    return chunk.toInt();
   }
 
   public static int addressToPagesDown (VM_Address addr) {
-    return (addr.toInt()) >>> LOG_PAGE_SIZE;
+    VM_Word chunk = addr.toWord().rshl(LOG_BYTES_IN_PAGE);
+    return chunk.toInt();
   }
 
   public static int addressToPages (VM_Address addr) {
@@ -55,7 +59,7 @@ public class Conversions implements Constants, VM_Uninterruptible {
   }
 
   public static VM_Address pagesToAddress (int pages) {
-    return VM_Address.fromInt(pages << LOG_PAGE_SIZE);
+    return VM_Word.fromIntZeroExtend(pages).lsh(LOG_BYTES_IN_PAGE).toAddress();
   }
 
   public static int addressToMmapChunksUp (VM_Address addr) {
@@ -63,11 +67,11 @@ public class Conversions implements Constants, VM_Uninterruptible {
   }
 
   public static int pagesToBytes(int pages) {
-    return pages << LOG_PAGE_SIZE;
+    return pages << LOG_BYTES_IN_PAGE;
   }
 
   public static int bytesToPagesUp (int bytes) {
-    return (bytes + PAGE_SIZE - 1) >>> LOG_PAGE_SIZE;
+    return (bytes + BYTES_IN_PAGE - 1) >>> LOG_BYTES_IN_PAGE;
   }
 
   public static int bytesToPages (int bytes) {
@@ -77,7 +81,7 @@ public class Conversions implements Constants, VM_Uninterruptible {
   }
 
   public static VM_Address mmapChunksToAddress(int chunk) {
-    return (VM_Address.fromInt(chunk << LazyMmapper.LOG_MMAP_CHUNK_SIZE));
+    return VM_Word.fromIntZeroExtend(chunk).lsh(LazyMmapper.LOG_MMAP_CHUNK_SIZE).toAddress();
   }
 
 

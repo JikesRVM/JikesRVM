@@ -30,7 +30,7 @@ abstract class VM_Organizer extends VM_Thread {
   /**
    * A queue to hold the organizer thread when it isn't executing
    */
-  private VM_ThreadQueue tq = new VM_ThreadQueue(0);
+  private VM_ThreadQueue tq = new VM_ThreadQueue();
 
   /**
    * Called when thread is scheduled.

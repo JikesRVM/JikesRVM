@@ -64,7 +64,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	OPT_TypeOperand Type = New.getClearType(inst);
 	VM_Class cls = (VM_Class)Type.getVMType();
 	OPT_IntConstantOperand hasFinalizer = new OPT_IntConstantOperand(cls.hasFinalizer() ? 1 : 0);
-	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(MM_Interface.pickAllocator(cls));
+	VM_Method callSite = inst.position.getMethod();
+	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(MM_Interface.pickAllocator(cls, callSite));
 	VM_Method target = VM_Entrypoints.resolvedNewScalarMethod;
 	Call.mutate4(inst, CALL, New.getClearResult(inst), 
 		     new OPT_IntConstantOperand(target.getOffset()),
@@ -97,32 +98,21 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	OPT_TypeOperand Array = NewArray.getClearType(inst);
 	VM_Array array = (VM_Array)Array.getVMType();
 	OPT_Operand numberElements = NewArray.getClearSize(inst);
-	OPT_Operand size = null;
-	if (numberElements instanceof OPT_RegisterOperand) {
-	  int width = array.getLogElementSize();
-	  OPT_RegisterOperand temp = numberElements.asRegister();
-	  if (width != 0) {
-	    temp = OPT_ConvertToLowLevelIR.InsertBinary(inst, ir, INT_SHL, 
-							VM_TypeReference.Int, 
-							temp, 
-							new OPT_IntConstantOperand(width));
-	  }
-	  size = OPT_ConvertToLowLevelIR.InsertBinary(inst, ir, INT_ADD, 
-						      VM_TypeReference.Int, temp,
-						      new OPT_IntConstantOperand(VM_ObjectModel.computeArrayHeaderSize(array)));
-	} else { 
-	  size = new OPT_IntConstantOperand(array.getInstanceSize(numberElements.asIntConstant().value));
-	}
-	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(MM_Interface.pickAllocator(array));
+	boolean inline = numberElements instanceof OPT_IntConstantOperand;
+	OPT_Operand width = new OPT_IntConstantOperand(array.getLogElementSize());
+	OPT_Operand headerSize = new OPT_IntConstantOperand(VM_ObjectModel.computeArrayHeaderSize(array));
+	VM_Method callSite = inst.position.getMethod();
+	OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(MM_Interface.pickAllocator(array, callSite));
 	VM_Method target = VM_Entrypoints.resolvedNewArrayMethod;
-	Call.mutate4(inst, CALL, NewArray.getClearResult(inst),  
+	Call.mutate5(inst, CALL, NewArray.getClearResult(inst),  
 		     new OPT_IntConstantOperand(target.getOffset()),
 		     OPT_MethodOperand.STATIC(target),
-		     numberElements.copy(), 
-		     size, 
+		     numberElements, 
+		     width,
+		     headerSize,
 		     OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array),
 		     allocator);
-	if (ir.options.INLINE_NEW) {
+	if (inline && ir.options.INLINE_NEW) {
 	  if (inst.getBasicBlock().getInfrequent()) container.counter1++;
 	  container.counter2++;
 	  if (!ir.options.FREQ_FOCUS_EFFORT || !inst.getBasicBlock().getInfrequent()) {
@@ -147,9 +137,11 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       case NEWOBJMULTIARRAY_opcode: {
 	int typeRefId = NewArray.getType(inst).getTypeRef().getId();
 	VM_Method target = VM_Entrypoints.optNewArrayArrayMethod;
-	Call.mutate2(inst, CALL, NewArray.getClearResult(inst),
+	VM_Method callSite = inst.position.getMethod();
+	Call.mutate3(inst, CALL, NewArray.getClearResult(inst),
 		     new OPT_IntConstantOperand(target.getOffset()),
 		     OPT_MethodOperand.STATIC(target),
+		     new OPT_IntConstantOperand(callSite.getId()),
 		     NewArray.getClearSize(inst),
 		     new OPT_IntConstantOperand(typeRefId));
       }

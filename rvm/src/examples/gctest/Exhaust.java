@@ -7,82 +7,79 @@
  */
 
 import com.ibm.JikesRVM.VM_PragmaNoInline;
-import java.lang.*;
+import java.lang.System;	// unneeded
+import java.io.PrintStream;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 class Exhaust {
 
-  static int itemSize = 32;
-  static int metaSize = 4 * 1024 * 1024;
-  static Object [] junk;
-  static int cursor = 0;
-  static double growthFactor = 1.0;
-  static double metaGrowthFactor = 1.1;
-  static int rounds = 10;
+  final private static PrintStream o = System.out;
 
-  public static void main(String args[])  throws Throwable {
+  static Object [] first;
+  static Object [] last;
+  final static int itemSize = 64;
+  static double growthFactor = 10.0;
+  static int rounds = 5;
+  static long tot = 0;		// total # allocated
+  static long wasAllocating;		// How much were we allocating?
+  
 
+  public static void main(String args[])  //throws Throwable 
+  {
+    long mhs = MM_Interface.getMaxHeapSize();
+    
+    o.println("Max heap size: " + mhs + " bytes");
+    if (mhs > 1024 * 1024)
+      o.println("  that's " + mhs / ( 1024.0 * 1024.0 ) + " megabytes");
+    if (mhs > 1024 * 1024 * 1024)
+      o.println("  that's " + mhs / (1024.0 * 1024 * 1024) + " gigabytes");
     runTest();
 
     System.exit(0);
   }
 
-  public static void runTestOrig() throws Throwable {
-
-    double growthFactor = 1.0;
-    for (int i=1; i<=10; i++) {
-	growthFactor *= metaGrowthFactor;
-	growthFactor = ((int) (100 * growthFactor)) / 100.0;
-	System.out.println("Starting round " + i + " with growthFactor " + growthFactor);
-	junk = new Object[metaSize];
-	System.out.println("  Allocating until exception thrown");
-	int size = itemSize;
-	try {
-	  for (int j=0; j<metaSize; j++) {
-	    junk[cursor++] = new byte[(int) size];
-	    size *= growthFactor;
-	  }
-	}
-	catch (OutOfMemoryError e) {
-	    junk = null;  // kills everything
-	    cursor = 0;
-	    System.out.println("  Caught OutOfMemory - freeing now");  // this allocates; must follow nulling
-	    System.out.println("  Maximum size reached is " + size);
-	}
+  public static int doInner (int size) 
+    throws // Throwable, 
+      VM_PragmaNoInline 
+  {
+    while (true) {
+      wasAllocating = size;
+      Object [] next = new Object[((int) size) / 4];
+      last[0] = next;
+      last = next;
+      tot += size;
+      wasAllocating = 0;
     }
-    System.out.println("Overall: SUCCESS");
   }
 
-  public static int doInner (int size) throws Throwable, VM_PragmaNoInline {
-      for (int j=0; j<metaSize; j++) {
-	  junk[cursor++] = new byte[(int) size];
-	  size *= growthFactor;
-      }
-      return size;
-  }
-
-  public static void runTest() throws Throwable, VM_PragmaNoInline {
-
-    double growthFactor = 1.0;
-    for (int i=1; i<=10; i++) {
-	growthFactor *= metaGrowthFactor;
-	growthFactor = ((int) (100 * growthFactor)) / 100.0;
-	System.out.println("Starting round " + i + " with growthFactor " + growthFactor);
-	junk = new Object[metaSize];
-	System.out.println("  Allocating until exception thrown");
-      int size = itemSize;
+  public static void runTest() 
+    throws // Throwable, 
+      VM_PragmaNoInline 
+  {
+    int size = itemSize;  
+    for (int i=1; i<=rounds; i++) {
+      o.println("Starting round " + i + " with size = " + size);
+	
+      first = new Object[1];
+      last = first;
+      tot = 0;
+	
+      o.println("  Allocating until exception thrown");
       try {
-	  size = doInner(size);
+	doInner(size);
       }
       catch (OutOfMemoryError e) {
-	  junk = null;  // kills everything
-	  cursor = 0;
-	  System.out.println("  Caught OutOfMemory - freeing now");  // this allocates; must follow nulling
-	  System.out.println("  Maximum size reached is " + size);
+	first = last = null;  // kills everything
+	o.println("  Caught OutOfMemory - freeing now");  // this allocates; must follow nulling
+
+	//	  o.println("  Maximum size reached is " + size);
+
+	o.println("  Had " + tot + " bytes allocated; failed trying to allocate " + wasAllocating + " bytes");
       }
+
+      size *= growthFactor;
     }
     System.out.println("Overall: SUCCESS");
   }
-
-
 }
 

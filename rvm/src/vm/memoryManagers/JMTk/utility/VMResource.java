@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
+// import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -17,7 +18,6 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.classloader.VM_Array;
 
 /**
  * This class implements a virtual memory resource.  The unit of
@@ -37,10 +37,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public static variables and methods
-  //
+  /****************************************************************************
+   *
+   * Public static variables and methods
+   */
   public static final byte NOT_IN_VM = 0;   // 00000000
   public static final byte IN_VM     = 1;   // 00000001
   public static final byte IMMORTAL  = 2;   // 00000010
@@ -50,11 +50,11 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 
   public static void showAll () {
     for (int vmr = 0; vmr < count; vmr++) {
-      VM_Interface.sysWrite("VMResource ");
-      VM_Interface.sysWrite(vmr); VM_Interface.sysWrite(" ");
-      VM_Interface.sysWrite(resources[vmr].start); VM_Interface.sysWrite(" ");
-      VM_Interface.sysWrite(resources[vmr].end); VM_Interface.sysWrite(" ");
-      VM_Interface.sysWriteln(resources[vmr].name);
+      Log.write("VMResource ");
+      Log.write(vmr); Log.write(" ");
+      Log.write(resources[vmr].start); Log.write(" ");
+      Log.write(resources[vmr].end); Log.write(" ");
+      Log.writeln(resources[vmr].name);
     }
   }
 
@@ -83,17 +83,18 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     return MAX_VMRESOURCE;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private static methods and variables
-  //
+  /****************************************************************************
+   *
+   * Private static methods and variables
+   */
   private static VMResource resourceTable[]; // Points to corresponding VM resource.  null if no corresponding VM resource.
   private static byte spaceTable[];          // Status of each page
   private static byte tagTable[];            // Space-specific information of each page
   private static int count;                  // How many VMResources exist now?
   private static VMResource resources[];     // List of all VMResources.
   final private static int MAX_VMRESOURCE = 20;
-  final private static int NUM_PAGES = 1 << (LOG_ADDRESS_SPACE - LOG_PAGE_SIZE);
+  // final private static int NUM_PAGES = 1 << (LOG_BYTES_IN_ADDRESS_SPACE - LOG_BYTES_IN_PAGE);
+  final private static int NUM_PAGES = 1 << 20;
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -109,18 +110,16 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 
   public static void boot() throws VM_PragmaInterruptible {
     // resourceTable = new VMResource[NUM_PAGES];
-    VM_Array type = VM_Magic.getObjectType(resources).asArray();
-    Object [] tib = type.getTypeInformationBlock();
-    int size = type.getInstanceSize(NUM_PAGES);
-    resourceTable = (VMResource []) MM_Interface.allocateArray(NUM_PAGES, size, tib, Plan.IMMORTAL_SPACE);
+    resourceTable = (VMResource []) MM_Interface.cloneArray(resources,Plan.IMMORTAL_SPACE,
+                                                            NUM_PAGES);
     for (int i=0; i<resources.length; i++) {
       VMResource vm = resources[i];
       if (vm == null) continue;
       int startPage = Conversions.addressToPagesDown(vm.start);
       for (int p = startPage; p < (startPage + vm.pages); p++) {
 	if (resourceTable[p] != null) {
-	  VM_Interface.sysWrite("Conflicting VMResource: ",vm.name);
-	  VM_Interface.sysWriteln(" and ",resourceTable[p].name);
+	  Log.write("Conflicting VMResource: "); Log.write(vm.name);
+	  Log.write(" and "); Log.writeln(resourceTable[p].name);
 	  VM_Interface.sysFail("Conflicting VMResource");
 	}
 	resourceTable[p] = vm;
@@ -128,12 +127,13 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     }
     int bootSize = VM_Interface.bootImageEnd().diff(VM_Interface.bootImageStart()).toInt();
     Plan.bootVM.acquireHelp(BasePlan.BOOT_START, Conversions.bytesToPagesUp(bootSize));
+    LazyMmapper.boot(BasePlan.BOOT_START, bootSize);
   }
 
   public static VMResource resourceForPage(VM_Address addr) {
     if (resourceTable == null)
       VM_Interface.sysFail("resourceForBlock called when resourceTable is null");
-    return resourceTable[addr.toInt() >>> LOG_PAGE_SIZE];
+    return resourceTable[addr.toInt() >>> LOG_BYTES_IN_PAGE];
   }
 
   public static byte getPageStatus(VM_Address addr) {
@@ -146,25 +146,25 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     if (VM_Interface.VerifyAssertions) {
 	if (spaceTable == null)
 	  VM_Interface.sysFail("getSpace called when spaceTable is null");
-	return spaceTable[addr.toInt() >>> LOG_PAGE_SIZE];
+	return spaceTable[addr.toInt() >>> LOG_BYTES_IN_PAGE];
     }
     return VM_Magic.getByteAtOffset(VM_Magic.objectAsAddress(spaceTable), 
-				    addr.toInt() >>> LOG_PAGE_SIZE);
+				    addr.toInt() >>> LOG_BYTES_IN_PAGE);
   }
 
   public static byte getTag (VM_Address addr) {
-    int page =  addr.toInt() >>> LOG_PAGE_SIZE;
+    int page =  addr.toInt() >>> LOG_BYTES_IN_PAGE;
     return tagTable[page];
   }
 
   public static void setTag (VM_Address addr, int pages, byte v) {
-    int start =  addr.toInt() >>> LOG_PAGE_SIZE;
+    int start =  addr.toInt() >>> LOG_BYTES_IN_PAGE;
     for (int i=0; i<pages; i++)
 	tagTable[start+i] = v;
   }
 
   public static void clearTag (VM_Address addr, int pages, byte v) {
-    int start =  addr.toInt() >>> LOG_PAGE_SIZE;
+    int start =  addr.toInt() >>> LOG_BYTES_IN_PAGE;
     for (int i=0; i<pages; i++) {
 	if (tagTable[start+i] != v)
 	    VM_Interface.sysFail("VMResource.clearTag: current tag does not match expected value");
@@ -172,10 +172,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
   /**
    * Constructor
    */
@@ -190,9 +190,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     status = status_;
     VM_Interface.setHeapRange(index, start, end);
     if (end.GT(VM_Interface.MAXIMUM_MAPPABLE)) {
-      VM_Interface.sysWrite("\nError creating VMResrouce ",vmName);
-      VM_Interface.sysWriteln(" with range ",start," to ",end);
-      VM_Interface.sysWriteln("Exceeds the maximum mappable address for this OS of ",VM_Interface.MAXIMUM_MAPPABLE);
+      Log.write("\nError creating VMResrouce "); Log.write(vmName);
+      Log.write(" with range "); Log.write(start);
+      Log.write(" to "); Log.writeln(end);
+      Log.write("Exceeds the maximum mappable address for this OS of "); Log.writeln(VM_Interface.MAXIMUM_MAPPABLE);
       VM_Interface._assert(false);
     }
   }
@@ -212,9 +213,9 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     if (spaceTable == null) 
 	VM_Interface.sysFail("VMResource.acquireHelp called when spaceTable is still empty");
     int pageStart = Conversions.addressToPages(start);
-    // VM.sysWrite("Acquiring pages ", pageStart);
-    // VM.sysWrite(" to ", pageStart + pageRequest - 1);
-    // VM.sysWriteln(" for space ", space);
+    // Log.write("Acquiring pages "); Log.write(pageStart);
+    // Log.write(" to "); Log.write(pageStart + pageRequest - 1);
+    // Log.write(" for space "); Log.writeln(space);
     for (int i=0; i<pageRequest; i++) {
       if (VM_Interface.VerifyAssertions) 
 	  VM_Interface._assert(spaceTable[pageStart+i] == Plan.UNUSED_SPACE ||
@@ -226,9 +227,9 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   protected void releaseHelp (VM_Address start, int pageRequest) {
     if (!VM_Interface.runningVM()) VM_Interface.sysFail("VMResource.releaseHelp called before VM is running");
     int pageStart = Conversions.addressToPages(start);
-    // VM.sysWrite("Releasing pages ", pageStart);
-    // VM.sysWrite(" to ", pageStart + pageRequest - 1);
-    // VM.sysWriteln(" for space ", space);
+    // Log.write("Releasing pages "); Log.write(pageStart);
+    // Log.write(" to "); Log.write(pageStart + pageRequest - 1);
+    // Log.write(" for space "); Log.writeln(spac!e);
     for (int i=0; i<pageRequest; i++) {
       if (VM_Interface.VerifyAssertions) 
 	  VM_Interface._assert(spaceTable[pageStart+i] == space ||
@@ -243,10 +244,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   public final VM_Address getEnd() { return end; }
   public final boolean inRange(VM_Address s) { return (start.LE(s) && s.LT(end)); }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private fields and methods
-  //
+  /****************************************************************************
+   *
+   * Private fields and methods
+   */
   final private int index;
   final private byte space;
   final protected String name;

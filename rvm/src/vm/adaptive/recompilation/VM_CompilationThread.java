@@ -8,7 +8,6 @@ import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_Time;
-import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.adaptive.OSR_OnStackReplacementPlan;
 //-#endif

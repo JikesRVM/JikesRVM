@@ -1,55 +1,117 @@
-#!/bin/ksh
+#! /bin/bash
 #
 # (C) Copyright IBM Corp. 2003
 #
 # $Id$
 #
-# Run Jikes RVM on the gdb debugger.
-# The script handles passing command line arguments
-# to the Jikes RVM executable and executing a standard gdb macro 
-# file that does some common setup tasks.
+# Run Jikes RVM under the gdb debugger.
+#
+# The script validates the RVM_ environment variables and
+# computes command line arguments for the Jikes RVM executable.
+#
+# It then executes a standard gdb macro file that does some
+# common setup tasks.
 #
 # @author Dave Grove
-#
+# @modified Steven Augart
+#    Converted to Bash.
 
-# Sanity checks for $HOME and $RVM_ROOT, because these may not be
-# set if we invoke this scripts from someplace other than a shell
-if [[ x$HOME = "x" ]]; then
-   print "$ME: please set your HOME environment variable (eg. /$HOME/me)"
-   exit 1
+# Sanity checks
+# What is our name?
+# Bash internal shorthand that works like the "basename" command.
+ME="${0##*/}"
+
+# Where are we?
+# Bash internal shorthand that works like the "dirname" command.
+mydir="${0%/*}"			# temporary; directory we were run from
+
+function croak_nonusage () {
+    # Display the error message.  If it's a multi-line error message, indent
+    # the second and subsequent lines by a few spaces.  
+    # Try to auto-wrap the message if we have GNU Fold.
+
+    local gnufold="/usr/bin/fold --width=65 --spaces"
+    $gnufold < /dev/null &> /dev/null || gnufold=cat
+
+    echo "${ME}: $*" | $gnufold | sed -e '2,$s/^/     /' >&2
+    trap '' EXIT
+    exit 1
+}
+
+
+if [[ $mydir && $mydir != $ME ]]; then
+    # Where to find auxiliary programs:
+    bin_dir="${mydir}"
+else
+    bin_dir="${RVM_ROOT:?$ME: You must set the RVM_ROOT variable before you run this program.}/rvm/bin"
 fi
 
-if [[ x$RVM_ROOT = "x" ]]; then
-   print "$ME: please set your RVM_ROOT environment variable (eg. $HOME/rvmRoot)"
-   exit 1
-fi
+sanity_env="${bin_dir}/sanity-envars.bash"
+[[ -f $sanity_env ]] || croak_nonusage "Internal error: Cannot find the file sanity-envars.bash ($sanity_env); something is badly broken."
+[[ -r $sanity_env ]] || croak_nonusage "Internal error: Cannot read the file sanity-envars.bash ($sanity_env); something is badly broken.  You might check the file permissions or user id you used to extract Jikes RVM."
+. "${sanity_env}";		# Defines checkenv()
 
-if [[ $RVM_BUILD = "" ]]; then
-   print "$ME: please set your RVM_BUILD environment variable (eg. $HOME/rvmBuild)"
-   exit 1
-fi
+## Sanity checks for environment variables.
 
-. $RVM_BUILD/environment
+checkenv HOME
+# Place where source files reside.
+checkenv RVM_ROOT
 
-ARGS="-X:i=$RVM_BUILD/RVM.image -X:vmClasses=$RVM_BUILD/RVM.classes/jksvm.jar:$RVM_BUILD/RVM.classes/rvmrt.jar"
+# We reset bin_dir so that we're sure to have an absolute pathname.
+bin_dir="${RVM_ROOT}/rvm/bin";
+checkenv RVM_BUILD
 
-for arg in $*; do
-   if   [[ $arg = --   ]]; then
-     print "$ME: the command line option \"--\" is no longer used!"
-   fi
-done
+home="$HOME"
+rvm_root="$RVM_ROOT"
+rvm_build="$RVM_BUILD"
 
-#
-# Need to make some more defines
-#
-ARGS="$ARGS -Drvm.root=$RVM_ROOT"
-ARGS="$ARGS -Drvm.build=$RVM_BUILD"
-ARGS="$ARGS -Djava.home=$RVM_ROOT"
-ARGS="$ARGS -Dgnu.classpath.home.url=file:${RVM_BUILD}"
-ARGS="$ARGS -Dgnu.classpath.vm.shortname=JikesRVM"
+# TODO: This portion of the gdbrvm program should be consolidated with
+# the originally-identical part of the runrvm program.
 
-ARGS="$ARGS -Duser.home=$HOME -Duser.dir=`pwd` -Dos.name=`uname -s` -Dos.version=`uname -r` -Dos.arch=`uname -m`"
+## If you change anything below this point, you probably want to 
+## change runrvm as well.
+
+# Load up where the RVM bootimage, booter, and runtime support files reside:
+env="$rvm_build/environment.target"
+[[ -f $env ]] || croak_nonusage "Cannot find a file named \"$env\"; have you set RVM_BUILD to a Jikes RVM build directory that was initialized by \"jconfigure\"?"
+[[ -r $env ]] || croak_nonusage "Cannot read the file named \"$env\"; some sort of permissions problem."
+. $env
+unset env
+
+# Note: Writing it like this commented-out line below will break!  Must not
+# incorporate the assignment into the declare, at least under Bash 2.05b.
+#declare -a user_args=("$@")
+declare -a user_args
+user_args=("$@")
+
+# Add arguments to the invocation line for $rvm_build/JikesRVM.  We
+# put these before any user-specified arguments, so that any flags
+# that the user may have explicitly specified will override our defaults.
+
+## These are the first set of defines (we used to 
+## set these before checking user args, for some odd reason).
+
+declare -a sys_args
+sys_args=("-X:i=$rvm_build/RVM.image" \
+		"-X:vmClasses=$rvm_build/RVM.classes/jksvm.jar:$rvm_build/RVM.classes/rvmrt.jar" \
+		"-Drvm.root=$rvm_root"					\
+		"-Drvm.build=$rvm_build"				\
+		"-Djava.home=$rvm_root"					\
+		"-Dgnu.classpath.home.url=file:${rvm_build}"		\
+		"-Dgnu.classpath.vm.shortname=JikesRVM"			\
+		"-Duser.home=$home" "-Duser.dir=$(pwd)"			\
+		"-Dos.name=$(uname -s)" "-Dos.version=$(uname -r)"	\
+		"-Dos.arch=$(uname -m)" )
 
 # Now execute the VM
-echo set args $ARGS "$@" > $RVM_BUILD/gdb.commandlineArgs
-gdb $RVM_BUILD/JikesRVM -x $RVM_BUILD/gdb.commandlineArgs -x $RVM_ROOT/rvm/bin/gdbInit
+prog="$rvm_build/JikesRVM"
+[[ -f $prog ]] || croak_nonusage "Cannot find a file named \"$prog\"; have you set RVM_BUILD to a Jikes RVM build directory that contains a successfully-completed build?"
+[[ -x $prog ]] || croak_nonusage "Cannot execute the file named \"$prog\"; some sort of permissions problem.  Something weird is happening.  Maybe somebody with a highly restrictive \"umask\" compiled Jikes RVM?"
+
+argf="$RVM_BUILD/gdb.commandlineArgs"
+echo -n "set args" > "$argf"
+for arg in "${sys_args[@]}" "${user_args[@]}"; do
+    echo -n " \"$arg\"" 
+done >> "$argf"
+echo "" >> "$argf"
+gdb "$prog" -x "$RVM_BUILD/gdb.commandlineArgs" -x "$RVM_ROOT/rvm/bin/gdbInit"

@@ -36,7 +36,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     saveThreadStateInstructions               = generateSaveThreadStateInstructions();
     threadSwitchInstructions                  = generateThreadSwitchInstructions();
     restoreHardwareExceptionStateInstructions = generateRestoreHardwareExceptionStateInstructions();
-    getTimeInstructions                       = generateGetTimeInstructions();
     invokeNativeFunctionInstructions          = generateInvokeNativeFunctionInstructions();
   }
 
@@ -44,12 +43,11 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   // implementation //
   //----------------//
 
-  private static INSTRUCTION[] reflectiveMethodInvokerInstructions;
-  private static INSTRUCTION[] saveThreadStateInstructions;
-  private static INSTRUCTION[] threadSwitchInstructions;
-  private static INSTRUCTION[] restoreHardwareExceptionStateInstructions;
-  private static INSTRUCTION[] getTimeInstructions;
-  private static INSTRUCTION[] invokeNativeFunctionInstructions;
+  private static VM_CodeArray reflectiveMethodInvokerInstructions;
+  private static VM_CodeArray saveThreadStateInstructions;
+  private static VM_CodeArray threadSwitchInstructions;
+  private static VM_CodeArray restoreHardwareExceptionStateInstructions;
+  private static VM_CodeArray invokeNativeFunctionInstructions;
    
   // Machine code for reflective method invocation.
   // See also: "VM_Compiler.generateMethodInvocation".
@@ -67,8 +65,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   //   artificial stackframe created and destroyed
   //   R0, volatile, and scratch registers destroyed
   //
-  private static INSTRUCTION[]
-    generateReflectiveMethodInvokerInstructions() {
+  private static VM_CodeArray generateReflectiveMethodInvokerInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
       
     //
@@ -173,15 +170,17 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   // Side effects at runtime:
   //   T1 destroyed
   //
-  private static INSTRUCTION[] generateSaveThreadStateInstructions() {
+  private static VM_CodeArray generateSaveThreadStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
     int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
     int fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
     int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
 
-    asm.emitLI(T1, -1);           // T1 = -1
-    asm.emitSTAddr(T1, ipOffset, T0); // registers.ip = -1
+    // save return address
+    // 
+    asm.emitMFLR  (T1);               // T1 = LR (return address)
+    asm.emitSTAddr(T1, ipOffset, T0); // registers.ip = return address
 
     // save non-volatile fprs
     //
@@ -223,7 +222,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
    *    restores new thread's VM_Registers nonvolatile hardware state.
    *    execution resumes at address specificed by restored thread's VM_Registers ip field
    */
-  private static INSTRUCTION[] generateThreadSwitchInstructions() {
+  private static VM_CodeArray generateThreadSwitchInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
     int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
@@ -251,7 +250,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     asm.emitSTAddr(TI, TI<<LOG_BYTES_IN_ADDRESS, T3);
 
     // (2) Set currentThread.beingDispatched to false
-    asm.emitLI(0, 0);                                        // R0 := 0
+    asm.emitLVAL(0, 0);                                       // R0 := 0
     asm.emitSTW(0, VM_Entrypoints.beingDispatchedField.getOffset(), T0); // T0.beingDispatched := R0
 
     // (3) Restore nonvolatile hardware state of new thread.
@@ -291,7 +290,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   //   all registers are restored except condition registers, count register,
   //   JTOC_POINTER, and PROCESSOR_REGISTER with execution resuming at "registers.ip"
   //
-  private static INSTRUCTION[] generateRestoreHardwareExceptionStateInstructions() {
+  private static VM_CodeArray generateRestoreHardwareExceptionStateInstructions() {
     VM_Assembler asm = new VM_Assembler(0);
 
     int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
@@ -346,69 +345,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     return asm.makeMachineCode().getInstructions();
   }
 
-  // Machine code to implement "VM_Magic.getTime()".
-  //
-  // Registers taken at runtime:
-  //   T0 == address of VM_Processor object
-  //
-  // Registers returned at runtime:
-  //   F0 == return value
-  //
-  // Side effects at runtime:
-  //   T0..T3 and F0..F3 are destroyed
-  //   scratch fields used in VM_Processor object
-  //
-  private static INSTRUCTION[] generateGetTimeInstructions() {
-    VM_Assembler asm = new VM_Assembler(0);
-
-    int scratchSecondsOffset     = VM_Entrypoints.scratchSecondsField.getOffset();
-    int scratchNanosecondsOffset = VM_Entrypoints.scratchNanosecondsField.getOffset();
-
-    asm.emitOR    (T3, T0, T0);                             // t3 := address of VM_Processor object
-    asm.emitLFDtoc(F2, VM_Entrypoints.billionthField.getOffset(), T1); // f2 := 1e-9
-    asm.emitLFDtoc(F3, VM_Entrypoints.IEEEmagicField.getOffset(), T1); // f3 := IEEEmagic
-
-    asm.emitSTFD  (F3, scratchNanosecondsOffset, T3);       // scratch_nanos   := IEEEmagic
-    asm.emitSTFD  (F3, scratchSecondsOffset,     T3);       // scratch_seconds := IEEEmagic
-    
-    if (VM.BuildFor64Addr) {
-//Kris Venstermans :  is this even close to correct ?
-        asm.emitMFTB  (T1);
-        asm.emitSTD   (T1, scratchNanosecondsOffset, T3);   
-        asm.emitLFD   (F1, scratchNanosecondsOffset, T3);       // f1 := T1
-        asm.emitFCFID(F0,F1); 
-    } else {
-      int loopLabel = asm.getMachineCodeIndex();
-      if (VM.BuildForLinux) {
-        asm.emitMFTBU (T0);                                     // t0 := real time clock, upper
-        asm.emitMFTB  (T1);                                     // t1 := real time clock, lower
-        asm.emitMFTBU (T2);                                     // t2 := real time clock, upper
-      } else {
-        asm.emitMFSPR (T0, 4 );                                 // t0 := real time clock, upper
-        asm.emitMFSPR (T1, 5 );                                 // t1 := real time clock, lower
-        asm.emitMFSPR (T2, 4 );                                 // t2 := real time clock, upper
-      }
-      asm.emitCMP   (T0, T2);                                 // t0 == t2?
-      asm.emitSTW   (T1, scratchNanosecondsOffset + BYTES_IN_ADDRESS, T3);   // scratch_nanos_lo   := nanos
-      asm.emitSTW   (T0, scratchSecondsOffset     + BYTES_IN_ADDRESS, T3);   // scratch_seconds_lo := seconds
-      asm.emitBC    (NE, loopLabel);                          // seconds have rolled over, try again
-    
-      asm.emitLFD   (F0, scratchNanosecondsOffset, T3);       // f0 := IEEEmagic + nanos
-      asm.emitLFD   (F1, scratchSecondsOffset,     T3);       // f1 := IEEEmagic + seconds
-
-      asm.emitFSUB    (F0, F0, F3);                             // f0 := f0 - IEEEmagic == (double)nanos
-      asm.emitFSUB    (F1, F1, F3);                             // f1 := f1 - IEEEmagic == (double)seconds
-
-      asm.emitFMADD   (F0, F2, F0, F1);                         // f0 := f2 * f0 + f1
-    }
-
-    // return to caller
-    //
-    asm.emitBCLR();
-
-    return asm.makeMachineCode().getInstructions();
-  }
-
   // on entry:
   //   JTOC = TOC for native call
   //   TI - IP address of native function to branch to
@@ -418,7 +354,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   // 
   //   GPR3 (T0), S1, PR regs are available for scratch regs on entry
   //
-  private static INSTRUCTION[] generateInvokeNativeFunctionInstructions() {
+  private static VM_CodeArray generateInvokeNativeFunctionInstructions() {
 
     VM_Assembler asm = new VM_Assembler(0);
     int lockoutLockOffset = VM_Entrypoints.lockoutProcessorField.getOffset();

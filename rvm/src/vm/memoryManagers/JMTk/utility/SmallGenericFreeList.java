@@ -97,15 +97,15 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 final class SmallGenericFreeList extends BaseGenericFreeList implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
 
   /**
    * Constructor
    */
-  GenericFreeList(int units) {
+  SmallGenericFreeList(int units) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(units <= MAX_UNITS);
 
     // allocate the data structure, including space for top & bottom sentinels

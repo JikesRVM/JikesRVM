@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -24,17 +25,10 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * store.  If a block boundary is encountered the allocator will
  * request more memory (virtual and actual).
  *
- * FIXME This code takes no account of the fact that Jikes RVM can
- * have an object pointer *beyond* the memory allocated for that
- * object---the significance of this is that if the object pointer
- * (rather than the allocated space) is used to test whether an object
- * is within a particular region, it could lie.
- *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-
 final class BumpPointer extends Allocator 
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
@@ -86,10 +80,9 @@ final class BumpPointer extends Allocator
     if (useLimit) {
       if (newCursor.GT(limit))
 	return allocSlow(isScalar, bytes);
-    }
-    else {
+    } else {
       VM_Word tmp = oldCursor.toWord().xor(newCursor.toWord());
-      if (tmp.GT(VM_Word.fromInt(TRIGGER)))
+      if (tmp.GT(VM_Word.fromIntZeroExtend(TRIGGER)))
 	return allocSlow(isScalar, bytes);
     }
     cursor = newCursor;
@@ -102,34 +95,36 @@ final class BumpPointer extends Allocator
     VM_Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
     if (start.isZero())
       return start;
-    Memory.zero(start, chunkSize);
+    Memory.zero(start, VM_Extent.fromInt(chunkSize));
     cursor = start;
     limit = start.add(chunkSize);
     return alloc(isScalar, bytes);
   }
 
   public void show() {
-    VM_Interface.sysWriteln("cursor = ",cursor," limit = ",limit);
+    Log.write("cursor = "); Log.write(cursor);
+    Log.write(" limit = "); Log.writeln(limit);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private VM_Address cursor;
   private VM_Address limit;
   private MonotoneVMResource vmResource;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Final class variables (aka constants)
-  //
-  // Must ensure the bump pointer will go through slow path on (first) alloc of initial value
-  //
-  private static final int LOG_CHUNK_SIZE = VMResource.LOG_PAGE_SIZE + 3;
+  /****************************************************************************
+   *
+   * Final class variables (aka constants)
+   *
+   * Must ensure the bump pointer will go through slow path on (first)
+   * alloc of initial value
+   */
+  private static final int LOG_CHUNK_SIZE = VMResource.LOG_BYTES_IN_PAGE + 3;
   private static final int CHUNK_SIZE = 1 << LOG_CHUNK_SIZE;
   private static final int TRIGGER = CHUNK_SIZE - 1;
-  private static final VM_Address INITIAL_CURSOR_VALUE = VM_Address.fromInt(TRIGGER);
-  private static final VM_Address INITIAL_LIMIT_VALUE = VM_Address.fromInt(TRIGGER);
+  private static final VM_Address INITIAL_CURSOR_VALUE = VM_Address.fromIntZeroExtend(TRIGGER);
+  private static final VM_Address INITIAL_LIMIT_VALUE = INITIAL_CURSOR_VALUE;
   private static final boolean useLimit = true;
 }

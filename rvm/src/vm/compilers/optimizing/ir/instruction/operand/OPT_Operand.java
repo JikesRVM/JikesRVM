@@ -65,8 +65,8 @@ import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;
  * @author Dave Grove
  * @author Mauricio J. Serrano
  * @author John Whaley
- * @modifed by Stephen Fink
- * @modifed by Igor Pechtchanski
+ * @modified by Stephen Fink
+ * @modified by Igor Pechtchanski
  */
 public abstract class OPT_Operand {
 

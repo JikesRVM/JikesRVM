@@ -10,25 +10,20 @@ package com.ibm.JikesRVM;
  * @author Bowen Alpern
  * @date 30 August 1998 
  */
-public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninterruptible {
+public class VM_ThreadQueue 
+  extends VM_AbstractThreadQueue 
+  implements VM_Uninterruptible {
 
   /**
-   * id of this queue, for event logging
-   */
-  protected int       id;     
-  /**
-   * first thread on list
+   * First thread on list.
    */
   protected VM_Thread head;   
+
   /**
-   * last thread on list
+   * Last thread on the list.
    */
   protected VM_Thread tail;   
   
-  public VM_ThreadQueue(int id) {
-    this.id = id;
-  }
-
   /**
    * Are any threads on the queue?
    */  
@@ -37,8 +32,8 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
   }
 
   /**
-   * Atomic test to determine if any threads on the queue?
-   *    note: The test is required for native idle threads
+   * Atomic test to determine if any threads are on the queue.
+   *    Note: The test is required for native idle threads
    */
   boolean atomicIsEmpty (VM_ProcessorLock lock) {
     boolean r;
@@ -50,10 +45,8 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
   }
 
 
-  // Add a thread to head of queue.
-  //
+  /** Add a thread to head of queue. */
   public void enqueueHighPriority (VM_Thread t) {
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
     if (VM.VerifyAssertions) VM._assert(t.next == null); // not currently on any other queue
     t.next = head;
     head = t;
@@ -61,10 +54,8 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
        tail = t;
   }
 
-  // Add a thread to tail of queue.
-  //
+  /** Add a thread to tail of queue. */
   public void enqueue (VM_Thread t) {
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logEnqueue(t, id);
     if (VM.VerifyAssertions) VM._assert(t.next == null); // not currently on any other queue
     if (head == null)
       head = t;
@@ -73,9 +64,8 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
     tail = t;
   }
 
-  // Remove thread from head of queue.
-  // Returned: the thread (null --> queue is empty)
-  //
+  /** Remove a thread from the head of the queue. 
+      @return the thread (null --> queue is empty) */
   public VM_Thread dequeue () {
     VM_Thread t = head;
     if (t == null)
@@ -85,14 +75,12 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
     if (head == null)
       tail = null;
 
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logDequeue(t, id);
     return t;
   }
 
-  // Dequeue the CollectorThread, if any, from this queue
-  // if qlock != null protect by lock
-  // if no thread found, return null
-  //
+  /** Dequeue the CollectorThread, if any, from this queue.
+      If qlock != null protect by lock.
+      @return The garbage collector thread.  If no thread found, return null. */
   VM_Thread dequeueGCThread (VM_ProcessorLock qlock) {
     
     if (qlock != null) qlock.lock();
@@ -128,7 +116,8 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
     return null;
   }
 
-  // Number of items on queue (an estimate: queue is not locked during the scan).
+  // Number of items on queue (an estimate only: we do not lock the queue
+  // during this scan.)
   //
   public int length() {
   int length = 0;
@@ -137,19 +126,23 @@ public class VM_ThreadQueue extends VM_AbstractThreadQueue implements VM_Uninter
   return length;
   }
 
-  // Debugging.
-  //
-  public boolean contains(VM_Thread x)
-     {
+  /** Debugging. */
+  public boolean contains(VM_Thread x) {
      for (VM_Thread t = head; t != null; t = t.next)
         if (t == x) return true;
      return false;
-     }
+  }
      
-  public void dump()
-     {
-     for (VM_Thread t = head; t != null; t = t.next)
-        t.dump();
-     VM.sysWrite("\n");
-     }
+  public void dump() {
+    // We shall space-separate them, for compactness.  
+    // I hope this is a good decision.
+    boolean pastFirst = false;
+    for (VM_Thread t = head; t != null; t = t.next) {
+      if (pastFirst)
+	VM.sysWrite(" ");
+      t.dump();
+      pastFirst = true;
+    }
+    VM.sysWrite("\n");
+  }
 }

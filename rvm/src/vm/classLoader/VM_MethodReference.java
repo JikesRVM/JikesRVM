@@ -9,7 +9,8 @@ import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
- * A class to represent the reference in a class file to a field.
+ * A class to represent the reference in a class file to a method of
+ * that class or interface. 
  * 
  * @author Bowen Alpern
  * @author Dave Grove
@@ -33,9 +34,10 @@ public final class VM_MethodReference extends VM_MemberReference {
   private final VM_TypeReference[] parameterTypes;      
 
   /**
-   * @param tr a type reference
-   * @param mn the field or method name
-   * @param d the field or method descriptor
+   * @param tr a type reference to the defining class in which this method
+   * appears. (e.g., "Ljava/lang/String;")
+   * @param mn the name of this method (e.g., "equals")
+   * @param d the method descriptor (e.g., "(Ljava/lang/Object;)Z")
    */
   VM_MethodReference(VM_TypeReference tr, VM_Atom mn, VM_Atom d) {
     super(tr, mn, d);
@@ -123,17 +125,16 @@ public final class VM_MethodReference extends VM_MemberReference {
    */
   public final VM_Method resolveInvokeSpecial() {
     VM_Class thisClass = (VM_Class)type.peekResolvedType();
-    if (thisClass == null && name != VM_ClassLoader.StandardObjectInitializerMethodName) {
-      try {
-	thisClass = (VM_Class)type.resolve();
-      } catch (ClassNotFoundException e) {
-	// can't happen.
-	// We're at compile time doing resolution of an invocation to a private method or super call.
-	// We must have loaded the class already
-	if (VM.VerifyAssertions) VM._assert(false);
-      }
+    if (thisClass == null 
+	&& name != VM_ClassLoader.StandardObjectInitializerMethodName) 
+    {
+      thisClass = (VM_Class)type.resolve();
+      /* Can't fail to resolve thisClass; we're at compile time doing
+	 resolution of an invocation to a private method or super call.  We
+	 must have loaded the class already */ 
     }
-    if (thisClass == null) return null; // can't be found now.
+    if (thisClass == null) 
+      return null; // can't be found now.
     VM_Method sought = resolveInternal(thisClass);
 
     if (sought.isObjectInitializer())
@@ -171,7 +172,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * the search order specified in JVM spec 5.4.3.3.
    * @return the VM_Method that this method ref resolved to.
    */
-  public final VM_Method resolve() throws ClassNotFoundException {
+  public final VM_Method resolve() {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Do it now triggering class loading if necessary.
@@ -224,7 +225,6 @@ public final class VM_MethodReference extends VM_MemberReference {
    */
   public final VM_Method resolveInterfaceMethod()
     throws IncompatibleClassChangeError, 
-	   ClassNotFoundException, 
 	   NoSuchMethodError {
     if (resolvedMember != null) return resolvedMember;
     

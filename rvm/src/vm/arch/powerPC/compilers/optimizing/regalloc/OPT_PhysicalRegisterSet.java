@@ -525,10 +525,10 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
     regName[TL] = "TL";
     regName[CR] = "CR";
   }
+  static final int TEMP = FIRST_INT;   // temporary register (currently r0)
   /**
    * @return R0, a temporary register
    */
-  static final int TEMP = FIRST_INT;   // temporary register (currently r0)
   public OPT_Register getTemp() {
     return reg[TEMP];
   }

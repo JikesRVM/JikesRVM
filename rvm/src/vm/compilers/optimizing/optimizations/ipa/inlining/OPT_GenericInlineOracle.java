@@ -23,7 +23,7 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
    * Should we inline a particular call site?
    *
    * @param state information needed to make the inlining decision
-   * @eturns an OPT_InlineDecision with the result
+   * @return an OPT_InlineDecision with the result
    *
    */
   public OPT_InlineDecision shouldInline (OPT_CompilationState state) {
@@ -79,8 +79,8 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
 
   /**
    * Children must implement this method.
-   * It contains the non-generic decision making portion of the oracle for invokevirtual,
-   * invokespecial, and invokestatic.
+   * It contains the non-generic decision making portion of the oracle for
+   * <b>invokevirtual</b>, <b>invokespecial</b>, and <b>invokestatic</b>.
    */
   protected abstract OPT_InlineDecision shouldInlineInternal(VM_Method caller, 
 							     VM_Method callee, 
@@ -89,7 +89,8 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
 
   /**
    * Children must implement this method.
-   * It contains the non-generic decision making portion of the oracle for invokeinterface.
+   * It contains the non-generic decision making portion of the oracle for
+   * <b>invokeinterface</b>. 
    */
   protected abstract OPT_InlineDecision shouldInlineInterfaceInternal(VM_Method caller, 
 								      VM_Method callee, 

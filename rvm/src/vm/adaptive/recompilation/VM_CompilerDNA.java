@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2003
  */
 //$Id$
 package com.ibm.JikesRVM.adaptive;
@@ -14,7 +14,7 @@ import java.util.*;
  * This class codifies the cost/benefit properties of the various compilers
  * used in the adaptive optimization system.
  *
- * @author: Michael Hind
+ * @author Michael Hind
  */
 public class VM_CompilerDNA implements VM_Constants {
 
@@ -34,14 +34,14 @@ public class VM_CompilerDNA implements VM_Constants {
    */
   //-#if RVM_FOR_AIX
   /*
-   *  These numbers were from a shadow on March 31, 2003 on AIX/PPC (munchkin)
+   *  These numbers were from a shadow on August 20, 2003 on AIX/PPC (munchkin)
    */
-  private static final double[] compilationRates = {472.71, 6.14, 2.27, 1.01};
+  private static final double[] compilationRates = {477.61, 4.69, 3.11, 1.33};
   //-#else
   /*
-   *  These numbers were from a shadow on March 28, 2003 on Linux/IA32 (turangalila)
+   *  These numbers were from a shadow on August 20, 2003 on Linux/IA32 (turangalila)
    */
-  private static final double[] compilationRates = {794.88, 10.56, 3.21, 1.53};
+  private static final double[] compilationRates = {707.71, 6.76, 3.46, 1.55};
   //-#endif
 
   /**
@@ -49,14 +49,14 @@ public class VM_CompilerDNA implements VM_Constants {
    */
   //-#if RVM_FOR_AIX
   /*
-   *  These numbers were from a shadow on March 31, 2003 on AIX/PPC (munchkin)
+   *  These numbers were from a shadow on August 20, 2003 on AIX/PPC (munchkin)
    */
-  private static final double[] speedupRates = {1.00, 4.09, 5.65, 6.20};
+  private static final double[] speedupRates = {1.00, 4.35, 6.12, 6.54};
   //-#else
   /*
-   *  These numbers were from a shadow on March 28, 2003 on Linux/IA32 (turangalila)
+   *  These numbers were from a shadow on August 20, 2003 on Linux/IA32 (turangalila)
    */
-  private static final double[] speedupRates = {1.00, 3.76, 5.26, 5.24};
+  private static final double[] speedupRates = {1.00, 4.17, 5.82, 5.45};
   //-#endif
 
   /**
@@ -112,9 +112,9 @@ public class VM_CompilerDNA implements VM_Constants {
    */
   static void init()  { 
     // check to see if the raw rates are specified during boot time
-    if (VM_Controller.options.USE_COMPILER_DNA_FILE) {
+    if (!VM_Controller.options.COMPILER_DNA_FILE_NAME.equals("")) {
       //  Read the DNA values from disk
-      readDNA();
+      readDNA(VM_Controller.options.COMPILER_DNA_FILE_NAME);
     }
 
     numCompilers = compilerNames.length;
@@ -180,12 +180,13 @@ public class VM_CompilerDNA implements VM_Constants {
 
   /** 
    * Read a serialized representation of the DNA info
+   * @param filename DNA filename
    */
-  static private void readDNA() {
+  static private void readDNA(String filename) {
     try {
 
       LineNumberReader in =
-	new LineNumberReader(new FileReader(VM_Controller.options.COMPILER_DNA_FILE_NAME));
+	new LineNumberReader(new FileReader(filename));
 
       // Expected Format
       //   CompilationRates  aaa.a  bbbb.b cccc.c dddd.d ....

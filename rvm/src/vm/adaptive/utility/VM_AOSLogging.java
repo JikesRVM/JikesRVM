@@ -119,14 +119,13 @@ public class VM_AOSLogging {
 		      " ThreadIndex: " + t.getIndex() + " "
 		      + t.getClass().getName() + " "
 		      + " Time: " 
-		      + t.getCPUTotalTime()
+		      + (t.getCPUTimeMillis() / 1000)
 		      + " status("
 		      + (  t.isIdleThread() ?     "i"         // idle daemon
 			   : t.isGCThread() ?     "g"       // gc daemon
 			   : t.isDaemonThread()  ?     "d"       // user daemon
 			   :                      "" )
 		      + (!t.isAlive()     ?     "!" : "")     // dead/alive
-		      + (t.getCPUStartTime() > 0 ? "+" : "-")    // running/stopped
 		      + ")"
 		      );
 	}
@@ -209,7 +208,10 @@ public class VM_AOSLogging {
 
 
   /**
-   * Call this method when the controller thread is exiting
+   * Call this method when the controller thread is exiting.  This can 
+   * cause us lots and lots of trouble if we are exiting as part of handling
+   * an OutOfMemoryError.  We resolve *that* problem by means of a test in
+   * VM_Runtime.deliverException(). 
    */
   public static void controllerCompleted() {
     if (!booted) return; // fast exit
@@ -619,7 +621,7 @@ public class VM_AOSLogging {
   ////////////////////////////////////////////////////////////////
 
   /**
-   * This method logs a controller cost estimate for doing nothing
+   * This method logs a controller cost estimate for doing nothing.
    * @param method the method of interest
    * @param optLevel the opt level being estimated, -1 = baseline
    * @param cost  the computed cost for this method and level
@@ -643,10 +645,10 @@ public class VM_AOSLogging {
   }
 
   /**
-   * This method logs a controller cost estimate
+   * This method logs a controller cost estimate.
    * @param method the method of interest
-   * @param choiceDesc
-   @ @param cost  the computed cost for this method and level
+   * @param choiceDesc a String describing the choice point
+   * @param cost  the computed cost for this method and level
    */
   public static void recordControllerEstimateCostOpt(VM_Method method, 
 						     String choiceDesc,

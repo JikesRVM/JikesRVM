@@ -4,19 +4,20 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Uninterruptible;
 
 /*
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-interface CycleDetector {
+abstract class CycleDetector implements VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  public void collectCycles();
-  public void possibleCycleRoot(VM_Address object);
-  public void enumeratePointer(VM_Address object);
+  abstract boolean collectCycles(boolean time);
+  abstract void possibleCycleRoot(VM_Address object);
+  abstract void printTimes(boolean totals);
 }

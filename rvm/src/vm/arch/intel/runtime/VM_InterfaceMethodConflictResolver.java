@@ -25,7 +25,7 @@ public class VM_InterfaceMethodConflictResolver implements VM_Constants {
 
   // Create a conflict resolution stub for the set of interface method signatures l.
   // 
-  public static INSTRUCTION[] createStub(int[] sigIds, VM_Method[] targets) {
+  public static VM_CodeArray createStub(int[] sigIds, VM_Method[] targets) {
     int numEntries = sigIds.length;
     // (1) Create an assembler.
     VM_Assembler asm = new VM_Assembler(numEntries); 

@@ -199,7 +199,7 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
 
   /**
    * A synonym for unlock.
-   * @depricated (was to avoid the "sync" of unlock)
+   * @deprecated (was to avoid the "sync" of unlock)
    */
   public void release () { unlock(); }
 

@@ -9,27 +9,24 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 /**
- *   This class implements the JNI environment, it includes:
- * -The array of JNI function pointers accessible from C
- * -Implementation of all the JNI functions
+ * Platform dependent aspects of the JNIEnvironment.
  *
+ * @author Dave Grove
  * @author Ton Ngo 
  * @author Steve Smith
  */
-public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstants, VM_SizeConstants
-{
-  private static boolean initialized = false;
-  private static String[] names;
+public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements VM_JNIAIXConstants {
 
   /**
    * This is the JNI function table, the address of this array will be
    * passed to the native code
+   * TODO: This is horrible and must be rewritten.
+   *       These are NOT int[][]'s by any stretch of the imagination!!!!
    */
   //-#if RVM_FOR_LINUX
-  private static INSTRUCTION[][]   JNIFunctions;
-  //-#endif
-  //-#if RVM_FOR_AIX
-  private static INSTRUCTION[][][] JNIFunctions;
+  private static VM_CodeArray[]   JNIFunctions;
+  //-#elif RVM_FOR_AIX
+  private static int[][][] JNIFunctions;
   //-#endif
   
   /**
@@ -40,93 +37,17 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * Its offset into the JNIFunctionPts array is the same as the threads offset
    * in the Scheduler.threads array.
    */
-  //  private static int[] JNIFunctionPointers;
   static int[] JNIFunctionPointers;        // made public so vpStatus could be set 11/16/00 SES
-                                             // maybe need set & get functions ??
-
-  /**
-   * These are thread specific information, such as:
-   *  -the list of references passed to native code, for GC purpose
-   *  -saved RVM system registers
-   */
-  VM_Address   JNIEnvAddress;      // contain a pointer to the JNIFunctions array
-  int          savedTIreg;         // for saving thread index register on entry to native, to be restored on JNI call from native
-  VM_Processor savedPRreg;         // for saving processor register on entry to native, to be restored on JNI call from native
-  boolean      alwaysHasNativeFrame;  // true if the bottom stack frame is native, such as thread for CreateJVM or AttachCurrentThread
-
-  public int[] JNIRefs;          // references passed to native code
-  int         JNIRefsTop;       // -> address of current top ref in JNIRefs array 
-  int         JNIRefsMax;       // -> address of end (last entry) of JNIRefs array
-  int         JNIRefsSavedFP;   // -> previous frame boundary in JNIRefs array
-  public VM_Address  JNITopJavaFP;     // -> Top java frame when in C frames on top of the stack
-
-  Throwable pendingException = null;
-
-  /*
-   * accessor methods
-   */
-  public boolean hasNativeStackFrame() throws VM_PragmaUninterruptible  {
-    return alwaysHasNativeFrame || JNIRefsTop != 0;
-  }
-
-  public VM_Address topJavaFP() throws VM_PragmaUninterruptible  {
-      return JNITopJavaFP;
-  }
-
-  public int[] refsArray() throws VM_PragmaUninterruptible {
-      return JNIRefs;
-  }
-
-  public int refsTop() throws VM_PragmaUninterruptible  {
-      return JNIRefsTop;
-  }
-   
-  public int savedRefsFP() throws VM_PragmaUninterruptible  {
-      return JNIRefsSavedFP;
-  }
-
-  public void setTopJavaFP(VM_Address topJavaFP) throws VM_PragmaUninterruptible  {
-      JNITopJavaFP = topJavaFP;
-  }
-
-  public void setSavedPRreg(VM_Processor vp) throws VM_PragmaUninterruptible  {
-      savedPRreg = vp;
-  }
-
-  public void setSavedTerminationContext(VM_Registers regs) throws VM_PragmaUninterruptible  {
-      savedContextForTermination = regs;
-  }
-
-  public VM_Registers savedTerminationContext() throws VM_PragmaUninterruptible  {
-      return savedContextForTermination;
-  }
-
-  public void setFromNative(VM_Address topJavaFP, VM_Processor nativeVP, int threadId) throws VM_PragmaUninterruptible  {
-      alwaysHasNativeFrame = true;
-      JNITopJavaFP = topJavaFP;
-      savedPRreg = nativeVP;
-      savedTIreg = threadId;
-  }
-
-  // Saved context for thread attached to external pthread.  This context is
-  // saved by the JNIService thread and points to the point in JNIStartUp thread
-  // where it yields to the queue in the native VM_Processor.
-  // When DetachCurrentThread is called, the JNIService thread restores this context 
-  // to allow the thread to run VM_Thread.terminate on its original stack.
-  VM_Registers savedContextForTermination;
-
-  // temporarily use a fixed size array for JNI refs, later grow as needed
-  static final int JNIREFS_ARRAY_LENGTH = 400;
+                                           // maybe need set & get functions ??
 
   // allocate the first dimension of the function array in the boot image so that
   // we have an address pointing to it.  This is necessary for thread creation
   // since the VM_JNIEnvironment object will contain a field pointing to this array
   public static void init() {
-    //-#if RVM_FOR_AIX
-    JNIFunctions = new int[FUNCTIONCOUNT][][];
-    //-#endif
     //-#if RVM_FOR_LINUX
-    JNIFunctions = new int[FUNCTIONCOUNT+1][];
+    JNIFunctions = new VM_CodeArray[FUNCTIONCOUNT+1];
+    //-#elif RVM_FOR_AIX
+    JNIFunctions = new int[FUNCTIONCOUNT][][];
     //-#endif
 	
     // 2 words for each thread
@@ -137,7 +58,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    *  Initialize the array of JNI functions
    *  To be called from VM_DynamicLibrary.java when a library is loaded,
    *  expecting native calls to be made
-   *
    */
   public static void boot() {
 
@@ -165,18 +85,14 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
       String methodName = mths[i].getName().toString();
       int jniIndex = indexOf(methodName);
       if (jniIndex!=-1) {
-	//-#if RVM_FOR_AIX
-	JNIFunctions[jniIndex][IP] = mths[i].getCurrentInstructions();
-	//-#endif
 	//-#if RVM_FOR_LINUX
-	JNIFunctions[jniIndex]     = mths[i].getCurrentInstructions();
+	JNIFunctions[jniIndex] = mths[i].getCurrentInstructions();
+	//-#elif RVM_FOR_AIX
+	// GACK.  We need this horrible kludge because the array is not well typed.
+	Object array = JNIFunctions[jniIndex];
+	VM_Magic.setObjectAtOffset(array, IP, mths[i].getCurrentInstructions());
 	//-#endif
-
-	// VM.sysWrite("   " + methodName + "=" + VM.intAsHexString(JNIFunctions[jniIndex][IP]));
       } 
-      // else {
-      //   VM.sysWrite("   " + methodName + " skipped\n");
-      // }
     }
 
     //-#if RVM_FOR_AIX
@@ -199,9 +115,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   // thread id == index of its entry in Scheduler.threads array
   //
   public VM_JNIEnvironment(int threadSlot) {
-    // VM_Field functions = (VM_Field) VM.getMember("VM_JNIEnvironment", "JNIFunctions", "[[I");
-    // int addr = VM_Magic.getTocPointer() + functions.getOffset();
-
     // as of 8/22 SES - let JNIEnvAddress be the address of the JNIFunctionPtr to be
     // used by the creating thread.  Passed as first arg (JNIEnv) to native C functions.
 
@@ -210,381 +123,24 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions).toInt();
     JNIFunctionPointers[(threadSlot * 2)+1] = 0;  // later contains addr of processor vpStatus word
     JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
-
-    JNIRefs = new int[JNIREFS_ARRAY_LENGTH];
-    JNIRefs[0] = 0;                                        // 0 entry for bottom of stack
-    JNIRefsTop = 0;
-    JNIRefsSavedFP = 0;
-    JNIRefsMax = (JNIRefs.length - 1) * BYTES_IN_ADDRESS;   // byte offset to last entry
-
-    // initially TOP and SavedFP -> entry 0 containing 0
-
-    alwaysHasNativeFrame = false;
-
   }
 
-  // push a reference onto thread local JNIRefs stack.  To be used by JNI
-  // Functions when returning a reference back to JNI native C code
-  // Taken:    Object to put on stack
-  // Returned: offset of entry in JNIRefs stack
-  // 
-  public int pushJNIRef( Object ref ) {
-    JNIRefsTop += BYTES_IN_ADDRESS;
-    JNIRefs[JNIRefsTop >> LOG_BYTES_IN_ADDRESS] = VM_Magic.objectAsAddress(ref).toInt();
-    return JNIRefsTop;
-  }
-
-  // get a reference from the JNIRefs stack
-  // Taken:    offset in JNIRefs stack
-  // Returned: reference at that offset
-  public Object getJNIRef( int offset ) {
-    if (offset > JNIRefsTop) {
-      VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP\n");
-      return null;
-    }
-    return VM_Magic.addressAsObject( VM_Address.fromInt(JNIRefs[ offset>>2 ]) );
-  }
-	
-  // remove a reference from the JNIRefs stack
-  // Taken:    offset in JNIRefs stack
-  public void deleteJNIRef( int offset ) {
-    if (offset > JNIRefsTop) {
-      VM.sysWrite("JNI ERROR: getJNIRef for illegal offset > TOP, ");
-      VM.sysWrite(offset); 
-      VM.sysWrite("(top is ");
-      VM.sysWrite(JNIRefsTop);
-      VM.sysWrite(")\n");
-    }
-    
-    JNIRefs[ offset>>2 ] = 0;
-
-    if (offset == JNIRefsTop) JNIRefsTop -= 4;
-  }
-
-  // record an exception as pending so that it will be delivered on the return
-  // to the Java caller;  clear the exception by recording null
-  // Taken:  an exception or error
-  // Returned:  nothing
-  //
-  public void recordException(Throwable e) {
-    // don't overwrite the first exception except to clear it
-    if (pendingException==null || e==null)
-      pendingException = e;
-  }
-
-  // return the pending exception
-  // Taken:  nothing
-  // Returned:  an exception or error
-  //
-  public Throwable getException() {
-    return pendingException;
-  }
-
-  //
-  // get the address of the JNIFunctions array, which should be in the JTOC
-  // Taken:    nothing 
-  // Returned: the address of the JNIFunctions array 
-  // 
-  public VM_Address getJNIenvAddress() {
-    return JNIEnvAddress;
-  }
-
-  public INSTRUCTION[] getInstructions(int id) {    
-    //-#if RVM_FOR_AIX
+  //-#if RVM_FOR_AIX
+  public int[] getInstructions(int id) {    
     return JNIFunctions[id][IP];
-    //-#endif
-    //-#if RVM_FOR_LINUX
+  }
+  //-#elif RVM_FOR_LINUX
+  public VM_CodeArray getInstructions(int id) {    
     return JNIFunctions[id];
-    //-#endif
   }
-
-  //
-  // get the JNI index for a function name
-  // Taken:    a JNI function name
-  // Returned: the index for this function, -1 if not found
-  //
-  private static int indexOf(String functionName) {
-    for (int i=0; i<FUNCTIONCOUNT; i++) {
-      if (names[i].equals(functionName))
-	return i;
-    }
-    return -1;
-  }
-
-
-
-
-
-  private static String[] setNames() {
-    names = new String[FUNCTIONCOUNT];
-    names[0]                             = new String("undefined");
-    names[RESERVED0]                     = new String("reserved0")                     ;	  
-    names[RESERVED1]                     = new String("reserved1")                     ;	  
-    names[RESERVED2]                     = new String("reserved2")                     ;	  
-    names[RESERVED3]                     = new String("reserved3")                     ;	  
-    names[GETVERSION]                    = new String("GetVersion")                    ;	  
-    names[DEFINECLASS]                   = new String("DefineClass")                   ;	  
-    names[FINDCLASS]                     = new String("FindClass")                     ;	  
-    names[FROMREFLECTEDMETHOD]         	 = new String("FromReflectedMethod"); //  JDK1.2, #7      
-    names[FROMREFLECTEDFIELD]          	 = new String("FromReflectedField");  //  JDK1.2, #8      
-    names[TOREFLECTEDMETHOD]           	 = new String("ToReflectedMethod");   //  JDK1.2, #9      
-    names[GETSUPERCLASS]                 = new String("GetSuperclass")                 ;	  
-    names[ISASSIGNABLEFROM]              = new String("IsAssignableFrom")              ;	  
-    names[TOREFLECTEDFIELD]            	 = new String("ToReflectedField");    //  JDK1.2, #12      
-    names[THROW]                         = new String("Throw")                         ;	  
-    names[THROWNEW]                      = new String("ThrowNew")                      ;	  
-    names[EXCEPTIONOCCURRED]             = new String("ExceptionOccurred")             ;	  
-    names[EXCEPTIONDESCRIBE]             = new String("ExceptionDescribe")             ;	  
-    names[EXCEPTIONCLEAR]                = new String("ExceptionClear")                ;	  
-    names[FATALERROR]                    = new String("FatalError")                    ;	  
-    names[PUSHLOCALFRAME]              	 = new String("PushLocalFrame");      //  JDK1.2, #19      
-    names[POPLOCALFRAME]               	 = new String("PopLocalFrame");       //  JDK1.2, #20      
-    names[NEWGLOBALREF]                  = new String("NewGlobalRef")                  ;	  
-    names[DELETEGLOBALREF]               = new String("DeleteGlobalRef")               ;	  
-    names[DELETELOCALREF]                = new String("DeleteLocalRef")                ;	  
-    names[ISSAMEOBJECT]                  = new String("IsSameObject")                  ;	  
-    names[NEWLOCALREF]                 	 = new String("NewLocalRef");         //  JDK1.2, #25      
-    names[ENSURELOCALCAPACITY]         	 = new String("EnsureLocalCapacity"); //  JDK1.2, #26   
-    names[ALLOCOBJECT]                   = new String("AllocObject")                   ;	  
-    names[NEWOBJECT]                     = new String("NewObject")                     ;	  
-    names[NEWOBJECTV]                    = new String("NewObjectV")                    ;	  
-    names[NEWOBJECTA]                    = new String("NewObjectA")                    ;	  
-    names[GETOBJECTCLASS]                = new String("GetObjectClass")                ;	  
-    names[ISINSTANCEOF]                  = new String("IsInstanceOf")                  ;	  
-    names[GETMETHODID]                   = new String("GetMethodID")                   ;	  
-    names[CALLOBJECTMETHOD]              = new String("CallObjectMethod")              ;	  
-    names[CALLOBJECTMETHODV]             = new String("CallObjectMethodV")             ;	  
-    names[CALLOBJECTMETHODA]             = new String("CallObjectMethodA")             ;	  
-    names[CALLBOOLEANMETHOD]             = new String("CallBooleanMethod")             ;	  
-    names[CALLBOOLEANMETHODV]            = new String("CallBooleanMethodV")            ;	  
-    names[CALLBOOLEANMETHODA]            = new String("CallBooleanMethodA")            ;	  
-    names[CALLBYTEMETHOD]                = new String("CallByteMethod")                ;	  
-    names[CALLBYTEMETHODV]               = new String("CallByteMethodV")               ;	  
-    names[CALLBYTEMETHODA]               = new String("CallByteMethodA")               ;	  
-    names[CALLCHARMETHOD]                = new String("CallCharMethod")                ;	  
-    names[CALLCHARMETHODV]               = new String("CallCharMethodV")               ;	  
-    names[CALLCHARMETHODA]               = new String("CallCharMethodA")               ;	  
-    names[CALLSHORTMETHOD]               = new String("CallShortMethod")               ;	  
-    names[CALLSHORTMETHODV]              = new String("CallShortMethodV")              ;	  
-    names[CALLSHORTMETHODA]              = new String("CallShortMethodA")              ;	  
-    names[CALLINTMETHOD]                 = new String("CallIntMethod")                 ;	  
-    names[CALLINTMETHODV]                = new String("CallIntMethodV")                ;	  
-    names[CALLINTMETHODA]                = new String("CallIntMethodA")                ;	  
-    names[CALLLONGMETHOD]                = new String("CallLongMethod")                ;	  
-    names[CALLLONGMETHODV]               = new String("CallLongMethodV")               ;	  
-    names[CALLLONGMETHODA]               = new String("CallLongMethodA")               ;	  
-    names[CALLFLOATMETHOD]               = new String("CallFloatMethod")               ;	  
-    names[CALLFLOATMETHODV]              = new String("CallFloatMethodV")              ;	  
-    names[CALLFLOATMETHODA]              = new String("CallFloatMethodA")              ;	  
-    names[CALLDOUBLEMETHOD]              = new String("CallDoubleMethod")              ;	  
-    names[CALLDOUBLEMETHODV]             = new String("CallDoubleMethodV")             ;	  
-    names[CALLDOUBLEMETHODA]             = new String("CallDoubleMethodA")             ;	  
-    names[CALLVOIDMETHOD]                = new String("CallVoidMethod")                ;	  
-    names[CALLVOIDMETHODV]               = new String("CallVoidMethodV")               ;	  
-    names[CALLVOIDMETHODA]               = new String("CallVoidMethodA")               ;	  
-    names[CALLNONVIRTUALOBJECTMETHOD]    = new String("CallNonvirtualObjectMethod")    ;	  
-    names[CALLNONVIRTUALOBJECTMETHODV]   = new String("CallNonvirtualObjectMethodV")   ;	  
-    names[CALLNONVIRTUALOBJECTMETHODA]   = new String("CallNonvirtualObjectMethodA")   ;	  
-    names[CALLNONVIRTUALBOOLEANMETHOD]   = new String("CallNonvirtualBooleanMethod")   ;	  
-    names[CALLNONVIRTUALBOOLEANMETHODV]  = new String("CallNonvirtualBooleanMethodV")  ;	  
-    names[CALLNONVIRTUALBOOLEANMETHODA]  = new String("CallNonvirtualBooleanMethodA")  ;	  
-    names[CALLNONVIRTUALBYTEMETHOD]      = new String("CallNonvirtualByteMethod")      ;	  
-    names[CALLNONVIRTUALBYTEMETHODV]     = new String("CallNonvirtualByteMethodV")     ;	  
-    names[CALLNONVIRTUALBYTEMETHODA]     = new String("CallNonvirtualByteMethodA")     ;	  
-    names[CALLNONVIRTUALCHARMETHOD]      = new String("CallNonvirtualCharMethod")      ;	  
-    names[CALLNONVIRTUALCHARMETHODV]     = new String("CallNonvirtualCharMethodV")     ;	  
-    names[CALLNONVIRTUALCHARMETHODA]     = new String("CallNonvirtualCharMethodA")     ;	  
-    names[CALLNONVIRTUALSHORTMETHOD]     = new String("CallNonvirtualShortMethod")     ;	  
-    names[CALLNONVIRTUALSHORTMETHODV]    = new String("CallNonvirtualShortMethodV")    ;	  
-    names[CALLNONVIRTUALSHORTMETHODA]    = new String("CallNonvirtualShortMethodA")    ;	  
-    names[CALLNONVIRTUALINTMETHOD]       = new String("CallNonvirtualIntMethod")       ;	  
-    names[CALLNONVIRTUALINTMETHODV]      = new String("CallNonvirtualIntMethodV")      ;	  
-    names[CALLNONVIRTUALINTMETHODA]      = new String("CallNonvirtualIntMethodA")      ;	  
-    names[CALLNONVIRTUALLONGMETHOD]      = new String("CallNonvirtualLongMethod")      ;	  
-    names[CALLNONVIRTUALLONGMETHODV]     = new String("CallNonvirtualLongMethodV")     ;	  
-    names[CALLNONVIRTUALLONGMETHODA]     = new String("CallNonvirtualLongMethodA")     ;	  
-    names[CALLNONVIRTUALFLOATMETHOD]     = new String("CallNonvirtualFloatMethod")     ;	  
-    names[CALLNONVIRTUALFLOATMETHODV]    = new String("CallNonvirtualFloatMethodV")    ;	  
-    names[CALLNONVIRTUALFLOATMETHODA]    = new String("CallNonvirtualFloatMethodA")    ;	  
-    names[CALLNONVIRTUALDOUBLEMETHOD]    = new String("CallNonvirtualDoubleMethod")    ;	  
-    names[CALLNONVIRTUALDOUBLEMETHODV]   = new String("CallNonvirtualDoubleMethodV")   ;	  
-    names[CALLNONVIRTUALDOUBLEMETHODA]   = new String("CallNonvirtualDoubleMethodA")   ;	  
-    names[CALLNONVIRTUALVOIDMETHOD]      = new String("CallNonvirtualVoidMethod")      ;	  
-    names[CALLNONVIRTUALVOIDMETHODV]     = new String("CallNonvirtualVoidMethodV")     ;	  
-    names[CALLNONVIRTUALVOIDMETHODA]     = new String("CallNonvirtualVoidMethodA")     ;	  
-    names[GETFIELDID]                    = new String("GetFieldID")                    ;	  
-    names[GETOBJECTFIELD]                = new String("GetObjectField")                ;	  
-    names[GETBOOLEANFIELD]               = new String("GetBooleanField")               ;	  
-    names[GETBYTEFIELD]                  = new String("GetByteField")                  ;	  
-    names[GETCHARFIELD]                  = new String("GetCharField")                  ;	  
-    names[GETSHORTFIELD]                 = new String("GetShortField")                 ;	  
-    names[GETINTFIELD]                   = new String("GetIntField")                   ;	  
-    names[GETLONGFIELD]                  = new String("GetLongField")                  ;	  
-    names[GETFLOATFIELD]                 = new String("GetFloatField")                 ;	  
-    names[GETDOUBLEFIELD]                = new String("GetDoubleField")                ;	  
-    names[SETOBJECTFIELD]                = new String("SetObjectField")                ;	  
-    names[SETBOOLEANFIELD]               = new String("SetBooleanField")               ;	  
-    names[SETBYTEFIELD]                  = new String("SetByteField")                  ;	  
-    names[SETCHARFIELD]                  = new String("SetCharField")                  ;	  
-    names[SETSHORTFIELD]                 = new String("SetShortField")                 ;	  
-    names[SETINTFIELD]                   = new String("SetIntField")                   ;	  
-    names[SETLONGFIELD]                  = new String("SetLongField")                  ;	  
-    names[SETFLOATFIELD]                 = new String("SetFloatField")                 ;	  
-    names[SETDOUBLEFIELD]                = new String("SetDoubleField")                ;	  
-    names[GETSTATICMETHODID]             = new String("GetStaticMethodID")             ;	  
-    names[CALLSTATICOBJECTMETHOD]        = new String("CallStaticObjectMethod")        ;	  
-    names[CALLSTATICOBJECTMETHODV]       = new String("CallStaticObjectMethodV")       ;	  
-    names[CALLSTATICOBJECTMETHODA]       = new String("CallStaticObjectMethodA")       ;	  
-    names[CALLSTATICBOOLEANMETHOD]       = new String("CallStaticBooleanMethod")       ;	  
-    names[CALLSTATICBOOLEANMETHODV]      = new String("CallStaticBooleanMethodV")      ;	  
-    names[CALLSTATICBOOLEANMETHODA]      = new String("CallStaticBooleanMethodA")      ;	  
-    names[CALLSTATICBYTEMETHOD]          = new String("CallStaticByteMethod")          ;	  
-    names[CALLSTATICBYTEMETHODV]         = new String("CallStaticByteMethodV")         ;	  
-    names[CALLSTATICBYTEMETHODA]         = new String("CallStaticByteMethodA")         ;	  
-    names[CALLSTATICCHARMETHOD]          = new String("CallStaticCharMethod")          ;	  
-    names[CALLSTATICCHARMETHODV]         = new String("CallStaticCharMethodV")         ;	  
-    names[CALLSTATICCHARMETHODA]         = new String("CallStaticCharMethodA")         ;	  
-    names[CALLSTATICSHORTMETHOD]         = new String("CallStaticShortMethod")         ;	  
-    names[CALLSTATICSHORTMETHODV]        = new String("CallStaticShortMethodV")        ;	  
-    names[CALLSTATICSHORTMETHODA]        = new String("CallStaticShortMethodA")        ;	  
-    names[CALLSTATICINTMETHOD]           = new String("CallStaticIntMethod")           ;	  
-    names[CALLSTATICINTMETHODV]          = new String("CallStaticIntMethodV")          ;	  
-    names[CALLSTATICINTMETHODA]          = new String("CallStaticIntMethodA")          ;	  
-    names[CALLSTATICLONGMETHOD]          = new String("CallStaticLongMethod")          ;	  
-    names[CALLSTATICLONGMETHODV]         = new String("CallStaticLongMethodV")         ;	  
-    names[CALLSTATICLONGMETHODA]         = new String("CallStaticLongMethodA")         ;	  
-    names[CALLSTATICFLOATMETHOD]         = new String("CallStaticFloatMethod")         ;	  
-    names[CALLSTATICFLOATMETHODV]        = new String("CallStaticFloatMethodV")        ;	  
-    names[CALLSTATICFLOATMETHODA]        = new String("CallStaticFloatMethodA")        ;	  
-    names[CALLSTATICDOUBLEMETHOD]        = new String("CallStaticDoubleMethod")        ;	  
-    names[CALLSTATICDOUBLEMETHODV]       = new String("CallStaticDoubleMethodV")       ;	  
-    names[CALLSTATICDOUBLEMETHODA]       = new String("CallStaticDoubleMethodA")       ;	  
-    names[CALLSTATICVOIDMETHOD]          = new String("CallStaticVoidMethod")          ;	  
-    names[CALLSTATICVOIDMETHODV]         = new String("CallStaticVoidMethodV")         ;	  
-    names[CALLSTATICVOIDMETHODA]         = new String("CallStaticVoidMethodA")         ;	  
-    names[GETSTATICFIELDID]              = new String("GetStaticFieldID")              ;	  
-    names[GETSTATICOBJECTFIELD]          = new String("GetStaticObjectField")          ;	  
-    names[GETSTATICBOOLEANFIELD]         = new String("GetStaticBooleanField")         ;	  
-    names[GETSTATICBYTEFIELD]            = new String("GetStaticByteField")            ;	  
-    names[GETSTATICCHARFIELD]            = new String("GetStaticCharField")            ;	  
-    names[GETSTATICSHORTFIELD]           = new String("GetStaticShortField")           ;	  
-    names[GETSTATICINTFIELD]             = new String("GetStaticIntField")             ;	  
-    names[GETSTATICLONGFIELD]            = new String("GetStaticLongField")            ;	  
-    names[GETSTATICFLOATFIELD]           = new String("GetStaticFloatField")           ;	  
-    names[GETSTATICDOUBLEFIELD]          = new String("GetStaticDoubleField")          ;	  
-    names[SETSTATICOBJECTFIELD]          = new String("SetStaticObjectField")          ;	  
-    names[SETSTATICBOOLEANFIELD]         = new String("SetStaticBooleanField")         ;	  
-    names[SETSTATICBYTEFIELD]            = new String("SetStaticByteField")            ;	  
-    names[SETSTATICCHARFIELD]            = new String("SetStaticCharField")            ;	  
-    names[SETSTATICSHORTFIELD]           = new String("SetStaticShortField")           ;	  
-    names[SETSTATICINTFIELD]             = new String("SetStaticIntField")             ;	  
-    names[SETSTATICLONGFIELD]            = new String("SetStaticLongField")            ;	  
-    names[SETSTATICFLOATFIELD]           = new String("SetStaticFloatField")           ;	  
-    names[SETSTATICDOUBLEFIELD]          = new String("SetStaticDoubleField")          ;	  
-    names[NEWSTRING]                     = new String("NewString")                     ;	  
-    names[GETSTRINGLENGTH]               = new String("GetStringLength")               ;	  
-    names[GETSTRINGCHARS]                = new String("GetStringChars")                ;	  
-    names[RELEASESTRINGCHARS]            = new String("ReleaseStringChars")            ;	  
-    names[NEWSTRINGUTF]                  = new String("NewStringUTF")                  ;	  
-    names[GETSTRINGUTFLENGTH]            = new String("GetStringUTFLength")            ;	  
-    names[GETSTRINGUTFCHARS]             = new String("GetStringUTFChars")             ;	  
-    names[RELEASESTRINGUTFCHARS]         = new String("ReleaseStringUTFChars")         ;	  
-    names[GETARRAYLENGTH]                = new String("GetArrayLength")                ;	  
-    names[NEWOBJECTARRAY]                = new String("NewObjectArray")                ;	  
-    names[GETOBJECTARRAYELEMENT]         = new String("GetObjectArrayElement")         ;	  
-    names[SETOBJECTARRAYELEMENT]         = new String("SetObjectArrayElement")         ;	  
-    names[NEWBOOLEANARRAY]               = new String("NewBooleanArray")               ;	  
-    names[NEWBYTEARRAY]                  = new String("NewByteArray")                  ;	  
-    names[NEWCHARARRAY]                  = new String("NewCharArray")                  ;	  
-    names[NEWSHORTARRAY]                 = new String("NewShortArray")                 ;	  
-    names[NEWINTARRAY]                   = new String("NewIntArray")                   ;	  
-    names[NEWLONGARRAY]                  = new String("NewLongArray")                  ;	  
-    names[NEWFLOATARRAY]                 = new String("NewFloatArray")                 ;	  
-    names[NEWDOUBLEARRAY]                = new String("NewDoubleArray")                ;	  
-    names[GETBOOLEANARRAYELEMENTS]       = new String("GetBooleanArrayElements")       ;	  
-    names[GETBYTEARRAYELEMENTS]          = new String("GetByteArrayElements")          ;	  
-    names[GETCHARARRAYELEMENTS]          = new String("GetCharArrayElements")          ;	  
-    names[GETSHORTARRAYELEMENTS]         = new String("GetShortArrayElements")         ;	  
-    names[GETINTARRAYELEMENTS]           = new String("GetIntArrayElements")           ;	  
-    names[GETLONGARRAYELEMENTS]          = new String("GetLongArrayElements")          ;	  
-    names[GETFLOATARRAYELEMENTS]         = new String("GetFloatArrayElements")         ;	  
-    names[GETDOUBLEARRAYELEMENTS]        = new String("GetDoubleArrayElements")        ;	  
-    names[RELEASEBOOLEANARRAYELEMENTS]   = new String("ReleaseBooleanArrayElements")   ;	  
-    names[RELEASEBYTEARRAYELEMENTS]      = new String("ReleaseByteArrayElements")      ;	  
-    names[RELEASECHARARRAYELEMENTS]      = new String("ReleaseCharArrayElements")      ;	  
-    names[RELEASESHORTARRAYELEMENTS]     = new String("ReleaseShortArrayElements")     ;	  
-    names[RELEASEINTARRAYELEMENTS]       = new String("ReleaseIntArrayElements")       ;	  
-    names[RELEASELONGARRAYELEMENTS]      = new String("ReleaseLongArrayElements")      ;	  
-    names[RELEASEFLOATARRAYELEMENTS]     = new String("ReleaseFloatArrayElements")     ;	  
-    names[RELEASEDOUBLEARRAYELEMENTS]    = new String("ReleaseDoubleArrayElements")    ;	  
-    names[GETBOOLEANARRAYREGION]         = new String("GetBooleanArrayRegion")         ;	  
-    names[GETBYTEARRAYREGION]            = new String("GetByteArrayRegion")            ;	  
-    names[GETCHARARRAYREGION]            = new String("GetCharArrayRegion")            ;	  
-    names[GETSHORTARRAYREGION]           = new String("GetShortArrayRegion")           ;	  
-    names[GETINTARRAYREGION]             = new String("GetIntArrayRegion")             ;	  
-    names[GETLONGARRAYREGION]            = new String("GetLongArrayRegion")            ;	  
-    names[GETFLOATARRAYREGION]           = new String("GetFloatArrayRegion")           ;	  
-    names[GETDOUBLEARRAYREGION]          = new String("GetDoubleArrayRegion")          ;	  
-    names[SETBOOLEANARRAYREGION]         = new String("SetBooleanArrayRegion")         ;	  
-    names[SETBYTEARRAYREGION]            = new String("SetByteArrayRegion")            ;	  
-    names[SETCHARARRAYREGION]            = new String("SetCharArrayRegion")            ;	  
-    names[SETSHORTARRAYREGION]           = new String("SetShortArrayRegion")           ;	  
-    names[SETINTARRAYREGION]             = new String("SetIntArrayRegion")             ;	  
-    names[SETLONGARRAYREGION]            = new String("SetLongArrayRegion")            ;	  
-    names[SETFLOATARRAYREGION]           = new String("SetFloatArrayRegion")           ;	  
-    names[SETDOUBLEARRAYREGION]          = new String("SetDoubleArrayRegion")          ;	  
-    names[REGISTERNATIVES]               = new String("RegisterNatives")               ;	  
-    names[UNREGISTERNATIVES]             = new String("UnregisterNatives")             ;	  
-    names[MONITORENTER]                  = new String("MonitorEnter")                  ;	  
-    names[MONITOREXIT]                   = new String("MonitorExit")                   ;	  
-    names[GETJAVAVM]                     = new String("GetJavaVM")                     ;	  
-    names[GETSTRINGREGION]             	 = new String("GetStringRegion");           // JDK 1.2, #220
-    names[GETSTRINGUTFREGION]         	 = new String("GetStringUTFRegion");        // JDK 1.2, #221
-    names[GETPRIMITIVEARRAYCRITICAL]   	 = new String("GetPrimitiveArrayCritical"); // JDK 1.2, #222
-    names[RELEASEPRIMITIVEARRAYCRITICAL] = new String("ReleasePrimitiveArrayCritical"); // JDK 1.2, #223
-    names[GETSTRINGCRITICAL]           	 = new String("GetStringCritical");         // JDK 1.2, # 224
-    names[RELEASESTRINGCRITICAL]       	 = new String("ReleaseStringCritical");     // JDK 1.2, #225
-    names[NEWWEAKGLOBALREF]            	 = new String("NewWeakGlobalRef");    	    // JDK 1.2, #226
-    names[DELETEWEAKGLOBALREF]         	 = new String("DeleteWeakGlobalRef"); 	    // JDK 1.2, #227
-    names[EXCEPTIONCHECK]              	 = new String("ExceptionCheck");      	    // JDK 1.2, #228
-
-    return names;
-
-  }
-
+  //-#endif
 
   /*****************************************************************************
    * Utility function called from VM_JNIFunction
    * (cannot be placed in VM_JNIFunction because methods there are specially compiled
    * to be called from native)
    *****************************************************************************/
-
-
-  /**
-   * Get a VM_Field of an object given the index for this field
-   * @param obj an Object
-   * @param fieldIndex an index into the VM_Field array that describes the fields of this object
-   * @return the VM_Field pointed to by the index, or null if the index or the object is invalid
-   *
-   */
-  public static VM_Field getFieldAtIndex (Object obj, int fieldIndex) {   
-    // VM.sysWrite("GetObjectField: field at index " + fieldIndex + "\n");
-
-    VM_Type objType = VM_Magic.getObjectType(obj);
-    if (objType.isClassType()) {
-      VM_Field[] fields = objType.asClass().getInstanceFields();
-      if (fieldIndex>=fields.length) {
-	return null;                                      // invalid field index
-      } else {
-	return fields[fieldIndex];
-      } 
-    } else {
-      // object is not a class type, probably an array or an invalid reference
-      return null;
-    }
-  }
-
-
+  
 
   /**
    * Common code shared by the JNI functions NewObjectA, NewObjectV, NewObject
@@ -607,8 +163,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     Constructor constMethod = cls.getConstructor(argClasses);
     if (constMethod==null)
       throw new Exception("Constructor not found");
-
-
+    
     Object argObjs[];
 
     if (isJvalue) {
@@ -645,10 +200,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     }
 
     // construct the new object
-    Object newobj = constMethod.newInstance(argObjs);
-    
-    return newobj;
-
+    return constMethod.newInstance(argObjs);
   }
 
 
@@ -1036,9 +588,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
    * @param glueFP, the glue stack frame pointer
    */
   static Object[] packageParameterFromDotArgSVR4(VM_Method targetMethod, VM_Address glueFP, boolean skip4Args) {
-
-//    VM_Magic.breakpoint();
-
     // native method's stack frame
     VM_Address nativeFP = VM_Magic.getCallerFramePointer(glueFP);
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
@@ -1097,7 +646,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   // -- Feng
   // 
   static Object[] packageParameterFromVarArgSVR4(VM_Method targetMethod, VM_Address argAddress) {
-//  VM_Magic.breakpoint();
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
@@ -1268,51 +816,38 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 	addr = addr.add(4);                       
 	long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
-	
       } else if (argTypes[i].isDoubleType()) {
 	loword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);
 	long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
-
       } else if (argTypes[i].isLongType()) { 
 	loword = VM_Magic.getMemoryInt(addr);
 	addr = addr.add(4);
 	long longValue = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
-
       } else if (argTypes[i].isBooleanType()) {
 	// the 0/1 bit is stored in the high byte	
 	argObjectArray[i] = VM_Reflection.wrapBoolean(hiword);
-
       } else if (argTypes[i].isByteType()) {
 	// the target byte is stored in the high byte
 	argObjectArray[i] = VM_Reflection.wrapByte((byte) hiword);
-
       } else if (argTypes[i].isCharType()) {
 	// char is stored in the high 2 bytes
 	argObjectArray[i] = VM_Reflection.wrapChar((char) hiword);
-
       } else if (argTypes[i].isShortType()) {
 	// short is stored in the high 2 bytes
 	argObjectArray[i] = VM_Reflection.wrapShort((short) hiword);
-
       } else if (argTypes[i].isReferenceType()) {
 	// for object, the arg is a JREF index, dereference to get the real object
 	argObjectArray[i] =  env.getJNIRef(hiword);   
-
       } else if (argTypes[i].isIntType()) {
 	argObjectArray[i] = VM_Reflection.wrapInt(hiword);
-
       } else {
 	return null;
       }
-
     }
-
     return argObjectArray;
-    
-
   }
 
   /**
@@ -1334,7 +869,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     // VM.sysWrite("JNI packageParameterFromJValue: packaging " + argCount + " arguments\n");
 
     for (int i=0; i<argCount; i++) {
-	
       VM_Address addr = argAddress.add(8*i);
       int hiword = VM_Magic.getMemoryInt(addr);
       int loword = VM_Magic.getMemoryInt(addr.add(4));
@@ -1346,121 +880,33 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 
       if (argTypes[i].isFloatType()) {
 	argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(hiword));
-
       } else if (argTypes[i].isDoubleType()) {
 	long doubleBits = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
-
       } else if (argTypes[i].isLongType()) { 
 	long longValue = (((long) hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
 	argObjectArray[i] = VM_Reflection.wrapLong(longValue);
-
       } else if (argTypes[i].isBooleanType()) {
 	// the 0/1 bit is stored in the high byte	
 	argObjectArray[i] = VM_Reflection.wrapBoolean((hiword & 0xFF000000) >>> 24);
-
       } else if (argTypes[i].isByteType()) {
 	// the target byte is stored in the high byte
 	argObjectArray[i] = VM_Reflection.wrapByte((byte) ((hiword & 0xFF000000) >>> 24));
-
       } else if (argTypes[i].isCharType()) {
 	// char is stored in the high 2 bytes
 	argObjectArray[i] = VM_Reflection.wrapChar((char) ((hiword & 0xFFFF0000) >>> 16));
-
       } else if (argTypes[i].isShortType()) {
 	// short is stored in the high 2 bytes
 	argObjectArray[i] = VM_Reflection.wrapShort((short) ((hiword & 0xFFFF0000) >>> 16));
-
       } else if (argTypes[i].isReferenceType()) {
 	// for object, the arg is a JREF index, dereference to get the real object
 	argObjectArray[i] =  env.getJNIRef(hiword);   
-
       } else if (argTypes[i].isIntType()) {
 	argObjectArray[i] = VM_Reflection.wrapInt(hiword);
-
       } else {
 	return null;
       }
-
     }
-
     return argObjectArray;
-    
   }
-
-
-  /**
-   * Given an address in C that points to a null-terminated string,
-   * create a new Java byte[] with a copy of the string
-   * @param stringAddress an address in C space for a string
-   * @return a new Java byte[]
-   */
-  static byte[] createByteArrayFromC(VM_Address stringAddress) {
-    int word;
-    int length = 0;
-    VM_Address addr = stringAddress;
-
-    // scan the memory for the null termination of the string
-    while (true) {
-      word = VM_Magic.getMemoryInt(addr);
-      int byte0 = ((word >> 24) & 0xFF);
-      int byte1 = ((word >> 16) & 0xFF);
-      int byte2 = ((word >> 8) & 0xFF);
-      int byte3 = (word & 0xFF);
-      if (byte0==0)
-	break;
-      length++;
-      if (byte1==0) 
-	break;
-      length++;
-      if (byte2==0)
-	break;
-      length++;
-      if (byte3==0)
-	break;
-      length++;
-      addr = addr.add(4);
-    }
-
-   byte[] contents = new byte[length];
-   VM_Memory.memcopy(VM_Magic.objectAsAddress(contents), stringAddress, length);
-   
-   return contents;
-  }
-
-
-  /**
-   * Given an address in C that points to a null-terminated string,
-   * create a new Java String with a copy of the string
-   * @param stringAddress an address in C space for a string
-   * @return a new Java String
-   */
-  static String createStringFromC(VM_Address stringAddress) {
-
-    byte[] contents = createByteArrayFromC( stringAddress );
-    return new String(contents);
-
-  }
-
-  public void dumpJniRefsStack () throws VM_PragmaUninterruptible {
-    int jniRefOffset = JNIRefsTop;
-    VM.sysWrite("\n* * dump of JNIEnvironment JniRefs Stack * *\n");
-    VM.sysWrite("* JNIRefs = ");
-    VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs));
-    VM.sysWrite(" * JNIRefsTop = ");
-    VM.sysWrite(JNIRefsTop);
-    VM.sysWrite(" * JNIRefsSavedFP = ");
-    VM.sysWrite(JNIRefsSavedFP);
-    VM.sysWrite(".\n*\n");
-    while ( jniRefOffset >= 0 ) {
-      VM.sysWrite(jniRefOffset);
-      VM.sysWrite(" ");
-      VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
-      VM.sysWrite(" ");
-      MM_Interface.dumpRef(VM_Address.fromInt(JNIRefs[jniRefOffset >> 2]));
-      jniRefOffset -= 4;
-    }
-    VM.sysWrite("\n* * end of dump * *\n");
-  }
-
 }

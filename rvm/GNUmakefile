@@ -5,6 +5,22 @@
 #
 # @author Steven Augart 
 #
+
+# Most useful Make targets:
+#
+# TAGS: * Make a tags table for the generated sources (in $RVM_BUILD) and for
+#	  the C, C++, and Java sources in the 'src' directory.  
+#	* Skip 'src/examples'
+#	* The table should include the Java templates in *.template
+#
+# TAGS.ALL: Make a tags table covering all of the source files in the 'rvm' tree.  
+#
+# conditionals: Search the sources for any .java files containing preprocessor
+# 	conditionals.  Filter out the conditional expressions.  
+#	Dump the sorted list of unique conditional variables to stdout.
+
+
+
 .PHONY: all
 all:
 	@echo >&2 "This is not the makefile for building JikesRVM.  It is"
@@ -15,29 +31,63 @@ all:
 	@echo >&2 ' all files in the source tree, skipping only Emacs backups and CVS files.)'
 
 
-FIND:=find . -name CVS -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c \)
-FINDALL:=find . -name CVS -prune -o -name \*~ -o -name .\*~ -o -name '.#*' -o -name '#*' -o -name '*#' -o -type f 
+ifdef RVM_BUILD
+   GENSRC:=$(RVM_BUILD)/RVM.generatedSources $(RVM_BUILD)/RVM.scratch
+else
+   GENSRC:=
+endif
 
+find_ignore_docs:=-name \*.gif -o -name \*.jpg -o -name \*.ps -o -name \*.dvi -o -name \*.ind -o -name \*.ilg
+find_match_junk_names:=-name Old -prune -o -name CVS -prune -o -name TAGS\* -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' 
+append_java_templates=find src -follow ${find_match_junk_names}  -o -name examples -prune -o -name \*.template -print0 | xargs -0 etags $(EFLAGS) --language=java --append --output=$@ 
+
+# Throwing ${find_match_junk_names} into ${FIND} doesn't cut down on the size
+# in a clean checkout, but might possibly do so if there were old 
+# files left over whose names start with "#" or with ".#". 
+FIND:=find  $(GENSRC) src -follow  ${find_match_junk_names} -o -name examples -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c -o -name \*.y \)
+FINDALL:=find $(GENSRC) . -follow ${find_match_junk_names} -o ${find_ignore_docs} -o -type f 
+
+EFLAGS:=--members --declarations --defines --globals
+
+# A forced target.
 .PHONY: FORCE
-TAGS: FORCE
-	$(RM) $@
-	$(FIND) -print0 | xargs -0 etags --append --output=$@
-
 FORCE:
 
-.PHONY: find0 find findall findall0
-find0: FORCE
-	@$(FIND) -print0
-
-find: FORCE
-	@$(FIND) -print
-
-findall0: FORCE
-	@$(FINDALL) -print0
-
-findall: FORCE
-	@$(FINDALL) -print
+TAGS: FORCE
+	$(RM) $@
+	$(FIND) -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+	${append_java_templates}
 
 TAGS.ALL: FORCE
 	$(RM) $@
-	$(FINDALL) -print0 | xargs -0 etags --append --output=$@
+	$(FINDALL) ! -name \*.template -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+	${append_java_templates}
+
+TAGS.Makefiles: FORCE
+	$(RM) $@
+	find . -follow ${find_match_junk_names} -o -name regression -prune -o -name examples -prune -o -name '*akefil*' -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
+
+.PHONY: conditionals
+# Note: explicit tab characters below.
+conditionals:
+	find . -follow -name \*.java -print0 | xargs -0 fgrep --no-filename '//-#' | sed -e 's/.*#[a-z]\+[ 	]*//' | sed  -e '/\/\/.*/d' | tr '[!&|]' '\n' |sed  -e 's/[ 	]*$$//' -e 's/^[ 	]//'  -e '/^$$/d'  | sort | uniq
+# | cat -v -e -t
+
+
+## These targets may be handy if you're writing code that wants to do
+## a find-like hunt.  The main problem is they won't be able to tell
+## 'etags' that the .template files contain Java code. 
+
+.PHONY: find0 find findall findall0
+find0: FORCE
+	$(FIND) -print0
+
+find: FORCE
+	$(FIND) -print
+
+findall0: FORCE
+	$(FINDALL) -print0
+
+findall: FORCE
+	$(FINDALL) -print
+

@@ -34,22 +34,22 @@ final class TreadmillLocal extends LargeObjectAllocator
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private TreadmillSpace space;
   public final Treadmill treadmill;  // per-processor
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Constructor
@@ -60,13 +60,13 @@ final class TreadmillLocal extends LargeObjectAllocator
   TreadmillLocal(TreadmillSpace space_) {
     super(space_.getVMResource(), space_.getMemoryResource());
     space = space_;
-    treadmill = new Treadmill(VMResource.PAGE_SIZE, true);
+    treadmill = new Treadmill(VMResource.BYTES_IN_PAGE, true);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   /**
    *  This is called each time a cell is alloced (i.e. if a cell is
@@ -81,10 +81,10 @@ final class TreadmillLocal extends LargeObjectAllocator
     space.postAlloc(cell,  this);
   };
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
+  /****************************************************************************
+   *
+   * Collection
+   */
 
   /**
    * Prepare for a collection.  Clear the treadmill to-space head and
@@ -125,10 +125,10 @@ final class TreadmillLocal extends LargeObjectAllocator
   }
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous size-related methods
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous size-related methods
+   */
   /**
    * Return the size of the per-superpage header required by this
    * system.  In this case it is just the underlying superpage header

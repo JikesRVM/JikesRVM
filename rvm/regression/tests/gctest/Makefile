@@ -1,3 +1,4 @@
+
 #
 # (C) Copyright IBM Corp. 2001
 #
@@ -8,9 +9,9 @@
 #
 
 SUPPORT =Node2I2A
-TESTS =FixedLive LargeAlloc Exhaust
+TESTS =ReferenceTest FixedLive LargeAlloc Exhaust
 
-include		$(RVM_BUILD)/Make.rules
+include		$(RVM_BUILD)/Make.rules.target
 
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/gctest
 BENCH_SOURCE_PATH=$(BENCH_HOME)
@@ -34,7 +35,7 @@ $(TESTS): %:
 
 
 $(WORKING)/cp/InlineAllocation.class: $(BENCH_HOME)/InlineAllocation.java
-	$(RVM_BUILD)/jbuild.toolPrep /tmp $(BENCH_HOME)/InlineAllocation.java 
+	$(RVM_BUILD)/jbuild.toolPrep --disable-modification-exit-status /tmp $(BENCH_HOME)/InlineAllocation.java 
 	mv /tmp/InlineAllocation.java $(WORKING)/cp/InlineAllocation.java
 	$(RVM_BUILD)/jbuild.tool $(WORKING)/cp/InlineAllocation.java
 

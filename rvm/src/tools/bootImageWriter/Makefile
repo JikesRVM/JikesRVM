@@ -4,11 +4,11 @@
 #$Id$
 # @author Derek Lieber
 
-include		$(RVM_ROOT)/rvm/build.Make.rules
+include		$(RVM_BUILD)/Make.rules.host
 
 HOST_JDK_FLAGS=
-HOST_MEM_MAX=500M
-HOST_MEM_MIN=500M
+HOST_MEM_MAX=400M
+HOST_MEM_MIN=400M
 
 LIB_JAR=$(JAL_BUILD)/RVM.classes/rvmrt.jar
 
@@ -24,7 +24,7 @@ UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/libyuck.jar
 $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
 	cd $(SCRATCH_DIR); $(UNZIP_CMD) -Uoqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
 	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES) > /dev/null 2> /dev/null
-	@print -n "(built workaround zip) "
+	@echo -n "(built workaround zip) "
 
 #
 # The -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) is a kludge to force
@@ -43,7 +43,6 @@ $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
 
 # Create a boot image.
 # Parameters from 'make' command line are:
-#   RVM_INSTRUCTION_TYPE = datatype used for representing machine instructions
 #   RVM_BOOTIMAGE = place to put boot image
 #   RVM_REPOSITORIES = path to search for classes
 #   RVM_BOOTIMAGE_CLASSES = place to read names of classes to be put in boot image
@@ -64,5 +63,5 @@ $(RVM_BOOTIMAGE): $(UTIL_KLUDGE_JAR)
 	   $(RVM_BOOTIMAGE_COMPILER_ARGS) \
 	   $(RVM_BOOTIMAGE_WRITER_ARGS) \
 	   $(IMAGE_ADDRESS_ARG)
-	@print -n "(bootimage linked) "
+	@echo -n "(bootimage linked) "
 

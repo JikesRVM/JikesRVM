@@ -5,9 +5,10 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -32,24 +33,24 @@ final class DoublyLinkedList
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private       VM_Address head;
   private final Lock lock;
   private final Object owner;
   private final int granularity;  // Each node on the treadmill is guaranteed to be a multiple of this.
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance Methods
-  //
+  /****************************************************************************
+   *
+   * Instance Methods
+   */
 
   /**
    * Constructor
@@ -63,10 +64,10 @@ final class DoublyLinkedList
 
   // Offsets are relative to the node (not the payload)
   //
-  private static int PREV_OFFSET = 0 * WORD_SIZE;
-  private static int NEXT_OFFSET = 1 * WORD_SIZE;
-  private static int LIST_OFFSET = 2 * WORD_SIZE;
-  private static int HEADER_SIZE = 3 * WORD_SIZE;
+  private static int PREV_OFFSET = 0 * BYTES_IN_ADDRESS;
+  private static int NEXT_OFFSET = 1 * BYTES_IN_ADDRESS;
+  private static int LIST_OFFSET = 2 * BYTES_IN_ADDRESS;
+  private static int HEADER_SIZE = 3 * BYTES_IN_ADDRESS;
 
   public final Object getOwner() {
     return owner;
@@ -81,7 +82,8 @@ final class DoublyLinkedList
   }
 
   public final boolean isNode (VM_Address node) {
-    return (node.toInt() / granularity * granularity) == node.toInt();
+    VM_Word n = node.toWord();
+    return (n.toInt() / granularity * granularity) == n.toInt();
   } 
 
   static public final VM_Address nodeToPayload(VM_Address node) throws VM_PragmaInline {
@@ -160,12 +162,12 @@ final class DoublyLinkedList
   public final void show() {
     if (lock != null) lock.acquire();
     VM_Address cur = head;
-    VM_Interface.sysWrite(cur);
+    Log.write(cur);
     while (!cur.isZero()) {
       cur =      cur = VM_Magic.getMemoryAddress(cur.add(NEXT_OFFSET));
-      VM_Interface.sysWrite(" -> ",cur);
+      Log.write(" -> "); Log.write(cur);
     }
-    VM_Interface.sysWriteln();
+    Log.writeln();
     if (lock != null) lock.release();
   }
 

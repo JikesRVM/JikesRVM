@@ -6,9 +6,8 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
-
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
@@ -32,18 +31,20 @@ final class RefCountLocal extends SegregatedFreeList
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
+  /****************************************************************************
+   *
+   * Class variables
+   */
   private static SharedQueue rootPool;
   private static SharedQueue tracingPool;
 
+  private static final int DEC_COUNT_QUANTA = 2000; // do 2000 decs at a time
+  private static final double DEC_TIME_FRACTION = 0.66; // 2/3 remaining time
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private RefCountSpace rcSpace;
   private RefCountLOSLocal los;
   private Plan plan;
@@ -55,7 +56,7 @@ final class RefCountLocal extends SegregatedFreeList
 
   private boolean decrementPhase = false;
 
-  private CycleDetector cycleDetector;
+  private TrialDeletion cycleDetector;
 
   // counters
   private int incCounter;
@@ -68,10 +69,10 @@ final class RefCountLocal extends SegregatedFreeList
   protected final boolean preserveFreeList() { return true; }
   protected final boolean maintainInUse() { return true; }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Constructor
@@ -90,10 +91,10 @@ final class RefCountLocal extends SegregatedFreeList
     incBuffer = inc;
     decBuffer = dec;
     rootSet = root;
-    if (Plan.sanityTracing) {
+    if (Plan.REF_COUNT_SANITY_TRACING) {
       tracingBuffer = new AddressQueue("tracing buffer", tracingPool);
     }
-    if (Plan.refCountCycleDetection)
+    if (Plan.REF_COUNT_CYCLE_DETECTION)
       cycleDetector = new TrialDeletion(this, plan_);
   }
 
@@ -106,7 +107,7 @@ final class RefCountLocal extends SegregatedFreeList
   static {
     rootPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
     rootPool.newClient();
-    if (Plan.sanityTracing) {
+    if (Plan.REF_COUNT_SANITY_TRACING) {
       tracingPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
       tracingPool.newClient();
     }
@@ -124,17 +125,17 @@ final class RefCountLocal extends SegregatedFreeList
 	blockSizeClass[sc] = blk;
 	cellsInBlock[sc] = cells;
 	blockHeaderSize[sc] = FREE_LIST_HEADER_BYTES;
-	if (((avail < PAGE_SIZE) && (cells*2 > MAX_CELLS)) ||
-	    ((avail > (PAGE_SIZE>>1)) && (cells > MIN_CELLS)))
+	if (((avail < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
+	    ((avail > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
 	  break;
       }
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
   public final void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
 			      int bytes, boolean inGC) throws VM_PragmaInline{}
   protected final void postExpandSizeClass(VM_Address block, int sizeClass){}
@@ -142,33 +143,40 @@ final class RefCountLocal extends SegregatedFreeList
     return getFreeList(block);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Collection
-  //
+  /****************************************************************************
+   *
+   * Collection
+   */
 
   /**
    * Prepare for a collection.
    */
-  public final void prepare() { 
+  public final void prepare(boolean time) { 
     flushFreeLists();
-    if (Plan.verbose > 2) processRootBufsAndCount(); else processRootBufs();
+    if (Options.verbose > 2) processRootBufsAndCount(); else processRootBufs();
   }
 
   /**
    * Finish up after a collection.
    */
-  public final void release() {
-    if (Plan.verbose > 2) processIncBufsAndCount(); else processIncBufs();
-    VM_CollectorThread.gcBarrier.rendezvous();
-    if (Plan.verbose > 2) processDecBufsAndCount(); else processDecBufs();
-    if (Plan.refCountCycleDetection) {
-      cycleDetector.collectCycles();
-      if (Plan.verbose > 2) processDecBufsAndCount(); else processDecBufs();
+  public final void release(boolean time) {
+    flushFreeLists();
+    if (time) Statistics.rcIncTime.start();
+    if (Options.verbose > 2) processIncBufsAndCount(); else processIncBufs();
+    if (time) Statistics.rcIncTime.stop();
+    VM_Interface.rendezvous(4400);
+    if (time) Statistics.rcDecTime.start();
+    processDecBufs();
+    if (time) Statistics.rcDecTime.stop();
+    if (Plan.REF_COUNT_CYCLE_DETECTION) {
+      if (time) Statistics.cdTime.start();
+      if (cycleDetector.collectCycles(time)) 
+	processDecBufs();
+      if (time) Statistics.cdTime.stop();
     }
     restoreFreeLists();
     
-    if (Plan.sanityTracing) rcSanityCheck();
+    if (Plan.REF_COUNT_SANITY_TRACING) rcSanityCheck();
   }
 
   /**
@@ -197,25 +205,20 @@ final class RefCountLocal extends SegregatedFreeList
    * Process the decrement buffers
    */
   private final void processDecBufs() {
-    VM_Address tgt;
-    decrementPhase = true;
-    while (!(tgt = decBuffer.pop()).isZero()) {
-      decrement(tgt);
-    }
-    decrementPhase = false;
-  }
-
-  /**
-   * Process the decrement buffers and maintain statistics
-   */
-  private final void processDecBufsAndCount() {
-    VM_Address tgt;
+    VM_Address tgt = VM_Address.zero();
+    long tc = Plan.getTimeCap();
+    long remaining =  tc - VM_Interface.cycles();
+    long limit = tc - (long)(remaining * (1 - DEC_TIME_FRACTION));
     decrementPhase = true;
     decCounter = 0;
-    while (!(tgt = decBuffer.pop()).isZero()) {
-      decrement(tgt);
-      decCounter++;
-    }
+    do {
+      int count = 0;
+      while (count < DEC_COUNT_QUANTA && !(tgt = decBuffer.pop()).isZero()) {
+	decrement(tgt);
+	count++;
+      } 
+      decCounter += count;
+    } while (!tgt.isZero() && VM_Interface.cycles() < limit);
     decrementPhase = false;
   }
 
@@ -241,28 +244,11 @@ final class RefCountLocal extends SegregatedFreeList
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
-
-  /**
-   * A pointer location has been enumerated by ScanObject.  This is
-   * the callback method, allowing the plan to perform an action with
-   * respect to that location.
+  /****************************************************************************
    *
-   * @param object
+   * Object processing and tracing
    */
-  public final void enumeratePointer(VM_Address object)
-    throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!object.isZero());
 
-    if (!Plan.refCountCycleDetection || decrementPhase)
-      decBuffer.push(object);
-    else if (Plan.refCountCycleDetection)
-      cycleDetector.enumeratePointer(object);
-  }
-  
   /**
    * Decrement the reference count of an object.  If the count drops
    * to zero, the release the object, performing recursive decremetns
@@ -275,9 +261,10 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void decrement(VM_Address object) 
     throws VM_PragmaInline {
-    if (RCBaseHeader.decRC(object))
+    int state = RCBaseHeader.decRC(object, true);
+    if (state == RCBaseHeader.DEC_KILL)
       release(object);
-    else if (Plan.refCountCycleDetection)
+    else if (Plan.REF_COUNT_CYCLE_DETECTION && state ==RCBaseHeader.DEC_BUFFER)
       cycleDetector.possibleCycleRoot(object);
   }
 
@@ -295,8 +282,8 @@ final class RefCountLocal extends SegregatedFreeList
   private final void release(VM_Address object) 
     throws VM_PragmaInline {
     // this object is now dead, scan it for recursive decrement
-    ScanObject.enumeratePointers(object, plan);
-    if (!Plan.refCountCycleDetection ||	!RCBaseHeader.isBuffered(object)) 
+    ScanObject.enumeratePointers(object, plan.decEnum);
+    if (!Plan.REF_COUNT_CYCLE_DETECTION || !RCBaseHeader.isBuffered(object)) 
       free(object);
   }
 
@@ -312,31 +299,32 @@ final class RefCountLocal extends SegregatedFreeList
     throws VM_PragmaInline {
     VM_Address ref = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(ref);
-    if (space == Plan.LOS_SPACE)
+    if (space == Plan.LOS_SPACE) {
       los.free(ref);
-    else {
+    } else {
       byte tag = VMResource.getTag(ref);
       
       VM_Address block = BlockAllocator.getBlockStart(ref, tag);
-      int sizeClass = getSizeClass(block);
+      int sizeClass = getBlockSizeClass(block);
       int index = (ref.diff(block.add(blockHeaderSize[sizeClass])).toInt())/cellSize[sizeClass];
       VM_Address cell = block.add(blockHeaderSize[sizeClass]).add(index*cellSize[sizeClass]);
       free(cell, block, sizeClass);
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Methods relating to sanity tracing (tracing used to check
-  // reference counts)
-  //
+  /****************************************************************************
+   *
+   * Methods relating to sanity tracing (tracing used to check
+   * reference counts)
+   */
 
   /**
    * Check the reference counts of all objects against those
    * established during the sanity scan.
    */
   private final void rcSanityCheck() {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     VM_Address obj;
     int checked = 0;
     while (!(obj = tracingBuffer.pop()).isZero()) {
@@ -345,12 +333,12 @@ final class RefCountLocal extends SegregatedFreeList
       int sanityRC = RCBaseHeader.getTracingRC(obj);
       RCBaseHeader.clearTracingRC(obj);
       if (rc != sanityRC) {
-	VM_Interface.sysWrite("---> ");
-	VM_Interface.sysWrite(checked);
-	VM_Interface.sysWrite(" roots checked, RC mismatch: ");
-	VM_Interface.sysWrite(obj); VM_Interface.sysWrite(" -> ");
-	VM_Interface.sysWrite(rc); VM_Interface.sysWrite(" (rc) != ");
-	VM_Interface.sysWrite(sanityRC); VM_Interface.sysWrite(" (sanity)\n");
+	Log.write("---> ");
+	Log.write(checked);
+	Log.write(" roots checked, RC mismatch: ");
+	Log.write(obj); Log.write(" -> ");
+	Log.write(rc); Log.write(" (rc) != ");
+	Log.write(sanityRC); Log.writeln(" (sanity)");
 	if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
       }
     }
@@ -365,7 +353,7 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void postAllocImmortal(VM_Address object)
     throws VM_PragmaInline {
-    if (Plan.sanityTracing) {
+    if (Plan.REF_COUNT_SANITY_TRACING) {
       if (rcSpace.bootImageMark)
 	RCBaseHeader.setBufferedBit(object);
       else
@@ -384,7 +372,8 @@ final class RefCountLocal extends SegregatedFreeList
    * during a root scan.
    */
   public void rootScan(VM_Address object) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     // this object has been explicitly scanned as part of the root scanning
     // process.  Mark it now so that it does not get re-scanned.
     if (object.LE(Plan.RC_START) && object.GE(Plan.BOOT_START)) {
@@ -403,14 +392,15 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void addToTraceBuffer(VM_Address object) 
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(Plan.sanityTracing);
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
     tracingBuffer.push(VM_Magic.objectAsAddress(object));
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Misc
-  //
+  /****************************************************************************
+   *
+   * Misc
+   */
 
   /**
    * Setter method for the purple counter.
@@ -426,14 +416,31 @@ final class RefCountLocal extends SegregatedFreeList
    * potential garbage cycles (purple objects).
    */
   public final void printStats() {
-    VM_Interface.sysWrite("<GC ",Statistics.gcCount); VM_Interface.sysWrite(" "); 
-    VM_Interface.sysWriteInt(incCounter); VM_Interface.sysWrite(" incs, ");
-    VM_Interface.sysWriteInt(decCounter); VM_Interface.sysWrite(" decs, ");
-    VM_Interface.sysWriteInt(rootCounter); VM_Interface.sysWrite(" roots");
-    if (Plan.refCountCycleDetection) {
-      VM_Interface.sysWrite(", "); 
-      VM_Interface.sysWriteInt(purpleCounter); VM_Interface.sysWrite(" purple");
+    Log.write("<GC "); Log.write(Statistics.gcCount); Log.write(" "); 
+    Log.write(incCounter); Log.write(" incs, ");
+    Log.write(decCounter); Log.write(" decs, ");
+    Log.write(rootCounter); Log.write(" roots");
+    if (Plan.REF_COUNT_CYCLE_DETECTION) {
+      Log.write(", "); 
+      Log.write(purpleCounter);Log.write(" purple");
     }
-    VM_Interface.sysWrite(">\n");
+    Log.writeln(">");
+  }
+
+
+  /**
+   * Print out timing info for last GC
+   */
+  public final void printTimes(boolean totals) {
+    double time;
+    time = (totals) ? Statistics.rcIncTime.sum() : Statistics.rcIncTime.lastMs();
+    Log.write(" inc: "); Log.write(time);
+    time = (totals) ? Statistics.rcDecTime.sum() : Statistics.rcDecTime.lastMs();
+    Log.write(" dec: "); Log.write(time);
+    if (Plan.REF_COUNT_CYCLE_DETECTION) {
+      time = (totals) ? Statistics.cdTime.sum() : Statistics.cdTime.lastMs();
+      Log.write(" cd: "); Log.write(time);
+      cycleDetector.printTimes(totals);
+    }
   }
 }

@@ -5,7 +5,6 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
 /**
  * Use baseline compiler to build virtual machine boot image.
@@ -59,12 +58,5 @@ public class VM_BootImageCompiler {
   public static VM_CompiledMethod compile(VM_NativeMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
     return VM_JNICompiler.compile(method);
-  }
-  
-  /**
-   * Create stackframe mapper appropriate for this compiler.
-   */
-  public static VM_GCMapIterator createGCMapIterator(VM_WordArray registerLocations) {
-    return new VM_BaselineGCMapIterator(registerLocations);
   }
 }

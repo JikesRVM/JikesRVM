@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -17,11 +18,11 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 /**
  * This class implements a local (<i>unsynchronized</i>) sequential
  * store buffer.  An SSB is strictly FIFO (although this class does
- * not implemented dequeuing).<p>
+ * not implement dequeuing).<p>
  *
  * Each instance stores word-sized values into a local buffer.  When
  * the buffer is full, or if the <code>flushLocal()</code> method is
- * called, the buffer enqued at the tail of a
+ * called, the buffer enqueued at the tail of a
  * <code>SharedQueue</code>.  This class provides no mechanism for
  * dequeing.<p>
  *
@@ -46,10 +47,10 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public instance methods
-  //
+  /****************************************************************************
+   *
+   * Public instance methods
+   */
 
   /**
    * Constructor
@@ -74,10 +75,10 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
     }
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Protected instance methods
-  //
+  /****************************************************************************
+   *
+   * Protected instance methods
+   */
 
   /**
    * Check whether there is space in the buffer for a pending insert.
@@ -88,10 +89,10 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
    * buffer must contain enough space for this many words.
    */
   protected final void checkInsert(int arity) throws VM_PragmaInline {
-    if (bufferOffset(tail) == 0)
+    if (bufferOffset(tail).isZero())
       insertOverflow(arity);
     else if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bufferOffset(tail) >= (arity<<LOG_BYTES_IN_WORD));
+      VM_Interface._assert(bufferOffset(tail).sGE(VM_Offset.fromInt(arity<<LOG_BYTES_IN_ADDRESS)));
   }
 
   /**
@@ -101,16 +102,10 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
    *
    * @param value the value to be inserted.
    */
-  protected final void uncheckedInsert(int value) throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bufferOffset(tail) >= BYTES_IN_WORD);
-    tail = tail.sub(BYTES_IN_WORD);
-    VM_Magic.setMemoryInt(tail, value);
-    //    if (VM_Interface.VerifyAssertions) enqueued++;
-  }
-
   protected final void uncheckedInsert(VM_Address value) throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bufferOffset(tail) >= BYTES_IN_WORD);
-    tail = tail.sub(BYTES_IN_WORD);
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(bufferOffset(tail).sGE(VM_Offset.fromInt(BYTES_IN_ADDRESS)));
+    tail = tail.sub(BYTES_IN_ADDRESS);
     VM_Magic.setMemoryAddress(tail, value);
     //    if (VM_Interface.VerifyAssertions) enqueued++;
   }
@@ -130,19 +125,19 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
   protected final VM_Address normalizeTail(int arity) {
     VM_Address src = tail;
     VM_Address tgt = bufferFirst(tail);
-    VM_Address last = tgt.add(bufferLastOffset(arity) - bufferOffset(tail));
+    VM_Address last = tgt.add(bufferLastOffset(arity).sub(bufferOffset(tail)));
     while(tgt.LE(last)) {
-      VM_Magic.setMemoryInt(tgt, VM_Magic.getMemoryInt(src));
-      src = src.add(BYTES_IN_WORD);
-      tgt = tgt.add(BYTES_IN_WORD);
+      VM_Magic.setMemoryAddress(tgt, VM_Magic.getMemoryAddress(src));
+      src = src.add(BYTES_IN_ADDRESS);
+      tgt = tgt.add(BYTES_IN_ADDRESS);
     }
     return last;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private instance methods and fields
-  //
+  /****************************************************************************
+   *
+   * Private instance methods and fields
+   */
   protected VM_Address tail;   // the buffer
   protected SharedQueue queue; // the shared queue
 
@@ -157,7 +152,8 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
     if (tail.NE(Queue.TAIL_INITIAL_VALUE)) {
       closeAndEnqueueTail(arity);
     }
-    tail = queue.alloc().add(bufferLastOffset(arity) + BYTES_IN_WORD);
+    tail = queue.alloc().add(bufferLastOffset(arity)).add(BYTES_IN_ADDRESS);
+    Plan.checkForAsyncCollection(); // possible side-effect of alloc()
   }
 
   /**
@@ -168,14 +164,14 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
    */
   private final void closeAndEnqueueTail(int arity) throws VM_PragmaNoInline {
     VM_Address last;
-    if (bufferOffset(tail) != 0) {
+    if (!bufferOffset(tail).isZero()) {
       // prematurely closed
       last = normalizeTail(arity);
     } else {
       // a full tail buffer
       last = tail.add(bufferLastOffset(arity));
     }
-    queue.enqueue(last.add(BYTES_IN_WORD), arity, true);
+    queue.enqueue(last.add(BYTES_IN_ADDRESS), arity, true);
   }
 
 }

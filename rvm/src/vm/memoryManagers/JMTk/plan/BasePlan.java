@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
@@ -44,20 +44,32 @@ public abstract class BasePlan
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Class variables
-  //
-  public  static int verbose = 0;
+  /****************************************************************************
+   *
+   * Class variables
+   */
+  public static final boolean NEEDS_WRITE_BARRIER = false;
+  public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = false;
+  public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = false;
+  public static final boolean REF_COUNT_CYCLE_DETECTION = false;
+  public static final boolean REF_COUNT_SANITY_TRACING = false;
+  public static final boolean SUPPORTS_PARALLEL_GC = true;
+  public static final boolean MOVES_TIBS = false;
+  public static final boolean STEAL_NURSERY_SCALAR_GC_HEADER = false;
+
   private static final int MAX_PLANS = 100;
   protected static Plan [] plans = new Plan[MAX_PLANS];
   protected static int planCount = 0;        // Number of plan instances in existence
 
   // GC state and control variables
-  protected static boolean gcInProgress = false;  // Controlled by subclasses
+  protected static boolean initialized = false;
+  protected static boolean awaitingCollection = false;
+  protected static boolean collectionInitiated = false;
+  protected static boolean gcInProgress = false;
+  protected static int exceptionReserve = 0;
 
   // Timing variables
-  protected static double bootTime;
+  protected static long bootTime;
 
   // Meta data resources
   private static MonotoneVMResource metaDataVM;
@@ -76,35 +88,39 @@ public abstract class BasePlan
   public static final byte IMMORTAL_SPACE = 124;
 
   // Miscellaneous constants
-  private static final int META_DATA_POLL_FREQUENCY = (1<<31) - 1; // never
-  protected static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_PAGE_SIZE;
+  public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
+  private static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final int DEFAULT_LOS_SIZE_THRESHOLD = 16 * 1024;
   public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
 
+  protected static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_BYTES_IN_PAGE;
+  protected static final int DEFAULT_MAX_NURSERY = MAX_INT;
+
   // Memory layout constants
-  protected static final VM_Extent     SEGMENT_SIZE = VM_Extent.fromInt(0x10000000);
+  protected static final VM_Extent     SEGMENT_SIZE = VM_Extent.fromIntZeroExtend(0x10000000);
   public    static final VM_Address      BOOT_START = VM_Interface.bootImageAddress;
   protected static final VM_Extent        BOOT_SIZE = SEGMENT_SIZE;
   protected static final VM_Address  IMMORTAL_START = BOOT_START.add(BOOT_SIZE);
-  protected static final VM_Extent    IMMORTAL_SIZE = VM_Extent.fromInt(32 * 1024 * 1024);
+  protected static final VM_Extent    IMMORTAL_SIZE = VM_Extent.fromIntZeroExtend(32 * 1024 * 1024);
   protected static final VM_Address    IMMORTAL_END = IMMORTAL_START.add(IMMORTAL_SIZE);
   protected static final VM_Address META_DATA_START = IMMORTAL_END;
-  protected static final VM_Extent  META_DATA_SIZE  = VM_Extent.fromInt(32 * 1024 * 1024);
+  protected static final VM_Extent  META_DATA_SIZE  = VM_Extent.fromIntZeroExtend(32 * 1024 * 1024);
   protected static final VM_Address   META_DATA_END = META_DATA_START.add(META_DATA_SIZE);  
   protected static final VM_Address      PLAN_START = META_DATA_END;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Instance variables
-  //
+  /****************************************************************************
+   *
+   * Instance variables
+   */
   private int id = 0;                     // Zero-based id of plan instance
   public BumpPointer immortal;
+  Log log;
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Initialization
-  //
+  /****************************************************************************
+   *
+   * Initialization
+   */
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -136,6 +152,7 @@ public abstract class BasePlan
     id = planCount++;
     plans[id] = (Plan) this;
     immortal = new BumpPointer(immortalVM);
+    log = new Log();
   }
 
   /**
@@ -143,7 +160,7 @@ public abstract class BasePlan
    * allocation.
    */
   public static void boot() throws VM_PragmaInterruptible {
-    bootTime = VM_Interface.now();
+    bootTime = VM_Interface.cycles();
   }
 
   /**
@@ -156,14 +173,18 @@ public abstract class BasePlan
    * boot is called.
    */
   public static void postBoot() {
-    if (verbose > 2) VMResource.showAll();
+    if (Options.verbose > 2) VMResource.showAll();
   }
 
+  public static void fullyBooted() {
+    initialized = true;
+    exceptionReserve = (int) (getTotalPages() * (1 - VM_Interface.OUT_OF_MEMORY_THRESHOLD));
+  }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Allocation
-  //
+  /****************************************************************************
+   *
+   * Allocation
+   */
 
   protected byte getSpaceFromAllocator (Allocator a) {
     if (a == immortal) return IMMORTAL_SPACE;
@@ -188,10 +209,10 @@ public abstract class BasePlan
     return plan.getAllocatorFromSpace(space);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Object processing and tracing
-  //
+  /****************************************************************************
+   *
+   * Object processing and tracing
+   */
 
   /**
    * Add a gray object
@@ -250,11 +271,11 @@ public abstract class BasePlan
     VM_Offset offset = interiorRef.diff(obj);
     VM_Address newObj = Plan.traceObject(obj, root);
     if (VM_Interface.VerifyAssertions) {
-      if (offset.toInt() < 0 || offset.toInt() > (1<<24)) {  // There is probably no object this large
-	VM_Interface.sysWriteln("ERROR: Suspiciously large delta of interior pointer from object base");
-	VM_Interface.sysWriteln("       object base = ", obj);
-	VM_Interface.sysWriteln("       interior reference = ", interiorRef);
-	VM_Interface.sysWriteln("       delta = ", offset);
+      if (offset.sLT(VM_Offset.zero()) || offset.sGT(VM_Offset.fromIntSignExtend(1<<24))) {  // There is probably no object this large
+	Log.writeln("ERROR: Suspiciously large delta of interior pointer from object base");
+	Log.write("       object base = "); Log.writeln(obj);
+	Log.write("       interior reference = "); Log.writeln(interiorRef);
+	Log.write("       delta = "); Log.writeln(offset);
 	VM_Interface._assert(false);
       }
     }
@@ -271,15 +292,16 @@ public abstract class BasePlan
    */
   public void enumeratePointerLocation(VM_Address location) {}
 
+  // XXX Javadoc comment missing.
   public static boolean willNotMove (VM_Address obj) {
       return !VMResource.refIsMovable(obj);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Read and write barriers.  By default do nothing, override if
-  // appropriate.
-  //
+  /****************************************************************************
+   *
+   * Read and write barriers.  By default do nothing, override if
+   * appropriate.
+   */
 
   /**
    * A new reference is about to be created by a putfield bytecode.
@@ -361,10 +383,10 @@ public abstract class BasePlan
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Space management
-  //
+  /****************************************************************************
+   *
+   * Space management
+   */
 
   static public void addSpace (byte sp, String name) throws VM_PragmaInterruptible {
     if (spaceNames[sp] != null) VM_Interface.sysFail("addSpace called on already registed space");
@@ -421,7 +443,7 @@ public abstract class BasePlan
    * management system, in bytes.
    */
   public static long totalMemory() throws VM_PragmaUninterruptible {
-    return Options.initialHeapSize;
+    return HeapGrowthManager.getCurrentHeapSize();
   }
 
   /**
@@ -432,8 +454,7 @@ public abstract class BasePlan
    * management system, in pages.
    */
   public static int getTotalPages() throws VM_PragmaUninterruptible { 
-    int heapPages = Conversions.bytesToPages(Options.initialHeapSize);
-    return heapPages; 
+    return Conversions.bytesToPages((int) totalMemory()); 
   }
 
   /**
@@ -443,10 +464,71 @@ public abstract class BasePlan
     return true;
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Collection
+   */
+
+  /**
+   * Check whether an asynchronous collection is pending.<p>
+   *
+   * This is decoupled from the poll() mechanism because the
+   * triggering of asynchronous collections can trigger write
+   * barriers, which can trigger an asynchronous collection.  Thus, if
+   * the triggering were tightly coupled with the request to alloc()
+   * within the write buffer code, then inifinite regress could
+   * result.  There is no race condition in the following code since
+   * there is no harm in triggering the collection more than once,
+   * thus it is unsynchronized.
+   */
+  public static void checkForAsyncCollection() {
+    if (awaitingCollection && VM_Interface.noThreadsInGC()) {
+      awaitingCollection = false;
+      VM_Interface.triggerAsyncCollection();
+    }
+  }
+
+  /**
+   * A collection has been initiated.  Set the collectionInitiated
+   * state variable appropriately.
+   *
+   * @param why The reason the collection was initiated (one of
+   * <code>VM_Interface.TRIGGER_REASONS</code>).  <i>(Ignored)</i>
+   */
+  public static void collectionInitiated() throws VM_PragmaUninterruptible {
+    collectionInitiated = true;
+  }
+
+  /**
+   * A collection has fully completed.  Set the collectionInitiated
+   * state variable appropriately.
+   */
+  public static void collectionComplete() throws VM_PragmaUninterruptible {
+//     if (VM_Interface.VerifyAssertions) 
+//       VM_Interface._assert(collectionInitiated);
+    collectionInitiated = false;
+  }
+
+  /**
+   * Return true if a collection is in progress.
+   *
+   * @return True if a collection is in progress.
+   */
+  public static boolean gcInProgress() {
+    return gcInProgress;
+  }
+
+  /**
+   * A user-triggered GC has been initiated.  By default, do nothing,
+   * but this may be overridden.
+   */
+  public static void userTriggeredGC() throws VM_PragmaUninterruptible {
+  }
+
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   /**
    * This method should be called whenever an error is encountered.
@@ -457,15 +539,6 @@ public abstract class BasePlan
     MemoryResource.showUsage(PAGES);
     MemoryResource.showUsage(MB);
     VM_Interface.sysFail(str);
-  }
-
-  /**
-   * Return true if a collection is in progress.
-   *
-   * @return True if a collection is in progress.
-   */
-  static public boolean gcInProgress() {
-    return gcInProgress;
   }
 
   /**
@@ -494,21 +567,34 @@ public abstract class BasePlan
    * @param value The exit value
    */
   public void notifyExit(int value) {
-    if (verbose == 1) {
-      VM_Interface.sysWrite("[End ", (VM_Interface.now() - bootTime));
-      VM_Interface.sysWrite(" s]\n");
-    } else if (verbose == 2) {
-      VM_Interface.sysWrite("[End ", (VM_Interface.now() - bootTime)*1000);
-      VM_Interface.sysWrite(" ms]\n");
+    if (Options.verbose == 1) {
+      Log.write("[End "); 
+      Log.write(VM_Interface.cyclesToSecs(VM_Interface.cycles() - bootTime));
+      Log.writeln(" s]");
+    } else if (Options.verbose == 2) {
+      Log.write("[End "); 
+      Log.write(VM_Interface.cyclesToMillis(VM_Interface.cycles() - bootTime));
+      Log.writeln(" ms]");
     }
+    if (Options.verboseTiming) printDetailedTiming(true);
+    planExit(value);
   }
 
+  protected void printDetailedTiming(boolean totals) {}
+
+  /**
+   * The VM is about to exit.  Perform any plan-specific clean up
+   * operations.
+   *
+   * @param value The exit value
+   */
+  protected void planExit(int value) {}
 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
+  /****************************************************************************
+   *
+   * Miscellaneous
+   */
 
   final static int PAGES = 0;
   final static int MB = 1;
@@ -525,15 +611,44 @@ public abstract class BasePlan
   public static void writePages(int pages, int mode) {
     double mb = Conversions.pagesToBytes(pages) / (1024.0 * 1024.0);
     switch (mode) {
-      case PAGES: VM_Interface.sysWrite(pages," pgs"); break; 
-      case MB:    VM_Interface.sysWrite(mb," Mb"); break;
-      case PAGES_MB: VM_Interface.sysWrite(pages," pgs ("); VM_Interface.sysWrite(mb," Mb)"); break;
-      case MB_PAGES: VM_Interface.sysWrite(mb," Mb ("); VM_Interface.sysWrite(pages," pgs)"); break;
+      case PAGES: Log.write(pages); Log.write(" pgs"); break; 
+      case MB:    Log.write(mb); Log.write(" Mb"); break;
+      case PAGES_MB: Log.write(pages); Log.write(" pgs ("); Log.write(mb); Log.write(" Mb)"); break;
+    case MB_PAGES: Log.write(mb); Log.write(" Mb ("); Log.write(pages); Log.write(" pgs)"); break;
       default: VM_Interface.sysFail("writePages passed illegal printing mode");
     }
   }
 
+  /**
+   * Print a failure message for the case where an object in an
+   * unknown space is traced.
+   *
+   * @param obj The object being traced
+   * @param space The space with which the object is associated
+   * @param source Information about the source of the problem
+   */
+  protected static void spaceFailure(VM_Address obj, byte space, 
+				     String source) {
+    VM_Address addr = VM_Interface.refToAddress(obj);
+    Log.write(source);
+    Log.write(": obj "); Log.write(obj);
+    Log.write(" or addr "); Log.write(addr);
+    Log.write(" of page "); Log.write(Conversions.addressToPagesDown(addr));
+    Log.write(" is in unknown space ");
+    Log.writeln(space);
+    Log.write("Type = ");
+    Log.write(VM_Interface.getTypeDescriptor(obj));
+    Log.writeln();
+    Log.write(source);
+    VM_Interface.sysFail(": unknown space");
+  }
 
-
-
+  /**
+   * Return the <code>Log</code> instance for this plan.
+   *
+   * @return the <code>Log</code> instance
+   */
+  Log getLog() {
+    return log;
+  }
 }

@@ -5,7 +5,7 @@
 #
 # @author Julian Dolby
 
-include                 $(JAL_ROOT)/rvm/build.Make.rules
+include                 $(RVM_BUILD)/Make.rules.host
 
 default:	$(GEN_FILES_DIR)/VM_Assembler.java
 

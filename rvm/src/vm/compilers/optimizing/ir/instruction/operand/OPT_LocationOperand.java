@@ -53,20 +53,20 @@ public final class OPT_LocationOperand extends OPT_Operand
   protected int type;
 
   /**
-   * Field that corresponds to this location.
+   * Field that corresponds to this location;
    * null if this is not a field access.
    */
   protected VM_FieldReference fieldRef;
 
   /**
-   * Method operand that corresponds to this location
+   * Method operand that corresponds to this location;
    * null if this is not a method access.
    */
   protected OPT_MethodOperand methOp;
 
   /**
    * Array element type that corresponds to the type of the array that contains
-   * this location. null if this is not an array access.
+   * this location; null if this is not an array access.
    */
   protected VM_TypeReference arrayElementType;
 
@@ -89,7 +89,7 @@ public final class OPT_LocationOperand extends OPT_Operand
   protected int refNumber;
 
   /**
-   * Constructs a new location operand with the given field
+   * Constructs a new location operand with the given field.
    * @param loc location
    */
   public OPT_LocationOperand(VM_FieldReference loc) {

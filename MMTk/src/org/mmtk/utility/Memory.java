@@ -33,9 +33,12 @@ public class Memory implements VM_Uninterruptible {
     for (int i=0; i<size; i+=4) 
       if (VM_Magic.getMemoryInt(start.add(i)) != v) {
 	if (verbose) {
-	    VM_Interface.psysWriteln("Memory range does not contain only value ", v);
-	    VM_Interface.sysWriteln("Non-zero range: ", start, " .. ", start.add(size));
-	    VM_Interface.sysWriteln("First bad value at ", start.add(i));
+	    Log.prependThreadId();
+	    Log.write("Memory range does not contain only value ");
+	    Log.writeln(v);
+	    Log.write("Non-zero range: "); Log.write(start);
+	    Log.write(" .. "); Log.writeln(start.add(size));
+	    Log.write("First bad value at "); Log.writeln(start.add(i));
 	    dumpMemory(start, 0, size);
 	}
 	return false;
@@ -47,8 +50,11 @@ public class Memory implements VM_Uninterruptible {
     return isSetHelper(start, size, false, 0);
   }
 
-  public static boolean assertIsZeroed(VM_Address start, int size) throws VM_PragmaInline {
-    return isSetHelper(start, size, true, 0);
+  // this is in the inline allocation sequence when VM_Interface.VerifyAssertions
+  // therefore it is very carefully written to reduce the impact on code space.
+  public static void assertIsZeroed(VM_Address start, int size) throws VM_PragmaNoInline {
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(isSetHelper(start, size, true, 0));
   }
 
   public static boolean assertIsSet(VM_Address start, int size, int v) throws VM_PragmaInline {
@@ -56,12 +62,8 @@ public class Memory implements VM_Uninterruptible {
   }
 
   public static void zeroSmall(VM_Address start, VM_Extent len) throws VM_PragmaInline {
-    for (int i=0; VM_Extent.fromInt(i).LT(len); i+=4) 
-	VM_Magic.setMemoryInt(start.add(i), 0);
-  }
-
-  public static void zeroSmall(VM_Address start, int len) throws VM_PragmaInline {
-      zeroSmall(start, VM_Extent.fromInt(len));
+    for (int i=0; VM_Extent.fromIntZeroExtend(i).LT(len); i+=4) 
+      VM_Magic.setMemoryInt(start.add(i), 0);
   }
 
   public static void set (VM_Address start, int len, int v) throws VM_PragmaInline {
@@ -72,29 +74,16 @@ public class Memory implements VM_Uninterruptible {
   // start and len must both be 4-byte aligned
   //
   public static void zero(VM_Address start, VM_Extent len) throws VM_PragmaInline {
-    if (len.GT(VM_Extent.fromInt(256))) 
-	VM_Interface.zero(start, len);
+    if (len.GT(VM_Extent.fromIntZeroExtend(256))) 
+      VM_Interface.zero(start, len);
     else
-	zeroSmall(start, len);
-  }
-
-  public static void zero(VM_Address start, int len) throws VM_PragmaInline {
-      zero(start, VM_Extent.fromInt(len));
+      zeroSmall(start, len);
   }
 
   // start and len must both be OS-page aligned
   //
   public static void zeroPages(VM_Address start, int len) throws VM_PragmaInline {
     VM_Interface.zeroPages(start, len);
-  }
-
-  // Derived forms
-  public static void zeroSmall(VM_Address start, VM_Address end) throws VM_PragmaInline {
-    zeroSmall(start, end.diff(start).toInt());
-  }
-
-  public static void zero(VM_Address start, VM_Address end) throws VM_PragmaInline {
-    zero(start, end.diff(start).toInt());
   }
 
   public static void dumpMemory(VM_Address addr, int before, int after) {

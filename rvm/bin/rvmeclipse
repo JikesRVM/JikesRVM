@@ -8,8 +8,8 @@
 # @author Julian Dolby
 #
 
-. $RVM_BUILD/environment
+. $RVM_BUILD/environment.target
 
 cd $ECLIPSE_INSTALL_DIR
 
-./eclipse "$@" -vm $RVM_ROOT/rvm/bin/rvm -vmargs -X:h=200
+./eclipse "$@" -vm $RVM_ROOT/rvm/bin/rvm -vmargs -Xms200

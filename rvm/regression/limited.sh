@@ -21,45 +21,44 @@ fi
 
 command=$1
 if [ "x$command" = xkill ] ; then
-  shift
-
-  # for all argument pids
-  while [ $# -gt 0 ] ; do
-    pid=$1
     shift
 
-    # ToDO:
-    # Think about a portable way to stop $pid from spawning new processes
-    
-    # find kids and call script recursiveley
-    childs=`ps -ef | awk '$3~/'$pid'/{print $2}'`
-    if [ "x$childs" != x ] ; then
-      $mypath kill $childs
-      #echo killing $childs
-      kill -9 $childs > /dev/null 2>&1
-    fi
-  done
+    # for all argument pids
+    while [ $# -gt 0 ] ; do
+	pid=$1
+	shift
 
+        # ToDO:
+        # Think about a portable way to stop $pid from spawning new processes
+        # --done in the Bash version --augart
+        # find kids and call script recursiveley
+	childs=`ps -ef | awk '$3~/'$pid'/{print $2}'`
+	if [ "x$childs" != x ] ; then
+	    $mypath kill $childs
+	    #echo killing $childs
+	    kill -9 $childs > /dev/null 2>&1
+	fi
+    done
 else
 
-  interval=$1
-  shift
-  
-  #echo "$basename $interval $@"
+    interval=$1
+    shift
 
-  eval "$@" &
-  worker=$!
-  trap "$mypath kill $worker" INT
+    #echo "$basename $interval $@"
 
-  (sleep $interval; $mypath kill $worker)  > /dev/null 2>&1 &
-  sleeper=$!
+    eval "$@" &
+    worker=$!
+    trap "$mypath kill $worker" INT
 
-  wait $worker  
-  result=$?
+    (sleep $interval; $mypath kill $worker)  > /dev/null 2>&1 &
+    sleeper=$!
 
-  $mypath kill $sleeper
+    wait $worker  
+    result=$?
 
-  exit $result
+    $mypath kill $sleeper
+
+    exit $result
 
 fi
 

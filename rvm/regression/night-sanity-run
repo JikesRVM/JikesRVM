@@ -1,10 +1,11 @@
-#!/bin/ksh
+#! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 # $Id$
 #
 # @author Julian Dolby
+# @modified Steven Augart
 
 # This script will run sanity and performance tests.  
 # It assumes the boot images have 
@@ -13,11 +14,12 @@
 # (The results of the fullshadow are stored in the file defined in
 #  the VERBOSE_LOG variable.)
 
+ME=${0%%*/}
 # Pick up defs of platform tools
 . $RVM_HOST_CONFIG
 
 # How often to look to see if the builds are done
-SLEEP_DURATION="120"
+declare -i sleep_duration=120
 
 export PATH=$PATH:.
 
@@ -31,8 +33,6 @@ CONFIG_DIR=rvm/regression/config
 
 # The directory where the archive lives
 export ARCHIVE=~/archive
-
-mkdir -p $RVM_ROOT/results
 
 # Where the fullshadow and other verbose output are placed, not mailed
 export VERBOSE_LOG=$RVM_ROOT/results/verbose.log
@@ -48,165 +48,348 @@ export PERF_LOG=$RVM_ROOT/results/performance.log
 
 umask 022
 
+## Handle the -clean flag early.
+if (( $# > 0 )) && [[ $1 = -clean ]]; then
+    rm -rf $MSG $RVM_ROOT/results
+    shift
+fi
+
+## Now make sure the directories are set up properly.  We do this after
+## we check for the -clean flag.  This is so that we can record any
+## error messages from parsing the arguments.
+mkdir -p $RVM_ROOT/results
+
+touch $RUN_LOG
+chmod u=rw,g=r,o=r $RUN_LOG
+
+
 # Determine architecture and set number of processors accordingly
-ARCH=`uname`
-if [[ $ARCH = 'Linux' ]] then
+ARCH=$(uname)
+if [[ $ARCH = 'Linux' ]]; then
   NUM_PROCS=4
 else
   NUM_PROCS=2
 fi
 
-echo >> $RUN_LOG
-#This shouldn't be needed, but just in case
-chmod 755 $RUN_LOG
-
 # cd to the SHADOW to get things started
 cd $RVM_ROOT
 
+dry_run=""
+declare -i trouble=0
+while (( $# > 0 )); do
+    case "$1" in
+#	-clean )
+#	    rm -rf $MSG $RVM_ROOT/results
+#	    shift;
+#	    ;;
+	-dry-run )
+	    dry_run="-succeed-immediately";
+	    shift;
+	    echo "$ME: A dry run, so we won't actually send any mail." \
+		| tee -a $RUN_LOG $MSG >&2
+	    ;;
+	-* )
+	    echo "$ME: Got unknown flag \"$1\"; can't go on." \
+		tee -a $RUN_LOG $MSG >&2
+	    trouble=1
+	    shift
+	    ;;
+	* )
+	    break 
+	    ;;
+    esac
+done
+
+if (( $# < 1 )); then
+    ( echo  "$ME: Must specify a sanity configuration to use."
+      echo "$ME: It should be the name of a file in $CONFIG_DIR" ) \
+	| tee -a $RUN_LOG $MSG >&2
+    trouble=1
+fi
+
+(( trouble )) && exit 33
+
+sanity_cfg="$1";
+shift
+
+if (( $# < 1 )); then
+    perf_cfg=""
+else
+    perf_cfg="$1"
+    shift
+fi
+
+if (( $# > 0 )); then
+    echo  "$ME: Too many arguments; the extra args \"$*\" are being ignored." \
+	| tee -a $RUN_LOG $MSG >&2
+fi
+
 # sanity runs
-echo "\n\nRunning the sanity tests as specified in $CONFIG_DIR/$1 \n" >> $RUN_LOG
+echo -e "\n\nRunning the sanity tests as specified in $CONFIG_DIR/$sanity_cfg \n" >> $RUN_LOG
 
-$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/sanity -nobuild -numprocs $NUM_PROCS -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
+$RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/sanity -nobuild -numprocs $NUM_PROCS -wait sem" -config $sanity_cfg >> $RUN_LOG 2>> $RUN_LOG
 
-# performance runs
-echo "\n\nRunning the performance tests as specified in $CONFIG_DIR/$2\n" >> $RUN_LOG
 
-$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs $NUM_PROCS -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
+if [[ ! $perf_cfg ]]; then
+    echo -e "\n\nWe will not run any performance tests, since none were requested.\n" >> $RUN_LOG
+    echo "Not running performance tests, since none requested." >> $PERF_LOG
+else
+    # performance runs
+    echo -e "\n\nRunning the performance tests as specified in $CONFIG_DIR/$perf_cfg\n" >> $RUN_LOG
+    $RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs $NUM_PROCS -wait sem -performance $PERF_LOG" -config $perf_cfg >> $RUN_LOG 2>&1
+fi
 
 # measure compilation time
-echo "\n\nRunning the measure compilation time tests\n" >> $RUN_LOG
+echo -e "\n\nRunning the measure compilation time tests\n" >> $RUN_LOG
 
-export  MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
+export MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
 mkdir -p $MEASURE_COMPILATION_DIR
 
-$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -measureCompilation -wait sem -rc-args -X:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>> $RUN_LOG
-
-# Fix the permission bits because umask doesn't seem to be working correctly
-echo "fixing permission bits" >> $RUN_LOG
-chmod -R 755 $RVM_ROOT 2>> $RUN_LOG
+$RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -measureCompilation -wait sem -rc-args -X:vm:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>&1
 
 # Archive result files and performance results
-echo "Archiving results into $ARCHIVE\n" >> $RUN_LOG
-tarfile=$ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz
-($RVM_ROOT/rvm/regression/copyBuildTraceFiles $RVM_ROOT/images $RVM_ROOT/results; find $RVM_ROOT/results -name cp -exec rm -rf {} \;; cd $RVM_ROOT; $GNU_TAR czvf $tarfile results) >> $VERBOSE_LOG 2>> $VERBOSE_LOG
 
-echo "sending tar to dW" >> $VERBOSE_LOG 2>> $VERBOSE_LOG
-cd $RVM_ROOT/sanityResults
-TRANSFER_FILE_NAME=`date +"%A"`.`uname`.tar.gz
-cp $tarfile $TRANSFER_FILE_NAME
-$CVS add $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>> $VERBOSE_LOG
-$CVS commit -m "night sanity" $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>> $VERBOSE_LOG
-rm -f $TRANSFER_FILE_NAME
-mv CVS/Entries CVS/tmp
-grep -v $TRANSFER_FILE_NAME < CVS/tmp > CVS/Entries
-rm -f CVS/tmp
-cd $RVM_ROOT
 
+function archiveResults() {
+    if [[ ! -d $ARCHIVE ]]; then
+	echo "$ME: No archive directory named $ARCHIVE exists;" \
+	    " skipping archiving." | tee -a $VERBOSE_LOG $RUN_LOG $MSG
+	return 1;
+    fi
+
+    echo -e "Archiving results into $ARCHIVE\n" | tee -a $RUN_LOG >> $VERBOSE_LOG
+    local tarfile=$ARCHIVE/archive.`date +"%A"`.${ARCH}.tar.gz
+    if :; then
+	$RVM_ROOT/rvm/regression/copyBuildTraceFiles $RVM_ROOT/images $RVM_ROOT/results
+	local -i status=$?
+	if (( status != 0 )); then
+	    echo "$ME: copyBuildTraceFiles failed; aborting the archiving."
+	    return $status
+	fi
+	## Change:, let's save the 'cp' directories, since they might
+	## be useful for tracing problems.  We'll exclude them explicitly from
+	## the tar archive instead.  So we keep them online for 
+	## almost 24 hours. --Steve Augart, July 28 2003 
+	# find $RVM_ROOT/results -name cp -exec rm -rf {} \;
+	$GNU_TAR -C$RVM_ROOT --exclude 'cp' -czv -f $tarfile results
+	status=$?
+	if (( status )); then
+	    echo "$ME: GNU_TAR of $RVM_ROOT/results into $tarfile failed.  Could not archive."
+	    return $status;
+	fi
+    fi >> $VERBOSE_LOG 2>&1
+    
+    echo "sending tar to dW" >> $VERBOSE_LOG 2>&1
+    if ! cd $RVM_ROOT/sanityResults; then
+	echo  "No directory or trouble with $RVM_ROOT/sanityResults; won't send tar to dW." | tee -a $RUN_LOG $VERBOSE_LOG >> $MSG;
+	return
+    fi
+    local -i trouble=0
+    TRANSFER_FILE_NAME=$(date +"%A").${ARCH}.tar.gz || trouble=1
+    cp $tarfile $TRANSFER_FILE_NAME || trouble=1
+    $CVS add $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1 || trouble=1
+    $CVS commit -m "night sanity" $TRANSFER_FILE_NAME >> $VERBOSE_LOG 2>&1 || trouble=1
+    rm -f $TRANSFER_FILE_NAME || trouble=1
+    grep -v $TRANSFER_FILE_NAME < CVS/Entries > CVS/Entries.tmp || trouble=1
+    mv -f CVS/Entries.tmp CVS/Entries || trouble=1
+    if (( trouble )); then
+	echo "$ME: Sending the tar to DeveloperWorks failed; trouble!" \
+	    | tee -a $RUN_LOG $VERBOSE_LOG $MSG >&2
+    fi
+    cd $RVM_ROOT
+    return $trouble;
+}
+
+declare -i archived=0
+archiveResults && archived=1
 
 # determine how many ran, failed, and passed, then build a summary line
-numran=`grep "sane" $RUN_LOG | wc -l`
-numfailed=`grep "You are NOT sane" $RUN_LOG | wc -l`
-numpassed=`grep "You are sane" $RUN_LOG | wc -l`
-echo "Ran $numran, Passed \t$numpassed, Failed \t$numfailed" >> $RUN_LOG
+declare -i numran=`grep "sane" $RUN_LOG | wc -l`
+declare -i numfailed=`grep "You are NOT sane" $RUN_LOG | wc -l`
+declare -i numpassed=`grep "You are sane" $RUN_LOG | wc -l`
+echo -e "Ran $numran, Passed \t$numpassed, Failed \t$numfailed" >> $RUN_LOG
 
-if [[ $numran -eq 0 ]] then
-  echo "*** No tests were run! *** " >> $MSG
-  echo "There was probably an error in building the boot images.\n\n" >> $MSG
+declare -i have_boot_images
+if (( numran == 0 )); then
+    echo "*** No tests were run! *** "
+    echo -e "There was probably an error in building the boot images.\n\n" 
+    have_boot_images=0
 else
-#  Build the summary line
-  echo "Ran \t$numran \nPassed \t$numpassed\nFailed \t$numfailed \n\n" >> $MSG
-fi
+    # Build the summary line
+    echo -e "Ran \t$numran \nPassed \t$numpassed\nFailed \t$numfailed \n\n"
+    have_boot_images=1
+fi  >> $MSG
 
-# Also report the number of javadoc errors
-numjavadocErrors=`grep warning $RVM_ROOT/doc/api/javadoc.out | sort | uniq | wc -l`
-if [[ $numjavadocErrors -eq 0 ]] then 
-  echo "There were no javadoc errors." >> $MSG
-else 
-  echo "There were $numjavadocErrors javadoc errors." >> $MSG
-fi
+javadoc_out="$RVM_ROOT/doc/api/javadoc.out"
+if [[ ! -f $javadoc_out ]]; then
+    echo "No javadoc results are available; the file \"$javadoc_out\" was never made." 
+    declare -i numjavadocErrors=0
+else
+    # Also report the number of javadoc errors
+    numjavadocErrors=$(grep warning $javadoc_out | sort | uniq | wc -l)
+    if (( numjavadocErrors == 0 )); then 
+	echo "There were no javadoc errors."
+    else 
+	echo "There were $numjavadocErrors javadoc errors."
+    fi
+
+fi >> $MSG
 
 # Print some details on the failures
-if [[ $numfailed -gt 0 ]] then
-  echo >> $MSG
-  echo Failure Details >> $MSG
-  echo --------------- >> $MSG
-  fgrep "You are NOT sane" $RUN_LOG  \
-    | sed -e "s/RunSanityTests://"   \
-    | sed -e "s/\/.*tests\///"   \
-    | sed -e "s/You are NOT sane/Failed/"   \
-    >> $MSG
+if (( numfailed > 0 )); then
+    echo ""
+    echo Failure Details
+    echo ---------------
+    sed -e "/You are NOT sane/!d"	\
+	-e "s/RunSanityTests://"	\
+	-e "s/\/.*tests\///"		\
+	-e "s/You are NOT sane/Failed/" \
+    $RUN_LOG  
+fi >> $MSG
+
+if (( numjavadocErrors > 0 )) && (( numjavadocErrors < 50 )); then 
+    echo
+    echo Javadoc Errors
+    echo --------------
+    grep warning $RVM_ROOT/doc/api/javadoc.out | sort | uniq
+fi >> $MSG
+
+if (( archived )); then
+    # Describe where the archive information can be found
+    echo -e "\nOutput of this run is normally available (for 24 hours) at:" 
+    echo "http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/$TRANSFER_FILE_NAME"
+fi >> $MSG
+echo "  Sanity tests are specified in $CONFIG_DIR/$sanity_cfg" >> $MSG
+
+## Report on performance results.
+
+declare -i have_perf_log=0
+declare -i have_useful_perf_log	# Do we have a PERF_LOG that we can make good use of?
+
+if [[ -f $PERF_LOG ]]; then
+    have_perf_log=1
 fi
 
-if [[ $numjavadocErrors -gt 0 && $numjavadocErrors -lt 50 ]] then 
-  echo >> $MSG
-  echo Javadoc Errors >> $MSG
-  echo -------------- >> $MSG
-  grep warning $RVM_ROOT/doc/api/javadoc.out | sort | uniq >> $MSG
-fi
-
-# Describe where the information can be found
-echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/$TRANSFER_FILE_NAME" >> $MSG
-echo "  Sanity tests are specified in $CONFIG_DIR/$1" >> $MSG
-echo "  Performance tests are specified in $CONFIG_DIR/$2" >> $MSG
+if [ ! "$perf_cfg" ]; then
+    echo "  No performance tests were run, because our caller
+     didn't specify any performance configuration file to use."
+    have_useful_perf_log=0
+elif (( ! have_boot_images )); then
+    # just skip this section entirely; we've already complained
+    :;				# do nothing
+    have_useful_perf_log=0
+else
+    echo -n "  Performance tests are specified in $CONFIG_DIR/$perf_cfg"
+    if (( ! have_perf_log )); then
+	have_useful_perf_log=0
+	echo -e ",  but no performance tests were run; maybe the build failed?" 
+    else
+	have_useful_perf_log=1
+	echo "."
+    fi
+fi >> ${MSG}
 
 # Grab the bottom line performance and place it in a more visible place
-echo >> $MSG
-echo >> $MSG
-echo Performance Summary >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk $RVM_ROOT/results/performance.log >> $MSG
+if (( have_useful_perf_log )); then
+    echo -e "\n\nPerformance Summary" >> $MSG
+    $AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk ${PERF_LOG}
 
-# Print verbose performance data for SPECjvm98
-echo >> $MSG
-echo SPECjvm98 Performance Details >> $MSG
-echo ----------------------------- >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98 $RVM_ROOT/results/performance.log >> $MSG
+    # Print verbose performance data for SPECjvm98
+    echo ""
+    echo SPECjvm98 Performance Details
+    echo -----------------------------
+    $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98 ${PERF_LOG}
+fi >> $MSG
 
-# gather measure compilation results
-echo "\n\n Opt Level 0 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemiSpace.O0.?proc.raw >> $MSG
-#
-echo "\n\n Opt Level 1 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemiSpace.O1.?proc.raw >> $MSG
-#
-echo "\n\n Opt Level 2 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemiSpace.O2.?proc.raw >> $MSG
+function compResults () {
+    local opt="$1"		# Optimization level: 0, 1, or 2
+    # raw results in f:
+    local f=$(echo $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastAdaptiveCopyMS.O${opt}.?proc.raw) 
+    local -r analyzer=$RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk
+    if [[ -e $f ]]; then
+	echo -e "\n\n Opt Level ${opt} compilation breakdown for SPECjvm98 size 100\n"
+	$AWK -f $analyzer $f
+    elif (( have_boot_images )); then
+	echo ""
+	echo  "$ME: Could not find Opt Level ${opt} compilation breakdown results."
+	echo  "$ME: I was looking in $f"
+    fi
+}
+## Without boot images, it's unlikely we'll have compilation results either
+## However, I suppose three extra tests for a file's existence won't hurt.
+# if (( have_boot_images )); then
+for opt in 0 1 2; do
+    compResults $opt >> $MSG
+done
 
 # Finally!  Send the mail message to those who care
 # echo "mailing status to $RESULT_MAILING_LIST"
 cat $MSG >> $RUN_LOG
 
-if [[ $numran -gt 0 && $numfailed -eq 0 ]] then
-  cat $MSG | mail -s "[$ARCH] regression SUCCEEDED" $RESULT_MAILING_LIST 
+declare subject=""		# The message's subject
+if (( numran < 0 )); then
+    subject="Ran a negative # of tests?  You should never see this message."
+elif (( numran == 0 )); then
+    subject="FAILED to run any tests"
+elif (( numfailed == 0 )); then
+# if [[ $numran -gt 0 && $numfailed -eq 0 ]]; then
+    subject="SUCCEEDED"
 else
-  cat $MSG | mail -s "[$ARCH] regression FAILED $numfailed tests" $RESULT_MAILING_LIST
+    subject="Failed $numfailed tests"
+fi
+subject="[$ARCH] regression $subject"
+if [[ ! $RESULT_MAILING_LIST ]]; then
+    echo "$ME: RESULT_MAILING_LIST is unset, so I'm assuming"
+    echo "$ME: this is a dry run.  Won't actually mail."
+fi | tee -a $RUN_LOG $MSG >&2
+
+if [[ ! $RESULT_MAILING_LIST ]] || [[ $dry_run ]]; then
+    function mail () {
+	echo >&2 "$ME: dry run: Pretending to invoke \"mail $*\"";
+	echo >&2 "**************************************"
+	echo >&2 "Message body is: "
+	cat >&2
+    }
+    echo "$ME: dry run: We'll pretend to send $MSG as a mail message  
+	to RESULT_MAILING_LIST
+	with Subject: $subject" >&2
+fi
+mail < $MSG -s "$subject" $RESULT_MAILING_LIST
+
+if [[ $dry_run ]]; then
+    echo >&2 "$ME: dry run: We are now going to do findDeviantFiles"
 fi
 
-#
-# Check that files contain an @author tag, a CVS Id tag, and a Copyright notice.
-# Only run on one machine: currently AIX
-#
-if [[ $ARCH = 'AIX' ]] then
-  export CHECK_DIR=$RVM_ROOT/results
+## Check that files contain an @author tag, a CVS Id tag, 
+## and a Copyright notice. 
+##
+# Only run on one machine: currently the AIX nightly run machine.
+if [[ $ARCH = 'AIX' ]]; then
+    export CHECK_DIR=$RVM_ROOT/results
 
-  # Check files
-  $RVM_ROOT/rvm/bin/findDeviantFiles $RVM_ROOT/rvm $CHECK_DIR rvm
+    # Check files
+    [[ $dry_run ]] \
+	|| $RVM_ROOT/rvm/bin/findDeviantFiles $RVM_ROOT/rvm $CHECK_DIR rvm
  
-  # Email results 
-  # Only email to volations to $RESULT_MAILING_LIST
-  if [[ -s $CHECK_DIR/noAuthor.rvm ]] then
-   cat $CHECK_DIR/noAuthor.rvm    | mail -s "files without an @author tag"     $RESULT_MAILING_LIST
+    # Email results to $RESULT_MAILING_LIST
+    # Only email to the list if there were any volations.
+
+    if [[ -s $CHECK_DIR/noAuthor.rvm ]]; then
+	cat $CHECK_DIR/noAuthor.rvm    | mail -s "files without an @author tag"     $RESULT_MAILING_LIST
 #  else
 #   echo " " | mail -s "no files without an @author tag"     pfs 
-  fi
-  if [[ -s $CHECK_DIR/noId.rvm ]] then
-    cat $CHECK_DIR/noId.rvm       | mail -s "files without a CVS Id tag"       $RESULT_MAILING_LIST
+    fi
+
+    if [[ -s $CHECK_DIR/noId.rvm ]]; then
+	cat $CHECK_DIR/noId.rvm       | mail -s "files without a CVS Id tag"       $RESULT_MAILING_LIST
 #  else
 #    echo " " | mail -s "no files without a CVS Id tag"       pfs 
-  fi
-  if [[ -s $CHECK_DIR/noCopyright.rvm ]] then
-    cat $CHECK_DIR/noCopyright.rvm| mail -s "files without a Copyright notice" $RESULT_MAILING_LIST
+    fi
+
+    if [[ -s $CHECK_DIR/noCopyright.rvm ]]; then
+	cat $CHECK_DIR/noCopyright.rvm| mail -s "files without a Copyright notice" $RESULT_MAILING_LIST
 #  else
 #    echo " " | mail -s "no files without a Copyright notice" pfs 
-  fi
+    fi
 fi
 

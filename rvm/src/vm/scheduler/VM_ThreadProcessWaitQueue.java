@@ -99,13 +99,10 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
    */
   private static VM_ProcessorLock waitPidLock = new VM_ProcessorLock();
 
-  private int id;
-
   /**
    * Constructor.
    */
-  public VM_ThreadProcessWaitQueue(int id) {
-    this.id = id;
+  public VM_ThreadProcessWaitQueue() {
     pidArray = new int[MAX_NUM_PIDS];
     exitStatusArray = new int[MAX_NUM_PIDS];
   }
@@ -160,13 +157,9 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
     waitPidLock.lock();
 
     // Call sysWaitPids() to see which (if any) have finished
-    VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
-    VM_SysCall.call_I_A_A_I(
-      bootRecord.sysWaitPidsIP,
-      VM_Magic.objectAsAddress(pidArray),
-      VM_Magic.objectAsAddress(exitStatusArray),
-      numPids
-    );
+    VM_SysCall.sysWaitPids(VM_Magic.objectAsAddress(pidArray),
+			   VM_Magic.objectAsAddress(exitStatusArray),
+			   numPids);
 
     waitPidLock.unlock();
 

@@ -226,6 +226,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
       case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
       case SHORT_ALOAD_opcode:case USHORT_ALOAD_opcode:
+      case SHORT_LOAD_opcode:case USHORT_LOAD_opcode:
       case REF_ALOAD_opcode:
       case INT_LOAD_opcode: case LONG_LOAD_opcode:case REF_LOAD_opcode:
         // all is OK, unless we load this register from memory
@@ -386,7 +387,8 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case INT_ALOAD_opcode:case LONG_ALOAD_opcode:case FLOAT_ALOAD_opcode:
       case DOUBLE_ALOAD_opcode:case BYTE_ALOAD_opcode:case UBYTE_ALOAD_opcode:
       case BYTE_LOAD_opcode:case UBYTE_LOAD_opcode:
-      case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:case REF_ALOAD_opcode:
+      case USHORT_ALOAD_opcode:case SHORT_ALOAD_opcode:
+      case USHORT_LOAD_opcode:case SHORT_LOAD_opcode:case REF_ALOAD_opcode:
       case INT_LOAD_opcode:case LONG_LOAD_opcode:case REF_LOAD_opcode:
         // all is OK, unless we load this register from memory
         OPT_Operand result = ResultCarrier.getResult(inst);

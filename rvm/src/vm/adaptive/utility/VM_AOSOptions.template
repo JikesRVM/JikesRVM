@@ -5,6 +5,7 @@ package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_CommandLineArgs;
 
 /**
  * Class to handle command-line arguments and options for the 
@@ -21,8 +22,8 @@ import com.ibm.JikesRVM.VM_Magic;
  **/
 public class VM_AOSExternalOptions implements Cloneable {
 
-  private String printToStringHeader() {
-    return "Current value of options:\n";
+  private void printOptionsHeader() {
+    VM.sysWriteln("Current value of options:");
   }
 
 $$$$ LET USE_OPT_LEVELS "NO"
@@ -40,10 +41,6 @@ $$$$ END LET USE_OPT_LEVELS
     VM.sysWrite(prefix+"[:help]       Print a brief description of AOS command-line options\n");
     VM.sysWrite(prefix+":printOptions Print the current option values of AOS\n");
     VM.sysWrite(prefix+":o=v          Pass the option-value pair, o=v, to AOS\n");
-    VM.sysWrite(prefix+":irc[:help]   Print a brief description of initial runtime compiler's command-line options that initially compiles a method\n");
-    VM.sysWrite(prefix+":base[:help]  Print a brief description of baseline compiler's command-line options that initially compiles a method\n");
-    VM.sysWrite(prefix+":opt[:help]   Print a brief description of optimizing compiler's command-line options that recompiles a method\n");
-    VM.sysWrite(prefix+":share[?]:o=v Pass the option-value pair, o=v, to AOS and to the optimizing compiler.  If the optimization level is specified, then only that optimization level is affected when recompiling a method\n");
     VM.sysWrite("\n");
   }
 

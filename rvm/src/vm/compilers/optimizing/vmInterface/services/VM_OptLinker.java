@@ -22,13 +22,15 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
 
   /**
    * Given an opt compiler info and a machine code offset in that method's 
-   * instruction array, perform the dynamic linking required by that instruction.
+   * instruction array, perform the dynamic linking required by that
+   * instruction.
+   * <p>
    * We do this by mapping back to the source VM_Method and bytecode offset, 
-   * then examining the bytecodes to see what field/method was being referenced,
-   * then calling VM_TableBasedDynamicLinker to do the actually work.
+   * then examining the bytecodes to see what field/method was being
+   * referenced, then calling VM_TableBasedDynamicLinker to do the real work.
    */
-  public static void resolveDynamicLink (VM_OptCompiledMethod cm, VM_Offset offset) 
-    throws ClassNotFoundException {
+  public static void resolveDynamicLink (VM_OptCompiledMethod cm, int offset) 
+    throws NoClassDefFoundError {
     VM_OptMachineCodeMap map = cm.getMCMap();
     int bci = map.getBytecodeIndexForMCOffset(offset);
     VM_NormalMethod realMethod = map.getMethodForMCOffset(offset);
@@ -54,8 +56,8 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     }
   }
 
-  public static Object newArrayArray (int[] dimensions, int id) 
-    throws ClassNotFoundException,
+  public static Object newArrayArray (int methodId, int[] dimensions, int typeId)
+    throws NoClassDefFoundError,
 	   NegativeArraySizeException, 
 	   OutOfMemoryError {
     // validate arguments
@@ -64,7 +66,7 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     }
     // create array
     //
-    VM_Array aType = (VM_Array)VM_TypeReference.getTypeRef(id).resolve();
-    return VM_Runtime.buildMultiDimensionalArray(dimensions, 0, aType);
+    VM_Array aType = (VM_Array)VM_TypeReference.getTypeRef(typeId).resolve();
+    return VM_Runtime.buildMultiDimensionalArray(methodId, dimensions, aType);
   }
 }

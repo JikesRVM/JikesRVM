@@ -387,14 +387,14 @@ public final class OPT_StackManager extends OPT_GenericStackManager
                                  R(phys.getCTR()), R(temp)));
   }
   
-  /**
+  /*
    * Insert the prologue.
    * The available scratch registers are normally: R0, S0, S1
    * However, if this is the prologue for a 'save volatile' frame, 
    * then R0 is the only available scratch register.
    * The "normal" prologue must perform the following tasks:
    *    stack overflow check         
-   *    set cr2 for the yieldpoint if there is a prologue yieldpoint instruction)
+   *    set TSR for the yieldpoint if there is a prologue yieldpoint instruction
    *    save lr
    *    store cmid
    *    buy stack frame
@@ -412,7 +412,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
    *  7    lil     S1 CMID                                    # cmid
    *  8    st      00 STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)  # return addr (00 is now free)
    *  9    st      S1 STACKFRAME_METHOD_ID_OFFSET(FP)         # cmid
-   *  10   tlt     FP, S0                                     # stack overflow check
+   *  10   tgt     S0, FP                                     # stack overflow check (already bought frame)
    */
 
   /**
@@ -428,7 +428,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register S1 = phys.getGPR(LAST_SCRATCH_GPR);
     boolean interruptible = ir.method.isInterruptible();
     boolean stackOverflow = interruptible;
-    boolean yp = ir.stackManager.hasPrologueYieldpoint();
+    boolean yp = hasPrologueYieldpoint();
 
     int frameFixedSize = getFrameFixedSize();
     ir.compiledMethod.setFrameFixedSize(frameFixedSize);
@@ -480,7 +480,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
     if (stackOverflow) {
       // Mutate the Prologue instruction into the trap
-      MIR_Trap.mutate(ptr, PPC_TW, OPT_PowerPCTrapOperand.LESS(), R(FP), R(S0),
+      MIR_Trap.mutate(ptr, PPC_TW, OPT_PowerPCTrapOperand.GREATER(), R(S0), R(FP),
 		      OPT_TrapCodeOperand.StackOverflow()); // 10
     } else {
       // no stack overflow test, so we remove the IR_Prologue instruction
@@ -507,7 +507,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register S1 = phys.getGPR(LAST_SCRATCH_GPR);
     boolean interruptible = ir.method.isInterruptible();
     boolean stackOverflow = interruptible;
-    boolean yp = ir.stackManager.hasPrologueYieldpoint();
+    boolean yp = hasPrologueYieldpoint();
 
     OPT_Instruction ptr = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     if (VM.VerifyAssertions) VM._assert(ptr.getOpcode() == IR_PROLOGUE_opcode);

@@ -1,0 +1,11 @@
+To run the mauve tests:
+
+(1) Download mauve to $MAUVE
+(2) setenv JAVA 'rvm -X:mx200'		  <--- or whatever Jikes parameters you want
+(3) setenv JAVAC $RVM_BUILD/jbuild.tool   
+(4) cd $MAUVE
+(6) cp $RVM_ROOT/rvm/regression/tests/mauve/mauve-jikesrvm .
+(5) ./configure
+(7) make check KEYS=jikesrvm
+	-or-
+    make check KEYS=jikesrvm TESTFLAGS=-verbose

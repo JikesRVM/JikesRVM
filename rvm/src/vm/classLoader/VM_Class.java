@@ -667,8 +667,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   VM_Class(VM_TypeReference typeRef, DataInputStream input) 
     throws ClassFormatError, 
-	   IOException,
-	   ClassNotFoundException {
+	   IOException {
     super(typeRef);
     subClasses = emptyVMClass;
 
@@ -943,10 +942,6 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   public final synchronized void resolve() {
     if (isResolved()) return;
 
-    if (!typeRef.isResolved()) {
-      VM.sysWriteln("type ref not resolved for "+this);
-    }
-
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWriteln("VM_Class: (begin) resolve "+this);
     if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
 
@@ -1119,7 +1114,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       byte slotType;
       if (fieldType.isReferenceType())
 	slotType = VM_Statics.REFERENCE_FIELD;
-      else if (fieldType.getStackWords() == 2)
+      else if (fieldType.getSize() == BYTES_IN_LONG)
 	slotType = VM_Statics.WIDE_NUMERIC_FIELD;
       else
 	slotType = VM_Statics.NUMERIC_FIELD;
@@ -1178,7 +1173,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     typeInformationBlock = MM_Interface.newTIB(TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethods.length);
     VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
     // Initialize dynamic type checking data structures
-    typeInformationBlock[0] = this;
+    typeInformationBlock[TIB_TYPE_INDEX] = this;
     typeInformationBlock[TIB_SUPERCLASS_IDS_INDEX] = VM_DynamicTypeCheck.buildSuperclassIds(this);
     typeInformationBlock[TIB_DOES_IMPLEMENT_INDEX] = VM_DynamicTypeCheck.buildDoesImplement(this);
     // (element type for arrays not used classes)
@@ -1315,7 +1310,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     for (int i = 0, n = staticMethods.length; i < n; ++i) {
       // don't bother compiling <clinit> here;
       // compile it right before we invoke it in initialize.
-      // This also avoids putting clinit's in the bootimage.
+      // This also avoids putting <clinit>s in the bootimage.
       VM_Method method = staticMethods[i];
       if (!method.isClassInitializer()) {
 	VM_Statics.setSlotContents(method.getOffset() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
@@ -1342,7 +1337,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Side effects: superclasses are initialized, static fields receive 
    * initial values.
    */ 
-  public final synchronized void initialize() {
+  public final synchronized void initialize() 
+    // Doesn't really need declaring.
+    throws ExceptionInInitializerError
+  {
     if (isInitialized())
       return;
 
@@ -1372,7 +1370,16 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 
       if (VM.verboseClassLoading) VM.sysWrite("[Running static initializer for "+this+"]\n");
 
-      VM_Magic.invokeClassInitializer(cm.getInstructions());
+      try {
+	VM_Magic.invokeClassInitializer(cm.getInstructions());
+      } catch (Error e) {
+	throw e;
+      } catch (Throwable t) {
+	ExceptionInInitializerError eieio 
+	  = new ExceptionInInitializerError("While initializing " + this);
+	eieio.initCause(t);
+	throw eieio;
+      }
 
       // <clinit> is no longer needed: reclaim space by removing references to it
       classInitializerMethod.invalidateCompiledMethod(cm);
@@ -1383,7 +1390,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // the opt compiler so it can invalidate speculative CHA optimizations
     // before an instance of this class could actually be created.
     //-#if RVM_WITH_OPT_COMPILER
-    if (OptCLDepManager != null) OptCLDepManager.classInitialized(this);
+    OptCLDepManager.classInitialized(this);
     //-#endif
 
     state = CLASS_INITIALIZED;
@@ -1444,7 +1451,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   // invalidate compiled code when new classes are loaded.
   //------------------------------------------------------------//
   //-#if RVM_WITH_OPT_COMPILER
-  public static OPT_ClassLoadingDependencyManager OptCLDepManager;
+  public static final OPT_ClassLoadingDependencyManager OptCLDepManager = new OPT_ClassLoadingDependencyManager();
   //-#endif
 
   /**

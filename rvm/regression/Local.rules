@@ -31,6 +31,11 @@ jBYTEmark_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/jBYTEmark-0.9+
 SPECjbb2000_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjbb2000
 
 #
+# pseudojbb
+#
+pseudojbb_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/pseudojbb
+
+#
 # SPECjvm98
 #
 SPECjvm98_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/SPECjvm98

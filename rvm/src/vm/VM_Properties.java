@@ -15,7 +15,7 @@ package com.ibm.JikesRVM;
  * @author Stephen Fink
  * @author David Grove
  */
-public class VM_Properties extends VM_Configuration {
+public class VM_Properties extends VM_Options {
 
   // The VM class hierarchy is used in three ways:
   //    - by boot image writer to create an executable vm image
@@ -41,24 +41,40 @@ public class VM_Properties extends VM_Configuration {
    */
   public static boolean writingImage = false;
   /**
-   * if true, don't exit from the process
+   * is the running VM fully booted?
+   * Set by VM.boot when the VM is fully booted.
    */
-  public static boolean runningAsSubsystem;  
+  public static boolean fullyBooted = false;
+
+  /**
+   * If true, don't exit from the process.  As of July, 2003, this has not
+   * worked in a couple of years, nor has there been much interest in using it.
+   * If it is resurrected, we need to check the code that calls dieAbruptlyRecursiveSystemTrouble(), to make
+   * sure that instead we just kill the proper threads. 
+   */
+  public static boolean runningAsSubsystem = false;
 
   // Use count of method prologues executed rather than timer interrupts to drive
   // preemptive thread switching.  Non preemptive thread switching is achieved by
   // setting the number of prologues between thread switches to infinity (-1).
   //
   public static int deterministicThreadSwitchInterval =
-	//-#if RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING 
-	  -1;
-	//-#else
-        //-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
-           1000;
-        //-#else // the normal case (timer-driven preemptive thread switching)
-	  0;
-	//-#endif
-	//-#endif
+    //-#if RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING 
+    -1;
+    //-#else
+      //-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
+      1000;
+      //-#else // the normal case (timer-driven preemptive thread switching)
+      0;
+      //-#endif
+    //-#endif
+
+  /**
+   * The following is set on by -X:verboseBoot= command line arg.
+   * When true, it generates messages to the sysWrite stream summarizing
+   * progress during the execution of VM.boot
+   */
+  public static int verboseBoot = 0;
 
   /**
    * The following is set on by -verbose:class command line arg.
@@ -74,24 +90,6 @@ public class VM_Properties extends VM_Configuration {
    */
   public static boolean verboseJNI = false;
 
-  /**
-   * The following is set on by -X:measureCompilation=true command line arg.
-   * When true, it times compilations and generates a report at VM exit.
-   */
-  public static boolean MeasureCompilation = false;  
-
-  /**
-   * Accumulate per java thread CPU time.
-   * Used by AOS and MeasureCompilation to get accurate compilation times.
-   */
-  public static boolean EnableCPUMonitoring = VM_Configuration.BuildForAdaptiveSystem;
-
-  /**
-   * The following is set on by -X:verify=true command line arg.
-   * When true, it invokes the bytecode verifier
-   */
-  public static boolean VerifyBytecode = false;  
-
   // Runtime subsystem tracing.
   //
   public static final boolean TraceDictionaries       = false;
@@ -99,7 +97,6 @@ public class VM_Properties extends VM_Configuration {
   public static final boolean TraceFileSystem         = false;
   public static final boolean TraceThreads            = false;
   public static final boolean TraceStackTrace         = false;
-  public static boolean TraceClassLoading             = true;
 
   // Baseline compiler reference map tracing.
   //
@@ -107,13 +104,10 @@ public class VM_Properties extends VM_Configuration {
   public static final boolean ReferenceMapsStatistics       = false;
   public static final boolean ReferenceMapsBitStatistics    = false;
 
-  // Event logging.
-  //
-  public static final boolean BuildForEventLogging      = false;
-  public static       boolean EventLoggingEnabled       = false;  // TODO!! make this final, see profiler/VM_EventLogger.java
-  public static final boolean BuildForNetworkMonitoring = false;
-
   //-#if RVM_WITH_OSR
   public static final boolean TraceOnStackReplacement   = false; 
   //-#endif
+
+  /** How much farther? */
+  public static int maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite = 3;
 }

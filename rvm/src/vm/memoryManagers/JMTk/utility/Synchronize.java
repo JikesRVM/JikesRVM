@@ -3,14 +3,14 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.VM_Uninterruptible;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /*
  * @author Perry Cheng
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public class Synchronize implements VM_Uninterruptible {
 
 

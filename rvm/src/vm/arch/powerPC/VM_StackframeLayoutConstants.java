@@ -144,15 +144,16 @@ public interface VM_StackframeLayoutConstants  {
   static final int STACKFRAME_ALIGNMENT = VM_SizeConstants.BYTES_IN_DOUBLE;
    
   // Sizes for stacks and subregions thereof.
-  // Values are in bytes and must be a multiple of 4 (size of a stack slot).
+  // Values are in bytes and must be a multiple of 8 (size of a stack slot on 64-architecture).
   //
-  static final int STACK_SIZE_GROW          = 8*1024; // how much to grow normal stack when overflow detected
-  static final int STACK_SIZE_GUARD         = 8*1024; // max space needed for stack overflow trap processing
-  static final int STACK_SIZE_NATIVE        = 4*1024; // max space needed for entry to sysCall# via VM_Magic
-  static final int STACK_SIZE_JNINATIVE     = 180*1024; // max space needed for first entry to native code via JNI
-  static final int STACK_SIZE_DLOPEN        = 30*1024; // max space needed for dlopen sys call 
-  static final int STACK_SIZE_JNINATIVE_GROW= 184*1024; // size to grow once for native on first entry via JNI
-  static final int STACK_SIZE_GCDISABLED    = 4*1024; // max space needed while running with gc disabled
+  static final int STACK_SIZE_GROW           =   8*1024; // how much to grow normal stack when overflow detected
+  static final int STACK_SIZE_GUARD          =   8*1024; // max space needed for stack overflow trap processing
+  static final int STACK_SIZE_NATIVE         =   4*1024; // max space needed for entry to sysCall# via VM_Magic
+  static final int STACK_SIZE_JNINATIVE      = 180*1024; // max space needed for first entry to native code via JNI
+  static final int STACK_SIZE_DLOPEN         =  30*1024; // max space needed for dlopen sys call 
+  static final int STACK_SIZE_JNINATIVE_GROW = 184*1024; // size to grow once for native on first entry via JNI
+  static final int STACK_SIZE_GCDISABLED     =   4*1024; // max space needed while running with gc disabled
+  static final int STACK_SIZE_MAX            = 512*1024; // upper limit on stack size (includes guard region)
    
   // Complications:
   // - STACK_SIZE_GUARD must be greater than STACK_SIZE_NATIVE or STACK_SIZE_GCDISABLED
@@ -162,14 +163,17 @@ public interface VM_StackframeLayoutConstants  {
   //   the new stack will accomodate that code without generating a stack overflow trap.
   // - Values chosen for STACK_SIZE_NATIVE and STACK_SIZE_GCDISABLED are pure guesswork
   //   selected by trial and error.
-   
-  // Stacks for "normal" threads grow as needed by trapping on guard region.
-  // Stacks for "boot" and "collector" threads are fixed in size and cannot grow.
   //
-  static final int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +   8*1024; // initial stack space to allocate for normal    thread (includes guard region)
-  static final int STACK_SIZE_BOOT      = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  20*1024; // total   stack space to allocate for boot      thread (includes guard region)
-  static final int STACK_SIZE_COLLECTOR = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  20*1024; // total   stack space to allocate for collector thread (includes guard region)
-  static final int STACK_SIZE_MAX       = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED + 244*1024; // upper limit on stack size (includes guard region)
+
+  // Initial stack sizes:
+  // - Stacks for "normal" threads grow as needed by trapping on guard region.
+  // - Stacks for "collector" threads are fixed in size and cannot grow.
+  // - Stacks for "boot" thread grow as needed - boot thread calls JNI during initialization
+  //
+  static final int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  16*1024; 
+  static final int STACK_SIZE_BOOT      = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  STACK_SIZE_JNINATIVE + 128 * 1024;
+  static final int STACK_SIZE_COLLECTOR = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  32*1024; 
+
 }
 
 

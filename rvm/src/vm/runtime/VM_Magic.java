@@ -101,18 +101,6 @@ public class VM_Magic {
     return -1;
   }
 
-  /**
-   * Read contents of hardware real time clock registers.
-   * Note:     these registers are emulated on some processors (eg. 603, 604)
-   *           so the overhead of this function may be high (~7000 cycles).
-   * @param p current processor (!!TEMP)
-   * @return time in seconds (epoch Jan 1 1970), to nanonsecond resolution.
-   */
-  public static double getTime(VM_Processor p) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return -1;
-  }
-
   //---------------------------------------//
   //       Stackframe Manipulation         //
   //---------------------------------------//
@@ -211,6 +199,17 @@ public class VM_Magic {
   }
 
   /**
+   * Get char at arbitrary (byte) offset from object.  Clients must
+   * not depend on whether or not the char is zero or sign extended as
+   * it is loaded.  (In other words, mask off all but the lower 16
+   * bits before using the value).
+   */
+  public static char getCharAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return (char)-1;
+  }
+
+  /**
    * Get int at arbitrary (byte) offset from object.
    * Use getIntAtOffset(obj, ofs) instead of getMemoryInt(objectAsAddress(obj)+ofs)
    */
@@ -271,6 +270,13 @@ public class VM_Magic {
    * Set byte at arbitrary (byte) offset from object.
    */ 
   public static void setByteAtOffset(Object object, int offset, byte newvalue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+
+  /**
+   * Set char at arbitrary (byte) offset from object.
+   */ 
+  public static void setCharAtOffset(Object object, int offset, char newvalue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -443,7 +449,7 @@ public class VM_Magic {
    * Cast bits.
    * @param object reference as bits
    * @return object reference as type (no checking on cast)
-   * @depracated  Use objectAsType( addressAsObject (...))
+   * @deprecated  Use objectAsType( addressAsObject (...))
    */
   public static VM_Type addressAsType(VM_Address address) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -464,7 +470,7 @@ public class VM_Magic {
    * Cast bits.
    * @param address object reference as bits
    * @return object reference as thread (no checking on cast)
-   * @depracated  Use objectAsThread.
+   * @deprecated  Use objectAsThread.
    */
   public static VM_Thread addressAsThread(VM_Address address) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -706,22 +712,27 @@ public class VM_Magic {
    * never returns (target method returns to caller of dynamic bridge method)
    * @param instructions target method
    */
-  public static void dynamicBridgeTo(INSTRUCTION[] instructions) {
+  public static void dynamicBridgeTo(VM_CodeArray instructions) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call "main" method with argument list. */
-  public static void invokeMain(Object argv, INSTRUCTION[] main) {
+  public static void invokeMain(Object argv, VM_CodeArray main) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call "<clinit>" method with no argument list. */
-  public static void invokeClassInitializer(INSTRUCTION[] clinit) {
+  public static void invokeClassInitializer(VM_CodeArray clinit) 
+    throws Exception		// Since the real method passes exceptions
+				// up.  Constructor might throw an arbitrary
+				// exception. 
+  {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    throw new Exception("UNREACHED");
   }
 
   /** Call arbitrary method with argument list. */
-  public static void invokeMethodReturningVoid(INSTRUCTION[] code, 
+  public static void invokeMethodReturningVoid(VM_CodeArray code, 
 					       int[] gprs, 
 					       double[] fprs, 
 					       int[] spills) {
@@ -729,7 +740,7 @@ public class VM_Magic {
   }
 
   /** Call arbitrary method with argument list. */
-  public static int invokeMethodReturningInt(INSTRUCTION[] code, 
+  public static int invokeMethodReturningInt(VM_CodeArray code, 
 					     int[] gprs, 
 					     double[] fprs, 
 					     int[] spills) {
@@ -738,7 +749,7 @@ public class VM_Magic {
   }
 
   /** Call arbitrary method with argument list. */
-  public static long invokeMethodReturningLong(INSTRUCTION[] code, 
+  public static long invokeMethodReturningLong(VM_CodeArray code, 
 					       int[] gprs, 
 					       double[] fprs, 
 					       int[] spills) {
@@ -747,7 +758,7 @@ public class VM_Magic {
   }
 
   /** Call arbitrary method with argument list. */
-  public static float invokeMethodReturningFloat(INSTRUCTION[] code, 
+  public static float invokeMethodReturningFloat(VM_CodeArray code, 
 						 int[] gprs, 
 						 double[] fprs, 
 						 int[] spills) {
@@ -756,7 +767,7 @@ public class VM_Magic {
   }
 
   /** Call arbitrary method with argument list. */
-  public static double invokeMethodReturningDouble(INSTRUCTION[] code, 
+  public static double invokeMethodReturningDouble(VM_CodeArray code, 
 						   int[] gprs, 
 						   double[] fprs, 
 						   int[] spills) {
@@ -765,7 +776,7 @@ public class VM_Magic {
   }
 
   /** Call arbitrary method with argument list. */
-  public static Object invokeMethodReturningObject(INSTRUCTION[] code, 
+  public static Object invokeMethodReturningObject(VM_CodeArray code, 
 						   int[] gprs, 
 						   double[] fprs, 
 						   int[] spills) {
@@ -773,40 +784,8 @@ public class VM_Magic {
     return null;
   }
 
-  /*
-   * Call a system function with 0..4 parameters.
-   * Taken:    entrypoint address of function to be called
-   *           parameters to pass to function
-   * Returned: value returned by function
-   *
-   */
-   public static int  sysCall0(VM_Address ip) { 
-     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
-   }
-   public static int  sysCall1(VM_Address ip, int p0) { 
-     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
-   }
-   public static int  sysCall2(VM_Address ip, int p0, int p1) { 
-     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
-   }
-   public static int  sysCall3(VM_Address ip, int p0, int p1, int p2) { 
-     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
-   }
-   public static int  sysCall4(VM_Address ip, int p0, int p1, int p2, int p3) { 
-     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
-   }
-   public static long sysCall_L_0(VM_Address ip) { 
-     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
-   }
-   public static long sysCall_L_I(VM_Address ip, int p0) { 
-     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
-   }
-   public static int  sysCallAD(VM_Address ip, int p0, double p1) { 
-     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
-   }
-
    public static int sysCallSigWait(VM_Address ip, VM_Address toc, VM_Address p0, 
-                                     int p1, VM_Registers r){  
+				    int p1, VM_Registers r){  
      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
    }
 

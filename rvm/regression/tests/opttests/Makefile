@@ -17,7 +17,7 @@ ALL_TESTS	= fibo tak_int tak_long tak_fp tak_db table TestLookupSwitch \
 	  TestUnresolved TestInstanceOf TestExceptionThrow TestFinally \
 	  inlineDeep inlineExcept 
 
-include		$(RVM_BUILD)/Make.rules
+include		$(RVM_BUILD)/Make.rules.target
 
 BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/opttests
 BENCH_SOURCE_PATH=$(BENCH_HOME)

@@ -8,8 +8,8 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.Conversions;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -25,11 +25,11 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 public final class LazyMmapper implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Public static methods 
-  //
-  //
+  /****************************************************************************
+   *
+   * Public static methods 
+   *
+   */
 
   public static boolean verbose = false;
   public static Lock lock = new Lock("LazyMapper");
@@ -51,14 +51,14 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
 	lock.check(102);
 	if (errno != 0) {
 	  lock.release();
-	  VM_Interface.sysWrite("ensureMapped failed with errno ",errno);
-	  VM_Interface.sysWriteln(" on address ",mmapStart);
+	  Log.write("ensureMapped failed with errno "); Log.write(errno);
+	  Log.write(" on address "); Log.writeln(mmapStart);
 	  VM_Interface._assert(false);
 	}
 	else {
 	  if (verbose) {
-	    VM_Interface.sysWrite("mmap succeeded at chunk ",chunk);  VM_Interface.sysWrite("  ",mmapStart);
-	    VM_Interface.sysWriteln(" with len = ",MMAP_CHUNK_SIZE);
+	    Log.write("mmap succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
+	    Log.write(" with len = "); Log.writeln(MMAP_CHUNK_SIZE);
 	  }
 	}
 	lock.check(103);
@@ -72,8 +72,8 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
 	}
 	else {
 	  if (verbose) {
-	    VM_Interface.sysWrite("munprotect succeeded at chunk ",chunk);  VM_Interface.sysWrite("  ",mmapStart);
-	    VM_Interface.sysWriteln(" with len = ",MMAP_CHUNK_SIZE);
+	    Log.write("munprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
+	    Log.write(" with len = "); Log.writeln(MMAP_CHUNK_SIZE);
 	  }
 	}
       }
@@ -99,8 +99,8 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
 	}
 	else {
 	  if (verbose) {
-	    VM_Interface.sysWrite("mprotect succeeded at chunk ",chunk);  VM_Interface.sysWrite("  ",mmapStart);
-	    VM_Interface.sysWriteln(" with len = ",MMAP_CHUNK_SIZE);
+	    Log.write("mprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
+	    Log.write(" with len = "); Log.writeln(MMAP_CHUNK_SIZE);
 	  }
 	}
 	mapped[chunk] = PROTECTED;
@@ -112,17 +112,26 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
     lock.release();
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Private static methods and variables
-  //
+  public static boolean addrIsMapped (VM_Address addr) throws VM_PragmaUninterruptible {
+    int chunk = Conversions.addressToMmapChunksDown(addr);
+    return mapped[chunk] == MAPPED;
+  }
+
+  public static boolean refIsMapped (VM_Address ref) throws VM_PragmaUninterruptible {
+    return addrIsMapped(VM_Interface.refToAddress(ref));
+  }
+
+  /****************************************************************************
+   *
+   * Private static methods and variables
+   */
   final public static byte UNMAPPED = 0;
   final public static byte MAPPED = 1;
   final public static byte PROTECTED = 2;   // mapped but not accessible
   private static byte mapped[];
   final public static int LOG_MMAP_CHUNK_SIZE = 20;            
   final public static int MMAP_CHUNK_SIZE = 1 << LOG_MMAP_CHUNK_SIZE;   // the granularity VMResource operates at
-  final private static int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_ADDRESS_SPACE - LOG_MMAP_CHUNK_SIZE);
+  final private static int MMAP_NUM_CHUNKS = 1 << (Constants.LOG_BYTES_IN_ADDRESS_SPACE - LOG_MMAP_CHUNK_SIZE);
   final public  static int MMAP_CHUNK_MASK = ~((1 << LOG_MMAP_CHUNK_SIZE) - 1);
 
   private static String chunkStateToString(byte state) {
@@ -143,6 +152,13 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
     for (int c = 0; c < MMAP_NUM_CHUNKS; c++) {
       mapped[c] = UNMAPPED;
     }
+  }
+
+  public static void boot (VM_Address bootStart, int bootSize) {
+    int startChunk = Conversions.addressToMmapChunksDown(bootStart);
+    int endChunk = Conversions.addressToMmapChunksDown(bootStart.add(bootSize));
+    for (int i=startChunk; i<=endChunk; i++)
+      mapped[i] = MAPPED;
   }
 
 }

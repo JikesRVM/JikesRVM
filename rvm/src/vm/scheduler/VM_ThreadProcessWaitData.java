@@ -27,15 +27,13 @@ public class VM_ThreadProcessWaitData
 
   /**
    * Constuctor.
-   * @param maxWaitTime timeout value for wait, or negative
+   * @param maxWaitCycle timeout value for wait, or negative
    *   if there is no timeout
    * @param pid process ID of process being waited for
    */
-  public VM_ThreadProcessWaitData(int pid, double maxWaitTime) {
-    super(maxWaitTime);
+  public VM_ThreadProcessWaitData(int pid, long maxWaitCycle) {
+    super(maxWaitCycle);
     this.pid = pid;
-    // finished = false;
-    // exitStatus = 0;
   }
 
   /**

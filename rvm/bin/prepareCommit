@@ -12,6 +12,11 @@
 # made.  You will need to edit the file to insert your own log message.
 #
 # You will need to update the cvs path, below
+if [[ $RVM_HOST_CONFIG = "" ]]; then
+   echo "$0: please set your RVM_HOST_CONFIG environment variable (eg. $HOME/rvm/config/i686-pc-linux.watson)"
+   exit 1
+fi
+
 . $RVM_HOST_CONFIG
 echo "#! /bin/sh" > doit
 echo "cvs=$CVS" >> doit

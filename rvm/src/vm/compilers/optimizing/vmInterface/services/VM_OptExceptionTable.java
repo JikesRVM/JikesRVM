@@ -108,13 +108,18 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
 	    eTable[index + CATCH_START] = catchOffset;
 	    try {
 	      eTable[index + EX_TYPE] = type.getTypeRef().resolve().getId();
-	    } catch (ClassNotFoundException except) {
-	      // Yuck.  If this happens beatup Dave and make him do the right thing.
-	      // For now, we are forcing early loading of exception types to 
-	      // avoid a bunch of ugly issues in resolving the type when delivering
-	      // the exception.  The problem is that we currently can't allow a GC
-	      // while in the midst of delivering an exception and resolving the
-	      // type reference might entail calling arbitrary classloader code. 
+	    } catch (NoClassDefFoundError except) {
+	      // Yuck.  If this happens beatup Dave and make him do the right
+	      // thing. For now, we are forcing early loading of exception
+	      // types to avoid a bunch of ugly issues in resolving the type
+	      // when delivering the exception.  The problem is that we
+	      // currently can't allow a GC while in the midst of delivering
+	      // an exception and resolving the type reference might entail
+	      // calling arbitrary classloader code.
+	      VM.sysWriteln("Trouble resolving a caught exception at compile time:");
+	      except.printStackTrace();	// sysFail won't print the stack trace
+					// that lead to the
+					// NoClassDefFoundError. 
 	      VM.sysFail("Unable to resolve caught exception type at compile time");
 	    }
 	    index += 4;
@@ -122,7 +127,7 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
 	}
 	
 	bblock = followonBB;
-      
+	
       } else // No code in bblock
 	bblock = bblock.nextBasicBlockInCodeOrder();
     }
