@@ -1002,6 +1002,19 @@ implements OPT_Operators {
 	continue;
       }
 
+      // TEMP KLUDGE. TODO: Replace me with a solution that actually 
+      // handles all the cases!!!!!!
+      if (s.operator() == IA32_TRAPIF &&
+	  !MIR_TrapIf.getTrapCode(s).isStackOverflow()) {
+	// ESP must be at bottom of stack all PEIs because if the 
+	// hardware trap is actually taken then the code in libjvm.C that
+	// sets up for the return to VM_Runtime.deliverException
+	// is assumes that it can push parameters on the stack!
+	// NOTE: bottom is not always equal to 0!!!!!!!
+	//   (but it should be at TrapIfs).
+	moveESPBefore(s, 0);
+      }
+
       if (s.operator() == IA32_MOV) {
         rewriteMoveInstruction(s);
       }
@@ -1031,9 +1044,7 @@ implements OPT_Operators {
 	  OPT_MemoryOperand M = op.asMemory();
 	  if ((M.base != null && M.base.register == ESP) ||
 	      (M.index != null && M.index.register == ESP)) {
-	    VM.sysWrite("AJA "+s+"\n");
 	    M.disp -= ESPOffset;
-	    VM.sysWrite("\t"+s+"\n");
 	  }
 	}
       }
