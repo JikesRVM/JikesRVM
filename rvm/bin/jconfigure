@@ -29,7 +29,7 @@
 ## We exit with status 0 upon success, as is conventional.
 ## In case of trouble, we exit with the triggering exit status (if invoked via 'set -e'.
 ## Exit status 33: Invalid arguments.
-declare -i Exit_Status_Bad_Args=33
+declare -r -i Exit_Status_Bad_Args=33
 ## Exit status 2: trouble (configuration, etc.)
 ## Exit status 1: misc. complaints.
 ##
@@ -37,7 +37,7 @@ declare -i Exit_Status_Bad_Args=33
 ## exit status "111" to mean that it has gone as far as it could with a
 ## cross-platform build, and that the target itself now needs to 
 ## run the linker.
-declare -i Exit_Status_Run_Linker=111
+declare -r -i Exit_Status_Run_Linker=111
 
 #----------------------#
 # SECTION 0 - Setup    #
@@ -61,6 +61,11 @@ fi
 # Stop immediately if any programs we call return errors.
 #
 ## Check if the command does not support the ERR trap.
+if trap '' ERR 2> /dev/null; then
+    declare -i have_err_trap=1
+else
+    declare -i have_err_trap=0
+fi
 CLEANUP=":"
 unset xited || :
 if trap -- 'xited=$? finalarg=$_; set +vx; echo >&2 "$ME: some command we just ran (probably with a
@@ -68,7 +73,7 @@ if trap -- 'xited=$? finalarg=$_; set +vx; echo >&2 "$ME: some command we just r
       file line # $LINENO ${FUNCNAME+'"'"'and function '"'"'}$FUNCNAME
       I give up; aborting execution."; trap "echo >&2 \"Exiting due to an error\"" EXIT; eval $CLEANUP' ERR
 then
-    have_err_trap=yes
+    have_err_trap=1
 else
     echo >&2 "$ME: You are under a version of Bash 
     ($BASH_VERSION; probably pre-2.05) that
@@ -859,11 +864,12 @@ function emit_disable_exit_on_error () {
     cat <<- 'EOF'
 	## BEGIN disable_exit_on_error.
 	EOF
-    if [ "$have_err_trap" ]; then
+    if (( have_err_trap )); then
 	cat <<- 'EOF'
 	# This has to be inline or a source'd file; the ERR trap is not
 	# inherited by shell functions.
-	trap - ERR || echo >&2 "$ME: We do not have the ERR Trap in this shell.  Must be cross-configuring or something of the sort."
+	# trap - ERR || echo >&2 "$ME: We do not have the ERR Trap in this shell.  Must be cross-configuring or something of the sort."
+	trap - ERR 2> /dev/null || :
 	EOF
     fi
     cat <<- 'EOF'
@@ -878,20 +884,21 @@ function emit_enable_exit_on_error () {
     cat <<- 'EOF'
 	## BEGIN enable_exit_on_error.
 	EOF
-    if [ "$have_err_trap" ]; then
+    if (( have_err_trap )); then
 	cat <<- 'EOF'
 	if trap -- 'finalarg="$_" xited=$?; set +vx; echo >&2 "$ME: some command we just ran (probably with a
 	      final argument of \"$finalarg\") exited with status $xited, possibly in source
 	      file line # $LINENO${FUNCNAME+'"'"' and function '"'"'\"}$FUNCNAME${FUNCNAME+\"}
 	      I give up; aborting execution."; trap "echo >&2 \"Exiting due to an error\"" EXIT' ERR
 	then
-	    have_err_trap=yes
+	    declare -i have_err_trap=1
 	else
-	    echo >&2 "$ME: You are under a version of Bash 
-	    ($BASH_VERSION; probably pre-2.05) that
-	    does not support
-	    the ERR trap.  You may not get as much diagnostic info as you would like."
-	    unset have_err_trap || :
+# 	    echo >&2 "$ME: You are under a version of Bash 
+# 	    ($BASH_VERSION; probably pre-2.05) that
+# 	    does not support
+# 	    the ERR trap.  You may not get as much diagnostic info as you would like."
+# 	    unset have_err_trap || :
+	    declare -i have_err_trap=0
 	fi
 	EOF
 	if false; then
@@ -1155,7 +1162,7 @@ function emitController () {
 
 		    -clean:  restore the build directory to its original \"unbuilt\" state"
 		trap '' EXIT
-	        exit 33
+	        exit $Exit_Status_Bad_Args
 	    fi
 	    shift
 	done
