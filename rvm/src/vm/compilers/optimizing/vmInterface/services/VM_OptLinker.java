@@ -22,10 +22,12 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
 
   /**
    * Given an opt compiler info and a machine code offset in that method's 
-   * instruction array, perform the dynamic linking required by that instruction.
+   * instruction array, perform the dynamic linking required by that
+   * instruction.
+   * <p>
    * We do this by mapping back to the source VM_Method and bytecode offset, 
-   * then examining the bytecodes to see what field/method was being referenced,
-   * then calling VM_TableBasedDynamicLinker to do the actually work.
+   * then examining the bytecodes to see what field/method was being
+   * referenced, then calling VM_TableBasedDynamicLinker to do the real work.
    */
   public static void resolveDynamicLink (VM_OptCompiledMethod cm, VM_Offset offset) 
     throws ClassNotFoundException {
