@@ -69,7 +69,7 @@ TEST_LIST=`cat $RVM_ROOT/rvm/regression/config/nightly-tests`
 
 ## Default configurations
 #
-CONFIG_LIST="BaseBasecopyingGC BaseBasenoncopyingGC BaseBasecopyGCgen FullOptnoncopyingGC FullOptcopyGCgen FullAdaptivecopyingGC FastAdaptivecopyingGC ExtremeAssertionsOptOptcopyingGC"
+CONFIG_LIST="BaseBaseSemispace BaseBaseMarkSweep BaseBaseCopyGenVariable FullOptMarkSweep FullOptCopyGenVariable FullAdaptiveSemispace FastAdaptiveSemispace ExtremeAssertionsOptOptSemispace"
 
 # help message of usage options
 #

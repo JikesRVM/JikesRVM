@@ -27,10 +27,10 @@ which java >> $VERBOSE_LOG
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results -norun -wait sem" -config $1 >> $BUILD_LOG 2>> $BUILD_LOG
 
-. $RVM_ROOT/images/FullAdaptivecopyingGC/jbuild.environment
+. $RVM_ROOT/images/FullAdaptiveSemispace/jbuild.environment
 
 echo "\n\nBROKEN! FIX ME!!! Building java doc" >> $BUILD_LOG 
-#$RVM_ROOT/bin/watson/jdoc.sh $RVM_ROOT/images/FullAdaptivecopyingGC $RVM_ROOT/doc/api both >> $BUILD_LOG 2>> $BUILD_LOG
+#$RVM_ROOT/bin/watson/jdoc.sh $RVM_ROOT/images/FullAdaptiveSemispace $RVM_ROOT/doc/api both >> $BUILD_LOG 2>> $BUILD_LOG
 
 echo "\n\nBROKEN! FIX ME!!! Building userguide" >> $BUILD_LOG 
 #export BIBINPUTS=.:$RVM_ROOT/doc/papers/bib
