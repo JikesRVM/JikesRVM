@@ -6,16 +6,9 @@ package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import com.ibm.JikesRVM.adaptive.VM_YieldpointCounterData;
-import com.ibm.JikesRVM.adaptive.VM_Instrumentation;
-import com.ibm.JikesRVM.adaptive.VM_AOSDatabase;
-import com.ibm.JikesRVM.adaptive.VM_Controller;
+import com.ibm.JikesRVM.adaptive.*;
 
 /** 
- *
- * OPT_InsertYieldPointCounters.java
- *
- *
  * An opt compiler phase that inserts yieldpoint counters.  Searches
  * for all yieldpoint instructions and inserts an increment after
  * them, using the VM_CounterArrayManager counter manager to implement
@@ -23,14 +16,13 @@ import com.ibm.JikesRVM.adaptive.VM_Controller;
  *
  * @author Matthew Arnold 
  */
-
 class OPT_InsertYieldpointCounters  extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
 
    static final boolean DEBUG = false;
 
    public final boolean shouldPerform(OPT_Options options) {
-     return options.INSERT_YIELDPOINT_COUNTERS;
+     return VM_Controller.options.INSERT_YIELDPOINT_COUNTERS;
    }
 
    public final String getName() { return "InsertYieldpointCounters"; }

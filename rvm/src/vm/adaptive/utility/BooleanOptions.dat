@@ -35,3 +35,16 @@ Should AOS promote baseline-compiled methods to opt?
 BACKGROUND_RECOMPILATION -1 true
 Should recompilation be done on a background thread or on next invocation?
 
+INSERT_YIELDPOINT_COUNTERS -1 false
+Insert instrumentation in opt recompiled code to count yieldpoints executed?
+
+INSERT_METHOD_COUNTERS_OPT -1 false 
+Insert intrusive method counters in opt recompiled code?
+
+INSERT_INSTRUCTION_COUNTERS -1 false
+Insert counters on all instructions in opt recompiled code?
+
+INSERT_DEBUGGING_COUNTERS -1 false
+Enable easy insertion of (debugging) counters in opt recompiled code.
+
+

@@ -31,7 +31,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
   /**
    * Controller subsystem control options
    */
-  public static VM_AOSOptions options = null;
+  public static VM_AOSOptions options = new VM_AOSOptions();
   
   /**
    * Deferred command line arguments for the opt compiler
@@ -113,12 +113,6 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    */
   private static boolean booted = false;
   public static void boot() {
-    // check to see if the AOS options were created during the process
-    // of check command line args, if not we'll create a default one
-    if (options == null) {
-      options = new VM_AOSOptions();
-    }
-    
     // Signal that the options and (optional) logging mechanism are set
     // VM_RuntimeCompiler checks this flag
     enabled = true;
@@ -211,10 +205,6 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
    * @param arg the command line argument to be processed
    */
   public static void processCommandLineArg(String arg) {
-    if (options == null) {
-      options = new VM_AOSOptions();
-    }
-    
     if (!options.processAsOption("-X:aos", arg)) {
       VM.sysWrite("vm: illegal adaptive configuration directive \""+arg+"\" specified as -X:aos:"+arg+"\n");
       VM.sysExit(VM.exitStatusBogusCommandLineArg);

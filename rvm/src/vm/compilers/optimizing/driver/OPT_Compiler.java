@@ -59,16 +59,6 @@ public class OPT_Compiler implements VM_Callbacks.AppRunStartMonitor {
       options = (OPT_Options)options.clone();
       options.SIMPLE_ESCAPE_IPA = false;
 
-      //-#if RVM_WITH_ADAPTIVE_SYSTEM
-      // Disable instrumentation because this method is compiled
-      // before the adaptive system is finished booting.  Not pretty,
-      // but it works for now.
-      options.INSERT_DEBUGGING_COUNTERS = false;
-      options.INSERT_YIELDPOINT_COUNTERS = false;
-      options.INSERT_INSTRUCTION_COUNTERS = false;
-      options.INSERT_METHOD_COUNTERS_OPT = false;
-      //-#endif
-
       initializeStatics();
       if (VM.runningVM) {
         // Make sure that VM_OptSaveVolatile.java is opt 

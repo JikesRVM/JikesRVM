@@ -5,39 +5,34 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.adaptive.VM_Instrumentation;
+import com.ibm.JikesRVM.opt.ir.*;
+import com.ibm.JikesRVM.adaptive.*;
 
 import java.util.Enumeration;
 import java.util.Vector;
-import com.ibm.JikesRVM.opt.ir.*;
 
 /** 
- *  OPT_LowerInstrumentation
- *
  *  This phase takes converts "instrumentation instructions" that were
  *  inserted by previous instrumentation phases and "lowers" them,
  *  converting them to the actual instructions that perform the
  *  instrumentation.
  *
  *  @author Matthew Arnold
- *
- **/
-
+ */
 class OPT_LowerInstrumentation  extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
 
    static final boolean DEBUG = false;
 
-   public final boolean shouldPerform(OPT_Options options) {
-     if (options.INSERT_INSTRUCTION_COUNTERS ||
-	 options.INSERT_METHOD_COUNTERS_OPT ||
-	 options.INSERT_DEBUGGING_COUNTERS ||
-	 options.INSERT_YIELDPOINT_COUNTERS)
-     return true;
-    return false;
-   }
+  public final boolean shouldPerform(OPT_Options options) {
+    VM_AOSOptions opts = VM_Controller.options;
+    return opts.INSERT_INSTRUCTION_COUNTERS ||
+      opts.INSERT_METHOD_COUNTERS_OPT ||
+      opts.INSERT_DEBUGGING_COUNTERS ||
+      opts.INSERT_YIELDPOINT_COUNTERS;
+  }
 
-   public final String getName() { return "LowerInstrumentation"; }
+  public final String getName() { return "LowerInstrumentation"; }
 
    /**
     * Finds all instrumented instructions and calls the appropriate code to 

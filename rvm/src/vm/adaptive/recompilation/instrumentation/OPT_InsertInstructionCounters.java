@@ -5,17 +5,12 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.adaptive.VM_Instrumentation;
-import com.ibm.JikesRVM.adaptive.VM_AOSDatabase;
-import com.ibm.JikesRVM.adaptive.VM_StringEventCounterData;
+import com.ibm.JikesRVM.adaptive.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Vector;
 import java.util.Enumeration;
 
 /** 
- *
- * OPT_InsertInstructionCounters.java
- *
  * The following OPT phase inserts counters on all instructions in the
  * IR.  It maintians one counter for each operand type, so it output
  * how many loads were executed, how many int_add's etc.  This is
@@ -25,17 +20,15 @@ import java.util.Enumeration;
  * NOT reflect any changes to the code that occur after HIR.
  * 
  * @author Matthew Arnold 
- *
- **/
-
+ */
 class OPT_InsertInstructionCounters  extends OPT_CompilerPhase
   implements OPT_Operators, VM_Constants, OPT_Constants {
 
-   static final boolean DEBUG = false;
+  static final boolean DEBUG = false;
 
   public final boolean shouldPerform(OPT_Options options) {
-     return options.INSERT_INSTRUCTION_COUNTERS;
-   }
+    return VM_Controller.options.INSERT_INSTRUCTION_COUNTERS;
+  }
 
   public final String getName() { return "InsertInstructionCounters"; }
 
