@@ -1,5 +1,13 @@
 #!/bin/sh
 
+# 
+# (C) Copyright IBM Corp. 2003
+#
+# $Id$
+#
+# @author Julian Dolby
+#
+
 . $RVM_BUILD/environment
 
 cd $ECLIPSE_INSTALL_DIR
