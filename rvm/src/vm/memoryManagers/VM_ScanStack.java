@@ -114,17 +114,6 @@ public class VM_ScanStack
 
     if ( fp != STACKFRAME_SENTINAL_FP) {
 
-    if (VM.VerifyAssertions) {
-      if (t.hardwareExceptionRegisters.inuse) {
-	VM.sysWrite("VM_ScanStack: Unexpected hardwareExceptionRegisters.inuse!\n");
-	VM.sysWrite("Thread id "); VM.sysWrite(t.getIndex(),false);
-	VM.sysWrite(" during GC ");
-	VM.sysWrite(VM_Collector.collectionCount()+1,false);
-	VM.sysWrite("\n");
-	VM_Scheduler.dumpStack( ip, fp );
-      }
-    }
-
     if (DUMP_STACK_REFS) {
       VM_Scheduler.dumpStack( ip, fp ); VM.sysWrite("\n");
     }
