@@ -317,7 +317,7 @@ public class VM_Allocator extends VM_GCStatistics
   private static VM_BootHeap bootHeap         = new VM_BootHeap();
   private static VM_ContiguousHeap fromHeap   = new VM_ContiguousHeap("Small Object Heap 1");
   private static VM_ContiguousHeap toHeap     = new VM_ContiguousHeap("Small Object Heap 2");
-  private static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
+          static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap       = new VM_LargeHeap(immortalHeap);
 
   static boolean gcInProgress;      // true if collection in progress, initially false

@@ -286,7 +286,7 @@ public class VM_Allocator extends VM_GCStatistics
 
   private static VM_BootHeap bootHeap            = new VM_BootHeap();
   private static VM_ContiguousHeap nurseryHeap   = new VM_ContiguousHeap("Nursery Heap");
-  private static VM_ImmortalHeap immortalHeap    = new VM_ImmortalHeap();
+          static VM_ImmortalHeap immortalHeap    = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap          = new VM_LargeHeap(immortalHeap);
   private static VM_MallocHeap mallocHeap        = new VM_MallocHeap();
   private static VM_SegregatedListHeap smallHeap = new VM_SegregatedListHeap("Small Object Heap", mallocHeap);

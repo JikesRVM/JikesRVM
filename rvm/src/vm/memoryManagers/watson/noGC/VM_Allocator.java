@@ -16,7 +16,7 @@
  */
 public class VM_Allocator implements VM_Constants, VM_GCConstants {
   private static final VM_BootHeap bootHeap = new VM_BootHeap();   
-  private static final VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
+          static final VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
 
   static int verbose = 0; // control chattering during progress of GC
   

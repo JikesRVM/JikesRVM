@@ -391,7 +391,7 @@ public class VM_Allocator
   private static VM_ContiguousHeap fromHeap = new VM_ContiguousHeap("Mature Small Object Heap 1");
   private static VM_ContiguousHeap toHeap   = new VM_ContiguousHeap("Mature Small Object Heap 2");
   private static VM_ContiguousHeap nurseryHeap = new VM_ContiguousHeap("Nursery Heap");
-  private static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
+          static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap = new VM_LargeHeap(immortalHeap);
   private static VM_AppelHeap appelHeap = new VM_AppelHeap("Appel-style container heap");
   //-#if RVM_WITH_VARIABLE_NURSERY
