@@ -541,6 +541,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
   /**
    * Expansion of FLOAT_2INT and DOUBLE_2INT, using the FIST instruction.
+   * This expansion does some boolean logic and conditional moves in order
+   * to avoid changing the floating-point rounding mode or inserting
+   * branches.  Other expansions are possible, and may be better?
    * 
    * @param burs an OPT_BURS object
    * @param s the instruction to expand
@@ -565,16 +568,55 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_RegisterOperand jtocR = burs.ir.regpool.makeTempInt();
     burs.append(MIR_Move.create(IA32_MOV, jtocR, jtoc));
 
-    // Convert FP0 to an integer and store in sl
+    // Convert FP0 to an integer (round-toward nearest) and store in sl
     burs.append(MIR_Move.create(IA32_FIST, sl, D(getFPR(0))));
 
+    // isPositive == 1 iff FP(0) > 0.0
+    // isNegative == 1 iff FP(0) < 0.0
+    OPT_RegisterOperand isPositive = burs.ir.regpool.makeTempInt();
+    OPT_RegisterOperand isNegative = burs.ir.regpool.makeTempInt();
+    OPT_RegisterOperand dZero = burs.ir.regpool.makeTempDouble();
+    OPT_RegisterOperand one = burs.ir.regpool.makeTempInt();
+    burs.append(MIR_Move.create(IA32_MOV, one, I(1)));
+    burs.append(MIR_Move.create(IA32_MOV, isPositive, I(0)));
+    burs.append(MIR_Move.create(IA32_MOV, isNegative, I(0)));
+    OPT_Operand M = OPT_MemoryOperand.BD(jtocR,
+                                         VM_Entrypoints.zeroDoubleOffset, 
+                                         QW, null, null);
+    burs.append(MIR_Move.create(IA32_FMOV, dZero, M));
+    burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), dZero.copy()));
+    burs.append(MIR_CondMove.create(IA32_CMOV, isPositive, one.copy(),
+                                    OPT_IA32ConditionOperand.LGT()));
+    burs.append(MIR_CondMove.create(IA32_CMOV, isNegative, one.copy(),
+                                    OPT_IA32ConditionOperand.LLT()));
+    // push round(x) into FP(0).
+    burs.append(MIR_Move.create(IA32_FILD, D(getFPR(0)), sl));
+    // addee == 1 iff round(x) < x
+    // subtractee == 1 iff round(x) > x
+    burs.append(MIR_Compare.create(IA32_FCOMIP, D(getFPR(0)),
+                                   D(getFPR(1))));
+    OPT_RegisterOperand addee = burs.ir.regpool.makeTempInt();
+    OPT_RegisterOperand subtractee = burs.ir.regpool.makeTempInt();
+    burs.append(MIR_Move.create(IA32_MOV, addee , I(0)));
+    burs.append(MIR_Move.create(IA32_MOV, subtractee , I(0)));
+    burs.append(MIR_CondMove.create(IA32_CMOV, addee, one.copy(),
+                                    OPT_IA32ConditionOperand.LLT()));
+    burs.append(MIR_CondMove.create(IA32_CMOV, subtractee, one.copy(),
+                                    OPT_IA32ConditionOperand.LGT()));
     // result := sl
     burs.append(MIR_Move.create(IA32_MOV, result, sl)); 
     
+    // Now a little tricky part.
+    // We will add 1 iff isNegative and x > round(x)
+    // We will subtract 1 iff isPositive and x < round(x)
+    burs.append(MIR_BinaryAcc.create(IA32_AND, addee, isNegative)); 
+    burs.append(MIR_BinaryAcc.create(IA32_AND, subtractee, isPositive)); 
+    burs.append(MIR_BinaryAcc.create(IA32_ADD, result, addee)); 
+    burs.append(MIR_BinaryAcc.create(IA32_SUB, result, subtractee)); 
+
     // Compare FP0 with (double)Integer.MAX_VALUE
-    OPT_Operand M = OPT_MemoryOperand.BD(jtocR,
-                                         VM_Entrypoints.maxintOffset,
-                                         QW, null, null);
+    M = OPT_MemoryOperand.BD(jtocR, VM_Entrypoints.maxintOffset, QW, 
+                             null, null);
     OPT_RegisterOperand fMaxInt = burs.ir.regpool.makeTempDouble();
     burs.append(MIR_Move.create(IA32_FMOV, fMaxInt, M));
     burs.append(MIR_Compare.create(IA32_FCOMI, D(getFPR(0)), fMaxInt));
