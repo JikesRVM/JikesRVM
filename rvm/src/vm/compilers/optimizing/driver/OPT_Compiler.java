@@ -102,24 +102,24 @@ public class OPT_Compiler {
     options.TURN_WHILES_INTO_UNTILS = false;
     options.GCSE=false;
 	 
-    // Pre-existence based inlining isn't supported for bootimage writing
-    // to avoid needing to stick the dependency database in the bootimage
+    // Pre-existence based inlining isn't supported for bootimage writing.
     // Similarly, we need to avoid IG_CODE_PATCH (uses same dependency database)
-    // TODO: fix this silliness and support these optimizations at bootimage writing time!
+    // The problem is that some subset of bootimage methods can't be safely invalidated.
+    // If a method that is executed when GC is disabled becomes invalid, we are unable
+    // to invalidate it (since we can't recompile it the next time it is called).
+    // We could work around this by doing eager recompilation of invalidated bootimage
+    // methods, but for now simply give up on these optimizations when writing the bootimage.
     options.PREEX_INLINE = false;
     options.INLINING_GUARD = OPT_Options.IG_METHOD_TEST;
 
-    // We currently don't know where the JTOC is going to end up
-    // while we're compiling at bootimage writing 
-    // (not until the image is actually built and we're pickling it
-    //  does the current bootimage writer know where the JTOC will end up).
-    // TODO: Fix the bootimage writer so that the jtoc can be found at a 
-    // known location from the bootrecord.  Possibly by making the bootrecord
-    // reachable from a JTOC slot and then making the jtoc be the very first object
-    // in the bootimage (cost would be that at booting we would have 1 extra load 
-    // to acquire the bootrecord address from its jtoc slot).
+    // Setting this to true causes OptOptSemispace image to die
+    // most of the way through booting. We've gone through the 
+    // JTOC thousands of times before we get to the failure point, so
+    // I suspect it is another opt compiler bug.  Looking into it 
+    // further now.... --dave
+    // NOTE: other than that bug, fixed_jtoc is ready to go for bootimage.
     options.FIXED_JTOC = false;
-
+    
     // Compute summaries of bootimage methods if we haven't encountered them yet.
     // Does not handle unimplemented magics very well; disable until
     // we can get a chance to either implement them on IA32 or fix the 
