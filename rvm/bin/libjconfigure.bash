@@ -319,15 +319,17 @@ function echo() {
     else
 	midline=0
     fi
+    : ${num_echos=0}		# Workaround Bash 2.05b bug.
     let ++num_echos
 }
 
 declare -i opened_at=0;
 function open_paren() {
     echo -n "($*... "
-    opened_at=num_echos;
+    opened_at=$num_echos;
 }
 function close_paren() {
+    : ${num_echos=0} ${opened_at=0} # Work around bug in Bash 2.05b
     if (( opened_at < num_echos )); then
 	cleanline
 	echo -n "..."
@@ -337,6 +339,7 @@ function close_paren() {
 
 ## Print out a clean line.
 function cleanline() {
+    : ${midline=0}		# Work around Bash 2.05b bug.
     if ((midline)); then
 	echo ""
     fi
