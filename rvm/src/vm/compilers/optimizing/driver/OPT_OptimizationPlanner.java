@@ -423,6 +423,8 @@ class OPT_OptimizationPlanner {
       new OPT_SplitLiveRanges(),
       // MANDATORY: Expand calling convention
       new OPT_ExpandCallingConvention(),
+      // MANDATORY: Insert defs/uses due to floating-point stack
+      new OPT_ExpandFPRStackConvention(),
       // MANDATORY: Perform Live analysis and create GC maps
       new OPT_LiveAnalysis(true, false),
       // MANDATORY: Perform register allocation
