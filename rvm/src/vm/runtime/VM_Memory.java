@@ -525,11 +525,11 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
   /**
    * Do mmap general memory mapping call.
    * Please consult your system's mmap system call documentation for semantics.
-   * @param start of address range (Address)
-   * @param size of address range
-   * @param protection 
+   * @param address Start of address range (Address)
+   * @param size    Size of address range
+   * @param prot    Protection 
    * @param flags
-   * @param fd 
+   * @param fd      File descriptor
    * @param offset
    * @return Address (of region) if successful; errno (1 to 127) otherwise
    */
@@ -622,7 +622,7 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
 
   /**
    * Do msync system call
-   * @param address Address of address range ({@link #Address})
+   * @param address Address of address range ({@link Address})
    * @param size Size of address range 
    * @param flags (int)
    * @return true iff success
