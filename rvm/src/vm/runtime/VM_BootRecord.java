@@ -208,6 +208,9 @@ public class VM_BootRecord {
   public Address sysExitIP;                     
   public Address sysArgIP;
 
+  // misc. info on the process -- used in startup/shutdown
+  public Address sysGetenvIP;
+
   // memory
   public Address sysCopyIP;         
   public Address sysFillIP;

@@ -42,6 +42,11 @@ public class VM_SysCall implements Uninterruptible {
   public static void sysExit(int value) {}
   public static int sysArg(int argno, byte[] buf, int buflen) { return 0; }
 
+  // misc. info on the process -- used in startup/shutdown
+  public static int sysGetenv(byte[] varName, byte[] buf, int limit) {
+    return -2;
+  }
+
   // memory
   public static void sysCopy(Address dst, Address src, int cnt) {}
   public static void sysFill(Address dst, int pattern, int cnt) {}
