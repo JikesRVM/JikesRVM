@@ -5,12 +5,14 @@
 ## Copyright © IBM Corp. 2003
 ##
 ## $Id$
-
-
+##
 ## Parse the output of "ps -ef" so that we have an array that records the
 ## parent/child relationships of all processes in the "ps" output.  Use
 ## that information to determine which processes are descendants of the
 ## command-line arguments. 
+##
+## @author Steven Augart
+## @date 11 October 2003
 
 BEGIN {
     ## Every argument process ID # gets put on death row.
