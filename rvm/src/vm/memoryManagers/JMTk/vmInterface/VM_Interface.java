@@ -746,20 +746,42 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     if (type.isClassType()) {
       VM_Class classType = type.asClass();
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
+      int align = VM_ObjectModel.getAlignment(classType, fromObj);
+      int offset = VM_ObjectModel.getOffsetForAlignment(classType, fromObj);
+      int rawSize = (align != BYTES_IN_ADDRESS) ? (numBytes + align) : numBytes;
       forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
-      VM_Address region = plan.allocCopy(VM_Magic.objectAsAddress(fromObj), numBytes, true);
+      VM_Address region = plan.allocCopy(VM_Magic.objectAsAddress(fromObj), rawSize, true);
+      if (align != BYTES_IN_ADDRESS) {
+        // This code is based on some fancy modulo artihmetic.
+        // It ensures the property (region + offset) % alignment == 0
+        VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
+        VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
+        VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
+        region = region.add(delta);
+      }
       Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
-      plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, numBytes, true);
+      plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, rawSize, true);
       toRef = VM_Magic.objectAsAddress(toObj);
       Statistics.profileCopy(fromObj, numBytes, tib);
     } else {
       VM_Array arrayType = type.asArray();
       int numElements = VM_Magic.getArrayLength(fromObj);
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
+      int align = VM_ObjectModel.getAlignment(arrayType, fromObj);
+      int offset = VM_ObjectModel.getOffsetForAlignment(arrayType, fromObj);
+      int rawSize = (align != BYTES_IN_ADDRESS) ? (numBytes + align) : numBytes;
       forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
-      VM_Address region = getPlan().allocCopy(VM_Magic.objectAsAddress(fromObj), numBytes, false);
+      VM_Address region = getPlan().allocCopy(VM_Magic.objectAsAddress(fromObj), rawSize, false);
+      if (align != BYTES_IN_ADDRESS) {
+        // This code is based on some fancy modulo artihmetic.
+        // It ensures the property (region + offset) % alignment == 0
+        VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
+        VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
+        VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
+        region = region.add(delta);
+      }
       Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
-      plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, numBytes, false);
+      plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, rawSize, false);
       toRef = VM_Magic.objectAsAddress(toObj);
       if (arrayType == VM_Type.CodeArrayType) {
 	// sync all moved code arrays to get icache and dcache in sync immediately.

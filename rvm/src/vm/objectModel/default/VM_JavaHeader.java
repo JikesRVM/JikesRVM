@@ -144,7 +144,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     int size = type.getInstanceSize();
     if (ADDRESS_BASED_HASHING) {
       int hashState = VM_Magic.getIntAtOffset(fromObj, STATUS_OFFSET) & HASH_STATE_MASK;
-      if (hashState != HASH_STATE_UNHASHED && !VM.BuildFor64Addr) {
+      if (hashState != HASH_STATE_UNHASHED) {
 	size += HASHCODE_BYTES;
       }
     }
@@ -454,37 +454,89 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
 
   /**
-   * Return the desired aligment of the alignment point in the object returned
-   * by getScalarOffsetForAlignment.
-   * @param cls the VM_Class of the instance being created
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Class.
+   * @param t VM_Class instance being created
    */
-  public static int getAlignment(VM_Class cls) {
+  public static int getAlignment(VM_Class t) {
     return BYTES_IN_ADDRESS;
   }
 
   /**
-   * Return the desired aligment of the alignment point in the object returned
-   * by getArrayOffsetForAlignment.
-   * @param array  VM_Array of the instance being created
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Class.
+   * @param t VM_Class instance being copied
+   * @param obj the object being copied
    */
-  public static int getAlignment(VM_Array array) {
+  public static int getAlignment(VM_Class t, Object obj) {
     return BYTES_IN_ADDRESS;
   }
 
   /**
-   * Return the offset relative to physical beginning of object that must meet natural alignment.
-   * @param cls the VM_Class of the instance being created
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Array.
+   * @param t VM_Array instance being created
    */
-  public static int getOffsetForAlignment(VM_Class cls) {
-    return cls.getInstanceSize(); // TIB is at the end
+  public static int getAlignment(VM_Array t) {
+    return BYTES_IN_ADDRESS;
   }
 
   /**
-   * Return the offset relative to physical beginning of object that must meet natural alignment.
-   * @param array  VM_Array of the instance being created
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Array.
+   * @param t VM_Array instance being copied
+   * @param obj the object being copied
    */
-  public static int getOffsetForAlignment(VM_Array array) {
+  public static int getAlignment(VM_Array t, Object obj) {
+    return BYTES_IN_ADDRESS;
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object
+   * that must be aligned.
+   * @param t VM_Class instance being created
+   */
+  public static int getOffsetForAlignment(VM_Class t) {
+    return t.getInstanceSize(); // TIB is at the end
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object
+   * that must be aligned.
+   * @param t VM_Class instance being copied
+   * @param obj the object being copied
+   */
+  public static int getOffsetForAlignment(VM_Class t, VM_Address obj) {
+    // TIB is at end and HASHCODE (if present) is to right of TIB
+    return t.getInstanceSize();
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object that must
+   * be aligned.
+   * @param t VM_Array instance being created
+   */
+  public static int getOffsetForAlignment(VM_Array t) {
     return ARRAY_HEADER_SIZE; // TIB is at end of header
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object that must
+   * be aligned.
+   * @param t VM_Array instance being copied
+   * @param obj the object being copied
+   */
+  public static int getOffsetForAlignment(VM_Array t, VM_Address obj) {
+    if (ADDRESS_BASED_HASHING) {
+      int hashState = VM_Magic.getIntAtOffset(obj, STATUS_OFFSET) & HASH_STATE_MASK;
+      if (hashState == HASH_STATE_UNHASHED) {
+        return ARRAY_HEADER_SIZE;
+      } else {
+        return ARRAY_HEADER_SIZE + HASHCODE_BYTES;
+      }
+    } else {
+      return ARRAY_HEADER_SIZE;
+    }
   }
 
   /**

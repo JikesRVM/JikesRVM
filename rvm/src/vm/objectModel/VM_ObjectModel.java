@@ -459,8 +459,8 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   }
 
   /**
-   * Return the desired aligment of the alignment point in the object returned
-   * by getScalarOffsetForAlignment.
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Class.
    * @param t VM_Class instance being created
    */
   public static int getAlignment(VM_Class t) {
@@ -468,8 +468,18 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   }
 
   /**
-   * Return the desired aligment of the alignment point in the object returned
-   * by getArrayOffsetForAlignment.
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Class.
+   * @param t VM_Class instance being copied
+   * @param obj the object being copied
+   */
+  public static int getAlignment(VM_Class t, Object obj) {
+    return VM_JavaHeader.getAlignment(t, obj);
+  }
+
+  /**
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Array.
    * @param t VM_Array instance being created
    */
   public static int getAlignment(VM_Array t) {
@@ -477,7 +487,18 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   }
 
   /**
-   * Return the offset relative to physical beginning of object that must meet natural alignment.
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Array.
+   * @param t VM_Array instance being copied
+   * @param obj the object being copied
+   */
+  public static int getAlignment(VM_Array t, Object obj) {
+    return VM_JavaHeader.getAlignment(t, obj);
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object
+   * that must be aligned.
    * @param t VM_Class instance being created
    */
   public static int getOffsetForAlignment(VM_Class t) {
@@ -485,11 +506,32 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   }
 
   /**
-   * Return the offset relative to physical beginning of object that must meet natural alignment.
+   * Return the offset relative to physical beginning of object
+   * that must be aligned.
+   * @param t VM_Class instance being copied
+   * @param obj the object being copied
+   */
+  public static int getOffsetForAlignment(VM_Class t, VM_Address obj) {
+    return VM_JavaHeader.getOffsetForAlignment(t, obj);
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object that must
+   * be aligned.
    * @param t VM_Array instance being created
    */
   public static int getOffsetForAlignment(VM_Array t) {
     return VM_JavaHeader.getOffsetForAlignment(t);
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object that must
+   * be aligned.
+   * @param t VM_Array instance being copied
+   * @param obj the object being copied
+   */
+  public static int getOffsetForAlignment(VM_Array t, VM_Address obj) {
+    return VM_JavaHeader.getOffsetForAlignment(t, obj);
   }
 
   /**
