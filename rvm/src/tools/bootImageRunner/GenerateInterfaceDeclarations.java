@@ -704,6 +704,8 @@ class GenerateInterfaceDeclarations {
         + VM.EXIT_STATUS_UNEXPECTED_CALL_TO_SYS + ";");
     pln("const int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION        = "
         + VM.EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION + ";");
+    pln("const int EXIT_STATUS_HPM_TROUBLE                          = "
+        + VM.EXIT_STATUS_HPM_TROUBLE + ";");
     pln("const int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG               = "
         + VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG + ";");
     pln("const int EXIT_STATUS_JNI_TROUBLE                          = "
