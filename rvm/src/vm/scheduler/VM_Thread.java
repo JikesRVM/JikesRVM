@@ -292,13 +292,6 @@ VM_Uninterruptible {
       VM_CompiledMethod ypTakenInCM = 
         VM_ClassLoader.getCompiledMethod(ypTakenInCMID);
 
-      if (ypTakenInCM == null) {
-        VM.sysWrite("Found a cmid (");
-        VM.sysWrite(ypTakenInCMID, false);
-        VM.sysWrite(") with a null compiled method, exiting");
-        throw new RuntimeException();
-      }
-
       // Check for one of the following:
       //    Caller is top-of-stack psuedo-frame
       //    Caller is out-of-line assembly (no VM_Method object)
@@ -314,23 +307,6 @@ VM_Uninterruptible {
       if (VM_RuntimeMeasurements.hasMethodListener()){
         // set the Caller CMID to -1 if invalid
         if (!ypTakenInCallerCMIDValid) ypTakenInCallerCMID = -1;  
-
-        if (ypTakenInCallerCMID != -1) {
-          if (VM_ClassLoader.getCompiledMethod(ypTakenInCallerCMID) == null) {
-            VM.sysWrite("Found a caller cmid (");
-            VM.sysWrite(ypTakenInCallerCMID, false);
-            VM.sysWrite(") with a null compiled method, exiting");
-            throw new RuntimeException();
-          }
-        }
-
-        if (VM_ClassLoader.getCompiledMethod(ypTakenInCMID) == null) {
-          VM.sysWrite("Found a cmid (");
-          VM.sysWrite(ypTakenInCMID, false);
-          VM.sysWrite(") with a null compiled method, exiting");
-          throw new RuntimeException();
-        }
-
         VM_RuntimeMeasurements.activateMethodListeners(ypTakenInCMID,
                                                        ypTakenInCallerCMID, 
                                                        whereFrom);

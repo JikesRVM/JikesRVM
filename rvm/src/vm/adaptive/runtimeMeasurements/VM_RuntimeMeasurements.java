@@ -145,22 +145,6 @@ abstract class VM_RuntimeMeasurements implements VM_Uninterruptible {
    */
   private static int activateMethodListeners_count = 0;
   static void activateMethodListeners(int cmid, int callerCmid, int whereFrom) {
-
-	if (callerCmid != -1) {
-      if (VM_ClassLoader.getCompiledMethod(callerCmid) == null) {
-	VM.sysWrite("VM_RuntimeMeasurements.activateMLs: callerCmid (");
-	VM.sysWrite(callerCmid, false);
-	VM.sysWrite(") is null, exiting\n");
-	throw new RuntimeException();
-      }}
-
-      if (VM_ClassLoader.getCompiledMethod(cmid) == null) {
-	VM.sysWrite("VM_RuntimeMeasurements.activateMLs: cmid (");
-	VM.sysWrite(cmid, false);
-	VM.sysWrite(") is null, exiting\n");
-	throw new RuntimeException();
-      }
-
     activateMethodListeners_count++;     
     VM_MethodListener[] tmp = methodListeners; // side-step dangerous race condition
     for (int i=0; i<tmp.length; i++) {
