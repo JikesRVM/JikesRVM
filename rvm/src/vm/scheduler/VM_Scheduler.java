@@ -87,10 +87,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   public static VM_ThreadQueue       finalizerQueue;      // Finalizer thread waits here when idle
   public static VM_ProcessorLock     finalizerMutex;
 
-  // JNI external thread service
-  public static VM_ThreadQueue       attachThreadQueue;   // thread waiting to service external thread attach
-  public static VM_ProcessorLock     attachThreadMutex;
-
   // Debugging output.
   //
   // DEPRECATED! use lockOutput() and unlock Output() instead
@@ -105,12 +101,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   // See also: RunBootImage.C
   //
   public static boolean debugRequested;
-
-  // Flag set by AttachCurrentThread (libjni.C) to request new Java thread
-  // and native VM_Processor for an external pthread
-  // A non-zero value stored here is a pointer to an integer array that 
-  // contains the necessary arguments
-  public static VM_Address attachThreadRequested;
 
   // Trace flags.
   //
@@ -226,9 +216,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     debuggerQueue   = new VM_ThreadQueue();
     debuggerMutex   = new VM_ProcessorLock();
 
-    attachThreadQueue = new VM_ThreadQueue();
-    attachThreadMutex = new VM_ProcessorLock();
-
     collectorQueue  = new VM_ThreadQueue();
     collectorMutex  = new VM_ProcessorLock();
 
@@ -248,7 +235,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     }
 
     // JNI support
-    attachThreadRequested = VM_Address.zero();
     terminated = false;         
 
     // the one we're running on

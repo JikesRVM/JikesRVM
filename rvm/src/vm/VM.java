@@ -1128,7 +1128,6 @@ public class VM extends VM_Properties implements VM_Constants,
 
     // initialize remaining subsystems needed for compilation
     //
-    VM_Entrypoints.init();
     VM_OutOfLineMachineCode.init();
     if (writingBootImage) // initialize compiler that builds boot image
       VM_BootImageCompiler.init(bootCompilerArgs);

@@ -18,7 +18,7 @@ import com.ibm.JikesRVM.classloader.*;
  *
  * <p> Note #1: If you add, remove, or change the signature of 
  * any of these methods,
- * you must change VM_Entrypoints.init() to match.
+ * you must change VM_Entrypoints to match.
  *
  * <p> Note #2: Code here must be carefully written to be gc-safe 
  * while manipulating
@@ -750,11 +750,6 @@ public class VM_Runtime implements VM_Constants {
     //
     VM_BootRecord.the_boot_record.debugRequestedOffset = 
       VM_Entrypoints.debugRequestedField.getOffset();
-
-    // for "libjni.C" to make AttachCurrentThread request
-    VM_BootRecord.the_boot_record.attachThreadRequestedOffset = 
-      VM_Entrypoints.attachThreadRequestedField.getOffset();
-
   }
 
   /**

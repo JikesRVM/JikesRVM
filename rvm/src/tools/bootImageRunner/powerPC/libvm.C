@@ -99,7 +99,6 @@ int DumpStackAndDieOffset;           // TOC offset of VM_Scheduler.dumpStackAndD
 static int ProcessorsOffset;                // TOC offset of VM_Scheduler.processors[]
 int ThreadsOffset;                   // TOC offset of VM_Scheduler.threads[]
 int DebugRequestedOffset;            // TOC offset of VM_Scheduler.debugRequested
-int AttachThreadRequestedOffset;     // TOC offset of VM_Scheduler.attachThreadRequested
 
 typedef void (*SIGNAL_HANDLER)(int);  // Standard unix signal handler.
 pthread_t vm_pthreadid;               // pthread id of the main RVM pthread
@@ -766,13 +765,12 @@ int createJVM(int vmInSeparateThread) {
    HardwareTrapMethodId           = bootRecord.hardwareTrapMethodId;
 
    // remember JTOC offset of VM_Scheduler.dumpStackAndDie, VM_Scheduler.processors[],
-   //    VM_Scheduler.threads[], VM_Scheduler.DebugRequested, VM_Scheduler.attachThreadRequested
+   //    VM_Scheduler.threads[], VM_Scheduler.DebugRequested
    //
    DumpStackAndDieOffset = bootRecord.dumpStackAndDieOffset;
    ProcessorsOffset = bootRecord.processorsOffset;
    ThreadsOffset = bootRecord.threadsOffset;
    DebugRequestedOffset = bootRecord.debugRequestedOffset;
-   AttachThreadRequestedOffset = bootRecord.attachThreadRequestedOffset;
    
    if (lib_verbose) {
 #ifdef RVM_FOR_32_ADDR

@@ -186,13 +186,6 @@ public class VM_BootRecord {
    */
   int externalSignalFlag;             
 
-  // Support for JNI Native functions
-  //
-  /**
-   * jtoc offset of VM_Scheduler.attachThreadRequested
-   */
-  int attachThreadRequestedOffset;    
-
   // Host operating system entrypoints - see "sys.C"
   //
 
