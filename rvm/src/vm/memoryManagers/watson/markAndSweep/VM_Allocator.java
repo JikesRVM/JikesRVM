@@ -60,8 +60,6 @@ public class VM_Allocator implements VM_Constants,
 
   static final int GC_RETRY_COUNT = 3;             // number of times to GC before giving up
 
-  static final boolean COMPILE_FOR_TIMING_RUN = true;   // touch heap in boot
-
   static final boolean TIME_GC_PHASES            = VM_CollectorThread.TIME_GC_PHASES; 
   static final boolean GC_PARALLEL_FREE_BLOCKS   = true;
   static final boolean RENDEZVOUS_TIMES          = false;
@@ -122,8 +120,6 @@ public class VM_Allocator implements VM_Constants,
   private static VM_ImmortalHeap immortalHeap    = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap          = new VM_LargeHeap(immortalHeap);
 
-  static VM_BootRecord   bootrecord;
- 
   static int markboot_count = 0;  // counter of objects marked in the boot image
   static int total_markboot_count = 0;  // counter of times markboot called
 
@@ -152,8 +148,7 @@ public class VM_Allocator implements VM_Constants,
   }
 
 
-  static void boot (VM_BootRecord thebootrecord) {
-    bootrecord = thebootrecord;  
+  static void boot (VM_BootRecord bootrecord) {
     verbose = bootrecord.verboseGC;
 
     int smallHeapSize = bootrecord.smallSpaceSize;
@@ -163,18 +158,11 @@ public class VM_Allocator implements VM_Constants,
 					     ((int) (0.05 * smallHeapSize)) + 
 					     4 * VM_Memory.getPagesize());
 
-    VM_Heap.boot(bootHeap, thebootrecord);
+    VM_Heap.boot(bootHeap, bootrecord);
     immortalHeap.attach(immortalSize);
     largeHeap.attach(bootrecord.largeSpaceSize);
     smallHeap.attach(smallHeapSize);
     mallocHeap.attach(bootrecord);
-
-    // now touch all the pages in the heap, when 
-    // preparing for a timing run to avoid cost of page fault during timing
-    if (COMPILE_FOR_TIMING_RUN) {
-      largeHeap.touchPages();
-      smallHeap.touchPages();
-    }
 
     VM_Processor st = VM_Scheduler.processors[VM_Scheduler.PRIMORDIAL_PROCESSOR_ID];
     smallHeap.boot(st, immortalHeap);
@@ -337,7 +325,6 @@ public class VM_Allocator implements VM_Constants,
 	  VM_Thread thr = vp.activeThread;
 	  thr.contextRegisters.setInnermost( VM_Address.zero(), thr.jniEnv.JNITopJavaFP );
 	}
-	
 	smallHeap.zeromarks(vp);		// reset mark bits for nonparticipating vps
       }
     }
@@ -569,8 +556,6 @@ public class VM_Allocator implements VM_Constants,
       VM.sysWrite(gcCount, "  collections ");
     }    
 
-    if (verbose >= 1 && GC_COUNT_BY_TYPES) printCountsByType();
-
     smallHeap.postCollectionReport();
     if (flag2nd) {
       VM_Scheduler.trace(" End of gc:", "flag2nd on");
@@ -703,6 +688,18 @@ public class VM_Allocator implements VM_Constants,
     return smallHeap.freeBlocks() * GC_BLOCKSIZE;
   }
 
+  /*
+   * Includes freeMemory and per-processor local storage
+   * and partial blocks in small heap.
+   */
+  public static long allSmallFreeMemory () {
+    return freeMemory() + smallHeap.partialBlockFreeMemory();
+  }
+
+  public static long allSmallUsableMemory () {
+    return smallHeap.getSize();
+  }
+
   private static void accumulateGCPhaseTimes () {
 
     double start    = gcStartTime - VM_CollectorThread.gcBarrier.rendezvousStartTime;
@@ -759,47 +756,10 @@ public class VM_Allocator implements VM_Constants,
   }
 
 
-  //  A routine to report number of live objects by type: numbers
-  //  collected in processPtrFieldValue at return from gc_setMarkSmall()
-  //
-    private  static void printCountsByType()  {
-
-	VM.sysWrite("  Counts of live objects by type \n");
-	int  nextId = VM_TypeDictionary.getNumValues();
-	int  totalObjects = 0, totalSpace = 0;
-	for (int i = 1; i < nextId; i++) {
-	    VM_Type type = VM_TypeDictionary.getValue(i);
-	    totalObjects += type.liveCount;
-	    if (type.liveCount == 0) continue;
-	    VM.sysWriteField(7, type.liveCount);
-	    VM.sysWrite(type.getDescriptor());
-	    if (type.isClassType() && type.isResolved()) {
-	      int size = type.asClass().getInstanceSize();
-	      VM.sysWrite ("  space is ", size * type.liveCount);
-	      totalSpace += size * type.liveCount;
-	    }
-	    else {
-		VM.sysWrite("   space is ", type.liveSpace);
-		totalSpace += type.liveSpace;
-	    }
-	    VM.sysWriteln();
-	    type.liveCount = 0;  // reset
-	    type.liveSpace = 0;  // reset
-	}
-	VM.sysWriteField(7, totalObjects);
-	VM.sysWrite ("Live objects   space is ", totalSpace, "\n");
-	VM.sysWrite("  End of counts of live objects by type \n");
-    } // printCountsByType
-
-
   public  static void printclass (VM_Address ref) {
     VM_Type  type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
     VM.sysWrite(type.getDescriptor());
   }
-
-/************  
-  Print Summaries routine removed: if needed, consult previous version
-**************/
 
   // Called from WriteBuffer code for generational collectors.
   // Argument is a modified old object which needs to be scanned
@@ -951,15 +911,6 @@ public class VM_Allocator implements VM_Constants,
 
     if (smallHeap.refInHeap(ref)) {
       if (!smallHeap.mark(ref)) {
-	if (GC_COUNT_BY_TYPES) {
-	  VM_Type type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
-	  type.liveCount++;
-	  if (type.isArrayType()) {
-	    int  num_elements = VM_Magic.getArrayLength(VM_Magic.addressAsObject(ref));
-	    int  full_size = type.asArray().getInstanceSize(num_elements);
-	    type.liveSpace+=  full_size;
-	  }
-	}
 	VM_GCWorkQueue.putToWorkBuffer(ref);
       }
       return ref;
