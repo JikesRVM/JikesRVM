@@ -10,7 +10,7 @@ import com.ibm.JikesRVM.*;
  * optimizng compiler.
  * <p>
  * Note: This file is mechanically generated from OPT_Options.template
- *       and MasterOptionsTemplate.template
+ *       and MasterOptions.template
  * <p>
  * Note: Boolean options are defined in BOOLEAN_DAT_FILES
  *       All other options are defined in VALUE_DAT_FILES
@@ -29,9 +29,9 @@ public class OPT_Options implements Cloneable {
   }
 
 $$$$ LET USE_OPT_LEVELS "YES"
-// BEGIN CODE GENERATED FROM MasterOptionsTemplate.template
-    $$$$ INCLUDE MasterOptionsTemplate.template
-// END CODE GENERATED FROM MasterOptionsTemplate.template
+// BEGIN CODE GENERATED FROM MasterOptions.template
+    $$$$ INCLUDE ../../utility/MasterOptions.template
+// END CODE GENERATED FROM MasterOptions.template
 $$$$ END LET USE_OPT_LEVELS
 
   private boolean instanceProcessAsOption(String arg) {

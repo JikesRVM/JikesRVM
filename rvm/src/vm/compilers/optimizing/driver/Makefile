@@ -12,16 +12,16 @@ include		$(RVM_ROOT)/rvm/build.Make.rules
 default: 	$(GEN_FILES_DIR)/OPT_Options.java 
 
 ifeq ($(IS_ADAPTIVE),1)
-BOOLEAN_DAT_FILES = BooleanOptions.dat ../../../adaptive/utility/SharedBooleanOptions.dat ../../baseline/SharedBooleanOptions.dat
-VALUE_DAT_FILES = ValueOptions.dat ../../../adaptive/utility/SharedValueOptions.dat ../../baseline/SharedValueOptions.dat
+BOOLEAN_DAT_FILES = BooleanOptions.dat ../../../adaptive/utility/SharedBooleanOptions.dat ../../utility/SharedBooleanOptions.dat
+VALUE_DAT_FILES = ValueOptions.dat ../../../adaptive/utility/SharedValueOptions.dat ../../utility/SharedValueOptions.dat
 else
-BOOLEAN_DAT_FILES = BooleanOptions.dat ../../baseline/SharedBooleanOptions.dat
-VALUE_DAT_FILES = ValueOptions.dat ../../baseline/SharedValueOptions.dat
+BOOLEAN_DAT_FILES = BooleanOptions.dat ../../utility/SharedBooleanOptions.dat
+VALUE_DAT_FILES = ValueOptions.dat ../../utility/SharedValueOptions.dat
 endif
 
 
 $(GEN_FILES_DIR)/OPT_Options.java:	OPT_Options.template \
-					MasterOptionsTemplate.template \
+					../../utility/MasterOptions.template \
 					$(BOOLEAN_DAT_FILES) \
 					$(VALUE_DAT_FILES)
 	$(HOST_JAVA) -classpath $(SCRATCH_DIR) \
