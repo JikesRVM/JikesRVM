@@ -7,9 +7,6 @@
 \W\usepackage{longtable}
 \W\usepackage{jframes}
 
-\T \newcommand{\trademark}{\ }
-\W \newcommand{\trademark}{\xmlsym{##8482}\ }
-
 %%%% These are grammatical commands.
 \newcommand{\Mor}{{\bf \tt |}}  %meta-Or
 \newcommand{\Mlbr}{{\bf \{}}    %left-brace
@@ -22,65 +19,10 @@
 \newcommand{\Mlitch}[1]{{ \bf ``{\tt #1}''}} %literal char or txt
 \newcommand{\MZeroOrMore}[1]{{\(\Mlsq\mbox{#1}\Mrsq_+\)}}
 
-
-\newcommand{\JikesTMFootnote}{{\texonly \texttrademark}{\htmlonly
-\trademark}\texonly{\footnote{{\bf Jikes} is a
-trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}}}
-
-\newcommand{\JikesTMFooter}{\W \hline {\small {\bf Jikes} is a
-trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}}
-
-\newcommand{\AIXTMFootnote}{{\texonly \texttrademark}{\htmlonly
-\trademark}\texonly{\footnote{{\bf AIX} is a
-trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}}}
-
-\newcommand{\AIXTMFooter}{\W \hline {\small {\bf AIX} is a
-trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}}
-
-\newcommand{\PowerPCTMFootnote}{{\texonly \texttrademark}{\htmlonly
-\trademark}\texonly{\footnote{{\bf PowerPC} is a
-trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}}}
-
-\newcommand{\PowerPCTMFooter}{\W \hline {\small {\bf PowerPC} is a
-trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}}
-
-\newcommand{\JavaTMFootnote}{{\texonly {\texttrademark}}{\htmlonly
-\trademark}\texonly{\footnote{\small {\bf Java} and all Java-based
-trademarks and 
-logos are trademarks or registered trademarks of Sun Microsystems,
-Inc.\ in the United States, other countries, or both.}}}
-
-\newcommand{\JavaTMFooter}{\W \hline {\small {\bf Java} and all Java-based trademarks and
-logos are trademarks or registered trademarks of Sun Microsystems,
-Inc.\ in the United States, other countries, or both.}}
-
-\newcommand{\AIXPPCTMFooter}{\W \hline {\small {\bf AIX} and {\bf
-PowerPC} are
-trademarks or registered trademarks of International Business Machines
-Corporation in the United States, other countries, or both.}}
-
-\newcommand{\JikesAIXTMFooter}{\W \hline {\small {\bf Jikes} and {\bf AIX} are
-trademarks or registered trademarks of International Business Machines
-Corporation in the United States, other countries, or both.}}
-
-\newcommand{\AIXPPCJikesTMFooter}{\W \hline {\small {\bf AIX}, {\bf
-PowerPC}, and {\bf Jikes} are
-trademarks or registered trademarks of International Business Machines
-Corporation in the United States, other countries, or both.}}
-
-%% I do not know how to get the (R) symbol, so we'll substitute with
-%% TM for now.
-\newcommand{\LinuxRegisteredTMFootnote}{{\texonly {\texttrademark}}{\htmlonly
-\trademark}\texonly{\footnote{\small {\bf Linux} is a registered
-      trademark of Linux Torvalds.}}}
-
-
+%%%
+%%% End of Meta-grammar symbols.
+%%% 
+\input{trademark-macros}
 
 
 %Define macros
@@ -103,7 +45,6 @@ Corporation in the United States, other countries, or both.}}
 \newcommand{\jp}{Jalape\~{n}o}
 \newcommand{\jrvm}{Jikes RVM}
 \newcommand{\ignore}[1]{{}}
-\newcommand{\spec}{SPECjvm98}
 \newcommand{\instruction}{\it}
 
 \newcommand{\RVMTarFile}{jikesrvm-{\version}.tar.gz}
@@ -247,6 +188,7 @@ Corporation in the United States, other countries, or both.}}
 \newcommand{\gnuMakeURL}{http://www.gnu.org/software/make/make.html}
 \newcommand{\gnuTarURL}{http://www.gnu.org/software/tar/tar.html}
 \newcommand{\jikesURL}{http://oss.software.ibm.com/developerworks/opensource/jikes}
+\newcommand{\jikesURLHyphenated}{http://oss.software.ibm.com/\-de\-ve\-l\-o\-per\-works/\-open\-source/\-jikes}
 \newcommand{\HyperlatexURL}{http://www.cs.ruu.nl/\~{}otfried/Hyperlatex/}
 \newcommand{\AIXJdkURL}{http://www.ibm.com/java/jdk/aix/index.html}
 \newcommand{\LinuxJdkURL}{http://www.ibm.com/java/jdk/aix/index.html}
@@ -303,9 +245,9 @@ Corporation in the United States, other countries, or both.}}
 \T \remarktrue
 \W \newcommand{\remark}[1]{}
 
-\title{\texonly{\vfill} {\huge The Jikes\JikesTMFootnote\ Research Virtual
-Machine
-\\
+%% \title{\texonly{\vfill} {\huge The Jikes\JikesTMFootnote\  % --augart
+\title{\texonly{\vfill} {\huge The \JikesTM{} 
+Research Virtual Machine \\
 User's Guide} \\ {\huge \version} \\ { } \texonly{\vfill} }
 
 \makeindex
@@ -317,7 +259,12 @@ User's Guide} \\ {\huge \version} \\ { } \texonly{\vfill} }
 
 \T \JikesTMFooter
 
-\T \newpage
+\T \ifthenelse{\boolean{TMOnOwnPage}}{
+   \T \newpage
+   \T \input{trademarks}
+   \T \cleardoublepage
+\T }{}
+
 \label{hlxtoc}
 \T \tableofcontents
 \T \listoffigures
@@ -342,7 +289,7 @@ User's Guide} \\ {\huge \version} \\ { } \texonly{\vfill} }
 \input{eclipse}
 
 \T \newpage
-\section{Overview of \jrvm\ Structure}
+\section{Overview of \jrvm{} Structure}
 \input{componentOverview}
 
 \T \newpage
@@ -443,4 +390,10 @@ User's Guide} \\ {\huge \version} \\ { } \texonly{\vfill} }
 \W \section*{\indexname}\label{hlxindex}
 \W \htmlprintindex
 \T \printindex
+
+%\ifthenelse{\boolean{TMOnOwnPage}}{
+  \W \input{trademarks}
+%}{
+%}
+
 \end{document}

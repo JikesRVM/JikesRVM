@@ -7,20 +7,20 @@ sections.
 
 \jrvm\ can be divided into the following major components:
 \begin{description}
-\item [Core runtime] (thread scheduler, class loader, library support,
+\item[Core runtime] (thread scheduler, class loader, library support,
 verifier, etc.) This component is responsible for 
 managing all the underlying data
 structures required to execute applications and interfacing with
 libraries.
 
-\item [Compilers] (baseline, optimizing, JNI) This component is
+\item[Compilers] (baseline, optimizing, JNI) This component is
 responsible for generating executable code from bytecodes.
 
-\item [Memory managers] This component is responsible for the
+\item[Memory managers] This component is responsible for the
 allocation and collection of objects during the execution of an
 application. 
 
-\item [Adaptive optimization system] This component is responsible
+\item[Adaptive optimization system] This component is responsible
 for profiling an executing application
 and judiciously using the optimizing compiler to
 improve its performance.
@@ -36,30 +36,30 @@ the unnamed package.
 There are currently eight packages in \jrvm. All classes are in
 one of these packages
 \begin{description}
-\item [com.ibm.JikesRVM] Classes for the core runtime, except for library
+\item[com.ibm.JikesRVM] Classes for the core runtime, except for library
 support.  This package also contains other classes that are not
 included in one of the other packages, such as the baseline and JNI
 compilers. 
 
-\item [com.ibm.JikesRVM.adaptive] Classes for the adaptive optimization system
+\item[com.ibm.JikesRVM.adaptive] Classes for the adaptive optimization system
 
-\item [com.ibm.JikesRVM.classloader] Implementation of classloaders
+\item[com.ibm.JikesRVM.classloader] Implementation of classloaders
 and associated data structures including the VM representation of classes,
 methods, etc. 
 
-\item [com.ibm.JikesRVM.memoryManagers.JMTk] Classes in the newer JMTk
+\item[com.ibm.JikesRVM.memoryManagers.JMTk] Classes in the newer JMTk
 (Java Memory Management Toolkit) collection of memory managers
 
-\item [com.ibm.JikesRVM.memoryManagers.vmInterface] Classes related to
+\item[com.ibm.JikesRVM.memoryManagers.vmInterface] Classes related to
 memory management that deal with the interface to the VM
 
-\item [com.ibm.JikesRVM.opt] Classes related to the optimizing
+\item[com.ibm.JikesRVM.opt] Classes related to the optimizing
 compiler, except for IR-related classes
 
-\item [com.ibm.JikesRVM.opt.ir] Classes related to the IR
+\item[com.ibm.JikesRVM.opt.ir] Classes related to the IR
 (intermediate representation) of the optimizing compiler
 
-\item [com.ibm.JikesRVM.OSR] Classes related to On-Stack-Replacement. 
+\item[com.ibm.JikesRVM.OSR] Classes related to On-Stack-Replacement. 
 
 \end{description}
 

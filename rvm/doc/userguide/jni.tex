@@ -4,17 +4,17 @@
 This section describes how Jikes RVM interfaces to native code. There
 are three major aspects of this support:
 \begin{description}
-\item [JNI Functions] This is the mechanism for transitioning from
+\item[JNI Functions] This is the mechanism for transitioning from
 native code into Java. Jikes RVM implements all but 3 of the
 functions defined by the 1.1 JNI specification. Jikes RVM implements
 some of the additional functions added by the 1.2 JNI
 specification.
-\item [Native methods] This is the mechanism for transitioning from
+\item[Native methods] This is the mechanism for transitioning from
 Java to native code. In addition to the normal mechanism used to
 invoke a native method, Jikes RVM also supports a more restricted
 syscall mechanism that is used internally by low-level VM code to
 invoke native code. 
-\item [Integration with n-to-m threading] Attempting to get Jikes RVM's
+\item[Integration with n-to-m threading] Attempting to get Jikes RVM's
 cooperative n-to-m threading model to work nicely (at all) with native
 code is a major challenge. We have gone through several major
 redesigns of the JNI support code and RVM thread system in the

@@ -26,18 +26,18 @@ method needs to be {\em initially\/} compiled.
 The files under {\tt \$RVM\_ROOT/rvm/src/vm/adaptive} are organized
 into the following five directories:
 \begin{description}
-\item [controller:] classes related to the controller thread, which is
+\item[controller:] classes related to the controller thread, which is
 the decision-making component in the adaptive system
 
-\item [database:] classes that contain information related to decisions
+\item[database:] classes that contain information related to decisions
 made by the adaptive system, as well as cumulative profile data
 
-\item [recompilation:]  classes related to the recompilation thread
+\item[recompilation:]  classes related to the recompilation thread
 
-\item [runtimeMeasurements:] classes related to gathering online
+\item[runtimeMeasurements:] classes related to gathering online
 profile information
 
-\item [utility:]  miscellaneous adaptive system classes, such as
+\item[utility:]  miscellaneous adaptive system classes, such as
 options, logging facilities, and data structures.
 \end{description}
 Further details are provided in the following subsections.
@@ -95,10 +95,10 @@ In addition to two interfaces and a static class ({\tt
 VM\_RuntimeMeasurements}),
 this directory contains three subdirectories:
 \begin{description}
-\item [instrumentation:] miscellaneous classes related to
+\item[instrumentation:] miscellaneous classes related to
 data collected from the instrumentation of methods.  
 
-\item [listeners:] classes that contain methods that 
+\item[listeners:] classes that contain methods that 
 are called when application samples,
 based on yield points, are taken.  These samples occur when a Java
 thread calls into the Jikes RVM scheduler to perform a context switch
@@ -113,7 +113,7 @@ VM\_MethodListener}}{\VMMethodListenerURL}) and call edge
 samples to aid in inlining decisions (\xlink{{\tt
 VM\_EdgeListener}}{\VMEdgeListenerURL}).  
 
-\item [organizers:]  classes related to separate Java threads that
+\item[organizers:]  classes related to separate Java threads that
 process samples or other raw profile data.  There may be many
 organizers active at the same time.
 For example, one organizer may process method samples 

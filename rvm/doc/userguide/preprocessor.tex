@@ -117,10 +117,31 @@ Usage: preprocessModifiedFiles [--help] [--trace]
 \subsection{Where It Is}
 
 The source code for the preprocessor is in {\tt
-rvm/src/tools/preprocessor}.  The Jikes RVM build process installs it
-as {\tt RVM\_BUILD/jbuild.prep}.  The preprocessing is done automatically
-during the build process.  The preprocessor is just an executable
-program; you can use it yourself for other projects without using the
-rest of Jikes RVM.
+  rvm/src/tools/preprocessor}.  The Jikes RVM build process installs a
+preprocessor executable for the host as as {\tt
+  RVM\_BUILD/jbuild.prep.host} and one for the target at {\tt
+  RVM\_BUILD/jbuild.prep.host}.  The preprocessing is done
+automatically during the build process.  The preprocessor is just an
+executable program; you can use it yourself for other projects without
+using the rest of Jikes RVM.
 
+
+\subsection{Why use a preprocessor?}
+
+Java has a conditional compilation idiom that tries to make up for its
+lack of a preprocessor.  In the idiom, a programmer can
+declare a {\tt final boolean} constant such as {\it on\_platform\_xyz}
+and then write {\tt if} statements using that constant, such as:
+\begin{example}
+if ({\it on\_platform\_xyz}) \{
+   doSomethingIOnlyNeedToDoForPlatformXYZ();
+\}    
+\end{example}
+
+This is a good substitute in many cases.  However, it doesn't work for
+Jikes RVM; we need to (for example) work with processor words in some of
+the code.  On some platforms they're 64 bits long (a Java {\tt long})
+and on some they're 32 bits long (a Java {\tt int}).  Java has no way,
+using the conditional compilation idiom, to write methods that return
+a {\tt long} in some situations and a {\tt int} in others.
 

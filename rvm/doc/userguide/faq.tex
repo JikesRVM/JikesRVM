@@ -1,5 +1,5 @@
 \begin{center}  
-{\bf Jikes\trademark RVM Frequently Asked Questions}
+{\bf \JikesTM{} RVM Frequently Asked Questions}
 \end{center}
 
 \subsection{General}
@@ -14,10 +14,10 @@ The Jikes Research Virtual Machine (Jikes RVM) is a software project
 designed to provide the academic and research communities with a
 flexible testbed that makes it possible to quickly prototype new
 virtual machine technologies and experiment with different design
-choices.  Jikes RVM executes Java\JavaTMFootnote\ programs useful for research on
+choices.  Jikes RVM executes \JavaTM\ programs useful for research on
 fundamental virtual machine design issues.
-It runs on the AIX\AIXTMFootnote/PowerPC\PowerPCTMFootnote,
-Linux\LinuxRegisteredTMFootnote{}/PowerPC and Linux/IA-32, 
+It runs on \AIXTM/\PowerPCTM,
+\LinuxR{}/PowerPC, and Linux/IA-32, 
 and exhibits industry-strength performance for many benchmark programs
 on these platforms.  Jikes RVM includes the latest VM
 technologies for dynamic compilation, adaptive optimization, garbage
@@ -145,10 +145,10 @@ is not compiled this way, Jikes RVM  will usually fail by 'hanging' when
 it is run.
 \end{itemize}                
 
-\subsubsection{Which jikes should I use?}
+\subsubsection{Which version of {\tt jikes} should I use?}
 At Watson, we're currently using \xlink{{\tt jikes}}{\jikesURL} v1.18
-to compile the RVM source on both Linux and
-AIX\AIXTMFootnote. Previously we were using version 1.13. Version 1.14
+to compile the RVM source on both \LinuxR and
+\AIXTM. Previously we were using version 1.13. Version 1.14
 through 1.17 have been reported to not entirely work with Jikes
 RVM. For versions of Jikes RVM before 2.2.0, you must use jikes 1.13.
 
@@ -192,7 +192,7 @@ No.  RVM relies on two compilers, and compiles all methods to native code.
 \subsubsection{Does RVM support JNI?}
 
 Most JNI functionality is supported. A few functions are not. 
-There are a few functions that are only supported on AIX\AIXTMFootnote
+There are a few functions that are only supported on \AIXTM
 and some other functions that are only supported on Linux/IA32.
 
 \subsubsection{Does RVM support user-defined class loaders?}
@@ -219,7 +219,7 @@ understanding.
 
 Known issues include:
 \begin{itemize}
-\item on PowerPC\PowerPCTMFootnote, the system does not enforce
+\item on \PowerPCTM, the system does not enforce
 sequential consistency for 
 volatile variables
 \item the system does not enforce atomicity of memory accesses for
@@ -285,7 +285,7 @@ building blocks for implementing monitorenter and exit. Some VM systems,
 such as thread scheduling and GC, resort to lower-level primitives for
 situations where normal Java object locking is inconvenient or illegal.
 \begin{description}
-\item [VM\_Magic.prepare and VM\_Magic.attempt]
+\item[VM\_Magic.prepare and VM\_Magic.attempt]
 The RVM compiler translates these 
 \xlink{VM\_Magic}{\VMMagicURL} 
 calls into low-level
@@ -301,28 +301,28 @@ location.
 On PowerPC, the compilers implement prepare and attempt using the lwarx
 and stwcx instructions.  On IA32, the compilers rely on CMPXCHG with the
 LOCK prefix to implement attempt; prepare is a normal load instruction.
-\item [\xlink{VM\_Synchronization}{\VMSynchronizationURL}]
+\item[\xlink{VM\_Synchronization}{\VMSynchronizationURL}]
 This class implements some useful common low-level synchronization
 sequences, such as fetch-and-add and test-and-set.  The VM\_Synchronization
 primitives, in turn, are implemented using VM\_Magic.prepare and attempt.
-\item [
+\item[
 \xlink{VM\_ProcessorLock}{\VMProcessorLockURL}
 ]
 This lock is used to enforce mutual exclusion between {\tt VM\_Processors}
 (pthreads.)  It provides a non-blocking attempt to require the lock
 ({\tt tryLock()}) as well as a blocking spin-lock ({\tt lock()}).
-\item [
+\item[
 \xlink{VM\_Lock}{\VMLockURL}
 ]
 This class provides the normal synchronization operations on Java objects
 between Java threads.  The implementation is a variant of Thin Locks.
-\item [monitorenter and monitorexit]
+\item[monitorenter and monitorexit]
 Synchronized statements in Java source code are compiled to monitorenter
 and exit in the Java bytecode.  The RVM compilers implement these
 bytecodes by inserting calls to \xlink{{\tt VM\_Lock}}{\VMLockURL} routines; 
 the optimizing
 compiler inlines the common cases.
-\item [\xlink{VM\_GCLocks}{\VMGCLocksURL}]
+\item[\xlink{VM\_GCLocks}{\VMGCLocksURL}]
 This class simply encapsulates a number of VM\_Synchronization locks 
 used for various purposes by the RVM GC system.
 
@@ -347,8 +347,8 @@ We believe we support it to the extent that the
 \xlink{GNU Classpath}{\classpathURL}  
 libraries support it. 
 
-\subsubsection{Can I run some standard library on RVM that is not included
-in GNU classpath?}
+\subsubsection{Can I run some standard library on \jrvm{} that is not included
+in GNU Classpath?}
 
 You can try.  Set your classpath to pick up the library you desire.
 
@@ -362,20 +362,25 @@ you also need to give the command line argument
 {\tt -X:aos:enable\_recompilation=false}. 
 
 \subsubsection{What is a PEI?}
+\index{PEI: Potentially Excepting Instruction}
 PEI is our acronym for potentially excepting instruction.  This applies to
 any instruction in the IR that may throw an exception.
 
 \subsubsection{What is AOS?}
+\index{AOS}
 AOS stands for adaptive optimization system.
 
 \subsubsection{Is there a difference between a GC safe point and a thread
 switch point?}
+\index{GC safe point}
+\index{thread switch point}
 
 Yes.  Every thread switch point is a GC safe point, but every GC safe point 
 need not be a thread switch point.
 
+\index{scheduler}
 A thread switch point is an instruction where the RVM thread scheduler may
-intervene and cause a different Java\JavaTMFootnote\ thread (VM\_Thread) to
+intervene and cause a different \JavaTM{} thread (VM\_Thread) to
 run on the current 
 pthread (VM\_Processor), even if no exception is thrown.  
 Thread switch points include yield points inserted in prologues, epilogues, 
@@ -400,12 +405,12 @@ Most optimization passes over SSA form call this method at
 the beginning of the compiler phase.
 
 \subsubsection{What is Heap Array SSA form?}
-
+\index{Heap Array SSA Form}
 See the \xlink{SAS 2000 paper}{\SASPaperURL}, as well as comments in
 \xlink{{\tt OPT\_SSA.java}}{\OPTSSAURL}.
 
 \subsubsection{Is ABCD included?}
-
+\index{ABCD}
 Version 2.0.0 through 2.2.0 of Jikes RVM included a derivative of the
 prototype ABCD implementation used for the \xlink{PLDI 2000
 paper}{\ABCDPaperURL}.  However, ABCD was {\em not} enabled by default.
@@ -414,6 +419,7 @@ bounds and not lower bounds.
 
 \subsubsection{Is escape analysis included?}
 
+\index{escape analysis}
 The interprocedural flow-sensitive escape analysis in the 
 \xlink{OOSPLA 99 paper}{\EscapeAnalysisPaperURL} is not currently included.
 
@@ -423,6 +429,7 @@ escape analysis.  See
 
 \subsubsection{How do I insert my new compiler pass in the optimizing
 compiler driver?}
+\index{compiler pass, inserting a new one}
 
 See section~\ref{sec:optdriver} of the userguide, which describes how to
 add phases to class 
@@ -430,6 +437,7 @@ add phases to class
 
 \subsubsection{What if I want my pass to do inter-procedural analysis?}
 
+\index{IPA: inter-procedural analysis}
 The normal RVM does not have a convenient entrypoint for IPA.  As Java is
 a dynamic language, the RVM continually compiles methods as they are
 invoked.  Each method is compiled individually.
@@ -444,6 +452,7 @@ contributing it back.
 
 \subsubsection{What is the OptTestHarness?}
 
+\index{OptTestHarness}
 The OptTestHarness (see section \ref{opttestharness}) is a driver
 program to run the optimizing compiler even on a BaseBase boot image.
 This driver is useful for optimizing compiler development, since you
@@ -453,9 +462,11 @@ certain options.
 \subsection{Regression Tests}
 
 \subsubsection{Where can I order or download the test programs 
-SPECjvm98\trademark and SPECjbb2000\trademark?}
+\SPECjvmRheading{}98 and \SPECjbbRheading{}2000?}
 
-Information for ordering the SPEC benchmark suites can be found at
+\index{\SPECjvmR{}98}
+\index{\SPECjbbR{}2000}
+Information for ordering the \SPECR{} benchmark suites can be found at
 \xlink{http://www.spec.org}{\SPECURL}.
 As you'll see from the site, there is a non-trivial charge for getting the
 suites, although universities do get a discount.

@@ -1,17 +1,17 @@
 This section provides some information on various
-implementation details for the Jikes\trademark RVM runtime system.
+implementation details for the \JikesTM{} RVM runtime system.
 
 
 \subsection{Object Model} \label{sssec:objects}
 \index{object model}
 An {\em object model} dictates how to represent objects in storage;
 the best object model will maximize efficiency of frequent language
-operations while minimizing storage overhead. Jikes\trademark RVM's
+operations while minimizing storage overhead. \JikesTM{} RVM's
 object model 
 is defined by \xlink{{\tt VM\_ObjectModel.java}}{\VMObjectModelURL}.
 
 \paragraph{Overview}
-Values in the Java\trademark programming language are either {\em
+Values in the \JavaTM{} programming language are either {\em
 primitive} (e.g. {\tt int}, {\tt double}, etc.)  or they are {\em
 references} (that is, pointers) to objects.  Objects are either {\em
 arrays} having elements or {\em scalar objects} having fields.
@@ -51,7 +51,7 @@ The Java programming language requires that an attempt to access an
 object through a {\tt null} 
 object reference generates a {\tt NullPointerException}.  In Jikes RVM, references
 are machine addresses, and {\tt null} is represented by address $0$.
-The AIX\AIXTMFootnote\ operating system permits loads from low memory,
+The \AIXTM\ operating system permits loads from low memory,
 but accesses 
 to very high memory (at small {\em negative} offsets from a null
 pointer) normally cause hardware interrupts.\footnote{In AIX, it is at
@@ -77,7 +77,7 @@ Logically, every object header contains the following components:
 \index{superclass}
 \index{interfaces}
 \index{virtual methods}
-\item [TIB Pointer] The TIB (Type Information Block) holds information that
+\item[TIB Pointer] The TIB (Type Information Block) holds information that
 applies to all objects of a type.  The structure of the TIB is defined by 
 \xlink{{\tt VM\_TIBLayoutConstants.java}}{\VMTIBLayoutConstantsURL}.
 A TIB includes the virtual method table, a pointer to an object
@@ -150,7 +150,7 @@ methods.
 \index{constants}
 \index{dynamic type checking}
 The JTOC holds pointers to 
-each of Jikes\trademark RVM's global data structures, as well as
+each of \JikesTM{} RVM's global data structures, as well as
 literals, numeric constants and references to String constants.
 The JTOC also
 contains references to the TIB for each class in the system.  
@@ -220,8 +220,11 @@ For more details, see
 \subsection{VM Conventions}
 
 %% footnotes not allowed in section headings, so we specialize
-\htmlonly{\subsubsection{AIX\trademark VM Conventions}} 
-\texonly{\subsubsection{AIX\trademark VM Conventions}} 
+%\htmlonly{\subsubsection{\AIXTM{} VM Conventions}} 
+%\texonly{\subsubsection{\AIXTM{} VM Conventions}} 
+% \subsubsection{\AIXTM\ VM Conventions} 
+\subsubsection{\AIXTMheading{} VM Conventions}
+% \subsubsection{AIX VM Conventions} 
 \label{aix-conventions}
 
 \index{stack conventions}
@@ -229,7 +232,7 @@ For more details, see
 \index{calling conventions}
 
 This section describes register, stack, and calling conventions that apply to 
-Jikes RVM on PowerPC\PowerPCTMFootnote.
+Jikes RVM on \PowerPCTM.
 
 Stackframe layout and calling conventions may evolve as our understanding
 of Jikes RVM's performance improves.  Where possible API's should be used
@@ -244,39 +247,39 @@ Registers (general purpose, gp, and floating point, fp) can be roughly
 categorized into four types:
 
 \begin{description}
-\item [Scratch]
+\item[Scratch]
      Needed for method prologue/epilogue.  Can be used by compiler between
      calls.
 
 \item[Dedicated]
      Reserved registers with known contents:
 \begin{description}
-\item [JTOC - Jikes RVM Table Of Contents]
+\item[JTOC - Jikes RVM Table Of Contents]
         Globally accessible data: constants, static fields and methods.
 
-\item [FP - Frame Pointer]
+\item[FP - Frame Pointer]
         Current stack frame (thread specific).
 
-\item [TI - Thread (locking) Id]
+\item[TI - Thread (locking) Id]
         Used to set (and test) the locking field of light weight object
         locks.  Can also be shifted to get the index into a global
         array of an object representing the current thread.
 
-\item [PR - Processor register]
+\item[PR - Processor register]
         An object representing the current virtual processor (the one
         executing on the CPU containing these registers).  A field in
         this object contains a reference to the object representing
         the {\tt VM\_Thread} being executed.
 \end{description}
 
-\item [Volatile ("caller save", or "parameter")]
+\item[Volatile ("caller save", or "parameter")]
      Like scratch registers these can be used by the compiler as
      temporaries, but they are not preserved across calls.  (Volatile
      registers differ from scratch registers in that volatiles
      can be used to pass parameters and result(s) to and from
      methods.)
 
-\item [Nonvolatile ("callee save", or "preserved")]
+\item[Nonvolatile ("callee save", or "preserved")]
      These can be used (and are preserved across calls), but they must be
      saved on method entry and restored at method exit.  Highest numbered
      registers are to be used first.  (At least initially, nonvolatile
@@ -286,8 +289,8 @@ categorized into four types:
 We follow the AIX conventions to minimize cost in JNI C to Java
 transitions. 
 \begin{description}
-\item    [CR0, CR1, CR5, CR6, CR7] volatile
-\item    [CR2, CR3, CR4] non-volatile
+\item[CR0, CR1, CR5, CR6, CR7] volatile
+\item[CR2, CR3, CR4] non-volatile
 \end{description}
 The baseline compiler only uses CR0.  The opt compiler allocates CR0,
 CR1, CR5 and CR6 and reserves CR7 for use in yieldpoints.  None of the
@@ -326,7 +329,7 @@ The layout of the stackframe appears in a block comment in
     fp register; a long result is returned in the first two volatile gp
     registers (low-order half in the first);
 
-\item [Method prologue responsibilities] (some of these can be omitted for leaf
+\item[Method prologue responsibilities] (some of these can be omitted for leaf
   methods):
 
 \begin{enumerate}
@@ -343,11 +346,11 @@ The layout of the stackframe appears in a block comment in
 
 \item Store callee's compiled method ID 
 
-\item Check to see if the Java\trademark thread must yield the {\tt VM\_Processor}
+\item Check to see if the \JavaTM{} thread must yield the {\tt VM\_Processor}
 (and yield if threadswitch was requested). 
 \end{enumerate}
 
-\item [Method epilogue responsibilities] (some of these can be
+\item[Method epilogue responsibilities] (some of these can be
 ommitted for leaf methods):
 
 \begin{enumerate}
@@ -361,18 +364,18 @@ ommitted for leaf methods):
 \end{enumerate}
 \end{description}
 
-\subsubsection{Linux/IA32 VM Conventions} \label{lintel-conventions}
+\subsubsection{LinuxRheading/IA32 VM Conventions} \label{lintel-conventions}
 \index{stack conventions}
 \index{register conventions}
 \index{calling conventions}
 
 This section describes register, stack, and calling conventions that
-apply to Jikes RVM on Linux/IA32.  
+apply to Jikes RVM on \LinuxR{}/IA32.  
 
 \noindent{\bf Register conventions}
 
 \begin{description}
-\item [EAX]
+\item[EAX]
     First GPR parameter register, first GPR result value (high-order part
     of a long result), otherwise volatile (caller-save).
 
@@ -437,7 +440,7 @@ The first two areas of the callee's stackframe (see above) have been
 \subsection{Class Loading} \label{sssec:classLoading}
 \index{class loading}
 
-Jikes\trademark RVM implements the Java\trademark programming
+\JikesTM{} RVM implements the \JavaTM{} programming
 language's dynamic class loading. While a class is being loaded it can
 be in one of six states. These are
 \begin{description}

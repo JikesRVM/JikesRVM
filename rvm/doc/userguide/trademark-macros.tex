@@ -32,6 +32,12 @@
   % Earlier attempts:
   % \title{\texonly{\vfill} {\huge The $\mbox{Jikes}^{\mbox{\tiny TM}}$ 
   
+  %% The \*TMheading{} forms of the macros are for inside
+  %% LaTeX \section{} commands.
+
+
+
+
   %% This looks quite nice on the title page --augart, 2003 Oct 16
   \T \newcommand{\JikesTM}{Jikes\ensuremath{\!%
       \protect\raisebox{.41\baselineskip}{\tiny TM}}}
@@ -80,7 +86,6 @@
   \W \newcommand{\SPECjbbR}{SPECjbb\registeredTrademark}
   \W \newcommand{\SPECjbbRheading}{SPECjbb\registeredTrademark}
   \W \newcommand{\RedHatTM}{Red Hat\link{\trademark}{trademarks}}
-%% For inside a heading.
   \W \newcommand{\RedHatTMheading}{Red Hat\trademark}
   \W \newcommand{\SuSER}{SuSE\link{\registeredTrademark}{trademarks}}
   \W \newcommand{\SuSERheading}{SuSE\registeredTrademark}
@@ -89,11 +94,12 @@
   \W \newcommand{\IBMR}{IBM\link{\registeredTrademark}{trademarks}}
   \W \newcommand{\UnixR}{Unix\link{\registeredTrademark}{trademarks}}
 
-  \newcommand{\JikesTMFootnote}{}
-  \newcommand{\AIXTMFootnote}{}
-  \newcommand{\PowerPCTMFootnote}{}
-  \newcommand{\JavaTMFootnote}{}
-  \newcommand{\LinuxRegisteredTMFootnote}{}
+%Unnecessary:
+%%   \newcommand{\JikesTMFootnote}{}
+%%   \newcommand{\AIXTMFootnote}{}
+%%   \newcommand{\PowerPCTMFootnote}{}
+%%   \newcommand{\JavaTMFootnote}{}
+%%   \newcommand{\LinuxRegisteredTMFootnote}{}
 
   %% Footers (Blank for this skeleton version.)
   \newcommand{\JikesTMFooter}{}
