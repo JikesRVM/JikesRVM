@@ -10,7 +10,7 @@ except where absolutely necessary.
 There are currently three types of magical operations which are
 described in the remainder of this section.  The first is a collection
 of magical methods that are static methods of the class {\tt
-VM\_Magic}.  The second is the magical classes {\tt VM\_Address}, {\tt
+VM\_Magic}\IndexttClass{VM\_Magic}.  The second is the magical classes {\tt VM\_Address}\IndexttClass{VM\_Address}, {\tt
 VM\_Word}\IndexttClass{VM\_Word}, {\tt VM\_Offset}\IndexttClass{VM\_Offset}, and  {\tt VM\_Extent}\IndexttClass{VM\_Extent} used in
 parts of the runtime and garbage collector. The third is various
 mechanisms to declare code {\em uninterruptible}.
@@ -18,7 +18,7 @@ mechanisms to declare code {\em uninterruptible}.
 \subsection{\texttt{VM\_Magic}}%
 \index{magic methods}%
 \index{semantic inlining}%
-Certain methods in the class \xlink{\IndexTexttt{VM\_Magic}}{\VMMagicURL} are
+Certain methods in the class \xlink{\texttt{VM\_Magic}}{\VMMagicURL} are
 treated differently by the compiler. Because these methods access raw
 memory or other machine state, perform unsafe casts, or are operating
 system calls, they cannot be implemented in Java code.  A

@@ -118,11 +118,9 @@ VM\_EdgeListener}}{\VMEdgeListenerURL}).
 process samples or other raw profile data.  There may be many
 organizers active at the same time.
 For example, one organizer may process method samples 
-(\xlink{{\tt
-VM\_MethodSampleOrganizer}}{\VMMethodSampleOrganizerURL}) while
+(\xlink{\IndexTexttt{VM\_MethodSampleOrganizer}}{\VMMethodSampleOrganizerURL}) while
 another is processing 
-call edge samples (\xlink{{\tt
-VM\_AIByEdgeOrganizer}}{\VMAIByEdgeOrganizerURL}). 
+call edge samples (\xlink{\IndexTexttt{VM\_AIByEdgeOrganizer}}{\VMAIByEdgeOrganizerURL}). 
 \end{description}
 
 \subsection{Utility Directory}
@@ -134,16 +132,14 @@ decisions.  The level of logging is controllable on the command line.
 
 \index{AOS command-line options}%
 \IndexttClass{VM\_AOSOptions}%
-\Indextt{BooleanOptions.dat}%
-\Indextt{ValueOptions.dat}%
 Option processing for the adaptive system is also found in this
 directory.  It is similar to the option processing for the optimizing
 compiler.  The command-line options to AOS are
 stored as fields in an object of type {\tt VM\_AOSOptions}; this file
 is mechanically generated from a template.
 To add or modify the command-line options in {\tt
-VM\_AOSOptions.java}, you must modify either {\tt BooleanOptions.dat},
-{\tt ValueOptions.dat}, {\tt ShareBooleanOptions.dat}, or {\tt
+VM\_AOSOptions.java}, you must modify either \IndexTexttt{BooleanOptions.dat},
+\IndexTexttt{ValueOptions.dat}, \IndexTexttt{ShareBooleanOptions.dat}, or {\tt
 Share\-Val\-ue\-Op\-tions\-.dat}.  You should describe your desired command-line
 option as discussed \link{in the \SectionName{Command-Line Arguments}
 section}[ (Appendix~\Ref, on page~\Pageref)]{section:cmdline}.  The options in the {\tt
