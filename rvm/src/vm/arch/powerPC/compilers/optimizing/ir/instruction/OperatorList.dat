@@ -1150,145 +1150,129 @@ none
 (59<<26 | 20<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LWZ
 MIR_Load
-load | immedPEI
+load 
 
 
 (32<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LWZU
 MIR_LoadUpdate
-load | immedPEI
+load 
 
 
 (33<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LWZUX
 MIR_LoadUpdate
-load | immedPEI
+load 
 
 
 (31<<26 | 55<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LWZX
 MIR_Load
-load | immedPEI
+load 
 
 
 (31<<26 | 23<<1)
 
 ####################
-# Could be a PEI if/when we fold nullchecks back into loads
 PPC_LWARX
 MIR_Load
-memAsLoad | memAsStore | load | immedPEI | acquire
+memAsLoad | memAsStore | load | acquire
 
 
 (31<<26 | 20<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LBZ
 MIR_Load
-load | immedPEI
+load 
 
 
 (34<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LBZUX
 MIR_LoadUpdate
-load | immedPEI
+load 
 
 
 (31<<26 | 119<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LBZX
 MIR_Load
-load | immedPEI
+load 
 
 
 (31<<26 | 87<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LHA
 MIR_Load
-load | immedPEI
+load 
 
 
 (42<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LHAX
 MIR_Load
-load | immedPEI
+load 
 
 
 (31<<26 | 343<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LHZ
 MIR_Load
-load | immedPEI
+load 
 
 
 (40<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LHZX
 MIR_Load
-load | immedPEI
+load 
 
 
 (31<<26 | 279<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LFD
 MIR_Load
-load | immedPEI
+load 
 
 
 (50<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LFDX
 MIR_Load
-load | immedPEI
+load 
 
 
 (31<<26 | 599<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LFS
 MIR_Load
-load | immedPEI
+load 
 
 
 (48<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_LFSX
 MIR_Load
-load | immedPEI
+load 
 
 
 (31<<26 | 535<<1)
@@ -1303,127 +1287,113 @@ load
 (46<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STW
 MIR_Store
-store | immedPEI
+store 
 
 
 (36<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STWX
 MIR_Store
-store | immedPEI
+store 
 
 
 (31<<26 | 151<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STWCXr
 MIR_Store
-memAsLoad | memAsStore | store | compare | immedPEI
+memAsLoad | memAsStore | store | compare 
 C0
 
 (31<<26 | 150<<1 | 1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STWU
 MIR_StoreUpdate
-store | immedPEI
+store 
 
 
 (37<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STB
 MIR_Store
-store | immedPEI
+store 
 
 
 (38<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STBX
 MIR_Store
-store | immedPEI
+store 
 
 
 (31<<26 | 215<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STH
 MIR_Store
-store | immedPEI
+store 
 
 
 (44<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STHX
 MIR_Store
-store | immedPEI
+store 
 
 
 (31<<26 | 407<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STFD
 MIR_Store
-store | immedPEI
+store 
 
 
 (54<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STFDX
 MIR_Store
-store | immedPEI
+store 
 
 
 (31<<26 | 727<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STFDU
 MIR_StoreUpdate
-store | immedPEI
+store 
 
 
 (31<<26 | 759<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STFS
 MIR_Store
-store | immedPEI
+store 
 
 
 (52<<26)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STFSX
 MIR_Store
-store | immedPEI
+store 
 
 
 (31<<26 | 663<<1)
 
 ####################
-# Could be a PEI if a nullcheck has been folded into it
 PPC_STFSU
 MIR_StoreUpdate
-store | immedPEI
+store 
 
 
 (53<<26)

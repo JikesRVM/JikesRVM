@@ -1,5 +1,5 @@
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001,2002
 #
 #//$Id$
 #
@@ -8,70 +8,6 @@
 # @author Dave Grove
 # @author Mauricio J. Serrano
 #
-#
-# (C) Copyright IBM Corp. 2001
-#
-#//$Id$
-#
-# @author Dave Grove
-# @author Mauricio J. Serrano
-#
-# 32 bit PowerPC rules 
-#
-##################################
-# A few operators are passed through unchanged
-##################################
-stm:	RESOLVE
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-stm:	IG_PATCH_POINT
-10
-EMIT_INSTRUCTION
-EMIT(InlineGuard.mutate(P(p), IG_PATCH_POINT, null, null, null, InlineGuard.getTarget(P(p)), InlineGuard.getBranchProfile(P(p))));
-
-stm:	UNINT_BEGIN
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-stm:	UNINT_END
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-stm:	YIELDPOINT_PROLOGUE
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-stm:	YIELDPOINT_EPILOGUE
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-stm:	YIELDPOINT_BACKEDGE
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-##################################
-# One operator is passed through nearly unchanged
-##################################
-stm:	LOWTABLESWITCH(r)
-10
-EMIT_INSTRUCTION
-LOWTABLESWITCH(P(p));
-
-##################################
-# NOPs can simply be dropped
-##################################
-stm:	NOP
-10
-NOFLAGS
-// drop on floor
-
 ##################################
 # Cache instructions
 ##################################
@@ -116,32 +52,8 @@ EMIT_INSTRUCTION
 EMIT(MIR_CacheOp.mutate(P(p), PPC_ICBI, R(0), R(CacheOp.getRef(P(p)))));
 
 ##################################
-# Guard/Trap operations
+# Trap operations
 ##################################
-#####
-# GUARD_MOVE
-#####
-r:	GUARD_MOVE
-11
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-#####
-# GUARD_COMBINE
-#####
-r:	GUARD_COMBINE
-11
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-#####
-# NULL_CHECK
-#####
-stm:	NULL_CHECK(r)
-11
-EMIT_INSTRUCTION
-EMIT(P(p)); 
-
 #####
 # TRAP
 #####
@@ -172,8 +84,7 @@ TRAP_IF_IMM(P(p));
 r:	BOOLEAN_NOT(r)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_XORI, Unary.getResult(P(p)),                 \
-                       R(Unary.getVal(P(p))), I(1)));
+EMIT(MIR_Binary.mutate(P(p), PPC_XORI, Unary.getResult(P(p)), R(Unary.getVal(P(p))), I(1)));
 
 #####
 # BOOLEAN_CMP
@@ -181,16 +92,12 @@ EMIT(MIR_Binary.mutate(P(p), PPC_XORI, Unary.getResult(P(p)),                 \
 r:	BOOLEAN_CMP(r,INT_CONSTANT)
 10
 EMIT_INSTRUCTION
-BOOLEAN_CMP_IMM(P(p), BooleanCmp.getResult(P(p)),           \
-                            R(BooleanCmp.getVal1(P(p))),                      \
-                            I(BooleanCmp.getVal2(P(p))));
+BOOLEAN_CMP_IMM(P(p), BooleanCmp.getResult(P(p)), R(BooleanCmp.getVal1(P(p))), I(BooleanCmp.getVal2(P(p))));
 
 r:	BOOLEAN_CMP(r,r)
 10
 EMIT_INSTRUCTION
-BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)),               \
-                        R(BooleanCmp.getVal1(P(p))),                          \
-                        R(BooleanCmp.getVal2(P(p))));
+BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)), R(BooleanCmp.getVal1(P(p))), R(BooleanCmp.getVal2(P(p))));
 
 ##################################
 # Basic Integer ALU operations 
@@ -269,9 +176,8 @@ EMIT(MIR_Binary.mutate(P(p), PPC_DIVW, GuardedBinary.getResult(P(p)),  \
 r:	INT_DIV(r,INT_MOVE(INT_CONSTANT))
 20
 EMIT_INSTRUCTION
-INT_DIV_IMM(P(p), GuardedBinary.getResult(P(p)),                   \
-                        R(GuardedBinary.getVal1(P(p))), Move.getResult(PR(p)),\
-                        I(Move.getVal(PR(p))));
+INT_DIV_IMM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p))), \
+                  Move.getResult(PR(p)), I(Move.getVal(PR(p))));
 
 #####
 # INT_REM
@@ -279,15 +185,13 @@ INT_DIV_IMM(P(p), GuardedBinary.getResult(P(p)),                   \
 r:	INT_REM(r,r)
 20
 EMIT_INSTRUCTION
-INT_REM(P(p), GuardedBinary.getResult(P(p)),                       \
-                    R(GuardedBinary.getVal1(P(p))), R(GuardedBinary.getVal2(P(p))));
+INT_REM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p))), R(GuardedBinary.getVal2(P(p))));
 
 r:	INT_REM(r,INT_MOVE(INT_CONSTANT))
 20
 EMIT_INSTRUCTION
-INT_REM_IMM(P(p), GuardedBinary.getResult(P(p)),                   \
-                        R(GuardedBinary.getVal1(P(p))), Move.getResult(PR(p)),       \
-                        I(Move.getVal(PR(p))));
+INT_REM_IMM(P(p), GuardedBinary.getResult(P(p)), R(GuardedBinary.getVal1(P(p))), \
+	          Move.getResult(PR(p)), I(Move.getVal(PR(p))));
 
 #####
 # INT_NEG
@@ -295,8 +199,7 @@ INT_REM_IMM(P(p), GuardedBinary.getResult(P(p)),                   \
 r:	INT_NEG(r)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), PPC_NEG, Unary.getResult(P(p)),                   \
-                      Unary.getVal(P(p))));
+EMIT(MIR_Unary.mutate(P(p), PPC_NEG, Unary.getResult(P(p)), Unary.getVal(P(p))));
 
 #####
 # INT_SHL
@@ -316,9 +219,8 @@ EMIT(MIR_Binary.mutate(P(p), PPC_SLW, Binary.getResult(P(p)),                 \
 r:	INT_SHL(INT_USHR(r,INT_CONSTANT),INT_CONSTANT)
 10
 EMIT_INSTRUCTION
-USHR_SHL(P(p), Binary.getResult(P(p)),                      \
-                     R(Binary.getVal1(PL(p))), I(Binary.getVal2(PL(p))),      \
-                     I(Binary.getVal2(P(p))));
+USHR_SHL(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), I(Binary.getVal2(PL(p))),      \
+               I(Binary.getVal2(P(p))));
 
 #####
 # INT_SHR
@@ -326,8 +228,7 @@ USHR_SHL(P(p), Binary.getResult(P(p)),                      \
 r:	INT_SHR(r,INT_CONSTANT)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_SRAWI, Binary.getResult(P(p)),               \
-                       R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
+EMIT(MIR_Binary.mutate(P(p), PPC_SRAWI, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 r:	INT_SHR(r,r)
 10
@@ -367,23 +268,20 @@ EMIT(MIR_Binary.mutate(P(p), PPC_SRW, Binary.getResult(P(p)),                 \
 r:	INT_USHR(INT_AND(r,INT_CONSTANT),INT_CONSTANT)
 POSITIVE_MASK(Binary.getVal2(PL(p)))?10:INFINITE
 EMIT_INSTRUCTION
-AND_USHR(P(p), Binary.getResult(P(p)),                      \
-                     R(Binary.getVal1(PL(p))), I(Binary.getVal2(PL(p))),      \
-                     I(Binary.getVal2(P(p))));
+AND_USHR(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
+	       I(Binary.getVal2(PL(p))), I(Binary.getVal2(P(p))));
 
 r:	INT_USHR(INT_AND(r,INT_MOVE(INT_CONSTANT)),INT_CONSTANT)
 POSITIVE_MASK(Move.getVal(PLR(p)))?10:INFINITE
 EMIT_INSTRUCTION
-AND_USHR(P(p), Binary.getResult(P(p)),                      \
-                     R(Binary.getVal1(PL(p))), I(Move.getVal(PLR(p))),        \
-                     I(Binary.getVal2(P(p))));
+AND_USHR(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
+               I(Move.getVal(PLR(p))), I(Binary.getVal2(P(p))));
 
 r:	INT_USHR(INT_SHL(r,INT_CONSTANT),INT_CONSTANT)
 10
 EMIT_INSTRUCTION
-SHL_USHR(P(p), Binary.getResult(P(p)),                      \
-                     R(Binary.getVal1(PL(p))), I(Binary.getVal2(PL(p))),      \
-                     I(Binary.getVal2(P(p))));
+SHL_USHR(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
+	       I(Binary.getVal2(PL(p))), I(Binary.getVal2(P(p))));
 
 #####
 # INT_AND
@@ -391,14 +289,12 @@ SHL_USHR(P(p), Binary.getResult(P(p)),                      \
 r:	INT_AND(r,r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_AND, Binary.getResult(P(p)),                 \
-                       R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
+EMIT(MIR_Binary.mutate(P(p), PPC_AND, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 czr:	INT_AND(r,INT_CONSTANT)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_ANDIr, Binary.getResult(P(p)),               \
-                       R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p)))));
+EMIT(MIR_Binary.mutate(P(p), PPC_ANDIr, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p)))));
 
 r:	INT_AND(r,INT_CONSTANT)
 MASK(Binary.getVal2(P(p)))?10:INFINITE
@@ -414,13 +310,12 @@ czr:	INT_AND(r,INT_MOVE(INT_CONSTANT))
 U16(Move.getVal(PR(p)))?11:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Binary.mutate(P(p), PPC_ANDISr, Binary.getResult(P(p)),              \
-                       R(Binary.getVal1(P(p))), I(OPT_Bits.PPCMaskUpper16(IV(Move.getVal(PR(p)))))));
+                       R(Binary.getVal1(P(p))), I(OPT_Bits.PPCMaskUpper16(VRL(p)))));
 
 r:	INT_AND(r,INT_MOVE(INT_CONSTANT))
 MASK(Move.getVal(PR(p)))?10:INFINITE
 EMIT_INSTRUCTION
-AND_MASK(P(p), Binary.getResult(P(p)),                      \
-                     R(Binary.getVal1(P(p))), I(Move.getVal(PR(p))));
+AND_MASK(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), I(Move.getVal(PR(p))));
 
 r:	INT_AND(INT_NOT(r),INT_NOT(r))
 10
@@ -437,16 +332,14 @@ EMIT(MIR_Binary.mutate(P(p), PPC_ANDC, Binary.getResult(P(p)),                \
 r:	INT_AND(INT_USHR(r,INT_CONSTANT),INT_CONSTANT)
 POSITIVE_MASK(Binary.getVal2(P(p)))?10:INFINITE
 EMIT_INSTRUCTION
-USHR_AND(P(p), Binary.getResult(P(p)),                      \
-                     R(Binary.getVal1(PL(p))), I(Binary.getVal2(P(p))),       \
-                     I(Binary.getVal2(PL(p))));
+USHR_AND(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
+               I(Binary.getVal2(P(p))), I(Binary.getVal2(PL(p))));
 
 r:	INT_AND(INT_USHR(r,INT_CONSTANT),INT_MOVE(INT_CONSTANT))
 POSITIVE_MASK(Move.getVal(PR(p)))?10:INFINITE
 EMIT_INSTRUCTION
-USHR_AND(P(p), Binary.getResult(P(p)),                      \
-                     R(Binary.getVal1(PL(p))), I(Move.getVal(PR(p))),         \
-                     I(Binary.getVal2(PL(p))));
+USHR_AND(P(p), Binary.getResult(P(p)), R(Binary.getVal1(PL(p))), \
+               I(Move.getVal(PR(p))), I(Binary.getVal2(PL(p))));
 
 #####
 # INT_OR
@@ -454,21 +347,17 @@ USHR_AND(P(p), Binary.getResult(P(p)),                      \
 r:	INT_OR(r,r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_OR, Binary.getResult(P(p)),                  \
-                       R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
+EMIT(MIR_Binary.mutate(P(p), PPC_OR, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 r:	INT_OR(r,INT_CONSTANT)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_ORI, Binary.getResult(P(p)),                 \
-                       R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
+EMIT(MIR_Binary.mutate(P(p), PPC_ORI, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 r:	INT_OR(r,INT_MOVE(INT_CONSTANT))
 U16(Move.getVal(PR(p)))?10:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_ORIS, Binary.getResult(P(p)),                \
-                       R(Binary.getVal1(P(p))),                               \
-                       SRI(Move.getVal(PR(p)), 16)));
+EMIT(MIR_Binary.mutate(P(p), PPC_ORIS, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), SRI(Move.getVal(PR(p)), 16)));
 
 r:	INT_OR(r,INT_MOVE(INT_CONSTANT))
 20
@@ -484,14 +373,12 @@ EMIT_INSTRUCTION
 r:	INT_OR(INT_NOT(r),INT_NOT(r))
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_NAND, Binary.getResult(P(p)),                \
-                       R(Unary.getVal(PL(p))), Unary.getVal(PR(p))));
+EMIT(MIR_Binary.mutate(P(p), PPC_NAND, Binary.getResult(P(p)), R(Unary.getVal(PL(p))), Unary.getVal(PR(p))));
 
 r:	INT_OR(r,INT_NOT(r))
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_ORC, Binary.getResult(P(p)),                 \
-                       R(Binary.getVal1(P(p))), Unary.getVal(PR(p))));
+EMIT(MIR_Binary.mutate(P(p), PPC_ORC, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), Unary.getVal(PR(p))));
 
 #####
 # INT_XOR
@@ -499,21 +386,18 @@ EMIT(MIR_Binary.mutate(P(p), PPC_ORC, Binary.getResult(P(p)),                 \
 r:	INT_XOR(r,r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_XOR, Binary.getResult(P(p)),                 \
-                       R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
+EMIT(MIR_Binary.mutate(P(p), PPC_XOR, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 r:	INT_XOR(r,INT_CONSTANT)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_XORI, Binary.getResult(P(p)),                \
-                       R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
+EMIT(MIR_Binary.mutate(P(p), PPC_XORI, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 r:	INT_XOR(r,INT_MOVE(INT_CONSTANT))
 U16(Move.getVal(PR(p)))?10:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_XORIS, Binary.getResult(P(p)),               \
-                       R(Binary.getVal1(P(p))),                               \
-                       SRI(Move.getVal(PR(p)), 16)));
+EMIT(MIR_Binary.mutate(P(p), PPC_XORIS, Binary.getResult(P(p)), \
+                       R(Binary.getVal1(P(p))), SRI(Move.getVal(PR(p)), 16)));
 
 #####
 # INT_NOT
@@ -521,26 +405,22 @@ EMIT(MIR_Binary.mutate(P(p), PPC_XORIS, Binary.getResult(P(p)),               \
 r:	INT_NOT(r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_NOR, Unary.getResult(P(p)),                  \
-                       R(Unary.getVal(P(p))), Unary.getVal(P(p))));
+EMIT(MIR_Binary.mutate(P(p), PPC_NOR, Unary.getResult(P(p)), R(Unary.getVal(P(p))), Unary.getVal(P(p))));
 
 r:	INT_NOT(INT_OR(r,r))
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_NOR, Unary.getResult(P(p)),                  \
-                       R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p))));
+EMIT(MIR_Binary.mutate(P(p), PPC_NOR, Unary.getResult(P(p)), R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p))));
 
 r:	INT_NOT(INT_AND(r,r))
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_NAND, Unary.getResult(P(p)),                 \
-                       R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p))));
+EMIT(MIR_Binary.mutate(P(p), PPC_NAND, Unary.getResult(P(p)), R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p))));
 
 r:	INT_NOT(INT_XOR(r,r))
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_EQV, Unary.getResult(P(p)),                  \
-                       R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p))));
+EMIT(MIR_Binary.mutate(P(p), PPC_EQV, Unary.getResult(P(p)), R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p))));
 
 ##################################
 # Basic Floating-Point ALU operations 
@@ -551,7 +431,7 @@ EMIT(MIR_Binary.mutate(P(p), PPC_EQV, Unary.getResult(P(p)),                  \
 r:	FLOAT_ADD(r,r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Binary.mutate(P(p), PPC_FADDS, Binary.getResult(P(p)),               \
+EMIT(MIR_Binary.mutate(P(p), PPC_FADDS, Binary.getResult(P(p)), \
                        R(Binary.getVal1(P(p))), Binary.getVal2(P(p))));
 
 #####
@@ -623,8 +503,7 @@ EMIT(MIR_Binary.mutate(P(p), PPC_FDIV, Binary.getResult(P(p)),                \
 r:	FLOAT_NEG(r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), PPC_FNEG, Unary.getResult(P(p)),                  \
-                      Unary.getVal(P(p))));
+EMIT(MIR_Unary.mutate(P(p), PPC_FNEG, Unary.getResult(P(p)), Unary.getVal(P(p))));
 
 #####
 # DOUBLE_NEG 
@@ -632,8 +511,7 @@ EMIT(MIR_Unary.mutate(P(p), PPC_FNEG, Unary.getResult(P(p)),                  \
 r:	DOUBLE_NEG(r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), PPC_FNEG, Unary.getResult(P(p)),                  \
-                      Unary.getVal(P(p))));
+EMIT(MIR_Unary.mutate(P(p), PPC_FNEG, Unary.getResult(P(p)), Unary.getVal(P(p))));
 
 #####
 # FMA and friends
@@ -697,7 +575,7 @@ EMIT(MIR_Ternary.mutate(P(p), PPC_FNMADD, Binary.getResult(P(p)),             \
 r:	FLOAT_NEG(FLOAT_ADD(r, FLOAT_MUL(r,r)))
 burs.ir.options.strictFP()?INFINITE:10
 EMIT_INSTRUCTION
-EMIT(MIR_Ternary.mutate(P(p), PPC_FNMADDS, Binary.getResult(P(p)),           \
+EMIT(MIR_Ternary.mutate(P(p), PPC_FNMADDS, Binary.getResult(P(p)),            \
 			R(Binary.getVal1(PLR(p))), R(Binary.getVal2(PLR(p))), \
 			R(Binary.getVal1(PL(p)))));
 
@@ -731,8 +609,7 @@ EMIT(MIR_Ternary.mutate(P(p), PPC_FNMSUB, Binary.getResult(P(p)),             \
 r:	LONG_ADD(r,r)
 20
 EMIT_INSTRUCTION
-LONG_ADD(P(p), Binary.getResult(P(p)),                      \
-                     R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+LONG_ADD(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
 
 #####
 # LONG_SUB
@@ -740,8 +617,7 @@ LONG_ADD(P(p), Binary.getResult(P(p)),                      \
 r:	LONG_SUB(r,r)
 20
 EMIT_INSTRUCTION
-LONG_SUB(P(p), Binary.getResult(P(p)),                      \
-                     R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+LONG_SUB(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
 
 #####
 # LONG_MUL
@@ -749,8 +625,7 @@ LONG_SUB(P(p), Binary.getResult(P(p)),                      \
 r:	LONG_MUL(r,r)
 20
 EMIT_INSTRUCTION
-LONG_MUL(P(p), Binary.getResult(P(p)),                      \
-                     R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+LONG_MUL(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
 
 #####
 # LONG_NEG
@@ -758,8 +633,7 @@ LONG_MUL(P(p), Binary.getResult(P(p)),                      \
 r:	LONG_NEG(r)
 20
 EMIT_INSTRUCTION
-LONG_NEG(P(p), Unary.getResult(P(p)),                       \
-                     R(Unary.getVal(P(p))));
+LONG_NEG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 
 #####
 # LONG_SHL
@@ -767,14 +641,12 @@ LONG_NEG(P(p), Unary.getResult(P(p)),                       \
 r:	LONG_SHL(r,r)
 20
 EMIT_INSTRUCTION
-LONG_SHL(P(p), Binary.getResult(P(p)),                      \
-                     R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+LONG_SHL(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
 
 r:	LONG_SHL(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
-LONG_SHL_IMM(P(p), Binary.getResult(P(p)),                  \
-                         R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p))));
+LONG_SHL_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p))));
 
 #####
 # LONG_SHR
@@ -787,8 +659,7 @@ EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
 r:	LONG_SHR(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
-LONG_SHR_IMM(P(p), Binary.getResult(P(p)),                  \
-                         R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p))));
+LONG_SHR_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p))));
 
 #####
 # LONG_USHR
@@ -796,14 +667,12 @@ LONG_SHR_IMM(P(p), Binary.getResult(P(p)),                  \
 r:	LONG_USHR(r,r)
 20
 EMIT_INSTRUCTION
-LONG_USHR(P(p), Binary.getResult(P(p)),                     \
-                      R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+LONG_USHR(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
 
 r:	LONG_USHR(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
-LONG_USHR_IMM(P(p), Binary.getResult(P(p)),                 \
-                          R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p))));
+LONG_USHR_IMM(P(p), Binary.getResult(P(p)), R(Binary.getVal1(P(p))), I(Binary.getVal2(P(p))));
 
 #####
 # LONG_AND
@@ -811,8 +680,7 @@ LONG_USHR_IMM(P(p), Binary.getResult(P(p)),                 \
 r:	LONG_AND(r,r)
 20
 EMIT_INSTRUCTION
-LONG_LOG(P(p), PPC_AND, Binary.getResult(P(p)),             \
-                     R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+LONG_LOG(P(p), PPC_AND, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
 
 #####
 # LONG_OR
@@ -820,8 +688,7 @@ LONG_LOG(P(p), PPC_AND, Binary.getResult(P(p)),             \
 r:	LONG_OR(r,r)
 20
 EMIT_INSTRUCTION
-LONG_LOG(P(p), PPC_OR, Binary.getResult(P(p)),              \
-                     R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+LONG_LOG(P(p), PPC_OR, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
 
 #####
 # LONG_XOR
@@ -829,8 +696,7 @@ LONG_LOG(P(p), PPC_OR, Binary.getResult(P(p)),              \
 r:	LONG_XOR(r,r)
 20
 EMIT_INSTRUCTION
-LONG_LOG(P(p), PPC_XOR, Binary.getResult(P(p)),             \
-                     R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
+LONG_LOG(P(p), PPC_XOR, Binary.getResult(P(p)), R(Binary.getVal1(P(p))), R(Binary.getVal2(P(p))));
 
 #####
 # LONG_NOT
@@ -838,8 +704,7 @@ LONG_LOG(P(p), PPC_XOR, Binary.getResult(P(p)),             \
 r:	LONG_NOT(r)
 20
 EMIT_INSTRUCTION
-LONG_NOT(P(p), Unary.getResult(P(p)),                       \
-                     R(Unary.getVal(P(p))));
+LONG_NOT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 
 ##################################
 # Basic Conversion operations
@@ -850,8 +715,7 @@ LONG_NOT(P(p), Unary.getResult(P(p)),                       \
 r:	INT_2BYTE(r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), PPC_EXTSB, Unary.getResult(P(p)),                 \
-                      Unary.getVal(P(p))));
+EMIT(MIR_Unary.mutate(P(p), PPC_EXTSB, Unary.getResult(P(p)), Unary.getVal(P(p))));
 
 #####
 # INT_2USHORT
@@ -868,8 +732,7 @@ EMIT(MIR_RotateAndMask.create(PPC_RLWINM, Unary.getResult(P(p)), null,        \
 r:	INT_2SHORT(r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), PPC_EXTSH, Unary.getResult(P(p)),                 \
-                      Unary.getVal(P(p))));
+EMIT(MIR_Unary.mutate(P(p), PPC_EXTSH, Unary.getResult(P(p)), Unary.getVal(P(p))));
 
 #####
 # INT_2LONG
@@ -877,8 +740,7 @@ EMIT(MIR_Unary.mutate(P(p), PPC_EXTSH, Unary.getResult(P(p)),                 \
 r:	INT_2LONG(r)
 20
 EMIT_INSTRUCTION
-INT_2LONG(P(p), Unary.getResult(P(p)),                      \
-                      R(Unary.getVal(P(p)))); // for now
+INT_2LONG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p)))); 
 
 #####
 # INT_2FLOAT
@@ -886,8 +748,7 @@ INT_2LONG(P(p), Unary.getResult(P(p)),                      \
 r:	INT_2FLOAT(r)
 10
 EMIT_INSTRUCTION
-INT_2DOUBLE(P(p), Unary.getResult(P(p)),                    \
-                        R(Unary.getVal(P(p))));
+INT_2DOUBLE(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 
 #####
 # INT_2DOUBLE
@@ -895,8 +756,7 @@ INT_2DOUBLE(P(p), Unary.getResult(P(p)),                    \
 r:	INT_2DOUBLE(r)
 10
 EMIT_INSTRUCTION
-INT_2DOUBLE(P(p), Unary.getResult(P(p)),                    \
-                        R(Unary.getVal(P(p))));
+INT_2DOUBLE(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 
 #####
 # LONG_2INT
@@ -904,8 +764,7 @@ INT_2DOUBLE(P(p), Unary.getResult(P(p)),                    \
 r:	LONG_2INT(r)
 10
 EMIT_INSTRUCTION
-LONG_2INT(P(p), Unary.getResult(P(p)),                      \
-                      R(Unary.getVal(P(p))));
+LONG_2INT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 
 #####
 # FLOAT_2INT
@@ -921,8 +780,7 @@ EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
 r:	FLOAT_2DOUBLE(r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), PPC_FMR, Unary.getResult(P(p)),                    \
-                     R(Unary.getVal(P(p)))));
+EMIT(MIR_Move.mutate(P(p), PPC_FMR, Unary.getResult(P(p)), R(Unary.getVal(P(p)))));
 
 #####
 # DOUBLE_2INT
@@ -938,8 +796,7 @@ EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansionLeave
 r:	DOUBLE_2FLOAT(r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), PPC_FRSP, Unary.getResult(P(p)),                  \
-                      Unary.getVal(P(p))));
+EMIT(MIR_Unary.mutate(P(p), PPC_FRSP, Unary.getResult(P(p)), Unary.getVal(P(p))));
 
 #####
 # FLOAT_AS_INT_BITS
@@ -982,20 +839,17 @@ GPR2FPR_64(P(p));
 r:	INT_MOVE(r)
 11
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), PPC_MOVE, Move.getResult(P(p)),                    \
-                     R(Move.getVal(P(p)))));
+EMIT(MIR_Move.mutate(P(p), PPC_MOVE, Move.getResult(P(p)), R(Move.getVal(P(p)))));
 
 r:	INT_MOVE(INT_CONSTANT)
 SI16(Move.getVal(P(p)))?11:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), PPC_LDI, Move.getResult(P(p)),                    \
-                      Move.getVal(P(p))));
+EMIT(MIR_Unary.mutate(P(p), PPC_LDI, Move.getResult(P(p)), Move.getVal(P(p))));
 
 r:	INT_MOVE(INT_CONSTANT)
 U16(Move.getVal(P(p)))?11:INFINITE
 EMIT_INSTRUCTION
-EMIT(MIR_Unary.mutate(P(p), PPC_LDIS, Move.getResult(P(p)),                   \
-                      SRI(Move.getVal(P(p)), 16)));
+EMIT(MIR_Unary.mutate(P(p), PPC_LDIS, Move.getResult(P(p)), SRI(Move.getVal(P(p)), 16)));
 
 r:	INT_MOVE(INT_CONSTANT)
 22
@@ -1013,8 +867,7 @@ EMIT_INSTRUCTION
 r:	FLOAT_MOVE(r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), PPC_FMR, Move.getResult(P(p)),                     \
-                     R(Move.getVal(P(p)))));
+EMIT(MIR_Move.mutate(P(p), PPC_FMR, Move.getResult(P(p)), R(Move.getVal(P(p)))));
 
 ######
 # DOUBLE_MOVE
@@ -1022,8 +875,7 @@ EMIT(MIR_Move.mutate(P(p), PPC_FMR, Move.getResult(P(p)),                     \
 r:	DOUBLE_MOVE(r)
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), PPC_FMR, Move.getResult(P(p)),                     \
-                     R(Move.getVal(P(p)))));
+EMIT(MIR_Move.mutate(P(p), PPC_FMR, Move.getResult(P(p)), R(Move.getVal(P(p)))));
 
 #####
 # LONG_MOVE
@@ -1031,8 +883,7 @@ EMIT(MIR_Move.mutate(P(p), PPC_FMR, Move.getResult(P(p)),                     \
 r:	LONG_MOVE(LONG_CONSTANT)
 40
 EMIT_INSTRUCTION
-LONG_CONSTANT(P(p), Move.getResult(P(p)),                   \
-                          L(Move.getVal(P(p))));
+LONG_CONSTANT(P(p), Move.getResult(P(p)), L(Move.getVal(P(p))));
 
 r:	LONG_MOVE(r)
 22
@@ -1048,32 +899,28 @@ LONG_MOVE(P(p), Move.getResult(P(p)), R(Move.getVal(P(p))));
 r:	BYTE_LOAD(r,INT_CONSTANT)
 22
 EMIT_INSTRUCTION
-BYTE_LOAD(P(p), PPC_LBZ, Load.getResult(P(p)),              \
-                      R(Load.getAddress(P(p))), Load.getOffset(P(p)),         \
-		      Load.getLocation(P(p)), Load.getGuard(P(p)));
+BYTE_LOAD(P(p), PPC_LBZ, Load.getResult(P(p)), R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
+          Load.getLocation(P(p)), Load.getGuard(P(p)));
 
 r:	BYTE_LOAD(r,r)
 22
 EMIT_INSTRUCTION
-BYTE_LOAD(P(p), PPC_LBZX, Load.getResult(P(p)),             \
-                      R(Load.getAddress(P(p))), Load.getOffset(P(p)),         \
-		      Load.getLocation(P(p)), Load.getGuard(P(p)));
+BYTE_LOAD(P(p), PPC_LBZX, Load.getResult(P(p)), R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
+          Load.getLocation(P(p)), Load.getGuard(P(p)));
 
 r:	INT_AND(BYTE_LOAD(r,r),INT_CONSTANT)
-IV(Binary.getVal2(P(p)))==0xff?10:INFINITE
+VR(p) == 0xff ? 10 : INFINITE
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(PL(p), PPC_LBZX, Binary.getResult(P(p)),        \
-                              R(Load.getAddress(PL(p))),                      \
-                              Load.getOffset(PL(p)), Load.getLocation(PL(p)), \
-                              Load.getGuard(PL(p)))));
+EMIT(MIR_Load.mutate(PL(p), PPC_LBZX, Binary.getResult(P(p)), R(Load.getAddress(PL(p))), \
+                     Load.getOffset(PL(p)), Load.getLocation(PL(p)), \
+                     Load.getGuard(PL(p))));
 
 r:	INT_AND(BYTE_LOAD(r,INT_CONSTANT),INT_CONSTANT)
-IV(Binary.getVal2(P(p)))==0xff?10:INFINITE
+VR(p) == 0xff ? 10 : INFINITE
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(PL(p), PPC_LBZ, Binary.getResult(P(p)),         \
-                              R(Load.getAddress(PL(p))),                      \
-                              Load.getOffset(PL(p)), Load.getLocation(PL(p)), \
-                              Load.getGuard(PL(p)))));
+EMIT(MIR_Load.mutate(PL(p), PPC_LBZ, Binary.getResult(P(p)), R(Load.getAddress(PL(p))), \
+                     Load.getOffset(PL(p)), Load.getLocation(PL(p)), \
+                     Load.getGuard(PL(p))));
 
 #####
 # UBYTE_LOAD
@@ -1081,16 +928,16 @@ EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(PL(p), PPC_LBZ, Binary.getResult(P(p))
 r:	UBYTE_LOAD(r,INT_CONSTANT)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LBZ, Load.getResult(P(p)),            \
-                             R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-                              Load.getLocation(P(p)), Load.getGuard(P(p)))));
+EMIT(MIR_Load.mutate(P(p), PPC_LBZ, Load.getResult(P(p)),            \
+                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
+                     Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 r:	UBYTE_LOAD(r,r)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LBZX, Load.getResult(P(p)),           \
-                              R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+EMIT(MIR_Load.mutate(P(p), PPC_LBZX, Load.getResult(P(p)),           \
+                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
+	             Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 #####
 # SHORT_LOAD
@@ -1098,16 +945,16 @@ EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LBZX, Load.getResult(P(p)), 
 r:	SHORT_LOAD(r,INT_CONSTANT)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHA, Load.getResult(P(p)),            \
-                              R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+EMIT(MIR_Load.mutate(P(p), PPC_LHA, Load.getResult(P(p)),            \
+                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
+   	             Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 r:	SHORT_LOAD(r,r)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHAX, Load.getResult(P(p)),           \
-                              R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+EMIT(MIR_Load.mutate(P(p), PPC_LHAX, Load.getResult(P(p)),           \
+                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
+  	             Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 #####
 # USHORT_LOAD
@@ -1115,16 +962,16 @@ EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHAX, Load.getResult(P(p)), 
 r:	USHORT_LOAD(r,INT_CONSTANT)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHZ, Load.getResult(P(p)),            \
-                              R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+EMIT(MIR_Load.mutate(P(p), PPC_LHZ, Load.getResult(P(p)),            \
+                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
+	             Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 r:	USHORT_LOAD(r,r)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHZX, Load.getResult(P(p)),           \
-                              R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+EMIT(MIR_Load.mutate(P(p), PPC_LHZX, Load.getResult(P(p)),           \
+                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
+		     Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 #####
 # INT_LOAD
@@ -1133,9 +980,9 @@ EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LHZX, Load.getResult(P(p)), 
 r:	INT_LOAD(r,INT_CONSTANT)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),            \
-                              R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+EMIT(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),            \
+                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
+	             Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 r:	INT_LOAD(r,INT_MOVE(INT_CONSTANT))
 22
@@ -1144,33 +991,32 @@ EMIT_INSTRUCTION
    OPT_Operand val = Move.getVal(PR(p));                                      \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
                           R(Load.getAddress(P(p))), CAU16(val)));             \
-   EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),         \
+   EMIT(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),         \
                                  Move.getResult(PR(p)), CAL16(val),           \
 				 Load.getLocation(P(p)),                      \
-                                 Load.getGuard(P(p)))));                      \
+                                 Load.getGuard(P(p))));                      \
 }
 
 r:	INT_LOAD(r,r)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZX, Load.getResult(P(p)),           \
-                              R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+EMIT(MIR_Load.mutate(P(p), PPC_LWZX, Load.getResult(P(p)),           \
+                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
+	             Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 r:	INT_LOAD(INT_ADD(r,r),INT_CONSTANT)
-IV(Load.getOffset(P(p)))==0?11:INFINITE
+isZERO(VR(p), 11)
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZX, Load.getResult(P(p)),           \
+EMIT(MIR_Load.mutate(P(p), PPC_LWZX, Load.getResult(P(p)),           \
                               R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+			      Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 r:	INT_LOAD(INT_ADD(r,INT_CONSTANT),INT_CONSTANT)
-SI16(IV(Load.getOffset(P(p)))+IV(Binary.getVal2(PL(p))))?14:INFINITE
+SI16(VR(p)+VLR(p)) ? 14 : INFINITE
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),            \
-                              R(Binary.getVal1(PL(p))),                       \
-                              I(IV(Load.getOffset(P(p)))+IV(Binary.getVal2(PL(p)))), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+EMIT(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),            \
+                              R(Binary.getVal1(PL(p))), I(VR(p)+VLR(p)), \
+			      Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 #####
 # FLOAT_LOAD
@@ -1178,9 +1024,9 @@ EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),  
 r:	FLOAT_LOAD(r,INT_CONSTANT)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFS, Load.getResult(P(p)),            \
+EMIT(MIR_Load.mutate(P(p), PPC_LFS, Load.getResult(P(p)),            \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+			      Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 r:      FLOAT_LOAD(r,INT_MOVE(INT_CONSTANT))
 22
@@ -1189,18 +1035,18 @@ EMIT_INSTRUCTION
    OPT_Operand val = Move.getVal(PR(p));                                      \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
                           R(Load.getAddress(P(p))), CAU16(val)));             \
-   EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFS, Load.getResult(P(p)),         \
+   EMIT(MIR_Load.mutate(P(p), PPC_LFS, Load.getResult(P(p)),         \
                                  Move.getResult(PR(p)), CAL16(val),           \
 			         Load.getLocation(P(p)),                      \
-                                 Load.getGuard(P(p)))));                      \
+                                 Load.getGuard(P(p))));                      \
 }
 
 r:	FLOAT_LOAD(r,r)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFSX, Load.getResult(P(p)),           \
+EMIT(MIR_Load.mutate(P(p), PPC_LFSX, Load.getResult(P(p)),           \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+			      Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 #####
 # LONG_LOAD
@@ -1233,9 +1079,9 @@ LONG_LOAD_addx(P(p), Load.getResult(P(p)),                  \
 r:	DOUBLE_LOAD(r,INT_CONSTANT)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFD, Load.getResult(P(p)),            \
+EMIT(MIR_Load.mutate(P(p), PPC_LFD, Load.getResult(P(p)),            \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+			      Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 r:      DOUBLE_LOAD(r,INT_MOVE(INT_CONSTANT))
 22
@@ -1244,18 +1090,18 @@ EMIT_INSTRUCTION
    OPT_Operand val = Move.getVal(PR(p));                                      \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
                           R(Load.getAddress(P(p))), CAU16(val)));             \
-   EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFD, Load.getResult(P(p)),         \
+   EMIT(MIR_Load.mutate(P(p), PPC_LFD, Load.getResult(P(p)),         \
                                  Move.getResult(PR(p)), CAL16(val),           \
 				 Load.getLocation(P(p)),                      \
-                                 Load.getGuard(P(p)))));                      \
+                                 Load.getGuard(P(p))));                      \
 }
 
 r:	DOUBLE_LOAD(r,r)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFDX, Load.getResult(P(p)),           \
+EMIT(MIR_Load.mutate(P(p), PPC_LFDX, Load.getResult(P(p)),           \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p)))));
+			      Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 #####
 # PREPARE
@@ -1263,10 +1109,10 @@ EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LFDX, Load.getResult(P(p)), 
 r:	PREPARE(r, r)
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(P(p), PPC_LWARX, Prepare.getResult(P(p)),   \
+EMIT(MIR_Load.mutate(P(p), PPC_LWARX, Prepare.getResult(P(p)),   \
 	                      R(Prepare.getAddress(P(p))), Prepare.getOffset(P(p)),           \
 			      Prepare.getLocation(P(p)),                  \
-                              Prepare.getGuard(P(p)))));
+                              Prepare.getGuard(P(p))));
 
 ##################################
 # Stores (register to memory moves)
@@ -1285,38 +1131,38 @@ EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
 stm:	BYTE_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STB, R(Store.getValue(P(p))),        \
+EMIT(MIR_Store.mutate(P(p), PPC_STB, R(Store.getValue(P(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
                                Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 stm:	BYTE_STORE(r,OTHER_OPERAND(r,r))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STBX, R(Store.getValue(P(p))),       \
+EMIT(MIR_Store.mutate(P(p), PPC_STBX, R(Store.getValue(P(p))),       \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 stm:	BYTE_STORE(INT_2BYTE(r),OTHER_OPERAND(r,INT_CONSTANT))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STB, R(Unary.getVal(PL(p))),         \
+EMIT(MIR_Store.mutate(P(p), PPC_STB, R(Unary.getVal(PL(p))),         \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 stm:	BYTE_STORE(INT_2BYTE(r),OTHER_OPERAND(r,r))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STBX, R(Unary.getVal(PL(p))),        \
+EMIT(MIR_Store.mutate(P(p), PPC_STBX, R(Unary.getVal(PL(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 #####
 # SHORT_STORE
@@ -1324,56 +1170,56 @@ EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STBX, R(Unary.getVal(PL(p))
 stm:	SHORT_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STH, R(Store.getValue(P(p))),        \
+EMIT(MIR_Store.mutate(P(p), PPC_STH, R(Store.getValue(P(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 stm:	SHORT_STORE(r,OTHER_OPERAND(r,r))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Store.getValue(P(p))),       \
+EMIT(MIR_Store.mutate(P(p), PPC_STHX, R(Store.getValue(P(p))),       \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 stm:	SHORT_STORE(INT_2SHORT(r),OTHER_OPERAND(r,INT_CONSTANT))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STH, R(Unary.getVal(PL(p))),         \
+EMIT(MIR_Store.mutate(P(p), PPC_STH, R(Unary.getVal(PL(p))),         \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 stm:	SHORT_STORE(INT_2SHORT(r),OTHER_OPERAND(r,r))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Unary.getVal(PL(p))),        \
+EMIT(MIR_Store.mutate(P(p), PPC_STHX, R(Unary.getVal(PL(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 stm:	SHORT_STORE(INT_2USHORT(r),OTHER_OPERAND(r,INT_CONSTANT))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STH, R(Unary.getVal(PL(p))),         \
+EMIT(MIR_Store.mutate(P(p), PPC_STH, R(Unary.getVal(PL(p))),         \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 stm:	SHORT_STORE(INT_2USHORT(r),OTHER_OPERAND(r,r))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Unary.getVal(PL(p))),        \
+EMIT(MIR_Store.mutate(P(p), PPC_STHX, R(Unary.getVal(PL(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 #####
 # INT_STORE
@@ -1382,11 +1228,11 @@ EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STHX, R(Unary.getVal(PL(p))
 stm:	INT_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),        \
+EMIT(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),        \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 stm:	INT_STORE(r,OTHER_OPERAND(r,INT_MOVE(INT_CONSTANT)))
 22
@@ -1395,30 +1241,29 @@ EMIT_INSTRUCTION
    OPT_Operand val = Move.getVal(PRR(p));                                     \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
                           R(Store.getAddress(P(p))), CAU16(val)));            \
-   EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),     \
+   EMIT(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),     \
                                   Move.getResult(PRR(p)), CAL16(val),         \
 				  Store.getLocation(P(p)),                    \
-                                  Store.getGuard(P(p)))));                    \
+                                  Store.getGuard(P(p))));                    \
 }
 
 stm:	INT_STORE(r,OTHER_OPERAND(r,r))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STWX, R(Store.getValue(P(p))),       \
+EMIT(MIR_Store.mutate(P(p), PPC_STWX, R(Store.getValue(P(p))),       \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 stm:	INT_STORE(r,OTHER_OPERAND(INT_ADD(r,INT_CONSTANT),INT_CONSTANT))
-SI16(IV(Store.getOffset(P(p)))+IV(Binary.getVal2(PRL(p))))?14:INFINITE
+SI16(VRR(p)+VRLR(p))?14:INFINITE
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),        \
+EMIT(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),        \
                                R(Binary.getVal1(PRL(p))),                     \
-                               I(IV(Store.getOffset(P(p))) +                  \
-                               IV(Binary.getVal2(PRL(p)))),                   \
+                               I(VRR(p) + VRLR(p)), \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 #####
 # FLOAT_STORE
@@ -1426,11 +1271,11 @@ EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))
 stm:	FLOAT_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFS, R(Store.getValue(P(p))),       \
+EMIT(MIR_Store.mutate(P(p), PPC_STFS, R(Store.getValue(P(p))),       \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 stm:      FLOAT_STORE(r,OTHER_OPERAND(r,INT_MOVE(INT_CONSTANT)))
 22
@@ -1439,20 +1284,20 @@ EMIT_INSTRUCTION
    OPT_Operand val = Move.getVal(PRR(p));                                     \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
                           R(Store.getAddress(P(p))), CAU16(val)));            \
-   EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFS, R(Store.getValue(P(p))),    \
+   EMIT(MIR_Store.mutate(P(p), PPC_STFS, R(Store.getValue(P(p))),    \
                                   Move.getResult(PRR(p)), CAL16(val),         \
 				  Store.getLocation(P(p)),                    \
-                                  Store.getGuard(P(p)))));                    \
+                                  Store.getGuard(P(p))));                    \
 }
 
 stm:	FLOAT_STORE(r,OTHER_OPERAND(r,r))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFSX, R(Store.getValue(P(p))),      \
+EMIT(MIR_Store.mutate(P(p), PPC_STFSX, R(Store.getValue(P(p))),      \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 #####
 # LONG_STORE
@@ -1491,11 +1336,11 @@ LONG_STORE_addx(P(p), R(Store.getValue(P(p))),              \
 stm:	DOUBLE_STORE(r,OTHER_OPERAND(r,INT_CONSTANT))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFD, R(Store.getValue(P(p))),       \
+EMIT(MIR_Store.mutate(P(p), PPC_STFD, R(Store.getValue(P(p))),       \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 stm:      DOUBLE_STORE(r,OTHER_OPERAND(r,INT_MOVE(INT_CONSTANT)))
 22
@@ -1504,20 +1349,20 @@ EMIT_INSTRUCTION
    OPT_Operand val = Move.getVal(PRR(p));                                     \
    EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
                           R(Store.getAddress(P(p))), CAU16(val)));            \
-   EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFD, R(Store.getValue(P(p))),    \
+   EMIT(MIR_Store.mutate(P(p), PPC_STFD, R(Store.getValue(P(p))),    \
                                   Move.getResult(PRR(p)), CAL16(val),         \
 				  Store.getLocation(P(p)),                    \
-                                  Store.getGuard(P(p)))));                    \
+                                  Store.getGuard(P(p))));                    \
 }
 
 stm:	DOUBLE_STORE(r,OTHER_OPERAND(r,r))
 11
 EMIT_INSTRUCTION
-EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(P(p), PPC_STFDX, R(Store.getValue(P(p))),      \
+EMIT(MIR_Store.mutate(P(p), PPC_STFDX, R(Store.getValue(P(p))),      \
                                R(Store.getAddress(P(p))),                     \
                                Store.getOffset(P(p)),                         \
 			       Store.getLocation(P(p)),                       \
-                               Store.getGuard(P(p)))));
+                               Store.getGuard(P(p))));
 
 ##################################
 # Control flow
@@ -1540,10 +1385,10 @@ stm:	INT_IFCMP(ATTEMPT(r,r),INT_CONSTANT)
 EMIT_INSTRUCTION
 {                                                                             \
    OPT_ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \
-   EMIT(OPT_IRTools.nonPEIGC(MIR_Store.create(PPC_STWCXr, R(Attempt.getNewValue(PL(p))), \
+   EMIT(MIR_Store.create(PPC_STWCXr, R(Attempt.getNewValue(PL(p))), \
                                   R(Attempt.getAddress(PL(p))), Attempt.getOffset(PL(p)),           \
 				  Attempt.getLocation(PL(p)),                \
-                                  Attempt.getGuard(PL(p)))));                \
+                                  Attempt.getGuard(PL(p))));                \
    EMIT(MIR_CondBranch.mutate(P(p), PPC_BCOND, CR(0),                         \
                               new OPT_PowerPCConditionOperand(c),             \
                               IfCmp.getTarget(P(p)),                         \
@@ -1819,14 +1664,6 @@ EMIT(MIR_Branch.mutate(P(p), PPC_B, Goto.getTarget(P(p))));
 # Calling convention
 ##################################
 #####
-# IR_PROLOGUE:
-#####
-stm:	IR_PROLOGUE
-11
-EMIT_INSTRUCTION
-PROLOGUE(P(p));
-
-#####
 # RETURN
 #####
 stm:	RETURN(NULL)
@@ -1857,19 +1694,6 @@ r:	SYSCALL(r,any)
 10
 EMIT_INSTRUCTION
 SYSCALL(P(p));
-
-###########
-# Rules for exceptions
-###########
-r:	GET_CAUGHT_EXCEPTION
-11
-EMIT_INSTRUCTION
-GET_EXCEPTION_OBJECT(P(p));
-
-stm:	SET_CAUGHT_EXCEPTION(r)
-11
-EMIT_INSTRUCTION
-SET_EXCEPTION_OBJECT(P(p));
 
 ###########
 # Rules for special registers

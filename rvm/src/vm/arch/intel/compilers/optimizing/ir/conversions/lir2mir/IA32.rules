@@ -237,60 +237,6 @@ augmentAddress(BinaryAcc.getValue(P(p))); \
 EMIT(MIR_Lea.mutate(P(p), IA32_LEA, BinaryAcc.getResult(P(p)), consumeAddress(DW, null, null)));
 
 ##################################
-# A few operators are passed through unchanged
-##################################
-stm:	RESOLVE
-10
-EMIT_INSTRUCTION
-RESOLVE(P(p));
-
-stm:	IG_PATCH_POINT
-10
-EMIT_INSTRUCTION
-EMIT(InlineGuard.mutate(P(p), IG_PATCH_POINT, null, null, null, InlineGuard.getTarget(P(p)), InlineGuard.getBranchProfile(P(p))));
-
-stm:	UNINT_BEGIN
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-stm:	UNINT_END
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-stm:	YIELDPOINT_PROLOGUE
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-stm:	YIELDPOINT_EPILOGUE
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-stm:	YIELDPOINT_BACKEDGE
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-##################################
-# One operator is passed through nearly unchanged
-##################################
-stm:	LOWTABLESWITCH(r)
-10
-EMIT_INSTRUCTION
-LOWTABLESWITCH(P(p));
-
-##################################
-# NOPs can simply be dropped
-##################################
-stm:	NOP
-10
-NOFLAGS
-// drop on floor
-
-##################################
 # Materialization of FP constants
 ##################################
 r:	MATERIALIZE_FP_CONSTANT(riv)
@@ -379,34 +325,8 @@ EMIT_INSTRUCTION
 EMIT(MIR_Nullary.mutate(P(p), IA32_FLDZ, myFP0()));
 
 ##################################
-# Guard/Trap operations
+# Trap operations
 ##################################
-#####
-# GUARD_MOVE
-#####
-# note: ignoring guard registers, thus no uses
-r:	GUARD_MOVE
-11
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-#####
-# GUARD_COMBINE
-#####
-# note: ignoring guard registers, thus no uses
-r:	GUARD_COMBINE
-11
-EMIT_INSTRUCTION
-EMIT(P(p));
-
-#####
-# NULL_CHECK
-#####
-stm:	NULL_CHECK(r)
-10
-EMIT_INSTRUCTION
-EMIT(P(p));
-
 #####
 # TRAP
 #####
@@ -3585,14 +3505,6 @@ EMIT(MIR_Branch.mutate(P(p), IA32_JMP, Goto.getTarget(P(p))));
 ##################################
 # Calling convention
 ##################################
-#####
-# IR_PROLOGUE:
-#####
-stm:	IR_PROLOGUE
-10
-EMIT_INSTRUCTION
-PROLOGUE(P(p));
-
 #####
 # RET
 #####

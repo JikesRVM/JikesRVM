@@ -201,16 +201,13 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int valueHigh = OPT_Bits.PPCMaskUpper16(offset);
     OPT_Instruction s;
     if (valueHigh == 0) {
-      s = OPT_IRTools.nonPEIGC(MIR_Load.create(operator, 
-					       D(RT), R(JTOC), 
-					       I(offset)));
+      s = MIR_Load.create(operator, D(RT), R(JTOC), I(offset));
       EMIT(s);
     } else {
       OPT_Register reg = regpool.getInteger();
       int valueLow = OPT_Bits.PPCMaskLower16(offset);
       EMIT(MIR_Binary.create(PPC_ADDIS, R(reg), R(JTOC), I(valueHigh)));
-      s = OPT_IRTools.nonPEIGC(MIR_Load.create(operator, D(RT), 
-					       R(reg), I(valueLow)));
+      s = MIR_Load.create(operator, D(RT), R(reg), I(valueLow));
       EMIT(s);
     }
   }
@@ -239,9 +236,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int offset = burs.ir.stackManager.allocateSpaceForCaughtException();
     OPT_Register FP = regpool.getPhysicalRegisterSet().getFP();
     OPT_LocationOperand loc = new OPT_LocationOperand(-offset);
-    EMIT(OPT_IRTools.nonPEIGC
-	 (MIR_Load.mutate(s, PPC_LWZ, Nullary.getClearResult(s), 
-			  R(FP), I(offset), loc, TG())));
+    EMIT(MIR_Load.mutate(s, PPC_LWZ, Nullary.getClearResult(s), 
+			 R(FP), I(offset), loc, TG()));
   }
 
   /**
@@ -254,9 +250,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register FP = regpool.getPhysicalRegisterSet().getFP();
     OPT_LocationOperand loc = new OPT_LocationOperand(-offset);
     OPT_RegisterOperand obj = (OPT_RegisterOperand)CacheOp.getRef(s);
-    EMIT(OPT_IRTools.nonPEIGC(MIR_Store.mutate(s, PPC_STW, obj, 
-					       R(FP), I(offset), 
-					       loc, TG())));
+    EMIT(MIR_Store.mutate(s, PPC_STW, obj, R(FP), I(offset), loc, TG()));
   }
 
   /**
@@ -269,12 +263,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int offset = burs.ir.stackManager.allocateSpaceForConversion();
     OPT_Register FP = regpool.getPhysicalRegisterSet().getFP();
     OPT_RegisterOperand val = (OPT_RegisterOperand)Unary.getClearVal(s);
-    EMIT(OPT_IRTools.nonPEIGC(MIR_Store.create(PPC_STFS, val, 
-					       R(FP), I(offset), 
-					       null, TG())));
-    EMIT(OPT_IRTools.nonPEIGC
-	 (MIR_Load.mutate(s, PPC_LWZ, Unary.getClearResult(s), 
-			  R(FP), I(offset), null, TG())));
+    EMIT(MIR_Store.create(PPC_STFS, val, R(FP), I(offset), null, TG()));
+    EMIT(MIR_Load.mutate(s, PPC_LWZ, Unary.getClearResult(s), 
+			 R(FP), I(offset), null, TG()));
   }
 
   /**
@@ -287,12 +278,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int offset = burs.ir.stackManager.allocateSpaceForConversion();
     OPT_Register FP = regpool.getPhysicalRegisterSet().getFP();
     OPT_RegisterOperand val = (OPT_RegisterOperand)Unary.getClearVal(s);
-    EMIT(OPT_IRTools.nonPEIGC(MIR_Store.create(PPC_STW, val, 
-					       R(FP), I(offset), 
-					       null, TG())));
-    EMIT(OPT_IRTools.nonPEIGC
-	 (MIR_Load.mutate(s, PPC_LFS, Unary.getClearResult(s), R(FP), 
-			  I(offset), null, TG())));
+    EMIT(MIR_Store.create(PPC_STW, val, R(FP), I(offset), null, TG()));
+    EMIT(MIR_Load.mutate(s, PPC_LFS, Unary.getClearResult(s), R(FP), 
+			 I(offset), null, TG()));
   }
 
   /**
@@ -305,17 +293,12 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int offset = burs.ir.stackManager.allocateSpaceForConversion();
     OPT_Register FP = regpool.getPhysicalRegisterSet().getFP();
     OPT_RegisterOperand val = (OPT_RegisterOperand)Unary.getClearVal(s);
-    EMIT(OPT_IRTools.nonPEIGC(MIR_Store.create(PPC_STFD, val, 
-					       R(FP), I(offset), 
-					       null, TG())));
+    EMIT(MIR_Store.create(PPC_STFD, val, R(FP), I(offset), 
+			  null, TG()));
     OPT_RegisterOperand i1 = Unary.getClearResult(s);
     OPT_RegisterOperand i2 = R(regpool.getSecondReg(i1.register));
-    EMIT(OPT_IRTools.nonPEIGC(MIR_Load.create(PPC_LWZ, i1, 
-					      R(FP), I(offset), 
-					      null, TG())));
-    EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(s, PPC_LWZ, i2, 
-					      R(FP), I(offset+4),
-					      null, TG())));
+    EMIT(MIR_Load.create(PPC_LWZ, i1, R(FP), I(offset), null, TG()));
+    EMIT(MIR_Load.mutate(s, PPC_LWZ, i2, R(FP), I(offset+4), null, TG()));
   }
 
   /**
@@ -329,15 +312,10 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register FP = regpool.getPhysicalRegisterSet().getFP();
     OPT_RegisterOperand i1 = (OPT_RegisterOperand)Unary.getClearVal(s);
     OPT_RegisterOperand i2 = R(regpool.getSecondReg(i1.register));
-    EMIT(OPT_IRTools.nonPEIGC(MIR_Store.create(PPC_STW, i1, 
-					       R(FP), I(offset), 
-					       null, TG())));
-    EMIT(OPT_IRTools.nonPEIGC
-	 (MIR_Store.create(PPC_STW, i2, R(FP), I(offset+4), null, 
-			   TG())));
-    EMIT(OPT_IRTools.nonPEIGC
-	 (MIR_Load.mutate(s, PPC_LFD, Unary.getClearResult(s), R(FP), 
-			  I(offset), null, TG())));
+    EMIT(MIR_Store.create(PPC_STW, i1, R(FP), I(offset), null, TG()));
+    EMIT(MIR_Store.create(PPC_STW, i2, R(FP), I(offset+4), null, TG()));
+    EMIT(MIR_Load.mutate(s, PPC_LFD, Unary.getClearResult(s), R(FP), 
+			 I(offset), null, TG()));
   }
 
   /**
@@ -933,9 +911,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
 				 OPT_LocationOperand loc, 
 				 OPT_Operand guard) {
     OPT_RegisterOperand reg1 = regpool.makeTempInt();
-    EMIT(OPT_IRTools.nonPEIGC(MIR_Load.mutate(s, opcode, 
-					      reg1, left, right, 
-					      loc, guard)));
+    EMIT(MIR_Load.mutate(s, opcode, reg1, left, right, loc, guard));
     EMIT(MIR_Unary.create(PPC_EXTSB, def, reg1.copyD2U()));
   }
 
@@ -1023,16 +999,13 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int p = burs.ir.stackManager.allocateSpaceForConversion();
     EMIT(MIR_Unary.mutate(s, PPC_LDIS, temp, I(0x4330)));
     // TODO: valid location?
-    EMIT(OPT_IRTools.nonPEIGC
-	 (MIR_Store.create(PPC_STW, R(temp.register), R(FP), I(p), 
-			   new OPT_TrueGuardOperand())));
+    EMIT(MIR_Store.create(PPC_STW, R(temp.register), R(FP), I(p), 
+			  new OPT_TrueGuardOperand()));
     OPT_Register t1 = regpool.getInteger();
     EMIT(MIR_Binary.create(PPC_XORIS, R(t1), R(src), I(0x8000)));
-    EMIT(OPT_IRTools.nonPEIGC
-	 (MIR_Store.create(PPC_STW, R(t1), R(FP), I(p + 4), 
-			   new OPT_TrueGuardOperand())));
-    EMIT(OPT_IRTools.nonPEIGC
-	 (MIR_Load.create(PPC_LFD, D(res), R(FP), I(p))));
+    EMIT(MIR_Store.create(PPC_STW, R(t1), R(FP), I(p + 4), 
+			  new OPT_TrueGuardOperand()));
+    EMIT(MIR_Load.create(PPC_LFD, D(res), R(FP), I(p)));
     OPT_Register tempF = regpool.getDouble();
     emitLFtoc(PPC_LFD, tempF, VM_Entrypoints.I2DconstantField);
     EMIT(MIR_Binary.create(PPC_FSUB, D(res), D(res), D(tempF)));
@@ -1304,21 +1277,17 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_Register defLow = regpool.getSecondReg(defHigh);
     int imm = right.value;
     if (VM.VerifyAssertions) VM._assert(imm < (0x8000 - 4));
-    OPT_Instruction inst = OPT_IRTools.nonPEIGC (MIR_Load.create
-						 (PPC_LWZ, 
-						  R(defHigh), 
-						  left, I(imm), loc, 
-						  guard));
+    OPT_Instruction inst = MIR_Load.create(PPC_LWZ, 
+					   R(defHigh), 
+					   left, I(imm), loc, 
+					   guard);
     inst.copyPosition(s);
     EMIT(inst);
     if (loc != null) {
       loc = (OPT_LocationOperand)loc.copy();
     }
-    inst = OPT_IRTools.nonPEIGC (MIR_Load.create(PPC_LWZ, 
-						 R(defLow), 
-						 left.copyU2U(), 
-						 I(imm + 4), loc, 
-						 guard));
+    inst = MIR_Load.create(PPC_LWZ, R(defLow), left.copyU2U(), 
+			   I(imm + 4), loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
   }
@@ -1335,22 +1304,19 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int value = Value.value;
     EMIT(MIR_Binary.create(PPC_ADDIS, right, left, 
 			   I(OPT_Bits.PPCMaskUpper16(value))));
-    OPT_Instruction inst = OPT_IRTools.nonPEIGC(MIR_Load.create 
-						(PPC_LWZ, R(defHigh), 
-						 right.copyD2U(), 
-						 I(OPT_Bits.
-						   PPCMaskLower16(value)), 
-						 loc, guard));
+    OPT_Instruction inst = MIR_Load.create(PPC_LWZ, R(defHigh), 
+					   right.copyD2U(), 
+					   I(OPT_Bits.PPCMaskLower16(value)), 
+					   loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
     if (loc != null) {
       loc = (OPT_LocationOperand)loc.copy();
     }
-    inst = OPT_IRTools.nonPEIGC(MIR_Load.create(PPC_LWZ, R(defLow), 
-						right.copyD2U(), 
-						I(OPT_Bits.PPCMaskLower16
-						  (value) + 4), loc, 
-						guard));
+    inst = MIR_Load.create(PPC_LWZ, R(defLow), 
+			   right.copyD2U(), 
+			   I(OPT_Bits.PPCMaskLower16(value) + 4), 
+			   loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
   }
@@ -1363,20 +1329,16 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
 				      OPT_Operand guard) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = regpool.getSecondReg(defHigh);
-    OPT_Instruction inst = OPT_IRTools.nonPEIGC(MIR_Load.create
-						(PPC_LWZX, R(defHigh), 
-						 left, right, loc, 
-						 guard));
+    OPT_Instruction inst = 
+      MIR_Load.create(PPC_LWZX, R(defHigh), left, right, loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
     OPT_RegisterOperand kk = regpool.makeTempInt();
     EMIT(MIR_Binary.create(PPC_ADDI, kk, right.copyU2U(), I(4)));
     if (loc != null)
       loc = (OPT_LocationOperand)loc.copy();
-    inst = OPT_IRTools.nonPEIGC(MIR_Load.create(PPC_LWZX, R(defLow), 
-						left.copyU2U(), 
-						kk.copyD2U(), loc, 
-						guard));
+    inst = MIR_Load.create(PPC_LWZX, R(defLow), left.copyU2U(), 
+			   kk.copyD2U(), loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
   }
@@ -1392,17 +1354,16 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     int imm = right.value;
     if (VM.VerifyAssertions)
       VM._assert(imm < (0x8000 - 4));
-    OPT_Instruction inst = 
-      OPT_IRTools.nonPEIGC(MIR_Store.create(PPC_STW, R(defHigh), 
-					    left, I(imm), loc, guard));
+    OPT_Instruction inst = MIR_Store.create(PPC_STW, R(defHigh), 
+					    left, I(imm), loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
     if (loc != null)
       loc = (OPT_LocationOperand)loc.copy();
-    inst = OPT_IRTools.nonPEIGC(MIR_Store.create(PPC_STW, R(defLow), 
-						 left.copyU2U(), 
-						 I(imm + 4), loc, 
-						 guard));
+    inst = MIR_Store.create(PPC_STW, R(defLow), 
+			    left.copyU2U(), 
+			    I(imm + 4), loc, 
+			    guard);
     inst.copyPosition(s);
     EMIT(inst);
   }
@@ -1420,18 +1381,16 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(MIR_Binary.create(PPC_ADDIS, right, left, 
 			   I(OPT_Bits.PPCMaskUpper16(value))));
     OPT_Instruction inst = 
-      OPT_IRTools.nonPEIGC(MIR_Store.create(PPC_STW, R(defHigh), 
-					    right.copyD2U(), 
-					    I(OPT_Bits.PPCMaskLower16
-					      (value)), 
-					    loc, guard));
+      MIR_Store.create(PPC_STW, R(defHigh), 
+		       right.copyD2U(), 
+		       I(OPT_Bits.PPCMaskLower16(value)), 
+		       loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
     if (loc != null)
       loc = (OPT_LocationOperand)loc.copy();
-    inst = OPT_IRTools.nonPEIGC
-      (MIR_Store.create(PPC_STW, R(defLow), right.copyD2U(), 
-                        I(OPT_Bits.PPCMaskLower16(value) + 4), loc, guard));
+    inst = MIR_Store.create(PPC_STW, R(defLow), right.copyD2U(), 
+			    I(OPT_Bits.PPCMaskLower16(value) + 4), loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
   }
@@ -1444,19 +1403,18 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
 				       OPT_Operand guard) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = regpool.getSecondReg(defHigh);
-    OPT_Instruction inst = 
-      OPT_IRTools.nonPEIGC(MIR_Store.create(PPC_STWX, R(defHigh), left, 
-					    right, loc, guard));
+    OPT_Instruction inst = MIR_Store.create(PPC_STWX, R(defHigh), left, 
+					    right, loc, guard);
     inst.copyPosition(s);
     EMIT(inst);
     OPT_RegisterOperand kk = regpool.makeTempInt();
     EMIT(MIR_Binary.create(PPC_ADDI, kk, right.copyU2U(), I(4)));
     if (loc != null)
       loc = (OPT_LocationOperand)loc.copy();
-    inst = OPT_IRTools.nonPEIGC(MIR_Store.create(PPC_STWX, R(defLow), 
-						 left.copyU2U(), 
-						 kk.copyD2U(), loc, 
-						 guard));
+    inst = MIR_Store.create(PPC_STWX, R(defLow), 
+			    left.copyU2U(), 
+			    kk.copyD2U(), loc, 
+			    guard);
     inst.copyPosition(s);
     EMIT(inst);
   }
@@ -1674,11 +1632,11 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     OPT_MethodOperand meth = OPT_MethodOperand.STATIC(target);
     meth.setIsNonReturningCall(true);
     if (SI16(offset)) {
-      EMIT(OPT_IRTools.nonPEIGC(MIR_Load.create(PPC_LWZ, tmp, R(JTOC), I(offset))));
+      EMIT(MIR_Load.create(PPC_LWZ, tmp, R(JTOC), I(offset)));
     } else {
       OPT_RegisterOperand tmp2 = regpool.makeTempInt();
       IntConstant(tmp2.register, offset);
-      EMIT(OPT_IRTools.nonPEIGC(MIR_Load.create(PPC_LWZX, tmp, R(JTOC), tmp2)));
+      EMIT(MIR_Load.create(PPC_LWZX, tmp, R(JTOC), tmp2));
     }
     EMIT(MIR_Move.create(PPC_MTSPR, R(CTR), tmp.copyD2U()));
     EMIT(MIR_Call.mutate0(s, PPC_BCTRL, null, null, meth));

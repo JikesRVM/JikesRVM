@@ -58,7 +58,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
 	  OPT_Register temp = phys.getGPR(0);
 	  p.insertBack(MIR_Move.create(PPC_MFSPR, R(temp), R(phys.getLR())));
 	  p.insertBack(MIR_Binary.create(PPC_SLWI, R(regI), R(regI), I(2)));
-	  p.insertBack(nonPEIGC(MIR_LoadUpdate.create(PPC_LWZUX, R(temp), R(regI), R(temp))));
+	  p.insertBack(MIR_LoadUpdate.create(PPC_LWZUX, R(temp), R(regI), R(temp)));
 	  p.insertBack(MIR_Binary.create(PPC_ADD, R(regI), R(regI), R(temp)));
 	  p.insertBack(MIR_Move.create(PPC_MTSPR, R(phys.getCTR()), R(regI)));
 	  MIR_Branch.mutate(p, PPC_BCTR);
@@ -148,15 +148,13 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
 	    VM._assert(p.bcIndex >= 0 && p.position != null);
 	  int offset = VM_Entrypoints.optResolveMethod.getOffset();
 	  if (OPT_Bits.fits(offset, 16)) {
-	    p.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(zero), 
-						    R(JTOC), I(offset))));
+	    p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), R(JTOC), I(offset)));
 	  } else {
 	    p.insertBefore(MIR_Unary.create(PPC_LDIS, R(zero), 
 					    I(offset >>> 16)));
 	    p.insertBefore(MIR_Binary.create(PPC_ORI, R(zero), R(zero), 
 					     I(offset & 0xffff)));
-	    p.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZX, R(zero), 
-						    R(JTOC), R(zero))));
+	    p.insertBefore(MIR_Load.create(PPC_LWZX, R(zero), R(JTOC), R(zero)));
 	    instructionCount += 2;
 	  }
 	  p.insertBefore(MIR_Move.create(PPC_MTSPR, R(CTR), R(zero)));
@@ -189,9 +187,9 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             OPT_Register TSR = phys.getTSR();
             if (!VM.BuildForThreadSwitchUsingControlRegisterBit) {
               OPT_Register PR = phys.getPR();
-              p.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(zero), 
+              p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), 
                              R(PR), 
-                             I(VM_Entrypoints.threadSwitchRequestedField.getOffset()))));
+                             I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
               p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), 
                              I(0)));
               instructionCount += 2;
@@ -213,11 +211,10 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
             OPT_Register TSR = phys.getTSR();
             if (!VM.BuildForThreadSwitchUsingControlRegisterBit) {
               OPT_Register PR = phys.getPR();
-              p.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(zero), 
-                             R(PR), 
-                             I(VM_Entrypoints.threadSwitchRequestedField.getOffset()))));
-              p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), 
-                             I(0)));
+              p.insertBefore(MIR_Load.create(PPC_LWZ, R(zero), 
+					     R(PR), 
+					     I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+	      p.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(zero), I(0)));
               instructionCount += 2;
             }
             // Because the GC Map code holds a reference to the original
@@ -302,15 +299,13 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
     OPT_Register CTR = phys.getCTR();
     int offset = meth.getOffset();
     if (OPT_Bits.fits(offset, 16)) {
-      result.appendInstruction(nonPEIGC(MIR_Load.create(PPC_LWZ, 
-                               R(zero), R(JTOC), I(offset))));
+      result.appendInstruction(MIR_Load.create(PPC_LWZ, R(zero), R(JTOC), I(offset)));
     } else {
       result.appendInstruction(MIR_Unary.create(PPC_LDIS, 
                                R(zero), I(offset >>> 16)));
       result.appendInstruction(MIR_Binary.create(PPC_ORI, 
                                R(zero), R(zero), I(offset & 0xffff)));
-      result.appendInstruction(nonPEIGC(MIR_Load.create(PPC_LWZX, 
-                               R(zero), R(JTOC), R(zero))));
+      result.appendInstruction(MIR_Load.create(PPC_LWZX, R(zero), R(JTOC), R(zero)));
     }
     result.appendInstruction(MIR_Move.create(PPC_MTSPR, R(CTR), R(zero)));
     result.appendInstruction(MIR_Branch.create(PPC_BCTR));

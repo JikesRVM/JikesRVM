@@ -163,10 +163,9 @@ implements OPT_PhysicalRegisterConstants {
             OPT_Register param = phys.get(FIRST_DOUBLE_PARAM + (double_index));
             start.insertBack(MIR_Move.create(PPC_FMR, F(symParam), F(param)));
           } else {                  // spilled parameter
-            start.insertBack(nonPEIGC(MIR_Load.create(PPC_LFS, F(symParam), 
-                                                      R(FP), 
-                                                      I(spilledArgumentCounter 
-                                                        << 2))));
+            start.insertBack(MIR_Load.create(PPC_LFS, F(symParam), 
+					     R(FP), 
+					     I(spilledArgumentCounter << 2)));
             spilledArgumentCounter--;
           }
         }
@@ -180,10 +179,9 @@ implements OPT_PhysicalRegisterConstants {
             OPT_Register param = phys.get(FIRST_DOUBLE_PARAM + (double_index));
             start.insertBack(MIR_Move.create(PPC_FMR, D(symParam), D(param)));
           } else {                  // spilled parameter
-            start.insertBack(nonPEIGC(MIR_Load.create(PPC_LFD, D(symParam), 
-                                                      R(FP), 
-                                                      I(spilledArgumentCounter 
-                                                        << 2))));
+            start.insertBack(MIR_Load.create(PPC_LFD, D(symParam), 
+					     R(FP), 
+					     I(spilledArgumentCounter << 2)));
             spilledArgumentCounter -= 2;
           }
         }
@@ -200,10 +198,8 @@ implements OPT_PhysicalRegisterConstants {
                                              (symParam, t),
                                              R(param)));
           } else {                  // spilled parameter
-            start.insertBack(nonPEIGC(MIR_Load.create
-                                      (PPC_LWZ, new OPT_RegisterOperand
-                                       (symParam, t), R(FP), 
-                                       I(spilledArgumentCounter << 2))));
+            start.insertBack(MIR_Load.create(PPC_LWZ, new OPT_RegisterOperand(symParam, t), 
+					     R(FP), I(spilledArgumentCounter << 2)));
             spilledArgumentCounter--;
           }
         }
@@ -247,8 +243,7 @@ implements OPT_PhysicalRegisterConstants {
           MIR_Call.setParam(s, opNum, Reg);
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
-          p.insertBack(nonPEIGC(MIR_Store.create(PPC_STFS, F(reg), R(FP), 
-                                                 I(callSpillLoc))));
+          p.insertBack(MIR_Store.create(PPC_STFS, F(reg), R(FP), I(callSpillLoc)));
           callSpillLoc += 4;
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
@@ -263,8 +258,7 @@ implements OPT_PhysicalRegisterConstants {
           MIR_Call.setParam(s, opNum, Reg);
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
-          p.insertBack(nonPEIGC(MIR_Store.create(PPC_STFD, D(reg), R(FP), 
-                                                 I(callSpillLoc))));
+          p.insertBack(MIR_Store.create(PPC_STFD, D(reg), R(FP), I(callSpillLoc)));
           callSpillLoc += 8;
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
@@ -280,10 +274,9 @@ implements OPT_PhysicalRegisterConstants {
           MIR_Call.setParam(s, opNum, Reg);
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
-          p.insertBack(nonPEIGC(MIR_Store.create
-                                (PPC_STW, 
-                                 new OPT_RegisterOperand(reg, Reg.type), 
-                                 R(FP), I(callSpillLoc))));
+          p.insertBack(MIR_Store.create(PPC_STW, 
+					new OPT_RegisterOperand(reg, Reg.type), 
+					R(FP), I(callSpillLoc)));
           callSpillLoc += 4;
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);

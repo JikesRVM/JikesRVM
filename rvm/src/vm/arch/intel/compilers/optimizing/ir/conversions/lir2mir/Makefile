@@ -8,4 +8,5 @@
 COMMON_DIR = $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/ir/conversions/lir2mir
 #
 RULE_FILES = 	$(COMMON_DIR)/NonTerminals.rules \
+		$(COMMON_DIR)/PassThrough.rules \
 		$(MIR_LIR2MIR_DIR)/IA32.rules 

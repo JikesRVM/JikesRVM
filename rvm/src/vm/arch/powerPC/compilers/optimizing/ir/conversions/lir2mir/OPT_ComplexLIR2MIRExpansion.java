@@ -79,10 +79,8 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
 						OPT_PowerPCConditionOperand.UNORDERED(), BB3.makeJumpTarget(),
 						new OPT_BranchProfileOperand()));
     BB2.appendInstruction(MIR_Unary.create(PPC_FCTIWZ, D(temp), D(src)));
-    BB2.appendInstruction(nonPEIGC(MIR_Store.create(PPC_STFD, D(temp), 
-						    R(FP), I(p))));
-    BB2.appendInstruction(nonPEIGC(MIR_Load.create(PPC_LWZ, R(res), R(FP), 
-						   I(p + 4))));
+    BB2.appendInstruction(MIR_Store.create(PPC_STFD, D(temp), R(FP), I(p)));
+    BB2.appendInstruction(MIR_Load.create(PPC_LWZ, R(res), R(FP), I(p + 4)));
     // fix up CFG
     BB1.insertOut(BB2);
     BB1.insertOut(BB3);
