@@ -1,1 +1,1 @@
-FastSemiSpace -test-list night-sanity-measure-compilation-tests
+FastCopyMS -test-list night-sanity-measure-compilation-tests
