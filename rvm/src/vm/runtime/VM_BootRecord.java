@@ -171,6 +171,7 @@ class VM_BootRecord
    // startup/shutdown
    int sysWriteCharIP;    
    int sysWriteIP;            
+   int sysWriteLongIP;
    int sysExitIP;                     
    int sysArgIP;
 

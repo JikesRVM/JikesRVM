@@ -359,6 +359,32 @@ public class VM extends VM_Properties implements VM_Constants,
   }
 
   /**
+   * Low level print to console.
+   * @param value   what is printed
+   */
+  public static void
+  sysWrite(long value) {
+    sysWrite(value, true);
+  }
+
+  /**
+   * Low level print to console.
+   * @param value   what is printed
+   * @param hexToo  how to print: true  - print as decimal followed by hex
+   *                              false - print as decimal only
+   */
+  public static void
+  sysWrite(long value, boolean hexToo) {
+    if (runningVM) {
+      int val1, val2;
+      val1 = (int)(value>>32);
+      val2 = (int)(value & 0xFFFFFFFF);
+      sysCall3(VM_BootRecord.the_boot_record.sysWriteLongIP, val1, val2, hexToo?1:0);
+    } else
+      System.err.print(value);
+  }
+
+  /**
    * Exit virtual machine due to internal failure of some sort.
    * @param message  error message describing the problem
    */
