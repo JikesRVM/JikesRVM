@@ -1,3 +1,14 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+
+// $Id$
+
+/**
+ *
+ * @author David Bacon
+ */
+
 final class VM_Stats {
 
     static final void println() { VM.sysWrite("\n"); }
