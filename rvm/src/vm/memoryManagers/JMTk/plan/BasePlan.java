@@ -472,6 +472,7 @@ public abstract class BasePlan
   final static int PAGES = 0;
   final static int MB = 1;
   final static int PAGES_MB = 2;
+  final static int MB_PAGES = 3;
 
   /**
    * Print out the number of pages and or megabytes, depending on the mode.
@@ -480,22 +481,14 @@ public abstract class BasePlan
    * @param prefix A prefix string
    * @param pages The number of pages
    */
-  public static void writePages(String prefix, int pages, int mode) {
-    VM.sysWrite(prefix);
-    if (mode == PAGES) {
-       VM.sysWrite(pages); 
-       return;
-    }
-    else {
-      double mb = Conversions.pagesToBytes(pages) / (1024.0 * 1024.0);
-      if (mode == MB)
-	VM.sysWrite(mb, " Mb");
-      else if (mode == PAGES_MB) {
-	VM.sysWrite(" (", mb);
-	VM.sysWrite(" Mb)");
-      }
-      else
-	VM.sysFail("writePages passed illegal printing mode");
+  public static void writePages(int pages, int mode) {
+    double mb = Conversions.pagesToBytes(pages) / (1024.0 * 1024.0);
+    switch (mode) {
+      case PAGES: VM.sysWrite(pages, " pgs"); break; 
+      case MB:    VM.sysWrite(mb, " Mb"); break;
+      case PAGES_MB: VM.sysWrite(pages, " pgs ("); VM.sysWrite(mb, " Mb)"); break;
+      case MB_PAGES: VM.sysWrite(mb, " Mb ("); VM.sysWrite(pages, " pgs)"); break;
+      default: VM.sysFail("writePages passed illegal printing mode");
     }
   }
 

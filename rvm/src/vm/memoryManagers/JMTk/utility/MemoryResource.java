@@ -186,14 +186,16 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
    * Excludes boot resource.
    */
   public static final void showUsage(int mode) {
-    BasePlan.writePages("used = ", getPagesUsed(), mode);
+    VM.sysWrite("used = ");
+    BasePlan.writePages(getPagesUsed(), mode);
     boolean first = true;
     for (int i=0; i<allMRCount; i++) {
       MemoryResource mr = allMR[i];
       if (mr == null || mr == Plan.bootMR) continue;
       VM.sysWrite(first ? " = " : " + ");
       first = false;
-      BasePlan.writePages(mr.name, mr.reservedPages(), mode);
+      VM.sysWrite(mr.name, " ");
+      BasePlan.writePages(mr.reservedPages(), mode);
     }
     VM.sysWriteln();
   }

@@ -225,15 +225,15 @@ public abstract class StopTheWorldGC extends BasePlan
     }
     if (verbose >= 2) {
       VM.sysWrite("Collection ", Statistics.gcCount);
-      VM.sysWrite(":      reserved = ", Plan.getPagesReserved());
-      VM.sysWrite(" (", Conversions.pagesToBytes(Plan.getPagesReserved()) / ( 1 << 20), " Mb) ");
-      VM.sysWrite("      trigger = ", getTotalPages());
-      VM.sysWrite(" (", Conversions.pagesToBytes(getTotalPages()) / ( 1 << 20)); 
-      VM.sysWriteln(" Mb) ");
+      VM.sysWrite(":        reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
+      VM.sysWrite("      total = "); writePages(getTotalPages(), MB_PAGES);
+      VM.sysWriteln();
       VM.sysWrite("  Before Collection: ");
-      MemoryResource.showUsage(PAGES);
-      VM.sysWrite("                     ");
       MemoryResource.showUsage(MB);
+      if (verbose >= 3) {
+	  VM.sysWrite("                     ");
+	  MemoryResource.showUsage(PAGES);
+      }
     }
     globalPrepare();
     VM_Interface.resetComputeAllRoots();
@@ -305,12 +305,13 @@ public abstract class StopTheWorldGC extends BasePlan
     }
     if (verbose >= 2) {
       VM.sysWrite("   After Collection: ");
-      MemoryResource.showUsage(PAGES);
-      VM.sysWrite("                     ");
       MemoryResource.showUsage(MB);
-      VM.sysWrite("   Collection ", Statistics.gcCount);
-      writePages(":       reserved = ", Plan.getPagesReserved(), PAGES_MB);
-      writePages("      total = ", getTotalPages(), PAGES_MB);
+      if (verbose >= 3) {
+	  VM.sysWrite("                     ");
+	  MemoryResource.showUsage(PAGES);
+      }
+      VM.sysWrite("                     reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
+      VM.sysWrite("      total = "); writePages(getTotalPages(), MB_PAGES);
       VM.sysWriteln();
       VM.sysWrite("    Collection time: ");
       VM.sysWrite(gcStopTime - gcStartTime, 3);
