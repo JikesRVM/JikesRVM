@@ -549,7 +549,6 @@ public class VM_Runtime implements VM_Constants {
       // expand stack by the size appropriate for normal or native frame 
       // and resume execution at successor to trap instruction
       // (C trap handler has set register.ip to the instruction following the trap).
-	VM.sysWriteln("stack size before growth in Kb is ", myThread.stack.length / 256);
       if (trapCode == TRAP_JNI_STACK) {
 	VM_Thread.resizeCurrentStack(myThread.stack.length + (STACK_SIZE_JNINATIVE_GROW >> LOG_BYTES_IN_ADDRESS), exceptionRegisters);
       } else {
