@@ -96,11 +96,11 @@ public abstract class Generational extends StopTheWorldGC
   protected static final EXTENT          LOS_SIZE = 128 * 1024 * 1024;
   protected static final VM_Address       LOS_END = LOS_START.add(LOS_SIZE);
   protected static final VM_Address  MATURE_START = LOS_END;
-  protected static final EXTENT    MATURE_SS_SIZE = 256 * 1024 * 1024;
+  protected static final EXTENT    MATURE_SS_SIZE = 384 * 1024 * 1024;
   protected static final EXTENT       MATURE_SIZE = MATURE_SS_SIZE<<1;
   protected static final VM_Address    MATURE_END = MATURE_START.add(MATURE_SIZE);
   protected static final VM_Address NURSERY_START = MATURE_END;
-  protected static final EXTENT      NURSERY_SIZE = 64 * 1024 * 1024;
+  protected static final EXTENT      NURSERY_SIZE = 384 * 1024 * 1024;
   protected static final VM_Address   NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   protected static final VM_Address      HEAP_END = NURSERY_END;
 
@@ -306,7 +306,7 @@ public abstract class Generational extends StopTheWorldGC
    * @param mr The memory resource that triggered this collection.
    * @return True if a collection is triggered
    */
-  public final boolean poll(boolean mustCollect, MemoryResource mr) 
+  public final boolean poll (boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
     mustCollect |= stressTestGCRequired();
@@ -398,8 +398,8 @@ public abstract class Generational extends StopTheWorldGC
       // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
       // will know---it will have a noticable performance hit...
       VM.sysWrite("<GC ", Statistics.gcCount); VM.sysWrite(" "); 
-      VM.sysWrite(wbFastPathCounter, false); VM.sysWrite(" wb-fast, ");
-      VM.sysWrite(wbSlowPathCounter, false); VM.sysWrite(" wb-slow>\n");
+      VM.sysWrite(wbFastPathCounter); VM.sysWrite(" wb-fast, ");
+      VM.sysWrite(wbSlowPathCounter); VM.sysWrite(" wb-slow>\n");
       wbFastPathCounter = wbSlowPathCounter = 0;
     }
     remset.flushLocal(); // flush any remset entries collected during GC
