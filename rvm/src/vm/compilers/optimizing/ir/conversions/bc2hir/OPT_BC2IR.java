@@ -1683,10 +1683,10 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
             isPreciseType = true;
             tr = VM_TypeReference.JavaLangString;
           } else if (VM.VerifyAssertions) {
+            VM._assert(false, "unexpected receiver");
+          }
           if (isPreciseType && target != null) {
             methOp.refine(target, true);
-          }
-            VM._assert(false, "unexpected receiver");
           }
           VM_Type type = tr.peekResolvedType();
           if (type != null && type.isResolved() && type.isClassType() && target != null && type != target.getDeclaringClass()) {
