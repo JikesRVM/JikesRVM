@@ -825,31 +825,38 @@ public class VM extends VM_Properties implements VM_Constants,
   
   // Exit statuses, pending a better location.
   // We also use the explicit constant -1 as an exit status (that gets mapped
-  // to 255).
+  // to 255).  -1 is for things that are particularly bad.
   public static int exitStatusRecursivelyShuttingDown = 128;
   public static int exitStatusDumpStackAndDie = 124;
   public static int exitStatusMainThreadCouldNotLaunch = 123;
   public static int exitStatusMiscTrouble = 122;
   public static int exitStatusSysFail = exitStatusDumpStackAndDie;
 
-  // See sys.C
-  final public static int exitStatusUnexpectedCallToSys = 120;
-  final public static int exitStatusUnsupportedInternalOp = exitStatusUnexpectedCallToSys;
-  
+  /* See sys.C; if you change one of the following macros here,
+     change them there too! */
+
+  // EXIT_STATUS_SYSCALL_TROUBLE
   final public static int exitStatusSyscallTrouble = 121;
+  // EXIT_STATUS_TIMER_TROUBLE
   final public static int exitStatusTimerTrouble = exitStatusSyscallTrouble;
 
+  // EXIT_STATUS_UNEXPECTED_CALL_TO_SYS
+  final public static int exitStatusUnexpectedCallToSys = 120;
+  // EXIT_STATUS_UNSUPPORTED_INTERNAL_OP
+  final public static int exitStatusUnsupportedInternalOp = exitStatusUnexpectedCallToSys;
+
   public static int exitStatusDyingWithUncaughtException = 113;
+  /** Trouble with the Hardware Performance Monitors */
+  public static int exitStatusHPMTrouble = 110;
   public static int exitStatusOptCompilerFailed = 101;
+  /* See EXIT_STATUS_BOGUS_COMMAND_LINE_ARG in RunBootImage.C.  If you change
+   * this value, change it there too. */
   public static int exitStatusBogusCommandLineArg = 100;
   public static int exitStatusTooManyThrowableErrors = 99;
   public static int exitStatusTooManyOutOfMemoryErrors = exitStatusTooManyThrowableErrors;
+  /* See EXIT_STATUS_BAD_WORKING_DIR, in VM_0005fProcess.C.  If you change
+     this value, change it there too.  */
   public static int exitStatusJNITrouble = 98;
-  /** Trouble with the Hardware Performance Monitors */
-  public static int exitStatusHPMTrouble = -10;
-  
-  // see EXIT_STATUS_BAD_WORKING_DIR, in VM_0005fProcess.C
-  // 
   
 
   /**
