@@ -88,7 +88,8 @@ cd $RVM_ROOT
 
 dry_run=""
 do_mail=1
-measure_compilation=1
+do_archive=1
+do_measure_compilation=1
 declare -i trouble=0
 while (( $# > 0 )); do
     case "$1" in
@@ -107,8 +108,12 @@ while (( $# > 0 )); do
 	    do_mail=0;
 	    shift;
 	    ;;
+	-no-archive )
+	    do_archive=0;
+	    shift;
+	    ;;
 	-no-measure-compilation )
-	    measure_compilation=0;
+	    do_measure_compilation=0;
 	    shift;
 	    ;;
 	-* )
@@ -163,12 +168,12 @@ else
 fi
 
 # measure compilation time
-echo -e "\n\nRunning the measure compilation time tests\n" >> $RUN_LOG
+if [[ $do_measure_compilation == 1 ]]; then
+  echo -e "\n\nRunning the measure compilation time tests\n" >> $RUN_LOG
 
-export MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
-mkdir -p $MEASURE_COMPILATION_DIR
+  export MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
+  mkdir -p $MEASURE_COMPILATION_DIR
 
-if [[ $measure_compilation == 1 ]]; then
    $RVM_ROOT/rvm/regression/NightSanityDriver $dry_run -common "-images $RVM_ROOT/images -result $MEASURE_COMPILATION_DIR -nobuild -numprocs $NUM_PROCS -measureCompilation -wait sem -rc-args -X:vm:measureCompilation=true -use-opt-levels 'O0 O1 O2'"  -config night-sanity-measure-compilation-config >> $RUN_LOG 2>&1
 fi
 
@@ -227,7 +232,10 @@ function archiveResults() {
 }
 
 declare -i archived=0
-archiveResults && archived=1
+
+if (( do_archive == 1 )); then
+  archiveResults && archived=1
+fi
 
 # determine how many ran, failed, and passed, then build a summary line
 declare -i numran=`grep "sane" $RUN_LOG | wc -l`
@@ -344,9 +352,11 @@ function compResults () {
 ## Without boot images, it's unlikely we'll have compilation results either
 ## However, I suppose three extra tests for a file's existence won't hurt.
 # if (( have_boot_images )); then
-for opt in 0 1 2; do
-    compResults $opt >> $MSG
-done
+if [[ $do_measure_compilation == 1 ]]; then
+  for opt in 0 1 2; do
+      compResults $opt >> $MSG
+  done
+fi
 
 # Finally!  Send the mail message to those who care
 # echo "mailing status to $RESULT_MAILING_LIST"
