@@ -35,16 +35,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
     // get the parameter list as Java class
     VM_Method mth = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
-    VM_TypeReference[] argTypes = mth.getParameterTypes();
-    Class[]   argClasses = new Class[argTypes.length];
-    for (int i=0; i<argClasses.length; i++) {
-      argClasses[i] = argTypes[i].resolve().getClassForType();
+    Constructor constMethod = java.lang.reflect.JikesRVMSupport.createConstructor(mth);
+    if (!mth.isPublic()) {
+      constMethod.setAccessible(true);
     }
 
-    Constructor constMethod = cls.getConstructor(argClasses);
-    if (constMethod==null)
-      throw new Exception("Constructor not found");
-    
     Object argObjs[];
 
     if (isJvalue) {
@@ -94,7 +89,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    */
   public static Object invokeWithDotDotVarArg(int methodID, 
                                               VM_TypeReference expectReturnType)
-    throws Exception {
+    throws Exception, VM_PragmaNoInline {
 
     //-#if RVM_FOR_AIX
     VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);    
@@ -119,7 +114,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    */
   public static Object invokeWithDotDotVarArg(Object obj, int methodID, 
                                               VM_TypeReference expectReturnType, boolean skip4Args)
-    throws Exception {
+    throws Exception, VM_PragmaNoInline {
 
     //-#if RVM_FOR_AIX
     VM_Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);    
@@ -224,7 +219,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    *                  if false, the calling JNI function has 3 args before the vararg
    * @return the starting address of the vararg in the caller stack frame
    */
-  private static VM_Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception {
+  private static VM_Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception, VM_PragmaNoInline {
 
     int glueFrameSize = JNI_GLUE_FRAME_SIZE;
 
