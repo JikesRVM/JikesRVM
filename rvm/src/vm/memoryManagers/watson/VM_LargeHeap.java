@@ -124,7 +124,7 @@ public class VM_LargeHeap extends VM_Heap
    * to be done without doing further allocations (or by using temp space)
    */
 
-   void outOfMemory ( int size ) {
+   void outOfMemory ( int sz ) {
 
     // First thread to be out of memory will write out the message,
     // and issue the shutdown. Others just spinwait until the end.
@@ -134,8 +134,8 @@ public class VM_LargeHeap extends VM_Heap
       outOfMemoryReported = true;
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
       VM.sysWrite("\nOutOfMemoryError - Insufficient Large Object Space\n");
-      VM.sysWriteln("Unable to allocate large object of size (Kb) = ", size);
-      VM.sysWriteln("Current Large Space Size (Kb) = ", size);
+      VM.sysWriteln("Unable to allocate large object of size (Kb) = ", sz / 1024);
+      VM.sysWriteln("Current Large Space Size (Kb) = ", size / 1024);
       VM.sysWrite("Specify a bigger large object heap using -X:lh=nnn command line argument\n");
       // call shutdown while holding the processor lock
       VM.shutdown(-5);
