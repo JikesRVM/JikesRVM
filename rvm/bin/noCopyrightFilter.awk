@@ -19,6 +19,7 @@
 /\/doc\/userguide\// { next }
 
 /\/regression\/tests\/SPECjbb2000\/SPECjbb./ { next }
+/\/regression\/tests\/pseudojbb\/pseudojbb/ {next}
 /\/regression\/tests\/mauve\/mauve-jikesrvm/ {next}
 
 /\/tests\/javalex\/qb1.lex.ref/ { next }
