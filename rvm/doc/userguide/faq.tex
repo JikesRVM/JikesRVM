@@ -211,12 +211,7 @@ There are a few functions that are only supported on AIX\AIXTMFootnote
 and some other functions that are only supported on Linux/IA32.
 
 \subsubsection{Does RVM support user-defined class loaders?}
-
-Not entirely.  Jikes RVM version 2.1 implements many of the entrypoints
-for user-defined classloaders, so many codes should work.  However, the
-underlying implementation does not yet support distinct namespaces.  The
-net effect is that the RVM will not yet support two classes which have the
-same name, but different definitions due to different classloaders.
+Yes, with the caveat that we do not verify linking constraints.
 
 \subsubsection{Does RVM support the Java security model?} 
 
@@ -250,9 +245,7 @@ property, which constrains the optimizations.
 \end{itemize}
 
 \subsubsection{Does RVM support zip files?}
-
-As of Jikes RVM v2.1.0, we use the \xlink{GNU Classpath}{\classpathURL} 
-implementation of java.util.zip and java.util.jar. 
+Yes, as of Jikes RVM v2.1.0.
 
 \subsubsection{How do RVM's threads, Posix threads, and kernel
 threads relate to each other?}
@@ -376,10 +369,7 @@ in rvmrt.jar?}
 You can try.  Set your classpath to pick up the library you desire.
 
 \subsubsection{Why don't you use the GNU Classpath libraries?}
-
-As of version 2.2.0 we mostly do. We plan to switch completely to the
-GNU Classpath libraries in the near future. See
-section~\ref{section:libraries} for more details. 
+As of version 2.2.1 we do.  
 
 \subsection{Optimizing Compiler}
 
@@ -428,12 +418,11 @@ See the \xlink{SAS 2000 paper}{\SASPaperURL}, as well as comments in
 
 \subsubsection{Is ABCD included?}
 
-The open-source distribution includes a derivative of the prototype ABCD 
-implementation used for the 
-\xlink{PLDI 2000 paper}{\ABCDPaperURL}.
-However, ABCD is {\em not} enabled by default.  The current implementation
-is incorrect, as it checks only upper bounds and not lower bounds.
-There is a command-line option to turn on the current implementation.
+Version 2.0.0 through 2.2.0 of Jikes RVM included a derivative of the
+prototype ABCD implementation used for the \xlink{PLDI 2000
+paper}{\ABCDPaperURL}.  However, ABCD was {\em not} enabled by default.
+The implementation was incorrect, as it checked only upper
+bounds and not lower bounds. 
 
 \subsubsection{Is escape analysis included?}
 
