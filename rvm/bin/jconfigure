@@ -293,7 +293,6 @@ integer RVM_WITH_COPYING_GC=0
 integer RVM_WITH_HYBRID_GC=0
 integer RVM_WITH_NONCOPYING_GC=0
 integer RVM_WITH_GENERATIONAL_GC=0
-integer RVM_WITH_FIXED_NURSERY_GC=0
 integer RVM_WITH_CONCURRENT_GC=0     # aka reference counting, aka RCGC
 integer RVM_WITH_REALTIME_GC=0
 integer RVM_WITH_NO_GC=0
@@ -653,11 +652,7 @@ function emitSourceList
    #
    if (( $RVM_WITH_COPYING_GC )); then
       if (( $RVM_WITH_GENERATIONAL_GC )); then
-         if (( $RVM_WITH_FIXED_NURSERY_GC )); then
-            print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/copyGenFixed
-	 else
-            print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/copyGenVariable
-	 fi   
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/copyGenFixed
       else
          print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/semispace
       fi
