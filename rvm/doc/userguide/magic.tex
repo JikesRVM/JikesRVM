@@ -121,7 +121,7 @@ uninterruptibility. The forbidden bytecodes are: aastore,
 invokeinterface, new, newarray, anewarray, athrow, checkcast and
 instanceof unless the LHS type is a final class, monitorenter,
 monitorexit, mulitanewarray. 
-\item{} Uninterruptible code cannot cause class loading and this must
+\item{} Uninterruptible code cannot cause class loading and thus must
 not contain unresolved getstatic, putstatic, getfield, putfield,
 invokevirtual, or invokestatic bytecodes. 
 \item{} Uninterruptible code cannot contain calls to interruptible
@@ -155,7 +155,7 @@ only be invoked as part of the implementation of the new bytecode.
 \item{} If a method throws the exception {\tt
 VM\_PragmaInterruptible} then it is interruptible.
 \item{} If none of the above rules apply and a method throws the
-exception VM\_PragmaUninterruptible, then it is uninterruptible.
+exception {\tt VM\_PragmaUninterruptible}, then it is uninterruptible.
 \item{} If none of the above rules apply and the declaring class of
 the method directly implements the interface {\tt VM\_Uninterruptible}
 then it is uninterruptible.
