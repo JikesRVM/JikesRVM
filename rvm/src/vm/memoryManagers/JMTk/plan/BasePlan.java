@@ -383,13 +383,25 @@ public abstract class BasePlan
 
   /**
    * Return the amount of <i>memory in use</i>, in bytes.  Note that
-   * this includes unused memory that is held in reserve for copying,
+   * this excludes unused memory that is held in reserve for copying,
    * and therefore unavailable for allocation.
    *
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static long usedMemory() throws VM_PragmaUninterruptible {
     return Conversions.pagesToBytes(Plan.getPagesUsed());
+  }
+
+
+  /**
+   * Return the amount of <i>memory in use</i>, in bytes.  Note that
+   * this includes unused memory that is held in reserve for copying,
+   * and therefore unavailable for allocation.
+   *
+   * @return The amount of <i>memory in use</i>, in bytes.
+   */
+  public static long reservedMemory() throws VM_PragmaUninterruptible {
+    return Conversions.pagesToBytes(Plan.getPagesReserved());
   }
 
   /**

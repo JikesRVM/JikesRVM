@@ -25,20 +25,21 @@ class Exhaust {
 
   public static void runTest() throws Throwable {
 
-    for (int i=0; i<10; i++) {
+    for (int i=1; i<=10; i++) {
+	System.out.println("Starting round " + i);
 	junk = new Object[metaSize];
-	while (true) {
-	    try {
+	System.out.println("  Allocating until exception thrown");
+	try {
+	    while (true)
 		junk[cursor++] = new byte[itemSize];
-	    }
-	    catch (OutOfMemoryError e) {
-		System.out.println("Caught OutOfMemory - freeing now");
-		junk = null;  // kills everything
-		cursor = 0;
-		break;
-	    }
+	}
+	catch (OutOfMemoryError e) {
+	    System.out.println("  Caught OutOfMemory - freeing now");
+	    junk = null;  // kills everything
+	    cursor = 0;
 	}
     }
+    System.out.println("Overall: SUCCESS");
   }
 
 }

@@ -53,10 +53,12 @@ import com.ibm.JikesRVM.VM_SysCall;
 public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   final public static boolean CHECK_MEMORY_IS_ZEROED = false;
-  private static int junk = 0;
+  final public static double OUT_OF_MEMORY_THRESHOLD = 0.98;  // throw OutOfMemoryError when usage after a GC exceeds threshold
+
 
   // time in seconds
   //
+  private static int junk = 0;
   public static void busyWait(double time) {
     double start = VM_Time.now();
     do {
@@ -266,11 +268,14 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     if ((Plan.verbose == 1) && (why == EXTERNALLY_TRIGGERED_GC)) {
       VM.sysWrite("[Forced GC]");
     }
-    if (Plan.verbose > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
+    if (Plan.verbose >= 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
     long start = System.currentTimeMillis();
     VM_CollectorThread.collect(VM_CollectorThread.handshake);
-    if (Plan.verbose > 2) VM.sysWriteln("Collection finished (ms): ", 
+    if (Plan.verbose >= 2) VM.sysWriteln("Collection finished (ms): ", 
 					(int) (System.currentTimeMillis() - start));
+    double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
+    if (usage > OUT_OF_MEMORY_THRESHOLD)
+	throw (new OutOfMemoryError());
   }
   public static final void triggerAsyncCollection()
     throws VM_PragmaUninterruptible {
@@ -777,7 +782,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 	}
     }
   }
-
 
 
 }
