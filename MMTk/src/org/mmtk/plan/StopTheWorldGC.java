@@ -170,6 +170,16 @@ public abstract class StopTheWorldGC extends BasePlan
     VM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
     if (designated) Statistics.rootTime.stop();
 
+    // This should actually occur right before preCopyGC but
+    // a spurious complaint about setObsolete would occur.
+    // The upshot is that objects coped by preCopyGC are not
+    // subject to the sanity checking.
+    int order = VM_Interface.rendezvous(4900);
+    if (order == 1) {
+      VM_Interface.resetThreadCounter();
+      setGcStatus(GC_PROPER);    
+    }
+    VM_Interface.rendezvous(4901);
 
     if (designated) Statistics.scanTime.start();
     processAllWork(); 
@@ -230,10 +240,6 @@ public abstract class StopTheWorldGC extends BasePlan
 	  p.baseThreadLocalPrepare(NON_PARTICIPANT);
       }
     baseThreadLocalPrepare(order);
-    if (order == 1) {
-      VM_Interface.resetThreadCounter();
-      setGcStatus(GC_PROPER);    // GC is in progress until after release!
-    }
     VM_Interface.rendezvous(4250);
     if (Plan.MOVES_OBJECTS) {
       VM_Interface.preCopyGCInstances();

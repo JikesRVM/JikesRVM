@@ -258,8 +258,9 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
    * @param obj the object to check
    */
   public static void modifyCheck(Object obj) {
-    /* Make sure we don't GC does not putField on a possible moving
-     * object. */
+    /* Make sure that during GC, we don't update on a possibly moving object. 
+       Such updates are dangerous because they can be lost.
+     */
     if (Plan.gcInProgressProper()) {
 	VM_Address ref = VM_Magic.objectAsAddress(obj);
 	if (VMResource.refIsMovable(ref)) {
@@ -445,7 +446,8 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
      // We should strive to be allocation-free here.
       VM_Class cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
-      if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/JMTk/", clsBA)) {
+      if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/JMTk/", clsBA) ||
+	  isPrefix("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_GCMapIteratorGroup", clsBA)) {
 	return Plan.IMMORTAL_SPACE;
       }
     }
