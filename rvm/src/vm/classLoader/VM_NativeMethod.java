@@ -5,12 +5,6 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-import java.io.DataInputStream;
-import java.io.IOException;
-
-//-#if RVM_WITH_OPT_COMPILER
-import com.ibm.JikesRVM.opt.*;
-//-#endif
 
 /**
  * A native method of a java class.
@@ -72,7 +66,7 @@ public final class VM_NativeMethod extends VM_Method {
   public final VM_Address getNativeIP() { 
     return nativeIP;
   }
-
+  
   /**
    * get the native TOC for this method
    */
@@ -142,37 +136,15 @@ public final class VM_NativeMethod extends VM_Method {
     // VM.sysWrite("getMangledName:  " + mangledName + " \n");
 
     return mangledName;
-
   }
 
   private boolean resolveNativeMethod() {
     nativeProcedureName = getMangledName(false);
-    String nativeProcedureNameWithSigniture = getMangledName(true);
+    String nativeProcedureNameWithSignature = getMangledName(true);
 
-    // get the library in VM_ClassLoader
-    // resolve the native routine in the libraries
-    VM_DynamicLibrary libs[] = VM_ClassLoader.getDynamicLibraries();
-    VM_Address symbolAddress = VM_Address.zero();
-    if (libs!=null) {
-      for (int i=1; i<libs.length && symbolAddress.isZero(); i++) {
-        VM_DynamicLibrary lib = libs[i];
-
-        if (lib!=null && symbolAddress==VM_Address.zero()) {
-          symbolAddress = lib.getSymbol(nativeProcedureNameWithSigniture);
-          if (symbolAddress != VM_Address.zero()) {
-              nativeProcedureName = nativeProcedureNameWithSigniture;
-              break;
-          }
-        }
-
-        if (lib != null && symbolAddress==VM_Address.zero()) {
-          symbolAddress = lib.getSymbol(nativeProcedureName);
-          if (symbolAddress != VM_Address.zero()) {
-              nativeProcedureName = nativeProcedureName;
-              break;
-          }
-        }
-      }
+    VM_Address symbolAddress = VM_DynamicLibrary.resolveSymbol(nativeProcedureNameWithSignature);
+    if (symbolAddress.isZero()) {
+      symbolAddress = VM_DynamicLibrary.resolveSymbol(nativeProcedureName);
     }
 
     if (symbolAddress.isZero()) {
@@ -185,7 +157,6 @@ public final class VM_NativeMethod extends VM_Method {
       //-#else
       nativeIP = symbolAddress;
       //-#endif
-      // VM.sysWrite("resolveNativeMethod: " + nativeProcedureName + ", IP = " + VM.intAsHexString(nativeIP) + ", TOC = " + VM.intAsHexString(nativeTOC) + "\n");
       return true;
     }
   }

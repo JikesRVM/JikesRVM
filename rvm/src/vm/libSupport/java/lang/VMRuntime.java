@@ -79,7 +79,7 @@ final class VMRuntime {
   }    
 
   static int nativeLoad(String libName) {
-    return VM_ClassLoader.load(libName);
+    return VM_DynamicLibrary.load(libName);
   }
 
   static String nativeGetLibname(String pathname, String libname) {
