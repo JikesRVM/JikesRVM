@@ -10,5 +10,3 @@ JDK1.4
 !java.net.MulticastSocket    # hangs Jikes RVM
 !java.net.ServerSocket       # hangs Jikes RVM
 !java.net.URLClassLoader.getResourceRemote # hangs Jikes RVM
-!java.security.              # mauve test doesn't compile
-
