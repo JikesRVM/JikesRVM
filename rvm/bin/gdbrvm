@@ -23,6 +23,19 @@ ME="${0##*/}"
 # Bash internal shorthand that works like the "dirname" command.
 mydir="${0%/*}"
 
+function croak_nonusage () {
+    # Display the error message.  If it's a multi-line error message, indent
+    # the second and subsequent lines by a few spaces.  
+    # Try to auto-wrap the message if we have GNU Fold.
+
+    local gnufold="/usr/bin/fold --width=65 --spaces"
+    $gnufold < /dev/null &> /dev/null || gnufold=cat
+
+    echo "${ME}: $*" | $gnufold | sed -e '2,$s/^/     /' >&2
+    trap '' EXIT
+    exit 1
+}
+
 if [[ $mydir && $mydir != $ME ]]; then
     # Where to find auxiliary programs:
     bin_dir="${mydir}"
@@ -62,7 +75,7 @@ ARGS="$ARGS -Djava.home=$RVM_ROOT"
 ARGS="$ARGS -Dgnu.classpath.home.url=file:${RVM_BUILD}"
 ARGS="$ARGS -Dgnu.classpath.vm.shortname=JikesRVM"
 
-ARGS="$ARGS -Duser.home=$HOME -Duser.dir=${PWD} -Dos.name=$(uname -s) -Dos.version=$(uname -r) -Dos.arch=$(uname -m)"
+ARGS="$ARGS -Duser.home=$HOME -Duser.dir=$(pwd) -Dos.name=$(uname -s) -Dos.version=$(uname -r) -Dos.arch=$(uname -m)"
 
 # Now execute the VM
 echo set args $ARGS "$@" > $RVM_BUILD/gdb.commandlineArgs
