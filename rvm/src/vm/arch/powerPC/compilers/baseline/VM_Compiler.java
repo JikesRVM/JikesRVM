@@ -1221,7 +1221,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitTDEQ0(T3);
       asm.emitDIVD(T1,T1,T3);
     } else {
-      asm.emitOR  (T0, T3, T2); // or two halfs of denomenator together
+      asm.emitOR  (T0, T3, T2); // or two halves of denominator together
       asm.emitTWEQ0(T0);         // trap if 0.
       popLong(T0,T1);
       generateSysCall(16, VM_Entrypoints.sysLongDivideIPField);
@@ -1241,7 +1241,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitMULLD(T0, T0, T3);   // T0 := [T1/T3]*T3
       asm.emitSUBFC (T1, T0, T1);   // T1 := T1 - [T1/T3]*T3
     } else {
-      asm.emitOR  (T0, T3, T2); // or two halfs of denomenator together
+      asm.emitOR  (T0, T3, T2); // or two halves of denominator together
       asm.emitTWEQ0(T0);         // trap if 0.
       popLong(T0,T1);
       generateSysCall(16, VM_Entrypoints.sysLongRemainderIPField);
@@ -3377,13 +3377,22 @@ public class VM_Compiler extends VM_BaselineCompiler
       int gp = FIRST_OS_PARAMETER_GPR;
       int fp = FIRST_OS_PARAMETER_FPR;
       int stackIndex = paramWords;
+      int paramBytes = (VM.BuildFor64Addr? args.length : paramWords) * BYTES_IN_STACKSLOT;
+      int callee_param_index = - BYTES_IN_STACKSLOT - paramBytes;
+      
       for (int i=0; i<args.length; i++) {
         VM_TypeReference t = args[i];
         if (t.isLongType()) {
           stackIndex -= 2;
+          callee_param_index += BYTES_IN_LONG;
           if (VM.BuildFor64Addr) {
-            peekLong(gp, gp, stackIndex);
-            gp++;  
+            if (gp <= LAST_OS_PARAMETER_GPR) { 
+              peekLong(gp, gp, stackIndex);
+              gp++;  
+            } else {
+              peekLong(S0,S0, stackIndex);
+              asm.emitSTD(S0, callee_param_index - BYTES_IN_LONG, FP);
+            }
           } else {
           //-#if RVM_FOR_LINUX
           /* NOTE: following adjustment is not stated in SVR4 ABI, but 
@@ -3391,33 +3400,60 @@ public class VM_Compiler extends VM_BaselineCompiler
            */
             gp += (gp + 1) & 0x01; // if gpr is even, gpr += 1
           //-#endif
-            peekInt(gp++, stackIndex);      // lo register := lo mem (== hi order word)
-            peekInt(gp++, stackIndex+1);    // hi register := hi mem (== lo order word)
+            if (gp <= LAST_OS_PARAMETER_GPR){ 
+              peekInt(gp++, stackIndex);   
+            }   // lo register := lo mem (== hi order word)
+            if (gp <= LAST_OS_PARAMETER_GPR){  
+              peekInt(gp++, stackIndex+1);    // hi register := hi mem (== lo order word)
+            } else {
+              peekLong(S0, S1, stackIndex);
+              asm.emitSTW(S0, callee_param_index - BYTES_IN_LONG, FP);
+              asm.emitSTW(S1, callee_param_index - BYTES_IN_INT, FP);
+            }
           }
         } else if (t.isFloatType()) {
           stackIndex -= 1;
-          peekFloat(fp++, stackIndex);
+          callee_param_index += BYTES_IN_STACKSLOT;
+          if (fp <= LAST_OS_PARAMETER_FPR) { 
+            peekFloat(fp++, stackIndex);
+          } else {
+              peekFloat(FIRST_SCRATCH_FPR, stackIndex);
+              asm.emitSTFS(FIRST_SCRATCH_FPR, callee_param_index - BYTES_IN_FLOAT, FP);
+          }
         } else if (t.isDoubleType()) {
           stackIndex -= 2;
-          peekDouble(fp++, stackIndex);
+          callee_param_index += BYTES_IN_DOUBLE;
+          if (fp <= LAST_OS_PARAMETER_FPR) { 
+            peekDouble(fp++, stackIndex);
+          } else {
+            peekDouble( FIRST_SCRATCH_FPR, stackIndex);
+            asm.emitSTFD(FIRST_SCRATCH_FPR, callee_param_index - BYTES_IN_DOUBLE, FP);
+          }
         } else if (t.isIntLikeType()) {
           stackIndex -= 1;
-          peekInt(gp++, stackIndex);
+          callee_param_index += BYTES_IN_STACKSLOT;
+          if (gp <= LAST_OS_PARAMETER_GPR)  {
+            peekInt(gp++, stackIndex);
+          } else {
+            peekInt(S0, stackIndex);
+            asm.emitSTAddr(S0, callee_param_index - BYTES_IN_ADDRESS, FP);// save int zero-extended to be sure
+          }
         } else { // t is object
           stackIndex -= 1;
-          peekAddr(gp++, stackIndex);
+          callee_param_index += BYTES_IN_STACKSLOT;
+          if (gp <= LAST_OS_PARAMETER_GPR){  
+            peekAddr(gp++, stackIndex);
+          } else {
+            peekAddr(S0, stackIndex);
+            asm.emitSTAddr(S0, callee_param_index - BYTES_IN_ADDRESS, FP);
+          }
         }
       }
       if (VM.VerifyAssertions) {
         VM._assert(stackIndex == 0);
-        // Laziness.  We don't support sysCalls with so 
-        // many arguments that we would have to spill some to the stack.
-        VM._assert(gp - 1 <= LAST_OS_PARAMETER_GPR);
-        VM._assert(fp - 1 <= LAST_OS_PARAMETER_FPR);
       }
 
       // (2) Call it
-      int paramBytes = (VM.BuildFor64Addr? args.length : paramWords) * BYTES_IN_STACKSLOT;
       VM_Field ip = VM_Entrypoints.getSysCallField(methodName.toString());
       generateSysCall(paramBytes, ip);
 
