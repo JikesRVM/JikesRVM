@@ -17,7 +17,7 @@ ifeq ($(MODE),PERFORMANCE)
   HEAPSIZE=512
   INITIAL_HEAPSIZE=256
 else
-  HEAPSIZE=300
+  HEAPSIZE=200
 endif
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
