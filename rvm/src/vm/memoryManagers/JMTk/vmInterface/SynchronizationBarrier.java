@@ -23,7 +23,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.Barrier;
  * and the VM_Processors they are running on, during parallel collections.
  *
  * The core barrier functionality is implemented by a barrier object.
- * The code in this class is in charge of GC idiosyncrasies like
+ * The code in this class is in charge of VM-related idiosyncrasies like
  * computing how many processors are participating in a particular collection.
  *
  * @author   Derek Lieber
@@ -34,11 +34,11 @@ public final class SynchronizationBarrier {
 
   private static final int trace = 0;
 
-  /** maximum processor id for rendezvous, sometimes includes the native daemon processor */
-  private int   maxProcessorId;
+  // maximum processor id for rendezvous (possibly including the native daemon processor)
+  private int maxProcessorId;
 
-  /** number of physical processors on running computer */
-  private int   numRealProcessors;
+  // number of physical processors on running computer 
+  private int   numRealProcessors; 
 
   Barrier barrier = new Barrier();
 
@@ -51,25 +51,10 @@ public final class SynchronizationBarrier {
     numRealProcessors = 1;
   }
 
-  /* Utility routines - access to various VM features */
-
-  private static void lowYield() throws VM_PragmaUninterruptible {
-    VM_SysCall.sysVirtualProcessorYield();
-  }
-
-  private static int numProcessors() throws VM_PragmaUninterruptible {
-    return VM_SysCall.sysNumProcessors();
-  }
-
   /**
    * Wait for all other collectorThreads/processors to arrive at this barrier.
    */
   public int rendezvous (int where) throws VM_PragmaUninterruptible {
-    return rendezvous(where, false);
-  }
-
-
-  public int rendezvous (int where, boolean time) throws VM_PragmaUninterruptible {
 
     int myOrder = barrier.arrive(where);
 
@@ -94,7 +79,6 @@ public final class SynchronizationBarrier {
     int myProcessorId = VM_Processor.getCurrentProcessorId();
     VM_CollectorThread th = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
     int myNumber = th.getGCOrdinal();
-    int numExcluded = 0;  // number of RVM VPs NOT participating
 
     if (trace > 0)
       VM.sysWriteln("GC Message: SynchronizationBarrier.startupRendezvous: proc ", myProcessorId, " ordinal ", myNumber);
@@ -113,9 +97,8 @@ public final class SynchronizationBarrier {
     int numParticipating = 0;
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
       if ( VM_Scheduler.processors[i].lockInCIfInC() ) { // can't be true for self
-	  numExcluded++;
+	  if (trace > 0) VM.sysWriteln("GC Message: excluding processor ", i);
 	  removeProcessor(i);
-	  if (trace > 0) VM.sysWriteln("GC Message: excluded processor ", i);
       }
       else
 	numParticipating++;
@@ -133,9 +116,7 @@ public final class SynchronizationBarrier {
 	int loopCount = 1;
 	VM_Processor ndvp = VM_Scheduler.processors[VM_Scheduler.nativeDPndx];
 	if ( VM_Scheduler.processors[VM_Scheduler.nativeDPndx].blockInWaitIfInWait() ) {
-	    numExcluded++;
-	    if (trace > 0)
-		VM.sysWriteln("GC Message: startupRendezvous TAKING OUT NATIVE DAEMON PROCESSOR");
+	    if (trace > 0) VM.sysWriteln("GC Message: startupRendezvous  excluding NATIVE DAEMON PROCESSOR");
 	    removeProcessor( VM_Scheduler.nativeDPndx );
 	}
       }
@@ -168,8 +149,9 @@ public final class SynchronizationBarrier {
     if ( ! VM.BuildForSingleVirtualProcessor) {
       // Set number of Real processors on the running computer. This will allow
       // waitABit() to spin when running with fewer VM_Procssors than real processors
-      numRealProcessors = numProcessors();
+      numRealProcessors = VM_SysCall.sysNumProcessors();
     }
+    barrier.clearTarget();
     VM_Magic.sync();      // make other threads/processors see the update
   }
 
@@ -191,8 +173,7 @@ public final class SynchronizationBarrier {
       return sum;
     }
     else {
-      // yield executing operating system thread back to the operating system
-      lowYield();
+      VM_SysCall.sysVirtualProcessorYield();        // pthread yield 
       return 0;
     }
   }
