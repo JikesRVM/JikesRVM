@@ -304,8 +304,8 @@ main(int argc, char **argv)
     //
     bool trace = false;
     bool verbose = false;
-    for (; **argv == '-'; ++argv, --argc) {
-	char *arg   = *argv;
+    for (; argc > 0 && **argv == '-'; ++argv, --argc) {
+	char *arg = *argv;
 	
 	if (streql(arg, "--")) {
 	    ++argv, --argc;
@@ -445,6 +445,12 @@ main(int argc, char **argv)
 	}
 
 	fprintf(stderr, "%s: unrecognized option: %s\n", Me, arg);
+	shorthelp(stderr);
+	exit(2);
+    }
+    
+    if (argc <= 0) {
+	fprintf(stderr, "%s: Must specify an output directory!\n", Me);
 	shorthelp(stderr);
 	exit(2);
     }
@@ -1161,7 +1167,15 @@ delete_on_trouble()
 static void 
 cleanup_and_die(int signum) 
 {
-    fprintf(stderr, "%s: Dying due to signal # %d; cleaning up.\n", Me, signum);
+    fprintf(stderr, "%s: Dying due to signal # %d"
+#ifdef __GLIBC__	    
+	    " (%s)"
+#endif
+	    "; cleaning up.\n", Me, 
+#ifdef __GLIBC__	    
+	    strsignal(signum),
+#endif
+signum);
     delete_on_trouble();
     signal(signum, SIG_DFL);
     raise(signum);
