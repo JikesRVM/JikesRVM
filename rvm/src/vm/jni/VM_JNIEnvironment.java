@@ -15,8 +15,8 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
  * @author Steve Smith 
  */
 public class VM_JNIEnvironment implements VM_SizeConstants
-                                          //-#if RVM_FOR_AIX
-                                          ,VM_JNIAIXConstants
+                                          //-#if RVM_FOR_POWERPC
+                                          ,VM_JNIConstants
                                           //-#endif
 {
 
@@ -40,13 +40,13 @@ public class VM_JNIEnvironment implements VM_SizeConstants
    */
   private static VM_CodeArray[] JNIFunctions;
 
-  //-#if RVM_FOR_AIX
+  //-#if RVM_WITH_LINKAGE_TRIPLETS
   /**
-   * On AIX we need a linkage triple instead of just
+   * On some platforms we need a linkage triple instead of just
    * a function pointer.  
    * This is an array of such triples that matches JNIFunctions.
    */
-  private static VM_AddressArray[] AIXLinkageTriplets;
+  private static VM_AddressArray[] LinkageTriplets;
   //-#endif
 
   //-#if RVM_FOR_POWERPC
@@ -67,8 +67,8 @@ public class VM_JNIEnvironment implements VM_SizeConstants
    * this object that points directly to this field.
    */ 
   private final VM_Address externalJNIFunctions = 
-  //-#if RVM_FOR_AIX
-    VM_Magic.objectAsAddress(AIXLinkageTriplets);
+  //-#if RVM_WITH_LINKAGE_TRIPLETS
+    VM_Magic.objectAsAddress(LinkageTriplets);
   //-#else
     VM_Magic.objectAsAddress(JNIFunctions);
   //-#endif
@@ -314,23 +314,24 @@ public class VM_JNIEnvironment implements VM_SizeConstants
   public static void initFunctionTable(VM_CodeArray[] functions) {
     JNIFunctions = functions;
 
-    //-#if RVM_FOR_AIX
+    //-#if RVM_WITH_LINKAGE_TRIPLETS
     // Allocate the linkage triplets in the bootimage too (so they won't move)
-    AIXLinkageTriplets = new VM_AddressArray[functions.length];
+    LinkageTriplets = new VM_AddressArray[functions.length];
     for (int i=0; i<functions.length; i++) {
-      AIXLinkageTriplets[i] = VM_AddressArray.create(3);
+      LinkageTriplets[i] = VM_AddressArray.create(3);
     }
     //-#endif
   }
 
   /**
-   * Initialization required during VM booting; only does something on AIX.
+   * Initialization required during VM booting; only does something if
+   * we are on a platform that needs linkage triplets.
    */
   public static void boot() {
-    //-#if RVM_FOR_AIX
-    // fill in the TOC and IP entries for each AIX linkage triplet
+    //-#if RVM_WITH_LINKAGE_TRIPLETS
+    // fill in the TOC and IP entries for each linkage triplet
     for (int i=0; i<JNIFunctions.length; i++) {
-      VM_AddressArray triplet = AIXLinkageTriplets[i];
+      VM_AddressArray triplet = LinkageTriplets[i];
       triplet.set(TOC, VM_Magic.getTocPointer());
       triplet.set(IP, VM_Magic.objectAsAddress(JNIFunctions[i]));
     }
