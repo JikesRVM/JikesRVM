@@ -93,8 +93,8 @@ usage(void)
 {
     fprintf(SysTraceFile,"Usage: %s [-options] class [args...]\n", Me);
     fprintf(SysTraceFile,"          (to execute a class)\n");
-    //  fprintf(SysTraceFile,"   or  %s -jar [-options] jarfile [args...]\n",Me);
-    //  fprintf(SysTraceFile,"          (to execute a jar file)\n");
+    fprintf(SysTraceFile,"   or  %s -jar [-options] jarfile [args...]\n",Me);
+    fprintf(SysTraceFile,"          (to execute a jar file)\n");
     fprintf(SysTraceFile,"\nwhere options include:\n");
     fprintf(SysTraceFile,"    -cp -classpath <directories and zip/jar files separated by :>\n");
     fprintf(SysTraceFile,"              set search path for application classes and resources\n");
@@ -110,7 +110,6 @@ usage(void)
     fprintf(SysTraceFile,"    -? -help  print this message\n");
     fprintf(SysTraceFile,"    -X        print help on non-standard options\n");
 
-    fprintf(SysTraceFile,"    -jar      not supported\n");
     fprintf(SysTraceFile,"\n For more information look at URL: www.ibm.com/developerworks/oss/jikesrvm\n");
 
     fprintf(SysTraceFile,"\n");
@@ -158,7 +157,6 @@ fullVersion()
  *
  * Identify command line arguments that are processed here:
  *   All heap memory directives. (e.g. -X:h).
- *   Any standard command line arguments that are not supported (e.g. -jar).
  *   Any informational messages (e.g. -help).
  *
  * Input an array of command line arguments.
@@ -351,14 +349,6 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
 	    continue;
 	}
 
-	/*
-	 * JDK 1.3 standard command line arguments that are not supported.
-	 * TO DO: provide support
-	 */
-	if (strequal(token, "-jar")) {
-	    fprintf(SysTraceFile, "%s: -jar is not supported\n", Me);
-	    continue;
-	}
 
 	//
 	// All VM directives that are not handled here but in VM.java

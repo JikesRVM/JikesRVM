@@ -53,6 +53,7 @@ public class VM_CommandLineArgs {
   public static final int ENVIRONMENT_ARG      =  3;
   public static final int VERBOSE_JNI_ARG      =  5;
   public static final int VERBOSE_CLS_ARG      =  6;
+  public static final int JAR_ARG = 27;
 
   // -----------------------------------------------//
   // The following arguments are RVM-specific.      //
@@ -102,6 +103,7 @@ public class VM_CommandLineArgs {
   private static final Prefix[] prefixes = {
     new Prefix("-classpath ",           CLASSPATH_ARG),  // Note: space is significant
     new Prefix("-cp ",                  CLASSPATH_ARG),  // Note: space is significant
+    new Prefix("-jar ",                 JAR_ARG),  // Note: space is significant
     new Prefix("-D",                    ENVIRONMENT_ARG),
     new Prefix("-verbose:class$",       VERBOSE_CLS_ARG),
     new Prefix("-verbose:jni$",         VERBOSE_JNI_ARG),
@@ -596,6 +598,29 @@ public class VM_CommandLineArgs {
 	// arguments of the form "-classpath a:b:c" or "-cp a:b:c"
 	VM_ClassLoader.setApplicationRepositories(arg);
 	break;
+
+      case JAR_ARG:
+        // arguments of the form -jar <jarfile>
+        java.util.jar.Manifest mf = null;
+        try {
+          java.util.jar.JarFile jf = new java.util.jar.JarFile(arg);
+          mf = jf.getManifest();
+	} catch(Exception e) {
+          VM.sysWriteln("IOE: " + e.getMessage());
+          VM.sysExit(VM.exitStatusBogusCommandLineArg); 
+	}
+	String s = mf.getMainAttributes().getValue("Main-Class");
+        if (s == null) {
+          VM.sysWriteln("The jar file is missing the manifest entry for the main class: "+arg);
+          VM.sysExit(VM.exitStatusBogusCommandLineArg);
+        }
+        // maybe also load classes on the classpath list in the manifest
+	VM_ClassLoader.setApplicationRepositories(arg);
+
+	args[i] = s;
+	arg_types[i] = APPLICATION_ARG;
+	app_prefix.count++;
+      break;
 
       }
     }
