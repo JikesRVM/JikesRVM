@@ -12,7 +12,7 @@ ARCH_OPS = $(JAL_ROOT)/rvm/src/vm/arch/intel/compilers/optimizing/ir/instruction
 
 SCRATCH_DIR=$(RVM_BUILD)/RVM.scratch
 
-GENERATE = $(HOST_JAVA) -classpath $(SCRATCH_DIR) GenerateFromTemplate
+GENERATE = $(HOST_VM_RT) -classpath $(SCRATCH_DIR) GenerateFromTemplate
 
 TABLES_JAVA=$(SCRATCH_DIR)/OPT_InstructionFormatTables.java
 TABLES_CLASS=$(SCRATCH_DIR)/OPT_InstructionFormatTables.class
@@ -57,7 +57,7 @@ $(SCRATCH_DIR)/GenerateAssembler.java:	GenerateAssembler.java
 
 $(GEN_FILES_DIR)/OPT_Assembler.java:	Makefile $(SCRATCH_DIR)/GenerateAssembler.java $(SRCS)
 	$(JCOMPILE) -d $(SCRATCH_DIR) $(SRCS) $(SCRATCH_DIR)/GenerateAssembler.java
-	$(HOST_JAVA) -cp $(SCRATCH_DIR) -DgenerateToDir=$(GEN_FILES_DIR) GenerateAssembler
+	$(HOST_VM_RT) -cp $(SCRATCH_DIR) -DgenerateToDir=$(GEN_FILES_DIR) GenerateAssembler
 
 clean:
 	rm -f $(FAKE_SRC) $(FAKE_CLS)
