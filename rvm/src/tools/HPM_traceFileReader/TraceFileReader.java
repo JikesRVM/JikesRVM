@@ -4,7 +4,7 @@
 //$Id:&
 
 /**
- * Given one or more trace files of HPM counters, extract trace information.
+ * Given one or more trace files of values, extract trace information.
  *
  * More than one trace file can be specified on the command line, and if so
  * all the trace files are combined into a super in-memory trace file.
@@ -31,7 +31,7 @@ class TraceFileReader
   static private int    SIZE_OF_LONG   = 8;
   static private int    SIZE_OF_HEADER = 24;    // VP, tid, start_wall_time + end_wall_time
   /*
-    * For all processors, accumulate HPM counter values
+    * For all processors, accumulate values
     */
   static private HashMap vp_trs      = new HashMap();  // Integer:VPID X TraceRecord
   static private HashMap tid_trs     = new HashMap();  // Integer:TID X TraceRecord
@@ -39,8 +39,8 @@ class TraceFileReader
 
   // trace header 
   static private TraceHeader traceHeader = null;
-  // number of HPM counters
-  static private int n_counters = 0;
+  // number of value (a subset of which is HPM events)
+  static private int n_values = 0;
   // version using
   static private int version = 3;
   // name of header file
@@ -168,7 +168,7 @@ class TraceFileReader
         TraceRecord tr = super_trace.records[i];
         if (options.print_trace)
           printTraceRecord(tr, i);
-        updateCummulativeCounters(tr);
+        updateCummulativeValues(tr);
       }
       if (options.print_aggregate){
         aggregate(false);
@@ -286,7 +286,7 @@ class TraceFileReader
     if(options.debug>=2)System.out.println("readMetaFile("+trace_filename+") "+header_filename+"\n");
     if (header_filename == null) {
       traceHeader = new TraceHeader(local_header_filename, trace_filename);
-      n_counters = traceHeader.n_counters;
+      n_values = traceHeader.n_values;
       if (options.print_events)  traceHeader.printEvents();
       if (options.print_threads) traceHeader.printThreads();
       if (options.print_mids)    traceHeader.printMIDs();
@@ -341,7 +341,7 @@ class TraceFileReader
   }
   /*
    * Read trace file records.
-   * For each record read, update thread and processor cumulative counters.
+   * For each record read, update thread and processor cumulative values.
    * CONSTRAINT: the length of the returned array is the number of trace records!
    *
    * @param input_file      opened trace file
@@ -384,7 +384,7 @@ class TraceFileReader
       }
       records_index++;
 
-      //      updateCummulativeCounters(tr);
+      //      updateCummulativeValues(tr);
 
     } // end while
     if(options.verbose>=1) System.out.println("readTraceRecords() read "+records_index+" trace records from "+trace_filename);
@@ -402,16 +402,16 @@ class TraceFileReader
    *
    * @param tr trace record
    */
-  static private void updateCummulativeCounters(TraceRecord tr)
+  static private void updateCummulativeValues(TraceRecord tr)
   {
     if (! (tr instanceof TraceCounterRecord)) return;
     TraceCounterRecord tcr = (TraceCounterRecord)tr;
     
-    // VPID cummulative counters
+    // VPID cummulative values
     Integer VPID = new Integer(tcr.vpid);
     TraceCounterRecord vp_tr = (TraceCounterRecord)vp_trs.get(VPID);
     if (vp_tr == null) {        // add new HashMap
-      vp_tr = new TraceCounterRecord(n_counters);
+      vp_tr = new TraceCounterRecord(n_values);
       vp_tr.vpid = tcr.vpid;
       if(options.debug>=2)System.out.println("  vp_trs.put("+VPID+",vp_tr)");
       vp_trs.put(VPID,vp_tr);
@@ -431,7 +431,7 @@ class TraceFileReader
     // accumulate by TID and VPID
     TraceCounterRecord tid_tr = (TraceCounterRecord)vp_tid_trs.get(TID);
     if (tid_tr == null) {       // add new HashMap
-      tid_tr = new TraceCounterRecord(n_counters);
+      tid_tr = new TraceCounterRecord(n_values);
       tid_tr.tid = tcr.tid;
       if(options.debug>=2)System.out.println("  vp_tid_trs.put(    "+TID+",tid_trs)");
       vp_tid_trs.put(TID,tid_tr);
@@ -441,7 +441,7 @@ class TraceFileReader
     // accumulate by TID
     tid_tr = (TraceCounterRecord)tid_trs.get(TID);
     if (tid_tr == null) {
-      tid_tr = new TraceCounterRecord(n_counters);
+      tid_tr = new TraceCounterRecord(n_values);
       tid_tr.tid = tcr.tid;
       if(options.debug>=2)System.out.println("  tid_trs.put(    "+TID+",tid_tr)");
       tid_trs.put(TID,tid_tr);
@@ -467,7 +467,7 @@ class TraceFileReader
       if(options.debug>=5){System.out.print("encoding "+encoding);}
       int record_format = encoding & 0x0000000F;        // last 4 bits
       if (record_format == TraceRecord.COUNTER_TYPE) {
-        TraceCounterRecord tcr = new TraceCounterRecord(n_counters);
+        TraceCounterRecord tcr = new TraceCounterRecord(n_values);
         tcr.local_tid     =  encoding >> 16;
         tcr.buffer_code   = (encoding >> 15) & 0x00000001;
         int bit           = (encoding >> 14) & 0x00000001;
@@ -483,18 +483,19 @@ class TraceFileReader
           System.out.print(" TID "+tcr.tid+" LTID "+tcr.local_tid);
         }
         tcr.start_wall_time   = Utilities.getLongFromDataInputStream(input_file);
-	if(options.debug>=5){System.out.print("- SWT "+tcr.start_wall_time);}
         // translate end wall time to relative wall time.
         long end_wall_time    = Utilities.getLongFromDataInputStream(input_file);
-        tcr.counters[0]       = end_wall_time - tcr.start_wall_time;
-	if(options.debug>=5){System.out.print(" EWT "+end_wall_time+" duration "+tcr.counters[0]);}
+	  tcr.values[0]         = end_wall_time - tcr.start_wall_time;
+          //	}
+
+	if(options.debug>=5){System.out.print(" EWT "+end_wall_time+" duration "+tcr.values[0]);}
         tcr.callee_MID        = Utilities.getIntFromDataInputStream(input_file);
         tcr.caller_MID        = Utilities.getIntFromDataInputStream(input_file);
 	if(options.debug>=5){System.out.print(" mids: callee "+tcr.callee_MID+", caller "+tcr.caller_MID);}
 
-        for (int i=1; i<=tcr.n_counters; i++) {
-          tcr.counters[i] = Utilities.getLongFromDataInputStream(input_file);
-          if(options.debug>=5)System.out.print(" "+i+": "+tcr.counters[i]);
+        for (int i=1; i<tcr.n_values; i++) {
+          tcr.values[i] = Utilities.getLongFromDataInputStream(input_file);
+          if(options.debug>=5)System.out.print(" "+i+": "+tcr.values[i]);
         }
         if(options.debug>=5)System.out.println();
         // first Trace Counter Record read 
@@ -675,19 +676,19 @@ class TraceFileReader
   }
 
   /*
-   * Dump processor and processor specific thread counters.
+   * Dump processor and processor specific thread values.
    *
    * @param by_thread     aggregate by thread (without differentiating by processor)
    */
   static private void aggregate(boolean by_thread)
   {
     if(options.debug>=1)System.out.println("TraceFileReader.aggregate("+by_thread+","+options.tid+")");
-    TraceCounterRecord vp_sum_tr = new TraceCounterRecord(traceHeader.n_counters);
-    TraceCounterRecord tid_sum_tr = new TraceCounterRecord(traceHeader.n_counters);
+    TraceCounterRecord  vp_sum_tr = new TraceCounterRecord(traceHeader.n_values);
+    TraceCounterRecord tid_sum_tr = new TraceCounterRecord(traceHeader.n_values);
 
     if (traceHeader.groupNumber() != -1) {
       // find totals across all threads.
-      TraceCounterRecord total_tr = new TraceCounterRecord(traceHeader.n_counters);
+      TraceCounterRecord total_tr = new TraceCounterRecord(traceHeader.n_values);
       for (Iterator keys = vp_trs.keySet().iterator(); keys.hasNext(); ) {
         Integer VPID = (Integer)keys.next();
         TraceCounterRecord p_tr = (TraceCounterRecord)vp_trs.get(VPID);

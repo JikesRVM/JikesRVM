@@ -7,7 +7,7 @@
  * HPM meta information.
  *
  * The header trace files contents are:
- *  version number(int), number of counters(int), mode(int),
+ *  version number(int), number of values(int), mode(int),
  *  one of three possible record types
  *  1) machine type record
  *    record_format_type(int), length(int), String
@@ -81,11 +81,10 @@ public final class TraceHeader
   }
 
   /*
-   * Per counter data.  HPM counters start at 1.
-   * The 0th entry is for real time taken to execute the thread.
+   * Per value data.
    */
-  // number of counters
-  public int    n_counters = 0;
+  // number of values
+  public int    n_values = 0;
   // short name description for event
   public String  []short_event_names;
   // event id
@@ -137,18 +136,17 @@ public final class TraceHeader
     DataInputStream input_file = openTraceMetaFile(header_filename, trace_filename);
     version    = Utilities.getIntFromDataInputStream(input_file);
     endian     = Utilities.getIntFromDataInputStream(input_file);
-    n_counters = Utilities.getIntFromDataInputStream(input_file);
+    n_values   = Utilities.getIntFromDataInputStream(input_file);
     mode       = Utilities.getIntFromDataInputStream(input_file);
     
-    if(debug>=1) System.out.println(" version "+version+", n_counters "+n_counters+", mode "+mode+", endian "+endian);
+    if(debug>=1) System.out.println(" version "+version+", n_values "+n_values+", mode "+mode+", endian "+endian);
 
-    int n_elements      = n_counters+1;
     // allocate and initialize arrays
-    short_event_names   = new String[ n_elements];
-    ids                 = new int[    n_elements];
-    status              = new int[    n_elements];
-    thresholdable       = new boolean[n_elements];
-    for (int i=0; i<n_elements; i++) {
+    short_event_names   = new String[ n_values];
+    ids                 = new int[    n_values];
+    status              = new int[    n_values];
+    thresholdable       = new boolean[n_values];
+    for (int i=0; i<n_values; i++) {
       ids[                i] = 0;
       short_event_names[  i] = null;
       status[       i] = -1;
@@ -167,16 +165,16 @@ public final class TraceHeader
         processor_name = Utilities.getStringFromDataInputStream(input_file);
         if (debug>=3) System.out.println(trips+": TraceHeader() MACHINE_TYPE_RECORD "+processor_name);
       } else if (record_type == EVENT_FORMAT) {
-        int counter_number = Utilities.getIntFromDataInputStream(input_file);
-        if (counter_number >= n_elements) {
-          System.out.println(trips+": TraceHeader("+trace_filename+") counter number "+
-                             counter_number+" > n_elements "+n_elements);
+        int value_index = Utilities.getIntFromDataInputStream(input_file);
+        if (value_index > n_values) {
+          System.out.println("***"+trips+": TraceHeader("+trace_filename+") counter number "+
+                             value_index+" > n_values "+n_values+"!***");
           System.exit(-1);
         }
-        ids[counter_number] =  Utilities.getIntFromDataInputStream(input_file);
-        short_event_names[counter_number] = Utilities.getStringFromDataInputStream(input_file);
-        if (debug>=3) System.out.println("TraceHeader() EVENT_RECORD "+counter_number+" = "+
-                                         ids[counter_number]+" : "+short_event_names[counter_number]);
+        ids[value_index] =  Utilities.getIntFromDataInputStream(input_file);
+        short_event_names[value_index] = Utilities.getStringFromDataInputStream(input_file);
+        if (debug>=3) System.out.println("TraceHeader() EVENT_RECORD "+value_index+" = "+
+                                         ids[value_index]+" : "+short_event_names[value_index]);
       } else if (record_type == THREAD_FORMAT) {
         int tid       = Utilities.getIntFromDataInputStream(input_file);
         int local_tid = Utilities.getIntFromDataInputStream(input_file);
@@ -280,7 +278,7 @@ public final class TraceHeader
    * print names for all events
    */
   public void print_short_event_names(){
-    for (int i=0; i<=n_counters; i++) {
+    for (int i=0; i<n_values; i++) {
       System.out.println(short_event_names[i]+" ");
     }
   }
@@ -288,9 +286,9 @@ public final class TraceHeader
    * return short name of the ith event
    */
   public String short_event_name(int i){
-    if (i>n_counters) {
-      System.err.println("***TraceHeader.short_event_name("+i+") "+i+" > number of counters "+
-                         n_counters+"!***");
+    if (i>=n_values || i < 0) {
+      System.err.println("***TraceHeader.short_event_name("+i+") 0 > "+i+" > number of values "+
+                         n_values+"!***");
       System.exit(-1);
     }
     return short_event_names[i];
@@ -300,8 +298,8 @@ public final class TraceHeader
    */
   public void printEvents() 
   {
-    System.out.println("\n"+processor_name+" has "+n_counters+" counters and mode = "+mode+", events:");
-    for (int i=0; i<=n_counters; i++) {
+    System.out.println("\n"+processor_name+" has "+n_values+" values and mode = "+mode+", events:");
+    for (int i=0; i<n_values; i++) {
       //      System.out.println(i+": "+short_event_names[i]+": "+ids[i]+", "+status[i]+", "+thresholdable[i]+";");
       System.out.println(i+": "+short_event_names[i]+": "+ids[i]);
     }
@@ -336,83 +334,5 @@ public final class TraceHeader
       }
     }
   }
-  /*
-   * Combine this trace header with the argument.
-   * CONSTRAINT: current.n_threads > 0
-   *
-   * @param current  current trace header to be combined
-   *
-  public void combine(TraceHeader current)
-  {
-    if(debug>=2) {
-      System.out.println("TraceHeader.combine() print current");
-      current.print();
-      System.out.println("TraceHeader.combine() print this");
-      print();
-    }
-    if (processor_name == null) {
-      System.out.println("TraceHeader.combine() super trace header is null");
-      processor_name = current.processor_name;
-      mode = current.mode;
-      n_counters = current.n_counters;
-      short_event_names = current.short_event_names;
-      ids = current.ids;
-      status = current.status;
-      thresholdable = current.thresholdable;
-      threads = current.threads;
-      n_threads = current.n_threads;
-    } else {
-      if (processor_name.compareTo(current.processor_name) != 0) {
-        System.out.println("***TraceHeader.combine() processor name mismatch \""+processor_name+
-                           "\" != \""+current.processor_name+"\"!***");
-        System.exit(-1);
-      }
-      if (mode != current.mode) {
-        System.out.println("***TraceHeader.combine() mode mismatch "+mode+" != "+current.mode+"!***");
-        System.exit(-1);
-      }
-      if (n_counters != current.n_counters) {
-        System.out.println("***TraceHeader.combine() number of counters mismatch "+n_counters+
-                           " != "+current.n_counters+"!***");
-        System.exit(-1);
-      }
-      for (int i=1; i<=n_counters; i++) {
-        if (short_event_names[i].compareTo(current.short_event_names[i]) != 0) {
-          System.out.println("***TraceHeader.combine() "+i+"th event name mismatch \""+
-                             short_event_names[i]+"\" != \""+current.short_event_names[i]+"\"!***");
-          System.exit(-1);
-        }
-      }
-      combineTraceThreads(current);
-    }
-  }
-
-  /**
-   * Combine current trace header into super.
-   *
-   * @param super   combination of all trace headers
-   * @param current current trace header   
-   *
-  public void combineTraceThreads(TraceHeader current)
-  {
-    if (threads == null) {
-      threads   = current.threads;
-      n_threads = current.n_threads;
-      return;
-    }
-    int min_threads = java.lang.Math.min(n_threads, current.n_threads);
-    for (int i=0; i<min_threads; i++) {
-      if (threads[i].compareTo(current.threads[i]) != 0) {
-        System.out.println("***TraceHeader.combine() "+i+"th thread name mismatch \""+
-                           threads[i]+"\" != \""+current.threads[i]+"\"!***");
-        System.exit(-1);
-      }
-    }
-    if (current.n_threads > n_threads) {
-      threads   = current.threads;
-      n_threads = current.n_threads;
-    }
-  }
-*/
 }
 
