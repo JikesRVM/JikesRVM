@@ -1,5 +1,6 @@
-So you've gotten the RVM distribution.  Now what?  This section gives
-instructions on how to install and run RVM for the new RVM user.
+So you've gotten the Jikes\trademark RVM distribution.  Now what?
+This section gives 
+instructions on how to install and run the system.
 
 \subsection{System Prerequisites}
 To build on any platform you will need the following:
@@ -7,7 +8,7 @@ To build on any platform you will need the following:
 \item GNU make. You can download this from
 \xlink{{\tt \gnuMakeURL}} {\gnuMakeURL}.
 
-\item The Jikes\trademark Java\trademark compiler 
+\item The Jikes Java\trademark compiler 
 You can download this from
 \xlink{{\tt \jikesURL}} {\jikesURL}.
 You can use any of the pre-compiled binaries, or build it yourself from the
@@ -31,7 +32,7 @@ You can download an {\tt unzip} implementation from
 \texonly {\subsubsection{AIX\trademark/PowerPC\trademark}}
 
 In addition to the software mentioned above, to install, build, and
-run RVM on a AIX/PowerPC environment, 
+run the Jikes RVM on a AIX/PowerPC environment, 
 you will need 
 \begin{itemize}
 \item a PowerPC processor
@@ -46,7 +47,7 @@ reported that IBM's {\tt xlC} works.
 
 \subsubsection{Linux/IA32}
 In addition to the software mentioned above, to install, build, and
-run RVM on a Linux Intel environment, you will need 
+run the Jikes RVM on a Linux Intel environment, you will need 
 \begin{itemize}
 \item an Intel Architecture 32 bit processor
 \item Linux  (we have run on RedHat 6.0 and 7.0)
@@ -62,9 +63,11 @@ avoid it until further notice.
 \end{itemize}
 
 \subsubsection{Win32 and Cygwin/IA32}
-Currently this option for running RVM is barely if at all functional.
+Currently this option for running the Jikes RVM is barely, if at all,
+functional. 
 It is not currently being maintained or tested. You are encouraged to 
-skip this section and don't even think about running RVM on Win32 with 
+skip this section and don't even think about running the Jike RVM on
+Win32 with  
 cygwin.
 
 If you're still reading, you are probably an enterprising hacker that is
@@ -72,15 +75,15 @@ interested in getting this configuration up an running.  More power to
 you! We'd like to hear your progress.
 
 In addition to the software mentioned above, to install, build, and
-run RVM on a Win32/Cygwin Intel environment, you will need 
+run the Jikes RVM on a Win32/Cygwin Intel environment, you will need 
 \begin{itemize}
 \item an Intel Architecture 32 bit processor
 \item a Win32 operating system (we have only tried it on Windows 2000).
 \item Cygwin. You can download this from 
-\xlink{{\tt \CygwinURL}} {\CygwinURL}. (I used dll version 1.1.8).
+\xlink{{\tt \CygwinURL}} {\CygwinURL}. (We used dll version 1.1.8).
 \item The system has run in 256MB on Windows 2000; we have not established
 a lower bound.
-\item the IBM Developer Kit (at least version 2.1.3).  You can download this from
+\item The IBM Developer Kit (at least version 2.1.3).  You can download this from
 \xlink{{\tt \WinJdkURL}} {\WinJdkURL}.
 \item {\tt ksh}.  One alternative is {\tt pdksh} from 
 \xlink{{\tt \pdkshURL}} {\pdkshURL}.
@@ -98,56 +101,56 @@ particular the config file assumes that
 C:$\backslash$Program~Files$\backslash$IBM is mounted as /IBM).
 \end{itemize}
 
-\JikesTMFooter
+\W \AIXPPCJikesTMFooter
 
-\JavaTMFooter
-
-\AIXTMFooter
-
-\PowerPCTMFooter
+\W \JavaTMFooter
 
 \subsection{Installation Overview}
 
-In order to install and build RVM, you will need to acquire the following
-items from the 
-\xlink{RVM Download Page}{\RVMDownloadURL}.
+To install and build the Jikes\trademark RVM, you will need to acquire
+the following 
+items from the Jikes RVM
+\xlink{download}{\RVMDownloadURL} page.
 \begin{itemize}
-\item the RVM source distribution.  This is available as a compressed tar
+\item The Jikes RVM source distribution.  This is available as a compressed tar
 file {\tt \RVMTarFile}.  You can also work with the contents of this repository with CVS from the
 \xlink{public repository}{\RVMCVSURL}.
-\item the RVM standard libraries.  This is a file {\tt \LibTarFile}
+\item The Jikes RVM standard libraries.  This is a file {\tt \LibTarFile}
 available from the download page. 
 \end{itemize}
 
 After downloading these files, you will set up 
-a working directory holding the RVM source files, standard library jar, and 
-tools needed to build RVM. 
+a working directory holding the Jikes RVM source files, standard
+library jar, and  
+tools needed to build Jikes RVM. 
 
-RVM can be configured in various ways. Multiple versions of RVM,
+JIkes RVM can be configured in various ways. Multiple versions of the system,
 corresponding to different configurations, can be generated from 
 one working directory. See Section~\ref{configs} for information about the 
 various 
 configurations.
 \index{configurations}
-The RVM  {\em boot image} and other files generated during the 
+The Jikes RVM  {\em boot image} and other files generated during the 
 configuration process
 \index{boot image}
-are stored in a {\em build directory} which is logically separate from 
+are stored in a {\em build directory}, which is logically separate from 
 the working directory. 
 \index{build directory}
 
-In order to install RVM  you must:
+To install Jikes RVM  you must do the following:
 \begin{enumerate}
 \item Set up a working directory.
 \item Set various environment variables.
-\item Edit RVM environment scripts.
+\item Edit Jikes RVM environment scripts.
 \item Choose a configuration and run the configuration script to write
 the appropriate directory and configuration specific files to the
 build directory.
-\item Build an executable version of RVM.
+\item Build an executable version of Jikes RVM.
 \end{enumerate}
 
 The remainder of this section describes the process in greater detail.
+
+\W \JikesTMFooter
 
 \subsection{Installation Steps}
 
