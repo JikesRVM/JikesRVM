@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
-import  java.util.Vector;
+import java.util.ArrayList;
 
 /**
  * Implementation of a graph used in the guts of the dataflow equation
@@ -12,23 +12,23 @@ import  java.util.Vector;
  *
  * @author Stephen Fink
  */
-class OPT_DF_Graph
-    implements OPT_Graph {
+class OPT_DF_Graph implements OPT_Graph {
+
   /**
    * The nodes of the graph.
    */
-  public Vector nodes = new Vector();
+  public ArrayList nodes = new ArrayList();
+
   /**
    * Number of nodes in the graph.
    */
   private int count = 0;
 
   /**
-   * Get the number of nodes in the graph.
    * @return number of nodes in the graph
    */
   public int numberOfNodes () {
-    return  count;
+    return count;
   }
 
   /**
@@ -39,22 +39,22 @@ class OPT_DF_Graph
 
   /**
    * Enumerate the nodes in the graph.
-   * @return the nodes in the graph
+   * @return an enumeration of the nodes in the graph
    */
   public OPT_GraphNodeEnumeration enumerateNodes () {
-    return  new OPT_GraphNodeEnumeration() {
+    return new OPT_GraphNodeEnumeration() {
       private int i = 0;
 
       public boolean hasMoreElements () {
-        return  i < count;
+        return i < count;
       }
 
       public OPT_GraphNode next () {
-        return  (OPT_GraphNode)nodes.elementAt(i++);
+        return (OPT_GraphNode)nodes.get(i++);
       }
 
       public Object nextElement () {
-        return  next();
+        return next();
       }
     };
   }
@@ -65,7 +65,7 @@ class OPT_DF_Graph
    */
   public void addGraphNode (OPT_GraphNode x) {
     x.setIndex(count);
-    nodes.addElement(x);
+    nodes.add(x);
     count++;
   }
 
@@ -73,7 +73,7 @@ class OPT_DF_Graph
    * Unsupported.  Why is this here?
    */
   public void addGraphEdge (OPT_GraphNode x, OPT_GraphNode y) {
-    throw  new OPT_OptimizingCompilerException("DF_Graph edges implicit");
+    throw new OPT_OptimizingCompilerException("DF_Graph edges implicit");
   }
 }
 
