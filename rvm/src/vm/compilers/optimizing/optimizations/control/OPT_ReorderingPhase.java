@@ -110,7 +110,7 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
   }
 
   private void traverseWarmEdges(OPT_BasicBlock bb, OPT_IR ir) {
-    if (bb.getScratchFlag()) return;
+    if (bb.getScratchFlag() || bb.getInfrequent()) return;
     bb.setScratchFlag();
     if (DEBUG) VM.sysWrite("Marking "+bb+" as reachable via frequent edges\n");
     double threshold = ir.options.CBS_HOTNESS;
