@@ -102,7 +102,7 @@ bench-rvm:			$(START_CLASS) $(WORKING)
 	@echo 
 	@echo "Running $(START_NAME) with ..."
 	@echo "   $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS)"
-	@cd $(WORKING); $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) 2>&1 \
+	@cd $(WORKING); { $(JBOOT) $(RVM_ARGS) -classpath $(BENCH_CLASS_CP) $(START_NAME) $(START_ARGS) 2> $(OUT).stderr ; } \
 		| tee $(OUT).raw \
 		| $(AWK) -f $(JAL_ROOT)/rvm/regression/RVMJunkFilter.awk \
 			> $(OUT)
