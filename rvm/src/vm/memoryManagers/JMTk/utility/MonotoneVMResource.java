@@ -7,8 +7,8 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
@@ -79,7 +79,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       unlock();
       acquireHelp(oldCursor, pageRequest);
       LazyMmapper.ensureMapped(oldCursor, pageRequest);
-      Memory.zero(oldCursor, bytes);
+      Memory.zero(oldCursor, VM_Extent.fromInt(bytes));
       // Memory.zeroPages(oldCursor, bytes);
       return oldCursor;
     }
@@ -90,7 +90,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
     int bytes = cursor.diff(start).toInt();
     int pages = Conversions.bytesToPages(bytes);
     if (ZERO_ON_RELEASE) 
-	Memory.zero(start, bytes);
+	Memory.zero(start, VM_Extent.fromInt(bytes));
     if (PROTECT_ON_RELEASE) 
       LazyMmapper.protect(start, pages);
     releaseHelp(start, pages);

@@ -66,7 +66,7 @@ final class CopySpace extends BasePolicy
   }
 
   public static boolean isLive(VM_Address obj) {
-    return CopyingHeader.isForwarded(VM_Magic.addressAsObject(obj));
+    return CopyingHeader.isForwarded(obj);
   }
 
 }

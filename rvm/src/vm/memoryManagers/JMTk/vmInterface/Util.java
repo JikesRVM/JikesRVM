@@ -103,8 +103,8 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
       return false;
     }
     if (MM_Interface.MOVES_OBJECTS) {
-      if (VM_AllocatorHeader.isForwarded(VM_Magic.addressAsObject(ref)) ||
-	  VM_AllocatorHeader.isBeingForwarded(VM_Magic.addressAsObject(ref))) {
+      if (VM_AllocatorHeader.isForwarded(ref) ||
+	  VM_AllocatorHeader.isBeingForwarded(ref)) {
 	return true; // TODO: actually follow forwarding pointer (need to bound recursion when things are broken!!)
       }
     }

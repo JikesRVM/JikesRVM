@@ -34,7 +34,7 @@ public class Header extends HybridHeader {
   //
   // Empty public methods existing only for compliance
   //
-  public static boolean isBeingForwarded(Object base) 
+  public static boolean isBeingForwarded(VM_Address base) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (Plan.isNurseryObject(base))
       return CopyingHeader.isBeingForwarded(base);
@@ -42,7 +42,7 @@ public class Header extends HybridHeader {
       return false;
   }
 
-  public static boolean isForwarded(Object base) 
+  public static boolean isForwarded(VM_Address base) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (Plan.isNurseryObject(base))
       return CopyingHeader.isForwarded(base);
@@ -50,7 +50,7 @@ public class Header extends HybridHeader {
       return false;
   }
 
-  static void setBarrierBit(Object ref)
+  static void setBarrierBit(VM_Address ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     VM_Interface._assert(false);
   }

@@ -4,8 +4,8 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
-
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -19,7 +19,6 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 final class RefCountLOSLocal extends LargeObjectAllocator
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 

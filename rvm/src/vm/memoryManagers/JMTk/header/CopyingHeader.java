@@ -5,8 +5,6 @@
 
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.BootImageInterface;
-
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 
@@ -52,21 +50,21 @@ public class CopyingHeader {
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(Object ref, Object[] tib, int size, boolean isScalar) throws VM_PragmaUninterruptible {
+  public static void initializeHeader(VM_Address ref, Object[] tib, int size, boolean isScalar) throws VM_PragmaUninterruptible {
     // nothing to do (no bytes of GC header)
   }
 
   /**
    * Perform any required initialization of the GC portion of the header.
+   * Called for objects created at boot time.
    * 
-   * @param bootImage the bootimage being written
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(BootImageInterface bootImage, int ref, 
-				      Object[] tib, int size, boolean isScalar) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static void initializeHeaderBootTime(int ref, Object[] tib, 
+                                              int size, boolean isScalar) throws VM_PragmaUninterruptible, VM_PragmaInline {
     // nothing to do (no bytes of GC header)
   }
 
@@ -75,7 +73,7 @@ public class CopyingHeader {
    * Dump the header word(s) of the given object reference.
    * @param ref the object reference whose header should be dumped 
    */
-  public static void dumpHeader(Object ref) throws VM_PragmaUninterruptible {
+  public static void dumpHeader(VM_Address ref) throws VM_PragmaUninterruptible {
     // nothing to do (no bytes of GC header)
   }
 
@@ -91,7 +89,7 @@ public class CopyingHeader {
    * if the object is already forwarded (or being forwarded)
    * or write the bit pattern that indicates that the object is being forwarded
    */
-  static int attemptToForward(Object base) throws VM_PragmaInline, VM_PragmaUninterruptible {
+  static int attemptToForward(VM_Address base) throws VM_PragmaInline, VM_PragmaUninterruptible {
     int oldValue;
     do {
       oldValue = VM_Interface.prepareAvailableBits(base);
@@ -103,21 +101,21 @@ public class CopyingHeader {
   /**
    * Non-atomic read of forwarding pointer word
    */
-  static int getForwardingWord(Object base) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  static int getForwardingWord(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
     return VM_Interface.readAvailableBitsWord(base);
   }
 
   /**
    * Has the object been forwarded?
    */
-  public static boolean isForwarded(Object base) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static boolean isForwarded(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
     return stateIsForwarded(getForwardingWord(base));
   }
 
   /**
    * Has the object been forwarded?
    */
-  public static boolean isBeingForwarded(Object base) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static boolean isBeingForwarded(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
     return stateIsBeingForwarded(getForwardingWord(base));
   }
 
@@ -145,9 +143,9 @@ public class CopyingHeader {
   /**
    * Non-atomic read of forwarding pointer word
    */
-  static Object getForwardingPointer(Object base) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  static VM_Address getForwardingPointer(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
     int forwarded = getForwardingWord(base);
-    return VM_Magic.addressAsObject(VM_Address.fromInt(forwarded & ~GC_FORWARDING_MASK));
+    return VM_Address.fromInt(forwarded & ~GC_FORWARDING_MASK);
   }
 
   /**
@@ -155,11 +153,11 @@ public class CopyingHeader {
    * (assumption, thread doing the set has done attempt to forward
    *  and owns the right to copy the object)
    */
-  static void setForwardingPointer(Object base, VM_Address ptr) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  static void setForwardingPointer(VM_Address base, VM_Address ptr) throws VM_PragmaUninterruptible, VM_PragmaInline {
     VM_Interface.writeAvailableBitsWord(base,ptr.toInt() | GC_FORWARDED);
   }
 
-  static void setBarrierBit(Object ref) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  static void setBarrierBit(VM_Address ref) throws VM_PragmaUninterruptible, VM_PragmaInline {
     VM_Interface._assert(false);
   }
 

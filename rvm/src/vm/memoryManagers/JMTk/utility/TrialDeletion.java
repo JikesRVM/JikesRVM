@@ -251,17 +251,17 @@ final class TrialDeletion
       purple++;
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(!RCBaseHeader.isGreen(obj));
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(RCBaseHeader.isBuffered(obj));
-      if (RCBaseHeader.isLiveRC(VM_Magic.addressAsObject(obj))) {
-	if (RCBaseHeader.isPurple(VM_Magic.addressAsObject(obj))) {
- 	  if (nursery && RCBaseHeader.isMature(VM_Magic.addressAsObject(obj))) {
+      if (RCBaseHeader.isLiveRC(obj)) {
+	if (RCBaseHeader.isPurple(obj)) {
+ 	  if (nursery && RCBaseHeader.isMature(obj)) {
  	    mature.insert(obj);
  	  } else
 	    tgt.insert(obj);
 	} else {
-	  RCBaseHeader.clearBufferedBit(VM_Magic.addressAsObject(obj));
+	  RCBaseHeader.clearBufferedBit(obj);
 	}
       } else {
-	RCBaseHeader.clearBufferedBit(VM_Magic.addressAsObject(obj));
+	RCBaseHeader.clearBufferedBit(obj);
 	freeBuffer.push(obj);
       }
     }

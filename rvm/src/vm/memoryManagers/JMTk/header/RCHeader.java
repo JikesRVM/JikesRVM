@@ -30,7 +30,7 @@ public class RCHeader extends RCBaseHeader {
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(Object ref, Object[] tib, int size,
+  public static void initializeHeader(VM_Address ref, Object[] tib, int size,
 				      boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     // all objects are birthed with an RC of INCREMENT

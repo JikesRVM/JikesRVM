@@ -34,21 +34,21 @@ public class Header extends RCHeader {
   //
   // Empty public methods existing only for compliance
   //
-  public static boolean isBeingForwarded(Object base) 
+  public static boolean isBeingForwarded(VM_Address base) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(false);
     return false;
   }
 
-  public static boolean isForwarded(Object base) 
+  public static boolean isForwarded(VM_Address base) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(false);
     return false;
   }
 
-  static void setBarrierBit(Object ref)
+  static void setBarrierBit(VM_Address ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(false);

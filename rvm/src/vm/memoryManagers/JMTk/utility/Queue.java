@@ -48,9 +48,6 @@ class Queue implements Constants, VM_Uninterruptible {
     return USABLE_BUFFER_BYTES - BYTES_IN_WORD 
       - (USABLE_BUFFER_BYTES % (arity<<LOG_BYTES_IN_WORD));
   }
-  protected final int bufferLastOffset(VM_Address buf) throws VM_PragmaInline {
-    return bufferLastOffset(1);
-  }
 
   ////////////////////////////////////////////////////////////////////////////
   //

@@ -5,9 +5,7 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.CallSite;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -141,7 +139,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param isScalar True if the object occupying this space will be a scalar
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Object ref, Object[] tib, int bytes,
+  public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
     switch (allocator) {
@@ -176,7 +174,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param isScalar True if the object occupying this space will be a scalar
    */
-  public final void postCopy(Object ref, Object[] tib, int bytes,
+  public final void postCopy(VM_Address ref, Object[] tib, int bytes,
 			     boolean isScalar) {
     VM_Interface.sysFail("no postCopy in noGC");
   } 

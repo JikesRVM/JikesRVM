@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_AddressArray;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -165,7 +166,7 @@ abstract class SegregatedFreeList extends Allocator
       if (maintainInUse()) cellsInUse[sizeClass]++;
       freeList.set(sizeClass, getNextCell(cell));
       postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
-      Memory.zeroSmall(cell, bytes);
+      Memory.zeroSmall(cell, VM_Extent.fromInt(bytes));
     } 
     return cell;
 
@@ -227,7 +228,7 @@ abstract class SegregatedFreeList extends Allocator
 	  freeList.set(sizeClass, getNextCell(cell));
 	  postAlloc(cell, currentBlock.get(sizeClass),
 		    sizeClass, bytes, inGC);
-	  Memory.zeroSmall(cell, bytes);
+	  Memory.zeroSmall(cell, VM_Extent.fromInt(bytes));
 	  return cell;
 	}
 	current = BlockAllocator.getNextBlock(current);
@@ -241,7 +242,7 @@ abstract class SegregatedFreeList extends Allocator
     if (maintainInUse()) cellsInUse[sizeClass]++;
     freeList.set(sizeClass, getNextCell(cell));
     postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes, inGC);
-    Memory.zeroSmall(cell, bytes);
+    Memory.zeroSmall(cell, VM_Extent.fromInt(bytes));
     return cell;
   }
 
@@ -281,7 +282,7 @@ abstract class SegregatedFreeList extends Allocator
       cellCount++;
     }
     if (maintainInUse()) cellsInUse[sizeClass] = 0;
-    setSizeClass(block, sizeClass);
+    setBlockSizeClass(block, sizeClass);
     postExpandSizeClass(block, sizeClass);
     
     if (VM_Interface.VerifyAssertions)
@@ -508,7 +509,7 @@ abstract class SegregatedFreeList extends Allocator
     if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(inuse == getInUse(block));
       VM_Interface._assert(cell == getFreeList(block));
-      VM_Interface._assert(sizeClass == getSizeClass(block));
+      VM_Interface._assert(sizeClass == getBlockSizeClass(block));
     }
   }
 
@@ -529,14 +530,14 @@ abstract class SegregatedFreeList extends Allocator
     VM_Magic.setMemoryInt(block.add(FREE_LIST_OFFSET), value);
   }
 
-  protected static final int getSizeClass(VM_Address block) 
+  protected static final int getBlockSizeClass(VM_Address block) 
     throws VM_PragmaInline {
     int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
     value = (value & SIZE_CLASS_MASK)>>SIZE_CLASS_SHIFT;
     return value;
   }
 
-  private static final void setSizeClass(VM_Address block, int sizeClass)
+  private static final void setBlockSizeClass(VM_Address block, int sizeClass)
     throws VM_PragmaInline {
     int value = VM_Magic.getMemoryInt(block.add(FREE_LIST_OFFSET));
     value = (value & ~SIZE_CLASS_MASK) | (sizeClass<<SIZE_CLASS_SHIFT);

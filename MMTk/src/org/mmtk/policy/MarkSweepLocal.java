@@ -9,6 +9,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -203,7 +204,8 @@ final class MarkSweepLocal extends SegregatedFreeList
   }
   
   protected final void postExpandSizeClass(VM_Address block, int sizeClass){
-    Memory.zeroSmall(block.add(BITMAP_BASE), bitmapSets[sizeClass]<<(LOG_WORD_SIZE+LOG_SET_SIZE));
+    Memory.zeroSmall(block.add(BITMAP_BASE), 
+		     VM_Extent.fromInt(bitmapSets[sizeClass]<<(LOG_WORD_SIZE+LOG_SET_SIZE)));
   };
   
   protected final VM_Address advanceToBlock(VM_Address block, int sizeClass) {
@@ -412,7 +414,7 @@ final class MarkSweepLocal extends SegregatedFreeList
       bytesLive += VM_Interface.getSizeWhenCopied(object);
     VM_Address ref = VM_Interface.refToAddress(object);
     VM_Address block = BlockAllocator.getBlockStart(ref, tag);
-    int sizeClass = getSizeClass(block);
+    int sizeClass = getBlockSizeClass(block);
 
     // establish bitmask & offset for this cell in the block
     int index = (ref.diff(block.add(blockHeaderSize[sizeClass])).toInt())/cellSize[sizeClass];

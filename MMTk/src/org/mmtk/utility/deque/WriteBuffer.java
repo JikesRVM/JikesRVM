@@ -4,8 +4,8 @@
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
-
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -19,7 +19,6 @@ import com.ibm.JikesRVM.VM_Magic;
  * @version $Revision$
  * @date $Date$
  */ 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 class WriteBuffer extends LocalSSB implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -46,7 +45,7 @@ class WriteBuffer extends LocalSSB implements Constants, VM_Uninterruptible {
   public final void insert(VM_Address addr)
     throws VM_PragmaNoInline {
     checkInsert(1);
-    uncheckedInsert(addr.toInt());
+    uncheckedInsert(addr);
   }
   private static boolean inWB = false;
 }

@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -102,7 +103,7 @@ final class BumpPointer extends Allocator
     VM_Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
     if (start.isZero())
       return start;
-    Memory.zero(start, chunkSize);
+    Memory.zero(start, VM_Extent.fromInt(chunkSize));
     cursor = start;
     limit = start.add(chunkSize);
     return alloc(isScalar, bytes);

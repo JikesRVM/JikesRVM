@@ -25,7 +25,7 @@ public class Header extends HybridHeader {
   // Merges all the headers together.  In this case, we have only one.
 
   public final static int GC_BARRIER_BIT_MASK = -1;  // must be defined even though unused
-  public static boolean isBeingForwarded(Object base) 
+  public static boolean isBeingForwarded(VM_Address base) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (Plan.isSemiSpaceObject(base))
       return CopyingHeader.isBeingForwarded(base);
@@ -33,7 +33,7 @@ public class Header extends HybridHeader {
       return false;
   }
 
-  public static boolean isForwarded(Object base) 
+  public static boolean isForwarded(VM_Address base) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (Plan.isSemiSpaceObject(base))
       return CopyingHeader.isForwarded(base);
@@ -41,7 +41,7 @@ public class Header extends HybridHeader {
       return false;
   }
 
-  static void setBarrierBit(Object ref)
+  static void setBarrierBit(VM_Address ref)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     VM_Interface._assert(false);
   }

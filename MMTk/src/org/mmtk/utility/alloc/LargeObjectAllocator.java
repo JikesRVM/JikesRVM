@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -107,7 +108,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
     VM_Address sp = allocSuperPage(pages);
     if (sp.isZero()) return sp;
     VM_Address cell = sp.add(header);
-    Memory.zero(cell, bytes);
+    Memory.zero(cell, VM_Extent.fromInt(bytes));
     return cell;
   }
 

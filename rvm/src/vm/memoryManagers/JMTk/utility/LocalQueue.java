@@ -113,21 +113,6 @@ public class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptibl
    *
    * @param value the value to be inserted.
    */
-  protected final void uncheckedPush(int value) throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bufferOffset(head) <= bufferLastOffset(queue.getArity()));
-    VM_Magic.setMemoryInt(head, value);
-    head = head.add(WORD_SIZE);
-    //    if (VM_Interface.VerifyAssertions) enqueued++;
-  }
-
-  /**
-   * Push a value onto the buffer.  This is <i>unchecked</i>.  The
-   * caller must first call <code>checkPush()</code> to ensure the
-   * buffer can accommodate the insertion.
-   *
-   * @param value the value to be inserted.
-   */
   protected final void uncheckedPush(VM_Address value) throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(bufferOffset(head) <= bufferLastOffset(queue.getArity()));

@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
+// import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -17,7 +18,6 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.classloader.VM_Array;
 
 /**
  * This class implements a virtual memory resource.  The unit of
@@ -93,7 +93,8 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   private static int count;                  // How many VMResources exist now?
   private static VMResource resources[];     // List of all VMResources.
   final private static int MAX_VMRESOURCE = 20;
-  final private static int NUM_PAGES = 1 << (LOG_ADDRESS_SPACE - LOG_PAGE_SIZE);
+  // final private static int NUM_PAGES = 1 << (LOG_ADDRESS_SPACE - LOG_PAGE_SIZE);
+  final private static int NUM_PAGES = 1 << 20;
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
@@ -109,10 +110,8 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 
   public static void boot() throws VM_PragmaInterruptible {
     // resourceTable = new VMResource[NUM_PAGES];
-    VM_Array type = VM_Magic.getObjectType(resources).asArray();
-    Object [] tib = type.getTypeInformationBlock();
-    int size = type.getInstanceSize(NUM_PAGES);
-    resourceTable = (VMResource []) MM_Interface.allocateArray(NUM_PAGES, size, tib, Plan.IMMORTAL_SPACE);
+    resourceTable = (VMResource []) MM_Interface.cloneArray(resources,Plan.IMMORTAL_SPACE,
+                                                            NUM_PAGES);
     for (int i=0; i<resources.length; i++) {
       VMResource vm = resources[i];
       if (vm == null) continue;

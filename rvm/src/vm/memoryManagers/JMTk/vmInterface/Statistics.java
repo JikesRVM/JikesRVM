@@ -3,12 +3,7 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
 import com.ibm.JikesRVM.classloader.*;
 
@@ -47,8 +42,8 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
   // Number and types of GC
   public static int gcExternalCount = 0;   // number of calls from System.gc
-  static int gcCount = 0;           // number of minor collections
-  static int gcMajorCount = 0;      // number of major collections
+  public static int gcCount = 0;           // number of minor collections
+  public static int gcMajorCount = 0;      // number of major collections
 
   // accumulated times & counts for sysExit callback printout
   static final VM_Statistic bytesCopied = new VM_Statistic();
@@ -56,14 +51,14 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
   static final VM_Statistic majorBytesCopied = bytesCopied;
 
   // time spend in various phases
-  static final VM_TimeStatistic initTime = new VM_TimeStatistic();
-  static final VM_TimeStatistic rootTime = new VM_TimeStatistic();
-  static final VM_TimeStatistic scanTime = new VM_TimeStatistic();
-  static final VM_TimeStatistic finalizeTime = new VM_TimeStatistic();
-  static final VM_TimeStatistic finishTime = new VM_TimeStatistic();
-  static final VM_TimeStatistic GCTime = new VM_TimeStatistic();
-  static final VM_TimeStatistic minorGCTime = new VM_TimeStatistic();
-  static final VM_TimeStatistic majorGCTime = GCTime;
+  public static final VM_TimeStatistic initTime = new VM_TimeStatistic();
+  public static final VM_TimeStatistic rootTime = new VM_TimeStatistic();
+  public static final VM_TimeStatistic scanTime = new VM_TimeStatistic();
+  public static final VM_TimeStatistic finalizeTime = new VM_TimeStatistic();
+  public static final VM_TimeStatistic finishTime = new VM_TimeStatistic();
+  public static final VM_TimeStatistic GCTime = new VM_TimeStatistic();
+  public static final VM_TimeStatistic minorGCTime = new VM_TimeStatistic();
+  public static final VM_TimeStatistic majorGCTime = GCTime;
 
   // collisions in obtaining object ownership to copy
   static final boolean COUNT_COLLISIONS = false;

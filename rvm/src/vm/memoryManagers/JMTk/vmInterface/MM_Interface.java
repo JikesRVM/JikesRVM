@@ -7,10 +7,10 @@ package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
 import java.util.Date;
 
+import com.ibm.JikesRVM.memoryManagers.JMTk.AllocAdvice;
 import com.ibm.JikesRVM.memoryManagers.JMTk.VMResource;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Statistics;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Memory;
 import com.ibm.JikesRVM.memoryManagers.JMTk.SynchronizedCounter;
 import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
@@ -234,6 +234,21 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     return allocator;
   }
 
+  /**
+   * These methods allocate memory.  Specialized versions are available for
+   * particular object types.
+   */
+
+  /**
+   * Allocate a scalar object
+   *
+   * @param size Size in bytes of the object, including any headers
+   *		 that need space.
+   * @param tib  Type of the object (pointer to TIB).
+   * @param allocator Specify which allocation scheme/area JMTk should allocate
+   *		 the memory from.
+   */
+
   public static Object allocateScalar(int size, Object [] tib, int allocator) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     Plan plan = VM_Interface.getPlan();
@@ -241,7 +256,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     VM_Address region = plan.alloc(size, true, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) VM._assert(Memory.assertIsZeroed(region, size));
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
-    plan.postAlloc(result, tib, size, true, allocator);
+    plan.postAlloc(VM_Magic.objectAsAddress(result), tib, size, true, allocator);
     return result;
   }
 
@@ -253,24 +268,23 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
     VM_Address region = plan.alloc(size, false, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) VM._assert(Memory.assertIsZeroed(region, size));
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements, size);
-    plan.postAlloc(result, tib, size, false, allocator);
+    plan.postAlloc(VM_Magic.objectAsAddress(result), tib, size, false, allocator);
     return result;
   }
 
   /*
-   * Clone an array
+   * Clone an array: 2 flavours - same length as the original, and different length
    */
-  public static Object [] cloneArray(Object [] array, int allocator) {
-    VM.sysWriteln("cloneArray unimplemented");
-    if (VM.VerifyAssertions) VM._assert(false); // unimplemented
-    return null;
-    // We don't need this on Jikes RVM and the cast to Object[] is a no-no
-    /*
+  public static Object cloneArray(Object [] array, int allocator) 
+      throws VM_PragmaUninterruptible {
+    return cloneArray(array,allocator,array.length);
+  }
+  public static Object cloneArray(Object [] array, int allocator, int length)
+      throws VM_PragmaUninterruptible {
     VM_Array type = VM_Magic.getObjectType(array).asArray();
     Object [] tib = type.getTypeInformationBlock();
-    int size = type.getInstanceSize(array.length);
-    return (Object []) allocateArray(array.length, size, tib, allocator);
-    */
+    int size = type.getInstanceSize(length);
+    return allocateArray(length, size, tib, allocator);
   }
 
   public static VM_Address allocateCopy(VM_Address object) throws VM_PragmaUninterruptible, VM_PragmaInline {
@@ -376,7 +390,7 @@ public class MM_Interface implements VM_Constants, VM_Uninterruptible {
       int mask = ~((1 << logAlignment) - 1);
       VM_Address region = VM_Address.fromInt(tmp.toInt() & mask).sub(offset);
       Object result = VM_ObjectModel.initializeArray(region, stackTib, n, arraySize);
-      VM_Interface.getPlan().postAlloc(result, stackTib, arraySize, false, Plan.IMMORTAL_SPACE);
+      VM_Interface.getPlan().postAlloc(VM_Magic.objectAsAddress(result), stackTib, arraySize, false, Plan.IMMORTAL_SPACE);
       return (int []) result;
     }
 

@@ -32,6 +32,7 @@ import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_DynamicLibrary;
 import com.ibm.JikesRVM.VM_Extent;
+import com.ibm.JikesRVM.VM_JavaHeader;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_Offset;
@@ -53,7 +54,33 @@ import com.ibm.JikesRVM.VM_Word;
 
 public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
-  final public static double OUT_OF_MEMORY_THRESHOLD = 0.98;  // throw OutOfMemoryError when usage after a GC exceeds threshold
+  /***********************************************************************
+   *
+   * Initialization
+   */
+
+  /**
+   * Initialization that occurs at <i>build</i> time.  The value of
+   * statics as at the completion of this routine will be reflected in
+   * the boot image.  Any objects referenced by those statics will be
+   * transitively included in the boot image.
+   *
+   * This is called from MM_Interface, and would be just called init()
+   * but for the pass-through methods at the bottom.
+   *  // TODO: Rename to init() after the transition is over.
+   */
+  public static final void initVM_Interface () throws VM_PragmaInterruptible {
+    collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom(
+      "Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;");
+    runAtom = VM_Atom.findOrCreateAsciiAtom("run");
+  }
+
+  /***********************************************************************
+   *
+   * What we need to know about memory allocated by the outside world
+   *
+   * Basically where the boot image is, and how much memory is available.
+   */
 
   public static VM_Address bootImageStart() throws VM_PragmaUninterruptible {
     return  VM_BootRecord.the_boot_record.bootImageStart;
@@ -63,35 +90,120 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     return  VM_BootRecord.the_boot_record.bootImageEnd;
   }
 
-
-  public static void setHeapRange(int id, VM_Address start, VM_Address end) throws VM_PragmaUninterruptible {
-    VM_BootRecord.the_boot_record.setHeapRange(id, start, end);
-  }
-
-  public static int numProcessors() throws VM_PragmaUninterruptible {
-    return VM_SysCall.call0(VM_BootRecord.the_boot_record.sysNumProcessorsIP);
-  }
-
-  public static int verbose() throws VM_PragmaUninterruptible {
-    return VM_BootRecord.the_boot_record.verboseGC;
-  }
-
-  public static void lowYield() {
-    VM_SysCall.call0(VM_BootRecord.the_boot_record.sysVirtualProcessorYieldIP);
-  }
-
-
-  public static Plan getPlan() throws VM_PragmaInline {
-    return getPlanFromProcessor(VM_Processor.getCurrentProcessor());
-  }
-
-  public static Plan getPlanFromProcessor(VM_Processor proc) throws VM_PragmaInline {
-    //-#if RVM_WITH_JMTK_INLINE_PLAN
-    return proc;
-    //-#else
-    return proc.mmPlan;
+  public static final VM_Address bootImageAddress = 
+    //-#if RVM_FOR_32_ADDR
+    VM_Address.fromInt
+    //-#elif RVM_FOR_64_ADDR
+    VM_Address.fromLong
     //-#endif
+    (
+     //-#value BOOTIMAGE_LOAD_ADDRESS
+     );
+
+  public static VM_Address MAXIMUM_MAPPABLE = 
+    //-#if RVM_FOR_32_ADDR
+    VM_Address.fromInt
+    //-#elif RVM_FOR_64_ADDR
+    VM_Address.fromLong
+    //-#endif
+    (
+     //-#value MAXIMUM_MAPPABLE_ADDRESS
+     );
+
+  /***********************************************************************
+   *
+   * Manipulate raw memory
+   */
+
+  /* Returns errno 
+   */
+  public static int mmap(VM_Address start, int size) {
+    VM_Address result = VM_Memory.mmap(start, size,
+				       VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC, 
+				       VM_Memory.MAP_PRIVATE | VM_Memory.MAP_FIXED | VM_Memory.MAP_ANONYMOUS);
+    if (result.EQ(start)) return 0;
+    if (result.GT(VM_Address.fromInt(127))) {
+      VM.sysWrite("mmap with MAP_FIXED on ", start);
+      VM.sysWriteln(" returned some other address", result);
+      VM.sysFail("mmap with MAP_FIXED has unexpected behavior");
+    }
+    return result.toInt();
   }
+  
+  public static boolean mprotect(VM_Address start, int size) {
+    return VM_Memory.mprotect(start, size,VM_Memory.PROT_NONE);
+  }
+
+  public static boolean munprotect(VM_Address start, int size) {
+    return VM_Memory.mprotect(start, size,
+			      VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC);
+  }
+
+  /**
+   * Zero a region of memory.
+   * Taken:    start of address range (inclusive)
+   *           length in bytes of range to zero
+   * Returned: nothing
+   */
+  // temporary different name
+  public static void zero(VM_Address start, VM_Extent len) {
+    VM_Memory.zero(start,len);
+  }
+
+  /**
+   * Zero a range of pages of memory.
+   * Taken:    start address       (must be a page address)
+   *           number of bytes     (must be multiple of page size)
+   * Returned: nothing
+   */
+  public static void zeroPages(VM_Address start, int len) {
+    VM_Memory.zeroPages(start,len);
+  }
+
+  public static void dumpMemory(VM_Address start, int beforeBytes, int afterBytes) {
+    VM_Memory.dumpMemory(start,beforeBytes,afterBytes);
+  }
+
+  /***********************************************************************
+   *
+   * Access to object model
+   */
+
+  /**
+   * Call-throughs to VM_ObjectModel
+   */
+
+  public static boolean testAvailableBit(VM_Address o, int idx) {
+    return VM_ObjectModel.testAvailableBit(VM_Magic.addressAsObject(o),idx);
+  }
+  public static void setAvailableBit(VM_Address o, int idx, boolean flag) {
+    VM_ObjectModel.setAvailableBit(VM_Magic.addressAsObject(o),idx,flag);
+  }
+  public static boolean attemptAvailableBits(VM_Address o, int oldVal, int newVal) {
+      return VM_ObjectModel.attemptAvailableBits(VM_Magic.addressAsObject(o),oldVal,newVal);
+  }
+  public static int prepareAvailableBits(VM_Address o) {
+      return VM_ObjectModel.prepareAvailableBits(VM_Magic.addressAsObject(o));
+  }
+  public static void writeAvailableBitsWord(VM_Address o, int val) {
+    VM_ObjectModel.writeAvailableBitsWord(VM_Magic.addressAsObject(o), val);
+  }
+  public static int readAvailableBitsWord(VM_Address o) {
+      return VM_ObjectModel.readAvailableBitsWord(o);
+  }
+  public static int JAVA_HEADER_END() {
+	  return VM_ObjectModel.JAVA_HEADER_END;
+  }
+
+  /* Hooks into VM_JavaHeader */
+  public static VM_Address objectStartRef(VM_Address object) throws VM_PragmaInline {
+    return VM_JavaHeader.objectStartRef(object);
+  }
+
+  /***********************************************************************
+   *
+   * Trigger collections
+   */
 
   public static final int EXTERNALLY_TRIGGERED_GC = 0;
   public static final int RESOURCE_TRIGGERED_GC = 1;
@@ -133,28 +245,35 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake);
   }
 
-  public static final VM_Address bootImageAddress = 
-    //-#if RVM_FOR_32_ADDR
-    VM_Address.fromInt
-    //-#elif RVM_FOR_64_ADDR
-    VM_Address.fromLong
+  /***********************************************************************
+   *
+   * Miscellaneous
+   */
+
+  final private static double OUT_OF_MEMORY_THRESHOLD = 0.98;  // throw OutOfMemoryError when usage after a GC exceeds threshold
+
+  public static void setHeapRange(int id, VM_Address start, VM_Address end) throws VM_PragmaUninterruptible {
+    VM_BootRecord.the_boot_record.setHeapRange(id, start, end);
+  }
+
+  public static int verbose() throws VM_PragmaUninterruptible {
+    return VM_BootRecord.the_boot_record.verboseGC;
+  }
+
+  //
+  // Only used within the vmInterface package
+  static Plan getPlanFromProcessor(VM_Processor proc) throws VM_PragmaInline {
+    //-#if RVM_WITH_JMTK_INLINE_PLAN
+    return proc;
+    //-#else
+    return proc.mmPlan;
     //-#endif
-    (
-     //-#value BOOTIMAGE_LOAD_ADDRESS
-     );
+  }
 
 
-  public static VM_Address MAXIMUM_MAPPABLE = 
-    //-#if RVM_FOR_32_ADDR
-    VM_Address.fromInt
-    //-#elif RVM_FOR_64_ADDR
-    VM_Address.fromLong
-    //-#endif
-    (
-     //-#value MAXIMUM_MAPPABLE_ADDRESS
-     );
-
-
+  public static Plan getPlan() throws VM_PragmaInline {
+    return getPlanFromProcessor(VM_Processor.getCurrentProcessor());
+  }
 
   // Schedule the finalizerThread, if there are objects to be finalized
   // and the finalizerThread is on its queue (ie. currently idle).
@@ -185,7 +304,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     plan.enumeratePointerLocation(location);
   }
 
-  static SynchronizedCounter threadCounter = new SynchronizedCounter();
+  private static SynchronizedCounter threadCounter = new SynchronizedCounter();
   public static void resetComputeAllRoots() {
     threadCounter.reset();
   }
@@ -250,22 +369,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     }
   }
 
-  /**
-   * Initialization that occurs at <i>build</i> time.  The value of
-   * statics as at the completion of this routine will be reflected in
-   * the boot image.  Any objects referenced by those statics will be
-   * transitively included in the boot image.
-   *
-   * This is called from MM_Interface, and would be just called init()
-   * but for the pass-through methods at the bottom.
-   *  // TODO: Rename to init() after the transition is over.
-   */
-  public static final void initVM_Interface () throws VM_PragmaInterruptible {
-    collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom(
-      "Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;");
-    runAtom = VM_Atom.findOrCreateAsciiAtom("run");
-  }
-
   private static VM_Atom collectorThreadAtom;
   private static VM_Atom runAtom;
 
@@ -294,31 +397,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       fp = caller_fp; 
     }
 
-  }
-
-  /* Returns errno 
-   */
-  public static int mmap(VM_Address start, int size) {
-    VM_Address result = VM_Memory.mmap(start, size,
-				       VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC, 
-				       VM_Memory.MAP_PRIVATE | VM_Memory.MAP_FIXED | VM_Memory.MAP_ANONYMOUS);
-    if (result.EQ(start)) return 0;
-    if (result.GT(VM_Address.fromInt(127))) {
-      VM.sysWrite("mmap with MAP_FIXED on ", start);
-      VM.sysWriteln(" returned some other address", result);
-      VM.sysFail("mmap with MAP_FIXED has unexpected behavior");
-    }
-    return result.toInt();
-  }
-  
-  
-  public static boolean mprotect(VM_Address start, int size) {
-    return VM_Memory.mprotect(start, size,VM_Memory.PROT_NONE);
-  }
-
-  public static boolean munprotect(VM_Address start, int size) {
-    return VM_Memory.mprotect(start, size,
-			      VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC);
   }
 
 
@@ -355,18 +433,18 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       VM_Class classType = type.asClass();
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
       forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
-      VM_Address region = plan.allocCopy(fromObj, numBytes, true);
+      VM_Address region = plan.allocCopy(VM_Magic.objectAsAddress(fromObj), numBytes, true);
       Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
-      plan.postCopy(toObj, tib, numBytes, true);
+      plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, numBytes, true);
       toRef = VM_Magic.objectAsAddress(toObj);
     } else {
       VM_Array arrayType = type.asArray();
       int numElements = VM_Magic.getArrayLength(fromObj);
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
       forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
-      VM_Address region = getPlan().allocCopy(fromObj, numBytes, false);
+      VM_Address region = getPlan().allocCopy(VM_Magic.objectAsAddress(fromObj), numBytes, false);
       Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
-      plan.postCopy(toObj, tib, numBytes, false);
+      plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, numBytes, false);
       toRef = VM_Magic.objectAsAddress(toObj);
       if (arrayType == VM_Type.InstructionArrayType) {
 	// sync all moved code arrays to get icache and dcache in sync immediately.
@@ -492,90 +570,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static boolean runningVM() { return VM.runningVM; }
 
-    /**
-     * Call-throughs to VM_ObjectModel
-     */
-
-    public static boolean testAvailableBit(Object o, int idx) {
-	return VM_ObjectModel.testAvailableBit(o,idx);
-    }
-    public static void setAvailableBit(Object o, int idx, boolean flag) {
-	VM_ObjectModel.setAvailableBit(o,idx,flag);
-    }
-  public static boolean attemptAvailableBits(Object o, int oldVal, int newVal) {
-      return VM_ObjectModel.attemptAvailableBits(o,oldVal,newVal);
+  public static boolean isAcyclic(Object[] tib) {
+    return VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]).isAcyclicReference();
   }
-  public static int prepareAvailableBits(Object o) {
-      return VM_ObjectModel.prepareAvailableBits(o);
-  }
-  public static void writeAvailableBitsWord(Object o, int val) {
-    VM_ObjectModel.writeAvailableBitsWord(o, val);
-  }
-  public static int readAvailableBitsWord(Object o) {
-      return VM_ObjectModel.readAvailableBitsWord(o);
-  }
-  public static int hashRequests() {
-    return VM_ObjectModel.hashRequests;
-  }
-  public static void setHashRequests(int i) {
-    VM_ObjectModel.hashRequests = i;
-  }
-  public static boolean HASH_STATS() {
-	  return VM_ObjectModel.HASH_STATS;
-  }
-  public static int hashTransition1() {
-	  return VM_ObjectModel.hashTransition1;
-  }
-  public static void setHashTransition1(int i) {
-	  VM_ObjectModel.hashTransition1 = i;
-  }
-  public static int hashTransition2() {
-	  return VM_ObjectModel.hashTransition2;
-  }
-  public static void setHashTransition2(int i) {
-	  VM_ObjectModel.hashTransition2 = i;
-  }
-  public static int JAVA_HEADER_END() {
-	  return VM_ObjectModel.JAVA_HEADER_END;
-  }
-
-  /* Hooks into VM_Memory */
-
-  /**
-   * Zero a region of memory.
-   * Taken:    start of address range (inclusive)
-   *           end of address range   (exclusive)
-   * Returned: nothing
-   */
-  public static void zero(VM_Address start, VM_Address end) {
-    VM_Memory.zero(start,end);
-  }
-
-  // temporary different name
-  public static void zero(VM_Address start, VM_Extent len) {
-    VM_Memory.zero(start,len);
-  }
-
-  /**
-   * Zero a range of pages of memory.
-   * Taken:    start address       (must be a page address)
-   *           number of bytes     (must be multiple of page size)
-   * Returned: nothing
-   */
-  public static void zeroPages(VM_Address start, int len) {
-    VM_Memory.zeroPages(start,len);
-  }
-
-  public static void dumpMemory(VM_Address start, int beforeBytes, int afterBytes) {
-    VM_Memory.dumpMemory(start,beforeBytes,afterBytes);
-  }
-
-  // static void dumpMemory(VM_Address start, int afterBytes) {
-  //   VM_Memory.dumpMemory(start,afterBytes);
-  // }
-
-   public static boolean isAcyclic(Object[] tib) {
-     return VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]).isAcyclicReference();
-   }
  
 }

@@ -139,10 +139,10 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field threadContextRegistersField     = getField("Lcom/ibm/JikesRVM/VM_Thread;", "contextRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
   public static final VM_Field threadHardwareExceptionRegistersField = getField("Lcom/ibm/JikesRVM/VM_Thread;", "hardwareExceptionRegisters", "Lcom/ibm/JikesRVM/VM_Registers;");
 
-  public static final VM_Field dispenserField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "dispenser","I");
-  public static final VM_Field servingField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "serving","I");
-  public static final VM_Field lockThreadField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "thread","Lcom/ibm/JikesRVM/VM_Thread;");
-  public static final VM_Field lockStartField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/Lock;", "start","D");
+  public static final VM_Field dispenserField = getField("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/Lock;", "dispenser","I");
+  public static final VM_Field servingField = getField("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/Lock;", "serving","I");
+  public static final VM_Field lockThreadField = getField("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/Lock;", "thread","Lcom/ibm/JikesRVM/VM_Thread;");
+  public static final VM_Field lockStartField = getField("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/Lock;", "start","D");
   public static final VM_Field tailField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/LocalSSB;", "tail","Lcom/ibm/JikesRVM/VM_Address;");
   public static final VM_Field SQCFField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedQueue;", "completionFlag","I");
   public static final VM_Field SQNCField = getField("Lcom/ibm/JikesRVM/memoryManagers/JMTk/SharedQueue;", "numClients","I");

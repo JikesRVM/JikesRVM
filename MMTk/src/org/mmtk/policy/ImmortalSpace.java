@@ -40,14 +40,14 @@ final class ImmortalSpace extends BasePolicy
   /**
    * test to see if the mark bit has the given value
    */
-  private static boolean testMarkBit(Object ref, int value) {
+  private static boolean testMarkBit(VM_Address ref, int value) {
     return (VM_Interface.readAvailableBitsWord(ref) & value) != 0;
   }
 
   /**
    * write the given value in the mark bit.
    */
-  private static void writeMarkBit(Object ref, int value) {
+  private static void writeMarkBit(VM_Address ref, int value) {
     int oldValue = VM_Interface.readAvailableBitsWord(ref);
     int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
     VM_Interface.writeAvailableBitsWord(ref,newValue);
@@ -56,7 +56,7 @@ final class ImmortalSpace extends BasePolicy
   /**
    * atomically write the given value in the mark bit.
    */
-  private static void atomicWriteMarkBit(Object ref, int value) {
+  private static void atomicWriteMarkBit(VM_Address ref, int value) {
     while (true) {
       int oldValue = VM_Interface.prepareAvailableBits(ref);
       int newValue = (oldValue & ~GC_MARK_BIT_MASK) | value;
@@ -68,7 +68,7 @@ final class ImmortalSpace extends BasePolicy
    * Used to mark boot image objects during a parallel scan of objects during GC
    * Returns true if marking was done.
    */
-  private static boolean testAndMark(Object ref, int value) 
+  private static boolean testAndMark(VM_Address ref, int value) 
     throws VM_PragmaInline {
     int oldValue;
     do {
@@ -98,7 +98,7 @@ final class ImmortalSpace extends BasePolicy
     return object;
   }
 
-  public static void postAlloc (Object object) throws VM_PragmaInline {
+  public static void postAlloc (VM_Address object) throws VM_PragmaInline {
     writeMarkBit (object, immortalMarkState);
   }
 

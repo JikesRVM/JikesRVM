@@ -8,7 +8,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
-
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
@@ -319,7 +319,7 @@ final class RefCountLocal extends SegregatedFreeList
       byte tag = VMResource.getTag(ref);
       
       VM_Address block = BlockAllocator.getBlockStart(ref, tag);
-      int sizeClass = getSizeClass(block);
+      int sizeClass = getBlockSizeClass(block);
       int index = (ref.diff(block.add(blockHeaderSize[sizeClass])).toInt())/cellSize[sizeClass];
       VM_Address cell = block.add(blockHeaderSize[sizeClass]).add(index*cellSize[sizeClass]);
       free(cell, block, sizeClass);

@@ -227,8 +227,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param obj The object in question
    * @return True if the object resides in a copying space.
    */
-  public final static boolean isCopyObject(Object obj) {
-    VM_Address addr = VM_Interface.refToAddress(VM_Magic.objectAsAddress(obj));
+  public final static boolean isCopyObject(VM_Address obj) {
+    VM_Address addr = VM_Interface.refToAddress(obj);
     return (addr.GE(NURSERY_START) && addr.LE(HEAP_END));
   }
 

@@ -14,7 +14,6 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_JavaHeader;
 
 /**
  * Each instance of this class corresponds to one treadmill *space*.
@@ -189,9 +188,9 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
     throws VM_PragmaInline {
 
     // VM_Address ref = VM_Interface.refToAddress(object);
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!MarkSweepHeader.isSmallObject(VM_Magic.addressAsObject(object)));
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(!MarkSweepHeader.isSmallObject(object));
 	
-    VM_Address cell = VM_JavaHeader.objectStartRef(object);
+    VM_Address cell = VM_Interface.objectStartRef(object);
     VM_Address node = Treadmill.payloadToNode(cell);
     Treadmill tm = Treadmill.getTreadmill(node);
     tm.copy(node);

@@ -60,10 +60,6 @@ public class Memory implements VM_Uninterruptible {
 	VM_Magic.setMemoryInt(start.add(i), 0);
   }
 
-  public static void zeroSmall(VM_Address start, int len) throws VM_PragmaInline {
-      zeroSmall(start, VM_Extent.fromInt(len));
-  }
-
   public static void set (VM_Address start, int len, int v) throws VM_PragmaInline {
     for (int i=0; i<len; i+=4) 
       VM_Magic.setMemoryInt(start.add(i), v);
@@ -78,23 +74,10 @@ public class Memory implements VM_Uninterruptible {
 	zeroSmall(start, len);
   }
 
-  public static void zero(VM_Address start, int len) throws VM_PragmaInline {
-      zero(start, VM_Extent.fromInt(len));
-  }
-
   // start and len must both be OS-page aligned
   //
   public static void zeroPages(VM_Address start, int len) throws VM_PragmaInline {
     VM_Interface.zeroPages(start, len);
-  }
-
-  // Derived forms
-  public static void zeroSmall(VM_Address start, VM_Address end) throws VM_PragmaInline {
-    zeroSmall(start, end.diff(start).toInt());
-  }
-
-  public static void zero(VM_Address start, VM_Address end) throws VM_PragmaInline {
-    zero(start, end.diff(start).toInt());
   }
 
   public static void dumpMemory(VM_Address addr, int before, int after) {

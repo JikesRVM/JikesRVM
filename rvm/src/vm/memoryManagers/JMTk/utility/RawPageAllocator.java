@@ -5,7 +5,8 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -28,7 +29,6 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @date $Date$
  *
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 final class RawPageAllocator implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$";
  

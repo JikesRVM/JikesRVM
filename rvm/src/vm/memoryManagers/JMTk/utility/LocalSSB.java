@@ -101,13 +101,6 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
    *
    * @param value the value to be inserted.
    */
-  protected final void uncheckedInsert(int value) throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bufferOffset(tail) >= BYTES_IN_WORD);
-    tail = tail.sub(BYTES_IN_WORD);
-    VM_Magic.setMemoryInt(tail, value);
-    //    if (VM_Interface.VerifyAssertions) enqueued++;
-  }
-
   protected final void uncheckedInsert(VM_Address value) throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bufferOffset(tail) >= BYTES_IN_WORD);
     tail = tail.sub(BYTES_IN_WORD);
