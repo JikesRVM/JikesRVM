@@ -5,7 +5,8 @@
 #
 #//$Id$
 #
-# author David Grove
+# author Dave Grove
+# author Mauricio J. Serrano
 #
 # The format of PRODUCTION is 'non-terminal:	rule'
 PRODUCTION
