@@ -162,9 +162,6 @@ Use loop depth to approximate edge counts
 FIXED_JTOC -1 VM.BuildForIA32
 Exploit knowledge that the value of JTOC is a constant?
 
-ANNOTATIONS -1 false annotations
-Act on annotations in class files
-
 PRELOAD_AS_BOOT -1 false
 Apply boot options to preload_class
 

@@ -8,9 +8,12 @@ DESCRIP
 ##########
 # First all the non-printing, non-debugging options
 # Should not start with PRINT_ or DEBUG_ prefix
-#   There are none of these right now but may want to consider
-#   moving some like NO_CHECKCAST NO_CHECKSTORE from opt only to here
+#   May want to consider moving some like NO_CHECKCAST NO_CHECKSTORE from
+#   opt only to here
 ##########
+ANNOTATIONS -1 false annotations
+Act on annotations in class files
+
 ##########
 # Next, declare all the printing options
 # MUST start with PRINT_ or VCG_ prefix

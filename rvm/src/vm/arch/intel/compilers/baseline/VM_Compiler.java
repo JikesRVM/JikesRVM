@@ -2797,6 +2797,11 @@ public class VM_Compiler implements VM_BaselineConstants {
   }
   
   private final void genBoundsCheck (VM_Assembler asm, byte indexReg, byte arrayRefReg ) { 
+    if ( options.ANNOTATIONS &&
+	 method.queryAnnotationForBytecode(biStart,
+					VM_Method.annotationBoundsCheck)) {
+      return;
+    }
     asm.emitCMP_RegDisp_Reg(arrayRefReg, ARRAY_LENGTH_OFFSET, indexReg);  // compare index to array length
     VM_ForwardReference fr = asm.forwardJcc(asm.LGT);                     // Jmp around trap if index is OK
     
