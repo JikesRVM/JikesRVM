@@ -72,7 +72,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible, VM_Callback
    * @param value the exit value
    */
   public void notifyAppRunStart(int value) {
-    VM.sysWrite("Clearing VM_Allocator statistics\n");
+    if (VM_Allocator.verbose >= 1) VM.sysWrite("Clearing VM_Allocator statistics\n");
     clearSummaryStatistics();
   }
 
