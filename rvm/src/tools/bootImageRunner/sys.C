@@ -2130,6 +2130,11 @@ sysMMap(char *start , size_t length ,
         int protection , int flags ,
         int fd , long long offset)
 {
+#if (defined RVM_FOR_LINUX)
+  // Temporary hack to fix mismatch between Jikes calling convention
+  // for long long's and gcc's conventions) -- CJH
+  offset = 0;
+#endif
     return mmap(start, (size_t)(length), protection, flags, fd, (off_t)(offset));
 }
 
@@ -2141,6 +2146,11 @@ sysMMapErrno(char *start , size_t length ,
 	     int protection , int flags ,
 	     int fd , long long offset)
 {
+#if (defined RVM_FOR_LINUX)
+  // Temporary hack to fix mismatch between Jikes calling convention
+  // for long long's and gcc's conventions) -- CJH
+  offset = 0;
+#endif
   void* res = mmap(start, (size_t)(length), protection, flags, fd, (off_t)(offset));
   if (res == (void *) -1){
 #if RVM_FOR_32_ADDR
