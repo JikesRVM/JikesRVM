@@ -88,9 +88,9 @@ public class VM_HardwarePerformanceMonitors
    * Command line options
    */
   // trace hpm events?
-  static public  boolean hpm_trace = false;  
+  static public  boolean trace         = false;  
   // trace hpm events verbosely?
-  static public  int hpm_trace_verbose = 0;  
+  static public  int     trace_verbose = 0;  
   /*
    * hpm events verbosely?
    * -1 = no aggregate (used for timing)
@@ -101,21 +101,22 @@ public class VM_HardwarePerformanceMonitors
    *  4 = frequent events; 
    *  5 > very verbose
    */
-  static public  int verbose = 0;  
+  static public  int     verbose                  = 0;  
   // Use HPM thread group API (instead of thread API)
-  static public  boolean hpm_thread_group = false;
+  static public  boolean thread_group             = false;
+  // sample HPM value more frequently than a thread switch?
+  static public  boolean sample                   = false;
+  // report HPM counter values during call backs from application
+  static public  boolean report                   = false;
 
   // Print machine's processor name
-  static private boolean hpm_processor = false;
+  static private boolean hpm_processor            = false;
   // List all events on machine
-  static private boolean hpm_list_all_events = false;
+  static private boolean hpm_list_all_events      = false;
   // List events that are selected to be counted
   static private boolean hpm_list_selected_events = false;
   // test HPM access times for sysCalls and JNI
-  static private boolean hpm_test = false;
-
-  // sample HPM value more frequently than a thread switch?
-  static public  boolean sample = false;
+  static private boolean hpm_test                 = false;
 
   /*
    * HPM information 
@@ -135,9 +136,12 @@ public class VM_HardwarePerformanceMonitors
       VM.sysWriteln("Boolean Options (-X:hpm:<option>=true or -X:hpm:<option>=false) default is false");
       VM.sysWriteln(" Option       Description"); 
       VM.sysWriteln(" trace        trace HPM counter values at each thread switch.");
-      VM.sysWriteln(" processor    print name of processor and number of counters.");
-      VM.sysWriteln(" listAll      list all events associated with each counter.");
+      VM.sysWriteln(" processor    print name of processor, number of counters, and exit.");
+      VM.sysWriteln(" listAll      list all events associated with each counter and exit.");
       VM.sysWriteln(" listSelected list selected events for each counter.");
+      VM.sysWriteln(" report       report summary of HPM values when call back occurs from application or RVM.");
+      VM.sysWriteln("              Only valid when JikesRVM is run on a single processor!");
+      VM.sysWriteln("              For a multiprocessor, use trace!");
       VM.sysWriteln(" sample       sample HPM values more frequently than thread switch (set interruptQuantum and interruptQuantumMultiplier.");
       //VM.sysWriteln(" test       at end of execution, compute access time with sysCall and JNI.");
       VM.sysWriteln();
@@ -145,7 +149,7 @@ public class VM_HardwarePerformanceMonitors
       VM.sysWriteln(" Option        Type    Description"); 
       VM.sysWriteln(" eventN        int     specify event for counter N where 1<=N<=UB and UB is processor specific");
       VM.sysWriteln(" filename      String  prefix for file names.  Concatenate virtual processor number.");
-      VM.sysWriteln(" mode          int     specify mode: 1=GROUP, 2=PROCESS, 4=KERNEL, 8=USER, 16=COUNT, 32=PROCTREE");
+      VM.sysWriteln(" mode          int     specify mode: 1=GROUP, 2=PROCESS, 4=KERNEL, 8=USER, 16=COUNT, 32=PROCTREE, 64=ALL");
       VM.sysWriteln(" trace_verbose int     PID to trace events for?");
       VM.sysWriteln(" verbose       int     print more information.");
       VM.sysWriteln();
@@ -193,9 +197,9 @@ public class VM_HardwarePerformanceMonitors
       } else if (name2.equals("trace")) {
 	String value = arg.substring(split+1);
 	if (value.compareTo("true")==0) {
-	  hpm_trace = true;
+	  trace = true;
 	} else if (value.compareTo("false")==0) {
-	  hpm_trace = false;
+	  trace = false;
 	} else {
 	  VM.sysWriteln("\nrvm: unrecognized boolean value "+value+"\n -X:hpm:trace={true|false} is the correct syntax");
 	  VM.shutdown(VM.exitStatusBogusCommandLineArg);
@@ -208,7 +212,7 @@ public class VM_HardwarePerformanceMonitors
 	  VM.sysWriteln("\nrvm: unrecognized value "+value+"\n -X:hpm:trace_verbose=PID where PID >= 0 is the correct syntax, and 0 has null functionality.");
 	  VM.shutdown(VM.exitStatusBogusCommandLineArg);
 	}
-	hpm_trace_verbose = pid;
+	trace_verbose = pid;
       } else if (name2.equals("processor")) {
 	hpm_processor = true;
       } else if (name2.equals("verbose")) {
@@ -243,9 +247,9 @@ public class VM_HardwarePerformanceMonitors
 	// not tested
 	String value = arg.substring(split+1);
 	if (value.compareTo("true")==0) {
-	  hpm_thread_group = true;
+	  thread_group = true;
 	} else if (value.compareTo("false")==0) {
-	  hpm_thread_group = false;
+	  thread_group = false;
 	} else {
 	  VM.sysWriteln("\nrvm: unrecognized boolean value "+value+"\n -X:hpm:threadGroup={true|false} is the correct syntax");
 	}
@@ -258,6 +262,16 @@ public class VM_HardwarePerformanceMonitors
 	  hpm_test = false;
 	} else {
 	  VM.sysWriteln("\nrvm: unrecognized boolean value "+value+"\n -X:hpm:test={true|false} is the correct syntax");
+	  VM.shutdown(VM.exitStatusBogusCommandLineArg);
+	}
+      } else if (arg.startsWith("report=")) {
+	String tmp = arg.substring(split+1);
+	if (tmp.compareTo("true")==0) { 
+	  report = true;
+	} else if (tmp.compareTo("false")==0) { 	
+	  report = false;
+	} else {
+	  VM.sysWriteln("\n***VM_HPMs.processArgs() invalid -X:hpm:report argument \""+tmp+"\"!***\n");
 	  VM.shutdown(VM.exitStatusBogusCommandLineArg);
 	}
       } else if (arg.startsWith("sample=")) {
@@ -319,8 +333,6 @@ public class VM_HardwarePerformanceMonitors
       }
       if(verbose>=2)VM.sysWrite("VM_HPMs.boot() call hpmInit()\n");
       VM_SysCall.sysHPMinit();
-      // get number of counters
-      hpm_info.numberOfCounters = VM_SysCall.sysHPMgetNumberOfCounters();
 
       if(verbose>=2) {
 	VM.sysWrite("VM_HPMs.boot() call hpmSetEvent(");
@@ -338,14 +350,20 @@ public class VM_HardwarePerformanceMonitors
 	VM.sysWrite("VM_HPMs.boot() call hpmSetMode(",hpm_info.mode,")\n");
       }
       VM_SysCall.sysHPMsetMode(hpm_info.mode);
-      if (hpm_thread_group) {
+      // get number of counters
+      hpm_info.numberOfCounters = VM_SysCall.sysHPMgetNumberOfCounters();
+
+      if (thread_group) {
 	VM_SysCall.sysHPMsetProgramMyGroup();
 	VM_SysCall.sysHPMstartMyGroup();
       }
       //-#endif
 
       // set up callbacks
-      setUpCallbacks();
+      if(report) {
+        if(verbose>=2){ VM.sysWrite("VM_HPMs.boot() call setUpCallbacks\n"); }
+        setUpCallbacks();
+      }
     }
   }
   /**
@@ -405,7 +423,7 @@ public class VM_HardwarePerformanceMonitors
 	}
       }
 
-      if(hpm_trace) {
+      if(trace) {
 	// compute trace record size
 	record_size = SIZE_OF_HEADER + (hpm_info.numberOfCounters * SIZE_OF_LONG);
 
@@ -443,7 +461,7 @@ public class VM_HardwarePerformanceMonitors
 	for (int j=0; j<max_length - short_names[i-1].length(); j++) {
 	  hpm_info.short_names[i] += " ";
 	}
-	if (hpm_trace) {
+	if (trace) {
 	  writeEvent(i, hpm_info.ids[i], hpm_info.short_names[i]);
 	}
 	if (verbose>=4){
@@ -456,7 +474,7 @@ public class VM_HardwarePerformanceMonitors
       for (int j=0; j<max_length - length; j++ ) {
 	hpm_info.short_names[0] += " ";
       }
-      if (hpm_trace) {
+      if (trace) {
 	writeEvent(0, -1, hpm_info.short_names[0]);
 	writeMachineType(hpm_info.processorName);	
       }
@@ -470,7 +488,7 @@ public class VM_HardwarePerformanceMonitors
   /*
    * Open FileOutputStream file to write HPM trace records!
    * CONSTRAINT: header_trace_file is null
-   * CONSTRAINT: only called if hpm_trace is true!
+   * CONSTRAINT: only called if trace is true!
    * CONSTRAINT: can't call printStackTrace() too early in the boot sequence.
    * Actions:
    *  Open file
@@ -480,12 +498,12 @@ public class VM_HardwarePerformanceMonitors
   static private void openFileOutputStream(String header_trace_filename)
   {
     if(verbose>=2)VM.sysWriteln("VM_HPMs.openFileOutputStream(",header_trace_filename,")");
-
+    
     if (header_trace_file != null) {	// constraint
       VM.sysWriteln("***VM_HPMs.openFileOutputStream(",header_trace_filename,") header_trace_file != null!***");      
       VM.shutdown(VM.exitStatusHPMTrouble);
     }
-
+    
     try {
       header_trace_file = new FileOutputStream(header_trace_filename);
     } catch (FileNotFoundException e) {
@@ -504,7 +522,7 @@ public class VM_HardwarePerformanceMonitors
    *   int number_of_counters
    *   int mode
    *
-   * CONSTRAINT: only called if hpm_trace is true!
+   * CONSTRAINT: only called if trace is true!
    */
   static private void writeHeader()
   {
@@ -549,35 +567,6 @@ public class VM_HardwarePerformanceMonitors
     // write buffer to file
     writeFileOutputStream(buffer, index);
   }
-  /**
-   * Pad string with spaces so that length is word aligned
-   * @param name  string to be word aligned
-   *
-  static private String wordAlignedString(String name) 
-  {
-    int length = name.length();
-    if ((length/4)*4 == name.length()) return name;
-    length = ((length/4)+1)*4;
-    for (int i=0; i< length - name.length(); i++) {
-      name += " ";
-    }
-    return name;
-  }
-  /**
-   * Pad string with spaces so that length is word aligned
-   * @param name  string to be word aligned
-   *
-  static private String doubleWordAlignedString(String name) 
-  {
-    int length = name.length();
-    if ((length/8)*8 == name.length()) return name;
-    length = ((length/8)+1)*8;
-    for (int i=0; i< length - name.length(); i++) {
-      name += " ";
-    }
-    return name;
-  }
-  */
   /**
    * Write thread name to header file.
    * Called from VM_Thread's constuctors.
@@ -671,7 +660,7 @@ public class VM_HardwarePerformanceMonitors
    * @param methodName        name of method (e.g. "equals")
    * @param methodDescriptor  descriptor (argument and return types) (e.g. "(Ljava/lang/Object;)Z")
    */
-  private final static void writeMethod(int mid, VM_Atom className, VM_Atom methodName, VM_Atom methodDescriptor) {
+  static private final void writeMethod(int mid, VM_Atom className, VM_Atom methodName, VM_Atom methodDescriptor) {
     if (verbose>2) {
       VM.sysWrite("VM_HPMs.writeMethod(", mid, ",");
       VM.sysWrite(className);
@@ -703,6 +692,34 @@ public class VM_HardwarePerformanceMonitors
   }
   //END HRM
 
+  /**
+   * Utility method to write a string to a buffer.
+   * Assume: string.length + index < buffer.length
+   *
+   * @param buffer  where to write string
+   * @param index   index into buffer where to start writing string
+   * @param bytes   array of bytes
+   */
+  static public int writeStringToBuffer(byte[] buffer, int index, byte[] bytes)
+    throws VM_PragmaUninterruptible 
+  {
+    if (VM.BuildForHPM && enabled) {
+      int length = bytes.length;
+      if(verbose>=4) {
+        VM.sysWriteln(  "VM_HPMs.writeStringToBuffer() buffer index ",index," for length ",length);
+      }
+      VM_Magic.setIntAtOffset(buffer, index, length);		index += SIZE_OF_INT;
+      for (int i=0; i<length; i++) {
+        VM_Magic.setByteAtOffset(buffer, index, bytes[i]);
+        index++;
+      }
+      if(verbose>=4)VM.sysWriteln("VM_HPMs.writeStringToBuffer() return index ",index);
+      return index;
+    } else {
+      return 0;
+    }
+  }
+
 
   /*
    * Write a buffer of length length to FileOutputStream!
@@ -733,11 +750,11 @@ public class VM_HardwarePerformanceMonitors
    * Dump a map from method id to method signature
    * of all known methods into the trace header file.
    */
-  private final static void dumpMethods() {
+  static public final void dumpMethods() {
     if (verbose>2) {
       VM.sysWriteln("VM_HPMs.dumpMethods()");
     }
-    if (hpm_trace) {
+    if (trace) {
       final int numberOfMethodReferenceEntries = VM_MemberReference.getNextId();
       if (verbose>2) VM.sysWriteln("Number of member reference entries: ", numberOfMethodReferenceEntries);
       for (int mid=0; mid<numberOfMethodReferenceEntries; mid++) {
@@ -745,41 +762,99 @@ public class VM_HardwarePerformanceMonitors
         VM_MemberReference mr = VM_MemberReference.getMemberRef(mid);
         if (mr!=null) {
           if (mr.isMethodReference()) {
-	    if (verbose>2) VM.sysWriteln("(method)");
+	    if (verbose>6) VM.sysWriteln(" (method)");
             final VM_Atom className = mr.getType().getName();
             final VM_Atom methodName = mr.getName();
             final VM_Atom methodDescriptor = mr.getDescriptor();            
             writeMethod(mid, className, methodName, methodDescriptor);
           } else {
-	    if (verbose>2) VM.sysWriteln("(not a method reference)");
+	    if (verbose>6) VM.sysWriteln(" (not a method reference)");
           }
         } else {
-          if (verbose>2) VM.sysWriteln("(empty)");
+          if (verbose>6) VM.sysWriteln(" (empty)");
 	}
       }
     }
   }
   //END HRM
+
+  /*
+   * Stash away thread names associated with global thread id.
+   * Needed to ensure uninterruptible access to thread name.
+   */
+  //-#if RVM_WITH_HPM
+  // size of array of stashed thread names
+  static private int ptn_size  = 10;
+  // array of stashed thread names
+  static private String[] ptn_names = new String[ptn_size];
+  static private Object ptn_LOCK = new Object();
+  //-#endif
   
+  /**
+   * Stash away thread name with global thread index.
+   * Assume index is unique.
+   * @param name thread name
+   * @param index global thread index
+   */
+  static public void putThreadName(String name, int index) {
+    if (VM.BuildForHPM && enabled) {
+      //-#if RVM_WITH_HPM
+      if(verbose>=3){ VM.sysWrite("VM_HPMs.putThreadName(", name);VM.sysWrite(", ",index,")\n"); }
+      synchronized (ptn_LOCK) {
+        while (index >= ptn_size) {
+          String[] tmp = new String[ptn_size * 2];
+          for (int i=0; i<ptn_size; i++) {
+            tmp[i] = ptn_names[i];
+          }
+          ptn_names = tmp;
+          ptn_size *= 2;
+        }
+        ptn_names[index] = name;
+      }
+      //-#endif
+    }
+  }
+  /*
+   * Get stashed thread name.
+   */
+  static private String getThreadName(int index) throws VM_PragmaUninterruptible 
+  {
+    //-#if RVM_WITH_HPM
+    if (index > ptn_size) {
+      VM.sysWrite("***VM_HPMs.getThreadName(");VM.sysWrite(index);VM.sysWrite(") > size ");
+      VM.sysWrite(ptn_size);VM.sysWrite("!***\n");
+      VM.sysExit(VM.exitStatusHPMTrouble);
+    }
+    return ptn_names[index];
+    //-#endif
+  }
+
   /**
    * Set up callbacks.
    * Manages aggregate HPM values for VM_Threads and VM_Processor.
    * Assume when VM starts up, HPM has started counting.
    * Assume that any calls to System.gc() are done by the application.
+   * ASSUMPTION: call back called by sequential application thread.
+   * These call backs only work on a uniprocessor.  On a multiprocessor, the reads
+   * and writes to stored counter values are not synchronized and the distributed
+   * global counter value data structure is not atomic.  For a multiprocessor, collect
+   * a trace and then use the TraceFileReader with the -run and -aggregate or -aggregate_by_thread
+   * command line options.
    */
+  static private HPM_counters aos;
+  static private HPM_counters sum;
+
   static private void setUpCallbacks()
   {
+    sum = new HPM_counters();
+    aos = new HPM_counters();
     VM_Callbacks.addAppStartMonitor(new VM_Callbacks.AppStartMonitor() {
         public void notifyAppStart(String app) { 
           if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyAppStart(",app,")");
-	  if (hpm_thread_group) {
+	  if (thread_group) {
 	    report_MyGroup();
 	  } else {
-	    if(verbose>=0) {
-	      stopUpdateResetReportAndStart(); 
-	    } else {
-	      stopUpdateResetAndStart();
-	    }
+            stopUpdateResetReportAndStart(); 
 	  }
           if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyAppStart(",app,") finished");
         }
@@ -787,14 +862,10 @@ public class VM_HardwarePerformanceMonitors
     VM_Callbacks.addAppRunStartMonitor(new VM_Callbacks.AppRunStartMonitor() {
         public void notifyAppRunStart(String app, int run) { 
           if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyAppRunStart(",app,",", run,")");
-	  if (hpm_thread_group) {
+	  if (thread_group) {
 	    report_MyGroup();
 	  } else {
-	    if(verbose>=0) {
-	      stopUpdateResetReportAndStart(); 
-	    } else {
-	      stopUpdateResetAndStart();
-	    }
+            stopUpdateResetReportAndStart(); 
 	  }
           if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyAppRunStart(",app,",", run,") finished");
         }
@@ -802,14 +873,10 @@ public class VM_HardwarePerformanceMonitors
     VM_Callbacks.addAppRunCompleteMonitor(new VM_Callbacks.AppRunCompleteMonitor() {
         public void notifyAppRunComplete(String app, int run) { 
           if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyAppRunComplete(",app,",", run,")");
-	  if (hpm_thread_group) {
+	  if (thread_group) {
 	    report_MyGroup();
 	  } else {
-	    if(verbose>=0) {
-	      stopUpdateResetReportAndStart(); 
-	    } else {
-	      stopUpdateResetAndStart();
-	    }
+            stopUpdateResetReportAndStart(); 
 	  }
           if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyAppRunComplete(",app,",", run,") finished");
         }
@@ -817,41 +884,29 @@ public class VM_HardwarePerformanceMonitors
     VM_Callbacks.addAppCompleteMonitor(new VM_Callbacks.AppCompleteMonitor() {
         public void notifyAppComplete(String app) { 
           if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyAppComplete(",app,")");
-	  if (hpm_thread_group) {
+	  if (thread_group) {
 	    report_MyGroup();
 	  } else {
-	    if(verbose>=0) {
-	      stopUpdateResetReportAndStart(); 
-	    } else {
-	      stopUpdateResetAndStart();
-	    }
+            stopUpdateResetReportAndStart(); 
 	  }
           if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyAppRunComplete(",app,") finished");
         }
     });
+    /*
     VM_Callbacks.addExitMonitor(new VM_Callbacks.ExitMonitor() {
         public void notifyExit(int value) { 
 	  if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyExit(",value,")");
-	  if (hpm_thread_group) {
+	  if (thread_group) {
 	    stopAndReport_MyGroup();
 	  } else {
-	    if(verbose>=0) {
-	      stopUpdateResetAndReport(); 
-	    } else {
-	      stopUpdateAndReset();
-	    }
+            stopUpdateResetAndReport(); 
 	  }
-	  //BEGIN HRM
-	  if (verbose>=6) {
-	    dumpMethods();
-	  }
-	  //END HRM
 	  if(verbose>=1) VM.sysWriteln("VM_HPMs.notifyExit(",value,") finished");
         }
     });
+    */
   }
   /**
-   * Public entry point.
    * Stop HPM counting.  
    * Update HPM counters of the current thread and processor (conservation of energy).
    * Reset the HPM counters of all the threads and processors.
@@ -860,32 +915,13 @@ public class VM_HardwarePerformanceMonitors
    * <p> 
    * Using sysCall interface (could use JNI interface).
    */
-  static private void stopUpdateResetReportAndStart() {
+  static private void stopUpdateResetReportAndStart() throws VM_PragmaUninterruptible {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
       if(verbose>=2)VM.sysWrite("VM_HPMs.stopUpdateResetReportAndStart()\n");
-      stop_Update_reset_Report();
-
-      start();
-      //-#endif
-    }
-  }
-
-  /**
-   * Public entry point.
-   * Stop HPM counting.  
-   * Update HPM counters of the current thread and processor (conservation of energy).
-   * Reset the HPM counters of all the threads and processors.
-   * Report the aggregate counts for processors and threads.
-   * Start HPM counting.
-   * <p> 
-   * Using sysCall interface (could use JNI interface).
-   */
-  static private void stopUpdateResetAndStart() {
-    if (VM.BuildForHPM && enabled) {
-      //-#if RVM_WITH_HPM
-      if(verbose>=2)VM.sysWrite("VM_HPMs.stopUpdateResetReportAndStart()\n");
+      //      stop_Update_reset_Report();
       stop_Update_reset();
+      Report();
 
       start();
       //-#endif
@@ -893,37 +929,20 @@ public class VM_HardwarePerformanceMonitors
   }
 
   /**
-   * Public entry point. 
    * Stop HPM counting.  
    * Update HPM counters of the current thread and processor (conservation of energy).
    * Reset the HPM counters of all the threads and processors.
    * Report the aggregate counts for processors and threads.
    */
-  static private void stopUpdateResetAndReport() {
+  static private void stopUpdateResetAndReport() throws VM_PragmaUninterruptible {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
-      stopUpdateAndReset();
+      stop_Update_reset();
       Report();
       //-#endif
     }
   }
 
-  /**
-   * Public entry point. 
-   * Stop HPM counting.  
-   * Update HPM counters of the current thread and processor (conservation of energy).
-   * Reset the HPM counters of all the threads and processors.
-   * Report the aggregate counts for processors and threads.
-   */
-  static private void stopUpdateAndReset() {
-    if (VM.BuildForHPM && enabled) {
-      //-#if RVM_WITH_HPM
-      if(verbose>=2)VM.sysWrite("VM_HPMs.stopUpdateResetReportAndStart()\n");
-      stop_Update_reset();
-      //-#endif
-    }
-  }
-
   /*
    * Private entry point.
    * Stop HPM counting.
@@ -931,26 +950,13 @@ public class VM_HardwarePerformanceMonitors
    * Reset HPM counter values.
    * Report the aggregate counts for processors and threads.
    */
-  static private void stop_Update_reset_Report() {
-    stop_Update_reset();
-    Report();
-  }
-
-  /*
-   * Private entry point.
-   * Stop HPM counting.
-   * Update HPM counters of the current thread and processor (conservation of energy).
-   * Reset HPM counter values.
-   * Report the aggregate counts for processors and threads.
-   */
-  static private void stop_Update_reset() {
-    stop();
-
+  static private void stop_Update_reset() throws VM_PragmaUninterruptible {
     // capture MID's
     VM_Thread.captureCallChainCMIDs(false);
     // update hpm counters of current processor and thread.
     VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(VM_Thread.getCurrentThread(), false, false);
 
+    stop();
     reset();
   }
 
@@ -963,17 +969,17 @@ public class VM_HardwarePerformanceMonitors
    * Use the tracing facility for more details.
    * The aggregate reporting of HPM counter values is unaware of the tracing mechanism.
    */
-  static private void Report() {
+  static public void Report() throws VM_PragmaUninterruptible {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
       if (verbose<0) return;
 
-      HPM_counters sum = new HPM_counters();
-      System.out.println("\nDump HPM counter values for virtual processors");
+      //      HPM_counters sum = new HPM_counters();
+      VM.sysWriteln("\nDump HPM counter values for virtual processors");
       int n_vp = 0;
       for (int i = 1; i<= VM_Scheduler.numProcessors; i++) {
 	VM_Processor processor = VM_Scheduler.processors[i];
-	System.out.println(" Virtual Processor: "+i);
+	VM.sysWriteln(" Virtual Processor: ",i);
 	if (processor.hpm.vp_counters().dump_counters(hpm_info)) {
 	  n_vp++;
 	}
@@ -981,85 +987,58 @@ public class VM_HardwarePerformanceMonitors
 	processor.hpm.vp_counters().reset_counters();
       }
       if (VM_Scheduler.numProcessors>1 && n_vp > 1) {
-	System.out.println("Dump aggregate HPM counter values for VirtualProcessors");
+	VM.sysWriteln("Dump aggregate HPM counter values for VirtualProcessors");
 	sum.dump_counters(hpm_info);
       }
 
-      System.out.println("\nDump HPM counter values for threads");
+      VM.sysWriteln("\nDump HPM counter values for threads");
       sum.reset_counters();
-      HPM_counters aos = new HPM_counters();
+      //      HPM_counters aos = new HPM_counters();
       aos.reset_counters();
       int n_aosThreads = 0;
       int n_nonZeroThreads = 0; 
       for (int i = 1, n = VM_Scheduler.hpm_threads.length; i < n; i++) {
 	VM_Thread t = VM_Scheduler.hpm_threads[i];
 	if (t != null) {
-	  String thread_name = t.getClass().getName();
+          int global_index = t.getGlobalIndex();
+	  String thread_name = VM_HardwarePerformanceMonitors.getThreadName(global_index); // t.getClass().getName();
 	  // dump HPM counter values
-	  synchronized (System.out) {
-	    System.out.println(" ThreadIndex: " + t.getGlobalIndex() + " ("+t.getIndex()+") "
-			       + thread_name + " ");
+          //	  synchronized (System.out) {
+	    VM.sysWrite(" ThreadIndex: ");VM.sysWrite(global_index);VM.sysWrite(" (");
+            VM.sysWrite(t.getIndex());VM.sysWrite(") ");VM.sysWrite(thread_name);VM.sysWrite(" ");
+            VM.sysWriteln();
 	    if (t.hpm_counters != null) {
 	      if (t.hpm_counters.dump_counters(hpm_info)) n_nonZeroThreads++;
 	      t.hpm_counters.accumulate(sum, hpm_info.numberOfCounters);
-	      if (thread_name.lastIndexOf("VM_ControllerThread") != -1 ||
-		  thread_name.lastIndexOf("VM_MethodSampleOrganizer") != -1){
+              /*
+	      if (thread_name.startsWith("VM_ControllerThread") ||
+                  thread_name.startsWith("VM_MethodSampleOrganizer")) {
 		t.hpm_counters.accumulate(aos, hpm_info.numberOfCounters);
 		n_aosThreads++;
 	      }
+              */
 	      t.hpm_counters.reset_counters();
 	    } else {
 	      if(verbose>=2)
-		System.out.println(" hpm_counters == null!***");
+		VM.sysWriteln(" hpm_counters == null!***");
 	    }
-	  }
+            //	  }
 	}
       }
+      /*
       if (n_aosThreads > 1) {
-	synchronized (System.out) {
-	  System.out.println("\nDump aggregate HPM counter values for AOS threads");
+        //	synchronized (System.out) {
+	  VM.sysWriteln("\nDump aggregate HPM counter values for AOS threads");
 	  aos.dump_counters(hpm_info);
-	}
+          //	}
       }
+      */
       if (n_nonZeroThreads > 1) {
-	synchronized (System.out) {
-	  System.out.println("\nDump aggregate HPM counter values for threads");
+        //	synchronized (System.out) {
+	  VM.sysWriteln("\nDump aggregate HPM counter values for threads");
 	  sum.dump_counters(hpm_info);
-	}
+          //	}
       }
-      //-#endif
-    }
-  }
-
-  /**
-   * private entry point. (obsolete?)
-   * Reset the HPM counters of all the threads and processors.
-   */
-  static private void Reset() {
-    if (VM.BuildForHPM && enabled) {
-      //-#if RVM_WITH_HPM
-      if(verbose>=2)VM.sysWrite("VM_HPMs.reset()\n");
-      for (int i = 1; i<= VM_Scheduler.numProcessors; i++) {
-	VM_Processor processor = VM_Scheduler.processors[i];
-	if (processor.hpm.vp_counters() != null) {
-	  processor.hpm.vp_counters().reset_counters();
-	} else {
-	  VM.sysWriteln("***VM_HPMs.reset() Virtual Processor ",i," hpm.p_counters == null!***");
-	}
-      }
-      for (int i = 1, n = VM_Scheduler.threads.length; i < n; i++) {
-	VM_Thread t = VM_Scheduler.threads[i];
-	if (t != null) {
-	  if (t.hpm_counters != null) {
-	    t.hpm_counters.reset_counters();
-	  } else {
-	    t.hpm_counters = new HPM_counters();
-	    if (verbose>=3) 
-	      VM.sysWriteln("***VM_HPMs.reset() thread ",i," hpm_counters == null!***");
-	  }
-	}
-      }
-      reset();
       //-#endif
     }
   }
@@ -1070,7 +1049,7 @@ public class VM_HardwarePerformanceMonitors
    * <p>
    * Uses sysCall interface (could use JNI interface)
    */
-  public static void report_MyGroup() {
+  public static void report_MyGroup() throws VM_PragmaUninterruptible {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
       if(verbose>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.report_MyGroup()\n");
@@ -1085,7 +1064,7 @@ public class VM_HardwarePerformanceMonitors
    * <p>
    * Uses sysCall interface (could use JNI interface)
    */
-  public static void stopAndReport_MyGroup() {
+  public static void stopAndReport_MyGroup() throws VM_PragmaUninterruptible {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
       if(verbose>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.stopAndReport_MyGroup()\n");
@@ -1100,7 +1079,7 @@ public class VM_HardwarePerformanceMonitors
    * Start HPM counting.
    * Constraint: VM.BuildForHPM and enabled are set and built with RVM_WITH_HPM.
    */
-  static private void start() 
+  static private void start() throws VM_PragmaUninterruptible
   {
     //-#if RVM_WITH_HPM
     VM_SysCall.sysHPMstartMyThread();
@@ -1111,7 +1090,7 @@ public class VM_HardwarePerformanceMonitors
    * Stop HPM counting.
    * Constraint: VM.BuildForHPM and enabled are set and built with RVM_WITH_HPM.
    */
-  static private void stop() 
+  static private void stop() throws VM_PragmaUninterruptible
   {
     //-#if RVM_WITH_HPM
     VM_SysCall.sysHPMstopMyThread();
@@ -1122,35 +1101,11 @@ public class VM_HardwarePerformanceMonitors
    * Reset HPM counters.
    * Constraint: VM.BuildForHPM and enabled are set and built with RVM_WITH_HPM.
    */
-  static private void reset() 
+  static private void reset() throws VM_PragmaUninterruptible
   {
     //-#if RVM_WITH_HPM
     VM_SysCall.sysHPMresetMyThread();
     //-#endif
-  }
-
-  /**
-   * Utility method to write a string to a buffer.
-   * Assume: string.length + index < buffer.length
-   *
-   * @param buffer  where to write string
-   * @param index   index into buffer where to start writing string
-   * @param bytes   array of bytes
-   */
-  static public int writeStringToBuffer(byte[] buffer, int index, byte[] bytes)
-    throws VM_PragmaUninterruptible 
-  {
-    int length = bytes.length;
-    if(verbose>=4) {
-      VM.sysWriteln(  "VM_HPMs.writeStringToBuffer() buffer index ",index," for length ",length);
-    }
-    VM_Magic.setIntAtOffset(buffer, index, length);		index += SIZE_OF_INT;
-    for (int i=0; i<length; i++) {
-      VM_Magic.setByteAtOffset(buffer, index, bytes[i]);
-      index++;
-    }
-    if(verbose>=4)VM.sysWriteln("VM_HPMs.writeStringToBuffer() return index ",index);
-    return index;
   }
 
 }
