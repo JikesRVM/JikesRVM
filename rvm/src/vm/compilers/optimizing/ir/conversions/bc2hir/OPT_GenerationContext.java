@@ -290,9 +290,6 @@ final class OPT_GenerationContext implements OPT_Constants,
       parent.parentMCSizeEstimate;
     child.semanticExpansionComplete = parent.semanticExpansionComplete;
 
-    // make sure the _ncGuards contain no dangling mappings
-    child.resync_ncGuards();
-    
     // Now inherit state based on callSite
     child.inlineSequence = new OPT_InlineSequence
       (child.method, callSite.position, callSite.bcIndex);
@@ -723,6 +720,18 @@ final class OPT_GenerationContext implements OPT_Constants,
     return true;
   }
 
+    
+  /**
+   * Make sure, the gc is still in sync with the IR, even if we applied some
+   * optimizations. This method should be called before hir2lir conversions
+   * which might trigger inlining.
+   */
+  void resync () {
+    //make sure the _ncGuards contain no dangling mappings
+    resync_ncGuards();
+  }
+  
+
   /**
    * This method makes sure that _ncGuard only maps to registers that
    * are actually in the IRs register pool.
@@ -740,5 +749,15 @@ final class OPT_GenerationContext implements OPT_Constants,
       if (!(regPool.contains (entry.getValue()))) i.remove();
     }
   }
+
+  
+  /**
+   * Kill ncGuards, so we do not use outdated mappings unintendedly later on
+   */
+  void close () {
+    _ncGuards = null;
+  }
+  
+
 }
  
