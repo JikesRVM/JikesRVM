@@ -1087,6 +1087,15 @@ else
     croak_usage "Unknown configuration ${CONFIGURATION_NAME}"
 fi
 
+if (( RVM_WITH_QUICK_COMPILER )) && (( ! RVM_FOR_POWERPC )) ; then
+	    echo >&2 "\
+    $ME: Quick compiler configurations are only valid when the target is a PowerPC."
+	    trap '' EXIT
+	    exit 2
+
+fi
+
+
 # set the relative path to the object model.
 if (( RVM_WITH_ONE_WORD_MASK_OBJECT_MODEL )); then
     OBJECT_MODEL_PATH_STR=objectModel/oneWordMaskTIB
@@ -4327,7 +4336,7 @@ chmod -x${PERM}	$f
 unsetEnvironment;		# throw out leftovers
 load_config_file ${RVM_HOST_CONFIG}
 # echo >&2 "Just read RVM_HOST_CONFIG=${RVM_HOST_CONFIG}  JIKES_WARNING_FLAGS=$JIKES_WARNING_FLAGS" #DEBUG
-
+    
 f=${BUILD_DIRECTORY}/Make.rules.host
 rm -f			$f
 emitMakefile	      > $f
