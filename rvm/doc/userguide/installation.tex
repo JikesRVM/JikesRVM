@@ -11,9 +11,12 @@ To build on any platform you will need the following:
 \item The Jikes\trademark Java\trademark compiler 
 You can download this from
 \xlink{{\tt \jikesURL}} {\jikesURL}.
-You can use any of the pre-compiled binaries, or build it yourself from the
-source. We recommend version 1.13; users have reported difficulties with 
-version 1.14.  We have seen some problems with version 1.15.
+You can use any of the pre-compiled binaries, or build it yourself
+from the source. We recommen either version 1.13 or version 1.18.  We
+have seen problems with version 1.14 through 1.17.  Note that if you
+use version 1.18 you will need to give it the additional command line
+argument {\tt -target 1.3} to ensure that Jikes RVM will be able to
+execute the generated class files.
 
 \item GNU tar is needed to extract the distribution tar file.  
 You can download this from
@@ -57,7 +60,8 @@ download this from
 \xlink{{\tt \BlackdownURL}} {\BlackdownURL}. 
 We have seen problems using the IBM 1.3.1 DK; avoid it until these problems
 can be resolved.
-\item {\tt ksh}. This must be installed in {\tt /bin/ksh}.
+\item {\tt ksh}. This must be installed in {\tt /bin/ksh}. If you
+don't already have a ksh, we recommend {\tt pdksh}.
 \end{itemize}
 
 \AIXPPCJikesTMFooter
@@ -76,20 +80,18 @@ contents of this repository with CVS from the
 \item The Jikes RVM standard libraries. This is a jar file {\tt \LibTarFile}.
 
 \item The 
-\xlink{Classpath}{\classpathURL} jazzlib library ({\tt
-\jazzlibjarfile}), which 
-implements java.util.zip and java.util.jar. 
+\xlink{Classpath}{\classpathURL} libraries. 
 \end{itemize}
 
 Each item is distributed under a different license.  The licenses for
 the first two items are provided in Appendix~\ref{appendix:licenses}.  The GNU
-Classpath jazzlib license is available at
+Classpath license is available at
 \xlink{{\tt \classpathURL}}{\classpathURL}.
 
 The first and second items are available  from the Jikes RVM
 \xlink{download}{\RVMDownloadURL} page. The third item is available at
-\xlink{jazzlib}{\jazzlibURL} page.  
-You do not always need to explicitly download
+\xlink{{\tt \classpathURL}}{\classpathURL}.
+You do not always need to explicitly download the
 second and third items; the Jikes RVM build process will automatically
 check that these two items are present. If they are not present, and if
 the build process can confirm that you have viewed the appropriate license
@@ -153,13 +155,6 @@ standard library file {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.
 % cd $HOME/rvmRoot
 % zcat jlibraries-[version].tar.gz | tar xvf - 
 \end{verbatim}
-
-If you explicitly downloaded the jazzlib library, place it also in 
-{\tt \$RVM\_ROOT/support/lib}.  You must rename the jar file 
-to be called {\tt jazzlib.jar}.
-If you did not download the library,
-it will also be automatically retrieved when you try to build a Jikes RVM
-configuration. 
 
 \index{environment variables}
 \index{RVM\_ROOT}
@@ -249,12 +244,9 @@ segment register to access pthread-specific state.
 The second section in the configuration file is used to define how to
 find tools that Jikes RVM needs. You must set the following variables:
 \begin{description}
-\item {\tt HOST\_JAVA\_HOME} the base directory for JDK JVM
-\item {\tt HOST\_JAVA} the executable command for the JDK JVM
-\item {\tt HOST\_JAVAC} the {\tt javac} executable for the JDK  
-\item {\tt HOST\_JAR} the {\tt jar} executable for the JDK  
-\item {\tt HOST\_REPOSITORIES} the {\tt rt.jar} archive for the JDK  
-\item {\tt HOST\_TOOLS} the {\tt tools.jar} archive for the JDK  
+\item {\tt HOST\_JAVA\_HOME} the base directory for JDK JVM. If you
+have a nonstandard JDK, you may have to define a number of variables
+that are normally defined in terms of {\tt HOST\_JAVA\_HOME}.
 \item {\tt GNU\_MAKE} the GNU {\tt make} executable
 \item {\tt JIKES} the Jikes\trademark compiler executable ({\tt jikes}).
 \item {\tt CC} how to invoke the C compiler.
@@ -263,8 +255,7 @@ find tools that Jikes RVM needs. You must set the following variables:
 \item {\em various basic Unix utilities} e.g., {\tt grep}, {\tt xargs}, etc.
 \end{description}
 The remaining variables in the config file are not required for basic
-Jikes RVM
-builds.
+Jikes RVM builds.
 
 Someday we should consider setting up an autoconf to automate this
 step.
@@ -272,28 +263,27 @@ step.
 \index{configurations}
 \index{jconfigure script}
 \item {\bf Choose configuration and populate your build directory.}
-
 You will use the {\tt jconfigure} script (in {\tt \$RVM\_ROOT/rvm/bin}) to
 populate your build ({\tt \$RVM\_BUILD}) directory with files.  You must
 first choose a Jikes RVM configuration.
 
-For novice users performing application performance runs, two
-configurations are recommended.  (A discussion 
+For quick turnaround time while modifying Jikes RVM, you will usually
+want to use the baseline compiler to build the Jikes RVM bootimage.
+A typical configuration that builds very quickly (but performs poorly)
+is {\tt BaseBaseSemispace}: a non-adaptive system that uses the
+baseline compiler everywhere, with the semispace copying collector. 
+
+To obtain reasonable performance from Jikes RVM, you will need to use
+the optimizing compiler to build the bootimage.  This takes longer,
+but generates a Jikes RVM image with reasonable runtime performance.
+We recommend either the {\tt FullAdaptiveSemispace} or {\tt
+FastAdaptiveSemispace} images depending on whether or not you want
+VM assertion checking enabled. (A discussion 
 of Jikes RVM configurations appears in Section~\ref{configs}.)
 
-\begin{itemize}
-\item {\tt BaseBaseSemispace}: a non-adaptive system that uses the
-baseline compiler everywhere, with the semispace copying collector
-\item {\tt OptOptSemispace}: a non-adaptive system that uses the
-optimizing compiler everywhere, with the semispace copying collector
-\end{itemize}
-
-Depending on your purposes (See Section~\ref{ssec:choosinggc}.) you
-may want to choose another configuration, e.g.,
-\begin{itemize}
-\item {\tt OptOptMarkSweep}: a non-adaptive system that uses the
-optimizing  compiler everywhere, with the mark-sweep (noncopying) collector
-\end{itemize}
+Depending on your purposes you may want to choose another
+configuration that uses a different memory manager (See
+Section~\ref{ssec:choosinggc}.).
 
 Run the {\tt jconfigure} script to set up the {\tt \$RVM\_BUILD}
 directory for the configuration you desire.  This step creates
@@ -411,8 +401,7 @@ configuration where all assertion checking has been turned off.
 \end{itemize}
 A boot image with
 either of these modifications is likely to run faster than without
-(the opt compiler will be opt compiled),
-but take longer to build.  
+(the opt compiler will be opt compiled), but take longer to build.  
 
 \subsubsection{Adaptive Configurations} \label{adaptive-configs}
 \index{adaptive configurations}
