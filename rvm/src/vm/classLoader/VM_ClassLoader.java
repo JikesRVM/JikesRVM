@@ -283,7 +283,7 @@ public class VM_ClassLoader implements VM_Constants,
     try {
       if (VM.VerifyAssertions) VM._assert(tRef.isClassType());
       if (VM.TraceClassLoading  && VM.runningVM)
-	VM.sysWrite("loading " + tRef.getName() + " with " + classloader);
+	VM.sysWriteln("loading \"" + tRef.getName() + "\" with " + classloader);
       VM_Class ans = new VM_Class(tRef, new DataInputStream(is));
       tRef.setResolvedType(ans);
       return ans;
