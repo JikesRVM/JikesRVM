@@ -359,11 +359,6 @@ hpm_set_mode(int mode)
     if(debug>=1)fprintf(stdout,"hpm_set_mode(%d) MODE_USER\n",mode);
     setprog.mode.b.user = 1;
   }
-  if (! (mode & MODE_USER) && (mode & MODE_KERNEL)) {
-    if(debug>=1)fprintf(stdout,"hpm_set_mode(%d) MODE_USER & MODE_KERNEL\n",mode);
-    setprog.mode.b.kernel = 1;
-    setprog.mode.b.user = 1;
-  }
   if (mode & MODE_COUNT) {
     if(debug>=1)fprintf(stdout,"hpm_set_mode(%d) MODE_COUNT\n",mode);
     setprog.mode.b.count = 1;
