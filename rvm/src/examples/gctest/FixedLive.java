@@ -23,6 +23,8 @@ class FixedLive {
     runTest();
   }
 
+  static double sumTraceTime = 0.0;
+  static double sumAllocTime = 0.0;
   static double sumTraceRate = 0.0;
   static double squaredSumTraceRate = 0.0;
   static double sumAllocRate = 0.0;
@@ -30,15 +32,18 @@ class FixedLive {
   public static int exclude = 2;  // skips first two GCs
   static int sampleCount = -exclude; 
 
-  public static void addSample(double traceElapsed, double traceRate, double allocRate) {
+  public static void addSample(double traceElapsed, double allocElapsed,
+			       double traceRate, double allocRate) {
     sampleCount++;
-    System.out.print("GC occurred (" + traceElapsed + " s) : tracing rate = " + traceRate + " Mb/s");
+    System.out.print("GC occurred (" + traceElapsed + " s) after " + allocElapsed + "s : tracing rate = " + traceRate + " Mb/s");
     System.out.print("   allocation rate = " + allocRate + " Mb/s");
     if (sampleCount < 1) {
       System.out.println("  <--- Skipping");
     }
     else {
       System.out.println();
+      sumTraceTime += traceElapsed;
+      sumAllocTime += allocElapsed;
       sumTraceRate += traceRate;
       sumAllocRate += allocRate;
       squaredSumTraceRate += traceRate * traceRate;
@@ -59,10 +64,13 @@ class FixedLive {
     avgAllocRate = ((int) (10000 * avgAllocRate) + 0.5) / 10000;
     rmsTraceRate = ((int) (10000 * rmsTraceRate) + 0.5) / 10000;
     rmsAllocRate = ((int) (10000 * rmsAllocRate) + 0.5) / 10000;
+    System.out.println();
     System.out.print("Overall Rate:           tracing  rate = " + avgTraceRate + " Mb/s");
     System.out.println("   allocation rate = " + avgAllocRate + " Mb/s");
     System.out.print("Standard Deviation:     tracing sigma = " + rmsTraceRate + " Mb/s");
     System.out.println("   allocation sigma = " + rmsAllocRate + " Mb/s");
+    System.out.println("Total Allocation Time = " + sumAllocTime + " s");
+    System.out.println("Total Tracing    Time = " + sumTraceTime + " s");
   }
 
   // Allocate until either maxGC GC's have occurred or maxMb megabytes have been allocated
@@ -90,7 +98,7 @@ class FixedLive {
       if (traceElapsed > 0.1) {
 	double traceRate = liveSize / traceElapsed; // Mb/s
 	double allocRate = (allocatedSize / 1e6) / allocElapsed; // Mb/s
-	addSample(traceElapsed, traceRate, allocRate);
+	addSample(traceElapsed, allocElapsed, traceRate, allocRate);
 	allocatedSize = 0;
 	last = end;
       }
