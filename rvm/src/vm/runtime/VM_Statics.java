@@ -97,8 +97,12 @@ public class VM_Statics implements VM_Constants {
 
   /**
    * static data values (pointed to by jtoc register)
+   * This is currently fixed-size, although at one point the system's plans
+   * called for making it dynamically growable.  We could also make it
+   * non-contiguous.
    */
-  private static int slots[] = new int[65536];
+  //  private static int slots[] = new int[65536];
+  private static int slots[] = new int[0x20000]; // 128K = 131072
 
   /**
    * corresponding descriptions (see "kinds", above)
