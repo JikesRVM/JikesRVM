@@ -74,7 +74,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
     if (bufferOffset(head).isZero()) {
       return dequeueUnderflow(arity);
     } else {
-      Assert._assert(bufferOffset(head).sGE(Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sGE(Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
       return true;
     }
   }
@@ -88,7 +88,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
    */
   protected final Address uncheckedDequeue() 
     throws InlinePragma{
-    Assert._assert(bufferOffset(head).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     head = head.sub(BYTES_IN_ADDRESS);
     return head.loadAddress();
   }
@@ -104,7 +104,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
    * @return True if the consumer has eaten all the entries
    */
   protected final boolean headStarved(int arity) {
-    Assert._assert(arity == queue.getArity());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == queue.getArity());
 
     // If the tail has entries...
     if (tail.NE(tailBufferEnd)) {
@@ -136,7 +136,7 @@ class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
    * replenished.
    */
   private final boolean dequeueUnderflow(int arity) throws NoInlinePragma {
-    Assert._assert(arity == queue.getArity());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == queue.getArity());
     do {
       if (head.NE(Deque.HEAD_INITIAL_VALUE))
 	queue.free(head);

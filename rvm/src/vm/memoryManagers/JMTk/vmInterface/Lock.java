@@ -155,7 +155,7 @@ public class Lock implements Uninterruptible {
 
   public void check (int w) {
     if (!REPORT_SLOW) return;
-    Assert._assert(VM_Thread.getCurrentThread() == thread);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(VM_Thread.getCurrentThread() == thread);
     long diff = (REPORT_SLOW) ? VM_Time.cycles() - start : 0;
     boolean show = (verbose > 1) || (diff > SLOW_THRESHOLD);
     if (show) {

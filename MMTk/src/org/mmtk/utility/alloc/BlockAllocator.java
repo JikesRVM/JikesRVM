@@ -97,7 +97,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * zero on failure.
    */
   final Address alloc(int blockSizeClass) {
-    Assert._assert((blockSizeClass >= 0) && 
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert((blockSizeClass >= 0) && 
 			   (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
     Address rtn;
     if (PARANOID) sanity(false);
@@ -344,7 +344,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
     throws InlinePragma {
     address = Conversions.pageAlign(address);
     short rtn = getMetaAddress(address).loadShort(SC_OFFSET);
-    Assert._assert(rtn >= 0 && rtn <= (short) MAX_BLOCK_SIZE_CLASS);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(rtn >= 0 && rtn <= (short) MAX_BLOCK_SIZE_CLASS);
     return rtn;
   }
   
@@ -382,7 +382,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * @param block The block to be removed from the doubly linked list
    */
   static final void unlinkBlock(Address block) throws InlinePragma {
-    Assert._assert(!block.isZero());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!block.isZero());
     Address next = getNextBlock(block);
     Address prev = getPrevBlock(block);
     //    if (Assert.VERIFY_ASSERTIONS) {
@@ -401,7 +401,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    */
   static final void linkedListInsert(Address block, Address prev) 
     throws InlinePragma {
-    Assert._assert(!block.isZero());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!block.isZero());
     Address next;
     if (!prev.isZero()) {
       next = getNextBlock(prev);
@@ -537,7 +537,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
         Log.write("------>"); Log.writeln(sc); Log.write(" "); Log.write(blocks); Log.write(" != "); Log.writeln(freeBlocks[sc]);
         sanityTraverse(freeList.get(sc), Address.zero(), true);
         Log.writeln();
-        Assert._assert(false);
+        if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
       }
     }
     if (verbose) Log.writeln();
@@ -560,7 +560,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
     boolean first = true;
     int blocks = 0;
     while (!block.isZero()) {
-      Assert._assert(getPrevBlock(block).EQ(prev));
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(getPrevBlock(block).EQ(prev));
       blocks++;
       if (verbose) {
 	if (!first)

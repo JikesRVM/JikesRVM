@@ -89,7 +89,7 @@ public class SemiSpace extends SemiSpaceBase implements Uninterruptible {
   public final Address allocCopy(Address original, int bytes, 
                                     int align, int offset) 
     throws InlinePragma {
-    Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
 
     Address result = ss.alloc(bytes, align, offset);
     return result;

@@ -72,7 +72,7 @@ public class LocalDeque extends LocalQueue
     if (bufferOffset(head).EQ(bufferSentinel(arity)) || 
 	head.EQ(HEAD_INITIAL_VALUE))
       headOverflow(arity);
-    else Assert._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
+    else if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
   }
   
   /**
@@ -85,7 +85,7 @@ public class LocalDeque extends LocalQueue
    */
   protected final void uncheckedHeadInsert(Address value) 
     throws InlinePragma {
-      Assert._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
     head.store(value);
     head = head.add(BYTES_IN_ADDRESS);
     //    if (VM_Interface.VerifyAssertions) enqueued++;
@@ -103,7 +103,7 @@ public class LocalDeque extends LocalQueue
    * @param arity The arity of this buffer (used for sanity test only).
    */
   private final void headOverflow(int arity) {
-    Assert._assert(arity == queue.getArity());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == queue.getArity());
     if (head.NE(Deque.HEAD_INITIAL_VALUE))
       closeAndInsertHead(arity);
 
@@ -132,7 +132,7 @@ public class LocalDeque extends LocalQueue
    * @return True if the consumer has eaten all of the entries
    */
   private final boolean tailStarved(int arity) {
-      Assert._assert(arity == queue.getArity());
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(arity == queue.getArity());
     // entries in tail, so consume tail
     if (!bufferOffset(head).isZero()) {
       tailBufferEnd = head;

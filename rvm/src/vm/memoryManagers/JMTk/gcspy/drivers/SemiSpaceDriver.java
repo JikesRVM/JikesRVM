@@ -267,7 +267,7 @@ public class SemiSpaceDriver extends AbstractDriver
    */
   public void zero () {
     for (int i = 0; i < tiles.length; i++) {
-      Assert._assert(tiles[i] != null);
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(tiles[i] != null);
       tiles[i].zero();
     }
     totalScalarObjects = 0;
@@ -345,7 +345,7 @@ public class SemiSpaceDriver extends AbstractDriver
 	if (isArray) {
 	  tiles[index].arrayObjects++;
 	  tiles[index].arrayUsedSpace += length;
-	  Assert._assert(tiles[index].arrayUsedSpace < arrayUsedSpaceStream.getMaxValue());
+	  if (Assert.VERIFY_ASSERTIONS) Assert._assert(tiles[index].arrayUsedSpace < arrayUsedSpaceStream.getMaxValue());
 	  if (total) {
 	    totalArrayObjects++;
 	    totalArrayUsedSpace += length;
@@ -353,7 +353,7 @@ public class SemiSpaceDriver extends AbstractDriver
 	} else {
 	  tiles[index].scalarObjects++;
 	  tiles[index].scalarUsedSpace += length;
-	  Assert._assert(tiles[index].arrayUsedSpace < arrayUsedSpaceStream.getMaxValue());
+	  if (Assert.VERIFY_ASSERTIONS) Assert._assert(tiles[index].arrayUsedSpace < arrayUsedSpaceStream.getMaxValue());
 	  if (total) {
 	    totalScalarObjects++;
 	    totalScalarUsedSpace += length;

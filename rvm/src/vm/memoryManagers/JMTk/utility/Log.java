@@ -246,7 +246,7 @@ public class Log implements Constants, Uninterruptible {
    * the first character
    */
   public static void write(char [] c, int len) {
-    Assert._assert(len <= c.length);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(len <= c.length);
     for (int i = 0; i < len; i++)
       add(Barriers.getArrayNoBarrier(c, i));
   }

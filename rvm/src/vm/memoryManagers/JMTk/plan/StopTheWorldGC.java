@@ -161,7 +161,7 @@ public abstract class StopTheWorldGC extends BasePlan
    *      4. globalRelease()
    */
   public void collect() {
-    Assert._assert(collectionsInitiated > 0);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(collectionsInitiated > 0);
 
     boolean designated = (Collection.rendezvous(4210) == 1);
     boolean timekeeper = Stats.gatheringStats() && designated;
@@ -446,7 +446,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * @param object The forwarded object to be scanned
    */
   protected void scanForwardedObject(Address object) {
-    Assert._assert(!Plan.MOVES_OBJECTS);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
   }
 
   /**

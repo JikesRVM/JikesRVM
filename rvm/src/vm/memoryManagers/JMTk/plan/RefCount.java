@@ -150,7 +150,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    */
   public final Address allocCopy(Address original, int bytes,
 				 int align, int offset) throws InlinePragma {
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     // return Address.zero();  this trips some Intel assembler bug
     return Address.max();
   }
@@ -607,7 +607,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    */
   private final void coalescingWriteBarrierSlow(Address srcObj) 
     throws NoInlinePragma {
-    Assert._assert(WITH_COALESCING_RC);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(WITH_COALESCING_RC);
     if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
     if (RefCountSpace.attemptToLog(srcObj)) {
       modBuffer.push(srcObj);
@@ -632,7 +632,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    */
   public final void enumerateModifiedPointerLocation(Address objLoc)
     throws InlinePragma {
-    Assert._assert(WITH_COALESCING_RC);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(WITH_COALESCING_RC);
     Address object = objLoc.loadAddress();
     if (!object.isZero()) {
       Address addr = ObjectModel.refToAddress(object);
@@ -710,7 +710,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
     else {
       Address addr = ObjectModel.refToAddress(object);
       if (addr.GE(RC_START)) {
-        Assert._assert(addr.LT(HEAP_END));
+        if (Assert.VERIFY_ASSERTIONS) Assert._assert(addr.LT(HEAP_END));
         return true;
       } else 
         return false;

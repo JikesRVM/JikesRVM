@@ -45,7 +45,7 @@ public class AddressDeque extends LocalDeque
    * @param addr the address to be inserted into the address queue
    */
   public final void insert(Address addr) throws InlinePragma {
-    Assert._assert(!addr.isZero());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr.isZero());
     checkTailInsert(1);
     uncheckedTailInsert(addr);
   }
@@ -56,7 +56,7 @@ public class AddressDeque extends LocalDeque
    * @param addr the address to be pushed onto the address queue
    */
   public final void push(Address addr) throws InlinePragma {
-    Assert._assert(!addr.isZero());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
   }

@@ -59,7 +59,7 @@ public class Color
    * @param b blue component
    */
   public Color (short r, short g, short b) {    
-    Assert._assert((0 <= r) && (r <= 255) &&
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert((0 <= r) && (r <= 255) &&
 		           (0 <= g) && (g <= 255) &&
 		           (0 <= b) && (b <= 255));   
     this.r_ = r;

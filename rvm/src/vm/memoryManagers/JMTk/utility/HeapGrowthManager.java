@@ -193,12 +193,12 @@ public abstract class HeapGrowthManager implements Uninterruptible {
       }
       gcLoad = 1;
     }
-    Assert._assert(liveRatio >= 0);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(liveRatio >= 0);
     if (Assert.VERIFY_ASSERTIONS && gcLoad < 0) {
       Log.write("gcLoad computed to be "); Log.writeln(gcLoad);
       Log.write("\taccumulateGCTime was (ms) "); Log.writeln(accumulatedGCTime);
       Log.write("\ttotalTime was (ms) "); Log.writeln(totalTime);
-      Assert._assert(false);
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     }
     
     if (Options.verbose > 2) {
@@ -256,26 +256,26 @@ public abstract class HeapGrowthManager implements Uninterruptible {
   private static void sanityCheck() {
     // Check live ratio
     double[] liveRatio = function[0];
-    Assert._assert(liveRatio[1] == 0);
-    Assert._assert(liveRatio[liveRatio.length-1] == 1);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(liveRatio[1] == 0);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(liveRatio[liveRatio.length-1] == 1);
     for (int i=2; i<liveRatio.length; i++) {
-      Assert._assert(liveRatio[i-1] < liveRatio[i]);
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(liveRatio[i-1] < liveRatio[i]);
       for (int j=1; j<function.length; j++) {
-        Assert._assert(function[j][i] >= 1 || function[j][i] > liveRatio[i]);
+        if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[j][i] >= 1 || function[j][i] > liveRatio[i]);
       }
     }
 
     // Check GC load
-    Assert._assert(function[1][0] == 0);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[1][0] == 0);
     int len = function.length;
-    Assert._assert(function[len-1][0] == 1);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[len-1][0] == 1);
     for (int i=2; i<len; i++) {
-      Assert._assert(function[i-1][0] < function[i][0]);
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[i-1][0] < function[i][0]);
     }
 
     // Check that we have a rectangular matrix
     for (int i=1; i<function.length; i++) {
-      Assert._assert(function[i-1].length == function[i].length);
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(function[i-1].length == function[i].length);
     }
   }
 

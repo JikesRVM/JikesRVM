@@ -71,7 +71,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
   final public static Address alignAllocation(Address region, int alignment, 
                                              int offset, int knownAlignment)
     throws InlinePragma {
-   if (Assert.VERIFY_ASSERTIONS) {
+    if (Assert.VERIFY_ASSERTIONS) {
       Assert._assert(knownAlignment >= BYTES_IN_PARTICLE);
       Assert._assert(BYTES_IN_PARTICLE >= BYTES_IN_INT);
       Assert._assert(alignment <= MAXIMUM_ALIGNMENT);
@@ -132,7 +132,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
   final public static int getMaximumAlignedSize(int size, int alignment,
 						int knownAlignment) 
     throws InlinePragma {
-    Assert._assert(knownAlignment >= BYTES_IN_PARTICLE);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(knownAlignment >= BYTES_IN_PARTICLE);
     if (MAXIMUM_ALIGNMENT <= BYTES_IN_PARTICLE
         || alignment <= knownAlignment) {
       return size;

@@ -206,7 +206,7 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    */
   public final Address allocCopy(Address original, int bytes,
 				 int align, int offset) throws InlinePragma {
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     // return Address.zero();  this trips some Intel assembler bug
     return Address.max();
   }

@@ -163,7 +163,7 @@ public abstract class VMResource implements Constants, Uninterruptible {
    * Constructor
    */
   VMResource(byte space_, String vmName, Address vmStart, Extent bytes, byte status_) {
-    Assert._assert(vmStart.EQ(Conversions.roundDownVM(vmStart)));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(vmStart.EQ(Conversions.roundDownVM(vmStart)));
     space = space_;
     start = vmStart;
     pages = Conversions.bytesToPages(bytes);
@@ -178,7 +178,7 @@ public abstract class VMResource implements Constants, Uninterruptible {
       Log.write(" with range "); Log.write(start);
       Log.write(" to "); Log.writeln(end);
       Log.write("Exceeds the maximum mappable address for this OS of "); Log.writeln(Memory.MAXIMUM_MAPPABLE);
-      Assert._assert(false);
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     }
   }
 
@@ -201,7 +201,7 @@ public abstract class VMResource implements Constants, Uninterruptible {
     // Log.write(" to "); Log.write(pageStart + pageRequest - 1);
     // Log.write(" for space "); Log.writeln(space);
     for (int i=0; i<pageRequest; i++) {
-      Assert._assert(spaceTable[pageStart+i] == Plan.UNUSED_SPACE 
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(spaceTable[pageStart+i] == Plan.UNUSED_SPACE 
                                // Suspect - FreeListVM
                                || spaceTable[pageStart+i] == space); 
       spaceTable[pageStart+i] = space;
@@ -215,7 +215,7 @@ public abstract class VMResource implements Constants, Uninterruptible {
     // Log.write(" to "); Log.write(pageStart + pageRequest - 1);
     // Log.write(" for space "); Log.writeln(spac!e);
     for (int i=0; i<pageRequest; i++) {
-      Assert._assert(spaceTable[pageStart+i] == space ||
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(spaceTable[pageStart+i] == space ||
                      spaceTable[pageStart+i] == Plan.UNUSED_SPACE); // Suspect - FreeListVM
       spaceTable[pageStart+i] = Plan.UNUSED_SPACE;
     }

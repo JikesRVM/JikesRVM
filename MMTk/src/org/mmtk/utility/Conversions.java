@@ -69,7 +69,7 @@ public class Conversions implements Constants, Uninterruptible {
 
   public static int addressToPages (Address addr) {
     int page = addressToPagesDown(addr);
-    Assert._assert(pagesToAddress(page).EQ(addr));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(pagesToAddress(page).EQ(addr));
     return page;
   }
 
@@ -106,7 +106,7 @@ public class Conversions implements Constants, Uninterruptible {
   
   public static int bytesToPages(Extent bytes) {
     int pages = bytesToPagesUp(bytes);
-    Assert._assert(pagesToAddress(pages).toWord().toExtent().EQ(bytes));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(pagesToAddress(pages).toWord().toExtent().EQ(bytes));
     return pages;
   }
 

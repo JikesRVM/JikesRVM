@@ -85,7 +85,7 @@ public class Finalizer implements Uninterruptible {
         rightCursor--;
       if (leftCursor >= rightCursor) // can be greater on first iteration if totally empty
         break;
-      Assert._assert(candidate.get(leftCursor).isZero() && !candidate.get(rightCursor).isZero());
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(candidate.get(leftCursor).isZero() && !candidate.get(rightCursor).isZero());
       candidate.set(leftCursor, candidate.get(rightCursor));
       candidate.set(rightCursor, Address.zero());
     }

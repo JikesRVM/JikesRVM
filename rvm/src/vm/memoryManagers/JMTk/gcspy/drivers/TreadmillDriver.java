@@ -271,11 +271,11 @@ public class TreadmillDriver extends AbstractDriver
     totalObjects++;
     tiles[index].objects++;
 
-    Assert._assert(blockSize <= usedSpaceStream.getMaxValue());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(blockSize <= usedSpaceStream.getMaxValue());
       
     totalUsedSpace += length;
     int remainder = subspace.spaceRemaining(addr);
-    Assert._assert(remainder <= blockSize);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(remainder <= blockSize);
     if (length <= remainder) {  // fits in this tile
       tiles[index].usedSpace += length;
       //checkspace(index, length, "traceObject fits in first tile"); 

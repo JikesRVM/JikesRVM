@@ -228,7 +228,7 @@ public class GenCopy extends Generational implements Uninterruptible {
   protected static final void forwardMatureObjectLocation(Address location,
                                                           Address object,
                                                           byte space) {
-    Assert._assert(fullHeapGC);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(fullHeapGC);
     if ((hi && space == LOW_MATURE_SPACE) || 
         (!hi && space == HIGH_MATURE_SPACE))
       location.store(CopySpace.forwardObject(object));
@@ -244,10 +244,10 @@ public class GenCopy extends Generational implements Uninterruptible {
    */
   public static final Address getForwardedMatureReference(Address object,
                                                       byte space) {
-    Assert._assert(fullHeapGC);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(fullHeapGC);
     if ((hi && space == LOW_MATURE_SPACE) || 
         (!hi && space == HIGH_MATURE_SPACE)) {
-      Assert._assert(CopySpace.isForwarded(object));
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));
       return CopySpace.getForwardingPointer(object);
     } else {
       return object;

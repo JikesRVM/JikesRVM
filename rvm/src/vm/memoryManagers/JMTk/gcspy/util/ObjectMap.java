@@ -244,7 +244,7 @@ public class ObjectMap
     debug(2, "-", end);
     debugln(2, ")");
 
-    Assert._assert(page <= lastPage, "ObjectMap.addOrRelease: start page > last page");
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(page <= lastPage, "ObjectMap.addOrRelease: start page > last page");
                   
     if (add) { // adding chunks
       int slot = addressToSlot(start);
@@ -264,8 +264,8 @@ public class ObjectMap
       debug(2, ", end slot ", addressToSlot(end));
       debug(2, ", end word ", addressToWord(end));
       debugln(2, ", end bit ", addressToBit(end));
-      Assert._assert(addressToWord(end) == 0, "addressToWord not zero"); // Must release complete bitmaps
-      Assert._assert(addressToBit(end)  == 0, "addressToBit not zero");
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(addressToWord(end) == 0, "addressToWord not zero"); // Must release complete bitmaps
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(addressToBit(end)  == 0, "addressToBit not zero");
 
       int slot = addressToSlot(start);
       while (page <= lastPage  && page < PAGEMAPS_IN_OBJECTMAP) {
@@ -302,7 +302,7 @@ public class ObjectMap
    * @param s the slot to zero
    *
   private final void zeroSlot(int slot) { 
-    Assert._assert(!objectMap_.isZero(), "objectMap_ is null!");
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!objectMap_.isZero(), "objectMap_ is null!");
     Address addr = getSlotAddress(slot);
     if (VM_Interface.VerifyAssertions) {
       Address bitmap = VM _Magic.getMemoryAddress(addr);
@@ -321,7 +321,7 @@ public class ObjectMap
    * @param slot the slot to check
    */
   private final void freeBitmap(int page, int slot) {
-    Assert._assert(!objectMap_.isZero(), "objectMap_ is null!");
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!objectMap_.isZero(), "objectMap_ is null!");
     
     Address addr = getSlotAddress(page, slot);
     Address bitmap = addr.loadAddress();
@@ -379,7 +379,7 @@ public class ObjectMap
     Address slotValue = slotAddr.loadAddress();
     if (Assert.VERIFY_ASSERTIONS) {
       if (newpage)
-	Assert._assert(slotValue.isZero(), "checkSlot: got a new pagemap but didn't need a new bitmap!");
+	if (Assert.VERIFY_ASSERTIONS) Assert._assert(slotValue.isZero(), "checkSlot: got a new pagemap but didn't need a new bitmap!");
     }
     if (slotValue.isZero()) {
       Address bm = allocBitmap();
@@ -402,7 +402,7 @@ public class ObjectMap
    */
   private final boolean checkPage(int page) //throws InlinePragma 
   {
-    Assert._assert(!objectMap_.isZero(), "objectMap_ is null!");
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!objectMap_.isZero(), "objectMap_ is null!");
     
     Address pageAddr = getPageAddress(page);
     Address pagemap = pageAddr.loadAddress();
@@ -429,7 +429,7 @@ public class ObjectMap
    */
   public final void alloc(Address addr) throws InlinePragma {
     // Check that allocation is allowed
-    Assert._assert(!allocationTrap, "Unexpected allocation");
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!allocationTrap, "Unexpected allocation");
     
     // Get the slot, word and bit
     int page = addressToPage(addr);
@@ -458,7 +458,7 @@ public class ObjectMap
     int word = addressToWord(addr);
     int bit = addressToBit(addr);
 
-    Assert._assert(addr == bitmapToAddress(page, slot, word, bit));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(addr == bitmapToAddress(page, slot, word, bit));
     
     /*
     // Check that this slot is in use
@@ -606,7 +606,7 @@ public class ObjectMap
     }
     Address bitmap = getBitmap(page, slot);
          
-    Assert._assert(word < INTS_IN_BITMAP);        
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(word < INTS_IN_BITMAP);        
     int offset = word << LOG_BYTES_IN_INT;
     Address addr = bitmap.add(offset);
     addr.store(value);
@@ -733,7 +733,7 @@ public class ObjectMap
       iterWord_ = addressToWord(start);
       iterBit_ = addressToBit(start);
       
-      Assert._assert(start == bitmapToAddress(iterPage_, iterSlot_, iterWord_, iterBit_));
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(start == bitmapToAddress(iterPage_, iterSlot_, iterWord_, iterBit_));
       
       iterEnd_ = end;
       iterPageEnd_ = addressToPage(end);

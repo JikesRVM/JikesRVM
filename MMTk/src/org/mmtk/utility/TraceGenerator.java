@@ -171,7 +171,7 @@ public final class TraceGenerator
 					  Address slot, Address tgt)
     throws NoInlinePragma {
     /* Assert that this isn't the result of tracing */
-    Assert._assert(!traceBusy);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!traceBusy);
 
     /* Process the old target potentially becoming unreachable, when needed. */
     if (MERLIN_ANALYSIS) {
@@ -209,7 +209,7 @@ public final class TraceGenerator
 				      Address typeRef, int bytes)
     throws LogicallyUninterruptiblePragma, NoInlinePragma {
     /* Assert that this isn't the result of tracing */
-    Assert._assert(!traceBusy);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!traceBusy);
 
     boolean gcAllowed = TraceInterface.gcEnabled() && Plan.initialized()
       && !Plan.gcInProgress();
@@ -268,7 +268,7 @@ public final class TraceGenerator
     /* Only the merlin analysis needs to compute death times */
     if (MERLIN_ANALYSIS) {
       /* Start with an empty stack. */
-      Assert._assert(worklist.isEmpty());
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(worklist.isEmpty());
       /* Scan the linked list of objects within each region */
       for (int region = 0; region < Plan.UNUSED_SPACE; region++) {
 	Address thisRef = objectLinks.get(region);
@@ -356,7 +356,7 @@ public final class TraceGenerator
   private static final void computeTransitiveClosure() {
     /* The latest time an object can die. */
     agePropagate = Word.max();
-    Assert._assert(!worklist.isEmpty());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!worklist.isEmpty());
     /* Process through the entire buffer. */
     Address ref = worklist.pop();
     while (!ref.isZero()) {

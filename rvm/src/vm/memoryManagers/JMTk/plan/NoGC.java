@@ -218,7 +218,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    */
   public static final Word getInitialHeaderValue(int bytes)
     throws InlinePragma {
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     return Word.zero();
   }
 
@@ -272,7 +272,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * space allocators.
    */
   protected final void threadLocalPrepare(int count) {
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
   }
 
   /**
@@ -286,7 +286,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * LOS).
    */
   protected final void threadLocalRelease(int count) {
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
   }
 
   /**
@@ -298,7 +298,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * whether the GC made progress.
    */
   protected final void globalRelease() {
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
   }
 
 
@@ -318,7 +318,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    */
   public static final Address traceObject (Address obj) 
     throws InlinePragma {
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     return obj;
   }
 
@@ -334,7 +334,7 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    * @return The possibly moved reference.
    */
   public static final Address traceObject(Address obj, boolean root) {
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     return Address.zero();
   }
 

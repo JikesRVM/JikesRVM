@@ -63,14 +63,14 @@ public final class FreeListVMResource extends VMResource implements Constants, U
   private final void reserveMetaData(int metaDataPagesPerRegion) {
     highWaterMark = 0;
     if (metaDataPagesPerRegion > 0) {
-      Assert._assert(start.toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toAddress().EQ(start));
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(start.toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toAddress().EQ(start));
       Extent size = end.diff(start).toWord().rshl(EmbeddedMetaData.LOG_BYTES_IN_REGION).lsh(EmbeddedMetaData.LOG_BYTES_IN_REGION).toExtent();
       Address cursor = start.add(size);
       while (cursor.GT(start)) {
         cursor = cursor.sub(EmbeddedMetaData.BYTES_IN_REGION);
         int unit = cursor.diff(start).toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
         int tmp = freeList.alloc(metaDataPagesPerRegion, unit);
-        Assert._assert(tmp == unit);
+        if (Assert.VERIFY_ASSERTIONS) Assert._assert(tmp == unit);
       }
     }
   }
@@ -88,7 +88,7 @@ public final class FreeListVMResource extends VMResource implements Constants, U
   static int totalmeta = 0;
   public final Address acquire(int pages, MemoryResource mr,
                                   boolean chargeMR) {
-    Assert._assert(mr != null);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(mr != null);
     if (chargeMR && !mr.acquire(pages))
       return Address.zero();
     lock();
@@ -118,7 +118,7 @@ public final class FreeListVMResource extends VMResource implements Constants, U
     }
 
   public Address acquire(int request) {
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     return Address.zero();
   }
 

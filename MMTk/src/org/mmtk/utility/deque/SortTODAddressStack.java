@@ -52,7 +52,7 @@ public class SortTODAddressStack extends LocalDeque
    * @param addr the address to be pushed onto the address queue
    */
   public final void push(Address addr) throws InlinePragma {
-    Assert._assert(!addr.isZero());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
   }

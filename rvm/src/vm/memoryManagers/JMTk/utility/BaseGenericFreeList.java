@@ -229,7 +229,7 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
    */
   private final void split(int unit, int size) {
     int basesize = getSize(unit);
-    Assert._assert(basesize > size);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(basesize > size);
     setSize(unit, size);
     setSize(unit + size, basesize - size);
     addToFree(unit + size);

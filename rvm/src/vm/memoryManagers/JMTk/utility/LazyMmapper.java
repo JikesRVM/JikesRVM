@@ -54,7 +54,7 @@ public final class LazyMmapper implements Constants, Uninterruptible {
           lock.release();
           Log.write("ensureMapped failed with errno "); Log.write(errno);
           Log.write(" on address "); Log.writeln(mmapStart);
-          Assert._assert(false);
+          if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
         }
         else {
           if (verbose) {
@@ -107,7 +107,7 @@ public final class LazyMmapper implements Constants, Uninterruptible {
         mapped[chunk] = PROTECTED;
       }
       else {
-        Assert._assert(mapped[chunk] == PROTECTED);
+        if (Assert.VERIFY_ASSERTIONS) Assert._assert(mapped[chunk] == PROTECTED);
       }
     }
     lock.release();

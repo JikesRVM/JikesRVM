@@ -322,7 +322,7 @@ public class SemiSpaceGCSpy extends SemiSpaceBase implements Uninterruptible {
     Address addr = Address.zero();
     while (objectMap.hasNext()) {
       addr = objectMap.next();
-      Assert._assert(VMResource.refInVM(addr));
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(VMResource.refInVM(addr));
       gcspyDriver.traceObject(addr, total);
     }
   }
@@ -383,7 +383,7 @@ public class SemiSpaceGCSpy extends SemiSpaceBase implements Uninterruptible {
   public final Address allocCopy(Address original, int bytes, 
                                     int align, int offset) 
     throws InlinePragma {
-    Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
 
     // Knock copied objects out of the object map so we can see what's left
     // (i.e. garbage) in fromspace after the collection.

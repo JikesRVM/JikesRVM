@@ -218,7 +218,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
   public final Address allocCopy(Address original, int bytes,
                                     int align, int offset)
     throws InlinePragma {
-    Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
     return ms.alloc(bytes, align, offset, true);
   }
 
@@ -475,7 +475,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
     if (!object.isZero()) {
       Address addr = ObjectModel.refToAddress(object);
       if (VMResource.getSpace(addr) == NURSERY_SPACE) {
-        Assert._assert(CopySpace.isForwarded(object));
+        if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));
         return CopySpace.getForwardingPointer(object);
       }
     }

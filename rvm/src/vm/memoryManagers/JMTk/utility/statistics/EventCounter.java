@@ -105,7 +105,7 @@ public class EventCounter extends Counter
    */
   protected void start() {
     if (!Stats.gatheringStats) return;
-    Assert._assert(!running);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!running);
     running = true;
   }
 
@@ -114,7 +114,7 @@ public class EventCounter extends Counter
    */
   protected void stop() {
     if (!Stats.gatheringStats) return;
-    Assert._assert(running);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(running);
     running = false;
   }
 
@@ -140,7 +140,7 @@ public class EventCounter extends Counter
    */
   final protected void printCount(int phase) {
     if (Assert.VERIFY_ASSERTIONS && mergePhases()) 
-      Assert._assert((phase | 1) == (phase + 1));
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert((phase | 1) == (phase + 1));
     if (mergePhases()) 
       printValue(count[phase] + count[phase+1]);
     else

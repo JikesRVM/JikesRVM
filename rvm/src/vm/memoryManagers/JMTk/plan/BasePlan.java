@@ -407,7 +407,7 @@ public abstract class BasePlan
    * forwarded.
    */
   public static void forwardObjectLocation(Address location) {
-    Assert._assert(!Plan.MOVES_OBJECTS);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
   }
 
   /**
@@ -423,7 +423,7 @@ public abstract class BasePlan
    * this method.
    */
   public static Address getForwardedReference(Address object) {
-    Assert._assert(!Plan.MOVES_OBJECTS);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
     return object;
   }
 
@@ -494,7 +494,7 @@ public abstract class BasePlan
                            Address tgt, int metaDataA, int metaDataB, int mode) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
   }
 
   /**
@@ -520,7 +520,7 @@ public abstract class BasePlan
 			      int bytes) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     return false;
   }
 
@@ -538,7 +538,7 @@ public abstract class BasePlan
                                       int context)
     throws InlinePragma {
     // read barrier currently unimplemented
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     return Address.max();
   }
 
@@ -586,7 +586,7 @@ public abstract class BasePlan
    * @return The possibly moved reference.
    */
   public static Address followObject(Address obj) {
-    Assert._assert(!Plan.MOVES_OBJECTS);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
     return Address.zero();
   }
   
@@ -708,7 +708,7 @@ public abstract class BasePlan
    * state variable appropriately.
    */
   public static void collectionComplete() throws UninterruptiblePragma {
-    Assert._assert(collectionsInitiated > 0);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(collectionsInitiated > 0);
     // FIXME The following will probably break async GC.  A better fix
     // is needed
     collectionsInitiated = 0;

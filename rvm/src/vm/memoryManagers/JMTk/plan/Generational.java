@@ -262,7 +262,7 @@ public abstract class Generational extends StopTheWorldGC
   public final Address allocCopy(Address original, int bytes,
                                     int align, int offset) 
     throws InlinePragma {
-    Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
     if (GATHER_MARK_CONS_STATS) {
       if (original.GE(NURSERY_START)) nurseryMark.inc(bytes);
     }
@@ -585,7 +585,7 @@ public abstract class Generational extends StopTheWorldGC
       Address addr = ObjectModel.refToAddress(object);
       byte space = VMResource.getSpace(addr);
       if (space == NURSERY_SPACE) {
-        Assert._assert(CopySpace.isForwarded(object));
+        if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));
         return CopySpace.getForwardingPointer(object);
       } else if (fullHeapGC)
         return Plan.getForwardedMatureReference(object, space);

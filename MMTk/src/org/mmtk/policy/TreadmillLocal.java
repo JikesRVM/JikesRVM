@@ -97,7 +97,7 @@ public final class TreadmillLocal extends LargeObjectAllocator
   public final void prepare() {
 //     if (PARANOID)
 //       sanity();
-    Assert._assert(treadmill.toSpaceEmpty());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(treadmill.toSpaceEmpty());
   }
 
   /**
@@ -122,7 +122,7 @@ public final class TreadmillLocal extends LargeObjectAllocator
       free(cell);
     }
     treadmill.flip();
-    Assert._assert(treadmill.toSpaceEmpty());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(treadmill.toSpaceEmpty());
   }
 
 

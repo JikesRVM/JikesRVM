@@ -102,7 +102,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
    * Constructor
    */
   SmallGenericFreeList(int units) {
-    Assert._assert(units <= MAX_UNITS);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(units <= MAX_UNITS);
 
     // allocate the data structure, including space for top & bottom sentinels
     table = new int[units + 2];
@@ -195,7 +195,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
    * @param next The value to be set.
    */
   protected void setNext(int unit, int next) {
-    Assert._assert((next >= HEAD) && (next <= MAX_UNITS));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert((next >= HEAD) && (next <= MAX_UNITS));
     if (next == HEAD) 
       setEntry(unit, (getEntry(unit) | NEXT_MASK));
     else
@@ -221,7 +221,7 @@ final class SmallGenericFreeList extends BaseGenericFreeList implements Constant
    * @param prev The value to be set.
    */
   protected void setPrev(int unit, int prev) {
-    Assert._assert((prev >= HEAD) && (prev <= MAX_UNITS));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert((prev >= HEAD) && (prev <= MAX_UNITS));
     if (prev == HEAD)
       setEntry(unit, (getEntry(unit) | PREV_MASK));
     else

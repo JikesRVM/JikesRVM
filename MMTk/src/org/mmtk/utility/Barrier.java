@@ -54,7 +54,7 @@ public final class Barrier implements Uninterruptible {
   //
   public void setTarget (int t) {
     Memory.isync();
-    Assert._assert(t >= 0);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(t >= 0);
     target = t + 1;
     Memory.sync();
   }
@@ -77,7 +77,7 @@ public final class Barrier implements Uninterruptible {
     if (verbose >= 1) { 
       Log.write(where); Log.write(": myValue = "); Log.writeln(myValue);
     }
-    Assert._assert(myValue >= 0 && (target == -1 || myValue <= target));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(myValue >= 0 && (target == -1 || myValue <= target));
     if (myValue + 2 == target) { 
       // last one to show up
       int next = (cur + 1) % NUM_COUNTERS;

@@ -136,7 +136,7 @@ public abstract class SortSharedDeque extends SharedDeque
     Address startPtr, startLink, endPtr, endLink;
     Word bitMask;
     if (!head.EQ(HEAD_INITIAL_VALUE)) {
-      Assert._assert(tail.NE(TAIL_INITIAL_VALUE));
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(tail.NE(TAIL_INITIAL_VALUE));
       /* Obtain the bitmask for the first iteration and save the start &
 	 end pointers and the bitmask on the stack */
       initStack();
@@ -362,7 +362,7 @@ public abstract class SortSharedDeque extends SharedDeque
 	while (buf.LT(end)) {
 	  Address slot = buf.loadAddress();
 	  Word key = getKey(slot);
-	  Assert._assert(key.LE(prevKey));
+	  if (Assert.VERIFY_ASSERTIONS) Assert._assert(key.LE(prevKey));
 	  prevKey = key;
 	  buf = buf.add(BYTES_IN_ADDRESS);
 	}

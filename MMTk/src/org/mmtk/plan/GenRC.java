@@ -132,7 +132,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
       // this assertion is unguarded so will even fail in FastAdaptive!
       // we need to abstract the idea of stealing nursery header bytes,
       // but we want to wait for the forward object model first...
-      Assert._assert(false);
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     }
     switch (allocator) {
     case  NURSERY_SPACE: return nursery.alloc(bytes, align, offset);
@@ -421,14 +421,14 @@ public class GenRC extends RefCountBase implements Uninterruptible {
 
     // if nursery, then get forwarded RC object
     if (addr.GE(NURSERY_START)) {
-      Assert._assert(CopySpace.isForwarded(object));        
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));        
       object = CopySpace.getForwardingPointer(object);
       addr = ObjectModel.refToAddress(object);
     }
 
     if (addr.GE(RC_START)) {
       if (RefCountSpace.incSanityRC(object, root)) {
-        Assert._assert(addr.LT(NURSERY_START));
+        if (Assert.VERIFY_ASSERTIONS) Assert._assert(addr.LT(NURSERY_START));
         Scan.enumeratePointers(object, sanityEnum);
       }
     } else if (RefCountSpace.markSanityRC(object)) {
@@ -457,7 +457,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
 
     // if nursery, then get forwarded RC object
     if (addr.GE(NURSERY_START)) {
-      Assert._assert(CopySpace.isForwarded(object));        
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));        
       object = CopySpace.getForwardingPointer(object);
       addr = ObjectModel.refToAddress(object);
     }
@@ -487,7 +487,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
     Address object = location.loadAddress();
     Address addr = ObjectModel.refToAddress(object);
     if (addr.LE(HEAP_END) && addr.GE(NURSERY_START)) {
-      Assert._assert(!object.isZero());
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
       location.store(CopySpace.forwardObject(object));
     }
   }
@@ -519,7 +519,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
   public static final Address getForwardedReference(Address object) {
     Address addr = ObjectModel.refToAddress(object);
     if (addr.LE(HEAP_END) && addr.GE(NURSERY_START)) {
-      Assert._assert(CopySpace.isForwarded(object));
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));
       return CopySpace.getForwardingPointer(object);
     } else
       return object;
@@ -669,7 +669,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    */
   private final void writeBarrierSlow(Address src) 
     throws NoInlinePragma {
-    Assert._assert(!isNurseryObject(src));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!isNurseryObject(src));
     if (RefCountSpace.attemptToLog(src)) {
       if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
       modBuffer.push(src);
@@ -745,7 +745,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
     if (!object.isZero()) {
       Address addr = ObjectModel.refToAddress(object);
       if (addr.GE(NURSERY_START)) {
-        Assert._assert(addr.LE(NURSERY_END));
+        if (Assert.VERIFY_ASSERTIONS) Assert._assert(addr.LE(NURSERY_END));
         remset.push(objLoc);
       } else if (addr.GE(RC_START))
         RefCountSpace.incRC(object);
@@ -792,7 +792,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
     else {
       Address addr = ObjectModel.refToAddress(object);
       if (addr.GE(NURSERY_START)) {
-        Assert._assert(addr.LT(NURSERY_END));
+        if (Assert.VERIFY_ASSERTIONS) Assert._assert(addr.LT(NURSERY_END));
         return true;
       } else
         return false;

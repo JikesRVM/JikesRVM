@@ -107,7 +107,7 @@ public class Stats implements Uninterruptible {
     if (gatheringStats) {
       Log.writeln("Error: calling Stats.startAll() while stats running");
       Log.writeln("       verbosity > 0 and the harness mechanism may be conflicitng");
-      Assert._assert(false);
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     }
     gatheringStats = true;
     for (int c = 0; c < counters; c++) {

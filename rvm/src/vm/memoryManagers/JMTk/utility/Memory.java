@@ -24,7 +24,7 @@ public class Memory implements Uninterruptible, Constants, VM_Constants {
    is being installed via an int_store 
   */
   private static boolean isSetHelper(Address start, int size, boolean verbose, int v) throws NoInlinePragma {
-    Assert._assert((size & (BYTES_IN_INT-1)) == 0);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert((size & (BYTES_IN_INT-1)) == 0);
     for (int i=0; i < size; i += BYTES_IN_INT) 
       if (start.loadInt(Offset.fromInt(i)) != v) {
         if (verbose) {

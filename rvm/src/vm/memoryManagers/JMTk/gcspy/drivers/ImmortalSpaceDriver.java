@@ -214,11 +214,11 @@ public class ImmortalSpaceDriver extends AbstractDriver
     int index = subspace.getIndex(start);
     int length = end.diff(start).toInt();
 
-    Assert._assert(blockSize <= usedSpaceStream.getMaxValue());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(blockSize <= usedSpaceStream.getMaxValue());
       
     totalUsedSpace = length;
     int remainder = subspace.spaceRemaining(start);
-    Assert._assert(remainder <= blockSize);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(remainder <= blockSize);
     if (length <= remainder) {  // fits in this tile
       tiles[index].usedSpace = length;
       checkspace(index, "setRange fits in first tile"); 

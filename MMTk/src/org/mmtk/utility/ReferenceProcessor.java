@@ -77,7 +77,7 @@ public class ReferenceProcessor implements Uninterruptible {
   public static Address processReference(Address reference,
                                             int semantics)
   {
-    Assert._assert(!reference.isZero());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!reference.isZero());
     
     if (TRACE) {
       Log.write("+++ old reference: "); Log.writeln(reference);

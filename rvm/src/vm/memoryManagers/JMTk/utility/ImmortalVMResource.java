@@ -31,7 +31,7 @@ public class ImmortalVMResource extends MonotoneVMResource implements Constants,
    */
   public ImmortalVMResource(byte space_, String vmName, MemoryResource mr, Address vmStart, Extent bytes) {
     super(space_, vmName, mr, vmStart, bytes, (byte) (VMResource.IN_VM | VMResource.IMMORTAL));
-    Assert._assert(cursor.GE(vmStart) && cursor.LE(sentinel));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(cursor.GE(vmStart) && cursor.LE(sentinel));
     sentinel = start.add(bytes);
   }
 
@@ -42,7 +42,7 @@ public class ImmortalVMResource extends MonotoneVMResource implements Constants,
   }
 
   public final void release() {
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
   }
   
 }

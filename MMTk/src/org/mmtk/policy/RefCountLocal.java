@@ -112,7 +112,7 @@ public final class RefCountLocal extends SegregatedFreeList
    * into the boot image by the build process.
    */
   static {
-    Assert._assert(LAZY_SWEEP);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(LAZY_SWEEP);
     oldRootPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
     oldRootPool.newClient();
 
@@ -491,7 +491,7 @@ public final class RefCountLocal extends SegregatedFreeList
       Log.write("live mismatch: "); Log.write(rcLiveObjects); 
       Log.write(" (rc) != "); Log.write(sanityLiveObjects);
       Log.writeln(" (sanityRC)");
-      Assert._assert(false);
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     }
   }
 

@@ -61,7 +61,7 @@ final class DoublyLinkedList
 
     // ensure that granularity is big enough for midPayloadToNode to work
     Word tmp = Word.fromIntZeroExtend(granularity);
-    Assert._assert(tmp.and(nodeMask).EQ(tmp));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(tmp.and(nodeMask).EQ(tmp));
   }
 
   // Offsets are relative to the node (not the payload)
@@ -111,7 +111,7 @@ final class DoublyLinkedList
   }
 
   public final void add (Address node) throws InlinePragma {
-    Assert._assert(isNode(node));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isNode(node));
     if (lock != null) lock.acquire();
     node.store(Address.zero(), PREV_OFFSET);
     node.store(head, NEXT_OFFSET);
@@ -123,7 +123,7 @@ final class DoublyLinkedList
   }
 
   public final void remove (Address node) throws InlinePragma {
-    Assert._assert(isNode(node));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isNode(node));
     if (lock != null) lock.acquire();
     Address prev = node.loadAddress(PREV_OFFSET);
     Address next = node.loadAddress(NEXT_OFFSET);
@@ -160,7 +160,7 @@ final class DoublyLinkedList
    * @return True if the cell is found on the treadmill
    */
   public final boolean isMember (Address node) {
-    Assert._assert(isNode(node));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(isNode(node));
     boolean result = false;
     if (lock != null) lock.acquire();
     Address cur = head;

@@ -296,7 +296,7 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
   public final Address allocCopy(Address original, int bytes, 
 				    int align, int offset) 
     throws InlinePragma {
-    Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
     Address result = ss.alloc(bytes, align, offset);
     return result;
   }
@@ -597,7 +597,7 @@ public class GCTrace extends StopTheWorldGC implements Uninterruptible {
       Address addr = ObjectModel.refToAddress(object);
       byte space = VMResource.getSpace(addr);
       if ((hi && space == LOW_SS_SPACE) || (!hi && space == HIGH_SS_SPACE)) {
-        Assert._assert(CopySpace.isForwarded(object));
+        if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));
         return CopySpace.getForwardingPointer(object);
       }
     }

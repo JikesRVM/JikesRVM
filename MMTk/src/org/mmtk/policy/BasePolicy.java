@@ -28,17 +28,17 @@ abstract public class BasePolicy { // implements HeaderConstants {
    * Maybe the whole class is unnecessary.
    */
   public static void prepare(VMResource vm, MemoryResource mr) {
-    Assert._assert(false);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
   }
   public static void release(VMResource vm, MemoryResource mr) {
-    Assert._assert(false); 
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false); 
   }
   public static Address traceObject(Address object) { 
-    Assert._assert(false); 
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false); 
     return Address.zero(); 
   }
   public static    boolean isLive(Address obj) {
-    Assert._assert(false); 
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(false); 
     return false; 
   }
 }
