@@ -27,7 +27,7 @@ MMAP_COPY_ON_WRITE).  If this creates problems, disable them by
 #undefining MMAP_COPY_ON_WRITE in libvm.C.  
 
 This change should be ported to PowerPC Linux by someone who runs that
-platform.  Please remove this paragraph if you do so.
+platform.  (Please remove this paragraph if you do so.)
 
 **Jikes RVM installable as a production runtime environment
 You can install Jikes RVM on your system as a production runtime
@@ -36,7 +36,12 @@ src/tools/install and read the file README to find out how to
 install a Jikes RVM executable as /usr/bin/rvm (or in some other
 location of your choice). 
 
+**JNI 1.2 and 1.4 implemented
+We have implemented all of the missing functions from JNI 1.2 and 1.4.
+There are still aspects of the JNI implementation that can be
+improved; volunteers welcome.
+
 *Other notes:
 
 *Bug Fixes:
-
+**Calls to the JNI function pair GetPrimitiveArrayCritical/ReleasePrimitiveArrayCritical can now be nested.
