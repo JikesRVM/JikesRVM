@@ -59,100 +59,50 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
     value = Code;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   static OPT_PowerPCConditionOperand EQUAL () {
     return  new OPT_PowerPCConditionOperand(EQUAL);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   static OPT_PowerPCConditionOperand NOT_EQUAL () {
     return  new OPT_PowerPCConditionOperand(NOT_EQUAL);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   static OPT_PowerPCConditionOperand LESS () {
     return  new OPT_PowerPCConditionOperand(LESS);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   static OPT_PowerPCConditionOperand LESS_EQUAL () {
     return  new OPT_PowerPCConditionOperand(LESS_EQUAL);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   static OPT_PowerPCConditionOperand GREATER () {
     return  new OPT_PowerPCConditionOperand(GREATER);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   static OPT_PowerPCConditionOperand GREATER_EQUAL () {
     return  new OPT_PowerPCConditionOperand(GREATER_EQUAL);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   static OPT_PowerPCConditionOperand UNORDERED () {
     return  new OPT_PowerPCConditionOperand(UNORDERED);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   static OPT_PowerPCConditionOperand NO_THREAD_SWITCH () {
     return  new OPT_PowerPCConditionOperand(NO_THREAD_SWITCH);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   static OPT_PowerPCConditionOperand THREAD_SWITCH () {
     return  new OPT_PowerPCConditionOperand(THREAD_SWITCH);
   }
 
-  /**
-   * put your documentation comment here
-   * @param cond
-   * @return 
-   */
   static OPT_PowerPCConditionOperand get (OPT_ConditionOperand cond) {
     return  new OPT_PowerPCConditionOperand(cond);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   OPT_Operand copy () {
     return  new OPT_PowerPCConditionOperand(value);
   }
 
-  /**
-   * put your documentation comment here
-   * @param op
-   * @return 
-   */
   boolean similar (OPT_Operand op) {
     return  (op instanceof OPT_PowerPCConditionOperand) 
         && (((OPT_PowerPCConditionOperand)op).value == value);
@@ -234,10 +184,6 @@ public final class OPT_PowerPCConditionOperand extends OPT_Operand {
     return  this;
   }
 
-  /**
-   * put your documentation comment here
-   * @param   OPT_ConditionOperand c
-   */
   OPT_PowerPCConditionOperand (OPT_ConditionOperand c) {
     translate(c);
   }

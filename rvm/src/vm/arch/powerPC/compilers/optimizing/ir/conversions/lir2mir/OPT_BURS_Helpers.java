@@ -11,7 +11,7 @@ import instructionFormats.*;
  * @author Mauricio J. Serrano
  */
 abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
-implements OPT_Operators, OPT_PhysicalRegisterConstants {
+  implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   // Generic helper functions.
   // Defined here to allow us to use them in the arch-specific
@@ -124,12 +124,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     return  true;
   }
 
-  /**
-   * put your documentation comment here
-   * @param and
-   * @param or
-   * @return 
-   */
   final boolean MASK_AND_OR (OPT_Operand and, OPT_Operand or) {
     int value1 = IV(and);
     int value2 = IV(or);
@@ -171,11 +165,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     return  I(MaskBegin(IV(o)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param integer
-   * @return 
-   */
   final int MaskBegin (int integer) {
     int value;
     for (value = 0; integer >= 0; integer = integer << 1, value++);
@@ -189,11 +178,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     return  I(MaskEnd(IV(o)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param integer
-   * @return 
-   */
   final int MaskEnd (int integer) {
     int value;
     for (value = 31; (integer & 0x1) == 0; integer = integer >>> 1, value--);
@@ -205,42 +189,22 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     return  getIR().regpool.getPhysicalRegisterSet().getXER();
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   OPT_Register getLR () {
     return  getIR().regpool.getPhysicalRegisterSet().getLR();
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   OPT_Register getCTR () {
     return  getIR().regpool.getPhysicalRegisterSet().getCTR();
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   OPT_Register getTU () {
     return  getIR().regpool.getPhysicalRegisterSet().getTU();
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   OPT_Register getTL () {
     return  getIR().regpool.getPhysicalRegisterSet().getTL();
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   OPT_Register getCR () {
     return  getIR().regpool.getPhysicalRegisterSet().getCR();
   }
@@ -258,22 +222,22 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * @param field
    */
   private void emitLFtoc(OPT_BURS burs, OPT_Operator operator, 
-				OPT_Register RT, VM_Field field) {
+			 OPT_Register RT, VM_Field field) {
     OPT_Register JTOC = burs.ir.regpool.getPhysicalRegisterSet().getJTOC();
     int offset = field.getOffset();
     int valueHigh = OPT_Bits.PPCMaskUpper16(offset);
     OPT_Instruction s;
     if (valueHigh == 0) {
       s = OPT_RVMIRTools.nonPEIGC(MIR_Load.create(operator, 
-                                                       D(RT), R(JTOC), 
-                                                       I(offset)));
+						  D(RT), R(JTOC), 
+						  I(offset)));
       burs.append(s);
     } else {
       OPT_Register reg = burs.ir.regpool.getInteger(false);
       int valueLow = OPT_Bits.PPCMaskLower16(offset);
       burs.append(MIR_Binary.create(PPC_ADDIS, R(reg), R(JTOC), I(valueHigh)));
       s = OPT_RVMIRTools.nonPEIGC(MIR_Load.create(operator, D(RT), 
-                                                       R(reg), I(valueLow)));
+						  R(reg), I(valueLow)));
       burs.append(s);
     }
   }
@@ -318,8 +282,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     OPT_LocationOperand loc = new OPT_LocationOperand(-offset);
     OPT_RegisterOperand obj = (OPT_RegisterOperand)CacheOp.getRef(s);
     burs.append(OPT_RVMIRTools.nonPEIGC(MIR_Store.mutate(s, PPC_STW, obj, 
-                                                              R(FP), I(offset), 
-                                                              loc, TG())));
+							 R(FP), I(offset), 
+							 loc, TG())));
   }
 
   /**
@@ -333,11 +297,11 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     OPT_Register FP = burs.ir.regpool.getPhysicalRegisterSet().getFP();
     OPT_RegisterOperand val = (OPT_RegisterOperand)Unary.getClearVal(s);
     burs.append(OPT_RVMIRTools.nonPEIGC(MIR_Store.create(PPC_STFS, val, 
-                                                              R(FP), I(offset), 
-                                                              null, TG())));
+							 R(FP), I(offset), 
+							 null, TG())));
     burs.append(OPT_RVMIRTools.nonPEIGC
                 (MIR_Load.mutate(s, PPC_LWZ, Unary.getClearResult(s), 
-                                  R(FP), I(offset), null, TG())));
+				 R(FP), I(offset), null, TG())));
   }
 
   /**
@@ -351,8 +315,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     OPT_Register FP = burs.ir.regpool.getPhysicalRegisterSet().getFP();
     OPT_RegisterOperand val = (OPT_RegisterOperand)Unary.getClearVal(s);
     burs.append(OPT_RVMIRTools.nonPEIGC(MIR_Store.create(PPC_STW, val, 
-                                                              R(FP), I(offset), 
-                                                              null, TG())));
+							 R(FP), I(offset), 
+							 null, TG())));
     burs.append(OPT_RVMIRTools.nonPEIGC
                 (MIR_Load.mutate(s, PPC_LFS, Unary.getClearResult(s), R(FP), 
                                  I(offset), null, TG())));
@@ -369,16 +333,16 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     OPT_Register FP = burs.ir.regpool.getPhysicalRegisterSet().getFP();
     OPT_RegisterOperand val = (OPT_RegisterOperand)Unary.getClearVal(s);
     burs.append(OPT_RVMIRTools.nonPEIGC(MIR_Store.create(PPC_STFD, val, 
-                                                              R(FP), I(offset), 
-                                                              null, TG())));
+							 R(FP), I(offset), 
+							 null, TG())));
     OPT_RegisterOperand i1 = Unary.getClearResult(s);
     OPT_RegisterOperand i2 = R(burs.ir.regpool.getSecondReg(i1.register));
     burs.append(OPT_RVMIRTools.nonPEIGC(MIR_Load.create(PPC_LWZ, i1, 
-                                                             R(FP), I(offset), 
-                                                             null, TG())));
+							R(FP), I(offset), 
+							null, TG())));
     burs.append(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(s, PPC_LWZ, i2, 
-                                                             R(FP), I(offset+4),
-                                                             null, TG())));
+							R(FP), I(offset+4),
+							null, TG())));
   }
 
   /**
@@ -393,8 +357,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     OPT_RegisterOperand i1 = (OPT_RegisterOperand)Unary.getClearVal(s);
     OPT_RegisterOperand i2 = R(burs.ir.regpool.getSecondReg(i1.register));
     burs.append(OPT_RVMIRTools.nonPEIGC(MIR_Store.create(PPC_STW, i1, 
-                                                              R(FP), I(offset), 
-                                                              null, TG())));
+							 R(FP), I(offset), 
+							 null, TG())));
     burs.append(OPT_RVMIRTools.nonPEIGC
                 (MIR_Store.create(PPC_STW, i2, R(FP), I(offset+4), null, 
                                   TG())));
@@ -430,9 +394,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
 
   /**
-   * put your documentation comment here
-   * @param s
-   * @param ir
+   * Expand a call instruction.
    */
   void CALL(OPT_BURS burs, OPT_Instruction s) {
     OPT_Operand target = Call.getClearAddress(s);
@@ -517,20 +479,11 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
   }
 
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param shift1
-   * @param shift2
-   */
   void SHL_USHR(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_RegisterOperand def, 
-		       OPT_RegisterOperand left, 
-		       OPT_IntConstantOperand shift1, 
-		       OPT_IntConstantOperand shift2) {
+		OPT_RegisterOperand def, 
+		OPT_RegisterOperand left, 
+		OPT_IntConstantOperand shift1, 
+		OPT_IntConstantOperand shift2) {
     int x = shift1.value;
     int y = shift2.value;
     if (x < y) {
@@ -543,20 +496,11 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param shift1
-   * @param shift2
-   */
   void USHR_SHL(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_RegisterOperand def, 
-		       OPT_RegisterOperand left, 
-		       OPT_IntConstantOperand shift1, 
-		       OPT_IntConstantOperand shift2) {
+		OPT_RegisterOperand def, 
+		OPT_RegisterOperand left, 
+		OPT_IntConstantOperand shift1, 
+		OPT_IntConstantOperand shift2) {
     int x = shift1.value;
     int y = shift2.value;
     if (x < y) {
@@ -569,20 +513,11 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param Def
-   * @param left
-   * @param Mask
-   * @param Shift
-   */
   void USHR_AND(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_RegisterOperand Def, 
-		       OPT_RegisterOperand left, 
-		       OPT_IntConstantOperand Mask, 
-		       OPT_IntConstantOperand Shift) {
+		OPT_RegisterOperand Def, 
+		OPT_RegisterOperand left, 
+		OPT_IntConstantOperand Mask, 
+		OPT_IntConstantOperand Shift) {
     int shift = Shift.value;
     int mask = Mask.value;
     int MB = MaskBegin(mask);
@@ -598,20 +533,11 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 					 I(MB), I(ME)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param Def
-   * @param left
-   * @param Mask
-   * @param Shift
-   */
   void AND_USHR(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_RegisterOperand Def, 
-		       OPT_RegisterOperand left, 
-		       OPT_IntConstantOperand Mask, 
-		       OPT_IntConstantOperand Shift) {
+		OPT_RegisterOperand Def, 
+		OPT_RegisterOperand left, 
+		OPT_IntConstantOperand Mask, 
+		OPT_IntConstantOperand Shift) {
     int shift = Shift.value;
     int mask = Mask.value;
     int MB = MaskBegin(mask);
@@ -630,18 +556,10 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 					 I(MB), I(ME)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param Def
-   * @param left
-   * @param Mask
-   */
   void AND_MASK(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_RegisterOperand Def, 
-		       OPT_RegisterOperand left, 
-		       OPT_IntConstantOperand Mask) {
+		OPT_RegisterOperand Def, 
+		OPT_RegisterOperand left, 
+		OPT_IntConstantOperand Mask) {
     int mask = Mask.value;
     if (mask < 0) {
       mask = ~mask;
@@ -727,10 +645,10 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 					new OPT_PowerPCConditionOperand(cond1),
 					IfCmp2.getTarget1(s),
 					IfCmp2.getBranchProfile1(s)));
-     burs.append(MIR_CondBranch.mutate(s, PPC_BCOND, cr2.copyD2U(),
-				       new OPT_PowerPCConditionOperand(cond2),
-				       IfCmp2.getTarget2(s),
-				       IfCmp2.getBranchProfile2(s)));
+      burs.append(MIR_CondBranch.mutate(s, PPC_BCOND, cr2.copyD2U(),
+					new OPT_PowerPCConditionOperand(cond2),
+					IfCmp2.getTarget2(s),
+					IfCmp2.getBranchProfile2(s)));
     }
   }
 
@@ -752,15 +670,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 				      IfCmp.getBranchProfile(s)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param op
-   * @param def
-   * @param left
-   * @param right
-   */
   void CMP_ZERO(OPT_BURS burs, OPT_Instruction s, OPT_Operator op, 
 		OPT_RegisterOperand def, OPT_RegisterOperand left, 
 		OPT_Operand right, OPT_ConditionOperand cond) {
@@ -775,14 +684,6 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 				      IfCmp.getBranchProfile(s)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param Mask
-   */
   void CMP_ZERO_AND_MASK(OPT_BURS burs, OPT_Instruction s, 
 			 OPT_RegisterOperand def, 
 			 OPT_RegisterOperand left, 
@@ -934,18 +835,10 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     return true;
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param Def
-   * @param Left
-   * @param Right
-   */
   void BOOLEAN_CMP(OPT_BURS burs, OPT_Instruction s, 
-			  OPT_RegisterOperand Def, 
-			  OPT_RegisterOperand Left,
-			  OPT_RegisterOperand Right) {
+		   OPT_RegisterOperand Def, 
+		   OPT_RegisterOperand Left,
+		   OPT_RegisterOperand Right) {
     OPT_Register def = Def.register;
     OPT_Register one = Left.register;
     OPT_Register two = Right.register;
@@ -954,20 +847,10 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
       burs.append(s);
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param def
-   * @param one
-   * @param two
-   * @param cmp
-   * @param inst
-   * @return 
-   */
   boolean boolean_cmp (OPT_BURS burs, OPT_Register def, 
-			      OPT_Register one, 
-			      OPT_Register two, OPT_ConditionOperand cmp,
-			      OPT_Instruction inst) {
+		       OPT_Register one, 
+		       OPT_Register two, OPT_ConditionOperand cmp,
+		       OPT_Instruction inst) {
     OPT_Register t1, zero, t = burs.ir.regpool.getInteger(false);
     switch (cmp.value) {
     case OPT_ConditionOperand.EQUAL:
@@ -1011,36 +894,20 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     return true;
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param opcode
-   * @param def
-   * @param left
-   * @param right
-   * @param loc
-   * @param guard
-   */
   void BYTE_LOAD(OPT_BURS burs, OPT_Instruction s, 
-			OPT_Operator opcode, 
-			OPT_RegisterOperand def, 
-			OPT_RegisterOperand left, 
-			OPT_Operand right, 
-			OPT_LocationOperand loc, 
-			OPT_Operand guard) {
+		 OPT_Operator opcode, 
+		 OPT_RegisterOperand def, 
+		 OPT_RegisterOperand left, 
+		 OPT_Operand right, 
+		 OPT_LocationOperand loc, 
+		 OPT_Operand guard) {
     OPT_RegisterOperand reg1 = burs.ir.regpool.makeTempInt();
     burs.append(OPT_RVMIRTools.nonPEIGC(MIR_Load.mutate(s, opcode, 
-                                                             reg1, left, right, 
-                                                             loc, guard)));
+							reg1, left, right, 
+							loc, guard)));
     burs.append(MIR_Unary.create(PPC_EXTSB, def, reg1.copyD2U()));
   }
 
-  /**
-   * put your documentation comment here
-   * @param v
-   * @return 
-   */
   private int PowerOf2 (int v) {
     int i = 31;
     int power = -1;
@@ -1054,20 +921,11 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     return  power;
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param c
-   * @param right
-   */
   void INT_DIV_IMM(OPT_BURS burs, OPT_Instruction s, 
-			  OPT_RegisterOperand def, 
-			  OPT_RegisterOperand left, 
-			  OPT_RegisterOperand c, 
-			  OPT_IntConstantOperand right) {
+		   OPT_RegisterOperand def, 
+		   OPT_RegisterOperand left, 
+		   OPT_RegisterOperand c, 
+		   OPT_IntConstantOperand right) {
     int power = PowerOf2(right.value);
     if (power != -1) {
       burs.append(MIR_Binary.create(PPC_SRAWI, c, left, I(power)));
@@ -1078,18 +936,10 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   */
   void INT_REM(OPT_BURS burs, OPT_Instruction s, 
-		      OPT_RegisterOperand def, 
-		      OPT_RegisterOperand left, 
-		      OPT_RegisterOperand right) {
+	       OPT_RegisterOperand def, 
+	       OPT_RegisterOperand left, 
+	       OPT_RegisterOperand right) {
     OPT_Register temp = burs.ir.regpool.getInteger(false);
     burs.append(MIR_Binary.mutate(s, PPC_DIVW, R(temp), left, right));
     burs.append(MIR_Binary.create(PPC_MULLW, R(temp), R(temp), 
@@ -1097,20 +947,11 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     burs.append(MIR_Binary.create(PPC_SUBF, def, R(temp), left.copyU2U()));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param c
-   * @param right
-   */
   void INT_REM_IMM(OPT_BURS burs, OPT_Instruction s, 
-			  OPT_RegisterOperand def, 
-			  OPT_RegisterOperand left, 
-			  OPT_RegisterOperand c, 
-			  OPT_IntConstantOperand right) {
+		   OPT_RegisterOperand def, 
+		   OPT_RegisterOperand left, 
+		   OPT_RegisterOperand c, 
+		   OPT_IntConstantOperand right) {
     OPT_Register temp = burs.ir.regpool.getInteger(false);
     int power = PowerOf2(right.value);
     if (power != -1) {
@@ -1130,8 +971,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * Conversion
    */
   void INT_2LONG(OPT_BURS burs, OPT_Instruction s, 
-			OPT_RegisterOperand def, 
-			OPT_RegisterOperand left) {
+		 OPT_RegisterOperand def, 
+		 OPT_RegisterOperand left) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     burs.append(MIR_Move.mutate(s, PPC_MOVE, R(defLow), left));
@@ -1142,8 +983,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * taken from: The PowerPC Compiler Writer's Guide, pp. 83 
    */
   void INT_2DOUBLE(OPT_BURS burs, OPT_Instruction s, 
-			  OPT_RegisterOperand def, 
-			  OPT_RegisterOperand left) {
+		   OPT_RegisterOperand def, 
+		   OPT_RegisterOperand left) {
     OPT_Register res = def.register;
     OPT_Register src = left.register;
     OPT_Register FP = burs.ir.regpool.getPhysicalRegisterSet().getFP();
@@ -1168,9 +1009,9 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   // DOUBLE arithmetic:
   void DOUBLE_REM(OPT_BURS burs, OPT_Instruction s, 
-			 OPT_RegisterOperand def, 
-			 OPT_RegisterOperand left, 
-			 OPT_RegisterOperand right) {
+		  OPT_RegisterOperand def, 
+		  OPT_RegisterOperand left, 
+		  OPT_RegisterOperand right) {
     // FO = b, F1 = a
     OPT_Register res = def.register;
     OPT_Register a = left.register;
@@ -1192,23 +1033,16 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   // LONG arithmetic:
   void LONG_2INT(OPT_BURS burs, OPT_Instruction s, 
-			OPT_RegisterOperand def, 
-			OPT_RegisterOperand left) {
+		 OPT_RegisterOperand def, 
+		 OPT_RegisterOperand left) {
     OPT_Register srcHigh = left.register;
     OPT_Register srcLow = burs.ir.regpool.getSecondReg(srcHigh);
     burs.append(MIR_Move.mutate(s, PPC_MOVE, def, R(srcLow)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   */
   void LONG_MOVE(OPT_BURS burs, OPT_Instruction s, 
-			OPT_RegisterOperand def, 
-			OPT_RegisterOperand left) {
+		 OPT_RegisterOperand def, 
+		 OPT_RegisterOperand left) {
     OPT_Register defReg = def.register;
     OPT_Register leftReg = left.register;
     burs.append(MIR_Move.create(PPC_MOVE, R(defReg), R(leftReg)));
@@ -1217,16 +1051,9 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 				R(burs.ir.regpool.getSecondReg(leftReg))));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   */
   void LONG_CONSTANT(OPT_BURS burs, OPT_Instruction s, 
-			    OPT_RegisterOperand def, 
-			    OPT_LongConstantOperand left) {
+		     OPT_RegisterOperand def, 
+		     OPT_LongConstantOperand left) {
     long value = left.value;
     int valueHigh = (int)(value >> 32);
     int valueLow = (int)(value & 0xffffffff);
@@ -1235,17 +1062,9 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     IntConstant(burs, burs.ir.regpool.getSecondReg(register), valueLow);
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   */
   void LONG_ADD(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_RegisterOperand def, 
-		       OPT_RegisterOperand left, OPT_RegisterOperand right) {
+		OPT_RegisterOperand def, 
+		OPT_RegisterOperand left, OPT_RegisterOperand right) {
     OPT_Register defReg = def.register;
     OPT_Register leftReg = left.register;
     OPT_Register rightReg = right.register;
@@ -1259,9 +1078,9 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   /* Notice: switching operands! */
   void LONG_SUB(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_RegisterOperand def, 
-		       OPT_RegisterOperand left, 
-		       OPT_RegisterOperand right) {
+		OPT_RegisterOperand def, 
+		OPT_RegisterOperand left, 
+		OPT_RegisterOperand right) {
     OPT_Register defReg = def.register;
     OPT_Register leftReg = right.register;
     OPT_Register rightReg = left.register;
@@ -1273,16 +1092,9 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
                                   R(leftReg), R(rightReg)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   */
   void LONG_NEG(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_RegisterOperand def, 
-		       OPT_RegisterOperand left) {
+		OPT_RegisterOperand def, 
+		OPT_RegisterOperand left) {
     OPT_Register defReg = def.register;
     OPT_Register leftReg = left.register;
     burs.append(MIR_Binary.create(PPC_SUBFIC, 
@@ -1292,16 +1104,9 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     burs.append(MIR_Unary.create(PPC_SUBFZE, R(defReg), R(leftReg)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   */
   void LONG_NOT(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_RegisterOperand def, 
-		       OPT_RegisterOperand left) {
+		OPT_RegisterOperand def, 
+		OPT_RegisterOperand left) {
     OPT_Register defReg = def.register;
     OPT_Register leftReg = left.register;
     burs.append(MIR_Binary.create(PPC_NOR, R(defReg), R(leftReg), R(leftReg)));
@@ -1311,19 +1116,10 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 				  R(burs.ir.regpool.getSecondReg(leftReg))));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param operator
-   * @param def
-   * @param left
-   * @param right
-   */
   void LONG_LOG(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_Operator operator, 
-		       OPT_RegisterOperand def, OPT_RegisterOperand left, 
-		       OPT_RegisterOperand right) {
+		OPT_Operator operator, 
+		OPT_RegisterOperand def, OPT_RegisterOperand left, 
+		OPT_RegisterOperand right) {
     OPT_Register defReg = def.register;
     OPT_Register leftReg = left.register;
     OPT_Register rightReg = right.register;
@@ -1340,8 +1136,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * The Programming Environment for 32-bit Microprocessors 
    * */
   void LONG_SHL(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_RegisterOperand def, 
-		       OPT_RegisterOperand left, OPT_RegisterOperand right) {
+		OPT_RegisterOperand def, 
+		OPT_RegisterOperand left, OPT_RegisterOperand right) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     OPT_Register leftHigh = left.register;
@@ -1360,18 +1156,10 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     burs.append(MIR_Binary.create(PPC_SLW, R(defLow), R(leftLow), R(shift)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   */
   void LONG_SHL_IMM(OPT_BURS burs, OPT_Instruction s, 
-			   OPT_RegisterOperand def, 
-			   OPT_RegisterOperand left, 
-			   OPT_IntConstantOperand right) {
+		    OPT_RegisterOperand def, 
+		    OPT_RegisterOperand left, 
+		    OPT_IntConstantOperand right) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     OPT_Register leftHigh = left.register;
@@ -1397,17 +1185,9 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   */
   void LONG_USHR(OPT_BURS burs, OPT_Instruction s, 
-			OPT_RegisterOperand def, 
-			OPT_RegisterOperand left, OPT_RegisterOperand right) {
+		 OPT_RegisterOperand def, 
+		 OPT_RegisterOperand left, OPT_RegisterOperand right) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     OPT_Register leftHigh = left.register;
@@ -1426,18 +1206,10 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     burs.append(MIR_Binary.create(PPC_SRW, R(defHigh), R(leftHigh), R(shift)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   */
   void LONG_USHR_IMM(OPT_BURS burs, OPT_Instruction s, 
-			    OPT_RegisterOperand def, 
-			    OPT_RegisterOperand left, 
-			    OPT_IntConstantOperand right) {
+		     OPT_RegisterOperand def, 
+		     OPT_RegisterOperand left, 
+		     OPT_IntConstantOperand right) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     OPT_Register leftHigh = left.register;
@@ -1463,18 +1235,10 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   */
   void LONG_SHR_IMM(OPT_BURS burs, OPT_Instruction s, 
-			   OPT_RegisterOperand def, 
-			   OPT_RegisterOperand left, 
-			   OPT_IntConstantOperand right) {
+		    OPT_RegisterOperand def, 
+		    OPT_RegisterOperand left, 
+		    OPT_IntConstantOperand right) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     OPT_Register leftHigh = left.register;
@@ -1501,17 +1265,9 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   */
   void LONG_MUL(OPT_BURS burs, OPT_Instruction s, 
-		       OPT_RegisterOperand def, 
-		       OPT_RegisterOperand left, OPT_RegisterOperand right) {
+		OPT_RegisterOperand def, 
+		OPT_RegisterOperand left, OPT_RegisterOperand right) {
     OPT_Register dH = def.register;
     OPT_Register dL = burs.ir.regpool.getSecondReg(dH);
     OPT_Register lH = left.register;
@@ -1529,109 +1285,78 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     burs.append(MIR_Binary.create(PPC_MULLW, R(dL), R(lL), R(rL)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   * @param loc
-   * @param guard
-   */
   void LONG_LOAD_addi(OPT_BURS burs, OPT_Instruction s, 
-			     OPT_RegisterOperand def, 
-			     OPT_RegisterOperand left, 
-			     OPT_IntConstantOperand right, 
-			     OPT_LocationOperand loc, 
-			     OPT_Operand guard) {
+		      OPT_RegisterOperand def, 
+		      OPT_RegisterOperand left, 
+		      OPT_IntConstantOperand right, 
+		      OPT_LocationOperand loc, 
+		      OPT_Operand guard) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     int imm = right.value;
     if (VM.VerifyAssertions) VM.assert(imm < (0x8000 - 4));
     OPT_Instruction inst = OPT_RVMIRTools.nonPEIGC (MIR_Load.create
-                                                         (PPC_LWZ, 
-                                                          R(defHigh), 
-                                                          left, I(imm), loc, 
-                                                          guard));
+						    (PPC_LWZ, 
+						     R(defHigh), 
+						     left, I(imm), loc, 
+						     guard));
     inst.copyPosition(s);
     burs.append(inst);
     if (loc != null) {
       loc = (OPT_LocationOperand)loc.copy();
     }
     inst = OPT_RVMIRTools.nonPEIGC (MIR_Load.create(PPC_LWZ, 
-                                                         R(defLow), 
-                                                         left.copyU2U(), 
-                                                         I(imm + 4), loc, 
-                                                         guard));
+						    R(defLow), 
+						    left.copyU2U(), 
+						    I(imm + 4), loc, 
+						    guard));
     inst.copyPosition(s);
     burs.append(inst);
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   * @param Value
-   * @param loc
-   * @param guard
-   */
   void LONG_LOAD_addis(OPT_BURS burs, OPT_Instruction s, 
-			      OPT_RegisterOperand def, 
-			      OPT_RegisterOperand left, 
-			      OPT_RegisterOperand right, 
-			      OPT_IntConstantOperand Value, 
-			      OPT_LocationOperand loc, OPT_Operand guard) {
+		       OPT_RegisterOperand def, 
+		       OPT_RegisterOperand left, 
+		       OPT_RegisterOperand right, 
+		       OPT_IntConstantOperand Value, 
+		       OPT_LocationOperand loc, OPT_Operand guard) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     int value = Value.value;
     burs.append(MIR_Binary.create(PPC_ADDIS, right, left, 
 				  I(OPT_Bits.PPCMaskUpper16(value))));
     OPT_Instruction inst = OPT_RVMIRTools.nonPEIGC(MIR_Load.create 
-                                                        (PPC_LWZ, R(defHigh), 
-                                                         right.copyD2U(), 
-                                                         I(OPT_Bits.
-                                                           PPCMaskLower16(value)), 
-                                                         loc, guard));
+						   (PPC_LWZ, R(defHigh), 
+						    right.copyD2U(), 
+						    I(OPT_Bits.
+						      PPCMaskLower16(value)), 
+						    loc, guard));
     inst.copyPosition(s);
     burs.append(inst);
     if (loc != null) {
       loc = (OPT_LocationOperand)loc.copy();
     }
     inst = OPT_RVMIRTools.nonPEIGC(MIR_Load.create(PPC_LWZ, R(defLow), 
-                                                        right.copyD2U(), 
-                                                        I(OPT_Bits.PPCMaskLower16
-                                                          (value) + 4), loc, 
-                                                        guard));
+						   right.copyD2U(), 
+						   I(OPT_Bits.PPCMaskLower16
+						     (value) + 4), loc, 
+						   guard));
     inst.copyPosition(s);
     burs.append(inst);
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   * @param loc
-   * @param guard
-   */
   void LONG_LOAD_addx(OPT_BURS burs, OPT_Instruction s, 
-			     OPT_RegisterOperand def, 
-			     OPT_RegisterOperand left, 
-			     OPT_RegisterOperand right, 
-			     OPT_LocationOperand loc, 
-			     OPT_Operand guard) {
+		      OPT_RegisterOperand def, 
+		      OPT_RegisterOperand left, 
+		      OPT_RegisterOperand right, 
+		      OPT_LocationOperand loc, 
+		      OPT_Operand guard) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     OPT_Instruction inst = OPT_RVMIRTools.nonPEIGC(MIR_Load.create
-                                                        (PPC_LWZX, R(defHigh), 
-                                                         left, right, loc, 
-                                                         guard));
+						   (PPC_LWZX, R(defHigh), 
+						    left, right, loc, 
+						    guard));
     inst.copyPosition(s);
     burs.append(inst);
     OPT_RegisterOperand kk = burs.ir.regpool.makeTempInt();
@@ -1639,29 +1364,19 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     if (loc != null)
       loc = (OPT_LocationOperand)loc.copy();
     inst = OPT_RVMIRTools.nonPEIGC(MIR_Load.create(PPC_LWZX, R(defLow), 
-                                                        left.copyU2U(), 
-                                                        kk.copyD2U(), loc, 
-                                                        guard));
+						   left.copyU2U(), 
+						   kk.copyD2U(), loc, 
+						   guard));
     inst.copyPosition(s);
     burs.append(inst);
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   * @param loc
-   * @param guard
-   */
   void LONG_STORE_addi(OPT_BURS burs, OPT_Instruction s, 
-			      OPT_RegisterOperand def, 
-			      OPT_RegisterOperand left, 
-			      OPT_IntConstantOperand right, 
-			      OPT_LocationOperand loc, 
-			      OPT_Operand guard) {
+		       OPT_RegisterOperand def, 
+		       OPT_RegisterOperand left, 
+		       OPT_IntConstantOperand right, 
+		       OPT_LocationOperand loc, 
+		       OPT_Operand guard) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     int imm = right.value;
@@ -1669,36 +1384,25 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
       VM.assert(imm < (0x8000 - 4));
     OPT_Instruction inst = 
       OPT_RVMIRTools.nonPEIGC(MIR_Store.create(PPC_STW, R(defHigh), 
-                                                    left, I(imm), loc, guard));
+					       left, I(imm), loc, guard));
     inst.copyPosition(s);
     burs.append(inst);
     if (loc != null)
       loc = (OPT_LocationOperand)loc.copy();
     inst = OPT_RVMIRTools.nonPEIGC(MIR_Store.create(PPC_STW, R(defLow), 
-                                                         left.copyU2U(), 
-                                                         I(imm + 4), loc, 
-                                                         guard));
+						    left.copyU2U(), 
+						    I(imm + 4), loc, 
+						    guard));
     inst.copyPosition(s);
     burs.append(inst);
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   * @param Value
-   * @param loc
-   * @param guard
-   */
   void LONG_STORE_addis(OPT_BURS burs, OPT_Instruction s, 
-			       OPT_RegisterOperand def, 
-			       OPT_RegisterOperand left, 
-			       OPT_RegisterOperand right, 
-			       OPT_IntConstantOperand Value, 
-			       OPT_LocationOperand loc, OPT_Operand guard) {
+			OPT_RegisterOperand def, 
+			OPT_RegisterOperand left, 
+			OPT_RegisterOperand right, 
+			OPT_IntConstantOperand Value, 
+			OPT_LocationOperand loc, OPT_Operand guard) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     int value = Value.value;
@@ -1706,10 +1410,10 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
 				  I(OPT_Bits.PPCMaskUpper16(value))));
     OPT_Instruction inst = 
       OPT_RVMIRTools.nonPEIGC(MIR_Store.create(PPC_STW, R(defHigh), 
-                                                    right.copyD2U(), 
-                                                    I(OPT_Bits.PPCMaskLower16
-                                                      (value)), 
-                                                    loc, guard));
+					       right.copyD2U(), 
+					       I(OPT_Bits.PPCMaskLower16
+						 (value)), 
+					       loc, guard));
     inst.copyPosition(s);
     burs.append(inst);
     if (loc != null)
@@ -1721,27 +1425,17 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     burs.append(inst);
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param def
-   * @param left
-   * @param right
-   * @param loc
-   * @param guard
-   */
   void LONG_STORE_addx(OPT_BURS burs, OPT_Instruction s, 
-			      OPT_RegisterOperand def, 
-			      OPT_RegisterOperand left, 
-			      OPT_RegisterOperand right, 
-			      OPT_LocationOperand loc, 
-			      OPT_Operand guard) {
+		       OPT_RegisterOperand def, 
+		       OPT_RegisterOperand left, 
+		       OPT_RegisterOperand right, 
+		       OPT_LocationOperand loc, 
+		       OPT_Operand guard) {
     OPT_Register defHigh = def.register;
     OPT_Register defLow = burs.ir.regpool.getSecondReg(defHigh);
     OPT_Instruction inst = 
       OPT_RVMIRTools.nonPEIGC(MIR_Store.create(PPC_STWX, R(defHigh), left, 
-                                                    right, loc, guard));
+					       right, loc, guard));
     inst.copyPosition(s);
     burs.append(inst);
     OPT_RegisterOperand kk = burs.ir.regpool.makeTempInt();
@@ -1749,22 +1443,13 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     if (loc != null)
       loc = (OPT_LocationOperand)loc.copy();
     inst = OPT_RVMIRTools.nonPEIGC(MIR_Store.create(PPC_STWX, R(defLow), 
-                                                         left.copyU2U(), 
-                                                         kk.copyD2U(), loc, 
-                                                         guard));
+						    left.copyU2U(), 
+						    kk.copyD2U(), loc, 
+						    guard));
     inst.copyPosition(s);
     burs.append(inst);
   }
 
-  /**
-   * put your documentation comment here
-   * @param burs
-   * @param s
-   * @param op
-   * @param cr
-   * @param left
-   * @param right
-   */
   void DOUBLE_IFCMP(OPT_BURS burs, OPT_Instruction s, OPT_Operator op, 
 		    OPT_RegisterOperand left, OPT_Operand right) {
     boolean UeqL = (op == DOUBLE_CMPL) || (op == FLOAT_CMPL);
@@ -1959,7 +1644,3 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     burs.append(MIR_Call.mutate0(s, PPC_BCTRL, null, null, meth));
   }
 }
-
-
-
-

@@ -20,10 +20,6 @@
 class OPT_OperationNotImplementedException extends 
     OPT_OptimizingCompilerException {
 
-  /**
-   * put your documentation comment here
-   * @param   String s
-   */
   OPT_OperationNotImplementedException (String s) {
     super(s, false);
   }

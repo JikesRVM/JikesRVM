@@ -20,19 +20,10 @@ final class OPT_ReorderingPhase extends OPT_CompilerPhase
 
 
 
-  /**
-   * put your documentation comment here
-   * @param options
-   * @return 
-   */
   final boolean shouldPerform (OPT_Options options) {
     return  options.REORDER_CODE;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   String getName () {
     return  "Code Reordering";
   }

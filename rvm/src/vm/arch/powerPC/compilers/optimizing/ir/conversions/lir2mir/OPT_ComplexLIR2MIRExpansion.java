@@ -57,12 +57,6 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     OPT_DefUse.recomputeSpansBasicBlock(ir);
   }
 
-  /**
-   * put your documentation comment here
-   * @param s
-   * @param ir
-   * @return 
-   */
   private static void double_2int (OPT_Instruction s, OPT_IR ir) {
     OPT_Register res = Unary.getResult(s).register;
     OPT_Register src = ((OPT_RegisterOperand)Unary.getVal(s)).register;
@@ -92,12 +86,6 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     s.remove();
   }
 
-  /**
-   * put your documentation comment here
-   * @param s
-   * @param ir
-   * @return 
-   */
   private static void boolean_cmp (OPT_Instruction s, OPT_IR ir) {
     // undo the optimization because it cannot efficiently be generated
     OPT_Register res = BooleanCmp.getClearResult(s).register;
@@ -262,11 +250,6 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
   }
 
   
-  /**
-   * put your documentation comment here
-   * @param s
-   * @param ir
-   */
   private static void long_shr (OPT_Instruction s, OPT_IR ir) {
     OPT_BasicBlock BB1 = s.getBasicBlock();
     OPT_BasicBlock BB2 = BB1.createSubBlock(0, ir);
@@ -307,11 +290,6 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
   }
 
 
-  /**
-   * put your documentation comment here
-   * @param s
-   * @param ir
-   */
   private static void long_ifcmp(OPT_Instruction s, OPT_IR ir) {
     if (VM.VerifyAssertions) VM.assert(!IfCmp.getCond(s).isUNSIGNED());
     OPT_BasicBlock BB1 = s.getBasicBlock();
@@ -345,11 +323,6 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
 						 IfCmp.getBranchProfile(s)));
   }
 
-  /**
-   * put your documentation comment here
-   * @param s
-   * @param ir
-   */
   private static void get_time_base (OPT_Instruction s, OPT_IR ir) {
     OPT_BasicBlock BB1 = s.getBasicBlock();
     OPT_BasicBlock BB2 = BB1.splitNodeAt(s, ir);

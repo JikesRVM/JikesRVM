@@ -29,51 +29,26 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
   static final int NOT_SAME = 3;
   static final int SAME = 4;
 
-  /**
-   * put your documentation comment here
-   * @param   int Code
-   */
   private OPT_PowerPCTrapOperand (int Code) {
     value = Code;
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   static OPT_PowerPCTrapOperand LESS () {
     return  new OPT_PowerPCTrapOperand(LESS);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   static OPT_PowerPCTrapOperand LOWER () {
     return  new OPT_PowerPCTrapOperand(LOWER);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   static OPT_PowerPCTrapOperand ALWAYS () {
     return  new OPT_PowerPCTrapOperand(ALWAYS);
   }
 
-  /**
-   * put your documentation comment here
-   * @return 
-   */
   OPT_Operand copy () {
     return  new OPT_PowerPCTrapOperand(value);
   }
 
-  /**
-   * put your documentation comment here
-   * @param op
-   * @return 
-   */
   boolean similar (OPT_Operand op) {
     return  (op instanceof OPT_PowerPCTrapOperand) && 
         (((OPT_ConditionOperand)op).value == value);
@@ -164,10 +139,6 @@ public final class OPT_PowerPCTrapOperand extends OPT_Operand {
     return  this;
   }
 
-  /**
-   * put your documentation comment here
-   * @param   OPT_ConditionOperand c
-   */
   OPT_PowerPCTrapOperand (OPT_ConditionOperand c) {
     translate(c);
   }

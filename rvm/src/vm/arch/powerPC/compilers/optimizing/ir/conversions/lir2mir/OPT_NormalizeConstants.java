@@ -181,22 +181,10 @@ abstract class OPT_NormalizeConstants extends OPT_RVMIRTools {
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @param val
-   * @return 
-   */
   public static boolean canBeImmediate(int val) {
     return (val >= LOWER_IMMEDIATE) && (val <= UPPER_IMMEDIATE);
   }
 
-  /**
-   * put your documentation comment here
-   * @param addr
-   * @param s
-   * @param ir
-   * @return 
-   */
   static OPT_Operand asImmediateOrReg(OPT_Operand addr, 
 				      OPT_Instruction s, 
 				      OPT_IR ir) {

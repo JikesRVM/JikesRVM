@@ -16,7 +16,6 @@ import  java.io.*;
  * @author Steve Fink
  * @author Dave Grove
  */
-
 final class OPT_ClassLoadingDependencyManager {
 
   ////////////////////////
@@ -71,8 +70,8 @@ final class OPT_ClassLoadingDependencyManager {
   }
 
   /**
-   * put your documentation comment here
-   * @param c
+   * Take action when a method is overridden.
+   * @param c a class that has just been loaded.
    */
   private void handleOverriddenMethods (VM_Class c) {
     VM_Class sc = c.getSuperClass();
@@ -99,10 +98,6 @@ final class OPT_ClassLoadingDependencyManager {
     }
   }
 
-  /**
-   * put your documentation comment here
-   * @param c
-   */
   private void handleSubclassing (VM_Class c) {
     VM_Class sc = c.getSuperClass();
     if (sc == null)
@@ -160,10 +155,6 @@ final class OPT_ClassLoadingDependencyManager {
   static final boolean DEBUG = false;
   static final boolean TRACE = false;
 
-  /**
-   * put your documentation comment here
-   * @param s
-   */
   void report (String s) {
     log.print(s);
   }
