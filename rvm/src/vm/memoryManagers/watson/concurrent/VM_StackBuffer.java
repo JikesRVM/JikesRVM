@@ -11,6 +11,8 @@
  * 
  * @see VM_Allocator (for managing of stack buffers)
  *
+ * @modified Perry Cheng
+ *
  */
 public class VM_StackBuffer 
     implements VM_Constants, VM_GCConstants, VM_Uninterruptible
@@ -219,9 +221,6 @@ public class VM_StackBuffer
 	// in TIB ptr...but assume for now that this TIB will be found by some
 	// other path)
 
-	int fp = t.contextRegisters.gprs[FRAME_POINTER];
-	int ip = VM_Magic.getNextInstructionAddress(fp);
-
 	// get the iterator from our VM_CollectorThread object
 
 	VM_CollectorThread collector = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
@@ -237,8 +236,8 @@ public class VM_StackBuffer
 
 	int prevFp = 0;
 	// start scan using fp & ip in threads saved context registers
-	ip = t.contextRegisters.getInnermostInstructionAddress();
-	fp = t.contextRegisters.getInnermostFramePointer();
+	int ip = t.contextRegisters.getInnermostInstructionAddress();
+	int fp = t.contextRegisters.getInnermostFramePointer();
 
 	// At start of loop:
 	//   fp -> frame for method invocation being processed
@@ -248,25 +247,39 @@ public class VM_StackBuffer
 
 	    if (GC_TRACESCANSTACK) {
 		VM.sysWrite("----- FRAME ----- fp = ");   VM.sysWrite(fp);
-		VM.sysWrite(" ip = ");                    VM.sysWrite(ip);	VM.sysWrite(".\n");
+		VM.sysWrite(" ip = ");                    VM.sysWrite(ip); VM.sysWrite("\n");
 	    }
  
             int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
 
-	    if (compiledMethodId != INVISIBLE_METHOD_ID) {
+	    if (compiledMethodId == INVISIBLE_METHOD_ID) {
+		if (GC_TRACESCANSTACK) VM.sysWrite("  <invisible method>\n");
+		// skip "invisible" frame
+		prevFp = fp;
+		ip = VM_Magic.getReturnAddress(fp);
+		fp = VM_Magic.getCallerFramePointer(fp);
+		continue;
+	    }
 
-		// Scan the stack frame and add refs to the stack buffer
+	    // following is for normal Java (and JNI Java to C transition) frames
 
-		int refs = scanStackFrame(fp, ip, compiledMethodId, iteratorGroup, t);
+	    // Scan the stack frame and add refs to the stack buffer
+	    int refs = scanStackFrame(fp, ip, compiledMethodId, iteratorGroup, t);
+	    if (GC_TRACESCANSTACK) stack_ref_count += refs;
+	    
 
-		if (GC_TRACESCANSTACK) stack_ref_count += refs;
- 	    }
-	    else {
-               // Assembler frame: no corresponding VM_Method
-
-               if (GC_TRACESCANSTACK) VM_Scheduler.trace("----- METHOD -----", "INVISIBLE_METHOD_ID");
-            }
-
+	    // if at a JNIFunction method, it is preceeded by native frames that must be skipped
+	    //
+	    VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+	    compiledMethod.setObsolete( false );
+	    if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
+		// skip native frames, stopping at last native frame PRECEEDING the
+		// Java To C transition frame
+		fp = VM_Runtime.unwindNativeStackFrame(fp);
+		
+		if (GC_TRACESCANSTACK) VM.sysWrite("scanStack skipping native C frames\n");
+	    }       
+	    
 	    // Position fp & ip for next frame to be processed
 	    prevFp = fp;
 	    ip = VM_Magic.getReturnAddress(fp);
