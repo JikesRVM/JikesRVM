@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 #
 # This file defines a set of environment variables needed to build and
@@ -13,7 +13,7 @@
 #########
 # PART I: Preprocessor directives that hold for every config on this target
 #########
-# target architecutre is IA32
+# target architecture is IA32
 export RVM_FOR_IA32=1
 export RVM_FOR_32_ADDR=1
 
@@ -48,7 +48,7 @@ export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/lib/i386/:$HOST_JAVA_HOME/
 # Here's how to do it to using the IBM 1.4.1 DK 
 #export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/bin/classic:$HOST_JAVA_HOME/jre/bin/"
 
-# the JDK javadoc executable
+# the JDK Javadoc executable
 export HOST_JAVADOC="$HOST_JAVA_HOME/bin/javadoc"
 
 # the JDK javac executable
@@ -69,7 +69,7 @@ export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.06-test
 # path for GNU make
 export GNU_MAKE="/usr/bin/make"
 
-# path for jikes.
+# path for Jikes.
 export JIKES=/homes/meriadoc/jalapeno/bin/i686/jikes-1.18
 
 # what C compilers should be used?
@@ -111,3 +111,6 @@ export ANT_CMD=/homes/meriadoc/jalapeno/contrib/jakarta-ant-1.4.1/bin/ant
 
 export ECLIPSE_INSTALL_DIR="$HOME/eclipse-2.1"
 
+
+#  LocalWords:  JDK JDKs LD JRE's HotSpot Blackdown DK CPLUS LDSHARED JNI ld bM
+#  LocalWords:  bnoentry SRE lc bE
