@@ -6,6 +6,7 @@ package java.lang.ref;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 
 /**
@@ -88,8 +89,21 @@ public abstract class Reference {
     return nextOnQueue != null;
   }
 
-  public boolean enqueue() {
-    return JikesRVMSupport.enqueue(this);
+  public boolean wasEverEnqueued() throws VM_PragmaUninterruptible {
+    return wasEnqueued;
+  }
+
+  /* 
+   * This method requires external synchronization.
+   */
+  public boolean enqueue() throws VM_PragmaUninterruptible {
+    if (nextOnQueue == null && queue != null) {
+      wasEnqueued = true;
+      queue.enqueue(this);
+      queue = null;
+      return true;
+    }
+    return false;
   }
 
 }
