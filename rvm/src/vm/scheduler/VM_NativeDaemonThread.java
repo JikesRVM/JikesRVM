@@ -366,6 +366,10 @@ class VM_NativeDaemonThread extends VM_Thread {
 
     if (needToCreate <= 0) return;
 
+
+		// reset startup locks count
+    VM.sysInitializeStartupLocks(needToCreate);
+
     while (needToCreate > 0) {
       VM_Processor processor = VM_Processor.createNativeProcessor();
       if (trace) VM_Scheduler.trace("NDT","created Native VP with ID =",processor.id);
