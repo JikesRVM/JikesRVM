@@ -427,7 +427,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param b the assertion to verify
    */
   public static void _assert(boolean b) {
-    _assert(b, null);
+    _assert(b, null, null);
   }
 
   /**
