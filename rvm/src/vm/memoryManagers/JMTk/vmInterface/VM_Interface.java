@@ -126,6 +126,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     Statistics.boot();
     synchronizedCounterOffset = VM_Entrypoints.synchronizedCounterField.getOffset();
     Monitor.boot();
+    VMResource.boot();
   }
 
   /**
