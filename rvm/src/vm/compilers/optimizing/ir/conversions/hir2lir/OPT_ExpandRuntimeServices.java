@@ -233,9 +233,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 			 AStore.getValue(inst).copy());
 	  wb.bcIndex = RUNTIME_SERVICES_BCI;
 	  wb.position = inst.position;
-	  inst.insertBefore(wb);
+	  inst.replace(wb);
+	  next = wb.nextInstructionInCodeOrder(); 
 	  inline(wb, ir, true);
-	  next = inst.nextInstructionInCodeOrder(); 
 	}
       }
       break;
@@ -254,9 +254,9 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 			   PutField.getValue(inst).copy());
 	    wb.bcIndex = RUNTIME_SERVICES_BCI;
 	    wb.position = inst.position;
-	    inst.insertBefore(wb);
+	    inst.replace(wb);
+	    next = wb.nextInstructionInCodeOrder();
 	    inline(wb, ir);
-	    next = inst.nextInstructionInCodeOrder();
 	  }
 	}
       }

@@ -310,43 +310,10 @@ public abstract class BasePlan
    * stored (the address of the static field being stored into).
    * @param tgt The target of the new reference
    */
-  public void putStaticWriteBarrier(VM_Address slot, VM_Address tgt){}
-
-  /**
-   * An array of reference type has <i>just been copied</i> into.  For
-   * each new reference, take appropriate write barrier actions.<p>
-   * <b>By default do nothing, override if appropriate.</b>
-   *
-   * FIXME  The call in VM_Array should be changed to invoke this
-   * <i>prior</i> to the copy, not after the copy.  Although this
-   * makes no difference in the case of the standard generational
-   * barrier, in general, write barriers should be invoked immediately
-   * <i>prior</i> to the copy, not immediately after the copy.<p>
-   *
-   * <i>This way of dealing with array copy write barriers is
-   * suboptimal...</i>
-   *
-   * @param src The array containing the source of the new references
-   * (i.e. the destination of the copy).
-   * @param startIndex The index into the array where the first new
-   * reference resides (the index is the "natural" index into the
-   * array, i.e. a[index]).
-   * @param endIndex
-   */
-  public void arrayCopyWriteBarrier(VM_Address ref, int startIndex,
-				    int endIndex) {}
-
-  /**
-   * An array copy is underway, and <code>VM_Array</code> is iterating
-   * through the references as it copies them.  This method is called
-   * once for each method immediately prior to the copy of that
-   * reference occuring.
-   *
-   * @param src The source of the new reference (i.e. the slot
-   * containing the pointer about to be stored into).
-   * @param tgt The value about to be stored into <code>src</code>
-   */
-  public void arrayCopyRefCountWriteBarrier(VM_Address src, VM_Address tgt) {}
+  public final void putStaticWriteBarrier(VM_Address slot, VM_Address tgt) {
+    // putstatic barrier currently unimplemented
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
 
   /**
    * A reference is about to be read by a getField bytecode.  Take
@@ -357,7 +324,10 @@ public abstract class BasePlan
    * about to be read
    * @param offset The offset from tgt of the field to be read from
    */
-  public void getFieldReadBarrier(VM_Address tgt, int offset) {}
+  public final void getFieldReadBarrier(VM_Address tgt, int offset) {
+    // getfield barrier currently unimplemented
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
 
   /**
    * A reference is about to be read by a getStatic bytecode. Take
@@ -367,7 +337,10 @@ public abstract class BasePlan
    * @param slot The location from which the reference will be read
    * (the address of the static field being read).
    */
-  public void getStaticReadBarrier(VM_Address slot) {}
+  public final void getStaticReadBarrier(VM_Address slot) {
+    // getstatic barrier currently unimplemented
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   //

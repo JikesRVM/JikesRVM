@@ -435,11 +435,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.checkstoreMethod.getOffset()); // checkstore(array ref, value)
     if (VM_Interface.NEEDS_WRITE_BARRIER) 
       VM_Barriers.compileArrayStoreBarrier(asm);
-    asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
-    asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
-    genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
-    asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the object value
-    asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
+    else {
+      asm.emitMOV_Reg_RegDisp(T0, SP, 4);              // T0 is array index
+      asm.emitMOV_Reg_RegDisp(S0, SP, 8);              // S0 is the array ref
+      genBoundsCheck(asm, T0, S0);                     // T0 is index, S0 is address of array
+      asm.emitMOV_Reg_RegDisp(T1, SP, 0);              // T1 is the object value
+      asm.emitMOV_RegIdx_Reg(S0, T0, asm.WORD, 0, T1); // [S0 + T0<<2] <- T1
+    }
     asm.emitADD_Reg_Imm(SP, WORDSIZE*3);             // complete popping the 3 args
   }
 
@@ -1880,10 +1882,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_unresolved_putstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T0, fieldRef, true);
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutstaticBarrier(asm, T0);
-      emitDynamicLinkingSequence(T0, fieldRef, false);
-    }
+// putstatic barrier currently unsupported
+//     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+//       VM_Barriers.compilePutstaticBarrier(asm, T0);
+//       emitDynamicLinkingSequence(T0, fieldRef, false);
+//     }
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitPOP_RegIdx(JTOC, T0, asm.BYTE, 0);
     } else { // field is two words (double or long)
@@ -1899,9 +1902,10 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    */
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset);
-    }
+// putstatic barrier currently unsupported
+//     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+//       VM_Barriers.compilePutstaticBarrierImm(asm, fieldOffset);
+//     }
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitPOP_RegDisp(JTOC, fieldOffset);
     } else { // field is two words (double or long)
@@ -1960,22 +1964,24 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrier(asm, T0);
       emitDynamicLinkingSequence(T0, fieldRef, false);
-    }
-    if (fieldRef.getSize() == 4) {// field is one word
-      asm.emitMOV_Reg_RegDisp(T1, SP, 0);               // T1 is the value to be stored
-      asm.emitMOV_Reg_RegDisp(S0, SP, 4);               // S0 is the object reference
-      asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, T1); // [S0+T0] <- T1
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
-    } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-      asm.emitMOV_Reg_RegDisp(JTOC, SP, 0);                          // JTOC is low part of the value to be stored
-      asm.emitMOV_Reg_RegDisp(T1, SP, 4);                            // T1 is high part of the value to be stored
-      asm.emitMOV_Reg_RegDisp(S0, SP, 8);                            // S0 is the object reference
-      asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, JTOC);            // [S0+T0] <- JTOC
-      asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, WORDSIZE, T1);       // [S0+T0+4] <- T1
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                           // complete popping the values and reference
-      // restore JTOC
-      VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+    } else {
+      if (fieldRef.getSize() == 4) {// field is one word
+	asm.emitMOV_Reg_RegDisp(T1, SP, 0);               // T1 is the value to be stored
+	asm.emitMOV_Reg_RegDisp(S0, SP, 4);               // S0 is the object reference
+	asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, T1); // [S0+T0] <- T1
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
+      } else { // field is two words (double or long)
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+	asm.emitMOV_Reg_RegDisp(JTOC, SP, 0);                          // JTOC is low part of the value to be stored
+	asm.emitMOV_Reg_RegDisp(T1, SP, 4);                            // T1 is high part of the value to be stored
+	asm.emitMOV_Reg_RegDisp(S0, SP, 8);                            // S0 is the object reference
+	asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, JTOC);            // [S0+T0] <- JTOC
+	asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, WORDSIZE, T1);       // [S0+T0+4] <- T1
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                           // complete popping the values and reference
+	// restore JTOC
+	VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
+      }
     }
   }
 
@@ -1987,21 +1993,23 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrierImm(asm, fieldOffset);
-    }
-    if (fieldRef.getSize() == 4) { // field is one word
-      asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is the value to be stored
-      asm.emitMOV_Reg_RegDisp(S0, SP, 4);           // S0 is the object reference
-      asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0); // [S0+fieldOffset] <- T0
       asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
-    } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-      // TODO!! use 8-byte move if possible
-      asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is low part of the value to be stored
-      asm.emitMOV_Reg_RegDisp(T1, SP, 4);                    // T1 is high part of the value to be stored
-      asm.emitMOV_Reg_RegDisp(S0, SP, 8);                    // S0 is the object reference
-      asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);          // store low part
-      asm.emitMOV_RegDisp_Reg(S0, fieldOffset+WORDSIZE, T1); // store high part
-      asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                   // complete popping the values and reference
+    } else {
+      if (fieldRef.getSize() == 4) { // field is one word
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is the value to be stored
+	asm.emitMOV_Reg_RegDisp(S0, SP, 4);           // S0 is the object reference
+	asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0); // [S0+fieldOffset] <- T0
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
+      } else { // field is two words (double or long)
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+	// TODO!! use 8-byte move if possible
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is low part of the value to be stored
+	asm.emitMOV_Reg_RegDisp(T1, SP, 4);                    // T1 is high part of the value to be stored
+	asm.emitMOV_Reg_RegDisp(S0, SP, 8);                    // S0 is the object reference
+	asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);          // store low part
+	asm.emitMOV_RegDisp_Reg(S0, fieldOffset+WORDSIZE, T1); // store high part
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                   // complete popping the values and reference
+      }
     }
   }
 

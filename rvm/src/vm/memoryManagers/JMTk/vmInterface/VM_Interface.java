@@ -193,26 +193,16 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   
   public static void putstaticWriteBarrier(int offset, Object value)
     throws VM_PragmaInline { 
-    VM_Address jtocSlot = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).add(offset);
-    getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
+    // putstatic barrier currently unimplemented
+    if (VM.VerifyAssertions) VM._assert(false);
+//     VM_Address jtocSlot = VM_Magic.objectAsAddress(VM_Magic.getJTOC()).add(offset);
+//     getPlan().putStaticWriteBarrier(jtocSlot, VM_Magic.objectAsAddress(value));
   }
 
   public static void arrayStoreWriteBarrier(Object ref, int index,Object value)
     throws VM_PragmaInline {
     getPlan().arrayStoreWriteBarrier(VM_Magic.objectAsAddress(ref), index,
 				     VM_Magic.objectAsAddress(value));
-  }
-
-  public static void arrayCopyWriteBarrier(Object ref, int startIndex,
-					   int endIndex)
-    throws VM_PragmaInline {
-    getPlan().arrayCopyWriteBarrier(VM_Magic.objectAsAddress(ref), startIndex,
-				    endIndex);
-  }
-
-  public static void arrayCopyRefCountWriteBarrier(VM_Address src, VM_Address tgt) 
-    throws VM_PragmaInline {
-    getPlan().arrayCopyRefCountWriteBarrier(src, tgt);
   }
 
   /**

@@ -547,37 +547,6 @@ public abstract class Generational extends StopTheWorldGC
   }
 
   /**
-   * An array of reference type has <i>just been copied</i> into.  For
-   * each new reference, take appropriate write barrier actions.<p>
-   *
-   * FIXME  The call in VM_Array should be changed to invoke this
-   * <i>prior</i> to the copy, not after the copy.  Although this
-   * makes no difference in the case of the standard generational
-   * barrier, in general, write barriers should be invoked immediately
-   * <i>prior</i> to the copy, not immediately after the copy.<p>
-   *
-   * <i>This way of dealing with array copy write barriers is
-   * suboptimal...</i>
-   *
-   * @param src The array containing the source of the new references
-   * (i.e. the destination of the copy).
-   * @param startIndex The index into the array where the first new
-   * reference resides (the index is the "natural" index into the
-   * array, i.e. a[index]).
-   * @param endIndex
-   */
-  public final void arrayCopyWriteBarrier(VM_Address src, int startIndex, 
-					  int endIndex)
-    throws VM_PragmaInline {
-    src = src.add(startIndex<<LOG_WORD_SIZE);
-    for (int idx = startIndex; idx <= endIndex; idx++) {
-      VM_Address tgt = VM_Magic.getMemoryAddress(src);
-      writeBarrier(src, tgt);
-      src = src.add(WORD_SIZE);
-    }
-  }
-
-  /**
    * A new reference is about to be created.  Perform appropriate
    * write barrier action.<p>
    *
@@ -597,6 +566,7 @@ public abstract class Generational extends StopTheWorldGC
       if (GATHER_WRITE_BARRIER_STATS) wbSlowPathCounter++;
       remset.insert(src);
     }
+    VM_Magic.setMemoryAddress(src, tgt);
   }
 
   ////////////////////////////////////////////////////////////////////////////

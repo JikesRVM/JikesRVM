@@ -156,6 +156,10 @@ public class VM_Interface implements VM_Constants {
       VM_WriteBarrier.putstaticWriteBarrier(offset, value);
   }
 
+  public static void arrayStoreWriteBarrier(Object ref, int index, Object value){
+    // unimplemented --- generational Watson collectors no longer supported
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
   public static void arrayCopyWriteBarrier(Object ref, int start, int end) {
     if (NEEDS_WRITE_BARRIER) 
       VM_WriteBarrier.arrayCopyWriteBarrier(ref, start, end);

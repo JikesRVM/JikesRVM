@@ -15,8 +15,10 @@ import com.ibm.JikesRVM.VM_JavaHeader;
  */
 public interface Constants {
 
-  static final int WORDSIZE = 4;
-  static final int LG_WORDSIZE = 2;
+  static final int LOG_WORD_SIZE = 2;
+  static final int LG_WORDSIZE = LOG_WORD_SIZE;
+  static final int WORD_SIZE = 1<<LOG_WORD_SIZE;
+  static final int WORDSIZE = WORD_SIZE;
 
   /*
    * Data Fields that control the allocation of memory

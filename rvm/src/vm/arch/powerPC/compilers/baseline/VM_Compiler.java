@@ -483,17 +483,20 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitL   (T0,  8, SP);  //  T0 := arrayref
     asm.emitL   (T1,  0, SP);  //  T1 := value
     asm.emitCall(spSaveAreaOffset);   // checkstore(arrayref, value)
-    if (VM_Interface.NEEDS_WRITE_BARRIER) 
+    if (VM_Interface.NEEDS_WRITE_BARRIER) {
       VM_Barriers.compileArrayStoreBarrier(asm, spSaveAreaOffset);
-    astoreSetup(-1);	// NOT (dfb): following 4 lines plus emitTLLE seem redundant and possibly bogus
-    asm.emitL   (T1,  8, SP);                    // T1 is array ref
-    asm.emitL   (T0,  4, SP);                    // T0 is array index
-    asm.emitL   (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
-    asm.emitL   (T3,  0, SP);                    // T3 is value to store
-    asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
-    asm.emitSLI (T0, T0,  2);  // convert word index to byte index
-    asm.emitSTX (T3, T0, T1);  // store ref value in array
-    asm.emitCAL (SP, 12, SP);  // complete 3 pops
+      asm.emitCAL (SP, 12, SP);  // complete 3 pops
+    } else {
+      astoreSetup(-1);	// NOT (dfb): following 4 lines plus emitTLLE seem redundant and possibly bogus
+      asm.emitL   (T1,  8, SP);                    // T1 is array ref
+      asm.emitL   (T0,  4, SP);                    // T0 is array index
+      asm.emitL   (T2,  VM_ObjectModel.getArrayLengthOffset(), T1);  // T2 is array length
+      asm.emitL   (T3,  0, SP);                    // T3 is value to store
+      asm.emitTLLE(T2, T0);      // trap if index < 0 or index >= length
+      asm.emitSLI (T0, T0,  2);  // convert word index to byte index
+      asm.emitSTX (T3, T0, T1);  // store ref value in array
+      asm.emitCAL (SP, 12, SP);  // complete 3 pops
+    }
   }
 
   /**
@@ -1836,20 +1839,21 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_unresolved_putstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutstaticBarrier(asm, spSaveAreaOffset); // NOTE: offset is in T1 from emitDynamicLinkingSequence
-      emitDynamicLinkingSequence(T1, fieldRef, false);
-    }
-    if (fieldRef.getSize() == 4) { // field is one word
-      asm.emitL    (T0, 0, SP);
-      asm.emitCAL  (SP, 4, SP);
-      asm.emitSTX(T0, T1, JTOC);
-    } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-      asm.emitLFD    (F0, 0, SP );
-      asm.emitCAL    (SP, 8, SP);
-      asm.emitSTFDX(F0, T1, JTOC);
-    }
+// putstatic barrier currently unsupported
+//     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+//       VM_Barriers.compilePutstaticBarrier(asm, spSaveAreaOffset); // NOTE: offset is in T1 from emitDynamicLinkingSequence
+//       emitDynamicLinkingSequence(T1, fieldRef, false);
+//     }
+      if (fieldRef.getSize() == 4) { // field is one word
+	asm.emitL    (T0, 0, SP);
+	asm.emitCAL  (SP, 4, SP);
+	asm.emitSTX(T0, T1, JTOC);
+      } else { // field is two words (double or long)
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+	asm.emitLFD    (F0, 0, SP );
+	asm.emitCAL    (SP, 8, SP);
+	asm.emitSTFDX(F0, T1, JTOC);
+      }
   }
 
   /**
@@ -1858,9 +1862,10 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
-      VM_Barriers.compilePutstaticBarrierImm(asm, spSaveAreaOffset, fieldOffset);
-    }
+// putstatic barrier currently unsupported
+//     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+//       VM_Barriers.compilePutstaticBarrierImm(asm, spSaveAreaOffset, fieldOffset);
+//     }
     if (fieldRef.getSize() == 4) { // field is one word
       asm.emitL    (T0, 0, SP);
       asm.emitCAL  (SP, 4, SP);
@@ -1918,18 +1923,20 @@ public class VM_Compiler extends VM_BaselineCompiler
     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrier(asm, spSaveAreaOffset); // NOTE: offset is in T1 from emitDynamicLinkingSequence
       emitDynamicLinkingSequence(T1, fieldRef, false);	
-    }
-    if (fieldRef.getSize() == 4) { // field is one word
-      asm.emitL  (T2, 4, SP); // T1 = object reference
-      asm.emitL  (T0, 0, SP); // T0 = value
       asm.emitCAL(SP, 8, SP);  
-      asm.emitSTX(T0, T2, T1);
-    } else { // field is two words (double or long)
-      if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
-      asm.emitLFD (F0,  0, SP); // F0 = doubleword value
-      asm.emitL   (T2,  8, SP); // T1 = object reference
-      asm.emitCAL (SP, 12, SP);
-      asm.emitSTFDX(F0, T2, T1);
+    } else {
+      if (fieldRef.getSize() == 4) { // field is one word
+	asm.emitL  (T2, 4, SP); // T1 = object reference
+	asm.emitL  (T0, 0, SP); // T0 = value
+	asm.emitCAL(SP, 8, SP);  
+	asm.emitSTX(T0, T2, T1);
+      } else { // field is two words (double or long)
+	if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == 8);
+	asm.emitLFD (F0,  0, SP); // F0 = doubleword value
+	asm.emitL   (T2,  8, SP); // T1 = object reference
+	asm.emitCAL (SP, 12, SP);
+	asm.emitSTFDX(F0, T2, T1);
+      }
     }
   }
 

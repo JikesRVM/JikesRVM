@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
 /**
  * Description of a java "array" type. <p>
@@ -474,84 +475,121 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     }
   }
    
-  public static void arraycopy(Object[] src, int srcPos, Object[] dst, int dstPos, int len) {
-    // Don't do any of the assignments if the offsets and lengths
-    // are in error
-    if (srcPos >= 0 && dstPos >= 0 && len >= 0 && 
-	(srcPos+len) <= src.length && (dstPos+len) <= dst.length) {
-      int dstStart,dstEnd;
-      VM_Type lhs =VM_Magic.getObjectType(dst).asArray().getElementType();
-      VM_Type rhs =VM_Magic.getObjectType(src).asArray().getElementType();
-      if ((lhs==rhs) || 
-	  (lhs == VM_Type.JavaLangObjectType) || 
-	  VM_Runtime.isAssignableWith(lhs, rhs)) {
-	
-	if (len == 0) return;
-
-	if (VM_Interface.NEEDS_WRITE_BARRIER) {
-	  dstStart = dstPos;           
-	  dstEnd = dstPos + len - 1;
-	  VM.disableGC();     // prevent GC until writebarrier updated
-	}
-
-	// handle as two cases, for efficiency and in case subarrays overlap
-	if (src != dst || srcPos > dstPos) {
-	  if (VM_Interface.NEEDS_RC_WRITE_BARRIER) {
-	    VM_Address dstS = VM_Magic.objectAsAddress(dst).add(dstPos<<2);
-	    VM_Address srcS = VM_Magic.objectAsAddress(src).add(srcPos<<2);
-	    for (int i = 0; i < len<<2; i += 4)
-	      VM_Interface.arrayCopyRefCountWriteBarrier(dstS.add(i), VM_Magic.getMemoryAddress(srcS.add(i)));
-	  }
-	  VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstPos<<2),
-				  VM_Magic.objectAsAddress(src).add(srcPos<<2),
-				  len<<2);
-	} else if (srcPos < dstPos) {
-	  srcPos = (srcPos + len) << 2;
-	  dstPos = (dstPos + len) << 2;
-	  while (len-- != 0) {
-	    srcPos -= 4;
-	    dstPos -= 4;
-	    if (VM_Interface.NEEDS_RC_WRITE_BARRIER) {
-	      VM_Interface.arrayCopyRefCountWriteBarrier(VM_Magic.objectAsAddress(dst).add(dstPos), VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(src).add(srcPos)));
-	    }
-	    VM_Magic.setObjectAtOffset(dst, dstPos, VM_Magic.getObjectAtOffset(src, srcPos));
-	  }
-	} else {
-	  while (len-- != 0)
-	    dst[dstPos++] = src[srcPos++];
-	}
-	if (VM_Interface.NEEDS_WRITE_BARRIER) {
-	  // generate write buffer entries for modified target array entries
-	  if (!VM_Interface.NEEDS_RC_WRITE_BARRIER) 
-	    VM_Interface.arrayCopyWriteBarrier(dst, dstStart, dstEnd);
-	  VM.enableGC();
-	}
-      } else { 
-	// not sure if copy might cause ArrayStoreException, must handle with
-	// element by element assignments, in the right order.
-	// handle as two cases, in case subarrays overlap
-	if (src != dst || srcPos > dstPos) {
-	  while (len-- != 0)
-	    dst[dstPos++] = src[srcPos++];
-	} else {
-	  VM_Array ary = VM_Magic.getObjectType(src).asArray();
-	  int allocator = VM_Interface.pickAllocator(ary);
-	  Object temp[] = 
-	    (Object[])VM_Runtime.resolvedNewArray(len, 
-						  ary.getInstanceSize(len), 
-						  ary.getTypeInformationBlock(),
-						  allocator);
-	  int cnt = len;
-	  int tempPos = 0;
-	  while (cnt-- != 0)
-	    temp[tempPos++] = src[srcPos++];
-	  tempPos = 0;
-	  while (len-- != 0)
-	    dst[dstPos++] = temp[tempPos++];
-	}
-      }
+  /**
+   * Perform an array copy for arrays of objects.  This code must
+   * ensure that write barriers are invoked as if the copy were
+   * performed element-by-element.
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
+  public static void arraycopy(Object[] src, int srcIdx, Object[] dst, 
+			       int dstIdx, int len) {
+    // Check offsets and lengths before doing anything
+    if ((srcIdx >= 0) && (dstIdx >= 0) && (len >= 0) && 
+	((srcIdx + len) <= src.length) && ((dstIdx + len) <= dst.length)) {
+      VM_Type lhs = VM_Magic.getObjectType(dst).asArray().getElementType();
+      VM_Type rhs = VM_Magic.getObjectType(src).asArray().getElementType();
+      if ((lhs == rhs) || (lhs == VM_Type.JavaLangObjectType)
+	  || VM_Runtime.isAssignableWith(lhs, rhs))
+ 	fastArrayCopy(src, srcIdx, dst, dstIdx, len);
+       else
+	slowArrayCopy(src, srcIdx, dst, dstIdx, len);
     } else {
       failWithIndexOutOfBoundsException();
+    }
+  }
+
+  /**
+   * Perform an array copy for arrays of objects where the possibility
+   * of an ArrayStoreException being thrown <i>does not</i> exist.
+   * This may be done using direct byte copies, <i>however</i>, write
+   * barriers must be explicitly invoked (if required by the GC) since
+   * the write barrier associated with an explicit array store
+   * (aastore) will be bypassed.
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
+  private static void fastArrayCopy(Object[] src, int srcIdx, Object[] dst, 
+				    int dstIdx, int len) {
+
+    boolean loToHi = (srcIdx > dstIdx);  // direction of copy
+    int srcOffset = srcIdx << Constants.LOG_WORD_SIZE;
+    int dstOffset = dstIdx << Constants.LOG_WORD_SIZE;
+    int bytes = len << Constants.LOG_WORD_SIZE;
+    
+    if (!VM_Interface.NEEDS_WRITE_BARRIER 
+	&& ((src != dst) || loToHi)) {
+      if (VM.VerifyAssertions) VM._assert(!VM_Interface.NEEDS_WRITE_BARRIER);
+      VM_Memory.aligned32Copy(VM_Magic.objectAsAddress(dst).add(dstOffset),
+			      VM_Magic.objectAsAddress(src).add(srcOffset),
+			      bytes);
+    } else {
+      // set up things according to the direction of the copy
+      int increment;
+      if (loToHi)
+	increment = Constants.WORD_SIZE;
+      else {
+	srcOffset += (bytes - Constants.WORD_SIZE);
+	dstOffset += (bytes - Constants.WORD_SIZE);
+	increment = -Constants.WORD_SIZE;
+      } 
+
+      // perform the copy
+      while (len-- != 0) {
+	Object value = VM_Magic.getObjectAtOffset(src, srcOffset);
+	if (VM_Interface.NEEDS_WRITE_BARRIER)
+	  VM_Interface.arrayStoreWriteBarrier(dst, dstOffset>>Constants.LOG_WORD_SIZE, value);
+	else
+	  VM_Magic.setObjectAtOffset(dst, dstOffset, value);
+	srcOffset += increment;
+	dstOffset += increment;
+      }
+    }
+  }
+  
+  /**
+   * Perform an array copy for arrays of objects where the possibility
+   * of an ArrayStoreException being thrown exists.  This must be done
+   * with element by element assignments in the correct order.
+   * <i>Since write barriers are implicitly performed on explicit
+   * array stores, there is no need to explicitly invoke a write
+   * barrier in this code.</i>
+   *
+   * @param src The source array
+   * @param srcIdx The starting source index
+   * @param dst The destination array
+   * @param dstIdx The starting destination index
+   * @param len The number of array elements to be copied
+   */
+  private static void slowArrayCopy(Object[] src, int srcIdx, Object[] dst, 
+				    int dstIdx, int len) {
+    // must perform copy in correct order
+    if ((src != dst) || srcIdx > dstIdx) {
+      // non-overlapping case: straightforward
+      while (len-- != 0)
+	dst[dstIdx++] = src[srcIdx++];
+    } else {
+      // the arrays overlap: must use temp array
+      VM_Array ary = VM_Magic.getObjectType(src).asArray();
+      int allocator = VM_Interface.pickAllocator(ary);
+      Object temp[] = (Object[])
+	VM_Runtime.resolvedNewArray(len, ary.getInstanceSize(len), 
+				    ary.getTypeInformationBlock(), allocator);
+      int cnt = len;
+      int tempIdx = 0;
+      while (cnt-- != 0)
+	temp[tempIdx++] = src[srcIdx++];
+      tempIdx = 0;
+      while (len-- != 0)
+	dst[dstIdx++] = temp[tempIdx++];
     }
   }
 
