@@ -146,8 +146,8 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     /* push a new frame */
     asm.emitPUSH_Reg(FP);			// link this frame with next
     asm.emitMOV_Reg_Reg (FP, SP);		// establish base of new frame
-    asm.emitMOV_RegDisp_Imm (FP, STACKFRAME_METHOD_ID_OFFSET, INVISIBLE_METHOD_ID);
-    asm.emitADD_Reg_Imm ( SP, STACKFRAME_BODY_OFFSET + WORDSIZE);
+    asm.emitPUSH_Imm    (INVISIBLE_METHOD_ID);
+    asm.emitADD_Reg_Imm (SP, STACKFRAME_BODY_OFFSET);
     
     // so hardware trap handler can always find it 
     // (opt compiler will reuse FP register)
@@ -163,7 +163,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
      * T1 length
      * T0 scratch
      */
-    asm.emitMOV_Reg_RegDisp (S0, FP, PARAMS_FP_OFFSET);// S0 <- Parameters
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
+					      VM_Entrypoints.framePointerOffset);
+    asm.emitMOV_Reg_RegDisp (S0, S0, PARAMS_FP_OFFSET);// S0 <- Parameters
     asm.emitMOV_Reg_RegDisp (T1, S0, ARRAY_LENGTH_OFFSET);	// T1 <- Parameters.length()
     asm.emitCMP_Reg_Imm (T1, 0);			// length == 0 ?
 
@@ -178,7 +180,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     fr1.resolve(asm);					// end of the loop
     
     /* write fprs onto fprs registers */
-    asm.emitMOV_Reg_RegDisp (S0, FP, FPRS_FP_OFFSET);	// S0 <- FPRs
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
+					      VM_Entrypoints.framePointerOffset);
+    asm.emitMOV_Reg_RegDisp (S0, S0, FPRS_FP_OFFSET);	// S0 <- FPRs
     asm.emitMOV_Reg_RegDisp (T1, S0, ARRAY_LENGTH_OFFSET);	// T1 <- FPRs.length()
     asm.emitSHL_Reg_Imm (T1, LG_WORDSIZE + 1 );		// length in bytes
     asm.emitADD_Reg_Reg (S0, T1);			// S0 <- last FPR + 8
@@ -195,7 +199,9 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
 
 
     /* write gprs: S0 = Base address of GPRs[], T1 = GPRs.length */
-    asm.emitMOV_Reg_RegDisp (S0, FP, GPRS_FP_OFFSET);	// S0 <- GPRs
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
+					      VM_Entrypoints.framePointerOffset);
+    asm.emitMOV_Reg_RegDisp (S0, S0, GPRS_FP_OFFSET);	// S0 <- GPRs
     asm.emitMOV_Reg_RegDisp (T1, S0, ARRAY_LENGTH_OFFSET);	// T1 <- GPRs.length()
     asm.emitCMP_Reg_Imm (T1, 0);			// length == 0 ?
     VM_ForwardReference fr3 = asm.forwardJcc(asm.EQ);	// result 0 --> branch to end
@@ -208,12 +214,15 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     fr4.resolve(asm);
 
     /* branch to method.  On a good day we might even be back */
-    asm.emitMOV_Reg_RegDisp (S0, FP, CODE_FP_OFFSET);	// S0 <- code
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, S0,
+					      VM_Entrypoints.framePointerOffset);
+    asm.emitMOV_Reg_RegDisp (S0, S0, CODE_FP_OFFSET);	// S0 <- code
     asm.emitCALL_Reg (S0);				// go there
     // T0/T1 have returned value
 
     /* and get out */
-    asm.emitLEAVE();
+    asm.emitMOV_Reg_Reg (SP, FP);
+    asm.emitPOP_Reg     (FP);
     
     // so hardware trap handler can always find it 
     // (opt compiler will reuse FP register)
