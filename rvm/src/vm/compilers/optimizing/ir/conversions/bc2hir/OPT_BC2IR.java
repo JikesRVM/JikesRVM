@@ -5192,8 +5192,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     OperandStack copy() {
       OperandStack newss = new OperandStack(stack.length);
       newss.top = top;
-      for ( int i = 0; i < top; i++ )		// deep copy of stack
-	newss.stack[ i ] = stack[ i ].copy();
+      System.arraycopy(stack, 0, newss.stack, 0, top);
       return newss;
     }
 
