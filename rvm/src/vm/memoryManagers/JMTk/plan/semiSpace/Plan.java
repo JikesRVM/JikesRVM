@@ -84,11 +84,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
   
   // Memory layout constants
+  public  static final int              MAX_SIZE = 2048 * 1024 * 1024;
   private static final VM_Address      LOS_START = PLAN_START;
-  private static final EXTENT           LOS_SIZE = 128 * 1024 * 1024;
+  private static final EXTENT           LOS_SIZE = 256 * 1024 * 1024;
   private static final VM_Address        LOS_END = LOS_START.add(LOS_SIZE);
   private static final VM_Address       SS_START = LOS_END;
-  private static final EXTENT            SS_SIZE = 384 * 1024 * 1024;
+  private static final EXTENT            SS_SIZE = 1024 * 1024 * 1024;
   private static final VM_Address   LOW_SS_START = SS_START;
   private static final VM_Address  HIGH_SS_START = SS_START.add(SS_SIZE);
   private static final VM_Address         SS_END = HIGH_SS_START.add(SS_SIZE);
@@ -100,7 +101,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   //
 
   // allocators
-  private BumpPointer ss;
+  public BumpPointer ss;
   private TreadmillThread los;
 
   ////////////////////////////////////////////////////////////////////////////
@@ -243,7 +244,20 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 				AllocAdvice hint) {
     return (bytes >= LOS_SIZE_THRESHOLD) ? LOS_SPACE : DEFAULT_SPACE;
   }
-  
+
+  protected final byte getSpaceFromAllocator (Allocator a) {
+    if (a == ss) return DEFAULT_SPACE;
+    if (a == los) return LOS_SPACE;
+    return super.getSpaceFromAllocator(a);
+  }
+
+  protected final Allocator getAllocatorFromSpace (byte s) {
+    if (s == DEFAULT_SPACE) return ss;
+    if (s == LOS_SPACE) return los;
+    return super.getAllocatorFromSpace(s);
+  }
+
+
   /**
    * Give the compiler/runtime statically generated alloction advice
    * which will be passed to the allocation routine at runtime.
@@ -297,7 +311,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param mr The memory resource that triggered this collection.
    * @return True if a collection is triggered
    */
-  public final boolean poll(boolean mustCollect, MemoryResource mr) 
+  public final boolean poll (boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
     mustCollect |= stressTestGCRequired();
