@@ -439,11 +439,11 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 	      OPT_RegisterOperand lhsDepthOffset = 
 		InsertBinary(curBlock.lastInstruction(), ir, INT_SHL, VM_Type.IntType, 
 			     lhsElemDepth.copyD2U(), I(1));
-	      curBlock.appendInstruction(Load.create(SHORT_LOAD, refCandidate, 
+	      curBlock.appendInstruction(Load.create(USHORT_LOAD, refCandidate, 
 						     rhsSuperclassIds, 
 						     lhsDepthOffset, loc, TG()));
 	    } else {
-	      curBlock.appendInstruction(ALoad.create(SHORT_ALOAD, refCandidate, 
+	      curBlock.appendInstruction(ALoad.create(USHORT_ALOAD, refCandidate, 
 						      rhsSuperclassIds, 
 						      lhsElemDepth, loc, TG()));
 	    }
@@ -564,7 +564,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 		InsertUnary(s, ir, GET_SUPERCLASS_IDS_FROM_TIB, 
 			    OPT_ClassLoaderProxy.ShortArrayType, RHStib);
 	      OPT_RegisterOperand refCandidate = 
-		InsertLoadOffset(s, ir, SHORT_LOAD, VM_Type.ShortType, 
+		InsertLoadOffset(s, ir, USHORT_LOAD, VM_Type.ShortType, 
 				 superclassIds, LHSDepth << 1, 
 				 new OPT_LocationOperand(VM_Type.ShortType), 
 				 TG());
@@ -776,7 +776,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 		oldBlock.insertOut(falseBlock); // required due to splitNode!
 	      }
 	      OPT_RegisterOperand refCandidate = 
-		InsertLoadOffset(continueAt, ir, SHORT_LOAD, VM_Type.ShortType,
+		InsertLoadOffset(continueAt, ir, USHORT_LOAD, VM_Type.ShortType,
 				 superclassIds, LHSDepth << 1, 
 				 new OPT_LocationOperand(VM_Type.ShortType), 
 				 TG());
