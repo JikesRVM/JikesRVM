@@ -15,6 +15,15 @@ final class VM_ProcessorLocalState implements VM_Uninterruptible {
   static byte PROCESSOR_REGISTER = VM_RegisterConstants.ESI;
 
   /**
+   * The C bootstrap program has placed a pointer to the initial
+   * VM_Processor in ESI.  
+   */
+  static void boot() {
+    // do nothing - everything is already set up.
+  }
+
+
+  /**
    * Return the current VM_Processor object
    */
   static VM_Processor getCurrentProcessor() {

@@ -13,6 +13,14 @@
 final class VM_ProcessorLocalState implements VM_Uninterruptible {
   
   /**
+   * The C bootstrap program has placed a pointer to the initial
+   * VM_Processor in the processor register.  This is OK, so do nothing.
+   */
+  static void boot() {
+    // do nothing - everything is already set up.
+  }
+
+  /**
    * Return the current VM_Processor object
    */
   static VM_Processor getCurrentProcessor() {

@@ -67,8 +67,14 @@ public class VM extends VM_Properties implements VM_Constants,
     VM.runningVM        = true;
     VM.runningAsSubsystem = false;
 
+    // 0. Set up the current VM_Processor object.  The bootstrap program
+    // has placed a pointer to the current VM_Processor in a special
+    // register.
+    VM_ProcessorLocalState.boot();
+    
     // 1. Finish thread initialization that couldn't be done in boot image.
-    //    The "stackLimit" must be set before any method calls, because it's accessed
+    //    The "stackLimit" must be set before any method calls, 
+    //    because it's accessed
     //    by compiler-generated stack overflow checks.
     //
     VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> OBJECT_THREAD_ID_SHIFT];

@@ -461,7 +461,7 @@ class GenerateInterfaceDeclarations {
     if (VM.BuildForIA32) {
       System.out.print("#define JTOC %" + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.JTOC]
           + ";\n");
-      System.out.print("#define PR %"   + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.PR]
+      System.out.print("#define PR %"   + VM_RegisterConstants.GPR_NAMES[VM_BaselineConstants.ESI]
           + ";\n");
     }
     //-#endif
