@@ -474,6 +474,33 @@ public abstract class BasePlan
   }
 
   /**
+   * A number of references are about to be copied from object
+   * <code>src</code> to object <code>dst</code> (as in an array
+   * copy).  Thus, <code>dst</code> is the mutated object.  Take
+   * appropriate write barrier actions.<p>
+   *
+   * @param src The source of the values to be copied
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param dst The mutated object, i.e. the destination of the copy.
+   * @param dstOffset The offset of the first destination address, in
+   * bytes relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  public boolean writeBarrier(VM_Address src, int srcOffset,
+			      VM_Address dst, int dstOffset,
+			      int bytes) {
+    // Either: write barriers are used and this is overridden, or 
+    //         write barriers are not used and this is never called
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+    return false;
+  }
+
+  /**
    * Read a reference. Take appropriate read barrier action, and
    * return the value that was read.<p> This is a <b>substituting<b>
    * barrier.  The call to this barrier takes the place of a load.<p>

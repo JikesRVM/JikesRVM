@@ -272,6 +272,32 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
   }
 
   /**
+   * Take appropriate write barrier actions when a series of
+   * references are copied (i.e. in an array copy).
+   *
+   * @param src The source object
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param tgt The target object
+   * @param tgtIdx The offset of the first target address, in bytes
+   * relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  public static boolean arrayCopyWriteBarrier(Object src, int srcOffset,
+					      Object tgt, int tgtOffset,
+					      int bytes) 
+    throws VM_PragmaInline {
+    return VM_Interface.getPlan().writeBarrier(VM_Magic.objectAsAddress(src),
+					       srcOffset,
+					       VM_Magic.objectAsAddress(tgt),
+					       tgtOffset, bytes);
+  }
+
+  /**
    * Checks that if a garbage collection is in progress then the given
    * object is not movable.  If it is movable error messages are
    * logged and the system exits.

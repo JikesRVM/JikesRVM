@@ -705,6 +705,56 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
   /**
+   * A number of references are about to be copied from object
+   * <code>src</code> to object <code>dst</code> (as in an array
+   * copy).  Thus, <code>dst</code> is the mutated object.  Take
+   * appropriate write barrier actions.<p>
+   *
+   * In this case, we simply remember the mutated source object, or we
+   * enumerate the copied pointers and perform appropriate actions on
+   * each.
+   *
+   * @param src The source of the values to copied
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param dst The mutated object, i.e. the destination of the copy.
+   * @param dstOffset The offset of the first destination address, in
+   * bytes relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (this depends on which style of barrier is
+   * being used).
+   */
+  public boolean writeBarrier(VM_Address src, int srcOffset,
+			      VM_Address dst, int dstOffset,
+			      int bytes) {
+    if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
+    if (WITH_COALESCING_RC) {
+      if (Header.logRequired(dst))
+	coalescingWriteBarrierSlow(dst);
+      return false;
+    } else {
+      while (bytes > 0) {
+	VM_Address tgt = VM_Magic.getMemoryAddress(src);
+	VM_Address old;
+	do {
+	  old = VM_Magic.prepareAddress(dst, 0);
+	} while (!VM_Magic.attemptAddress(dst, 0, old, tgt));
+	if (old.GE(RC_START))
+	  decBuffer.push(old);
+	if (tgt.GE(RC_START))
+	  RCBaseHeader.incRC(tgt);
+	src = src.add(BYTES_IN_ADDRESS);
+	dst = dst.add(BYTES_IN_ADDRESS);
+	bytes -= BYTES_IN_ADDRESS;
+      }
+      return true;
+    }
+  }
+
+  /**
    * Slow path of the coalescing write barrier.
    *
    * <p> Attempt to log the source object. If successful in racing for

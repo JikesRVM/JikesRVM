@@ -762,6 +762,48 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
       writeBarrierSlow(src);
     VM_Magic.setMemoryAddress(slot, tgt);
   }
+
+  /**
+   * A number of references are about to be copied from object
+   * <code>src</code> to object <code>dst</code> (as in an array
+   * copy).  Thus, <code>dst</code> is the mutated object.  Take
+   * appropriate write barrier actions.<p>
+   *
+   * In this case, we simply remember the mutated source object.
+   *
+   * @param src The source of the values to copied
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param dst The mutated object, i.e. the destination of the copy.
+   * @param dstOffset The offset of the first destination address, in
+   * bytes relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  public final boolean writeBarrier(VM_Address src, int srcOffset,
+				    VM_Address dst, int dstOffset,
+				    int bytes) 
+    throws VM_PragmaInline {
+    if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
+    if (Header.needsToBeLogged(dst))
+      writeBarrierSlow(dst);
+    return false;
+  }
+
+  /**
+   * This object <i>may</i> need to be logged because we <i>may</i>
+   * have been the first to update it.  We can't be sure because of
+   * the (delibrate) lack of synchronization in the
+   * <code>needsToBeLogged()</code> method, which can generate a race
+   * condition.  So, we now use an atomic operation to arbitrate the
+   * race.  If we successful, we will log the object, enumerating its
+   * pointers with the decrement enumerator and marking it as logged.
+   *
+   * @param src The object being mutated.
+   */
   private final void writeBarrierSlow(VM_Address src) 
     throws VM_PragmaNoInline {
     if (VM_Interface.VerifyAssertions)

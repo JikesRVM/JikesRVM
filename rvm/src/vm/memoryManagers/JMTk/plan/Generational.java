@@ -8,6 +8,7 @@ import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.policy.TreadmillSpace;
 import org.mmtk.policy.TreadmillLocal;
+import org.mmtk.utility.AddressPairDeque;
 import org.mmtk.utility.AllocAdvice;
 import org.mmtk.utility.Allocator;
 import org.mmtk.utility.BumpPointer;
@@ -22,6 +23,7 @@ import org.mmtk.utility.MonotoneVMResource;
 import org.mmtk.utility.MMType;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.Scan;
+import org.mmtk.utility.SharedDeque;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.WriteBuffer;
 import org.mmtk.utility.VMResource;
@@ -77,6 +79,9 @@ public abstract class Generational extends StopTheWorldGC
   public static final boolean NEEDS_WRITE_BARRIER = true;
   public static final boolean MOVES_OBJECTS = true;
 
+  // Global pool for shared remset queue
+  private static SharedDeque arrayRemsetPool = new SharedDeque(metaDataRPA, 2);
+
   // virtual memory resources
   protected static MonotoneVMResource nurseryVM;
   protected static FreeListVMResource losVM;
@@ -127,6 +132,8 @@ public abstract class Generational extends StopTheWorldGC
   protected static final VM_Address   NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   protected static final VM_Address      HEAP_END = NURSERY_END;
 
+
+
   /****************************************************************************
    *
    * Instance variables
@@ -138,6 +145,7 @@ public abstract class Generational extends StopTheWorldGC
 
   // write buffer (remembered set)
   protected WriteBuffer remset;
+  protected AddressPairDeque arrayRemset;
 
   /****************************************************************************
    *
@@ -180,6 +188,8 @@ public abstract class Generational extends StopTheWorldGC
     nursery = new BumpPointer(nurseryVM);
     los = new TreadmillLocal(losSpace);
     remset = new WriteBuffer(remsetPool);
+    arrayRemset = new AddressPairDeque(arrayRemsetPool);
+    arrayRemsetPool.newClient();
   }
 
   /**
@@ -420,6 +430,15 @@ public abstract class Generational extends StopTheWorldGC
    * Flush any remembered sets pertaining to the current collection.
    */
   protected final void flushRememberedSets() {
+    arrayRemset.flushLocal();
+    while (!arrayRemset.isEmpty()) {
+      VM_Address start = arrayRemset.pop1();
+      VM_Address guard = arrayRemset.pop2();
+      while (start.LT(guard)) {
+       	remset.insert(start);
+	start = start.add(BYTES_IN_ADDRESS);
+      }
+    }
     remset.flushLocal();
   }
 
@@ -608,6 +627,36 @@ public abstract class Generational extends StopTheWorldGC
       remset.insert(slot);
     }
     VM_Magic.setMemoryAddress(slot, tgt);
+  }
+
+  /**
+   * A number of references are about to be copied from object
+   * <code>src</code> to object <code>dst</code> (as in an array
+   * copy).  Thus, <code>dst</code> is the mutated object.  Take
+   * appropriate write barrier actions.<p>
+   *
+   * In this case, we remember the mutated source address range and
+   * will scan that address range at GC time.
+   *
+   * @param src The source of the values to copied
+   * @param srcOffset The offset of the first source address, in
+   * bytes, relative to <code>src</code> (in principle, this could be
+   * negative).
+   * @param dst The mutated object, i.e. the destination of the copy.
+   * @param dstOffset The offset of the first destination address, in
+   * bytes relative to <code>tgt</code> (in principle, this could be
+   * negative).
+   * @param bytes The size of the region being copied, in bytes.
+   * @return True if the update was performed by the barrier, false if
+   * left to the caller (always false in this case).
+   */
+  public final boolean writeBarrier(VM_Address src, int srcOffset,
+				    VM_Address dst, int dstOffset,
+				    int bytes) 
+    throws VM_PragmaInline {
+    if (dst.LT(NURSERY_START))
+      arrayRemset.insert(dst.add(dstOffset), dst.add(dstOffset + bytes));
+    return false;
   }
 
   /****************************************************************************
