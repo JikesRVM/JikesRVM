@@ -705,6 +705,10 @@ public abstract class BasePlan
    * override.
    */
   public static void harnessBegin() {
+    Options.fullHeapSystemGC = true;
+    System.gc();
+    Options.fullHeapSystemGC = false;
+ 
     insideHarness = true;
     Stats.startAll();
   }
