@@ -1,2 +1,2 @@
-   . $1/FullAdaptivecopyingGC 
+   . $1/FullAdaptiveSemispace
    export RVM_WITHOUT_ASSERTIONS=1 

@@ -1,3 +1,2 @@
    . $1/OptAdaptivecopyingGC 
    export RVM_WITH_ALL_CLASSES=1 
-   export RVM_WITH_ALL_CLASSES=1 
