@@ -1015,6 +1015,12 @@ EOF
     #
     if (( $RVM_WITH_HPM )); then
 	echo $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/hardwarePerformanceMonitors
+ 	echo $RVM_ROOT/rvm/src/vm/HPM
+	if (( RVM_FOR_LINUX )); then
+	    echo $RVM_ROOT/rvm/src/vm/HPM/intel
+	elif (( RVM_FOR_POWERPC )); then
+	    echo $RVM_ROOT/rvm/src/vm/HPM/powerPC
+	fi
     fi
 
     # Add the configuration specific directories
@@ -2239,7 +2245,9 @@ EOF
 	cat << EOF
 com/ibm/JikesRVM/HPM_counters
 com/ibm/JikesRVM/HPM_info
-Lcom/ibm/JikesRVM/Java2HPM;
+com/ibm/JikesRVM/Java2HPM
+com/ibm/JikesRVM/VM_HardwarePerformanceMonitor
+com/ibm/JikesRVM/VM_HardwarePerformanceMonitors
 EOF
     fi
     cat <<- EOF
@@ -2822,7 +2830,7 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	exit 2
     fi
     echo ""
-
+    
     if (( HAS_DLCOMPAT )); then
 	DLCOMPAT_DEFINE_FLAG=-DHAS_DLCOMPAT
     else
@@ -2832,76 +2840,70 @@ gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
     if (( RVM_FOR_POWERPC && ( RVM_FOR_AIX || RVM_FOR_LINUX || RVM_FOR_OSX ) ))
     then
 	cat <<- EOF
-	chdir $BOOTIMAGE_RUNNER_DIR_STR
-
+	chdir $BOOTIMAGE_RUNNER_DIR_STR && \
 	\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -I\${CONFIG_H_DIR}	\
-		-I$BOOTIMAGE_RUNNER_SUBDIR_STR\
+		-I$BOOTIMAGE_RUNNER_SUBDIR_STR                          \
 		\$IMAGE -DRVM_BOOTIMAGE=\\"$BOOTIMAGE_STR\\"		\
 		-o $SCRATCH_DIRECTORY_STR/RunBootImage.o RunBootImage.C
 
 	chdir $BOOTIMAGE_RUNNER_SUBDIR_STR
-
-	\$BOOTER_CXX -c -O -I. -I$SCRATCH_DIRECTORY_STR		\
+	\$BOOTER_CXX -c -O -I. -I$SCRATCH_DIRECTORY_STR		        \
 		-o $SCRATCH_DIRECTORY_STR/initBootRecord.o initBootRecord.C
-	
-	\$CPP -I$SCRATCH_DIRECTORY_STR -P \
+	\$CPP -I$SCRATCH_DIRECTORY_STR -P                               \
 		bootThread.c > $SCRATCH_DIRECTORY_STR/bootThread.s
-
 	\$BOOTER_CXX -c -o $SCRATCH_DIRECTORY_STR/bootThread.o		\
 		$SCRATCH_DIRECTORY_STR/bootThread.s
-
-	\$BOOTER_CXX -c -I. -I$SCRATCH_DIRECTORY_STR \
+	\$BOOTER_CXX -c -I. -I$SCRATCH_DIRECTORY_STR                    \
 		\$IMAGE -DRVM_BOOTIMAGE=\\"$BUILD_DIRECTORY_STR/RVM.image\\" \
 		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C
 EOF
 
 	if (( $RVM_WITH_HPM )); then
 	    cat <<- EOF
-		chdir $BOOTIMAGE_RUNNER_DIR_STR
-		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -DRVM_WITH_HPM=1 \
-		$DLCOMPAT_DEFINE_FLAG \
-		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C
-
 		echo >&2 -n "(build libhpm.a library) "
-
-		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime
-
+		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM/powerPC
 		\$BOOTER_CXX -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
 
-		chdir $SCRATCH_DIRECTORY_STR
-
+		chdir $SCRATCH_DIRECTORY_STR && \
 		\$LDSHARED -o $BUILD_DIRECTORY_STR/libhpm.a hpm.o \
 		  -L"$RVM_HPM_DIR" -lpmapi
 
-		\$BOOTER_CXX -o $BOOTER_STR RunBootImage.o initBootRecord.o libvm.o sys.o bootThread.o \$CCLIBS \
-		  -L"$RVM_HPM_DIR" -lpmapi -L"$BUILD_DIRECTORY_STR" -lhpm
-
+		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM
 		echo >&2 -n "(build libJava2HPM.a JNI library) "
-
-		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime
-
 		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR \
 		  -I$ROOT_DIRECTORY_STR/rvm/src/include \
+		  -I$ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR \
+		  -I$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner \
 		  -o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C
 
 		chdir $SCRATCH_DIRECTORY_STR 
-
 		\$LDSHARED -o $BUILD_DIRECTORY_STR/libJava2HPM.a  Java2HPM.o \
 		   -L"$RVM_HPM_DIR" -lpmapi -L"$BUILD_DIRECTORY_STR" -lhpm \
 		   &> /dev/null
 
+		echo >&2 -n "(build RunBootImage.o) "		
+		chdir $BOOTIMAGE_RUNNER_DIR_STR &&\
+		\$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR -DRVM_WITH_HPM=1 \
+		$DLCOMPAT_DEFINE_FLAG \
+		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C
+
+		chdir ${SCRATCH_DIRECTORY_STR} &&\
+		\$BOOTER_CXX -o $BOOTER_STR RunBootImage.o initBootRecord.o \
+		    libvm.o sys.o bootThread.o \$CCLIBS \
+		    -L"$RVM_HPM_DIR" -lpmapi -L"$BUILD_DIRECTORY_STR" -lhpm
 EOF
 	else
 	    cat <<- EOF
-	chdir ${BOOTIMAGE_RUNNER_DIR_STR} && \
-	  \${BOOTER_CXX} -c -O -I${SCRATCH_DIRECTORY_STR} \
-	  ${DLCOMPAT_DEFINE_FLAG} \
-	    -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
-
-	chdir ${SCRATCH_DIRECTORY_STR} &&\
-	  \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
-	    libvm.o sys.o bootThread.o \${CCLIBS}
-	EOF
+	    echo >&2 -n "(build RunBootImage.o) "		
+	    chdir ${BOOTIMAGE_RUNNER_DIR_STR} &&\
+		\${BOOTER_CXX} -c -O -I${SCRATCH_DIRECTORY_STR} \
+		${DLCOMPAT_DEFINE_FLAG} \
+		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
+	    
+	    chdir ${SCRATCH_DIRECTORY_STR} &&\
+		\${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
+		libvm.o sys.o bootThread.o \${CCLIBS}
+EOF
 	fi
 	echo 'linkedit=1'
 
@@ -2924,41 +2926,81 @@ EOF
 
 	cat <<- EOF
 	chdir ${BOOTIMAGE_RUNNER_DIR_STR}
-
 	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}  -I\${CONFIG_H_DIR} \
-	  \${IMAGE} -DRVM_BOOTIMAGE=\\"${BOOTIMAGE_STR}\\" \
-	  -o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C
+	    \${IMAGE} -DRVM_BOOTIMAGE=\\"${BOOTIMAGE_STR}\\"             \
+	    -o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C
+
+	chdir ${BOOTIMAGE_RUNNER_SUBDIR_STR}
+	\${BOOTER_CXX} -c -I. -I${SCRATCH_DIRECTORY_STR}                 \
+	    -o ${SCRATCH_DIRECTORY_STR}/initBootRecord.o initBootRecord.C
+	\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR}                      \
+	    -o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S
+	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}                     \
+	    -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler   \
+	    -o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C
+	
+	chdir ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler
+	\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}\
+	    -o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C
+	\${BOOTER_CXX} \
+	    -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}           \
+	    -o ${SCRATCH_DIRECTORY_STR}/ihnpdsm.o ihnpdsm.C
+EOF
+	if (( $RVM_WITH_HPM )); then
+	    cat <<- EOF
+	    echo >&2 -n "(build libhpm.a library) "
+	    chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM/intel && \
+		\$BOOTER_CXX -c -O -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
+	    
+	    chdir $SCRATCH_DIRECTORY_STR && \
+	    \$HOST_SHLD -o $BUILD_DIRECTORY_STR/libhpm.a hpm.o \
+		-L"$RVM_HPM_DIR" -lpapi
+	    
+	    echo >&2 -n "(build libJava2HPM.a JNI library) "
+	    chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM && \
+	    \$BOOTER_CXX -c -O -I$SCRATCH_DIRECTORY_STR \
+		-I$ROOT_DIRECTORY_STR/rvm/src/include \
+		-I$ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR \
+		-I$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner \
+		-o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C
+	    
+	    chdir $SCRATCH_DIRECTORY_STR && \
+	    \$HOST_SHLD -o $BUILD_DIRECTORY_STR/libJava2HPM.so  Java2HPM.o \
+		-L"$RVM_HPM_DIR" -lpapi -L"$BUILD_DIRECTORY_STR" -lhpm \
+		&> /dev/null
+	    
+	    echo >&2 -n "(build RunBootImage) "
+	    # -Wno-missing-noreturn is safe in GCC 2.96 and in 3.3.1, but causes
+	    # a warning in g++ 2.96.  So we instead simply extract 
+	    # the -Wmissing-noreturn flag.
+	    chdir ${BOOTIMAGE_RUNNER_DIR_STR} && \
+	    \${BOOTER_CXX//-Wmissing-noreturn/} \
+		-c -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES -DRVM_WITH_HPM=1\
+		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
+	    
+	    chdir $SCRATCH_DIRECTORY_STR && \
+	    \$BOOTER_CXX -o $BOOTER_STR RunBootImage.o initBootRecord.o \
+		sys.o bootThread.o libvm.o disasm.o ihnpdsm.o \$GCSPY_LIBS \${CCLIBS} \
+		-L"$RVM_HPM_DIR" -lpapi -L"$BUILD_DIRECTORY_STR" -lhpm
+	    
+EOF
+	else
+	    cat <<- EOF
 
 	# -Wno-missing-noreturn is safe in GCC 2.96 and in 3.3.1, but causes
 	# a warning in g++ 2.96.  So we instead simply extract 
 	# the -Wmissing-noreturn flag.
-	\${BOOTER_CXX//-Wmissing-noreturn/} \
-	  -c -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES \
-	  -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
-
-	chdir ${BOOTIMAGE_RUNNER_SUBDIR_STR}
-	\${BOOTER_CXX} -c -I. -I${SCRATCH_DIRECTORY_STR} \
-	  -o ${SCRATCH_DIRECTORY_STR}/initBootRecord.o initBootRecord.C
-	\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR} \
-	  -o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S
-	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
-	  -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler \
-	  -o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C
-
-	chdir ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler
-
-	\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR} \
-	  -o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C
-
-	\${BOOTER_CXX} \
-	  -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR} \
-	   -o ${SCRATCH_DIRECTORY_STR}/ihnpdsm.o ihnpdsm.C
-
-	chdir ${SCRATCH_DIRECTORY_STR}
-	\${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
-	    sys.o bootThread.o libvm.o disasm.o ihnpdsm.o \$GCSPY_LIBS \${CCLIBS}
-	linkedit=1
+	    chdir ${BOOTIMAGE_RUNNER_DIR_STR} && \
+	    \${BOOTER_CXX//-Wmissing-noreturn/} \
+		-c -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES \
+		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
+	    
+	    chdir ${SCRATCH_DIRECTORY_STR} && \
+	    \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
+		sys.o bootThread.o libvm.o disasm.o ihnpdsm.o \$GCSPY_LIBS \${CCLIBS}
 EOF
+        fi
+	echo 'linkedit=1'
     else
 	cat <<EOF
 	show_mesg >&2 "I do not know how to link the booter"
