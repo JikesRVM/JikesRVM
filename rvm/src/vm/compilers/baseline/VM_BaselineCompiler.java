@@ -175,7 +175,10 @@ abstract class VM_BaselineCompiler {
       return cm;
     } else {
       VM_CompiledMethod cm = VM_CompiledMethods.createCompiledMethod(method, VM_CompilerInfo.BASELINE);
-      if (!VM.runningAsJDPRemoteInterpreter) {
+      if (VM.runningAsJDPRemoteInterpreter) {
+	// "fake" compilation
+	cm.compileComplete(null, null);
+      } else {
 	new VM_Compiler(cm).compile();
       }
       return cm;
