@@ -580,9 +580,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * @param timerTick   timer interrupted if true
    */ 
   static void morph (boolean timerTick) {
+    VM_Magic.sync();  // to ensure beingDispatched flag written out to memory
     if (trace) VM_Scheduler.trace("VM_Thread", "morph ");
     VM_Thread myThread = getCurrentThread();
-
     if (VM.VerifyAssertions) {
       if (!VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
 	VM.sysWrite("no threadswitching on proc ", VM_Processor.getCurrentProcessor().id);
@@ -591,11 +591,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       VM._assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled(), "thread switching not enabled");
       VM._assert(myThread.beingDispatched == true, "morph: not beingDispatched");
     }
-
     // become another thread
     //
     VM_Processor.getCurrentProcessor().dispatch(timerTick);
-
     // respond to interrupt sent to this thread by some other thread
     //
     if (myThread.externalInterrupt != null && myThread.throwInterruptWhenScheduled) {
