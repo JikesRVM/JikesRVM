@@ -96,62 +96,63 @@ class OPT_LTDominatorInfo {
   }
 
   /**
-   * put your documentation comment here
-   * @param value
+   * Sets the semidominator for this node
+   * @param value the new value
    */
   public void setSemiDominator(int value) {
     semiDominator = value;
   }
 
   /**
-   * put your documentation comment here
-   * @return 
+   * Returns the semidomintor for this node
+   * @return the semidomintor for this node
    */
   public int getSemiDominator() {
     return  semiDominator;
   }
 
   /**
-   * put your documentation comment here
-   * @param value
+   * Sets the immediate dominator for this node
+   * @param value the value to set
    */
   public void setDominator(OPT_BasicBlock value) {
     dominator = value;
   }
 
   /**
-   * put your documentation comment here
-   * @return 
+   * Returns the immediate dominator for this node
+   * @return the immediate dominator for this node
    */
   public OPT_BasicBlock getDominator() {
     return  dominator;
   }
 
   /**
-   * put your documentation comment here
-   * @param value
+   * Sets the parent of this block
+   * @param value the value
    */
   public void setParent(OPT_BasicBlock value) {
     parent = value;
   }
 
   /**
-   * put your documentation comment here
-   * @return 
+   * Returns the parent of this block
+   * @return the parent of this block
    */
   public OPT_BasicBlock getParent() {
     return  parent;
   }
 
   /**
-   * put your documentation comment here
-   * @return 
+   * Returns an iterator over this block's bucket
+   * @return an iterator over this block's bucket
    */
   public java.util.Iterator getBucketIterator() {
     return  bucket.iterator();
   }
 
   /**
+   * Removes the passed block from the bucket for this node
    * @param block the block to remove from the bucket
    */
   public void removeFromBucket(OPT_BasicBlock block) {
@@ -159,6 +160,7 @@ class OPT_LTDominatorInfo {
   }
 
   /**
+   * Adds the passed block from the bucket for this node
    * @param block the block to add to our bucket
    */
   public void addToBucket(OPT_BasicBlock block) {
@@ -166,6 +168,7 @@ class OPT_LTDominatorInfo {
   }
 
   /**
+   * Sets the ancestor for the value passed
    * @param value the ancestor value
    */
   public void setAncestor(OPT_BasicBlock value) {
@@ -173,7 +176,8 @@ class OPT_LTDominatorInfo {
   }
 
   /**
-   * @return the ancestor
+   * Returns the ancestor for this block
+   * @return the ancestor for this block
    */
   public OPT_BasicBlock getAncestor() {
     return  ancestor;
