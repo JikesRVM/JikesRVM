@@ -16,6 +16,8 @@
 #
 /\/bin\/classpath\.stamp/ { next }
 
+/\/_timestamp\/timestamp/ { next }
+
 /\/doc\/userguide\// { next }
 
 /\/regression\/tests\/javalex\/qb1\.lex\.ref/ {next}

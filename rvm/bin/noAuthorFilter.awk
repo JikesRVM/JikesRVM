@@ -15,6 +15,7 @@
 # Search for files that don't have a Javadoc @author tag.
 #
 /\/bin\/classpath.stamp/ { next }
+/\/_timestamp\/timestamp/ { next }
 
 /\/doc\/userguide\// { next }
 
