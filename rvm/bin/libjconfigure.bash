@@ -391,6 +391,7 @@ function cleanline() {
 }
 
 
+##
 ## The code in the rest of this file auto-detects the Bash version.
 ## This will affect anyone who's not running Bash 2.05a or
 ## newer (Bash 2.05a came out in 2001).
@@ -418,45 +419,40 @@ function cleanline() {
 ##
 ## --Steve Augart
 
-
-## Show information about the bad Bash version and make
-## recommendations.
-## Display to standard output; the caller will redirect to stderr.
-function show_your_bad_bash_version() {
-    show_mesg "You are using Bash version ${BASH_VERSION-UNAVAILABLE}, found on your machine in ${BASH-UNAVAILABLE}."
-
-    # If we have any alternative versions, talk about them.
-    local -a bashes=($(type -a bash | awk '/^bash is / && (NF == 3) { print $3; }'))
-    if [[ "${bashes[*]}" != "${BASH-UNAVAILABLE}" ]]; then
-	show_mesg "There are alternative Bash versions available; you may want to reset your PATH variable so that the directory containing a newer version comes before the directory containing this version does.  Here are the versions of Bash you have available, in the order in which they appear in your PATH:"
-	for bash in "${bashes[@]}"; do
-	    echo "${bash} is:"
-	    # Indent the bash version by a few spaces for prettiness
-	    ${bash} --version 2>&1 | sed -e 's/^/   /' 
-	done
-    fi
-    show_mesg "In the mean time, this program will do the best it can.  You can shut up this warning message by invoking $ME with the -quiet command-line flag or by setting the environment variable RVM_JCONFIGURE_DO_NOT_CHECK_BASH_VERSION." 
-}
-
+## Check what Bash version the user is running.   This is the entry point for
+## the Bash version-checking code.
+##
+## Takes no arguments.  Displays messages to stderr if there are problems.  
+## Always returns status zero (success).   
+## The check can be suppressed.
 function check_bash_version() {
     # If we've already performed this check, do not do it again; too many error
     # messages!
     [[ ${RVM_CHECKED_BASH_VERSION-} ]] && return;
-    [[ ${RVM_JCONFIGURE_DO_NOT_CHECK_BASH_VERSION+is_set} ]] && return;
-
     export RVM_CHECKED_BASH_VERSION=1
+
+    ## The user may request that this check be suppressed.  Honor 
+    ## her or or his request. 
+    [[ ${RVM_JCONFIGURE_DO_NOT_CHECK_BASH_VERSION+is_set} ]] && return;
 
     local -r recommend_bash="We recommend Bash 2.05a or later"
 
-    # First, look for Bash version 2.05 (or earlier).
-    if [[ ! $BASH_VERSINFO ]]; then
+    ## The checks against Bash 2.03 and earlier are now redundant with a
+    ## similar check in jconfigure itself.  They do no harm.
+    if [[ ! ${BASH_VERSINFO-} ]]; then
 	show_mesg "You are using a very old version of Bash, one that even lacks the BASH_VERSINFO variable.  Expect trouble.  ${recommend_bash}."
 	show_your_bad_bash_version;
 	return 0;
     fi >&2
 
+    ## check_BASH_VERSINFO() generates a message describing the gripe.
+    ## We save that message into the variable "msg".
+
+    ## We use an explicit temporary file here in order to avoid problems
+    ## with the expansion of the quoted array variable BASH_VERSINFO.  We do 
+    ## not pipe the output into "read" because we need to get the error status
+    ## from check_BASH_VERSINFO().
     local -r tmpfile=/tmp/bash-vers.$$
-    
     check_BASH_VERSINFO "${BASH_VERSINFO[@]}" > ${tmpfile}
     local -i retcode=$?
     local -r msg="$(< $tmpfile)"
@@ -483,11 +479,15 @@ function check_bash_version() {
 # Passes this up to the caller so that the caller can print additional
 #  diagnostic messages and make suggestions.  
 
-# Error messages to stdout; the caller pastes them into a whole.
+# A descriptive message should go to stdout.   The caller uses that message
+# as part of its longer error messages.
 
 function check_BASH_VERSINFO () {
-    if (( $# != 6 )); then
-	echo "You are using a version of Bash that does not have six components in the BASH_VERSINFO array variable.  This is not at all what this program expects."
+
+    # This is a pure sanity check; in all Bash versions with the 
+    # BASH_VERSINFO variable, that variable has at least five components.
+    if (( $# < 2 )); then
+	echo "You are using a version of Bash that does not have at least two components in the BASH_VERSINFO array variable.  This is not at all what this program expects.  Maybe you're not running Bash?"
 	return 2;
     fi
     
@@ -522,21 +522,41 @@ function check_BASH_VERSINFO () {
     if [[ $2 != "${minor_numbers}${minor_letters}" ]]; then
 # insane_version_number
 # return 1
-	echo "The Bash minor version number is '$2', which is in a format that this program does not understand."
+	echo "The Bash minor version number is '$2', which is in a format that this program does not understand.  This is bad."
 	return 2;
     fi
 
     if (( $minor_numbers < 5 )); then
-	echo "You are using an old version of Bash, from before version 2.05 came out."
+	echo "You are using an old 2.x version of Bash, from before version 2.05 came out."
 	return 1;
     fi
 
     if [[ $2 = 05 ]]; then
-	echo "You are using Bash 2.05, which goes into an infinite loop approximately one out of every five times we use it to run 'jconfigure'."
+	echo "You are using Bash 2.05, which can unpredictably go into an infinite loop when it runs 'jconfigure'.  This loop is triggered by apparently unrelated changes to the 'jconfigure' source code.  This may work for you anyway; you will know if there are problems."
 	return 1
     fi
 
     return 0
+}
+
+
+## Show information about the bad Bash version and make
+## recommendations.
+## Display to standard output; the caller will redirect to stderr.
+function show_your_bad_bash_version() {
+    show_mesg "You are using Bash version ${BASH_VERSION-UNAVAILABLE}, found on your machine in ${BASH-UNAVAILABLE}."
+
+    # If we have any alternative versions, talk about them.
+    local -a bashes=($(type -a bash | awk '/^bash is / && (NF == 3) { print $3; }'))
+    if [[ "${bashes[*]}" != "${BASH-UNAVAILABLE}" ]]; then
+	show_mesg "There are alternative Bash versions available; you may want to reset your PATH variable so that the directory containing a newer version comes before the directory containing this version does.  Here are the versions of Bash you have available, in the order in which they appear in your PATH:"
+	for bash in "${bashes[@]}"; do
+	    echo "${bash} is:"
+	    # Indent the bash version by a few spaces for prettiness
+	    ${bash} --version 2>&1 | sed -e 's/^/   /' 
+	done
+    fi
+    show_mesg "In the mean time, this program will do the best it can.  You can shut up this warning message by invoking $ME with the -quiet command-line flag or by setting the environment variable RVM_JCONFIGURE_DO_NOT_CHECK_BASH_VERSION." 
 }
 
 
