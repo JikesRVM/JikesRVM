@@ -9,7 +9,7 @@
  * @author Maria Butrico
  * @author Anthony Cocchi
  */
-public class VM_Compiler implements VM_BaselineConstants {
+public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConstants {
 
   //-----------//
   // interface //
@@ -76,31 +76,6 @@ public class VM_Compiler implements VM_BaselineConstants {
      return exceptionDeliverer;
   }
 
-  static VM_BASEOptions options;                   //  Options used during base compiler execution
-  static VM_BASEOptions setUpOptions;              //  Holds the options as the command line is being
-                                                   //  processed. 
-
-  static void bootOptions() {
-    options = new VM_BASEOptions();
-    setUpOptions = new VM_BASEOptions();
-  }
-
-  static void postBootOptions() {
-    // If the user has requested machine code dump, then they must restrict the printing to one
-    // or more methods. 
-    //    if (setUpOptions.PRINT_MACHINECODE && ! setUpOptions
-
-    // If the user has requested machine code dumps, then force a test of method to print option so
-    // extra classes needed to process matching will be loaded and compiled upfront. Thus avoiding getting
-    // stuck looping by just asking if we have a match in the middle of compilation. Pick an obsure string
-    // for the check.
-    if (setUpOptions.PRINT_MACHINECODE) {
-      if (setUpOptions.hasMETHOD_TO_PRINT() && setUpOptions.fuzzyMatchMETHOD_TO_PRINT("???")) {
-	VM.sysWrite("??? is not a sensible string to specify for method name");
-      }
-    }
-    options = setUpOptions;   // Switch to the version with the user command line processed
-  }
 
 
   //----------------//
