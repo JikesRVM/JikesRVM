@@ -51,12 +51,16 @@ class VM_TraceWriter extends VM_Thread
    * The producer associated with this consumer.
    * May be null if the consumer has no associated producer.
    */
-  private  VM_HardwarePerformanceMonitor producer;
+  private  VM_HardwarePerformanceMonitor hpm;
 
   /**
    * A queue to hold the consumer thread when it isn't executing
    */
   private   VM_ThreadQueue tq = new VM_ThreadQueue(0);
+
+  // Flag for when to close the trace file.
+  // At notifyExit time, producer sets flag to true.
+  public boolean notifyExit = false;
 
   /**
    * Called when thread is scheduled.
@@ -65,11 +69,24 @@ class VM_TraceWriter extends VM_Thread
     initialize();
     while (true) {
       passivate(); // wait until externally scheduled to run
-      try {
-	thresholdReached();       // we've been scheduled; do our job!
-      } catch (Exception e) {
-	e.printStackTrace();
-	VM.sysFail("Exception in VM_ConsumerThread "+this);
+      if (notifyExit == true) {
+	// Only called once from producer when notify exit occurs.
+	// Flush current buffer
+	if(VM_HardwarePerformanceMonitors.verbose>=1)
+	  VM.sysWriteln("VM_TraceWriter.thresholdReached() notifyExit flush current buffer ",
+			hpm.getNameOfCurrentBuffer());
+	byte[] buffer = hpm.getCurrentBuffer();
+	int    index  = hpm.getCurrentIndex();
+	writeFileOutputStream(buffer, index);
+	closeFileOutputStream();
+
+      } else {
+	try {
+	  thresholdReached();       // we've been scheduled; do our job!
+	} catch (Exception e) {
+	  e.printStackTrace();
+	  VM.sysFail("Exception in VM_ConsumerThread "+this);
+	}
       }
     } 
   }
@@ -82,10 +99,6 @@ class VM_TraceWriter extends VM_Thread
   private int pid                = 0;
   public int getPid() throws VM_PragmaUninterruptible { return pid; }
 
-  // Flag for when to close the trace file.
-  // At notifyExit time, producer sets flag to true.
-  public boolean notifyExit = false;
-
   /**
    * Start consuming.
    * Called (by producer) to activate the consumer thread (i.e. schedule it for execution).
@@ -93,10 +106,6 @@ class VM_TraceWriter extends VM_Thread
   public void activate() throws VM_PragmaUninterruptible 
   {
     if (active == true) {
-      if (notifyExit) {
-	// handled in thresholdReached
-	return;
-      }
       VM.sysWriteln("***VM_TraceWriter.activate() active == true!  PID ",
 		    ((VM_TraceWriter)this).getPid(),"***");
       VM.shutdown(VM.exitStatusMiscTrouble);
@@ -144,11 +153,11 @@ class VM_TraceWriter extends VM_Thread
     if(VM_HardwarePerformanceMonitors.verbose>=2) {
       VM.sysWriteln("VM_TraceWriter(",pid,") constructor");
     }
-    this.producer = producer;
+    this.hpm = producer;
     this.pid      = pid;
     // virtual processor that this thread wants to run on!
     processorAffinity = VM_Scheduler.processors[pid];
-    producer.setConsumer(this);
+    hpm.setConsumer(this);
     if (VM_HardwarePerformanceMonitors.hpm_trace) {
       setupCallbacks();
     }
@@ -172,28 +181,13 @@ class VM_TraceWriter extends VM_Thread
    */
   void thresholdReached() 
   {
-    VM_HardwarePerformanceMonitor hpm = (VM_HardwarePerformanceMonitor)producer;
-    if (notifyExit == true) {
-      // flush current buffer
-      if(VM_HardwarePerformanceMonitors.verbose>=4)
-	VM.sysWriteln("VM_TraceWriter.thresholdReached() notifyExit flush current buffer ",
-		      hpm.getNameOfCurrentBuffer());
-      byte[] buffer = hpm.getCurrentBuffer();
-      int    index  = hpm.getCurrentIndex();
-      writeFileOutputStream(buffer, index);
-      closeFileOutputStream();
-    } else {
-      // flush full buffer
-      if(VM_HardwarePerformanceMonitors.verbose>=4)
-	VM.sysWriteln("VM_TraceWriter.thresholdReached() write full buffer ",hpm.getNameOfFullBuffer());
-      byte[] buffer = hpm.getFullBuffer();
-      int    index  = hpm.getFullIndex();
-      writeFileOutputStream(buffer, index);
-      hpm.resetFull();    
-      if (notifyExit == true) {
-	thresholdReached();
-      }
-    }
+    // flush full buffer
+    if(VM_HardwarePerformanceMonitors.verbose>=4)
+      VM.sysWriteln("VM_TraceWriter.thresholdReached() write full buffer ",hpm.getNameOfFullBuffer());
+    byte[] buffer = hpm.getFullBuffer();
+    int    index  = hpm.getFullIndex();
+    writeFileOutputStream(buffer, index);
+    hpm.resetFull();    
   }
 
   /*
@@ -226,10 +220,10 @@ class VM_TraceWriter extends VM_Thread
       e.printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
     } 
     writeHeader();
-    ((VM_HardwarePerformanceMonitor)producer).resetCurrent();
+    hpm.resetCurrent();
 
     // tell producer it is okay to produce
-    ((VM_HardwarePerformanceMonitor)producer).activate();
+    hpm.activate();
   }
   /*
    * Write header information whenever a HPM OutputFileStream is opened!
@@ -309,7 +303,7 @@ class VM_TraceWriter extends VM_Thread
     trace_file = null;
 
     if(VM_HardwarePerformanceMonitors.verbose>=2){
-      ((VM_HardwarePerformanceMonitor)producer).dumpStatistics();
+      hpm.dumpStatistics();
     }
   }
 
@@ -375,7 +369,7 @@ class VM_TraceWriter extends VM_Thread
 	VM.sysExit(-1);
       }
 
-      ((VM_HardwarePerformanceMonitor)producer).notifyExit(value);
+      hpm.notifyExit(value);
     }
   }
 
@@ -395,7 +389,7 @@ class VM_TraceWriter extends VM_Thread
 	return;
 	//	VM.sysExit(-1);
       }
-      ((VM_HardwarePerformanceMonitor)producer).notifyAppStart(app);
+      hpm.notifyAppStart(app);
     }
   }
   /**
@@ -415,7 +409,7 @@ class VM_TraceWriter extends VM_Thread
 	return;
 	//	VM.sysExit(-1);
       }
-      ((VM_HardwarePerformanceMonitor)producer).notifyAppComplete(app);
+      hpm.notifyAppComplete(app);
     }
   }
   /**
@@ -440,7 +434,7 @@ class VM_TraceWriter extends VM_Thread
 	return;
 	// VM.sysExit(-1);
       }
-      ((VM_HardwarePerformanceMonitor)producer).notifyAppRunStart(app,run);
+      hpm.notifyAppRunStart(app,run);
     } 
   }
   /**
@@ -461,7 +455,7 @@ class VM_TraceWriter extends VM_Thread
 	return;
 	//	VM.sysExit(-1);
       }
-      ((VM_HardwarePerformanceMonitor)producer).notifyAppRunComplete(app,run);
+      hpm.notifyAppRunComplete(app,run);
     }
   }
   /**
