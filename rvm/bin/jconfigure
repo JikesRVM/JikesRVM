@@ -1686,9 +1686,9 @@ function emitImageLinker
    print "   $HOST_JAR_STR tf rvmrt.jar > $PRIMORDIAL_CLASSES_STR.3"
    print "   \$FIND . -name '*.class' -print | \$SED 's@^\./@@' >> $PRIMORDIAL_CLASSES_STR.3"
    print "   \$FGREP -f $PRIMORDIAL_CLASSES_STR.2 $PRIMORDIAL_CLASSES_STR.3 | \$SED 's@\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
-   #print "   rm $PRIMORDIAL_CLASSES_STR.1"
-   #print "   rm $PRIMORDIAL_CLASSES_STR.2"
-   #print "   rm $PRIMORDIAL_CLASSES_STR.3"
+   print "   rm $PRIMORDIAL_CLASSES_STR.1"
+   print "   rm $PRIMORDIAL_CLASSES_STR.2"
+   print "   rm $PRIMORDIAL_CLASSES_STR.3"
 
    # 
    # (4) Add Array types.  NOTE: These must be in internal form.
