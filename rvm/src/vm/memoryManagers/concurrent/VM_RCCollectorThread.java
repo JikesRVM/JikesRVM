@@ -60,7 +60,7 @@ class VM_RCCollectorThread extends VM_CollectorThread
 	
 	if (trace) VM_Scheduler.trace("VM_RCCollectorThread", "starting collection");
 	
-	VM_Allocator.gc_collect();     // PERFORM GARBAGE COLLECTION TASKS
+	VM_Allocator.collect();     // PERFORM GARBAGE COLLECTION TASKS
 	
 	if (trace) VM_Scheduler.trace("VM_RCCollectorThread", "finished collection");
 	

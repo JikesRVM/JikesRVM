@@ -122,7 +122,7 @@ public class VM_Allocator
     static int bytesInUseTotal;
     static int bytesInUseMax;
 
-    static int gcCount;				    // updated every entry to gc_collect
+    static int gcCount;				    // updated every entry to collect
 
     static int[] allocated_since_lastgc;	    // used to count allocations between gc
     static int[] countLive;			    // for stats - count # live objects in bin
@@ -1746,7 +1746,7 @@ public class VM_Allocator
 	if (GC_TIMING) time = VM_Time.now();
 
 	// Tell gc thread to reclaim space, then wait for it to complete its work.
-	// The gc thread will do its work by calling gc_collect(), below.
+	// The gc thread will do its work by calling collect(), below.
 	//
 	VM_CollectorThread.collect(VM_CollectorThread.collect);
 
@@ -1758,7 +1758,7 @@ public class VM_Allocator
     }
 
     static void
-    gc_collect () {
+    collect () {
 	double scanStart, scanEnd, bufferEnd;
 
 	VM_RCCollectorThread t = VM_Magic.threadAsRCCollectorThread(VM_Thread.getCurrentThread());
