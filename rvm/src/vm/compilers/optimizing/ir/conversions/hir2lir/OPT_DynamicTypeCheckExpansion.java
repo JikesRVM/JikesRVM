@@ -59,12 +59,14 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         branchCondition ? fallThroughBB : branchBB;
       OPT_BasicBlock trueBranch = 
         branchCondition ? branchBB : fallThroughBB;
+      OPT_BranchProfileOperand bp = IfCmp.getClearBranchProfile(next);
+      if (branchCondition) bp = bp.flip();
       OPT_Instruction nullComp = 
         IfCmp.create(REF_IFCMP, oldGuard.copyRO(), ref.copy(), 
                      new OPT_NullConstantOperand(),
                      OPT_ConditionOperand.EQUAL(), 
                      falseBranch.makeJumpTarget(),
-                     new OPT_BranchProfileOperand());
+                     OPT_BranchProfileOperand.unlikely());
       s.insertBefore(nullComp);
       OPT_BasicBlock myBlock = s.getBasicBlock();
       OPT_BasicBlock instanceOfBlock = myBlock.splitNodeAt(nullComp, ir);
@@ -73,7 +75,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       ir.cfg.linkInCodeOrder(myBlock, instanceOfBlock);
       OPT_RegisterOperand RHStib = getTIB(s, ir, ref, oldGuard.copyRO());
       return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, 
-                                        trueBranch, falseBranch, oldGuard);
+                                        trueBranch, falseBranch, oldGuard, bp);
     } else {
       // Not a branching pattern
       OPT_RegisterOperand guard = ir.regpool.makeTempValidation();
@@ -138,10 +140,12 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard);
       if (branchCondition) {
         return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, branchBB, 
-                                          fallThroughBB, oldGuard);
+                                          fallThroughBB, oldGuard,
+					  IfCmp.getClearBranchProfile(next).flip());
       } else {
         return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, 
-                                          fallThroughBB, branchBB, oldGuard);
+                                          fallThroughBB, branchBB, oldGuard,
+					  IfCmp.getClearBranchProfile(next));
       }
     } else {
       // Not a branching pattern
@@ -190,7 +194,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     failBlock.appendInstruction(raiseError);
     OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard.copyD2U());
     return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, succBlock, 
-                                      failBlock, null);
+                                      failBlock, null, OPT_BranchProfileOperand.never());
   }
 
 
@@ -220,7 +224,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     failBlock.appendInstruction(raiseError);
     OPT_RegisterOperand RHStib = getTIB(s, ir, ref, guard);
     return generateBranchingTypeCheck(s, ir, ref, LHStype, RHStib, succBlock, 
-                                      failBlock, null);
+                                      failBlock, null, OPT_BranchProfileOperand.never());
   }
 
 
@@ -652,7 +656,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     falseBlock.appendInstruction(Move.create(INT_MOVE, result.copyD2D(), 
                                              I(0)));
     return generateBranchingTypeCheck(s, ir, RHSobj, LHStype, RHStib, trueBlock, 
-                                      falseBlock, null);
+                                      falseBlock, null, new OPT_BranchProfileOperand());
   }
 
   /** 
@@ -671,6 +675,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    *                   evaluates to true
    * @param falseBlock The OPT_BasicBlock to continue at if the typecheck 
    *                   evaluates to false.
+   * @param falseProb   The probability that typecheck will branch to the falseBlock
    * @return the opt instruction immediately before the instruction to 
    *         continue expansion.
    */
@@ -681,7 +686,8 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                             OPT_RegisterOperand RHStib, 
                                                             OPT_BasicBlock trueBlock, 
                                                             OPT_BasicBlock falseBlock,
-                                                            OPT_RegisterOperand oldGuard) {
+                                                            OPT_RegisterOperand oldGuard,
+							    OPT_BranchProfileOperand falseProb) {
     OPT_Instruction continueAt = Goto.create(GOTO, trueBlock.makeJumpTarget());
     continueAt.copyPosition(s);
     s.insertBefore(continueAt);
@@ -709,7 +715,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
               IfCmp.create(INT_IFCMP, oldGuard, doesImplLength, I(interfaceIndex),
                            OPT_ConditionOperand.LESS_EQUAL(), 
                            falseBlock.makeJumpTarget(),
-                           new OPT_BranchProfileOperand());
+                           OPT_BranchProfileOperand.unlikely());
             continueAt.insertBefore(lengthCheck);
             OPT_BasicBlock oldBlock = continueAt.getBasicBlock();
             oldBlock.splitNodeWithLinksAt(lengthCheck, ir);
@@ -726,7 +732,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                bit, I(0),
                                                OPT_ConditionOperand.EQUAL(), 
                                                falseBlock.makeJumpTarget(),
-                                               new OPT_BranchProfileOperand()));
+                                               falseProb));
           return continueAt;
         } else {
           // A resolved class (cases 5 and 6 in VM_DynamicTypeCheck)
@@ -738,7 +744,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                  RHStib, classTIB,
                                                  OPT_ConditionOperand.NOT_EQUAL(), 
                                                  falseBlock.makeJumpTarget(),
-                                                 new OPT_BranchProfileOperand()));
+                                                 falseProb));
             return continueAt;
           } else {
             // Do the full blown case 5 or 6 typecheck.
@@ -756,7 +762,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                 IfCmp.create(INT_IFCMP, oldGuard, superclassIdsLength, I(LHSDepth),
                              OPT_ConditionOperand.LESS(), 
                              falseBlock.makeJumpTarget(),
-                             new OPT_BranchProfileOperand());
+                             OPT_BranchProfileOperand.unlikely());
               continueAt.insertBefore(lengthCheck);
               OPT_BasicBlock oldBlock = continueAt.getBasicBlock();
               oldBlock.splitNodeWithLinksAt(lengthCheck, ir);
@@ -771,7 +777,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                  refCandidate, I(LHSId),
                                                  OPT_ConditionOperand.NOT_EQUAL(), 
                                                  falseBlock.makeJumpTarget(),
-                                                 new OPT_BranchProfileOperand()));
+                                                 falseProb));
             return continueAt;
           }
         }
@@ -791,7 +797,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                              result.copyD2U(), I(0),
                                              OPT_ConditionOperand.EQUAL(), 
                                              falseBlock.makeJumpTarget(),
-                                             new OPT_BranchProfileOperand()));
+                                             falseProb));
         return continueAt;
       }
     }
@@ -811,9 +817,10 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                RHStib, classTIB,
                                                OPT_ConditionOperand.NOT_EQUAL(), 
                                                falseBlock.makeJumpTarget(),
-                                               new OPT_BranchProfileOperand()));
+                                               falseProb));
           return continueAt;
         }
+	// TODO: branch probability calculation is somewhat bogus for this case.
         OPT_Instruction shortcircuit = 
           IfCmp.create(REF_IFCMP, oldGuard, RHStib, classTIB,
                        OPT_ConditionOperand.EQUAL(), 
@@ -835,10 +842,10 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
             IfCmp2.create(INT_IFCMP2, oldGuard, rhsDimension, lhsDimension,
                           OPT_ConditionOperand.GREATER(), 
                           trueBlock.makeJumpTarget(),
-                          new OPT_BranchProfileOperand(),
+                          ((OPT_BranchProfileOperand)falseProb.copy()).flip(),
                           OPT_ConditionOperand.LESS(), 
                           falseBlock.makeJumpTarget(),
-                          new OPT_BranchProfileOperand());
+                          falseProb);
           continueAt.insertBefore(dimTest);
           OPT_BasicBlock testBlock = 
             mainBlock.splitNodeWithLinksAt(dimTest, ir);
@@ -853,7 +860,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                                I(0),
                                                OPT_ConditionOperand.NOT_EQUAL(), 
                                                falseBlock.makeJumpTarget(),
-                                               new OPT_BranchProfileOperand()));
+                                               falseProb));
           return continueAt;
         }
       } 
@@ -870,7 +877,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
                                            callResult.copyD2U(), I(0),
                                            OPT_ConditionOperand.EQUAL(), 
                                            falseBlock.makeJumpTarget(),
-                                           new OPT_BranchProfileOperand()));
+                                           falseProb));
       return continueAt;
     }
     OPT_OptimizingCompilerException.UNREACHABLE();
