@@ -931,6 +931,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     if (VM.VerifyAssertions) VM._assert(inst.getOpcode() == IR_PROLOGUE_opcode);
     inst.insertBefore(Empty.create(IR_ENDPROLOGUE));
     inst.remove();
+    ir.MIRInfo.gcIRMap.delete(inst);
   }
 
   /**
