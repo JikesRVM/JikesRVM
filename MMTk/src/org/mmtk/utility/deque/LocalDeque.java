@@ -222,7 +222,8 @@ public class LocalDeque extends LocalSSB
       VM_Address tmp = queue.dequeueAndWait(arity);
       head = (tmp.isZero() ? sentinelAsAddress : tmp);
     }
-    return !isReset();
+    // return true if a) there is a head buffer, and b) it is non-empty
+    return ((!isReset()) && (!(bufferOffset(head).isZero())));
   }
 
   /**
