@@ -70,5 +70,4 @@ $(GEN_FILES_DIR)/OPT_Assembler.java:	Makefile $(SCRATCH_DIR)/GenerateAssembler.j
 	$(HOST_VM_RT) -cp $(SCRATCH_DIR) -DgenerateToDir=$(GEN_FILES_DIR) GenerateAssembler
 
 clean:
-	echo $(RM) $(FAKE_SRC) $(FAKE_CLS)
 	$(RM) $(FAKE_SRC) $(FAKE_CLS) 
