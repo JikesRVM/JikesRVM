@@ -100,13 +100,36 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     map = compiledMethod.getMCMap();
     mapIndex = map.findGCMapIndex(instructionOffset);
     if (mapIndex == VM_OptGCMap.ERROR) {
-      VM.sysWrite("VM_OptMachineCodeMap: findGCMapIndex failed\n");
-      VM.sysWrite("Method: ");
+      if (instructionOffset < 0) {
+	VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with negative instructionOffset", instructionOffset);
+      } else {
+	int possibleLen = cm.getInstructions().length << VM.LG_INSTRUCTION_WIDTH;
+	if (possibleLen < instructionOffset) {
+	  VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with too big of an instructionOffset");
+	  VM.sysWriteln("offset is", instructionOffset, " bytes of machine code for method ",possibleLen);
+	} else {
+	  VM.sysWriteln("VM_OptGenericGCMapIterator.setupIterator called with apparently valid offset, but no GC map found!");
+	  VM.sysWrite("Method: ");
+	  VM.sysWrite(compiledMethod.getMethod());
+	  VM.sysWrite(", Machine Code (MC) Offset: ");
+	  VM.sysWriteln(instructionOffset);
+	  VM.sysFail("VM_OptGenericMapIterator: findGCMapIndex failed\n");
+	}
+      }
+      VM.sysWrite("Supposed method: ");
       VM.sysWrite(compiledMethod.getMethod());
-      VM.sysWrite(", Machine Code (MC) Offset: ");
-      VM.sysWrite(instructionOffset);
-      VM.sysWrite("\n");
-      VM.sysFail("VM_OptGenericMapIterator: findGCMapIndex failed\n");
+      VM.sysWriteln("\nBase of its code array", VM_Magic.objectAsAddress(cm.getInstructions()).toInt());
+      int ra = VM_Magic.objectAsAddress(cm.getInstructions()).toInt() + instructionOffset;
+      VM.sysWriteln("Calculated actual return address is ", ra);
+      VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(VM_Address.fromInt(ra));
+      if (realCM == null) {
+	VM.sysWriteln("Unable to find compiled method corresponding to this return address");
+      } else {
+	VM.sysWrite("Found compiled method ");
+	VM.sysWrite(realCM.getMethod());
+	VM.sysWriteln(" whose code contains this return address");
+      }
+      VM.sysFail("VM_OptGenericMapIterator: setupIterator failed\n");
     }
 
     // save the frame pointer
