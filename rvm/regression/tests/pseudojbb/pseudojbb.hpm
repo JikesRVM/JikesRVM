@@ -38,15 +38,15 @@ if [[ $# = 0 || $1 = -help || $# < 1 ]]; then
     setting       What events to count.  Default is 1.
                    630 : 1 
 		   604e: 2 tlb, 3 cache, 4 ld/st, 5 branch, 6 floating-point, 7 general
-		   Power4: 400*SLICE0                  402*BASIC      403*IFU        404*ISU
-			   405*LSOURCE   406*ISOURCE   407*LSU        408*XLATE1     409*XLATE2
-		                                                                     414*FPU1
-			   415*FPU2      416 IDU1      417*IDU2       418*ISU_RENAM  419*ISU_Q
-		           420 ISU_FLOW                422*SERIALIZE  423*LSU BUSY   424 LSOURCE2
-			   425 LSOURCE3  426 ISOURCE2  427 ISOURCE3   428*FPU3       429*FPU4
-			   430*FPU5      431*FPU6      432*FPU7       433*FXU        434*LSU_LMQ
-			   435 LSU_FLUSH 436*LSU_LOAD1 437*LSU_STORE1 438 LSU_STORE2 439*LSU7
-					 441*MISC
+		   Power4: 400 SLICE0                  402 BASIC      403 IFU        404 ISU
+			   405*LSOURCE   406 ISOURCE   407 LSU        408 XLATE1     409 XLATE2
+		                                                                     414 FPU1
+			   415 FPU2      416 IDU1      417 IDU2       418 ISU_RENAM  419 ISU_Q
+		           420 ISU_FLOW                422 SERIALIZE  423 LSU BUSY   424*LSOURCE2
+			   425 LSOURCE3  426 ISOURCE2  427 ISOURCE3   428 FPU3       429 FPU4
+			   430 FPU5      431 FPU6      432 FPU7       433 FXU        434*LSU_LMQ
+			   435 LSU_FLUSH 436 LSU_LOAD1 437 LSU_STORE1 438 LSU_STORE2 439*LSU7
+					 441 MISC      446*MARK_LSOURCE
 					               452 THRESHOLD
 		           455 branch    456 L1 & TLB  457 L2         458 L3
     mode          Mode: 1 IS_GROUP, 2 PROCESS, 4 KERNEL, 8 USER, 16 COUNT, 32 PROCTREE
@@ -300,7 +300,7 @@ elif [[ $setting = 425 ]]; then
   hpm_event1=25
   setting=25
 elif [[ $setting = 427 ]]; then
-  # Group  27   pm_isource3		Instruction Source Information*
+  # Group  27   pm_isource3		Instruction Source Information 
   #  1 INST_FROM_MEM      2 INST_FROM_L5_L275  3 INST_FROM_L2       4 INST_FROM_L35
   #  5 INST_FROM_L3       6 INST_FROM_L1       7 CYC                8 INST_CMPL
   machine_type="P4"
@@ -473,7 +473,7 @@ echo -e "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event
 
 logging_level=1
 smallHeap=800
-hpm_verbose=5
+hpm_verbose=1
 trace_verbose=0
 ###############################
 # set up command line arguments
