@@ -433,8 +433,14 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return <code>true</code> if a reference of the type is
    * inherently acyclic
    */
-  public static boolean isAcyclic(Object[] tib) {
-    return VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]).isAcyclicReference();
+  public static boolean isAcyclic(Object[] tib) throws VM_PragmaInline {
+    Object type;
+    if (true) {
+      type = VM_Magic.getObjectAtOffset(tib, TIB_TYPE_INDEX);
+    } else {
+      type = tib[TIB_TYPE_INDEX];
+    }
+    return VM_Magic.objectAsType(type).isAcyclicReference();
   }
  
   /***********************************************************************
