@@ -758,16 +758,20 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     // system queues	
     writeString("\n-- System Queues -- \n");   wakeupQueue.dump();
-    writeString(" wakeupQueue:");   wakeupQueue.dump();
-    writeString(" debuggerQueue:"); debuggerQueue.dump();
-    writeString(" deadVPQueue:");     deadVPQueue.dump();
-    writeString(" collectorQueue:");   collectorQueue.dump();
-    writeString(" finalizerQueue:");   finalizerQueue.dump();
-    writeString(" nativeProcessorQueue:");   nativeProcessorQueue.dump();
+    writeString(" wakeupQueue: ");   wakeupQueue.dump();
+    writeString(" debuggerQueue: "); debuggerQueue.dump();
+    writeString(" deadVPQueue: ");     deadVPQueue.dump();
+    writeString(" collectorQueue: ");   collectorQueue.dump();
+    writeString(" finalizerQueue: ");   finalizerQueue.dump();
+    writeString(" nativeProcessorQueue: ");   nativeProcessorQueue.dump();
 
     writeString("\n-- Threads --\n");
-    for (int i = 1; i < threads.length; ++i)
-      if (threads[i] != null) threads[i].dump();
+    for (int i = 1; i < threads.length; ++i) {
+      if (threads[i] != null) {
+	threads[i].dump();
+	writeString("\n");
+      }
+    }
     writeString("\n");
 
     writeString("\n-- Locks available --\n");
@@ -784,7 +788,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     writeString("\n-- Locks in use --\n");
     for (int i = 0; i < locks.length; ++i)
-      if (locks[i] != null) locks[i].dump();
+      if (locks[i] != null)
+	locks[i].dump();
     writeString("\n");
   }
 
