@@ -105,7 +105,7 @@ implements OPT_PhysicalRegisterConstants {
                                       I(20), null);         // TODO: valid location?
     s.insertBack(s2);
     s.insertBack(Move.create(INT_MOVE, ir.regpool.makeJTOCOp(ir,s), toc));
-    Call.mutate0(s, CALL, Call.getClearResult(s), ip, null);
+    Call.mutate0(s, SYSCALL, Call.getClearResult(s), ip, null);
     s2 = Load.create(INT_LOAD, ir.regpool.makeJTOCOp(ir,s), ir.regpool.makeFPOp(),
                      I(20), null);         // TODO: valid location?
     s.insertFront(s2);
@@ -224,6 +224,9 @@ implements OPT_PhysicalRegisterConstants {
     OPT_Instruction prev = s.prevInstructionInCodeOrder();
     OPT_Register FP = phys.getFP();
     OPT_Register JTOC = phys.getJTOC();
+    boolean isSysCall = ir.stackManager.isSysCall(s);
+    boolean firstLongHalf = false;
+
     // (1) Expand parameters
     for (int opNum = 0; opNum < NumberParams; opNum++) {
       OPT_Operand param = MIR_Call.getClearParam(s, opNum);
@@ -261,6 +264,20 @@ implements OPT_PhysicalRegisterConstants {
           MIR_Call.setParam(s, opNum, null);
         }
       } else {                    // IntType (or half of long) or reference
+        //-#if RVM_FOR_LINUX
+        /* NOTE: following adjustment is not stated in SVR4 ABI, but 
+         * was implemented in GCC.
+         */
+        if (isSysCall && Reg.type.isLongType()) {
+          if (firstLongHalf)
+            firstLongHalf = false;
+          else {
+            int true_index = FIRST_INT_PARAM + int_index;
+            int_index += (true_index + 1) & 0x01; // if gpr is even, gpr += 1
+            firstLongHalf = true;
+          }
+        }
+        //-#endif
         if (int_index < NUMBER_INT_PARAM) {             // register copy
           OPT_Register real = phys.get(FIRST_INT_PARAM + (int_index++));
           OPT_RegisterOperand Real = new OPT_RegisterOperand(real, Reg.type);

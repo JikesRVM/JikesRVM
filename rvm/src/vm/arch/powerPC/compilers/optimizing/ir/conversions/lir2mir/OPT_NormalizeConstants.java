@@ -243,6 +243,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
         break;
 
       // Force all call parameters to be in registers
+      case SYSCALL_opcode:
       case CALL_opcode:
         {
           int numArgs = Call.getNumberOfParams(s);
