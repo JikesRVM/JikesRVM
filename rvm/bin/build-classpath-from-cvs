@@ -44,9 +44,11 @@ cd $srcdir || croak "Unable to change directories into $srcdir."
 [ -f HACKING ] || croak "Can not find a file named $srcdir/HACKING; this probably isn't a GNU Classpath checkout."
 grep "Classpath" HACKING > /dev/null || croak "The file $srcdir/HACKING does not contain the word 'Classpath'; this might not be a GNU Classpath checkout."
 if ! [ -f configure ] || ! [ -x configure ]; then
+    echo "$ME: Running autogen.sh to build a configure file for GNU Classpath"
     ./autogen.sh
+    echo "$ME: done running autogen.sh"
 fi
 
-./configure --disable-gtk-peer --install=${installdir}
+./configure --disable-gtk-peer --prefix=${installdir}
 make
 make install
