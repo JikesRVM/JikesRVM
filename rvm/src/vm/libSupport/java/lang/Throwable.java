@@ -49,7 +49,12 @@ public class Throwable implements java.io.Serializable {
     
   public Throwable () {
     super();
-    fillInStackTrace();		// fillInStackTrace() catches its own errors.
+    if (VM.BuildFor64Addr) {
+      // Top of stack is malformed (aren't finding the STACKFRAME_SENTINEL value we expect)
+      VM.sysWriteln("Warning: java.lang.Throwable.init not filling in stack trace");
+    } else {
+      fillInStackTrace();		// fillInStackTrace() catches its own errors.
+    }
   }
     
   public Throwable (String detailMessage) {
