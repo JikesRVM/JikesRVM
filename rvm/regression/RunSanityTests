@@ -72,7 +72,7 @@ TEST_LIST=`cat $RVM_ROOT/rvm/regression/config/nightly-tests`
 
 ## Default configurations
 #
-CONFIG_LIST="BaseBaseSemispace BaseBaseMarkSweep BaseBaseCopyGenVariable FullOptMarkSweep FullOptCopyGenVariable FullAdaptiveSemispace FastAdaptiveSemispace ExtremeAssertionsOptOptSemispace"
+CONFIG_LIST="NIGHT_SANITY"
 
 # help message of usage options
 #
@@ -80,7 +80,7 @@ function showHelp {
   echo 'valid options:'
   echo '-images <dir>               where to put generated images'
   echo '-result <root dir>          where to put results of tests'
-  echo '-test[s] "<tests>"            list of tests to run'
+  echo '-test[s] "<tests>"          list of tests to run'
   echo '-test-list <file>           file listing tests to run'
   echo '-nobuild                    do not build boot images'
   echo '-noclean                    do not clean when running tests'
@@ -467,6 +467,16 @@ function runTests {
 # Build and test a series of configurations.
 #
 function main {
+  if [[ $CONFIG_LIST = "NIGHT_SANITY" ]]; then
+     ARCH=`arch`
+     if [[ $ARCH = 'power' ]] then
+       exec $RVM_ROOT/rvm/regression/NightSanityDriver -config night-sanity-powerpc
+     else
+       exec $RVM_ROOT/rvm/regression/NightSanityDriver -config night-sanity-lintel
+     fi
+     exit
+  fi
+
   for config in $CONFIG_LIST; do
     setConfiguration $config; time runTests
   done
