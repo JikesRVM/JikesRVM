@@ -1936,7 +1936,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
    * @param env A JREF index for the JNI environment object
    * @param objJREF a JREF index for the object instance
    * @param classJREF a JREF index for the class object that declares this method
-   * @param methodId id of a VM_MethodReference
+   * @param methodID id of a VM_MethodReference
    * @return the float value returned from the method invocation
    */
   private static float CallNonvirtualFloatMethod(VM_JNIEnvironment env, int objJREF, int classJREF, 

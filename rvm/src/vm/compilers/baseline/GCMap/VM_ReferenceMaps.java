@@ -719,7 +719,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, Uninterrupt
   /**
    * Setup a map  within a JSR Subroutine. This requires using up one
    * of the unusual maps. This routine is called when the caller gets a
-   *  negative mapindex value return from {@link locateGCPoint}. This routine
+   *  negative mapindex value return from {@link #locateGCPoint}. This routine
    *  searches the map tables and uses its stack frameAddress input to build
    *  reference and returnAddress maps. The caller uses the getNext...
    *  routines to scan these maps for offsets in the frame of the
