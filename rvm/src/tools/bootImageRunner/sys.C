@@ -753,6 +753,9 @@ sysVirtualProcessorBind(int cpuId)
 #ifdef VERBOSE_PTHREAD
    fprintf(SysTraceFile, "sys: %d cpu's\n", numCpus);
 #endif
+
+// Linux does not seem to have this
+#ifndef __linux__
    if (numCpus == -1)
       {
       fprintf(SysErrorFile, "vm: sysconf failed (errno=%d)\n", errno);
@@ -769,6 +772,7 @@ sysVirtualProcessorBind(int cpuId)
       fprintf(SysErrorFile, "vm: bindprocessor failed (errno=%d)\n", errno);
       exit(1);
       }
+#endif
 #endif
    }
 
@@ -1668,7 +1672,7 @@ sysNetSocketBind(int fd, int family, unsigned int localAddress, unsigned int loc
 
    if (bind(fd, (sockaddr *)&address, sizeof(address)) == -1)
       {
-      fprintf(SysErrorFile, "vm: socket bind on %d failed (errno=%d)\n", fd, errno);
+      fprintf(SysErrorFile, "vm: socket bind on %d for port %d failed (errno=%d, %s)\n", fd, localPort, errno, strerror( errno ));
       return -1;
       }
    
