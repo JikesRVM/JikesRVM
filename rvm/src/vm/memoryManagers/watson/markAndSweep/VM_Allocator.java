@@ -119,9 +119,6 @@ public class VM_Allocator extends VM_GCStatistics
     VM_Address max = bootHeap.end.GT(immortalHeap.start) ? bootHeap.end : immortalHeap.end;
     VM_AllocatorHeader.boot(min, max);
 
-    VM_Callbacks.addExitMonitor(new VM_Allocator());
-    VM_Callbacks.addAppRunStartMonitor(new VM_Allocator());
-
     if (verbose >= 1) showParameter();
   }
 
