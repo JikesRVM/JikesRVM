@@ -476,7 +476,7 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
       }
       //-endif
       if (isPrefix("Lorg/mmtk/", clsBA) 
-	  || isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", clsBA)) {
+	  || isPrefix("Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_GCMapIteratorGroup", clsBA)) {
         return Plan.IMMORTAL_SPACE;
       }
     }
