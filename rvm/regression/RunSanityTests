@@ -335,6 +335,10 @@ function doBuild
          sleep $SLEEP_DURATION;
        done
      fi
+     if [[ (! -e $RVM_BUILD/JikesRVM) && (-e $RVM_BUILD/RVM.image)]]; then
+       say "linking $NAME"
+       cd $RVM_BUILD && ./jbuild -trace -booter >> RVM.trace 2>&1
+     fi
    fi
    }
 
