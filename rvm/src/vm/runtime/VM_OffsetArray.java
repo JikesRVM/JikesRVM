@@ -21,6 +21,10 @@ final public class VM_OffsetArray implements VM_Uninterruptible {
 
   private VM_OffsetArray (int size) throws VM_PragmaInterruptible {
     data = new VM_Offset[size];
+    VM_Offset zero = VM_Offset.zero();
+    for (int i=0; i<size; i++) {
+      data[i] = zero;
+    }
   }
 
   public VM_Offset get (int index) throws VM_PragmaInline {

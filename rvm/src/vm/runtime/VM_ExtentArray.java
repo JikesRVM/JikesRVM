@@ -21,6 +21,10 @@ final public class VM_ExtentArray implements VM_Uninterruptible {
 
   private VM_ExtentArray (int size) throws VM_PragmaInterruptible {
     data = new VM_Extent[size];
+    VM_Extent zero = VM_Extent.zero();
+    for (int i=0; i<size; i++) {
+      data[i] = zero;
+    }
   }
 
   public VM_Extent get (int index) throws VM_PragmaInline {

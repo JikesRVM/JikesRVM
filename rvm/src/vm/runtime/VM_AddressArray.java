@@ -22,6 +22,10 @@ final public class VM_AddressArray implements VM_Uninterruptible {
 
   private VM_AddressArray (int size) throws VM_PragmaInterruptible {
     data = new VM_Address[size];
+    VM_Address zero = VM_Address.zero();
+    for (int i=0; i<size; i++) {
+      data[i] = zero;
+    }
   }
 
   public VM_Address get (int index) throws VM_PragmaInline {
