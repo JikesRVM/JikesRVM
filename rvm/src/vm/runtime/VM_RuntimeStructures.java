@@ -38,11 +38,26 @@ class VM_RuntimeStructures implements VM_Constants {
     static int[] newStack (int n) {
 	VM_Magic.pragmaInline();
 
-
 	if (VM.BuildForRealtimeGC) {
 	    //-#if RVM_WITH_REALTIME_GC
 	    return VM_SegmentedArray.newStack(n);
 	    //-#endif
+	}
+	
+	return new int[n];
+    }
+
+
+    /**
+     * Allocate a stack array that will live forever and does not move
+     * @param n The number of stack slots to allocate
+     * @return The stack array
+     */ 
+    static int[] newImmortalStack (int n) {
+
+	if (VM.runningVM) {
+	    int[] stack = (int[]) VM_Allocator.immortalHeap.allocateAlignedArray(VM_Array.arrayOfIntType, n, 4096);
+	    return stack;
 	}
 	
 	return new int[n];
@@ -55,7 +70,6 @@ class VM_RuntimeStructures implements VM_Constants {
      */ 
     static int[] newContiguousIntArray (int n) {
 	VM_Magic.pragmaInline();
-
 
 	if (VM.BuildForRealtimeGC) {
 	    //-#if RVM_WITH_REALTIME_GC
