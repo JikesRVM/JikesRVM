@@ -2,16 +2,16 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+
+package com.ibm.JikesRVM.librarySupport;
+import VM_Thread;
+
 /**
  * This class provides a set of static method entrypoints used in the
  * implementation of standard library thread operations.
  *
  * @author Stephen Fink
  */
-
-package com.ibm.JikesRVM.librarySupport;
-import VM_Thread;
-
 public class ThreadSupport {
   /**
    * Suspend execution of current thread for specified number of seconds 

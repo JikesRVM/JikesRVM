@@ -484,7 +484,7 @@ public class VM_Runtime implements VM_Constants {
    * @return object's hashcode
    * Side effect: hash value is generated and stored into object's 
    * status word
-   * @see java.lang.Object.hashCode()
+   * @see java.lang.Object#hashCode
    */ 
   public static int getObjectHashCode(Object object) {
       return VM_ObjectModel.getObjectHashCode(object);
@@ -498,7 +498,7 @@ public class VM_Runtime implements VM_Constants {
    * Prepare a class for use prior to first allocation, 
    * field access, or method invocation.
    * Made public so that it is accessible from java.lang.reflect.*.
-   * @see VM_Member.needsDynamicLink()
+   * @see VM_Member#needsDynamicLink
    */ 
   public static void initializeClassForDynamicLink(VM_Class cls) 
     throws VM_ResolutionException {

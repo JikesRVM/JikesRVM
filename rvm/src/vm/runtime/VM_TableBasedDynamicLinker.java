@@ -159,7 +159,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * @return method offset (a value of NEEDS_DYNAMIC_LINK means method 
    * hasn't been resolved yet or class initializer hasn't been run)
    * @see VM_MethodDictionary
-   * @see VM_Method.getOffset()
+   * @see VM_Method#getOffset
    */
   static int getMethodOffset(int methodId) {
     return methodOffsets[methodId];
@@ -180,7 +180,8 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * @param fieldId field dictionary id
    * @return field offset (a value of NEEDS_DYNAMIC_LINK means field hasn't 
    * been resolved yet or class initializer hasn't been run)
-   * @see VM_FieldDictionary, @see VM_Field.getOffset()
+   * @see VM_FieldDictionary 
+   * @see VM_Field#getOffset
    */ 
   static int getFieldOffset(int fieldId) {
     return fieldOffsets[fieldId];

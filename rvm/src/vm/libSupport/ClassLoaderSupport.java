@@ -2,14 +2,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-/**
- * This class provides a set of static method entrypoints used in the
- * implementation of standard library classloader operations.
- *
- * @author Dick Attanasio 
- * @author Stephen Fink
- * @author Steve Smith
- */
 
 package com.ibm.JikesRVM.librarySupport;
 import VM;
@@ -22,6 +14,14 @@ import VM_SystemClassLoader;
 import VM_UnimplementedError;
 import java.security.ProtectionDomain;
 
+/**
+ * This class provides a set of static method entrypoints used in the
+ * implementation of standard library classloader operations.
+ *
+ * @author Dick Attanasio 
+ * @author Stephen Fink
+ * @author Steve Smith
+ */
 public class ClassLoaderSupport {
 
   /**

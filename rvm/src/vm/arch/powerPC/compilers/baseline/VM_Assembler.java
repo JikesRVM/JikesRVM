@@ -2026,10 +2026,9 @@ class VM_Assembler implements VM_BaselineConstants {
 
    /**
     * Append an array of INSTRUCTION to the current machine code
-    * @see VM_Compiler#storeParametersForAIX()
+    * @see VM_Compiler#storeParametersForAIX
     */
-   void
-   appendInstructions (INSTRUCTION[] instructionSegment) {
+   void appendInstructions (INSTRUCTION[] instructionSegment) {
      
      for (int i=0; i<instructionSegment.length; i++) {
        mc.addInstruction(instructionSegment[i]);

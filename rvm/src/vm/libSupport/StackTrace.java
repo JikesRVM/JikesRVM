@@ -2,6 +2,11 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+
+package com.ibm.JikesRVM.librarySupport;
+import VM_StackTrace;
+import java.io.*;
+
 /**
  * This class provides a handle to a VM-specific object representing
  * a stack trace.  This is used in the implemented of java.lang.Throwable,
@@ -9,11 +14,6 @@
  *
  * @author Stephen Fink
  */
-
-package com.ibm.JikesRVM.librarySupport;
-import VM_StackTrace;
-import java.io.*;
-
 public class StackTrace {
   /**
    * Internal representation of the stack strace

@@ -2,12 +2,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-/**
- * This class provides a set of static method entrypoints used in the
- * implementation of standard library network/socket operations.
- *
- * @author Stephen Fink
- */
 
 package com.ibm.JikesRVM.librarySupport;
 import java.net.*;
@@ -15,6 +9,12 @@ import java.io.*;
 import VM_SocketImpl;
 import VM_InetAddress;
 
+/**
+ * This class provides a set of static method entrypoints used in the
+ * implementation of standard library network/socket operations.
+ *
+ * @author Stephen Fink
+ */
 public class SocketSupport {
 
   /**

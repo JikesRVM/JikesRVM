@@ -738,7 +738,7 @@ public abstract class OPT_Operand {
    * the two operands is an illegal value).  For exmaple,
    * meet(5.0, "hi") would evalaute to bottom.
    * Meet returns op1 iff conservativelyApproximates(op1, op2):
-   * this is exploited in places like {@link OPT_BC2IR#rectifyLocals()}
+   * this is exploited in places like {@link OPT_BC2IR#rectifyLocals}
    * and {@link OPT_BC2IR#rectifyStacks} to avoid doing redundant
    * work.  
    * <p>
@@ -759,7 +759,7 @@ public abstract class OPT_Operand {
    *         evaluates to <code>true</code>.
    *
    * @author Dave Grove
-   * @see OPT_BC2IR#rectifyLocals()
+   * @see OPT_BC2IR#rectifyLocals
    * @see OPT_BC2IR#rectifyStacks()
    */
   public static OPT_Operand meet(OPT_Operand op1, 

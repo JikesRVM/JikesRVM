@@ -34,7 +34,7 @@ class OPT_InlineReportElement {
    * does the callee contain a pragma inline directive?
    * This information contained in the method summary, so summary must exist.
    *
-   * @see OPT_InlineTools#hasInlinePragam
+   * @see OPT_InlineTools#hasInlinePragma
    */
   private boolean hasInlinePragma;
   /**

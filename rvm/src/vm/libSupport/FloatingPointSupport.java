@@ -2,18 +2,18 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-/**
- * This class provides a set of static method entrypoints used in the
- * implementation of standard library floating point operations.
- *
- * @author Stephen Fink
- */
 
 package com.ibm.JikesRVM.librarySupport;
 import VM_FloatingPoint;
 import VM_Math;
 import VM_Magic;
 
+/**
+ * This class provides a set of static method entrypoints used in the
+ * implementation of standard library floating point operations.
+ *
+ * @author Stephen Fink
+ */
 public class FloatingPointSupport {
 
   /**

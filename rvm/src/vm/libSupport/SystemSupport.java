@@ -2,12 +2,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-/**
- * This class provides a set of static method entrypoints used in the
- * implementation of standard library system operations.
- *
- * @author Stephen Fink
- */
 
 package com.ibm.JikesRVM.librarySupport;
 import VM;
@@ -20,6 +14,12 @@ import VM_Runtime;
 import VM_Time;
 import FinalizerThread;
 
+/**
+ * This class provides a set of static method entrypoints used in the
+ * implementation of standard library system operations.
+ *
+ * @author Stephen Fink
+ */
 public class SystemSupport {
 
   /**
@@ -46,7 +46,7 @@ public class SystemSupport {
    * @return object's hashcode
    * Side effect: hash value is generated and stored into object's 
    * status word
-   * @see java.lang.Object.hashCode()
+   * @see java.lang.Object#hashCode
    */ 
   public static int getDefaultHashCode(Object object) {
     if (object == null) return 0;

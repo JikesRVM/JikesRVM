@@ -685,8 +685,7 @@ public final class OPT_IR implements OPT_Operators {
    * Bring the edge counts up-to-date.  Call this in each phase prior
    * to using the edge counts.
    *
-   * @see OPT_EdgeCounts.updateoCFGFrequencies()
-   * 
+   * @see OPT_EdgeCounts#updateCFGFrequencies
    */
    public void updateCFGFrequencies() {
      if (edgeCounts != null)

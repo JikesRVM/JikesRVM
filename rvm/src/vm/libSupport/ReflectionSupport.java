@@ -2,14 +2,6 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-/**
- * This class provides a set of static method entrypoints used in the
- * implementation of standard library type operations.
- *
- * @author John Barton 
- * @author Stephen Fink
- * @author Eugene Gluzberg
- */
 
 package com.ibm.JikesRVM.librarySupport;
 import java.util.HashMap;
@@ -32,6 +24,14 @@ import VM_UnimplementedError;
 import java.lang.reflect.*;
 import java.io.*;
 
+/**
+ * This class provides a set of static method entrypoints used in the
+ * implementation of standard library type operations.
+ *
+ * @author John Barton 
+ * @author Stephen Fink
+ * @author Eugene Gluzberg
+ */
 public class ReflectionSupport {
 
   /**
@@ -1483,11 +1483,9 @@ public class ReflectionSupport {
    *
    * @param		data		The primitive data as raw bytes.
    * @exception	IOException		If an IO exception happened when creating internal streams to hold primitive data
-   *
-   * @see			write, readBoolean, readChar, readInt, readByte, readLong, readFloat, readDouble
    */
   public static void initPrimitiveTypes(ObjectInputStream ois, byte[] data) throws IOException {
-    ois. primitiveTypes = new DataInputStream(new ByteArrayInputStream(data));
+    ois.primitiveTypes = new DataInputStream(new ByteArrayInputStream(data));
   }
   /**
    * Reads a collection of field descriptors (name, type name, etc) for the class descriptor

@@ -400,7 +400,7 @@ public class OPT_SpaceEffGraph
   /**
    * Returns the nodes of the graph.
    * @return the enumeration that would list the nodes of the graph
-   * @see OPT_VCGGraph.nodes()
+   * @see OPT_VCGGraph#nodes
    */
   public Enumeration nodes() { return new NodeEnumeration(firstNode()); }
 
@@ -408,7 +408,7 @@ public class OPT_SpaceEffGraph
    * Returns a VCG descriptor for the graph which will provide VCG-relevant
    * information for the graph.
    * @return graph descriptor
-   * @see OPT_VCGGraph.getVCGDescriptor()
+   * @see OPT_VCGGraph#getVCGDescriptor
    */
   public GraphDesc getVCGDescriptor() { return defaultVCGDesc; }
 }

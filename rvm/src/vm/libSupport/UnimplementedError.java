@@ -2,17 +2,17 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-/**
- * This class provides an entrypoint and type used in the
- * implementation of standard libraries to indicated unimplemented
- * functionality.
- *
- * @author Stephen Fink
- */
 
 package com.ibm.JikesRVM.librarySupport;
 import VM_UnimplementedError;
 
+/**
+ * This class provides an entrypoint and type used in the
+ * implementation of standard libraries to indicate unimplemented
+ * functionality.
+ *
+ * @author Stephen Fink
+ */
 public final class UnimplementedError extends VM_UnimplementedError {
 
   /**
