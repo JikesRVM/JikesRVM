@@ -38,9 +38,9 @@ static const int OPT_INDEX                     = BASE_INDEX+1;
 static const int VMCLASSES_INDEX               = OPT_INDEX+1;
 static const int CPUAFFINITY_INDEX             = VMCLASSES_INDEX+1;
 static const int PROCESSORS_INDEX              = CPUAFFINITY_INDEX+1;
+static const int SINGLE_VIRTUAL_PROCESSOR_INDEX= PROCESSORS_INDEX+1;
 
-
-static const int numNonstandardArgs            = PROCESSORS_INDEX+1;
+static const int numNonstandardArgs      = SINGLE_VIRTUAL_PROCESSOR_INDEX+1;
 
 static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X", 
@@ -66,41 +66,59 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:vmClasses=",
    "-X:cpuAffinity=",
    "-X:processors=",
+   "-X:singleVirtualProcessor=", /* Leave it here, even if no support built
+                                  * in, but suppress it from the help
+                                  * message. */ 
 };
 
 // a NULL-terminated list.
 static const char* nonStandardUsage[] = {
-   "    -X                       print usage on nonstandard options", 
-   "    -X:verbose               print out additional lowlevel information",
-   "    -X:verboseBoot=<number>  print out messages while booting VM",
-   "    -Xms<number><unit>      initial size of heap,"
-   "    -Xmx<number><unit>      maximum size of heap,"
+   "    -X                       Print usage on nonstandard options", 
+   "    -X:verbose               Print out additional lowlevel information",
+   "    -X:verboseBoot=<number>  Print out messages while booting VM",
+   "    -Xms<number><unit>       Initial size of heap,"
+   "    -Xmx<number><unit>       Maximum size of heap,"
 #ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
-   "    -Xss<number><unit>      initial Java thread stack size,"
-   "    -Xsg<number><unit>      Java thread stack growth increment,"
-   "    -Xsx<number><unit>      maximum Java thread stack size",
+   "    -Xss<number><unit>       Initial Java thread stack size,"
+   "    -Xsg<number><unit>       Java thread stack growth increment,"
+   "    -Xsx<number><unit>       Maximum Java thread stack size",
 #endif
-   "    -X:sysLogfile=<filename> write standard error message to <filename>",
-   "    -X:i=<filename>          read boot image from <filename>",
-   "    -X:vm:<option>           pass <option> to virtual machine",
-   "          :help              print usage choices for -X:vm",
-   "    -X:gc:<option>           pass <option> on to GC subsystem",
-   "          :help              print usage choices for -X:gc",
-   "    -X:aos:<option>          pass <option> on to adaptive optimization system",
-   "          :help              print usage choices for -X:aos",
-   "    -X:irc:<option>          pass <option> on to the initial runtime compiler",
-   "          :help              print usage choices for -X:irc",
-   "    -X:recomp:<option>       pass <option> on to the recompilation compiler(s)",
-   "          :help              print usage choices for -X:recomp",
-   "    -X:base:<option>         pass <option> on to the baseline compiler",
+   "    -X:sysLogfile=<filename> Write standard error message to <filename>",
+   "    -X:i=<filename>          Read boot image from <filename>",
+   "    -X:vm:<option>           Pass <option> to virtual machine",
+   "          :help              Print usage choices for -X:vm",
+   "    -X:gc:<option>           Pass <option> on to GC subsystem",
+   "          :help              Print usage choices for -X:gc",
+   "    -X:aos:<option>          Pass <option> on to adaptive optimization system",
+   "          :help              Print usage choices for -X:aos",
+   "    -X:irc:<option>          Pass <option> on to the initial runtime compiler",
+   "          :help              Print usage choices for -X:irc",
+   "    -X:recomp:<option>       Pass <option> on to the recompilation compiler(s)",
+   "          :help              Print usage choices for -X:recomp",
+   "    -X:base:<option>         Pass <option> on to the baseline compiler",
    "          :help              print usage choices for -X:base",
-   "    -X:opt:<option>          pass <option> on to the optimizing compiler",
-   "          :help              print usage choices for -X:opt",
-   "    -X:vmClasses=<path>      load the com.ibm.JikesRVM.* and java.* classes",
+   "    -X:opt:<option>          Pass <option> on to the optimizing compiler",
+   "          :help              Print usage choices for -X:opt",
+   "    -X:vmClasses=<path>      Load the com.ibm.JikesRVM.* and java.* classes",
    "                             from <path>, a list like one would give to the",
    "                             -classpath argument.",
    "    -X:cpuAffinity=<number>  physical cpu to which 1st VP is bound",
    "    -X:processors=<number|\"all\">  no. of virtual processors",
+#ifdef RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT
+   "    -X:singleVirtualProcessor=<\"true\"|\"false\"|\"debian\"|\"multiboot\">",
+   "                             Operate with a single virtual processor",
+   "                             (default is \""
+#ifdef RVM_FOR_MULTIBOOT_GLIBC
+   "multiboot"
+#elif defined RVM_FOR_DEBIAN_GLIBC
+   "debian"
+#elif defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+   "true"
+#else
+   "false"
+#endif
+   "\")",
+#endif // #ifdef RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT
    NULL                         /* End of messages */
 };
 

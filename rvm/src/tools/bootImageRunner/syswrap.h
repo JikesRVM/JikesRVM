@@ -13,21 +13,14 @@
 
 #include <sys/time.h>
 #include <sys/types.h>
-#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
-# include <pthread.h>
-#endif
 
 /* Patterns for Functions from the C library. */
 typedef int (*SelectFunc_t)(int, fd_set*, fd_set*, fd_set*, struct timeval*);
 typedef int (*PollFunc_t)(struct pollfd*, long unsigned int, int);
 
 // Init function for the syscall wrapper library.
-#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
 extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset,
-  int vmProcessorId);
-#else
-extern "C" void initSyscallWrapperLibrary(void *jtoc, int processorsOffset);
-#endif
+                                          int vmProcessorId /* Only used in single-virtual-processor mode. */);
 
 // Accessor for real (libc) system call functions;
 // allows bypassing our wrapper functions.

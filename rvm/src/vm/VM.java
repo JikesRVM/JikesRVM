@@ -84,6 +84,8 @@ public class VM extends VM_Properties
     runningVM        = true;
     runningAsSubsystem = false;
     verboseBoot = VM_BootRecord.the_boot_record.verboseBoot;
+    singleVirtualProcessor = (VM_BootRecord.the_boot_record.singleVirtualProcessor != 0);
+    
     sysWriteLockOffset = VM_Entrypoints.sysWriteLockField.getOffset();
     if (verboseBoot >= 1) VM.sysWriteln("Booting");
 
@@ -118,7 +120,7 @@ public class VM extends VM_Properties
     
     // get pthread_id from OS and store into vm_processor field
     // 
-    if (!BuildForSingleVirtualProcessor) {
+    if (!singleVirtualProcessor) {
       VM_SysCall.sysPthreadSetupSignalHandling();
       VM_Processor.getCurrentProcessor().pthread_id = 
         VM_SysCall.sysPthreadSelf();
@@ -1307,9 +1309,8 @@ public class VM extends VM_Properties
    * Yield execution of current virtual processor back to o/s.
    */
   public static void sysVirtualProcessorYield() {
-    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    VM_SysCall.sysVirtualProcessorYield();
-    //-#endif
+    if (!VM_Properties.singleVirtualProcessor)
+      VM_SysCall.sysVirtualProcessorYield();
   }
 
   //----------------//

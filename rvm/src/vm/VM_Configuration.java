@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -138,18 +138,6 @@ public abstract class VM_Configuration {
   // If set, ignore the supression pragma and print all warning messages.
   public static final boolean ParanoidVerifyUnint = false;
 
-  // Multiprocessor operation?
-  //  false --> VM will use multiple processors (requires an operating system
-  //            that supports Posix pthreads)
-  //  true  --> VM will use just one processor and no 
-  //            synchronization instructions
-  //
-  public static final boolean BuildForSingleVirtualProcessor =
-        //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-          true;
-        //-#else
-          false;
-        //-#endif
 
   /** Does this build include support for Hardware Performance Monitors? */
   public static final boolean BuildForHPM = 
@@ -231,4 +219,14 @@ public abstract class VM_Configuration {
    */
   public final static boolean dedicatedESI = true;
   //-#endif
+
+  /** Do we have the facilities to intercept blocking system calls? */
+  public final static boolean withoutInterceptBlockingSystemCalls =
+    //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+    true;
+    //-#else
+    false;
+    //-#endif
+
+
 }

@@ -23,7 +23,7 @@ class VM_IdleThread extends VM_Thread {
    * is false, the remaining time-slice is returned to the operating
    * system.
    */
-  static final boolean loadBalancing = !VM.BuildForSingleVirtualProcessor;
+  private static boolean loadBalancing;
 
   /**
    * Should we call VM_Processor.initializeProcessor as the first action
@@ -50,6 +50,7 @@ class VM_IdleThread extends VM_Thread {
   }
 
   public void run() { // overrides VM_Thread
+    loadBalancing = VM_Scheduler.numProcessors > 1;
     VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
     if (VM.ExtremeAssertions) VM._assert(myProcessor == processorAffinity);
     

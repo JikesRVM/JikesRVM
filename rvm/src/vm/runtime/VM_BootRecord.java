@@ -161,6 +161,12 @@ public class VM_BootRecord {
   int verboseBoot = 0;
   
   
+  /**
+   * Set by -X:singleVirtualProcessor
+   * 
+   */
+  int singleVirtualProcessor;
+
   // RVM startoff
   //
   public int tiRegister;          // value to place into TI register
@@ -341,7 +347,6 @@ public class VM_BootRecord {
   // process management
   public Address sysWaitPidsIP;
 
-  //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   // system startup pthread sync. primitives
   //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   public Address sysCreateThreadSpecificDataKeysIP;
@@ -349,7 +354,6 @@ public class VM_BootRecord {
   public Address sysInitializeStartupLocksIP;
   public Address sysWaitForVirtualProcessorInitializationIP;
   public Address sysWaitForMultithreadingStartIP;
-  //-#endif
 
   //-#if RVM_WITH_HPM
   // sysCall entry points to HPM

@@ -39,15 +39,7 @@
 #define __STDC_FORMAT_MACROS    // include PRIxPTR
 #include <inttypes.h>           // PRIxPTR, uintptr_t
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-/* OK, here's the scoop with pthreads.  The GNU C library will provide us with
- * the pthread_mutex_lock and pthread_mutex_unlock implementations, WITHOUT
- * linking with -lpthread.    But the C library (libc) does not contain an
- * implementation of pthread_kill().  That's why we can get away with using
- * some of the pthread functions in a single-processor config, but not get
- * away with all of them. */
-#include <pthread.h>
-#endif
+#include "../pthread-wrappers.h" // In rvm/src/tools/bootImageRunner
 
 /* Interface to virtual machine data structures. */
 #define NEED_EXIT_STATUS_CODES
@@ -259,11 +251,10 @@ void
 hardwareTrapHandler(int signo, siginfo_t *si, void *context)
 {
     unsigned int localInstructionAddress;
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     static pthread_mutex_t exceptionLock = PTHREAD_MUTEX_INITIALIZER;
 
-    pthread_mutex_lock( &exceptionLock );
-#endif // RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+    if (!rvm_singleVirtualProcessor)
+        pthread_mutex_lock( &exceptionLock );
 
     unsigned int localVirtualProcessorAddress;
     unsigned int localFrameAddress;
@@ -478,9 +469,8 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
         gregs[REG_EIP] = dumpStack;
         *vmr_inuse = false;
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-        pthread_mutex_unlock( &exceptionLock );
-#endif
+        if (!rvm_singleVirtualProcessor)
+            pthread_mutex_unlock( &exceptionLock );
 
         return;
     }
@@ -600,9 +590,8 @@ hardwareTrapHandler(int signo, siginfo_t *si, void *context)
     /* setup to return to deliver hardware exception routine */
     gregs[REG_EIP] = javaExceptionHandlerAddress;
 
-#ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    pthread_mutex_unlock( &exceptionLock );
-#endif
+    if (!rvm_singleVirtualProcessor)
+        pthread_mutex_unlock( &exceptionLock );
 }
 
 
@@ -613,12 +602,12 @@ softwareSignalHandler(int signo,
 {
 //    bool croak_with_signo = false;
     
-#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    if (signo == SIGALRM) {     /* asynchronous signal used for time slicing */
-        processTimerTick();
-        return;
+    if (rvm_singleVirtualProcessor) {
+        if (signo == SIGALRM) { /* asynchronous signal used for time slicing */
+            processTimerTick();
+            return;
+        }
     }
-#endif
 
     // asynchronous signal used to awaken internal debugger
     if (signo == SIGQUIT) { 
@@ -712,12 +701,7 @@ createVM(int UNUSED vmInSeparateThread)
 
     if (lib_verbose)
     {
-        fprintf(SysTraceFile, "IA32 linux build");
-#ifdef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-        fprintf(SysTraceFile, " for single virtual processor\n");
-#else
-        fprintf(SysTraceFile, " for SMP\n");
-#endif
+        fprintf(SysTraceFile, "IA32 linux build\n");
     }
 
 /* Note: You probably always want to use MMAP_COPY_ON_WRITE.
@@ -868,6 +852,7 @@ createVM(int UNUSED vmInSeparateThread)
     bootRecord->bootImageStart   = (int) bootRegion;
     bootRecord->bootImageEnd     = (int) bootRegion + roundedImageSize;
     bootRecord->verboseBoot      = verboseBoot;
+    bootRecord->singleVirtualProcessor = rvm_singleVirtualProcessor;
   
     /* write sys.C linkage information into boot record */
     setLinkage(bootRecord);

@@ -267,7 +267,6 @@ public class VM_SysCall implements Uninterruptible {
   public static void sysWaitPids(Address pidArray, Address exitStatusArray,
                                  int numPids) {}
 
-  //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   // system startup pthread sync. primitives
   //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   public static void sysCreateThreadSpecificDataKeys() {}
@@ -275,7 +274,6 @@ public class VM_SysCall implements Uninterruptible {
   public static void sysInitializeStartupLocks(int howMany) {}
   public static void sysWaitForVirtualProcessorInitialization() {} 
   public static void sysWaitForMultithreadingStart() {} 
-  //-#endif
 
   //-#if RVM_WITH_HPM
   // sysCall entry points to HPM

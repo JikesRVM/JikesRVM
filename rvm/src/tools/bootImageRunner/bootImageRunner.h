@@ -16,6 +16,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif    
+#if 0
+} /* un-confuse the auto-indenter */
+#endif
 
 #include "../../include/cAttributePortability.h"
 
@@ -61,6 +64,11 @@ unsigned int parse_memory_size(
 
 extern int verboseBoot;
 
+/* Set to 1 for true, 0 for false, -1 for Debian auto-detection. */ 
+    extern int rvm_singleVirtualProcessor;
+    
+
+
 /* Defined in libvm.C; used in RunBootImage.C */
 extern int createVM(int);
 /* Used in libvm.C; Defined in sys.C */
@@ -96,6 +104,9 @@ extern void sysSyncCache(void *, size_t size);
 // Defined in sys.C.  Used in libvm.C.
 extern void processTimerTick(void);
 
+#if 0
+{ /* un-confuse the auto-indenter */
+#endif
 #ifdef __cplusplus
 }
 #endif    

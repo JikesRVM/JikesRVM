@@ -265,66 +265,70 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     // Create virtual cpu's.
     //
     
-    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    //-#else
-    //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS 
-    //-#else
-    // Create thread-specific data key which will allow us to find
-    // the correct VM_Processor from an arbitrary pthread.
-    VM_SysCall.sysCreateThreadSpecificDataKeys();
+    if (!VM.singleVirtualProcessor) {
+      if (!VM.withoutInterceptBlockingSystemCalls) {
 
-    // enable spoofing of blocking native select calls
-    System.loadLibrary("syswrap");
-    //-#endif
-
-    VM_SysCall.sysInitializeStartupLocks(numProcessors);
-
-    if (cpuAffinity != NO_CPU_AFFINITY)
-      VM_SysCall.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
-
-    for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
-      // create VM_Thread for virtual cpu to execute
-      //
-      VM_Thread target = processors[i].idleQueue.dequeue();
-
-      // create virtual cpu and wait for execution to enter target's code/stack.
-      // this is done with gc disabled to ensure that garbage collector doesn't move
-      // code or stack before the C startoff function has a chance
-      // to transfer control into vm image.
-      //
-      if (VM.TraceThreads)
-        trace("VM_Scheduler.boot", "starting processor id", i);
-
-      processors[i].activeThread = target;
-      processors[i].activeThreadStackLimit = target.stackLimit;
-      target.registerThread(); // let scheduler know that thread is active.
-      if (VM.BuildForPowerPC) {
-        //-#if RVM_FOR_POWERPC
-        // NOTE: it is critical that we acquire the tocPointer explicitly
-        //       before we start the SysCall sequence. This prevents 
-        //       the opt compiler from generating code that passes the AIX 
-        //       sys toc instead of the RVM jtoc. --dave
-        Address toc = VM_Magic.getTocPointer();
-        VM_SysCall.sysVirtualProcessorCreate(toc,
-                                             VM_Magic.objectAsAddress(processors[i]),
-                                             target.contextRegisters.ip, 
-                                             target.contextRegisters.getInnermostFramePointer());
-        if (cpuAffinity != NO_CPU_AFFINITY)
-          VM_SysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
+        //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+        // Create thread-specific data key which will allow us to find
+        // the correct VM_Processor from an arbitrary pthread.
+        VM_SysCall.sysCreateThreadSpecificDataKeys();
         //-#endif
-      } else if (VM.BuildForIA32) {
-        VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-                                             VM_Magic.objectAsAddress(processors[i]),
-                                             target.contextRegisters.ip, 
-                                             target.contextRegisters.getInnermostFramePointer());
+        
+        /// WE now insist on this happening, by using LD_PRELOAD on platforms
+        /// that support it.  Do it here for backup.
+        // Enable spoofing of blocking native select calls
+        System.loadLibrary("syswrap");
+      }
+    
+      VM_SysCall.sysInitializeStartupLocks(numProcessors);
+
+      if (cpuAffinity != NO_CPU_AFFINITY)
+        VM_SysCall.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
+      
+      for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
+        // create VM_Thread for virtual cpu to execute
+        //
+        VM_Thread target = processors[i].idleQueue.dequeue();
+        
+        // Create a virtual cpu and wait for execution to enter the target's
+        // code/stack. 
+        // This is done with GC disabled to ensure that the garbage collector
+        // doesn't move code or stack before the C startoff function has a
+        // chance to transfer control into the VM image.
+        //
+        if (VM.TraceThreads)
+          trace("VM_Scheduler.boot", "starting processor id", i);
+
+        processors[i].activeThread = target;
+        processors[i].activeThreadStackLimit = target.stackLimit;
+        target.registerThread(); // let scheduler know that thread is active.
+        if (VM.BuildForPowerPC) {
+          //-#if RVM_FOR_POWERPC
+          // NOTE: It is critical that we acquire the tocPointer explicitly
+          //       before we start the SysCall sequence. This prevents 
+          //       the opt compiler from generating code that passes the AIX 
+          //       sys toc instead of the RVM jtoc. --dave
+          Address toc = VM_Magic.getTocPointer();
+          VM_SysCall.
+            sysVirtualProcessorCreate(toc,
+                                      VM_Magic.objectAsAddress(processors[i]),
+                                      target.contextRegisters.ip, 
+                                      target.contextRegisters.getInnermostFramePointer());
+          if (cpuAffinity != NO_CPU_AFFINITY)
+            VM_SysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
+          //-#endif
+        } else if (VM.BuildForIA32) {
+          VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
+                                               VM_Magic.objectAsAddress(processors[i]),
+                                               target.contextRegisters.ip, 
+                                               target.contextRegisters.getInnermostFramePointer());
+        }
       }
 
+      // wait for everybody to start up
+      //
+      VM_SysCall.sysWaitForVirtualProcessorInitialization();
     }
-
-    // wait for everybody to start up
-    //
-    VM_SysCall.sysWaitForVirtualProcessorInitialization();
-    //-#endif
 
     allProcessorsInitialized = true;
 
@@ -345,10 +349,8 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
 
     // Allow virtual cpus to commence feeding off the work queues.
     //
-    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    //-#else
-    VM_SysCall.sysWaitForMultithreadingStart();
-    //-#endif
+    if (! VM.singleVirtualProcessor)
+      VM_SysCall.sysWaitForMultithreadingStart();
 
     //-#if RVM_WITH_OSR
     OSR_ObjectHolder.boot();
@@ -367,10 +369,10 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     tt.makeDaemon(true);
     tt.start();
 
-    //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-    //-#else
-    // Store VM_Processor in pthread
-    VM_Processor.getCurrentProcessor().stashProcessorInPthread();
+    //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+    if (!VM.withoutInterceptBlockingSystemCalls)
+      // Store VM_Processor in pthread
+      VM_Processor.getCurrentProcessor().stashProcessorInPthread();
     //-#endif
   }
 
@@ -813,7 +815,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
   static int outputLock;
 
   static final void lockOutput () {
-    if (VM.BuildForSingleVirtualProcessor) return;
+    if (VM_Scheduler.numProcessors == 1) return;
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     do {
       int processorId = VM_Magic.prepareInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset());
@@ -825,7 +827,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
   }
 
   static final void unlockOutput () {
-    if (VM.BuildForSingleVirtualProcessor) return;
+    if (VM_Scheduler.numProcessors == 1) return;
     VM_Magic.sync(); // TODO!! is this really necessary?
     if (true) outputLock = 0; // TODO!! this ought to work, but doesn't?
     else {

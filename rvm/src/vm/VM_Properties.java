@@ -86,6 +86,23 @@ public class VM_Properties extends VM_Options {
    */
   public static boolean verboseJNI = false;
 
+  /**
+   * Multiprocessor operation?
+   * <dl>
+   * <dt>false</dt>
+   *    <dd>VM will use multiple processors (requires an operating system
+   *            that supports Posix pthreads, and has "floating stacks")</dd>
+   * <dt>true</dt>
+   *    <dd>VM will use just one processor and no 
+   *            synchronization instructions</dd>
+   */
+  public static boolean singleVirtualProcessor =
+        //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+          true;
+        //-#else
+          false;
+        //-#endif
+
   // Runtime subsystem tracing.
   //
   public static final boolean TraceDictionaries       = false;

@@ -88,9 +88,8 @@ implements Uninterruptible, VM_Constants {
     //
     isInitialized = true;
     
-    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    VM_SysCall.sysWaitForVirtualProcessorInitialization();
-    //-#endif
+    if (!VM_Properties.singleVirtualProcessor)
+      VM_SysCall.sysWaitForVirtualProcessorInitialization();
 
     // enable multiprocessing
     //
@@ -98,9 +97,8 @@ implements Uninterruptible, VM_Constants {
 
     // wait for all other processors to do likewise
     //
-    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    VM_SysCall.sysWaitForMultithreadingStart();
-    //-#endif
+    if (!VM_Properties.singleVirtualProcessor)
+      VM_SysCall.sysWaitForMultithreadingStart();
 
     //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
     // Store VM_Processor in pthread

@@ -425,8 +425,8 @@ public class VM_CommandLineArgs {
           VM.sysWriteln("vm: ", p.value, " needs a cpu number (0..N-1), but found '", arg, "'");
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
-        if (VM.BuildForSingleVirtualProcessor && cpuAffinity != 0) { 
-          VM.sysWriteln("vm: I wasn't compiled to support multiple processors");
+        if (VM.singleVirtualProcessor && cpuAffinity != 0) { 
+          VM.sysWriteln("vm: I can not support multiple processors; check the -X:singleVirtualProcessor flag");
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         VM_Scheduler.cpuAffinity = cpuAffinity;
@@ -447,9 +447,8 @@ public class VM_CommandLineArgs {
                         " (inclusive), but found ", arg);
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
-        if (VM.BuildForSingleVirtualProcessor &&
-            nProcs != 1) {
-          VM.sysWriteln("vm: I wasn't compiled to support multiple processors");
+        if (VM.singleVirtualProcessor && nProcs != 1) {
+          VM.sysWriteln("vm: I can not support multiple processors; check the -X:singleVirtualProcessor flag");
           VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
         }
         VM_Scheduler.numProcessors = nProcs;
