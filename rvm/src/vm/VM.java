@@ -24,7 +24,7 @@ import com.ibm.JikesRVM.quick.*;
  * @date 10 July 2003
  */
 public class VM extends VM_Properties 
-  implements VM_Constants, Uninterruptible 
+  implements VM_Constants, VM_ExitStatus, Uninterruptible
 { 
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
@@ -1092,48 +1092,6 @@ public class VM extends VM_Properties
   public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); writeln(); swUnlock(); }
   public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4, Address a4) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); writeln(); swUnlock(); }
   public static void psysWriteln   (String s1, Address a1, String s2, Address a2, String s3, Address a3, String s4, Address a4, String s5, Address a5) throws NoInlinePragma { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); write(s5); write(a5); writeln(); swUnlock(); }
-  
-  /* Exit statuses, pending a better location.       
-
-     <p>Please keep this list in numerical order.      
-
-     <p>We also use the explicit constant -1 as an exit status (it gets mapped
-     to 255).  -1 is for things that are particularly bad.  You can also
-     use it if you're not sure which one of these codes to use or if none
-     seem applicable.
-  */
-  final public static int EXIT_STATUS_RECURSIVELY_SHUTTING_DOWN = 128;
-  /* Note that XARGS uses status codes 123 through 127 specially.  You are
-   * warned.  We keep out of the namespace from 129 upwards to 180 or so,
-   * because Bash and other SH-compatible shells treat a command that dies
-   * from an uncaught signal as if it had died with an exit status of 128 plus
-   * the signal number.  For example, dying with SIGABRT (signal #6) gives an
-   * exit status of 134.  */
-  final public static int EXIT_STATUS_IMPOSSIBLE_LIBRARY_FUNCTION_ERROR = 125;
-  final public static int EXIT_STATUS_DUMP_STACK_AND_DIE = 124;
-  final public static int EXIT_STATUS_MAIN_THREAD_COULD_NOT_LAUNCH = 123;
-  final public static int EXIT_STATUS_MISC_TROUBLE = 122;
-  final public static int EXIT_STATUS_SYSFAIL = EXIT_STATUS_DUMP_STACK_AND_DIE;
-  final public static int EXIT_STATUS_SYSCALL_TROUBLE = 121;
-  final public static int EXIT_STATUS_TIMER_TROUBLE = 
-    EXIT_STATUS_SYSCALL_TROUBLE;
-  final public static int EXIT_STATUS_UNEXPECTED_CALL_TO_SYS = 120;
-  final public static int EXIT_STATUS_UNSUPPORTED_INTERNAL_OP = 
-    EXIT_STATUS_UNEXPECTED_CALL_TO_SYS;
-  public static int EXIT_STATUS_DYING_WITH_UNCAUGHT_EXCEPTION = 113;
-  /** Trouble with the Hardware Performance Monitors */
-  public static int EXIT_STATUS_HPM_TROUBLE = 110;
-  //-#if RVM_WITH_QUICK_COMPILER
-  public static int EXIT_STATUS_QUICK_COMPILER_FAILED = 102;
-  //-#endif
-  public static int EXIT_STATUS_OPT_COMPILER_FAILED = 101;
-  public static int EXIT_STATUS_BOGUS_COMMAND_LINE_ARG = 100;
-  public static int EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS = 99;
-  public static int EXIT_STATUS_TOO_MANY_OUT_OF_MEMORY_ERRORS =
-    EXIT_STATUS_TOO_MANY_THROWABLE_ERRORS;
-  public static int EXIT_STATUS_JNI_TROUBLE = 98;
-  /* Used in VM_0005fProcess.C */
-  public static int EXIT_STATUS_BAD_WORKING_DIR = EXIT_STATUS_JNI_TROUBLE;
   
 
   /**
