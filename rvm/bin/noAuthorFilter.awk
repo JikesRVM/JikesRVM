@@ -32,6 +32,7 @@
 /\/src\/tools\/jburg/ { next }
 /\/src\/tools\/preprocessor\/testFancy.preprocessor/ { next }
 /\/src\/tools\/preprocessor\/testSimple.preprocessor/ { next }
+/\/src\/tools\/eclipse\/plugin2\/src\/com\/ibm\/jikesrvm\/eclipse\/ui\/jalapeno.jpg/ { next }
 
 /\/ReleaseNotes-/ { next }
 

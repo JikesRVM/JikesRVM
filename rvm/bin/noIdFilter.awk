@@ -25,6 +25,7 @@
 
 /\/src\/tools\/preprocessor\/testFancy\.preprocessor/ { next }
 /\/src\/tools\/preprocessor\/testSimple\.preprocessor/ { next }
+/\/src\/tools\/eclipse\/plugin2\/src\/com\/ibm\/jikesrvm\/eclipse\/ui\/jalapeno.jpg/ { next }
 
 /\/tools\/bootImageRunner\/VM_0005fInetAddress\.h/ { next }
 /\/tools\/bootImageWriter\/rvm\.security/ { next }
