@@ -35,9 +35,9 @@ else
 fi
 CLASSPATH_CVS_DATESPEC_ARG=`cat $RVM_ROOT/rvm/bin/classpath.stamp`
 
-if [[ -e $CLASSPATH_SRC/classpath/config.guess ]]; then
+if [[ -e $CLASSPATH_ROOT/classpath/config.guess ]]; then
   export USE_LOCAL_CLASSPATH="yes"
-  export DEST_DIR=$CLASSPATH_SRC
+  export DEST_DIR=$CLASSPATH_ROOT
 else
   export USE_LOCAL_CLASSPATH="no"
 fi

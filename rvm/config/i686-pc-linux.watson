@@ -57,7 +57,7 @@ export HOST_REPOSITORIES="$HOST_JAVA_HOME/jre/lib/rt.jar"
 export HOST_TOOLS="$HOST_JAVA_HOME/lib/tools.jar"
 
 # sources for classpath 0.05 (current stable version of classpath)
-export CLASSPATH_SRC=/homes/meriadoc/jalapeno/contrib/classpath-0.05
+export CLASSPATH_ROOT=/homes/meriadoc/jalapeno/contrib/classpath-0.05
 
 # path for GNU make
 export GNU_MAKE="/usr/bin/make"

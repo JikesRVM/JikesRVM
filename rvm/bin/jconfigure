@@ -776,8 +776,8 @@ function emitEnvironmentKsh
    print ""
    if (( RVM_WITH_GNU_CLASSPATH )); then
        print "export CLASSPATH_LIBRARIES=YES"
-       if [[ x$CLASSPATH_SRC != x ]]; then
-	   print "export CLASSPATH_SRC=$CLASSPATH_SRC"
+       if [[ x$CLASSPATH_ROOT != x ]]; then
+	   print "export CLASSPATH_ROOT=$CLASSPATH_ROOT"
        fi
    fi
    print ""
@@ -942,7 +942,7 @@ function emitController
    if (( ! RVM_WITH_GNU_CLASSPATH )); then
     print '(export RVM_ROOT=$JAL_ROOT; $RVM_ROOT/rvm/bin/jCheckLibs -f )'
    else
-    if [[ x$CLASSPATH_SRC = x ]]; then
+    if [[ x$CLASSPATH_ROOT = x ]]; then
       print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check --destination $RVM_ROOT/classpath'
     else
       print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check'
@@ -1195,10 +1195,10 @@ function emitCopier
 
    # copy classpath jar file
    if test $RVM_WITH_GNU_CLASSPATH -eq 1; then
-     if [[ x$CLASSPATH_SRC = x ]]; then
+     if [[ x$CLASSPATH_ROOT = x ]]; then
        CPS=$RVM_ROOT/classpath
      else
-       CPS=$CLASSPATH_SRC
+       CPS=$CLASSPATH_ROOT
      fi
      print 'SYSTEM_TYPE=`'$CPS'/classpath/config.guess`'
      print 'cp -f '$CPS'/$SYSTEM_TYPE/lib/glibj.zip '$CLASSES_DIRECTORY_STR/rvmrt.jar
@@ -1925,7 +1925,7 @@ function emitBooterLinker
 
    if [[ $RVM_HOST_CONFIG != $RVM_TARGET_CONFIG ]]; then
      if (( RVM_WITH_GNU_CLASSPATH )); then
-       if [[ x$CLASSPATH_SRC = x ]]; then
+       if [[ x$CLASSPATH_ROOT = x ]]; then
          print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check --destination $RVM_ROOT/classpath'
        else
          print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check'
@@ -1935,10 +1935,10 @@ function emitBooterLinker
 
    # copy native libraries
    if test $RVM_WITH_GNU_CLASSPATH -eq 1; then
-     if [[ x$CLASSPATH_SRC = x ]]; then
+     if [[ x$CLASSPATH_ROOT = x ]]; then
        CPS=$RVM_ROOT/classpath
      else
-       CPS=$CLASSPATH_SRC
+       CPS=$CLASSPATH_ROOT
      fi
      print 'SYSTEM_TYPE=`'$CPS'/classpath/config.guess`'
      if (( RVM_FOR_AIX )); then

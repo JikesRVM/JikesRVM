@@ -49,7 +49,7 @@ on your machine that aren't part of the default Red Hat install.
 Unless you regularly build the GNU classpath libraries from their CVS
 tree, we recommend that you download a classpath release tar ball
 instead. When editing the configuration file (next step), you will set
-the {\tt CLASSPATH\_SRC} variable to be the directory that contains the
+the {\tt CLASSPATH\_ROOT} variable to be the directory that contains the
 classpath directory you just created.  
 
 \item Edit a configuration file so that it fits your machine.  One of
@@ -171,11 +171,11 @@ The first item is available  from the Jikes RVM
 \xlink{download}{\RVMDownloadURL} page. The second item is available at
 \xlink{{\tt \classpathURL}}{\classpathURL}.
 You can either explicitly download the appropriate version of the GNU
-Classpath libraries and set {\tt CLASSPATH\_SRC} in your config file or let
+Classpath libraries and set {\tt CLASSPATH\_ROOT} in your config file or let
 the Jikes RVM build process download the right version for you
 automatically. If you do not regularly build the classpath libraries
 from their CVS tree, then you probably should download the appropriate
-classpath release manually and set {\tt CLASSPATH\_SRC}. 
+classpath release manually and set {\tt CLASSPATH\_ROOT}. 
 
 Once these files have been downloaded, you will set up 
 a working directory holding the Jikes RVM source files, standard
@@ -315,7 +315,7 @@ find tools that Jikes RVM needs. You must set the following variables:
 \item {\tt HOST\_JAVA\_HOME} the base directory for JDK JVM. If you
 have a nonstandard JDK, you may have to define a number of variables
 that are normally defined in terms of {\tt HOST\_JAVA\_HOME}.
-\item {\tt CLASSPATH\_SRC} the parent directory of the classpath src
+\item {\tt CLASSPATH\_ROOT} the parent directory of the classpath src
 release, if you have decided to manually download the classpath
 libraries. 
 \item {\tt GNU\_MAKE} the GNU {\tt make} executable
