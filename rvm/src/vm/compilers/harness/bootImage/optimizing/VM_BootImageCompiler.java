@@ -25,7 +25,7 @@ public class VM_BootImageCompiler {
   private static boolean match(VM_Method method) {
     if (excludePattern == null) return true;
     VM_Class cls = method.getDeclaringClass();
-    String clsName = cls.getName();
+    String clsName = cls.toString();
     if (clsName.compareTo("com.ibm.JikesRVM.opt.VM_OptSaveVolatile") == 0) return true;
     String methodName = method.getName().toString();
     String fullName = clsName + "." + methodName;
