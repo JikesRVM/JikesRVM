@@ -1,2 +1,2 @@
-. $1/WatsonMarkSweep
-. $1/OptOpt
+. $1/gc/WatsonMarkSweep
+. $1/compilers/OptOpt

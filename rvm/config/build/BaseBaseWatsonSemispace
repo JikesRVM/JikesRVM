@@ -1,2 +1,2 @@
-. $1/WatsonSemispace
-. $1/BaseBase
+. $1/gc/WatsonSemispace
+. $1/compilers/BaseBase

@@ -1,2 +1,2 @@
-. $1/WatsonMarkSweep
-. $1/BaseBase
+. $1/gc/WatsonMarkSweep
+. $1/compilers/BaseBase

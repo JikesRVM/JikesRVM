@@ -1,2 +1,2 @@
-. $1/GenCopy
-. $1/FastAdaptive
+. $1/gc/GenCopy
+. $1/compilers/FastAdaptive

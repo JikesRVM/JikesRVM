@@ -1,2 +1,2 @@
-. $1/MarkSweep
-. $1/FullOpt
+. $1/gc/MarkSweep
+. $1/compilers/FullOpt

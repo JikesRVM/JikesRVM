@@ -1,2 +1,2 @@
-. $1/GenCopy
-. $1/OptOpt
+. $1/gc/GenCopy
+. $1/compilers/OptOpt

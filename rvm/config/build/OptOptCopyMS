@@ -1,2 +1,2 @@
-. $1/CopyMS
-. $1/OptOpt
+. $1/gc/CopyMS
+. $1/compilers/OptOpt

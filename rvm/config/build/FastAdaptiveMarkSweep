@@ -1,2 +1,2 @@
-. $1/MarkSweep
-. $1/FastAdaptive
+. $1/gc/MarkSweep
+. $1/compilers/FastAdaptive

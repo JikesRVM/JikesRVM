@@ -1,2 +1,2 @@
-. $1/SemiSpace
-. $1/BaseOpt
+. $1/gc/SemiSpace
+. $1/compilers/BaseOpt

@@ -1,2 +1,2 @@
-. $1/SemiSpace
-. $1/Fast
+. $1/gc/SemiSpace
+. $1/compilers/Fast

@@ -1,2 +1,2 @@
-. $1/CopyMS
-. $1/BaseBase
+. $1/gc/CopyMS
+. $1/compilers/BaseBase

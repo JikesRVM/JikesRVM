@@ -1,2 +1,2 @@
-. $1/GenMS
-. $1/Fast
+. $1/gc/GenMS
+. $1/compilers/Fast

@@ -1,2 +1,2 @@
-. $1/SemiSpace
-. $1/FullAdaptive
+. $1/gc/SemiSpace
+. $1/compilers/FullAdaptive

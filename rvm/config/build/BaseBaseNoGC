@@ -1,2 +1,2 @@
-. $1/NoGC
-. $1/BaseBase
+. $1/gc/NoGC
+. $1/compilers/BaseBase
