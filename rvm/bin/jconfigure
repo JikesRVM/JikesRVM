@@ -676,7 +676,6 @@ then RVM_WITH_NATIVE_DAEMON_PROCESSOR must not be specified";
 #
 function emitSourceList () {
 
-echo "  chkpt 1"
     if (( RVM_FOR_POWERPC )); then
 	ARCH_DIR="powerPC"
     elif (( RVM_FOR_IA32 )); then
@@ -684,7 +683,7 @@ echo "  chkpt 1"
     else
 	ARCH_DIR="UNSPECIFIED_ARCHITECTURE"
     fi
-echo "  chkpt 2"   
+
     # Common components.
     #
     cleanFileList <<- EOF
@@ -725,7 +724,6 @@ echo "  chkpt 2"
 EOF
     # Optimizing compiler components.
     #
-echo "  chkpt 3"   
     if (( RVM_WITH_OPT_COMPILER )); then
 	# core components
 	#
@@ -793,7 +791,6 @@ echo "  chkpt 3"
 EOF
     fi
 
-echo "  chkpt 4"   
     # Adaptive compiler components.
     #
     if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
@@ -812,7 +809,6 @@ echo "  chkpt 4"
 EOF
     fi
 
-echo "  chkpt 5"   
     # On stack replacement components.
     #
     if (( RVM_WITH_OSR )); then
@@ -837,9 +833,7 @@ EOF
     elif (( ${RVM_WITH_OPT_BOOTIMAGE_COMPILER} )); then
 	echo ${RVM_ROOT}/rvm/src/vm/compilers/harness/bootImage/optimizing
     fi
-echo "  chkpt 6"   
     cleanFileList <<- EOF
-echo "  chkpt 7"   
     # Runtime compiler components.
     #
 	${RVM_ROOT}/rvm/src/vm/compilers/harness/runtime
@@ -853,7 +847,6 @@ echo "  chkpt 7"
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/policy
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility
 EOF
-echo "  chkpt 8"   
     # collector specific classes
     #
     if (( $RVM_WITH_SEMI_SPACE )); then
@@ -874,7 +867,6 @@ echo "  chkpt 8"
         echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/noGC
     fi
 
-echo "  chkpt 9"   
     # standard library support
     #
     cat <<EOF
@@ -886,20 +878,17 @@ echo "  chkpt 9"
 	$RVM_ROOT/rvm/src/vm/libSupport/java/io
 EOF
 
-echo "  chkpt 10"   
     # Add support for hardware performance monitors on PowerPC
     #
     if (( $RVM_WITH_HPM )); then
 	echo $RVM_ROOT/rvm/src/vm/adaptive/runtimeMeasurements/hardwarePerformanceMonitors
     fi
 
-echo "  chkpt 20"   
     # Add the configuration specific directories
     #
     for dir in $CONF_SPECIFIC_SOURCES_LIST; do
         echo $RVM_ROOT/$dir
     done
-echo "  chkpt 100"   
 }
 
 
@@ -3251,29 +3240,17 @@ mkdir -p ${CLASSES_DIRECTORY}
 
 PERM=+r+w
 
-echo "chkpt 1"
-
 s=${CONFIGURATION_SUMMARY}
 emitConfigSummary > ${s}
 chmod ${PERM} ${s}
 
-echo "chkpt 3"
-
 TARGET_BASH="${BASH}"
 HOST_BASH="/usr/bin/env bash"
 
-echo "chkpt 4"
-
 f=$SOURCE_LIST
-echo "chkpt 4.1"
 rm -f			$f
-echo "chkpt 4.2"
 emitSourceList	      > $f
-echo "chkpt 4.3"
 chmod ${PERM}		$f
-echo "chkpt 4.4"
-
-echo "chkpt 5"
 
 f=${BUILD_DIRECTORY}/jbuild
 rm -f			$f
@@ -3295,8 +3272,6 @@ rm -f			$f
 emitCompiler	      > $f
 chmod +x${PERM}		$f
 
-echo "chkpt 10"
-
 f=${BUILD_DIRECTORY}/jbuild.linkImage
 rm -f			$f
 emitImageLinker       > $f  
@@ -3317,8 +3292,6 @@ rm -f			$f
 emitToolPreprocessor  > $f
 chmod +x$PERM           $f
 
-echo "chkpt 15"
-
 f=${BUILD_DIRECTORY}/jbuild.plugin
 rm -f			$f
 emitPluginBuilder     > $f
@@ -3328,8 +3301,6 @@ f=${BUILD_DIRECTORY}/jbuild.install
 rm -f			$f
 emitInstaller	      > $f
 chmod +x${PERM}		$f
-
-echo "chkpt 20"
 
 # Write the GNU Classpath security properties file
 #
