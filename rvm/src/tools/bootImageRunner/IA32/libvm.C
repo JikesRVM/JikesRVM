@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002, 2003
+ * (C) Copyright IBM Corp 2001,2002, 2003,2004
  */
 //$Id$
 
@@ -747,14 +747,14 @@ createJVM(int UNUSED vmInSeparateThread)
 		      MAP_FIXED | MAP_PRIVATE | MAP_NORESERVE, 
 		      fileno(fin), 0);
     if (bootRegion == (void *) MAP_FAILED) {
-        fprintf(SysErrorFile, "%s: mmap failed (errno=%d): %e\n", 
-		Me, errno, errno);
+        fprintf(SysErrorFile, "%s: mmap failed (errno=%d): %s\n", 
+		Me, errno, strerror(errno));
         return 1;
     }
     if (bootRegion != (void *) bootImageAddress) {
 	fprintf(SysErrorFile, "%s: Attempted to mmap in the address %p; "
 			     " got %p instead.  This should never happen.",
-		bootRegion, bootImageAddress);
+		Me, bootRegion, bootImageAddress);
 	/* Don't check the return value.  This is insane already.
 	 * If we weren't part of a larger runtime system, I'd abort at this
 	 * point.  */
