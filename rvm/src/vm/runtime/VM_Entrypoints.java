@@ -187,9 +187,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Field JNIPendingExceptionField   = getField("Lcom/ibm/JikesRVM/jni/VM_JNIGenericEnvironment;", "pendingException", "Ljava/lang/Throwable;");
   public static final VM_Field JNIExternalFunctionsField  = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "externalJNIFunctions",  "Lcom/ibm/JikesRVM/VM_Address;");
   //-#if RVM_FOR_POWERPC
-  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
   public static final VM_Field JNIEnvSavedJTOCField       = getField("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", "savedJTOC", "Lcom/ibm/JikesRVM/VM_Address;");
-  //-#endif
   //-#endif
 
   public static final VM_Field the_boot_recordField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "the_boot_record", "Lcom/ibm/JikesRVM/VM_BootRecord;");

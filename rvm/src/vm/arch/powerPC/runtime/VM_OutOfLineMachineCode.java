@@ -25,23 +25,16 @@ package com.ibm.JikesRVM;
  *
  * @author Derek Lieber
  */
-class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConstants {
-  //-----------//
-  // interface //
-  //-----------//
-   
-  static void
-    init() {
+class VM_OutOfLineMachineCode implements VM_BaselineConstants,
+                                         com.ibm.JikesRVM.jni.VM_JNIStackframeLayoutConstants,
+                                         VM_AssemblerConstants {
+  static void init() {
     reflectiveMethodInvokerInstructions       = generateReflectiveMethodInvokerInstructions();
     saveThreadStateInstructions               = generateSaveThreadStateInstructions();
     threadSwitchInstructions                  = generateThreadSwitchInstructions();
     restoreHardwareExceptionStateInstructions = generateRestoreHardwareExceptionStateInstructions();
     invokeNativeFunctionInstructions          = generateInvokeNativeFunctionInstructions();
   }
-
-  //----------------//
-  // implementation //
-  //----------------//
 
   private static VM_CodeArray reflectiveMethodInvokerInstructions;
   private static VM_CodeArray saveThreadStateInstructions;
@@ -416,8 +409,8 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     // mimi (1) FP -> mimi(2) FP -> java caller
     asm.emitLAddr (S0, 0, S0);
     //-#endif
-    asm.emitLAddr (JTOC, -JNI_JTOC_OFFSET, S0);                 // load JTOC reg
     asm.emitLAddr (PROCESSOR_REGISTER, - JNI_ENV_OFFSET, S0);   // load VM_JNIEnvironment
+    asm.emitLAddr (JTOC, VM_Entrypoints.JNIEnvSavedJTOCField.getOffset(), PROCESSOR_REGISTER);      // load JTOC
     asm.emitLAddr (PROCESSOR_REGISTER, VM_Entrypoints.JNIEnvSavedPRField.getOffset(), PROCESSOR_REGISTER); // load PR
     asm.emitLVAL  (S1, VM_Entrypoints.vpStatusField.getOffset());
     asm.emitLWARX (S0, S1, PROCESSOR_REGISTER);                 // get status for processor
@@ -426,8 +419,8 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     //
     // if blocked in native, call C routine to do pthread_yield
     //
-    asm.emitLAddr (T2, VM_Entrypoints.the_boot_recordField.getOffset(), JTOC);       // T2 gets boot record address
-    asm.emitLAddr (JTOC, VM_Entrypoints.sysTOCField.getOffset(), T2);                // load TOC for syscalls from bootrecord
+    asm.emitLAddr (T2, VM_Entrypoints.the_boot_recordField.getOffset(), JTOC);  // T2 gets boot record address
+    asm.emitLAddr (JTOC, VM_Entrypoints.sysTOCField.getOffset(), T2);           // load TOC for syscalls from bootrecord
     asm.emitLAddr (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset(), T2);  // load addr of function
     asm.emitMTLR  (T1);
     asm.emitBCLRL ();                                          // call sysVirtualProcessorYield in sys.C

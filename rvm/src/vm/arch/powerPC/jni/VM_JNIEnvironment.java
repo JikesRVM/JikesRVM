@@ -33,14 +33,12 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
   private static VM_AddressArray[] AIXLinkageTriplets;
   //-#endif
 
-  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
   /**
-   * We need to stash the JTOC somewhere we can find it later
+   * Stash the JTOC somewhere we can find it later
    * when we are making a C => Java transition.
-   * Don't have to do this on AIX because it is part of the LinkageTriplet.
+   * We mainly need this for OSX/Linux but it is also nice to have on AIX.
    */
   private final VM_Address savedJTOC = VM_Magic.getTocPointer();
-  //-#endif
    
   /**
    * This is the pointer to the shared JNIFunction table.

@@ -845,7 +845,7 @@ public class VM_Runtime implements VM_Constants {
 
 	  if (catchBlockOffset >= 0  ){ 
 	    // found an appropriate catch block
-	    if (VM.debugOOM)
+            if (VM.debugOOM)
 	      VM.sysWriteln("found one; delivering.");
 	    VM_Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
 	    exceptionDeliverer.deliverException(compiledMethod, 
@@ -924,25 +924,25 @@ public class VM_Runtime implements VM_Constants {
       callee_fp = fp;
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
-    } while ( !MM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP)) ;
+    } while (!MM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
 
-	//-#if RVM_FOR_POWERPC
-  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
-	// for SVR4 convention, a Java-to-C frame has two mini frames,
-	// stop before the mini frame 1 whose ip is in VM (out of line machine
-	// code), in the case of sentinel fp, it has to return the callee's fp
-	// because GC ScanThread uses it to get return address and so on.
-	if (MM_Interface.refInVM(ip)) {
-      return fp;
-	} else {
-	  return callee_fp;
-	}
-	//-#else
-	return callee_fp;
-  //-#endif // RVM_FOR_LINUX || RVM_FOR_OSX
-	//-#else
-	return callee_fp;
-	//-#endif // RVM_FOR_POWERPC
+    if (VM.BuildForPowerPC) {
+      if (VM.BuildForLinux || VM.BuildForOsx) {
+        // for SVR4 convention, a Java-to-C frame has two mini frames,
+        // stop before the mini frame 1 whose ip is in VM (out of line machine
+        // code), in the case of sentinel fp, it has to return the callee's fp
+        // because GC ScanThread uses it to get return address and so on.
+        if (MM_Interface.refInVM(ip)) {
+          return fp;
+        } else {
+          return callee_fp;
+        }
+      } else {
+        return callee_fp;
+      }
+    } else {
+      return callee_fp;
+    }
   }
 
   /**

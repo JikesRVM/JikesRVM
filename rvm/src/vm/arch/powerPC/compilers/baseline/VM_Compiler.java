@@ -95,15 +95,13 @@ public class VM_Compiler extends VM_BaselineCompiler
   public static int getFrameSize (VM_NativeMethod m) throws VM_PragmaUninterruptible {
     // space for:
     //   -NATIVE header (AIX 6 words, LINUX 2 words)
-    //   -parameters and 2 new JNI parameters (jnienv + obj), minimum 8 words
-    //   -JNI_SAVE_AREA_OFFSET = savedSP + savedJTOC  + Processor_Register
-    //                           nonvolatile registers + GC flag + 
-    //                           affinity (20 words) +
-    //                           saved volatile registers
+    //   -parameters and 2 extra JNI parameters (jnienv + obj), minimum 8 words
+    //   -JNI_SAVE_AREA_OFFSET; see VM_JNIStackframeLayoutConstants
     int argSpace = BYTES_IN_STACKSLOT * (m.getParameterWords()+ 2);
-    if (argSpace<32)
+    if (argSpace < 32)
       argSpace = 32;
-    int size = NATIVE_FRAME_HEADER_SIZE + argSpace + JNI_SAVE_AREA_SIZE;     
+    int size = NATIVE_FRAME_HEADER_SIZE + argSpace +
+      com.ibm.JikesRVM.jni.VM_JNIStackframeLayoutConstants.JNI_SAVE_AREA_SIZE;
     if (VM.BuildFor32Addr) {
       size = VM_Memory.alignUp(size , STACKFRAME_ALIGNMENT);
     }

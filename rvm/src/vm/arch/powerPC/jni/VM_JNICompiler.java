@@ -10,10 +10,12 @@ import com.ibm.JikesRVM.classloader.*;
 /**
  * @author Ton Ngo 
  * @author Steve Smith
- * modified by Kris Venstermans ( 64-bit port AIX)
+ * @modified Dave Grove
+ * @modified by Kris Venstermans (64-bit port AIX)
  */
 public class VM_JNICompiler implements VM_BaselineConstants,
-				       VM_AssemblerConstants {
+				       VM_AssemblerConstants,
+                                       VM_JNIStackframeLayoutConstants {
 
   /**
    * This method creates the stub to link native method.  It will be called
@@ -23,17 +25,17 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    * <pre>
    * The stub performs the following tasks in the prologue:
    *   -Allocate the glue frame
-   *   -Save the PR registers in the JNI Environment for reentering Java later
+   *   -Save the PR register in the JNI Environment for reentering Java later
    *   -Shuffle the parameters in the registers to conform to the AIX convention
    *   -Save the nonvolatile registers in a known space in the frame to be used 
    *    for the GC stack map
    *   -Push a new JREF frame on the JNIRefs stack
    *   -Supply the first JNI argument:  the JNI environment pointer
    *   -Supply the second JNI argument:  class object if static, "this" if virtual
-   *   -Hardcode the TOC and IP to the corresponding native code
+   *   -Setup the TOC (AIX only) and IP to the corresponding native code
    *
    * The stub performs the following tasks in the epilogue:
-   *   -PR register is AIX nonvolatile, so they should be restored already
+   *   -PR register is AIX nonvolatile, so it should be restored already
    *   -Restore the nonvolatile registers if GC has occurred
    *   -Pop the JREF frame off the JNIRefs stack
    *   -Check for pending exception and deliver to Java caller if present
@@ -71,7 +73,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    *   |  ...     | 
    *   |          |
    *   |GC flag   | offset = JNI_SAVE_AREA_OFFSET           <- JNI_GC_FLAG_OFFSET
-   *   |affinity  | saved VM_Thread.processorAffinity       <- JNI_AFFINITY_OFFSET
    *   |vol fpr1  | saved AIX volatile fpr during becomeNativeThread
    *   | ...      | 
    *   |vol fpr6  | saved AIX volatile fpr during becomeNativeThread
@@ -79,10 +80,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
    *   | ...      | 
    *   |vol r10   | saved AIX volatile regs during Yield    <- JNI_OS_PARAMETER_REGISTER_OFFSET
    *   |ENV       | VM_JNIEnvironment                       <- JNI_ENV_OFFSET
-   *   |nonvol 17 | save 15 nonvolatile registers for stack mapper
+   *   |nonvol 17 | save 15 nonvolatile GPRs for GC stack mapper
    *   | ...      |
    *   |nonvol 31 |                                         <- JNI_RVM_NONVOLATILE_OFFSET
-   *   |savedJTOC | save RVM JTOC for return                <- JNI_JTOC_OFFSET
    *   |----------|   
    *   |  fp   	  | <- Java caller frame
    *   | mid   	  |
@@ -134,8 +134,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitLVAL  (S0, compiledMethodId);                // save jni method id
     asm.emitSTW   (S0, STACKFRAME_METHOD_ID_OFFSET, FP);
     //-#endif
-
-    asm.emitSTAddr (JTOC, frameSize - JNI_JTOC_OFFSET, FP);    // save RVM JTOC in frame
 
     // establish S1 -> VM_Thread, S0 -> threads JNIEnv structure      
     asm.emitLAddr(S1, VM_Entrypoints.activeThreadField.getOffset(), PROCESSOR_REGISTER);
@@ -317,8 +315,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // PR <- JREFS array base
     asm.emitLAddr(PROCESSOR_REGISTER, VM_Entrypoints.JNIRefsField.getOffset(), S0);
 
-    // TI <- JREFS current top 
-    asm.emitLInt(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffset(), S0);   // JREFS offset for current TOP 
+    // KLUDGE_TI_REG <- JREFS current top 
+    asm.emitLInt(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffset(), S0);  // JREFS offset for current TOP 
     asm.emitADD(KLUDGE_TI_REG, PROCESSOR_REGISTER, KLUDGE_TI_REG);                // convert into address
 
     // TODO - count number of refs
@@ -1274,17 +1272,12 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       //-#endif
     }
 
-    // Save AIX non-volatile GRPs and FPRs that will not be saved and restored
-    // by RVM. These are GPR 13-16.
+    // Save AIX non-volatile GPRs that will not be saved and restored by RVM.
     //
     offset = STACKFRAME_HEADER_SIZE + JNI_GLUE_SAVED_VOL_SIZE;   // skip 20 word volatile reg save area
     for (int i = FIRST_OS_NONVOLATILE_GPR; i < FIRST_NONVOLATILE_GPR; i++) {
       asm.emitSTAddr(i, offset, FP);
       offset += BYTES_IN_ADDRESS;
-    }
-    for (int i = FIRST_OS_NONVOLATILE_FPR; i < FIRST_NONVOLATILE_FPR; i++) {
-      asm.emitSTFD (i, offset, FP);
-      offset +=BYTES_IN_DOUBLE;
     }
  
     // set the method ID for the glue frame
@@ -1328,7 +1321,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitBC    (NE, retryLoop);                            // br if failure -retry lwarx by jumping to label0
     VM_ForwardReference frInJava = asm.emitForwardB();        // branch around code to call sysYield
 
-    // branch to here if blocked in native, call sysVirtualProcessorYield (AIX pthread yield)
+    // branch to here if blocked in native, call sysVirtualProcessorYield (pthread yield)
     // must save volatile gprs & fprs before the call and restore after
     //
     frBlocked.resolve(asm);
@@ -1438,10 +1431,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     for (int i = FIRST_OS_NONVOLATILE_GPR; i < FIRST_NONVOLATILE_GPR; i++) {
       asm.emitLAddr (i, offset, FP);                     // 4 instructions
       offset += BYTES_IN_ADDRESS;
-    }
-    for (int i = FIRST_OS_NONVOLATILE_FPR; i < FIRST_NONVOLATILE_FPR; i++) {
-      asm.emitLFD  (i, offset, FP);                   // 2 instructions
-      offset +=BYTES_IN_DOUBLE;
     }
 
     // pop frame

@@ -99,7 +99,7 @@ class VM_JNIFunctions implements VM_NativeBridge,
     String classString = null;
     try {
       classString = VM_JNIHelpers.createStringFromC(classNameAddress);
-      if (traceJNI) VM.sysWriteln( classString );
+      if (traceJNI) VM.sysWriteln(classString);
       ClassLoader cl = VM_Class.getClassLoaderFromStackFrame(1);
       Class matchedClass = Class.forName(classString.replace('/', '.'), true, cl);
       return env.pushJNIRef(matchedClass);  

@@ -20,7 +20,8 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Ton Ngo 
  * @author Steve Smith
  */
-public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_RegisterConstants {
+public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_RegisterConstants,
+                                                                            VM_JNIStackframeLayoutConstants {
   
   /**
    * Common code shared by the JNI functions NewObjectA, NewObjectV, NewObject

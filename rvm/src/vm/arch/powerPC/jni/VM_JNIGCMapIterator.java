@@ -25,6 +25,7 @@ import com.ibm.JikesRVM.*;
  */
 public final class VM_JNIGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants,
+             VM_JNIStackframeLayoutConstants,
 	     VM_Uninterruptible {
 
   // non-volitile regs are saved at the end of the transition frame,
