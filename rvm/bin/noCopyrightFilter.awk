@@ -22,6 +22,11 @@
 
 /\/ids\/rvmrt.stamp/ { next }
 
+/\/TimeLimit.sanity/ { next }
+/\/TimeLimit.performance/ { next }
+
+/regression\/test\/SPECjbb2000\/SPECjbb\.+\.props/ { next }
+
 #
 # print everything else
 #
