@@ -1815,6 +1815,18 @@ extern "C" float sysPrimitiveParseFloat(char * buf) {
   return a;
 }
 
+// Used to parse command line arguments that are
+// ints and bytes early in booting before it 
+// is safe to call Integer.parseInt and Byte.parseByte
+extern "C" int sysPrimitiveParseInt(char * buf) {
+  int a;
+  if (sscanf(buf, "%d", &a) != 1) {
+    fprintf(SysErrorFile, "%s: invalid byte/int value %s\n", me, buf);
+    exit(EXIT_STATUS_SYSCALL_TROUBLE);
+  }
+  return a;
+}
+
 //-------------------//
 // Memory operations //
 //-------------------//

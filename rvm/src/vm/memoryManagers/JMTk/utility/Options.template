@@ -6,10 +6,10 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
+import com.ibm.JikesRVM.VM_CommandLineArgs;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaNoOptCompile;
 
 /**
  * Class to handle command-line arguments and options for JMTk.
@@ -95,8 +95,7 @@ $$$$ END LOOP
    * @param arg a String to try to process as an option command
    * @return true if successful, false otherwise
    */
-  public static boolean process(String arg) throws VM_PragmaNoOptCompile,
-	                                           VM_PragmaInterruptible {
+  public static boolean process(String arg) throws VM_PragmaInterruptible {
 
     // First handle the "option commands"
     if (arg.equals("help")) {
@@ -152,10 +151,10 @@ $$$$ FOREACH OPTION VDATFILE
        FULL_NAME = filter_FULL_NAME(value);
           $$$$ ELSE
             $$$$ IF TYPE == int
-       FULL_NAME = filter_FULL_NAME(Integer.parseInt(value));
+       FULL_NAME = filter_FULL_NAME(VM_CommandLineArgs.primitiveParseInt(value));
             $$$$ ELSE
               $$$$ IF TYPE == byte
-       FULL_NAME = filter_FULL_NAME(Byte.parseByte(value));
+       FULL_NAME = filter_FULL_NAME((byte)VM_CommandLineArgs.primitiveParseInt(value));
               $$$$ ELSE
                 $$$$ IF TYPE == double
        FULL_NAME = filter_FULL_NAME(VM_CommandLineArgs.primitiveParseFloat(value));
@@ -200,34 +199,34 @@ $$$$ END LOOP
   // Print a short description of every option
   // Throws VM_PragmaNoOptCompile to avoid occasional OutOfMemory errors when
   // boot image writing.
-  public static void printHelp() throws VM_PragmaNoOptCompile {
+  public static void printHelp() {
 
-    VM_Interface.sysWrite("Commands\n");
-    VM_Interface.sysWrite("-X:gc[:help]\t\t\tPrint brief description of JMTk's command-line arguments\n");
-    VM_Interface.sysWrite("-X:gc:printOptions\t\tPrint the current values of JMTk's options\n");
-    VM_Interface.sysWrite("\n");
+    VM_Interface.sysWriteln("Commands");
+    VM_Interface.sysWriteln("-X:gc[:help]\t\t\tPrint brief description of JMTk's command-line arguments");
+    VM_Interface.sysWriteln("-X:gc:printOptions\t\tPrint the current values of JMTk's options");
+    VM_Interface.sysWriteln();
 
     //Begin generated help messages
-    VM_Interface.sysWrite("Boolean Options (-X:gc:<option>=true or -X:gc:<option>=false)\n");
-    VM_Interface.sysWrite("Option                                 Description\n");
+    VM_Interface.sysWriteln("Boolean Options (-X:gc:<option>=true or -X:gc:<option>=false)");
+    VM_Interface.sysWriteln("Option                                 Description");
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
      $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
-    VM_Interface.sysWrite("CMD_NAME OPTION.DESCRIP\n");
+    VM_Interface.sysWriteln("CMD_NAME OPTION.DESCRIP");
      $$$$ END LET CMD_NAME
      $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
-    VM_Interface.sysWrite("\nValue Options (-X:gc:<option>=<value>)\n");
-    VM_Interface.sysWrite("Option                         Type    Description\n");
+    VM_Interface.sysWriteln("\nValue Options (-X:gc:<option>=<value>)");
+    VM_Interface.sysWriteln("Option                         Type    Description");
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == V
           $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
           $$$$ LET TNAME @PAD("TYPE", 7, " ")
-    VM_Interface.sysWrite("CMD_NAME TNAME OPTION.DESCRIP\n");
+    VM_Interface.sysWriteln("CMD_NAME TNAME OPTION.DESCRIP");
           $$$$ END LET TYPE_NAME
           $$$$ END LET CMD_NAME
      $$$$ END IF TAG == V
@@ -239,16 +238,16 @@ $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == E
-    VM_Interface.sysWrite("\t\tOPTION.DESCRIP\n");
+    VM_Interface.sysWriteln("\t\tOPTION.DESCRIP");
 	  $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
-    VM_Interface.sysWrite("MAIN_CMD_NAME");
+    VM_Interface.sysWriteln("MAIN_CMD_NAME");
             $$$$ LOOP CONSTNAME OPTION.ENUMS
                  $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
-    VM_Interface.sysWrite("CMD_NAME ");
+    VM_Interface.sysWriteln("CMD_NAME ");
                  $$$$ END SPLIT CONSTNAME
             $$$$ END LOOP CONSTNAME
           $$$$ END LET MAIN_CMD_NAME
-    VM_Interface.sysWrite("\n");
+    VM_Interface.sysWriteln();
      $$$$ END IF TAG == E
      $$$$ END SPLIT
 $$$$ END FOREACH
@@ -258,19 +257,14 @@ $$$$ END LOOP
   }    
 
   // print the options values
-  public static void printOptions() throws VM_PragmaInterruptible {
-    VM_Interface.sysWrite(asString());
-  }
-
-  public static String asString() throws VM_PragmaNoOptCompile,
-                                  VM_PragmaInterruptible {
-    String s = "Current value of JMTk options:\n";
+  public static void printOptions() {
+    VM_Interface.sysWriteln("Current value of JMTk options");
     //Begin generated option value printing 
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
      $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
-    s = s + "\tCMD_NAME = "+FULL_NAME+"\n";
+    VM_Interface.sysWriteln("\tCMD_NAME = ",FULL_NAME);
      $$$$ END LET CMD_NAME
      $$$$ END SPLIT
 $$$$ END FOREACH
@@ -280,7 +274,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == V
           $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
-    s = s + "\tCMD_NAME = "+FULL_NAME+"\n";
+    VM_Interface.sysWriteln("\tCMD_NAME = ",FULL_NAME);
           $$$$ END LET CMD_NAME
      $$$$ END IF TAG == V
      $$$$ END SPLIT OPTION.DECL
@@ -294,7 +288,7 @@ $$$$ FOREACH OPTION VDATFILE
           $$$$ LOOP CONSTNAME OPTION.ENUMS
                $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
     if (FULL_NAME == ITEM_NAME)
-       s = s + "\tPCMD_NAME = ITEM_NAME\n";
+       VM_Interface.sysWriteln("\tPCMD_NAME = ITEM_NAME");
                $$$$ END LET PCMD
                $$$$ END SPLIT CONSTNAME
           $$$$ END LOOP CONSTNAME
@@ -303,7 +297,5 @@ $$$$ FOREACH OPTION VDATFILE
 $$$$ END FOREACH
 $$$$ END LOOP
     //End generated option value printing 
-
-    return s;
   }
 }

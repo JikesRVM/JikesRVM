@@ -176,6 +176,17 @@ public class VM_SysCall implements VM_Uninterruptible {
    */
   public static float sysPrimitiveParseFloat(byte[] buf) { return 0; }
 
+  /**
+   * Used to parse command line arguments that are
+   * bytes and ints early in booting before it 
+   * is safe to call Byte.parseByte or Integer.parseInt.
+   * 
+   * @param buf a null terminated byte[] that can be parsed
+   *            by sscanf("%d")
+   * @return the int value produced by the call to sscanf on buf.
+   */
+  public static int sysPrimitiveParseInt(byte[] buf) { return 0; }
+
   // time
   public static long sysGetTimeOfDay() { return 0; }
 

@@ -128,10 +128,10 @@ $$$$ FOREACH OPTION VDATFILE
     if (name.equals("CMD_NAME")) {
      $$$$ IF TAG == V
        $$$$ IF TYPE == int
-       FULL_NAME = Integer.parseInt(value);
+       FULL_NAME = VM_CommandLineArgs.primitiveParseInt(value);
        $$$$ ELSE
          $$$$ IF TYPE == byte
-       FULL_NAME = Byte.parseByte(value);
+       FULL_NAME = (byte)VM_CommandLineArgs.primitiveParseInt(value);
          $$$$ ELSE
            $$$$ IF TYPE == String
        FULL_NAME = value;
@@ -177,9 +177,7 @@ $$$$ END LOOP
   }
 
   // Print a short description of every option
-  // Throws VM_PragmaNoOptCompile to avoid occasional OutOfMemory errors when
-  // boot image writing.
-  public static void printHelp() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
+  public static void printHelp() {
 
     VM.sysWrite("Commands\n");
     VM.sysWrite("-X:vm[:help]\t\t\tPrint brief description of the core VM's command-line arguments\n");
@@ -237,15 +235,14 @@ $$$$ END LOOP
   }    
 
   // print the options values
-  public static void printOptions() throws VM_PragmaNoOptCompile,
-	                                   VM_PragmaInterruptible {
+  public static void printOptions() {
     VM.sysWrite("Current value of VM options:\n");
     //Begin generated option value printing 
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
      $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
      $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
-    VM.sysWrite("\tCMD_NAME = "+FULL_NAME+"\n");
+    VM.sysWriteln("\tCMD_NAME = ",FULL_NAME);
      $$$$ END LET CMD_NAME
      $$$$ END SPLIT
 $$$$ END FOREACH
@@ -255,7 +252,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == V
           $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
-    VM.sysWrite("\tCMD_NAME = "+FULL_NAME+"\n");
+    VM.sysWriteln("\tCMD_NAME = ",FULL_NAME);
           $$$$ END LET CMD_NAME
      $$$$ END IF TAG == V
      $$$$ END SPLIT OPTION.DECL
@@ -269,7 +266,7 @@ $$$$ FOREACH OPTION VDATFILE
           $$$$ LOOP CONSTNAME OPTION.ENUMS
                $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
     if (FULL_NAME == ITEM_NAME)
-       VM.sysWrite("\tPCMD_NAME = ITEM_NAME\n");
+       VM.sysWriteln("\tPCMD_NAME = ITEM_NAME");
                $$$$ END LET PCMD
                $$$$ END SPLIT CONSTNAME
           $$$$ END LOOP CONSTNAME

@@ -22,8 +22,8 @@ import com.ibm.JikesRVM.VM_CommandLineArgs;
  **/
 public class VM_AOSExternalOptions implements Cloneable {
 
-  private String printToStringHeader() {
-    return "Current value of options:\n";
+  private void printOptionsHeader() {
+    VM.sysWriteln("Current value of options:");
   }
 
 $$$$ LET USE_OPT_LEVELS "NO"

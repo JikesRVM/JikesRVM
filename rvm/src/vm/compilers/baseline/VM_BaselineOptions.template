@@ -19,8 +19,8 @@ package com.ibm.JikesRVM;
  **/
 public final class VM_BaselineOptions implements Cloneable {
 
-  private String printToStringHeader() {
-    return "Current value of options for Baseline compiler:\n";
+  private void printOptionsHeader() {
+    VM.sysWriteln("Current value of options for Baseline compiler:");
   }
 
 $$$$ LET USE_OPT_LEVELS "NO"

@@ -306,9 +306,9 @@ public class VM_CommandLineArgs {
 
   /**
    * Stage1 processing of virtual machine directives appearing in argument list.
-   * This function is responsible for processing the subset of the
-   * command line arguments that must be handled early in booting.
-   * Most command line arguments are deferred until lateProcessCommandLineArguments.
+   * We try to process as many classes of command line arguments as possible here.
+   * Only those command line arguments that require a more or less
+   * fully booted VM to handle are delayed until lateProcessCommandLineArguments.
    */
   static void earlyProcessCommandLineArguments() {
     for (int i = 0; i<app_name_pos; i++) {
@@ -318,11 +318,6 @@ public class VM_CommandLineArgs {
       Prefix p = findPrefix(type);
       if (DEBUG) VM.sysWrite(" VM_CommandLineArgs.earlyProcessCLA("+p.value+arg+")\n");
       switch (type) {
-      case CLASSPATH_ARG:
-	// arguments of the form "-classpath a:b:c" or "-cp a:b:c"
-	VM_ClassLoader.setApplicationRepositories(arg);
-	break;
-
       case VERBOSE_CLS_ARG:
 	VM.verboseClassLoading = true;
 	break;
@@ -336,7 +331,7 @@ public class VM_CommandLineArgs {
 	// -------------------------------------------------//	
       case CPUAFFINITY_ARG:
 	int cpuAffinity = 0;
-	try { cpuAffinity = Integer.parseInt(arg); }
+	try { cpuAffinity = primitiveParseInt(arg); }
 	catch (NumberFormatException e) { cpuAffinity = -1; }
 	if (cpuAffinity < 0) {
 	  VM.sysWrite("vm: "+p.value+" needs a cpu number (0..N-1), but found '"+arg+"'\n");
@@ -353,12 +348,7 @@ public class VM_CommandLineArgs {
 	if (arg.equals("all")) {
 	  VM_Scheduler.numProcessors = VM_SysCall.sysNumProcessors();
 	} else {
-	  try { VM_Scheduler.numProcessors = Integer.parseInt(arg);
-	  } catch (NumberFormatException e) {
-	    VM_Scheduler.numProcessors = 0;
-	    VM.sysWrite("vm: "+p.value+" needs a number, but found '"+arg+"'\n");
-	    VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	  }
+	  VM_Scheduler.numProcessors = primitiveParseInt(arg);
 	}
 	if (VM_Scheduler.numProcessors < 1 ||
 	    VM_Scheduler.numProcessors > (VM_Scheduler.MAX_PROCESSORS-1)) {
@@ -369,77 +359,6 @@ public class VM_CommandLineArgs {
 	    VM_Scheduler.numProcessors != 1) {
 	  VM.sysWrite("vm: I wasn't compiled to support multiple processors\n");
 	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	}
-	break;
-
-	// -------------------------------------------------------------------
-	// Other arguments to the core VM
-	// -------------------------------------------------------------------
-      case VM_HELP_ARG:  // -X:vm passed 'help' as an option
-	VM_Options.printHelp();
-	break;
-      case VM_ARG: // "-X:vm:arg" pass 'arg' as an option
-	if (!VM_Options.process(arg)) {
-	  VM.sysWriteln("Unrecognized command line argument "+p.value+arg);
-	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	}
-	// Yuck.  A very small number of command line arguments
-	// really want to toggle multiple values.  We don't
-	// nicely support that in the template generated code,
-	// so we compenstate here.  If we ever get more than a very
-	// small number of these, then extend the templates to handle it.
-	if (VM.MeasureCompilation) VM.EnableCPUMonitoring = true;
-	break;
-	
-	//-#if RVM_WITH_HPM
-	// -------------------------------------------------------------------
-	// HPM (Hardware Performance Monitor) arguments
-	// -------------------------------------------------------------------
-      case HPM_ARG: // "-X:hpm:<option>"
-	VM_HardwarePerformanceMonitors.processArg(arg);
-	break;
-      case HPM_HELP_ARG:
-	VM_HardwarePerformanceMonitors.printHelp();
-	break;
-	//-#else
-      case HPM_ARG: // "-X:hpm:<option>"
-      case HPM_HELP_ARG:
-	VM.sysWriteln("-X:hpm command line arguments not supported.  Build system with RVM_WITH_HPM defined.");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	break;
-        //-#endif
-      }
-    }
-  }
-
-  /**
-   * Stage2 processing of virtual machine directives appearing in argument list.
-   * This function is responsible for processing the rest of the
-   * command line arguments that should be handled late in booting.
-   * It also returns the application's command line arguments.
-   * 
-   * @return application arguments (first is application class name)
-   * If no application arguments are specified on the command line, 
-   * process commands anyway.
-   */
-  static String[] lateProcessCommandLineArguments() {
-    for (int i = 0; i<app_name_pos; i++) {
-      String arg = args[i];
-      int type = arg_types[i];
-      if (type == INVALID_ARG) continue;
-      Prefix p = findPrefix(type);
-      if (DEBUG) VM.sysWrite(" VM_CommandLineArgs.processCLA("+p.value+arg+")\n");
-      switch (type) {
-      case ENVIRONMENT_ARG: // arguments of the form "-Dx=y"
-	{ 
-	  int mid = arg.indexOf('=');
-	  if (mid == -1 || mid + 1 == arg.length()) {
-	    VM.sysWrite("vm: bad property setting: \""+arg+"\"\n");
-	    VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	  }
-	  String name  = arg.substring(0, mid);
-	  String value = arg.substring(mid + 1);
-	  System.getProperties().put(name, value);
 	}
 	break;
 
@@ -540,6 +459,83 @@ public class VM_CommandLineArgs {
 	VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	//-#endif
 	break;
+
+	// -------------------------------------------------------------------
+	// Other arguments to the core VM
+	// -------------------------------------------------------------------
+      case VM_HELP_ARG:  // -X:vm passed 'help' as an option
+	VM_Options.printHelp();
+	break;
+      case VM_ARG: // "-X:vm:arg" pass 'arg' as an option
+	if (!VM_Options.process(arg)) {
+	  VM.sysWriteln("Unrecognized command line argument "+p.value+arg);
+	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
+	}
+	// Yuck.  A very small number of command line arguments
+	// really want to toggle multiple values.  We don't
+	// nicely support that in the template generated code,
+	// so we compenstate here.  If we ever get more than a very
+	// small number of these, then extend the templates to handle it.
+	if (VM.MeasureCompilation) VM.EnableCPUMonitoring = true;
+	break;
+	
+	//-#if RVM_WITH_HPM
+	// -------------------------------------------------------------------
+	// HPM (Hardware Performance Monitor) arguments
+	// -------------------------------------------------------------------
+      case HPM_ARG: // "-X:hpm:<option>"
+	VM_HardwarePerformanceMonitors.processArg(arg);
+	break;
+      case HPM_HELP_ARG:
+	VM_HardwarePerformanceMonitors.printHelp();
+	break;
+	//-#else
+      case HPM_ARG: // "-X:hpm:<option>"
+      case HPM_HELP_ARG:
+	VM.sysWriteln("-X:hpm command line arguments not supported.  Build system with RVM_WITH_HPM defined.");
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+	break;
+        //-#endif
+      }
+    }
+  }
+
+  /**
+   * Stage2 processing of virtual machine directives appearing in argument list.
+   * This function is responsible for processing the few 
+   * command line arguments that need to be handled late in booting.
+   * It also returns the application's command line arguments.
+   * 
+   * @return application arguments (first is application class name)
+   * If no application arguments are specified on the command line, 
+   * process commands anyway.
+   */
+  static String[] lateProcessCommandLineArguments() {
+    for (int i = 0; i<app_name_pos; i++) {
+      String arg = args[i];
+      int type = arg_types[i];
+      if (type == INVALID_ARG) continue;
+      Prefix p = findPrefix(type);
+      if (DEBUG) VM.sysWrite(" VM_CommandLineArgs.processCLA("+p.value+arg+")\n");
+      switch (type) {
+      case ENVIRONMENT_ARG: // arguments of the form "-Dx=y"
+	{ 
+	  int mid = arg.indexOf('=');
+	  if (mid == -1 || mid + 1 == arg.length()) {
+	    VM.sysWrite("vm: bad property setting: \""+arg+"\"\n");
+	    VM.sysExit(VM.exitStatusBogusCommandLineArg);
+	  }
+	  String name  = arg.substring(0, mid);
+	  String value = arg.substring(mid + 1);
+	  System.getProperties().put(name, value);
+	}
+	break;
+
+      case CLASSPATH_ARG:
+	// arguments of the form "-classpath a:b:c" or "-cp a:b:c"
+	VM_ClassLoader.setApplicationRepositories(arg);
+	break;
+
       }
     }
 
@@ -576,9 +572,36 @@ public class VM_CommandLineArgs {
    * Does not support the full Java spec.
    */
   public static float primitiveParseFloat(String arg) {
-    byte[] b = arg.getBytes();
-    byte[] c = new byte[b.length + 1];
-    System.arraycopy(b, 0, c, 0, b.length);
-    return VM_SysCall.sysPrimitiveParseFloat(c);
+    int len = arg.length();
+    byte[] b = new byte[len+1];
+    for (int i = 0; i < len; i++) {
+      char c = arg.charAt(i);
+      if (c > 127) {
+	VM.sysWriteln("vm: Invalid floating point argument ",arg);
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+      }
+      b[i] = (byte)c;
+    }
+    return VM_SysCall.sysPrimitiveParseFloat(b);
+  }
+
+  /**
+   * Primitive parsing of byte/inte values.
+   * Done this way to enable us to parse command line arguments
+   * early in VM booting before we are able call
+   * Byte.parseByte or Integer.parseInt.
+   */
+  public static int primitiveParseInt(String arg) {
+    int len = arg.length();
+    byte[] b = new byte[len+1];
+    for (int i = 0; i < len; i++) {
+      char c = arg.charAt(i);
+      if (c > 127) {
+	VM.sysWriteln("vm: Invalid int/byte argument ",arg);
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+      }
+      b[i] = (byte)c;
+    }
+    return VM_SysCall.sysPrimitiveParseInt(b);
   }
 }

@@ -302,6 +302,7 @@ public class VM_BootRecord {
   public VM_Address sysDoubleRemainderIP;
   //-#endif
   public VM_Address sysPrimitiveParseFloatIP;
+  public VM_Address sysPrimitiveParseIntIP;
 
   // time
   VM_Address sysGetTimeOfDayIP;

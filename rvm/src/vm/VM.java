@@ -128,6 +128,16 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verboseBoot >= 1) VM.sysWriteln("Fetching command-line arguments");
     VM_CommandLineArgs.fetchCommandLineArguments();
 
+    // Process most virtual machine command line arguments.
+    //
+    if (verboseBoot >= 1) VM.sysWriteln("Early stage processing of command line");
+    VM_CommandLineArgs.earlyProcessCommandLineArguments();
+
+    // Allow Memory Manager to respond to its command line arguments
+    //
+    if (verboseBoot >= 1) VM.sysWriteln("Collector processing rest of boot options");
+    MM_Interface.postBoot();
+
     // Initialize class loader.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Initializing class loader");
@@ -183,11 +193,6 @@ public class VM extends VM_Properties implements VM_Constants,
     runClassInitializer("java.util.jar.Attributes$Name");
     //-#endif
 
-    // Process virtual machine directives.
-    //
-    if (verboseBoot >= 1) VM.sysWriteln("Early stage processing of VM directives");
-    VM_CommandLineArgs.earlyProcessCommandLineArguments();
-
     if (verboseBoot >= 1) VM.sysWriteln("Booting VM_Lock");
     VM_Lock.boot();
     
@@ -218,7 +223,8 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
     VM_Scheduler.boot();
 
-    // Create JNI Environment for boot thread.  At this point the boot thread can invoke native methods.
+    // Create JNI Environment for boot thread.  
+    // After this point the boot thread can invoke native methods.
     if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
     VM_Thread.getCurrentThread().initializeJNIEnv();
 
@@ -227,7 +233,7 @@ public class VM extends VM_Properties implements VM_Constants,
     VM_HardwarePerformanceMonitors.setUpHPMinfo();
     //-#endif
 
-    // Run class intializers that require fully booted VM
+    // Run class intializers that require JNI
     if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Double");
@@ -237,26 +243,22 @@ public class VM extends VM_Properties implements VM_Constants,
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
 
-    // Process most of the VM's command line arguments.
-    // The VM is fully booted at this point. 
+    ///////////////////////////////////////////
+    // The VM is fully booted at this point. //
+    ///////////////////////////////////////////
+    
+    // Inform memory manager that VM is fully booted.
     MM_Interface.fullyBootedVM();
-    if (verboseBoot >= 1) VM.sysWriteln("Late stage processing of VM directives");
-    String[] applicationArguments = VM_CommandLineArgs.lateProcessCommandLineArguments();
-
-    // Allow Collector to respond to command line arguments
-    //
-    if (verboseBoot >= 1) VM.sysWriteln("Collector processing rest of boot options");
-    MM_Interface.postBoot();
 
     // Allow Baseline compiler to respond to command line arguments.
-    // The baseline compiler ignores command line arguments until all are processed
-    // otherwise printing may occur because of compilations ahead of processing the
-    // method_to_print restriction
+    // Must wait until VM is fully booted because some options
+    // enable actions (eg dumping machine code) that require a fully booted VM.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Compiler processing rest of boot options");
     VM_BaselineCompiler.postBootOptions();
 
     // Allow profile information to be read in from a file
+    // 
     VM_EdgeCounts.boot();
 
     // Initialize compiler that compiles dynamically loaded classes.
@@ -264,38 +266,29 @@ public class VM extends VM_Properties implements VM_Constants,
     if (verboseBoot >= 1) VM.sysWriteln("Initializing runtime compiler");
     VM_RuntimeCompiler.boot();
 
-    // At this point, all of the virtual processors should be running,
-    // and thread switching should be enabled.
-    if (VM.verboseClassLoading) VM.sysWrite("[VM booted]\n");
+    // Process remainder of the VM's command line arguments.
+    if (verboseBoot >= 1) VM.sysWriteln("Late stage processing of command line");
+    String[] applicationArguments = VM_CommandLineArgs.lateProcessCommandLineArguments();
 
-    /* Do this late in boot process to allow compilers to responds to command
-       line arguments before VM exits.  This supports the following useful
-       idiom: 
-       rvm -X:irc[:help] */
-
-    /* It is now OK to start switching threads.   So we can begin to call
-       interruptible methods, such as pleaseSpecifyAClass(), and
-       isJavaClassName(). */ 
+    if (VM.verboseClassLoading || verboseBoot >= 1) VM.sysWrite("[VM booted]\n");
 
     // The first argument must be a class name.
-    if (applicationArguments.length == 0)
+    if (verboseBoot >= 1) VM.sysWriteln("Extracting name of class to execute");
+    if (applicationArguments.length == 0) {
       pleaseSpecifyAClass();
-    
-    /* We already have full multi-processing, so this might get interrupted,
-       right? */
-    if (applicationArguments.length > 0 
-	&& ! isJavaClassName(applicationArguments[0])) 
-      {
-	VM.sysWrite("vm: \"");
-	VM.sysWrite(applicationArguments[0]);
-	VM.sysWrite("\" is not a legal Java class name.\n");
-	pleaseSpecifyAClass();
-      }
+    }
+    if (applicationArguments.length > 0 && 
+	!isJavaClassName(applicationArguments[0])) {
+      VM.sysWrite("vm: \"");
+      VM.sysWrite(applicationArguments[0]);
+      VM.sysWrite("\" is not a legal Java class name.\n");
+      pleaseSpecifyAClass();
+    }
 
     // Create main thread.
     // Work around class incompatibilities in boot image writer
     // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
-    // Rework this when we do feature 3601.
+    // Junk this when we do feature 3601.
     if (verboseBoot >= 1) VM.sysWriteln("Constructing mainThread");
     Thread      xx         = new MainThread(applicationArguments);
     VM_Address  yy         = VM_Magic.objectAsAddress(xx);
@@ -325,16 +318,14 @@ public class VM extends VM_Properties implements VM_Constants,
     }
     //-#endif
 
-    // End of boot thread. Relinquish control to next job on work queue.
+    // End of boot thread.
     //
     if (VM.TraceThreads) VM_Scheduler.trace("VM.boot", "completed - terminating");
     VM_Thread.terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  private static void pleaseSpecifyAClass() 
-    throws VM_PragmaInterruptible
-  {
+  private static void pleaseSpecifyAClass() throws VM_PragmaInterruptible {
     VM.sysWrite("vm: Please specify a class to execute.\n");
     VM.sysWrite("vm:   You can invoke the VM with the \"-help\" flag for usage information.\n");
     VM.sysExit(VM.exitStatusBogusCommandLineArg);
@@ -346,11 +337,7 @@ public class VM extends VM_Properties implements VM_Constants,
    * Would it be better for me to convert this to a char array?  That's the
    * way the example in The Java Class Libraries for
    * Character.isJavaIdentifier*()  is worded.  */
-  private static boolean isJavaClassName(String s) 
-    // This is really a lie.  But would it be so bad if we did do some thread
-    // switching at this point?  I don't get why it would be so awful.
-    throws VM_PragmaInterruptible
-  {
+  private static boolean isJavaClassName(String s) throws VM_PragmaInterruptible {
     boolean identStart = true;	// pretend we just saw a .
     for (int i = 0; i < s.length(); ++i) {
       char c = s.charAt(i);
@@ -574,13 +561,17 @@ public class VM extends VM_Properties implements VM_Constants,
    * @param value   what is printed
    */
   public static void write(String value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
-    if (runningVM) {
-      VM_Processor.getCurrentProcessor().disableThreadSwitching();
-      for (int i = 0, n = value.length(); i < n; ++i) 
-        write(value.charAt(i));
-      VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    if (value == null) {
+      write("null");
     } else {
-      System.err.print(value);
+      if (runningVM) {
+	VM_Processor.getCurrentProcessor().disableThreadSwitching();
+	for (int i = 0, n = value.length(); i < n; ++i) 
+	  write(value.charAt(i));
+	VM_Processor.getCurrentProcessor().enableThreadSwitching();
+      } else {
+	System.err.print(value);
+      }
     }
   }
 

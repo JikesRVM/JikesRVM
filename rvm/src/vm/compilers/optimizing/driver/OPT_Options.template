@@ -24,8 +24,8 @@ public class OPT_Options implements Cloneable {
   //  available on the command-line)
   private int OPTIMIZATION_LEVEL = 1;    // The OPT level
 
-  private String printToStringHeader() {
-    return "Current value of options at optimization level "+OPTIMIZATION_LEVEL+":\n";
+  private void printOptionsHeader() {
+    VM.sysWrite("Current value of options at optimization level ",OPTIMIZATION_LEVEL, ":\n");
   }
 
 $$$$ LET USE_OPT_LEVELS "YES"

@@ -524,6 +524,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static void sysWriteln (long l)               { VM.sysWriteln(l); }
   public static void sysWriteln (boolean b)            { VM.sysWrite(b); }
   public static void sysWriteln (String s)             { VM.sysWriteln(s); }
+  public static void sysWrite   (String s, boolean b)  { VM.sysWrite(s,b); }
+  public static void sysWriteln (String s, boolean b)  { VM.sysWriteln(s,b); }
   public static void sysWrite   (String s, int i)      { VM.sysWrite(s,i); }
   public static void sysWriteln (String s, int i)      { VM.sysWriteln(s,i); }
   public static void sysWrite   (String s, double d)   { VM.sysWrite(s,d); }
