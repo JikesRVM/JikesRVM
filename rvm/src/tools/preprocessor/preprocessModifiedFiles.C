@@ -1060,6 +1060,8 @@ inputErr(const char msg[], ...)
 }
 
 
+#if 0				/* This appears to work fine, but some say
+				   that sigaction() is more predictable. */
 static void
 xsignal_oldsignal(int signum, void (*handler)(int))
 {
@@ -1077,6 +1079,7 @@ xsignal_oldsignal(int signum, void (*handler)(int))
 	signal(signum, SIG_IGN);
     }
 }
+#endif
 
 
 
