@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001, 2002, 2003, 2004
+ * (C) Copyright IBM Corp 2001, 2002, 2003, 2004, 2005
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -187,6 +187,7 @@ public class VM extends VM_Properties
     String bootstrapClasses = VM_CommandLineArgs.getBootstrapClasses();
     VM_ClassLoader.boot();      // Wipe out cached application class loader
     VM_BootstrapClassLoader.boot(bootstrapClasses);
+    VM_ApplicationClassLoader2.boot(".");
 
     // Complete calculation of cycles to millsecond conversion factor
     // Must be done before any dynamic compilation occurs.
@@ -212,7 +213,8 @@ public class VM extends VM_Properties
     // Classpath 0.12
     java.lang.JikesRVMSupport.javaLangSystemEarlyInitializers();
     //-#else  // 0.10, 0.11, 0.13, and post-0.13
-    runClassInitializer("java.lang.System"); // Requires ClassLoader and ApplicationClassLoader
+    // In 0.10 and 0.11, requires ClassLoader and ApplicationClassLoader
+    runClassInitializer("java.lang.System"); 
     //-#endif
     runClassInitializer("java.lang.Void");
     runClassInitializer("java.lang.Boolean");
@@ -262,19 +264,29 @@ public class VM extends VM_Properties
     /* Needed for ApplicationClassLoader, which in turn is needed by
        VMClassLoader.getSystemClassLoader()  */
     runClassInitializer("java.net.URLClassLoader"); 
+
+    /* Used if we start up Jikes RVM with the -jar argument; that argument
+     * means that we need a working -jar before we can return an
+     * Application Class Loader. */
+    runClassInitializer("gnu.java.net.protocol.jar.Connection$JarFileCache");
+
     // Calls System.getProperty().  However, the only thing it uses the
     // property for is to set the default protection domain, and THAT is only
-    // used in defineClass.  so, since we haven't needed to call defineClass
+    // used in defineClass.  So, since we haven't needed to call defineClass
     // up to this point, we are OK deferring its proper re-initialization.
     runClassInitializer("java.lang.ClassLoader"); 
-    //-#if RVM_WITH_CLASSPATH_0_12
+
+    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11
+    //-#elif RVM_WITH_CLASSPATH_0_12
     java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
-    //-#endif
-    //-#if RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD
-    /** This one absolutely requires that we have a working system class
-        loader, or at least a returnable one.. */
+    //-#else
+    //    RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD
+    /** This one absolutely requires that we have a working Application/System
+        class loader, or at least a returnable one.  That, in turn, requires
+        lots of things be set up for Jar.  */
     runClassInitializer("java.lang.ClassLoader$StaticData");
     //-#endif
+
     runClassInitializer("gnu.java.io.EncodingManager"); // uses System.getProperty
     runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
     runClassInitializer("java.lang.Math"); /* Load in the javalang library, so
@@ -337,6 +349,7 @@ public class VM extends VM_Properties
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.util.PropertyPermission");
     runClassInitializer("com.ibm.JikesRVM.VM_Process");
+    runClassInitializer("java.io.VMFile"); // Load libjavaio.so
 
     // Initialize java.lang.System.out, java.lang.System.err, java.lang.System.in
     VM_FileSystem.initializeStandardStreams();
@@ -399,7 +412,8 @@ public class VM extends VM_Properties
     }
 
     if (verboseBoot >= 1) VM.sysWriteln("Initializing Application Class Loader");
-    VM_ClassLoader.getApplicationClassLoader();      
+    VM_ClassLoader.getApplicationClassLoader();
+    VM_ClassLoader.declareApplicationClassLoaderIsReady();
 
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
