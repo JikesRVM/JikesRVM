@@ -59,9 +59,12 @@ interface VM_RegisterConstants {
   static final byte[]  VOLATILE_GPRS = { EAX, EDX, ECX };
   static final int NUM_VOLATILE_GPRS = VOLATILE_GPRS.length;
     
-  // Note: the order here is important.  The opt-compiler allocates
-  // the volatile registers in the reverse of order they appear here.
-  static final byte[]  NONVOLATILE_GPRS = { EDI, EBX, EBP};
+  // Note: the order here is very important.  The opt-compiler allocates
+  // the nonvolatile registers in the reverse of order they appear here.
+  // EBX must be last, because it is the only non-volatile that can
+  // be used in instructions that are using r8 and we must ensure that
+  // opt doesn't skip over another nonvol while looking for an r8 nonvol.
+  static final byte[]  NONVOLATILE_GPRS = { EBP, EDI, EBX};
   static final int NUM_NONVOLATILE_GPRS = NONVOLATILE_GPRS.length;
     
   static final byte[]  SCRATCH_GPRS = { ECX };
