@@ -14,19 +14,19 @@ public final class VM_HotMethodRecompilationEvent extends VM_HotMethodEvent
   implements VM_ControllerInputEvent {
 
   /**
-   * @param _cmid the compiled method id
+   * @param _cm the compiled method
    * @param _numSamples the number of samples attributed to the method
    */
-  VM_HotMethodRecompilationEvent(int _cmid, double _numSamples) {
-    super(_cmid, _numSamples);
+  VM_HotMethodRecompilationEvent(VM_CompiledMethod _cm, double _numSamples) {
+    super(_cm, _numSamples);
   }
 
   /**
-   * @param _cmid the compiled method id
+   * @param _cm the compiled method
    * @param _numSamples the number of samples attributed to the method
    */
-  VM_HotMethodRecompilationEvent(int _cmid, int _numSamples) {
-    this(_cmid, (double)_numSamples);
+  VM_HotMethodRecompilationEvent(VM_CompiledMethod _cm, int _numSamples) {
+    this(_cm, (double)_numSamples);
   }
 
   public String toString() {
@@ -40,12 +40,8 @@ public final class VM_HotMethodRecompilationEvent extends VM_HotMethodEvent
    * recompilation strategy.
    */
   public void process() {
-    VM_ControllerPlan plan = null;
-    VM_CompiledMethod cmpMethod = getCompiledMethod();
-    if (cmpMethod != null) {
-      plan = VM_Controller.recompilationStrategy.
-	considerHotMethod(cmpMethod, this);
-    }
+    VM_ControllerPlan plan =
+      VM_Controller.recompilationStrategy.considerHotMethod(getCompiledMethod(), this);
 
     if (VM.LogAOSEvents) VM_ControllerMemory.incrementNumMethodsConsidered();
 

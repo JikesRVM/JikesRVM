@@ -34,23 +34,23 @@ public final class VM_AINewHotEdgeEvent extends VM_HotMethodEvent
   public final double getBoostFactor() { return boostFactor; }
 
   /**
-   * @param _cmid the compiled method id
+   * @param _cm the compiled method
    * @param _numSamples the number of samples attributed to the method
    * @param _boostFactor improvement expected by applying FDO
    */
-  VM_AINewHotEdgeEvent(int _cmid, double _numSamples, double _boostFactor) {
-    super(_cmid, _numSamples);
+  VM_AINewHotEdgeEvent(VM_CompiledMethod _cm, double _numSamples, double _boostFactor) {
+    super(_cm, _numSamples);
     if (VM.VerifyAssertions) VM.assert(_boostFactor >= 1.0);
     boostFactor = _boostFactor;
   }
 
   /**
-   * @param _cmid the compiled method id
+   * @param _cm the compiled method
    * @param _numSamples the number of samples attributed to the method
    * @param _boostFactor improvement expected by applying FDO
    */
-  VM_AINewHotEdgeEvent(int _cmid, int _numSamples, double _boostFactor) {
-    this(_cmid, (double)_numSamples, _boostFactor);
+  VM_AINewHotEdgeEvent(VM_CompiledMethod _cm, int _numSamples, double _boostFactor) {
+    this(_cm, (double)_numSamples, _boostFactor);
   }
 
 

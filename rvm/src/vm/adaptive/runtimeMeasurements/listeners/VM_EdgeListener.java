@@ -190,9 +190,6 @@ class VM_EdgeListener extends VM_ContextListener
        throw new RuntimeException();
      }
 
-     // VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodID);
-     // VM_Method callee         = compiledMethod.getMethod();
-
      returnAddress = VM_Magic.getReturnAddress(sfp); // return address in caller
      sfp = VM_Magic.getCallerFramePointer(sfp);      // caller's frame pointer
      if(VM_Magic.getMemoryWord(sfp) == STACKFRAME_SENTINAL_FP) {
