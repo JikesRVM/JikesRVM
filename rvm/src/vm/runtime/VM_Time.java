@@ -14,7 +14,7 @@ package com.ibm.JikesRVM;
 public class VM_Time implements VM_Uninterruptible {
 
   /**
-   * Conversion factor from realTimeClock to time in milliseconds
+   * Conversion factor from cycles to time in milliseconds
    */
   private static double milliPerCycle = 0.0;
 
@@ -24,7 +24,7 @@ public class VM_Time implements VM_Uninterruptible {
    */
   static void boot() {
     double start = now();
-    long clockTickStart = realTimeClock();
+    long cyclesStart = cycles();
     double dur = 0.0; // in milliseconds
     // 0.1 second should be enough to obtain accurate factor but not enough to overflow cycle counter
     while (dur < 0.1) {  
@@ -32,17 +32,17 @@ public class VM_Time implements VM_Uninterruptible {
 	milliPerCycle += 1.0; 
       dur = 1000.0 * (VM_Time.now() - start);
     }
-    long clockTicks = realTimeClock() - clockTickStart;
-    if (clockTicks < 0) VM.sysFail("VM_Time.boot failed due to negative cycle count");
-    milliPerCycle = dur / (double)clockTicks;
+    long cycles = cycles() - cyclesStart;
+    if (cycles < 0) VM.sysFail("VM_Time.boot failed due to negative cycle count");
+    milliPerCycle = dur / (double)cycles;
   }
 
   /**
-   * Read value of cycle counter or real time clock.
+   * Read value of cycle counter or time base register.
    * The semantics of this value are platform dependent.
-   * @return the value read from the real time clock.
+   * @return the value read from cycle counter or time base register.
    */ 
-  public static long realTimeClock() {
+  public static long cycles() {
     // On IA32 we are reading a cycle counter.
     // On PowerPC we are reading the time base register.
     // The relationship between ticks of the time base register and
@@ -52,12 +52,12 @@ public class VM_Time implements VM_Uninterruptible {
   }
 
   /**
-   * Convert a value in the units of used by realTimeClock
+   * Convert a value in the units of used by @link #cycles
    * to time in milliSeconds.
    * @param c a real time clock value
    * @return c converted to milli seconds
    */
-  public static double realTimeClockToMilliseconds(long c) {
+  public static double cyclesToMillis(long c) {
     return c * milliPerCycle;
   }
 
