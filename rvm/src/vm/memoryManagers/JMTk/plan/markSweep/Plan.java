@@ -416,7 +416,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public static final int MS_ALLOCATOR = 0;
   public static final int IMMORTAL_ALLOCATOR = 1;
   public static final int DEFAULT_ALLOCATOR = MS_ALLOCATOR;
-
+  public static final int TIB_ALLOCATOR = DEFAULT_ALLOCATOR;
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap

@@ -462,6 +462,8 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public static final int LOS_ALLOCATOR = 1;
   public static final int IMMORTAL_ALLOCATOR = 2;
   public static final int DEFAULT_ALLOCATOR = SS_ALLOCATOR;
+  public static final int TIB_ALLOCATOR = DEFAULT_ALLOCATOR;
+
   private static final String[] allocatorNames = { "Semispace", "LOS", "Immortal" };
 
   /**

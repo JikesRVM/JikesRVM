@@ -507,6 +507,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   public static final int MS_ALLOCATOR = 1;
   public static final int IMMORTAL_ALLOCATOR = 2;
   public static final int DEFAULT_ALLOCATOR = NURSERY_ALLOCATOR;
+  public static final int TIB_ALLOCATOR = DEFAULT_ALLOCATOR;
 
   private static final int COPY_FUDGE_PAGES = 1;  // Steve - fix this
 

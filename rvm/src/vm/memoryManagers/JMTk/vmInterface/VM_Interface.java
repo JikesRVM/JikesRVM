@@ -610,16 +610,14 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
 
   public static Object[] newTIB (int n) throws VM_PragmaInline, VM_PragmaInterruptible {
-
-    if (true) {
-      //-#if RVM_WITH_COPYING_GC
-      //-#if RVM_WITH_ONE_WORD_MASK_OBJECT_MODEL
-      return VM_Allocator.newTIB(n);
-      //-#endif
-      //-#endif
-    }
-
-    return new Object[n];
+    if (VM.runningVM) {
+      VM_Array objectArrayType = VM_Type.JavaLangObjectArrayType;
+      Object [] objectArrayTib = objectArrayType.getTypeInformationBlock();
+      int arraySize = objectArrayType.getInstanceSize(n);
+      Object result = allocateArray(n, arraySize, objectArrayTib, Plan.TIB_ALLOCATOR);
+      return (Object []) result;
+    } else
+      return new Object[n];
   }
 
   public static boolean isScalar(VM_Address obj) {
