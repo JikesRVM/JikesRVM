@@ -225,7 +225,7 @@ else
   cd ..
   rm -f $RVM_ROOT/support/lib/classpath.jar
   touch $RVM_ROOT/support/lib/classpath.jar
-  $FIND . -name '*.class' | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpath.jar
+  $FIND . -name '*.class' | $GREP -v vm/reference/java/ | $GREP -v java/util/A | $GREP -v java/util/H | $GREP -v java/util/R | $GREP -v java/util/T | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpath.jar
 
   #
   # build classpath source jar
