@@ -20,7 +20,4 @@ class OptDummy {
   VM_OptRCWriteBarrier i;
   //-#endif
   static OPT_SpecializedMethodPool q;
-  //-#if RVM_WITH_READ_BARRIER
-  VM_ReadBarrier rb;
-  //-#endif
 }

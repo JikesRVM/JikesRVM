@@ -314,7 +314,7 @@ class VM_Entrypoints implements VM_Constants
    static VM_Method resolvedPutStaticWriteBarrierMethod;
    static int       resolvedPutStaticWriteBarrierOffset;
 
-//-#if RVM_WITH_READ_BARRIER
+//-#if RVM_WITH_READ_BARRIER2
    static VM_Method arrayLoadReadBarrierMethod;
    static int       arrayLoadReadBarrierOffset;
 
@@ -329,7 +329,7 @@ class VM_Entrypoints implements VM_Constants
 
    static VM_Method resolvedGetStaticReadBarrierMethod;
    static int       resolvedGetStaticReadBarrierOffset;
-//-#endif
+//-#endif RVM_WITH_READ_BARRIER2
 
 //-#if RVM_WITH_GCTk
    static ADDRESS GCTk_WriteBufferBase;
@@ -634,7 +634,7 @@ class VM_Entrypoints implements VM_Constants
 
       m = unresolvedPutStaticWriteBarrierMethod = (VM_Method)VM.getMember("LVM_WriteBarrier;", "unresolvedPutStaticWriteBarrier", "(ILjava/lang/Object;)V");
       unresolvedPutStaticWriteBarrierOffset = m.getOffset();
-//-#if RVM_WITH_READ_BARRIER
+//-#if RVM_WITH_READ_BARRIER2
       m = arrayLoadReadBarrierMethod = (VM_Method)VM.getMember("LVM_ReadBarrier;", "arrayLoadReadBarrier", "(Ljava/lang/Object;ILjava/lang/Object;)V");
       arrayLoadReadBarrierOffset = m.getOffset();
 
@@ -649,6 +649,6 @@ class VM_Entrypoints implements VM_Constants
 
       m = unresolvedGetStaticReadBarrierMethod = (VM_Method)VM.getMember("LVM_ReadBarrier;", "unresolvedGetStaticReadBarrier", "(ILjava/lang/Object;)V");
       unresolvedGetStaticReadBarrierOffset = m.getOffset();
-//-#endif
+//-#endif RVM_WITH_READ_BARRIER2
    }
 }
