@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -375,9 +375,9 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 
   /**
    * Expand a lookupswitch.
-   * @param s the instruction to expand
-   * @param ir the containing IR
-   * @return the next OPT_Instruction after the generated LIR sequence.
+   * @param switchInstr  The instruction to expand
+   * @param ir           The containing IR
+   * @return the next {@link OPT_Instruction} after the generated LIR sequence.
    */
   static OPT_Instruction lookup (OPT_Instruction switchInstr, OPT_IR ir) {
     OPT_Instruction bbend = switchInstr.nextInstructionInCodeOrder();
