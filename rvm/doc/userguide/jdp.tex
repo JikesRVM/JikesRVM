@@ -257,10 +257,10 @@ error and has entered its own internal debugging mode. At this point, you
 can type "w" to see the interpreter stack and report the problem.
 
 \subsection{ {\tt jdp} Macros}
-A jdp macro is a text file that has the {\tt .jdp} suffix and contains a sequence of normal {\tt jdp} commands
+A jdp macro is a text file that has the {\tt .jdp} suffix and contains a sequence of normal {\tt jdp} commands. The macro is run by using its name on the command line. Be sure to pick macro names that do not conflict with existing command names. Comments lines within the macro that start with \# are ignored during the macro processing.
 
 \begin{itemize}
-\item When you type {\tt m} at the command line, {\tt jdp} will look for 
+\item When you type {\tt mymacro} at the command line, {\tt jdp} will look for 
 {\tt mymacro.jdp}
  in the normal class path and execute each line in the macro file as if 
  they are entered at the command line.
