@@ -34,7 +34,7 @@ export RVM_WITH_HPM=1
 # PART II: Where to find tools and resources on this target
 ########## 
 
-export HOST_JAVA_HOME="/usr/java14"
+export HOST_JAVA_HOME="/usr/java14_64"
 
 # the JDK java executable
 export HOST_JAVA="${HOST_JAVA_HOME}/jre/bin/java"
