@@ -3750,44 +3750,48 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     } else if (methodName == VM_MagicNames.prepareInt){
       popToRegister(WORD_TYPE, T1); // pop offset
       popToRegister(OBJECT_TYPE, T0); // pop object
-      if (VM.BuildForSingleVirtualProcessor) {
-        asm.emitLWZX (T0, T1, T0); // *(object+offset)
-      } else {
-        asm.emitLWARX(T0,  T1, T0); // *(object+offset), setting processor's reservation address
-      } //this Integer is not sign extended !!
+      // We always generate code for multiple virtual processors.  This saves
+      // us some hassle in generating a boot image that will work for both,
+      // and the extra expense is really cheap.
+      //
+      // if (VM.singleVirtualProcessor) {
+      // asm.emitLWZX (T0, T1, T0); // *(object+offset)
+      // } else {
+      asm.emitLWARX(T0,  T1, T0); // *(object+offset), setting processor's reservation address
+      // } //this Integer is not sign extended !!
       pushFromRegister(WORD_TYPE, T0); // push *(object+offset)
     } else if (methodName == VM_MagicNames.prepareObject ||
                methodName == VM_MagicNames.prepareAddress ||
                methodName == VM_MagicNames.prepareWord) {
       popToRegister(WORD_TYPE, T1); // pop offset
       popToRegister(OBJECT_TYPE, T0); // pop object
-      if (VM.BuildForSingleVirtualProcessor) {
-        asm.emitLAddrX(T0, T1, T0); // *(object+offset)
-      } else {
+      // if (VM.singleVirtualProcessor) {
+      // asm.emitLAddrX(T0, T1, T0); // *(object+offset)
+      // } else {
         if (VM.BuildFor32Addr) {
           asm.emitLWARX(T0,  T1, T0); // *(object+offset), setting processor's reservation address
         } else {
           asm.emitLDARX(T0, T1, T0);
         } 
-      }
+        // }
       pushFromRegister((methodName == VM_MagicNames.prepareWord)?WORD_TYPE:OBJECT_TYPE, T0); // push *(object+offset)
     } else if (methodName == VM_MagicNames.attemptInt){
       popToRegister(WORD_TYPE, T2);  // pop newValue
       pop(WORD_TYPE); // ignore oldValue
       popToRegister(WORD_TYPE, T1);  // pop offset
       popToRegister(OBJECT_TYPE, T0);  // pop object
-      if (VM.BuildForSingleVirtualProcessor) {
-        asm.emitSTWX(T2, T1, T0); // store new value (on one VP this succeeds by definition)
-        asm.emitLVAL   (T0,  1);   // T0 := true
-        pushFromRegister(WORD_TYPE, T0);  // push success of conditional store
-      } else {
+      // if (VM.singleVirtualProcessor) {
+      //        asm.emitSTWX(T2, T1, T0); // store new value (on one VP this succeeds by definition)
+      //        asm.emitLVAL   (T0,  1);   // T0 := true
+      //        pushFromRegister(WORD_TYPE, T0);  // push success of conditional store
+      //      } else {
         asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
         asm.emitLVAL   (T0,  0);  // T0 := false
         VM_ForwardReference fr = asm.emitForwardBC(NE); // skip, if store failed
         asm.emitLVAL   (T0,  1);   // T0 := true
         fr.resolve(asm);
         pushFromRegister(WORD_TYPE, T0);  // push success of conditional store
-      }
+        //      }
     } else if (methodName == VM_MagicNames.attemptObject ||
                methodName == VM_MagicNames.attemptAddress ||
                methodName == VM_MagicNames.attemptWord) {
@@ -3795,11 +3799,11 @@ public class VM_QuickCompiler extends VM_CompilerFramework
       pop(OBJECT_TYPE); // ignore oldValue
       popToRegister(WORD_TYPE, T1);  // pop offset
       popToRegister(OBJECT_TYPE, T0);  // pop object
-      if (VM.BuildForSingleVirtualProcessor) {
-        asm.emitSTAddrX(T2,  T1, T0); // store new value (on one VP this succeeds by definition)
-        asm.emitLVAL   (T0,  1);   // T0 := true
-        pushFromRegister(OBJECT_TYPE, T0);  // push success of conditional store
-      } else {
+      //      if (VM.BuildForSingleVirtualProcessor) {
+      //        asm.emitSTAddrX(T2,  T1, T0); // store new value (on one VP this succeeds by definition)
+      //        asm.emitLVAL   (T0,  1);   // T0 := true
+      //        pushFromRegister(OBJECT_TYPE, T0);  // push success of conditional store
+      //      } else {
         if (VM.BuildFor32Addr) {
           asm.emitSTWCXr(T2,  T1, T0); // store new value and set CR0
         } else {
@@ -3810,7 +3814,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
         asm.emitLVAL   (T0,  1);   // T0 := true
         fr.resolve(asm);
         pushFromRegister(WORD_TYPE, T0);  // push success of conditional store
-      }
+        //      }
     } else if (methodName == VM_MagicNames.saveThreadState) {
       peekToRegister(OBJECT_TYPE, T0); // T0 := address of VM_Registers object
       asm.emitLAddrToc(S0, VM_Entrypoints.saveThreadStateInstructionsField.getOffset());
