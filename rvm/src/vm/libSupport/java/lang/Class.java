@@ -6,7 +6,14 @@ package java.lang;
 
 import java.io.InputStream;
 import java.security.*;
-import java.lang.reflect.*;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.JikesRVMSupport;
+import java.lang.reflect.Member;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+
 import java.net.URL;
 import java.util.Vector;
 import java.util.HashMap;
@@ -60,15 +67,18 @@ public final class Class implements java.io.Serializable {
   }
   
   public static Class forName(String typeName) throws ClassNotFoundException {
-    return forNameInternal(typeName, true, VM_Class.getClassLoaderFromStackFrame(1));
+    ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
+    return forNameInternal(typeName, true, parentCL);
   }
 
   public static Class forName(String className, 
 			      boolean initialize, 
-			      ClassLoader classLoader) throws ClassNotFoundException,
-							      LinkageError,
-							      ExceptionInInitializerError,
-							      SecurityException {
+			      ClassLoader classLoader) 
+    throws ClassNotFoundException,
+	   LinkageError,
+	   ExceptionInInitializerError,
+	   SecurityException 
+  {
     if (classLoader == null) {
       SecurityManager security = System.getSecurityManager();
       if (security != null) {
@@ -82,14 +92,17 @@ public final class Class implements java.io.Serializable {
     return forNameInternal(className, initialize, classLoader);
   }
 
-  public Class[] getClasses() throws SecurityException {
+  public Class[] getClasses() 
+    throws SecurityException 
+  {
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) return new Class[0];
     
     Vector publicClasses = new Vector();
     for (Class c = this; c != null; c = c.getSuperclass()) {
       c.checkMemberAccess(Member.PUBLIC);
-      VM_TypeReference[] declaredClasses = c.type.asClass().getDeclaredClasses();
+      VM_TypeReference[] declaredClasses 
+	= c.type.asClass().getDeclaredClasses();
       if (declaredClasses != null) {
 	for (int i=0; i<declaredClasses.length; i++) {
 	  if (declaredClasses[i] != null) {
@@ -126,10 +139,14 @@ public final class Class implements java.io.Serializable {
   }
 
   public Class getComponentType() {
-    return type.isArrayType() ? type.asArray().getElementType().getClassForType() : null;
+    return type.isArrayType() 
+      ? type.asArray().getElementType().getClassForType() 
+      : null;
   }
 
-  public Constructor getConstructor(Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
+  public Constructor getConstructor(Class parameterTypes[]) 
+    throws NoSuchMethodException, SecurityException 
+  {
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) throw new NoSuchMethodException();
 
@@ -138,14 +155,16 @@ public final class Class implements java.io.Serializable {
       VM_Method method = methods[i];
       if (method.isPublic() && 
 	  parametersMatch(method.getParameterTypes(), parameterTypes)) {
-	return java.lang.reflect.JikesRVMSupport.createConstructor(method);
+	return JikesRVMSupport.createConstructor(method);
       }
     }
 
     throw new NoSuchMethodException("<init> " + parameterTypes );
   }                                                                                            
 
-  public Constructor[] getConstructors() throws SecurityException {
+  public Constructor[] getConstructors() 
+    throws SecurityException 
+  {
     checkMemberAccess(Member.PUBLIC);
     if (!type.isClassType()) return new Constructor[0];
 
@@ -154,13 +173,15 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i<methods.length; i++) {
       VM_Method method = methods[i];
       if (method.isPublic()) {
-	coll.collect(java.lang.reflect.JikesRVMSupport.createConstructor(method));
+	coll.collect(JikesRVMSupport.createConstructor(method));
       }
     }
     return coll.constructorArray();
   }
 
-  public Class[] getDeclaredClasses() throws SecurityException {
+  public Class[] getDeclaredClasses() 
+    throws SecurityException 
+  {
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) return new Class[0];
 
@@ -198,7 +219,9 @@ public final class Class implements java.io.Serializable {
     return result;
   }
 
-  public Constructor getDeclaredConstructor(Class parameterTypes[]) throws NoSuchMethodException, SecurityException {
+  public Constructor getDeclaredConstructor(Class parameterTypes[]) 
+    throws NoSuchMethodException, SecurityException 
+  {
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) throw new NoSuchMethodException();
 
@@ -206,7 +229,7 @@ public final class Class implements java.io.Serializable {
     for (int i = 0, n = methods.length; i < n; ++i) {
       VM_Method method = methods[i];
       if (parametersMatch(method.getParameterTypes(), parameterTypes)) {
-	return java.lang.reflect.JikesRVMSupport.createConstructor(method);
+	return JikesRVMSupport.createConstructor(method);
       }
     }
 
@@ -220,12 +243,14 @@ public final class Class implements java.io.Serializable {
     VM_Method methods[] = type.asClass().getConstructorMethods();
     Constructor[] ans = new Constructor[methods.length];
     for (int i = 0; i<methods.length; i++) {
-      ans[i] = java.lang.reflect.JikesRVMSupport.createConstructor(methods[i]);
+      ans[i] = JikesRVMSupport.createConstructor(methods[i]);
     }
     return ans;
   }
 
-  public Field getDeclaredField(String name) throws NoSuchFieldException, SecurityException {
+  public Field getDeclaredField(String name) 
+    throws NoSuchFieldException, SecurityException 
+  {
     checkMemberAccess(Member.DECLARED);
     if (!type.isClassType()) throw new NoSuchFieldException();
 
@@ -235,7 +260,7 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i < fields.length; i++) {
       VM_Field field = fields[i];
       if (field.getName() == aName) {
-	return java.lang.reflect.JikesRVMSupport.createField(field);
+	return JikesRVMSupport.createField(field);
       }
     }
     
@@ -249,13 +274,14 @@ public final class Class implements java.io.Serializable {
     VM_Field[] fields = type.asClass().getDeclaredFields();
     Field[] ans = new Field[fields.length];
     for (int i = 0; i < fields.length; i++) {
-      ans[i] = java.lang.reflect.JikesRVMSupport.createField(fields[i]);
+      ans[i] = JikesRVMSupport.createField(fields[i]);
     }
     return ans;
   }
 
   public Method getDeclaredMethod(String name, Class parameterTypes[]) 
-    throws NoSuchMethodException, SecurityException {
+    throws NoSuchMethodException, SecurityException 
+  {
     checkMemberAccess(Member.DECLARED);
 
     if (!type.isClassType())  {
@@ -263,23 +289,25 @@ public final class Class implements java.io.Serializable {
     }
 
     VM_Atom aName = VM_Atom.findUnicodeAtom(name);
-    if (aName == null ||
-	aName == VM_ClassLoader.StandardClassInitializerMethodName ||
-	aName == VM_ClassLoader.StandardObjectInitializerMethodName) {
-      // null means that we don't have such an atom; <init> and <clinit> are not methods.
+    if (aName == null 
+	|| aName == VM_ClassLoader.StandardClassInitializerMethodName 
+	|| aName == VM_ClassLoader.StandardObjectInitializerMethodName)
+    {
+      // null means that we don't have such an atom; 
+      // <init> and <clinit> are not methods. 
       throw new NoSuchMethodException(name + parameterTypes);
     }
 
     VM_Method[] methods = type.asClass().getDeclaredMethods(); 
-    java.lang.reflect.Method answer = null;
+    Method answer = null;
     for (int i = 0; i<methods.length; i++) {
       VM_Method meth = methods[i];
       if (meth.getName() == aName && 
 	  parametersMatch(meth.getParameterTypes(), parameterTypes)) {
 	if (answer == null) {
-	  answer = java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	  answer = JikesRVMSupport.createMethod(meth);
 	} else {
-	  java.lang.reflect.Method m2 = java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	  Method m2 = JikesRVMSupport.createMethod(meth);
 	  if (answer.getReturnType().isAssignableFrom(m2.getReturnType())) {
 	    answer = m2;
 	  }
@@ -301,7 +329,7 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i < methods.length; i++) {
       VM_Method meth = methods[i];
       if (!meth.isClassInitializer() && !meth.isObjectInitializer()) {
-	coll.collect(java.lang.reflect.JikesRVMSupport.createMethod(meth));
+	coll.collect(JikesRVMSupport.createMethod(meth));
       }
     }
     return coll.methodArray();
@@ -343,13 +371,13 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i < static_fields.length; i++) {
       VM_Field field = static_fields[i];
       if (field.isPublic()) {
-        coll.collect(java.lang.reflect.JikesRVMSupport.createField(field));
+        coll.collect(JikesRVMSupport.createField(field));
       }
     }
     for (int i = 0; i < instance_fields.length; i++) {
       VM_Field field = instance_fields[i];
       if (field.isPublic()) {
-        coll.collect(java.lang.reflect.JikesRVMSupport.createField(field));
+        coll.collect(JikesRVMSupport.createField(field));
       }
     }
 
@@ -388,15 +416,15 @@ public final class Class implements java.io.Serializable {
     // (1) Scan the declared public methods of this class and each of its superclasses
     for (VM_Class current = type.asClass(); current != null; current = current.getSuperClass()) {
       VM_Method[] methods = current.getDeclaredMethods(); 
-      java.lang.reflect.Method answer = null;
+      Method answer = null;
       for (int i = 0; i<methods.length; i++) {
 	VM_Method meth = methods[i];
 	if (meth.getName() == aName && meth.isPublic() &&
 	    parametersMatch(meth.getParameterTypes(), parameterTypes)) {
 	  if (answer == null) {
-	    answer = java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	    answer = JikesRVMSupport.createMethod(meth);
 	  } else {
-	    java.lang.reflect.Method m2 = java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	    Method m2 = JikesRVMSupport.createMethod(meth);
 	    if (answer.getReturnType().isAssignableFrom(m2.getReturnType())) {
 	      answer = m2;
 	    }
@@ -410,15 +438,15 @@ public final class Class implements java.io.Serializable {
     //     Because we inject the requisite Miranda methods, we can do this simply
     //     by looking at this class's virtual methods instead of searching interface hierarchies.
     VM_Method[] methods = type.asClass().getVirtualMethods(); 
-    java.lang.reflect.Method answer = null;
+    Method answer = null;
     for (int i = 0; i<methods.length; i++) {
       VM_Method meth = methods[i];
       if (meth.getName() == aName && meth.isPublic() &&
 	  parametersMatch(meth.getParameterTypes(), parameterTypes)) {
 	if (answer == null) {
-	  answer = java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	  answer = JikesRVMSupport.createMethod(meth);
 	} else {
-	  java.lang.reflect.Method m2 = java.lang.reflect.JikesRVMSupport.createMethod(meth);
+	  Method m2 = JikesRVMSupport.createMethod(meth);
 	  if (answer.getReturnType().isAssignableFrom(m2.getReturnType())) {
 	    answer = m2;
 	  }
@@ -440,13 +468,13 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i < static_methods.length; i++) {
       VM_Method meth = static_methods[i];
       if (meth.isPublic()) {
-        coll.collect(java.lang.reflect.JikesRVMSupport.createMethod(meth));
+        coll.collect(JikesRVMSupport.createMethod(meth));
       }
     }
     for (int i = 0; i < virtual_methods.length; i++) {
       VM_Method meth = virtual_methods[i];
       if (meth.isPublic()) {
-        coll.collect(java.lang.reflect.JikesRVMSupport.createMethod(meth));
+        coll.collect(JikesRVMSupport.createMethod(meth));
       }
     }
     return coll.methodArray();
@@ -576,7 +604,7 @@ public final class Class implements java.io.Serializable {
     // Check that caller is allowed to access it
     if (!defaultConstructor.isPublic()) {
       VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
-      java.lang.reflect.JikesRVMSupport.checkAccess(defaultConstructor, accessingClass);
+      JikesRVMSupport.checkAccess(defaultConstructor, accessingClass);
     }
 
     // Ensure that the class is initialized
@@ -595,7 +623,8 @@ public final class Class implements java.io.Serializable {
     Object[] tib  = cls.getTypeInformationBlock();
     boolean  hasFinalizer = cls.hasFinalizer();
     int allocator = MM_Interface.pickAllocator(cls);
-    Object   obj  = VM_Runtime.resolvedNewScalar(size, tib, hasFinalizer, allocator);
+    Object   obj  = VM_Runtime.resolvedNewScalar(size, tib, 
+						 hasFinalizer, allocator);
 
     // Run the default constructor on the it.
     try {
@@ -644,10 +673,14 @@ public final class Class implements java.io.Serializable {
 	   ExceptionInInitializerError 
   {
     if (className.startsWith("[")) {
-      if (!validArrayDescriptor(className)) throw new ClassNotFoundException();
+      if (!validArrayDescriptor(className)) 
+	throw new ClassNotFoundException();
     }
-    VM_Atom descriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-    VM_TypeReference tRef = VM_TypeReference.findOrCreate(classLoader, descriptor);
+    VM_Atom descriptor = VM_Atom
+      .findOrCreateAsciiAtom(className.replace('.','/'))
+      .descriptorFromClassName();
+    VM_TypeReference tRef 
+      = VM_TypeReference.findOrCreate(classLoader, descriptor);
     VM_Type ans = tRef.resolve();
     VM_Callbacks.notifyForName(ans);
     if (initialize && !ans.isInitialized()) {
@@ -670,7 +703,7 @@ public final class Class implements java.io.Serializable {
     for (int i = 0; i < fields.length; i++) {
       VM_Field field = fields[i];
       if (field.isPublic() && field.getName() == name) {
-	return java.lang.reflect.JikesRVMSupport.createField(field);
+	return JikesRVMSupport.createField(field);
       }
     }
 
@@ -704,7 +737,8 @@ public final class Class implements java.io.Serializable {
     String qualifiedClassName = getName();
     int classIndex = qualifiedClassName.lastIndexOf('.');
     if (classIndex == -1) return resName; // from a default package
-    return qualifiedClassName.substring(0, classIndex + 1).replace('.', '/') + resName;
+    return qualifiedClassName.substring(0, classIndex + 1).replace('.', '/') 
+      + resName;
   }
   
   private static boolean validArrayDescriptor (String name) {
