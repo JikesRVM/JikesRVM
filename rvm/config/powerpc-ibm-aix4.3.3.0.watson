@@ -22,6 +22,8 @@ export RVM_FOR_AIX=1
 # SMP support is always ok on AIX.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
 
+export BOOTIMAGE_LOAD_ADDRESS="0x30000000"
+
 ##########
 # PART II: Where to find tools and resources on this target
 ########## 

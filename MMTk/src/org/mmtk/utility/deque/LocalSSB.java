@@ -1,0 +1,173 @@
+/*
+ * (C) Copyright Department of Computer Science,
+ *     Australian National University. 2002
+ */
+package com.ibm.JikesRVM.memoryManagers.JMTk;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Uninterruptible;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+
+/**
+ * This class implements a local (<i>unsynchronized</i>) sequential
+ * store buffer.  An SSB is strictly FIFO (although this class does
+ * not implemented dequeuing).<p>
+ *
+ * Each instance stores word-sized values into a local buffer.  When
+ * the buffer is full, or if the <code>flushLocal()</code> method is
+ * called, the buffer enqued at the tail of a
+ * <code>SharedQueue</code>.  This class provides no mechanism for
+ * dequeing.<p>
+ *
+ * The implementation is intended to be as efficient as possible, in
+ * time and space, as it is used in critical code such as the GC work
+ * queue and the write buffer used by many "remembering"
+ * collectors. Each instance has just two fields: a bump pointer and a
+ * pointer to the <code>SharedQueue</code><p>
+ *
+ * Preconditions: Buffers are always aligned on buffer-size address
+ * boundaries.<p>
+ *
+ * Invariants: Buffers are filled such that tuples (of the specified
+ * arity) are packed to the low end of the buffer.  Thus buffer
+ * overflows on inserts and pops (underflow actually) will always arise
+ * when then cursor is buffer-size aligned.
+ *
+ * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @version $Revision$
+ * @date $Date$
+ */ 
+class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
+  public final static String Id = "$Id$"; 
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Public instance methods
+  //
+
+  /**
+   * Constructor
+   *
+   * @param queue The shared queue to which this local ssb will append
+   * its buffers (when full or flushed).
+   */
+  LocalSSB(SharedQueue queue) {
+    this.queue = queue;
+    tail = Queue.TAIL_INITIAL_VALUE;
+  }
+
+  /**
+   * Flush the buffer to the shared queue (this will make any entries
+   * in the buffer visible to any consumer associated with the shared
+   * queue).
+   */
+  public void flushLocal() {
+    if (tail.NE(Queue.TAIL_INITIAL_VALUE)) {
+      closeAndEnqueueTail(queue.getArity());
+      tail = Queue.TAIL_INITIAL_VALUE;
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Protected instance methods
+  //
+
+  /**
+   * Check whether there is space in the buffer for a pending insert.
+   * If there is not sufficient space, allocate a new buffer
+   * (dispatching the full buffer to the shared queue if not null).
+   *
+   * @param arity The arity of the values stored in this SSB: the
+   * buffer must contain enough space for this many words.
+   */
+  protected final void checkInsert(int arity) throws VM_PragmaInline {
+    if (bufferOffset(tail) == 0)
+      insertOverflow(arity);
+    else if (VM.VerifyAssertions)
+      VM._assert(bufferOffset(tail) >= (arity<<LG_WORDSIZE));
+  }
+
+  /**
+   * Insert a value into the buffer.  This is <i>unchecked</i>.  The
+   * caller must first call <code>checkInsert()</code> to ensure the
+   * buffer can accommodate the insertion.
+   *
+   * @param value the value to be inserted.
+   */
+  protected final void uncheckedInsert(int value) throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(bufferOffset(tail) >= WORDSIZE);
+    tail = tail.sub(WORDSIZE);
+    VM_Magic.setMemoryWord(tail, value);
+    //    if (VM.VerifyAssertions) enqueued++;
+  }
+
+  /**
+   * In the case where a tail buffer must be flushed before being
+   * filled (either to the queue or to the head), the entries must be
+   * slid to the base of the buffer in order to preserve the invariant
+   * that all non-tail buffers will have entries starting at the base
+   * (which allows a simple test against the base to be used when
+   * popping entries).  This is <i>expensive</i>, so should be
+   * avoided.
+   * 
+   * @param arity The arity of the buffer in question
+   * @return The last slot in the normalized buffer that contains an entry
+   */
+  protected final VM_Address normalizeTail(int arity) {
+    VM_Address src = tail;
+    VM_Address tgt = bufferFirst(tail);
+    VM_Address last = tgt.add(bufferLastOffset(arity) - bufferOffset(tail));
+    while(tgt.LE(last)) {
+      VM_Magic.setMemoryWord(tgt, VM_Magic.getMemoryWord(src));
+      src.add(WORDSIZE);
+      tgt.add(WORDSIZE);
+    }
+    return last;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Private instance methods and fields
+  //
+  protected VM_Address tail;   // the buffer
+  protected SharedQueue queue; // the shared queue
+
+  /**
+   * Buffer space has been exhausted, allocate a new buffer and enqueue
+   * the existing buffer (if any).
+   *
+   * @param arity The arity of this buffer (used for sanity test only).
+   */
+  private final void insertOverflow(int arity) {
+    if (VM.VerifyAssertions) VM._assert(arity == queue.getArity());
+    if (tail.NE(Queue.TAIL_INITIAL_VALUE)) {
+      closeAndEnqueueTail(arity);
+    }
+    tail = queue.alloc().add(bufferLastOffset(arity) + WORDSIZE);
+  }
+
+  /**
+   * Close the tail buffer (normalizing if necessary), and enqueue it
+   * at the tail of the shared buffer queue.
+   *
+   *  @param arity The arity of this buffer.
+   */
+  private final void closeAndEnqueueTail(int arity) throws VM_PragmaNoInline {
+    VM_Address last;
+    if (bufferOffset(tail) != 0) {
+      // prematurely closed
+      last = normalizeTail(arity);
+    } else {
+      // a full tail buffer
+      last = tail.add(bufferLastOffset(arity));
+    }
+    queue.enqueue(last.add(WORDSIZE), arity, true);
+  }
+}

@@ -4,7 +4,7 @@
 //$Id$
 
 
-package com.ibm.JikesRVM.memoryManagers;
+package com.ibm.JikesRVM.memoryManagers.watson;
 
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_ProcessorLock;
@@ -190,9 +190,9 @@ public final class VM_ContiguousHeap extends VM_Heap
 
   public int allocatedFromSaved() throws VM_PragmaUninterruptible {
       if (sense == FORWARD)
-	  return current.diff(saved);
+	  return current.diff(saved).toInt();
       else
-	  return saved.diff(current);
+	  return saved.diff(current).toInt();
   }
 
   public void recordSaved() throws VM_PragmaUninterruptible {
@@ -204,9 +204,9 @@ public final class VM_ContiguousHeap extends VM_Heap
    */
   public void zeroFreeSpace() throws VM_PragmaUninterruptible {
       if (sense == FORWARD)
-	  VM_Memory.zeroPages(current, end.diff(current));
+	  VM_Memory.zeroPages(current, end.diff(current).toInt());
       else
-	  VM_Memory.zeroPages(start, current.diff(start));
+	  VM_Memory.zeroPages(start, current.diff(start).toInt());
   }
 
   /**
@@ -232,9 +232,9 @@ public final class VM_ContiguousHeap extends VM_Heap
    */
   public int freeMemory() throws VM_PragmaUninterruptible {
     if (sense == FORWARD)
-	return end.diff(current);
+	return end.diff(current).toInt();
     else
-	return current.diff(start);
+	return current.diff(start).toInt();
   }
 
   /**
@@ -242,8 +242,8 @@ public final class VM_ContiguousHeap extends VM_Heap
    */
   public int usedMemory() throws VM_PragmaUninterruptible {
     if (sense == FORWARD)
-	return current.diff(start);
+	return current.diff(start).toInt();
     else
-	return end.diff(current);
+	return end.diff(current).toInt();
   }
 }

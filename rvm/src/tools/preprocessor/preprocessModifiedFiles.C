@@ -74,7 +74,7 @@ char *PutIntoPackage = NULL;
 int  preprocess(char *srcFile, char *destinationFile);
 void reviseState();
 void printState(FILE *fout, char *directive, char *line);
-int  scan(char *line, int *value1);
+int  scan(char *srcFile, char *line, int *value);
 int  eval(char *p);
 
 // Types of tokens returned by scan().
@@ -294,7 +294,7 @@ preprocess(char *srcFile, char *dstFile)
       SourceLine += 1;
 
       int value;
-      switch (scan(line, &value))
+      switch (scan(srcFile, line, &value))
          {
          case TT_TEXT:
          #if DEBUG
@@ -423,7 +423,7 @@ printState(FILE *fout, char *directive, char *line)
 //           TT_UNRECOGNIZED --> found unrecognized      directive
 //
 int
-scan(char *line, int *value)
+scan(char *srcFile, char *line, int *value)
    {
    // skip whitespace
    //
@@ -442,11 +442,11 @@ scan(char *line, int *value)
      if (PutIntoPackage)
        fprintf(stderr, "WARNING: package declaration co-existing with specified package via -package");
      if (*package != 0)
-       fprintf(stderr, "WARNING: multiple package declaration");
+       fprintf(stderr, "WARNING: multiple package declaration in file %s", srcFile);
      p += 8;
      char *tmp = package;
      while (*p != ';') {
-       if (*p == '\n') fprintf(stderr, "Ill-formed package declaration: %s", line);
+       if (*p == '\n') fprintf(stderr, "%s: Ill-formed package declaration: %s", srcFile, line);
        *(tmp++) = *(p++);
      }
      *tmp = 0;

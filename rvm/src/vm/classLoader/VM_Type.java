@@ -76,7 +76,7 @@ package com.ibm.JikesRVM;
    //
    public final boolean isClassType() throws VM_PragmaUninterruptible { return dimension == 0; } 
    public final boolean isArrayType() throws VM_PragmaUninterruptible { return dimension > 0;  }
-   public final boolean isPrimitiveType() throws VM_PragmaUninterruptible { return (dimension < 0) || isAddressType();  }
+   public final boolean isPrimitiveType() throws VM_PragmaUninterruptible { return (dimension < 0) || isWordType();  }
    public final boolean isReferenceType() throws VM_PragmaUninterruptible { return !isPrimitiveType(); }
    
   // Downcasting.
@@ -339,9 +339,11 @@ package com.ibm.JikesRVM;
    */
   public static VM_Type MagicType;             
   /**
-   * type used to represent machine addresses
+   * type used to represent machine words, addresses, differences of addresses
    */
+  public static VM_Type WordType;             
   public static VM_Type AddressType;             
+  public static VM_Type OffsetType;             
   /**
    * type used to represent code - array of INSTRUCTION
    */
@@ -377,13 +379,15 @@ package com.ibm.JikesRVM;
   public final boolean isFloatType() throws VM_PragmaUninterruptible             { return this == FloatType;          }
   public final boolean isDoubleType() throws VM_PragmaUninterruptible            { return this == DoubleType;         }
   public final boolean isCharType() throws VM_PragmaUninterruptible              { return this == CharType;           }
-  public final boolean isIntLikeType() throws VM_PragmaUninterruptible           { return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType() || isAddressType(); }
+  public final boolean isIntLikeType() throws VM_PragmaUninterruptible           { return isBooleanType() || isByteType() || isShortType() || isIntType() || isCharType() || isWordType(); }
 
   public final boolean isJavaLangObjectType() throws VM_PragmaUninterruptible    { return this == JavaLangObjectType;    }
   public final boolean isJavaLangThrowableType() throws VM_PragmaUninterruptible { return this == JavaLangThrowableType; }
   public final boolean isJavaLangStringType() throws VM_PragmaUninterruptible    { return this == JavaLangStringType;    }
   public final boolean isMagicType() throws VM_PragmaUninterruptible             { return this == MagicType;             }
-  public final boolean isAddressType() throws VM_PragmaUninterruptible           { return this == AddressType;           }
+  public final boolean isWordType() throws VM_PragmaUninterruptible              { return (this == WordType) ||
+                                                                                          (this == AddressType) ||
+										          (this == OffsetType);          }
   public final boolean isUninterruptibleType() throws VM_PragmaUninterruptible   { return this == UninterruptibleType;   }
   public final boolean isSynchronizedObjectType() throws VM_PragmaUninterruptible{ return this == SynchronizedObjectType;   }
   public final boolean isDynamicBridgeType() throws VM_PragmaUninterruptible     { return this == DynamicBridgeType;     }
@@ -538,7 +542,9 @@ package com.ibm.JikesRVM;
       (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SaveVolatile;"), VM_SystemClassLoader.getVMClassLoader());
     NativeBridgeType      = VM_ClassLoader.findOrCreateType
       (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_NativeBridge;"), VM_SystemClassLoader.getVMClassLoader());
+    WordType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Word;"), VM_SystemClassLoader.getVMClassLoader());
     AddressType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Address;"), VM_SystemClassLoader.getVMClassLoader());
+    OffsetType           = VM_ClassLoader.findOrCreateType (VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Offset;"), VM_SystemClassLoader.getVMClassLoader());
 
     VM_Array.init();
 

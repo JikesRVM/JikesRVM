@@ -3,7 +3,9 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers;
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
@@ -11,13 +13,8 @@ import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_JavaHeader;
-import com.ibm.JikesRVM.VM_ClassLoader;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
 import com.ibm.JikesRVM.VM_Atom;
 import com.ibm.JikesRVM.VM_Type;
-import com.ibm.JikesRVM.VM_Class;
-import com.ibm.JikesRVM.VM_Array;
-import com.ibm.JikesRVM.VM_Method;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
@@ -45,7 +42,7 @@ import com.ibm.JikesRVM.VM_TypeDictionary;
  * @author Dave Grove
  * @author Perry Cheng
  */
-class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor, VM_Callbacks.AppRunStartMonitor {
+public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor, VM_Callbacks.AppRunStartMonitor {
 
 
   // Number and types of GC
@@ -89,7 +86,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor, VM_Ca
 
   private static final VM_Atom TOTALAtom = VM_Atom.findOrCreateAsciiAtom("TOTAL");
 
-  static void boot() throws VM_PragmaInterruptible {
+  public static void boot() throws VM_PragmaInterruptible {
     VM_Callbacks.addExitMonitor(new VM_GCStatistics());
     VM_Callbacks.addAppRunStartMonitor(new VM_GCStatistics());
   }

@@ -4,6 +4,11 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+//-#if RVM_WITH_OPT_COMPILER
+import com.ibm.JikesRVM.opt.*;
+//-#endif
+
 /**
  * Manage pool of compiled methods. <p>
  * Original extracted from VM_ClassLoader. <p>
@@ -12,10 +17,6 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  * @author Arvin Shepherd
  */
-//-#if RVM_WITH_OPT_COMPILER
-import com.ibm.JikesRVM.opt.*;
-//-#endif
-
 public class VM_CompiledMethods {
 
   /**
@@ -95,7 +96,7 @@ public class VM_CompiledMethods {
    // Note: this method is highly inefficient. Normally you should use the following instead:
    //   VM_ClassLoader.getCompiledMethod(VM_Magic.getCompiledMethodID(fp))
    //
-  public static VM_CompiledMethod findMethodForInstruction(VM_Address ip) {
+  public static VM_CompiledMethod findMethodForInstruction(VM_Address ip) throws VM_PragmaUninterruptible {
     for (int i = 0, n = numCompiledMethods(); i < n; ++i) {
       VM_CompiledMethod compiledMethod = compiledMethods[i];
       if (compiledMethod == null || !compiledMethod.isCompiled())
@@ -240,7 +241,7 @@ public class VM_CompiledMethods {
   //
   private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array, 
 					       int newLength) {
-    VM_CompiledMethod[] newarray = VM_RuntimeStructures.newContiguousCompiledMethodArray(newLength);
+    VM_CompiledMethod[] newarray = VM_Interface.newContiguousCompiledMethodArray(newLength);
     System.arraycopy(array, 0, newarray, 0, array.length);
     VM_Magic.sync();
     return newarray;

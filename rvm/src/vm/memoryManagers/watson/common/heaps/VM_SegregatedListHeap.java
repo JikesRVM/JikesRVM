@@ -4,7 +4,9 @@
 //$Id$
 
 
-package com.ibm.JikesRVM.memoryManagers;
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Array;
@@ -264,9 +266,9 @@ public final class VM_SegregatedListHeap extends VM_Heap
    */
   public boolean  mark(VM_Address ref) throws VM_PragmaUninterruptible {
     VM_Address tref = VM_ObjectModel.getPointerInMemoryRegion(ref);
-    int blkndx  = (tref.diff(start)) >> LOG_GC_BLOCKSIZE ;
+    int blkndx  = (tref.diff(start).toInt()) >> LOG_GC_BLOCKSIZE ;
     VM_BlockControl  this_block = blocks[blkndx];
-    int  offset   = tref.diff(this_block.baseAddr); 
+    int  offset   = tref.diff(this_block.baseAddr).toInt(); 
     int  slotndx  = offset/this_block.slotsize;
     
     if (this_block.mark[slotndx] != 0) return false;
@@ -300,9 +302,9 @@ public final class VM_SegregatedListHeap extends VM_Heap
     VM_Address tref = VM_ObjectModel.getPointerInMemoryRegion(ref);
     //  check for live small object
     int  blkndx, slotno, size, ij;
-    blkndx  = (tref.diff(start)) >> LOG_GC_BLOCKSIZE ;
+    blkndx  = (tref.diff(start).toInt()) >> LOG_GC_BLOCKSIZE ;
     VM_BlockControl  this_block = blocks[blkndx];
-    int  offset   = tref.diff(this_block.baseAddr);
+    int  offset   = tref.diff(this_block.baseAddr).toInt();
     int  slotndx  = offset/this_block.slotsize;
     return (this_block.mark[slotndx] != 0);
   }
@@ -729,7 +731,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
   protected  boolean isPtrInBlock (VM_Address ptr, VM_SizeControl the_size) throws VM_PragmaUninterruptible {
     VM_BlockControl  the_block = blocks[the_size.current_block]; 
     VM_Address base = the_block.baseAddr;
-    int  offset = ptr.diff(base);
+    int  offset = ptr.diff(base).toInt();
     VM_Address  endofslot = ptr.add(the_block.slotsize);
     if (offset%the_block.slotsize != 0) VM.sysFail("Ptr not to beginning of slot");
     VM_Address  bound = base.add(GC_BLOCKSIZE);
@@ -1160,7 +1162,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
 	  // found that next block is live
 	  if (++blockCounter == numBlocksToKeep) {
 	    // GSC
-	    this_size.lastBlockToKeep = this_block.baseAddr.diff(start) / GC_BLOCKSIZE;
+	    this_size.lastBlockToKeep = this_block.baseAddr.diff(start).toInt() / GC_BLOCKSIZE;
 	  }
 	  this_block = next_block;
 	}
@@ -1169,7 +1171,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
       // this_block -> last block in list, with next==0. remember its
       // index for possible moving of partial blocks to global lists below
       //
-      this_size.last_allocated = this_block.baseAddr.diff(start) / GC_BLOCKSIZE;
+      this_size.last_allocated = this_block.baseAddr.diff(start).toInt() / GC_BLOCKSIZE;
     }
 
     if (DEBUG_FREEBLOCKS) 
@@ -1198,7 +1200,7 @@ public final class VM_SegregatedListHeap extends VM_Heap
 	}
 	temp = this_block.nextblock;
 	this_block.nextblock = local_first_free_ndx;
-	local_first_free_ndx = (this_block.baseAddr.diff(start))/GC_BLOCKSIZE;
+	local_first_free_ndx = (this_block.baseAddr.diff(start).toInt())/GC_BLOCKSIZE;
 	partialBlockList[i] = temp;
 	if (temp == OUT_OF_BLOCKS) break;
 	this_block = blocks[temp];

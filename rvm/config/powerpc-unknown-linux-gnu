@@ -24,6 +24,8 @@ export RVM_FOR_LINUX=1
 # mask the bottom bits of stackpointer to find phtread local storage.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
 
+export BOOTIMAGE_LOAD_ADDRESS="0x31000000"
+
 ##########
 # PART II: Where to find tools and resources on this target
 ########## 

@@ -4,7 +4,12 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
+//-#if RVM_WITH_JMTK
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
+//-#endif
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+import com.ibm.JikesRVM.memoryManagers.watson.VM_AllocatorHeader;
+//-#endif
 
 /**
  * Defines other header words not used for 

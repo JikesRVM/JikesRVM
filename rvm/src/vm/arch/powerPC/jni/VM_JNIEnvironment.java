@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import java.lang.reflect.*;
-import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  *   This class implements the JNI environment, it includes:
@@ -48,7 +48,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
   VM_Processor savedPRreg;         // for saving processor register on entry to native, to be restored on JNI call from native
   boolean      alwaysHasNativeFrame;  // true if the bottom stack frame is native, such as thread for CreateJVM or AttachCurrentThread
 
-  int[]       JNIRefs;          // references passed to native code
+  public int[]       JNIRefs;          // references passed to native code
   int         JNIRefsTop;       // -> address of current top ref in JNIRefs array 
   int         JNIRefsMax;       // -> address of end (last entry) of JNIRefs array
   int         JNIRefsSavedFP;   // -> previous frame boundary in JNIRefs array
@@ -1109,7 +1109,7 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
       VM.sysWrite(" ");
       VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
       VM.sysWrite(" ");
-      VM_GCUtil.dumpRef(VM_Address.fromInt(JNIRefs[jniRefOffset >> 2]));
+      VM_Interface.dumpRef(VM_Address.fromInt(JNIRefs[jniRefOffset >> 2]));
       jniRefOffset -= 4;
     }
     VM.sysWrite("\n* * end of dump * *\n");

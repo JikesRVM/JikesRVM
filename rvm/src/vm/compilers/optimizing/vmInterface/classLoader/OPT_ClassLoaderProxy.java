@@ -77,7 +77,7 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
     if (t1.isPrimitiveType() && t2.isPrimitiveType()) {
       VM_Type type = null;
       if (t1.isIntLikeType() && t2.isIntLikeType()) {
-        if (t1.isAddressType() || t2.isAddressType())
+        if (t1.isWordType() || t2.isWordType())
           return OPT_ClassLoaderProxy.AddressType;
         if (t1.isIntType() || t2.isIntType())
           return  OPT_ClassLoaderProxy.IntType;
@@ -90,8 +90,8 @@ implements VM_ClassLoaderConstants, VM_Constants, OPT_Constants
       }
       return  null;
     }
-    if (!((t1.isReferenceType() || t1.isAddressType()) && 
-          (t2.isReferenceType() || t2.isAddressType())))
+    if (!((t1.isReferenceType() || t1.isWordType()) && 
+          (t2.isReferenceType() || t2.isWordType())))
       return null;
     // can these next two cases happen?
     if (t1 == NULL_TYPE)

@@ -154,7 +154,7 @@ class VM_EdgeListener extends VM_ContextListener
     // instruction
     VM_CompiledMethod callerCM = VM_CompiledMethods.getCompiledMethod(callerCMID);
     VM_Address beginningOfMachineCode = VM_Magic.objectAsAddress(callerCM.getInstructions());
-    int callSite = returnAddress.diff(beginningOfMachineCode);
+    int callSite = returnAddress.diff(beginningOfMachineCode).toInt();
 
     if (DEBUG){ 
       VM.sysWrite("  <");VM.sysWrite(calleeCMID);VM.sysWrite(",");

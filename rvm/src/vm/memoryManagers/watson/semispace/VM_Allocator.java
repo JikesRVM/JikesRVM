@@ -4,17 +4,16 @@
 //$Id$
 
 
-package com.ibm.JikesRVM.memoryManagers;
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
 
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_JavaHeader;
-import com.ibm.JikesRVM.VM_ClassLoader;
-import com.ibm.JikesRVM.VM_SystemClassLoader;
 import com.ibm.JikesRVM.VM_Atom;
 import com.ibm.JikesRVM.VM_Type;
 import com.ibm.JikesRVM.VM_Class;
@@ -36,8 +35,6 @@ import com.ibm.JikesRVM.VM_Entrypoints;
 import com.ibm.JikesRVM.VM_Reflection;
 import com.ibm.JikesRVM.VM_Synchronization;
 import com.ibm.JikesRVM.VM_Synchronizer;
-import com.ibm.JikesRVM.VM_EventLogger;
-import com.ibm.JikesRVM.VM_Callbacks;
 
 /**
  * Simple Semi-Space Copying Allocator/Collector
@@ -126,25 +123,26 @@ public class VM_Allocator extends VM_GCStatistics
   /**
    * Initialize for boot image.
    */
-  static void init () throws VM_PragmaInterruptible {
+  public static void init () throws VM_PragmaInterruptible {
     VM_CollectorThread.init();   // to alloc its rendezvous arrays, if necessary
   }
 
   /**
    * Initialize for execution.
    */
-  static void boot (VM_BootRecord bootrecord) throws VM_PragmaInterruptible {
-    verbose = bootrecord.verboseGC;
+  public static void boot () throws VM_PragmaInterruptible {
+
+    verbose = VM_Interface.verbose();
 
     // smallHeapSize might not originally have been an even number of pages
-    smallHeapSize = bootrecord.smallSpaceSize;
+    smallHeapSize = VM_Interface.smallHeapSize();
     int oneHeapSize = VM_Memory.roundUpPage(smallHeapSize / 2);
-    int largeSize = bootrecord.largeSpaceSize;
+    int largeSize = VM_Interface.largeHeapSize();
     int ps = VM_Memory.getPagesize();
     int immortalSize = VM_Memory.roundUpPage(1024 * 1024 + (4 * largeSize / ps) + 4 * ps);
 
     if (verbose >= 2) VM.sysWriteln("Attaching heaps");
-    VM_Heap.boot(bootHeap, /* no malloc heap in this collector */null, bootrecord);
+    VM_Heap.boot(bootHeap, /* no malloc heap in this collector */null);
     fromHeap.attach(oneHeapSize);
     toHeap.attach(oneHeapSize);
     immortalHeap.attach(immortalSize);
@@ -152,8 +150,6 @@ public class VM_Allocator extends VM_GCStatistics
 
     fromHeap.reset();
 
-    VM_GCUtil.boot();
- 
     if (verbose >= 1) showParameter();
   }
 
@@ -301,7 +297,7 @@ public class VM_Allocator extends VM_GCStatistics
     for (int count = 0; true; count++) {
       VM_Address addr = fromHeap.allocateZeroedMemory(size);
       if (!addr.isZero()) {
-	if (ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(addr, size);
+	if (ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zero(addr, size);
 	return addr;
       } 
       heapExhausted(fromHeap, size, count);
@@ -334,10 +330,10 @@ public class VM_Allocator extends VM_GCStatistics
   // *************************************
 
   /** May this collector move objects during collction? */
-  static final boolean movesObjects = true;
+  public static final boolean movesObjects = true;
 
   /** Does this collector require that compilers generate the write barrier? */
-  static final boolean writeBarrier = false;
+  public static final boolean writeBarrier = false;
 
   /**
    * The boundary between "small" objects and "large" objects. For the copying
@@ -360,7 +356,7 @@ public class VM_Allocator extends VM_GCStatistics
 
   // ------- End of Statics --------
 
-  static void gcSetup ( int numSysThreads ) {
+  public static void gcSetup ( int numSysThreads ) {
     VM_GCWorkQueue.workQueue.initialSetup(numSysThreads);
   }
 
@@ -422,10 +418,9 @@ public class VM_Allocator extends VM_GCStatistics
    *    initGCDone flag is false before first GC thread enter collect
    *    initLock is reset before first GC thread enter collect
    */
-  static void collect () throws VM_PragmaUninterruptible {
+  public static void collect () throws VM_PragmaUninterruptible {
 
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled)
-      VM_EventLogger.logGarbageCollectionEvent();
+    VM_Interface.logGarbageCollection();
  
     // set running threads context regs so that a scan of its stack
     // will start at the caller of collect (ie. VM_CollectorThread.run)
@@ -467,6 +462,8 @@ public class VM_Allocator extends VM_GCStatistics
       largeHeap.startCollect();
 
       if (VM.ParanoidGCCheck) toHeap.unprotect();
+
+      // DebugHelp.reset();
       
       // this gc thread copies its own VM_Processor, resets processor register & processor
       // local allocation pointers (before copying first object to ToSpace)
@@ -529,7 +526,7 @@ public class VM_Allocator extends VM_GCStatistics
     // Begin finding roots for this collection.
     // Root refs are updated and the copied object is enqueued for later scanning.
     gc_scanProcessor();                            // each gc threads scans its own processor object
-    VM_ScanStatics.scanStatics();                  // all threads scan JTOC in parallel
+    ScanStatics.scanStatics();                  // all threads scan JTOC in parallel
     VM_CopyingCollectorUtil.scanThreads(fromHeap); // all GC threads process thread objects & scan their stacks
 
     // This synchronization is necessary to ensure all stacks have been scanned
@@ -539,55 +536,33 @@ public class VM_Allocator extends VM_GCStatistics
     //
     //    REQUIRED SYNCHRONIZATION - WAIT FOR ALL GC THREADS TO REACH HERE
     mylocal.rendezvous();
-    if (mylocal.gcOrdinal == 1)	scanTime.start(rootTime);
+    if (mylocal.getGCOrdinal() == 1)	scanTime.start(rootTime);
 
     // each GC thread processes its own work queue until empty
     if (verbose >= 2) VM.sysWriteln("  Emptying work queue");
     gc_emptyWorkQueue();
-    if (mylocal.gcOrdinal == 1)	finalizeTime.start(scanTime);
-    
-    // If counting or timing in VM_GCWorkQueue, save current counter values
-    //
-    if (VM_GCWorkQueue.WORKQUEUE_COUNTS)   VM_GCWorkQueue.saveCounters(mylocal);
-    if (VM_GCWorkQueue.MEASURE_WAIT_TIMES || VM_CollectorThread.MEASURE_WAIT_TIMES)
-      VM_GCWorkQueue.saveWaitTimes(mylocal);
+    mylocal.rendezvous();
+    if (mylocal.getGCOrdinal() == 1)	finalizeTime.start(scanTime);
 
-    // If there are not any objects with finalizers skip finalization phases.
-    // Otherwise, one thread scans finalizer list for dead objects and resuscitated.
-    //   Then, all threads process objects in parallel.
-    if (VM_Finalizer.existObjectsWithFinalizers()) {
-
-      /*** The following reset() will wait for previous use of workqueue to finish
-	   ie. all threads to leave.  So no rendezvous is necessary (we hope)
-         Without the reset, a rendezvous is necessary because some "slow" gc threads may still be
-         in emptyWorkQueue (in VM_GCWorkQueue.getBufferAndWait) and have not seen
-         the completionFlag==true.  The following call to reset will reset that
-         flag to false, possibly leaving the slow GC threads stuck.  This rendezvous
-         ensures that all threads have left the previous emptyWorkQueue, before
-         doing the reset. (We could make reset smarter, and have it wait until
-         the threadsWaiting count returns to 0, before doing the reset - TODO)
-
-	 One thread scans the hasFinalizer list for dead objects.  They are made live
-	 again, and put into that threads work queue buffers.
-      ***/
-
-      if (mylocal.gcOrdinal == 1) {
-	VM_GCWorkQueue.workQueue.reset();   // reset work queue shared control variables
-	VM_Finalizer.moveToFinalizable();
-      }
-      // ALL threads have to wait to see if any finalizable objects are found
-      mylocal.rendezvous();
-      if (VM_Finalizer.foundFinalizableObject) 
-	gc_emptyWorkQueue();
-    }  //  end of Finalization Processing
+    // Do finalization now.
+    if (mylocal.getGCOrdinal() == 1) {
+      VM_GCWorkQueue.workQueue.reset();   // reset work queue shared control variables
+      VM_Finalizer.moveToFinalizable();
+    }
+    mylocal.rendezvous();   // the prevents a speedy thread from thinking there is no work
+    gc_emptyWorkQueue();
+    mylocal.rendezvous();
     if (verbose >= 2) VM.sysWriteln("  Finished finalizer processing");
-    if (mylocal.gcOrdinal == 1) finishTime.start(finalizeTime);
+    if (mylocal.getGCOrdinal() == 1) finishTime.start(finalizeTime);
       
     // gcDone flag has been set to false earlier
     //
     if ( VM_GCLocks.testAndSetFinishLock() ) {
 
       // BEGIN SINGLE GC THREAD SECTION FOR END OF GC
+
+      // check graph isomorphism
+      // DebugHelp.checkLog();
 
       // make any access to discarded fromspace impossible
       if (VM.ParanoidGCCheck) {
@@ -673,7 +648,7 @@ public class VM_Allocator extends VM_GCStatistics
     //
     if (VM_CollectorThread.MEASURE_WAIT_TIMES)
       mylocal.incrementWaitTimeTotals();
-    if (mylocal.gcOrdinal == 1) {
+    if (mylocal.getGCOrdinal() == 1) {
 	finishTime.stop();
 	GCTime.stop(finishTime.lastStop);
     }
@@ -682,8 +657,8 @@ public class VM_Allocator extends VM_GCStatistics
     // only approx. since other gc threads may be zeroing in parallel
     // this is done by the 1 gc thread that finished the preceeding GC
     //
-    if (mylocal.gcOrdinal == 1) {
-	updateGCStats(DEFAULT, fromHeap.current().diff(fromHeap.start));
+    if (mylocal.getGCOrdinal() == 1) {
+	updateGCStats(DEFAULT, fromHeap.current().diff(fromHeap.start).toInt());
 	printGCStats(DEFAULT);
     }
 
@@ -855,7 +830,17 @@ public class VM_Allocator extends VM_GCStatistics
       VM_WriteBuffer.setupProcessor(p);
   }
 
-  // Check if the "integer" pointer points to a dead or live object.
+  // Given an object in fromSpace, return the live object in to-space.
+  // In other spaces, objects don't move so return passed argument.
+  //
+  public static Object getLiveObject (Object obj) throws VM_PragmaUninterruptible {
+    if (fromHeap.refInHeap(VM_Magic.objectAsAddress(obj)))
+      return VM_AllocatorHeader.getForwardingPointer(obj);
+    return obj;
+  }
+
+
+  // Check if the object address points to a dead or live object.
   // If live, and in the FromSpace (ie has been marked and forwarded),
   // then update the integer pointer to the objects new location.
   // If dead, then force it live, copying it if in the FromSpace, marking it
@@ -869,28 +854,27 @@ public class VM_Allocator extends VM_GCStatistics
   // Called by ONE GC collector thread at the end of collection, after
   // all reachable object are marked and forwarded
   //
-  static boolean processFinalizerListElement (VM_FinalizerListElement le) throws VM_PragmaUninterruptible {
-    VM_Address ref = le.value;
+  // Returns true if the object died and needs finalization.
+  // In either case, the object has been copied and its new location can be obtained cia getLiveObject()
+  //
+  public static boolean processFinalizerCandidate (VM_Address ref) throws VM_PragmaUninterruptible {
     if (fromHeap.refInHeap(ref)) {
       Object obj = VM_Magic.addressAsObject(ref);
       if (VM_AllocatorHeader.isForwarded(obj)) {
-	// live, set le.value to forwarding address
-	le.move(VM_Magic.objectAsAddress(VM_AllocatorHeader.getForwardingPointer(obj)));
-	return true;
+	return false;  // already live so no finalization
       } else {
-	// dead, mark, copy, and enque for scanning, and set le.pointer
-	le.finalize(copyAndScanObject(ref, true));
-	return false;
+	// dead, so copy/scan object and notify caller that it has been revived
+	copyAndScanObject(ref, true);
+	return true;
       }
     } else {
       if (VM.VerifyAssertions) VM._assert(largeHeap.refInHeap(ref));
       if (largeHeap.isLive(ref)) {
-	return true;  
+	return false;
       } else {
 	largeHeap.mark(ref);
 	VM_GCWorkQueue.putToWorkBuffer(ref);
-	le.finalize(ref);
-	return false;
+	return true;
       }
     }
   } 
@@ -914,11 +898,11 @@ public class VM_Allocator extends VM_GCStatistics
 
   /**
    * Process an object reference (value) during collection.
-   * Called from GC utility classes like VM_ScanStack.
+   * Called from GC utility classes like ScanStack.
    *
    * @param location  address of a reference field
    */
-  static VM_Address processPtrValue (VM_Address ref ) throws VM_PragmaUninterruptible {
+  public static VM_Address processPtrValue (VM_Address ref ) throws VM_PragmaUninterruptible {
   
     if (ref.isZero()) return ref;
   

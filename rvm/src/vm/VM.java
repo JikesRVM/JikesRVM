@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * A virtual machine.
@@ -101,15 +101,13 @@ public class VM extends VM_Properties
     // because the buffer is accessed by compiler-generated write barrier code.
     //
     if (verbose >= 1) VM.sysWriteln("Setting up write barrier");
-    if (VM_Collector.NEEDS_WRITE_BARRIER) {
-      VM_Collector.setupProcessor( VM_Processor.getCurrentProcessor() );
-    }
+    VM_Interface.setupProcessor( VM_Processor.getCurrentProcessor() );
 
     // Initialize memory manager.
     //    This must happen before any uses of "new".
     //
-    if (verbose >= 1) VM.sysWriteln("Setting up memory manager");
-    VM_Collector.boot(VM_BootRecord.the_boot_record);
+    if (verbose >= 1) VM.sysWriteln("Setting up memory manager: bootrecord = ", VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record));
+    VM_Interface.boot(VM_BootRecord.the_boot_record);
 
     // Reset the options for the baseline compiler to avoid carrying them over from
     // bootimage writing time.
@@ -241,7 +239,7 @@ public class VM extends VM_Properties
     // Allow Collector to respond to command line arguments
     //
     if (verbose >= 1) VM.sysWriteln("Collector processing rest of boot options");
-    VM_Collector.postBoot();
+    VM_Interface.postBoot();
 
     VM_Lock.boot();
 
@@ -482,8 +480,9 @@ public class VM extends VM_Properties
   public static void sysWriteHex(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline /* don't waste code space inlining these --dave */ {
     if (runningVM)
       sysCall2(VM_BootRecord.the_boot_record.sysWriteIP, value, 2 /*just hex*/);
-    else
-      System.err.print(value);
+    else {
+      System.err.print(Integer.toHexString(value));
+    }
   }
 
   /**
@@ -528,6 +527,7 @@ public class VM extends VM_Properties
    */
   public static void sysWriteln ()                     throws VM_PragmaNoInline { sysWrite("\n"); }
   public static void sysWrite   (VM_Address addr)      throws VM_PragmaNoInline { sysWriteHex(addr.toInt()); }
+  public static void sysWrite   (VM_Word word)         throws VM_PragmaNoInline { sysWriteHex(word.toInt()); }
   public static void sysWriteln (int i)                throws VM_PragmaNoInline { sysWrite(i);   sysWriteln(); }
   public static void sysWriteln (double d)             throws VM_PragmaNoInline { sysWrite(d);   sysWriteln(); }
   public static void sysWriteln (long l)               throws VM_PragmaNoInline { sysWrite(l);   sysWriteln(); }
@@ -544,6 +544,8 @@ public class VM extends VM_Properties
   public static void sysWriteln (String s1, String s2)      throws VM_PragmaNoInline { sysWrite(s1);  sysWriteln(s2); }
   public static void sysWrite   (String s, VM_Address addr) throws VM_PragmaNoInline { sysWrite(s);   sysWriteHex(addr.toInt()); }
   public static void sysWriteln (String s, VM_Address addr) throws VM_PragmaNoInline { sysWrite(s);   sysWriteHex(addr.toInt()); sysWriteln(); }
+  public static void sysWrite   (String s, VM_Word word) throws VM_PragmaNoInline { sysWrite(s);   sysWriteHex(word.toInt()); }
+  public static void sysWriteln (String s, VM_Word word) throws VM_PragmaNoInline { sysWrite(s);   sysWriteHex(word.toInt()); sysWriteln(); }
   public static void sysWrite   (String s1, String s2, int i)  throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(s2); sysWrite(i); }
   public static void sysWriteln (String s1, String s2, int i)  throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(s2); sysWriteln(i); }
   public static void sysWrite   (String s1, int i, String s2)  throws VM_PragmaNoInline { sysWrite(s1);  sysWrite(i);  sysWrite(s2); }
@@ -636,8 +638,8 @@ public class VM extends VM_Properties
    * The interrupt will be delivered to whatever virtual processor happens 
    * to be running when the timer expires.
    */
-  static void sysVirtualProcessorEnableTimeSlicing() {
-    sysCall0(VM_BootRecord.the_boot_record.sysVirtualProcessorEnableTimeSlicingIP);
+  static void sysVirtualProcessorEnableTimeSlicing(int timeSlice) {
+    sysCall1(VM_BootRecord.the_boot_record.sysVirtualProcessorEnableTimeSlicingIP, timeSlice);
   }
 
   //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
@@ -896,7 +898,7 @@ public class VM extends VM_Properties
         VM_BootImageCompiler.init(bootCompilerArgs);
       VM_Runtime.init();
       VM_Scheduler.init();
-      VM_Collector.init();
+      VM_Interface.init();
     }
 
   /**

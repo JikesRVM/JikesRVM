@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
 /**
  * Iterator for stack frames inserted at the transition from Java to
@@ -17,7 +17,7 @@ import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
  * @see VM_JNICompiler
  * @author Steve Smith
  */
-public final class VM_JNIGCMapIterator extends com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator
+public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     implements VM_BaselineConstants, VM_Uninterruptible {
 
   // Java to Native C transition frame...(see VM_JNICompiler)

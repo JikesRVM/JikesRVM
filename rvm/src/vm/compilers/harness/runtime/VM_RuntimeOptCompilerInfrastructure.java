@@ -4,8 +4,10 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
+//-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
+//-#endif
 
 /**
  * A place to put code common to all runtime compilers that use the OPT

@@ -56,7 +56,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     if (method.isSynchronized()) { 
       VM_Address ip = registers.getInnermostInstructionAddress();
       VM_Address base = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-      int instr = ip.diff(base);
+      int instr = ip.diff(base).toInt();
       int lockOffset = ((VM_BaselineCompiledMethod)compiledMethod).getLockAcquisitionOffset();
       if (instr > lockOffset) { // we actually have the lock, so must unlock it.
 	Object lock;

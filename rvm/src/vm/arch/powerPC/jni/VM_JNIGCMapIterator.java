@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
 /**
  * Iterator for stack frames inserted at the transition from Java to
@@ -48,6 +48,8 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
   // the GC flag at the beginning of this area.  
   //
 
+  public static int verbose = 0;
+  
    // additional instance fields added by this subclass of VM_GCMapIterator
   private int[]  jniRefs;
   private int jniNextRef;
@@ -109,6 +111,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     if ( jniNextRef > jniFramePtr ) {
       ref_address = VM_Magic.objectAsAddress(jniRefs).add(jniNextRef);
       jniNextRef = jniNextRef - 4;
+      if (verbose > 0) VM.sysWriteln("JNI iterator returning JNI ref: ", ref_address);
       return ref_address;
     }
 
@@ -116,6 +119,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     if ( !jniSavedProcessorRegAddr.isZero() ) {
       ref_address = jniSavedProcessorRegAddr;
       jniSavedProcessorRegAddr = VM_Address.zero();
+      if (verbose > 0) VM.sysWriteln("JNI iterator returning saved proc: ", ref_address);
       return ref_address;
     }
 
@@ -138,6 +142,7 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
       registerLocation -= 4;
     }
 
+    if (verbose > 1) VM.sysWriteln("JNI iterator returning 0");
     return VM_Address.zero();  // no more refs to report
   }
 
@@ -146,6 +151,9 @@ public final class VM_JNIGCMapIterator extends VM_GCMapIterator
     if ( !jniSavedReturnAddr.isZero() ) {
       ref_address = jniSavedReturnAddr;
       jniSavedReturnAddr = VM_Address.zero();
+      if (verbose > 0) {
+	VM.sysWriteln("JNI getNextReturnAddressAddress returning ", ref_address);
+      }
       return ref_address;
     }
 

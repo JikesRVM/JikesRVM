@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import java.util.Vector;
 
 /*
@@ -45,7 +46,7 @@ final class VM_MachineCode {
     if (VM.VerifyAssertions) VM._assert(instructions == null); // finish must only be called once
 
     int n = (next_bundle-1)*size+next;
-    instructions = VM_RuntimeStructures.newInstructions(n);
+    instructions = VM_Interface.newInstructions(n);
     int k = 0;
     for (int i=0; i<next_bundle; i++){
       INSTRUCTION[] b = (INSTRUCTION[]) bundles.elementAt(i);

@@ -1533,9 +1533,9 @@ public abstract class VM_BaselineCompiler {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
 	if (shouldPrint) asm.noteBytecode(biStart, "invokevirtual " + constantPoolIndex + " (" + methodRef + ")");
-	if (methodRef.getDeclaringClass().isAddressType()) {
-	  emit_Magic(methodRef);
-	  break;
+	if (methodRef.getDeclaringClass().isWordType()) {
+	  if (emit_Magic(methodRef))
+	    break;
 	} 
 	VM_Class methodRefClass = methodRef.getDeclaringClass();
 	if (methodRef.needsDynamicLink(method)) {
@@ -1569,9 +1569,9 @@ public abstract class VM_BaselineCompiler {
 	VM_Method methodRef = klass.getMethodRef(constantPoolIndex);
 	if (shouldPrint) asm.noteBytecode(biStart, "invokestatic " + constantPoolIndex + " (" + methodRef + ")");
 	if (methodRef.getDeclaringClass().isMagicType() ||
-	    methodRef.getDeclaringClass().isAddressType()) {
-	  emit_Magic(methodRef);
-	  break;
+	    methodRef.getDeclaringClass().isWordType()) {
+	  if (emit_Magic(methodRef))
+	    break;
 	}
 	VM_Class methodRefClass = methodRef.getDeclaringClass();
 	if (methodRef.needsDynamicLink(method)) {
@@ -1902,7 +1902,7 @@ public abstract class VM_BaselineCompiler {
    * Emit the code to implement the spcified magic.
    * @param magicMethod desired magic
    */
-  protected abstract void emit_Magic(VM_Method magicMethod);
+  protected abstract boolean emit_Magic(VM_Method magicMethod);
 
 
   /*

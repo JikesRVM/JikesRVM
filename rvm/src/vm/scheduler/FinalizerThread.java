@@ -4,7 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_Finalizer;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Finalizer;
 
 /**
  * Finalizer thread.
@@ -47,13 +48,7 @@ public class FinalizerThread extends VM_Thread
 	   VM_Scheduler.finalizerMutex);
 
           if (TRACE) 
-	   {
 	    VM_Scheduler.trace("FinalizerThread", "starting finalization");
-	    if (TRACE_DETAIL) {
-	      VM_Finalizer.dump_live();
-	      VM_Finalizer.dump_finalize();
-	    }
-	   }
 
   	 synchronized (marker) {
 	 Object o = VM_Finalizer.get();

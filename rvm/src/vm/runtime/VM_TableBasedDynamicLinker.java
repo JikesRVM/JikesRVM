@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
 /**
  * Dynamic linking via indirection tables. <p>
  *
@@ -40,8 +42,8 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
    * or class initializer hasn't been run. <p>
    * NOTE: these fields are private, but are accessed directly from compiled code!
    */ 
-  private static int[] methodOffsets = VM_RuntimeStructures.newContiguousIntArray(4096);
-  private static int[] fieldOffsets  = VM_RuntimeStructures.newContiguousIntArray(4096);
+  private static int[] methodOffsets = VM_Interface.newContiguousIntArray(4096);
+  private static int[] fieldOffsets  = VM_Interface.newContiguousIntArray(4096);
 
   /*
    * Methods invoked from compiled code to cause 
@@ -147,7 +149,7 @@ public class VM_TableBasedDynamicLinker implements VM_Constants {
   private static int[] growArray(int[] array, int newLength) {
     // assertion: no special array initialization needed (default 0 is ok)
     if (VM.VerifyAssertions) VM._assert(NEEDS_DYNAMIC_LINK == 0); 
-    int[] newarray = VM_RuntimeStructures.newContiguousIntArray(newLength);
+    int[] newarray = VM_Interface.newContiguousIntArray(newLength);
     System.arraycopy(array, 0, newarray, 0, array.length);
     VM_Magic.sync(); // be sure array initialization is visible before we publish the reference!
     return newarray;

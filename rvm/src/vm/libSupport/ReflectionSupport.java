@@ -5,6 +5,8 @@
 
 package com.ibm.JikesRVM.librarySupport;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
 import java.util.HashMap;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Atom;
@@ -357,7 +359,8 @@ public class ReflectionSupport {
       int      size = cls.getInstanceSize();
       Object[] tib  = cls.getTypeInformationBlock();
       boolean  hasFinalizer = cls.hasFinalizer();
-      Object   obj  = VM_Runtime.quickNewScalar(size, tib, hasFinalizer);
+      int allocator = VM_Interface.pickAllocator(cls);
+      Object   obj  = VM_Runtime.resolvedNewScalar(size, tib, hasFinalizer, allocator);
 
       // Run <init> on the instance.
       //
@@ -445,7 +448,8 @@ public class ReflectionSupport {
     }
 
     Object[] tib = arrayType.getTypeInformationBlock();
-    Object   obj = VM_Runtime.quickNewArray(size, arrayType.getInstanceSize(size), tib);
+    int allocator = VM_Interface.pickAllocator(arrayType);
+    Object   obj = VM_Runtime.resolvedNewArray(size, arrayType.getInstanceSize(size), tib, allocator);
     return obj;
   }
 
@@ -1387,7 +1391,8 @@ public class ReflectionSupport {
     int size     = iKlass.getInstanceSize();
     Object[] tib = iKlass.getTypeInformationBlock();
     boolean  hasFinalizer = iKlass.hasFinalizer();
-    Object obj   = VM_Runtime.quickNewScalar(size,tib,hasFinalizer);
+    int allocator = VM_Interface.pickAllocator(iKlass);
+    Object obj   = VM_Runtime.resolvedNewScalar(size,tib,hasFinalizer,allocator);
 
     // run the constructor 
     Constructor cons = constructorClass.getDeclaredConstructor(new Class[0]);

@@ -543,7 +543,7 @@ public final class VM_OptMethodSummary implements VM_BytecodeConstants {
           VM_Method meth = method.getDeclaringClass().getMethodRef(
               constantPoolIndex);
           if (meth.getDeclaringClass().isMagicType() ||
-	      meth.getDeclaringClass().isAddressType()) {
+	      meth.getDeclaringClass().isWordType()) {
             summary = setMagic(summary);
             summary = setInvoke(summary);
             calleeSize += MAGIC_COST;

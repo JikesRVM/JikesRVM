@@ -4,7 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_Handshake;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Handshake;
 
 /**
  * This thread executes in a distinct daemon thread: its

@@ -3,6 +3,7 @@
  */
 //$Id$
 
+
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
@@ -1505,13 +1506,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	    OPT_InlineReport.setCallType(OPT_InlineReport.INVOKE_VIRTUAL);
 	  }
 	  VM_Method meth = bcInfo.getMethodReference();
-	  if (meth.getDeclaringClass().isAddressType()) {
+	  if (meth.getDeclaringClass().isWordType()) {
 	    try {
-	      OPT_GenerateMagic.generateMagic(this, gc, meth);
-	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-		OPT_InlineReport.isMagic(meth);
+	      boolean generated = OPT_GenerateMagic.generateMagic(this, gc, meth);
+	      if (generated) {
+		if (gc.options.PRINT_DETAILED_INLINE_REPORT) 
+		  OPT_InlineReport.isMagic(meth);
+		break;
 	      }
-	      break;
 	    } catch (OPT_MagicNotImplementedException e) {
 	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
 		OPT_InlineReport.unimplementedMagic(Call.getMethod(s).method);
@@ -1629,13 +1631,14 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  }
 	  VM_Method meth = bcInfo.getMethodReference();
 	  if (meth.getDeclaringClass().isMagicType() ||
-	      meth.getDeclaringClass().isAddressType()) {
+	      meth.getDeclaringClass().isWordType()) {
 	    try {
-	      OPT_GenerateMagic.generateMagic(this, gc, meth);
-	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
-		OPT_InlineReport.isMagic(meth);
+	      boolean generated = OPT_GenerateMagic.generateMagic(this, gc, meth);
+	      if (generated) {
+		if (gc.options.PRINT_DETAILED_INLINE_REPORT) 
+		  OPT_InlineReport.isMagic(meth);
+		break;
 	      }
-	      break;
 	    } catch (OPT_MagicNotImplementedException e) {
 	      if (gc.options.PRINT_DETAILED_INLINE_REPORT) {
 		OPT_InlineReport.unimplementedMagic(Call.getMethod(s).method);

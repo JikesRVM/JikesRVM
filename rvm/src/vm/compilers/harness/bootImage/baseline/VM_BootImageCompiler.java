@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
 /**
  * Use baseline compiler to build virtual machine boot image.

@@ -4,8 +4,9 @@
 //$Id$
 
 
-package com.ibm.JikesRVM.memoryManagers;
+package com.ibm.JikesRVM.memoryManagers.watson;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Constants;
@@ -93,7 +94,7 @@ public class VM_WriteBuffer implements VM_Constants,
   }
 
   static void setupProcessor(VM_Processor p) throws VM_PragmaInterruptible {
-    if (VM.VerifyAssertions) VM._assert(VM_Collector.NEEDS_WRITE_BARRIER == true);
+    if (VM.VerifyAssertions) VM._assert(VM_Interface.NEEDS_WRITE_BARRIER == true);
 
     // setupProcessor will be called twice for the PRIMORDIAL processor.
     // Once while building the bootImage (VM.runningVM=false) and again when
@@ -253,7 +254,7 @@ public class VM_WriteBuffer implements VM_Constants,
       else
 	end = lastSlotAddr.sub(4); // stop at last entry in buffer
       
-      if (trace) count += end.diff(start) >> 2;
+      if (trace) count += end.diff(start).toInt() >> 2;
       
       while ( start.LE(end) ) {
 	VM_Address wbref = VM_Magic.getMemoryAddress( start );

@@ -4,7 +4,7 @@
 //$Id$
 
 
-package com.ibm.JikesRVM.memoryManagers;
+package com.ibm.JikesRVM.memoryManagers.watson;
 
 /**
  * Define the constants manipulated by VM_CommonAllocatorHeader. <p>

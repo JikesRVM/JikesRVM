@@ -16,7 +16,7 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 
-import com.ibm.JikesRVM.memoryManagers.VM_Heap;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.*;
 
 /**
@@ -31,6 +31,7 @@ import com.ibm.JikesRVM.*;
  *    -trace                   talk while we work?
  *    -detailed                print detailed info on traversed objects
  *    -demographics            show summary of how boot space is used
+ *    -ia <addr>               address where boot image starts
  *    -o <filename>            place to put bootimage
  *    -m <filename>            place to put bootimage map
  *    -xclasspath <path>       OBSOLETE compatibility aid
@@ -151,7 +152,7 @@ public class BootImageWriter extends BootImageWriterMessages
   /**
    * The absolute address at which the bootImage is going to be loaded.
    */
-  private static int bootImageAddress = IMAGE_ADDRESS;
+  public static int bootImageAddress = 0;
 
   /**
    * Write words to bootimage in little endian format?
@@ -359,6 +360,12 @@ public class BootImageWriter extends BootImageWriterMessages
     if (bootImageRepositoriesAtExecutionTime == null)
       bootImageRepositoriesAtExecutionTime = bootImageRepositoriesAtBuildTime;
 
+    if (bootImageAddress == 0)
+      fail("please specify boot-image address with \"-ia <addr>\"");
+    if (bootImageAddress % 0xff000000 != 0)
+      fail("please specify a boot-image address that is a multiple of 0x01000000");
+    VM_Interface.checkBootImageAddress(bootImageAddress);
+
     //
     // Initialize the bootimage.
     // Do this earlier than we logically need to because we need to
@@ -424,15 +431,15 @@ public class BootImageWriter extends BootImageWriterMessages
 
     //
     // First object in image must be boot record (so boot loader will know
-    // where to find it).  We'll write out an uninitialized record to
-    // reserve the space, then go back and fill it in later.
+    // where to find it).  We'll write out an uninitialized record and not recurse 
+    // to reserve the space, then go back and fill it in later.
     //
     if (verbose >= 1) say("copying boot record");
     VM_BootRecord bootRecord = VM_BootRecord.the_boot_record;
     int bootRecordImageOffset = 0;
     try {
       // copy just the boot record
-      bootRecordImageOffset = copyToBootImage(bootRecord, false, -1, null); 
+      bootRecordImageOffset = copyToBootImage(bootRecord, true, -1, null); 
       if (bootRecordImageOffset == OBJECT_NOT_PRESENT)
         fail("can't copy boot record");
     } catch (IllegalAccessException e) {
@@ -446,7 +453,7 @@ public class BootImageWriter extends BootImageWriterMessages
     int[] jtoc = VM_Statics.getSlots();
     int jtocImageOffset = 0;
     try {
-      jtocImageOffset = copyToBootImage(jtoc, true, -1, null);
+      jtocImageOffset = copyToBootImage(jtoc, false, -1, null);
       if (jtocImageOffset == OBJECT_NOT_PRESENT)
         fail("can't copy jtoc");
     } catch (IllegalAccessException e) {
@@ -454,7 +461,7 @@ public class BootImageWriter extends BootImageWriterMessages
     }
 
     if ((jtocImageOffset + bootImageAddress) != bootRecord.tocRegister)
-      fail("mismatch in JTOC placement"+(jtocImageOffset + bootImageAddress)+","+bootRecord.tocRegister);
+      fail("mismatch in JTOC placement "+(jtocImageOffset + bootImageAddress)+" != "+bootRecord.tocRegister);
 
     //
     // Now, copy all objects reachable from jtoc, replacing each object id
@@ -479,7 +486,7 @@ public class BootImageWriter extends BootImageWriterMessages
 
         if (verbose >= 1) traceContext.push(jdkObject.getClass().getName(),
 					    getRvmStaticFieldName(i));
-        int imageOffset = copyToBootImage(jdkObject, true, -1, jtoc);
+        int imageOffset = copyToBootImage(jdkObject, false, -1, jtoc);
         if (imageOffset == OBJECT_NOT_PRESENT) {
           // object not part of bootimage: install null reference
           if (verbose >= 1) traceContext.traceObjectNotInBootImage();
@@ -517,18 +524,11 @@ public class BootImageWriter extends BootImageWriterMessages
     bootRecord.bootImageStart = VM_Address.fromInt(bootImageAddress);
     bootRecord.bootImageEnd   = VM_Address.fromInt(bootImageAddress + bootImage.getSize());
 
-    // Initialize pointer containing field of bootRecord now
-    //
-    bootRecord.heapRanges   = new int[2 * (1 + VM_Heap.MAX_HEAPS)];
-    // Indicate end of arary with sentinel value
-    bootRecord.heapRanges[bootRecord.heapRanges.length - 1] = -1;
-    bootRecord.heapRanges[bootRecord.heapRanges.length - 2] = -1;
-
     // Update field of boot record now by re-copying
     //
     if (verbose >= 1) say("re-copying boot record (and its TIB)");
     try {
-	int newBootRecordImageOffset = copyToBootImage(bootRecord, true, bootRecordImageOffset, null); 
+	int newBootRecordImageOffset = copyToBootImage(bootRecord, false, bootRecordImageOffset, null); 
 	if (newBootRecordImageOffset != bootRecordImageOffset) {
 	    VM.sysWriteln("bootRecordImageOffset = ", bootRecordImageOffset);
 	    VM.sysWriteln("newBootRecordImageOffset = ", newBootRecordImageOffset);
@@ -1069,14 +1069,18 @@ public class BootImageWriter extends BootImageWriterMessages
 		  value = addr.toInt();
 		  int low = VM_ObjectModel.maximumObjectRef(VM_Address.zero()).toInt();  // yes, max
 		  int high = 0x10000000;  // we shouldn't have that many objects
-		  if (value > low && value < high) {
+		  if (value > low && value < high && value != 32767) {
 		      say("Warning: Suspicious VM_Address value of ", String.valueOf(value),
 			  " written for static field ", rvmField.toString());
 		  }
 	      }
 	      VM_Statics.setSlotContents(rvmFieldSlot, value);
 	  }
-          else
+          else if (rvmFieldType.equals(VM_Type.WordType)) {
+	    VM_Word w = (VM_Word) jdkFieldAcc.get(null);
+	    VM_Statics.setSlotContents(rvmFieldSlot, w.toInt());
+	  }
+	  else
             fail("unexpected primitive field type: " + rvmFieldType);
         } 
 	else {
@@ -1096,20 +1100,21 @@ public class BootImageWriter extends BootImageWriterMessages
   private static int depth = -1;
   private static int jtocCount = -1;
   private static final String SPACES = "                                                                                                                                                                                                                                                                                                                                ";
-
   /**
    * Copy an object (and, recursively, any of its fields or elements that
    * are references) from host jdk address space into image.
    *
    * @param jdkObject object to be copied
-   * @param if copyTIB is false, TIB field is not recursively copied
-   * @param if overwriteAddress is not -1, then copy object to given address
+   * @param if allocOnly is true, the TIB and other reference fields are not recursively copied
+   * @param if overwriteOffset is > 0, then copy object to given address
    *
    * @return offset of copied object within image, in bytes
    *         (OBJECT_NOT_PRESENT --> object not copied:
    *            it's not part of bootimage)
    */
-  private static int copyToBootImage(Object jdkObject, boolean copyTIB, int overwriteOffset, Object parentObject)
+  private static int copyToBootImage(Object jdkObject, 
+				     boolean allocOnly, int overwriteOffset, 
+				     Object parentObject)
     throws IllegalAccessException
   {
     //
@@ -1235,7 +1240,7 @@ public class BootImageWriter extends BootImageWriterMessages
 		    value = addr.toInt();
 		    int low = VM_ObjectModel.maximumObjectRef(VM_Address.zero()).toInt();  // yes, max
 		    int high = 0x10000000;  // we shouldn't have that many objects
-		    if (value > low && value < high) {
+		    if (value > low && value < high && value != 32767) {
 			say("Warning: Suspicious VM_Address value of ", String.valueOf(value),
 			    " written for address array");
 		    }
@@ -1243,28 +1248,34 @@ public class BootImageWriter extends BootImageWriterMessages
 		bootImage.setFullWord(arrayImageOffset + (i << 2), value);
 	    }
 	}
-        else
+	else if (rvmElementType.equals(VM_Type.WordType)) {
+	  VM_Word values[] = (VM_Word[]) jdkObject;
+          for (int i = 0; i < arrayCount; i++)
+            bootImage.setFullWord(arrayImageOffset + (i << 2), values[i].toInt());
+	}
+	else
           fail("unexpected primitive array type: " + rvmArrayType);
       } else {
         // array element is reference type
         Object values[] = (Object []) jdkObject;
         Class jdkClass = jdkObject.getClass();
-        for (int i = 0; i < arrayCount; ++i) {
-          if (values[i] != null) {
-            if (verbose >= 1) traceContext.push(values[i].getClass().getName(),
-                                         jdkClass.getName(), i);
-            int imageOffset = copyToBootImage(values[i], copyTIB, -1, jdkObject);
-            if (imageOffset == OBJECT_NOT_PRESENT) {
-              // object not part of bootimage: install null reference
-
-              if (verbose >= 1) traceContext.traceObjectNotInBootImage();
-              bootImage.setNullAddressWord(arrayImageOffset + (i << 2));
-            } else
-              bootImage.setAddressWord(arrayImageOffset + (i << 2),
-                                       bootImageAddress + imageOffset);
-            if (verbose >= 1) traceContext.pop();
-          }
-        }
+        if (!allocOnly)
+	  for (int i = 0; i < arrayCount; ++i) {
+	    if (values[i] != null) {
+	      if (verbose >= 1) traceContext.push(values[i].getClass().getName(),
+						  jdkClass.getName(), i);
+	      int imageOffset = copyToBootImage(values[i], allocOnly, -1, jdkObject);
+	      if (imageOffset == OBJECT_NOT_PRESENT) {
+		// object not part of bootimage: install null reference
+		
+		if (verbose >= 1) traceContext.traceObjectNotInBootImage();
+		bootImage.setNullAddressWord(arrayImageOffset + (i << 2));
+	      } else
+		bootImage.setAddressWord(arrayImageOffset + (i << 2),
+					 bootImageAddress + imageOffset);
+	      if (verbose >= 1) traceContext.pop();
+	    }
+	  }
       }
     } else {
       VM_Class rvmScalarType = rvmType.asClass();
@@ -1364,7 +1375,7 @@ public class BootImageWriter extends BootImageWriterMessages
 		  value = addr.toInt();
 		  int low = VM_ObjectModel.maximumObjectRef(VM_Address.zero()).toInt();  // yes, max
 		  int high = 0x10000000;  // we shouldn't have that many objects
-		  if (value > low && value < high) {
+		  if (value > low && value < high && value != 32767) {
 		    String name = rvmField.toString();
 		    if (!name.equals("com.ibm.JikesRVM.VM_Processor.vpStatusAddress Lcom/ibm/JikesRVM/VM_Address;")) {
 		      say("Warning: Suspicious VM_Address value of ", String.valueOf(value),
@@ -1374,17 +1385,21 @@ public class BootImageWriter extends BootImageWriterMessages
 	      }
 	      bootImage.setFullWord(rvmFieldOffset, value);
           }
+          else if (rvmFieldType.equals(VM_Type.WordType)) {
+	    VM_Word w = (VM_Word) jdkFieldAcc.get(jdkObject);
+	    VM_Statics.setSlotContents(rvmFieldOffset, w.toInt());
+	  }
           else
             fail("unexpected primitive field type: " + rvmFieldType);
         } else {
           // field is reference type
           Object value = jdkFieldAcc.get(jdkObject);
-          Class jdkClass = jdkFieldAcc.getDeclaringClass();
-          if (value != null) {
+          if (!allocOnly && value != null) {
+	    Class jdkClass = jdkFieldAcc.getDeclaringClass();
             if (verbose >= 1) traceContext.push(value.getClass().getName(),
                                          jdkClass.getName(),
                                          jdkFieldAcc.getName());
-            int imageOffset = copyToBootImage(value, copyTIB, -1, jdkObject);
+            int imageOffset = copyToBootImage(value, allocOnly, -1, jdkObject);
             if (imageOffset == OBJECT_NOT_PRESENT) {
               // object not part of bootimage: install null reference
               if (verbose >= 1) traceContext.traceObjectNotInBootImage();
@@ -1402,10 +1417,10 @@ public class BootImageWriter extends BootImageWriterMessages
     // copy object's type information block into image, if it's not there
     // already
     //
-    if (copyTIB) {
+    if (!allocOnly) {
 
       if (verbose >= 1) traceContext.push("", jdkObject.getClass().getName(), "tib");
-      int tibImageOffset = copyToBootImage(rvmType.getTypeInformationBlock(), copyTIB, -1, jdkObject);
+      int tibImageOffset = copyToBootImage(rvmType.getTypeInformationBlock(), allocOnly, -1, jdkObject);
       if (verbose >= 1) traceContext.pop();
       if (tibImageOffset == OBJECT_NOT_ALLOCATED)
 	fail("can't copy tib for " + jdkObject);

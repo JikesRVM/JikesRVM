@@ -1,9 +1,10 @@
 /*
  * (C) Copyright IBM Corp 2001,2002
  */
-
 // $Id$
 package com.ibm.JikesRVM;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * Information required to start the virtual machine and communicate 
@@ -87,6 +88,26 @@ public class VM_BootRecord {
    */ 
   public static VM_BootRecord the_boot_record;
 
+  public VM_BootRecord() {
+    heapRanges = new int[2 * (1 + VM_Interface.getMaxHeaps())];
+    // Indicate end of array with sentinel value
+    heapRanges[heapRanges.length - 1] = -1;
+    heapRanges[heapRanges.length - 2] = -1;
+  }
+
+  public void showHeapRanges() {
+    for (int i=0; i<heapRanges.length / 2; i++) {
+      VM.sysWrite(i, "  ");
+      VM.sysWrite(heapRanges[2 * i], "  ");
+      VM.sysWriteln(heapRanges[2 * i + 1], "  ");
+    }
+  }
+
+  public void setHeapRange(int id, VM_Address start, VM_Address end) throws VM_PragmaUninterruptible {
+    if (VM.VerifyAssertions) VM._assert(id < heapRanges.length - 2); 
+    heapRanges[2 * id] = start.toInt();
+    heapRanges[2 * id + 1] = end.toInt();
+  }
   
   // The following fields are written when the virtual machine image
   // is generated (see BootImage.java), loaded (see RunBootImage.C),
@@ -112,7 +133,7 @@ public class VM_BootRecord {
 
   // int[] should be VM_Address[] but compiler erroneously emits barriers
   public int [] heapRanges;         // [start1, end1, ..., start_k, end_k, -1, -1]
-                             // C-style termination with sentinel values
+                                    // C-style termination with sentinel values
 
   public int verboseGC;             // GC verbosity level 
 
@@ -190,7 +211,7 @@ public class VM_BootRecord {
   /**
    * value to place in TOC register when issuing "sys" calls
    */
-  int sysTOC;           
+  public int sysTOC;           
   /**
    * dummy function to pair with sysTOC
    */

@@ -27,6 +27,8 @@ export RVM_FOR_LINUX=1
 #       See discussion in rvm-researchers archive and the userguide FAQ.
 export RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=1
 
+export BOOTIMAGE_LOAD_ADDRESS="0x43000000"
+
 ##########
 # PART II: Where to find tools and resources on this target
 ########## 

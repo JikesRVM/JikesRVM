@@ -4,9 +4,13 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_Allocator;
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-import com.ibm.JikesRVM.memoryManagers.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+//-#if RVM_WITH_JMTK
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
+//-#endif
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+import com.ibm.JikesRVM.memoryManagers.watson.VM_AllocatorHeader;
+//-#endif
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.opt.ir.*;
@@ -138,7 +142,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Process the TIB field during copyingGC
    */
   public static void gcProcessTIB(VM_Address ref) {
-    VM_Allocator.processPtrField(ref.add(TIB_OFFSET));
+    VM_Interface.processPtrField(ref.add(TIB_OFFSET));
   }
 
   /**
@@ -262,7 +266,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    */
   public static int getObjectHashCode(Object o) { 
     if (ADDRESS_BASED_HASHING) {
-      if (VM_Collector.MOVES_OBJECTS) {
+      if (VM_Interface.MOVES_OBJECTS) {
 	int hashState = VM_Magic.getIntAtOffset(o, STATUS_OFFSET) & HASH_STATE_MASK;
 	if (hashState == HASH_STATE_HASHED) {
 	  return VM_Magic.objectAsAddress(o).toInt() >>> 2;
@@ -480,7 +484,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     int ref = ptr + size + SCALAR_PADDING_BYTES;
     // (TIB set by BootImageWriter2)
 
-    if (VM_Collector.NEEDS_WRITE_BARRIER) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER) {
       // must set barrier bit for bootimage objects
       if (ADDRESS_BASED_HASHING) {
 	bootImage.setFullWord(ref + STATUS_OFFSET, VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
@@ -524,7 +528,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     int ref = ptr + ARRAY_HEADER_SIZE;
     // (TIB set by BootImageWriter2; array length set by VM_ObjectModel)
 
-    if (VM_Collector.NEEDS_WRITE_BARRIER) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER) {
       // must set barrier bit for bootimage objects
       if (ADDRESS_BASED_HASHING) {
 	bootImage.setFullWord(ref + STATUS_OFFSET, VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
@@ -592,4 +596,16 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
                 null, GuardedUnary.getClearGuard(s));
   }
   //-#endif
+
+  /*
+    static public void showConstants() {
+    VM.sysWriteln("NUM_AVAILABLE_BITS = ", NUM_AVAILABLE_BITS);
+    VM.sysWriteln("AVAILABLE_BITS_OFFSET = ", AVAILABLE_BITS_OFFSET);
+    VM.sysWriteln("NUM_THIN_LOCK_BITS = ", NUM_THIN_LOCK_BITS);
+    VM.sysWriteln("THIN_LOCK_SHIFT = ", THIN_LOCK_SHIFT);
+    VM.sysWriteln("VM_MiscHeader.REQUESTED_BITS = ", VM_MiscHeader.REQUESTED_BITS);
+    VM.sysWriteln("VM_AllocatorHeader.REQUESTED_BITS  = ", VM_AllocatorHeader.REQUESTED_BITS);
+  }
+  */
+
 }

@@ -1113,8 +1113,8 @@ outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
       } else {
         VM_Type meet = OPT_ClassLoaderProxy.findCommonSuperclass(result,t);
         if (meet == null) {
-          if (  (result.isIntLikeType() && (t.isReferenceType() || t.isAddressType())) 
-                || ((result.isReferenceType() || t.isAddressType()) && t.isIntLikeType()) ) {
+          if (  (result.isIntLikeType() && (t.isReferenceType() || t.isWordType())) 
+                || ((result.isReferenceType() || t.isWordType()) && t.isIntLikeType()) ) {
             meet = OPT_ClassLoaderProxy.IntType;
           }
         }

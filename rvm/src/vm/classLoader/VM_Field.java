@@ -6,8 +6,7 @@ package com.ibm.JikesRVM;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-import com.ibm.JikesRVM.memoryManagers.VM_WriteBarrier;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * A field of a java class.
@@ -294,8 +293,8 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
     }
 
     if (isStatic()) {
-      if (VM_Collector.NEEDS_WRITE_BARRIER) {
-	VM_WriteBarrier.resolvedPutStaticWriteBarrier(offset, ref);
+      if (VM_Interface.NEEDS_WRITE_BARRIER) {
+	VM_Interface.resolvedPutStaticWriteBarrier(offset, ref);
       }
       VM_Statics.setSlotContents(offset>>>2, ref);
     } else {
@@ -303,8 +302,8 @@ public final class VM_Field extends VM_Member implements VM_ClassLoaderConstants
 	throw new NullPointerException();
       if (!getDeclaringClass().getClassForType().isInstance(obj))
 	throw new IllegalArgumentException();
-      if (VM_Collector.NEEDS_WRITE_BARRIER) {
-	VM_WriteBarrier.resolvedPutfieldWriteBarrier(obj, offset, ref);
+      if (VM_Interface.NEEDS_WRITE_BARRIER) {
+	VM_Interface.resolvedPutfieldWriteBarrier(obj, offset, ref);
       }
       VM_Magic.setObjectAtOffset(obj, offset, ref);
     }

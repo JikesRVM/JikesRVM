@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.adaptive.VM_RuntimeMeasurements;
@@ -38,7 +38,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Create a thread with default stack.
    */ 
   public VM_Thread () {
-    this(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL>>2));
+    this(VM_Interface.newStack(STACK_SIZE_NORMAL>>2));
   }
 
   /**
@@ -55,7 +55,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     return jniEnv;
   }
 
-  public void initializeJNIEnv() {
+  public void initializeJNIEnv() throws VM_PragmaInterruptible {
       jniEnv = new VM_JNIEnvironment( threadSlot );
   }
 
@@ -232,9 +232,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       VM_Processor.getCurrentProcessor().needsSync = false;
       // make sure not get stale data
       VM_Magic.isync();
-      synchronized(VM_Scheduler.syncObj) {
-	VM_Scheduler.toSyncProcessors--;
-      }
+      VM_Synchronization.fetchAndDecrement(VM_Magic.getJTOC(), VM_Entrypoints.toSyncProcessorsField.getOffset(), 1);
     }
     //-#endif
 
@@ -469,12 +467,17 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Current thread has been placed onto some queue. Become another thread.
    */ 
   static void morph () {
-    //VM_Scheduler.trace("VM_Thread", "morph");
+    if (trace) VM_Scheduler.trace("VM_Thread", "morph");
     VM_Thread myThread = getCurrentThread();
 
-    if (VM.VerifyAssertions) 
-      VM._assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled());
-    if (VM.VerifyAssertions) VM._assert(myThread.beingDispatched == true);
+    if (VM.VerifyAssertions) {
+      if (!VM_Processor.getCurrentProcessor().threadSwitchingEnabled()) {
+	VM.sysWrite("no threadswitching on proc ", VM_Processor.getCurrentProcessor().id);
+	VM.sysWriteln(" with addr ", VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor()));
+      }
+      VM._assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled(), "thread switching not enabled");
+      VM._assert(myThread.beingDispatched == true, "morph: not beingDispatched");
+    }
 
     // become another thread
     //
@@ -566,7 +569,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    *         to give the thread. Then eliminate scheduleHighPriority().
    */ 
   public final void schedule () {
-    //VM_Scheduler.trace("VM_Thread", "schedule", getIndex());
+    if (trace) VM_Scheduler.trace("VM_Thread", "schedule", getIndex());
     VM_Processor.getCurrentProcessor().scheduleThread(this);
   }
 
@@ -578,7 +581,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * !!TODO: this method is a no-op, stop using it
    */ 
   public final void scheduleHighPriority () {
-    //VM_Scheduler.trace("VM_Thread", "scheduleHighPriority", getIndex());
+    if (trace) VM_Scheduler.trace("VM_Thread", "scheduleHighPriority", getIndex());
     VM_Processor.getCurrentProcessor().scheduleThread(this);
   }
 
@@ -634,7 +637,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   static void terminate () throws VM_PragmaInterruptible {
     boolean terminateSystem = false;
 
-    //VM_Scheduler.trace("VM_Thread", "terminate");
+    if (trace) VM_Scheduler.trace("VM_Thread", "terminate");
 
     VM_Thread myThread = getCurrentThread();
     // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
@@ -735,9 +738,9 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public static void resizeCurrentStack(int newSize, 
                                         VM_Registers exceptionRegisters) throws VM_PragmaInterruptible {
     if (traceAdjustments) VM.sysWrite("VM_Thread: resizeCurrentStack\n");
-    if (VM_Collector.gcInProgress())
+    if (VM_Interface.gcInProgress())
       VM.sysFail("system error: resizing stack while GC is in progress");
-    int[] newStack = VM_RuntimeStructures.newStack(newSize);
+    int[] newStack = VM_Interface.newStack(newSize);
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     transferExecutionToNewStack(newStack, exceptionRegisters);
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
@@ -778,7 +781,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length << 2);
 
     VM_Address myFP    = VM_Magic.getFramePointer();
-    int myDepth        = myTop.diff(myFP);
+    VM_Offset  myDepth = myTop.diff(myFP);
     VM_Address newFP   = newTop.sub(myDepth);
 
     // The frame pointer addresses the top of the frame on powerpc and 
@@ -964,17 +967,17 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       VM_Address myTop   = VM_Magic.objectAsAddress(myStack).add(myStack.length  << 2);
       VM_Address newTop  = VM_Magic.objectAsAddress(newStack).add(newStack.length << 2);
       VM_Address myFP    = VM_Magic.getFramePointer();
-      int myDepth        = myTop.diff(myFP);
-      VM_Address newFP          = newTop.sub(myDepth);
+      VM_Offset myDepth  = myTop.diff(myFP);
+      VM_Address newFP   = newTop.sub(myDepth);
 
       // before copying, make sure new stack isn't too small
       //
       if (VM.VerifyAssertions)
 	  VM._assert(newFP.GE(VM_Magic.objectAsAddress(newStack).add(STACK_SIZE_GUARD)));
 
-      VM_Memory.aligned32Copy(newFP, myFP, myDepth);
+      VM_Memory.aligned32Copy(newFP, myFP, myDepth.toInt());
 
-      return newFP.diff(myFP);
+      return newFP.diff(myFP).toInt();
     }
 
   /**
@@ -1033,7 +1036,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // create a normal (ie. non-primordial) thread
     //
-    //VM_Scheduler.trace("VM_Thread", "create");
+    if (trace) VM_Scheduler.trace("VM_Thread", "create");
       
     stackLimit = VM_Magic.objectAsAddress(stack).add(STACK_SIZE_GUARD);
 
@@ -1146,18 +1149,31 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * Dump this thread, for debugging.
    */
   public void dump() {
-    VM_Scheduler.writeString(" ");
+    dump(0);
+  }
+
+  public void dump(int verbosity) {
     VM_Scheduler.writeDecimal(getIndex());   // id
-    if (isDaemon)VM_Scheduler.writeString("-daemon");     // daemon thread?
-    if (isNativeIdleThread)
-      VM_Scheduler.writeString("-nativeidle");    // NativeIdle
-    else if (isIdleThread)
-      VM_Scheduler.writeString("-idle");       // idle thread?
-    if (isGCThread)    VM_Scheduler.writeString("-collector");  // gc thread?
+    if (isDaemon)              VM_Scheduler.writeString("-daemon");     // daemon thread?
+    if (isNativeIdleThread)    VM_Scheduler.writeString("-nativeidle");    // NativeIdle
+    if (isIdleThread)          VM_Scheduler.writeString("-idle");       // idle thread?
+    if (isGCThread)            VM_Scheduler.writeString("-collector");  // gc thread?
     if (isNativeDaemonThread)  VM_Scheduler.writeString("-nativeDaemon");  
     if (beingDispatched)       VM_Scheduler.writeString("-being_dispatched");
   }
 
+  public static void dumpAll(int verbosity) {
+    for (int i=0; i<VM_Scheduler.threads.length; i++) {
+      VM_Thread t = VM_Scheduler.threads[i];
+      if (t == null) continue;
+      VM.sysWrite("Thread ", i);
+      VM.sysWrite(":  ", VM_Magic.objectAsAddress(t));
+      VM.sysWrite("   ");
+      t.dump(verbosity);
+      VM.sysWriteln();
+    }
+  }
+  
 
   /**
    * Needed for support of suspend/resume     CRA:

@@ -3,8 +3,9 @@
  */
 //$Id$
 
+package com.ibm.JikesRVM.memoryManagers.watson;
 
-package com.ibm.JikesRVM.memoryManagers;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_ProcessorLock;
@@ -74,7 +75,7 @@ public final class VM_ImmortalHeap extends VM_Heap
    * @return the number of bytes available
    */
   public int freeMemory() throws VM_PragmaUninterruptible {
-    return end.diff(allocationCursor);
+    return end.diff(allocationCursor).toInt();
   }
 
 
@@ -163,7 +164,7 @@ public final class VM_ImmortalHeap extends VM_Heap
    */
   protected VM_Address allocateZeroedMemory (int size, int alignment, int offset) throws VM_PragmaUninterruptible {
     VM_Address region = allocateInternal(size, alignment, offset);
-    VM_Memory.zeroTemp(region, size);
+    VM_Memory.zero(region, size);
     return region;
   }
 
@@ -194,7 +195,7 @@ public final class VM_ImmortalHeap extends VM_Heap
    * For example, setting the GC state bits in the object header.
    */
   protected void postAllocationProcessing(Object newObj) throws VM_PragmaUninterruptible { 
-    if (VM_Collector.NEEDS_WRITE_BARRIER) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER) {
       VM_ObjectModel.initializeAvailableByte(newObj); 
       VM_AllocatorHeader.setBarrierBit(newObj);
     }    

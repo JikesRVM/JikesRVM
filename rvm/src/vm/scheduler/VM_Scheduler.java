@@ -4,9 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
-import com.ibm.JikesRVM.memoryManagers.VM_GCUtil;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 //-#endif
@@ -59,8 +59,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   public static VM_Processor[]       processors;        // list thereof (slot 0 always empty)
   public static boolean              allProcessorsInitialized; // have all completed initialization?
   public static boolean              terminated;        // VM is terminated, clean up and exit
-
   public static int nativeDPndx;
+  public static int timeSlice = 10;  // in milliseconds
 
   // Thread creation and deletion.
   //
@@ -144,6 +144,19 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     // allocate lock structures
     //
     VM_Lock.init();
+  }
+
+  static void processArg(String arg) throws VM_PragmaInterruptible {
+    if (arg.startsWith("timeslice=")) {
+      String tmp = arg.substring(10);
+      int slice = Integer.parseInt(tmp);
+      if (slice< 10 || slice > 999) VM.sysFail("Time slice outside range (10..999) " + slice);
+      timeSlice = slice;
+    }
+    else if (arg.startsWith("verbose=")) {
+      String tmp = arg.substring(8);
+      VM_Processor.trace = Integer.parseInt(tmp);
+    }
   }
 
   // Begin multi-threaded vm operation.
@@ -261,7 +274,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       // create VM_Thread for virtual cpu to execute
       //
-      VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL>>2)); 
+      VM_Thread target = new VM_StartupThread(VM_Interface.newStack(STACK_SIZE_NORMAL>>2)); 
 
       // create virtual cpu and wait for execution to enter target's code/stack.
       // this is done with gc disabled to ensure that garbage collector doesn't move
@@ -293,7 +306,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     if (VM.BuildWithNativeDaemonProcessor) {
 
-      VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL>>2));
+      VM_Thread target = new VM_StartupThread(VM_Interface.newStack(STACK_SIZE_NORMAL>>2));
 
       processors[nativeDPndx].activeThread = target;
       processors[nativeDPndx].activeThreadStackLimit = target.stackLimit;
@@ -330,8 +343,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     // Start interrupt driven timeslicer to improve threading fairness and responsiveness.
     //
-    if (!VM.BuildForDeterministicThreadSwitching)
-      VM.sysVirtualProcessorEnableTimeSlicing();
+    if (!VM.BuildForDeterministicThreadSwitching) 
+     VM.sysVirtualProcessorEnableTimeSlicing(timeSlice);
 
     // Start event logger.
     //
@@ -368,8 +381,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     finishBoot(applicationArguments);
   }
 
-    // NOTE: finishBoot is NOT uninterruptable
-  private static void finishBoot(String[] applicationArguments) {
+  private static void finishBoot(String[] applicationArguments) throws VM_PragmaInterruptible {
 
     VM_Thread.getCurrentThread().initializeJNIEnv();
 
@@ -504,7 +516,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     writeDecimal(VM_Processor.getCurrentProcessorId());
     writeString("[");
-    writeDecimal(VM_Thread.getCurrentThread().getIndex());
+    VM_Thread t = VM_Thread.getCurrentThread();
+    t.dump();
     writeString("] ");
     if (traceDetails) {
       writeString("(");
@@ -558,7 +571,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     lockOutput();
     writeDecimal(VM_Processor.getCurrentProcessorId());
     writeString("[");
-    writeDecimal(VM_Thread.getCurrentThread().getIndex());
+    //writeDecimal(VM_Thread.getCurrentThread().getIndex());
+    VM_Thread.getCurrentThread().dump();
     writeString("] ");
     if (traceDetails) {
       writeString("(");
@@ -637,7 +651,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
       // if code is outside of RVM heap, assume it to be native code,
       // skip to next frame
-      if ( !VM_GCUtil.addrInVM(ip) ) {
+      if ( !VM_Interface.addrInVM(ip) ) {
         writeString("   <native frame>\n");
         ip = VM_Magic.getReturnAddress(fp);
         fp = VM_Magic.getCallerFramePointer(fp);
@@ -651,7 +665,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
         // normal java frame(s)
         VM_CompiledMethod compiledMethod    = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
         VM_Method         method            = compiledMethod.getMethod();
-        int               instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
+        int               instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
         int               lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset>>>LG_INSTRUCTION_WIDTH);
 
         //-#if RVM_WITH_OPT_COMPILER

@@ -4,11 +4,17 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_GCConstants;
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-import com.ibm.JikesRVM.memoryManagers.VM_ContiguousHeap;
-import com.ibm.JikesRVM.memoryManagers.VM_SizeControl;
-import com.ibm.JikesRVM.memoryManagers.VM_SegregatedListHeap;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
+//-#if RVM_WITH_JMTK
+import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
+//-#endif
+
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+import com.ibm.JikesRVM.memoryManagers.watson.VM_ContiguousHeap;
+import com.ibm.JikesRVM.memoryManagers.watson.VM_SizeControl;
+import com.ibm.JikesRVM.memoryManagers.watson.VM_SegregatedListHeap;
+//-#endif
 
 /**
  * Multiplex execution of large number of VM_Threads on small 
@@ -17,7 +23,7 @@ import com.ibm.JikesRVM.memoryManagers.VM_SegregatedListHeap;
  * @author Bowen Alpern 
  * @author Derek Lieber
  */
-public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCConstants {
+public final class VM_Processor implements VM_Uninterruptible,  VM_Constants {
 
   // Processor modes
   //
@@ -25,6 +31,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
   static final int NATIVE   = 1;
   static final int NATIVEDAEMON   = 2;
 
+  public static int trace = 0;
   private static final boolean debug_native = false;
 
   /**
@@ -46,7 +53,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
   public static int            numberAttachedProcessors   = 0;
   public static VM_Processor[] attachedProcessors         = new VM_Processor[100];
 
-  private static final boolean trace = false; 
+
 
   /**
    * Create data object to be associated with an o/s kernel thread 
@@ -84,7 +91,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
       this.deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
     }
 
-    VM_Collector.setupProcessor(this);
+    VM_Interface.setupProcessor(this);
   }
 
   /**
@@ -101,7 +108,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
     ++threadSwitchingEnabledCount;
     if (VM.VerifyAssertions) 
       VM._assert(threadSwitchingEnabledCount <= 1);
-    if (VM.VerifyAssertions && VM_Collector.gcInProgress()) 
+    if (VM.VerifyAssertions && VM_Interface.gcInProgress()) 
       VM._assert(threadSwitchingEnabledCount <1 || getCurrentProcessorId()==0);
     if (threadSwitchingEnabled() && threadSwitchPending) { 
       // re-enable a deferred thread switch
@@ -136,6 +143,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
    * Note: This method is ONLY intended for use by VM_Thread.
    */ 
   void dispatch () {
+
     if (VM.VerifyAssertions) VM._assert(lockCount == 0);// no processor locks should be held across a thread switch
     if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logDispatchEvent();
 
@@ -149,11 +157,10 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
 
     previousThread = activeThread;
     activeThread   = newThread;
-    activeThreadStackLimit = newThread.stackLimit;
+
     //-#if RVM_FOR_IA32
     threadId       = newThread.getLockingId();
     //-#endif
-
     if (!previousThread.isDaemon && 
         idleProcessor != null && !readyQueue.isEmpty() 
         && getCurrentProcessor().processorMode != NATIVEDAEMON) { 
@@ -162,7 +169,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
       // don't schedule when switching away from a daemon thread...
       // kludge to avoid thrashing when VM is underloaded with real threads.
       VM_Thread t = readyQueue.dequeue();
-      if (trace) VM_Scheduler.trace("VM_Processor", "dispatch: offload ", t.getIndex());
+      if (trace > 0) VM_Scheduler.trace("VM_Processor", "dispatch: offload ", t.getIndex());
       scheduleThread(t);
     }
 
@@ -176,7 +183,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
       newThread.cpuStartTime = now;  // this thread has started running
     }
 
-    // (sets "previousThread.beingDispatched = false")
+    activeThreadStackLimit = newThread.stackLimit; // Delay this to last possible moment so we can sysWrite
     VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
   }
 
@@ -192,10 +199,10 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
       VM_Thread t = transferQueue.dequeue();
       transferMutex.unlock();
       if (t.isGCThread){
-        if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: collector thread", t.getIndex());
+        if (trace > 1) VM_Scheduler.trace("VM_Processor", "getRunnableThread: collector thread", t.getIndex());
         return t;
       } else if (t.beingDispatched && t != VM_Thread.getCurrentThread()) { // thread's stack in use by some OTHER dispatcher
-        if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: stack in use", t.getIndex());
+        if (trace > 1) VM_Scheduler.trace("VM_Processor", "getRunnableThread: stack in use", t.getIndex());
         transferMutex.lock();
         transferQueue.enqueue(t);
         transferMutex.unlock();
@@ -212,7 +219,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
           if (VM.VerifyAssertions) VM._assert (t.isNativeIdleThread);
         }
       } else {
-        if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transfer to readyQueue", t.getIndex());
+        if (trace > 1) VM_Scheduler.trace("VM_Processor", "getRunnableThread: transfer to readyQueue", t.getIndex());
         readyQueue.enqueue(t);
       }
     }
@@ -224,7 +231,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
       // thread switching in the call to select.
       if (ioQueue.isReady()) {
         VM_Thread t = ioQueue.dequeue();
-        if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue (early)", t.getIndex());
+        if (trace > 1) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue (early)", t.getIndex());
         if (VM.VerifyAssertions) VM._assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
         return t;
       }
@@ -250,21 +257,21 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
 
     if (!readyQueue.isEmpty()) {
       VM_Thread t = readyQueue.dequeue();
-      if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: readyQueue", t.getIndex());
+      if (trace > 1) VM_Scheduler.trace("VM_Processor", "getRunnableThread: readyQueue", t.getIndex());
       if (VM.VerifyAssertions) VM._assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
       return t;
     }
 
     if (ioQueue.isReady()) {
       VM_Thread t = ioQueue.dequeue();
-      if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue", t.getIndex());
+      if (trace > 1) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue", t.getIndex());
       if (VM.VerifyAssertions) VM._assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
       return t;
     }
 
     if (!idleQueue.isEmpty()) {
       VM_Thread t = idleQueue.dequeue();
-      if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: idleQueue", t.getIndex());
+      if (trace > 1) VM_Scheduler.trace("VM_Processor", "getRunnableThread: idleQueue", t.getIndex());
       if (VM.VerifyAssertions) VM._assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
       return t;
     }
@@ -303,14 +310,16 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
   public void scheduleThread (VM_Thread t) {
     // if thread wants to stay on specified processor, put it there
     if (t.processorAffinity != null) {
-      if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread", "outgoing to specific processor:", t.getIndex());
+      if (trace > 0) {
+	VM_Scheduler.trace("VM_Processor.scheduleThread", "outgoing to specific processor:", t.getIndex());
+      }
       t.processorAffinity.transferThread(t);
       return;
     }
 
     // if t is the last runnable thread on this processor, don't move it
     if (t == VM_Thread.getCurrentThread() && readyQueue.isEmpty() && transferQueue.isEmpty()) {
-      if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread",  "staying on same processor:", t.getIndex());
+      if (trace > 0) VM_Scheduler.trace("VM_Processor.scheduleThread",  "staying on same processor:", t.getIndex());
       getCurrentProcessor().transferThread(t);
       return;
     }
@@ -319,13 +328,13 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
     VM_Processor idle = idleProcessor;
     if (idle != null) {
       idleProcessor = null;
-      if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread", "outgoing to idle processor:", t.getIndex());
+      if (trace > 0) VM_Scheduler.trace("VM_Processor.scheduleThread", "outgoing to idle processor:", t.getIndex());
       idle.transferThread(t);
       return;
     }
 
     // otherwise distribute threads round robin
-    if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread",  "outgoing to round-robin processor:", t.getIndex());
+    if (trace > 0) VM_Scheduler.trace("VM_Processor.scheduleThread",  "outgoing to round-robin processor:", t.getIndex());
     chooseNextProcessor(t).transferThread(t);
 
   }
@@ -468,7 +477,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
 
     // create VM_Thread for virtual cpu to execute
     //
-    VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL>>2));
+    VM_Thread target = new VM_StartupThread(VM_Interface.newStack(STACK_SIZE_NORMAL>>2));
 
     // create virtual cpu and wait for execution to enter target's code/stack.
     // this is done with gc disabled to ensure that garbage 
@@ -644,6 +653,10 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
   int    arrayIndexTrapParam; 
   //-#endif
 
+  //-#if RVM_WITH_JMTK
+  final public Plan mmPlan = new Plan();
+  //-#endif
+
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
   // Chunk 1 -- see VM_Chunk.java
   // By convention, chunk1 is used for 'normal' allocation 
@@ -678,6 +691,15 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
   public VM_Address  modifiedOldObjectsTop;       // address of most recently filled slot
   public VM_Address  modifiedOldObjectsMax;       // address of last available slot in buffer
   //-#endif
+
+  // More GC fields
+  //
+  public int    large_live;		// count live objects during gc
+  public int    small_live;		// count live objects during gc
+  public long   totalBytesAllocated;	// used for instrumentation in allocators
+  public long   totalObjectsAllocated; // used for instrumentation in allocators
+  public long   synchronizedObjectsAllocated; // used for instrumentation in allocators
+
 
   /*
    * END FREQUENTLY ACCESSED INSTANCE FIELDS
@@ -776,51 +798,6 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
    */ 
   public VM_Processor next; 
 
-  //--------------------//
-  // Start of GC stuff. //
-  //--------------------//
-
-  //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
-  // misc. fields - probably should verify if still in use
-  //
-  public int    large_live;		// count live objects during gc
-  public int    small_live;		// count live objects during gc
-  public long   totalBytesAllocated;	// used for instrumentation in allocators
-  public long   totalObjectsAllocated; // used for instrumentation in allocators
-  public long   synchronizedObjectsAllocated; // used for instrumentation in allocators
-  //-#endif
-
-  //-#if RVM_WITH_GCTk
-  GCTk_Collector collector;
-  ADDRESS writeBuffer0;
-  ADDRESS writeBuffer1;
-
-  ADDRESS remset[];
-
-  // Allocation bump pointers (per processor)
-  ADDRESS allocBump0;
-  ADDRESS allocBump1;
-  ADDRESS allocBump2;
-  ADDRESS allocBump3;
-  ADDRESS allocBump4;
-  ADDRESS allocBump5;
-  ADDRESS allocBump6;
-  ADDRESS allocBump7;
-
-  // Per-allocator
-  ADDRESS allocSync0;
-  ADDRESS allocSync1;
-  ADDRESS allocSync2;
-  ADDRESS allocSync3;
-  ADDRESS allocSync4;
-  ADDRESS allocSync5;
-  ADDRESS allocSync6;
-  ADDRESS allocSync7;
-  //-#endif
-
-  //--------------------//
-  //  End of GC stuff.  //
-  //--------------------//
 
   // Type of Virtual Processor
   //
@@ -917,6 +894,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
     VM_Scheduler.writeString(" threadSwitchRequested: ");
     VM_Scheduler.writeDecimal(threadSwitchRequested); 
     VM_Scheduler.writeString("\n");
+    //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
     VM_Scheduler.writeString("Chunk1: "); 
     VM_Scheduler.writeHex(startChunk1.toInt()); VM_Scheduler.writeString(" < ");
     VM_Scheduler.writeHex(currentChunk1.toInt()); VM_Scheduler.writeString(" < ");
@@ -925,6 +903,7 @@ public final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM
     VM_Scheduler.writeHex(startChunk2.toInt()); VM_Scheduler.writeString(" < ");
     VM_Scheduler.writeHex(currentChunk2.toInt()); VM_Scheduler.writeString(" < ");
     VM_Scheduler.writeHex(endChunk2.toInt()); VM_Scheduler.writeString("\n");
+    //-#endif
   }
 
 

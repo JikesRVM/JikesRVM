@@ -251,10 +251,6 @@ HOST_SHLD_STR="\$$HOST_SHLD_STR1"
 integer GENERATE_MAP=1
 export GENERATE_MAP=1
 
-# Address at which the boot image will be linked and loaded
-#
-BOOTIMAGE_LOAD_ADDRESS="0x30000000"
-
 # Current version of RVM
 JIKESRVM_VERSION="Jikes Research VM for Java 2.1.1"
 
@@ -285,9 +281,11 @@ integer RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via OptTe
 # The following must be set if using any of the RVM memory managers
 #
 integer RVM_WITH_JIKESRVM_MEMORY_MANAGERS=0
+integer RVM_WITH_JMTK=0
 
 # Here are the choices for RVM memory managers
 #
+integer RVM_WITH_SEMISPACE=0
 integer RVM_WITH_COPYING_GC=0
 integer RVM_WITH_HYBRID_GC=0
 integer RVM_WITH_NONCOPYING_GC=0
@@ -297,23 +295,6 @@ integer RVM_WITH_NO_GC=0
 
 integer RVM_WITH_BOOT_HEAP_ONLY=0
 
-#
-# GCTk Options
-#
-integer RVM_WITH_GCTk=0
-integer RVM_WITH_GCTk_COPY=0
-integer RVM_WITH_GCTk_BLOCK_INDIRECT=0
-integer RVM_WITH_GCTk_NULL=0
-integer RVM_WITH_GCTk_SEMISPACE=0
-integer RVM_WITH_GCTk_GEN=0
-integer RVM_WITH_GCTk_GEN_APPEL=0
-integer RVM_WITH_GCTk_DETAIL_STATS=0
-integer RVM_WITH_GCTk_PAUSE_STATS=0
-integer RVM_WITH_GCTk_WB_STATS=0
-integer RVM_WITH_GCTk_WRITEBARRIER=0
-integer RVM_WITH_GCTk_BOOTIMAGE_SCAN=0
-integer RVM_WITH_GCTk_ALLOC_ADVICE=0
-integer RVM_WITH_GCTk_GCTRACE=0
 
 # Use the GNU CLASSPATH library?
 #
@@ -423,15 +404,6 @@ elif (( RVM_WITH_ONE_WORD_INDEX_OBJECT_MODEL )); then
   OBJECT_MODEL_PATH_STR=objectModel/oneWordIndexTIB
 else
   OBJECT_MODEL_PATH_STR=objectModel/default
-fi
-
-
-
-if (( RVM_FOR_LINUX && RVM_FOR_POWERPC )); then
-   BOOTIMAGE_LOAD_ADDRESS="0x31000000"
-fi
-if (( RVM_FOR_LINUX && RVM_FOR_IA32 )); then
-   BOOTIMAGE_LOAD_ADDRESS="0x61000000"
 fi
 
 
@@ -658,55 +630,19 @@ function emitSourceList
    # Memory manager components.
    #
    #
-   # Start GCTk components
-   #
-   if (( $RVM_WITH_GCTk )); then
-      GCTk_ROOT=$RVM_ROOT/rvm/src/vm/memoryManagers/GCTk
-      if (( $RVM_WITH_GCTk_GEN )); then
-	GCTk_COL=Gen
-      elif (( $RVM_WITH_GCTk_SEMISPACE )); then
-	GCTk_COL=SemiSpace
-      else
-	GCTk_COL=Null
-      fi
-      if (( $RVM_WITH_GCTk_BLOCK_INDIRECT )); then
-        suff=BlockIndirect
-        GCTk_COL=$GCTk_COL$suff
-      fi
-
-      print $GCTk_ROOT
-      print $GCTk_ROOT/allocators
-      print $GCTk_ROOT/collectors
-      print $GCTk_ROOT/collectors/$GCTk_COL
-      print $GCTk_ROOT/util
-      print $GCTk_ROOT/vm
-
-      if (( $RVM_WITH_GCTk_EXPERIMENTAL )); then
-      print $GCTk_ROOT/experimental
-      print $GCTk_ROOT/experimental/allocators
-      print $GCTk_ROOT/experimental/collectors
-      print $GCTk_ROOT/experimental/collectors/$GCTk_COL
-      print $GCTk_ROOT/experimental/util
-      print $GCTk_ROOT/experimental/vm
-      fi
-   else 
-   #
-   # End GCTk components
-   #
 
    # common allocator and collector classes for RVM memory managers
    #
    if (( $RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/vmInterface
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/barriers
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/finalization
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/heaps
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/common/synchronization
-   fi
-
-   # collector specific classes
-   #
+      # collector specific classes
+      #
    if (( $RVM_WITH_COPYING_GC )); then
       if (( $RVM_WITH_GENERATIONAL_GC )); then
          print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/copyGen
@@ -737,6 +673,21 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/net
       print $RVM_ROOT/rvm/src/vm/OTILibrarySupport/java/io
    fi
+
+   if (( $RVM_WITH_JMTK )); then
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/header
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/policy
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility
+      # collector specific classes
+      #
+      if (( $RVM_WITH_SEMISPACE )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/semispace
+      fi
+   fi
+
 
    # Add the configuration specific directories
    #
@@ -1087,9 +1038,6 @@ function emitExpander
    if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
    print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/adaptive && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR IS_ADAPTIVE=$RVM_WITH_ADAPTIVE_SYSTEM)"
    fi
-   if (( RVM_WITH_GCTk )); then
-   print "(cd $ROOT_DIRECTORY_STR/rvm/src/vm/memoryManagers/GCTk && $GNU_MAKE_STR \$SILENT_MAKE MakeTemplates GEN_FILES_DIR=$GENERATED_FILES_DIRECTORY_STR SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
-   fi
    
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
    print '  print ""'
@@ -1296,11 +1244,16 @@ function emitCompiler
    fi
    
    ADDRESS_TYPE="int"
+   EXTENT_TYPE="int"
 
    print "if [[ -e $CLASSES_INVALID_STR ]]; then"
    print "   cd $CLASSES_DIRECTORY_STR"
    print "   rm -f $TOP_LEVEL_CLASSES"
-   print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
+   if (( BUILD_RVMRT_JAR )); then
+     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath . $TOP_LEVEL_SOURCES"
+   else 
+     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $TOP_LEVEL_SOURCES"
+   fi
    print '   print -n "(classes compiled) "'
    print ""
    print "   rm -f jksvm.jar"
@@ -1402,6 +1355,7 @@ function emitImageLinker
      print "   $FIND . -name '*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
    else
      print "   $FIND . -name 'VM*.class' -print > $PRIMORDIAL_CLASSES_STR.1"
+     print "   $FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
      print "   $FIND ./com/ibm/JikesRVM/librarySupport -name '*.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
      print "   $FIND . -path '*/JikesRVMSupport.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
    fi
@@ -1539,6 +1493,8 @@ function emitImageLinker
    print "   print 'Ljava/util/ResourceBundle\$Hash;'              >> $PRIMORDIAL_CLASSES_STR"
    fi
 
+   print "   print 'Lcom/ibm/JikesRVM/DebuggerThread;' >> $PRIMORDIAL_CLASSES_STR"
+
    # class loaders
    #
    print "   print 'Ljava/lang/ClassLoader;'   	                        >> $PRIMORDIAL_CLASSES_STR"
@@ -1674,15 +1630,18 @@ function emitImageLinker
    print "   print '[Lcom/ibm/JikesRVM/VM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[Lcom/ibm/JikesRVM/VM_Field;'                     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_Heap;'        >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_Method;'                     >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_LocalVariable;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_Triplet;'                    >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_Type;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_StackTrace;'                 >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_CollectorThread;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
    if (( RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
-     print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_SizeControl;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_Heap;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_SizeControl;'                >> $PRIMORDIAL_CLASSES_STR"
+   fi
+   if (( RVM_WITH_JMTK )); then
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/VMResource;'                      >> $PRIMORDIAL_CLASSES_STR"
    fi
    print "   print '[Ljava/lang/Object;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[Ljava/lang/Object;'             >> $PRIMORDIAL_CLASSES_STR"
@@ -1719,9 +1678,11 @@ function emitImageLinker
 
    print "   print '[Lcom/ibm/JikesRVM/VM_CommandLineArgs\$Prefix;' >> $PRIMORDIAL_CLASSES_STR" # for command line argument processing
 
+
    if (( RVM_WITH_NONCOPYING_GC || RVM_WITH_HYBRID_GC || RVM_WITH_REALTIME_GC )); then
       print "   print '[Lcom/ibm/JikesRVM/VM_ProcessorLock;' >> $PRIMORDIAL_CLASSES_STR"
-      print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
+      print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_BlockControl;'  >> $PRIMORDIAL_CLASSES_STR"
+      print "   print '[Lcom/ibm/JikesRVM/memoryManagers/watson/VM_SizeControl;'  >> $PRIMORDIAL_CLASSES_STR"
       print "   print '[[B'                 >> $PRIMORDIAL_CLASSES_STR"
    fi
 
@@ -1793,9 +1754,6 @@ function emitImageLinker
           print "   print 'Lcom/ibm/JikesRVM/opt/OPT_ContextFreeInlinePlan;'       >> $PRIMORDIAL_CLASSES_STR"
       fi
    fi
-  if (( RVM_WITH_GCTk )); then
-      print "   print '[LGCTk_CounterLong;'         >> $PRIMORDIAL_CLASSES_STR"
-  fi
 
    # For performance testing, a full opt base boot image should have all classes
    # that would be in FulLcom/ibm/JikesRVM/OPT, except for the OPT compiler-related ones.
@@ -1824,6 +1782,7 @@ function emitImageLinker
    fi
    
    ADDRESS_TYPE="int"
+   EXTENT_TYPE="int"
 
    BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$TRACE_FLAG"
 
@@ -2050,24 +2009,11 @@ function emitBooterLinker
    fi
    print ""
 
-   if (( RVM_WITH_BOOT_HEAP_ONLY || RVM_WITH_GCTk )); then
+   if (( RVM_WITH_BOOT_HEAP_ONLY )); then
       print 'BootHeapOnly="-DBootImageOnly"'
    else
       print 'BootHeapOnly='
    fi
-
-   if ((RVM_WITH_GCTk)); then
-      print 'GCTk="-DGCTk"'
-   else
-      print 'GCTk='
-   fi
-
-   if ((RVM_WITH_GCTk_GCTRACE)); then
-      print 'GCTkTrace="-DGCTkTrace"'
-   else
-      print 'GCTkTrace='
-   fi
-
 
    if (( RVM_FOR_POWERPC && ( RVM_FOR_AIX || RVM_FOR_LINUX ) )); then
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
@@ -2083,7 +2029,7 @@ function emitBooterLinker
 		$SCRATCH_DIRECTORY_STR/bootThread.s"
       print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
 		\$BOOTER_CC -c -I. -I$SCRATCH_DIRECTORY_STR\
-		\$GCTk \$GCTkTrace \$IMAGE \$BootHeapOnly -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
+		\$IMAGE \$BootHeapOnly -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
 		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C"
 
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
@@ -2165,6 +2111,7 @@ function emitToolCompiler
    fi
 
    ADDRESS_TYPE="int"
+   EXTENT_TYPE="int"
 
    print 'if [[ '$BUILD_DIRECTORY_STR' = "" ]]; then'
    print '   print "$ME: please set your' $BUILD_DIRECTORY_STR1 'environment variable (eg. $HOME/rvmBuild)"'
@@ -2187,9 +2134,9 @@ function emitToolCompiler
 
    print 'set -x'
    if (( BUILD_RVMRT_JAR )); then 
-     print "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
+     print "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
    else
-     print "$HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
+     print "$HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KEXTENT=$EXTENT_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
    fi
    }
 #

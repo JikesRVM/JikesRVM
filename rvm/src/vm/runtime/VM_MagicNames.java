@@ -59,8 +59,7 @@ public class VM_MagicNames {
   public static VM_Atom setCompiledMethodID;
   public static VM_Atom getNextInstructionAddress;
   public static VM_Atom setNextInstructionAddress;
-  public static VM_Atom getReturnAddress;
-  public static VM_Atom setReturnAddress;
+  public static VM_Atom getReturnAddressLocation;
 
   public static VM_Atom getByteAtOffset;
   public static VM_Atom getIntAtOffset;
@@ -131,23 +130,30 @@ public class VM_MagicNames {
 
   public static VM_Atom pragmaNoOptCompile;
 
-  // Names associated with class VM_Address
+  // Names associated with classes VM_Word, VM_Address, and VM_Offset
   //
-  public static VM_Atom addressFromInt;
-  public static VM_Atom addressToInt;
-  public static VM_Atom addressAdd;
-  public static VM_Atom addressSub;
-  public static VM_Atom addressDiff;
-  public static VM_Atom addressLT;
-  public static VM_Atom addressLE;
-  public static VM_Atom addressEQ;
-  public static VM_Atom addressNE;
-  public static VM_Atom addressGT;
-  public static VM_Atom addressGE;
-  public static VM_Atom addressZero;
-  public static VM_Atom addressMax;
-  public static VM_Atom addressIsZero;
-  public static VM_Atom addressIsMax;
+  public static VM_Atom wordFromInt;
+  public static VM_Atom wordToInt;
+  public static VM_Atom wordToWord;
+  public static VM_Atom wordToAddress;
+  public static VM_Atom wordAdd;
+  public static VM_Atom wordSub;
+  public static VM_Atom wordDiff;
+  public static VM_Atom wordLT;
+  public static VM_Atom wordLE;
+  public static VM_Atom wordEQ;
+  public static VM_Atom wordNE;
+  public static VM_Atom wordGT;
+  public static VM_Atom wordGE;
+  public static VM_Atom wordZero;
+  public static VM_Atom wordMax;
+  public static VM_Atom wordIsZero;
+  public static VM_Atom wordIsMax;
+  public static VM_Atom wordAnd;
+  public static VM_Atom wordOr;
+  public static VM_Atom wordNot;
+  public static VM_Atom wordXor;
+
 
    //----------------//
    // implementation //
@@ -196,8 +202,7 @@ public class VM_MagicNames {
     setCompiledMethodID           = VM_Atom.findOrCreateAsciiAtom("setCompiledMethodID");
     getNextInstructionAddress     = VM_Atom.findOrCreateAsciiAtom("getNextInstructionAddress");
     setNextInstructionAddress     = VM_Atom.findOrCreateAsciiAtom("setNextInstructionAddress");
-    getReturnAddress              = VM_Atom.findOrCreateAsciiAtom("getReturnAddress");
-    setReturnAddress              = VM_Atom.findOrCreateAsciiAtom("setReturnAddress");
+    getReturnAddressLocation      = VM_Atom.findOrCreateAsciiAtom("getReturnAddressLocation");
 
     getByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("getByteAtOffset");
     getIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("getIntAtOffset");
@@ -267,23 +272,29 @@ public class VM_MagicNames {
     clearFloatingPointState       = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
     //-#endif
 
-    pragmaNoOptCompile            = VM_Atom.findOrCreateAsciiAtom("pragmaNoOptCompile");
+    pragmaNoOptCompile         = VM_Atom.findOrCreateAsciiAtom("pragmaNoOptCompile");
 
-    addressFromInt                = VM_Atom.findOrCreateAsciiAtom("fromInt");
-    addressToInt                  = VM_Atom.findOrCreateAsciiAtom("toInt");
-    addressAdd                    = VM_Atom.findOrCreateAsciiAtom("add");
-    addressSub                    = VM_Atom.findOrCreateAsciiAtom("sub");
-    addressDiff                   = VM_Atom.findOrCreateAsciiAtom("diff");
-    addressLT                     = VM_Atom.findOrCreateAsciiAtom("LT");
-    addressLE                     = VM_Atom.findOrCreateAsciiAtom("LE");
-    addressEQ                     = VM_Atom.findOrCreateAsciiAtom("EQ");
-    addressNE                     = VM_Atom.findOrCreateAsciiAtom("NE");
-    addressGT                     = VM_Atom.findOrCreateAsciiAtom("GT");
-    addressGE                     = VM_Atom.findOrCreateAsciiAtom("GE");
-    addressZero                   = VM_Atom.findOrCreateAsciiAtom("zero");
-    addressMax                    = VM_Atom.findOrCreateAsciiAtom("max");
-    addressIsZero                 = VM_Atom.findOrCreateAsciiAtom("isZero");
-    addressIsMax                  = VM_Atom.findOrCreateAsciiAtom("isMax");
+    wordFromInt                = VM_Atom.findOrCreateAsciiAtom("fromInt");
+    wordToInt                  = VM_Atom.findOrCreateAsciiAtom("toInt");
+    wordToWord                 = VM_Atom.findOrCreateAsciiAtom("toWord");
+    wordToAddress              = VM_Atom.findOrCreateAsciiAtom("toAddress");
+    wordAdd                    = VM_Atom.findOrCreateAsciiAtom("add");
+    wordSub                    = VM_Atom.findOrCreateAsciiAtom("sub");
+    wordDiff                   = VM_Atom.findOrCreateAsciiAtom("diff");
+    wordLT                     = VM_Atom.findOrCreateAsciiAtom("LT");
+    wordLE                     = VM_Atom.findOrCreateAsciiAtom("LE");
+    wordEQ                     = VM_Atom.findOrCreateAsciiAtom("EQ");
+    wordNE                     = VM_Atom.findOrCreateAsciiAtom("NE");
+    wordGT                     = VM_Atom.findOrCreateAsciiAtom("GT");
+    wordGE                     = VM_Atom.findOrCreateAsciiAtom("GE");
+    wordZero                   = VM_Atom.findOrCreateAsciiAtom("zero");
+    wordMax                    = VM_Atom.findOrCreateAsciiAtom("max");
+    wordIsZero                 = VM_Atom.findOrCreateAsciiAtom("isZero");
+    wordIsMax                  = VM_Atom.findOrCreateAsciiAtom("isMax");
+    wordAnd                    = VM_Atom.findOrCreateAsciiAtom("and");
+    wordOr                     = VM_Atom.findOrCreateAsciiAtom("or");
+    wordNot                    = VM_Atom.findOrCreateAsciiAtom("not");
+    wordXor                    = VM_Atom.findOrCreateAsciiAtom("xor");
   }
 }
 

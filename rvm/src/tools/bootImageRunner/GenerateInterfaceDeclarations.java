@@ -106,10 +106,10 @@ class GenerateInterfaceDeclarations {
         continue;
       else if (field.getType().isIntType())
 	  System.out.print("   int " + field.getName() + ";\n");
-      else if (field.getType().isAddressType())
+      else if (field.getType().isWordType())
 	  System.out.print("   VM_Address " + field.getName() + ";\n");
       else if (field.getType().isArrayType() &&
-	       field.getType().asArray().getElementType().isAddressType())
+	       field.getType().asArray().getElementType().isWordType())
 	  System.out.print("   VM_Address * " + field.getName() + ";\n");
       else if (field.getName().toString().equals("heapRanges") &&
 	       field.getType().isArrayType() &&

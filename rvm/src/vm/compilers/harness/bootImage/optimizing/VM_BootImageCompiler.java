@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.opt.*;
-import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
 
 /**
  * Use optimizing compiler to build virtual machine boot image.
@@ -14,6 +14,7 @@ import com.ibm.JikesRVM.memoryManagers.VM_GCMapIterator;
  * @author Dave Grove
  * @author Derek Lieber
  */
+
 public class VM_BootImageCompiler {
 
   // Identity.

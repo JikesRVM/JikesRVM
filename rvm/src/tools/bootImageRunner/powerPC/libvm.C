@@ -24,8 +24,8 @@
 #include <strings.h> // bzero ()
 #include <assert.h>
 
-#ifdef __linux__
 #include <pthread.h>
+#ifdef __linux__
 #include <asm/cache.h>
 #include <ucontext.h>
 #include <signal.h>
@@ -141,17 +141,15 @@ static int inRVMAddressSpace(unsigned int addr) {
 
    /* get the boot record */
    VM_Address *heapRanges = theBootRecord->heapRanges;
-   int MaxHeaps = 10;  // update to match VM_Heap.MAX_HEAPS  XXXXX
+   int MaxHeaps = 20;  // update to match (VM_BootRecord.heapRange.length / 2)
 
-   for (int which = 0; ; which++) {
-       assert(which <= (MaxHeaps + 1));
-       VM_Address start = heapRanges[2 * which];
-       VM_Address end = heapRanges[2 * which + 1];
-       if (start == ~0 && end == ~0) break;
-       if (start <= addr  && addr  < end)
-	 return true;
+   for (int which = 0; which < MaxHeaps; which++) {
+     VM_Address start = heapRanges[2 * which];
+     VM_Address end = heapRanges[2 * which + 1];
+     if (start <= addr  && addr < end) {
+       return true;
+     }
    }
-	
    return false;
 }
 
@@ -396,8 +394,8 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
 #ifdef __linux__
       fprintf(SysTraceFile,"exception: type=%s\n", signum < NSIG ? sys_siglist[signum] : "?");
       fprintf(SysTraceFile,"            mem=0x%08x\n", siginfo->si_addr);
-      fprintf(SysTraceFile,"          instr=0x%08x\n", *(unsigned *)(save->nip));
       fprintf(SysTraceFile,"             ip=0x%08x\n", save->nip);
+      fprintf(SysTraceFile,"          instr=0x%08x\n", *(unsigned *)(save->nip));
       fprintf(SysTraceFile,"             lr=0x%08x\n", save->link);
       fprintf(SysTraceFile,"             fp=0x%08x\n", save->gpr[FP]);
       fprintf(SysTraceFile,"            tid=0x%08x\n", save->gpr[TID]);
@@ -406,7 +404,6 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
 #else
       fprintf(SysTraceFile,"exception: type=%s\n", signum < NSIG ? sys_siglist[signum] : "?");
       fprintf(SysTraceFile,"            mem=0x%08x\n", save->o_vaddr);
-      fprintf(SysTraceFile,"          instr=0x%08x\n", *(unsigned *)save->iar);
       fprintf(SysTraceFile,"             ip=0x%08x\n", save->iar);
       fprintf(SysTraceFile,"             lr=0x%08x\n", save->lr);
       fprintf(SysTraceFile,"             fp=0x%08x\n", save->gpr[FP]);
@@ -414,6 +411,8 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
       fprintf(SysTraceFile,"           jtoc=0x%08x\n", save->gpr[VM_Constants_JTOC_POINTER]);
       fprintf(SysTraceFile,"             pr=0x%08x\n", save->gpr[VM_Constants_PROCESSOR_REGISTER]);
       fprintf(SysTraceFile,"        handler=0x%08x\n", javaExceptionHandlerAddress);
+      fprintf(SysTraceFile,"   pthread_self=0x%08x\n", pthread_self());
+      fprintf(SysTraceFile,"          instr=0x%08x\n", *(unsigned *)save->iar);
 #endif
       if (isRecoverable)
          {

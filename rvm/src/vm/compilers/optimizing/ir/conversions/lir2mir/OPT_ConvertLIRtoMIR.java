@@ -386,7 +386,13 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 			   ".vcg", dgraph);
 	}
 	// II. Invoke BURS and rewrite block from LIR to MIR
-	burs.invoke(dgraph);
+	try { 
+	  burs.invoke(dgraph);
+	}
+	catch (OPT_OptimizingCompilerException e) {
+	  ir.printInstructions();
+	  throw e;
+	}
 	burs.finalizeBlock(bb);
       }
     }

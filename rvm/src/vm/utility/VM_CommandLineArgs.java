@@ -4,9 +4,6 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_GCWorkQueue;
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 //-#endif
@@ -15,6 +12,9 @@ import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.adaptive.VM_Controller;
 import com.ibm.JikesRVM.adaptive.VM_RuntimeCompiler;
 //-#endif
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
 
 /**
  * Command line option processing.
@@ -75,19 +75,22 @@ public class VM_CommandLineArgs {
   public static final int AOS_HELP_ARG         = 17;
   public static final int AOS_ARG              = 18;
   public static final int MEASURE_COMP_ARG     = 19;
-  public static final int GC_HELP_ARG          = 20;
-  public static final int GC_ARG               = 21;
-  public static final int GCTK_HELP_ARG        = 22;
-  public static final int GCTK_ARG             = 23;
-  public static final int AOS_BASE_ARG         = 24;
-  public static final int AOS_BASE_HELP_ARG    = 25;
-  public static final int BASE_HELP_ARG        = 26;
-  public static final int BASE_ARG             = 27;
-  public static final int OPT_ARG              = 28;
-  public static final int OPT_HELP_ARG         = 29;
-  public static final int MEASURE_CLOD_ARG     = 30;
-  public static final int PROF_ARG             = 31;
-  public static final int VERIFY_ARG           = 32;
+  public static final int MEASURE_CLOD_ARG     = 20;
+  public static final int AOS_BASE_ARG         = 21;
+  public static final int AOS_BASE_HELP_ARG    = 22;
+  public static final int BASE_HELP_ARG        = 23;
+  public static final int BASE_ARG             = 24;
+  public static final int OPT_ARG              = 25;
+  public static final int OPT_HELP_ARG         = 26;
+  public static final int PROF_ARG             = 27;
+  public static final int VERIFY_ARG           = 28;
+  public static final int SCHEDULER_ARG        = 29;
+  public static final int GC_HELP_ARG          = 30;
+  public static final int GC_ARG               = 31;
+  public static final int INITIAL_HEAP_ARG     = 32;
+  public static final int MAX_HEAP_ARG         = 33;
+  public static final int LARGE_HEAP_ARG       = 34;
+
   /**
    * A catch-all prefix to find application name.
    */
@@ -139,9 +142,10 @@ public class VM_CommandLineArgs {
     new Prefix("-X:gc:help$",           GC_HELP_ARG),
     new Prefix("-X:gc$",                GC_HELP_ARG),
     new Prefix("-X:gc:",                GC_ARG),
-    new Prefix("-X:gctk:help$",         GCTK_HELP_ARG),
-    new Prefix("-X:gctk$",              GCTK_HELP_ARG),
-    new Prefix("-X:gctk:",              GCTK_ARG),
+    new Prefix("-X:h=",                 INITIAL_HEAP_ARG),
+    new Prefix("-X:lh=",                LARGE_HEAP_ARG),
+    new Prefix("-X:ms=",                INITIAL_HEAP_ARG),
+    new Prefix("-X:mx=",                MAX_HEAP_ARG),
     new Prefix("-X:measureCompilation=",MEASURE_COMP_ARG),
     new Prefix("-X:base:help$",         BASE_HELP_ARG),
     new Prefix("-X:base$",              BASE_HELP_ARG),
@@ -152,6 +156,7 @@ public class VM_CommandLineArgs {
     new Prefix("-X:measureClassLoading=",MEASURE_CLOD_ARG),
     new Prefix("-X:prof:",              PROF_ARG),
     new Prefix("-X:verify=",            VERIFY_ARG),
+    new Prefix("-X:scheduler:",         SCHEDULER_ARG),
     app_prefix
   };
 
@@ -403,10 +408,9 @@ public class VM_CommandLineArgs {
 	  VM.sysWrite("vm: the value of "+p.value+arg+" must be a positive integer (number of entries), but found '"+arg+"'\n");
 	  VM.sysExit(1);
 	}
-	VM_GCWorkQueue.WORK_BUFFER_SIZE = workQueueBufferSize * 4;
+	VM_Interface.setWorkBufferSize(workQueueBufferSize);
 	VM.sysWrite("\nOverriding GC WORK_BUFFER_SIZE to ");
-	VM.sysWrite(VM_GCWorkQueue.WORK_BUFFER_SIZE,false);
-	VM.sysWrite("(bytes)\n\n");
+	VM.sysWriteln(workQueueBufferSize, " entries\n");
 	break;
       //-#endif
         // ----------------------------------------------------
@@ -570,33 +574,25 @@ public class VM_CommandLineArgs {
         // -------------------------------------------------------------------
       case GC_HELP_ARG:  // -X:gc passed 'help' as an option
 	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	VM_Collector.processCommandLineArg("help");
+	VM_Interface.processCommandLineArg("help");
 	break;
       case GC_ARG: // "-X:gc:arg" pass 'arg' as an option
-	VM_Collector.processCommandLineArg(arg);
+	VM_Interface.processCommandLineArg(arg);
 	break;
-
-
-        // -------------------------------------------------------------------
-        // Access GCTk optios
-        // -------------------------------------------------------------------
-      case GCTK_HELP_ARG:  // -X:gctk passed 'help' as an option
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	//-#if RVM_WITH_GCTk
-	GCTk_Collector.processCommandLineArg("help");
-	//-#else
-	VM.sysWrite("vm: non-GCTk configuration; ignoring command line argument 'help' with prefix '"+p.value+"'\n");
-	VM.sysExit(1);
+      case INITIAL_HEAP_ARG: 
+	//-#if RVM_WITH_JMTK
+	VM_Interface.processCommandLineArg("initial=" + arg);
 	//-#endif
 	break;
-      case GCTK_ARG: // "-X:gctk:arg" pass 'arg' as an option
-	//-#if RVM_WITH_GCTk
-	GCTk_Collector.processCommandLineArg(arg);
-	//-#else
-	VM.sysWrite("vm: non-GCTk configuration; command line argument '"+arg+"' has an illegal prefix '"+p.value+"'\n");
-	VM.sysExit(1);
+      case MAX_HEAP_ARG: 
+	//-#if RVM_WITH_JMTK
+	VM_Interface.processCommandLineArg("max=" + arg);
 	//-#endif
 	break;
+      case LARGE_HEAP_ARG: 
+	// VM_Interface.processCommandLineArg("los=" + arg);
+	break;
+
 
         // -------------------------------------------------------------------
         // Access runtime compiler to support compilation time measure.
@@ -722,6 +718,9 @@ public class VM_CommandLineArgs {
 	  VM.sysWrite("vm: -X:verify=<option>, where option is true or false\n");
 	  VM.sysExit(1);
 	}
+	break;
+      case SCHEDULER_ARG: // "-X:scheduler:<option>"
+	VM_Scheduler.processArg(arg);
 	break;
       }
     }

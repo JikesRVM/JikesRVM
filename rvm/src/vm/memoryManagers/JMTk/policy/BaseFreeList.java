@@ -1,0 +1,556 @@
+/*
+ * (C) Copyright Department of Computer Science,
+ * Australian National University. 2002
+ */
+
+package com.ibm.JikesRVM.memoryManagers.JMTk;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Offset;
+import com.ibm.JikesRVM.VM_Word;
+import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_PragmaInline;
+import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_Uninterruptible;
+
+/**
+ * This abstract class implements core functionality for a generic
+ * free list allocator.  Each instance of this class is intended to
+ * provide fast, unsynchronized access to a free list.  Therefore
+ * instances must not be shared across truely concurrent threads
+ * (CPUs).  Rather, one or more instances of this class should be
+ * bound to each CPU.  The shared VMResource used by each instance is
+ * the point of global synchronization, and synchronization only
+ * occurs at the granularity of aquiring (and releasing) chunks of
+ * memory from the VMResource.  Subclasses may require finer grained
+ * synchronization during a marking phase, for example.
+ *
+ * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
+ * @version $Revision$
+ * @date $Date$
+ */
+
+abstract class BaseFreeList implements Constants, VM_Uniterruptible {
+  public final static String Id = "$Id$"; 
+
+  
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Public methods
+  //
+
+ /**
+   * Constructor
+   *
+   * @param vmr The virtual memory resource from which this bump
+   * pointer will acquire virtual memory.
+   */
+  BaseFreeList(NewFreeListVMResource vmr, MemoryResource mr) {
+    vmResource = vmr;
+    memoryResource = mr;
+  }
+
+  /**
+   * Allocate space for a new object
+   *
+   * @param isScalar Is the object to be allocated a scalar (or array)?
+   * @param bytes The number of bytes allocated
+   * @return The address of the first byte of the allocated cell
+   */
+  public final VM_Address alloc(boolean isScalar, EXTENT bytes) 
+    throws VM_PragmaInline {
+    
+    int szClass = getSizeClass(isScalar, bytes);
+    boolean large = szClass == LARGE_SIZE_CLASS;
+    VM_Address cell;
+    if (large)
+      cell = allocLarge(isScalar, bytes);
+    else
+      cell = allocCell(sizeClass, isScalar);
+    postAlloc(cell, isScalar, bytes, large);
+    VM_Memory.zero(cell, bytes);
+    return cell;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Abstract methods
+  //
+  abstract protected void postAlloc(VM_Address cell, boolean isScalar,
+				    EXTENT bytes, boolean isLarge);
+  abstract protected void postFreeCell(VM_Address cell, int szClass);
+  abstract protected int pagesForClassSize(int sizeClass);
+  abstract protected int superPageHeaderSize();
+  abstract protected int cellSize(int sizeClass);
+  abstract protected int cellHeaderSize(int sizeClass);
+  abstract protected int postExpandSizeClass(VM_Address sp, int sizeClass);
+  abstract protected void initializeCell(VM_Address cell, VM_Address sp,
+					 boolean small);
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Protected and private methods
+  //
+  /**
+   * Free a cell.  If the cell is large (own superpage) then release
+   * the superpage, if not, and all cells on the superpage are free,
+   * then release the superpage. Otherwise add to free list.
+   *
+   * @param cell The address of the first byte of the cell to be freed
+   * @param sp The superpage containing the cell
+   * @param szClass The sizeclass of the cell.
+   */
+  protected final VM_Address free(VM_Address cell, VM_Address sp, int szClass)
+    throws VM_PragmaInline {
+    if (szClass == LARGE_SIZE_CLASS)
+      freeSuperPage(sp);
+    else if (decInUse(sp) > 0) {
+      setNextCell(cell, freeList[szClass]);
+      freeList[szClass] = cell;
+      postFreeCell(cell, sp, szClass);
+    } else {
+      releaseSuperPageCells(sp, szClass);
+      freeSuperPage(sp);
+    }
+  }
+
+  /**
+   * Allocate a cell. Cells are maintained on free lists (as opposed
+   * to large objects, which are directly allocated and freed in
+   * page-grain units via the vm resource).  This routine does not
+   * guarantee that the cell will be zeroed.  The caller must
+   * explicitly zero the cell.
+   *
+   * @param isScalar True if the object to occupy this cell will be a scalar
+   * @param sizeClass The size class of the cell.
+   * @return The address of the start of a newly allocted cell of
+   * size at least sufficient to accommodate <code>sizeClass</code>.
+   */
+  private final VM_Address allocCell(boolean isScalar, int sizeClass) 
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions) 
+      VM._assert(sizeClass != LARGE_SIZE_CLASS);
+    
+    // grab a freelist entry, expanding if necessary
+    if (freeList[szClass].isZero()) {
+      expandSizeClass(szClass);
+      if (VM.VerifyAssertions)
+	VM._assert(!(freeList[szClass].isZero()));
+    }
+    
+    // take off free list
+    VM_Address cell = freeList[szClass];
+    freeList[szClass] = getNextCell(cell);
+    incInUse(getSuperPage(cell, szClass <= MAX_SMALL_SIZE_CLASS));
+    return cell;
+  }
+
+  /**
+   * Allocate a large object.  Large objects are directly allocted and
+   * freed in page-grained units via the vm resource.  This routine
+   * does not guarantee that the space will have been zeroed.  The
+   * caller must explicitly zero the space.
+   *
+   * @param isScalar True if the object to occupy this space will be a scalar.
+   * @param bytes The required size of this space in bytes.
+   * @return The address of the start of the newly allocated region at
+   * least <code>bytes</code> bytes in size.
+   */
+  private final VM_Address allocLarge(boolean isScalar, EXTENT bytes) {
+    bytes += superPageHeaderSize() + cellHeaderSize(LARGE_SIZE_CLASS);
+    int pages = (bytes + PAGE_SIZE - 1)>>LOG_PAGE_SIZE;
+    VM_Address sp = allocSuperPage(pages);
+    setSizeClass(sp, LARGE_SIZE_CLASS);
+    return initializeCell(sp.add(superPageHeaderSize()), sp, false);
+  }
+  
+  /**
+   * Repopulate the freelist with cells of size class
+   * <code>sizeClass</code>.  This is done by allocating more global
+   * memory from the vm resource, breaking that memory up into cells
+   * and placing those cells on the free list.
+   *
+   * @param sizeClass The size class that needs to be repopulated.
+   */
+  private final void expandSizeClass(int sizeClass) {
+    // grab superpage
+    int pages = pagesForClassSize(sizeClass);
+    VM_Address sp = allocSuperPage(pages);
+    int spSize = pages<<LOG_PAGE_SIZE;
+    
+    // set up sizeclass info
+    setSizeClass(sp, sizeClass);
+    setInuse(sp, 0);
+
+    // bust up and add to free list
+    int cellExtent = cellSize(sizeClass);
+    VM_Address sentinal = sp.add(spSize);
+    VM_Address cursor = sp.add(superPageHeaderSize());
+    while (cursor.add(cellExtent).LE(sentinal)) {
+      cell = initializeCell(cursor, sp, (pages == 1));
+      setNextCell(cell, freeList[szClass]);
+      freelist[sizeClass] = cell;
+      cursor = cursor.add(cellExtent);
+    }
+				   
+    // do other sub-class specific stuff like setting up bitmaps
+    postExpandSizeClass(sp, sizeClass);
+  }
+
+  /**
+   * Remove all of the cells in a superpage from the free list.  This
+   * is necessary when all of the cells on a superpage are free (on
+   * the free list), and the superpage may be freed.  But the
+   * superpage must not be freed while any of its constituent cells
+   * remain on the free list.<p>
+   *
+   * The current implementation is BRUTE FORCE, searching the entire
+   * free list chain for cells in this superpage.  A smarter approach
+   * would be to have the free list cells doubly linked, and to just
+   * iterate through the cells on this superpage, unlinking them.
+   *
+   * @param sp The superpage whose free cells are to be taken off the
+   * free list.
+   * @param sizeClass The size class for the cells of that superpage.
+   */
+  private final void releaseSuperPageCells(VM_Address sp, int sizeClass) {
+    // unlink all cells from the free list...
+    // FIXME BRUTE FORCE 
+    VM_Adddress spEnd = sp.add(superPagesForClass(sizeClass)<<LOG_PAGE_SIZE);
+    VM_Address cell = freeList[sizeClass];
+    VM_Address last = VM_Address.zero();
+    while (cell.NE(VM_Address.zero())) {
+      VM_Address next = getNextCell(cell);
+      if (cell.GT(sp) && cell.LT(spEnd)) {
+	if (last.EQ(VM_Address.zero())) {
+	  freeList[sizeClass] = next;
+	} else
+	  setNextCell(last, next);
+      } else
+	last = cell;
+      cell = next;
+    }
+  }
+  
+  /**
+   * Allocate a super page and link it to the list of super pages
+   * owned by this freelist instance.
+   *
+   * @param pages The size of the superpage in pages.
+   * @return The address of the first word of the superpage.
+   */
+  private final VM_Address allocSuperPage(int pages) {
+    VM_Address sp = vmResource.acquire(pages, memoryResource);
+
+    // link superpage
+    setNextSuperPage(sp, headSuperPage);
+    setPrevSuperPage(sp, VM_Address.zero());
+    if (!headSuperPage.EQ(VM_Address.zero()))
+      setPrevSuperPage(headSuperPage, sp);
+    headSuperPage = sp;
+  }
+
+  /**
+   * Return a superpage to the global page pool by freeing it with the
+   * vm resource.  Before this is done the super page is unlinked from
+   * the linked list of super pages for this free list
+   * instance. Importantly, if the superpage contains free cells,
+   * those cells must be removed from the freelist before the superpage is
+   * freed.
+   *
+   * @param sp The superpage to be freed.
+   * @see releaseSuperPageCells
+   */
+  private final void freeSuperPage(VM_Address sp) {
+    // unlink superpage
+    VM_Address next = getNextSuperPage(sp);
+    VM_Address prev = getPrevSuperPage(sp);
+    if (prev.NE(VM_Address.zero()))
+      setNextSuperPage(prev, next);
+    else
+      headSuperPage = next;
+    if (next.NE(VM_Address.zero()))
+      setPrevSuperPage(next, prev);
+
+    // free it
+    vmResource.release(sp, memoryResource);
+  }
+
+  /**
+   * Get the size class for a given number of bytes.<p>
+   *
+   * We use size classes based on a worst case fragmentation loss
+   * target of 1/8.  In fact, across sizes from 8 bytes to 512 the
+   * average worst case loss is 13.3%, giving an expected loss
+   * (assuming uniform distribution) of about 7%.  We avoid using
+   * the Lea class sizes because they were so numerous and therefore
+   * liable to lead to excessive inter-class-size fragmentation.<p>
+   * 
+   * This routine may segregate arrays and scalars (currently it does
+   * not).
+   *
+   * @param isScalar True if the object to occupy the allocated space
+   * will be a scalar (i.e. not a array).
+   * @param bytes The number of bytes required to accommodate the
+   * object to be allocated.
+   * @return The size class capable of accomodating the allocation
+   * request.  If the request is sufficiently large then
+   * <code>LARGE_SIZE_CLASS</code> will be returned, indicating that
+   * the request will not be satisfied by the freelist, but must be
+   * dealt with explicitly as a large object.
+   */
+  private static final int getSizeClass(boolean isScalar, EXTENT bytes)
+    throws VM_PragmaInline {
+    int sz1 = bytes - 1;
+    int offset = 0;  // = isScalar ? BASE_SIZE_CLASSES : 0;
+    return ((sz1 <=   63) ? offset +      (sz1 >>  2): //    4 bytes apart
+	    (sz1 <=  127) ? offset + 8  + (sz1 >>  3): //    8 bytes apart
+	    (sz1 <=  255) ? offset + 16 + (sz1 >>  4): //   16 bytes apart
+	    (sz1 <=  511) ? offset + 24 + (sz1 >>  5): //   32 bytes apart
+	    (sz1 <= 2047) ? offset + 38 + (sz1 >>  8): //  256 bytes apart
+	    (sz1 <= 8192) ? offset + 44 + (sz1 >> 10): // 1024 bytes apart
+	    LARGE_SIZE_CLASS);           // large object, not on free list
+  }
+
+  /**
+   * Return the size of a basic cell (i.e. not including any cell
+   * header) for a given size class.
+   *
+   * @param sc The size class in question
+   * @return The size of a basic cell (i.e. not including any cell
+   * header).
+   */
+  protected static final int getBaseCellSize(int sc) 
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions) {
+      VM._assert(sizeClass != LARGE_SIZE_CLASS);
+      VM._assert(sizeClass < BASE_SIZE_CLASSES);
+    }
+    return ((sc < 16) ? (sc +  1) <<  2:
+	    (sc < 24) ? (sc -  7) <<  3:
+	    (sc < 32) ? (sc - 15) <<  4:
+	    (sc < 40) ? (sc - 23) <<  5:
+	    (sc < 46) ? (sc - 37) <<  8:
+	                (sc - 43) << 10);
+  }
+
+
+  /**
+   * Return the number of pages that should be used for a superpage of
+   * a given class size, given some fit target,
+   * <code>MID_SIZE_FIT_TARGET</code>.
+   *
+   * @param sizeClass The size class which will occupy the superpage
+   * @param cellSize The space occupied by each cell (inclusive of
+   * headers etc).
+   * @return The number of pages that should be used for a superpage
+   * for this size class given the fit criterion
+   * <code>MID_SIZE_FIT_TARGET</code>.
+   */
+  protected static final int optimizePagesForSuperPage(int sizeClass,
+						       int cellSize) 
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions) {
+      VM._assert(sizeClass > MAX_SMALL_SIZE_CLASS);
+      VM._assert(sizeClass < BASE_SIZE_CLASSES);
+    }
+
+    int size = superPageHeaderSize(sizeClass);
+    int pages = 1;
+    float fit = 0;
+    while (fit < MID_SIZE_FIT_TARGET) {
+      size += cellSize;
+      pages = (size + PAGE_SIZE - 1)>>LOG_PAGE_SIZE;
+      fit = (float) size/(float) (pages<<LOG_PAGE_SIZE);
+    }
+    return pages;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Private and protected methods relating to the structure of
+  // superpages.
+  //
+  // The following illustrates the structure of small, medium and
+  // large superpages.  Small superpages are a single page in size,
+  // therefore the start of the superpage can be trivially established
+  // by masking the low order bits of the cell address.  Medium and
+  // large superpages use the first word of each cell to point to the
+  // start of the superpage.  Large pages are a trivial case of medium
+  // page (where there is only one cell).
+  //
+  // key:      prev  previous superpage in linked list
+  //           next  next superpage in linked list
+  //           IU    "in-use" counter (low order bits)
+  //           SC    "size class"  (low order bits)
+  //           ssss  *optional* per-superblock sub-class-specific metadata
+  //           cccc  *optional* per-cell sub-class-specific metadata
+  //           uuuu  user-usable space
+  //
+  //
+  //          small              medium               large
+  //        +-------+           +-------+           +-------+
+  //        |prev|IU|        +->|prev|IU|        +->|prev|IU|
+  //        +-------+        |  +-------+        |  +-------+
+  //        |next|SC|        |  |next|SC|        |  |next|SC|
+  //        +-------+        |  +-------+        |  +-------+
+  //        |sssssss|        |  |sssssss|        |  |sssssss|
+  //           ...           |     ...           |     ... 
+  //        |sssssss|        |  |sssssss|        |  |sssssss|
+  //        +-------+        |  +-------+        |  +-------+
+  //        |ccccccc|        +--+---    |        +--+---    |
+  //        |uuuuuuu|        |  +-------+           +-------+
+  //        |uuuuuuu|        |  |ccccccc|           |ccccccc|
+  //        +-------+        |  |uuuuuuu|           |uuuuuuu|
+  //        |ccccccc|        |     ...              |uuuuuuu| 
+  //        |uuuuuuu|        |  |uuuuuuu|           |uuuuuuu|
+  //        |uuuuuuu|        |  +-------+           |uuuuuuu|
+  //        +-------+        +--+---    |              ...   
+  //        |ccccccc|           +-------+
+  //        |uuuuuuu|           |ccccccc|
+  //           ...              |uuuuuuu|
+  //                               ...
+
+  /**
+   * Return the superpage for a given cell.  If the cell is a small
+   * cell then this is found by masking the cell address to find the
+   * containing page.  Otherwise the first word of the cell contains
+   * the address of the page.
+   *
+   * @param cell The address of the first word of the cell.
+   * @param small True if the cell is a small cell (single page superpage).
+   * @return The address of the first word of the superpage containing
+   * <code>cell</code>.
+   */
+  private static final VM_Address getSuperPage(VM_Address cell, boolean small)
+    throws VM_PragmaInline {
+    VM_Address rtn;
+    if (small)
+      rtn = cell.and(~PAGE_MASK);
+    else {
+      rtn = VM_Magic.getMemoryWord(cell);
+      if (VM.VerifyAssertions)
+	VM._assert(rtn.EQ(rtn.and(~PAGE_MASK)));
+    }
+    return rtn;
+  }
+
+  private static final void setPrevSuperPage(VM_Address sp, VM_Addres prev) 
+    throws VM_PragmaInline {
+    setSuperPageLink(sp, prev, true);
+  }
+  private static final void setNextSuperPage(VM_Address sp, VM_Addres next) 
+    throws VM_PragmaInline {
+    setSuperPageLink(sp, next, false);
+  }
+  /**
+   * Set the prev or next link fields of a superpage, taking care not
+   * to overwrite the low-order bits where the "in-use" and "size
+   * class" info are stored.
+   *
+   * @param sp The address of the first word of the super page
+   * @param link The address of the super page this link is to point to
+   * @param prev True if the "prev" field is to be set, false if the
+   * "next" field is to be set.
+   */
+  private static final void setSuperPageLink(VM_Address sp, VM_Address link, 
+					     boolean prev) 
+    throws VM_PragmaInline {
+
+    if (VM.VerifyAssertions) {
+      VM._assert(sp.asWord().EQ(sp.asWord().and(PAGE_MASK)));
+      VM._assert(link.asWord().EQ(link.and(PAGE_MASK)));
+    }
+    sp.add(prev ? PREV_SP_OFFSET : NEXT_SP_OFFSET);
+    VM_Word wd = VM_Magic.getMemoryWord(sp);
+    wd = wd.and(PAGE_MASK.not()).or(link.asWord());
+    VM_Magic.setMemoryWord(sp, wd);
+  }
+  private static final VM_Address getPrevSuperPage(VM_Address sp) 
+    throws VM_PragmaInline {
+    return getSuperPageLink(sp, true);
+  }
+  private static final VM_Address getNextSuperPage(VM_Address sp) 
+    throws VM_PragmaInline {
+    return getSuperPageLink(sp, false);
+  }
+  private static final VM_Address getSuperPageLink(VM_Address sp, boolean prev)
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions)
+      VM._assert(sp.asWord().EQ(sp.asWord().and(PAGE_MASK)));
+
+    sp.add(prev ? PREV_SP_OFFSET : NEXT_SP_OFFSET);
+    VM_Word wd = VM_Magic.getMemoryWord(sp);
+    return wd.and(PAGE_MASK);
+  }
+  private static final void setSizeClass(VM_Address sp, int sc)
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions)
+      VM._assert(sp.asWord().EQ(sp.asWord().and(PAGE_MASK)));
+    
+    sp.add(SIZE_CLASS_WORD_OFFSET);
+    VM_Word wd = VM_Magic.getMemoryWord(sp);
+    wd = wd.and(PAGE_MASK).or(sc);
+    VM_Magic.setMemoryWord(sp, wd);
+  }
+  private static final int getSizeClass(VM_Address sp)
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions)
+      VM._assert(sp.asWord().EQ(sp.asWord().and(PAGE_MASK)));
+    
+    sp.add(SIZE_CLASS_WORD_OFFSET);
+    VM_Word wd = VM_Magic.getMemoryWord(sp);
+    return wd.and(PAGE_MASK.not()).toInt();
+  }
+  private static final int getInUse(VM_Address sp)
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions)
+      VM._assert(sp.asWord().EQ(sp.asWord().and(PAGE_MASK)));
+
+    sp.add(IN_USE_WORD_OFFSET);
+    VM_Word wd = VM_Magic.getMemoryWord(sp).and(PAGE_MASK.not());
+    return wd.toInt();7
+  }
+  private static final int incInUse(VM_Address sp)
+    throws VM_PragmaInline {
+    return changeInUse(sp, 1);
+  }
+  private static final int decInUse(VM_Address sp)
+    throws VM_PragmaInline {
+    return changeInUse(sp, -1);
+  }
+  private static final int changeInUse(VM_Address sp, int delta)
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions)
+      VM._assert(sp.asWord().EQ(sp.and(PAGE_MASK)));
+
+    sp.add(IN_USE_WORD_OFFSET);
+    VM_Word wd = VM_Magic.getMemoryWord(sp).add(delta);
+    int value = wd.and(PAGE_MASK.not()).toInt();
+    if (VM.VerifyAssertions)
+      VM._assert(value < PAGE_SIZE);
+    VM_Magic.setMemoryWord(sp, wd);
+    return value;
+  }
+  
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Static final values (aka constants)
+  //
+  private static final int BASE_SIZE_CLASSES = 52;
+  protected static final int SIZE_CLASSES = BASE_SIZE_CLASSES;
+  protected static final int LARGE_SIZE_CLASS = 0;
+  protected static final int MAX_SMALL_SIZE_CLASS = 39;
+  private static final int PREV_SP_OFFSET = 0;
+  private static final int NEXT_SP_OFFSET = WORD_SIZE;
+  private static final int IN_USE_WORD_OFFSET = PREV_SP_OFFSET;
+  private static final int SIZE_CLASS_WORD_OFFSET = NEXT_SP_OFFSET;
+  protected static final int BASE_SP_HEADER_SIZE = 2 * WORD_SIZE;
+  private static final VM_Word PAGE_MASK = VM_Word.fromInt(~((1<<PAGE_SIZE) - 1));
+  private static final float MID_SIZE_FIT_TARGET = 0.8; // 20% wastage
+}

@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * As part of the expansion of HIR into LIR, this compile phase
@@ -65,41 +65,14 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	{ 
 	  OPT_TypeOperand Type = New.getClearType(inst);
 	  VM_Class cls = (VM_Class)Type.type;
-	  OPT_IntConstantOperand hasFinalizer;
-	  if (cls.hasFinalizer()) {
-	    hasFinalizer = new OPT_IntConstantOperand(1);      // true;
-	  } else {
-	    hasFinalizer = new OPT_IntConstantOperand(0);      // false
-	  }
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  // check if we are at a alloc advice site
-	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
-	    GCTk_AllocAdviceAttribute aadvice = GCTk_AllocAdviceAttribute.getAllocAdviceInfo(inst.position.getMethod(), inst.getBytecodeIndex());
-	    if (aadvice != null) {
-	      // change to alloc advice call
-	      int allocNum = aadvice.getAllocator();
-	      Call.mutate3(inst, CALL, New.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.allocAdviceQuickNewScalarMethod),
-			   new OPT_IntConstantOperand(cls.getInstanceSize()),
-			   OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type),
-			   new OPT_IntConstantOperand(allocNum));
-	      // FIXME: the above doesn't use the finalizer
-	    } else
-	  Call.mutate3(inst, CALL, New.getClearResult(inst), null, 
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewScalarMethod), 
+	  OPT_IntConstantOperand hasFinalizer = new OPT_IntConstantOperand(cls.hasFinalizer() ? 1 : 0);
+	  OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(VM_Interface.pickAllocator(cls));
+	  Call.mutate4(inst, CALL, New.getClearResult(inst), null, 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.resolvedNewScalarMethod), 
 		       new OPT_IntConstantOperand(cls.getInstanceSize()),
 		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type), 
-		       hasFinalizer);
-	  } else {
-	  //-#endif
-	  Call.mutate3(inst, CALL, New.getClearResult(inst), null, 
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewScalarMethod), 
-		       new OPT_IntConstantOperand(cls.getInstanceSize()),
-		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Type), 
-		       hasFinalizer);
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  }
-	  //-#endif
+		       hasFinalizer,
+		       allocator);
 	  if (ir.options.INLINE_NEW) {
 	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
 	    container.counter2++;
@@ -114,25 +87,8 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	{
 	  int typeRefId = New.getType(inst).type.getDictionaryId();
 	  Call.mutate1(inst, CALL, New.getClearResult(inst), null,
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.newScalarMethod), 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedNewScalarMethod), 
 		       new OPT_IntConstantOperand(typeRefId));
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
-	    // overwrite the call with alloc advice version
-	    GCTk_AllocAdviceAttribute aadvice = GCTk_AllocAdviceAttribute.getAllocAdviceInfo(inst.position.getMethod(), inst.getBytecodeIndex());
-	    if (debug_alloc_advice)
-	      GCTk_AllocAdviceAttribute.debugCall("ConvertoLowLevel", inst.position.getMethod(), inst.getBytecodeIndex(), aadvice);
-	    
-	    if (aadvice != null) {
-	      int allocNum = aadvice.getAllocator();
-	      // change to alloc advice call
-	      Call.mutate2(inst, CALL, New.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.allocAdviceNewScalarMethod),
-			   new OPT_IntConstantOperand(typeRefId), 
-			   new OPT_IntConstantOperand(allocNum));
-	    }
-	  }
-	  //-#endif
 	}
 	break;
 
@@ -157,32 +113,13 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  } else { 
 	    size = new OPT_IntConstantOperand(array.getInstanceSize(numberElements.asIntConstant().value));
 	  }
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
-	    // check if we are at a alloc advice site
-	    GCTk_AllocAdviceAttribute aadvice = GCTk_AllocAdviceAttribute.getAllocAdviceInfo(inst.position.getMethod(), inst.getBytecodeIndex());
-	    if (aadvice != null) {
-	      // change to alloc advice call
-	      int allocNum = aadvice.getAllocator();
-	      Call.mutate4(inst, CALL, NewArray.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.allocAdviceQuickNewArrayMethod),
-			   numberElements.copy(), size, 
-			   OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array),
-			   new OPT_IntConstantOperand(allocNum));
-	    } else
-	      Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewArrayMethod),
-			   numberElements.copy(), size, 
-			   OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array));
-	  } else {
-	  //-#endif
-	  Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null, 
-		       OPT_MethodOperand.STATIC(VM_Entrypoints.quickNewArrayMethod), 
-		       numberElements.copy(), size, 
-		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array));
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  }
-	  //-#endif
+	  OPT_IntConstantOperand allocator = new OPT_IntConstantOperand(VM_Interface.pickAllocator(array));
+	  Call.mutate4(inst, CALL, NewArray.getClearResult(inst), null, 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.resolvedNewArrayMethod), 
+		       numberElements.copy(), 
+		       size, 
+		       OPT_ConvertToLowLevelIR.getTIB(inst, ir, Array),
+		       allocator);
 	  if (ir.options.INLINE_NEW) {
 	    if (inst.getBasicBlock().getInfrequent()) container.counter1++;
 	    container.counter2++;
@@ -208,36 +145,10 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       case NEWOBJMULTIARRAY_opcode:
 	{
 	  int typeRefId = NewArray.getType(inst).type.getDictionaryId();
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  if (VM.writingBootImage || GCTk_AllocAdvice.isBooted()) {
-	    GCTk_AllocAdviceAttribute aadvice = GCTk_AllocAdviceAttribute.getAllocAdviceInfo(inst.position.getMethod(), inst.getBytecodeIndex());
-	    if (debug_alloc_advice)
-	      GCTk_AllocAdviceAttribute.debugCall("ConvertoLowLevel", 
-					inst.position.getMethod(),
-					inst.getBytecodeIndex(), aadvice);
-	    
-	    if (aadvice != null) {
-	      int allocNum = aadvice.getAllocator();
-	      // change to alloc advice call
-	      Call.mutate3(inst, CALL, NewArray.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.optAllocAdviceNewArrayArrayMethod), 
-			   NewArray.getClearSize(inst), 
-			   new OPT_IntConstantOperand(typeRefId), 
-			   new OPT_IntConstantOperand(allocNum));
-	    } else
-	      Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null,
-			   OPT_MethodOperand.STATIC(VM_Entrypoints.optNewArrayArrayMethod),
-			   NewArray.getClearSize(inst), 
-			   new OPT_IntConstantOperand(typeRefId));
-	  } else {
-	  //-#endif
 	  Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null,
 		       OPT_MethodOperand.STATIC(VM_Entrypoints.optNewArrayArrayMethod), 
 		       NewArray.getClearSize(inst),
 		       new OPT_IntConstantOperand(typeRefId));
-	  //-#if RVM_WITH_GCTk_ALLOC_ADVICE
-	  }
-	  //-#endif
 	}
 	break;
 	
@@ -380,7 +291,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	  if (VM_Configuration.BuildWithEagerRedirect) {
 	      // no modifications needed for eager version on stores
 	  }
-	  if (VM_Collector.NEEDS_WRITE_BARRIER) {
+	  if (VM_Interface.NEEDS_WRITE_BARRIER) {
 	      if (opcode == REF_ASTORE_opcode) {
 		  OPT_Instruction wb =
 		      Call.create3(CALL, null, null, 
@@ -498,7 +409,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	    if (VM_Configuration.BuildWithEagerRedirect) {
 		// No modification needed
 	    }
-	    if (VM_Collector.NEEDS_WRITE_BARRIER) {
+	    if (VM_Interface.NEEDS_WRITE_BARRIER) {
 		if (!field.getType().isPrimitiveType()) {
 		    boolean isResolved = (opcode == PUTFIELD_opcode);
 		    OPT_Instruction wb = 

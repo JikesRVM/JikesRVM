@@ -4,9 +4,12 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_BlockControl;
-import com.ibm.JikesRVM.memoryManagers.VM_SizeControl;
-import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
+
+//-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
+import com.ibm.JikesRVM.memoryManagers.watson.VM_BlockControl;
+import com.ibm.JikesRVM.memoryManagers.watson.VM_SizeControl;
+//-#endif
 
 /**
  * Magic methods for accessing raw machine memory, registers, and 
@@ -183,21 +186,28 @@ public class VM_Magic {
   }
 
   /**
-   * Get return address for a frame
+   * Get location containing return address for a frame
    * @param fp its frame pointer
    */
-  public static VM_Address getReturnAddress(VM_Address fp) {
+  public static VM_Address getReturnAddressLocation(VM_Address fp) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
 
   /**
-   * Set return address for a frame 
-   * @param fp its frame pointer 
-   * @param newAddr a new return address
+   * Get return address for a frame
+   * @param fp its frame pointer
    */
-  public static void setReturnAddress(VM_Address fp, VM_Address newAddr) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  public static VM_Address getReturnAddress(VM_Address fp) throws VM_PragmaUninterruptible {
+    return VM_Magic.getMemoryAddress(getReturnAddressLocation(fp));
+  }
+
+  /**
+   * Get return address for a frame
+   * @param fp its frame pointer
+   */
+  public static void setReturnAddress(VM_Address fp, VM_Address v) throws VM_PragmaUninterruptible {
+    VM_Magic.setMemoryAddress(getReturnAddressLocation(fp), v);
   }
 
   //---------------------------------------//

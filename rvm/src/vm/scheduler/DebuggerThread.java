@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Vector;
 
+
 /**
  * An interactive debugger that runs inside the virtual machine.
  * This thread is normally dormant and only scheduled for execution
@@ -32,7 +33,8 @@ class DebuggerThread extends VM_Thread {
     for (;;) {
       try {
 	VM.sysWrite("debug> ");
-	eval(readTokens());
+	String [] tokens = readTokens();
+	eval(tokens);
       } catch (Exception e) { 
 	VM.sysWrite("oops: " + e + "\n"); 
       }
@@ -45,10 +47,10 @@ class DebuggerThread extends VM_Thread {
   // Evaluate an expression.
   //
   private static void eval(String[] tokens) throws Exception {
+
     char command = tokens        == null ? EOF  // end of file
       : tokens.length == 0    ? ' '  // empty line
       : tokens[0].charAt(0);         // first letter of first token
-
     switch (command)      {
     case ' ': // repeat previous command once
       if (previousTokens != null)
@@ -237,7 +239,7 @@ class DebuggerThread extends VM_Thread {
      for (int i = 0; i < VM_Scheduler.locks.length; ++i) {
        VM_Lock l = VM_Scheduler.locks[i];
        if (l == null || !l.active) continue;
-       if (l.entering.contains(t)) return "waitingForLock";
+       if (l.entering.contains(t)) return ("waitingForLock" + i);
        if (l.waiting.contains(t))  return "waitingForNotification";
      }
 
@@ -262,8 +264,9 @@ class DebuggerThread extends VM_Thread {
   //
   private static String[] readTokens() {
     String line = new String();
+VM.sysWriteln("newed string in DebuggerThread.readTokens");
     int    bb = VM_FileSystem.readByte(STDIN);
-      
+
     if (bb < 0)
       return null;
     

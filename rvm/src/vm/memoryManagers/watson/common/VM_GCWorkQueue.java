@@ -3,7 +3,9 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers;
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
@@ -98,7 +100,7 @@ public class VM_GCWorkQueue {
   public static int WORK_BUFFER_SIZE = 4 * 1024;
 
   /** single instance of GCWorkQueue, allocated in the bootImage */
-  static VM_GCWorkQueue workQueue = new VM_GCWorkQueue();
+  public static VM_GCWorkQueue workQueue = new VM_GCWorkQueue();
   
   //-----------------------
   //instance variables
@@ -120,7 +122,7 @@ public class VM_GCWorkQueue {
    * Reset the shared work queue, setting the number of
    * participating gc threads.
    */
-  synchronized void initialSetup (int n) throws VM_PragmaLogicallyUninterruptible {
+  public synchronized void initialSetup (int n) throws VM_PragmaLogicallyUninterruptible {
     
     if(trace) VM.sysWrite(" GCWorkQueue.initialSetup entered\n");
     
@@ -601,8 +603,7 @@ public class VM_GCWorkQueue {
     ct.getBufferCount = 0;
   }
 
-  static void
-  resetWaitTimes ( VM_CollectorThread ct ) throws VM_PragmaUninterruptible {
+  public static void resetWaitTimes ( VM_CollectorThread ct ) throws VM_PragmaUninterruptible {
     ct.bufferWaitCount = 0;
     ct.bufferWaitTime = 0.0;
     ct.finishWaitTime = 0.0;

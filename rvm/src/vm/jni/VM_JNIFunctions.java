@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
 import java.io.UTFDataFormatException;
 import java.lang.reflect.*;
 
@@ -416,9 +418,11 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
           return 0;
         }
 
-        Object newObj = VM_Runtime.quickNewScalar(cls.getInstanceSize(), 
+	int allocator = VM_Interface.pickAllocator(cls);
+        Object newObj = VM_Runtime.resolvedNewScalar(cls.getInstanceSize(), 
                                                   cls.getTypeInformationBlock(),
-                                                  cls.hasFinalizer());
+                                                  cls.hasFinalizer(),
+						  allocator);
         if (newObj==null)
           return 0;
         else      

@@ -4,7 +4,7 @@
 //$Id$
 
 
-package com.ibm.JikesRVM.memoryManagers;
+package com.ibm.JikesRVM.memoryManagers.watson;
 
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
@@ -39,20 +39,20 @@ final class VM_SideMarkVector implements VM_Constants {
 		   VM_Address high) throws VM_PragmaUninterruptible {
     baseAddress = base;
     highAddress = high;
-    int bytes   = high.diff(base);
+    int bytes   = high.diff(base).toInt();
     int quanta  = bytes / ALIGNMENT;
     marks       = (int[])mh.allocateArray(VM_Array.arrayOfIntType, quanta / BITS_PER_INT + 1);
   }
 
   private int wordIndex (Object object) throws VM_PragmaUninterruptible {
-    int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress)) / ALIGNMENT) / BITS_PER_INT;
+    int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress).toInt()) / ALIGNMENT) / BITS_PER_INT;
     if (VM.VerifyAssertions) VM._assert(index >= 0 && index < marks.length);
     return index;
   }
 
 
   private int bitIndex (Object object, int wordIndex) throws VM_PragmaUninterruptible {
-    int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress)) / ALIGNMENT) % BITS_PER_INT;
+    int index = ((VM_Magic.objectAsAddress(object).diff(baseAddress).toInt()) / ALIGNMENT) % BITS_PER_INT;
     if (DEBUG) {
       VM.sysWrite(" {Length ", marks.length);
       VM.sysWrite(" base ", baseAddress);

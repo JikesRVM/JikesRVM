@@ -72,4 +72,10 @@ public class VM_Registers implements VM_Constants, VM_Uninterruptible {
     ip = VM_Magic.getReturnAddress(fp);
     gprs[FRAME_POINTER] = VM_Magic.getCallerFramePointer(fp).toInt();
   }
+
+  public final VM_Address getIPLocation() {
+    int ipOffset = VM_Entrypoints.registersIPField.getOffset();
+    return VM_Magic.objectAsAddress(this).add(ipOffset);
+  }
+
 }

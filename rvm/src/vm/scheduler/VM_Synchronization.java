@@ -19,6 +19,15 @@ package com.ibm.JikesRVM;
  */
 public class VM_Synchronization implements VM_Uninterruptible {
 
+  public static final boolean tryCompareAndSwap(Object base, int offset, int testValue, int newValue) throws VM_PragmaInline {
+    int oldValue;
+    do {
+      oldValue = VM_Magic.prepare(base, offset);
+      if (oldValue != testValue) return false;
+    } while (!VM_Magic.attempt(base, offset, oldValue, newValue));
+    return true;
+  }
+
   public static final boolean testAndSet(Object base, int offset, int newValue) throws VM_PragmaInline {
     int oldValue;
     do {

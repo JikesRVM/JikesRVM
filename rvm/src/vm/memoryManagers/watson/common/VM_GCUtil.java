@@ -3,7 +3,9 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers;
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_BootRecord;
@@ -51,7 +53,7 @@ public class VM_GCUtil
   private static final VM_ProcessorLock outOfMemoryLock = new VM_ProcessorLock();
   private static boolean outOfMemoryReported = false;
 
-  static void boot() throws VM_PragmaInterruptible {
+  public static void boot() throws VM_PragmaInterruptible {
     // get addresses of TIBs for VM_Array & VM_Class used for testing Type ptrs
     VM_Type t = VM_Array.getPrimitiveArrayType(10);
     tibForArrayType = VM_ObjectModel.getTIB(t);
@@ -92,13 +94,16 @@ public class VM_GCUtil
 
   // check if an address appears to point to an instance of VM_Type
   public static boolean validType(VM_Address typeAddress) throws VM_PragmaUninterruptible {
-    if (!refInVM(typeAddress))
+    if (!refInVM(typeAddress)) {
       return false;  // type address is outside of heap
+    }
 
     // check if types tib is one of three possible values
     Object[] typeTib = VM_ObjectModel.getTIB(typeAddress);
-    return ( (typeTib == tibForClassType) || (typeTib == tibForArrayType) ||
-	     (typeTib == tibForPrimitiveType));
+    boolean tibValid = ( (typeTib == tibForClassType) || (typeTib == tibForArrayType) ||
+			 (typeTib == tibForPrimitiveType));
+    if (!tibValid) VM.sysWriteln("tib is invalid: typeTIB = ", VM_Magic.objectAsAddress(typeTib));
+    return tibValid;
   }
 
   /**
@@ -136,7 +141,7 @@ public class VM_GCUtil
       VM_Heap.showAllHeaps();
       return false;
     }
-    if (VM_Collector.MOVES_OBJECTS) {
+    if (VM_Interface.MOVES_OBJECTS) {
       if (VM_AllocatorHeader.isForwarded(VM_Magic.addressAsObject(ref)) ||
 	  VM_AllocatorHeader.isBeingForwarded(VM_Magic.addressAsObject(ref))) {
 	return true; // TODO: actually follow forwarding pointer (need to bound recursion when things are broken!!)

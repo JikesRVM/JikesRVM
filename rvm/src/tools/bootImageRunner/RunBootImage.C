@@ -348,7 +348,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	fprintf(SysTraceFile, "%s: please specify small object heap size (in megabytes) using \"-X:h=<number>\"\n", me);
 	*fastExit = 1; break;
       }
-      continue;
+      // continue;
     }
     if (!strncmp(token, "-Xmx", 4)) {
       subtoken = token + 4;
@@ -357,7 +357,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	fprintf(SysTraceFile, "%s: please specify small object heap size (in megabytes) using \"-X:h=<number>\"\n", me);
 	*fastExit = 1; break;
       }
-      continue;
+      // continue;
     }
     if (!strncmp(token, "-X:lh=", 6)) {
       subtoken = token + 6;
@@ -366,7 +366,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	fprintf(SysTraceFile, "%s: please specify large object heap size (in megabytes) using \"-X:lh=<number>\"\n", me);
 	*fastExit = 1; break;
       }
-      continue;
+      // continue;
     }
     if (!strncmp(token, "-X:nh=", 6)) {
       subtoken = token + 6;
@@ -375,7 +375,7 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	fprintf(SysTraceFile, "%s: please specify nursery size (in megabytes) using \"-X:nh=<number>\"\n", me);
 	*fastExit = 1; break;
       }
-      continue;
+      // continue;
     }
     if (!strncmp(token, "-X:ph=", 6)) {
       subtoken = token + 6;
@@ -384,8 +384,9 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
 	fprintf(SysTraceFile, "%s: please specify permanent heap size (in megabytes) using \"-X:ph=<number>\"\n", me);
 	*fastExit = 1; break;
       }
-      continue;
-    }       
+      // continue;
+    } 
+      
     if (!strncmp(token, "-X:sysLogfile=",14)) {
       subtoken = token + 14;
       FILE* ftmp = fopen(subtoken, "a");

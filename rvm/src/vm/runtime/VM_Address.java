@@ -53,19 +53,29 @@ final public class VM_Address {
     return value;
   }
 
-  public VM_Address add (int byteSize) {
+  public VM_Address add (int v) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return new VM_Address(value + byteSize);
+    return new VM_Address(value + v);
   }
 
-  public VM_Address sub (int byteSize) {
+  public VM_Address add (VM_Offset offset) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return new VM_Address(value - byteSize);
+    return new VM_Address(value + offset.toInt());
   }
 
-  public int diff (VM_Address addr2) {
+  public VM_Address sub (VM_Offset offset) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return value - addr2.value;
+    return new VM_Address(value - offset.toInt());
+  }
+
+  public VM_Address sub (int v) {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return new VM_Address(value - v);
+  }
+
+  public VM_Offset diff (VM_Address addr2) {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return VM_Offset.fromInt(value - addr2.value);
   }
 
   public boolean isZero() {
@@ -109,6 +119,10 @@ final public class VM_Address {
   public boolean NE (VM_Address addr2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return !EQ(addr2);
+  }
+
+  public VM_Word toWord() {
+    return VM_Word.fromInt(value);
   }
 
 }

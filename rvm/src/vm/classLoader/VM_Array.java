@@ -4,8 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
-import com.ibm.JikesRVM.memoryManagers.VM_WriteBarrier;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * Description of a java "array" type. <p>
@@ -83,7 +82,7 @@ public final class VM_Array extends VM_Type
    * Total size, in bytes, of an instance of this array type (including object header).
    * @return size
    */
-  public final int getInstanceSize(int numelts) throws VM_PragmaUninterruptible {
+  public final int getInstanceSize(int numelts) throws VM_PragmaUninterruptible, VM_PragmaInline {
     return VM_ObjectModel.computeArrayHeaderSize(this) + (numelts << getLogElementSize());
   }
 
@@ -420,7 +419,7 @@ public final class VM_Array extends VM_Type
 	  
 	  if (len == 0) return;
 
-	  if (VM_Collector.NEEDS_WRITE_BARRIER) {
+	  if (VM_Interface.NEEDS_WRITE_BARRIER) {
 	    dstStart = dstPos;           
 	    dstEnd = dstPos + len - 1;
 	    VM.disableGC();     // prevent GC until writebarrier updated
@@ -446,9 +445,9 @@ public final class VM_Array extends VM_Type
 	    while (len-- != 0)
 	      dst[dstPos++] = src[srcPos++];
 	  }
-	  if (VM_Collector.NEEDS_WRITE_BARRIER) {
+	  if (VM_Interface.NEEDS_WRITE_BARRIER) {
 	    // generate write buffer entries for modified target array entries
-	    VM_WriteBarrier.arrayCopyWriteBarrier(dst, dstStart, dstEnd);
+	    VM_Interface.arrayCopyWriteBarrier(dst, dstStart, dstEnd);
 	    VM.enableGC();
 	  }
 	} else { 
@@ -460,9 +459,12 @@ public final class VM_Array extends VM_Type
 	      dst[dstPos++] = src[srcPos++];
 	  } else {
 	    VM_Array ary = VM_Magic.getObjectType(src).asArray();
+	    int allocator = VM_Interface.pickAllocator(ary);
 	    Object temp[] = 
-	      (Object[])VM_Runtime.quickNewArray(len, ary.getInstanceSize(len), 
-						 ary.getTypeInformationBlock());
+	      (Object[])VM_Runtime.resolvedNewArray(len, 
+						    ary.getInstanceSize(len), 
+						    ary.getTypeInformationBlock(),
+						    allocator);
 	    int cnt = len;
 	    int tempPos = 0;
 	    while (cnt-- != 0)
@@ -524,7 +526,7 @@ public final class VM_Array extends VM_Type
     // install partial type information block (type-slot but no method-slots) for use in type checking.
     // later, during instantiate(), we'll replace it with full type information block (including method-slots).
     //
-    Object[] tib = VM_RuntimeStructures.newTIB(1);
+    Object[] tib = VM_Interface.newTIB(1);
     tib[0] = this;
     VM_Statics.setSlotContents(tibSlot, tib);
   }
@@ -558,7 +560,7 @@ public final class VM_Array extends VM_Type
       javaLangObjectTIB = cls.getTypeInformationBlock();
     }
        
-    typeInformationBlock = VM_RuntimeStructures.newTIB(javaLangObjectTIB.length);
+    typeInformationBlock = VM_Interface.newTIB(javaLangObjectTIB.length);
     VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
     // Initialize dynamic type checking data structures
     typeInformationBlock[0] = this;

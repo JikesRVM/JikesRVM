@@ -4,7 +4,7 @@
 //$Id$
 
 
-package com.ibm.JikesRVM.memoryManagers;
+package com.ibm.JikesRVM.memoryManagers.watson;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Magic;
@@ -69,7 +69,7 @@ final class VM_Chunk implements VM_GCConstants {
       VM_Processor.getCurrentProcessor().currentChunk1 = newCurrent;
       // if the backing heap didn't zero the chunk when it gave it to
       // us, then we must zero it now.
-      if (!ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(oldCurrent, size);
+      if (!ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zero(oldCurrent, size);
       return oldCurrent;
     }
     return slowPath1(size);
@@ -191,7 +191,7 @@ final class VM_Chunk implements VM_GCConstants {
     for (int i=0; i<VM_Scheduler.numProcessors; i++) {
       VM_Processor st = VM_Scheduler.processors[i+1];
       if (st != null) {
-	sum += st.endChunk1.diff(st.currentChunk1);
+	sum += st.endChunk1.diff(st.currentChunk1).toInt();
       }
     }
     return sum;
@@ -224,7 +224,7 @@ final class VM_Chunk implements VM_GCConstants {
 	st.currentChunk1 = newCurrent;
 	// if the backing heap didn't zero the chunk when it gave it to
 	// us, then we must zero it now.
-	if (!ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(oldCurrent, size);
+	if (!ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zero(oldCurrent, size);
 	return oldCurrent;
       }
       VM_Address chunk = st.backingHeapChunk1.allocateRawMemory(CHUNK_SIZE);

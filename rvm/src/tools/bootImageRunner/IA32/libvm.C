@@ -294,7 +294,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
     {
       write (SysErrorFd, buf,
              sprintf (buf,
-                   "invalid frame address (not an address - high nibble %d)\n", fp_hn) );
+                   "invalid frame address %x (not an address - high nibble %d)\n", localFrameAddress, fp_hn) );
       exit (1);
     }
   }

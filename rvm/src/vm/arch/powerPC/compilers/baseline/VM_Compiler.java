@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_Collector;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * VM_Compiler is the baseline compiler class for powerPC architectures.
@@ -133,8 +133,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit the code to implement the spcified magic.
    * @param magicMethod desired magic
    */
-  protected final void emit_Magic(VM_Method magicMethod) {
-    VM_MagicCompiler.generateInlineCode(this, magicMethod);
+  protected final boolean emit_Magic(VM_Method magicMethod) {
+    return VM_MagicCompiler.generateInlineCode(this, magicMethod);
   }
 
 
@@ -485,7 +485,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitL   (T0,  8, SP);  //  T0 := arrayref
     asm.emitL   (T1,  0, SP);  //  T1 := value
     asm.emitCall(spSaveAreaOffset);   // checkstore(arrayref, value)
-    if (VM_Collector.NEEDS_WRITE_BARRIER) 
+    if (VM_Interface.NEEDS_WRITE_BARRIER) 
       VM_Barriers.compileArrayStoreBarrier(asm, spSaveAreaOffset);
     astoreSetup(-1);	// NOT (dfb): following 4 lines plus emitTLLE seem redundant and possibly bogus
     asm.emitL   (T1,  8, SP);                    // T1 is array ref
@@ -1827,7 +1827,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_putstatic(VM_Field fieldRef) {
-    if (VM_Collector.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
       VM_Barriers.compileUnresolvedPutstaticBarrier(asm, spSaveAreaOffset, fieldRef.getDictionaryId());
     }
     emitDynamicLinkingSequence(fieldRef);		      // leaves field offset in T2
@@ -1849,7 +1849,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_putstatic(VM_Field fieldRef) {
     int fieldOffset = fieldRef.getOffset();
-    if (VM_Collector.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
       VM_Barriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset);
     }
     if (fieldRef.getSize() == 4) { // field is one word
@@ -1905,7 +1905,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param fieldRef the referenced field
    */
   protected final void emit_unresolved_putfield(VM_Field fieldRef) {
-    if (VM_Collector.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
       VM_Barriers.compileUnresolvedPutfieldBarrier(asm, spSaveAreaOffset, fieldRef.getDictionaryId());
     }
     emitDynamicLinkingSequence(fieldRef);		      // leaves field offset in T2
@@ -1929,7 +1929,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_putfield(VM_Field fieldRef) {
     int fieldOffset = fieldRef.getOffset();
-    if (VM_Collector.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
+    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrier(asm, spSaveAreaOffset, fieldOffset);
     }
     if (fieldRef.getSize() == 4) { // field is one word
@@ -2206,11 +2206,13 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_resolved_new(VM_Class typeRef) {
     int instanceSize = typeRef.getInstanceSize();
     int tibOffset = typeRef.getTibOffset();
-    asm.emitLtoc(T0, VM_Entrypoints.quickNewScalarMethod.getOffset());
+    int whichAllocator = VM_Interface.pickAllocator(typeRef);
+    asm.emitLtoc(T0, VM_Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitMTLR(T0);
     asm.emitLVAL(T0, instanceSize);
     asm.emitLtoc(T1, tibOffset);
     asm.emitLVAL(T2, typeRef.hasFinalizer()?1:0);
+    asm.emitLVAL(T3, whichAllocator);
     asm.emitCall(spSaveAreaOffset);
     asm.emitSTU (T0, -4, SP);
   }
@@ -2220,7 +2222,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param the dictionaryId of the VM_Class to dynamically link & instantiate
    */
   protected final void emit_unresolved_new(int dictionaryId) {
-    asm.emitLtoc(T0, VM_Entrypoints.newScalarMethod.getOffset());
+    asm.emitLtoc(T0, VM_Entrypoints.unresolvedNewScalarMethod.getOffset());
     asm.emitMTLR(T0);
     asm.emitLVAL(T0, dictionaryId);
     asm.emitCall(spSaveAreaOffset);
@@ -2235,12 +2237,14 @@ public class VM_Compiler extends VM_BaselineCompiler
     int width      = array.getLogElementSize();
     int tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(array);
-    asm.emitLtoc (T0, VM_Entrypoints.quickNewArrayMethod.getOffset());
+    int whichAllocator = VM_Interface.pickAllocator(array);
+    asm.emitLtoc (T0, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitMTLR (T0);
     asm.emitL    (T0,  0, SP);                // T0 := number of elements
     asm.emitSLI  (T1, T0, width);             // T1 := number of bytes
     asm.emitCAL  (T1, headerSize, T1);        //    += header bytes
     asm.emitLtoc (T2, tibOffset);             // T2 := tib
+    asm.emitLVAL (T3, whichAllocator);
     asm.emitCall(spSaveAreaOffset);
     asm.emitST   (T0, 0, SP);
   }

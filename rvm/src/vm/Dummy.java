@@ -2,8 +2,12 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
+
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.VM_WriteBarrier;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+//-#if RVM_WITH_JMTK
+import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
+//-#endif 
 
 /**
  * Dummy class containing enough references to force java compiler
@@ -20,11 +24,19 @@ class Dummy {
   static VM_DynamicLinker           c;
   static VM_Runtime                 d;
   static VM_Reflection              e;
-  static VM_WriteBarrier            l;
+  static VM_Process                 f;
+//-#if RVM_WITH_JIKES_MEMORY_MANAGERS
+  static VM_WriteBarrier            g;
+//-#endif
+//-#if RVM_WITH_JMTK
+  static Plan                       h;
+//-#endif
+  static VM_Interface               l;
   static VM_JNIFunctions            m;
   static VM_JNIStartUp              n;
   static VM_RecompilationManager    o;
   static VM_MultianewarrayHelper    r;
   static VM_Address                 s;
   static VM_Math                    vmm;
+
 }

@@ -225,7 +225,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
    * Dump text description of what given thread is waiting for.
    * For debugging.
    */
-  void dumpWaitDescription(VM_Thread thread) {
+  void dumpWaitDescription(VM_Thread thread) throws VM_PragmaInterruptible {
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData.
     // Because this method may be called by other VM_Processors without
     // locking (and thus execute concurrently with other methods), do NOT

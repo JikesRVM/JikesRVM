@@ -41,10 +41,9 @@ class VM_MagicCompiler implements VM_BaselineConstants,
   // Generate inline code sequence for specified method.
   // Taken:    compiler we're generating code with
   //           method whose name indicates semantics of code to be generated
-  // Returned: nothing
+  // Returned: true if there was magic defined for the method
   //
-  static void
-  generateInlineCode(VM_Compiler compiler, VM_Method methodToBeCalled) {
+  static boolean  generateInlineCode(VM_Compiler compiler, VM_Method methodToBeCalled) {
     VM_Atom      methodName       = methodToBeCalled.getName();
     VM_Assembler asm              = compiler.asm;
     int          spSaveAreaOffset = compiler.spSaveAreaOffset;
@@ -154,17 +153,11 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitL  (T1,  0, SP); // value
       asm.emitST (T1,  STACKFRAME_NEXT_INSTRUCTION_OFFSET, T0); // *(address+SNIO) := value
       asm.emitCAL(SP,  8, SP); // pop address, pop value
-    } else if (methodName == VM_MagicNames.getReturnAddress) {
-      asm.emitL (T0, 0, SP);                                  // pop  frame pointer of callee frame
-      asm.emitL (T1, STACKFRAME_FRAME_POINTER_OFFSET, T0);    // load frame pointer of caller frame
-      asm.emitL (T2, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T1); // load frame pointer of caller frame
-      asm.emitST(T2, 0, SP);                                  // push frame pointer of caller frame
-    } else if (methodName == VM_MagicNames.setReturnAddress) {
-      asm.emitL  (T0, +4, SP); // fp
-      asm.emitL  (T0, STACKFRAME_FRAME_POINTER_OFFSET, T0);    // load frame pointer of caller frame
-      asm.emitL  (T1,  0, SP); // value
-      asm.emitST (T1,  STACKFRAME_NEXT_INSTRUCTION_OFFSET, T0); // *(address+SNIO) := value
-      asm.emitCAL(SP,  8, SP); // pop address, pop value
+    } else if (methodName == VM_MagicNames.getReturnAddressLocation) {
+      asm.emitL   (T0, 0, SP);                                  // pop  frame pointer of callee frame
+      asm.emitL   (T1, STACKFRAME_FRAME_POINTER_OFFSET, T0);    // load frame pointer of caller frame
+      asm.emitCAL (T2, STACKFRAME_NEXT_INSTRUCTION_OFFSET, T1); // get location containing ret addr
+      asm.emitST  (T2, 0, SP);                                  // push frame pointer of caller frame
     } else if (methodName == VM_MagicNames.getTocPointer ||
 	       methodName == VM_MagicNames.getJTOC) {
       asm.emitSTU(JTOC, -4, SP); // push JTOC
@@ -409,77 +402,98 @@ class VM_MagicCompiler implements VM_BaselineConstants,
       asm.emitICBI(0, T0);
     } else if (methodName == VM_MagicNames.pragmaNoOptCompile) {
       // meaningless;  for the optimizing compiler forces baseline compilation
-    } else if (methodName == VM_MagicNames.addressFromInt) {
+    } else if (methodName == VM_MagicNames.wordFromInt ||
+	       methodName == VM_MagicNames.wordToInt ||
+	       methodName == VM_MagicNames.wordToAddress ||
+	       methodName == VM_MagicNames.wordToWord) {
       // no-op
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.fromInt as no-op");
-    } else if (methodName == VM_MagicNames.addressToInt) {
-      // no-op
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.toInt as no-op");
-    } else if (methodName == VM_MagicNames.addressAdd) {
+    } else if (methodName == VM_MagicNames.wordAdd) {
       // same as an integer add
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.add as integer add");
+      if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.add as integer add");
       asm.emitL  (T0,  0, SP);
       asm.emitL  (T1,  4, SP);
       asm.emitA  (T2, T1, T0);
       asm.emitSTU(T2,  4, SP);
-    } else if (methodName == VM_MagicNames.addressSub ||
-	       methodName == VM_MagicNames.addressDiff) {
+    } else if (methodName == VM_MagicNames.wordSub ||
+	       methodName == VM_MagicNames.wordDiff) {
       // same as an integer subtraction
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.sub/diff as integer sub");
+      if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.sub/diff as integer sub");
       asm.emitL  (T0,  0, SP);
       asm.emitL  (T1,  4, SP);
       asm.emitSF (T2, T0, T1);
       asm.emitSTU(T2,  4, SP);
-    } else if (methodName == VM_MagicNames.addressLT) {
+    } else if (methodName == VM_MagicNames.wordLT) {
       // unsigned comparison generating a boolean
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.LT as unsigned comparison");
+      if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.LT as unsigned comparison");
       generateAddrComparison(asm, LT);
-    } else if (methodName == VM_MagicNames.addressLE) {
+    } else if (methodName == VM_MagicNames.wordLE) {
       // unsigned comparison generating a boolean
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.LE as unsigned comparison");
+      if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.LE as unsigned comparison");
       generateAddrComparison(asm, LE);
-    } else if (methodName == VM_MagicNames.addressEQ) {
+    } else if (methodName == VM_MagicNames.wordEQ) {
       // unsigned comparison generating a boolean
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.EQ as unsigned comparison");
+      if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.EQ as unsigned comparison");
       generateAddrComparison(asm, EQ);
-    } else if (methodName == VM_MagicNames.addressNE) {
+    } else if (methodName == VM_MagicNames.wordNE) {
       // unsigned comparison generating a boolean
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.NE as unsigned comparison");
+      if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.NE as unsigned comparison");
       generateAddrComparison(asm, NE);
-    } else if (methodName == VM_MagicNames.addressGT) {
+    } else if (methodName == VM_MagicNames.wordGT) {
       // unsigned comparison generating a boolean
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.GT as unsigned comparison");
+      if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.GT as unsigned comparison");
       generateAddrComparison(asm, GT);
-    } else if (methodName == VM_MagicNames.addressGE) {
+    } else if (methodName == VM_MagicNames.wordGE) {
       // unsigned comparison generating a boolean
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.GE as unsigned comparison");
+      if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.GE as unsigned comparison");
       generateAddrComparison(asm, GE);
-    } else if (methodName == VM_MagicNames.addressIsZero) {
+    } else if (methodName == VM_MagicNames.wordIsZero) {
       // unsigned comparison generating a boolean
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.isZero as unsigned comparison");
+      if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.isZero as unsigned comparison");
       asm.emitLIL (T0,  0);
       asm.emitSTU (T0, -4, SP);
       generateAddrComparison(asm, EQ);
-    } else if (methodName == VM_MagicNames.addressIsMax) {
+    } else if (methodName == VM_MagicNames.wordIsMax) {
       // unsigned comparison generating a boolean
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.isMax as unsigned comparison");
+      if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.isMax as unsigned comparison");
       asm.emitLIL (T0, -1);
       asm.emitSTU (T0, -4, SP);
       generateAddrComparison(asm, EQ);
-    } else if (methodName == VM_MagicNames.addressZero) {
+    } else if (methodName == VM_MagicNames.wordZero) {
       // unsigned comparison generating a boolean
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.zero as 0");
+      if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.zero as 0");
       asm.emitLIL (T0,  0);
       asm.emitSTU (T0, -4, SP);
-    } else if (methodName == VM_MagicNames.addressMax) {
+    } else if (methodName == VM_MagicNames.wordMax) {
       // unsigned comparison generating a boolean
-      if (DEBUG >= 1) VM.sysWriteln("VM_AddressCompiler.java: Translating VM_Address.max as -1");
+      if (DEBUG >= 1) VM.sysWriteln("VM_MagicCompiler.java: Translating VM_Word/Address.max as -1");
       asm.emitLIL (T0, -1);
       asm.emitSTU (T0, -4, SP);
+    } else if (methodName == VM_MagicNames.wordAnd) {
+      asm.emitL  (T0,  0, SP);
+      asm.emitL  (T1,  4, SP);
+      asm.emitAND(T2, T1, T0);
+      asm.emitSTU(T2,  4, SP);
+    } else if (methodName == VM_MagicNames.wordOr) {
+      asm.emitL  (T0,  0, SP);
+      asm.emitL  (T1,  4, SP);
+      asm.emitOR (T2, T1, T0);
+      asm.emitSTU(T2,  4, SP);
+    } else if (methodName == VM_MagicNames.wordNot) {
+      asm.emitL  (T0,  0, SP);
+      asm.emitLIL(T1, -1);
+      asm.emitXOR(T2, T1, T0);
+      asm.emitSTU(T2,  4, SP);
+    } else if (methodName == VM_MagicNames.wordXor) {
+      asm.emitL  (T0,  0, SP);
+      asm.emitL  (T1,  4, SP);
+      asm.emitXOR(T2, T1, T0);
+      asm.emitSTU(T2,  4, SP);
     } else {
-      VM.sysWrite("VM_MagicCompiler.java: no magic for " + methodToBeCalled + "\n");
-      if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+      // VM.sysWrite("VM_MagicCompiler.java: no magic for " + methodToBeCalled + ".  Hopefully it is synthetic magic.\n");
+      // if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
+      return false;
     }
+    return true;
   }
 
   private static void generateAddrComparison(VM_Assembler asm, int cc) {

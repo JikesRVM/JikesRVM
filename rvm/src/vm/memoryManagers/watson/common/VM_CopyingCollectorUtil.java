@@ -3,7 +3,9 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers;
+package com.ibm.JikesRVM.memoryManagers.watson;
+
+import  com.ibm.JikesRVM.memoryManagers.vmInterface.*;
 
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_Type;
@@ -142,7 +144,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 	if (VM.VerifyAssertions) VM._assert(t.nativeAffinity == null);
 	
 	// all threads should have been copied out of fromspace earlier
-	if (VM.VerifyAssertions) VM._assert(!fromHeap.refInHeap(ta));
+	if (VM.VerifyAssertions) VM._assert(fromHeap == null || !fromHeap.refInHeap(ta));
 	
 	if (VM.VerifyAssertions) oldstack = t.stack;    // for verifying gc stacks not moved
 	VM_ScanObject.scanObjectOrArray(t);
@@ -154,8 +156,9 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 
 	VM_ScanObject.scanObjectOrArray(t.hardwareExceptionRegisters);
 
-	VM_ScanStack.scanStack(t, VM_Address.zero(), true);
-	
+	ScanStack.scanThreadStack(t, VM_Address.zero(), true);
+	ScanStack.processRoots();
+
       } else if (t.isGCThread && (VM_Magic.threadAsCollectorThread(t).gcOrdinal > 0)) {
 	// skip other collector threads participating (have ordinal number) in this GC
       } else if (VM_GCLocks.testAndSetThreadLock(i)) {
@@ -164,7 +167,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 	if (VM_Allocator.verbose >= 3) VM.sysWriteln("    Processing mutator thread ",i);
 	
 	// all threads should have been copied out of fromspace earlier
-	if (VM.VerifyAssertions) VM._assert(!(fromHeap.refInHeap(ta)));
+	if (VM.VerifyAssertions) VM._assert(fromHeap == null || !fromHeap.refInHeap(ta));
 	
 	// scan thread object to force "interior" objects to be copied, marked, and
 	// queued for later scanning.
@@ -174,7 +177,7 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 	// if stack moved, adjust interior stack pointers
 	if (oldstack != t.stack) {
 	  if (VM_Allocator.verbose >= 3) VM.sysWriteln("    Adjusting mutator stack ",i);
-	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)));
+	  t.fixupMovedStack(VM_Magic.objectAsAddress(t.stack).diff(VM_Magic.objectAsAddress(oldstack)).toInt());
 	}
 	
 	// the above scanThread(t) will have marked and copied the threads JNIEnvironment object,
@@ -203,7 +206,8 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 	// have been given references which now reside in the JNIEnv sidestack
 
 	if (VM_Allocator.verbose >= 3) VM.sysWriteln("    Scanning stack for thread ",i);
-	VM_ScanStack.scanStack(t, VM_Address.zero(), true);
+	ScanStack.scanThreadStack(t, VM_Address.zero(), true);
+	ScanStack.processRoots();
       } 
     } 
   }

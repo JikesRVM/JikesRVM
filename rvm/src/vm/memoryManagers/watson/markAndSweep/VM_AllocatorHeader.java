@@ -4,7 +4,7 @@
 //$Id$
 
 
-package com.ibm.JikesRVM.memoryManagers;
+package com.ibm.JikesRVM.memoryManagers.watson;
 
 import com.ibm.JikesRVM.BootImageInterface;
 import com.ibm.JikesRVM.VM;
@@ -75,4 +75,5 @@ public final class VM_AllocatorHeader extends VM_CommonAllocatorHeader {
   public static void dumpHeader(Object ref) throws VM_PragmaUninterruptible {
     // nothing to do (no bytes of GC header)
   }
+
 }

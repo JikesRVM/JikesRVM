@@ -4,7 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.VM_CollectorThread;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_CollectorThread;
 
 /**
  * Primitive accumulating timer that detects if a gc

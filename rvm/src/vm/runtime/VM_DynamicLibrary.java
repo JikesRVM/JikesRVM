@@ -32,7 +32,7 @@ public class VM_DynamicLibrary {
     // known to require more than 20K of stack.
     VM_Thread myThread = VM_Thread.getCurrentThread();
     int stackNeededInBytes =  VM_StackframeLayoutConstants.STACK_SIZE_DLOPEN -
-      (VM_Magic.getFramePointer().diff(myThread.stackLimit));
+      (VM_Magic.getFramePointer().diff(myThread.stackLimit)).toInt();
     if (stackNeededInBytes > 0 ) {
       if (myThread.hasNativeStackFrame())
         throw new java.lang.StackOverflowError("dlopen");
