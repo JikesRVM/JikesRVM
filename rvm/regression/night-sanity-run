@@ -16,9 +16,7 @@
 # How often to look to see if the builds are done
 SLEEP_DURATION="120"
 
-export JALAPENO_HOME=/homes/fury5/jalapeno
-
-export PATH=/usr/gnu/bin:$JALAPENO_HOME/bin:$RVM_ROOT/bin:$PATH:/usr/contrib/bin:.
+export PATH=$PATH:.
 
 # the resulting message
 MSG=$RVM_ROOT/MSG
