@@ -44,7 +44,7 @@ if [[ $# = 0 || $1 = -help || $# < 1 ]]; then
 			   415 FPU2      416 IDU1      417 IDU2       418 ISU_RENAM  419 ISU_Q
 		           420 ISU_FLOW                422 SERIALIZE  423 LSU BUSY   424*LSOURCE2
 			   425 LSOURCE3  426 ISOURCE2  427 ISOURCE3   428 FPU3       429 FPU4
-			   430 FPU5      431 FPU6      432 FPU7       433 FXU        434*LSU_LMQ
+			   430 FPU5      431 FPU6      432 FPU7       433 FXU        434*LSU_LMQ	     
 			   435 LSU_FLUSH 436 LSU_LOAD1 437 LSU_STORE1 438 LSU_STORE2 439*LSU7
 					 441 MISC      446*MARK_LSOURCE
 					               452 THRESHOLD
@@ -79,7 +79,7 @@ if [[ $# = 2 || $# > 2 ]]; then
   fi
 fi
 
-machine_type=""
+machine_type="unknown"
 hpm_event1=0
 hpm_event2=0
 hpm_event3=0
@@ -355,6 +355,13 @@ elif [[ $setting = 434 ]]; then
   machine_type="P4"
   hpm_event1=34	
   setting=34
+elif [[ $setting = 435 ]]; then
+  # Group 35    pm_lsu_lmq		LSU Load Miss Queue Events
+  #  1 LSU0_FLUSH_LRQ     2 LSU1_FLUSH_LRQ    3 CYC               4 CYC
+  #  5 LSU0_FLUSH_SRQ     6 LSU1_FLUSH_SRQ    7 INST_CMPL         8 CYC
+  machine_type="P4"
+  hpm_event1=35	
+  setting=35
 elif [[ $setting = 436 ]]; then
   # Group 36    pm_lsu_load1		LSU Load Events
   #  1 LSU0_FLUSH_ULD     2 LSU1_FLUSH_ULD    3 LD_REF_L1_LSU0    4 LD_REF_L1_LSU1
@@ -369,6 +376,13 @@ elif [[ $setting = 437 ]]; then
   machine_type="P4"
   hpm_event1=37	
   setting=37
+elif [[ $setting = 438 ]]; then
+  # Group 38    pm_lsu_stfwd?
+  #  1 ?
+  #  5 ?
+  machine_type="P4"
+  hpm_event1=38	
+  setting=38
 elif [[ $setting = 439 ]]; then
   # Group 39    pm_lsu7			Information on Load store unit
   #  1 LSU0_DERAT_MISS        2 LSU1_DERAT_MISS   3 CYC               4 CYC
@@ -466,8 +480,8 @@ if [[ $# = 8 || $# > 8 ]]; then
   fi
 fi
 
-out_file="$outDir/HPM.$config.$machine_type.$setting.$execution.$quantum.$multiplier"
- aos_log="$outDir/log.$config.$machine_type.$setting.$execution.$quantum.$multiplier"
+out_file="$outDir/HPM.$config.$numProcs.$machine_type.$setting.$execution.$quantum.$multiplier"
+ aos_log="$outDir/log.$config.$numProcs.$machine_type.$setting.$execution.$quantum.$multiplier"
 
 echo -e "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode; out_file: $out_file; execution: $execution\n"
 
@@ -478,7 +492,10 @@ trace_verbose=0
 ###############################
 # set up command line arguments
 # notify_vm_complete and measureCompilation results in compilation statistics
-jvm_options="-Xmx$smallHeap -X:processors=$numProcs -X:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -verbose:gc -X:vm:interruptQuantum=$quantum -X:vm:schedulingMultiplier=$multiplier" 
+#strategy_options="-X:aos:initial_compiler=opt -X:irc:O0 -X:aos:enable_recompilation=false"
+strategy_options=
+
+jvm_options="-Xmx$smallHeap $strategy_options -X:processors=$numProcs -X:opt:errors_fatal=true -X:aos:lf=$aos_log -X:aos:adaptive_inlining=false -X:aos:logging_level=$logging_level -verbose:gc -X:vm:interruptQuantum=$quantum -X:vm:schedulingMultiplier=$multiplier" 
 
 hpm_options="-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4  -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7  -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=$hpm_verbose -X:hpm:trace_verbose=$trace_verbose -X:hpm:filename=$out_file  -X:hpm:trace=true -X:hpm:sample=true"
 
