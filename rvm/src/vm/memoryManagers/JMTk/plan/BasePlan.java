@@ -57,8 +57,6 @@ public abstract class BasePlan
   public static final boolean NEEDS_WRITE_BARRIER = false;
   public static final boolean NEEDS_PUTSTATIC_WRITE_BARRIER = false;
   public static final boolean NEEDS_TIB_STORE_WRITE_BARRIER = false;
-  public static final boolean REF_COUNT_CYCLE_DETECTION = false;
-  public static final boolean REF_COUNT_SANITY_TRACING = false;
   public static final boolean SUPPORTS_PARALLEL_GC = true;
   public static final boolean MOVES_TIBS = false;
   public static final boolean STEAL_NURSERY_GC_HEADER = false;
@@ -113,7 +111,6 @@ public abstract class BasePlan
   protected static final int LOS_SIZE_THRESHOLD = 8 * 1024;
   public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
-  public static final boolean GATHER_MARK_CONS_STATS = false;
 
   public static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_BYTES_IN_PAGE;
   public static final int DEFAULT_MAX_NURSERY = MAX_INT;
@@ -166,7 +163,7 @@ public abstract class BasePlan
     addSpace(IMMORTAL_SPACE, "Immortal");
 
     totalTime = new Timer("time");
-    if (GATHER_MARK_CONS_STATS) {
+    if (Stats.GATHER_MARK_CONS_STATS) {
       mark = new SizeCounter("mark", true, true);
       cons = new SizeCounter("cons", true, true);
     }

@@ -170,7 +170,7 @@ public abstract class Generational extends StopTheWorldGC
       wbFast = new EventCounter("wbFast");
       wbSlow = new EventCounter("wbSlow");
     }
-    if (GATHER_MARK_CONS_STATS) {
+    if (Stats.GATHER_MARK_CONS_STATS) {
       nurseryMark = new SizeCounter("nurseryMark", true, true);
       nurseryCons = new SizeCounter("nurseryCons", true, true);
     }
@@ -263,7 +263,7 @@ public abstract class Generational extends StopTheWorldGC
                                     int align, int offset) 
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
-    if (GATHER_MARK_CONS_STATS) {
+    if (Stats.GATHER_MARK_CONS_STATS) {
       if (original.GE(NURSERY_START)) nurseryMark.inc(bytes);
     }
     return matureCopy(bytes, align, offset);

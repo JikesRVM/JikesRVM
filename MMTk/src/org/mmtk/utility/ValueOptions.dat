@@ -16,7 +16,7 @@ GC verbosity level
 if (val < 0) Assert.fail("Unreasonable verbosity level " + val);
 
 
-V minNurseryPages int Plan.DEFAULT_MIN_NURSERY fixedNursery
+V minNurseryPages int BasePlan.DEFAULT_MIN_NURSERY fixedNursery
 Fix the minimum and maximum size of the nursery to this value (MB)
 int val2 = Conversions.bytesToPagesUp(val<<20); \
 maxNurseryPages = val2; \
@@ -24,7 +24,7 @@ if (maxNurseryPages <= 0) Assert.fail("Unreasonable nursery size " + val); \
 val = val2;
 
 
-V maxNurseryPages int Plan.DEFAULT_MAX_NURSERY boundedNursery
+V maxNurseryPages int BasePlan.DEFAULT_MAX_NURSERY boundedNursery
 Bound the maximum size of the nursery to this value (MB)
 int val2 = Conversions.bytesToPagesUp(val<<20); \
 if (val2 <= 0) Assert.fail("Unreasonable nursery size " + val); \

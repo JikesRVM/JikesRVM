@@ -180,7 +180,7 @@ public final class RefCountLocal extends SegregatedFreeList
       sanityImmortalSetB = new AddressDeque("immortal set B", sanityImmortalPoolB);
       sanityLastGCSet = new AddressDeque("last GC set", sanityLastGCPool);
     }
-    if (Plan.REF_COUNT_CYCLE_DETECTION)
+    if (RefCountBase.REF_COUNT_CYCLE_DETECTION)
       cycleDetector = new TrialDeletion(this);
   }
 
@@ -246,7 +246,7 @@ public final class RefCountLocal extends SegregatedFreeList
     if (timekeeper) decTime.stop();
     Collection.rendezvous(4410);
     sweepBlocks();
-    if (Plan.REF_COUNT_CYCLE_DETECTION) {
+    if (RefCountBase.REF_COUNT_CYCLE_DETECTION) {
       if (timekeeper) cdTime.start();
       if (cycleDetector.collectCycles(count, timekeeper)) 
         processDecBufs(plan);
@@ -352,7 +352,7 @@ public final class RefCountLocal extends SegregatedFreeList
     int state = RefCountSpace.decRC(object);
     if (state == RefCountSpace.DEC_KILL)
       release(object, plan);
-    else if (Plan.REF_COUNT_CYCLE_DETECTION && 
+    else if (RefCountBase.REF_COUNT_CYCLE_DETECTION && 
 	     state == RefCountSpace.DEC_BUFFER)
       cycleDetector.possibleCycleRoot(object);
   }
@@ -374,7 +374,7 @@ public final class RefCountLocal extends SegregatedFreeList
     // this object is now dead, scan it for recursive decrement
     if (RefCountSpace.RC_SANITY_CHECK) rcLiveObjects--;
     Scan.enumeratePointers(object, plan.decEnum);
-    if (!Plan.REF_COUNT_CYCLE_DETECTION || !RefCountSpace.isBuffered(object)) 
+    if (!RefCountBase.REF_COUNT_CYCLE_DETECTION || !RefCountSpace.isBuffered(object)) 
       free(object);
   }
 
@@ -543,7 +543,7 @@ public final class RefCountLocal extends SegregatedFreeList
     Log.write(incCounter); Log.write(" incs, ");
     Log.write(decCounter); Log.write(" decs, ");
     Log.write(rootCounter); Log.write(" roots");
-    if (Plan.REF_COUNT_CYCLE_DETECTION) {
+    if (RefCountBase.REF_COUNT_CYCLE_DETECTION) {
       Log.write(", "); 
       Log.write(purpleCounter);Log.write(" purple");
     }

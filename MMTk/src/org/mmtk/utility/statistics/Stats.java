@@ -27,6 +27,8 @@ public class Stats implements Uninterruptible {
    * Class variables
    */
 
+  public static final boolean GATHER_MARK_CONS_STATS = false;
+
   /** Maximum number of gc/mutator phases that can be counted */
   static final int MAX_PHASES = 1<<12;
   /** Maximum number of counters that can be in operation */

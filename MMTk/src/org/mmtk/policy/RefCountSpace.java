@@ -4,6 +4,7 @@
  */
 package org.mmtk.policy;
 
+import org.mmtk.plan.RefCountBase;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
@@ -261,7 +262,7 @@ public final class RefCountSpace implements Constants, Uninterruptible {
     throws InlinePragma {
     // all objects are birthed with an RC of INCREMENT
     int initialValue =  (initialInc) ? INCREMENT : 0;
-    if (Plan.REF_COUNT_CYCLE_DETECTION && ObjectModel.isAcyclic(typeRef))
+    if (RefCountBase.REF_COUNT_CYCLE_DETECTION && ObjectModel.isAcyclic(typeRef))
       initialValue |= GREEN;
     object.store(initialValue, RC_HEADER_OFFSET);
   }
@@ -314,7 +315,7 @@ public final class RefCountSpace implements Constants, Uninterruptible {
       oldValue = object.prepareInt(RC_HEADER_OFFSET);
       newValue = oldValue + INCREMENT;
       Assert._assert(newValue <= INCREMENT_LIMIT);
-      if (Plan.REF_COUNT_CYCLE_DETECTION) newValue = (newValue & ~PURPLE);
+      if (RefCountBase.REF_COUNT_CYCLE_DETECTION) newValue = (newValue & ~PURPLE);
     } while (!object.attempt(oldValue, newValue, RC_HEADER_OFFSET));
   }
 
@@ -343,7 +344,7 @@ public final class RefCountSpace implements Constants, Uninterruptible {
       newValue = oldValue - INCREMENT;
       if (newValue < LIVE_THRESHOLD)
         rtn = DEC_KILL;
-      else if (Plan.REF_COUNT_CYCLE_DETECTION && 
+      else if (RefCountBase.REF_COUNT_CYCLE_DETECTION && 
                ((newValue & COLOR_MASK) < PURPLE)) { // if not purple or green
         rtn = ((newValue & BUFFERED_MASK) == 0) ? DEC_BUFFER : DEC_PURPLE;
         newValue = (newValue & ~COLOR_MASK) | PURPLE | BUFFERED_MASK;

@@ -8,6 +8,7 @@ import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Memory;
+import org.mmtk.utility.statistics.Stats;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Plan;
@@ -135,7 +136,7 @@ public final class MarkSweepSpace implements Constants, Uninterruptible {
   public final Address traceObject(Address object)
     throws InlinePragma {
     if (testAndMark(object, markState)) {
-      if (Plan.GATHER_MARK_CONS_STATS)
+      if (Stats.GATHER_MARK_CONS_STATS)
 	Plan.mark.inc(ObjectModel.getSizeWhenCopied(object));
       MarkSweepLocal.liveObject(object);
       Plan.enqueue(object);

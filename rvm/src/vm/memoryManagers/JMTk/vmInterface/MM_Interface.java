@@ -17,6 +17,7 @@ import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.scan.MMType;
+import org.mmtk.utility.statistics.Stats;
 import org.mmtk.utility.Options;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.vm.Assert;
@@ -123,9 +124,6 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   /** Used by mmtypes for arrays */
   private static final int [] zeroLengthIntArray = new int [0];
   
-  /* AJG: Not used */
-//   public static final boolean RC_CYCLE_DETECTION = Plan.REF_COUNT_CYCLE_DETECTION;
-
   /***********************************************************************
    *
    * Initialization
@@ -666,11 +664,11 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
     Address region;
     if (copy) {
       region = plan.allocCopy(from, bytes, align, offset);
-      if (Plan.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes);
+      if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes);
 
     } else {
       region = plan.alloc(bytes, align, offset, allocator);
-      if (Plan.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
+      if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes);
     }
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
 
