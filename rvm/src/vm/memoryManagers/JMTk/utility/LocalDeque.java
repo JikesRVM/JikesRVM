@@ -58,7 +58,15 @@ public class LocalDeque extends LocalSSB
       closeAndEnqueueHead(queue.getArity());
   }
 
-  public final void reset() {
+  /**
+   * Reset the local buffer (throwing away any local entries).
+   */
+  void resetLocal() {
+    super.flushLocal();
+    reset();
+  }
+
+  protected final void reset() {
     head = VM_Address.zero().add(headSentinel(queue.getArity()));
   }
 

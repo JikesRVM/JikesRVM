@@ -409,6 +409,9 @@ public abstract class Generational extends StopTheWorldGC
       if (Plan.usesLOS) losSpace.prepare(losVM, losMR);
       globalMaturePrepare();
       ImmortalSpace.prepare(immortalVM, null);
+
+      // we can throw away the remsets for a full heap GC
+      locationPool.clearDeque(1);
     }
   }
 
@@ -427,6 +430,7 @@ public abstract class Generational extends StopTheWorldGC
     if (fullHeapGC) {
       threadLocalMaturePrepare(count);
       if (Plan.usesLOS) los.prepare();
+      remset.resetLocal();  // we can throw away remsets for a full heap GC
     }
   }
 
@@ -487,7 +491,7 @@ public abstract class Generational extends StopTheWorldGC
   protected void globalRelease() {
     // release each of the collected regions
     nurseryVM.release();
-    locationPool.flushDeque(1); // flush any remset entries collected during GC
+    locationPool.clearDeque(1); // flush any remset entries collected during GC
     if (fullHeapGC) {
       if (Plan.usesLOS) losSpace.release();
       globalMatureRelease();

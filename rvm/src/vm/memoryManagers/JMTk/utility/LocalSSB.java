@@ -74,8 +74,15 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
       tail = Deque.TAIL_INITIAL_VALUE;
     }
   }
+ 
+  /**
+   * Reset the local buffer (throwing away any local entries).
+   */
+  void resetLocal() {
+    tail = Deque.TAIL_INITIAL_VALUE;
+  }
 
-  /****************************************************************************
+ /****************************************************************************
    *
    * Protected instance methods
    */

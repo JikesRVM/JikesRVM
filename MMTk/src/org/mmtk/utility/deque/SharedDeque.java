@@ -77,7 +77,7 @@ public class SharedDeque extends Deque
     unlock();
   }
 
-  final void flushDeque(int arity) {
+  final void clearDeque(int arity) {
     VM_Address buf = dequeue(arity);
     while (!buf.isZero()) {
       free(bufferStart(buf));
