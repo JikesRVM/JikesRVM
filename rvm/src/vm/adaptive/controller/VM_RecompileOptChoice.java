@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.adaptive;
 
+import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 
 /**
@@ -40,6 +41,15 @@ class VM_RecompileOptChoice extends VM_RecompilationChoice {
     double compileTimeFactor = 
       VM_CompilerDNA.getCompileTimeRatio(prevCompiler, getCompiler());
 
+    if (VM.LogAOSEvents) { 
+      VM_AOSLogging.recordCompileTimeDetails(prevCompiler,
+					     getCompiler(),
+					     compileTimeFactor,
+					     prevCompileTime,
+					     compileTimeFactor * prevCompileTime,
+					     VM_Controller.options.FIXED_RECOMPILATION_OVERHEAD);
+    }
+
     return prevCompileTime * compileTimeFactor   // compile time
       + VM_Controller.options.FIXED_RECOMPILATION_OVERHEAD;   // fixed cost "brake" 
   }
@@ -74,18 +84,22 @@ class VM_RecompileOptChoice extends VM_RecompilationChoice {
    * @param prevCompiler The previous compiler
    * @param prevTimeFormethod The estimated future time had nothing been done
    * @param bestActionTime The estimated total time implementing this choice
+   * @param expectedCompilationTime The expected time for recompiling 
    * @return The controller plan implementing this recompilation choice
    */
   VM_ControllerPlan makeControllerPlan(VM_CompiledMethod cmpMethod,
 				       int prevCompiler, 
 				       double prevTimeForMethod,
-				       double bestActionTime) {
+				       double bestActionTime,
+				       double expectedCompilationTime) {
     double speedup = 
       VM_CompilerDNA.getBenefitRatio(prevCompiler, getCompiler());
     double priority = prevTimeForMethod - bestActionTime;
     return VM_Controller.recompilationStrategy.
       createControllerPlan(cmpMethod.getMethod(), thisChoiceOptLevel, 
-			   null, cmpMethod.getId(), speedup, priority);
+			   null, cmpMethod.getId(), speedup, 
+			   expectedCompilationTime,
+			   priority);
 
     
   }
