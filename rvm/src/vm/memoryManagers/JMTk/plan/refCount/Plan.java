@@ -678,20 +678,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   ////////////////////////////////////////////////////////////////////////////
   //
-  // Miscellaneous
-  //
-
-  /**
-   * Show the status of each of the allocators.
-   */
-  public final void show() {
-    rc.show();
-    los.show();
-    immortal.show();
-  }
-
-  ////////////////////////////////////////////////////////////////////////////
-  //
   // RC methods
   //
 
@@ -723,6 +709,31 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void addToTraceBuffer(VM_Address object) 
     throws VM_PragmaInline {
     rc.addToTraceBuffer(object);
+  }
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Miscellaneous
+  //
+
+  /**
+   * Show the status of each of the allocators.
+   */
+  public final void show() {
+    rc.show();
+    los.show();
+    immortal.show();
+  }
+
+  /**
+   * Return (as a double) the time at which this GC should complete.
+   *
+   * @return The time cap for this GC (i.e. the time by which it
+   * should complete).
+   */
+  public static final double getTimeCap() {
+    return gcStartTime + ((double) Options.gcTimeCap)/1000;
   }
 }
 

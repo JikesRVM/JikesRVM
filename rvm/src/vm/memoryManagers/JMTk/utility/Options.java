@@ -26,9 +26,10 @@ public class Options implements VM_Uninterruptible, Constants {
   static int heapSize         = 0; // deprecated
   static int largeHeapSize    = 0; // deprecated
   static int nurseryPages     = MAX_INT;  // default to variable nursery
-  static int metaDataPages    = MAX_INT;  // default to no meta data limit
+  static int metaDataPages    = 128;  // perform GC if metadata >= 512K
   static int cycleMetaDataPages = MAX_INT;  // default to no cycle m/data limit
-  static int cycleDetectionPages = 0;  // default to no cycle detection
+  static int cycleDetectionPages = 256;   // do c/d if < 1MB remaining
+  static int gcTimeCap        = MAX_INT;  // default to no time cap
   static int stressTest       = MAX_INT;  // default to never
   public static boolean ignoreSystemGC = false;
 
@@ -85,6 +86,11 @@ public class Options implements VM_Uninterruptible, Constants {
       String tmp = arg.substring(22);
       cycleDetectionPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<10);
       if (cycleDetectionPages <= 0) VM.sysFail("Unreasonable cycle detection limit " + tmp);
+    }
+    else if (arg.startsWith("time_cap=")) {
+      String tmp = arg.substring(9);
+      gcTimeCap = Integer.parseInt(tmp);
+      if (gcTimeCap <= 0) VM.sysFail("Unreasonable time cap " + tmp);
     }
     else if (arg.startsWith("stress=")) {
       String tmp = arg.substring(7);

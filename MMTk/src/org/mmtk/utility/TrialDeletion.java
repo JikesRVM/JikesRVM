@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Magic;
+import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -63,16 +64,23 @@ final class TrialDeletion
   //
   private static SharedQueue workPool;
   private static SharedQueue blackPool;
+  private static SharedQueue purplePoolA;
+  private static SharedQueue purplePoolB;
   private static SharedQueue cyclePoolA;
   private static SharedQueue cyclePoolB;
   private static SharedQueue freePool;
 
-  private static boolean cycleBufferAisOpen = true;
+  private static boolean purpleBufferAisOpen = true;
 
   private static final int  MARK_GREY = 0;
   private static final int       SCAN = 1;
   private static final int SCAN_BLACK = 2;
   private static final int    COLLECT = 3;
+
+  // filtering should not take more than 1/500 of the time cap
+  private static final int FILTER_TIME_FACTOR = 500;
+  // granularity at which mark grey traversals should check time cap
+  private static final int GREY_VISIT_BOUND = 10;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -83,6 +91,8 @@ final class TrialDeletion
 
   private AddressQueue workQueue;
   private AddressQueue blackQueue;
+  private AddressQueue purpleBufferA;
+  private AddressQueue purpleBufferB;
   private AddressQueue cycleBufferA;
   private AddressQueue cycleBufferB;
   private AddressQueue freeBuffer;
@@ -99,6 +109,10 @@ final class TrialDeletion
     workPool.newClient();
     blackPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
     blackPool.newClient();
+    purplePoolA = new SharedQueue(Plan.getMetaDataRPA(), 1);
+    purplePoolA.newClient();
+    purplePoolB = new SharedQueue(Plan.getMetaDataRPA(), 1);
+    purplePoolB.newClient();
     cyclePoolA = new SharedQueue(Plan.getMetaDataRPA(), 1);
     cyclePoolA.newClient();
     cyclePoolB = new SharedQueue(Plan.getMetaDataRPA(), 1);
@@ -112,38 +126,65 @@ final class TrialDeletion
     plan = plan_;
     workQueue = new AddressQueue("cycle workqueue", workPool);
     blackQueue = new AddressQueue("cycle black workqueue", blackPool);
+    purpleBufferA = new AddressQueue("purple buf A", purplePoolA);
+    purpleBufferB = new AddressQueue("purple buf B", purplePoolB);
     cycleBufferA = new AddressQueue("cycle buf A", cyclePoolA);
     cycleBufferB = new AddressQueue("cycle buf B", cyclePoolB);
     freeBuffer = new AddressQueue("free buffer", freePool);
   }
 
   public final void collectCycles() {
-    filterCycleBufs();
+    double filterStart = VM_Time.now();
+    filterPurpleBufs();
     processFreeBufs();
     if ((Plan.getPagesAvail() < Options.cycleDetectionPages) ||
-	(Plan.getMetaDataPagesUsed() > Options.cycleMetaDataPages)) {
-      //      VM.sysWrite("<CD>");
-      doMarkGreyPhase();
-      doScanPhase();
-      doCollectPhase();
-      processFreeBufs();
+	(Plan.getMetaDataPagesUsed() > Options.cycleMetaDataPages) ||
+	(Plan.getMetaDataPagesUsed() > (0.8 * Options.metaDataPages))) {
+      double cycleStart = VM_Time.now();
+      double filterTime = cycleStart - filterStart;
+      double filterLimit = ((double)Options.gcTimeCap)/FILTER_TIME_FACTOR;
+      if ((cycleStart < Plan.getTimeCap()) || (filterTime > filterLimit)) {
+	double remaining = Plan.getTimeCap() - cycleStart;
+	double start = 0;
+	if (Plan.verbose > 0) { start = cycleStart; VM.sysWrite("(CD "); }
+	doMarkGreyPhase(cycleStart + (remaining/3)); // grey phase => 1/3 of remaining
+	if (Plan.verbose > 0) start = timePhase(start, "G");
+	doScanPhase();
+	if (Plan.verbose > 0) start = timePhase(start, "S");
+	doCollectPhase();
+	if (Plan.verbose > 0) start = timePhase(start, "C");
+	processFreeBufs();
+	if (Plan.verbose > 0) start = timePhase(start, "F");
+	if (Plan.verbose > 0) {
+	  VM.sysWrite("= ");
+	  VM.sysWrite((VM_Time.now() - cycleStart)*1000);
+	  VM.sysWrite(" ms)");
+	}
+      }
     }
   }
  
+  private final double timePhase(double start, String phase) {
+    double end = VM_Time.now();
+    VM.sysWrite(phase); VM.sysWrite(" ");
+    VM.sysWrite((end - start)*1000); VM.sysWrite(" ms ");
+    return end;
+  }
+
   public final void possibleCycleRoot(VM_Address object)
     throws VM_PragmaInline {
     if (RCBaseHeader.makePurple(object)) {
-      if (cycleBufferAisOpen)
-	cycleBufferA.push(object);
+      if (purpleBufferAisOpen)
+	purpleBufferA.push(object);
       else
-	cycleBufferB.push(object);
+	purpleBufferB.push(object);
     }
   }
 
-  private final void filterCycleBufs() {
+  private final void filterPurpleBufs() {
     VM_Address obj;
-    AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
-    AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
+    AddressQueue src = (purpleBufferAisOpen) ? purpleBufferA : purpleBufferB;
+    AddressQueue tgt = (purpleBufferAisOpen) ? purpleBufferB : purpleBufferA;
     int purple = 0;
     while (!(obj = src.pop()).isZero()) {
       purple++;
@@ -160,7 +201,7 @@ final class TrialDeletion
 	freeBuffer.push(obj);
       }
     }
-    cycleBufferAisOpen = !cycleBufferAisOpen;
+    purpleBufferAisOpen = !purpleBufferAisOpen;
     rc.setPurpleCounter(purple);
   }
 
@@ -171,44 +212,46 @@ final class TrialDeletion
     }
   }
 
-  static final int CYCLE_PROCESS_LIMIT = 1<<30;
-  private final void doMarkGreyPhase() {
-    VM_Address obj;
-    AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
-    AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
+  private final void doMarkGreyPhase(double markGreyTimeCap) {
+    VM_Address obj = VM_Address.zero();
+    AddressQueue src = (purpleBufferAisOpen) ? purpleBufferA : purpleBufferB;
+    AddressQueue tgt = cycleBufferA;
     phase = MARK_GREY;
-    int objsProcessed = 0;
-    while (!(obj = src.pop()).isZero() && objsProcessed < CYCLE_PROCESS_LIMIT){
-      if (VM.VerifyAssertions) VM._assert(!RCBaseHeader.isGreen(obj));
-      if (RCBaseHeader.isPurple(obj)) {
-	if (VM.VerifyAssertions) VM._assert(RCBaseHeader.isLiveRC(obj));
-	markGrey(obj);
-	objsProcessed++;
-	tgt.push(obj);
-      } else {
- 	if (VM.VerifyAssertions) VM._assert(RCBaseHeader.isGrey(obj));
-	RCBaseHeader.clearBufferedBit(obj); // FIXME Why? Why not above?
-      }
-    } 
-    cycleBufferAisOpen = !cycleBufferAisOpen;
+    do {
+      visitCount = 0;
+      while (visitCount < GREY_VISIT_BOUND && !(obj = src.pop()).isZero())
+	processGreyObject(obj, tgt);
+    } while (!obj.isZero() && VM_Time.now() < markGreyTimeCap);
+  }
+
+  private final void processGreyObject(VM_Address object, AddressQueue tgt)
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(!RCBaseHeader.isGreen(object));
+    if (RCBaseHeader.isPurple(object)) {
+      if (VM.VerifyAssertions) VM._assert(RCBaseHeader.isLiveRC(object));
+      markGrey(object);
+      tgt.push(object);
+    } else {
+      if (VM.VerifyAssertions) VM._assert(RCBaseHeader.isGrey(object));
+      RCBaseHeader.clearBufferedBit(object); // FIXME Why? Why not above?
+    }
   }
 
   private final void doScanPhase() {
     VM_Address object;
-    AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
-    AddressQueue tgt = (cycleBufferAisOpen) ? cycleBufferB : cycleBufferA;
+    AddressQueue src = cycleBufferA;
+    AddressQueue tgt = cycleBufferB;
     phase = SCAN;
     while (!(object = src.pop()).isZero()) {
       if (VM.VerifyAssertions) VM._assert(!RCBaseHeader.isGreen(object));
       scan(object);
       tgt.push(object);
     }
-    cycleBufferAisOpen = !cycleBufferAisOpen;
   }
 
   private final void doCollectPhase() {
     VM_Address object;
-    AddressQueue src = (cycleBufferAisOpen) ? cycleBufferA : cycleBufferB;
+    AddressQueue src = cycleBufferB;
     phase = COLLECT;
     while (!(object = src.pop()).isZero()) {
       if (VM.VerifyAssertions) VM._assert(!RCBaseHeader.isGreen(object));
