@@ -491,7 +491,7 @@ public class VM_CommandLineArgs {
         case AOS_OPT_HELP_ARG:
           if (VM.VerifyAssertions) VM._assert(arg.equals(""));
           //-#if RVM_WITH_ADAPTIVE_SYSTEM
-	  VM_Controller.addOptCompilerOptions("opt:help");
+	  VM_Controller.addOptCompilerOption("opt:help");
           //-#else
           VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
           VM.sysExit(1);
