@@ -90,30 +90,20 @@ abstract class VM_MethodListener extends VM_Listener
    *         EPILOGUE?
    */
   public final void update(int cmid, int callerCmid, int whereFrom) {
-    int idx;
-    int sampleNumber=-1; // the sample number of our insertion
     if (VM.UseEpilogueYieldPoints) {
-      // New scheme: Use epilogue yieldpoints.  We increment one sample
+      // Use epilogue yieldpoints.  We increment one sample
       // for every yieldpoint.  On a prologue, we count the caller.
       // On backedges and epilogues, we count the current method.
       if (whereFrom == VM_Thread.PROLOGUE) {
-	// Before getting an index, make sure we have something to insert
+	// Before getting a sample index, make sure we have something to insert
 	if (callerCmid != -1) {
-	  idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
-	  if (idx < sampleSize) {
-	    samples[idx] = callerCmid;
-	    sampleNumber = VM_Synchronization.fetchAndAdd(this, 
-							  numSamplesOffset, 1);
-	  } // was there room?
+	  int sampleNumber = recordSample(callerCmid);
+	  checkSampleSize(sampleNumber);
         } // nothing to insert
       } else { 
         // loop backedge or epilogue.  
- 	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
-	if (idx < sampleSize) {
- 	  samples[idx] = cmid;
- 	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
-							numSamplesOffset, 1);
-        }
+	int sampleNumber = recordSample(cmid);
+	checkSampleSize(sampleNumber);
       }
     } else {
       // Original scheme: No epilogue yieldpoints.  We increment two samples
@@ -121,47 +111,67 @@ abstract class VM_MethodListener extends VM_Listener
       // and callee.  On backedges, we count the current method twice.
       if (whereFrom == VM_Thread.PROLOGUE) {
         // Increment both for this method and the caller
- 	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
-	if (idx < sampleSize) {
- 	  samples[idx] = cmid;
- 	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
-							numSamplesOffset, 1);
-	}
+	int sampleNumber = recordSample(cmid);
 	if (callerCmid != -1) {
-	  idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
-	  if (idx < sampleSize) {
-	    samples[idx] = callerCmid;
-	    sampleNumber = VM_Synchronization.fetchAndAdd(this, 
-							  numSamplesOffset, 1);
-	  }
-        }
+	  sampleNumber = recordSample(callerCmid);
+	}
+	checkSampleSize(sampleNumber);
       } else { 
         // loop backedge.  We're only called once, so need to take
         // two samples to avoid penalizing methods with loops.
- 	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
-	if (idx < sampleSize) {
- 	  samples[idx] = cmid;
- 	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
-							numSamplesOffset, 1);
-	}
- 	idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
-	if (idx < sampleSize) {
- 	  samples[idx] = cmid;
- 	  sampleNumber = VM_Synchronization.fetchAndAdd(this, 
-							numSamplesOffset, 1);
-        }
+	int sampleNumber = recordSample(cmid);
+	sampleNumber = recordSample(cmid);
+	checkSampleSize(sampleNumber);
       }
     }
+  }
 
-    // sampleNumber has the value before we incremented, add one to determine
-    // which sample we were
-    sampleNumber++;
-    if (sampleNumber >= sampleSize) { 
+  /**
+   * This method records a sample containing the CMID (compiled method ID)
+   * passed.  Since multiple threads may be taking samples concurrently,
+   * we use fetchAndAdd to distribute indices into the buffer AND to record
+   * when a sample is taken.  (Thread 1 may get an earlier index, but complete
+   * the insertion after Thread 2.)
+   *
+   * @param CMID compiled method ID to record
+   * @return the sample number that was inserted or -1, if we were unlucky
+   *
+   * NOTE: if we are unlucky that we didn't get to insert the sample (because
+   *  there was a slot when we started, but another thread stole it from us)
+   *  we simply don't insert the sample.
+   */
+  private int recordSample(int CMID) {  
+    // reserved the next available slot
+    int idx = VM_Synchronization.fetchAndAdd(this, nextIndexOffset, 1);
+    // make sure it is valid
+    if (idx < sampleSize) {
+      samples[idx] = CMID;
+
+      // sampleNumber has the value before we incremented, add one to 
+      // determine which sample we were
+      int sampleNumber =  VM_Synchronization.fetchAndAdd(this, 
+						     numSamplesOffset, 1) + 1;
+      return sampleNumber;
+    } else {
+      return -1;
+    }
+  }
+
+  /**
+   * This method checks to see if the parameter passed was the last sample
+   * If so, it passivates this listener and reports that the threshold has
+   * been reached.
+   *
+   * @param sampleNumber the sample number was just taken 
+   *      valid samples will be in [1..sampleSize]
+   *      invalid sample will be -1 
+   */
+  private void checkSampleSize(int sampleNumber) {
+    if (sampleNumber == sampleSize) { 
       passivate();
       thresholdReached();
     }
   }
-
 
   /**
    * When the threshold is reached either notify our organizer or
