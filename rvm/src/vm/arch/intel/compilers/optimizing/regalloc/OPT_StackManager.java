@@ -1456,13 +1456,33 @@ implements OPT_Operators {
 
     // if we get here, either there is no current scratch assignment, or
     // the current assignment is illegal.  Find a new scratch register.
-    if (true) {
-      //    if (activeSet == null) 
+    if (activeSet == null) {
       return getFirstAvailableScratchRegister(symb,s);
     } else {
-      return null;
-      //      return getScratchRegisterUsingIntervals(symb,s);
+      return getScratchRegisterUsingIntervals(symb,s);
     }
+  }
+
+  /**
+   * Find a register which can serve as a scratch
+   * register for symbolic register r in instruction s.
+   *
+   * Insert spills if necessary to ensure that the returned scratch
+   * register is free for use.
+   *
+   * TODO: This version uses linear scan information. (not yet)
+   */
+  private ScratchRegister getScratchRegisterUsingIntervals(OPT_Register r,
+                                                           OPT_Instruction s){
+    HashSet reservedScratch = getReservedScratchRegisters(s);
+
+    OPT_Register phys = null;
+    if (r.isFloatingPoint()) {
+      phys = getFirstFPRNotUsedIn(s,reservedScratch);
+    } else {
+      phys = getFirstGPRNotUsedIn(s,reservedScratch);
+    }
+    return createScratchBefore(s,phys,r);
   }
 
   /**
@@ -1550,8 +1570,16 @@ implements OPT_Operators {
       sr = new ScratchRegister(r,null);
       scratchInUse.add(sr);
       // Since this is a new scratch register, spill the old contents of
-      // r.
-      insertSpillBefore(s, r, (byte)type, spillLocation);
+      // r if necessary.
+      if (activeSet == null) {
+        insertSpillBefore(s, r, (byte)type, spillLocation);
+        sr.setHadToSpill(true);
+      } else {
+        if (!isDeadBefore(r,s)) {
+          insertSpillBefore(s, r, (byte)type, spillLocation);
+          sr.setHadToSpill(true);
+        }
+      }
     } else {
       // update mapping information
       if (verboseDebug) System.out.println("CSB: " + 
@@ -1707,6 +1735,21 @@ implements OPT_Operators {
     }
   }
 
+  /**
+   * Is a particular register dead immediately before instruction s.
+   */
+  boolean isDeadBefore(OPT_Register r, OPT_Instruction s) {
+
+    OPT_NewLinearScan.BasicInterval bi = activeSet.getBasicInterval(r,s);
+    // If there is no basic interval containing s, then r is dead before
+    // s.
+    if (bi == null) return true;
+    // If the basic interval begins at s, then r is dead before
+    // s.
+    else if (bi.getBegin() == OPT_NewLinearScan.getDFN(s)) return true;
+    else return false;
+  }
+
 
   /**
    * Spill the contents of a scratch register to memory before 
@@ -1732,10 +1775,12 @@ implements OPT_Operators {
    */
   private void reloadScratchRegisterBefore(OPT_Instruction s, 
                                            ScratchRegister scratch) {
-    // Restore the live contents into the scratch register.
-    int location = OPT_RegisterAllocatorState.getSpill(scratch.scratch);
-    insertUnspillBefore(s,scratch.scratch,getValueType(scratch.scratch),
-                        location);
+    if (scratch.hadToSpill()) {
+      // Restore the live contents into the scratch register.
+      int location = OPT_RegisterAllocatorState.getSpill(scratch.scratch);
+      insertUnspillBefore(s,scratch.scratch,getValueType(scratch.scratch),
+                          location);
+    }
   }
 
   /**
@@ -1924,6 +1969,14 @@ implements OPT_Operators {
     boolean isDirty() { return dirty; }
     void setDirty(boolean b) { dirty = b; }
 
+    /**
+     * Did we spill a value in order to free up this scratch register?
+     */
+    private boolean spilledIt = false;
+    boolean hadToSpill() { return spilledIt; }
+    void setHadToSpill(boolean b) { spilledIt = b; }
+
+
     ScratchRegister(OPT_Register scratch, OPT_Register currentContents) {
       this.scratch = scratch;
       this.currentContents = currentContents;
@@ -1937,32 +1990,3 @@ implements OPT_Operators {
 
   }
 } 
-/*
-   else if (sr.currentContents != null) {
-// The scratch register currently holds another value.
-int location = OPT_RegisterAllocatorState.getSpill(sr.currentContents);
-int location2 = OPT_RegisterAllocatorState.getSpill(r); 
-if (location == location2) {
-// r and the scratch register are mapped to the same spill
-// location.  So, the two cannot be simultaneously live, so 
-// it's OK to use the scratch location to hold the value of r.
-return sr;
-} else if (sr.currentContents == r) {
-OPT_OptimizingCompilerException.UNREACHABLE("Should be covered by previous case");
-return sr;
-} else if (appearsIn(sr.currentContents,s)) {
-// The current value of the scratch register already appears in
-// s, so we must continue to use the scratch register for its
-// current purpose.
-continue;
-}
-}
-if (r.isFloatingPoint() ^ sr.scratch.isFloatingPoint()) {
-// the type of the scratch register cannot hold r's value.
-continue;
-}
-result = sr;
-}
-return result;
-}
- */

@@ -109,7 +109,9 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
 
     // Generate spill code if necessary
     if (ir.hasSysCall() || active.spilledSomething()) {	
-      sm.insertSpillCode();
+      OPT_StackManager stackMan = (OPT_StackManager)sm;
+      stackMan.insertSpillCode(active);
+//      stackMan.insertSpillCode();
     }
 
     rewriteFPStack(ir);
@@ -404,7 +406,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
    *
    *   Begin and end are numbers given to each instruction by a numbering pass
    */
-  final private class BasicInterval extends OPT_DoublyLinkedListElement {
+  final class BasicInterval extends OPT_DoublyLinkedListElement {
 
     /**
      * DFN of the beginning instruction of this interval
@@ -866,6 +868,44 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       }
 
       return false;
+    }
+
+    /**
+     * Return the next basic interval that starts after a given
+     * instruction.
+     *
+     * If there is no such interval, return null;
+     */
+    BasicInterval nextIntervalAfter(OPT_Instruction s) {
+      int n = getDFN(s);
+
+      BasicInterval current = (BasicInterval)basicIntervals.first();
+      while (current != null) {
+        int begin = current.getBegin();
+        if (begin > n) return current;
+        current = (BasicInterval)current.getNext();
+      }
+      return null; 
+    }
+
+    /**
+     * Return the first basic interval that contains the given
+     * instruction.
+     *
+     * If there is no such interval, return null;
+     */
+    BasicInterval getBasicInterval(OPT_Instruction s) {
+      int n = getDFN(s);
+
+      BasicInterval current = (BasicInterval)basicIntervals.first();
+      while (current != null) {
+        int begin = current.getBegin();
+        int end = current.getEnd();
+        if (begin <= n && end >= n) return current;
+        if (begin > n) return null;
+        current = (BasicInterval)current.getNext();
+      }
+      return null; 
     }
 
     /**
@@ -1490,6 +1530,28 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       rI.addNonIntersectingInterval(cache);
 
       return result;
+    }
+
+    /**
+     * Find the basic interval for register r containing instruction s.
+     * If there are two such intervals, return the 1st one.
+     * If there is none, return null.
+     */
+    BasicInterval getBasicInterval(OPT_Register r, OPT_Instruction s) {
+      CompoundInterval c = getInterval(r);
+      if (c == null) return null;
+      return c.getBasicInterval(s);
+    }
+
+    /**
+     * Find the first basic interval for register r that starts after
+     * instruction s.
+     * If there is none, return null.
+     */
+    BasicInterval nextIntervalAfter(OPT_Register r, OPT_Instruction s) {
+      CompoundInterval c = getInterval(r);
+      if (c == null) return null;
+      return c.nextIntervalAfter(s);
     }
   }
 
