@@ -147,7 +147,9 @@
   public int copyBytes;                 
   public int scanCount; 		
   public int scanBytes;
- 
+  public int bootCount;
+  public int bootBytes; 
+
   /**
    * Load status.
    * If the class has been "loaded", 
