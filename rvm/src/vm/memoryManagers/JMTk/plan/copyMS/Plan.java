@@ -566,6 +566,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   protected static final int getPagesUsed() {
     int pages = nurseryMR.reservedPages();
     pages += msMR.reservedPages();
+    pages += losMR.reservedPages();
     pages += immortalMR.reservedPages();
     return pages;
   }
@@ -579,7 +580,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected static final int getPagesAvail() {
     int nurseryPages = getTotalPages() - msMR.reservedPages() 
-      - immortalMR.reservedPages();
+      - immortalMR.reservedPages() - losMR.reservedPages();
     return (nurseryPages>>1) - nurseryMR.reservedPages();
   }
 
