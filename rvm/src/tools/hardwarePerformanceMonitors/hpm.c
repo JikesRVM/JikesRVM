@@ -54,6 +54,7 @@
 
 extern int errno;
 pm_info_t Myinfo;	/* machine specific services */
+pm_groups_info_t My_group_info;
 pm_prog_t getprog;	/* storage to get events and mode */
 pm_prog_t setprog;	/* storage to set events and mode */
 pm_data_t mydata;
@@ -73,7 +74,7 @@ hpm_init(int my_filter)
   int i;
   /* pm_init */ 
   filter = my_filter;
-  if ( (rc = pm_init(filter, &Myinfo)) != OK_CODE) {
+  if ( (rc = pm_init(filter, &Myinfo, &My_group_info)) != OK_CODE) {
     pm_error("pm_init", rc);
     exit(ERROR_CODE);
   }

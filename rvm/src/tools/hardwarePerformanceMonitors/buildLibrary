@@ -10,8 +10,8 @@
 # @author Peter F. Sweeney
 # @date 6/29/2001
 
-BOOTER_CC="/usr/gnu/bin/gcc -w -O -Wa,-mppc -DIBM_AIX"
-LDSHARED="/usr/gnu/bin/g++ -shared"
+BOOTER_CC="/usr/bin/gcc -w -O -Wa,-mppc -DIBM_AIX"
+LDSHARED="/usr/bin/g++ -shared"
 
 # compile libsimpleJNI.c
 $BOOTER_CC -c -O  -o     hpm.o     hpm.c
