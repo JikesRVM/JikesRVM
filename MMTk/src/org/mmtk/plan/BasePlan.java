@@ -121,7 +121,7 @@ public abstract class BasePlan
     bootVM = new ImmortalVMResource(BOOT_SPACE, "Boot", bootMR, BOOT_START, BOOT_SIZE);
 
     immortalMR = new MemoryResource("imm", DEFAULT_POLL_FREQUENCY);
-    immortalVM = new ImmortalVMResource(IMMORTAL_SPACE, "Immortal", bootMR, IMMORTAL_START, IMMORTAL_SIZE);
+    immortalVM = new ImmortalVMResource(IMMORTAL_SPACE, "Immortal", immortalMR, IMMORTAL_START, IMMORTAL_SIZE);
 
     addSpace(UNUSED_SPACE, "Unused");
     addSpace(BOOT_SPACE, "Boot");
