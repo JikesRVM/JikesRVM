@@ -378,11 +378,13 @@ jint GetEnv(JavaVM *vm, void **penv, jint version) {
   if (version == JNI_VERSION_1_2)
     return JNI_EVERSION;
 
+#if !defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
   // Return NULL if we are not on a VM pthread
   if (pthread_getspecific(IsVmProcessorKey) == NULL) {
     *penv = NULL;
     return -1;
   }
+#endif
 
   // Get VM_Processor id.
   int vmProcessorId =
@@ -433,5 +435,9 @@ extern "C" JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1JNIFunctions_createJ
 }
 
 extern "C" void _init() {
+#if defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
+  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), 0);
+#else
   initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset());
+#endif
 }

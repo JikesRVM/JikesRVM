@@ -1503,7 +1503,7 @@ extern "C" int sysStashVmProcessorIdInPthread(int vmProcessorId)
   // directly to the system call wrapper library, along with the
   // JTOC address and the offset of VM_Scheduler.processors.
   //fprintf(SysErrorFile, "sys: stashing vm_processor id = %d\n", vmProcessorId);
-  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), vmProcessorId);
+  //  initSyscallWrapperLibrary(getJTOC(), getProcessorsOffset(), vmProcessorId);
 #else
   //fprintf(SysErrorFile, "stashing vm processor id = %d, self=%u\n",
   //  vmProcessorId, pthread_self());
