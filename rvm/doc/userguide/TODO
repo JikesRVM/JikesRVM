@@ -34,7 +34,7 @@ DONE (6) Section 5 -- optimizing compiler details.  Exisiting text is
     rewritten. 
     PERRY
 
-(8) Section 7 -- jdp.  Need to update with current status of jdp.
+DONE (8) Section 7 -- jdp.  Need to update with current status of jdp.
     Check to see what commands jdp actually understands and update
     table of commands and examples.  Status of ppc & ia32 versions.
     STEVE
