@@ -423,11 +423,20 @@ function doRun
 # Build and test: more detailed.
 #
 function doTests {
-   for NUM_PROCS in $NUM_PROCS_LIST; do
+   if (fgrep -q RVM_FOR_SINGLE_VIRTUAL_PROCESSOR $RVM_BUILD/RVM.configuration)
+   then
+     echo "Ignoring -numprocs for single processor image"
+     NUM_PROCS=1
      for test in $TEST_LIST; do
        cd $RVM_ROOT/rvm/regression/tests/$test && doRun
      done
-   done
+   else
+     for NUM_PROCS in $NUM_PROCS_LIST; do
+       for test in $TEST_LIST; do
+         cd $RVM_ROOT/rvm/regression/tests/$test && doRun
+       done
+     done
+   fi
 }
    
 function doOptLevelTests {
