@@ -715,10 +715,10 @@ struct JNIInvokeInterface_ {
     void *reserved1;
     void *reserved2;
     jint (PJNICALL DestroyJavaVM)(JavaVM *vm);
-    jint (PJNICALL AttachCurrentThread)(JavaVM *vm, JNIEnv **penv, void *args);
+    jint (PJNICALL AttachCurrentThread)(JavaVM *vm, void **penv, void *args);
     jint (PJNICALL DetachCurrentThread)(JavaVM *vm);
     jint (PJNICALL GetEnv)(JavaVM *vm, void **penv, jint version);
-    jint (PJNICALL AttachCurrentThreadAsDaemon)(JavaVM *vm, JNIEnv **penv, void *args);
+    jint (PJNICALL AttachCurrentThreadAsDaemon)(JavaVM *vm, /* JNIEnv */ void  **penv, void *args);
 };
 struct JavaVM_ {
     const struct JNIInvokeInterface_ *functions;
@@ -730,10 +730,10 @@ struct JavaVM_ {
 
 #ifdef __cplusplus
     jint DestroyJavaVM() { return functions->DestroyJavaVM(this); }
-    jint AttachCurrentThread(JNIEnv ** p_env, void * args) { return functions->AttachCurrentThread(this, p_env, args); }
+    jint AttachCurrentThread(/* JNIEnv */ void ** p_env, void * args) { return functions->AttachCurrentThread(this, p_env, args); }
     jint DetachCurrentThread() { return functions->DetachCurrentThread(this); }
     jint GetEnv(void ** p_env, jint version) { return functions->GetEnv(this, p_env, version); }
-    jint AttachCurrentThreadAsDaemon(JNIEnv ** p_env, void * args) { return functions->AttachCurrentThreadAsDaemon(this, p_env, args); }
+    jint AttachCurrentThreadAsDaemon(/* JNIEnv */ void ** p_env, void * args) { return functions->AttachCurrentThreadAsDaemon(this, p_env, args); }
 #endif
 };
 
