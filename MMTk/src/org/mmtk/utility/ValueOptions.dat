@@ -64,7 +64,9 @@ Try to limit reference counting collections to this time cap (ms)
 if (val <= 0) VM_Interface.sysFail("Unreasonable time cap " + val);
 
 
-V stressTest int MAX_INT stress
-Perform GCs very frequently ??????
-val = 1<<val;
+V stressPages int MAX_INT stressFactor
+Log 2 of the frequency with which to force stress test collections
+int val2 = Conversions.bytesToPagesUp(1<<val); \
+if (val2 <= Plan.DEFAULT_POLL_FREQUENCY) VM_Interface.sysFail("Unreasonable stress factor, must be at least equal to the log of the plan's poll frequency"); \
+val = val2;
 

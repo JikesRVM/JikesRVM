@@ -88,7 +88,7 @@ public abstract class BasePlan
   public static final byte IMMORTAL_SPACE = 124;
 
   // Miscellaneous constants
-  protected static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
+  public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
   private static final int META_DATA_POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   protected static final int DEFAULT_LOS_SIZE_THRESHOLD = 16 * 1024;
   public    static final int NON_PARTICIPANT = 0;

@@ -29,8 +29,31 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
 
   /****************************************************************************
    *
-   * Public instance methods
+   * Class variables
    */
+  static private final int MAX_MEMORY_RESOURCES = 20;
+  static private final MemoryResource [] allMR = new MemoryResource[MAX_MEMORY_RESOURCES];
+  static private int allMRCount = 0;
+  static private Lock classLock;
+  static private long cumulativeCommitted = 0;
+
+  /****************************************************************************
+   *
+   * Instance variables
+   */
+  public final String name;
+  private int reserved;
+  private int committed;
+  private int pageBudget;
+  private Lock gcLock;       // used during GC
+  private Lock mutatorLock;  // used by mutators
+
+  /**
+   * Class initializer
+   */
+  static {
+    classLock = new Lock("MemoryResource.classLock");
+  }
 
   /**
    * Constructor
@@ -52,6 +75,7 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
     this.pageBudget = pageBudget;
     allMR[allMRCount++] = this;
   }
+
 
   /**
    * Set the page budget
@@ -106,6 +130,8 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
       lock();
     }
     committed += pages;
+    if (!Plan.gcInProgress())
+      addToCommitted(pages);   // only count mutator pages
     unlock();
     return true;
   }
@@ -138,6 +164,26 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
    */
   public int committedPages() {
     return committed;
+  }
+
+  /**
+   * Return the cumulative number of committed pages
+   *
+   * @return The cumulative number of committed pages.
+   */
+  static long getCumulativeCommittedPages() {
+    return cumulativeCommitted;
+  }
+
+  /**
+   * Add to the total cumulative committed page count.
+   *
+   * @param pages The number of pages to be added.
+   */
+  private static void addToCommitted(int pages) {
+    classLock.acquire();
+    cumulativeCommitted += pages;
+    classLock.release();
   }
 
   /**
@@ -199,22 +245,4 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
     Log.writeln();
   }
 
-  /****************************************************************************
-   *
-   * Class variables
-   */
-  static private final int MAX_MEMORY_RESOURCES = 20;
-  static private final MemoryResource [] allMR = new MemoryResource[MAX_MEMORY_RESOURCES];
-  static private       int allMRCount = 0;
-
-  /****************************************************************************
-   *
-   * Instance variables
-   */
-  public final String name;
-  private int reserved;
-  private int committed;
-  private int pageBudget;
-  private Lock gcLock;       // used during GC
-  private Lock mutatorLock;  // used by mutators
 }

@@ -66,7 +66,7 @@ public abstract class StopTheWorldGC extends BasePlan
   protected static int required; // how many pages must this GC yeild? 
 
   // GC stress test
-  private static int lastStressPagesReserved = 0;  
+  private static long lastStressCumulativeCommittedPages = 0;  
 
   /****************************************************************************
    *
@@ -134,10 +134,10 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   protected static final boolean stressTestGCRequired()
     throws VM_PragmaInline {
-    int pagesReserved = Plan.getPagesReserved();
+    long pages = MemoryResource.getCumulativeCommittedPages();
     if (initialized &&
-	((pagesReserved ^ lastStressPagesReserved) > Options.stressTest)) {
-      lastStressPagesReserved = pagesReserved;
+	((pages ^ lastStressCumulativeCommittedPages) > Options.stressPages)) {
+      lastStressCumulativeCommittedPages = pages;
       return true;
     } else
       return false;
