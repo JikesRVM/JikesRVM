@@ -6,6 +6,9 @@ package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_CompiledMethods;
+import com.ibm.JikesRVM.VM_RuntimeOptCompilerInfrastructure;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -29,29 +32,29 @@ import java.util.ListIterator;
 public final class VM_ControllerPlan {
 
   // The plan was created, but the setStatus method was never called
-  static final byte UNINITIALIZED = 0;
+  public static final byte UNINITIALIZED = 0;
 
   // The plan was successfully completed, i.e., the method was recompiled
-  static final byte COMPLETED = 1;
+  public static final byte COMPLETED = 1;
 
   // Compilation began the method, but failed in an error
-  static final byte ABORTED_COMPILATION_ERROR = 2;
+  public static final byte ABORTED_COMPILATION_ERROR = 2;
 
   // The plan was aborted because the compilation queue was full
-  static final byte ABORTED_QUEUE_FULL = 3;
+  public static final byte ABORTED_QUEUE_FULL = 3;
 
   // The compilation is still in progress
-  static final byte IN_PROGRESS = 4;
+  public static final byte IN_PROGRESS = 4;
 
   // The compilation completed, but a new plan for the same method also 
   // completed, so this is not the most recent completed plan
-  static final byte OUTDATED = 5;
+  public static final byte OUTDATED = 5;
 
   // The compilation plan is for a promotion from BASE to OPT
-  static final byte OSR_BASE_2_OPT = 6;
+  public static final byte OSR_BASE_2_OPT = 6;
   
   // This is used by clients to initialize local variables for Java semantics
-  static final byte UNKNOWN = 99;   
+  public static final byte UNKNOWN = 99;   
   
   /**
    *  The associate compilation plan 
@@ -137,24 +140,87 @@ public final class VM_ControllerPlan {
     setStatus(VM_ControllerPlan.IN_PROGRESS);
     VM_ControllerMemory.insert(this);
       
-    // Attempt to add plan to compilation queue.
-    boolean succeeded = 
-      VM_Controller.compilationQueue.insert(getPriority(), this);
+    if (VM_Controller.options.BACKGROUND_RECOMPILATION ||
+	getCompPlan().getMethod().getDeclaringClass().isInBootImage()) {
+      // Attempt to add plan to compilation queue.
+      boolean succeeded = 
+	VM_Controller.compilationQueue.insert(getPriority(), this);
 
-    // Logging, and record failure in plan if necessary.
-    if (succeeded) {
-      if (VM.LogAOSEvents) 
-	VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority()); 
+      // Logging, and record failure in plan if necessary.
+      if (succeeded) {
+	if (VM.LogAOSEvents) 
+	  VM_AOSLogging.recompilationScheduled(getCompPlan(), getPriority()); 
+      } else {
+	if (VM.LogAOSEvents) 
+	  VM_AOSLogging.recompilationQueueFull(getCompPlan()); 
+	setStatus(VM_ControllerPlan.ABORTED_QUEUE_FULL); 
+      }
+      return succeeded;
     } else {
-      if (VM.LogAOSEvents) 
-	VM_AOSLogging.recompilationQueueFull(getCompPlan()); 
-      setStatus(VM_ControllerPlan.ABORTED_QUEUE_FULL); 
+      getCompPlan().getMethod().replaceCompiledMethod(null);
+      return true;
     }
-
-    return succeeded;
   }
 
 
+
+  /**
+   * This method will recompile the method designated by the passed 
+   * controller plan.  It also 
+   *  1) credits the samples associated with the old compiled method
+   *     ID to the new method ID and clears the old value.
+   *  2) clears inlining information
+   *  3) updates the status of the controller plan
+   * @param plan the controller plan to use for the recompilation
+   */
+  public VM_CompiledMethod doRecompile() {
+    OPT_CompilationPlan cp = getCompPlan();
+
+    setTimeInitiated(VM_Controller.controllerClock);
+    if (VM.LogAOSEvents) VM_AOSLogging.recompilationStarted(cp); 
+
+    if (cp.options.PRINT_METHOD) {
+      VM.sysWrite("-oc:O"+cp.options.getOptLevel()+" \n");
+    }
+    
+    // Compile the method.
+    int newCMID = VM_RuntimeOptCompilerInfrastructure.recompileWithOpt(cp);
+    int prevCMID = getPrevCMID();
+
+    if (VM_Controller.options.sampling()) {
+      // transfer the samples from the old CMID to the new CMID.
+      // scale the number of samples down by the expected speedup 
+      // in the newly compiled method.
+      double expectedSpeedup = getExpectedSpeedup();
+      double oldNumSamples = VM_Controller.methodSamples.getData(prevCMID);
+      double newNumSamples = oldNumSamples / expectedSpeedup;
+      VM_Controller.methodSamples.reset(prevCMID);
+      if (newCMID > -1) {
+	VM_Controller.methodSamples.augmentData(newCMID, newNumSamples);
+      }
+    }
+
+    // set the status of the plan accordingly
+    if (newCMID != -1) {
+      setStatus(VM_ControllerPlan.COMPLETED);
+      VM_AdaptiveInlining.clearNonInlinedEdges(prevCMID);
+    } else {
+      setStatus(VM_ControllerPlan.ABORTED_COMPILATION_ERROR);
+    }
+
+    setCMID(newCMID);
+    setTimeCompleted(VM_Controller.controllerClock);
+    if (VM.LogAOSEvents) {
+      if (newCMID == -1) {
+	VM_AOSLogging.recompilationAborted(cp);
+      } else {
+	VM_AOSLogging.recompilationCompleted(cp);
+        VM_AOSLogging.debug("New CMID " + newCMID);
+      }
+    }
+
+    return newCMID == -1 ? null : VM_CompiledMethods.getCompiledMethod(newCMID);
+  }
 
   /**
    * The compilation plan

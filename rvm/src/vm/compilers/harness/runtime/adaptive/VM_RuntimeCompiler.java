@@ -104,9 +104,25 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	  cm = optCompileWithFallBack(method, compPlan);
 	}
       } else {
-	// compile with baseline compiler
-	cm = baselineCompile(method);
-	VM_ControllerMemory.incrementNumBase();
+	if (VM_Controller.options.BACKGROUND_RECOMPILATION) {
+	  // must be an inital compilation: compile with baseline compiler
+	  cm = baselineCompile(method);
+	  VM_ControllerMemory.incrementNumBase();
+	} else {
+	  // check to see if there is a compilation plan for this method.
+	  VM_ControllerPlan plan = VM_ControllerMemory.findLatestPlan(method);
+	  if (plan == null || plan.getStatus() != VM_ControllerPlan.IN_PROGRESS) {
+	    // initial compilation or some other funny state: compile with baseline compiler
+	    cm = baselineCompile(method);
+	    VM_ControllerMemory.incrementNumBase();
+	  } else {
+	    cm = plan.doRecompile();
+	    if (cm == null) {
+	      // opt compilation aborted for some reason.
+	      cm = baselineCompile(method);
+	    }
+	  }	      
+	}
       }
     }
     return cm;
@@ -116,4 +132,6 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
   public static VM_CompiledMethod compile(VM_NativeMethod method) {
     return jniCompile(method);
   }
+
+
 }
