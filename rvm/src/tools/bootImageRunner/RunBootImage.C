@@ -301,8 +301,8 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
             char *buf = (char *) malloc(bufsiz); 
             int ret = snprintf(buf, bufsiz, "-X:gc:verbose=%ld", level);
             if (ret < 0) {
-                fprintf(stderr, "Internal error processing the argument"
-                        " \"%s\"\n", token);
+                fprintf(stderr, "%s: Internal error processing the argument"
+                        " \"%s\"\n", Me, token);
                 exit(1);
             }
             if (ret >= bufsiz) {
