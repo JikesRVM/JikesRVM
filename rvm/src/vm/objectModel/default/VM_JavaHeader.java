@@ -368,6 +368,19 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
 
   /**
+   * Non-atomic write of word containing available bits for a <b>boot
+   * image</b> object.
+   *
+   * @param bootImage The boot image interface.
+   * @param ref The object reference
+   * @param val The new status word
+   */
+  public static void writeAvailableBitsWord(BootImageInterface bootImage,
+					    int ref, int val) {
+    bootImage.setFullWord(ref + STATUS_OFFSET, val);
+  }
+
+  /**
    * Non-atomic write of byte containing available bits
    */
   public static void writeAvailableBitsByte(Object o, byte val) {
@@ -464,9 +477,11 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
    */
-  public static int initializeScalarHeader(BootImageInterface bootImage, int ptr, 
-					   Object[] tib, int size) throws VM_PragmaInterruptible {
+  public static int initializeScalarHeader(BootImageInterface bootImage,
+					   int ptr, Object[] tib, int size)
+    throws VM_PragmaInterruptible {
     int ref = ptr + size;
+
     // (TIB set by BootImageWriter2)
 
     //    if (MM_Interface.NEEDS_WRITE_BARRIER) {

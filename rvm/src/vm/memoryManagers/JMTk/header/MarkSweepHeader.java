@@ -71,17 +71,19 @@ public class MarkSweepHeader {
 
   /**
    * Perform any required initialization of the GC portion of the header.
-   * Called for objects alloacted at boot time.
+   * Called for objects created at boot time.
    * 
    * @param ref the object ref to the storage to be initialized
    * @param tib the TIB of the instance being created
-   * @param size the number of bytes allocated by the GC system for this object.
-   * @param isScalar are we initializing a scalar (true) or array (false) object?
+   * @param size the number of bytes allocated by the GC system for
+   * this object.
+   * @param isScalar are we initializing a scalar (true) or array
+   * (false) object?
    */
-  public static void initializeHeaderBootTime(int ref, Object[] tib, 
-					      int size, boolean isScalar)
-    throws VM_PragmaUninterruptible {
-    // nothing to do for boot image objects
+  public static int getBootTimeAvailableBits(int ref, Object[] tib, int size,
+					     boolean isScalar, int status)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return status; // nothing to do (no bytes of GC header)
   }
 
   /**
