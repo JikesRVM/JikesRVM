@@ -226,7 +226,7 @@ public static double bootTime;
 	  // into the threads saved context regs, which is where the stack scan starts.
 	  //
 	  VM_Thread thr = vp.activeThread;
-	  thr.contextRegisters.setInnermost( VM_Address.zero(), thr.jniEnv.JNITopJavaFP );
+	  thr.contextRegisters.setInnermost( VM_Address.zero(), thr.jniEnv.topJavaFP() );
 	}
 	smallHeap.zeromarks(vp);		// reset mark bits for nonparticipating vps
       }

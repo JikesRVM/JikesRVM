@@ -254,8 +254,8 @@ public class VM_CollectorThread extends VM_Thread
 	    // these frames, so can be set to 0.
 	    //
 	    VM_Thread t = VM_Processor.nativeProcessors[i].activeThread;
-	    //	    t.contextRegisters.gprs[FRAME_POINTER] = t.jniEnv.JNITopJavaFP;
-	    t.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, t.jniEnv.JNITopJavaFP );
+	    //	    t.contextRegisters.gprs[FRAME_POINTER] = t.jniEnv.topJavaFP();
+	    t.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, t.jniEnv.topJavaFP() );
 	  }
         }
 
@@ -420,13 +420,13 @@ public class VM_CollectorThread extends VM_Thread
 	    VM_Scheduler.trace("VM_CollectorThread", "Attached Processor BLOCKED_IN_NATIVE", i);
 	  
 	  // XXX SES TON XXX
-	  // TON !! what is in jniEnv.JNITopJavaFP when thread returns to user C code.
+	  // TON !! what is in jniEnv.topJavaFP() when thread returns to user C code.
 	  // AND what will happen when we scan its stack with that fp
 	  
 	  // set running threads context regs ip & fp to where scan of threads 
 	  // stack should start.
 	  VM_Thread at = vp.activeThread;
-	  at.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, at.jniEnv.JNITopJavaFP );
+	  at.contextRegisters.setInnermost( VM_Address.zero() /*ip*/, at.jniEnv.topJavaFP() );
 	  break;
 	}
 	
