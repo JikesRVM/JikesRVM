@@ -549,9 +549,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 					 VM_Address tgt)
     throws VM_PragmaInline {
     if (INLINE_WRITE_BARRIER)
-      writeBarrier(src.add(offset), tgt);
+      writeBarrier(src, src.add(offset), tgt);
     else
-      writeBarrierOOL(src.add(offset), tgt);
+      writeBarrierOOL(src, src.add(offset), tgt);
   }
 
   /**
@@ -569,9 +569,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 					   VM_Address tgt)
     throws VM_PragmaInline {
     if (INLINE_WRITE_BARRIER)
-      writeBarrier(src.add(index<<LOG_WORD_SIZE), tgt);
+      writeBarrier(src, src.add(index<<LOG_WORD_SIZE), tgt);
     else
-      writeBarrierOOL(src.add(index<<LOG_WORD_SIZE), tgt);
+      writeBarrierOOL(src, src.add(index<<LOG_WORD_SIZE), tgt);
   }
 
   /**
@@ -584,12 +584,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * optimizing compiler, and the methods it calls are forced out of
    * line.
    *
-   * @param src The address of the word (slot) containing the new
-   * reference.
-   * @param tgt The target of the new reference (about to become the
-   * contents of src).
+   * @param obj The object being mutated.
+   * @param src The address of the word (slot) being mutated.
+   * @param tgt The target of the new reference (about to be stored into src).
    */
-  private final void writeBarrier(VM_Address src, VM_Address tgt) 
+  private final void writeBarrier(VM_Address obj, VM_Address src,
+				  VM_Address tgt) 
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
     VM_Address old;
@@ -607,12 +607,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * forced <b>out of line</b> by the optimizing compiler, and the
    * methods it calls are forced out of inline.
    *
-   * @param src The address of the word (slot) containing the new
-   * reference.
-   * @param tgt The target of the new reference (about to become the
-   * contents of src).
+   * @param obj The object being mutated.
+   * @param src The address of the word (slot) being mutated.
+   * @param tgt The target of the new reference (about to be stored into src).
    */
-  private final void writeBarrierOOL(VM_Address src, VM_Address tgt) 
+  private final void writeBarrierOOL(VM_Address obj, VM_Address src,
+				     VM_Address tgt) 
     throws VM_PragmaNoInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
     VM_Address old;
