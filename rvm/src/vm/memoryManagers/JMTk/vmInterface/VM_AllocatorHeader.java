@@ -12,6 +12,7 @@ import com.ibm.JikesRVM.BootImageInterface;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
 
 /**
  * Chooses the appropriate collector-specific header model.
@@ -30,8 +31,7 @@ public final class VM_AllocatorHeader extends Header {
    */
   public static void initializeHeader(BootImageInterface bootImage, int ref,
                                       Object[] tib, int size, boolean isScalar)
-    throws VM_PragmaUninterruptible {
-
+    throws VM_PragmaInterruptible {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
     int status = getBootTimeAvailableBits(ref, tib, size, isScalar, 0);
     VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);

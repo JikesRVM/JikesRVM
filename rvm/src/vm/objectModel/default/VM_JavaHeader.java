@@ -376,7 +376,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param val The new status word
    */
   public static void writeAvailableBitsWord(BootImageInterface bootImage,
-					    int ref, int val) {
+					    int ref, int val) throws VM_PragmaInterruptible {
     bootImage.setFullWord(ref + STATUS_OFFSET, val);
   }
 
