@@ -74,6 +74,9 @@ class FixedLive {
   }
 
   public static void updateStats() {
+    setupTime = chop(setupTime);
+    sumAllocTime = chop(sumAllocTime);
+    sumTraceTime = chop(sumTraceTime);
     avgTraceRate = sumTraceRate / sampleCount;
     avgAllocRate = sumAllocRate / sampleCount;
     diffSquaredSumTraceRate = squaredSumTraceRate + sampleCount * (avgTraceRate * avgTraceRate) 
@@ -95,12 +98,12 @@ class FixedLive {
   public static void showResults() {
     updateStats();
     System.out.println();
-    System.out.print("Overall:           tracing    rate = " + avgTraceRate + " Mb/s");
-    System.out.println("   allocation     rate = " + avgAllocRate + " Mb/s");
-    System.out.print("Overall:     tracing   sigma = " + rmsTraceRate + " Mb/s");
-    System.out.println("   allocation    sigma = " + rmsAllocRate + " Mb/s");
-    System.out.print("Overall:           tracing z-score = " + zTraceRate);
-    System.out.println("           allocation z-score = " + zAllocRate);
+    System.out.print("Overall:          tracing    rate = " + avgTraceRate + " Mb/s");
+    System.out.println("            allocation     rate = " + avgAllocRate + " Mb/s");
+    System.out.print("Overall:          tracing   sigma = " + rmsTraceRate + " Mb/s");
+    System.out.println("            allocation    sigma = " + rmsAllocRate + " Mb/s");
+    System.out.print("Overall:          tracing z-score = " + zTraceRate);
+    System.out.println("             allocation z-score = " + zAllocRate);
     System.out.println("Overall:  Total Setup      Time = " + setupTime + " s");
     System.out.println("Overall:  Total Allocation Time = " + sumAllocTime + " s");
     System.out.println("Overall:  Total Tracing    Time = " + sumTraceTime + " s");
@@ -132,8 +135,8 @@ class FixedLive {
       double allocElapsed = (start - last) / 1000.0;
       double totalElapsed = traceElapsed + allocElapsed;
       if (traceElapsed > 0.1) {
-	double traceRate = liveSize / traceElapsed; // Mb/s
-	double allocRate = (allocatedSize / 1e6) / allocElapsed; // Mb/s
+	double traceRate = chop(liveSize / traceElapsed); // Mb/s
+	double allocRate = chop((allocatedSize / 1e6) / allocElapsed); // Mb/s
 	addSample(traceElapsed, allocElapsed, traceRate, allocRate);
 	allocatedSize = 0;
 	last = end;
@@ -143,6 +146,7 @@ class FixedLive {
     }
     showResults();
   }
+
 
   public static void runTest() throws Throwable {
 
