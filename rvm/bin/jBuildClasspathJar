@@ -70,6 +70,15 @@ function classpath_configure_args () {
     echo " --enable-portable-native-sync" # Needed for Classpath 0.09 and 0.08
     if ! [[ -e /usr/include/gtk-2.0/gtk/gtk.h ]]; then
 	echo "  --disable-gtk-peer"
+    else
+	# We don't really support AWT yet; there are still some 
+	# glitches needing resolution (AWT is still infernally slow for us).  
+	# So, we can go ahead and just disable AWT for this default
+	# Classpath build.  When this is enabled, as of this writing
+	# (26 July 2004), the JMTk regressions fail due to an attempt
+	# to contact the X server.  This should make it impossible for
+	# Classpath to try to talk to X.
+	echo "  --disable-gtk-peer"
     fi
 }
 
