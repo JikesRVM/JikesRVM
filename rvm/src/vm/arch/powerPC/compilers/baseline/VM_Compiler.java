@@ -863,10 +863,10 @@ public class VM_Compiler extends VM_BaselineCompiler
     peekAddr(T1, 0);  // T1 is value to store
     peekAddr(T0, 2);  // T0 is array ref 
     asm.emitBCCTRL();   // checkstore(arrayref, value)
-    astoreSetup(LOG_BYTES_IN_ADDRESS);
     if (MM_Interface.NEEDS_WRITE_BARRIER) {
       VM_Barriers.compileArrayStoreBarrier(this);
     } else {
+      astoreSetup(LOG_BYTES_IN_ADDRESS);
       asm.emitSTAddrX (T3, T0, T1);  // store ref value in array
     }
   }
