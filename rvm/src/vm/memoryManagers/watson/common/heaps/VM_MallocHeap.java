@@ -48,6 +48,7 @@ public class VM_MallocHeap extends VM_Heap
    * @return whether or not the object was already marked
    */
   public boolean mark(VM_Address ref) {
+    if (VM.VerifyAssertions) VM.assert(!VM_AllocatorHeaderConstants.USE_SIDE_MARK_VECTOR);
     return VM_AllocatorHeader.testAndMark(VM_Magic.addressAsObject(ref), markValue);
   }
 
@@ -55,8 +56,12 @@ public class VM_MallocHeap extends VM_Heap
    * Is the object reference live?
    */
   public boolean isLive(VM_Address ref) {
-    Object obj = VM_Magic.addressAsObject(ref);
-    return VM_AllocatorHeader.testMarkBit(obj, markValue);
+    if (VM_AllocatorHeaderConstants.USE_SIDE_MARK_VECTOR) {
+      return true;
+    } else {
+      Object obj = VM_Magic.addressAsObject(ref);
+      return VM_AllocatorHeader.testMarkBit(obj, markValue);
+    }
   }
 
   /**
@@ -66,7 +71,41 @@ public class VM_MallocHeap extends VM_Heap
     // flip the sense of the mark bit.
     markValue = markValue ^ VM_CommonAllocatorHeader.GC_MARK_BIT_MASK;
   }    
-  
+
+  /**
+   * Allocate a scalar object. Fills in the header for the object,
+   * and set all data fields to zero. Assumes that type is already initialized.
+   * Disables thread switching during allocation. 
+   * 
+   * @param type  VM_Class of type to be instantiated
+   *
+   * @return the reference for the allocated object
+   */
+  public Object atomicAllocateScalar(VM_Class type) {
+    VM_Processor.getCurrentProcessor().disableThreadSwitching();
+    Object o = allocateScalar(type);
+    VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    return o;
+  }
+
+  /**
+   * Allocate an array object. Fills in the header for the object,
+   * sets the array length to the specified length, and sets
+   * all data fields to zero.  Assumes that type is already initialized.
+   * Disables thread switching during allocation. 
+   *
+   * @param type  VM_Array of type to be instantiated
+   * @param numElements  number of array elements
+   *
+   * @return the reference for the allocated array object 
+   */
+  public Object atomicAllocateArray(VM_Array type, int numElements) {
+    VM_Processor.getCurrentProcessor().disableThreadSwitching();
+    Object o = allocateArray(type, numElements);
+    VM_Processor.getCurrentProcessor().enableThreadSwitching();
+    return o;
+  }
+
   /**
    * Allocate size bytes of zeroed memory.
    * Size is a multiple of wordsize, and the returned memory must be word aligned
@@ -112,7 +151,9 @@ public class VM_MallocHeap extends VM_Heap
       VM_ObjectModel.initializeAvailableByte(newObj); 
       VM_AllocatorHeader.setBarrierBit(newObj);
     }    
-    VM_AllocatorHeader.writeMarkBit(newObj, markValue);
+    if (!VM_AllocatorHeaderConstants.USE_SIDE_MARK_VECTOR) {
+      VM_AllocatorHeader.writeMarkBit(newObj, markValue);
+    }
   }
 
   void free(VM_Address addr) {

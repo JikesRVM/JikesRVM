@@ -305,6 +305,39 @@ abstract class VM_Heap
     return count;
   }
 
+
+  /**
+   * Allocate a scalar object. Fills in the header for the object,
+   * and set all data fields to zero. Assumes that type is already initialized.
+   * 
+   * @param type  VM_Class of type to be instantiated
+   *
+   * @return the reference for the allocated object
+   */
+  public Object allocateScalar(VM_Class type) {
+    if (VM.VerifyAssertions) VM.assert(type.isInitialized());
+    int size = type.getInstanceSize();
+    Object[] tib = type.getTypeInformationBlock();
+    return allocateScalar(size, tib);
+  }
+
+  /**
+   * Allocate an array object. Fills in the header for the object,
+   * sets the array length to the specified length, and sets
+   * all data fields to zero.  Assumes that type is already initialized.
+   *
+   * @param type  VM_Array of type to be instantiated
+   * @param numElements  number of array elements
+   *
+   * @return the reference for the allocated array object 
+   */
+  public Object allocateArray(VM_Array type, int numElements) {
+    if (VM.VerifyAssertions) VM.assert(type.isInitialized());
+    int size = type.getInstanceSize(numElements);
+    Object[] tib = type.getTypeInformationBlock();
+    return allocateArray(numElements, size, tib);
+  }
+
   /**
    * Allocate a scalar object. Fills in the header for the object,
    * and set all data fields to zero.
@@ -323,7 +356,6 @@ abstract class VM_Heap
     return newObj;
   }
   
-
   /**
    * Allocate an array object. Fills in the header for the object,
    * sets the array length to the specified length, and sets

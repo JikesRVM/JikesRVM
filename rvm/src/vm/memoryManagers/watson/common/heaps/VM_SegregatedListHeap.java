@@ -612,13 +612,8 @@ final class VM_SegregatedListHeap extends VM_Heap
 	mallocHeap.free(VM_Magic.objectAsAddress(alloc_block.mark).sub(byteArrayHeaderSize));
       }
     }
-
-    // get space for alloc arrays 
-    int mark_array_size = getByteArrayInstanceSize(size);
-    byteArrayTIB = byteArrayType.getTypeInformationBlock();
-    VM_Address region = mallocHeap.allocateZeroedMemory(mark_array_size);
-    alloc_block.mark = VM_Magic.objectAsByteArray(VM_ObjectModel.initializeArray(region, byteArrayTIB, size, mark_array_size));
-
+    // allocate a mark array from the malloc heap.
+    alloc_block.mark = VM_Magic.objectAsByteArray(mallocHeap.atomicAllocateArray(byteArrayType, size));
     return theblock;
   }
 
@@ -705,11 +700,7 @@ final class VM_SegregatedListHeap extends VM_Heap
       }
     }
 
-    int mark_array_size = getByteArrayInstanceSize(size);
-    VM_Address location = mallocHeap.allocateZeroedMemory(mark_array_size);
-    alloc_block.alloc_size = size;  // remember allocated size
-    alloc_block.mark = VM_Magic.objectAsByteArray(VM_ObjectModel.initializeArray(location, byteArrayTIB, size, mark_array_size));
-
+    alloc_block.mark = VM_Magic.objectAsByteArray(mallocHeap.atomicAllocateArray(byteArrayType, size));
     return 0;
   }
 
