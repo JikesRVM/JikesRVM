@@ -1,4 +1,4 @@
-#!/bin/ksh
+#! /bin/ksh
 #
 # (C) Copyright IBM Corp. 2001
 #
@@ -6,9 +6,9 @@
 #
 # Build the RVM standard libraries, rvmrt.jar, from the java source files.
 #
-# Invocation:  jBuildLibs
+# Invocation:  jBuildLibs [--install]
 #
-# Authors: Julian Dolby, Stephen Fink, David Grove
+# Authors: Julian Dolby, Stephen Fink, David Grove, Martin Trapp
 
 # Stop immediately if any programs we call return errors.
 #
@@ -17,6 +17,39 @@ set -e
 # Who we are.
 #
 ME=`basename $0`
+
+function usage
+{
+  echo usage: $ME [--install]
+  echo Build the RVM standard libraries, rvmrt.jar, from the java source files.
+  echo --install installs the new jar file in $RVM_ROOT/support/lib
+  exit $1
+}
+
+function do_install
+{
+  print "$ME: Copying rvmrt.jar to $RVM_ROOT/support/lib"
+  cp -f $RVM_BUILD/rvmrt.jar $RVM_ROOT/support/lib
+  cp rvmrt.id $RVM_ROOT/rvm/bin/ids/rvmrt.required # sync the RVM
+  cp rvmrt.id $RVM_ROOT/rvm/bin/ids/rvmrt.installed
+}
+
+##
+## Main part of script starts here
+##
+
+while [[ $# > 0 ]] ; do
+  echo $1
+  case $1 in
+    --install) install="y";;
+    --help) usage 0;;
+    -h) usage 0;;
+    *) usage 1;;
+  esac
+  shift
+done
+
+
 
 # Place where source files reside.
 #
@@ -43,7 +76,7 @@ fi
 . $RVM_HOST_CONFIG
 
 # Create a temporary build directory
-$RVM_ROOT/rvm/bin/jconfigure -D "BUILD_RVMRT_JAR=1" BaseBaseSemispace
+$RVM_ROOT/rvm/bin/jconfigure -D "BUILD_RVMRT_JAR=1" BaseBaseConcurrent
 cd $RVM_BUILD
 ./jbuild.expand
 ./jbuild.copy
@@ -60,19 +93,23 @@ $FIND com -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.t
 $FIND java -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.tool
 
 cd $RVM_BUILD/RVM.classes
+
 # Create the file rvmrt.id, containing the date
-date > rvmrt.id
+date -u +"%Y/%m/%d-%H:%M:%S" > rvmrt.id
 
 # Create the jar file
 $FIND . -type f | $GREP -v \.class\$ | $GREP -v rvmrt.id | $XARGS rm -f
-$HOST_JAR -cvf $RVM_BUILD/rvmrt.jar com java rvmrt.id
+$HOST_JAR -cvf $RVM_BUILD/rvmrt.jar rvmrt.id com java
+
 
 # Install the new jar file?
-if tty -s; then # keyboard is live (ie. this is not an automated build)
-  print -n "$ME: Install new rvmrt.jar in $RVM_ROOT/support/lib? (y/n)"
-  read response
-  if [[ $response = y ]]; then
-    print "$ME: Copying rvmrt.jar to $RVM_ROOT/support/lib"
-    cp -f $RVM_BUILD/rvmrt.jar $RVM_ROOT/support/lib
+if [[ x$install != xy ]] ; then
+  if tty -s; then # keyboard is live (ie. this is not an automated build)
+    print -n "$ME: Install new rvmrt.jar in $RVM_ROOT/support/lib? (y/n)"
+    read install
   fi
+fi
+# Install now?
+if [[ x$install = xy ]] ; then
+  do_install
 fi
