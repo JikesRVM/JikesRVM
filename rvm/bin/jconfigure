@@ -45,8 +45,23 @@ fi
 
 # Stop immediately if any programs we call return errors.
 #
-trap 'echo >&2 "$ME: some command we just ran (probably with a final argument of \"$_\") exited with status $?.  I give up; aborting execution."' ERR
-trap 'echo >&2 "$ME: We just exited due to an error."' EXIT
+## Check if the command does not support the ERR trap.
+unset xited
+if trap -- 'xited=$?; echo >&2 "$ME: some command we just ran (probably with a
+      final argument of \"$_\") exited with status $xited, possibly in source
+      file line # $LINENO and function $FUNCNAME
+      I give up; aborting execution."' ERR
+then
+    have_err_trap=yes
+else
+    echo >&2 "ME: You are under a version of Bash 
+    ($BASH_VERSION; probably pre-2.05) that
+    does not support
+    the ERR trap.  You may not get as much diagnostic info as you would like."
+    unset have_err_trap
+fi
+
+trap -- 'echo >&2 "$ME: We just exited due to an error, exit status was ${xited:-$?}."' EXIT
 set -e;
 
 ## Complain
@@ -693,33 +708,54 @@ function emitSourceList () {
 
 
 
+## We only emit the boilerplate inline.
 function emitBoilerplate () {
     cat <<- 'EOF'
+	## BEGIN inline Bash boilerplate.
 	# What is our name?
 	# Bash internal shorthand that works like the "basename" command.
-
 	ME="${0##*/}"
-	. ${RVM_BUILD-.}/enable_exit_on_error
+EOF
+    emit_enable_exit_on_error
+    cat <<- 'EOF'
+	## END inline Bash boilerplate.
 EOF
 }
 
 function emit_disable_exit_on_error () {
-    cat << 'EOF'
-	# disable_exit_on_error.  This has to be a source'd file; the ERR 
-	# trap is not inherited by shell functions.  Too Bad.
-	trap - ERR
+    cat <<- 'EOF'
+	## BEGIN disable_exit_on_error.
+EOF
+    if [ "$have_err_trap" ]; then
+	cat <<- 'EOF'
+	# This has to be inline or a source'd file; the ERR trap is not
+	# inherited by shell functions.
+	trap - ERR || echo >&2 "$ME: We do not have the ERR Trap in this shell.  Must be cross-configuring or something of the sort."
+	EOF
+    fi
+    cat <<- 'EOF'
 	set +e
+	## END disable_exit_on_error.
 EOF
 }
 
 function emit_enable_exit_on_error () {
-    cat << 'EOF'
-	# enable_exit_on_error.  This has to be a source'd file; the ERR 
-	# trap is not inherited by shell functions.  Too Bad.
+    cat <<- 'EOF'
+	## BEGIN enable_exit_on_error.
+	EOF
+    if [ "$have_err_trap" ]; then
+	cat <<- 'EOF'
+	# This has to be inline or a source'd file; the ERR trap is not
+	# inherited by shell functions.
 	trap 'echo >&2 "$ME: A command I just ran (probably with a final argument of "$_")
-	   exited with status $?.  Something is broken; I give up."' ERR
+	   exited with status $?.  Something is broken; I give up."' ERR \
+	  || echo >&2 "$ME: We do not have the ERR Trap in this shell.  Must be cross-configuring or something of the sort."
+	EOF
+    fi
+    cat <<- 'EOF'
 	set -e
-EOF
+	## END enable_exit_on_error.
+	EOF
 }
 
 
@@ -911,8 +947,9 @@ function emitController () {
     cat <<- 'EOF'
 	#!/bin/bash
 	# Run all phases of vm builder.
-
-	. ./boilerplate.bash
+EOF
+    emitBoilerplate
+    cat <<- 'EOF'
 
 	# timeit() $1: The command to run
 	#	   $2: That command's arguments.
@@ -933,10 +970,14 @@ function emitController () {
 
 	    # Disable exit-on-error; inside "timeit", we can get a better
 	    # exit message than the default one.
-	    . ${RVM_BUILD}/disable_exit_on_error
+EOF
+    emit_disable_exit_on_error;
+    cat <<- 'EOF'
 	    "$@"
 	    local status=$?
-	    . ${RVM_BUILD}/enable_exit_on_error
+EOF
+    emit_enable_exit_on_error
+    cat <<- 'EOF'
 	    echo "$SECONDS s"
 	    if [ $status != 0 ]; then
 		echo >&2 "$ME: Trouble while running \"$*\" (exit status $status); aborting execution"
@@ -1014,11 +1055,8 @@ EOF
 # The script, jbuild.linkBooter, will optionally run
 # a command specified by the user of jbuildLinkBooter
 # in the enviroment variable RVM_BUILD_COPY.
-# This variable could be set to rsh the linkBooter
-# command on the target machine.
-# The syntax of the test, while awkward,
-# is needed to run on all implementation of ksh,
-# including linux ksh.  Maria for Steve Blackburn
+# For example, this variable could use rsh to run the linkBooter
+# command remotely on the target machine.
 	if [[ $BOOTER_FLAG = -booter ]]; then
 	    if [[ X"$RVM_BUILD_COPY" != X ]]; then
 	        timeit $RVM_BUILD_COPY
@@ -1051,7 +1089,9 @@ function emitExpander () {
     cat <<- 'EOF'
 	#! /bin/bash
 	# Generate VM sources that derive from templates.
-	. ./boilerplate.bash
+EOF
+    emitBoilerplate;
+    cat <<- 'EOF'
 	. ./jbuild.environment
 
 
@@ -1143,7 +1183,9 @@ function emitCopier () {
 	# Taken:    .java files in the source tree
 	# Returned: .java files in the build directory
 
-	. ./boilerplate.bash
+EOF
+    emitBoilerplate;
+    cat <<- 'EOF'
 	. ./jbuild.environment
 	
 
@@ -1181,11 +1223,13 @@ for d in $(<' ${SOURCE_LIST_STR} '); do
     fi
     shopt -s nullglob
     # FILES may be empty.
-    FILES="$(echo ${d}/*.java)"
-    . ${RVM_BUILD}/disable_exit_on_error
+    FILES="$(echo ${d}/*.java)"'
+    emit_disable_exit_on_error
+    echo '
     '${BUILD_DIRECTORY_STR}'/jbuild.prep ${TRACE_FLAG}' ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR} '${FILES}
-    status=$?
-    . ${RVM_BUILD}/enable_exit_on_error
+    status=$?'
+    emit_enable_exit_on_error
+    echo '
     if [[ ${status} = 1 ]]; then
        FILES_HAVE_CHANGED=1
     elif [[ ${status} != 0 ]]; then
@@ -1206,11 +1250,13 @@ done
 if [[ ${TRACE_FLAG} = -trace ]]; then
     echo -n "${ME}: '${GENERATED_FILES_DIRECTORY_STR}'/"
 fi
-FILES=$(${FIND} '${GENERATED_FILES_DIRECTORY_STR}'/ -name "*.java")
-. ${RVM_BUILD}/disable_exit_on_error
+FILES=$(${FIND} '${GENERATED_FILES_DIRECTORY_STR}'/ -name "*.java")'
+    emit_disable_exit_on_error
+    echo '
 '${BUILD_DIRECTORY_STR}'/jbuild.prep ${TRACE_FLAG}' ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR}' ${FILES}
-status=$?
-. ${RVM_BUILD}/enable_exit_on_error
+status=$?'
+    emit_enable_exit_on_error
+    echo '
 if [[ ${status} = 1 ]]; then
     FILES_HAVE_CHANGED=1
 elif [[ ${status} != 0 ]]; then
@@ -1255,7 +1301,9 @@ function emitCompiler () {
 	# Taken:    .java files in build directory 
 	#           CLASSES_INVALID
 	# Returned: .class files in build directory
-	. ./boilerplate.bash
+EOF
+    emitBoilerplate;
+    cat <<- 'EOF'
 	. ./jbuild.environment
 
 
@@ -1327,14 +1375,17 @@ fi';
 
 # echo >&2  "HERE I AM! emitImageLinker" # DBG
 function emitImageLinker () {
-cat <<- 'EOF'
+    cat <<- 'EOF'
 	#! /bin/bash
 	# Generate the VM bootimage.
 	# Taken:    .class files in build directory
 	# Returned: PRIMORDIAL_CLASSES and bootimage in build directory
 	#           InterfaceDeclarations.h in bootImageRunner directory
 	#
-	. ./boilerplate.bash
+EOF
+    emitBoilerplate
+
+    cat <<- 'EOF'
 	. ./jbuild.environment
 
    
@@ -1904,7 +1955,7 @@ function emitBooterLinker () {
    echo '# Allow the build directory to be different in the host/boot image'
    echo '# writing system, and on the target system.'
    echo ""
-   echo '. ./boilerplate.bash'
+   emitBoilerplate
    echo 'ROOT_DIR="${0%/*}"'
    echo '# I do not understand the point behind this code. --Steve Augart'
    echo 'if [[ "$ROOT_DIR" = "." ]]; then'
@@ -2179,7 +2230,7 @@ function emitToolCompiler () {
    echo '# Generate class files for vm tools that are not part of the build.'
    echo '# In simpler language, this runs the Jikes compiler with the environment'
    echo '# properly set up.'
-   echo '. ${RVM_BUILD}/boilerplate.bash'
+   emitBoilerplate
    echo '. ${RVM_BUILD}/environment'
 
    echo 'if [[ $# = 0 ]]; then'
@@ -2225,7 +2276,7 @@ function emitToolCompiler () {
 function emitToolPreprocessor () {
    echo '#! /bin/bash'
    echo '# Generate class files for vm tools that are not part of the build.'
-   echo '. "$RVM_BUILD/boilerplate.bash"'
+   emitBoilerplate;
    echo '. "$RVM_BUILD/environment"'
 
    echo 'if [[ $# = 0 ]]; then'
@@ -2242,7 +2293,10 @@ function emitPluginBuilder () {
 	# Build and install Jikes RVM launching plugin for Eclipse 2.x
 
 	# pick up configuration to learn where Ant is
-	. "${RVM_BUILD}/boilerplate.bash"
+EOF
+    emitBoilerplate
+
+    cat <<- 'EOF'
 	. "${RVM_BUILD}/environment"
 
 	# allow user-specified Eclipse install to override env
@@ -2376,15 +2430,6 @@ emitMakefile		      >${BUILD_DIRECTORY}/Make.rules
 # echo -n >&2 "About to run chmod -x${PERM} ${BUILD_DIRECTORY}/Make.rules"... # DBG
 chmod -x${PERM}		      ${BUILD_DIRECTORY}/Make.rules
 # echo >&2 "Ran chmod."		# DBG
-
-emitBoilerplate		      >${BUILD_DIRECTORY}/boilerplate.bash
-chmod -x${PERM}		      ${BUILD_DIRECTORY}/boilerplate.bash
-
-emit_enable_exit_on_error     > ${BUILD_DIRECTORY}/enable_exit_on_error
-chmod -x${PERM}		      ${BUILD_DIRECTORY}/enable_exit_on_error
-
-emit_disable_exit_on_error    > ${BUILD_DIRECTORY}/disable_exit_on_error
-chmod -x${PERM}		      ${BUILD_DIRECTORY}/disable_exit_on_error
 
 emitEnvironmentBash	      >${BUILD_DIRECTORY}/environment
 chmod -x${PERM}		      ${BUILD_DIRECTORY}/environment
