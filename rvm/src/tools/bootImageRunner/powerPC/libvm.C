@@ -61,23 +61,19 @@ extern "C" char *sys_siglist[];
 #endif
 
 
-extern "C" int createJVM(int);
-extern "C" void processTimerTick(void);
-extern "C" void sysSyncCache(caddr_t, int size);
-
-extern "C" int getArrayLength(void* ptr);
-
 
 // Interface to VM data structures.
 //
 #define NEED_BOOT_RECORD_DECLARATIONS
 #define NEED_VIRTUAL_MACHINE_DECLARATIONS
 #include <InterfaceDeclarations.h>
+extern "C" void setLinkage(struct VM_BootRecord *):
+
 VM_BootRecord *theBootRecord;
-extern "C" void setLinkage(VM_BootRecord*);
 #define VM_NULL 0
 #define MAXHEAPS 20  // update to auto-generate from (VM_BootRecord.heapRange.length / 2)
 
+#include "../bootImageRunner.h"	// In rvm/src/tools/bootImageRunner
 // Local Declarations
 //
 FILE *SysErrorFile = stderr;   // Sink for messages relating to serious errors detected by C runtime.
@@ -90,11 +86,11 @@ int remainingFatalErrors = 3;  // Terminate execution of vm if 3 or more fatal e
 char **	JavaArgs;              // Command line arguments to be passed to boot image.
 int	JavaArgc;
 static ulong_t startupRegs[4];        // used to pass jtoc, pr, tid, fp to bootThread.s
-ulong_t VmToc;                 // Location of VM's JTOC
+static ulong_t VmToc;                 // Location of VM's JTOC
 int     HardwareTrapMethodId;  // Method id for inserting stackframes at sites of hardware traps.
 int DeliverHardwareExceptionOffset;  // TOC offset of VM_Runtime.deliverHardwareException
 int DumpStackAndDieOffset;           // TOC offset of VM_Scheduler.dumpStackAndDie
-int ProcessorsOffset;                // TOC offset of VM_Scheduler.processors[]
+static int ProcessorsOffset;                // TOC offset of VM_Scheduler.processors[]
 int ThreadsOffset;                   // TOC offset of VM_Scheduler.threads[]
 int DebugRequestedOffset;            // TOC offset of VM_Scheduler.debugRequested
 int AttachThreadRequestedOffset;     // TOC offset of VM_Scheduler.attachThreadRequested
@@ -609,17 +605,15 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 }
 
 
-
-extern "C" void bootThread(int jtoc, int pr, int ti, int fp); // assembler routine
-void *bootThreadCaller(void *);
+static void *bootThreadCaller(void *);
 #include <pthread.h>
 
 // startup configuration option with default values
+// Declared in bootImageRunner.h
 char *bootFilename     = 0;
-extern unsigned initialHeapSize;
-extern unsigned maximumHeapSize;
 
 // name of program that will load and run RVM
+// Declared in bootImageRunner.h
 char *me;
 
 static int pageRoundUp(int size) {
@@ -947,7 +941,7 @@ int createJVM(int vmInSeparateThread) {
  * Wrapper for bootThread for a new pthread to start up the VM
  *
  */
-void *bootThreadCaller(void *dummy) {
+static void *bootThreadCaller(void *dummy) {
   
   ulong_t jtoc = startupRegs[0];
   ulong_t pr   = startupRegs[1];
