@@ -67,7 +67,6 @@ class VM_CompilationThread extends VM_Thread {
       VM.sysWrite("-oc:O"+cp.options.getOptLevel()+" \n");
     }
     
-    // must hold classloader lock while compiling.
     // Update compilation thread timing information to prepare for new run.
     double now = VM_Time.now();
     double start = updateStartAndTotalTimes(now);
