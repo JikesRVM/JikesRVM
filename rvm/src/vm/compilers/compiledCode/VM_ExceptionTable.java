@@ -70,7 +70,7 @@ public abstract class VM_ExceptionTable {
 		    VM_Services.getHexString(eTable[i + TRY_START], true) + " "+
 		    VM_Services.getHexString(eTable[i + TRY_END], true) + " " + 
 		    VM_Services.getHexString(eTable[i + CATCH_START], true) + "    " +
-		    VM_TypeReference.getTypeRef(eTable[i + EX_TYPE]));
+		    VM_Type.getType(eTable[i + EX_TYPE]));
     }
   }
 }
