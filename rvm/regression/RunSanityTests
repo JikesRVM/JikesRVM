@@ -388,13 +388,15 @@ function doRun
            RC_ARGS="$RC_ARGS $EXTRA_RC_ARGS"\
            JAVA_PACKAGES=$RVM_BUILD/RVM.classes\
            RVMPATH=$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar \
-           clean sanity || say "$NAME: You are NOT sane in `pwd`"
+           clean sanity 
 
     # record status
     test_status=$?
     total_tests=`expr $total_tests + 1`
     if [ test_status -eq 0 ]; then 
        passed_tests=`expr $passed_tests + 1`
+    else
+       say "$NAME: You are NOT sane in `pwd`"
     fi
 
     # done
