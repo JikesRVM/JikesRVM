@@ -37,11 +37,11 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     return null;
   }
       
-  public final VM_Offset findCatchBlockForInstruction(VM_Offset instructionOffset, VM_Type exceptionType) {
-    return VM_Offset.fromIntSignExtend(-1);
+  public final int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType) {
+    return -1;
   }
    
-  public final void getDynamicLink(VM_DynamicLink dynamicLink, VM_Offset instructionOffset) throws VM_PragmaUninterruptible {
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible {
     // this method should never get called, because exception delivery begins
     // at site of exception, which is one frame above artificial "trap" frame
     // corresponding to this compiler-info object
@@ -49,14 +49,14 @@ final class VM_HardwareTrapCompiledMethod extends VM_CompiledMethod {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 
-  public final void printStackTrace(VM_Offset instructionOffset, com.ibm.JikesRVM.PrintLN out) {
+  public final void printStackTrace(int instructionOffset, com.ibm.JikesRVM.PrintLN out) {
     out.println("\tat <hardware trap>");
   }
 
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  public final void set(VM_StackBrowser browser, VM_Offset instr) {
+  public final void set(VM_StackBrowser browser, int instr) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
        

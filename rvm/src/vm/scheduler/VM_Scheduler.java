@@ -673,10 +673,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
 	  VM.sysWrite("   <hardware trap>\n");
 	} else {
-	  VM_Method         method            = compiledMethod.getMethod();
-	  VM_Offset         instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
-	  //int               lineNumber        = compiledMethod.findLineNumberForInstruction(VM_Offset.fromInt(instructionOffset.toInt()>>>LG_INSTRUCTION_WIDTH));//TODO: write cleaner
-	  int               lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset);
+	  VM_Method method            = compiledMethod.getMethod();
+	  int       instructionOffset = compiledMethod.getInstructionOffset(ip);
+	  int       lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset);
 	  
 	  //-#if RVM_WITH_OPT_COMPILER
 	  if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {

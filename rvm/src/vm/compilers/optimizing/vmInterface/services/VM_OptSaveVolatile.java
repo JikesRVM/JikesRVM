@@ -79,8 +79,7 @@ public class VM_OptSaveVolatile implements VM_SaveVolatile {
     VM_OptCompiledMethod cm = (VM_OptCompiledMethod)VM_CompiledMethods.getCompiledMethod(cmid);
     // (2) Get the return address 
     VM_Address ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
-    VM_Address methodStartAddress = VM_Magic.objectAsAddress(cm.getInstructions());
-    VM_Offset offset = ip.diff(methodStartAddress);
+    int offset = cm.getInstructionOffset(ip);
     VM.enableGC();
     // (3) Call the routine in VM_OptLinker that does all the real work.
     VM_OptLinker.resolveDynamicLink(cm, offset);

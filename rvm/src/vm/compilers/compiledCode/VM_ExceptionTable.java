@@ -32,29 +32,29 @@ public abstract class VM_ExceptionTable {
    * @param exceptionType the type of exception that was raised
    * @return the machine code offset of the catch block.
    */
-  public static final VM_Offset findCatchBlockForInstruction(int[] eTable,
-							     VM_Offset instructionOffset, 
-							     VM_Type exceptionType) {
+  public static final int findCatchBlockForInstruction(int[] eTable,
+						       int instructionOffset, 
+						       VM_Type exceptionType) {
     for (int i = 0, n = eTable.length; i < n; i += 4) {
       // note that instructionOffset points to the instruction after the PEI
       // so the range check here must be "offset >  beg && offset <= end"
       // and not                         "offset >= beg && offset <  end"
       //
       // offset starts are sorted by starting point
-      if (instructionOffset.toInt() > eTable[i + TRY_START] &&
-	  instructionOffset.toInt() <= eTable[i + TRY_END]) {
+      if (instructionOffset > eTable[i + TRY_START] &&
+	  instructionOffset <= eTable[i + TRY_END]) {
 	VM_Type lhs = VM_Type.getType(eTable[i + EX_TYPE]);
 	if (lhs == exceptionType) {
-	  return VM_Offset.fromIntSignExtend(eTable[i + CATCH_START]);
+	  return eTable[i + CATCH_START];
 	} else if (lhs.isInitialized()) {
 	  Object[] rhsTIB = exceptionType.getTypeInformationBlock();
 	  if (VM_DynamicTypeCheck.instanceOfClass(lhs.asClass(), rhsTIB)) {
-	    return VM_Offset.fromIntSignExtend(eTable[i + CATCH_START]);
+	    return eTable[i + CATCH_START];
 	  }
 	}
       }
     }
-    return VM_Offset.fromIntSignExtend(-1);
+    return -1;
   }
 
   /**

@@ -799,13 +799,14 @@ public class VM_Runtime implements VM_Constants {
 	  VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
 	  VM_ExceptionDeliverer exceptionDeliverer = compiledMethod.getExceptionDeliverer();
 	  VM_Address ip = exceptionRegisters.getInnermostInstructionAddress();
-	  VM_Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-	  VM_Offset catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ip.diff(methodStartAddress), exceptionType);
+	  int ipOffset = compiledMethod.getInstructionOffset(ip);
+	  int catchBlockOffset = compiledMethod.findCatchBlockForInstruction(ipOffset, exceptionType);
 
-	  if (catchBlockOffset.toInt() >= 0  ){ 
-	      // found an appropriate catch block
+	  if (catchBlockOffset >= 0  ){ 
+	    // found an appropriate catch block
 	    if (VM.debugOOM)
 	      VM.sysWriteln("found one; delivering.");
+	    VM_Address methodStartAddress = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
 	    exceptionDeliverer.deliverException(compiledMethod, 
 						methodStartAddress.add(catchBlockOffset), 
 						exceptionObject, 
@@ -815,7 +816,7 @@ public class VM_Runtime implements VM_Constants {
 	  
 	  exceptionDeliverer.unwindStackFrame(compiledMethod, exceptionRegisters);
       } else {
-	  unwindInvisibleStackFrame(exceptionRegisters);
+	unwindInvisibleStackFrame(exceptionRegisters);
       }
       fp = exceptionRegisters.getInnermostFramePointer();
     }

@@ -179,8 +179,10 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     int fprsOffset = VM_Entrypoints.registersFPRsField.getOffset();
     int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
 
-    asm.emitLI(T1, -1);           // T1 = -1
-    asm.emitSTAddr(T1, ipOffset, T0); // registers.ip = -1
+    // save return address
+    // 
+    asm.emitMFLR  (T1);               // T1 = LR (return address)
+    asm.emitSTAddr(T1, ipOffset, T0); // registers.ip = return address
 
     // save non-volatile fprs
     //

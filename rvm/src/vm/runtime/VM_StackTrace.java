@@ -44,7 +44,7 @@ public class VM_StackTrace implements VM_Constants {
   /**
    * The instruction offsets within those methods.
    */
-  private final VM_OffsetArray offsets;
+  private final int[] offsets;
   
   /**
    * Create a trace of the current call stack
@@ -53,7 +53,7 @@ public class VM_StackTrace implements VM_Constants {
     // (1) Count the number of frames comprising the stack.
     int numFrames = walkFrames(false, skip+1);
     compiledMethods = new VM_CompiledMethod[numFrames];
-    offsets = VM_OffsetArray.create(numFrames);
+    offsets = new int[numFrames];
     walkFrames(true, skip+1);
     
     // Debugging trick: print every nth stack trace created
@@ -83,8 +83,7 @@ public class VM_StackTrace implements VM_Constants {
 	if (record) compiledMethods[stackFrameCount] = compiledMethod;
 	if (compiledMethod.getCompilerType() != VM_CompiledMethod.TRAP) {
 	  if (record) {
-	    VM_Address start = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
-	    offsets.set(stackFrameCount, ip.diff(start));
+	    offsets[stackFrameCount] = compiledMethod.getInstructionOffset(ip);
 	  }
 	  if (compiledMethod.getMethod().getDeclaringClass().isBridgeFromNative()) {
 	    // skip native frames, stopping at last native frame preceeding the
@@ -337,7 +336,7 @@ public class VM_StackTrace implements VM_Constants {
 // 	   happens here. */
 //       	return;			// gone far enough.
         } else {
-	  cm.printStackTrace(offsets.get(i), out);
+	  cm.printStackTrace(offsets[i], out);
 	}
       }
       catch (OutOfMemoryError e) {

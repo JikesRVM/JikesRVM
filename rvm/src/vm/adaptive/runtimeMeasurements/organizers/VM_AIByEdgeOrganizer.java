@@ -5,7 +5,6 @@
 package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
@@ -124,7 +123,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
       if (compiledMethod == null) continue;
       VM_Method stackFrameCaller = compiledMethod.getMethod();
        
-      VM_Offset MCOffset = VM_Offset.fromInt(buffer[i+2]);
+      int MCOffset = buffer[i+2];
       int bytecodeIndex = -1;
       VM_Method caller = null;
 
@@ -139,7 +138,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
 	    (VM_BaselineCompiledMethod)compiledMethod;
 	  // note: the following call expects the offset in INSTRUCTIONS!
 	  bytecodeIndex = baseCompiledMethod.findBytecodeIndexForInstruction
-	    (MCOffset.toInt()>>>VM.LG_INSTRUCTION_WIDTH);
+	    (MCOffset>>>VM.LG_INSTRUCTION_WIDTH);
 	  caller = stackFrameCaller;
 	}
 	break;

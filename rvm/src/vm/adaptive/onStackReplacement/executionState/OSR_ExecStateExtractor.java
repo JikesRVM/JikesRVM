@@ -52,8 +52,7 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
 	VM.sysWriteln(" invisible method ");
       } else {
 	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-	VM_Offset instrOff = ip.diff(VM_Magic.objectAsAddress(cm.getInstructions()));
-	//	VM.sysWriteln(cm.getMethod().toString());
+	int instrOff = cm.getInstructionOffset(ip);
 	cm.printStackTrace(instrOff, new PrintContainer(System.out));
 
 	if (cm.getMethod().getDeclaringClass().isBridgeFromNative()) {

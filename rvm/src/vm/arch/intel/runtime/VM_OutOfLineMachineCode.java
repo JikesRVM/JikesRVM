@@ -220,11 +220,13 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
   private static VM_CodeArray generateSaveThreadStateInstructions() {
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0); // assuming no NV FPRs (otherwise would have to save them here)
     VM_Assembler asm = new VM_Assembler(0);
+    int   ipOffset = VM_Entrypoints.registersIPField.getOffset();
     int   fpOffset = VM_Entrypoints.registersFPField.getOffset();
     int gprsOffset = VM_Entrypoints.registersGPRsField.getOffset();
     asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.framePointerField.getOffset()); 
     asm.emitMOV_RegDisp_Reg(T0, fpOffset, S0);        // registers.fp := pr.framePointer
     asm.emitPOP_Reg        (T1);                      // T1 := return address 
+    asm.emitMOV_RegDisp_Reg(T0, ipOffset, T1);        // registers.ip := return address
     asm.emitADD_Reg_Imm    (SP, 4);                   // throw away space for registers parameter (in T0)
     asm.emitMOV_Reg_RegDisp(S0, T0, gprsOffset);      // S0 := registers.gprs[]
     asm.emitMOV_RegDisp_Reg(S0, SP<<LG_WORDSIZE, SP); // registers.gprs[#SP] := SP

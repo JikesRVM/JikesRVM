@@ -375,7 +375,7 @@ public class OSR_EncodedOSRMap
   /* 
    * does the OSR map exist for a machine instruction offset
    */
-  public final boolean hasOSRMap(VM_Offset mcOffset) {
+  public final boolean hasOSRMap(int mcOffset) {
     int entry = findOSREntry(mcOffset);
     return (entry != NO_OSR_ENTRY);
   }
@@ -385,9 +385,9 @@ public class OSR_EncodedOSRMap
    * entry exist for a machine instruction offset.
    */
   /* 
-   * get bytecode index for a given instruction offset in bytes.\
+   * get bytecode index for a given instruction offset in bytes.
    */
-  public final int getBytecodeIndexForMCOffset(VM_Offset mcOffset) {
+  public final int getBytecodeIndexForMCOffset(int mcOffset) {
     int entry = findOSREntry(mcOffset);
     return getBCIndex(entry);
   }
@@ -395,14 +395,14 @@ public class OSR_EncodedOSRMap
   /* TODO!
    * get inline encoding index for the machine instruction offset
    */
-  public final int getInlineEncodingForMCOffset(VM_Offset mcOffset) {
+  public final int getInlineEncodingForMCOffset(int mcOffset) {
       return -1;
   }
 
   /*
    * get register's reference map for the machine instruction offset
    */
-  public final int getRegisterMapForMCOffset(VM_Offset mcOffset) {
+  public final int getRegisterMapForMCOffset(int mcOffset) {
     int entry    = findOSREntry(mcOffset);
     int mapIndex = getOSRMapIndex(entry);
     return osrMaps[mapIndex];
@@ -414,7 +414,7 @@ public class OSR_EncodedOSRMap
    * NOTE: the map index is gotten from 'findOSRMapIndex'.
    * This has to be changed....
    */
-  public final OSR_MapIterator getOsrMapIteratorForMCOffset(VM_Offset mcOffset) {
+  public final OSR_MapIterator getOsrMapIteratorForMCOffset(int mcOffset) {
     int entry    = findOSREntry(mcOffset);
     int mapIndex = getOSRMapIndex(entry);
     return new OSR_MapIterator(osrMaps, mapIndex);
@@ -427,7 +427,7 @@ public class OSR_EncodedOSRMap
    * Do a binary search, find the entry for the machine code offset. 
    * Return -1 if no entry was found.
    */
-  private final int findOSREntry(VM_Offset mcOffset) {
+  private final int findOSREntry(int mcOffset) {
     
     int l = 0;
     int r = lastEntry;
@@ -435,9 +435,9 @@ public class OSR_EncodedOSRMap
     while (l <= r) {
       int m = (l+r) >> 1;
       int offset = getMCOffset(m);
-      if (offset == mcOffset.toInt()) {
+      if (offset == mcOffset) {
 	return m;
-      } else if (offset < mcOffset.toInt()) {
+      } else if (offset < mcOffset) {
 	l = m + 1;
       } else {
 	r = m - 1;
@@ -446,7 +446,7 @@ public class OSR_EncodedOSRMap
 
     /* this is the place should not be reached, dump OSR content */
     if (VM.TraceOnStackReplacement) {
-      VM.sysWrite("cannot find map entry for "+mcOffset.toInt()+"\n");
+      VM.sysWrite("cannot find map entry for "+mcOffset+"\n");
       this.printMap();
     }
 

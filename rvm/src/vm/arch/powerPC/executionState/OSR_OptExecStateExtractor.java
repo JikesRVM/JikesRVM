@@ -78,12 +78,10 @@ public final class OSR_OptExecStateExtractor
      * activities, and avoid lazy compilation.
      */
     // get the next machine code offset of the real method
-    VM_CodeArray instructions = fooCM.getInstructions();
     VM.disableGC();
     VM_Address methFP = VM_Magic.objectAsAddress(stack).add(methFPoff);
     VM_Address nextIP     = VM_Magic.getNextInstructionAddress(methFP);
-    VM_Address instr_beg  = VM_Magic.objectAsAddress(instructions);
-    VM_Offset ipOffset   = nextIP.diff(instr_beg);    
+    int ipOffset = fooCM.getInstructionOffset(nextIP);
     VM.enableGC();
 
     VM_OptMachineCodeMap fooMCmap = fooCM.getMCMap();
@@ -244,7 +242,7 @@ public final class OSR_OptExecStateExtractor
 
   private OSR_ExecutionState getExecStateSequence(VM_Thread thread,
 						  int[] stack,
-						  VM_Offset   ipOffset,
+						  int   ipOffset,
 						  int   fpOffset,
 						  int   cmid,
 						  int   tsFPOffset,
