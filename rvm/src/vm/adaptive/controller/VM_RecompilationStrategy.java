@@ -77,6 +77,7 @@ abstract class VM_RecompilationStrategy {
 					 OPT_InstrumentationPlan instPlan,
 					 int prevCMID,
 					 double expectedSpeedup,
+					 double expectedCompilationTime,
 					 double priority) {
 
      // Construct the compilation plan (varies depending on strategy)
@@ -91,7 +92,8 @@ abstract class VM_RecompilationStrategy {
 
      // Create the controller plan
      return new VM_ControllerPlan(compPlan, VM_Controller.controllerClock, 
-				  prevCMID, expectedSpeedup, priority);
+				  prevCMID, expectedSpeedup, expectedCompilationTime,
+				  priority);
   }
 
 
