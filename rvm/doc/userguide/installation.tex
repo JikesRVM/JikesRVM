@@ -134,7 +134,7 @@ The remainder of this section describes the process in greater detail.
 \subsection{Installation Steps}
 
 \begin{enumerate}
-\item Set up a working directory.
+\item {\bf Set up a working directory.}
 
 First extract the RVM source distribution into a directory such as 
 {\tt \$HOME/rvmRoot}.
@@ -157,7 +157,7 @@ standard library file {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.
 \index{RVM\_ROOT}
 \index{RVM\_BUILD}
 \index{PATH}
-\item Set up environment variables
+\item {\bf Set up environment variables.}
 
 You need to set up the following shell environment variables:
 
@@ -234,7 +234,7 @@ the execute the RVM. To cross build a system
 e.g build on AIX-powerpc for a Linux-Intel platform, see the section on Cross
 Platform Building.
 
-\item Edit configuration scripts
+\item {\bf Edit configuration scripts.}
 
 You must edit a script in the {\tt \$RVM\_ROOT/rvm/config}  directory to set 
 up variables used by the installation process.  
@@ -269,7 +269,7 @@ step.
 
 \index{configurations}
 \index{jconfigure script}
-\item Choose configuration and populate your build directory
+\item {\bf Choose configuration and populate your build directory.}
 
 You will use the {\tt jconfigure} script (in {\tt \$RVM\_ROOT/rvm/bin}) to
 populate your build ({\tt \$RVM\_BUILD}) directory with files.  You must
@@ -314,7 +314,7 @@ the following command:
 \index{jbuild script}
 \index{boot image}
 \index{RVM\_BUILD}
-\item Build an executable version of RVM.  
+\item {\bf Build an executable version of RVM.}  
 
 Use the {\tt jbuild} script, located in the {\tt \$RVM\_BUILD} directory,
 to build an executable system.  This script copies source files into
