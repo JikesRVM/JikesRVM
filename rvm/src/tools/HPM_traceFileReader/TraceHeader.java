@@ -31,9 +31,10 @@ public final class TraceHeader
    * trace record formats  
    * Must be kept consistent with VM_HardwarePerformanceMonitors
    */
-  static public int MACHINE_TYPE_FORMAT = 1;
-  static public int        EVENT_FORMAT = 2;
-  static public int       THREAD_FORMAT = 3;
+  static public  int MACHINE_TYPE_FORMAT = 1;
+  static public  int        EVENT_FORMAT = 2;
+  static public  int       THREAD_FORMAT = 3;
+  static public  int       METHOD_FORMAT = 4;
 
   /*
    * Version number
@@ -105,6 +106,14 @@ public final class TraceHeader
     }
     return threads[i];
   }
+  static private TreeMap MID_map = new TreeMap();
+  static public  String getFullMIDName(int mid) {
+    String full_name = (String)MID_map.get(new Integer(mid));
+    if (full_name == null) {
+      System.out.println("***MID_map("+mid+") == null!***");
+    }
+    return full_name;
+  }
 
   /**
    * Constructor
@@ -136,8 +145,8 @@ public final class TraceHeader
       thresholdable[i] = false;
     }
     // read records from trace file
-    HashMap map    = new HashMap();	// Global TID (Integer) X thread name(String)
-    HashMap mapg2l = new HashMap();	// Global TID (Integer) X TID (Integer)
+    HashMap map     = new HashMap();	// Global TID (Integer) X thread name(String)
+    HashMap mapg2l  = new HashMap();	// Global TID (Integer) X TID (Integer)
     while(true) {
       int record_type = Utilities.getIntFromDataInputStream(input_file);
 
@@ -145,7 +154,7 @@ public final class TraceHeader
 	break;
       } else if (record_type == MACHINE_TYPE_FORMAT) {
 	processor_name = Utilities.getStringFromDataInputStream(input_file);
-	if (debug>=3) System.out.println("TraceHader() MACHINE_TYPE_RECORD "+processor_name);
+	if (debug>=3) System.out.println("TraceHeader() MACHINE_TYPE_RECORD "+processor_name);
       } else if (record_type == EVENT_FORMAT) {
 	int counter_number = Utilities.getIntFromDataInputStream(input_file);
 	if (counter_number >= n_elements) {
@@ -155,7 +164,7 @@ public final class TraceHeader
 	}
 	ids[counter_number] =  Utilities.getIntFromDataInputStream(input_file);
 	short_event_names[counter_number] = Utilities.getStringFromDataInputStream(input_file);
-	if (debug>=3) System.out.println("TraceHader() EVENT_RECORD "+counter_number+" = "+
+	if (debug>=3) System.out.println("TraceHeader() EVENT_RECORD "+counter_number+" = "+
 					 ids[counter_number]+" : "+short_event_names[counter_number]);
       } else if (record_type == THREAD_FORMAT) {
 	int tid       = Utilities.getIntFromDataInputStream(input_file);
@@ -164,10 +173,18 @@ public final class TraceHeader
 	String thread_name = Utilities.getStringFromDataInputStream(input_file);
 	Integer TID = new Integer(tid);
 	map.put(TID, thread_name);
-	if (debug>=3) System.out.println("TraceHader() THREAD_RECORD global tid "+tid+" : "+
+	if (debug>=3) System.out.println("TraceHeader() THREAD_RECORD global tid "+tid+" : "+
 					 local_tid+" : "+thread_name);
 	Integer LOCAL_TID = new Integer(local_tid);
 	mapg2l.put(TID,LOCAL_TID);
+      } else if (record_type == METHOD_FORMAT) {
+	int    mid               = Utilities.getIntFromDataInputStream(input_file);
+	String  class_name       = Utilities.getStringFromDataInputStream(input_file);
+	String method_name       = Utilities.getStringFromDataInputStream(input_file);
+	String method_descriptor = Utilities.getStringFromDataInputStream(input_file);
+	String full_name = class_name+"."+method_name+method_descriptor;
+	if (debug>=3) System.out.println("TraceHeader() METHOD_RECORD mid "+mid+" : "+full_name);
+	MID_map.put(new Integer(mid), full_name);
       }
     }
     // allocate thread array.
@@ -287,6 +304,23 @@ public final class TraceHeader
 	//	System.out.println(i+" (0): null");
       } else {
 	System.out.println(i+" ("+globalToLocalTIDs[i]+"): "+threads[i]);
+      }
+    }
+  }
+  /**
+   * print MIDs
+   */
+  public void printMIDs() 
+  {
+    int size = MID_map.size();
+    System.out.println("MIDs: "+size);
+    
+    Iterator iterator = MID_map.keySet().iterator();
+    Integer MID = null;
+    for ( ; iterator.hasNext(); MID = (Integer)iterator.next()) {
+      if (MID != null) {
+	String full_name = (String)MID_map.get(MID);
+	System.out.println(MID+": \""+full_name+"\"");
       }
     }
   }

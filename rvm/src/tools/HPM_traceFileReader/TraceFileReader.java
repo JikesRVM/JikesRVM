@@ -290,6 +290,7 @@ class TraceFileReader
       n_counters = traceHeader.n_counters;
       if (options.print_events)  traceHeader.printEvents();
       if (options.print_threads) traceHeader.printThreads();
+      if (options.print_mids)    traceHeader.printMIDs();
       header_filename = local_header_filename;
     } else if (header_filename.compareTo(local_header_filename) != 0) {
       System.out.println("***"+trace_filename+"'s header filename \""+
@@ -483,7 +484,9 @@ class TraceFileReader
 	}
 	tcr.start_wall_time   = input_file.readLong();
 	// translate end wall time to relative wall time.
-	tcr.counters[0] = input_file.readLong() - tcr.start_wall_time;
+	tcr.counters[0]       = input_file.readLong() - tcr.start_wall_time;
+	tcr.callee_MID        = input_file.readInt();
+	tcr.caller_MID        = input_file.readInt();
 	if(options.debug>=5){
 	  System.out.print(" SWT "+tcr.start_wall_time);System.out.print(" RWT "+tcr.counters[0]);
 	}

@@ -36,6 +36,10 @@ class CommandLineOptions
   public boolean print_aggregate_by_thread = false;
   // print hpm events
   public boolean print_events  = false;
+  // print mids
+  public boolean print_mids  = false;
+  // print full name instead of mid
+  public boolean print_fullname  = false;
   // print structure of trace file
   public boolean print_structure = false;
   // field mask: identify what fields to examine
@@ -88,6 +92,12 @@ class CommandLineOptions
       } else if (arg.compareTo("-events") == 0) {
 	if(local_debug>=2)System.out.println("CommandLineOptions.processArgs() -events");
 	print_events = true;
+      } else if (arg.compareTo("-mids") == 0) {
+	if(local_debug>=2)System.out.println("CommandLineOptions.processArgs() -mids");
+	print_mids = true;
+      } else if (arg.compareTo("-fullname") == 0) {
+	if(local_debug>=2)System.out.println("CommandLineOptions.processArgs() -mids");
+	print_fullname = true;
       } else if (arg.compareTo("-structure") == 0) {
 	if(local_debug>=2)System.out.println("CommandLineOptions.processArgs() -structure");
 	print_structure = true;
@@ -193,6 +203,8 @@ class CommandLineOptions
 		       "  -events              tell hpm events collected\n"+
 		       //		       "  -generate_statistics generate average, min, max, var, and std dev.\n"+
 		       //		       "                       thread specified in -tid and events specified in -event_mask\n"+
+		       "  -mids                tell method ids collected\n"+
+		       "  -fullname            print MID's full name\n"+
 		       "  -local               apply options to input trace files individually\n"+
 		       "  -no_yields           consider only a thread switch that times out\n"+
 		       "  -structure           of user-defined trace records\n"+

@@ -30,11 +30,22 @@ public class TraceCounterRecord extends TraceRecord
   public int  tid = -99999;
   // real time when thread was scheduled
   public long start_wall_time   = 0;
+  // callee method id
+  public int callee_MID = 0;
+  // caller method id
+  public int caller_MID = 0;
   // number of number of HPM counters 
   public int n_counters;
   // HPM counter values (0th counter is end wall time)
   public long []counters;
 
+  /*
+   * Constants
+   */
+  // callee method id
+  static public final int CALLEE_MID = 512;
+  // caller method id
+  static public final int CALLER_MID = 1024;
   /**
    * constructor
    */
@@ -112,6 +123,20 @@ public class TraceCounterRecord extends TraceRecord
 	}
       }
     }
+    if ((TraceFileReader.options.event_mask & CALLER_MID) == CALLER_MID) {
+      if (TraceFileReader.options.print_fullname) {
+	System.out.print(" "+caller_MID+" "+TraceHeader.getFullMIDName(caller_MID));
+      } else {
+	System.out.print(" "+caller_MID);
+      }
+    } 
+    if ((TraceFileReader.options.event_mask & CALLEE_MID) == CALLEE_MID) {
+      if (TraceFileReader.options.print_fullname) {
+	System.out.print(" "+callee_MID+" "+TraceHeader.getFullMIDName(callee_MID));
+      } else {
+	System.out.print(" "+callee_MID);
+      }
+    } 
     if (TraceFileReader.options.group_index == CommandLineOptions.P4_LSU_BUSY) {
       double value = counters[5] / (double)counters[6];
       System.out.print(" \test. load latency "+Utilities.twoDigitDouble(value));
