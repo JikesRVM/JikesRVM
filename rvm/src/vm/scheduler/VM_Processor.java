@@ -185,9 +185,6 @@ implements VM_Uninterruptible, VM_Constants {
     previousThread = activeThread;
     activeThread   = newThread;
 
-    //-#if RVM_FOR_IA32
-    threadId       = newThread.getLockingId();
-    //-#endif
     if (!previousThread.isDaemon && 
         idleProcessor != null && !readyQueue.isEmpty() 
         && getCurrentProcessor().processorMode != NATIVEDAEMON) { 
@@ -214,11 +211,14 @@ implements VM_Uninterruptible, VM_Constants {
       updateHPMcounters(previousThread, newThread, timerTick);
     }
 
+    //-#if RVM_FOR_IA32
+    threadId       = newThread.getLockingId();
+    //-#endif
     activeThreadStackLimit = newThread.stackLimit; // Delay this to last possible moment so we can sysWrite
     VM_Magic.threadSwitch(previousThread, newThread.contextRegisters);
   }
 
-  /*
+  /**
    * Update HPM counters.
    * @param previous_thread     thread that is being switched out
    * @param current_thread      thread that is being scheduled
@@ -579,8 +579,7 @@ implements VM_Uninterruptible, VM_Constants {
 
     VM.disableGC();
 
-    //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-    //-#else
+    //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
     // Need to set startuplock here
     VM.sysInitializeStartupLocks(1);
     //-#endif
@@ -612,8 +611,7 @@ implements VM_Uninterruptible, VM_Constants {
   // System call interception support //
   //----------------------------------//
 
-  //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-  //-#else
+  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
   /**
    * Called during thread startup to stash the ID of the
    * {@link VM_Processor} in its pthread's thread-specific storage,
@@ -745,11 +743,8 @@ implements VM_Uninterruptible, VM_Constants {
   int    arrayIndexTrapParam; 
   //-#endif
 
-  //-#if RVM_WITH_JMTK
-  //-#if RVM_WITH_JMTK_INLINE_PLAN
-  //-#else
+  //-#if RVM_WITH_JMTK && !RVM_WITH_JMTK_INLINE_PLAN
   final public Plan mmPlan = new Plan();
-  //-#endif
   //-#endif
 
   //-#if RVM_WITH_JIKESRVM_MEMORY_MANAGERS
