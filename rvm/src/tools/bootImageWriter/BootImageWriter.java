@@ -46,7 +46,7 @@ import com.ibm.JikesRVM.classloader.*;
 public class BootImageWriter extends BootImageWriterMessages
   implements BootImageWriterConstants {
 
-  public static final boolean PARALLEL_COMPILE = false;
+  public static int PARALLELIZE = 0;
 
   public static void setVerbose(int value) {
     verbose = value;
@@ -336,6 +336,11 @@ public class BootImageWriter extends BootImageWriterMessages
       // generate info by type
       if (args[i].equals("-demographics")) {
         demographics = true;
+        continue;
+      }
+      // parallelize
+      if (args[i].equals("-parallelize=")) {
+        PARALLELIZE = Integer.parseInt(args[i].substring(13));
         continue;
       }
       // generate detailed information about traversed objects (for debugging)
@@ -755,27 +760,30 @@ public class BootImageWriter extends BootImageWriterMessages
       // Compile methods and populate jtoc with literals, TIBs, and machine code.
       //
       if (verbose >= 1) say("instantiating");
-      if (PARALLEL_COMPILE) {
-	BootImageWorker w1 = new BootImageWorker(1, bootImageTypes.elements());
-	BootImageWorker w2 = new BootImageWorker(2, bootImageTypes.elements());
-	w1.start();
-	w2.start();
+      if (PARALLELIZE < 1) {
+	int count = 0;
+	for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
+	    VM_Type type = (VM_Type) e.nextElement();
+	    count++;
+	    if (verbose >= 1) say(count + " instantiating " + type);
+	    type.instantiate();
+	}
+      }
+      else {
+        if (verbose >= 1) say("parallelizing with " + PARALLELIZE + " threads");
+	BootImageWorker.startup(bootImageTypes.elements());
+	BootImageWorker [] workers = new BootImageWorker[PARALLELIZE];
+	for (int i=0; i<workers.length; i++) {
+	  workers[i].id = i;
+	  workers[i].start();
+	}
 	try {
-	  w1.join();
-	  w2.join();
+	  for (int i=0; i<workers.length; i++)
+	    workers[i].join();
 	}
 	catch (InterruptedException ie) {
 	    say("InterruptedException while instantiating");
 	}
-      }
-      else {
-	  int count = 0;
-	  for (Enumeration e = bootImageTypes.elements(); e.hasMoreElements(); ) {
-	      VM_Type type = (VM_Type) e.nextElement();
-	      count++;
-	      if (verbose >= 1) say(count + " instantiating " + type);
-	      type.instantiate();
-	  }
       }
 
       //
