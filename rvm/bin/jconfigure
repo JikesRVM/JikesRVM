@@ -351,6 +351,8 @@ integer RVM_FOR_STRESSGC=0
 # Are we building the library source?
 integer BUILD_RVMRT_JAR=0
 
+# Are we putting VM classes into a jar?
+integer RVM_WITH_JKSVM_JAR=0
 
 #--------------------------------------#
 # SECTION 3 - ENVIRONMENT VARIABLES    #
