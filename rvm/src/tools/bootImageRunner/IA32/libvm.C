@@ -497,6 +497,9 @@ softwareSignalHandler (int signo, siginfo_t * si, void *unused)
       unsigned *processors = *(unsigned **) ((char *) VmToc + ProcessorsOffset);
       unsigned cnt = processors[-1];
 
+      int epoch = *(int *) ((char *) VmToc + VM_Processor_epoch_offset);
+      *(int *) ((char *) VmToc + VM_Processor_epoch_offset) = epoch + 1;
+
       /* with new (7/2001) threading the last processor entry is for 
        * the NativeDaemonThread
        * and may be null (IA32 without pthreads or if compiled for 

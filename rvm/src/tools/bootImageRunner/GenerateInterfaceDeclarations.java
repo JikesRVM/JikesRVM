@@ -356,6 +356,9 @@ class GenerateInterfaceDeclarations {
     offset = VM.getMember("LVM_Processor;", "pthread_id", "I").getOffset();
     System.out.print("static const int VM_Processor_pthread_id_offset = "
         + offset + ";\n");
+    offset = VM.getMember("LVM_Processor;", "epoch", "I").getOffset();
+    System.out.print("static const int VM_Processor_epoch_offset = "
+        + offset + ";\n");
     //-#if RVM_FOR_IA32
     if (VM.BuildForIA32) {
       offset = VM.getMember("LVM_Processor;", "threadId", "I").getOffset();

@@ -216,6 +216,19 @@ if (loopcheck++ >= 1000000) break;
       }
     }
 
+    if ((epoch % VM_Scheduler.numProcessors) + 1 == id) {
+      // it's my turn to check the io queue early to avoid starvation
+      // of threads in io wait.
+      // We round robin this among the virtual processors to avoid serializing
+      // thread switching in the call to select.
+      if (ioQueue.isReady()) {
+	VM_Thread t = ioQueue.dequeue();
+	if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: ioQueue (early)", t.getIndex());
+	if (VM.VerifyAssertions) VM.assert(t.beingDispatched == false || t == VM_Thread.getCurrentThread()); // local queue: no other dispatcher should be running on thread's stack
+	return t;
+      }
+    }
+
     if (!readyQueue.isEmpty()) {
       VM_Thread t = readyQueue.dequeue();
       if (trace) VM_Scheduler.trace("VM_Processor", "getRunnableThread: readyQueue", t.getIndex());
@@ -936,6 +949,9 @@ if (loopcheck++ >= 1000000) break;
 
   static int    lastVPStatusIndex = 0;
   static int[]  vpStatus = new int[VP_STATUS_SIZE];  // must be in pinned memory !!                 
+
+  // count timer interrupts to round robin early checks to ioWait queue.
+  static int epoch = 0;
 
   /**
    * index of this processor's status word in vpStatus array
