@@ -60,7 +60,7 @@ class VM_Assembler implements VM_BaselineConstants {
 
   */
 
-  private final static boolean fits (int val, int bits) {
+  final static boolean fits (int val, int bits) {
     val = val >> bits-1;
     return (val == 0 || val == -1);
   }

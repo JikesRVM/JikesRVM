@@ -2005,10 +2005,13 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         case 0xb2: /* --- getstatic --- */ {
           int constantPoolIndex = fetch2BytesUnsigned();
           VM_Field fieldRef = klass.getFieldRef(constantPoolIndex);
-          if (VM.TraceAssembler) asm.noteBytecode("getstatic " + constantPoolIndex  + " (" + fieldRef + ")");
+          if (VM.TraceAssembler) 
+            asm.noteBytecode("getstatic " + constantPoolIndex  + 
+                             " (" + fieldRef + ")");
 	  boolean classPreresolved = false;
 	  VM_Class fieldRefClass = fieldRef.getDeclaringClass();
-	  if (fieldRef.needsDynamicLink(method) && VM.BuildForPrematureClassResolution) {
+	  if (fieldRef.needsDynamicLink(method) && 
+              VM.BuildForPrematureClassResolution) {
 	    try {
 	      fieldRefClass.load();
 	      fieldRefClass.resolve();
@@ -2021,27 +2024,45 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	      !fieldRefClass.isInitialized() &&
 	      !(fieldRefClass == klass) &&
 	      !(fieldRefClass.isInBootImage() && VM.writingBootImage)
-	      ) { // TODO!! rearrange the following code to backpatch after the first call
+	      ) { // TODO!! rearrange the following code to 
+                  // backpatch after the first call
 	    asm.emitLtoc(S0, VM_Entrypoints.initializeClassIfNecessaryOffset);
 	    asm.emitMTLR(S0);
 	    asm.emitLVAL(T0, fieldRefClass.getDictionaryId()); 
 	    asm.emitCall(spSaveAreaOffset);
 	    classPreresolved = true;
 	  }
+
+	  int fieldOffset = 0;
+	  boolean wasResolved = true;
 	  if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	    if (VM.VerifyAssertions && VM.BuildForStrongVolatileSemantics) // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
-	      VM.assert(VM.NOT_REACHED); // TODO!! handle this case by backpatching with code that assumes the field is volatile
-            asm.emitLtoc(T0, VM_Entrypoints.getstaticOffset);
-            asm.emitMTLR(T0);
-            asm.emitDynamicCall(spSaveAreaOffset, klass.getFieldRefId(constantPoolIndex));
-            asm.emitISYNC();
-            asm.emitB(-1);
-            asm.emitB(-2);
-            asm.emitB(-3);
-	  } else {
-            fieldRef = fieldRef.resolve();
-            int fieldOffset = fieldRef.getOffset();
-            if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
+	      emitDynamicLinkingSequence(fieldRef); // leaves field offset in T2
+	      wasResolved = false;
+	  }
+	  else {
+	      fieldRef = fieldRef.resolve();
+	      fieldOffset = fieldRef.getOffset();
+	  }
+
+          if (!(VM.BuildForStrongVolatileSemantics && fieldRef.isVolatile())) { // normal case
+	      if (fieldRef.getSize() == 4) { // field is one word
+		  if (wasResolved)
+		      asm.emitLtoc(T0, fieldOffset);
+		  else
+		      asm.emitLX (T0, T2, JTOC);
+		  asm.emitSTU (T0, -4, SP);
+	      } else { // field is two words (double or long)
+		  if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+		  if (wasResolved)
+		      asm.emitLFDtoc(F0, fieldOffset, T0);
+		  else
+		      asm.emitLFDX (F0, T2, JTOC);
+		  asm.emitSTFDU (F0, -8, SP);
+	      }
+	  }
+	  else { // strong volatiles case
+	      if (VM.VerifyAssertions) VM.assert(wasResolved); // TODO: Handle unresolved case
+
 	      // asm.emitISYNC(); // to make getstatic of a volatile field a read barrier uncomment this line (Note this is untested and the Opt compiler must also behave.))
 	      if (fieldRef.getSize() == 4) {  // see Appendix E of PowerPC Microprocessor Family: The Programming nvironments
 		asm.emitLVAL  (T1, fieldOffset); // T1 = fieldOffset
@@ -2064,15 +2085,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 		asm.emitMTLR  (S0);
 		asm.emitCall  (spSaveAreaOffset);
 	      }
-	    } else if (fieldRef.getSize() == 4) { // field is one word
-              asm.emitLtoc(T0, fieldOffset);
-              asm.emitSTU (T0, -4, SP);
-            } else { // field is two words (double or long)
-	      if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-              asm.emitLFDtoc(F0, fieldOffset, T0);
-              asm.emitSTFDU (F0, -8, SP);
-            }
-          }
+	  }
           break;
         }
         case 0xb3: /* --- putstatic --- */ {
@@ -2109,26 +2122,48 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 	    classPreresolved = true;
 VM.sysWrite("static WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + "\n"); // TODO!! remove this  warning message
 	  }
+
+	  int fieldOffset = 0;
+	  boolean wasResolved = true;
 	  if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-            if (VM.VerifyAssertions && VM.BuildForStrongVolatileSemantics) // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
-	      VM.assert(VM.NOT_REACHED); // TODO!! handle this case by backpatching with code that assumes the field is volatile
-            asm.emitL   (T0, VM_Entrypoints.putstaticOffset, JTOC);
-            asm.emitMTLR(T0);
-            asm.emitDynamicCall(spSaveAreaOffset, fieldId);
-            asm.emitISYNC();
-            asm.emitB(-1);
-            asm.emitB(-2);
-            asm.emitB(-3);
-            asm.emitB(-4);
-            if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) { 
-	      //-#if RVM_WITH_CONCURRENT_GC // because VM_RCBarriers not available for non concurrent GC builds
-              VM_RCBarriers.compileDynamicPutstaticBarrier(asm, spSaveAreaOffset, method, fieldRef);
-	      //-#endif
-            } 
-	  } else {
-            fieldRef = fieldRef.resolve();
-            int fieldOffset = fieldRef.getOffset();
-            if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
+	    emitDynamicLinkingSequence(fieldRef);		      // leaves field offset in T2
+	      wasResolved = false;
+	  }
+	  else {
+	      fieldRef = fieldRef.resolve();
+	      fieldOffset = fieldRef.getOffset();
+	  }
+
+          if (! (VM.BuildForStrongVolatileSemantics && fieldRef.isVolatile())) { // normal case
+	      if (fieldRef.getSize() == 4) { // field is one word
+		  asm.emitL    (T0, 0, SP);
+		  asm.emitCAL  (SP, 4, SP);
+		  if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
+		      //-#if RVM_WITH_CONCURRENT_GC
+		      if (wasResolved)
+			  VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset);
+		      else
+			  VM_RCBarriers.compileDynamicPutstaticBarrier2(asm, spSaveAreaOffset, method, fieldRef);
+		      //-#endif
+		  } else {
+		      if (wasResolved)
+			  asm.emitSTtoc(T0, fieldOffset, T1);
+		      else
+			  asm.emitSTX(T0, T2, JTOC);
+		  }
+	      } else { // field is two words (double or long)
+		  if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+		  asm.emitLFD    (F0, 0, SP );
+		  asm.emitCAL    (SP, 8, SP);
+		  if (wasResolved)
+		      asm.emitSTFDtoc(F0, fieldOffset, T0);
+		  else
+		      asm.emitSTFDX(F0, T2, JTOC);
+	      }
+	  }
+	  else {		// strong volatiles case
+	      if (VM.VerifyAssertions) VM.assert(wasResolved); // TODO: Handle unresolved case
+
 	      if (fieldRef.getSize() == 4) { // field is one word
 		asm.emitL     (T0, 0, SP);
 		asm.emitCAL   (SP, 4, SP);
@@ -2159,23 +2194,7 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
 		asm.emitMTLR   (S0);
 		asm.emitCall   (spSaveAreaOffset);
 	      }
-	    } else if (fieldRef.getSize() == 4) { // field is one word
-              asm.emitL    (T0, 0, SP);
-              asm.emitCAL  (SP, 4, SP);
-              if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
-		//-#if RVM_WITH_CONCURRENT_GC // because VM_RCBarriers not available for non concurrent GC builds
-		VM_RCBarriers.compilePutstaticBarrier(asm, spSaveAreaOffset, fieldOffset);
-		//-#endif
-              } else {
-                asm.emitSTtoc(T0, fieldOffset, T1);
-	      }
-	    } else { // field is two words (double or long)
-              if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-              asm.emitLFD    (F0, 0, SP );
-	      asm.emitCAL    (SP, 8, SP);
-              asm.emitSTFDtoc(F0, fieldOffset, T0);
-	    }
-          }
+	  }
           break;
 	}
         case 0xb4: /* --- getfield --- */ {
@@ -2193,20 +2212,38 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
 	      System.err.println("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
 	    } // report the exception at runtime
 	  }
+
+	  int fieldOffset = 0;
+	  boolean wasResolved = true;
 	  if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-            if (VM.VerifyAssertions && VM.BuildForStrongVolatileSemantics) // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
-	      VM.assert(VM.NOT_REACHED); // TODO!! handle this case by backpatching with code that assumes the field is volatile
-            asm.emitL   (T0, VM_Entrypoints.getfieldOffset, JTOC);
-            asm.emitMTLR(T0);
-            asm.emitDynamicCall(spSaveAreaOffset, klass.getFieldRefId(constantPoolIndex));
-            asm.emitISYNC();
-            asm.emitB(-1);
-            asm.emitB(-2);
-            asm.emitB(-3);
-	  } else {
-            fieldRef = fieldRef.resolve();
-	    int fieldOffset = fieldRef.getOffset();
-            if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
+	      emitDynamicLinkingSequence(fieldRef);		      // leaves field offset in T2
+	      wasResolved = false;
+	  }
+	  else {
+	      fieldRef = fieldRef.resolve();
+	      fieldOffset = fieldRef.getOffset();
+	  }
+
+	  if (! (VM.BuildForStrongVolatileSemantics && fieldRef.isVolatile())) { // normal case
+	      asm.emitL (T1, 0, SP); // T1 = object reference
+	      if (fieldRef.getSize() == 4) { // field is one word
+		  if (wasResolved)
+		      asm.emitL (T0, fieldOffset, T1);
+		  else
+		      asm.emitLX(T0, T2, T1); // use field offset in T2 from emitDynamicLinkingSequence()
+		  asm.emitST(T0, 0, SP);
+	      } else { // field is two words (double or long)
+		  if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+		  if (wasResolved) 
+		      asm.emitLFD  (F0, fieldOffset, T1);
+		  else
+		      asm.emitLFDX (F0, T2, T1); // use field offset in T2 from emitDynamicLinkingSequence()
+		  asm.emitSTFDU(F0, -4, SP);
+	      }
+	  }
+	  else {		// strong volatiles case
+	      if (VM.VerifyAssertions) VM.assert(wasResolved); // TODO: Handle unresolved case
+
 	      if (fieldRef.getSize() == 4) { // field is one word
 		// asm.emitISYNC(); // to make getfield of a volatile field a read barrier uncomment this line (Note this is untested and the Opt compiler must also behave.))
 		asm.emitL  (T1, 0, SP);                // T1 = object to read
@@ -2232,16 +2269,7 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
 		asm.emitMTLR  (S0);
 		asm.emitCall  (spSaveAreaOffset);
 	      }
-	    } else if (fieldRef.getSize() == 4) { // field is one word
-	      asm.emitL (T1, 0, SP);
-              asm.emitL (T0, fieldOffset, T1);
-              asm.emitST(T0, 0, SP);
-	    } else { // field is two words (double or long)
-              if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-              asm.emitL    (T1, 0, SP);
-              asm.emitLFD  (F0, fieldOffset, T1);
-	      asm.emitSTFDU(F0, -4, SP);
-	    }
+	  
 	  }
           break;
 	}
@@ -2267,26 +2295,52 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
 	      System.err.println("WARNING: during compilation of " + method + " premature resolution of " + fieldRefClass + " provoked the following exception: " + e); // TODO!! remove this  warning message
 	    } // report the exception at runtime
 	  }
+
+	  int fieldOffset = 0;
+	  boolean wasResolved = true;
 	  if (fieldRef.needsDynamicLink(method) && !classPreresolved) {
-	    if (VM.VerifyAssertions && VM.BuildForStrongVolatileSemantics) // Either VM.BuildForPrematureClassResolution was not set or the class was not found (these cases are not yet handled)
-	      VM.assert(VM.NOT_REACHED); // TODO!! handle this case by backpatching with code that assumes the field is volatile
-            asm.emitL   (T0, VM_Entrypoints.putfieldOffset, JTOC);
-	    asm.emitMTLR(T0);
-	    asm.emitDynamicCall(spSaveAreaOffset, fieldId);
-	    asm.emitISYNC();
-	    asm.emitB(-1);
-	    asm.emitB(-2);
-	    asm.emitB(-3);
-	    asm.emitB(-4);
-	    if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) { 
-	      //-#if RVM_WITH_CONCURRENT_GC // because VM_RCBarriers not available for non concurrent GC builds
-	      VM_RCBarriers.compileDynamicPutfieldBarrier(asm, spSaveAreaOffset, method, fieldRef);
-	      //-#endif
-	    } 
-	  } else {
-            fieldRef = fieldRef.resolve();
-	    int fieldOffset = fieldRef.getOffset();
-            if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
+	      emitDynamicLinkingSequence(fieldRef);		      // leaves field offset in T2
+	      wasResolved = false;
+	  }
+	  else {
+	      fieldRef = fieldRef.resolve();
+	      fieldOffset = fieldRef.getOffset();
+	  }
+
+	  if (! (VM.BuildForStrongVolatileSemantics && fieldRef.isVolatile())) { // normal case
+	      if (fieldRef.getSize() == 4) { // field is one word
+		  asm.emitL  (T1, 4, SP); // T1 = object reference
+		  asm.emitL  (T0, 0, SP); // T0 = value
+		  asm.emitCAL(SP, 8, SP);  
+		  if (! (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType())) { // normal case
+		      if (wasResolved)
+			  asm.emitST (T0, fieldOffset, T1);
+		      else
+			  asm.emitSTX(T0, T2, T1);
+		  }
+		  else {	// barrier needed for reference counting GC
+		      //-#if RVM_WITH_CONCURRENT_GC
+		      if (wasResolved) 
+			  VM_RCBarriers.compilePutfieldBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
+		      else 
+			  VM_RCBarriers.compileDynamicPutfieldBarrier2(asm, spSaveAreaOffset, method, fieldRef);
+		      //-#endif
+		  }
+	      }
+	      else { // field is two words (double or long)
+		  if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
+		  asm.emitLFD (F0,  0, SP); // F0 = doubleword value
+		  asm.emitL   (T1,  8, SP); // T1 = object reference
+		  asm.emitCAL (SP, 12, SP);
+		  if (wasResolved)
+		      asm.emitSTFD(F0, fieldOffset, T1);
+		  else
+		      asm.emitSTFDX(F0, T2, T1);
+	      }
+	  }
+	  else {		// strong volatiles case
+	      if (VM.VerifyAssertions) VM.assert(wasResolved); // TODO: Handle unresolved case
+
 	      if (fieldRef.getSize() == 4) { // field is one word
 		asm.emitL  (T1, 4, SP);                // T1 = object to update
 		asm.emitL  (T0, 0, SP);                // T0 = new value
@@ -2319,25 +2373,7 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
 		asm.emitMTLR  (S0);
 		asm.emitCall  (spSaveAreaOffset);
 	      }
-	    } else if (fieldRef.getSize() == 4) { // field is one word
-	      asm.emitL  (T1, 4, SP);
-	      asm.emitL  (T0, 0, SP);
-              asm.emitCAL(SP, 8, SP);  
-	      if (VM.BuildForConcurrentGC && ! fieldRef.getType().isPrimitiveType()) {
-		//-#if RVM_WITH_CONCURRENT_GC // because VM_RCBarriers not available for non concurrent GC builds
-		VM_RCBarriers.compilePutfieldBarrier(asm, spSaveAreaOffset, fieldOffset, method, fieldRef);
-		//-#endif
-	      } else {
-		asm.emitST (T0, fieldOffset, T1);
-	      }
-	    } else { // field is two words (double or long)
-              if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
-              asm.emitLFD (F0,  0, SP);
-	      asm.emitL   (T1,  8, SP);
-              asm.emitCAL (SP, 12, SP);
-              asm.emitSTFD(F0, fieldOffset, T1);
-	    }
-          }
+	  }
 	  break;
         }  
         case 0xb6: /* --- invokevirtual --- */ {
@@ -2989,7 +3025,22 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
     if (VM.TraceCompilation) VM.sysWrite("VM_Compiler: end compiling " + meth + "\n");
     return asm.makeMachineCode();
   }
-  
+
+  private void emitDynamicLinkingSequence(VM_Field fieldRef) {
+                   // offset of field in dictionary and in fieldOffsets
+      int offset = fieldRef.getDictionaryId() << 2;  
+      asm.emitL (T2, VM_Entrypoints.fieldOffsetsOffset, JTOC); // T2 is fieldOffsets table
+      asm.emitL (T2, offset, T2); // T2 is offset in JTOC of static field, or 0 if field's class isn't loaded
+      asm.emitCMPI(T2, 0);				      // T2 ?= 0, is field's class loaded?
+      int extra = asm.fits(VM_Entrypoints.resolveFieldOffset, 16) ? 0 : 1;
+      asm.emitBNE(8 + extra);				      // if so, skip 8 or 9 instructions
+      asm.emitLtoc(T0, VM_Entrypoints.resolveFieldOffset);
+      asm.emitMTLR(T0);
+      asm.emitLIL(T0, fieldRef.getDictionaryId());	      // dictionaryId of field we are resolving
+      asm.emitCall(spSaveAreaOffset);			      // throw exception, if link error
+      asm.emitB(-(10 + extra));				      // go back to retry
+  }
+
   // Load/Store assist
   private void aloadSetup (int logSize) {
     asm.emitL   (T1,  4, SP);                    // T1 is array ref
