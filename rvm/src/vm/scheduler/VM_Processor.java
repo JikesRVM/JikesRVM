@@ -194,8 +194,8 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    * Is it ok to switch to a new VM_Thread in this processor?
    */ 
   boolean threadSwitchingEnabled () {
-    VM_Magic.pragmaInline();
-    return threadSwitchingEnabledCount == 1;
+   VM_Magic.pragmaInline();
+   return threadSwitchingEnabledCount == 1;
   }
 
   /**
@@ -320,6 +320,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    * Put thread onto most lightly loaded virtual processor.
    */ 
   void scheduleThread (VM_Thread t) {
+      VM_Magic.pragmaNoOptCompile();
 
     // if thread wants to stay on specified processor, put it there
     if (t.processorAffinity != null) {
@@ -374,6 +375,8 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    * Add a thread to this processor's transfer queue.
    */ 
   private void transferThread (VM_Thread t) {
+    VM_Magic.pragmaNoOptCompile();
+
     if (this != getCurrentProcessor() || t.isGCThread || (t.beingDispatched && t != VM_Thread.getCurrentThread())) {
       transferMutex.lock();
       transferQueue.enqueue(t);
@@ -390,7 +393,8 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    * from its queue.
    */ 
   private VM_Thread getRunnableThread() {
-    VM_Magic.pragmaInline();
+    VM_Magic.pragmaNoOptCompile();
+    // VM_Magic.pragmaInline();
 
     if (!transferQueue.isEmpty()) {
       transferMutex.lock();
