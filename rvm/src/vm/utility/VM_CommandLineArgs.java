@@ -45,10 +45,6 @@ public class VM_CommandLineArgs {
    * Application argument
    */
   public static final int APPLICATION_ARG  =  1;
-  /**
-   * First user argument
-   */
-  public static final int FIRST_USER_ARG   =  2;
 
   // -----------------------------------------------//
   // The following arguments are standard java.     //
