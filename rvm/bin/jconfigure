@@ -55,6 +55,10 @@ if [[ $RVM_TARGET_CONFIG = "" ]]; then
    exit 1
 fi
 
+# Do we have the correct libraries?
+#
+#$RVM_ROOT/rvm/bin/jCheckLibs
+
 #---------------------------#
 # SECTION 1 - DOCUMENTATION #
 #---------------------------#
@@ -77,7 +81,7 @@ if [[ $# = 0 || $1 = -help ]]; then
 
    After running this script, you can build an RVM executable by typing:
        cd \$RVM_BUILD
-       jbuild
+       ./jbuild
 
    Your \$RVM_ROOT tree will be template-expanded, macro-processed, compiled,
    and linked into a bootimage. The processed sources, class files, bootimage,
@@ -683,7 +687,7 @@ function emitSourceList
    elif (( $RVM_WITH_NONCOPYING_GC )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers/markAndSweep
    elif (( $RVM_WITH_CONCURRENT_GC )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/refcount
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/concurrent
    elif (( $RVM_WITH_NO_GC )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers/noGC
    fi
