@@ -9,15 +9,17 @@ completed.
     download it in jconfigure or does user have to download it by hand) 
     and add appropriate text in installation section.  
     Also ack jazzlib in userguide/web pages?
+    JULIAN
 
 (3) Carefully read installation instructions and make sure all steps
-    are still correct.
+    are still correct, dependent on jazzlib story.
 
 (4) Check all command line options (section 3) and be sure that
     descritpions are up-to-date.
 
 (5) Section 4 (runtime implementation details) needs to be almost
-    completely rewriten (dave will do this).
+    completely rewriten, adding object model info
+    DAVE G. will do this.
 
 (6) Section 5 -- optimizing compiler details.  Exisiting text is
     mostly fine; Think about adding more stuff?  At least include
@@ -25,27 +27,33 @@ completed.
 
 (7) Section 6 -- memory management details. Needs to be completely
     rewritten. 
+    PERRY
 
 (8) Section 7 -- jdp.  Need to update with current status of jdp.
     Check to see what commands jdp actually understands and update
     table of commands and examples.  Status of ppc & ia32 versions.
+    STEVE
 
 (9) Check FAQ for accurarcy.  Some of these issues have been resolved
     and maybe should be deleted.  Others need to be updated.
 
 (10) Need to add text on current status of user defined class loaders.
+    JULIAN
 
 (11) Need to add section on VM_Address.  Perhaps this should be part
     of an extended section on VM_Magic that goes into more detail on
     how magic is really implemented and what one needs to do to add a new
     VM_Magic operation.
+    PERRY
 
 (12) Move brief subsection on AOS details out of optimizing compiler
      section into its own section.  We've diverged enough from the
      system described in the OOPSLA paper that there is probably some
      things to say here that won't be redundant with the paper.
+     MIKE 	
 
-(13) Add blurb about support for SOOT-style annotations. (Mike will do this.)
+(13) Add blurb about support for SOOT-style annotations. 
+     MIKE
 
 (99) General proof reading -- defer until most of the other items are
      done to avoid having to proof a section twice.
