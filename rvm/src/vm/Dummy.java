@@ -20,11 +20,6 @@ class Dummy {
   static VM_DynamicLinker           c;
   static VM_Runtime                 d;
   static VM_Reflection              e;
-  static java.lang.Void             g;
-  static java.io.InputStreamReader  h;
-  static java.io.StreamTokenizer    i;
-  static java.net.PlainSocketImpl   j;
-  static java.net.ServerSocket      k;
   static VM_WriteBarrier            l;
   static VM_JNIFunctions            m;
   static VM_JNIStartUp              n;
