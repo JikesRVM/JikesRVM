@@ -80,6 +80,9 @@ public final class OPT_BranchOptimizations
    *	     A: LABEL	     
    *		BBEND
    *	     B: 
+   *    5)   GOTO BBn where BBn has exactly one in ede
+   *         - move BBn immediately after the GOTO in the code order,
+   *           so that pattern 3) will create a fallthrough
    * <pre>
    *
    * <p> Precondition: Goto.conforms(g)
@@ -149,6 +152,20 @@ public final class OPT_BranchOptimizations
 	bb.recomputeNormalOut(ir); // fix the CFG 
 	return true;
       }
+    }
+
+    // try to create a fallthrough
+    if (targetBlock.getNumberOfIn() == 1) {
+      OPT_BasicBlock ftBlock = targetBlock.getFallThroughBlock();
+      if (ftBlock != null) {
+        OPT_BranchOperand ftTarget = ftBlock.makeJumpTarget();
+        targetBlock.appendInstruction(Goto.create(GOTO,ftTarget));
+      }
+     
+      ir.cfg.removeFromCodeOrder(targetBlock);
+      ir.cfg.insertAfterInCodeOrder(bb,targetBlock);
+      targetBlock.recomputeNormalOut(ir); // fix the CFG
+      return true;
     }
     return false;
   }
