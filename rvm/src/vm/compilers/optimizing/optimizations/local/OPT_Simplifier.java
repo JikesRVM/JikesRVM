@@ -1090,17 +1090,25 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
       // FLOAT ALU operations
       ////////////////////
     case FLOAT_ADD_opcode:
-      if (CF_FLOAT) {
+      {
 	OPT_Operand op2 = Binary.getVal2(s);
 	if (op2.isFloatConstant()) {
-	  OPT_Operand op1 = Binary.getVal1(s);
-	  if (op1.isFloatConstant()) {
-	    // BOTH CONSTANTS: FOLD
-	    float val1 = op1.asFloatConstant().value;
-	    float val2 = op2.asFloatConstant().value;
-	    Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), 
-			FC(val1 + val2));
-	    return MOVE_FOLDED;
+	  float val2 = op2.asFloatConstant().value;
+	  if (CF_FLOAT) {
+	    OPT_Operand op1 = Binary.getVal1(s);
+	    if (op1.isFloatConstant()) {
+	      // BOTH CONSTANTS: FOLD
+	      float val1 = op1.asFloatConstant().value;
+	      Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), 
+			  FC(val1 + val2));
+	      return MOVE_FOLDED;
+	    }
+	  }
+	  if (val2 == 0.0f) {
+	    // x + 0.0 is x (even is x is a Nan).
+	    Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s),
+			Binary.getClearVal1(s));
+	    return MOVE_REDUCED;
 	  }
 	}
       }
@@ -1154,17 +1162,25 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
       }
       return UNCHANGED;
     case FLOAT_MUL_opcode:
-      if (CF_FLOAT) {
+      { 
 	OPT_Operand op2 = Binary.getVal2(s);
 	if (op2.isFloatConstant()) {
-	  OPT_Operand op1 = Binary.getVal1(s);
-	  if (op1.isFloatConstant()) {
-	    // BOTH CONSTANTS: FOLD
-	    float val1 = op1.asFloatConstant().value;
-	    float val2 = op2.asFloatConstant().value;
-	    Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), 
-			FC(val1*val2));
-	    return MOVE_FOLDED;
+	  float val2 = op2.asFloatConstant().value;
+	  if (CF_FLOAT) {
+	    OPT_Operand op1 = Binary.getVal1(s);
+	    if (op1.isFloatConstant()) {
+	      // BOTH CONSTANTS: FOLD
+	      float val1 = op1.asFloatConstant().value;
+	      Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), 
+			  FC(val1*val2));
+	      return MOVE_FOLDED;
+	    }
+	  }
+	  if (val2 == 1.0f) {
+	    // x * 1.0 is x, even if x is a NaN
+	    Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s),
+			Binary.getClearVal1(s));
+	    return MOVE_REDUCED;
 	  }
 	}
       }
@@ -1197,17 +1213,25 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
       }
       return UNCHANGED;
     case FLOAT_SUB_opcode:
-      if (CF_FLOAT) {
+      { 
 	OPT_Operand op2 = Binary.getVal2(s);
 	if (op2.isFloatConstant()) {
-	  OPT_Operand op1 = Binary.getVal1(s);
-	  if (op1.isFloatConstant()) {
-	    // BOTH CONSTANTS: FOLD
-	    float val1 = op1.asFloatConstant().value;
-	    float val2 = op2.asFloatConstant().value;
-	    Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), 
-			FC(val1 - val2));
-	    return MOVE_FOLDED;
+	  float val2 = op2.asFloatConstant().value;
+	  if (CF_FLOAT) {
+	    OPT_Operand op1 = Binary.getVal1(s);
+	    if (op1.isFloatConstant()) {
+	      // BOTH CONSTANTS: FOLD
+	      float val1 = op1.asFloatConstant().value;
+	      Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s), 
+			  FC(val1 - val2));
+	      return MOVE_FOLDED;
+	    }
+	  }
+	  if (val2 == 0.0f) {
+	    // x - 0.0 is x, even if x is a NaN
+	    Move.mutate(s, FLOAT_MOVE, Binary.getClearResult(s),
+			Binary.getClearVal1(s));
+	    return MOVE_REDUCED;
 	  }
 	}
       }
@@ -1216,17 +1240,25 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
       // DOUBLE ALU operations
       ////////////////////
     case DOUBLE_ADD_opcode:
-      if (CF_DOUBLE) {
+      {
 	OPT_Operand op2 = Binary.getVal2(s);
 	if (op2.isDoubleConstant()) {
-	  OPT_Operand op1 = Binary.getVal1(s);
-	  if (op1.isDoubleConstant()) {
-	    // BOTH CONSTANTS: FOLD
-	    double val1 = op1.asDoubleConstant().value;
-	    double val2 = op2.asDoubleConstant().value;
-	    Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), 
-			DC(val1 + val2));
-	    return MOVE_FOLDED;
+	  double val2 = op2.asDoubleConstant().value;
+	  if (CF_DOUBLE) {
+	    OPT_Operand op1 = Binary.getVal1(s);
+	    if (op1.isDoubleConstant()) {
+	      // BOTH CONSTANTS: FOLD
+	      double val1 = op1.asDoubleConstant().value;
+	      Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), 
+			  DC(val1 + val2));
+	      return MOVE_FOLDED;
+	    }
+	  }
+	  if (val2 == 0.0) {
+	    // x + 0.0 is x, even if x is a NaN
+	    Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s),
+			Binary.getClearVal1(s));
+	    return MOVE_REDUCED;
 	  }
 	}
       }
@@ -1280,17 +1312,25 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
       }
       return UNCHANGED;
     case DOUBLE_MUL_opcode:
-      if (CF_DOUBLE) {
+      { 
 	OPT_Operand op2 = Binary.getVal2(s);
 	if (op2.isDoubleConstant()) {
-	  OPT_Operand op1 = Binary.getVal1(s);
-	  if (op1.isDoubleConstant()) {
-	    // BOTH CONSTANTS: FOLD
-	    double val1 = op1.asDoubleConstant().value;
-	    double val2 = op2.asDoubleConstant().value;
-	    Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), 
-			DC(val1*val2));
-	    return MOVE_FOLDED;
+	  double val2 = op2.asDoubleConstant().value;
+	  if (CF_DOUBLE) {
+	    OPT_Operand op1 = Binary.getVal1(s);
+	    if (op1.isDoubleConstant()) {
+	      // BOTH CONSTANTS: FOLD
+	      double val1 = op1.asDoubleConstant().value;
+	      Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), 
+			  DC(val1*val2));
+	      return MOVE_FOLDED;
+	    }
+	  }
+	  if (val2 == 1.0) {
+	    // x * 1.0 is x even if x is a NaN
+	    Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s),
+			Binary.getClearVal1(s));
+	    return MOVE_REDUCED;
 	  }
 	}
       }
@@ -1323,17 +1363,25 @@ abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operators {
       }
       return UNCHANGED;
     case DOUBLE_SUB_opcode:
-      if (CF_DOUBLE) {
+      { 
 	OPT_Operand op2 = Binary.getVal2(s);
 	if (op2.isDoubleConstant()) {
-	  OPT_Operand op1 = Binary.getVal1(s);
-	  if (op1.isDoubleConstant()) {
-	    // BOTH CONSTANTS: FOLD
-	    double val1 = op1.asDoubleConstant().value;
-	    double val2 = op2.asDoubleConstant().value;
-	    Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), 
-			DC(val1 - val2));
-	    return MOVE_FOLDED;
+	  double val2 = op2.asDoubleConstant().value;
+	  if (CF_DOUBLE) {
+	    OPT_Operand op1 = Binary.getVal1(s);
+	    if (op1.isDoubleConstant()) {
+	      // BOTH CONSTANTS: FOLD
+	      double val1 = op1.asDoubleConstant().value;
+	      Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s), 
+			  DC(val1 - val2));
+	      return MOVE_FOLDED;
+	    }
+	  }
+	  if (val2 == 0.0) {
+	    // x - 0.0 is x, even if x is a NaN
+	    Move.mutate(s, DOUBLE_MOVE, Binary.getClearResult(s),
+			Binary.getClearVal1(s));
+	    return MOVE_REDUCED;
 	  }
 	}
       }
