@@ -2116,8 +2116,7 @@ class VM_Assembler implements VM_BaselineConstants {
   // After:    R0, S0 destroyed
   //
   void emitStackOverflowCheck (int frameSize) {
-    emitL   (S0,  VM_Entrypoints.activeThreadOffset, PROCESSOR_REGISTER);   // S0 := thread pointer
-    emitL   ( 0,  VM_Entrypoints.stackLimitOffset, S0);  // R0 := &stack guard page
+    emitL   ( 0,  VM_Entrypoints.activeThreadStackLimitOffset, PROCESSOR_REGISTER);   // R0 := &stack guard page
     emitCAL (S0, -frameSize, FP);                        // S0 := &new frame
     emitTLT (S0,  0);                                    // trap if new frame below guard page
     }

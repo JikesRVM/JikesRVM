@@ -804,7 +804,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     //
     myThread.stack      = newStack;
     myThread.stackLimit = VM_Magic.objectAsAddress(newStack) + STACK_SIZE_GUARD;
-
+    VM_Processor.getCurrentProcessor().activeThreadStackLimit = myThread.stackLimit;
+    
     // return to caller, resuming execution on new stack 
     // (original stack now abandoned)
     //

@@ -363,16 +363,15 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * When this changes, this code should be modifed accordingly.
    * The desired sequence is:
    *  1    mflr    00  # return addr
-   *  2    l       S0 activeThreadOffset(PR)                  # stack overflow check
+   *  2    l       S1 threadSwitchRequestedOffset(PR)         # setting cr2 for yield point
    *  3    stu     FP -frameSize(FP)                          # buy frame, save caller's fp
-   *  4    l       S1 threadSwitchRequestedOffset(PR)         # setting cr2 for yield point
+   *  4    l       S0 stackLimitOffset(S0)                    # stack overflow check
    *  5    <save used non volatiles>
-   *  6    l       S0 stackLimitOffset(S0)                    # stack overflow check
-   *  7    cmpi    cr2 S1 0x0                                 # setting cr2 for yield point (S1 is now free)
-   *  8    lil     S1 CMID                                    # cmid
-   *  9    st      00 STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)  # return addr (00 is now free)
-   *  10   st      S1 STACKFRAME_METHOD_ID_OFFSET(FP)         # cmid
-   *  11   tlt     FP, S0                                     # stack overflow check
+   *  6    cmpi    cr2 S1 0x0                                 # setting cr2 for yield point (S1 is now free)
+   *  7    lil     S1 CMID                                    # cmid
+   *  8    st      00 STACKFRAME_NEXT_INSTRUCTION_OFFSET(FP)  # return addr (00 is now free)
+   *  9    st      S1 STACKFRAME_METHOD_ID_OFFSET(FP)         # cmid
+   *  10   tlt     FP, S0                                     # stack overflow check
    */
 
   /**
@@ -396,45 +395,43 @@ final class OPT_StackManager extends OPT_GenericStackManager
 
     ptr.insertBefore(MIR_Move.create(PPC_MFSPR, R(R0),
                                      R(phys.getLR()))); // 1
+    if (yp) {
+      ptr.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(S1), R(PR),
+			I(VM_Entrypoints.threadSwitchRequestedOffset)))); // 2
+    }
+
+    ptr.insertBefore(nonPEIGC(MIR_StoreUpdate.create(PPC_STWU, R(FP), R(FP),
+  		        I(-frameSize)))); // 3
+
     if (stackOverflow) {
       ptr.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(S0),
                                                 R(phys.getPR()), 
-			I(VM_Entrypoints.activeThreadOffset)))); // 2
-    }
-    ptr.insertBefore(nonPEIGC(MIR_StoreUpdate.create(PPC_STWU, R(FP), R(FP),
-  		        I(-frameSize)))); // 3
-    if (yp) {
-      ptr.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(S1), R(PR),
-			I(VM_Entrypoints.threadSwitchRequestedOffset)))); // 4
+			I(VM_Entrypoints.activeThreadStackLimitOffset)))); // 4
     }
 
-    // Now add any instructions to save the nonvolatiles
+    // Now add any instructions to save the nonvolatiles (5)
     createNonVolatileArea(ptr);
     
-    if (stackOverflow) {
-      ptr.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(S0), R(S0), 
-			I(VM_Entrypoints.stackLimitOffset)))); // 6
-    }      
     if (yp) {
-      ptr.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(S1), I(0))); // 7
+      ptr.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(S1), I(0))); // 6
     }
     int cmid = ir.compiledMethodId;
     if (cmid <= 0x7fff) {
-      ptr.insertBefore(MIR_Unary.create(PPC_LDI, R(S1), I(cmid))); // 8
+      ptr.insertBefore(MIR_Unary.create(PPC_LDI, R(S1), I(cmid))); // 7
     } else {
-      ptr.insertBefore(MIR_Unary.create(PPC_LDIS, R(S1),I(cmid>>>16))); // 8 (a)
+      ptr.insertBefore(MIR_Unary.create(PPC_LDIS, R(S1),I(cmid>>>16))); // 7 (a)
       ptr.insertBefore(MIR_Binary.create(PPC_ORI, R(S1), R(S1),
-					 I(cmid&0xffff))); // 8 (b)
+					 I(cmid&0xffff))); // 7 (b)
     }
     ptr.insertBefore(nonPEIGC(MIR_Store.create(PPC_STW, R(R0), R(FP), 
-		 I(frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET)))); // 9
+		 I(frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET)))); // 8
     ptr.insertBefore(nonPEIGC(MIR_Store.create(PPC_STW, R(S1), R(FP), 
-		       I(STACKFRAME_METHOD_ID_OFFSET)))); // 10
+		       I(STACKFRAME_METHOD_ID_OFFSET)))); // 9
 
     if (stackOverflow) {
       // Mutate the Prologue instruction into the trap
       MIR_Trap.mutate(ptr, PPC_TW, OPT_PowerPCTrapOperand.LESS(), R(FP), R(S0),
-		      OPT_TrapCodeOperand.StackOverflow()); // 11
+		      OPT_TrapCodeOperand.StackOverflow()); // 10
     } else {
       // no stack overflow test, so we remove the IR_Prologue instruction
       ptr.remove();
@@ -475,16 +472,11 @@ final class OPT_StackManager extends OPT_GenericStackManager
 			I(STACKFRAME_NEXT_INSTRUCTION_OFFSET))));
       ptr.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(S1),
                                                 R(phys.getPR()), 
-			I(VM_Entrypoints.activeThreadOffset))));
-      ptr.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(S1), R(S1), 
- 			I(VM_Entrypoints.stackLimitOffset))));
+			I(VM_Entrypoints.activeThreadStackLimitOffset))));
       ptr.insertBefore(MIR_Binary.create(PPC_ADDI, R(R0), R(S1), 
 			I(frameSize)));
       ptr.insertBefore(nonPEIGC(MIR_Load.create(PPC_LWZ, R(S1), R(FP), 
 			I(STACKFRAME_NEXT_INSTRUCTION_OFFSET))));
-
-      ptr.insertBefore(MIR_Trap.create(PPC_TW, OPT_PowerPCTrapOperand.LESS(), 
-		       R(FP), R(R0), OPT_TrapCodeOperand.StackOverflow()));
 
       // Mutate the Prologue holder instruction into the trap
       MIR_Trap.mutate(ptr, PPC_TW, OPT_PowerPCTrapOperand.LESS(), R(FP), R(R0),

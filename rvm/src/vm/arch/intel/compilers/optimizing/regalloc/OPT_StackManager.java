@@ -472,26 +472,14 @@ implements OPT_Operators {
       return;
     }
 
-    // TODO: cache the stack limit offset in the processor object to save
-    // a load.
-    //
-    // it's OK to use ECX as a scratch here:
-    //    ECX := active Thread Object
-    //    Trap if ESP <= active Thread Stack Limit
-
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register PR = phys.getPR();
     OPT_Register ESP = phys.getESP();
-    OPT_Register ECX = phys.getECX();
-
-    //    ECX := active Thread Object
-    OPT_MemoryOperand M = OPT_MemoryOperand.BD
-      (R(PR), VM_Entrypoints.activeThreadOffset, (byte)WORDSIZE, null, null);
-    plg.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, R(ECX), M)));
+    OPT_MemoryOperand M = 
+      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitOffset, 
+			   (byte)WORDSIZE, null, null);
 
     //    Trap if ESP <= active Thread Stack Limit
-    M = OPT_MemoryOperand.BD(R(ECX), VM_Entrypoints.stackLimitOffset,
-                             (byte)WORDSIZE, null, null);
     MIR_TrapIf.mutate(plg,IA32_TRAPIF,null,R(ESP),M,
                       OPT_IA32ConditionOperand.LE(),
                       OPT_TrapCodeOperand.StackOverflow());
@@ -523,28 +511,15 @@ implements OPT_Operators {
       return;
     }
 
-    // TODO: cache the stack limit offset in the processor object to save
-    // a load.
-    //
-    // it's OK to use ECX as a scratch here:
-    //    ECX := active Thread Object
-    //    ECX := active Thread Stack Limit
-    //    ECX += frame Size
-    //    Trap if ESP <= ECX
-
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register PR = phys.getPR();
     OPT_Register ESP = phys.getESP();
     OPT_Register ECX = phys.getECX();
 
-    //    ECX := active Thread Object
-    OPT_MemoryOperand M = OPT_MemoryOperand.BD
-      (R(PR), VM_Entrypoints.activeThreadOffset, (byte)WORDSIZE, null, null);
-    plg.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, R(ECX), M)));
-
     //    ECX := active Thread Stack Limit
-    M = OPT_MemoryOperand.BD(R(ECX), VM_Entrypoints.stackLimitOffset,
-                             (byte)WORDSIZE, null, null);
+    OPT_MemoryOperand M = 
+      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitOffset, 
+			   (byte)WORDSIZE, null, null);
     plg.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, R(ECX), M)));
 
     //    ECX += frame Size

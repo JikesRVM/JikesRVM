@@ -195,6 +195,7 @@ class VM_Entrypoints implements VM_Constants
    static int scratchNanosecondsOffset;
    static int threadSwitchRequestedOffset;
    static int activeThreadOffset;
+   static int activeThreadStackLimitOffset;
 //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
    static int vpStateOffset;
 //-#else
@@ -505,6 +506,7 @@ class VM_Entrypoints implements VM_Constants
       scratchNanosecondsOffset    = VM.getMember("LVM_Processor;", "scratchNanoseconds", "D").getOffset();
       threadSwitchRequestedOffset = VM.getMember("LVM_Processor;", "threadSwitchRequested", "I").getOffset();
       activeThreadOffset          = VM.getMember("LVM_Processor;", "activeThread", "LVM_Thread;").getOffset();
+      activeThreadStackLimitOffset= VM.getMember("LVM_Processor;", "activeThreadStackLimit", "I").getOffset();
 
 //-#if RVM_WITH_DEDICATED_NATIVE_PROCESSORS
       vpStateOffset               = VM.getMember("LVM_Processor;", "vpState", "I").getOffset();

@@ -143,8 +143,10 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
       newThread.suspendLock.unlock();
       newThread = getRunnableThread();
     }
+    
     previousThread = activeThread;
     activeThread   = newThread;
+    activeThreadStackLimit = newThread.stackLimit;
 
 //-#if RVM_FOR_IA32
     threadId       = newThread.getLockingId();
@@ -350,6 +352,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
     // Make the current thread the active thread for this native VP
     newProcessor.activeThread = withThisThread;
+    newProcessor.activeThreadStackLimit = withThisThread.stackLimit;
 
     // Because the start up thread will not be executing to 
     // initialize itself as in the
@@ -454,6 +457,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
 
     newProcessor.activeThread = target;
+    newProcessor.activeThreadStackLimit = target.stackLimit;
 //-#if RVM_FOR_POWERPC
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
 				 VM_Magic.objectAsAddress(newProcessor),
@@ -550,6 +554,7 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
     VM.disableGC();
     newProcessor.activeThread = target;
+    newProcessor.activeThreadStackLimit = target.stackLimit;
     VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
 				 VM_Magic.objectAsAddress(newProcessor),
 				 target.contextRegisters.gprs[VM.THREAD_ID_REGISTER],
@@ -692,6 +697,12 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    * thread currently running on this processor
    */
   VM_Thread        activeThread;    
+
+  /**
+   * cached activeThread.stackLimit;
+   * removes 1 load from stackoverflow sequence.
+   */
+  int activeThreadStackLimit;
 
 //-#if RVM_FOR_IA32
   // to free up (nonvolatile or) scratch registers

@@ -2669,8 +2669,7 @@ public class VM_Compiler implements VM_BaselineConstants {
      * generate stacklimit check
      */
     if (klass.isInterruptible()) {
-      asm.emitMOV_Reg_RegDisp (S0, PR, VM_Entrypoints.activeThreadOffset);	// S0<-thd. @
-      asm.emitMOV_Reg_RegDisp (S0, S0, VM_Entrypoints.stackLimitOffset);	// S0<-limit
+      asm.emitMOV_Reg_RegDisp (S0, PR, VM_Entrypoints.activeThreadStackLimitOffset);	// S0<-limit
       asm.emitSUB_Reg_Reg (S0, SP);                                   	// space left
       asm.emitADD_Reg_Imm (S0, method.getOperandWords() << LG_WORDSIZE); 	// space left after this expression stack
       VM_ForwardReference fr = asm.forwardJcc(asm.LT);	// Jmp around trap if OK

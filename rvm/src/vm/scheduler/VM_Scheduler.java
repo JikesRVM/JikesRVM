@@ -321,6 +321,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	  trace("VM_Scheduler.boot", "starting processor id", i);
 	
 	processors[i].activeThread = target;
+	processors[i].activeThreadStackLimit = target.stackLimit;
 	if (VM.BuildForPowerPC) {
 //-#if RVM_FOR_POWERPC
 	  VM.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
@@ -341,6 +342,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 	VM_Thread target = new VM_StartupThread(startupThreadStacks[numProcessors]);
 	
 	processors[nativeDPndx].activeThread = target;
+	processors[nativeDPndx].activeThreadStackLimit = target.stackLimit;
 	if (VM.TraceThreads)
 	  trace("VM_Scheduler.boot", "starting native daemon processor id", nativeDPndx);
 	if (VM.BuildForPowerPC) {

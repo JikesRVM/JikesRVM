@@ -401,6 +401,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
         unsigned stackStart = *(unsigned *)(threadObjectAddress + VM_Thread_stack_offset); 
         stackLimit -= VM_Constants_STACK_SIZE_GUARD;
         *(unsigned *)(threadObjectAddress + VM_Thread_stackLimit_offset) = stackLimit;
+	*(unsigned *)(sc->esi + VM_Processor_activeThreadStackLimit_offset) = stackLimit;
         }
 	break;
 

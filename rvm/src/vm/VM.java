@@ -73,6 +73,7 @@ public class VM extends VM_Properties implements VM_Constants,
     //
     VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> OBJECT_THREAD_ID_SHIFT];
     currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack) + STACK_SIZE_GUARD;
+    VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
 
     // get pthread_id from OS and store into vm_processor field
     // 
