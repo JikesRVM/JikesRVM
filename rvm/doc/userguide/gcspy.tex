@@ -12,14 +12,14 @@ OOPSLA'02}{\GCspyOOPSLATwoPaperURL}\texonly{, also available at \texttt{\GCspyOO
 comprises two components that communicate across a socket: a
 client-side visualiser (written in Java) and a server incorporated
 into the virtual machine of the system being visualised.
+The GCspy server implementation for JikesRVM was contributed by Richards
+Jones of the University of Kent. 
 
 GCspy is designed to be independent of the target system.  Instead, it
 requires the GC developer to describe their system in terms of four
 GCspy abstractions, spaces, streams, tiles, and events.
 This description is
 transmitted to the visualiser when it connects to the server. 
-GCspy support for JikesRVM was implemented and contributed by Richards
-Jones of the University of Kent. 
 
 A \textit{space} is an abstraction of a component of the system; it may
 represent a memory region, a free-list, a remembered-set or whatever.
