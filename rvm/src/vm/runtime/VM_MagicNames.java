@@ -39,7 +39,6 @@ public class VM_MagicNames {
   public static final VM_Atom setESIAsProcessor             = VM_Atom.findOrCreateAsciiAtom("setESIAsProcessor");
   //-#endif
 
-  public static final VM_Atom getTime                       = VM_Atom.findOrCreateAsciiAtom("getTime");
   public static final VM_Atom getTimeBase                   = VM_Atom.findOrCreateAsciiAtom("getTimeBase");
 
   public static final VM_Atom getCallerFramePointer         = VM_Atom.findOrCreateAsciiAtom("getCallerFramePointer");

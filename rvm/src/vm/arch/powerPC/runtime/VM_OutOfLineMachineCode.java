@@ -36,7 +36,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     saveThreadStateInstructions               = generateSaveThreadStateInstructions();
     threadSwitchInstructions                  = generateThreadSwitchInstructions();
     restoreHardwareExceptionStateInstructions = generateRestoreHardwareExceptionStateInstructions();
-    getTimeInstructions                       = generateGetTimeInstructions();
     invokeNativeFunctionInstructions          = generateInvokeNativeFunctionInstructions();
   }
 
@@ -48,7 +47,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
   private static VM_CodeArray saveThreadStateInstructions;
   private static VM_CodeArray threadSwitchInstructions;
   private static VM_CodeArray restoreHardwareExceptionStateInstructions;
-  private static VM_CodeArray getTimeInstructions;
   private static VM_CodeArray invokeNativeFunctionInstructions;
    
   // Machine code for reflective method invocation.
@@ -343,68 +341,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants, VM_AssemblerConst
     // resume execution at IP
     //
     asm.emitBCCTR();
-
-    return asm.makeMachineCode().getInstructions();
-  }
-
-  // Machine code to implement "VM_Magic.getTime()".
-  //
-  // Registers taken at runtime:
-  //   T0 == address of VM_Processor object
-  //
-  // Registers returned at runtime:
-  //   F0 == return value
-  //
-  // Side effects at runtime:
-  //   T0..T3 and F0..F3 are destroyed
-  //   scratch fields used in VM_Processor object
-  //
-  private static VM_CodeArray generateGetTimeInstructions() {
-    VM_Assembler asm = new VM_Assembler(0);
-
-    int scratchSecondsOffset     = VM_Entrypoints.scratchSecondsField.getOffset();
-    int scratchNanosecondsOffset = VM_Entrypoints.scratchNanosecondsField.getOffset();
-
-    asm.emitOR    (T3, T0, T0);                             // t3 := address of VM_Processor object
-    asm.emitLFDtoc(F2, VM_Entrypoints.billionthField.getOffset(), T1); // f2 := 1e-9
-    asm.emitLFDtoc(F3, VM_Entrypoints.IEEEmagicField.getOffset(), T1); // f3 := IEEEmagic
-
-    asm.emitSTFD  (F3, scratchNanosecondsOffset, T3);       // scratch_nanos   := IEEEmagic
-    asm.emitSTFD  (F3, scratchSecondsOffset,     T3);       // scratch_seconds := IEEEmagic
-    
-    if (VM.BuildFor64Addr) {
-      asm.emitMFTB (T0);
-      asm.emitSTW  (T0, scratchNanosecondsOffset + 4, T3);  // store lo 32-bits into "magic" float
-      asm.emitSRADI(T0, 32, T0);
-      asm.emitSTW  (T0, scratchSecondsOffset     + 4, T3);  // store hi 32-bits into "magic" float
-    } else {
-      int loopLabel = asm.getMachineCodeIndex();
-      if (VM.BuildForLinux) {
-        asm.emitMFTBU (T0);                                     // t0 := real time clock, upper
-        asm.emitMFTB  (T1);                                     // t1 := real time clock, lower
-        asm.emitMFTBU (T2);                                     // t2 := real time clock, upper
-      } else {
-        asm.emitMFSPR (T0, 4 );                                 // t0 := real time clock, upper
-        asm.emitMFSPR (T1, 5 );                                 // t1 := real time clock, lower
-        asm.emitMFSPR (T2, 4 );                                 // t2 := real time clock, upper
-      }
-      asm.emitCMP   (T0, T2);                                 // t0 == t2?
-      asm.emitSTW   (T1, scratchNanosecondsOffset + BYTES_IN_ADDRESS, T3);   // scratch_nanos_lo   := nanos
-      asm.emitSTW   (T0, scratchSecondsOffset     + BYTES_IN_ADDRESS, T3);   // scratch_seconds_lo := seconds
-      asm.emitBC    (NE, loopLabel);                          // seconds have rolled over, try again
-    
-      asm.emitLFD   (F0, scratchNanosecondsOffset, T3);       // f0 := IEEEmagic + nanos
-      asm.emitLFD   (F1, scratchSecondsOffset,     T3);       // f1 := IEEEmagic + seconds
-
-      asm.emitFSUB    (F0, F0, F3);                             // f0 := f0 - IEEEmagic == (double)nanos
-      asm.emitFSUB    (F1, F1, F3);                             // f1 := f1 - IEEEmagic == (double)seconds
-
-      asm.emitFMADD   (F0, F2, F0, F1);                         // f0 := f2 * f0 + f1
-    }
-
-    // return to caller
-    //
-    asm.emitBCLR();
 
     return asm.makeMachineCode().getInstructions();
   }

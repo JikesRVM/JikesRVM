@@ -101,18 +101,6 @@ public class VM_Magic {
     return -1;
   }
 
-  /**
-   * Read contents of hardware real time clock registers.
-   * Note:     these registers are emulated on some processors (eg. 603, 604)
-   *           so the overhead of this function may be high (~7000 cycles).
-   * @param p current processor (!!TEMP)
-   * @return time in seconds (epoch Jan 1 1970), to nanonsecond resolution.
-   */
-  public static double getTime(VM_Processor p) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return -1;
-  }
-
   //---------------------------------------//
   //       Stackframe Manipulation         //
   //---------------------------------------//

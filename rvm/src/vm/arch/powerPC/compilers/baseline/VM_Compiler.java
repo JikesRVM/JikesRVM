@@ -3483,12 +3483,6 @@ public class VM_Compiler extends VM_BaselineCompiler
         asm.emitBC   (NE, label);               // lower rolled over, try again
       }
       pushLong(T0,T1);              
-    } else if (methodName == VM_MagicNames.getTime) {
-      popAddr(T0); // t0 := address of VM_Processor object
-      asm.emitLAddrToc(S0, VM_Entrypoints.getTimeInstructionsField.getOffset());
-      asm.emitMTCTR(S0);
-      asm.emitBCCTRL();             // call out of line machine code
-      pushDouble(F0); // push return value
     } else if (methodName == VM_MagicNames.invokeMain) {
       popAddr(T0); // t0 := ip
       asm.emitMTCTR(T0);

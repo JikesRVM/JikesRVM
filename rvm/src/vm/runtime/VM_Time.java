@@ -9,28 +9,11 @@ package com.ibm.JikesRVM;
  * 
  * @author Bowen Alpern
  * @author Derek Lieber
+ * @modified Dave Grove
  */
-/// uninterrupible so it can be called safely from inside scheduler code
 public class VM_Time implements VM_Uninterruptible {
-  /**
-   * Number of processor cycles executed since some undefined epoch.
-   */ 
-  static public long cycles() {
-    //-#if RVM_FOR_POWERPC
-    // 1 tick --> 4 cycles, see VM_Magic.getTimeBase()
-    return VM_Magic.getTimeBase() << 2; 
-    //-#endif
-    //-#if RVM_FOR_IA32
-    // 1 tick --> 1 cycle on IA32
-    return VM_Magic.getTimeBase();
-    //-#endif
-  }
 
-  static private double milliPerCycle = 0.0;
-
-  static public double cyclesToMilli (long c) {
-    return c * milliPerCycle;
-  }
+  private static double milliPerCycle = 0.0;
 
   static public void boot() {
     double start = now();
@@ -48,21 +31,34 @@ public class VM_Time implements VM_Uninterruptible {
   }
 
   /**
+   * Number of processor cycles executed since some undefined epoch.
+   */ 
+  static public long cycles() {
+    // On IA32 we are reading a cycle counter
+    // On PPC we are reading the time base register and 
+    // the relationship between ticks of the time base register and
+    // cycle count is undefined.  
+    // Empirically, on some machines, it appears to be 4x.  
+    int shift = VM.BuildForPowerPC ? 2 : 0;
+    return VM_Magic.getTimeBase() << shift;
+  }
+
+  /**
+   * Convert a value obtained from VM_Time.cycles to
+   * milliSeconds
+   * @param c a cycle value obtained via cycles
+   * @return c converted to milli seconds
+   */
+  static public double cyclesToMilli (long c) {
+    return c * milliPerCycle;
+  }
+
+  /**
    * Time in seconds (epoch Jan 1 1970), to nanosecond resolution.
    */ 
   public static double now() {
-    //-#if RVM_FOR_POWERPC
-    //-#if RVM_FOR_LINUX
     long currentTime = VM_SysCall.sysGetTimeOfDay();
-    double time = (double) currentTime / 1000000D;
-    //-#else
-    double time = VM_Magic.getTime(VM_Processor.getCurrentProcessor());
-    //-#endif
-    //-#endif
-    //-#if RVM_FOR_IA32
-    long currentTime = VM_SysCall.sysGetTimeOfDay();
-    double time = (double) currentTime / 1000000D;
-    //-#endif
+    double time = ((double) currentTime) / 1000000D;
     return time;
   }
 
@@ -101,6 +97,10 @@ public class VM_Time implements VM_Uninterruptible {
     return (int)time;
   }
 
+  /**
+   * Scale a double (presumably representing the deltas/sums of VM.now values)
+   * to a time in minutes.
+   */
   public static int toMins(double time) {
     return (int)(time/60.0);
   }
