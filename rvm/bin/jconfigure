@@ -2507,7 +2507,7 @@ gnu_compiler_flags=(-O2 -rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $C
 	echo "declare -a gnu_compiler_flags
 gnu_compiler_flags=(-O2 -DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR \${gnu_compiler_flags[@]}\""
-	echo "BOOTER_CC=\"run $HOST_CC_STR \"\${gnu_compiler_flags[@]}\""
+	echo "BOOTER_CC=\"run $HOST_CC_STR \${gnu_compiler_flags[@]}\""
 	echo 'CCLIBS="-ldl"'
 	echo 'IMAGE='
     else
