@@ -2478,8 +2478,13 @@ sysNetHostAddresses(char *hostname, uint32_t **buf, int limit)
 
     int rc = gethostbyname_r(hostname, &results, &data);
     if (rc != 0) {
+#ifdef __GLIBC__
 	fprintf(SysErrorFile, "%s: gethostbyname_r failed: %s (h_errno=%d)\n",
 		Me, hstrerror(h_errno), h_errno);
+#else
+	fprintf(SysErrorFile, "%s: gethostbyname_r failed (h_errno=%d)\n",
+		Me, h_errno);
+#endif
 	return -2;
     }
 
