@@ -195,7 +195,7 @@ public final class OPT_GenerationContext
     original_method = meth;
     original_cm = cm;
     method = meth;
-    if (opts.FREQUENCY_STRATEGY == OPT_Options.COUNTERS_FREQ) {
+    if (opts.frequencyCounters() || opts.inverseFrequencyCounters()) {
       branchProfiles = VM_EdgeCounts.getBranchProfiles(meth);
     }
     options = opts;
@@ -286,7 +286,9 @@ public final class OPT_GenerationContext
 						  OPT_Instruction callSite) {
     OPT_GenerationContext child = new OPT_GenerationContext();
     child.method = callee;
-    child.branchProfiles = VM_EdgeCounts.getBranchProfiles(callee);
+    if (parent.options.frequencyCounters() || parent.options.inverseFrequencyCounters()) {
+      child.branchProfiles = VM_EdgeCounts.getBranchProfiles(callee);
+    }
     child.original_method = parent.original_method;
     child.original_cm = parent.original_cm;
 
@@ -587,15 +589,21 @@ public final class OPT_GenerationContext
   // Profile data
   ///////////
   public OPT_BranchProfileOperand getConditionalBranchProfileOperand(int bcIndex, boolean backwards) {
+    float prob;
     if (branchProfiles != null) {
       VM_BranchProfile bp = branchProfiles.getEntry(bcIndex);
-      return new OPT_BranchProfileOperand(((VM_ConditionalBranchProfile)bp).getTakenProbability());
-    } 
-    if (backwards) {
-      return new OPT_BranchProfileOperand(0.9f); // assume loop backedge and loop executes 10 times.
+      prob = ((VM_ConditionalBranchProfile)bp).getTakenProbability();
+    } else if (backwards) {
+      prob = 0.9f;
     } else {
-      return new OPT_BranchProfileOperand(0.5f); // 50/50 taken/notTaken
+      prob = 0.5f;
     }
+    // experimental option: flip the probablity to see how bad things would be if
+    // we were completely wrong.
+    if (options.inverseFrequencyCounters()) {
+      prob = 1f - prob;
+    }
+    return new OPT_BranchProfileOperand(prob);
   }
 
   public VM_SwitchBranchProfile getSwitchProfile(int bcIndex) {

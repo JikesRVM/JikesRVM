@@ -81,7 +81,8 @@ E FREQUENCY_STRATEGY byte COUNTERS_FREQ
 How to compute block and edge frequencies?
 "COUNTERS_FREQ frequencyCounters counters" \
 "STATIC_FREQ staticFrequencyEstimates static" \
-"DUMB_FREQ dumbFrequency dumb"
+"DUMB_FREQ dumbFrequency dumb" \
+"INVERSE_COUNTERS_FREQ inverseFrequencyCounters inverse"
 
 E SPILL_COST_ESTIMATE byte BLOCK_COUNT_SPILL_COST
 Selection of spilling heuristic
