@@ -38,7 +38,6 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
   int     workStkTop;     
   int     JSRSubNext;                  
 
-
   // ------------------- No Constructor ---------------------------
 
   // ----------------- External Instance Methods -------------------
@@ -50,7 +49,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
    */
 
  public void
- buildReferenceMaps(VM_Method method, 
+ buildReferenceMaps(VM_Method method, int[] stackHeights,
 		    VM_ReferenceMaps referenceMaps, VM_BuildBB buildBB) {
 
   //****************************************************************//
@@ -318,6 +317,9 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     for (i=start; i<= end; ) {  // increment is at bottom of loop, using opLength
       int opcode = ((int)bytecodes[i]) & 0x000000FF;
       int opLength = JBC_length[opcode];
+      if (stackHeights != null) {
+	stackHeights[i] = currBBStkTop;
+      }
 
       switch (opcode) {
 

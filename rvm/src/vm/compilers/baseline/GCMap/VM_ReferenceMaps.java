@@ -17,7 +17,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
   static final boolean debug = false;
 
 
-  VM_ReferenceMaps(VM_Method method) {
+  VM_ReferenceMaps(VM_Method method, int[] stackHeights) {
     // save input information and compute related data
     this.bitsPerMap  = (method.getLocalWords() + method.getOperandWords()+1); // +1 for jsr bit
     this.bytesPerMap       = ((this.bitsPerMap + 7)/8)+1 ; // calc size of individul maps
@@ -51,11 +51,11 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
       // now the related reference maps
       if (!runLiveMaps) {
         VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
-        buildRefMaps.buildReferenceMaps(method, this, buildBB);
+        buildRefMaps.buildReferenceMaps(method, stackHeights, this, buildBB);
       }
       else {
 	VM_BuildLiveRefMaps buildLiveRefMaps = new VM_BuildLiveRefMaps();
-        buildLiveRefMaps.buildReferenceMaps(method, this, buildBB);
+        buildLiveRefMaps.buildReferenceMaps(method, stackHeights, this, buildBB);
       }
 
       // tracing and statistics
@@ -150,13 +150,13 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
         if (!runLiveMaps) {
           // build maps using reachability
 	  VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
-          buildRefMaps.buildReferenceMaps(method, this, buildBB);
+          buildRefMaps.buildReferenceMaps(method, null, this, buildBB);
 	}
 	else {
           // test code to compare reachable vs live maps
 	  if (VM.ReachableAndLiveReferenceMaps) {
 	    VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
-	    buildRefMaps.buildReferenceMaps(method, this, buildBB);
+	    buildRefMaps.buildReferenceMaps(method, null, this, buildBB);
 
 		int dist;
 		int distance = 0;
@@ -187,7 +187,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
 	  }  // end reachableandlive maps
           // build live maps
 	  VM_BuildLiveRefMaps buildLiveRefMaps = new VM_BuildLiveRefMaps();
-          buildLiveRefMaps.buildReferenceMaps(method, this, buildBB);
+          buildLiveRefMaps.buildReferenceMaps(method, null, this, buildBB);
 	}
         if (VM.TraceTimes) VM_Timer.stop(VM_Timer.REFERENCEMAP_GEN);
 

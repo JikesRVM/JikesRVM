@@ -49,7 +49,7 @@ final class VM_BuildLiveRefMaps implements VM_BytecodeConstants {
    */
 
  public void
- buildReferenceMaps(VM_Method method, 
+ buildReferenceMaps(VM_Method method, int[] stackHeights,
 		    VM_ReferenceMaps referenceMaps, VM_BuildBB buildBB) {
 
   //---------------------------------------------------------------//
@@ -315,6 +315,9 @@ final class VM_BuildLiveRefMaps implements VM_BytecodeConstants {
 
     for (i=start; i<= end; i++) {
       int opcode = ((int)bytecodes[i]) & 0x000000FF;
+      if (stackHeights != null) {
+	stackHeights[i] = currBBStkTop;
+      }
      
      switch (opcode) {
 

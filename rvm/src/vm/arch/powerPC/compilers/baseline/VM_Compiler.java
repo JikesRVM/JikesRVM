@@ -28,8 +28,7 @@ public class VM_Compiler implements VM_BaselineConstants {
     } 
     else if (!VM.BuildForInterpreter) {
       VM_Compiler     compiler     = new VM_Compiler();
-
-      VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method);
+      VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method, null);
       VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method);
       INSTRUCTION[]   instructions = machineCode.getInstructions();
       int[]           bytecodeMap  = machineCode.getBytecodeMap();
