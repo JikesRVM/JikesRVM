@@ -109,7 +109,6 @@ public final class VM_LockNursery implements VM_Constants, VM_Uninterruptible {
       if (DEBUG) { VM.sysWrite(VM_Magic.objectAsAddress(o));  VM.sysWrite(": Created nursery lock\n"); }
       VM_LockBucket b = allocate();
       b.next = buckets[h];
-      b.lock = VM_Lock.allocate();
       b.object = o;
       b.lock.lockedObject = o;
       // Want to say: buckets[h] = b but the array store check is a potential thread switch point!
