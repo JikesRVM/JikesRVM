@@ -8,12 +8,24 @@ These are release notes for Jikes RVM release 2.3.2.
 
 *Highlights of this release include:
 
+**64-bit port of baseline compiler and runtime system to PowerPC64/AIX is 
+complete. We have been passing all regression tests on PPC64/AIX for
+over a month.  You need to apply a small patch (in rvm/etc) to
+fdlibm/mprec.h in classpath to get toString of float/double values to
+work.  NOTE: porting of the optimizing compiler has not yet begun
+(contributions/collaborations welcome) and therefore no configuration
+with the optimizing compiler will work in 64 bit mode.
+
 **Source Code editing support
 There are now VIM and Emacs style files supporting the Jikes RVM coding
 style for C, Java, and C++.  See rvm/etc/README.  (This should have
 been in the 2.3.1 release announcement but was not.)
 
 *Other notes:
+
+**Performance improvements in VM_Memory copying routines used by 
+System.arraycopy and copying GC resulted in 10% improvement in
+SPECjbb2000 throughput. 
 
 *Bug Fixes:
 ** Fixed problems in alignment support in JMTk that were causing crashes
