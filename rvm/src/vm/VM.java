@@ -251,6 +251,7 @@ public class VM extends VM_Properties
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.util.PropertyPermission");
+    runClassInitializer("com.ibm.JikesRVM.VM_Process");
     //-#if !RVM_WITH_GNU_CLASSPATH
     runClassInitializer("com.ibm.oti.util.Msg");
     //-#endif

@@ -1366,9 +1366,8 @@ function emitImageLinker
    print "   print MainThread                       >> $EXCLUDED_CLASSES_STR"
    print "   print JNIServiceThread.class           >> $EXCLUDED_CLASSES_STR"
 
-   # skip: InetAddress and Process load native library; so don't load unless needed
+   # skip: InetAddress and JikesRVMSocketImpl; so don't load native libs unless needed
    print "   print VM_InetAddress.class             >> $EXCLUDED_CLASSES_STR"
-   print "   print VM_Process.class                 >> $EXCLUDED_CLASSES_STR"
    print "   print JikesRVMSocketImpl               >> $EXCLUDED_CLASSES_STR"
 
    # skip: don't put application class loader in, due to static data issues
