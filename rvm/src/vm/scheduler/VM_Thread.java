@@ -641,13 +641,13 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     if (trace) VM_Scheduler.trace("VM_Thread", "terminate");
 
-    VM_Thread myThread = getCurrentThread();
-    // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
-    myThread.exit(); 
-
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
     VM_RuntimeMeasurements.monitorThreadExit();
     //-#endif
+
+    VM_Thread myThread = getCurrentThread();
+    // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
+    myThread.exit(); 
 
     synchronized (myThread) { // release anybody waiting on this thread - 
 
@@ -659,6 +659,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 	// in particular, see java.lang.Thread.join()
 	myThread.isAlive = false;
 	myThread.notifyAll();
+
+	myThread.releaseThreadSlot();
     }
 	
     //
