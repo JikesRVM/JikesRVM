@@ -51,6 +51,8 @@ class VM_IdleThread extends VM_Thread {
 
   public void run() { // overrides VM_Thread
     VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
+    if (VM.ExtremeAssertions) VM._assert(myProcessor == processorAffinity);
+    
     if (runInitProc) myProcessor.initializeProcessor();
     long spinInterval = loadBalancing ? VM_Time.millisToCycles(1) : 0;
     main: while (true) {
@@ -65,12 +67,21 @@ class VM_IdleThread extends VM_Thread {
       do {
         VM_Processor.idleProcessor = myProcessor;
         if (availableWork(myProcessor)) {
+          if (VM.ExtremeAssertions) 
+            VM._assert(myProcessor == VM_Processor.getCurrentProcessor());
           VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
           continue main;
         }
       } while (VM_Time.cycles()<t);
       
-      VM.sysVirtualProcessorYield();
+      /* Now go into the long-term sleep/check-for-work loop. */
+      for (;;) {
+        VM.sysVirtualProcessorYield();
+        if (availableWork(myProcessor))
+          continue main;
+        /* Doze a millisecond (well, Linux rounds it up to a centisecond)  */
+        VM_SysCall.sysNanosleep(1000 * 1000);
+      }
     }
   }
 
