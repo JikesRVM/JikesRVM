@@ -118,7 +118,7 @@ public final class RefCountSpace extends Space
    * @param bytes The size of the space in virtual memory, in bytes
    */
   public RefCountSpace(String name, int pageBudget, Address start,
-		       Extent bytes) {
+                       Extent bytes) {
     super(name, false, false, start, bytes);
     pr = new FreeListPageResource(pageBudget, this, start, extent, RefCountLocal.META_DATA_PAGES_PER_REGION);
   }
@@ -345,8 +345,8 @@ public final class RefCountSpace extends Space
    * initial increment?
    */
   public static void initializeHeader(ObjectReference object, 
-				      ObjectReference typeRef,
-				      boolean initialInc) throws InlinePragma {
+                                      ObjectReference typeRef,
+                                      boolean initialInc) throws InlinePragma {
     // all objects are birthed with an RC of INCREMENT
     int initialValue =  (initialInc) ? INCREMENT : 0;
     if (RefCountBase.REF_COUNT_CYCLE_DETECTION && 

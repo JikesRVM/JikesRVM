@@ -134,7 +134,7 @@ public class ObjectModel {
    * <code>false</code> otherwise
    */
   public static boolean attemptAvailableBits(ObjectReference object,
-					     Word oldVal, Word newVal) {
+                                             Word oldVal, Word newVal) {
     return false;
   }
 

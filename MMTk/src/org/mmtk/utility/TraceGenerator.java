@@ -77,7 +77,7 @@ public final class TraceGenerator
    * @param trace_ The dequeue used to store and then output the trace
    */
   public static final void init(SortTODSharedDeque worklist_, 
-				SortTODSharedDeque trace_)
+                                SortTODSharedDeque trace_)
     throws InterruptiblePragma {
     /* Objects are only needed for merlin tracing */
     if (MERLIN_ANALYSIS) {
@@ -156,10 +156,10 @@ public final class TraceGenerator
       trace.push(nextOID.sub(thisOID).lsh(LOG_BYTES_IN_ADDRESS));
       nextOID = thisOID;
       /* Move to the next object & adjust for starting address of 
-	 the bootImage */
+         the bootImage */
       if (!next.isNull()) {
-	next = next.toAddress().add(bootStart.toInt()).toObjectReference();
-	TraceInterface.setLink(trav, next);
+        next = next.toAddress().add(bootStart.toInt()).toObjectReference();
+        TraceInterface.setLink(trav, next);
       }
       trav = next;
     }
@@ -177,8 +177,8 @@ public final class TraceGenerator
    * @param tgt The target of the pointer store
    */
   public static void processPointerUpdate(boolean isScalar, 
-					  ObjectReference src,
-					  Address slot, ObjectReference tgt)
+                                          ObjectReference src,
+                                          Address slot, ObjectReference tgt)
     throws NoInlinePragma {
     /* Assert that this isn't the result of tracing */
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!traceBusy);
@@ -187,7 +187,7 @@ public final class TraceGenerator
     if (MERLIN_ANALYSIS) {
       ObjectReference oldTgt = slot.loadObjectReference();
       if (!oldTgt.isNull())
-	TraceInterface.updateDeathTime(oldTgt);
+        TraceInterface.updateDeathTime(oldTgt);
     }
 
     traceBusy = true;
@@ -216,7 +216,7 @@ public final class TraceGenerator
    * @param bytes The size of the object being allocated
    */
   public static final void traceAlloc(boolean isImmortal, ObjectReference ref, 
-				      ObjectReference typeRef, int bytes)
+                                      ObjectReference typeRef, int bytes)
     throws LogicallyUninterruptiblePragma, NoInlinePragma {
     /* Assert that this isn't the result of tracing */
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!traceBusy);
@@ -227,19 +227,19 @@ public final class TraceGenerator
     Word oid = TraceInterface.getOID(ref);
     Word allocType;
     if (gcAllowed 
-	&& (oid.GE(lastGC.add(Word.fromInt(traceRate.getValue())))))
+        && (oid.GE(lastGC.add(Word.fromInt(traceRate.getValue())))))
       allocType = TRACE_EXACT_ALLOC;
     else
       allocType = TRACE_ALLOC;
     /* Perform the necessary work for death times. */
     if (allocType.EQ(TRACE_EXACT_ALLOC)) {
       if (MERLIN_ANALYSIS) {
-	lastGC = TraceInterface.getOID();
-	TraceInterface.updateTime(lastGC);
-	Collection.triggerCollectionNow(Collection.INTERNAL_GC_TRIGGER);
+        lastGC = TraceInterface.getOID();
+        TraceInterface.updateTime(lastGC);
+        Collection.triggerCollectionNow(Collection.INTERNAL_GC_TRIGGER);
       } else {
-	Collection.triggerCollectionNow(Collection.RESOURCE_GC_TRIGGER);
-	lastGC = TraceInterface.getOID(ref);
+        Collection.triggerCollectionNow(Collection.RESOURCE_GC_TRIGGER);
+        lastGC = TraceInterface.getOID(ref);
       }
     }
     /* Add the allocation into the trace. */
@@ -281,14 +281,14 @@ public final class TraceGenerator
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(worklist.isEmpty());
       /* Scan the linked list of objects within each region */
       for (int allocator = 0; allocator < ALLOCATORS; allocator++) {
-	ObjectReference thisRef = objectLinks.get(allocator);
-	/* Start at the top of each linked list */
-	while (!thisRef.isNull()) {
-	  /* Add the unreachable objects onto the worklist. */
-	  if (!Plan.getInstance().isReachable(thisRef))
-	    worklist.push(thisRef);
-	  thisRef = TraceInterface.getLink(thisRef);
-	}
+        ObjectReference thisRef = objectLinks.get(allocator);
+        /* Start at the top of each linked list */
+        while (!thisRef.isNull()) {
+          /* Add the unreachable objects onto the worklist. */
+          if (!Plan.getInstance().isReachable(thisRef))
+            worklist.push(thisRef);
+          thisRef = TraceInterface.getLink(thisRef);
+        }
       }
       /* Sort the objects on the worklist by their timestamp */
       worklist.sort();
@@ -300,26 +300,26 @@ public final class TraceGenerator
       ObjectReference thisRef = objectLinks.get(allocator);
       ObjectReference prevRef = ObjectReference.nullReference(); // the last live object seen
       while (!thisRef.isNull()) {
-	ObjectReference nextRef = TraceInterface.getLink(thisRef);
+        ObjectReference nextRef = TraceInterface.getLink(thisRef);
         /* Maintain reachable objects on the linked list of allocated objects */
-	if (Plan.getInstance().isReachable(thisRef)) {
-	  thisRef = Plan.followObject(thisRef);
-	  TraceInterface.setLink(thisRef, prevRef);
-	  prevRef = thisRef;
-	} else {
-	  /* For brute force lifetime analysis, objects become 
-	     unreachable "now" */
-	  Word deadTime;
-	  if (MERLIN_ANALYSIS)
-	    deadTime = TraceInterface.getDeathTime(thisRef);
-	  else
-	    deadTime = lastGC;
-	  /* Add the death record to the trace for unreachable objects. */
-	  trace.push(TRACE_DEATH);
-	  trace.push(TraceInterface.getOID(thisRef));
-	  trace.push(deadTime);
-	}
-	thisRef = nextRef;
+        if (Plan.getInstance().isReachable(thisRef)) {
+          thisRef = Plan.followObject(thisRef);
+          TraceInterface.setLink(thisRef, prevRef);
+          prevRef = thisRef;
+        } else {
+          /* For brute force lifetime analysis, objects become 
+             unreachable "now" */
+          Word deadTime;
+          if (MERLIN_ANALYSIS)
+            deadTime = TraceInterface.getDeathTime(thisRef);
+          else
+            deadTime = lastGC;
+          /* Add the death record to the trace for unreachable objects. */
+          trace.push(TRACE_DEATH);
+          trace.push(TraceInterface.getOID(thisRef));
+          trace.push(deadTime);
+        }
+        thisRef = nextRef;
       }
       /* Purge the list of unreachable objects... */
       objectLinks.set(allocator, prevRef);
@@ -349,10 +349,10 @@ public final class TraceGenerator
     if (TraceInterface.getDeathTime(ref).LT(agePropagate)) {
       /* If we should add the object for further processing. */
       if (!Plan.getInstance().isReachable(ref)) {
-	TraceInterface.setDeathTime(ref, agePropagate);
+        TraceInterface.setDeathTime(ref, agePropagate);
         worklist.push(ref);
       } else {
-	TraceInterface.setDeathTime(Plan.followObject(ref), agePropagate);
+        TraceInterface.setDeathTime(Plan.followObject(ref), agePropagate);
       }
     }
   }
@@ -372,10 +372,10 @@ public final class TraceGenerator
       Word currentAge = TraceInterface.getDeathTime(ref);
       /* This is a cheap and simple test to process objects only once. */
       if (currentAge.LE(agePropagate)) {
-	/* Set the "new" dead age. */
-	agePropagate = currentAge;
-   	/* Scan the object, pushing the survivors */
-  	Scan.scanObject(ref);
+        /* Set the "new" dead age. */
+        agePropagate = currentAge;
+        /* Scan the object, pushing the survivors */
+        Scan.scanObject(ref);
       }
       /* Get the next object to process */
       ref = worklist.pop();

@@ -13,18 +13,18 @@ package org.mmtk.utility.gcspy;
       <tr><td>PRESENTATION_PLAIN</td>      <td>presented as is</td>
       <tr><td>PRESENTATION_PLUS</td>       <td>as max+ if value exceeds max else as is</td>
       <tr><td>PRESENTATION_MAX_VAR </td>
-	  <td>TODO</td>
+          <td>TODO</td>
       <tr><td>PRESENTATION_PERCENT</td>    <td>as value (percent)</td>
       <tr><td>PRESENTATION_PERCENT_VAR</td><td>ditto but handles zero case??</td>
       <tr><td>PRESENTATION_ENUM </td>
-	  <td>TODO</td>
+          <td>TODO</td>
    </table>
    Paint style
    <table>
       <tr><td>PAINT_STYLE_PLAIN</td>
-	  <td>TODO</td>
+          <td>TODO</td>
       <tr><td>PAINT_STYLE_ZERO</td>
-	  <td>TODO</td>
+          <td>TODO</td>
    </table>
    Data types
    <table>

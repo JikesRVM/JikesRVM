@@ -49,7 +49,7 @@ public final class MonotonePageResource extends PageResource
    * @param bytes The size of the address rage allocated to this resource
    */
   public MonotonePageResource(int pageBudget, Space space, Address start, 
-			      Extent bytes) {
+                              Extent bytes) {
     super(pageBudget, space, start);
     this.cursor = start;
     this.sentinel = start.add(bytes);

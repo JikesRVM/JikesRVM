@@ -88,9 +88,9 @@ public abstract class Generational extends StopTheWorldGC
 
   // Create the nursery
   protected static CopySpace nurserySpace = new CopySpace("nursery", 
-							  DEFAULT_POLL_FREQUENCY, 
-							  (float) 0.15, true, 
-							  false);
+                                                          DEFAULT_POLL_FREQUENCY, 
+                                                          (float) 0.15, true, 
+                                                          false);
   protected static final int NS = nurserySpace.getDescriptor();
   protected static final Address NURSERY_START = nurserySpace.getStart();
 
@@ -417,8 +417,8 @@ public abstract class Generational extends StopTheWorldGC
       Address start = arrayRemset.pop1();
       Address guard = arrayRemset.pop2();
       while (start.LT(guard)) {
-       	remset.insert(start);
-	start = start.add(BYTES_IN_ADDRESS);
+        remset.insert(start);
+        start = start.add(BYTES_IN_ADDRESS);
       }
     }
     remset.flushLocal();
@@ -567,7 +567,7 @@ public abstract class Generational extends StopTheWorldGC
     if (!object.isNull()) {
       if (Space.isInSpace(NS, object)) {
         if (Assert.VERIFY_ASSERTIONS)
-	  Assert._assert(CopySpace.isForwarded(object));
+          Assert._assert(CopySpace.isForwarded(object));
         return CopySpace.getForwardingPointer(object);
       } else if (fullHeapGC)
         return Plan.getForwardedMatureReference(object);
@@ -630,8 +630,8 @@ public abstract class Generational extends StopTheWorldGC
    * left to the caller (always false in this case).
    */
   public final boolean writeBarrier(ObjectReference src, int srcOffset,
-				    ObjectReference dst, int dstOffset,
-				    int bytes) throws InlinePragma {
+                                    ObjectReference dst, int dstOffset,
+                                    int bytes) throws InlinePragma {
     if (dst.toAddress().LT(NURSERY_START))
       arrayRemset.insert(dst.toAddress().add(dstOffset), 
                          dst.toAddress().add(dstOffset + bytes));

@@ -169,7 +169,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(ObjectReference object, ObjectReference typeRef, 
-			      int bytes, int allocator)
+                              int bytes, int allocator)
     throws InlinePragma {
     /* Make the trace generator aware of the new object. */
     TraceGenerator.addTraceObject(object, allocator);
@@ -197,7 +197,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   public final Address allocCopy(ObjectReference original, int bytes, 
-				    int align, int offset) 
+                                    int align, int offset) 
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
     Address result = ss.alloc(bytes, align, offset);
@@ -212,7 +212,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    */
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
-			     int bytes) throws InlinePragma {
+                             int bytes) throws InlinePragma {
     CopySpace.clearGCBits(object);
   } // do nothing
 
@@ -250,7 +250,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
     if (mustCollect || getPagesReserved() > getTotalPages()) {
       required = space.reservedPages() - space.committedPages();
       if (space == copySpace0 || space == copySpace1)
-	required = required<<1; // must account for copy reserve
+        required = required<<1; // must account for copy reserve
       traceInducedGC = false;
       Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
@@ -373,7 +373,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * @return The possibly moved reference.
    */
   public static final ObjectReference traceObject(ObjectReference object,
-						  boolean root) {
+                                                  boolean root) {
     return traceObject(object);  // root or non-root is of no consequence here
   }
 
@@ -486,7 +486,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    */
   public final void writeBarrier(ObjectReference src, Address slot,
                                  ObjectReference tgt, int metaDataA, 
-				 int metaDataB, int mode) throws InlinePragma {
+                                 int metaDataB, int mode) throws InlinePragma {
     TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER,
                                         src, slot, tgt);
     Barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
@@ -511,7 +511,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * left to the caller (always false in this case).
    */
   public boolean writeBarrier(ObjectReference src, int srcOffset,
-			      ObjectReference dst, int dstOffset, int bytes) {
+                              ObjectReference dst, int dstOffset, int bytes) {
     /* These names seem backwards, but are defined to be compatable with the
      * previous writeBarrier method. */
     Address slot = dst.toAddress().add(dstOffset);

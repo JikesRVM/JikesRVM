@@ -350,7 +350,7 @@ public final class RefCountLocal extends SegregatedFreeList
     if (state == RefCountSpace.DEC_KILL)
       release(object, plan);
     else if (RefCountBase.REF_COUNT_CYCLE_DETECTION && 
-	     state == RefCountSpace.DEC_BUFFER)
+             state == RefCountSpace.DEC_BUFFER)
       cycleDetector.possibleCycleRoot(object);
   }
 
@@ -372,7 +372,7 @@ public final class RefCountLocal extends SegregatedFreeList
     if (RefCountSpace.RC_SANITY_CHECK) rcLiveObjects--;
     Scan.enumeratePointers(object, plan.decEnum);
     if (!RefCountBase.REF_COUNT_CYCLE_DETECTION ||
-	!RefCountSpace.isBuffered(object)) 
+        !RefCountSpace.isBuffered(object)) 
       free(object);
   }
 

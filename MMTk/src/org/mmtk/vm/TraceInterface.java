@@ -45,8 +45,8 @@ public final class TraceInterface {
    * @return The easy to understand offset of the slot
    */
   public static final Offset adjustSlotOffset(boolean isScalar, 
-					      ObjectReference src,
-                                                 Address slot) {
+                                              ObjectReference src,
+                                              Address slot) {
     return null;
   }
 
@@ -59,8 +59,7 @@ public final class TraceInterface {
    *@param typeRef The type reference (tib) of the object just allocated
    *@return The frame pointer address for the method that allocated the object
    */
-  public static final Address skipOwnFramesAndDump(ObjectReference typeRef)
-    {
+  public static final Address skipOwnFramesAndDump(ObjectReference typeRef) {
     return null;
   }
 
@@ -69,19 +68,13 @@ public final class TraceInterface {
    * Wrapper methods
    */
 
-  public static void updateDeathTime(Object obj) throws InlinePragma {
-  }
+  public static void updateDeathTime(Object obj) throws InlinePragma {}
 
-  public static void setDeathTime(ObjectReference ref, Word time_) 
-    {
-  }
+  public static void setDeathTime(ObjectReference ref, Word time_) {}
 
-  public static void setLink(ObjectReference ref, ObjectReference link) 
-{
-  }
+  public static void setLink(ObjectReference ref, ObjectReference link) {}
 
-  public static void updateTime(Word time_) throws InlinePragma {
-  }
+  public static void updateTime(Word time_) throws InlinePragma {}
 
   public static Word getOID(ObjectReference ref) throws InlinePragma {
     return null;
@@ -103,14 +96,13 @@ public final class TraceInterface {
     return null;
   }
 
-  public static void setOID(Word oid) throws InlinePragma {
-  }
+  public static void setOID(Word oid) throws InlinePragma {}
 
   public static final int getHeaderSize() throws InlinePragma {
-return 0;
+    return 0;
   }
 
   public static final int getHeaderEndOffset() throws InlinePragma {
-  return 0;
+    return 0;
   }
 }

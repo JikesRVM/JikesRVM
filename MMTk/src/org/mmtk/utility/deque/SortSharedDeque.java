@@ -117,7 +117,7 @@ public abstract class SortSharedDeque extends SharedDeque
         Address lSlot = lPtr.loadAddress();
         Word lKey = getKey(lSlot);
         if (lKey.GT(rKey)) {
-	  lPtr.sub(BYTES_IN_ADDRESS).store(lSlot);
+          lPtr.sub(BYTES_IN_ADDRESS).store(lSlot);
           lPtr = lPtr.add(BYTES_IN_ADDRESS);
         }
         else
@@ -138,27 +138,27 @@ public abstract class SortSharedDeque extends SharedDeque
     if (!head.EQ(HEAD_INITIAL_VALUE)) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(tail.NE(TAIL_INITIAL_VALUE));
       /* Obtain the bitmask for the first iteration and save the start &
-	 end pointers and the bitmask on the stack */
+         end pointers and the bitmask on the stack */
       initStack();
       startPtr = popStack();
       while (!startPtr.isZero()) {
-	startLink = popStack();
-	endPtr = popStack();
-	endLink = popStack();
-	bitMask = (popStack()).toWord();
-	if (startLink.NE(endLink)) {
-	  partition(startPtr, startLink, endPtr, endLink, bitMask);
-	} else if (startPtr.GT(endPtr)) {
-	  /* Use insertionSort for a limited number of objects within
-	     a single block */
-	  if (startPtr.diff(endPtr).sLT(INSERTION_SORT_LIMIT)) {
-	    insertionSort(startPtr, endPtr);
-	  } else {
-	    partition(startPtr, startLink, endPtr, endLink, bitMask);
-	  }
-	}
-	// Get the next set of data to sort
-	startPtr = popStack();
+        startLink = popStack();
+        endPtr = popStack();
+        endLink = popStack();
+        bitMask = (popStack()).toWord();
+        if (startLink.NE(endLink)) {
+          partition(startPtr, startLink, endPtr, endLink, bitMask);
+        } else if (startPtr.GT(endPtr)) {
+          /* Use insertionSort for a limited number of objects within
+             a single block */
+          if (startPtr.diff(endPtr).sLT(INSERTION_SORT_LIMIT)) {
+            insertionSort(startPtr, endPtr);
+          } else {
+            partition(startPtr, startLink, endPtr, endLink, bitMask);
+          }
+        }
+        // Get the next set of data to sort
+        startPtr = popStack();
       }
     }
     checkIfSorted();
@@ -179,8 +179,8 @@ public abstract class SortSharedDeque extends SharedDeque
    * @param bitMask The mask in which the bit to be commpared is set
    */
   private final void partition(Address startAddr, Address startLinkAddr,
-			       Address endAddr, Address endLinkAddr,
-			       Word bitMask) {
+                               Address endAddr, Address endLinkAddr,
+                               Word bitMask) {
     Address travPtr = endAddr;
     Address travLink = endLinkAddr;
     Address stopPtr = startAddr;
@@ -195,14 +195,14 @@ public abstract class SortSharedDeque extends SharedDeque
       Address endOfBlock = travLink;
 
       /* Move the left pointer until the right pointer is reached
-	 or an address with a 0 value in the bit position is found. */
+         or an address with a 0 value in the bit position is found. */
       while (true) {
         travSlot = travPtr.loadAddress();
         travKey = getKey(travSlot);
 
-	/* If we reach the end. */
-	if (travPtr.EQ(stopPtr))
-	  break;
+        /* If we reach the end. */
+        if (travPtr.EQ(stopPtr))
+          break;
         /* If we found a 0 in bit position, break. */
         if (travKey.and(bitMask).isZero())
           break;
@@ -210,12 +210,12 @@ public abstract class SortSharedDeque extends SharedDeque
           rmax = travKey;
         if (travKey.LT(rmin))
           rmin = travKey;
-	/* Move to the next entry. */
+        /* Move to the next entry. */
         travPtr = travPtr.add(BYTES_IN_ADDRESS);
         /* If at end of remset block, move to next block */
         if (travPtr.EQ(endOfBlock)) {
-	  travLink = getPrev(travPtr);
-	  endOfBlock = travLink;
+          travLink = getPrev(travPtr);
+          endOfBlock = travLink;
           travPtr = bufferStart(endOfBlock);
         }
       }
@@ -223,7 +223,7 @@ public abstract class SortSharedDeque extends SharedDeque
       /* Store the end of the block. */
       endOfBlock = bufferStart(stopPtr);
       /* Move the right pointer until the left pointer is reached
-	 or an address with a 1 value in the bit position is found. */
+         or an address with a 1 value in the bit position is found. */
       while (true) {
         stopSlot = stopPtr.loadAddress();
         stopKey = getKey(stopSlot);
@@ -232,20 +232,20 @@ public abstract class SortSharedDeque extends SharedDeque
           break;
         if (stopKey.GT(lmax))
           lmax = stopKey;
-	if (stopKey.LT(lmin))
+        if (stopKey.LT(lmin))
           lmin = stopKey;
         if (stopPtr.EQ(travPtr))
-	  break;
+          break;
         /* Move to the next entry, which may be in the next block. */
         if (stopPtr.EQ(endOfBlock)) {
-	  stopLink = getNext(stopLink);
-	  stopPtr = stopLink;
-	  endOfBlock = bufferStart(stopPtr);
+          stopLink = getNext(stopLink);
+          stopPtr = stopLink;
+          endOfBlock = bufferStart(stopPtr);
         }
-	stopPtr = stopPtr.sub(BYTES_IN_ADDRESS);
+        stopPtr = stopPtr.sub(BYTES_IN_ADDRESS);
       }
       if (stopPtr.EQ(travPtr))
-	break;
+        break;
       /* interchange the values pointed to by the left and right pointers */
       travPtr.store(stopSlot);
       stopPtr.store(travSlot);
@@ -255,11 +255,11 @@ public abstract class SortSharedDeque extends SharedDeque
        (not all slots are identical) push the right partition on to the stack */
     if (rmax.GT(rmin)) {
       if (travPtr.EQ(bufferStart(travPtr))) {
-	 stopLink = getNext(travLink);
-	 stopPtr = stopLink;
+         stopLink = getNext(travLink);
+         stopPtr = stopLink;
       } else {
-	stopLink = travLink;
-	stopPtr = travPtr;
+        stopLink = travLink;
+        stopPtr = travPtr;
       }
       pushOnStack(getBitMask(rmax.xor(rmin)).toAddress());
       pushOnStack(endLinkAddr);
@@ -357,16 +357,16 @@ public abstract class SortSharedDeque extends SharedDeque
       end = tail;
       buf = bufferStart(end);
       while (buf.NE(HEAD_INITIAL_VALUE)) {
-	// iterate through the block
-	while (buf.LT(end)) {
-	  Address slot = buf.loadAddress();
-	  Word key = getKey(slot);
-	  if (Assert.VERIFY_ASSERTIONS) Assert._assert(key.LE(prevKey));
-	  prevKey = key;
-	  buf = buf.add(BYTES_IN_ADDRESS);
-	}
-	end = getPrev(end);
-	buf = bufferStart(end);
+        // iterate through the block
+        while (buf.LT(end)) {
+          Address slot = buf.loadAddress();
+          Word key = getKey(slot);
+          if (Assert.VERIFY_ASSERTIONS) Assert._assert(key.LE(prevKey));
+          prevKey = key;
+          buf = buf.add(BYTES_IN_ADDRESS);
+        }
+        end = getPrev(end);
+        buf = bufferStart(end);
       }
     }
   }

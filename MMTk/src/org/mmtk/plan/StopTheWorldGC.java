@@ -386,7 +386,7 @@ public abstract class StopTheWorldGC extends BasePlan
       if (verbose.getValue() >= 5) { Log.prependThreadId(); Log.writeln("    processing gray objects"); }
       while (!values.isEmpty()) {
         ObjectReference v = values.pop();
-	Scan.scanObject(v);  // NOT traceObject
+        Scan.scanObject(v);  // NOT traceObject
       }
       if (verbose.getValue() >= 5) { Log.prependThreadId(); Log.writeln("    processing remset"); }
       while (!remset.isEmpty()) {

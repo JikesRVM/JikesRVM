@@ -39,7 +39,7 @@ import org.vmmagic.pragma.*;
 public class ContiguousSpaceDriver extends AbstractDriver
   implements Uninterruptible {
 
-  private static final int SS_SCALAR_USED_SPACE_STREAM = 0;	// stream IDs
+  private static final int SS_SCALAR_USED_SPACE_STREAM = 0;     // stream IDs
   private static final int SS_ARRAY_USED_SPACE_STREAM = 1;
   private static final int SS_SCALAR_OBJECTS_STREAM   = 2;
   private static final int SS_ARRAY_OBJECTS_STREAM   = 3;
@@ -80,7 +80,7 @@ public class ContiguousSpaceDriver extends AbstractDriver
       if (Assert.VERIFY_ASSERTIONS) 
         Assert._assert(id == SS_SCALAR_USED_SPACE_STREAM ||
                        id == SS_ARRAY_USED_SPACE_STREAM,
-	  	       "Bad tag given to addSpace");
+                       "Bad tag given to addSpace");
       if (id == SS_SCALAR_USED_SPACE_STREAM) 
         scalarUsedSpace += size;
       else if (id == SS_ARRAY_USED_SPACE_STREAM) 
@@ -103,13 +103,13 @@ public class ContiguousSpaceDriver extends AbstractDriver
   private Subspace subspace;
 
   // Overall statistics for a semispace
-  private int totalScalarObjects = 0;		// total number of objects allocated
-  private int totalArrayObjects = 0;		
-  private int totalScalarUsedSpace = 0;		// total space used
-  private int totalArrayUsedSpace = 0;		
+  private int totalScalarObjects = 0;           // total number of objects allocated
+  private int totalArrayObjects = 0;            
+  private int totalScalarUsedSpace = 0;         // total space used
+  private int totalArrayUsedSpace = 0;          
  
   // The tiles
-  private Tile[] tiles;				// the space's tiles
+  private Tile[] tiles;                         // the space's tiles
 
   // A LinearScan 
   private final LinearScan scanner;
@@ -125,9 +125,9 @@ public class ContiguousSpaceDriver extends AbstractDriver
    */
   public ContiguousSpaceDriver 
                     (String name,
-		     Space sp,
-		     int blockSize,
-		     boolean mainSpace ) {
+                     Space sp,
+                     int blockSize,
+                     boolean mainSpace ) {
     
     // Set up array of tiles for max possible use
     this.blockSize = blockSize;
@@ -161,85 +161,85 @@ public class ContiguousSpaceDriver extends AbstractDriver
     
     // Create a single GCspy Space
     space = new ServerSpace(
-		    SemiSpaceGCspy.getNextServerSpaceId(), /* space id */
-		    name,                       /* server name */
-		    "MMTk ContiguousSpace GC", 	/* driver (space) name */
-		    "Block ",                   /* space title */
-		    tmp,                   	/* block info */
-		    maxTileNum,			/* number of tiles */
-		    "UNUSED",                   /* the label for unused blocks */
-		    mainSpace                   /* main space */ );
+                    SemiSpaceGCspy.getNextServerSpaceId(), /* space id */
+                    name,                       /* server name */
+                    "MMTk ContiguousSpace GC",  /* driver (space) name */
+                    "Block ",                   /* space title */
+                    tmp,                        /* block info */
+                    maxTileNum,                 /* number of tiles */
+                    "UNUSED",                   /* the label for unused blocks */
+                    mainSpace                   /* main space */ );
     setTilenames(subspace, 0);
    
 
     // Initialise the Space's 4 Streams
     scalarUsedSpaceStream 
            = new Stream(
-	             space, 					/* the space */
-		     SS_SCALAR_USED_SPACE_STREAM,		/* space ID */
-		     StreamConstants.INT_TYPE,			/* stream data type */
-		     "Scalar Used Space stream",		/* stream name */
-		     0, 					/* min. data value */
-		     blockSize,					/* max. data value */
-		     0, 					/* zero value */
-		     0,						/* default value */
-		    "Space used by scalars and primitive arrays: ", 	/* value prefix */
-		    " bytes",					/* value suffix */
-		     StreamConstants.PRESENTATION_PERCENT,	/* presentation style */
-		     StreamConstants.PAINT_STYLE_ZERO, 		/* paint style */
-		     0,						/* max stream index */
-		     Color.Red);				/* tile colour */
+                     space,                                     /* the space */
+                     SS_SCALAR_USED_SPACE_STREAM,               /* space ID */
+                     StreamConstants.INT_TYPE,                  /* stream data type */
+                     "Scalar Used Space stream",                /* stream name */
+                     0,                                         /* min. data value */
+                     blockSize,                                 /* max. data value */
+                     0,                                         /* zero value */
+                     0,                                         /* default value */
+                    "Space used by scalars and primitive arrays: ",     /* value prefix */
+                    " bytes",                                   /* value suffix */
+                     StreamConstants.PRESENTATION_PERCENT,      /* presentation style */
+                     StreamConstants.PAINT_STYLE_ZERO,          /* paint style */
+                     0,                                         /* max stream index */
+                     Color.Red);                                /* tile colour */
 
     arrayUsedSpaceStream 
            = new Stream(
-	             space, 					/* the space */
-		     SS_ARRAY_USED_SPACE_STREAM,		/* space ID */
-		     StreamConstants.INT_TYPE,			/* stream data type */
-		     "Array Used Space stream",			/* stream name */
-		     0, 					/* min. data value */
-		     blockSize,					/* max. data value */
-		     0, 					/* zero value */
-		     0,						/* default value */
-		    "Space used by reference arrays: ",		/* value prefix */
-		    " bytes",					/* value suffix */
-		     StreamConstants.PRESENTATION_PERCENT,	/* presentation style */
-		     StreamConstants.PAINT_STYLE_ZERO, 		/* paint style */
-		     0,						/* max stream index */
-		     Color.Blue);				/* tile colour */
+                     space,                                     /* the space */
+                     SS_ARRAY_USED_SPACE_STREAM,                /* space ID */
+                     StreamConstants.INT_TYPE,                  /* stream data type */
+                     "Array Used Space stream",                 /* stream name */
+                     0,                                         /* min. data value */
+                     blockSize,                                 /* max. data value */
+                     0,                                         /* zero value */
+                     0,                                         /* default value */
+                    "Space used by reference arrays: ",         /* value prefix */
+                    " bytes",                                   /* value suffix */
+                     StreamConstants.PRESENTATION_PERCENT,      /* presentation style */
+                     StreamConstants.PAINT_STYLE_ZERO,          /* paint style */
+                     0,                                         /* max stream index */
+                     Color.Blue);                               /* tile colour */
 
     scalarObjectsStream = new Stream(
-	             space, 
-		     SS_SCALAR_OBJECTS_STREAM,
-		     StreamConstants.SHORT_TYPE,
-		     "Scalar Objects stream",
-		     0, 
-		     // Say, max value = 50% of max possible
-		     maxObjectsPerBlock(blockSize)/2,
-		     0, 
-		     0,
-		     "No. of scalar and primitive array objects = ", 
-		     " objects",
-		     StreamConstants.PRESENTATION_PLUS,
-		     StreamConstants.PAINT_STYLE_ZERO, 
-		     0,
-		     Color.Green);
+                     space, 
+                     SS_SCALAR_OBJECTS_STREAM,
+                     StreamConstants.SHORT_TYPE,
+                     "Scalar Objects stream",
+                     0, 
+                     // Say, max value = 50% of max possible
+                     maxObjectsPerBlock(blockSize)/2,
+                     0, 
+                     0,
+                     "No. of scalar and primitive array objects = ", 
+                     " objects",
+                     StreamConstants.PRESENTATION_PLUS,
+                     StreamConstants.PAINT_STYLE_ZERO, 
+                     0,
+                     Color.Green);
 
    arrayObjectsStream = new Stream(
-	             space, 
-		     SS_ARRAY_OBJECTS_STREAM,
-		     StreamConstants.SHORT_TYPE,
-		     "Array Objects stream",
-		     0, 
-		     // Say, typical ref array size = 4 * typical scalar size?
-		     maxObjectsPerBlock(blockSize)/8,
-		     0, 
-		     0,
-		     "No. of reference array objects = ", 
-		     " objects",
-		     StreamConstants.PRESENTATION_PLUS,
-		     StreamConstants.PAINT_STYLE_ZERO, 
-		     0,
-		     Color.Cyan);
+                     space, 
+                     SS_ARRAY_OBJECTS_STREAM,
+                     StreamConstants.SHORT_TYPE,
+                     "Array Objects stream",
+                     0, 
+                     // Say, typical ref array size = 4 * typical scalar size?
+                     maxObjectsPerBlock(blockSize)/8,
+                     0, 
+                     0,
+                     "No. of reference array objects = ", 
+                     " objects",
+                     StreamConstants.PRESENTATION_PLUS,
+                     StreamConstants.PAINT_STYLE_ZERO, 
+                     0,
+                     Color.Cyan);
 
     space.resize(0);
     // Initialise the statistics
@@ -247,7 +247,7 @@ public class ContiguousSpaceDriver extends AbstractDriver
 
     scanner = new LinearScan(this);
   }
-		      
+                      
   /**
    * BumpPointer.linearScan needs a LinearScan object, which we provide here.
    * @return the scanner for this driver
@@ -346,29 +346,29 @@ public class ContiguousSpaceDriver extends AbstractDriver
     if (Assert.VERIFY_ASSERTIONS) {
       if(addr.LT(lastAddress.add(lastSize))) {
         Log.write("ContiguousSpaceDriver finds addresses going backwards: ");
-	Log.write("last="); Log.write(lastAddress);
-	Log.write("last size="); Log.write(lastSize);
-	Log.writeln("current=", addr);
+        Log.write("last="); Log.write(lastAddress);
+        Log.write("last size="); Log.write(lastSize);
+        Log.writeln("current=", addr);
       }
       lastAddress = addr;
       lastSize = length;
     } 
-	
+
     if (subspace.addressInRange(addr)) {
       int index = subspace.getIndex(addr);
       if (isArray) {
-	tiles[index].arrayObjects++;
-	distributeSpace(tiles, subspace, subspace.getBlockSize(), SS_ARRAY_USED_SPACE_STREAM, addr, length);
-	if (total) {
-	  totalArrayObjects++;
-	  totalArrayUsedSpace += length;
-	}
+        tiles[index].arrayObjects++;
+        distributeSpace(tiles, subspace, subspace.getBlockSize(), SS_ARRAY_USED_SPACE_STREAM, addr, length);
+        if (total) {
+          totalArrayObjects++;
+          totalArrayUsedSpace += length;
+        }
       } else {
-	tiles[index].scalarObjects++;
-	distributeSpace(tiles, subspace, subspace.getBlockSize(), SS_SCALAR_USED_SPACE_STREAM, addr, length);
-	if (total) {
-	  totalScalarObjects++;
-	  totalScalarUsedSpace += length;
+        tiles[index].scalarObjects++;
+        distributeSpace(tiles, subspace, subspace.getBlockSize(), SS_SCALAR_USED_SPACE_STREAM, addr, length);
+        if (total) {
+          totalScalarObjects++;
+          totalScalarUsedSpace += length;
         }
       }
       return;

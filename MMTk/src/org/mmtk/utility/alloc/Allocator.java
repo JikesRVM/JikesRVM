@@ -132,7 +132,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
    * allocators that enforce greater than particle alignment.
    */
   final public static int getMaximumAlignedSize(int size, int alignment,
-						int knownAlignment) 
+                                                int knownAlignment) 
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(knownAlignment >= BYTES_IN_PARTICLE);
     if (MAXIMUM_ALIGNMENT <= BYTES_IN_PARTICLE
@@ -144,7 +144,7 @@ public abstract class Allocator implements Constants, Uninterruptible {
   }
 
   abstract protected Address allocSlowOnce (int bytes, int alignment,
-					       int offset, boolean inGC);
+                                               int offset, boolean inGC);
 
   public Address allocSlow(int bytes, int alignment, int offset) 
     throws NoInlinePragma { 
@@ -152,13 +152,13 @@ public abstract class Allocator implements Constants, Uninterruptible {
   }
 
   public Address allocSlow(int bytes, int alignment, int offset,
-			      boolean inGC) 
+                              boolean inGC) 
     throws NoInlinePragma { 
     return allocSlowBody( bytes, alignment, offset, inGC);
   }
 
   private Address allocSlowBody(int bytes, int alignment, int offset,
-				   boolean inGC) 
+                                   boolean inGC) 
     throws InlinePragma { 
 
     int gcCountStart = Stats.gcCount();

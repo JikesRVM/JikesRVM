@@ -40,7 +40,7 @@ public final class RawPageSpace extends Space
    * @param bytes The size of the space in virtual memory, in bytes
    */
   public RawPageSpace(String name, int pageBudget, Address start,
-		      Extent bytes) {
+                      Extent bytes) {
     super(name, false, false, start, bytes);
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }

@@ -221,7 +221,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
     if (mustCollect || getPagesReserved() > getTotalPages()) {
       required = space.reservedPages() - space.committedPages();
       if (space == copySpace0 || space == copySpace1)
-	required = required<<1; // must account for copy reserve
+        required = required<<1; // must account for copy reserve
       Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
       return true;
     }
@@ -374,8 +374,8 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
     ObjectReference object = location.loadObjectReference();
     if (!object.isNull()) {
       if ((hi && Space.isInSpace(SS0, object)) || 
- 	  (!hi && Space.isInSpace(SS1, object)))
- 	location.store(CopySpace.forwardObject(object));
+          (!hi && Space.isInSpace(SS1, object)))
+        location.store(CopySpace.forwardObject(object));
     }
   }
 
@@ -390,7 +390,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
     if (!object.isNull()) {
       if ((hi && Space.isInSpace(SS0, object)) || 
           (!hi && Space.isInSpace(SS1, object))) {
-	if (Assert.VERIFY_ASSERTIONS) 
+        if (Assert.VERIFY_ASSERTIONS) 
           Assert._assert(CopySpace.isForwarded(object));
         return CopySpace.getForwardingPointer(object);
       }
@@ -427,7 +427,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
       return loSpace.isLive(object);
     else if (space == null) {
       if (Assert.VERIFY_ASSERTIONS) {
- 	Log.write("space failure: "); Log.writeln(object);
+        Log.write("space failure: "); Log.writeln(object);
     }
   }
     return true;

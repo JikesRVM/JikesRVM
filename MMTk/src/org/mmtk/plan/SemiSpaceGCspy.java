@@ -74,7 +74,7 @@ public class SemiSpaceGCspy extends SemiSpace implements Uninterruptible {
   private static ContiguousSpaceDriver immortalDriver; 
   private static TreadmillDriver losDriver;
 
-  private static int nextServerSpaceId = 0;	// ServerSpace IDs must be unique
+  private static int nextServerSpaceId = 0;     // ServerSpace IDs must be unique
 
 
 
@@ -96,16 +96,16 @@ public class SemiSpaceGCspy extends SemiSpace implements Uninterruptible {
   public static final void startGCspyServer(int port, boolean wait)
     throws InterruptiblePragma {
     String eventNames[] = {"Before collection", 
-			   "Semispace copied",
+                           "Semispace copied",
                            "After collection"};
     String generalInfo = "SemiSpace Server Interpreter\n\nGeneral Info";
     
     // The Server
     ServerInterpreter.init("SemiSpaceServerInterpreter",
-			    port,
-			    eventNames,
-			    true /* verbose*/,
-			    generalInfo);
+                            port,
+                            eventNames,
+                            true /* verbose*/,
+                            generalInfo);
 
     // Initialise each driver
     int tilesize = GCspy.gcspyTilesize.getValue(); 
@@ -114,25 +114,25 @@ public class SemiSpaceGCspy extends SemiSpace implements Uninterruptible {
     // so much as we resize them.
     ss0Driver = new ContiguousSpaceDriver
                         ("Semispace 0 Space", 
-			 copySpace0,
-			 tilesize,
-			 true);
+                         copySpace0,
+                         tilesize,
+                         true);
     ss1Driver = new ContiguousSpaceDriver
                         ("Semispace 1 Space", 
-			 copySpace1,
-			 tilesize,
-			 false);
+                         copySpace1,
+                         tilesize,
+                         false);
     immortalDriver = new ContiguousSpaceDriver
                         ("Immortal Space", 
-			 immortalSpace,
-			 tilesize,
-			 false);
+                         immortalSpace,
+                         tilesize,
+                         false);
     losDriver = new TreadmillDriver
                         ("Large Object Space", 
-			 loSpace,
-			 tilesize,
-			 LOS_SIZE_THRESHOLD,
-			 false);
+                         loSpace,
+                         tilesize,
+                         LOS_SIZE_THRESHOLD,
+                         false);
 
     //Log.write("SemiServerInterpreter initialised\n");
     
@@ -199,7 +199,7 @@ public class SemiSpaceGCspy extends SemiSpace implements Uninterruptible {
     if (GCspy.getGCspyPort() == 0)
       return;
     
-    if (ServerInterpreter.shouldTransmit(event)) {		
+    if (ServerInterpreter.shouldTransmit(event)) {              
       ServerInterpreter.startCompensationTimer();
       
       // -- Handle the semispace collector --
@@ -221,25 +221,25 @@ public class SemiSpaceGCspy extends SemiSpace implements Uninterruptible {
       if (hi) {
         scannedSpace = copySpace1;
         otherSpace = copySpace0;
-	driver = ss1Driver;
-	otherDriver = ss0Driver;
+        driver = ss1Driver;
+        otherDriver = ss0Driver;
       } else { 
-	scannedSpace = copySpace0;
+        scannedSpace = copySpace0;
         otherSpace = copySpace1;
         driver = ss0Driver;
-	otherDriver = ss1Driver;
-      }	
+        otherDriver = ss1Driver;
+      } 
       gcspyGatherData(driver, scannedSpace, ss);
       
       if (event == AFTER_COLLECTION) {
         otherDriver.zero();
-	// FIXME As far as I can see, release() only resets a CopySpace's
-	// cursor (and optionally zeroes or mprotects the pages); it doesn't
-	// make them available to other spaces.
-	// If it does release pages then need to change 
-	// ContiguousSpaceDriver.setRange
-	Address start = otherSpace.getStart();
-	otherDriver.setRange(start, start);
+        // FIXME As far as I can see, release() only resets a CopySpace's
+        // cursor (and optionally zeroes or mprotects the pages); it doesn't
+        // make them available to other spaces.
+        // If it does release pages then need to change 
+        // ContiguousSpaceDriver.setRange
+        Address start = otherSpace.getStart();
+        otherDriver.setRange(start, start);
       }
       
       // -- Handle the LargeObjectSpace --
@@ -253,7 +253,7 @@ public class SemiSpaceGCspy extends SemiSpace implements Uninterruptible {
       gcspyGatherData(immortalDriver, immortalSpace, immortal);
 
       // Transmit the data
-      ServerInterpreter.stopCompensationTimer();	
+      ServerInterpreter.stopCompensationTimer();        
       driver.finish(event);
       if (event == AFTER_COLLECTION) otherDriver.finish(event);
       immortalDriver.finish(event);
@@ -262,7 +262,7 @@ public class SemiSpaceGCspy extends SemiSpace implements Uninterruptible {
     } else {
       //Log.write("not transmitting...");
     }
-    ServerInterpreter.serverSafepoint(event);		
+    ServerInterpreter.serverSafepoint(event);           
   }
 
   /**

@@ -299,7 +299,7 @@ public final class TrialDeletion extends CycleDetector
   }
 
   private final int filterPurpleBufs(ObjectReferenceDeque src, 
-				     ObjectReferenceDeque tgt, long timeCap) {
+                                     ObjectReferenceDeque tgt, long timeCap) {
     int purple = 0;
     int limit = cycleMetaDataLimit.getPages() <<(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_ADDRESS-1);
     ObjectReference object = ObjectReference.nullReference();
@@ -391,7 +391,7 @@ public final class TrialDeletion extends CycleDetector
     return abort;
   }
   private final boolean processGreyObject(ObjectReference object,
-					  ObjectReferenceDeque tgt,
+                                          ObjectReferenceDeque tgt,
                                           long timeCap)
     throws InlinePragma {
     //    Log.write("pg[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");

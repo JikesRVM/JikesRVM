@@ -110,7 +110,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param bytes The size of the space in virtual memory, in bytes
    */
   Space(String name, boolean movable, boolean immortal, Address start, 
-	Extent bytes) {
+        Extent bytes) {
     this.name = name;
     this.movable = movable;
     this.immortal = immortal;
@@ -156,7 +156,7 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   Space(String name, boolean movable, boolean immortal, int mb) {
     this(name, movable, immortal, heapCursor, 
-	 Word.fromInt(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent());
+         Word.fromInt(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent());
     heapCursor = heapCursor.add(extent);
     if (heapCursor.GT(heapLimit)) {
       Log.write("Out of virtual address space allocating \"");
@@ -207,7 +207,7 @@ public abstract class Space implements Constants, Uninterruptible {
    */
   Space(String name, boolean movable, boolean immortal, int mb, boolean top) {
     this(name, movable, immortal, 
-	 Word.fromInt(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent(), top);
+         Word.fromInt(mb).lsh(LOG_BYTES_IN_MBYTE).toExtent(), top);
   }
 
   /**
@@ -230,7 +230,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * available virtual memory.
    */
   Space(String name, boolean movable, boolean immortal, float frac, 
-	boolean top) {
+        boolean top) {
     this(name, movable, immortal, getFracAvailable(frac), top);
   }
 
@@ -252,23 +252,23 @@ public abstract class Space implements Constants, Uninterruptible {
    * available virtual memory.
    */
   private Space(String name, boolean movable, boolean immortal, Extent bytes,
-		boolean top) {
+                boolean top) {
     this(name, movable, immortal, (top) ? HEAP_END.sub(bytes) : HEAP_START, 
          bytes);
     if (top) {  // request for the top of available memory
       if (heapLimit.NE(HEAP_END)) {
-	Log.write("Unable to satisfy virtual address space request \"");
-	Log.write(name); Log.write("\" at ");
-	Log.writeln(heapLimit);
-	Assert.fail("exiting");
+        Log.write("Unable to satisfy virtual address space request \"");
+        Log.write(name); Log.write("\" at ");
+        Log.writeln(heapLimit);
+        Assert.fail("exiting");
       }
       heapLimit = heapLimit.sub(extent);
     } else {   // request for the bottom of available memory
       if (heapCursor.GT(HEAP_START)) {
-	Log.write("Unable to satisfy virtual address space request \"");
-	Log.write(name); Log.write("\" at ");
-	Log.writeln(heapCursor);
-	Assert.fail("exiting");
+        Log.write("Unable to satisfy virtual address space request \"");
+        Log.write(name); Log.write("\" at ");
+        Log.writeln(heapCursor);
+        Assert.fail("exiting");
       }
       heapCursor = heapCursor.add(extent);
     }
@@ -385,12 +385,12 @@ public abstract class Space implements Constants, Uninterruptible {
       Address addr = ObjectModel.refToAddress(object);
       Address start = SpaceDescriptor.getStart(descriptor);
       if (!Assert.VERIFY_ASSERTIONS &&
-	  SpaceDescriptor.isContiguousHi(descriptor))
-	return addr.GE(start);
+          SpaceDescriptor.isContiguousHi(descriptor))
+        return addr.GE(start);
       else {
-	Extent size = Word.fromInt(SpaceDescriptor.getChunks(descriptor)).lsh(LOG_BYTES_IN_CHUNK).toExtent();
-	Address end = start.add(size);
-	return addr.GE(start) && addr.LT(end);
+        Extent size = Word.fromInt(SpaceDescriptor.getChunks(descriptor)).lsh(LOG_BYTES_IN_CHUNK).toExtent();
+        Address end = start.add(size);
+        return addr.GE(start) && addr.LT(end);
       }
     }
   }

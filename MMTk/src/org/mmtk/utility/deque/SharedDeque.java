@@ -69,7 +69,7 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
       if (head.EQ(HEAD_INITIAL_VALUE))
         tail = buf;
       else
-	setPrev(head, buf);
+        setPrev(head, buf);
       setNext(buf, head);
       head = buf;
     } 
@@ -161,23 +161,23 @@ public class SharedDeque extends Deque implements Constants, Uninterruptible {
       }
     } else {
       if (fromTail) {
-	// dequeue the tail buffer
-	setTail(getPrev(tail));	
-	if (head.EQ(rtn)) {
-	  setHead(Address.zero());
-	  if (Assert.VERIFY_ASSERTIONS) Assert._assert(tail.isZero());
-	} else {
-	  setNext(tail, Address.zero());
-	}
+        // dequeue the tail buffer
+        setTail(getPrev(tail)); 
+        if (head.EQ(rtn)) {
+          setHead(Address.zero());
+          if (Assert.VERIFY_ASSERTIONS) Assert._assert(tail.isZero());
+        } else {
+          setNext(tail, Address.zero());
+        }
       } else {
       // dequeue the head buffer
       setHead(getNext(head));
       if (tail.EQ(rtn)) {
         setTail(Address.zero());
         if (Assert.VERIFY_ASSERTIONS) Assert._assert(head.isZero());
-	} else {
-	  setPrev(head, Address.zero());
-	}
+        } else {
+          setPrev(head, Address.zero());
+        }
       }
       bufsenqueued--;
       if (waiting)

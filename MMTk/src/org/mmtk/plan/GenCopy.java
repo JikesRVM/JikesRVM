@@ -267,7 +267,7 @@ public class GenCopy extends Generational implements Uninterruptible {
     if ((hi && Space.isInSpace(MS0, object)) || 
         (!hi && Space.isInSpace(MS1, object))) {
       if (Assert.VERIFY_ASSERTIONS)
-	Assert._assert(CopySpace.isForwarded(object));
+        Assert._assert(CopySpace.isForwarded(object));
       return CopySpace.getForwardingPointer(object);
     } else
       return object;
@@ -286,7 +286,7 @@ public class GenCopy extends Generational implements Uninterruptible {
   protected static final ObjectReference traceMatureObject(ObjectReference object) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(fullHeapGC || IGNORE_REMSET);
     if (IGNORE_REMSET && !fullHeapGC &&
-	(Space.isInSpace(MS0, object) || Space.isInSpace(MS1, object))) {
+        (Space.isInSpace(MS0, object) || Space.isInSpace(MS1, object))) {
       CopySpace.markObject(object, ImmortalSpace.immortalMarkState);
       return object;
     } else
@@ -316,23 +316,23 @@ public class GenCopy extends Generational implements Uninterruptible {
     if (object.isNull()) return false;
     if (!fullHeapGC) {
       if (object.toAddress().GE(NURSERY_START))
-	return nurserySpace.isLive(object);
+        return nurserySpace.isLive(object);
       else
-	return true;
+        return true;
     } else {
       Space space = Space.getSpaceForObject(object);
       if (space == nurserySpace)
-	return nurserySpace.isLive(object);
+        return nurserySpace.isLive(object);
       else if (space == matureSpace0)
-	return matureSpace0.isLive(object);
+        return matureSpace0.isLive(object);
       else if (space == matureSpace1)
-	return matureSpace1.isLive(object);
+        return matureSpace1.isLive(object);
       else if (space == loSpace)
-	return loSpace.isLive(object);
+        return loSpace.isLive(object);
       else if (space == null) {
-	if (Assert.VERIFY_ASSERTIONS) {
-	  Log.write("space failure: "); Log.writeln(object);
-	}
+        if (Assert.VERIFY_ASSERTIONS) {
+          Log.write("space failure: "); Log.writeln(object);
+        }
       }
       return true;
     }

@@ -25,8 +25,8 @@ public class GCspy implements Uninterruptible {
    *
    * Class variables
    */
-  private static int gcspyPort_ = 0;		// port to connect on
-  private static boolean gcspyWait_ = false;	// wait for connection?
+  private static int gcspyPort_ = 0;            // port to connect on
+  private static boolean gcspyWait_ = false;    // wait for connection?
 
   /****************************************************************************
    *

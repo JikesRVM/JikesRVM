@@ -69,7 +69,7 @@ public final class MarkSweepSpace extends Space
    * @param bytes The size of the space in virtual memory, in bytes
    */
   public MarkSweepSpace(String name, int pageBudget, Address start, 
-			Extent bytes) {
+                        Extent bytes) {
     super(name, false, false, start, bytes);
     pr = new FreeListPageResource(pageBudget, this, start, extent, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
   }
@@ -224,7 +224,7 @@ public final class MarkSweepSpace extends Space
     throws InlinePragma {
     if (testAndMark(object, markState)) {
       if (Stats.GATHER_MARK_CONS_STATS)
-	Plan.mark.inc(ObjectModel.getSizeWhenCopied(object));
+        Plan.mark.inc(ObjectModel.getSizeWhenCopied(object));
       MarkSweepLocal.liveObject(object);
       Plan.enqueue(object);
     }
@@ -264,7 +264,7 @@ public final class MarkSweepSpace extends Space
   public final void postCopy(ObjectReference object) 
     throws InlinePragma {
     writeMarkBit(object);      // TODO one of these two is redundant!
-    	MarkSweepLocal.liveObject(object);
+        MarkSweepLocal.liveObject(object);
   }
   /**
    * Perform any required initialization of the GC portion of the header.

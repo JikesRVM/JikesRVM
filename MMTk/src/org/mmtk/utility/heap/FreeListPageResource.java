@@ -48,7 +48,7 @@ public final class FreeListPageResource extends PageResource
    * @param bytes The size of the address rage allocated to this resource
    */
   public FreeListPageResource(int pageBudget, Space space, Address start, 
-			      Extent bytes) {
+                              Extent bytes) {
     super(pageBudget, space, start);
     freeList = new GenericFreeList(Conversions.bytesToPages(bytes));
   }
@@ -68,7 +68,7 @@ public final class FreeListPageResource extends PageResource
    * that are embedded in each region.
    */
   public FreeListPageResource(int pageBudget, Space space, Address start, 
-			      Extent bytes, int metaDataPagesPerRegion) {
+                              Extent bytes, int metaDataPagesPerRegion) {
     super(pageBudget, space, start);
     this.metaDataPagesPerRegion = metaDataPagesPerRegion;
     freeList = new GenericFreeList(Conversions.bytesToPages(bytes), EmbeddedMetaData.PAGES_IN_REGION);
@@ -114,13 +114,13 @@ public final class FreeListPageResource extends PageResource
       return Address.zero();
     } else {
       if (pageOffset > highWaterMark) {
-	if ((pageOffset ^ highWaterMark) > EmbeddedMetaData.PAGES_IN_REGION) {
-	  int regions = 1 + ((pageOffset - highWaterMark)>>EmbeddedMetaData.LOG_PAGES_IN_REGION);
-	  int metapages = regions * metaDataPagesPerRegion;
-	  reserved += metapages;
-	  committed += metapages;
-	  highWaterMark = pageOffset;	  
-	}
+        if ((pageOffset ^ highWaterMark) > EmbeddedMetaData.PAGES_IN_REGION) {
+          int regions = 1 + ((pageOffset - highWaterMark)>>EmbeddedMetaData.LOG_PAGES_IN_REGION);
+          int metapages = regions * metaDataPagesPerRegion;
+          reserved += metapages;
+          committed += metapages;
+          highWaterMark = pageOffset;     
+        }
       }
       Address rtn = start.add(Conversions.pagesToBytes(pageOffset));
       LazyMmapper.ensureMapped(rtn, pages);

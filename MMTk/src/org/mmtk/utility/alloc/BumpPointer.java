@@ -114,7 +114,7 @@ public class BumpPointer extends Allocator
   }
 
   final protected Address allocSlowOnce(int bytes, int align, int offset, 
-					boolean inGC) {
+                                        boolean inGC) {
     // Ensure the selected chunk size can accomodate the largest object.
     Extent chunkSize = Word.fromIntZeroExtend(bytes).add(CHUNK_MASK)
                        .and(CHUNK_MASK.not()).toExtent();

@@ -154,7 +154,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef, 
-			      int bytes, int allocator) throws InlinePragma {
+                              int bytes, int allocator) throws InlinePragma {
     switch (allocator) {
     case  ALLOC_NURSERY: return;
     case      ALLOC_LOS: loSpace.initializeHeader(ref); return;
@@ -176,7 +176,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   public final Address allocCopy(ObjectReference original, int bytes,
-				 int align, int offset) throws InlinePragma {
+                                 int align, int offset) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
     return ms.alloc(bytes, align, offset, true);
   }
@@ -189,7 +189,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    */
   public final void postCopy(ObjectReference ref, ObjectReference typeRef,
-			     int bytes) throws InlinePragma {
+                             int bytes) throws InlinePragma {
     msSpace.writeMarkBit(ref);
     MarkSweepLocal.liveObject(ref);
   }
@@ -403,7 +403,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @return The possibly moved reference.
    */
   public static final ObjectReference traceObject(ObjectReference obj,
-						  boolean root) {
+                                                  boolean root) {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 

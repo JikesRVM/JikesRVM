@@ -155,7 +155,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    * @param tospace gather from tospace?
    */
   public void gcspyGatherData(int event, TreadmillDriver losDriver, 
-			      boolean tospace) {
+                              boolean tospace) {
     treadmill.gcspyGatherData(event, losDriver, tospace);
   }
 }

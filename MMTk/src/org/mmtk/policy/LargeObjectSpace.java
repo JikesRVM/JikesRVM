@@ -65,7 +65,7 @@ public final class LargeObjectSpace extends Space
    * @param bytes The size of the space in virtual memory, in bytes
    */
   public LargeObjectSpace(String name, int pageBudget, Address start,
-			  Extent bytes) {
+                          Extent bytes) {
     super(name, false, false, start, bytes);
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }
@@ -149,7 +149,7 @@ public final class LargeObjectSpace extends Space
    * available virtual memory.
    */
   public LargeObjectSpace(String name, int pageBudget, float frac, 
-			  boolean top) {
+                          boolean top) {
     super(name, false, false, frac, top);
     pr = new FreeListPageResource(pageBudget, this, start, extent);
   }
@@ -279,7 +279,7 @@ public final class LargeObjectSpace extends Space
   * @param object the object ref to the storage to be initialized
   */
   public final void postAlloc(ObjectReference object) 
-   	throws InlinePragma {
+        throws InlinePragma {
     initializeHeader(object);
   }
 

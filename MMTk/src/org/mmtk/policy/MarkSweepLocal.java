@@ -251,14 +251,14 @@ public final class MarkSweepLocal extends SegregatedFreeList
       Word mark = getLiveBits(markCursor);
       for (int i=0; i < BITS_IN_WORD; i++) {
         if (!mark.isZero() && !(mark.and(Word.one().lsh(i)).isZero())) {
-	  marked = true;
+          marked = true;
         }
         markCursor = markCursor.add(BYTES_PER_LIVE_BIT);
         if (markCursor.GE(nextCellCursor)) {
-	  if (marked) markCount++;
+          if (marked) markCount++;
           cellCursor = nextCellCursor;
           nextCellCursor = nextCellCursor.add(cellBytes);
-	  marked = false;
+          marked = false;
         }
       }
     }

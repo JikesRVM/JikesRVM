@@ -302,9 +302,9 @@ public abstract class BasePlan
   private static Space getSpaceFromAllocatorAnyPlan(Allocator a) {
     for (int i = 0; i < plans.length; i++) {
       if (plans[i] != null) {
-	Space space = plans[i].getSpaceFromAllocator(a);
-	if (space != null)
-	  return space;
+        Space space = plans[i].getSpaceFromAllocator(a);
+        if (space != null)
+          return space;
       }
     }
     return null;
@@ -607,8 +607,8 @@ public abstract class BasePlan
    * left to the caller (always false in this case).
    */
   public boolean writeBarrier(ObjectReference src, int srcOffset,
-			      ObjectReference dst, int dstOffset,
-			      int bytes) {
+                              ObjectReference dst, int dstOffset,
+                              int bytes) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
@@ -625,7 +625,7 @@ public abstract class BasePlan
    * @return The reference that was read.
    */
   public final Address readBarrier(ObjectReference src, Address slot,
-				   int context)
+                                   int context)
     throws InlinePragma {
     // read barrier currently unimplemented
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
@@ -656,7 +656,7 @@ public abstract class BasePlan
       return ImmortalSpace.isReachable(object);
     }
       if (Assert.VERIFY_ASSERTIONS)
-	Assert.fail("BasePlan.isReachable given object from unknown space");
+        Assert.fail("BasePlan.isReachable given object from unknown space");
       return false;
     }
 

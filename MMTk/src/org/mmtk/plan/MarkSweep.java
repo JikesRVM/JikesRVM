@@ -420,7 +420,7 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
       return loSpace.isLive(object);
     else if (space == null) {
       if (Assert.VERIFY_ASSERTIONS) {
-  	Log.write("space failure: "); Log.writeln(object);
+        Log.write("space failure: "); Log.writeln(object);
       }
     }
     return true;

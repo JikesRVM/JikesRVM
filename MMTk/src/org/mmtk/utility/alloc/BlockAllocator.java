@@ -97,11 +97,11 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    */
   final Address alloc(int blockSizeClass) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert((blockSizeClass >= 0) && 
-			   (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
+                           (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
     Address rtn;
     if (PARANOID) sanity(false);
     if (blockSizeClass > SUB_PAGE_SIZE_CLASS ||
-	(rtn = allocFast(blockSizeClass)).isZero())
+        (rtn = allocFast(blockSizeClass)).isZero())
       rtn = allocSlow(blockSizeClass);
     if (PARANOID) { 
       if (!rtn.isZero()) {
@@ -129,7 +129,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
       /* sub-page block */
       if (decInUseCount(block) == 0) {
         /* now completely free, so take blocks off free list and free page */
-	block = unlinkSubPageBlocks(block, blockSizeClass);
+        block = unlinkSubPageBlocks(block, blockSizeClass);
         space.release(block);
         if (PARANOID)
           freeBlocks[blockSizeClass] -= BYTES_IN_PAGE/blockSize(blockSizeClass);
@@ -165,7 +165,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
       incInUseCount(rtn);
       freeList.set(blockSizeClass, next);
       if (!next.isZero())
-	setPrevBlock(next, Address.zero());
+        setPrevBlock(next, Address.zero());
     }
     return rtn;
   }
@@ -186,7 +186,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
     if (!(rtn = space.acquire(pages)).isZero()) {
       setBlkSizeClass(rtn, (short) blockSizeClass);
       if (blockSizeClass <= SUB_PAGE_SIZE_CLASS)
-	populatePage(rtn, blockSizeClass);
+        populatePage(rtn, blockSizeClass);
       if (PARANOID) { 
         if (blockSizeClass <= SUB_PAGE_SIZE_CLASS)
           freeBlocks[blockSizeClass] += BYTES_IN_PAGE/blockSize(blockSizeClass);
@@ -216,7 +216,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
     while (block.LT(end)) {
       setNextBlock(block, next);
       if (!next.isZero())
-	setPrevBlock(next, block);
+        setPrevBlock(next, block);
       next = block;
       block = block.add(blockSize);
     }
@@ -356,7 +356,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * @param value The value to which this field is to be set
    */
   public static final void setFreeListMeta(Address address, 
-					   Address value) 
+                                           Address value) 
     throws InlinePragma {
     getMetaAddress(address).add(FL_META_OFFSET).store(value);
   }
@@ -480,7 +480,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * @return The address of the specified meta data
    */
   private static final Address getMetaAddress(Address address,
-					      Offset offset) 
+                                              Offset offset) 
     throws InlinePragma {
     return EmbeddedMetaData.getMetaDataBase(address).add(EmbeddedMetaData.getMetaDataOffset(address, LOG_BYTE_COVERAGE, LOG_BYTES_IN_BLOCK_META)).add(offset);
   }
@@ -507,7 +507,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
     while (block.LT(end)) {
       if (block.EQ(head)) {
         Address next = BlockAllocator.getNextBlock(block);
-	freeList.set(blockSizeClass, next);
+        freeList.set(blockSizeClass, next);
         head = next;
       }
       unlinkBlock(block);
@@ -554,7 +554,7 @@ public final class BlockAllocator implements Constants, Uninterruptible {
    * @return The length of the list
    */
   final static int sanityTraverse(Address block, Address prev, 
-				   boolean verbose) {
+                                   boolean verbose) {
     if (verbose) Log.write("[");
     boolean first = true;
     int blocks = 0;
@@ -562,11 +562,11 @@ public final class BlockAllocator implements Constants, Uninterruptible {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(getPrevBlock(block).EQ(prev));
       blocks++;
       if (verbose) {
-	if (!first)
-	  Log.write(" ");
-	else
-	  first = false;
-	Log.write(block);
+        if (!first)
+          Log.write(" ");
+        else
+          first = false;
+        Log.write(block);
       }
       prev = block;
       block = getNextBlock(block);

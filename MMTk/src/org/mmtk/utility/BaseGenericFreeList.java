@@ -307,7 +307,7 @@ abstract class BaseGenericFreeList implements Constants, Uninterruptible {
         Log.write(s);
         Log.write("]");
         Log.write(" ");
-	Log.flush();
+        Log.flush();
       }
       Log.writeln("]FL");
     }

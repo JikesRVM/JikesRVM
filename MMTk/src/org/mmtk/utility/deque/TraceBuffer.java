@@ -86,99 +86,99 @@ public class TraceBuffer extends LocalQueue
     /* Process through the entire buffer. */
     while (checkDequeue(1)) {
       /* For speed and efficiency, we will actually process the data buffer by 
-	 buffer and not by dequeue-ing each entry. */
+         buffer and not by dequeue-ing each entry. */
       while (!bufferOffset(head).isZero()) {
-	head = head.sub(BYTES_IN_ADDRESS);
-	Word val = head.loadWord();
-	if (traceState.EQ(TRACE_NEW_RECORD)) {
-	  if (val.EQ(TRACE_GCSTART)) {
-	    Log.write('G');
-	    Log.write('C');
-	    Log.writeln('B', true);
-	  } else if (val.EQ(TRACE_GCEND)) {
-	    Log.write('G');
-	    Log.write('C');
-	    Log.writeln('E', true);
-	  } else {
-	    traceState = val;
-	  }
-	} else {
-	  if (traceState.EQ(TRACE_EXACT_ALLOC) ||
-	      traceState.EQ(TRACE_ALLOC)) {
-	    Log.write( (traceState.EQ(TRACE_EXACT_ALLOC)) ? 'A' : 'a');
-	    Log.write(' ');
-	    Log.write(val);
-	    traceState = TRACE_ALLOC_SIZE;
-	  } else if (traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC) ||
-		     traceState.EQ(TRACE_IMMORTAL_ALLOC)) {
-	    Log.write( (traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC)) ? 'I' : 'i');
-	    Log.write(' ');
-	    Log.write(val);
-	    traceState = TRACE_ALLOC_SIZE;
-	  } else if (traceState.EQ(TRACE_BOOT_ALLOC)) {
-	    Log.write('B');
-	    Log.write(' ');
-	    Log.write(val);
-	    traceState = TRACE_BOOT_ALLOC_SIZE;
-	  } else if (traceState.EQ(TRACE_DEATH)) {
-	    Log.write('D');
-	    Log.write(' ');
-	    Log.write(val);
-	    traceState = TRACE_DEATH_TIME;
-	  } else if (traceState.EQ(TRACE_BOOT_ALLOC_SIZE)) {
- 	    Log.write(val);
-	    traceState = TRACE_NEW_RECORD;
-	  } else if (traceState.EQ(TRACE_ALLOC_SIZE)) {
-	    Log.write(val);
-	    traceState = TRACE_ALLOC_FP;
-	  } else if (traceState.EQ(TRACE_ALLOC_FP)) {
-	    Log.write(val);
-	    traceState = TRACE_ALLOC_THREAD;
-	  } else if (traceState.EQ(TRACE_ALLOC_THREAD)) {
-	    Log.write(val);
-	    traceState = TRACE_NEW_RECORD;
-	  } else if (traceState.EQ(TRACE_TIB_SET)) {
-	    Log.write('T');
-	    Log.write(' ');
-	    Log.write(val);
-	    traceState = TRACE_TIB_VALUE;
-	  } else if (traceState.EQ(TRACE_STATIC_SET)) {
-	    Log.write('S');
-	    Log.write(' ');
-	    Log.write(val);
-	    traceState = TRACE_STATIC_TARGET;
-	  } else if (traceState.EQ(TRACE_TIB_VALUE) ||
-		     traceState.EQ(TRACE_DEATH_TIME) ||
-		     traceState.EQ(TRACE_STATIC_TARGET)) {
-	    Log.write(val);
-	    traceState = TRACE_NEW_RECORD;
-	  } else if (traceState.EQ(TRACE_FIELD_SET) || 
-		     traceState.EQ(TRACE_ARRAY_SET)) {
-	    Log.write('U');
-	    Log.write(' ');
-	    Log.write(val);
-	    traceState = TRACE_FIELD_SLOT;
-	  } else if (traceState.EQ(TRACE_FIELD_TARGET) || 
-		     traceState.EQ(TRACE_ARRAY_TARGET)) {
-	    Log.write(val);
-	    traceState = TRACE_NEW_RECORD;
-	  } else if (traceState.EQ(TRACE_FIELD_SLOT) ||
-		     traceState.EQ(TRACE_ARRAY_ELEMENT)) {
-	    Log.write(val);
-	    traceState = TRACE_FIELD_TARGET;
-	  } else
-	    Assert.fail("Cannot understand directive!\n");
-	  if (traceState.EQ(TRACE_NEW_RECORD)) {
-	    entriesNotFlushed++;
-	    Log.writeln();
-	  } else {
-	    Log.write(' ');
-	  }
-	}
-	if (entriesNotFlushed == 10) {
-	  Log.flush();
-	  entriesNotFlushed = 0;
-	}
+        head = head.sub(BYTES_IN_ADDRESS);
+        Word val = head.loadWord();
+        if (traceState.EQ(TRACE_NEW_RECORD)) {
+          if (val.EQ(TRACE_GCSTART)) {
+            Log.write('G');
+            Log.write('C');
+            Log.writeln('B', true);
+          } else if (val.EQ(TRACE_GCEND)) {
+            Log.write('G');
+            Log.write('C');
+            Log.writeln('E', true);
+          } else {
+            traceState = val;
+          }
+        } else {
+          if (traceState.EQ(TRACE_EXACT_ALLOC) ||
+              traceState.EQ(TRACE_ALLOC)) {
+            Log.write( (traceState.EQ(TRACE_EXACT_ALLOC)) ? 'A' : 'a');
+            Log.write(' ');
+            Log.write(val);
+            traceState = TRACE_ALLOC_SIZE;
+          } else if (traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC) ||
+                     traceState.EQ(TRACE_IMMORTAL_ALLOC)) {
+            Log.write( (traceState.EQ(TRACE_EXACT_IMMORTAL_ALLOC)) ? 'I' : 'i');
+            Log.write(' ');
+            Log.write(val);
+            traceState = TRACE_ALLOC_SIZE;
+          } else if (traceState.EQ(TRACE_BOOT_ALLOC)) {
+            Log.write('B');
+            Log.write(' ');
+            Log.write(val);
+            traceState = TRACE_BOOT_ALLOC_SIZE;
+          } else if (traceState.EQ(TRACE_DEATH)) {
+            Log.write('D');
+            Log.write(' ');
+            Log.write(val);
+            traceState = TRACE_DEATH_TIME;
+          } else if (traceState.EQ(TRACE_BOOT_ALLOC_SIZE)) {
+            Log.write(val);
+            traceState = TRACE_NEW_RECORD;
+          } else if (traceState.EQ(TRACE_ALLOC_SIZE)) {
+            Log.write(val);
+            traceState = TRACE_ALLOC_FP;
+          } else if (traceState.EQ(TRACE_ALLOC_FP)) {
+            Log.write(val);
+            traceState = TRACE_ALLOC_THREAD;
+          } else if (traceState.EQ(TRACE_ALLOC_THREAD)) {
+            Log.write(val);
+            traceState = TRACE_NEW_RECORD;
+          } else if (traceState.EQ(TRACE_TIB_SET)) {
+            Log.write('T');
+            Log.write(' ');
+            Log.write(val);
+            traceState = TRACE_TIB_VALUE;
+          } else if (traceState.EQ(TRACE_STATIC_SET)) {
+            Log.write('S');
+            Log.write(' ');
+            Log.write(val);
+            traceState = TRACE_STATIC_TARGET;
+          } else if (traceState.EQ(TRACE_TIB_VALUE) ||
+                     traceState.EQ(TRACE_DEATH_TIME) ||
+                     traceState.EQ(TRACE_STATIC_TARGET)) {
+            Log.write(val);
+            traceState = TRACE_NEW_RECORD;
+          } else if (traceState.EQ(TRACE_FIELD_SET) || 
+                     traceState.EQ(TRACE_ARRAY_SET)) {
+            Log.write('U');
+            Log.write(' ');
+            Log.write(val);
+            traceState = TRACE_FIELD_SLOT;
+          } else if (traceState.EQ(TRACE_FIELD_TARGET) || 
+                     traceState.EQ(TRACE_ARRAY_TARGET)) {
+            Log.write(val);
+            traceState = TRACE_NEW_RECORD;
+          } else if (traceState.EQ(TRACE_FIELD_SLOT) ||
+                     traceState.EQ(TRACE_ARRAY_ELEMENT)) {
+            Log.write(val);
+            traceState = TRACE_FIELD_TARGET;
+          } else
+            Assert.fail("Cannot understand directive!\n");
+          if (traceState.EQ(TRACE_NEW_RECORD)) {
+            entriesNotFlushed++;
+            Log.writeln();
+          } else {
+            Log.write(' ');
+          }
+        }
+        if (entriesNotFlushed == 10) {
+          Log.flush();
+          entriesNotFlushed = 0;
+        }
       }
     }
     resetLocal();

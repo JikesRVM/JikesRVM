@@ -70,7 +70,7 @@ public class LocalDeque extends LocalQueue
    */
   protected final void checkHeadInsert(int arity) throws InlinePragma {
     if (bufferOffset(head).EQ(bufferSentinel(arity)) || 
-	head.EQ(HEAD_INITIAL_VALUE))
+        head.EQ(HEAD_INITIAL_VALUE))
       headOverflow(arity);
     else if (Assert.VERIFY_ASSERTIONS) Assert._assert(bufferOffset(head).sLE(bufferLastOffset(arity)));
   }

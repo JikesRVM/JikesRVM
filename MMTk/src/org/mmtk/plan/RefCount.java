@@ -115,7 +115,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(ObjectReference object, ObjectReference typeRef,
-			      int bytes, int allocator)
+                              int bytes, int allocator)
     throws NoInlinePragma {
     switch (allocator) {
     case ALLOC_RC:
@@ -128,7 +128,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
       return;
     case ALLOC_IMMORTAL: 
       if (WITH_COALESCING_RC)
-	modBuffer.push(object);
+        modBuffer.push(object);
       else
         ImmortalSpace.postAlloc(object);
       return;
@@ -149,7 +149,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   public final Address allocCopy(ObjectReference original, int bytes,
-				 int align, int offset) throws InlinePragma {
+                                 int align, int offset) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     // return Address.zero();  this trips some Intel assembler bug
     return Address.max();
@@ -163,7 +163,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    */
   public final void postCopy(ObjectReference ref, ObjectReference typeRef, 
-			     int bytes) {}
+                             int bytes) {}
 
   /**
    * This method is called periodically by the allocation subsystem
@@ -313,7 +313,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * @return The possibly moved reference.
    */
   public static final ObjectReference traceObject(ObjectReference object,
-						  boolean root) {
+                                                  boolean root) {
     if (object.isNull() || !root) 
       return object;
     if (RefCountSpace.RC_SANITY_CHECK) 
@@ -361,7 +361,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * directly from a root.
    */
   public final void checkSanityTrace(ObjectReference object, 
-				     Address location) {
+                                     Address location) {
     if (isRCObject(object)) {
       if (RefCountSpace.checkAndClearSanityRC(object))
         Scan.enumeratePointers(object, sanityEnum);
@@ -445,8 +445,8 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   public final void writeBarrier(ObjectReference src, Address slot,
-				 ObjectReference tgt, int metaDataA, 
-				 int metaDataB, int mode) 
+                                 ObjectReference tgt, int metaDataA, 
+                                 int metaDataB, int mode) 
     throws InlinePragma {
     if (INLINE_WRITE_BARRIER)
       writeBarrierInternal(src, slot, tgt, metaDataA, metaDataB, mode);
@@ -472,7 +472,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   private final void writeBarrierInternal(ObjectReference src, Address slot,
-					  ObjectReference tgt, int metaDataA, 
+                                          ObjectReference tgt, int metaDataA, 
                                   int metaDataB, int mode) 
     throws InlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
@@ -501,9 +501,9 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * @param mode The mode of the store (eg putfield, putstatic)
    */
   private final void writeBarrierInternalOOL(ObjectReference src, Address slot,
-					     ObjectReference tgt,
-					     int metaDataA, int metaDataB,
-					     int mode) 
+                                             ObjectReference tgt,
+                                             int metaDataA, int metaDataB,
+                                             int mode) 
     throws NoInlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
@@ -542,26 +542,26 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * being used).
    */
   public boolean writeBarrier(ObjectReference src, int srcOffset, 
-			      ObjectReference dst, int dstOffset, int bytes) {
+                              ObjectReference dst, int dstOffset, int bytes) {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (WITH_COALESCING_RC) {
       if (RefCountSpace.logRequired(dst))
-	coalescingWriteBarrierSlow(dst);
+        coalescingWriteBarrierSlow(dst);
       return false;
     } else {
       Address s = src.toAddress().add(srcOffset);
       Address d = dst.toAddress().add(dstOffset);
       while (bytes > 0) {
-	ObjectReference tgt = s.loadObjectReference();
-	ObjectReference old;
-	do {
-	  old = d.prepareObjectReference();
-	} while (!d.attempt(old, tgt));
-	if (isRCObject(old)) decBuffer.push(old);
-	if (isRCObject(tgt)) RefCountSpace.incRC(tgt);
-	s = s.add(BYTES_IN_ADDRESS);
-	d = d.add(BYTES_IN_ADDRESS);
-	bytes -= BYTES_IN_ADDRESS;
+        ObjectReference tgt = s.loadObjectReference();
+        ObjectReference old;
+        do {
+          old = d.prepareObjectReference();
+        } while (!d.attempt(old, tgt));
+        if (isRCObject(old)) decBuffer.push(old);
+        if (isRCObject(tgt)) RefCountSpace.incRC(tgt);
+        s = s.add(BYTES_IN_ADDRESS);
+        d = d.add(BYTES_IN_ADDRESS);
+        bytes -= BYTES_IN_ADDRESS;
       }
       return true;
     }

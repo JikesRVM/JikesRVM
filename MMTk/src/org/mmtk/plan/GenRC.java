@@ -118,7 +118,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
   public final Address alloc(int bytes, int align, int offset, int allocator)
     throws InlinePragma {
     if (STEAL_NURSERY_GC_HEADER
-	&& allocator == ALLOC_NURSERY) {
+        && allocator == ALLOC_NURSERY) {
       // this assertion is unguarded so will even fail in FastAdaptive!
       // we need to abstract the idea of stealing nursery header bytes,
       // but we want to wait for the forward object model first...
@@ -145,7 +145,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param allocator The allocator number to be used for this allocation
    */
   public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
-			      int bytes, int allocator)
+                              int bytes, int allocator)
     throws InlinePragma {
     switch (allocator) {
     case ALLOC_NURSERY: return;
@@ -190,7 +190,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    */
   public final void postCopy(ObjectReference object, ObjectReference typeRef,
-			     int bytes) throws InlinePragma {
+                             int bytes) throws InlinePragma {
     CopySpace.clearGCBits(object);
     RefCountSpace.initializeHeader(object, typeRef, false);
     RefCountSpace.makeUnlogged(object);
@@ -386,7 +386,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @return The possibly moved reference.
    */
   public static final ObjectReference traceObject(ObjectReference object, 
-						  boolean root) {
+                                                  boolean root) {
     if (object.isNull()) return object;
     if (RefCountSpace.RC_SANITY_CHECK && root) 
       Plan.getInstance().rc.incSanityTraceRoot(object);
@@ -395,20 +395,20 @@ public class GenRC extends RefCountBase implements Uninterruptible {
       // every incoming reference to the from-space object must inc the
       // ref count of forwarded (to-space) object...
       if (root) {
-	if (RefCountSpace.INC_DEC_ROOT) {
-	  RefCountSpace.incRC(rtn);
-	  Plan.getInstance().addToRootSet(rtn);
-	} else if (RefCountSpace.setRoot(rtn)) {
-	  Plan.getInstance().addToRootSet(rtn);
-	}
+        if (RefCountSpace.INC_DEC_ROOT) {
+          RefCountSpace.incRC(rtn);
+          Plan.getInstance().addToRootSet(rtn);
+        } else if (RefCountSpace.setRoot(rtn)) {
+          Plan.getInstance().addToRootSet(rtn);
+        }
       } else
-	RefCountSpace.incRC(rtn);
+        RefCountSpace.incRC(rtn);
       return rtn;
     } else if (isRCObject(object)) {
       if (root)
-	return rcSpace.traceObject(object);
+        return rcSpace.traceObject(object);
       else
-	RefCountSpace.incRC(object);
+        RefCountSpace.incRC(object);
     }
     // else this is not a rc heap pointer
     return object;
@@ -456,7 +456,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * directly from a root.
    */
   public final void checkSanityTrace(ObjectReference object, 
-				     Address location) {
+                                     Address location) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());        
     // if nursery, then get forwarded RC object
     if (Space.isInSpace(NS, object)) {
@@ -610,8 +610,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
   public final void writeBarrier(ObjectReference src, Address slot, 
-				 ObjectReference tgt, int metaDataA, 
-				 int metaDataB, int mode) throws InlinePragma {
+                                 ObjectReference tgt, int metaDataA, 
+                                 int metaDataB, int mode) throws InlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (RefCountSpace.logRequired(src))
       writeBarrierSlow(src);
@@ -639,8 +639,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * left to the caller (always false in this case).
    */
   public final boolean writeBarrier(ObjectReference src, int srcOffset,
-				    ObjectReference dst, int dstOffset,
-				    int bytes) 
+                                    ObjectReference dst, int dstOffset,
+                                    int bytes) 
     throws InlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (RefCountSpace.logRequired(dst))

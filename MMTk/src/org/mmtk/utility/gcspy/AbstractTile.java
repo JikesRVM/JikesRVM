@@ -138,12 +138,12 @@ public abstract class AbstractTile implements  Uninterruptible {
    * @param len The number of tiles in the region
    */
   public static void controlValues (AbstractTile[] tiles, byte tag, int start,
-				    int len) {
+                                    int len) {
     for (int i = start; i < (start+len); ++i) {
       if (controlIsBackground(tag) ||
-   	  controlIsUnused(tag)) {
+          controlIsUnused(tag)) {
         if (controlIsUsed(tiles[i].getControl()))
-	  tiles[i].setControl((byte)~CONTROL_USED);
+          tiles[i].setControl((byte)~CONTROL_USED);
       }
       tiles[i].addControl(tag);
     }

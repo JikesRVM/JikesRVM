@@ -55,7 +55,7 @@ public final class ImmortalSpace extends Space
    * @param bytes The size of the space in virtual memory, in bytes
    */
   public ImmortalSpace(String name, int pageBudget, Address start,
-		       Extent bytes) {
+                       Extent bytes) {
     super(name, false, true, start, bytes);
     pr = new MonotonePageResource(pageBudget, this, start, extent);
   }
