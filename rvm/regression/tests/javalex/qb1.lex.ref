@@ -1,9 +1,7 @@
 // QBJ JLEX Lexer input
-// (C) Copyright 1999-2000 Toshihiro Horie
+// Copyright 1999-2000 Toshihiro Horie
 // portions Copyright 1999 Regents of the University of California
 // see also lextail.txt and qbw.txt and lexop.txt
-// $Id$
-// @author Toshihiro Horie
 import Sym.*;               // definition of terminals returned by scanner
 import java_cup.runtime.*;  // definition of scanner/parser interface
 /* semantic value of token returned by scanner */
