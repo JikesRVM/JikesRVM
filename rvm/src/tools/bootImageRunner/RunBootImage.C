@@ -228,7 +228,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
                 fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative verboseBoot value\n", Me, token);
                 *fastExit = true; break;
             } else if (errno == ERANGE
-                       || vb > UINT_MAX ) {
+                       || vb > INT_MAX ) {
                 fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
                 *fastExit = true; break;
             } else if (*endp) {
@@ -283,7 +283,7 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
                 if (level < 0) {
                     fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative GC verbose value\n", Me, token);
                     *fastExit = true; 
-                } else if (errno == ERANGE || level > UINT_MAX ) {
+                } else if (errno == ERANGE || level > INT_MAX ) {
                     fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
                     *fastExit = true;
                 } else if (*endp) {
@@ -441,8 +441,8 @@ processCommandLineArguments(const char *CLAs[], int n_CLAs, bool *fastExit)
 int
 main(int argc, const char **argv)
 {
-    Me            = basename((char *) *argv++);
-    --argc;
+    Me            = strrchr(*argv, '/') + 1;
+    ++argv, --argc;
     initialHeapSize = heap_default_initial_size;
     maximumHeapSize = heap_default_maximum_size;
 
@@ -476,7 +476,7 @@ main(int argc, const char **argv)
     // call processCommandLineArguments().
     bool fastBreak = false;
     // Sets JavaArgc
-    JavaArgs = processCommandLineArguments((const char **) argv, argc, &fastBreak);
+    JavaArgs = processCommandLineArguments(argv, argc, &fastBreak);
     if (fastBreak) {
         exit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
@@ -729,7 +729,6 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     }
 
     if (*fastExit) {
-        size_t namelen = strlen(sizeName);
         fprintf(SysTraceFile, "\tPlease specify %s size as follows:\n"
                 "\t   (in megabytes) using \"-X%s<positive number>M\",\n", 
                 sizeName, sizeFlag);
