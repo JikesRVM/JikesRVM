@@ -39,9 +39,9 @@ public class VM_CompilerDNA implements VM_Constants {
   private static final double[] compilationRates = {382.14, 9.53, 3.95, 1.45};
   //-#else
   /*
-   *  These numbers were from a shadow on July 7, 2002 on Linux/IA32 (turangalila)
+   *  These numbers were from a shadow on October 23, 2002 on Linux/IA32 (turangalila)
    */
-  private static final double[] compilationRates = {742.78, 15.68, 6.25, 2.52};
+  private static final double[] compilationRates = {916.99, 15.56, 5.88, 1.92};
   //-#endif
 
   /**
@@ -54,9 +54,9 @@ public class VM_CompilerDNA implements VM_Constants {
   private static final double[] speedupRates = {1.00, 3.98, 5.42, 6.11};
   //-#else
   /*
-   *  These numbers were from a shadow on July 7, 2002 on Linux/IA32 (turangalila)
+   *  These numbers were from a shadow on October 23, 2002 on Linux/IA32 (turangalila)
    */
-  private static final double[] speedupRates = {1.00, 3.55, 4.68, 4.75};
+  private static final double[] speedupRates = {1.00, 3.80, 5.26, 5.10};
   //-#endif
 
   /**
