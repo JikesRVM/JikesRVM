@@ -35,7 +35,7 @@ implements OPT_Operators, OPT_Constants {
   /**
    * flag to optionally print verbose debugging messages
    */
-  static final boolean DEBUG = false;
+  static boolean DEBUG = false;
 
   /**
    * The govering IR
@@ -90,6 +90,7 @@ implements OPT_Operators, OPT_Constants {
    * @param ir the governing IR
    */
   final public void perform (OPT_IR ir) {
+
     // Exit if we don't have to recompute SSA.
     if (ir.actualSSAOptions != null)
       if (ir.actualSSAOptions.satisfies(ir.desiredSSAOptions))
@@ -1165,10 +1166,10 @@ implements OPT_Operators, OPT_Constants {
         VM_Type meet = OPT_ClassLoaderProxy.proxy.
           findCommonSuperclass(t, result.asRegister().type);
         if (meet == null) {
-          if ((   (  result.asRegister().type == VM_Type.IntType)
+          if ((   ( result.asRegister().type.isIntLikeType())
                   && t.isReferenceType())
-              || ((  result.asRegister().type.isReferenceType())
-                  && t == VM_Type.IntType)) {
+              || ((result.asRegister().type.isReferenceType())
+                  && t.isIntLikeType())) {
             meet = VM_Type.IntType;
           }
         }
