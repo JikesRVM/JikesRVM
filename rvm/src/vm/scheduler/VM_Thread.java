@@ -5,6 +5,9 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+// Used for Javadoc:
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread; 
+
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.jni.VM_JNIEnvironment;
 
@@ -1279,7 +1282,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   }
   
   /**
-   * Find an empty slot in the {@link threads}[] array and bind it to this thread.
+   * Find an empty slot in the {@link #threads}[] array and bind it to this thread.
    * Assumption: call is guarded by threadCreationMutex.
    */
   private void assignThreadSlot() {
@@ -1738,7 +1741,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    */ 
   /** The machine stack on which to execute this thread. */
   public byte[] stack;
-  /** The {@link Address} of the guard area for {@link stack}. */
+  /** The {@link Address} of the guard area for {@link #stack}. */
   public Address stackLimit;
   
   /**
