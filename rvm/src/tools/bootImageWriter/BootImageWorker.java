@@ -6,6 +6,11 @@
 import java.util.*;
 import com.ibm.JikesRVM.classloader.VM_Type;
 
+/**
+ * Worker thread for parallel compilation
+ * during bootimage writing.
+ * @author Perry Cheng
+ */
 public class BootImageWorker extends Thread {
 
   public static int verbose = 1;
