@@ -16,10 +16,10 @@ been in the 2.3.1 release announcement but was not.)
 *Other notes:
 
 *Bug Fixes:
-** Fixed crashes in GC on PowerPC/AIX introduced by enabling 
-doubleword aligment of long[] and double[] in version 2.3.1. Current
-fix is to disable the alignment optimization. (hope to have a better
-fix by the time we actually release 2.3.2 --dave).
+** Fixed problems in alignment support in JMTk that were causing crashes
+in GC on PowerPC/AIX when doubleword alignment of long[] and double[]
+was enabled. This is a bug that was introduced in version 2.3.1 and is
+fixed in 2.3.2.
 
 ** Fixed performance problem in profile-directed inlining where the 
 AI Organizer forces recompilation of methods in an attempt to inline
