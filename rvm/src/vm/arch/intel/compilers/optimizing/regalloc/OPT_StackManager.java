@@ -446,7 +446,15 @@ implements OPT_Operators {
     ir.MIRInfo.info.setFrameFixedSize(frameFixedSize);
 
     // I. Buy a stackframe (including overflow check)
-    if (frameFixedSize >= STACK_SIZE_GUARD) {
+    // NOTE: We play a little game here.  If the frame we are buying is
+    //       very small (less than 256) then we can be sloppy with the 
+    //       stackoverflow check and actually allocate the frame in the guard
+    //       region.  We'll notice when this frame calls someone and take the
+    //       stackoverflow in the callee. We can't do this if the frame is too big, 
+    //       because growing the stack in the callee and/or handling a hardware trap 
+    //       in this frame will require most of the guard region to complete.
+    //       See libjvm.C.
+    if (frameFixedSize >= 256) {
       // 1. Insert Stack overflow check.  
       insertBigFrameStackOverflowCheck(plg);
 
@@ -1000,19 +1008,6 @@ implements OPT_Operators {
 	  s.operator() == YIELDPOINT_EPILOGUE) {
 	moveESPBefore(s, 0);
 	continue;
-      }
-
-      // TEMP KLUDGE. TODO: Replace me with a solution that actually 
-      // handles all the cases!!!!!!
-      if (s.operator() == IA32_TRAPIF &&
-	  !MIR_TrapIf.getTrapCode(s).isStackOverflow()) {
-	// ESP must be at bottom of stack all PEIs because if the 
-	// hardware trap is actually taken then the code in libjvm.C that
-	// sets up for the return to VM_Runtime.deliverException
-	// is assumes that it can push parameters on the stack!
-	// NOTE: bottom is not always equal to 0!!!!!!!
-	//   (but it should be at TrapIfs).
-	moveESPBefore(s, 0);
       }
 
       if (s.operator() == IA32_MOV) {
