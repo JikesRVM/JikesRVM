@@ -5,17 +5,15 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import java.io.IOException;
+import java.io.DataInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 //-#endif
-// Following for beginning of classloader support
-import java.lang.ClassLoader;
-import java.io.InputStream;
-import java.io.DataInputStream;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  *  Description of a java "class" type.
@@ -34,7 +32,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 public final class VM_Class extends VM_Type implements VM_Constants, 
 						       VM_ClassLoaderConstants {
 
-  // for close world testing
+  // for closed world testing
   public static boolean classLoadingDisabled = false;
 
   // Cannonical empty arrays
@@ -84,6 +82,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * static methods of class
    */
   private VM_Method[]  staticMethods;          
+  /**
+   * static methods of class
+   */
+  private VM_Method[]  constructorMethods;          
   /**
    * virtual methods of class
    */
@@ -437,6 +439,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   }
 
   /**
+   * Constructors (<init>) methods of this class.
+   */
+  public final VM_Method[] getConstructorMethods() {
+    if (VM.VerifyAssertions) VM._assert(isResolved());
+    return constructorMethods;
+  }
+
+  /**
    * Virtually dispatched methods of this class 
    * (composed with supertypes, if any).
    */
@@ -520,11 +530,10 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */
   public final VM_Method findInitializerMethod(VM_Atom memberDescriptor) {
     if (VM.VerifyAssertions) VM._assert(isResolved());
-    VM_Method methods[] = getStaticMethods();
+    VM_Method methods[] = getConstructorMethods();
     for (int i = 0, n = methods.length; i < n; ++i) {
       VM_Method method = methods[i];
-      if (method.isObjectInitializer() && 
-          method.getDescriptor() == memberDescriptor)
+      if (method.getDescriptor() == memberDescriptor)
         return method;
     }
     return null;
@@ -881,6 +890,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       VM_FieldVector  staticFields   = new VM_FieldVector();
       VM_FieldVector  instanceFields = new VM_FieldVector();
       VM_MethodVector staticMethods  = new VM_MethodVector();
+      VM_MethodVector constructorMethods  = new VM_MethodVector();
       VM_MethodVector virtualMethods = new VM_MethodVector();
 
       // start with fields and methods of superclass
@@ -912,56 +922,54 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       for (int i = 0, n = methods.length; i < n; ++i) {
 	VM_Method method = methods[i];
 
-	if (method.isObjectInitializer() || method.isStatic())  {
+	if (VM.VerifyUnint) {
+	  if (!method.isInterruptible() && method.isSynchronized()) {
+	    if (VM.ParanoidVerifyUnint || !VM_PragmaLogicallyUninterruptible.declaredBy(method)) {
+	      VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
+	    }
+	  }
+	}
+
+	if (method.isObjectInitializer()) {
 	  VM_Callbacks.notifyMethodOverride(method, null);
-	  staticMethods.addElement(method);
-	  if (VM.VerifyUnint) {
-	    if (!method.isInterruptible() && method.isSynchronized()) {
-	      if (VM.ParanoidVerifyUnint || !VM_PragmaLogicallyUninterruptible.declaredBy(method)) {
-		VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
+	  constructorMethods.addElement(method);
+	} else if (method.isStatic()) {
+	  if (!method.isClassInitializer()) {
+	    VM_Callbacks.notifyMethodOverride(method, null);
+	    staticMethods.addElement(method);
+	  }
+	} else { // Virtual method
+
+	  if (method.isSynchronized()) {
+	    VM_ObjectModel.allocateThinLock(this);
+	  }
+
+	  // method could override something in superclass - check for it
+	  //
+	  int superclassMethodIndex = -1;
+	  for (int j = 0, m = virtualMethods.size(); j < m; ++j) {
+	    VM_Method alreadyDefinedMethod = virtualMethods.elementAt(j);
+	    if (alreadyDefinedMethod.getName() == method.getName() &&
+		alreadyDefinedMethod.getDescriptor() == method.getDescriptor()) {
+	      // method already defined in superclass
+	      superclassMethodIndex = j;
+	      break;
+	    }
+	  }
+
+	  if (superclassMethodIndex == -1) {
+	    VM_Callbacks.notifyMethodOverride(method, null);
+	    virtualMethods.addElement(method);                          // append
+	  } else {
+	    VM_Method superc = (VM_Method)virtualMethods.elementAt(superclassMethodIndex);
+	    if (VM.VerifyUnint) {
+	      if (!superc.isInterruptible() && method.isInterruptible()) {
+		VM.sysWriteln("WARNING: interruptible "+method+" overrides uninterruptible "+superc);
 	      }
 	    }
+	    VM_Callbacks.notifyMethodOverride(method, superc);
+	    virtualMethods.setElementAt(method, superclassMethodIndex); // override
 	  }
-	  continue;
-	}
-
-	// Now deal with virtual methods
-	if (method.isSynchronized()) {
-	  VM_ObjectModel.allocateThinLock(this);
-	  if (VM.VerifyUnint) {
-	    if (!method.isInterruptible()) {
-	      if (VM.ParanoidVerifyUnint || !VM_PragmaLogicallyUninterruptible.declaredBy(method)) {
-		VM.sysWriteln("WARNING: "+method+" cannot be both uninterruptible and synchronized");
-	      }
-	    }
-	  }
-	}
-
-	// method could override something in superclass - check for it
-	//
-	int superclassMethodIndex = -1;
-	for (int j = 0, m = virtualMethods.size(); j < m; ++j) {
-	  VM_Method alreadyDefinedMethod = virtualMethods.elementAt(j);
-	  if (alreadyDefinedMethod.getName() == method.getName() &&
-	      alreadyDefinedMethod.getDescriptor() == method.getDescriptor()) {
-	    // method already defined in superclass
-	    superclassMethodIndex = j;
-	    break;
-	  }
-	}
-
-	if (superclassMethodIndex == -1) {
-	  VM_Callbacks.notifyMethodOverride(method, null);
-	  virtualMethods.addElement(method);                          // append
-	} else {
-	  VM_Method superc = (VM_Method)virtualMethods.elementAt(superclassMethodIndex);
-	  if (VM.VerifyUnint) {
-	    if (!superc.isInterruptible() && method.isInterruptible()) {
-	      VM.sysWriteln("WARNING: interruptible "+method+" overrides uninterruptible "+superc);
-	    }
-	  }
-	  VM_Callbacks.notifyMethodOverride(method, superc);
-	  virtualMethods.setElementAt(method, superclassMethodIndex); // override
 	}
       }
 
@@ -978,6 +986,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       this.staticFields   = staticFields.finish();
       this.instanceFields = instanceFields.finish();
       this.staticMethods  = staticMethods.finish();
+      this.constructorMethods = constructorMethods.finish();
       this.virtualMethods = virtualMethods.finish();
     }
 
@@ -1023,6 +1032,13 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       VM_Field field = instanceFields[i];
       if (field.getType().isReferenceType())
 	referenceOffsets[j++] = field.offset;
+    }
+
+    // Allocate space for <init> method pointers
+    //
+    for (int i = 0, n = constructorMethods.length; i < n; ++i) {
+      VM_Method method = constructorMethods[i];
+      method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD) << 2;
     }
 
     // Allocate space for static method pointers
@@ -1186,6 +1202,12 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       }
     }
 
+    // compile <init> methods and put their addresses into jtoc
+    for (int i = 0, n = constructorMethods.length; i < n; ++i) {
+      VM_Method method = constructorMethods[i];
+      VM_Statics.setSlotContents(method.getOffset() >> 2, method.getCurrentInstructions());
+    }
+
     // compile static methods and put their addresses into jtoc
     for (int i = 0, n = staticMethods.length; i < n; ++i) {
       // don't bother compiling <clinit> here;
@@ -1305,8 +1327,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     for (int i=0; i<methods.length; i++) {
       VM_Method m = methods[i];
       if (m.isNative()) {
-	  m.replaceCompiledMethod( null );
-	  // m.compile();
+	m.replaceCompiledMethod(null);
       }
     }
   }

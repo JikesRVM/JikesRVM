@@ -128,16 +128,16 @@ public class VM_ClassLoader implements VM_Constants,
 
   // Names of special methods.
   //
-  static VM_Atom StandardClassInitializerMethodName;        // "<clinit>"
-  static VM_Atom StandardClassInitializerMethodDescriptor;  // "()V"
+  public static VM_Atom StandardClassInitializerMethodName;        // "<clinit>"
+  public static VM_Atom StandardClassInitializerMethodDescriptor;  // "()V"
 
   public static VM_Atom StandardObjectInitializerMethodName;       // "<init>"
   public static VM_Atom StandardObjectInitializerMethodDescriptor; // "()V"
 
   public static VM_Atom StandardObjectInitializerHelperMethodName;       // "this"
 
-  static VM_Atom StandardObjectFinalizerMethodName;         // "finalize"
-  static VM_Atom StandardObjectFinalizerMethodDescriptor;   // "()V"
+  public static VM_Atom StandardObjectFinalizerMethodName;         // "finalize"
+  public static VM_Atom StandardObjectFinalizerMethodDescriptor;   // "()V"
 
   // Names of .class file attributes.
   //
