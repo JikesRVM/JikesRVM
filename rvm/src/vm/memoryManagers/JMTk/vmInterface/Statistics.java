@@ -133,9 +133,6 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
       printVerboseOutputLine(GCType);
       if (VM_CollectorThread.MEASURE_WAIT_TIMES)
         VM_CollectorThread.printThreadWaitTimes();
-
-      if (VM_CollectorThread.SHOW_RENDEZVOUS_TIMES) 
-        VM_CollectorThread.gcBarrier.printRendezvousTimes();
     }
   }
 

@@ -350,7 +350,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       ScanThread.scanThread(th2, rootLocations, codeLocations);
     }
     ScanObject.rootScan(VM_Magic.objectAsAddress(VM_Scheduler.threads));
-    VM_CollectorThread.gcBarrier.rendezvous();
+    rendezvous(4200);
   }
 
   public static boolean isNonParticipating (Plan plan) {
@@ -682,8 +682,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * Rendezvous with all other processors, returning the rank
    * (that is, the order this processor arrived at the barrier).
    */
-  public static int rendezvous() throws VM_PragmaUninterruptible {
-    return VM_CollectorThread.gcBarrier.rendezvous();
+  public static int rendezvous(int where) throws VM_PragmaUninterruptible {
+    return VM_CollectorThread.gcBarrier.rendezvous(where);
   }
 
 }
