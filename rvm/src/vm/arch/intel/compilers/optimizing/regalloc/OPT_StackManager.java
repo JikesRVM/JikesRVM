@@ -1211,12 +1211,6 @@ implements OPT_Operators {
       return true;
     }
 
-    // All call instructions use ebp
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    if (s.isCall() && r == phys.getEBP()) {
-      return true;
-    }
-
     return false;
   }
 

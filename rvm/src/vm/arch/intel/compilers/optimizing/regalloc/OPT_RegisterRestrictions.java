@@ -16,11 +16,6 @@ import java.util.Vector;
 final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions implements OPT_Operators, OPT_PhysicalRegisterConstants {
 
   /**
-   * Allocate EBP as a general purpose register?
-   */
-  private final static boolean ALLOCATE_EBP = true;
-
-  /**
    * Allow scratch registers in PEIs?
    */
   final static boolean SCRATCH_IN_PEI = true;
@@ -187,17 +182,6 @@ final class OPT_RegisterRestrictions extends OPT_GenericRegisterRestrictions imp
     addRestriction(r,EBP);
     addRestriction(r,ESI);
     addRestriction(r,EDI);
-  }
-
-  /**
-   * Is it forbidden to assign symbolic register symb to physical register
-   * physical?
-   */
-  boolean isForbidden(OPT_Register symb, OPT_Register physical) {
-    if (!ALLOCATE_EBP && physical == phys.getEBP()) {
-      return true;
-    }
-    return super.isForbidden(symb,physical);
   }
 
   /**
