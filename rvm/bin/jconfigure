@@ -955,6 +955,7 @@ function emitEnvironmentBash () {
     echo ""
     echo "export AWK='$AWK'"  
     echo "export BASH='$BASH'"  
+    [[ ! ${BISON-} ]] || echo "export BISON='$BISON'"  
     echo "export CVS='$CVS'"  
     echo "export DIFF='$DIFF'"  
     echo "export FGREP='$FGREP'"
@@ -1030,6 +1031,7 @@ function emitMakefile () {
 	
 	CLASSPATH_LIBRARIES = YES
 	EOF
+    [[ ! ${BISON-} ]] || echo "BISON = '$BISON'"  
 }
 
 
