@@ -5,6 +5,9 @@
 
 /**
  * Obtained from sys.C
+ *
+ * @author Peter F Sweeney
+ * @date December 29, 2003
  */
 
 // These exit status codes are defined here and in VM.java.
