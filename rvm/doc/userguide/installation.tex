@@ -103,10 +103,9 @@ hereinafter call the location of the unpacked RVM distribution {\tt
 \index{GNU Classpath: Java class libraries}%
 \index{Classpath, GNU: Java class libraries}%
 \item You will need version \classpathversion{} of the GNU
-Classpath libraries.\footnote{Jikes RVM's CVS head is also buildable with GNU
-Classpath 0.11 and with Classpath's CVS head. 
-However, as of this writing, 08 October 2004, we are not yet
-running regular regression tests on those platforms.}
+Classpath libraries.\footnote{0.10 and 0.11 also work; you'll have to
+  set the configuration variable {\tt RVM\_WITH\_CLASSPATH\_0\_10=1} or
+  {\tt RVM\_WITH\_CLASSPATH\_0\_11=1} to use them, as appropriate.}
 The Jikes RVM build process can automatically download, 
 configure, and build the appropriate version of Classpath for you.
 
@@ -206,20 +205,20 @@ Yacc or Bison &	{\it any} & \xlink{\tt \bisonURL}{\bisonURL} \\
 
 {\tt wget} & {\it any}    \link{\SeeBelow}{wget-why}  & \xlink{\tt \wgetURL}{\wgetURL} \\
 
-\hline \hline \multicolumn{3}{|c|}{\em If automatically Building GNU
-        Classpath from CVS (the default until October~2003)} \\ \hline
-{\tt automake}       & 1.6.3+ \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \automakeURL}{\automakeURL} \\
-{\tt cvs}            & {\it any}    \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \cvsURL}{\cvsURL} \\
-{\tt autoconf}       & 2.53+  \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \autoconfURL}{\autoconfURL} \\
+%% \hline \hline \multicolumn{3}{|c|}{\em If automatically Building GNU
+%%         Classpath from CVS (the default until October~2003)} \\ \hline
+%% {\tt automake}       & 1.6.3+ \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \automakeURL}{\automakeURL} \\
+%% {\tt cvs}            & {\it any}    \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \cvsURL}{\cvsURL} \\
+%% {\tt autoconf}       & 2.53+  \link{\SeeBelow}{auto-and-cvs}  & \xlink{\tt \autoconfURL}{\autoconfURL} \\
 \hline \hline \multicolumn{3}{|c|}{\em Linux/x86-32}                      \\ \hline
 kernel         & 2.4+ \SeeBelow{} & \xlink{\tt \linuxKernelURL}{\linuxKernelURL} \\
-JDK            & Blackdown 1.3.1 or 1.4.1 & \xlink{\tt \BlackdownURL}{\BlackdownURL} \\
+JDK            & Blackdown 1.3.1 or 1.4.1 or 1.4.2 & \xlink{\tt \BlackdownURL}{\BlackdownURL} \\
 glibc          & 2.2+ \SeeBelow & \xlink{\tt \glibcURL}{\glibcURL} \\ 
 \hline \hline \multicolumn{3}{|c|}{\em AIX\TMweb{}/PowerPC\TMweb{}}                     \\ \hline
 
 AIX            & 4.3+     & %   \center{---}                      
 \\
-JDK            & IBM\Rweb{} DK 1.3.0 or 1.4.0 & \xlink{\tt \AIXJdkURL}{\AIXJdkURL} \\ 
+JDK            & IBM\Rweb{} DK 1.3.0 or 1.4.0 or 1.4.2 & \xlink{\tt \AIXJdkURL}{\AIXJdkURL} \\ 
 \hline \hline \multicolumn{3}{|c|}{\em Linux/PowerPC}                      \\ \hline
 JDK            & IBM DK 1.3.0    & \xlink{\tt \linuxPPCJDKURL}{\linuxPPCJDKURL} \\
 \hline \hline \multicolumn{3}{|c|}{\em Mac OS X}                     \\ \hline
@@ -250,22 +249,28 @@ installation} below}[\textit{Mac OS~X is further discussed in subsection~\Ref{},
 \T Jikes RVM}, on page~\pageref{prereq-table}:
 \T
 \begin{itemize}
-\begin{Label}{auto-and-cvs}
-\item \texttt{automake}, \texttt{autoconf}, and \texttt{cvs}
-are only required \link{to build the GNU Classpath libaries 
-        from GNU Classpath's CVS}{manual-classpath-root}.
-If you instead \link{download a GNU Classpath tarball release}{manual-classpath-root}
-via FTP (we recommend this), then you don't need
-these.\texonly{  Look \AtManualClasspathRootDiscussion{ before
- you make your decision}}
-\end{Label}
+%% \begin{Label}{auto-and-cvs}
+%% \item \texttt{automake}, \texttt{autoconf}, and \texttt{cvs}
+%% are only required \link{to build the GNU Classpath libaries 
+%%         from GNU Classpath's CVS}{manual-classpath-root}.  This is an
+%% obscure option, intended mainly for classpath hackers.
+%% If you instead \link{download a GNU Classpath tarball release}{manual-classpath-root}
+%% via FTP (we recommend this), or let the \jrvm{} build process retrieve and build
+%% GNU Classpath for you, then you don't need
+%% these.\texonly{  Look \AtManualClasspathRootDiscussion{ before
+%%  you make your decision}}
+%% \end{Label}
 
 \begin{Label}{wget-why}
-As of this writing (October 16, 2003), the version of {\tt
-  jBuildClasspathJar} available through the CVS head now uses
-\texttt{wget} to retrieve GNU Classpath's tarball via FTP.\@  If this continues
-to work, then the Jikes RVM build process won't require {\tt
-  automake}, \texttt{autoconf}, or \texttt{cvs}.
+%% As of this writing (October 16, 2003), the version of 
+\item {\tt jBuildClasspathJar} %% available through the CVS head now 
+uses \texttt{wget} to retrieve GNU Classpath's tarball via FTP.\@   If
+you \link{manually build classpath}{manual-classpath-root} then you
+won't need \texttt{wget}.
+
+%% If this continues
+%% to work, then the Jikes RVM build process won't require {\tt
+%%   automake}, \texttt{autoconf}, or \texttt{cvs}.
 \end{Label}
 
 \item \texttt{glibc} for Linux/x86 must use the GS register for
@@ -476,21 +481,21 @@ whose default values are defined with reference to \texttt{HOST\_JAVA\_HOME}.
 
 {\bf The setting of \texttt{CLASSPATH\_ROOT} is tricky}, so we will go
 into some depth here.  For this example, we'll assume you downloaded
-\texttt{classpath-0.10.tgz}.  Create a directory to hold it.  You can
+\texttt{classpath-0.12.tgz}.  Create a directory to hold it.  You can
 name that directory anything; we'll name it 
-{\it \texttt{\$RVM\_\-ROOT/}classpath-0.10-build}.  
+{\it \texttt{\$RVM\_\-ROOT/}classpath-0.12}.  
 A command like 
 ``\texttt{/usr/gnu/tar -C
-  {\rm \it \texttt{\$\{RVM\_\-ROOT\}/}\-classpath-0.10-build} xzf classpath-0.10.tgz}''
+  {\rm \it \texttt{\$\{RVM\_\-ROOT\}/}\-classpath-0.12-build} xzf classpath-0.12.tgz}''
 will create the directory
-``{\rm \it \texttt{\$\{RVM\_\-ROOT\}}/\-class\-path-0.10-build}\texttt{/\-class\-path-0.10}''.  
+``{\rm \it \texttt{\$\{RVM\_\-ROOT\}}/\-class\-path-0.12-build}\texttt{/\-class\-path-0.12}''.  
 
 You {\bf must rename} ``\texttt{\$\{RVM\_\-ROOT\}/{\it
-    class\-path-0.10-build}/\-class\-path-0.10}'' to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it
-    class\-path-0.10-build}/\-class\-path}''.  Now set your {\tt
-  CLASS\-PATH\_\-ROOT} to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it class\-path-0.10-build}}''
+    class\-path-0.12-build}/\-class\-path-0.12}'' to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it
+    class\-path-0.12-build}/\-class\-path}''.  Now set your {\tt
+  CLASS\-PATH\_\-ROOT} to ``\texttt{\$\{RVM\_\-ROOT\}/\-{\it class\-path-0.12-build}}''
 ({\bf not} to \texttt{\$\{RVM\_\-ROOT\}/\-{\it
-    class\-path-0.10-build}/\-class\-path}).
+    class\-path-0.12-build}/\-class\-path}).
 
 
 The first time you run Jikes RVM's build process, it will
