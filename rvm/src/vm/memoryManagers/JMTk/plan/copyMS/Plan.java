@@ -133,7 +133,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     msMR = new MemoryResource("ms", POLL_FREQUENCY);
     losMR = new MemoryResource("los", POLL_FREQUENCY);
     nurseryVM = new MonotoneVMResource(NURSERY_SPACE, "Nursery", nurseryMR,   NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
-    msVM = new FreeListVMResource(MS_SPACE, "MS", MS_START, MS_SIZE, VMResource.IN_VM, MarkSweepSpace.META_DATA_PAGES_PER_REGION);
+    msVM = new FreeListVMResource(MS_SPACE, "MS", MS_START, MS_SIZE, VMResource.IN_VM, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
     losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
     msSpace = new MarkSweepSpace(msVM, msMR);
     losSpace = new TreadmillSpace(losVM, losMR);

@@ -159,7 +159,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
     // virtual memory resources
     nurseryVM  = new MonotoneVMResource(NURSERY_SPACE, "Nursery", nurseryMR, NURSERY_START, NURSERY_SIZE, VMResource.MOVABLE);
-    rcVM       = new FreeListVMResource(RC_SPACE, "RC", RC_START, RC_SIZE, VMResource.IN_VM, RefCountSpace.META_DATA_PAGES_PER_REGION);
+    rcVM       = new FreeListVMResource(RC_SPACE, "RC", RC_START, RC_SIZE, VMResource.IN_VM, RefCountLocal.META_DATA_PAGES_PER_REGION);
     losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
 
     // collectors

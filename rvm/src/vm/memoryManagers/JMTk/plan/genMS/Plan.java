@@ -93,7 +93,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * into the boot image by the build process.
    */
   static {
-    matureVM = new FreeListVMResource(MATURE_SPACE, "Mature", MATURE_START, MATURE_SIZE, VMResource.IN_VM, MarkSweepSpace.META_DATA_PAGES_PER_REGION);
+    matureVM = new FreeListVMResource(MATURE_SPACE, "Mature", MATURE_START, MATURE_SIZE, VMResource.IN_VM, MarkSweepLocal.META_DATA_PAGES_PER_REGION);
     matureSpace = new MarkSweepSpace(matureVM, matureMR);
   }
 

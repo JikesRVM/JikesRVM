@@ -46,8 +46,6 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * Class variables
    */
 
-  public static final int META_DATA_PAGES_PER_REGION = MarkSweepLocal.META_DATA_PAGES_PER_REGION;
-
   /****************************************************************************
    *
    * Instance variables
