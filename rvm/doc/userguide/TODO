@@ -5,9 +5,10 @@ completed.
 
 (1) In introduction, think about adding pointers to tutorial slides.
 
-(2) Figure out what the jazzlib story is (can we do it in jconfigure
-    or does user have to do it) and add appropriate text in
-    installation section.  Also ack jazzlib in userguide/web pages?
+(2) Figure out what the jazzlib story is (can we do automatically
+    download it in jconfigure or does user have to download it by hand) 
+    and add appropriate text in installation section.  
+    Also ack jazzlib in userguide/web pages?
 
 (3) Carefully read installation instructions and make sure all steps
     are still correct.
