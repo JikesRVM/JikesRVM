@@ -35,4 +35,8 @@ public class JikesRVMSupport {
   public static int getStringLength(String str) throws VM_PragmaUninterruptible {
     return str.count;
   }
+
+  public static int getStringOffset(String str) throws VM_PragmaUninterruptible {
+    return str.offset;
+  }
 }
