@@ -73,12 +73,12 @@ userguide.ps:	userguide.dvi
 all:	userguide.ps html
 
 # TeX the document
-userguide.dvi:	userguide.tex $(TEX_FILES) main.bib
-			$(LATEX) userguide
-			$(BIBTEX) userguide
-			$(MAKEINDEX) userguide
-			$(LATEX) userguide
-			$(LATEX) userguide
+userguide.dvi:	$(TEX_FILES) main.bib
+		$(LATEX) userguide
+		$(BIBTEX) userguide
+		$(MAKEINDEX) userguide
+		$(LATEX) userguide
+		$(LATEX) userguide
 
 html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
 	$(HYPERLATEX) userguide
@@ -92,7 +92,7 @@ html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
 %.gif:	%.ps
 	${PS2GIF} -res 50 $< $@
 
-.INTERMEDIATE:	userguide.tex userguide.dvi ${GENERATOR}.java
+.INTERMEDIATE:	userguide.dvi ${GENERATOR}.java
 
 clean:;	rm -f 	${TEX_GEN_FILES} $(GEN_INPUTS) ${GENERATOR_FILES} $(HTML_GRAPHICS)
 
