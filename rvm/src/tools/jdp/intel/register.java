@@ -79,6 +79,9 @@ abstract class register implements VM_Constants, VM_BaselineConstants, registerC
    */
   public abstract double [] getSystemThreadFPR(int VMthreadID, int systemThreadId[]);
 
+  public int registerToTPIndex(int tp) {
+    return threadPointerToIndex(tp);
+  }
 
   /**
    * Look up a VM_Thread object address to get its thread index 
