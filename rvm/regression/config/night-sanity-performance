@@ -1,2 +1,3 @@
 production             -test-list nightly-tests-performance
 FastAdaptiveMarkSweep  -test-list nightly-tests-performance
+FastAdaptiveGenMS      -test-list nightly-tests-performance

@@ -11,4 +11,5 @@ FullAdaptiveGenCopy              -test-list nightly-tests
 BaseBaseCopyMSUP                 -test-list nightly-tests-short
 FullAdaptiveSemiSpace            -use-opt-levels "O0 O1 O2" -test-list nightly-tests-short
 FastAdaptiveMarkSweep            -test-list nightly-tests-short
+FastAdaptiveGenMS                -test-list nightly-tests-short
 ExtremeAssertionsOptAdaptiveCopyMS -test-list nightly-tests-short
