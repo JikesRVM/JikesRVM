@@ -2530,7 +2530,8 @@ function emitPluginBuilder () {
 	}
 
 	QUIET_ANT=-quiet
-	unset TRACE_FLAG XFLAG VFLAG || :
+	declare -i trace=0
+	unset XFLAG VFLAG || :
 
 	while (( \$# > 0 )); do
 	    arg="\$1";
@@ -2541,7 +2542,7 @@ function emitPluginBuilder () {
 	        XFLAG=-x
 		shift
 	    elif [[ \$arg = -trace ]] || [[ \$arg = --trace ]]; then
-	        TRACE_FLAG=-trace
+		let trace=1
 	        QUIET_ANT=
 		shift
 	    elif [[ \$arg = -- ]]; then
@@ -2585,13 +2586,25 @@ function emitPluginBuilder () {
 	fi
 
 	# build the plugin
-	echo "building org.eclipse.jdt.launching.jikesrvm"
     	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
+	srcdir=\${JAL_ROOT}/rvm/src/tools/eclipse/plugin2
+	(( ! trace )) ||  echo "Building in \${srcdir}"
+	cd \${srcdir}
+	# Get the name of the package we're building.  It changes with each
+	# new version of Jikes RVM.  Only used for showing progress.
+	declare -r pkgname=\$(sed -n -e 's/.*name="package".*value="\([^"][^"]*jikesrvm[^"]*\)".*/\1/p' build.xml)
+	echo "building $pkgname"
+	(( ! trace )) || echo "Setting up ant.properties"
 
-	echo "eclipse.dir=\${ECLIPSE_INSTALL_DIR}" > \${JAL_ROOT}/rvm/src/tools/eclipse/plugin2/ant.properties
+	echo "eclipse.dir=\${ECLIPSE_INSTALL_DIR}" > ant.properties
 
-	cd \${JAL_ROOT}/rvm/src/tools/eclipse/plugin2
+	if (( trace )); then
+	    echo "build.trace=true"
+	else
+	    echo "build.trace=false"
+	fi >> ant.properties
 	export JAVA_HOME=\${HOST_JAVA_HOME}
+
 	\${ANT_CMD} \$QUIET_ANT install
 
 	EOF
