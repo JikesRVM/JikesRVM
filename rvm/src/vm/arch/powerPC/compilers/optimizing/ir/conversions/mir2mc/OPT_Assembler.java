@@ -13,7 +13,7 @@ import instructionFormats.*;
  * @author Igor Pechtchanski
  * @author Mauricio Serrano
  */
-public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
+public final class OPT_Assembler implements OPT_Operators, VM_Constants {
 
   private static final boolean DEBUG = false;
 
@@ -36,6 +36,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
   private static final int NOPtemplate = (24 << 26);
   private static final int Btemplate = (18 << 26);
 
+  private int unresolvedBranches;
 
   /**
    * Generate machine code into ir.MIRInfo.machinecode.
@@ -44,12 +45,15 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
    * @return   the number of machinecode instructions generated
    */
   public static final int generateCode (OPT_IR ir, boolean shouldPrint) {
+    return new OPT_Assembler().genCode(ir, shouldPrint);
+  }
+
+  private final int genCode(OPT_IR ir, boolean shouldPrint) {
     int mi = 0;
     INSTRUCTION[] machinecodes = ir.MIRInfo.machinecode;
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     boolean unsafeCondDispl = machinecodes.length > MAX_COND_DISPL;
     boolean unsafeDispl = machinecodes.length > MAX_DISPL;
-    int unresolvedBranches = 0;
     for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
 	 p != null; 
 	 p = p.nextInstructionInCodeOrder()) {
@@ -133,7 +137,6 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
 	{
 	  OPT_Instruction target = MIR_DataLabel.getTarget(p).target;
 	  int targetOffset = resolveBranch(p, target, mi);
-	  unresolvedBranches += (targetOffset == 0) ? 1 : 0;
 	  machinecodes[mi++] = targetOffset;
 	  p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
 	}
@@ -454,7 +457,6 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
 	{
 	  OPT_BranchOperand o = MIR_Branch.getTarget(p);
 	  int targetOffset = resolveBranch(p, o.target, mi);
-	  unresolvedBranches += (targetOffset == 0) ? 1 : 0;
 	  machinecodes[mi++] = inst | (targetOffset & LI_MASK);
 	  p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
 	}
@@ -483,7 +485,6 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
 	  int bo_bi = op0 << 2 | op1;
 	  OPT_BranchOperand o = MIR_CondBranch.getTarget(p);
 	  int targetOffset = resolveBranch(p, o.target, mi);
-	  unresolvedBranches += (targetOffset == 0) ? 1 : 0;
 	  if (targetOffset == 0) {            // unresolved branch
 	    if (DEBUG) VM.sysWrite("**** Forward Cond. Branch ****\n");
 	    machinecodes[mi++] = inst | (bo_bi << 16);
@@ -533,7 +534,6 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
 	{                     // CALL
 	  OPT_BranchOperand o = (OPT_BranchOperand)MIR_Call.getTarget(p);
 	  int targetOffset = resolveBranch(p, o.target, mi);
-	  unresolvedBranches += (targetOffset == 0) ? 1 : 0;
 	  machinecodes[mi++] = inst | (targetOffset & LI_MASK);
 	  p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
 	}
@@ -559,7 +559,6 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
 	  int bo_bi = op0 << 2 | op1;
 	  OPT_BranchOperand o = (OPT_BranchOperand)MIR_CondCall.getTarget(p);
 	  int targetOffset = resolveBranch(p, o.target, mi);
-	  unresolvedBranches += (targetOffset == 0) ? 1 : 0;
 	  if (targetOffset == 0) {            // unresolved branch
 	    if (DEBUG) VM.sysWrite("**** Forward Cond. Branch ****\n");
 	    machinecodes[mi++] = inst | (bo_bi << 16);
@@ -848,10 +847,11 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
    * @param mi
    * @return 
    */
-  private static int resolveBranch(OPT_Instruction src, 
-				   OPT_Instruction tgt, 
-				   int mi) {
+  private int resolveBranch(OPT_Instruction src, 
+			    OPT_Instruction tgt, 
+			    int mi) {
     if (tgt.getmcOffset() < 0) {
+      unresolvedBranches++;
       // forward branch target, which has not been fixed yet.
       // Unresolved forward branch stmts will form a linked list
       // via the scratchObject of the label instruction.
@@ -872,7 +872,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
 
 
   // flip the condition field of a conditional branch (p 38)
-  private static int flipCondition (int inst) {
+  private int flipCondition (int inst) {
     // structure of BO field: UTCZy, where U=unconditional branch?
     //                                     T=condition true?
     //                                     C=ignore counter?
@@ -897,7 +897,7 @@ public abstract class OPT_Assembler implements OPT_Operators, VM_Constants {
    * @param instr, an integer to be interpreted as a PowerPC instruction
    * @param offset the mcoffset (in bytes) of the instruction
    */
-  private static String disasm (int instr, int offset) {
+  private String disasm (int instr, int offset) {
     return PPC_Disassembler.disasm(instr, offset);
   }
 }
