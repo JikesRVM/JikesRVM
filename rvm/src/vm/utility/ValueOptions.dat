@@ -28,3 +28,7 @@ Trace every nth time a stack trace is created
 V EdgeCounterFile String null edgeCounterFile
 Input file of edge counter profile data
 
+
+V verboseBoot int 0
+Generate progress messages as the VM boots
+

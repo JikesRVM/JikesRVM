@@ -10,8 +10,7 @@ import java.lang.ref.Reference;
 
 /**
  * A virtual machine.
- * Implements VM_Uninterruptible to suppress thread switching in boot() and
- * sysCall() prologues.
+ * Implements VM_Uninterruptible to suppress thread switching in boot().
  *
  * @author Derek Lieber (project start).
  * @date 21 Nov 1997 
@@ -57,8 +56,6 @@ public class VM extends VM_Properties
     init(classpath, null);
   }
 
-  static int verbose = 0;  // Show progress of boot 
-
   /**
    * Begin vm execution.
    * The following machine registers are set by "C" bootstrap program 
@@ -74,19 +71,19 @@ public class VM extends VM_Properties
     VM.runningAsSubsystem = false;
 
     sysWriteLockOffset = VM_Entrypoints.sysWriteLockField.getOffset();
-    if (verbose >= 1) VM.sysWriteln("Booting");
+    if (verboseBoot >= 1) VM.sysWriteln("Booting");
 
     // Set up the current VM_Processor object.  The bootstrap program
     // has placed a pointer to the current VM_Processor in a special
     // register.
-    if (verbose >= 1) VM.sysWriteln("Setting up current VM_Processor");
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up current VM_Processor");
     VM_ProcessorLocalState.boot();
 
     // Finish thread initialization that couldn't be done in boot image.
     // The "stackLimit" must be set before any interruptible methods are called
     // because it's accessed by compiler-generated stack overflow checks.
     //
-    if (verbose >= 1) VM.sysWriteln("Doing thread initialization");
+    if (verboseBoot >= 1) VM.sysWriteln("Doing thread initialization");
     VM_Thread currentThread  = VM_Scheduler.threads[VM_Magic.getThreadId() >>> VM_ThinLockConstants.TL_THREAD_ID_SHIFT];
     currentThread.stackLimit = VM_Magic.objectAsAddress(currentThread.stack).add(STACK_SIZE_GUARD);
     VM_Processor.getCurrentProcessor().activeThreadStackLimit = currentThread.stackLimit;
@@ -100,13 +97,13 @@ public class VM extends VM_Properties
     // This must happen before any putfield or arraystore of object refs
     // because the buffer is accessed by compiler-generated write barrier code.
     //
-    if (verbose >= 1) VM.sysWriteln("Setting up write barrier");
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up write barrier");
     MM_Interface.setupProcessor(VM_Processor.getCurrentProcessor());
 
     // Initialize memory manager.
     //    This must happen before any uses of "new".
     //
-    if (verbose >= 1) VM.sysWriteln("Setting up memory manager: bootrecord = ", VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record));
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up memory manager: bootrecord = ", VM_Magic.objectAsAddress(VM_BootRecord.the_boot_record));
     MM_Interface.boot(VM_BootRecord.the_boot_record);
 
     VM_Time.boot();
@@ -114,23 +111,23 @@ public class VM extends VM_Properties
     // Reset the options for the baseline compiler to avoid carrying them over from
     // bootimage writing time.
     // 
-    if (verbose >= 1) VM.sysWriteln("Setting up baseline compiler options");
+    if (verboseBoot >= 1) VM.sysWriteln("Setting up baseline compiler options");
     VM_BaselineCompiler.initOptions();
 
     // Create class objects for static synchronized methods in the bootimage.
     // This must happen before any static synchronized methods of bootimage classes
     // can be invoked.
-    if (verbose >= 1) VM.sysWriteln("Creating class objects for static synchronized methods");
+    if (verboseBoot >= 1) VM.sysWriteln("Creating class objects for static synchronized methods");
     createClassObjects();
 
     // Fetch arguments from program command line.
     //
-    if (verbose >= 1) VM.sysWriteln("Fetching command-line arguments");
+    if (verboseBoot >= 1) VM.sysWriteln("Fetching command-line arguments");
     VM_CommandLineArgs.fetchCommandLineArguments();
 
     // Initialize class loader.
     //
-    if (verbose >= 1) VM.sysWriteln("Initializing class loader");
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing class loader");
     String vmClasses = VM_CommandLineArgs.getVMClasses();
     VM_ClassLoader.boot(vmClasses);
     VM_SystemClassLoader.boot();
@@ -144,7 +141,7 @@ public class VM extends VM_Properties
     // writer.
     //
 
-    if (verbose >= 1) VM.sysWriteln("Running various class initializers");
+    if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
 
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
@@ -187,15 +184,15 @@ public class VM extends VM_Properties
 
     // Process virtual machine directives.
     //
-    if (verbose >= 1) VM.sysWriteln("Early stage processing of VM directives");
+    if (verboseBoot >= 1) VM.sysWriteln("Early stage processing of VM directives");
     VM_CommandLineArgs.earlyProcessCommandLineArguments();
 
     // Allow Collector to respond to command line arguments
     //
-    if (verbose >= 1) VM.sysWriteln("Collector processing rest of boot options");
+    if (verboseBoot >= 1) VM.sysWriteln("Collector processing rest of boot options");
     MM_Interface.postBoot();
 
-    if (verbose >= 1) VM.sysWriteln("Booting VM_Lock");
+    if (verboseBoot >= 1) VM.sysWriteln("Booting VM_Lock");
     VM_Lock.boot();
     
     // set up HPM
@@ -222,11 +219,11 @@ public class VM extends VM_Properties
     // Enable multiprocessing.
     // Among other things, after this returns, GC and dynamic class loading are enabled.
     // 
-    if (verbose >= 1) VM.sysWriteln("Booting scheduler");
+    if (verboseBoot >= 1) VM.sysWriteln("Booting scheduler");
     VM_Scheduler.boot();
 
     // Create JNI Environment for boot thread.  At this point the boot thread can invoke native methods.
-    if (verbose >= 1) VM.sysWriteln("Initializing JNI for boot thread");
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing JNI for boot thread");
     VM_Thread.getCurrentThread().initializeJNIEnv();
 
     //-#if RVM_WITH_HPM
@@ -235,7 +232,7 @@ public class VM extends VM_Properties
     //-#endif
 
     // Run class intializers that require fully booted VM
-    if (verbose >= 1) VM.sysWriteln("Running late class initializers");
+    if (verboseBoot >= 1) VM.sysWriteln("Running late class initializers");
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.util.PropertyPermission");
@@ -247,7 +244,7 @@ public class VM extends VM_Properties
     // Process most of the VM's command line arguments.
     // The VM is fully booted at this point. 
     MM_Interface.fullyBootedVM();
-    if (verbose >= 1) VM.sysWriteln("Late stage processing of VM directives");
+    if (verboseBoot >= 1) VM.sysWriteln("Late stage processing of VM directives");
     String[] applicationArguments = VM_CommandLineArgs.lateProcessCommandLineArguments();
 
     // Allow Baseline compiler to respond to command line arguments.
@@ -255,7 +252,7 @@ public class VM extends VM_Properties
     // otherwise printing may occur because of compilations ahead of processing the
     // method_to_print restriction
     //
-    if (verbose >= 1) VM.sysWriteln("Compiler processing rest of boot options");
+    if (verboseBoot >= 1) VM.sysWriteln("Compiler processing rest of boot options");
     VM_BaselineCompiler.postBootOptions();
 
     // Allow profile information to be read in from a file
@@ -263,7 +260,7 @@ public class VM extends VM_Properties
 
     // Initialize compiler that compiles dynamically loaded classes.
     //
-    if (VM.verbose >= 1) VM.sysWriteln("Initializing runtime compiler");
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing runtime compiler");
     VM_RuntimeCompiler.boot();
 
     // At this point, all of the virtual processors should be running,
@@ -281,7 +278,7 @@ public class VM extends VM_Properties
     // Work around class incompatibilities in boot image writer
     // (JDK's java.lang.Thread does not extend VM_Thread) [--IP].
     // Rework this when we do feature 3601.
-    if (VM.verbose >= 1) VM.sysWriteln("Constructing mainThread");
+    if (verboseBoot >= 1) VM.sysWriteln("Constructing mainThread");
     Thread      xx         = new MainThread(applicationArguments);
     VM_Address  yy         = VM_Magic.objectAsAddress(xx);
     VM_Thread   mainThread = (VM_Thread)VM_Magic.addressAsObject(yy);
@@ -292,7 +289,7 @@ public class VM extends VM_Properties
     //-#endif
 
     // Schedule "main" thread for execution.
-    if (verbose >= 1) VM.sysWriteln("Starting main thread");
+    if (verboseBoot >= 1) VM.sysWriteln("Starting main thread");
     mainThread.start();
 
     // Create one debugger thread.
@@ -331,15 +328,15 @@ public class VM extends VM_Properties
     tmp[classObjects.length] = c;
     classObjects = tmp;
   }
+
   /**
    * Create the java.lang.Class objects needed for 
    * static synchronized methods in the bootimage.
    */
   private static void createClassObjects() throws VM_PragmaInterruptible {
     for (int i=0; i<classObjects.length; i++) {
-      if (verbose >= 2) {
-	VM.sysWrite(classObjects[i].toString()); 
-	VM.sysWriteln();
+      if (verboseBoot >= 2) {
+	VM.sysWriteln(classObjects[i].toString()); 
       }
       classObjects[i].getClassForType();
     }
@@ -351,9 +348,9 @@ public class VM extends VM_Properties
    * @param className
    */
   static void runClassInitializer(String className) throws VM_PragmaInterruptible {
-    if (verbose >= 2) {
+    if (verboseBoot >= 2) {
       sysWrite("running class intializer for ");
-      sysWriteln( className );
+      sysWriteln(className);
     }
 
     VM_Atom  classDescriptor = 
@@ -363,7 +360,7 @@ public class VM extends VM_Properties
     if (cls != null && cls.isInBootImage()) {
       VM_Method clinit = cls.getClassInitializerMethod();
       clinit.compile();
-      if (verbose >= 10) VM.sysWriteln("invoking method " + clinit);
+      if (verboseBoot >= 10) VM.sysWriteln("invoking method " + clinit);
       VM_Magic.invokeClassInitializer(clinit.getCurrentInstructions());
       cls.setAllFinalStaticJTOCEntries();
     }
