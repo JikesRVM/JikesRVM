@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.jni.VM_JNIEnvironment;
 
+import org.mmtk.vm.Barriers;
+
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -1348,29 +1350,247 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * We do not use any spacing or newline characters.  Callers are responsible
    * for space-separating or newline-terminating output. 
    *
+   *  This function may be called during GC and may be used in conjunction
+   *  with the Log class.   It avoids write barriers and allocation.
+   *
    * @param verbosity Ignored.
    */
   public void dump(int verbosity) {
-    VM.sysWriteInt(getIndex());   // id
+    char[] buf = dumpBuffer;
+    int offset = dump(buf, 0);
+    VM.sysWrite(buf, offset);
+  }
+
+  /** Pre-allocate the dump buffer, since dump() might get called inside GC. */
+  private char[] dumpBuffer = new char[MAX_DUMP_LEN];
+
+  /** Dump this thread's info, for debugging.  
+   *  Copy the info about it into a destination char
+   *  array.  We do not use any spacing or newline characters. 
+   *
+   *  This function may be called during GC and may be used in conjunction
+   *  with the Log class.   It avoids write barriers and allocation.
+   *
+   *  For this reason, we do not throw an
+   *  <code>IndexOutOfBoundsException</code>.  
+   *  
+   * @param dest char array to copy the source info into.
+   * @param offset Offset into <code>dest</code> where we start copying
+   *
+   * @return 1 plus the index of the last character written.  If we were to
+   *         write zero characters (which we won't) then we would return
+   *         <code>offset</code>.  This is intended to represent the first
+   *         unused position in the array <code>dest</code>.  However, it also
+   *         serves as a pseudo-overflow check:  It may have the value
+   *         <code>dest.length</code>, if the array <code>dest</code> was
+   *         completely filled by the call, or it may have a value greater
+   *         than <code>dest.length</code>, if the info needs more than
+   *         <code>dest.length - offset</code> characters of space.
+   *
+   *         -1 if <code>offset</code> is negative.
+   *
+   * @author Steven Augart
+   */
+  public int dump(char[] dest, int offset) {
+    offset = sprintf(dest, offset, getIndex());   // id
     if (isDaemon)              
-      VM.sysWrite("-daemon");     // daemon thread?
+      offset = sprintf(dest, offset, "-daemon");     // daemon thread?
     if (isBootThread)    
-      VM.sysWrite("-bootPrimordial");    // Boot (Primordial) thread
+      offset = sprintf(dest, offset, "-Boot");    // Boot (Primordial) thread
     if (isMainThread)    
-      VM.sysWrite("-main");    // Main Thread
+      offset = sprintf(dest, offset, "-main");    // Main Thread
     if (isNativeIdleThread)    
-      VM.sysWrite("-nativeidle");    // NativeIdle
+      offset = sprintf(dest, offset, "-nativeIdle");    // NativeIdle
     if (isIdleThread)          
-      VM.sysWrite("-idle");       // idle thread?
+      offset = sprintf(dest, offset, "-idle");       // idle thread?
     if (isGCThread)            
-      VM.sysWrite("-collector");  // gc thread?
+      offset = sprintf(dest, offset, "-collector");  // gc thread?
     if (isNativeDaemonThread)  
-      VM.sysWrite("-nativeDaemon");  
+      offset = sprintf(dest, offset, "-nativeDaemon");  
     if (beingDispatched)
-      VM.sysWrite("-being_dispatched");
+      offset = sprintf(dest, offset, "-being_dispatched");
     if ( ! isAlive )
-      VM.sysWrite("-not_alive");
-    // VM.sysWrite("\n");
+      offset = sprintf(dest, offset, "-not_alive");
+    return offset;
+  }
+
+  /** Biggest buffer you would possibly need for #dump(char[], int).  
+   *  Modify this if you modify that method.   
+   */
+  final static public int MAX_DUMP_LEN = 
+    10 /* for thread ID  */ + 7 + 5 + 5 + 11 + 5 + 10 + 13 + 17 + 10;
+
+  /** Copy a String into a character array.
+   *
+   *  This function may be called during GC and may be used in conjunction
+   *  with the Log class.   It avoids write barriers and allocation.
+   *
+   *  XXX This function should probably be moved to a sensible location where
+   *   we can use it as a utility.   Suggestions welcome.
+   *
+   *  XXX This method's implementation is stolen from Log.java -- really, the
+   *      method there should probably call this.  The only reason it doesn't
+   *      is that I don't want to mess with the API.
+   *   
+   * @param dest char array to copy into.
+   * @param destOffset Offset into <code>dest</code> where we start copying
+   *
+   * @return 1 plus the index of the last character written.  If we were to
+   *         write zero characters (which we won't) then we would return
+   *         <code>offset</code>.  This is intended to represent the first
+   *         unused position in the array <code>dest</code>.  However, it also
+   *         serves as a pseudo-overflow check:  It may have the value
+   *         <code>dest.length</code>, if the array <code>dest</code> was
+   *         completely filled by the call, or it may have a value greater
+   *         than <code>dest.length</code>, if the info needs more than
+   *         <code>dest.length - offset</code> characters of space.
+   *
+   * @return  -1 if <code>offset</code> is negative.
+   *
+   * @author Steven Augart
+   */
+  public static int sprintf(char[] dest, int destOffset, String s) {
+    final char[] sArray = java.lang.JikesRVMSupport.getBackingCharArray(s);
+    return sprintf(dest, destOffset, sArray);
+  }
+
+  public static int sprintf(char[] dest, int destOffset, char[] src) {
+    return sprintf(dest, destOffset, src, 0, src.length);
+  }
+
+  /** Copies characters from <code>src</code> into the destination character
+   * array <code>dest</code>.
+   *
+   *  The first character to be copied is at index <code>srcBegin</code>; the
+   *  last character to be copied is at index <code>srcEnd-1</code>.  (This is
+   *  the same convention as followed by java.lang.String#getChars). 
+   *
+   * @param dest char array to copy into.
+   * @param destOffset Offset into <code>dest</code> where we start copying
+   * @param src Char array to copy from
+   * @param srcStart index of the first character of <code>src</code> to copy.
+   * @param srcEnd index after the last character of <code>src</code> to copy.
+   *
+   * @author Steven Augart
+   */
+  public static int sprintf(char[] dest, int destOffset, char[] src,
+                            int srcStart, int srcEnd) 
+  {
+    for (int i = srcStart; i < srcEnd; ++i) {
+      char nextChar = Barriers.getArrayNoBarrier(src, i);
+      destOffset = sprintf(dest, destOffset, nextChar);
+    }
+    return destOffset;
+  }
+
+  public static int sprintf(char[] dest, int destOffset, char c) {
+    if (destOffset < 0)             // bounds check
+      return -1;
+      
+    if (destOffset < dest.length)
+      Barriers.setArrayNoBarrier(dest, destOffset, c);
+    return destOffset + 1;
+  }
+
+
+  /** Copy the printed decimal representation of a long into 
+   * a character array.  The value is not padded and no
+   * thousands seperator is copied.  If the value is negative a
+   * leading minus sign (-) is copied.
+   *  
+   *  This function may be called during GC and may be used in conjunction
+   *  with the Log class.   It avoids write barriers and allocation.
+   *
+   *  XXX This function should probably be moved to a sensible location where
+   *   we can use it as a utility.   Suggestions welcome.
+   *
+   *  XXX This method's implementation is stolen from Log.java -- really, the
+   *      method there should probably call this.  The only reason it doesn't
+   *      is that I don't want to mess with the API.
+   *   
+   * @param dest char array to copy into.
+   * @param offset Offset into <code>dest</code> where we start copying
+   *
+   * @return 1 plus the index of the last character written.  If we were to
+   *         write zero characters (which we won't) then we would return
+   *         <code>offset</code>.  This is intended to represent the first
+   *         unused position in the array <code>dest</code>.  However, it also
+   *         serves as a pseudo-overflow check:  It may have the value
+   *         <code>dest.length</code>, if the array <code>dest</code> was
+   *         completely filled by the call, or it may have a value greater
+   *         than <code>dest.length</code>, if the info needs more than
+   *         <code>dest.length - offset</code> characters of space.
+   *
+   * @return  -1 if <code>offset</code> is negative.
+   *
+   * @author Steven Augart
+   */
+  public static int sprintf(char[] dest, int offset, long l) {
+    boolean negative = l < 0;
+    int nextDigit;
+    char nextChar;
+    int index = TEMP_BUFFER_SIZE - 1;
+    char [] intBuffer = getIntBuffer();
+    
+    nextDigit = (int)(l % 10);
+    nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
+                                              negative
+                                              ? - nextDigit
+                                              : nextDigit);
+    Barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
+    l = l / 10;
+    
+    while (l != 0) {
+      nextDigit = (int)(l % 10);
+      nextChar = Barriers.getArrayNoBarrier(hexDigitCharacter,
+                                                negative
+                                                ? - nextDigit
+                                                : nextDigit);
+      Barriers.setArrayNoBarrier(intBuffer, index--, nextChar);
+      l = l / 10;
+    }
+    
+    if (negative)
+      Barriers.setArrayNoBarrier(intBuffer, index--, '-');
+    
+    return sprintf(dest, offset, intBuffer, index+1, TEMP_BUFFER_SIZE);
+  }
+  
+  /**
+   * map of hexadecimal digit values to their character representations
+   *
+   * XXX We currently only use '0' through '9'
+   */
+  private static final char [] hexDigitCharacter =
+  { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
+    'f' };
+
+  /**
+   * characters in buffer for building string representations of
+   * longs.  A long is a signed 64-bit integer in the range -2^63 to
+   * 2^63+1.  The number of digits in the decimal representation of
+   * 2^63 is ceiling(log10(2^63)) == ceiling(63 * log10(2)) == 19.  An
+   * extra character may be required for a minus sign (-).  So the
+   * maximum number of characters is 20.
+   */
+  private static final int TEMP_BUFFER_SIZE = 20;
+
+  /** buffer for building string representations of longs */
+  private char [] tempBuffer = new char[TEMP_BUFFER_SIZE];
+
+  /**
+   * gets the buffer for building string representations of integers.
+   * There is one of these buffers for each VM_Thread.
+   */
+  private static char [] getIntBuffer() {
+    return getCurrentThread().getTempBuffer();
+  }
+
+  /**
+   * gets the buffer for building string representations of integers.
+   */
+  private char [] getTempBuffer() {
+    return tempBuffer;
   }
 
   /** Dump info for all threads.  Each thread's info is newline-terminated.
@@ -1387,7 +1607,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
       VM.sysWriteHex(VM_Magic.objectAsAddress(t));
       VM.sysWrite("   ");
       t.dump(verbosity);
-      // This is here to compensate for t.dump() not newline-terminating info.
+      // Compensate for t.dump() not newline-terminating info.
       VM.sysWriteln();
     }
   }
