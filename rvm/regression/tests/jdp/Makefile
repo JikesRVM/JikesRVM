@@ -11,7 +11,6 @@ BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/jdp
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=100
 START_NAME=arraymethod
-JBOOT=$(JAL_ROOT)/rvm/bin/jdp
 
 include 	$(JAL_ROOT)/rvm/regression/Make.rules
 
@@ -20,7 +19,11 @@ check:
 	@exit `$(FGREP) "Macro line" $(OUT) | wc -l | xargs -i expr {} - 8`
 	@exit `$(FGREP) "jid" $(OUT) | wc -l`
 
-sanity:
-	cd $(WORKING); $(MAKE) START_ARGS="$(START_NAME)" OUT=$(OUT) sanity-check-rule
+$(WORKING)/startup.jdp:		$(WORKING)
+ifneq ($(WORKING),.)
+	cp -f $(JAL_ROOT)/rvm/regression/tests/jdp/startup.jdp $(WORKING)
+endif
 
+sanity: $(WORKING)/startup.jdp
+	$(MAKE) JBOOT=$(JAL_ROOT)/rvm/bin/jdp PROCESSORS=1 sanity-check-rule
 
