@@ -14,7 +14,7 @@ import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.scan.*;
-import org.mmtk.utility.Options;
+import org.mmtk.utility.options.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.gcspy.ServerInterpreter;
 
@@ -82,6 +82,9 @@ public class SemiSpaceGCspy extends SemiSpaceBase implements Uninterruptible {
    *
    * GCSPY
    */
+  static {
+    GCspy.createOptions();
+  }
 
   /**
    * Start the server and wait if necessary
@@ -105,7 +108,7 @@ public class SemiSpaceGCspy extends SemiSpaceBase implements Uninterruptible {
 			    generalInfo);
 
     // Initialise each driver
-    int tilesize = Options.gcspyTilesize; 
+    int tilesize = GCspy.gcspyTilesize.getValue(); 
     // TODO What if this is too small (i.e. too many tiles for GCspy buffer)
     // TODO stop the GCspy spaces in the visualiser from fluctuating in size
     // so much as we resize them.

@@ -4,6 +4,7 @@
 //$Id$
 package org.mmtk.utility.heap;
 
+import org.mmtk.plan.BasePlan;
 import org.mmtk.utility.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
@@ -162,7 +163,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
     if (newSize.NE(oldSize)) {
       // Heap size is going to change
       currentHeapSize = newSize;
-      if (Options.verbose >= 2) { 
+      if (BasePlan.verbose.getValue() >= 2) { 
         Log.write("GC Message: Heap changed from "); Log.write(oldSize.toWord().rshl(LOG_BYTES_IN_KBYTE).toInt()); 
         Log.write("KB to "); Log.write(newSize.toWord().rshl(LOG_BYTES_IN_KBYTE).toInt()); 
         Log.writeln("KB"); 
@@ -202,7 +203,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     }
     
-    if (Options.verbose > 2) {
+    if (BasePlan.verbose.getValue() > 2) {
       Log.write("Live ratio "); Log.writeln(liveRatio);
       Log.write("GCLoad     "); Log.writeln(gcLoad);
     }
@@ -244,7 +245,7 @@ public abstract class HeapGrowthManager implements Constants, Uninterruptible {
       function[gcLoadAbove][liveRatioUnder] - function[gcLoadUnder][liveRatioUnder];
     factor += (gcLoadFraction * gcLoadDelta);
 
-    if (Options.verbose > 2) {
+    if (BasePlan.verbose.getValue() > 2) {
       Log.write("Heap adjustment factor is ");
       Log.writeln(factor);
     }

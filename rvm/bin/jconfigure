@@ -1420,6 +1420,7 @@ EOF
 	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy
 	$RVM_ROOT/MMTk/src/org/mmtk/utility/gcspy/drivers
 	$RVM_ROOT/MMTk/src/org/mmtk/utility/heap
+	$RVM_ROOT/MMTk/src/org/mmtk/utility/options
 	$RVM_ROOT/MMTk/src/org/mmtk/utility/scan
 	$RVM_ROOT/MMTk/src/org/mmtk/utility/statistics
 
@@ -2055,8 +2056,6 @@ EOF
 	# Build the command line options for the core VM
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
     
-	# Build the command line options for MMTk
-	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/MMTk/src/org/mmtk/utility MakeTemplates GEN_FILES_DIR=${GENERATED_FILES_DIRECTORY_STR} SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 EOF
 
     if (( RVM_FOR_IA32 )); then
@@ -3062,6 +3061,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Lorg/mmtk/utility/statistics/LongCounter;
 	[Lorg/mmtk/utility/statistics/SizeCounter;
 	[Lorg/mmtk/utility/statistics/Timer;
+	[Lorg/mmtk/utility/options/Option;
 	[Lorg/mmtk/utility/scan/MMType;
 	[Lorg/mmtk/utility/scan/Scan;
 	[Ljava/lang/Object;

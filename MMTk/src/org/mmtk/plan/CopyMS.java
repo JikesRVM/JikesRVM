@@ -16,7 +16,6 @@ import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.Options;
 import org.mmtk.utility.scan.*;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Memory;
@@ -279,7 +278,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
       return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
-    boolean nurseryFull = nurserySpace.reservedPages() > Options.maxNurseryPages;
+    boolean nurseryFull = nurserySpace.reservedPages() > nurserySize.getMaxNursery();
     if (mustCollect || heapFull || nurseryFull) {
       required = space.reservedPages() - space.committedPages();
       if (space == nurserySpace) required = required<<1;  // account for copy reserve

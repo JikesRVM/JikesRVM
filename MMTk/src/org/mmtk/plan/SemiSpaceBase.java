@@ -15,7 +15,6 @@ import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.scan.*;
-import org.mmtk.utility.Options;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Memory;
 import org.mmtk.vm.ObjectModel;

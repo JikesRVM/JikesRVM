@@ -435,6 +435,14 @@ public class Log implements Constants, Uninterruptible {
   public static void writeln(Offset o) { writeln(o, true); }
 
   /**
+   * writes an extent, in hexademical, and a new-line, then flushes the buffer.
+   * @see #write(Extent)
+   *
+   * @param e the extent to be logged
+   */
+  public static void writeln(Extent e) { writeln(e, true); }
+
+  /**
    * writes a new-line without flushing the buffer
    */
   public static void writelnNoFlush() {
@@ -614,6 +622,19 @@ public class Log implements Constants, Uninterruptible {
    */
   public static void writeln(Offset o, boolean flush) {
     write(o);
+    writelnWithFlush(flush);
+  }
+
+  /**
+   * writes an extent, in hexademical, and a new-line, then optionally
+   * flushes the buffer.
+   * @see #write(Extent)
+   *
+   * @param e the extent to be logged
+   * @param flush if <code>true</code> then flushes the buffer
+   */
+  public static void writeln(Extent e, boolean flush) {
+    write(e);
     writelnWithFlush(flush);
   }
 

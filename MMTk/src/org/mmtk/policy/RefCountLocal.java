@@ -9,7 +9,6 @@ import org.mmtk.utility.alloc.BlockAllocator;
 import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.Options;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TrialDeletion;
@@ -212,12 +211,12 @@ public final class RefCountLocal extends SegregatedFreeList
    * Prepare for a collection.
    */
   public final void prepare(boolean time) { 
-    if (RefCountSpace.RC_SANITY_CHECK && !Options.noFinalizer) 
+    if (RefCountSpace.RC_SANITY_CHECK && !Plan.noFinalizer.getValue()) 
       Assert.fail("Ref count sanity checks must be run with finalization disabled (-X:gc:noFinalizer=true)");
 
     flushFreeLists();
     if (RefCountSpace.INC_DEC_ROOT) {
-      if (Options.verbose > 2)
+      if (Plan.verbose.getValue() > 2)
         processRootBufsAndCount(); 
       else
         processRootBufs();
@@ -232,7 +231,7 @@ public final class RefCountLocal extends SegregatedFreeList
    * this operation
    */
   public final void release(RefCountBase plan, int count) {
-    boolean timekeeper = (Options.verboseTiming && count == 1);
+    boolean timekeeper = (Plan.verboseTiming.getValue() && count == 1);
     flushFreeLists();
     Collection.rendezvous(4400);
     if (!RefCountSpace.INC_DEC_ROOT) {
@@ -253,7 +252,7 @@ public final class RefCountLocal extends SegregatedFreeList
     Collection.rendezvous(4420);
     if (RefCountSpace.RC_SANITY_CHECK) checkSanityTrace();
     if (!RefCountSpace.INC_DEC_ROOT) {
-      if (Options.verbose > 2) 
+      if (Plan.verbose.getValue() > 2) 
         processRootBufsAndCount(); 
       else 
         processRootBufs();

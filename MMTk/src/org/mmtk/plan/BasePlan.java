@@ -14,7 +14,7 @@ import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.Options;
+import org.mmtk.utility.options.*;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.utility.TraceGenerator;
@@ -118,6 +118,18 @@ public abstract class BasePlan
   public static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_BYTES_IN_PAGE;
   public static final int DEFAULT_MAX_NURSERY = MAX_INT;
 
+  // options
+  public static Verbose verbose;
+  public static MetaDataLimit metaDataLimit;
+  public static NoFinalizer noFinalizer;
+  public static NoReferenceTypes noReferenceTypes;
+  public static StressFactor stressFactor;
+  public static NurserySize nurserySize;
+  public static FullHeapSystemGC fullHeapSystemGC;
+  public static VariableSizeHeap variableSizeHeap;
+  public static IgnoreSystemGC ignoreSystemGC;
+  public static VerboseTiming verboseTiming;
+  public static DummyEnum dummyEnum;
 
   /****************************************************************************
    *
@@ -140,6 +152,17 @@ public abstract class BasePlan
    * into the boot image by the build process.
    */
   static {
+    verbose = new Verbose();
+    verboseTiming = new VerboseTiming();
+    stressFactor = new StressFactor();
+    noFinalizer = new NoFinalizer();
+    noReferenceTypes = new NoReferenceTypes();
+    fullHeapSystemGC = new FullHeapSystemGC();
+    ignoreSystemGC = new IgnoreSystemGC();
+    metaDataLimit = new MetaDataLimit();
+    nurserySize = new NurserySize();
+    variableSizeHeap = new VariableSizeHeap();
+    dummyEnum = new DummyEnum();
     totalTime = new Timer("time");
     if (Stats.GATHER_MARK_CONS_STATS) {
       mark = new SizeCounter("mark", true, true);
@@ -177,8 +200,8 @@ public abstract class BasePlan
    * boot is called.
    */
   public static void postBoot() {
-    if (Options.verbose > 2) Space.printVMMap();
-    if (Options.verbose > 0) Stats.startAll();
+    if (verbose.getValue() > 2) Space.printVMMap();
+    if (verbose.getValue() > 0) Stats.startAll();
   }
 
   public static void fullyBooted() {
@@ -816,9 +839,9 @@ public abstract class BasePlan
    * override.
    */
   public static void harnessBegin() throws InterruptiblePragma {
-    Options.fullHeapSystemGC = true;
+    fullHeapSystemGC.setValue(true);
     System.gc();
-    Options.fullHeapSystemGC = false;
+    fullHeapSystemGC.setValue(false);
  
     insideHarness = true;
     Stats.startAll();
@@ -863,16 +886,16 @@ public abstract class BasePlan
    * @param value The exit value
    */
   public void notifyExit(int value) {
-    if (Options.verbose == 1) {
+    if (verbose.getValue() == 1) {
       Log.write("[End "); 
       totalTime.printTotalSecs();
       Log.writeln(" s]");
-    } else if (Options.verbose == 2) {
+    } else if (verbose.getValue() == 2) {
       Log.write("[End ");
       totalTime.printTotalMillis();
       Log.writeln(" ms]");
     }
-    if (Options.verboseTiming) printDetailedTiming(true);
+    if (verboseTiming.getValue()) printDetailedTiming(true);
     planExit(value);
     if (Plan.GENERATE_GC_TRACE)
       TraceGenerator.notifyExit(value);

@@ -10,7 +10,7 @@ import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.Options;
+import org.mmtk.utility.options.*;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.ReferenceProcessor;
 import org.mmtk.utility.scan.Scan;
@@ -142,7 +142,7 @@ public abstract class StopTheWorldGC extends BasePlan
     throws InlinePragma {
     long pages = Space.cumulativeCommittedPages();
     if (initialized &&
-        ((pages ^ lastStressCumulativeCommittedPages) > Options.stressPages)) {
+        ((pages ^ lastStressCumulativeCommittedPages) > stressFactor.getPages())) {
       lastStressCumulativeCommittedPages = pages;
       return true;
     } else
@@ -192,14 +192,14 @@ public abstract class StopTheWorldGC extends BasePlan
     processAllWork(); 
     if (timekeeper) scanTime.stop();
 
-    if (!Options.noReferenceTypes) {
+    if (!noReferenceTypes.getValue()) {
       if (timekeeper) refTypeTime.start();
       if (designated) ReferenceProcessor.processSoftReferences();
       if (designated) ReferenceProcessor.processWeakReferences();
       if (timekeeper) refTypeTime.stop();
     }
  
-    if (Options.noFinalizer) {
+    if (noFinalizer.getValue()) {
       if (designated) Finalizer.kill();
     } else {
       if (timekeeper) finalizeTime.start();
@@ -208,13 +208,13 @@ public abstract class StopTheWorldGC extends BasePlan
       if (timekeeper) finalizeTime.stop();
     }
       
-    if (!Options.noReferenceTypes) {
+    if (!noReferenceTypes.getValue()) {
       if (timekeeper) refTypeTime.start();
       if (designated) ReferenceProcessor.processPhantomReferences();
       if (timekeeper) refTypeTime.stop();
     }
 
-    if (!Options.noReferenceTypes || !Options.noFinalizer) {
+    if (!noReferenceTypes.getValue() || !noFinalizer.getValue()) {
       if (timekeeper) scanTime.start();
       processAllWork();
       if (timekeeper) scanTime.stop();
@@ -290,7 +290,7 @@ public abstract class StopTheWorldGC extends BasePlan
       Collection.prepareParticipating((Plan) this);  
       Collection.rendezvous(4260);
     }
-    if (Options.verbose >= 4) Log.writeln("  Preparing all collector threads for start");
+    if (verbose.getValue() >= 4) Log.writeln("  Preparing all collector threads for start");
     threadLocalPrepare(order);
   }
 
@@ -298,7 +298,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * Clean up after a collection
    */
   protected final void release() {
-    if (Options.verbose >= 4) Log.writeln("  Preparing all collector threads for termination");
+    if (verbose.getValue() >= 4) Log.writeln("  Preparing all collector threads for termination");
     int order = Collection.rendezvous(4270);
     if (Plan.WITH_GCSPY) gcspyPreRelease(); 
     baseThreadLocalRelease(order);
@@ -311,7 +311,7 @@ public abstract class StopTheWorldGC extends BasePlan
           ((StopTheWorldGC) p).baseThreadLocalRelease(NON_PARTICIPANT);
         }
       }
-      if (Options.verbose >= 4) {
+      if (verbose.getValue() >= 4) {
         Log.write("  There were "); Log.write(count);
         Log.writeln(" non-participating GC threads");
       }
@@ -363,19 +363,19 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   private final void processAllWork() throws NoInlinePragma {
 
-    if (Options.verbose >= 4) { Log.prependThreadId(); Log.writeln("  Working on GC in parallel"); }
+    if (verbose.getValue() >= 4) { Log.prependThreadId(); Log.writeln("  Working on GC in parallel"); }
     do {
-      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing forwarded (pre-copied) objects"); }
+      if (verbose.getValue() >= 5) { Log.prependThreadId(); Log.writeln("    processing forwarded (pre-copied) objects"); }
       while (!forwardedObjects.isEmpty()) {
         ObjectReference object = forwardedObjects.pop();
         scanForwardedObject(object);
       }
-      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing root locations"); }
+      if (verbose.getValue() >= 5) { Log.prependThreadId(); Log.writeln("    processing root locations"); }
       while (!rootLocations.isEmpty()) {
         Address loc = rootLocations.pop();
         traceObjectLocation(loc, true);
       }
-      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing interior root locations"); }
+      if (verbose.getValue() >= 5) { Log.prependThreadId(); Log.writeln("    processing interior root locations"); }
       while (!interiorRootLocations.isEmpty()) {
         ObjectReference obj = interiorRootLocations.pop1().toObjectReference();
         Address interiorLoc = interiorRootLocations.pop2();
@@ -383,12 +383,12 @@ public abstract class StopTheWorldGC extends BasePlan
         Address newInterior = traceInteriorReference(obj, interior, true);
         interiorLoc.store(newInterior);
       }
-      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing gray objects"); }
+      if (verbose.getValue() >= 5) { Log.prependThreadId(); Log.writeln("    processing gray objects"); }
       while (!values.isEmpty()) {
         ObjectReference v = values.pop();
 	Scan.scanObject(v);  // NOT traceObject
       }
-      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing remset"); }
+      if (verbose.getValue() >= 5) { Log.prependThreadId(); Log.writeln("    processing remset"); }
       while (!remset.isEmpty()) {
         Address loc = remset.pop();
         traceObjectLocation(loc, false);
@@ -397,7 +397,7 @@ public abstract class StopTheWorldGC extends BasePlan
     } while (!(rootLocations.isEmpty() && interiorRootLocations.isEmpty()
                && values.isEmpty() && remset.isEmpty()));
 
-    if (Options.verbose >= 4) { Log.prependThreadId(); Log.writeln("    waiting at barrier"); }
+    if (verbose.getValue() >= 4) { Log.prependThreadId(); Log.writeln("    waiting at barrier"); }
     Collection.rendezvous(4300);
   }
 
@@ -431,9 +431,9 @@ public abstract class StopTheWorldGC extends BasePlan
    * Print out statistics at the start of a GC
    */
   private void printPreStats() {
-    if ((Options.verbose == 1) || (Options.verbose == 2)) {
+    if ((verbose.getValue() == 1) || (verbose.getValue() == 2)) {
       Log.write("[GC "); Log.write(Stats.gcCount());
-      if (Options.verbose == 1) {
+      if (verbose.getValue() == 1) {
         Log.write(" Start "); 
         totalTime.printTotalSecs();
         Log.write(" s");
@@ -447,13 +447,13 @@ public abstract class StopTheWorldGC extends BasePlan
       Log.write("KB ");
       Log.flush();
     }
-    if (Options.verbose > 2) {
+    if (verbose.getValue() > 2) {
       Log.write("Collection "); Log.write(Stats.gcCount()); 
       Log.write(":        "); 
       printUsedPages();
       Log.write("  Before Collection: ");
       Space.printUsageMB();
-      if (Options.verbose >= 4) {
+      if (verbose.getValue() >= 4) {
         Log.write("                     ");
         Space.printUsagePages();
       }
@@ -464,11 +464,11 @@ public abstract class StopTheWorldGC extends BasePlan
    * Print out statistics at the end of a GC
    */
   private final void printPostStats() {
-    if ((Options.verbose == 1) || (Options.verbose == 2)) {
+    if ((verbose.getValue() == 1) || (verbose.getValue() == 2)) {
       Log.write("-> ");
       Log.write(Conversions.pagesToBytes(Plan.getPagesUsed()).toWord().rshl(10).toInt());
       Log.write(" KB   ");
-      if (Options.verbose == 1) {
+      if (verbose.getValue() == 1) {
         totalTime.printLast();
         Log.writeln(" ms]");
       } else {
@@ -477,10 +477,10 @@ public abstract class StopTheWorldGC extends BasePlan
         Log.writeln(" ms]");
       }
     }
-    if (Options.verbose > 2) {
+    if (verbose.getValue() > 2) {
       Log.write("   After Collection: ");
       Space.printUsageMB();
-      if (Options.verbose >= 4) {
+      if (verbose.getValue() >= 4) {
           Log.write("                     ");
           Space.printUsagePages();
       }

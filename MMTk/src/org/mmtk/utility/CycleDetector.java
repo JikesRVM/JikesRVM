@@ -4,6 +4,8 @@
  */
 package org.mmtk.utility;
 
+import org.mmtk.utility.options.*;
+
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -14,6 +16,16 @@ import org.vmmagic.pragma.*;
  */
 abstract class CycleDetector implements Uninterruptible {
   public final static String Id = "$Id$"; 
+
+  protected static CycleFilterThreshold cycleFilterThreshold;
+  protected static CycleMetaDataLimit cycleMetaDataLimit;
+  protected static CycleTriggerThreshold cycleTriggerThreshold;
+
+  static {
+    cycleFilterThreshold = new CycleFilterThreshold();
+    cycleMetaDataLimit = new CycleMetaDataLimit();
+    cycleTriggerThreshold = new CycleTriggerThreshold();
+  }
 
   abstract boolean collectCycles(int count, boolean time);
   abstract void possibleCycleRoot(ObjectReference object);

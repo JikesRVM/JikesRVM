@@ -18,7 +18,7 @@ import org.mmtk.utility.Conversions;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Memory;
-import org.mmtk.utility.Options;
+import org.mmtk.utility.options.*;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.Assert;
@@ -196,8 +196,8 @@ public class RefCount extends RefCountBase implements Uninterruptible {
     if (collectionsInitiated > 0 || !initialized) return false;
     if (mustCollect || getPagesReserved() > getTotalPages() ||
         (progress &&
-         ((rcSpace.committedPages() - lastRCPages) > Options.maxNurseryPages ||
-          metaDataSpace.committedPages() > Options.metaDataPages))) {
+         ((rcSpace.committedPages()-lastRCPages)>nurserySize.getMaxNursery() ||
+          metaDataSpace.committedPages() > metaDataLimit.getPages()))) {
       if (space == metaDataSpace) {
         awaitingCollection = true;
         return false;
@@ -234,7 +234,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * semi-space memory resource, and preparing each of the collectors.
    */
   protected final void globalPrepare() {
-    timeCap = Statistics.cycles() + Statistics.millisToCycles(Options.gcTimeCap);
+    timeCap = Statistics.cycles() + Statistics.millisToCycles(gcTimeCap.getMilliseconds());
     immortalSpace.prepare();
     rcSpace.prepare();
   }
@@ -248,7 +248,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
    * space allocators.
    */
   protected final void threadLocalPrepare(int count) {
-    rc.prepare(Options.verboseTiming && count==1);
+    rc.prepare(verboseTiming.getValue() && count==1);
     if (WITH_COALESCING_RC) processModBufs();    
   }
 
@@ -278,7 +278,7 @@ public class RefCount extends RefCountBase implements Uninterruptible {
     // release each of the collected regions
     rcSpace.release();
     immortalSpace.release();
-    if (Options.verbose > 2) rc.printStats();
+    if (verbose.getValue() > 2) rc.printStats();
     lastRCPages = rcSpace.committedPages();
   }
 

@@ -14,7 +14,6 @@ import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.Options;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
@@ -314,7 +313,7 @@ public abstract class Generational extends StopTheWorldGC
       return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
-    boolean nurseryFull = nurserySpace.reservedPages() > Options.maxNurseryPages;
+    boolean nurseryFull = nurserySpace.reservedPages() > nurserySize.getMaxNursery();
     if (mustCollect || heapFull || nurseryFull) {
       required = space.reservedPages() - space.committedPages();
       if (space == nurserySpace || (Plan.COPY_MATURE() && (space == activeMatureSpace)))
@@ -348,7 +347,7 @@ public abstract class Generational extends StopTheWorldGC
    * corresponding method on our superclass.
    */
   public static void userTriggeredGC() throws UninterruptiblePragma {
-    fullHeapGC |= Options.fullHeapSystemGC;
+    fullHeapGC |= fullHeapSystemGC.getValue();
     StopTheWorldGC.userTriggeredGC();
   }
   
@@ -356,7 +355,7 @@ public abstract class Generational extends StopTheWorldGC
    * Perform a collection.
    */
   public final void collect () {
-    if ((Options.verbose >= 1) && (fullHeapGC)) Log.write("[Full heap]");
+    if ((verbose.getValue() >= 1) && (fullHeapGC)) Log.write("[Full heap]");
     super.collect();
   }
 
@@ -467,7 +466,7 @@ public abstract class Generational extends StopTheWorldGC
       immortalSpace.release();
       if (fullHeapGC) fullHeapTime.stop();
     }
-    fullHeapGC = (getPagesAvail() < Options.minNurseryPages);
+    fullHeapGC = (getPagesAvail() < nurserySize.getMinNursery());
     if (getPagesReserved() + required >= getTotalPages()) {
       progress = false;
     } else

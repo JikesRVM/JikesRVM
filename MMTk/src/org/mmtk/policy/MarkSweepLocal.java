@@ -9,7 +9,6 @@ import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.alloc.SegregatedFreeList;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Memory;
-import org.mmtk.utility.Options;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Assert;
@@ -162,7 +161,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
    * Prepare for a collection. If paranoid, perform a sanity check.
    */
   public final void prepare() {
-    if (Options.fragmentationStats)
+    if (fragmentationStats.getValue())
       fragmentationStatistics(true);
     flushFreeLists();
   }
@@ -174,7 +173,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
   public void release() {
     sweepBlocks();                    // sweep the blocks
     restoreFreeLists();
-    if (Options.fragmentationStats)
+    if (fragmentationStats.getValue())
       fragmentationStatistics(false);
   }
 
@@ -189,14 +188,14 @@ public final class MarkSweepLocal extends SegregatedFreeList
    * to be efficient, just accurate and informative.
    */
   private final void fragmentationStatistics(boolean prepare) {
-    if (Options.verboseFragmentationStats)
+    if (verboseFragmentationStats.getValue())
       verboseFragmentationStatistics(prepare);
     shortFragmentationStatistics(prepare);
   }
 
   private final void shortFragmentationStatistics(boolean prepare) {
-    if (Options.verbose > 2) Log.writeln();
-    if (Options.verboseFragmentationStats)
+    if (Plan.verbose.getValue() > 2) Log.writeln();
+    if (verboseFragmentationStats.getValue())
       Log.write((prepare) ? "> " : "< "); 
     Log.write("(Waste ");
     //    int waste = blockAllocator.unusedBytes();
@@ -205,7 +204,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
     Log.write("F ");
     int waste = unusedBytes(prepare);
     Log.write(waste/(float)(1<<20)); Log.write(" MB)");
-    if (Options.verbose > 2 || Options.verboseFragmentationStats)
+    if (Plan.verbose.getValue() > 2 || verboseFragmentationStats.getValue())
       Log.writeln();
   }
  
@@ -441,7 +440,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
   }
 
   public final void exit() {
-    if (Options.verboseFragmentationStats) {
+    if (verboseFragmentationStats.getValue()) {
       finalVerboseFragmentationStatistics(true);
       finalVerboseFragmentationStatistics(false);
     }

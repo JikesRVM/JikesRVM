@@ -19,12 +19,13 @@ import org.mmtk.utility.heap.*;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.statistics.Stats;
-import org.mmtk.utility.Options;
+import org.mmtk.utility.options.*;
 import org.mmtk.utility.TraceGenerator;
 import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Collection;
 import org.mmtk.vm.Lock;
+import org.mmtk.vm.Options;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.ReferenceGlue;
 import org.mmtk.vm.Scanning;
@@ -208,10 +209,10 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    */
   public static void processCommandLineArg(String arg)
     throws InterruptiblePragma {
-      if ( ! Options.process(arg)) {
+      if (!Options.process(arg)) {
 	VM.sysWriteln("Unrecognized command line argument: \"" + arg +"\"");
 	VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-      }
+     } 
   }
 
   /***********************************************************************
@@ -381,7 +382,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * External call to force a garbage collection.
    */
   public static final void gc() throws InterruptiblePragma {
-    if (!Options.ignoreSystemGC)
+    if (!Plan.ignoreSystemGC.getValue())
       Collection.triggerCollection(Collection.EXTERNAL_GC_TRIGGER);
   }
 

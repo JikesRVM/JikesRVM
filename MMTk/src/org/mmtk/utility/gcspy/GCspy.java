@@ -6,7 +6,7 @@ package org.mmtk.utility.gcspy;
 
 import org.mmtk.vm.Plan;
 import org.mmtk.utility.Log;
-import org.mmtk.utility.Options;
+import org.mmtk.utility.options.*;
 import org.vmmagic.pragma.*;
 
 /** 
@@ -33,6 +33,16 @@ public class GCspy implements Uninterruptible {
    * Initialization
    */
 
+  public static GCspyPort gcspyPort;
+  public static GCspyWait gcspyWait; 
+  public static GCspyTileSize gcspyTilesize;
+
+  public static void createOptions() throws InterruptiblePragma {
+    gcspyPort = new GCspyPort();
+    gcspyWait = new GCspyWait(); 
+    gcspyTilesize = new GCspyTileSize();
+  }
+
   /**
    * The boot method is called by the runtime immediately after
    * command-line arguments are available.  Note that allocation must
@@ -48,7 +58,7 @@ public class GCspy implements Uninterruptible {
    * @return the GCspy port number
    */
   public static int getGCspyPort() {
-    return Options.gcspyPort;
+    return gcspyPort.getValue();
   }
 
   /**
@@ -57,7 +67,7 @@ public class GCspy implements Uninterruptible {
    * @return whether the JVM should wait for the visualiser to connect
    */
   public static boolean getGCspyWait() {
-    return Options.gcspyWait;
+    return gcspyWait.getValue();
   }
 
   /**

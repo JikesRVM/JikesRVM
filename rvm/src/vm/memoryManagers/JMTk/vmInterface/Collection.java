@@ -8,7 +8,6 @@ package org.mmtk.vm;
 
 import org.mmtk.utility.Finalizer;
 import org.mmtk.utility.heap.HeapGrowthManager;
-import org.mmtk.utility.Options;
 import org.mmtk.utility.ReferenceProcessor;
 
 import com.ibm.JikesRVM.VM;
@@ -114,22 +113,22 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
     Plan.collectionInitiated();
 
-    if (Options.verbose >= 4) {
+    if (Plan.verbose.getValue() >= 4) {
       VM.sysWriteln("Entered VM_Interface.triggerCollection().  Stack:");
       VM_Scheduler.dumpStack();
     }
     if (why == EXTERNAL_GC_TRIGGER) {
       Plan.userTriggeredGC();
-      if (Options.verbose == 1 || Options.verbose == 2) 
+      if (Plan.verbose.getValue() == 1 || Plan.verbose.getValue() == 2) 
         VM.sysWrite("[Forced GC]");
     }
-    if (Options.verbose > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
+    if (Plan.verbose.getValue() > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
     Extent sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
     long start = VM_Time.cycles();
     VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
     long end = VM_Time.cycles();
     double gcTime = VM_Time.cyclesToMillis(end - start);
-    if (Options.verbose > 2) VM.sysWriteln("Collection finished (ms): ", gcTime);
+    if (Plan.verbose.getValue() > 2) VM.sysWriteln("Collection finished (ms): ", gcTime);
 
     if (Plan.isLastGCFull() && 
    sizeBeforeGC.EQ(HeapGrowthManager.getCurrentHeapSize()))
@@ -150,23 +149,23 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
     Plan.collectionInitiated();
 
-    if (Options.verbose >= 4) {
+    if (Plan.verbose.getValue() >= 4) {
       VM.sysWriteln("Entered VM_Interface.triggerCollectionNow().  Stack:");
       VM_Scheduler.dumpStack();
     }
     if (why == EXTERNAL_GC_TRIGGER) {
       Plan.userTriggeredGC();
-      if (Options.verbose == 1 || Options.verbose == 2) 
+      if (Plan.verbose.getValue() == 1 || Plan.verbose.getValue() == 2) 
 	VM.sysWrite("[Forced GC]");
     }
-    if (Options.verbose > 2) 
+    if (Plan.verbose.getValue() > 2) 
       VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
     Extent sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
     long start = VM_Time.cycles();
     VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
     long end = VM_Time.cycles();
     double gcTime = VM_Time.cyclesToMillis(end - start);
-    if (Options.verbose > 2) 
+    if (Plan.verbose.getValue() > 2) 
       VM.sysWriteln("Collection finished (ms): ", gcTime);
 
     if (Plan.isLastGCFull() && 
@@ -184,7 +183,7 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
     throws UninterruptiblePragma {
     checkForExhaustion(RESOURCE_GC_TRIGGER, true);
     Plan.collectionInitiated();
-    if (Options.verbose >= 1) VM.sysWrite("[Async GC]");
+    if (Plan.verbose.getValue() >= 1) VM.sysWrite("[Async GC]");
     VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake);
   }
 
@@ -214,17 +213,17 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
     //    if (Plan.totalMemory() - Plan.reservedMemory() < 64<<10) {
     if (usage > OUT_OF_MEMORY_THRESHOLD) {
       if (why == INTERNAL_GC_TRIGGER) {
-        if (Options.verbose >= 2) {
+        if (Plan.verbose.getValue() >= 2) {
           VM.sysWriteln("OutOfMemoryError: usage = ", usage);
           VM.sysWriteln("          reserved (KB) = ",(long)(Plan.reservedMemory().toLong() / 1024));
           VM.sysWriteln("          total    (KB) = ",(long)(Plan.totalMemory().toLong() / 1024));
         }
-        if (VM.debugOOM || Options.verbose >= 5)
+        if (VM.debugOOM || Plan.verbose.getValue() >= 5)
           VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
         MM_Interface.emergencyGrowHeap(512 * (1 << 10));  // 512K should be plenty to make an exn
         OutOfMemoryError oome = new OutOfMemoryError();
         MM_Interface.emergencyGrowHeap(- (512 * (1 << 10)));
-        if (VM.debugOOM || Options.verbose >= 5)
+        if (VM.debugOOM || Plan.verbose.getValue() >= 5)
           VM.sysWriteln("triggerCollection(): Allocated the new OutOfMemoryError().");
         throw oome;
       }

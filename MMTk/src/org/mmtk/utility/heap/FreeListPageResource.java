@@ -8,7 +8,6 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.EmbeddedMetaData;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.GenericFreeList;
-import org.mmtk.utility.Options;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Assert;
@@ -150,7 +149,7 @@ public final class FreeListPageResource extends PageResource
     if (ZERO_ON_RELEASE) 
       Memory.zero(first, Conversions.pagesToBytes(pages));
     /* Can't use protect here because of the chunk sizes involved!
-    if (Options.protectOnRelease)
+    if (protectOnRelease.getValue())
       LazyMmapper.protect(first, pages);
     */
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(pages <= committed);

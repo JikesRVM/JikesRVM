@@ -6,7 +6,6 @@ package org.mmtk.utility.heap;
 
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Conversions;
-import org.mmtk.utility.Options;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.Log;
 import org.mmtk.vm.Assert;
@@ -143,7 +142,7 @@ public final class MonotonePageResource extends PageResource
       Assert._assert(bytes.EQ(Conversions.pagesToBytes(pages)));
     if (ZERO_ON_RELEASE) 
       Memory.zero(first, bytes);
-    if (Options.protectOnRelease)
+    if (protectOnRelease.getValue())
       LazyMmapper.protect(first, pages);
   }
 }

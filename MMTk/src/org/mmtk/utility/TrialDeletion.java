@@ -181,13 +181,13 @@ public final class TrialDeletion extends CycleDetector
       long remaining = finishTarget - filterStart;
       long targetTime = filterStart+(remaining/FILTER_TIME_FRACTION);
 
-      long gcTimeCap = Statistics.millisToCycles(Options.gcTimeCap);
+      long gcTimeCap = Statistics.millisToCycles(Plan.gcTimeCap.getMilliseconds());
       if (remaining > gcTimeCap/FILTER_TIME_FRACTION ||
           RefCountSpace.RC_SANITY_CHECK) {
         filterPurpleBufs(targetTime);
         processFreeBufs();
         if (shouldCollectCycles()) {
-          if (Options.verbose > 0) { 
+          if (Plan.verbose.getValue() > 0) { 
             Log.write("(CD "); 
             Log.flush();
           }
@@ -201,7 +201,7 @@ public final class TrialDeletion extends CycleDetector
             remaining = finishTarget - Statistics.cycles();
           }
           flushFilteredPurpleBufs();
-          if (Options.verbose > 0) {
+          if (Plan.verbose.getValue() > 0) {
             Log.write(Statistics.cyclesToMillis(Statistics.cycles() - cycleStart));
             Log.write(" ms)");
           }
@@ -249,7 +249,7 @@ public final class TrialDeletion extends CycleDetector
    * @return True if cycle collection should be invoked
    */
   private final boolean shouldCollectCycles() {
-    return shouldAct(Options.cycleDetectionPages);
+    return shouldAct(cycleTriggerThreshold.getPages());
   }
 
   /**
@@ -260,7 +260,7 @@ public final class TrialDeletion extends CycleDetector
    * @return True if the unfiltered purple buffer should be filtered
    */
   private final boolean shouldFilterPurple() {
-    return shouldAct(Options.cycleFilterPages);
+    return shouldAct(cycleFilterThreshold.getPages());
   }
 
   /**
@@ -301,7 +301,7 @@ public final class TrialDeletion extends CycleDetector
   private final int filterPurpleBufs(ObjectReferenceDeque src, 
 				     ObjectReferenceDeque tgt, long timeCap) {
     int purple = 0;
-    int limit = Options.cycleMetaDataPages<<(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_ADDRESS-1);
+    int limit = cycleMetaDataLimit.getPages() <<(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_ADDRESS-1);
     ObjectReference object = ObjectReference.nullReference();
     src.flushLocal();
     do {

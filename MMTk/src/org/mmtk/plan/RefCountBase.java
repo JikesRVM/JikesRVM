@@ -16,7 +16,7 @@ import org.mmtk.utility.CallSite;
 import org.mmtk.utility.Conversions;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.heap.*;
-import org.mmtk.utility.Options;
+import org.mmtk.utility.options.*;
 import org.mmtk.utility.scan.*;
 import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.Memory;
@@ -84,6 +84,9 @@ public abstract class RefCountBase extends StopTheWorldGC
   protected static EventCounter wbFast;
   protected static EventCounter wbSlow;
 
+  // options
+  public static GCTimeCap gcTimeCap; 
+
 
  /****************************************************************************
    *
@@ -97,6 +100,7 @@ public abstract class RefCountBase extends StopTheWorldGC
    * boot image by the build process.
    */
   static {
+    gcTimeCap = new GCTimeCap();
     // instantiate shared queues
     if (WITH_COALESCING_RC) {
       modPool = new SharedDeque(metaDataSpace, 1);

@@ -5,7 +5,6 @@
 
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import org.mmtk.utility.Options;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Collection;
@@ -342,7 +341,7 @@ public class VM_CollectorThread extends VM_Thread {
       }
       if (gcOrdinal == 1 && Plan.isLastGCFull()) {
         boolean heapSizeChanged = false;
-        if (Options.variableSizeHeap && handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {
+        if (Plan.variableSizeHeap.getValue() && handshake.gcTrigger != Collection.EXTERNAL_GC_TRIGGER) {
           // Don't consider changing the heap size if gc was forced by System.gc()
           heapSizeChanged = HeapGrowthManager.considerHeapSize();
         }

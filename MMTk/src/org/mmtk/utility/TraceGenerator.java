@@ -12,6 +12,7 @@ import org.mmtk.vm.Assert;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Collection;
+import org.mmtk.utility.options.TraceRate;
 
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -53,11 +54,12 @@ public final class TraceGenerator
   private static SortTODObjectReferenceStack worklist;     // Objs to process
   private static Word    agePropagate;  // Death time propagating
 
-
+  private static TraceRate traceRate;
 
   static {
     traceBusy = false;
     lastGC = Word.fromInt(4);
+    traceRate = new TraceRate();
   }
 
 
@@ -225,7 +227,7 @@ public final class TraceGenerator
     Word oid = TraceInterface.getOID(ref);
     Word allocType;
     if (gcAllowed 
-	&& (oid.GE(lastGC.add(Word.fromInt(Options.traceFrequencyLog)))))
+	&& (oid.GE(lastGC.add(Word.fromInt(traceRate.getValue())))))
       allocType = TRACE_EXACT_ALLOC;
     else
       allocType = TRACE_ALLOC;
