@@ -26,8 +26,11 @@ public class VM_StackTrace implements VM_Constants {
 
   /** Index of the next stack trace; incremented every time we create one
       afresh. */
-  static int lastTraceIndex = 0; 
   public final int traceIndex;
+  static int lastTraceIndex = 0; 
+  private static synchronized int getNextTraceIndex() {
+    return ++lastTraceIndex;
+  }
   
   /** How many frames are "too many" to display fully? Let's say that zero is
       undefined, any negative number means "no limit" and a positive number is
@@ -53,7 +56,7 @@ public class VM_StackTrace implements VM_Constants {
    * Create a trace of the current call stack
    */
   public VM_StackTrace(int skip) {
-    traceIndex = ++lastTraceIndex; // set for good for this method.
+    traceIndex = getNextTraceIndex(); // set for good for this method.
     // (1) Count the number of frames comprising the stack.
     int numFrames = walkFrames(false, skip+1);
     compiledMethods = new VM_CompiledMethod[numFrames];
@@ -189,8 +192,15 @@ public class VM_StackTrace implements VM_Constants {
    *  Used to elide internal details from the stack trace.
    *  If null, then we print a full stack trace, without eliding the
    *  methods used internally to gather the stack trace.
+   *
+   *  @param effect A <code>Throwable</code> whose details we've presumably
+   *  already printed, meaning that we can elide the stack frames someone has
+   *  already seen.  <b>TODO:</b> Implement the elision.  As of this writing,
+   *  it's unused.
+   *  
+   *  
    */
-  public void print(PrintLN out, Throwable trigger) {
+  public void print(PrintLN out, Throwable trigger, Throwable effect) {
     boolean printed = false;
     try {
       VM.sysWriteln("VM_StackTrace.print(): Printing Stack Trace # ", traceIndex);
@@ -213,28 +223,9 @@ public class VM_StackTrace implements VM_Constants {
 	VM.sysWriteln("[ Aborting stack trace # ",  traceIndex, " ; already was printing with sysWrite()]");
 	return;
       }
-      VM.sysWriteln("[ Back to printing stack trace # ", traceIndex,
+      VM.sysWriteln("[ Retrying printing stack trace # ", traceIndex,
 		    "; using sysWrite(), this time ]");
       print4Real(PrintContainer.readyPrinter, trigger);
-    }
-  }
-
-
-  public void printDegradingToVMSysWrite(PrintLN out, Throwable trigger) {
-    if (out.isSysWrite()) {
-      VM.sysWriteln("VM_StackTrace.print() got an *UNEXPECTED* out-of-memory error while displaying the stack trace, via its low-level facilities.  I give up; what you see is what you got.");
-      /* Now, if we were triggered by an uncaught exception, processing will
-       * continue normally. */
-      return;
-    }
-    VM.sysWriteln("VM_StackTrace.print() ran out of memory while dumping a stack trace to \"System.err\".  We will try again now, using the low-level \"VM.sysWrite()\"");
-    out = PrintContainer.readyPrinter;
-    try {
-      print4Real(out, trigger);
-    } catch (Throwable t) {
-      // print4Real should catch all out-of-memory errors itself.
-      trigger.tallyWeirdError();
-      VM.sysWriteln("VM_StackTrace.printDegradingToVMSysWrite(): More trouble while printing a stack trace via VM.sysWrite(); I give up.");
     }
   }
 
@@ -245,7 +236,7 @@ public class VM_StackTrace implements VM_Constants {
    * compiler in a sensible fashion. 
    * 
    * This is not ever supposed to throw an OutOfMemoryError.  But if it should
-   * ever happen to do so, we will catch it in the caller, print.
+   * ever happen to do so, we will catch it in the caller, print().
 
    * @param out PrintLN to print on.
    * @param trigger The Throwable that caused the stack trace.
