@@ -92,6 +92,7 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #include <sys/shm.h>
 #include <errno.h>
 #include <dlfcn.h>
+#include <inttypes.h>		// uintptr_t
 
 // These exit status codes are defined here and in VM.java.
 // If you change one of them here, or add any, add it there too.
@@ -2113,14 +2114,14 @@ sysZeroPages(void *dst, int cnt)
 //
 //
 extern "C" void
-sysSyncCache(caddr_t POSSIBLY_UNUSED address, int POSSIBLY_UNUSED  size)
+sysSyncCache(void POSSIBLY_UNUSED *address, size_t POSSIBLY_UNUSED  size)
 {
 #ifdef DEBUG_SYS
-    fprintf(SysTraceFile, "%s: sync 0x%08x %d\n", Me, (int)address, size);
+    fprintf(SysTraceFile, "%s: sync 0x%08x %d\n", Me, (unsigned)address, size);
 #endif
 
 #ifdef RVM_FOR_AIX
-    _sync_cache_range(address, size);
+    _sync_cache_range((caddr_t) address, size);
 #elif (defined RVM_FOR_LINUX || defined RVM_FOR_OSX) && defined RVM_FOR_POWERPC
     {
 	if (size < 0) {
@@ -2129,9 +2130,9 @@ sysSyncCache(caddr_t POSSIBLY_UNUSED address, int POSSIBLY_UNUSED  size)
 	}
 
 	/* See section 3.2.1 of PowerPC Virtual Environment Architecture */
-	caddr_t start = address;
-	caddr_t end = start + size;
-	caddr_t addr;
+	uintptr_t start = address;
+	uintptr_t end = start + size;
+	uintptr_t addr;
 
 	/* update storage */
 	/* Note: if one knew the cache line size, one could write a better loop */
@@ -2150,7 +2151,7 @@ sysSyncCache(caddr_t POSSIBLY_UNUSED address, int POSSIBLY_UNUSED  size)
 	asm("isync");
     }
 #else  // only needed on PowerPC platforms; skip here
-    ///fprintf(SysTraceFile, "\nskipping: sysSyncCache(int address, int size)\n");
+    ///fprintf(SysTraceFile, "\nskipping: sysSyncCache(void *address, size_t size)\n");
 #endif
 }
 

@@ -1033,10 +1033,10 @@ const char *bootFilename     = 0;
 // Declared in bootImageRunner.h
 char *Me;
 
-static int 
-pageRoundUp(int size) 
+static size_t
+pageRoundUp(size_t size) 
 {
-    int pageSize = 4096;
+    size_t pageSize = 4096;
     return (size + pageSize - 1) / pageSize * pageSize;
 }
 
@@ -1075,8 +1075,8 @@ createJVM(int vmInSeparateThread)
     if (lib_verbose) 
         fprintf(SysTraceFile, "%s: loading from \"%s\"\n", Me, bootFilename);
     fseek(fin, 0L, SEEK_END);
-    unsigned actualImageSize = ftell(fin);
-    unsigned roundedImageSize = pageRoundUp(actualImageSize);
+    size_t actualImageSize = ftell(fin);
+    size_t roundedImageSize = pageRoundUp(actualImageSize);
     fseek(fin, 0L, SEEK_SET);
    
 
@@ -1342,7 +1342,7 @@ createJVM(int vmInSeparateThread)
     // written out to main memory so that it will be seen by icache when
     // instructions are fetched back
     //
-    sysSyncCache((caddr_t) bootRegion, roundedImageSize);
+    sysSyncCache( bootRegion, roundedImageSize);
 
 #ifdef RVM_FOR_AIX
     if (lib_verbose) 

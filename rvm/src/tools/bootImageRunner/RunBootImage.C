@@ -25,11 +25,6 @@
  *	Cleaned up memory management.  Made the handling of numeric args
  *	robust. 
  */
-#define _ISOC99_SOURCE          /* make it clear to slightly old versions of
-                                   the GNU C library that we want C99
-                                   features, specifically strtold() */
-#define _ISOC9X_SOURCE          // For even older versions of GNU C library
-
 #include "config.h"
 
 #include <stdio.h>

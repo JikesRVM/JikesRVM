@@ -78,7 +78,7 @@ extern pthread_key_t VmProcessorKey;
 extern pthread_key_t IsVmProcessorKey;
 
 // Defined in sys.C.; used in libvm.C
-extern void sysSyncCache(caddr_t, int size);
+extern void sysSyncCache(void *, size_t size);
 // Defined in sys.C.  Used in libvm.C.
 extern void processTimerTick(void);
 
