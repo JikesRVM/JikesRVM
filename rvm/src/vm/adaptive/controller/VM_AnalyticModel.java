@@ -98,7 +98,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 
     //-#if RVM_WITH_OSR
     // for a outdated hot method from baseline, we consider OSR, and execute plan
-    // in the rountine, no more action here
+    // in the routine, no more action here
     if (considerOSRRecompilation(cmpMethod, hme, plan)) return null;
     //-#endif
 
