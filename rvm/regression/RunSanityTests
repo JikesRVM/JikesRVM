@@ -358,7 +358,7 @@ function doRun
      # gather performance data, if appropriate
      if [ x$PERFORMANCE != x ]; then
 	PERFORMANCE_STR="MODE=PERFORMANCE PERF_LOG=$PERFORMANCE"
-	LIMIT=`expr 3600 '*' $NUM_PROCS`
+	LIMIT=`expr 2700 '*' $NUM_PROCS`
 	echo "Performance mode: results to $PERFORMANCE"
      else
 	LIMIT=`expr 1800 '*' $NUM_PROCS`
