@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -94,8 +94,8 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   }
 
   /**
-   * Create an instance of a VM_Primitive
-   * @param typeRef the canonical type reference for this primitive
+   * Create an instance of a {@link VM_Primitive}
+   * @param tr   The canonical type reference for this primitive
    */
   VM_Primitive(VM_TypeReference tr) {
     super(tr);
