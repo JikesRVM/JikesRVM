@@ -59,16 +59,17 @@ class VM_CopyingCollectorUtil implements VM_Constants,
       forwardingPtr |= VM_AllocatorHeader.GC_BARRIER_BIT_MASK;
     }
     if (VM.VerifyAssertions) VM.assert(VM_GCUtil.validObject(type));
+    int numBytes;
     if (type.isClassType()) {
       VM_Class classType = type.asClass();
-      int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
+      numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
       VM_Address region = VM_Allocator.gc_getMatureSpace(numBytes);
       toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
     } else {
       VM_Array arrayType = type.asArray();
       int numElements = VM_Magic.getArrayLength(fromObj);
-      int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
+      numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
       VM_Address region = VM_Allocator.gc_getMatureSpace(numBytes);
       toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
@@ -78,6 +79,8 @@ class VM_CopyingCollectorUtil implements VM_Constants,
 	VM_Memory.sync(toRef, dataSize);
       }
     }
+
+    VM_GCStatistics.profileCopy(fromObj, numBytes, tib);    
     
     if (VM_Allocator.writeBarrier) {
       // make it safe for write barrier to access barrier bit non-atmoically
