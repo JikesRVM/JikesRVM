@@ -42,7 +42,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("", SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -62,7 +62,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(n) + " ", SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -92,8 +92,8 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) + " | ");
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R1]:GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
@@ -103,7 +103,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) + " | ");
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R1]:GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
@@ -113,7 +113,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R1]:GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE));
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -123,7 +123,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right(decimal(d) + "[" + GPR_NAMES[R1] + "]", SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -134,7 +134,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right("[" + GPR_NAMES[R0] + "]", DEST_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) + " | ");
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R1]:GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
@@ -153,7 +153,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + GPR_NAMES[R1] + "]", SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -223,9 +223,9 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) );
-    VM.sysWrite(right(GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE) + " | ");
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R1]:GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) );
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R2]:GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
@@ -235,7 +235,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
     VM.sysWrite(right("[" + GPR_NAMES[R0] + "] ", DEST_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) );
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R1]:GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) );
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -245,8 +245,8 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) );
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R1]:GPR_NAMES[R1] + " ", SOURCE_AREA_SIZE) );
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -256,7 +256,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0], DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0], DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) +  "+" + GPR_NAMES[R1] + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -266,7 +266,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) +  "+" + GPR_NAMES[R1] + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -276,7 +276,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) +  "+" + GPR_NAMES[R1] + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
@@ -287,9 +287,9 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) +  "+" + GPR_NAMES[R1] + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE) + " | ");
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R2]:GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
@@ -298,7 +298,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0], DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0], DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) +  "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -308,7 +308,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) +  "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -318,7 +318,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
@@ -329,9 +329,9 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + decimal(d) + "+" + GPR_NAMES[X] + "<<" + decimal(s) + "]", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE) + " | ");
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R2]:GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
@@ -340,7 +340,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0], DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0], DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -350,7 +350,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
@@ -360,7 +360,7 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
     VM.sysWrite(right(decimal(imm), SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
@@ -371,13 +371,16 @@ class VM_Lister implements VM_Constants {
     VM.sysWrite(right(hex(i),6) + "| ");
     VM.sysWrite(right("", PREFIX_AREA_SIZE) + " ");
     VM.sysWrite( left(op, OP_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R0]:GPR_NAMES[R0] + " ", DEST_AREA_SIZE));
     VM.sysWrite(right("[" + hex(d) + "]", SOURCE_AREA_SIZE));
-    VM.sysWrite(right(GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE) + " | ");
+    VM.sysWrite(right(isFP(op)?FPR_NAMES[R2]:GPR_NAMES[R2] + " ", SOURCE_AREA_SIZE) + " | ");
     asm.writeLastInstruction(i);
     VM.sysWrite("\n");
   }
 
+  private final static boolean isFP(String op) {
+    return op.startsWith("F");
+  }
 
   private final static String left (String s, int w) {
     int n = s.length();
