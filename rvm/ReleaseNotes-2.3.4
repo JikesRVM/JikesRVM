@@ -9,7 +9,8 @@ These are the release notes for Jikes RVM 2.3.4.
 
 *Highlights of this release include:
 **We now run Eclipse 3.0
-This requires that the Xalan XML parser be installed.
+You can use Jikes RVM to run Eclipse 3.0; this lets you run a free
+IDE with a free VM.
 
 **The port to PowerPC64 is virtually complete.  There are a few fringe opt 
 compiler bugs remaining, but functionality has advanced to the point where 
@@ -18,7 +19,9 @@ regression tests.
 
 **MMTk has been moved out of $RVM_ROOT/rvm/src/vm/memory managers to 
 $RVM_ROOT/MMTk.  It has also been reorganized to have the directory structure
-match its package structure and thus is "Eclipse-friendly."
+match its package structure and thus is "Eclipse-friendly."  MMTk's
+option parsing has been rewritten.  There are other internal 
+changes as well.
 
 **Major revision of the object model. All objects (arrays and scalars) 
 are now layed out in a "forwards" direction. This simplifies and enables
@@ -28,7 +31,7 @@ explicit. See VM_ObjectModel.java for more details.
 
 **XML parsing with Xalan
 Jikes RVM can now be configured so it always uses the Xalan XML
- parser.  See the configuration file variable XALAN_J_DIR.
+parser.  See the configuration file variable XALAN_J_DIR.
 
 **We have switched to GNU Classpath version 0.12.
 Versions 0.10 and 0.11 can still be used, if you set appropriate
@@ -55,7 +58,7 @@ it now works in the common case where a thread is already attached to the VM.
 
 **RVM_BOOTCLASSPATH_APPEND is a new environment variable that Jikes RVM
 will recognize when booting.  You can use it to add extensions to the
-VM.  Set it as you would set the CLASSPATH environment variable.
+VM.  Set it just as you would set the CLASSPATH environment variable.
 
 **Major re-implementation of AOS's feedback-directed inlining and the opt 
 compiler's default inlining policy. Result is simpler code, lower
