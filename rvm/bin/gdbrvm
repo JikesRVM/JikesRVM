@@ -78,6 +78,13 @@ env="$rvm_build/environment.target"
 . $env
 unset env
 
+declare -a gdb_args
+gdb_args=()
+if (( $# >= 1 )) && [[ $1 == -fullname ]]; then
+    gdb_args=("$1");
+    shift;
+fi
+
 # Note: Writing it like this commented-out line below will break!  Must not
 # incorporate the assignment into the declare, at least under Bash 2.05b.
 #declare -a user_args=("$@")
@@ -114,4 +121,4 @@ for arg in "${sys_args[@]}" "${user_args[@]}"; do
     echo -n " \"$arg\"" 
 done >> "$argf"
 echo "" >> "$argf"
-gdb "$prog" -x "$RVM_BUILD/gdb.commandlineArgs" -x "$RVM_ROOT/rvm/bin/gdbInit"
+gdb "${gdb_args[@]}" "$prog" -x "$RVM_BUILD/gdb.commandlineArgs" -x "$RVM_ROOT/rvm/bin/gdbInit"
