@@ -54,8 +54,8 @@ TOP_LEVEL_PACKAGES="java javax gnu"
 ##
 ## defaults
 ##
-export CHECK=0
-export DEST_DIR=$RVM_ROOT/classpath
+declare -i CHECK=0
+export DEST_DIR=${CLASSPATH_ROOT:-$RVM_ROOT/classpath}
 export OS_VER=$(uname -v)
 OSNAME="$(uname)"
 
@@ -69,20 +69,6 @@ declare -i AIX=0
 
 CLASSPATH_URL=$(cat $RVM_ROOT/rvm/bin/classpath.stamp)
 
-declare SRC=""
-[[ ${CLASSPATH_SOURCE_DIR} ]] && SRC=${CLASSPATH_SOURCE_DIR}
-
-if [[ ! ${SRC} ]] && [[ ${CLASSPATH_ROOT} ]]; then
-    SRC=$CLASSPATH_ROOT/classpath
-fi
-
-if [[ -e $SRC/config.guess ]] || [[ ${OSNAME} = Darwin ]]; then
-    export USE_LOCAL_CLASSPATH="yes"
-    export DEST_DIR=$CLASSPATH_ROOT
-else
-    export USE_LOCAL_CLASSPATH="no"
-fi
-
 ##
 ## process arguments
 ##
@@ -90,14 +76,33 @@ while [[ $# > 0 ]] ; do
     case $1 in
 	--destination)
 	    DEST_DIR=$2
-	    SRC=$DEST_DIR/classpath
-	    shift ;;
+	    shift 
+	    ;;
 	
 	--check)
-	    CHECK=1 ;;
+	    CHECK=1 
+	    ;;
     esac	
     shift
 done
+
+## Where are Classpath's sources?
+if [[ ${CLASSPATH_SOURCE_DIR-} ]]; then
+    SRC=${CLASSPATH_SOURCE_DIR}
+else
+    SRC=$DEST_DIR/classpath
+fi
+
+## If the user has already unpacked Classpath into SRC, then
+## we are OK.
+
+if [[ -e $SRC/config.guess ]] || [[ ${OSNAME} = Darwin ]]; then
+    export USE_LOCAL_CLASSPATH="yes"
+else
+    export USE_LOCAL_CLASSPATH="no"
+fi
+
+
 
 ## What args do we give to classpath's "configure" command?
 function classpath_configure_args () {
@@ -173,7 +178,7 @@ fi
 declare BUILD=""
 BUILD=${CLASSPATH_BUILD_DIR-}	# Potentially unset.
 declare system_type=""
-if [[ $CHECK = 1 ]] && [[ -e $SRC/config.guess ]]; then
+if  (( CHECK )) && [[ -e $SRC/config.guess ]]; then
     if [[ ! ${BUILD} ]]; then
 	system_type="$($SRC/config.guess)"
 	BUILD=$DEST_DIR/$system_type
@@ -181,7 +186,9 @@ if [[ $CHECK = 1 ]] && [[ -e $SRC/config.guess ]]; then
     if [[ -e $BUILD/lib/glibj.zip ]]; then
 	exit 0
     fi
+    ## Didn't find an existing classpath.
 fi
+
 
 ##
 ## download classpath if needed
@@ -208,6 +215,7 @@ if [[ ! -e $SRC/TODO ]]; then
 	echo >&2 "$ME: Internal error or weird trouble: After retrieving
    Classpath sources under the directory \`$DEST_DIR', 
    we still can not find a file named \`$SRC/TODO'"
+	exit 1
     fi
 fi
 cd $SRC
