@@ -439,12 +439,11 @@ public class VM_Runtime implements VM_Constants {
   /**
    * Get an object's "hashcode" value.
    *
-   * @return object's hashcode.
-   *
    * Side effect: hash value is generated and stored into object's 
    * status word.
-   *
-   * @see java.lang.Object#hashCode.
+   * 
+   * @return object's hashcode.
+   * @see java.lang.Object#hashCode().
    */ 
   public static int getObjectHashCode(Object object) {
       return VM_ObjectModel.getObjectHashCode(object);

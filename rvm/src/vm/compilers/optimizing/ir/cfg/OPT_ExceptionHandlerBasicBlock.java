@@ -139,9 +139,9 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
 
   /**
    * How many table entires does this ehbb need?
-   * Really only of interest during final assembly
-   * ({@see VM_OptExceptionTable}
-   *
+   * Really only of interest during final assembly.
+   * 
+   * @see VM_OptExceptionTable
    * @return the number of table entries for this basic block
    */
   public int getNumberOfExceptionTableEntries() {
