@@ -68,7 +68,8 @@ public final class Class implements java.io.Serializable {
   }
   
   public static Class forName(String typeName) 
-    throws ClassNotFoundException 
+    throws ClassNotFoundException,
+	   IllegalArgumentException // malformed typeName
   {
     ClassLoader parentCL = VM_Class.getClassLoaderFromStackFrame(1);
     return forNameInternal(typeName, true, parentCL);
@@ -79,7 +80,8 @@ public final class Class implements java.io.Serializable {
 			      ClassLoader classLoader) 
     throws ClassNotFoundException,
 	   LinkageError,
-	   ExceptionInInitializerError
+	   ExceptionInInitializerError,
+	   IllegalArgumentException // malformed className
   {
     if (classLoader == null) {
       SecurityManager security = System.getSecurityManager();
@@ -665,12 +667,13 @@ public final class Class implements java.io.Serializable {
 				       ClassLoader classLoader)
     throws ClassNotFoundException,
 	   LinkageError,
-	   ExceptionInInitializerError 
+	   ExceptionInInitializerError ,
+	   IllegalArgumentException // malformed className
   {
     try {
       if (className.startsWith("[")) {
 	if (!validArrayDescriptor(className)) 
-	  throw new ClassNotFoundException(
+	  throw new IllegalArgumentException(
  	       "Could not look up a class named \"" + className 
 	       + "\"; starts with '[', but it's not a valid array descriptor");
       }
@@ -690,6 +693,7 @@ public final class Class implements java.io.Serializable {
     } catch (NoClassDefFoundError ncdfe) {
       Throwable cause2 = ncdfe.getCause();
       ClassNotFoundException cnf;
+      // If we get a NCDFE that was caused by a CNFE, throw the original CNFE.
       if (cause2 instanceof ClassNotFoundException)
 	cnf = (ClassNotFoundException) cause2;
       else
