@@ -98,6 +98,12 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    */
   protected int flags;
 
+  /**
+   * Relative execution frequency of this basic block.
+   * The entry block to a CFG has weight 1.0;
+   */
+  protected float freq;
+
 
   /**
    * Creates a new basic block at the specified location.
@@ -608,6 +614,33 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     }
   }
 
+  /**
+   * Return the estimated relative execution frequency of the block
+   */
+  public final float getExecutionFrequency() {
+    return freq;
+  }
+
+  /**
+   * Set the estimated relative execution frequency of this block.
+   */
+  public final void setExecutionFrequency(float f) {
+    freq = f;
+  }
+
+  /**
+   * Scale the estimated relative execution frequency of this block.
+   */
+  public final void scaleExecutionFrequency(float f) {
+    freq *= f;
+  }
+
+  /**
+   * Augment the estimated relative execution frequency of this block.
+   */
+  public final void augmentExecutionFrequency(float f) {
+    freq += f;
+  }
 
   /**
    * Is this block the exit basic block?
@@ -812,9 +845,8 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
 
 
   /**
-   * Replace fall through in this block by an explicite goto
+   * Replace fall through in this block by an explicit goto
    */
-  
   public void killFallThrough () {
     OPT_BasicBlock fallThrough = getFallThroughBlock();
     if (fallThrough != null) {
@@ -1220,6 +1252,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     BB2.setCanThrowExceptions(BB1.canThrowExceptions());
     BB2.setMayThrowUncaughtException(BB1.mayThrowUncaughtException());
     BB2.setUnsafeToSchedule(BB1.isUnsafeToSchedule());
+    BB2.setExecutionFrequency(BB1.getExecutionFrequency());
 
     BB1.deleteNormalOut();
     
@@ -1281,7 +1314,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
       bytecodeIndex = firstInstruction().bcIndex;
     }
     
-    OPT_BasicBlock newBlock = createSubBlock(bytecodeIndex,ir);
+    OPT_BasicBlock newBlock = createSubBlock(bytecodeIndex,ir, 1f);
     
     // copy each instruction from the original block.
     for (OPT_Instruction s=firstInstruction().getNext(); 
@@ -1438,6 +1471,13 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     recomputeNormalOut(ir);
   }
 
+  /*
+   * TODO: work on eliminating this method by converting callers to
+   *       three argument form
+   */
+  public final OPT_BasicBlock createSubBlock(int bc, OPT_IR ir) {
+    return createSubBlock(bc, ir, 1f);
+  }
 
   /**
    * Creates a new basic block that inherits it's exception handling, 
@@ -1447,9 +1487,11 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
    *
    * @param bc the bytecode index to start the block
    * @param ir the containing IR
+   * @param wf the fraction of this's execution frequency that should be 
+   *           inherited by the new block. In the range [0.0, 1.0]
    * @return the new empty BBlock
    */
-  public final OPT_BasicBlock createSubBlock(int bc, OPT_IR ir) {
+  public final OPT_BasicBlock createSubBlock(int bc, OPT_IR ir, float wf) {
     // For now, give the basic block the same inline context as the
     // original block.  
     // TODO: This won't always work. (In fact, in the presence of inlining
@@ -1464,6 +1506,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     temp.setCanThrowExceptions(canThrowExceptions());
     temp.setMayThrowUncaughtException(mayThrowUncaughtException());
     temp.setUnsafeToSchedule(isUnsafeToSchedule());
+    temp.setExecutionFrequency(getExecutionFrequency() * wf);
     for (OPT_BasicBlockEnumeration e = getOut(); e.hasMoreElements(); ) {
       OPT_BasicBlock out = e.next();
       if (out.isExceptionHandlerBasicBlock()) {

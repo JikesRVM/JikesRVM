@@ -592,9 +592,9 @@ final class OPT_GenerationContext implements OPT_Constants,
       return new OPT_BranchProfileOperand(((VM_ConditionalBranchProfile)bp).getTakenProbability());
     } 
     if (backwards) {
-      return new OPT_BranchProfileOperand(0.9); // assume loop backedge and loop executes 10 times.
+      return new OPT_BranchProfileOperand(0.9f); // assume loop backedge and loop executes 10 times.
     } else {
-      return new OPT_BranchProfileOperand(0.5); // 50/50 taken/notTaken
+      return new OPT_BranchProfileOperand(0.5f); // 50/50 taken/notTaken
     }
   }
 

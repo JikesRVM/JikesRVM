@@ -11,24 +11,36 @@ import instructionFormats.*;
  * @author Matthew Arnold
  */
 public final class OPT_BranchProfileOperand extends OPT_Operand {
-  double takenProbability;
+  float takenProbability;
 
-  OPT_BranchProfileOperand(double takenProbability) {
+  public static final float ALWAYS = 1f;
+  public static final float LIKELY = .99f;
+  public static final float UNLIKELY = 1f - LIKELY;
+  public static final float NEVER = 1f - ALWAYS;
+
+  OPT_BranchProfileOperand(float takenProbability) {
     this.takenProbability = takenProbability;
   }
 
   OPT_BranchProfileOperand() {
-    this.takenProbability = 0.5;
+    this.takenProbability = 0.5f;
+  }
+
+  static OPT_BranchProfileOperand always() {
+    return new OPT_BranchProfileOperand(ALWAYS);
   }
 
   static OPT_BranchProfileOperand likely() {
-    return new OPT_BranchProfileOperand(0.99);
+    return new OPT_BranchProfileOperand(LIKELY);
   }
   
   static OPT_BranchProfileOperand unlikely() {
-    return new OPT_BranchProfileOperand(0.01);
+    return new OPT_BranchProfileOperand(UNLIKELY);
   }
 
+  static OPT_BranchProfileOperand never() {
+    return new OPT_BranchProfileOperand(NEVER);
+  }
 
   /**
    * Returns a copy of this branch operand.
@@ -37,6 +49,14 @@ public final class OPT_BranchProfileOperand extends OPT_Operand {
    */
   OPT_Operand copy() {
     return new OPT_BranchProfileOperand(takenProbability);
+  }
+
+  /**
+   * Flip the probability (p = 1 - p)
+   */
+  public OPT_BranchProfileOperand flip() {
+    takenProbability = 1f - takenProbability;
+    return this;
   }
 
   /**

@@ -146,7 +146,7 @@ class OPT_DeterministicYieldpoints extends OPT_CompilerPhase
 						  new OPT_IntConstantOperand(0),
 						  cond,
 						  target,
-						  new OPT_BranchProfileOperand(1.0)));
+						  new OPT_BranchProfileOperand(1.0f)));
 	  beforeYP.recomputeNormalOut(ir);
 
 	  // Insert the increment and store in block afterYP

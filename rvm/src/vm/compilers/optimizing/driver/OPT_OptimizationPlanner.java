@@ -169,6 +169,8 @@ class OPT_OptimizationPlanner {
    * @param p the plan under construction
    */
   private static void HIROptimizations(Vector p) {
+    // Estimate relative basic block frequencies from branch probabilities
+    addComponent(p, new OPT_EstimateBlockFrequencies(0));
 
     addComponent(p, new  OPT_TailRecursionElimination());
     // Insert yield points on back edges
@@ -221,7 +223,9 @@ class OPT_OptimizationPlanner {
   private static void SSAinHIR(Vector p) {
     composeComponents
       (p, "SSA", new Object[] { 
-       new OPT_OptimizationPlanCompositeElement 
+	// new OPT_EstimateBlockFrequencies(2), TODO!
+
+	new OPT_OptimizationPlanCompositeElement 
       ("HIR SSA transformations", 
         new Object[] {
         // Local copy propagation
@@ -294,6 +298,8 @@ class OPT_OptimizationPlanner {
    */
   private static void SSAinLIR(Vector p) {
     composeComponents(p, "SSA", new Object[] {
+      // new OPT_EstimateBlockFrequencies(2), TODO
+      
        new OPT_OptimizationPlanCompositeElement 
 	 ("LIR SSA transformations", 
 	  new Object[] {
@@ -374,7 +380,6 @@ class OPT_OptimizationPlanner {
    * @param p the plan under construction
    */
   private static void LIROptimizations(Vector p) {
-
     // SSA meta-phase
     SSAinLIR(p);
     // Perform local copy propagation for a factored basic block.
@@ -387,6 +392,8 @@ class OPT_OptimizationPlanner {
     addComponent(p, new OPT_Simple(false, false));
     // Late expansion of counter-based yieldpoints
     addComponent(p, new OPT_DeterministicYieldpoints());
+    // Estimate relative basic block frequencies from branch probabilities
+    // addComponent(p, new OPT_EstimateBlockFrequencies(0)); TODO!
     // Perform basic block reordering
     addComponent(p, new OPT_ReorderingPhase());
     // Perform peephole branch optimizations

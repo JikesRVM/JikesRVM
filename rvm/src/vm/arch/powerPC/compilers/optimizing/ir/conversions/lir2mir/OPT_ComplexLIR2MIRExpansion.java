@@ -166,14 +166,14 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     BB1.appendInstruction
       (MIR_CondBranch.create(PPC_BCOND, t.copyD2U(), firstCond,
 			     BB3.makeJumpTarget(),
-			     new OPT_BranchProfileOperand(0.5)));
+			     new OPT_BranchProfileOperand(0.5f)));
     BB2.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(firstConst)));
     BB2.appendInstruction(MIR_Branch.create(PPC_B, BB6.makeJumpTarget()));
     BB3.appendInstruction
       (MIR_CondBranch.create(PPC_BCOND, t.copyD2U(),
 			     OPT_PowerPCConditionOperand.EQUAL(),
 			     BB5.makeJumpTarget(),
-			     new OPT_BranchProfileOperand(0.01)));
+			     OPT_BranchProfileOperand.unlikely()));
 
     BB4.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(-firstConst)));
     BB4.appendInstruction(MIR_Branch.create(PPC_B, BB6.makeJumpTarget()));
@@ -218,19 +218,19 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
       (MIR_CondBranch2.create(PPC_BCOND2, t.copyD2U(),
 			      OPT_PowerPCConditionOperand.LESS(),
 			      BB4.makeJumpTarget(),
-			      new OPT_BranchProfileOperand(0.49),
+			      new OPT_BranchProfileOperand(0.49f),
 			      OPT_PowerPCConditionOperand.GREATER(),
 			      BB5.makeJumpTarget(),
-			      new OPT_BranchProfileOperand(0.49)));
+			      new OPT_BranchProfileOperand(0.49f)));
     BB2.appendInstruction(MIR_Binary.create(PPC_CMPL, t.copyD2D(), lone, ltwo));
     BB2.appendInstruction
       (MIR_CondBranch2.create(PPC_BCOND2, t.copyD2U(),
 			      OPT_PowerPCConditionOperand.LESS(),
 			      BB4.makeJumpTarget(),
-			      new OPT_BranchProfileOperand(0.49),
+			      new OPT_BranchProfileOperand(0.49f),
 			      OPT_PowerPCConditionOperand.GREATER(),
 			      BB5.makeJumpTarget(),
-			      new OPT_BranchProfileOperand(0.49)));
+			      new OPT_BranchProfileOperand(0.49f)));
     BB3.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(0)));
     BB3.appendInstruction(MIR_Branch.create(PPC_B, BB6.makeJumpTarget()));
     BB4.appendInstruction(MIR_Unary.create(PPC_LDI, R(res), I(-1)));

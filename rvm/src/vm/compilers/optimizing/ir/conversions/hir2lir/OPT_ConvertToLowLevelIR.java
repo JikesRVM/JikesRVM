@@ -360,9 +360,11 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     } else {
       t = reg.copyU2U();
     }
+    OPT_BranchProfileOperand defaultProb = TableSwitch.getClearDefaultBranchProfile(s);
     s.replace(IfCmp.create(INT_IFCMP, null, t, I(highLimit - lowLimit),
 			   OPT_ConditionOperand.HIGHER(), 
-			   defaultLabel,TableSwitch.getClearDefaultBranchProfile(s)));
+			   defaultLabel, defaultProb));
+    float weight = 1f / (1f - defaultProb.takenProbability);
 
     /********** second Basic Block ******/
     s2 = LowTableSwitch.create(LOWTABLESWITCH, t.copyRO(), number*2);
@@ -370,8 +372,9 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     for (int i = 0; i < number; i++) {
       OPT_BranchOperand b = TableSwitch.getClearTarget(s, i);
       LowTableSwitch.setTarget(s2, i, b);
-      LowTableSwitch.setBranchProfile(s2, i, 
-				      TableSwitch.getClearBranchProfile(s,i));
+      OPT_BranchProfileOperand bp = TableSwitch.getClearBranchProfile(s,i);
+      bp.takenProbability *= weight;
+      LowTableSwitch.setBranchProfile(s2, i, bp);
       if (b.target == defaultLabel.target)
         containsDefault = true;
     }
@@ -471,47 +474,40 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     // The following are used below to store the computed branch
     // probabilities for the branches that are created to implement
     // the binary search.  Used only if basic block frequencies available
-    double lessProb = 0.0;
-    double greaterProb = 0.0;
-    double equalProb = 0.0;
-    double sum=0.0;
+    float lessProb = 0.0f;
+    float greaterProb = 0.0f;
+    float equalProb = 0.0f;
+    float sum=0.0f;
 
-    // If basic block counts are being used, take the time to compute
-    // the branch probabilities of each branch along the binary search
-    // tree.
-    if (ir.basicBlockFrequenciesAvailable()) {
-      // Sum the probabilities for all targets < middle
-      for (int i=low; i < middle; i++) {
-	lessProb += LookupSwitch.getBranchProfile(switchInstr,i).takenProbability;
-      }
+    // Sum the probabilities for all targets < middle
+    for (int i=low; i < middle; i++) {
+      lessProb += LookupSwitch.getBranchProfile(switchInstr,i).takenProbability;
+    }
 
-      // Sum the probabilities for all targets > middle
-      for (int i=middle+1; i <= high; i++) {
-	greaterProb += LookupSwitch.getBranchProfile(switchInstr,i).takenProbability;
-      }
-      equalProb = 
-	LookupSwitch.getBranchProfile(switchInstr,middle).takenProbability;
+    // Sum the probabilities for all targets > middle
+    for (int i=middle+1; i <= high; i++) {
+      greaterProb += LookupSwitch.getBranchProfile(switchInstr,i).takenProbability;
+    }
+    equalProb = LookupSwitch.getBranchProfile(switchInstr,middle).takenProbability;
 
-      // The default case is a bit of a kludge.  We know the total
-      // probability of executing the default case, but we have no
-      // idea which paths are taken to get there.  For now, we'll
-      // assume that all paths that went to default were because the
-      // value was less than the smallest switch value.  This ensures
-      // that all basic block appearing in the switch will have the
-      // correct weights (but the blocks in the binary switch
-      // generated may not).
-      if (low == 0) 
-	lessProb += 
-	  LookupSwitch.getDefaultBranchProfile(switchInstr).takenProbability;
+    // The default case is a bit of a kludge.  We know the total
+    // probability of executing the default case, but we have no
+    // idea which paths are taken to get there.  For now, we'll
+    // assume that all paths that went to default were because the
+    // value was less than the smallest switch value.  This ensures
+    // that all basic block appearing in the switch will have the
+    // correct weights (but the blocks in the binary switch
+    // generated may not).
+    if (low == 0) 
+      lessProb += LookupSwitch.getDefaultBranchProfile(switchInstr).takenProbability;
 
-      // Now normalize them so they are relative to the sum of the
-      // branches being considered in this piece of the subtree
-      sum = lessProb + equalProb + greaterProb;
-      if (sum > 0) {  // check for divide by zero
-	lessProb /= sum;
-	equalProb /= sum;
-	greaterProb /= sum;
-      }
+    // Now normalize them so they are relative to the sum of the
+    // branches being considered in this piece of the subtree
+    sum = lessProb + equalProb + greaterProb;
+    if (sum > 0) {  // check for divide by zero
+      lessProb /= sum;
+      equalProb /= sum;
+      greaterProb /= sum;
     }
 
     OPT_IntConstantOperand val = 
@@ -538,7 +534,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	// To compute the probability of the second compare, the first
 	// probability must be removed since the second branch is
 	// considered only if the first fails.
-	double secondIfProb = 0.0;
+	float secondIfProb = 0.0f;
 	sum = equalProb + greaterProb;
 	if (sum > 0) // if divide by zero, leave as is
 	  secondIfProb = equalProb/sum;
@@ -987,10 +983,11 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
                                                     offsetTable, dictID << 2);
       return  offset;
     } else {
+      OPT_BranchProfileOperand bp = OPT_BranchProfileOperand.never();
       OPT_BasicBlock predBB = s.getBasicBlock();  
       OPT_BasicBlock succBB = predBB.splitNodeAt(s.getPrev(), ir); 
-      OPT_BasicBlock testBB = predBB.createSubBlock(s.bcIndex, ir);
-      OPT_BasicBlock resolveBB = predBB.createSubBlock(s.bcIndex, ir);
+      OPT_BasicBlock testBB = predBB.createSubBlock(s.bcIndex, ir, 1f);
+      OPT_BasicBlock resolveBB = predBB.createSubBlock(s.bcIndex, ir, bp.takenProbability);
       // Get the offset from the appropriate VM_ClassLoader array 
       // and check to see if it is valid
       OPT_RegisterOperand offsetTable = 
@@ -1004,7 +1001,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 					    I(NEEDS_DYNAMIC_LINK),
 					    OPT_ConditionOperand.EQUAL(), 
 					    resolveBB.makeJumpTarget(),
-					    OPT_BranchProfileOperand.unlikely()));
+					    OPT_BranchProfileOperand.never()));
       // Handle the offset being invalid
       if (isField)
         s2 = CacheOp.create(RESOLVE, loc); 
@@ -1022,8 +1019,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       ir.cfg.linkInCodeOrder(testBB, succBB);
       resolveBB.insertOut(testBB);              // backedge
       resolveBB.setInfrequent(true);
-      ir.cfg.addLastInCodeOrder(resolveBB);  // stick resolution code off 
-      // in outer space.
+      ir.cfg.addLastInCodeOrder(resolveBB);  // stick resolution code in outer space.
       return  offset;
     }
   }

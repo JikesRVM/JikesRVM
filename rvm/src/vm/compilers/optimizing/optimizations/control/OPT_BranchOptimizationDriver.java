@@ -32,6 +32,8 @@ public abstract class OPT_BranchOptimizationDriver
    * If conditional branches are duplicated, it creates multiple
    * branches with the same bytecode offset which interferes with the 
    * mapping used for edge count profiling.
+   * And it creates irreducible control flow.....so let's not do this at all.
+   * But if we don't do it, an OptOptSemispace build crashes on booting...TODO!
    */
   protected boolean _restrictCondBranchOpts = false;
 

@@ -1223,7 +1223,7 @@ public final class OPT_Instruction
    *
    * @return The probability that the branch is taken.  
    */
-  double getBranchProbability() {
+  float getBranchProbability() {
     if (VM.VerifyAssertions) VM.assert(isTwoWayBranch());
     return BranchProfileCarrier.getBranchProfile(this).takenProbability;
   }
@@ -1234,7 +1234,7 @@ public final class OPT_Instruction
    *
    * @param The probability that the branch is taken.  
    */
-  void setBranchProbability(double takenProbability) {
+  void setBranchProbability(float takenProbability) {
     if (VM.VerifyAssertions) VM.assert(isTwoWayBranch());
     BranchProfileCarrier.getBranchProfile(this).takenProbability = 
       takenProbability;
@@ -1248,7 +1248,7 @@ public final class OPT_Instruction
    */
   void flipBranchProbability() {
     if (VM.VerifyAssertions) VM.assert(isTwoWayBranch());
-    setBranchProbability(1.0-getBranchProbability());
+    setBranchProbability(1.0f-getBranchProbability());
   }
 
   /**

@@ -54,7 +54,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
       OPT_RegisterOperand newValue = value.isRegister() ? (OPT_RegisterOperand) value.copy() 
 	                                                : ir.gc.temps.makeTemp(value);
       OPT_BasicBlock beforeBB = inst.getBasicBlock();           
-      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir); 
+      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir, .99f); 
       OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
       ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
       ir.cfg.linkInCodeOrder(redirectBB, afterBB);
@@ -461,7 +461,7 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 		      OPT_RegisterOperand temp = ir.gc.temps.makeTemp(result);
 		      GetField.setResult(inst,temp);
 		      OPT_BasicBlock beforeBB = inst.getBasicBlock();           
-		      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir); 
+		      OPT_BasicBlock redirectBB = beforeBB.createSubBlock(inst.bcIndex, ir, .99f); 
 		      OPT_BasicBlock afterBB = beforeBB.splitNodeAt(inst, ir);  
 		      ir.cfg.linkInCodeOrder(beforeBB, redirectBB);
 		      ir.cfg.linkInCodeOrder(redirectBB, afterBB);

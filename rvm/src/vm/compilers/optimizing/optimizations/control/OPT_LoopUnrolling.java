@@ -187,8 +187,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     OPT_ConditionOperand
       cond = (OPT_ConditionOperand)IfCmp.getCond(origBranch).copy();
     OPT_RegisterOperand ifcmpGuard = IfCmp.getGuardResult(origBranch);
-    double backBranchProbability
-      = IfCmp.getBranchProfile (origBranch).takenProbability;
+    float backBranchProbability = IfCmp.getBranchProfile (origBranch).takenProbability;
     if (!loopInvariant (op2, nloop)) {
       if (loopInvariant (op1, nloop)) {
 	OPT_Operand op = op1;
@@ -441,7 +440,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 		    new OPT_IntConstantOperand(0),
 		    OPT_ConditionOperand.EQUAL(),
 		    landingPad.makeJumpTarget(),
-		    new OPT_BranchProfileOperand(1.0/unrollFactor)));
+		    new OPT_BranchProfileOperand(1.0f/unrollFactor)));
     tmp.insertBefore(Goto.create(GOTO,header.makeJumpTarget()));
 
     // change the back branch in the original loop
@@ -453,7 +452,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 		     rop1.copyU2U(), limit.copyD2U(),
 		     (OPT_ConditionOperand) cond.copy(),
 		     header.makeJumpTarget(),
-		     new OPT_BranchProfileOperand(1.0 - 1.0 / unrollFactor)));
+		     new OPT_BranchProfileOperand(1.0f - 1.0f / unrollFactor)));
     tmp.insertBefore
       (Goto.create(GOTO,guardBlock2.makeJumpTarget()));
 
@@ -464,7 +463,7 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 		     rop1.copyU2U(), op2.copy(),
 		     (OPT_ConditionOperand) cond.copy(),
 		     landingPad.makeJumpTarget(),
-		     new OPT_BranchProfileOperand(1.0-backBranchProbability)));
+		     new OPT_BranchProfileOperand(1.0f-backBranchProbability)));
     tmp.insertBefore (Goto.create (GOTO, succBlock.makeJumpTarget()));
 
     // landing pad jumps to mainHeader
@@ -482,8 +481,8 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 		     rop1.copyU2U(), op2.copy(),
 		     (OPT_ConditionOperand) cond.copy(),
 		     mainHeader.makeJumpTarget(),
-		     new OPT_BranchProfileOperand(1.0
-						  - (1.0-backBranchProbability)
+		     new OPT_BranchProfileOperand(1.0f
+						  - (1.0f-backBranchProbability)
 						  * unrollFactor)));
     tmp.insertBefore
     (Goto.create (GOTO, succBlock.makeJumpTarget()));

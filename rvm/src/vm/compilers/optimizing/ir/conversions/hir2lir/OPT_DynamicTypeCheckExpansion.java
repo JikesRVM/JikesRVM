@@ -79,7 +79,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       OPT_BasicBlock prevBB = instanceOfBlock.prevBasicBlockInCodeOrder();
       OPT_BasicBlock nextBB = instanceOfBlock.nextBasicBlockInCodeOrder();
       OPT_BasicBlock nullCaseBB = 
-	instanceOfBlock.createSubBlock(s.bcIndex, ir);
+	instanceOfBlock.createSubBlock(s.bcIndex, ir, .01f);
       prevBB.appendInstruction(IfCmp.create(REF_IFCMP, guard, 
 					    ref.copyU2U(), 
 					    new OPT_NullConstantOperand(),
@@ -171,7 +171,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 		   new OPT_BranchProfileOperand());
     s.insertBefore(nullCond);
     OPT_BasicBlock myBlock = s.getBasicBlock();
-    OPT_BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir);
+    OPT_BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
     OPT_BasicBlock instanceOfBlock = myBlock.splitNodeAt(nullCond, ir);
     OPT_BasicBlock succBlock = instanceOfBlock.splitNodeAt(s, ir);
     IfCmp.setTarget(nullCond, succBlock.makeJumpTarget()); // fixup KLUDGE
@@ -207,7 +207,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     VM_Type LHStype = TypeCheck.getType(s).type;
     OPT_Operand guard = TypeCheck.getClearGuard(s);
     OPT_BasicBlock myBlock = s.getBasicBlock();
-    OPT_BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir);
+    OPT_BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
     OPT_BasicBlock succBlock = myBlock.splitNodeAt(s, ir);
     myBlock.insertOut(failBlock);
     myBlock.insertOut(succBlock);
@@ -241,7 +241,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     int interfaceMask = LHSClass.getDoesImplementBitMask();
     OPT_Operand guard = TypeCheck.getClearGuard(s);
     OPT_BasicBlock myBlock = s.getBasicBlock();
-    OPT_BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir);
+    OPT_BasicBlock failBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
     OPT_BasicBlock succBlock = myBlock.splitNodeAt(s, ir);
     myBlock.insertOut(failBlock);
     myBlock.insertOut(succBlock);
@@ -307,7 +307,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       }
       OPT_BasicBlock myBlock = s.getBasicBlock();
       OPT_BasicBlock contBlock = myBlock.splitNodeAt(s, ir);
-      OPT_BasicBlock trapBlock = myBlock.createSubBlock(s.bcIndex, ir);
+      OPT_BasicBlock trapBlock = myBlock.createSubBlock(s.bcIndex, ir, .0001f);
       OPT_BasicBlock curBlock = myBlock;
       s.remove();
 

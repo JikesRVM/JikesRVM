@@ -252,7 +252,7 @@ $$$$ END IF
    * @return number of implicit defs
    */
   public int getNumberOfImplicitDefs() {
-    return OPT_Bits.numberOfOnes(implicitDefs);
+    return OPT_Bits.populationCount(implicitDefs);
   }
   
   /**
@@ -262,7 +262,7 @@ $$$$ END IF
    * @return number of implicit uses
    */
   public int getNumberOfImplicitUses() {
-    return OPT_Bits.numberOfOnes(implicitUses);
+    return OPT_Bits.populationCount(implicitUses);
   }
   
   /*

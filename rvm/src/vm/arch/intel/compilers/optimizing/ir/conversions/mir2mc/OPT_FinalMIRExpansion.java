@@ -105,7 +105,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
 	{
 	  // split the basic block right before the IA32_TRAPIF
 	  OPT_BasicBlock thisBlock = p.getBasicBlock();
-	  OPT_BasicBlock trap = thisBlock.createSubBlock(p.bcIndex,ir);
+	  OPT_BasicBlock trap = thisBlock.createSubBlock(p.bcIndex,ir,0f);
 	  OPT_BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(p,ir);
 	  OPT_TrapCodeOperand tc = MIR_TrapIf.getClearTrapCode(p);
 	  p.remove();
@@ -345,7 +345,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     // remove the yieldpoint (to prepare to out it in the new block at the end)
     OPT_BasicBlock thisBlock = s.getBasicBlock();
     OPT_BasicBlock nextBlock = thisBlock.splitNodeWithLinksAt(s,ir);
-    OPT_BasicBlock yieldpoint = thisBlock.createSubBlock(s.bcIndex, ir);
+    OPT_BasicBlock yieldpoint = thisBlock.createSubBlock(s.bcIndex, ir, 0);
     thisBlock.insertOut(yieldpoint);
     yieldpoint.insertOut(nextBlock);
     ir.cfg.addLastInCodeOrder(yieldpoint);
@@ -374,6 +374,6 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, I(0)));
     thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC, OPT_IA32ConditionOperand.NE(),
 						      yieldpoint.makeJumpTarget(),
-						      OPT_BranchProfileOperand.unlikely()));
+						      OPT_BranchProfileOperand.never()));
   }
 }

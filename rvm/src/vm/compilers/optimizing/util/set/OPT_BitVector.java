@@ -199,6 +199,17 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
     }
     return h;
   }
+
+  /**
+   * How many bits are set?
+   */
+  public int populationCount() {
+    int count = 0;
+    for (int i=0; i<bits.length; i++) {
+      count += OPT_Bits.populationCount(bits[i]);
+    }	
+    return count;
+  }
   
   /**
    * Calculates and returns the set's size in bits.

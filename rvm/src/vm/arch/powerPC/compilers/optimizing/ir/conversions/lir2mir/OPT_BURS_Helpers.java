@@ -1523,7 +1523,7 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     burs.append(MIR_CondBranch2.create(PPC_BCOND2, cr.copyD2U(), 
 				       OPT_PowerPCConditionOperand.UNORDERED(),
 				       branch, 
-				       new OPT_BranchProfileOperand(0.0),
+				       new OPT_BranchProfileOperand(0f),
 				       new OPT_PowerPCConditionOperand(c), 
 				       target,
 				       IfCmp.getBranchProfile(s)));

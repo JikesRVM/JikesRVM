@@ -259,10 +259,9 @@ public final class OPT_IR implements OPT_Operators {
       System.out.print(i.bcIndex+"\t"+i);
 
       // Print block frequency with the label instruction
-      if (basicBlockFrequenciesAvailable() &&
-	  i.operator() == LABEL) {
+      if (i.operator() == LABEL) {
 	OPT_BasicBlock bb = i.getBasicBlock();
-	System.out.print("   Frequency:  " + this.getBasicBlockFrequency(bb));
+	System.out.print("   Frequency:  " + bb.getExecutionFrequency());
       }
 
       System.out.println();

@@ -1244,7 +1244,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  // Set branch probabilities
 	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex);
 	  if (sp == null) {
-	    double approxProb = 1.0/(double)(number+1); // number targets + default
+	    float approxProb = 1.0f/(float)(number+1); // number targets + default
 	    TableSwitch.setDefaultBranchProfile(s, new OPT_BranchProfileOperand(approxProb));
 	    for (int i = 0; i < number; ++i) {
 	      TableSwitch.setBranchProfile(s, i, new OPT_BranchProfileOperand(approxProb));
@@ -1300,7 +1300,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  // Set branch probabilities
 	  VM_SwitchBranchProfile sp = gc.getSwitchProfile(instrIndex);
 	  if (sp == null) {
-	    double approxProb = 1.0/(double)(numpairs+1); // num targets + default
+	    float approxProb = 1.0f/(float)(numpairs+1); // num targets + default
 	    LookupSwitch.setDefaultBranchProfile(s, new OPT_BranchProfileOperand(approxProb));
 	    for (int i = 0; i < numpairs; ++i) {
 	      LookupSwitch.setBranchProfile(s, i, new OPT_BranchProfileOperand(approxProb));
