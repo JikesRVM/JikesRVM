@@ -1024,9 +1024,14 @@ JDPServiceInterface
                 "  (native " + getNativeProcedureName(IP) + ")" + 
                 PPC_Disassembler.disasm(instr, IP) );
       }
-  
-      // look up the class/method for this address
-      VM_Method mth = bmap.findVMMethod(compiledMethodID, true);
+
+      VM_Method mth;
+
+      if (compiledMethodID == 0)
+	mth = null;
+      else 
+	// look up the class/method for this address
+        mth = bmap.findVMMethod(compiledMethodID, true);
 
       if (mth!=null) {
 
