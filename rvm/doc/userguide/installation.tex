@@ -52,7 +52,10 @@ hereinafter call the location of the RVM distribution {\tt \$RVM\_ROOT/rvm}.
 \index{classpath libraries, GNU}
 \item Download version \classpathversion\ of the GNU Classpath
 libraries from 
-\xlink{{\tt \classpathftp}}{\classpathftp}. 
+\xlink{{\tt \classpathftp}}{\classpathftp}. There have been some
+recent problems with the GNU ftp servers; classpath 0.06 will also
+be available from \xlink{{\tt \tempclasspathftp}}{\tempclasspathftp}
+until they can make it available on their primary ftp site.
 Unpack the tar file and rename the
 directory to {\tt classpath} (instead of {\tt
 classpath-\classpathversion}). Don't 
@@ -345,13 +348,13 @@ release, if you have decided to manually download the classpath
 libraries (which you will usually want to do). 
 
 The setting of {\tt CLASSPATH\_ROOT} is a bit tricky, so we will go
-into some depth here.  For this example, we'll assume you downloaded {\tt classpath-0.05.tgz}.  Create a directory named something like {\tt
-\$RVM\_ROOT/classpath-0.05-build}.  
-A command like  {\tt /usr/gnu/tar -C \$\{RVM\_ROOT\}/classpath-0.05-build xzf classpath-0.05.tgz} will
-create the directory {\tt \$\{RVM\_ROOT\}/classpath-0.05-build/classpath-0.05}.  You should
-rename {\tt \$\{RVM\_ROOT\}/classpath-0.05-build/classpath-0.05} 
-to {\tt \$\{RVM\_ROOT\}/classpath-0.05-build/classpath}.  Now set your
-{\tt CLASSPATH\_ROOT} to {\tt \$\{RVM\_ROOT\}/classpath-0.05-build}.  
+into some depth here.  For this example, we'll assume you downloaded {\tt classpath-0.06.tgz}.  Create a directory named something like {\tt
+\$RVM\_ROOT/classpath-0.06-build}.  
+A command like  {\tt /usr/gnu/tar -C \$\{RVM\_ROOT\}/classpath-0.06-build xzf classpath-0.06.tgz} will
+create the directory {\tt \$\{RVM\_ROOT\}/classpath-0.06-build/classpath-0.06}.  You should
+rename {\tt \$\{RVM\_ROOT\}/classpath-0.06-build/classpath-0.06} 
+to {\tt \$\{RVM\_ROOT\}/classpath-0.06-build/classpath}.  Now set your
+{\tt CLASSPATH\_ROOT} to {\tt \$\{RVM\_ROOT\}/classpath-0.06-build}.  
 
 The first time you run Jikes RVM's build process, it will
 automatically build the appropriate files in a directory named {\tt
