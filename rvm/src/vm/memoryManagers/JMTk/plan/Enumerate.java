@@ -20,7 +20,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  */
 
 public class Enumerate implements VM_Uninterruptible {
-  private Plan plan;
+  protected Plan plan;
 
   /* Constructor 
    */
