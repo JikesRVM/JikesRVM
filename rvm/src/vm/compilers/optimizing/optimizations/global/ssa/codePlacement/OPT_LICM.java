@@ -830,9 +830,10 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 	Enumeration ie = ssad.getAllInstructions(b);
 	while (ie.hasMoreElements()) {
 	  OPT_Instruction inst = (OPT_Instruction)ie.nextElement();
-	  while (simplify (inst));
+	  while (simplify (inst, b));
 	}
       }
+      ssad.recomputeArrayDU();
     }
   }
   //------------------------------------------------------------
@@ -860,7 +861,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   private static java.util.HashSet moved = new java.util.HashSet();
   
 
-  private boolean simplify(OPT_Instruction inst)
+  private boolean simplify(OPT_Instruction inst, OPT_BasicBlock block)
   {
     if (!Phi.conforms (inst)) return false;  // no phi
 
@@ -898,9 +899,12 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     if (hop.value.type == ssad.exceptionState) return false;
 
     /* check that inside the loop, the heap variable is only used/defed
-       by simple, non-volatile loads */
-    int type = checkLoop (inst, hop, xidx);
-    if (type == CL_LOADS_ONLY || type == CL_NONE) {
+       by simple, non-volatile loads or only by stores
+
+       if so, replace uses of inst (a memory phi) with its dominating input
+    */
+    int type = checkLoop (inst, hop, xidx, block);
+    if (type == CL_LOADS_ONLY || type == CL_STORES_ONLY || type == CL_NONE) {
       replaceUses (inst, (OPT_HeapOperand) Phi.getValue (inst, xidx),
 		                           Phi.getPred  (inst, xidx), false);
     }
@@ -911,14 +915,14 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   static final int CL_LOADS_ONLY=1;
   static final int CL_STORES_ONLY=2;
   static final int CL_LOADS_AND_STORES=3;
-  static final int CL_CALLS=4;
+  static final int CL_COMPLEX=4;
   
   /**
    * check that inside the loop, the heap variable is only used/defed
    * by simple, non-volatile loads/stores
    *
    * returns one of:
-   * CL_LOADS_ONLY, CL_STORES_ONLY, CL_LOADS_AND_STORES, CL_CALLS
+   * CL_LOADS_ONLY, CL_STORES_ONLY, CL_LOADS_AND_STORES, CL_COMPLEX
    */
   private int _checkLoop (OPT_Instruction inst, OPT_HeapOperand hop, int xidx)
   {
@@ -928,19 +932,19 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       while (y != inst) {
 	//VM.sysWrite (" y: "+y+"\n");
 	if (y.isImplicitStore() || y.isPEI() || !LocationCarrier.conforms (y))
-	  return CL_CALLS;
+	  return CL_COMPLEX;
 	
 	// check for access to volatile field
 	OPT_LocationOperand loc = LocationCarrier.getLocation (y);
 	if (loc == null
 	    || loc.isFieldAccess() && loc.getField().isVolatile()){
 	  //VM.sysWrite (" no loc or volatile field\n");	  
-	  return CL_CALLS;
+	  return CL_COMPLEX;
 	}
 	OPT_HeapOperand[] ops = ssad.getHeapUses (y);
 	for (int j = 0;  j < ops.length;  ++j) {
 	  if (ops[j].value.type == ssad.exceptionState) continue;
-	  if (ops[j].value.type != hop.value.type) return CL_CALLS;
+	  if (ops[j].value.type != hop.value.type) return CL_COMPLEX;
 	  y = definingInstruction (ops[j]);
 	}
       }
@@ -954,9 +958,10 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * by simple, non-volatile loads/stores
    *
    * returns one of:
-   * CL_LOADS_ONLY, CL_STORES_ONLY, CL_LOADS_AND_STORES, CL_CALLS
+   * CL_LOADS_ONLY, CL_STORES_ONLY, CL_LOADS_AND_STORES, CL_COMPLEX
    */
-  private int checkLoop (OPT_Instruction inst, OPT_HeapOperand hop, int xidx)
+  private int checkLoop (OPT_Instruction inst, OPT_HeapOperand hop, int xidx,
+			 OPT_BasicBlock block)
   {
     HashSet seen = new HashSet();
     OPT_Queue workList = new OPT_Queue();
@@ -985,17 +990,23 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 	    workList.insert (z);
 	  }
 	}
-      } else if (y.isPEI() || !LocationCarrier.conforms (y)) {
-	return CL_CALLS;
+      } else if ((  y.isPEI())
+		 || !LocationCarrier.conforms (y)
+		 || y.operator.isAcquire()
+		 || y.operator.isRelease()) {
+	return CL_COMPLEX;
       } else {
 	// check for access to volatile field
 	OPT_LocationOperand loc = LocationCarrier.getLocation (y);
 	if (loc == null
 	    || loc.isFieldAccess() && loc.getField().isVolatile()){
 	  //VM.sysWrite (" no loc or volatile field\n");	  
-	  return CL_CALLS;
+	  return CL_COMPLEX;
 	}
 	if (y.isImplicitStore()) {
+	  // only accept loop-invariant stores
+	  // conservatively estimate loop-invariance by header domination
+	  if (!inVariantLocation (y, block)) return CL_COMPLEX;
 	  state |= CL_STORES_ONLY;
 	} else {
 	  state |= CL_LOADS_ONLY;
@@ -1003,7 +1014,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 	OPT_HeapOperand[] ops = ssad.getHeapUses (y);
 	for (int j = 0;  j < ops.length;  ++j) {
 	  if (ops[j].value.type == ssad.exceptionState) continue;
-	  if (ops[j].value.type != hop.value.type) return CL_CALLS;
+	  if (ops[j].value.type != hop.value.type) return CL_COMPLEX;
 	  y = definingInstruction (ops[j]);
 	  if (y == inst) instUses++;
 	  if (!(seen.contains (y))) {
@@ -1015,9 +1026,34 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     }
     if (state == CL_STORES_ONLY
 	&& ssad.getNumberOfUses (hop.value) != instUses)
-      return CL_CALLS;
+      return CL_COMPLEX;
     
     return state;
+  }
+
+
+  private boolean inVariantLocation (OPT_Instruction inst,
+				     OPT_BasicBlock block)
+  {
+    if (PutStatic.conforms (inst)) return true;
+    if (PutField.conforms (inst))
+      return useDominates (PutField.getRef (inst), block);
+    if (AStore.conforms (inst))
+      return ((  useDominates (AStore.getArray (inst), block))
+	      && useDominates (AStore.getIndex (inst), block));
+    if (VM.VerifyAssertions) {
+      VM.sysWrite ("inst: "+inst+"\n");
+      VM._assert (false);
+    }
+    return false;
+  }
+
+  private boolean useDominates (OPT_Operand op, OPT_BasicBlock block)
+  {
+    if (! (op instanceof OPT_RegisterOperand)) return true;
+    OPT_Instruction inst = definingInstruction (op);
+    OPT_BasicBlock b = getOrigBlock (inst);
+    return b != block && dominator.dominates (b, block);
   }
 
   /**
@@ -1029,6 +1065,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 			       OPT_BasicBlockOperand replacementBlock, 
 			       boolean onlyPEIs)
   {
+    if (VM.VerifyAssertions) VM._assert (Phi.conforms (inst));
+    
     boolean changed = false;
     OPT_HeapOperand hop = (OPT_HeapOperand) Phi.getResult (inst);
     OPT_HeapVariable H = hop.value;
@@ -1041,8 +1079,9 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       if (Phi.conforms (user)) {
 	for (int i = 0; i < Phi.getNumberOfValues (user); i++) {
 	  if (Phi.getValue (user, i) == hop) {
-	    Phi.setValue (user, i, replacement);
-	    Phi.setPred  (user, i, replacementBlock);
+	    Phi.setValue (user, i, replacement.copy());
+	    Phi.setPred  (user, i,
+			  (OPT_BasicBlockOperand) replacementBlock.copy());
 	  }
 	}
 	changed |= replacement.value != H;
@@ -1059,6 +1098,11 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
       if (DEBUG && changed) {
 	VM.sysWrite (" changing dependency of "+user+"\n"
 		     +"from "+ H +" to "+ replacement + "\n");
+      }
+    }
+    if (!onlyPEIs) {
+      for (int i = Phi.getNumberOfValues(inst) - 1;  i >= 0;  --i) {
+	Phi.setValue (inst, i, replacement.copy());
       }
     }
     return changed;
