@@ -218,8 +218,9 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     // Log.write(" for space "); Log.writeln(space);
     for (int i=0; i<pageRequest; i++) {
       if (VM_Interface.VerifyAssertions) 
-	  VM_Interface._assert(spaceTable[pageStart+i] == Plan.UNUSED_SPACE ||
-		     spaceTable[pageStart+i] == space);  // Suspect - FreeListVM
+	  VM_Interface._assert(spaceTable[pageStart+i] == Plan.UNUSED_SPACE 
+			       // Suspect - FreeListVM
+			       || spaceTable[pageStart+i] == space); 
       spaceTable[pageStart+i] = space;
     }
   }
