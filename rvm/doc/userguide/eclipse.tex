@@ -14,24 +14,24 @@ recent---7.3 or newer---version of RedHat Linux for Intel IA32.
 to run Eclipse.  The *Opt* images will attempt to optimize all
 executed methods, which will result in bad performance.
 \item Use only the *SemiSpace builds of Jikes RVM.  We have seen
-various limitations of the other collectors, such as severe
+various limitations of the other garbage collectors, such as severe
 fragmentation and implementation-specific resource limits.
-\item Use only the Eclipse builds for Linux and GTK.  There are builds
-for Linux and Motif, but we never test these and work on Eclipse seems
-to focus on the GTK version.
+\item Under Linux, use the Eclipse builds for the GTK windowing
+toolkit.  There are Linux builds for the Motif toolkit, but we never
+test these and work on Eclipse seems to focus on the GTK version.
 \item We strongly recommend Eclipse 2.1.1, currently the latest release
 from \xlink{{\tt \eclipseURL}}{\eclipseURL}; this is what we use and
 test at Watson.  We have also successfully run Eclipse 2.1.0; Eclipse 2.0.x releases may also work.  Do not try to
 use Eclipse 1.x versions.
-\item The Eclipse debugging support for Java programs---which relies
-on talking JDWP to the VM---will not work because
-Jikes RVM has yet to implemented this protocol.
+\item The Eclipse debugging support for Java programs --- which relies
+on talking JDWP to the VM --- will not work because
+Jikes RVM has yet to implement this protocol.  (It's on our TODO list, though.)
 \item Running Eclipse requires that you build Jikes RVM with
 RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equal to 0. The
 select-interception mechanism (which is required to run Eclipse on
 Jikes RVM) currently does not work if this variable is set to 1 (see
-defect 3583).
-\item As of this writing (July 18, 2003), 
+defect \# 3583).
+\item As of this writing (August 11, 2003), 
 Jikes RVM defect \# 2046 is still outstanding:
 Jikes RVM's {\tt VM\_IdleThread} chews up CPU time when waiting for
 something to happen.  This idle thread ends up competing for CPU time
@@ -76,5 +76,5 @@ support for Eclipse to use Jikes RVM
  Once you have done this, you will be able to run Eclipse on Jikes RVM
 using the {\tt RVM\_ROOT/rvm/bin/rvmeclipse} command.  This wrapper
 calls the normal Eclipse command, instructing it to use Jikes RVM to
-run Eclipse.  You must have RVM\_ROOT and RVM\_BUILD set whenever you
+run Eclipse.  Set RVM\_ROOT and RVM\_BUILD before you
 invoke {\tt rvmeclipse}.
