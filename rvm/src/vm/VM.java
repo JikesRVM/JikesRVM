@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import java.lang.ref.Reference;
 
 /**
  * A virtual machine.
@@ -143,7 +144,6 @@ public class VM extends VM_Properties
     //
 
     if (verbose >= 1) VM.sysWriteln("Running various class initializers");
-    java.lang.ref.JikesRVMSupport.setReferenceLock(new VM_Synchronizer());
 
     runClassInitializer("java.lang.Runtime");
     runClassInitializer("java.lang.System");
