@@ -14,7 +14,7 @@ import com.ibm.JikesRVM.classloader.VM_Type;
  * operating system calls.
  * 
  * <p> These are "inline assembler functions" that cannot be implemented in
- * java code. Their names are recognized by RVM's compilers 
+ * Java code. Their names are recognized by RVM's compilers 
  * and cause inline machine code to be generated instead of 
  * actual method calls.
  *
