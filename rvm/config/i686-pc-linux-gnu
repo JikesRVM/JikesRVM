@@ -119,18 +119,18 @@ export HOST_TOOLS="${HOST_JAVA_HOME}/lib/tools.jar"
 ## OR, if you don't have the above, you can *instead* set CLASSPATH_ROOT:
 
 ## CLASSPATH_ROOT: Directory containing the unpacked and (optionally built) 
-## sources for GNU Classpath 0.12 (current stable version of Classpath)
+## sources for GNU Classpath 0.14 (current stable version of Classpath)
 
 ## If you manually downloaded the Classpath sources, then unpack them
 ## into $CLASSPATH_ROOT and rename the newly extracted source
-## directory "classpath-0.12" to "classpath".  (If you haven't
+## directory "classpath-0.14" to "classpath".  (If you haven't
 ## manually downloaded the Classpath sources, then the Jikes RVM build
 ## process will automatically do so for you, and will use
 ## CLASSPATH_ROOT if you've set it.)
 
 ## The Jikes RVM build process will expect to automatically take 
 ## care of building Classpath from those sources, if you want.
-# export CLASSPATH_ROOT=/opt/classpath-0.12
+# export CLASSPATH_ROOT=/opt/classpath-0.14
 
 ## OR you can leave all of the CLASSPATH_ variables unset and let the
 ## build process download and build GNU Classpath for you.  This
