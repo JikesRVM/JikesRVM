@@ -76,7 +76,7 @@ fi
 . $RVM_HOST_CONFIG
 
 # Create a temporary build directory
-$RVM_ROOT/rvm/bin/jconfigure -D "BUILD_RVMRT_JAR=1" BaseBaseConcurrent
+$RVM_ROOT/rvm/bin/jconfigure -D "BUILD_RVMRT_JAR=1" BaseBaseSemispace
 cd $RVM_BUILD
 ./jbuild.expand
 ./jbuild.copy
@@ -95,7 +95,7 @@ $FIND java -name CVS -prune -o -name '*.java' -print | $XARGS $RVM_BUILD/jbuild.
 cd $RVM_BUILD/RVM.classes
 
 # Create the file rvmrt.id, containing the date
-date -u +"%Y/%m/%d-%H:%M:%S" > rvmrt.id
+date -u +"%Y-%m-%d-%H-%M-%S" > rvmrt.id
 
 # Create the jar file
 $FIND . -type f | $GREP -v \.class\$ | $GREP -v rvmrt.id | $XARGS rm -f
