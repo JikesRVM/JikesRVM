@@ -446,7 +446,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   private static final int COPY_FUDGE_PAGES = 1;  // Steve - fix this
 
-  private static final EXTENT LOS_SIZE_THRESHOLD = 16 * 1024;
+  private static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap

@@ -75,6 +75,14 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
     unlock();
   }
 
+  public final void flushQueue(int arity) {
+    VM_Address buf = dequeue(arity);
+    while (!buf.isZero()) {
+      free(bufferStart(buf));
+      buf = dequeue(arity);
+    }
+  }
+
   public final VM_Address dequeue(int arity) {
     if (VM.VerifyAssertions) VM._assert(arity == this.arity);
     return dequeue(false);
@@ -84,7 +92,6 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
     if (VM.VerifyAssertions) VM._assert(arity == this.arity);
     VM_Address buf = dequeue(false);
     while (buf.isZero() && (completionFlag == 0)) {
-      //      int x = spin();
       buf = dequeue(true);
     }
     return buf;  

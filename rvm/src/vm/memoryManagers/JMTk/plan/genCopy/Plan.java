@@ -441,6 +441,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
   }
 
   protected void allRelease(int count) {
+    remset.flushLocal(); // flush any remset entries collected during GC
     if (fullHeapGC) 
       los.release();
   }
@@ -451,6 +452,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
   protected void singleRelease() {
     // release each of the collected regions
     nurseryVM.release();
+    locationPool.flushQueue(1); // flush any remset entries collected during GC
     if (fullHeapGC) {
       losCollector.release();
       ((hi) ? mature0VM : mature1VM).release();
@@ -522,7 +524,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible {
   private static final EXTENT       NURSERY_SIZE = 64 * 1024 * 1024;
   private static final VM_Address    NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   private static final VM_Address       HEAP_END = NURSERY_END;
-  private static final EXTENT LOS_SIZE_THRESHOLD = 16 * 1024;
+  private static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
 
   private static final int COPY_FUDGE_PAGES = 1;  // Steve - fix this
 

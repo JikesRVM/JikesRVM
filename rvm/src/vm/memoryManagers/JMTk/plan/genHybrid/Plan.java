@@ -335,8 +335,13 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   private void writeBarrier(VM_Address src, VM_Address tgt) 
     throws VM_PragmaInline {
-    if (src.LT(NURSERY_START) && tgt.GE(NURSERY_START))
-      remset.insert(src);
+    if (src.LT(NURSERY_START) && tgt.GE(NURSERY_START)) {
+//       if (!gcInProgress)
+	remset.insert(src);
+//       else
+// 	VM_Scheduler.dumpStack();
+    }
+	
   }
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -419,6 +424,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   }
 
   protected void allRelease(int count) {
+    remset.flushLocal(); // flush any remset entries collected during GC
     if (fullHeapGC) 
       ms.release();
   }
@@ -429,6 +435,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   protected void singleRelease() {
     // release each of the collected regions
     nurseryVM.release();
+    locationPool.flushQueue(1); // flush any remset entries collected during GC
     if (fullHeapGC) {
       msCollector.release();
       Immortal.release(immortalVM, null);
@@ -493,7 +500,8 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   private static final int COPY_FUDGE_PAGES = 1;  // Steve - fix this
 
-  private static final EXTENT LOS_SIZE_THRESHOLD = 4 * 1024;
+  private static final EXTENT LOS_SIZE_THRESHOLD = 1000*DEFAULT_LOS_SIZE_THRESHOLD;
+  //  private static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
 
   /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap

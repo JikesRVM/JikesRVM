@@ -440,7 +440,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   private static final VM_Address  HIGH_SS_START = SS_START.add(SS_SIZE);
   private static final VM_Address         SS_END = HIGH_SS_START.add(SS_SIZE);
   private static final VM_Address       HEAP_END = SS_END;
-  private static final EXTENT LOS_SIZE_THRESHOLD = 16 * 1024;
+  private static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
 
   private static final int COPY_FUDGE_PAGES = 1;  // Steve - fix this
 

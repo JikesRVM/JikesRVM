@@ -144,9 +144,9 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     id = count++;
     rc = new SimpleRCAllocator(rcCollector);
     immortal = new BumpPointer(immortalVM);
-    incBuffer = new AddressQueue(incPool);
-    decBuffer = new AddressQueue(decPool);
-    rootSet = new AddressQueue(rootPool);
+    incBuffer = new AddressQueue("inc buf", incPool);
+    decBuffer = new AddressQueue("dec buf", decPool);
+    rootSet = new AddressQueue("root set", rootPool);
   }
 
   /**
