@@ -75,7 +75,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * Returns the name of the phase
    */
-  public String getName () {
+  public String getName() {
     return  "LICM";
   }
   
@@ -438,9 +438,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Schedule me as early as possible,
    * but behind the definitions of op[i] and behind earlyPos
    */
-  OPT_Instruction scheduleHeapDefsEarly (OPT_HeapOperand[] op, 
-					 OPT_Instruction earlyPos, 
-					 OPT_Instruction me) {
+  OPT_Instruction scheduleHeapDefsEarly(OPT_HeapOperand[] op, OPT_Instruction earlyPos, OPT_Instruction me) {
     if (op == null) return  earlyPos;
     
     for (int i = 0; i < op.length; ++i) {
@@ -460,7 +458,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   }
 
   
-  OPT_BasicBlock useBlock (OPT_Instruction use, OPT_Operand op) {
+  OPT_BasicBlock useBlock(OPT_Instruction use, OPT_Operand op) {
     //VM.sysWrite ("UseBlock: "+use+"\n");
     OPT_BasicBlock res = scheduleLate (use);
     if (res != null && Phi.conforms (use)) {
@@ -480,8 +478,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Schedule me as late as possible,
    * but in front of my uses and before latePos
    */
-  private OPT_BasicBlock scheduleScalarUsesLate (OPT_Instruction inst, 
-						 OPT_BasicBlock lateBlock) {
+  private OPT_BasicBlock scheduleScalarUsesLate(OPT_Instruction inst, OPT_BasicBlock lateBlock) {
     OPT_Operand resOp = getResult (inst);
 
     if (resOp == null || !(resOp instanceof OPT_RegisterOperand))
@@ -503,8 +500,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Schedule me as early as possible,
    * but behind the definitions of op[i] and behind earlyPos
    */
-  OPT_BasicBlock scheduleHeapUsesLate (OPT_Instruction inst, 
-				       OPT_BasicBlock lateBlock) {
+  OPT_BasicBlock scheduleHeapUsesLate(OPT_Instruction inst, OPT_BasicBlock lateBlock) {
     //VM.sysWrite (" scheduleHeapUsesLate\n");
     OPT_Operand[] defs = ssad.getHeapDefs(inst);
     if (defs == null) return  lateBlock;
@@ -533,7 +529,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Return the instruction that defines the operand.
    * @param op
    */
-  OPT_Instruction definingInstruction (OPT_Operand op) {
+  OPT_Instruction definingInstruction(OPT_Operand op) {
     if (op instanceof OPT_HeapOperand) {
       OPT_HeapOperand hop = (OPT_HeapOperand)op;
       OPT_HeapVariable H = hop.value;
@@ -573,7 +569,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Get the result operand of the instruction
    * @param inst
    */
-  OPT_Operand getResult (OPT_Instruction inst) {
+  OPT_Operand getResult(OPT_Instruction inst) {
     if (ResultCarrier.conforms(inst))
       return  ResultCarrier.getResult(inst);
     if (GuardResultCarrier.conforms(inst))
@@ -588,8 +584,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * their path in the dominator tree.
    * Return the block with the smallest execution costs.
    */
-  OPT_BasicBlock upto (OPT_Instruction earlyPos, OPT_BasicBlock lateBlock,
-		       OPT_Instruction inst) {
+  OPT_BasicBlock upto(OPT_Instruction earlyPos, OPT_BasicBlock lateBlock,
+		      OPT_Instruction inst) {
     
     OPT_BasicBlock origBlock = getOrigBlock(inst);
     OPT_BasicBlock actBlock = lateBlock;
@@ -634,18 +630,12 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * How expensive is it to place an instruction in this block?
    */
-  final float frequency (OPT_BasicBlock b) {
+  final float frequency(OPT_BasicBlock b) {
     // SJF: For now, just rely on the loop nest depth; anything else
     // doesn't seem to pass sanity.  TODO: fix this.
     return (float)ir.HIRInfo.LoopStructureTree.getLoopNestDepth(b);
 
     /*
-    if (ir.options.bw()) {
-      if (b.getInfrequent()) return (float) -1.0;
-      return  (float) ir.HIRInfo.LoopStructureTree.getLoopNestDepth(b);
-    }
-
-    // shades of gray:
     return b.getExecutionFrequency();
     */
   }
@@ -653,7 +643,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * move `inst' behind `pred'
    */
-  void move (OPT_Instruction inst, OPT_BasicBlock to) {
+  void move(OPT_Instruction inst, OPT_BasicBlock to) {
 
     OPT_BasicBlock origBlock = getOrigBlock (inst);
     OPT_Instruction cand = null;
@@ -708,7 +698,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * @param a
    * @param b
    */
-  boolean postDominates (OPT_BasicBlock a, OPT_BasicBlock b) {
+  boolean postDominates(OPT_BasicBlock a, OPT_BasicBlock b) {
     boolean res;
     if (a == b)
       return  true;
@@ -723,7 +713,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Get the basic block of an instruction
    * @param inst
    */
-  OPT_BasicBlock getBlock (OPT_Instruction inst) {
+  OPT_BasicBlock getBlock(OPT_Instruction inst) {
     return  block[inst.scratch];
   }
   
@@ -732,7 +722,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * @param inst
    * @param b
    */
-  void setBlock (OPT_Instruction inst, OPT_BasicBlock b) {
+  void setBlock(OPT_Instruction inst, OPT_BasicBlock b) {
     block[inst.scratch] = b;
   }
   
@@ -740,7 +730,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Get the early position of an instruction
    * @param inst
    */
-  OPT_Instruction getEarlyPos (OPT_Instruction inst) {
+  OPT_Instruction getEarlyPos(OPT_Instruction inst) {
     return  earlyPos[inst.scratch];
   }
   
@@ -749,7 +739,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * @param inst
    * @param pos
    */
-  void setEarlyPos (OPT_Instruction inst, OPT_Instruction pos) {
+  void setEarlyPos(OPT_Instruction inst, OPT_Instruction pos) {
     earlyPos[inst.scratch] = pos;
   }
   
@@ -757,7 +747,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * Get the block, where the instruction was originally located
    * @param inst
    */
-  OPT_BasicBlock getOrigBlock (OPT_Instruction inst) {
+  OPT_BasicBlock getOrigBlock(OPT_Instruction inst) {
     return  origBlock[inst.scratch];
   }
   
@@ -766,7 +756,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * @param inst
    * @param b
    */
-  void setOrigBlock (OPT_Instruction inst, OPT_BasicBlock b) {
+  void setOrigBlock(OPT_Instruction inst, OPT_BasicBlock b) {
     origBlock[inst.scratch] = b;
   }
   
@@ -774,7 +764,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * In what state (initial, early, late, done) is this instruction
    * @param inst
    */
-  int getState (OPT_Instruction inst) {
+  int getState(OPT_Instruction inst) {
     return  state[inst.scratch];
   }
   
@@ -783,7 +773,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
    * @param inst
    * @param s
    */
-  void setState (OPT_Instruction inst, int s) {
+  void setState(OPT_Instruction inst, int s) {
     state[inst.scratch] = s;
   }
 
@@ -794,7 +784,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   /**
    * initialize the state of the algorithm
    */
-  void initialize (OPT_IR ir) {
+  void initialize(OPT_IR ir) {
     this.ir = ir;
 
     relocated = new HashSet();
@@ -873,7 +863,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
   private static java.util.HashSet moved = new java.util.HashSet();
   
 
-  private boolean simplify (OPT_Instruction inst)
+  private boolean simplify(OPT_Instruction inst)
   {
     if (!Phi.conforms (inst)) return false;  // no phi
 
@@ -953,9 +943,9 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
 
 
 
-  boolean replaceUses (OPT_Instruction inst, OPT_HeapOperand replacement,
-		       OPT_BasicBlockOperand replacementBlock, 
-		       boolean onlyPEIs)
+  boolean replaceUses(OPT_Instruction inst, OPT_HeapOperand replacement,
+		      OPT_BasicBlockOperand replacementBlock, 
+		      boolean onlyPEIs)
   {
     boolean changed = false;
     OPT_HeapOperand hop = (OPT_HeapOperand) Phi.getResult (inst);
@@ -991,7 +981,7 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     return changed;
   }
 
-  private void resetLandingPads ()
+  private void resetLandingPads()
   {
     OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
     while (e.hasMoreElements()) e.next().clearLandingPad();

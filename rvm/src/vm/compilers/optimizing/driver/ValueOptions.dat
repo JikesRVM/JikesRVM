@@ -83,11 +83,6 @@ How to compute block and edge frequencies?
 "STATIC_FREQ staticFrequencyEstimates static" \
 "DUMB_FREQ dumbFrequency dumb"
 
-E FREQUENCY_QUALITY byte SHADES_OF_GREY
-How to interpret block and edge frequencies?
-"BLACK_AND_WHITE bw bw" \
-"SHADES_OF_GREY grey grey"
-
 E SPILL_COST_ESTIMATE byte BLOCK_COUNT_SPILL_COST
 Selection of spilling heuristic
 "SIMPLE_SPILL_COST simpleSpillCost simple" \
