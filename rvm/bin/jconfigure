@@ -596,7 +596,21 @@ function rationalize_config_file_settings () {
 }
 
 function load_config_file () {
-    . "$1"
+    ## There appears to be a bug in Bash 2.05b, leading to
+    ## inconsistent error handling here -- if RVM_TARGET_CONFIG
+    ## is bogus, we get the error handling executed as follows below
+    ## (it used to be that execution would just continue, despite the
+    ## ERR Trap!), but if RVM_HOST_CONFIG is bogus, we just get a
+    ## message like: 
+    ##   /homes/bilbo/augart/JikesRVM/src.sysWriteFix/rvm/bin/jconfigure: line 599: $RVM_ROOT/rvm/config/i686-pc-linux.watson: No such file or directory
+    ## and then Bash exits on its own with status 1.   Certainly, the
+    ## right behavior would be for it to be consistent one way or the
+    ## other.  
+    if ! . "$1"; then
+	show_mesg >&2 "Unable to load the configuration file \"$1\"  -- aborting execution"
+	trap '' EXIT
+	exit 2
+    fi
     export CURRENT_CONFIG_FILE="$1"
     rationalize_config_file_settings
 }
