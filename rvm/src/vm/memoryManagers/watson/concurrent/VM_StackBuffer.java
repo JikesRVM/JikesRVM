@@ -382,7 +382,7 @@ public class VM_StackBuffer
 	int   delta    = newFP - myFP;
 
 	// Copy stack of running thread
-	VM_Memory.copy(newFP, myFP, myDepth);
+	VM_Memory.aligned32Copy(newFP, myFP, myDepth);
 
 	// Save in thread's save area
 	// t.savedStack      = newStack;
