@@ -33,10 +33,7 @@ $Id$
   <property name="name" value="${ant.project.name}"/>
 
   <property name="plugins.dir" value="${eclipse.dir}/plugins"/>
-  <property name="package"     value="com.ibm.jikesrvm.launching_2.3.0.1"/>
-  <!-- property name="package"
-  value="com.ibm.JikesRVM.eclipse.jdt.launching_${jikesrvm.numericversion}"
-  / -->
+  <property name="package"     value="com.ibm.jikesrvm.launching_${plugin.version}"/>
   <property name="install.dir" value="${plugins.dir}/${package}"/>
   <property name="build.dist.install" value="${build.dist}/${package}"/>
 
@@ -73,7 +70,7 @@ $Id$
         <include name="*.xml"/>
       </fileset>
       <filterset>
-	<filter token="JIKESRVM.VERSION" VALUE="${jikesrvm.version}" />
+	<filter token="PLUGIN.VERSION" VALUE="${plugin.version}" />
       </filterset>
 
     </copy>

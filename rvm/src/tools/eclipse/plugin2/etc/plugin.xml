@@ -14,11 +14,10 @@
 <plugin
    name="%pluginName"
    id="com.ibm.jikesrvm.launching"
-   version="2.3.0.1"
+   version="@PLUGIN.VERSION@"
    provider-name="%providerName"
    class="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMLaunchingPlugin">
 
-  <!-- version="@JIKESRVM.VERSION@" -->
 
   <!-- Required plugins -->
   <requires>
@@ -50,7 +49,7 @@
 
   <extension point="org.eclipse.ui.preferencePages">
     <page id="com.ibm.jikesrvm.eclipse.ui.JikesRVMPreferencePage"
-          name="Jikes RVM"
+          name="%prefPageName"
 	  class="com.ibm.jikesrvm.eclipse.ui.JikesRVMPreferencePage">
     </page>
   </extension>

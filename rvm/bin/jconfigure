@@ -2880,7 +2880,15 @@ $ME: warning: When I converted the Jikes RVM Version information,
     vnum="${vnum#.}";
     if (( warned )); then
 	vnum="${vnum}.000";	# add a .000 if we did any stripping.
-	echo >&2 "$ME: Version number for Eclipse will be $vnum";
+	echo >&2 "$ME: Candidate version number for Eclipse is $vnum";
+    fi
+    # if five or more components
+    if [[ $vnum == *.*.*.*.* ]]; then
+	echo >&2 "$ME: Candidate version number $vnum has too many components; Eclipse misbehaves with more than four.  Chopping from tail."
+	while [[ $vnum == *.*.*.*.* ]]; do
+	    vnum="${vnum%.*}"
+	done
+	echo >&2 "$ME: Version # trimmed to $vnum, for Eclipse's purposes."
     fi
     echo "$vnum"
 }
