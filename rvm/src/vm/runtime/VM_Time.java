@@ -16,9 +16,14 @@ public class VM_Time implements VM_Uninterruptible {
    * Number of processor cycles executed since some undefined epoch.
    */ 
   static long cycles() {
+    //-#if RVM_FOR_POWERPC
     //-#if RVM_FOR_AIX
     // 1 tick --> 4 cycles, see VM_Magic.getTimeBase()
     return VM_Magic.getTimeBase() << 2; 
+    //-#else
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return 0;  // currently unimplemented for PPC-Linux
+    //-#endif
     //-#endif
     //-#if RVM_FOR_IA32
     // 1 tick --> 1 cycle on IA32

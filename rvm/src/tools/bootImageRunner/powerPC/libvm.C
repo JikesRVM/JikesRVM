@@ -34,6 +34,7 @@
 #define NGPRS 32
 #define NFPRS  0
 #define GETCONTEXT_IMPLEMENTED 0
+#define INCORRECT_SI_ADDR_ON_SEGV 0
 #else
 #include <sys/cache.h>
 #include <sys/context.h>
@@ -318,11 +319,17 @@ extern "C" void processTimerTick() {
    if (sendit != 0) // some processor "stuck in native"
      { 
        if (processors[i] != 0 /*null*/ ) {  // have a NativeDaemon Processor (the last one)
+#if (defined __linux__) && (!defined __linuxsmp__)
+	 // we're hosed because we don't support pthreads
+	 fprintf(stderr, "vm: Unsupported operation (no linux pthreads)\n");
+	 exit(-1);
+#else
 	 ANNOUNCE(" got NDprocessor value\n ");
 	 int pthread_id = *(int *)((char *)processors[i] + VM_Processor_pthread_id_offset);
 	 ANNOUNCE(" got pthread_id  value\n ");
 	 pthread_t thread = (pthread_t)pthread_id;
 	 pthread_kill(thread, SIGCONT);
+#endif
        }
      }
 #else
@@ -377,7 +384,11 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
    if (isVmSignal(iar, jtoc))
       {
 #if __linux__
-      if (signum == SIGSEGV && (unsigned)(siginfo->si_addr) == 0)
+#if INCORRECT_SI_ADDR_ON_SEGV
+	if (signum == SIGSEGV && (unsigned)(siginfo->si_addr) == 0)
+#else
+	if (signum == SIGSEGV && ((unsigned)(siginfo->si_addr) & 0xffff0000) == 0xffff0000)
+#endif	  
 #else
       if (signum == SIGSEGV && ((save->o_vaddr & 0xffff0000) == 0xffff0000))
 #endif
@@ -513,7 +524,11 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
       {
       case SIGSEGV:
 #ifdef __linux__
-      if ((unsigned)(siginfo->si_addr) == 0) 
+#if INCORRECT_SI_ADDR_ON_SEGV
+	if ((unsigned)(siginfo->si_addr) == 0) 
+#else
+	if (((unsigned)(siginfo->si_addr) & 0xffff0000) == 0xffff0000) 
+#endif
          { // touched top segment of memory, presumably by wrapping negatively off 0
          ANNOUNCE_TRAP("vm: null pointer trap\n");
          trapCode = VM_Runtime_TRAP_NULL_POINTER;
