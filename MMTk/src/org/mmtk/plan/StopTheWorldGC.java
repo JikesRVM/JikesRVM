@@ -156,7 +156,9 @@ public abstract class StopTheWorldGC extends BasePlan
    *      3. threadLocalRelease()
    *      4. globalRelease()
    */
-  public void collect () {
+  public void collect() {
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(collectionInitiated);
 
     boolean designated = (VM_Interface.rendezvous(4210) == 1);
     if (designated) Statistics.initTime.start();
@@ -332,7 +334,6 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void baseGlobalRelease() {
     globalRelease();
     gcInProgress = false;    // GC is in progress until after release!
-    collectionInitiated = false;
     valuePool.reset();
     locationPool.reset();
     rootLocationPool.reset();

@@ -220,7 +220,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   public static final void triggerCollection(int why)
     throws VM_PragmaInterruptible {
-    Plan.collectionInitiated();
+    Plan.collectionInitiated(why);
 
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
     if (Options.verbose >= 4) {
@@ -247,35 +247,69 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       }
       HeapGrowthManager.reset();
       if (!heapSizeChanged) {
-        double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
-	if (usage > OUT_OF_MEMORY_THRESHOLD) {
-	if (why == INTERNALLY_TRIGGERED) {
-	  if (Options.verbose >= 2) {
-	    VM.sysWriteln("OutOfMemoryError: usage = ", usage);
-	    VM.sysWriteln("          reserved (kb) = ", (int) (Plan.reservedMemory() / 1024));
-	    VM.sysWriteln("          total    (Kb) = ", (int) (Plan.totalMemory() / 1024));
-	  }
-	  if (VM.debugOOM || Options.verbose >= 5)
-	    VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
-	  OutOfMemoryError oome = new OutOfMemoryError();
-	  if (VM.debugOOM || Options.verbose >= 5)
-	    VM.sysWriteln("triggerCollection(): Allocated the new OutOfMemoryError().");
-	  throw oome;
-	}
-	ReferenceProcessor.setClearSoftReferences(true); // clear all possible reference objects
-	triggerCollection(INTERNALLY_TRIGGERED);
-	}
+	checkForExhaustion(why, false);
       }
     } // isLastGCFull
+    Plan.checkForAsyncCollection();
   }
 
+  /**
+   * Trigger an asynchronous collection, checking for memory
+   * exhaustion first.
+   */
   public static final void triggerAsyncCollection()
     throws VM_PragmaUninterruptible {
-    if (Options.verbose >= 1) {
-      VM.sysWrite("[Async GC]");
-    }
+    checkForExhaustion(RESOURCE_TRIGGERED_GC, true);
+    Plan.collectionInitiated(RESOURCE_TRIGGERED_GC);
+    if (Options.verbose >= 1) VM.sysWrite("[Async GC]");
     VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake);
   }
+
+  /**
+   * Determine whether a collection cycle has fully completed (this is
+   * used to ensure a GC is not in the process of completing, to
+   * avoid, for example, an async GC being triggered on the switch
+   * from GC to mutator thread before all GC threads have switched.
+   *
+   * @return True if GC is not in progress.
+   */
+ public static final boolean noThreadsInGC() throws VM_PragmaUninterruptible {
+   return VM_CollectorThread.noThreadsInGC(); 
+ }
+
+  /**
+   * Check for memory exhaustion, possibly throwing an out of memory
+   * exception and/or triggering another GC.
+   *
+   * @param why Why the collection was triggered
+   * @param async True if this collection was asynchronously triggered.
+   */
+  private static final void checkForExhaustion(int why, boolean async)
+    throws VM_PragmaLogicallyUninterruptible {
+    double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
+    
+    //    if (Plan.totalMemory() - Plan.reservedMemory() < 64<<10) {
+    if (usage > OUT_OF_MEMORY_THRESHOLD) {
+      if (why == INTERNALLY_TRIGGERED) {
+	if (Options.verbose >= 2) {
+	  VM.sysWriteln("OutOfMemoryError: usage = ", usage);
+	  VM.sysWriteln("          reserved (kb) = ",(int)(Plan.reservedMemory() / 1024));
+	  VM.sysWriteln("          total    (Kb) = ",(int)(Plan.totalMemory() / 1024));
+	}
+	if (VM.debugOOM || Options.verbose >= 5)
+	  VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
+	OutOfMemoryError oome = new OutOfMemoryError();
+	if (VM.debugOOM || Options.verbose >= 5)
+	  VM.sysWriteln("triggerCollection(): Allocated the new OutOfMemoryError().");
+	throw oome;
+      }
+      /* clear all possible reference objects */
+      ReferenceProcessor.setClearSoftReferences(true);
+      if (!async)
+	triggerCollection(INTERNALLY_TRIGGERED);
+    }
+  }
+   
 
   /***********************************************************************
    *

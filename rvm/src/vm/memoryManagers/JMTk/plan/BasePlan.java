@@ -480,10 +480,9 @@ public abstract class BasePlan
    * there is no harm in triggering the collection more than once,
    * thus it is unsynchronized.
    */
-  static void checkForAsyncCollection() {
-    if (awaitingCollection) {
+  public static void checkForAsyncCollection() {
+    if (awaitingCollection && VM_Interface.noThreadsInGC()) {
       awaitingCollection = false;
-      collectionInitiated = true;
       VM_Interface.triggerAsyncCollection();
     }
   }
@@ -491,9 +490,24 @@ public abstract class BasePlan
   /**
    * A collection has been initiated.  Set the collectionInitiated
    * state variable appropriately.
+   *
+   * @param why The reason the collection was initiated (one of
+   * <code>VM_Interface.TRIGGER_REASONS</code>).  <i>(Ignored)</i>
    */
-  public static void collectionInitiated() {
+  public static void collectionInitiated(int why) {
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(!collectionInitiated);
     collectionInitiated = true;
+  }
+
+  /**
+   * A collection has fully completed.  Set the collectionInitiated
+   * state variable appropriately.
+   */
+  public static void collectionComplete() throws VM_PragmaUninterruptible {
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(collectionInitiated);
+    collectionInitiated = false;
   }
 
   /**

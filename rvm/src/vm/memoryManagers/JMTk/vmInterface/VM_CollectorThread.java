@@ -305,8 +305,10 @@ public class VM_CollectorThread extends VM_Thread {
        * collector threads reside on the schedulers collectorQueue */
       VM_Scheduler.collectorMutex.lock();
       if (verbose >= 1) VM.sysWriteln("GC Message: VM_CT.run yielding");
-      if (count > 0) // resume normal scheduling
-	VM_Processor.getCurrentProcessor().enableThreadSwitching();  
+      if (count > 0) { // resume normal scheduling
+	Plan.collectionComplete();
+	VM_Processor.getCurrentProcessor().enableThreadSwitching();
+      }
       VM_Thread.getCurrentThread().yield(VM_Scheduler.collectorQueue,
 					 VM_Scheduler.collectorMutex);
       
@@ -438,7 +440,16 @@ public class VM_CollectorThread extends VM_Thread {
     }  // end of while(true) loop
     
   }  // run
-
+  
+  /**
+   * Return true if no threads are still in GC.  We do this by
+   * checking whether the GC lockout field has been cleared.
+   *
+   * @return <code>true</code> if no threads are still in GC.
+   */
+  static boolean noThreadsInGC() throws VM_PragmaUninterruptible {
+    return VM_Magic.getIntAtOffset(VM_BootRecord.the_boot_record, VM_Entrypoints.lockoutProcessorField.getOffset()) == 0;
+  }
 
   /**
    * If there are any attached processors (for user pthreads that
