@@ -232,7 +232,7 @@ public abstract class VM_Configuration {
 	  !BuildForSingleVirtualProcessor
 	    && !BuildForDedicatedNativeProcessors 
 	    && !BuildForConcurrentGC
-	    && !BuildForLinux // TEMP (SMP Linux builds die an immediate horrible death otherwise, probably due to a bug in the Linux 2.4 pThread implementation.)
+/	    && !BuildForLinux // TEMP (SMP Linux builds die an immediate horrible death otherwise, probably due to a bug in the Linux 2.4 pThread implementation.)
 	    ;
 	//-#endif
 
