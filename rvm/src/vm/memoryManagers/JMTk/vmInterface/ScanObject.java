@@ -34,12 +34,46 @@ import com.ibm.JikesRVM.VM_Synchronization;
 public class ScanObject implements VM_Constants, Constants {
 
   /**
+   * Scan a object, processing each pointer field encountered.  The
+   * object is not known to be a root object.
+   *
+   * @param object The object to be scanned.
+   */
+  public static void scan(VM_Address object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    scan(object, false, null, true);
+  }
+
+  /**
+   * Scan a root object, processing each pointer field encountered.
+   *
+   * @param object The root object to be scanned.
+   */
+  public static void rootScan(Object objRef)
+    throws VM_PragmaUninterruptible, VM_PragmaNoInline {
+    scan(VM_Magic.objectAsAddress(objRef), true, null, true);
+  }
+
+  /**
+   * Enumerate the pointers in an object, calling back to a given plan
+   * for each pointer encountered.
+   *
+   * @param object The object to be scanned.
+   * @param plan The plan with respect to which the callback should be made.
+   */
+  public static void enumeratePointers(VM_Address object, Plan plan) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    scan(object, false, plan, false);
+  }
+
+  /**
    * Scans an object or array for internal object references and
    * processes those references (calls processPtrField)
    *
    * @param objRef  reference for object to be scanned (as int)
    */
-  private static void scan (VM_Address objRef, boolean root)
+  private static void scan(VM_Address objRef, boolean root, Plan plan,
+			   boolean trace)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
 
     if (VM.VerifyAssertions) VM._assert(!objRef.isZero());
@@ -70,7 +104,10 @@ public class ScanObject implements VM_Constants, Constants {
     if (type.isClassType()) {
       int[] referenceOffsets = type.asClass().getReferenceOffsets();
       for(int i = 0, n=referenceOffsets.length; i < n; i++) {
-	VM_Interface.processPtrField( objRef.add(referenceOffsets[i]), root );
+	if (trace)
+	  VM_Interface.processPtrField(objRef.add(referenceOffsets[i]), root);
+	else
+	  VM_Interface.enumeratePtrLoc(objRef.add(referenceOffsets[i]), plan);
       }
       Statistics.profileScan(obj, 4 * referenceOffsets.length, tib);
     }
@@ -83,7 +120,10 @@ public class ScanObject implements VM_Constants, Constants {
         VM_Address location = objRef;    // for arrays = address of [0] entry
         VM_Address end      = objRef.add(numBytes);
         while ( location.LT(end) ) {
-          VM_Interface.processPtrField( location, root );
+	  if (trace)
+	    VM_Interface.processPtrField(location, root);
+	  else
+	    VM_Interface.enumeratePtrLoc(location, plan);
           location = location.add(WORD_SIZE);  // is this size_of_pointer ?
         }
         Statistics.profileScan(obj, numBytes, tib);
@@ -91,18 +131,6 @@ public class ScanObject implements VM_Constants, Constants {
     }
   } 
 
-  static void scan (Object objRef) throws VM_PragmaUninterruptible, VM_PragmaInline {
-    scan(VM_Magic.objectAsAddress(objRef), false);
-  }
-  public static void scan (VM_Address object) throws VM_PragmaUninterruptible, VM_PragmaInline {
-    scan(object, false);
-  }
-  public static void rootScan (Object objRef) throws VM_PragmaUninterruptible, VM_PragmaNoInline {
-    scan(VM_Magic.objectAsAddress(objRef), true);
-  }
-  public static void rootScan (VM_Address object) throws VM_PragmaUninterruptible, VM_PragmaNoInline {
-    scan(object, true);
-  }
 
   public static boolean validateRefs( VM_Address ref, int depth ) 
       throws VM_PragmaUninterruptible, VM_PragmaNoInline {

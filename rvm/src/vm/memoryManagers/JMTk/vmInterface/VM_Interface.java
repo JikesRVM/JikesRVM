@@ -421,8 +421,24 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     if (VM.VerifyAssertions) VM._assert(false); // unimplemented
   }
 
-  public static void processPtrField (VM_Address location, boolean root) throws VM_PragmaUninterruptible, VM_PragmaInline { 
+  public static void processPtrField(VM_Address location, boolean root)
+    throws VM_PragmaUninterruptible, VM_PragmaInline { 
     Plan.traceObjectLocation(location, root);
+  }
+
+  /**
+   * A pointer location has been enumerated by ScanObject.  This is
+   * the callback method, allowing the plan to perform an action with
+   * respect to that location.
+   *
+   * @param location An address known to contain a pointer.  The
+   * location is within the object being scanned by ScanObject.
+   * @param plan The plan that initiated the object scan.  A callback
+   * should be made to this plan.
+   */
+  public static void enumeratePtrLoc(VM_Address location, Plan plan)
+    throws VM_PragmaUninterruptible, VM_PragmaInline { 
+    plan.enumeratePointerLocation(location);
   }
 
   public static boolean isLive(VM_Address obj) throws VM_PragmaInline {
@@ -456,16 +472,16 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       VM_Address thAddr = VM_Magic.objectAsAddress(th);
       VM_Thread th2 = VM_Magic.addressAsThread(Plan.traceObject(thAddr, true));
       if (VM_Magic.objectAsAddress(th2).EQ(thAddr))
-	ScanObject.rootScan(thAddr);
-      ScanObject.rootScan(VM_Magic.objectAsAddress(th.stack));
+	ScanObject.rootScan(th);
+      ScanObject.rootScan(th.stack);
       if (th.jniEnv != null) {
-	ScanObject.rootScan(VM_Magic.objectAsAddress(th.jniEnv));
-	ScanObject.rootScan(VM_Magic.objectAsAddress(th.jniEnv.refsArray()));
+	ScanObject.rootScan(th.jniEnv);
+	ScanObject.rootScan(th.jniEnv.refsArray());
       }
-      ScanObject.rootScan(VM_Magic.objectAsAddress(th.contextRegisters));
-      ScanObject.rootScan(VM_Magic.objectAsAddress(th.contextRegisters.gprs));
-      ScanObject.rootScan(VM_Magic.objectAsAddress(th.hardwareExceptionRegisters));
-      ScanObject.rootScan(VM_Magic.objectAsAddress(th.hardwareExceptionRegisters.gprs));
+      ScanObject.rootScan(th.contextRegisters);
+      ScanObject.rootScan(th.contextRegisters.gprs);
+      ScanObject.rootScan(th.hardwareExceptionRegisters);
+      ScanObject.rootScan(th.hardwareExceptionRegisters.gprs);
       ScanThread.scanThread(th2, rootLocations, codeLocations);
     }
     ScanObject.rootScan(VM_Magic.objectAsAddress(VM_Scheduler.threads));

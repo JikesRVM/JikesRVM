@@ -261,6 +261,16 @@ public abstract class BasePlan
     return newObj.add(offset);
   }
 
+  /**
+   * A pointer location has been enumerated by ScanObject.  This is
+   * the callback method, allowing the plan to perform an action with
+   * respect to that location.  By default nothing is done.
+   *
+   * @param location An address known to contain a pointer.  The
+   * location is within the object being scanned by ScanObject.
+   */
+  public void enumeratePointerLocation(VM_Address location) {}
+
   public static boolean willNotMove (VM_Address obj) {
       return !VMResource.refIsMovable(obj);
   }
