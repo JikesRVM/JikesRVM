@@ -15,7 +15,7 @@ $(GEN_FILES_DIR)/VM_BaselineOptions.java: VM_BaselineOptions.template \
 					$(RVM_ROOT)/rvm/src/vm/compilers/utility/MasterOptions.template \
 					$(BOOLEAN_DAT_FILES) \
 					$(VALUE_DAT_FILES)
-	$(HOST_JAVA) -classpath $(SCRATCH_DIR) \
+	$(HOST_VM_RT) -classpath $(SCRATCH_DIR) \
 	GenerateFromTemplate VM_BaselineOptions.template \
 	$(GEN_FILES_DIR)/VM_BaselineOptions.java \
         BOOLEAN_DAT_FILES="$(BOOLEAN_DAT_FILES)" \
