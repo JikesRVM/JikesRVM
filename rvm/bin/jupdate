@@ -4,7 +4,7 @@
 #
 #$Id$
 #
-# @David Grove
+# @author Dave Grove
 #
 # Calls cvs -q update -d -P on all Jikes RVM repositories
 #

@@ -4,7 +4,7 @@
 #
 #$Id$
 #
-# @David Grove
+# @author Dave Grove
 #
 # Calls cvs diff on all Jikes RVM repositories
 #
