@@ -176,7 +176,11 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       case REF_IFCMP_opcode: s.operator = INT_IFCMP; break;
       case ATTEMPT_ADDR_opcode: s.operator = ATTEMPT_INT; break;
       case PREPARE_ADDR_opcode: s.operator = PREPARE_INT; break;
-      }
+      case INT_2ADDRSigExt_opcode: s.operator = INT_MOVE; break;
+      case INT_2ADDRZerExt_opcode: s.operator = INT_MOVE; break;
+      case ADDR_2INT_opcode: s.operator = INT_MOVE; break;
+      case ADDR_2LONG_opcode: s.operator = INT_2LONG; break;
+		}
 
       if (OPTIMIZE) {
         // update liveness 

@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
+import org.vmmagic.unboxed.Address;
 
 /**
  * This abstract class contains a bunch of useful static methods for
@@ -108,6 +109,20 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
   }
 
+  /**
+   * Create an address constant operand with a given value.
+   * To be used in passthrough expressions like
+   * <pre>
+   *    ...<op>.create(...., AC(Address.zero()) ...
+   * </pre>
+   *
+   * @param value, the address constant
+   * @return address constant operand
+   */
+  public static final OPT_AddressConstantOperand AC(Address value) {
+    return new OPT_AddressConstantOperand(value);
+  }
+  
   /**
    * Create an integer constant operand with a given value.
    * To be used in passthrough expressions like

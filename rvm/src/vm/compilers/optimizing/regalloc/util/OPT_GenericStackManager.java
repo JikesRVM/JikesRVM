@@ -1428,16 +1428,8 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * @return one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, CONDITION_VALUE
    */
   final byte getValueType(OPT_Register r) {
-    //-#if RVM_FOR_32_ADDR
-    if (r.isInteger() || r.isLong()) {
+    if (r.isInteger() || r.isLong() || r.isAddress()) {
       return INT_VALUE;
-    //-#endif
-    //-#if RVM_FOR_64_ADDR
-    if (r.isInteger()) {
-      return INT_VALUE;
-    } else if (r.isLong()) {
-      return LONG_VALUE;
-    //-#endif
     } else if (r.isCondition()) {
       return CONDITION_VALUE;
     } else if (r.isDouble()) {

@@ -158,7 +158,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
 
         // insert the PI-node instructions for a and b
         if (a.isRegister() && !a.asRegister().register.isPhysical() && 
-            a.asRegister().register.isInteger()) {
+            (a.asRegister().register.isInteger() || a.asRegister().register.isAddress())) {
           // insert pi-nodes only for variables, not constants
           OPT_Instruction s = GuardedUnary.create(
               PI, (OPT_RegisterOperand)a.copy(), 
@@ -180,7 +180,7 @@ public final class OPT_PiNodes extends OPT_CompilerPhase
           new2.prependInstruction(s);
         }
         if (b.isRegister() && !b.asRegister().register.isPhysical() && 
-            b.asRegister().register.isInteger()) {
+            (b.asRegister().register.isInteger() || b.asRegister().register.isAddress())) {
           OPT_Instruction s = GuardedUnary.create(
               PI, (OPT_RegisterOperand)b.copy(), 
               b.copy(), null);

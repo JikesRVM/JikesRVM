@@ -29,9 +29,9 @@ abstract class OPT_PhysicalRegisterTools extends OPT_GenericPhysicalRegisterTool
    */
   static OPT_Instruction makeMoveInstruction(OPT_RegisterOperand lhs, 
                                              OPT_RegisterOperand rhs) {
-    if (rhs.register.isInteger() || rhs.register.isLong()) {
+    if (rhs.register.isInteger() || rhs.register.isLong() || rhs.register.isAddress()) {
       if (VM.VerifyAssertions) 
-        VM._assert(lhs.register.isInteger() || lhs.register.isLong());
+        VM._assert(lhs.register.isInteger() || lhs.register.isLong() || lhs.register.isAddress());
       return MIR_Move.create(IA32_MOV, lhs, rhs);
     } else if (rhs.register.isDouble() || rhs.register.isFloat()) {
       if (VM.VerifyAssertions) 

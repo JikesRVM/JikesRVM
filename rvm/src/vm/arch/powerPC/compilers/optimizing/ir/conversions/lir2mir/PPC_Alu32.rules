@@ -210,3 +210,11 @@ EMIT_INSTRUCTION
                               IfCmp.getBranchProfile(P(p))));                 \
 }
 
+#####
+# ADDR_2LONG
+#####
+r:	ADDR_2LONG(r)
+20
+EMIT_INSTRUCTION
+ADDR_2LONG(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
+

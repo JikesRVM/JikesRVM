@@ -203,7 +203,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       s = MIR_Load.create(operator, D(RT), A(JTOC), IC(offset));
       EMIT(s);
     } else {
-      OPT_Register reg = regpool.getInteger();
+      OPT_Register reg = regpool.getAddress();
       int valueLow = OPT_Bits.PPCMaskLower16(offset);
       EMIT(MIR_Binary.create(PPC_ADDIS, A(reg), A(JTOC), IC(valueHigh)));
       s = MIR_Load.create(operator, D(RT), A(reg), IC(valueLow));
@@ -301,7 +301,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(MIR_Load.mutate(s, PPC_LWZ, i2, A(FP), IC(offset+4), null, TG()));
     //-#endif
     //-#if RVM_FOR_64_ADDR
-    EMIT(MIR_Load.create(PPC_LAddr, i1, A(FP), IC(offset), null, TG()));
+    EMIT(MIR_Load.mutate(s, PPC_LAddr, i1, A(FP), IC(offset), null, TG()));
     //-#endif
   }
 
@@ -1109,10 +1109,69 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(MIR_Binary.create(PPC_SRAWI, I(defHigh), left.copyU2U(), IC(31)));
     //-#endif
     //-#if RVM_FOR_64_ADDR
-    EMIT(MIR_Move.mutate(s, PPC_MOVE, L(defHigh), left));
-    EMIT(MIR_Unary.create(PPC64_EXTSW, L(defHigh), L(defHigh))); //KV: TODO: check is this necessary ?
+    //EMIT(MIR_Move.mutate(s, PPC_MOVE, L(defHigh), left));
+    EMIT(MIR_Unary.create(PPC64_EXTSW, def, left));
     //-#endif
 
+  }
+
+  protected final void INT_2ADDRSigExt(OPT_Instruction s, 
+                                 OPT_RegisterOperand def, 
+                                 OPT_RegisterOperand left) {
+    //-#if RVM_FOR_32_ADDR
+    EMIT(MIR_Move.mutate(s, PPC_MOVE, def, left));
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+ //   EMIT(MIR_Move.mutate(s, PPC_MOVE, def, left));
+    EMIT(MIR_Unary.create(PPC64_EXTSW, def, left)); //KV: TODO: is this necesary, or does move suffice ?
+    //-#endif
+
+  }
+
+  protected final void INT_2ADDRZerExt(OPT_Instruction s, 
+                                 OPT_RegisterOperand def, 
+                                 OPT_RegisterOperand left) {
+    //-#if RVM_FOR_32_ADDR
+    EMIT(MIR_Move.mutate(s, PPC_MOVE, def, left));
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    EMIT(MIR_Unary.create(PPC64_EXTZW, def, left)); 
+    //-#endif
+
+  }
+
+  //-#if RVM_FOR_64_ADDR
+  protected final void LONG_2ADDR(OPT_Instruction s, 
+                                 OPT_RegisterOperand def, 
+                                 OPT_RegisterOperand left) {
+    EMIT(MIR_Move.mutate(s, PPC_MOVE, def, left));
+  }
+  //-#endif
+  
+  protected final void ADDR_2INT(OPT_Instruction s, 
+                                 OPT_RegisterOperand def, 
+                                 OPT_RegisterOperand left) {
+    //-#if RVM_FOR_32_ADDR
+    EMIT(MIR_Move.mutate(s, PPC_MOVE, def, left));
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+//    EMIT(MIR_Move.mutate(s, PPC_MOVE, def, left));
+    EMIT(MIR_Unary.create(PPC64_EXTSW, def, left)); 
+    //-#endif
+  }
+
+  protected final void ADDR_2LONG(OPT_Instruction s, 
+                                 OPT_RegisterOperand def, 
+                                 OPT_RegisterOperand left) {
+    //-#if RVM_FOR_32_ADDR
+    OPT_Register defHigh = def.register;
+    OPT_Register defLow = regpool.getSecondReg(defHigh);
+    EMIT(MIR_Move.mutate(s, PPC_MOVE, I(defLow), left));
+    EMIT(MIR_Binary.create(PPC_SRAWI, I(defHigh), left.copyU2U(), IC(31)));
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    EMIT(MIR_Move.mutate(s, PPC_MOVE, def, left));
+    //-#endif
   }
 
   /**
@@ -1150,7 +1209,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     EMIT(MIR_Move.mutate(s, PPC_MOVE, def, I(srcLow)));
     //-#endif
     //-#if RVM_FOR_64_ADDR
-    EMIT(MIR_Move.mutate(s, PPC_MOVE, def, I(srcHigh)));
+    //EMIT(MIR_Move.mutate(s, PPC_MOVE, I(srcHigh), left));
+    EMIT(MIR_Unary.create(PPC64_EXTSW, I(srcHigh), left)); //sign extend to prevent highest bits to be faulty
     //-#endif
   }
 
@@ -1480,7 +1540,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                 OPT_RegisterOperand def,
                 OPT_RegisterOperand left,
                 OPT_RegisterOperand right) {
-    OPT_Register temp = regpool.getInteger();
+    OPT_Register temp = regpool.getLong();
     EMIT(MIR_Binary.mutate(s, PPC64_DIVD, L(temp), left, right));
     EMIT(MIR_Binary.create(PPC64_MULLD, L(temp), L(temp),
                            right.copyU2U()));
@@ -1492,7 +1552,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                     OPT_RegisterOperand left,
                     OPT_RegisterOperand c,
                     OPT_IntConstantOperand right) {
-    OPT_Register temp = regpool.getInteger();
+    OPT_Register temp = regpool.getLong();
     int power = PowerOf2(right.value);
     if (power != -1) {
       EMIT(MIR_Binary.mutate(s, PPC64_SRADI, L(temp), left, IC(power)));
@@ -1910,12 +1970,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     // 1. how many params
     int numparam = OsrPoint.getNumberOfElements(s);
     int numlong = 0;
+    //-#if RVM_FOR_32_ADDR
     for (int i = 0; i < numparam; i++) {
       if (OsrPoint.getElement(s, i).getType().isLongType()) {
         numlong++;
       }
     }
-
+    //-#endif
+    
     // 2. collect params
     OPT_Operand[] params = new OPT_Operand[numparam];
     for (int i = 0; i <numparam; i++) {
@@ -1941,6 +2003,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     for (int i = 0; i < numparam; i++) {
       OPT_Operand param = params[i];
       OsrPoint.setElement(s, i, param);
+      //-#if RVM_FOR_32_ADDR
       if (param instanceof OPT_RegisterOperand) {
         OPT_RegisterOperand rparam = (OPT_RegisterOperand)param;
         // the second half is appended at the end
@@ -1950,6 +2013,7 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
                             L(burs.ir.regpool.getSecondReg(rparam.register)));
         }
       }
+      //-#endif
     }
 
     if (VM.VerifyAssertions) VM._assert(pidx == (numparam+numlong));

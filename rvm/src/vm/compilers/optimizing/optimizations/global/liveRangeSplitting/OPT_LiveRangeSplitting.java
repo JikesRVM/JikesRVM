@@ -268,7 +268,34 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
               s = Unary.create(SPLIT,OPT_IRTools.D(r), OPT_IRTools.D(r));
               break;
             case OPT_Register.LONG_TYPE:
+              //-#if RVM_FOR_64_ADDR
+              //temporary until address have their own type in OPT_Register
+              OPT_RegisterOperand lhs2 = OPT_IRTools.L(r);
+              OPT_RegisterOperand rhs2 = OPT_IRTools.L(r);
+              s = Unary.create(SPLIT,lhs2,rhs2);
+              // fix up types: only split live ranges when the type is
+              // consistent at all defs
+              VM_TypeReference t2 = null;
+              OPT_RegisterOperandEnumeration e2 = OPT_DefUse.defs(r);
+              if (!e2.hasMoreElements()) {
+                s = null;
+              } else {
+                OPT_RegisterOperand rop2 = e2.next();
+                t2 = rop2.type;
+                while (e2.hasMoreElements()) {
+                  OPT_RegisterOperand nextOp2 = e2.next();
+                  if (nextOp2.type != t2) {
+                    s = null;
+                  }
+                }
+              }
+              if (s != null) {
+                lhs2.type = t2;
+                rhs2.type = t2;
+              }
+              //-#else
               s = Unary.create(SPLIT,OPT_IRTools.L(r), OPT_IRTools.L(r));
+              //-#endif
               break;
             default:
               // we won't split live ranges for other types.

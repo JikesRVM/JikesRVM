@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
-
+import org.vmmagic.unboxed.Address;
 /**
  * A constant folder, strength reducer and axiomatic simplifier. 
  *
@@ -1613,6 +1613,41 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
         }
       }
       return UNCHANGED;
+    case INT_2ADDRSigExt_opcode:
+      if (CF_INT) {
+        OPT_Operand op = Unary.getVal(s);
+        if (op.isIntConstant()) {
+          // CONSTANT: FOLD
+          int val = op.asIntConstant().value;
+          Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(Address.fromIntSignExtend(val)));
+          return MOVE_FOLDED;
+        }
+      }
+      return UNCHANGED;
+    case INT_2ADDRZerExt_opcode:
+      if (CF_INT) {
+        OPT_Operand op = Unary.getVal(s);
+        if (op.isIntConstant()) {
+          // CONSTANT: FOLD
+          int val = op.asIntConstant().value;
+          Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(Address.fromIntZeroExtend(val)));
+          return MOVE_FOLDED;
+        }
+      }
+      return UNCHANGED;
+    //-#if RVM_FOR_64_ADDR
+    case LONG_2ADDR_opcode:
+      if (CF_LONG) {
+        OPT_Operand op = Unary.getVal(s);
+        if (op.isLongConstant()) {
+          // CONSTANT: FOLD
+          long val = op.asLongConstant().value;
+          Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(Address.fromLong(val)));
+          return MOVE_FOLDED;
+        }
+      }
+      return UNCHANGED;
+    //-#endif
     case INT_2SHORT_opcode:
       if (CF_INT) {
         OPT_Operand op = Unary.getVal(s);
@@ -1632,6 +1667,28 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
           int val = op.asIntConstant().value;
           Move.mutate(s, FLOAT_MOVE, Unary.getClearResult(s), 
                       FC(Float.intBitsToFloat(val)));
+          return MOVE_FOLDED;
+        }
+      }
+      return UNCHANGED;
+    case ADDR_2INT_opcode:
+      if (CF_INT) {
+        OPT_Operand op = Unary.getVal(s);
+        if (op.isAddressConstant()) {
+          // CONSTANT: FOLD
+          Address val = op.asAddressConstant().value;
+          Move.mutate(s, INT_MOVE, Unary.getClearResult(s), IC(val.toInt()));
+          return MOVE_FOLDED;
+        }
+      }
+      return UNCHANGED;
+    case ADDR_2LONG_opcode:
+      if (CF_LONG) {
+        OPT_Operand op = Unary.getVal(s);
+        if (op.isAddressConstant()) {
+          // CONSTANT: FOLD
+          Address val = op.asAddressConstant().value;
+          Move.mutate(s, LONG_MOVE, Unary.getClearResult(s), LC(val.toLong()));
           return MOVE_FOLDED;
         }
       }

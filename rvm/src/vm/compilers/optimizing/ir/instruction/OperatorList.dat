@@ -943,6 +943,41 @@ none
 
 
 
+# convert an int (register/constant) operand to an address register operand
+INT_2ADDRSigExt
+Unary
+none
+
+
+
+# convert an int (register/constant) operand to an address register operand
+INT_2ADDRZerExt
+Unary
+none
+
+
+
+# convert ai long (register/constant) operand to an address register operand
+LONG_2ADDR
+Unary
+none
+
+
+
+# convert an address (register/constant) operand to an int register operand
+ADDR_2INT
+Unary
+none
+
+
+
+# convert an address (register/constant) operand to a long register operand
+ADDR_2LONG
+Unary
+none
+
+
+
 # convert an int (register/constant) operand to a long register operand
 INT_2LONG
 Unary

@@ -124,11 +124,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     } else if (type == INT_VALUE) {      // integer or half of long
       s.insertBack(MIR_Store.create(PPC_STAddr, A(r), A(FP),
                                     IC(location)));
-    //-#if RVM_FOR_64_ADDR
-    } else if (type == LONG_VALUE) {     // long
-      s.insertBack(MIR_Store.create(PPC_STAddr, L(r), A(FP),
-                                    IC(location)));
-    //-#endif
     } else
       throw new OPT_OptimizingCompilerException("insertSpillBefore", 
                                                 "unsupported type " +
@@ -142,7 +137,8 @@ public final class OPT_StackManager extends OPT_GenericStackManager
                                             OPT_Register rhs) {
     if (rhs.isFloatingPoint() && lhs.isFloatingPoint()) {
       return MIR_Move.create(PPC_FMR, D(lhs), D(rhs));
-    } else if (rhs.isInteger() && lhs.isInteger()) { // integer
+    //} else if (rhs.isInteger() && lhs.isInteger()) { // integer
+    } else if (rhs.isAddress() && lhs.isAddress()) { // integer
       return MIR_Move.create(PPC_MOVE, A(lhs), A(rhs));
     } else
       throw new OPT_OptimizingCompilerException("RegAlloc", 
@@ -175,10 +171,6 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       s.insertBack(MIR_Load.create(PPC_LFS, F(r), A(FP), IC(location)));
     } else if (type == INT_VALUE) { // integer or half of long
       s.insertBack(MIR_Load.create(PPC_LAddr, A(r), A(FP), IC(location)));
-    //-#if RVM_FOR_64_ADDR
-    } else if (type == LONG_VALUE) { // long
-      s.insertBack(MIR_Load.create(PPC_LAddr, L(r), A(FP), IC(location)));
-    //-#endif
     } else {
       throw new OPT_OptimizingCompilerException("insertUnspillBefore", 
                                                 "unknown type:" + type);

@@ -4,7 +4,7 @@
 //$Id$
 
 package com.ibm.JikesRVM.OSR;
-
+import com.ibm.JikesRVM.VM_SizeConstants;
 /**
  * OSR_Constants defines constants used for on-stack-replacement mapping,
  * JVM scope descriptor, and pseudo bytecodes.
@@ -12,7 +12,7 @@ package com.ibm.JikesRVM.OSR;
  * @author Feng Qian
  * @date 19 Dec 2002
  */
-public interface OSR_Constants {
+public interface OSR_Constants extends VM_SizeConstants {
 
   ////////////////////////////////////////////
   // Part I  constants used for opt compilation with OSR points
@@ -112,7 +112,7 @@ public interface OSR_Constants {
   public static final int SPILL      = 2;
 
 
-  public static final int LG_STACKWORD_WIDTH = 2;
+  public static final int LG_STACKWORD_WIDTH = LOG_BYTES_IN_ADDRESS;
 
 
   /////////////////////////////////////////////////

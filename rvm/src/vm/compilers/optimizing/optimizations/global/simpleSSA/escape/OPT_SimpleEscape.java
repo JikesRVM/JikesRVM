@@ -341,11 +341,14 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case GET_CLASS_OBJECT_opcode:case SET_CAUGHT_EXCEPTION_opcode:
       case PHI_opcode: case INT_2LONG_opcode:
       case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
+      case INT_2ADDRSigExt_opcode: case INT_2ADDRZerExt_opcode: case ADDR_2INT_opcode:
+      case ADDR_2LONG_opcode:
 //-#if RVM_FOR_64_ADDR
       case LONG_OR_opcode: case LONG_AND_opcode: case LONG_XOR_opcode:
       case LONG_SUB_opcode:case LONG_SHL_opcode: case LONG_ADD_opcode:
       case LONG_SHR_opcode:case LONG_USHR_opcode:case LONG_NEG_opcode:
       case LONG_MOVE_opcode:
+      case LONG_2ADDR_opcode:
 //-#endif
 //-#if RVM_FOR_IA32
       case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
@@ -474,11 +477,14 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case GET_CLASS_OBJECT_opcode:case SET_CAUGHT_EXCEPTION_opcode:
       case PHI_opcode: case INT_2LONG_opcode:
       case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
+      case INT_2ADDRSigExt_opcode: case INT_2ADDRZerExt_opcode: case ADDR_2INT_opcode:
+      case ADDR_2LONG_opcode:
 //-#if RVM_FOR_64_ADDR
       case LONG_OR_opcode: case LONG_AND_opcode: case LONG_XOR_opcode:
       case LONG_SUB_opcode:case LONG_SHL_opcode: case LONG_ADD_opcode:
       case LONG_SHR_opcode:case LONG_USHR_opcode:case LONG_NEG_opcode:
       case LONG_MOVE_opcode:
+      case LONG_2ADDR_opcode:
 //-#endif
 //-#if RVM_FOR_IA32
       case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:

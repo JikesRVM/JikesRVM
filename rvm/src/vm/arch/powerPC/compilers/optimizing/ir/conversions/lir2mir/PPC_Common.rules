@@ -1625,3 +1625,24 @@ r:      ATTEMPT_INT(r, r)
 EMIT_INSTRUCTION
 EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
 
+#####
+# INT_2ADDR
+#####
+r:	INT_2ADDRSigExt(r)
+10
+EMIT_INSTRUCTION
+INT_2ADDRSigExt(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p)))); 
+
+r:	INT_2ADDRZerExt(r)
+10
+EMIT_INSTRUCTION
+INT_2ADDRZerExt(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p)))); 
+
+#####
+# ADDR_2INT
+#####
+r:	ADDR_2INT(r)
+10
+EMIT_INSTRUCTION
+ADDR_2INT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
+

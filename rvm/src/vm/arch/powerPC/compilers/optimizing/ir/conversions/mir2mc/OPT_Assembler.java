@@ -344,6 +344,18 @@ public final class OPT_Assembler implements OPT_Operators, VM_Constants {
         }
         break;
 
+//-#if RVM_FOR_64_ADDR
+      case PPC64_EXTZW_opcode:
+        {
+          int op0 = MIR_Unary.getResult(p).register.number & REG_MASK;
+          int op1 = MIR_Unary.getValue(p).asRegister().register.number & REG_MASK;
+          int op3high = 1;  //op3low = 0, so op3 == 32
+          machinecodes.set(mi++, (inst | (op0 << 16) | (op1 << 21) | (op3high << 5)));
+          p.setmcOffset(mi << LG_INSTRUCTION_WIDTH);
+        }
+        break;
+//-#endif
+
       case PPC_ADDZE_opcode:case PPC_SUBFZE_opcode:
       case PPC_NEG_opcode:
       case PPC_NEGr_opcode:

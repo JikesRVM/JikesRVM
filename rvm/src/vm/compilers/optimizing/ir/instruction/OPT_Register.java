@@ -37,13 +37,20 @@ public final class OPT_Register {
   static private final int PHYSICAL         = 0x00010;  /* physical (real) register - not symbolic */
 
   /*  register type  for both physical and symbolic */
-  static private final int TYPE_SHIFT       = 7;        /* # bits to shift */
+  static private final int TYPE_SHIFT       = 6;        /* # bits to shift */
   static private final int INTEGER          = 0x00080;  /* integer */
   static private final int FLOAT            = 0x00100;  /* floating-point single precision */
   static private final int DOUBLE           = 0x00200;  /* floating-point double precision */
   static private final int CONDITION        = 0x00400;  /* condition: PPC,x86*/
   static private final int LONG             = 0x00800;  /* long (two ints)*/
   static private final int VALIDATION       = 0x01000;  /* validation pseudo-register */
+  //TEMPORARY HACK,should become this: static private final int ADDRESS          = 0x00040;  /* address */
+  //-#if RVM_FOR_32_ADDR
+  static private final int ADDRESS          = INTEGER;  /* address */
+  //-#endif
+  //-#if RVM_FOR_64_ADDR
+  static private final int ADDRESS          = LONG;  /* address */
+  //-#endif
 
 
   /* this for physical register only */
@@ -61,7 +68,8 @@ public final class OPT_Register {
 
 
   /* derived constants to be exported */
-  static private final int TYPE_MASK = (INTEGER|FLOAT|DOUBLE|CONDITION|LONG|VALIDATION);
+  static private final int TYPE_MASK = (ADDRESS|INTEGER|FLOAT|DOUBLE|CONDITION|LONG|VALIDATION);
+  public static final int ADDRESS_TYPE   = ADDRESS     >>> TYPE_SHIFT;
   public static final int INTEGER_TYPE   = INTEGER     >>> TYPE_SHIFT;
   public static final int FLOAT_TYPE     = FLOAT       >>> TYPE_SHIFT;
   public static final int DOUBLE_TYPE    = DOUBLE      >>> TYPE_SHIFT;
@@ -77,6 +85,7 @@ public final class OPT_Register {
   public boolean isPhysical()      { return (flags & PHYSICAL        ) != 0; }
   public boolean isSymbolic()      { return (flags & PHYSICAL        ) == 0; }
 
+  public boolean isAddress()       { return (flags & ADDRESS         ) != 0; }
   public boolean isInteger()       { return (flags & INTEGER         ) != 0; }
   public boolean isFloat()         { return (flags & FLOAT           ) != 0; } 
   public boolean isDouble()        { return (flags & DOUBLE          ) != 0; }
@@ -97,6 +106,7 @@ public final class OPT_Register {
   public void setSeenUse()         { flags |= SEEN_USE;         }
   public void setPhysical()        { flags |= PHYSICAL;         }
 
+  public void setAddress()         { flags |= ADDRESS;          }
   public void setInteger()         { flags |= INTEGER;          }
   public void setFloat()           { flags |= FLOAT;            }
   public void setDouble()          { flags |= DOUBLE;           }
@@ -117,6 +127,7 @@ public final class OPT_Register {
   public void clearSeenUse()         { flags &= ~SEEN_USE;         }
   public void clearPhysical()        { flags &= ~PHYSICAL;         }
 
+  public void clearAddress()         { flags &= ~ADDRESS;          }
   public void clearInteger()         { flags &= ~INTEGER;          }
   public void clearFloat()           { flags &= ~FLOAT;            }
   public void clearDouble()          { flags &= ~DOUBLE;           }
@@ -207,6 +218,7 @@ public final class OPT_Register {
   public String typeName() {
     String s = "";
     if (isCondition()) s += "c";
+    if (isAddress()) s += "a"; 
     if (isInteger()) s += "i"; 
     if (isDouble()) s += "d";
     if (isFloat()) s += "f";

@@ -22,7 +22,6 @@ public interface OPT_PhysicalRegisterConstants extends VM_RegisterConstants {
   static final byte DOUBLE_VALUE = 1;
   static final byte FLOAT_VALUE = 2;
   static final byte CONDITION_VALUE = 3;
-  static final byte LONG_VALUE = 4;
   
   // There are different types of hardware registers, so we define
   // the following register classes:

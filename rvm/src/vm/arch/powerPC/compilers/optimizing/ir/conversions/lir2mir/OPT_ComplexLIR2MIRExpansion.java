@@ -112,7 +112,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     OPT_BasicBlock BB2 = BB1.createSubBlock(0, ir);
     OPT_RegisterOperand cond = ir.regpool.makeTempCondition();
     BB1.appendInstruction(MIR_Binary.create(PPC_FCMPU, cond, D(src), D(src)));
-    BB1.appendInstruction(MIR_Unary.create(PPC_LDI, L(res), LC(0)));
+    BB1.appendInstruction(MIR_Unary.create(PPC_LDI, L(res), IC(0)));
     BB1.appendInstruction(MIR_CondBranch.create(PPC_BCOND, cond.copyD2U(), 
                                                 OPT_PowerPCConditionOperand.UNORDERED(), BB3.makeJumpTarget(),
                                                 new OPT_BranchProfileOperand()));

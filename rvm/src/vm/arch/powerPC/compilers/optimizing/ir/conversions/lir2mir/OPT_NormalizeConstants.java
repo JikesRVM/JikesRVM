@@ -329,8 +329,8 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
             OPT_IntConstantOperand ival = (OPT_IntConstantOperand)val;
             if ((ival.value < 0) || (ival.value > UNSIGNED_UPPER_IMMEDIATE)) {
               val.instruction = null;
-              OPT_RegisterOperand rop = ir.regpool.makeTempInt();
-              s.insertBefore(Move.create(INT_MOVE, rop, val));
+              OPT_RegisterOperand rop = ir.regpool.makeTempLong();
+              s.insertBefore(Move.create(LONG_MOVE, rop, val));
               Binary.setVal2(s, rop.copyD2U());
             }
           }
@@ -406,7 +406,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
                                       OPT_IR ir) {
     if (addr instanceof OPT_IntConstantOperand) {
       if (!canBeImmediate(((OPT_IntConstantOperand)addr).value)) {
-        OPT_RegisterOperand rop = ir.regpool.makeTempInt();
+        OPT_RegisterOperand rop = ir.regpool.makeTempLong();
         s.insertBefore(Move.create(LONG_MOVE, rop, addr));
         return rop.copyD2U();
       }

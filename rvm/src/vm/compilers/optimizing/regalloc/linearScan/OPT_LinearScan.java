@@ -1829,10 +1829,12 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         setInterval(reg, null); 
         OPT_RegisterAllocatorState.setSpill(reg,0);
         // clear the 'long' type if it's persisted to here.
+//-#if RVM_FOR_32_ADDR
         if (reg.isLong()) {
           reg.clearType();
           reg.setInteger();
         }
+//-#endif
       }
     }
 
