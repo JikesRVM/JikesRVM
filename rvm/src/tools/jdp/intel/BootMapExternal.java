@@ -482,7 +482,10 @@ class BootMapExternal extends BootMap {
     else {
       //-#if RVM_WITH_OPT_COMPILER
       if (compInfo.getCompilerType() == VM_CompilerInfo.OPT) {
-	return ((VM_OptCompilerInfo)compInfo).getEndPrologueOffset();
+	int result = ((VM_OptCompilerInfo)compInfo).getEndPrologueOffset();
+        // if result == -1, then there is no prologue
+        if (result == -1) result = 0;
+        return result;
       } else
       //-#endif
         {
