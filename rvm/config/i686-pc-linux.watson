@@ -43,7 +43,7 @@ export HOST_JAVA="$HOST_JAVA_HOME/bin/java"
 
 # 1.4.x JDKs on Linux seem to require that LD_LIBRARY_PATH be set to include
 # the JRE's various library paths (otherwise they don't find their .so files 
-# when invoked from ksh/make).
+# when invoked from shell scripts and make).
 # Here's how to do it to use HotSpot server with Blackdown 1.4.1
 export HOST_JAVA_LD_LIBRARY_PATH="$HOST_JAVA_HOME/jre/lib/i386/:$HOST_JAVA_HOME/jre/lib/i386/server"
 # Here's how to do it to using the IBM 1.4 DK 
