@@ -574,7 +574,8 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     ssad = ir.HIRInfo.SSADictionary;    
     OPT_DefUse.computeDU(ir);
     ssad.recomputeArrayDU();
-    new OPT_DominatorsPhase().perform(ir);
+    // Note: the following unfactors the CFG
+    new OPT_DominatorsPhase(true).perform(ir);
     OPT_Dominators.computeApproxPostdominators(ir);
     dominator = ir.HIRInfo.dominatorTree;
     int instructions = ir.numberInstructions();

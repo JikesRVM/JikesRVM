@@ -67,9 +67,6 @@ Pre-existence based inlining
 SSA 2 false
 Should SSA form be constructed on the HIR?
 
-UNFACTOR_FOR_SSA -1 true 
-Should we explode the factored CFG to enable SSA on methods with exceptions?
-
 PRUNED_SSA -1 true
 Use liveness information to reduce insert phi nodes?
 

@@ -228,7 +228,7 @@ class OPT_OptimizationPlanner {
         // Insert PI Nodes
         new OPT_PiNodes(true), 
         // Compute dominators
-        new OPT_DominatorsPhase(), 
+        new OPT_DominatorsPhase(true), 
         // compute dominance frontier
         new OPT_DominanceFrontier(), 
         // load elimination
@@ -281,7 +281,7 @@ class OPT_OptimizationPlanner {
 	 ("LIR SSA transformations", 
 	  new Object[] {
 	    // Compute dominators
-	    new OPT_DominatorsPhase(), 
+	    new OPT_DominatorsPhase(true), 
 	    // compute dominance frontier
 	    new OPT_DominanceFrontier(), 
 	    // Global Code Placement,

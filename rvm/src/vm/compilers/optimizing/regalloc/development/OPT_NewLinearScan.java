@@ -990,7 +990,11 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
       this.spillManager = sm;
 
       if (ir.options.getOptLevel() >= 2) {
-        spillCost = new OPT_LoopDepthSpillCost(ir);
+        if (ir.hasReachableExceptionHandlers()) {
+          spillCost = new OPT_SimpleSpillCost(ir);
+        } else {
+          spillCost = new OPT_LoopDepthSpillCost(ir);
+        }
       } else {
         switch (ir.options.SPILL_COST_ESTIMATE) {
           case OPT_Options.SIMPLE_SPILL_COST:
@@ -1000,7 +1004,11 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
             spillCost = new OPT_BrainDeadSpillCost(ir);
             break;
           case OPT_Options.LOOPDEPTH_SPILL_COST:
-            spillCost = new OPT_LoopDepthSpillCost(ir);
+            if (ir.hasReachableExceptionHandlers()) {
+              spillCost = new OPT_SimpleSpillCost(ir);
+            } else {
+              spillCost = new OPT_LoopDepthSpillCost(ir);
+            }
             break;
           default:
             OPT_OptimizingCompilerException.UNREACHABLE("unsupported spill cost");

@@ -39,7 +39,8 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
 
     if (ir.hasReachableExceptionHandlers()) return;
 
-    OPT_DominatorsPhase dom = new OPT_DominatorsPhase();
+    // Note: the following unfactors the CFG.
+    OPT_DominatorsPhase dom = new OPT_DominatorsPhase(true);
 
     for (;;) {
       dom.perform(ir);

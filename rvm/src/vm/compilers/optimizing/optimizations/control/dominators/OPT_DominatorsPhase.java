@@ -12,6 +12,19 @@
 final class OPT_DominatorsPhase extends OPT_CompilerPhase {
 
   /**
+   * Should we unfactor the CFG? 
+   */
+  private boolean unfactor = false;
+
+  /**
+   * @param unfactor Should we unfactor the CFG before computing
+   * dominators?
+   */
+  OPT_DominatorsPhase(boolean unfactor) {
+    this.unfactor = unfactor;
+  }
+
+  /**
    * Should this phase be performed?  This is a member of a composite
    * phase, so always return true.  The parent composite phase will
    * dictate.
@@ -50,7 +63,7 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
 
       // compute (forward) dominators, 
       // leaves info in scratch object of basic blocks
-      OPT_LTDominators.perform(ir, true);
+      OPT_LTDominators.perform(ir, true, unfactor);
 
       // create the dominator tree, relies on dominator info being
       // in scratch object of basic blocks
@@ -63,9 +76,7 @@ final class OPT_DominatorsPhase extends OPT_CompilerPhase {
       ir.HIRInfo.dominatorsAreComputed = true;
     } catch (OPT_OperationNotImplementedException e) {
       OPT_Options options = ir.options;
-      if (options.PRINT_DOMINATORS || options.PRINT_SSA) {
         OPT_Compiler.report(e.getMessage());
-      }
     }
   }
 }

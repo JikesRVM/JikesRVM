@@ -371,8 +371,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
     unSSAGuards (ir);
     
     // 1. re-compute dominator tree in case of control flow changes
-    //    (parmeter specifies we want regular dominators, not post-doms)
-    OPT_LTDominators.perform(ir, true);
+    OPT_LTDominators.perform(ir, true, true);
     OPT_DominatorTree dom = new OPT_DominatorTree(ir, true);
     // 2. compute liveness
     OPT_LiveAnalysis live = 

@@ -110,7 +110,7 @@ class OPT_EnterSSA extends OPT_CompilerPhase
     // initialize as needed for SSA options
     prepare();
     // work around problem with PEI-generated values and handlers
-    if (ir.options.UNFACTOR_FOR_SSA)
+    if (true /* ir.options.UNFACTOR_FOR_SSA */)
       patchPEIgeneratedValues();
     if (ir.options.PRINT_SSA)
       OPT_SSA.printInstructions(ir);

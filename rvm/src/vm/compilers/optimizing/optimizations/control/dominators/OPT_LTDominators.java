@@ -48,10 +48,11 @@ class OPT_LTDominators extends OPT_Stack {
    * The entry point for this phase
    * @param ir the IR
    * @param forward Should we compute regular dominators, or post-dominators?
+   * @param unfactor Should we unfactor the CFG?
    */
-  public static void perform(OPT_IR ir, boolean forward) {
+  public static void perform(OPT_IR ir, boolean forward, boolean unfactor) {
     if (ir.hasReachableExceptionHandlers()) {
-      if (ir.options.UNFACTOR_FOR_SSA) {
+      if (unfactor) {
         ir.unfactor(); 
       } else {
         throw  new OPT_OperationNotImplementedException(
