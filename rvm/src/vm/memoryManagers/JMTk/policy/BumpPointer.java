@@ -8,6 +8,9 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 
+import com.ibm.JikesRVM.VM_Processor;
+import com.ibm.JikesRVM.VM_Scheduler;
+
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.VM_Address;
@@ -37,7 +40,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 
-final class BumpPointer implements Constants, VM_Uninterruptible {
+final class BumpPointer extends Allocator implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /**
@@ -49,9 +52,13 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
    * acquire memory.
    */
   BumpPointer(MonotoneVMResource vmr) {
-    bp = INITIAL_BP_VALUE;
-    if (useLimit) limit = INITIAL_LIMIT_VALUE;
     vmResource = vmr;
+    reset();
+  }
+
+  public void reset () {
+    cursor = INITIAL_CURSOR_VALUE;
+    limit = INITIAL_LIMIT_VALUE;
   }
 
   /**
@@ -63,8 +70,7 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
    * pointer is to be associated.
    */
   public void rebind(MonotoneVMResource vmr) {
-    bp = INITIAL_BP_VALUE;
-    if (useLimit) limit = INITIAL_LIMIT_VALUE;
+    reset();
     vmResource = vmr;
   }
 
@@ -78,58 +84,41 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
    * @return The address of the first byte of the allocated region
    */
   final public VM_Address alloc(boolean isScalar, EXTENT bytes) throws VM_PragmaInline {
-    VM_Address oldbp = bp;
-    VM_Address newbp = oldbp.add(bytes);
-    bp = newbp;
+    VM_Address oldCursor = cursor;
+    VM_Address newCursor = oldCursor.add(bytes);
     if (useLimit) {
-      if (newbp.GT(limit))
-	return allocSlowPath(bytes);
+      if (newCursor.GT(limit))
+	return allocSlow (isScalar, bytes);
     }
     else {
-      VM_Word tmp = oldbp.toWord().xor(newbp.toWord());
+      VM_Word tmp = oldCursor.toWord().xor(newCursor.toWord());
       if (tmp.GT(VM_Word.fromInt(TRIGGER)))
-	return allocSlowPath(bytes);
+	return allocSlow (isScalar, bytes);
     }
-    return oldbp;
+    cursor = newCursor;
+    return oldCursor;
   }
 
-
-  final private VM_Address allocSlowPath(EXTENT bytes) throws VM_PragmaNoInline { 
+  final protected VM_Address allocSlowOnce (boolean isScalar, EXTENT bytes) {
     int chunkSize = ((bytes + CHUNK_SIZE - 1) >>> LOG_CHUNK_SIZE) << LOG_CHUNK_SIZE;
-    VM_Address start = VM_Address.zero();
-    for (int i=0; ; i++) {
-      start = vmResource.acquire(Conversions.bytesToPages(chunkSize));
-      if (!start.isZero()) break;
-      if (i > MAX_RETRY) {
-	   VM.sysWriteln("memoryResource committed = ", vmResource.memoryResource.committedPages());
-	   VM.sysWriteln("memoryResource reserved  = ", vmResource.memoryResource.reservedPages());
-	   VM.sysWriteln("vmresource.getPages         = ", vmResource.getPages());
-	   VM.sysWriteln("vmresource.usedPages         = ", vmResource.getUsedPages());
-	VM.sysWriteln("BumpPointer.allocSlowPath exceeded max retry ", MAX_RETRY);
-	VM.sysFail("Out of Memory - inconsistent with memory resource or vm range too small?");
-      }
-    }
-    if (Plan.verbose > 5) {
-      VM.sysWrite("BumpPointer.allocSlowPath acquired ", start);
-      VM.sysWriteln(" to ", start.add(chunkSize));
-    }
-    bp = start.add(bytes);
-    if (useLimit)
-      limit = start.add(chunkSize);
-    if (VM.VerifyAssertions) VM._assert(Memory.assertIsZeroed(start, chunkSize));
-    return start;
+    VM_Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
+    if (start.isZero())
+      return start;
+    Memory.zero(start, chunkSize);
+    cursor = start;
+    limit = start.add(chunkSize);
+    return alloc (isScalar, bytes);
   }
-
 
   public void show() {
-    VM.sysWriteln("bp = ", bp);
+    VM.sysWriteln("cursor = ", cursor, " limit = ", limit);
   }
 
   ////////////////////////////////////////////////////////////////////////////
   //
   // Instance variables
   //
-  private VM_Address bp;
+  private VM_Address cursor;
   private VM_Address limit;
   private MonotoneVMResource vmResource;
 
@@ -142,8 +131,7 @@ final class BumpPointer implements Constants, VM_Uninterruptible {
   private static final int LOG_CHUNK_SIZE = VMResource.LOG_PAGE_SIZE + 3;
   private static final int CHUNK_SIZE = 1 << LOG_CHUNK_SIZE;
   private static final EXTENT TRIGGER = CHUNK_SIZE - 1;
-  private static final VM_Address INITIAL_BP_VALUE = VM_Address.fromInt(TRIGGER);
+  private static final VM_Address INITIAL_CURSOR_VALUE = VM_Address.fromInt(TRIGGER);
   private static final VM_Address INITIAL_LIMIT_VALUE = VM_Address.fromInt(TRIGGER);
   private static final boolean useLimit = true;
-  private static final int MAX_RETRY = 3;
 }

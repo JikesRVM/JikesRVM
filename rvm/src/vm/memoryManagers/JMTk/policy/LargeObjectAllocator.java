@@ -33,7 +33,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-abstract class LargeObjectAllocator implements Constants, VM_Uninterruptible {
+abstract class LargeObjectAllocator extends Allocator implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
   
   ////////////////////////////////////////////////////////////////////////////
@@ -85,6 +85,18 @@ abstract class LargeObjectAllocator implements Constants, VM_Uninterruptible {
   }
 
   /**
+   * Allocate space for a copied object
+   *
+   * @param isScalar Is the object to be allocated a scalar (or array)?
+   * @param bytes The number of bytes allocated
+   * @return The address of the first byte of the allocated cell
+   */
+  public final VM_Address allocCopy(boolean isScalar, EXTENT bytes) 
+    throws VM_PragmaInline {
+    return alloc(isScalar, bytes, true);
+  }
+
+  /**
    * Allocate space for an object
    *
    * @param isScalar Is the object to be allocated a scalar (or array)?
@@ -95,28 +107,9 @@ abstract class LargeObjectAllocator implements Constants, VM_Uninterruptible {
    */
   private final VM_Address alloc(boolean isScalar, EXTENT bytes, boolean copy) 
     throws VM_PragmaInline {
-    VM_Address cell;
-    for (int count = 0; ; count++) {
-      cell = allocLarge(isScalar, bytes);
-      if (!cell.isZero()) break;
-      VM_Interface.getPlan().poll(true, memoryResource);
-      if (count > 2) VM.sysFail("Out of memory in LargeObejectAllocator.alloc");
-    }
+    VM_Address cell = allocSlow(isScalar, bytes);
     postAlloc(cell);
-    Memory.zero(cell, bytes);
     return cell;
-  }
-
-  /**
-   * Allocate space for a copied object
-   *
-   * @param isScalar Is the object to be allocated a scalar (or array)?
-   * @param bytes The number of bytes allocated
-   * @return The address of the first byte of the allocated cell
-   */
-  public final VM_Address allocCopy(boolean isScalar, EXTENT bytes) 
-    throws VM_PragmaInline {
-    return alloc(isScalar, bytes, true);
   }
 
   abstract protected void postAlloc(VM_Address cell);
@@ -132,13 +125,14 @@ abstract class LargeObjectAllocator implements Constants, VM_Uninterruptible {
    * @return The address of the start of the newly allocated region at
    * least <code>bytes</code> bytes in size.
    */
-  private final VM_Address allocLarge(boolean isScalar, EXTENT bytes) {
+  final protected VM_Address allocSlowOnce (boolean isScalar, EXTENT bytes) {
     int header = superPageHeaderSize() + cellHeaderSize();
-    bytes += header;
-    int pages = (bytes + PAGE_SIZE - 1)>>LOG_PAGE_SIZE;
+    int pages = (bytes + header + PAGE_SIZE - 1)>>LOG_PAGE_SIZE;
     VM_Address sp = allocSuperPage(pages);
     if (sp.isZero()) return sp;
-    return sp.add(header);
+    VM_Address cell = sp.add(header);
+    Memory.zero(cell, bytes);
+    return cell;
   }
 
   ////////////////////////////////////////////////////////////////////////////
