@@ -46,6 +46,7 @@
  * @modified by Perry Cheng  Heavily re-written to factor out common code and adding VM_Address
  */  
 public class VM_Allocator
+  extends VM_GCStatistics
   implements VM_Constants, VM_GCConstants, VM_Uninterruptible, VM_Callbacks.ExitMonitor {
 
   /**
@@ -99,6 +100,10 @@ public class VM_Allocator
   /** count times parallel GC threads attempt to mark the same object */
   private static final boolean COUNT_COLLISIONS = true;
 
+
+  static final int LOCAL_MATURE_EXHAUSTED = -1;
+  static final int MATURE_EXHAUSTED = -2;
+
   /**
    * Initialize for boot image.
    */
@@ -121,11 +126,11 @@ public class VM_Allocator
 
     verbose = bootrecord.verboseGC;
 
-    smallSpaceSize = bootrecord.smallSpaceSize;
+    smallHeapSize = bootrecord.smallSpaceSize;
     int largeSize = bootrecord.largeSpaceSize;
     int immortalSize = VM_Memory.roundUpPage((4 * largeSize / VM_Memory.getPagesize()) + 4 * VM_Memory.getPagesize());
     int nurserySize = bootrecord.nurserySize; 
-    int oneSpaceSize = VM_Memory.roundUpPage(smallSpaceSize / 2);
+    int oneSpaceSize = VM_Memory.roundUpPage(smallHeapSize / 2);
    
     // set delta for triggering major gc to .25 of nursery size (this is a guess)
     if (nurserySize > 20*1024*1024) {
@@ -138,10 +143,16 @@ public class VM_Allocator
     
     VM_Heap.boot(bootHeap, bootrecord);
     immortalHeap.attach(immortalSize);
-    nurseryHeap.attach(nurserySize);
     largeHeap.attach(largeSize);
-    fromHeap.attach(oneSpaceSize);
-    toHeap.attach(oneSpaceSize);
+    if (variableNursery) {
+	appelHeap.attach(smallHeapSize, nurseryHeap, fromHeap, toHeap);
+    }
+    else {
+	appelHeap = null;
+	nurseryHeap.attach(nurserySize);
+	fromHeap.attach(oneSpaceSize);
+	toHeap.attach(oneSpaceSize);
+    }
 
     if (COMPILE_FOR_TIMING_RUN) {
 	largeHeap.touchPages();
@@ -153,25 +164,18 @@ public class VM_Allocator
     if (VM.ParanoidGCCheck)
 	toHeap.protect();
 
-    // use "matureCurrentAddress" for destination allocation
-    matureCurrentAddress = fromHeap.start;
-    matureEndAddress = fromHeap.end;
-    
     // initialize pointers used for allocation in the nursery
-    areaCurrentAddress = nurseryHeap.start;
-    areaEndAddress     = nurseryHeap.end;     // will always be end of nursery
+    VM_Processor st = VM_Processor.getCurrentProcessor();
+    if (PROCESSOR_LOCAL_ALLOCATE)
+	VM_Chunk.resetChunk1(st, nurseryHeap, false);
+    if (PROCESSOR_LOCAL_MATURE_ALLOCATE)
+	VM_Chunk.resetChunk2(st, fromHeap, false);
     
-    // need address of areaCurrentAddress (in JTOC) for atomic fetchAndAdd()
-    // when JTOC moves, this must be reset
-    // offset of areaCurrentAddress in JTOC is set (in JDK side) in VM_EntryPoints 
-    addrAreaCurrentAddress = VM_Magic.getTocPointer().add(VM_Entrypoints.areaCurrentAddressField.getOffset());
-    addrMatureCurrentAddress = VM_Magic.getTocPointer().add(VM_Entrypoints.matureCurrentAddressField.getOffset());
-
     // check for inconsistent heap & nursery sizes
-    if (smallSpaceSize < nurserySize) {
+    if (smallHeapSize < nurserySize) {
       VM.sysWrite("\nNursery size is too large for the specified Heap size:\n");
       VM.sysWrite("  Small Object Heap Size = ");
-      VM.sysWrite(smallSpaceSize,false); VM.sysWrite("\n");
+      VM.sysWrite(smallHeapSize,false); VM.sysWrite("\n");
       VM.sysWrite("  Nursery Size = ");
       VM.sysWrite(nurserySize,false); VM.sysWrite("\n");
       VM.sysWrite("Use -X:h=nnn & -X:nh=nnn to specify a heap size at least twice as big as the nursery\n");
@@ -180,9 +184,7 @@ public class VM_Allocator
     }
     
     VM_GCUtil.boot();
-
     VM_Finalizer.setup();
-    
     VM_Callbacks.addExitMonitor(new VM_Allocator());
 
     if (verbose >= 1) showParameter();
@@ -190,13 +192,20 @@ public class VM_Allocator
 
   static void showParameter() {
 
-      VM.sysWriteln("\nGenerational Copying Collector with Fixed Sized Nursery");
-      VM.sysWrite("           Boot Image: "); bootHeap.show(); VM.sysWriteln();
-      VM.sysWrite("       Immortal Image: "); immortalHeap.show(); VM.sysWriteln();
-      VM.sysWrite("   First Mature Space: "); fromHeap.show(); VM.sysWriteln();
-      VM.sysWrite("  Second Mature Space: "); toHeap.show(); VM.sysWriteln();
-      VM.sysWrite("              Nursery: "); nurseryHeap.show(); VM.sysWriteln();
-      VM.sysWrite("          Large Space: "); largeHeap.show(); VM.sysWriteln();
+      if (variableNursery)
+	  VM.sysWriteln("\nGenerational Copying Collector with Variable Sized Nursery");
+      else
+	  VM.sysWriteln("\nGenerational Copying Collector with Fixed Sized Nursery");
+      bootHeap.show(); 
+      immortalHeap.show();
+      largeHeap.show();
+      if (variableNursery) 
+	  appelHeap.show();
+      else {
+	  nurseryHeap.show();
+	  fromHeap.show(); 
+	  toHeap.show();
+      }
       VM.sysWrite("  DELTA for triggering major GC = "); VM.sysWrite(MAJOR_GC_DELTA / 1024); VM.sysWriteln(" Kb");
 
       if (VM.ParanoidGCCheck)             VM.sysWriteln("  Compiled with ParanoidGCCheck on ");      
@@ -218,23 +227,22 @@ public class VM_Allocator
    * application programs.
    */
   public static void gc () {
-    if (verbose >= 1)
-      VM_Scheduler.trace("VM_Allocator","GC triggered by external call to gc() - forced major GC");
+
     forceMajorCollection = true;    // to force a major collection
-    gc1();
+    gc1("External Trigger ", 0);
   }
   
   /**
    * VM internal method to initiate a collection
    */
-  static void gc1 () {
+  static void gc1 (String why, int size) {
+    if (verbose >= 1)
+      VM.sysWriteln("Garbage collection: ", why, size);
     // if here and in a GC thread doing GC then it is a system error,
     //  GC thread must have attempted to allocate.
     if ( VM_Thread.getCurrentThread().isGCThread ) {
       VM.sysFail("VM_Allocator: Garbage Collection Failure: GC Thread attempting to allocate during GC");
-      // crash("VM_Allocator: Garbage Collection Failure: GC Thread asking for GC");
     }
-    
     // notify GC threads to initiate collection, wait until done
     VM_CollectorThread.collect(VM_CollectorThread.collect);
   }  // gc1
@@ -250,7 +258,7 @@ public class VM_Allocator
    * @return the number of bytes
    */
   public static long totalMemory () {
-    return (smallSpaceSize + largeHeap.size + nurseryHeap.size);
+    return (smallHeapSize + largeHeap.size + nurseryHeap.size);
   }
   
   /**
@@ -262,16 +270,25 @@ public class VM_Allocator
    */
   public static long freeMemory () {
     // remaining space in nursery & in current mature semi-space  ???????
-    return (areaEndAddress.diff(areaCurrentAddress)) + 
-	    (fromHeap.end.diff(matureCurrentAddress));
+    return (nurseryHeap.freeMemory() + fromHeap.freeMemory());
   }
 
+  /*
+   *  Includes freeMemory and per-processor local storage
+   */
+  public static long allSmallFreeMemory () {
+      return freeMemory() + VM_Chunk.freeMemoryChunk1();
+  }
+
+  public static long allSmallUsableMemory () {
+      return nurseryHeap.getSize() + fromHeap.getSize();
+  }
   /**
    * Print OutOfMemoryError message and exit.
    * TODO: make it possible to throw an exception, but this will have
    * to be done without doing further allocations (or by using temp space)
    */
-  private static void outOfMemory (String why) {
+  public static void outOfMemory (int size) {
 
     // First thread to be out of memory will write out the message,
     // and issue the shutdown. Others just spinwait until the end.
@@ -280,10 +297,22 @@ public class VM_Allocator
     if (!outOfMemoryReported) {
       outOfMemoryReported = true;
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
-      VM.sysWriteln("\nOutOfMemoryError: ", why);
-      VM.sysWrite("Insufficient heap size the for Generational (Fixed Nursery) Collector\n");
-      VM.sysWrite("Current heap size = ", smallSpaceSize / 1024, " Kb");
-      VM.sysWrite("\nSpecify a larger heap using -X:h=nnn command line argument\n");
+      VM.sysWriteln();
+      if (size > 0) {
+	  VM.sysWriteln("OutOfMemoryError: ", size);
+	  VM.sysWrite("Insufficient heap size the for Generational (Fixed Nursery) Collector\n");
+	  VM.sysWrite("Current heap size = ", smallHeapSize / 1024, " Kb");
+	  VM.sysWrite("\nSpecify a larger heap using -X:h=nnn command line argument\n");
+      }
+      else {
+	  if (size == LOCAL_MATURE_EXHAUSTED)
+	      VM.sysWrite("OutOfMemoryError: Local Mature Exhausted");
+	  else if (size == MATURE_EXHAUSTED)
+	      VM.sysWrite("OutOfMemoryError: Mature Exhausted");
+	  else 
+	      VM.sysWrite("OutOfMemoryError: Unknown code ", size);
+	  showParameter();
+      }
       // call shutdown while holding the processor lock
       VM.shutdown(-5);
     }
@@ -293,155 +322,113 @@ public class VM_Allocator
     }
   }
 
+
+
   /**
-   * Get space for a new object or array. If compiled to allocate from processor
-   * local chunks, it will attempt to allocate from the local chunk first, and if 
-   * insufficient space in the current chunk, acquires another chunk from the
-   * shared small object heap. If not compiled for processor local allocations
-   * all allocations (of "small" objects) are from the shared heap.
+   * Get space for a new object or array. 
    *
-   * If the size is greater than SMALL_SPACE_MAX, then space is allocated
-   * from the shared large object heap.
+   * This code simply dispatches to one of three routines that actually
+   * does the allocation.
+   * (1) If the object is large, then the large heap
+   * (2) Otherwise, either call VM_Chunk to do processor local
+   *     allocation or
+   * (3) call the allocation routine on fromHeap.
    * 
-   * A collection is initiated if space of the requested size is not available.
-   * After the collection, it will retry acquiring the space, and if it fails
-   * again, the system will exit with an "OUT OF MEMORY" error message.
-   * (A TODO is to throw a proper java Exception)
-   *
-   * @return the address of the first byte of the allocated region
+   * @param size number of bytes to allocate
+   * @return the address of the first byte of the allocated zero-filled region
    */
-  static VM_Address getHeapSpaceFast ( int size ) {
+  static VM_Address allocateRawMemory(int size) throws OutOfMemoryError {
     VM_Magic.pragmaInline();
-
-    if (PROCESSOR_LOCAL_ALLOCATE) { 
-      if (size < SMALL_SPACE_MAX) {
-	// NOTE: This code sequence is carefully written to generate
-	//       optimal code when inlined by the optimzing compiler.  
-	//       If you change it you must verify that the efficient 
-	//       inlined allocation sequence isn't hurt! --dave
-	VM_Address oldCurrent = VM_Processor.getCurrentProcessor().localCurrentAddress;
-	VM_Address newCurrent = oldCurrent.add(size);
-	if (newCurrent.LE(VM_Processor.getCurrentProcessor().localEndAddress)) {
-	  VM_Processor.getCurrentProcessor().localCurrentAddress = newCurrent;
-	  // if we didn't zero the block when we gave it to the processor,
-	  // then we must zero it now.
-	  if (!ZERO_BLOCKS_ON_ALLOCATION) VM_Memory.zeroTemp(oldCurrent, size);
-	  return oldCurrent;
-	}
-      }
-    } 
-    return getHeapSpaceSlow(size);
-  }  // getHeapSpaceFast
-
-
-  public static VM_Address getHeapSpaceSlow ( int size ) {
-
-      // make sure this method is NOT inlined
-    VM_Magic.pragmaNoInline();	         
-
-    if (VM.VerifyAssertions) {
-	VM_Thread t = VM_Thread.getCurrentThread();
-	VM.assert( gcInProgress == false );
-	VM.assert( (t.disallowAllocationsByThisThread == false) && ((size & 3) == 0) );
-    }
-    
     VM_Address addr;
-
-    // if large, allocate from large object space
-    if (size > SMALL_SPACE_MAX) {
-      addr = largeHeap.allocate(size);
-      if (addr.isZero()) {  // insufficient large space, try a GC
-	if (verbose >= 1) VM_Scheduler.trace("VM_Allocator","GC triggered by large object request",size);
-	forceMajorCollection = true;  // force a major collection to reclaim more large space
-	gc1();
-	addr = largeHeap.allocate(size);
-	if (addr.isZero()) {  
-	  // out of space...REALLY...or maybe NOT ?
-	  // maybe other user threads got the free space first, after the GC
-	  //
-	  largeHeap.outOfMemory( size );
-	}
-      }
-      return addr;
-    }  // end of - (size > SMALL_SPACE_MAX)
-
-    // now handle normal allocation of small objects in heap
-    
-    if (PROCESSOR_LOCAL_ALLOCATE) {
-      VM_Processor st = VM_Processor.getCurrentProcessor();
-      if ( st.localCurrentAddress.add(size).LE(st.localEndAddress) ) {
-	addr = st.localCurrentAddress;
-	st.localCurrentAddress = st.localCurrentAddress.add(size);
-      }
-      else { // not enough space in local chunk, get the next chunk for allocation
-	addr = VM_Synchronization.fetchAndAddAddressWithBound(addrAreaCurrentAddress, 
-							      CHUNK_SIZE, areaEndAddress );
-	if ( !addr.isMax() ) {
-	  st.localEndAddress = addr.add(CHUNK_SIZE);
-	  st.localCurrentAddress = addr.add(size);
-	  if (ZERO_BLOCKS_ON_ALLOCATION)
-	    VM_Memory.zeroPages(addr,CHUNK_SIZE);
-	}
-	else { // no space in system thread and no more chunks, do garbage collection
-	  if (verbose >= 1) VM_Scheduler.trace("VM_Allocator","GC triggered by request for small space CHUNK");
-	  gc1();
-	  
-	  // retry request for space
-	  // NOTE! may now be running on a DIFFERENT SYSTEM THREAD than before GC
-	  //
-	  st = VM_Processor.getCurrentProcessor();
-	  if ( st.localCurrentAddress.add(size).LE(st.localEndAddress) ) {
-	    addr = st.localCurrentAddress;
-	    st.localCurrentAddress = st.localCurrentAddress.add(size);
-	  }
-	  else {
-	    // not enough space in local chunk, get the next chunk for allocation
-	    //
-	    addr = VM_Synchronization.fetchAndAddAddressWithBound(addrAreaCurrentAddress, 
-								  CHUNK_SIZE, areaEndAddress );
-	    if ( !addr.isMax() ) {
-	      st.localEndAddress = addr.add(CHUNK_SIZE);
-	      st.localCurrentAddress = addr.add(size);
-	      if (ZERO_BLOCKS_ON_ALLOCATION)
-		VM_Memory.zeroPages(addr,CHUNK_SIZE);
-	    }
-	    else {
-	       // Unable to get chunk, after GC. Maybe should retry GC again, some
-	       // number of times. For now, call outOfMemory to print message and exit
-	       //
-	       outOfMemory("Failed to obtain space after GC");
-	    } 
-	  }
-	}  // else do gc
-      }  // else get new chunk from global heap
+    if (size >= SMALL_SPACE_MAX) {
+	addr = allocateLargeObject(size);
+    } else if (PROCESSOR_LOCAL_ALLOCATE) {
+	addr = VM_Chunk.allocateChunk1(size);
+	if (variableNursery && VM.VerifyAssertions) 
+	    VM.assert(appelHeap.addrInHeap(addr));
+    } else {
+      addr = allocateSmallObject(size);
+      if (ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(addr, size);
+	if (variableNursery && VM.VerifyAssertions) 
+	    VM.assert(appelHeap.addrInHeap(addr));
     }
-    else { // OLD CODE - all allocates from global heap 
-      
-      addr = VM_Synchronization.fetchAndAddAddressWithBound(addrAreaCurrentAddress, 
-							    size, areaEndAddress );
-      if ( addr.isMax() ) {
-	// do garbage collection, check if get space for object
-	if (verbose >= 1) VM.sysWrite("GC triggered by small object request\n");
-	gc1();
-	addr = VM_Synchronization.fetchAndAddAddressWithBound(addrAreaCurrentAddress, 
-							      size, areaEndAddress );
-	if ( addr.isMax() ) {
-  	   // out of space...REALLY
-  	   // BUT, maybe other user threads got the free space first, after the GC
-	   // For now, just give up, call outOfMemory to print message and exit
-	   //
-	   outOfMemory("Failed to obtain space after GC");
-	}
-      }
-    }  // end of ! PROCESSOR_LOCAL_ALLOCATE (OLD CODE)
-    
-    // addr -> beginning of allocated region
-    
-    if ( ! ZERO_BLOCKS_ON_ALLOCATION)
-      VM_Memory.zeroTemp(addr, size);
-    
     return addr;
-  }  // getHeapSpaceSlow
+  }
+
+
+  /**
+   * Logic to handle allocations from the large heap,
+   * triggering GC's as necessary and calling out of memory
+   * when forced to.
+   * 
+   * @param size the number of bytes to allocate
+   */
+  private static VM_Address allocateLargeObject(int size) throws OutOfMemoryError {
+    VM_Magic.pragmaNoInline();
+    VM_Address addr = largeHeap.allocate(size);
+    if (addr.isZero()) {
+      for (int i=0; i<3; i++) {
+	// There's a possible race condition where other Java threads
+	// chew up all the large heap (and some of it becomes garbage)
+	// before this thread gets to run again. 
+	// So, we try a couple times before giving up.
+	// This isn't a 100% solution, but it may handle it in practice.
+	forceMajorCollection = true;
+	gc1("GC triggered by large object request of ", size);
+	addr = largeHeap.allocate(size);
+	if (!addr.isZero()) return addr;
+      }
+      largeHeap.outOfMemory(size);
+    }
+    return addr;
+  }
+  
+  /**
+   * Handle small space allocations when !PROCESSOR_LOCAL_ALLOCATE
+   * @param size the number of bytes to allocate
+   */
+  private static VM_Address allocateSmallObject(int size) throws OutOfMemoryError {
+    VM_Address addr = fromHeap.allocate(size);
+    if (addr.isZero()) {
+      for (int i=0; i<3; i++) {
+	// There's a possible race condition where other Java threads
+	// chew up all the small heap (and some of it becomes garbage)
+	// before this thread gets to run again. 
+	// So, we try a couple times before giving up.
+	// This isn't a 100% solution, but it may handle it in practice.
+	gc1("GC triggered by large object request of ", size);
+	addr = fromHeap.allocate(size);
+	if (!addr.isZero()) return addr;
+      }
+      outOfMemory(size);
+    }
+    return addr;
+  }
+
+  /**
+   * Handle chunk1 backing heap (aka fromSpace) exhaustion by triggering a GC.
+   * 
+   * @param size number of bytes requested in the failing allocation
+   */
+  static void chunk1BackingHeapExhausted(int size) {
+    gc1("GC triggered by object request of ", size);
+  }
+
+  /**
+   * Handle chunk2 backing heap exhaustion by
+   * exiting with an out of memory error.
+   * In this collector this indicates that
+   * we didn't have enough space in toSpace to copy
+   * all the objects from fromSpace during a GC.
+   * Can happen due to chunking or object inflation
+   * due to hash codes.  Should be very rare and
+   * indicates that the heap is close to full anyways.
+   * 
+   * @param size number of bytes requested in the failing allocation
+   */
+  static void chunk2BackingHeapExhausted(int size) {
+    outOfMemory(LOCAL_MATURE_EXHAUSTED);
+  }
 
   /**
    * Allocate a scalar object. Fills in the header for the object,
@@ -457,7 +444,9 @@ public class VM_Allocator
 
     VM_Magic.pragmaInline();	// make sure this method is inlined
     
-    VM_Address region = getHeapSpaceFast(size);
+    profileAlloc(size, tib); // profile/debug; usually inlined away to nothing
+
+    VM_Address region = allocateRawMemory(size);
     Object newObj = VM_ObjectModel.initializeScalar(region, tib, size);
     if (size >= SMALL_SPACE_MAX) resetObjectBarrier(newObj);
     return newObj;
@@ -484,8 +473,8 @@ public class VM_Allocator
     //       must preserve alignment of future allocations
     size = VM_Memory.align(size, WORDSIZE);
 
-    VM_Address newRegion = getHeapSpaceFast(size);
-    Object newObj = VM_ObjectModel.initializeArray(newRegion, tib, numElements, size);
+    VM_Address region = allocateRawMemory(size);
+    Object newObj = VM_ObjectModel.initializeArray(region, tib, numElements, size);
     if (size >= SMALL_SPACE_MAX) resetObjectBarrier(newObj);
     return newObj;
   }  // allocateArray
@@ -524,19 +513,9 @@ public class VM_Allocator
   // size of buf to get before sysFail
   private final static int     CRASH_BUFFER_SIZE = 1024 * 1024;
   
-  /**
-   * Size of the fixed size Nursery.  Settable from the command line
-   * by specifying "-X:nh=nnn" where nnn is the nursery size in mega-bytes
-   * The nursery is subtracted from the specified heap size (-X:h=nnn)
-   */
-  static int nurserySize;
 
-  /**
-   * Size of the Small Object Heap.  This will be the specified heap size
-   * (specified by -X:h=nnn) less the specified size of the nursery
-   * (specified by -X:nh=nnn).
-   */
-  static int smallSpaceSize;
+  static int nurserySize;    // Set at command line with "-X:nh=nnn" where nnn is in mega-bytes
+  static int smallHeapSize;  // Equal to heap size (specified with "-X:h=nnn") less nursery size
   
   // MAJOR_GC_DELTA: if after a minor collection there is less than MAJOR_GC_DELTA left
   // in the mature space, then it is time to do a major collection.
@@ -558,63 +537,29 @@ public class VM_Allocator
 
   // Various heaps
   private static VM_Heap bootHeap = new VM_Heap("Boot Image Heap");   
-  private static VM_Heap fromHeap = new VM_Heap("Mature Small Object Heap 1");
-  private static VM_Heap toHeap   = new VM_Heap("Mature Small Object Heap 2");
-  private static VM_Heap nurseryHeap = new VM_Heap("Nursery Heap");
+  private static VM_ContiguousHeap fromHeap = new VM_ContiguousHeap("Mature Small Object Heap 1");
+  private static VM_ContiguousHeap toHeap   = new VM_ContiguousHeap("Mature Small Object Heap 2");
+  private static VM_ContiguousHeap nurseryHeap = new VM_ContiguousHeap("Nursery Heap");
   private static VM_ImmortalHeap immortalHeap = new VM_ImmortalHeap();
   private static VM_LargeHeap largeHeap = new VM_LargeHeap(immortalHeap);
+  private static VM_AppelHeap appelHeap = new VM_AppelHeap("Appel-style container heap");
+  //-#if RVM_WITH_VARIABLE_NURSERY
+  private static boolean variableNursery = true;
+  //-#else
+  private static boolean variableNursery = false;
+  //-#endif
 
   private static VM_ProcessorLock lock  = new VM_ProcessorLock();      // for signalling out of memory
 
-  // Area small objects are allocated from 
+  // TODO: these are no longer used; delete as soon as all allocators
+  //       have been switched to the new VM_Chunk code.
   static VM_Address areaCurrentAddress;
-  static VM_Address areaEndAddress;
-  static VM_Address addrAreaCurrentAddress;
+  static VM_Address matureCurrentAddress;  
 
-  private static VM_Address matureCurrentAddress;      // current allocation point in mature space
-  private static VM_Address matureEndAddress;          // end of mature space for internal allocation
-  private static VM_Address addrMatureCurrentAddress;  // address of above (in the JTOC)
-  private static VM_Address matureSaveAddress;         // end of mature space at beginning of GC
-  private static VM_Address matureBeforeMinor;         // ...for debugging to see closeness to heapMiddleAddress  
- 
   static boolean gcInProgress;      // true if collection in progress, initially false
-  static int gcCount = 0;           // number of minor collections
-  static int gcMajorCount = 0;      // number of major collections
   
-  private static double gcStartTime = 0;
-  private static double gcEndTime = 0;
-  private static double gcTimeBeforeZeroing = 0;
-  private static double gcMinorTime;             // for timing gc times
-  private static double gcMajorTime;             // for timing gc times
-  private static double gcTotalTime = 0;         // for timing gc times
-  static double maxMajorTime = 0.0;         // for timing gc times
-  static double maxMinorTime = 0.0;         // for timing gc times
-
-  private static double totalStartTime = 0.0;    // accumulated stopping time
-  private static double totalMinorTime = 0.0;    // accumulated minor gc time
-  private static double totalMajorTime = 0.0;    // accumulated major gc time
-  private static long   totalMajorBytesCopied = 0;    // accumulated major gc bytes copied
-  private static long   maxMajorBytesCopied = 0;      // max major gc bytes copied
-  private static long   totalMinorBytesCopied = 0;    // accumulated minor gc bytes copied
-  private static int    maxMinorBytesCopied = 0;      // max minor gc bytes copied
   private static int    collisionCount = 0;      // counts attempts to mark same object
   
-  // timestamps and accumulators for TIME_GC_PHASES output
-  private static double totalInitTime;
-  private static double totalStacksAndStaticsTime;
-  private static double totalScanningTime;
-  private static double totalFinalizeTime;
-  private static double totalFinishTime;
-  private static double totalInitTimeMajor;
-  private static double totalStacksAndStaticsTimeMajor;
-  private static double totalScanningTimeMajor;
-  private static double totalFinalizeTimeMajor;
-  private static double totalFinishTimeMajor;
-
-  private static double gcInitDoneTime = 0;
-  private static double gcStacksAndStaticsDoneTime = 0;    
-  private static double gcScanningDoneTime = 0;
-  private static double gcFinalizeDoneTime = 0;
   
   private static Object  gc_serialize = null;   // allocated in bootImage in init()
   
@@ -750,8 +695,10 @@ public class VM_Allocator
 
     if ( VM_GCLocks.testAndSetInitLock() ) {
       
-      gcStartTime = VM_Time.now();         // start time for GC
-      totalStartTime += gcStartTime - VM_CollectorThread.gcBarrier.rendezvousStartTime; //time since GC requested
+        startTime.start(VM_CollectorThread.gcBarrier.rendezvousStartTime); 
+	initTime.start(startTime);
+	minorGCTime.start(initTime.lastStart);
+    
       
       if (VM.VerifyAssertions) VM.assert( initGCDone == false );  
       
@@ -771,13 +718,12 @@ public class VM_Allocator
       minorGCDone = false;
       majorGCDone = false;
       
-      // remember current end of mature space
-      matureSaveAddress = matureCurrentAddress;
-      matureBeforeMinor = matureCurrentAddress;
+      fromHeap.recordSaved();
       
       // Now prepare large space for collection - clears out mark array
       largeHeap.startCollect();
-      
+      if (variableNursery) appelHeap.minorStart();
+
       // this gc thread copies own VM_Processor, resets processor register & processor
       // local allocation pointers (before copying first object to ToSpace)
       gc_initProcessor();
@@ -796,7 +742,7 @@ public class VM_Allocator
       // sync before setting initGCDone flag to allow other GC threads to proceed
       VM_Magic.sync();
       
-      if (TIME_GC_PHASES)  gcInitDoneTime = VM_Time.now();
+      rootTime.start(initTime);
       
       // set Done flag to allow other GC threads to begin processing
       initGCDone = true;
@@ -867,16 +813,14 @@ public class VM_Allocator
     
     // have processor 1 record timestame for end of scanning stacks & statics
     
-    if (TIME_GC_PHASES && (mylocal.gcOrdinal == 1))
-      gcStacksAndStaticsDoneTime = VM_Time.now();  // for time scanning stacks & statics
+    if (mylocal.gcOrdinal == 1) scanTime.start(rootTime);
     
     gc_processWriteBuffers();  // each GC thread processes its own writeBuffers
     
     gc_emptyWorkQueue();  // each GC thread processes its own work queue buffers
 
     // have processor 1 record timestame for end of scan/mark/copy phase
-    if (TIME_GC_PHASES && (mylocal.gcOrdinal == 1))
-      gcScanningDoneTime = VM_Time.now();
+    if (mylocal.gcOrdinal == 1) scanTime.stop();
     
     if (GCDEBUG_CHECKWB)
       // all write buffers were reset to empty earlier, check that still empty
@@ -907,6 +851,7 @@ public class VM_Allocator
 
       if (mylocal.gcOrdinal == 1) {
 
+	finalizeTime.start();
 	VM_GCWorkQueue.workQueue.reset();   // reset work queue shared control variables
 	
 	// one thread scans the hasFinalizer list for dead objects.  They are made live
@@ -932,6 +877,7 @@ public class VM_Allocator
 	gc_emptyWorkQueue();
 
       }
+      if (mylocal.gcOrdinal == 1) finalizeTime.stop();
     }  //  end of Finalization Processing
 
     // Each GC thread increments adds its wait times for this collection
@@ -944,12 +890,13 @@ public class VM_Allocator
     // minorGCDone flag has been set to false earlier
     //
     if ( VM_GCLocks.testAndSetFinishLock() ) {
+
+       finishTime.start();
       
       // BEGIN SINGLE GC THREAD SECTION - MINOR END
       
       // set ending times for preceeding finalization or scanning phase
       // do here where a sync (below) will push value to memory
-      if (TIME_GC_PHASES)  gcFinalizeDoneTime = VM_Time.now();
       
       if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "finishing minor collection");
       
@@ -962,7 +909,7 @@ public class VM_Allocator
       else {
 	// if after a minor collection, the end of mature objects is too close to end of
 	// current mature space, must do a major collection
-	if ( matureCurrentAddress.GE(fromHeap.end.sub(MAJOR_GC_DELTA)) )
+	if ( fromHeap.freeMemory() < MAJOR_GC_DELTA )
 	    majorCollection = true;
       }
 
@@ -980,32 +927,18 @@ public class VM_Allocator
 	
 	if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "initialize for MAJOR collection",gcMajorCount);
 	
-	gcEndTime = VM_Time.now();
-	gcMinorTime = gcEndTime - gcStartTime;
-	gcTotalTime = gcTotalTime + gcMinorTime;
-	totalMinorTime += gcMinorTime;
-	if (gcMinorTime > maxMinorTime) maxMinorTime = gcMinorTime;
-	bytes = matureCurrentAddress.diff(matureSaveAddress);
-	totalMinorBytesCopied += bytes;
+	if (variableNursery) appelHeap.minorEnd();
+	finishTime.stop();
+	minorGCTime.stop();
+	majorGCTime.start();
+	bytes = fromHeap.allocatedFromSaved();
+	updateGCStats(MINOR,bytes);
+	printGCStats(MINOR);
+	fromHeap.recordSaved();
 
-	// print -verbose output
-	  
-	if ( verbose >= 1 ) printVerboseOutputLine( 2 /*MINOR before MAJOR*/ );
+	if (variableNursery) appelHeap.majorStart();
 
-	// add current GC phase times into totals, print if verbose on
-	if (TIME_GC_PHASES) accumulateGCPhaseTimes( false );  	
-
-	if ( verbose >= 2 ) printWaitTimesAndCounts();
-
-	// reset gcStartTime timestamp for measuring major collection times
-	gcStartTime = VM_Time.now();
-	  
-	// remember current end of matureSpace
-	// initialize mature****Address
-	matureSaveAddress = matureCurrentAddress;
-	matureCurrentAddress = toHeap.start;
-	matureEndAddress = toHeap.end;
-	
+	initTime.start();	
 	if (VM.ParanoidGCCheck)
 	    toHeap.unprotect();
 
@@ -1038,7 +971,7 @@ public class VM_Allocator
 	if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "resetting locks",gcMajorCount);
 	VM_GCLocks.reset();
 	
-	if (TIME_GC_PHASES) gcInitDoneTime = VM_Time.now();
+	rootTime.start(initTime);
 	
       }  // End of setup for Major GC
       
@@ -1073,6 +1006,8 @@ public class VM_Allocator
     }
     
     // All GC THREADS IN PARALLEL
+    if (PROCESSOR_LOCAL_ALLOCATE)
+	VM_Chunk.resetChunk1(VM_Processor.getCurrentProcessor(), nurseryHeap, false);
     
     // if major GC not need, then finished, all GC threads return
     if ( !majorCollection ) {
@@ -1083,23 +1018,11 @@ public class VM_Allocator
       if ( selectedGCThread ) {
 
 	// get time spent in minor GC (including time to zero nursery, if done)
-	gcEndTime = VM_Time.now();
-	gcMinorTime = gcEndTime - gcStartTime;
-	gcTotalTime = gcTotalTime + gcMinorTime;
-	totalMinorTime += gcMinorTime;
-	if (gcMinorTime > maxMinorTime) maxMinorTime = gcMinorTime;
-	bytes = matureCurrentAddress.diff(matureSaveAddress);
-	if (bytes > maxMinorBytesCopied) maxMinorBytesCopied = bytes;
-	totalMinorBytesCopied += bytes;
-	
-	// print verbose output
-
-	if ( verbose >= 1 ) printVerboseOutputLine( 1 /* MINOR */ );
-
-	// add current GC phase times into totals, print if verbose on
-	if (TIME_GC_PHASES) accumulateGCPhaseTimes( false );  	
-
-	if ( verbose >= 2 ) printWaitTimesAndCounts();
+	finishTime.stop();
+	minorGCTime.stop();
+	bytes = fromHeap.allocatedFromSaved();
+	updateGCStats(MINOR, bytes);
+	printGCStats(MINOR);
 
       }  // end selectedThread
       
@@ -1140,14 +1063,12 @@ public class VM_Allocator
     mylocal.rendezvousWaitTime += VM_CollectorThread.gcBarrier.rendezvous(RENDEZVOUS_TIMES || RENDEZVOUS_WAIT_TIME);
     
     // have processor 1 record timestame for end of scanning stacks & statics
-    if (TIME_GC_PHASES && (mylocal.gcOrdinal == 1))
-      gcStacksAndStaticsDoneTime = VM_Time.now(); // for time scanning stacks & statics
+    if (mylocal.gcOrdinal == 1) scanTime.start(rootTime);
     
     gc_emptyWorkQueue();  // each GC thread processes its own work queue buffers
     
     // have processor 1 record timestame for end of scan/mark/copy phase
-    if (TIME_GC_PHASES && (mylocal.gcOrdinal == 1))
-      gcScanningDoneTime = VM_Time.now();
+    if (mylocal.gcOrdinal == 1) scanTime.stop();
     
     if (GCDEBUG_CHECKWB) {
       VM_Scheduler.trace("---checking writebuffer","after emptyWorkQueue");
@@ -1169,6 +1090,7 @@ public class VM_Allocator
 
       if (mylocal.gcOrdinal == 1) {
 
+	finalizeTime.start();
 	VM_GCWorkQueue.workQueue.reset();   // reset work queue shared control variables
 	
 	// one thread scans the hasFinalizer list for dead objects.  They are made live
@@ -1192,10 +1114,11 @@ public class VM_Allocator
 	// to mark and keep live all objects reachable from the new finalizable objects.
 	//
 	gc_emptyWorkQueue();
-
       }
+    if (mylocal.gcOrdinal == 1) finalizeTime.stop();
     }  //  end of Finalization Processing
 
+    if (mylocal.gcOrdinal == 1) finishTime.start();
     // Each GC thread increments adds its wait times for this collection
     // into its total wait time - for printSummaryStatistics output
     //
@@ -1208,7 +1131,6 @@ public class VM_Allocator
       
       // set ending times for preceeding finalization phase
       // do here where a sync (below) will push value to memory
-      if (TIME_GC_PHASES)  gcFinalizeDoneTime = VM_Time.now();
       
       if (verbose >= 1) VM_Scheduler.trace("VM_Allocator", "(major collection) doing gc_finish");
       
@@ -1230,29 +1152,19 @@ public class VM_Allocator
     
     // ALL GC THREADS IN PARALLEL - AFTER MAJOR COLLECTION
     
+    if (PROCESSOR_LOCAL_ALLOCATE)
+	VM_Chunk.resetChunk1(VM_Processor.getCurrentProcessor(), nurseryHeap, false);
+
     // generate -verbosegc output, done here after (possibly) zeroing nursery. 
     // this is done by the 1 gc thread that finished the preceeding GC
     //
     if ( selectedGCThread ) {
 
-      gcEndTime  = VM_Time.now();
-      // get time spent in major GC (including time to zero nursery, if done now)
-      gcMajorTime = gcEndTime - gcStartTime;
-      gcTotalTime = gcTotalTime + gcMajorTime;
-      totalMajorTime += gcMajorTime;
-      if (gcMajorTime > maxMajorTime) maxMajorTime = gcMajorTime;
-      bytes = matureCurrentAddress.diff(fromHeap.start);
-      if (bytes > maxMajorBytesCopied) maxMajorBytesCopied = bytes;
-      totalMajorBytesCopied += bytes;
-
-      // print verbose output
-
-      if ( verbose >= 1 ) printVerboseOutputLine( 3 /* MAJOR*/ );
-
-      // add current GC phase times into totals, print if verbose on
-      if (TIME_GC_PHASES) accumulateGCPhaseTimes( true );  	
-      
-      if ( verbose >= 2 ) printWaitTimesAndCounts();
+      finishTime.stop();
+      majorGCTime.stop();
+      bytes = fromHeap.current().diff(fromHeap.start);
+      updateGCStats(MAJOR, bytes);
+      printGCStats(MAJOR);
 
     }  // end selectedThread
     
@@ -1270,13 +1182,6 @@ public class VM_Allocator
   // Executed by 1 Collector thread at the end of collection.
   //
   static void gc_finish () {
-    
-    short[]  shorttemp;
-    
-    // switch allocation pointer to beginning of Nursery
-    areaCurrentAddress = nurseryHeap.start;
-    
-    if (verbose >= 2) gcTimeBeforeZeroing = VM_Time.now();
     
     // for this collector "zapFromSpace" means zap the nursery and protect a mature space
     if (VM.ParanoidGCCheck) {
@@ -1302,11 +1207,21 @@ public class VM_Allocator
     
     if (majorCollection) {
 	largeHeap.endCollect();
-	VM_Heap temp = fromHeap;  // swap spaces
-	fromHeap = toHeap;
-	toHeap = temp;
+	if (variableNursery) 
+	    appelHeap.majorEnd();
+	else {
+	    fromHeap.reset();
+	    VM_ContiguousHeap temp = fromHeap;  // swap spaces
+	    fromHeap = toHeap;
+	    toHeap = temp;
+	}
+    }
+    else {
+	if (variableNursery) appelHeap.minorEnd();
     }
 
+    nurseryHeap.reset();
+    
     prepareNonParticipatingVPsForAllocation();
 
     gcInProgress = false;
@@ -1321,6 +1236,7 @@ public class VM_Allocator
     return;
   }  // gc_finish
   
+
   /**
    * Internal method called by collector threads during collection to
    * get space in ToSpace for a live object that needs to be copied.
@@ -1330,46 +1246,14 @@ public class VM_Allocator
    */
   static VM_Address gc_getMatureSpace ( int size ) {
     
-    VM_Address startAddress, newCurrentAddress;  
-    
-    // if compiled for processor local chunking of "mature space" attempt to allocate
-    // in currently assigned region of mature space (other semi-space in simple semi-space scheme).
-    // if not enough room, get another mature chunk using lwarx_stwcx
-    //
-    if (PROCESSOR_LOCAL_MATURE_ALLOCATE == true) {
-      VM_Processor st = VM_Processor.getCurrentProcessor();
-      
-      if (VM_GCWorkQueue.COUNT_GETS_AND_PUTS)
-	VM_Magic.threadAsCollectorThread(st.activeThread).copyCount++;
-      
-      startAddress = st.localMatureCurrentAddress;
-      newCurrentAddress = startAddress.add(size);
-      if ( newCurrentAddress.LE(st.localMatureEndAddress) ) {
-	st.localMatureCurrentAddress = newCurrentAddress;    // increment processor local pointer
-	return startAddress;
-      }
-      else {
-	  startAddress = VM_Synchronization.fetchAndAddAddressWithBound(addrMatureCurrentAddress,
-									CHUNK_SIZE, matureEndAddress);
-	  if (startAddress.isMax()) 
-	    outOfMemory("Failed to obtain memory during major GC - Increase Major GC Threshold\n");
-	// startAddress = beginning of new mature space chunk for this processor
-	st.localMatureEndAddress = startAddress.add(CHUNK_SIZE);
-	st.localMatureCurrentAddress = startAddress.add(size);
-	return startAddress;
-      }
-    } // end of chunking logic
-    
-    // else old non chunking logic, use single mature space ptr
-    else {
-	startAddress = VM_Synchronization.fetchAndAddAddressWithBound(addrMatureCurrentAddress, 
-								      size, matureEndAddress);
-	if (startAddress.isMax()) 
-	    outOfMemory("Failed to obtain memory during major GC - Increase Major GC Threshold\n");
-	return startAddress;
-    } // end old non-chunking logic
-  }  // getMatureSpace
-  
+    if (PROCESSOR_LOCAL_MATURE_ALLOCATE) {
+      return VM_Chunk.allocateChunk2(size);
+    } else {
+      VM_Address addr = toHeap.allocate(size);
+      if (addr.isZero()) outOfMemory(MATURE_EXHAUSTED);
+      return addr;
+    }
+  }
 
   
   /**
@@ -1429,8 +1313,9 @@ public class VM_Allocator
       toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
       toRef = VM_Magic.objectAsAddress(toObj);
       if (arrayType == VM_Type.CodeType) {
-	// sync all arrays of ints - must sync moved code instead of sync'ing chunks when full
-	VM_Memory.sync(toRef, numBytes);
+	  // sync all arrays of ints - must sync moved code instead of sync'ing chunks when full
+	  int dataSize = numBytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
+	  VM_Memory.sync(toRef, dataSize);
       }
     }
     
@@ -1590,7 +1475,7 @@ public class VM_Allocator
 	// this is for "attached" threads that have returned to C, but
 	// have been given references which now reside in the JNIEnv sidestack
 	//
-	if (verbose >= 2) VM_Scheduler.trace("VM_Allocator","scanning stack for thread",i);
+	if (verbose >= 3) VM.sysWriteln("Scanning stack for thread ",i);
 	VM_ScanStack.scanStack( t, VM_Address.zero(), true /*relocate_code*/ );
 
       }  // (if true) we seized got the thread to process
@@ -1619,10 +1504,12 @@ public class VM_Allocator
     // for minor collection, continue filling last/current mature buffer
     //
     if (PROCESSOR_LOCAL_MATURE_ALLOCATE) {
-      if (majorCollection) {
-	st.localMatureCurrentAddress = VM_Address.zero();
-	st.localMatureEndAddress = VM_Address.zero();
-      }
+      // no allocation during GC
+      VM_Chunk.resetChunk1(st, null, false);
+      if (majorCollection) 
+	  VM_Chunk.resetChunk2(st, toHeap, false);
+      else
+	  VM_Chunk.resetChunk2(st, fromHeap, false);
     }
     
     // Cannot use procesPtrField here since work buffers not available yet
@@ -1644,8 +1531,7 @@ public class VM_Allocator
       // reset local heap pointers .. causes first mutator allocate to
       // get a new local Chunk from the shared heap
       //
-      st.localCurrentAddress = VM_Address.zero();
-      st.localEndAddress     = VM_Address.zero();
+      VM_Chunk.resetChunk1(st, nurseryHeap, false);
     }
     
     // if Processors activethread (should be current, gc, thread) is in fromHeap, copy and
@@ -1678,7 +1564,7 @@ public class VM_Allocator
     
     if (PROCESSOR_LOCAL_ALLOCATE) {
       // local heap pointer set in initProcessor, should still be 0, ie no allocates yet
-      if (VM.VerifyAssertions) VM.assert(st.localCurrentAddress.isZero());
+      if (VM.VerifyAssertions) VM.assert(VM_Chunk.unusedChunk1(st));
     }
     
     if (VM.VerifyAssertions) {
@@ -1740,28 +1626,6 @@ public class VM_Allocator
     return validForwardingPtr( ref );
   }
   
-  static void dumpProcessorsArray () {
-    VM_Processor st;
-    VM.sysWrite("VM_Scheduler.processors[]:\n");
-    for (int i = 0; ++i <= VM_Scheduler.numProcessors;) {
-      st = VM_Scheduler.processors[i];
-      VM.sysWrite(" i = ");
-      VM.sysWrite(i);
-      if (st==null) 
-	VM.sysWrite(" st is NULL");
-      else {
-	VM.sysWrite(", id = ");
-	VM.sysWrite(st.id);
-	VM.sysWrite(", address = ");
-	VM.sysWrite(VM_Magic.objectAsAddress(st));
-	VM.sysWrite(", buffer = ");
-	VM.sysWrite(VM_Magic.objectAsAddress(st.modifiedOldObjects));
-	VM.sysWrite(", top = ");
-	VM.sysWrite(st.modifiedOldObjectsTop);
-      }
-      VM.sysWrite("\n");
-    }
-  }
   
   // Somebody tried to allocate an object within a block
   // of code guarded by VM.disableGC() / VM.enableGC().
@@ -1772,293 +1636,16 @@ public class VM_Allocator
   }
   
   // Called from VM_Processor constructor: 
-  // Must alloc & initialize write buffer, allocation pointers already zero
+  // Must alloc & initialize write buffer
+  // allocation chunk associated with nursery
   static void setupProcessor (VM_Processor p) {
     VM_WriteBuffer.setupProcessor(p);
+    if (PROCESSOR_LOCAL_ALLOCATE) 
+      VM_Chunk.resetChunk1(p, nurseryHeap, false);
   }
   
   // following referenced by refcountGC methods (but not called)
   static void gc_scanStacks () { VM.assert(false); }
-
-  private static void accumulateGCPhaseTimes ( boolean afterMajor ) {
-    double start = 0.0;
-    if (!afterMajor) 
-      start    = gcStartTime - VM_CollectorThread.gcBarrier.rendezvousStartTime;
-    double init     = gcInitDoneTime - gcStartTime;
-    double stacksAndStatics = gcStacksAndStaticsDoneTime - gcInitDoneTime;
-    double scanning = gcScanningDoneTime - gcStacksAndStaticsDoneTime;
-    double finalize = gcFinalizeDoneTime - gcScanningDoneTime;
-    double finish   = gcEndTime - gcFinalizeDoneTime;
-
-    // add current GC times into totals for summary output
-    //    totalStartTime += start;   // always measured in ge initialization
-    if (!afterMajor) {
-      totalInitTime += init;
-      totalStacksAndStaticsTime += stacksAndStatics;
-      totalScanningTime += scanning;
-      totalFinalizeTime += finalize;
-      totalFinishTime += finish;
-    }
-    else {
-      totalInitTimeMajor += init;
-      totalStacksAndStaticsTimeMajor += stacksAndStatics;
-      totalScanningTimeMajor += scanning;
-      totalFinalizeTimeMajor += finalize;
-      totalFinishTimeMajor += finish;
-    }
-
-    // if invoked with -verbose:gc print output line for this last GC
-    if (verbose >= 1) {
-      VM.sysWrite("<GC ");
-      VM.sysWrite(gcCount,false);
-      if (!afterMajor) {
-	VM.sysWrite(" startTime ");
-	VM.sysWrite( (int)(start*1000000.0), false);
-	VM.sysWrite("(us)");
-      }
-      VM.sysWrite(" init ");
-      VM.sysWrite( (int)(init*1000000.0), false);
-      VM.sysWrite("(us) stacks & statics ");
-      VM.sysWrite( (int)(stacksAndStatics*1000000.0), false);
-      VM.sysWrite("(us) scanning ");
-      VM.sysWrite( (int)(scanning*1000.0), false );
-      VM.sysWrite("(ms) finalize ");
-      VM.sysWrite( (int)(finalize*1000000.0), false);
-      VM.sysWrite("(us) finish ");
-      VM.sysWrite( (int)(finish*1000000.0), false);
-      VM.sysWrite("(us)>\n");
-    }
-  }  // accumulateGCPhaseTimes
-
-  static void printSummaryStatistics () {
-    int np = VM_Scheduler.numProcessors;
-
-    // produce summary system exit output if -verbose:gc was specified of if
-    // compiled with measurement flags turned on
-    //
-    if ( ! (TIME_GC_PHASES || VM_CollectorThread.MEASURE_WAIT_TIMES || verbose >= 1) )
-      return;     // not verbose, no flags on, so don't produce output
-
-    // the bytesCopied counts count whole chunks. The last chunk acquired for
-    // copying objects is partially full/empty, on avg. half full.  So we
-    // subtrace from the average, half of space in a set of chunks
-    //
-    int avgBytesFreeInChunks = (VM_Scheduler.numProcessors * CHUNK_SIZE) >> 1;
-
-    VM.sysWrite("\nGC stats: Copying Generational Collector - Fixed Nursery (");
-    VM.sysWrite(np,false);
-    VM.sysWrite(" Collector Threads ):\n");
-    VM.sysWrite("          Heap Size ", smallSpaceSize);
-    VM.sysWrite("  Nursery Size ", nurseryHeap.size);
-    VM.sysWrite("  Large Object Heap Size ", largeHeap.size);
-    VM.sysWrite("\n");
-
-    VM.sysWrite("  ");
-    if (gcCount == 0)
-      VM.sysWrite("0 MinorCollections");
-    else {
-      VM.sysWrite(gcCount,false);
-      VM.sysWrite(" MinorCollections: avgTime ");
-      VM.sysWrite( (int)( ((totalMinorTime/(double)gcCount)*1000.0) ),false);
-      VM.sysWrite(" (ms) maxTime ");
-      VM.sysWrite( (int)(maxMinorTime*1000.0),false);
-      VM.sysWrite(" (ms) avgBytesCopied ");
-      VM.sysWrite((int)(totalMinorBytesCopied/gcCount)-avgBytesFreeInChunks,false);
-      VM.sysWrite(" maxBytesCopied ");
-      VM.sysWrite(maxMinorBytesCopied,false);
-      VM.sysWrite("\n");
-    }
-
-    VM.sysWrite("  ");
-    if (gcMajorCount == 0)
-      VM.sysWrite("0 MajorCollections\n");
-    else {
-      VM.sysWrite(gcMajorCount,false);
-      VM.sysWrite(" MajorCollections: avgTime ");
-      VM.sysWrite( (int)( ((totalMajorTime/(double)gcMajorCount)*1000.0) ),false);
-      VM.sysWrite(" (ms) maxTime ");
-      VM.sysWrite( (int)(maxMajorTime*1000.0),false);
-      VM.sysWrite(" (ms) avgBytesCopied ");
-      VM.sysWrite((int)(totalMajorBytesCopied/gcMajorCount)-avgBytesFreeInChunks,false);
-      VM.sysWrite(" maxBytesCopied ");
-      VM.sysWrite((int)maxMajorBytesCopied,false);
-      VM.sysWrite("\n");
-    }
-
-    VM.sysWrite("  Total Collection Time ");
-    VM.sysWrite( (int)(gcTotalTime*1000.0),false);
-    VM.sysWrite(" (ms)\n\n");
-
-    if (COUNT_COLLISIONS && (gcCount>0) && (np>1)) {
-      VM.sysWrite("  avg number of collisions per collection = ");
-      VM.sysWrite(collisionCount/gcCount,false);
-      VM.sysWrite("\n\n");
-    }
-
-    if (TIME_GC_PHASES && (gcCount>0)) {
-      int avgStart=0, avgInit=0, avgStacks=0, avgScan=0, avgFinalize=0, avgFinish=0;
-
-      avgStart = (int)((totalStartTime/(double)gcCount)*1000000.0);
-      avgInit = (int)((totalInitTime/(double)gcCount)*1000000.0);
-      avgStacks = (int)((totalStacksAndStaticsTime/(double)gcCount)*1000000.0);
-      avgScan = (int)((totalScanningTime/(double)gcCount)*1000.0);
-      avgFinalize = (int)((totalFinalizeTime/(double)gcCount)*1000000.0);
-      avgFinish = (int)((totalFinishTime/(double)gcCount)*1000000.0);
-
-      VM.sysWrite("Average Time in Phases of Collection:\n");
-      VM.sysWrite("Minor: startTime ");
-      VM.sysWrite( avgStart, false);
-      VM.sysWrite("(us) init ");
-      VM.sysWrite( avgInit, false);
-      VM.sysWrite("(us) stacks & statics ");
-      VM.sysWrite( avgStacks, false);
-      VM.sysWrite("(us) scanning ");
-      VM.sysWrite( avgScan, false );
-      VM.sysWrite("(ms) finalize ");
-      VM.sysWrite( avgFinalize, false);
-      VM.sysWrite("(us) finish ");
-      VM.sysWrite( avgFinish, false);
-      VM.sysWrite("(us)\n");
-
-      if (gcMajorCount>0) {
-	avgInit = (int)((totalInitTimeMajor/(double)gcMajorCount)*1000000.0);
-	avgStacks = (int)((totalStacksAndStaticsTimeMajor/(double)gcMajorCount)*1000000.0);
-	avgScan = (int)((totalScanningTimeMajor/(double)gcMajorCount)*1000.0);
-	avgFinalize = (int)((totalFinalizeTimeMajor/(double)gcMajorCount)*1000000.0);
-	avgFinish = (int)((totalFinishTimeMajor/(double)gcMajorCount)*1000000.0);
-
-	VM.sysWrite("Major: (no startTime) init ");
-	VM.sysWrite( avgInit, false);
-	VM.sysWrite("(us) stacks & statics ");
-	VM.sysWrite( avgStacks, false);
-	VM.sysWrite("(us) scanning ");
-	VM.sysWrite( avgScan, false );
-	VM.sysWrite("(ms) finalize ");
-	VM.sysWrite( avgFinalize, false);
-	VM.sysWrite("(us) finish ");
-	VM.sysWrite( avgFinish, false);
-	VM.sysWrite("(us)\n\n");
-      }
-    }
-
-    if (VM_CollectorThread.MEASURE_WAIT_TIMES && (gcCount>0)) {
-      double totalBufferWait = 0.0;
-      double totalFinishWait = 0.0;
-      double totalRendezvousWait = 0.0;
-      int avgBufferWait=0, avgFinishWait=0, avgRendezvousWait=0;
-      double collections = (double)(gcCount + gcMajorCount);
-
-      VM_CollectorThread ct;
-      for (int i=1; i <= np; i++ ) {
-	ct = VM_CollectorThread.collectorThreads[VM_Scheduler.processors[i].id];
-	totalBufferWait += ct.totalBufferWait;
-	totalFinishWait += ct.totalFinishWait;
-	totalRendezvousWait += ct.totalRendezvousWait;
-      }
-
-      avgBufferWait = ((int)((totalBufferWait/collections)*1000000.0))/np;
-      avgFinishWait = ((int)((totalFinishWait/collections)*1000000.0))/np;
-      avgRendezvousWait = ((int)((totalRendezvousWait/collections)*1000000.0))/np;
-
-      VM.sysWrite("Average Wait Times For Each Collector Thread In A Collection:\n");
-      VM.sysWrite("Buffer Wait ");
-      VM.sysWrite( avgBufferWait, false);
-      VM.sysWrite(" (us) Finish Wait ");
-      VM.sysWrite( avgFinishWait, false);
-      VM.sysWrite(" (us) Rendezvous Wait ");
-      VM.sysWrite( avgRendezvousWait, false);
-      VM.sysWrite(" (us)\n\n");
-    }
-
-  }  // printSummaryStatistics
-  
-  private static void
-    printVerboseOutputLine (int phase) {
-    int bytes;
-    
-    if ( phase == 1 ) {
-      VM.sysWrite("\n<GC ");
-      VM.sysWrite(gcCount,false);
-      VM.sysWrite(" (MINOR) time ");
-      VM.sysWrite( (int)(gcMinorTime*1000.0), false );
-      if (ZERO_BLOCKS_ON_ALLOCATION)
-	VM.sysWrite(" ms (no zeroing) ");
-      else {
-	VM.sysWrite(" ms (zeroing ");
-	VM.sysWrite( (int)(((gcEndTime - gcTimeBeforeZeroing)*1000.0)), false );
-	VM.sysWrite(") ");
-      }
-      VM.sysWrite(" bytes copied ");
-      bytes = matureCurrentAddress.diff(matureBeforeMinor);
-      VM.sysWrite(bytes,false);
-      VM.sysWrite(" total mature ");
-      bytes = matureCurrentAddress.diff(fromHeap.start);
-      VM.sysWrite(bytes,false);
-      VM.sysWrite(">\n");
-    }
-    else if (phase == 2) {
-      VM.sysWrite("\n<GC ");
-      VM.sysWrite(gcCount,false);
-      VM.sysWrite(" (MINOR_before_MAJOR) time ");
-      VM.sysWrite( (int)(gcMinorTime*1000.0), false );
-      VM.sysWrite(" (ms) (no zeroing) ");
-      VM.sysWrite(" bytes copied ");
-      bytes = matureCurrentAddress.diff(matureBeforeMinor);
-      VM.sysWrite(bytes,false);
-      VM.sysWrite(" total mature ");
-      bytes = matureCurrentAddress.diff(fromHeap.start);
-      VM.sysWrite(bytes,false);
-      VM.sysWrite(">\n");
-    }
-    else if (phase == 3) {
-      VM.sysWrite("\n<GC ");
-      VM.sysWrite(gcCount,false);
-      VM.sysWrite(" (MAJOR_after_MINOR) time ");
-      VM.sysWrite( (int)(gcMajorTime*1000.0), false );
-      if (ZERO_BLOCKS_ON_ALLOCATION)
-	VM.sysWrite(" ms (no zeroing) ");
-      else {
-	VM.sysWrite(" ms (zeroing ");
-	VM.sysWrite( (int)(((gcEndTime - gcTimeBeforeZeroing)*1000.0)), false );
-	VM.sysWrite(") ");
-      }
-      VM.sysWrite(" total mature ");
-      bytes = matureCurrentAddress.diff(fromHeap.start);
-      VM.sysWrite(bytes,false);
-      VM.sysWrite(" nursery bytes free ", nurseryHeap.size);
-      VM.sysWrite(">\n");
-    }
-  }	 
-
-  private static void
-  printWaitTimesAndCounts () {
-
-    if (VM_CollectorThread.MEASURE_WAIT_TIMES)
-      VM_CollectorThread.printThreadWaitTimes();
-    else {
-      if (VM_GCWorkQueue.MEASURE_WAIT_TIMES) {
-	VM.sysWrite("*** Wait Times for Scanning \n");
-	VM_GCWorkQueue.printAllWaitTimes();
-	VM_GCWorkQueue.saveAllWaitTimes();
-	VM.sysWrite("*** Wait Times for Finalization \n");
-	VM_GCWorkQueue.printAllWaitTimes();
-	VM_GCWorkQueue.resetAllWaitTimes();
-      }
-    }
-    
-    if (VM_GCWorkQueue.WORKQUEUE_COUNTS) {
-      VM.sysWrite("*** Work Queue Counts for Scanning \n");
-      VM_GCWorkQueue.printAllCounters();
-      VM_GCWorkQueue.saveAllCounters();
-      VM.sysWrite("*** WorkQueue Counts for Finalization \n");
-      VM_GCWorkQueue.printAllCounters();
-      VM_GCWorkQueue.resetAllCounters();
-    }
-    
-    if (RENDEZVOUS_TIMES) VM_CollectorThread.gcBarrier.printRendezvousTimes();
-    
-  }  // printWaitTimesAndCounts
-
   
   // Check if the "integer" pointer points to a dead or live object.
   // If live, and in the FromSpace (ie has been marked and forwarded),
