@@ -14,18 +14,23 @@ ADAPT_VALUE_DAT_FILES   := ${ADAPT_OPTION_DIR}/ValueOptions.dat \
 			   ${ADAPT_OPTION_DIR}/SharedValueOptions.dat
 ADAPT_DAT_FILES         := $(ADAPT_BOOLEAN_DAT_FILES) $(ADAPT_VALUE_DAT_FILES)
 
+COMPILER_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/compilers/utility
+COMPILER_BOOLEAN_DAT_FILES := $(COMPILER_OPTION_DIR)/SharedBooleanOptions.dat
+COMPILER_VALUE_DAT_FILES   := $(COMPILER_OPTION_DIR)/SharedValueOptions.dat
+COMPILER_DAT_FILES         := $(COMPILER_BOOLEAN_DAT_FILES) $(COMPILER_VALUE_DAT_FILES)
+
 BASE_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/compilers/baseline
-BASE_BOOLEAN_DAT_FILES := $(BASE_OPTION_DIR)/SharedBooleanOptions.dat
-BASE_VALUE_DAT_FILES   := $(BASE_OPTION_DIR)/SharedValueOptions.dat
+BASE_BOOLEAN_DAT_FILES := $(COMPILER_BOOLEAN_DAT_FILES) $(BASE_OPTION_DIR)/BooleanOptions.dat
+BASE_VALUE_DAT_FILES   := $(COMPILER_VALUE_DAT_FILES) $(BASE_OPTION_DIR)/ValueOptions.dat
 BASE_DAT_FILES         := $(BASE_BOOLEAN_DAT_FILES) $(BASE_VALUE_DAT_FILES)
 
 OPT_OPTION_DIR := $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/driver
-OPT_BOOLEAN_DAT_FILES := ${OPT_OPTION_DIR}/BooleanOptions.dat \
-                         ${ADAPT_OPTION_DIR}/SharedBooleanOptions.dat \
-                         ${BASE_OPTION_DIR}/SharedBooleanOptions.dat
-OPT_VALUE_DAT_FILES   := ${OPT_OPTION_DIR}/ValueOptions.dat \
-                         ${ADAPT_OPTION_DIR}/SharedValueOptions.dat \
-                         ${BASE_OPTION_DIR}/SharedValueOptions.dat 
+OPT_BOOLEAN_DAT_FILES := $(COMPILER_BOOLEAN_DAT_FILES) \
+			 ${OPT_OPTION_DIR}/BooleanOptions.dat \
+                         ${ADAPT_OPTION_DIR}/SharedBooleanOptions.dat
+OPT_VALUE_DAT_FILES   := $(COMPILER_VALUE_DAT_FILES) \
+			 ${OPT_OPTION_DIR}/ValueOptions.dat \
+                         ${ADAPT_OPTION_DIR}/SharedValueOptions.dat
 OPT_DAT_FILES         := $(OPT_BOOLEAN_DAT_FILES) $(OPT_VALUE_DAT_FILES)
 
 include $(config_file)
