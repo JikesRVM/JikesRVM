@@ -31,10 +31,11 @@ interface VM_BaselineConstants extends VM_Constants {
   static final byte S0  =  ECX;
 
   // Mnemonics corresponding to the above constants.
+  // These are some alternate names that can be used in the debugger
   //
   static final String[] RVM_GPR_NAMES =
      {
-     "T0", "S0", "T1", "XX", "SP", "FP", "PR", "JT"
+     "eax", "ecx", "edx", "ebx", "esp", "ebp", "PR", "JT"
      };
 
   // Constants describing baseline compiler conventions for
