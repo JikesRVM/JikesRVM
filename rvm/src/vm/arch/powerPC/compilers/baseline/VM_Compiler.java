@@ -2856,7 +2856,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitLWZoffset(reg, reg, memberOffset);
 
       // test for non-zero offset and branch around call to resolver
-      asm.emitCMPI (reg, 0);				      // reg ?= 0, is field's class loaded?
+      asm.emitCMPI (reg, NEEDS_DYNAMIC_LINK);	      // reg ?= NEEDS_DYNAMIC_LINK, is field's class loaded?
       VM_ForwardReference fr1 = asm.emitForwardBC(NE);
       asm.emitLAddrToc (T0, resolverOffset);
       asm.emitMTCTR (T0);

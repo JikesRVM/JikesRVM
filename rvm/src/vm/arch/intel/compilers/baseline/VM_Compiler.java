@@ -3655,7 +3655,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       int retryLabel = asm.getMachineCodeIndex();            // branch here after dynamic class loading
       asm.emitMOV_Reg_RegDisp (reg, JTOC, tableOffset);      // reg is offsets table
       asm.emitMOV_Reg_RegDisp (reg, reg, memberOffset);      // reg is offset of member, or 0 if member's class isn't loaded
-      asm.emitTEST_Reg_Reg    (reg, reg);                    // reg ?= 0, is field's class loaded?
+      if (NEEDS_DYNAMIC_LINK == 0) {
+	asm.emitTEST_Reg_Reg(reg, reg);                      // reg ?= NEEDS_DYNAMIC_LINK, is field's class loaded?
+      } else {
+	asm.emitCMP_Reg_Imm(reg, NEEDS_DYNAMIC_LINK);        // reg ?= NEEDS_DYNAMIC_LINK, is field's class loaded?
+      }
       VM_ForwardReference fr = asm.forwardJcc(asm.NE);       // if so, skip call instructions
       asm.emitPUSH_Imm(memberId);                            // pass member's dictId
       genParameterRegisterLoad(1);                           // pass 1 parameter word
