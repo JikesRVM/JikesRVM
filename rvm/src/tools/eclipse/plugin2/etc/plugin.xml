@@ -1,3 +1,4 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
  (C) Copyright IBM Corp., 2002.
@@ -39,14 +40,17 @@
   
   <!-- Extensions -->
   <!-- Extension points -->
-  <extension point="org.eclipse.jdt.launching.vmInstallTypes">  
+  <extension point="org.eclipse.jdt.launching.vmInstallTypes"
+		name="%launching"
+	id="launching">  
      <vmInstallType
            class="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMInstallType"
            id="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMType">
      </vmInstallType>
   </extension>
 
-  <extension point="org.eclipse.ui.preferencePages">
+  <extension point="org.eclipse.ui.preferencePages" id="prefpage"
+		name="%prefPage">
     <page id="com.ibm.jikesrvm.eclipse.ui.JikesRVMPreferencePage"
           name="%prefPageName"
 	  class="com.ibm.jikesrvm.eclipse.ui.JikesRVMPreferencePage">
