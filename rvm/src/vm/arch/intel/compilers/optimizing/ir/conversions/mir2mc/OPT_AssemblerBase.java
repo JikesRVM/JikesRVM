@@ -673,6 +673,7 @@ abstract class OPT_AssemblerBase extends VM_Assembler
   /**
    * generate machine code into ir.machinecode
    * @param ir the IR to generate
+   * @param shouldPrint should we print the machine code?
    * @return   the number of machinecode instructions generated
    */
   public static final int generateCode(OPT_IR ir, boolean shouldPrint) {
