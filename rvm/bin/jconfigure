@@ -2157,13 +2157,13 @@ function emitBooterLinker
                 \$LDSHARED -o \$JAL_BUILD/libhpm.a  hpm.o -L\"$RVM_HPM_DIR\" -lpmapi"
 
         print "cd $SCRATCH_DIRECTORY_STR &&\
-	    \$BOOTER_CC -o $BOOTER_STR RunBootImage.o libvm.o sys.o bootThread.o \$CCLIBS\
+	    \$BOOTER_CC -o $BOOTER_STR RunBootImage.o initBootRecord.o libvm.o sys.o bootThread.o \$CCLIBS\
 	    -L\"$RVM_HPM_DIR\" -lpmapi -L\"\$JAL_BUILD\" -lhpm"
 
 	print 'print -n "(build libJava2HPM.a JNI library)"'
         print "cd $ROOT_DIRECTORY_STR/rvm/src/vm/arch/powerPC/runtime &&\
   		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR -I$ROOT_DIRECTORY_STR/rvm/src/include\
- 		-o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.c"
+ 		-o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C"
 
         print "cd $SCRATCH_DIRECTORY_STR &&\
                 \$LDSHARED -o \$JAL_BUILD/libJava2HPM.a  Java2HPM.o\

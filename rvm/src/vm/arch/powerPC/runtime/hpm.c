@@ -19,6 +19,7 @@
  * 
  */
  
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/m_wait.h>
@@ -591,6 +592,138 @@ hpm_get_counter(int counter)
   return value;
 }
 
+int
+print_header(pm_mode_t mode, int threadapi)
+{
+	char mode_str[20];
+	int thresh_value;
+
+	fprintf(stdout,"*** Configuration :\n");
+	if ( mode.b.user && mode.b.kernel )
+		sprintf(mode_str, "%s", "kernel and user");
+	else if (mode.b.user)
+		sprintf(mode_str, "%s", "user only");
+	else if (mode.b.kernel)
+		sprintf(mode_str, "%s", "kernel only");
+
+	fprintf(stdout, "Mode = %s; ", mode_str);
+
+	if (!threadapi) {
+		fprintf(stdout,"Process tree = ");
+		if (mode.b.proctree)
+			fprintf(stdout,"on; ");
+		else
+			fprintf(stdout,"off; ");
+	}
+	else {
+		fprintf(stdout,"Process group = ");
+		if (mode.b.process)
+			fprintf(stdout,"on; ");
+		else
+			fprintf(stdout,"off; ");
+	}
+	fprintf(stderr,"Group events = ");
+	if (mode.b.is_group)
+	  fprintf(stderr,"on; ");
+	else
+	  fprintf(stderr,"off; ");
+
+	fprintf(stdout,"Thresholding = ");
+	if (mode.b.threshold > 0) 
+		fprintf(stdout,"%d cycles (adjusted)\n", 
+			mode.b.threshold * Myinfo.thresholdmult);
+	else
+		fprintf(stdout,"off \n"); 
+}
+
+int
+print_events(int *ev_list)
+{
+	/* for each event (pmc), print short name, accu */
+	int	pmcid;		/* which pmc */
+	int	evid;		/* event id */
+	pm_events_t *evp;
+	char	str[100];
+	int	len;
+	int	i;
+
+	/* go through evs, get sname from table of events, print it */	
+	for (pmcid = 0; pmcid < Myinfo.maxpmcs; pmcid++) {
+		fprintf(stdout,"Counter %2d, ", pmcid+1); 
+		/* get the event id from the list */
+		evid = ev_list[pmcid];
+		if ( (evid == COUNT_NOTHING) || (Myinfo.maxevents[pmcid] == 0))
+			fprintf(stdout,"event %2d: No event\n", evid);
+		else {
+			/* find pointer to the event */
+			for (i = 0; i < Myinfo.maxevents[pmcid]; i++) {
+				evp = Myinfo.list_events[pmcid]+i;
+				if (evid == evp->event_id) {
+					break;
+				}
+			}
+			
+			fprintf(stdout,"event %2d: %s\n", evid, evp->short_name);
+		}
+	}
+
+	fprintf(stdout,"\n*** Results :\n");
+
+	str[0] = '\0';
+	for (pmcid=0; pmcid<Myinfo.maxpmcs; pmcid++) {
+		fprintf(stdout,"PMC%2d     ", pmcid+1);
+		len = strlen(str);
+		str[len] = ' ';
+		sprintf(str+len,"%s","=====     ");
+	}
+	fprintf(stdout,"\n%s\n", str);	
+}
+
+/*
+ * Required for Power4
+ */
+void 
+print_group_events(int group_num)
+{
+  pm_groups_t group;
+  if (My_group_info.maxgroups < group_num) {
+    fprintf(stderr, "Invalid group number\n");
+  }
+  group = My_group_info.event_groups[group_num];
+  fprintf(stderr, "Group %d %s\n", group.group_id, group.short_name);
+  print_events(group.events);
+}
+
+/*
+ * Print list of events
+ */
+int
+hpm_print_events()
+{
+  /* print the results */
+  print_header(getprog.mode, 0);
+  if (getprog.mode.b.is_group) {
+    print_group_events(getprog.events[0]);
+  } else {
+    print_events(getprog.events);
+  }
+}
+
+/* 
+ * Function to convert filter of character form (entered from command line, 
+ * e.g. -t v,u) to a numeric form.
+ */
+int
+print_data(pm_data_t *data)
+{
+	int j;
+
+	for (j=0; j<Myinfo.maxpmcs; j++) 
+		fprintf(stdout, "%-8lld  ", data->accu[j]); 
+	fprintf(stdout, "\n");
+}
+
+
 /*
  * Print hardware performance monitors values.
  */
@@ -613,20 +746,7 @@ hpm_print()
   
   return(OK_CODE);	
 }
-/*
- * Print list of events
- */
-int
-hpm_print_events()
-{
-  /* print the results */
-  print_header(getprog.mode, 0);
-  if (getprog.mode.b.is_group) {
-    print_group_events(getprog.events[0]);
-  } else {
-    print_events(getprog.events);
-  }
-}
+
 /*
  * Test interface to HPM.
  */
@@ -640,7 +760,7 @@ hpm_test()
 /**
  * List all events associated with each counter.
  */
-void
+extern "C" void
 hpm_list_all_events()
 {
   int i,j;
@@ -666,6 +786,23 @@ hpm_list_all_events()
     }
   }
   fflush(stdout);
+}
+
+/*
+ * Return list of event for a group
+ * Required for Power4
+ * @param group_num   group number
+ */
+int *
+get_group_event_list(int group_num)
+{
+  pm_groups_t group;
+  if (My_group_info.maxgroups < group_num) {
+    fprintf(stderr, "Invalid group number\n");
+  }
+  group = My_group_info.event_groups[group_num];
+  fprintf(stderr, "Group %d %s\n", group.group_id, group.short_name);
+  return group.events;
 }
 
 /**
@@ -714,136 +851,4 @@ hpm_list_selected_events()
   fflush(stdout);
 }
 
-/* 
- * Function to convert filter of character form (entered from command line, 
- * e.g. -t v,u) to a numeric form.
- */
-int
-print_data(pm_data_t *data)
-{
-	int j;
 
-	for (j=0; j<Myinfo.maxpmcs; j++) 
-		fprintf(stdout, "%-8lld  ", data->accu[j]); 
-	fprintf(stdout, "\n");
-}
-
-
-int
-print_header(pm_mode_t mode, int threadapi)
-{
-	char mode_str[20];
-	int thresh_value;
-
-	fprintf(stdout,"*** Configuration :\n");
-	if ( mode.b.user && mode.b.kernel )
-		sprintf(mode_str, "%s", "kernel and user");
-	else if (mode.b.user)
-		sprintf(mode_str, "%s", "user only");
-	else if (mode.b.kernel)
-		sprintf(mode_str, "%s", "kernel only");
-
-	fprintf(stdout, "Mode = %s; ", mode_str);
-
-	if (!threadapi) {
-		fprintf(stdout,"Process tree = ");
-		if (mode.b.proctree)
-			fprintf(stdout,"on; ");
-		else
-			fprintf(stdout,"off; ");
-	}
-	else {
-		fprintf(stdout,"Process group = ");
-		if (mode.b.process)
-			fprintf(stdout,"on; ");
-		else
-			fprintf(stdout,"off; ");
-	}
-	fprintf(stderr,"Group events = ");
-	if (mode.b.is_group)
-	  fprintf(stderr,"on; ");
-	else
-	  fprintf(stderr,"off; ");
-
-	fprintf(stdout,"Thresholding = ");
-	if (mode.b.threshold > 0) 
-		fprintf(stdout,"%d cycles (adjusted)\n", 
-			mode.b.threshold * Myinfo.thresholdmult);
-	else
-		fprintf(stdout,"off \n"); 
-}
-
-/*
- * Return list of event for a group
- * Required for Power4
- * @param group_num   group number
- */
-void 
-get_group_event_list(int group_num)
-{
-  pm_groups_t group;
-  if (My_group_info.maxgroups < group_num) {
-    fprintf(stderr, "Invalid group number\n");
-  }
-  group = My_group_info.event_groups[group_num];
-  fprintf(stderr, "Group %d %s\n", group.group_id, group.short_name);
-  return group.events;
-}
-
-/*
- * Required for Power4
- */
-void 
-print_group_events(int group_num)
-{
-  pm_groups_t group;
-  if (My_group_info.maxgroups < group_num) {
-    fprintf(stderr, "Invalid group number\n");
-  }
-  group = My_group_info.event_groups[group_num];
-  fprintf(stderr, "Group %d %s\n", group.group_id, group.short_name);
-  print_events(group.events);
-}
-
-int
-print_events(int *ev_list)
-{
-	/* for each event (pmc), print short name, accu */
-	int	pmcid;		/* which pmc */
-	int	evid;		/* event id */
-	pm_events_t *evp;
-	char	str[100];
-	int	len;
-	int	i;
-
-	/* go through evs, get sname from table of events, print it */	
-	for (pmcid = 0; pmcid < Myinfo.maxpmcs; pmcid++) {
-		fprintf(stdout,"Counter %2d, ", pmcid+1); 
-		/* get the event id from the list */
-		evid = ev_list[pmcid];
-		if ( (evid == COUNT_NOTHING) || (Myinfo.maxevents[pmcid] == 0))
-			fprintf(stdout,"event %2d: No event\n", evid);
-		else {
-			/* find pointer to the event */
-			for (i = 0; i < Myinfo.maxevents[pmcid]; i++) {
-				evp = Myinfo.list_events[pmcid]+i;
-				if (evid == evp->event_id) {
-					break;
-				}
-			}
-			
-			fprintf(stdout,"event %2d: %s\n", evid, evp->short_name);
-		}
-	}
-
-	fprintf(stdout,"\n*** Results :\n");
-
-	str[0] = '\0';
-	for (pmcid=0; pmcid<Myinfo.maxpmcs; pmcid++) {
-		fprintf(stdout,"PMC%2d     ", pmcid+1);
-		len = strlen(str);
-		str[len] = ' ';
-		sprintf(str+len,"%s","=====     ");
-	}
-	fprintf(stdout,"\n%s\n", str);	
-}
