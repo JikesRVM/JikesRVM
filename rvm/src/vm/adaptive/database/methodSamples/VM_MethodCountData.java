@@ -102,21 +102,25 @@ public final class VM_MethodCountData implements VM_Reportable {
    *  To get a sorted list, pipe the output through sort -n -r.
    */
   public final synchronized void report() {
-    VM.sysWrite("Method counts: A total of "+totalCountsTaken+" times counted \n");
+    VM.sysWrite("Method counts: A total of "+totalCountsTaken+" samples\n");
     for (int i=1; i<nextIndex; i++) {
       double percent = 100 * countsToHotness(counts[i]);
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmids[i]);
       VM.sysWrite(counts[i] + " ("+percent+"%) ");
-      if ( cm == null ) {
+      if (cm == null) {
         VM.sysWrite("OBSOLETE");		// Compiled Method Obsolete
       } else {
-        VM_Method m = cm.getMethod();
-        VM.sysWrite(m);
-        if (m.getDeclaringClass().isInBootImage()) {
-	  VM.sysWrite("\n\tBOOT");
-        }
+	if (cm.getCompilerType() == VM_CompiledMethod.TRAP) {
+	  VM.sysWriteln("<Hardware Trap Frame>");
+	} else {
+	  VM_Method m = cm.getMethod();
+	  VM.sysWrite(m);
+	  if (m.getDeclaringClass().isInBootImage()) {
+	    VM.sysWrite("\tBOOT");
+	  }
+	}
+	VM.sysWrite("\n");
       }
-      VM.sysWrite("\n");
     }    
   }
 
