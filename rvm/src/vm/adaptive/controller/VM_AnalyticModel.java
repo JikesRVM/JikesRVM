@@ -6,8 +6,10 @@
 package com.ibm.JikesRVM.adaptive;
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_RuntimeCompilerInfrastructure;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_NormalMethod;
 
 /**
  * This class encapsulates the analytic model used by the controller
@@ -102,7 +104,8 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 
     if (!considerForRecompilation(hme, plan)) return null;
 
-    double prevCompileTime = hme.getCompiledMethod().getCompilationTime();
+    // double prevCompileTime = hme.getCompiledMethod().getCompilationTime();
+    double prevCompileTime = estimatePrevCompileTime(hme);
     
     // Now we know the compiler that generated the method (prevCompiler).
     // the compile time it took to generate it (prevCompileTime), and that 
@@ -163,6 +166,29 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     }
     return plan;
   }
+
+  /**
+   * Estimate what the previous compile-time for a method
+   *
+   * @param hme the HotMethodEvent referencing the previously compiled
+   * code
+   */
+  private double estimatePrevCompileTime(VM_HotMethodEvent hme) {
+    double baselineRate = VM_RuntimeCompilerInfrastructure.getBaselineRate();
+    VM_NormalMethod m = (VM_NormalMethod)hme.getMethod();
+    double bytes = (double)m.getBytecodeLength();
+    double baselineSecs = bytes / baselineRate;
+    if (!hme.isOptCompiled()) {
+      return baselineSecs + VM_Controller.options.FIXED_RECOMPILATION_OVERHEAD;
+    } else {
+      // SJF: have to add one to opt-compiled level to get constant that
+      // VM_CompilerDNA wants.  TODO: this sucks; clean it all up.
+      double multiplier = VM_CompilerDNA.getCompileTimeRatio(VM_CompilerDNA.BASELINE,
+                                                             hme.getOptCompiledLevel()+1);
+      return baselineSecs * multiplier;
+    }
+  }
+
 
   //-#if RVM_WITH_OSR
   /* check if a compiled method is outdated, then decide if it needs OSR from BASE to OPT

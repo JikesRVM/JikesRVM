@@ -73,9 +73,7 @@ public class VM_RuntimeCompilerInfrastructure
     total_methods[compiler]++;
     total_bcodeLen[compiler] += method.getBytecodeLength();
     total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
-    if (VM.MeasureCompilation) {
-      total_time[compiler] += compiledMethod.getCompilationTime();
-    }
+    total_time[compiler] += compiledMethod.getCompilationTime();
   }
 
   /**
@@ -91,9 +89,7 @@ public class VM_RuntimeCompilerInfrastructure
     total_methods[compiler]++;
     total_bcodeLen[compiler] += 1; // lie!
     total_mcodeLen[compiler] += compiledMethod.getInstructions().length;
-    if (VM.MeasureCompilation) {
-      total_time[compiler] += compiledMethod.getCompilationTime();
-    }
+    total_time[compiler] += compiledMethod.getCompilationTime();
   }
 
   /**
@@ -139,6 +135,14 @@ public class VM_RuntimeCompilerInfrastructure
     VM_RuntimeCompiler.detailedCompilationReport(explain);
   }
    
+  /**
+   * Return the current estimate of basline-compiler rate, in bcb/sec
+   */
+  public static double getBaselineRate() {
+    double bytes = (double) total_bcodeLen[BASELINE_COMPILER];
+    double time = VM_Time.toSecs(total_time[BASELINE_COMPILER]);
+    return bytes/time;
+  }
 
   /**
    * This method will compile the passed method using the baseline compiler.
@@ -147,14 +151,14 @@ public class VM_RuntimeCompilerInfrastructure
   public static VM_CompiledMethod baselineCompile(VM_NormalMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.BASELINE);
     double start = 0;
-    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+    if (VM.BuildForAdaptiveSystem) {
       double now = VM_Time.now();
       start = updateStartAndTotalTimes(now);
     }
 
     VM_CompiledMethod cm = VM_BaselineCompiler.compile(method);
 
-    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+    if (VM.BuildForAdaptiveSystem) {
       double now = VM_Time.now();
       double end = updateStartAndTotalTimes(now);
       double compileTime = (end - start) * 1000; // convert to milliseconds
@@ -172,7 +176,7 @@ public class VM_RuntimeCompilerInfrastructure
   public static VM_CompiledMethod jniCompile(VM_NativeMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
     double start = 0;
-    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+    if (VM.BuildForAdaptiveSystem) {
       double now = VM_Time.now();
       start = updateStartAndTotalTimes(now);
     }
@@ -184,7 +188,7 @@ public class VM_RuntimeCompilerInfrastructure
 		    " ... JNI]");
     }
 
-    if (VM.MeasureCompilation || VM.BuildForAdaptiveSystem) {
+    if (VM.BuildForAdaptiveSystem) {
       double now = VM_Time.now();
       double end = updateStartAndTotalTimes(now);
       double compileTime = (end - start) * 1000; // convert to milliseconds
@@ -204,4 +208,5 @@ public class VM_RuntimeCompilerInfrastructure
     t.setCPUStartTime(now);
     return t.getCPUTotalTime();
   }
+
 }
