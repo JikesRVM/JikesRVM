@@ -266,7 +266,9 @@ public class VM_Entrypoints implements VM_Constants {
     // Don't mark the following as runtime serivce methods;
     // they are included in VM_Entrypoints for other reasons
     // than being called under-the-covers from generated code.
+    //-#if RVM_WITH_OPT_COMPILER
     sysArrayCopy.setRuntimeServiceMethod(false);
+    //-#endif
   };
 
   
