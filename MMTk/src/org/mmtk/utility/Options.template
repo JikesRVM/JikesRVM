@@ -76,13 +76,13 @@ $$$$ END LOOP
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
-     $$$$ IF TAG == V
+     $$$$ IF TAG IN V M
    // FULL_NAME
    private static TYPE filter_FULL_NAME(TYPE val) throws InterruptiblePragma {
      OPTION.FILTER
      return val;
    }	
-      $$$$ END IF TAG == V
+      $$$$ END IF TAG IN V M
       $$$$ END SPLIT
 $$$$ END FOREACH
 $$$$ END LOOP
@@ -147,7 +147,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
     $$$$ LET CMD_NAME @IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME")
     if (name.equals("CMD_NAME")) {
-     $$$$ IF TAG == V
+     $$$$ IF TAG IN V M
           $$$$ IF TYPE == String
        FULL_NAME = filter_FULL_NAME(value);
           $$$$ ELSE
@@ -186,7 +186,7 @@ $$$$ FOREACH OPTION VDATFILE
        $$$$ ELSE
      Whoops! Unimplemented tag: TAG...go nag Dave and he'll finish it.
        $$$$ END IF TAG == E
-     $$$$ END IF TAG == V
+     $$$$ END IF TAG IN V M
      $$$$ END LET CMD_NAME
      $$$$ END SPLIT
 $$$$ END FOREACH
@@ -224,13 +224,13 @@ $$$$ END LOOP
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
-     $$$$ IF TAG == V
+     $$$$ IF TAG IN V M
           $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
           $$$$ LET TNAME @PAD("TYPE", 7, " ")
     Log.writeln("CMD_NAME TNAME OPTION.DESCRIP");
           $$$$ END LET TYPE_NAME
           $$$$ END LET CMD_NAME
-     $$$$ END IF TAG == V
+     $$$$ END IF TAG IN V M
      $$$$ END SPLIT OPTION.DECL
 $$$$ END FOREACH
 $$$$ END LOOP
@@ -272,12 +272,12 @@ $$$$ END FOREACH
 $$$$ END LOOP
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
-     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
-     $$$$ IF TAG == V
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME DISPLAY_UNIT INPUT_UNIT
+     $$$$ IF TAG IN V M
           $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
-    Log.write("\tCMD_NAME = "); Log.writeln(FULL_NAME);
+    Log.write("\tCMD_NAME = "); Log.write(FULL_NAME); Log.writeln(" DISPLAY_UNIT");
           $$$$ END LET CMD_NAME
-     $$$$ END IF TAG == V
+     $$$$ END IF TAG IN V M
      $$$$ END SPLIT OPTION.DECL
 $$$$ END FOREACH
 $$$$ END LOOP
