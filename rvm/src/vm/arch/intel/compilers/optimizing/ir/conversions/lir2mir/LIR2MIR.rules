@@ -222,7 +222,7 @@ fpload:	DOUBLE_ALOAD(r, riv)
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), QW_S, QW));
 
-fpload:	MATERIALIZE_CONSTANT(r)
+fpload:	MATERIALIZE_CONSTANT(riv)
 0
 EMIT_INSTRUCTION
 pushMO(MO_MC(P(p)));
@@ -255,8 +255,6 @@ address1reg:	INT_ADD_ACC(address1reg, iv)
 EMIT_INSTRUCTION
 augmentAddress(BinaryAcc.getValue(P(p)));
 
-# TODO: we can enable these as soon as Julian fixes the assembler
-# to handle scaled index + displacement without a base register
 address1scaledreg:	INT_SHL_ACC(r,iv)
 LEA_SHIFT(BinaryAcc.getValue(P(p)), 0)
 EMIT_INSTRUCTION
@@ -382,52 +380,52 @@ NOFLAGS
 ##################################
 # Materialization of FP constants
 ##################################
-r:	MATERIALIZE_CONSTANT(r)
+r:	MATERIALIZE_CONSTANT(riv)
 30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Binary.getResult(P(p)), MO_MC(P(p))));
 
-fp0:	MATERIALIZE_CONSTANT(r)
+fp0:	MATERIALIZE_CONSTANT(riv)
 30
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, D(getFPR(0)), MO_MC(P(p))));
 
-pfp0:	MATERIALIZE_CONSTANT(r)
+pfp0:	MATERIALIZE_CONSTANT(riv)
 20
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_MC(P(p))));
 
 # Use FLD1/FLDZ to avoid loading from the JTOC
-r:	MATERIALIZE_CONSTANT(r)
+r:	MATERIALIZE_CONSTANT(riv)
 isFPC_ONE(P(p), 26)
 EMIT_INSTRUCTION
 EMIT(MIR_Nullary.create(IA32_FLD1, myFP0())); \
 EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Binary.getResult(P(p)), myFP0()));
 
-fp0:	MATERIALIZE_CONSTANT(r)
+fp0:	MATERIALIZE_CONSTANT(riv)
 isFPC_ONE(P(p), 26)
 EMIT_INSTRUCTION
 EMIT(MIR_Nullary.create(IA32_FLD1, myFP0())); \
 EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
 
-pfp0:	MATERIALIZE_CONSTANT(r)
+pfp0:	MATERIALIZE_CONSTANT(riv)
 isFPC_ONE(P(p), 11)
 EMIT_INSTRUCTION
 EMIT(MIR_Nullary.mutate(P(p), IA32_FLD1, myFP0()));
 
-r:	MATERIALIZE_CONSTANT(r)
+r:	MATERIALIZE_CONSTANT(riv)
 isFPC_ZERO(P(p), 26)
 EMIT_INSTRUCTION
 EMIT(MIR_Nullary.create(IA32_FLDZ, myFP0())); \
 EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Binary.getResult(P(p)), myFP0()));
 
-fp0:	MATERIALIZE_CONSTANT(r)
+fp0:	MATERIALIZE_CONSTANT(riv)
 isFPC_ZERO(P(p), 26)
 EMIT_INSTRUCTION
 EMIT(MIR_Nullary.create(IA32_FLDZ, myFP0())); \
 EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
 
-pfp0:	MATERIALIZE_CONSTANT(r)
+pfp0:	MATERIALIZE_CONSTANT(riv)
 isFPC_ZERO(P(p), 11)
 EMIT_INSTRUCTION
 EMIT(MIR_Nullary.mutate(P(p), IA32_FLDZ, myFP0()));
