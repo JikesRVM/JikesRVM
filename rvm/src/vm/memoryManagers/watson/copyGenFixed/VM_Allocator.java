@@ -460,13 +460,12 @@ public class VM_Allocator
     
     // assumption: collector has previously zero-filled the space
     // assumption: object sizes are always a word multiple,
-    // so we don't need to worry about address alignment or rounding
-    
-
+    //             so we don't need to worry about address alignment or rounding
 
     VM_Address region = getHeapSpaceFast(size);
     Object newObj = VM_ObjectModel.initializeScalar(region, tib, size);
-    if( hasFinalizer )  VM_Finalizer.addElement(newObj);
+    if (hasFinalizer)  VM_Finalizer.addElement(newObj);
+    if (size > SMALL_SPACE_MAX) resetObjectBarrier(newObj);
     return newObj;
   }   // allocateScalar() 
   
@@ -526,7 +525,9 @@ public class VM_Allocator
     // assumption: collector has previously zero-filled the space
     //
      VM_Address newRegion = getHeapSpaceFast(size);
-     return VM_ObjectModel.initializeArray(newRegion, tib, numElements, size);
+     Object newObj = VM_ObjectModel.initializeArray(newRegion, tib, numElements, size);
+     if (size > SMALL_SPACE_MAX) resetObjectBarrier(newObj);
+     return newObj;
   }  // allocateArray
 
   
@@ -1532,10 +1533,8 @@ public class VM_Allocator
     return toRef;
   }
 
-   static void resetObjectBarrier(VM_Address ref) {
-	
-    // Need to turn back on barrier bit *always*
-    Object objRef = VM_Magic.addressAsObject(ref);
+  // turn on the barrier bit
+   static void resetObjectBarrier(Object objRef) {
     VM_ObjectModel.initializeAvailableByte(objRef); // make it safe for write barrier to change bit non-atomically
     VM_AllocatorHeader.setBarrierBit(objRef);
    }

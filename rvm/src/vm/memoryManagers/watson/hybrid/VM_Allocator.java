@@ -503,9 +503,9 @@ public class VM_Allocator
 	  VM_EventLogger.logObjectAllocationEvent();
       
       VM_Address region = getHeapSpaceFast(size);
-
       Object newRef = VM_ObjectModel.initializeScalar(region, tib, size);
       if (hasFinalizer)  VM_Finalizer.addElement(newRef);
+      if (size > SMALL_SPACE_MAX) resetObjectBarrier(newRef);
       return newRef;
   }
   
@@ -557,7 +557,9 @@ public class VM_Allocator
 
       size = (size + 3) & ~3;
       VM_Address region = getHeapSpaceFast(size);
-      return VM_ObjectModel.initializeArray(region, tib, numElements, size);
+      Object newObj = VM_ObjectModel.initializeArray(region, tib, numElements, size);
+      if (size > SMALL_SPACE_MAX) resetObjectBarrier(newObj);
+      return newObj;
   }
 
   
@@ -2416,14 +2418,11 @@ public class VM_Allocator
   } 
 
 
-   static void resetObjectBarrier(VM_Address ref) {
-	
-    // Need to turn back on barrier bit *always*
-    Object objRef = VM_Magic.addressAsObject(ref);
+  // Turn on the barrier bit in objRef
+  static void resetObjectBarrier(Object objRef) {
     VM_ObjectModel.initializeAvailableByte(objRef); // make it safe for write barrier to change bit non-atomically
     VM_AllocatorHeader.setBarrierBit(objRef);
    }
-
 
   /**
    * Scan static variables (JTOC) for object references during Minor collections.
