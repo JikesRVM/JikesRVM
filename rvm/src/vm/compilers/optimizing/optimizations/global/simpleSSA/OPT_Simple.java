@@ -171,28 +171,32 @@ final class OPT_Simple extends OPT_CompilerPhase
         // uses of lhs.
         if (rhs.isRegister() && !rhs.asRegister().register.isSSA())
           continue;
+
+	// KLUDGE: if rhs is a register that is defined by a PHI instruction, don't propogate it.
+	// if (rhs.isRegister() && rhs.asRegister().register.defList.instruction.operator() == PHI)
+	// continue;
+
+	reiterate = ir.options.getOptLevel() > 1;
         // Now substitute rhs for all uses of lhs, updating the 
         // register list as we go.
-        OPT_RegisterOperand nextUse;
-        for (OPT_RegisterOperand use = reg.useList; use != null; 
-	     use = nextUse) {
-          nextUse = use.getNext(); // get early before reg's useList is updated. 
-          OPT_Instruction useInstr = use.instruction;
-          if (ir.options.getOptLevel() > 1)
-            reiterate = true;
-          if (rhs.isRegister()) {
-            OPT_RegisterOperand rhsRegOp = rhs.asRegister();
-            if (VM.VerifyAssertions)
-              VM.assert(rhsRegOp.register.getType() == use.register.getType());
+	if (rhs.isRegister()) {
+	  OPT_RegisterOperand nextUse;
+	  OPT_RegisterOperand rhsRegOp = rhs.asRegister();
+	  for (OPT_RegisterOperand use = reg.useList; use != null; use = nextUse) {
+	    nextUse = use.getNext(); // get early before reg's useList is updated. 
+	    if (VM.VerifyAssertions) VM.assert(rhsRegOp.register.getType() == use.register.getType());
             OPT_DefUse.transferUse(use, rhsRegOp);
-          } else if (rhs.isConstant()) {
+	  }
+	} else if (rhs.isConstant()) {
+	  // NOTE: no need to incrementally update use's register list since we are going
+	  //       to blow it all away as soon as this loop is done.
+	  for (OPT_RegisterOperand use = reg.useList; use != null; use = use.getNext()) {
             int index = use.getIndexInInstruction();
             use.instruction.putOperand(index, rhs);
-          } else {
-            throw  new OPT_OptimizingCompilerException(
-                "OPT_Simple.copyPropagation: unexpected operand type");
           }
-        }       // End loop over uses of lhs
+	} else {
+	  throw new OPT_OptimizingCompilerException("OPT_Simple.copyPropagation: unexpected operand type");
+	}
 	// defInstr is now dead. Remove it.
 	defInstr.remove();
 	if (rhs.isRegister())
