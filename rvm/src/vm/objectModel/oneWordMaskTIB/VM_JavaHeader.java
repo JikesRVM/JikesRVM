@@ -210,7 +210,10 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
                                                                               VM_Type.IntType, 
 									      GuardedUnary.getClearVal(s),
 									      TIB_OFFSET, guard);
-    if (VM_Collector.MOVES_OBJECTS && VM.writingBootImage) {
+    if (VM_Collector.MOVES_OBJECTS && !ir.compiledMethod.getMethod().isInterruptible()) {
+      // Uninterruptible code may be part of the GC subsytem so it needs to robustly handle
+      // the TIB word holding a forwarding pointer.  If the method is interruptible, then
+      // it can't be executing during GC time and therefore does not need these extra instructions
       if (VM.VerifyAssertions) {
 	VM.assert(VM_AllocatorHeader.GC_FORWARDING_MASK == 0x00000003);
       }
