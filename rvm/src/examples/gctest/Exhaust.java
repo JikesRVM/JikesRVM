@@ -14,19 +14,12 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 class Exhaust {
 
   final private static PrintStream o = System.out;
-  final static int itemSize = 32;
-  /** We really want this to be something like
-   *  (max-heap-size / itemSize) * 2,.
-   *  But we don't know what the actual max heap size is.  And we don't want
-   *  the allocation of this array to be the cause of the exception.  This is
-   *  frustrating.  */ 
-  //  static int metaSize = 4 * 1024 * 1024;
-  final static int metaSize = (MM_Interface.getMaxHeapSize() / itemSize) / 2;
-  static Object [] junk;
-  static int cursor = 0;
-  static double growthFactor = 1.0;
-  static double metaGrowthFactor = 1.1;
-  static int rounds = 10;
+
+  static Object [] first;
+  static Object [] last;
+  final static int itemSize = 64;
+  static double growthFactor = 10.0;
+  static int rounds = 5;
   static long tot = 0;		// total # allocated
   static long wasAllocating;		// How much were we allocating?
   
@@ -49,53 +42,42 @@ class Exhaust {
     throws // Throwable, 
       VM_PragmaNoInline 
   {
-    for (int j=0; j<metaSize; j++) {
-      if (cursor >= metaSize) {
-	o.println("cursor >= metaSize; we won't allocate more memory.  This should never happen.");
-      }
+    while (true) {
       wasAllocating = size;
-      junk[cursor++] = new byte[(int) size];
+      Object [] next = new Object[((int) size) / 4];
+      last[0] = next;
+      last = next;
       tot += size;
       wasAllocating = 0;
-      size *= growthFactor;
-      o.println("growthFactor = " + growthFactor + "     Size = " + size);
     }
-    return size;
   }
 
   public static void runTest() 
     throws // Throwable, 
       VM_PragmaNoInline 
   {
-    // Whoops!   This does not do what we thought it would; hides the global.
-    // double growthFactor = 1.0;
-    for (int i=1; i<=10; i++) {
-      growthFactor *= metaGrowthFactor;
-      growthFactor = ((int) (100 * growthFactor)) / 100.0;
-      o.println("Starting round " + i + " with growthFactor " + growthFactor);
-      o.println("Allocating an array with room for " + metaSize + " objects");
+    int size = itemSize;  
+    for (int i=1; i<=rounds; i++) {
+      o.println("Starting round " + i + " with size = " + size);
 	
-      junk = new Object[metaSize];
+      first = new Object[1];
+      last = first;
       tot = 0;
 	
       o.println("  Allocating until exception thrown");
-      int size = itemSize;
       try {
-	size = doInner(size);
+	doInner(size);
       }
       catch (OutOfMemoryError e) {
-	junk = null;  // kills everything
-	cursor = 0;
+	first = last = null;  // kills everything
 	o.println("  Caught OutOfMemory - freeing now");  // this allocates; must follow nulling
 
 	//	  o.println("  Maximum size reached is " + size);
 
 	o.println("  Had " + tot + " bytes allocated; failed trying to allocate " + wasAllocating + " bytes");
       }
-      if (junk != null) {
-	junk = null;
-	o.println("  Had " + tot + " bytes allocated; kept on allocating until we couldn't go any further; this should never happen.");
-      }
+
+      size *= growthFactor;
     }
     System.out.println("Overall: SUCCESS");
   }
