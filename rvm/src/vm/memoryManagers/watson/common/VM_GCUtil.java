@@ -20,7 +20,7 @@ public class VM_GCUtil
   private static final VM_ProcessorLock outOfMemoryLock = new VM_ProcessorLock();
   private static boolean outOfMemoryReported = false;
 
-  static void boot () {
+  static void boot() {
     // get addresses of TIBs for VM_Array & VM_Class used for testing Type ptrs
     VM_Type t = VM_Array.getPrimitiveArrayType(10);
     tibForArrayType = VM_ObjectModel.getTIB(t);
@@ -39,35 +39,35 @@ public class VM_GCUtil
 
 
 
-  static boolean refInVM (VM_Address ref) {
+  static boolean refInVM(VM_Address ref) {
       return VM_Heap.refInAnyHeap(ref);
   }
 
-  static boolean addrInVM (VM_Address address) {
+  static boolean addrInVM(VM_Address address) {
       return VM_Heap.addrInAnyHeap(address);
   }
 
-  static boolean refInBootImage (VM_Address ref) {
+  static boolean refInBootImage(VM_Address ref) {
       return VM_Heap.bootHeap.refInHeap(ref);
   }
 
-  static boolean refInHeap (VM_Address ref) {
+  static boolean refInHeap(VM_Address ref) {
       return (refInVM(ref) && (!refInBootImage(ref)));
   }
 
-  static boolean addrInBootImage (VM_Address address ) {
+  static boolean addrInBootImage(VM_Address address) {
     return VM_Heap.bootHeap.addrInHeap(address);
   }
 
   // check if an address appears to point to an instance of VM_Type
-  static boolean validType (VM_Address typeAddress) {
+  static boolean validType(VM_Address typeAddress) {
     if (!refInVM(typeAddress))
       return false;  // type address is outside of heap
 
     // check if types tib is one of three possible values
     Object[] typeTib = VM_ObjectModel.getTIB(typeAddress);
     return ( (typeTib == tibForClassType) || (typeTib == tibForArrayType) ||
-	     (typeTib == tibForPrimitiveType) );
+	     (typeTib == tibForPrimitiveType));
   }
 
   /**
@@ -78,9 +78,9 @@ public class VM_GCUtil
       VM_Address ip, fp;
       VM_Thread  t;
       VM_Scheduler.trace("\ndumpAllThreadStacks","dumping stacks for all threads");
-      for (int i=0; i<VM_Scheduler.threads.length; i++ ) {
+      for (int i=0; i<VM_Scheduler.threads.length; i++) {
 	  t = VM_Scheduler.threads[i];
-	  if ( t == null ) continue;
+	  if (t == null) continue;
 	  VM.sysWrite("\n Thread "); t.dump(); VM.sysWrite("\n");
 	  // start stack dump using fp & ip in threads saved context registers
 	  ip = t.contextRegisters.getInnermostInstructionAddress();
@@ -93,11 +93,11 @@ public class VM_GCUtil
   /**
    * check if a ref, its tib pointer & type pointer are all in the heap
    */
-  static boolean validObject ( Object ref ) {
+  static boolean validObject(Object ref) {
       return validRef(VM_Magic.objectAsAddress(ref));
   }
 
-  static boolean validRef (VM_Address ref) {
+  static boolean validRef(VM_Address ref) {
 
     if (ref.isZero()) return true;
     if (!refInVM(ref)) {
@@ -120,6 +120,17 @@ public class VM_GCUtil
       VM.sysWrite("\n");
       return false;
     }
+    if (tibAddr.isZero()) {
+      VM.sysWrite("validRef: TIB is Zero! "); VM.sysWrite(ref);
+      VM.sysWrite("\n");
+      return false;
+    }
+    if (tib.length == 0) {
+      VM.sysWrite("validRef: TIB length zero, ref = "); VM.sysWrite(ref);
+      VM.sysWrite(" tib = ");VM.sysWrite(tibAddr);
+      VM.sysWrite("\n");
+      return false;
+    }
 
     VM_Address type = VM_Magic.objectAsAddress(tib[0]);
     if (!validType(type)) {
@@ -133,14 +144,14 @@ public class VM_GCUtil
   }  // validRef
 
 
-   public static void dumpRef (VM_Address ref) {
+   public static void dumpRef(VM_Address ref) {
      VM.sysWrite("REF=");
      if (ref.isZero()) {
        VM.sysWrite("NULL\n");
        return;
      }
      VM.sysWrite(ref);
-     if ( !refInVM(ref) ) {
+     if (!refInVM(ref)) {
        VM.sysWrite(" (REF OUTSIDE OF HEAP)\n");
        return;
      }
@@ -154,7 +165,7 @@ public class VM_GCUtil
      VM_Address itype = VM_Magic.objectAsAddress(type);
      VM.sysWrite(" TYPE=");
      VM.sysWrite(itype);
-     if ( ! validType(itype) ) {
+     if (!validType(itype)) {
        VM.sysWrite(" (INVALID TYPE: CLASS NOT ACCESSIBLE)\n");
        return;
      }
@@ -164,16 +175,16 @@ public class VM_GCUtil
    }
 
 
-  public static void printclass (VM_Address ref) {
-    if ( validRef(ref) ) {
+  public static void printclass(VM_Address ref) {
+    if (validRef(ref)) {
       VM_Type type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
-      if ( validRef( VM_Magic.objectAsAddress(type) ) )
+      if (validRef(VM_Magic.objectAsAddress(type)))
 	VM.sysWrite(type.getDescriptor());
     }
   }
 
 
-  static void dumpProcessorsArray () {
+  static void dumpProcessorsArray() {
     VM_Processor st;
     VM.sysWrite("VM_Scheduler.processors[]:\n");
     for (int i = 0; ++i <= VM_Scheduler.numProcessors;) {
@@ -201,7 +212,7 @@ public class VM_GCUtil
    * TODO: make it possible to throw an exception, but this will have
    * to be done without doing further allocations (or by using temp space)
    */
-  public static void outOfMemory (String heapName, int heapSize, String commandLine) {
+  public static void outOfMemory(String heapName, int heapSize, String commandLine) {
     outOfMemoryLock.lock();
     if (!outOfMemoryReported) {
       outOfMemoryReported = true;

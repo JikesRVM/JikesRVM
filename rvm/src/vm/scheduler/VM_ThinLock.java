@@ -107,6 +107,23 @@ minor:  while (0 != retries--) { // repeat if there is contention for thin lock
           if ((old & TL_FAT_LOCK_MASK) != 0) { // o has a heavy lock
             int index = old & TL_LOCK_ID_MASK;
             index >>>= TL_LOCK_ID_SHIFT;
+            if (VM.VerifyAssertions) {
+              if (index >= VM_Scheduler.locks.length) {
+                VM.sysWrite("Error in VM_ThinLock.lock:\n");
+                VM.sysWrite("  VM_Scheduler.locks.length: ");
+                VM.sysWrite(VM_Scheduler.locks.length,false);
+                VM.sysWrite("\n");
+                VM.sysWrite("  index: ");
+                VM.sysWrite(index,false);
+                VM.sysWrite("\n");
+                VM.sysWrite("  old status word: ");
+                VM.sysWrite(index,true);
+                VM.sysWrite("\n");
+                VM.sysWrite("  Object class: ");
+                VM.sysWrite(o.getClass().toString());
+                VM.sysWrite("\n");
+              }
+            }
             if (VM_Scheduler.locks[index].lockHeavy(o)) {
               break major; // lock succeeds (note that lockHeavy has issued an isync)
             }
