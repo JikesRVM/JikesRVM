@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
@@ -97,10 +97,11 @@ public abstract class VM_MemberReference {
 
 
   /**
-   * Given a StringTokenizer currently pointing to the start of a MemberReference
-   * (created by doing a toString() on a MemberReference), parse it
-   * and find/create the appropriate MemberReference. Consumes all of the tokens corresponding
-   * to the member reference.
+   * Given a StringTokenizer currently pointing to the start of a {@link
+   * VM_MemberReference} (created by doing a toString() on a
+   * VM_MemberReference), parse it and find/create the appropriate
+   * VM_MemberReference. Consumes all of the tokens corresponding to the
+   * member reference.
    */
   public static VM_MemberReference parse(StringTokenizer parser) {
     try {
@@ -111,9 +112,9 @@ public abstract class VM_MemberReference {
       VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
       parser.nextToken(); // discard '>'
       ClassLoader cl;
-      if (clName.equals("BootstrapCL")) {
-        cl = VM_SystemClassLoader.getVMClassLoader();
-      } else if (clName.equals("SystemAppCL")) {
+      if (clName.equals(VM_BootstrapClassLoader.myName)) {
+        cl = VM_BootstrapClassLoader.getBootstrapClassLoader();
+      } else if (clName.equals(ApplicationClassLoader.myName)) {
         cl = VM_ClassLoader.getApplicationClassLoader();
       } else {
         return null;
