@@ -4164,7 +4164,8 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitLVAL(T0, -1);
       pushAddr(T0);
       generateAddrComparison(false, EQ);
-    } else if (methodName == VM_MagicNames.wordZero) {
+    } else if (methodName == VM_MagicNames.wordZero ||
+	       methodName == VM_MagicNames.wordNull) {
       asm.emitLVAL (T0,  0);
       pushAddr(T0);
     } else if (methodName == VM_MagicNames.wordOne) {

@@ -165,6 +165,7 @@ public class VM_MagicNames {
   public static final VM_Atom wordsGT                       = VM_Atom.findOrCreateAsciiAtom("sGT");
   public static final VM_Atom wordsGE                       = VM_Atom.findOrCreateAsciiAtom("sGE");
   public static final VM_Atom wordZero                      = VM_Atom.findOrCreateAsciiAtom("zero");
+  public static final VM_Atom wordNull                      = VM_Atom.findOrCreateAsciiAtom("nullReference");
   public static final VM_Atom wordOne                       = VM_Atom.findOrCreateAsciiAtom("one");
   public static final VM_Atom wordMax                       = VM_Atom.findOrCreateAsciiAtom("max");
   public static final VM_Atom wordIsNull                    = VM_Atom.findOrCreateAsciiAtom("isNull");

@@ -3712,7 +3712,8 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         return true;
     }
 
-    if (methodName == VM_MagicNames.wordZero) {
+    if (methodName == VM_MagicNames.wordZero ||
+        methodName == VM_MagicNames.wordNull) {
         asm.emitPUSH_Imm(0);
         return true;
     }

@@ -4020,7 +4020,8 @@ public class VM_QuickCompiler extends VM_CompilerFramework
     } else if (methodName == VM_MagicNames.wordIsMax) {
       // unsigned comparison generating a boolean
       generateAddrComparison(EQ, -1);
-    } else if (methodName == VM_MagicNames.wordZero) {
+    } else if (methodName == VM_MagicNames.wordZero ||
+               methodName == VM_MagicNames.wordNull) {
       asm.emitLVAL (T0,  0);
       pushFromRegister(OBJECT_TYPE, T0);
     } else if (methodName == VM_MagicNames.wordOne) {
