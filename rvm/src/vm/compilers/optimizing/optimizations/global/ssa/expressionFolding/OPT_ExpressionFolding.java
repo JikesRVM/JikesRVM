@@ -6,6 +6,7 @@
 import instructionFormats.*;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -51,6 +52,9 @@ class OPT_ExpressionFolding implements OPT_Operators {
     boolean didSomething = true;
     while (didSomething) {
       didSomething = false;
+      // Remember which instructions are transformed in each loop
+      // iteration
+      HashMap replace = new HashMap(20);
       for (Iterator i = candidates.iterator(); i.hasNext(); ) {
         OPT_Instruction s = (OPT_Instruction)i.next();
         OPT_Operand val1 = Binary.getVal1(s);
@@ -62,29 +66,42 @@ class OPT_ExpressionFolding implements OPT_Operators {
           OPT_Operand def2 = Binary.getVal2(def);
           if (VM.VerifyAssertions) VM.assert(def2.isConstant());
 
-          transform(s,def);
+          OPT_Instruction newS = transform(s,def);
+          s.insertAfter(newS);
+          replace.put(s,newS);
+          OPT_DefUse.updateDUForNewInstruction(newS);
+          OPT_DefUse.removeInstructionAndUpdateDU(s);
           didSomething = true;
         }
       }
+      // update the candidate set to account for the transformations done
+      // in this loop iteration.
+      candidates.removeAll(replace.keySet());
+      candidates.addAll(replace.values());
     }
   }      
 
   /**
    * Perform the transfomation on the instruction s = A +/- c
    * where def is the definition of A.
+   *
+   * @return the new instruction to replace s;
    */
-  private static void transform(OPT_Instruction s, OPT_Instruction def) {
+  private static OPT_Instruction transform(OPT_Instruction s, 
+                                           OPT_Instruction def) {
     if (s.operator == INT_ADD || s.operator == INT_SUB) {
-      transformForInt(s,def);
+      return transformForInt(s,def);
     } else {
-      transformForLong(s,def);
+      return transformForLong(s,def);
     }
   }
   /**
    * Perform the transfomation on the instruction s = A +/- c
    * where def is the definition of A.
+   * @return the new instruction to replace s;
    */
-  private static void transformForInt(OPT_Instruction s, OPT_Instruction def) {
+  private static OPT_Instruction transformForInt(OPT_Instruction s, 
+                                                 OPT_Instruction def) {
     // s is y = A + c
     OPT_RegisterOperand y = Binary.getResult(s);
     OPT_RegisterOperand A = Binary.getVal1(s).asRegister();
@@ -98,14 +115,16 @@ class OPT_ExpressionFolding implements OPT_Operators {
 
     // rewrite so y = B + (c+d)  
     OPT_IntConstantOperand val2 = new OPT_IntConstantOperand(c+d);
-    Binary.mutate(s,INT_ADD,y,B.copy(),val2);
+    return Binary.create(INT_ADD,y,B.copy(),val2);
   }
 
   /**
    * Perform the transfomation on the instruction s = A +/- c
    * where def is the definition of A.
+   * @return the new instruction to replace s;
    */
-  private static void transformForLong(OPT_Instruction s, OPT_Instruction def) {
+  private static OPT_Instruction transformForLong(OPT_Instruction s, 
+                                                  OPT_Instruction def) {
     // s is y = A + c
     OPT_RegisterOperand y = Binary.getResult(s);
     OPT_RegisterOperand A = Binary.getVal1(s).asRegister();
@@ -119,7 +138,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
 
     // rewrite so y = B + (c+d)  
     OPT_LongConstantOperand val2 = new OPT_LongConstantOperand(c+d);
-    Binary.mutate(s,LONG_ADD,y,B.copy(),val2);
+    return Binary.create(LONG_ADD,y,B.copy(),val2);
   }
 
   /**
