@@ -9,6 +9,9 @@ import java.io.PrintWriter;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_StackTrace;
 import com.ibm.JikesRVM.VM_UnimplementedError;
+import com.ibm.JikesRVM.PrintLN;
+import com.ibm.JikesRVM.PrintContainer;
+
 
 /**
  * Jikes RVM implementation of java.lang.Throwable.
@@ -90,15 +93,16 @@ public class Throwable implements java.io.Serializable {
   }
     
   public void printStackTrace () {
+    if (System.err == null) {
+      VM.sysWriteln("Throwable.printStackTrace() can't write to null System.err stream; it's early in booting.  Trying VM.sysWriteln()");
+      printStackTrace(new PrintContainer.VMSysWriteln());
+      return;
+    }
     printStackTrace(System.err);
   }
     
-  public synchronized void printStackTrace (PrintStream err) {
-    if (err == null) {
-      VM.sysWriteln("Throwable.printStackTrace given null stream - early in booting");
-      return;
-    }
-    err.println(this);
+  public synchronized void printStackTrace (PrintLN err) {
+    err.println(this.toString());
     // Work in progress (Steven Augart)
     //    stackTrace.print(err, this);
     stackTrace.print(err);
@@ -109,8 +113,11 @@ public class Throwable implements java.io.Serializable {
   }
 
   public void printStackTrace(PrintWriter err) {
-    err.println(this);
-    stackTrace.print(err);
+    printStackTrace(new PrintContainer(err));
+  }
+
+  public void printStackTrace(PrintStream err) {
+    printStackTrace(new PrintContainer(err));
   }
     
   public void setStackTrace(StackTraceElement[] stackTrace) {
