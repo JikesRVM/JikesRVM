@@ -11,10 +11,18 @@ import instructionFormats.*;
  * should only be those sequences that cannot be expanded earlier
  * due to difficulty in keeping optimizations from interfering with them.
  *
+ *  One job of this phase is to handle the expansion of the remains of
+ * table switch.  The code looks like a mess (which it is), but there
+ * is little choice for relocatable IA32 cod ethat does this.  And the
+ * details of this code are shared with the baseline compiler and
+ * dependent in detail on the VM_Assembler (see {@link
+ * VM_Assembler#emitOFFSET_Imm_ImmOrLabel}).  If you want to mess with
+ * it, you will probably need to mess with them as well.
+ *
  * @author Dave Grove
  * @author Stephen Fink
- * @modified Peter Sweeney
- */
+ * @author Julian Dolby
+ * @modified Peter Sweeney */
 class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
 
   /**

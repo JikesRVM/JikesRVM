@@ -1131,6 +1131,7 @@ class GenerateAssembler {
 	emit(" * @see GenerateAssembler\n");
 	emit(" *\n");
 	emit(" * @author Julian Dolby\n");
+	emit(" * @author {@link GenerateAssembler}\n");
 	emit(" */\n");
 	emit("class OPT_Assembler extends OPT_AssemblerBase {\n\n");
 

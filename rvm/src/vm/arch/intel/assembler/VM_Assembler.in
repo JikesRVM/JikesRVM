@@ -32,7 +32,27 @@
  * later to inform the assembler to which instruction this label
  * refers.  The assembler, when informed to what the label refers,
  * will go back and generate the appropriate offsets for all branches
- * that refer to the given label. </P>
+ * that refer to the given label. The mechanism is implemented by the
+ * following methods and helper classes:
+ * <UL>
+ * <LI> {@link #forwardRefs}
+ * <LI> {@link #resolveForwardReferences}
+ * <LI> {@link #patchUnconditionalBranch}
+ * <LI> {@link #patchConditionalBranch}
+ * <LI> {@link #emitJCC_Cond_Label}
+ * <LI> {@link #emitJMP_Label}
+ * <LI> {@link #emitCALL_Label}
+ * <LI> {@link VM_ForwardReference}
+ * </UL>
+ * </P>
+ *
+ *  <P> There is also support for generating tableswitches.  This
+ * consists providing support for storing tables of relative addresses
+ * that can be used to compute the target of a tableswitch.  This
+ * support assumes a particular code sequence for tableswitches
+ * (followed by baseline and optimizing compilers).  See {@link
+ * emitOFFSET_Imm_ImmOrLabel} and {@link patchCaseLabel} for
+ * details. </P>
  *
  *  <P> The automatically-generated emit methods of this assembler
  * exploit regularities in the IA32 binary encoding; for example,
@@ -49,13 +69,14 @@
  *
  *  <P> This assembler is shared by the baseline and optimizing
  * compilers: it used directly by the baseline compiler, while the
- * optimizing compiler has an OPT_Assembler that is built on top of
- * this one to match OPT_Instructions and OPT_Operators to the emit
- * methods this assembler provides.  The OPT_Assembler is entirely
- * machine-generated, and this requires that the methods for encoding
- * instructions use a stylized naming and signiture convention that is
- * designed to make the method signiture computable from the opcode
- * and the operand types.  The naming convetion is as follows:
+ * optimizing compiler has an {@link OPT_Assembler} that is built on
+ * top of this one to match {@link OPT_Instruction}s and {@link
+ * OPT_Operator}s to the emit methods this assembler provides.  The
+ * {@link OPT_Assembler} is entirely machine-generated, and this
+ * requires that the methods for encoding instructions use a stylized
+ * naming and signiture convention that is designed to make the method
+ * signiture computable from the opcode and the operand types.  The
+ * naming convention is as follows:
  *
  * <PRE>
  *   final void emit<EM>opcode</EM>\(_<EM>operand code</EM>\)*[_<EM>size</EM>](\(<EM>operand arguments</EM>\)*)
@@ -93,7 +114,7 @@
  *  <DI>
  *    <UL>
  *	<LI> immediate value (int)
-      </UL>
+ *    </UL>
  *  <DT> "Reg"	
  *  <DI> 
  *    <UL> 
@@ -135,10 +156,11 @@
  *
  * @see OPT_Assembler
  * @see VM_Lister
+ * @see VM_ForwardReference
  *
  * @author Julian Dolby
- * @author Bowen Alpern
- */
+ * @author Bowen Alpern 
+*/
 class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
 	
   /**
@@ -657,7 +679,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   }
 
   /**
-   *  The set of outstandin forward references.  This list is used by
+   *  The set of outstanding forward references.  This list is used by
    * the assembler to keep track of all outstanding forward
    * references.  References are put on this list by the emit methods
    * for JMP and Jcc when they find a branch that is going forward.
@@ -666,6 +688,13 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    * calls resolveForwardBranches, the assembler searches this list to
    * find branches that match the instruction currently being
    * generated, and calls the resolve method on each one that does.
+   *
+   *  All forward branches have a label as the branch target; clients
+   * can arbirarily associate labels and instructions, but must be
+   * consistent in giving the chosen label as the target of branches
+   * to an instruction and calling resolveForwardBranches with the
+   * given label immediately before emitting the target instruction.
+   * See the header comments of VM_ForwardReference for more details.
    */
   VM_ForwardReference forwardRefs;
 
@@ -675,6 +704,13 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
    * Clients of the assembler call this method immediately before they
    * emit the instruction intended to be the target of the given
    * label.
+   *
+   *  All forward branches have a label as the branch target; clients
+   * can arbirarily associate labels and instructions, but must be
+   * consistent in giving the chosen label as the target of branches
+   * to an instruction and calling resolveForwardBranches with the
+   * given label immediately before emitting the target instruction.
+   * See the header comments of VM_ForwardReference for more details.
    *
    * @param label the forward branch label to resolve
    */
@@ -737,6 +773,56 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   // table switch support /////////////
   /////////////////////////////////////
 
+  /**
+   *  <P> An OFFSET instruction is not really an instruction; it is rather
+   * an address (of an instruction) that is written into the binary
+   * code.  These are used to build a table of addresses for table
+   * switches.  The code for tableswitches first captures the current
+   * pc, then jumps to that value plus the value from a table of
+   * relative offsets indexed by the value of the switch expression. </P>
+   *
+   *  <P> This mechanism assumes code for emitting tableswitch looks as
+   * follows; it is not very nice, but no relocatable IA32 code for such
+   * switches is.  Indeed, GCC generates something similar when given
+   * -fpic.  Note that default cases must be handled separateky. </P>
+   *
+   * <PRE>
+   *         CALL x ([SP] gets IP of first OFFSET instruction)
+   *         OFFSET 0 (case 0 target)
+   *         OFFSET 1 (case 1 target)
+   *         ...
+   *         OFFSET n (case n target)
+   *         
+   *     -------------------------------
+   *
+   *     x:  [SP] = [SP] + [ [SP] + case expression value<<2 ]
+   *         RET (goes to adjusted location in [SP])
+   * </PRE>
+   *
+   *  <P> The above mechanism means that the RET instruction is
+   * effectively a register-indexed relative jump (the whole reason
+   * for this mess is that IA32 has no such instruction).  The offset
+   * is based on the case expression, and the jump is relative to the
+   * instruction following the CALL.  Thus, table offsets must be
+   * relative to the start of the table, not their own addresses
+   * within it. </P>
+   *
+   *  <P> Therefore, handling of forward bracnhes is slightly different
+   * from the normal case of JMP and Jcc; when a forward branch is
+   * found, the current table entry (c) is stored into the table.
+   * When the fixup code runs, it uses this index to compute the
+   * start of the table, and store the offset of the target
+   * instruction relative to that.  Similarly, for backward branches,
+   * the case index c is used to find the start of the table to store
+   * te appropriate relative offset. </P>
+   *
+   * @see patchSwitchCase
+   *
+   * @param c the table entry being emitted (i.e. the value of the
+   * switch expression corresponding to this target)
+   * @param mTarget the method-relative target offset 
+   * @param bTarget the label associated with the branch target instrucion 
+   */
   void emitOFFSET_Imm_ImmOrLabel (int c, int mTarget, int bTarget) {
     int miStart = mi;
     if (0 < mTarget) { // resolved (backward) reference 
@@ -751,6 +837,15 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     }
   }
 
+  /**
+   *  Patch a tableswitch offset table entry at the given source
+   * index.  This method resolves the table entry at the given source
+   * index to point to the current instruction.  
+   *
+   * @see #emitOFFSET_Imm_ImmOrLabel
+   *
+   * @param sourceIndex the location of the offset to patch
+   */
   void patchSwitchCase (int sourceIndex) {
     if (lister != null) lister.comefrom(mi, sourceIndex);
     int c = 0;
@@ -769,6 +864,12 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   // instructions (hand coded)	     //
   /////////////////////////////////////
 
+  /**
+   *  Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = src
+   * </PRE>
+   */
   final void emitCMOV_Cond_Reg_Reg(byte cond, byte dst, byte src) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -777,6 +878,12 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       if (lister != null) lister.RR(miStart, "CMOV" + CONDITION[cond], dst, src);
   }
 
+  /**
+   *  Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = [src + disp]
+   * </PRE>
+   */
   final void emitCMOV_Cond_Reg_RegDisp(byte cond, byte dst, byte src, int disp) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -785,6 +892,12 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       if (lister != null) lister.RRD(miStart, "CMOV" + CONDITION[cond], dst, src, disp);
   }
 
+  /**
+   *  Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = [src]
+   * </PRE>
+   */
   final void emitCMOV_Cond_Reg_RegInd(byte cond, byte dst, byte src) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -793,6 +906,12 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       if (lister != null) lister.RRN(miStart, "CMOV" + CONDITION[cond], dst, src);
   }
 
+  /**
+   *  Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = [index2<<scale2 + disp2]
+   * </PRE>
+   */
   final void emitCMOV_Cond_Reg_RegOff(byte cond, byte dst, byte index2, short scale2, int disp2) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -801,6 +920,12 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       if (lister != null) lister.RRFD(miStart, "CMOV" + CONDITION[cond], dst, index2, scale2, disp2);
   }
 
+  /**
+   *  Conditionally move the source to the destination, i.e.
+   * <PRE>
+   * if (cond) dst = [base2 + index2<<scale2 + disp2]
+   * </PRE>
+   */
   final void emitCMOV_Cond_Reg_RegIdx(byte cond, byte dst, byte base2, byte index2, short scale2, int disp2) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -809,6 +934,16 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       if (lister != null) lister.RRXD(miStart, "CMOV" + CONDITION[cond], dst, base2, index2, scale2, disp2);
   }
 
+  /**
+   *  Set destination to zero or one, if the given condition is false
+   * or true, respectively.  That is,
+   * <PRE>
+   * dst = (cond)? 1: 0
+   * </PRE>
+   *
+   * @param cond the condition to be tested
+   * @param dst the destination register
+   */
   final void emitSET_Cond_Reg_Byte(byte cond, byte dst) {
       int miStart = mi;
       setMachineCodes(mi++, (byte) 0x0F);
@@ -916,8 +1051,31 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     if (lister != null) lister.I(miStart, "INT", v);
   }
 
-  // if cond then IP += mTarget-mi
-  // (if mTarget initially 0, value will be overwritten when known)
+  /**
+   *  Conditionally branch to the given target, i.e.
+   * <PRE>
+   * if (cond) then IP = (instruction @ label)
+   * </PRE>
+   *
+   *  This emit method is expecting only a forward branch (that is
+   * what the Label operand means); it creates a VM_ForwardReference
+   * to the given label, and puts it into the assembler's list of
+   * references to resolve.  This emiiter knows it emits conditional
+   * branches, so it uses VM_ForwardReference.ConditionalBranch as the
+   * forward reference type to create.
+   *
+   *  All forward branches have a label as the branch target; clients
+   * can arbirarily associate labels and instructions, but must be
+   * consistent in giving the chosen label as the target of branches
+   * to an instruction and calling resolveForwardBranches with the
+   * given label immediately before emitting the target instruction.
+   * See the header comments of VM_ForwardReference for more details.
+   *
+   * @param cond the IA32 ISA condition code bits to mask into opcode
+   * @param label the label associated with the branch target instrucion
+   *
+   * @see VM_ForwardReference.ConditionalBranch 
+   */
   final void emitJCC_Cond_Label (byte cond, int label) {
       int miStart = mi;
       VM_ForwardReference r =  new VM_ForwardReference.ConditionalBranch(mi, label);
@@ -928,6 +1086,20 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       if (lister != null) lister.I(miStart, "J" + CONDITION[cond], label);
   }
 
+  /**
+   *  Conditionally branch to the given target, i.e.
+   * <PRE>
+   * if (cond) then IP = mTarget
+   * </PRE>
+   *
+   *  This emit method emits only backward branches (that is what
+   * branching to an Imm operand means), so it simply writes the
+   * appropriate binary code without bothering with the forward
+   * reference mechanism.
+   * 
+   * @param cond the IA32 ISA condition code bits to mask into opcode
+   * @param mTarget the method-relative target offset 
+   */
   final void emitJCC_Cond_Imm (byte cond, int mTarget) {
       int miStart = mi;
       int relOffset = mTarget - (mi + 1 + 1); // address relative to next instruction
@@ -943,6 +1115,23 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       if (lister != null) lister.I(miStart, "J" + CONDITION[cond], relOffset);
   }
 
+  /**
+   *  Conditionally branch to the given target, i.e.
+   * <PRE>
+   * if (cond) then IP = mTarget -or- (instruction @ bTarget)
+   * </PRE>
+   *
+   *  This emit method represents a branch that could be either
+   * forward or backward; it simply calls either the Label or Imm
+   * emit method.
+   *
+   * @see emitJCC_Cond_Label
+   * @see emitJCC_Cond_Imm
+   *
+   * @param cond the IA32 ISA condition code bits to mask into opcode
+   * @param mTarget the method-relative target offset 
+   * @param bTarget the label associated with the branch target instrucion
+   */
   final void emitJCC_Cond_ImmOrLabel (byte cond, int mTarget, int bTarget) {
     if (mTarget == 0) { // forward branch
 	emitJCC_Cond_Label(cond, bTarget);
