@@ -971,11 +971,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     }
 
     if (isInterface()) {
+      if (VM.VerifyAssertions) VM._assert(superClass == null);
       depth = 1; 
     } else if (isJavaLangObjectType()) {
+      if (VM.VerifyAssertions) VM._assert(superClass == null);
       instanceSize = VM_ObjectModel.computeScalarHeaderSize(this);
       alignment = BYTES_IN_ADDRESS;
     } else {
+      if (VM.VerifyAssertions) VM._assert(superClass != null);
       depth = superClass.depth + 1;
       thinLockOffset = superClass.thinLockOffset;
       instanceSize = superClass.instanceSize;
