@@ -306,7 +306,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     long start = System.currentTimeMillis();
     VM_CollectorThread.collect(VM_CollectorThread.handshake);
     if (Plan.verbose > 2) VM.sysWriteln("Collection finished (ms): ", 
-					System.currentTimeMillis() - start);
+					(int) (System.currentTimeMillis() - start));
   }
 
   /**
@@ -371,11 +371,17 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   public static int pickAllocator(VM_Type type) throws VM_PragmaInterruptible {
+    Type t = type.JMTKtype;
+    if (t.initialized)
+      return t.allocator;
+    int allocator = Plan.DEFAULT_ALLOCATOR;
     String s = type.getName();
     if (s.startsWith("com.ibm.JikesRVM.memoryManagers.") ||
 	s.equals("com.ibm.JikesRVM.VM_Processor"))
-      return Plan.IMMORTAL_ALLOCATOR;
-    return Plan.DEFAULT_ALLOCATOR;
+      allocator = Plan.IMMORTAL_ALLOCATOR;
+    t.initialized = true;
+    t.allocator = allocator;
+    return allocator;
   }
 
   public static Object allocateScalar(int size, Object [] tib, int allocator) 
