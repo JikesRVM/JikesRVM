@@ -27,13 +27,13 @@
 ## We can first do some simple version tests to keep from getting slipped Bash
 ## version 2.03 or earlier.
 if ! echo D | read -n 1 > /dev/null 2>&1 ; then
-    echo >&2 "$0: We are somehow running under a version of the shell that does not recognize the '-n' argument to the 'read' builtin.  This program absolutely requires Bash version 2.05 or better to run, and we recommend 2.05a or better.  Aborting execution."
+    echo >&2 "$0: ERROR: We are somehow running under a version of the shell that does not recognize the '-n' argument to the 'read' builtin.  This program absolutely requires Bash version 2.05 or better to run, and we recommend 2.05a or better.  Aborting execution."
     exit 1
 fi
 
 
 
-## Exit statuses:
+## Exit statuses.  Declare these right up front since we need them immediately.
 
 ## We exit with status 0 upon success, as is conventional.
 ## In case of trouble, we exit with the triggering exit status (if invoked via 'set -e'.
@@ -78,7 +78,7 @@ function get_bin_dir() {
 	local f=$bin_dir/$suffix
 	if [[ ! -f $f ]]; then
 	    echo >&2 "\
-    $ME: Something is weird here.  I can't find a file named
+    $ME: ERROR: Something is weird here.  I can't find a file named
 	\"${f##*/}\" in \"$f\",
 	but I was apparently run from the directory \"$bin_dir\".  
 	Please use a version of jconfigure in the same source tree that 
@@ -92,7 +92,7 @@ function get_bin_dir() {
 	f=$bin_dir/$suffix
 	if [[ ! -f $f ]]; then
 	    echo >&2 "\
-    $ME: I can't find a file named \"${f##*/}\" at 
+    $ME: ERROR: I can't find a file named \"${f##*/}\" at 
        RVM_ROOT/$suffix (that's 
        $f).
        You probably have RVM_ROOT set incorrectly.  Reset RVM_ROOT and try again."
@@ -102,20 +102,20 @@ function get_bin_dir() {
     fi
 
     if [[ ${RVM_ROOT-UNSET} = UNSET ]]; then
-	echo >&2 "$ME: RVM_ROOT is not set.  Set it and try again."
+	echo >&2 "$ME: ERROR: RVM_ROOT is not set.  Set it and try again."
 	trap '' EXIT
 	exit 2
     fi
 
     if [[ ${RVM_ROOT} = "" ]]; then
-	echo >&2 "$ME: RVM_ROOT set to the empty string.  Set it properly and try again."
+	echo >&2 "$ME: ERROR: RVM_ROOT set to the empty string.  Set it properly and try again."
 	trap '' EXIT
 	exit 2
     fi
 
     if [[ ${RVM_ROOT} != /* ]]; then
 	echo >&2 "\
-    $ME: RVM_ROOT must be set to an absolute path 
+    $ME: ERROR: RVM_ROOT must be set to an absolute path 
 	(one starting with a /), not to
 	\"$RVM_ROOT\".  Please set it properly and try again."
 	trap '' EXIT
@@ -126,7 +126,7 @@ function get_bin_dir() {
     f="$RVM_ROOT/$suffix"
     if [[ ! -f $f  ]]; then
 	echo >&2 "\
-    $ME: Can't find a file named \"${f##*/}\" in 
+    $ME: ERROR: Can't find a file named \"${f##*/}\" in 
 	RVM_ROOT/$suffix (that's 
 	\"$f\").  
 	RVM_ROOT is probably set incorrectly.  Reset RVM_ROOT and try again."
@@ -136,7 +136,7 @@ function get_bin_dir() {
 		$maybe_root=${PWD}/$maybe_root
 	    fi
 	    if [[ -d $maybe_root/rvm/_timestamp ]]; then
-		echo >&2 "$ME: Try setting RVM_ROOT to \"$maybe_root\""
+		echo >&2 "$ME: ERROR: Try setting RVM_ROOT to \"$maybe_root\""
 	    fi
 	fi
 	trap '' EXIT
@@ -149,7 +149,8 @@ function get_bin_dir() {
 function croak_nonusage () {
     ## If we have not loaded show_mesg() yet, substitute.
     [[ $(type -t show_mesg) = function ]] || function show_mesg () { echo "$ME: $@" ; }
-    show_mesg "$*"  >&2;
+    show_mesg "ERROR: $*"  >&2;
+    show_mesg >&2 "Aborting execution."
     trap '' EXIT
     exit 2
 }
@@ -237,16 +238,22 @@ function help_message () {
 
 	Flags: 
 	-nocleanse | -cleanse :
-	  (Do not) throw away intermediate files in the build directory that 
-          were generated during a previous run of ${ME}.  "-cleanse" is the 
-	  default.  Has no effect if run on a build directory that has never
-	  been used for building.  This is only useful if you know that you
-	  haven't changed the build configuration.
+	  
+	  (Do | Do not) throw away intermediate files in the build directory 
+	  that were generated during a previous run of ${ME}.  "-cleanse" is 
+	  the default.  Has no effect if run on a build directory that has 
+	  never been used for building.  This saves time if you are modifying 
+	  how jconfigure writes the jbuild.* subprograms, and you want to
+	  rerun just one of those subprograms.
 	  
 	-quiet :
 	  Do not spit out (most of) the informative messages that go out during
-	  a run of ${ME}.  This includes possible complaints if you're
-	  running an old version of Bash.
+	  a run of ${ME}.  Implies -quiet-warnings.
+
+	-quiet-c[autions] : Turn off all CAUTION messages.
+
+	-quiet-w[arnings] : Turn off all WARNING messages.  
+			    Implies -quiet-cautions. 
 
 	[-D <variable>=<value>]... :
 	  This flag may be repeated an arbitrary number of times.  Sets configuration
@@ -436,6 +443,7 @@ function on_host_set_JIKES_test_Jikes_version () {
 	    echo >&2 "	\"$jikes_msg\""
 	    show_mesg >&2 "This looks bad; I am giving up.  
   The likely offending configuration file is  \"${CURRENT_CONFIG_FILE}\""
+	    trap '' EXIT
 	    exit 2
 	fi
 	local -i bad_byte_code=0
@@ -519,14 +527,12 @@ function on_host_set_JIKES_test_Jikes_version () {
 		JIKES_WARNING_FLAGS=-nowarn
 		;;
 	    
-	    "") show_mesg >&2 "ERROR: I did not get any version message from the Jikes java-to-byte-code compiler; something may be badly wrong.  I tried using this invocation of Jikes:
-   \"${JIKES} -version\""
-		show_mesg >&2 "This looks bad; I am giving up.  
-  The likely offending configuration file is  \"${CURRENT_CONFIG_FILE}\""
-		exit 2
+	    "") croak_nonusage "I did not get any version message from the Jikes java-to-byte-code compiler; something may be badly wrong.  I tried using this invocation of Jikes:
+   \"${JIKES} -version\"
+This looks bad; I am giving up. The likely offending configuration file is  \"${CURRENT_CONFIG_FILE}\""
 		;;
 	    *)
-		show_mesg >&2 "CAUTION: \"${JIKES}\" is a version of Jikes that has not been tested against Jikes RVM -- the known good versions are ${known_good}.  Your version gives me the message:"
+		(( quiet_cautions )) || show_mesg >&2 "CAUTION: \"${JIKES}\" is a version of Jikes that has not been tested against Jikes RVM -- the known good versions are ${known_good}.  Your version gives me the message:"
 		## If we can't find a line with the string Version, then
 		## print the whole message.
 		( echo "$jikes_msg" | ${FGREP-fgrep} "Version" \
@@ -537,9 +543,9 @@ function on_host_set_JIKES_test_Jikes_version () {
     #     echo "JIKES VERSION: $jikes_version"
 
 	if (( bad_byte_code )); then
-	    show_mesg >&2 "WARNING: Jikes Version $host_jikes_version is known to have generated bad byte code when compiling Jikes RVM.  If you're lucky, the failure will be spectacular.   If you're not, it will waste a lot of your time.  PLEASE consider using one of the known good versions, ${known_good}."
+	    (( quiet_warnings )) || show_mesg >&2 "WARNING: Jikes Version $host_jikes_version is known to have generated bad byte code when compiling Jikes RVM.  If you're lucky, the failure will be spectacular.   If you're not, it will waste a lot of your time.  PLEASE consider using one of the known good versions, ${known_good}."
 	elif (( unregressed )); then
-	    show_mesg >&2 "CAUTION: Versions of Jikes RVM compiled with Jikes Version $host_jikes_version have not gone through a rigorous regression test, although we do not have evidence of problems, and they do run \"Hello, World\" OK.  This message will be removed once someone runs a rigorous regression test  (perhaps you'd like to be the one to run it and to remove this message?)"
+	    (( quiet_cautions )) || show_mesg >&2 "CAUTION: Versions of Jikes RVM compiled with Jikes Version $host_jikes_version have not gone through a rigorous regression test, although we do not have evidence of problems, and they do run \"Hello, World\" OK.  This message will be removed once someone runs a rigorous regression test  (perhaps you'd like to be the one to run it and to remove this message?)"
 	fi
     fi
 }
@@ -581,7 +587,7 @@ function on_host_set_HOST_VM_variables () {
 	    ;;
 
 	*)
-	    echo >&2 "$ME: Config file ${CURRENT_CONFIG_FILE}: Unknown HOST_VM_TYPE: $HOST_VM_TYPE"
+	    echo >&2 "$ME: ERROR: Config file ${CURRENT_CONFIG_FILE}: Unknown HOST_VM_TYPE: $HOST_VM_TYPE"
 	    trap '' EXIT
 	    exit $Exit_Status_Bad_Args
 	    ;;
@@ -772,7 +778,7 @@ function rationalize_classpath_version () {
 	      + RVM_WITH_CLASSPATH_0_12 + RVM_WITH_CLASSPATH_0_13 \
 	      + RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD)"
     if (( sum > 1 )); then
-	show_mesg >&2 "More than one of the variables RVM_WITH_CLASSPATH_0_10, RVM_WITH_CLASSPATH_0_11, RVM_WITH_CLASSPATH_0_12, RVM_WITH_CLASSPATH_0_13, and RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD is defined.  Your configuration files are inconsistent."
+	croak_nonusage "More than one of the variables RVM_WITH_CLASSPATH_0_10, RVM_WITH_CLASSPATH_0_11, RVM_WITH_CLASSPATH_0_12, RVM_WITH_CLASSPATH_0_13, and RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD is defined.  Your configuration files are inconsistent."
 	trap '' EXIT
 	exit 2
     fi
@@ -791,16 +797,127 @@ function rationalize_classpath_version () {
 			-e '/^RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD=/d' \
 		)"
     if [[ $unk ]]; then
-	show_mesg >&2 "At least one unknown RVM_WITH_CLASSPATH_... variable is set:
+	croak_nonusage "At least one unknown RVM_WITH_CLASSPATH_... variable is set:
 $unk
-This could mean that you're trying to use an unsupported 
-version of GNU Classpath.  Aborting."
-	trap '' EXIT
-	exit 2
+This could mean that you're trying to use an unsupported version of GNU Classpath."
+    fi
+}
+
+single_virtual_processor_default=false # By default, don't enable single-virtual-processor
+
+## Leave the single_virtual_processor_default variable set correctly,
+## as well as RVM_FOR_SINGLE_VIRTUAL_PROCESSOR  
+## and RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT 
+function rationalize_single_virtual_processor () {
+    ## First, some sanity checks
+    if (( ! RVM_FOR_LINUX )); then
+	if (( RVM_FOR_MULTIBOOT_GLIBC > 0 || RVM_FOR_DEBIAN_GLIBC > 0 )); then
+	    croak_nonusage "RVM_FOR_LINUX is not set, but an option is set that only makes sense on Linux: RVM_FOR_MULTIBOOT_GLIBC or RVM_FOR_DEBIAN_GLIBC."
+	fi
+	RVM_FOR_MULTIBOOT_GLIBC=0 # default value is -1
+    fi
+
+    ## Set jconfigure_do_not_override to turn off this override message 
+    if (( RVM_FOR_AIX )); then
+        if ((  RVM_FOR_SINGLE_VIRTUAL_PROCESSOR \
+	      || ( RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT > 0 ) ))
+        then
+	    (( quiet_warnings )) || show_mesg >&2 "WARNING: You are configuring for AIX, which has a working libc that never needs single virtual processor support; however, at least one of the RVM*SINGLE_VIRTUAL_PROCESSOR* variables is turned on.  This makes no sense."
+	fi
+	if (( ! jconfigure_do_not_override )); then
+	    show_mesg >&2 "  I'm turning them off and continuing.  If you are absoutely certain you want to do this (you don't want to), then look at the source code for rvm/bin/jconfigure to see how to disable this behavior."
+	    RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0
+	    RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=0
+	    return;			# done
+	fi
+    fi
+
+    if (( RVM_FOR_OSX )); then
+        if ((  RVM_FOR_SINGLE_VIRTUAL_PROCESSOR \
+	      || ( RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT > 0 ) ))
+        then
+	    (( quiet_cautions )) || show_mesg >&2 "CAUTION: You are configuring for Mac OSX / Darwin, which appears to have a working libc that never needs single virtual processor support.   However, at least one of the RVM*SINGLE_VIRTUAL_PROCESSOR* variables is turned on.  Old versions of the boilerplate powerpc-unknown-osx-gnu config file used to leave RVM_WITHOUT_BLOCKING_SYSTEM_CALLS and RVM_FOR_SINGLE_VIRTUAL_PROCESSOR turned on.  This appears to have been unnecessary.  Try turning them off."
+	fi
+    fi
+
+    ## Now, guess appropriate values just based on the user's operating system
+    local -i old=$RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT
+
+    if (( RVM_FOR_MULTIBOOT_GLIBC > 0 )); then
+	new=1
+	single_virtual_processor_default=multiboot
+    elif (( RVM_FOR_DEBIAN_GLIBC )); then
+	new=1
+	single_virtual_processor_default=debian
+    elif (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
+	new=1
+	single_virtual_processor_default=true
+    else
+	new=0
+	single_virtual_processor_default=false
+    fi
+
+    ## Now make sure the values are consistent.
+    if (( old < 0 )); then
+	## The user never specified a value.
+
+	## We just assign the new guessed value, for most cases...
+	RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=$new
+
+	## ...However, if we're configuring on Debian, with a 2.4 or earlier
+	## kernel, and we're building for Linux, and the user did not
+	## explicitly turn it off, go ahead and turn on multiboot_glibc
+	## support.  It should not hurt.  Of course, we're testing for
+	## Debian-ness on the configuration host, whereas we'd like
+	## to do so on the target host, but by then it would be
+	## a bit late.
+	##
+	## We could still do it (these settings do not
+	## affect the Java code, just the C runtime and
+	## environment.target) but it would be messy.
+	if   (( RVM_FOR_LINUX )) && (( new == 0 ))		\
+	  && (( RVM_FOR_MULTIBOOT_GLIBC < 0 ))			\
+	  && [[ -f /etc/debian_version ]]
+	then
+	    local linux_rev="$(uname -r)"
+	    if [[ $linux_rev == 2.2.* ]] || [[ $linux_rev == 2.4.* ]]; then
+		single_virtual_processor_default=multiboot
+		RVM_FOR_MULTIBOOT_GLIBC=1
+		RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=1
+		return
+	    fi
+	fi
+    elif (( old == 0 && new != 0 )); then
+	(( quiet_warnings )) || show_mesg >&2 "WARNING: Your configuration file explicitly sets RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=${old}, but one or more of RVM_FOR_SINGLE_VIRTUAL_PROCESSOR, RVM_FOR_DEBIAN_GLIBC, or RVM_FOR_MULTIBOOT_GLIBC is set.  This is not consistent; I'm fixing things by setting RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=${new}"
+	RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=$new
+    else
+	## Consistency check: old > 0, meaning that the user
+	## definitely wanted us to build with single_virtual_processor
+	## support, so there is no point in worrying about any other
+	## values we might have auto-concluded.  Leave
+	## RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT set the way it
+	## was. 
+	(( new == old )) || (( old == 1 )) \
+	   || croak_nonusage "$ME:$LINENO: INTERNAL ERROR: new=$new, old=$old"
+	:
+    fi
+    
+    ## Turn on multiboot, if no other default for -X:singleVirtualProcessor
+    ## was explicitly requested, and if we're building to handle a single VP
+    if	   (( RVM_FOR_MULTIBOOT_GLIBC < 0 ))			\
+	&& (( RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT ))	\
+	&& ! (( RVM_FOR_DEBIAN_GLIBC ))				\
+	&& ! (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR ))
+    then
+	RVM_FOR_MULTIBOOT_GLIBC=1
+	single_virtual_processor_default=multiboot
+    else
+	RVM_FOR_MULTIBOOT_GLIBC=0
     fi
 }
 
 function rationalize_preprocessor_constants () {
+    rationalize_single_virtual_processor;
     rationalize_classpath_version;
 }
 
@@ -816,9 +933,7 @@ function load_config_file () {
     ## right behavior would be for it to be consistent one way or the
     ## other.  
     if ! . "$1"; then
-	show_mesg >&2 "Unable to load the configuration file \"$1\"  -- aborting execution"
-	trap '' EXIT
-	exit 2
+	croak_nonusage "Unable to load the configuration file \"$1\"."
     fi
     export CURRENT_CONFIG_FILE="$1"
     rationalize_config_file_settings
@@ -1037,6 +1152,10 @@ BOOTIMAGE_MAP_STR=${BUILD_DIRECTORY_STR}/RVM.map
 BOOTER=${BUILD_DIRECTORY}/JikesRVM
 BOOTER_STR=${BUILD_DIRECTORY_STR}/JikesRVM
 
+BOOTER_NO_PTHREADS=${BOOTER}.no-pthreads
+BOOTER_NO_PTHREADS_STR=${BOOTER_STR}.no-pthreads
+
+
 # Variables to allow configuration files to alter the list of
 # directories, primordials, exclusions and top level sources.
 #
@@ -1103,8 +1222,8 @@ if [[ ! -f  $f ]]; then
     exit 3
 fi
 # Current version of RVM
-CVS_TIMESTAMP="$(< $f)"
-JIKESRVM_VERSION="Jikes RVM 2.3.4+CVS"
+declare -r CVS_TIMESTAMP="$(< $f)"
+declare -r JIKESRVM_VERSION="Jikes RVM 2.3.4+CVS"
 
 # Default values for RunBootImage constants.
 # Reasonable default values.
@@ -1183,7 +1302,10 @@ declare -i RVM_WITH_ONE_WORD_INDEX_OBJECT_MODEL=0
 
 # Here are the choices for additional components that are under development and/or are excluded from default build.
 #
-declare -i RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0   # use pThread library to access multiple CPU's (or not)
+declare -i RVM_FOR_SINGLE_VIRTUAL_PROCESSOR=0   # use pThread library to access multiple CPU's (or not).  This can be overridden with the -X:singleVirtualProcessor= command-line argument.
+declare -i RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT=-1	# Should we even have the support for SINGLE_VIRTUAL_PROCESSOR?  -1 means unset.
+declare -i RVM_FOR_DEBIAN_GLIBC=0 # Whether to auto-switch single-virtual-processor mode based on the kernel version.  If set, this overrides RVM_FOR_SINGLE_VIRTUAL_PROCESSOR.  Can be overridden with -X:singleVirtualProcessor
+declare -i RVM_FOR_MULTIBOOT_GLIBC=-1 # Whether to auto-switch single-virtual-processor mode based on the kernel version and based upon whether we are even running Debian GLIBC.  If set, this overrides RVM_FOR_DEBIAN_GLIBC.  Can be overridden with -X:singleVirtualProcessor.  This set by default, if building with the support for multiboot.
 declare -i RVM_WITH_DETERMINISTIC_THREAD_SWITCHING=0 # thread switch after n method calls, do not use interrupts to drive preemption
 declare -i RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING=0 # thread switch only at explicit yield and wait calls
 declare -i RVM_WITH_ALL_CLASSES=0   # include all vm classes in bootimage, not just those needed for startup
@@ -1266,8 +1388,12 @@ declare -i RVM_WITH_VARIABLE_LOCK_RETRY_LIMIT=0
 declare -i RVM_WITH_LOCK_CONTENTION_TRACING=0
 declare -i RVM_WITH_DEBUG=0
 
+## Just affects the configuration process:
+declare -i jconfigure_do_not_override=0
+
 ## Just affects the build process
 declare -i BUILD_WITH_PARANOID_PREPROCESSOR=0
+declare -i CPP_EXPLICIT_UNDEFS=0
 
 ## MISC (to be categorized)
 declare -i RVM_WITH_NOFLUSH=0
@@ -1357,7 +1483,17 @@ function croak_usage () {
     exit $Exit_Status_Bad_Args
 }
 
-declare -i quiet=0 cleanse=1
+declare -i quiet=0 quiet_cautions=0 quiet_warnings=0 cleanse=1
+
+## $1: VAR=value
+function do_Dflag () {
+    local varname=${1%%=*}
+    
+    [[ ${!varname:-} ]] || (( quiet_cautions )) || show_mesg >&2 "CAUTION: There is no standard configuration variable named $varname, but you set that variable with the -D flag."
+    export "$1"
+}
+
+
 while (( $# > 0 ))
 do
     case "$1" in 
@@ -1367,15 +1503,22 @@ do
 	    exit 0; ;;
 	-D )
  	    shift
-	    export "$1";;
+	    do_Dflag "$1";;
 	
 	-D* )
 	    arg="$1";
 	    arg="${arg#-D}"	# trim off the leading -D
-	    export "$arg" ;;
+	    do_Dflag "$arg" ;;
 	
 	-quiet|--quiet ) 
-	    quiet=1;;
+	    quiet=1 ;;
+
+	-quiet-w*|--quiet-w* ) 
+	    quiet_warnings=1 ;;
+
+	-quiet-c*|--quiet-c* ) 
+	    quiet_cautions=1
+	    quiet_warnings=1 ;;
 
 	-cleanse|--cleanse ) 
 	    cleanse=1;;
@@ -1395,11 +1538,11 @@ do
     shift
 done
 
-# This is where we would want to do the check.  However, we get into
+# This is where we would want to do all of the Bash version checking.  However, we get into
 # trouble too fast (i.e., early on) with Bash 2.03, so we use a
 # grosser kludge at the start of jconfigure in order to quickly throw
 # out Bash 2.03 and earlier.
-(( quiet )) || check_bash_version
+(( quiet_warnings )) || check_bash_version
 
 (( $# >= 1 )) || croak_usage "Please specify <configuration-name>"
 CONFIGURATION_NAME="$1"
@@ -1439,7 +1582,7 @@ else
     OBJECT_MODEL_PATH_STR=objectModel/default
 fi
 
-if (( RVM_FOR_AIX || RVM_FOR_SINGLE_VIRTUAL_PROCESSOR == 1 )); then
+if (( RVM_FOR_AIX )); then
     RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 fi
 
@@ -1464,7 +1607,7 @@ else				# Linux/x86; Linux/ppc32
 fi
 
 
-## Setting PREPROCESSOR_DEFINITIONS:
+## Setting JAVA_PREPROCESSOR_DEFINITIONS:
 ## We keep this variable with a newline-separated list of definitions.
 # Convert configuration choices into preprocessor definitions.
 #    RVM_FOR_xxx  --> -DRVM_FOR_xxx
@@ -1478,14 +1621,14 @@ fi
 
 ## Remember, these numbers (BOOTIMAGE_LOAD_ADDRESS, MAXIMUM_MAPPABLE_ADDRESS) 
 ## are for the TARGET:
-PREPROCESSOR_DEFINITIONS="-DBOOTIMAGE_LOAD_ADDRESS=${BOOTIMAGE_LOAD_ADDRESS}"
-PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS}
+JAVA_PREPROCESSOR_DEFINITIONS="-DBOOTIMAGE_LOAD_ADDRESS=${BOOTIMAGE_LOAD_ADDRESS}"
+JAVA_PREPROCESSOR_DEFINITIONS="${JAVA_PREPROCESSOR_DEFINITIONS}
 -DMAXIMUM_MAPPABLE_ADDRESS=${MAXIMUM_MAPPABLE_ADDRESS}"
 CLEANUP='/bin/rm -f ${tmpf-}'	# used by EXIT trap.
 tmpf=/tmp/jconfigure.$$
 set | sed -n -e 's/^RVM_FOR_/-DRVM_FOR_/p' \
 		-e 's/^RVM_WITH_/-DRVM_WITH_/p'			\
-		-e 's/RVM_WITHOUT_/-DRVM_WITHOUT_/p' > $tmpf
+		-e 's/^RVM_WITHOUT_/-DRVM_WITHOUT_/p' > $tmpf
 if (( BUILD_WITH_PARANOID_PREPROCESSOR )); then
     from_vars="$(< $tmpf)"
 else
@@ -1495,23 +1638,78 @@ else
     ## the default value (zero) 
     from_vars="$(sed -e '/=0/d' $tmpf)"
 fi
-eval $CLEANUP   # rm -f $tmpf
-CLEANUP=":"
-# echo "from_vars are $from_vars"
-PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS}
+# echo "from_vars are $from_vars"	# DBG
+JAVA_PREPROCESSOR_DEFINITIONS="${JAVA_PREPROCESSOR_DEFINITIONS}
 ${from_vars}"
+# echo "JAVA_PREPROCESSOR_DEFINITIONS=${JAVA_PREPROCESSOR_DEFINITIONS}"	# DBG
+# echo "tmpf=$tmpf IS:"; cat $tmpf # DBG
+
 unset from_vars
-## We keep PREPROCESSOR_DEFINITIONS as a newline-separated list rather than
+## We keep JAVA_PREPROCESSOR_DEFINITIONS as a newline-separated list rather than
 ## turning it into a space-separated list.  That is because it is 
 ## convenient for us to be able to print out the definitions
 ## in the configuration summary.
-
 
 if (( BUILD_WITH_PARANOID_PREPROCESSOR )); then
     PARANOID_PREPROCESSOR_FLAG=" --no-undefined-constants-in-conditions"
 else
     PARANOID_PREPROCESSOR_FLAG=""
 fi
+
+## Similarly, set things up for the C and C++ preprocessors.  Here, we
+## just want to use a bunch of flags.  For some odd reason, one
+## has always used -U to explicitly undefine unset variables.
+
+## We probably  don't need to bother with that, here,
+## although we can do so for historical compatibility.
+
+if (( CPP_EXPLICIT_UNDEFS )); then
+    C_PREPROCESSOR_DEFINITIONS="$(sed -e '/=0/s/^-D/-U/' -e 's/=0//' $tmpf)"
+else
+    C_PREPROCESSOR_DEFINITIONS="$(sed -e '/=0/d' $tmpf)"
+fi
+## Now clean up the temp files we've used.
+eval $CLEANUP   # rm -f $tmpf
+CLEANUP=":"
+
+## And set any more C preprocessor definitions we need to.
+C_PREPROCESSOR_DEFINITIONS="${C_PREPROCESSOR_DEFINITIONS}
+-DRVM_BOOTIMAGE=${BOOTIMAGE_STR}" # We do our usual bad job of dealing with embedded spaces here.
+
+if (( HAS_DLCOMPAT )); then
+    C_PREPROCESSOR_DEFINITIONS="$C_PREPROCESSOR_DEFINITIONS
+-DHAS_DLCOMPAT"
+elif (( CPP_EXPLICIT_UNDEFS )); then
+    C_PREPROCESSOR_DEFINITIONS="$C_PREPROCESSOR_DEFINITIONS
+-UHAS_DLCOMPAT"
+fi
+
+## Might as well turn on thread-capable system library functions,
+## although I think only the GNU C library (Linux) actually does something
+## useful with -D_REENTRANT
+C_PREPROCESSOR_DEFINITIONS="$C_PREPROCESSOR_DEFINITIONS
+-D_REENTRANT"
+
+if (( RVM_WITH_GCTRACE )); then
+    C_PREPROCESSOR_DEFINITIONS="$C_PREPROCESSOR_DEFINITIONS
+ -DRVM_FOR_GCTRACE"
+elif (( CPP_EXPLICIT_UNDEFS )); then
+    C_PREPROCESSOR_DEFINITIONS="$C_PREPROCESSOR_DEFINITIONS
+ -URVM_FOR_GCTRACE"
+fi
+
+if (( CPP_EXPLICIT_UNDEFS )); then
+    if (( RVM_FOR_32_ADDR )); then
+	C_PREPROCESSOR_DEFINITIONS="$C_PREPROCESSOR_DEFINITIONS
+ -URVM_FOR_64_ADDR"
+    elif (( RVM_FOR_64_ADDR )); then
+	C_PREPROCESSOR_DEFINITIONS="$C_PREPROCESSOR_DEFINITIONS
+ -URVM_FOR_32_ADDR"
+    else
+	croak_nonusage "Configuration ERROR: Neither RVM_FOR_32_ADDR nor RVM_FOR_64_ADDR is defined!" 
+    fi
+fi
+
 
 # Place where bootimage runner lives.
 #
@@ -1953,7 +2151,23 @@ EOF
 	export LD_LIBRARY_PATH="${HOST_JAVA_LD_LIBRARY_PATH}\${LD_LIBRARY_PATH-}"
 EOF
     fi
+    cat <<- EOF
+	SINGLE_VIRTUAL_PROCESSOR_DEFAULT=${single_virtual_processor_default}
+EOF
+    if (( RVM_FOR_AIX )); then
+	echo 'shlib_suffix=.a'
+    elif (( RVM_FOR_OSX )); then
+	echo 'shlib_suffix=.jnilib'
+    elif (( RVM_FOR_LINUX )); then
+	echo 'shlib_suffix=.so'
+    else
+	show_mesg_raw >&2 "$ME:$LINENO: ERROR: neither RVM_FOR_AIX nor" \
+		"RVM_FOR_LINUX nor RVM_FOR_OSX is defined."
+	trap '' EXIT
+	exit 2
+    fi
 
+    # CPP is only used by the PowerPC build.
     [[ ! ${CPP-} ]] || echo "export $HOST_CPP_STR1='$CPP'"
     [[ ! ${FASTJAR-} ]] || echo "export FASTJAR='$FASTJAR'"
     [[ ! ${BISON-} ]] || echo "export BISON='$BISON'"  
@@ -2570,11 +2784,12 @@ EOF
 	        continue;
 	    fi
 EOF
-    # The odd code below with $(echo  ...) is because 
-    # we need to turn the PREPROCESSOR_DEFINITIONS from a 
-    # newline-separated list to a space-separated list.
+    ## The odd code below with $(echo  ...) is because 
+    ## we need to turn the JAVA_PREPROCESSOR_DEFINITIONS from a 
+    ## newline-separated list to a space-separated list.
+
     cat <<- EOF
-	    ${BUILD_DIRECTORY_STR}/jbuild.prep.host \${PREPROC_FLAGS} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} \$FILES 
+	    ${BUILD_DIRECTORY_STR}/jbuild.prep.host \${PREPROC_FLAGS} $(echo ${JAVA_PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} \$FILES 
 	    status=\$?
 	    $(emit_enable_exit_on_error)
 	    if (( status == 1 )); then
@@ -2598,7 +2813,7 @@ EOF
 
 	FILES=\$(\${FIND} ${GENERATED_FILES_DIRECTORY_STR}/ -name "*.java")
 	$(emit_disable_exit_on_error)
-	${BUILD_DIRECTORY_STR}/jbuild.prep.host \${PREPROC_FLAGS} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} \${FILES}
+	${BUILD_DIRECTORY_STR}/jbuild.prep.host \${PREPROC_FLAGS} $(echo ${JAVA_PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} \${FILES}
 	status=\$?
 	$(emit_enable_exit_on_error)
 
@@ -2892,7 +3107,7 @@ EOF
 
  	run $BUILD_DIRECTORY_STR/jbuild.prep.host \
  		--disable-modification-exit-status \$PREPROC_FLAGS \
- 		$(echo $PREPROCESSOR_DEFINITIONS) \
+ 		$(echo $JAVA_PREPROCESSOR_DEFINITIONS) \
  		$SCRATCH_DIRECTORY_STR  \
 		\${generator_sources}
 
@@ -3618,7 +3833,7 @@ EOF
 	    echo >&2 -n "\$ME: '$BOOTIMAGE_WRITER_DIR_STR'/"
 	fi
 
-	builtin echo \$FILES | run \$XARGS $BUILD_DIRECTORY_STR/jbuild.prep.host --disable-modification-exit-status \$PREPROC_FLAGS $(echo $PREPROCESSOR_DEFINITIONS) $SCRATCH_DIRECTORY_STR 
+	builtin echo \$FILES | run \$XARGS $BUILD_DIRECTORY_STR/jbuild.prep.host --disable-modification-exit-status \$PREPROC_FLAGS $(echo $JAVA_PREPROCESSOR_DEFINITIONS) $SCRATCH_DIRECTORY_STR 
 
 	# compile BootImageWriter.java
 	#
@@ -3663,51 +3878,56 @@ function emitCheckIfIAmTheTarget () {
     echo "# Make sure that the architecture and O/S I am running on are"
     echo "# the ones I should be on in order to link native executables."
     echo "# (This assumes we can only link native executables on the"
-    echo "# native software and O/S.)"
+    echo "# native software and O/S.  This way of doing things will have to be"
+    echo "# modified when you use a proper cross-compiler)"
 
 
     if (( RVM_FOR_AIX )); then
 	echo "if [[ \$(uname) != AIX ]]; then"
-	echo '    echo "please run me on AIX"'
+	echo '    echo "Please run me on AIX"'
 	echo '    trap "" EXIT'
 	echo "    exit $Exit_Status_Run_Linker"
 	echo 'fi'
    elif (( RVM_FOR_OSX )); then
 	echo "if [[ \$(uname) != Darwin ]]; then"
-	echo '   echo "please run me on Darwin/OSX"'
-	echo '   exit 1'
+	echo '    echo "Please run me on OSX/Darwin"'
+	echo '    trap "" EXIT'
+	echo "    exit $Exit_Status_Run_Linker"
 	echo 'fi'
     elif (( RVM_FOR_LINUX )); then
 	echo "if [[ \$(uname) != Linux ]]; then"
-	echo '    echo "please run me on Linux"'
+	echo '    echo "Please run me on Linux"'
 	echo '    trap "" EXIT'
 	echo "    exit $Exit_Status_Run_Linker"
 	echo 'fi'
 
         if (( RVM_FOR_POWERPC && RVM_FOR_64_ADDR )); then
             echo "if [[ \$(uname -m) != ppc64 ]]; then"
-            echo '    echo "please run me on 64-bit Linux PowerPC"'
+            echo '    echo "Please run me on 64-bit Linux PowerPC"'
             echo '    trap "" EXIT'
             echo "    exit $Exit_Status_Run_Linker"
             echo 'fi'
 	elif (( RVM_FOR_POWERPC )); then
 	    echo "if [[ (\$(uname -m) != ppc) && (\$(uname -m) != ppc64)]]; then"
-	    echo '    echo "please run me on Linux PowerPC"'
+	    echo '    echo "Please run me on Linux PowerPC"'
 	    echo '    trap "" EXIT'
 	    echo "    exit $Exit_Status_Run_Linker"
 	    echo 'fi'
 	elif (( RVM_FOR_IA32 )); then
 	    echo "if [[ \$(uname -m) != i686 ]]; then"
-	    echo '    echo "please run me on Linux IA32"'
+	    echo '    echo "Please run me on Linux IA32"'
 	    echo '    trap "" EXIT'
 	    echo "    exit $Exit_Status_Run_Linker"
 	    echo 'fi'
 	else
-	    show_mesg_raw >&2 "$ME:$LINENO: Trouble is looming; neither RVM_FOR_POWERPC nor RVM_FOR_IA32 is defined."
+	    show_mesg_raw >&2 "$ME:$LINENO: ERROR: Configuration Trouble; neither RVM_FOR_POWERPC nor RVM_FOR_IA32 is defined."
+	    trap '' EXIT
+	    exit 2
 	fi
     else
-	show_mesg_raw >&2 "$ME:$LINENO: Configuration Trouble is looming; 
-neither RVM_FOR_AIX nor RVM_FOR_LINUX nor RVM_FOR_OSX is defined."
+	show_mesg_raw >&2 "$ME:$LINENO: ERROR: Configuration Trouble: neither RVM_FOR_AIX nor RVM_FOR_LINUX nor RVM_FOR_OSX is defined."
+	trap '' EXIT
+	exit 2
     fi
     echo ""
 }
@@ -3725,10 +3945,13 @@ function emitBooterLinker () {
 	# Taken:    InterfaceDeclarations.h in RVM.scratch directory
 	# Returned: booter in build directory
 	
+	## Suppress a warning message from the AIX linker, when building
+	## the HPM library.  Don't suppress, if tracing is set.
+	declare -i hush_hpm_linking_aix_duplicate_symbols=1
+
 	# Allow the build directory to be different between
 	# the host/boot image
 	# writing system and the target system.
-	
 	[[ ! \$RVM_BUILD ]] || cd \$RVM_BUILD
 	. ./environment.target
     $(emitBoilerplate)
@@ -3762,11 +3985,11 @@ function emitBooterLinker () {
 	# Here, we go ahead and delete some .o files because it takes
 	# only a second or two to regenerate them, and there was a long
 	# trail of problems getting the dependencies correct.
-	rm -f libjni.a
+
 	cd $SCRATCH_DIRECTORY_STR
-	rm -f $BOOTER_STR RunBootImage.o initBootRecord.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h preprocessModifiedFiles
+	rm -f $BOOTER_STR $BOOTER_NO_PTHREADS_STR RunBootImage.o initBootRecord.o sys.o bootThread.o bootThread.s libvm.o RunBootImage.h preprocessModifiedFiles noPthreads/*.o  
 	if [[ \$CLEAN_FLAG ]]; then
-	    rm -f disasm.o innpdsm.o
+	    rm -f disasm.o ihnpdsm.o
 	fi
 	echo -n "(booter cleaned) "
 	if [[ \$CLEAN_FLAG ]]; then
@@ -3787,11 +4010,11 @@ function emitBooterLinker () {
 
     if [[ ${TARGET_CLASSPATH_BUILD_DIR-} ]]; then
 	if (( ! RVM_FOR_LINUX && ! RVM_FOR_AIX )); then
-	    show_mesg  >&2 "XXX You will probably have to fix the handling of TARGET_CLASSPATH_BUILD_DIR for your platform; it is currently only implemented on Linux.   The generated jbuild.linkBooter (called by jbuild) may not work.  If that happens, then a workaround is not to set TARGET_CLASSPATH_BUILD_DIR in your config file."
+	    show_mesg  >&2 "WARNING: XXX You will probably have to fix the handling of TARGET_CLASSPATH_BUILD_DIR for your platform; it is currently only implemented on Linux.   The generated jbuild.linkBooter (called by jbuild) may not work.  If that happens, then a workaround is not to set TARGET_CLASSPATH_BUILD_DIR in your config file."
 	fi
     elif [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
 	if (( ! RVM_FOR_LINUX )); then
-	    show_mesg  >&2 "XXX You will probably have to fix the handling of TARGET_CLASSPATH_INSTALLATION for your platform; it is currently only implemented on Linux.   The generated jbuild.linkBooter (called by jbuild) may not work.  As a workaround, don't set TARGET_CLASSPATH_INSTALLATION in your config file."
+	    show_mesg  >&2 "WARNING: XXX You will probably have to fix the handling of TARGET_CLASSPATH_INSTALLATION for your platform; it is currently only implemented on Linux.   The generated jbuild.linkBooter (called by jbuild) may not work.  As a workaround, don't set TARGET_CLASSPATH_INSTALLATION in your config file."
 	fi
     else
 	# source from which to copy native libraries
@@ -3800,8 +4023,6 @@ function emitBooterLinker () {
     fi
 
     if (( RVM_FOR_AIX )) && [[ ${TARGET_CLASSPATH_BUILD_DIR-} ]]; then
-	local -r shlib_suffix=.a
-
 	cat <<- EOF
 
 	## AIX requires that dynamically loaded libraries end in .a, 
@@ -3811,13 +4032,11 @@ function emitBooterLinker () {
 	for _library in "${TARGET_CLASSPATH_BUILD_DIR}/native/jni/"*/.libs/*.so.0
 	do
 	    oldbase="\$(basename \${_library} .so.0)"
-	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}${shlib_suffix}"
+	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}\${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
 	done
 EOF
     elif (( RVM_FOR_AIX )); then
-	local -r shlib_suffix=.a
-
 	cat <<- EOF
 
 	## AIX requires that dynamically loaded libraries end in .a, 
@@ -3827,12 +4046,11 @@ EOF
 	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*.so.0
 	do
 	    oldbase="\$(basename \${_library} .so.0)"
-	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}${shlib_suffix}"
+	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}\${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
 	done
 EOF
     elif (( RVM_FOR_OSX )); then
-	local -r shlib_suffix=.jnilib
 cat <<- EOF
 	## OSX requires that JNI libraries end in .jnilib, 
 	## Also, the classpath builder, 
@@ -3841,12 +4059,11 @@ cat <<- EOF
 	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*.so
 	do
 	    oldbase="\$(basename \${_library} .so)"
-	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}${shlib_suffix}"
+	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}\${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
 	done
 EOF
     elif (( RVM_FOR_LINUX )) && [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
-	local -r shlib_suffix=.so
 cat <<- EOF
 	## On Linux, dynamically loaded libraries end in .so.
 	## The classpath builder conveniently generates them with that suffix.
@@ -3856,28 +4073,28 @@ cat <<- EOF
 	done
 EOF
     elif (( RVM_FOR_LINUX )) && [[ ${TARGET_CLASSPATH_BUILD_DIR-} ]] ; then
-	local -r shlib_suffix=.so
 cat <<- EOF
 	## On Linux, dynamically loaded libraries end in .so.
 	## The classpath builder conveniently generates them with that suffix.
-	for _library in "${TARGET_CLASSPATH_BUILD_DIR}/native/jni/"*/.libs/*${shlib_suffix}
+	for _library in "${TARGET_CLASSPATH_BUILD_DIR}/native/jni/"*/.libs/*\${shlib_suffix}
 	do
 	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
 	done
 EOF
     elif (( RVM_FOR_LINUX )); then
-	local -r shlib_suffix=.so
 cat <<- EOF
 	## On Linux, dynamically loaded libraries end in .so.
 	## The classpath builder conveniently generates them with that suffix.
-	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*${shlib_suffix}
+	for _library in "$CPS/\$SYSTEM_TYPE/native/jni/"*/.libs/*\${shlib_suffix}
 	do
 	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
 	done
 EOF
     else
-	show_mesg_raw >&2 "$ME:$LINENO: Configuration Trouble is looming; 
+	show_mesg_raw >&2 "$ME:$LINENO: ERROR: Configuration Trouble: 
 neither RVM_FOR_AIX nor RVM_FOR_LINUX nor RVM_FOR_OSX is defined."
+	trap '' EXIT
+	exit 2
     fi
     cat <<- EOF
 	unset oldbase dest_lib _library || :
@@ -3889,6 +4106,7 @@ neither RVM_FOR_AIX nor RVM_FOR_LINUX nor RVM_FOR_OSX is defined."
 	# Make a target platform preprocessor for use in gctest
 	run ${GNU_MAKE_STR} \${MFLAGS} CFLAGS='' CXXFLAGS='' -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor INCLUDED_MAKEFILE=${BUILD_DIRECTORY_STR}/Make.rules.target tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR} 
 	copyIfNewer "${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles" "${BUILD_DIRECTORY_STR}/jbuild.prep.target"  -n '(set up jbuild.prep.target) '
+
 	## Create RunBootImage.h file.
 EOF
     local tgt=RunBootImage.h
@@ -3907,213 +4125,183 @@ EOF_RUNBOOTIMAGE_H
 	{ [[ -f $tgt ]] && cmp -s $tgt $tmp ; } || mv -f $tmp $tgt
 	rm -f $tmp
 
-	# build the JNI library for creating processes
+	# Build the JNI library for creating processes
+	# and a couple of wrapper libraries we may need.
 	chdir ${ROOT_DIRECTORY_STR}/rvm/src/tools/bootImageRunner/
 EOF
-    DEST="${BUILD_DIRECTORY_STR}/libjpnexec${shlib_suffix}"
+    DEST="${BUILD_DIRECTORY_STR}/libjpnexec\${shlib_suffix}"
     echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.proc DEST=\"$DEST\" \"$DEST\""
 
-    if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	CC_DEFINES="-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
-    else 
-	CC_DEFINES="-URVM_FOR_SINGLE_VIRTUAL_PROCESSOR"
-    fi
+    ## De-quote the spaces.
+    CPP_ARGS="$(echo ${C_PREPROCESSOR_DEFINITIONS})"
 
-    if (( RVM_FOR_32_ADDR )); then
-	CC_DEFINES="$CC_DEFINES -DRVM_FOR_32_ADDR -URVM_FOR_64_ADDR"
-    elif (( RVM_FOR_64_ADDR )); then
-	CC_DEFINES="$CC_DEFINES -DRVM_FOR_64_ADDR -URVM_FOR_32_ADDR"
-    fi
-  
-    if (( RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS )); then
-	CC_DEFINES="$CC_DEFINES -DRVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS"
-    else
+    if (( ! RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS )); then
 	# Build the blocking system call wrapper library, if requested
-	DEST="$BUILD_DIRECTORY_STR/libsyswrap"${shlib_suffix}
-	echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.syswrap DEST=\"$DEST\" CXXFLAGS+=\"$CC_DEFINES\" \"$DEST\""
-    fi
-
-    if (( RVM_WITH_GCTRACE )); then
-        CC_DEFINES="$CC_DEFINES -DRVM_FOR_GCTRACE"
-    else
-        CC_DEFINES="$CC_DEFINES -URVM_FOR_GCTRACE"
+	DEST="$BUILD_DIRECTORY_STR/libsyswrap"\${shlib_suffix}
+	echo "run ${GNU_MAKE_STR} \$MFLAGS CFLAGS='' CXXFLAGS='' -f Makefile.syswrap DEST=\"$DEST\" CXXFLAGS+=\"$CPP_ARGS\" \"$DEST\""
     fi
 
     # Include GCspy libraries, if requested
-    if (( $RVM_WITH_GCSPY )); then
+    if (( RVM_WITH_GCSPY )); then
 	if (( RVM_FOR_SINGLE_VIRTUAL_PROCESSOR  )); then
 	    warning="WARNING: RVM_FOR_SINGLE_VIRTUAL_PROCESSOR is set, as is RVM_WITH_GCSPY.  Those two options are not compatible, since the GCspy server's C runtime support code spawns a pthread.  This build may fail.  If your system has a libc that needs RVM_FOR_SINGLE_VIRTUAL_PROCESSOR, then this build will crash when you try to use the GCspy support."
-	    show_mesg >&2 "$warning"
-	    echo "show_mesg  >&2 \"$warning\" # Show it again at build time."
+	    (( quiet_warnings )) || show_mesg >&2 "$warning"
+	    (( quiet_warnings )) || echo "show_mesg  >&2 \"$warning\" # Show it again at build time."
 	fi 
 	echo "# GCSPY also needs -lpthread, but we link with that in any case, in any build that isn't a single-virtual-processor build."
         echo "GCSPY_LIBS=\"-L$GCSPY_LIB_DIR -lgcspy\""
         echo "GCSPY_INCLUDES=\"-I$GCSPY_INCLUDE_DIR\""
 
 	## And set -Wno-endif-labels, if the compiler supports it.
+	## (Yes, this is useful for GCSPY)
 	echo "## It's OK if we can not get the CPLUS_NO_ENDIF_LABELS_WARNING definition -- it's just there for convenience.  So do not make it fatal."
 	echo "f=\${CONFIG_H_DIR}/config.sh"
-	echo ". \$f || echo >&2 \"CAUTION: unable to load \$f\" " 
-	CC_DEFINES="${CC_DEFINES} \${CPLUS_NO_ENDIF_LABELS_WARNING-} -DRVM_WITH_GCSPY"
+	echo ". \$f || (( quiet_cautions )) || echo >&2 \"CAUTION: unable to load \$f\" " 
+	CPP_ARGS="${CPP_ARGS} \${CPLUS_NO_ENDIF_LABELS_WARNING-} "
     else
         echo "GCSPY_LIBS="
         echo "GCSPY_INCLUDES="
     fi
 
-    if (( RVM_FOR_POWERPC && RVM_FOR_AIX )); then
-	cat <<- EOF
-		BOOTER_CXX="run $HOST_CPLUS_STR -DRVM_FOR_AIX -DRVM_FOR_POWERPC $CC_DEFINES"
-		LDSHARED="$HOST_SHLD_STR"
-		BOOTER_CXXM="\$BOOTER_CXX -M"
-		CPP="$HOST_CC_STR -E $CC_DEFINES"
-
-		CCLIBS="-lpthread -lm"
-		IMAGE=
+    cat <<- EOF
+	BOOTER_CXX="run $HOST_CPLUS_STR $CPP_ARGS"
+	if [[ \${CC-} ]]; then
+	    BOOTER_CC="run $HOST_CC_STR $CPP_ARGS"
+	else
+	    ## Just use the C++ Compiler as a C Compiler; trust it to dispatch
+	    ## appropriately.
+	    BOOTER_CC="\$BOOTER_CXX"
+	fi
+	LDSHARED="run $HOST_SHLD_STR"
+	CCLIBS="\${EXTRA_CCLIBS-} -lm"
+	# CPP is only used for the PowerPC build.
+	[[ \${CPP-} ]] || CPP="$HOST_CC_STR -E"
+	CPP="\$CPP $CPP_ARGS"
 EOF
-    elif (( RVM_FOR_POWERPC && RVM_FOR_OSX )); then
-	echo "declare -a gnu_compiler_flags
-gnu_compiler_flags=(-DRVM_FOR_OSX -DRVM_FOR_POWERPC $CC_DEFINES)"
-	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR  \${gnu_compiler_flags[@]}\""
-	echo "BOOTER_CC=\"run $HOST_CC_STR  \${gnu_compiler_flags[@]}\""
- 	echo "LDSHARED=\"$HOST_SHLD_STR\""
-	echo "BOOTER_CXXM=\$BOOTER_CXX"
-	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES\""
 
-	echo 'CCLIBS="${EXTRA_CCLIBS-} -ldl -lm"'
-	echo 'IMAGE="-DIMAGE_ADDRESS='${BOOTIMAGE_LOAD_ADDRESS}'"'
+    if (( RVM_FOR_AIX )); then
+	cat <<- EOF
+	## Nothing to do for AIX
+	# CCLIBS="\$CCLIBS -lpthread" # Don't reset it to include -lpthread; 
+	  			    # we will do that later.
+EOF
+    elif (( RVM_FOR_OSX )); then
+	echo 'CCLIBS="${CCLIBS} -ldl"'
 
-    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "declare -a gnu_compiler_flags
-gnu_compiler_flags=(-DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES)"
-	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR  \${gnu_compiler_flags[@]}\""
-	echo "BOOTER_CC=\"run $HOST_CC_STR  \${gnu_compiler_flags[@]}\""
- 	echo "LDSHARED=\"$HOST_SHLD_STR\""
-	echo "BOOTER_CXXM=\$BOOTER_CXX"
-	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES\""
-
-	echo '# A special one here... EXTRA_CCLIBS.  Expanded at run time, I assume.'
-	echo '# And only sometimes set.'
-	echo '# TODO Need to find out if it is still needed.  And if it is, 
-# why not make it available for the other configs too? '
-	echo 'CCLIBS="${EXTRA_CCLIBS-} -ldl -lm"'
-	echo 'IMAGE="-DIMAGE_ADDRESS='${BOOTIMAGE_LOAD_ADDRESS}'"'
-
-    elif (( RVM_FOR_POWERPC && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "declare -a gnu_compiler_flags
-gnu_compiler_flags=(-rdynamic -DRVM_FOR_LINUX -DRVM_FOR_POWERPC $CC_DEFINES)"
-	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR  \${gnu_compiler_flags[@]}\""
-	echo "BOOTER_CC=\"run $HOST_CC_STR  \${gnu_compiler_flags[@]}\""
-
-	echo "LDSHARED=\"$HOST_SHLD_STR\""
-	echo "BOOTER_CXXM=\$BOOTER_CXX"
-	echo "CPP=\"$HOST_CPP_STR $CC_DEFINES\""
-	
-	echo 'CCLIBS="-lpthread -ldl -lm"'
-	echo 'IMAGE="-DIMAGE_ADDRESS='${BOOTIMAGE_LOAD_ADDRESS}'"'
-
-    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "declare -a gnu_compiler_flags
-gnu_compiler_flags=(-rdynamic -DRVM_FOR_LINUX -DRVM_FOR_IA32 -D_REENTRANT $CC_DEFINES)"
-	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR \${gnu_compiler_flags[@]}\""
-	echo "BOOTER_CC=\"run $HOST_CC_STR \${gnu_compiler_flags[@]}\""
-	echo 'CCLIBS="-lpthread -ldl"'
-	echo 'IMAGE='
-    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX && RVM_FOR_SINGLE_VIRTUAL_PROCESSOR )); then
-	echo "declare -a gnu_compiler_flags
-gnu_compiler_flags=(-DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
-	echo "BOOTER_CXX=\"run $HOST_CPLUS_STR \${gnu_compiler_flags[@]}\""
-	echo "BOOTER_CC=\"run $HOST_CC_STR \${gnu_compiler_flags[@]}\""
-	echo 'CCLIBS="-ldl"'
-	echo 'IMAGE='
+    elif (( RVM_FOR_LINUX )); then
+	echo "BOOTER_CXX=\"\$BOOTER_CXX -rdynamic\""
+	echo "BOOTER_CC=\"\$BOOTER_CC -rdynamic\""
+	echo 'CCLIBS="${CCLIBS} -ldl" # Leave off -lpthread'
     else
-	show_mesg_raw >&2 "$ME:$LINENO: I do not know how to interpret the current configuration.  I give up (see line # $LINENO of $ME)"
+	show_mesg_raw >&2 "$ME:$LINENO: I do not know what operating system you are building for; I give up.
+RVM_FOR_IA32=$RVM_FOR_IA32, RVM_FOR_LINUX=$RVM_FOR_LINUX, RVM_FOR_OSX=$RVM_FOR_OSX, RVM_FOR_AIX=$RVM_FOR_AIX, RVM_FOR_POWERPC=$RVM_FOR_POWERPC"
 	trap '' EXIT
 	exit 2
     fi
-    echo ""
-    if (( RVM_FOR_IA32 )); then
-        echo "BOOTER_CC=\"\${BOOTER_CC} ${RVM_CC_OPTIMIZER_AND_DEBUG_FLAGS}\""
-    fi
+    echo "BOOTER_CC=\"\${BOOTER_CC} ${RVM_CC_OPTIMIZER_AND_DEBUG_FLAGS}\""
     echo "BOOTER_CXX=\"\${BOOTER_CXX} ${RVM_CXX_OPTIMIZER_AND_DEBUG_FLAGS}\""
     
-    if (( HAS_DLCOMPAT )); then
-	DLCOMPAT_DEFINE_FLAG=-DHAS_DLCOMPAT
-    else
-	DLCOMPAT_DEFINE_FLAG=
-    fi
-    echo 'declare -i linkedit=0'
-    if (( RVM_FOR_POWERPC && ( RVM_FOR_AIX || RVM_FOR_LINUX || RVM_FOR_OSX ) ))
-    then
-	cat <<- EOF
-	chdir $BOOTIMAGE_RUNNER_DIR_STR && \
-	\$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR -I\${CONFIG_H_DIR}	\
-		-I$BOOTIMAGE_RUNNER_SUBDIR_STR                          \
-		\$IMAGE -DRVM_BOOTIMAGE=\\"$BOOTIMAGE_STR\\"		\
-		-o $SCRATCH_DIRECTORY_STR/RunBootImage.o RunBootImage.C
+    cat <<- EOF
+	chdir ${BOOTIMAGE_RUNNER_DIR_STR}
+	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}  -I\${CONFIG_H_DIR} \
+	    -I${BOOTIMAGE_RUNNER_SUBDIR_STR}				 \
+	    -o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C
 
 	chdir $BOOTIMAGE_RUNNER_SUBDIR_STR
-	\$BOOTER_CXX -c -I. -I$SCRATCH_DIRECTORY_STR		        \
-		-o $SCRATCH_DIRECTORY_STR/initBootRecord.o initBootRecord.C
+	\$BOOTER_CXX -c -I. -I${SCRATCH_DIRECTORY_STR}		        \
+	    -o $SCRATCH_DIRECTORY_STR/initBootRecord.o initBootRecord.C
+
+	# -Wno-missing-noreturn is safe in GCC 2.96 and in 3.3.1, but causes
+	# a warning in g++ 2.96.  So we instead simply extract 
+	# the -Wmissing-noreturn flag.
+	chdir ${BOOTIMAGE_RUNNER_DIR_STR}
+	\${BOOTER_CXX//-Wmissing-noreturn/} \
+	    -c -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES \
+	    -o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
+EOF
+    if (( RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT )); then
+	cat <<- EOF
+	run mkdir -p ${SCRATCH_DIRECTORY_STR}/noPthreads
+	\${BOOTER_CXX//-Wmissing-noreturn/} \
+	    -c -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES \
+	    -DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR      \
+	    -o ${SCRATCH_DIRECTORY_STR}/noPthreads/sys.o sys.C
+	EOF
+    fi	
+
+    cat <<- EOF
+	ALL_HPM_LIBS=""
+EOF
+    if (( RVM_WITH_HPM )); then
+	cat <<- EOF
+		echo >&2 -n "(build libhpm\${shlib_suffix} library) "
+		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR
+		\$BOOTER_CXX -I$SCRATCH_DIRECTORY_STR -c \
+		    -o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
+EOF
+	if (( RVM_FOR_POWERPC )); then
+	    cat <<- EOF
+		SYS_HPM_LIBS="-L${RVM_HPM_DIR} -lpmapi"
+EOF
+	elif (( RVM_FOR_IA32 )); then
+	    cat <<- EOF
+		SYS_HPM_LIBS="-L${RVM_HPM_DIR} -lpapi"
+EOF
+	fi
+	cat <<- EOF
+		chdir $SCRATCH_DIRECTORY_STR
+		\$LDSHARED -o $BUILD_DIRECTORY_STR/libhpm\${shlib_suffix} hpm.o \${SYS_HPM_LIBS}
+
+		echo >&2 -n "(building libJava2HPM\${shlib_suffix} JNI library) "
+		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM
+		\$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR \
+		    -I$ROOT_DIRECTORY_STR/rvm/src/include \
+		    -I$ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR \
+		    -I$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner \
+    		    -o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C
+
+		ALL_HPM_LIBS="\${SYS_HPM_LIBS} -L$BUILD_DIRECTORY_STR -lhpm"
+		chdir $SCRATCH_DIRECTORY_STR
+
+		function last_hpm_link () {
+		    \$LDSHARED -o $BUILD_DIRECTORY_STR/libJava2HPM\${shlib_suffix} Java2HPM.o \$ALL_HPM_LIBS
+		}
+		if (( hush_hpm_linking_aix_duplicate_symbols )) && ! tracing
+		then
+		    last_hpm_link 2>&1 | ${FGREP} -v 0711-345 | ${FGREP} -v 0711-224 || :
+		else
+		    last_hpm_link
+		fi
+		
+EOF
+    fi	# RVM_WITH_HPM
+
+
+    cat <<- EOF
+	OBJECTS='RunBootImage.o initBootRecord.o sys.o bootThread.o libvm.o '
+
+	## Processor-specific part of the build.
+	chdir ${BOOTIMAGE_RUNNER_SUBDIR_STR}
+EOF
+
+    if (( RVM_FOR_POWERPC )); then
+	cat <<- EOF
 	\$CPP -I$SCRATCH_DIRECTORY_STR -P                               \
 		bootThread.c > $SCRATCH_DIRECTORY_STR/bootThread.s
 	\$BOOTER_CXX -c -o $SCRATCH_DIRECTORY_STR/bootThread.o		\
 		$SCRATCH_DIRECTORY_STR/bootThread.s
 	\$BOOTER_CXX -c -I. -I$SCRATCH_DIRECTORY_STR                    \
-		\$IMAGE -DRVM_BOOTIMAGE=\\"$BUILD_DIRECTORY_STR/RVM.image\\" \
 		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C
 EOF
-
-	if (( $RVM_WITH_HPM )); then
+	if (( RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT )); then
 	    cat <<- EOF
-		echo >&2 -n "(build libhpm.a library) "
-		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM/powerPC
-		\$BOOTER_CXX -I$SCRATCH_DIRECTORY_STR -c \
-		-o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
-
-		chdir $SCRATCH_DIRECTORY_STR && \
-		\$LDSHARED -o $BUILD_DIRECTORY_STR/libhpm.a hpm.o \
-		  -L"$RVM_HPM_DIR" -lpmapi
-
-		chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM
-		echo >&2 -n "(build libJava2HPM.a JNI library) "
-		\$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR \
-		  -I$ROOT_DIRECTORY_STR/rvm/src/include \
-		  -I$ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR \
-		  -I$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner \
-		  -o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C
-
-		chdir $SCRATCH_DIRECTORY_STR 
-		\$LDSHARED -o $BUILD_DIRECTORY_STR/libJava2HPM.a  Java2HPM.o \
-		   -L"$RVM_HPM_DIR" -lpmapi -L"$BUILD_DIRECTORY_STR" -lhpm \
-		   &> /dev/null
-
-		echo >&2 -n "(build RunBootImage.o) "		
-		chdir $BOOTIMAGE_RUNNER_DIR_STR &&\
-		\$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR \$GCSPY_INCLUDES -DRVM_WITH_HPM=1 \
-		$DLCOMPAT_DEFINE_FLAG \
-		-o $SCRATCH_DIRECTORY_STR/sys.o sys.C
-
-		chdir ${SCRATCH_DIRECTORY_STR} &&\
-		\$BOOTER_CXX -o $BOOTER_STR RunBootImage.o initBootRecord.o \
-		    libvm.o sys.o bootThread.o \$GCSPY_LIBS \$CCLIBS \
-		    -L"$RVM_HPM_DIR" -lpmapi -L"$BUILD_DIRECTORY_STR" -lhpm
-EOF
-	else
-	    cat <<- EOF
-	    echo >&2 -n "(build RunBootImage.o) "		
-	    chdir ${BOOTIMAGE_RUNNER_DIR_STR} &&\
-		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES \
-		${DLCOMPAT_DEFINE_FLAG} \
-		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
-	    
-	    chdir ${SCRATCH_DIRECTORY_STR} &&\
-		\${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
-		libvm.o sys.o bootThread.o \$GCSPY_LIBS \${CCLIBS}
+		run mkdir -p ${SCRATCH_DIRECTORY_STR}/noPthreads
+		\$BOOTER_CXX -c -I. -I$SCRATCH_DIRECTORY_STR    \
+			-DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR      \
+			-o $SCRATCH_DIRECTORY_STR/noPthreads/libvm.o libvm.C
 EOF
 	fi
-	echo 'linkedit=1'
-
-    elif (( RVM_FOR_IA32 && RVM_FOR_LINUX )); then
+    elif (( RVM_FOR_IA32 )); then
 
 	# We would like to use -Wno-missing-noreturn because of 
 	# the stubbed-out functions that call sysExit()
@@ -4131,20 +4319,28 @@ EOF
 	# legitimately compare floats in sys.C. 
 
 	cat <<- EOF
-	chdir ${BOOTIMAGE_RUNNER_DIR_STR}
-	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}  -I\${CONFIG_H_DIR} \
-	    \${IMAGE} -DRVM_BOOTIMAGE=\\"${BOOTIMAGE_STR}\\"             \
-	    -o ${SCRATCH_DIRECTORY_STR}/RunBootImage.o RunBootImage.C
-
-	chdir ${BOOTIMAGE_RUNNER_SUBDIR_STR}
-	\${BOOTER_CXX} -c -I. -I${SCRATCH_DIRECTORY_STR}                 \
-	    -o ${SCRATCH_DIRECTORY_STR}/initBootRecord.o initBootRecord.C
 	\${BOOTER_CC} -c -I${SCRATCH_DIRECTORY_STR}                      \
 	    -o ${SCRATCH_DIRECTORY_STR}/bootThread.o bootThread.S
 	\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR}                     \
 	    -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler   \
 	    -o ${SCRATCH_DIRECTORY_STR}/libvm.o libvm.C
+EOF
+	if (( RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT )); then
+	    cat <<- EOF
+		run mkdir -p ${SCRATCH_DIRECTORY_STR}/noPthreads
+		\${BOOTER_CXX} -c -I${SCRATCH_DIRECTORY_STR} \
+		    -I${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler\
+		    -DRVM_FOR_SINGLE_VIRTUAL_PROCESSOR \
+		    -o ${SCRATCH_DIRECTORY_STR}/noPthreads/libvm.o libvm.C
+EOF
+	    
+	fi
 	
+	cat <<- EOF
+
+	## The IA32 Disassembler
+	OBJECTS="\${OBJECTS} disasm.o ihnpdsm.o" 
+
 	chdir ${ROOT_DIRECTORY_STR}/rvm/src/vm/arch/intel/disassembler
 	\${BOOTER_CXX} -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}\
 	    -o ${SCRATCH_DIRECTORY_STR}/disasm.o disasm.C
@@ -4152,75 +4348,27 @@ EOF
 	    -funsigned-bitfields -c -I${SCRATCH_DIRECTORY_STR}           \
 	    -o ${SCRATCH_DIRECTORY_STR}/ihnpdsm.o ihnpdsm.C
 EOF
-	if (( $RVM_WITH_HPM )); then
-	    cat <<- EOF
-	    echo >&2 -n "(build libhpm.a library) "
-	    chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM/intel && \
-		\$BOOTER_CXX -I${SCRATCH_DIRECTORY_STR} -c \
-			-o $SCRATCH_DIRECTORY_STR/hpm.o hpm.c
-	    
-	    chdir $SCRATCH_DIRECTORY_STR && \
-	    \$HOST_SHLD -o $BUILD_DIRECTORY_STR/libhpm.a hpm.o \
-		-L"$RVM_HPM_DIR" -lpapi
-	    
-	    echo >&2 -n "(build libJava2HPM.a JNI library) "
-	    chdir $ROOT_DIRECTORY_STR/rvm/src/vm/HPM && \
-	    \$BOOTER_CXX -c -I$SCRATCH_DIRECTORY_STR \
-		-I$ROOT_DIRECTORY_STR/rvm/src/include \
-		-I$ROOT_DIRECTORY_STR/rvm/src/vm/HPM/$ARCH_DIR \
-		-I$ROOT_DIRECTORY_STR/rvm/src/tools/bootImageRunner \
-		-o $SCRATCH_DIRECTORY_STR/Java2HPM.o Java2HPM.C
-	    
-	    chdir $SCRATCH_DIRECTORY_STR && \
-	    \$HOST_SHLD -o $BUILD_DIRECTORY_STR/libJava2HPM.so  Java2HPM.o \
-		-L"$RVM_HPM_DIR" -lpapi -L"$BUILD_DIRECTORY_STR" -lhpm \
-		&> /dev/null
-	    
-	    echo >&2 -n "(build RunBootImage) "
-	    # -Wno-missing-noreturn is safe in GCC 2.96 and in 3.3.1, but causes
-	    # a warning in g++ 2.96.  So we instead simply extract 
-	    # the -Wmissing-noreturn flag.
-	    chdir ${BOOTIMAGE_RUNNER_DIR_STR} && \
-	    \${BOOTER_CXX//-Wmissing-noreturn/} \
-		-c -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES -DRVM_WITH_HPM=1\
-		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
-	    
-	    chdir $SCRATCH_DIRECTORY_STR && \
-	    \$BOOTER_CXX -o $BOOTER_STR RunBootImage.o initBootRecord.o \
-		sys.o bootThread.o libvm.o disasm.o ihnpdsm.o \$GCSPY_LIBS \${CCLIBS} \
-		-L"$RVM_HPM_DIR" -lpapi -L"$BUILD_DIRECTORY_STR" -lhpm
-	    
-EOF
-	else
-	    cat <<- EOF
-
-	# -Wno-missing-noreturn is safe in GCC 2.96 and in 3.3.1, but causes
-	# a warning in g++ 2.96.  So we instead simply extract 
-	# the -Wmissing-noreturn flag.
-	    chdir ${BOOTIMAGE_RUNNER_DIR_STR} && \
-	    \${BOOTER_CXX//-Wmissing-noreturn/} \
-		-c -I${SCRATCH_DIRECTORY_STR} \$GCSPY_INCLUDES \
-		-o ${SCRATCH_DIRECTORY_STR}/sys.o sys.C
-	    
-	    chdir ${SCRATCH_DIRECTORY_STR} && \
-	    \${BOOTER_CXX} -o ${BOOTER_STR} RunBootImage.o initBootRecord.o \
-		sys.o bootThread.o libvm.o disasm.o ihnpdsm.o \$GCSPY_LIBS \${CCLIBS}
-EOF
-        fi
-	echo 'linkedit=1'
-    else
-	cat <<EOF
-	show_mesg >&2 "I do not know how to link the booter"
-	trap "" EXIT
-	exit $Exit_Status_Run_Linker
-EOF
     fi
-    cat <<EOF
-	if (( ! linkedit )); then 
-	    show_mesg >&2 "Internal inconsistency; linkedit should be 1 at this point in the program"
-	    exit \$Exit_Status_Run_Linker
-	fi
 
+    ## COMMON code run for all configurations and platforms:
+    cat <<- EOF
+	chdir $SCRATCH_DIRECTORY_STR
+	\$BOOTER_CXX -o $BOOTER_STR \${OBJECTS} \
+	    \$GCSPY_LIBS \${CCLIBS} \$ALL_HPM_LIBS	\
+	    -lpthread
+	EOF
+
+    if (( RVM_WITH_SINGLE_VIRTUAL_PROCESSOR_SUPPORT )); then
+	cat <<- EOF
+	## Now build the no-pthreads version of the booter.
+	## Get the no-pthreads versions of the .o files.
+	mv noPthreads/*.o .
+	\$BOOTER_CXX -o $BOOTER_NO_PTHREADS_STR \${OBJECTS} \
+	    \$GCSPY_LIBS \${CCLIBS} \$ALL_HPM_LIBS
+	EOF
+    fi
+
+    cat <<- EOF
 	# We "echo" "(booter linked)", not "echo -n", since we want the last
 	# line of jbuild to give us a total number of seconds on a line
 	# by itself.
@@ -4318,7 +4466,7 @@ cat <<EOF
 	    exit $Exit_Status_Bad_Args
 	fi
 
-	exec "$RVM_BUILD/jbuild.prep.target" $(echo $PREPROCESSOR_DEFINITIONS) "\$@"
+	exec "$RVM_BUILD/jbuild.prep.target" $(echo $JAVA_PREPROCESSOR_DEFINITIONS) "\$@"
 
 EOF
 }
@@ -4587,8 +4735,10 @@ EOF
 
 function emitConfigSummary () {
     echo "configuration name: ${CONFIGURATION_NAME}" 
-    echo "preprocessor definitions:"
-    echo "${PREPROCESSOR_DEFINITIONS}"
+    echo "Java preprocessor definitions:"
+    echo "${JAVA_PREPROCESSOR_DEFINITIONS}"
+    echo "C preprocessor definitions:"
+    echo "${C_PREPROCESSOR_DEFINITIONS}"
     echo "other definitions set in RVM.scratch/RunBootImage.h:"
     echo "JIKESRVM_VERSION=$JIKESRVM_VERSION"
     echo "DEFAULT_INITIAL_HEAP_SIZE=${DEFAULT_INITIAL_HEAP_SIZE}"
