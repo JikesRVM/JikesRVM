@@ -17,12 +17,10 @@ if [ x$RVM_ROOT = x ]; then
   exit -1
 fi
 
-
 # should tables of inherited stuff be stripped?
 STRIP_FIELDS=1
 STRIP_CLASSES=1
 STRIP_METHODS=1
-HACK_SPLASH_PAGE=1
 while [ $# != 0 ]; do
   if [ x$2 = x-leave-fields ]; then
     STRIP_FIELDS=0
@@ -30,10 +28,7 @@ while [ $# != 0 ]; do
     STRIP_CLASSES=0
   elif [ x$2 = x-leave-methods ]; then
     STRIP_METHODS=0
-  elif [ x$2 = x-leave-splash ]; then
-    HACK_SPLASH_PAGE=0
   fi
-
   shift
 done
 
@@ -49,66 +44,60 @@ cd $RVM_BUILD
 # status message
 echo -n "`basename $0`: "
 
-
 # pick up env
 . $RVM_BUILD/jbuild.environment
 
+# be in dir such that pathnames produced by find match package names
+cd $RVM_BUILD/RVM.classes
 
-# copy files to (1) get a subset of them and (2) strip out INSTRUCTION
-SOURCES="RVM.classes RVM.scratch"
-CODE_DIR=$DEST_DIR/sed_processed_java
+# Strip out INSTRUCTION typedef and reomve all .java files that
+# were not actually compiled in this build.
+if [ `uname -m`==i686 ]; then
+  INSTRUCTION_TYPE=byte
+else
+  INSTRUCTION_TYPE=int
+fi
 
-mkdir -p $CODE_DIR
-echo $CODE_DIR/* | xargs rm -rf
-
-for d in $SOURCES; do
-  # be in dir such that pathnames produced by find match package names
-  cd $RVM_BUILD/$d
-  for f in `find . -name \*.java`; do
-    # copy only files compiled for this build
-    if [ -e `dirname $f`/`basename $f java`class ]; then
-      mkdir -p $CODE_DIR/`dirname $f`
-      # strip INSTRUCTION typedef (someday, maybe we'll write in Java :)
-      $SED s/\\\<INSTRUCTION\\\>/int/g $f > $CODE_DIR/$f
-    fi
-  done
+for f in `$FIND . -name \*.java`; do
+  # Preprocess and preserve only files compiled for this build
+  if [ -e `dirname $f`/`basename $f java`class ]; then
+    # strip INSTRUCTION typedef (someday, maybe we'll write in Java :)
+    $SED s/\\\<INSTRUCTION\\\>/$INSTRUCTION_TYPE/g $f > $f.tmp
+    mv $f.tmp $f
+  else
+    rm $f
+  fi
 done
 
 echo -n "(sources processed) "
 
-# run javadoc
-cd $CODE_DIR
-
 # collect the JikesRVM packages; for these packages we want all files
 PACKAGES=
-for _d in `find . -type d -a ! -path './java*'`; do
-  if [ `find $_d -type f -maxdepth 1 -name '*.java' | wc -l` != 0 ]; then
+for _d in `$FIND . -type d -a ! -path './java*'`; do
+  if [ `$FIND $_d -type f -maxdepth 1 -name '*.java' | wc -l` != 0 ]; then
     PACKAGES="$PACKAGES `echo $_d | $SED s@^\./\*@@g | $SED s@/@.@g`"
   fi
 done
 
 # collect the java.* files; for these packages we want only our files
-FILES=`find java -name '*.java'`
+FILES=`$FIND java -name '*.java'`
 
-rm -f ../javadoc.out
-find . -name '*.java' -maxdepth 1 -type f | xargs -t ${HOST_JAVADOC} -link $SUN_LINK -private -author -classpath $RVM_BUILD/RVM.classes/:$RVM_BUILD/RVM.classes/rvmrt.jar -d $DEST_DIR $PACKAGES $FILES >> ../javadoc.out 2>&1
+#run javadoc
+rm -f $DEST_DIR/javadoc.out
+$FIND . -name '*.java' -maxdepth 1 -type f | xargs -t ${HOST_JAVADOC} -link $SUN_LINK -private -author -classpath $RVM_BUILD/RVM.classes/:$RVM_BUILD/RVM.classes/rvmrt.jar -d $DEST_DIR $PACKAGES $FILES >> $DEST_DIR/javadoc.out 2>&1
 
 echo -n "(javadoc complete) "
 
-# no more need for code dir or build dir
-rm -rf $CODE_DIR $RVM_BUILD
+# no more need for build dir
+# AIX won't let us rm the directory while we are sill in it...
+cd $DEST_DIR
+rm -rf $RVM_BUILD
 
 # post-process if desired
 cd $DEST_DIR
 
-if [ $HACK_SPLASH_PAGE -eq 1 ]; then
-   $SED 's@instructionFormats/package-summary@overview-tree@g' < index.html > index.hacked
-   mv index.html index.old
-   mv index.hacked index.html
-fi
-
 if [ $STRIP_FIELDS -eq 1 ]; then
-    for f in `find . -name '*.html'`; do
+    for f in `$FIND . -name '*.html'`; do
       if [ `uname` = Linux ]; then
         TMP=`mktemp /tmp/strip.XXXXXX`
       else
@@ -127,7 +116,7 @@ if [ $STRIP_FIELDS -eq 1 ]; then
 fi
 
 if [ $STRIP_METHODS -eq 1 ]; then
-    for f in `find . -name '*.html'`; do
+    for f in `$FIND . -name '*.html'`; do
       if [ `uname` = Linux ]; then
         TMP=`mktemp /tmp/strip.XXXXXX`
       else
@@ -146,7 +135,7 @@ if [ $STRIP_METHODS -eq 1 ]; then
 fi
 
 if [ $STRIP_CLASSES -eq 1 ]; then
-    for f in `find . -name '*.html'`; do
+    for f in `$FIND . -name '*.html'`; do
       if [ `uname` = Linux ]; then
         TMP=`mktemp /tmp/strip.XXXXXX`
       else
