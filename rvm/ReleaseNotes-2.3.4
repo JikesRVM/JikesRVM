@@ -29,6 +29,8 @@ JNI_OK.
 with a NullPointerException when invoked on a Class object that was
 loaded by the Bootstrap Class Loader. 
 **Defect #3601 is fixed -- java.lang.Thread no longer inherits from VM_Thread.
+**Stack trace printing for trouble in the boot thread is fixed; 
+it no longer inappropriately elides frames.
 
 *Internal Changes
 **Jikes RVM now uses GNU Classpath's java.lang.Class instead of its own.
