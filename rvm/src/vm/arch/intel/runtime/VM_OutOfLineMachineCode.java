@@ -289,12 +289,6 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitMOV_Reg_RegDisp(S0, T1, gprsOffset);      // S0 := registers.gprs[]
     asm.emitMOV_Reg_RegDisp(SP, S0, SP<<LG_WORDSIZE); // SP := registers.gprs[#SP]
     asm.emitMOV_Reg_RegDisp(FP, S0, FP<<LG_WORDSIZE); // FP := registers.gprs[#FP]
-    // so hardware trap handler can always find it 
-    // (opt compiler will reuse FP register)
-    VM_ProcessorLocalState.emitMoveRegToField(asm,
-                                              VM_Entrypoints.framePointerOffset,
-                                              FP);
-
     for (int i=0; i<NUM_NONVOLATILE_GPRS; i++) {
       asm.emitMOV_Reg_RegDisp(NONVOLATILE_GPRS[i], S0, NONVOLATILE_GPRS[i]<<LG_WORDSIZE); // i'th register := registers.gprs[i]
     }
