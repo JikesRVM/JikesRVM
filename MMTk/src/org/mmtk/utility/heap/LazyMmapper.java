@@ -35,7 +35,7 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
   public static boolean verbose = false;
   public static Lock lock = new Lock("LazyMapper");
 
-  // There is a monotonicity assmption so that only updates require lock acquisition.
+  // There is a monotonicity assumption so that only updates require lock acquisition.
   //
   public static void ensureMapped(VM_Address start, int pages) {
     int startChunk = Conversions.addressToMmapChunksDown(start);
