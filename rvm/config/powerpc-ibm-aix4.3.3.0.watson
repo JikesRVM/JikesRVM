@@ -50,18 +50,18 @@ export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads
 export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
 # some Unix commands used in sanity rules and automatic rvmrt retrieval
-export GREP="/usr/bin/grep"
-export FIND="/usr/bin/find"
-export FGREP="/usr/bin/fgrep"
-export PS="/usr/bin/ps"
 export AWK="/usr/gnu/bin/gawk"
 export BASH="/usr/gnu/bin/bash"
+export DIFF="/usr/gnu/bin/diff"
+export FGREP="/usr/bin/fgrep"
+export FIND="/usr/bin/find"
+export GNU_TAR="/usr/gnu/bin/tar"
+export GREP="/usr/bin/grep"
+export MD5SUM="/usr/gnu/bin/md5sum"
+export PS="/usr/bin/ps"
 export SED="/usr/gnu/bin/sed"
 export WGET="/homes/fury5/jalapeno/bin/wget-aix"
-export DIFF="/usr/gnu/bin/diff"
 export XARGS="/usr/gnu/bin/xargs"
-export MD5SUM="/usr/gnu/bin/md5sum"
-export GNU_TAR="/usr/gnu/bin/tar"
 
 # The following is optional; only needed for fancy CVS scripts
 export CVS="/homes/fury5/jalapeno/bin/cvs"

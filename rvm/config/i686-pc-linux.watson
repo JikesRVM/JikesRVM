@@ -54,18 +54,18 @@ export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
 
 #  some Unix commands
-export GREP="/bin/grep"
-export FIND="/usr/bin/find"
-export FGREP="/bin/fgrep"
 export AWK="/bin/awk"
-export PS="/bin/ps"
 export BASH="/bin/bash"
+export DIFF="/usr/bin/diff"
+export FGREP="/bin/fgrep"
+export FIND="/usr/bin/find"
+export GNU_TAR=/bin/tar
+export GREP="/bin/grep"
+export MD5SUM="/usr/bin/md5sum"
+export PS="/bin/ps"
 export SED="/bin/sed"
 export WGET="/usr/bin/wget"
-export DIFF="/usr/bin/diff"
 export XARGS="/usr/bin/xargs"
-export MD5SUM="/usr/bin/md5sum"
-export GNU_TAR=/bin/tar
 
 # The following is optional; only needed for fancy CVS scripts
 export CVS="/homes/fury5/jalapeno/bin/cvs"

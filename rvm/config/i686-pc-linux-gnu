@@ -16,16 +16,25 @@ export HOST_JAVA_HOME="/opt/IBMJava2-13"
 export HOST_JAVA="/opt/IBMJava2-13/jre/bin/java"
 #
 
+# the JDK javadoc executable
+export HOST_JAVADOC="/opt/IBMJava2-13/bin/javadoc"
+
+# the JDK jar executable
+export HOST_JAR="/opt/IBMJava2-13/bin/jar"
+
 # the JDK javac executable
 export HOST_JAVAC="/opt/IBMJava2-13/bin/javac"
 
 # the JDK standard library jar files
 export HOST_REPOSITORIES="/opt/IBMJava2-13/jre/lib/rt.jar"
 
+# the JDK tools jar
+export HOST_TOOLS="/opt/IBMJava2-13/lib/tools.jar"
+
 # path for GNU make
 export GNU_MAKE="/usr/bin/make"
 
-# path for jikes.  The current distribution includes jikes in contrib/jikes
+# path for jikes.
 export JIKES=/usr/bin/jikes
 
 # what C compilers should be used?
@@ -38,7 +47,7 @@ export CPLUS='/usr/bin/g++ -g'
 export LDSHARED="/usr/bin/g++ -shared"
 
 #
-export JNI_NATIVE_LIBS_LD=
+export JNI_NATIVE_LIBS_LD="ld -bnoentry -bM:SRE -lc_r -blibpath:/usr/lib/threads:/usr/lib:/lib -bE:"
 
 # The configuration for building the user guide.
 # You may have to edit this file.
@@ -46,11 +55,15 @@ export USER_GUIDE_CONFIG="${RVM_ROOT}/rvm/doc/userguide/config.mk"
 
 
 #  some Unix commands
-export GREP=/bin/grep
-export FIND=/bin/find
-export FGREP=/bin/fgrep
 export AWK=/bin/awk
-export PS=/bin/ps
-export WGET=
-export MD5SUM=/usr/bin/md5sum
+export BASH="/bin/bash"
+export DIFF=/usr/bin/diff
+export FGREP=/bin/fgrep
+export FIND=/bin/find
 export GNU_TAR=/bin/tar
+export GREP=/bin/grep
+export MD5SUM=/usr/bin/md5sum
+export PS=/bin/ps
+export SED=/usr/bin/sed
+export WGET=/usr/bin/wget
+export XARGS="/usr/bin/xargs"
