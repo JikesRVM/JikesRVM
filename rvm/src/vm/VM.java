@@ -183,10 +183,10 @@ public class VM extends VM_Properties
 
     // Initialize class loader.
     //
-    if (verboseBoot >= 1) VM.sysWriteln("Initializing class loader");
-    String vmClasses = VM_CommandLineArgs.getVMClasses();
-    VM_ClassLoader.boot(vmClasses);
-    VM_SystemClassLoader.boot();
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing bootstrap class loader");
+    String bootstrapClasses = VM_CommandLineArgs.getBootstrapClasses();
+    VM_ClassLoader.boot();      // Wipe out cached application class loader
+    VM_BootstrapClassLoader.boot(bootstrapClasses);
 
     // Complete calculation of cycles to millsecond conversion factor
     // Must be done before any dynamic compilation occurs.
@@ -202,11 +202,16 @@ public class VM extends VM_Properties
     // writer.
     //
     if (verboseBoot >= 1) VM.sysWriteln("Running various class initializers");
-    runClassInitializer("java.lang.Runtime");
-    //-#if !RVM_WITH_CLASSPATH_0_11 && !RVM_WITH_CLASSPATH_0_10
-    // Classpath 0.12 and later:
-    java.lang.JikesRVMSupport.javaLangSystemEarlyInitializers();
+    //-#if RVM_WITH_CLASSPATH_0_10 || RVM_WITH_CLASSPATH_0_11 || RVM_WITH_CLASSPATH_0_12
     //-#else
+    runClassInitializer("gnu.classpath.SystemProperties"); // only in 0.13 and later
+    //-#endif
+    
+    runClassInitializer("java.lang.Runtime");
+    //-#if RVM_WITH_CLASSPATH_0_12
+    // Classpath 0.12
+    java.lang.JikesRVMSupport.javaLangSystemEarlyInitializers();
+    //-#else  // 0.10, 0.11, 0.13, and post-0.13
     runClassInitializer("java.lang.System"); // Requires ClassLoader and ApplicationClassLoader
     //-#endif
     runClassInitializer("java.lang.Void");
@@ -262,12 +267,20 @@ public class VM extends VM_Properties
     // used in defineClass.  so, since we haven't needed to call defineClass
     // up to this point, we are OK deferring its proper re-initialization.
     runClassInitializer("java.lang.ClassLoader"); 
-    //-#if !RVM_WITH_CLASSPATH_0_10 && !RVM_WITH_CLASSPATH_0_11
+    //-#if RVM_WITH_CLASSPATH_0_12
     java.lang.JikesRVMSupport.javaLangSystemLateInitializers();
     //-#endif
+    //-#if RVM_WITH_CLASSPATH_0_13 || RVM_WITH_CLASSPATH_POST_0_13_CVS_HEAD
+    /** This one absolutely requires that we have a working system class
+        loader, or at least a returnable one.. */
+    runClassInitializer("java.lang.ClassLoader$StaticData");
+    //-#endif
     runClassInitializer("gnu.java.io.EncodingManager"); // uses System.getProperty
-    runClassInitializer("java.io.PrintWriter"); // Uses system.getProperty
-    runClassInitializer("java.lang.Math");
+    runClassInitializer("java.io.PrintWriter"); // Uses System.getProperty
+    runClassInitializer("java.lang.Math"); /* Load in the javalang library, so
+                                              that Math's native trig functions
+                                              work.  Still can't use them
+                                              until JNI is set up. */ 
     runClassInitializer("java.util.TimeZone");
     runClassInitializer("java.util.Locale");
     runClassInitializer("java.util.Calendar");
@@ -385,6 +398,9 @@ public class VM extends VM_Properties
       pleaseSpecifyAClass();
     }
 
+    if (verboseBoot >= 1) VM.sysWriteln("Initializing Application Class Loader");
+    VM_ClassLoader.getApplicationClassLoader();      
+
     // Schedule "main" thread for execution.
     if (verboseBoot >= 2) VM.sysWriteln("Creating main thread");
     // Create main thread.
@@ -473,7 +489,7 @@ public class VM extends VM_Properties
     }
     VM_Atom  classDescriptor = 
       VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor);
+    VM_TypeReference tRef = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);
     VM_Class cls = (VM_Class)tRef.peekResolvedType();
     if (cls != null && cls.isInBootImage()) {
       VM_Method clinit = cls.getClassInitializerMethod();
@@ -1301,11 +1317,11 @@ public class VM extends VM_Properties
   /**
    * Create class instances needed for boot image or initialize classes 
    * needed by tools.
-   * @param vmClassPath places where vm implemention class reside
+   * @param bootstrapClasspath places where vm implemention class reside
    * @param bootCompilerArgs command line arguments to pass along to the 
    *                         boot compiler's init routine.
    */
-  private static void init(String vmClassPath, String[] bootCompilerArgs) 
+  private static void init(String bootstrapClasspath, String[] bootCompilerArgs) 
     throws InterruptiblePragma
   {
     if (VM.VerifyAssertions) VM._assert(!VM.runningVM);
@@ -1315,7 +1331,7 @@ public class VM extends VM_Properties
     VM_BootRecord.the_boot_record = new VM_BootRecord();
 
     // initialize type subsystem and classloader
-    VM_ClassLoader.init(vmClassPath);
+    VM_ClassLoader.init(bootstrapClasspath);
 
     // initialize remaining subsystems needed for compilation
     //
