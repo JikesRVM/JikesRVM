@@ -70,6 +70,8 @@ INPUT_FILES = 	userguide.tex \
 		regression.tex \
 		running.tex \
 		remark.tex \
+		trademarks.tex \
+		trademark-macros.tex \
 		vmdetails.tex
 
 GEN_INPUTS =	opt_options.tex adaptive_options.tex base_options.tex \
