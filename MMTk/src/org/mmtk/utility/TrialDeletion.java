@@ -2,12 +2,15 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2003
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.plan.RCBaseHeader;
+import org.mmtk.policy.RefCountLocal;
+import org.mmtk.policy.RefCountSpace;
+import org.mmtk.utility.statistics.*;
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
@@ -53,7 +56,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class TrialDeletion extends CycleDetector
+public final class TrialDeletion extends CycleDetector
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -149,7 +152,7 @@ final class TrialDeletion extends CycleDetector
     freeTime = new Timer("cd-free", false, true);
   }
 
-  TrialDeletion(RefCountLocal rc_, Plan plan_) {
+  public TrialDeletion(RefCountLocal rc_, Plan plan_) {
     rc = rc_;
     plan = plan_;
     workQueue = new AddressDeque("cycle workqueue", workPool);
@@ -167,7 +170,7 @@ final class TrialDeletion extends CycleDetector
     collectEnum = new TDCollectEnumerator(this);
   }
 
-  final void possibleCycleRoot(VM_Address object)
+  public final void possibleCycleRoot(VM_Address object)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!RCBaseHeader.isGreen(object));
@@ -175,7 +178,7 @@ final class TrialDeletion extends CycleDetector
     unfilteredPurpleBuffer.insert(object);
   }
 
-  final boolean collectCycles(int count, boolean timekeeper) {
+  public final boolean collectCycles(int count, boolean timekeeper) {
     collectedCycles = false;
     if (count == 1 && shouldFilterPurple()) {
       long filterStart = VM_Interface.cycles();

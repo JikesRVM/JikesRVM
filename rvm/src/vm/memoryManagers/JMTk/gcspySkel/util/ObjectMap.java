@@ -9,7 +9,8 @@
 
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility.gcspy;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 

@@ -3,24 +3,28 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import java.util.Date;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.ref.PhantomReference;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.AllocAdvice;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Barrier;
-import com.ibm.JikesRVM.memoryManagers.JMTk.VMResource;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
-import com.ibm.JikesRVM.memoryManagers.JMTk.TraceGenerator;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Memory;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
-import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
-import com.ibm.JikesRVM.memoryManagers.JMTk.HeapGrowthManager;
-import com.ibm.JikesRVM.memoryManagers.JMTk.MMType;
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.AllocAdvice;
+import org.mmtk.utility.Barrier;
+import org.mmtk.utility.Finalizer;
+import org.mmtk.utility.HeapGrowthManager;
+import org.mmtk.utility.Memory;
+import org.mmtk.utility.MMType;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.ReferenceProcessor;
+import org.mmtk.utility.TraceGenerator;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
+import org.mmtk.vm.SynchronizedCounter;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Type;
@@ -50,7 +54,7 @@ import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
 //-if RVM_WITH_GCSPY
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.GCSpy;
+import org.mmtk.vm.gcspy.GCSpy;
 //-endif
 
 /**
@@ -458,14 +462,14 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
       byte[] clsBA = cls.getDescriptor().toByteArray();
       //-if RVM_WITH_GCSPY
       if (VM_Interface.GCSPY) {
-        if (isPrefix("Luk/ac/kent/JikesRVM/memoryManagers/JMTk/gcspy/",  clsBA) ||
-            isPrefix("[Luk/ac/kent/JikesRVM/memoryManagers/JMTk/gcspy/", clsBA)) {
+        if (isPrefix("Lorg/mmtk/vm/gcspy/",  clsBA) ||
+            isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
 	  return Plan.GCSPY_SPACE;
         }
       }
       //-endif
-      if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/JMTk/", clsBA) ||
-          isPrefix("Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_GCMapIteratorGroup", clsBA)) {
+      if (isPrefix("Lorg/mmtk/", clsBA) 
+	  || isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", clsBA)) {
         return Plan.IMMORTAL_SPACE;
       }
     }
@@ -486,12 +490,13 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     byte[] typeBA = type.getDescriptor().toByteArray();
     //-if RVM_WITH_GCSPY
     if (VM_Interface.GCSPY) {
-      if (isPrefix("Luk/ac/kent/JikesRVM/memoryManagers/JMTk/gcspy/",  typeBA) ||
-	       isPrefix("[Luk/ac/kent/JikesRVM/memoryManagers/JMTk/gcspy/", typeBA)) 
+      if (isPrefix("Lorg/mmtk/vm/gcspy/",  typeBA) ||
+	       isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) 
 	allocator = Plan.GCSPY_SPACE;
     }
     //-endif
-    if (isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
+    if (isPrefix("Lorg/mmtk/", typeBA) ||
+	isPrefix("Lcom/ibm/JikesRVM/memoryManagers/", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/VM_Processor;", typeBA) ||
         isPrefix("Lcom/ibm/JikesRVM/jni/VM_JNIEnvironment;", typeBA))
       allocator = Plan.IMMORTAL_SPACE;

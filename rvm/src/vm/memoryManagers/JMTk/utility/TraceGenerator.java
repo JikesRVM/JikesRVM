@@ -2,10 +2,11 @@
  * (C) Copyright Department of Computer Science,
  * University of Massachusetts, Amherst. 2003.
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.TraceInterface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.TraceInterface;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Magic;

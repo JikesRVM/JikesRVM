@@ -3,10 +3,12 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.VMResource;
-import com.ibm.JikesRVM.memoryManagers.JMTk.LazyMmapper;
+import org.mmtk.utility.LazyMmapper;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;

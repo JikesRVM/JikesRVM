@@ -6,13 +6,12 @@
  ** All rights reserved.
  **/
 
-package uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy;
+package org.mmtk.vm.gcspy;
+
+import com.ibm.JikesRVM.VM_SysCall;
 
 import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_SysCall;
 import com.ibm.JikesRVM.VM_Uninterruptible;
-
-
 
 /**
  * Stream

@@ -2,7 +2,7 @@
  * (C) Copyright Department of Computer Science,
  * University of Massachusetts, Amherst. 2003.
  */
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package org.mmtk.vm;
 
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.classloader.VM_MemberReference;

@@ -8,18 +8,14 @@
  ** All rights reserved.
  **/
 
-package uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy;
+package org.mmtk.vm.gcspy;
 
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.Util;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.AbstractTile;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.ServerInterpreter;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.ServerSpace;
+import com.ibm.JikesRVM.classloader.VM_Type;
 
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.classloader.VM_Type;
 
 
 /**

@@ -2,10 +2,13 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.policy;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.LargeObjectAllocator;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -19,11 +22,11 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class RefCountLOSLocal extends LargeObjectAllocator
+public final class RefCountLOSLocal extends LargeObjectAllocator
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
-  RefCountLOSLocal(FreeListVMResource vmr, MemoryResource mr) {
+  public RefCountLOSLocal(FreeListVMResource vmr, MemoryResource mr) {
     super(vmr, mr);
   }
 

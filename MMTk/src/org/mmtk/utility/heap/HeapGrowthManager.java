@@ -2,9 +2,10 @@
  * (C) Copyright IBM Corp. 2003
  */
 //$Id$
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.VM_Interface;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
 /**

@@ -2,10 +2,11 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -30,7 +31,7 @@ import com.ibm.JikesRVM.VM_WordArray;
  * @version $Revision$
  * @date $Date$
  */
-final class BlockAllocator implements Constants, VM_Uninterruptible {
+public final class BlockAllocator implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
 

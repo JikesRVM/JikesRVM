@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_GCMapIterator;
 import com.ibm.JikesRVM.classloader.*;
 
 /**

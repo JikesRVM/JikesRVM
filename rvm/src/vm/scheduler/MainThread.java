@@ -7,7 +7,7 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.classloader.*;
 
 //-#if RVM_WITH_GCSPY
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 //-#endif
 
 /**

@@ -2,10 +2,10 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -19,7 +19,8 @@ import com.ibm.JikesRVM.VM_Magic;
  * @version $Revision$
  * @date $Date$
  */ 
-class WriteBuffer extends LocalSSB implements Constants, VM_Uninterruptible {
+public class WriteBuffer extends LocalSSB
+  implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -33,7 +34,7 @@ class WriteBuffer extends LocalSSB implements Constants, VM_Uninterruptible {
    * @param queue The shared queue to which this local ssb will append
    * its buffers (when full or flushed).
    */
-  WriteBuffer(SharedDeque queue) {
+  public WriteBuffer(SharedDeque queue) {
     super(queue);
   }
 

@@ -2,9 +2,15 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.MarkSweepLocal;
+import org.mmtk.policy.MarkSweepSpace;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
 
 
 import com.ibm.JikesRVM.VM_Address;

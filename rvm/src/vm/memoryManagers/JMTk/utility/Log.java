@@ -5,7 +5,11 @@
  *     Australian National University. 2003
  */
 //$Id$
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
+
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
@@ -15,8 +19,6 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Word;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * Error and trace logging.
@@ -109,7 +111,7 @@ public class Log implements Constants, VM_Uninterruptible {
   private char [] tempBuffer = new char[TEMP_BUFFER_SIZE];
 
   /** constructor */
-  Log() {
+  public Log() {
     for (int i = 0; i < OVERFLOW_SIZE; i++)
       VM_Interface.setArrayNoBarrier(buffer, MESSAGE_BUFFER_SIZE + i,
                                      OVERFLOW_MESSAGE.charAt(i));

@@ -3,7 +3,7 @@
  *     University of Massachusetts, Amherst. 2003.
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
 import com.ibm.JikesRVM.VM_Word;
 

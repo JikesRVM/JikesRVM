@@ -3,7 +3,9 @@
  * Australian National University. 2003
  */
 //$Id$
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
+
+import org.mmtk.plan.Plan;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;

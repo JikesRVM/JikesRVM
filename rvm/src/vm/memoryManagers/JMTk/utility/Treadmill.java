@@ -1,11 +1,11 @@
 /*
  * (C) Copyright IBM Corp 2001,2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-
+import org.mmtk.utility.gcspy.TreadmillDriver;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
@@ -14,9 +14,6 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
-//-if RVM_WITH_GCSPY
-import com.ibm.JikesRVM.memoryManagers.JMTk.TreadmillDriver;
-//-endif
 
 /**
  * Each instance of this class is a doubly-linked list, in which
@@ -32,7 +29,7 @@ import com.ibm.JikesRVM.memoryManagers.JMTk.TreadmillDriver;
  * @version $Revision$
  * @date $Date$
  */
-final class Treadmill
+public final class Treadmill
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -56,7 +53,7 @@ final class Treadmill
   /**
    * Constructor
    */
-  Treadmill (int granularity, boolean shared) {
+  public Treadmill (int granularity, boolean shared) {
     fromSpace = new DoublyLinkedList (granularity, shared, this); 
     toSpace = new DoublyLinkedList (granularity, shared, this); 
   }
@@ -110,7 +107,7 @@ final class Treadmill
    * @param event the gc event
    * @param gcspyDriver the GCSpy space driver
    */
-  void gcspyGatherData(int event, TreadmillDriver tmDriver) {
+  public void gcspyGatherData(int event, TreadmillDriver tmDriver) {
     // for now, let's look through both spaces
     // we might want to return something to help resize the GCSpy space
     fromSpace.gcspyGatherData(tmDriver);

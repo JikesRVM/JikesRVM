@@ -2,12 +2,15 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package com.ibm.JikesRVM.memoryManagers.mmInterface;
+
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Callbacks;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 
 /**
  * This class allows JMTk to register call backs with VM_Callbacks.

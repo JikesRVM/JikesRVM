@@ -3,9 +3,9 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.vm.Constants;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -17,7 +17,7 @@ import com.ibm.JikesRVM.VM_Extent;
  *
  * @author Perry Cheng
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 public class Conversions implements Constants, VM_Uninterruptible {
 
   public static VM_Extent roundDownMB (VM_Extent bytes) {

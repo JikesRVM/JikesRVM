@@ -2,11 +2,30 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.TreadmillSpace;
+import org.mmtk.policy.TreadmillLocal;
+import org.mmtk.utility.AllocAdvice;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.CallSite;
+import org.mmtk.utility.Conversions;
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.HeapGrowthManager;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.Memory;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.utility.MMType;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.Scan;
+import org.mmtk.utility.statistics.*;
+import org.mmtk.utility.WriteBuffer;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
@@ -544,7 +563,7 @@ public abstract class Generational extends StopTheWorldGC
    * necessary.  The location will be updated if the referent is
    * forwarded.
    */
-  static final void forwardObjectLocation(VM_Address location) 
+  public static final void forwardObjectLocation(VM_Address location) 
     throws VM_PragmaInline {
     VM_Address obj = VM_Magic.getMemoryAddress(location);
     if (!obj.isZero()) {
@@ -575,7 +594,7 @@ public abstract class Generational extends StopTheWorldGC
    * @param object The object which may have been forwarded.
    * @return The forwarded value for <code>object</code>.
    */
-  static final VM_Address getForwardedReference(VM_Address object) {
+  public static final VM_Address getForwardedReference(VM_Address object) {
     if (!object.isZero()) {
       VM_Address addr = VM_Interface.refToAddress(object);
       byte space = VMResource.getSpace(addr);

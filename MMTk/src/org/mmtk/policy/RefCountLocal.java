@@ -2,14 +2,25 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2003
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.policy;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
+import org.mmtk.plan.Plan;
+import org.mmtk.plan.RCBaseHeader;
+import org.mmtk.utility.AddressDeque;
+import org.mmtk.utility.AddressPairDeque;
+import org.mmtk.utility.BlockAllocator;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.Scan;
+import org.mmtk.utility.SegregatedFreeList;
+import org.mmtk.utility.SharedDeque;
+import org.mmtk.utility.statistics.*;
+import org.mmtk.utility.RCSanityEnumerator;
+import org.mmtk.utility.TrialDeletion;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
@@ -29,7 +40,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class RefCountLocal extends SegregatedFreeList
+public final class RefCountLocal extends SegregatedFreeList
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -160,8 +171,8 @@ final class RefCountLocal extends SegregatedFreeList
    * associated.
    * @param plan The plan with which this local thread is associated.
    */
-  RefCountLocal(RefCountSpace space, Plan plan_, RefCountLOSLocal los_, 
-                AddressDeque dec, AddressDeque root) {
+  public RefCountLocal(RefCountSpace space, Plan plan_, RefCountLOSLocal los_, 
+                       AddressDeque dec, AddressDeque root) {
     super(space.getVMResource(), space.getMemoryResource(), plan_);
     rcSpace = space;
     plan = plan_;
@@ -193,7 +204,7 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
                               int bytes, boolean inGC) throws VM_PragmaInline{}
-  protected final void postExpandSizeClass(VM_Address block, int sizeClass) {
+  public final void postExpandSizeClass(VM_Address block, int sizeClass) {
     VM_Magic.setMemoryAddress(block.add(RCL_TAG_OFFSET), VM_Magic.objectAsAddress(this));
   }
   protected final VM_Address advanceToBlock(VM_Address block, int sizeClass){
@@ -441,7 +452,7 @@ final class RefCountLocal extends SegregatedFreeList
    *
    * @param object The object to be added to the root buffer
    */
-  final void incSanityTraceRoot(VM_Address object) {
+  public final void incSanityTraceRoot(VM_Address object) {
     incSanityRoots.push(object);
   }
 
@@ -453,7 +464,8 @@ final class RefCountLocal extends SegregatedFreeList
    * @param object The object to be added to the work queue buffer
    * @param location The location from which the object is reached
    */
-  final void sanityTraceEnqueue(VM_Address object, VM_Address location) {
+  public final void sanityTraceEnqueue(VM_Address object, 
+                                       VM_Address location) {
     sanityWorkQueue.push(object, location);
   }
 
@@ -497,11 +509,11 @@ final class RefCountLocal extends SegregatedFreeList
       sanityImmortalSetA.push(object);
     }
     while (!(object = checkSanityRoots.pop()).isZero()) {
-      if (MM_Interface.getCollectionCount() == 1) checkForImmortal(object);
+      if (VM_Interface.getCollectionCount() == 1) checkForImmortal(object);
       plan.checkSanityTrace(object, VM_Address.zero());
     }
     while (!(object = sanityWorkQueue.pop1()).isZero()) {
-      if (MM_Interface.getCollectionCount() == 1) checkForImmortal(object);
+      if (VM_Interface.getCollectionCount() == 1) checkForImmortal(object);
       plan.checkSanityTrace(object, sanityWorkQueue.pop2());
     }
     if (rcLiveObjects != sanityLiveObjects) {
@@ -513,12 +525,12 @@ final class RefCountLocal extends SegregatedFreeList
   }
 
   static int lastGCsize = 0;
-  final void addLiveSanityObject(VM_Address object) {
+  public final void addLiveSanityObject(VM_Address object) {
     lastGCsize++;
     sanityLastGCSet.push(object);
   }
 
-  final void addImmortalObject(VM_Address object) {
+  public final void addImmortalObject(VM_Address object) {
     sanityImmortalSetA.push(object);
   }
 
@@ -532,7 +544,7 @@ final class RefCountLocal extends SegregatedFreeList
   /**
    * An allocation has occured, so increment the count of live objects.
    */
-  final static void sanityAllocCount(VM_Address object) {
+  public final static void sanityAllocCount(VM_Address object) {
     rcLiveObjects++;
   }
 

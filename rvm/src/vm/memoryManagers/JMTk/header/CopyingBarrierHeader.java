@@ -3,7 +3,7 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
 import com.ibm.JikesRVM.VM_Word;
 
@@ -21,7 +21,7 @@ import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
  * @author Steve Fink
  * @author Dave Grove
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 public class CopyingBarrierHeader extends CopyingHeader {
 
   public static final VM_Word GC_MARK_BIT_MASK    = VM_Word.one();

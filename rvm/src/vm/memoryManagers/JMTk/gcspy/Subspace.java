@@ -8,11 +8,12 @@
  ** All rights reserved.
  **/
 
-package uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy;
+package org.mmtk.vm.gcspy;
+
+import org.mmtk.utility.Log;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Log;
 
 
 /**

@@ -9,7 +9,7 @@ import com.ibm.JikesRVM.adaptive.VM_Controller;
 import com.ibm.JikesRVM.opt.*;
 //-#endif
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 /**

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.jni;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_GCMapIterator;
 
 /**
  * Iterator for stack frames inserted at the transition from Java to

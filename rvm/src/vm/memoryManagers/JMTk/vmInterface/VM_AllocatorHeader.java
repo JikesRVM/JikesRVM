@@ -3,10 +3,11 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.Header;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
+import org.mmtk.plan.Header;
+import org.mmtk.plan.Plan;
+
 import com.ibm.JikesRVM.VM_JavaHeader;
 import com.ibm.JikesRVM.BootImageInterface;
 import com.ibm.JikesRVM.VM_Magic;

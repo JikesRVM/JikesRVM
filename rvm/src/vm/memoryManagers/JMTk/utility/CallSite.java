@@ -3,9 +3,9 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 
 /*
  * @author Perry Cheng

@@ -2,12 +2,21 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.utility.AddressDeque;
+import org.mmtk.utility.AddressPairDeque;
+import org.mmtk.utility.Conversions;
+import org.mmtk.utility.Finalizer;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.ReferenceProcessor;
+import org.mmtk.utility.Scan;
+import org.mmtk.utility.SharedDeque;
+import org.mmtk.utility.statistics.*;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
@@ -155,7 +164,7 @@ public abstract class StopTheWorldGC extends BasePlan
    *      3. threadLocalRelease()
    *      4. globalRelease()
    */
-  public void collect () {
+  public void collect() {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(collectionsInitiated > 0);
 

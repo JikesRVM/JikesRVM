@@ -2,10 +2,15 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-
+import org.mmtk.policy.CopySpace;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -330,7 +335,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @return The updated GC word (in this case unchanged).
    */
   public static final VM_Word resetGCBitsForCopy(VM_Address fromObj,
-					     VM_Word forwardingWord, int bytes) {
+						 VM_Word forwardingWord,
+						 int bytes) {
     return forwardingWord; // a no-op for this collector
   }
 

@@ -8,23 +8,25 @@
  ** All rights reserved.
  **/
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility.gcspy;
 
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.Color;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.AbstractTile;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.Subspace;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.ServerInterpreter;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.ServerSpace;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.Stream;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.StreamConstants;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.AbstractDriver;
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.gcspy.Color;
+import org.mmtk.vm.gcspy.AbstractTile;
+import org.mmtk.vm.gcspy.Subspace;
+import org.mmtk.vm.gcspy.ServerInterpreter;
+import org.mmtk.vm.gcspy.ServerSpace;
+import org.mmtk.vm.gcspy.Stream;
+import org.mmtk.vm.gcspy.StreamConstants;
+import org.mmtk.vm.gcspy.AbstractDriver;
+import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.classloader.VM_Type;  // FIXME => MMType !
+
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.classloader.VM_Type;
 
 
 /**

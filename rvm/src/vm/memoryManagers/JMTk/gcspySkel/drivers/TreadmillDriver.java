@@ -1,16 +1,19 @@
 /**
- ** TreadmillDriver
- **
- ** GCspy skeleton driver
- **
- ** (C) Copyright Richard Jones, 2003
- ** Computing Laboratory, University of Kent at Canterbury
- ** All rights reserved.
- **/
+ * TreadmillDriver
+ *
+ * GCspy skeleton driver
+ *
+ * (C) Copyright Richard Jones, 2003
+ * Computing Laboratory, University of Kent at Canterbury
+ * All rights reserved.
+ */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility.gcspy;
+
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.vm.gcspy.AbstractDriver;
+
 import com.ibm.JikesRVM.VM_Address;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.AbstractDriver;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
 /**
@@ -20,15 +23,16 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-class TreadmillDriver extends AbstractDriver implements VM_Uninterruptible {
+public class TreadmillDriver extends AbstractDriver 
+  implements VM_Uninterruptible {
   public final static String Id = "$Id$";
 
-  TreadmillDriver(String name,
-		     FreeListVMResource losVM,
-		     int blockSize,
-		     VM_Address start, 
-		     VM_Address end,
-		     int size,
-		     int threshold,
-		     boolean mainSpace) {}
+  public TreadmillDriver(String name,
+			 FreeListVMResource losVM,
+			 int blockSize,
+			 VM_Address start, 
+			 VM_Address end,
+			 int size,
+			 int threshold,
+			 boolean mainSpace) {}
 }

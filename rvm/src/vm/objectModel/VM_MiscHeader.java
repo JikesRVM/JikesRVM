@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
 
 /**
  * Defines other header words not used for 

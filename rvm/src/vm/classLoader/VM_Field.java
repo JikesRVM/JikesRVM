@@ -8,7 +8,7 @@ import com.ibm.JikesRVM.*;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 /**
  * A field of a java class.

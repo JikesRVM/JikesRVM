@@ -4,11 +4,13 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.plan.Plan;
+
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
@@ -38,7 +40,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
   /**
    * Constructor
    */
-  FreeListVMResource(byte space_, String vmName, VM_Address vmStart, VM_Extent bytes, byte status) {
+  public FreeListVMResource(byte space_, String vmName, VM_Address vmStart, VM_Extent bytes, byte status) {
     super(space_, vmName, vmStart, bytes, (byte) (VMResource.IN_VM | status));
     freeList = new GenericFreeList(Conversions.bytesToPages(bytes));
     gcLock = new Lock("NewFreeListVMResrouce.gcLock");

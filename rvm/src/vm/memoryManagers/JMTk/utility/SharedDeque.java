@@ -2,11 +2,11 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_AddressArray;
@@ -40,7 +40,7 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
    * Constructor
    *
    */
-  SharedDeque(RawPageAllocator rpa, int arity) {
+  public SharedDeque(RawPageAllocator rpa, int arity) {
     this.rpa = rpa;
     this.arity = arity;
     lock = new Lock("SharedDeque");
@@ -85,7 +85,7 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
     unlock();
   }
 
-  final void clearDeque(int arity) {
+  public final void clearDeque(int arity) {
     VM_Address buf = dequeue(arity);
     while (!buf.isZero()) {
       free(bufferStart(buf));
@@ -117,14 +117,14 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
     return buf;  
   }
 
-  final void reset() {
+  public final void reset() {
     setNumClientsWaiting(0);
     setCompletionFlag(0);
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(head.isZero() && tail.isZero());
   }
 
-  final void newClient() {
+  public final void newClient() {
     setNumClients(numClients + 1);
   }
 

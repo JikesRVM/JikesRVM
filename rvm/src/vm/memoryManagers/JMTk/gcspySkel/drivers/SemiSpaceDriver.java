@@ -8,8 +8,10 @@
  ** All rights reserved.
  **/
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.AbstractDriver;
+package org.mmtk.utility.gcspy;
+
+import org.mmtk.vm.gcspy.AbstractDriver;
+
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 

@@ -2,11 +2,11 @@
  * (C) Copyright Department of Computer Science,
  *     University of Massachusetts, Amherst. 2003.
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Lock;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_AddressArray;
@@ -47,7 +47,7 @@ public class SortSharedDeque extends SharedDeque implements VM_Uninterruptible {
    *
    * @param rpa The allocator from which the instance should obtain buffers.
    */
-  SortSharedDeque(RawPageAllocator rpa, int arity) {
+  public SortSharedDeque(RawPageAllocator rpa, int arity) {
     super(rpa, arity);
     stackBase = VM_AddressArray.create(MAX_STACK_SIZE);
     stackLoc = 0;

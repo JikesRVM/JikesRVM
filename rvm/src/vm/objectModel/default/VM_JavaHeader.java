@@ -5,9 +5,9 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Constants;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.opt.ir.*;
@@ -152,8 +152,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     // JMTK requires sizes to be multiples of BYTES_IN_PARTICLE
     // Jikes RVM currently forces scalars to be multiples of
     // BYTES_IN_INT. Round up if BYTES_IN_PARTICLES is bigger.
-    if (Constants.BYTES_IN_PARTICLE > BYTES_IN_INT) {
-      size = VM_Memory.alignUp(size, Constants.BYTES_IN_PARTICLE);
+    if (MM_Constants.BYTES_IN_PARTICLE > BYTES_IN_INT) {
+      size = VM_Memory.alignUp(size, MM_Constants.BYTES_IN_PARTICLE);
     }
     return size;
   }
@@ -170,7 +170,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
       }
     }
     // JMTk requires all allocation requests to be multiples of BYTES_IN_PARTICLE
-    return VM_Memory.alignUp(size, Constants.BYTES_IN_PARTICLE);
+    return VM_Memory.alignUp(size, MM_Constants.BYTES_IN_PARTICLE);
   }
 
   /**

@@ -2,9 +2,18 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.utility.AllocAdvice;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.CallSite;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.utility.MMType;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;

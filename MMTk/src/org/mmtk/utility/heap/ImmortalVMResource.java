@@ -2,10 +2,10 @@
  * (C) Copyright IBM Corp. 2001
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.VM_Interface;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -32,7 +32,7 @@ public class ImmortalVMResource extends MonotoneVMResource implements Constants,
   /**
    * Constructor
    */
-  ImmortalVMResource(byte space_, String vmName, MemoryResource mr, VM_Address vmStart, VM_Extent bytes) {
+  public ImmortalVMResource(byte space_, String vmName, MemoryResource mr, VM_Address vmStart, VM_Extent bytes) {
     super(space_, vmName, mr, vmStart, bytes, (byte) (VMResource.IN_VM | VMResource.IMMORTAL));
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(cursor.GE(vmStart) && cursor.LE(sentinel));
     sentinel = start.add(bytes);

@@ -5,8 +5,8 @@
 package com.ibm.JikesRVM.opt;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_GCMapIterator;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 /**
  * This class contains its architecture-independent code for iteration

@@ -3,11 +3,13 @@
  *     Australian National University. 2002
  * (C) IBM Corp. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.plan.Plan;
+import org.mmtk.plan.BasePlan;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -23,7 +25,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class MemoryResource implements Constants, VM_Uninterruptible {
+public final class MemoryResource implements Constants, VM_Uninterruptible {
 
   public final static String Id = "$Id$"; 
 
@@ -58,7 +60,7 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
   /**
    * Constructor
    */
-  MemoryResource(String n) {
+  public MemoryResource(String n) {
     this(n, 0);
   }
 
@@ -68,7 +70,7 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
    * @param pageBudget The budget of pages available to this memory
    * manager before it must poll the collector.
    */
-  MemoryResource(String n, int pageBudget) {
+  public MemoryResource(String n, int pageBudget) {
     name = n;
     gcLock = new Lock("MemoryResource.gcLock");
     mutatorLock = new Lock("MemoryResource.mutatorLock");
@@ -171,7 +173,7 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
    *
    * @return The cumulative number of committed pages.
    */
-  static long getCumulativeCommittedPages() {
+  public static long getCumulativeCommittedPages() {
     return cumulativeCommitted;
   }
 

@@ -2,10 +2,15 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.policy;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.plan.MarkSweepHeader;
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.Treadmill;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -31,7 +36,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class TreadmillSpace implements Constants, VM_Uninterruptible {
+public final class TreadmillSpace implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -61,7 +66,7 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * @param mr The memory resource against which allocations
    * associated with this collector will be accounted.
    */
-  TreadmillSpace(FreeListVMResource vmr, MemoryResource mr) {
+  public TreadmillSpace(FreeListVMResource vmr, MemoryResource mr) {
     vmResource = vmr;
     memoryResource = mr;
   }

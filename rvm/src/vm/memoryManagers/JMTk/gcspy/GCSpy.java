@@ -7,11 +7,12 @@
  ** @author Richard Jones
  **/
 
-package uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy;
+package org.mmtk.vm.gcspy;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Log;
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.Options;
+
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 

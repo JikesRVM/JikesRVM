@@ -3,10 +3,10 @@
  * Australian National University. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -19,7 +19,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
 //-if RVM_WITH_GCSPY
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.AbstractDriver;
+import org.mmtk.vm.gcspy.AbstractDriver;
 //-endif
 
 /**
@@ -33,7 +33,7 @@ import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.AbstractDriver;
  * @version $Revision$
  * @date $Date$
  */
-final class BumpPointer extends Allocator 
+public final class BumpPointer extends Allocator 
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -45,7 +45,7 @@ final class BumpPointer extends Allocator
    * @param mr The memory resource from which this bump pointer will
    * acquire memory.
    */
-  BumpPointer(MonotoneVMResource vmr) {
+  public BumpPointer(MonotoneVMResource vmr) {
     vmResource = vmr;
     reset();
   }
@@ -118,7 +118,7 @@ final class BumpPointer extends Allocator
    * @param event The GCSpy event
    * @param driver the GCSpy driver for this space
    */
-  void gcspyGatherData(int event, AbstractDriver driver) {
+  public void gcspyGatherData(int event, AbstractDriver driver) {
     vmResource.gcspyGatherData(event, driver);
   }
   //-endif

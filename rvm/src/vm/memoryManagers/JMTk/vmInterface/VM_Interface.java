@@ -6,21 +6,25 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package org.mmtk.vm;
 
 import java.lang.ref.Reference;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
-import com.ibm.JikesRVM.memoryManagers.JMTk.AddressDeque;
-import com.ibm.JikesRVM.memoryManagers.JMTk.AddressPairDeque;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Finalizer;
-import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Options;
-import com.ibm.JikesRVM.memoryManagers.JMTk.HeapGrowthManager;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Enumerate;
-import com.ibm.JikesRVM.memoryManagers.JMTk.PreCopyEnumerator;
-import com.ibm.JikesRVM.memoryManagers.JMTk.MMType;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Scan;
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.AddressDeque;
+import org.mmtk.utility.AddressPairDeque;
+import org.mmtk.utility.Finalizer;
+import org.mmtk.utility.ReferenceProcessor;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.HeapGrowthManager;
+import org.mmtk.utility.Enumerate;
+import org.mmtk.utility.PreCopyEnumerator;
+import org.mmtk.utility.MMType;
+import org.mmtk.utility.Scan;
+import org.mmtk.vm.SynchronizedCounter;
+
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.classloader.VM_Atom;
@@ -191,7 +195,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    */
   public static final void init() throws VM_PragmaInterruptible {
     collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom(
-      "Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;");
+      "Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_CollectorThread;");
     runAtom = VM_Atom.findOrCreateAsciiAtom("run");
     preCopyEnum = new PreCopyEnumerator();
   }
@@ -918,6 +922,21 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
 
   }
 
+  /**
+   * Allocate an array object, using the given array as an example of
+   * the required type.
+   *
+   * @param array an array of the type to be allocated
+   * @param allocator which allocation scheme/area JMTk should
+   * allocation the memory from.
+   * @param length the number of elements in the array to be allocated
+   * @return the initialzed array object
+   */
+  public static Object cloneArray(Object [] array, int allocator, int length)
+      throws VM_PragmaUninterruptible {
+    return MM_Interface.cloneArray(array, allocator, length);
+  }
+
   /***********************************************************************
    *
    * References
@@ -971,7 +990,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
 
   /**
    * Gets the plan associated with a processor.  Only used within the
-   * <code>vmInterface</code> package.
+   * <code>mmInterface</code> package.
    *
    * @param proc the processor
    * @return the plan for the processor
@@ -1042,6 +1061,21 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
       return VM_ObjectModel.bytesRequiredWhenCopied(obj, type.asArray(), VM_Magic.getArrayLength(obj));
   }
   
+  /***********************************************************************
+   *
+   * Statistics
+   */
+  
+  /**
+   * Returns the number of collections that have occured.
+   *
+   * @return The number of collections that have occured.
+   */
+  public static final int getCollectionCount()
+    throws VM_PragmaUninterruptible {
+    return MM_Interface.getCollectionCount();
+  }
+
   /*
    * Utilities from the VM class
    */

@@ -8,7 +8,6 @@ import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.memoryManagers.JMTk.ReferenceProcessor;
 
 /**
  * The JikesRVM implementation of the java.lang.ref.Reference class.

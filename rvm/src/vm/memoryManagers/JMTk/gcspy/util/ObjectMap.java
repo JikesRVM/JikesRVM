@@ -3,7 +3,15 @@
  * All rights reserved.
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility.gcspy;
+
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
+
+import org.mmtk.vm.gcspy.Util;
 
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_SizeConstants;
@@ -11,10 +19,6 @@ import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_PragmaInline;
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.Util;
 
 /**
  * THIS CLASS IS NOT A GCSPY COMPONENT

@@ -1,11 +1,14 @@
 /*
  * (C) Copyright IBM Corp 2001,2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
+//-if RVM_WITH_GCSPY
+import org.mmtk.utility.gcspy.TreadmillDriver;
+//-endif
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -15,9 +18,6 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 
-//-if RVM_WITH_GCSPY
-import com.ibm.JikesRVM.memoryManagers.JMTk.TreadmillDriver;
-//-endif
 
 /**
  * Each instance of this class is a doubly-linked list, in which

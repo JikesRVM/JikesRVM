@@ -2,9 +2,9 @@
  * (C) Copyright Department of Computer Science,
  *     Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -24,7 +24,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @version $Revision$
  * @date $Date$
  */ 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 class Deque implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 

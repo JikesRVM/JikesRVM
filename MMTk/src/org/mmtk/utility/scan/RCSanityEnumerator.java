@@ -3,7 +3,9 @@
  * Australian National University. 2003
  */
 //$Id$
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
+
+import org.mmtk.policy.RefCountLocal;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -18,7 +20,8 @@ import com.ibm.JikesRVM.VM_Magic;
  * @version $Revision$
  * @date $date: $
  */
-class RCSanityEnumerator extends Enumerate implements VM_Uninterruptible {
+public class RCSanityEnumerator extends Enumerate 
+  implements VM_Uninterruptible {
   private RefCountLocal rc;
 
   /**
@@ -27,7 +30,7 @@ class RCSanityEnumerator extends Enumerate implements VM_Uninterruptible {
    * @param plan The plan instance with respect to which the
    * enumeration will occur.
    */
-  RCSanityEnumerator(RefCountLocal rc) {
+  public RCSanityEnumerator(RefCountLocal rc) {
     this.rc = rc;
   }
 

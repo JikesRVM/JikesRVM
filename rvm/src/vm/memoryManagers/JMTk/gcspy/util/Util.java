@@ -8,21 +8,20 @@
  ** All rights reserved.
  **/
 
-package uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy;
+package org.mmtk.vm.gcspy;
+
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
+import org.mmtk.utility.Log;
 
 import com.ibm.JikesRVM.VM_SysCall;
+
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_Synchronization;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Magic;
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.JMTk.Log;
-import com.ibm.JikesRVM.VM_SizeConstants;
-
 
 /**
  * This class provides generally useful methods.
@@ -32,7 +31,7 @@ import com.ibm.JikesRVM.VM_SizeConstants;
  * @date $Date$
  */
 public class Util 
-  implements VM_Uninterruptible, Constants, VM_SizeConstants {
+  implements VM_Uninterruptible, Constants {
   public final static String Id = "$Id$";
   
   private static final boolean DEBUG_ = false;

@@ -3,10 +3,10 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package org.mmtk.vm;
 
-//import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-//import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+//import com.ibm.JikesRVM.memoryManagers.mmInterface.Constants;
+//import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM;
 
@@ -66,7 +66,7 @@ public class Lock implements VM_Uninterruptible {
   private long[] startHistory = new long[100];
   private long[] endHistory = new long[100];
 
-  static void fullyBooted() {
+  public static void fullyBooted() {
     SLOW_THRESHOLD = VM_Time.millisToCycles(200); // cycles for .2 seconds
     TIME_OUT = 10 * SLOW_THRESHOLD; 
   }

@@ -8,18 +8,21 @@
  ** All rights reserved.
  **/
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility.gcspy;
 
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.Color;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.AbstractTile;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.Subspace;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.ServerInterpreter;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.ServerSpace;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.Stream;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.StreamConstants;
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.AbstractDriver;
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.vm.gcspy.Color;
+import org.mmtk.vm.gcspy.AbstractTile;
+import org.mmtk.vm.gcspy.Subspace;
+import org.mmtk.vm.gcspy.ServerInterpreter;
+import org.mmtk.vm.gcspy.ServerSpace;
+import org.mmtk.vm.gcspy.Stream;
+import org.mmtk.vm.gcspy.StreamConstants;
+import org.mmtk.vm.gcspy.AbstractDriver;
+import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
@@ -31,7 +34,7 @@ import com.ibm.JikesRVM.VM_Offset;
  * @version $Revision$
  * @date $Date$
  */
-class ImmortalSpaceDriver extends AbstractDriver
+public class ImmortalSpaceDriver extends AbstractDriver
   implements VM_Uninterruptible {
   public final static String Id = "$Id$";
 
@@ -87,13 +90,13 @@ class ImmortalSpaceDriver extends AbstractDriver
    * @param size The size (in blocks) of the space
    * @param mainSpace Is this the main space?
    */
-  ImmortalSpaceDriver(String name,
-		     MonotoneVMResource immVM,
-		     int blockSize,
-		     VM_Address start, 
-		     VM_Address end,
-		     int size,
-		     boolean mainSpace) {
+  public ImmortalSpaceDriver(String name,
+                             MonotoneVMResource immVM,
+                             int blockSize,
+                             VM_Address start, 
+                             VM_Address end,
+                             int size,
+                             boolean mainSpace) {
     
     this.immVM = immVM;
     // Set up array of tiles for max possible use
@@ -173,7 +176,7 @@ class ImmortalSpaceDriver extends AbstractDriver
   /**
    * Zero tile stats
    */
-  void zero () {
+  public void zero () {
     for (int i = 0; i < tiles.length; i++) 
       tiles[i].zero();
     totalUsedSpace = 0;
@@ -241,7 +244,7 @@ class ImmortalSpaceDriver extends AbstractDriver
    * 
    * @param event The event
    */
-  void finish (int event) {
+  public void finish (int event) {
     if (ServerInterpreter.isConnected(event)) {
       //Log.write("CONNECTED\n");
       send(event);

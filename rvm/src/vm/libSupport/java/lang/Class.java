@@ -24,7 +24,7 @@ import com.ibm.JikesRVM.VM_Callbacks;
 import com.ibm.JikesRVM.VM_Reflection;
 import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.VM_UnimplementedError;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 /**
  * Implementation of java.lang.Class for JikesRVM.

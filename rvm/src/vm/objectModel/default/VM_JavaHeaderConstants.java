@@ -4,8 +4,8 @@
 //$Id$ 
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
 
 /**
  * Constants for the JavaHeader. 

@@ -2,11 +2,11 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2003
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_AddressArray;
@@ -43,7 +43,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-abstract class SegregatedFreeList extends Allocator 
+public abstract class SegregatedFreeList extends Allocator 
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -103,7 +103,8 @@ abstract class SegregatedFreeList extends Allocator
    * for this free list allocator will be accounted.
    * @param plan The plan with which this instance is associated.
    */
-  SegregatedFreeList(FreeListVMResource vmr, MemoryResource mr, Plan plan) {
+  public SegregatedFreeList(FreeListVMResource vmr, MemoryResource mr, 
+			    Plan plan) {
     blockAllocator = new BlockAllocator(vmr, mr, plan);
     freeList = VM_AddressArray.create(SIZE_CLASSES);
     firstBlock = VM_AddressArray.create(SIZE_CLASSES);
@@ -174,8 +175,8 @@ abstract class SegregatedFreeList extends Allocator
 
   }
 
-  abstract void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
-                          int bytes, boolean inGC);
+  abstract public void postAlloc(VM_Address cell, VM_Address block, 
+				 int sizeClass, int bytes, boolean inGC);
 
   /**
    * Allocate <code>bytes</code> contigious bytes of non-zeroed
@@ -300,7 +301,7 @@ abstract class SegregatedFreeList extends Allocator
     return lastCell;
   }
 
-  abstract void postExpandSizeClass(VM_Address block, int sizeClass);
+  abstract public void postExpandSizeClass(VM_Address block, int sizeClass);
 
   /**
    * Return the next cell in a free list chain.

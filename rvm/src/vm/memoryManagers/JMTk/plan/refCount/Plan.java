@@ -3,11 +3,32 @@
  * Australian National University. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.RefCountSpace;
+import org.mmtk.policy.RefCountLocal;
+import org.mmtk.policy.RefCountLOSLocal;
+import org.mmtk.utility.AddressDeque;
+import org.mmtk.utility.AllocAdvice;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.CallSite;
+import org.mmtk.utility.Conversions;
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.Memory;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.utility.MMType;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.RCDecEnumerator;
+import org.mmtk.utility.RCModifiedEnumerator;
+import org.mmtk.utility.RCSanityEnumerator;
+import org.mmtk.utility.Scan;
+import org.mmtk.utility.SharedDeque;
+import org.mmtk.utility.statistics.*;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -117,7 +138,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private AddressDeque modBuffer; // only used with coalescing RC
 
   // enumerators
-  RCDecEnumerator decEnum;
+  public RCDecEnumerator decEnum;
   RCSanityEnumerator  sanityEnum;
   private RCModifiedEnumerator modEnum; // only used with coalescing RC
 
@@ -196,7 +217,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc (int bytes, boolean isScalar, int allocator,
+  public final VM_Address alloc(int bytes, boolean isScalar, int allocator,
                                 AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(BYTES_IN_ADDRESS-1))));
@@ -497,7 +518,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param root <code>true</code> if the object is being traced
    * directly from a root.
    */
-  final void incSanityTrace(VM_Address object, VM_Address location,
+  public final void incSanityTrace(VM_Address object, VM_Address location,
                             boolean root) {
     VM_Address addr = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(addr);
@@ -522,7 +543,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param root <code>true</code> if the object is being traced
    * directly from a root.
    */
-  final void checkSanityTrace(VM_Address object, VM_Address location) {
+  public final void checkSanityTrace(VM_Address object, VM_Address location) {
     VM_Address addr = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     
@@ -539,7 +560,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param obj The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  static final boolean isLive(VM_Address object) {
+  public static final boolean isLive(VM_Address object) {
     VM_Address addr = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
@@ -558,7 +579,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return <code>true</code> if the object has no regular references
    * to it.
    */
-  static boolean isFinalizable(VM_Address object) {
+  public static boolean isFinalizable(VM_Address object) {
     VM_Address addr = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
@@ -579,7 +600,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object The object being queried.
    * @return The object (no copying is performed).
    */
-  static VM_Address retainFinalizable(VM_Address object) {
+  public static VM_Address retainFinalizable(VM_Address object) {
     VM_Address addr = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(addr);
     if (space == RC_SPACE || space == LOS_SPACE)
@@ -601,8 +622,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The updated GC word (in this case unchanged).
    */
   public static final VM_Word resetGCBitsForCopy(VM_Address fromObj,
-					     VM_Word forwardingWord, int bytes) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);  // not a copying collector!
+						 VM_Word forwardingWord,
+						 int bytes) {
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(false);  // not a copying collector!
     return forwardingWord;
   }
 
@@ -758,7 +781,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param objLoc The address of a reference field with an object
    * being enumerated.
    */
-  final void enumerateDecrementPointerLocation(VM_Address objLoc)
+  public final void enumerateDecrementPointerLocation(VM_Address objLoc)
     throws VM_PragmaInline {
     VM_Address object = VM_Magic.getMemoryAddress(objLoc);
     if (isRCObject(object))
@@ -773,7 +796,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param objLoc The address of a reference field with an object
    * being enumerated.
    */
-  final void enumerateModifiedPointerLocation(VM_Address objLoc)
+  public final void enumerateModifiedPointerLocation(VM_Address objLoc)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(WITH_COALESCING_RC);
@@ -906,7 +929,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object An object reference
    * @return True if the object resides within the RC space
    */
-  static final boolean isRCObject(VM_Address object)
+  public static final boolean isRCObject(VM_Address object)
     throws VM_PragmaInline {
     if (object.isZero()) 
       return false;

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 /**
  * Description of a java "primitive" type (int, float, etc.)

@@ -2,12 +2,26 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2002
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.utility.AddressDeque;
+import org.mmtk.utility.AddressPairDeque;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.Conversions;
+import org.mmtk.utility.HeapGrowthManager;
+import org.mmtk.utility.ImmortalVMResource;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.RawPageAllocator;
+import org.mmtk.utility.statistics.*;
+import org.mmtk.utility.TraceGenerator;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Offset;
@@ -105,8 +119,8 @@ public abstract class BasePlan
 
   // Statistics
   public static Timer totalTime;
-  static SizeCounter mark;
-  static SizeCounter cons;
+  public static SizeCounter mark;
+  public static SizeCounter cons;
 
   // Miscellaneous constants
   public static final int DEFAULT_POLL_FREQUENCY = (128<<10)>>LOG_BYTES_IN_PAGE;
@@ -114,10 +128,10 @@ public abstract class BasePlan
   protected static final int DEFAULT_LOS_SIZE_THRESHOLD = 16 * 1024;
   public    static final int NON_PARTICIPANT = 0;
   protected static final boolean GATHER_WRITE_BARRIER_STATS = false;
-  protected static final boolean GATHER_MARK_CONS_STATS = false;
+  public static final boolean GATHER_MARK_CONS_STATS = false;
 
-  protected static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_BYTES_IN_PAGE;
-  protected static final int DEFAULT_MAX_NURSERY = MAX_INT;
+  public static final int DEFAULT_MIN_NURSERY = (256*1024)>>LOG_BYTES_IN_PAGE;
+  public static final int DEFAULT_MAX_NURSERY = MAX_INT;
 
   // Memory layout constants
   protected static final VM_Extent     SEGMENT_SIZE = VM_Extent.fromIntZeroExtend(0x10000000);
@@ -217,12 +231,12 @@ public abstract class BasePlan
    * Allocation
    */
 
-  protected byte getSpaceFromAllocator (Allocator a) {
+  protected byte getSpaceFromAllocator(Allocator a) {
     if (a == immortal) return IMMORTAL_SPACE;
     return UNUSED_SPACE;
   }
 
-  static byte getSpaceFromAllocatorAnyPlan (Allocator a) {
+  public static byte getSpaceFromAllocatorAnyPlan(Allocator a) {
     for (int i=0; i<plans.length; i++) {
       byte space = plans[i].getSpaceFromAllocator(a);
       if (space != UNUSED_SPACE)
@@ -239,7 +253,7 @@ public abstract class BasePlan
     return null;
   }
 
-  static Allocator getOwnAllocator (Allocator a) {
+  public static Allocator getOwnAllocator (Allocator a) {
     byte space = getSpaceFromAllocatorAnyPlan(a);
     if (space == UNUSED_SPACE)
       VM_Interface.sysFail("BasePlan.getOwnAllocator could not obtain space");
@@ -358,7 +372,7 @@ public abstract class BasePlan
    * necessary.  The location will be updated if the referent is
    * forwarded.
    */
-  static void forwardObjectLocation(VM_Address location) {
+  public static void forwardObjectLocation(VM_Address location) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!Plan.MOVES_OBJECTS);
   }
@@ -375,7 +389,7 @@ public abstract class BasePlan
    * case return <code>object</code>, copying collectors must override
    * this method.
    */
-  static VM_Address getForwardedReference(VM_Address object) {
+  public static VM_Address getForwardedReference(VM_Address object) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!Plan.MOVES_OBJECTS);
     return object;
@@ -387,7 +401,7 @@ public abstract class BasePlan
    *
    * @param object The object which is to be made alive.
    */
-  static void makeAlive(VM_Address object) {
+  public static void makeAlive(VM_Address object) {
     Plan.traceObject(object);
   }
  
@@ -407,7 +421,7 @@ public abstract class BasePlan
    * case return <code>object</code>, copying collectors must override
    * this method.
    */
-  static VM_Address retainFinalizable(VM_Address object) {
+  public static VM_Address retainFinalizable(VM_Address object) {
     return Plan.traceObject(object);
   }
 
@@ -420,7 +434,7 @@ public abstract class BasePlan
    * @return <code>true</code> if the object has no regular references
    * to it.
    */
-  static boolean isFinalizable(VM_Address object) {
+  public static boolean isFinalizable(VM_Address object) {
     return !Plan.isLive(object);
   }
 
@@ -828,7 +842,7 @@ public abstract class BasePlan
    */
 
   final static int PAGES = 0;
-  final static int MB = 1;
+  public final static int MB = 1;
   final static int PAGES_MB = 2;
   final static int MB_PAGES = 3;
 
@@ -879,7 +893,7 @@ public abstract class BasePlan
    *
    * @return the <code>Log</code> instance
    */
-  Log getLog() {
+  public Log getLog() {
     return log;
   }
 
@@ -930,14 +944,14 @@ public abstract class BasePlan
    * @param start the start of the released resource
    * @param bytes the number of bytes released
    */
-  protected static void releaseVMResource(VM_Address start, VM_Extent bytes) {} 
+  public static void releaseVMResource(VM_Address start, VM_Extent bytes) {} 
   
   /**
    * After VMResource acquisition
    * @param start the start of the acquired resource
    * @param bytes the number of bytes acquired
    */
-  protected static void acquireVMResource(VM_Address start, VM_Address end, VM_Extent bytes) {} 
+  public static void acquireVMResource(VM_Address start, VM_Address end, VM_Extent bytes) {} 
   //-endif
 
 }

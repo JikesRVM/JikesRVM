@@ -3,9 +3,17 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package org.mmtk.vm;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.*;
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.AddressDeque;
+import org.mmtk.utility.AddressPairDeque;
+
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.Util;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_GCMapIterator;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_GCMapIteratorGroup;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;

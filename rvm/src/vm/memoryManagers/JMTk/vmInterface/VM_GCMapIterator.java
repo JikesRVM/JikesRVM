@@ -3,7 +3,7 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_WordArray;

@@ -3,10 +3,13 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.policy.RefCountLocal;
+import org.mmtk.policy.RefCountSpace;
+import org.mmtk.utility.Log;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -39,9 +42,9 @@ public abstract class RCBaseHeader implements Constants {
   public static final int REQUESTED_BITS    = 2;
   static final VM_Word GC_BITS_MASK      = VM_Word.one().lsh(REQUESTED_BITS).sub(VM_Word.one()); //...00011
 
-  static final int DEC_KILL = 0;    // dec to zero RC --> reclaim obj
-  static final int DEC_PURPLE = 1;  // dec to non-zero RC, already buf'd
-  static final int DEC_BUFFER = -1; // dec to non-zero RC, need to bufr
+  public static final int DEC_KILL = 0;    // dec to zero RC --> reclaim obj
+  public static final int DEC_PURPLE = 1;  // dec to non-zero RC, already buf'd
+  public static final int DEC_BUFFER = -1; // dec to non-zero RC, need to bufr
 
   /**
    * Perform any required initialization of the GC portion of the header.
@@ -80,7 +83,7 @@ public abstract class RCBaseHeader implements Constants {
    * @param object The object whose liveness is to be tested
    * @return True if the object is alive
    */
-  static boolean isLiveRC(VM_Address object) 
+  public static boolean isLiveRC(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) >= LIVE_THRESHOLD;
   }
@@ -114,7 +117,7 @@ public abstract class RCBaseHeader implements Constants {
    *
    * @param object The object whose RC is to be incremented.
    */
-  static void incRC(VM_Address object)
+  public static void incRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     do {
@@ -142,7 +145,7 @@ public abstract class RCBaseHeader implements Constants {
    * <code>DEC_PURPLE</code> if the count did not go to zero and the
    * object was already in the purple buffer.
    */
-  static int decRC(VM_Address object)
+  public static int decRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     int rtn;
@@ -161,7 +164,7 @@ public abstract class RCBaseHeader implements Constants {
     return rtn;
   }
   
-  static boolean isBuffered(VM_Address object)
+  public static boolean isBuffered(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return  (VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) & BUFFERED_MASK) == BUFFERED_MASK;
   }
@@ -199,7 +202,7 @@ public abstract class RCBaseHeader implements Constants {
    *
    * @param object The object to be checked.
    */
-  static void checkOldObject(VM_Address object)
+  public static void checkOldObject(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int rcv = (VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>>(INCREMENT_SHIFT-1));
     int sanityRCV = (VM_Magic.getIntAtOffset(object, RC_SANITY_HEADER_OFFSET)>>>(INCREMENT_SHIFT-1));
@@ -303,7 +306,7 @@ public abstract class RCBaseHeader implements Constants {
    * @return <code>true</code> if it was set by this call,
    * <code>false</code> if the bit was already set.
    */
-  static boolean setRoot(VM_Address object) 
+  public static boolean setRoot(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     do {
@@ -321,7 +324,7 @@ public abstract class RCBaseHeader implements Constants {
    * @param object The object whose <code>ROOT_REACHABLE</code> bit is
    * to be cleared.
    */
-  static void unsetRoot(VM_Address object) 
+  public static void unsetRoot(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     do {
@@ -370,7 +373,7 @@ public abstract class RCBaseHeader implements Constants {
    *
    * @param object The object whose RC is to be decremented.
    */
-  static void unsyncDecRC(VM_Address object)
+  public static void unsyncDecRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     int rtn;
@@ -384,7 +387,7 @@ public abstract class RCBaseHeader implements Constants {
    *
    * @param object The object whose RC is to be incremented.
    */
-  static void unsyncIncRC(VM_Address object)
+  public static void unsyncIncRC(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue, newValue;
     oldValue = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
@@ -392,7 +395,7 @@ public abstract class RCBaseHeader implements Constants {
     VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, newValue);
   }
 
-  static void print(VM_Address object)
+  public static void print(VM_Address object)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     Log.write(' ');
     Log.write(VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET)>>INCREMENT_SHIFT); 
@@ -411,33 +414,33 @@ public abstract class RCBaseHeader implements Constants {
     else
       Log.write('u');
   }
-  static void clearBufferedBit(VM_Address object) 
+  public static void clearBufferedBit(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
     int newValue = oldValue & ~BUFFERED_MASK;
     VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, newValue);
   }
-  static boolean isBlack(VM_Address object) 
+  public static boolean isBlack(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return getLoRCColor(object) == BLACK;
   }
-  static boolean isWhite(VM_Address object) 
+  public static boolean isWhite(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return getLoRCColor(object) == WHITE;
   }
-  static boolean isGreen(VM_Address object) 
+  public static boolean isGreen(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return getHiRCColor(object) == GREEN;
   }
-  static boolean isPurple(VM_Address object) 
+  public static boolean isPurple(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return getHiRCColor(object) == PURPLE;
   }
-  static boolean isPurpleNotGrey(VM_Address object) 
+  public static boolean isPurpleNotGrey(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return (VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) & (PURPLE | GREY)) == PURPLE;
   }
-  static boolean isGrey(VM_Address object) 
+  public static boolean isGrey(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return getLoRCColor(object) == GREY;
   }
@@ -453,15 +456,15 @@ public abstract class RCBaseHeader implements Constants {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return HI_COLOR_MASK & VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
   }
-  static void makeBlack(VM_Address object) 
+  public static void makeBlack(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     changeRCLoColor(object, BLACK);
   }
-  static void makeWhite(VM_Address object) 
+  public static void makeWhite(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     changeRCLoColor(object, WHITE);
   }
-  static void makeGrey(VM_Address object) 
+  public static void makeGrey(VM_Address object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(getHiRCColor(object) != GREEN);

@@ -3,7 +3,7 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package org.mmtk.vm;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;

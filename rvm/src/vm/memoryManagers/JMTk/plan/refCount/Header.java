@@ -3,7 +3,7 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -24,7 +24,7 @@ import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 public class Header extends RCHeader {
   public final static String Id = "$Id$"; 
 

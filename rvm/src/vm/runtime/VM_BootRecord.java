@@ -4,7 +4,7 @@
 // $Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 /**
  * Information required to start the virtual machine and communicate 

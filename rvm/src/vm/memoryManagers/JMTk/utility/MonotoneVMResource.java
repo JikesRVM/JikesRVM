@@ -4,20 +4,20 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.Lock;
+import org.mmtk.vm.VM_Interface;
+//-if RVM_WITH_GCSPY
+import org.mmtk.vm.gcspy.AbstractDriver;
+//-endif
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-
-//-if RVM_WITH_GCSPY
-import uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy.AbstractDriver;
-//-endif
 
 /**
  * This class implements a monotone virtual memory resource.  The unit of
@@ -42,7 +42,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
   /**
    * Constructor
    */
-  MonotoneVMResource(byte space_, String vmName, MemoryResource mr, 
+  public MonotoneVMResource(byte space_, String vmName, MemoryResource mr, 
                      VM_Address vmStart, VM_Extent bytes, byte status) {
     super(space_, vmName, vmStart, bytes, (byte) (VMResource.IN_VM | status));
     cursor = start;

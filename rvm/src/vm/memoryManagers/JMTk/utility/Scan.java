@@ -3,9 +3,11 @@
  * Australian National University. 2002
  */
 //$Id$
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.VM_Interface;
+
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -28,7 +30,7 @@ public final class Scan implements VM_Uninterruptible {
    *
    * @param object The object to be scanned.
    */
-  static void scanObject(VM_Address object) throws VM_PragmaInline {
+  public static void scanObject(VM_Address object) throws VM_PragmaInline {
     MMType type = VM_Interface.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);

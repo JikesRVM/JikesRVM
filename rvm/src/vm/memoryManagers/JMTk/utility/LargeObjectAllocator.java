@@ -3,10 +3,10 @@
  * Australian National University. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -33,7 +33,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-abstract class LargeObjectAllocator extends Allocator implements Constants, VM_Uninterruptible {
+public abstract class LargeObjectAllocator extends Allocator implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
   
   /****************************************************************************
@@ -62,7 +62,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
    * @param mr The memory resource against which memory consumption
    * for this free list allocator will be accounted.
    */
-  LargeObjectAllocator(FreeListVMResource vmr, MemoryResource mr) {
+  public LargeObjectAllocator(FreeListVMResource vmr, MemoryResource mr) {
     vmResource = vmr;
     memoryResource = mr;
   }
@@ -127,7 +127,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
    * @param sp The superpage containing the cell
    * @param sizeClass The sizeclass of the cell.
    */
-  protected final void free(VM_Address cell)
+  public final void free(VM_Address cell)
     throws VM_PragmaInline {
     freeSuperPage(getSuperPage(cell));
   }

@@ -3,10 +3,12 @@
  *     Australian National University. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.policy;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -28,7 +30,7 @@ import com.ibm.JikesRVM.VM_Magic;
  * @version $Revision$
  * @date $Date$
  */
-final class ImmortalSpace extends BasePolicy 
+public final class ImmortalSpace extends BasePolicy 
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 

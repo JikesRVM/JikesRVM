@@ -4,13 +4,13 @@
  * (C) Copyright IBM Corp. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import org.mmtk.plan.BasePlan;
+import org.mmtk.plan.Plan;
+import org.mmtk.vm.Constants;
+import org.mmtk.vm.VM_Interface;
 
-// import com.ibm.JikesRVM.classloader.VM_Array;
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
@@ -110,7 +110,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 
   public static void boot() throws VM_PragmaInterruptible {
     // resourceTable = new VMResource[NUM_PAGES];
-    resourceTable = (VMResource []) MM_Interface.cloneArray(resources,Plan.IMMORTAL_SPACE,
+    resourceTable = (VMResource []) VM_Interface.cloneArray(resources,Plan.IMMORTAL_SPACE,
                                                             NUM_PAGES);
     for (int i=0; i<resources.length; i++) {
       VMResource vm = resources[i];

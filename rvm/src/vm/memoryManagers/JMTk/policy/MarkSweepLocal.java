@@ -2,10 +2,16 @@
  * (C) Copyright Department of Computer Science,
  * Australian National University. 2003
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.policy;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.plan.Plan;
+import org.mmtk.utility.BlockAllocator;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.Memory;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.SegregatedFreeList;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
@@ -42,7 +48,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class MarkSweepLocal extends SegregatedFreeList
+public final class MarkSweepLocal extends SegregatedFreeList
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -133,7 +139,7 @@ final class MarkSweepLocal extends SegregatedFreeList
    * instances is bound.  The space's VMResource and MemoryResource
    * are used to initialize the superclass.
    */
-  MarkSweepLocal(MarkSweepSpace space, Plan plan) {
+  public MarkSweepLocal(MarkSweepSpace space, Plan plan) {
     super(space.getVMResource(), space.getMemoryResource(), plan);
     msSpace = space;
     utilization = new int[FRAG_PERCENTILES];
@@ -166,8 +172,8 @@ final class MarkSweepLocal extends SegregatedFreeList
    * @param inGC If true, this allocation is occuring with respect to
    * a space that is currently being collected.
    */
-  protected final void postAlloc(VM_Address cell, VM_Address block,
-                                 int sizeClass, int bytes, boolean inGC) 
+  public final void postAlloc(VM_Address cell, VM_Address block,
+			      int sizeClass, int bytes, boolean inGC) 
     throws VM_PragmaInline {
 
     if (inGC) 
@@ -181,7 +187,7 @@ final class MarkSweepLocal extends SegregatedFreeList
    * @param block The new block whose header is to be zeroed
    * @param sizeClass The sizeClass of the new block
    */
-  protected final void postExpandSizeClass(VM_Address block, int sizeClass) {
+  public final void postExpandSizeClass(VM_Address block, int sizeClass) {
     Memory.zeroSmall(block.add(MARK_BITMAP_BASE), 
                      VM_Word.fromIntZeroExtend(bitmaps[sizeClass]).lsh(LOG_BYTES_IN_BITMAP).toExtent());
   };

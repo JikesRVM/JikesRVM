@@ -3,12 +3,12 @@
  * Australian National University. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.plan.*;
+import org.mmtk.utility.statistics.*;
+import org.mmtk.vm.VM_Interface;
+import org.mmtk.vm.Constants;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
@@ -35,7 +35,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 
-abstract class Allocator implements Constants, VM_Uninterruptible {
+public abstract class Allocator implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$";
 
   /**

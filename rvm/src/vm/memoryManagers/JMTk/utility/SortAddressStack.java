@@ -2,9 +2,9 @@
  * (C) Copyright Department of Computer Science,
  *     University of Massachusetts, Amherst. 2003
  */
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.utility;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import org.mmtk.vm.Constants;
 
 
 import com.ibm.JikesRVM.VM_Address;
@@ -20,7 +20,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */ 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 public class SortAddressStack extends LocalDeque 
   implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$"; 

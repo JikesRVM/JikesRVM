@@ -3,7 +3,7 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -23,7 +23,7 @@ import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
  * @author Steve Fink
  * @author Dave Grove
  */
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.vm.VM_Interface;
 public class CopyingHeader {
 
   /**
@@ -87,14 +87,15 @@ public class CopyingHeader {
    * Forwarding pointers
    * Only used if VM_Collector.MOVES_OBJECTS.
    */
-  static final VM_Word GC_FORWARDING_MASK  = GC_FORWARDED.or(GC_BEING_FORWARDED);
+  public static final VM_Word GC_FORWARDING_MASK  = GC_FORWARDED.or(GC_BEING_FORWARDED);
 
   /**
    * Either return the forwarding pointer 
    * if the object is already forwarded (or being forwarded)
    * or write the bit pattern that indicates that the object is being forwarded
    */
-  static VM_Word attemptToForward(VM_Address base) throws VM_PragmaInline, VM_PragmaUninterruptible {
+  public static VM_Word attemptToForward(VM_Address base) 
+    throws VM_PragmaInline, VM_PragmaUninterruptible {
     VM_Word oldValue;
     do {
       oldValue = VM_Interface.prepareAvailableBits(base);
@@ -106,7 +107,8 @@ public class CopyingHeader {
   /**
    * Non-atomic read of forwarding pointer word
    */
-  static VM_Word getForwardingWord(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static VM_Word getForwardingWord(VM_Address base)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
     return VM_Interface.readAvailableBitsWord(base);
   }
 
@@ -141,14 +143,16 @@ public class CopyingHeader {
   /**
    * is the state of the forwarding word being forwarded?
    */
-  static boolean stateIsBeingForwarded(VM_Word fw) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static boolean stateIsBeingForwarded(VM_Word fw)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
     return fw.and(GC_FORWARDING_MASK).EQ(GC_BEING_FORWARDED);
   }
 
   /**
    * is the state of the forwarding word being forwarded?
    */
-  static boolean stateIsForwardedOrBeingForwarded(VM_Word fw) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static boolean stateIsForwardedOrBeingForwarded(VM_Word fw)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
     return !(fw.and(GC_FORWARDED).isZero());
   }
 
@@ -165,7 +169,7 @@ public class CopyingHeader {
    * (assumption, thread doing the set has done attempt to forward
    *  and owns the right to copy the object)
    */
-  static void setForwardingPointer(VM_Address base, VM_Address ptr) throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static void setForwardingPointer(VM_Address base, VM_Address ptr) throws VM_PragmaUninterruptible, VM_PragmaInline {
     VM_Interface.writeAvailableBitsWord(base,ptr.toWord().or(GC_FORWARDED));
   }
 

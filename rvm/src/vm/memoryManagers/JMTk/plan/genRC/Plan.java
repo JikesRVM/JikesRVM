@@ -3,11 +3,34 @@
  * Australian National University. 2002
  */
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package org.mmtk.plan;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.utility.statistics.*;
-
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.ImmortalSpace;
+import org.mmtk.policy.RefCountSpace;
+import org.mmtk.policy.RefCountLocal;
+import org.mmtk.policy.RefCountLOSLocal;
+import org.mmtk.utility.AddressDeque;
+import org.mmtk.utility.AllocAdvice;
+import org.mmtk.utility.Allocator;
+import org.mmtk.utility.BumpPointer;
+import org.mmtk.utility.CallSite;
+import org.mmtk.utility.Conversions;
+import org.mmtk.utility.FreeListVMResource;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.Memory;
+import org.mmtk.utility.MemoryResource;
+import org.mmtk.utility.MonotoneVMResource;
+import org.mmtk.utility.MMType;
+import org.mmtk.utility.Options;
+import org.mmtk.utility.RCDecEnumerator;
+import org.mmtk.utility.RCModifiedEnumerator;
+import org.mmtk.utility.RCSanityEnumerator;
+import org.mmtk.utility.Scan;
+import org.mmtk.utility.SharedDeque;
+import org.mmtk.utility.statistics.*;
+import org.mmtk.utility.VMResource;
+import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Word;
@@ -109,7 +132,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private AddressDeque newRootSet;
 
   // enumerators
-  RCDecEnumerator decEnum;
+  public RCDecEnumerator decEnum;
   private RCModifiedEnumerator modEnum;
   private RCSanityEnumerator sanityEnum;
 
@@ -540,8 +563,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param root <code>true</code> if the object is being traced
    * directly from a root.
    */
-  final void incSanityTrace(VM_Address object, VM_Address location,
-                            boolean root) {
+  public final void incSanityTrace(VM_Address object, VM_Address location,
+                                   boolean root) {
     VM_Address addr = VM_Interface.refToAddress(object);
     VM_Address oldObject = object;
 
@@ -579,7 +602,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param root <code>true</code> if the object is being traced
    * directly from a root.
    */
-  final void checkSanityTrace(VM_Address object, VM_Address location) {
+  public final void checkSanityTrace(VM_Address object, VM_Address location) {
     VM_Address addr = VM_Interface.refToAddress(object);
     VM_Address oldObject = object;
 
@@ -611,7 +634,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * necessary.  The location will be updated if the referent is
    * forwarded.
    */
-  static void forwardObjectLocation(VM_Address location) 
+  public static void forwardObjectLocation(VM_Address location) 
     throws VM_PragmaInline {
     VM_Address object = VM_Magic.getMemoryAddress(location);
     VM_Address addr = VM_Interface.refToAddress(object);
@@ -646,7 +669,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object The object which may have been forwarded.
    * @return The forwarded value for <code>object</code>.
    */
-  static final VM_Address getForwardedReference(VM_Address object) {
+  public static final VM_Address getForwardedReference(VM_Address object) {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END) && addr.GE(NURSERY_START)) {
       if (VM_Interface.VerifyAssertions) 
@@ -662,7 +685,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object The object in question
    * @return True if <code>object</code> is a live object.
    */
-  static final boolean isLive(VM_Address object) {
+  public static final boolean isLive(VM_Address object) {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
@@ -683,7 +706,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return <code>true</code> if the object has no regular references
    * to it.
    */
-  static final boolean isFinalizable(VM_Address object) {
+  public static final boolean isFinalizable(VM_Address object) {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
@@ -706,7 +729,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object The object being queried.
    * @return The object (no copying is performed).
    */
-  static VM_Address retainFinalizable(VM_Address object) {
+  public static VM_Address retainFinalizable(VM_Address object) {
     VM_Address addr = VM_Interface.refToAddress(object);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
@@ -899,7 +922,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param objLoc The address of a reference field with an object
    * being enumerated.
    */
-  final void enumerateDecrementPointerLocation(VM_Address objLoc)
+  public final void enumerateDecrementPointerLocation(VM_Address objLoc)
     throws VM_PragmaInline {
     VM_Address object = VM_Magic.getMemoryAddress(objLoc);
     if (isRCObject(object)) {
@@ -917,7 +940,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param objLoc The address of a reference field with an object
    * being enumerated.
    */
-  final void enumerateModifiedPointerLocation(VM_Address objLoc)
+  public final void enumerateModifiedPointerLocation(VM_Address objLoc)
     throws VM_PragmaInline {
     VM_Address object = VM_Magic.getMemoryAddress(objLoc);
     if (!object.isZero()) {
@@ -988,7 +1011,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param object An object reference
    * @return True if the object resides within the RC space
    */
-  static final boolean isRCObject(VM_Address object)
+  public static final boolean isRCObject(VM_Address object)
     throws VM_PragmaInline {
     VM_Address addr = VM_Interface.refToAddress(object);
     return addr.GE(RC_START) && addr.LT(NURSERY_START);

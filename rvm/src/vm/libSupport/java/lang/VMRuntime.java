@@ -10,7 +10,7 @@ import java.util.Properties;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.VM_ClassLoader;
 import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.*;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.*;
 
 /**
  * Jikes RVM implementation of GNU Classpath's java.lang.VMRuntime.

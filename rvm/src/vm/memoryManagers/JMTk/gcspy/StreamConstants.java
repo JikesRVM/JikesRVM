@@ -10,7 +10,7 @@
 
 //$Id$
 
-package uk.ac.kent.JikesRVM.memoryManagers.JMTk.gcspy;
+package org.mmtk.vm.gcspy;
 
 /**
  * This interface provides constants used by the GCspy framweork.

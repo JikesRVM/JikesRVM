@@ -3,9 +3,12 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.vmInterface;
+package org.mmtk.vm;
 
-import com.ibm.JikesRVM.memoryManagers.JMTk.AddressDeque;
+import org.mmtk.utility.AddressDeque;
+
+import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
+
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Statics;
 import com.ibm.JikesRVM.VM_Address;
