@@ -674,15 +674,20 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     if (! *fastExit && factor == 0.0) {
         char e = *factorStr;
         /* At this time, with our using a 32-bit quantity to indicate memory
-         * size, we can't use T and are unlikely to use G.  But it doesn't
-         * hurt to have the code in here, since a double is guaranteed to be
-         * able to represent quantities of the magnitude 2^40, and this only
-         * wastes a couple of instructions, once during the program run.  When
-         * we go up to 64 bits, we'll be glad.  I think. --steve augart */
-        if (e == 't' || e == 'T')
-            /* We'll always recognize T, but we don't show it in the help
-               message unless we're on a 64-bit platform, since it's not
-               useful on a 32-bit platform. */
+         * size, we can't use T and above, and we are unlikely to use G.  But
+         * it doesn't hurt to have the code in here, since a double is
+         * guaranteed to be able to represent quantities of the magnitude
+         * 2^40, and this only wastes a couple of instructions, once during
+         * the program run.  When we go up to 64 bits, we'll be glad.  I
+         * think. --steve augart */
+        if (e == 'e' || e == 'E') // Exbibytes
+            factor = 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0; 
+        else if (e == 'p' || e == 'P') // Pebibytes
+            factor = 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0; 
+        else if (e == 't' || e == 'T') // Tebibytes
+            /* We'll always recognize T and above, but we don't show those
+               sizes in the help message unless we're on a 64-bit platform,
+               since they're not useful on a 32-bit platform. */
             factor = 1024.0 * 1024.0 * 1024.0 * 1024.0; // Tebibytes
         else if (e == 'g' || e == 'G')
             factor = 1024.0 * 1024.0 * 1024.0; // Gibibytes
@@ -729,35 +734,48 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
     }
 
     if (*fastExit) {
-        fprintf(SysTraceFile, "\tPlease specify %s size as follows:\n"
-                "\t   (in megabytes) using \"-X%s<positive number>M\",\n", 
-                sizeName, sizeFlag);
+        fprintf(SysTraceFile, "\tPlease specify %s size as follows:\n", 
+                sizeName);
         fprintf(SysTraceFile, 
-                "\tor (in kilobytes) using \"-X%s<positive number>K\",\n",
+                "\t    in bytes, using \"-X%s<positive number>B\",\n",
                 sizeFlag);
         fprintf(SysTraceFile, 
-                "\tor (in bytes) using \"-X%s<positive number>B\"\n",
+                "\tor, in kilobytes (kibibytes), using \"-X%s<positive number>K\",\n",
                 sizeFlag);
         fprintf(SysTraceFile,
-                "\tor (in gigabytes) using \"-X%s<positive number>G\",\n",
+                "\tor, in virtual memory pages of %u bytes, using\n"
+                "\t\t\"-X%s<positive number>pages\",\n", BYTES_IN_PAGE, 
+                sizeFlag);
+        fprintf(SysTraceFile, 
+                "\tor, in megabytes (mebibytes), using \"-X%s<positive number>M\",\n", 
                 sizeFlag);
         fprintf(SysTraceFile,
-                "\tor (in virt. memory pages of %u bytes) using "
-                "\"-X%s<positive number>pages\"", BYTES_IN_PAGE, sizeFlag);
-#ifdef RVM_FOR_64_ADDR
+                "\tor, in gigabytes (gibibytes), using \"-X%s<positive number>G\"",
+                sizeFlag);
+// #ifdef RVM_FOR_64_ADDR
         fprintf(SysTraceFile, ",\n");
         fprintf(SysTraceFile, 
-                "\tor (in terabytes) using \"-X%s<positive number>T\"",
+                "\tor, in terabytes (tebibytes), using \"-X%s<positive number>T\"",
                 sizeFlag);
-#endif // RVM_FOR_64_ADDR
+        fprintf(SysTraceFile, ",\n");
+        fprintf(SysTraceFile, 
+                "\tor, in petabytes (pebibytes), using \"-X%s<positive number>P\"",
+                sizeFlag);
+        fprintf(SysTraceFile, ",\n");
+        fprintf(SysTraceFile, 
+                "\tor, in exabytes (exbibytes), using \"-X%s<positive number>E\"",
+                sizeFlag);
+// #endif // RVM_FOR_64_ADDR
         fprintf(SysTraceFile, ".\n");
         fprintf(SysTraceFile,
-                "\t<positive number> can be a floating point value.\n"
-                "\tThe # of bytes will be rounded up\n"
-                " to a multiple of ");
-        if (roundTo == BYTES_IN_PAGE)
-            fprintf(SysTraceFile, "the virtual memory page size: ");
-        fprintf(SysTraceFile, "%u\n", roundTo);
+                "  <positive number> can be a floating point value or a hex value like 0xff.\n");
+        if (roundTo != 1) {
+            fprintf(SysTraceFile,
+                    "  The # of bytes will be rounded up to a multiple of");
+            if (roundTo == BYTES_IN_PAGE)
+                fprintf(SysTraceFile, "\n  the virtual memory page size: ");
+            fprintf(SysTraceFile, "%u\n", roundTo);
+        }
         return 0U;              // Distinguished value meaning trouble.
     } 
     long double tot_d = userNum * factor;
