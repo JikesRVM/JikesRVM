@@ -1,39 +1,34 @@
-package java.lang;
-
 /*
- * Licensed Materials - Property of IBM,
- * (c) Copyright IBM Corp. 1998, 2001  All Rights Reserved
+ * Copyright IBM Corp 2002
  */
+package java.lang;
 
 import com.ibm.JikesRVM.librarySupport.ClassLoaderSupport;
 import com.ibm.JikesRVM.librarySupport.ThreadBase;
 import com.ibm.JikesRVM.librarySupport.ThreadSupport;
 import com.ibm.JikesRVM.librarySupport.UnimplementedError;
 
+/**
+ * Library support interface of Jikes RVM
+ *
+ * @author Julian Dolby
+ *
+ */
 public class Thread extends ThreadBase implements Runnable {
-	private final static RuntimePermission SET_CONTEXT_CLASS_LOADER = new RuntimePermission("setContextClassLoader");
 
-	public final static int MAX_PRIORITY = 10;		// Maximum allowed priority for a thread
-	public final static int MIN_PRIORITY = 1;			// Minimum allowed priority for a thread
-	public final static int NORM_PRIORITY = 5;		// Normal priority for a thread
-	private static int createCount = 0;					// Used internally to compute Thread names that comply with the Java specification
-	private static final int NANOS_MAX = 999999;		// Max value for nanoseconds parameter to sleep and join
-	private static final int INITIAL_LOCAL_STORAGE_CAPACITY = 5;	// Initial number of local storages when the Thread is created
-	private static final int NO_REF = 0;				// Symbolic constant, no threadRef assigned or already cleaned up
-
-	// Instance variables
-	private int threadRef = NO_REF;					// Used by the VM
-	private volatile boolean started = false;			// If !isAlive(), tells if Thread died already or hasn't even started
-	private String name = null;						// The Thread's name
-	private int priority = NORM_PRIORITY;			// The Thread's current priority
-
-	private ThreadGroup group = null;			// A Thread belongs to exactly one ThreadGroup
-	private Runnable runnable = null;				// Target (optional) runnable object
-	private Throwable stopThrowable = null;			// Used by the VM
-	private ClassLoader contextClassLoader = null;	// Used to find classes and resources in this Thread
-	private java.security.AccessControlContext accessControlContext;
-
-   private volatile boolean isInterrupted;
+    private static int createCount = 0;
+    
+    private volatile boolean started = false;
+    
+    private String name = null;
+    
+    private ThreadGroup group = null;
+    
+    private Runnable runnable = null;
+    
+    private ClassLoader contextClassLoader = null;
+    
+    private volatile boolean isInterrupted;
     
     // Special constructor to create thread that has no parent.
     // Only for use by MainThread() constructor.
@@ -42,7 +37,6 @@ public class Thread extends ThreadBase implements Runnable {
     protected Thread(String argv[]){
 	name = "main";
 	group = ThreadGroup.root;
-	setPriority(NORM_PRIORITY);
 	group.addThread(this);
     }
     
@@ -73,12 +67,13 @@ public class Thread extends ThreadBase implements Runnable {
     public Thread(ThreadGroup group, Runnable runnable, String threadName) {
 	super();
 	if (threadName==null) throw new NullPointerException();
-	this.name = threadName;		// We avoid the public API 'setName', since it does redundant work (checkAccess)
-	this.runnable = runnable;	// No API available here, so just direct access to inst. var.
+	this.name = threadName;
+	this.runnable = runnable;
 	Thread currentThread  = currentThread();
+
 	if (currentThread.isDaemon())
-	    // this.isDaemon = true; // We avoid the public API 'setDaemon', since it does redundant work (checkAccess)
-	    this.makeDaemon(true); // We avoid the public API 'setDaemon', since it does redundant work (checkAccess)
+	    this.makeDaemon(true);
+
 	if (group == null) {
 	    SecurityManager currentManager = System.getSecurityManager();
 	    // if there is a security manager...
@@ -90,22 +85,13 @@ public class Thread extends ThreadBase implements Runnable {
 		group = currentThread.getThreadGroup();
 	}
 	
-	initialize(group, currentThread);
-	
-	setPriority(currentThread.getPriority());	// In this case we can call the public API according to the spec - 20.20.10
-    }
-
-    private void initialize(ThreadGroup group, Thread parentThread) {
 	group.checkAccess();
-	// Adjust ThreadGroup references
-	group.addThread(this);			// This will throw IllegalThreadStateException if the ThreadGroup has been destroyed already
+	group.addThread(this);
 	this.group = group;
 	
-	if (parentThread != null) { // Non-main thread
-	    // By default a Thread "inherits" the context ClassLoader from its creator
-	    contextClassLoader = parentThread.contextClassLoader;
+	if (currentThread != null) { // Non-main thread
+	    contextClassLoader = currentThread.contextClassLoader;
 	} else { // no parent: main thread, or one attached through JNI-C
-	    // No need to initialize local storage (we use lazy initialization, and there is nothing to inherit)
 	    // Just set the context class loader
 	    contextClassLoader = ClassLoader.getSystemClassLoader();
 	}
@@ -152,8 +138,9 @@ public class Thread extends ThreadBase implements Runnable {
 	return String.valueOf(name);
     }
 
+    // TODO: implement this
     public final int getPriority() {
-	return priority;
+	return 0;
     }
 
     public final ThreadGroup getThreadGroup() {
@@ -182,7 +169,7 @@ public class Thread extends ThreadBase implements Runnable {
     
     private synchronized boolean isDead() {
 	// Has already started, is not alive anymore, and has been removed from the ThreadGroup
-	return started && !isAlive() && threadRef == NO_REF;
+	return started && !isAlive();
     }
 
     public final boolean isDaemon() {
@@ -266,15 +253,9 @@ public class Thread extends ThreadBase implements Runnable {
 	else throw new NullPointerException();
     }
 
+    // TODO: implement this
     public final synchronized void setPriority(int priority){
-	checkAccess();
-	if (MIN_PRIORITY <= priority && priority <= MAX_PRIORITY) {
-	    int finalPriority = priority;
-	    int threadGroupMaxPriority = getThreadGroup().getMaxPriority();
-	    if (threadGroupMaxPriority < priority) finalPriority = threadGroupMaxPriority;
-	    this.priority = finalPriority;
-	    super.priority = finalPriority;
-	} else throw new IllegalArgumentException();
+
     }
     
     public static void sleep (long time) throws InterruptedException {
@@ -282,9 +263,10 @@ public class Thread extends ThreadBase implements Runnable {
     }
     
     public static void sleep(long time, int nanos) throws InterruptedException {
-	if (time >= 0 && nanos >= 0 && nanos <= NANOS_MAX)
-	    sleep(time);	// No nanosecond precision for now, the native method should take an extra parameter (nanos)
-	else throw new IllegalArgumentException();
+	if (time >= 0 && nanos >= 0)
+	    sleep(time);
+	else
+	    throw new IllegalArgumentException();
     }
     
     public synchronized void start()  {
@@ -303,7 +285,7 @@ public class Thread extends ThreadBase implements Runnable {
     }
 
     public String toString() {
-	return "Thread[" + this.getName() + "," + this.getPriority() + "," +  this.getThreadGroup().getName() + "]" ;
+	return "Thread[" + this.getName() + "]";
     }
     
     public static void yield () {

@@ -1,8 +1,17 @@
+/*
+ * Copyright IBM Corp 2002
+ */
 package java.lang.reflect;
 
 import com.ibm.JikesRVM.VM_Method;
 import com.ibm.JikesRVM.VM_Field;
 
+/**
+ * Library support interface of Jikes RVM
+ *
+ * @author Julian Dolby
+ *
+ */
 public class JikesRVMSupport {
 
     public static Field createField(VM_Field m) {

@@ -1,9 +1,18 @@
+/*
+ * Copyright IBM Corp 2002
+ */
 package com.ibm.JikesRVM;
 
 import java.io.File;
 import java.util.StringTokenizer;
 import java.net.*;
 
+/**
+ * The class loader used by Jikes RVM to load the application program
+ *
+ * @author Julian Dolby
+ *
+ */
 class ApplicationClassLoader extends URLClassLoader {
 
     ApplicationClassLoader(String specifiedClassPath) {

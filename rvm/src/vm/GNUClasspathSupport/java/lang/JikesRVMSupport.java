@@ -1,9 +1,18 @@
+/*
+ * Copyright IBM Corp 2002
+ */
 package java.lang;
 
 import java.security.ProtectionDomain;
 
 import com.ibm.JikesRVM.VM_Type;
 
+/**
+ * Library support interface of Jikes RVM
+ *
+ * @author Julian Dolby
+ *
+ */
 public class JikesRVMSupport {
 
     public static Class createClass(VM_Type type) {

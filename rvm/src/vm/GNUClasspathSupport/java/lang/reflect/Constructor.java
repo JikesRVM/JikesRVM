@@ -1,8 +1,17 @@
+/*
+ * Copyright IBM Corp 2002
+ */
 package java.lang.reflect;
 
 import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
 import com.ibm.JikesRVM.VM_Method;
 
+/**
+ * Library support interface of Jikes RVM
+ *
+ * @author Julian Dolby
+ *
+ */
 public final class Constructor extends AccessibleObject implements Member
 {
     VM_Method constructor;

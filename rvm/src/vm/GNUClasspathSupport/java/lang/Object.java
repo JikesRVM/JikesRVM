@@ -1,7 +1,16 @@
+/*
+ * Copyright IBM Corp 2002
+ */
 package java.lang;
 
 import com.ibm.JikesRVM.librarySupport.SystemSupport;
 
+/**
+ * Library support interface of Jikes RVM
+ *
+ * @author Julian Dolby
+ *
+ */
 public class Object {
 
     private static final int j9Config = 0x6D617800;	// 'max\0'

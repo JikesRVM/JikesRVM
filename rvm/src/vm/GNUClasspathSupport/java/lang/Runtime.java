@@ -1,3 +1,6 @@
+/*
+ * Copyright IBM Corp 2002
+ */
 package java.lang;
 
 import java.io.File;
@@ -10,6 +13,12 @@ import com.ibm.JikesRVM.librarySupport.ClassLoaderSupport;
 import com.ibm.JikesRVM.librarySupport.SystemSupport;
 import com.ibm.JikesRVM.librarySupport.UnimplementedError;
 
+/**
+ * Library support interface of Jikes RVM
+ *
+ * @author Julian Dolby
+ *
+ */
 public class Runtime {
 
     static SecurityManager securityManager;

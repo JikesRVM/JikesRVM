@@ -1,10 +1,18 @@
-
+/*
+ * Copyright IBM Corp 2002
+ */
 package java.lang;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import com.ibm.JikesRVM.librarySupport.StackTrace;
 
+/**
+ * Library support interface of Jikes RVM
+ *
+ * @author Julian Dolby
+ *
+ */
 public class Throwable implements java.io.Serializable {
 
     private static final long serialVersionUID = -3042686055658047285L;

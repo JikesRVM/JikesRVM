@@ -1,5 +1,14 @@
+/*
+ * Copyright IBM Corp 2002
+ */
 package java.net;
 
+/**
+ * Library support interface of Jikes RVM
+ *
+ * @author Julian Dolby
+ *
+ */
 class JikesRVMSupport {
 
     int[] toArrayForm(int address) {

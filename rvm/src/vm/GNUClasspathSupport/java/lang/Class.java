@@ -1,3 +1,6 @@
+/*
+ * Copyright IBM Corp 2002
+ */
 package java.lang;
 
 import java.io.InputStream;
@@ -11,6 +14,12 @@ import com.ibm.JikesRVM.librarySupport.ClassLoaderSupport;
 import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
 import com.ibm.JikesRVM.librarySupport.UnimplementedError;
 
+/**
+ * Library support interface of Jikes RVM
+ *
+ * @author Julian Dolby
+ *
+ */
 public final class Class implements java.io.Serializable {
     static final long serialVersionUID = 3206093459760846163L;
     
