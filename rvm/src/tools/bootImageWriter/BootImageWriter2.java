@@ -1097,6 +1097,9 @@ public class BootImageWriter2 extends BootImageWriterMessages
       int arraySize        = rvmArrayType.getInstanceSize(arrayCount);
       int arrayImageOffset = BootImage.allocateArray(arraySize, arrayCount);
       mapEntry.imageOffset = arrayImageOffset;
+      if (VM.BuildWithRedirectSlot)
+	  BootImage.setFullWord(arrayImageOffset + VM_ObjectLayoutConstants.OBJECT_REDIRECT_OFFSET, 
+				bootImageAddress + arrayImageOffset);
 
       if (detailed_trace) say(SPACES.substring(0,depth+1), "Copying array, type=", jdkType.getName(), " length=", String.valueOf(arrayCount), "; instance size=", String.valueOf(arraySize));
       if (detailed_trace && arraySize >= LARGE_SIZE) traceContext.trace(": large object!!!");
@@ -1181,6 +1184,9 @@ public class BootImageWriter2 extends BootImageWriterMessages
       int scalarSize        = rvmScalarType.getInstanceSize();
       int scalarImageOffset = BootImage.allocateScalar(scalarSize);
       mapEntry.imageOffset = scalarImageOffset;
+      if (VM.BuildWithRedirectSlot)
+	  BootImage.setFullWord(scalarImageOffset + VM_ObjectLayoutConstants.OBJECT_REDIRECT_OFFSET, 
+				bootImageAddress + scalarImageOffset);
 
       if (detailed_trace) say(SPACES.substring(0,depth+1), "Copying object, type=", jdkType.getName(), " instance size=", String.valueOf(scalarSize));
       if (detailed_trace && scalarSize >= LARGE_SIZE) traceContext.trace(": large object!!!");
