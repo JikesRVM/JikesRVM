@@ -1,17 +1,17 @@
 This section provides some information on various
-implementation details for the \JikesTM{} RVM runtime system.
+implementation details for the Jikes\TMweb{} RVM runtime system.
 
 
 \subsection{Object Model} \label{sssec:objects}
 \index{object model}
 An {\em object model} dictates how to represent objects in storage;
 the best object model will maximize efficiency of frequent language
-operations while minimizing storage overhead. \JikesTM{} RVM's
+operations while minimizing storage overhead. \jrvm's
 object model 
 is defined by \xlink{{\tt VM\_ObjectModel.java}}{\VMObjectModelURL}.
 
 \paragraph{Overview}
-Values in the \JavaTM{} programming language are either {\em
+Values in the Java\TMweb{} programming language are either {\em
 primitive} (e.g. {\tt int}, {\tt double}, etc.)  or they are {\em
 references} (that is, pointers) to objects.  Objects are either {\em
 arrays} having elements or {\em scalar objects} having fields.
@@ -51,7 +51,7 @@ The Java programming language requires that an attempt to access an
 object through a {\tt null} 
 object reference generates a {\tt NullPointerException}.  In Jikes RVM, references
 are machine addresses, and {\tt null} is represented by address $0$.
-The \AIXTM\ operating system permits loads from low memory,
+The AIX\TMweb\ operating system permits loads from low memory,
 but accesses 
 to very high memory (at small {\em negative} offsets from a null
 pointer) normally cause hardware interrupts.\footnote{In AIX, it is at
@@ -150,7 +150,7 @@ methods.
 \index{constants}
 \index{dynamic type checking}
 The JTOC holds pointers to 
-each of \JikesTM{} RVM's global data structures, as well as
+each of Jikes\TMweb{} RVM's global data structures, as well as
 literals, numeric constants and references to String constants.
 The JTOC also
 contains references to the TIB for each class in the system.  
@@ -219,12 +219,7 @@ For more details, see
 
 \subsection{VM Conventions}
 
-%% footnotes not allowed in section headings, so we specialize
-%\htmlonly{\subsubsection{\AIXTM{} VM Conventions}} 
-%\texonly{\subsubsection{\AIXTM{} VM Conventions}} 
-% \subsubsection{\AIXTM\ VM Conventions} 
-\subsubsection{\AIXTMheading{} VM Conventions}
-% \subsubsection{AIX VM Conventions} 
+\subsubsection{AIX\TMheadingweb{} VM Conventions}
 \label{aix-conventions}
 
 \index{stack conventions}
@@ -232,7 +227,7 @@ For more details, see
 \index{calling conventions}
 
 This section describes register, stack, and calling conventions that apply to 
-Jikes RVM on \PowerPCTM.
+Jikes RVM on PowerPC\TMweb.
 
 Stackframe layout and calling conventions may evolve as our understanding
 of Jikes RVM's performance improves.  Where possible API's should be used
@@ -346,7 +341,7 @@ The layout of the stackframe appears in a block comment in
 
 \item Store callee's compiled method ID 
 
-\item Check to see if the \JavaTM{} thread must yield the {\tt VM\_Processor}
+\item Check to see if the Java\TMweb{} thread must yield the {\tt VM\_Processor}
 (and yield if threadswitch was requested). 
 \end{enumerate}
 
@@ -370,7 +365,7 @@ ommitted for leaf methods):
 \index{calling conventions}
 
 This section describes register, stack, and calling conventions that
-apply to Jikes RVM on \LinuxR{}/IA32.  
+apply to Jikes RVM on Linux\Rweb{}/IA32.  
 
 \noindent{\bf Register conventions}
 
@@ -440,7 +435,7 @@ The first two areas of the callee's stackframe (see above) have been
 \subsection{Class Loading} \label{sssec:classLoading}
 \index{class loading}
 
-\JikesTM{} RVM implements the \JavaTM{} programming
+Jikes\TMweb{} RVM implements the Java\TMweb{} programming
 language's dynamic class loading. While a class is being loaded it can
 be in one of six states. These are
 \begin{description}

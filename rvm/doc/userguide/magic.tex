@@ -1,7 +1,7 @@
 This section provides information on ``magic'' which is an escape
-hatch that \JikesTM{} RVM provides to implement
+hatch that Jikes\TMweb{} RVM provides to implement
 functionality that is not 
-possible using the pure \JavaTM{} programming language.  For example, the Jikes RVM garbage
+possible using the pure Java\TMweb{} programming language.  For example, the Jikes RVM garbage
 collectors and 
 runtime system must, on occasion, access memory or perform unsafe
 casts.  Users are {\it strongly} discouraged from using magic in their code
@@ -23,7 +23,7 @@ Certain methods in the class \xlink{{\tt VM\_Magic}}{\VMMagicURL} are
 treated differently by the compiler. Because these methods access raw
 memory or other machine state, perform unsafe casts, or are operating
 system calls, they cannot be implemented in Java code.  A
-\JikesTM{} RVM implementor must be {\em extremely careful} when
+Jikes\TMweb{} RVM implementor must be {\em extremely careful} when
 writing code that uses {\tt VM\_Magic} to circumvent the Java type
 system.  The use of {\tt VM\_Magic.objectAsAddress} to perform various
 forms of pointer arithmetic is especially hazardous, since it can

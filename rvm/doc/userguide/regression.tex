@@ -1,4 +1,4 @@
- The \JikesTM{} RVM distribution includes a harness for running
+ The Jikes\TM{} RVM distribution includes a harness for running
 regression and performance tests, and several example applications
 that use this harness.  It is located in the {\tt
 \$RVM\_ROOT/rvm/regression} subtree in the distribution, and consists
@@ -119,7 +119,7 @@ directories for each optimization level specified.
 
 \item{\tt{-numprocs}} {\em n}
 
- This command line option specifies how many processors (i.e.\ \JikesTM{}
+ This command line option specifies how many processors (i.e.\ Jikes\TM{}
 RVM virtual processors) are to be used for each test run.  For every
 test that is run, the desired number of processors will be given to
 Jikes RVM as a boot time command line option.  This option is ignored
@@ -185,7 +185,7 @@ multiple options must be enclosed in quotations.
 directory and is used to customize the testing harness to your local
 setup.  Essentially, it contains the information needed to find test
 programs not provided as part of the Jikes RVM distribution, such as
-\SPECjvmR{}98 and \SPECjbbR{}2000.  Each test harness
+SPECjvm\Rweb{}98 and SPECjbb\Rweb{}2000.  Each test harness
 provided as part of Jikes RVM for which the benchmark itself is
 not part of the distribution will have an entry in this file telling
 the test harness where to find the program itself.  In order to use
@@ -282,7 +282,7 @@ sizes needed by the benchmark and any extra boot time arguments to
 Jikes RVM.  These variables are as follows:
 \begin{description}
 \item[BENCH\_SOURCE\_PATH] is a list of directories in which to find
-\JavaTM{} source files that are used by this benchmark.  This is not a
+Java\TM{} source files that are used by this benchmark.  This is not a
 colon-separated classpath, but a normal whitespace-separated makefile
 list.  
 \item[BENCH\_CLASS\_PATH] is a list of directories and jar files in

@@ -1,7 +1,7 @@
 
 \index{callbacks}
 
-\JikesTM{} RVM provides callbacks for many runtime events of
+Jikes\TM{} RVM provides callbacks for many runtime events of
 interest to the Jikes RVM 
 programmer, such as classloading, VM boot image creation, and VM exit.  The
 callbacks allow arbitrary code to be executed on any of the supported events.
@@ -47,9 +47,9 @@ ClassInstantiated} callback.
 Examples of callback use can be seen in the {\tt VM\_Controller} class in the
 adaptive system and the {\tt VM\_GCStatistics} class.
 
-\subsubsection{An Example: Modifying \SPECjvmR{}98 to Report the End of a
+\subsubsection{An Example: Modifying SPECjvm98 to Report the End of a
 Run}\label{sssec:callback-example}
-The \SPECjvmR{}98 benchmark suite is configured to run one or more benchmarks
+The SPECjvm\R{}98 benchmark suite is configured to run one or more benchmarks
 a particular number of times.  For example, the following runs the
 {\tt compress} benchmark for 5 iterations:\\
 {\tt rvm SpecApplication -m5 -M5 -s100 -a \_201\_compress}

@@ -1,8 +1,8 @@
-The vast majority of Jikes RVM's source code is in the Java
+The vast majority of Jikes\TMweb RVM's source code is in the Java\TMweb
 programming language ($\approx 1049$
 source files as of this writing.)  This section describes a set of
 coding style guidelines that we recommend for all Java code added to
-\JikesTMweb{} RVM.
+Jikes RVM.
 
 This section also includes one or more coding conventions that we
 use within Jikes RVM.  
@@ -24,7 +24,7 @@ because they're an independent subsystem, but the rest of \jrvm{} does.
 \label{assertions}
 
 Partly for historical reasons, we use our own built-in assertion
-facility rather than the one that appeared in \SunRweb{}'s JDK 1.4.   All
+facility rather than the one that appeared in Sun\Rweb{}'s JDK 1.4.   All
 assertion checks have one of the two forms:
 \begin{example}
 \tt{}    if (VM.VerifyAssertions)  VM._assert({\it condition}
@@ -59,7 +59,7 @@ consistent coding style.  This is an unfortunate residuum of the
 system's evolution.  It makes editing sometimes unpleasant, and
 prevents Javadoc from formatting comments in many files.  To alleviate
 this problem, we present this style guide for new Java code; it's just
-a small tweak of \SunRweb{}'s style guide.
+a small tweak of Sun\Rweb{}'s style guide.
 
 \subsection{File Headers}
 
@@ -88,9 +88,9 @@ as shell scripts and C programs.
 \index{Java source code style}
 \subsection {Coding style description}
 
-The \JikesTMweb{} RVM coding style guidelines are defined with
-reference to the \SunRweb{} 
-Microsystems ``Code Conventions for the \JavaTMweb{} Programming Language'',
+The Jikes\TMweb{} RVM coding style guidelines are defined with
+reference to the Sun\Rweb{} 
+Microsystems ``Code Conventions for the Java\TMweb{} Programming Language'',
 with a few exceptions listed below.  The Sun coding
 conventions can be found at 
 \xlink{{\tt \SunCodeConventionURL}} {\SunCodeConventionURL} in HTML,
@@ -146,7 +146,7 @@ that's how we get {\tt VM.VerifyAssertions}, etc.
 \index{Javadoc}
 
 All files should contain descriptive comments
-in \JavadocTMweb{} form (
+in Javadoc\TMweb{} form (
 \xlink{{\tt \JavadocURL}} {\JavadocURL}
 ) so
 that documentation can be generated automatically.  Of course,
@@ -233,7 +233,7 @@ set textwidth=74    " to allow autowrap text at 74th column
 
 \paragraph{vi}\label{options:vi}
 
-Standard {\tt vi} options that would approximate \JavaTMweb{} formatting are:
+Standard {\tt vi} options that would approximate Java\TMweb{} formatting are:
 \begin{verbatim}
 set shiftwidth=2  " for indenting and shifting
 set autoindent    " automatically indent new lines to the start of previous

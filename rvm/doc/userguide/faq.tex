@@ -1,10 +1,10 @@
 \begin{center}  
-{\bf \JikesTM{} RVM Frequently Asked Questions}
+{\bf Jikes RVM Frequently Asked Questions}
 \end{center}
 
 \subsection{General}
 
-For most general Jikes RVM questions and answers, see
+For most general Jikes\TMweb RVM questions and answers, see
 \xlink{{\tt \QandAURL}}{\QandAURL}.
 
 \subsubsection{What is Jikes RVM?} 
@@ -14,10 +14,10 @@ The Jikes Research Virtual Machine (Jikes RVM) is a software project
 designed to provide the academic and research communities with a
 flexible testbed that makes it possible to quickly prototype new
 virtual machine technologies and experiment with different design
-choices.  Jikes RVM executes \JavaTM\ programs useful for research on
+choices.  Jikes RVM executes Java\TMweb\ programs useful for research on
 fundamental virtual machine design issues.
-It runs on \AIXTM{}/\PowerPCTM{},
-\LinuxR{}/PowerPC, and Linux/IA-32, 
+It runs on AIX\TMweb{}/PowerPC\TMweb{},
+Linux\Rweb{}/PowerPC, and Linux/IA-32, 
 and exhibits industry-strength performance for many benchmark programs
 on these platforms.  Jikes RVM includes the latest VM
 technologies for dynamic compilation, adaptive optimization, garbage
@@ -146,7 +146,7 @@ it is run.
 
 \subsubsection{Which version of {\tt jikes} should I use?}
 At Watson, we're currently using \xlink{{\tt jikes}}{\jikesURL} v1.18
-to compile the RVM source on both \LinuxR{} and \AIXTM. Previously we
+to compile the RVM source on both Linux\Rweb{} and AIX\TMweb. Previously we
 were using version 1.13. Version 1.14 through 1.17 do not entirely
 work with Jikes RVM.  For versions of Jikes RVM before 2.2.0, you must
 use jikes 1.13.
@@ -191,13 +191,13 @@ No.  RVM relies on two compilers, and compiles all methods to native code.
 \subsubsection{Does \jrvm{} support JNI?}
 
 Most JNI functionality is supported. A few functions are not. 
-There are a few functions that are only supported on \AIXTM{}
-and some other functions that are only supported on \LinuxR{}/IA32.
+There are a few functions that are only supported on AIX\TMweb{}
+and some other functions that are only supported on Linux\Rweb{}/IA32.
 
 \subsubsection{Does \jrvm{} support user-defined class loaders?}
 Yes, with the caveat that we do not verify linking constraints.
 
-\subsubsection{Does \jrvm{} support the Java security model?} 
+\subsubsection{Does \jrvm{} support the Java\TMheadingweb{} security model?} 
 
 We support it to the extent that the 
 \xlink{GNU Classpath}{\classpathURL}  
@@ -208,7 +208,7 @@ libraries support it.
 We support it to the extent that the 
 \xlink{GNU Classpath libraries}{\classpathURL}  
 support it. We have noticed that sometimes it doesn't
-work exactly the same as in the \SunRweb{} class library.
+work exactly the same as in the Sun\Rweb{} class library.
 
 \subsubsection{Does \jrvm{} enforce the Java Memory Model?}
 
@@ -218,7 +218,7 @@ understanding.
 
 Known issues include:
 \begin{itemize}
-\item on \PowerPCTM{}, the system does not enforce
+\item on PowerPC\TMweb{}, the system does not enforce
 sequential consistency for volatile variables
 \item the system does not enforce atomicity of memory accesses for
 doubleword values
@@ -378,7 +378,7 @@ need not be a thread switch point.
 
 \index{scheduler}
 A thread switch point is an instruction where the RVM thread scheduler may
-intervene and cause a different \JavaTM{} thread (VM\_Thread) to
+intervene and cause a different Java\TMweb{} thread (VM\_Thread) to
 run on the current 
 pthread (VM\_Processor), even if no exception is thrown.  
 Thread switch points include yield points inserted in prologues, epilogues, 
@@ -460,16 +460,12 @@ certain options.
 
 \subsection{Regression Tests}
 
-\W \subsubsection{Where can I order or download the test programs 
-\W \SPECjvmR{}98 and \SPECjbbR{}2000?}
-\T \subsubsection{Where can I order or download the test programs 
-\T  \SPECjvmRheading{}98 and \SPECjbbRheading{}2000?}
+\subsubsection{Where can I order or download the test programs 
+  SPECjvm\Rheadingweb{}98 and SPECjbb\Rheadingweb{}2000?}
 
-%\index[SPECjvm98]{\SPECjvmR{}98}
-%\index[SPECjbb2000]{\SPECjbbR{}2000}
 \index{SPECjvm98}
 \index{SPECjbb98}
-Information for ordering the \SPECR{} benchmark suites can be found at
+Information for ordering the SPEC\Rweb{} benchmark suites can be found at
 \xlink{http://www.spec.org}{\SPECURL}.
 As you'll see from the site, there is a non-trivial charge for getting the
 suites, although universities do get a discount.
