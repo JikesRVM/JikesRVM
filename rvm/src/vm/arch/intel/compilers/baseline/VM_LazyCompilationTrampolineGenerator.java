@@ -20,7 +20,9 @@ class VM_LazyCompilationTrampolineGenerator implements VM_BaselineConstants {
   static INSTRUCTION[] getTrampoline (){
     int offset = ((VM_Method)VM.getMember("LVM_DynamicLinker;", "lazyMethodInvoker", "()V")).getOffset();
     VM_Assembler asm = new VM_Assembler(0); // "CODE_OVERHEAD_TERM" is sufficient space
-    asm.emitMOV_Reg_RegDisp(ECX, PR, VM_Entrypoints.jtocOffset); // get JTOC into ECX
+    // get JTOC into ECX
+    VM_ProcessorLocalState.emitMoveFieldToReg(asm, ECX,
+                                              VM_Entrypoints.jtocOffset);
     asm.emitJMP_RegDisp(ECX, offset);                            // jump to real lazy method invoker
     return asm.getMachineCodes();
   }
