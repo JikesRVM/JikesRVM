@@ -194,6 +194,16 @@ public class VM_Magic {
   //---------------------------------------//
 
   /**
+   * Get byte at arbitrary (byte) offset from object. 
+   * Clients must not depend on whether or not the byte is zero or sign extended as it is loaded.
+   * (In other words, mask off all but the lower 8 bits before using the value).
+   */
+  static byte getByteAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return -1;
+  }
+
+  /**
    * Get int at arbitrary (byte) offset from object.
    * Use getIntAtOffset(obj, ofs) instead of getMemoryWord(objectAsAddress(obj)+ofs)
    */
@@ -227,6 +237,13 @@ public class VM_Magic {
   public static int getMemoryWord(int address) {
     if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
+  }
+
+  /**
+   * Set byte at arbitrary (byte) offset from object.
+   */ 
+  static void setByteAtOffset(Object object, int offset, byte newvalue) {
+    if (VM.VerifyAssertions) VM.assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /**

@@ -369,6 +369,15 @@ class VM_MagicCompiler implements VM_BaselineConstants,
 		  return;
       }
 
+      if (methodName == VM_MagicNames.getByteAtOffset)
+      {
+		  asm.emitL   (T0, +4, SP);   // pop object
+		  asm.emitL   (T1,  0, SP);   // pop offset
+		  asm.emitLBZX(T0, T1, T0);   // load byte with zero extension.
+		  asm.emitSTU (T0, 4, SP);    // push *(object+offset) 
+		  return;
+      }
+
       if (methodName == VM_MagicNames.setIntAtOffset ||
 		   methodName == VM_MagicNames.setObjectAtOffset)
       {
@@ -376,6 +385,16 @@ class VM_MagicCompiler implements VM_BaselineConstants,
 		  asm.emitL  (T1, +4, SP); // pop offset
 		  asm.emitL  (T2,  0, SP); // pop newvalue
 		  asm.emitSTX(T2, T1, T0); // *(object+offset) = newvalue
+		  asm.emitCAL(SP, 12, SP); // drop all args
+		  return;
+      }
+
+      if (methodName == VM_MagicNames.setByteAtOffset)
+      {
+		  asm.emitL  (T0, +8, SP); // pop object
+		  asm.emitL  (T1, +4, SP); // pop offset
+		  asm.emitL  (T2,  0, SP); // pop newvalue
+		  asm.emitSTBX(T2, T1, T0); // *(object+offset) = newvalue
 		  asm.emitCAL(SP, 12, SP); // drop all args
 		  return;
       }

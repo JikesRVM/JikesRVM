@@ -60,9 +60,11 @@ class VM_MagicNames {
   static VM_Atom getReturnAddress;
   static VM_Atom setReturnAddress;
 
+  static VM_Atom getByteAtOffset;
   static VM_Atom getIntAtOffset;
   static VM_Atom getObjectAtOffset;
   static VM_Atom getLongAtOffset;
+  static VM_Atom setByteAtOffset;
   static VM_Atom setIntAtOffset;
   static VM_Atom setObjectAtOffset;
   static VM_Atom setLongAtOffset;
@@ -177,9 +179,11 @@ class VM_MagicNames {
     getReturnAddress              = VM_Atom.findOrCreateAsciiAtom("getReturnAddress");
     setReturnAddress              = VM_Atom.findOrCreateAsciiAtom("setReturnAddress");
 
+    getByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("getByteAtOffset");
     getIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("getIntAtOffset");
     getObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("getObjectAtOffset");
     getLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("getLongAtOffset");
+    setByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("setByteAtOffset");
     setIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("setIntAtOffset");
     setObjectAtOffset             = VM_Atom.findOrCreateAsciiAtom("setObjectAtOffset");
     setLongAtOffset               = VM_Atom.findOrCreateAsciiAtom("setLongAtOffset");
