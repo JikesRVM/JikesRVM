@@ -2149,9 +2149,6 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), MO_AL(PL(p), QW_S, D
 #####
 # FLOAT_2INT
 #####
-# TODO: rules when it is already in memory
-#       rules for pfp0
-#       streamline FIST-based instruction sequence
 r:	FLOAT_2INT(r)
 30
 EMIT_INSTRUCTION
@@ -2161,6 +2158,16 @@ r:	FLOAT_2INT(fp0)
 30
 EMIT_INSTRUCTION
 FPR_2INT(burs, P(p), Unary.getResult(P(p)), D(getFPR(0)));
+
+r:	FLOAT_2INT(pfp0)
+30
+EMIT_INSTRUCTION
+FPR_2INT(burs, P(p), Unary.getResult(P(p)), myFP0());
+
+r:	FLOAT_2INT(fpload)
+30
+EMIT_INSTRUCTION
+FPR_2INT(burs, P(p), Unary.getResult(P(p)), consumeMO());
 
 #####
 # FLOAT_2DOUBLE
@@ -2198,9 +2205,6 @@ NOFLAGS
 #####
 # DOUBLE_2INT
 #####
-# TODO: rules when it is already in memory
-#       rules for pfp0
-#       streamline FIST-based instruction sequence
 r:	DOUBLE_2INT(r)
 30
 EMIT_INSTRUCTION
@@ -2210,6 +2214,16 @@ r:	DOUBLE_2INT(fp0)
 30
 EMIT_INSTRUCTION
 FPR_2INT(burs, P(p), Unary.getResult(P(p)), D(getFPR(0)));
+
+r:	DOUBLE_2INT(pfp0)
+30
+EMIT_INSTRUCTION
+FPR_2INT(burs, P(p), Unary.getResult(P(p)), myFP0());
+
+r:	DOUBLE_2INT(fpload)
+30
+EMIT_INSTRUCTION
+FPR_2INT(burs, P(p), Unary.getResult(P(p)), consumeMO());
 
 #####
 # DOUBLE_2FLOAT
