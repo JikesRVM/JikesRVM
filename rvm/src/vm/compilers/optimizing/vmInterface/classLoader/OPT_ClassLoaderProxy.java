@@ -34,6 +34,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
           return VM_TypeReference.Short;
         if (t1.isByteType() || t2.isByteType())
           return VM_TypeReference.Byte;
+      } else if (t1.isWordType() && t2.isWordType()) {
+	return VM_TypeReference.Word;
       }
       return null;
     }
