@@ -147,7 +147,7 @@ class mapVM implements JDPServiceInterface {
       // mapVMClass = InterpreterBase.forName("mapVM");
 
       // save the offset values for VM_Field object to be used later
-      VM_Field field = BootMap.findVMField("com.ibm.JikesRVM.VM_Field;", "offset");
+      VM_Field field = BootMap.findVMField("com.ibm.JikesRVM.VM_Field", "offset");
       VMFieldOffset_offset = field.getOffset();
       field = BootMap.findVMField("com.ibm.JikesRVM.VM_Field", "type");
       VMFieldType_offset = field.getOffset();
