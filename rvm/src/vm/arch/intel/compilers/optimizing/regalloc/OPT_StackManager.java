@@ -10,6 +10,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.HashSet;
 import java.util.HashMap;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Class to manage the allocation of the "compiler-specific" portion of 
@@ -316,7 +317,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register PR = phys.getPR();
     OPT_Register ESP = phys.getESP();
     OPT_MemoryOperand M = 
-      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt(), 
+      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffset(), 
                            (byte)WORDSIZE, null, null);
 
     //    Trap if ESP <= active Thread Stack Limit
@@ -350,7 +351,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
     //    ECX := active Thread Stack Limit
     OPT_MemoryOperand M = 
-      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffsetAsInt(), 
+      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffset(), 
                            (byte)WORDSIZE, null, null);
     plg.insertBefore(MIR_Move.create(IA32_MOV, R(ECX), M));
 
@@ -382,7 +383,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register PR = phys.getPR();
     OPT_MemoryOperand fpHome = 
       OPT_MemoryOperand.BD(R(PR),
-                           VM_Entrypoints.framePointerField.getOffsetAsInt(),
+                           VM_Entrypoints.framePointerField.getOffset(),
                            (byte)WORDSIZE, null, null);
 
     // inst is the instruction immediately after the IR_PROLOGUE
@@ -561,7 +562,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     int frameSize = getFrameFixedSize();
     ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(frameSize)));
     OPT_MemoryOperand fpHome = 
-      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.framePointerField.getOffsetAsInt(),
+      OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.framePointerField.getOffset(),
                            (byte)WORDSIZE, null, null);
     ret.insertBefore(MIR_Nullary.create(IA32_POP, fpHome));
   }
@@ -683,7 +684,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
         s.insertBefore(MIR_BinaryAcc.create(IA32_ADD, R(ESP), IC(delta)));
       } else {
         OPT_MemoryOperand M = 
-          OPT_MemoryOperand.BD(R(ESP),delta, (byte)4, null, null); 
+          OPT_MemoryOperand.BD(R(ESP),Offset.fromIntSignExtend(delta), (byte)4, null, null); 
         s.insertBefore(MIR_Lea.create(IA32_LEA, R(ESP), M));
       }
       ESPOffset = desiredOffset;
@@ -824,7 +825,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
           offset -= ESPOffset;
           byte size = sop.getSize();
           OPT_MemoryOperand M = 
-            OPT_MemoryOperand.BD(R(ESP),offset,
+            OPT_MemoryOperand.BD(R(ESP),Offset.fromIntSignExtend(offset),
                                  size, null, null); 
           s.replaceOperand(op, M);
         } else if (op instanceof OPT_MemoryOperand) {

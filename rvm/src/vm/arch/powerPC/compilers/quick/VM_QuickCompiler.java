@@ -5065,25 +5065,24 @@ public class VM_QuickCompiler extends VM_CompilerFramework
    * Emit code to load a 32 bit constant
    * @param offset JTOC offset of the constant 
    */
-  protected void emit_ldc(int offset) {
+  protected void emit_ldc(Offset offset) {
     if (unreachableBytecode) return;
     if (VM.BuildFor64Addr) {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     }
-    byte slotDescription = VM_Statics.getSlotDescription(offset>>LOG_BYTES_IN_INT);
-    Offset off = Offset.fromIntSignExtend(offset); 
+    byte slotDescription = VM_Statics.getSlotDescription(VM_Statics.offsetAsSlot(offset));
     switch (slotDescription) {
     case VM_Statics.FLOAT_LITERAL:
       assignRegisters(0,  FLOAT_TYPE);
-      asm.emitLFStoc(sro0,  off, S0);
+      asm.emitLFStoc(sro0,  offset, S0);
       break;
     case VM_Statics.STRING_LITERAL:
       assignRegisters(0,  OBJECT_TYPE);
-      asm.emitLAddrToc(sro0,  off);
+      asm.emitLAddrToc(sro0,  offset);
       break;
     default:
       assignRegisters(0,  WORD_TYPE);
-      asm.emitLIntToc(sro0,  off);
+      asm.emitLIntToc(sro0,  offset);
       break;
     }
     cleanupRegisters();
@@ -5093,7 +5092,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
    * Emit code to load a 64 bit constant
    * @param offset JTOC offset of the constant 
    */
-  protected void emit_ldc2(int offset) {
+  protected void emit_ldc2(Offset offset) {
     if (unreachableBytecode) return;
     // XXX CJH TODO!
      if (VM.BuildFor64Addr) {
@@ -5101,7 +5100,7 @@ public class VM_QuickCompiler extends VM_CompilerFramework
 
      }
     byte pushType;
-    if (VM_Statics.getSlotDescription(offset>>LOG_BYTES_IN_INT) == VM_Statics.DOUBLE_LITERAL)
+    if (VM_Statics.getSlotDescription(VM_Statics.offsetAsSlot(offset)) == VM_Statics.DOUBLE_LITERAL)
       pushType = DOUBLE_TYPE;
     else
       pushType = LONG_TYPE;

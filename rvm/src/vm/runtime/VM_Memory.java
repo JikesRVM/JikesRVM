@@ -344,10 +344,6 @@ public class VM_Memory implements Uninterruptible , VM_SizeConstants {
     }
   }
 
-  public static void alignedWordCopy(Address dst, Address src, Offset numBytes) throws InlinePragma {
-    alignedWordCopy(dst, src, numBytes.toInt());
-  }
-
   /**
    * Copy <code>numbytes</code> from <code>src</code> to <code>dst</code>.
    * Assumption either the ranges are non overlapping, or <code>src >= dst + BYTES_IN_ADDRESS</code>.

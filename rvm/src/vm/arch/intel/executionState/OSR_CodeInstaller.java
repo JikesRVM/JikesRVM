@@ -60,7 +60,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
           // use scratch register S0 to hold the address
           // ASSUMPTION: JTOC is really a JTOC, it is true for baseline compiler
 //        VM_ProcessorLocalState.emitMoveFieldToReg(asm, JTOC, VM_Entrypoints.jtocField.getOffset());
-          asm.emitMOV_Reg_RegDisp(S0, JTOC, Offset.fromIntSignExtend(cm.getOsrJTOCoffset()));
+          asm.emitMOV_Reg_RegDisp(S0, JTOC, cm.getOsrJTOCoffset());
           
       // restore the caller's JTOC
       asm.emitMOV_Reg_RegDisp(JTOC, SP, JTOC_SAVE_OFFSET); // this is the caller's JTOC
@@ -103,14 +103,14 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
       // get JTOC content into S0 (ECX)
       asm.emitMOV_Reg_RegDisp(S0, PR, VM_Entrypoints.jtocField.getOffset());
           // move the address to S0
-          asm.emitMOV_Reg_RegDisp(S0, S0, Offset.fromIntSignExtend(cm.getOsrJTOCoffset()));
+          asm.emitMOV_Reg_RegDisp(S0, S0, cm.getOsrJTOCoffset());
       // branch to the newly compiled instructions
       asm.emitJMP_Reg(S0);
     }
 
     if (VM.TraceOnStackReplacement) {
       VM.sysWrite("new CM instr addr ");
-      VM.sysWriteHex(VM_Statics.getSlotContentsAsInt(cm.getOsrJTOCoffset() >> 2));
+      VM.sysWriteHex(VM_Statics.getSlotContentsAsInt(cm.getOsrJTOCoffset()));
       VM.sysWriteln();
       VM.sysWrite("JTOC register ");
       VM.sysWriteHex(VM_Magic.getTocPointer());

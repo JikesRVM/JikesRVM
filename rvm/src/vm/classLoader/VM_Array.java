@@ -221,7 +221,7 @@ public final class VM_Array extends VM_Type implements VM_Constants,
     //
     Object[] javaLangObjectTIB = VM_Type.JavaLangObjectType.getTypeInformationBlock();
     typeInformationBlock = MM_Interface.newTIB(javaLangObjectTIB.length);
-    VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
+    VM_Statics.setSlotContents(getTibOffset(), typeInformationBlock);
     // Initialize dynamic type checking data structures
     typeInformationBlock[TIB_TYPE_INDEX] = this;
     typeInformationBlock[TIB_SUPERCLASS_IDS_INDEX] = VM_DynamicTypeCheck.buildSuperclassIds(this);

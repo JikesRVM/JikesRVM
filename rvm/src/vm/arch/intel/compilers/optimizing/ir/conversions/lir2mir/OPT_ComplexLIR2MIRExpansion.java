@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.classloader.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Handles the conversion from LIR to MIR of operators whose 
@@ -817,16 +818,16 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     yieldpoint.insertOut(nextBlock);
     ir.cfg.addLastInCodeOrder(yieldpoint);
     
-    int offset = meth.getOffsetAsInt();
+    Offset offset = meth.getOffset();
     OPT_Operand jtoc = 
       OPT_MemoryOperand.BD(R(ir.regpool.getPhysicalRegisterSet().getPR()),
-                           VM_Entrypoints.jtocField.getOffsetAsInt(), 
+                           VM_Entrypoints.jtocField.getOffset(), 
                            (byte)4, null, TG());
     OPT_RegisterOperand regOp = ir.regpool.makeTempInt();
     yieldpoint.appendInstruction(MIR_Move.create(IA32_MOV, regOp, jtoc));
     OPT_Operand target =
       OPT_MemoryOperand.BD(regOp.copyD2U(), offset, (byte)4, 
-                           new OPT_LocationOperand(offset), TG());
+                           new OPT_LocationOperand(offset.toInt()), TG());
     
     // call thread switch
     OPT_Instruction call = 
@@ -840,7 +841,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     
     // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
-    int tsr = VM_Entrypoints.takeYieldpointField.getOffsetAsInt();
+    Offset tsr = VM_Entrypoints.takeYieldpointField.getOffset();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
     OPT_Instruction compare = MIR_Compare.create(IA32_CMP, M, IC(0));
     s.insertBefore(compare);
@@ -879,16 +880,16 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_IRTools {
     yieldpoint.insertOut(nextBlock);
     ir.cfg.addLastInCodeOrder(yieldpoint);
     
-    int offset = meth.getOffsetAsInt();
+    Offset offset = meth.getOffset();
     OPT_Operand jtoc = 
       OPT_MemoryOperand.BD(R(ir.regpool.getPhysicalRegisterSet().getPR()),
-                           VM_Entrypoints.jtocField.getOffsetAsInt(), 
+                           VM_Entrypoints.jtocField.getOffset(), 
                            (byte)4, null, TG());
     OPT_RegisterOperand regOp = ir.regpool.makeTempInt();
     yieldpoint.appendInstruction(MIR_Move.create(IA32_MOV, regOp, jtoc));
     OPT_Operand target =
       OPT_MemoryOperand.BD(regOp.copyD2U(), offset, (byte)4, 
-                           new OPT_LocationOperand(offset), TG());
+                           new OPT_LocationOperand(offset.toInt()), TG());
     
     // call thread switch
     OPT_Instruction call = 

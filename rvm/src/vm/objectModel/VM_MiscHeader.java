@@ -105,15 +105,15 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
    * @param size the number of bytes allocated by the GC system for this object.
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
-  public static void initializeHeader(BootImageInterface bootImage, int ref, 
+  public static void initializeHeader(BootImageInterface bootImage, Offset ref, 
                                       Object[] tib, int size, boolean isScalar)
     throws LogicallyUninterruptiblePragma {
     /* Only perform initialization when it is required */
     if (VM.CompileForGCTracing) {
-      bootImage.setAddressWord(ref + OBJECT_OID_OFFSET.toInt(), oid);
-      bootImage.setAddressWord(ref + OBJECT_DEATH_OFFSET.toInt(), time);
-      bootImage.setFullWord(ref + OBJECT_LINK_OFFSET.toInt(), prevAddress);
-      prevAddress = ref;
+      bootImage.setAddressWord(ref.add(OBJECT_OID_OFFSET), oid);
+      bootImage.setAddressWord(ref.add(OBJECT_DEATH_OFFSET), time);
+      bootImage.setFullWord(ref.add(OBJECT_LINK_OFFSET), prevAddress);
+      prevAddress = ref.toInt();
       oid = oid.add(Word.fromInt((size - GC_TRACING_HEADER_BYTES) 
                                     >> LOG_BYTES_IN_ADDRESS));
     }

@@ -20,6 +20,8 @@ import java.lang.reflect.Field;
 import java.util.Properties;
 import java.io.*;
 
+import org.vmmagic.unboxed.Offset;
+
 /**
  * Library support interface of Jikes RVM
  *
@@ -109,9 +111,8 @@ final class VMSystem {
   static String internString(String string) {
     try {
       return (String)
-        VM_Statics.getSlotContentsAsObject( 
-                                           VM_Statics.findOrCreateStringLiteral( 
-                                                                                VM_Atom.findOrCreateUnicodeAtom( string ) ) );
+        VM_Statics.getSlotContentsAsObject(VM_Statics.findOrCreateStringLiteral(
+                                           VM_Atom.findOrCreateUnicodeAtom(string)));
     } catch (UTFDataFormatException ex) {
       throw new InternalError( ex.toString() );
     }

@@ -63,7 +63,7 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangString);
               OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_StringConstantOperand sc = (OPT_StringConstantOperand)use;
-              Offset offset = Offset.fromIntZeroExtend(sc.index << LOG_BYTES_IN_INT);
+              Offset offset = sc.offset;
               if (offset.isZero())
                 throw  new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
               OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
@@ -73,11 +73,10 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Double);
               OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use;
-              int index = dc.index;
-              if (index == 0) {
-                index = VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value));
+              Offset offset = dc.offset;
+              if (offset.isZero()) {
+                offset = VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value));
               }
-              Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_INT);
               OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
               s.insertBefore(Load.create(DOUBLE_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());
@@ -85,11 +84,10 @@ abstract class OPT_NormalizeConstants extends OPT_IRTools {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Float);
               OPT_RegisterOperand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use;
-              int index = fc.index;
-              if (index == 0) {
-                index = VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value));
+              Offset offset = fc.offset;
+              if (offset.isZero()) {
+                offset = VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value));
               }
-              Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_INT);
               OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
               s.insertBefore(Load.create(FLOAT_LOAD, rop, jtoc, asImmediateOrRegOffset(AC(offset), s, ir, true), loc));
               s.putOperand(idx, rop.copyD2U());

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Represents a constant double operand.
@@ -22,10 +23,10 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand impleme
   public double value;
 
   /**
-   * Index in JTOC where this double constant lives. (0 for constants
+   * Offset in JTOC where this double constant lives. (0 for constants
    * obtained from constant folding)
    */
-  public int index;
+  public Offset offset;
 
   /**
    * Constructs a new double constant operand with the specified value.
@@ -35,21 +36,23 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand impleme
   public OPT_DoubleConstantOperand(double v) {
     value = v;
     if (v == 0.) {
-      index = VM_Entrypoints.zeroDoubleField.getOffsetAsInt() >> LOG_BYTES_IN_INT;
+      offset = VM_Entrypoints.zeroDoubleField.getOffset();
     } else if (v == 1.) {
-      index = VM_Entrypoints.oneDoubleField.getOffsetAsInt() >> LOG_BYTES_IN_INT;
+      offset = VM_Entrypoints.oneDoubleField.getOffset();
+    } else {
+      offset = Offset.zero();
     }
   }
 
   /**
-   * Constructs a new double constant operand with the specified value and JTOC index.
+   * Constructs a new double constant operand with the specified value and JTOC offset.
    *
    * @param v value
-   * @param i index in the jtoc
+   * @param i offset in the jtoc
    */
-  public OPT_DoubleConstantOperand(double v, int i) {
+  public OPT_DoubleConstantOperand(double v, Offset i) {
     value = v;
-    index = i;
+    offset = i;
   }
 
   /**
@@ -58,7 +61,7 @@ public final class OPT_DoubleConstantOperand extends OPT_ConstantOperand impleme
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
-    return new OPT_DoubleConstantOperand(value, index);
+    return new OPT_DoubleConstantOperand(value, offset);
   }
 
   /**

@@ -113,7 +113,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   /**
    * index of jtoc slot that has type information block for this VM_Type
    */
-  protected final int tibSlot;      
+  protected final int tibOffset;      
 
   /**
    * instance of java.lang.Class corresponding to this type 
@@ -165,7 +165,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     this.typeRef = tr;
     this.state = CLASS_VACANT;
     this.dimension = tr.getDimensionality();
-    this.tibSlot = VM_Statics.allocateSlot(VM_Statics.TIB);
+    this.tibOffset = VM_Statics.allocateSlot(VM_Statics.TIB);
     this.id = nextId(this);
 
     // install partial type information block (no method dispatch table) 
@@ -174,7 +174,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     if (VM.VerifyAssertions) VM._assert(VM_TIBLayoutConstants.TIB_TYPE_INDEX == 0);
     Object[] tib = new Object[1];
     tib[0] = this;
-    VM_Statics.setSlotContents(tibSlot, tib);
+    VM_Statics.setSlotContents(getTibOffset(), tib);
   }
   
   /**
@@ -254,19 +254,10 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   }
 
   /**
-   * Get jtoc slot that contains tib for this VM_Type.
-   * Note that tib is incomplete (contains a type-slot but no method-slots) 
-   * until the class/array has been "instantiated".
-   */ 
-  public final int getTibSlot() throws UninterruptiblePragma { 
-    return tibSlot; 
-  }
-
-  /**
    * Get offset of tib slot from start of jtoc, in bytes.
    */ 
   public final Offset getTibOffset() throws UninterruptiblePragma { 
-    return Offset.fromIntZeroExtend(tibSlot << LOG_BYTES_IN_INT); 
+    return Offset.fromIntSignExtend(tibOffset); 
   }
 
   /**

@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM.opt.ir;
 
 import com.ibm.JikesRVM.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * Represents a constant float operand.
@@ -20,10 +21,10 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implemen
   public float value;
 
   /**
-   * Index in JTOC where this float constant lives (0 for constants
+   * Offset in JTOC where this float constant lives (0 for constants
    * generated from constant folding).
    */
-  public int index;
+  public Offset offset;
 
   /**
    * Constructs a new float constant operand with the specified value.
@@ -33,23 +34,25 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implemen
   public OPT_FloatConstantOperand(float v) {
     value = v;
     if (v == 0.f) {
-      index = VM_Entrypoints.zeroFloatField.getOffsetAsInt() >> LOG_BYTES_IN_INT;
+      offset = VM_Entrypoints.zeroFloatField.getOffset();
     } else if (v == 1.f) {
-      index = VM_Entrypoints.oneFloatField.getOffsetAsInt() >> LOG_BYTES_IN_INT;
+      offset = VM_Entrypoints.oneFloatField.getOffset();
     } else if (v == 2.f) {
-      index = VM_Entrypoints.twoFloatField.getOffsetAsInt() >> LOG_BYTES_IN_INT;
+      offset = VM_Entrypoints.twoFloatField.getOffset();
+    } else {
+      offset = Offset.zero();
     }
   }
 
   /**
-   * Constructs a new float constant operand with the specified value and JTOC index.
+   * Constructs a new float constant operand with the specified value and JTOC offset.
    *
    * @param v value
-   * @param i index in the jtoc
+   * @param i offset in the jtoc
    */
-  public OPT_FloatConstantOperand(float v, int i) {
+  public OPT_FloatConstantOperand(float v, Offset i) {
     value = v;
-    index = i;
+    offset = i;
   }
 
   /**
@@ -58,7 +61,7 @@ public final class OPT_FloatConstantOperand extends OPT_ConstantOperand implemen
    * @return a copy of <code>this</code>
    */
   public OPT_Operand copy() {
-    return new OPT_FloatConstantOperand(value,index);
+    return new OPT_FloatConstantOperand(value,offset);
   }
 
   /**

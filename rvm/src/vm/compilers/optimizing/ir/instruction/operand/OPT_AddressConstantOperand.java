@@ -80,6 +80,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
     return "Addr 0x" + Long.toHexString(value.toLong());
     //-#elif RVM_FOR_32_ADDR
     return "Addr 0x" + Integer.toHexString(value.toInt());
+    //VM.AddressAsHexString
     //-#endif
   }
 }

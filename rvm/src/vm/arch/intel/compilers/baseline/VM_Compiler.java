@@ -171,18 +171,17 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to load a 32 bit constant
    * @param offset JTOC offset of the constant 
    */
-  protected final void emit_ldc(int offset) {
-    asm.emitPUSH_RegDisp(JTOC, Offset.fromIntSignExtend(offset));   
+  protected final void emit_ldc(Offset offset) {
+    asm.emitPUSH_RegDisp(JTOC, offset);   
   }
 
   /**
    * Emit code to load a 64 bit constant
    * @param offset JTOC offset of the constant 
    */
-  protected final void emit_ldc2(int offset) {
-    Offset off = Offset.fromIntSignExtend(offset);
-    asm.emitPUSH_RegDisp(JTOC, off.add(4)); // high 32 bits 
-    asm.emitPUSH_RegDisp(JTOC, off);   // low 32 bits
+  protected final void emit_ldc2(Offset offset) {
+    asm.emitPUSH_RegDisp(JTOC, offset.add(4)); // high 32 bits 
+    asm.emitPUSH_RegDisp(JTOC, offset);   // low 32 bits
   }
 
 
@@ -3890,7 +3889,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * I havenot thought about GCMaps for invoke_compiledmethod 
    */
   protected final void emit_invoke_compiledmethod(VM_CompiledMethod cm) {
-    Offset methodOffset = Offset.fromIntSignExtend(cm.getOsrJTOCoffset());
+    Offset methodOffset = cm.getOsrJTOCoffset();
     boolean takeThis = !cm.method.isStatic();
     VM_MethodReference ref = cm.method.getMemberRef().asMethodReference();
     genParameterRegisterLoad(ref, takeThis);

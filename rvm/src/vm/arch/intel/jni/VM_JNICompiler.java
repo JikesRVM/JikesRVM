@@ -360,7 +360,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // Insert the JNIEnv* arg at the first entry:  
     // This is an interior pointer to VM_JNIEnvironment, which is held in S0.
     asm.emitMOV_Reg_Reg     (EBX, S0);
-    asm.emitADD_Reg_Imm     (EBX, VM_Entrypoints.JNIExternalFunctionsField.getOffsetAsInt());
+    asm.emitADD_Reg_Imm     (EBX, VM_Entrypoints.JNIExternalFunctionsField.getOffset().toInt());
     asm.emitMOV_RegDisp_Reg (EBP, emptyStackOffset, EBX);                  // store as 1st arg
 
     // Insert the JNI arg at the second entry: class or object as a jref index
@@ -645,7 +645,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     VM_ProcessorLocalState.emitPushProcessor(asm);
     
     // Adjust first param from JNIEnv* to VM_JNIEnvironment.
-    asm.emitSUB_RegDisp_Imm(EBP, Offset.fromIntSignExtend(2*WORDSIZE), VM_Entrypoints.JNIExternalFunctionsField.getOffsetAsInt());
+    asm.emitSUB_RegDisp_Imm(EBP, Offset.fromIntSignExtend(2*WORDSIZE), VM_Entrypoints.JNIExternalFunctionsField.getOffset().toInt());
 
     // copy the arguments in reverse order
     VM_TypeReference[] types = method.getParameterTypes();   // does NOT include implicit this or class ptr

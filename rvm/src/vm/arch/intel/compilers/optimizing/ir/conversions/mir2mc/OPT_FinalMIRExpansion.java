@@ -148,7 +148,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
             }
             OPT_MemoryOperand mo = 
               OPT_MemoryOperand.BD(R(phys.getPR()),
-                                   VM_Entrypoints.arrayIndexTrapParamField.getOffsetAsInt(),
+                                   VM_Entrypoints.arrayIndexTrapParamField.getOffset(),
                                    (byte)4, 
                                    null, 
                                    null);
@@ -375,7 +375,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
     OPT_Operand guard = TG();
     OPT_Operand target = 
-      OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset).toInt(), (byte)4, loc, guard);
+      OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset), (byte)4, loc, guard);
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, 
                      OPT_MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);
@@ -386,7 +386,7 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     
     // Check to see if threadSwitch requested
     OPT_Register PR = ir.regpool.getPhysicalRegisterSet().getPR();
-    int tsr = VM_Entrypoints.takeYieldpointField.getOffsetAsInt();
+    Offset tsr = VM_Entrypoints.takeYieldpointField.getOffset();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(PR),tsr,(byte)4,null,null);
     thisBlock.appendInstruction(MIR_Compare.create(IA32_CMP, M, IC(0)));
     thisBlock.appendInstruction(MIR_CondBranch.create(IA32_JCC, ypCond,
@@ -416,11 +416,11 @@ class OPT_FinalMIRExpansion extends OPT_IRTools {
     // change thread switch instruction into call to thread switch routine
     // NOTE: must make s the call instruction: it is the GC point!
     //       must also inform the GCMap that s has been moved!!!
-    int offset = meth.getOffsetAsInt();
-    OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+    Offset offset = meth.getOffset();
+    OPT_LocationOperand loc = new OPT_LocationOperand(offset.toInt());
     OPT_Operand guard = TG();
     OPT_Operand target = 
-      OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset).toInt(), (byte)4, loc, guard);
+      OPT_MemoryOperand.D(VM_Magic.getTocPointer().add(offset), (byte)4, loc, guard);
     MIR_Call.mutate0(s, CALL_SAVE_VOLATILE, null, null, target, 
                      OPT_MethodOperand.STATIC(meth));
     yieldpoint.appendInstruction(s);

@@ -81,17 +81,16 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
 
     // set jtoc
     this.osrJTOCoffset = VM_Statics.allocateSlot(VM_Statics.METHOD);
-    VM_Statics.setSlotContents(this.osrJTOCoffset, this.instructions);
-    this.osrJTOCoffset <<= LOG_BYTES_IN_INT;
+    VM_Statics.setSlotContents(this.getOsrJTOCoffset(), this.instructions);
   }
 
   public boolean isSpecialForOSR() {
     return this.isSpecialForOSR;
   }
 
-  public int getOsrJTOCoffset() {
+  public final Offset getOsrJTOCoffset() {
     if (VM.VerifyAssertions) VM._assert(this.isSpecialForOSR);
-    return this.osrJTOCoffset;
+    return Offset.fromIntSignExtend(this.osrJTOCoffset);
   }
   //-#endif
 

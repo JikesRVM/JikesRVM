@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import org.vmmagic.unboxed.Offset;
 
 /**
  * @author Doug Lorch (retired)
@@ -280,8 +281,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_IntConstantOperand getIntFromConstantPool (VM_Class klass, 
                                                                int index) {
-    int offset = klass.getLiteralOffset(index) ;
-    int val = VM_Statics.getSlotContentsAsInt(offset >>LOG_BYTES_IN_INT );
+    Offset offset = klass.getLiteralOffset(index) ;
+    int val = VM_Statics.getSlotContentsAsInt(offset);
     return new OPT_IntConstantOperand(val);
   }
 
@@ -291,10 +292,10 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_DoubleConstantOperand getDoubleFromConstantPool (VM_Class klass, 
                                                                      int index) {
-    int offset = klass.getLiteralOffset(index) ;
-    long val_raw = VM_Statics.getSlotContentsAsLong(offset >> LOG_BYTES_IN_INT);
+    Offset offset = klass.getLiteralOffset(index) ;
+    long val_raw = VM_Statics.getSlotContentsAsLong(offset);
     double val = Double.longBitsToDouble(val_raw);
-    return new OPT_DoubleConstantOperand(val, offset >> LOG_BYTES_IN_INT);
+    return new OPT_DoubleConstantOperand(val, offset);
   }
 
   /**
@@ -303,10 +304,10 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_FloatConstantOperand getFloatFromConstantPool (VM_Class klass, 
                                                                    int index) {
-    int offset = klass.getLiteralOffset(index) ;
-    int val_raw = VM_Statics.getSlotContentsAsInt(offset >> LOG_BYTES_IN_INT);
+    Offset offset = klass.getLiteralOffset(index) ;
+    int val_raw = VM_Statics.getSlotContentsAsInt(offset);
     float val = Float.intBitsToFloat(val_raw);
-    return new OPT_FloatConstantOperand(val, offset >> LOG_BYTES_IN_INT);
+    return new OPT_FloatConstantOperand(val, offset);
   }
 
   /**
@@ -315,9 +316,9 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    */
   public static OPT_LongConstantOperand getLongFromConstantPool (VM_Class klass, 
                                                                  int index) {
-    int offset = klass.getLiteralOffset(index) ;
-    long val = VM_Statics.getSlotContentsAsLong(offset >> LOG_BYTES_IN_INT);
-    return new OPT_LongConstantOperand(val, offset >> LOG_BYTES_IN_INT);
+    Offset offset = klass.getLiteralOffset(index) ;
+    long val = VM_Statics.getSlotContentsAsLong(offset);
+    return new OPT_LongConstantOperand(val, offset);
   }
 
   /**
@@ -325,10 +326,10 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
    * pool.
    */
   public static OPT_StringConstantOperand getStringFromConstantPool (VM_Class klass, int index) {
-    int slot = klass.getLiteralOffset(index) >> LOG_BYTES_IN_INT;
+    Offset offset = klass.getLiteralOffset(index);
     String val;
     if (VM.runningVM) {
-      val = (String)VM_Statics.getSlotContentsAsObject(slot);
+      val = (String)VM_Statics.getSlotContentsAsObject(offset);
     } else {
       // Sigh. What we really want to do is acquire the 
       // String object from the class constant pool.
@@ -341,8 +342,8 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
       //       Then again, if you are using ==, != with strings and one of them
       //       isn't <null>, perhaps you deserve what you get.
       // This is defect 2838.
-      val = ("BootImageStringConstant "+slot).intern();
+      val = ("BootImageStringConstant "+VM_Statics.offsetAsSlot(offset)).intern();
     }
-    return new OPT_StringConstantOperand(val, slot);
+    return new OPT_StringConstantOperand(val, offset);
   }
 }

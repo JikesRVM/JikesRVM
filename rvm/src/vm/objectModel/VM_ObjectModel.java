@@ -216,7 +216,7 @@ public final class VM_ObjectModel implements Uninterruptible,
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(BootImageInterface bootImage, int refOffset, 
+  public static void setTIB(BootImageInterface bootImage, Offset refOffset, 
                             Address tibAddr, VM_Type type)
     throws InterruptiblePragma {
     VM_JavaHeader.setTIB(bootImage, refOffset, tibAddr, type);
@@ -676,13 +676,13 @@ public final class VM_ObjectModel implements Uninterruptible,
    * @param klass the VM_Class object of the instance to create.
    * @return the offset of object in bootimage (in bytes)
    */
-  public static int allocateScalar(BootImageInterface bootImage, VM_Class klass) throws InterruptiblePragma {
+  public static Offset allocateScalar(BootImageInterface bootImage, VM_Class klass) throws InterruptiblePragma {
     Object[] tib = klass.getTypeInformationBlock();
     int size = klass.getInstanceSize();
     int align = getAlignment(klass);
     int offset = getOffsetForAlignment(klass);
-    int ptr = bootImage.allocateStorage(size, align, offset);
-    int ref = VM_JavaHeader.initializeScalarHeader(bootImage, ptr, tib, size);
+    Offset ptr = bootImage.allocateStorage(size, align, offset);
+    Offset ref = VM_JavaHeader.initializeScalarHeader(bootImage, ptr, tib, size);
     VM_AllocatorHeader.initializeHeader(bootImage, ref, tib, size, true);
     VM_MiscHeader.initializeHeader(bootImage, ref, tib, size, true);
     return ref;
@@ -717,16 +717,16 @@ public final class VM_ObjectModel implements Uninterruptible,
    * @param numElements number of elements
    * @return the offset of object in bootimage (in bytes)
    */
-  public static int allocateArray(BootImageInterface bootImage, 
+  public static Offset allocateArray(BootImageInterface bootImage, 
                                   VM_Array array,
                                   int numElements) throws InterruptiblePragma {
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     int align = getAlignment(array);
     int offset = getOffsetForAlignment(array);
-    int ptr = bootImage.allocateStorage(size, align, offset);
-    int ref = VM_JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
-    bootImage.setFullWord(ref + getArrayLengthOffset().toInt(), numElements);
+    Offset ptr = bootImage.allocateStorage(size, align, offset);
+    Offset ref = VM_JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
+    bootImage.setFullWord(ref.add(getArrayLengthOffset()), numElements);
     VM_AllocatorHeader.initializeHeader(bootImage, ref, tib, size, false);
     VM_MiscHeader.initializeHeader(bootImage, ref, tib, size, false);
     return ref;

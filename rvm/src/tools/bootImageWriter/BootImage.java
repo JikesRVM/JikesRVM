@@ -39,12 +39,7 @@ public class BootImage extends BootImageWriterMessages
   /**
    * Offset of next free word, in bytes
    */
-  private int freeOffset = 0;
-
-  /**
-   * Offset of last free word + 1, in bytes
-   */
-  private int endOffset;
+  private Offset freeOffset = Offset.zero();
 
   /**
    * Number of objects appearing in bootimage
@@ -67,7 +62,7 @@ public class BootImage extends BootImageWriterMessages
    * @param t turn tracing on?
    */
   BootImage(boolean ltlEndian, boolean t) {
-    bootImage = new byte[endOffset = BOOT_IMAGE_SIZE.toInt()];
+    bootImage = new byte[BOOT_IMAGE_SIZE.toInt()];
     littleEndian = ltlEndian;
     trace = t;
   }
@@ -98,7 +93,7 @@ public class BootImage extends BootImageWriterMessages
    * @return image size
    */
   public int getSize() {
-    return freeOffset;
+    return freeOffset.toInt();
   }
 
   /**
@@ -107,7 +102,7 @@ public class BootImage extends BootImageWriterMessages
    * @param klass VM_Class object of scalar being allocated
    * @return offset of object within bootimage, in bytes
    */
-  public int allocateScalar(VM_Class klass) {
+  public Offset allocateScalar(VM_Class klass) {
     numObjects++;
     klass.bootCount++;
     klass.bootBytes += klass.getInstanceSize();
@@ -121,7 +116,7 @@ public class BootImage extends BootImageWriterMessages
    * @param numElements number of elements
    * @return offset of object within bootimage, in bytes
    */
-  public int allocateArray(VM_Array array, int numElements) {
+  public Offset allocateArray(VM_Array array, int numElements) {
     numObjects++;
     array.bootCount++;
     array.bootBytes += array.getInstanceSize(numElements);
@@ -136,15 +131,15 @@ public class BootImage extends BootImageWriterMessages
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
    */
-  public int allocateStorage(int size, int align, int offset) {
+  public Offset allocateStorage(int size, int align, int offset) {
     freeOffset = MM_Interface.alignAllocation(freeOffset, align, offset);
     if (VM.ExtremeAssertions) {
-      VM._assert(((freeOffset + offset) & (align -1)) == 0); 
-      VM._assert((freeOffset & ~3) == freeOffset);
+      VM._assert(freeOffset.add(offset).toWord().and(Word.fromIntSignExtend(align -1)).isZero()); 
+      VM._assert(freeOffset.toWord().and(Word.fromIntSignExtend(3)).isZero());
     }
-    int lowAddr = freeOffset;
-    freeOffset += size;
-    if (freeOffset > endOffset)
+    Offset lowAddr = freeOffset;
+    freeOffset = freeOffset.add(size);
+    if (freeOffset.toWord().toExtent().GT(BOOT_IMAGE_SIZE))
       fail("bootimage full (need at least " + size + " more bytes)");
     
     return lowAddr;
@@ -157,7 +152,7 @@ public class BootImage extends BootImageWriterMessages
    * actual address can be computed early in the build process.
    */
   public void resetAllocator() {
-    freeOffset = 0;
+    freeOffset = Offset.zero();
   }
 
   /**
@@ -166,8 +161,8 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public void setByte(int offset, int value) {
-    bootImage[offset] = (byte) value;
+  public void setByte(Offset offset, int value) {
+    bootImage[offset.toInt()] = (byte) value;
   }
 
   /**
@@ -176,7 +171,8 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public void setHalfWord(int offset, int value) {
+  public void setHalfWord(Offset off, int value) {
+    int offset = off.toInt();
     if (littleEndian) {
       bootImage[offset++] = (byte) (value);
       bootImage[offset  ] = (byte) (value >>  8);
@@ -192,7 +188,8 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public void setFullWord(int offset, int value) {
+  public void setFullWord(Offset off, int value) {
+    int offset = off.toInt();
     if (littleEndian) {
       bootImage[offset++] = (byte) (value);
       bootImage[offset++] = (byte) (value >>  8);
@@ -212,7 +209,7 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public void setAddressWord(int offset, Word value) {
+  public void setAddressWord(Offset offset, Word value) {
 //-#if RVM_FOR_32_ADDR
     setFullWord(offset, value.toInt());
     numAddresses++;
@@ -228,7 +225,7 @@ public class BootImage extends BootImageWriterMessages
    *
    * @param offset offset of target from start of image, in bytes
    */
-  public void setNullAddressWord(int offset) {
+  public void setNullAddressWord(Offset offset) {
     setAddressWord(offset, Word.zero());
     numNulledReferences += 1;
   }
@@ -239,7 +236,8 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public void setDoubleWord(int offset, long value) {
+  public void setDoubleWord(Offset off, long value) {
+    int offset = off.toInt();
     if (littleEndian) {
       bootImage[offset++] = (byte) (value);
       bootImage[offset++] = (byte) (value >>  8);

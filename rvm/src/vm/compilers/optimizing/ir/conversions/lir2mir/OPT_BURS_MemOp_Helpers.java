@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
 import com.ibm.JikesRVM.opt.ir.*;
-
+import org.vmmagic.unboxed.*;
 /**
  * Contains common BURS helper functions for platforms with memory operands.
  * 
@@ -286,7 +286,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   protected final OPT_MemoryOperand MO_BD(OPT_Operand base, int disp, 
                                           byte size, OPT_LocationOperand loc,
                                           OPT_Operand guard) {
-    return OPT_MemoryOperand.BD(R(base), disp, size, loc, guard);
+    return OPT_MemoryOperand.BD(R(base), Offset.fromIntSignExtend(disp), size, loc, guard);
   }
 
   protected final OPT_MemoryOperand MO_BID(OPT_Operand base, 
@@ -294,7 +294,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
                                            int disp, byte size, 
                                            OPT_LocationOperand loc,
                                            OPT_Operand guard) {
-    return OPT_MemoryOperand.BID(R(base), R(index), disp, size, loc, guard);
+    return OPT_MemoryOperand.BID(R(base), R(index), Offset.fromIntSignExtend(disp), size, loc, guard);
   }
 
   protected final OPT_MemoryOperand MO_BIS(OPT_Operand base, 
@@ -308,7 +308,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
   protected final OPT_MemoryOperand MO_D(int disp, 
                                          byte size, OPT_LocationOperand loc,
                                          OPT_Operand guard) {
-    return OPT_MemoryOperand.D(disp, size, loc, guard);
+    return OPT_MemoryOperand.D(Address.fromIntSignExtend(disp), size, loc, guard);
   }
 
   protected final OPT_MemoryOperand MO_MC(OPT_Instruction s) {
@@ -316,7 +316,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
     OPT_Operand val = Binary.getVal2(s);
     if (val instanceof OPT_FloatConstantOperand) {
       OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
-      int offset = fc.index << 2;
+      int offset = fc.offset.toInt();
       OPT_LocationOperand loc = new OPT_LocationOperand(offset);
       if (base instanceof OPT_IntConstantOperand) {
         return MO_D(IV(base)+offset, DW, loc, TG());
@@ -325,7 +325,7 @@ abstract class OPT_BURS_MemOp_Helpers extends OPT_BURS_Common_Helpers {
       }
     } else {
       OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
-      int offset = dc.index << 2;
+      int offset = dc.offset.toInt();
       OPT_LocationOperand loc = new OPT_LocationOperand(offset);
       if (base instanceof OPT_IntConstantOperand) {
         return MO_D(IV(base)+offset, QW, loc, TG());

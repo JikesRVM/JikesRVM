@@ -81,12 +81,12 @@ public class OSR_CodeInstaller implements VM_BaselineConstants {
     }
 
     if (VM.VerifyAssertions) {
-      Object jtocContent = VM_Statics.getSlotContentsAsObject(cm.getOsrJTOCoffset() >> 2);
+      Object jtocContent = VM_Statics.getSlotContentsAsObject(cm.getOsrJTOCoffset());
       VM._assert(jtocContent == cm.getInstructions());
     }   
     
     // load address of newInstructions from JTOC
-    asm.emitLAddrToc(S0, Offset.fromIntSignExtend(cm.getOsrJTOCoffset()));
+    asm.emitLAddrToc(S0, cm.getOsrJTOCoffset());
     // mov CTR addr
     asm.emitMTCTR(S0);
     // lwz FP, 0(FP)

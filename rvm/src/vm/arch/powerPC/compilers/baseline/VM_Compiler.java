@@ -616,13 +616,12 @@ public class VM_Compiler extends VM_BaselineCompiler
    * (which may be a String and thus really 64 bits on 64 bit platform!)
    * @param offset JTOC offset of the constant 
    */
-  protected final void emit_ldc(int offset) {
-    Offset off =Offset.fromIntSignExtend(offset); 
-    if (VM_Statics.getSlotDescription(offset>>LOG_BYTES_IN_INT) == VM_Statics.STRING_LITERAL){
-      asm.emitLAddrToc(T0,  off);
+  protected final void emit_ldc(Offset offset) {
+    if (VM_Statics.getSlotDescription(VM_Statics.offsetAsSlot(offset)) == VM_Statics.STRING_LITERAL){
+      asm.emitLAddrToc(T0, offset);
       pushAddr(T0);
     } else {
-      asm.emitLIntToc(T0, off);
+      asm.emitLIntToc(T0, offset);
       pushInt(T0);
     }
   }
@@ -631,9 +630,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to load a 64 bit constant
    * @param offset JTOC offset of the constant 
    */
-  protected final void emit_ldc2(int offset) {
-    Offset off =Offset.fromIntSignExtend(offset); 
-    asm.emitLFDtoc(F0,  off, T0);
+  protected final void emit_ldc2(Offset offset) {
+    asm.emitLFDtoc(F0, offset, T0);
     pushDouble(F0);
   }
 
@@ -3314,7 +3312,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    * I havenot thought about GCMaps for invoke_compiledmethod 
    */
   protected final void emit_invoke_compiledmethod(VM_CompiledMethod cm) {
-    Offset methOffset = Offset.fromIntSignExtend(cm.getOsrJTOCoffset());
+    Offset methOffset = cm.getOsrJTOCoffset();
     asm.emitLAddrToc(T0, methOffset);
     asm.emitMTCTR(T0);
     boolean takeThis = !cm.method.isStatic();

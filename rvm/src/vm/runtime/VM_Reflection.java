@@ -83,7 +83,7 @@ public class VM_Reflection implements VM_Constants {
     if (method.isStatic() || method.isObjectInitializer() || isNonvirtual) {
       targetMethod = method;
     } else {
-      int tibIndex = method.getOffsetAsInt() >>> LOG_BYTES_IN_ADDRESS;
+      int tibIndex = method.getOffset().toInt() >>> LOG_BYTES_IN_ADDRESS;
       targetMethod = VM_Magic.getObjectType(thisArg).asClass().getVirtualMethods()[tibIndex - TIB_FIRST_VIRTUAL_METHOD_INDEX];
     }
 

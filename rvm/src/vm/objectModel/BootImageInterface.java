@@ -21,7 +21,7 @@ public interface BootImageInterface {
    * @param align the alignment requested; must be a power of 2.
    * @param offset the offset at which the alignment is desired.
    */
-  public int allocateStorage(int size, int align, int offset);
+  public Offset allocateStorage(int size, int align, int offset);
 
   /**
    * Fill in 1 byte of bootimage.
@@ -29,7 +29,7 @@ public interface BootImageInterface {
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public void setByte(int offset, int value);
+  public void setByte(Offset offset, int value);
 
   /**
    * Fill in 2 bytes of bootimage.
@@ -37,7 +37,7 @@ public interface BootImageInterface {
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public void setHalfWord(int offset, int value);
+  public void setHalfWord(Offset offset, int value);
 
   /**
    * Fill in 4 bytes of bootimage, as numeric.
@@ -45,7 +45,7 @@ public interface BootImageInterface {
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public void setFullWord(int offset, int value);
+  public void setFullWord(Offset offset, int value);
 
   /**
    * Fill in 4/8 bytes of bootimage, as object reference.
@@ -53,14 +53,14 @@ public interface BootImageInterface {
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public void setAddressWord(int offset, Word value);
+  public void setAddressWord(Offset offset, Word value);
 
   /**
    * Fill in 4 bytes of bootimage, as null object reference.
    *
    * @param offset offset of target from start of image, in bytes
    */
-  public void setNullAddressWord(int offset);
+  public void setNullAddressWord(Offset offset);
 
   /**
    * Fill in 8 bytes of bootimage.
@@ -68,5 +68,5 @@ public interface BootImageInterface {
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public void setDoubleWord(int offset, long value);
+  public void setDoubleWord(Offset offset, long value);
 }

@@ -190,13 +190,13 @@ class GenerateInterfaceDeclarations {
 
   private static class SortableField implements Comparable {
     final VM_Field f;
-    final int offset;
-    SortableField (VM_Field ff) { f = ff; offset = f.getOffsetAsInt(); }
+    final Offset offset;
+    SortableField (VM_Field ff) { f = ff; offset = f.getOffset(); }
     public int compareTo (Object y) {
       if (y instanceof SortableField) {
-        int offset2 = ((SortableField) y).offset;
-        if (offset > offset2) return 1;
-        if (offset < offset2) return -1;
+        Offset offset2 = ((SortableField) y).offset;
+        if (offset.sGT(offset2)) return 1;
+        if (offset.sLT(offset2)) return -1;
         return 0;
       }
       return 1;

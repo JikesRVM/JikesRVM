@@ -686,12 +686,12 @@ public class MM_Interface implements VM_HeapLayoutConstants, Constants, Uninterr
    * that the return value is aligned according to the above
    * constraints.
    */
-  public static final int alignAllocation(int initialOffset, int align,
+  public static final Offset alignAllocation(Offset initialOffset, int align,
                                           int offset)
     throws UninterruptiblePragma, InlinePragma {
-    Address region = VM_Memory.alignUp(Address.fromInt(initialOffset),
+    Address region = VM_Memory.alignUp(initialOffset.toWord().toAddress(),
                                        MIN_ALIGNMENT);
-    return Allocator.alignAllocation(region, align, offset).toInt();
+    return Allocator.alignAllocation(region, align, offset).toWord().toOffset();
   }
 
   /**

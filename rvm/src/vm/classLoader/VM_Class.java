@@ -310,9 +310,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    * Get offset of a literal constant, in bytes.
    * Offset is with respect to virtual machine's "table of contents" (jtoc).
    */ 
-  public final int getLiteralOffset(int constantPoolIndex) {
+  public final Offset getLiteralOffset(int constantPoolIndex) {
     // jtoc slot number --> jtoc offset
-    return constantPool[constantPoolIndex] << LOG_BYTES_IN_INT; 
+    return Offset.fromIntSignExtend(constantPool[constantPoolIndex]); 
   }
 
   /**
@@ -320,7 +320,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
    */ 
   public final byte getLiteralDescription(int constantPoolIndex) {
     // jtoc slot number --> description
-    return VM_Statics.getSlotDescription(constantPool[constantPoolIndex]); 
+    return VM_Statics.getSlotDescription(VM_Statics.offsetAsSlot(getLiteralOffset(constantPoolIndex))); 
   }
 
   /**
@@ -727,19 +727,19 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         break;
 
       case TAG_INT:
-        constantPool[i] = VM_Statics.findOrCreateIntLiteral(input.readInt());
+        constantPool[i] = VM_Statics.findOrCreateIntLiteral(input.readInt()).toInt();
         break;
 
       case TAG_FLOAT:
-        constantPool[i] = VM_Statics.findOrCreateFloatLiteral(input.readInt());
+        constantPool[i] = VM_Statics.findOrCreateFloatLiteral(input.readInt()).toInt();
         break;
 
       case TAG_LONG:
-        constantPool[i++] = VM_Statics.findOrCreateLongLiteral(input.readLong());
+        constantPool[i++] = VM_Statics.findOrCreateLongLiteral(input.readLong()).toInt();
         break;
 
       case TAG_DOUBLE:
-        constantPool[i++] = VM_Statics.findOrCreateDoubleLiteral(input.readLong());
+        constantPool[i++] = VM_Statics.findOrCreateDoubleLiteral(input.readLong()).toInt();
         break;
 
       case TAG_TYPEREF:
@@ -790,7 +790,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         } // out: type reference id
 
         case TAG_STRING: { // in: utf index
-          constantPool[i] = VM_Statics.findOrCreateStringLiteral(getUtf(constantPool[i]));
+          constantPool[i] = VM_Statics.findOrCreateStringLiteral(getUtf(constantPool[i])).toInt();
           break; 
         } // out: jtoc slot number
         }
@@ -1137,14 +1137,14 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         slotType = VM_Statics.WIDE_NUMERIC_FIELD;
       else
         slotType = VM_Statics.NUMERIC_FIELD;
-      field.offset = (VM_Statics.allocateSlot(slotType) << LOG_BYTES_IN_INT);
+      field.offset = VM_Statics.allocateSlot(slotType);
 
       // (SJF): Serialization nastily accesses even final private static
       //           fields via pseudo-reflection! So, we must shove the
       //           values of final static fields into the JTOC.  Now
       //           seems to be a good time.
       if (field.isFinal()) {
-        setFinalStaticJTOCEntry(field,field.offset);
+        setFinalStaticJTOCEntry(field,Offset.fromIntSignExtend(field.offset));
       }
     }
 
@@ -1173,7 +1173,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     //
     for (int i = 0, n = constructorMethods.length; i < n; ++i) {
       VM_Method method = constructorMethods[i];
-      method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD) << LOG_BYTES_IN_INT;
+      method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD);
     }
 
     // Allocate space for static method pointers
@@ -1183,7 +1183,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       if (method.isClassInitializer()) {
         method.offset = 0xdeadbeef; // should never be used.
       } else {
-        method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD) << LOG_BYTES_IN_INT;
+        method.offset = VM_Statics.allocateSlot(VM_Statics.METHOD);
       }
     }
 
@@ -1196,7 +1196,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       typeInformationBlock = MM_Interface.newTIB(TIB_FIRST_VIRTUAL_METHOD_INDEX + virtualMethods.length);
     }
       
-    VM_Statics.setSlotContents(tibSlot, typeInformationBlock);
+    VM_Statics.setSlotContents(getTibOffset(), typeInformationBlock);
     // Initialize dynamic type checking data structures
     typeInformationBlock[TIB_TYPE_INDEX] = this;
     typeInformationBlock[TIB_SUPERCLASS_IDS_INDEX] = VM_DynamicTypeCheck.buildSuperclassIds(this);
@@ -1262,18 +1262,15 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   /** 
    * Insert the value of a final static field into the JTOC 
    */
-  private void setFinalStaticJTOCEntry(VM_Field field, int fieldOffset) {
+  private void setFinalStaticJTOCEntry(VM_Field field, Offset fieldOffset) {
     if (!field.isFinal()) return;
     // value Index: index into the classes constant pool.
     int valueIndex = field.getConstantValueIndex();
 
-    // index for field value in JTOC
-    int fieldIndex = fieldOffset >> LOG_BYTES_IN_INT;
-
     // if there's no value in the constant pool, bail out
     if (valueIndex <= 0) return;
 
-    int literalOffset= field.getDeclaringClass().getLiteralOffset(valueIndex);
+    Offset literalOffset= field.getDeclaringClass().getLiteralOffset(valueIndex);
 
     // if field is object, should use reference form of setSlotContents.
     // But getSlotContentsAsObject() uses Magic to recast as Object, and
@@ -1282,17 +1279,17 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // for now, because the bootImage is not collected (all object get BIG
     // reference counts
     //
-    if (VM.runningVM && VM_Statics.isReference(fieldIndex)) {
-      Object obj = VM_Statics.getSlotContentsAsObject(literalOffset>>LOG_BYTES_IN_INT);
-      VM_Statics.setSlotContents(fieldIndex,obj);
+    if (VM.runningVM && VM_Statics.isReference(VM_Statics.offsetAsSlot(fieldOffset))) {
+      Object obj = VM_Statics.getSlotContentsAsObject(literalOffset);
+      VM_Statics.setSlotContents(fieldOffset,obj);
     } else if (field.getType().getSize() == BYTES_IN_INT) {
       // copy one word from constant pool to JTOC
-      int value = VM_Statics.getSlotContentsAsInt(literalOffset>>LOG_BYTES_IN_INT);
-      VM_Statics.setSlotContents(fieldIndex,value);
+      int value = VM_Statics.getSlotContentsAsInt(literalOffset);
+      VM_Statics.setSlotContents(fieldOffset,value);
     } else {
       // copy two words from constant pool to JTOC
-      long value = VM_Statics.getSlotContentsAsLong(literalOffset>>LOG_BYTES_IN_INT);
-      VM_Statics.setSlotContents(fieldIndex,value);
+      long value = VM_Statics.getSlotContentsAsLong(literalOffset);
+      VM_Statics.setSlotContents(fieldOffset,value);
     }
   }
 
@@ -1338,7 +1335,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       // compile <init> methods and put their addresses into jtoc
       for (int i = 0, n = constructorMethods.length; i < n; ++i) {
         VM_Method method = constructorMethods[i];
-        VM_Statics.setSlotContents(method.getOffsetAsInt() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
+        VM_Statics.setSlotContents(method.getOffset(), method.getCurrentInstructions());
       }
 
       // compile static methods and put their addresses into jtoc
@@ -1348,7 +1345,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
         // This also avoids putting <clinit>s in the bootimage.
         VM_Method method = staticMethods[i];
         if (!method.isClassInitializer()) {
-          VM_Statics.setSlotContents(method.getOffsetAsInt() >> LOG_BYTES_IN_INT, method.getCurrentInstructions());
+          VM_Statics.setSlotContents(method.getOffset(), method.getCurrentInstructions());
         }
       }
     }
@@ -1449,7 +1446,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     for (int i=0; i<fields.length; i++) {
       VM_Field f = fields[i];
       if (f.isFinal()) {
-        setFinalStaticJTOCEntry(f,f.getOffsetAsInt());
+        setFinalStaticJTOCEntry(f,f.getOffset());
       }
     }
   }
@@ -1535,8 +1532,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     if (VM.VerifyAssertions) VM._assert(m.getDeclaringClass() == this);
     if (VM.VerifyAssertions) VM._assert(isResolved());
     if (VM.VerifyAssertions) VM._assert(m.isStatic() || m.isObjectInitializer());
-    int slot = m.getOffsetAsInt() >>> LOG_BYTES_IN_INT;
-    VM_Statics.setSlotContents(slot, m.getCurrentInstructions());
+    VM_Statics.setSlotContents(m.getOffset(), m.getCurrentInstructions());
   }
 
 
@@ -1552,7 +1548,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
       VM_Method vm = findVirtualMethod(m.getName(), m.getDescriptor());
       VM._assert(vm == m);
     }
-    int offset = m.getOffsetAsInt() >>> LOG_BYTES_IN_ADDRESS;
+    int offset = m.getOffset().toInt() >>> LOG_BYTES_IN_ADDRESS;
     typeInformationBlock[offset] = m.getCurrentInstructions();
     VM_InterfaceInvocation.updateTIBEntry(this, m);
   }

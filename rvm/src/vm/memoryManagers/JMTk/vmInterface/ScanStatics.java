@@ -31,9 +31,6 @@ public class ScanStatics implements Constants {
    * Class variables
    */
 
-  /** slots are integer sized, not word sized */ // FIXME: Document why.
-  private static final int LOG_BYTES_IN_SLOT = LOG_BYTES_IN_INT;
-
   /**
    * Scan static variables (JTOC) for object references.  Executed by
    * all GC threads in parallel, with each doing a portion of the
@@ -45,7 +42,8 @@ public class ScanStatics implements Constants {
     int numSlots = VM_Statics.getNumberOfSlots();
     Address slots = VM_Statics.getSlots();
     int chunkSize = 512;
-    int slot, start, end, stride, slotAddress;
+    int slot, start, end, stride;
+    int refSlotSize = VM_Statics.getReferenceSlotSize(); //reference slots are aligned
     VM_CollectorThread ct;
 
     stride = chunkSize * VM_CollectorThread.numCollectors();
@@ -56,12 +54,13 @@ public class ScanStatics implements Constants {
       end = start + chunkSize;
       if (end > numSlots)
         end = numSlots;  // doing last segment of JTOC
-      for ( slot=start; slot<end; slot++ ) {
-        if ( ! VM_Statics.isReference(slot) ) continue;
-        // slot contains a ref of some kind.  call collector specific
-        // processPointerField, passing address of reference
-        //
-        rootLocations.push(slots.add(slot << LOG_BYTES_IN_SLOT));
+      for ( slot=start; slot<end; slot+=refSlotSize ) {
+        if ( VM_Statics.isReference(slot) ) {
+          // slot contains a ref of some kind.  call collector specific
+          // processPointerField, passing address of reference
+          //
+          rootLocations.push(slots.add(VM_Statics.slotAsOffset(slot)));
+        }
       }  // end of for loop
       start = start + stride;
     }  // end of while loop
