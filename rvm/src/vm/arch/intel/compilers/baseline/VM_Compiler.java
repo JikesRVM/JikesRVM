@@ -941,11 +941,12 @@ public class VM_Compiler implements VM_BaselineConstants {
       }
       case 0x6c: /* idiv */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "idiv");
-	asm.emitPOP_Reg (ECX); // NOTE: can't use symbolic registers because of intel hardware requirements
-	asm.emitPOP_Reg (EAX);
-	asm.emitCDQ ();    // sign extend EAX into EDX
-	asm.emitIDIV_Reg_Reg(EAX, ECX); // compute EAX/ECX - Quotient in EAX, remainder in EDX
-	asm.emitPUSH_Reg(EAX);
+	asm.emitMOV_Reg_RegDisp(ECX, SP, 0); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
+	asm.emitMOV_Reg_RegDisp(EAX, SP, 4); // EAX is dividend
+	asm.emitCDQ ();                      // sign extend EAX into EDX
+	asm.emitIDIV_Reg_Reg(EAX, ECX);      // compute EAX/ECX - Quotient in EAX, remainder in EDX
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the 2 values
+	asm.emitPUSH_Reg(EAX);               // push result
 	break;
       }
       case 0x6d: /* ldiv */ {
@@ -975,11 +976,12 @@ public class VM_Compiler implements VM_BaselineConstants {
       }
       case 0x70: /* irem */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "irem");
-	asm.emitPOP_Reg (ECX); // NOTE: can't use symbolic registers because of intel hardware requirements
-	asm.emitPOP_Reg (EAX);
-	asm.emitCDQ ();    // sign extend EAX into EDX
-	asm.emitIDIV_Reg_Reg(EAX, ECX); // compute EAX/ECX - Quotient in EAX, remainder in EDX
-	asm.emitPUSH_Reg(EDX);
+	asm.emitMOV_Reg_RegDisp(ECX, SP, 0); // ECX is divisor; NOTE: can't use symbolic registers because of intel hardware requirements
+	asm.emitMOV_Reg_RegDisp(EAX, SP, 4); // EAX is dividend
+	asm.emitCDQ ();                      // sign extend EAX into EDX
+	asm.emitIDIV_Reg_Reg(EAX, ECX);      // compute EAX/ECX - Quotient in EAX, remainder in EDX
+	asm.emitADD_Reg_Imm(SP, WORDSIZE*2); // complete popping the 2 values
+	asm.emitPUSH_Reg(EDX);               // push remainder
 	break;
       }
       case 0x71: /* lrem */ {
@@ -1957,21 +1959,24 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitJMP_Imm (retryLabel);                           // reload T0
 	  fr.resolve(asm);                                       // comefrom
 	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitPOP_Reg (S0);
-	    asm.emitPUSH_RegIdx(S0, T0, asm.BYTE, 0);
+	    asm.emitMOV_Reg_RegDisp(S0, SP, 0);              // S0 is object reference
+	    asm.emitMOV_Reg_RegIdx(S0, S0, T0, asm.BYTE, 0); // S0 is field value
+	    asm.emitMOV_RegDisp_Reg(SP, 0, S0);              // replace reference with value on stack
 	  } else { // field is two words (double or long)
 	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
 	    // TODO!! use 8-byte move if possible 
-	    asm.emitPOP_Reg (S0);
-	    asm.emitPUSH_RegIdx(S0, T0, asm.BYTE, WORDSIZE);                // get high part
-	    asm.emitPUSH_RegIdx(S0, T0, asm.BYTE, 0);          // get low part
+	    asm.emitMOV_Reg_RegDisp(S0, SP, 0);                     // S0 is object reference
+	    asm.emitMOV_Reg_RegIdx(T1, S0, T0, asm.BYTE, WORDSIZE); // T1 is high part of field value
+	    asm.emitMOV_RegDisp_Reg(SP, 0, T1);                     // replace reference with value on stack
+	    asm.emitPUSH_RegIdx(S0, T0, asm.BYTE, 0);               // push the low part of field value
 	  }
 	} else {
           fieldRef = fieldRef.resolve();
 	  int fieldOffset = fieldRef.getOffset();
 	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitPOP_Reg (T0);
-	    asm.emitPUSH_RegDisp(T0, fieldOffset);
+	    asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is object reference
+	    asm.emitMOV_Reg_RegDisp(T0, T0, fieldOffset); // T0 is field value
+	    asm.emitMOV_RegDisp_Reg(SP, 0, T0);           // replace reference with value on stack
 	  } else { // field is two words (double or long)
 	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
 	    if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
@@ -1981,9 +1986,10 @@ public class VM_Compiler implements VM_BaselineConstants {
 	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockOffset);
 	    }
 	    // TODO!! use 8-byte move if possible
-	    asm.emitPOP_Reg (T0);
-	    asm.emitPUSH_RegDisp(T0, fieldOffset+WORDSIZE); // get high part
-	    asm.emitPUSH_RegDisp(T0, fieldOffset);          // get low part
+	    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is object reference
+	    asm.emitMOV_Reg_RegDisp(T1, T0, fieldOffset+WORDSIZE); // T1 is high part of field value
+	    asm.emitMOV_RegDisp_Reg(SP, 0, T1);                    // replace reference with high part of value on stack
+	    asm.emitPUSH_RegDisp(T0, fieldOffset);                 // push low part of field value
             if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
 	      asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexOffset);
 	      asm.emitPUSH_Reg        (T0);
@@ -2026,26 +2032,29 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  asm.emitJMP_Imm (retryLabel);                                          // reload T0
 	  fr.resolve(asm);                                                       // comefrom
 	  if (fieldRef.getSize() == 4) {// field is one word
-	    asm.emitPOP_Reg (T1);                                                // value
-	    asm.emitPOP_Reg (S0);                                                // obj's ref
-	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, T1);                    // [S0+T0] <- T1
+	    asm.emitMOV_Reg_RegDisp(T1, SP, 0);               // T1 is the value to be stored
+	    asm.emitMOV_Reg_RegDisp(S0, SP, 4);               // S0 is the object reference
+	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, T1); // [S0+T0] <- T1
+	    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);              // complete popping the value and reference
 	  } else { // field is two words (double or long)
 	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
 	    // TODO!! use 8-byte move if possible
-	    asm.emitPOP_Reg (JTOC);                                              // low part of value- use JTOC as scratch register
-	    asm.emitPOP_Reg (T1);                                                // high part of value
-	    asm.emitPOP_Reg (S0);                                                // obj's ref
-	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, JTOC);                  // store low part
-	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, WORDSIZE, T1);             // store high part
-	    asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset);                      // restore JTOC register
+	    asm.emitMOV_Reg_RegDisp(JTOC, SP, 0);                          // JTOC is low part of the value to be stored
+	    asm.emitMOV_Reg_RegDisp(T1, SP, 4);                            // T1 is high part of the value to be stored
+	    asm.emitMOV_Reg_RegDisp(S0, SP, 8);                            // S0 is the object reference
+	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, 0, JTOC);            // [S0+T0] <- JTOC
+	    asm.emitMOV_RegIdx_Reg (S0, T0, asm.BYTE, WORDSIZE, T1);       // [S0+T0+4] <- T1
+	    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                           // complete popping the values and reference
+	    asm.emitMOV_Reg_RegDisp (JTOC, PR, VM_Entrypoints.jtocOffset); // restore JTOC register
 	  }
 	} else {
           fieldRef = fieldRef.resolve();
 	  int fieldOffset = fieldRef.getOffset();
 	  if (fieldRef.getSize() == 4) { // field is one word
-	    asm.emitPOP_Reg (T0);                                                // value
-	    asm.emitPOP_Reg (S0);                                                // obj's ref
-	    asm.emitMOV_RegDisp_Reg (S0, fieldOffset, T0);                       // [S0+fieldOffset] <- T0
+	    asm.emitMOV_Reg_RegDisp(T0, SP, 0);           // T0 is the value to be stored
+	    asm.emitMOV_Reg_RegDisp(S0, SP, 4);           // S0 is the object reference
+	    asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0); // [S0+fieldOffset] <- T0
+	    asm.emitADD_Reg_Imm(SP, WORDSIZE*2);          // complete popping the value and reference
 	  } else { // field is two words (double or long)
 	    if (VM.VerifyAssertions) VM.assert(fieldRef.getSize() == 8);
 	    if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
@@ -2055,17 +2064,18 @@ public class VM_Compiler implements VM_BaselineConstants {
 	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorLockOffset);
 	    }
 	    // TODO!! use 8-byte move if possible
-	    asm.emitPOP_Reg (T0);                                                // low part of value
-	    asm.emitPOP_Reg (T1);                                                // high part of value
-	    asm.emitPOP_Reg (S0);                                                // obj's ref
-	    asm.emitMOV_RegDisp_Reg (S0, fieldOffset, T0);                       // store low part
-	    asm.emitMOV_RegDisp_Reg (S0, fieldOffset+WORDSIZE, T1);              // store high part
+	    asm.emitMOV_Reg_RegDisp(T0, SP, 0);                    // T0 is low part of the value to be stored
+	    asm.emitMOV_Reg_RegDisp(T1, SP, 4);                    // T1 is high part of the value to be stored
+	    asm.emitMOV_Reg_RegDisp(S0, SP, 8);                    // S0 is the object reference
+	    asm.emitMOV_RegDisp_Reg(S0, fieldOffset, T0);          // store low part
+	    asm.emitMOV_RegDisp_Reg(S0, fieldOffset+WORDSIZE, T1); // store high part
             if (fieldRef.isVolatile() && VM.BuildForStrongVolatileSemantics) {
 	      asm.emitMOV_Reg_RegDisp (T0, JTOC, VM_Entrypoints.doublewordVolatileMutexOffset);
 	      asm.emitPUSH_Reg        (T0);
 	      asm.emitMOV_Reg_RegDisp (S0, T0, OBJECT_TIB_OFFSET);
 	      asm.emitCALL_RegDisp    (S0, VM_Entrypoints.processorUnlockOffset);
 	    }
+	    asm.emitADD_Reg_Imm(SP, WORDSIZE*3);                   // complete popping the values and reference
 	  }
 	}
 	break;
@@ -2368,8 +2378,9 @@ public class VM_Compiler implements VM_BaselineConstants {
       case 0xbe: /* arraylength */ { 
 	// unit test by PArray
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "arraylength");
-	asm.emitPOP_Reg (T0);                        // array reference
-	asm.emitPUSH_RegDisp(T0, ARRAY_LENGTH_OFFSET);
+	asm.emitMOV_Reg_RegDisp(T0, SP, 0);                   // T0 is array reference
+	asm.emitMOV_Reg_RegDisp(T0, T0, ARRAY_LENGTH_OFFSET); // T0 is array length
+	asm.emitMOV_RegDisp_Reg(SP, 0, T0);                   // replace reference with length on stack
 	break;
       }
       case 0xbf: /* athrow */ {
@@ -2516,7 +2527,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	// NOTE: 5 extra words- 3 for parameters, 1 for return address on stack, 1 for code technique in VM_Linker
 	genParameterRegisterLoad(3);                   // pass 3 parameter words
 	asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.newArrayArrayOffset); 
-	for (int i = 0; i < dimensions ; i++) asm.emitPOP_Reg(S0); // clear stack of dimensions
+	for (int i = 0; i < dimensions ; i++) asm.emitPOP_Reg(S0); // clear stack of dimensions (todo use and add immediate to do this)
 	asm.emitPUSH_Reg(T0);                              // push array ref on stack
 	break;
       }
