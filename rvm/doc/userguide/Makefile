@@ -29,7 +29,6 @@ PS2GIF ?= ps2gif
 
 INPUT_FILES = 	userguide.tex \
 		ack.tex \
-		aosdetails.tex \
 		cmdline.tex \
 		codingstyle.tex \
 		faq.tex \

@@ -7,8 +7,8 @@ RVM.
 
 To make a long story short, use the
 \begin{itemize}
-\item {\tt Fast} configuration for performance runs that invoke the optimizing compiler on every method, and
-\item {\tt FastAdaptivecopyingGC} configuration for performance runs that use the adaptive compilation system.
+\item {\tt FastSemispace} configuration for performance runs that invoke the optimizing compiler on every method, and
+\item {\tt FastAdaptiveSemispace} configuration for performance runs that use the adaptive compilation system.
 \end{itemize}
 
 These two configurations share the following characteristics:
@@ -18,7 +18,6 @@ These two configurations share the following characteristics:
 \item The optimizing compiler and associated support are in
 the boot image.  Other
 configurations with this characteristic begin with the prefix {\tt Full}.
-See {\tt \$RVM\_ROOT/tools/builder/jconfigure} for more details.
 If you do not use a {\tt Fast<...>} or {\tt Full<...>} configuration, 
 the optimizing
 compiler loads at runtime, and the optimizing compiler itself will be
@@ -42,9 +41,6 @@ For best performance we recommend the following:
 \item {\tt -X:irc:O2}: For non-adaptive configurations, this command-line option tells the optimizing compiler to use our highest level of optimization.
 \item Set the heap and large heap sizes generously.  We typically set the heap size to at least half the physical memory on a machine.
 \item Use a dedicated machine with no other users.  The RVM thread and synchronization implementation do not play well with others.
-\item Try some experimental optimizations.  Contact your friends in Hawthorne
-for details.  Currently, the following experimental optimizations will 
-probably run your code correctly: {\tt -X:irc:unwhile=true} and {\tt -X:irc:gcp=true}.
 \end{itemize}
 
 \subsection{RVM is really slow! What am I doing wrong?}
@@ -52,11 +48,12 @@ probably run your code correctly: {\tt -X:irc:unwhile=true} and {\tt -X:irc:gcp=
 Perhaps you are not seeing stellar RVM performance.  If RVM as described
 above is not competitive with the IBM AIX product JDK, we recommend
 you test your installation with the SPECjvm98 benchmarks.
-We expect RVM performance to be competitive with the IBM AIX product JDK 1.3.0 on the SPECjvm98 benchmarks. 
+We expect RVM performance to be competitive with the 
+IBM AIX product JDK 1.3.0 on the SPECjvm98 benchmarks. 
 
 Of course, SPECjvm98 does not guarantee that RVM runs all codes
 well.  We have also tested various flavors of pBOB and the Volano
-benchmarks, and see superior or competitive performance.
+benchmarks, and usually see superior or competitive performance.
 
 Some classes of codes will not run fast on RVM.  Known issues include:
 \begin{itemize}
@@ -93,6 +90,8 @@ cpu cycles.  Thus, RVM will only perform well if there is no other activity on t
 \item The default hash codes assigned by the system are currently only 8
 bits.  If you observed this as a problem, let us know in order to motivate
 us to fix this.
+\item The adaptive system may not perform well on SMPs; this may be due to bad
+interaction with the thread load balancer.
 \end{itemize}
 
 The RVM developers wish to ensure that RVM delivers competitive performance.

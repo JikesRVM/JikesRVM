@@ -6,14 +6,81 @@
 
 \subsubsection{What is RVM?}
 
-The Jikes Research Virtual Machine for Java is an open-source virtual machine
-implementation, written in Java, intended to serve as infrastructure for
-programming language research.
+The Jikes Research Virtual Machine (RVM) is a software project designed to 
+execute a subset of the Java Virtual Machine specification.  It provides a
+flexible testbed that makes it possible to quickly prototype new
+virtual machine technologies and experiment with different design
+choices.  It runs on the AIX/PowerPC, Linux/PowerPC and Linux/IA-32,
+and exhibits industry-strength performance for many benchmark programs
+on the first two of these platforms.  The RVM includes the latest VM
+technologies for dynamic compilation, adaptive optimization, garbage
+collection, thread scheduling, and synchronization.
+
+\subsubsection{How is RVM different from other virtual machines?}
+
+A unique characteristic of the RVM is that it is implemented in the
+Java programming language, unlike other virtual machines that are
+implemented in "native code" (typically, C or C++).  A Java
+implementation provides ease of portability, and a uniform memory
+space for virtual machine objects and application objects.  Though
+there have been a few prior examples of virtual machines implemented
+in Java, all those cases dependend on the presence of a second
+underlying Java virtual machine and incurred large (100x-1000x)
+performance slowdowns as a result.  
+The RVM is unique in that it is
+the the first self-bootstrapped virtual machine written entirely in
+Java i.e., its Java code runs on itself, without requiring a second
+virtual machine.
+
+
+\subsubsection{Is the RVM appropriate for all programmers?}
+
+No, the RVM is primarily for researchers.  The RVM is inadequate
+for programmers who need a complete Java platform, since it has
+incomplete functionality.  The RVM does not support many libraries
+(e.g., AWT, Swing, J2EE), user-defined class loaders, security
+manager, bytecode verification, and many other features that need to
+be present in a production virtual machine.
 
 \subsubsection{Was RVM once called \jp? What's the difference?}
 
-Yes. There is no difference.  Call a pepper by any other name, and does it
+Yes. There is no difference.  The RVM is the open-source release of
+code developed in the \jp project.
+
+Call a pepper by any other name, and does it
 not still burn your mouth?
+
+
+\subsubsection{Isn't this a Java Virtual Machine?}
+No, the RVM is not a JVM. The RVM supports only a subset of the
+Java Virtual Machine specification. This functionality is sufficient
+to run benchmarks programs such as SPECjvm98, but is insufficient to
+allow the RVM to run enterprise Java applications or typical client
+applets. That's why it's called the RVM and not a JVM.
+
+\subsubsection{So this is a "stripped down" JVM?}
+No, it's not that either. The RVM code was independently developed
+from the ground-up by a team in IBM Research.  It was written as a
+test-bed for evaluating new virtual machine technologies. It was not
+written to be a complete JVM.
+
+
+\subsubsection{Why open-source?}
+IBM is committed to open source and open standards.  We would like
+to work with and contribute to open source communities.  By
+open-sourcing RVM, we hope to accelerate progress in developing
+next-generation virtual machine technologies at universities.
+
+\subsubsection{Is IBM going to turn this into a JVM?}
+No, there is already several JVMs in wide circulation that pass
+all Sun conformance tests - including several available from IBM as
+part of larger technology bundles. IBM will not be devoting resources
+to evolving the RVM code into a full JVM. It would take a significant
+effort and simply duplicate what is already available. As said
+earlier, the RVM allows the academic and research communities to
+investigate fundamental virtual machine technologies like dynamic
+compilation, adaptive optimization, garbage collection, thread
+scheduling, and synchronization.
 
 \subsubsection{Who is using RVM?}
 \remark{TODO. add url}
@@ -30,6 +97,10 @@ The RVM source is also available through a public CVS server
 
 You can also download the source to the libraries \remark{TODO URL} under
 a separate license. \remark{TODO URL}
+
+\subsubsection{Can I get the Quicksilver Quasi-Static System?}
+
+No.  This project is no longer active or supported.
 
 \subsection{Licenses}
 
@@ -62,6 +133,27 @@ priorities.
 
 \subsection{Runtime implementation}
 
+\subsubsection{Does RVM have an interpreter?}
+
+No.  RVM relies on two compilers, and compiles all methods to native code.
+
+\subsubsection{Does RVM support JNI?}
+
+Most JNI functionality is supported.  Some functions are supported on AIX
+but not Linux.
+
+\subsubsection{Does RVM support user-defined class loaders?}
+
+No. Some class loader functionality is hacked around, delegating all
+function to the system class loader.  
+
+\subsubsection{Does RVM support zip files?}
+
+Sort of.  RVM includes enough zip support to read compressed jar files.
+For complete java.util.zip functionality, you are recommended to find 
+a pure Java implementation of java.util.zip.  We have successfully used
+JazzLib. \remark{add URL here}
+
 \subsubsection{Why doesn't the RVM source use packages?}
 
 This is a historical artifact.  In the early days of the project, we did
@@ -86,7 +178,7 @@ In the source code, a {\tt VM\_Thread} is the base class for each Java
 thread, and a {\tt VM\_Processor} is the base class representing each
 Posix thread.  
 
-\subsubsection{What are the semantics of inheriting VM\_Uninterruptible?}
+\subsubsection{What are the semantics of VM\_Uninterruptible?}
 
 The actual semantics of uninterruptibility are: if a class 
 extends {\tt VM\_Uninterruptible}, then the compiler will not
@@ -227,6 +319,19 @@ sequence.
 
 No. There is nothing in RVM that remotely resembles HPI.
 
+\subsection{Libraries}
+
+\subsubsection{Does RVM run awt?}
+
+Not currently.  We've tried this recently; RVM does not currently provide
+all the JNI support needed for awt.  We have not looked into how difficult
+it would be to provide the missing JNI support.
+
+\subsubsection{Can I run some standard library on RVM that is not included
+in rvmrt.jar?}
+
+You can try.  Set your classpath to pick up the library you desire.
+
 \subsection{Optimizing Compiler}
 
 \subsubsection{What is a PEI?}
@@ -266,4 +371,5 @@ the beginning of the compiler phase.
 The OptTestHarness is a driver program to run the optimizing compiler even
 on a BaseBase boot image.  This driver is useful for optimizing compiler
 development, since you can use the driver to selectively compile
-individual methods with certain options.
+individual methods with certain options. 
+\remark{TODO add a section on this to the userguide and reference it}
