@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 /**
@@ -483,7 +483,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLWZ  (T0,  8, SP);  //  T0 := arrayref
     asm.emitLWZ  (T1,  0, SP);  //  T1 := value
     asm.emitCall(spSaveAreaOffset);   // checkstore(arrayref, value)
-    if (VM_Interface.NEEDS_WRITE_BARRIER) {
+    if (MM_Interface.NEEDS_WRITE_BARRIER) {
       VM_Barriers.compileArrayStoreBarrier(asm, spSaveAreaOffset);
       asm.emitADDI (SP, 12, SP);  // complete 3 pops
     } else {
@@ -1840,7 +1840,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_unresolved_putstatic(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true);
 // putstatic barrier currently unsupported
-//     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+//     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
 //       VM_Barriers.compilePutstaticBarrier(asm, spSaveAreaOffset); // NOTE: offset is in T1 from emitDynamicLinkingSequence
 //       emitDynamicLinkingSequence(T1, fieldRef, false);
 //     }
@@ -1863,7 +1863,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_resolved_putstatic(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
 // putstatic barrier currently unsupported
-//     if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+//     if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
 //       VM_Barriers.compilePutstaticBarrierImm(asm, spSaveAreaOffset, fieldOffset);
 //     }
     if (fieldRef.getSize() == 4) { // field is one word
@@ -1920,7 +1920,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_unresolved_putfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T1, fieldRef, true);
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrier(asm, spSaveAreaOffset); // NOTE: offset is in T1 from emitDynamicLinkingSequence
       emitDynamicLinkingSequence(T1, fieldRef, false);	
       asm.emitADDI(SP, 8, SP);  
@@ -1946,7 +1946,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    */
   protected final void emit_resolved_putfield(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
-    if (VM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
+    if (MM_Interface.NEEDS_WRITE_BARRIER && !fieldRef.getFieldContentsType().isPrimitiveType()) {
       VM_Barriers.compilePutfieldBarrierImm(asm, spSaveAreaOffset, fieldOffset);
     }
     if (fieldRef.getSize() == 4) { // field is one word
@@ -2174,7 +2174,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_resolved_new(VM_Class typeRef) {
     int instanceSize = typeRef.getInstanceSize();
     int tibOffset = typeRef.getTibOffset();
-    int whichAllocator = VM_Interface.pickAllocator(typeRef, method);
+    int whichAllocator = MM_Interface.pickAllocator(typeRef, method);
     asm.emitLWZtoc(T0, VM_Entrypoints.resolvedNewScalarMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLVAL(T0, instanceSize);
@@ -2205,7 +2205,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     int width      = array.getLogElementSize();
     int tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(array);
-    int whichAllocator = VM_Interface.pickAllocator(array, method);
+    int whichAllocator = MM_Interface.pickAllocator(array, method);
     asm.emitLWZtoc (T0, VM_Entrypoints.resolvedNewArrayMethod.getOffset());
     asm.emitMTCTR(T0);
     asm.emitLWZ   (T0,  0, SP);                // T0 := number of elements

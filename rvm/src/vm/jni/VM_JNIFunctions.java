@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 
 import java.io.UTFDataFormatException;
@@ -391,7 +391,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
 	return 0;
       }
 
-      int allocator = VM_Interface.pickAllocator(cls);
+      int allocator = MM_Interface.pickAllocator(cls);
       Object newObj = VM_Runtime.resolvedNewScalar(cls.getInstanceSize(), 
 						   cls.getTypeInformationBlock(),
 						   cls.hasFinalizer(),
@@ -4269,7 +4269,7 @@ public class VM_JNIFunctions implements VM_NativeBridge,
       }
 
       Object[] tib = arrayType.getTypeInformationBlock();
-      int allocator = VM_Interface.pickAllocator(arrayType);
+      int allocator = MM_Interface.pickAllocator(arrayType);
       Object newArray[] = (Object []) VM_Runtime.resolvedNewArray(length, arrayType.getInstanceSize(length), tib, allocator);
 
       if (initElement != null) {
