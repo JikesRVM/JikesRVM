@@ -1,6 +1,8 @@
 JMTkBaseBaseSemispace            -test-list nightly-tests
 JMTkBaseAdaptiveSemispace        -test-list nightly-tests-short
 JMTkFullAdaptiveSemispace        -test-list nightly-tests
+FastAdaptiveSemispace        -test-list nightly-tests-short
+FastSemispace                -test-list nightly-tests-short
 JMTkFastAdaptiveSemispace        -test-list nightly-tests-short
 JMTkFastSemispace                -test-list nightly-tests-short
 BaseBaseMarkSweep                -test-list nightly-tests
