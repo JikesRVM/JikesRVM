@@ -325,7 +325,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (VM_HardwarePerformanceMonitors.sample || threadSwitch) {
       // sample HPM counter values at every interrupt or a thread switch.
       if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-          ! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+          ! VM_HardwarePerformanceMonitors.thread_group) {
         captureCallChainCMIDs(true);
         VM_Thread myThread = getCurrentThread();
         VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, true, threadSwitch);
@@ -607,7 +607,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     captureCallChainCMIDs(false);
     // sample HPM counter values at every yield
     if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-        ! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+        ! VM_HardwarePerformanceMonitors.thread_group) {
       VM_Thread myThread = getCurrentThread();
       VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
     }
@@ -630,7 +630,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     captureCallChainCMIDs(false);
     // sample HPM counter values at every yield
     if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-        ! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+        ! VM_HardwarePerformanceMonitors.thread_group) {
       VM_Thread myThread = getCurrentThread();
       VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
     }
@@ -653,7 +653,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     captureCallChainCMIDs(false);
     // sample HPM counter values at every yield
     if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-        ! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+        ! VM_HardwarePerformanceMonitors.thread_group) {
       VM_Thread myThread = getCurrentThread();
       VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
     }
@@ -683,7 +683,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     captureCallChainCMIDs(false);
     // sample HPM counter values at every yield
     if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-        ! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+        ! VM_HardwarePerformanceMonitors.thread_group) {
       VM_Thread myThread = getCurrentThread();
       VM_Processor.getCurrentProcessor().hpm.updateHPMcounters(myThread, false, true);
     }
@@ -827,7 +827,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     //-#if RVM_WITH_HPM
     // sample HPM counter values at every interrupt or a thread switch.
     if (VM.BuildForHPM && VM_HardwarePerformanceMonitors.safe && 
-        ! VM_HardwarePerformanceMonitors.hpm_thread_group) {
+        ! VM_HardwarePerformanceMonitors.thread_group) {
       captureCallChainCMIDs(false);
       VM_Thread myThread = getCurrentThread();
       if (VM_HardwarePerformanceMonitors.verbose>=5) {
@@ -915,7 +915,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   /**
    * Get this thread's index in VM_Scheduler.threads[]
    */ 
-  public final int getIndex() { return threadSlot; }
+  public final int getIndex()  throws VM_PragmaLogicallyUninterruptible
+  { return threadSlot; }
   
   /**
    * Get this thread's id for use in lock ownership tests.
@@ -1244,11 +1245,15 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     //-#if RVM_WITH_HPM
     if (hpm_counters == null) hpm_counters = new HPM_counters();
+    String name = getClass().toString();
     assignGlobalTID();
-    if (VM_HardwarePerformanceMonitors.hpm_trace) {
-      VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, getClass().toString());
+    if (VM_HardwarePerformanceMonitors.trace) {
+      VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, name);
     }
-//-#endif
+    // stash away name for future use
+    VM_HardwarePerformanceMonitors.putThreadName(name, global_tid);
+    
+    //-#endif
 
     VM_Scheduler.threadCreationMutex.unlock();
 
