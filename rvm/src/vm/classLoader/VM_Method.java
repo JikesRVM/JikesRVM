@@ -58,7 +58,7 @@ public abstract class VM_Method extends VM_Member {
     byte[] tmp_bytecodes = null;       
     VM_ExceptionHandlerMap tmp_exceptionHandlerMap = null;
     VM_Type[] tmp_exceptionTypes = null;
-    VM_LineNumberMap tmp_lineNumberMap = null;      
+    int[] tmp_lineNumberMap = null;      
 
     // Read the attributes
     for (int i = 0, n = input.readUnsignedShort(); i<n; i++) {
@@ -83,7 +83,12 @@ public abstract class VM_Method extends VM_Member {
 	  if (attName == VM_ClassLoader.lineNumberTableAttributeName) {
 	    cnt = input.readUnsignedShort();
 	    if (cnt != 0) {
-	      tmp_lineNumberMap = new VM_LineNumberMap(input, cnt);
+	      tmp_lineNumberMap = new int[cnt];
+	      for (int k = 0; k<cnt; k++) {
+		int startPC = input.readUnsignedShort();
+		int lineNumber = input.readUnsignedShort();
+		tmp_lineNumberMap[k] = (lineNumber << 16) | startPC;
+	      }
 	    }
 	  } else {
 	    // All other entries in the attribute portion of the code attribute are boring.

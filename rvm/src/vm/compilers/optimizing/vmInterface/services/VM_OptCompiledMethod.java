@@ -80,10 +80,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     int bci = _mcMap.getBytecodeIndexForMCOffset(instructionOffset);
     if (bci < 0)
       return 0;
-    VM_LineNumberMap lmap = ((VM_NormalMethod)method).getLineNumberMap();
-    if (lmap == null)
-      return 0;
-    return lmap.getLineNumberForBCIndex(bci);
+    return ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
   }
 
   /**
@@ -158,11 +155,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
         VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().resolve();
-        VM_LineNumberMap lmap = m.getLineNumberMap();
-        int lineNumber = 0;
-        if (lmap != null) {
-          lineNumber = lmap.getLineNumberForBCIndex(bci);
-        }
+        int lineNumber = m.getLineNumberForBCIndex(bci);
         out.println("\tat " 
 		    + m.getDeclaringClass().getDescriptor().classNameFromDescriptor()
 		    + "." + m.getName() + " (" + 
@@ -200,11 +193,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
         VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().resolve();
-        VM_LineNumberMap lmap = m.getLineNumberMap();
-        int lineNumber = 0;
-        if (lmap != null) {
-          lineNumber = lmap.getLineNumberForBCIndex(bci);
-        }
+        int lineNumber = m.getLineNumberForBCIndex(bci);
         out.println("\tat " 
 		    + m.getDeclaringClass().getDescriptor().classNameFromDescriptor()
 		    + "." + m.getName() + " (" + 

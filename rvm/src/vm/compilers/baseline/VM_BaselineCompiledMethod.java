@@ -99,7 +99,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH;
     int bci = findBytecodeIndexForInstruction(instructionIndex);
     if (bci == -1) return 0;
-    return ((VM_NormalMethod)method).getLineNumberMap().getLineNumberForBCIndex(bci);
+    return ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
   }
 
   /** 

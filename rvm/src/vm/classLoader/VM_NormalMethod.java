@@ -47,8 +47,10 @@ public final class VM_NormalMethod extends VM_Method {
 
   /**
    * pc to source-line info (null --> none)
+   * Each entry contains both the line number (upper 16 bits)
+   * and corresponding start PC (lower 16 bits).
    */
-  private final VM_LineNumberMap lineNumberMap;       
+  private final int[] lineNumberMap;       
 
   //-#if RVM_WITH_OSR 
   // Extra fields for on-stack replacement
@@ -75,7 +77,7 @@ public final class VM_NormalMethod extends VM_Method {
    */
   VM_NormalMethod(VM_Class dc, VM_MemberReference mr,
 		  int mo, VM_Type[] et, int lw, int ow, byte[] bc,
-		  VM_ExceptionHandlerMap eMap, VM_LineNumberMap lm) {
+		  VM_ExceptionHandlerMap eMap, int[] lm) {
     super(dc, mr, mo, et);
     localWords = lw;
     operandWords = ow;
@@ -166,11 +168,19 @@ public final class VM_NormalMethod extends VM_Method {
   }
 
   /**
-   * Line numbers for this method.
-   * @return info (null --> native or abstract: no code, no exception map)
+   * Return the line number information for the argument bytecode index.
    */
-  public final VM_LineNumberMap getLineNumberMap() throws VM_PragmaUninterruptible {
-    return lineNumberMap;
+  public final int getLineNumberForBCIndex(int bci) throws VM_PragmaUninterruptible {
+    if (lineNumberMap == null) return 0;
+    int idx;
+    for (idx = 0; idx<lineNumberMap.length; idx++) {
+      int pc = lineNumberMap[idx] & 0xffff; // lower 16 bits are bcIndex
+      if (bci < pc) {
+	if (idx == 0) idx++; // add 1, so we can subtract 1 below.
+	break;
+      }
+    }
+    return lineNumberMap[--idx] >>> 16; // upper 16 bits are line number
   }
 
   //-#if RVM_WITH_OSR 
