@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2002
+ * (C) Copyright IBM Corp. 2002, 2003
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -10,7 +10,7 @@ import com.ibm.JikesRVM.classloader.*;
  * A pragma that can be used to declare that a 
  * particular method is interruptible.  
  * Used to override the class-wide pragma
- * implied by implementing VM_Uninteruptible.
+ * implied by implementing VM_PragmaUninteruptible.
  * 
  * @author Dave Grove
  */
