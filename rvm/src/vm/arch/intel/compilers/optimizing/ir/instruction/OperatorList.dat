@@ -470,7 +470,7 @@ C0_C1_C2_C3
 ####################
 IA32_FADDP
 MIR_BinaryAcc
-none
+fpPop
 C0_C1_C2_C3
 
 
@@ -512,7 +512,7 @@ C0_C1_C2_C3
 ####################
 IA32_FDIVP
 MIR_BinaryAcc
-none
+fpPop
 C0_C1_C2_C3
 
 
@@ -526,7 +526,7 @@ C0_C1_C2_C3
 ####################
 IA32_FDIVRP
 MIR_BinaryAcc
-none
+fpPop
 C0_C1_C2_C3
 
 
@@ -624,7 +624,7 @@ C0_C1_C2_C3
 ####################
 IA32_FLD
 MIR_Move
-none
+fpPush
 C0_C1_C2_C3
 
 
@@ -638,49 +638,49 @@ C0_C1_C2_C3
 ####################
 IA32_FLD1
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
 ####################
 IA32_FLDL2T
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
 ####################
 IA32_FLDL2E
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
 ####################
 IA32_FLDPI
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
 ####################
 IA32_FLDLG2
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
 ####################
 IA32_FLDLN2
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
 ####################
 IA32_FLDZ
 MIR_Nullary
-none
+fpPush
 C0_C1_C2_C3
 
 
@@ -694,7 +694,7 @@ C0_C1_C2_C3
 ####################
 IA32_FMULP
 MIR_BinaryAcc
-none
+fpPop
 C0_C1_C2_C3
 
 
@@ -764,7 +764,7 @@ C0_C1_C2_C3
 ####################
 IA32_FSUBP
 MIR_BinaryAcc
-none
+fpPop
 C0_C1_C2_C3
 
 
@@ -778,7 +778,7 @@ C0_C1_C2_C3
 ####################
 IA32_FSUBRP
 MIR_BinaryAcc
-none
+fpPop
 C0_C1_C2_C3
 
 

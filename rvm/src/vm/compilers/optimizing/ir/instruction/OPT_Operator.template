@@ -302,6 +302,8 @@ $$$$ END IF
   static final private int yieldPoint   = 0x00100000; 
   // operator pops floating-point stack after performing defs
   static final private int fpPop        = 0x00200000; 
+  // operator pushs floating-point stack before performing defs
+  static final private int fpPush       = 0x00400000; 
 
   /**
    * Does the operator represent a simple move (the value is unchanged) 
