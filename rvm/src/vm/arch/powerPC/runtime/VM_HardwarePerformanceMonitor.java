@@ -41,6 +41,8 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
   static private int     COMPLETE_APP_FORMAT = 3;
   static private int    START_APP_RUN_FORMAT = 4;
   static private int COMPLETE_APP_RUN_FORMAT = 5;
+  static private int             EXIT_FORMAT = 6;
+  static private int          PADDING_FORMAT = 10;	// add spaces
   /*
    * static fields required for tracing HPM counter values
    */
@@ -58,9 +60,6 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
   // keep count of number of thread switches
   private int  n_threadSwitches = 0;
   
-  // number of trace records written
-  private int n_records = 0;
-
   /*
    * Override VM_ThreadSwitchProducer to start producing.
    */
@@ -176,7 +175,10 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
     //-#endif
   }
 
-  private        int    missed_records = 0;     // number of trace records missed due to buffers full
+  // number of trace records missed due to both buffers being full
+  private int  missed_records = 0;
+  // number of trace records written
+  private int n_records = 0;
 
   /*
    * output buffers 
@@ -242,6 +244,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
       VM.sysWrite(" EWT " ); VM.sysWriteLong(endOfWallTime);
     }
     if (buffer != null) { // write record header
+      n_records++;
       VM_Magic.setIntAtOffset( buffer, index, TRACE_FORMAT);	// format
       index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
       VM_Magic.setIntAtOffset( buffer, index, encoding);	// buffer_code & vpid
@@ -269,6 +272,25 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
       VM.sysWriteln();
     }
     updateBufferIndex();
+
+    // after thread switch is handled, handle notify exit if occurred
+    if (notifyExit) {
+      if (pickBuffer(4+4)) {
+	// write notify trace record
+	writeNotifyExit(EXIT_FORMAT, notify_exit_value);
+	updateBufferIndex();
+	n_records++;
+      }
+      // don't collect any more trace records!
+      passivate();
+
+      // reset state (not really needed as expect notifyExit occurs only once!)
+      notifyExit = false; notify_exit_value = -1;
+
+      // notify consumer to drain buffer and close file
+      ((VM_TraceWriter)consumer).notifyExit = true;
+      activateConsumer();
+    }
     //-#endif
   }
   /**
@@ -285,11 +307,6 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    */
   private boolean pickBuffer(int record_size) 
   {
-    if (notifyExit) {
-      notifyExit = false;
-      ((VM_TraceWriter)consumer).notifyExit = true;
-      activateConsumer();
-    }
     if (buffer_code == ONE) {
       if (index_1 + record_size > OUTPUT_BUFFER_SIZE) {
 	if (! consumer.isActive()) {
@@ -354,30 +371,36 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    * Blackboard for consumer to notify that a callback has occurred.
    * Provide entry points for each call back supported.
    * Because locking is prohibited at thread switch time, coordination
-   * between the consumer which fields callbacks and the producer are handled through 
-   * a blackboard.
+   * between the consumer and the producer are handled through a blackboard.
    * Each callback has its own blackboard to record the callback.
+   * The consumer updates the callbacks blackboard.
+   *
    * This interface is fagile if multiple callbacks of the same type occur
-   * before the first one is processed, subsequent callbacks will be lost.  
+   * before the first one is processed, initial callbacks will be lost.  
    * Other race conditions are possible.  
-   * Assumptions, multiple callbacks of the same type occur less frequently than thread switching.
+   * ASSUMPTIONS: multiple callbacks of the same type occur less frequently than thread switching.
    * <p>
    * NOTE: Need to store application name as an array instead of a String because 
    * String.length() is interruptible!
    */
+  // notify exit black board
   private boolean notifyExit              = false;
   private int     notify_exit_value       = -1;
 
+  // notify application start black board
   private boolean notifyAppStart          = false;
   private byte[]  start_app_name          = null;
   
+  // notify application complete black board
   private boolean notifyAppComplete       = false;
   private byte[]  complete_app_name       = null;
   
+  // notify application run start black board
   private boolean notifyAppRunStart       = false;
   private byte[]  start_app_run_name      = null;
   private int     start_app_run           = -1;
   
+  // notify application run complete black board
   private boolean notifyAppRunComplete    = false;
   private byte[]  complete_app_run_name   = null;
   private int     complete_app_run        = -1;
@@ -388,44 +411,80 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    */
   private boolean processCallbacksFromConsumer() 
   {
+    int padding = 0;
+    int buffer_length = 0;
     if (notifyAppRunComplete) {
-      if (! pickBuffer(4+4+4+4+complete_app_run_name.length)) return false;
-      writeAppRun(COMPLETE_APP_RUN_FORMAT, complete_app_run, complete_app_run_name);
+      buffer_length = 4 + 4 + 4 + 4 + complete_app_run_name.length;
+      padding = complete_app_run_name.length % 4;
+      if (padding != 0) {
+	buffer_length += 4 + 4 + padding;
+      }
+      if (! pickBuffer(buffer_length)) return false;
+      writeAppRun(COMPLETE_APP_RUN_FORMAT, complete_app_run, complete_app_run_name, padding);
       notifyAppRunComplete = false; complete_app_run = -1; complete_app_run_name = null;
       updateBufferIndex();
+      n_records++;
     }
     if (notifyAppRunStart) {
-      if (! pickBuffer(4+4+4+4+   start_app_run_name.length)) return false;
-      writeAppRun(START_APP_RUN_FORMAT, start_app_run, start_app_run_name);
+      buffer_length = 4 + 4 + 4 + 4 + start_app_run_name.length;
+      padding = start_app_run_name.length % 4;
+      if (padding != 0) {
+	buffer_length += 4 + 4 + padding;
+      }
+      if (! pickBuffer(buffer_length)) return false;
+      writeAppRun(START_APP_RUN_FORMAT, start_app_run, start_app_run_name, padding);
       notifyAppRunStart = false;      start_app_run = -1;     start_app_run_name = null;
       updateBufferIndex();
+      n_records++;
     }
     if (notifyAppComplete) {
-      if (! pickBuffer(4+4+complete_app_name.length)) return false;
-      writeApp(COMPLETE_APP_FORMAT, complete_app_name);
+      buffer_length = 4 + 4 + complete_app_name.length;
+      padding = complete_app_name.length % 4;
+      if (padding != 0) {
+	buffer_length += 4 + 4 + padding;
+      }
+      if (! pickBuffer(buffer_length)) return false;
+      writeApp(COMPLETE_APP_FORMAT, complete_app_name, padding);
       notifyAppComplete = false;                               complete_app_name = null;
       updateBufferIndex();
+      n_records++;
     }
     if (notifyAppStart) {
-      if (! pickBuffer(4+4+   start_app_name.length)) return false;
-      writeApp(START_APP_FORMAT, start_app_name);
+      buffer_length = 4 + 4 + start_app_name.length;
+      padding = start_app_name.length % 4;
+      if (padding != 0) {
+	buffer_length += 4 + 4 + padding;
+      }
+      if (! pickBuffer(buffer_length)) return false;
+      writeApp(START_APP_FORMAT, start_app_name, padding);
       notifyAppStart = false;                                     start_app_name = null;
       updateBufferIndex();
+      n_records++;
     }
+
     return true;
   }
   /*
    * Assume buffer and index are set appropriately.
    */
-  private void writeApp(int FORMAT, byte[] app)
+  private void writeApp(int FORMAT, byte[] app, int padding)
   {
     VM_Magic.setIntAtOffset( buffer, index, FORMAT);					// format
     index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
 
     index = VM_HardwarePerformanceMonitors.writeStringToBuffer(buffer, index, app);	// app name
+
+    if (VM_HardwarePerformanceMonitors.verbose>=3) {
+      VM.sysWrite  ("writeApp(",FORMAT,", ");
+      VM.sysWrite  (") n_records ",n_records);
+      VM.sysWriteln(", missed ",missed_records);
+    }
+    if (padding != 0) {
+      addPadding(padding);
+    }
   }
 
-  private void writeAppRun(int FORMAT, int run, byte[] app)
+  private void writeAppRun(int FORMAT, int run, byte[] app, int padding)
   {
     VM_Magic.setIntAtOffset( buffer, index, FORMAT);					// format
     index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
@@ -434,6 +493,60 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
     index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
     
     index = VM_HardwarePerformanceMonitors.writeStringToBuffer(buffer, index, app);	// app name
+
+    if (VM_HardwarePerformanceMonitors.verbose>=3) {
+      VM.sysWrite  ("writeAppRun(",FORMAT,", ",run);
+      VM.sysWrite  (") n_records ",n_records);
+      VM.sysWriteln(", missed ",missed_records);
+    }
+    if (padding != 0) {
+      addPadding(padding);
+    }
+  }
+
+  /*
+   * This method forces additional trace records to force 4 byte alignments.
+   *
+   * Needed to be able to detect end of file when reading trace file.
+   */
+  private void addPadding(int padding)
+  {
+    if (padding==0) {
+      if (VM_HardwarePerformanceMonitors.verbose>=3) {
+	VM.sysWrite  ("***addPadding(",padding,") called with pad length of 0!***");
+      }
+      return;
+    }
+    byte pad = 0;
+    VM_Magic.setIntAtOffset( buffer, index, PADDING_FORMAT);				// format
+    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+
+    VM_Magic.setIntAtOffset( buffer, index, padding);					// length
+    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+
+    for (int i=0; i<padding; i++) {							// add padding
+      VM_Magic.setByteAtOffset( buffer, index, pad);	
+      index += VM_HardwarePerformanceMonitors.SIZE_OF_BYTE;
+    }
+    if (VM_HardwarePerformanceMonitors.verbose>=3) {
+      VM.sysWriteln("addPadding(",padding,") index ", index);
+    }
+    n_records++;
+  }
+
+  private void writeNotifyExit(int FORMAT, int value)
+  {
+    VM_Magic.setIntAtOffset( buffer, index, FORMAT);					// format
+    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+
+    VM_Magic.setIntAtOffset( buffer, index, value);					// value
+    index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
+
+    if (VM_HardwarePerformanceMonitors.verbose>=3) {
+      VM.sysWrite  ("writeNotifyExit(",FORMAT);
+      VM.sysWrite  (") n_records ",n_records);
+      VM.sysWriteln(", missed ",missed_records);
+    }
   }
 
   /*
@@ -535,8 +648,8 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    */
   public byte[] getCurrentBuffer() throws VM_PragmaLogicallyUninterruptible
   {
-    if      (buffer_code == ONE) { return buffer_2; } 
-    else if (buffer_code == TWO) { return buffer_1; }
+    if      (buffer_code == ONE) { return buffer_1; } 
+    else if (buffer_code == TWO) { return buffer_2; }
     else {
       VM.sysWrite("***VM_HPM.getCurrentBuffer() buffer_code = ",buffer_code,", but must be 1 or 2!***");
       return null; 
@@ -547,8 +660,8 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
    */
   public int getCurrentIndex() throws VM_PragmaLogicallyUninterruptible
   {
-    if      (buffer_code == ONE) { return index_2; } 
-    else if (buffer_code == TWO) { return index_1; } 
+    if      (buffer_code == ONE) { return index_1; } 
+    else if (buffer_code == TWO) { return index_2; } 
     else { 
       VM.sysWrite("***VM_HPM.getCurrentIndex() buffer_code = ",buffer_code,", but must be 1 or 2!***");
       VM.shutdown(-10);

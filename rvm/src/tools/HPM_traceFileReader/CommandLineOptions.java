@@ -24,10 +24,10 @@ class CommandLineOptions
   public String  application = null;
   // run of application interested in
   public int  run = -1;
-  // event counter 
+  // group index (POWER4)
   public int  group_index = UNINITIALIZED;
   // generate statistics: assume event and thread index are set, compute average, min and max.
-  public boolean generate_statistics = false;
+  //  public boolean generate_statistics = false;
   // no yields: if true only consider time interrupted thread switches (ie tid > 0)
   public boolean no_yields = false;
   // print hpm aggregate values
@@ -109,9 +109,9 @@ class CommandLineOptions
 	  usage();
 	}
 	if(local_debug>=2)System.out.println("CommandLineOptions.processArgs() -event_mask "+event_mask);
-      } else if (arg.compareTo("-generate_statistics") == 0) {
-	if(local_debug>=2)System.out.println("CommandLineOptions.processArgs() -generate_statistics");
-	generate_statistics = true;
+	//      } else if (arg.compareTo("-generate_statistics") == 0) {
+	//	if(local_debug>=2)System.out.println("CommandLineOptions.processArgs() -generate_statistics");
+	//	generate_statistics = true;
       } else if (arg.compareTo("-local") == 0) {
 	if(local_debug>=2)System.out.println("CommandLineOptions.processArgs() -local");
 	print_local = true;
@@ -172,10 +172,10 @@ class CommandLineOptions
 	usage();
       }
     }
-    if(generate_statistics && event_mask == UNINITIALIZED) {
-      System.out.println("\n***CommandLineOptions.processArgs() event_mask "+event_mask+" must be specified when generate_statistics is specified!***");
-      usage();
-    }
+    //    if(generate_statistics && event_mask == UNINITIALIZED) {
+    //      System.out.println("\n***CommandLineOptions.processArgs() event_mask "+event_mask+" must be specified when generate_statistics is specified!***");
+    //      usage();
+    //    }
     if (run != -1 && application == null) {
       System.out.println("\n***CommandLineOptions.processArgs() -application must be specified when -run "+run+" is specified!***");
       usage();
@@ -191,8 +191,8 @@ class CommandLineOptions
 		       "  -aggregate           aggregate hpm counter values\n"+
 		       "  -aggregate_by_thread aggregate hpm counter values where threads counters broken out by VP ID\n"+
 		       "  -events              tell hpm events collected\n"+
-		       "  -generate_statistics generate average, min, max, var, and std dev.\n"+
-		       "                       thread specified in -tid and events specified in -event_mask\n"+
+		       //		       "  -generate_statistics generate average, min, max, var, and std dev.\n"+
+		       //		       "                       thread specified in -tid and events specified in -event_mask\n"+
 		       "  -local               apply options to input trace files individually\n"+
 		       "  -no_yields           consider only a thread switch that times out\n"+
 		       "  -structure           of user-defined trace records\n"+
@@ -203,10 +203,10 @@ class CommandLineOptions
 		       "  Option               Value  description\n"+
 		       "  -application         String name of application\n"+
 		       "  -debug               int    debug what is going on\n"+
-		       "  -group_index         int    group number to watch\n"+
-		       "  -event_mask          int    what fields to focus on?  Only look at a field if its bit is on.  511=all fields\n"+
-		       "  -run                 int    application run. Constraint: -application must be specified!\n"+
-		       "  -tid                 int    thread id to focus on\n"+
+		       "  -group_index         int    group number to watch (POWER4 architecture)\n"+
+		       "  -event_mask          int    fields to focus on?  Only look at a field if its bit is on.  511=all fields\n"+
+		       "  -run                 int    run to focus on. Constraint: -application must be specified!\n"+
+		       "  -tid                 int    thread id to focus on. Constraint only one \n"+
 		       "  -verbose             int    verbose about what is going on\n"+
 		       "\n"+
 		       " Value options: option\n"+

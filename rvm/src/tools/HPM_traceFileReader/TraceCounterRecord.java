@@ -144,7 +144,6 @@ public class TraceCounterRecord extends TraceRecord
    * Currently only computations are made for Power4.
    *
    * @param trace_header
-   * @param group_index
    */
   public boolean print(TraceHeader trace_header) 
   {

@@ -123,9 +123,9 @@ class TraceFileReader
       }
 
       if(options.print_local) {
-	if (options.generate_statistics) {
-	  options.reportGeneratedStatistics(traceHeader);
-	}
+	//	if (options.generate_statistics) {
+	//	  options.reportGeneratedStatistics(traceHeader);
+	//	}
 	if (options.print_aggregate){
 	  aggregate(false);
 	}
@@ -142,9 +142,9 @@ class TraceFileReader
       print_structure();
     }
 
-    if(options.generate_statistics){
-      options.reportGeneratedStatistics(super_trace.header);
-    }
+    //    if(options.generate_statistics){
+    //      options.reportGeneratedStatistics(super_trace.header);
+    //    }
 
     // process trace records
     if (options.print_trace || options.print_aggregate || options.print_aggregate_by_thread) {
@@ -375,9 +375,9 @@ class TraceFileReader
       records[records_index] = tr;
 
       // generate statistics
-      if (options.generate_statistics && (tr instanceof TraceCounterRecord)) {
-	options.generateStatistics((TraceCounterRecord)tr, records_index);
-      }
+      //      if (options.generate_statistics && (tr instanceof TraceCounterRecord)) {
+      //	options.generateStatistics((TraceCounterRecord)tr, records_index);
+      //      }
       // write record's fields
       if (options.print_trace && options.print_local) {
 	printTraceRecord(tr, records_index);
@@ -461,7 +461,10 @@ class TraceFileReader
     
     try {
       int record_format = input_file.readInt();
-      if (record_format == TraceRecord.COUNTER_TYPE) {
+      if (record_format == 0) {
+	// EOF
+ 	return tr;
+      } else if (record_format == TraceRecord.COUNTER_TYPE) {
 	TraceCounterRecord tcr = new TraceCounterRecord(n_counters);
 	int encoding    = input_file.readInt();
 	tcr.buffer_code = encoding >> 16;
@@ -500,28 +503,51 @@ class TraceFileReader
 	tr = tcr;
       } else if (record_format == TraceRecord.START_APP_TYPE) {
 	String app_name = Utilities.getStringFromDataInputStream(input_file);
-	if(options.debug>=1)System.out.println(trace_file_vpid+"START_APP_TYPE: app "+app_name);
+	if(options.debug>=1)System.out.println("  VPID "+trace_file_vpid+" START_APP_TYPE: app "+app_name);
 	tr = new TraceStartAppRecord(trace_file_vpid, app_name);
       } else if (record_format == TraceRecord.COMPLETE_APP_TYPE) {
 	String app_name = Utilities.getStringFromDataInputStream(input_file);
-	if(options.debug>=4)System.out.println(trace_file_vpid+"COMPLETE_APP_TYPE: app "+app_name);
+	if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" COMPLETE_APP_TYPE: app "+app_name);
 	tr = new TraceCompleteAppRecord(trace_file_vpid, app_name);
 	
       } else if (record_format == TraceRecord.START_APP_RUN_TYPE) {
 	int  run = input_file.readInt();
 	String app_name = Utilities.getStringFromDataInputStream(input_file);
-	if(options.debug>=4)System.out.println(trace_file_vpid+"START_APP_RUN_TYPE: app "+app_name+", run "+run);
+	if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" START_APP_RUN_TYPE: app "+app_name+", run "+run);
 	tr = new TraceStartAppRunRecord(trace_file_vpid, app_name, run);
 
       } else if (record_format == TraceRecord.COMPLETE_APP_RUN_TYPE) {
 	int  run = input_file.readInt();
 	String app_name = Utilities.getStringFromDataInputStream(input_file);
-	if(options.debug>=4)System.out.println(trace_file_vpid+"COMPLETE_APP_RUN_TYPE: app "+app_name+", run "+run);
+	if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" COMPLETE_APP_RUN_TYPE: app "+app_name+", run "+run);
 	Integer Index = (Integer)completeApplicationRunIndex.get(app_name);
 	tr = new TraceCompleteAppRunRecord(trace_file_vpid, app_name, run);
 
+      } else if (record_format == TraceRecord.EXIT_TYPE) {
+	int  value = input_file.readInt();	// value
+	if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" EXIT_TYPE: value "+value);
+	tr = new TraceExitRecord(trace_file_vpid, value);
+
+      } else if (record_format == TraceRecord.PADDING_TYPE) {
+	int  length = input_file.readInt();	// value
+	if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" PADDING_TYPE: length "+length);
+	// gobble up padding
+	for (int i=0; i<length; i++) {
+	  input_file.readByte();
+	}
+
+	tr = new TracePaddingRecord(trace_file_vpid, length);
+
       } else {
 	System.out.println("***TraceFileReader.readTraceRecord() record format "+record_format+" unknown!***");
+	int value;
+	int BOUND = 100;
+	System.out.print("***"+BOUND+" additional values: ");
+	for (int i = 0; i<BOUND; i++) {
+	  value = input_file.readInt();
+	  System.out.print(" "+value);
+	}
+	System.out.println("***");
 	//	System.exit(-1);
       }
 
@@ -550,7 +576,10 @@ class TraceFileReader
       TraceRecord tr = records[n_records];
       if (tr == null) return;
     
-      if (tr instanceof TraceCounterRecord) {
+      if (tr instanceof TraceCounterRecord || 
+	  tr instanceof TracePaddingRecord ||
+	  tr instanceof TraceExitRecord   ) {
+	// do nothing
       } else if (tr instanceof TraceStartAppRecord) {
 	TraceStartAppRecord tsar = (TraceStartAppRecord)tr;
 	if(options.debug>=3)
@@ -626,6 +655,7 @@ class TraceFileReader
       if(options.verbose>=3) System.out.print(tcr.buffer_code+" ");
       tcr.print();
     } else {
+      if(options.verbose>=1) System.out.print(index+" ");
       tr.print();
     }
   }

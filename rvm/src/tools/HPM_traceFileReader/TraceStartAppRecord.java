@@ -34,7 +34,7 @@ public class TraceStartAppRecord extends TraceRecord
    */
   public boolean print()
   {
-    System.out.println(vpid+" Start application "+app_name);
+    System.out.println("VP "+vpid+" Start application "+app_name);
     return true;
   }
 }

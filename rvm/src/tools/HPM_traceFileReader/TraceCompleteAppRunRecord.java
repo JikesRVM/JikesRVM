@@ -4,8 +4,7 @@
 //$Id:&
 
 /**
- * Represent a trace record.
- * A trace record may contain HPM counter values or user defined record.
+ * Represent a trace record as a user defined complete application run record.
  *
  * @author Peter F. Sweeney
  * @date 3/2/2003
@@ -39,7 +38,7 @@ public class TraceCompleteAppRunRecord extends TraceRecord
    */
   public boolean print()
   {
-    System.out.println(vpid+" Complete application "+app_name+" run "+run);
+    System.out.println("VP "+vpid+" Complete application "+app_name+" run "+run);
     return true;
   }
 }

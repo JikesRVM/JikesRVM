@@ -87,8 +87,11 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
   /**
    * An abstract VM_ThreadSwitchConsumer method.
    *
-   * Called when the trace buffer is full.
-   * Write the full buffer to disk and reset the buffer
+   * Called when:
+   * 1) the trace buffer is full.
+   *    Write the full buffer to disk and reset the buffer.
+   * 2) notify exit has been called and producer has written notify exit trace record.
+   *    Write current buffer to disk and close file.
    */
   void thresholdReached() 
   {
@@ -204,16 +207,12 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
   /*
    * Close HPM FileOutputStream and set trace_file to null!
    * Actions:
-   *  Passivate producer
    *  close file
    *
    * Relaxed constraint: trace_file is not null!
    */
   private void closeFileOutputStream()
   {
-    // don't write anything to buffer.
-    ((VM_HardwarePerformanceMonitor)producer).passivate();
-
     if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_TraceWriter.closeFileOutputStream()");
     if (trace_file == null) {	// constraint
       if(VM_HardwarePerformanceMonitors.verbose>=3)
@@ -278,10 +277,8 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
   /**
    * Called when the VM is about to exit to tear down HPM tracing.
    * Assumed called once.
-   * Assume no HPM tracing will occur after this point in execution.
-   *  Passivate producer
-   *  Tell producer to flush buffers
-   *  Close trace file. 
+   * Notify producer that notifyExit was called.
+   *
    * The thread that executes this method is not necessarily the thread that
    * produces the trace records.
    *
@@ -297,12 +294,8 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
 	VM.sysWriteln("\n***VM_TraceWriter.notifyExit() PID ",pid," trace_file == null! notifyStartup never called!***\n");
 	VM.sysExit(-1);
       }
-      VM_HardwarePerformanceMonitor hpm = (VM_HardwarePerformanceMonitor)producer;
 
-      // don't collect any more trace records!
-      hpm.passivate();
-      // when convenient close trace file!
-      hpm.notifyExit(value);
+      ((VM_HardwarePerformanceMonitor)producer).notifyExit(value);
     }
   }
 

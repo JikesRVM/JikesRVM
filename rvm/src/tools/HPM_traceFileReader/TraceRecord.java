@@ -22,6 +22,8 @@ abstract public class TraceRecord
   static public int     COMPLETE_APP_TYPE = 3;
   static public int    START_APP_RUN_TYPE = 4;
   static public int COMPLETE_APP_RUN_TYPE = 5;
+  static public int             EXIT_TYPE = 6;
+  static public int          PADDING_TYPE = 10;
 
   /**
    * print trace record

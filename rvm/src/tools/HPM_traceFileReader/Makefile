@@ -10,7 +10,7 @@
 # @data 5/4/2003
 
 
-prog: CommandLineOptions.java Trace.java TraceFileReader.java TraceCompleteAppRecord.java TraceCompleteAppRunRecord.java TraceCounterRecord.java TraceHeader.java TraceRecord.java TraceStartAppRecord.java TraceStartAppRunRecord.java Utilities.java 
+prog: CommandLineOptions.java Trace.java TraceFileReader.java TraceCompleteAppRecord.java TraceCompleteAppRunRecord.java TraceCounterRecord.java TraceExitRecord.java TracePaddingRecord.java TraceHeader.java TraceRecord.java TraceStartAppRecord.java TraceStartAppRunRecord.java Utilities.java 
 	javac TraceFileReader.java
 
 clean:
