@@ -28,6 +28,7 @@ if [[ $# = 0 || $1 = -help || $# < 1 ]] then
     numProcessors Number of processors.
     		  The default is 1.   
     out_dir       where to put output files.  Default is ".".
+
 EOF
 exit 1
 fi
@@ -76,17 +77,19 @@ if [[ ! -d $out_dir ]] then
 fi
  
 # set the benchmark directories
-# MY_SPEC_HOME=/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modified/pseudojbb
-MY_SPEC_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/pseudojbb
+MY_SPEC_HOME=/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modified/pseudojbb
+#MY_SPEC_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/pseudojbb
 
 # want to pick up class files not jars!
 # classpath="   -classpath $MY_SPEC_HOME"
 classpath="   -classpath $MY_SPEC_HOME/src"
+#classpath="   -classpath   -classpath $MY_SPEC_HOME/jbb.jar:$MY_SPEC_HOME/jbb_no_precompile.jar:$MY_SPEC_HOME/check.jar:$MY_SPEC_HOME/reporter.jar:jbb.jar:jbb_no_precompile.jar:check.jar:reporter.jar
 
 heapSize=400
 verbose=1
 
-jvm_options="-X:h=$heapSize -verbose:gc  -X:aos:opt:errors_fatal=true"
+# jvm_options="-Xms$heapSize -verbose:gc  -X:opt:errors_fatal=true"
+jvm_options="-Xms$heapSize -X:opt:errors_fatal=true"
 
 #### Run 1 ####
 
@@ -104,5 +107,4 @@ echo "$RVM_ROOT/rvm/bin/rvm $jvm_options -X:processors=$numProcessors $classpath
 
       $RVM_ROOT/rvm/bin/rvm $jvm_options -X:processors=$numProcessors $classpath spec.jbb.JBBmain -propfile $config # 1> $output_log 2>&1
 
-echo "Done"
 
