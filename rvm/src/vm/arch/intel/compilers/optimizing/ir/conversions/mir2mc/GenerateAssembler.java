@@ -1012,12 +1012,6 @@ class GenerateAssembler {
     static {
 	excludedOpcodes = new HashSet();
 	excludedOpcodes.add("FSAVE");
-	excludedOpcodes.add("FADDP");
-	excludedOpcodes.add("FDIVP");
-	excludedOpcodes.add("FDIVRP");
-	excludedOpcodes.add("FSUBP");
-	excludedOpcodes.add("FSUBRP");
-	excludedOpcodes.add("FMULP");
 	excludedOpcodes.add("FNSTSW");
 	excludedOpcodes.add("FUCOMPP");
 	excludedOpcodes.add("SAHF");

@@ -439,6 +439,11 @@ final class OPT_BURS implements OPT_Operators {
       // other out edges (ignoring trueDepEdge)
       // this avoids a problem with creating circular dependencies
       // among tree roots.
+      // NOTE: I believe some classes of edges can be ignored here
+      //       because they can't possibly create a cycle.
+      //       In particular, MEM_ANTI, since store nodes will be a tree
+      //       root anyways.
+      // TODO: Above is not quite right in a naive implementation....fix it!
       for (OPT_SpaceEffGraphEdge out = n.firstOutEdge(); 
 	   out != null; 
 	   out = out.getNextOut()) {

@@ -468,6 +468,13 @@ C0_C1_C2_C3
 
 
 ####################
+IA32_FADDP
+MIR_BinaryAcc
+none
+C0_C1_C2_C3
+
+
+####################
 IA32_FCHS
 MIR_UnaryAcc
 none
@@ -503,7 +510,21 @@ C0_C1_C2_C3
 
 
 ####################
+IA32_FDIVP
+MIR_BinaryAcc
+none
+C0_C1_C2_C3
+
+
+####################
 IA32_FDIVR
+MIR_BinaryAcc
+none
+C0_C1_C2_C3
+
+
+####################
+IA32_FDIVRP
 MIR_BinaryAcc
 none
 C0_C1_C2_C3
@@ -671,6 +692,13 @@ C0_C1_C2_C3
 
 
 ####################
+IA32_FMULP
+MIR_BinaryAcc
+none
+C0_C1_C2_C3
+
+
+####################
 IA32_FNSTCW
 MIR_UnaryNoRes
 none
@@ -734,7 +762,21 @@ C0_C1_C2_C3
 
 
 ####################
+IA32_FSUBP
+MIR_BinaryAcc
+none
+C0_C1_C2_C3
+
+
+####################
 IA32_FSUBR
+MIR_BinaryAcc
+none
+C0_C1_C2_C3
+
+
+####################
+IA32_FSUBRP
 MIR_BinaryAcc
 none
 C0_C1_C2_C3
