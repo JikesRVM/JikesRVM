@@ -35,7 +35,7 @@ public class VM_StackTrace implements VM_Constants {
 
       Upped the former constant 50 to 100, per a discussion with Perry Cheng.
       --Steven Augart */
-  public int elideAfterThisManyFrames = 100;
+  public static int elideAfterThisManyFrames = 100;
   
   /**
    * The compiled methods that comprise the trace
@@ -57,6 +57,7 @@ public class VM_StackTrace implements VM_Constants {
     offsets = VM_OffsetArray.create(numFrames);
     walkFrames(true, skip+1);
     
+    /* I have no idea why this is here. --steve augart */
     if (verboseTracePeriod > 0) {
       if ((verboseTraceIndex++ % verboseTracePeriod) == 0) {
 	VM.disableGC();
@@ -171,6 +172,18 @@ public class VM_StackTrace implements VM_Constants {
 //   }
   
 
+  /**
+   * Print stack trace.
+   * Delegate the actual printing of the stack trace to the
+   * VM_CompiledMethod; this means it will deal with inlining by the opt
+   * compiler in a sensible fashion. 
+   * 
+   * @param out PrintLN to print on.
+   * @param trigger The Throwable that caused the stack trace.
+   *  Used to elide internal details from the stack trace.
+   *  If null, then we print a full stack trace, without eliding the
+   *  methods used internally to gather the stack trace.
+   */
 
   public void print(PrintLN out, Throwable trigger) {
     //    out.println("Calling print(out, trigger = " + trigger.toString() + ")"); // DEBUG XXX
@@ -178,35 +191,49 @@ public class VM_StackTrace implements VM_Constants {
     /** Where'd we find the trigger? */
     int foundTriggerAt = -1;	// -1 is a sentinel value; important in code
 				// below. 
-    Class triggerClass = trigger.getClass();
-    /* So, elide up to the triggeringMethod.  If we never find the
-       triggeringMethod, then leave foundTriggerAt set to -1; the printing
-       code will handle that correctly.. */
-    for (int i = 0; i < compiledMethods.length; ++i) {
-      VM_CompiledMethod cm = compiledMethods[i];
-      if (cm == null)
-	continue;
-      VM_Method m = cm.getMethod();
-      /* Declaring class of the method whose call is recorded in this stack
-       * frame.  */ 
-      VM_Class frameVM_Class = m.getDeclaringClass();
-      if (frameVM_Class.getClassForType() == triggerClass) {
-	foundTriggerAt = i;
-	break;
-      }
-    }
-    /* foundTriggerAt should either be between 0 and compiledMethods.length
-       or it should be -1. */
-    /* Now we can start printing frames. */
+    int lastFrame = compiledMethods.length - 1;
     // The last two stack frames are always:
     // --> at com.ibm.JikesRVM.MainThread.run (MainThread.java:117)
     // --> at com.ibm.JikesRVM.VM_Thread.startoff (VM_Thread.java:710)
     // so we can skip them, right?  If this was not the right thing to do,
     // please tell me. --Steve Augart
-    //    for (int i = foundTriggerAt + 1; i < compiledMethods.length; ++i) {
-    for (int i = foundTriggerAt + 1; i < compiledMethods.length - 2; ++i) {
-      VM_CompiledMethod cm = compiledMethods[i];
+    lastFrame -= 2;
+    
+    if (trigger != null) {
+      Class triggerClass = trigger.getClass();
+      /* So, elide up to the triggeringMethod.  If we never find the
+	 triggeringMethod, then leave foundTriggerAt set to -1; the printing
+	 code will handle that correctly.. */
+      for (int i = 0; i <= lastFrame; ++i) {
+	VM_CompiledMethod cm = compiledMethods[i];
+	if (cm == null)
+	  continue;
+	VM_Method m = cm.getMethod();
+	/* Declaring class of the method whose call is recorded in this stack
+	 * frame.  */ 
+	VM_Class frameVM_Class = m.getDeclaringClass();
+	if (frameVM_Class.getClassForType() == triggerClass) {
+	  foundTriggerAt = i;
+	  break;
+	}
+      }
+    }
+    /* foundTriggerAt should either be between 0 and lastFrame
+       or it should be -1. */
 
+    /* Now we can start printing frames. */
+    int nPrinted = 0;		// how many frames have we printed?
+    for (int i = foundTriggerAt + 1; i <= lastFrame; ++i, ++nPrinted) {
+      VM_CompiledMethod cm = compiledMethods[i];
+      if (nPrinted == elideAfterThisManyFrames) {
+	// large stack - suppress excessive output
+	int oldIndex = i;
+	int newIndex = lastFrame - 9;
+	if (newIndex > oldIndex) {
+	  i = newIndex;
+	  out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
+	}
+      }
       if (cm == null) {
 	out.println("\tat <invisible method>");
 	/* Commented out; Work in Progress: */
@@ -215,39 +242,6 @@ public class VM_StackTrace implements VM_Constants {
 // 	/* Notice that if runMethodMarkingPrelude is null, the right thing
 // 	   happens here. */
 //       	return;			// gone far enough.
-      } else {
-	cm.printStackTrace(offsets.get(i), out);
-      }
-    }
-  }
-  
-
-  /**
-   * Print stack trace.
-   * Delegate the actual printing of the stack trace to the
-   * VM_CompiledMethod; this means it will deal with inlining by the opt
-   * compiler in a sensible fashion. 
-   * <p>
-   * This one-argument version of print() may no longer be used; if so, it
-   * should be deprecated. --Steve Augart
-   * 
-   * @param out PrintLN to print on.
-   */
-  public void print(com.ibm.JikesRVM.PrintLN out) {
-    for (int i = 0; i < compiledMethods.length; ++i) {
-      if (i == elideAfterThisManyFrames) { 
-	// large stack - suppress excessive output
-	int oldIndex = i;
-	int newIndex = compiledMethods.length - 10;
-	if (newIndex > oldIndex) {
-	  i = newIndex;
-	  out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
-	}
-      }
-
-      VM_CompiledMethod cm = compiledMethods[i];
-      if (cm == null) {
-	out.println("\tat <invisible method>");
       } else {
 	cm.printStackTrace(offsets.get(i), out);
       }
