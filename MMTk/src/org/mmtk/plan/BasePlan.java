@@ -926,17 +926,19 @@ public abstract class BasePlan
    */
 
   /**
-   * Start the GCSpy server
-   *
+   * Start the server and wait if necessary
+   * 
    * @param wait Whether to wait
-   * @param port The port to talk to the GCSpy client (e.g. visualiser)
+   * @param port The port to talk to the GCspy client (e.g. visualiser)
    */
-  protected static void startGCSpyServer(int port, boolean wait) {}
+  public static void startGCspyServer(int port, boolean wait)
+    throws InterruptiblePragma {}
 
   /**
    * Deal with root locations
    */
-  protected void gcspyRoots(AddressDeque rootLocations, AddressPairDeque interiorRootLocations) {}
+  protected void gcspyRoots(AddressDeque rootLocations, 
+                            AddressPairDeque interiorRootLocations) {}
 
   /**
    * Before thread-local release
@@ -957,14 +959,6 @@ public abstract class BasePlan
     return 0; 
   }
 
-  /**
-   * Start the server and wait if necessary
-   * 
-   * @param wait Whether to wait
-   * @param port The port to talk to the GCspy client (e.g. visualiser)
-   */
-  public static void startGCspyServer(int port, boolean wait)
-    throws InterruptiblePragma {}
 
   /****************************************************************************
    *
