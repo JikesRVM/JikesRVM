@@ -9,6 +9,9 @@ include		$(RVM_ROOT)/rvm/build.Make.rules
 
 # This only affects testing, since SCRATCH_DIR will only be reset 
 # if we don't have a value (whether command-line or from the environment).
+
+## We need an explicit SCRATCH_DIR of ., so that we can work even for
+## folks who don't put "." in their PATH variables.
 SCRATCH_DIR?=.
 
 TOOL_NAME=preprocessModifiedFiles
@@ -18,20 +21,25 @@ TEST_TOOL:=$(TOOL) --disable-modification-exit-status
 # -C means to leave the text of comments in the output.
 CPP:=/lib/cpp -P -C
 
-## We need an explicit SCRATCH_DIR of ., so that we can work even for
-## folks who don't put "." in their PATH variables.
 
 tool:
 	@$(MAKE) $(TOOL)
 
+## We can compile this either as C or as C++.
+## Maybe one compiler generates nicer warnings than the other?
+
+#$(TOOL): ${TOOL_NAME}.c
+#     $(CC) --std=gnu99 $(CFLAGS) $< -o $@
+
 $(TOOL): ${TOOL_NAME}.C
 	$(CXX) $(CXXFLAGS) $< -o $@
 
-
 # Preprocessor testing.
 # These rules make the executable anywhere; usually here if you're testing.
+
 .PHONY: tool test test1 test2 test3 test4 test5 test6 cleantest clean
 test:			${TOOL} test1 test2 test3 test4 test5 test6
+	@echo "All tests passed."
 
 test1: ${TOOL}
 	sed 's@//-@@' testSimple.preprocessor | ${CPP} -DX=1 >test1.expected
