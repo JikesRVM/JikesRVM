@@ -759,8 +759,9 @@ static void *timeSlicerThreadMain(void *arg) {
     extern "C" void sysVirtualProcessorEnableTimeSlicing(int timeSlice) {
       if (VERBOSE_PTHREAD)
 	fprintf(stderr,"Using a time-slice of %d ms\n", timeSlice);
-      if (timeSlice < 10 || timeSlice > 999) {
-	fprintf(SysErrorFile, "vm: timeslice of %d is outside range 10..999\n", timeSlice);
+      // timeSlice could be less than 1!
+      if (timeSlice < 1 || timeSlice > 999) {
+	fprintf(SysErrorFile, "vm: timeslice of %d is outside range 1..999\n", timeSlice);
 	sysExit(EXIT_STATUS_TIMER_TROUBLE);
       }
       setTimeSlicer(timeSlice);
