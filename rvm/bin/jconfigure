@@ -1005,6 +1005,10 @@ EOF
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/policy
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility
 	$RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/utility/statistics
+
+    # Local projects (template)
+    #
+    #    $RVM_ROOT/projects/myproject
 EOF
     # collector specific classes
     #
