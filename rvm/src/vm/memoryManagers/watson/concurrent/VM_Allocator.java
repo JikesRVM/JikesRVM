@@ -30,7 +30,7 @@ public class VM_Allocator
 
   static Object[] byteArrayTIB;
 
-
+  static final boolean RENDEZVOUS_TIMES = false;
 
     // OVERALL COLLECTOR CONTROL
 
@@ -2217,6 +2217,17 @@ public class VM_Allocator
     totalMemory () {
 	return smallHeapSize + largeHeapSize;
     }
+
+    // not quite right - wait for refactoring
+    public static long allSmallUsableMemory() {
+	return freeMemory();
+    }
+
+    // not quite right - wait for refactoring
+    public static long allSmallFreeMemory() {
+	return freeMemory();
+    }
+
 
     public static long
     freeMemory () {
