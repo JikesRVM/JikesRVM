@@ -47,10 +47,6 @@ V SAMPLE_FREQ_MILLIS double 10.0
 Sample frequency, in milliseconds
 
 
-V DARK_MATTER double 0.15
-What percentage of execution time, for one reason or another, does not appear in samples?
-
-
 V DECAY_FREQUENCY int 100
 After how many clock ticks should we decay
 
