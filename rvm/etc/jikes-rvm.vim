@@ -29,10 +29,11 @@ filetype indent on
 
 "" Set up C/C++/Java common editing options
 function! Jikes_rvm_buffer_common_setup()
-  set expandtab                "" no tabs, only spaces
+  set expandtab                " replace tab characters by spaces
   set cinoptions=:0,l1,g0,t0,+8,(0,u0
   set cinwords&vim
-  set formatoptions-=roql formatoptions+=roql
+  set formatoptions-=roql	" reset formatting
+  set formatoptions+=roql
   set textwidth=80 wrapmargin=0
 endfunction
 
@@ -50,7 +51,7 @@ endfunction
 "" Set up Java editing
 function! Jikes_rvm_java_buffer_setup()
   call Jikes_rvm_buffer_common_setup()
-  set shiftwidth=2
+  set shiftwidth=2	           " for indenting and shifting
   set cinoptions+=j1
 endfunction
 
