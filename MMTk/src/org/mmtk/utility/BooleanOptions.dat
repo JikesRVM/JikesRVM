@@ -15,13 +15,13 @@ ignoreSystemGC false
 Should we ignore calls to java.lang.System.gc?
 
 genCycleDetection false gen_cycle_detection
-????????
+Should we use a generational approach to cycle detection
 
 fragmentationStats false
-????????
+Should we print fragmentation statistics for the free list allocator?
 
 verboseFragmentationStats false
-????????
+Should we print verbose fragmentation statistics for the free list allocator?
 
 verboseTiming false
-????????
+Should we display detailed breakdown of where GC time is spent?
