@@ -104,12 +104,6 @@ public class JikesRVMSupport {
    * be approved by the caller without needing to call this method.
    */
   public static void checkAccess(VM_Member member, VM_Class accessingClass) throws IllegalAccessException {
-    // TODO: Is this the right kludge?  
-    // We must allow classes like java.io.ObjectOutputStream access to anything.
-    // Allowing everything loaded by the system classloader the same freedom 
-    // might be too broad of a loophole.
-    if (accessingClass.getClassLoader() == VM_SystemClassLoader.getVMClassLoader()) return;
-      
     VM_Class declaringClass = member.getDeclaringClass();
     if (member.isPrivate()) {
       // access from the declaringClass is allowed
