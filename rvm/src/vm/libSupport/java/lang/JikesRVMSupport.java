@@ -35,16 +35,14 @@ public class JikesRVMSupport {
     Class c = Class.create(type);
     setClassProtectionDomain(c, pd);
     return c;
+    //-#elif RVM_WITH_CLASSPATH_0_11_OR_LATER
+    return new Class((Object) VMClass.create(type), pd);
     //-#else
-      //-#if RVM_WITH_CLASSPATH_0_11_OR_LATER
-      return new Class((Object) VMClass.create(type), pd);
-      //-#else
-      /* Classpath 0.10 doesn't seem to have any way to actually set the
-         ProtectionDomain.  Ugly. */
-      Class c = new Class((Object) VMClass.create(type));
-      setClassProtectionDomain(c, pd);
-      return c;
-      //-#endif
+    /* Classpath 0.10 doesn't seem to have any way to actually set the
+       ProtectionDomain.  Ugly. */
+    Class c = new Class((Object) VMClass.create(type));
+    setClassProtectionDomain(c, pd);
+    return c;
     //-#endif
   }
 
@@ -52,11 +50,7 @@ public class JikesRVMSupport {
   //-#if RVM_WITH_OWN_JAVA_LANG_CLASS
     return c.type;
   //-#else
-    //-#if RVM_WITH_CLASSPATH_0_10_OR_LATER
     VMClass vc = (VMClass) c.vmdata;
-    //-#else
-    VMClass vc = (VMClass) c.vmClass;
-    //-#endif
     return vc.type;
   //-#endif
   }
@@ -69,8 +63,7 @@ public class JikesRVMSupport {
   public static void setClassProtectionDomain(Class c, ProtectionDomain pd) {
     c.pd = pd;
   }
-  //-#else
-  //-#if RVM_WITH_CLASSPATH_0_10_OR_LATER && !RVM_WITH_CLASSPATH_0_11_OR_LATER
+  //-#elif !RVM_WITH_CLASSPATH_0_11_OR_LATER
   /** However, under Classpath 0.10, we don't set the ProtectionDomain, and
    * that might be necessary.  We have to use an ugly reflection hack, though,
    * to use Classpath's java.lang.Class, since the field is private. */
@@ -78,7 +71,6 @@ public class JikesRVMSupport {
     VM_Entrypoints.javaLangClassProtectionDomain
       .setObjectValueUnchecked(c, pd);
   }
-  //-#endif
   //-#endif
 
   /***
