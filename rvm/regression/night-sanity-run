@@ -21,6 +21,11 @@ export PATH=$PATH:.
 # the resulting message
 MSG=$RVM_ROOT/MSG
 
+# Note: The following comment assumes that NightSanityDriver will continue to 
+# look in rvm/regression/config for config files.  If this ever changes, 
+# update this statement.
+CONFIG_DIR=rvm/regression/config
+
 # The directory where the archive lives
 export ARCHIVE=~/archive
 
@@ -56,14 +61,14 @@ chmod 755 $RUN_LOG
 cd $RVM_ROOT
 
 # sanity runs
-echo "\n\nRunning the sanity tests\n" >> $RUN_LOG
+echo "\n\nRunning the sanity tests as specified in $CONFIG_DIR/$1 \n" >> $RUN_LOG
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/sanity -nobuild -numprocs $NUM_PROCS -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
 
 . $RVM_ROOT/images/FullAdaptiveSemispace/jbuild.environment
 
 # performance runs
-echo "\n\nRunning the performance tests\n" >> $RUN_LOG
+echo "\n\nRunning the performance tests as specified in $CONFIG_DIR/$2\n" >> $RUN_LOG
 
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs $NUM_PROCS -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
 
@@ -82,8 +87,7 @@ chmod -R 755 $RVM_ROOT 2>> $RUN_LOG
 # Archive result files and performance results
 echo "Archiving results into $ARCHIVE\n" >> $RUN_LOG
 tarfile=$ARCHIVE/archive.`date +"%A"`.`uname`.tar.gz
-(cd $RVM_ROOT/results; find . -name cp -prune -o -type f -print | xargs $GNU_TAR czvf $tarfile) >> $VERBOSE_LOG 2>> $VERBOSE_LOG
-
+(find $RVM_ROOT/results -name cp -exec rm -rf {} \;; cd $RVM_ROOT; $GNU_TAR czvf $tarfile results) >> $VERBOSE_LOG 2>> $VERBOSE_LOG
 
 echo "sending tar to dW" >> $VERBOSE_LOG 2>> $VERBOSE_LOG
 cd $RVM_ROOT/sanityResults
@@ -121,7 +125,6 @@ if [[ $numfailed -gt 0 ]] then
   echo >> $MSG
   echo Failure Details >> $MSG
   echo --------------- >> $MSG
-  echo >> $MSG
   fgrep "You are NOT sane" $RUN_LOG  \
     | sed -e "s/RunSanityTests://"   \
     | sed -e "s/\/.*tests\///"   \
@@ -129,14 +132,14 @@ if [[ $numfailed -gt 0 ]] then
     >> $MSG
 fi
 
-
-# Removed at Mike Hind's request
 # Describe where the information can be found
-# echo "Further details of this run can be found in\n" >> $MSG
-# echo "     run details: $RUN_LOG\n " >> $MSG
-# echo "     build details: $BUILD_LOG\n " >> $MSG
-# echo "     verbose details: $VERBOSE_LOG\n " >> $MSG
-# echo "     performance details: $PERF_LOG" >> $MSG
+if [[ $ARCH = 'Linux' ]] then
+  echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/Linux.tar.gz" >> $MSG
+else
+  echo "\nOutput of this run is available (for 24 hours) at http://www-124.ibm.com/developerworks/oss/jikesrvm/sanityResults/AIX.tar.gz" >> $MSG
+fi
+echo "  Sanity tests are specified in $CONFIG_DIR/$1" >> $MSG
+echo "  Performance tests are specified in $CONFIG_DIR/$2" >> $MSG
 
 # Grab the bottom line performance and place it in a more visible place
 echo >> $MSG
