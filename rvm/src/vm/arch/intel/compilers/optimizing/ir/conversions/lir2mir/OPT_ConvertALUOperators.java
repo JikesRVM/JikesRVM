@@ -111,6 +111,9 @@ final class OPT_ConvertALUOperators extends OPT_CompilerPhase
       case DOUBLE_COND_MOVE_opcode: s.operator = CMOV; break;
       case LONG_COND_MOVE_opcode: OPT_OptimizingCompilerException.TODO(); break;
       case GUARD_COND_MOVE_opcode: OPT_OptimizingCompilerException.TODO(); break;
+      // BURS doesn't really care, so consolidate to reduce rule space
+      case INT_2FLOAT_opcode: s.operator = INT_2FP; break;
+      case INT_2DOUBLE_opcode: s.operator = INT_2FP; break;
       default:
 	break; // nothing to do
       }

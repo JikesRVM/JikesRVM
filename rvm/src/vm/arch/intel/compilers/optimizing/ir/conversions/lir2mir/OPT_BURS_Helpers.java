@@ -98,6 +98,32 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     }
   }
 
+  final int isFPC_ONE(OPT_Instruction s, int trueCost) {
+    return isFPC_ONE(s, trueCost, OPT_BURS_STATE.INFINITE);
+  }
+  final int isFPC_ONE(OPT_Instruction s, int trueCost, int falseCost) {
+    OPT_Operand val = Binary.getVal2(s);
+    if (val instanceof OPT_FloatConstantOperand) {
+      OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
+      return fc.value == 1.0f ? trueCost : falseCost;
+    } else {
+      OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
+      return dc.value == 1.0 ? trueCost : falseCost;
+    }
+  }
+  final int isFPC_ZERO(OPT_Instruction s, int trueCost) {
+    return isFPC_ZERO(s, trueCost, OPT_BURS_STATE.INFINITE);
+  }
+  final int isFPC_ZERO(OPT_Instruction s, int trueCost, int falseCost) {
+    OPT_Operand val = Binary.getVal2(s);
+    if (val instanceof OPT_FloatConstantOperand) {
+      OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
+      return fc.value == 0.0f ? trueCost : falseCost;
+    } else {
+      OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
+      return dc.value == 0.0 ? trueCost : falseCost;
+    }
+  }
 
   // 
   // Begin IA32 specific helper functions.
@@ -388,6 +414,26 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     return OPT_MemoryOperand.BIS(R(base), R(index), scale, size, loc, guard);
   }
 
+  final OPT_MemoryOperand MO_MC(OPT_Instruction s) {
+    OPT_Operand val = Binary.getVal2(s);
+    if (val instanceof OPT_FloatConstantOperand) {
+      OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
+      int offset = fc.offset;
+      OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+      return MO_BD(Binary.getVal1(s), offset, DW, loc, TG());
+    } else {
+      OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)val;
+      int offset = dc.offset;
+      OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+      return MO_BD(Binary.getVal1(s), offset, QW, loc, TG());
+    }
+  }
+
+  final OPT_Operand MO_CONV(OPT_BURS burs, byte size) {
+    int offset = - burs.ir.stackManager.allocateSpaceForConversion();
+    return new OPT_StackLocationOperand(offset, size);
+  }
+
 
   /*
    * IA32-specific emit rules that are complex 
@@ -427,42 +473,6 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
 
   /**
-   * Expansion of INT_2BYTE.
-   *
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
-   * @param result the result operand
-   * @param value the second operand
-   */
-  final void INT_2BYTE(OPT_BURS burs, OPT_Instruction s,
-		       OPT_RegisterOperand result,
-		       OPT_Operand value) {
-    int offset = - burs.ir.stackManager.allocateSpaceForConversion(); 
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
-    burs.append(MIR_Move.create(IA32_MOV, sl, value));
-    burs.append(MIR_Unary.create(IA32_MOVSX$B, result, sl.copy()));
-  }
-
-
-  /**
-   * Expansion of INT_2SHORT
-   *
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
-   * @param result the result operand
-   * @param value the second operand
-   */
-  final void INT_2SHORT(OPT_BURS burs, OPT_Instruction s,
-			OPT_RegisterOperand result,
-			OPT_Operand value) {
-    int offset = - burs.ir.stackManager.allocateSpaceForConversion();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
-    burs.append(MIR_Move.create(IA32_MOV, sl, value));
-    burs.append(MIR_Unary.create(IA32_MOVSX$W, result, sl.copy()));
-  }
-
-
-  /**
    * Expansion of INT_2LONG
    *
    * @param burs an OPT_BURS object
@@ -476,29 +486,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     OPT_Register hr = result.register;
     OPT_Register lr = burs.ir.regpool.getSecondReg(hr);
     burs.append(MIR_Move.create(IA32_MOV, R(lr), value));
-    burs.append(MIR_Move.create(IA32_MOV, R(hr), value.copy()));
+    burs.append(MIR_Move.create(IA32_MOV, R(hr), R(lr)));
     burs.append(MIR_BinaryAcc.create(IA32_SAR, R(hr), I(31)));
   }
-
-
-  /**
-   * Expansion of INT_2FLOAT and INT_2DOUBLE
-   *
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
-   * @param result the result operand
-   * @param value the second operand
-   */
-  final void INT_2FPR(OPT_BURS burs, OPT_Instruction s,
-		      OPT_RegisterOperand result,
-		      OPT_Operand value) {
-    int offset = - burs.ir.stackManager.allocateSpaceForConversion();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
-    burs.append(MIR_Move.create(IA32_MOV, sl, value));
-    burs.append(MIR_Move.mutate(s, IA32_FILD, myFP0(), sl.copy()));
-    burs.append(MIR_Move.create(IA32_FSTP, result, myFP0()));
-  }
-
 
   /**
    * Expansion of FLOAT_2INT and DOUBLE_2INT, by calling VM_Math
@@ -688,61 +678,9 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     }
   }
 
-  /**
-   * Expansion of DOUBLE_2FLOAT
-   * Unlike FLOAT_2DOUBLE, we actually have to do something
-   * for DOUBLE_2FLOAT to get the right rounding to happen.
-   * 
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
-   * @param result the result operand
-   * @param value the second operand
-   */
-  final void FPR64_2FPR32(OPT_BURS burs, OPT_Instruction s,
-			  OPT_RegisterOperand result,
-			  OPT_Operand value) {
-    int offset = - burs.ir.stackManager.allocateSpaceForConversion();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
-    burs.append(MIR_Move.create(IA32_FMOV, sl, Unary.getVal(s)));
-    burs.append(MIR_Move.mutate(s, IA32_FMOV, Unary.getResult(s), sl.copy()));
-  }
-
-
-  /**
-   * Emit code to move 32 bits from FPRs to GPRs
-   * Note: intentionally use 'null' location to prevent DepGraph
-   * from assuming that load/store not aliased. We're stepping outside
-   * the Java type system here!
-   */
-  final void FPR2GPR_32(OPT_BURS burs, OPT_Instruction s) {
-    int offset = - burs.ir.stackManager.allocateSpaceForConversion();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
-    burs.append(MIR_Move.create(IA32_FMOV, sl, Unary.getVal(s)));
-    burs.append(MIR_Move.mutate(s, IA32_MOV, Unary.getResult(s), sl.copy()));
-  }			
-  
-
-
-
-  /**
-   * Emit code to move 32 bits from GPRs to FPRs
-   * Note: intentionally use 'null' location to prevent DepGraph
-   * from assuming that load/store not aliased. We're stepping outside
-   * the Java type system here!
-   */
-  final void GPR2FPR_32(OPT_BURS burs, OPT_Instruction s) {
-    int offset = - burs.ir.stackManager.allocateSpaceForConversion();
-    OPT_StackLocationOperand sl = new OPT_StackLocationOperand(offset, DW);
-    burs.append(MIR_Move.create(IA32_MOV, sl, Unary.getVal(s)));
-    burs.append(MIR_Move.mutate(s, IA32_FMOV, Unary.getResult(s), sl.copy()));
-  }
-
 
   /**
    * Emit code to move 64 bits from FPRs to GPRs
-   * Note: intentionally use 'null' location to prevent DepGraph
-   * from assuming that load/store not aliased. We're stepping outside
-   * the Java type system here!
    */
   final void FPR2GPR_64(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
@@ -759,9 +697,6 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 
   /**
    * Emit code to move 64 bits from GPRs to FPRs
-   * Note: intentionally use 'null' location to prevent DepGraph
-   * from assuming that load/store not aliased. We're stepping outside
-   * the Java type system here!
    */
   final void GPR2FPR_64(OPT_BURS burs, OPT_Instruction s) {
     int offset = - burs.ir.stackManager.allocateSpaceForConversion();
@@ -1329,28 +1264,6 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 		    OPT_Operand val) {
     burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(1)), val));
     burs.append(MIR_BinaryAcc.mutate(s,IA32_FPREM, D(getFPR(0)), D(getFPR(1))));
-  }
-
-  /**
-   * Expansion of FP_NEG
-   *
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand
-   * @param value the operand to negate
-   */
-  final void FP_NEG(OPT_BURS burs, OPT_Instruction s,
-		    OPT_Operand value) {
-    burs.append(MIR_Move.create(IA32_FMOV, D(getFPR(0)), value));
-    burs.append(MIR_UnaryAcc.mutate(s,IA32_FCHS, D(getFPR(0))));
-  }
-  /**
-   * Expansion of FP_NEG
-   *
-   * @param burs an OPT_BURS object
-   * @param s the instruction to expand by negating fp0
-   */
-  final void FP_NEG(OPT_BURS burs, OPT_Instruction s) {
-    burs.append(MIR_UnaryAcc.mutate(s,IA32_FCHS, D(getFPR(0))));
   }
 
 

@@ -191,13 +191,18 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
                 offset = VM_Statics.findOrCreateDoubleLiteral
 		  (VM_Magic.doubleAsLongBits(dc.value));
               }
-              offset = offset << 2;
-              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-              Load.mutate(s, DOUBLE_LOAD, 
-			  Binary.getClearResult(s), Binary.getClearVal1(s),
-			  OPT_NormalizeConstants.asImmediateOrReg(I(offset), 
-								  s, ir), 
-			  loc);
+	      offset = offset << 2;
+	      if (VM.BuildForIA32) {
+		// leave MATERIALIZE_CONSTANT in IR
+		dc.offset = offset;
+	      } else {
+		OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+		Load.mutate(s, DOUBLE_LOAD, 
+			    Binary.getClearResult(s), Binary.getClearVal1(s),
+			    OPT_NormalizeConstants.asImmediateOrReg(I(offset), 
+								    s, ir), 
+			    loc);
+	      }
             } else if (val instanceof OPT_FloatConstantOperand) {
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)val;
               int offset = fc.offset;
@@ -205,13 +210,18 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
                 offset = VM_Statics.findOrCreateFloatLiteral
 		  (VM_Magic.floatAsIntBits(fc.value));
               }
-              offset = offset << 2;
-              OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-              Load.mutate(s, FLOAT_LOAD, Binary.getClearResult(s), 
-			  Binary.getClearVal1(s),
-			  OPT_NormalizeConstants.asImmediateOrReg(I(offset), 
-								  s, ir), 
-			  loc);
+	      offset = offset << 2;
+	      if (VM.BuildForIA32) {
+		// leave MATERIALIZE_CONSTANT in IR
+		fc.offset = offset;
+	      } else {
+		OPT_LocationOperand loc = new OPT_LocationOperand(offset);
+		Load.mutate(s, FLOAT_LOAD, Binary.getClearResult(s), 
+			    Binary.getClearVal1(s),
+			    OPT_NormalizeConstants.asImmediateOrReg(I(offset), 
+								    s, ir), 
+			    loc);
+	      }
             } else {
               OPT_OptimizingCompilerException.UNREACHABLE(val.toString());
             }

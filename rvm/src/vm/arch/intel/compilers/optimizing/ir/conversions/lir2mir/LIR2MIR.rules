@@ -222,6 +222,11 @@ fpload:	DOUBLE_ALOAD(r, riv)
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), QW_S, QW));
 
+fpload:	MATERIALIZE_CONSTANT(r)
+0
+EMIT_INSTRUCTION
+pushMO(MO_MC(P(p)));
+
 ##################################
 # Various integer computations for pointer arithmetic
 ##################################
@@ -367,6 +372,94 @@ NOFLAGS
 // drop on floor
 
 ##################################
+# Materialization of FP constants
+##################################
+r:	MATERIALIZE_CONSTANT(r)
+30
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Binary.getResult(P(p)), MO_MC(P(p))));
+
+fp0:	MATERIALIZE_CONSTANT(r)
+30
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, D(getFPR(0)), MO_MC(P(p))));
+
+pfp0:	MATERIALIZE_CONSTANT(r)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_MC(P(p))));
+
+# Use FLD1/FLDZ to avoid loading from the JTOC
+r:	MATERIALIZE_CONSTANT(r)
+isFPC_ONE(P(p), 26)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLD1, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Binary.getResult(P(p)), myFP0()));
+
+fp0:	MATERIALIZE_CONSTANT(r)
+isFPC_ONE(P(p), 26)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLD1, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
+
+pfp0:	MATERIALIZE_CONSTANT(r)
+isFPC_ONE(P(p), 11)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.mutate(P(p), IA32_FLD1, myFP0()));
+
+r:	MATERIALIZE_CONSTANT(r)
+isFPC_ZERO(P(p), 26)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLDZ, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Binary.getResult(P(p)), myFP0()));
+
+fp0:	MATERIALIZE_CONSTANT(r)
+isFPC_ZERO(P(p), 26)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLDZ, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
+
+pfp0:	MATERIALIZE_CONSTANT(r)
+isFPC_ZERO(P(p), 11)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.mutate(P(p), IA32_FLDZ, myFP0()));
+
+# Use FLD1/FLDZ to avoid loading from the JTOC
+r:	MATERIALIZE_CONSTANT(GET_JTOC(r))
+isFPC_ONE(P(p), 26)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLD1, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Binary.getResult(P(p)), myFP0()));
+
+fp0:	MATERIALIZE_CONSTANT(GET_JTOC(r))
+isFPC_ONE(P(p), 26)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLD1, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
+
+pfp0:	MATERIALIZE_CONSTANT(GET_JTOC(r))
+isFPC_ONE(P(p), 11)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.mutate(P(p), IA32_FLD1, myFP0()));
+
+r:	MATERIALIZE_CONSTANT(GET_JTOC(r))
+isFPC_ZERO(P(p), 26)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLDZ, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Binary.getResult(P(p)), myFP0()));
+
+fp0:	MATERIALIZE_CONSTANT(GET_JTOC(r))
+isFPC_ZERO(P(p), 26)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLDZ, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
+
+pfp0:	MATERIALIZE_CONSTANT(GET_JTOC(r))
+isFPC_ZERO(P(p), 11)
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.mutate(P(p), IA32_FLDZ, myFP0()));
+
+##################################
 # Guard/Trap operations
 ##################################
 #####
@@ -401,9 +494,7 @@ EMIT(P(p));
 stm:	TRAP
 10
 EMIT_INSTRUCTION
-EMIT(MIR_Trap.mutate(P(p), IA32_INT, \
-	             Trap.getGuardResult(P(p)), \
-		     Trap.getTCode(P(p))));
+EMIT(MIR_Trap.mutate(P(p), IA32_INT, Trap.getGuardResult(P(p)), Trap.getTCode(P(p))));
 
 #####
 # TRAP_IF
@@ -1702,7 +1793,6 @@ FP_OP_MOV(burs, P(p), IA32_FDIV, IA32_FSTP, Binary.getResult(P(p)), myFP0(), con
 #####
 # FP_REM (handles both float and double; both are 80 bit anyways...)
 #####
-# rules that leave the result in accumulator (fp0)
 fp0:	FP_REM(r, r)
 39
 EMIT_INSTRUCTION
@@ -1713,7 +1803,6 @@ fp0:	FP_REM(fp0, r)
 EMIT_INSTRUCTION | RIGHT_CHILD_FIRST
 FP_REM(burs, P(p), Binary.getVal2(P(p)));
 
-# rules that move the result from the accumulator (fp0) to a symbolic result
 r:	FP_REM(r, r)
 52
 EMIT_INSTRUCTION
@@ -1731,32 +1820,46 @@ EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
 #####
 # FP_NEG (handles both float and double; both are 80 bit anyways...)
 #####
-# TODO: rules for pfp0
-# rules that leave the result in accumulator (fp0)
 fp0:	FP_NEG(r)
-26
+43
 EMIT_INSTRUCTION
-FP_NEG(burs, P(p), Unary.getVal(P(p)));
+EMIT(MIR_Move.create(IA32_FMOV, D(getFPR(0)), Unary.getVal(P(p)))); \
+EMIT(MIR_UnaryAcc.mutate(P(p), IA32_FCHS, D(getFPR(0))));
 
 fp0:	FP_NEG(fp0)
 13
 EMIT_INSTRUCTION
-FP_NEG(burs, P(p));
+EMIT(MIR_UnaryAcc.mutate(P(p), IA32_FCHS, D(getFPR(0))));
 
-# rules that move the result from the accumulator (fp0) to a symbolic result
-r:	FP_NEG(r)
-39
+pfp0:	FP_NEG(r)
+29
 EMIT_INSTRUCTION
-OPT_RegisterOperand res = Unary.getResult(P(p)); \
-FP_NEG(burs, P(p), Unary.getVal(P(p))); \
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
+EMIT(MIR_Move.create(IA32_FLD, myFP0(), Unary.getVal(P(p)))); \
+EMIT(MIR_UnaryAcc.mutate(P(p), IA32_FCHS, myFP0()));
+
+pfp0:	FP_NEG(pfp0)
+13
+EMIT_INSTRUCTION
+EMIT(MIR_UnaryAcc.mutate(P(p), IA32_FCHS, myFP0()));
+
+r:	FP_NEG(r)
+56
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FMOV, D(getFPR(0)), Unary.getVal(P(p)))); \
+EMIT(MIR_UnaryAcc.create(IA32_FCHS, D(getFPR(0)))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Unary.getResult(P(p)), D(getFPR(0))));
 
 r:	FP_NEG(fp0)
 26
 EMIT_INSTRUCTION
-OPT_RegisterOperand res = Unary.getResult(P(p)); \
-FP_NEG(burs, P(p)); \
-EMIT(MIR_Move.create(IA32_FMOV, res, F(getFPR(0))));
+EMIT(MIR_UnaryAcc.create(IA32_FCHS, D(getFPR(0)))); \
+EMIT(MIR_Move.create(IA32_FMOV, Unary.getResult(P(p)), D(getFPR(0))));
+
+r:	FP_NEG(pfp0)
+31
+EMIT_INSTRUCTION
+EMIT(MIR_UnaryAcc.create(IA32_FCHS, myFP0())); \
+EMIT(MIR_Move.create(IA32_FSTP, Unary.getResult(P(p)), myFP0()));
 
 ##################################
 # Basic Long ALU operations 
@@ -1858,7 +1961,13 @@ LONG_NOT(burs, P(p), UnaryAcc.getResult(P(p)));
 r:	INT_2BYTE(r)
 32
 EMIT_INSTRUCTION
-INT_2BYTE(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p))); 
+EMIT(MIR_Move.create(IA32_MOV, MO_CONV(burs,DW), Unary.getVal(P(p)))); \
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX$B, Unary.getResult(P(p)), MO_CONV(burs,DW)));
+
+r:	INT_2BYTE(load32)
+17
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX$B, Unary.getResult(P(p)), consumeMO()));
 
 stm:	BYTE_STORE(INT_2BYTE(r),OTHER_OPERAND(r, riv))
 15
@@ -1879,6 +1988,12 @@ EMIT_INSTRUCTION
 EMIT(MIR_Move.create(IA32_MOV, Unary.getResult(P(p)), Unary.getVal(P(p)))); \
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)), I(0xFFFF)));
 
+szpr:	INT_2USHORT(load32)
+25
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_MOV, Unary.getResult(P(p)), consumeMO())); \
+EMIT(MIR_BinaryAcc.mutate(P(p), IA32_AND, Unary.getResult(P(p)), I(0xFFFF)));
+
 stm:	SHORT_STORE(INT_2USHORT(r), OTHER_OPERAND(r,riv))
 15
 EMIT_INSTRUCTION
@@ -1895,7 +2010,13 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), W_S, W), Unary.getVal(PL(p))));
 r:	INT_2SHORT(r)
 32
 EMIT_INSTRUCTION
-INT_2SHORT(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p))); 
+EMIT(MIR_Move.create(IA32_MOV, MO_CONV(burs,DW), Unary.getVal(P(p)))); \
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX$W, Unary.getResult(P(p)), MO_CONV(burs,DW)));
+
+r:	INT_2SHORT(load32)
+17
+EMIT_INSTRUCTION
+EMIT(MIR_Unary.mutate(P(p), IA32_MOVSX$W, Unary.getResult(P(p)), consumeMO()));
 
 stm:	SHORT_STORE(INT_2SHORT(r), OTHER_OPERAND(r,riv))
 15
@@ -1915,33 +2036,84 @@ r:	INT_2LONG(r)
 EMIT_INSTRUCTION
 INT_2LONG(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p))); 
 
-#####
-# INT_2FLOAT
-#####
-r:	INT_2FLOAT(r)
-30
+r:	INT_2LONG(load32)
+33
 EMIT_INSTRUCTION
-INT_2FPR(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
-
-# TODO: Special case 0 and 1 to use FLD1 and FLDZ
-r:	INT_2FLOAT(iv)
-30
-EMIT_INSTRUCTION
-INT_2FPR(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+INT_2LONG(burs, P(p), Unary.getResult(P(p)), consumeMO());
 
 #####
-# INT_2DOUBLE
+# INT_2FP (handles both float and double; both are 80 bit anyways...)
 #####
-r:	INT_2DOUBLE(r)
-30
+r:	INT_2FP(riv)
+48
 EMIT_INSTRUCTION
-INT_2FPR(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+EMIT(MIR_Move.create(IA32_MOV, MO_CONV(burs,DW), Unary.getVal(P(p)))); \
+EMIT(MIR_Move.create(IA32_FILD, myFP0(), MO_CONV(burs,DW))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Unary.getResult(P(p)), myFP0()));
 
-# TODO: Special case 0 and 1 to use FLD1 and FLDZ
-r:	INT_2DOUBLE(iv)
-30
+fp0:	INT_2FP(riv)
+48
 EMIT_INSTRUCTION
-INT_2FPR(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+EMIT(MIR_Move.create(IA32_MOV, MO_CONV(burs,DW), Unary.getVal(P(p)))); \
+EMIT(MIR_Move.create(IA32_FILD, myFP0(), MO_CONV(burs,DW))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
+
+pfp0:	INT_2FP(riv)
+35
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_MOV, MO_CONV(burs,DW), Unary.getVal(P(p)))); \
+EMIT(MIR_Move.create(IA32_FILD, myFP0(), MO_CONV(burs,DW)));
+
+r:	INT_2FP(load32)
+33
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FILD, myFP0(), consumeMO())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Unary.getResult(P(p)), myFP0()));
+
+fp0:	INT_2FP(load32)
+33
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FILD, myFP0(), consumeMO())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
+
+pfp0:	INT_2FP(load32)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FILD, myFP0(), consumeMO()));
+
+r:	INT_2FP(ONE)
+31
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLD1, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Unary.getResult(P(p)), myFP0()));
+
+fp0:	INT_2FP(ONE)
+31
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLD1, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
+
+pfp0:	INT_2FP(ONE)
+18
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.mutate(P(p), IA32_FLD1, myFP0()));
+
+r:	INT_2FP(ZERO)
+31
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLDZ, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Unary.getResult(P(p)), myFP0()));
+
+fp0:	INT_2FP(ZERO)
+31
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.create(IA32_FLDZ, myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
+
+pfp0:	INT_2FP(ZERO)
+18
+EMIT_INSTRUCTION
+EMIT(MIR_Nullary.mutate(P(p), IA32_FLDZ, myFP0()));
 
 #####
 # LONG_2INT
@@ -1977,34 +2149,154 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), MO_AL(PL(p), QW_S, D
 #####
 # FLOAT_2INT
 #####
+# TODO: rules when it is already in memory
+#       rules for pfp0
+#       streamline FIST-based instruction sequence
 r:	FLOAT_2INT(r)
 30
 EMIT_INSTRUCTION
 FPR_2INT(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 
+r:	FLOAT_2INT(fp0)
+30
+EMIT_INSTRUCTION
+FPR_2INT(burs, P(p), Unary.getResult(P(p)), D(getFPR(0)));
+
 #####
 # FLOAT_2DOUBLE
 #####
 r:	FLOAT_2DOUBLE(r)
-13
+p.child1.isREGISTERNode()?30:13
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Unary.getResult(P(p)), Unary.getVal(P(p))));
+
+r:	FLOAT_2DOUBLE(fp0)
+13
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Unary.getResult(P(p)), D(getFPR(0))));
+
+r:	FLOAT_2DOUBLE(pfp0)
+18
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Unary.getResult(P(p)), myFP0()));
+
+fp0:	FLOAT_2DOUBLE(pfp0)
+18
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
+
+fp0:	FLOAT_2DOUBLE(fp0)
+0
+NOFLAGS
+// nothing to do
+
+pfp0:	FLOAT_2DOUBLE(pfp0)
+0
+NOFLAGS
+// nothing to do
 
 #####
 # DOUBLE_2INT
 #####
+# TODO: rules when it is already in memory
+#       rules for pfp0
+#       streamline FIST-based instruction sequence
 r:	DOUBLE_2INT(r)
 30
 EMIT_INSTRUCTION
 FPR_2INT(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 
+r:	DOUBLE_2INT(fp0)
+30
+EMIT_INSTRUCTION
+FPR_2INT(burs, P(p), Unary.getResult(P(p)), D(getFPR(0)));
+
 #####
 # DOUBLE_2FLOAT
 #####
 r:	DOUBLE_2FLOAT(r)
-13
+45
 EMIT_INSTRUCTION
-FPR64_2FPR32(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
+EMIT(MIR_Move.create(IA32_FMOV, MO_CONV(burs,DW), Unary.getVal(P(p)))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Unary.getResult(P(p)), MO_CONV(burs,DW)));
+
+r:	DOUBLE_2FLOAT(fp0)
+45
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FMOV, MO_CONV(burs,DW), D(getFPR(0)))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Unary.getResult(P(p)), MO_CONV(burs,DW)));
+
+r:	DOUBLE_2FLOAT(pfp0)
+50
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FSTP, MO_CONV(burs,DW), myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Unary.getResult(P(p)), MO_CONV(burs,DW)));
+
+fp0:	DOUBLE_2FLOAT(r)
+45
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FMOV, MO_CONV(burs,DW), Unary.getVal(P(p)))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, F(getFPR(0)), MO_CONV(burs,DW)));
+
+fp0:	DOUBLE_2FLOAT(fp0)
+45
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FMOV, MO_CONV(burs,DW), F(getFPR(0)))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, F(getFPR(0)), MO_CONV(burs,DW)));
+
+fp0:	DOUBLE_2FLOAT(pfp0)
+50
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FSTP, MO_CONV(burs,DW), myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, F(getFPR(0)), MO_CONV(burs,DW)));
+
+pfp0:	DOUBLE_2FLOAT(r)
+35
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FMOV, MO_CONV(burs,DW), Unary.getVal(P(p)))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_CONV(burs,DW)));
+
+pfp0:	DOUBLE_2FLOAT(fp0)
+35
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FMOV, MO_CONV(burs,DW), F(getFPR(0)))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_CONV(burs,DW)));
+
+pfp0:	DOUBLE_2FLOAT(pfp0)
+40
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FSTP, MO_CONV(burs,DW), myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_CONV(burs,DW)));
+
+stm:	FLOAT_STORE(DOUBLE_2FLOAT(r), OTHER_OPERAND(r, riv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), DW), Unary.getVal(PL(p))));
+
+stm:	FLOAT_ASTORE(DOUBLE_2FLOAT(r), OTHER_OPERAND(r, riv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_AS(P(p), DW_S, DW), Unary.getVal(PL(p))));
+
+stm:	FLOAT_STORE(DOUBLE_2FLOAT(fp0), OTHER_OPERAND(r, riv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), DW), D(getFPR(0))));
+
+stm:	FLOAT_ASTORE(DOUBLE_2FLOAT(fp0), OTHER_OPERAND(r, riv))
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_AS(P(p), DW_S, DW), D(getFPR(0))));
+
+stm:	FLOAT_STORE(DOUBLE_2FLOAT(pfp0), OTHER_OPERAND(r, riv))
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_S(P(p), DW), myFP0()));
+
+stm:	FLOAT_ASTORE(DOUBLE_2FLOAT(pfp0), OTHER_OPERAND(r, riv))
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_AS(P(p), DW_S, DW), myFP0()));
 
 #####
 # FLOAT_AS_INT_BITS
@@ -2012,11 +2304,25 @@ FPR64_2FPR32(burs, P(p), Unary.getResult(P(p)), Unary.getVal(P(p)));
 r:	FLOAT_AS_INT_BITS(r)
 30
 EMIT_INSTRUCTION
-FPR2GPR_32(burs, P(p));
+EMIT(MIR_Move.create(IA32_FMOV, MO_CONV(burs,DW), Unary.getVal(P(p)))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), MO_CONV(burs,DW)));
+
+r:	FLOAT_AS_INT_BITS(fp0)
+30
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FMOV, MO_CONV(burs,DW), F(getFPR(0)))); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), MO_CONV(burs,DW)));
+
+r:	FLOAT_AS_INT_BITS(pfp0)
+35
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FSTP, MO_CONV(burs,DW), myFP0())); \
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), MO_CONV(burs,DW)));
 
 #####
 # DOUBLE_AS_LONG_BITS
 #####
+# TODO: rules to consume fp0, pfp0, fpload
 r:	DOUBLE_AS_LONG_BITS(r)
 45
 EMIT_INSTRUCTION
@@ -2026,15 +2332,45 @@ FPR2GPR_64(burs, P(p));
 # INT_BITS_AS_FLOAT
 #####
 r:	INT_BITS_AS_FLOAT(riv)
+45
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_MOV, MO_CONV(burs,DW), Unary.getVal(P(p)))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Unary.getResult(P(p)), MO_CONV(burs,DW)));
+
+fp0:	INT_BITS_AS_FLOAT(riv)
+45
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_MOV, MO_CONV(burs,DW), Unary.getVal(P(p)))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, F(getFPR(0)), MO_CONV(burs,DW)));
+
+pfp0:	INT_BITS_AS_FLOAT(riv)
 30
 EMIT_INSTRUCTION
-GPR2FPR_32(burs, P(p));
+EMIT(MIR_Move.create(IA32_MOV, MO_CONV(burs,DW), Unary.getVal(P(p)))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_CONV(burs,DW)));
+
+r:	INT_BITS_AS_FLOAT(load32)
+30
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Unary.getResult(P(p)), consumeMO()));
+
+fp0:	INT_BITS_AS_FLOAT(load32)
+30
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FMOV, F(getFPR(0)), consumeMO()));
+
+pfp0:	INT_BITS_AS_FLOAT(load32)
+15
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), consumeMO()));
 
 #####
 # LONG_BITS_AS_DOUBLE
 #####
+# TODO: rules to produce fp0, pfp0
+#       rules to consume long loads
 r:	LONG_BITS_AS_DOUBLE(rlv)
-45
+60
 EMIT_INSTRUCTION
 GPR2FPR_64(burs, P(p));
 
@@ -2088,6 +2424,11 @@ r:	FLOAT_MOVE(fp0)
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Move.getResult(P(p)), F(getFPR(0))));
 
+r:	FLOAT_MOVE(pfp0)
+18
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Move.getResult(P(p)), myFP0()));
+
 fpload:	FLOAT_MOVE(fpload)
 0
 NOFLAGS
@@ -2120,6 +2461,11 @@ r:	DOUBLE_MOVE(fp0)
 13
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, Move.getResult(P(p)), D(getFPR(0))));
+
+r:	DOUBLE_MOVE(pfp0)
+18
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Move.getResult(P(p)), myFP0()));
 
 fpload:	DOUBLE_MOVE(fpload)
 0
@@ -2401,7 +2747,7 @@ EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, F(getFPR(0)), MO_AL(P(p), DW_S, DW)));
 
 pfp0:	FLOAT_ALOAD(r, riv)
-30
+20
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_AL(P(p), DW_S, DW)));
 
@@ -2459,9 +2805,9 @@ EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, D(getFPR(0)), MO_AL(P(p), QW_S, QW)));
 
 pfp0:	DOUBLE_ALOAD(r, riv)
-30
+20
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_FMOV, myFP0(), MO_AL(P(p), QW_S, QW)));
+EMIT(MIR_Move.mutate(P(p), IA32_FLD, myFP0(), MO_AL(P(p), QW_S, QW)));
 
 #####
 # PREPARE (just a normal load on IA32)
@@ -2812,7 +3158,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p)
 # FLOAT_STORE
 #####
 stm:	FLOAT_STORE(r, OTHER_OPERAND(r, riv))
-30
+15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), DW), Store.getValue(P(p))));
 
@@ -2830,7 +3176,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_S(P(p), DW), myFP0()));
 # FLOAT_ASTORE
 #####
 stm:	FLOAT_ASTORE(r, OTHER_OPERAND(r, riv))
-30
+15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_AS(P(p), DW_S, DW), AStore.getValue(P(p))));
 
@@ -2884,7 +3230,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), QW_S, DW), I(val.lower32())));
 # DOUBLE_STORE
 #####
 stm:	DOUBLE_STORE(r, OTHER_OPERAND(r, riv))
-30
+15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_S(P(p), QW), Store.getValue(P(p))));
 
@@ -2902,7 +3248,7 @@ EMIT(MIR_Move.mutate(P(p), IA32_FSTP, MO_S(P(p), QW), myFP0()));
 # DOUBLE_ASTORE
 #####
 stm:	DOUBLE_ASTORE(r, OTHER_OPERAND(r, riv))
-30
+15
 EMIT_INSTRUCTION
 EMIT(MIR_Move.mutate(P(p), IA32_FMOV, MO_AS(P(p), QW_S, QW), AStore.getValue(P(p))));
 
