@@ -164,7 +164,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 				    boolean isScalar) 
     throws VM_PragmaInline {
     VM_Interface.sysFail("no allocCopy in noGC");
-    return VM_Address.zero();
+    //    return VM_Address.zero();   // Trips some intel opt compiler bug...
+    return VM_Address.max();
   }
 
   /**  
