@@ -89,6 +89,10 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     return true;
   }
 
+  final boolean printingEnabled(OPT_Options options, boolean before) {
+    return false;
+  }
+
   final String getName() {
     return  "Live Analysis";
   }
@@ -165,6 +169,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
   void perform(OPT_IR ir) {
 
     // make sure IR info is up-to-date
+    ir.pruneExceptionalOut();
     OPT_DefUse.recomputeSpansBasicBlock(ir);
     debugBegining(ir, createGCMaps);
     bbLiveInfo = new BBLiveElement[ir.cfg.numberOfNodes()];
