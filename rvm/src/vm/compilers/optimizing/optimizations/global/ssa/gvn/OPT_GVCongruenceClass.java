@@ -29,6 +29,12 @@ final class OPT_GVCongruenceClass {
   HashSet vertices = new HashSet(1);
 
   /**
+   * A representative of the congruence class
+   *   - saves having to find one
+   */
+  OPT_ValueGraphVertex  representativeV;
+  
+  /**
    * Create a congruence class with a given representative value number
    * and label.
    * @param     valueNumber the value number of the class
@@ -64,6 +70,8 @@ final class OPT_GVCongruenceClass {
     if (vertices.add(v)) {
       if (v.representsParameter())
 	nParameter++;
+      if (representativeV == null)
+	representativeV = v;
     }
   }
 
@@ -75,6 +83,10 @@ final class OPT_GVCongruenceClass {
     if (vertices.remove(v)) {
       if (v.representsParameter())
 	nParameter--;
+      if (representativeV == v) {
+	// Try to find an alternate representative
+	representativeV = (OPT_ValueGraphVertex)vertices.iterator().next();
+      }
     }
     ;
   }
@@ -84,7 +96,7 @@ final class OPT_GVCongruenceClass {
    * @return a representative vertex for this congruence class.
    */
   public OPT_ValueGraphVertex getRepresentative () {
-    return  (OPT_ValueGraphVertex)vertices.iterator().next();
+    return representativeV;
   }
 
   /** 
