@@ -420,7 +420,6 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * Compute backward dependences from a given use to a given node.
    * @param op source operand
    * @param destNode destination node
-   * @param isDef does this node represent a definition?
    * @param lastExceptionNode node representing the last PEI
    */
   private void computeBackwardDependencesUse(OPT_Operand op,
@@ -441,7 +440,6 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * Compute backward dependences from a given def to a given node.
    * @param op source operand
    * @param destNode destination node
-   * @param isDef does this node represent a definition?
    * @param lastExceptionNode node representing the last PEI
    */
   private void computeBackwardDependencesDef(OPT_Operand op,
@@ -468,7 +466,6 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * to a given node.
    * @param r source register
    * @param destNode destination node
-   * @param isDef does this node represent a definition?
    */
   private void computeImplicitForwardDependencesUse(OPT_Register r, 
                                                     OPT_DepGraphNode destNode){
@@ -491,7 +488,6 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * to a given node.
    * @param r source register
    * @param destNode destination node
-   * @param isDef does this node represent a definition?
    */
   private void computeImplicitForwardDependencesDef(OPT_Register r, 
                                                     OPT_DepGraphNode destNode){
@@ -507,7 +503,6 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * to a given node.
    * @param r source register
    * @param destNode destination node
-   * @param isDef does this node represent a definition?
    */
   private void computeImplicitBackwardDependencesUse(OPT_Register r, 
                                                      OPT_DepGraphNode destNode){
@@ -524,7 +519,6 @@ final class OPT_DepGraph extends OPT_SpaceEffGraph
    * to a given node.
    * @param r source register
    * @param destNode destination node
-   * @param isDef does this node represent a definition?
    */
   private void computeImplicitBackwardDependencesDef(OPT_Register r, 
                                                      OPT_DepGraphNode destNode){
