@@ -35,6 +35,12 @@ public abstract class OPT_BranchOptimizationDriver
    */
   protected boolean _restrictCondBranchOpts = false;
 
+  /**
+   * Restrict branch optimizations to avoid messing up decisions made
+   * earlier by code reordering
+   */ 
+  protected boolean _afterCodeReorder = false;
+
   protected OPT_BranchOptimizationDriver() {}
 
   /** 
@@ -50,10 +56,14 @@ public abstract class OPT_BranchOptimizationDriver
    *              optimizations should be performed.
    * @param restrictCondBranchOpts Should optimization on conditional
    *              branches be restricted 
+   * @param afterCodeReorder Should optimization be restricted to respect
+   *              decisions made by code reordering
    */
-  OPT_BranchOptimizationDriver(int level,boolean restrictCondBranchOpts) {
+  OPT_BranchOptimizationDriver(int level,boolean restrictCondBranchOpts,
+                               boolean afterCodeReorder) {
     this(level);
     _restrictCondBranchOpts = restrictCondBranchOpts;
+    _afterCodeReorder = afterCodeReorder;
   }
 
   

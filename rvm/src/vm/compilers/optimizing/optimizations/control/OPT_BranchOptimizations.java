@@ -34,8 +34,9 @@ public final class OPT_BranchOptimizations
    * @param level the minimum optimization level at which the branch 
    * optimizations should be performed.
    */
-  OPT_BranchOptimizations (int level, boolean restrictCondBranchOpts) {
-    super(level,restrictCondBranchOpts);
+  OPT_BranchOptimizations (int level, boolean restrictCondBranchOpts,
+                           boolean afterCodeReorder) {
+    super(level,restrictCondBranchOpts,afterCodeReorder);
   }
   
   /**
@@ -163,7 +164,7 @@ public final class OPT_BranchOptimizations
     }
 
     // try to create a fallthrough
-    if (targetBlock.getNumberOfIn() == 1) {
+    if (!_afterCodeReorder && targetBlock.getNumberOfIn() == 1) {
       OPT_BasicBlock ftBlock = targetBlock.getFallThroughBlock();
       if (ftBlock != null) {
         OPT_BranchOperand ftTarget = ftBlock.makeJumpTarget();
@@ -221,6 +222,7 @@ public final class OPT_BranchOptimizations
     boolean endsBlock = cb.getNext().operator() == BBEND;
     if (endsBlock) {
       OPT_Instruction nextLabel = firstLabelFollowing(cb);
+
       if (targetLabel == nextLabel) {
 	// found a conditional branch to the next instruction.  just remove it.
 	cb.remove();
