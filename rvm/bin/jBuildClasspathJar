@@ -25,6 +25,23 @@ export CHECK=0
 export DEST_DIR=$RVM_ROOT/classpath
 export OS_VER=$(uname -v)
 
+## By default use HOST tools. If they do not exist, then assume we are
+## being run on the TARGET
+if [[ -x $HOST_JIKES ]]; then
+    JIKES_TOOL=$HOST_JIKES
+elif [[ -x $TARGET_JIKES ]]; then
+    JIKES_TOOL=$TARGET_JIKES
+else
+    echo "$ME: Cannot find either host or target jikes executable."
+fi
+if [[ -x $HOST_JAR ]]; then
+    JAR_TOOL=$HOST_JAR
+elif [[ -x $TARGET_JAR ]]; then
+    JAR_TOOL=$TARGET_JAR
+else
+    echo "$ME: Cannot find either host or target jar executable."
+fi
+
 CLASSPATH_URL=$(cat $RVM_ROOT/rvm/bin/classpath.stamp)
 
 if [[ -e $CLASSPATH_ROOT/classpath/config.guess ]]; then
@@ -133,7 +150,7 @@ if [[ ! -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
     mkdir -p $DEST_DIR/$system_type
     echo "Configuring for $system_type"
     cd $DEST_DIR/$system_type
-    FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" $CLASSPATH_CONFIG_ARGS
+    FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS ../classpath/configure --enable-jni --with-jikes="$JIKES_TOOL" $CLASSPATH_CONFIG_ARGS
     echo "Building the library"
     $GNU_MAKE
 fi
@@ -146,4 +163,4 @@ rm -f ${cp_src_jar}
 mkdir -p $cp_src_jar_dir
 touch ${cp_src_jar}
 cd $DEST_DIR/classpath
-$FIND $TOP_LEVEL_PACKAGES -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf ${cp_src_jar}
+$FIND $TOP_LEVEL_PACKAGES -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $JAR_TOOL uf ${cp_src_jar}
