@@ -323,7 +323,7 @@ function doBuild
      fi
 
      say "building $NAME"
-     cd $RVM_BUILD && ./jbuild -trace >RVM.trace 2>&1
+     cd $RVM_BUILD && ./jbuild -trace -demographics >RVM.trace 2>&1
 
      if [[ x$WAIT != x ]]; then
        # Leave a marker to signify the building is done.
