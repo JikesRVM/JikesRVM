@@ -103,7 +103,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   // can't allocate during thread switch (preallocate local)
   private HPM_counters tmp_counters;
   // number of HPM counters on underlying PowerPC machine (value cached from HPM_info)
-  private int n_counters = 0;
+  private int n_values = 0;
   // virtual processor id
   private int vpid                = 0;
 
@@ -151,7 +151,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
     if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.boot() PID ",vpid);
     vp_counters  = new HPM_counters();
     tmp_counters = new HPM_counters();
-    n_counters = VM_HardwarePerformanceMonitors.hpm_info.numberOfCounters;
+    n_values = HPM_info.getNumberOfValues();
     if (VM_HardwarePerformanceMonitors.trace) {
       if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.boot() pid ",vpid," create VM_TraceWriter as a consumer");
       consumer     = new VM_TraceWriter(this, vpid);
@@ -206,21 +206,21 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
     }
     tmp_counters.counters[0] = wallTime;	// need relative time for aggregate values
     // read counters
-    for (int i=1; i<=n_counters; i++) {
+    for (int i=1; i<n_values; i++) {
       long value = VM_SysCall.sysHPMgetCounterMyThread(i);
       tmp_counters.counters[i] = value;
     }
     if (VM_HardwarePerformanceMonitors.trace) {     // tracing on ?
       if (active) { 			// only acccumulate what is recorded!
-	tmp_counters.accumulate(                 vp_counters, n_counters);
-	tmp_counters.accumulate(previous_thread.hpm_counters, n_counters);
+	tmp_counters.accumulate(                 vp_counters, n_values);
+	tmp_counters.accumulate(previous_thread.hpm_counters, n_values);
 	int tid        = previous_thread.getIndex();
 	int global_tid = (timerInterrupted?previous_thread.getGlobalIndex():-previous_thread.getGlobalIndex());
 	tracing(tid, global_tid, startOfWallTime, endOfWallTime, tmp_counters, threadSwitch);
       }
     } else {			 	// always accumulate
-      tmp_counters.accumulate(                 vp_counters, n_counters);
-      tmp_counters.accumulate(previous_thread.hpm_counters, n_counters);
+      tmp_counters.accumulate(                 vp_counters, n_values);
+      tmp_counters.accumulate(previous_thread.hpm_counters, n_values);
     }
 
     VM_SysCall.sysHPMresetMyThread();
@@ -287,7 +287,6 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
     // buffer != null only if active==true
 
     //BEGIN HRM
-    if (VM_HardwarePerformanceMonitors.verbose>=6) VM.sysWriteln("begin method stuff");
     int callee_MID;
     int caller_MID;
     if (cmidAvailable) {
@@ -358,7 +357,6 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
       callee_MID = UNAVAILABLE_MID;
       caller_MID = UNAVAILABLE_MID;
     }
-    if (VM_HardwarePerformanceMonitors.verbose>=6) VM.sysWriteln("end method stuff");
     //END HRM
 
     int thread_switch = (threadSwitch==true?1:0);
@@ -380,7 +378,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
       VM.sysWrite(" CALLEE ", callee_MID);
       VM.sysWrite(" CALLER ", caller_MID);
       //END HRM
-      if(n_counters > 4) VM.sysWrite("\n  ");
+      if(n_values > 5) VM.sysWrite("\n  ");
     }
     if (buffer != null) { // write record header
       n_records++;
@@ -399,7 +397,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
       index += VM_HardwarePerformanceMonitors.SIZE_OF_INT;
       //END HRM
     }
-    for(int i=1; i<=n_counters; i++) {
+    for(int i=1; i<n_values; i++) {
       long value = counters.counters[i];
       if(VM_HardwarePerformanceMonitors.verbose>=5 || VM_HardwarePerformanceMonitors.trace_verbose == vpid) {
 	VM.sysWrite(" ",i,": ");VM.sysWriteLong(value); 
