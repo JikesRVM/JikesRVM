@@ -8,7 +8,9 @@ package com.ibm.JikesRVM.adaptive;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.classloader.VM_Method;
+import com.ibm.JikesRVM.classloader.VM_NormalMethod;
 import com.ibm.JikesRVM.VM_CompiledMethod;
+import com.ibm.JikesRVM.VM_RuntimeCompiler;
 import com.ibm.JikesRVM.opt.*;
 import java.io.*;
 
@@ -49,22 +51,22 @@ public class VM_AOSLogging {
    */
   private static PrintStream log;
   
-   /*
-    * Record that the AOS logging has been booted.
-    * Needed to allow fast exit from reporting to ensure
-    * that when no class is specified to be run but "-help" is specified, 
-    * don't want null pointer exception to occur!
-    */
-   private static boolean booted = false;
+  /*
+   * Record that the AOS logging has been booted.
+   * Needed to allow fast exit from reporting to ensure
+   * that when no class is specified to be run but "-help" is specified, 
+   * don't want null pointer exception to occur!
+   */
+  private static boolean booted = false;
 
-   /**
-    * Return whether AOS logging has booted.
-    * @return whether AOS logging has booted
-    */
-   public static boolean booted() {
-     return booted;
-   }
-
+  /**
+   * Return whether AOS logging has booted.
+   * @return whether AOS logging has booted
+   */
+  public static boolean booted() {
+    return booted;
+  }
+  
   /**
    * Called from VM_ControllerThread.run to initialize the logging subsystem
    */
@@ -486,15 +488,19 @@ public class VM_AOSLogging {
 
   /**
    * This method logs the actual compilation time for the given compiled method.
-   * @param plan the OPT_Compilation plan being executed.
+   * @param cm the compiled method
+   * @param expectedCompilationTime the model-derived expected compilation time
    */
-  public static void recordCompileTime(VM_CompiledMethod cm) {
-    if (log != null && VM_Controller.options.LOGGING_LEVEL >= 2) {
+  public static void recordCompileTime(VM_CompiledMethod cm, double expectedCompilationTime) {
+    if (log != null && VM_Controller.options.LOGGING_LEVEL >= 3) {
       synchronized (log) {
-	String name = " baseline ";
+	double compTime = cm.getCompilationTime();
 	log.println(VM_Controller.controllerClock 
 		    +" Compiled "+cm.getMethod() + " with "+ cm.getCompilerName()
-		    + " in "+cm.getCompilationTime()+ " ms.");
+		    +" in "+ compTime+ " ms"+
+		    ", model estimated: "+ expectedCompilationTime +" ms"
+		    +", rate: "+ 
+		    (((VM_NormalMethod) cm.getMethod()).getBytecodeLength() / compTime));
       }
     }
   }
@@ -648,20 +654,102 @@ public class VM_AOSLogging {
    * This method logs a controller cost estimate.
    * @param method the method of interest
    * @param choiceDesc a String describing the choice point
-   * @param cost  the computed cost for this method and level
+   * @param compilationTime the computed compilation cost for this method and level
+   * @param futureTime the computed future time, including cost and execution
    */
   public static void recordControllerEstimateCostOpt(VM_Method method, 
 						     String choiceDesc,
-						     double cost) {
+						     double compilationTime,
+						     double futureTime) {
     if (VM_Controller.options.LOGGING_LEVEL >= 3) {
       synchronized (log) {
 	log.println(VM_Controller.controllerClock 
 		    +"  Estimated cost of OPT compiling "+
 		    method + " at " + choiceDesc +
-		    " is "+ cost);
+		    " is "+ compilationTime +
+		    ", total future time is "+ futureTime);
       }
     }
   }
+
+  /**
+   * This method logs details recording the model's compilation cost
+   * @param prevCompiler the previous compiler that compiled this method
+   * @param currentCompiler the compiler being considered for recompilation
+   * @param compileTimeFactor the compilation rate of improvement between
+   *        the 2 compilers
+   * @param prevCompilerTime how long it took to compile the method with prevCompiler
+   * @param estCompileTime the estimated compilation time with currentCompiler
+   * @param fixedOverhead the estimated fixed overhead for a compilation
+   */
+  public static void recordCompileTimeDetails(int prevCompiler,
+					      int currentCompiler,
+					      double compileTimeFactor,
+					      double prevCompileTime,
+					      double estCompileTime,
+					      double fixedOverhead) {
+    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized (log) {
+	log.println(VM_Controller.controllerClock 
+		    +"  Estimated recompilation details ");
+	log.println("\tprevious compiler: "+ VM_CompilerDNA.getCompilerString(prevCompiler));
+	log.println("\tcurrent compiler: "+ VM_CompilerDNA.getCompilerString(currentCompiler));
+	log.println("\tcompile Time Factor: "+ compileTimeFactor);
+	log.println("\tprev Compile time: "+ prevCompileTime);
+	log.println("\tEstimated Compile time: "+ estCompileTime);
+	log.println("\tFixed overhead: "+ fixedOverhead);
+	log.println("\tTotal cost: "+ (prevCompileTime * compileTimeFactor +
+				       fixedOverhead));
+      }
+    }
+  }
+
+  /**
+   * Records lots of details about the online computation of a compilation rate
+   * @param compiler compiler of interest
+   * @param method the method
+   * @param BCLength the number of bytecodes
+   * @param totalBCLength cumulative number of bytecodes
+   * @param MCLength size of machine code
+   * @param totalMCLength cumulative size of machine code
+   * @param compTime compilation time for this method
+   * @param totalComptime cumulative compilation time for this method
+   * @param totalLogOfRates running sum of the natural logs of the rates
+   * @param totalLogValueMethods number of methods used in the log of rates
+   * @param totalMethods total number of methods
+   */
+  public static void recordUpdatedCompilationRates(byte compiler,
+						   VM_Method method,
+						   int BCLength,
+						   int totalBCLength,
+						   int MCLength,
+						   int totalMCLength,
+						   double compTime,
+						   double totalCompTime,
+						   double totalLogOfRates,
+						   int totalLogValueMethods,
+						   int totalMethods) {
+
+    if (VM_Controller.options.LOGGING_LEVEL >= 2) {
+      synchronized (log) {
+	log.println(VM_Controller.controllerClock 
+		    +"  Updated compilation rates for "+ VM_RuntimeCompiler.getCompilerName(compiler) +"compiler");
+	log.println("\tmethod compiled: "+ method);
+	log.println("\tbyte code length: "+ BCLength +", Total: "+ totalBCLength);
+	log.println("\tmachine code length: "+ MCLength +", Total: "+ totalMCLength);
+	log.println("\tcompilation time: "+ compTime +", Total: "+ totalCompTime);
+	log.println("\tRate for this method: "+ BCLength / compTime
+		    +", Total of Logs: "+ totalLogOfRates);
+	log.println("\tTotal Methods: "+ totalMethods);
+	log.println("\tNew Rate (old way): "+ totalBCLength / totalCompTime);
+	log.println("\tNew Rate (new way): "+ Math.exp(totalLogOfRates / totalLogValueMethods));
+      }
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////
+  // OSR-related code
+  ////////////////////////////////////////////////////////////////
 
   //-#if RVM_WITH_OSR
   public static void recordOSRRecompilationDecision(VM_ControllerPlan plan) {
