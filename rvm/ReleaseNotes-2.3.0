@@ -1,4 +1,4 @@
-This is release 2.2.3 of the Jikes RVM. 
+This is release 2.3.0 of the Jikes RVM. 
 
 Highlights of this release include:
  + improvements in build process to make it stop on errors
