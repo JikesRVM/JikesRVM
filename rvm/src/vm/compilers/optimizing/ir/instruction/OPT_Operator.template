@@ -57,19 +57,19 @@ public final class OPT_Operator {
   /**
    * How many operands of the operator are (pure) defs?
    */
-  private byte numberDefs;
+  private int numberDefs;
 
   /**
    * How many operands of the operator are both defs and uses?
    * Only non-zero on IA32, 390.
    */
-  private byte numberDefUses;  
+  private int numberDefUses;  
 
   /**
    * How many operands of the operator are pure uses?
    * Only contains a valid value for non-variableLength operators
    */
-  private byte numberUses;
+  private int numberUses;
 
   /**
    * Physical registers that are implicitly defined by the operator.
@@ -580,6 +580,16 @@ $$$$ END IF
   }
 
   /**
+   * Can the operator have a variable number of uses or defs?
+   * 
+   * @return <code>true</code> if the operator has a variable number 
+   *         of uses or defs or <code>false</code> if it does not.
+   */
+  public final boolean hasVarUsesOrDefs() {
+    return (traits & (varUses | varDefs)) != 0;
+  }
+
+  /**
    * Is the operator an acquire (monitorenter/lock)?
    * 
    * @return <code>true</code> if the operator is an acquire
@@ -652,13 +662,13 @@ $$$$ IF OPERATOR.SYMBOL != "ARCH_INDEPENDENT_END"
      new OPT_Operator((char)OPERATOR.INDEX, instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format,  //OPERATOR.SYMBOL
 $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
 	              (OPERATOR.TRAITS),
-                      (byte)0,(byte)0,(byte)0,
+                      0,0,0,
 $$$$ ELSE
 	              (OPERATOR.TRAITS | instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits), 
     $$$$ FOREACH OPTYPE InstructionFormatList.dat
         $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
             $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
-                      (byte)NUMDEFS, (byte)NUMDEFUSES, (byte)NUMUSES,
+                      NUMDEFS, NUMDEFUSES, NUMUSES,
             $$$$ END SPLIT
         $$$$ END IF
      $$$$ END FOREACH
@@ -682,20 +692,20 @@ $$$$ IF ARCHITECTURE == "powerPC"
                       instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format, 
   $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
 	              (OPERATOR.TRAITS),
-                      (byte)0,(byte)0,(byte)0,
+                      0,0,0,
   $$$$ ELSE
 	              (OPERATOR.TRAITS | instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
     $$$$ FOREACH OPTYPE InstructionFormatList.dat
         $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
             $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
-                      (byte)NUMDEFS, (byte)NUMDEFUSES, (byte)NUMUSES,
+                      NUMDEFS, NUMDEFUSES, NUMUSES,
             $$$$ END SPLIT
         $$$$ END IF
      $$$$ END FOREACH
     $$$$ FOREACH OPTYPE ARCH_IR_DIR/InstructionFormatList.dat
         $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
             $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
-                      (byte)NUMDEFS, (byte)NUMDEFUSES, (byte)NUMUSES,
+                      NUMDEFS, NUMDEFUSES, NUMUSES,
             $$$$ END SPLIT
         $$$$ END IF
      $$$$ END FOREACH
@@ -710,20 +720,20 @@ $$$$ ELSE
                       instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format, 
   $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
 	              (OPERATOR.TRAITS),
-                      (byte)0,(byte)0,(byte)0,
+                      0,0,0,
   $$$$ ELSE
 	              (OPERATOR.TRAITS | instructionFormats.OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_traits),
     $$$$ FOREACH OPTYPE InstructionFormatList.dat
         $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
             $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
-                      (byte)NUMDEFS, (byte)NUMDEFUSES, (byte)NUMUSES,
+                      NUMDEFS, NUMDEFUSES, NUMUSES,
             $$$$ END SPLIT
         $$$$ END IF
      $$$$ END FOREACH
     $$$$ FOREACH OPTYPE ARCH_IR_DIR/InstructionFormatList.dat
         $$$$ IF OPTYPE.NAME == OPERATOR.INSTRUCTION_FORMAT
             $$$$ SPLIT "OPTYPE.SIZES" " " NUMDEFS NUMDEFUSES NUMUSES NUMVAR VARDORU NUMALT
-                      (byte)NUMDEFS, (byte)NUMDEFUSES, (byte)NUMUSES,
+                      NUMDEFS, NUMDEFUSES, NUMUSES,
             $$$$ END SPLIT
         $$$$ END IF
      $$$$ END FOREACH
@@ -737,7 +747,7 @@ $$$$ END IF
 
   // For HIR/LIR
   private OPT_Operator(char opcode, byte format, int traits,
-		       byte numDefs, byte numDefUses, byte numUses,
+		       int numDefs, int numDefUses, int numUses,
                        int iDefs, int iUses) {
     this.opcode       = opcode;
     this.format       = format;
@@ -752,7 +762,7 @@ $$$$ END IF
 $$$$ IF ARCHITECTURE == "powerPC"
   // For MIR
   private OPT_Operator(char opcode, byte format, int traits, 
-		       byte numDefs, byte numDefUses, byte numUses,
+		       int numDefs, int numDefUses, int numUses,
 	               int iDefs, int iUses,
 	               int iTemp) {
     this.opcode       = opcode;
