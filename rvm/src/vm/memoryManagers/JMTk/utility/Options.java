@@ -30,6 +30,7 @@ public class Options implements VM_Uninterruptible, Constants {
   static int gcTimeCap        = MAX_INT;  // default to no time cap
   static int stressTest       = MAX_INT;  // default to never
   public static boolean ignoreSystemGC = false;
+  public static boolean genCycleDetection = false;
 
   static boolean noFinalizer = false;
 
@@ -83,6 +84,9 @@ public class Options implements VM_Uninterruptible, Constants {
       String tmp = arg.substring(9);
       gcTimeCap = Integer.parseInt(tmp);
       if (gcTimeCap <= 0) VM_Interface.sysFail("Unreasonable time cap " + tmp);
+    }
+    else if (arg.equals("gen_cycle_detection")) {
+      genCycleDetection = true;
     }
     else if (arg.startsWith("stress=")) {
       String tmp = arg.substring(7);

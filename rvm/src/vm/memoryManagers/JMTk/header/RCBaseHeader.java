@@ -193,6 +193,10 @@ public abstract class RCBaseHeader implements Constants {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return getRCColor(object) == GREY;
   }
+  public static boolean isMature(Object object)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return getRCbits(object, CYCLIC_MATURE) != 0;
+  }
   public static boolean isGreyOrGreen(Object object) 
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int color = getRCColor(object);
@@ -221,7 +225,7 @@ public abstract class RCBaseHeader implements Constants {
     boolean rtn;
     do {
       oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
-      newValue = (oldValue & ~COLOR_MASK) | PURPLE | BUFFERED_MASK;
+      newValue = (oldValue & ~COLOR_MASK) | PURPLE | CYCLIC_MATURE | BUFFERED_MASK;
     } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
 
     return ((oldValue & BUFFERED_MASK) == 0);
@@ -256,7 +260,8 @@ public abstract class RCBaseHeader implements Constants {
   // preserve the (green | purple) test's precondition.
   private static final int            PURPLE = 0x6;  //  .. x011x
   protected static final int           GREEN = 0x8;  //  .. x100x
-  private static final int BITS_USED = 4;
+  private static final int     CYCLIC_MATURE = 0x10; //  .. 1xxxx
+  private static final int BITS_USED = 5;
 
   private static final int CYCLE_DETECTION_BITS = (Plan.refCountCycleDetection) ? BITS_USED : 0;
   protected static final int INCREMENT_SHIFT = CYCLE_DETECTION_BITS;
