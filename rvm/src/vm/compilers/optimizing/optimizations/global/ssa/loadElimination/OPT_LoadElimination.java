@@ -79,6 +79,9 @@ OPT_OptimizationPlanCompositeElement implements OPT_Operators {
       ir.actualSSAOptions.setScalarValid(false);
       ir.actualSSAOptions.setHeapValid(false);
       ir.HIRInfo.loadEliminationDidSomething = didSomething;
+
+      // clear the following field to avoid excess memory retention
+      ir.HIRInfo.indexPropagationSolution = null;
     }
   }
 
