@@ -1,3 +1,15 @@
+/*
+ * Eclipse/Jikes RVM
+ *
+ * (C) Copyright IBM Corp., 2002.
+ *
+ * $Source$
+ * $Revision$
+ * $Date$
+ * $Author$
+ * $Id$
+ */
+
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -9,6 +21,9 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.SWT;
 
+/*
+ * @author Steven Augart
+ */
 public class Jikes_RVM_Launch_Config_JRE_Tab
   implements ILaunchConfigurationTab
 {
