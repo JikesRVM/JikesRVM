@@ -16,6 +16,7 @@ import com.ibm.JikesRVM.jni.*;
  * @author Derek Lieber
  * @author Kris Venstermans
  * @author Perry Cheng
+ * @modified Daniel Frampton
  */
 public class VM_Compiler extends VM_BaselineCompiler 
   implements VM_BaselineConstants,
@@ -2326,6 +2327,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_unresolved_getfield(VM_FieldReference fieldRef) {
     emitDynamicLinkingSequence(T2, fieldRef, true);
     popAddr(T1); 
+    if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
     if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitLIntX(T0, T2, T1); // use field offset in T2 from emitDynamicLinkingSequence()
       pushInt(T0);
@@ -2350,6 +2352,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   protected final void emit_resolved_getfield(VM_FieldReference fieldRef) {
     int fieldOffset = fieldRef.peekResolvedField().getOffset();
     popAddr(T1); // T1 = object reference
+    if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
     if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
       asm.emitLInt(T0, fieldOffset, T1);
       pushInt(T0);
@@ -2382,19 +2385,22 @@ public class VM_Compiler extends VM_BaselineCompiler
       if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
         popInt(T0); // T0 = value
         popAddr(T2); // T2 = object reference
+        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2); 
         asm.emitSTWX(T0, T2, T1);
       } else { // field is two words (double or long)
         if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
         if (VM.BuildFor64Addr){
           if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
-            popAddr(T0);                //T0 = address value
+            popAddr(T0);                // T0 = address value
             popAddr(T2);                // T2 = object reference
+            if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2);
             asm.emitSTDX(T0, T2, T1);
             return;
           }
         }
-        popDouble(F0); // F0 = doubleword value
-        popAddr(T2); // T2 = object reference
+        popDouble(F0);     // F0 = doubleword value
+        popAddr(T2);       // T2 = object reference
+        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T2); 
         asm.emitSTFDX(F0, T2, T1);
       }
     }
@@ -2410,25 +2416,27 @@ public class VM_Compiler extends VM_BaselineCompiler
       VM_Barriers.compilePutfieldBarrierImm(this, fieldOffset, fieldRef.getId());
     }
     if (fieldRef.getSize() == BYTES_IN_INT) { // field is one word
-        popInt(T0); // T0 = value
-        popAddr(T1); // T1 = object reference
+        popInt(T0);        // T0 = value
+        popAddr(T1);       // T1 = object reference
+        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
         asm.emitSTW(T0, fieldOffset, T1);
     } else { // field is two words (double or long)
       if (VM.VerifyAssertions) VM._assert(fieldRef.getSize() == BYTES_IN_LONG);
         if (VM.BuildFor64Addr){
           if (fieldRef.getNumberOfStackSlots() == 1){    //address only 1 stackslot!!!
-            popAddr(T0);                //T0 = address value
+            popAddr(T0);                // T0 = address value
             popAddr(T1);                // T1 = object reference
+            if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1);          
             asm.emitSTD(T0, fieldOffset, T1);
             return;
           }
         }
-        popDouble(F0); // F0 = doubleword value
-        popAddr(T1); // T1 = object reference
+        popDouble(F0);     // F0 = doubleword value
+        popAddr(T1);       // T1 = object reference
+        if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T1); 
         asm.emitSTFD(F0, fieldOffset, T1);
     }
   }
-
 
   /*
    * method invocation
@@ -2878,7 +2886,8 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
 
   // Gen bounds check for array load/store bytecodes.
-  // Does null check (implicit) and array bounds check.
+  // Does implicit null check and array bounds check.
+  // Bounds check can always be implicit becuase array length is at negative offset from obj ptr.
   // Kills S0.
   // on return: T0 => base, T1 => index. 
   private void genBoundsCheck () {
@@ -2887,7 +2896,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitLInt (S0,  VM_ObjectModel.getArrayLengthOffset(), T0);  // T2 is array length
     asm.emitTWLLE(S0, T1);      // trap if index < 0 or index >= length
   }
-  
+
   // Emit code to buy a stackframe, store incoming parameters, 
   // and acquire method synchronization lock.
   //

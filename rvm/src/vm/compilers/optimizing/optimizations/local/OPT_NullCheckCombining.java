@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.opt;
 
+import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
 /**
@@ -23,11 +24,10 @@ import com.ibm.JikesRVM.opt.ir.*;
  *
  * @author Dave Grove
  * @author Mauricio J. Serrano
+ * @modified Daniel Frampton
  */
 public class OPT_NullCheckCombining extends OPT_CompilerPhase
     implements OPT_Operators {
-
-  OPT_NullCheckCombining () { }
 
   public final String getName () {
     return "NullCheckCombining";
@@ -43,6 +43,7 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
          bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       if (!bb.isEmpty()) {
         OPT_Instruction lastInstr = bb.lastInstruction();
+
         boolean combined;
         boolean remaining;
         // (1) Combine null checks in bb into the first load/store in 
@@ -83,7 +84,7 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
                 // NOTE: don't mark remaining, since we'd hit the same problem instr again.
                 activeGuard = null;
               } else {
-                if (activeGuard != null && isGuardedBy(instr, activeGuard)) {
+                if (activeGuard != null && canFold(instr, activeGuard)) {
                   instr.markAsPEI();
                   activeNullCheck.remove();
                   activeGuard = null;
@@ -93,13 +94,13 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
                 activeGuard = null;   // don't attempt to move PEI past a store; could do better.
               }
             } else if (isExplicitLoad(instr, op)) {
-              if (activeGuard != null && isGuardedBy(instr, activeGuard)) {
+              if (activeGuard != null && canFold(instr, activeGuard)) {
                 instr.markAsPEI();
                 activeNullCheck.remove();
                 activeGuard = null;
                 combined = true;
               } else 
-                if (instr.isPEI()) {
+               if (instr.isPEI()) {
                 // can't reorder PEI's 
                 // NOTE: don't mark remaining, since we'd hit the same problem instr again.
                 activeGuard = null;
@@ -146,12 +147,13 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
     int numOps  = s.getNumberOfOperands();
     int numUses = s.getNumberOfUses();
     for (int i= numOps - numUses; i<numOps; i++) {
-      if (s.getOperand(i) instanceof OPT_MemoryOperand) return true;
+      if (s.getOperand(i) instanceof OPT_MemoryOperand) 
+        return true;
     }
     return false;
   }
 
-  private boolean isGuardedBy(OPT_Instruction s, OPT_Operand activeGuard) {
+  private boolean canFold(OPT_Instruction s, OPT_Operand activeGuard) {
     if (GuardCarrier.conforms(s) && 
         GuardCarrier.hasGuard(s) && 
         activeGuard.similar(GuardCarrier.getGuard(s))) {
@@ -159,9 +161,14 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
     }
     for (int i=0, n = s.getNumberOfOperands(); i<n; i++) {
       OPT_Operand op = s.getOperand(i);
-      if (op instanceof OPT_MemoryOperand &&
-          activeGuard.similar(((OPT_MemoryOperand)op).guard)) {
-        return true;
+      if (op instanceof OPT_MemoryOperand) {
+        OPT_MemoryOperand memOp = (OPT_MemoryOperand)op;
+        if (activeGuard.similar(memOp.guard)) {
+          //TODO: Actually on AIX, low memory is write protected even though it
+          //      isn't read protected. We could improve on this by checking to see if we
+          //      are attempting to fold it into a store instruction and allowing that even on AIX.
+          return !VM.ExplicitlyGuardLowMemory || ((memOp.index == null) && (memOp.disp < 0));
+        } 
       }
     }
     return false;

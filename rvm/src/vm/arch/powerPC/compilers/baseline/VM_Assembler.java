@@ -26,6 +26,7 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  * @modified Dave Grove
  * @modified Kris Venstermans
+ * @modified Daniel Frampton
  */
 public final class VM_Assembler implements VM_BaselineConstants,
                                     VM_AssemblerConstants {
@@ -1233,7 +1234,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     mIP++;
     mc.addInstruction(mi);
   }
-
+  
   static final int TWWItemplate = TWItemplate | 0x3EC<<16;      // RA == 12
 
   public final void emitTWWI (int imm) {
@@ -2050,6 +2051,17 @@ public final class VM_Assembler implements VM_BaselineConstants,
     emitTAddrLT (S0,  0);                                    // trap if new frame below guard page
   }
 
+  /**
+   * Emit the trap pattern (trap LLT 1) we use for nullchecks on reg; 
+   * @param reg the register number containing the ptr to null check
+   */
+  void emitNullCheck (int RA) {
+    // TDLLT 1 or TWLLT 1
+    int mi = (VM.BuildFor64Addr ? TDItemplate : TWItemplate ) | 0x2<<21 | RA<<16 | 1;
+    mIP++;
+    mc.addInstruction(mi);
+  }
+  
   // Emit baseline stack overflow instruction sequence for native method prolog.
   // For the lowest Java to C transition frame in the stack, check that there is space of
   // STACK_SIZE_NATIVE words available on the stack;  enlarge stack if necessary.

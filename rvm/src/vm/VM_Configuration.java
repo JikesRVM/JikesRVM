@@ -90,6 +90,14 @@ public abstract class VM_Configuration {
         //-#else
           false;
         //-#endif
+
+  /** Will a dereference of a null pointer result in an access to 'low' memory addresses? */
+  public static final boolean ExplicitlyGuardLowMemory =
+      //-#if RVM_WITH_EXPLICITLY_GUARDED_LOW_MEMORY
+      true;
+      //-#else
+      false;
+      //-#endif
   
  /** Assertion checking.
       <dl>

@@ -10,6 +10,7 @@ package com.ibm.JikesRVM;
  * compiled methods, the write barrier calls methods of VM_WriteBarrier.
  *
  * @author Stephen Smith
+ * @modified Daniel Frampton
  */
 class VM_Barriers implements VM_BaselineConstants {
 
@@ -27,8 +28,9 @@ class VM_Barriers implements VM_BaselineConstants {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
-    comp.peekAddr(T0, 1);           // object base
-    comp.peekAddr(T2, 0);           // value to store
+    comp.peekAddr(T0, 1);               // object base
+    if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T0);
+    comp.peekAddr(T2, 0);               // value to store
     asm.emitLVAL(T3, locationMetadata);
     asm.emitBCCTRL(); // MM_Interface.putfieldWriteBarrier(T0,T1,T2,T3)
   }
@@ -38,16 +40,19 @@ class VM_Barriers implements VM_BaselineConstants {
     VM_Assembler asm = comp.asm;
     asm.emitLAddrToc(S0, VM_Entrypoints.putfieldWriteBarrierMethod.getOffset());
     asm.emitMTCTR(S0);
-    comp.peekAddr(T0, 1);            // object base
-    asm.emitLVAL (T1, fieldOffset);  // offset 
-    comp.peekAddr(T2, 0);            // value to store
+    comp.peekAddr(T0, 1);                 // object base
+    if (VM.ExplicitlyGuardLowMemory) asm.emitNullCheck(T0);
+    asm.emitLVAL (T1, fieldOffset);       // offset 
+    comp.peekAddr(T2, 0);                 // value to store
     asm.emitLVAL(T3, locationMetadata);
     asm.emitBCCTRL();  // MM_Interface.putfieldWriteBarrier(T0,T1,T2,T3)
   }
 
-  // currently do not have a "write barrier for putstatic, emit nothing, for now...
-  // (still scanning all of statics/jtoc during each GC)
+  // currently do not have a "write barrier for putstatic, emit
+  // nothing, for now...  (still scanning all of statics/jtoc during
+  // each GC)
   //
   static void compilePutstaticBarrier (VM_Compiler comp) { }
   static void compilePutstaticBarrierImm (VM_Compiler comp, int fieldOffset) { }
+
 }

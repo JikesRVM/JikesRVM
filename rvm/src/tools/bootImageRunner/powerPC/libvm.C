@@ -687,20 +687,29 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     // We are prepared to handle these kinds of "recoverable" traps.
     // (Anything else indicates some sort of unrecoverable vm error)
     //
-    //  1. SIGSEGV - a null object dereference of the form "obj[-fieldOffset]"
-    //               that wraps around to segment 0xf0000000.
+    //  1. SIGSEGV - a null object dereference of the form "obj[+-fieldOffset]"
     //
     //  2. SIGTRAP - an array bounds trap
     //               or integer divide by zero trap
     //               or stack overflow trap
+    //               or explicit nullCheck
     //
-    int isNullPtrExn = (signum == SIGSEGV) && (isVmSignal(ip, jtoc)) 
-#ifdef RVM_FOR_32_ADDR
-        && ((faultingAddress & 0xffff0000) == 0xffff0000)
+    int isNullPtrExn = (signum == SIGSEGV) && (isVmSignal(ip, jtoc));
+    if (isNullPtrExn) {
+      // Address range filtering.  Must be in very top or very bottom of address range for
+      // us to treat this as a null pointer exception.
+      // NOTE: assumes that first access off a null pointer occurs at offset of +/- 64k.
+      //       Could be false for very large scalars; should generate an explicit null check for those.
+#if defined RVM_FOR_32_ADDR
+      uintptr_t faultMask = 0xffff0000;
 #elif defined RVM_FOR_64_ADDR
-        && ((faultingAddress & 0xffffffffffff0000) == 0xffffffffffff0000)
+      uintptr_t faultMask = 0xffffffffffff0000;
 #endif
-        ;
+      if (!(((faultingAddress & faultMask) == faultMask) || ((faultingAddress & ~faultMask) == 0))) {
+	isNullPtrExn = 0;
+      }
+    }
+      
     int isTrap = signum == SIGTRAP;
     int isRecoverable = isNullPtrExn | isTrap;
     

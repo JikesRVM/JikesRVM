@@ -798,6 +798,10 @@ declare -i RVM_FOR_AIX=0	   # Implies PPC
 declare -i RVM_FOR_LINUX=0	   # Implies nothing.
 declare -i RVM_FOR_OSX=0	   # Implies PPC.
 
+# Does the OS protect low memory or will the RVM have to?
+# 
+declare -i RVM_WITH_EXPLICITLY_GUARDED_LOW_MEMORY=0 # Currently only AIX.
+
 # 32-bit or 64-bit address size
 #
 declare -i RVM_FOR_32_ADDR=0
@@ -1039,6 +1043,10 @@ fi
 
 if (( RVM_FOR_AIX || RVM_FOR_SINGLE_VIRTUAL_PROCESSOR == 1 )); then
     RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
+fi
+
+if (( RVM_FOR_AIX )); then
+    RVM_WITH_EXPLICITLY_GUARDED_LOW_MEMORY=1
 fi
 
 if (( RVM_FOR_OSX )); then
