@@ -261,14 +261,14 @@ implements VM_Uninterruptible, VM_Constants {
       if (current_thread != null) 
 	current_thread.startOfRealTime = real_time;
       if (hpm_trace) {
-	VM.sysWrite(" RT "); VM.sysWrite(real_time,false);
-	VM.sysWrite(" D "); VM.sysWrite(real_time_delta,false);
+	VM.sysWrite(" RT "); VM.sysWriteLong(real_time);
+	VM.sysWrite(" D "); VM.sysWriteLong(real_time_delta);
       }
       // dump counters
       for (int i=1; i<=n_counters; i++) {
 	long value = VM.sysCall_L_I(VM_BootRecord.the_boot_record.sysHPMgetCounterIP,i);
 	if (hpm_trace && value > 0) { 
-	  VM.sysWrite(" ",i,": ");VM.sysWrite(value,false); 
+	  VM.sysWrite(" ",i,": "); VM.sysWrite(value);
 	}
                         hpm_counters.counters[i] += value;// update virtual processor HPM counters
 	previous_thread.hpm_counters.counters[i] += value;// update thread HPM counters

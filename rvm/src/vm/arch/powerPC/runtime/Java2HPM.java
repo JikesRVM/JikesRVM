@@ -160,10 +160,10 @@ public class Java2HPM
     } else {
       VM.sysWrite("   sysCall accessTest(      ");
     }
-    VM.sysWrite(iterations,false);VM.sysWrite(",",cycle_counter);
+    VM.sysWriteInt(iterations);VM.sysWrite(",",cycle_counter);
     VM.sysWrite(")    time: total ",time);VM.sysWrite("ms (",averageTime);
-    VM.sysWrite("ns); cycles: ");VM.sysWrite(cycles,false);
-    VM.sysWrite("(",averageCycles);VM.sysWrite(")\n");
+    VM.sysWrite("ns); cycles: ");VM.sysWriteLong(cycles);
+    VM.sysWrite("(",averageCycles);VM.sysWriteln(")");
     //-#endif
   }
   /**
@@ -216,10 +216,10 @@ public class Java2HPM
     } else {
       VM.sysWrite("   sysCall AccessGetCounter(");
     }
-    VM.sysWrite(iterations,false);
+    VM.sysWriteInt(iterations);
     VM.sysWrite(", ",cycle_counter,", ",counter);
     VM.sysWrite(") time: total ",time);VM.sysWrite("ms (",averageTime);
-    VM.sysWrite("ns); cycles: ");VM.sysWrite(cycles,false);
+    VM.sysWrite("ns); cycles: ");VM.sysWriteLong(cycles);
     VM.sysWrite("(",averageCycles);VM.sysWrite(")\n");
     //-#endif
   }
