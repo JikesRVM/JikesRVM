@@ -117,8 +117,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     int parameterAreaSize = method.getParameterWords() << LOG_BYTES_IN_STACKSLOT;   // number of bytes of arguments
 
     // save return address in caller frame
-    asm.emitMFLR(0);
-    asm.emitSTAddr(0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);	
+    asm.emitMFLR(REGISTER_ZERO);
+    asm.emitSTAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);	
   
     //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     // buy mini frame (2)
@@ -259,8 +259,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // restore it and/or pop arguments off it.
     // So, just restore the return address to the link register.
 
-    asm.emitLAddr(0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); 
-    asm.emitMTLR (0);                           // restore return address
+    asm.emitLAddr(REGISTER_ZERO, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); 
+    asm.emitMTLR (REGISTER_ZERO);                           // restore return address
 
     // CHECK EXCEPTION AND BRANCH TO ATHROW CODE OR RETURN NORMALLY
 
@@ -467,8 +467,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	} else if (nextVMArgReg == LAST_VOLATILE_GPR) {
 	  // VM striding
 	  if (dstSpilling) {
-	    asmArg.emitLWZ(0, spillOffsetVM, FP);
-	    asmArg.emitSTW(0, regOrSpilling+4, FP);
+	    asmArg.emitLWZ(REGISTER_ZERO, spillOffsetVM, FP);
+	    asmArg.emitSTW(REGISTER_ZERO, regOrSpilling+4, FP);
 	    asmArg.emitSTW(nextVMArgReg, regOrSpilling, FP);
 	  } else {
 	    asmArg.emitLWZ(regOrSpilling + 1, spillOffsetVM, FP);
@@ -494,7 +494,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	if (nextVMArgReg <= LAST_VOLATILE_GPR) {
 	  srcreg = nextVMArgReg++;
 	} else {
-	  srcreg = 0;
+	  srcreg = REGISTER_ZERO;
 	  asmArg.emitLWZ(srcreg, spillOffsetVM, FP);
 	  spillOffsetVM += 4;
 	}
@@ -503,8 +503,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	if (nextAIXArgReg <= LAST_OS_PARAMETER_GPR) {
 	  asmArg.emitSUBFC(nextAIXArgReg++, PROCESSOR_REGISTER, KLUDGE_TI_REG);
 	} else {
-	  asmArg.emitSUBFC(0, PROCESSOR_REGISTER, KLUDGE_TI_REG);
-	  asmArg.emitSTW(0, spillOffsetAIX, FP);
+	  asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);
+	  asmArg.emitSTW(REGISTER_ZERO, spillOffsetAIX, FP);
 	  spillOffsetAIX += 4;
 	}
       } else {
@@ -519,8 +519,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	  spillOffsetAIX+=4;
 	} else {
 	  // (1c) spill VM register
-	  asmArg.emitLWZ(0,spillOffsetVM, FP);        // retrieve arg from VM spill area
-	  asmArg.emitSTW(0, spillOffsetAIX, FP);
+	  asmArg.emitLWZ(REGISTER_ZERO,spillOffsetVM, FP);        // retrieve arg from VM spill area
+	  asmArg.emitSTW(REGISTER_ZERO, spillOffsetAIX, FP);
 	  spillOffsetVM+=4;
 	  spillOffsetAIX+=4;
 	}
@@ -799,7 +799,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
         if (nextVMArgReg <= LAST_VOLATILE_GPR) {
           srcreg = nextVMArgReg++;
         } else {
-          srcreg = 0;
+          srcreg = REGISTER_ZERO;
           asmArg.emitLWZ(srcreg, spillOffsetVM, FP);
           spillOffsetVM += 4;
         }
@@ -808,8 +808,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
         if (nextOSXArgReg <= LAST_OS_PARAMETER_GPR) {
           asmArg.emitSUBFC(nextOSXArgReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);
         } else {
-          asmArg.emitSUBFC(0, PROCESSOR_REGISTER, KLUDGE_TI_REG);
-          asmArg.emitSTW(0, spillOffsetOSX, FP);
+          asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);
+          asmArg.emitSTW(REGISTER_ZERO, spillOffsetOSX, FP);
         }
       } else {
         spillSizeOSX = 4;
@@ -823,8 +823,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
           asmArg.emitSTW(nextVMArgReg++, spillOffsetOSX, FP);
         } else {
           // (1c) spill VM register
-          asmArg.emitLWZ(0,spillOffsetVM, FP);        // retrieve arg from VM spill area
-          asmArg.emitSTW(0, spillOffsetOSX, FP);
+          asmArg.emitLWZ(REGISTER_ZERO,spillOffsetVM, FP);        // retrieve arg from VM spill area
+          asmArg.emitSTW(REGISTER_ZERO, spillOffsetOSX, FP);
           spillOffsetVM+=4;
         }
       }
@@ -1026,8 +1026,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	  // (2c) run out of FPR in VM, now get the remaining args from the caller spill area 
 	  // and move them into the callee spill area
 	  spillOffsetVM+=BYTES_IN_STACKSLOT;
-	  asmArg.emitLFS(0, spillOffsetVM - BYTES_IN_FLOAT, FP); //Kris Venstermans: Attention, different calling convention !!
-	  asmArg.emitSTFS(0, spillOffsetAIX, FP);
+	  asmArg.emitLFS(FIRST_SCRATCH_FPR, spillOffsetVM - BYTES_IN_FLOAT, FP); //Kris Venstermans: Attention, different calling convention !!
+	  asmArg.emitSTFS(FIRST_SCRATCH_FPR, spillOffsetAIX, FP);
 	  spillOffsetAIX+=BYTES_IN_STACKSLOT;
 	}
       } else if (types[arg].isDoubleType()) {
@@ -1076,8 +1076,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	} else {
 	  // (2c) run out of FPR in VM, now get the remaining args from the caller spill area 
 	  // and move them into the callee spill area
-	  asmArg.emitLFD(0, spillOffsetVM , FP);
-	  asmArg.emitSTFD(0, spillOffsetAIX, FP);
+	  asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM , FP);
+	  asmArg.emitSTFD(FIRST_SCRATCH_FPR, spillOffsetAIX, FP);
 	  spillOffsetAIX+= BYTES_IN_DOUBLE;
 	  spillOffsetVM+=BYTES_IN_DOUBLE;
 	}
@@ -1111,14 +1111,14 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	  // (1d) split across VM/spill, spill in AIX
 	  asmArg.emitSTW(nextVMArgReg++, spillOffsetAIX, FP);
 	  spillOffsetAIX+=BYTES_IN_STACKSLOT;
-	  asmArg.emitLWZ(0, spillOffsetVM , FP);
-	  asmArg.emitSTW(0, spillOffsetAIX, FP);
+	  asmArg.emitLWZ(REGISTER_ZERO, spillOffsetVM , FP);
+	  asmArg.emitSTW(REGISTER_ZERO, spillOffsetAIX, FP);
 	  spillOffsetAIX+=BYTES_IN_STACKSLOT;
 	  spillOffsetVM+=BYTES_IN_STACKSLOT;
 	} else {
 	  // (1e) spill both in VM and AIX
-	  asmArg.emitLFD(0, spillOffsetVM, FP);
-	  asmArg.emitSTFD(0, spillOffsetAIX, FP);
+	  asmArg.emitLFD(FIRST_SCRATCH_FPR, spillOffsetVM, FP);
+	  asmArg.emitSTFD(FIRST_SCRATCH_FPR, spillOffsetAIX, FP);
 	  spillOffsetAIX+=2*BYTES_IN_STACKSLOT;
 	  spillOffsetVM+=2*BYTES_IN_STACKSLOT;
 	}
@@ -1134,15 +1134,15 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	} else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
 	  // (1b) spill AIX register, but still fit in VM register
 	  asmArg.emitSTAddrU(nextVMArgReg++, BYTES_IN_ADDRESS, KLUDGE_TI_REG);    // append ref to end of JNIRefs array
-	  asmArg.emitSUBFC(0, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // compute offset in bytes for jref
-	  asmArg.emitSTAddr(0, spillOffsetAIX, FP);       // spill into AIX frame
+	  asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // compute offset in bytes for jref
+	  asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetAIX, FP);       // spill into AIX frame
 	  spillOffsetAIX+=BYTES_IN_STACKSLOT;
 	} else {
 	  // (1c) spill VM register
-	  asmArg.emitLAddr(0, spillOffsetVM , FP);        // retrieve arg from VM spill area
-	  asmArg.emitSTAddrU(0, BYTES_IN_ADDRESS, KLUDGE_TI_REG);  // append ref to end of JNIRefs array
-	  asmArg.emitSUBFC(0, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // compute offset in bytes for jref
-	  asmArg.emitSTAddr(0, spillOffsetAIX, FP);       // spill into AIX frame
+	  asmArg.emitLAddr(REGISTER_ZERO, spillOffsetVM , FP);        // retrieve arg from VM spill area
+	  asmArg.emitSTAddrU(REGISTER_ZERO, BYTES_IN_ADDRESS, KLUDGE_TI_REG);  // append ref to end of JNIRefs array
+	  asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // compute offset in bytes for jref
+	  asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetAIX, FP);       // spill into AIX frame
 	  spillOffsetAIX+=BYTES_IN_STACKSLOT;
 	  spillOffsetVM+=BYTES_IN_STACKSLOT;
 	}
@@ -1161,8 +1161,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	  spillOffsetAIX+=BYTES_IN_STACKSLOT;
 	} else {
 	  // (1c) spill VM register
-	  asmArg.emitLAddr(0,spillOffsetVM, FP);        // retrieve arg from VM spill area
-	  asmArg.emitSTAddr(0, spillOffsetAIX, FP);
+	  asmArg.emitLAddr(REGISTER_ZERO,spillOffsetVM, FP);        // retrieve arg from VM spill area
+	  asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetAIX, FP);
 	  spillOffsetAIX+=BYTES_IN_STACKSLOT;
 	  spillOffsetVM+=BYTES_IN_STACKSLOT;
 	}
@@ -1291,9 +1291,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     // and save the return address in the previous frame
     //
     asm.emitLVAL(S0, INVISIBLE_METHOD_ID);
-    asm.emitMFLR(0);
+    asm.emitMFLR(REGISTER_ZERO);
     asm.emitSTW (S0, STACKFRAME_METHOD_ID_OFFSET, FP);
-    asm.emitSTAddr (0, JNI_GLUE_FRAME_SIZE + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    asm.emitSTAddr(REGISTER_ZERO, JNI_GLUE_FRAME_SIZE + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
 
     // Attempt to change the vpStatus of the current Processor to IN_JAVA
     // 
