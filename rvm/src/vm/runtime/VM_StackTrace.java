@@ -190,9 +190,37 @@ public class VM_StackTrace implements VM_Constants {
     try {
       print4Real(out, trigger);
     } catch (OutOfMemoryError e) {
-      VM.sysWriteln("VM_StackTrace.print(): *UNEXPECTED* out-of-memory error while displaying the stack trace.  I give up; what you see is what you got.");
-      /* Now, if we were triggered by an uncaught exception, processing will
-       * continue normally. */
+      //      if (out instanceof PrintContainer.VMSysWriteln)
+      if (out.isSystemErr()) {
+	VM.sysWriteln("VM_StackTrace.print(): Ran out of memory while dumping a stack trace to \"System.err\".  We will try again now, using the low-level \"VM.sysWrite()\"");
+	out = null;		// make the old "out" available to GC
+	try {
+	  out = new PrintContainer.VMSysWriteln();
+	} catch (OutOfMemoryError e2) {
+	  VM.sysWriteln("VM_StackTrace.print(): Out of memory AGAIN; can't even make a PrintContainer.VMSysWriteln(); I give up.");
+	  return;
+	} catch (Throwable t) {
+	  VM.sysWriteln("VM_StackTrace.print(): Random unexpected exception; bailing out.");
+	  return;
+	}
+	try {
+	  print4Real(out, trigger);
+	} catch (Throwable t) {
+	  VM.sysWriteln("VM_StackTrace.print(): More trouble while printing a stack trace via VM.sysWrite(); I give up.");
+	  return;
+	}
+      } else {
+	VM.sysWriteln("VM_StackTrace.print(): *UNEXPECTED* out-of-memory error while displaying the stack trace.  I give up; what you see is what you got.");
+	/* Now, if we were triggered by an uncaught exception, processing will
+	 * continue normally. */
+	return;
+      }
+    } catch (Throwable e) {
+      VM.sysWriteln("VM_StackTrace.print(): *UNEXPECTED* random exception while displaying the stack trace .  What I see is what I get.");
+      VM.sysWriteln(e.toString());
+      e.printStackTrace(new PrintContainer.VMSysWriteln());
+      // Again, proceed normally.
+      return;
     }
   }
 
@@ -271,10 +299,17 @@ public class VM_StackTrace implements VM_Constants {
 	if (newIndex > oldIndex) {
 	  i = newIndex;
 	  try {
-	    out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
+	    out.print("\t...");
+	    out.print(newIndex - oldIndex);
+	    out.println(" stackframes omitted.");
+	    // out.println("\t..." + (newIndex - oldIndex) + " stackframes omitted...");
 	  } catch (OutOfMemoryError e) {
-	    VM.sysWriteln("\t... <some stack frames elided (also, Out of memory)>");
-	    // VM.sysWriteln("VM_StackTrace.print(): Caught OutOfMemoryError while trying to display how many stack frames are omitted (elided).");
+	    if (out.isVMSysWriteln()) {
+	      VM.sysWriteln("\t... <some stack frames elided (also, Out of memory)>");
+	    } else {
+	      VM.sysWriteln("VM_StackTrace.print(): Caught OutOfMemoryError while trying to display how many stack frames are omitted (elided).");
+	      throw e;		// launch again, for our caller.
+	    }
 	  }
 	}
       }
@@ -292,9 +327,19 @@ public class VM_StackTrace implements VM_Constants {
 	}
       }
       catch (OutOfMemoryError e) {
-	// VM.sysWriteln("VM_StackTrace.print(): Caught OutOfMemoryError while printing one frame of stack trace; on to the next frame.");
-	VM.sysWriteln("\tat <one undisplayable stack frame (Out of Memory) >");
-	
+	// 
+	if (out.isVMSysWriteln()) {
+	  VM.sysWriteln("\tat <one undisplayable stack frame (Out of Memory) >");
+	} else {
+	  try {
+	    out.flush();
+	  } catch (OutOfMemoryError e2) {
+	    VM.sysWriteln("VM_StackTrace.print(): Caught OutOfMemoryError while flushing output.   Going on.");
+	  }
+	  // output's been flushed, I guess.
+	  VM.sysWriteln("VM_StackTrace.print(): Caught OutOfMemoryError while printing one frame of stack trace.");
+	  throw e;		// pass up to caller.
+	}
       }
     }
   }

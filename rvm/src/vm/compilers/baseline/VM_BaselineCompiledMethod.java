@@ -5,6 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.PrintLN; // not needed.
 
 /**
  * Compiler-specific information associated with a method's machine 
@@ -171,17 +172,27 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
 
   // Print this compiled method's portion of a stack trace 
   // Taken:   offset of machine instruction from start of method
-  //          the PrintStream to print the stack trace to.
-  public final void printStackTrace (VM_Offset instructionOffset, com.ibm.JikesRVM.PrintLN out) {
+  //          the PrintLN to print the stack trace to.
+  public final void printStackTrace(VM_Offset instructionOffset, 
+				    PrintLN out) 
+  {
+    out.print("\tat ");
+    out.print(method.getDeclaringClass()); // VM_Class
+    out.print('.');
+    out.print(method.getName()); // a VM_Atom, returned via VM_MemberReference.getName().
+    out.print("(");
+    out.print(method.getDeclaringClass().getSourceName()); // a VM_Atom
     int lineNumber = findLineNumberForInstruction(instructionOffset);
     if (lineNumber <= 0) {      // unknown line
-      out.println("\tat " + method + " (offset: " + VM.intAsHexString(instructionOffset.toInt())
-		  + ")");
-    } else {      // print class name + method name + file name + line number
-      out.println("\tat " + method.getDeclaringClass().getDescriptor().classNameFromDescriptor()
-		  + "." + method.getName() + " (" + method.getDeclaringClass().getSourceName()
-		  + ":" + lineNumber + ")");
+      out.print("; offset: ");
+      out.printHex(instructionOffset.toInt());
+      out.println(")");
+    } else {
+      out.print(':');
+      out.print(lineNumber);
     }
+    out.print(')');
+    out.println();
   }
 
   /**

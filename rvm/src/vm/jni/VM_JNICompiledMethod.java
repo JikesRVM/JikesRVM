@@ -51,8 +51,11 @@ final class VM_JNICompiledMethod extends VM_CompiledMethod {
   public final void printStackTrace(VM_Offset instructionOffset, com.ibm.JikesRVM.PrintLN out) {
     if (method != null) {
       // print name of native method
-      out.println("\tat " + method.getDeclaringClass().getDescriptor().classNameFromDescriptor()
-		  + "." + method.getName() + " (native method)");
+      out.print("\tat ");
+      out.print(method.getDeclaringClass());
+      out.print(".");
+      out.print(method.getName());
+      out.println(" (native method)");
     } else {
       out.println("\tat <native method>");
     }

@@ -164,30 +164,39 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
         VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
-        int lineNumber = m.getLineNumberForBCIndex(bci);
-        out.println("\tat " 
-		    + m.getDeclaringClass().getDescriptor().classNameFromDescriptor()
-		    + "." + m.getName() + " (" + 
-		    m.getDeclaringClass().getSourceName() + ":" + 
-		    lineNumber + ")");
+        int lineNumber = m.getLineNumberForBCIndex(bci); // might be 0 if unavailable.
+	out.print("\tat");
+	out.print(m.getDeclaringClass());
+	out.print('.');
+	out.print(m.getName());
+	out.print('(');
+	out.print(m.getDeclaringClass().getSourceName());
+	out.print(':');
+	out.print(lineNumber);
+	out.print(')');
+	out.println();
         if (j > 0) {
           bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
         }
       }
     } else {
-      out.println("\tat " 
-		  + method.getDeclaringClass().getDescriptor().
-		  classNameFromDescriptor()
-		  + "." + method.getName() + " (" 
-		  + method.getDeclaringClass().getSourceName()
-		  + ": machine code offset " + 
-		  VM.intAsHexString(instructionOffset.toInt())
-		  + ")");
+	out.print("\tat");
+	out.print(method.getDeclaringClass());
+	out.print('.');
+	out.print(method.getName());
+	out.print('(');
+	out.print(method.getDeclaringClass().getSourceName());
+	out.print("; machine code offset: ");
+	out.printHex(instructionOffset.toInt());
+	out.print(')');
+	out.println();
     }
   }
 
-  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"));
+  private static final VM_TypeReference TYPE
+    = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+				    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"));
+
   public final int size() throws VM_PragmaInterruptible {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     size += _mcMap.size();
