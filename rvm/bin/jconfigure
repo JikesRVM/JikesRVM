@@ -644,19 +644,9 @@ function emitSourceList
       # collector specific classes
       #
    if (( $RVM_WITH_COPYING_GC )); then
-      if (( $RVM_WITH_GENERATIONAL_GC )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/copyGen
-      else
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/semispace
-      fi
-   elif (( $RVM_WITH_HYBRID_GC )); then
-         print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/hybrid
+      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/semispace
    elif (( $RVM_WITH_NONCOPYING_GC )); then
       print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/markAndSweep
-   elif (( $RVM_WITH_REALTIME_GC )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/realtime
-   elif (( $RVM_WITH_NO_GC )); then
-      print $RVM_ROOT/rvm/src/vm/memoryManagers/watson/noGC
    fi
    fi
 
