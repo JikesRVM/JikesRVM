@@ -476,7 +476,10 @@ public class VM_FileSystem {
     dirName.getBytes(0, dirName.length(), asciiName, 0);
 
     // fill buffer with list of null terminated names, resizing as needed to fit
-    // (list will be in filesystem character set, assume ascii for now)
+    // (List will be in filesystem character set, assume that this is the
+    //  same as the default charset -- this, like every other Unix program,
+    //  will not handle it very well if someone is operating in UTF-8 but has
+    //  a filesystem whose names are encoded in ISO-8859-1.)
     //
     byte[] asciiList;
     int    len;
@@ -508,7 +511,7 @@ public class VM_FileSystem {
     String names[] = new String[cnt];
     for (int beg = 0, end = cnt = 0; beg < len; beg = end + 1) {
       for (end = beg; asciiList[end] != 0; ++end);
-      names[cnt++] = new String(asciiList, 0, beg, end - beg);
+      names[cnt++] = new String(asciiList, beg, end - beg);
     }
 
     return names;
