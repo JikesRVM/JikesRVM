@@ -438,7 +438,9 @@ pattern is explained below.
 \item {\tt COST}: the cost of matching the pattern as opposed to skipping
 it.  It is a Java\trademark expression that evaluates to an integer.
 \item {\tt FLAGS}: specifies whether the rule actually represents a sequence
-of instructions (1) or a transformation of operands (0)
+of instructions (EMIT\_INSTRUCTION) or a transformation of operands
+(NOFLAGS). Other flags can be used to control the order of code
+generation of a node's children.
 \item {\tt TEMPLATE}: Java code to emit
 \end{itemize}
 
@@ -449,7 +451,7 @@ expressed in the following way:
 \begin{verbatim}
 stm:    INT_STORE(INT_ADD_ACC(INT_LOAD(r,riv),riv),OTHER_OPERAND(r, riv))
 ADDRESS_EQUAL(P(p), PLL(p), 17)
-1
+EMIT_INSTRUCTION
 EMIT(MIR_BinaryAcc.mutate(P(p), IA32_ADD, MO_S(P(p), DW), \
                           BinaryAcc.getValue(PL(p))));
 \end{verbatim}
