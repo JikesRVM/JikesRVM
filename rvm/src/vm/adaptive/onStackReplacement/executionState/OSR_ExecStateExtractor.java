@@ -30,11 +30,11 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
    * on the top of a thread stack, (or a list of descriptors for an inlined
    * method).  
    *
-   * @param thread, a suspended RVM thread
-   * @param tsFromFPoff, the frame pointer offset of the threadSwitchFrom method
-   * @param ypTakenFPoff, the frame pointer offset of the real method where 
+   * @param thread a suspended RVM thread
+   * @param tsFromFPoff the frame pointer offset of the threadSwitchFrom method
+   * @param ypTakenFPoff the frame pointer offset of the real method where 
    *                      yield point was taken. tsFrom is the callee of ypTaken
-   * @param cmid, the compiled method id of ypTaken
+   * @param cmid the compiled method id of ypTaken
    */
   public abstract OSR_ExecutionState extractState(VM_Thread thread, 
                                            int tsFromFPoff,

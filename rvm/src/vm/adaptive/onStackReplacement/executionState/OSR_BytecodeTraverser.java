@@ -74,7 +74,7 @@ public class OSR_BytecodeTraverser implements VM_BytecodeConstants,
    * to verify if a local is a reference or not.
    * 
    * @param method whose bytecode to be queried
-   * @param pc     the bytecode index which is the interesting point
+   * @param bcpoint the bytecode index which is the interesting point
    *               at the mean time, we only support one PC.
    * @return whether the pc is a valid program point of the method
    */
