@@ -253,7 +253,10 @@ public class BuildJNIFunctionTable {
   private static final int NEWWEAKGLOBALREF              =  226;           
   private static final int DELETEWEAKGLOBALREF           =  227;               
   private static final int EXCEPTIONCHECK                =  228;           
-
+  /* Added in JNI 1.4: */
+  private static final int NEWDIRECTBYTEBUFFER		 =  229;
+  private static final int GETDIRECTBUFFERADDRESS	 =  230;
+  private static final int GETDIRECTBUFFERCAPACITY	 =  231;
 
   /**
    * Construct the JNIFuntionTable.
@@ -524,6 +527,9 @@ public class BuildJNIFunctionTable {
     names[NEWWEAKGLOBALREF]              = "NewWeakGlobalRef";              // JDK 1.2, #226
     names[DELETEWEAKGLOBALREF]           = "DeleteWeakGlobalRef";           // JDK 1.2, #227
     names[EXCEPTIONCHECK]                = "ExceptionCheck";                // JDK 1.2, #228
+    names[NEWDIRECTBYTEBUFFER]		 = "NewDirectByteBuffer";           // JDK 1.4, #229
+    names[GETDIRECTBUFFERADDRESS]        = "GetDirectBufferAddress";	    // JDK 1.4, #230
+    names[GETDIRECTBUFFERCAPACITY]       = "GetDirectBufferCapacity";	    // JDK 1.4, #231
 
     return names;
   }
