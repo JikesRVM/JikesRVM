@@ -149,7 +149,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   public static final int getInitialHeaderValue(EXTENT bytes)
     throws VM_PragmaInline {
-    return losCollector.getInitialHeaderValue(bytes);
+    return losSpace.getInitialHeaderValue(bytes);
   }
 
   protected final byte getSpaceFromAllocator (Allocator a) {
@@ -259,7 +259,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
       case NURSERY_SPACE:       return Copy.isLive(obj);
       case LOW_MATURE_SPACE:    return (!fullHeapGC) || Copy.isLive(obj);
       case HIGH_MATURE_SPACE:   return (!fullHeapGC) || Copy.isLive(obj);
-      case LOS_SPACE:       return losCollector.isLive(obj);
+      case LOS_SPACE:       return losSpace.isLive(obj);
       case IMMORTAL_SPACE:  return true;
       case BOOT_SPACE:	    return true;
       case META_SPACE:	    return true;

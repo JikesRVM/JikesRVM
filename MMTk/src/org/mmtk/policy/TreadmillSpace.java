@@ -25,9 +25,9 @@ import com.ibm.JikesRVM.VM_JavaHeader;
  * thread (i.e. synchronization must be explicit in any instance or
  * class method).
  *
- * This stands in contrast to TreadmillThread, which is instantiated
+ * This stands in contrast to TreadmillLocal, which is instantiated
  * and called on a per-thread basis, where each instance of
- * TreadmillThread corresponds to one thread operating over one space.
+ * TreadmillLocal corresponds to one thread operating over one space.
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
@@ -83,7 +83,7 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * @param thread The treadmill thread instance through which
    * this instance was allocated.
    */
-  public final void postAlloc(VM_Address cell, TreadmillThread thread)
+  public final void postAlloc(VM_Address cell, TreadmillLocal thread)
     throws VM_PragmaInline {
     thread.treadmill.addToFromSpace(Treadmill.payloadToNode(cell));
   }

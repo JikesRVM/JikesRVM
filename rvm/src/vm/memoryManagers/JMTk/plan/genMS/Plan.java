@@ -246,7 +246,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
     switch (space) {
       case NURSERY_SPACE:   return Copy.isLive(obj);
       case MATURE_SPACE:    return (!fullHeapGC) || matureCollector.isLive(obj);
-      case LOS_SPACE:       return losCollector.isLive(obj);
+      case LOS_SPACE:       return losSpace.isLive(obj);
       case IMMORTAL_SPACE:  return true;
       case BOOT_SPACE:	    return true;
       case META_SPACE:	    return true;

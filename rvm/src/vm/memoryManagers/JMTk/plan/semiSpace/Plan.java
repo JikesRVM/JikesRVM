@@ -68,7 +68,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static MemoryResource losMR;
 
   // large object space (LOS) collector
-  private static TreadmillSpace losCollector;
+  private static TreadmillSpace losSpace;
 
   // GC state
   private static boolean hi = false; // True if allocing to "higher" semispace
@@ -105,7 +105,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // allocators
   public BumpPointer ss;
-  private TreadmillThread los;
+  private TreadmillLocal los;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -124,7 +124,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     ss0VM = new MonotoneVMResource(LOW_SS_SPACE, "Lower SS", ssMR, LOW_SS_START, SS_SIZE, VMResource.MOVABLE);
     ss1VM = new MonotoneVMResource(HIGH_SS_SPACE, "Upper SS", ssMR, HIGH_SS_START, SS_SIZE, VMResource.MOVABLE);
     losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
-    losCollector = new TreadmillSpace(losVM, losMR);
+    losSpace = new TreadmillSpace(losVM, losMR);
 
     addSpace(LOW_SS_SPACE, "Lower Semi-Space");
     addSpace(HIGH_SS_SPACE, "Upper Semi-Space");
@@ -137,7 +137,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public Plan() {
     ss = new BumpPointer(ss0VM);
-    los = new TreadmillThread(losCollector);
+    los = new TreadmillLocal(losSpace);
   }
 
   /**
@@ -289,7 +289,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final int getInitialHeaderValue(EXTENT bytes)
     throws VM_PragmaInline {
-    return losCollector.getInitialHeaderValue(bytes);
+    return losSpace.getInitialHeaderValue(bytes);
   }
 
   /**
@@ -342,7 +342,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     // prepare each of the collected regions
     Copy.prepare(((hi) ? ss0VM : ss1VM), ssMR);
     Immortal.prepare(immortalVM, null);
-    losCollector.prepare(losVM, losMR);
+    losSpace.prepare(losVM, losMR);
   }
 
   /**
@@ -391,7 +391,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   protected final void globalRelease() {
     // release each of the collected regions
-    losCollector.release();
+    losSpace.release();
     ((hi) ? ss0VM : ss1VM).release();
     Copy.release(((hi) ? ss0VM : ss1VM), ssMR);
     Immortal.release(immortalVM, null);
@@ -425,7 +425,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     switch (space) {
       case LOW_SS_SPACE:    return   hi  ? Copy.traceObject(obj) : obj;
       case HIGH_SS_SPACE:   return (!hi) ? Copy.traceObject(obj) : obj;
-      case LOS_SPACE:       return losCollector.traceObject(obj);
+      case LOS_SPACE:       return losSpace.traceObject(obj);
       case IMMORTAL_SPACE:  return Immortal.traceObject(obj);
       case BOOT_SPACE:	    return Immortal.traceObject(obj);
       case META_SPACE:	    return obj;
@@ -485,7 +485,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     switch (space) {
       case LOW_SS_SPACE:    return Copy.isLive(obj);
       case HIGH_SS_SPACE:   return Copy.isLive(obj);
-      case LOS_SPACE:       return losCollector.isLive(obj);
+      case LOS_SPACE:       return losSpace.isLive(obj);
       case IMMORTAL_SPACE:  return true;
       case BOOT_SPACE:	    return true;
       case META_SPACE:	    return true;

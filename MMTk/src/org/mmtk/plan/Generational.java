@@ -72,7 +72,7 @@ public abstract class Generational extends StopTheWorldGC
   protected static MemoryResource losMR;
 
   // large object space (LOS) collector
-  protected static TreadmillSpace losCollector;
+  protected static TreadmillSpace losSpace;
 
   // GC state
   protected static boolean fullHeapGC = false;
@@ -113,7 +113,7 @@ public abstract class Generational extends StopTheWorldGC
 
   // allocators
   protected BumpPointer nursery;
-  protected TreadmillThread los;
+  protected TreadmillLocal los;
 
   // write buffer (remembered set)
   protected WriteBuffer remset;
@@ -142,7 +142,7 @@ public abstract class Generational extends StopTheWorldGC
     if (Plan.usesLOS) {
       losMR = new MemoryResource("los", POLL_FREQUENCY);
       losVM = new FreeListVMResource(LOS_SPACE, "LOS", LOS_START, LOS_SIZE, VMResource.IN_VM);
-      losCollector = new TreadmillSpace(losVM, losMR);
+      losSpace = new TreadmillSpace(losVM, losMR);
       addSpace(LOS_SPACE, "LOS Space");
     }
   }
@@ -152,7 +152,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   public Generational() {
     nursery = new BumpPointer(nurseryVM);
-    if (Plan.usesLOS) los = new TreadmillThread(losCollector);
+    if (Plan.usesLOS) los = new TreadmillLocal(losSpace);
     remset = new WriteBuffer(locationPool);
   }
 
@@ -380,7 +380,7 @@ public abstract class Generational extends StopTheWorldGC
     if (fullHeapGC) {
       Statistics.gcMajorCount++;
       // prepare each of the collected regions
-      if (Plan.usesLOS) losCollector.prepare(losVM, losMR);
+      if (Plan.usesLOS) losSpace.prepare(losVM, losMR);
       globalMaturePrepare();
       Immortal.prepare(immortalVM, null);
     }
@@ -457,7 +457,7 @@ public abstract class Generational extends StopTheWorldGC
     nurseryVM.release();
     locationPool.flushQueue(1); // flush any remset entries collected during GC
     if (fullHeapGC) {
-      if (Plan.usesLOS) losCollector.release();
+      if (Plan.usesLOS) losSpace.release();
       globalMatureRelease();
       Immortal.release(immortalVM, null);
     }
@@ -498,7 +498,7 @@ public abstract class Generational extends StopTheWorldGC
     if (!fullHeapGC)
 	return obj;
     switch (space) {
-        case LOS_SPACE:         return losCollector.traceObject(obj);
+        case LOS_SPACE:         return losSpace.traceObject(obj);
         case IMMORTAL_SPACE:    return Immortal.traceObject(obj);
         case BOOT_SPACE:	return Immortal.traceObject(obj);
         case META_SPACE:	return obj;

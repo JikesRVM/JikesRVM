@@ -33,7 +33,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class TreadmillThread extends LargeObjectAllocator
+final class TreadmillLocal extends LargeObjectAllocator
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -60,7 +60,7 @@ final class TreadmillThread extends LargeObjectAllocator
    * @param space The treadmill space to which this thread instance is
    * bound.  The space's VMResource and MemoryResource are used.
    */
-  TreadmillThread(TreadmillSpace space_) {
+  TreadmillLocal(TreadmillSpace space_) {
     super(space_.getVMResource(), space_.getMemoryResource());
     space = space_;
     treadmill = new Treadmill(VMResource.PAGE_SIZE, true);

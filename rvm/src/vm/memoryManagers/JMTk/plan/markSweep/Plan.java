@@ -92,7 +92,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // allocators
   private MarkSweepLocal ms;
-  private TreadmillThread los;
+  private TreadmillLocal los;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -122,7 +122,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public Plan() {
     ms = new MarkSweepLocal(msSpace, this);
-    los = new TreadmillThread(losSpace);
+    los = new TreadmillLocal(losSpace);
   }
 
   /**
