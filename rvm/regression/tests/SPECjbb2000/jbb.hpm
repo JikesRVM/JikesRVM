@@ -1,0 +1,458 @@
+#!/bin/ksh
+#
+# (C) copyright IBM Corp. 2001
+#
+# This shell script executes the AOS configuration of an adaptive JikesRVM 
+# image with HPM and without adaptive inlining for a particular SPECjvm98 benchmark.
+#
+# Parameters:
+#   config          configuration file
+#   numProcessors   number of processors    
+#   group number    what events to count
+#   mode            mode of counting
+#   execution       execution number
+#
+# CONSTRAINT:
+# Expect RVM_BUILD to be set to an adaptive configuration.
+#
+# @author: Brendon Cahoon
+# @author: Peter F. Sweeney
+
+export RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U.watrg1
+export RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix5.1.MC4U.watrg1
+
+echo "RVM_HOST_CONFIG: $RVM_HOST_CONFIG"
+
+if [[ $# = 0 || $1 = -help || $# < 1 ]] then
+  more <<EOF
+   
+  This shell script executes JikesRVM image for SPECjbb.
+
+  Normally it is invoked as:
+    $0 config|+ numProcs|+ settings|+ mode|+ execution
+
+  Where 
+    config        configuration file (default is SPEC_1.1.1.props)
+    numProc       number of processors.
+    		  The default is 1.   
+    setting       What events to count.  Default is 1.
+                   630 : 1 
+		   604e: 2 tlb, 3 cache, 4 ld/st, 5 branch, 6 floating-point, 7 general
+		   Power4: 400*SLICE0                  402*BASIC      403*IFU        404*ISU
+			   405*LSOURCE   406*ISOURCE   407*LSU        408*XLATE1     409*XLATE2
+		                                                                     414*FPU1
+			   415*FPU2      416 IDU1      417*IDU2       418*ISU_RENAM  419*ISU_Q
+		           420 ISU_FLOW                422*SERIALIZE  423*LSU BUSY   424 LSOURCE2
+			   425 LSOURCE3  426 ISOURCE2  427 ISOURCE3   428*FPU3       429*FPU4
+			   430*FPU5      431*FPU6      432*FPU7       433*FXU        434*LSU_LMQ
+			   435 LSU_FLUSH 436*LSU_LOAD1 437*LSU_STORE1 438 LSU_STORE2 439*LSU7
+					 441*MISC
+					               452 THRESHOLD
+		           455 branch    456 L1 & TLB  457 L2         458 L3
+    mode          Mode: 1 IS_GROUP, 2 PROCESS, 4 KERNEL, 8 USER, 16 COUNT, 32 PROCTREE
+                  Default is 13 (IS_GROUP & KERNEL & USER).
+    execution     An integer used to differentiate executions.
+                  Default is 0.
+EOF
+exit 1
+fi
+
+benchmark=jbb
+#####################################
+# Determine events
+config=SPEC_1.1.1.props
+if [[ $# = 1 || $# > 1 ]]; then
+  if [[ $1 != '+' ]]; then
+    config=$1
+  fi
+fi
+
+#####################################
+# Determine events
+numProcs=1
+if [[ $# = 2 || $# > 2 ]]; then
+  if [[ $2 != '+' ]]; then
+    numProcs=$2
+  fi
+fi
+
+machine_type=""
+hpm_event1=0
+hpm_event2=0
+hpm_event3=0
+hpm_event4=0
+hpm_event5=0
+hpm_event6=0
+hpm_event7=0
+hpm_event8=0
+#####################################
+# Determine events
+setting=10
+if [[ $# = 3 || $# > 3 ]]; then
+  if [[ $3 != '+' ]]; then
+    setting=$3
+  fi
+fi
+
+if   [[ $setting = 1 ]]; then
+  # RS64-III
+  machine_type="RS64-III"
+  hpm_event1=10  # PM_L1_ICACHE_MISS_LATENCY
+  hpm_event2=10  # PM_L1_ICACHE_MISS
+  hpm_event3=3   # PM_CMPL_INSTR
+  hpm_event4=1   # PM_CYC
+  hpm_event5=14  # PM_TLB_MISS_LATENCY
+  hpm_event6=12  # PM_L1_DCACHE_MISS_LATENCY
+  hpm_event7=12  # PM_L1_DCACHE_MISS
+  hpm_event8=2   # PM_ST_LATENCY
+#
+# 604e
+#
+elif [[ $setting = 2 ]]; then
+  # 604e: tlb
+  machine_type="604e"
+  hpm_event1=6	# PM_DTLB_MISS
+  hpm_event2=7	# PM_ITLB_MISS
+  hpm_event3=1	# PM_CYC
+  hpm_event4=2	# PM_INST_CMPL
+elif [[ $setting = 3 ]]; then
+  # 604e: cache
+  machine_type="604e"
+  hpm_event1=5	# PM_IC_MISS
+  hpm_event2=6	# PM_DC_MISS
+  hpm_event3=1	# PM_CYC
+  hpm_event4=2	# PM_INST_CMPL
+elif [[ $setting = 4 ]]; then
+  # 604e: ld/st
+  machine_type="604e"
+  hpm_event1=2	# PM_INST_CMPL
+  hpm_event2=18	# PM_LD_CMPL
+  hpm_event3=1	# PM_CYC
+  hpm_event4=9	# PM_INST_INTO_SQ
+elif [[ $setting = 5 ]]; then
+  # branch
+  machine_type="604e"
+  hpm_event1=7	# PM_BR_MPRED
+  hpm_event2=6	# PM_BR_CMPL
+  hpm_event3=1	# PM_CYC
+  hpm_event4=2	# PM_INST_CMPL
+elif [[ $setting = 6 ]]; then
+ # 604e: floating-point
+  machine_type="604e"
+  hpm_event1=15	# PM_FPU_CMPL
+  hpm_event2=4	# PM_INST_DISP
+  hpm_event3=1	# PM_CYC
+  hpm_event4=2	# PM_INST_CMPL
+elif [[ $setting = 7 ]]; then
+  # 604e: general
+  machine_type="604e"
+  hpm_event1=6	# PM_DTLB_MISS
+  hpm_event2=6	# PM_DC_MISS
+		# 5 PM_LD_MISS_CYC
+  hpm_event3=2 # PM_INST_CMPL
+  hpm_event4=1 # PM_CYC
+#
+# POWER4
+#
+elif [[ $setting = 400 ]]; then
+  # Group  0   pm_slice0	Time Slice 0
+  #  1 RUN_CYC            2 CYC                3 STOP_COMPLETION    4 INST_CMPL
+  #  5 1+PPC_CMPL         6 CYC                7 GRP_CMPL           8 GRP_DISP_REJECT
+  machine_type="P4"
+  hpm_event1=0
+  setting=0
+elif [[ $setting = 402 ]]; then
+  # Group  2   pm_basic		Basic performance indicators
+  #  1 INST_CMPL          2 CYC                3 LD_MISS_L1         4 DC_INV_L2
+  #  5 INST_DISP          6 INST_CMPL          7 ST_REF_L1          8 LD_REF_L1
+  machine_type="P4"
+  hpm_event1=2
+  setting=2
+elif [[ $setting = 403 ]]; then
+  # Group  3   pm_ifu		IFU (instruction fetch unit) events
+  #  1 INST_CMPL          2 BIQ_IDU_FULL_CYC   3 BR_ISSUED          4 BR_MPRED_CR
+  #  5 INST_FETCH_CYC     6 CYC                7 BR_MPRED_TA        8 L1_WRITE_CYC
+  machine_type="P4"
+  hpm_event1=3
+  setting=3
+elif [[ $setting = 404 ]]; then
+  # Group  4   pm_isu		ISU Queue full events
+  #  1 FPR_MAP_FULL_CYC   2 BRQ_FULL_CYC       3 GPR_MAP_FULL_CYC   4 INST_CMPL
+  #  5 FPU_FULL_CYC       6 GCT_FULL_CYC       7 CYC                8 FXLS_FULL_CYC
+  machine_type="P4"
+  hpm_event1=4
+  setting=4
+elif [[ $setting = 405 ]]; then
+  # Group  5   pm_dsource		Data        Source Information 
+  #  1 DATA_FROM_L3       2 DATA_FROM_MEM      3 DATA_FROM_L35      4 DATA_FROM_L2
+  #  5 DATA_FROM_L25_SHR  6 DATA_FROM_L275_SHR 7 DATA_FROM_L275_MOD 8 DATA_FROM_L25_MOD
+  machine_type="P4"
+  hpm_event1=5
+  setting=5
+elif [[ $setting = 406 ]]; then
+  # Group  6   pm_isource		Instruction Source Information
+  #  1 INST_FROM_MEM      2 INST_FROM_L25_L275 3 INST_FROM_L2       4 INST_FROM_L35
+  #  5 INST_FROM_L3       6 INST_FROM_L1       7 INST_FROM_PREF     8 0INST_FETCH
+  machine_type="P4"
+  hpm_event1=6
+  setting=6
+elif [[ $setting = 407 ]]; then
+  # Group  7   pm_lsu		Information on load store unit
+  # LSU flush rates, load and store L1 dcache accesses
+  #  1 LSU_FLUSH_ULD      2 LSU_FLUSH_UST      3 CYC                4 INST_CMPL
+  #  5 LSU_FLUSH_SRQ      6 LSU_FLUSH_LRQ      7 ST_REF_L1          8 LD_REF_L1
+  machine_type="P4"
+  hpm_event1=7
+  setting=7
+elif [[ $setting = 408 ]]; then
+  # Group  8   pm_xlate1		Translation Events (average table walk)
+  # ITLB and DTLB miss rates, DERAT miss rate, tablewalk average
+  #  1 ITLB_MISS          2 DTLB_MISS          3 Data_TABLEWALK_CYC 4 LSU_LMQ_S0_VALID
+  #  5 IERAT_XLATE_WR     6 LSU_DERAT_MISS     7 INST_CMPL          8 CYC
+  machine_type="P4"
+  hpm_event1=8
+  setting=8
+elif [[ $setting = 409 ]]; then
+  # Group  9   pm_xlate2		Translation Events
+  # ISLB and DSLB miss rates, DERAT miss rate
+  #  1 ISLB_MISS          2 DSLB_MISS          3 LSU_SRQ_SNC_CYC    4 LSU_LMQ_S0_ALLOC
+  #  5 IERAT_XLATE_WR     6 LSU_DERAT_MISS     7 INST_CMPL          8 CYC
+  machine_type="P4"
+  hpm_event1=9
+  setting=9
+elif [[ $setting = 414 ]]; then
+  # Group  14   pm_fpu1			Floating Point Events
+  # ISLB and DSLB miss rates, DERAT miss rate
+  #  1 FPU_FDIV           2 FPU_FMA            3 FPU_FEST           4 FPU_FIN
+  #  5 CYC                6 FPU_FSQRT          7 INST_CMPL          8 FPU_FMOV_FEST
+  machine_type="P4"
+  hpm_event1=14
+  setting=14
+elif [[ $setting = 415 ]]; then
+  # Group  15   pm_fpu2			Floating Point Events
+  #  1 FPU_DENORM         2 FPU_STALL3         3 CYC                4 INST_CMPL
+  #  5 FPU_ALL            6 FPU_STF            7 FPU_FRSP_FCONV     8 LSU_LDF
+  machine_type="P4"
+  hpm_event1=15
+  setting=15
+elif [[ $setting = 416 ]]; then
+  # Group  17   pm_idu1			Instruction decode unit events
+  # Instruction queue utilization, group dispatch success
+  #  1 INST_CMPL          2 CYC                3 1INST_CLB_CYC      4 2INST_CLB_CYC
+  #  5 1PLUS_PPC_CMPL     6 CYC                7 3INST_CLB_CYC      8 4INST_CLB_CYC
+  machine_type="P4"
+  hpm_event1=17
+  setting=17
+elif [[ $setting = 417 ]]; then
+  # Group  17   pm_idu2			Instruction decode unit events
+  # Instruction queue utilization, group dispatch success
+  #  1 INST_CMPL          2 CYC                3 5INST_CLB_CYC      4 6INST_CLB_CYC
+  #  5 GRP_DISP_SUCCESS   6 CYC                7 7INST_CLB_CYC      8 8INST_CLB_CYC
+  machine_type="P4"
+  hpm_event1=17
+  setting=17
+elif [[ $setting = 418 ]]; then
+  # Group  18   pm_isu_rename		ISU Rename Pool Events
+  # ISLB and DSLB miss rates, DERAT miss rate
+  #  1 XER_MAP_FULL_CYC    2  CR_MAP_FULL_CYC   3 CRQ_FULL_CYC       4 GRP_DISP_BLK_SB_CYC
+  #  5 LR_CTR_MAP_FULL_CYC 6 INST_DISP          7 INST_CMPL          8 CYC
+  machine_type="P4"
+  hpm_event1=18
+  setting=18
+elif [[ $setting = 419 ]]; then
+  # Group  19   pm_isu_queues1		ISU Queue full Events
+  # LS and FPU queues full, LRQ and SRQ full
+  #  1 FPU0_FULL_CYC       2 FPU1_FULL_CYC      3 FXLS0_FULL_CYC     4 FXLS1_FULL_CYC
+  #  5 CYC                 6 INST_CMPL          7 LSU_LRQ_FULL_CYC   8 LSU_SRQ_FULL_CYC
+  machine_type="P4"
+  hpm_event1=19
+  setting=19
+elif [[ $setting = 420 ]]; then
+  # Group  20   pm_isu_flow		ISU Instruction flow Events
+  # Group dispatch, FXU finished
+  #  1 INST_DISP           2 CYC                3 FXU0_FIN           4 FXU1_FIN
+  #  5 GRP_DISP_VALID      6 GRP_DISP_REJECT    7 INST_CMPL          8 CYC
+  machine_type="P4"
+  hpm_event1=20
+  setting=20
+elif [[ $setting = 422 ]]; then
+  # Group 22    pm_serialize		LSU Serializing Events
+  #  1 SNOOP_TLBIE        2 STCX_FAIL         3 STCX_PASS         4 CYC
+  #  5 1+PPC_CMPL         6  INST_CMPL        7 LARX_LSU0         8 LARX_LSU1
+  machine_type="P4"
+  hpm_event1=22
+  setting=22
+elif [[ $setting = 423 ]]; then
+  # Group 23    pm_lsubusy		LSU Busy Events
+  #  1 LSU_SRQ_S0_VALID   2 LSU_SRQ_S0_ALLOC  3 LSU0_BUSY         4 LSU1_BUSY
+  #  5 LSU_LRQ_S0_VALID   6 LSU_LRQ_S0_ALLOC  7 INST_CMPL         8 CYC
+  machine_type="P4"
+  hpm_event1=23
+  setting=23
+elif [[ $setting = 425 ]]; then
+  # Group 25    pm_lsource3		Data source information
+  #  1 DATA_FROM_L3          2 DATA_FROM_MEM      3 DATA_FROM_L35      4 DATA_FROM_L2
+  #  5 L1_DCCHE_RELOAD_VALID 6 CYC                7 DATA_FROM_L275_MOD 8 INST_CMPL
+  machine_type="P4"
+  hpm_event1=25
+  setting=25
+elif [[ $setting = 427 ]]; then
+  # Group  27   pm_isource3		Instruction Source Information*
+  #  1 INST_FROM_MEM      2 INST_FROM_L5_L275  3 INST_FROM_L2       4 INST_FROM_L35
+  #  5 INST_FROM_L3       6 INST_FROM_L1       7 CYC                8 INST_CMPL
+  machine_type="P4"
+  hpm_event1=27
+  setting=27
+elif [[ $setting = 428 ]]; then
+  # Group  28   pm_fpu3			Floating Point events by unit
+  #  1 FPU0_FDIV          2 FPU1_FDIV          3 FPU0_FRSP_FCONV    4 FPU1_FRSP_FCONV
+  #  5 FPU0_FMA           6 FPU1_FMA           7 INST_CMPL          8 CYC
+  machine_type="P4"
+  hpm_event1=28
+  setting=28
+elif [[ $setting = 429 ]]; then
+  # Group  29   pm_fpu4			Floating Point events by unit
+  #  1 FPU0_FSQRT         2 FPU1_FSQRT         3 FPU0_FIN           4 FPU1_FIN
+  #  5 FPU0_ALL           6 FPU1_ALL           7 INST_CMPL          8 CYC
+  machine_type="P4"
+  hpm_event1=29
+  setting=29
+elif [[ $setting = 430 ]]; then
+  # Group 30    pm_fpu5			Floating Point events by unit
+  #  1 FPU0_DENORM        2 FPU1_DENORM        3 FPU0_FMOV_FEST     4 FPU1_FMOV_FEST
+  #  5 CYC                6 INST_CMPL          7 FPU0_FEST          8 FPU1_FEST
+  machine_type="P4"
+  hpm_event1=30	
+  setting=30
+elif [[ $setting = 431 ]]; then
+  # Group 31    pm_fpu6			Floating Point events by unit
+  #  1 FPU0_SINGLE        2 FPU1_SINGLE        3 LSU0_LDF           4 LSU1_LDF
+  #  5 FPU0_STF           6 FPU0_STF           7 CYC                8 INST_CMPL
+  machine_type="P4"
+  hpm_event1=31	
+  setting=31
+elif [[ $setting = 432 ]]; then
+  # Group 32    pm_fpu7			Floating Point events by unit
+  #  1 FPU0_STALL3        2 FPU1_STALL3        3 FPU0_FIN           4 FPU1_FIN
+  #  5 CYC                6 INST_CMPL          7 CYC                8 FPU0_FPSCR
+  machine_type="P4"
+  hpm_event1=32	
+  setting=32
+elif [[ $setting = 433 ]]; then
+  # Group 33    pm_fxu			Fix Point Unit Events
+  #  1 INST_CMPL          2 CYC              3 FXU_FIN              4 FXU1_BUSY_FXU0_IDLE
+  #  5 FXU_IDLE           6 FXU_BUSY         7 FXU0_BUSY_FXU1_IDLE  8 FXLS_FULL_CYC
+  machine_type="P4"
+  hpm_event1=33	
+  setting=33
+elif [[ $setting = 434 ]]; then
+  # Group 34    pm_lsu_lmq		LSU Load Miss Queue Events
+  #  1 LSU_LMQ_LHR_MERGE  2 LSU_LMQ_FULL_CYC  3 LSU_LMQ_S0_ALLOC  4 LSU_LMQ_S0_VALID
+  #  5 CYC,               6 INST_CMPL         7 LSU_SRQ_SYNC_CYC  8 DATA_TABLEWALK_CYC
+  machine_type="P4"
+  hpm_event1=34	
+  setting=34
+elif [[ $setting = 436 ]]; then
+  # Group 36    pm_lsu_load1		LSU Load Events
+  #  1 LSU0_FLUSH_ULD     2 LSU1_FLUSH_ULD    3 LD_REF_L1_LSU0    4 LD_REF_L1_LSU1
+  #  5 CYC                6 INST_CMPL         7 LD_MISS_L1_LSU0   8 LD_MISS_L1_LSU1
+  machine_type="P4"
+  hpm_event1=36	
+  setting=36
+elif [[ $setting = 437 ]]; then
+  # Group 37    pm_lsu_store1		LSU Store Events
+  #  1 LSU0_FLUSH_UST     2 LSU1_FLUSH_UST    3 ST_REF_L1_LSU0    4 ST_REF_L1_LSU1
+  #  5 CYC                6 INST_CMPL         7 ST_MISS_L1        8 DC_INV_L2
+  machine_type="P4"
+  hpm_event1=37	
+  setting=37
+elif [[ $setting = 439 ]]; then
+  # Group 39    pm_lsu7			Information on Load store unit
+  #  1 LSU0_DERAT_MISS        2 LSU1_DERAT_MISS   3 CYC               4 CYC
+  #  5 L1_DCACHE_RELOAD_VALID 6 CYC               7 INST_CMPL         8 CYC
+  machine_type="P4"
+  hpm_event1=39	
+  setting=39
+elif [[ $setting = 441 ]]; then
+  # Group 41    pm_misc			Misc Events for testing
+  #  1 GCT_EMPTY_CYC     2 LSU_LMQ_SRQ_EMPTY_CYC 3 HV_CYC         4 CYC
+  #  5 1+PPC_CMPL        6 INST_CMPL             7 GRP_CMPL       8 TB_BIT_TRANS
+  machine_type="P4"
+  hpm_event1=41	
+  setting=41
+elif [[ $setting = 455 ]]; then
+  # Group 55    pm_pe_bench3 	Branch analysis
+  #  1 INST_CMPL          2 BIQ_IDU_FULL_CYC  3 BR_ISSUED         4 BR_MPRED_CR
+  #  5 BRQ_FULL_CYC       6 CYC               7 BR_MPRED_TA       8 L1_WRITE_CYC
+  machine_type="P4"
+  hpm_event1=55	
+  setting=55
+elif [[ $setting = 456 ]]; then
+  # Group 56    pm_pe_bench4 	L1 and TLB analysis
+  #  1 DTLB_MISS          2 ITLB_MISS         3 LD_MISS_L1        4 ST_MISS_L1
+  #  5 CYC                6 INST_CMPL         7 ST_REF_L1         8 LD_REF_L1
+  machine_type="P4"
+  hpm_event1=56	
+  setting=56
+elif [[ $setting = 457 ]]; then
+  # Group 57    pm_pe_bench5	L2 analysis
+  #  1 INST_CMPL          2 CYC                3 DATA_FROM_L35      4 MRK_DATA_FROM_L2
+  #  5 DATA_FROM_L25_SHR  6 DATA_FROM_L275_SHR 7 DATA_FROM_L275_MOD 8 DATA_FROM_L25_MOD
+  machine_type="P4"
+  hpm_event1=57
+  setting=57
+elif [[ $setting = 458 ]]; then
+  # group 58 pm_pe_bench6	L3 analysis
+  #  1 DATA_FROM_L3       2 DATA_FROM_MEM     3 DATA_FROM_L35      4 DATA_FROM_L2
+  #  5 DATA_FROM_L25_SHR  6 CYC               7 INST_CMPL          8 DATA_FROM_L25_MOD
+  machine_type="P4"
+  hpm_event1=58
+  setting=58
+else 
+  echo "setting $setting is invalid"
+  exit -1
+fi
+
+#####################################
+# mode settings:
+# IS_GROUP    1	/* is an event group (only event 1 should be defined) */
+# PROCESS     2	/* process level group indicator */
+# KERNEL      4	/* turns kernel mode counting on */
+# USER        8	/* turns user mode counting on */
+# COUNT      16	/* counting state */
+# PROCTREE   32	/* turns process tree counting on */
+hpm_mode=13
+if [[ $# = 4 || $# > 4 ]]; then
+  if [[ $4 != '+' ]]; then
+    hpm_mode=$4
+  fi
+fi
+#####################################
+# mode settings:
+# IS_GROUP    1	/* is an event group (only event 1 should be defined) */
+# PROCESS     2	/* process level group indicator */
+# KERNEL      4	/* turns kernel mode counting on */
+# USER        8	/* turns user mode counting on */
+# COUNT      16	/* counting state */
+# PROCTREE   32	/* turns process tree counting on */
+execution=0
+if [[ $# = 5 || $# > 5 ]]; then
+  if [[ $5 != '+' ]]; then
+    execution=$5
+  fi
+fi
+
+echo "\nHPM events: 1=$hpm_event1, 2=$hpm_event2, 3=$hpm_event3, 4=$hpm_event4, 5=$hpm_event5, 6=$hpm_event6, 7=$hpm_event7, 8=$hpm_event8; mode: $hpm_mode; execution: $execution\n"
+
+# 4 processors
+#largeHeap=128
+# smallHeap=512
+# 8 processors
+largeHeap=256
+smallHeap=1024
+
+echo "./run.test -jvmopts "-X:lh=$largeHeap -X:h=$smallHeap" -hpmopts "-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4 -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7 -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=0 -X:hpm:filename=data/HPM.$config.$machine_type.$setting.$execution" -outdir test.changes -extra BBWS.$setting.all -sequence 1 -nprocs $numProcs -props $config"
+      ./run.test -jvmopts "-X:lh=$largeHeap -X:h=$smallHeap" -hpmopts "-X:hpm:event1=$hpm_event1 -X:hpm:event2=$hpm_event2 -X:hpm:event3=$hpm_event3 -X:hpm:event4=$hpm_event4 -X:hpm:event5=$hpm_event5 -X:hpm:event6=$hpm_event6 -X:hpm:event7=$hpm_event7 -X:hpm:event8=$hpm_event8 -X:hpm:mode=$hpm_mode -X:hpm:verbose=0 -X:hpm:filename=data/HPM.$config.$machine_type.$setting.$execution -X:hpm:trace=true" -outdir test.changes -extra BBWS.$setting.all -sequence 1 -nprocs $numProcs -props $config > data/HPM.$config.$machine_type.$setting.$execution.output
+
+# 
+
