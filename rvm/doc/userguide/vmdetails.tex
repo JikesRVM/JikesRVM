@@ -286,8 +286,8 @@ categorized into four types:
      registers will not be used to pass parameters.)
 
 \item[Condition Register's 4-bit fields]
-We follow the AIX conventions to minimize cost in JNI C to Java
-transitions. 
+We follow the AIX conventions to minimize cost in JNI transitions
+between C and Java code. 
 \begin{description}
 \item[CR0, CR1, CR5, CR6, CR7] volatile
 \item[CR2, CR3, CR4] non-volatile
@@ -295,7 +295,7 @@ transitions.
 The baseline compiler only uses CR0.  The opt compiler allocates CR0,
 CR1, CR5 and CR6 and reserves CR7 for use in yieldpoints.  None of the
 compilers use CR2, CR3, or CR4 to avoid saving/restoring condition
-registers when doing a JNI transition from C to Java. 
+registers when doing a JNI transition from C to Java code. 
 \end{description}
 
 

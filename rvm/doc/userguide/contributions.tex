@@ -5,16 +5,16 @@ submitting a contribution to JMTk.
 
 \subsection{JMTk Contributions}
 
-We encourage contributions to JMTk either in the form of additional
+We encourage contributions to JMTk in any of these forms: additional
 components or collectors, generalization of architecture,
 and instrumentation infrastructure.  Because of the sometimes significant
 maintenance cost of memory managers, we expect submitted contributions
-to adhere to the following guidelines.
+to adhere to the following guidelines:
 
 
 \begin{enumerate}
 
-\item{Coding style}  
+\item {\bf Coding style}  
 JMTk judiciously uses modularity and abstraction to lower maintenance
 cost and increase code clarity.  We expect contributions, especially
 large ones, to follow the same discipline.  Specifically, we highly
@@ -26,14 +26,14 @@ communication with the rest of the VM should occur only through the
 classes {\tt VM\_Interface} and {\tt MM\_Interface} and certain magic classes
 ({\tt VM\_Address}, {\tt VM\_Word}, {\tt VM\_Offset}, and {\tt VM\_Extent}).
 
-\item{Being up-to-date}  
+\item {\bf Being up-to-date}  
 Contributions should be with respect to CVS head or something
 reasonably close at least for the affected files.
 
-\item{Stability}  
+\item { \bf Stability}  
 New collectors or components are expected to be stable with respect to
 all GC tests on multiple platforms and on SMP's with both strong ({\it
-e.g.} Intel) and weak ({\it e.g.} Power) memory models.  Contributions
+e.g.} \IntelR{}) and weak ({\it e.g.} Power) memory models.  Contributions
 that are not collectors but provide new functionality such as
 instrumentation should provide their own regression tests.
 We expect submitted collectors to work for all regression tests.
@@ -42,7 +42,7 @@ testing with the following test suites: bytecodeTests, gctest,
 \SPECjvmR{}98, and \SPECjbbR{}2000.  See section~\ref{sec:regression}
 for more details.
 
-\item{Timely Maintenance}  
+\item {\bf Timely Maintenance}  
 The contributor of a significant contribution is expected to be the
 advocate of the system and will fix the submitted components if and
 when defects are discovered.  We expect serious failures (failure rate
@@ -51,7 +51,7 @@ failure rate or non-deterministic failures) should be fixed before a
 release.  The core team will strive to announce planned releases with
 at least 3 weeks notice.
 
-\item{Advocacy Change}  
+\item {\bf Advocacy Change}  
 If the contributor does not wish to maintain the contributed
 component, then the core team may or may not choose to take over
 responsibility of the system.  The former is more likely if the

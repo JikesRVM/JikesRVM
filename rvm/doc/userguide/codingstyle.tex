@@ -1,4 +1,5 @@
-The vast majority of Jikes RVM's source code is in Java ($\approx 1049$
+The vast majority of Jikes RVM's source code is in the Java
+programming language ($\approx 1049$
 source files as of this writing.)  This section describes a set of
 coding style guidelines that we recommend for all Java code added to
 \JikesTM{} RVM.
@@ -23,7 +24,7 @@ because they're an independent subsystem, but the rest of \jrvm{} does.
 \label{assertions}
 
 Partly for historical reasons, we use our own built-in assertion
-facility rather than the one that appeared in Sun's JDK 1.4.   All
+facility rather than the one that appeared in \SunR's JDK 1.4.   All
 assertion checks have one of the two forms:
 \begin{example}
 \tt{}    if (VM.VerifyAssertions)  VM._assert({\it condition}
@@ -145,13 +146,13 @@ that's how we get {\tt VM.VerifyAssertions}, etc.
 \index{Javadoc}
 
 All files should contain descriptive comments
-in Javadoc form (
+in \JavadocTM{} form (
 \xlink{{\tt \JavadocURL}} {\JavadocURL}
 ) so
 that documentation can be generated automatically.  Of course,
 additional non-Javadoc source code comments should appear as
 appropriate.
-For Javadoc, at a minimum,
+% For Javadoc, at a minimum,
 
 \begin{enumerate}
 \item All classes and methods should have a block comment describing

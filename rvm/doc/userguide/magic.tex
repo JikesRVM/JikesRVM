@@ -1,7 +1,7 @@
 This section provides information on ``magic'' which is an escape
 hatch that \JikesTM{} RVM provides to implement
 functionality that is not 
-possible in pure \JavaTM{}.  For example, the Jikes RVM garbage
+possible using the pure \JavaTM{} programming language.  For example, the Jikes RVM garbage
 collectors and 
 runtime system must, on occasion, access memory or perform unsafe
 casts.  Users are {\it strongly} discouraged from using magic in their code
@@ -34,7 +34,7 @@ The optimizing compiler performs aggressive inlining and code motion
 and not explictly marking such dangerous regions in one of these two
 manners will lead to disaster.
 
-Since magic is inexpressible in Java, it is unsurprising that the
+Since magic is inexpressible in the Java programming language , it is unsurprising that the
 bodies of {\tt VM\_Magic} methods are undefined.  Instead, for each of
 these methods, the Java instructions to generate the code is stored in
 \xlink{{\tt OPT\_GenerateMagic}}{\OPTGenerateMagicURL} and 
@@ -55,7 +55,8 @@ represent addresses but this approach had several shortcomings.
 First, the lack of abstraction makes porting nightmarish.  Equally
 important is that Java type {\tt int} is signed whereas address are
 more appropriately considered unsigned.  The difference is problematic
-since an unsigned comparison on {\tt int} is inexpressible in Java.
+since an unsigned comparison on {\tt int} is inexpressible in the Java
+programming language.
 
 To overcome these problems, instances of {\tt VM\_Address} are used to
 represent addresses.  The class supports the expected well-typed

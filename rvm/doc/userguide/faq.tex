@@ -16,7 +16,7 @@ flexible testbed that makes it possible to quickly prototype new
 virtual machine technologies and experiment with different design
 choices.  Jikes RVM executes \JavaTM\ programs useful for research on
 fundamental virtual machine design issues.
-It runs on \AIXTM/\PowerPCTM,
+It runs on \AIXTM{}/\PowerPCTM{},
 \LinuxR{}/PowerPC, and Linux/IA-32, 
 and exhibits industry-strength performance for many benchmark programs
 on these platforms.  Jikes RVM includes the latest VM
@@ -116,7 +116,7 @@ RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR?}
 Jikes RVM can be built to support either $m$-to-$n$ or $m$-to-$1$
 threading.  In $m$-to-$n$ threading
 (RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equals 0), the virtual machine
-multiplexes $m$ Java 
+multiplexes $m$ Java {\tt Thread}s
 onto $n$ virtual processors (operating system pthreads).
 In $m$-to-$1$ threading (RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equals 1),
 all $m$ Java threads run on a single virtual processor.  Jikes RVM 
@@ -209,7 +209,7 @@ libraries support it.
 We believe we support it to the extent that the 
 \xlink{GNU Classpath}{\classpathURL}  
 libraries support it. We have noticed that sometimes it doesn't
-work exactly the same as in the Sun class library.
+work exactly the same as in the \SunR{} class library.
 
 \subsubsection{Does RVM enforce the Java Memory Model?}
 
@@ -438,8 +438,9 @@ add phases to class
 \subsubsection{What if I want my pass to do inter-procedural analysis?}
 
 \index{IPA: inter-procedural analysis}
-The normal RVM does not have a convenient entrypoint for IPA.  As Java is
-a dynamic language, the RVM continually compiles methods as they are
+The normal RVM does not have a convenient entrypoint for IPA.  Because the
+Java programming language is
+dynamic, the RVM continually compiles methods as they are
 invoked.  Each method is compiled individually.
 
 You can use the {\tt OptTestHarness} driver to define a set of classes. 
@@ -461,11 +462,15 @@ certain options.
 
 \subsection{Regression Tests}
 
-\subsubsection{Where can I order or download the test programs 
-\SPECjvmRheading{}98 and \SPECjbbRheading{}2000?}
+\W \subsubsection{Where can I order or download the test programs 
+\W \SPECjvmR{}98 and \SPECjbbR{}2000?}
+\T \subsubsection{Where can I order or download the test programs 
+\T  \SPECjvmRheading{}98 and \SPECjbbRheading{}2000?}
 
-\index{\SPECjvmR{}98}
-\index{\SPECjbbR{}2000}
+%\index[SPECjvm98]{\SPECjvmR{}98}
+%\index[SPECjbb2000]{\SPECjbbR{}2000}
+\index{SPECjvm98}
+\index{SPECjbb98}
 Information for ordering the \SPECR{} benchmark suites can be found at
 \xlink{http://www.spec.org}{\SPECURL}.
 As you'll see from the site, there is a non-trivial charge for getting the

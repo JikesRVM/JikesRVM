@@ -1,5 +1,5 @@
-Some of the code in Jikes RVM is run through a preprocessor before the
-real Java compiler ever sees it.  As of July, 2003, preprocessor
+Some of the code in \JikesTM{} RVM is run through a preprocessor before the
+real \JavaTM{}-to-byte-code compiler ever sees it.  As of July, 2003, preprocessor
 constructs are in 128 of Jikes RVM's 1045 Java source files.
 
 \subsection{Usage}
@@ -128,7 +128,7 @@ using the rest of Jikes RVM.
 
 \subsection{Why use a preprocessor?}
 
-Java has a conditional compilation idiom that tries to make up for its
+The Java programming language has a conditional compilation idiom that tries to make up for its
 lack of a preprocessor.  In the idiom, a programmer can
 declare a {\tt final boolean} constant such as {\it on\_platform\_xyz}
 and then write {\tt if} statements using that constant, such as:
@@ -141,7 +141,8 @@ if ({\it on\_platform\_xyz}) \{
 This is a good substitute in many cases.  However, it doesn't work for
 Jikes RVM; we need to (for example) work with processor words in some of
 the code.  On some platforms they're 64 bits long (a Java {\tt long})
-and on some they're 32 bits long (a Java {\tt int}).  Java has no way,
+and on some they're 32 bits long (a Java {\tt int}).  The Java
+programming language has no way,
 using the conditional compilation idiom, to write methods that return
 a {\tt long} in some situations and a {\tt int} in others.
 

@@ -101,8 +101,8 @@ data collected from the instrumentation of methods.
 \item[listeners:] classes that contain methods that 
 are called when application samples,
 based on yield points, are taken.  These samples occur when a Java
-thread calls into the Jikes RVM scheduler to perform a context switch
-to another Java thread.  The sample is taken before the thread switch occurs.
+{\tt Thread} calls into the Jikes RVM scheduler to perform a context switch
+to another Java {\tt Thread}.  The sample is taken before the thread switch occurs.
 See the 
 \xlink{{\tt threadSwitch}}{\VMThreadthreadSwitchURL} method in
 {\tt \$RVM\_ROOT/rvm/src/vm/scheduler/VM\_Thread} for details.
@@ -113,7 +113,7 @@ VM\_MethodListener}}{\VMMethodListenerURL}) and call edge
 samples to aid in inlining decisions (\xlink{{\tt
 VM\_EdgeListener}}{\VMEdgeListenerURL}).  
 
-\item[organizers:]  classes related to separate Java threads that
+\item[organizers:]  classes related to separate Java {\tt Thread}s that
 process samples or other raw profile data.  There may be many
 organizers active at the same time.
 For example, one organizer may process method samples 
@@ -146,8 +146,8 @@ To add or modify the command-line options in {\tt
 VM\_AOSOptions.java}, you must modify either {\tt BooleanOptions.dat},
 {\tt ValueOptions.dat}, {\tt ShareBooleanOptions.dat}, or {\tt
 ShareValueOptions.dat}.  You should describe your desired command-line
-option in a format described in
-Section~\ref{section:cmdline}.  The options in the {\tt
+option as discussed \link{in the command-line arguments
+section}[ (Appendix~\Ref)]{section:cmdline}.  The options in the {\tt
 ShareBooleanOptions.dat} and {\tt ShareValueOptions.dat} files are
 defined as both AOS and optimizing compiler options.
 

@@ -40,7 +40,7 @@
 %%     Jun, 2003: 2.2.2
 %%     Aug, 2003: 2.3.0
 %%     Sep, 2003: 2.3.0.1
-\newcommand{\version}{Post 2.3.0.1(CVS Head)}
+\newcommand{\version}{2.3.0.1}
 \newcommand{\classpathversion}{0.06}
 \newcommand{\jp}{Jalape\~{n}o}
 \newcommand{\jrvm}{Jikes RVM}
@@ -51,6 +51,7 @@
 
 %Define URLs
 \newcommand{\RVMHomeURL}{http://www.ibm.com/developerworks/oss/jikesrvm}
+\newcommand{\RVMBugReportURL}{http://www.ibm.com/developerworks/oss/jikesrvm/solutions}
 \newcommand{\JalapenoHomeURL}{http://www.research.ibm.com/jalapeno}
 \newcommand{\QandAURL}{{\RVMHomeURL}/info/overview.shtml}
 \newcommand{\RVMPubsURL}{{\RVMHomeURL}/info/pubs.shtml}
@@ -245,10 +246,9 @@
 \T \remarktrue
 \W \newcommand{\remark}[1]{}
 
-%% \title{\texonly{\vfill} {\huge The Jikes\JikesTMFootnote\  % --augart
 \title{\texonly{\vfill} {\huge The \JikesTM{} 
 Research Virtual Machine \\
-User's Guide} \\ {\huge \version} \\ { } \texonly{\vfill} }
+User's Guide} \\ {\huge Post \version (CVS Head)}\\ { } \texonly{\vfill} }
 
 \makeindex
 
@@ -259,10 +259,10 @@ User's Guide} \\ {\huge \version} \\ { } \texonly{\vfill} }
 
 \T \JikesTMFooter
 
+\T \newpage
 %% \T \ifthenelse{\boolean{TMOnOwnPage}}{
-%%   \T \newpage
-%%   \T \input{trademarks}
-%%   \T \cleardoublepage
+   \T \input{trademarks}
+   \T \cleardoublepage
 %% \T }{}
 
 \label{hlxtoc}
@@ -378,10 +378,12 @@ User's Guide} \\ {\huge \version} \\ { } \texonly{\vfill} }
 \label{appendix:nonadaptive:cmdline}
 \input{cmdline}
 
+\T \newpage
 \section{Appendix B: Jikes RVM Licenses}
 \label{appendix:licenses}
 \input{licenses}
 
+\T \newpage
 \section{Appendix C: JMTk Contributions}
 \label{appendix:contributions}
 \input{contributions}
