@@ -486,12 +486,6 @@ public abstract class Generational extends StopTheWorldGC
     int minNursery = (Options.nurseryPages < MAX_INT) ? Options.nurseryPages : DEFAULT_MIN_NURSERY;
     fullHeapGC = (getPagesAvail() < minNursery);
     if (getPagesReserved() + required >= getTotalPages()) {
-      if (!progress) {
-	VM.sysWrite("getPagesReserved() = ", getPagesReserved());
-	VM.sysWrite("required = ", required);
-	VM.sysWrite("getTotalPages() = ", getTotalPages());
- 	VM.sysFail("Out of memory");
-      }
       progress = false;
     } else
       progress = true;
