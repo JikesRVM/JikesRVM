@@ -1035,13 +1035,13 @@ createJVM(int vmInSeparateThread)
    action.sa_sigaction = cTrapHandler;
    action.sa_flags     = SA_ONSTACK | SA_SIGINFO | SA_RESTART;
    /* mask all signals during signal handling */
-   if (sigfillset(&(action.sa_mask)) 
+   if (sigfillset(&(action.sa_mask)))
    {
      fprintf(SysErrorFile, "%s: sigfillset failed (errno=%d)\n", me, errno);
      return 1;
    }
    /* exclude the signal used to poke pthreads */
-   if (sigdelset(&(action.sa_mask, SIGCONT)) 
+   if (sigdelset(&(action.sa_mask, SIGCONT)))
    {
      fprintf(SysErrorFile, "%s: sigdelset failed (errno=%d)\n", me, errno);
      return 1;
