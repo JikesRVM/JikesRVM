@@ -113,7 +113,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * @param val the lower 32 bits of long constant (upper32 are 0).
    */
   protected final void emit_lconst(int val) {
-    asm.emitPUSH_Imm(0);  // high part
+    asm.emitPUSH_Imm(0);    // high part
     asm.emitPUSH_Imm(val);  //  low part
   }
 
@@ -3516,9 +3516,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
     
     if (methodName == VM_MagicNames.getTimeBase) {
-      asm.emitRDTSC();  // read timestamp counter instruction
-      asm.emitPUSH_Reg(EDX); // upper 32 bits
-      asm.emitPUSH_Reg(EAX); // lower 32 bits
+      asm.emitRDTSC();       // read timestamp counter instruction
+      // The documentation suggests that we should be pushing these
+      // in the reverse order.  However, this is what actually works. --dave
+      asm.emitPUSH_Reg(EAX); // lower 32 bits ??
+      asm.emitPUSH_Reg(EDX); // upper 32 bits ??
       return true;
     }
 

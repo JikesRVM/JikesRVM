@@ -526,8 +526,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     OPT_Register highReg = result.register;
     OPT_Register lowReg = regpool.getSecondReg(highReg);
     EMIT(MIR_RDTSC.create(IA32_RDTSC, R(getEAX()),R(getEDX())));
-    EMIT(MIR_Move.create(IA32_MOV, R(lowReg), R(getEAX())));
-    EMIT(MIR_Move.create(IA32_MOV, R(highReg), R(getEDX())));
+    EMIT(MIR_Move.create(IA32_MOV, R(highReg), R(getEAX())));
+    EMIT(MIR_Move.create(IA32_MOV, R(lowReg), R(getEDX())));
   }
 
   /**
