@@ -4,18 +4,20 @@
 //$Id$
 
 /*
- * The opt compiler's (or at least the front end of the opt compiler)
- * interface to the host "virtual machine" classloader data structures.
+ * The opt compiler's interface to the host "virtual machine" 
+ * classloader data structures.
  *  
  * @author Doug Lorch (retired)
  * @author Dave Grove
  */
 public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
+
   /**
    * The classloader to be used.
    * Must be set during OPT_Compiler initialization.
    */
   public static OPT_ClassLoaderProxy proxy;
+
   /*
    * Cache references to frequently used VM_Class and VM_Array objects 
    * in a common places
@@ -55,20 +57,6 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
   // --------------------------------------------------------------------------
   // Creating/finding instances of classloader classes
   // --------------------------------------------------------------------------
-  /**
-   * Does a "new" of a subclass of VM_Array named by des.
-   */
-  public abstract VM_Array createArray (VM_Atom des);
-
-  /**
-   * Does a "new" of a subclass of VM_Class named by des.
-   */
-  public abstract VM_Class createClass (VM_Atom des);
-
-  /**
-   * Does a "new" of a subclass of VM_Primitive named by des.
-   */
-  public abstract VM_Primitive createPrimitive (VM_Atom des);
 
   /**
    * Find (creating if it doesn't already exist) the VM_Type
@@ -79,11 +67,6 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
   // --------------------------------------------------------------------------
   // Querry classloader data structures
   // --------------------------------------------------------------------------
-  /**
-   * Determines whether "cls" implements "interf".
-   */
-  public abstract boolean classImplementsInterface (VM_Type cls, 
-                                                    VM_Type interf);
 
   /**
    * Returns a common superclass of the two types.
@@ -93,31 +76,31 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
    */
   public VM_Type findCommonSuperclass (VM_Type t1, VM_Type t2) {
     if (t1 == t2)
-      return  t1;
+      return t1;
     if (t1.isPrimitiveType() && t2.isPrimitiveType()) {
-      VM_Type type = null;
       if (t1.isIntLikeType() && t2.isIntLikeType()) {
         if (t1.isAddressType() || t2.isAddressType())
-          return  VM_Type.AddressType;
+          return VM_Type.AddressType;
         if (t1.isIntType() || t2.isIntType())
-          return  VM_Type.IntType;
+          return VM_Type.IntType;
         if (t1.isCharType() || t2.isCharType())
-          return  VM_Type.CharType;
+          return VM_Type.CharType;
         if (t1.isShortType() || t2.isShortType())
-          return  VM_Type.ShortType;
+          return VM_Type.ShortType;
         if (t1.isByteType() || t2.isByteType())
-	    return  VM_Type.IntType;  // XXX is this right?
+	    return VM_Type.ByteType;
       }
-      return  null;
+      return null;
     }
     if (!((t1.isReferenceType() || t1.isAddressType()) && 
 	  (t2.isReferenceType() || t2.isAddressType())))
-      return  null;
+      return null;
     // can these next two cases happen?
     if (t1 == NULL_TYPE)
-      return  t2;
+      return t2;
     if (t2 == NULL_TYPE)
-      return  t1;
+      return t1;
+
     if (OPT_IRGenOptions.DBG_TYPE)
       VM.sysWrite("finding common supertype of " + t1 + " and " + t2);
     // Strip off all array junk.
@@ -138,7 +121,7 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
         type = type.getArrayTypeForElementType();
       if (OPT_IRGenOptions.DBG_TYPE)
         VM.sysWrite("one is a primitive array, so supertype is " + type);
-      return  type;
+      return type;
     }
     // neither is a primitive, and they are not both array types.
     if (!t1.isClassType() || !t2.isClassType()) {
@@ -147,9 +130,8 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
       while (arrayDimensions-- > 0)
         type = type.getArrayTypeForElementType();
       if (OPT_IRGenOptions.DBG_TYPE)
-        VM.sysWrite("differing dimensionalities for arrays, so supertype is "
-            + type);
-      return  type;
+        VM.sysWrite("differing dimensionalities for arrays, so supertype is " + type);
+      return type;
     }
     // they both must be class types.
     // technique: push heritage of each type on a separate stack,
@@ -184,7 +166,7 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
         VM.sysWrite("common supertype of the two classes is " + best);
       while (arrayDimensions-- > 0)
         best = best.getArrayTypeForElementType();
-      return  best;
+      return best;
     } else {
       if (OPT_IRGenOptions.DBG_TYPE && !c1.isLoaded())
         VM.sysWrite(c1 + " is not loaded, using Object as common supertype");
@@ -193,30 +175,36 @@ public abstract class OPT_ClassLoaderProxy implements OPT_Constants {
       VM_Type common = VM_Type.JavaLangObjectType;
       while (arrayDimensions-- > 0)
         common = common.getArrayTypeForElementType();
-      return  common;
+      return common;
     }
   }
 
   /**
+   * Compile time type inclusion test for use by the opt compiler.
+   * This routine will never load classes to answer a type inclusion question.
+   * The child type is interpreted as representing a type and all of its 
+   * subtypes (ie the type is not assumed to be precise). <p>
+   * 
    * Return OPT_Constants.YES if the parent type is defintely a supertype
-   *    of the child type.
-   * <p> Return OPT_Constants.NO if the parent type is definitely not a 
-   *     supertype of the child type.
-   * <p> Return OPT_Constants.MAYBE if the question cannot be currently answered
-   *    (for example if one/both of the classes is not resolved)
+   *    of the child type. <p>
+   * Return OPT_Constants.NO if the parent type is definitely not a 
+   *    supertype of the child type.<p>
+   * Return OPT_Constants.MAYBE if the question cannot be currently answered
+   *    (for example if one/both of the classes is not resolved or one of the 
+   *     types is an interface and there are "overlapping cones").<p>
    *
-   * <p> Takes into account the special 'null-type', which corresponds to a null
-   * constant.
+   * Understands the special 'null-type', which corresponds to a null constant.<p>
    *
    * @param parentType parent type
    * @param childType child type
    * @return OPT_Constants.YES, OPT_Constants.NO, or OPT_Constants.MAYBE
    */
-  public abstract byte isAssignableWith (VM_Type parentType, VM_Type childType);
+  public abstract byte includesType (VM_Type parentType, VM_Type childType);
 
   // --------------------------------------------------------------------------
   // Constant pool access
   // --------------------------------------------------------------------------
+
   /**
    * Create an int constant operand to represent the specified 
    * constant pool entry

@@ -50,32 +50,6 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
   // --------------------------------------------------------------------------
   // Creating/finding instances of classloader classes
   // --------------------------------------------------------------------------
-  /**
-   * Create an instance of a VM_Array
-   * @param des String descriptor of the array
-   * @return the VM_Array corresponding to the descriptor
-   */
-  public VM_Array createArray (VM_Atom des) {
-    throw  new OPT_OptimizingCompilerException("must not be called in Jikes RVM -- all VM_Array instances are created by VM_ClassLoader");
-  }
-
-  /**
-   * Create an instance of a VM_Class
-   * @param des String descriptor of the class
-   * @return the VM_Class corresponding to the descriptor
-   */
-  public VM_Class createClass (VM_Atom des) {
-    throw  new OPT_OptimizingCompilerException("must not be called in Jikes RVM -- all VM_Class instances are created by VM_ClassLoader");
-  }
-
-  /**
-   * Create an instance of a VM_Primitive
-   * @param des String descriptor of the primitive
-   * @return the VM_Primitive corresponding to the descriptor
-   */
-  public VM_Primitive createPrimitive (VM_Atom des) {
-    throw  new OPT_OptimizingCompilerException("must not be called in Jikes RVM -- all VM_Primitive instances are created by VM_ClassLoader");
-  }
 
   /**
    * Return an instance of a VM_Type
@@ -83,57 +57,48 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
    * @return the VM_Type corresponding to the descriptor
    */
   public VM_Type findOrCreateType (String str) {
-    return  VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom(str));
+    return VM_ClassLoader.findOrCreateType(VM_Atom.findOrCreateAsciiAtom(str));
   }
 
   // --------------------------------------------------------------------------
   // Querry classloader data structures
   // --------------------------------------------------------------------------
-  /**
-   * Does class vmCls implement interface vmInterf?
-   */
-  public boolean classImplementsInterface (VM_Type vmCls, VM_Type vmInterf) {
-    VM_Class[] interfaces = ((VM_Class)vmCls).getDeclaredInterfaces();
-    VM_Class vmInterfClass = (VM_Class)vmInterf;
-    for (int i = 0, n = interfaces.length; i < n; ++i)
-      if (interfaces[i] == vmInterfClass)
-        return  true;
-    return  false;
-  }
 
   /**
+   * Compile time type inclusion test for use by the opt compiler.
+   * This routine will never load classes to answer a type inclusion question.
+   * The child type is interpreted as representing a type and all of its 
+   * subtypes (ie the type is not assumed to be precise). <p>
+   * 
    * Return OPT_Constants.YES if the parent type is defintely a supertype
-   *    of the child type.
-   * <p> Return OPT_Constants.NO if the parent type is definitely not 
-   * a supertype of the child type.
-   * <p> Return OPT_Constants.MAYBE if the question cannot be currently answered
-   *    (for example if one/both of the classes is not resolved)
+   *    of the child type. <p>
+   * Return OPT_Constants.NO if the parent type is definitely not a 
+   *    supertype of the child type.<p>
+   * Return OPT_Constants.MAYBE if the question cannot be currently answered
+   *    (for example if one/both of the classes is not resolved or one of the 
+   *     types is an interface and there are "overlapping cones").<p>
    *
-   * <p> Takes into account the special 'null-type', which corresponds to a null
-   * constant.
+   * Understands the special 'null-type', which corresponds to a null constant.<p>
    *
    * @param parentType parent type
    * @param childType child type
    * @return OPT_Constants.YES, OPT_Constants.NO, or OPT_Constants.MAYBE
    */
-  public byte isAssignableWith (VM_Type parentType, VM_Type childType) {
+  public byte includesType (VM_Type parentType, VM_Type childType) {
     // First handle some cases that we can answer without needing to 
     // look at the type hierarchy
     // NOTE: The ordering of these tests is critical!
     if (childType == NULL_TYPE) {
-      if (parentType.isReferenceType())
-        return  YES; 
-      else 
-        return  NO;
+      return parentType.isReferenceType() ? YES : NO;
     }
     if (parentType == NULL_TYPE)
-      return  NO;
+      return NO;
     if (parentType == childType)
-      return  YES;
+      return YES;
     if (parentType.isPrimitiveType() || childType.isPrimitiveType())
-      return  NO;
+      return NO;
     if (parentType == VM_Type.JavaLangObjectType)
-      return  YES;
+      return YES;
     // Oh well, we're going to have to try to actually look 
     // at the type hierarchy.
     // IMPORTANT: We aren't allowed to cause dynamic class loading, 
@@ -143,9 +108,9 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
     try {
       if (parentType.isArrayType()) {
         if (childType == VM_Type.JavaLangObjectType)
-          return  MAYBE;        // arrays are subtypes of Object.
+          return MAYBE;        // arrays are subtypes of Object.
         if (!childType.isArrayType())
-          return  NO;
+          return NO;
         VM_Type parentET = parentType.asArray().getInnermostElementType();
         if (parentET == VM_Type.JavaLangObjectType) {
 	  int LHSDimension = parentType.getDimensionality();
@@ -159,11 +124,10 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
         } else {
           // parentType is [^k of something other than Object
           // If dimensionalities are equal, then we can reduce 
-          // to isAssignableWith(parentET, childET).
+          // to includesType(parentET, childET).
           // If the dimensionalities are not equal then the answer is NO
           if (parentType.getDimensionality() == childType.getDimensionality())
-            return this.isAssignableWith(parentET, 
-					 childType.asArray().getInnermostElementType()); 
+            return includesType(parentET, childType.asArray().getInnermostElementType()); 
           else 
             return NO;
         }
@@ -198,21 +162,21 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
 	    // that parentType and childType are completely 
 	    // unrelated and we can return NO.
 	    if (childType.asClass().isFinal())
-	      return  NO; 
+	      return NO; 
 	    else {
 	      if (VM_Runtime.isAssignableWith(childType, parentType))
-		return  MAYBE; 
+		return MAYBE; 
 	      else 
-		return  NO;
+		return NO;
             }
           }
         } else {
-          return  MAYBE;
+          return MAYBE;
         }
       }
     } catch (Throwable e) {
       OPT_OptimizingCompilerException.UNREACHABLE();
-      return  MAYBE;            // placate jikes.
+      return MAYBE;            // placate jikes.
     }
   }
 
@@ -227,7 +191,7 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
 							int index) {
     int offset = klass.getLiteralOffset(index) >> 2;
     int val = VM_Statics.getSlotContentsAsInt(offset);
-    return  new OPT_IntConstantOperand(val);
+    return new OPT_IntConstantOperand(val);
   }
 
   /**
@@ -239,7 +203,7 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
     int offset = klass.getLiteralOffset(index) >> 2;
     long val_raw = VM_Statics.getSlotContentsAsLong(offset);
     double val = Double.longBitsToDouble(val_raw);
-    return  new OPT_DoubleConstantOperand(val, offset);
+    return new OPT_DoubleConstantOperand(val, offset);
   }
 
   /**
@@ -251,7 +215,7 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
     int offset = klass.getLiteralOffset(index) >> 2;
     int val_raw = VM_Statics.getSlotContentsAsInt(offset);
     float val = Float.intBitsToFloat(val_raw);
-    return  new OPT_FloatConstantOperand(val, offset);
+    return new OPT_FloatConstantOperand(val, offset);
   }
 
   /**
@@ -262,7 +226,7 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
 							  int index) {
     int offset = klass.getLiteralOffset(index) >> 2;
     long val = VM_Statics.getSlotContentsAsLong(offset);
-    return  new OPT_LongConstantOperand(val, offset);
+    return new OPT_LongConstantOperand(val, offset);
   }
 
   /**
@@ -273,7 +237,7 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
 							      int index) {
     int offset = klass.getLiteralOffset(index) >> 2;
     StringWrapper str = new RVMStringWrapper(offset);
-    return  new OPT_StringConstantOperand(str);
+    return new OPT_StringConstantOperand(str);
   }
 
   /**
@@ -291,19 +255,19 @@ public final class OPT_RVMClassLoaderProxy extends OPT_ClassLoaderProxy {
 
     public boolean equals (Object str) {
       if (!(str instanceof RVMStringWrapper))
-        return  false;
-      return  offset == ((RVMStringWrapper)str).offset;
+        return false;
+      return offset == ((RVMStringWrapper)str).offset;
     }
 
     public String toString () {
-      return  "string constant @" + offset;
+      return "string constant @" + offset;
     }
 
     /**
-     * @return  the JTOC offset of this String constant
+     * @return the JTOC offset of this String constant
      */
     public int offset () {
-      return  offset;
+      return offset;
     }
   }
 }
