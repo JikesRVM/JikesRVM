@@ -31,6 +31,7 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible {
   static int collisionCount = 0;
 
   // more statistics
+  static final boolean COUNT_BY_TYPES    = false;
   static final boolean COUNT_ALLOCATIONS = false;
 
   // verify that all allocations are word size aligned
@@ -222,8 +223,19 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible {
   } // printSummaryStatistics
 
 
+  static void profileCopy (Object obj, Object[] tib) {
+      if (COUNT_BY_TYPE) {
+          VM_Type t = VM_Magic.objectAsType(tib[0]);
+	  t.copiedCount++;
+      }
+  }
+
   static void profileAlloc (VM_Address addr, int size, Object[] tib) {
       VM_Magic.pragmaInline();
+      if (COUNT_BY_TYPE) {
+          VM_Type t = VM_Magic.objectAsType(tib[0]);
+	  t.allocatedCount++;
+      }
       if (COUNT_ALLOCATIONS) {
 	  VM_Processor st = VM_Processor.getCurrentProcessor();
 	  st.totalBytesAllocated += size;
