@@ -2724,32 +2724,23 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       // pop locals and parameters, get to saved GPR's
       asm.emitADD_Reg_Imm(SP, (this.method.getLocalWords() << LG_WORDSIZE));
       VM_JNICompiler.generateEpilogForJNIMethod(asm, this.method);
-      return;
-    }
-
-    asm.emitADD_Reg_Imm(SP, fp2spOffset(0) - bytesPopped); // SP becomes frame pointer
-
-    if (klass.isDynamicBridge()) {
-      // Restore non-volatile registers. 
-      asm.emitMOV_Reg_RegDisp (EBX, SP, EBX_SAVE_OFFSET); 
-
-      // don't restore the return paramater :)
-      // and don't restore the volatiles
-
-      // restore FPU state
-      asm.emitFRSTOR_RegDisp(SP, FPU_SAVE_OFFSET);
-    }
-    asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);// restore nonvolatile JTOC register
-
-    asm.emitPOP_Reg(FP);
+    } else if (klass.isDynamicBridge()) {
+      // we never return from a DynamicBridge frame
+      asm.emitINT_Imm(0xFF);
+    } else {
+      // normal method
+      asm.emitADD_Reg_Imm     (SP, fp2spOffset(0) - bytesPopped); // SP becomes frame pointer
+      asm.emitMOV_Reg_RegDisp (JTOC, SP, JTOC_SAVE_OFFSET);       // restore nonvolatile JTOC register
+      asm.emitPOP_Reg         (FP);                               // discard frame
     
-    // Save the frame pointer in the processor object so a hardware trap 
-    // handler can always find it (opt compiler will reuse FP register)
-    VM_ProcessorLocalState.emitMoveRegToField(asm, 
-                                              VM_Entrypoints.framePointerOffset,
-                                              FP);
-
-    asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 // return to caller- pop parameters from stack
+      // Save the frame pointer in the processor object so a hardware trap 
+      // handler can always find it (opt compiler will reuse FP register)
+      VM_ProcessorLocalState.emitMoveRegToField(asm, 
+						VM_Entrypoints.framePointerOffset,
+						FP);
+      
+      asm.emitRET_Imm(parameterWords << LG_WORDSIZE);	 // return to caller- pop parameters from stack
+    }
   }
    
   private final void genMonitorEnter () {

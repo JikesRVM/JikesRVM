@@ -3136,21 +3136,18 @@ VM.sysWrite("static WARNING: during compilation of " + method + " premature reso
   //
   private void genEpilogue () {
     if (klass.isDynamicBridge()) {// Restore non-volatile registers.
-      int offset = frameSize;
-      for (int i = LAST_NONVOLATILE_FPR; i >= FIRST_NONVOLATILE_FPR; --i) // restore non-volatile fprs
-         asm.emitLFD(i, offset -= 8, FP);
-      offset -= (FIRST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR) * 8;         //  skip       volatile fprs
-      for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_NONVOLATILE_GPR; --i) // restore non-volatile gprs
-         asm.emitL  (i, offset -= 4, FP);
-    }
-    if (frameSize <= 0x8000) {
-      asm.emitCAL(FP, frameSize, FP); // discard current frame
+      // we never return from a DynamicBridge frame
+      asm.emitTWI(-1);
     } else {
-      asm.emitL(FP, 0, FP);           // discard current frame
+      if (frameSize <= 0x8000) {
+	asm.emitCAL(FP, frameSize, FP); // discard current frame
+      } else {
+	asm.emitL(FP, 0, FP);           // discard current frame
+      }
+      asm.emitL   (S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); 
+      asm.emitMTLR(S0);
+      asm.emitBLR (); // branch always, through link register
     }
-    asm.emitL   (S0, STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP); 
-    asm.emitMTLR(S0);
-    asm.emitBLR (); // branch always, through link register
   }
 
 
