@@ -1,0 +1,23 @@
+% From VM_BASEOptions.template
+\begin{verbatim}
+-X:base[:help]			Print brief description of baseline compiler's command-line arguments
+-X:base:printOptions		Print the current values of the active baseline compiler options
+
+Boolean Options (-X:base:<option>=true or -X:base:<option>=false)
+option                               Description
+annotations                            Act on annotations in class files
+preload_as_boot                        Apply boot options to preload_class
+verbose                                Print method name at start of compilation
+mc                                     Print final machine code
+
+Value Options (-X:base<option>=<value>)
+option                         Type    Description
+preload_class                  String  Class to preload upon 1st OPT compilation
+
+Selection Options (set option to one of an enumeration of possible values)
+
+Set Options (option is a set of values)
+method_to_print                Only apply print options against methods whose name contains this string
+method_to_break                Invoke breakStub for jdp's benefit after compiling methods whose name contains this string
+\end{verbatim}
+
