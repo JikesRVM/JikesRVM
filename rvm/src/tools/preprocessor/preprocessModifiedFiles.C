@@ -966,7 +966,11 @@ bool getBoolean(char **cursorp)
 }
 
 
-/* Returns a pointer to the replacement token for a //-#value directive. */
+/* Returns a pointer to the replacement token for a //-#value directive.
+ * Note that this will interpret the token !FOO as being a lookup of a token
+ * named "!FOO".  This is not good -- it would lead to a strange error message
+ * in response to the case "//-#value !FOO" -- but has not been a problem, in
+ * practice. */
 const char *
 evalReplace(char *cursor, int &trouble) 
 {
@@ -984,7 +988,7 @@ evalReplace(char *cursor, int &trouble)
         if (strlen(dp->Name) == len && strneql(name, dp->Name, len)) {
             if (! dp->Value) {
                 inputErr(
-                    "//-#value used on non-value (true/false) constant '%s'", 
+                    "//-#value used on boolean constant '%s'", 
                     dp->Name);
                 trouble = TROUBLE;
                 return dp->Name;        // Error return
