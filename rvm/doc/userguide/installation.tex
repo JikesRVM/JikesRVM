@@ -526,6 +526,8 @@ The following garbage collection suffixes are available:
 \item[CopyMS] a hybrid non-generational collector with a copying space
   (into which all allocation goes), and a non-copying space into which
   survivors go
+\item[RefCount] a reference counting collector with synchronous
+  (non-concurrent) cycle collection
 \end{description}
 
 For example, to specify a compiler with a baseline-compiled boot image
