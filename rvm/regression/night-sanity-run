@@ -119,7 +119,7 @@ fi
 
 # Also report the number of javadoc errors
 numjavadocErrors=`grep warning $RVM_ROOT/doc/api/javadoc.out | sort | uniq | wc -l`
-if [[ $numjavadocErrors -eq 0]] then 
+if [[ $numjavadocErrors -eq 0 ]] then 
   echo "There were no javadoc errors." >> $MSG
 else 
   echo "There were $numjavadocErrors javadoc errors." >> $MSG
