@@ -352,7 +352,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     return bytesPerMap();
   }
 
-  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_BootstrapClassLoader.getVMClassLoader(),
+  private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
                                                                              VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"));
   int size() throws VM_PragmaInterruptible {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
