@@ -46,7 +46,7 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
   private VM_SystemClassLoader() { super(null); }
 
   /* Interface */
-  private static VM_SystemClassLoader vmClassLoader =
+  private final static VM_SystemClassLoader vmClassLoader =
     new VM_SystemClassLoader();
 
   public static VM_SystemClassLoader getVMClassLoader() { 
