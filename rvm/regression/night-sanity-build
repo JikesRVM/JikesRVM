@@ -77,6 +77,14 @@ else
     je="$fass_dir/jbuild.environment"
     . $je || croak "Unable to load $je"
     "$RVM_ROOT/rvm/bin/jdoc.sh" "$RVM_ROOT/doc/api" || croak "Trouble running jdoc.sh; sorry!"
+    if [[ -d $RVM_ROOT/pushAPI ]]; then
+      echo "Publishing javadoc to dW webspace via cvs commit"
+      cd $RVM_ROOT/doc/api
+      tar czf $RVM_ROOT/pushAPI/api.tar.gz *
+      cd $RVM_ROOT/pushAPI
+      cvs add -ko api.tar.gc
+      cvs commit -m "push it" 
+    fi
 fi
 
 echo -e "\n\nBuild complete, builder script exiting.\n"
