@@ -3061,13 +3061,6 @@ extern "C" void sysWaitPids(int pidArray[], int exitStatusArray[], int numPids)
   }
 }
 
-extern "C" int
-sysSprintf(char buffer[], double d)
-  {
-    sprintf(buffer, "%G", d);
-    return strlen(buffer);
-  }
-
 extern "C" int getArrayLength(void* ptr) {
   return *(int*)(((unsigned)ptr) + VM_ObjectModel_ARRAY_LENGTH_OFFSET);
 }

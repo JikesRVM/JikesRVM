@@ -332,8 +332,6 @@ public class VM_BootRecord {
   // process management
   public VM_Address sysWaitPidsIP;
 
-  public VM_Address sysSprintfIP;
-
   //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   // system startup pthread sync. primitives
   //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
