@@ -1371,7 +1371,7 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
   
   /**
    * Change all branches from this to b to branches that go to bCopy instead.
-   * This method also handles this.fallThough, so `this' should still be in
+   * This method also handles this.fallThrough, so `this' should still be in
    * the code order when this method is called.
    *
    * WARNING: Use this method with caution.  See comment on 
