@@ -10,6 +10,7 @@ import  java.util.*;
  *
  * <p> TODO: we do not support IRs with exception handlers!!
  * @author Michael Hind
+ * @author Martin Trapp
  */
 class OPT_DominatorTreeNode extends OPT_TreeNode {
 
@@ -34,6 +35,16 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
    */
   OPT_BitVector dominators;
 
+  /**
+   * lower bound of dominated nodes range
+   */
+  private int low = 0;
+  
+  /**
+   * upper bound of dominated nodes range
+   */
+  private int high = 0;
+  
   /**
    * Construct a dominator tree node for a given basic block.
    * @param   block the basic block
@@ -117,14 +128,46 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
    *  @param master the proposed dominating node
    *  @return whether the passed node dominates me
    */
-  boolean isDominatedBy(OPT_DominatorTreeNode master) {
+  boolean _isDominatedBy(OPT_DominatorTreeNode master) {
     OPT_DominatorTreeNode node = this;
     while ((node != null) && (node != master)) {
       node = (OPT_DominatorTreeNode)node.getParent();
     }
-    return  node == master;
+    return node == master;
   }
 
+  /**
+   *  This method returns true if the passed node dominates this node
+   *  @param master the proposed dominating node
+   *  @return whether the passed node dominates me
+   */
+  boolean isDominatedBy(OPT_DominatorTreeNode master) {
+    if (low == 0) initializeRanges();
+    return master.low <= low && master.high >= high;
+  }
+
+  private void initializeRanges () {
+    OPT_DominatorTreeNode node = this;
+    OPT_DominatorTreeNode parent = (OPT_DominatorTreeNode) getParent();
+    while (parent != null) {
+      node = parent;
+      parent = (OPT_DominatorTreeNode) node.getParent();
+    }
+    node.initializeRanges (0);
+  }
+
+  private int initializeRanges (int i) {
+    low = ++i;
+    Enumeration childEnum = getChildren();
+    while (childEnum.hasMoreElements()) {
+      OPT_DominatorTreeNode 
+	child = (OPT_DominatorTreeNode) childEnum.nextElement();
+      i = child.initializeRanges (i);
+    }
+    high = ++i;
+    return i;
+  }
+  
   /**
    * Enumerate the basic blocks in the dominance frontier for this node.
    * @param ir the governing IR
@@ -142,6 +185,7 @@ class OPT_DominatorTreeNode extends OPT_TreeNode {
   final public String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append(block);
+    sb.append(" ("+low+", "+high+")");
     return  sb.toString();
   }
 }
