@@ -1267,7 +1267,17 @@ store
 # Implements VM_Magic.prepare (see VM_Magic.java)
 # NOTE: Because of our strategy of using explict guard instructions, there is no
 # way in the HIR/LIR that the prepare instruction can except.
-PREPARE
+PREPARE_INT
+Prepare
+load | acquire
+
+
+
+# Prepare for an atomic operation (aka an attempt)
+# Implements VM_Magic.prepare (see VM_Magic.java)
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the prepare instruction can except.
+PREPARE_LONG
 Prepare
 load | acquire
 
@@ -1277,7 +1287,17 @@ load | acquire
 # Implements VM_Magic.attempt (see VM_Magic.java)
 # NOTE: Because of our strategy of using explict guard instructions, there is no
 # way in the HIR/LIR that the attempt instruction can except.
-ATTEMPT
+ATTEMPT_INT
+Attempt
+load | store | compare | release 
+
+
+
+# Attempt an atomic operation.
+# Implements VM_Magic.attempt (see VM_Magic.java)
+# NOTE: Because of our strategy of using explict guard instructions, there is no
+# way in the HIR/LIR that the attempt instruction can except.
+ATTEMPT_LONG
 Attempt
 load | store | compare | release 
 

@@ -147,9 +147,9 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
     int nonVolOffset = compiledMethod.getUnsignedNonVolatileOffset();
     if (nonVolOffset != 0) {
       if (compiledMethod.isSaveVolatile()) {
-        lastSpill = framePtr.add(nonVolOffset - 4 - SAVE_VOL_SIZE);
+        lastSpill = framePtr.add(nonVolOffset - BYTES_IN_ADDRESS - SAVE_VOL_SIZE);
       } else {
-        lastSpill = framePtr.add(nonVolOffset - 4);
+        lastSpill = framePtr.add(nonVolOffset - BYTES_IN_ADDRESS);
       }
       // If the above computation is less than firstSpill, there are no spills
       if (lastSpill.LT(firstSpill)) {
@@ -162,7 +162,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
     return lastSpill;
   }
 
-  final static int SPILL_DISTANCE_FROM_FP = 12;
+  final static int SPILL_DISTANCE_FROM_FP = 3 * BYTES_IN_ADDRESS;
   final static int SAVE_VOL_SIZE = BYTES_IN_ADDRESS *
     ((LAST_VOLATILE_GPR - FIRST_VOLATILE_GPR + 1) + 
      (LAST_SCRATCH_GPR - FIRST_SCRATCH_GPR + 1)); 

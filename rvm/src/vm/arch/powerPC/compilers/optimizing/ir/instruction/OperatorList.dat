@@ -505,6 +505,22 @@ C0
 (31<<26 | 922<<1 | 1)
 
 ####################
+PPC64_EXTSW
+MIR_Unary
+none
+
+
+(31<<26 | 986<<1)
+
+####################
+PPC64_EXTSWr
+MIR_Unary
+none
+
+
+(31<<26 | 986<<1 | 1)
+
+####################
 PPC_SLW
 MIR_Binary
 none
@@ -535,6 +551,30 @@ compare
 C0
 
 (21<<26 | 1)
+
+####################
+PPC64_SLD
+MIR_Binary
+none
+
+
+(31<<26 | 27<<1)
+
+####################
+PPC64_SLDr
+MIR_Binary
+compare
+C0
+
+(31<<26 | 27<<1 | 1)
+
+####################
+PPC64_SLDI
+MIR_Binary
+none
+
+
+(30<<26 | 1<<2)
 
 ####################
 PPC_SRW
@@ -601,6 +641,62 @@ C0_XER
 (31<<26 | 824<<1 | 1)
 
 ####################
+PPC64_SRD
+MIR_Binary
+none
+XER
+
+(31<<26 | 539<<1)
+
+####################
+PPC64_SRDr
+MIR_Binary
+compare
+C0_XER
+
+(31<<26 | 539<<1 | 1)
+
+####################
+PPC64_SRAD
+MIR_Binary
+none
+XER
+
+(31<<26 | 794<<1)
+
+####################
+PPC64_SRADr
+MIR_Binary
+compare
+C0_XER
+
+(31<<26 | 794<<1 | 1)
+
+####################
+PPC64_SRADI
+MIR_Binary
+none
+XER
+
+(31<<26 | 413<<2)
+
+####################
+PPC64_SRADIr
+MIR_Binary
+compare
+C0_XER
+
+(31<<26 | 413<<2 | 1)
+
+####################
+PPC64_SRDI
+MIR_Binary
+none
+
+
+(30<<26 | 0<<2)
+
+####################
 PPC_RLWINM
 MIR_RotateAndMask
 none
@@ -647,6 +743,22 @@ compare
 C0
 
 (23<<26)
+
+####################
+PPC64_RLDIMI
+MIR_RotateAndMask
+none
+
+
+(30<<26 | 3<<2)
+
+####################
+PPC64_RLDIMIr
+MIR_RotateAndMask
+compare
+C0
+
+(30<<26 | 3<<2 | 1)
 
 ####################
 PPC_B
@@ -820,12 +932,28 @@ compare
 (31<<26 | 0<<1)
 
 ####################
+PPC64_CMP
+MIR_Binary
+compare
+
+
+(31<<26 | 0<<1 | 1<<21)
+
+####################
 PPC_CMPI
 MIR_Binary
 compare
 
 
 (11<<26)
+
+####################
+PPC64_CMPI
+MIR_Binary
+compare
+
+
+(11<<26 | 1<<21)
 
 ####################
 PPC_CMPL
@@ -836,12 +964,28 @@ compare
 (31<<26 | 32<<1)
 
 ####################
+PPC64_CMPL
+MIR_Binary
+compare
+
+
+(31<<26 | 32<<1 | 1<<21)
+
+####################
 PPC_CMPLI
 MIR_Binary
 compare
 
 
 (10<<26)
+
+####################
+PPC64_CMPLI
+MIR_Binary
+compare
+
+
+(10<<26 | 1<<21)
 
 ####################
 PPC_CRAND
@@ -990,6 +1134,14 @@ none
 (31<<26 | 459<<1)
 
 ####################
+PPC64_DIVD
+MIR_Binary
+none
+
+
+(31<<26 | 489<<1)
+
+####################
 PPC_FMUL
 MIR_Binary
 none
@@ -1110,6 +1262,14 @@ none
 (31<<26 | 11<<1)
 
 ####################
+PPC64_MULLD
+MIR_Binary
+none
+
+
+(31<<26 | 233<<1)
+
+####################
 PPC_FNEG
 MIR_Unary
 none
@@ -1172,6 +1332,70 @@ memAsLoad | memAsStore | load | acquire
 
 
 (31<<26 | 20<<1)
+
+####################
+PPC64_LWA
+MIR_Load
+load
+
+
+(58<<26 | 2)
+
+####################
+PPC64_LWAX
+MIR_Load
+load
+
+
+(31<<26 | 341<<1)
+
+####################
+PPC64_LWAUX
+MIR_Load
+load
+
+
+(31<<26 | 373<<1)
+
+####################
+PPC64_LD
+MIR_Load
+load
+
+
+(58<<26)
+
+####################
+PPC64_LDX
+MIR_Load
+load
+
+
+(31<<26 | 21<<1)
+
+####################
+PPC64_LDU
+MIR_Load
+load
+
+
+(58<<26 | 1)
+
+####################
+PPC64_LDUX
+MIR_Load
+load
+
+
+(31<<26 | 53<<1)
+
+####################
+PPC64_LDARX
+MIR_Load
+memAsLoad | memAsStore | load | acquire
+
+
+(31<<26 | 84<<1)
 
 ####################
 PPC_LBZ
@@ -1301,6 +1525,46 @@ store
 
 
 (37<<26)
+
+####################
+PPC64_STD
+MIR_Store
+store
+
+
+(62<<26)
+
+####################
+PPC64_STDX
+MIR_Store
+store
+
+
+(31<<26 | 149<<1)
+
+####################
+PPC64_STDU
+MIR_Store
+store
+
+
+(62<<26 | 1)
+
+####################
+PPC64_STDUX
+MIR_Store
+store
+
+
+(31<<26 | 181<<1)
+
+####################
+PPC64_STDCXr
+MIR_Store
+memAsLoad | memAsStore | store | compare
+
+
+(31<<26 | 214<<1 | 1)
 
 ####################
 PPC_STB
@@ -1438,6 +1702,22 @@ immedPEI | dynLink
 
 
 (3<<26)
+
+####################
+PPC64_TD
+MIR_Trap
+immedPEI | dynLink
+
+
+(31<<26 | 68<<1)
+
+####################
+PPC64_TDI
+MIR_Trap
+immedPEI | dynLink
+
+
+(2<<26)
 
 ####################
 PPC_SYNC

@@ -82,7 +82,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
           {
             VM_Type type = ((OPT_TypeOperand)Unary.getVal(s)).getVMType();
             int offset = type.getTibOffset();
-            Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
+            Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         ir.regpool.makeJTOCOp(ir,s), 
                         I(offset), new OPT_LocationOperand(offset));
           }
@@ -91,7 +91,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
         case GET_TYPE_FROM_TIB_opcode:
           {
             // TODO: Valid location operand?
-            Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
+            Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         Unary.getClearVal(s), 
                         I(TIB_TYPE_INDEX << LOG_BYTES_IN_ADDRESS), null);
           }
@@ -100,7 +100,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
         case GET_SUPERCLASS_IDS_FROM_TIB_opcode:
           {
             // TODO: Valid location operand?
-            Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
+            Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         Unary.getClearVal(s), 
                         I(TIB_SUPERCLASS_IDS_INDEX << LOG_BYTES_IN_ADDRESS), null);
           }
@@ -109,7 +109,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
         case GET_DOES_IMPLEMENT_FROM_TIB_opcode:
           {
             // TODO: Valid location operand?
-            Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
+            Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         Unary.getClearVal(s), 
                         I(TIB_DOES_IMPLEMENT_INDEX << LOG_BYTES_IN_ADDRESS), null);
           }
@@ -118,12 +118,13 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
         case GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode:
           {
             // TODO: Valid location operand?
-            Load.mutate(s, INT_LOAD, Unary.getClearResult(s), 
+            Load.mutate(s, REF_LOAD, Unary.getClearResult(s), 
                         Unary.getClearVal(s), 
                         I(TIB_ARRAY_ELEMENT_TIB_INDEX << LOG_BYTES_IN_ADDRESS), null);
           }
           break;
 
+        //-#if RVM_FOR_32_ADDR
         case LONG_DIV_opcode:
           {
             OPT_Operand val1 = GuardedBinary.getClearVal1(s);
@@ -161,6 +162,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
             OPT_CallingConvention.expandSysCall(s, ir);
           }
           break;
+        //-#endif
 
           //-#if RVM_FOR_POWERPC
         case FLOAT_REM_opcode: case DOUBLE_REM_opcode:

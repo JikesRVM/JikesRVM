@@ -25,7 +25,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
   /**
    * Size of a word, in bytes
    */
-  protected static final int WORDSIZE = 4;
+  protected static final int WORDSIZE = BYTES_IN_ADDRESS;
 
   /**
    * We will have to save and restore all non-volatile registers around
@@ -1270,7 +1270,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    */
   int allocateSpaceForCaughtException() {
     if (caughtExceptionOffset == 0) {
-      caughtExceptionOffset = allocateOnStackFrame(4);
+      caughtExceptionOffset = allocateOnStackFrame(BYTES_IN_ADDRESS);
     } 
     return caughtExceptionOffset;
   }
@@ -1428,8 +1428,16 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * @return one of INT_VALUE, FLOAT_VALUE, DOUBLE_VALUE, CONDITION_VALUE
    */
   final byte getValueType(OPT_Register r) {
+    //-#if RVM_FOR_32_ADDR
     if (r.isInteger() || r.isLong()) {
       return INT_VALUE;
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    if (r.isInteger()) {
+      return INT_VALUE;
+    } else if (r.isLong()) {
+      return LONG_VALUE;
+    //-#endif
     } else if (r.isCondition()) {
       return CONDITION_VALUE;
     } else if (r.isDouble()) {

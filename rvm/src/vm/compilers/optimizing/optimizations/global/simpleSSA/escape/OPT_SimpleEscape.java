@@ -329,8 +329,9 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
         else {
           return  false;
         }
-      case REF_MOVE_opcode:case ATHROW_opcode:case PREPARE_opcode:
-      case ATTEMPT_opcode: 
+      case REF_MOVE_opcode:case ATHROW_opcode:
+      case PREPARE_INT_opcode:case PREPARE_LONG_opcode:
+      case ATTEMPT_INT_opcode:case ATTEMPT_LONG_opcode: 
       case INT_MOVE_opcode:case INT_ADD_opcode: 
       case INT_MUL_opcode: case INT_DIV_opcode: case INT_REM_opcode:
       case INT_NEG_opcode: case INT_ZERO_CHECK_opcode:                 
@@ -340,6 +341,11 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case GET_CLASS_OBJECT_opcode:case SET_CAUGHT_EXCEPTION_opcode:
       case PHI_opcode: case INT_2LONG_opcode:
       case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
+//-#if RVM_FOR_64_ADDR
+      case LONG_OR_opcode: case LONG_AND_opcode: case LONG_XOR_opcode:
+      case LONG_SUB_opcode:case LONG_SHL_opcode: case LONG_ADD_opcode:
+      case LONG_SHR_opcode:case LONG_USHR_opcode:case LONG_NEG_opcode:
+//-#endif
 //-#if RVM_FOR_IA32
       case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
 //-#endif
@@ -455,8 +461,9 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case CALL_opcode:
         // a call instruction causes an object to escape this method.
         return  true;
-      case REF_MOVE_opcode:case ATHROW_opcode:case PREPARE_opcode:
-      case ATTEMPT_opcode: 
+      case REF_MOVE_opcode:case ATHROW_opcode:
+      case PREPARE_INT_opcode:case PREPARE_LONG_opcode:
+      case ATTEMPT_INT_opcode:case ATTEMPT_LONG_opcode: 
       case INT_MOVE_opcode:case INT_ADD_opcode: 
       case INT_MUL_opcode: case INT_DIV_opcode: case INT_REM_opcode:
       case INT_NEG_opcode: case INT_ZERO_CHECK_opcode:                 
@@ -466,6 +473,11 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case GET_CLASS_OBJECT_opcode:case SET_CAUGHT_EXCEPTION_opcode:
       case PHI_opcode: case INT_2LONG_opcode:
       case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
+//-#if RVM_FOR_64_ADDR
+      case LONG_OR_opcode: case LONG_AND_opcode: case LONG_XOR_opcode:
+      case LONG_SUB_opcode:case LONG_SHL_opcode: case LONG_ADD_opcode:
+      case LONG_SHR_opcode:case LONG_USHR_opcode:case LONG_NEG_opcode:
+//-#endif
 //-#if RVM_FOR_IA32
       case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
 //-#endif

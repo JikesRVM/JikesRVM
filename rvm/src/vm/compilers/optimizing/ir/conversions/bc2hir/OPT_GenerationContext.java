@@ -471,9 +471,18 @@ public final class OPT_GenerationContext
       return longLocals;
     } else if (type == VM_TypeReference.Double) {
       return doubleLocals;
+    //-#if RVM_FOR_32_ADDR
     } else {
       return intLocals;
     }
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    } else if (type.isReferenceType()) {
+      return longLocals;
+    } else {
+      return intLocals;
+    }
+    //-#endif
   }
 
 

@@ -102,7 +102,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
         break;
 
       case REF_ALOAD_opcode:
-        doArrayLoad(s, ir, REF_LOAD, 2);
+        doArrayLoad(s, ir, REF_LOAD, LOG_BYTES_IN_ADDRESS);
         break;
 
       case BYTE_ALOAD_opcode:
@@ -138,7 +138,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
         break;
 
       case REF_ASTORE_opcode:
-        doArrayStore(s, ir, REF_STORE, 2);
+        doArrayStore(s, ir, REF_STORE, LOG_BYTES_IN_ADDRESS);
         break;
 
       case BYTE_ASTORE_opcode:
@@ -187,7 +187,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
         break;
 
       case IG_CLASS_TEST_opcode:
-        IfCmp.mutate(s, INT_IFCMP, null, 
+        IfCmp.mutate(s, REF_IFCMP, null, 
                      getTIB(s, ir, 
                             InlineGuard.getClearValue(s), 
                             InlineGuard.getClearGuard(s)), 
@@ -206,7 +206,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
                    InlineGuard.getClearGuard(s));
           OPT_Operand t2 = 
             getTIB(s, ir, methOp.getTarget().getDeclaringClass());
-          IfCmp.mutate(s, INT_IFCMP, null, 
+          IfCmp.mutate(s, REF_IFCMP, null, 
                        getInstanceMethod(s, ir, t1, methOp.getTarget()), 
                        getInstanceMethod(s, ir, t2, methOp.getTarget()), 
                        OPT_ConditionOperand.NOT_EQUAL(), 
@@ -718,14 +718,14 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
           InsertLoadOffset(v, ir, REF_LOAD,
                            VM_TypeReference.JavaLangObjectArray,
                            iTables.copyD2U(),
-                           I.getInterfaceId()<<2);
+                           I.getInterfaceId()<<LOG_BYTES_IN_ADDRESS);
         OPT_RegisterOperand address = 
           InsertLoadOffset(v, ir, REF_LOAD,
                            VM_TypeReference.CodeArray,
                            iTable.copyD2U(),
                            VM_InterfaceInvocation.getITableIndex(I, 
                                                                  methOp.getMemberRef().getName(),
-                                                                 methOp.getMemberRef().getDescriptor())<<2);
+                                                                 methOp.getMemberRef().getDescriptor())<<LOG_BYTES_IN_ADDRESS);
         Call.setAddress(v, address);
       } else {
         int itableIndex = -1; 
@@ -774,7 +774,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
           OPT_RegisterOperand address = 
             InsertLoadOffset(v, ir, REF_LOAD,
                              VM_TypeReference.CodeArray,
-                             iTable.copyD2U(), itableIndex<<2);
+                             iTable.copyD2U(), itableIndex<<LOG_BYTES_IN_ADDRESS);
           Call.setAddress(v, address);
           return v;
         }
@@ -812,7 +812,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     OPT_RegisterOperand offsetTable = 
       getStatic(testBB.lastInstruction(), ir, VM_Entrypoints.memberOffsetsField);
     testBB.appendInstruction(Load.create(INT_LOAD, offset, offsetTable,
-                                         I(dictId << 2), 
+                                         I(dictId << LOG_BYTES_IN_INT), 
                                          new OPT_LocationOperand(VM_TypeReference.Int), 
                                          TG()));
     testBB.appendInstruction(IfCmp.create(INT_IFCMP, null, 
@@ -1105,7 +1105,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     OPT_RegisterOperand instr = 
       InsertLoadOffset(s, ir, REF_LOAD, 
                        VM_TypeReference.CodeArray, 
-                       reg, smid << 2);
+                       reg, smid << LOG_BYTES_IN_INT);
     return instr;
   }
 

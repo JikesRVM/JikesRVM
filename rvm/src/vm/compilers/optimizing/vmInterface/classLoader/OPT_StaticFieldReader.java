@@ -43,12 +43,12 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       return new OPT_AddressConstantOperand(val.toAddress());
     } else if (fieldType == VM_TypeReference.Offset) {
       Object obj = getObjectStaticFieldValue(field);
-      int v = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toInt() : ((VM_Offset) obj).toInt();
-      return new OPT_AddressConstantOperand(VM_Address.fromInt(v));
+      VM_Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : ((VM_Offset) obj).toWord();
+      return new OPT_AddressConstantOperand(val.toAddress());
     } else if (fieldType == VM_TypeReference.Extent) {
       Object obj = getObjectStaticFieldValue(field);
-      int v = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toInt() : ((VM_Extent) obj).toInt();
-      return new OPT_AddressConstantOperand(VM_Address.fromInt(v));
+      VM_Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : ((VM_Extent) obj).toWord();
+      return new OPT_AddressConstantOperand(val.toAddress());
     } else if (fieldType.isIntLikeType()) {
       int val = getIntStaticFieldValue(field);
       return new OPT_IntConstantOperand(val);

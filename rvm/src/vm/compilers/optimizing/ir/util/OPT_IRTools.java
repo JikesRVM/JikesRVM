@@ -207,7 +207,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     if (type.isFloatType())   return FLOAT_MOVE;
     if (type.isDoubleType())  return DOUBLE_MOVE;
     if (type == VM_TypeReference.VALIDATION_TYPE) return GUARD_MOVE;
-    if (type.isReferenceType()) return REF_MOVE;
+    if (type.isReferenceType() || type.isWordType()) return REF_MOVE;
     return INT_MOVE;
   }
 
@@ -224,7 +224,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
     if (type.isFloatType())   return FLOAT_COND_MOVE;
     if (type.isDoubleType())  return DOUBLE_COND_MOVE;
     if (type == VM_TypeReference.VALIDATION_TYPE) return GUARD_COND_MOVE;
-    if (type.isReferenceType()) return REF_COND_MOVE;
+    if (type.isReferenceType() || type.isWordType()) return REF_COND_MOVE;
     return INT_COND_MOVE;
   }
 

@@ -59,9 +59,12 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     int frameOffset = compiledMethod.getUnsignedNonVolatileOffset();
     int firstInteger = compiledMethod.getFirstNonVolatileGPR();
     if (firstInteger >= 0) {
+      //-#if RVM_FOR_64_ADDR
+      frameOffset = (frameOffset + 7) & ~7;
+      //-#endif
       for (int i = firstInteger; i < 32; i++) {
         registers.gprs.set(i, VM_Magic.getMemoryWord(fp.add(frameOffset)));
-        frameOffset += 4;
+        frameOffset += BYTES_IN_ADDRESS;
       }
     }
     int firstFloat = compiledMethod.getFirstNonVolatileFPR();
@@ -70,7 +73,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       for (int i = firstFloat; i < 32; i++) {
         long temp = VM_Magic.getLongAtOffset(VM_Magic.addressAsObject(fp), frameOffset);
         registers.fprs[i] = VM_Magic.longBitsAsDouble(temp);
-        frameOffset += 8;
+        frameOffset += BYTES_IN_DOUBLE;
       }
     }
 

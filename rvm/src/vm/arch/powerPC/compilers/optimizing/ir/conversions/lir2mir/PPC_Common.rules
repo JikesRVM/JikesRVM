@@ -1035,51 +1035,6 @@ EMIT(MIR_Load.mutate(P(p), PPC_LHZX, Load.getResult(P(p)),           \
 		     Load.getLocation(P(p)), Load.getGuard(P(p))));
 
 #####
-# INT_LOAD
-# A few more cases than for other load operators to handle pointer arithmetic introduced by use of magic
-#####
-r:	INT_LOAD(r,INT_CONSTANT)
-11
-EMIT_INSTRUCTION
-EMIT(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),            \
-                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-	             Load.getLocation(P(p)), Load.getGuard(P(p))));
-
-r:	INT_LOAD(r,INT_MOVE(INT_CONSTANT))
-22
-EMIT_INSTRUCTION
-{                                                                             \
-   OPT_Operand val = Move.getVal(PR(p));                                      \
-   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
-                          R(Load.getAddress(P(p))), CAU16(val)));             \
-   EMIT(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),         \
-                                 Move.getResult(PR(p)), CAL16(val),           \
-				 Load.getLocation(P(p)),                      \
-                                 Load.getGuard(P(p))));                      \
-}
-
-r:	INT_LOAD(r,r)
-11
-EMIT_INSTRUCTION
-EMIT(MIR_Load.mutate(P(p), PPC_LWZX, Load.getResult(P(p)),           \
-                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-	             Load.getLocation(P(p)), Load.getGuard(P(p))));
-
-r:	INT_LOAD(INT_ADD(r,r),INT_CONSTANT)
-isZERO(VR(p), 11)
-EMIT_INSTRUCTION
-EMIT(MIR_Load.mutate(P(p), PPC_LWZX, Load.getResult(P(p)),           \
-                              R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p))));
-
-r:	INT_LOAD(INT_ADD(r,INT_CONSTANT),INT_CONSTANT)
-SI16(VR(p)+VLR(p)) ? 14 : INFINITE
-EMIT_INSTRUCTION
-EMIT(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),            \
-                              R(Binary.getVal1(PL(p))), I(VR(p)+VLR(p)), \
-			      Load.getLocation(P(p)), Load.getGuard(P(p))));
-
-#####
 # FLOAT_LOAD
 #####
 r:	FLOAT_LOAD(r,INT_CONSTANT)
@@ -1138,28 +1093,6 @@ EMIT_INSTRUCTION
 EMIT(MIR_Load.mutate(P(p), PPC_LFDX, Load.getResult(P(p)),           \
                               R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p))));
-
-#####
-# PREPARE
-#####
-r:	PREPARE(r, r)
-11
-EMIT_INSTRUCTION
-EMIT(MIR_Load.mutate(P(p), PPC_LWARX, Prepare.getResult(P(p)),   \
-	                      R(Prepare.getAddress(P(p))), Prepare.getOffset(P(p)),           \
-			      Prepare.getLocation(P(p)),                  \
-                              Prepare.getGuard(P(p))));
-
-##################################
-# Stores (register to memory moves)
-##################################
-#####
-# ATTEMPT (atomic compare-exchange)
-#####
-r:	ATTEMPT(r, r)
-11
-EMIT_INSTRUCTION
-EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
 
 #####
 # BYTE_STORE
@@ -1384,21 +1317,6 @@ stm:	INT_IFCMP(r,INT_CONSTANT)
 20
 EMIT_INSTRUCTION
 CMP(P(p), R(IfCmp.getVal1(P(p))), IfCmp.getVal2(P(p)), IfCmp.getCond(P(p)), true);
-
-stm:	INT_IFCMP(ATTEMPT(r,r),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE
-EMIT_INSTRUCTION
-{                                                                             \
-   OPT_ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \
-   EMIT(MIR_Store.create(PPC_STWCXr, R(Attempt.getNewValue(PL(p))), \
-                                  R(Attempt.getAddress(PL(p))), Attempt.getOffset(PL(p)),           \
-				  Attempt.getLocation(PL(p)),                \
-                                  Attempt.getGuard(PL(p))));                \
-   EMIT(MIR_CondBranch.mutate(P(p), PPC_BCOND, CR(0),                         \
-                              new OPT_PowerPCConditionOperand(c),             \
-                              IfCmp.getTarget(P(p)),                         \
-			      IfCmp.getBranchProfile(P(p))));                 \
-}
 
 stm:	INT_IFCMP(INT_NEG(r),INT_CONSTANT)
 (!IfCmp.getCond(P(p)).isUNSIGNED())&&ZERO(IfCmp.getVal2(P(p)))?20:INFINITE

@@ -12,6 +12,51 @@
 # See PPC_Common.rules for the format of this file
 #
 #####
+# INT_LOAD
+# A few more cases than for other load operators to handle pointer arithmetic introduced by use of magic
+#####
+r:      INT_LOAD(r,INT_CONSTANT)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),            \
+                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
+                     Load.getLocation(P(p)), Load.getGuard(P(p))));
+
+r:      INT_LOAD(r,INT_MOVE(INT_CONSTANT))
+22
+EMIT_INSTRUCTION
+{                                                                             \
+   OPT_Operand val = Move.getVal(PR(p));                                      \
+   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
+                          R(Load.getAddress(P(p))), CAU16(val)));             \
+   EMIT(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),         \
+                                 Move.getResult(PR(p)), CAL16(val),           \
+                                 Load.getLocation(P(p)),                      \
+                                 Load.getGuard(P(p))));                      \
+}
+
+r:      INT_LOAD(r,r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Load.mutate(P(p), PPC_LWZX, Load.getResult(P(p)),           \
+                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
+                     Load.getLocation(P(p)), Load.getGuard(P(p))));
+
+r:      INT_LOAD(INT_ADD(r,r),INT_CONSTANT)
+isZERO(VR(p), 11)
+EMIT_INSTRUCTION
+EMIT(MIR_Load.mutate(P(p), PPC_LWZX, Load.getResult(P(p)),           \
+                              R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), \
+                              Load.getLocation(P(p)), Load.getGuard(P(p))));
+
+r:      INT_LOAD(INT_ADD(r,INT_CONSTANT),INT_CONSTANT)
+SI16(VR(p)+VLR(p)) ? 14 : INFINITE
+EMIT_INSTRUCTION
+EMIT(MIR_Load.mutate(P(p), PPC_LWZ, Load.getResult(P(p)),            \
+                              R(Binary.getVal1(PL(p))), I(VR(p)+VLR(p)), \
+                              Load.getLocation(P(p)), Load.getGuard(P(p))));
+
+#####
 # LONG_LOAD
 #####
 r:	LONG_LOAD(r,INT_CONSTANT)
@@ -66,4 +111,26 @@ LONG_STORE_addx(P(p), R(Store.getValue(P(p))),              \
                             R(Store.getOffset(P(p))),                         \
 			    Store.getLocation(P(p)),                          \
                             Store.getGuard(P(p)));
+
+#####
+# PREPARE
+#####
+r:      PREPARE_INT(r, r)
+11
+EMIT_INSTRUCTION
+EMIT(MIR_Load.mutate(P(p), PPC_LWARX, Prepare.getResult(P(p)),   \
+                              R(Prepare.getAddress(P(p))), Prepare.getOffset(P(p)),           \
+                              Prepare.getLocation(P(p)),                  \
+                              Prepare.getGuard(P(p))));
+
+##################################
+# Stores (register to memory moves)
+##################################
+#####
+# ATTEMPT (atomic compare-exchange)
+#####
+r:      ATTEMPT_INT(r, r)
+11
+EMIT_INSTRUCTION
+EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
 

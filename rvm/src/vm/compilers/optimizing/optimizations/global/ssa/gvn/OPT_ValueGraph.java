@@ -605,7 +605,12 @@ class OPT_ValueGraph implements OPT_Operators {
   private OPT_ValueGraphVertex findOrCreateVertex(OPT_ConstantOperand op) {
     Object name;
     if (op.isAddressConstant()) {
+      //-#if RVM_FOR_32_ADDR
       name = new Integer(op.asAddressConstant().value.toInt());
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      name = new Long(op.asAddressConstant().value.toLong());
+      //-#endif
     } else if (op.isIntConstant()) {
       name = new Integer(op.asIntConstant().value);
     } else if (op.isFloatConstant()) {

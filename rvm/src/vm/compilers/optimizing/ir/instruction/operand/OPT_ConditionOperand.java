@@ -299,8 +299,8 @@ public final class OPT_ConditionOperand extends OPT_Operand {
       } else if (v2.isNullConstant()) {
         return evaluate(v1.asAddressConstant().value, VM_Address.zero()); 
       } else if (v2.isIntConstant()) {
-        return evaluate(v1.asAddressConstant().value.toInt(), 
-                        v2.asIntConstant().value); 
+        return evaluate(v1.asAddressConstant().value, 
+                        VM_Address.fromIntSignExtend(v2.asIntConstant().value)); 
       }
     } else if (v1.isIntConstant()) {
       if (v2.isIntConstant()) {
@@ -308,8 +308,8 @@ public final class OPT_ConditionOperand extends OPT_Operand {
       } else if (v2.isNullConstant()) {
         return evaluate(v1.asIntConstant().value, 0); 
       } else if (v2.isAddressConstant()) {
-        return evaluate(v1.asIntConstant().value,
-                        v2.asAddressConstant().value.toInt());
+        return evaluate(VM_Address.fromIntSignExtend(v1.asIntConstant().value),
+                        v2.asAddressConstant().value);
       }
     } else if (v1.isLongConstant()) {
       if (v2.isLongConstant()) {
@@ -474,6 +474,10 @@ public final class OPT_ConditionOperand extends OPT_Operand {
     switch (value) {
     case EQUAL: return (v1.EQ(v2)) ? TRUE : FALSE;
     case NOT_EQUAL: return (v1.NE(v2)) ? TRUE : FALSE;
+    case GREATER:   return (v1.toWord().toOffset().sGT(v2.toWord().toOffset()))  ? TRUE : FALSE;
+    case LESS:     return (v1.toWord().toOffset().sLT(v2.toWord().toOffset())) ? TRUE : FALSE;
+    case GREATER_EQUAL: return (v1.toWord().toOffset().sGE(v2.toWord().toOffset())) ? TRUE : FALSE;
+    case LESS_EQUAL:    return (v1.toWord().toOffset().sLE(v2.toWord().toOffset())) ? TRUE : FALSE;
     case LOWER: return (v1.LT(v2)) ? TRUE : FALSE;
     case LOWER_EQUAL: return (v1.LE(v2)) ? TRUE : FALSE;
     case HIGHER: return (v1.GT(v2)) ? TRUE : FALSE;

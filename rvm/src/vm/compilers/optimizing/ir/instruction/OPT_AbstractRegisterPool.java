@@ -217,6 +217,10 @@ public abstract class OPT_AbstractRegisterPool {
       return getFloat();
     else if (type == VM_TypeReference.VALIDATION_TYPE)
       return getValidation();
+    //-#if RVM_FOR_64_ADDR
+//    else if (type.isWordType() || type.isReferenceType())
+//      return getLong();
+    //-#endif
     else
       return getInteger();
   }

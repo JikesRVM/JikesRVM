@@ -80,7 +80,13 @@ public final class OPT_StackManager extends OPT_GenericStackManager
           break;
         case PPC_LFD_opcode:
         case PPC_LFS_opcode:
+        //-#if RVM_FOR_32_ADDR
         case PPC_LWZ_opcode:
+        //-#endif
+        //-#if RVM_FOR_64_ADDR
+        case PPC64_LWA_opcode:
+        case PPC64_LD_opcode:
+        //-#endif
           // the following to handle spilled parameters
           // SJF: this is ugly.  clean it up someday.
           if (MIR_Load.getAddress(inst).register ==
@@ -114,14 +120,37 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register FP = phys.getFP();
     if (type == FLOAT_VALUE) {
+      //-#if RVM_FOR_32_ADDR
       s.insertBack(MIR_Store.create(PPC_STFS, F(r), R(FP),
                                     I(location)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      s.insertBack(MIR_Store.create(PPC_STFS, F(r), L(FP),
+                                    I(location)));
+      //-#endif
     } else if (type == DOUBLE_VALUE) {
+      //-#if RVM_FOR_32_ADDR
       s.insertBack(MIR_Store.create(PPC_STFD, D(r), R(FP),
                                     I(location)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      s.insertBack(MIR_Store.create(PPC_STFD, D(r), L(FP),
+                                    I(location)));
+      //-#endif
     } else if (type == INT_VALUE) {      // integer or half of long
+      //-#if RVM_FOR_32_ADDR
       s.insertBack(MIR_Store.create(PPC_STW, R(r), R(FP),
                                     I(location)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      s.insertBack(MIR_Store.create(PPC64_STD, L(r), L(FP),
+                                    I(location)));
+      //-#endif
+    //-#if RVM_FOR_64_ADDR
+    } else if (type == LONG_VALUE) {     // long
+      s.insertBack(MIR_Store.create(PPC64_STD, L(r), L(FP),
+                                    I(location)));
+    //-#endif
     } else
       throw new OPT_OptimizingCompilerException("insertSpillBefore", 
                                                 "unsupported type " +
@@ -136,7 +165,12 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     if (rhs.isFloatingPoint() && lhs.isFloatingPoint()) {
       return MIR_Move.create(PPC_FMR, D(lhs), D(rhs));
     } else if (rhs.isInteger() && lhs.isInteger()) { // integer
+      //-#if RVM_FOR_32_ADDR
       return MIR_Move.create(PPC_MOVE, R(lhs), R(rhs));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      return MIR_Move.create(PPC_MOVE, L(lhs), L(rhs));
+      //-#endif
     } else
       throw new OPT_OptimizingCompilerException("RegAlloc", 
                                                 "unknown register:", 
@@ -160,14 +194,39 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register FP = phys.getFP();
     if (type == CONDITION_VALUE) {
       OPT_Register temp = phys.getTemp();
+      //-#if RVM_FOR_32_ADDR
       s.insertBack(MIR_Load.create(PPC_LWZ, R(temp), R(FP),
                                    I(location)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      s.insertBack(MIR_Load.create(PPC_LWZ, L(temp), L(FP),
+                                   I(location)));
+      //-#endif
     } else if (type == DOUBLE_VALUE) {
+      //-#if RVM_FOR_32_ADDR
         s.insertBack(MIR_Load.create(PPC_LFD, D(r), R(FP), I(location)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      s.insertBack(MIR_Load.create(PPC_LFD, D(r), L(FP), I(location)));
+      //-#endif
     } else if (type == FLOAT_VALUE) {
+      //-#if RVM_FOR_32_ADDR
       s.insertBack(MIR_Load.create(PPC_LFS, F(r), R(FP), I(location)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      s.insertBack(MIR_Load.create(PPC_LFS, F(r), L(FP), I(location)));
+      //-#endif
     } else if (type == INT_VALUE) { // integer or half of long
+      //-#if RVM_FOR_32_ADDR
       s.insertBack(MIR_Load.create(PPC_LWZ, R(r), R(FP), I(location)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      s.insertBack(MIR_Load.create(PPC64_LD, L(r), L(FP), I(location)));
+      //-#endif
+    //-#if RVM_FOR_64_ADDR
+    } else if (type == LONG_VALUE) { // long
+      s.insertBack(MIR_Load.create(PPC64_LD, L(r), L(FP), I(location)));
+    //-#endif
     } else {
       throw new OPT_OptimizingCompilerException("insertUnspillBefore", 
                                                 "unknown type:" + type);
@@ -191,15 +250,32 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register temp = phys.getTemp();
     OPT_Register FP = phys.getFP();
+    //-#if RVM_FOR_32_ADDR
     ret.insertBack(MIR_Load.create(PPC_LWZ, R(temp), R(FP),
                                    I(STACKFRAME_NEXT_INSTRUCTION_OFFSET + frameSize)));
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    ret.insertBack(MIR_Load.create(PPC64_LD, L(temp), L(FP),
+                                   I(STACKFRAME_NEXT_INSTRUCTION_OFFSET + frameSize)));
+    //-#endif
 
     // 3. Load return address into LR
+    //-#if RVM_FOR_32_ADDR
     ret.insertBack(MIR_Move.create(PPC_MTSPR, R(phys.getLR()),
                                    R(phys.getTemp())));
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    ret.insertBack(MIR_Move.create(PPC_MTSPR, L(phys.getLR()),
+                                   L(phys.getTemp())));
+    //-#endif
 
     // 4. Restore old FP
+    //-#if RVM_FOR_32_ADDR
     ret.insertBack(MIR_Binary.create(PPC_ADDI, R(FP), R(FP), I(frameSize)));
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    ret.insertBack(MIR_Binary.create(PPC_ADDI, L(FP), L(FP), I(frameSize)));
+    //-#endif
 
   }
   
@@ -220,7 +296,12 @@ public final class OPT_StackManager extends OPT_GenericStackManager
          e.hasMoreElements(); i++) {
       OPT_Register r = (OPT_Register)e.nextElement();
       int location = saveVolatileGPRLocation[i];
+      //-#if RVM_FOR_32_ADDR
       inst.insertBefore(MIR_Store.create(PPC_STW, R(r), R(FP), I(location)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      inst.insertBefore(MIR_Store.create(PPC64_STD, L(r), L(FP), I(location)));
+      //-#endif
     }
     // 2. save the volatile FPRs
     i = 0;
@@ -228,17 +309,33 @@ public final class OPT_StackManager extends OPT_GenericStackManager
          e.hasMoreElements(); i++) {
       OPT_Register r = (OPT_Register)e.nextElement();
       int location = saveVolatileFPRLocation[i];
+      //-#if RVM_FOR_32_ADDR
       inst.insertBefore(MIR_Store.create(PPC_STFD, D(r), R(FP), I(location)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      inst.insertBefore(MIR_Store.create(PPC_STFD, D(r), L(FP), I(location)));
+      //-#endif
     }
     
     // 3. Save some special registers
     OPT_Register temp = phys.getTemp();
     
     inst.insertBack(MIR_Move.create(PPC_MFSPR, R(temp), R(phys.getXER()) ));
+    //-#if RVM_FOR_32_ADDR 
     inst.insertBack(MIR_Store.create(PPC_STW, R(temp), R(FP),I(saveXERLocation)));
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    inst.insertBack(MIR_Store.create(PPC_STW, R(temp), L(FP),I(saveXERLocation)));
+    //-#endif   
 
     inst.insertBack(MIR_Move.create(PPC_MFSPR, R(temp), R(phys.getCTR())));
+    //-#if RVM_FOR_32_ADDR
     inst.insertBack(MIR_Store.create(PPC_STW, R(temp), R(FP), I(saveCTRLocation)));
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    inst.insertBack(MIR_Store.create(PPC64_STD, R(temp), L(FP), I(saveCTRLocation)));
+    //-#endif
+
   }
   
   /**
@@ -258,6 +355,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     // 1. save the nonvolatile GPRs
     int n = nNonvolatileGPRS - 1;
     OPT_Register FP = phys.getFP();
+    //-#if RVM_FOR_32_ADDR
     if (n <= MULTIPLE_CUTOFF) {
       // use a sequence of load instructions
       for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
@@ -280,6 +378,15 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       int offset = getNonvolatileGPROffset(n);
       inst.insertBack(MIR_Store.create(PPC_STMW, range, R(FP), I(offset)));
     }
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
+           e.hasMoreElements() && n >= 0 ; n--) {
+        OPT_Register nv = (OPT_Register)e.nextElement();
+        int offset = getNonvolatileGPROffset(n);
+        inst.insertBack(MIR_Store.create (PPC64_STD, L(nv), L(FP), I(offset)));
+      }
+    //-#endif
     // 1. save the nonvolatile FPRs
     if (ir.compiledMethod.isSaveVolatile()) {
       // DANGER: as an optimization, we assume that a SaveVolatile method
@@ -294,7 +401,12 @@ public final class OPT_StackManager extends OPT_GenericStackManager
          e.hasMoreElements() && n >= 0 ; n--) {
         OPT_Register nv = (OPT_Register)e.nextElement();
         int offset = getNonvolatileFPROffset(n);
+        //-#if RVM_FOR_32_ADDR
         inst.insertBack(MIR_Store.create(PPC_STFD, D(nv), R(FP),I(offset)));
+        //-#endif
+        //-#if RVM_FOR_64_ADDR
+        inst.insertBack(MIR_Store.create(PPC_STFD, D(nv), L(FP),I(offset)));
+        //-#endif
       }
     }
   }
@@ -312,6 +424,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     // 1. restore the nonvolatile GPRs
     int n = nNonvolatileGPRS - 1;
     OPT_Register FP = phys.getFP();
+    //-#if RVM_FOR_32_ADDR
     if (n <= MULTIPLE_CUTOFF) {
       // use a sequence of load instructions
       for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
@@ -334,6 +447,15 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       int offset = getNonvolatileGPROffset(n);
       inst.insertBack(MIR_Load.create(PPC_LMW, range, R(FP), I(offset)));
     }
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards();
+         e.hasMoreElements() && n >= 0 ; n--) {
+      OPT_Register nv = (OPT_Register)e.nextElement();
+      int offset = getNonvolatileGPROffset(n);
+      inst.insertBack(MIR_Load.create (PPC64_LD, L(nv), L(FP), I(offset)));
+    }
+    //-#endif
     // Note that save-volatiles are forbidden from using nonvolatile FPRs.
     if (!ir.compiledMethod.isSaveVolatile()) {
       // 1. restore the nonvolatile FPRs
@@ -344,7 +466,12 @@ public final class OPT_StackManager extends OPT_GenericStackManager
            e.hasMoreElements() && n >= 0 ; n--) {
         OPT_Register nv = (OPT_Register)e.nextElement();
         int offset = getNonvolatileFPROffset(n);
+        //-#if RVM_FOR_32_ADDR
         inst.insertBack(MIR_Load.create (PPC_LFD, D(nv), R(FP),I(offset)));
+        //-#endif
+        //-#if RVM_FOR_64_ADDR
+        inst.insertBack(MIR_Load.create (PPC_LFD, D(nv), L(FP),I(offset)));
+        //-#endif
       }
     }
   }
@@ -366,7 +493,12 @@ public final class OPT_StackManager extends OPT_GenericStackManager
          e.hasMoreElements(); i++) {
       OPT_Register r = (OPT_Register)e.nextElement();
       int location = saveVolatileGPRLocation[i];
+      //-#if RVM_FOR_32_ADDR
       inst.insertBefore(MIR_Load.create(PPC_LWZ, R(r), R(FP),I(location)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      inst.insertBefore(MIR_Load.create(PPC64_LD, L(r), L(FP),I(location)));
+      //-#endif
     }
     // 2. restore the volatile FPRs
     i = 0;
@@ -374,10 +506,16 @@ public final class OPT_StackManager extends OPT_GenericStackManager
          e.hasMoreElements(); i++) {
       OPT_Register r = (OPT_Register)e.nextElement();
       int location = saveVolatileFPRLocation[i];
+      //-#if RVM_FOR_32_ADDR
       inst.insertBefore(MIR_Load.create(PPC_LFD, D(r), R(FP),I(location)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      inst.insertBefore(MIR_Load.create(PPC_LFD, D(r), L(FP),I(location)));
+      //-#endif
     }
     // 3. Restore some special registers
     OPT_Register temp = phys.getTemp();
+    //-#if RVM_FOR_32_ADDR
     inst.insertBack(MIR_Load.create(PPC_LWZ, R(temp), R(FP), I(saveXERLocation)));
     inst.insertBack(MIR_Move.create(PPC_MTSPR,
                                  R(phys.getXER()), R(temp)));
@@ -386,6 +524,18 @@ public final class OPT_StackManager extends OPT_GenericStackManager
                                     I(saveCTRLocation)));
     inst.insertBack(MIR_Move.create(PPC_MTSPR,
                                  R(phys.getCTR()), R(temp)));
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    inst.insertBack(MIR_Load.create(PPC64_LWA, L(temp), L(FP), I(saveXERLocation)));
+    inst.insertBack(MIR_Move.create(PPC_MTSPR,
+                                 L(phys.getXER()), L(temp)));
+
+    inst.insertBack(MIR_Load.create(PPC64_LD, L(temp), L(FP),
+                                    I(saveCTRLocation)));
+    inst.insertBack(MIR_Move.create(PPC_MTSPR,
+                                 L(phys.getCTR()), L(temp)));
+    //-#endif
+
   }
   
   /*
@@ -442,27 +592,58 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Instruction ptr = ir.firstInstructionInCodeOrder().nextInstructionInCodeOrder();
     if (VM.VerifyAssertions) VM._assert(ptr.getOpcode() == IR_PROLOGUE_opcode);
 
+    //-#if RVM_FOR_32_ADDR
     ptr.insertBefore(MIR_Move.create(PPC_MFSPR, R(R0),
                                      R(phys.getLR()))); // 1
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    ptr.insertBefore(MIR_Move.create(PPC_MFSPR, L(R0),
+                                     L(phys.getLR()))); // 1
+    //-#endif   
+ 
     if (yp) {
+      //-#if RVM_FOR_32_ADDR
       ptr.insertBefore(MIR_Load.create(PPC_LWZ, R(S1), R(PR),
                                        I(VM_Entrypoints.threadSwitchRequestedField.getOffset()))); // 2
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      ptr.insertBefore(MIR_Load.create(PPC64_LD, L(S1), L(PR),
+                                       I(VM_Entrypoints.threadSwitchRequestedField.getOffset()))); // 2
+      //-#endif
     }
 
+    //-#if RVM_FOR_32_ADDR
     ptr.insertBefore(MIR_StoreUpdate.create(PPC_STWU, R(FP), R(FP),
                                             I(-frameSize))); // 3
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    ptr.insertBefore(MIR_StoreUpdate.create(PPC64_STDU, L(FP), L(FP),
+                                            I(-frameSize))); // 3
+    //-#endif
 
     if (stackOverflow) {
+      //-#if RVM_FOR_32_ADDR
       ptr.insertBefore(MIR_Load.create(PPC_LWZ, R(S0),
                                        R(phys.getPR()), 
                                        I(VM_Entrypoints.activeThreadStackLimitField.getOffset()))); // 4
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      ptr.insertBefore(MIR_Load.create(PPC64_LD, L(S0),
+                                       L(phys.getPR()),
+                                       I(VM_Entrypoints.activeThreadStackLimitField.getOffset()))); // 4
+      //-#endif
     }
 
     // Now add any instructions to save the volatiles and nonvolatiles (5)
     saveNonVolatiles(ptr);
     
     if (yp) {
+      //-#if RVM_FOR_32_ADDR
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(S1), I(0))); // 6
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      ptr.insertBefore(MIR_Binary.create(PPC64_CMPI, L(TSR), L(S1), I(0))); // 6
+      //-#endif
     }
     int cmid = ir.compiledMethod.getId();
     if (cmid <= 0x7fff) {
@@ -472,10 +653,18 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       ptr.insertBefore(MIR_Binary.create(PPC_ORI, R(S1), R(S1),
                                          I(cmid&0xffff))); // 7 (b)
     }
+    //-#if RVM_FOR_32_ADDR
     ptr.insertBefore(MIR_Store.create(PPC_STW, R(R0), R(FP), 
                                       I(frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET))); // 8
     ptr.insertBefore(MIR_Store.create(PPC_STW, R(S1), R(FP), 
                                       I(STACKFRAME_METHOD_ID_OFFSET))); // 9
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    ptr.insertBefore(MIR_Store.create(PPC64_STD, L(R0), L(FP),
+                                      I(frameSize + STACKFRAME_NEXT_INSTRUCTION_OFFSET))); // 8
+    ptr.insertBefore(MIR_Store.create(PPC_STW, R(S1), L(FP), 
+                                      I(STACKFRAME_METHOD_ID_OFFSET))); // 9
+    //-#endif
 
     ptr.insertBefore(Empty.create(IR_ENDPROLOGUE));
 
@@ -518,6 +707,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       // R0 is fairly useless (can't be operand 1 of an addi or the base ptr
       // of a load) so, free up S1 for use by briefly saving its contents in the
       // return address slot of my caller's frame
+      //-#if RVM_FOR_32_ADDR
       ptr.insertBefore(MIR_Store.create(PPC_STW, R(S1), R(FP), 
                                         I(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
       ptr.insertBefore(MIR_Load.create(PPC_LWZ, R(S1), R(phys.getPR()), 
@@ -526,10 +716,28 @@ public final class OPT_StackManager extends OPT_GenericStackManager
                         I(frameSize)));
       ptr.insertBefore(MIR_Load.create(PPC_LWZ, R(S1), R(FP), 
                                        I(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      ptr.insertBefore(MIR_Store.create(PPC64_STD, L(S1), L(FP),
+                                        I(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+      ptr.insertBefore(MIR_Load.create(PPC64_LD, L(S1), L(phys.getPR()),
+                                       I(VM_Entrypoints.activeThreadStackLimitField.getOffset())));
+      ptr.insertBefore(MIR_Binary.create(PPC_ADDI, L(R0), L(S1),
+                        I(frameSize)));
+      ptr.insertBefore(MIR_Load.create(PPC64_LD, L(S1), L(FP),
+                                       I(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+      //-#endif
+
 
       // Mutate the Prologue holder instruction into the trap
+      //-#if RVM_FOR_32_ADDR
       MIR_Trap.mutate(ptr, PPC_TW, OPT_PowerPCTrapOperand.LESS(), R(FP), R(R0),
                       OPT_TrapCodeOperand.StackOverflow()); 
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      MIR_Trap.mutate(ptr, PPC64_TD, OPT_PowerPCTrapOperand.LESS(), L(FP), L(R0),
+                      OPT_TrapCodeOperand.StackOverflow());
+      //-#endif
 
       // advance ptr because we want the remaining instructions to come after
       // the trap
@@ -545,10 +753,19 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     // Buy stack frame, save LR, caller's FP 
     ptr.insertBefore(MIR_Move.create(PPC_MFSPR, R(R0),
                                      R(phys.getLR())));
+    //-#if RVM_FOR_32_ADDR 
     ptr.insertBefore(MIR_StoreUpdate.create(PPC_STWU, R(FP), R(FP),
                                             I(-frameSize)));
     ptr.insertBefore(MIR_Store.create(PPC_STW, R(R0), R(FP), 
                                       I(frameSize+STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+    //-#endif
+    //-#if RVM_FOR_64_ADDR
+    ptr.insertBefore(MIR_StoreUpdate.create(PPC64_STDU, L(FP), L(FP),
+                                            I(-frameSize)));
+    ptr.insertBefore(MIR_Store.create(PPC64_STD, L(R0), L(FP),
+                                      I(frameSize+STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
+    //-#endif
+
     
     // Store cmid
     int cmid = ir.compiledMethod.getId();
@@ -558,8 +775,14 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       ptr.insertBefore(MIR_Unary.create(PPC_LDIS, R(R0),I(cmid>>>16)));
       ptr.insertBefore(MIR_Binary.create(PPC_ORI, R(R0), R(R0),I(cmid&0xffff)));
     }
+    //-#if RVM_FOR_32_ADDR
     ptr.insertBefore(MIR_Store.create(PPC_STW, R(R0), R(FP), 
                                       I(STACKFRAME_METHOD_ID_OFFSET)));
+    //-#endif
+    //-#if RVM_FOR_32_ADDR
+    ptr.insertBefore(MIR_Store.create(PPC_STW, R(R0), L(FP),
+                                      I(STACKFRAME_METHOD_ID_OFFSET)));
+    //-#endif
 
     // Now save the volatile/nonvolatile registers
     if (ir.compiledMethod.isSaveVolatile()) {
@@ -569,8 +792,14 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     
     // Threadswitch
     if (yp) {
+      //-#if RVM_FOR_32_ADDR
       ptr.insertBefore(MIR_Load.create(PPC_LWZ, R(R0), R(PR), 
                                        I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+      //-#endif
+      //-#if RVM_FOR_64_ADDR
+      ptr.insertBefore(MIR_Load.create(PPC64_LD, R(R0), L(PR),
+                                       I(VM_Entrypoints.threadSwitchRequestedField.getOffset())));
+      //-#endif
       ptr.insertBefore(MIR_Binary.create(PPC_CMPI, R(TSR), R(R0), I(0)));
     }
     ptr.insertBefore(Empty.create(IR_ENDPROLOGUE));
@@ -596,11 +825,11 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       ir.compiledMethod.setNumberOfNonvolatileGPRs((short)numGprNv);
 
       // set the frame size
-      frameSize += numGprNv * WORDSIZE;
+      frameSize += numGprNv * BYTES_IN_ADDRESS;
 
       int numFprNv = phys.getNumberOfNonvolatileFPRs();
       ir.compiledMethod.setNumberOfNonvolatileFPRs((short)numFprNv);
-      frameSize += numFprNv * WORDSIZE * 2;
+      frameSize += numFprNv * BYTES_IN_DOUBLE;
 
       frameSize = align(frameSize, STACKFRAME_ALIGNMENT);
 
