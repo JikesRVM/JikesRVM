@@ -228,33 +228,75 @@ public abstract class VM_Method extends VM_Member {
 
   /**
    * Is this method interruptible?
-   * In other words, should the compiler insert threadswitch points
-   * aka yieldpoints in method prologue, epilogue, and backwards branches.
-   * Also, methods that are Uninterruptible do not have stackoverflow checks
+   * In other words, should the compiler insert yieldpoints
+   * in method prologue, epilogue, and backwards branches.
+   * Also, only methods that are Interruptible have stackoverflow checks
    * in the method prologue (since there is no mechanism for handling a stackoverflow
    * that doesn't violate the uninterruptiblity of the method).
-   * A method is Uninterruptible if 
+   * To determine if a method is interruptible, the following conditions
+   * are checked (<em>in order</em>):
    * <ul>
-   * <li> It is not a <clinit> or <init> method.
-   * <li> It is not the synthetic 'this' method used by jikes to
-   *      factor out default initializers for <init> methods.
-   * <li> it throws the <CODE>UninterruptiblePragma</CODE> exception.
-   * <li> its declaring class directly implements the <CODE>Uninterruptible</CODE>
-   *      interface and the method does not throw the <CODE>InterruptiblePragma</CODE>
-   *      exception.
+   * <li> If it is a <clinit> or <init> method then it is interruptible.
+   * <li> If is the synthetic 'this' method used by jikes to
+   *      factor out default initializers for <init> methods then it is interruptible.
+   * <li> If it throws the <CODE>InterruptiblePragma</CODE> exception it is interruptible.
+   * <li> If it throws the <CODE>UninterruptiblePragma</CODE> exception it is not interruptible.
+   * <li> If it throws the <CODE>UninterruptibleNoWarnPragma</CODE> exception it is not interruptible.
+   * <li> If it throws the <CODE>UnpreemptiblePragma</CODE> exception it is not interruptible.
+   * <li> If its declaring class directly implements the <CODE>Uninterruptible</CODE>
+   *      or <CODE>Unpreemptible</CODE> interface it is not interruptible.
    * </ul>
    */
   public final boolean isInterruptible() {
     if (isClassInitializer() || isObjectInitializer()) return true;
     if (isObjectInitializerHelper()) return true;
-    if (InterruptiblePragma.declaredBy(this)) return true;
-    if (UninterruptibleNoWarnPragma.declaredBy(this)) return false;
-    if (UninterruptiblePragma.declaredBy(this)) return false;
+    if (exceptionTypes != null) {
+      if (InterruptiblePragma.declaredBy(this)) return true;
+      if (UninterruptibleNoWarnPragma.declaredBy(this)) return false;
+      if (UninterruptiblePragma.declaredBy(this)) return false;
+      if (UnpreemptiblePragma.declaredBy(this)) return false;
+    }
     VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
-    for (int i = 0, n = interfaces.length; i < n; ++i) {
+    for (int i = 0; i < interfaces.length; i++) {
       if (interfaces[i].isUninterruptibleType()) return false;
+      if (interfaces[i].isUnpreemptibleType()) return false;
     }
     return true;
+  }
+
+  /**
+   * Is the method Unpreemptible? See the comment in {@link #isInterruptible}
+   */
+  public final boolean isUnpreemptible() {
+    if (isClassInitializer() || isObjectInitializer()) return false;
+    if (isObjectInitializerHelper()) return false;
+    if (exceptionTypes != null) {
+      if (InterruptiblePragma.declaredBy(this)) return false;
+      if (UnpreemptiblePragma.declaredBy(this)) return true;
+    }
+    VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
+    for (int i = 0; i < interfaces.length; i++) {
+      if (interfaces[i].isUnpreemptibleType()) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Is the method Uninterruptible? See the comment in {@link #isInterruptible}
+   */
+  public final boolean isUninterruptible() {
+    if (isClassInitializer() || isObjectInitializer()) return false;
+    if (isObjectInitializerHelper()) return false;
+    if (exceptionTypes != null) {
+      if (InterruptiblePragma.declaredBy(this)) return false;
+      if (UninterruptibleNoWarnPragma.declaredBy(this)) return true;
+      if (UninterruptiblePragma.declaredBy(this)) return true;
+    }
+    VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
+    for (int i = 0; i < interfaces.length; i++) {
+      if (interfaces[i].isUninterruptibleType()) return true;
+    }
+    return false;
   }
 
   /**

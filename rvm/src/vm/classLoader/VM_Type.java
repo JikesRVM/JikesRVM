@@ -78,6 +78,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   public static VM_Type CodeType;
   public static VM_Array CodeArrayType;
   public static VM_Type UninterruptibleType;   
+  public static VM_Type UnpreemptibleType;   
   public static VM_Type SynchronizedObjectType;   
   public static VM_Type DynamicBridgeType;     
   public static VM_Type SaveVolatileType;      
@@ -479,6 +480,7 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   public final boolean isMagicType() throws UninterruptiblePragma             { return isWordType() || isWordArrayType() ||
                                                                                      this == MagicType || this == CodeArrayType; }
   public final boolean isUninterruptibleType() throws UninterruptiblePragma   { return this == UninterruptibleType;   }
+  public final boolean isUnpreemptibleType() throws UninterruptiblePragma     { return this == UnpreemptibleType;   }
   public final boolean isSynchronizedObjectType() throws UninterruptiblePragma{ return this == SynchronizedObjectType;   }
   public final boolean isDynamicBridgeType() throws UninterruptiblePragma     { return this == DynamicBridgeType;     }
   public final boolean isSaveVolatileType() throws UninterruptiblePragma      { return this == SaveVolatileType;      }
@@ -536,6 +538,8 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     MagicType = VM_TypeReference.Magic.resolve();
     UninterruptibleType   = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
                                                           VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Uninterruptible;")).resolve();
+    UnpreemptibleType     = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
+                                                          VM_Atom.findOrCreateAsciiAtom("Lorg/vmmagic/pragma/Unpreemptible;")).resolve();
     SynchronizedObjectType= VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
                                                            VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_SynchronizedObject;")).resolve();
     DynamicBridgeType     = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),

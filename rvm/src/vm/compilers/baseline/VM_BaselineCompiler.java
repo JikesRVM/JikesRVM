@@ -109,6 +109,16 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
   protected final boolean isInterruptible;
 
   /**
+   * Is the method currently being compiled unpreemtible?
+   */
+  protected final boolean isUninterruptible;
+
+  /**
+   * Is the method currently being compiled uninterruptible?
+   */
+  protected final boolean isUnpreemptible;
+
+  /**
    * Construct a VM_Compiler
    */
   protected VM_BaselineCompiler(VM_BaselineCompiledMethod cm) {
@@ -137,6 +147,13 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
     bytecodeMap = new int [bcodes.length()+1];
     asm = new VM_Assembler(bcodes.length(), shouldPrint, (VM_Compiler)this);
     isInterruptible = method.isInterruptible();
+    if (isInterruptible) {
+      isUninterruptible = false;
+      isUnpreemptible = false;
+    } else {
+      isUninterruptible = method.isUninterruptible();
+      isUnpreemptible = method.isUnpreemptible();
+    }
   }
 
   /**
@@ -2200,9 +2217,12 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
       if (LogicallyUninterruptiblePragma.declaredBy(method)) return;
       if (UninterruptibleNoWarnPragma.declaredBy(method)) return;
     }
-    if (target.isInterruptible() && !UninterruptibleNoWarnPragma.declaredBy(method)) {
-      VM.sysWriteln("WARNING "+ method + ": contains call to interruptible method "+target);
+    if (isUninterruptible && !target.isUninterruptible()) {
+      VM.sysWriteln("WARNING "+ method + ": contains call to non-uninterruptible method "+target);
     }
+    if (isUnpreemptible && target.isInterruptible()) {
+      VM.sysWriteln("WARNING "+ method + ": contains call to interruptible method "+target);
+    }      
   }
 
 
