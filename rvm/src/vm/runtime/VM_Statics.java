@@ -362,18 +362,19 @@ public class VM_Statics implements VM_Constants {
    * Fetch contents of a slot-pair, as a long integer.
    */ 
   public static long getSlotContentsAsLong(int slot) throws VM_PragmaUninterruptible {  
-    //Kris Venstermans : future optimaliation
-    //if (VM.runningVM)
-    //  return VM_Magic.getLongAtOffset(slots, slot << LOG_BYTES_IN_INT); 
-    long result;
-    if (VM.LittleEndian) {
-      result = (((long) slots[slot+1]) << BITS_IN_INT); // hi
-      result |= ((long) slots[slot]) & 0xFFFFFFFFL; // lo
+    if (VM.runningVM) {
+      return VM_Magic.getLongAtOffset(slots, slot << LOG_BYTES_IN_INT);
     } else {
-      result = (((long) slots[slot]) << BITS_IN_INT);     // hi
-      result |= ((long) slots[slot+1]) & 0xFFFFFFFFL; // lo
+      long result;
+      if (VM.LittleEndian) {
+        result = (((long) slots[slot+1]) << BITS_IN_INT); // hi
+        result |= ((long) slots[slot]) & 0xFFFFFFFFL; // lo
+      } else {
+        result = (((long) slots[slot]) << BITS_IN_INT);     // hi
+        result |= ((long) slots[slot+1]) & 0xFFFFFFFFL; // lo
+      }
+      return result;
     }
-    return result;
   }
 
   /**
@@ -409,16 +410,16 @@ public class VM_Statics implements VM_Constants {
    * Set contents of a slot, as a long integer.
    */
   public static void setSlotContents(int slot, long value) throws VM_PragmaUninterruptible {
-    //Kris Venstermans : future optimaliation
-    //if (VM.runningVM)
-    //  VM_Magic.setLongAtOffset(slots, slot << LOG_BYTES_IN_INT , value);
-    //else
-    if (VM.LittleEndian) {
-      slots[slot + 1] = (int)(value >>> BITS_IN_INT); // hi
-      slots[slot    ] = (int)(value       ); // lo
+    if (VM.runningVM) {
+      VM_Magic.setLongAtOffset(slots, slot << LOG_BYTES_IN_INT , value);
     } else {
-      slots[slot    ] = (int)(value >>> BITS_IN_INT); // hi
-      slots[slot + 1] = (int)(value       ); // lo
+      if (VM.LittleEndian) {
+        slots[slot + 1] = (int)(value >>> BITS_IN_INT); // hi
+        slots[slot    ] = (int)(value       ); // lo
+      } else {
+        slots[slot    ] = (int)(value >>> BITS_IN_INT); // hi
+        slots[slot + 1] = (int)(value       ); // lo
+      }
     }
   }
 
@@ -426,14 +427,14 @@ public class VM_Statics implements VM_Constants {
    * Set contents of a slot, as an object.
    */ 
   public static void setSlotContents(int slot, Object object) throws VM_PragmaUninterruptible {
-    //Kris Venstermans : future optimaliation
-    //if (VM.runningVM)
-    //  VM_Magic.setObjectAtOffset(slots, slot << LOG_BYTES_IN_INT , object); 
-    //else  
-    //-#if RVM_FOR_64_ADDR
-    setSlotContents(slot, VM_Magic.objectAsAddress(object).toLong());
-    //-#else
-    slots[slot] = VM_Magic.objectAsAddress(object).toInt();
-    //-#endif
+    if (VM.runningVM) {
+      VM_Magic.setObjectAtOffset(slots, slot << LOG_BYTES_IN_INT , object);
+    } else {
+      //-#if RVM_FOR_64_ADDR
+      setSlotContents(slot, VM_Magic.objectAsAddress(object).toLong());
+      //-#else
+      slots[slot] = VM_Magic.objectAsAddress(object).toInt();
+      //-#endif
+    }
   }
 }
