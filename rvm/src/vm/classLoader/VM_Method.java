@@ -299,7 +299,7 @@ public abstract class VM_Method extends VM_Member {
     if (VM.VerifyAssertions) VM._assert(declaringClass.isResolved());
     if (isCompiled()) {
       return currentCompiledMethod.getInstructions();
-    } else if (VM.BuildForLazyCompilation && (!VM.writingBootImage || isNative())) {
+    } else if (!VM.writingBootImage || isNative()) {
       return VM_LazyCompilationTrampolineGenerator.getTrampoline();
     } else {
       compile(); 

@@ -279,7 +279,7 @@ integer RVM_WITH_OPT_COMPILER=0
 integer RVM_WITH_ADAPTIVE_SYSTEM=0 # superset of opt
 integer RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via OptTestHarness class
 
-integer RVM_WITH_BOOT_HEAP_ONLY=0
+# Include support for hardware performance monitors (HPM)
 integer RVM_WITH_HPM=0
 
 integer RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH=0
@@ -310,7 +310,6 @@ integer RVM_WITH_DETERMINISTIC_THREAD_SWITCHING=0 # thread switch after n method
 integer RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING=0 # thread switch only at explicit yield and wait calls
 integer RVM_WITH_ALL_CLASSES=0   # include all vm classes in bootimage, not just those needed for startup
 integer RVM_WITHOUT_ASSERTIONS=0 # exclude runtime assertion checks
-integer RVM_WITHOUT_LAZY_COMPILATION=0 # force method compilation on class loading
 integer RVM_WITH_EXTREME_ASSERTIONS=0 # include extra assertion checking 
 integer RVM_WITHOUT_AOS_LOG=0    # turn off AOS logging
 integer RVM_WITH_NATIVE_DAEMON_PROCESSOR=0
@@ -580,16 +579,12 @@ function emitSourceList
    # On stack replacement components.
    #
    if (( RVM_WITH_OSR )); then
-     if (( RVM_FOR_IA32 )); then
-       print $RVM_ROOT/rvm/src/vm/arch/intel/executionState
-     elif (( RVM_FOR_POWERPC )); then
-       print $RVM_ROOT/rvm/src/vm/arch/powerPC/executionState
-     fi
-      print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/optCompilationWithOsr
-      print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/specialCompilation
-      print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/util
-      print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/executionState
-	  print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/threadControls
+     print $RVM_ROOT/rvm/src/vm/arch/$ARCH_DIR/executionState
+     print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/optCompilationWithOsr
+     print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/specialCompilation
+     print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/util
+     print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/executionState
+     print $RVM_ROOT/rvm/src/vm/adaptive/onStackReplacement/threadControls
    fi
 
    # architecture specific writebarrier support for baseline compilers
@@ -616,11 +611,7 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/harness/runtime/adaptive
    fi
 
-   # Memory manager components.
-   #
-   #
-
-   # common allocator and collector classes for RVM memory managers
+   # Common memory manager components.
    #
    print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk
    print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/vmInterface
@@ -1935,12 +1926,6 @@ function emitBooterLinker
    fi
    print ""
 
-   if (( RVM_WITH_BOOT_HEAP_ONLY )); then
-      print 'BootHeapOnly="-DBootImageOnly"'
-   else
-      print 'BootHeapOnly='
-   fi
-
    if (( RVM_FOR_POWERPC && ( RVM_FOR_AIX || RVM_FOR_LINUX ) )); then
       print "cd $BOOTIMAGE_RUNNER_DIR_STR &&\
 		\$BOOTER_CC -c -O -I$SCRATCH_DIRECTORY_STR\
@@ -1959,7 +1944,7 @@ function emitBooterLinker
 		$SCRATCH_DIRECTORY_STR/bootThread.s"
       print "cd $BOOTIMAGE_RUNNER_SUBDIR_STR &&\
 		\$BOOTER_CC -c -I. -I$SCRATCH_DIRECTORY_STR\
-		\$IMAGE \$BootHeapOnly -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
+		\$IMAGE -DRVM_BOOTIMAGE=\\\"$BUILD_DIRECTORY_STR/RVM.image\\\"\
 		-o $SCRATCH_DIRECTORY_STR/libvm.o libvm.C"
 
       if (( $RVM_WITH_HPM )); then

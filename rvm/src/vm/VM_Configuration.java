@@ -168,15 +168,6 @@ public abstract class VM_Configuration {
         true;
       //-#endif
 
-  // Lazy vs. eager method compilation during class loading.
-  //
-  public static final boolean BuildForLazyCompilation =
-      //-#if RVM_WITHOUT_LAZY_COMPILATION
-        false;
-      //-#else
-        true;
-      //-#endif
-
   // Capture threads that have gone Native (JNI) and not come back.  Issolate them
   // in Native.  Create a new (Native) virtual processor for them.  And create (or revive)
   // new pThreads to run the old virtual processors.
