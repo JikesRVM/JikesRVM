@@ -730,13 +730,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
   /**
-   * Return (as a double) the time at which this GC should complete.
+   * Return the cycle time at which this GC should complete.
    *
    * @return The time cap for this GC (i.e. the time by which it
    * should complete).
    */
-  public static final double getTimeCap() {
-    return gcStartTime + ((double) Options.gcTimeCap)/1000;
+  public static final long getTimeCap() {
+    long limit = VM_Interface.millisToCycles(Options.gcTimeCap);
+    return gcStartTime + limit;
   }
 
   /**

@@ -165,30 +165,31 @@ final class TrialDeletion extends CycleDetector
   final boolean collectCycles(boolean time) {
     collectedCycles = false;
     if (shouldFilterPurple()) {
-      double filterStart = VM_Interface.now();
-      double finishTarget = Plan.getTimeCap();
-      double remaining = finishTarget - filterStart;
-      double targetTime = filterStart+(remaining/FILTER_TIME_FRACTION);
+      long filterStart = VM_Interface.cycles();
+      long finishTarget = Plan.getTimeCap();
+      long remaining = finishTarget - filterStart;
+      long targetTime = filterStart+(remaining/FILTER_TIME_FRACTION);
 
-      if (remaining > (((double) Options.gcTimeCap)/1000)/FILTER_TIME_FRACTION) {
+      long gcTimeCap = VM_Interface.millisToCycles(Options.gcTimeCap);
+      if (remaining > gcTimeCap/FILTER_TIME_FRACTION) {
 	filterPurpleBufs(targetTime);
 	processFreeBufs();
 	if (shouldCollectCycles()) {
 	  if (Options.verbose > 0) { 
 	    Log.write("(CD "); 
 	  }
-	  double cycleStart = VM_Interface.now();
+	  long cycleStart = VM_Interface.cycles();
 	  remaining = finishTarget - cycleStart;
 	  boolean abort = false;
 	  while ((maturePurplePool.enqueuedPages() > 0 ||
 		  unfilteredPurplePool.enqueuedPages() > 0) && !abort &&
-		 remaining > (((double) Options.gcTimeCap)/1000)/CYCLE_TIME_FRACTION) {
+		 remaining > gcTimeCap/CYCLE_TIME_FRACTION) {
 	    abort = collectSomeCycles(time, finishTarget);
-	    remaining = finishTarget - VM_Interface.now();
+	    remaining = finishTarget - VM_Interface.cycles();
 	  }
 	  flushFilteredPurpleBufs();
 	  if (Options.verbose > 0) {
-	    Log.write((VM_Interface.now() - cycleStart)*1000);
+	    Log.write(VM_Interface.cyclesToMillis(VM_Interface.cycles() - cycleStart));
 	    Log.write(" ms)");
 	  }
 	}
@@ -199,13 +200,13 @@ final class TrialDeletion extends CycleDetector
   }
 
 
-  private final boolean collectSomeCycles(boolean time, double finishTarget) {
+  private final boolean collectSomeCycles(boolean time, long finishTarget) {
     collectedCycles = true;
     filterMaturePurpleBufs();
     if (time) Statistics.cdGreyTime.start();
-    double start = VM_Interface.now();
-    double remaining = finishTarget - start;
-    double targetTime = start + (remaining/MARK_GREY_TIME_FRACTION);
+    long start = VM_Interface.cycles();
+    long remaining = finishTarget - start;
+    long targetTime = start + (remaining/MARK_GREY_TIME_FRACTION);
     boolean abort = doMarkGreyPhase(targetTime);
     if (time) Statistics.cdGreyTime.stop();
     if (time) Statistics.cdScanTime.start();
@@ -220,10 +221,10 @@ final class TrialDeletion extends CycleDetector
     return abort;
   }
 
-  private final double timePhase(double start, String phase) {
-    double end = VM_Interface.now();
+  private final long timePhase(long start, String phase) {
+    long end = VM_Interface.cycles();
     Log.write(phase); Log.write(" ");
-    Log.write((end - start)*1000); Log.write(" ms ");
+    Log.write(VM_Interface.cyclesToMillis(end - start)); Log.write(" ms ");
     return end;
   }
 
@@ -267,7 +268,7 @@ final class TrialDeletion extends CycleDetector
     return rtn;
   }
 
-  private final void filterPurpleBufs(double timeCap) {
+  private final void filterPurpleBufs(long timeCap) {
     int p = filterPurpleBufs(unfilteredPurpleBuffer, maturePurpleBuffer,
 			     timeCap);
     maturePurpleBuffer.flushLocal();
@@ -276,13 +277,13 @@ final class TrialDeletion extends CycleDetector
   private final void filterMaturePurpleBufs() {
     if (filteredPurplePool.enqueuedPages() == 0) {
       filterPurpleBufs(maturePurpleBuffer, filteredPurpleBuffer,
-		       VM_Interface.now());
+		       VM_Interface.cycles());
       filteredPurpleBuffer.flushLocal();
     }
   }
 
   private final int filterPurpleBufs(AddressQueue src, AddressQueue tgt,
-				     double timeCap) {
+				     long timeCap) {
     int purple = 0;
     int limit = Options.cycleMetaDataPages<<(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_ADDRESS-1);
     VM_Address obj = VM_Address.zero();
@@ -294,7 +295,7 @@ final class TrialDeletion extends CycleDetector
 	p++;
       }
       purple += p;
-    } while (!obj.isZero() && VM_Interface.now() < timeCap && purple < limit);
+    } while (!obj.isZero() && VM_Interface.cycles() < timeCap && purple < limit);
     return purple;
   }
 
@@ -354,7 +355,7 @@ final class TrialDeletion extends CycleDetector
    * @param src The source of purple objects which are to be marked
    * grey.
    */
-  private final boolean doMarkGreyPhase(double timeCap) {
+  private final boolean doMarkGreyPhase(long timeCap) {
     VM_Address obj = VM_Address.zero();
     boolean abort = false;
     phase = MARK_GREY;
@@ -367,11 +368,11 @@ final class TrialDeletion extends CycleDetector
 	  maturePurpleBuffer.insert(obj);
 	}
       }
-    } while (!obj.isZero() && !abort && VM_Interface.now() < timeCap);
+    } while (!obj.isZero() && !abort && VM_Interface.cycles() < timeCap);
     return abort;
   }
   private final boolean processGreyObject(VM_Address object, AddressQueue tgt,
-					  double timeCap)
+					  long timeCap)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!RCBaseHeader.isGreen(object));
@@ -396,7 +397,7 @@ final class TrialDeletion extends CycleDetector
     }
     return true;
   }
-  private final boolean markGrey(VM_Address object, double timeCap)
+  private final boolean markGrey(VM_Address object, long timeCap)
     throws VM_PragmaInline {
     boolean abort = false;
     if (VM_Interface.VerifyAssertions)
@@ -405,7 +406,7 @@ final class TrialDeletion extends CycleDetector
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(!RCBaseHeader.isGreen(object));
       visitCount++;
-      if (visitCount % GREY_VISIT_GRAIN == 0 && VM_Interface.now() > timeCap) {
+      if (visitCount % GREY_VISIT_GRAIN == 0 && VM_Interface.cycles() > timeCap) {
 	abort = true;
       }
       

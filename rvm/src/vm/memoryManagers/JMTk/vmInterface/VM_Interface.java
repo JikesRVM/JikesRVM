@@ -791,15 +791,6 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   /**
-   * Get the time.
-   *
-   * @return time in seconds since Jan 1 1970, to nanosecond resolution
-   */
-  public static double now() {
-    return VM_Time.now();
-  }
-
-  /**
    * Read cycle counter
    */
   public static long cycles() {

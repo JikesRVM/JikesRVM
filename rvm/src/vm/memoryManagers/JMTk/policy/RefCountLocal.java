@@ -206,9 +206,9 @@ final class RefCountLocal extends SegregatedFreeList
    */
   private final void processDecBufs() {
     VM_Address tgt = VM_Address.zero();
-    double tc = Plan.getTimeCap();
-    double remaining =  tc - VM_Interface.now();
-    double limit = tc - (remaining * (1 - DEC_TIME_FRACTION));
+    long tc = Plan.getTimeCap();
+    long remaining =  tc - VM_Interface.cycles();
+    long limit = tc - (long)(remaining * (1 - DEC_TIME_FRACTION));
     decrementPhase = true;
     decCounter = 0;
     do {
@@ -218,7 +218,7 @@ final class RefCountLocal extends SegregatedFreeList
 	count++;
       } 
       decCounter += count;
-    } while (!tgt.isZero() && VM_Interface.now() < limit);
+    } while (!tgt.isZero() && VM_Interface.cycles() < limit);
     decrementPhase = false;
   }
 
