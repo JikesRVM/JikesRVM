@@ -20,8 +20,9 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
 
   /**
    * For builds where thread switching is deterministic rather than timer driven
+   * Initialized in constructor
    */
-  public static int deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval; 
+  public int deterministicThreadSwitchCount;
 
   // fields to track native processors - processors created for java threads 
   // found blocked in native code
@@ -70,6 +71,10 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     if (VM.VerifyAssertions) VM.assert(vpStatus[this.vpStatusIndex] == UNASSIGNED_VP_STATUS);
     vpStatus[this.vpStatusIndex] = IN_JAVA;
 //-#endif
+
+    if (VM.BuildForDeterministicThreadSwitching) { // where we set THREAD_SWITCH_BIT every N method calls
+      this.deterministicThreadSwitchCount = VM.deterministicThreadSwitchInterval;
+    }
 
     VM_Collector.setupProcessor(this);
   }
