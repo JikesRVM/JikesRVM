@@ -77,8 +77,8 @@ public class TraceCounterRecord extends TraceRecord
   {
     // System.out.println("TraceRecord.print() # of counters "+info.numberOfCounters);
     boolean notZero = false;
-    //    if (thread_switch) System.out.print(" ");
-    //    else               System.out.print("*");
+    if (thread_switch) System.out.print(" ");
+    else               System.out.print("*");
     System.out.print("VP "+vpid+" TID ");
     if (         tid  > -1) System.out.print(" ");
     if (Math.abs(tid) < 10) System.out.print(" ");
