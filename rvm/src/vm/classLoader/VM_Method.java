@@ -763,15 +763,6 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
     }
   }
 
-  static INSTRUCTION[] getInterfaceMethodInvokerInstructions() {
-    if (interfaceMethodInvokerInstructions == null) {
-      VM_Member member = VM.getMember("LVM_DynamicLinker;", 
-                                      "interfaceMethodInvoker", "()V");
-      interfaceMethodInvokerInstructions = ((VM_Method)member).compile();
-    }
-    return interfaceMethodInvokerInstructions;
-  }
-
   static INSTRUCTION[] getLazyMethodInvokerInstructions() {
     if (lazyMethodInvokerInstructions == null) {
       VM_Member member = VM.getMember("LVM_DynamicLinker;", 
@@ -926,18 +917,10 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
   private static INSTRUCTION[] getUnexpectedNativeMethodInstructions() {
     if (unexpectedNativeMethodInstructions == null)
     {
-      VM_Member member = VM.getMember("LVM_Runtime;", "unexpectedNativeMethodCall", "()V");
+      VM_Member member = VM.getMember("LVM_DynamicLinker;", "unimplementedNativeMethod", "()V");
       unexpectedNativeMethodInstructions = ((VM_Method)member).compile();
     }
     return unexpectedNativeMethodInstructions;
   }
 
-  static INSTRUCTION[] getInterfaceConflictResolutionBridgeInstructions() {
-    if (interfaceMethodInvokerInstructions == null)
-    {
-      VM_Member member = VM.getMember("LVM_DynamicLinker;", "interfaceConflictResolutionBridge", "()V");
-      interfaceMethodInvokerInstructions = ((VM_Method)member).compile();
-    }
-    return interfaceMethodInvokerInstructions;
-  }
 }
