@@ -1276,7 +1276,8 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       if (t == null) continue;
       VM_Scheduler.writeString("Thread ");
       VM_Scheduler.writeDecimal(i);
-      VM_Scheduler.writeString(":  ", VM_Magic.objectAsAddress(t));
+      VM_Scheduler.writeString(":  ");
+      VM_Scheduler.writeHex(VM_Magic.objectAsAddress(t));
       VM_Scheduler.writeString("   ");
       t.dump(verbosity);
       // This is here to compensate for t.dump() not newline-terminating info.
