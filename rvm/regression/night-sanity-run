@@ -77,6 +77,20 @@ else
   echo "Ran \t$numran \nPassed \t$numpassed\nFailed \t$numfailed \n\n" >> $MSG
 fi
 
+# Print some details on the failures
+if [[ $numfailed -gt 0 ]] then
+  echo >> $MSG
+  echo Failure Details >> $MSG
+  echo --------------- >> $MSG
+  echo >> $MSG
+  fgrep "You are NOT sane" $RUN_LOG  \
+    | sed -e "s/RunSanityTests://"   \
+    | sed -e "s/\/.*tests\///"   \
+    | sed -e "s/You are NOT sane/Failed/"   \
+    >> $MSG
+fi
+
+
 # Removed at Mike Hind's request
 # Describe where the information can be found
 # echo "Further details of this run can be found in\n" >> $MSG
@@ -92,9 +106,11 @@ echo Performance Summary >> $MSG
 $AWK -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk $RVM_ROOT/results/performance.log >> $MSG
 
 # Print verbose performance data for SPECjvm98
+echo >> $MSG
 echo SPECjvm98 Performance Details >> $MSG
-echo --------- ----------- ------- >> $MSG
+echo ----------------------------- >> $MSG
 $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98 $RVM_ROOT/results/performance.log >> $MSG
+
 
 # Finally!  Send the mail message to those who care
 echo "mailing status to jikesrvm-regression@www-124.ibm.com"
