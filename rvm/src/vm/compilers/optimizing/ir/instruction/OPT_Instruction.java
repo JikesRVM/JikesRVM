@@ -497,21 +497,28 @@ public final class OPT_Instruction
    */
   public int getNumberOfOperands() {
     if (operator.hasVarUses()) {
-      int numOps = 
-	operator.getNumberOfDefs() + operator.getNumberOfPureFixedUses();
-      for (; numOps < ops.length; numOps++) {
-	if (ops[numOps] == null) break;
-      }
-      return numOps;
+      return getNumberOfOperandsVarUses();
     } else if (operator.hasVarDefs()) {
-      int numOps = operator.getNumberOfFixedPureDefs();
-      for (; numOps < ops.length; numOps++) {
-	if (ops[numOps] == null) break;
-      }
-      return numOps;
+      return getNumberOfOperandsVarDefs();
     } else {
       return operator.getNumberOfDefs() + operator.getNumberOfPureUses();
     }
+  }
+  // isolate uncommon cases to enable common case of getNumberOfOperands to be inlined.
+  private int getNumberOfOperandsVarUses() {
+    int numOps = 
+      operator.getNumberOfDefs() + operator.getNumberOfPureFixedUses();
+    for (; numOps < ops.length; numOps++) {
+      if (ops[numOps] == null) break;
+    }
+    return numOps;
+  }
+  private int getNumberOfOperandsVarDefs() {
+    int numOps = operator.getNumberOfFixedPureDefs();
+    for (; numOps < ops.length; numOps++) {
+      if (ops[numOps] == null) break;
+    }
+    return numOps;
   }
 
 
