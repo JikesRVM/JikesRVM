@@ -1560,7 +1560,7 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
 
           CompoundInterval resultingInterval = processLiveInterval(live, 
                                                                    bb);
-          if (live.getEnd() == null) { 
+          if (live.getEnd() == null && resultingInterval != null) { 
             // the live interval is still alive at the end of this basic
             // block. insert at the end of the active list
             activeOut.add(resultingInterval);
@@ -1665,7 +1665,8 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
      *
      * @param live the liveintervalelement for a basic block/reg pair
      * @param bb the basic block
-     * @return the resulting CompoundInterval
+     * @return the resulting CompoundInterval. null if the live interval
+     * is not relevant to register allocation.
      */
     private CompoundInterval processLiveInterval(OPT_LiveIntervalElement live, 
                                                  OPT_BasicBlock bb) {
@@ -1682,16 +1683,19 @@ OPT_PhysicalRegisterConstants, OPT_Operators {
           if (end != null && end.operator == IA32_FMOV) {
             if (dfnend == dfnbegin) {
               // if end, an FMOV, both begins and ends the live range,
-              // then end is dead.  Change it to a NOP. 
+              // then end is dead.  Change it to a NOP and return null. 
               Empty.mutate(end,NOP);
+              return null;
             } else {
-              if (VM.VerifyAssertions) {		      
-                OPT_Operand value = MIR_Move.getValue(end);
-                VM.assert(value.isRegister());
-                VM.assert(MIR_Move.getValue(end).asRegister().register 
+              if (!end.isPEI()) {
+                if (VM.VerifyAssertions) {		      
+                  OPT_Operand value = MIR_Move.getValue(end);
+                  VM.assert(value.isRegister());
+                  VM.assert(MIR_Move.getValue(end).asRegister().register 
                             == reg);
+                }
+                end.operator = IA32_FMOV_ENDING_LIVE_RANGE;
               }
-              end.operator = IA32_FMOV_ENDING_LIVE_RANGE;
             }
           }
         }
