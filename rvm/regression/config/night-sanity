@@ -11,5 +11,4 @@ FastAdaptiveSemiSpace            -test-list nightly-tests-short
 FastSemiSpace                    -test-list nightly-tests-short
 FastMarkSweep                    -test-list nightly-tests-short
 FastWatsonMarkSweep              -test-list nightly-tests-short
-FastGenCopy                      -test-list nightly-tests-performance
-FastGenMS                        -test-list nightly-tests-performance
+
