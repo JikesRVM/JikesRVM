@@ -226,13 +226,13 @@ public abstract class BasePlan
    * (i.e. it may pertain to a different plan instance).<p>
    *
    * This method allows the correct allocator instance to be
-   * established and associated with the thread {@link
-   * org.mmtk.utility.alloc.Allocator#allocSlowBody(int, int, offset,
-   * boolean)}.
+   * established and associated with the thread (see {@link
+   * org.mmtk.utility.alloc.Allocator#allocSlowBody(int, int, int,
+   * boolean) Allocator.allocSlowBody()}).
    *
    * @see org.mmtk.utility.alloc.Allocator
-   * @see org.mmtk.utility.alloc.Allocator#allocSlowBody(int, int, offset,
-   * boolean)
+   * @see org.mmtk.utility.alloc.Allocator#allocSlowBody(int, int,
+   * int, boolean)
    * @param a An allocator instance.
    * @return An allocator instance associated with <i>this plan
    * instance</i> that allocates into the same space as <code>a</code>
