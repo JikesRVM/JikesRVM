@@ -46,6 +46,7 @@ BEGIN {
 /^getNextReferenceAddress: bridgeTarget/ { next }
 /^GC Summary:/ { next }
 /^GC Warning:/ { next }
+/^GC Message:/ { next }
 /^validRef: REF outside heap, ref = [0-9x]*$/ { kill_next = yes; next }
 
 kill_next==yes { kill_next = no; next }
