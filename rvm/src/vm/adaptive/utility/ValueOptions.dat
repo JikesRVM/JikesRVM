@@ -39,10 +39,6 @@ V FINAL_REPORT_LEVEL int 0
 Control amount of info reported on exit (larger ==> more)
 
 
-V SAMPLE_FREQ_MILLIS double 10.0
-Sample frequency, in milliseconds
-
-
 V DECAY_FREQUENCY int 100
 After how many clock ticks should we decay
 

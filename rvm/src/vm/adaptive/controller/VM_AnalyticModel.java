@@ -346,12 +346,12 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
       // NOTE: we take two samples per timer interrupt, so we have to
       // adjust here (otherwise we'd give the method twice as much time
       // as it actually deserves).
-      timePerSample = opts.SAMPLE_FREQ_MILLIS / 2.0;
+      timePerSample = ((double)VM.schedulingQuantum) / 2.0;
     } else {
       // If we use epilogue yield points, we only have 1 sample per interrupt
       //  prologue => calling method
       //  backedge/epilogue => current method
-      timePerSample = opts.SAMPLE_FREQ_MILLIS;
+      timePerSample = ((double)VM.schedulingQuantum);
     }
     double timeInMethodSoFar = numSamples * timePerSample;
     return timeInMethodSoFar;
