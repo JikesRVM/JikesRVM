@@ -1,0 +1,77 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+# $Id$
+#
+# This shell finds plain files that have either
+#   no authorship tag: "@author",
+#   no copyright notice: "(C) Copyright", or
+#   no id: "$Id$".
+#
+# Three parameters:
+#   target directory
+#   source directory where to put output files
+#   suffix to identify output files	
+#
+# This script could be more efficiently implemented by search for all 
+# the missing information at the same time; however, we would not know 
+# what information was missing in a particular file.
+#
+# @Author: Peter F. Sweeney
+# @Date: 10/5/2001
+
+if [[ $# = 0 || $1 = -help || $# < 3 ]] then
+  cat <<EOF
+   
+  This script finds all files in a directory subtree 
+  that don't contain either:
+    1) an @author javadoc tag, 
+    2) an IBM copyright notice, or
+    3) an \$Id: tag.
+
+  Normally it is invoked as:
+
+    $0 input output suffix
+
+  Where 
+    input  identifies the directory subtree to search for files, 
+    output indicates where to put output files, and
+    suffix is a file extension that uniquely identifies the file.
+
+  Output files:
+    "no?.suffix"      lists files that don't have the appropriate information.
+  where ? is either "author", "copyright", or "id".
+
+EOF
+exit 1
+fi
+
+if [[ X$RVM_ROOT = X ]]; then
+  echo "\nPlease set \$RVM_ROOT before executing this command!\n"
+  exec $0
+  exit 1  
+fi
+
+# where to find auxillary scripts
+bin_dir=$RVM_ROOT/rvm/bin
+
+# cd to input directory
+cd $1
+
+# Don't follow symbolic links, and only find plain files.
+find_opts="-links 1 -type f -print"
+
+# $RVM_ROOT/rvm/bin/findFilesWithoutAuthorTag $1 $2 $3
+echo "find all plain files without @author tags"
+find . $find_opts -exec grep -c "@author" {} \; | $bin_dir/findMatchedFiles.perl | awk -f $bin_dir/noAuthorFilter.awk > $2/noAuthor.$3
+
+#$RVM_ROOT/rvm/bin/findFilesWithoutCopyrights $1 $2 $3
+echo "find all plain files with copyright notices"
+find . $find_opts -exec grep -c "(C) Copyright" {} \; | $bin_dir/findMatchedFiles.perl | awk -f $bin_dir/noCopyrightFilter.awk > $2/noCopyright.$3
+
+#$RVM_ROOT/rvm/bin/findFilesWithoutIds $1 $2 $3
+echo "find all plain files with \$Id: tags"
+find . $find_opts -exec grep -c "\$Id$bin_dir/findMatchedFiles.perl | awk -f $bin_dir/noIdFilter.awk > $2/noId.$3
+
+
