@@ -97,7 +97,7 @@ input.ramp_up_seconds=6
 # Time of measurement window
 
 #input.measurement_seconds=120
-input.measurement_seconds=40
+input.measurement_seconds=25
 
 
 
