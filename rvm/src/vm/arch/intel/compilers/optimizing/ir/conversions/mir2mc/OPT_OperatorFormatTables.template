@@ -1,0 +1,64 @@
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+import java.util.*;
+
+/**
+ * Static tables of all low-level operators understood by the opt
+ * compiler.  There is a table of all opcodes, and, for each opcode, a
+ * mapping from operator to the instruction format that that operator
+ * expects.
+ *
+ * @see OPT_InstructionFormatTables
+ */
+class OPT_OperatorFormatTables {
+
+    /**
+     * A mapping for each opcode to its expected instruction format 
+     */
+    static private final Hashtable formats = new Hashtable();
+
+    /**
+     * The set of all low-level operators understood by the opt
+     * compiler.
+     */
+    static private final Set operators = new HashSet();
+
+    /**
+     * For a given low-level opcode understood by the opt compiler,
+     * return its expected instruction format.
+     *
+     * @param MIRopcode the opt operator being examined.
+     * @return the correponding opt compiler instruction format.
+     */
+    static public String getFormat(String MIRopcode) {
+	return (String) formats.get( MIRopcode );
+    }
+
+    /**
+     * Access all low-level opt operators the pot compiler understands.
+     * @return all low-level opt operators the pot compiler
+     * understands.
+     */
+    static public Iterator getOpcodes() {
+	return operators.iterator();
+	    }
+
+    $$$$ FOREACH OP OPERATOR_FILE
+    $$$$ IF OP.INSTRUCTION_FORMAT =~ MIR_
+    $$$$ IF OP.SYMBOL =~ IA32_
+    /**
+     * initialize tables for OP.SYMBOL
+     */
+    static {
+	String key = "OP.SYMBOL".substring(5);
+	operators.add( key );
+	int suffix = key.indexOf( '$' );
+	if (suffix != -1) key = key.substring(0, suffix);
+	formats.put( key, "OP.INSTRUCTION_FORMAT");
+    }  
+  
+    $$$$ END IF
+    $$$$ END IF
+    $$$$ END FOREACH
+}
