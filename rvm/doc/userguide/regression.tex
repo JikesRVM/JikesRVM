@@ -61,9 +61,9 @@ in most Unix shells); the {\tt{-test-list}} option takes a single
 filename as the next argument, and that file must contain a list of
 tests to run.  If the filename is an absolute path, that file is read,
 if it is a relative path, it is assumed to be relative to
-\$RVM\_ROOT/rvm/regression/config.  In either case, the items in the
+{\tt \$RVM\_ROOT/rvm/regression/config}.  In either case, the items in the
 list of tests to run must be subdirectories of
-\$RVM\_ROOT/rvm/regression/tests (the directory that contains the
+{\tt \$RVM\_ROOT/rvm/regression/tests} (the directory that contains the
 individual tests).
 
 \item{\tt{-configuration}} ``{\em{configuration names}}''
@@ -79,7 +79,7 @@ expects that the next command line word be a filename, and that the
 named file contain a list of boot image configuration names understood
 by jconfigure.  If the filename is an absolute path, that file is
 read, if it is a relative path, it is assumed to be relative to
-\$RVM\_ROOT/rvm/regression/config.
+{\tt \$RVM\_ROOT/rvm/regression/config}.
 
 \item{\tt{-result}} {\em root directory}
 
@@ -181,7 +181,7 @@ multiple options must be enclosed in quotations.
 
 \paragraph{{\tt{Local.rules}} Configuration File}
 
- The {\tt Local.rules} file is located in the \$RVM\_ROOT/regression/
+ The {\tt Local.rules} file is located in the {\tt \$RVM\_ROOT/regression/}
 directory and is used to customize the testing harness to your local
 setup.  Essentially, it contains the information needed to find test
 programs not provided as part of the Jikes RVM distribution, such as
@@ -216,7 +216,7 @@ placed in the {\tt \$RVM\_ROOT/rvm/regression/config} directory; when placed
 there, you can refer to them with an unqualified file name on the
 RunSanityTests command line.  You can use files from other places as
 control files, but those require an absolute path (i.e. one beginning
-with a /) on the command line.
+with a ``{\tt /}'') on the command line.
 
 
 \subsubsection{Individual Test Programs}
@@ -239,7 +239,7 @@ sections will be discussed below.
 
 \begin{description}
 \item[Include the environment rules from the current build directory]
-This is simply the include statement given below. It is required so
+This is simply the include statement given below.  It is required so
 that subsequent portions of the makefile can find Jikes RVM itself
 and information needed from the boot image directory.  This section
 is always the one line shown below:
@@ -406,7 +406,7 @@ that some {\tt .class} files are located in a {\tt .jar} file.
 \end{description}
 
 \subsubsection{Night Sanity Support}
-
+ 
 One common use of regression tests is running them periodically to
 keep track of system state over time; the Jikes RVM test harness
 provides a {\tt{NightSanityDriver}} to simplify this process.  This
@@ -419,7 +419,7 @@ command line arguments:
 invocations of {\tt{RunSanityTests}}.  This is optional.
 \item[-config {\em filename}] is a configuration file that specifies a
 series of invocations of {\tt{RunSanityTests}}.  If this filename is
-relative, it is assumed to be in \$RVM\_ROOT/rvm/regression/config; if
+relative, it is assumed to be in {\tt \$RVM\_ROOT/rvm/regression/config}; if
 it is absolute, it is used as it is given.  The format of this file is
 discussed below.
 \end{description}
@@ -442,7 +442,7 @@ invoked to run just that boot image with the options specified.
 and {\tt{NightSanityDriver}} can be used, we include a simplified
 version of the night sanity configuration used at Watson.  All
 configuration files discussed go in the
-\$RVM\_ROOT/rvm/regression/config directory. Since it is
+{\tt \$RVM\_ROOT/rvm/regression/config} directory. Since it is
 too time consuming to test every possible variation of Jikes RVM on
 every program, we have selected a representative sample to run every
 night.  The first level is to define two sets of benchmark programs, a
