@@ -2,7 +2,7 @@ This section provides some information on various
 implementation details for the RVM runtime system.
 
 \subsection{Object Layout} \label{sssec:objects}
-Values in Java\trademark\ are either {\em primitive} (e.g. {\tt int},
+Values in Java\trademark are either {\em primitive} (e.g. {\tt int},
 {\tt double}, etc.)  or they are {\em references} (that is, pointers) to
 objects.  Objects are either {\em arrays} having components or {\em
 simple objects} having fields.  RVM's object model is governed by four
@@ -15,7 +15,7 @@ null-pointer checks should be performed by the hardware if possible,
 \item{}
 virtual method dispatch should be fast, and 
 \item{}
-other (less frequent) Java\trademark\ operations  should not be prohibitively slow.
+other (less frequent) Java\trademark operations  should not be prohibitively slow.
 \end{itemize}
 
 Assuming the reference to an object is in a register, the object's
@@ -27,7 +27,7 @@ in an array, its {\em length}, is kept just before its first
 component.
 
 \index{NullPointerException}
-Java\trademark\ requires that an attempt to access an object through a {\tt null}
+Java\trademark requires that an attempt to access an object through a {\tt null}
 object reference generate a NullPointerException.  In the RVM, references
 are machine addresses, and {\tt null} is represented by address $0$.
 The AIX operating system permits loads from low memory, but accesses
@@ -269,8 +269,7 @@ temporaries,
 Stacks grow from high memory to low memory.  The stack frame for a method
 B called by A is shown in figure~\ref{fig:stackframe}. 
 The layout of the stackframe appears in a block comment in
-\xlink{{\tt
-\$RVM\_ROOT/rvm/src/vm/arch/powerpc/VM\_StackframeLayoutConstants.java}}
+\xlink{{\tt \$RVM\_ROOT/rvm/src/vm/arch/powerpc/VM\_StackframeLayoutConstants.java}}
 {\PPCStackframeLayoutURL}.
 
 \noindent{\bf Calling Conventions}

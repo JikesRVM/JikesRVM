@@ -279,6 +279,10 @@ force a GC.  Some cases to look out for include:
 \item any thread-switch point may allow another thread to force GC.
 \end{itemize}
 
+\subsubsection{How can I implement a new GC algorithm?}
+
+See the memory management section of the userguide.
+
 \subsubsection{How does RVM enter native code?}
 
 There are two mechanisms whereby RVM may transition from Java to native
@@ -449,6 +453,14 @@ implementation used for the
 However, ABCD is {\em not} enabled by default.  The current implementation
 is incorrect, as it checks only upper bounds and not lower bounds.
 There is a command-line option to turn on the current implementation.
+
+\subsubsection{Is escape analysis included?}
+
+The interprocedural flow-sensitive escape analysis in the 
+\xlink{OOSPLA 99 paper}{\EscapeAnalysisPaperURL} is not currently included.
+
+However, the distribution includes a less-powerful flow-insensitive
+escape analysis.  See the {\tt OPT\_SimpleEscape.java} file.
 
 \subsubsection{How do I insert my new compiler pass in the optimizing
 compiler driver?}
