@@ -79,13 +79,13 @@ ifneq (x$(LHEAPSIZE),x)
 endif
 
 ifneq (x$(BOOTNAME),x)
-  EXT=$(BOOTNAME)
+  EXT=.$(BOOTNAME)
 else
 ifneq (x$(ID),x)
-  EXT=$(ID)
+  EXT=.$(ID)
 endif
 endif
-OUT=$(WORKING)/out.$(START_NAME).$(EXT)
+OUT=$(WORKING)/out.$(START_NAME)$(EXT)$(SUFFIX)
 
 bench-rvm:			$(START_CLASS) $(WORKING)
 	@echo 
