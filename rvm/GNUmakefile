@@ -18,10 +18,13 @@ all:
 FIND:=find src -name examples -prune -o -name CVS -prune -o \( -name \*.java -o -name \*.C -o -name \*.h -o -name \*.c \)
 FINDALL:=find . -name CVS -prune -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' -o -type f 
 
+EFLAGS:=--members --declarations
+
 .PHONY: FORCE
 TAGS: FORCE
 	$(RM) $@
 	$(FIND) -print0 | xargs -0 etags --append --output=$@
+	find src -name examples -prune -o -name CVS -prune -o -name \*.template -print0 | xargs -0 etags --language=java --append --output=$@ 
 
 FORCE:
 
@@ -40,8 +43,8 @@ findall: FORCE
 
 TAGS.ALL: FORCE
 	$(RM) $@
-	$(FINDALL) -print0 | xargs -0 etags --append --output=$@
+	$(FINDALL) -print0 | xargs -0 etags $(EFLAGS) $(EFLAGS) --append --output=$@
 
 TAGS.REST: FORCE
 	$(RM) $@
-	$(FIND) -o  -name Old -prune -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' -o -type f -print0 | xargs -0 etags --append --output=$@
+	$(FIND) -o  -name Old -prune -o -name \*~ -o -name .\*~ -o -name '.\#*' -o -name '\#*' -o -name '*\#' -o -type f -print0 | xargs -0 etags $(EFLAGS) --append --output=$@
