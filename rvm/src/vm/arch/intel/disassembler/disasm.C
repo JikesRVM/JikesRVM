@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2005
  */
 //$Id$
 
@@ -11,19 +11,24 @@
 #include "disasm.h"
 
 extern "C" PARLIST *Disassemble(char *pHexBuffer,
-                     char *pMnemonicBuffer,
-                     char *pOperandBuffer,
-                     char *pDataBuffer,
-                     int  *fInvalid,
-                     int   WordSize)
-  {
-  static PARLIST disassembly;
-  memset(&disassembly,0,sizeof(PARLIST));
-  disassembly.hbuffer   = (UCHAR*) pHexBuffer;
-  disassembly.mbuffer   = (UCHAR*) pMnemonicBuffer;
-  disassembly.ibuffer   = (UCHAR*) pOperandBuffer;
-  disassembly.iptr      = (UCHAR*) pDataBuffer;
-  disassembly.instr_EIP = (ULONG)-1;  /* EIP value @ this instruction       */
+                                size_t HexBuffer_sz,
+                                char *pMnemonicBuffer,
+                                size_t MnemonicBuffer_sz,
+                                char *pOperandBuffer,
+                                size_t OperandBuffer_sz,
+                                char *pDataBuffer, // INPUT
+                                int  *fInvalid,
+                                PARLIST *disassemblyp)
+{
+  memset(disassemblyp,0,sizeof(PARLIST));
+  disassemblyp->hbuffer   = (UCHAR*) pHexBuffer;
+  disassemblyp->hbuffer_sz= HexBuffer_sz;
+  disassemblyp->mbuffer   = (UCHAR*) pMnemonicBuffer;
+  disassemblyp->mbuffer_sz= MnemonicBuffer_sz;
+  disassemblyp->ibuffer   = (UCHAR*) pOperandBuffer;
+  disassemblyp->ibuffer_sz= OperandBuffer_sz;
+  disassemblyp->iptr      = (UCHAR*) pDataBuffer;
+  disassemblyp->instr_EIP = (ULONG)-1;  /* EIP value @ this instruction       */
 
   /***********************************************************************/
   /*                bit 2 (1) => MASM format decode                      */
@@ -39,20 +44,14 @@ extern "C" PARLIST *Disassemble(char *pHexBuffer,
   /*                bit 0 (1) => do 386 32-bit decode                    */
   /*                      (0) => do 16-bit decode                        */
   /***********************************************************************/
-  if (WordSize != 4)
-    {
-    disassembly.flagbits = 6;           /* flag bits (16 bit) */
-    }
-  else
-    {
-    disassembly.flagbits = 7;           /* flag bits (32 bit) */
-    } /* endif */
+  disassemblyp->flagbits = 7;   /* flag bits (32 bit) -- We do not use
+                                 * 16-bit code in Jikes RVM. */
 
-  p__DisAsm( &disassembly, 1 );
+  p__DisAsm( disassemblyp, 1 );
 
-  pHexBuffer[2*disassembly.retleng] = '\0';
+  pHexBuffer[2* disassemblyp->retleng] = '\0';
 
-  if (disassembly.rettype == illegtype)
+  if (disassemblyp->rettype == illegtype)
     {
     *fInvalid = 1;
     }
@@ -60,6 +59,6 @@ extern "C" PARLIST *Disassemble(char *pHexBuffer,
     {
     *fInvalid = 0;
     }
-  return &disassembly;
+  return disassemblyp;
   }
 
