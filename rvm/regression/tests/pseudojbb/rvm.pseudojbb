@@ -1,0 +1,108 @@
+#!/bin/ksh
+#
+# (C) Copyright IBM Corp. 2001
+#
+# $Id:
+#
+# This shell script executes JikesRVM for pseudojbb.
+#
+# Parameters:
+#   config          configuration file
+#   numProcessors   number of processors    
+#   out_dir	    where to put results
+#
+# CONSTRAINT:
+#
+# @author: Peter F. Sweeney
+
+if [[ $# = 0 || $1 = -help || $# < 1 ]] then
+  more <<EOF
+   
+  This shell script executes JikesRVM image for SPECjbb.
+
+  Normally it is invoked as:
+    $0 config|+ numProcessors|+ out_dir
+
+  Where 
+    config        configuration file (default is SPECjbb_1.1.1.props)
+    numProcessors Number of processors.
+    		  The default is 1.   
+    out_dir       where to put output files.  Default is ".".
+EOF
+exit 1
+fi
+
+#############################
+# Check that RVM_BUILD is set
+# If not, then build it
+if [[ $RVM_BUILD = "" ]]; then
+   echo "$0: please set your RVM_BUILD environment variable (eg. $HOME/jvmBuild)"
+   exit 1
+fi
+
+benchmark=pseudojbb
+#####################################
+# Determine events
+config=SPECjbb_1.1.1.props
+if [[ $# = 1 || $# > 1 ]]; then
+  if [[ $1 != '+' ]]; then
+    config=$1
+  fi
+fi
+
+#####################################
+# Determine events
+numProcessors=1
+if [[ $# = 2 || $# > 2 ]]; then
+  if [[ $2 != '+' ]]; then
+    numProcessors=$2
+  fi
+fi
+
+###########################
+# where to put output files
+out_dir="."
+if [[ $# = 3 || $# > 3 ]]; then
+  if [[ $3 != '+' ]]; then
+      out_dir=$3
+  fi
+fi
+
+#####################################
+# Check that the output directory exists,
+# If not, then create it
+if [[ ! -d $out_dir ]] then
+  mkdir $out_dir
+fi
+ 
+# set the benchmark directories
+# MY_SPEC_HOME=/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modified/pseudojbb
+MY_SPEC_HOME=/homes/meriadoc/jalapeno/contrib/benchmarks/pseudojbb
+
+# want to pick up class files not jars!
+# classpath="   -classpath $MY_SPEC_HOME"
+classpath="   -classpath $MY_SPEC_HOME/src"
+
+heapSize=400
+verbose=1
+
+jvm_options="-X:h=$heapSize -verbose:gc  -X:aos:opt:errors_fatal=true"
+
+#### Run 1 ####
+
+output_log="$out_dir/my.$config.$numProcessors:output"
+
+echo "RVM: BUILD: $RVM_BUILD" 
+echo "host: "`uname -a`
+echo " numProcessors: $numProcessors"
+echo " output_log   : $output_log"
+echo " options      : $jvm_options"
+echo " config       : $config"
+echo ""
+
+echo "$RVM_ROOT/rvm/bin/rvm $jvm_options -X:processors=$numProcessors $classpath spec.jbb.JBBmain -propfile $config # 1> $output_log 2>&1"
+
+      $RVM_ROOT/rvm/bin/rvm $jvm_options -X:processors=$numProcessors $classpath spec.jbb.JBBmain -propfile $config # 1> $output_log 2>&1
+
+echo "Done"
+
