@@ -202,6 +202,7 @@ public class VM extends VM_Properties
     if (verbose >= 1) VM.sysWriteln("Collector processing rest of boot options");
     VM_Interface.postBoot();
 
+    if (verbose >= 1) VM.sysWriteln("Booting VM_Lock");
     VM_Lock.boot();
     
     // set up HPM
@@ -228,10 +229,13 @@ public class VM extends VM_Properties
     // Enable multiprocessing.
     // Among other things, after this returns, GC and dynamic class loading are enabled.
     // 
+    if (verbose >= 1) VM.sysWriteln("Booting scheduler");
     VM_Scheduler.boot();
 
     // Create JNI Environment for boot thread.  At this point the boot thread can invoke native methods.
+    if (verbose >= 1) VM.sysWriteln("Initializing JNI for boot thread");
     VM_Thread.getCurrentThread().initializeJNIEnv();
+
 
     //-#if RVM_WITH_HPM
     runClassInitializer("com.ibm.JikesRVM.Java2HPM");
@@ -239,6 +243,7 @@ public class VM extends VM_Properties
     //-#endif
 
     // Run class intializers that require fully booted VM
+    if (verbose >= 1) VM.sysWriteln("Running late class initializers");
     runClassInitializer("java.io.FileDescriptor");
     runClassInitializer("java.lang.Double");
     runClassInitializer("java.util.PropertyPermission");
@@ -273,6 +278,7 @@ public class VM extends VM_Properties
     //-#endif
 
     // Schedule "main" thread for execution.
+    if (verbose >= 1) VM.sysWriteln("Starting main thread");
     mainThread.start();
 
     // Create one debugger thread.
@@ -640,6 +646,7 @@ public class VM extends VM_Properties
    * A group of multi-argument sysWrites with optional newline.  Externally visible methods.
    */
   public static void sysWrite(VM_Atom a)               throws VM_PragmaNoInline { swLock(); write(a); swUnlock(); }
+  public static void sysWriteln(VM_Atom a)             throws VM_PragmaNoInline { swLock(); write(a); write("\n"); swUnlock(); }
   public static void sysWrite(VM_Member m)             throws VM_PragmaNoInline { swLock(); write(m); swUnlock(); }
   public static void sysWrite(VM_MemberReference mr)   throws VM_PragmaNoInline { swLock(); write(mr); swUnlock(); }
   public static void sysWriteln ()                     throws VM_PragmaNoInline { swLock(); write("\n"); swUnlock(); }
@@ -724,6 +731,7 @@ public class VM extends VM_Properties
 
   public static void ptsysWriteln (String s)             throws VM_PragmaNoInline { swLock(); showProc(); showThread(); write(s); writeln(); swUnlock(); }
 
+  public static void psysWriteln (VM_Address a)         throws VM_PragmaNoInline { swLock(); showProc(); write(a); writeln(); swUnlock(); }
   public static void psysWriteln (String s)             throws VM_PragmaNoInline { swLock(); showProc(); write(s); writeln(); swUnlock(); }
   public static void psysWriteln (String s, int i)             throws VM_PragmaNoInline { swLock(); showProc(); write(s); write(i); writeln(); swUnlock(); }
   public static void psysWriteln (String s, VM_Address a)      throws VM_PragmaNoInline { swLock(); showProc(); write(s); write(a); writeln(); swUnlock(); }
