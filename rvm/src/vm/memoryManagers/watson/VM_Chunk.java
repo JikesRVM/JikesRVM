@@ -36,8 +36,8 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
 
 
   /** 
-   * Allocate raw memory of size bytes.
-   * Memory will be allocated from local chunk1.
+   * Allocate zeroed memory of size bytes.
+   * Memory will be allocated from local chunk1.<p>
    * If there is insufficient memory available then 
    * a new chunk will be acquired from backingHeap1 and 
    * the memory will be allocated from it. <p>
@@ -63,6 +63,9 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
 
   /** 
    * Allocate raw memory of size bytes.
+   * This memory is not zeroed because chunk2 is used
+   * by the collectors to copy objects and thus does not need
+   * to be zeroed.<p>
    * Memory will be allocated from local chunk2.
    * if there is insufficient memory available then 
    * a new chunk will be acquired from backingHeap2 and 
@@ -79,9 +82,6 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
     VM_Address newCurrent = oldCurrent.add(size);
     if (newCurrent.LE(VM_Processor.getCurrentProcessor().endChunk2)) {
       VM_Processor.getCurrentProcessor().currentChunk2 = newCurrent;
-      // if the backing heap didn't zero the chunk when it gave it to
-      // us, then we must zero it now.
-      if (!ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(oldCurrent, size);
       return oldCurrent;
     }
     return slowPath2(size);
@@ -158,7 +158,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
     st.backingHeapChunk2 = null;
 
     if (!st.startChunk1.isZero() && ZERO_CHUNKS_ON_ALLOCATION) {
-      VM_Memory.zero(st.currentChunk2, st.endChunk2);
+      VM_Memory.zero(st.currentChunk1, st.endChunk1);
     }
   }
 
@@ -249,16 +249,12 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
       VM_Address newCurrent = oldCurrent.add(size);
       if (newCurrent.LE(st.endChunk2)) {
 	st.currentChunk2 = newCurrent;
-	// if the backing heap didn't zero the chunk when it gave it to
-	// us, then we must zero it now.
-	if (!ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroTemp(oldCurrent, size);
 	return oldCurrent;
       }
       VM_Address chunk = st.backingHeapChunk2.allocate(CHUNK_SIZE);
       if (!chunk.isZero()) {
 	// Normal case; we successfully got a chunk.  
 	// Update our data structures and allocate size bytes from it
-	if (ZERO_CHUNKS_ON_ALLOCATION) VM_Memory.zeroPages(chunk, CHUNK_SIZE);
 	st.startChunk2 = chunk;
 	st.currentChunk2 = chunk.add(size);
 	st.endChunk2 = chunk.add(CHUNK_SIZE);
@@ -266,7 +262,8 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
       }
       // Backing heap exhausted; let the allocator attempt
       // to do something (usual some kind of GC) to handle the situation.  
-      // Then back to the top of the loop to try again.
+      // However, this in the JikesRVM allocators this is pretty much
+      // a fatal error, so we don't expect this call to return.
       VM_Allocator.heapExhausted(st.backingHeapChunk2, size, count++);
     }
   }

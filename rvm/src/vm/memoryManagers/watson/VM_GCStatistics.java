@@ -38,7 +38,6 @@ class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible {
 
   // verify that all allocations return zero-filled storage.
   static final boolean VERIFY_ZEROED_ALLOCATIONS = false;
-  
 
   static final int DEFAULT = 0;  // non-generational
   static final int MINOR = 1;
