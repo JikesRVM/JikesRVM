@@ -667,7 +667,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) throws VM_PragmaInterruptible {
     // TODO: valid location operand.
     OPT_Operand address = GuardedUnary.getClearVal(s);
-    Load.mutate(s, INT_LOAD, GuardedUnary.getClearResult(s), 
+    Load.mutate(s, REF_LOAD, GuardedUnary.getClearResult(s), 
                 address, new OPT_IntConstantOperand(TIB_OFFSET), 
                 null, GuardedUnary.getClearGuard(s));
   }
