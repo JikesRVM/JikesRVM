@@ -316,17 +316,17 @@ creating a second version of the code within the method and placing
 checks that transfer control into the instrumented version.  Currently
 the checks use a counter to determine when control should transfer
 into the instrumented code.
-\nobreak
 For full details see the papers mentioned above. 
 
 \subsubsection{How to use it}
 
-Example usage: {\tt rvm \\
-\indent -X:aos:primary\_strategy=optonly \\
-\indent -X:aos:share:insert\_instruction\_counters\_opt=true \\
-\indent -X:aos:irc:instrumentation\_sampling=true \\
-\indent -X:aos:counter\_based\_sample\_interval=10 MyProgram } \\
-
+Example usage: 
+\begin{verbatim}
+rvm -X:aos:primary_strategy=optonly
+    -X:aos:share:insert_instruction_counters_opt=true
+    -X:aos:irc:instrumentation_sampling=true
+    -X:aos:counter_based_sample_interval=10 MyProgram
+\end{verbatim}
 
 This will insert instruction counters instrumentation (as described in
 Section~\ref{counting_events}) and enable the instrumentation sampling
