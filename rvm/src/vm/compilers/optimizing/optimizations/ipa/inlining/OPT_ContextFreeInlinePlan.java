@@ -69,8 +69,10 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
       HashSet targets = (HashSet)map.get(key);
       for (Iterator j = targets.iterator(); j.hasNext();) {
         VM_Method callee = (VM_Method)j.next();
-        tmp += "\t"+key.method.getDeclaringClass().getDescriptor()+" "+key.method.getName()+
+        tmp += "\t"+key.method.getDeclaringClass().getClassLoader() + 
+	  " "+ key.method.getDeclaringClass().getDescriptor()+" "+key.method.getName()+
 	  " "+key.method.getDescriptor()+ "," + key.bcIndex + "," + 
+	  callee.getDeclaringClass().getClassLoader()+ " "+ 
 	  callee.getDeclaringClass().getDescriptor()+" "+callee.getName()+
 	  " "+callee.getDescriptor() + "\n";
       }
@@ -82,36 +84,49 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
    * Read a serialized representation of the object from a stream.
    * Expected format is that produced by toString.
    */
-  public void readObject(LineNumberReader in, ClassLoader classloader) throws IOException {
-    int bytecodeOffset;
-    String s = in.readLine();
-    while (s != null) {
-      bytecodeOffset = 0;
+  public void readObject(LineNumberReader in) throws IOException {
+    for (String s = in.readLine(); s!= null; s = in.readLine()) {
       StringTokenizer parser = new StringTokenizer(s, " \t\n\r\f,");
       String nextToken1 = parser.nextToken();
       String nextToken2 = parser.nextToken();
       String nextToken3 = parser.nextToken();
+      String nextToken4 = parser.nextToken();
       VM_MethodReference callerRef = null;
       VM_MethodReference calleeRef = null;
       if (!nextToken1.equals("null")) {
-        VM_Atom callerClass = VM_Atom.findOrCreateUnicodeAtom(nextToken1);
-        VM_Atom callerName = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
-        VM_Atom callerDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
-	VM_TypeReference tref = VM_TypeReference.findOrCreate(classloader, callerClass);
+        VM_Atom callerClass = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
+        VM_Atom callerName = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
+        VM_Atom callerDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken4);
+	VM_TypeReference tref;
+	if (nextToken1.equals("SystemCL")) {
+	  tref = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), callerClass);
+	} else if (nextToken1.equals("AppCL")) {
+	  tref = VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), callerClass);
+	} else {
+	  VM.sysWriteln("Unknown classloader '"+nextToken1+"'. Skipping entry");
+	  continue;
+	}
         callerRef = VM_MemberReference.findOrCreate(tref, callerName, callerDescriptor).asMethodReference();
       }
       nextToken1 = parser.nextToken();
-      if (!nextToken1.equals("null")) {
-        bytecodeOffset = Integer.parseInt(nextToken1);
-      }
+      int bytecodeOffset = nextToken1.equals("null") ? 0 : Integer.parseInt(nextToken1);
       nextToken1 = parser.nextToken();
       nextToken2 = parser.nextToken();
       nextToken3 = parser.nextToken();
+      nextToken4 = parser.nextToken();
       if (!nextToken1.equals("null")) {
-        VM_Atom calleeClass = VM_Atom.findOrCreateUnicodeAtom(nextToken1);
-        VM_Atom calleeName = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
-        VM_Atom calleeDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
-	VM_TypeReference tref = VM_TypeReference.findOrCreate(classloader, calleeClass);
+        VM_Atom calleeClass = VM_Atom.findOrCreateUnicodeAtom(nextToken2);
+        VM_Atom calleeName = VM_Atom.findOrCreateUnicodeAtom(nextToken3);
+        VM_Atom calleeDescriptor = VM_Atom.findOrCreateUnicodeAtom(nextToken4);
+	VM_TypeReference tref;
+	if (nextToken1.equals("SystemCL")) {
+	  tref = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), calleeClass);
+	} else if (nextToken1.equals("AppCL")) {
+	  tref = VM_TypeReference.findOrCreate(VM_ClassLoader.getApplicationClassLoader(), calleeClass);
+	} else {
+	  VM.sysWriteln("Unknown classloader '"+nextToken1+"'. Skipping entry");
+	  continue;
+	}
         calleeRef = VM_MemberReference.findOrCreate(tref, calleeName, calleeDescriptor).asMethodReference();
       }
       try {
@@ -121,7 +136,6 @@ public class OPT_ContextFreeInlinePlan implements OPT_InlinePlan {
 	  addRule(caller, bytecodeOffset, callee);
 	}
       } catch (ClassNotFoundException e) {}
-      s = in.readLine();
     }
   }
 

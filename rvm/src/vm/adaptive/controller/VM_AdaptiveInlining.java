@@ -11,15 +11,13 @@ import java.util.*;
 import java.io.*;
 
 /**
- *  VM_AdaptiveInlining.java
+ * Collection of static methods to assist with adaptive inlining.
  *
- *  Collection of static methods to assist with adaptive inlining.
- *
- *  @author Stephen Fink
- *  @modified Michael Hind
- *  @modified Peter F. Sweeney
- *  @modified Matthew Arnold
- *  @modified Dave Grove
+ * @author Stephen Fink
+ * @modified Michael Hind
+ * @modified Peter F. Sweeney
+ * @modified Matthew Arnold
+ * @modified Dave Grove
  */
 public class VM_AdaptiveInlining {
   final private static boolean DEBUG = false;
@@ -43,12 +41,13 @@ public class VM_AdaptiveInlining {
 	//  Read the plan from disk
 	String fn = options.OFFLINE_INLINE_PLAN_NAME;
 	LineNumberReader in = new LineNumberReader(new FileReader(fn));
-	VM_AdaptiveInlining.plan.readObject(in, VM_SystemClassLoader.getVMClassLoader());
+	VM_AdaptiveInlining.plan.readObject(in);
       } catch (Exception e) {
 	e.printStackTrace();
 	throw new OPT_OptimizingCompilerException("Inline",
-					        "Error creating offline plan");
+						  "Error creating offline plan");
       }
+      
       // now make an inlining oracle
       VM_RuntimeCompiler.offlineInlineOracle = 
 	new OPT_AdaptiveInlineOracle(plan);

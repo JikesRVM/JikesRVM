@@ -244,7 +244,7 @@ class OptTestHarness {
 	  // -inlineplan is used to read an inline plan from a file
 	  i++;
 	  OPT_ContextFreeInlinePlan plan = new OPT_ContextFreeInlinePlan();
-	  plan.readObject(new LineNumberReader(new FileReader(args[i])), VM_SystemClassLoader.getVMClassLoader());
+	  plan.readObject(new LineNumberReader(new FileReader(args[i])));
 	  System.out.println(plan.toString());
 	  OPT_InlineOracleDictionary.registerDefault(new OPT_ProfileDirectedInlineOracle(plan));
         } else if (arg.equals("+baseline")) {
