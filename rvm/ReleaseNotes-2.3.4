@@ -9,6 +9,7 @@ These are the release notes for Jikes RVM 2.3.4.
 
 *Highlights of this release include:
 **We now run Eclipse 3.0
+This requires that the Xalan XML parser be installed.
 
 **The port to PowerPC64 is virtually complete.  There are a few fringe opt 
 compiler bugs remaining, but functionality has advanced to the point where 
@@ -25,7 +26,19 @@ many common GC techniques (scannable heap; card-marking) at the cost of a
 slight performance hit on AIX/PowerPC due to the need to make some null checks
 explicit. See VM_ObjectModel.java for more details. 
 
+**XML parsing with Xalan
+Jikes RVM can now be configured so it always uses the Xalan XML
+ parser.  See the configuration file variable XALAN_J_DIR.
+
 **We have switched to GNU Classpath version 0.12.
+Versions 0.10 and 0.11 can still be used, if you set appropriate
+options in the configuration file, but we recommend Classpath 0.12.
+
+**CPU hogging fixed
+Jikes RVM used to busy-wait when it was idle, waiting for I/O or
+timeouts.  It now sleeps properly, which is nice if you're trying
+to do something else on your workstation at the same time that you're
+using Jikes RVM.  This closes long-standing defect # 2046.
 
 *Other notes:
 **The MMAP_COPY_ON_WRITE feature now works on PowerPC/Linux and PowerPC/OSX.  
@@ -38,6 +51,7 @@ VM.  Set it as you would set the CLASSPATH environment variable.
 **Major re-implementation of AOS's feedback-directed inlining and the opt 
 compiler's default inlining policy. Result is simpler code, lower
 overhead profiling, and more effective inlining decisions. 
+
 *Bug Fixes:
 **The JNI AttachCurrentThread function now returns proper error status if it
 cannot complete properly.  It used to (incorrectly) always return
@@ -50,7 +64,6 @@ loaded by the Bootstrap Class Loader.
 it no longer inappropriately elides frames.
 
 *Internal Changes
-**Jikes RVM now uses GNU Classpath's java.lang.Class instead of its own.
 **The VM_Magic classes have been moved to the org.vmmagic namespace, 
 and rationalized. Further work on refactoring magic usage (mainly in Jikes 
 RVM as opposed to MMTk) is ongoing.
