@@ -10,10 +10,14 @@ import java.lang.reflect.*;
 import java.net.URL;
 import java.util.Vector;
 import java.util.HashMap;
+
 import com.ibm.JikesRVM.classloader.VM_Type;
-import com.ibm.JikesRVM.librarySupport.ClassLoaderSupport;
+import com.ibm.JikesRVM.classloader.VM_Class;
+import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
+
+import com.ibm.JikesRVM.VM_UnimplementedError;
+
 import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
-import com.ibm.JikesRVM.librarySupport.UnimplementedError;
 
 /**
  * Library support interface of Jikes RVM
@@ -50,11 +54,11 @@ public final class Class implements java.io.Serializable {
   }
 
   void setSigners(Object[] signers) {
-    UnimplementedError.unimplemented("Class.setSigners");
+    throw new VM_UnimplementedError("Class.setSigners");
   }
    
   public static Class forName(String typeName) throws ClassNotFoundException {
-    return forName(typeName, true, ClassLoaderSupport.getClassLoaderFromStackFrame(1));
+    return forName(typeName, true, VM_Class.getClassLoaderFromStackFrame(1));
   }
     
   public static Class forName(String className, boolean initialize, ClassLoader classLoader) throws ClassNotFoundException {
@@ -62,7 +66,8 @@ public final class Class implements java.io.Serializable {
   }
 
   public ClassLoader getClassLoader() {
-    return ClassLoaderSupport.getClassLoader(this);
+    ClassLoader cl = JikesRVMSupport.getTypeForClass(this).getClassLoader();
+    return cl == VM_SystemClassLoader.getVMClassLoader() ? null : cl;
   }
 
   public Class getComponentType() {
@@ -164,7 +169,7 @@ public final class Class implements java.io.Serializable {
 
   public URL getResource(String resName) {
     ClassLoader loader = this.getClassLoader();
-    if (loader == ClassLoaderSupport.getSystemClassLoader())
+    if (loader == VM_SystemClassLoader.getVMClassLoader())
       return ClassLoader.getSystemResource(this.toResourceName(resName));
     else
       return loader.getResource(this.toResourceName(resName));
@@ -172,7 +177,7 @@ public final class Class implements java.io.Serializable {
 
   public InputStream getResourceAsStream(String resName) {
     ClassLoader loader = this.getClassLoader();
-    if (loader == ClassLoaderSupport.getSystemClassLoader())
+    if (loader == VM_SystemClassLoader.getVMClassLoader())
       return ClassLoader.getSystemResourceAsStream(this.toResourceName(resName));
     else
       return loader.getResourceAsStream(this.toResourceName(resName));

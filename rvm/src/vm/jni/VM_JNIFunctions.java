@@ -104,7 +104,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       classString = VM_JNIEnvironment.createStringFromC(classNameAddress);
       if (traceJNI) VM.sysWriteln( classString );
-      ClassLoader cl = com.ibm.JikesRVM.librarySupport.ClassLoaderSupport.getClassLoaderFromStackFrame(1);
+      ClassLoader cl = VM_Class.getClassLoaderFromStackFrame(1);
       Class matchedClass = Class.forName(classString.replace('/', '.'), true, cl);
       return env.pushJNIRef(matchedClass);  
     } catch (ClassNotFoundException e) {

@@ -4,8 +4,6 @@
 //$Id$
 package com.ibm.JikesRVM.classloader;
 
-import com.ibm.JikesRVM.librarySupport.FileSupport;
-
 import com.ibm.JikesRVM.*;
 
 import java.util.StringTokenizer;
@@ -260,6 +258,6 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
     String platformLibName = System.mapLibraryName(libName);
     String path = VM_ClassLoader.getSystemNativePath();
     String lib = path + File.separator + platformLibName;
-    return VM_FileSystem.access(lib, FileSupport.ACCESS_R_OK) == 0 ? lib : null;
+    return VM_FileSystem.access(lib, VM_FileSystem.ACCESS_R_OK) == 0 ? lib : null;
   }
 }

@@ -15,13 +15,11 @@ import java.util.Properties;
 import com.ibm.JikesRVM.classloader.VM_ClassLoader;
 import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
 
-import com.ibm.JikesRVM.librarySupport.ClassLoaderSupport;
-import com.ibm.JikesRVM.librarySupport.UnimplementedError;
-
 import com.ibm.JikesRVM.FinalizerThread;
 import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Process;
+import com.ibm.JikesRVM.VM_UnimplementedError;
 
 /**
  * Library support interface of Jikes RVM
@@ -152,8 +150,8 @@ public class Runtime {
       VM_ClassLoader.load( libPath );
       return;
     }
-
-    VM_ClassLoader.loadLibrary( libName );
+    
+    VM_ClassLoader.loadLibrary(libName);
   }
     
   public void runFinalization() {
@@ -164,7 +162,7 @@ public class Runtime {
     SecurityManager smngr = System.getSecurityManager();
     if (smngr != null)
       smngr.checkExit(0);
-    UnimplementedError.unimplemented("java.lang.Runtime.runFinalizersOnExit: not implemented\n"); //!!TODO
+    throw new VM_UnimplementedError("java.lang.Runtime.runFinalizersOnExit: not implemented\n"); //!!TODO
   }
     
   public long totalMemory() {

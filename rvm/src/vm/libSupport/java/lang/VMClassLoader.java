@@ -11,7 +11,6 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.HashMap;
 
-import com.ibm.JikesRVM.librarySupport.ClassLoaderSupport;
 import com.ibm.JikesRVM.librarySupport.ReflectionSupport;
 import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
 import com.ibm.JikesRVM.classloader.VM_ClassLoader;
@@ -27,17 +26,23 @@ final class VMClassLoader {
 
   static final Class defineClass(ClassLoader cl, String name, byte[] data, int offset, int len) 
     throws ClassNotFoundException {
-    return ClassLoaderSupport.defineClass(cl, name, data, offset, len);
+    VM_Type vmType = VM_ClassLoader.defineClassInternal(name, data, offset, len, cl);
+    return vmType.getClassForType();
   }
 
   static final Class defineClass(ClassLoader cl, String name,
                                  byte[] data, int offset, int len,
                                  ProtectionDomain pd) throws ClassFormatError, ClassNotFoundException {
-    return ClassLoaderSupport.defineClass(cl, name, data, offset, len, pd);
+    Class c = defineClass(cl, name, data, offset, len);
+    JikesRVMSupport.setClassProtectionDomain(c, pd);
+    return c;
   }
 
   static final void resolveClass(Class c) {
-    ClassLoaderSupport.resolveClass( null, c );
+    VM_Type cls = JikesRVMSupport.getTypeForClass(c);
+    cls.resolve();
+    cls.instantiate();
+    cls.initialize();
   }
 
   static final Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
