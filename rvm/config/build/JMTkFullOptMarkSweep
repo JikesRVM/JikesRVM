@@ -1,0 +1,2 @@
+   . $1/JMTkOptOptMarkSweep
+   export RVM_WITH_ALL_CLASSES=1 

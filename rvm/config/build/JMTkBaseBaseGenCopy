@@ -1,4 +1,4 @@
-   . $1/JMTkSemiSpace
+   . $1/JMTkGenCopy
    export RVM_WITH_BASE_BOOTIMAGE_COMPILER=1
    export RVM_WITH_BASE_RUNTIME_COMPILER=1
 

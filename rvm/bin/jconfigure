@@ -685,6 +685,14 @@ function emitSourceList
       #
       if (( $RVM_WITH_SEMISPACE )); then
          print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/semispace
+      elif (( $RVM_WITH_MARKSWEEP )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/markSweep
+      elif (( $RVM_WITH_GENCOPY )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genCopy
+      elif (( $RVM_WITH_HYBRID )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/hybrid
+      elif (( $RVM_WITH_GENHYBRID )); then
+         print $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genHybrid
       fi
    fi
 
