@@ -99,7 +99,9 @@ public class Throwable implements java.io.Serializable {
       return;
     }
     err.println(this);
-    stackTrace.print(err, this);
+    // Work in progress (Steven Augart)
+    //    stackTrace.print(err, this);
+    stackTrace.print(err);
     if (cause != null) {
       err.print("Caused by: ");
       cause.printStackTrace(err);
