@@ -479,17 +479,47 @@ abstract class OPT_AssemblerBase extends VM_Assembler
    * @param targetMC the value of the mcOffset of the target label
    * @return true if the relative offset will be less than 127, false otherwise
    */
-  protected boolean targetIsClose(OPT_Instruction inst, int target) {
-    OPT_Instruction curr = inst.nextInstructionInCodeOrder();
+  protected boolean targetIsClose(OPT_Instruction start, int target) {
+    OPT_Instruction inst = start.nextInstructionInCodeOrder();
     int budget = 120; // slight fudge factor could be 127
     while (true) {
       if (budget <= 0 ) return false;
-      if (curr.getmcOffset() == target) {
+      if (inst.getmcOffset() == target) {
         return true;
       }
-      switch (curr.getOpcode()) {
+      switch (inst.getOpcode()) {
       case LABEL_opcode:case BBEND_opcode:case UNINT_BEGIN_opcode:case UNINT_END_opcode:
         // these generate no code
+        break;
+
+        // Generated from the same case in VM_Assembler
+      case IA32_ADC_opcode:case IA32_ADD_opcode:case IA32_AND_opcode:
+      case IA32_CMP_opcode:case IA32_OR_opcode:case IA32_SBB_opcode:
+      case IA32_TEST_opcode:case IA32_XOR_opcode:
+        budget -= 2; // opcode + modr/m
+        budget -= operandCost(MIR_BinaryAcc.getResult(inst), true);
+        budget -= operandCost(MIR_BinaryAcc.getValue(inst), true);
+        break;
+      case IA32_PUSH_opcode:
+        {
+          OPT_Operand op = MIR_UnaryNoRes.getVal(inst);
+          if (op instanceof OPT_RegisterOperand) {
+            budget -= 1;
+          } else if (op instanceof OPT_IntConstantOperand) {
+            if (fits(((OPT_IntConstantOperand)op).value,8)) {
+              budget -= 2;
+            } else {
+              budget -= 5;
+            }
+          } else {
+            budget -= (2+operandCost(op, true));
+          }
+        }
+        break;
+      case IA32_MOV_opcode:
+        budget -= 2; // opcode + modr/m
+        budget -= operandCost(MIR_Move.getResult(inst), false);
+        budget -= operandCost(MIR_Move.getValue(inst), false);
         break;
       case IA32_OFFSET_opcode:
         budget -= 4;
@@ -510,33 +540,39 @@ abstract class OPT_AssemblerBase extends VM_Assembler
         budget -= 3;
         break;
       default:
-        budget -= 3; // 2 bytes opcode + 1 byte ModR/M
-        budget -= operandCost(curr);
+        budget -= 3; // 2 bytes opcode + 1 byte modr/m
+        for (OPT_OperandEnumeration enum = inst.getRootOperands();
+             enum.hasMoreElements();) {
+          OPT_Operand op = enum.next();
+          budget -= operandCost(op, false);
+        }
         break;
       }
-      curr = curr.nextInstructionInCodeOrder();
+      inst = inst.nextInstructionInCodeOrder();
     }
   }
 
-  private int operandCost(OPT_Instruction inst) {
-    int cost = 0;
-    for (OPT_OperandEnumeration enum = inst.getRootOperands(); enum.hasMoreElements();) {
-      OPT_Operand op = enum.next();
-      if (op instanceof OPT_MemoryOperand) {
-        cost += 1; // might need SIB byte
-        OPT_MemoryOperand mop = (OPT_MemoryOperand)op;
-        if (mop.disp != 0) {
-          if (fits(mop.disp,8)) {
-            cost += 1;
-          } else {
-            cost += 4;
-          }
+  private int operandCost(OPT_Operand op, boolean shortFormImmediate) {
+    if (op instanceof OPT_MemoryOperand) {
+      int cost = 1; // might need SIB byte
+      OPT_MemoryOperand mop = (OPT_MemoryOperand)op;
+      if (mop.disp != 0) {
+        if (fits(mop.disp,8)) {
+          cost += 1;
+        } else {
+          cost += 4;
         }
-      } else if (op.isIntConstant()) {
-        cost += 4; 
       }
+      return cost;
+    } else if (op instanceof OPT_IntConstantOperand) {
+      if (shortFormImmediate && fits(((OPT_IntConstantOperand)op).value,8)) {
+        return 1;
+      } else {
+        return 4;
+      }
+    } else {
+      return 0;
     }
-    return cost;
   }
   
   /**
