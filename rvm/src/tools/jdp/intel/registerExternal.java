@@ -181,8 +181,12 @@ class registerExternal extends register implements VM_BaselineConstants, registe
     try {
       // for native code, use ebp as FP
       // for RVM code, use VirtualProcessor register to get FP
-      if (owner.bmap.isInRVMspace(currentIP()))
-        return Platform.currentFP();
+      if (owner.bmap.isInRVMspace(currentIP())) {
+	if (contextThread == 0 || threadIsLoaded(contextThread)) 
+	  return Platform.currentFP();
+	else 
+	  return getContextFP();
+      }
       else
 	return getContextRegister("ebp");
 
@@ -237,6 +241,22 @@ class registerExternal extends register implements VM_BaselineConstants, registe
 	regs = getVMThreadGPR(contextThread);
 	return regs[regnum];
       }
+    }
+  }
+
+  /** 
+   * Get the FP integer register the context thread
+   */
+  public int getContextFP() throws Exception {
+    // Context thread id must be not 0;
+    if (contextThread==0) {
+      System.out.println("getContextFP - contextThread must not be 0");
+      return 0;
+    } else {
+      int regnum, regs[];
+      regnum = 9;
+      regs = getVMThreadGPR(contextThread);
+      return regs[regnum];
     }
   }
 
