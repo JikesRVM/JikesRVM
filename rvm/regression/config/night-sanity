@@ -6,7 +6,7 @@ FullAdaptiveMarkSweep            -test-list nightly-tests
 BaseBaseSemiSpace                -test-list nightly-tests
 BaseBaseGenCopy                  -test-list nightly-tests
 BaseBaseGenMS                    -test-list nightly-tests
-ExtremeAssertionsOptOptCopyMS    -test-list nightly-tests-short
+ExtremeAssertionsOptAdaptiveCopyMS -test-list nightly-tests-short
 FullAdaptiveSemiSpace            -use-opt-levels "O0 O1 O2" -test-list nightly-tests-short
 FastAdaptiveCopyMS               -test-list nightly-tests-short
 FastAdaptiveMarkSweep            -test-list nightly-tests-short
