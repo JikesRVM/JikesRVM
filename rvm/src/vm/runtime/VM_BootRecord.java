@@ -307,4 +307,5 @@ public class VM_BootRecord {
   public int sysWaitForVirtualProcessorInitializationIP;
   public int sysWaitForMultithreadingStartIP;
   //-#endif
+  public int traceClassLoading;
 }
