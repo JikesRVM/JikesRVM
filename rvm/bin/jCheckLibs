@@ -49,7 +49,7 @@ while [[ $# > 0 ]] ; do
   shift
 done
 
-if [ $FORCE_LIB_DOWNLOAD ] ; then
+if [ $RVM_FORCE_LIB_DOWNLOAD ] ; then
   automatic="y"
 fi
 
