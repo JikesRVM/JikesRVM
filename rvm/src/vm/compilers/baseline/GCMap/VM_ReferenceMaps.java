@@ -695,7 +695,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
 
 
   /**
-   * Add an VM_UnusualMap to the array of uunusual maps,
+   * Add an VM_UnusualMap to the array of unusual maps,
    *   expand the array and referencemap array if necessary
    *
    * @param jsrSiteMap   unusualMap to be added to array
@@ -753,7 +753,8 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
    *   else the invoker was not already in a jsr merge the unusual map differences
    *     with the invoker map
    */
-  public void setupJSRSubroutineMap(VM_Address frameAddress, int mapid, VM_CompiledMethod compiledMethod)  {
+  public void setupJSRSubroutineMap(VM_Address frameAddress, int mapid, 
+				    VM_CompiledMethod compiledMethod)  {
 
     // first clear the  maps in the extraUnusualMap
     int j = extraUnusualMap.getReferenceMapIndex();
@@ -781,18 +782,19 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     }
 
     VM_UnusualMaps unusualMap = unusualMaps[unusualMapid];
-    //    unusualMapcopy(unusualMap, -mapid);      // deep copy unusual map into the extra map
-    unusualMapcopy(unusualMap);      // deep copy unusual map into the extra map
+//    unusualMapcopy(unusualMap, -mapid); // deep copy unusual map into the extra map
+    unusualMapcopy(unusualMap);	// deep copy unusual map into the extra map
 
 
     // from the unusual map and the frame - get the location of the jsr invoker
     //
     int jsrAddressOffset = unusualMap.getReturnAddressOffset();
-    VM_Address callerAddress = VM_Magic.getMemoryAddress(frameAddress.add(jsrAddressOffset));
+    VM_Address callerAddress 
+      = VM_Magic.getMemoryAddress(frameAddress.add(jsrAddressOffset));
     // NOTE: -4 is subtracted when the map is determined ie locateGCpoint
 
-    // from the invoker address and the code base address - get the machine code offset
-    //
+    // from the invoker address and the code base address - get the machine
+    // code offset 
     int machineCodeOffset = callerAddress.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions())).toInt();
 
     if (VM.TraceStkMaps) {
@@ -804,15 +806,15 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
         VM.sysWriteln("BAD MACHINE CODE OFFSET");
     }
 
-    // from the machine code offset locate the map for the jsr instruction
+    // From the machine code offset locate the map for the JSR instruction
     //
     int jsrMapid = locateGCPoint(machineCodeOffset, compiledMethod.getMethod());
     if (VM.TraceStkMaps) {
       VM.sysWriteln("VM_ReferenceMaps-setupJSRMap- locateGCpoint returns mapid = ", jsrMapid);
     }
 
-    // if the invoker was in a jsr (ie nested jsrs)- merge the delta maps of each jsr and
-    //   compute the new total delta
+    // If the invoker was in a JSR (ie nested JSRs)- merge the delta maps of
+    // each JSR and compute the new total delta
     //
     while ( jsrMapid < 0) {
       jsrMapid = -jsrMapid;
@@ -827,11 +829,11 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       if (unusualMapIndex == JSR_INDEX_MASK) {
         unusualMapIndex = findUnusualMap(jsrMapid);
       }
-      // extraUnusualMap = combineDeltaMaps(jsrMapid, unusualMapid);
+//      extraUnusualMap = combineDeltaMaps(jsrMapid, unusualMapid);
       extraUnusualMap = combineDeltaMaps(unusualMapIndex);
 
 
-      // locate the next jsr from the current
+      // Locate the next JSR from the current
       //
       VM_UnusualMaps thisMap = unusualMaps[unusualMapIndex];
       int thisJsrAddressOffset = thisMap.getReturnAddressOffset();
@@ -853,8 +855,9 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       }
     }  // end while
 
-    // merge the jsr (unusual )map  with the base level (ie jsr instruction) map(s)
-    //  the results are stored in mergedReferenceMap and mergedReturnAddresMap
+    // Merge the JSR (unusual) map with the base level (ie JSR instruction)
+    // map(s).
+    //  The results are stored in mergedReferenceMap and mergedReturnAddresMap
     //  as indices in the referenceMaps table
     //
     finalMergeMaps((jsrMapid * bytesPerMap), extraUnusualMap);
@@ -1173,8 +1176,8 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
 
   /**
    * merge unusual maps- occurs in nested jsr conditions
-   *  merge each nested delta map ( as represented by the jsrMapid of the location site)
-   *   into the extraUnusualMap where the deltas are accumulated
+   *  merge each nested delta map ( as represented by the jsrMapid of the
+   *  location site) into the extraUnusualMap where the deltas are accumulated
    *  NOTE: while the routine is written to combine 2 unusualMaps in general
    *      in reality the target map is always the same ( the extraUnusualMap)
    *
@@ -1284,13 +1287,13 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   }
 
   /**
-   * merge a delta map ( as represented by it index in the referencemap table) into
-   * a target map ( similarly represented)
-   * and use the operation indicted ( OR or NAND or COPY)
+   * Merge a delta map (as represented by its index in the referencemap table)
+   * into a target map (similarly represented)
+   * and use the operation indicated ( OR or NAND or COPY)
    */
   private void mergeMap(int targetindex, int deltaindex,  byte Op)  {
     int i;
-    // merge the  maps
+    // Merge the maps
     if (Op == COPY) {
       for (i = 0; i < bytesPerMap; i++)
         unusualReferenceMaps[targetindex+i] = (byte)(unusualReferenceMaps[deltaindex+i] );
@@ -1310,11 +1313,11 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   }
 
   /**
-   *  merge the changes made in the jsr subroutine with the
-   *  map found at the jsr instruction to get the next map
-   *   with the invoker map
+   *  Merge the changes made in the JSR subroutine with the
+   *  map found at the JSR instruction to get the next map
+   * with the invoker map
    */
-  private void finalMergeMaps( int jsrBaseMapIndex,  VM_UnusualMaps deltaMap)  {
+  private void finalMergeMaps(int jsrBaseMapIndex, VM_UnusualMaps deltaMap) {
     int i;
 
     // clear out merged maps ie the destination maps)
@@ -1338,8 +1341,9 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
       byte newNonRef = unusualReferenceMaps[nonRefMapIndex + i];
       byte res = (byte)((finalBase | newRef) & (~newNonRef));
       unusualReferenceMaps[mergedReferenceMap+i] = res;
-      unusualReferenceMaps[mergedReturnAddressMap+i] = (byte)(unusualReferenceMaps[mergedReturnAddressMap+i] |
-                                                              unusualReferenceMaps[returnAddressMapIndex + i]);
+      unusualReferenceMaps[mergedReturnAddressMap+i] 
+	= (byte)(unusualReferenceMaps[mergedReturnAddressMap+i] 
+		 | unusualReferenceMaps[returnAddressMapIndex + i]);
       /*
          VM.sysWrite("   **** base = "); VM.sysWrite(base);
          VM.sysWrite("     nextBase = "); VM.sysWrite(nextBase);
@@ -1352,7 +1356,7 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
     }
 
     if ( VM.TraceStkMaps) {
-      //note this displays each byte as a word ... only look at low order byte
+      //Note: this displays each byte as a word ... only look at low order byte
       VM.sysWrite("finalmergemaps-jsr total set2ref delta map  = " );
       for ( i = 0; i < bytesPerMap ; i++)
         VM.sysWrite( unusualReferenceMaps[refMapIndex + i]);
@@ -1499,8 +1503,8 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   }
 
   /**
-   * show the offsets for all the maps
-   * this is for test use
+   * Show the offsets for all the maps. <br>
+   * This is for test use.
    */
   public void showOffsets() {
     VM.sysWrite("in showOffset- #maps = ");
@@ -1568,11 +1572,11 @@ public final class VM_ReferenceMaps implements VM_BaselineConstants, VM_Uninterr
   }
 
   //-#if RVM_WITH_OSR
-  /* Interface for general queries such as given a GC point, if a stack slot or a local
-   * variable is a reference
+  /* Interface for general queries such as given a GC point, if a stack slot
+   * or a local variable is a reference.
    */
 
-  /* query if a local variable at a bytecode index has a reference type value
+  /** Query if a local variable at a bytecode index has a reference type value
    * @param bcidx, the bytecode index
    * @param lidx, the local index
    * @return true, if it is a reference type
