@@ -245,9 +245,9 @@ property, which constrains the optimizations.
 \subsubsection{Does RVM support zip files?}
 
 As of Jikes RVM v2.1.0, the RVM relies on the open-source
-\xlink{JazzLib}{\jazzlibURL}. 
+\xlink{jazzlib}{\jazzlibURL}. 
 implementation of java.util.zip and java.util.jar.  These implementations
-are provided as part of the CLASSPATH project.
+are provided as part of the \xlink{GNU Classpath}{\classpathURL} project.
 
 \subsubsection{Why doesn't the RVM source use packages?}
 
@@ -442,6 +442,13 @@ it would be to provide the missing JNI support.
 in rvmrt.jar?}
 
 You can try.  Set your classpath to pick up the library you desire.
+
+\subsubsection{Why don't you use the GNU Classpath libraries?}
+
+There is effort underway outside of IBM to get the 
+\xlink{Classpath}{\classpathURL} libraries
+to work with Jikes RVM.   Check the mailing lists for the latest
+information on this topic.  Jikes RVM already uses the jazzlib jar file.
 
 \subsection{Optimizing Compiler}
 
