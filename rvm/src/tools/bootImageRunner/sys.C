@@ -104,6 +104,7 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #define NEED_EXIT_STATUS_CODES
 #include "InterfaceDeclarations.h"
 #include "bootImageRunner.h"    // In rvm/src/tools/bootImageRunner.
+#include "jni.h"                // For the jlong type.
 
 #ifndef RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
 #include <pthread.h>
@@ -2147,6 +2148,30 @@ sysPrimitiveParseInt(const char * buf)
     }
     return ret;
 }
+
+/** Parse memory sizes.  
+    @return negative values to indicate errors. */
+extern "C" jlong
+sysParseMemorySize(const char *sizeName, /*  "initial heap" or "maximum heap"
+                                            or "initial stack" or 
+                                            "maximum stack" */ 
+                   const char *sizeFlag, // e.g., "ms" or "mx" or "ss" or "sg" or "sx"
+                   const char *defaultFactor, // "M" or "K" are used
+                   int roundTo,  // Round to PAGE_SIZE_BYTES or to 4.
+                   const char *token /* e.g., "-Xms200M" or "-Xms200" */,
+                   const char *subtoken /* e.g., "200M" or "200" */)
+{
+    bool fastExit = false;
+    unsigned ret_uns=  parse_memory_size(sizeName, sizeFlag, defaultFactor,
+                                         (unsigned) roundTo, token, subtoken, 
+                                         &fastExit);
+    if (fastExit)
+        return -1;
+    else
+        return (jlong) ret_uns;
+}
+
+
 
 //-------------------//
 // Memory operations //
