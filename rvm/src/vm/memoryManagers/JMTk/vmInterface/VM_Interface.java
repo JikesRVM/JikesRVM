@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2003
  *
  * VM_Interface.java: methods that JMTk requires to interface with its 
  * enclosing run-time environment. 
@@ -65,8 +65,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
 
   /**
-   * Initialization that occurs at <i>build</i> time.  The value of
-   * statics as at the completion of this routine will be reflected in
+   * Initialization that occurs at <i>build</i> time.  The values of
+   * statics at the completion of this routine will be reflected in
    * the boot image.  Any objects referenced by those statics will be
    * transitively included in the boot image.
    */
@@ -79,7 +79,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   /***********************************************************************
    *
    * What we need to know about memory allocated by the outside world
-   *
+   *<p>
    * Basically where the boot image is, and how much memory is available.
    */
 
@@ -116,7 +116,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * Manipulate raw memory
    */
 
-  /* Returns errno 
+  /** @return errno 
    */
   public static int mmap(VM_Address start, int size) {
     VM_Address result = VM_Memory.mmap(start, size,
@@ -281,14 +281,16 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    * Miscellaneous
    */
 
-  final public static double OUT_OF_MEMORY_THRESHOLD = 0.98;  // throw OutOfMemoryError when usage after a GC exceeds threshold
+  /** throw OutOfMemoryError when the usage after a GC exceeds
+   * <code>OUT_OF_MEMORY_THRESHOLD</code>  */
+  final public static double OUT_OF_MEMORY_THRESHOLD = 0.98; 
 
   public static void setHeapRange(int id, VM_Address start, VM_Address end) throws VM_PragmaUninterruptible {
     VM_BootRecord.the_boot_record.setHeapRange(id, start, end);
   }
 
-  //
-  // Only used within the vmInterface package
+  /**
+     Only used within the <code>vmInterface</code> package */
   static Plan getPlanFromProcessor(VM_Processor proc) throws VM_PragmaInline {
     //-#if RVM_WITH_JMTK_INLINE_PLAN
     return proc;
@@ -302,11 +304,11 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     return getPlanFromProcessor(VM_Processor.getCurrentProcessor());
   }
 
-  // Schedule the finalizerThread, if there are objects to be finalized
-  // and the finalizerThread is on its queue (ie. currently idle).
-  // Should be called at the end of GC after moveToFinalizable has been called,
-  // and before mutators are allowed to run.
-  //
+  /** Schedule the finalizerThread, if there are objects to be finalized
+      and the finalizerThread is on its queue (ie. currently idle).
+      Should be called at the end of GC after <code>moveToFinalizable</code> has been
+      called, and before mutators are allowed to run.
+  */
   public static void scheduleFinalizerThread () throws VM_PragmaUninterruptible {
     int finalizedCount = Finalizer.countToBeFinalized();
     boolean alreadyScheduled = VM_Scheduler.finalizerQueue.isEmpty();
@@ -379,9 +381,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   private static VM_Atom collectorThreadAtom;
   private static VM_Atom runAtom;
 
-    // Set a collector thread's so that a scan of its stack
-    // will start at VM_CollectorThread.run
-    //
+  /** Set a collector thread's so that a scan of its stack
+      will start at VM_CollectorThread.run */
   public static void prepareParticipating (Plan p) {
     VM_Processor vp = (VM_Processor) p;
     if (VM.VerifyAssertions) VM._assert(vp == VM_Processor.getCurrentProcessor());
@@ -421,9 +422,13 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
       return VM_ObjectModel.bytesRequiredWhenCopied(obj, type.asArray(), VM_Magic.getArrayLength(obj));
   }
 
-  // Copy an object using a plan's allocCopy to get space and install the forwarding pointer.
-  // On entry, "obj" must have been reserved for copying by the caller.
-  //
+  /** Copy an object using a plan's allocCopy to get space and install the
+      forwarding pointer. 
+      On entry, <code>fromObj</code> must have been reserved for copying by
+      the caller.
+      @param fromObj the object to copy
+      @param forwardingPtr the forwarding pointer to install.
+  */
   public static VM_Address copy (VM_Address fromObj, int forwardingPtr) throws VM_PragmaInline {
 
     Object[] tib = VM_ObjectModel.getTIB(fromObj);
@@ -462,7 +467,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   /**
      Determine whether this reference has ever been enqueued.
      @param r the Reference object
-     @return <code>true</codeif reference has ever been enqueued
+     @return <code>true</code>if reference has ever been enqueued
    */
   public static final boolean referenceWasEverEnqueued(Reference r) {
     return r.wasEverEnqueued();
@@ -481,14 +486,14 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
      
      @see java.lang.ref.ReferenceQueue
      @param r the Reference object
-     @return <code>true</codeif the reference was enqueued
+     @return <code>true</code>if the reference was enqueued
    */
   public static final boolean enqueueReference(Reference r) {
     return r.enqueue();
   }
 
-  /*
-   * Utilities from VM
+  /**
+   * Utilities from the VM class
    */
   public static final boolean VerifyAssertions = VM.VerifyAssertions;
   public static void _assert(boolean cond) throws VM_PragmaInline {
@@ -502,13 +507,17 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 
   /**
    * Copies characters from the string into the character array.
+   * Thread switching is disabled during this method's execution.
+   * <p>
+   * <b>TODO:</b> There are special memory management semantics here that
+   * someone should document.
    *
    * @param src the source string
    * @param dst the destination array
    * @param dstBegin the start offset in the desination array
    * @param dstEnd the index after the last character in the
    * destination to copy to
-   * @return the number of charactes copied.
+   * @return the number of characters copied.
    */
   public static int copyStringToChars(String src, char [] dst,
 				      int dstBegin, int dstEnd)
@@ -638,8 +647,9 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     //-#endif
   }
 
-  /*
-   * This value changes, so call-through to VM must be a method
+  /**
+   * This value changes, so the call-through to the VM must be a method.  In
+   * Jikes RVM, just returns VM.runningVM
    */
   public static boolean runningVM() { return VM.runningVM; }
 
@@ -669,8 +679,8 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   }
 
   /**
-   * Rendezvous with all other processors, returning the rank,
-   * ie the order this processor arrived at the barrier.
+   * Rendezvous with all other processors, returning the rank
+   * (that is, the order this processor arrived at the barrier).
    */
   public static int rendezvous() throws VM_PragmaUninterruptible {
     return VM_CollectorThread.gcBarrier.rendezvous();
