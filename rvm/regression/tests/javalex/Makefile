@@ -3,7 +3,9 @@
 #
 include         	$(RVM_BUILD)/Make.rules
 
-BENCH_HOME=/homes/fury5/jalapeno/contrib/benchmarks/JLex-1.2.5
+BENCH_NAME=JLex
+include			$(JAL_ROOT)/rvm/regression/Local.rules
+
 JAVACUP_HOME=/homes/fury5/jalapeno/contrib/benchmarks/java_cup_v10j
 QBCJ_HOME=/homes/fury5/jalapeno/contrib/benchmarks/QBJC
 BENCH_SOURCE_PATH=$(BENCH_HOME)/classes 

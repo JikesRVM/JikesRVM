@@ -1,0 +1,56 @@
+
+#
+# CaffeineMark
+#
+CaffeineMark_HOME=/homes/fury5/jalapeno/contrib/benchmarks/CaffeineMark-3.0
+
+
+#
+# JLex
+#
+JLex_HOME=/homes/fury5/jalapeno/contrib/benchmarks/JLex-1.2.5
+
+#
+# jBYTEmark
+#
+jBYTEmark_HOME=/homes/fury5/jalapeno/contrib/benchmarks/jBYTEmark-0.9+
+
+#
+# SPECjbb2000
+#
+SPECjbb2000_HOME=/homes/fury5/jalapeno/contrib/benchmarks/SPECjbb2000
+
+#
+# SPECjvm98
+#
+SPECjvm98_HOME=/homes/fury5/jalapeno/contrib/benchmarks/SPECjvm98
+
+#
+# VolanoMark
+#
+VolanoMark_HOME=/homes/fury5/jalapeno/contrib/benchmarks/VolanoMark-2.1.2
+ 
+#
+# Jakarta Tomcat
+#
+Tomcat_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/jakarta-tomcat-3.2.3
+Tomcat_JARS=$(wildcard $(Tomcat_HOME)/lib/*.jar)
+
+#
+# Jakarta Servlet API
+#
+Servlet_HOME=/homes/furys5/jalapeno/contrib/benchmarks/WebServer/jakarta-servletapi-3.2.3
+Servlet_JARS=$(Servlet_HOME)/lib/servlet.jar
+
+#
+# Borland InterClient JDBC Driver
+#
+InterClient_HOME=/homes/fury5/jalapeno/contrib/benchmarks/WebServer/interclient
+InterClient_JARS=$(wildcard $(InterClient_HOME)/*.jar)
+
+#
+# rules
+#
+BENCH_HOME=$($(BENCH_NAME)_HOME)
+BENCH_JARS=$($(BENCH_NAME)_JARS)
+

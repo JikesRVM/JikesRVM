@@ -31,7 +31,7 @@ $(WORKING)/cp:	$(WORKING)
 #
 # where to find and put .class files
 #
-BENCH_CLASS_PATH := $(BENCH_CLASS_PATH) $(WORKING)/cp 
+BENCH_CLASS_PATH := $(BENCH_CLASS_PATH) $(WORKING)/cp $(BENCH_JARS)
 BENCH_CLASS_CP = $(shell echo $(strip $(BENCH_CLASS_PATH)) | sed s/\ /:/g)
 
 vpath %.class		$(BENCH_CLASS_CP)
@@ -132,16 +132,24 @@ else
 endif
 
 # start in background and wait for desired output
+start-bench:
+	echo $$$$ > $(OUT).pid; $(MAKE) bench
+
 start:
 	@rm -f $(OUT).server
-	$(MAKE) START_NAME=$(SERVER_NAME) START_ARGS=$(SERVER_ARGS) OUT=$(OUT).server bench &
+	$(MAKE) START_NAME=$(SERVER_NAME) START_ARGS=$(SERVER_ARGS) OUT=$(OUT).server start-bench &
 	$(MAKE) OUT=$(OUT).server LIMIT=15 wait
+
+wait-for-end:
+	(ps -p $(PID) | fgrep -qv $(PID)) || (sleep 10; $(MAKE) wait-for-end)
 
 # start server, run client, finish server
 do-server-run:
 	$(MAKE) start
+	sleep 10
 	$(MAKE) client
 	$(MAKE) finish
+	$(MAKE) wait-for-end PID=`cat $(OUT).server.pid`
 
 client:
 	$(MAKE) START_NAME=$(CLIENT_NAME) START_ARGS=$(CLIENT_ARGS) OUT=$(OUT).client bench

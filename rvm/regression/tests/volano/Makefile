@@ -3,8 +3,9 @@
 #
 include		$(RVM_BUILD)/Make.rules
 
-BENCH_NAME=Volano
-BENCH_HOME=/homes/fury5/jalapeno/contrib/benchmarks/VolanoMark-2.1.2
+BENCH_NAME=VolanoMark
+include		$(JAL_ROOT)/rvm/regression/Local.rules
+
 BENCH_CLASS_PATH=$(BENCH_HOME)
 
 USERS ?= 10

@@ -3,7 +3,9 @@
 #
 include		$(RVM_BUILD)/Make.rules
 
-BENCH_HOME=/homes/fury5/jalapeno/contrib/benchmarks/CaffeineMark-3.0
+BENCH_NAME=CaffeineMark
+include		$(JAL_ROOT)/rvm/regression/Local.rules
+
 BENCH_CLASS_PATH=$(BENCH_HOME)
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 HEAPSIZE=200

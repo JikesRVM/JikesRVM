@@ -4,7 +4,7 @@
 include		$(RVM_BUILD)/Make.rules
  
 BENCH_NAME=SPECjbb2000
-BENCH_HOME=/homes/fury5/jalapeno/contrib/benchmarks/SPECjbb2000
+include		$(JAL_ROOT)/rvm/regression/Local.rules
 
 BENCH_JARS=jbb.jar jbb_no_precompile.jar check.jar reporter.jar
 BENCH_CLASS_PATH=$(foreach JAR, $(BENCH_JARS), $(BENCH_HOME)/$(JAR))
