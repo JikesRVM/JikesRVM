@@ -17,7 +17,7 @@ vpath %.jar	$(BENCH_HOME)
 
 START_NAME=spec.jbb.JBBmain
 
-HEAPSIZE=300
+HEAPSIZE=400
 LHEAPSIZE=200
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
