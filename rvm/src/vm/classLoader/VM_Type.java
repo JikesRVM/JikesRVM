@@ -248,7 +248,7 @@
   /**
    * Instance of java.lang.Class corresponding to this type.
    */   
-  public final Class getClassForType() {
+ public final Class getClassForType() {
     //ensure that create() is not called during boot image writing
     //since the jdk loads the wrong version of 
     //java.lang.Class (the one without create)
@@ -257,9 +257,14 @@
     //be loaded at start up of the runtime.  
     //See VM.boot(). This test for runtime can be removed 
     //once the bootImageWriter has been rewritten to properly load classes.
-    if (classForType == null && VM.runningVM)
-      classForType = Class.create(this);
-    return classForType;
+   if (classForType == null && VM.runningVM) {
+     synchronized(this) {
+       if (classForType == null) {
+	 classForType = Class.create(this);
+       }
+     }
+   }
+   return classForType;
   }
 
   // Frequently used types.
