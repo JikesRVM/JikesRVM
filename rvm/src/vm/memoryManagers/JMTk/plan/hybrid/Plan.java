@@ -25,12 +25,13 @@ import com.ibm.JikesRVM.VM_Processor;
 /**
  * This class implements a simple non-generational copying, mark-sweep hybrid.
  *
+ * @author Perry Cheng
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-public final class Plan extends BasePlan implements VM_Uninterruptible { // implements Constants 
-  public final static String Id = "$Id$"; 
+public class Plan extends BasePlan implements VM_Uninterruptible { // implements Constants 
+  final public static String Id = "$Id$"; 
 
   public static final boolean needsWriteBarrier = false;
   public static final boolean needsRefCountWriteBarrier = false;
@@ -48,7 +49,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   // remsets.
   //
 
-  public static void boot()
+  final public static void boot()
     throws VM_PragmaInterruptible {
     BasePlan.boot();
   }
@@ -62,10 +63,10 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static VM_Address traceObject(VM_Address obj, boolean root) {
+  final public static VM_Address traceObject(VM_Address obj, boolean root) {
     return traceObject(obj);
   }
-  public static VM_Address traceObject(VM_Address obj) {
+  final public static VM_Address traceObject(VM_Address obj) {
     VM_Address addr = VM_Interface.refToAddress(obj);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
@@ -78,12 +79,12 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     return obj;
   }
 
-  public static boolean isNurseryObject(Object base) {
+  final public static boolean isNurseryObject(Object base) {
     VM_Address addr =VM_Interface.refToAddress(VM_Magic.objectAsAddress(base));
     return (addr.GE(NURSERY_START) && addr.LE(HEAP_END));
   }
 
-  public static boolean isLive(VM_Address obj) {
+  final public static boolean isLive(VM_Address obj) {
     VM_Address addr = VM_ObjectModel.getPointerInMemoryRegion(obj);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
@@ -96,7 +97,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     return false;
   }
 
-  public static void showUsage() {
+  final public static void showUsage() {
       VM.sysWrite("used pages = ", getPagesUsed());
       VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");
       VM.sysWrite("= (nursery) ", nurseryMR.reservedPages());  
@@ -104,24 +105,24 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       VM.sysWriteln(" + (imm) ", immortalMR.reservedPages());
   }
 
-  public static int getInitialHeaderValue(int size) {
+  final public static int getInitialHeaderValue(int size) {
     return msCollector.getInitialHeaderValue(size);
   }
 
-  public static int resetGCBitsForCopy(VM_Address fromObj, int forwardingPtr,
+  final public static int resetGCBitsForCopy(VM_Address fromObj, int forwardingPtr,
 				       int bytes) {
     return (forwardingPtr & ~HybridHeader.GC_BITS_MASK) | msCollector.getInitialHeaderValue(bytes);
   }
 
-  public static final long freeMemory() throws VM_PragmaUninterruptible {
+  final public static long freeMemory() throws VM_PragmaUninterruptible {
     return totalMemory() - usedMemory();
   }
 
-  public static final long usedMemory() throws VM_PragmaUninterruptible {
+  final public static long usedMemory() throws VM_PragmaUninterruptible {
     return Conversions.pagesToBytes(getPagesUsed());
   }
 
-  public static final long totalMemory() throws VM_PragmaUninterruptible {
+  final public static long totalMemory() throws VM_PragmaUninterruptible {
     return Conversions.pagesToBytes(getPagesAvail());
   }
 
@@ -155,7 +156,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * @param advice Statically-generated allocation advice for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(EXTENT bytes, boolean isScalar, int allocator, 
+  final public VM_Address alloc(EXTENT bytes, boolean isScalar, int allocator, 
 				AllocAdvice advice)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(bytes == (bytes & (~(WORD_SIZE-1))));
@@ -172,7 +173,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
     return region;
   }
   
-  public final void postAlloc(Object ref, Object[] tib, int size,
+  final public void postAlloc(Object ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
     if ((allocator == NURSERY_ALLOCATOR && size > LOS_SIZE_THRESHOLD) ||
@@ -180,10 +181,10 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       Header.initializeMarkSweepHeader(ref, tib, size, isScalar);
   }
 
-  public final void postCopy(Object ref, Object[] tib, int size,
+  final public void postCopy(Object ref, Object[] tib, int size,
 			     boolean isScalar) {}
 
-  public final void show() {
+  final public void show() {
     nursery.show();
     ms.show();
   }
@@ -197,7 +198,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * @param isScalar True if the object occupying this space will be a scalar
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address allocCopy(VM_Address original, EXTENT bytes,
+  final public VM_Address allocCopy(VM_Address original, EXTENT bytes,
 				    boolean isScalar) 
     throws VM_PragmaInline {
     return ms.allocCopy(isScalar, bytes);
@@ -216,7 +217,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * site should use.
    * @return The allocator number to be used for this allocation.
    */
-  public final int getAllocator(Type type, EXTENT bytes, CallSite callsite,
+  final public int getAllocator(Type type, EXTENT bytes, CallSite callsite,
 				AllocAdvice hint) {
     return (bytes >= LOS_SIZE_THRESHOLD) ? MS_ALLOCATOR : NURSERY_ALLOCATOR;
   }
@@ -234,7 +235,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * @return Allocation advice to be passed to the allocation routine
    * at runtime
    */
-  public final AllocAdvice getAllocAdvice(Type type, EXTENT bytes,
+  final public AllocAdvice getAllocAdvice(Type type, EXTENT bytes,
 					  CallSite callsite,
 					  AllocAdvice hint) { 
     return null;
@@ -261,7 +262,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
    * @return Whether a collection is triggered
    */
 
-  public boolean poll(boolean mustCollect, MemoryResource mr)
+  final public boolean poll(boolean mustCollect, MemoryResource mr)
     throws VM_PragmaLogicallyUninterruptible {
     if (gcInProgress) return false;
     if (mustCollect || getPagesReserved() > getTotalPages()) {
@@ -269,17 +270,17 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
       required = mr.reservedPages() - mr.committedPages();
       if (mr == nurseryMR)
 	required = required<<1;  // must account for copy reserve
-      VM_Interface.triggerCollection();
+      VM_Interface.triggerCollection("GC triggered due to resource exhaustion");
       return true;
     }
     return false;
   }
   
-  public final MarkSweepCollector getMS() {
+  final public MarkSweepCollector getMS() {
     return msCollector;
   }
 
-  public final boolean hasMoved(VM_Address obj) {
+  final public boolean hasMoved(VM_Address obj) {
     VM_Address addr = VM_Interface.refToAddress(obj);
     if (addr.LE(HEAP_END)) {
       if (addr.GE(NURSERY_START))
@@ -291,7 +292,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
   /**
    * Perform a collection.
    */
-  public void collect () {
+  final public void collect () {
     prepare();
     super.collect();
     release();
@@ -299,7 +300,7 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   /* We reset the state for a GC thread that is not participating in this GC
    */
-  public void prepareNonParticipating() {
+  final public void prepareNonParticipating() {
     allPrepare(NON_PARTICIPANT);
   }
 
@@ -449,11 +450,11 @@ public final class Plan extends BasePlan implements VM_Uninterruptible { // impl
 
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   
-  public static final int NURSERY_ALLOCATOR = 0;
-  public static final int MS_ALLOCATOR = 1;
-  public static final int IMMORTAL_ALLOCATOR = 2;
-  public static final int DEFAULT_ALLOCATOR = NURSERY_ALLOCATOR;
-  public static final int TIB_ALLOCATOR = DEFAULT_ALLOCATOR;
+  final public static int NURSERY_ALLOCATOR = 0;
+  final public static int MS_ALLOCATOR = 1;
+  final public static int IMMORTAL_ALLOCATOR = 2;
+  final public static int DEFAULT_ALLOCATOR = NURSERY_ALLOCATOR;
+  final public static int TIB_ALLOCATOR = DEFAULT_ALLOCATOR;
 
   private static final int COPY_FUDGE_PAGES = 1;  // Steve - fix this
 

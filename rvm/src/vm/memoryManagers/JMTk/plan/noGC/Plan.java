@@ -10,7 +10,7 @@
  * @version $Revision$
  * @date $Date$
  */
-final class Plan implements Constants extends BasePlan {
+class Plan implements Constants extends BasePlan {
   public final static String Id = "$Id$"; 
 
   ////////////////////////////////////////////////////////////////////////////
