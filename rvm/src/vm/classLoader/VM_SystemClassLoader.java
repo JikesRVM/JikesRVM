@@ -268,11 +268,4 @@ public final class VM_SystemClassLoader extends java.lang.ClassLoader {
 
     return (multiple)? h.getResult() : null;
   }
-
-  protected String findLibrary(String libName) {
-    String platformLibName = System.mapLibraryName(libName);
-    String path = VM_ClassLoader.getSystemNativePath();
-    String lib = path + File.separator + platformLibName;
-    return VM_FileSystem.access(lib, VM_FileSystem.ACCESS_R_OK) == 0 ? lib : null;
-  }
 }

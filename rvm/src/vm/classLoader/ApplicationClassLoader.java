@@ -52,10 +52,7 @@ public class ApplicationClassLoader extends URLClassLoader {
   public String toString() { return "AppCL"; }
 
   protected String findLibrary(String libName) {
-    String platformLibName = System.mapLibraryName(libName);
-    String path = VM_ClassLoader.getSystemNativePath();
-    String lib = path + File.separator + platformLibName;
-    return VM_FileSystem.access(lib, VM_FileSystem.ACCESS_R_OK) == 0 ? lib : null;
+    return null;
   }
 }
 

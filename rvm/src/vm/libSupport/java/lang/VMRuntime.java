@@ -26,10 +26,12 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.*;
  */
 final class VMRuntime {
 
+  private static boolean runFinalizersOnExit = false;
+  
   private VMRuntime() { }
 
   static int availableProcessors() {
-    throw new VM_UnimplementedError();
+    return VM_Scheduler.numProcessors;
   }
     
   static long freeMemory() {
@@ -49,11 +51,16 @@ final class VMRuntime {
   }
     
   static void runFinalization() {
-    // a no-op for now
+    // TODO: talk to Steve B & Perry and figure out what to do.
+    // as this is a hint, we can correctly ignore it.
+    // However, there might be something else we should do.
   }
     
   static void runFinalizationForExit() {
-    throw new VM_UnimplementedError();
+    if (runFinalizersOnExit) {
+      // TODO: talk to Steve B & Perry and figure out what to do.
+      throw new VM_UnimplementedError();
+    }
   }
     
   static void traceInstructions(boolean on) {
@@ -65,24 +72,30 @@ final class VMRuntime {
   }
 
   static void runFinalizersOnExit(boolean value) {
-    throw new VM_UnimplementedError();
+    runFinalizersOnExit = value;
   }
 
   static void exit(int status) {
     VM.sysExit(status);
   }    
 
-  static int nativeLoad(String filename) {
-    throw new VM_UnimplementedError();
+  static int nativeLoad(String libName) {
+    return VM_ClassLoader.load(libName);
   }
 
-  private static final String LIB_SUFFIX = (VM.BuildForLinux) ? ".so" :  ((VM.BuildForOsx) ? ".jnilib" : ".a");
-
   static String nativeGetLibname(String pathname, String libname) {
+    String libSuffix;
+    if (VM.BuildForLinux) {
+      libSuffix = ".so";
+    } else if (VM.BuildForOsx) {
+      libSuffix = ".jnilib";
+    } else {
+      libSuffix = ".a";
+    }
     if (pathname != null && !("".equals(pathname)))
-      return pathname + File.separator + "lib" + libname + LIB_SUFFIX;
+      return pathname + File.separator + "lib" + libname + libSuffix;
     else
-      return "lib" + libname + LIB_SUFFIX;
+      return "lib" + libname + libSuffix;
   }
 
   static Process exec(String[] cmd, String[] env, File dir) {
@@ -109,6 +122,10 @@ final class VMRuntime {
     p.put("java.io.tmpdir", "/tmp");
 
     p.put("user.timezone", "America/New_York");
+
+    String jlp = VM_CommandLineArgs.getEnvironmentArg("java.library.path");
+    String snp = VM_CommandLineArgs.getEnvironmentArg("rvm.build");
+    if (jlp == null) jlp = ".";
+    p.put("java.library.path", snp + p.get("path.separator") +jlp);
   }
-    
 }

@@ -67,8 +67,19 @@ public class VM_ClassLoader implements VM_Constants,
   /**
    * Load a dynamic library
    * @param libname the name of the library to load.
+   * @return 0 on failure, non-zero on success
    */
-  public static void load(String libname) {
+  public static int load(String libname) {
+    // library already loaded ?
+    for (int i=0; i<dynamicLibraries.length; i++) {
+      VM_DynamicLibrary dl = dynamicLibraries[i];
+      if (dl != null && dl.getLibName().equals(libname)) return 1; // yes...
+    }
+
+    if (VM_FileSystem.stat(libname, VM_FileSystem.STAT_EXISTS) != 1) {
+      return 0; // fail; file does not exist
+    }
+
     currentDynamicLibraryId++;
 
     if (currentDynamicLibraryId>=(dynamicLibraries.length-1)) {
@@ -76,43 +87,13 @@ public class VM_ClassLoader implements VM_Constants,
         growArray(dynamicLibraries, currentDynamicLibraryId << 1); 
     }
     
-    if (VM.VerifyAssertions)
-        VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
-    
-    dynamicLibraries[currentDynamicLibraryId] = new VM_DynamicLibrary(libname);
-  }
-
-  /**
-   * Load a dynamic library
-   * @param libname the name of the library to load.
-   */
-  public static void loadLibrary(String libname) {
-    currentDynamicLibraryId++;
-    if (currentDynamicLibraryId>=(dynamicLibraries.length-1)) {
-      dynamicLibraries = 
-        growArray(dynamicLibraries, currentDynamicLibraryId << 1); 
-    }
-
     if (VM.VerifyAssertions)
       VM._assert(dynamicLibraries[currentDynamicLibraryId] == null);
-
-    String platformLibName = System.mapLibraryName(libname);
-    StringTokenizer javaLibDirs =
-      new StringTokenizer(javaLibPath, File.pathSeparator, false);
-
-    while (javaLibDirs.hasMoreElements()) {
-      String javaLibDir = javaLibDirs.nextToken();
-      File javaLib = new File(javaLibDir, platformLibName);
-        
-      if (javaLib.exists()) {
-        dynamicLibraries[currentDynamicLibraryId] = new VM_DynamicLibrary(javaLib.getPath());
-        return;
-      }
-    }
-
-    throw new UnsatisfiedLinkError("Cannot find library " + libname);
-  }
     
+    dynamicLibraries[currentDynamicLibraryId] = new VM_DynamicLibrary(libname);
+    return 1;
+  }
+
   static VM_DynamicLibrary[] getDynamicLibraries() {
     return dynamicLibraries;
   }
@@ -198,31 +179,10 @@ public class VM_ClassLoader implements VM_Constants,
     syntheticAttributeName              = VM_Atom.findOrCreateAsciiAtom("Synthetic");
     arrayNullCheckAttributeName         = VM_Atom.findOrCreateAsciiAtom("ArrayNullCheckAttribute");
 
-    dynamicLibraries = new VM_DynamicLibrary[0];
+    dynamicLibraries = new VM_DynamicLibrary[10];
 
     VM_Type.init();
   }
-
-  private static String javaLibPath;
-
-  private static void setJavaLibPath() {
-    javaLibPath = VM_CommandLineArgs.getEnvironmentArg("java.library.path");
-    if (javaLibPath == null) javaLibPath="";
-  }
-
-  public static String getJavaLibPath() {
-    return javaLibPath;
-  } 
-
-  private static String systemNativePath;
-
-  private static void setSystemNativePath() {
-    systemNativePath = VM_CommandLineArgs.getEnvironmentArg("rvm.build");
-  }
-
-  public static String getSystemNativePath() {
-    return systemNativePath;
-  } 
 
   /**
    * Initialize for execution.
@@ -235,10 +195,6 @@ public class VM_ClassLoader implements VM_Constants,
   public static void boot(String vmClasses) {      
     if (vmClasses != null)
       setVmRepositories(vmClasses);
-    setSystemNativePath();
-    setJavaLibPath();
-    currentDynamicLibraryId = 0;
-    dynamicLibraries = new VM_DynamicLibrary[0];
   }
 
   /**
