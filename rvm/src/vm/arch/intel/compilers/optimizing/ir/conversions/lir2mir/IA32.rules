@@ -658,7 +658,7 @@ EMIT_INSTRUCTION
 BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)), consumeCOND());
 
 boolcmp:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
-VR(p) == 0 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?26:INFINITE
+VR(p) == 0 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?0:INFINITE
 NOFLAGS
 // use already pushed condition
 
@@ -668,7 +668,7 @@ EMIT_INSTRUCTION
 BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)), consumeCOND().flipCode());
 
 boolcmp: BOOLEAN_CMP(boolcmp, INT_CONSTANT)
-VR(p) == 0 && BooleanCmp.getCond(P(p)).isEQUAL()?26:INFINITE
+VR(p) == 0 && BooleanCmp.getCond(P(p)).isEQUAL()?0:INFINITE
 EMIT_INSTRUCTION
 pushCOND(consumeCOND().flipCode()); // invert already pushed condition
 

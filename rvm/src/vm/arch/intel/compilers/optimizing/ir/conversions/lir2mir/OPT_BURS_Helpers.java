@@ -19,6 +19,21 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_MemOp_Helpers {
     super(burs);
   }
 
+  // condition code state
+  private OPT_ConditionOperand cc;
+  protected final void pushCOND(OPT_ConditionOperand c) {
+    if (VM.VerifyAssertions) VM._assert(cc == null);
+    cc = c ;
+  }
+  protected final OPT_ConditionOperand consumeCOND() {
+    OPT_ConditionOperand ans = cc;
+    if (VM.VerifyAssertions) {
+      VM._assert(cc != null);
+      cc = null;
+    }
+    return ans;
+  }
+
   // can an IV be the scale in a LEA instruction?
   protected final int LEA_SHIFT(OPT_Operand op, int trueCost) {
     return LEA_SHIFT(op, trueCost, INFINITE);

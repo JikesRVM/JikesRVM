@@ -122,21 +122,6 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
 	    (cond == OPT_ConditionOperand.GREATER_EQUAL));
   }
 
-  // condition code state
-  private OPT_ConditionOperand cc;
-  protected final void pushCOND(OPT_ConditionOperand c) {
-    if (VM.VerifyAssertions) VM._assert(cc == null);
-    cc = c ;
-  }
-  protected final OPT_ConditionOperand consumeCOND() {
-    OPT_ConditionOperand ans = cc;
-    if (VM.VerifyAssertions) {
-      VM._assert(cc != null);
-      cc = null;
-    }
-    return ans;
-  }
-
    /* node accessors */
    protected final OPT_Instruction P(OPT_BURS_TreeNode p) {
       return p.getInstruction();

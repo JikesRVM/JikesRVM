@@ -19,8 +19,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     super(burs);
   }
 
-  // Begin PowerPC specific helper functions.
-  // 
   /**
    * returns true if an unsigned integer in 16 bits
    */
@@ -586,15 +584,6 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     }
   }
 
-  protected final void BOOLEAN_CMP_IMM(OPT_Instruction s, 
-				       OPT_RegisterOperand def, 
-				       OPT_RegisterOperand one, 
-				       OPT_IntConstantOperand two) {
-    OPT_ConditionOperand cmp = BooleanCmp.getCond(s);
-    if (!boolean_cmp_imm(def, one, two.value, cmp))
-      EMIT(s);
-  }
-
   /**
    * emit basic code to handle an INT_IFCMP when no folding
    * of the compare into some other computation is possible.
@@ -718,15 +707,69 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
   // boolean compare
+  // Support for boolean cmp 
+  private OPT_ConditionOperand cc;
+  private OPT_Operand val1;
+  private OPT_Operand val2;
+  protected final void PUSH_BOOLCMP(OPT_ConditionOperand c,
+				    OPT_Operand v1,
+				    OPT_Operand v2) {
+    if (VM.VerifyAssertions) VM._assert(cc == null);
+    cc = c;
+    val1 = v1;
+    val2 = v2;
+  }
+  protected final void FLIP_BOOLCMP() {
+    if (VM.VerifyAssertions) VM._assert(cc != null);
+    cc = cc.flipCode();
+  }
+
+  protected final void EMIT_PUSHED_BOOLCMP(OPT_RegisterOperand res) {
+    if (VM.VerifyAssertions) VM._assert(cc != null);
+    if (val2 instanceof OPT_IntConstantOperand) {
+      BOOLEAN_CMP_IMM(res, cc, R(val1), I(val2));
+    } else {
+      BOOLEAN_CMP(res, cc, R(val1), R(val2));
+    }
+    if (VM.VerifyAssertions) {
+      cc = null;
+      val1 = null;
+      val2 = null;
+    }
+  }
+
+  protected final void EMIT_BOOLCMP_BRANCH(OPT_BranchOperand target,
+					   OPT_BranchProfileOperand bp) {
+    if (VM.VerifyAssertions) VM._assert(cc != null);
+    OPT_RegisterOperand cr = regpool.makeTempCondition();
+    OPT_Operator op;
+    if (val2 instanceof OPT_IntConstantOperand) {
+      op = cc.isUNSIGNED() ? PPC_CMPLI : PPC_CMPI;
+    } else { 
+      op = cc.isUNSIGNED() ? PPC_CMPL : PPC_CMP;
+    }
+    EMIT(MIR_Binary.create(op, cr, R(val1), val2));
+    EMIT(MIR_CondBranch.create(PPC_BCOND, cr.copyD2U(),
+			       new OPT_PowerPCConditionOperand(cc),
+			       target, bp));
+    if (VM.VerifyAssertions) {
+      cc = null;
+      val1 = null;
+      val2 = null;
+    }
+  }
+
+
   /**
    * taken from: The PowerPC Compiler Writer's Guide, pp. 199 
    */
-  protected final boolean boolean_cmp_imm(OPT_RegisterOperand def, 
-					  OPT_RegisterOperand one, 
-					  int value, OPT_ConditionOperand cmp) {
+  protected final void BOOLEAN_CMP_IMM(OPT_RegisterOperand def, 
+				       OPT_ConditionOperand cmp,
+				       OPT_RegisterOperand one, 
+				       OPT_IntConstantOperand two) {
     OPT_Register t1, t = regpool.getInteger();
     OPT_Register zero = regpool.getPhysicalRegisterSet().getTemp();
-    boolean convert = true;
+    int value = two.value;
     switch (cmp.value) {
     case OPT_ConditionOperand.EQUAL:
       if (value == 0) {
@@ -817,7 +860,9 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
 	EMIT(MIR_Binary.create(PPC_ADDIC, R(zero), one.copyRO(), I(-value)));
 	EMIT(MIR_Binary.create(PPC_ADDE, def, R(t), R(t1)));
       } else {
-	return false; // value == 0xFFFF8000; code sequence below does not work --dave 7/25/02
+	EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null));
+	// value == 0xFFFF8000; code sequence below does not work --dave 7/25/02
+	break;
 	/*
 	  t1 = regpool.getInteger();
 	  EMIT(MIR_Unary.create(PPC_LDI, R(t1), I(1)));
@@ -829,11 +874,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       }
       break;
     case OPT_ConditionOperand.HIGHER:
-      return false; // todo
+      EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null)); // todo
+      break;
     case OPT_ConditionOperand.LOWER:
-      return false; // todo
+      EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null)); // todo
+      break;
     case OPT_ConditionOperand.HIGHER_EQUAL:
-      return false; // todo
+      EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null)); // todo
+      break;
     case OPT_ConditionOperand.LOWER_EQUAL:
       EMIT(MIR_Unary.create(PPC_LDI, R(t), I(-1)));
       EMIT(MIR_Binary.create(PPC_SUBFIC, R(zero), one, I(value)));
@@ -841,25 +889,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       break;
 
     default:
-      return false;
+      EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null)); // todo
     }
-    return true;
   }
 
-  protected final void BOOLEAN_CMP(OPT_Instruction s, 
-				   OPT_RegisterOperand def, 
+  protected final void BOOLEAN_CMP(OPT_RegisterOperand def, 
+				   OPT_ConditionOperand cmp,
 				   OPT_RegisterOperand one,
 				   OPT_RegisterOperand two) {
-    OPT_ConditionOperand cmp = BooleanCmp.getCond(s);
-    if (!boolean_cmp(def, one, two, cmp, s))
-      EMIT(s);
-  }
-
-  protected final boolean boolean_cmp (OPT_RegisterOperand def, 
-				       OPT_RegisterOperand one, 
-				       OPT_RegisterOperand two, 
-				       OPT_ConditionOperand cmp,
-				       OPT_Instruction inst) {
     OPT_Register t1, zero, t = regpool.getInteger();
     switch (cmp.value) {
     case OPT_ConditionOperand.EQUAL:
@@ -898,9 +935,8 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       }
       break;
     default:
-      return false;
+      EMIT(BooleanCmp.create(BOOLEAN_CMP, def, one, two, cmp, null)); // todo
     }
-    return true;
   }
 
   protected final void BYTE_LOAD(OPT_Instruction s, 

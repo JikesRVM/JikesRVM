@@ -255,12 +255,64 @@ EMIT(MIR_Binary.mutate(P(p), PPC_XORI, Unary.getResult(P(p)), R(Unary.getVal(P(p
 r:	BOOLEAN_CMP(r,INT_CONSTANT)
 10
 EMIT_INSTRUCTION
-BOOLEAN_CMP_IMM(P(p), BooleanCmp.getResult(P(p)), R(BooleanCmp.getVal1(P(p))), I(BooleanCmp.getVal2(P(p))));
+BOOLEAN_CMP_IMM(BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)), R(BooleanCmp.getVal1(P(p))), I(BooleanCmp.getVal2(P(p))));
 
 r:	BOOLEAN_CMP(r,r)
 10
 EMIT_INSTRUCTION
-BOOLEAN_CMP(P(p), BooleanCmp.getResult(P(p)), R(BooleanCmp.getVal1(P(p))), R(BooleanCmp.getVal2(P(p))));
+BOOLEAN_CMP(BooleanCmp.getResult(P(p)), BooleanCmp.getCond(P(p)), R(BooleanCmp.getVal1(P(p))), R(BooleanCmp.getVal2(P(p))));
+
+boolcmp:	BOOLEAN_CMP(r,INT_CONSTANT)
+0
+EMIT_INSTRUCTION
+PUSH_BOOLCMP(BooleanCmp.getCond(P(p)), BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)));
+
+boolcmp:	BOOLEAN_CMP(r,r)
+0
+EMIT_INSTRUCTION
+PUSH_BOOLCMP(BooleanCmp.getCond(P(p)), BooleanCmp.getVal1(P(p)), BooleanCmp.getVal2(P(p)));
+
+## chaining of boolcmps
+boolcmp:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+VR(p) == 1 && BooleanCmp.getCond(P(p)).isEQUAL()?0:INFINITE
+NOFLAGS
+// use already pushed boolean cmp
+
+boolcmp:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+VR(p) == 1 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?0:INFINITE
+EMIT_INSTRUCTION
+FLIP_BOOLCMP(); // invert condition
+
+boolcmp:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+VR(p) == 0 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?0:INFINITE
+NOFLAGS
+// use already pushed boolean cmp
+
+boolcmp: BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+VR(p) == 0 && BooleanCmp.getCond(P(p)).isEQUAL()?0:INFINITE
+EMIT_INSTRUCTION
+FLIP_BOOLCMP(); // invert condition
+
+## materialize boolcmp into a register
+r:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+VR(p) == 1 && BooleanCmp.getCond(P(p)).isEQUAL()?10:INFINITE
+EMIT_INSTRUCTION
+EMIT_PUSHED_BOOLCMP(BooleanCmp.getResult(P(p)));
+
+r:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+VR(p) == 1 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?10:INFINITE
+EMIT_INSTRUCTION
+FLIP_BOOLCMP(); EMIT_PUSHED_BOOLCMP(BooleanCmp.getResult(P(p)));
+
+r:	BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+VR(p) == 0 && BooleanCmp.getCond(P(p)).isNOT_EQUAL()?10:INFINITE
+EMIT_INSTRUCTION
+EMIT_PUSHED_BOOLCMP(BooleanCmp.getResult(P(p)));
+
+r: BOOLEAN_CMP(boolcmp, INT_CONSTANT)
+VR(p) == 0 && BooleanCmp.getCond(P(p)).isEQUAL()?10:INFINITE
+EMIT_INSTRUCTION
+FLIP_BOOLCMP(); EMIT_PUSHED_BOOLCMP(BooleanCmp.getResult(P(p)));
 
 ##################################
 # Basic Integer ALU operations 
@@ -1680,47 +1732,26 @@ EMIT_INSTRUCTION
 CMP_ZERO(P(p), PPC_ORCr, Binary.getResult(PL(p)),          \
                      R(Binary.getVal1(PL(p))), Unary.getVal(PLR(p)), IfCmp.getCond(P(p)));
 
-# IfCmp(BooleanCMP, 0)
-stm:	INT_IFCMP(BOOLEAN_CMP(r, INT_CONSTANT),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isNOT_EQUAL()&&ZERO(IfCmp.getVal2(P(p))))?20:INFINITE
+# IfCmp(boolcmp, 0/1)
+stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
+VR(p) == 0 && IfCmp.getCond(P(p)).isNOT_EQUAL()?20:INFINITE
 EMIT_INSTRUCTION
-CMP(P(p), R(BooleanCmp.getVal1(PL(p))), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)).flipCode(), true);
+EMIT_BOOLCMP_BRANCH(IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
 
-stm:	INT_IFCMP(BOOLEAN_CMP(r, INT_CONSTANT),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isEQUAL()&&ZERO(IfCmp.getVal2(P(p))))?20:INFINITE
+stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
+VR(p) == 0 && IfCmp.getCond(P(p)).isEQUAL()?20:INFINITE
 EMIT_INSTRUCTION
-CMP(P(p), R(BooleanCmp.getVal1(PL(p))), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)), true);
+FLIP_BOOLCMP(); EMIT_BOOLCMP_BRANCH(IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
 
-stm:	INT_IFCMP(BOOLEAN_CMP(r, r),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isNOT_EQUAL()&&ZERO(IfCmp.getVal2(P(p))))?20:INFINITE
+stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
+VR(p) == 1 && IfCmp.getCond(P(p)).isEQUAL()?20:INFINITE
 EMIT_INSTRUCTION
-CMP(P(p), R(BooleanCmp.getVal1(PL(p))), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)).flipCode(), false);
+EMIT_BOOLCMP_BRANCH(IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
 
-stm:	INT_IFCMP(BOOLEAN_CMP(r, r),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isEQUAL()&&ZERO(IfCmp.getVal2(P(p))))?20:INFINITE
+stm:	INT_IFCMP(boolcmp, INT_CONSTANT)
+VR(p) == 1 && (IfCmp.getCond(P(p)).isNOT_EQUAL())?26:INFINITE
 EMIT_INSTRUCTION
-CMP(P(p), R(BooleanCmp.getVal1(PL(p))), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)), false);
-
-# IfCmp(BooleanCMP, 1)
-stm:	INT_IFCMP(BOOLEAN_CMP(r, INT_CONSTANT),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isEQUAL()&&ONE(IfCmp.getVal2(P(p))))?20:INFINITE
-EMIT_INSTRUCTION
-CMP(P(p), R(BooleanCmp.getVal1(PL(p))), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)).flipCode(), true);
-
-stm:	INT_IFCMP(BOOLEAN_CMP(r, INT_CONSTANT),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isNOT_EQUAL()&&ONE(IfCmp.getVal2(P(p))))?20:INFINITE
-EMIT_INSTRUCTION
-CMP(P(p), R(BooleanCmp.getVal1(PL(p))), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)), true);
-
-stm:	INT_IFCMP(BOOLEAN_CMP(r, r),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isEQUAL()&&ONE(IfCmp.getVal2(P(p))))?20:INFINITE
-EMIT_INSTRUCTION
-CMP(P(p), R(BooleanCmp.getVal1(PL(p))), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)).flipCode(), false);
-
-stm:	INT_IFCMP(BOOLEAN_CMP(r, r),INT_CONSTANT)
-(!IfCmp.getCond(P(p)).isNOT_EQUAL()&&ONE(IfCmp.getVal2(P(p))))?20:INFINITE
-EMIT_INSTRUCTION
-CMP(P(p), R(BooleanCmp.getVal1(PL(p))), BooleanCmp.getVal2(PL(p)), BooleanCmp.getCond(PL(p)), false);
+FLIP_BOOLCMP(); EMIT_BOOLCMP_BRANCH(IfCmp.getTarget(P(p)), IfCmp.getBranchProfile(P(p)));
 
 #####
 # INT_IFCMP2: TODO interesting rules
