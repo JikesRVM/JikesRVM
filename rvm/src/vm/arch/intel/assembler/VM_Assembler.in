@@ -251,6 +251,15 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       }
   }
     
+
+
+  /**
+   * Create a VM_MachineCode object
+   */
+  VM_MachineCode finalizeMachineCode(int[] bytecodeMap) {
+    return new VM_MachineCode(getMachineCodes(), bytecodeMap);
+  }
+
   /**
    *	Return an array of the generated machine code.	This method
    * returns a copy of the generated code.
