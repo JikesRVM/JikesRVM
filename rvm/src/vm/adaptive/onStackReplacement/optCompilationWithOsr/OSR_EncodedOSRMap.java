@@ -225,12 +225,7 @@ public class OSR_EncodedOSRMap
     // Is this the last method in the inlined chain?
     int mid = lastMid ? mVar.methId : (mVar.methId | NEXT_BIT);
     addIntToOsrMap(mid);
-/*
-    if (VM.TraceOnStackReplacement) {
-      VM.sysWriteln("Encoding OSR map: "+mVar.bcIndex+"@"
-		    +VM_MethodDictionary.getValue(mVar.methId));
-    }
-*/
+
     LinkedList tupleList = mVar.tupleList;
     int m = tupleList.size();
 

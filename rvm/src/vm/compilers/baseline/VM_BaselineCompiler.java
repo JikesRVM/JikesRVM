@@ -2008,7 +2008,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants
 	}
 	case PSEUDO_InvokeStatic: {
 	  int mid = bcodes.readIntConst(); // fetch4BytesSigned();
-	  VM_Method methodRef = VM_MethodDictionary.getValue(mid);
+	  VM_Method methodRef = OSR_ClassLoaderInterface.getMethodById(mid);
 
 	  if (shouldPrint) asm.noteBytecode(biStart, "pseudo_invokestatic "+methodRef.toString());
 	  

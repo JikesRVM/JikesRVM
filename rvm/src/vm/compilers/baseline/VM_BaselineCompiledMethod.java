@@ -76,7 +76,7 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     this.emptyStackOffset = VM_Compiler.getEmptyStackOffset(method);
   }
   //-#else
-  VM_BaselineCompiledMethod(int id, VM_Method m) {
+  public VM_BaselineCompiledMethod(int id, VM_Method m) {
     super(id, m);
   }
   //-#endif

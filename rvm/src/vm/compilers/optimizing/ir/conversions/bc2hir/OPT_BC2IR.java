@@ -2312,7 +2312,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         {
 	  /* pseudo invoke static for getRefAt and cleanRefAt, both must be resolved already */
           int mid = bcodes.readIntConst();
-          VM_Method meth = VM_MethodDictionary.getValue(mid);
+          VM_Method meth = OSR_ClassLoaderInterface.getMethodById(mid);
 
           if (VM.TraceOnStackReplacement) 
 	    VM.sysWriteln("PSEUDO_Invoke "+meth+"\n");
@@ -2346,7 +2346,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         }
 	case PSEUDO_CheckCast: {
 	  int tid = bcodes.readIntConst();
-	  VM_Type typeRef = VM_TypeDictionary.getValue(tid);
+	  VM_Type typeRef = OSR_ClassLoaderInterface.getTypeById(tid);
 
 	  // I know this won't cause the class loading,
 	  // it is just providing some type information

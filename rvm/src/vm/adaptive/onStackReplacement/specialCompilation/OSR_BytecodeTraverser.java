@@ -1240,7 +1240,7 @@ public class OSR_BytecodeTraverser
 	case PSEUDO_InvokeStatic: {
 	  
 	  int mid = DWORD(bc, pc);
-	  VM_Method callee = VM_MethodDictionary.getValue(mid);
+	  VM_Method callee = OSR_ClassLoaderInterface.getMethodById(mid);
 	  
 	  int psize = callee.getParameterWords();
 

@@ -118,14 +118,14 @@ public class OSR_ExecutionState implements OSR_Constants, VM_BytecodeConstants{
   }
 
   private static int getRefAtId =
-    VM_ClassLoader.findOrCreateMethodId(
+    OSR_ClassLoaderInterface.findOrCreateMethodId(
 	  VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/OSR/OSR_ObjectHolder;"),
           VM_Atom.findOrCreateAsciiAtom("getRefAt"),
           VM_Atom.findOrCreateAsciiAtom("(II)Ljava/lang/Object;"),
 	  VM_SystemClassLoader.getVMClassLoader());
 
   private static int cleanRefsId =
-    VM_ClassLoader.findOrCreateMethodId(
+    OSR_ClassLoaderInterface.findOrCreateMethodId(
           VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/OSR/OSR_ObjectHolder;"),
           VM_Atom.findOrCreateAsciiAtom("cleanRefs"),
           VM_Atom.findOrCreateAsciiAtom("(I)V"),

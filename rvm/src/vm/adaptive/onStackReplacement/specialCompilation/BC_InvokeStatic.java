@@ -34,7 +34,7 @@ public class BC_InvokeStatic extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-    VM_Method callee = VM_MethodDictionary.getValue(mid);
+    VM_Method callee = OSR_ClassLoaderInterface.getMethodById(mid);
     int psize = callee.getParameterWords();
     int schanges = -psize;
     
