@@ -16,9 +16,8 @@ import java.lang.Exception;
  * 
  * @author Lingli Zhang  6/20/02
  *
- * @see VM_BasicBlock.java
- * @see VM_BuildBB.java
- *
+ * @see VM_BasicBlock
+ * @see VM_BuildBB
  */
 public class VM_Verifier  implements VM_BytecodeConstants {
 
