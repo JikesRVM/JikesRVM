@@ -85,4 +85,4 @@ export UNZIP="/usr/contrib/bin/unzip"
 export CVS="/homes/fury5/jalapeno/bin/cvs"
 
 # where to find Jazzlib
-export JAZZLIBJAR="/homes/fury5/jalapeno/contrib/jazzlib.jar"
+export JAZZLIBJAR="/homes/munchkin.1/jalapeno/contrib/jazzlib.jar"
