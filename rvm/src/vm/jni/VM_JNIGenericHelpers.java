@@ -74,33 +74,38 @@ abstract class VM_JNIGenericHelpers {
     return new String(createByteArrayFromC(stringAddress));
   }
 
+  //-#if RVM_WITH_JNI_SETBOOLSTAR
   /**  A JNI helper function, to set the value pointed to by a C pointer
    * of type (jboolean *).
    * @param boolPtr Native pointer to a jboolean variable to be set.   May be
    *            the NULL pointer, in which case we do nothing.
    * @param val Value to set it to (usually TRUE) 
    *
-   * XXX This somehow crashes the VM when I try to use it.  So the dozen-odd
-   * places in  VM_JNIFunctions where I would use it instead have this code
-   * inlined.  --Steve Augart
+   * XXX There was a strange bug where calling this would crash the VM.
+   * That's why it's ifdef'd.  So the dozen-odd places in VM_JNIFunctions
+   * where I would use it instead have this code inlined, guarded with an
+   * #if.  --Steve Augart
    */
 
   static void setBoolStar(VM_Address boolPtr, boolean val) {
-    VM.sysWriteln("Someone called setBoolStar");
+    // VM.sysWriteln("Someone called setBoolStar");
     if (boolPtr.isZero())
       return;
     int temp = VM_Magic.getMemoryInt(boolPtr);
+    int intval;
     if (VM.LittleEndian) {
       if (val)                  // set to true.
-        VM_Magic.setMemoryInt(boolPtr, (temp & 0xffffff00) | 0x00000001);
+        intval = (temp & 0xffffff00) | 0x00000001;
       else                      // set to false
-        VM_Magic.setMemoryInt(boolPtr, (temp & 0xffffff00));
+        intval = (temp & 0xffffff00);
     } else {
       /* Big Endian */
       if (val)                  // set to true
-        VM_Magic.setMemoryInt(boolPtr, (temp & 0x00ffffff) | 0x01000000);
+        intval = (temp & 0x00ffffff) | 0x01000000;
       else                      // set to false
-        VM_Magic.setMemoryInt(boolPtr, temp & 0x00ffffff);
+        intval =  temp & 0x00ffffff;
     }
+    VM_Magic.setMemoryInt(boolPtr, intval);
   }
+  //-#endif
 }
