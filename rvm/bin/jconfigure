@@ -241,11 +241,6 @@ HOST_CPLUS_STR="\$$HOST_CPLUS_STR1"
 HOST_SHLD_STR1="HOST_SHLD"
 HOST_SHLD_STR="\$$HOST_SHLD_STR1"
 
-# Generate classes.zip?
-#
-integer GENERATE_CLASSES_ZIP=0
-export GENERATE_CLASSES_ZIP=1 
-
 # Generate map of bootimage?
 #
 integer GENERATE_MAP=1
@@ -335,6 +330,9 @@ integer RVM_WITH_NOFLUSH=0	 # omit sync/isync in all cases
 # controls for diagnostic flags
 integer RVM_WITH_DIAGNOSTICS=0
 integer RVM_FOR_STRESSGC=0
+
+# Are we building the library source?
+integer BUILD_RVMRT_JAR=0
 
 
 #--------------------------------------#
@@ -1386,7 +1384,8 @@ function emitExpander
    print 'print ""'
    }
 
-# Emit script to copy/preprocess vm java files from source tree to build directory.
+# Emit script to copy/preprocess vm java files from source tree to 
+# build directory.
 # Taken:    .java files in source tree
 # Returned: .java files in build directory
 #
@@ -1412,9 +1411,6 @@ function emitCopier
    print '   cd' $CLASSES_DIRECTORY_STR
    print '   echo *.java | xargs rm -f'
    print '   find java com ! -type d -print | fgrep .java | xargs rm -f'
-   if (( GENERATE_CLASSES_ZIP )); then
-     print '   rm -f classes.zip'
-   fi  
    print '   touch' $CLASSES_INVALID_STR
    print '   print "(sources cleaned)"'
    print '   exit 0'
@@ -1429,12 +1425,6 @@ else
    print "   cp $SCRATCH_DIRECTORY_STR/preprocessModifiedFiles $BUILD_DIRECTORY_STR/jbuild.prep"
    print ''
 fi
-
-   if (( GENERATE_CLASSES_ZIP )); then
-     print "cp -f $ROOT_DIRECTORY_STR/lib/classes130.zip $CLASSES_DIRECTORY_STR/classes.zip"
-     print "print '(oti classes.zip copied)' "
-     print ''
-   fi 
 
    print 'FILES_HAVE_CHANGED=0'
 
@@ -1464,52 +1454,142 @@ fi
    print '   FILES2='
    print 'done'
 
+   # Update from directories containing machine generated source files
+   # Do this after we copy the "normal" files to allow us to
+   # overwrite any dummy versions of the files we have sitting
+   # around in the shadow (telling people that the file is generated).
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR/'"'
+   print 'fi'
+   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/*.java`'
+   print 'set +e'
+   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR' $FILES'
+   print 'RC=$?'
+   print 'if [[ $RC = 1 ]]; then'
+   print '   FILES_HAVE_CHANGED=1'
+   print 'elif [[ $RC != 0 ]]; then'
+   print '   exit 1'
+   print 'fi'
+   print 'set -e'
+   print 'print ""'
+if (( RVM_WITH_OPT_COMPILER )); then
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '   print -n "$ME: '$GENERATED_FILES_DIRECTORY_STR'/instructionFormats"'
+   print 'fi'
+   print 'FILES=`/bin/ls' $GENERATED_FILES_DIRECTORY_STR'/instructionFormats/*.java`'
+   print 'set +e'
+   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR'/instructionFormats $FILES'
+   print 'RC=$?'
+   print 'if [[ $RC = 1 ]]; then'
+   print '   FILES_HAVE_CHANGED=1'
+   print 'elif [[ $RC != 0 ]]; then'
+   print '   exit 1'
+   print 'fi'
+   print 'set -e'
+   print 'print ""'
+   print ''
+fi
 
-   # Update from directories containing java standard library components that call
-   # virtual machine.  Do this only if this build should produce a classes.zip.
+   # script to preprocess GenerateInterfaceDeclarations.java
    #
-   if (( GENERATE_CLASSES_ZIP )); then
-     print ''
-     LIB_ROOT=$ROOT_DIRECTORY_STR/src/lib2
-     if (( RVM_WITH_JAZZLIB )); then
-       print 'for d in java/lang java/lang/reflect java/io java/net java/util com/ibm/oti/io; do'
-     else
-       print 'for d in java/lang java/lang/reflect java/io java/net java/util java/util/zip com/ibm/oti/io; do'
-     fi
-     print '   if [[ $TRACE_FLAG = -trace ]]; then'
-     print '      print -n "$ME: '$LIB_ROOT/'$d"'
-     print '   fi'
-     print '   FILES=`/bin/ls' $LIB_ROOT/'$d/*.java`'
-     print '   set +e'
-     print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR'/$d $FILES'
-     print '   RC=$?'
-     print '   if [[ $RC = 1 ]]; then'
-     print '      FILES_HAVE_CHANGED=1'
-     print '   elif [[ $RC != 0 ]]; then'
-     print '      exit 1'
-     print '   fi'
-     print '   set -e'
-     print '   print ""'
-     print 'done'
-     if (( RVM_WITH_JAZZLIB )); then
-       print 'if [[ $TRACE_FLAG = -trace ]]; then'
-       print '   print -n "$ME: $JAZZLIBDIR/java/util/zip"'
-       print 'fi'
-       print 'FILES=`/bin/ls $JAZZLIBDIR/java/util/zip/*.java`'
-       print 'set +e'
-       print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR'/java/util/zip $FILES'
-       print 'RC=$?'
-       print 'if [[ $RC = 1 ]]; then'
-       print '   FILES_HAVE_CHANGED=1'
-       print 'elif [[ $RC != 0 ]]; then'
-       print '   exit 1'
-       print 'fi'
-       print 'set -e'
-       print 'print ""'
-     fi
-     print ''
-  fi
+   print ''
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '   print -n "$ME: '$BOOTIMAGE_RUNNER_DIR_STR'"'
+   print 'fi'
+   print 'FILES=`/bin/ls' $BOOTIMAGE_RUNNER_DIR_STR'/GenerateInterfaceDeclarations.java`'
+   print 'set +e'
+   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR ' $FILES'
+   print 'print ""'
+   print ''
+
+   # preprocess the necessary interpreter file for the debugger jdp
+   print 'FILES=`/bin/ls' $RVM_ROOT'/src/tools/jdp/interpreter/mapVM.java`'
+   print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR '$FILES'
+
+
+   # TEMP: remove JDK2_ renaming hack from opt compiler
+   # We are now using a JDK2 library, so maybe we dont need this hack anymore
+   #
+   print 'for f in `find' $CLASSES_DIRECTORY_STR '-name '*.java'`; do'
+   print "  sed 's/JDK2_/java.util./g' < \$f > \$f.tmp"
+   print "  chmod a+rw \$f"
+   print "  mv -f \$f.tmp \$f"
+   print "done"
+
+   # Remember if any new (or modified) source files were discovered.
+   #
+   print 'if [[ $FILES_HAVE_CHANGED = 1 ]]; then'
+   print "   touch $CLASSES_INVALID_STR"
+   print 'fi'
+   }
    
+# Emit script to build the rvmrt.jar library
+#
+function emitLibraryBuilder
+   {
+   print '#!/bin/ksh'
+   print '# Build rvmrt.jar.'
+   print 'set -e'
+   print 'ME=`basename $0`'
+
+   print 'TRACE_FLAG=-trace' # always on, for now
+   print 'if [[ $1 = -trace ]]; then'
+   print '   TRACE_FLAG=-trace'
+   print '   shift'
+   print 'fi'
+
+   print ''
+   print '. ./jbuild.environment'
+   print ''
+
+   print 'if [[ $1 = -clean ]]; then'
+   print '   print -n "$ME: "'
+   print '   cd' $CLASSES_DIRECTORY_STR
+   print '   find java com ! -type d -print | fgrep .java | xargs rm -f'
+   print '   rm -f rvmrt.jar'
+   print '   touch' $CLASSES_INVALID_STR
+   print '   print "(sources cleaned)"'
+   print '   exit 0'
+   print 'fi'
+   print ''
+   
+   # Make the preprocessor
+   print "   (cd $ROOT_DIRECTORY_STR/src/tools/preprocessor && $GNU_MAKE_STR \$SILENT_MAKE tool SCRATCH_DIR=$SCRATCH_DIRECTORY_STR)"
+if ((RVM_FOR_CYGWIN)); then 
+   print "   cp $SCRATCH_DIRECTORY_STR/preprocessModifiedFiles.exe $BUILD_DIRECTORY_STR/jbuild.prep"
+else
+   print "   cp $SCRATCH_DIRECTORY_STR/preprocessModifiedFiles $BUILD_DIRECTORY_STR/jbuild.prep"
+   print ''
+fi
+
+   print 'FILES_HAVE_CHANGED=0'
+
+   # Update from directories containing sources that implement virtual machine.
+   #
+   print 'for d in `cat' $SOURCE_LIST_STR '`; do'
+   print '   if [[ $TRACE_FLAG = -trace ]]; then'
+   print '      print -n "$ME: $d"'
+   print '   fi'
+   print '   if [ X"`/bin/ls $d/*.java 2>/dev/null`" != X ]; then'
+   print '     FILES=`/bin/ls $d/*.java`'
+   print '   fi'
+   print '   if [ X"`/bin/ls $d/*.pizza 2>/dev/null`" != X ]; then'
+   print '     FILES2=`/bin/ls $d/*.pizza`'
+   print '   fi'
+   print '   set +e'
+   print '   ./jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR '$FILES $FILES2'
+   print '   RC=$?'
+   print '   if [[ $RC = 1 ]]; then'
+   print '      FILES_HAVE_CHANGED=1'
+   print '   elif [[ $RC != 0 ]]; then'
+   print '      exit 1'
+   print '   fi'
+   print '   set -e'
+   print '   print ""'
+   print '   FILES='
+   print '   FILES2='
+   print 'done'
+
 
    # Update from directories containing machine generated source files
    # Do this after we copy the "normal" files to allow us to
@@ -1638,7 +1718,11 @@ function emitCompiler
    print "if [[ -e $CLASSES_INVALID_STR ]]; then"
    print "   cd $CLASSES_DIRECTORY_STR"
    print "   rm -f $DUMMY_CLASSES"
-   print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:classes.zip $DUMMY_SOURCES"
+   if (( BUILD_RVMRT_JAR )); then
+     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath . $DUMMY_SOURCES"
+   else 
+     print "   $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath .:rvmrt.jar $DUMMY_SOURCES"
+   fi
    print '   print -n "(classes compiled) "'
    print 'else'
    print '   if [[ $TRACE_FLAG = -trace ]]; then'
@@ -1648,49 +1732,44 @@ function emitCompiler
    print "rm -f $CLASSES_INVALID_STR"
    print ''
 
-   if (( GENERATE_CLASSES_ZIP )); then
+# These are required to read a zip file
+   if (( !BUILD_RVMRT_JAR )); then 
      print "cd $CLASSES_DIRECTORY_STR"
-     print '#unzip -U -u classes.zip `find java com -type f -name "*.class"`'
-     print "#print -n '(zip file updated)'"
-     print ''
-   fi
+     print 'unzip -U -n -x rvmrt.jar java/util/HashMap.class'
+     print 'unzip -U -n -x rvmrt.jar java/util/AbstractMap.class'
+     print 'unzip -U -n -x rvmrt.jar java/io/OutputStream.class'
+     print 'unzip -U -n -x rvmrt.jar java/io/BufferedInputStream.class'
+     print 'unzip -U -n -x rvmrt.jar java/io/FilterOutputStream.class'
+     print 'unzip -U -n -x rvmrt.jar java/io/BufferedOutputStream.class'
 
-   # These are required to read a zip file
-   print "cd $CLASSES_DIRECTORY_STR"
-   print 'unzip -U -n -x classes.zip java/util/HashMap.class'
-   print 'unzip -U -n -x classes.zip java/util/AbstractMap.class'
-   print 'unzip -U -n -x classes.zip java/io/OutputStream.class'
-   print 'unzip -U -n -x classes.zip java/io/BufferedInputStream.class'
-   print 'unzip -U -n -x classes.zip java/io/FilterOutputStream.class'
-   print 'unzip -U -n -x classes.zip java/io/BufferedOutputStream.class'
- 
-   if (( RVM_WITH_JAZZLIB )); then
-     print 'unzip -U -n -x classes.zip java/util/Calendar.class'
-     print 'unzip -U -n -x classes.zip java/util/GregorianCalendar.class'
-     print 'unzip -U -n -x classes.zip java/util/Locale.class'
-     print 'unzip -U -n -x classes.zip java/util/Locale\$1.class'
-     print 'unzip -U -n -x classes.zip java/util/Date.class'
-     print 'unzip -U -n -x classes.zip java/util/TimeZone.class'
-     print 'unzip -U -n -x classes.zip java/util/TimeZone\$1.class'
-     print 'unzip -U -n -x classes.zip java/util/SimpleTimeZone.class'
-     print 'unzip -U -n -x classes.zip java/util/StringTokenizer.class'
-     print 'unzip -U -n -x classes.zip java/lang/Cloneable.class'
-     print 'unzip -U -n -x classes.zip java/security/AccessController.class'
-     print 'unzip -U -n -x classes.zip java/security/PrivilegedAction.class'
-     print 'unzip -U -n -x classes.zip java/io/Serializable.class'
-     print 'unzip -U -n -x classes.zip java/util/PropertyPermission.class'
-     print 'unzip -U -n -x classes.zip java/security/BasicPermission.class'
-     print 'unzip -U -n -x classes.zip java/security/Permission.class'
-     print 'unzip -U -n -x classes.zip com/ibm/oti/locale/Locale_en_US.class'
-     print 'unzip -U -n -x classes.zip com/ibm/oti/locale/Locale_en.class'
-     print 'unzip -U -n -x classes.zip com/ibm/oti/locale/Locale.class'
-     print 'unzip -U -n -x classes.zip java/util/ListResourceBundle.class'
-     print 'unzip -U -n -x classes.zip java/lang/RuntimePermission.class'
-     print 'unzip -U -n -x classes.zip java/util/AbstractSet.class'
-     print 'unzip -U -n -x classes.zip java/util/HashSet.class'
-   fi
-                                                                        
-   print 'print ""'
+       if (( RVM_WITH_JAZZLIB )); then
+         print 'unzip -U -n -x rvmrt.jar java/util/Calendar.class'
+           print 'unzip -U -n -x rvmrt.jar java/util/GregorianCalendar.class'
+           print 'unzip -U -n -x rvmrt.jar java/util/Locale.class'
+           print 'unzip -U -n -x rvmrt.jar java/util/Locale\$1.class'
+           print 'unzip -U -n -x rvmrt.jar java/util/Date.class'
+           print 'unzip -U -n -x rvmrt.jar java/util/TimeZone.class'
+           print 'unzip -U -n -x rvmrt.jar java/util/TimeZone\$1.class'
+           print 'unzip -U -n -x rvmrt.jar java/util/SimpleTimeZone.class'
+           print 'unzip -U -n -x rvmrt.jar java/util/StringTokenizer.class'
+           print 'unzip -U -n -x rvmrt.jar java/lang/Cloneable.class'
+           print 'unzip -U -n -x rvmrt.jar java/security/AccessController.class'
+           print 'unzip -U -n -x rvmrt.jar java/security/PrivilegedAction.class'
+           print 'unzip -U -n -x rvmrt.jar java/io/Serializable.class'
+           print 'unzip -U -n -x rvmrt.jar java/util/PropertyPermission.class'
+           print 'unzip -U -n -x rvmrt.jar java/security/BasicPermission.class'
+           print 'unzip -U -n -x rvmrt.jar java/security/Permission.class'
+           print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale_en_US.class'
+           print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale_en.class'
+           print 'unzip -U -n -x rvmrt.jar com/ibm/oti/locale/Locale.class'
+           print 'unzip -U -n -x rvmrt.jar java/util/ListResourceBundle.class'
+           print 'unzip -U -n -x rvmrt.jar java/lang/RuntimePermission.class'
+           print 'unzip -U -n -x rvmrt.jar java/util/AbstractSet.class'
+           print 'unzip -U -n -x rvmrt.jar java/util/HashSet.class'
+       fi
+     fi 
+
+     print 'print ""'
    }
 
 # Emit script to generate vm bootimage.
@@ -2033,7 +2112,7 @@ function emitImageLinker
    #
    print "cd $SCRATCH_DIRECTORY_STR &&\
           $HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +E -g +U\
-	  -classpath $BUILD_DIRECTORY_STR/Jalapeno.classes:$BUILD_DIRECTORY_STR/Jalapeno.classes/classes.zip\
+	  -classpath $BUILD_DIRECTORY_STR/Jalapeno.classes:$BUILD_DIRECTORY_STR/Jalapeno.classes/rvmrt.jar\
 	  GenerateInterfaceDeclarations.java"
 
    # script to generate InterfaceDeclaration.h
@@ -2041,12 +2120,12 @@ function emitImageLinker
    print "rm -f $SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
     if (( RVM_FOR_CYGWIN)); then
        print "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR\
-             -classpath \`cygpath -p -w .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/classes.zip\`\
+             -classpath \`cygpath -p -w .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\`\
              GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
 		$SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
      else
        print "cd $SCRATCH_DIRECTORY_STR && $HOST_JAVA_STR\
-             -classpath .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/classes.zip\
+             -classpath .:$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
              GenerateInterfaceDeclarations -ia $BOOTIMAGE_LOAD_ADDRESS >\
 		$SCRATCH_DIRECTORY_STR/InterfaceDeclarations.h"
    fi
@@ -2055,7 +2134,7 @@ function emitImageLinker
    print "cd $BOOTIMAGE_WRITER_DIR_STR"
    print "$GNU_MAKE_STR -f $BOOTIMAGE_WRITER_MAKEFILE \$SILENT_MAKE $MEM_KLUDGE\
           RVM_INSTRUCTION_TYPE=$INSTRUCTION_TYPE\
-          RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/classes.zip\
+          RVM_REPOSITORIES=$CLASSES_DIRECTORY_STR:$CLASSES_DIRECTORY_STR/rvmrt.jar\
           RVM_BOOTIMAGE_CLASSES=$PRIMORDIAL_CLASSES_STR\
           RVM_BOOTIMAGE=$BOOTIMAGE_STR\
           RVM_BOOTIMAGE_COMPILER_ARGS=\"\$OPT_ARGS\"\
@@ -2342,7 +2421,11 @@ function emitToolCompiler
    print '   exit 1'
    print 'fi'
 
-   print "CPATH=$BUILD_DIRECTORY_STR/Jalapeno.classes:$BUILD_DIRECTORY_STR/Jalapeno.classes/classes.zip"
+   if (( BUILD_RVMRT_JAR )); then 
+     print "CPATH=$BUILD_DIRECTORY_STR/Jalapeno.classes"
+   else
+     print "CPATH=$BUILD_DIRECTORY_STR/Jalapeno.classes:$BUILD_DIRECTORY_STR/Jalapeno.classes/rvmrt.jar"
+   fi
    print 'if [[ $1 = -classpath ]]; then'
    print '   CPATH=$2:$CPATH'
    print '   shift'
@@ -2352,7 +2435,11 @@ function emitToolCompiler
    print 'fi'
 
    print 'set -x'
-   print "$HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
+   if (( BUILD_RVMRT_JAR )); then 
+     print "$HOST_JIKES_STR -nowarn +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
+   else
+     print "$HOST_JIKES_STR +F +Z +KINSTRUCTION=$INSTRUCTION_TYPE +KADDRESS=$ADDRESS_TYPE +E -g +U -classpath \$CPATH \$*"
+   fi
    }
   
 #----------------------#
@@ -2455,13 +2542,6 @@ chmod +x$PERM		      $BUILD_DIRECTORY/environment
 
 
 print -n "(control files and scripts installed) "
-
-if (( !GENERATE_CLASSES_ZIP )); then
-  if [ ! -e $CLASSES_DIRECTORY/classes.zip ]; then
-    cp $SHADOW_DIRECTORY/lib/jalapeno.classes.zip $CLASSES_DIRECTORY/classes.zip
-    print -n "(jalapeno classes.zip installed) "
-  fi
-fi 
 
 print ""
 if tty -s; then # keyboard is live (ie. this is not an automated build)
