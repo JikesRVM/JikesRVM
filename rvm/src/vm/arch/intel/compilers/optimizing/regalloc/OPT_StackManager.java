@@ -5,6 +5,10 @@
 
 import instructionFormats.*;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.HashSet;
+import java.util.HashMap;
+
 /**
  * Class to manage the allocation of the "compiler-specific" portion of 
  * the stackframe.  This class holds only the architecture-specific
@@ -14,14 +18,14 @@ import java.util.Enumeration;
  * TODO: Much of this code could still be factored out as
  * architecture-independent.
  *
+ * @author Stephen Fink
  * @author Dave Grove
  * @author Mauricio J. Serrano
- * @author Stephen Fink
  * @author Julian Dolby
  */
 final class OPT_StackManager extends OPT_GenericStackManager
-  implements OPT_Operators {
-  
+implements OPT_Operators {
+
   private static boolean verboseDebug = false;
 
   /**
@@ -41,9 +45,10 @@ final class OPT_StackManager extends OPT_GenericStackManager
   private static final int WORDSIZE = 4;
 
   /**
-   * Holds the set of scratch registers currently free for use.
+   * For each physical register, holds a ScratchRegister which records
+   * the current scratch assignment for the physical register.
    */
-  private java.util.HashSet scratchAvailable = new java.util.HashSet(10);
+  private HashSet scratchInUse = new HashSet(20);
 
   /**
    * An array which holds the spill location number used to stash volatile
@@ -81,6 +86,20 @@ final class OPT_StackManager extends OPT_GenericStackManager
   private int ESPOffset = 0;
 
   /**
+   * Should we use information from linear scan in choosing scratch
+   * registers?
+   */
+  private static boolean USE_LINEAR_SCAN = true;
+
+  /**
+   * We may rely on information from linear scan to choose scratch registers.
+   * If so, the following holds a pointer to some information from linear
+   * scan analysis.
+   */
+  private OPT_NewLinearScan.ActiveSet activeSet = null;
+
+
+  /**
    * Return the size of a type of value, in bytes.
    * NOTE: For the purpose of register allocation, a FLOAT_VALUE is 64 bits!
    *
@@ -90,7 +109,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     switch(type) {
       case INT_VALUE:
         return (byte)(WORDSIZE);
-    case FLOAT_VALUE: case DOUBLE_VALUE:
+      case FLOAT_VALUE: case DOUBLE_VALUE:
         return (byte)(2 * WORDSIZE);
       default:
         OPT_OptimizingCompilerException.TODO("getSizeOfValue: unsupported");
@@ -134,9 +153,9 @@ final class OPT_StackManager extends OPT_GenericStackManager
     byte size = getSizeOfType(type);
     OPT_RegisterOperand rOp;
     switch(type) {
-    case FLOAT_VALUE: rOp = F(r); break;
-    case DOUBLE_VALUE: rOp = D(r); break;
-    default: rOp = R(r); break;
+      case FLOAT_VALUE: rOp = F(r); break;
+      case DOUBLE_VALUE: rOp = D(r); break;
+      default: rOp = R(r); break;
     }
     if (s.isCall()) {
       // if s is a call instruction, then we've already changed the SP as
@@ -146,7 +165,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
       // offset from the frame pointer.
       OPT_Register FP = phys.getFP();
       OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),-location,
-                                                         size,null,null);
+                                                 size,null,null);
       s.insertBefore(nonPEIGC(MIR_Move.create(move, M, rOp)));
     } else {
       OPT_StackLocationOperand spill = new OPT_StackLocationOperand(-location,
@@ -172,9 +191,9 @@ final class OPT_StackManager extends OPT_GenericStackManager
     byte size = getSizeOfType(type);
     OPT_RegisterOperand rOp;
     switch(type) {
-    case FLOAT_VALUE: rOp = F(r); break;
-    case DOUBLE_VALUE: rOp = D(r); break;
-    default: rOp = R(r); break;
+      case FLOAT_VALUE: rOp = F(r); break;
+      case DOUBLE_VALUE: rOp = D(r); break;
+      default: rOp = R(r); break;
     }
     if (s.isCall()) {
       // if s is a call instruction, then we've already changed the SP as
@@ -184,7 +203,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
       // offset from the frame pointer.
       OPT_Register FP = phys.getFP();
       OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),-location,
-                                                         size,null,null);
+                                                 size,null,null);
       s.insertBefore(nonPEIGC(MIR_Move.create(move, rOp, M)));
     } else {
       OPT_StackLocationOperand spill = new OPT_StackLocationOperand(-location,
@@ -193,7 +212,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     }
   }
 
-  
+
   /**
    * PROLOGUE/EPILOGUE. must be done after register allocation
    */
@@ -201,7 +220,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     insertPrologue();
     cleanUpAndInsertEpilogue();
   }
-  
+
   /**
    * Insert the prologue.
    */
@@ -231,7 +250,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
 
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     VM_OptCompilerInfo info = ir.MIRInfo.info;
-    
+
     if (ir.MIRInfo.info.isSaveVolatile()) {
       // Record that we use every nonvolatile GPR
       int numGprNv = phys.getNumberOfNonvolatileGPRs();
@@ -303,11 +322,11 @@ final class OPT_StackManager extends OPT_GenericStackManager
       }
 
       info.setNumberOfNonvolatileFPRs((short)0);
-      
+
     }
   }
 
-  
+
   /**
    * Return the size of the fixed poriton of the stack.
    * (in other words, the difference between the framepointer and
@@ -324,7 +343,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * and add epilogue code.
    */ 
   private void cleanUpAndInsertEpilogue() {
-    
+
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
 
     OPT_Instruction inst = ir.firstInstructionInCodeOrder().getNext();
@@ -436,7 +455,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * @param plg the prologue instruction
    */
   private void insertNormalStackOverflowCheck(OPT_Instruction plg) {
-    
+
     if (!STACK_OVERFLOW) {
       plg.remove();
       return;
@@ -449,10 +468,10 @@ final class OPT_StackManager extends OPT_GenericStackManager
 
     if (ir.MIRInfo.info.isSaveVolatile()) {
       OPT_OptimizingCompilerException.UNREACHABLE(
-                               "SaveVolatile should be uninterruptible");
+                                                  "SaveVolatile should be uninterruptible");
       return;
     }
-    
+
     // TODO: cache the stack limit offset in the processor object to save
     // a load.
     //
@@ -464,7 +483,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register PR = phys.getPR();
     OPT_Register ESP = phys.getESP();
     OPT_Register ECX = phys.getECX();
-    
+
     //    ECX := active Thread Object
     OPT_MemoryOperand M = OPT_MemoryOperand.BD
       (R(PR), VM_Entrypoints.activeThreadOffset, (byte)WORDSIZE, null, null);
@@ -472,7 +491,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
 
     //    Trap if ESP <= active Thread Stack Limit
     M = OPT_MemoryOperand.BD(R(ECX), VM_Entrypoints.stackLimitOffset,
-                                 (byte)WORDSIZE, null, null);
+                             (byte)WORDSIZE, null, null);
     MIR_TrapIf.mutate(plg,IA32_TRAPIF,null,R(ESP),M,
                       OPT_IA32ConditionOperand.LE(),
                       OPT_TrapCodeOperand.StackOverflow());
@@ -487,7 +506,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * @param plg the prologue instruction
    */
   private void insertBigFrameStackOverflowCheck(OPT_Instruction plg) {
-    
+
     if (!STACK_OVERFLOW) {
       plg.remove();
       return;
@@ -500,10 +519,10 @@ final class OPT_StackManager extends OPT_GenericStackManager
 
     if (ir.MIRInfo.info.isSaveVolatile()) {
       OPT_OptimizingCompilerException.UNREACHABLE(
-                               "SaveVolatile should be uninterruptible");
+                                                  "SaveVolatile should be uninterruptible");
       return;
     }
-    
+
     // TODO: cache the stack limit offset in the processor object to save
     // a load.
     //
@@ -517,7 +536,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register PR = phys.getPR();
     OPT_Register ESP = phys.getESP();
     OPT_Register ECX = phys.getECX();
-    
+
     //    ECX := active Thread Object
     OPT_MemoryOperand M = OPT_MemoryOperand.BD
       (R(PR), VM_Entrypoints.activeThreadOffset, (byte)WORDSIZE, null, null);
@@ -525,7 +544,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
 
     //    ECX := active Thread Stack Limit
     M = OPT_MemoryOperand.BD(R(ECX), VM_Entrypoints.stackLimitOffset,
-                                 (byte)WORDSIZE, null, null);
+                             (byte)WORDSIZE, null, null);
     plg.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, R(ECX), M)));
 
     //    ECX += frame Size
@@ -556,7 +575,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register FP = phys.getFP(); 
     OPT_Register ESP = phys.getESP(); 
     OPT_Register PR = phys.getPR();
-    
+
     // inst is the instruction immediately after the IR_PROLOGUE
     // instruction
     OPT_Instruction inst = ir.firstInstructionInCodeOrder().getNext().getNext();
@@ -596,7 +615,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
 
       // 4. Insert Stack overflow check.  
       insertNormalStackOverflowCheck(plg);
-      
+
       // 5. Mark in the IR that ESP is as positioned by the prologue.
       inst.insertBefore(MIR_Empty.create(MIR_ESP_PROLOGUE));
     }
@@ -612,7 +631,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     // III. Store the frame pointer in the processor object.
     int fpOffset = VM_Entrypoints.framePointerOffset;
     OPT_MemoryOperand fpHome = OPT_MemoryOperand.BD(R(PR),
-                                    fpOffset, (byte)WORDSIZE, null, null);
+                                                    fpOffset, (byte)WORDSIZE, null, null);
     inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, fpHome, R(FP))));
 
   }
@@ -636,8 +655,8 @@ final class OPT_StackManager extends OPT_GenericStackManager
       OPT_Register nv = (OPT_Register)e.nextElement();
       int offset = getNonvolatileGPROffset(n);
       OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),
-                                            -offset, (byte)WORDSIZE, 
-                                            null, null);
+                                                 -offset, (byte)WORDSIZE, 
+                                                 null, null);
       inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, M, R(nv))));
     }
   }
@@ -651,9 +670,9 @@ final class OPT_StackManager extends OPT_GenericStackManager
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register FP = phys.getFP();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),
-                                                       -fsaveLocation, 
-                                                       (byte)WORDSIZE,
-                                                       null, null);
+                                               -fsaveLocation, 
+                                               (byte)WORDSIZE,
+                                               null, null);
     inst.insertBefore(nonPEIGC(MIR_FSave.create(IA32_FNSAVE, M)));
   }
 
@@ -666,9 +685,9 @@ final class OPT_StackManager extends OPT_GenericStackManager
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     OPT_Register FP = phys.getFP();
     OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),
-                                                       -fsaveLocation, 
-                                                       (byte)WORDSIZE,
-                                                       null, null);
+                                               -fsaveLocation, 
+                                               (byte)WORDSIZE,
+                                               null, null);
     inst.insertBefore(nonPEIGC(MIR_FSave.create(IA32_FRSTOR, M)));
   }
 
@@ -686,12 +705,12 @@ final class OPT_StackManager extends OPT_GenericStackManager
     // Save each GPR. 
     int i = 0;
     for (Enumeration e = phys.enumerateVolatileGPRs();
-      e.hasMoreElements(); i++) {
+         e.hasMoreElements(); i++) {
       OPT_Register r = (OPT_Register)e.nextElement();
       int location = saveVolatileLocation[i];
       OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),
-                                            -location, (byte)WORDSIZE, 
-                                            null, null);
+                                                 -location, (byte)WORDSIZE, 
+                                                 null, null);
       inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, M, R(r))));
     }
   }
@@ -708,12 +727,12 @@ final class OPT_StackManager extends OPT_GenericStackManager
     // Restore every GPR
     int i = 0;
     for (Enumeration e = phys.enumerateVolatileGPRs(); 
-      e.hasMoreElements(); i++){
+         e.hasMoreElements(); i++){
       OPT_Register r = (OPT_Register)e.nextElement();
       int location = saveVolatileLocation[i];
       OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),
-                                            -location, (byte)WORDSIZE, 
-                                            null, null);
+                                                 -location, (byte)WORDSIZE, 
+                                                 null, null);
       inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, R(r), M)));
     }
   }
@@ -735,8 +754,8 @@ final class OPT_StackManager extends OPT_GenericStackManager
       OPT_Register nv = (OPT_Register)e.nextElement();
       int offset = getNonvolatileGPROffset(n);
       OPT_MemoryOperand M = OPT_MemoryOperand.BD(R(FP),
-                                            -offset, (byte)WORDSIZE, 
-                                            null, null);
+                                                 -offset, (byte)WORDSIZE, 
+                                                 null, null);
       inst.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, R(nv), M)));
     }
   }
@@ -759,13 +778,13 @@ final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register FP = phys.getFP();
     OPT_Register ESP = phys.getESP(); 
     OPT_Register PR = phys.getPR();
-    
+
     // 1. Restore the frame pointer before ripping off the stack frame
     int fpOffset = VM_Entrypoints.framePointerOffset;
     OPT_MemoryOperand fpHome = OPT_MemoryOperand.BD(R(PR),
-                                    fpOffset, (byte)WORDSIZE, null, null);
+                                                    fpOffset, (byte)WORDSIZE, null, null);
     ret.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, R(FP), fpHome)));
-    
+
     // 2. Restore any saved registers
     //    TODO: We wouldn't care about restoring our FP
     //          if this code only used ESP to 
@@ -779,11 +798,11 @@ final class OPT_StackManager extends OPT_GenericStackManager
     // 3. Restore caller's stackpointer and framepointer
     ret.insertBefore(MIR_Move.create(IA32_MOV, R(ESP), R(FP)));
     ret.insertBefore(MIR_Nullary.create(IA32_POP, R(FP)));
-    
+
     // 4. Store the caller's frame pointer in the processor object.
     ret.insertBefore(nonPEIGC(MIR_Move.create(IA32_MOV, fpHome, R(FP))));
   }
-  
+
   /**
    * In instruction s, replace all appearances of a symbolic register 
    * operand with uses of the appropriate spill location, as cached by the
@@ -793,8 +812,8 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * @param symb the symbolic register operand to replace
    */
   private void replaceOperandWithSpillLocation(OPT_Instruction s, 
-                                           OPT_RegisterOperand symb) {
-    
+                                               OPT_RegisterOperand symb) {
+
     // Get the spill location previously assigned to the symbolic
     // register.
     int location = OPT_RegisterAllocatorState.getSpill(symb.register);
@@ -838,7 +857,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     if (s.isPEI())  {
       // TODO: optimize this away by passing the basic block in.
       OPT_BasicBlock b = s.getBasicBlock();
-      
+
       // TODO: add a more efficient accessor on OPT_BasicBlock to
       // determine whether there's a catch block for a particular
       // instruction.
@@ -855,14 +874,14 @@ final class OPT_StackManager extends OPT_GenericStackManager
    */
   private boolean isScratchFreeMove(OPT_Instruction s) {
     if (s.operator() != IA32_MOV) return false;
-    
+
     // If we return false, then we ensure that all relevant moves use a
     // scratch register.  This results in ESP never being adjusted.
     if (!FLOATING_ESP) return false;
 
     OPT_Operand result = MIR_Move.getResult(s);
     OPT_Operand value = MIR_Move.getValue(s);
-    
+
     // We need scratch registers for spilled registers that appear in
     // memory operands.
     if (result.isMemory()) {
@@ -901,7 +920,6 @@ final class OPT_StackManager extends OPT_GenericStackManager
     // If we get here, all is kosher.
     return true;
   }
-
   /**
    * After register allocation, go back through the IR and insert
    * compensating code to deal with spills.
@@ -910,6 +928,14 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * code for PowerPC.
    */
   void insertSpillCode() {
+    insertSpillCode(null);
+  }
+
+  void insertSpillCode(OPT_NewLinearScan.ActiveSet set) {
+
+    if (USE_LINEAR_SCAN) {
+      activeSet = set;
+    }
 
     if (verboseDebug) {
       System.out.println("INSERT SPILL CODE:");
@@ -919,7 +945,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     for (Enumeration e = ir.forwardInstrEnumerator(); e.hasMoreElements();) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
       if (verboseDebug) {
-       System.out.println(s);
+        System.out.println(s);
       }
 
       // If any scratch registers are currently in use, but use physical
@@ -927,7 +953,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
       restoreScratchRegistersBefore(s);  
 
       // we must spill all scratch registers before leaving this basic block
-      if (s.operator == BBEND || s.isPEI() || s.isBranch() || 
+      if (s.operator == BBEND || isPEIWithCatch(s) || s.isBranch() || 
           s.isReturn()) {
         restoreAllScratchRegistersBefore(s);
       }
@@ -940,7 +966,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
           OPT_Register r = op.asRegister().register;
           if (!r.isPhysical()) {
             // Is r currently assigned to a scratch register?
-            ScratchRegister scratch = findScratchHome(r);
+            ScratchRegister scratch = getCurrentScratchRegister(r);
             if (verboseDebug) {
               System.out.println(r + " SCRATCH " + scratch);
             }
@@ -1004,7 +1030,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
       if (s.operator == IA32_SYSCALL) {
         OPT_CallingConvention.saveNonvolatilesAroundSysCall(s,ir);
       }
-      
+
     }
   }
 
@@ -1094,7 +1120,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
         offset = FPOffset2SPOffset(offset) + size;
         moveESPBefore(s,offset);
         MIR_UnaryNoRes.mutate(s,IA32_PUSH,val);
-        
+
         // if val uses ESP, fix it up. Note that PUSH computes the
         // effective address BEFORE decrementing ESP
         if (val instanceof OPT_MemoryOperand) {
@@ -1150,7 +1176,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
         ESPOffset = getFrameFixedSize() - WORDSIZE;
         continue;
       }
-      
+
       // with a PUSH instruction, the effective address for other operands
       // is computed BEFORE the adjustment to ESP.  So, delay updating the
       // ESP offset for a PUSH instruction until all operands are
@@ -1225,10 +1251,10 @@ final class OPT_StackManager extends OPT_GenericStackManager
    *
    * Throw an exception if none found.
    */ 
-  private OPT_Register getFPRNotUsedIn(OPT_Instruction s,
-                                       java.util.HashSet reserved) {
+  private OPT_Register getFirstFPRNotUsedIn(OPT_Instruction s, 
+                                            HashSet reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    
+
     // first try the volatiles
     for (Enumeration e = phys.enumerateVolatileFPRs(); e.hasMoreElements(); ) {
       OPT_Register r = (OPT_Register)e.nextElement();
@@ -1238,7 +1264,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
     }
 
     OPT_OptimizingCompilerException.TODO(
-           "Could not find a free FPR in spill situation");
+                                         "Could not find a free FPR in spill situation");
     return null;
   }
 
@@ -1249,8 +1275,8 @@ final class OPT_StackManager extends OPT_GenericStackManager
    *
    * Throw an exception if none found.
    */ 
-  private OPT_Register getGPRNotUsedIn(OPT_Instruction s, 
-                                       java.util.HashSet reserved) {
+  private OPT_Register getFirstGPRNotUsedIn(OPT_Instruction s, 
+                                            HashSet reserved) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
     // first try the volatiles
     for (Enumeration e = phys.enumerateVolatileGPRs();
@@ -1269,7 +1295,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
       }
     }
     OPT_OptimizingCompilerException.TODO(
-           "Could not find a free GPR in spill situation");
+                                         "Could not find a free GPR in spill situation");
     return null;
   }
 
@@ -1287,10 +1313,10 @@ final class OPT_StackManager extends OPT_GenericStackManager
     }
     // FNINIT and FCLEAR use/kill all floating points 
     if (r.isFloatingPoint() && 
-       (s.operator == IA32_FNINIT || s.operator == IA32_FCLEAR)) {
+        (s.operator == IA32_FNINIT || s.operator == IA32_FCLEAR)) {
       return true;
     }
-    
+
     // Assume that all volatile registers 'appear' in all call 
     // instructions
     if (s.isCall() && s.operator != CALL_SAVE_VOLATILE && r.isVolatile()) {
@@ -1393,46 +1419,95 @@ final class OPT_StackManager extends OPT_GenericStackManager
                                              OPT_Register symb) {
 
     // Get a scratch register.
-    ScratchRegister sr = findAvailableScratchRegister(symb,s);
-    if (sr == null) {
-      // No scratch register is currently available.  Find a physical
-      // register that is not used in the instruction, and spill it
-      // in order to free it for use.
-      java.util.HashSet reservedScratch = getReservedScratchRegisters(s);
+    ScratchRegister sr = getScratchRegister(symb,s);
 
-      OPT_Register phys = null;
-      if (symb.isFloatingPoint()) {
-         phys = getFPRNotUsedIn(s,reservedScratch);
-      } else {
-         phys = getGPRNotUsedIn(s,reservedScratch);
-      }
-      sr = createScratchBefore(s,phys,symb);
+    // make the scratch register available to hold the new 
+    // symbolic register
+    OPT_Register current = sr.currentContents;
 
-      // update mapping information
-      scratchMap.beginSymbolicInterval(symb,sr.scratch,s);
-    } else {
-      // make the scratch register available to hold the new 
-      // symbolic register
-      OPT_Register current = sr.currentContents;
-      
-      if (current != null && current != symb) {
-        // record that the current symbolic register is no longer assigned
-        // to a scratch.
-        scratchMap.endSymbolicInterval(current,s);
-        scratchMap.beginSymbolicInterval(symb,sr.scratch,s);
-
-        int location = OPT_RegisterAllocatorState.getSpill(current);
-        int location2 = OPT_RegisterAllocatorState.getSpill(symb);
-        if (location != location2) {
-          insertSpillBefore(s,sr.scratch,getValueType(current),location);
-        }
+    if (current != null && current != symb) {
+      int location = OPT_RegisterAllocatorState.getSpill(current);
+      int location2 = OPT_RegisterAllocatorState.getSpill(symb);
+      if (location != location2) {
+        insertSpillBefore(s,sr.scratch,getValueType(current),location);
       }
     }
-    
+
     // Record the new contents of the scratch register
     sr.currentContents = symb;
 
     return sr;
+  }
+
+  /**
+   * Is scratch register r's assignment legal for use in instruction s?
+   */
+  boolean isLegal(ScratchRegister sr, OPT_Instruction s) {
+    // If the physical scratch register already appears in s, so we can't 
+    // use it as a scratch register for another value.
+    if (appearsIn(sr.scratch,s)) return false;
+
+    return true;
+  }
+  /**
+   * Get a scratch register to hold symbolic register symb in instruction
+   * s.
+   */
+  private ScratchRegister getScratchRegister(OPT_Register symb,
+                                             OPT_Instruction s) {
+
+    ScratchRegister r = getCurrentScratchRegister(symb);
+    if (r != null) {
+      // symb is currently assigned to scratch register r
+      if (isLegal(r,s)) {
+        if (r.currentContents != symb) {
+          // we're reusing a scratch register based on the fact that symb
+          // shares a spill location with r.currentContents.  However,
+          // update the mapping information.
+          if (r.currentContents != null) {
+            if (verboseDebug) System.out.println("GSR: End symbolic interval " + 
+                                                 r.currentContents + " " 
+                                                 + s);
+            scratchMap.endSymbolicInterval(r.currentContents,s);
+          } 
+          if (verboseDebug) System.out.println("GSR: Begin symbolic interval " + 
+                                               symb + " " + r.scratch + 
+                                               " " + s);
+          scratchMap.beginSymbolicInterval(symb,r.scratch,s);
+        }
+        return r;
+      }
+    }
+
+    // if we get here, either there is no current scratch assignment, or
+    // the current assignment is illegal.  Find a new scratch register.
+    if (true) {
+      //    if (activeSet == null) 
+      return getFirstAvailableScratchRegister(symb,s);
+    } else {
+      return null;
+      //      return getScratchRegisterUsingIntervals(symb,s);
+    }
+  }
+
+  /**
+   * Find the first available register which can serve as a scratch
+   * register for symbolic register r in instruction s.
+   *
+   * Insert spills if necessary to ensure that the returned scratch
+   * register is free for use.
+   */
+  private ScratchRegister getFirstAvailableScratchRegister(OPT_Register r,
+                                                           OPT_Instruction s){
+    HashSet reservedScratch = getReservedScratchRegisters(s);
+
+    OPT_Register phys = null;
+    if (r.isFloatingPoint()) {
+      phys = getFirstFPRNotUsedIn(s,reservedScratch);
+    } else {
+      phys = getFirstGPRNotUsedIn(s,reservedScratch);
+    }
+    return createScratchBefore(s,phys,r);
   }
 
   /**
@@ -1444,22 +1519,9 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * loaded from the spill location
    */
   private ScratchRegister moveToScratchBefore(OPT_Instruction s, 
-                                           OPT_Register symb) {
-    ScratchRegister sr = findAvailableScratchRegister(symb,s);
-    if (sr == null) {
-      // No scratch register is currently available.  Find a physical
-      // register that is not used in the instruction, and spill it
-      // in order to free it for use.
-      java.util.HashSet reservedScratch = getReservedScratchRegisters(s);
+                                              OPT_Register symb) {
 
-      OPT_Register phys = null;
-      if (symb.isFloatingPoint()) {
-         phys = getFPRNotUsedIn(s,reservedScratch);
-      } else {
-         phys = getGPRNotUsedIn(s,reservedScratch);
-      }
-      sr = createScratchBefore(s,phys,symb);
-    }
+    ScratchRegister sr = getScratchRegister(symb,s);
 
     OPT_Register scratchContents = sr.currentContents;
     if (scratchContents != symb) {
@@ -1468,9 +1530,6 @@ final class OPT_StackManager extends OPT_GenericStackManager
         // symbolic register.
         // spill the contents of the scratch register to free it up.
         unloadScratchRegisterBefore(s,sr);
-
-        // Start a new interval for the scratch register.
-        scratchMap.beginScratchInterval(sr.scratch,s);
       }
 
       // Now load up the scratch register.
@@ -1478,12 +1537,9 @@ final class OPT_StackManager extends OPT_GenericStackManager
       // location previous assigned to symbReg
       int location = OPT_RegisterAllocatorState.getSpill(symb);
       insertUnspillBefore(s,sr.scratch,getValueType(symb),location);
-      
+
       // we have not yet written to sr, so mark it 'clean'
       sr.setDirty(false);
-
-      // update mapping information
-      scratchMap.beginSymbolicInterval(symb,sr.scratch,s);
 
     } else { 
       // In this case the scratch register already holds the desired
@@ -1514,15 +1570,38 @@ final class OPT_StackManager extends OPT_GenericStackManager
       OPT_RegisterAllocatorState.setSpill(r,spillLocation);
     }
 
-    insertSpillBefore(s, r, (byte)type, spillLocation);
-
-    ScratchRegister sr = new ScratchRegister(r,null);
-    
-    // record that register r is currently available as a scratch register
-    scratchAvailable.add(sr);
+    ScratchRegister sr = getPhysicalScratchRegister(r);
+    if (sr == null) {
+      sr = new ScratchRegister(r,null);
+      scratchInUse.add(sr);
+      // Since this is a new scratch register, spill the old contents of
+      // r.
+      insertSpillBefore(s, r, (byte)type, spillLocation);
+    } else {
+      // update mapping information
+      if (verboseDebug) System.out.println("CSB: " + 
+                                           " End scratch interval " + 
+                                           sr.scratch + " " + s);
+      scratchMap.endScratchInterval(sr.scratch,s);
+      OPT_Register scratchContents = sr.currentContents;
+      if (scratchContents != null) {
+        if (verboseDebug) System.out.println("CSB: " + 
+                                             " End symbolic interval " + 
+                                             sr.currentContents + " " 
+                                             + s);
+        scratchMap.endSymbolicInterval(sr.currentContents,s);
+      } 
+    }
 
     // update mapping information
+    if (verboseDebug) System.out.println("CSB: Begin scratch interval " + r + 
+                                         " " + s);
     scratchMap.beginScratchInterval(r,s);
+
+    if (verboseDebug) System.out.println("CSB: Begin symbolic interval " + 
+                                         symb + " " + r + 
+                                         " " + s);
+    scratchMap.beginSymbolicInterval(symb,r,s);
 
     return sr;
   }
@@ -1543,8 +1622,10 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * dead.  Mark this.
    */
   private void restoreScratchRegistersBefore(OPT_Instruction s) {
-    for (java.util.Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
+    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
       ScratchRegister scratch = (ScratchRegister)i.next();
+
+      if (scratch.currentContents == null) continue;
       if (verboseDebug) {
         System.out.println("RESTORE: consider " + scratch);
       }
@@ -1555,12 +1636,25 @@ final class OPT_StackManager extends OPT_GenericStackManager
               && scratch.scratch.isVolatile()) 
           || (s.operator == IA32_FNINIT && scratch.scratch.isFloatingPoint())
           || (s.operator == IA32_FCLEAR && scratch.scratch.isFloatingPoint())) {
-          // s defines the scratch register, so save its contents before they
-          // are killed.
+        // s defines the scratch register, so save its contents before they
+        // are killed.
         if (verboseDebug) {
           System.out.println("RESTORE : unload because defined " + scratch);
         }
         unloadScratchRegisterBefore(s,scratch);
+
+        // update mapping information
+        if (verboseDebug) System.out.println("RSRB: End scratch interval " + 
+                                             scratch.scratch + " " + s);
+        scratchMap.endScratchInterval(scratch.scratch,s);
+        OPT_Register scratchContents = scratch.currentContents;
+        if (scratchContents != null) {
+          if (verboseDebug) System.out.println("RSRB: End symbolic interval " + 
+                                               scratch.currentContents + " " 
+                                               + s);
+          scratchMap.endSymbolicInterval(scratch.currentContents,s);
+        } 
+
         i.remove();
         removed = true;
         unloaded = true;
@@ -1575,6 +1669,19 @@ final class OPT_StackManager extends OPT_GenericStackManager
             System.out.println("RESTORE : unload because used " + scratch);
           }
           unloadScratchRegisterBefore(s,scratch);
+
+          // update mapping information
+          if (verboseDebug) System.out.println("RSRB2: End scratch interval " + 
+                                               scratch.scratch + " " + s);
+          scratchMap.endScratchInterval(scratch.scratch,s);
+          OPT_Register scratchContents = scratch.currentContents;
+          if (scratchContents != null) {
+            if (verboseDebug) System.out.println("RSRB2: End symbolic interval " + 
+                                                 scratch.currentContents + " " 
+                                                 + s);
+            scratchMap.endSymbolicInterval(scratch.currentContents,s);
+          } 
+
         }
         // s uses the scratch register, so restore the correct contents.
         if (verboseDebug) {
@@ -1600,7 +1707,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * registers that are used by s.  The others are dead.
    */
   private void restoreAllScratchRegistersBefore(OPT_Instruction s) {
-    for (java.util.Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
+    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
       ScratchRegister scratch = (ScratchRegister)i.next();
 
       // SPECIAL CASE: If s is a return instruction, only restore the 
@@ -1609,19 +1716,19 @@ final class OPT_StackManager extends OPT_GenericStackManager
       if (!s.isReturn() || usedIn(scratch.scratch,s)) {
         unloadScratchRegisterBefore(s,scratch);
         reloadScratchRegisterBefore(s,scratch);
-      } else {
-        // update the scratch maps, even if the scratch registers are now
-        // dead.
-        scratchMap.endScratchInterval(scratch.scratch,s);
-        OPT_Register scratchContents = scratch.currentContents;
-        if (scratchContents != null) {
-          scratchMap.endSymbolicInterval(scratchContents,s);
-        } 
       }
-
-      // remove the scratch register from the pool of available scratch
-      // registers.  
+      // update the scratch maps, even if the scratch registers are now
+      // dead.
+      if (verboseDebug) System.out.println("RALL: End scratch interval " + 
+                                           scratch.scratch + " " + s);
       i.remove();
+      scratchMap.endScratchInterval(scratch.scratch,s);
+      OPT_Register scratchContents = scratch.currentContents;
+      if (scratchContents != null) {
+        if (verboseDebug) System.out.println("RALL: End symbolic interval " + 
+                                             scratchContents + " " + s);
+        scratchMap.endSymbolicInterval(scratchContents,s);
+      } 
     }
   }
 
@@ -1631,20 +1738,13 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * instruction s.  
    */
   private void unloadScratchRegisterBefore(OPT_Instruction s, 
-                                            ScratchRegister scratch) {
-    
-    // update mapping information
-    scratchMap.endScratchInterval(scratch.scratch,s);
-    OPT_Register scratchContents = scratch.currentContents;
-    if (scratchContents != null) {
-      scratchMap.endSymbolicInterval(scratchContents,s);
-    } 
-    
+                                           ScratchRegister scratch) {
     // if the scratch register is not dirty, don't need to write anything, 
     // since the stack holds the current value
     if (!scratch.isDirty()) return;
-    
+
     // spill the contents of the scratch register 
+    OPT_Register scratchContents = scratch.currentContents;
     if (scratchContents != null) {
       int location = OPT_RegisterAllocatorState.getSpill(scratchContents);
       insertSpillBefore(s,scratch.scratch,getValueType(scratchContents),
@@ -1656,7 +1756,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * Restore the contents of a scratch register before instruction s.  
    */
   private void reloadScratchRegisterBefore(OPT_Instruction s, 
-                                            ScratchRegister scratch) {
+                                           ScratchRegister scratch) {
     // Restore the live contents into the scratch register.
     int location = OPT_RegisterAllocatorState.getSpill(scratch.scratch);
     insertUnspillBefore(s,scratch.scratch,getValueType(scratch.scratch),
@@ -1664,36 +1764,13 @@ final class OPT_StackManager extends OPT_GenericStackManager
   }
 
   /**
-   * If any of the currently live scratch registers holds the value of
-   * symbolic register r, then return the scratch register.  Else return
-   * null.
-   */
-  private ScratchRegister findScratchHome(OPT_Register r) {
-
-    int location1 = OPT_RegisterAllocatorState.getSpill(r);
-    for (java.util.Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
-      ScratchRegister s = (ScratchRegister)i.next();
-      OPT_Register current = s.currentContents;
-      if (current == r) {
-        return s;
-      }
-      // If a scratch register currently holds a register that is mapped
-      // to the same spill location as r, then we assume r and s.current
-      // can be coalesced.  So, return this case as a match.
-      if (OPT_RegisterAllocatorState.getSpill(current) == location1) {
-        return s;
-      }
-    }
-    return null;
-  }
-  /**
    * Return the set of scratch registers which are currently reserved
    * for use in instruction s.
    */
-  private java.util.HashSet getReservedScratchRegisters(OPT_Instruction s) {
-    java.util.HashSet result = new java.util.HashSet(3);
+  private HashSet getReservedScratchRegisters(OPT_Instruction s) {
+    HashSet result = new HashSet(3);
 
-    for (java.util.Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
+    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
       ScratchRegister sr = (ScratchRegister)i.next();
       if (sr.currentContents != null && appearsIn(sr.currentContents,s)) {
         result.add(sr.scratch);
@@ -1701,50 +1778,48 @@ final class OPT_StackManager extends OPT_GenericStackManager
     }
     return result;
   }
+
   /**
-   * Return a scratch physical register that is available to hold a
-   * the value of the symbolic register r in instruction s.  
-   * Return null if no scratch physical register is available. 
-   *
    * If there is a scratch register available which currently holds the
    * value of symbolic register r, then return that scratch register.
+   *
+   * Additionally, if there is a scratch register available which is
+   * mapped to the same stack location as r, then return that scratch
+   * register.
+   *
+   * Else return null.
    */
-  private ScratchRegister findAvailableScratchRegister(OPT_Register r, 
-                                                 OPT_Instruction s) {
+  private ScratchRegister getCurrentScratchRegister(OPT_Register r) {
     ScratchRegister result = null;
 
-    for (java.util.Iterator i = scratchAvailable.iterator(); i.hasNext(); ) {
+    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
       ScratchRegister sr = (ScratchRegister)i.next();
-      if (appearsIn(sr.scratch,s)) {
-        // The physical scratch register already appears in s, so we can't 
-        // use it as a scratch register for another value.
-        continue;
-      } else if (sr.currentContents != null) {
-        // The scratch register currently holds another value.
-        int location = OPT_RegisterAllocatorState.getSpill(sr.currentContents);
-        int location2 = OPT_RegisterAllocatorState.getSpill(r); 
-        if (location == location2) {
-          // r and the scratch register are mapped to the same spill
-          // location.  So, the two cannot be simultaneously live, so 
-          // it's OK to use the scratch location to hold the value of r.
-          return sr;
-        } else if (sr.currentContents == r) {
-          OPT_OptimizingCompilerException.UNREACHABLE("Should be covered by previous case");
-          return sr;
-        } else if (appearsIn(sr.currentContents,s)) {
-          // The current value of the scratch register already appears in
-          // s, so we must continue to use the scratch register for its
-          // current purpose.
-          continue;
-        }
+      if (sr.currentContents == r) {
+        return sr;
       }
-      if (r.isFloatingPoint() ^ sr.scratch.isFloatingPoint()) {
-        // the type of the scratch register cannot hold r's value.
-        continue;
+      int location = OPT_RegisterAllocatorState.getSpill(sr.currentContents);
+      int location2 = OPT_RegisterAllocatorState.getSpill(r); 
+      if (location == location2) {
+        return sr;
       }
-      result = sr;
     }
-    return result;
+    return null;
+  }
+  /**
+   * If register r is currently in use as a scratch register, 
+   * then return that scratch register.
+   * Else return null.
+   */
+  private ScratchRegister getPhysicalScratchRegister(OPT_Register r) {
+    ScratchRegister result = null;
+
+    for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
+      ScratchRegister sr = (ScratchRegister)i.next();
+      if (sr.scratch == r) {
+        return sr;
+      }
+    }
+    return null;
   }
 
   /**
@@ -1840,10 +1915,10 @@ final class OPT_StackManager extends OPT_GenericStackManager
    * @return the spill location
    */
   final int allocateNewSpillLocation(int type) {
-    
+
     // increment by the spill size
     spillLocNumber += OPT_PhysicalRegisterSet.getSpillSize(type);
-    
+
     if (spillLocNumber + WORDSIZE > frameSize) {
       frameSize = spillLocNumber + WORDSIZE;
     }
@@ -1852,7 +1927,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
 
   /**
    * Class to represent a physical register currently allocated as a
-   * scratch register
+   * scratch register.
    */
   private static class ScratchRegister {
     /**
@@ -1884,5 +1959,35 @@ final class OPT_StackManager extends OPT_GenericStackManager
       return "SCRATCH<" + scratch + "," + currentContents + "," +
         dirtyString + ">";
     }
+
   }
+} 
+/*
+   else if (sr.currentContents != null) {
+// The scratch register currently holds another value.
+int location = OPT_RegisterAllocatorState.getSpill(sr.currentContents);
+int location2 = OPT_RegisterAllocatorState.getSpill(r); 
+if (location == location2) {
+// r and the scratch register are mapped to the same spill
+// location.  So, the two cannot be simultaneously live, so 
+// it's OK to use the scratch location to hold the value of r.
+return sr;
+} else if (sr.currentContents == r) {
+OPT_OptimizingCompilerException.UNREACHABLE("Should be covered by previous case");
+return sr;
+} else if (appearsIn(sr.currentContents,s)) {
+// The current value of the scratch register already appears in
+// s, so we must continue to use the scratch register for its
+// current purpose.
+continue;
 }
+}
+if (r.isFloatingPoint() ^ sr.scratch.isFloatingPoint()) {
+// the type of the scratch register cannot hold r's value.
+continue;
+}
+result = sr;
+}
+return result;
+}
+ */
