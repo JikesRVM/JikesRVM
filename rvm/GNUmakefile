@@ -1,4 +1,11 @@
-.PHONY: all
+#
+# (C) Copyright IBM Corp. 2003
+#
+# $Id$
+#
+# @author Steven Augart 
+#
+PHONY: all
 all:
 	@echo >&2 "This is not the makefile for building JikesRVM.  It is"
 	@echo >&2 " just for building a TAGS table for GNU Emacs.  Type"
