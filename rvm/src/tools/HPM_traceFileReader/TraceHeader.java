@@ -28,20 +28,32 @@ public final class TraceHeader
   public static final int debug = 0;
 
   /*
-   * trace record formats  
    * Must be kept consistent with VM_HardwarePerformanceMonitors
    */
+  // trace record formats  
   static public  int MACHINE_TYPE_FORMAT = 1;
   static public  int        EVENT_FORMAT = 2;
   static public  int       THREAD_FORMAT = 3;
   static public  int       METHOD_FORMAT = 4;
 
+  // What endian is used?  Default is big-endian, Intel is little-endian.
+  static public  int              DEFAULT_ENDIAN  = 0;
+  static public  int              BIG_ENDIAN      = DEFAULT_ENDIAN;
+  static public  int              LITTLE_ENDIAN   = 1;
+  static public  int              endian          = 0;
+  static public  boolean isLittleEndian() {
+    return endian == LITTLE_ENDIAN;
+  }
   /*
    * Version number
    */
   public int version = 1;
+  // trace file name
+  public String filename      = null;           // trace file name
+  // monitoring mode
+  public  int              mode            = 0;
   /*
-   * Possible HPM counters
+   * Machine Type
    */
   private String processor_name = null;         // processor name
   public  boolean isPower4() {
@@ -67,9 +79,6 @@ public final class TraceHeader
     if (processor_name == null) return false;
     return processor_name.compareTo("RS64-III") == 0;
   }
-  public String filename      = null;           // trace file name
-
-  public  int              mode            = 0;
 
   /*
    * Per counter data.  HPM counters start at 1.
@@ -127,10 +136,11 @@ public final class TraceHeader
 
     DataInputStream input_file = openTraceMetaFile(header_filename, trace_filename);
     version    = Utilities.getIntFromDataInputStream(input_file);
+    endian     = Utilities.getIntFromDataInputStream(input_file);
     n_counters = Utilities.getIntFromDataInputStream(input_file);
     mode       = Utilities.getIntFromDataInputStream(input_file);
     
-    if(debug>=1) System.out.println(" version "+version+", n_counters "+n_counters+", mode "+mode);
+    if(debug>=1) System.out.println(" version "+version+", n_counters "+n_counters+", mode "+mode+", endian "+endian);
 
     int n_elements      = n_counters+1;
     // allocate and initialize arrays
@@ -147,6 +157,7 @@ public final class TraceHeader
     // read records from trace file
     HashMap map     = new HashMap();    // Global TID (Integer) X thread name(String)
     HashMap mapg2l  = new HashMap();    // Global TID (Integer) X TID (Integer)
+    int trips = 0;
     while(true) {
       int record_type = Utilities.getIntFromDataInputStream(input_file);
 
@@ -154,11 +165,11 @@ public final class TraceHeader
         break;
       } else if (record_type == MACHINE_TYPE_FORMAT) {
         processor_name = Utilities.getStringFromDataInputStream(input_file);
-        if (debug>=3) System.out.println("TraceHeader() MACHINE_TYPE_RECORD "+processor_name);
+        if (debug>=3) System.out.println(trips+": TraceHeader() MACHINE_TYPE_RECORD "+processor_name);
       } else if (record_type == EVENT_FORMAT) {
         int counter_number = Utilities.getIntFromDataInputStream(input_file);
         if (counter_number >= n_elements) {
-          System.out.println("TraceHeader("+trace_filename+") counter number "+
+          System.out.println(trips+": TraceHeader("+trace_filename+") counter number "+
                              counter_number+" > n_elements "+n_elements);
           System.exit(-1);
         }
@@ -173,7 +184,7 @@ public final class TraceHeader
         String thread_name = Utilities.getStringFromDataInputStream(input_file);
         Integer TID = new Integer(tid);
         map.put(TID, thread_name);
-        if (debug>=3) System.out.println("TraceHeader() THREAD_RECORD global tid "+tid+" : "+
+        if (debug>=3) System.out.println(trips+": TraceHeader() THREAD_RECORD global tid "+tid+" : "+
                                          local_tid+" : "+thread_name);
         Integer LOCAL_TID = new Integer(local_tid);
         mapg2l.put(TID,LOCAL_TID);
@@ -183,9 +194,10 @@ public final class TraceHeader
         String method_name       = Utilities.getStringFromDataInputStream(input_file);
         String method_descriptor = Utilities.getStringFromDataInputStream(input_file);
         String full_name = class_name+"."+method_name+method_descriptor;
-        if (debug>=3) System.out.println("TraceHeader() METHOD_RECORD mid "+mid+" : "+full_name);
+        if (debug>=3) System.out.println(trips+": TraceHeader() METHOD_RECORD mid "+mid+" : "+full_name);
         MID_map.put(new Integer(mid), full_name);
       }
+      trips++;
     }
     // allocate thread array.
     threads = new String[n_threads+1];

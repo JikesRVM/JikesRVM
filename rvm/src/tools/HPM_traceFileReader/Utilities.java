@@ -16,7 +16,7 @@ import java.lang.Math.*;
 public class Utilities 
 {
 
-  public static final int debug = 2;
+  public static final int debug = 0;
 
   // end of file indicator
   static public int    EOF_int    = -1;
@@ -91,24 +91,90 @@ public class Utilities
   }
 
   /**
-   * Read an integer from stream
-   * @param stream   open DataInputStream
+   * Read an integer from data input stream
+   * @param stream   data input stream
    */
   static public int getIntFromDataInputStream(DataInputStream stream)
   {
+    byte b[] = new byte[4];
     int value = 0;
     try {
-      value = stream.readInt();
+      stream.readFully(b);
     } catch (EOFException e) {
       if (debug>=3) 
-        System.out.println("***Utilities.getIntFromDataInputStream() EOF exception!***");
+        System.out.println("***Utilities.readInt() EOF exception!***");
       return EOF_int;
     }catch (IOException e) {
-      System.out.println("***Utilities.getIntFromDataInputStream() IO exception!***");
+      System.out.println("***Utilities.readInt() IO exception!***");
+      new Exception().printStackTrace();
+      System.exit(-1);
+    }
+    if(debug>=2) {System.out.print("Utilities.readInt("+b[0]+" "+b[1]+" "+b[2]+" "+b[3]+") ");}
+    if (TraceHeader.isLittleEndian()) {
+      value = 
+	(((int)(b[3] << 24)) & 0xFF000000) + 
+	(((int)(b[2] << 16)) & 0x00FF0000) + 
+	(((int)(b[1] <<  8)) & 0x0000FF00) + 
+	(((int)(b[0]      )) & 0x000000FF);
+      if(debug>=2){System.out.print(value+" little-endian\n");}
+    } else {
+      value = 
+	(((int)(b[0] << 24)) & 0xFF000000) + 
+	(((int)(b[1] << 16)) & 0x00FF0000) + 
+	(((int)(b[2] <<  8)) & 0x0000FF00) + 
+	(((int)(b[3]      )) & 0x000000FF);
+      if(debug>=2) {System.out.print(value+" big-endian (default)");}
+    }
+    if(debug>=2) {System.out.print("\n");}
+    return value;
+  }
+  /**
+   * Read long from data input stream.
+   *
+   * @param dis data input stream
+   */
+  static public long getLongFromDataInputStream(DataInputStream dis)
+  {
+    long value = 0;
+    byte b[] = new byte[8];
+    try {
+      dis.readFully(b);
+    } catch (EOFException e) {
+      if (debug>=3) 
+        System.out.println("***Utilities.getLongFromDataInputStream() EOF exception!***");
+      return EOF_int;
+    }catch (IOException e) {
+      System.out.println("***Utilities.getLongFromDataInputStream() IO exception!***");
       new Exception().printStackTrace();
       System.exit(-1);
     }
 
+    if(debug>=2) {System.out.print("Utilities.getLongFromDataInputStream("+
+                                   b[0]+" "+b[1]+" "+b[2]+" "+b[3]+" "+b[4]+" "+b[5]+" "+b[6]+" "+b[7]+") ");}
+    if (TraceHeader.isLittleEndian()) {
+      value = (long)
+	(((int)(b[7] << 56))&0xFF00000000000000L) + 
+	(((int)(b[6] << 48))&0x00FF000000000000L) +
+	(((int)(b[5] << 40))&0x0000FF0000000000L) + 
+	(((int)(b[4] << 32))&0x000000FF00000000L) + 
+	(((int)(b[3] << 24))&0x00000000FF000000L) + 
+	(((int)(b[2] << 16))&0x0000000000FF0000L) + 
+	(((int)(b[1] <<  8))&0x000000000000FF00L) + 
+	(((int)(b[0]      ))&0x00000000000000FFL);
+      if(debug>=2) {System.out.print(value+" little-endian\n");}
+    } else {
+      value = (long)
+	(((int)(b[0] << 56))&0xFF00000000000000L) + 
+	(((int)(b[1] << 48))&0x00FF000000000000L) +
+	(((int)(b[2] << 40))&0x0000FF0000000000L) + 
+	(((int)(b[3] << 32))&0x000000FF00000000L) + 
+	(((int)(b[4] << 24))&0x00000000FF000000L) + 
+	(((int)(b[5] << 16))&0x0000000000FF0000L) + 
+	(((int)(b[6] <<  8))&0x000000000000FF00L) + 
+	(((int)(b[7]      ))&0x00000000000000FFL);
+      if(debug>=2) {System.out.print(value+" big-endian (default)\n");}
+    }
+    
     return value;
   }
   /*
@@ -123,7 +189,7 @@ public class Utilities
     int length = 0;
     byte[] b_array = null;
     try {
-      length = input_file.readInt();
+      length = getIntFromDataInputStream(input_file);
       b_array = new byte[length];
       for (int i=0; i<length; i++) {
         b_array[i] = input_file.readByte();
@@ -139,7 +205,7 @@ public class Utilities
     }
     
     String string = new String(b_array);
-    if(debug>=4)System.out.println("readString() returns "+string+" with length "+length);
+    if(debug>=4)System.out.println("Utilities.getString() returns "+string+" with length "+length);
     return string;
   }
   
