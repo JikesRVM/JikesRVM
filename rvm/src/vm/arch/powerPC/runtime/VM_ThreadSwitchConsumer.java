@@ -83,7 +83,7 @@ abstract class VM_ThreadSwitchConsumer extends VM_Thread
     if (active == true) {
       VM.sysWriteln("***VM_ThreadSwitchConsumer.activate() active == true!  PID ",
 		    ((VM_TraceWriter)this).getPid(),"***");
-      VM.shutdown(-1);
+      VM.shutdown(VM.exitStatusMiscTrouble);
     }
     if(debug>=2)VM.sysWriteln("VM_ThreadSwitchConsumer.activate()");
     active = true;

@@ -210,10 +210,10 @@ public class VM_JNIStartUp implements VM_SizeConstants, Runnable {
     
     if (externalJNIEnv.isZero()) {
       System.out.println("VM_JNIStartUp:  ERROR, external JNIEnv required for JNI_CreateJavaVM");
-      System.exit(-1);
+      System.exit(VM.exitStatusJNITrouble);
     } else if (pthread_id==0) {
       System.out.println("VM_JNIStartUp:  ERROR, external phtread ID required for JNI_CreateJavaVM");
-      System.exit(-1);
+      System.exit(VM.exitStatusJNITrouble);
     }      
 
 

@@ -215,7 +215,7 @@ public class VM_Controller implements VM_Callbacks.ExitMonitor,
     
     if (!options.processAsOption("-X:aos", arg)) {
       VM.sysWrite("vm: illegal adaptive configuration directive \""+arg+"\" specified as -X:aos:"+arg+"\n");
-      VM.sysExit(-1);
+      VM.sysExit(VM.exitStatusBogusCommandLineArg);
     }
   }
 

@@ -39,7 +39,7 @@ public class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 	  optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
 	} else {
 	  VM.sysWrite("VM_RuntimeCompiler (optOnly): Unrecognized argument \""+arg+"\" with prefix -X:aos:irc:\n");
-	  VM.sysExit(-1);
+	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	}
       } else {
 	String[] tmp = new String[earlyArgs.length+1];

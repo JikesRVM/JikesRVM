@@ -378,7 +378,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
      else {
        fprintf(SysErrorFile, "vm: internal error trap\n");
        if (--remainingFatalErrors <= 0)
-	 exit(1); 
+	 exit(-1); 
      }
    }
 
@@ -516,7 +516,7 @@ void cTrapHandler(int signum, int zero, sigcontext *context) {
 	  //!!TODO: someday use logic similar to stack guard page to force a gc
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: write buffer overflow trap\n");
 	  fprintf(SysErrorFile,"vm: write buffer overflow trap\n");
-	  exit(1);
+	  exit(-1);
 	} else if (((instruction & VM_Constants_STACK_OVERFLOW_MASK) == VM_Constants_STACK_OVERFLOW_TRAP) ||
 		   ((instruction & VM_Constants_STACK_OVERFLOW_MASK) == VM_Constants_STACK_OVERFLOW_HAVE_FRAME_TRAP)) {
 	  if (lib_verbose) fprintf(SysTraceFile, "vm: stack overflow trap\n");

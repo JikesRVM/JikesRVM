@@ -134,7 +134,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
     n_threadSwitches++;
     if (previous_thread.hpm_counters == null) {
       VM.sysWriteln("***VM_HPM.pdateHPMcounters() Previous thread id ",
-		    previous_thread.getIndex(),"'s hpm_counters was null!***"); VM.shutdown(-1);
+		    previous_thread.getIndex(),"'s hpm_counters was null!***"); VM.shutdown(VM.exitStatusHPMTrouble);
     }
     if (previous_thread.startOfWallTime != -1) {	// not the first time!
       startOfWallTime = previous_thread.startOfWallTime;
@@ -664,7 +664,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
     else if (buffer_code == TWO) { return index_2; } 
     else { 
       VM.sysWrite("***VM_HPM.getCurrentIndex() buffer_code = ",buffer_code,", but must be 1 or 2!***");
-      VM.shutdown(-10);
+      VM.shutdown(VM.exitStatusHPMTrouble);
     }
     return -1; 
   }
@@ -712,7 +712,7 @@ public class VM_HardwarePerformanceMonitor extends    VM_ThreadSwitchProducer
     else if (buffer_code == TWO) { return index_1; } 
     else { 
       VM.sysWrite("***VM_HPM.getFullIndex() buffer_code = ",buffer_code,", but must be 1 or 2!***");
-      VM.shutdown(-10);
+      VM.shutdown(VM.exitStatusHPMTrouble);
     }
     return -1; 
   }

@@ -1422,7 +1422,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
 	
 	default: {
 	  VM.sysWriteln("Unknown opcode:" + opcode);
-	  VM.sysExit(10);
+	  VM.sysExit(-1);
 	}
 
 	}  // end switch (opcode)

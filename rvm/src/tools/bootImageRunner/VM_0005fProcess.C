@@ -164,7 +164,7 @@ static void closePipe(int descriptors[])
 // (from Runtime.exec()) if we can't change into the
 // working directory the caller specified.
 // Instead, we'll just return this value as the exit code.
-const int BAD_WORKING_DIR = 2;
+const int EXIT_STATUS_BAD_WORKING_DIR = 120;
 
 //////////////////////////////////////////////////////////////
 // Implementation of native methods
@@ -248,7 +248,7 @@ JNIEXPORT jint JNICALL Java_com_ibm_JikesRVM_VM_1Process_exec4
 #ifdef DEBUG
 	fprintf(stderr, "chdir() failed: %s\n", strerror(errno));
 #endif
-	exit(BAD_WORKING_DIR);
+	exit(EXIT_STATUS_BAD_WORKING_DIR);
       }
     }
 

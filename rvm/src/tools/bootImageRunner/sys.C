@@ -65,6 +65,13 @@ extern "C" int sched_yield();
 #include <errno.h>
 #include <dlfcn.h>
 
+#define EXIT_STATUS_SYSCALL_TROUBLE 121
+#define EXIT_STATUS_TIMER_TROUBLE EXIT_STATUS_SYSCALL_TROUBLE
+
+#define EXIT_STATUS_UNSUPPORTED_INTERNAL_OP 120
+// see VM.exitStatusUnexpectedCallToSys:
+#define EXIT_STATUS_UNEXPECTED_CALL_TO_SYS EXIT_STATUS_UNSUPPORTED_INTERNAL_OP
+
 #ifdef _AIX
 extern "C" timer_t gettimerid(int timer_type, int notify_type);
 extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_t *oldvalue);
@@ -120,7 +127,7 @@ extern "C" void
 sys()
    {
    fprintf(SysErrorFile, "vm: unexpected call to \"sys\"\n");
-   sysExit(1);
+   sysExit(EXIT_STATUS_UNEXPECTED_CALL_TO_SYS);	
    }
 
 // Console write (java character).
@@ -186,10 +193,8 @@ sysExit(int value)
 
 #if (!defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    pthread_mutex_lock( &DeathLock );
-   exit(value);
-#else
-   exit(value);
 #endif
+   exit(value);
    }
 
 // Access host o/s command line arguments.
@@ -723,7 +728,7 @@ void *timeSlicerThreadMain(void *arg) {
     if (setitimer(ITIMER_REAL, &timerInfo, &oldtimer))
        {
        fprintf(SysErrorFile, "vm: incinterval failed (errno=%d)\n", errno);
-       sysExit(1);
+       sysExit(EXIT_STATUS_TIMER_TROUBLE);
        }
  #else
     // fetch system timer
@@ -732,7 +737,7 @@ void *timeSlicerThreadMain(void *arg) {
     if (timerId == -1)
        {
        fprintf(SysErrorFile, "vm: gettimerid failed (errno=%d)\n", errno);
-       sysExit(1);
+       sysExit(EXIT_STATUS_TIMER_TROUBLE);
        }
 
     // set it to issue a periodic SIGALRM (or 0 to disable timer)
@@ -745,7 +750,7 @@ void *timeSlicerThreadMain(void *arg) {
     if (incinterval(timerId, &timerInfo, &oldtimer))
        {
        fprintf(SysErrorFile, "vm: incinterval failed (errno=%d)\n", errno);
-       sysExit(1);
+       sysExit(EXIT_STATUS_TIMER_TROUBLE);
        }
  #endif
  #endif
@@ -757,7 +762,7 @@ void *timeSlicerThreadMain(void *arg) {
 	fprintf(stderr,"Using a time-slice of %d ms\n", timeSlice);
       if (timeSlice < 10 || timeSlice > 999) {
 	fprintf(SysErrorFile, "vm: timeslice of %d is outside range 10..999\n", timeSlice);
-	sysExit(1);
+	sysExit(EXIT_STATUS_TIMER_TROUBLE);
       }
       setTimeSlicer(timeSlice);
     }
@@ -892,7 +897,7 @@ sysHPMinit()
 {
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMinit() called: no support for linux\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -905,7 +910,7 @@ sysHPMinit()
   return rc;
 #else
   fprintf(SysErrorFile, "sys: sysHPMinit() called: not compiled for HPM\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -922,7 +927,7 @@ sysHPMsetEvent(int e1, int e2, int e3, int e4)
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMsetEvent(%d,%d,%d,%d) called: no support for linux\n",
 	  e1,e2,e3,e4);
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -935,7 +940,7 @@ sysHPMsetEvent(int e1, int e2, int e3, int e4)
 #else
   fprintf(SysErrorFile, "sys: sysHPMsetEvent(%d,%d,%d,%d) called: not compiled for HPM\n",
 	  e1,e2,e3,e4);
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -952,7 +957,7 @@ sysHPMsetEventX(int e5, int e6, int e7, int e8)
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMsetEventX(%d,%d,%d,%d) called: no support for linux\n",
 	  e5,e6,e7,e8);
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -966,7 +971,7 @@ sysHPMsetEventX(int e5, int e6, int e7, int e8)
   fprintf(SysErrorFile, 
 	  "sys: sysHPMsetEventX(%d,%d,%d,%d) called: not compiled for HPM\n",
 	  e5,e6,e7,e8);
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -984,7 +989,7 @@ sysHPMsetMode(int mode)
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMsetMode(%d) called: no support for linux\n",
 	  mode);
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -997,7 +1002,7 @@ sysHPMsetMode(int mode)
 #else
   fprintf(SysErrorFile, "sys: sysHPMsetMode(%d) called: not compiled for HPM\n",
 	  mode);
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -1016,7 +1021,7 @@ sysHPMsetProgramMyThread()
 {
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMsetProgramMyThread() called: no support for linux\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -1028,7 +1033,7 @@ sysHPMsetProgramMyThread()
   return rc;
 #else
   fprintf(SysTraceFile, "sys: sysHPMsetProgramMyThread() called: not compiled for HPM\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
  return 0;
 #endif
 #endif
@@ -1044,7 +1049,7 @@ sysHPMsetProgramMyGroup()
 {
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMsetProgramMyGroup() called: no support for linux\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -1056,7 +1061,7 @@ sysHPMsetProgramMyGroup()
   return rc;
 #else
   fprintf(SysErrorFile, "jvm: sysHPMsetProgramMyGroup() called: not compiled for HPM\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -1071,7 +1076,7 @@ sysHPMstartMyThread()
 {
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMstartMyThread() called: no support for linux\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -1083,7 +1088,7 @@ sysHPMstartMyThread()
   return rc;
 #else
   fprintf(SysTraceFile, "sys: sysHPMstartMyThread() called: not compiled for HPM\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
  return 0;
 #endif
 #endif
@@ -1098,7 +1103,7 @@ sysHPMstartMyGroup()
 {
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMstartMyGroup() called: no support for linux\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -1110,7 +1115,7 @@ sysHPMstartMyGroup()
   return rc;
 #else
   fprintf(SysErrorFile, "jvm: sysHPMstartMyGroup() called: not compiled for HPM\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -1127,7 +1132,7 @@ sysHPMstopMyThread()
 {
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMstopMyThread() called: no support for linux\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -1137,7 +1142,7 @@ sysHPMstopMyThread()
   return rc;
 #else
   fprintf(SysErrorFile, "jvm: sysHPMstopMyThread() called: not compiled for HPM\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -1152,7 +1157,7 @@ sysHPMstopMyGroup()
 {
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMstopMyGroup() called: no support for linux\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -1161,7 +1166,7 @@ sysHPMstopMyGroup()
   return rc;
 #else
   fprintf(SysErrorFile, "jvm: sysHPMstopMyGroup() called: not compiled for HPM\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -1177,7 +1182,7 @@ sysHPMresetMyThread()
 {
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMresetMyThread() called: no support for linux\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -1186,7 +1191,7 @@ sysHPMresetMyThread()
   return rc;
 #else
   fprintf(SysErrorFile, "jvm: sysHPMresetMyThread() called: not compiled for HPM\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -1202,7 +1207,7 @@ sysHPMresetMyGroup()
 {
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMresetMyGroup() called: no support for linux\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -1211,7 +1216,7 @@ sysHPMresetMyGroup()
   return rc;
 #else
   fprintf(SysErrorFile, "jvm: sysHPMresetMyGroup() called: not compiled for HPM\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -1231,14 +1236,14 @@ sysHPMgetCounterMyThread(int counter)
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMgetCounterMyThread(%d) called: no support for linux\n",
 	  counter);
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
   return hpm_get_counter_mythread(counter);
 #else
   fprintf(SysErrorFile, "jvm: sysHPMgetCounterMyThread(%d) called: not compiled for HPM\n",counter);
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -1257,14 +1262,14 @@ sysHPMgetCounterMyGroup(int counter)
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMgetCounterMyGroup(%d) called: no support for linux\n",
 	  counter);
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
   return hpm_get_counter_mygroup(counter);
 #else
   fprintf(SysErrorFile, "jvm: sysHPMgetCounterMyGroup(%d) called: not compiled for HPM\n",counter);
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -1281,7 +1286,7 @@ sysHPMgetNumberOfCounters()
 {
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "sys: sysHPMgetNumberofCounters() called: no support for linux\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -1293,7 +1298,7 @@ sysHPMgetNumberOfCounters()
   return rc;
 #else
   fprintf(SysErrorFile, "sys: sysHPMgetNumberofCounters() called: not compiled for HPM\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -1308,7 +1313,7 @@ sysHPMtest()
 {
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMtest() called: no support for linux\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -1317,7 +1322,7 @@ sysHPMtest()
   return rc;
 #else
   fprintf(SysErrorFile, "jvm: sysHPMtest() called: not compiled for HPM\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -1330,7 +1335,7 @@ sysHPMprintMyGroup()
 {
 #ifdef RVM_FOR_LINUX
   fprintf(stderr, "jvm: sysHPMprintMyGroup() called: no support for linux\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #else
 #ifdef RVM_WITH_HPM
@@ -1339,7 +1344,7 @@ sysHPMprintMyGroup()
   return rc;
 #else
   fprintf(SysErrorFile, "jvm: sysHPMprintMyGroup() called: not compiled for HPM\n");
-  exit(1);
+  exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
   return 0;
 #endif
 #endif
@@ -1354,7 +1359,7 @@ sysHPMprintMyGroup()
     {
  #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     fprintf(stderr, "sysVirtualProcessorCreate: Unsupported operation with single virtual processor\n");
-    sysExit(-1);
+    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
     return (0);
  #else
     int           *sysVirtualProcessorArguments;
@@ -1375,7 +1380,7 @@ sysHPMprintMyGroup()
     if ((rc = pthread_attr_init(&sysVirtualProcessorAttributes)))
        {
        fprintf(SysErrorFile, "vm: pthread_attr_init failed (rc=%d)\n", rc);
-       sysExit(1);
+       sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
        }
 
     // force 1:1 pthread to kernel thread mapping (on AIX 4.3)
@@ -1390,7 +1395,7 @@ sysHPMprintMyGroup()
 			     sysVirtualProcessorArguments)))
        {
        fprintf(SysErrorFile, "vm: pthread_create failed (rc=%d)\n", rc);
-       sysExit(1);
+       sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
        }
 
  if (VERBOSE_PTHREAD)
@@ -1439,7 +1444,7 @@ sysHPMprintMyGroup()
  #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
     int rc = 0;
     fprintf(stderr, "sysVirtualProcessorBind: Unsupported operation with single virtual processor with single virtual processor\n");
-    sysExit(-1);
+    sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
  #else
     int numCpus;
     numCpus = sysconf(_SC_NPROCESSORS_ONLN);
@@ -1451,7 +1456,7 @@ sysHPMprintMyGroup()
     if (numCpus == -1)
        {
        fprintf(SysErrorFile, "vm: sysconf failed (errno=%d)\n", errno);
-       sysExit(1);
+       sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
        }
 
     cpuId = cpuId % numCpus;
@@ -1462,7 +1467,7 @@ sysHPMprintMyGroup()
     if (rc)
        {
        fprintf(SysErrorFile, "vm: bindprocessor failed (errno=%d)\n", errno);
-       sysExit(1);
+       sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
        }
  #endif
  #endif
@@ -1495,12 +1500,12 @@ extern "C" void sysCreateThreadSpecificDataKeys(void) {
   rc1 = pthread_key_create(&VmProcessorIdKey, 0);
   if (rc1 != 0) { 
     fprintf(SysErrorFile, "sys: pthread_key_create(&VMProcessorIdKey,0) failed (err=%d)\n", rc1);
-    sysExit(1);
+    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
   }
   rc2 = pthread_key_create(&IsVmProcessorKey, 0);
   if (rc2 != 0) { 
     fprintf(SysErrorFile, "sys: pthread_key_create(&IsVMProcessorKey,0) failed (err=%d)\n", rc2);
-    sysExit(1);
+    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
   }
 
   // Let the syscall wrapper library know what the key is,
@@ -1547,7 +1552,7 @@ sysPthreadSelf()
    {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    fprintf(stderr, "sysPthreadSelf: WARNING Unsupported operation with single virtual processor\n");
-   sysExit(-1);
+   sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
    return -1; // will never execute
 #else
    int thread;
@@ -1601,7 +1606,7 @@ sysPthreadSignal(int pthread)
    {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    fprintf(stderr, "sysPthreadSignal: Unsupported operation with single virtual processor\n");
-   sysExit(-1);
+   sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
    pthread_t thread;
    thread = (pthread_t)pthread;
@@ -1617,7 +1622,7 @@ sysPthreadJoin(int pthread)
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    fprintf(stderr, "sysPthreadJoin: Unsupported operation with single virtual processor\n");
-   sysExit(-1);
+   sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
    pthread_t thread;
    thread = (pthread_t)pthread;
@@ -1633,7 +1638,7 @@ sysPthreadExit()
 {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    fprintf(stderr, "sysPthreadExit: Unsupported operation with single virtual processor\n");
-   sysExit(-1);
+   sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #else
   // fprintf(SysTraceFile, "sys: pthread %d exits\n", pthread_self());
    pthread_exit(NULL);
@@ -1652,7 +1657,7 @@ sysVirtualProcessorYield()
    sched_yield();
 #else
    fprintf(stderr, "sysVirtualProcessorYield: Unsupported operation with single virtual processor\n");
-   sysExit(-1);
+   sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
 #endif
    }
 
@@ -1666,7 +1671,7 @@ sysPthreadSigWait( int * lockwordAddress, int lockReleaseValue )
    {
 #if (defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
    fprintf(stderr, "sysPthreadSigWait: Unsupported operation with single virtual processor\n");
-   sysExit(-1);
+   sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
    return -1; // will never execute
 #else 
    sigset_t input_set, output_set;
@@ -1718,7 +1723,7 @@ extern "C" int sysStashVmProcessorIdInPthread(int vmProcessorId)
   int rc2 = pthread_setspecific(IsVmProcessorKey, (void*) 1);
   if (rc != 0 || rc2 != 0) {
     fprintf(SysErrorFile, "sys: pthread_setspecific() failed (err=%d,%d)\n", rc, rc2);
-    sysExit(1);
+    sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
   }
 #endif // defined(RVM_FOR_SINGLE_VIRTUAL_PROCESSOR)
   return 0;
@@ -1880,14 +1885,14 @@ sysZeroPages(void *dst, int cnt)
    if (rc != 0)
       {
       fprintf(SysErrorFile, "vm: munmap failed (errno=%d)\n", errno);
-      sysExit(1);
+      sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
       }
 
    void *addr = mmap(dst, cnt, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_FIXED, -1, 0);
    if (addr == (void *)-1)
       {
       fprintf(SysErrorFile, "vm: mmap failed (errno=%d)\n", errno);
-      sysExit(1);
+      sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
       }
    #endif
 
@@ -1903,7 +1908,7 @@ sysZeroPages(void *dst, int cnt)
    if (rc != 0)
       {
       fprintf(SysErrorFile, "vm: disclaim failed (errno=%d)\n", errno);
-      sysExit(1);
+      sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
       }
    #endif
 
@@ -1933,7 +1938,7 @@ sysSyncCache(caddr_t address, int size)
      {
        if (size < 0) {
 	 fprintf(SysErrorFile, "vm: tried to sync a region of negative size!\n");
-	 sysExit(1);
+	 sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
        }
 
      /* See section 3.2.1 of PowerPC Virtual Environment Architecture */
@@ -2009,8 +2014,8 @@ extern "C" void *
 sysMMap(char *start, size_t length, int protection, int flags, int fd, long long offset)
    {
    fprintf(SysErrorFile, "vm: sysMMap called, but it's unimplemented\n");
-   sysExit(1);
-   exit(1); // shut warnings up
+   sysExit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP);
+   exit(EXIT_STATUS_UNSUPPORTED_INTERNAL_OP); // shut warnings up
    // return mmap(start, (size_t)(length), protection, flags, fd, (off_t)(offset));
    }
 
@@ -2969,7 +2974,7 @@ sysNetSelect(
     SelectFunc realSelect = getLibcSelect();
     if (realSelect == 0) {
       fprintf(SysErrorFile, "sys: could not get pointer to real select()\n");
-      sysExit(1);
+      sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
     }
 #else
 # define realSelect(n, read, write, except, timeout) \

@@ -204,7 +204,7 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
       VM.sysWriteln("Current heap size = ", heapSize / 1024, " Kb");
       VM.sysWriteln("Specify a larger heap using ", commandLine);
       // call shutdown while holding the processor lock
-      VM.shutdown(-5);
+      VM.shutdown(VM.exitStatusMiscTrouble);
     } else {
       outOfMemoryLock.release();
       while(true);  // spin until VM shuts down

@@ -133,17 +133,17 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
 
     if (trace_file != null) {	// constraint
       VM.sysWriteln("***VM_TraceWriter.openFileOutputStream(",trace_file_name,") trace_file != null!***");      
-      new Exception().printStackTrace(); VM.shutdown(-1);
+      new Exception().printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
     }
 
     try {
       trace_file = new FileOutputStream(trace_file_name);
     } catch (FileNotFoundException e) {
       VM.sysWriteln("***VM_TraceWriter.openFileOutputStream() FileNotFound exception with new FileOutputStream("+trace_file_name+")");
-      e.printStackTrace(); VM.shutdown(-1);
+      e.printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
     } catch (SecurityException e) {
       VM.sysWriteln("***VM_TraceWriter.openFileOutputStream() Security exception with new FileOutputStream("+trace_file_name+")");
-      e.printStackTrace(); VM.shutdown(-1);
+      e.printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
     } 
     writeHeader();
     ((VM_HardwarePerformanceMonitor)producer).resetCurrent();
@@ -191,8 +191,8 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
     if(VM_HardwarePerformanceMonitors.verbose>=4)VM.sysWriteln("VM_TraceWriter.writeFileOutputStream(buffer, 0, ",length,")");
     if (length <= 0) return;
     if (trace_file == null) { 	// constraint
-      VM.sysWriteln("\n***VM_TraceWriter.writeFileOutputStream() trace_file == null!  Call VM.shutdown(-9)***");
-      VM.shutdown(-9);
+      VM.sysWriteln("\n***VM_TraceWriter.writeFileOutputStream() trace_file == null!  Call VM.shutdown(VM.exitStatusMiscTrouble)***");
+      VM.shutdown(VM.exitStatusMiscTrouble);
     }
     try {
       // allow only one writer at a time to trace file.
@@ -201,7 +201,7 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
       }
     } catch (IOException e) {
       VM.sysWriteln("***VM_TraceWriter.writeFileOutputStream(",length,") throws IOException!***");
-      e.printStackTrace(); VM.shutdown(-1);
+      e.printStackTrace(); VM.shutdown(-VM.exitStatusMiscTrouble;
     }
   }
   /*
@@ -223,7 +223,7 @@ implements   VM_Callbacks.StartupMonitor,           VM_Callbacks.ExitMonitor,
        trace_file.close();
     } catch (IOException e) {
       VM.sysWriteln("***VM_TraceWriter.closeFileOutputStream() throws IOException!***");
-      e.printStackTrace(); VM.shutdown(-1);
+      e.printStackTrace(); VM.shutdown(VM.exitStatusMiscTrouble);
     }
 
     trace_file = null;

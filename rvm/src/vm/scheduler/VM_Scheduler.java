@@ -735,12 +735,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       // This is the first time I've been called, attempt to exit "cleanly"
       exitInProgress = true;
       dumpStack(fp);
-      VM.sysExit(124);		// unix system() only cleanly handles exit
-				// codes from 0 to 127. 
+      VM.sysExit(VM.exitStatusDumpStackAndDie);
     } else {
       // Another failure occured while attempting to exit cleanly.  
       // Get out quick and dirty to avoid hanging.
-      VM_SysCall.sysExit(9999);
+      VM_SysCall.sysExit(VM.exitStatusRecursivelyShuttingDown);
     }
   }
 
@@ -828,7 +827,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     else {
       do {
         int processorId = VM_Magic.prepareInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset());
-        if (VM.VerifyAssertions && processorId != VM_Processor.getCurrentProcessorId()) VM.sysExit(664);
+        if (VM.VerifyAssertions && processorId != VM_Processor.getCurrentProcessorId()) VM.sysExit(VM.exitStatusSysFail);
         if (VM_Magic.attemptInt(VM_Magic.getJTOC(), VM_Entrypoints.outputLockField.getOffset(), processorId, 0)) {
           break; 
         }

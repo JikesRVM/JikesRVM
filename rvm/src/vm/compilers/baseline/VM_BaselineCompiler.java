@@ -148,7 +148,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
     if (setUpOptions.PRELOAD_CLASS != null) {
       VM.sysWrite("Option preload_class should only be used when the optimizing compiler is the runtime");
       VM.sysWrite(" compiler or in an adaptive system\n");
-      VM.sysExit(1);
+      VM.sysExit(VM.exitStatusBogusCommandLineArg);
     }
     //-#endif
 
@@ -166,7 +166,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
 	return;
       } else {
 	VM.sysWrite("VM_BaselineCompiler: Unrecognized argument \""+ arg + "\"\n");
-	VM.sysExit(1);
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
       }
     } else {
       VM.sysWrite("VM_BaselineCompiler: Compiler setUpOptions not enabled; Ignoring argument \""+ arg + "\"\n");

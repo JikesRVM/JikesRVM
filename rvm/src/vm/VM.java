@@ -277,7 +277,7 @@ public class VM extends VM_Properties
     // rvm -X:irc 
     if (applicationArguments.length == 0) {  
       VM.sysWrite("vm: please specify a class to execute\n");
-      VM.sysExit(1);
+      VM.sysExit(VM.exitStatusBogusCommandLineArg);
     }
     // Create main thread.
     // Work around class incompatibilities in boot image writer
@@ -824,8 +824,35 @@ public class VM extends VM_Properties
   public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3) throws VM_PragmaNoInline { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); writeln(); swUnlock(); }
   public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3, String s4, VM_Address a4) throws VM_PragmaNoInline { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); writeln(); swUnlock(); }
   public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3, String s4, VM_Address a4, String s5, VM_Address a5) throws VM_PragmaNoInline { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); write(s5); write(a5); writeln(); swUnlock(); }
+  
+  // Exit statuses, pending a better location.
+  // We also use the explicit constant -1 as an exit status (that gets mapped
+  // to 255).
+  public static int exitStatusRecursivelyShuttingDown = 128;
+  public static int exitStatusDumpStackAndDie = 124;
+  public static int exitStatusMainThreadCouldNotLaunch = 123;
+  public static int exitStatusMiscTrouble = 122;
+  public static int exitStatusSysFail = exitStatusDumpStackAndDie;
 
-  final public static int exitStatusRecursivelyShuttingDown = 128;
+  // See sys.C
+  final public static int exitStatusUnexpectedCallToSys = 120;
+  final public static int exitStatusUnsupportedInternalOp = exitStatusUnexpectedCallToSys;
+  
+  final public static int exitStatusSyscallTrouble = 121;
+  final public static int exitStatusTimerTrouble = exitStatusSyscallTrouble;
+
+  public static int exitStatusDyingWithUncaughtException = 113;
+  public static int exitStatusOptCompilerFailed = 101;
+  public static int exitStatusBogusCommandLineArg = 100;
+  public static int exitStatusTooManyThrowableErrors = 99;
+  public static int exitStatusTooManyOutOfMemoryErrors = exitStatusTooManyThrowableErrors;
+  public static int exitStatusJNITrouble = 98;
+  /** Trouble with the Hardware Performance Monitors */
+  public static int exitStatusHPMTrouble = -10;
+  
+  // see EXIT_STATUS_BAD_WORKING_DIR, in VM_0005fProcess.C
+  // 
+  
 
   /**
    * Exit virtual machine due to internal failure of some sort.
@@ -836,7 +863,7 @@ public class VM extends VM_Properties
 
     // print a traceback and die
     VM_Scheduler.traceback(message);
-    VM.shutdown(1);
+    VM.shutdown(exitStatusSysFail);
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
   }
 

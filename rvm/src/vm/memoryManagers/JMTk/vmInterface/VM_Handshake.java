@@ -91,7 +91,7 @@ public class VM_Handshake {
       VM.sysWriteln("Garbage collection required before system fully initialized");
       VM.sysWriteln("Specify larger than default heapsize on command line");
       VM_Scheduler.dumpStack();
-      VM.shutdown(-1);
+      VM.shutdown(VM.exitStatusMiscTrouble);
     }
 
     if (verbose >= 2) {

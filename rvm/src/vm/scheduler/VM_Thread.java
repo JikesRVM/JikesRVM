@@ -798,7 +798,15 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       VM._assert(VM_Processor.getCurrentProcessor().threadSwitchingEnabled());
 
     if (terminateSystem) {
-      VM.sysExit(myThread.dyingWithUncaughtException ? 113 : 0);
+      if (myThread.dyingWithUncaughtException)
+	VM.sysExit(VM.exitStatusDyingWithUncaughtException);
+      else if (myThread instanceof MainThread) {
+	MainThread mt = (MainThread) myThread;
+	if (! mt.launched) {
+	  VM.sysExit(VM.exitStatusMainThreadCouldNotLaunch);
+	}
+      }
+      VM.sysExit(0);
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
 

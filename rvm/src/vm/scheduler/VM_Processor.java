@@ -458,7 +458,7 @@ implements VM_Uninterruptible, VM_Constants {
 
     // NOT YET IMPLEMENTED !!!
     VM.sysWrite("VM_Processor createNativeProcessor NOT YET IMPLEMENTED for IA32\n");
-    VM.sysExit(666);
+    VM.sysExit(VM.exitStatusUnsupportedInternalOp);
 
     return null;
 

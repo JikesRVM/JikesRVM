@@ -134,7 +134,7 @@ public class VM_HardwarePerformanceMonitors
     } else {
       VM.sysWriteln("\nrvm: Hardware performance monitors not supported");
     }
-    VM.shutdown(-1);
+    VM.shutdown(VM.exitStatusBogusCommandLineArg);
   }
 
   /**
@@ -192,7 +192,7 @@ public class VM_HardwarePerformanceMonitors
 	  hpm_trace = false;
 	} else {
 	  VM.sysWriteln("\nrvm: unrecognized boolean value "+value+"\n -X:hpm:trace={true|false} is the correct syntax");
-	  VM.shutdown(-1);
+	  VM.shutdown(VM.exitStatusBogusCommandLineArg)
 	}
       } else if (name2.equals("trace_verbose")) {
 	String value = arg.substring(split+1);
@@ -201,7 +201,7 @@ public class VM_HardwarePerformanceMonitors
 	  int pid = Integer.parseInt(value);
 	  if (pid < 0) {
 	    VM.sysWriteln("\nrvm: unrecognized value "+value+"\n -X:hpm:trace_verbose=PID where PID >= 0 is the correct syntax, and 0 has null functionality.");
-	    VM.shutdown(-1);
+	    VM.shutdown(VM.exitStatusBogusCommandLineArg);
 	  }
 	  hpm_trace_verbose = pid;
 	} catch (Exception e) {
@@ -217,7 +217,7 @@ public class VM_HardwarePerformanceMonitors
 	  int verbose_level = Integer.parseInt(value);
 	  if (verbose_level < -1) {
 	    VM.sysWriteln("\nrvm: unrecognized value "+value+"\n -X:hpm:verbose=verbose_level where verbose_level >= -1 is the correct syntax");
-	    VM.shutdown(-1);
+	    VM.shutdown(exitStatusBogusCommandLineArg);
 	  }
 	  verbose = verbose_level;
 	} catch (Exception e) {
@@ -233,7 +233,7 @@ public class VM_HardwarePerformanceMonitors
 	  hpm_list_all_events = false;
 	} else {
 	  VM.sysWriteln("\nrvm: unrecognized boolean value "+value+"\n -X:hpm:list={true|false} is the correct syntax");
-	  VM.shutdown(-1);
+	  VM.shutdown(VM.exitStatusBogusCommandLineArg);
 	}
       } else if (name2.equals("listSelected")) {
 	String value = arg.substring(split+1);
@@ -243,7 +243,7 @@ public class VM_HardwarePerformanceMonitors
 	  hpm_list_selected_events = false;
 	} else {
 	  VM.sysWriteln("\nrvm: unrecognized boolean value "+value+"\n -X:hpm:events={true|false} is the correct syntax");
-	  VM.shutdown(-1);
+	  VM.shutdown(VM.exitStatusBogusCommandLineArg)
 	}
       } else if (name2.equals("threadGroup")) {
 	// not tested
@@ -262,11 +262,11 @@ public class VM_HardwarePerformanceMonitors
 	  hpm_test = true;
 	} else if (value.compareTo("false")!=0) {
 	  VM.sysWriteln("\nrvm: unrecognized boolean value "+value+"\n -X:hpm:test={true|false} is the correct syntax");
-	  VM.shutdown(-1);
+	  VM.shutdown(VM.exitStatusBogusCommandLineArg);
 	}
       } else {
 	VM.sysWriteln("rvm: Unrecognized argument \"-X:hpm:"+arg+"\"");
-	VM.shutdown(-1);
+	VM.shutdown(VM.exitStatusBogusCommandLineArg);
       }
       //-#endif
     } else {
@@ -372,11 +372,11 @@ public class VM_HardwarePerformanceMonitors
 		    hpm_info.numberOfCounters); VM.sysWriteln(" counters");
       }
       if (hpm_processor) { // specified "processor" command line argument
-	VM.shutdown(-1);
+	VM.shutdown(VM.exitStatusBogusCommandLineArg);
       }
       if (hpm_list_all_events) {
 	Java2HPM.listAllEvents();
-	VM.shutdown(-1);
+	VM.shutdown(VM.exitStatusBogusCommandLineArg);
       }
       String []short_names = new String[hpm_info.numberOfCounters];
       int[]    event_ids   = new int[hpm_info.numberOfCounters];
@@ -388,7 +388,7 @@ public class VM_HardwarePerformanceMonitors
 	  VM.sysWrite  ("***VM_HPMs.setUpHPMinfo() Java2HPM.getEventId(",i,") ");
 	  VM.sysWrite  (event_id," != hpm_info.ids[",i+1);
 	  VM.sysWriteln("] ",hpm_info.ids[i+1],"!***");
-	  VM.shutdown(-1);
+	  VM.shutdown(VM.exitStatusHPMTrouble);
 	}
 	if (max_length < short_names[i].length()) max_length=short_names[i].length();
 	if (verbose>=4){
@@ -474,17 +474,17 @@ public class VM_HardwarePerformanceMonitors
 
     if (header_trace_file != null) {	// constraint
       VM.sysWriteln("***VM_HPMs.openFileOutputStream(",header_trace_filename,") header_trace_file != null!***");      
-      VM.shutdown(-1);
+      VM.shutdown(VM.exitStatusHPMTrouble);
     }
 
     try {
       header_trace_file = new FileOutputStream(header_trace_filename);
     } catch (FileNotFoundException e) {
       VM.sysWriteln("***VM_HPMs.openFileOutputStream() FileNotFound exception with new FileOutputStream(",header_trace_filename,")");
-      VM.shutdown(-1);
+      VM.shutdown(VM.exitStatusHPMTrouble);
     } catch (SecurityException e) {
       VM.sysWriteln("***VM_HPMs.openFileOutputStream() Security exception with new FileOutputStream(",header_trace_filename,")");
-      VM.shutdown(-1);
+      VM.shutdown(VM.exitStatusHPMTrouble);
     } 
   }
 
@@ -662,14 +662,14 @@ public class VM_HardwarePerformanceMonitors
     if(verbose>=4)VM.sysWriteln("VM_HPMs.writeFileOutputStream(buffer, 0, ",length,")");
     if (length <= 0) return;
     if (header_trace_file == null) { 	// constraint
-      VM.sysWriteln("\n***VM_HPMs.writeFileOutputStream() header_trace_file == null!  Call VM.shutdown(-9)***");
-      VM.shutdown(-9);
+      VM.sysWriteln("\n***VM_HPMs.writeFileOutputStream() header_trace_file == null!  Call VM.shutdown(VM.exitStatusHPMTrouble)***");
+      VM.shutdown(VM.exitStatusHPMTrouble);
     }
     try {
       header_trace_file.write(buffer, 0, length);
     } catch (IOException e) {
       VM.sysWriteln("***VM_HPMs.writeFileOutputStream(",length,") throws IOException!***");
-      e.printStackTrace(); VM.shutdown(-1);
+      e.printStackTrace(); VM.shutdown(VM.exitStatusHPMTrouble);
     }
   }
   /**

@@ -300,7 +300,7 @@ hardwareTrapHandler (int signo, siginfo_t *si, void *context)
       write (SysErrorFd, buf,
              sprintf (buf,
                    "invalid frame address %x (not an address - high nibble %d)\n", localFrameAddress, fp_hn) );
-      exit (1);
+      exit (-1);
     }
   }
 
@@ -593,7 +593,7 @@ void softwareSignalHandler (int signo, siginfo_t * si, void *context) {
       // Presumably we received this signal because someone wants us
       // to shut down.  Exit directly (unless the lib_verbose flag is set).
       if (!lib_verbose)
-	_exit(1);
+	_exit(-1);
 
       DumpStackAndDieOffset = bootRecord->dumpStackAndDieOffset;
 

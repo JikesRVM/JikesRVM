@@ -267,7 +267,7 @@ abstract class VM_RecompilationStrategy {
       _optPlans[i]=OPT_OptimizationPlanner.createOptimizationPlan(_options[i]);
       if (_options[i].PRELOAD_CLASS != null) {
 	VM.sysWrite("In an adaptive system, PRELOAD_CLASS should be specified with -X:aos:irc not -X:aos:opt\n");
-	VM.sysExit(1);
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
       }
     }
   }

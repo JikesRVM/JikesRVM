@@ -73,25 +73,22 @@ public class Throwable implements java.io.Serializable {
   private int numWeirdErrors = 0;
   public int maxWeirdErrors = 4;	/* just a guess.  Resettable if you
 					   really want to. */
-  public int exitStatusTooManyWeirdErrors = 99;
-  
   public void tallyWeirdError() {
     if (++numWeirdErrors >= maxWeirdErrors) {
       /* We exit before printing, in case we're in some weird hell where
 	 everything is broken, even VM.sysWriteln().. */
-      VM.sysExit(exitStatusTooManyWeirdErrors);
+      VM.sysExit(VM.exitStatusTooManyThrowableErrors);
     }
   }
   
   private int numOutOfMemoryErrors = 0;
   public int maxOutOfMemoryErrors = 5; /* again, a guess at a good value.
 					  Resettable if the user wants to. */
-  final int exitStatusTooManyOutOfMemoryErrors = 99;
   public void tallyOutOfMemoryError() {
     if (++numWeirdErrors >= maxWeirdErrors) {
       /* We exit before printing, in case we're in some weird hell where
 	 everything is broken, even VM.sysWriteln().. */
-      VM.sysExit(exitStatusTooManyWeirdErrors);
+      VM.sysExit(VM.exitStatusTooManyOutOfMemoryErrors);
     }
   }
   

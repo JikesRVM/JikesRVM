@@ -519,7 +519,7 @@ main(int argc, char **argv)
   // not reached
   //
   fprintf(SysErrorFile, "%s: unexpected return from vm startup thread\n", me);
-  exit(1);
+  exit(-1);
 }
 
 
