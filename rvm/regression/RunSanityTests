@@ -402,10 +402,7 @@ function doBuild {
 	if [[ $WAIT ]]; then
 	    say "Leaving a wait marker in RVM_BUILD/\"$WAIT\""
 	    # Leave a marker to signify the building is done.
-	    if (( failed == 1 )); then
-		echo "SUCCESS Built boot image for $NAME in what must be a cross-platform build. Must still run jbuild -booter to create executable."
-		say "You may remove this file" 
-	    elif (( failed )); then
+	    if (( failed )); then
 		echo "FAILED to build $NAME at $(date) on $(hostname)"
 		say "  See $RVM_BUILD/RVM.trace for details"
 		say "You may remove this file" 
