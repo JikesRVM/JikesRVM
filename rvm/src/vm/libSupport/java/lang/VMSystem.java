@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2002
+ * (C) Copyright IBM Corp 2002, 2004
  */
 //$Id$
 package java.lang;
@@ -114,5 +114,14 @@ final class VMSystem {
       throw new InternalError( ex.toString() );
     }
   }
+
+  /** Get the value of an environment variable.
+   * XXX This is a stub implementation to get Classpath 0.11 working.
+   * It needs to be improved -- returning null is valid,
+   * but not so useful. */
+  static String getenv(String envarName) {
+    return null;
+  }
+  
 
 }
