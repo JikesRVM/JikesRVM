@@ -153,14 +153,15 @@ build directory.
 
 The remainder of this section describes the process in greater detail.
 
-\W \JikesTMFooter
+\JikesTMFooter
 
 \subsection{Installation Steps}
 
 \begin{enumerate}
 \item {\bf Set up a working directory.}
 
-First extract the RVM source distribution into a directory such as 
+First extract the Jikes\trademark RVM source distribution into a
+directory such as  
 {\tt \$HOME/rvmRoot}.
 \begin{verbatim}
 % cd $HOME
@@ -169,7 +170,7 @@ First extract the RVM source distribution into a directory such as
 % zcat jikesrvm-[version].tar.gz | tar xvf - 
 \end{verbatim}
 
-Next extract the RVM standard libraries.  The following installs the
+Next extract the Jikes RVM standard libraries.  The following installs the
 standard library file {\tt rvmrt.jar} in {\tt \$RVM\_ROOT/support/lib}.
 \begin{verbatim}
 % cd $HOME/rvmRoot
@@ -188,7 +189,7 @@ You need to set up the following shell environment variables:
 \item [{\tt RVM\_ROOT}] the directory that contains the extracted
 distribution 
 \item [{\tt RVM\_BUILD}] the directory where you would like the build
-process to generate an executable RVM configuration
+process to generate an executable Jikes RVM configuration
 
 \item [{\tt RVM\_HOST\_CONFIG}] the configuration file used to specify
 the software environment on which the system is generated; i.e., where the
@@ -236,7 +237,7 @@ setenv RVM_TARGET_CONFIG $RVM_ROOT/rvm/config/i686-pc-cygwin
 
 These two variables point to the same file when the type of system  
 doing the build is the same as where  you are going 
-the execute the RVM. To cross build a system
+the execute the Jikes RVM. To cross build a system
 e.g., build on AIX\AIXTMFootnote/PowerPC\PowerPCTMFootnote for a
 Linux/IA32 platform, see the section on Cross 
 Platform Building.
@@ -245,8 +246,8 @@ Platform Building.
 
 You must edit a script in the {\tt \$RVM\_ROOT/rvm/config}  directory to set 
 up variables used by the installation process.  
-If someone else at your site has already installed RVM, they have
-probably already done this step for you.  Consult your local RVM guru.
+If someone else at your site has already installed Jikes RVM, they have
+probably already done this step for you.  Consult your local Jikes RVM guru.
 
 You must edit the file(s) that define the host and target configuration
 environments in the {\tt \$RVM\_ROOT/rvm/config} directory.  
@@ -255,7 +256,7 @@ variables in this file will be picked up by the installation scripts.
 
 The host and target configuration files have two sections.  In the
 first section, you specify the operating system, architecture, and
-whether or not the platform will support SMP-builds of JikesRVM. 
+whether or not the platform will support SMP-builds of Jikes RVM. 
 For operating system, define one of RVM\_FOR\_LINUX, RVM\_FOR\_AIX, or
 RVM\_FOR\_CYGWIN to be 1.  For architecture define either
 RVM\_FOR\_IA32 or RVM\_FOR\_POWERPC to be 1.  For SMP status, set
@@ -270,7 +271,7 @@ RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR
 segment register to access pthread-specific state.
 \end{description}                
 The second section in the configuration file is used to define how to
-find tools that RVM needs. You must set the following variables:
+find tools that Jikes RVM needs. You must set the following variables:
 \begin{description}
 \item {\tt HOST\_JAVA\_HOME} the base directory for JDK JVM
 \item {\tt HOST\_JAVA} the executable command for the JDK JVM
@@ -285,7 +286,8 @@ find tools that RVM needs. You must set the following variables:
 \item {\tt LDSHARED} how to link a shared C++ library.
 \item {\em various basic Unix utilities} e.g., {\tt grep}, {\tt xargs}, etc.
 \end{description}
-The remaining variables in the config file are not required for basic RVM
+The remaining variables in the config file are not required for basic
+Jikes RVM
 builds.
 
 Someday we should consider setting up an autoconf to automate this
@@ -297,10 +299,11 @@ step.
 
 You will use the {\tt jconfigure} script (in {\tt \$RVM\_ROOT/rvm/bin}) to
 populate your build ({\tt \$RVM\_BUILD}) directory with files.  You must
-first choose a RVM configuration.
+first choose a Jikes RVM configuration.
 
-For novice users, two configurations are recommended.  (A discussion
-of RVM configurations appears in Section~\ref{configs}.)
+For novice users performing application performance runs, two
+configurations are recommended.  (A discussion 
+of Jikes RVM configurations appears in Section~\ref{configs}.)
 
 \begin{itemize}
 \item {\tt BaseBaseSemispace}: a non-adaptive system that uses the
@@ -338,14 +341,14 @@ the following command:
 \index{jbuild script}
 \index{boot image}
 \index{RVM\_BUILD}
-\item {\bf Build an executable version of RVM.}  
+\item {\bf Build an executable version of Jikes RVM.}  
 
 Use the {\tt jbuild} script, located in the {\tt \$RVM\_BUILD} directory,
 to build an executable system.  This script copies source files into
 {\tt \$RVM\_BUILD/RVM.classes}, preprocesses these files, generates
 some code with template expansions, builds an executable C program to
-start the RVM, and writes the RVM boot image.  The boot image is the
-binary image of a ready-to-go instance of the RVM.
+start the Jikes RVM, and writes the Jikes RVM boot image.  The boot
+image is the binary image of a ready-to-go instance of the Jikes RVM.
 
 The {\tt jbuild} script must be run from the {\tt \$RVM\_BUILD}
 directory. It prints a copious report of its operation which you may
@@ -365,20 +368,18 @@ affect system viability.
 
 \end{enumerate}
 
-\JikesTMFooter
+\AIXPPCJikesTMFooter
 
-\AIXTMFooter
-
-\PowerPCTMFooter
-
-\subsection{RVM Configurations}\label{configs}
+\subsection{Jikes RVM Configurations}\label{configs}
 \index{configuration names}
 
-This section describes the RVM build configurations.  The various RVM
+This section describes the Jikes\trademark RVM build configurations.
+The various 
 build configurations are defined by files in {\tt
 \$RVM\_ROOT/rvm/config/build}.
 
-Most standard RVM configuration files loosely follow the following naming scheme
+Most standard Jikes RVM configuration files loosely follow the
+following naming scheme 
 \begin{verbatim}
        <boot image compiler> <runtime compiler> <garbage collector>
 \end{verbatim}
@@ -387,7 +388,8 @@ Most standard RVM configuration files loosely follow the following naming scheme
 \index{runtime compiler}
 where
 \begin{itemize}
-\item the {\em boot image compiler} is the compiler used to compile the RVM boot image.
+\item the {\em boot image compiler} is the compiler used to compile
+the Jikes RVM boot image. 
 \item the {\em runtime compiler} is the ``compiler'' used to compile
 the classes loaded at runtime.  
 \item the {\em garbage collector} is the garbage collection scheme used.
@@ -426,8 +428,8 @@ Some files augment the standard configurations as follows:
 \item The word 
 {\em Full} at the beginning of the configuration name identifies a 
 configuration
-such that all the RVM classes are included in the boot image (by default
-a small subset of the RVM classes are included in the boot image). 
+such that all the Jikes RVM classes are included in the boot image (by default
+a small subset of these classes are included in the boot image). 
 \item The word
 {\em Fast} at the beginning of the configuration name identifies a Full
 configuration where all assertion checking has been turned off. 
@@ -487,6 +489,8 @@ To view a list of configurations see
 directory to define your own configurations with different options.  See
 the {\tt jconfigure} file for a list of all options the builder
 understands.
+
+\JikesTMFooter
 
 \subsection{Cross Platform Building}
 
