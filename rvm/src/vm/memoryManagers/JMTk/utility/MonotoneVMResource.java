@@ -59,10 +59,10 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
   }
 
   public VM_Address acquire(int blockRequest, MemoryResource memoryResource) {
+
     if ((memoryResource != null) 
 	&& (!memoryResource.acquire(Conversions.blocksToPages(blockRequest)))) 
       return VM_Address.zero();
-    boolean gcInProgress = Plan.gcInProgress();
     lock();
     int bytes = Conversions.blocksToBytes(blockRequest);
     VM_Address tmpCursor = cursor.add(bytes);
@@ -74,7 +74,8 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
       cursor = tmpCursor;
       unlock();
       LazyMmapper.ensureMapped(oldCursor, blockRequest);
-      Memory.zero(oldCursor, bytes);
+      // Memory.zero(oldCursor, bytes);
+      Memory.zeroPages(oldCursor, bytes);
       return oldCursor;
     }
   }
