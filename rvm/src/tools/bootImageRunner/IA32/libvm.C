@@ -68,7 +68,7 @@ FILE *SysTraceFile = stderr;
 int SysTraceFd = 2;
 
 /* Command line arguments to be passed to virtual machine. */
-char **JavaArgs;
+const char **JavaArgs;
 int JavaArgc;
 
 /* global; startup configuration option with default values */
@@ -840,6 +840,11 @@ createJVM(int UNUSED vmInSeparateThread)
     /* write freespace information into boot record */
     bootRecord->initialHeapSize  = initialHeapSize;
     bootRecord->maximumHeapSize  = maximumHeapSize;
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+    bootRecord->initialStackSize = initialStackSize;
+    bootRecord->stackGrowIncrement = stackGrowIncrement;
+    bootRecord->maximumStackSize = maximumStackSize;
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
     bootRecord->bootImageStart   = (int) bootRegion;
     bootRecord->bootImageEnd     = (int) bootRegion + roundedImageSize;
     bootRecord->verboseBoot      = verboseBoot;
@@ -856,6 +861,14 @@ createJVM(int UNUSED vmInSeparateThread)
                 bootRecord->initialHeapSize);
         fprintf(SysTraceFile, "   maximumHeapSize:      0x%08x\n", 
                 bootRecord->maximumHeapSize);
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+        fprintf(SysTraceFile, "   initialStackSize:     0x%08x\n", 
+                bootRecord->initialStackSize);
+        fprintf(SysTraceFile, "   stackGrowIncrement:   0x%08x\n", 
+                bootRecord->stackGrowIncrement);
+        fprintf(SysTraceFile, "   maximumStackSize:     0x%08x\n", 
+                bootRecord->maximumStackSize);
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
         fprintf(SysTraceFile, "   tiRegister:           0x%08x\n", 
                 bootRecord->tiRegister);
         fprintf(SysTraceFile, "   spRegister:           0x%08x\n", 

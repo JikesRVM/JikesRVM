@@ -343,7 +343,7 @@ FILE *SysTraceFile = stderr;
 int SysTraceFd = 2;
 
 /* Command line arguments to be passed to the VM. */
-char **JavaArgs;
+const char **JavaArgs;
 int JavaArgc;
 
 /* Emit trace information? */
@@ -1241,6 +1241,11 @@ createJVM(int vmInSeparateThread)
     //
     bootRecord.initialHeapSize  = initialHeapSize;
     bootRecord.maximumHeapSize  = maximumHeapSize;
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+    bootRecord.initialStackSize = initialStackSize;
+    bootRecord.stackGrowIncrement = stackGrowIncrement;
+    bootRecord.maximumStackSize = maximumStackSize;
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
     bootRecord.bootImageStart   = (VM_Address) bootRegion;
     bootRecord.bootImageEnd     = (VM_Address) bootRegion + roundedImageSize;
     bootRecord.verboseBoot      = verboseBoot;
@@ -1270,6 +1275,14 @@ createJVM(int vmInSeparateThread)
         fprintf(SysTraceFile, "   initialHeapSize:      " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.initialHeapSize));
         assert(sizeof bootRecord.maximumHeapSize == 4);
         fprintf(SysTraceFile, "   maximumHeapSize:      " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.maximumHeapSize));
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+        assert(sizeof bootRecord.initialStackSize == 4);
+        fprintf(SysTraceFile, "   initialStackSize:     " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.initialStackSize));
+        assert(sizeof bootRecord.stackGrowIncrement == 4);
+        fprintf(SysTraceFile, "   stackGrowIncrement:   " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.stackGrowIncrement));
+        assert(sizeof bootRecord.maximumStackSize == 4);
+        fprintf(SysTraceFile, "   maximumStackSize:     " FMTrvmPTR32 "\n",   rvmPTR32_ARG(bootRecord.maximumStackSize));
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
         fprintf(SysTraceFile, "   tiRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.tiRegister));
         fprintf(SysTraceFile, "   spRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.spRegister));
         fprintf(SysTraceFile, "   ipRegister:           " FMTrvmPTR   "\n",   rvmPTR_ARG(bootRecord.ipRegister));

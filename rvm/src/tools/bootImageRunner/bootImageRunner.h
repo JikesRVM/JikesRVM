@@ -30,7 +30,7 @@ extern int   SysTraceFd;	// libvm.C
 
 // Command line arguments to be passed to boot image.
 //
-extern char **	JavaArgs;	// libvm.C
+extern const char **	JavaArgs;	// libvm.C
 extern int	JavaArgc; 	// libvm.C
 
 // Emit trace information?
@@ -46,6 +46,12 @@ extern char *Me;		// Defined in libvm.C
 /* libvm.C and RunBootImage.C */
 extern uint64_t initialHeapSize;
 extern uint64_t maximumHeapSize;
+// #define RVM_WITH_FLEXIBLE_STACK_SIZES
+#ifdef RVM_WITH_FLEXIBLE_STACK_SIZES
+extern uint64_t initialStackSize;
+extern uint64_t stackGrowIncrement;
+extern uint64_t maximumStackSize;
+#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
 extern int verboseBoot;
 
 /* Defined in libvm.C; used in RunBootImage.C */
