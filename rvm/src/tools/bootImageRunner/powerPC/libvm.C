@@ -49,7 +49,7 @@ extern "C" int createJVM(int);
 // [--DL]
 //
 
-#if __linux__
+#if (defined __linux__) || (defined GCTk)
 #define USE_MMAP 1 // choose mmap() for Linux --SB
 #else
 #define USE_MMAP 0 // choose shmat() --DL
@@ -753,11 +753,15 @@ createJVM(int vmInSeparateThread)
    void    *region1address = (void *) bootImageAddress; // address used by boot image writer
    unsigned region1size = (((permaHeap + smallHeapSize) / 4096) + 1) * 4096;
 #if USE_MMAP
-#ifdef __linux__
-   int tmpfd = open( "/dev/zero", O_APPEND );
-   void *region1 = mmap(region1address, region1size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_FIXED, tmpfd, 0);
+#ifdef GCTk
+   unsigned mmapsize = ((imageSize + 4095) & ~4095);
 #else
-   void *region1 = mmap(region1address, region1size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+   unsigned mmapsize = region1size;
+#endif
+#ifdef __linux__
+   void *region1 = mmap(region1address, mmapsize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
+#else
+   void *region1 = mmap(region1address, mmapsize, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_FIXED, -1, 0);
 #endif
    if (region1 == (void *)-1)
       {
@@ -786,12 +790,18 @@ createJVM(int vmInSeparateThread)
 
    void    *region2address = (void *)0; // any address is ok
    unsigned region2size    = ((largeHeapSize / 4096) + 1) * 4096;
+   void    *region2        = region2address;
 #if USE_MMAP
+#ifdef GCTk
+   // we don't use region2 in GCTk, so don't mmap anything
+   region2 = (void *) ((unsigned int) region1 + (unsigned int) mmapsize + 4096);
+#else
 #ifdef __linux__
    region2address = (void *) ((unsigned int) region1address + 0x10000000);  // using MAP_FIXED
-   void *region2 = mmap(region2address, region2size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_FIXED, tmpfd, 0);
+   region2 = mmap(region2address, region2size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
 #else
-   void *region2 = mmap(region2address, region2size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_VARIABLE, -1, 0);
+   region2 = mmap(region2address, region2size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_VARIABLE, -1, 0);
+#endif
 #endif
    if (region2 == (void *)-1)
       {
@@ -805,7 +815,7 @@ createJVM(int vmInSeparateThread)
       fprintf(SysErrorFile, "%s: shmget failed (errno=%d)\n", me, errno);
       return 1;
       }
-   void *region2 = shmat(id2, region2address, 0);
+   region2 = shmat(id2, region2address, 0);
    if (region2 == (void *)-1)
       {
       fprintf(SysErrorFile, "%s: shmat failed (errno=%d)\n", me, errno);
@@ -956,7 +966,11 @@ createJVM(int vmInSeparateThread)
    bootRecord.endAddress  = (int)region1 + region1size;
    bootRecord.largeStart  = (int)region2;
    bootRecord.largeSize   = region2size;
+   #ifdef GCTk
+   bootRecord.heapEnd = (int)region1 + permaHeap;
+   #else
    bootRecord.heapEnd     = (int)region2 + region2size;
+   #endif
    bootRecord.nurserySize = nurserySize;
    
 #if 0
@@ -1041,7 +1055,7 @@ createJVM(int vmInSeparateThread)
      return 1;
    }
    /* exclude the signal used to poke pthreads */
-   if (sigdelset(&(action.sa_mask, SIGCONT)))
+   if (sigdelset(&(action.sa_mask), SIGCONT))
    {
      fprintf(SysErrorFile, "%s: sigdelset failed (errno=%d)\n", me, errno);
      return 1;
