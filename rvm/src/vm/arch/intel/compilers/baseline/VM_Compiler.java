@@ -28,7 +28,8 @@ public class VM_Compiler implements VM_BaselineConstants {
 				     (!options.hasMETHOD_TO_PRINT() ||
 				     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
       if (shouldPrint) printStartHeader(method);
-      VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method);
+      compiler.stackHeights        = new int[method.getBytecodes().length];
+      VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method, compiler.stackHeights);
       VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method, shouldPrint);
       if (shouldPrint) printEndHeader(method);
       INSTRUCTION[]   instructions = machineCode.getInstructions();
@@ -123,7 +124,6 @@ public class VM_Compiler implements VM_BaselineConstants {
       profilerClass        = null; // TODO!! set this correctly
       parameterWords       = method.getParameterWords();
       parameterWords      += (method.isStatic() ? 0 : 1); // add 1 for this pointer
-      //      if (VM.VerifyAssertions) VM.assert(parameters == 0); // TODO!!
     }
     VM_Assembler asm = this.asm; // premature optimization
     if (klass.isBridgeFromNative()) {
@@ -141,7 +141,6 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.resolveForwardReferences(bi);
       biStart = bi;
       int code = fetch1ByteUnsigned();
-      // if (VM.runningVM) VM.sysWrite("\n at: " + VM_Lister.decimal(biStart) + " = " + VM_Lister.hex((byte) code) + "\n");
       switch (code) {
       case 0x00: /* nop */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "nop");
@@ -264,175 +263,165 @@ public class VM_Compiler implements VM_BaselineConstants {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp(FP,offset);
+	asm.emitPUSH_RegDisp(ESP,offset);
 	break;
       }
       case 0x16: /* lload */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(index+1);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
 	break;
       }
       case 0x17: /* fload */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp (FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x18: /* dload */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(index+1);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
 	break;
       }
       case 0x19: /* aload */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
-	asm.emitPUSH_RegDisp(FP, offset);
+	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       }
       case 0x1a: /* iload_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload_0");
 	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x1b: /* iload_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload_1");
 	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x1c: /* iload_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload_2");
 	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp (FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x1d: /* iload_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iload_3");
 	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x1e: /* lload_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload_0");
 	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(1);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); // low part (ESP has moved by 4!!)
 	break;
       }
       case 0x1f: /* lload_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload_1");
 	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(2);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x20: /* lload_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload_2");
 	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(3);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x21: /* lload_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lload_3");
 	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(4);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x22: /* fload_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload_0");
 	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x23: /* fload_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload_1");
 	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x24: /* fload_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload_2");
 	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x25: /* fload_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fload_3");
 	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp ( FP, offset);
+	asm.emitPUSH_RegDisp (ESP, offset);
 	break;
       }
       case 0x26: /* dload_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload_0");
 	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(1);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x27: /* dload_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload_1");
 	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(2);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x28: /* dload_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload_2");
 	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(3);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x29: /* dload_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dload_3");
 	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp(FP, offset); // high part
-	offset = localOffset(4);
-	asm.emitPUSH_RegDisp(FP, offset); //  low part
+	asm.emitPUSH_RegDisp(ESP, offset); // high part
+	asm.emitPUSH_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x2a: /* aload_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload_0");
 	int offset = localOffset(0);
-	asm.emitPUSH_RegDisp(FP, offset);
+	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       }
       case 0x2b: /* aload_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload_1");
 	int offset = localOffset(1);
-	asm.emitPUSH_RegDisp(FP, offset);
+	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       }           
       case 0x2c: /* aload_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload_2");
 	int offset = localOffset(2);
-	asm.emitPUSH_RegDisp(FP, offset);
+	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       }
       case 0x2d: /* aload_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "aload_3");
 	int offset = localOffset(3);
-	asm.emitPUSH_RegDisp(FP, offset);
+	asm.emitPUSH_RegDisp(ESP, offset);
 	break;
       } 
       case 0x2e: /* iaload */ {
@@ -515,176 +504,166 @@ public class VM_Compiler implements VM_BaselineConstants {
       case 0x36: /* istore */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore " + VM_Lister.decimal(index));
-	int offset = localOffset(index);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset); 
 	break;
       }
       case 0x37: /* lstore */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore " + VM_Lister.decimal(index));
-	int offset = localOffset(index+1);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(index);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(index+1) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x38: /* fstore */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore " + VM_Lister.decimal(index));
-	int offset = localOffset(index);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x39: /* dstore */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore " + VM_Lister.decimal(index));
-	int offset = localOffset(index+1);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(index);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(index+1) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x3a: /* astore */ {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore " + VM_Lister.decimal(index));
-	int offset = localOffset(index);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x3b: /* istore_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore_0");
-	int offset = localOffset(0);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(0) - 4;
+	asm.emitPOP_RegDisp (ESP, offset); // pop computes EA after ESP has moved by 4!
 	break;
       }
       case 0x3c: /* istore_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore_1");
-	int offset = localOffset(1);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(1) -4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x3d: /* istore_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore_2");
-	int offset = localOffset(2);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x3e: /* istore_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "istore_3");
-	int offset = localOffset(3);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x3f: /* lstore_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore_0");
-	int offset = localOffset(1);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(0);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x40: /* lstore_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore_1");
-	int offset = localOffset(2);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(1);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x41: /* lstore_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore_2");
-	int offset = localOffset(3);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(2);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       } 
       case 0x42: /* lstore_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "lstore_3");
-	int offset = localOffset(4);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(3);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(4) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x43: /* fstore_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore_0");
-	int offset = localOffset(0);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(0) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x44: /* fstore_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore_1");
-	int offset = localOffset(1);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x45: /* fstore_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore_2");
-	int offset = localOffset(2);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x46: /* fstore_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "fstore_3");
-	int offset = localOffset(3);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x47: /* dstore_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore_0");
-	int offset = localOffset(1);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(0);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x48: /* dstore_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore_1");
-	int offset = localOffset(2);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(1);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x49: /* dstore_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore_2");
-	int offset = localOffset(3);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(2);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x4a: /* dstore_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "dstore_3");
-	int offset = localOffset(4);
-	asm.emitPOP_RegDisp(FP, offset); // high part
-	offset = localOffset(3);
-	asm.emitPOP_RegDisp(FP, offset); //  low part
+	int offset = localOffset(4) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp(ESP, offset); // high part
+	asm.emitPOP_RegDisp(ESP, offset); //  low part (ESP has moved by 4!!)
 	break;
       }
       case 0x4b: /* astore_0 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore_0");
-	int offset = localOffset(0);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(0) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x4c: /* astore_1 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore_1");
-	int offset = localOffset(1);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(1) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset); 
 	break;
       }
       case 0x4d: /* astore_2 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore_2");
-	int offset = localOffset(2);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(2) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x4e: /* astore_3 */ {
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "astore_3");
-	int offset = localOffset(3);
-	asm.emitPOP_RegDisp (FP, offset);
+	int offset = localOffset(3) - 4; // pop computes EA after ESP has moved by 4!
+	asm.emitPOP_RegDisp (ESP, offset);
 	break;
       }
       case 0x4f: /* iastore */ {
@@ -1287,7 +1266,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	int val = fetch1ByteSigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "iinc " + VM_Lister.decimal(index) + " " + VM_Lister.decimal(val));
 	int offset = localOffset(index);
-	asm.emitADD_RegDisp_Imm(FP, offset, val);
+	asm.emitADD_RegDisp_Imm(ESP, offset, val);
 	break;
       }
       case 0x85: /* i2l */ {
@@ -1722,7 +1701,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	int index = fetch1ByteUnsigned();
 	if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "ret " + VM_Lister.decimal(index));
 	int offset = localOffset(index);
-	asm.emitJMP_RegDisp(FP, offset); 
+	asm.emitJMP_RegDisp(ESP, offset); 
 	break;
       }
       case 0xaa: /* tableswitch */ {
@@ -2519,78 +2498,78 @@ public class VM_Compiler implements VM_BaselineConstants {
 	case 0x15: /* --- wide iload --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide iload " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
-	  asm.emitPUSH_RegDisp(FP,offset);
+	  asm.emitPUSH_RegDisp(ESP,offset);
 	  break;
 	}
 	case 0x16: /* --- wide lload --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide lload " + VM_Lister.decimal(index));
-	  int offset = localOffset(index) - 4;
-	  asm.emitPUSH_RegDisp(FP, offset+4);  // high part
-	  asm.emitPUSH_RegDisp(FP, offset);    //  low part
+	  int offset = localOffset(index);
+	  asm.emitPUSH_RegDisp(ESP, offset);  // high part
+	  asm.emitPUSH_RegDisp(ESP, offset);  //  low part (ESP has moved by 4!!)
 	  break;
 	}
 	case 0x17: /* --- wide fload --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide fload " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
-	  asm.emitPUSH_RegDisp (FP, offset);
+	  asm.emitPUSH_RegDisp (ESP, offset);
 	  break;
 	}
 	case 0x18: /* --- wide dload --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide dload " + VM_Lister.decimal(index));
-	  int offset = localOffset(index) - 4;
-	  asm.emitPUSH_RegDisp(FP, offset+4);  // high part
-	  asm.emitPUSH_RegDisp(FP, offset);    //  low part
+	  int offset = localOffset(index);
+	  asm.emitPUSH_RegDisp(ESP, offset);  // high part
+	  asm.emitPUSH_RegDisp(ESP, offset);  //  low part (ESP has moved by 4!!)
 	  break;
 	}
 	case 0x19: /* --- wide aload --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide aload " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
-	  asm.emitPUSH_RegDisp(FP, offset);
+	  asm.emitPUSH_RegDisp(ESP, offset);
 	  break;
 	}
 	case 0x36: /* --- wide istore --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide istore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index);
-	  asm.emitPOP_RegDisp (FP, offset);
+	  int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+	  asm.emitPOP_RegDisp (ESP, offset);
 	  break;
 	}
 	case 0x37: /* --- wide lstore --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide lstore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index)-4;
-	  asm.emitPOP_RegDisp (FP, offset);   // store low half of long
-	  asm.emitPOP_RegDisp (FP, offset+4); // store high half
+	  int offset = localOffset(index)-8; // pop computes EA after ESP has moved by 4!
+	  asm.emitPOP_RegDisp (ESP, offset);   // store low half of long
+	  asm.emitPOP_RegDisp (ESP, offset);   // store high half (ESP has moved by 4!!)
 	  break;
 	}
 	case 0x38: /* --- wide fstore --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide fstore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index);
-	  asm.emitPOP_RegDisp (FP, offset);
+	  int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+	  asm.emitPOP_RegDisp (ESP, offset);
 	  break;
 	}
 	case 0x39: /* --- wide dstore --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide dstore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index)-4;
-	  asm.emitPOP_RegDisp (FP, offset);   // store low half of double
-	  asm.emitPOP_RegDisp (FP, offset+WORDSIZE); // store high half
+	  int offset = localOffset(index)-8; // pop computes EA after ESP has moved by 4!
+	  asm.emitPOP_RegDisp (ESP, offset);   // store low half of double
+	  asm.emitPOP_RegDisp (ESP, offset);   // store high half (ESP has moved by 4!!)
 	  break;
 	}
 	case 0x3a: /* --- wide astore --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide astore " + VM_Lister.decimal(index));
-	  int offset = localOffset(index);
-	  asm.emitPOP_RegDisp (FP, offset);
+	  int offset = localOffset(index) - 4; // pop computes EA after ESP has moved by 4!
+	  asm.emitPOP_RegDisp (ESP, offset);
 	  break;
 	}
 	case 0x84: /* --- wide iinc --- */ {
 	  int val = fetch2BytesSigned();
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide inc " + VM_Lister.decimal(index) + " by " + VM_Lister.decimal(val));
 	  int offset = localOffset(index);
-	  asm.emitADD_RegDisp_Imm(FP, offset, val);
+	  asm.emitADD_RegDisp_Imm(ESP, offset, val);
 	  break;
 	}
 	case 0x9a: /* --- wide ret --- */ {
 	  if (VM_Assembler.TRACE) asm.noteBytecode(biStart, "wide ret " + VM_Lister.decimal(index));
 	  int offset = localOffset(index);
-	  asm.emitJMP_RegDisp(FP, offset); 
+	  asm.emitJMP_RegDisp(ESP, offset); 
 	  break;
 	}
 	default:
@@ -2790,7 +2769,7 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitMOV_Reg_RegInd (T0, T0);		                   // T0 = VM_Class for klass
       asm.emitPUSH_RegDisp(T0, VM_Entrypoints.classForTypeOffset); // push java.lang.Class object for klass
     } else {
-      asm.emitPUSH_RegDisp(FP, localOffset(0));	                   // push "this" object
+      asm.emitPUSH_RegDisp(ESP, localOffset(0));	                   // push "this" object
     }
     genParameterRegisterLoad(1);			           // pass 1 parameter
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.lockOffset);  
@@ -2804,7 +2783,7 @@ public class VM_Compiler implements VM_BaselineConstants {
       asm.emitMOV_Reg_RegInd (T0, T0);                             // T0 = VM_Class for klass
       asm.emitPUSH_RegDisp(T0, VM_Entrypoints.classForTypeOffset); // push java.lang.Class object for klass
     } else {
-      asm.emitPUSH_RegDisp(FP, localOffset(0));                    // push "this" object
+      asm.emitPUSH_RegDisp(ESP, localOffset(0));                    // push "this" object
     }
     genParameterRegisterLoad(1); // pass 1 parameter
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unlockOffset);  
@@ -2960,7 +2939,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	  srcOffset -= WORDSIZE;
 	  dstOffset -= WORDSIZE;
 	  if (gpr < NUM_PARAMETER_GPRS) {
-	    asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);  // lo mem := hi register (== lo order word)
+	    asm.emitMOV_RegDisp_Reg(FP, dstOffset, T);  // lo mem := hi register (== lo order word)
 	    gpr++;
 	  } else {
 	    asm.emitMOV_Reg_RegDisp(S0, FP, srcOffset); // lo mem from caller's stackframe
@@ -3006,7 +2985,7 @@ public class VM_Compiler implements VM_BaselineConstants {
 	dstOffset -= WORDSIZE;
       } else { // t is object, int, short, char, byte, or boolean
         if (gpr < NUM_PARAMETER_GPRS) {
-	  asm.emitMOV_RegDisp_Reg(SP, dstOffset, T);
+	  asm.emitMOV_RegDisp_Reg(FP, dstOffset, T);
 	  T = T1; // at most 2 parameters can be passed in general purpose registers
 	  gpr++;
 	} else {
@@ -3731,10 +3710,10 @@ public class VM_Compiler implements VM_BaselineConstants {
     
   }
 
-  // Offset of Java local variable (off frame pointer)
+  // Offset of Java local variable (off stack pointer)
   //
   private final int localOffset  (int local) {
-    return firstLocalOffset - (local<<LG_WORDSIZE);
+    return (stackHeights[biStart] - local)<<LG_WORDSIZE;
   }
   
   /* reading bytecodes */
@@ -3835,6 +3814,7 @@ public class VM_Compiler implements VM_BaselineConstants {
   private VM_Class     profilerClass;
   private int          parameterWords;
   private int          firstLocalOffset;
+  private int[]        stackHeights;
   
           int          lockOffset;
 
