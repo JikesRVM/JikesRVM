@@ -1615,6 +1615,7 @@ function emitImageLinker
       if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
           print "   print '[[D'                               >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[LVM_MethodListener;'              >> $PRIMORDIAL_CLASSES_STR"
+          print "   print '[LVM_EdgeListener;'                >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[LVM_ContextListener;'             >> $PRIMORDIAL_CLASSES_STR"
           print "   print '[LVM_NullListener;'                >> $PRIMORDIAL_CLASSES_STR"
           print "   print 'LOPT_ContextFreeInlinePlan;'       >> $PRIMORDIAL_CLASSES_STR"
