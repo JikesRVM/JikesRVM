@@ -138,6 +138,8 @@ public class VM_CommandLineArgs {
 
   static {
     // Bubble sort the prefixes (yeah, yeah, I know)
+    // 
+    // Besides, this is done only at boot image writing time, not at runtime.
     for (int i = 0; i < prefixes.length; i++)
       for (int j = i + 1; j < prefixes.length; j++)
         if (prefixes[j].value.compareTo(prefixes[i].value) >= 0) {
@@ -170,52 +172,73 @@ public class VM_CommandLineArgs {
    * Fetch arguments from program command line.
    */
   static void fetchCommandLineArguments() {
-    if (args != null) return;
+    if (args != null)		// if already been here...
+      return;	
+    ArgReader argRdr = new ArgReader();
 
-    byte[]   buf  = new byte[10*1024];
-    int numArgs = sysArg(-1, buf);
+    int numArgs = argRdr.numArgs();
     args = new String[numArgs];
     arg_types = new int[numArgs];
-    boolean app_name_found = false;
+
     for (int i = 0; i < numArgs; ++i) {
-      int cnt = sysArg(i, buf);
-      // !!TODO: if i-th arg too long, enlarge buf[] and try again
-      if (VM.VerifyAssertions) VM._assert(cnt != -1); 
-      String arg = new String(buf, 0, 0, cnt);
+      String arg = argRdr.getArg(i);
+      
       if (app_prefix.count > 0) {
+	/* We're already into the application arguments.  Here's another
+	 * one. */ 
         args[i] = arg;
         arg_types[i] = APPLICATION_ARG;
         app_prefix.count++;
-      } else {
-        // Note: should never run out of bounds
-        for (int j = 0; j < prefixes.length; j++) {
-          Prefix p = prefixes[j];
-          String v = p.value;
-          if (!matches(arg, v)) continue;
-          args[i] = arg.substring(length(v));
-          arg_types[i] = p.type;
-          p = findPrefix(p.type);
-          p.count++;
-          if (v.endsWith(" ")) {
-            if (++i >= numArgs) { 
-              VM.sysWrite("vm: "+v+"needs an argument\n"); 
-              VM.sysExit(VM.exitStatusBogusCommandLineArg); 
-            }
-            cnt = sysArg(i, buf);
-            // !!TODO: if i-th arg too long, enlarge buf[] and try again
-            if (VM.VerifyAssertions) VM._assert(cnt != -1);
-            String val = new String(buf, 0, 0, cnt);
-            args[i-1] += val;
-            args[i] = null;
-          }
-          if (p == app_prefix) app_name_pos = i;
-          break;
-        }
+	continue;
+      } 
+      
+      // Note: This loop will never run to the end.
+      for (int j = 0; j < prefixes.length; j++) {
+	Prefix p = prefixes[j];
+	String v = p.value;
+	if (!matches(arg, v)) 
+	  continue;
+	// Chop off the prefix (which we've already matched) and store the
+	// value portion of the string (the unique part) in args[i].  Store
+	// information about the prefix itself in arg_types[i].   
+	args[i] = arg.substring(length(v));
+	if (DEBUG) {
+	  VM.sysWrite("length(v) = ");
+	  VM.sysWrite(length(v));
+
+	  VM.sysWrite("; v = \"");
+	  VM.sysWrite(v);
+	  VM.sysWriteln("\"");
+	  VM.sysWrite("args[");
+	  VM.sysWrite(i);
+	  VM.sysWrite("] = \"");
+	  VM.sysWrite(args[i]);
+	  VM.sysWrite("\"; arg = \"");
+	  VM.sysWrite(arg);
+	  VM.sysWriteln("\"");
+	}
+	
+	arg_types[i] = p.type;
+	p = findPrefix(p.type);	// Find the canonical prefix for this type...
+	p.count++;		// And increment the usage count for that
+				// canonical prefix.
+	if (v.endsWith(" ")) {
+	  if (++i >= numArgs) { 
+	    VM.sysWrite("vm: " + v + "needs an argument\n"); 
+	    VM.sysExit(VM.exitStatusBogusCommandLineArg); 
+	  }
+	  args[ i - 1 ] += argRdr.getArg(i);
+	  args[i] = null;
+	}
+	if (p == app_prefix) 
+	  app_name_pos = i;
+	break;
       }
-    }
+    } // for (i = 0; i < numArgs...)
     /*
-     * if no application is specified, set app_name_pos to numArgs to ensure
-     * all command line arguments are processed.
+     * If no application is specified, set app_name_pos to numArgs (that is,
+     * to one past the last item in the array of arguments) to ensure all
+     * command-line arguments are processed.
      */
     if (app_name_pos == -1) 
       app_name_pos = numArgs;
@@ -598,4 +621,34 @@ public class VM_CommandLineArgs {
     }
     return VM_SysCall.sysPrimitiveParseInt(b);
   }
+
+  private static final class ArgReader {
+    //    int buflen = 10;		// for testing; small enough to force
+				// reallocation really soon.
+    int buflen = 512;
+    
+    byte[] buf;			// gets freed with the class instance.
+    ArgReader() {
+      buf = new byte[buflen];
+    }
+
+    /** Read argument # @param i */
+    String getArg(int i) {
+      int cnt;
+      for (;;) {
+	cnt = sysArg(i, buf);
+	if (cnt >= 0)
+	  break;
+	buflen += 1024;
+	buf = new byte[buflen];
+      }
+      if (VM.VerifyAssertions) VM._assert(cnt != -1); 
+      return new String(buf, 0, 0, cnt);
+    }
+    int numArgs() {
+      return sysArg(-1, buf);
+    }
+  }
+
+
 }
