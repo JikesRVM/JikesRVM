@@ -1588,6 +1588,8 @@ function emitImageLinker
     print "   print 'Ljava/security/Policy;'                            >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/security/PermissionCollection;'              >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/security/Permissions;'                       >> $PRIMORDIAL_CLASSES_STR"
+    print "   print 'Ljava/security/Principal;'                         >> $PRIMORDIAL_CLASSES_STR"
+    print "   print '[Ljava/security/Principal;'                        >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Lgnu/java/locale/Calendar;'		        >> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/lang/ref/SoftReference;'			>> $PRIMORDIAL_CLASSES_STR"
     print "   print 'Ljava/lang/reflect/InvocationTargetException;'     >> $PRIMORDIAL_CLASSES_STR"
