@@ -1416,8 +1416,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitADD  (T3, FP, T3);                                    // T3 <- address of top java frame
     asm.emitSTAddr(T3, VM_Entrypoints.JNITopJavaFPField.getOffset(), T2);     // store TopJavaFP back into JNIEnv
 
-    // check to see if this frame address is the sentinel since there may be no further Java frame below
-    asm.emitCMPAddr(T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
+    // check to see if this frame address is the sentinel since there
+    // may be no further Java frame below
+    asm.emitCMPAddrI(T3, VM_Constants.STACKFRAME_SENTINEL_FP.toInt());
     VM_ForwardReference fr4 = asm.emitForwardBC(EQ);
     asm.emitLAddr(S0, 0, T3);                   // get fp for caller of prev J to C transition frame
     fr4.resolve(asm);
