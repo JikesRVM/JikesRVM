@@ -1,4 +1,4 @@
-   . $1/BaseBasecopyingGC 
+   . $1/BaseBaseSemispace
    export RVM_WITH_OPT_TEST_HARNESS=1 
    export RVM_WITH_OPT_COMPILER=1 
    
