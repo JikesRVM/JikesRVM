@@ -199,13 +199,19 @@ public class Platform implements jdpConstants {
   /********************************************************************
    * for registerExternal.java 
    **/
-  public static native void      setRegisterMapping(int fp, int sp, String[] gprName, String[] fprName, int tpshift);
+  public static native void      setRegisterMapping(int sp, String[] gprName, String[] fprName, int tpshift);
 
   public static native int       readreg1(int pid, int regnum);
   public static        int       readreg(int regnum){
     return readreg1(pid, regnum);
   }
 
+  public static native int       currentFP1(int pid);
+  public static        int       currentFP() {
+    return currentFP1(pid);
+  }
+
+  public static native int       getFPFromPR(int pr);
 
   public static native int       fregtop1(int pid);
   public static        int       fregtop (){

@@ -36,8 +36,7 @@ class OsProcessExternal extends OsProcess implements VM_Constants {
     super(ProgramName, args, mainClass, classesNeededFilename, classpath);
 
     // pass the register mapping to the native code
-    init(FRAME_POINTER, 
-	 SP, 
+    init(SP, 
 	 GPR_NAMES,
 	 FPR_NAMES,
 	 OBJECT_THREAD_ID_SHIFT); 
@@ -72,8 +71,7 @@ class OsProcessExternal extends OsProcess implements VM_Constants {
 			   String classesNeededFilename, String classpath) throws OsProcessException {
     super(processID, mainClass, classesNeededFilename, classpath);
     // pass the register mapping to the native code
-    init(FRAME_POINTER, 
-	 SP, 
+    init(SP, 
 	 GPR_NAMES,
 	 FPR_NAMES,
 	 OBJECT_THREAD_ID_SHIFT); 
@@ -98,8 +96,8 @@ class OsProcessExternal extends OsProcess implements VM_Constants {
    * @exception
    * @see
    */
-  private void init(int fp, int sp, String[] gprName, String[] fprName, int tpshift) {
-    Platform.setRegisterMapping(fp, sp, gprName, fprName, tpshift);
+  private void init(int sp, String[] gprName, String[] fprName, int tpshift) {
+    Platform.setRegisterMapping(sp, gprName, fprName, tpshift);
   }
 
   /**

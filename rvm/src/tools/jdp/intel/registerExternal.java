@@ -179,11 +179,26 @@ class registerExternal extends register implements VM_BaselineConstants, registe
    */
   public int currentFP(){
     try {
+      // Use VirtualProcessor register to get FP
+      return Platform.currentFP();
+      /*
+      int data = getContextRegister("esi");
       return getContextRegister("FP");
+      */
     } catch (Exception e) {
       return 0;
     }
   }
+
+  /**
+   * Get the Frame Pointer from the Virtual Processor specified
+   * @param pr   virtual processor
+   *
+   */
+  public int getFPFromPR(int pr) {
+    return Platform.getFPFromPR(pr);
+  }
+
 
   /** 
    * Get the Stack Pointer for the context thread
@@ -213,9 +228,6 @@ class registerExternal extends register implements VM_BaselineConstants, registe
       if (regnum==IAR) {
 	int sprs[] = getVMThreadSPR(contextThread);
 	return sprs[0];
-      } else if (regnum==FP) {
-	int sprs[] = getVMThreadSPR(contextThread);
-	return sprs[1];	  
       } else {
 	regs = getVMThreadGPR(contextThread);
 	return regs[regnum];
@@ -243,8 +255,8 @@ class registerExternal extends register implements VM_BaselineConstants, registe
 	  result += "null";
 	} else {
 	  for (i=0; i<9; i++) {   /* the general purpose reg */
-	    if ( i < RVM_GPR_NAMES.length )
-	      result += RVM_GPR_NAMES[i];
+	    if ( i < GPR_NAMES.length )
+	      result += GPR_NAMES[i];
 	    else
 	      result += "IP";
 

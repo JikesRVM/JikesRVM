@@ -969,7 +969,7 @@ abstract class memory implements jdpConstants, VM_Constants
     IP = owner.reg.hardwareIP();
 
     try {
-      FP = owner.reg.read("FP");
+      FP = owner.reg.currentFP();
       thread = 0;               // TODO: place holder for multithread later
       
       /* read enough from memory for 1 instruction */

@@ -20,6 +20,10 @@
 /* for register format */
 #include <linux/user.h>
 
+/* Interface to virtual machine data structures. */
+#define NEED_VIRTUAL_MACHINE_DECLARATIONS
+#include <InterfaceDeclarations.h>
+
 #define GPR_COUNT  8
 #define FPR_COUNT  8
 #define SPR_COUNT  3
@@ -44,7 +48,6 @@
 #define INTEL_FPSIZE 10
 
 /* RVM register convention, initialized in  */
-extern int jvmFP;
 extern int jvmSP;
 extern int jvmTI;
 extern int shiftTP;
@@ -266,10 +269,29 @@ JNIEXPORT jint JNICALL Java_Platform_currentIP1
 JNIEXPORT jint JNICALL Java_Platform_currentFP1
   (JNIEnv *env, jobject obj, jint debuggee_pid)
 {
-  jint regdata = Java_Platform_readreg1(env, obj, debuggee_pid, jvmFP);
+  // Use the VirtualProcessor register (esi) to get the Frame Pointer value
+  jint regdata = Java_Platform_readreg1(env, obj, debuggee_pid, jvmESI);
+  regdata = *(unsigned*)(regdata + VM_Processor_framePointer_offset);
   return regdata;
 
 }
+
+/************************************************************************
+ * Return the frame pointer from the specified virtual processor
+ * Class:     Platform
+ * Method:    getFPFromPR
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_Platform_getFPFromPR
+  (JNIEnv *env, jobject obj, jint regpr)
+{
+  // Use the VirtualProcessor register (esi) to get the Frame Pointer value
+  jint regdata = *(unsigned*)(regpr + VM_Processor_framePointer_offset);
+  return regdata;
+
+}
+
+
  
 /************************************************************************
  * Return the link address for this stack frame, which is stored at 1 word above the FP
