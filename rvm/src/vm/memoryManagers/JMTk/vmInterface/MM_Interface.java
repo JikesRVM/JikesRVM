@@ -531,14 +531,26 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     // Jikes RVM currently already forces scalar sizes to be multiples
     // of BYTES_IN_INT. But, if BYTES_IN_PARTICLE > BYTES_IN_INT
     // then we have to do round up the allocation request.
-    int alignedSize = size;
-    if (BYTES_IN_PARTICLE > BYTES_IN_INT)
-      alignedSize = VM_Memory.alignUp(size, BYTES_IN_PARTICLE);
-    int rawSize = (align > BYTES_IN_INT) ? (alignedSize + align) : alignedSize;
+    int rawSize = size;
+    //assuming BYTES_IN_PARTICLE >= BYTES_IN_INT
+    if (align > BYTES_IN_PARTICLE) { //mainly used for objects with doubles and floats on 32-bit 
+      rawSize += align - BYTES_IN_PARTICLE; //most wasteful case: e.g. align==8 or even align==16; BYTES_IN_PARTICLE==4;
+    } else if (align > BYTES_IN_INT) { //mainly used on 64-bit 
+      rawSize +=VM_Memory.alignUp(offset, align) - offset; //add pre alignment if necessary e.g. align==8; BYTES_IN_PARTICLE==8
+    }
+    if (BYTES_IN_PARTICLE > BYTES_IN_INT) {//mainly used on 64-bit
+      rawSize = VM_Memory.alignUp(rawSize, BYTES_IN_PARTICLE);//add post alignment if necessary
+    }
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, true, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
-    if (align > BYTES_IN_INT) region = alignAllocation(region, align, offset);
+    if (align > BYTES_IN_INT) {
+      VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
+      VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
+      VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
+      region = region.add(delta);
+      rawSize -= delta.toInt();
+    }
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, rawSize, true,
                    allocator);
@@ -572,15 +584,27 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     }
     // JMTk requires sizes to be multiples of BYTES_IN_PARTICLES.
     // Jikes RVM does not ensure this for arrays, so we must round up here.
-    int size = VM_Memory.alignUp(elemBytes + headerSize, BYTES_IN_PARTICLE);
-    int rawSize = (align > BYTES_IN_INT) ? (size + align) : size;
+    int rawSize = elemBytes + headerSize;
+    //assuming BYTES_IN_PARTICLE >= BYTES_IN_INT
+    if (align > BYTES_IN_PARTICLE) { //mainly used for objects with doubles and floats on 32-bit 
+      rawSize += align - BYTES_IN_PARTICLE; //most wasteful case: e.g. align==8 or even align==16; BYTES_IN_PARTICLE==4;
+    } else if (align > BYTES_IN_INT) { //mainly used on 64-bit 
+      rawSize +=VM_Memory.alignUp(offset, align) - offset; //add pre alignment if necessary e.g. align==8; BYTES_IN_PARTICLE==8
+    }
+    rawSize = VM_Memory.alignUp(rawSize, BYTES_IN_PARTICLE);//JMTk expects multiple of BYTES_IN_PARTICLE
     Plan plan = VM_Interface.getPlan();
     AllocAdvice advice = plan.getAllocAdvice(null, rawSize, null, null);
     VM_Address region = plan.alloc(rawSize, false, allocator, advice);
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, rawSize);
-    if (align > BYTES_IN_INT) region = alignAllocation(region, align, offset);
+    if (align > BYTES_IN_INT) {
+      VM_Word mask  = VM_Word.fromIntSignExtend(align-1);
+      VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
+      VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
+      region = region.add(delta);
+      rawSize -= delta.toInt();
+    }
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
-                                                   size);
+                                                   rawSize);
     plan.postAlloc(VM_Magic.objectAsAddress(result), tib, rawSize, false,
                    allocator);
     return result;

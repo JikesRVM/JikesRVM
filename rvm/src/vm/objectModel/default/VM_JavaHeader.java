@@ -149,12 +149,6 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
         size += HASHCODE_BYTES;
       }
     }
-    // JMTK requires sizes to be multiples of BYTES_IN_PARTICLE
-    // Jikes RVM currently forces scalars to be multiples of
-    // BYTES_IN_INT. Round up if BYTES_IN_PARTICLES is bigger.
-    if (MM_Constants.BYTES_IN_PARTICLE > BYTES_IN_INT) {
-      size = VM_Memory.alignUp(size, MM_Constants.BYTES_IN_PARTICLE);
-    }
     return size;
   }
 
@@ -169,8 +163,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
         size += HASHCODE_BYTES;
       }
     }
-    // JMTk requires all allocation requests to be multiples of BYTES_IN_PARTICLE
-    return VM_Memory.alignUp(size, MM_Constants.BYTES_IN_PARTICLE);
+    return VM_Memory.alignUp(size, BYTES_IN_INT);
   }
 
   /**

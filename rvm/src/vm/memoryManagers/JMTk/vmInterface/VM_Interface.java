@@ -882,7 +882,16 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, classType);
       int align = VM_ObjectModel.getAlignment(classType, fromObj);
       int offset = VM_ObjectModel.getOffsetForAlignment(classType, fromObj);
-      int rawSize = (align > BYTES_IN_INT) ? (numBytes + align) : numBytes;
+      int rawSize = numBytes;
+      //assuming BYTES_IN_PARTICLE >= BYTES_IN_INT
+      if (align > BYTES_IN_PARTICLE) { //mainly used for objects with doubles and floats on 32-bit 
+        rawSize += align - BYTES_IN_PARTICLE; //most wasteful case: e.g. align==8 or even align==16; BYTES_IN_PARTICLE==4;
+      } else if (align > BYTES_IN_INT) { //mainly used on 64-bit 
+        rawSize +=VM_Memory.alignUp(offset, align) - offset; //add pre alignment if necessary e.g. align==8; BYTES_IN_PARTICLE==8
+      }
+      if (BYTES_IN_PARTICLE > BYTES_IN_INT) {//mainly used on 64-bit
+        rawSize = VM_Memory.alignUp(rawSize, BYTES_IN_PARTICLE);//add post alignment if necessary
+      }
       forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
       VM_Address region = plan.allocCopy(VM_Magic.objectAsAddress(fromObj), rawSize, true);
       if (align > BYTES_IN_INT) {
@@ -892,6 +901,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
         VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
         VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
         region = region.add(delta);
+        numBytes = rawSize - delta.toInt();
       }
       Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, classType, forwardingPtr);
       plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, rawSize, true);
@@ -903,7 +913,14 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
       int numBytes = VM_ObjectModel.bytesRequiredWhenCopied(fromObj, arrayType, numElements);
       int align = VM_ObjectModel.getAlignment(arrayType, fromObj);
       int offset = VM_ObjectModel.getOffsetForAlignment(arrayType, fromObj);
-      int rawSize = (align > BYTES_IN_INT) ? (numBytes + align) : numBytes;
+      int rawSize = numBytes;
+      //assuming BYTES_IN_PARTICLE >= BYTES_IN_INT
+      if (align > BYTES_IN_PARTICLE) { //mainly used for objects with doubles and floats on 32-bit 
+        rawSize += align - BYTES_IN_PARTICLE; //most wasteful case: e.g. align==8 or even align==16; BYTES_IN_PARTICLE==4;
+      } else if (align > BYTES_IN_INT) { //mainly used on 64-bit 
+        rawSize +=VM_Memory.alignUp(offset, align) - offset; //add pre alignment if necessary e.g. align==8; BYTES_IN_PARTICLE==8
+      }
+      rawSize = VM_Memory.alignUp(rawSize, BYTES_IN_PARTICLE);//JMTk expects multiple of BYTES_IN_PARTICLE
       forwardingPtr = Plan.resetGCBitsForCopy(fromObj, forwardingPtr,numBytes);
       VM_Address region = getPlan().allocCopy(VM_Magic.objectAsAddress(fromObj), rawSize, false);
       if (align > BYTES_IN_INT) {
@@ -913,6 +930,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
         VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
         VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
         region = region.add(delta);
+        numBytes = rawSize - delta.toInt();
       }
       Object toObj = VM_ObjectModel.moveObject(region, fromObj, numBytes, arrayType, forwardingPtr);
       plan.postCopy(VM_Magic.objectAsAddress(toObj), tib, rawSize, false);
