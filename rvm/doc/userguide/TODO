@@ -1,17 +1,8 @@
 (5) Write section on HPM (Peter).
 
-(6) Write section on class libraries (includes library support
-package). (Dave)
-
 (8) Rewrite memory management section to describe JMTk.  Either remove
 old watson collector text or create two subsections of memory
 management (JMTk and watson). If watson remains, need to note that we
 expect to deprecate it soon...
 Also update text in installation.tex that discusses selection of
 memory managers.  
-
-
-
-
-
-
