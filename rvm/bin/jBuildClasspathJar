@@ -92,7 +92,7 @@ echo "Building $RVM_ROOT/support/lib/classpathsrc.jar"
 rm -f $RVM_ROOT/support/lib/classpathsrc.jar
 touch $RVM_ROOT/support/lib/classpathsrc.jar
 for p in $TOP_LEVEL_PACKAGES; do
-  $FIND ../$p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpathsrc.jar
+  $FIND $p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf $RVM_ROOT/support/lib/classpathsrc.jar
 done
 
 

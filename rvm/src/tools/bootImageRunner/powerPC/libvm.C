@@ -1115,6 +1115,12 @@ extern "C" int getProcessorsOffset() {
 }
 
 
+// we do not have this yet of PowerPC
+extern int createJavaVM() {
+  fprintf(SysErrorFile, "Cannot CreateJavaVM on PowerPC yet");
+  return -1;
+}
+
 /******* UNSUPPORTED RELOCATION CODE NOT CURRENTLY IN USE
 
  * // see if fields make sense
