@@ -3,9 +3,8 @@
  */
 //$Id$
 
-package com.ibm.JikesRVM.memoryManagers.JMTk;
+package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_PragmaNoInline;

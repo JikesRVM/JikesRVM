@@ -33,40 +33,40 @@ public class JikesRVMSupport {
   static Object makeArgumentCompatible(VM_Type expectedType, Object arg) {
     if (expectedType.isPrimitiveType()) { 
       if (arg instanceof java.lang.Void) {
-	if (expectedType.isVoidType()) return arg;
+        if (expectedType.isVoidType()) return arg;
       } else if (arg instanceof java.lang.Boolean) {
-	if (expectedType.isBooleanType()) return arg;
+        if (expectedType.isBooleanType()) return arg;
       } else if (arg instanceof java.lang.Byte) {
-	if (expectedType.isByteType()) return arg;
-	if (expectedType.isShortType()) return new Short(((java.lang.Byte)arg).byteValue());
-	if (expectedType.isIntType()) return new Integer(((java.lang.Byte)arg).byteValue());
-	if (expectedType.isLongType()) return new Long(((java.lang.Byte)arg).byteValue());
+        if (expectedType.isByteType()) return arg;
+        if (expectedType.isShortType()) return new Short(((java.lang.Byte)arg).byteValue());
+        if (expectedType.isIntType()) return new Integer(((java.lang.Byte)arg).byteValue());
+        if (expectedType.isLongType()) return new Long(((java.lang.Byte)arg).byteValue());
       } else if (arg instanceof java.lang.Short) {
-	if (expectedType.isShortType()) return arg;
-	if (expectedType.isIntType()) return new Integer(((java.lang.Short)arg).shortValue());
-	if (expectedType.isLongType()) return new Long(((java.lang.Short)arg).shortValue());
+        if (expectedType.isShortType()) return arg;
+        if (expectedType.isIntType()) return new Integer(((java.lang.Short)arg).shortValue());
+        if (expectedType.isLongType()) return new Long(((java.lang.Short)arg).shortValue());
       } else if (arg instanceof java.lang.Character) {
-	if (expectedType.isCharType()) return arg;
-	if (expectedType.isIntType()) return new Integer(((java.lang.Character)arg).charValue());
-	if (expectedType.isLongType()) return new Long(((java.lang.Character)arg).charValue());
+        if (expectedType.isCharType()) return arg;
+        if (expectedType.isIntType()) return new Integer(((java.lang.Character)arg).charValue());
+        if (expectedType.isLongType()) return new Long(((java.lang.Character)arg).charValue());
       } else if (arg instanceof java.lang.Integer) {
-	if (expectedType.isIntType()) return arg;
-	if (expectedType.isLongType()) return new Long(((java.lang.Integer)arg).intValue());
+        if (expectedType.isIntType()) return arg;
+        if (expectedType.isLongType()) return new Long(((java.lang.Integer)arg).intValue());
       } else if (arg instanceof java.lang.Long) {
-	if (expectedType.isLongType()) return arg;
+        if (expectedType.isLongType()) return arg;
       } else if (arg instanceof java.lang.Float) {
-	if (expectedType.isFloatType()) return arg;
-	if (expectedType.isDoubleType()) return new Double(((java.lang.Integer)arg).floatValue());
+        if (expectedType.isFloatType()) return arg;
+        if (expectedType.isDoubleType()) return new Double(((java.lang.Integer)arg).floatValue());
       } else if (arg instanceof java.lang.Double) {
-	if (expectedType.isDoubleType()) return arg;
+        if (expectedType.isDoubleType()) return arg;
       }
     } else {
       if (arg == null) return arg; // null is always ok
       VM_Type actualType = VM_ObjectModel.getObjectType(arg);
       if (expectedType == actualType || 
-	  expectedType == VM_Type.JavaLangObjectType ||
-	  VM_Runtime.isAssignableWith(expectedType, actualType)) {
-	return arg;
+          expectedType == VM_Type.JavaLangObjectType ||
+          VM_Runtime.isAssignableWith(expectedType, actualType)) {
+        return arg;
       }
     } 
     throw new IllegalArgumentException();
@@ -114,7 +114,7 @@ public class JikesRVMSupport {
 
       // access by subclasses is allowed.
       for (VM_Class cls = accessingClass; cls != null; cls = cls.getSuperClass()) {
-	if (accessingClass == declaringClass) return;
+        if (accessingClass == declaringClass) return;
       }
     } else {
       // default: access within package is allowed

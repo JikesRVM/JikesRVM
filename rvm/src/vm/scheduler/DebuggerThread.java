@@ -34,11 +34,11 @@ class DebuggerThread extends VM_Thread {
   public void run() {
     while(true) {
       try {
-	VM.sysWrite("debug> ");
-	String [] tokens = readTokens();
-	eval(tokens);
+        VM.sysWrite("debug> ");
+        String [] tokens = readTokens();
+        eval(tokens);
       } catch (Exception e) { 
-	VM.sysWrite("oops: " + e + "\n"); 
+        VM.sysWrite("oops: " + e + "\n"); 
       }
     }
   }
@@ -57,17 +57,17 @@ class DebuggerThread extends VM_Thread {
     switch (command)      {
     case ' ': // repeat previous command once
       if (previousTokens != null)
-	eval(previousTokens);
+        eval(previousTokens);
       return;
          
     case '*': // repeat previous command once per second, until SIGQUIT is received
-	if (previousTokens != null)
-	  for (VM_Scheduler.debugRequested = false; VM_Scheduler.debugRequested == false; ) {
-	    VM.sysWrite("\033[H\033[2J");
-	    eval(previousTokens);
-	    VM_Wait.sleep(1000);
-	  }
-	return;
+        if (previousTokens != null)
+          for (VM_Scheduler.debugRequested = false; VM_Scheduler.debugRequested == false; ) {
+            VM.sysWrite("\033[H\033[2J");
+            eval(previousTokens);
+            VM_Wait.sleep(1000);
+          }
+        return;
     }
          
     previousTokens = tokens;
@@ -76,46 +76,46 @@ class DebuggerThread extends VM_Thread {
     switch (command) {
     case 't': // display thread(s)
       if (tokens.length == 1) { //
-	for (int i = 0, col = 0; i < VM_Scheduler.threads.length; ++i) {
-	  VM_Thread thread = VM_Scheduler.threads[i];
-	  if (thread == null) continue;
-	  VM.sysWrite(rightJustify(thread.getIndex() + " ", 4) + leftJustify(thread.toString(), 40) + getThreadState(thread) + "\n");
-	}
+        for (int i = 0, col = 0; i < VM_Scheduler.threads.length; ++i) {
+          VM_Thread thread = VM_Scheduler.threads[i];
+          if (thread == null) continue;
+          VM.sysWrite(rightJustify(thread.getIndex() + " ", 4) + leftJustify(thread.toString(), 40) + getThreadState(thread) + "\n");
+        }
       } else if (tokens.length == 2) { // display specified thread
-	int threadIndex = Integer.valueOf(tokens[1]).intValue();
-	// !!TODO: danger here - how do we know if thread's context registers are
-	//         currently valid (ie. thread is not currently running and 
-	//         won't start running while we're looking at it) ?
-	VM_Thread thread = VM_Scheduler.threads[threadIndex];
+        int threadIndex = Integer.valueOf(tokens[1]).intValue();
+        // !!TODO: danger here - how do we know if thread's context registers are
+        //         currently valid (ie. thread is not currently running and 
+        //         won't start running while we're looking at it) ?
+        VM_Thread thread = VM_Scheduler.threads[threadIndex];
 
-	VM.sysWrite(thread.getIndex() + " " + thread + " " + getThreadState(thread) + "\n");
+        VM.sysWrite(thread.getIndex() + " " + thread + " " + getThreadState(thread) + "\n");
                
-	VM_Address fp = (thread == VM_Thread.getCurrentThread()) 
-	  ? VM_Magic.getFramePointer()
-	  : thread.contextRegisters.getInnermostFramePointer();
-	
-	VM_Processor.getCurrentProcessor().disableThreadSwitching();
-	VM_Scheduler.dumpStack(fp);
-	VM_Processor.getCurrentProcessor().enableThreadSwitching();
+        VM_Address fp = (thread == VM_Thread.getCurrentThread()) 
+          ? VM_Magic.getFramePointer()
+          : thread.contextRegisters.getInnermostFramePointer();
+        
+        VM_Processor.getCurrentProcessor().disableThreadSwitching();
+        VM_Scheduler.dumpStack(fp);
+        VM_Processor.getCurrentProcessor().enableThreadSwitching();
       } else {
-	VM.sysWrite("please specify a thread id\n");
+        VM.sysWrite("please specify a thread id\n");
       }
       return;
-	 
+         
     case 'p': // print object 
       if (tokens.length == 2) {
-	//-#if RVM_FOR_64_ADDR
-	VM_Address addr = VM_Address.fromLong(Long.parseLong(tokens[1], 16));
-	//-#else
-	VM_Address addr = VM_Address.fromIntZeroExtend(Integer.parseInt(tokens[1], 16));
-	//-#endif
-	VM.sysWrite("Object at addr 0x");
-	VM.sysWriteHex(addr);
-	VM.sysWrite(": ");
-	VM_ObjectModel.describeObject(addr);
-	VM.sysWriteln();
+        //-#if RVM_FOR_64_ADDR
+        VM_Address addr = VM_Address.fromLong(Long.parseLong(tokens[1], 16));
+        //-#else
+        VM_Address addr = VM_Address.fromIntZeroExtend(Integer.parseInt(tokens[1], 16));
+        //-#endif
+        VM.sysWrite("Object at addr 0x");
+        VM.sysWriteHex(addr);
+        VM.sysWrite(": ");
+        VM_ObjectModel.describeObject(addr);
+        VM.sysWriteln();
       } else {
-	VM.sysWriteln("Please specify an address\n");
+        VM.sysWriteln("Please specify an address\n");
       }
       return;
 
@@ -136,18 +136,18 @@ class DebuggerThread extends VM_Thread {
 
     default:
       if (tokens.length == 1) { // offer help
-	VM.sysWrite("Try one of:\n");
-	VM.sysWrite("   t                - display all threads\n");
-	VM.sysWrite("   t <threadIndex>  - display specified thread\n");
-	VM.sysWrite("   p <hex addr>     - print (describe) object at given address\n");
-	VM.sysWrite("   d                - dump virtual machine state\n");
-	VM.sysWrite("   c                - continue execution\n");
-	VM.sysWrite("   q                - terminate execution\n");
-	VM.sysWrite("   <class>.<method> - call a method\n");
-	VM.sysWrite("Or:\n");
-	VM.sysWrite("   <enter>          - repeat previous command once\n");
-	VM.sysWrite("   *                - repeat previous command once per second until SIGQUIT is received\n");
-	return;
+        VM.sysWrite("Try one of:\n");
+        VM.sysWrite("   t                - display all threads\n");
+        VM.sysWrite("   t <threadIndex>  - display specified thread\n");
+        VM.sysWrite("   p <hex addr>     - print (describe) object at given address\n");
+        VM.sysWrite("   d                - dump virtual machine state\n");
+        VM.sysWrite("   c                - continue execution\n");
+        VM.sysWrite("   q                - terminate execution\n");
+        VM.sysWrite("   <class>.<method> - call a method\n");
+        VM.sysWrite("Or:\n");
+        VM.sysWrite("   <enter>          - repeat previous command once\n");
+        VM.sysWrite("   *                - repeat previous command once per second until SIGQUIT is received\n");
+        return;
       }
 
       // call a method
@@ -156,13 +156,13 @@ class DebuggerThread extends VM_Thread {
       // !!TODO: more elaborate parsing to accept arbitrary number of classname-qualifiers,
       // parameter lists, static variables, arrays, etc.
       if (tokens.length != 3 || !tokens[1].equals(".")) {
-	VM.sysWrite("please specify <class>.<method>\n");
+        VM.sysWrite("please specify <class>.<method>\n");
       } else {
-	Class    cls = Class.forName(tokens[0]);
-	Class[]  signature = new Class[0];
-	Method   method = cls.getMethod(tokens[2], signature);
-	Object[] args = new Object[0];
-	method.invoke(null, args);
+        Class    cls = Class.forName(tokens[0]);
+        Class[]  signature = new Class[0];
+        Method   method = cls.getMethod(tokens[2], signature);
+        Object[] args = new Object[0];
+        method.invoke(null, args);
       }
       return;
     }
@@ -182,7 +182,7 @@ class DebuggerThread extends VM_Thread {
          if (p.transferQueue.contains(t)) return "runnable (incoming) on processor " + i;
          if (p.readyQueue.contains(t))    return "runnable on processor " + i;
          if (p.ioQueue.contains(t))       return "waitingForIO (" + p.ioQueue.getWaitDescription(t) + ") on processor " + i;
-	 if (p.processWaitQueue.contains(t)) return "waitingForProcess (" + p.processWaitQueue.getWaitDescription(t) + ") on processor " + i;
+         if (p.processWaitQueue.contains(t)) return "waitingForProcess (" + p.processWaitQueue.getWaitDescription(t) + ") on processor " + i;
          if (p.idleQueue.contains(t))     return "waitingForIdleWork on processor " + i;
          }
          
@@ -207,7 +207,7 @@ class DebuggerThread extends VM_Thread {
        VM_Processor p = VM_Scheduler.processors[i];
        if (p == null) continue;
        if (p.activeThread == t)
-	 return "running on processor " + i;
+         return "running on processor " + i;
      }
      return "unknown";
    }
@@ -235,22 +235,22 @@ class DebuggerThread extends VM_Thread {
       char ch = line.charAt(i);
          
       if (isLetter(ch) || isDigit(ch)) {
-	String alphaNumericToken = new String();
-	while (isLetter(ch) || isDigit(ch)) {
-	  alphaNumericToken += ch;
-	  if (++i == n) break;
-	  ch = line.charAt(i);
-	}
-	--i;
-	tokens.addElement(alphaNumericToken);
-	continue;
+        String alphaNumericToken = new String();
+        while (isLetter(ch) || isDigit(ch)) {
+          alphaNumericToken += ch;
+          if (++i == n) break;
+          ch = line.charAt(i);
+        }
+        --i;
+        tokens.addElement(alphaNumericToken);
+        continue;
       }
 
       if (ch != ' ' && ch != '\r' && ch != '\t') {
-	String symbol = new String();
-	symbol += ch;
-	tokens.addElement(symbol);
-	continue;
+        String symbol = new String();
+        symbol += ch;
+        tokens.addElement(symbol);
+        continue;
       }
     }
       

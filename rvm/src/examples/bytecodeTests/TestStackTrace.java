@@ -67,7 +67,7 @@ class TestStackTrace
       throws Exception
       {
       PrintWriter out = new PrintWriter ( 
-		new FileOutputStream ("Exception.pw") );
+                new FileOutputStream ("Exception.pw") );
       for (int i = 1; i <= 4; ++i)
          {
          SystemOut.println("test " + i);

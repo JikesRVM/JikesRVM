@@ -75,13 +75,13 @@ final class VM_MethodListener extends VM_Listener
       // for every yieldpoint.  On a prologue, we count the caller.
       // On backedges and epilogues, we count the current method.
       if (whereFrom == VM_Thread.PROLOGUE) {
-	// Before getting a sample index, make sure we have something to insert
-	if (callerCmid != -1) {
-	  recordSample(callerCmid);
+        // Before getting a sample index, make sure we have something to insert
+        if (callerCmid != -1) {
+          recordSample(callerCmid);
         } // nothing to insert
       } else { 
         // loop backedge or epilogue.  
-	recordSample(cmid);
+        recordSample(cmid);
       }
     } else {
       // Original scheme: No epilogue yieldpoints.  We increment two samples
@@ -89,15 +89,15 @@ final class VM_MethodListener extends VM_Listener
       // and callee.  On backedges, we count the current method twice.
       if (whereFrom == VM_Thread.PROLOGUE) {
         // Increment both for this method and the caller
-	recordSample(cmid);
-	if (callerCmid != -1) {
-	  recordSample(callerCmid);
-	}
+        recordSample(cmid);
+        if (callerCmid != -1) {
+          recordSample(callerCmid);
+        }
       } else { 
         // loop backedge.  We're only called once, so need to take
         // two samples to avoid penalizing methods with loops.
-	recordSample(cmid);
-	recordSample(cmid);
+        recordSample(cmid);
+        recordSample(cmid);
       }
     }
   }

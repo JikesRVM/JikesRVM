@@ -33,28 +33,28 @@ public final class VM_RecompilationManager {
     for (int cmid=1; cmid<numMethods; cmid++) {
       VM_CompiledMethod cpMeth = compiledMethods[cmid];
       if (cpMeth == null) {
-	if (DEBUG) VM.sysWrite("Not recompiling method ID "+cmid+
-			       " because it has no compiledMethod\n");
+        if (DEBUG) VM.sysWrite("Not recompiling method ID "+cmid+
+                               " because it has no compiledMethod\n");
       } else {
-	VM_Method meth = cpMeth.getMethod();
-	if (meth.getDeclaringClass().isResolved()) {
-	  if (meth.getDeclaringClass().isInBootImage()) {
-	    if (DEBUG) VM.sysWrite("Not recompiling bootimage method "+meth+
-				   "("+cmid+")\n");
-	  } else {
-	    if (meth.isAbstract()) {
-	      if (DEBUG) VM.sysWrite("Not recompiling abstract method "+meth+"("+cmid+")\n");
-	    } else if (meth.isNative()) {
-	      if (DEBUG) VM.sysWrite("Not recompiling native method "+meth+"("+cmid+")\n");
-	    } else {
-	      if (DEBUG||report) VM.sysWrite("Recompiling "+meth+"("+cmid+") ");
-	      recompile((VM_NormalMethod)meth);
-	      if (DEBUG||report) VM.sysWrite("...done\n");
-	    }
-	  }
-	} else {
-	  if (DEBUG) VM.sysWrite("Class not resolved"+meth+"("+cmid+")\n");
-	}
+        VM_Method meth = cpMeth.getMethod();
+        if (meth.getDeclaringClass().isResolved()) {
+          if (meth.getDeclaringClass().isInBootImage()) {
+            if (DEBUG) VM.sysWrite("Not recompiling bootimage method "+meth+
+                                   "("+cmid+")\n");
+          } else {
+            if (meth.isAbstract()) {
+              if (DEBUG) VM.sysWrite("Not recompiling abstract method "+meth+"("+cmid+")\n");
+            } else if (meth.isNative()) {
+              if (DEBUG) VM.sysWrite("Not recompiling native method "+meth+"("+cmid+")\n");
+            } else {
+              if (DEBUG||report) VM.sysWrite("Recompiling "+meth+"("+cmid+") ");
+              recompile((VM_NormalMethod)meth);
+              if (DEBUG||report) VM.sysWrite("...done\n");
+            }
+          }
+        } else {
+          if (DEBUG) VM.sysWrite("Class not resolved"+meth+"("+cmid+")\n");
+        }
       }
     }
 

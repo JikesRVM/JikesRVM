@@ -12,7 +12,7 @@ package com.ibm.JikesRVM;
  */
 public class VM_DynamicLibrary implements VM_SizeConstants{
   private String libName;
-  private int libHandler;
+  private VM_Address libHandler;
 
   /**
    * Load a dynamic library and maintain it in this object.
@@ -34,14 +34,13 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
       if (myThread.hasNativeStackFrame()) {
         throw new java.lang.StackOverflowError("dlopen");
       } else {
-        VM_Thread.resizeCurrentStack(myThread.stack.length + (stackNeededInBytes >> LOG_BYTES_IN_ADDRESS),
-                                     null); 
+        VM_Thread.resizeCurrentStack(myThread.stack.length + stackNeededInBytes, null); 
       }
     }
 
     libHandler = VM_SysCall.sysDlopen(asciiName);
 
-    if (libHandler==0) {
+    if (libHandler.isZero()) {
       VM.sysWrite("error loading library: " + libraryName);
       VM.sysWrite("\n");
       throw new UnsatisfiedLinkError();
@@ -52,12 +51,7 @@ public class VM_DynamicLibrary implements VM_SizeConstants{
     if (VM.verboseJNI) {
       VM.sysWriteln("[Loaded native library: "+libName+"]");
     }
-
-    // initialize the JNI environment if not already done
-    VM_JNIEnvironment.boot();
   }
-
-
 
   /**
    * look up this dynamic library for a symbol

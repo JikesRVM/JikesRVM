@@ -60,13 +60,13 @@ public final class FreeListVMResource extends VMResource implements Constants, V
     return acquire(pages, mr, tag, true);
   }
   public final VM_Address acquire(int pages, MemoryResource mr, byte tag,
-				  boolean chargeMR) {
+                                  boolean chargeMR) {
     VM_Address rtn = acquire(pages, mr, chargeMR);
     setTag(rtn, pages, tag);
     return rtn;
   }
   public final VM_Address acquire(int pages, MemoryResource mr,
-				  boolean chargeMR) {
+                                  boolean chargeMR) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(mr != null);
     if (chargeMR && !mr.acquire(pages))
       return VM_Address.zero();
@@ -75,7 +75,7 @@ public final class FreeListVMResource extends VMResource implements Constants, V
     if (startPage == -1) {
       unlock();
       if (chargeMR)
-	mr.release(pages);
+        mr.release(pages);
       VM_Interface.getPlan().poll(true, mr);
       return VM_Address.zero();
     }
@@ -99,12 +99,12 @@ public final class FreeListVMResource extends VMResource implements Constants, V
     release(addr, mr, tag, true);
   }
   public final void release(VM_Address addr, MemoryResource mr, byte tag,
-			    boolean chargeMR) {
+                            boolean chargeMR) {
     clearTag(addr, getSize(addr), tag);
     release(addr, mr, chargeMR);
   }
   public final void release(VM_Address addr, MemoryResource mr, 
-			    boolean chargeMR) {
+                            boolean chargeMR) {
     lock();
     int offset = addr.diff(start).toInt();
     int startPage = Conversions.bytesToPages(offset);

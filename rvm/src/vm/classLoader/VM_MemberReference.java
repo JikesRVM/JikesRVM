@@ -73,7 +73,7 @@ public abstract class VM_MemberReference {
     VM_MemberReference key;
     if (md.isMethodDescriptor()) {
       if (tRef.isArrayType() && !(tRef.isWordArrayType() || tRef.isCodeArrayType())) {
-	tRef = VM_Type.JavaLangObjectType.getTypeRef();
+        tRef = VM_Type.JavaLangObjectType.getTypeRef();
       }
       key = new VM_MethodReference(tRef, mn, md);
     } else {
@@ -192,7 +192,7 @@ public abstract class VM_MemberReference {
     }
         
     if (isFieldReference() && thisClass.isResolved() && 
-	thisClass.getClassInitializerMethod() == null) {
+        thisClass.getClassInitializerMethod() == null) {
       // No dynamic linking code is required to access this field
       // because its size and offset is known and its class has no static
       // initializer, therefore its value need not be specially initialized
@@ -224,7 +224,7 @@ public abstract class VM_MemberReference {
     if (other instanceof VM_MemberReference) {
       VM_MemberReference that = (VM_MemberReference)other;
       return type == that.type && name == that.name &&
-	descriptor == that.descriptor;
+        descriptor == that.descriptor;
     } else {
       return false;
     }

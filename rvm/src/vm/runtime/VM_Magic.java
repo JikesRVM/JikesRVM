@@ -49,23 +49,6 @@ public class VM_Magic {
     return null;
   }
 
-  /** 
-   * Get "thread id" pseduo register for currently executing thread.
-   * @return shifted thread index of currently executing thread
-   */
-  public static int getThreadId() {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-    return -1;
-  }
-
-  /** 
-   * Set contents of "thread id" pseduo register.
-   * @param ti shifted thread index
-   */
-  public static void setThreadId(int ti) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
-  }
-
   /** Get contents of "processor" register. */
   public static VM_Processor getProcessorRegister() {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
@@ -219,6 +202,15 @@ public class VM_Magic {
   }
 
   /**
+   * Get VM_Word at arbitrary (byte) offset from object.
+   * Use getWordAtOffset(obj, ofs) instead of getMemoryWord(objectAsAddress(obj)+ofs)
+   */
+  public static VM_Word getWordAtOffset(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return VM_Word.max();
+  }
+
+  /**
    * Get Object at arbitrary (byte) offset from object.
    * Use getObjectAtOffset(obj, ofs) instead of 
    * addressAsObject(getMemoryAddress(objectAsAddress(obj)+ofs))
@@ -285,6 +277,14 @@ public class VM_Magic {
    * Use setIntAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, new)
    */ 
   public static void setIntAtOffset(Object object, int offset, int newvalue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+  }
+
+  /**
+   * Set word at arbitrary (byte) offset from object.
+   * Use setWordAtOffset(obj, ofs, new) instead of setMemoryWord(objectAsAddress(obj)+ofs, new)
+   */ 
+  public static void setWordAtOffset(Object object, int offset, VM_Word newvalue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -357,6 +357,14 @@ public class VM_Magic {
   }
 
   /**
+   * Get contents of (object + offset) and begin conditional critical section.
+   */ 
+  public static VM_Word prepareWord(Object object, int offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return VM_Word.max();
+  }
+
+  /**
    * Sets the memory at (object + offset) to newValue if its contents are oldValue.  
    * Must be paired with a preceding prepare (which returned the oldValue)
    * Returns true if successful.
@@ -385,6 +393,18 @@ public class VM_Magic {
    * Ends conditional critical section.
    */ 
   public static boolean attemptAddress(Object object, int offset, VM_Address oldValue, VM_Address newValue) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return false;
+  }
+
+  /**
+   * Sets the memory at (object + offset) to newValue if its contents are oldValue.  
+   * Must be paired with a preceding prepare (which returned the oldValue)
+   * Returns true if successful.
+   * Ends conditional critical section.
+   */ 
+  public static boolean attemptWord(Object object, int offset,
+                                    VM_Word oldValue, VM_Word newValue) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return false;
   }
@@ -679,7 +699,7 @@ public class VM_Magic {
    *                      the saved hardware state of another thread.
    */
   public static void threadSwitch(VM_Thread currentThread, 
-				  VM_Registers restoreRegs) {
+                                  VM_Registers restoreRegs) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
@@ -723,9 +743,9 @@ public class VM_Magic {
 
   /** Call "<clinit>" method with no argument list. */
   public static void invokeClassInitializer(VM_CodeArray clinit) 
-    throws Exception		// Since the real method passes exceptions
-				// up.  Constructor might throw an arbitrary
-				// exception. 
+    throws Exception            // Since the real method passes exceptions
+                                // up.  Constructor might throw an arbitrary
+                                // exception. 
   {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     throw new Exception("UNREACHED");
@@ -733,61 +753,56 @@ public class VM_Magic {
 
   /** Call arbitrary method with argument list. */
   public static void invokeMethodReturningVoid(VM_CodeArray code, 
-					       int[] gprs, 
-					       double[] fprs, 
-					       int[] spills) {
+                                               VM_WordArray gprs, 
+                                               double[] fprs, 
+                                               VM_WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
   }
 
   /** Call arbitrary method with argument list. */
   public static int invokeMethodReturningInt(VM_CodeArray code, 
-					     int[] gprs, 
-					     double[] fprs, 
-					     int[] spills) {
+                                             VM_WordArray gprs, 
+                                             double[] fprs, 
+                                             VM_WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Call arbitrary method with argument list. */
   public static long invokeMethodReturningLong(VM_CodeArray code, 
-					       int[] gprs, 
-					       double[] fprs, 
-					       int[] spills) {
+                                               VM_WordArray gprs, 
+                                               double[] fprs, 
+                                               VM_WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Call arbitrary method with argument list. */
   public static float invokeMethodReturningFloat(VM_CodeArray code, 
-						 int[] gprs, 
-						 double[] fprs, 
-						 int[] spills) {
+                                                 VM_WordArray gprs, 
+                                                 double[] fprs, 
+                                                 VM_WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Call arbitrary method with argument list. */
   public static double invokeMethodReturningDouble(VM_CodeArray code, 
-						   int[] gprs, 
-						   double[] fprs, 
-						   int[] spills) {
+                                                   VM_WordArray gprs, 
+                                                   double[] fprs, 
+                                                   VM_WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return -1;
   }
 
   /** Call arbitrary method with argument list. */
   public static Object invokeMethodReturningObject(VM_CodeArray code, 
-						   int[] gprs, 
-						   double[] fprs, 
-						   int[] spills) {
+                                                   VM_WordArray gprs, 
+                                                   double[] fprs, 
+                                                   VM_WordArray spills) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return null;
   }
-
-   public static int sysCallSigWait(VM_Address ip, VM_Address toc, VM_Address p0, 
-				    int p1, VM_Registers r){  
-     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED); return -1; 
-   }
 
   //-#if RVM_FOR_IA32
    /**

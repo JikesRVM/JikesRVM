@@ -28,7 +28,7 @@ public class BC_LoadIntConst extends OSR_PseudoBytecode {
   }
  
   public int stackChanges() {
-	return +1;
+        return +1;
   }
 
   public String toString() {

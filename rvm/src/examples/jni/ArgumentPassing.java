@@ -5,9 +5,9 @@
 /**
  * Test argument passing by the Java to C native interface
  * Register used for arguments
- *      Jalepeno	AIX
- * GPR 	3-12		3-10
- * FPR 	1-15		1-13
+ *      Jalepeno        AIX
+ * GPR  3-12            3-10
+ * FPR  1-15            1-13
  * In AIX, the first 2 registers will be used for JNIEnv and class/object pointer
  *
  * The tests cover these dimensions:
@@ -44,22 +44,22 @@ class ArgumentPassing
    */
   public static native int 
     integerSpillAIXStatic(int val1, int val2, int val3, int val4, int val5, 
-		       int val6, int val7, int val8, int val9, int val10);
+                       int val6, int val7, int val8, int val9, int val10);
 
   /**
    * Static method: 12 ints spill from both AIX registers and JVM register
    */
   public static native int 
     integerSpillBothStatic(int val1, int val2, int val3, int val4, int val5, 
-			   int val6, int val7, int val8, int val9, int val10,
-			   int val11, int val12);
+                           int val6, int val7, int val8, int val9, int val10,
+                           int val11, int val12);
 
   /**
    * Static method: 6 floats fit in both AIX registers and JVM register
    */
   public static native int 
     floatFitStatic(float fval1, float fval2, float fval3, float fval4, 
-		   float fval5, float fval6);
+                   float fval5, float fval6);
 
   /**
    * Static method: 8 floats fit in both AIX registers and JVM register but have to be 
@@ -67,7 +67,7 @@ class ArgumentPassing
    */
   public static native int 
     floatFitStaticSave(float fval1, float fval2, float fval3, float fval4, 
-		       float fval5, float fval6, float fval7, float fval8);
+                       float fval5, float fval6, float fval7, float fval8);
 
 
   /**
@@ -75,19 +75,19 @@ class ArgumentPassing
    */
   public static native int 
     floatSpillAIXStatic(float fval1, float fval2, float fval3, float fval4, 
-			float fval5, float fval6, float fval7, float fval8,
-			float fval9, float fval10, float fval11, float fval12,
-			float fval13, float fval14, float fval15);
+                        float fval5, float fval6, float fval7, float fval8,
+                        float fval9, float fval10, float fval11, float fval12,
+                        float fval13, float fval14, float fval15);
 
   /**
    * Static method: 17 floats spill from both AIX registers and JVM registers
    */
   public static native int 
     floatSpillBothStatic(float fval1, float fval2, float fval3, float fval4, 
-			 float fval5, float fval6, float fval7, float fval8,
-			 float fval9, float fval10, float fval11, float fval12,
-			 float fval13, float fval14, float fval15, float fval16,
-			 float fval17);
+                         float fval5, float fval6, float fval7, float fval8,
+                         float fval9, float fval10, float fval11, float fval12,
+                         float fval13, float fval14, float fval15, float fval16,
+                         float fval17);
   
   
   /**
@@ -110,45 +110,45 @@ class ArgumentPassing
    */
   public static native int 
     doubleFitStaticSave(double fval1, double fval2, double fval3, 
-			double fval4, double fval5);
+                        double fval4, double fval5);
 
   /**
    * Static method: 15 doubles spill from AIX registers but fit in JVM registers
    */
   public static native int 
     doubleSpillAIXStatic(double fval1, double fval2, double fval3, 
-			 double fval4, double fval5, double fval6,
-			 double fval7, double fval8, double fval9,
-			 double fval10, double fval11, double fval12,
-			 double fval13, double fval14, double fval15);
+                         double fval4, double fval5, double fval6,
+                         double fval7, double fval8, double fval9,
+                         double fval10, double fval11, double fval12,
+                         double fval13, double fval14, double fval15);
 
   /**
    * Static method: 17 doubles spill from both AIX registers and JVM registers
    */
   public static native int 
     doubleSpillBothStatic(double fval1, double fval2, double fval3, 
-			 double fval4, double fval5, double fval6,
-			 double fval7, double fval8, double fval9,
-			 double fval10, double fval11, double fval12,
-			 double fval13, double fval14, double fval15,
-			 double fval16, double fval17);
+                         double fval4, double fval5, double fval6,
+                         double fval7, double fval8, double fval9,
+                         double fval10, double fval11, double fval12,
+                         double fval13, double fval14, double fval15,
+                         double fval16, double fval17);
 
   /*
    * Scenarios for long:
-   *  			      split	spill	split	spill
-   *  JVM	AIX	fit	AIX	AIX	JVM	JVM
-   *  r3	r3 
-   *  r4	r4 
-   *  r5	r5 
-   *  r6	r6 
-   *  r7	r7 
-   *  r8	r8 
-   *  r9	r9 	L-hi	
-   *  r10	r10	L-lo	L-hi
-   *  r11 . . . . . . . . . .	L-lo	L-hi	
-   *  r12 . . . . . . . . . .	. . . .	L-lo	L-hi
-   *  spill . . . . . . . . . . . . . . . . .	L-lo	L-hi
-   *  spill . . . . . . . . . . . . . . . . .	. . . . L-lo
+   *                          split     spill   split   spill
+   *  JVM       AIX     fit     AIX     AIX     JVM     JVM
+   *  r3        r3 
+   *  r4        r4 
+   *  r5        r5 
+   *  r6        r6 
+   *  r7        r7 
+   *  r8        r8 
+   *  r9        r9      L-hi    
+   *  r10       r10     L-lo    L-hi
+   *  r11 . . . . . . . . . .   L-lo    L-hi    
+   *  r12 . . . . . . . . . .   . . . . L-lo    L-hi
+   *  spill . . . . . . . . . . . . . . . . .   L-lo    L-hi
+   *  spill . . . . . . . . . . . . . . . . .   . . . . L-lo
    */
 
   /**
@@ -175,15 +175,15 @@ class ArgumentPassing
    */
   public static native int 
     longSpillBothStatic(long val1,  long val2,  long val3, 
-			long val4,  long val5,  long val6,
-			long val7);
+                        long val4,  long val5,  long val6,
+                        long val7);
 
   /**
    * Static method: 3 ints + 3 floats fit both JVM and AIX registers
    */
   public static native int 
     integerFloatFitStatic(int val1, float fval2, int val3, 
-			  float fval4, int val5, float fval6);
+                          float fval4, int val5, float fval6);
 
   /**
    * Static method: 4 ints + 4 floats fit both JVM and AIX registers 
@@ -192,14 +192,14 @@ class ArgumentPassing
    */
   public static native int 
     integerFloatSpillStatic(float fval1, int val2, float fval3,
-			    int val4, float fval5, int val6, float fval7, int val8);
+                            int val4, float fval5, int val6, float fval7, int val8);
 
   /**
    * Static method: 2 ints + 2 double fit both JVM and AIX registers
    */
   public static native int 
     integerDoubleFitStatic(int val1, double fval2, int val3, 
-			   double fval4);
+                           double fval4);
 
   /**
    * Static method: 3 ints + 2 double fit both JVM and AIX registers
@@ -207,7 +207,7 @@ class ArgumentPassing
    */
   public static native int 
     integerDoubleFitStaticStraddle(double fval1, int val2, 
-				   int val3, int val4, double fval5);
+                                   int val3, int val4, double fval5);
 
   /**
    * Static method: 3 ints + 3 double fit both JVM and AIX registers 
@@ -215,14 +215,14 @@ class ArgumentPassing
    */
   public static native int 
     integerDoubleSpillStatic(double fval1, int val2,
-			     double fval3, int val4, double fval5, int val6);
+                             double fval3, int val4, double fval5, int val6);
 
   /**
    * Static method: 2 ints + 2 long fit in both JVM and AIX registers
    */
   public static native int 
     integerLongFitStatic(int val1, long val2, int val3, 
-			 long val4);
+                         long val4);
 
   /**
    * Static method: 3 ints + 2 long fit in both JVM and AIX registers
@@ -230,7 +230,7 @@ class ArgumentPassing
    */
   public static native int 
     integerLongFitStaticStraddle(int val1, long val2, int val3,
-				 int val4, long val5);
+                                 int val4, long val5);
 
   /**
    * Static method: 3 ints + 3 long fit in both JVM and AIX registers
@@ -239,14 +239,14 @@ class ArgumentPassing
    */
   public static native int 
     integerLongSpillStatic(long val1, int val2, long val3, 
-			   int val4, long val5, int val6);
+                           int val4, long val5, int val6);
 
   /**
-   * Static method: 2 floats + 2 doubles fit in both JVM and AIX registers	
+   * Static method: 2 floats + 2 doubles fit in both JVM and AIX registers      
    */
   public static native int 
     floatDoubleFitStatic(float fval1, double fval2, 
-			 float fval3, double fval4);
+                         float fval3, double fval4);
 
   /**
    * Static method: 3 floats + 3 doubles fit in both JVM and AIX registers
@@ -255,7 +255,7 @@ class ArgumentPassing
    */
   public static native int 
     floatDoubleSpillStatic(double fval1, float fval2, 
-			   double fval3, float fval4, double fval5, float fval6);
+                           double fval3, float fval4, double fval5, float fval6);
 
   /**
    * Static method: 2 floats + 2 long fit in both JVM and AIX registers
@@ -270,7 +270,7 @@ class ArgumentPassing
    */
   public static native int 
     floatLongSpillStatic(long val1, float fval2, long val3, 
-			 float fval4, long val5, float fval6);
+                         float fval4, long val5, float fval6);
 
   /**
    * Static method: 2 long + 1 double fit in both JVM and AIX registers
@@ -284,7 +284,7 @@ class ArgumentPassing
    */
   public static native int 
     doubleLongSpillStatic(long val1, double fval2,
-			  long val3, double fval4, long val5);
+                          long val3, double fval4, long val5);
 
 
   /**
@@ -298,22 +298,22 @@ class ArgumentPassing
    */
   public native int 
     integerSpillAIXVirtual(int val1, int val2, int val3, int val4, int val5,
-			   int val6, int val7, int val8, int val9);
+                           int val6, int val7, int val8, int val9);
 
   /**
    * Virtual method:  9 ints + this spill from both AIX registers and JVM register
    */
   public native int 
     integerSpillBothVirtual(int val1, int val2, int val3, int val4, int val5,
-			    int val6, int val7, int val8, int val9, int val10,
-			    int val11);
+                            int val6, int val7, int val8, int val9, int val10,
+                            int val11);
 
   /**
    * Virtual method: 6 floats fit in both AIX registers and JVM register
    */
   public native int 
     floatFitVirtual(float fval1, float fval2, float fval3, float fval4, 
-		   float fval5, float fval6);
+                   float fval5, float fval6);
 
   /**
    * Virtual method: 8 floats fit in both AIX registers and JVM register but have to be 
@@ -321,7 +321,7 @@ class ArgumentPassing
    */
   public native int 
     floatFitVirtualSave(float fval1, float fval2, float fval3, float fval4, 
-		       float fval5, float fval6, float fval7, float fval8);
+                       float fval5, float fval6, float fval7, float fval8);
 
 
   /**
@@ -329,19 +329,19 @@ class ArgumentPassing
    */
   public native int 
     floatSpillAIXVirtual(float fval1, float fval2, float fval3, float fval4, 
-			float fval5, float fval6, float fval7, float fval8,
-			float fval9, float fval10, float fval11, float fval12,
-			float fval13, float fval14, float fval15);
+                        float fval5, float fval6, float fval7, float fval8,
+                        float fval9, float fval10, float fval11, float fval12,
+                        float fval13, float fval14, float fval15);
 
   /**
    * Virtual method: 17 floats spill from both AIX registers and JVM registers
    */
   public native int 
     floatSpillBothVirtual(float fval1, float fval2, float fval3, float fval4, 
-			 float fval5, float fval6, float fval7, float fval8,
-			 float fval9, float fval10, float fval11, float fval12,
-			 float fval13, float fval14, float fval15, float fval16,
-			 float fval17);
+                         float fval5, float fval6, float fval7, float fval8,
+                         float fval9, float fval10, float fval11, float fval12,
+                         float fval13, float fval14, float fval15, float fval16,
+                         float fval17);
   
   
   /**
@@ -364,28 +364,28 @@ class ArgumentPassing
    */
   public native int 
     doubleFitVirtualSave(double fval1, double fval2, double fval3, 
-			 double fval4, double fval5);
+                         double fval4, double fval5);
 
   /**
    * Virtual method: 15 doubles spill from AIX registers but fit in JVM registers
    */
   public native int 
     doubleSpillAIXVirtual(double fval1, double fval2, double fval3, 
-			  double fval4, double fval5, double fval6,
-			  double fval7, double fval8, double fval9,
-			  double fval10, double fval11, double fval12,
-			  double fval13, double fval14, double fval15);
+                          double fval4, double fval5, double fval6,
+                          double fval7, double fval8, double fval9,
+                          double fval10, double fval11, double fval12,
+                          double fval13, double fval14, double fval15);
 
   /**
    * Virtual method: 17 doubles spill from both AIX registers and JVM registers
    */
   public native int 
     doubleSpillBothVirtual(double fval1, double fval2, double fval3, 
-			   double fval4, double fval5, double fval6,
-			   double fval7, double fval8, double fval9,
-			   double fval10, double fval11, double fval12,
-			   double fval13, double fval14, double fval15,
-			   double fval16, double fval17);
+                           double fval4, double fval5, double fval6,
+                           double fval7, double fval8, double fval9,
+                           double fval10, double fval11, double fval12,
+                           double fval13, double fval14, double fval15,
+                           double fval16, double fval17);
 
   /**
    * Virtual method: 3 long fit in both AIX registers and JVM register
@@ -411,14 +411,14 @@ class ArgumentPassing
    */
   public native int 
     longSpillBothVirtual(long val1,  long val2,  long val3, 
-			long val4,  long val5,  long val6,
-			long val7);
+                        long val4,  long val5,  long val6,
+                        long val7);
   /**
    * Virtual method: 3 ints + 3 floats fit both JVM and AIX registers
    */
   public native int 
     integerFloatFitVirtual(int val1, float fval2, int val3, 
-			   float fval4, int val5, float fval6);
+                           float fval4, int val5, float fval6);
 
   /**
    * Virtual method: 4 ints + 4 floats fit both JVM and AIX registers 
@@ -427,7 +427,7 @@ class ArgumentPassing
    */
   public native int 
     integerFloatSpillVirtual(float fval1, int val2, float fval3,
-			     int val4, float fval5, int val6, float fval7, int val8);
+                             int val4, float fval5, int val6, float fval7, int val8);
 
   /**
    * Virtual method: 2 ints + 2 double fit both JVM and AIX registers
@@ -441,7 +441,7 @@ class ArgumentPassing
    */
   public native int 
     integerDoubleFitVirtualStraddle(double fval1, int val2, 
-				    int val3, int val4, double fval5);
+                                    int val3, int val4, double fval5);
 
   /**
    * Virtual method: 3 ints + 3 double fit both JVM and AIX registers 
@@ -449,7 +449,7 @@ class ArgumentPassing
    */
   public native int 
     integerDoubleSpillVirtual(double fval1, int val2, double fval3, 
-			      int val4, double fval5, int val6);
+                              int val4, double fval5, int val6);
 
   /**
    * Virtual method: 2 ints + 2 long fit in both JVM and AIX registers
@@ -463,7 +463,7 @@ class ArgumentPassing
    */
   public native int 
     integerLongFitVirtualStraddle(int val1, long val2, int val3,
-				  int val4, long val5);
+                                  int val4, long val5);
 
   /**
    * Virtual method: 3 ints + 3 long fit in both JVM and AIX registers
@@ -472,10 +472,10 @@ class ArgumentPassing
    */
   public native int 
     integerLongSpillVirtual(long val1, int val2, long val3, 
-			    int val4, long val5, int val6);
+                            int val4, long val5, int val6);
 
   /**
-   * Virtual method: 2 floats + 2 doubles fit in both JVM and AIX registers	
+   * Virtual method: 2 floats + 2 doubles fit in both JVM and AIX registers     
    */
   public native int 
     floatDoubleFitVirtual(float fval1, double fval2, float fval3, double fval4);
@@ -487,7 +487,7 @@ class ArgumentPassing
    */
   public native int 
     floatDoubleSpillVirtual(double fval1, float fval2, double fval3, 
-			    float fval4, double fval5, float fval6);
+                            float fval4, double fval5, float fval6);
 
   /**
    * Virtual method: 2 floats + 2 long fit in both JVM and AIX registers
@@ -502,7 +502,7 @@ class ArgumentPassing
    */
   public native int 
     floatLongSpillVirtual(long val1, float fval2, long val3, 
-			  float fval4, long val5, float fval6);
+                          float fval4, long val5, float fval6);
 
   /**
    * Virtual method: 2 long + 1 double fit in both JVM and AIX registers
@@ -516,7 +516,7 @@ class ArgumentPassing
    */
   public native int 
     doubleLongSpillVirtual(long val1, double fval2,
-			   long val3, double fval4, long val5);
+                           long val3, double fval4, long val5);
 
 
   /**
@@ -545,9 +545,9 @@ class ArgumentPassing
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-	verbose = false;	
-	setVerboseOff();
-      } 	
+        verbose = false;        
+        setVerboseOff();
+      }         
     }
 
    
@@ -572,12 +572,12 @@ class ArgumentPassing
     checkTest(returnValue, "floatFitStaticSave");
     
     returnValue = floatSpillAIXStatic(0.1f, 0.25f, 0.50f, 0.75f, 1.0f, 1.25f, 1.50f, 1.75f,
-				      2.0f, 2.25f, 2.50f, 2.75f, 3.0f, 3.25f, 3.50f);
+                                      2.0f, 2.25f, 2.50f, 2.75f, 3.0f, 3.25f, 3.50f);
     checkTest(returnValue, "floatSpillAIXStatic");
     
     returnValue = floatSpillBothStatic(0.1f, 0.25f, 0.50f, 0.75f, 1.0f, 1.25f, 1.50f, 1.75f,
-				       2.0f, 2.25f, 2.50f, 2.75f, 3.0f, 3.25f, 3.50f, 3.75f,
-				       4.0f);
+                                       2.0f, 2.25f, 2.50f, 2.75f, 3.0f, 3.25f, 3.50f, 3.75f,
+                                       4.0f);
     checkTest(returnValue, "floatSpillBothStatic");
 
 
@@ -592,12 +592,12 @@ class ArgumentPassing
     checkTest(returnValue, "doubleFitStaticSave");
 
     returnValue = doubleSpillAIXStatic(0.1d, 0.25d, 0.50d, .75d, 1.0d, 1.25d, 1.50d, 1.75d,
-				       2.0d, 2.25d, 2.50d, 2.75d, 3.0d, 3.25d, 3.50d);
+                                       2.0d, 2.25d, 2.50d, 2.75d, 3.0d, 3.25d, 3.50d);
     checkTest(returnValue, "doubleSpillAIXStatic");
 
     returnValue = doubleSpillBothStatic(0.1d, 0.25d, 0.50d, .75d, 1.0d, 1.25d, 1.50d, 1.75d,
-					2.0d, 2.25d, 2.50d, 2.75d, 3.0d, 3.25d, 3.50d, 3.75f,
-					4.0f);
+                                        2.0d, 2.25d, 2.50d, 2.75d, 3.0d, 3.25d, 3.50d, 3.75f,
+                                        4.0f);
     checkTest(returnValue, "doubleSpillBothStatic");
 
 
@@ -683,12 +683,12 @@ class ArgumentPassing
     checkTest(returnValue, "floatFitVirtualSave");
     
     returnValue = testobj.floatSpillAIXVirtual(0.1f, 0.25f, 0.50f, 0.75f, 1.0f, 1.25f, 1.50f, 1.75f,
-				      2.0f, 2.25f, 2.50f, 2.75f, 3.0f, 3.25f, 3.50f);
+                                      2.0f, 2.25f, 2.50f, 2.75f, 3.0f, 3.25f, 3.50f);
     checkTest(returnValue, "floatSpillAIXVirtual");
     
     returnValue = testobj.floatSpillBothVirtual(0.1f, 0.25f, 0.50f, 0.75f, 1.0f, 1.25f, 1.50f, 1.75f,
-				       2.0f, 2.25f, 2.50f, 2.75f, 3.0f, 3.25f, 3.50f, 3.75f,
-				       4.0f);
+                                       2.0f, 2.25f, 2.50f, 2.75f, 3.0f, 3.25f, 3.50f, 3.75f,
+                                       4.0f);
     checkTest(returnValue, "floatSpillBothVirtual");
 
 
@@ -703,12 +703,12 @@ class ArgumentPassing
     checkTest(returnValue, "doubleFitVirtualSave");
 
     returnValue = testobj.doubleSpillAIXVirtual(0.1d, 0.25d, 0.50d, .75d, 1.0d, 1.25d, 1.50d, 1.75d,
-				       2.0d, 2.25d, 2.50d, 2.75d, 3.0d, 3.25d, 3.50d);
+                                       2.0d, 2.25d, 2.50d, 2.75d, 3.0d, 3.25d, 3.50d);
     checkTest(returnValue, "doubleSpillAIXVirtual");
 
     returnValue = testobj.doubleSpillBothVirtual(0.1d, 0.25d, 0.50d, .75d, 1.0d, 1.25d, 1.50d, 1.75d,
-					2.0d, 2.25d, 2.50d, 2.75d, 3.0d, 3.25d, 3.50d, 3.75f,
-					4.0f);
+                                        2.0d, 2.25d, 2.50d, 2.75d, 3.0d, 3.25d, 3.50d, 3.75f,
+                                        4.0f);
     checkTest(returnValue, "doubleSpillBothVirtual");
 
 

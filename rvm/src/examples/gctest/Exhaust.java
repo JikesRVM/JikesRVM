@@ -7,7 +7,7 @@
  */
 
 import com.ibm.JikesRVM.VM_PragmaNoInline;
-import java.lang.System;	// unneeded
+import java.lang.System;        // unneeded
 import java.io.PrintStream;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
@@ -20,8 +20,8 @@ class Exhaust {
   final static int itemSize = 64;
   static double growthFactor = 10.0;
   static int rounds = 5;
-  static long tot = 0;		// total # allocated
-  static long wasAllocating;		// How much were we allocating?
+  static long tot = 0;          // total # allocated
+  static long wasAllocating;            // How much were we allocating?
   
 
   public static void main(String args[])  //throws Throwable 
@@ -59,22 +59,22 @@ class Exhaust {
     int size = itemSize;  
     for (int i=1; i<=rounds; i++) {
       o.println("Starting round " + i + " with size = " + size);
-	
+        
       first = new Object[1];
       last = first;
       tot = 0;
-	
+        
       o.println("  Allocating until exception thrown");
       try {
-	doInner(size);
+        doInner(size);
       }
       catch (OutOfMemoryError e) {
-	first = last = null;  // kills everything
-	o.println("  Caught OutOfMemory - freeing now");  // this allocates; must follow nulling
+        first = last = null;  // kills everything
+        o.println("  Caught OutOfMemory - freeing now");  // this allocates; must follow nulling
 
-	//	  o.println("  Maximum size reached is " + size);
+        //        o.println("  Maximum size reached is " + size);
 
-	o.println("  Had " + tot + " bytes allocated; failed trying to allocate " + wasAllocating + " bytes");
+        o.println("  Had " + tot + " bytes allocated; failed trying to allocate " + wasAllocating + " bytes");
       }
 
       size *= growthFactor;

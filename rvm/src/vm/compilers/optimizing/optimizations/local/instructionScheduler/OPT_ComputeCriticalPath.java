@@ -38,7 +38,7 @@ final class OPT_ComputeCriticalPath extends OPT_CompilerPhase {
       debug("Computing CP for " + ir.method);
 
     // Performing live analysis may reduce dependences between PEIs and stores
-    if (ir.options.HANDLER_LIVENESS) {	
+    if (ir.options.HANDLER_LIVENESS) {  
       new OPT_LiveAnalysis(false, false, true).perform(ir);
     }
 
@@ -49,7 +49,7 @@ final class OPT_ComputeCriticalPath extends OPT_CompilerPhase {
         continue;
       // Build Dependence graph
       dg = new OPT_DepGraph(ir, bb.firstInstruction(), 
-			    bb.lastRealInstruction(), bb);
+                            bb.lastRealInstruction(), bb);
       int bl = 0;
       int cp = 0;
       // Compute critical paths

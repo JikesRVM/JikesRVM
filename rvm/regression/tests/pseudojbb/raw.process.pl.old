@@ -1,0 +1,257 @@
+°#!/bin/perl
+#
+# (C) Copyright IBM Corp. 2001
+#
+# $Id:
+#
+# @author: Peter F. Sweeney
+# @date: September 19, 2003
+
+use POSIX;
+
+###########################################################################
+#
+# USAGE:
+#  ./raw.process.pl input_file
+#
+# where inputfile is the values file computed by raw.preprocess.
+#
+# Generates two files:
+#  values.excell      contains the median HPM values for each context
+#  statistics.excell  computes the median, average, stdev, var, min, max and 
+#                     stdev as per centage of median for all HPM events in a particular context.
+#
+###########################################################################
+
+# require "utils.pl";
+$debug=4;
+
+# hardcoded for now.  ug.
+undef (%input_file);
+$input_file = $ARGV[0];
+
+if ($input_file eq "") {
+   print "\nMust specify input file as first parameter\n";
+   exit;
+}
+
+$expectedExecutions = 5;
+
+chop($dir = `dirname $input_file`);
+
+
+if($debug>=1) { print "input_file: $input_file, dir: $dir, expectedExecutions: $expectedExecutions\n"; }
+
+# Step 1: combine all the runs to create the summary file (take median of each run set)
+&combine_counters();
+
+exit;
+
+
+#
+# For expected executions of a context, find the median and generate
+# statistics.
+#
+# Assume that not same execution number does not occur multiple times for 
+# the same context.
+#
+sub combine_counters
+{
+
+   &my_system("rm -f $dir/value.xls");
+   &my_system("rm -f $dir/statistics.excell");
+   
+   print "open input file $input_file\n";
+   open(INPUT, "<$input_file") || die("Can't read open file \"$input_file\"!\n");
+   @data = <INPUT>;
+   @sorted_data = sort(@data);
+   
+#   undef (%value_filename);
+   $value_filename = "$dir/values.xls";
+   print "open output file $value_filename\n";
+   open(VALUES, ">$value_filename") || die("Can't write open file \"$value_filename\"!\n");
+
+#   undef (%statistics_filename);
+   $statistics_filename = "$dir/statistics.xls";
+   print "open output file $statistics_filename\n";
+   open(STATISTICS, ">$statistics_filename") || die("Can't write open file \"$statistics_filename\"!\n");
+
+# array for contexts
+   $trips = 0;
+      
+   $prev_prefix     = "";   $prev_benchmark  = "";   $prev_appThreads = "";   $prev_input      = "";
+   $prev_machine    = "";   $prev_cpu        = -1;   $prev_image      = "";   $prev_gc         = "";
+   $prev_pinned     = "";   $prev_mode       = -1;   $prev_group      = -1;   $prev_vpid       = "";
+   $prev_thread     = "";   $prev_tid        = -1;   $prev_event      = "";   $prev_counter    = -1;
+   $prev_value      = -1;
+   &reset_variables;
+   # hash table of group events where each group event is an array of values.
+   %groups = ();
+   # hash table of context events where each context event is an array of values.
+   %contexts = ();
+
+FILE:
+   foreach $string (@sorted_data) {
+      if($debug>=14){print "$trips: $string";}
+      $trips++;
+
+      if (&parse_string($string) == -1) {
+	 print "\n***combine_executions() skip illegal file \"$file\"!***\n\n";
+	 print "call next FILE 1\n";
+	 next FILE;
+      }
+
+      if ($prev_prefix ne $prefix) {
+	 if($debug>=3) {print "found new prefix $prefix != $prev_prefix\n";}
+	 $prev_group = -1;
+      } 
+      if ($prev_group != $group) {
+	 if($debug>=3) {print "found new group $group != $prev_group\n";}
+	 $prev_group = $group;
+	 foreach $key (keys %groups) {
+	    if($debug>=3) {print "groups{$key} = $groups{$key}\n";}
+	    # find median
+	    $string = $groups{$key};
+	    $point = index($string,",");
+	    if ($point == -1) {
+#	       if($debug>=3){print "singleton: median = $groups{$key}\n";}
+	       $median = $string;
+	    } else {
+	       # compute median
+	       if($debug>=3){print "compute median from $groups{$key}\n";}
+	       # compute array of values
+	       @values = ();
+	       $index = 0;
+	       while ($point != -1) {
+		  $values[$index] = substr($string,0,$point);
+		  $string = substr($string, $point+1, length($string));
+		  $point = index($string,",");
+		  $index++;
+	       }
+	       $values[$index] = $string;
+	       
+	       if($debug>=3) {print "number of values ".(scalar @values)."\n";}
+	       @sorted_values = sort by_number @values;
+	       $length = scalar @sorted_values;
+	       if ($length == int($length / 2)*2) {
+		  # even
+		  $value1 = $sorted_values[$length / 2];
+		  $value2 = $sorted_values[($length / 2)-1];
+		  $median = ($value1 + $value2) / 2;
+		  if($debug>=3){print "$median = ($value1 + $value2) / 2\n";}
+	       } else {
+		  $median = $sorted_values[$length-1/2];
+		  if($debug>=3){print "$median = sorted_values[$length-1/2]\n";}
+	       }
+	    }
+	    $context = "$prev_prefix.$key";
+	    if (! defined($contexts{$context})) { 
+	       if($debug>=3){print "contexts{$context} not defined\n";}
+	       $contexts{$context} = $median;
+	       if($debug>=3){print "  contexts{$context} == $contexts{$context}\n";}
+	    } else {
+	       if($debug>=3){print "contexts{$context} defined\n";}
+	       $contexts{$context} = $contexts{$context}.",".$median;
+	       if($debug>=3){print "  contexts{$context} = $contexts{$context}\n";}
+	    }
+	 } # foreach
+	 print "no more keys\n";
+	 %groups = ();
+	 $prev_prefix = $prefix;
+      }
+      # process event
+      if($debug>=13){ print "process event\n";}
+      if (! defined($groups{$event})) { 
+#	 if($debug>=3){print "groups{$event} == empty\n";}
+	 $groups{$event} = $value;
+	 if($debug>=3){print "  groups{$event} == $groups{$event}\n";}
+      } else {
+#	 if($debug>=3){print "groups{$event} != empty\n";}
+	 $groups{$event} = $groups{$event}.",".$value;
+	 if($debug>=3){print "  groups{$event} = $groups{$event}\n";}
+      }
+   } # foreach
+
+   # find median value in all contexts.
+   if($debug>=3){print "dump contexts\n";}
+   foreach $key (keys %contexts) {
+      if($debug>=3) {print "contexts{$key} = $contexts{$key}\n";}
+      # find median
+      $string = $contexts{$key};
+      $point = index($string,",");
+      if ($point == -1) {
+#	       if($debug>=3){print "singleton: median = $contexts{$key}\n";}
+	 $median = $string;
+      } else {
+	 # compute median
+	 if($debug>=3){print "compute median from $contexts{$key}\n";}
+	 # compute array of values
+	 @values = ();
+	 $index = 0;
+	 while ($point != -1) {
+	    $values[$index] = substr($string,0,$point);
+	    $string = substr($string, $point+1, length($string));
+	    $point = index($string,",");
+	    $index++;
+	 }
+	 $values[$index] = $string;
+	 
+	 if($debug>=3) {print "number of values ".(scalar @values)."\n";}
+	 @sorted_values = sort by_number @values;
+	 $length = scalar @sorted_values;
+	 if($debug>=3) {print "compute median from sorted keys (@sorted_values) with length $length\n";}
+	 if ($length == int($length / 2)*2) {
+	    # even
+	    $value1 = $sorted_values[($length / 2)-1];
+	    $value2 = $sorted_values[($length / 2)];
+	    $median = ($value1 + $value2) / 2;
+	    if($debug>=3){print "$median = ($value1 + $value2) / 2\n";}
+	 } else {
+	    $median = $sorted_values[($length-1)/2];
+	    if($debug>=3){print "$median = sorted_values[".(($length-1)/2)."]\n";}
+	 }
+      }
+      $context = "$key";
+      $context =~ y/./ /;
+      if($debug>=3){print "$context is $median\n";}
+      print VALUES "$context $median\n";
+   } # foreach context
+   close (VALUES);
+
+   print "open input file $input_file\n";
+
+   open(VALUES, "<$value_filename") || die("Can't read open file \"$value_filename\"!\n");
+   @data = <VALUES>;
+   @sorted_data = sort(@data);
+   close (VALUES);
+
+   open(VALUES, ">$value_filename".".sorted") || die("Can't read open file \"$value_filename".".sorted\"!\n");
+   if ($debug>=3){print "write sorted data to file\n";}
+   for ($i = 0; $i < (scalar @sorted_data); $i++) {
+      if ($debug>=3){print "$i: $sorted_data[$i]\n";}
+      print VALUES $sorted_data[$i];
+   }
+   close (VALUES);
+   
+}
+
+sub reset_variables 
+{
+   $prefix    = "";
+   $benchmark  = "";
+   $appThreads = "";
+   $input      = "";
+   $machine    = "";
+   $cpu        = -1;
+   $image      = "";
+   $gc         = "";
+   $pinned     = "";
+   $mode       = -1;	
+   $group      = -1;	
+   $vpid       = "";	
+   $thread     = "";	
+   $tid        = -1;	
+   $event      = "";	
+   $counter    = -1;	
+   $value      = -1;	
+}

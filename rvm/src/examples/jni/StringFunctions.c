@@ -126,9 +126,9 @@ JNIEXPORT jstring JNICALL Java_StringFunctions_testGetReleaseStringChars
     (*env) -> ReleaseStringChars(env, s, stringChars);
 
     if (verbose) {
-	printf("> testGetReleaseStringChars: isCopy = %d\n", (int)isCopy);
-	printf("> testGetReleaseStringChars: stringLen = %d\n", stringLen);
-	printf("> testGetReleaseStringChars: returnString = 0x%x\n", returnString);
+        printf("> testGetReleaseStringChars: isCopy = %d\n", (int)isCopy);
+        printf("> testGetReleaseStringChars: stringLen = %d\n", stringLen);
+        printf("> testGetReleaseStringChars: returnString = 0x%x\n", returnString);
     }
 
     return returnString;
@@ -155,9 +155,9 @@ JNIEXPORT jstring JNICALL Java_StringFunctions_testGetReleaseStringUTFChars
     (*env) -> ReleaseStringUTFChars(env, s, stringBytesUTF);
 
     if (verbose) {
-	printf("> testGetReleaseStringUTFChars: isCopy = %d\n", (int)isCopy);
-	printf("> testGetReleaseStringUTFChars: stringLenUTF = %d\n", stringLenUTF);
-	printf("> testGetReleaseStringUTFChars: returnString = 0x%x\n", returnString);
+        printf("> testGetReleaseStringUTFChars: isCopy = %d\n", (int)isCopy);
+        printf("> testGetReleaseStringUTFChars: stringLenUTF = %d\n", stringLenUTF);
+        printf("> testGetReleaseStringUTFChars: returnString = 0x%x\n", returnString);
     }
 
     return returnString;

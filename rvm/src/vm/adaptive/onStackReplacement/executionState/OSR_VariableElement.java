@@ -76,9 +76,9 @@ public class OSR_VariableElement implements OSR_Constants {
 
   /* for 32-bit value */
   OSR_VariableElement(int what_kind, 
-		     int which_num,
-		     int type,
-		     int ibits) {
+                     int which_num,
+                     int type,
+                     int ibits) {
     if (VM.VerifyAssertions) {
       VM._assert(isIBitsType(type));
     }
@@ -91,9 +91,9 @@ public class OSR_VariableElement implements OSR_Constants {
 
   /* for 64-bit value */
   OSR_VariableElement(int what_kind,
-		     int which_num,
-		     int type,
-		     long lbits) {
+                     int which_num,
+                     int type,
+                     long lbits) {
     if (VM.VerifyAssertions) {
       VM._assert(isLBitsType(type));
     }
@@ -106,9 +106,9 @@ public class OSR_VariableElement implements OSR_Constants {
 
   /* for reference type */
   OSR_VariableElement(int what_kind,
-		     int which_num,
-		     int type,
-		     Object ref) {
+                     int which_num,
+                     int type,
+                     Object ref) {
     if (VM.VerifyAssertions) {
       VM._assert(isRefType(type));
     }
@@ -195,12 +195,12 @@ public class OSR_VariableElement implements OSR_Constants {
     case REF:
       // it is legal to have a null reference.
       if (ref == null) {
-	buf.append("null");
+        buf.append("null");
       } else {
-	buf.append("0x");
-	buf.append(Integer.toHexString(VM_Magic.objectAsAddress(ref).toInt()));
-	buf.append(" ");
-//	buf.append(ref.toString());
+        buf.append("0x");
+        buf.append(Integer.toHexString(VM_Magic.objectAsAddress(ref).toInt()));
+        buf.append(" ");
+//      buf.append(ref.toString());
       }
       break;
     case FLOAT:

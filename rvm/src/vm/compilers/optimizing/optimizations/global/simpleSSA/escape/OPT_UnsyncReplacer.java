@@ -26,7 +26,7 @@ public class OPT_UnsyncReplacer implements OPT_Operators {
    * @return the object, or null if illegal 
    */
   public static OPT_UnsyncReplacer getReplacer (OPT_Instruction inst, 
-						OPT_IR ir) {
+                                                OPT_IR ir) {
     OPT_Register r = New.getResult(inst).register;
     return  new OPT_UnsyncReplacer(r, ir.options);
   }

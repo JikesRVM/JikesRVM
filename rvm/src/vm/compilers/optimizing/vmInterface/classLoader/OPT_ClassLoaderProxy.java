@@ -35,7 +35,7 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
         if (t1.isByteType() || t2.isByteType())
           return VM_TypeReference.Byte;
       } else if (t1.isWordType() && t2.isWordType()) {
-	return VM_TypeReference.Word;
+        return VM_TypeReference.Word;
       }
       return null;
     }
@@ -60,13 +60,13 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
     if (t1.isPrimitiveType() || t2.isPrimitiveType()) {
       VM_TypeReference type = VM_TypeReference.JavaLangObject;
       if (t1 == t2) { 
-	// Kludge around the fact that we have two names for VM_AddressArray
-	if (t1.isWordType()) {
-	  arrayDimensions++;
-	  type = t1;
-	} else {
-	  if (VM.VerifyAssertions) VM._assert(false);
-	}
+        // Kludge around the fact that we have two names for VM_AddressArray
+        if (t1.isWordType()) {
+          arrayDimensions++;
+          type = t1;
+        } else {
+          if (VM.VerifyAssertions) VM._assert(false);
+        }
       }
       --arrayDimensions;
       while (arrayDimensions-- > 0)
@@ -198,49 +198,49 @@ public final class OPT_ClassLoaderProxy implements VM_Constants, OPT_Constants {
         }
       } else {                    // parentType.isClassType()
         if (!childType.isClassType()) {
-	  // parentType is known to not be java.lang.Object.
-	  return NO;
-	}
-	VM_Class childClass = (VM_Class)childType.peekResolvedType();
-	VM_Class parentClass = (VM_Class)parentType.peekResolvedType();
-	if (childClass != null && parentClass != null) {
-	  if (parentClass.isInitialized() && childClass.isInitialized() ||
-	      (VM.writingBootImage && parentClass.isInBootImage() && childClass.isInBootImage())) {
-	    if (parentClass.isInterface()) {
-	      if (VM_Runtime.isAssignableWith(parentClass, childClass)) {
-		return YES;
-	      } else {
-		// If child is not a final class, it is 
-		// possible that a subclass will implement parent.
-		return childClass.isFinal() ? NO : MAYBE;
-	      }
-	    } else if (childClass.isInterface()) {
-	      // parent is a proper class, child is an interface
-	      return MAYBE;
-	    } else {
-	      // parent & child are both proper classes.
-	      if (VM_Runtime.isAssignableWith(parentClass, childClass)) {
-		return YES;
-	      }
-	      // If child is a final class, then 
-	      // !instanceOfClass(parent, child) lets us return NO.
-	      // However, if child is not final, then it might have 
-	      // subclasses so we can't return NO out of hand.
-	      // But, if the reverse instanceOf is also false, then we know 
-	      // that parent and child are completely 
-	      // unrelated and we can return NO.
-	      if (childClass.isFinal())
-		return NO; 
-	      else {
-		if (VM_Runtime.isAssignableWith(childClass, parentClass))
-		  return MAYBE; 
-		else 
-		  return NO;
-	      }
-	    }
-	  }
-	}
-	return MAYBE;
+          // parentType is known to not be java.lang.Object.
+          return NO;
+        }
+        VM_Class childClass = (VM_Class)childType.peekResolvedType();
+        VM_Class parentClass = (VM_Class)parentType.peekResolvedType();
+        if (childClass != null && parentClass != null) {
+          if (parentClass.isInitialized() && childClass.isInitialized() ||
+              (VM.writingBootImage && parentClass.isInBootImage() && childClass.isInBootImage())) {
+            if (parentClass.isInterface()) {
+              if (VM_Runtime.isAssignableWith(parentClass, childClass)) {
+                return YES;
+              } else {
+                // If child is not a final class, it is 
+                // possible that a subclass will implement parent.
+                return childClass.isFinal() ? NO : MAYBE;
+              }
+            } else if (childClass.isInterface()) {
+              // parent is a proper class, child is an interface
+              return MAYBE;
+            } else {
+              // parent & child are both proper classes.
+              if (VM_Runtime.isAssignableWith(parentClass, childClass)) {
+                return YES;
+              }
+              // If child is a final class, then 
+              // !instanceOfClass(parent, child) lets us return NO.
+              // However, if child is not final, then it might have 
+              // subclasses so we can't return NO out of hand.
+              // But, if the reverse instanceOf is also false, then we know 
+              // that parent and child are completely 
+              // unrelated and we can return NO.
+              if (childClass.isFinal())
+                return NO; 
+              else {
+                if (VM_Runtime.isAssignableWith(childClass, parentClass))
+                  return MAYBE; 
+                else 
+                  return NO;
+              }
+            }
+          }
+        }
+        return MAYBE;
       }
     } catch (Throwable e) {
       OPT_OptimizingCompilerException.UNREACHABLE();

@@ -34,7 +34,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Mauricio Serrano
  */
 public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
-					  VM_Uninterruptible {
+                                          VM_Uninterruptible {
   public static final int NO_MAP_ENTRY = -1;
   public static final int ERROR        = -2;
 
@@ -77,7 +77,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
    */
   public int[] finish() throws VM_PragmaInterruptible {
     if ((gcMapInformation != null) && 
-	(lastGCMapEntry < gcMapInformation.length - 1)) {
+        (lastGCMapEntry < gcMapInformation.length - 1)) {
       resizeMapInformation(lastGCMapEntry + 1);
     }
     return gcMapInformation;
@@ -115,9 +115,9 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
         OPT_RegSpillListElement elem = (OPT_RegSpillListElement)
             enum.nextElement();
         if (elem.isSpill()) {
-	  numSpills++;
-	} else {
-	  numRegs++;
+          numSpills++;
+        } else {
+          numRegs++;
           int realRegNumber = elem.getRealRegNumber();
 
           if (VM.VerifyAssertions && realRegNumber > LAST_GCMAP_REG) {
@@ -126,8 +126,8 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
             VM._assert(false, "reg > last GC Map Reg!!");
           }
 
-	  // get the bit position for this register number
-	  int bitPosition = getRegBitPosition(realRegNumber);
+          // get the bit position for this register number
+          int bitPosition = getRegBitPosition(realRegNumber);
 
           // Set the appropriate bit
           bitMap = bitMap | (NEXT_BIT >>> bitPosition);
@@ -146,8 +146,8 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
         OPT_RegSpillListElement elem = (OPT_RegSpillListElement)
             enum.nextElement();
         if (elem.isSpill()) {
-	  spillArray[spillIndex++] = elem.getSpill();
-	}
+          spillArray[spillIndex++] = elem.getSpill();
+        }
       }
 
       // add the spills into the map
@@ -181,12 +181,12 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
    * @param  gcMap            the encoded GCMap
    */
   public static boolean registerIsSet(int entry, 
-				      int registerNumber, 
-				      int[] gcMap) {
+                                      int registerNumber, 
+                                      int[] gcMap) {
     if (VM.VerifyAssertions) {
       VM._assert(registerNumber >= FIRST_GCMAP_REG && 
-		registerNumber <= LAST_GCMAP_REG, 
-		"Bad registerNumber");
+                registerNumber <= LAST_GCMAP_REG, 
+                "Bad registerNumber");
     }
 
     // Get the bit position for the register number
@@ -249,10 +249,10 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
     // those bit map entries that are true
     int bitmap = gcMap[entry];
     for (int registerNumber = FIRST_GCMAP_REG; 
-	 registerNumber <= LAST_GCMAP_REG; 
-	 registerNumber++) {
+         registerNumber <= LAST_GCMAP_REG; 
+         registerNumber++) {
       if (registerIsSet(entry, registerNumber, gcMap)) 
-	VM.sysWrite(registerNumber, " ");
+        VM.sysWrite(registerNumber, " ");
     }
     VM.sysWrite("]");
     VM.sysWrite(" Spills [");
@@ -320,13 +320,13 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
     if (VM_OptGenericGCMapIterator.lookForMissedReferencesInSpills) {
       int length = spillArray.length;
       for (int i = 0; i < length - 1; i++) {
-	for (int j = i+1; j < length; j++) {
-	  if (spillArray[i] > spillArray[j]) {
-	    int tmp = spillArray[i];
-	    spillArray[i] = spillArray[j];
-	    spillArray[j] = tmp;
-	  }
-	}
+        for (int j = i+1; j < length; j++) {
+          if (spillArray[i] > spillArray[j]) {
+            int tmp = spillArray[i];
+            spillArray[i] = spillArray[j];
+            spillArray[j] = tmp;
+          }
+        }
       }
     }
 
@@ -363,10 +363,10 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
 
     if (DEBUG) {
       System.out.println("\nendCurrentMap called with firstIndex: "+
-			 firstIndex +", lastGCMapEntry: "+ lastGCMapEntry);
+                         firstIndex +", lastGCMapEntry: "+ lastGCMapEntry);
       System.out.println("gc map array before reuse checking");
       for (int i=0; i<=lastGCMapEntry; i++) {
-	System.out.println(i+ ": "+ gcMapInformation[i]);
+        System.out.println(i+ ": "+ gcMapInformation[i]);
       }
     }
 
@@ -379,31 +379,31 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
       int old = gcMapInformation[candidateIndex++];
       int cur = gcMapInformation[curIndex++];
       if (old != cur) {
-	if (DEBUG) {
-	  System.out.println("entries at "+ (candidateIndex-1)
-			     +" and "+ (curIndex-1) +" don't match");
-	}
-	// this entry won't work, advance to candidateIndex to GC map entry
-	//  and reset curIndex
-	while ((old & NEXT_BIT) != 0) {
-	  old = gcMapInformation[candidateIndex++];
-	}
+        if (DEBUG) {
+          System.out.println("entries at "+ (candidateIndex-1)
+                             +" and "+ (curIndex-1) +" don't match");
+        }
+        // this entry won't work, advance to candidateIndex to GC map entry
+        //  and reset curIndex
+        while ((old & NEXT_BIT) != 0) {
+          old = gcMapInformation[candidateIndex++];
+        }
 
-	// update the beginning index too
-	candidateBeginningIndex = candidateIndex;
-	curIndex = firstIndex;
+        // update the beginning index too
+        candidateBeginningIndex = candidateIndex;
+        curIndex = firstIndex;
       } else if ((old & NEXT_BIT) == 0) {
-	// we've checked all of the candidate without stopping, so we found
-	//  a winner to reuse
+        // we've checked all of the candidate without stopping, so we found
+        //  a winner to reuse
 
-	if (DEBUG) {
-	  System.out.println("found a matching map: ["+ candidateBeginningIndex
-			     +", "+ (candidateIndex-1) +"] == ["+
-			     firstIndex +", "+ lastGCMapEntry +"]");
-	}
+        if (DEBUG) {
+          System.out.println("found a matching map: ["+ candidateBeginningIndex
+                             +", "+ (candidateIndex-1) +"] == ["+
+                             firstIndex +", "+ lastGCMapEntry +"]");
+        }
 
-	lastGCMapEntry = firstIndex - 1;
-	return candidateBeginningIndex;
+        lastGCMapEntry = firstIndex - 1;
+        return candidateBeginningIndex;
       }
     }
 

@@ -17,18 +17,18 @@ package com.ibm.JikesRVM;
 public abstract class VM_Configuration {
 
   public static final boolean BuildForPowerPC =
-	//-#if RVM_FOR_POWERPC
-	  true;
-	//-#else
-	  false;
-	//-#endif
+        //-#if RVM_FOR_POWERPC
+          true;
+        //-#else
+          false;
+        //-#endif
 
   public static final boolean BuildForIA32 =
-	//-#if RVM_FOR_IA32
-	  true;
-	//-#else
-	  false;
-	//-#endif
+        //-#if RVM_FOR_IA32
+          true;
+        //-#else
+          false;
+        //-#endif
 
   public static final boolean LittleEndian = BuildForIA32;
 
@@ -47,20 +47,27 @@ public abstract class VM_Configuration {
     //-#endif
 
   public static final boolean BuildForAix =
-	//-#if RVM_FOR_AIX
-	  true;
-	//-#else
-	  false;
-	//-#endif
+        //-#if RVM_FOR_AIX
+          true;
+        //-#else
+          false;
+        //-#endif
 
   public static final boolean BuildForLinux =
-	//-#if RVM_FOR_LINUX
-	  true;
-	//-#else
-	  false;
-	//-#endif
+        //-#if RVM_FOR_LINUX
+          true;
+        //-#else
+          false;
+        //-#endif
 
-  /** Assertion checking.
+   public static final boolean BuildForOsx =
+        //-#if RVM_FOR_OSX
+          true;
+        //-#else
+          false;
+        //-#endif
+
+ /** Assertion checking.
       <dl>
       <dt>false</dt>  <dd> no assertion checking at runtime</dd>
       <dt>true  </dt> <dd> execute assertion checks at runtime</dd>
@@ -69,10 +76,9 @@ public abstract class VM_Configuration {
       Note: code your assertion checks as 
       <pre>
         if (VM.VerifyAssertions) 
-	  VM._assert(xxx);
+          VM._assert(xxx);
       </pre> 
   */
-
   public static final boolean VerifyAssertions = 
         //-#if RVM_WITHOUT_ASSERTIONS
           false;
@@ -87,9 +93,10 @@ public abstract class VM_Configuration {
           false;
         //-#endif
 
-  /**  If set, verify that Uninterruptible methods actually cannot be
-       interrupted.   We have disabled this until we can fix the last couple
-       problem cases. */ 
+  /**  
+   * If set, verify that Uninterruptible methods actually cannot be
+   * interrupted.
+   */ 
   public static final boolean VerifyUnint = true && VerifyAssertions;
 
   // If set, ignore the supression pragma and print all warning messages.
@@ -97,29 +104,29 @@ public abstract class VM_Configuration {
 
   // Multiprocessor operation?
   //  false --> VM will use multiple processors (requires an operating system
-  //		that supports Posix pthreads)
+  //            that supports Posix pthreads)
   //  true  --> VM will use just one processor and no 
-  //		synchronization instructions
+  //            synchronization instructions
   //
   public static final boolean BuildForSingleVirtualProcessor =
-	//-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
-	  true;
-	//-#else
-	  false;
-	//-#endif
+        //-#if RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
+          true;
+        //-#else
+          false;
+        //-#endif
 
   /** Use count of method prologues executed rather than timer interrupts to
       drive preemptive thread switching.  Non preemptive thread switching is
       achieved by setting the number of prologues between thread switches to
       infinity (-1).  */
   public static final boolean BuildForDeterministicThreadSwitching =
-	//-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
-	  true;
+        //-#if RVM_WITH_DETERMINISTIC_THREAD_SWITCHING
+          true;
         //-#elif RVM_WITHOUT_PREEMPTIVE_THREAD_SWITCHING 
           true;
         //-#else
           false;
-	//-#endif
+        //-#endif
 
   /** Does this build include support for Hardware Performance Monitors? */
   public static final boolean BuildForHPM = 
@@ -173,13 +180,10 @@ public abstract class VM_Configuration {
         true;
       //-#endif
 
-  /** Capture threads that have gone Native (JNI) and not come back.  Issolate
-      them in Native.  Create a new (Native) virtual processor for them.  And
-      create (or revive) new pThreads to run the old virtual processors.
-  */
-  public static final boolean BuildWithNativeDaemonProcessor = 
-    //-#if RVM_WITH_NATIVE_DAEMON_PROCESSOR
-    !BuildForSingleVirtualProcessor;
+  /** Do we use nonblocking I/O for files? */
+  public static final boolean NonBlockingFDs = 
+    //-#if RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH
+    true;
     //-#else
     false;
     //-#endif

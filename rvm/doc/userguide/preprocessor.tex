@@ -1,5 +1,5 @@
-Some of the code in Jikes RVM is run through a preprocessor before the
-real Java compiler ever sees it.  As of July, 2003, preprocessor
+Some of the code in Jikes\TMweb{} RVM is run through a preprocessor before the
+real Java\TMweb-to-byte-code compiler ever sees it.  As of July, 2003, preprocessor
 constructs are in 128 of Jikes RVM's 1045 Java source files.
 
 \subsection{Usage}
@@ -13,7 +13,8 @@ for it.
 Usage: preprocessModifiedFiles [--help] [--trace]
         [ --[no-]undefined-constants-in-conditions ]
         [ --[no-]only-boolean-constants-in-conditions ]
-        [ -D<name>[ =1 | =0 | =<string-value> ] ]... 
+        [ --disable-modification-exit-status ]
+        [ -D<name>[ =1 | =0 | =<string-value> ] ]...
         [ -- ] <output directory> [ <input file> ]...
    Preprocess source files that are new or have changed.
 
@@ -25,10 +26,10 @@ Usage: preprocessModifiedFiles [--help] [--trace]
 
    Invocation parameters:
       - zero or more definitions of preprocessor constants
-         of the form "-D<name>=1",
-         of the equivalent shorthand form "-D<name>", 
-         of the form "-D<name>=0",
-         and/or of the form "-D<name>=<string-value>".
+        of the form "-D<name>=1",
+        of the equivalent shorthand form "-D<name>", 
+        of the form "-D<name>=0",
+        and/or of the form "-D<name>=<string-value>".
       - name of directory to receive output files
       - names of zero or more input files
       - other flags
@@ -46,7 +47,7 @@ Usage: preprocessModifiedFiles [--help] [--trace]
 
    --trace  The preprocessor prints a 
          '.' for each file that did not need to be changed and a 
-          '+' for each file that needed preprocessing.
+         '+' for each file that needed preprocessing.
    --verbose, -v  The preprocessor prints a message for each file
          examined, and prints a summary at the end 
 
@@ -57,7 +58,7 @@ Usage: preprocessModifiedFiles [--help] [--trace]
    -D<name>=0 is historically a no-op; equivalent to never defining <name>.
    (However, the --no-undefined-constants-in-conditions flag changes that
     behavior, requiring that any <name> in an //-#if <name> directive.
-    be defined with -D<name>=0 or -D<name>=1).
+    be defined with -D<name>=0 or -D<name>=1.)
 
    -D<name>=1 and -D<name> are equivalent.
 
@@ -69,24 +70,25 @@ Usage: preprocessModifiedFiles [--help] [--trace]
    on a line of input.
 
       //-#if    <name>
-            Historically, it is not an error for <name> to have never been
-            defined; it's equivalent to -D<name>=0.  This can be 
-            experimentally promoted to an error with the flag
-            --no-undefined-constants-in-conditions.  The historical
-            behavior (default) is explicitly requested with --undefined-constants-in-conditions
-            
-            Historically, //-#if only checks whether <name> is defined.
-            If you specify --only-boolean-constants-in-conditions, then
-            you get stricter behavior where <name> must've been defined with
-            -D<name>=1 or -D<name>=0.
+           Historically, it is not an error for <name> to have never been
+           defined; it's equivalent to -D<name>=0.  This can be 
+           experimentally promoted to an error with the flag
+           --no-undefined-constants-in-conditions.  The historical
+           behavior (default) is explicitly requested with
+	    --undefined-constants-in-conditions
+           
+           Historically, //-#if only checks whether <name> is defined.
+           If you specify --only-boolean-constants-in-conditions, then
+           you get stricter behavior where <name> must've been defined with
+           -D<name>=1 or -D<name>=0.
 
-            "//-#if" also supports the constructs '!' (invert the sense of 
-            the next test), '&&', and '||'.  '!' binds more tightly 
-            than '&&' and '||' do.   '&&' and '||' are at the same precedence,
-            and are short-circuit evaluated in left-to-right order.
+           "//-#if" also supports the constructs '!' (invert the sense of 
+           the next test), '&&', and '||'.  '!' binds more tightly 
+           than '&&' and '||' do.   '&&' and '||' are at the same precedence,
+           and are short-circuit evaluated in left-to-right order.
 
-            The preprocessor does not support parentheses in //-#if constructs.
-            If you don't mix '&&' and '||' in the same line, you'll be OK.
+           The preprocessor does not support parentheses in //-#if constructs.
+           If you don't mix '&&' and '||' in the same line, you'll be OK.
 
       //-#elif  <name>
             Takes the same arguments that //-#if does. 
@@ -96,15 +98,15 @@ Usage: preprocessModifiedFiles [--help] [--trace]
       //-#endif <optional-comment>
 
       //-#value <preprocessor-symbol>
-            <-preprocessor-symbol> is the name of a constant defined on the
-            command line with -D; it will be replaced with the defined value.
+           <-preprocessor-symbol> is the name of a constant defined on the
+           command line with -D; it will be replaced with the defined value.
 
-            It is an error for <preprocessor-symbol> not to be defined.
+           It is an error for <preprocessor-symbol> not to be defined.
 
-            It is an error for <preprocessor-symbol> to have been defined
-            with -D<name>=1 or with -D<name>
+           It is an error for <preprocessor-symbol> to have been defined
+           with -D<name>=1 or with -D<name>
 
-           (This is an odd restriction, but is the way the code was written
+          (This is an odd restriction, but is the way the code was written
            when I found it.  You're free to rewrite it if you want it to act
            just like the C preprocessor does.)
 
@@ -115,10 +117,32 @@ Usage: preprocessModifiedFiles [--help] [--trace]
 \subsection{Where It Is}
 
 The source code for the preprocessor is in {\tt
-rvm/src/tools/preprocessor}.  The Jikes RVM build process installs it
-as {\tt RVM\_BUILD/jbuild.prep}.  The preprocessing is done automatically
-during the build process.  The preprocessor is just an executable
-program; you can use it yourself for other projects without using the
-rest of Jikes RVM.
+  rvm/src/tools/preprocessor}.  The Jikes RVM build process installs a
+preprocessor executable for the host as as {\tt
+  RVM\_BUILD/jbuild.prep.host} and one for the target at {\tt
+  RVM\_BUILD/jbuild.prep.host}.  The preprocessing is done
+automatically during the build process.  The preprocessor is just an
+executable program; you can use it yourself for other projects without
+using the rest of Jikes RVM.\@
 
+
+\subsection{Why use a preprocessor?}
+
+The Java programming language has a conditional compilation idiom that tries to make up for its
+lack of a preprocessor.  In the idiom, a programmer can
+declare a {\tt final boolean} constant such as {\it on\_platform\_xyz}
+and then write {\tt if} statements using that constant, such as:
+\begin{example}
+if ({\it on\_platform\_xyz}) \{
+   doSomethingIOnlyNeedToDoForPlatformXYZ();
+\}    
+\end{example}
+
+This is a good substitute in many cases.  However, it doesn't work for
+Jikes RVM; we need to (for example) work with processor words in some of
+the code.  On some platforms they're 64 bits long (a Java {\tt long})
+and on some they're 32 bits long (a Java {\tt int}).  The Java
+programming language has no way,
+using the conditional compilation idiom, to write methods that return
+a {\tt long} in some situations and a {\tt int} in others.
 

@@ -15,14 +15,14 @@ public class TestProcessDestroy {
 
       // Process killer thread
       new Thread() {
-	public void run() {
-	  try {
-	    Thread.sleep(3000); // give it a chance to start
-	    proc.destroy();
-	  }
-	  catch (InterruptedException e) {
-	  }
-	}
+        public void run() {
+          try {
+            Thread.sleep(3000); // give it a chance to start
+            proc.destroy();
+          }
+          catch (InterruptedException e) {
+          }
+        }
       }.start();
 
       // Wait for the process to exit

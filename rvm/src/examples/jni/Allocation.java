@@ -28,9 +28,9 @@ class Allocation {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-	verbose = false;	
-	setVerboseOff();
-      } 	
+        verbose = false;        
+        setVerboseOff();
+      }         
     }
 
     // the class to create a new instance

@@ -58,7 +58,7 @@ public final class VM_YieldpointCounterData extends VM_StringEventCounterData
     double methodEntryTotal=0;
     double backedgeTotal=0;
     for (Enumeration e = stringToCounterMap.keys();
-	 e.hasMoreElements();) {
+         e.hasMoreElements();) {
       String stringName = (String) e.nextElement();
 
       Integer counterNum = (Integer) stringToCounterMap.get(stringName);
@@ -69,10 +69,10 @@ public final class VM_YieldpointCounterData extends VM_StringEventCounterData
       
       // If it's a method entry event
       if (stringName.indexOf("METHOD ENTRY") != -1)
-	methodEntryTotal += count;
+        methodEntryTotal += count;
       
       if (stringName.indexOf("BACKEDGE") != -1)
-	backedgeTotal += count;
+        backedgeTotal += count;
 
     }
     VM.sysWrite("Total backedges: " + backedgeTotal + "\n");

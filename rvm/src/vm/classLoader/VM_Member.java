@@ -46,7 +46,7 @@ public abstract class VM_Member implements VM_Constants, VM_ClassLoaderConstants
    * @param modifiers modifiers associated with this member.
    */
   protected VM_Member(VM_Class declaringClass, VM_MemberReference memRef,
-		      int modifiers) {
+                      int modifiers) {
     this.declaringClass = declaringClass;
     this.memRef = memRef;
     this.modifiers = modifiers;

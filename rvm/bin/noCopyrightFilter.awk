@@ -14,12 +14,17 @@
 #
 # Find files that don't have a copyright notice.
 #
+/^\.\/aux\/gnu-classpath-on-mac-osx\.patch$/ { next }
+
 /\/bin\/classpath.stamp/ { next }
+
+/\/_timestamp\/timestamp/ { next }
 
 /\/doc\/userguide\// { next }
 
 /\/regression\/tests\/SPECjbb2000\/SPECjbb./ { next }
 /\/regression\/tests\/pseudojbb\/pseudojbb/ {next}
+/\/regression\/tests\/pseudojbb\/props/ {next}
 /\/regression\/tests\/mauve\/mauve-jikesrvm/ {next}
 
 /\/tests\/javalex\/qb1.lex.ref/ { next }

@@ -39,9 +39,9 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
    * @param cfg the OPT_ControlFlowGraph that will contain the basic block
    */
   OPT_ExceptionHandlerBasicBlock(int loc, 
-				 OPT_InlineSequence position,
-				 OPT_TypeOperand type, 
-				 OPT_ControlFlowGraph cfg) {
+                                 OPT_InlineSequence position,
+                                 OPT_TypeOperand type, 
+                                 OPT_ControlFlowGraph cfg) {
     super(loc, position, cfg);
     exceptionTypes = new OPT_TypeOperand[1];
     exceptionTypes[0] = type;
@@ -125,14 +125,14 @@ public final class OPT_ExceptionHandlerBasicBlock extends OPT_BasicBlock {
     return new Enumeration() {
       private int idx = 0;
       public final boolean hasMoreElements() { 
-	return idx != exceptionTypes.length; 
+        return idx != exceptionTypes.length; 
       }
       public final Object nextElement() {
-	try {
-	  return exceptionTypes[idx++];
-	} catch (ArrayIndexOutOfBoundsException e) {
-	  throw new java.util.NoSuchElementException("OPT_ExceptionHandlerBasicBlock.getExceptionTypes");
-	}
+        try {
+          return exceptionTypes[idx++];
+        } catch (ArrayIndexOutOfBoundsException e) {
+          throw new java.util.NoSuchElementException("OPT_ExceptionHandlerBasicBlock.getExceptionTypes");
+        }
       }
     };
   }

@@ -32,7 +32,7 @@ public class FinalizerThread extends VM_Thread {
    public void run() {
 
      if (verbose >= 1)
-	 VM_Scheduler.trace("FinalizerThread ", "run routine entered");
+         VM_Scheduler.trace("FinalizerThread ", "run routine entered");
 
      while (true) {
 
@@ -41,37 +41,37 @@ public class FinalizerThread extends VM_Thread {
 
        VM_Scheduler.finalizerMutex.lock();
        VM_Thread.getCurrentThread().yield(VM_Scheduler.finalizerQueue, 
-					  VM_Scheduler.finalizerMutex);
+                                          VM_Scheduler.finalizerMutex);
 
        if (verbose >= 1)
-	   VM.sysWriteln("FinalizerThread starting finalization");
+           VM.sysWriteln("FinalizerThread starting finalization");
 
        synchronized (marker) {
-	 while (true) {
-	   Object o = MM_Interface.getFinalizedObject();
-	   if (o == null) break;
-	   if (verbose >= 2) {
-	       VM.sysWrite("FinalizerThread finalizing object at ", VM_Magic.objectAsAddress(o));
-	       VM.sysWrite("of type ");
-	       VM.sysWrite(VM_Magic.getObjectType(o).getDescriptor());
-	       VM.sysWriteln();
-	   }
-	   try {
-	       VM_Method method = VM_Magic.getObjectType(o).asClass().getFinalizer();
-	       if (VM.VerifyAssertions) VM._assert(method != null);
-	       Object[]  none = new Object[0];
-	       Object    ret = VM_Reflection.invoke(method, o, none);
-	   }
-	   catch (Exception e) {
-	       if (verbose >= 1) VM.sysWriteln("Throwable exception caught for finalize call");
-	   }
-	   if (verbose >= 2) VM.sysWriteln("FinalizerThread done with object at ",
-					   VM_Magic.objectAsAddress(o));
-	 }
-	 if (verbose >= 1) VM.sysWriteln("FinalizerThread finished finalization");
-	 
-       }	// synchronized (marker)
-     }		// while (true)
+         while (true) {
+           Object o = MM_Interface.getFinalizedObject();
+           if (o == null) break;
+           if (verbose >= 2) {
+               VM.sysWrite("FinalizerThread finalizing object at ", VM_Magic.objectAsAddress(o));
+               VM.sysWrite("of type ");
+               VM.sysWrite(VM_Magic.getObjectType(o).getDescriptor());
+               VM.sysWriteln();
+           }
+           try {
+               VM_Method method = VM_Magic.getObjectType(o).asClass().getFinalizer();
+               if (VM.VerifyAssertions) VM._assert(method != null);
+               Object[]  none = new Object[0];
+               Object    ret = VM_Reflection.invoke(method, o, none);
+           }
+           catch (Exception e) {
+               if (verbose >= 1) VM.sysWriteln("Throwable exception caught for finalize call");
+           }
+           if (verbose >= 2) VM.sysWriteln("FinalizerThread done with object at ",
+                                           VM_Magic.objectAsAddress(o));
+         }
+         if (verbose >= 1) VM.sysWriteln("FinalizerThread finished finalization");
+         
+       }        // synchronized (marker)
+     }          // while (true)
      
    }  // run
 

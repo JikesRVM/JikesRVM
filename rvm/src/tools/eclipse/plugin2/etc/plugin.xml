@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
- (C) Copyright IBM Corp., 2002.
+ (C) Copyright IBM Corp., 2002, 2003.
 
  $Source$
  $Revision$
@@ -12,10 +12,10 @@
 
 -->
 <plugin
-   id="com.ibm.jikesrvm.launching"
    name="%pluginName"
-   version="2.3.0.1"
-   provider-name="JikesRVM"
+   id="com.ibm.jikesrvm.launching"
+   version="@PLUGIN.VERSION@"
+   provider-name="%providerName"
    class="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMLaunchingPlugin">
 
   <!-- Required plugins -->
@@ -39,16 +39,19 @@
   
   <!-- Extensions -->
   <!-- Extension points -->
-  <extension point="org.eclipse.jdt.launching.vmInstallTypes">  
+  <extension point="org.eclipse.jdt.launching.vmInstallTypes"
+		name="%launching"
+	id="launching">  
      <vmInstallType
            class="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMInstallType"
            id="com.ibm.jikesrvm.eclipse.jdt.launching.JikesRVMType">
      </vmInstallType>
   </extension>
 
-  <extension point="org.eclipse.ui.preferencePages">
+  <extension point="org.eclipse.ui.preferencePages" id="prefpage"
+		name="%prefPage">
     <page id="com.ibm.jikesrvm.eclipse.ui.JikesRVMPreferencePage"
-          name="Jikes RVM"
+          name="%prefPageName"
 	  class="com.ibm.jikesrvm.eclipse.ui.JikesRVMPreferencePage">
     </page>
   </extension>

@@ -77,7 +77,7 @@ public abstract class Reference {
     VM_Address tmp = referent;
     
     if (tmp.isZero())
-	return null;
+        return null;
 
     return VM_Magic.addressAsObject(tmp);
   }
@@ -102,7 +102,7 @@ public abstract class Reference {
    * not a 'real' problem...
    */
   public boolean enqueue() throws VM_PragmaUninterruptible, 
-				  VM_PragmaLogicallyUninterruptible {
+                                  VM_PragmaLogicallyUninterruptible {
     if (nextOnQueue == null && queue != null) {
       wasEnqueued = true;
       queue.enqueue(this);

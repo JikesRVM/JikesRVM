@@ -105,21 +105,21 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
   protected final boolean EQ_NE(OPT_ConditionOperand c) {
     int cond = c.value;
     return ((cond == OPT_ConditionOperand.EQUAL) ||
-	    (cond == OPT_ConditionOperand.NOT_EQUAL));
+            (cond == OPT_ConditionOperand.NOT_EQUAL));
   }
 
   protected final boolean EQ_LT_LE(OPT_ConditionOperand c) {
     int cond = c.value;
     return ((cond == OPT_ConditionOperand.EQUAL) ||
-	    (cond == OPT_ConditionOperand.LESS) ||
-	    (cond == OPT_ConditionOperand.LESS_EQUAL));
+            (cond == OPT_ConditionOperand.LESS) ||
+            (cond == OPT_ConditionOperand.LESS_EQUAL));
   }
 
   protected final boolean EQ_GT_GE(OPT_ConditionOperand c) {
     int cond = c.value;
     return ((cond == OPT_ConditionOperand.EQUAL) ||
-	    (cond == OPT_ConditionOperand.GREATER) ||
-	    (cond == OPT_ConditionOperand.GREATER_EQUAL));
+            (cond == OPT_ConditionOperand.GREATER) ||
+            (cond == OPT_ConditionOperand.GREATER_EQUAL));
   }
 
    /* node accessors */

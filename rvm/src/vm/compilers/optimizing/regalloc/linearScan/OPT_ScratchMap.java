@@ -51,7 +51,7 @@ final class OPT_ScratchMap {
 
     SymbolicInterval i = new SymbolicInterval(r,scratch);
     i.begin = begin;
-    Vector v = findOrCreateIntervalSet(r);
+    ArrayList v = findOrCreateIntervalSet(r);
     v.add(i);
     pending.put(r,i);
   }
@@ -86,7 +86,7 @@ final class OPT_ScratchMap {
     }
     PhysicalInterval p = new PhysicalInterval(r);
     p.begin = begin;
-    Vector v = findOrCreateIntervalSet(r);
+    ArrayList v = findOrCreateIntervalSet(r);
     v.add(p);
     pending.put(r,p);
   }
@@ -110,10 +110,10 @@ final class OPT_ScratchMap {
   /**
    * Find or create the set of intervals corresponding to a register r.
    */
-  private Vector findOrCreateIntervalSet(OPT_Register r) {
-    Vector v = (Vector)map.get(r);
+  private ArrayList findOrCreateIntervalSet(OPT_Register r) {
+    ArrayList v = (ArrayList)map.get(r);
     if (v == null) {
-      v = new Vector();
+      v = new ArrayList();
       map.put(r,v);
     }
     return v;
@@ -124,10 +124,10 @@ final class OPT_ScratchMap {
    * instruction n, return true; else, return false;
    */
   boolean isScratch(OPT_Register r, int n) {
-    Vector v = (Vector)map.get(r);
+    ArrayList v = (ArrayList)map.get(r);
     if (v == null) return false;
-    for (Enumeration e = v.elements(); e.hasMoreElements(); ) {
-      PhysicalInterval i = (PhysicalInterval)e.nextElement();
+    for (Iterator e = v.iterator(); e.hasNext(); ) {
+      PhysicalInterval i = (PhysicalInterval)e.next();
       if (i.contains(n)) return true;
     }
     return false;
@@ -139,10 +139,10 @@ final class OPT_ScratchMap {
    * return null.
    */
   OPT_Register getScratch(OPT_Register r, int n) {
-    Vector v = (Vector)map.get(r);
+    ArrayList v = (ArrayList)map.get(r);
     if (v == null) return null;
-    for (Enumeration e = v.elements(); e.hasMoreElements(); ) {
-      SymbolicInterval i = (SymbolicInterval)e.nextElement();
+    for (Iterator e = v.iterator(); e.hasNext(); ) {
+      SymbolicInterval i = (SymbolicInterval)e.next();
       if (i.contains(n)) return i.scratch;
     }
     return null;
@@ -187,9 +187,9 @@ final class OPT_ScratchMap {
   public String toString() {
     String result = "";
     for (Iterator i = map.values().iterator(); i.hasNext(); ) {
-      Vector v = (Vector)i.next();
-      for (Enumeration e = v.elements(); e.hasMoreElements(); ) {
-        result += e.nextElement() + "\n";
+      ArrayList v = (ArrayList)i.next();
+      for (Iterator e = v.iterator(); e.hasNext(); ) {
+        result += e.next() + "\n";
       }
     }
     return result;

@@ -30,12 +30,12 @@ class OPT_EdgelessGraph implements OPT_Graph, Serializable {
      * @return an enumeration of all the nodes in the graph
      */
     public OPT_GraphNodeEnumeration enumerateNodes() {
-	final Enumeration e = nodes.elements();
-	return new OPT_GraphNodeEnumeration() {
-	  public boolean hasMoreElements() { return e.hasMoreElements(); }
-	  public OPT_GraphNode next() { return (OPT_GraphNode)e.nextElement();}
-	  public Object nextElement() { return next(); }
-	};
+        final Enumeration e = nodes.elements();
+        return new OPT_GraphNodeEnumeration() {
+          public boolean hasMoreElements() { return e.hasMoreElements(); }
+          public OPT_GraphNode next() { return (OPT_GraphNode)e.nextElement();}
+          public Object nextElement() { return next(); }
+        };
     }
 
     /** 
@@ -43,7 +43,7 @@ class OPT_EdgelessGraph implements OPT_Graph, Serializable {
      * @return the number of nodes in the graph
      */
     public int numberOfNodes() {
-	return nodes.size();
+        return nodes.size();
     }
 
     /**
@@ -63,9 +63,9 @@ class OPT_EdgelessGraph implements OPT_Graph, Serializable {
      * @param node the node to add, which should be an OPT_EdgelessGraphNode.
      */
     public void addGraphNode(OPT_GraphNode node) {
-	OPT_EdgelessGraphNode n = (OPT_EdgelessGraphNode) node;
-	nodes.addElement( n );
-	n.setIndex( nodes.size() - 1 );
+        OPT_EdgelessGraphNode n = (OPT_EdgelessGraphNode) node;
+        nodes.addElement( n );
+        n.setIndex( nodes.size() - 1 );
     }
     
     /**
@@ -76,10 +76,10 @@ class OPT_EdgelessGraph implements OPT_Graph, Serializable {
      * OPT_EdgelessGraphNode.
      */
     public void addGraphEdge(OPT_GraphNode source, OPT_GraphNode target) {
-	OPT_EdgelessGraphNode s = (OPT_EdgelessGraphNode) source;
-	OPT_EdgelessGraphNode t = (OPT_EdgelessGraphNode) target;
-	s.addOutEdgeInternal( t );
-	t.addInEdgeInternal( s );
+        OPT_EdgelessGraphNode s = (OPT_EdgelessGraphNode) source;
+        OPT_EdgelessGraphNode t = (OPT_EdgelessGraphNode) target;
+        s.addOutEdgeInternal( t );
+        t.addInEdgeInternal( s );
     }
 
     /**
@@ -88,6 +88,6 @@ class OPT_EdgelessGraph implements OPT_Graph, Serializable {
      * @return the node with the given index.
      */
     public OPT_EdgelessGraphNode getNode(int index) {
-	return (OPT_EdgelessGraphNode) nodes.elementAt(index);
+        return (OPT_EdgelessGraphNode) nodes.elementAt(index);
     }
 }

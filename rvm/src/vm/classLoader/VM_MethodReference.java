@@ -67,7 +67,7 @@ public final class VM_MethodReference extends VM_MemberReference {
   public final int getParameterWords() throws VM_PragmaUninterruptible {
     int pw = 0;
     for (int i = 0; i<parameterTypes.length; i++)
-	   pw += parameterTypes[i].getStackWords();
+           pw += parameterTypes[i].getStackWords();
     return pw;
   }
 
@@ -126,12 +126,12 @@ public final class VM_MethodReference extends VM_MemberReference {
   public final VM_Method resolveInvokeSpecial() {
     VM_Class thisClass = (VM_Class)type.peekResolvedType();
     if (thisClass == null 
-	&& name != VM_ClassLoader.StandardObjectInitializerMethodName) 
+        && name != VM_ClassLoader.StandardObjectInitializerMethodName) 
     {
       thisClass = (VM_Class)type.resolve();
       /* Can't fail to resolve thisClass; we're at compile time doing
-	 resolution of an invocation to a private method or super call.  We
-	 must have loaded the class already */ 
+         resolution of an invocation to a private method or super call.  We
+         must have loaded the class already */ 
     }
     if (thisClass == null) 
       return null; // can't be found now.
@@ -148,7 +148,7 @@ public final class VM_MethodReference extends VM_MemberReference {
       VM_Method found = cls.findDeclaredMethod(sought.getName(), 
                                                sought.getDescriptor());
       if (found != null)
-	return found; // new-style invokespecial semantics
+        return found; // new-style invokespecial semantics
     }
     return null; // cannot be found
   }
@@ -192,8 +192,8 @@ public final class VM_MethodReference extends VM_MemberReference {
     for (VM_Class c = declaringClass; c != null; c = c.getSuperClass()) {
       VM_Method it = c.findDeclaredMethod(name, descriptor);
       if (it != null) {
-	resolvedMember = it;
-	return resolvedMember;
+        resolvedMember = it;
+        return resolvedMember;
       }
     }
     throw new NoSuchMethodError(this.toString());
@@ -225,7 +225,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    */
   public final VM_Method resolveInterfaceMethod()
     throws IncompatibleClassChangeError, 
-	   NoSuchMethodError {
+           NoSuchMethodError {
     if (resolvedMember != null) return resolvedMember;
     
     // Hasn't been resolved yet. Do it now.
@@ -258,8 +258,8 @@ public final class VM_MethodReference extends VM_MemberReference {
     for (int i=0; i<interfaces.length; i++) {
       it = searchInterfaceMethods(interfaces[i]);
       if (it != null) {
-	resolvedMember = it;
-	return resolvedMember;
+        resolvedMember = it;
+        return resolvedMember;
       }
     }
     return null;

@@ -56,7 +56,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    * Find "catch" block for a machine instruction of this method.
    */ 
   public final int findCatchBlockForInstruction(int instructionOffset, 
-						VM_Type exceptionType) throws VM_PragmaInterruptible {
+                                                VM_Type exceptionType) throws VM_PragmaInterruptible {
     if (eTable == null) {
       return -1;
     } else {
@@ -106,12 +106,12 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       browser.setMethod(VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
 
       if (VM.TraceStackTrace) {
-	  VM.sysWrite("setting stack to frame (opt): ");
-	  VM.sysWrite( browser.getMethod() );
-	  VM.sysWrite( browser.getBytecodeIndex() );
-	  VM.sysWrite("\n");
+          VM.sysWrite("setting stack to frame (opt): ");
+          VM.sysWrite( browser.getMethod() );
+          VM.sysWrite( browser.getBytecodeIndex() );
+          VM.sysWrite("\n");
       }
-    } else {	
+    } else {    
       if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     }
   }
@@ -133,10 +133,10 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       browser.setMethod(VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod());
 
       if (VM.TraceStackTrace) {
-	  VM.sysWrite("up within frame stack (opt): ");
-	  VM.sysWrite( browser.getMethod() );
-	  VM.sysWrite( browser.getBytecodeIndex() );
-	  VM.sysWrite("\n");
+          VM.sysWrite("up within frame stack (opt): ");
+          VM.sysWrite( browser.getMethod() );
+          VM.sysWrite( browser.getBytecodeIndex() );
+          VM.sysWrite("\n");
       }
 
       return true;
@@ -159,42 +159,42 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       int[] inlineEncoding = map.inlineEncoding;
       int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
       for (int j = iei; 
-	   j >= 0; 
-	   j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
+           j >= 0; 
+           j = VM_OptEncodedCallSiteTree.getParent(j, inlineEncoding)) {
         int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
         VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(mid).asMethodReference().peekResolvedMethod();
         int lineNumber = m.getLineNumberForBCIndex(bci); // might be 0 if unavailable.
-	out.print("\tat ");
-	out.print(m.getDeclaringClass());
-	out.print('.');
-	out.print(m.getName());
-	out.print('(');
-	out.print(m.getDeclaringClass().getSourceName());
-	out.print(':');
-	out.print(lineNumber);
-	out.print(')');
-	out.println();
+        out.print("\tat ");
+        out.print(m.getDeclaringClass());
+        out.print('.');
+        out.print(m.getName());
+        out.print('(');
+        out.print(m.getDeclaringClass().getSourceName());
+        out.print(':');
+        out.print(lineNumber);
+        out.print(')');
+        out.println();
         if (j > 0) {
           bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
         }
       }
     } else {
-	out.print("\tat ");
-	out.print(method.getDeclaringClass());
-	out.print('.');
-	out.print(method.getName());
-	out.print('(');
-	out.print(method.getDeclaringClass().getSourceName());
-	out.print("; machine code offset: ");
-	out.printHex(instructionOffset);
-	out.print(')');
-	out.println();
+        out.print("\tat ");
+        out.print(method.getDeclaringClass());
+        out.print('.');
+        out.print(method.getName());
+        out.print('(');
+        out.print(method.getDeclaringClass().getSourceName());
+        out.print("; machine code offset: ");
+        out.printHex(instructionOffset);
+        out.print(')');
+        out.println();
     }
   }
 
   private static final VM_TypeReference TYPE
     = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-				    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"));
+                                    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"));
 
   public final int size() throws VM_PragmaInterruptible {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
@@ -434,10 +434,10 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     // (1) count the patch points
     int patchPoints = 0;
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
-	 s != null;
-	 s = s.nextInstructionInCodeOrder()) {
+         s != null;
+         s = s.nextInstructionInCodeOrder()) {
       if (s.operator() == IG_PATCH_POINT) {
-	patchPoints++;
+        patchPoints++;
       }
     }
     // (2) if we have patch points, create the map.
@@ -445,16 +445,16 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       patchMap = new int[patchPoints*2];
       int idx = 0;
       for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
-	   s != null;
-	   s = s.nextInstructionInCodeOrder()) {
-	if (s.operator() == IG_PATCH_POINT) {
-	  int patchPoint = s.getmcOffset();
-	  int newTarget = InlineGuard.getTarget(s).target.getmcOffset();
-	  // A patch map is the offset of the last byte of the patch point
-	  // and the new branch immediate to lay down if the code is ever patched.
+           s != null;
+           s = s.nextInstructionInCodeOrder()) {
+        if (s.operator() == IG_PATCH_POINT) {
+          int patchPoint = s.getmcOffset();
+          int newTarget = InlineGuard.getTarget(s).target.getmcOffset();
+          // A patch map is the offset of the last byte of the patch point
+          // and the new branch immediate to lay down if the code is ever patched.
           //-#if RVM_FOR_IA32
-	  patchMap[idx++] = patchPoint-1;
-	  patchMap[idx++] = newTarget - patchPoint;
+          patchMap[idx++] = patchPoint-1;
+          patchMap[idx++] = newTarget - patchPoint;
           //-#endif
           
           // otherwise, it must be RVM_FOR_POWERPC
@@ -463,11 +463,11 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
            * is adjusted for one word
            */ 
           patchMap[idx++] = 
-	    (patchPoint >> VM_RegisterConstants.LG_INSTRUCTION_WIDTH) -1;
+            (patchPoint >> VM_RegisterConstants.LG_INSTRUCTION_WIDTH) -1;
           patchMap[idx++] = (newTarget - patchPoint 
                             + (1<<VM_RegisterConstants.LG_INSTRUCTION_WIDTH));
           //-#endif
-	}
+        }
       }
     }
   }
@@ -480,7 +480,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       VM_CodeArray code = cm.getInstructions();
       for (int idx=0; idx<patchMap.length; idx += 2) {
         //-#if RVM_FOR_IA32  
-	VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
+        VM_Assembler.patchCode(code, patchMap[idx], patchMap[idx+1]);
         //-#endif
         //
         //-#if RVM_FOR_POWERPC
@@ -502,7 +502,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       VM_Magic.sync();
 
       if (VM_Scheduler.syncObj == null) {
-	VM_Scheduler.syncObj = new Object();
+        VM_Scheduler.syncObj = new Object();
       }
 
       // how may processors to be synchronized
@@ -510,26 +510,26 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
       VM_Scheduler.toSyncProcessors = VM_Scheduler.numProcessors - 1;
 
       synchronized(VM_Scheduler.syncObj) {
-	
-	for (int i=0; i<VM_Scheduler.numProcessors; i++) {
-	  VM_Processor proc = VM_Scheduler.processors[i+1];
-	  // do not sync the current processor
-	  if (proc != VM_Processor.getCurrentProcessor()) {
-	    proc.needsSync = true;
-	  }
-	}
+        
+        for (int i=0; i<VM_Scheduler.numProcessors; i++) {
+          VM_Processor proc = VM_Scheduler.processors[i+1];
+          // do not sync the current processor
+          if (proc != VM_Processor.getCurrentProcessor()) {
+            proc.needsSync = true;
+          }
+        }
       }
 
       if (DEBUG_CODE_PATCH) 
-	VM.sysWriteln("processors to be synchronized : ", VM_Scheduler.toSyncProcessors);
+        VM.sysWriteln("processors to be synchronized : ", VM_Scheduler.toSyncProcessors);
 
       // do sync only when necessary 
       while (VM_Scheduler.toSyncProcessors > 0) {
-	VM_Thread.getCurrentThread().yield();
+        VM_Thread.getCurrentThread().yield();
       }
       
       if (DEBUG_CODE_PATCH) {
-	VM.sysWrite("all processors get synchronized!\n");
+        VM.sysWrite("all processors get synchronized!\n");
       }
       //-#endif
 

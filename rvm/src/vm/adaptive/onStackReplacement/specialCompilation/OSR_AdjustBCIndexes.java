@@ -28,23 +28,23 @@ public class OSR_AdjustBCIndexes extends OPT_CompilerPhase {
     int offset = ir.method.getOsrPrologueLength();
 
     for (OPT_InstructionEnumeration ie = ir.forwardInstrEnumerator(); 
-	 ie.hasMoreElements();) {
+         ie.hasMoreElements();) {
       OPT_Instruction s = ie.next();
 
       if ((s.position != null) && (s.position.method != ir.method)) {
-	// also adjust InlineSequence of the direct callee
-	OPT_InlineSequence caller = s.position.caller;
-	if ((caller != null) && (caller.method == ir.method)) {
-	  // adjust the call site's bcIndex
-	  s.position.bcIndex -= offset;
-	}
-	continue;
+        // also adjust InlineSequence of the direct callee
+        OPT_InlineSequence caller = s.position.caller;
+        if ((caller != null) && (caller.method == ir.method)) {
+          // adjust the call site's bcIndex
+          s.position.bcIndex -= offset;
+        }
+        continue;
       }
 
       if (s.bcIndex >= offset) {
-	s.bcIndex -= offset;
+        s.bcIndex -= offset;
       } else if (s.bcIndex >= 0) {
-	s.bcIndex = OPT_Constants.OSR_PROLOGUE;
+        s.bcIndex = OPT_Constants.OSR_PROLOGUE;
       }
     }
   }

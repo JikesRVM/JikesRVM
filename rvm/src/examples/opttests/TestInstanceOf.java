@@ -32,7 +32,7 @@ class TestInstanceOf
     if (!((boolTest[0])&&(!boolTest[1])&&(!boolTest[2])&&(!boolTest[3]))) {
       System.out.print("\nwant: true false false false\n got: ");  
       System.out.println(boolTest[0] + " " + boolTest[1] + 
-			 " " + boolTest[2] + " " + boolTest[3]);
+                         " " + boolTest[2] + " " + boolTest[3]);
       testSuccess = false;
     }
     
@@ -40,7 +40,7 @@ class TestInstanceOf
     if (!((!boolTest[0])&&(boolTest[1])&&(!boolTest[2])&&(!boolTest[3]))) { 
       System.out.print("\nwant: false true false false\n got: ");  
       System.out.println(boolTest[0] + " " + boolTest[1] + 
-			 " " + boolTest[2] + " " + boolTest[3]);
+                         " " + boolTest[2] + " " + boolTest[3]);
       testSuccess = false;
     }
     
@@ -48,7 +48,7 @@ class TestInstanceOf
     if (!((!boolTest[0])&&(!boolTest[1])&&(!boolTest[2])&&(!boolTest[3]))) { 
       System.out.print("\nwant: false false false false\n got: "); 
       System.out.println(boolTest[0] + " " + boolTest[1] + 
-			 " " + boolTest[2] + " " + boolTest[3]);
+                         " " + boolTest[2] + " " + boolTest[3]);
       testSuccess = false;
     }
     
@@ -56,7 +56,7 @@ class TestInstanceOf
     if (!((!boolTest[0])&&(!boolTest[1])&&(!boolTest[2])&&(boolTest[3]))) { 
       System.out.print("\nwant: false false false true\n got: ");  
       System.out.println(boolTest[0] + " " + boolTest[1] + 
-			 " " + boolTest[2] + " " + boolTest[3]);
+                         " " + boolTest[2] + " " + boolTest[3]);
       testSuccess = false;
     }
 

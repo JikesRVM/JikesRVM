@@ -36,11 +36,36 @@ final class CopySpace extends BasePolicy
    * Otherwise, a copy is created and returned.
    * In either case, the object will be marked on return.
    *
-   * @param object The object to be copied.
+   * @param object The object to be traced.
+   * @return The forwarded object.
    */
   public static VM_Address traceObject(VM_Address object) 
     throws VM_PragmaInline {
+    return forwardObject(object, true);
+  }
 
+  /**
+   * Forward an object.
+   *
+   * @param object The object to be forwarded.
+   * @return The forwarded object.
+   */
+  public static VM_Address forwardObject(VM_Address object) 
+    throws VM_PragmaInline {
+    return forwardObject(object, false);
+  }
+
+  /**
+   * Forward an object.  If the object has not already been forwarded,
+   * then conditionally enqueue it for scanning.
+   *
+   * @param object The object to be forwarded.
+   * @param scan If <code>true</code>, then enqueue the object for
+   * scanning if the object was previously unforwarded.
+   * @return The forwarded object.
+   */
+  private static VM_Address forwardObject(VM_Address object, boolean scan) 
+    throws VM_PragmaInline {
     int forwardingPtr = CopyingHeader.attemptToForward(object);
     // prevent instructions moving infront of attemptToForward
     VM_Magic.isync();   
@@ -49,7 +74,7 @@ final class CopySpace extends BasePolicy
     //
     if (CopyingHeader.stateIsForwardedOrBeingForwarded(forwardingPtr)) {
       while (CopyingHeader.stateIsBeingForwarded(forwardingPtr)) 
-	forwardingPtr = CopyingHeader.getForwardingWord(object);
+        forwardingPtr = CopyingHeader.getForwardingWord(object);
       // prevent following instructions from being moved in front of waitloop
       VM_Magic.isync();  
       VM_Address newObject = VM_Address.fromInt(forwardingPtr & ~CopyingHeader.GC_FORWARDING_MASK);
@@ -60,13 +85,17 @@ final class CopySpace extends BasePolicy
     //
     VM_Address newObject = VM_Interface.copy(object, forwardingPtr);
     CopyingHeader.setForwardingPointer(object, newObject);
-    Plan.enqueue(newObject);       // Scan it later
+    if (scan) {
+      Plan.enqueue(newObject);       // Scan it later
+    } else {
+      Plan.enqueueForwardedUnscannedObject(newObject);
+    }
 
     return newObject;
   }
 
+
   public static boolean isLive(VM_Address obj) {
     return CopyingHeader.isForwarded(obj);
   }
-
 }

@@ -31,11 +31,11 @@ abstract class OPT_PhysicalRegisterTools extends OPT_GenericPhysicalRegisterTool
                                              OPT_RegisterOperand rhs) {
     if (rhs.register.isInteger() || rhs.register.isLong()) {
       if (VM.VerifyAssertions) 
-	VM._assert(lhs.register.isInteger() || lhs.register.isLong());
+        VM._assert(lhs.register.isInteger() || lhs.register.isLong());
       return MIR_Move.create(IA32_MOV, lhs, rhs);
     } else if (rhs.register.isDouble() || rhs.register.isFloat()) {
       if (VM.VerifyAssertions) 
-	VM._assert(lhs.register.isDouble() || lhs.register.isFloat());
+        VM._assert(lhs.register.isDouble() || lhs.register.isFloat());
       return MIR_Move.create(IA32_FMOV, lhs, rhs);
     } else {
       OPT_OptimizingCompilerException.TODO("OPT_PhysicalRegisterTools.makeMoveInstruction");

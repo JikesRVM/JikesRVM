@@ -255,7 +255,7 @@ class TestExceptionThrow
    public static boolean run8() throws Throwable {
      try {
        if (testa.length <= 3) 
-	 throw new IndexOutOfBoundsException("I am IndexOBE");
+         throw new IndexOutOfBoundsException("I am IndexOBE");
        testa[3] = 0;
      } catch (NullPointerException n) {
        System.out.println( n + ", but caught by NullPointCheckException");
@@ -272,24 +272,24 @@ class TestExceptionThrow
     try {
       foo9(1);
       try {
-	foo9(2);
-	try {
-	  foo9(3);
-	} catch (IndexOutOfBoundsException e1) {
-	  System.out.println(" so [0].");
-	  try {
-	    foo9(4);
-	    try {
-	      foo9(5);
-	    } catch (IndexOutOfBoundsException e2) {
-	      System.out.println(" so [1].");
-	    }
-	  } catch (IndexOutOfBoundsException e3) {
+        foo9(2);
+        try {
+          foo9(3);
+        } catch (IndexOutOfBoundsException e1) {
+          System.out.println(" so [0].");
+          try {
+            foo9(4);
+            try {
+              foo9(5);
+            } catch (IndexOutOfBoundsException e2) {
+              System.out.println(" so [1].");
+            }
+          } catch (IndexOutOfBoundsException e3) {
             System.out.println(" so [2].");
-	  }
-	}
+          }
+        }
       } catch (IndexOutOfBoundsException e4) {
-	System.out.println(" so [4].");
+        System.out.println(" so [4].");
       }
     } catch (IndexOutOfBoundsException e5) {
       System.out.println(" so.");
@@ -303,8 +303,8 @@ class TestExceptionThrow
     try {
       System.out.println("does it work? " + i + "   ");
       if ((i < 0) || ( i > 2)) {
-	System.out.println(" IndexOutOfBoundsException with index = " + i);
-	throw new IndexOutOfBoundsException();
+        System.out.println(" IndexOutOfBoundsException with index = " + i);
+        throw new IndexOutOfBoundsException();
       }
     } catch (IndexOutOfBoundsException e) {
       System.out.println(" NullPointerException caught.");

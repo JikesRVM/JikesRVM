@@ -449,7 +449,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
   public final VM_MethodReference getMethodReference() {
     if (VM.VerifyAssertions)
       VM._assert(opcode == JBC_invokevirtual || opcode == JBC_invokespecial ||
-		 opcode == JBC_invokestatic || opcode == JBC_invokeinterface);
+                 opcode == JBC_invokestatic || opcode == JBC_invokeinterface);
     return declaringClass.getMethodRef(readUnsignedShort());
   }
 
@@ -759,7 +759,7 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
         {
           int oc = getWideOpcode();
           int len = JBC_length[oc] - 1;
-	  bcIndex += len + len;
+          bcIndex += len + len;
         }
         break;
       default:
@@ -769,16 +769,16 @@ public class VM_BytecodeStream implements VM_BytecodeConstants, VM_SizeConstants
 
 //-#if RVM_WITH_OSR
   public final int nextPseudoInstruction() {
-	if (VM.VerifyAssertions) VM._assert(opcode == JBC_impdep1);
-	return readUnsignedByte();
+        if (VM.VerifyAssertions) VM._assert(opcode == JBC_impdep1);
+        return readUnsignedByte();
   }
   public final int readIntConst() {
-	if (VM.VerifyAssertions) VM._assert(opcode == JBC_impdep1);
-	return readSignedInt();	
+        if (VM.VerifyAssertions) VM._assert(opcode == JBC_impdep1);
+        return readSignedInt(); 
   }
   public final long readLongConst() {
-	if (VM.VerifyAssertions) VM._assert(opcode == JBC_impdep1);
-	return readLong();
+        if (VM.VerifyAssertions) VM._assert(opcode == JBC_impdep1);
+        return readLong();
   }
 
   private final long readLong() {

@@ -61,7 +61,7 @@ public class OPT_ObjectReplacer
     OPT_DefUse.removeInstructionAndUpdateDU(defI);
     // now handle the uses
     for (OPT_RegisterOperand use = reg.useList; use != null; 
-	 use = (OPT_RegisterOperand)use.getNext()) {
+         use = (OPT_RegisterOperand)use.getNext()) {
       scalarReplace(use, scalars);
     }
   }
@@ -112,17 +112,17 @@ public class OPT_ObjectReplacer
    *
    * @param use the use to replace
    * @param scalars an array of scalar register operands to replace
-   *		      the object's fields with
+   *                  the object's fields with
    */
   private void scalarReplace (OPT_RegisterOperand use, 
-			      OPT_RegisterOperand[] scalars) {
+                              OPT_RegisterOperand[] scalars) {
     OPT_Instruction inst = use.instruction;
     switch (inst.getOpcode()) {
       case PUTFIELD_opcode:
         {
           VM_FieldReference fr = PutField.getLocation(inst).getFieldRef();
-	  if (VM.VerifyAssertions) VM._assert(fr.isResolved());
-	  VM_Field f = fr.peekResolvedField();
+          if (VM.VerifyAssertions) VM._assert(fr.isResolved());
+          VM_Field f = fr.peekResolvedField();
           int index = fields.indexOf(f);
           VM_TypeReference type = scalars[index].type;
           OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
@@ -136,8 +136,8 @@ public class OPT_ObjectReplacer
       case GETFIELD_opcode:
         {
           VM_FieldReference fr = GetField.getLocation(inst).getFieldRef();
-	  if (VM.VerifyAssertions) VM._assert(fr.isResolved());
-	  VM_Field f = fr.peekResolvedField();
+          if (VM.VerifyAssertions) VM._assert(fr.isResolved());
+          VM_Field f = fr.peekResolvedField();
           int index = fields.indexOf(f);
           VM_TypeReference type = scalars[index].type;
           OPT_Operator moveOp = OPT_IRTools.getMoveOp(type);
@@ -166,7 +166,7 @@ public class OPT_ObjectReplacer
         break;
       case NULL_CHECK_opcode:
         // (SJF) TODO: Why wasn't this caught by BC2IR for
-        //	java.lang.Double.<init> (Ljava/lang/String;)V ?
+        //      java.lang.Double.<init> (Ljava/lang/String;)V ?
         OPT_DefUse.removeInstructionAndUpdateDU(inst);
         break;
       default:

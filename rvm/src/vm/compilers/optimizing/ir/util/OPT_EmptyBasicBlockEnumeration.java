@@ -22,7 +22,7 @@ class OPT_EmptyBasicBlockEnumeration implements OPT_BasicBlockEnumeration {
     public Object nextElement() { return next(); }
 
     public OPT_BasicBlock next() {
-	throw new java.util.NoSuchElementException("Empty BasicBlock Enumeration");
+        throw new java.util.NoSuchElementException("Empty BasicBlock Enumeration");
     }
 }
 

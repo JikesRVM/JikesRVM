@@ -1,0 +1,174 @@
+#!/bin/bash
+#
+# (C) Copyright IBM Corp. 2001
+#
+# $Id:
+#
+# @author: Peter F. Sweeney
+# @date: August 20, 2003
+#
+# Scenario 0 run one warehouse on one CPU
+#
+
+groups="400 401 402 403 404 405 406 407 408 409 410 416 417 418 419 420 421 422 423 424 425 426 427 428 429 430 431 432 433 434 435 436 437 438 439 440 441 453 454 455 456 457 458 459 460"
+
+# number of times to run a benchmark: should be odd to find median.
+executions="1"
+
+mode=13
+
+if [[ $RVM_ROOT = "" ]]; then
+  echo
+  echo "Please specify RVM_ROOT"
+  echo
+  exit
+fi
+
+
+#if [[ -d results ]]; then
+#  rm -r results
+#fi
+
+echo "making results directory"
+mkdir results.first
+
+######################
+# Where to put results
+     output="./results.first"
+
+#################
+# 12 JikesRVM images
+# RVM_BUILD_COPYMS=$RVM_ROOT/FastAdaptiveCopyMS
+BASE_IMAGE_COPYMS=$RVM_ROOT/FastBaseAdaptiveCopyMS
+OPT0_IMAGE_COPYMS=$RVM_ROOT/FastOpt0CopyMS
+OPT1_IMAGE_COPYMS=$RVM_ROOT/FastOpt1CopyMS
+OPT2_IMAGE_COPYMS=$RVM_ROOT/FastAdaptiveCopyMS
+ AOS_IMAGE_COPYMS=$OPT2_IMAGE_COPYMS
+
+# RVM_BUILD_MARKSWEEP=$RVM_ROOT/FastAdaptiveMarkSweep
+BASE_IMAGE_MARKSWEEP=$RVM_ROOT/FastBaseAdaptiveMarkSweep
+OPT0_IMAGE_MARKSWEEP=$RVM_ROOT/FastOpt0MarkSweep
+OPT1_IMAGE_MARKSWEEP=$RVM_ROOT/FastOpt1MarkSweep
+OPT2_IMAGE_MARKSWEEP=$RVM_ROOT/FastAdaptiveMarkSweep
+ AOS_IMAGE_MARKSWEEP=$OPT2_IMAGE_MARKSWEEP
+
+# RVM_BUILD_SEMISPACE=$RVM_ROOT/FastAdaptiveSemiSpace
+BASE_IMAGE_SEMISPACE=$RVM_ROOT/FastBaseAdaptiveSemiSpace
+OPT0_IMAGE_SEMISPACE=$RVM_ROOT/FastOpt0SemiSpace
+OPT1_IMAGE_SEMISPACE=$RVM_ROOT/FastOpt1SemiSpace
+OPT2_IMAGE_SEMISPACE=$RVM_ROOT/FastAdaptiveSemiSpace
+ AOS_IMAGE_SEMISPACE=$OPT2_IMAGE_SEMISPACE
+
+
+################
+# pseudojbb home
+   RVM_PSEUDOJBB_FIXED=/home/pfs/benchmarks-modified/pseudojbb
+RVM_PSEUDOJBB_NOTFIXED=/.../watson.ibm.com/fs/users/J/jalapeno/jalapeno2/benchmarks-modified/pseudojbb
+
+
+for execution in $executions
+do
+  echo ""
+  echo "Execution: $execution"
+  echo ""
+
+  for group in $groups
+  do    
+    echo "group: $group"
+
+  ##################
+  #    fixed
+  ##################
+    export RVM_PSEUDOJBB_HOME=$RVM_PSEUDOJBB_FIXED
+    echo "RVM_PSEUDOJBB_HOME: $RVM_PSEUDOJBB_HOME"
+    
+    # aos
+    cml_options=""
+    export RVM_BUILD=$AOS_IMAGE_SEMISPACE
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="aos.semispace.fixed.$mode.$group.$execution"
+    ./raw.aos props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+    
+    export RVM_BUILD=$AOS_IMAGE_COPYMS
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="aos.copyms.fixed.$mode.$group.$execution"
+    ./raw.aos props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+    
+    export RVM_BUILD=$AOS_IMAGE_MARKSWEEP
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="aos.marksweep.fixed.$mode.$group.$execution"
+    ./raw.aos props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+
+    # opt 0
+    cml_options="-X:irc:O0"
+    export RVM_BUILD=$OPT0_IMAGE_SEMISPACE
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="opt0.semispace.fixed.$mode.$group.$execution"
+    ./raw.opt props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+    
+    export RVM_BUILD=$OPT0_IMAGE_COPYMS
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="opt0.copyms.fixed.$mode.$group.$execution"
+    ./raw.opt props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+    
+    export RVM_BUILD=$OPT0_IMAGE_MARKSWEEP
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="opt0.marksweep.fixed.$mode.$group.$execution"
+    ./raw.opt props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+
+    # opt 1
+    cml_options="-X:irc:O1"
+    export RVM_BUILD=$OPT1_IMAGE_SEMISPACE
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="opt1.semispace.fixed.$mode.$group.$execution"
+    ./raw.opt props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+    
+    export RVM_BUILD=$OPT1_IMAGE_COPYMS
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="opt1.copyms.fixed.$mode.$group.$execution"
+    ./raw.opt props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+    
+    export RVM_BUILD=$OPT1_IMAGE_MARKSWEEP
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="opt1.marksweep.fixed.$mode.$group.$execution"
+    ./raw.opt props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+
+    # opt 2
+    cml_options="-X:irc:O2"
+    export RVM_BUILD=$OPT2_IMAGE_SEMISPACE
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="opt2.semispace.fixed.$mode.$group.$execution"
+    ./raw.opt props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+    
+    export RVM_BUILD=$OPT2_IMAGE_COPYMS
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="opt2.copyms.fixed.$mode.$group.$execution"
+    ./raw.opt props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+    
+    export RVM_BUILD=$OPT2_IMAGE_MARKSWEEP
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="opt2.marksweep.fixed.$mode.$group.$execution"
+    ./raw.opt props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+
+    # baseline    
+    cml_options=""
+    export RVM_BUILD=$BASE_IMAGE_SEMISPACE
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="base.semispace.fixed.$mode.$group.$execution"
+    ./raw.base props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+    
+    export RVM_BUILD=$BASE_IMAGE_COPYMS
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="base.copyms.fixed.$mode.$group.$execution"
+    ./raw.base props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+    
+    export RVM_BUILD=$BASE_IMAGE_MARKSWEEP
+    echo "RVM_BUILD: $RVM_BUILD"
+    id="base.marksweep.fixed.$mode.$group.$execution"
+    ./raw.base props/pseudojbb_1.120000.props  1 $group $mode $id $output $cml_options >& $output/output.pseudojbb_1.120000.P4.1.$id
+
+  done
+  
+done
+
+

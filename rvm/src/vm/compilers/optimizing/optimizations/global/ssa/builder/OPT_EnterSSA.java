@@ -307,13 +307,13 @@ implements OPT_Operators, OPT_Constants {
     OPT_DefUse.recomputeSSA(ir);
 
     // 2. set up a mapping from symbolic register number to the
-    //	register.  !!TODO: factor this out and make it more
-    //	useful.
+    //  register.  !!TODO: factor this out and make it more
+    //  useful.
     OPT_Register[] symbolicRegisters = getSymbolicRegisters();
 
     // 3. walk through the IR, and set up BitVectors representing the defs
     //    for each symbolic register (more efficient than using register
-    //	lists)
+    //  lists)
     if (DEBUG) System.out.println("Find defs for each register...");
     OPT_BitVector[] defSets = getDefSets();
 
@@ -342,8 +342,8 @@ implements OPT_Operators, OPT_Constants {
    *
    * @param ir the governing IR
    * @param backwards if this is true, every statement that can leave the
-   *		       procedure <em> uses </em> every heap variable.
-   *		       This option is useful for backwards analyses
+   *                   procedure <em> uses </em> every heap variable.
+   *                   This option is useful for backwards analyses
    */
   private void insertHeapVariables (OPT_IR ir, boolean backwards) {
     // insert dphi functions where needed
@@ -468,12 +468,12 @@ implements OPT_Operators, OPT_Constants {
 
   /**
    * Calculate the set of blocks that contain defs for each
-   * 	symbolic register in an IR.  <em> Note: </em> This routine skips
-   * 	registers marked  already having a single static
-   * 	definition, physical registers, and guard registeres.
+   *    symbolic register in an IR.  <em> Note: </em> This routine skips
+   *    registers marked  already having a single static
+   *    definition, physical registers, and guard registeres.
    *
    * @return an array of BitVectors, where element <em>i</em> represents the
-   *	basic blocks that contain defs for symbolic register <em>i</em>
+   *    basic blocks that contain defs for symbolic register <em>i</em>
    */
   private OPT_BitVector[] getDefSets() {
     int nBlocks = ir.getMaxBasicBlockNumber();
@@ -516,11 +516,11 @@ implements OPT_Operators, OPT_Constants {
    *    of S.  Each block in D needs a phi-function for r.
    *
    * <p> Special Java case: if node N dominates all defs of r, then N
-   *			  does not need a phi-function for r
+   *                      does not need a phi-function for r
    *
    * @param ir the governing IR
    * @param defs defs[i] represents the basic blocks that define
-   *	        symbolic register i.
+   *            symbolic register i.
    * @param symbolics symbolics[i] is symbolic register number i
    */
   private void insertPhiFunctions(OPT_IR ir, OPT_BitVector[] defs, 
@@ -553,7 +553,7 @@ implements OPT_Operators, OPT_Constants {
    * nodes N from a Bit Set.
    *
    * @param needsPhi representation of set of nodes that
-   *		    need phi functions for a register r
+   *                need phi functions for a register r
    * @param ir the governing IR
    * @param defs set of nodes that define register r
    */
@@ -632,31 +632,31 @@ implements OPT_Operators, OPT_Constants {
    *  search(X):
    *  for each statement A in X do
    *     if A is not-phi
-   *	   for each r in RHS(A) do
-   *		if !r.isSSA, replace r with TOP(S(r))
-   *	   done
+   *       for each r in RHS(A) do
+   *            if !r.isSSA, replace r with TOP(S(r))
+   *       done
    *     fi
-   *	for each r in LHS(A) do
-   *		if !r.isSSA
-   *		    r2 = new temp register
-   *		    push r2 onto S(r)
-   *	            replace r in A by r2
-   *		fi
-   * 	done
+   *    for each r in LHS(A) do
+   *            if !r.isSSA
+   *                r2 = new temp register
+   *                push r2 onto S(r)
+   *                replace r in A by r2
+   *            fi
+   *    done
    *  done (end of first loop)
    *  for each Y in succ(X) do
    *      j <- whichPred(Y,X)
    *      for each phi-function F in Y do
-   *	   replace the j-th operand (r) in RHS(F) with TOP(S(r))
-   *	 done
+   *       replace the j-th operand (r) in RHS(F) with TOP(S(r))
+   *     done
    *  done (end of second loop)
    *  for each Y in Children(X) do
-   * 	call search(Y)
+   *    call search(Y)
   *  done (end of third loop)
     *  for each assignment A in X do
     *     for each r in LHS(A) do
-    *	   pop(S(r))
-    *	done
+    *      pop(S(r))
+    *   done
     *  done (end of fourth loop)
     *  end
     * <pre>
@@ -1097,19 +1097,19 @@ outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
       } else {
         VM_TypeReference meet = OPT_ClassLoaderProxy.findCommonSuperclass(result,t);
         if (meet == null) {
-	  // TODO: This horrific kludge should go away once we get rid of VM_Address.toInt()
+          // TODO: This horrific kludge should go away once we get rid of VM_Address.toInt()
           if ((result.isIntLikeType() && (t.isReferenceType() || t.isWordType())) ||
-	      ((result.isReferenceType() || result.isWordType()) && t.isIntLikeType())) {
+              ((result.isReferenceType() || result.isWordType()) && t.isIntLikeType())) {
             meet = VM_TypeReference.Int;
           } else if (result.isReferenceType() && t.isWordType()) {
-	    meet = t;
-	  } else if (result.isWordType() && t.isReferenceType()) {
-	    meet = result;
-	  }
+            meet = t;
+          } else if (result.isWordType() && t.isReferenceType()) {
+            meet = result;
+          }
         }
         if (VM.VerifyAssertions && meet==null) {
-	  VM._assert(false, result + " and " + t + " meet to null");
-	}
+          VM._assert(false, result + " and " + t + " meet to null");
+        }
         result = meet;
       }
     }

@@ -10,9 +10,8 @@ import java.util.Vector;
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.OSR.*;
 //-#endif
+
 /**
- * OPT_OptimizationPlanner.java
- *
  * This class specifies the order in which OPT_CompilerPhases are
  * executed during opt compilation of a method.
  * The methods BC2IR, HIROptimizations, SSA, HIR2LIR, LIROptimizations,
@@ -85,23 +84,21 @@ public class OPT_OptimizationPlanner {
    * @return an OPT_OptimizationPlanElement[] selected from 
    * the masterPlan based on options.
    */
-  public static OPT_OptimizationPlanElement[] 
-    createOptimizationPlan(OPT_Options options) {
-      if (masterPlan == null) {
-        initializeMasterPlan();
-      }
-
-      Vector temp = new Vector(masterPlan.length);
-      for (int i = 0; i < masterPlan.length; i++) {
-        if (masterPlan[i].shouldPerform(options)) {
-          temp.addElement(masterPlan[i]);
-        }
-      }
-      if (VM.writingBootImage)
-        masterPlan = null;        // avoid problems with 
-      // classes not being in bootimage.
-      return finalize(temp);
+  public static OPT_OptimizationPlanElement[] createOptimizationPlan(OPT_Options options) {
+    if (masterPlan == null) {
+      initializeMasterPlan();
     }
+
+    Vector temp = new Vector(masterPlan.length);
+    for (int i = 0; i < masterPlan.length; i++) {
+      if (masterPlan[i].shouldPerform(options)) {
+        temp.addElement(masterPlan[i]);
+      }
+    }
+    if (VM.writingBootImage)
+      masterPlan = null;  // avoid problems with classes not being in bootimage.
+    return finalize(temp);
+  }
 
   /**
    * This method is called to initialize all phases to support
@@ -153,13 +150,13 @@ public class OPT_OptimizationPlanner {
                       // Generate HIR from bytecodes
                       new OPT_ConvertBCtoHIR(),
 
-		      //-#if RVM_WITH_OSR
-		      new OSR_AdjustBCIndexes(),
-		      new OSR_OsrPointConstructor(),
-		      //-#endif
+                      //-#if RVM_WITH_OSR
+                      new OSR_AdjustBCIndexes(),
+                      new OSR_OsrPointConstructor(),
+                      //-#endif
 
-		      // Always do initial wave of peephole branch optimizations
-		      new OPT_BranchOptimizations(0, true, false),  
+                      // Always do initial wave of peephole branch optimizations
+                      new OPT_BranchOptimizations(0, true, false),  
 
                       // Adjust static branch probabilites to account for infrequent blocks
                       new OPT_AdjustBranchProbabilities(),
@@ -182,31 +179,47 @@ public class OPT_OptimizationPlanner {
    * @param p the plan under construction
    */
   private static void HIROptimizations(Vector p) {
-    addComponent(p, new  OPT_TailRecursionElimination());
+    // Various large-scale CFG transformations.
+    // Do these very early in the pipe so that all HIR opts can benefit.
+    composeComponents(p, "CFG Transformations", new Object[] {
+      // tail recursion elimination
+      new  OPT_TailRecursionElimination(),
+      // Estimate block frequencies if doing any of
+      // static splitting, cfg transformations, or loop unrolling.
+      // Assumption: none of these are active at O0.
+      new OPT_OptimizationPlanCompositeElement
+        ("Basic Block Frequency Estimation", new Object[] {
+          new OPT_BuildLST(),
+          new OPT_EstimateBlockFrequencies()
+        }) {
+        public boolean shouldPerform(OPT_Options options) {
+          return options.getOptLevel() >= 1;
+        }},
+      // CFG spliting
+      new OPT_StaticSplitting(),
+      // restructure loops
+      new OPT_CFGTransformations(),
+      // Loop unrolling
+      new OPT_LoopUnrolling(),
+      new OPT_BranchOptimizations(1, true, true),
+    });
 
-    // Use the LST to insert yieldpoints and estimate basic block frequency from branch probabilities
+    // Use the LST to insert yieldpoints and estimate 
+    // basic block frequency from branch probabilities
     composeComponents(p, "CFG Structural Analysis", new Object[] {
                       new OPT_BuildLST(),
                       new OPT_YieldPoints(),
                       new OPT_EstimateBlockFrequencies()
-                      });
+    });
 
     // Simple flow-insensitive optimizations
-    addComponent(p, new OPT_Simple(true, true));
+    addComponent(p, new OPT_Simple(1, true, true));
 
     // Simple escape analysis and related transformations
     addComponent(p, new OPT_EscapeTransformations());
 
     // Perform peephole branch optimizations to clean-up before SSA stuff
     addComponent(p, new OPT_BranchOptimizations(1, true, true));
-    // CFG spliting
-    addComponent(p, new OPT_StaticSplitting());
-    // restructure loops
-    addComponent(p, new OPT_CFGTransformations());
-    // Simple flow-insensitive optimizations
-    addComponent(p, new OPT_Simple(true, true));
-    // Loop unrolling
-    addComponent(p, new OPT_LoopUnrolling());
 
     // SSA meta-phase
     SSAinHIR(p);
@@ -217,7 +230,7 @@ public class OPT_OptimizationPlanner {
     addComponent(p, new OPT_LocalConstantProp());
     // Perform local common-subexpression elimination for a 
     // factored basic block.
-    addComponent(p, new OPT_LocalCSE());
+    addComponent(p, new OPT_LocalCSE(true));
     // Flow-insensitive field analysis
     addComponent(p, new OPT_FieldAnalysis());
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
@@ -260,7 +273,7 @@ public class OPT_OptimizationPlanner {
         // Insert PI Nodes
         new OPT_PiNodes(true), 
         // branch optimization
-        new OPT_BranchOptimizations(0, true, true),
+        new OPT_BranchOptimizations(2, true, true),
         // Compute dominators
         new OPT_DominatorsPhase(true), 
         // compute dominance frontier
@@ -299,7 +312,7 @@ public class OPT_OptimizationPlanner {
           ("Post SSA cleanup", new Object[] {
            new OPT_LocalCopyProp(),
            new OPT_LocalConstantProp(),
-           new OPT_Simple(true, true),
+           new OPT_Simple(2, true, true),
            new OPT_EscapeTransformations(),
            new OPT_BranchOptimizations(2, true, true) 
            }) {
@@ -361,7 +374,7 @@ public class OPT_OptimizationPlanner {
        new Object[] {
        new OPT_LocalCopyProp(),
        new OPT_LocalConstantProp(),
-       new OPT_Simple(true, true),
+       new OPT_Simple(2, true, true),
        new OPT_BranchOptimizations(2, true, true) 
        }) {
         public boolean shouldPerform(OPT_Options options) {
@@ -422,9 +435,9 @@ public class OPT_OptimizationPlanner {
     // Perform local constant propagation for a factored basic block.
     addComponent(p, new OPT_LocalConstantProp());
     // Perform local common-subexpression elimination for a factored basic block.
-    addComponent(p, new OPT_LocalCSE());
+    addComponent(p, new OPT_LocalCSE(false));
     // Simple flow-insensitive optimizations
-    addComponent(p, new OPT_Simple(false, false));
+    addComponent(p, new OPT_Simple(0, false, false));
     // Late expansion of counter-based yieldpoints
     addComponent(p, new OPT_DeterministicYieldpoints());
 
@@ -440,7 +453,7 @@ public class OPT_OptimizationPlanner {
     addComponent(p, new OPT_BranchOptimizations(1, false, true));
 
     //-#if RVM_WITH_ADAPTIVE_SYSTEM
-
+    // Arnold & Ryder instrumentation sampling framework
     addComponent(p, new OPT_InstrumentationSamplingFramework());
 
     // Convert high level place holder instructions into actual instrumenation

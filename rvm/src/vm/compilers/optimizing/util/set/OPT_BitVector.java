@@ -208,7 +208,7 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
     int count = 0;
     for (int i=0; i<bits.length; i++) {
       count += OPT_Bits.populationCount(bits[i]);
-    }	
+    }   
     return count;
   }
   
@@ -228,15 +228,15 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
   public boolean equals(Object obj) {
     if ((obj != null) && (obj instanceof OPT_BitVector)) {
       if (this == obj) { // should help alias analysis
-	return true;
+        return true;
       }
       OPT_BitVector set = (OPT_BitVector) obj;
       int n = bits.length;
       if (n != set.bits.length) return false;
       for (int i = n ; i-- > 0 ;) {
-	if (bits[i] != set.bits[i]) {
-	  return false;
-	}
+        if (bits[i] != set.bits[i]) {
+          return false;
+        }
       }
       return true;
     }
@@ -278,12 +278,12 @@ public final class OPT_BitVector implements Cloneable, java.io.Serializable {
     int limit = this.nbits;
     for (int i = 0 ; i < limit ; i++) {
       if (get(i)) {
-	if (needSeparator) {
-	  buffer.append(", ");
-	} else {
-	  needSeparator = true;
-	}
-	buffer.append(i);
+        if (needSeparator) {
+          buffer.append(", ");
+        } else {
+          needSeparator = true;
+        }
+        buffer.append(i);
       }
     }
     buffer.append('}');

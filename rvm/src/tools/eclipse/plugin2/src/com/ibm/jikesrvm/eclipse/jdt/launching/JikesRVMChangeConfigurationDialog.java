@@ -66,41 +66,41 @@ public class JikesRVMChangeConfigurationDialog extends StatusDialog {
     
     // RVM_ROOT field
     rvmRootField = new StringButtonDialogField(new IStringButtonAdapter() {
-	public void changeControlPressed(DialogField field) {
-	  browseForRvmRoot();
-	}
+        public void changeControlPressed(DialogField field) {
+          browseForRvmRoot();
+        }
       });
     rvmRootField.setLabelText(JikesRVMLauncherMessages.getString("configureDialog.rvmRoot"));
     rvmRootField.setButtonLabel(JikesRVMLauncherMessages.getString("configureDialog.browse"));
     rvmRootField.setDialogFieldListener(new IDialogFieldListener() {
-	public void dialogFieldChanged(DialogField field) {
-	  stati[0] = validateRvmRootLocation();
-	  updateStatusLine();
-	}
+        public void dialogFieldChanged(DialogField field) {
+          stati[0] = validateRvmRootLocation();
+          updateStatusLine();
+        }
       });
 
     // RVM_BUILD field
     rvmBuildField = new StringButtonDialogField(new IStringButtonAdapter() {
-	public void changeControlPressed(DialogField field) {
-	  browseForRvmBuild();
-	}
+        public void changeControlPressed(DialogField field) {
+          browseForRvmBuild();
+        }
       });
     rvmBuildField.setLabelText(JikesRVMLauncherMessages.getString("configureDialog.rvmBuild"));
     rvmBuildField.setButtonLabel(JikesRVMLauncherMessages.getString("configureDialog.browse"));
     rvmBuildField.setDialogFieldListener(new IDialogFieldListener() {
-	public void dialogFieldChanged(DialogField field) {
-	  stati[1] = validateRvmBuildLocation();
-	  updateStatusLine();
-	}
+        public void dialogFieldChanged(DialogField field) {
+          stati[1] = validateRvmBuildLocation();
+          updateStatusLine();
+        }
       });
 
     if (useDefaults) {
       rvmRootField.setText(install.getRvmRoot() != null ? 
-			   install.getRvmRoot() : 
-			   nonNull(install.getDefaultRvmRoot()));
+                           install.getRvmRoot() : 
+                           nonNull(install.getDefaultRvmRoot()));
       rvmBuildField.setText(install.getRvmBuild() != null ? 
-			    install.getRvmBuild() : 
-			    nonNull(install.getDefaultRvmBuild()));
+                            install.getRvmBuild() : 
+                            nonNull(install.getDefaultRvmBuild()));
     } else {
       rvmRootField.setText(nonNull(install.getRvmRoot()));
       rvmBuildField.setText(nonNull(install.getRvmBuild()));
@@ -127,9 +127,9 @@ public class JikesRVMChangeConfigurationDialog extends StatusDialog {
     useDefaultsButton = new Button(parent, SWT.PUSH);
     useDefaultsButton.setText(JikesRVMLauncherMessages.getString("configureDialog.useDefaults"));
     useDefaultsButton.addListener(SWT.Selection, new Listener() {
-	public void handleEvent(Event evt) {
-	  useDefaults();
-	}
+        public void handleEvent(Event evt) {
+          useDefaults();
+        }
       });
     gd = new GridData();
     gd.horizontalSpan = 3;
@@ -140,9 +140,9 @@ public class JikesRVMChangeConfigurationDialog extends StatusDialog {
     overrideDefaultsButton = new Button(parent, SWT.CHECK);
     overrideDefaultsButton.setText(JikesRVMLauncherMessages.getString("configureDialog.overrideDefaults"));
     overrideDefaultsButton.addListener(SWT.Selection, new Listener() {
-	public void handleEvent(Event evt) {
-	  overrideDefaults(overrideDefaultsButton.getSelection());
-	}});
+        public void handleEvent(Event evt) {
+          overrideDefaults(overrideDefaultsButton.getSelection());
+        }});
     gd = new GridData();
     gd.horizontalSpan = 3;
     gd.horizontalAlignment= SWT.END;
@@ -157,27 +157,27 @@ public class JikesRVMChangeConfigurationDialog extends StatusDialog {
     debuggerTypesLabel.setLayoutData(gd);
     int indent = convertWidthInCharsToPixels(1);
     SelectionListener debuggerTypesSelectionListener = new SelectionAdapter() {
-	public void widgetSelected(SelectionEvent e) {
-	  if (e.widget == commandLineDebuggerTypeButton) {
+        public void widgetSelected(SelectionEvent e) {
+          if (e.widget == commandLineDebuggerTypeButton) {
 
-	  } else if (e.widget == guiDebuggerTypeButton) {
-	    
-	  }
-	}
+          } else if (e.widget == guiDebuggerTypeButton) {
+            
+          }
+        }
       };
     commandLineDebuggerTypeButton = 
       addRadioButton(parent,
-		     JikesRVMLauncherMessages.getString("JikesRVMPreferencePage.commandLineDebugger"),
-		     install.getDebugMode() == JikesRVMInstall.DebugMode.COMMAND_LINE,
-		     indent,
-		     debuggerTypesButtons);
+                     JikesRVMLauncherMessages.getString("JikesRVMPreferencePage.commandLineDebugger"),
+                     install.getDebugMode() == JikesRVMInstall.DebugMode.COMMAND_LINE,
+                     indent,
+                     debuggerTypesButtons);
     commandLineDebuggerTypeButton.addSelectionListener(debuggerTypesSelectionListener);
     guiDebuggerTypeButton = 
       addRadioButton(parent,
-		     JikesRVMLauncherMessages.getString("JikesRVMPreferencePage.guiDebugger"),
-		     install.getDebugMode() == JikesRVMInstall.DebugMode.GUI,
-		     indent,
-		     debuggerTypesButtons);
+                     JikesRVMLauncherMessages.getString("JikesRVMPreferencePage.guiDebugger"),
+                     install.getDebugMode() == JikesRVMInstall.DebugMode.GUI,
+                     indent,
+                     debuggerTypesButtons);
     guiDebuggerTypeButton.addSelectionListener(debuggerTypesSelectionListener);
 
     return parent;
@@ -220,15 +220,15 @@ public class JikesRVMChangeConfigurationDialog extends StatusDialog {
     String currentMessage= "";
     for (int i= 0; i < stati.length; i++) {
       if (stati[i] != null) {
-	boolean isBiggerSeverity = 
-	  stati[i].getSeverity() > currentSeverity;
-	boolean isBetterErrorMessage = 
-	  stati[i].getSeverity() == currentSeverity &&
-	  (currentMessage == null || "".equals(currentMessage));
-	if (isBiggerSeverity) {
-	  updateStatus(stati[i]);
-	  currentSeverity = stati[i].getSeverity();
-	}
+        boolean isBiggerSeverity = 
+          stati[i].getSeverity() > currentSeverity;
+        boolean isBetterErrorMessage = 
+          stati[i].getSeverity() == currentSeverity &&
+          (currentMessage == null || "".equals(currentMessage));
+        if (isBiggerSeverity) {
+          updateStatus(stati[i]);
+          currentSeverity = stati[i].getSeverity();
+        }
       }
     }
     if (currentSeverity == IStatus.OK) {
@@ -244,8 +244,8 @@ public class JikesRVMChangeConfigurationDialog extends StatusDialog {
     rvmRootField.setText(install.getDefaultRvmRoot());
     rvmBuildField.setText(install.getDefaultRvmBuild());
     updateStatus(new Status(IStatus.INFO, install.getId(), 0, 
-			    JikesRVMLauncherMessages.getString("configureDialog.usingDefaults"), 
-			    null));
+                            JikesRVMLauncherMessages.getString("configureDialog.usingDefaults"), 
+                            null));
   }
 
   private IStatus validateRvmRootLocation() {
@@ -256,11 +256,11 @@ public class JikesRVMChangeConfigurationDialog extends StatusDialog {
     File f = new File(rvmRootName);
     if (!f.exists()) {
       return new Status(IStatus.ERROR, install.getId(), 0,
-			JikesRVMLauncherMessages.getString("configureDialog.nofileRvmRoot"), null);
+                        JikesRVMLauncherMessages.getString("configureDialog.nofileRvmRoot"), null);
     }
     if (!f.isDirectory()) {
       return new Status(IStatus.ERROR, install.getId(), 0,
-			JikesRVMLauncherMessages.getString("configureDialog.notADirRvmRoot"), null);
+                        JikesRVMLauncherMessages.getString("configureDialog.notADirRvmRoot"), null);
     }
     return null;
   }
@@ -273,11 +273,11 @@ public class JikesRVMChangeConfigurationDialog extends StatusDialog {
     File f = new File(rvmBuildName);
     if (!f.exists()) {
       return new Status(IStatus.ERROR, install.getId(), 0,
-			JikesRVMLauncherMessages.getString("configureDialog.nofileRvmBuild"), null);
+                        JikesRVMLauncherMessages.getString("configureDialog.nofileRvmBuild"), null);
     }
     if (!f.isDirectory()) {
       return new Status(IStatus.ERROR, install.getId(), 0,
-			JikesRVMLauncherMessages.getString("configureDialog.notADirRvmBuild"), null);
+                        JikesRVMLauncherMessages.getString("configureDialog.notADirRvmBuild"), null);
     }
     return null;
   }
@@ -288,20 +288,20 @@ public class JikesRVMChangeConfigurationDialog extends StatusDialog {
 
       // Check env variables
       if (overridingEnv) {
-	if (stati[0] == null || stati[0].getCode() == IStatus.OK) {
-	  install.setRvmRoot(new File(rvmRootField.getText()).getAbsolutePath());
-	}
-	if (stati[1] == null || stati[1].getCode() == IStatus.OK) {
-	  install.setRvmBuild(new File(rvmBuildField.getText()).getAbsolutePath());
-	}
+        if (stati[0] == null || stati[0].getCode() == IStatus.OK) {
+          install.setRvmRoot(new File(rvmRootField.getText()).getAbsolutePath());
+        }
+        if (stati[1] == null || stati[1].getCode() == IStatus.OK) {
+          install.setRvmBuild(new File(rvmBuildField.getText()).getAbsolutePath());
+        }
       }
       install.setOverridingEnv(overridingEnv);
 
       // Check debugger type
       if (commandLineDebuggerTypeButton.getSelection()) {
-	install.setDebugMode(JikesRVMInstall.DebugMode.COMMAND_LINE);
+        install.setDebugMode(JikesRVMInstall.DebugMode.COMMAND_LINE);
       } else {
-	install.setDebugMode(JikesRVMInstall.DebugMode.GUI);
+        install.setDebugMode(JikesRVMInstall.DebugMode.GUI);
       }
 
       super.okPressed();
@@ -317,10 +317,10 @@ public class JikesRVMChangeConfigurationDialog extends StatusDialog {
    * @see org.eclipse.jdt.internal.ui.preferences.NewJavaProjectPreferencePage.addRadioButton
    */
   private Button addRadioButton(Composite parent, 
-				String label, 
-				boolean selection,
-				int indent,
-				List radioButtons) { 
+                                String label, 
+                                boolean selection,
+                                int indent,
+                                List radioButtons) { 
     GridData gd = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
     gd.horizontalSpan= 2;
     gd.horizontalIndent= indent;

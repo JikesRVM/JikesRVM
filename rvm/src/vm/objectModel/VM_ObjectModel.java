@@ -108,8 +108,8 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Kris Venstermans
  */
 public final class VM_ObjectModel implements VM_Uninterruptible, 
-					     VM_JavaHeaderConstants,
-					     VM_SizeConstants {
+                                             VM_JavaHeaderConstants,
+                                             VM_SizeConstants {
 
   /** Should we gather stats on hash code state transitions for address-based hashing? */
   public static final boolean HASH_STATS = false;
@@ -129,24 +129,35 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
     for (int i = 0, n = fields.length; i < n; ++i) {
       VM_Field field = fields[i];
       if (!field.isStatic()) {
-	int fieldSize = field.getType().getSize();
-	//-#if RVM_FOR_64_ADDR
-	if (fieldSize == BYTES_IN_INT ) { 
-	  if (klass.getAlignOffset() == 0) { //create a new unused slot of 4 bytes
-	    field.setOffset(fieldOffset - BYTES_IN_INT);
-	    fieldOffset -= BYTES_IN_ADDRESS; 
-	    klass.increaseInstanceSizeAndSetAlignOffset(BYTES_IN_ADDRESS);
-	  } else { //use an unused slot of 4 bytes
-	    field.setOffset(klass.getAlignOffset());
-	    klass.resetAlignOffset();
-	  }
-	} else 
-        //-#endif 		
-	  {			
-	    fieldOffset -= fieldSize; // lay out fields 'backwards'
-	    field.setOffset(fieldOffset);
-	    klass.increaseInstanceSize(fieldSize);
-	  }
+        int fieldSize = field.getType().getSize();
+        if (fieldSize == BYTES_IN_INT) {
+          int emptySlot = klass.getEmptySlot();
+          if (emptySlot != 0) {
+            field.setOffset(emptySlot);
+            klass.setEmptySlot(0);
+          } else {
+            fieldOffset -= BYTES_IN_INT;
+            field.setOffset(fieldOffset);
+            klass.increaseInstanceSize(BYTES_IN_INT);
+          }
+        } else {
+          if (VM.VerifyAssertions) {
+            VM._assert(fieldSize == BYTES_IN_DOUBLE); // (or ADDRESS in 64 bit mode)
+          }
+          klass.setAlignment(BYTES_IN_DOUBLE);
+          if ((fieldOffset % BYTES_IN_DOUBLE) == 0) {
+            fieldOffset -= BYTES_IN_DOUBLE;
+            field.setOffset(fieldOffset);
+            klass.increaseInstanceSize(BYTES_IN_DOUBLE);
+          } else {
+            if (VM.VerifyAssertions) VM._assert(klass.getEmptySlot() == 0);
+            fieldOffset -= BYTES_IN_INT;
+            klass.setEmptySlot(fieldOffset);
+            fieldOffset -= BYTES_IN_DOUBLE;
+            field.setOffset(fieldOffset);
+            klass.increaseInstanceSize(BYTES_IN_INT+BYTES_IN_DOUBLE);
+          }
+        }
       }
     }
   }
@@ -199,7 +210,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Set the TIB for an object.
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, 
-			    VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
+                            VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
     VM_JavaHeader.setTIB(bootImage, refOffset, tibAddr, type);
   }
 
@@ -208,9 +219,6 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    */
   public static void gcProcessTIB(VM_Address ref) {
     VM_JavaHeader.gcProcessTIB(ref);
-  }
-  public static void gcProcessTIB(VM_Address ref, boolean root) {
-    VM_JavaHeader.gcProcessTIB(ref, root);
   }
 
   public static int bytesRequiredWhenCopied(Object obj) {
@@ -249,18 +257,18 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Copy a scalar object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
-				  int numBytes, VM_Class type, 
-				  int availBitsWord) {
+                                  int numBytes, VM_Class type, 
+                                  int availBitsWord) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type,
-				    availBitsWord);
+                                    availBitsWord);
   }
 
   /**
    * Copy an array object to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
-				  int numBytes, VM_Array type,
-				  int availBitsWord) {
+                                  int numBytes, VM_Array type,
+                                  int availBitsWord) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, type, availBitsWord);
   }
 
@@ -345,7 +353,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Non-atomic read of word containing available bits
    */
-  public static int readAvailableBitsWord(Object o) {
+  public static VM_Word readAvailableBitsWord(Object o) {
     return VM_JavaHeader.readAvailableBitsWord(o);
   }
 
@@ -359,7 +367,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Non-atomic write of word containing available bits
    */
-  public static void writeAvailableBitsWord(Object o, int val) {
+  public static void writeAvailableBitsWord(Object o, VM_Word val) {
     VM_JavaHeader.writeAvailableBitsWord(o, val);
   }
 
@@ -395,14 +403,15 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * A prepare on the word containing the available bits
    */
-  public static int prepareAvailableBits(Object o) {
+  public static VM_Word prepareAvailableBits(Object o) {
     return VM_JavaHeader.prepareAvailableBits(o);
   }
   
   /**
    * An attempt on the word containing the available bits
    */
-  public static boolean attemptAvailableBits(Object o, int oldVal, int newVal) {
+  public static boolean attemptAvailableBits(Object o, VM_Word oldVal,
+                                             VM_Word newVal) {
     return VM_JavaHeader.attemptAvailableBits(o, oldVal, newVal);
   }
 
@@ -462,6 +471,82 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   }
 
   /**
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Class.
+   * @param t VM_Class instance being created
+   */
+  public static int getAlignment(VM_Class t) {
+    return VM_JavaHeader.getAlignment(t);
+  }
+
+  /**
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Class.
+   * @param t VM_Class instance being copied
+   * @param obj the object being copied
+   */
+  public static int getAlignment(VM_Class t, Object obj) {
+    return VM_JavaHeader.getAlignment(t, obj);
+  }
+
+  /**
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Array.
+   * @param t VM_Array instance being created
+   */
+  public static int getAlignment(VM_Array t) {
+    return VM_JavaHeader.getAlignment(t);
+  }
+
+  /**
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Array.
+   * @param t VM_Array instance being copied
+   * @param obj the object being copied
+   */
+  public static int getAlignment(VM_Array t, Object obj) {
+    return VM_JavaHeader.getAlignment(t, obj);
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object
+   * that must be aligned.
+   * @param t VM_Class instance being created
+   */
+  public static int getOffsetForAlignment(VM_Class t) {
+    return VM_JavaHeader.getOffsetForAlignment(t);
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object
+   * that must be aligned.
+   * @param t VM_Class instance being copied
+   * @param obj the object being copied
+   */
+  public static int getOffsetForAlignment(VM_Class t, VM_Address obj) {
+    return VM_JavaHeader.getOffsetForAlignment(t, obj);
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object that must
+   * be aligned.
+   * @param t VM_Array instance being created
+   */
+  public static int getOffsetForAlignment(VM_Array t) {
+    return VM_JavaHeader.getOffsetForAlignment(t);
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object that must
+   * be aligned.
+   * @param t VM_Array instance being copied
+   * @param obj the object being copied
+   */
+  public static int getOffsetForAlignment(VM_Array t, VM_Address obj) {
+    return VM_JavaHeader.getOffsetForAlignment(t, obj);
+  }
+
+  /**
    * Initialize raw storage with low memory word ptr of size bytes
    * to be an uninitialized instance of the (scalar) type specified by tib.
    * 
@@ -489,7 +574,9 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   public static int allocateScalar(BootImageInterface bootImage, VM_Class klass) throws VM_PragmaInterruptible {
     Object[] tib = klass.getTypeInformationBlock();
     int size = klass.getInstanceSize();
-    int ptr = bootImage.allocateStorage(size);
+    int align = getAlignment(klass);
+    int offset = getOffsetForAlignment(klass);
+    int ptr = bootImage.allocateStorage(size, align, offset);
     int ref = VM_JavaHeader.initializeScalarHeader(bootImage, ptr, tib, size);
     VM_AllocatorHeader.initializeHeader(bootImage, ref, tib, size, true);
     VM_MiscHeader.initializeHeader(bootImage, ref, tib, size, true);
@@ -527,12 +614,13 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @return the offset of object in bootimage (in bytes)
    */
   public static int allocateArray(BootImageInterface bootImage, 
-				  VM_Array array,
-				  int numElements) throws VM_PragmaInterruptible {
+                                  VM_Array array,
+                                  int numElements) throws VM_PragmaInterruptible {
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
-    int ptr = bootImage.allocateStorage(size);
-
+    int align = getAlignment(array);
+    int offset = getOffsetForAlignment(array);
+    int ptr = bootImage.allocateStorage(size, align, offset);
     int ref = VM_JavaHeader.initializeArrayHeader(bootImage, ptr, tib, size);
     bootImage.setFullWord(ref + getArrayLengthOffset(), numElements);
     VM_AllocatorHeader.initializeHeader(bootImage, ref, tib, size, false);
@@ -580,12 +668,12 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param object the number of the register holding the object reference
    */
   public static void baselineEmitLoadTIB(VM_Assembler asm, 
-					 //-#if RVM_FOR_POWERPC
-					 int dest, int object
-					 //-#elif RVM_FOR_IA32
-					 byte dest, byte object
-					 //-#endif
-					 ) throws VM_PragmaInterruptible {
+                                         //-#if RVM_FOR_POWERPC
+                                         int dest, int object
+                                         //-#elif RVM_FOR_IA32
+                                         byte dest, byte object
+                                         //-#endif
+                                         ) throws VM_PragmaInterruptible {
     VM_JavaHeader.baselineEmitLoadTIB(asm, dest, object);
   }
 

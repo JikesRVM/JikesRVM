@@ -61,11 +61,15 @@ public abstract class BasePlan
   protected static Plan [] plans = new Plan[MAX_PLANS];
   protected static int planCount = 0;        // Number of plan instances in existence
 
+  public static final int NOT_IN_GC = 0;   // this must be zero for C code
+  public static final int GC_PREPARE = 1;  // before setup and obtaining root
+  public static final int GC_PROPER = 2;
+
   // GC state and control variables
   protected static boolean initialized = false;
   protected static boolean awaitingCollection = false;
-  protected static boolean collectionInitiated = false;
-  protected static boolean gcInProgress = false;
+  protected static int collectionsInitiated = 0;
+  private static int gcStatus = NOT_IN_GC; // shared variable
   protected static int exceptionReserve = 0;
 
   // Timing variables
@@ -191,6 +195,15 @@ public abstract class BasePlan
     return UNUSED_SPACE;
   }
 
+  static byte getSpaceFromAllocatorAnyPlan (Allocator a) {
+    for (int i=0; i<plans.length; i++) {
+      byte space = plans[i].getSpaceFromAllocator(a);
+      if (space != UNUSED_SPACE)
+        return space;
+    }
+    return UNUSED_SPACE;
+  }
+
   protected Allocator getAllocatorFromSpace (byte s) {
     if (s == BOOT_SPACE) VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given boot space");
     if (s == META_SPACE) VM_Interface.sysFail("BasePlan.getAllocatorFromSpace given meta space");
@@ -200,9 +213,7 @@ public abstract class BasePlan
   }
 
   static Allocator getOwnAllocator (Allocator a) {
-    byte space = UNUSED_SPACE;
-    for (int i=0; i<plans.length && space == UNUSED_SPACE; i++)
-      space = plans[i].getSpaceFromAllocator(a);
+    byte space = getSpaceFromAllocatorAnyPlan(a);
     if (space == UNUSED_SPACE)
       VM_Interface.sysFail("BasePlan.getOwnAllocator could not obtain space");
     Plan plan = VM_Interface.getPlan();
@@ -222,6 +233,17 @@ public abstract class BasePlan
   public static final void enqueue(VM_Address obj)
     throws VM_PragmaInline {
     VM_Interface.getPlan().values.push(obj);
+  }
+
+  /**
+   * Add an unscanned, forwarded object for subseqent processing.
+   * This mechanism is necessary for "pre-copying".
+   *
+   * @param obj The object to be enqueued
+   */
+  public static final void enqueueForwardedUnscannedObject(VM_Address obj)
+    throws VM_PragmaInline {
+    VM_Interface.getPlan().forwardedObjects.push(obj);
   }
 
   /**
@@ -266,17 +288,17 @@ public abstract class BasePlan
    * @return The possibly moved interior reference.
    */
   public static final VM_Address traceInteriorReference(VM_Address obj,
-							VM_Address interiorRef,
-							boolean root) {
+                                                        VM_Address interiorRef,
+                                                        boolean root) {
     VM_Offset offset = interiorRef.diff(obj);
     VM_Address newObj = Plan.traceObject(obj, root);
     if (VM_Interface.VerifyAssertions) {
       if (offset.sLT(VM_Offset.zero()) || offset.sGT(VM_Offset.fromIntSignExtend(1<<24))) {  // There is probably no object this large
-	Log.writeln("ERROR: Suspiciously large delta of interior pointer from object base");
-	Log.write("       object base = "); Log.writeln(obj);
-	Log.write("       interior reference = "); Log.writeln(interiorRef);
-	Log.write("       delta = "); Log.writeln(offset);
-	VM_Interface._assert(false);
+        Log.writeln("ERROR: Suspiciously large delta of interior pointer from object base");
+        Log.write("       object base = "); Log.writeln(obj);
+        Log.write("       interior reference = "); Log.writeln(interiorRef);
+        Log.write("       delta = "); Log.writeln(offset);
+        VM_Interface._assert(false);
       }
     }
     return newObj.add(offset);
@@ -293,8 +315,87 @@ public abstract class BasePlan
   public void enumeratePointerLocation(VM_Address location) {}
 
   // XXX Javadoc comment missing.
-  public static boolean willNotMove (VM_Address obj) {
-      return !VMResource.refIsMovable(obj);
+  public static boolean willNotMove(VM_Address obj) {
+    return !VMResource.refIsMovable(obj);
+  }
+
+  /**
+   * Forward the object referred to by a given address and update the
+   * address if necessary.  This <i>does not</i> enqueue the referent
+   * for processing; the referent must be explicitly enqueued if it is
+   * to be processed.<p>
+   *
+   * <i>Non-copying collectors do nothing, copying collectors must
+   * override this method.</i>
+   *
+   * @param location The location whose referent is to be forwarded if
+   * necessary.  The location will be updated if the referent is
+   * forwarded.
+   */
+  static void forwardObjectLocation(VM_Address location) {
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+  }
+
+  /**
+   * If the object in question has been forwarded, return its
+   * forwarded value.<p>
+   *
+   * <i>Non-copying collectors do nothing, copying collectors must
+   * override this method.</i>
+   *
+   * @param object The object which may have been forwarded.
+   * @return The forwarded value for <code>object</code>.  <i>In this
+   * case return <code>object</code>, copying collectors must override
+   * this method.
+   */
+  static VM_Address getForwardedReference(VM_Address object) {
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+    return object;
+  }
+
+  /**
+   * Make alive an object that was not otherwise known to be alive.
+   * This is used by the ReferenceProcessor, for example.
+   *
+   * @param object The object which is to be made alive.
+   */
+  static void makeAlive(VM_Address object) {
+    Plan.traceObject(object);
+  }
+ 
+  /**
+   * An object is unreachable and is about to be added to the
+   * finalizable queue.  The collector must ensure the object is not
+   * collected (despite being otherwise unreachable), and should
+   * return its forwarded address if keeping the object alive involves
+   * forwarding.<p>
+   *
+   * <i>For many collectors these semantics relfect those of
+   * <code>traceObject</code>, which is implemented here.  Other
+   * collectors must override this method.</i>
+   *
+   * @param object The object which may have been forwarded.
+   * @return The forwarded value for <code>object</code>.  <i>In this
+   * case return <code>object</code>, copying collectors must override
+   * this method.
+   */
+  static VM_Address retainFinalizable(VM_Address object) {
+    return Plan.traceObject(object);
+  }
+
+  /**
+   * Return true if an object is ready to move to the finalizable
+   * queue, i.e. it has no regular references to it.  This method may
+   * (and in some cases is) be overridden by subclasses.
+   *
+   * @param object The object being queried.
+   * @return <code>true</code> if the object has no regular references
+   * to it.
+   */
+  static boolean isFinalizable(VM_Address object) {
+    return !Plan.isLive(object);
   }
 
   /****************************************************************************
@@ -316,7 +417,7 @@ public abstract class BasePlan
    * @param tgt The target of the new reference
    */
   public void putFieldWriteBarrier(VM_Address src, int offset,
-				   VM_Address tgt) {
+                                   VM_Address tgt) {
     // Either: barriers are used and this is overridden, or 
     //         barriers are not used and this is never called
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
@@ -335,7 +436,7 @@ public abstract class BasePlan
    * @param tgt The target of the new reference
    */
   public void arrayStoreWriteBarrier(VM_Address ref, int index, 
-				     VM_Address value) {
+                                     VM_Address value) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
@@ -489,24 +590,21 @@ public abstract class BasePlan
   }
 
   /**
-   * A collection has been initiated.  Set the collectionInitiated
+   * A collection has been initiated.  Increment the collectionInitiated
    * state variable appropriately.
-   *
-   * @param why The reason the collection was initiated (one of
-   * <code>VM_Interface.TRIGGER_REASONS</code>).  <i>(Ignored)</i>
    */
   public static void collectionInitiated() throws VM_PragmaUninterruptible {
-    collectionInitiated = true;
+    collectionsInitiated++;
   }
 
   /**
-   * A collection has fully completed.  Set the collectionInitiated
+   * A collection has fully completed.  Decrement the collectionInitiated
    * state variable appropriately.
    */
   public static void collectionComplete() throws VM_PragmaUninterruptible {
-//     if (VM_Interface.VerifyAssertions) 
-//       VM_Interface._assert(collectionInitiated);
-    collectionInitiated = false;
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(collectionsInitiated > 0);
+    collectionsInitiated--;
   }
 
   /**
@@ -515,7 +613,27 @@ public abstract class BasePlan
    * @return True if a collection is in progress.
    */
   public static boolean gcInProgress() {
-    return gcInProgress;
+    return gcStatus != NOT_IN_GC;
+  }
+
+  /**
+   * Return true if a collection is in progress and past the preparatory stage.
+   *
+   * @return True if a collection is in progress and past the preparatory stage.
+   */
+  public static boolean gcInProgressProper () {
+    return gcStatus == GC_PROPER;
+  }
+
+  /**
+   * Return true if a collection is in progress.
+   *
+   * @return True if a collection is in progress.
+   */
+  protected static void setGcStatus (int s) {
+    VM_Magic.isync();
+    gcStatus = s;
+    VM_Magic.sync();
   }
 
   /**
@@ -529,6 +647,26 @@ public abstract class BasePlan
    *
    * Miscellaneous
    */
+
+  /**
+   * Generic hook to allow benchmarks to be harnessed.  A plan may use
+   * this to perform certain actions prior to the commencement of a
+   * benchmark, such as a full heap collection, turning on
+   * instrumentation, etc.  By default do nothing.  Subclasses may
+   * override.
+   */
+  public static void harnessBegin() {
+  }
+
+  /**
+   * Generic hook to allow benchmarks to be harnessed.  A plan may use
+   * this to perform certain actions after the completion of a
+   * benchmark, such as a full heap collection, turning off
+   * instrumentation, etc.  By default do nothing.  Subclasses may
+   * override.
+   */
+  public static void harnessEnd() {
+  }
 
   /**
    * This method should be called whenever an error is encountered.
@@ -628,7 +766,7 @@ public abstract class BasePlan
    * @param source Information about the source of the problem
    */
   protected static void spaceFailure(VM_Address obj, byte space, 
-				     String source) {
+                                     String source) {
     VM_Address addr = VM_Interface.refToAddress(obj);
     Log.write(source);
     Log.write(": obj "); Log.write(obj);

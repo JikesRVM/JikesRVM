@@ -40,11 +40,11 @@ abstract class VM_Organizer extends VM_Thread {
     while (true) {
       passivate(); // wait until externally scheduled to run
       try {
-	thresholdReached();       // we've been scheduled; do our job!
-	if (listener != null) listener.reset();
+        thresholdReached();       // we've been scheduled; do our job!
+        if (listener != null) listener.reset();
       } catch (Exception e) {
-	e.printStackTrace();
-	VM.sysFail("Exception in organizer "+this);
+        e.printStackTrace();
+        VM.sysFail("Exception in organizer "+this);
       }
     } 
   }

@@ -55,20 +55,20 @@ public final class OPT_GlobalValueNumberState {
    *  <li>  they have the same operators and their operands are
    *      congruent
    * </ul>
-   * 	
+   *    
    *  <p> Optimistic algorithm:
    *  <ul>
    *    <li> Initially assume all nodes with the same label are congruent
    *    <li> start a work list with all congruence classes that
-   *	   have multiple operands
-   * 	<li> choose a congruence class from the worklist.  partition its
-   *	   elements into new congruence classes if we can discover that
-   * 	   they are not congruent.
-   *	 <li>  Add any newly created congruence classes to the work list.
-   *	 <li> (Here's the step Muchnick omits:)
-   *	 For each class C which has a dependence on any of the newly
-   *	   created congruence classes, add C to the work list
-   *	 <li> repeat until work list is empty
+   *       have multiple operands
+   *    <li> choose a congruence class from the worklist.  partition its
+   *       elements into new congruence classes if we can discover that
+   *       they are not congruent.
+   *     <li>  Add any newly created congruence classes to the work list.
+   *     <li> (Here's the step Muchnick omits:)
+   *     For each class C which has a dependence on any of the newly
+   *       created congruence classes, add C to the work list
+   *     <li> repeat until work list is empty
    *   </ul>
    * 
    *  <p> The following method breaks Muchnick's algorithm, which will
@@ -77,14 +77,14 @@ public final class OPT_GlobalValueNumberState {
    *  when we discover, for example, that i is not congruent to k
    *  <pre>
    *   public int foo(int a, int b, int c, int d, int e, int f, int g, int h) {
-   * 	  int i = a+b;
-   * 	  int j = c+d;
-   *  	  int k = e+f;
-   * 	  int l = g+h;
+   *      int i = a+b;
+   *      int j = c+d;
+   *      int k = e+f;
+   *      int l = g+h;
    *      int m = i * j;
-   *	  int n = k * l;
-   *	  int o = m/n;
-   *	  return o;
+   *      int n = k * l;
+   *      int o = m/n;
+   *      return o;
    *   }
    *  </pre>
    */
@@ -160,7 +160,7 @@ public final class OPT_GlobalValueNumberState {
    *  <li> v1 and v2 are both constants, but don't match
    *  <li> v1 and v2 both result from NEW statements, but don't match
    *  <li> one of v1 and v2 is a parameter, and the other results from a
-   * 	  new statement
+   *      new statement
    * </ul>
    * <p> TODO: add more smarts
    * @param v1 first value number
@@ -223,7 +223,7 @@ public final class OPT_GlobalValueNumberState {
    *  <li> name1 and name2 are both constants, but don't match
    *  <li> name1 and name2 both result from NEW statements, but don't match
    *  <li> one of name1 and name2 is a parameter, and the other results from a
-   * 	  new statement
+   *      new statement
    * </ul>
    * <p> TODO: add more smarts
    * @param name1 name of first object to compare

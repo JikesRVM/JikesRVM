@@ -28,7 +28,9 @@ TEST_TOOL:=$(TOOL) --disable-modification-exit-status
 ## so I won't set them here
 ## in the distribution.  (They are the ones I test with, though.)
 # -Wcast-align -Wpointer-arith -Wcast-qual -Wshadow -Wstrict-prototypes -Wmissing-prototypes  -fkeep-static-consts  -fkeep-inline-functions -Wundef -Wwrite-strings -Wno-aggregate-return -Wmissing-noreturn  -Wtrigraphs -Wconversion -Wsign-compare -Wfloat-equal -Wendif-labels -Wmissing-format-attribute  -Wno-long-long -fcheck-new -fpermissive -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Woverloaded-virtual -Wsign-promo
-CXXFLAGS+=-W -Wall  
+# CXXFLAGS+=-W -Wall  
+# The rvm/src/include directory.
+CPPFLAGS+=-I../../include
 
 
 tool:

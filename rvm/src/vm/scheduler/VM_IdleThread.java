@@ -42,23 +42,22 @@ class VM_IdleThread extends VM_Thread {
 
   public void run() { // overrides VM_Thread
     VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
-    if (VM.VerifyAssertions) VM._assert(myProcessor.processorMode != VM_Processor.NATIVEDAEMON);
     long spinInterval = loadBalancing ? VM_Time.millisToCycles(1) : 0;
     main: while (true) {
       if (VM_Scheduler.terminated) VM_Thread.terminate();
       long t = VM_Time.cycles()+spinInterval;
 
       if (VM_Scheduler.debugRequested) {
-	System.err.println("debug requested in idle thread");
-	VM_Scheduler.debugRequested = false;
+        System.err.println("debug requested in idle thread");
+        VM_Scheduler.debugRequested = false;
       }
       
       do {
-	VM_Processor.idleProcessor = myProcessor;
-	if (availableWork(myProcessor)) {
-	  VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
-	  continue main;
-	}
+        VM_Processor.idleProcessor = myProcessor;
+        if (availableWork(myProcessor)) {
+          VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
+          continue main;
+        }
       } while (VM_Time.cycles()<t);
       
       VM.sysVirtualProcessorYield();
@@ -69,17 +68,17 @@ class VM_IdleThread extends VM_Thread {
    * @return true, if their appears to be a runnable thread for the processor to execute
    */
   private static boolean availableWork ( VM_Processor p ) {
-    if (!p.readyQueue.isEmpty())	return true;
+    if (!p.readyQueue.isEmpty())        return true;
     VM_Magic.isync();
-    if (!p.transferQueue.isEmpty())	return true;
-    if (p.ioQueue.isReady())		return true;
+    if (!p.transferQueue.isEmpty())     return true;
+    if (p.ioQueue.isReady())            return true;
     if (VM_Scheduler.wakeupQueue.isReady()) {
       VM_Scheduler.wakeupMutex.lock();
       VM_Thread t = VM_Scheduler.wakeupQueue.dequeue();
       VM_Scheduler.wakeupMutex.unlock();
       if (t != null) {
-	t.schedule();
-	return true;
+        t.schedule();
+        return true;
       }
     }
     return false;

@@ -59,8 +59,8 @@ public class BC_InvokeStatic extends OSR_PseudoBytecode {
       // do nothing
     } else {
       if ( (tcode == LongTypeCode) ||
-	   (tcode == DoubleTypeCode) ) {
-	schanges ++;
+           (tcode == DoubleTypeCode) ) {
+        schanges ++;
       }
       schanges ++;
     }

@@ -47,10 +47,6 @@ V DECAY_RATE double 1.1
 What factor should we decay AI hotness by
 
 
-V FIXED_RECOMPILATION_OVERHEAD double 1.0
-Fixed cost of recompiling and installing a method
-
-
 V AI_SAMPLE_SIZE int 200
 After how many samples do we update the weights in the dynamic call graph?
 

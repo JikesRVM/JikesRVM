@@ -79,24 +79,26 @@ final class BumpPointer extends Allocator
     VM_Address newCursor = oldCursor.add(bytes);
     if (useLimit) {
       if (newCursor.GT(limit))
-	return allocSlow(isScalar, bytes);
+        return allocSlow(isScalar, bytes);
     } else {
       VM_Word tmp = oldCursor.toWord().xor(newCursor.toWord());
       if (tmp.GT(VM_Word.fromIntZeroExtend(TRIGGER)))
-	return allocSlow(isScalar, bytes);
+        return allocSlow(isScalar, bytes);
     }
     cursor = newCursor;
     return oldCursor;
   }
 
   final protected VM_Address allocSlowOnce(boolean isScalar, int bytes, 
-					   boolean inGC) {
+                                           boolean inGC) {
     int chunkSize = ((bytes + CHUNK_SIZE - 1) >>> LOG_CHUNK_SIZE) << LOG_CHUNK_SIZE;
     VM_Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
     if (start.isZero())
       return start;
     Memory.zero(start, VM_Extent.fromInt(chunkSize));
-    cursor = start;
+
+    // check for (dis)contiguity with previous chunk
+    if (limit.NE(start)) cursor = start;
     limit = start.add(chunkSize);
     return alloc(isScalar, bytes);
   }

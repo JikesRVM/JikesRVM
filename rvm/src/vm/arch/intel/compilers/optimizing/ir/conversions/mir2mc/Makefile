@@ -12,7 +12,7 @@ ARCH_OPS = $(JAL_ROOT)/rvm/src/vm/arch/intel/compilers/optimizing/ir/instruction
 
 SCRATCH_DIR=$(RVM_BUILD)/RVM.scratch
 
-GENERATE = $(HOST_JAVA) -ms128M -mx128M -classpath $(SCRATCH_DIR) GenerateFromTemplate
+GENERATE = $(HOST_JAVA) -classpath $(SCRATCH_DIR) GenerateFromTemplate
 
 TABLES_JAVA=$(SCRATCH_DIR)/OPT_InstructionFormatTables.java
 TABLES_CLASS=$(SCRATCH_DIR)/OPT_InstructionFormatTables.class

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
-import java.util.Vector;
+import java.util.ArrayList;
 
 /*
  * A block of machine code in the running virtual machine image.
@@ -49,7 +49,7 @@ public final class VM_MachineCode {
     instructions = VM_CodeArray.create(n);
     int k = 0;
     for (int i=0; i<next_bundle; i++){
-      int[] b = (int[]) bundles.elementAt(i);
+      int[] b = (int[]) bundles.get(i);
       int m = (i == next_bundle-1 ? next : size);
       for (int j=0; j<m; j++) {
         instructions.set(k++, b[j]);
@@ -72,7 +72,7 @@ public final class VM_MachineCode {
       current_bundle[next++] = instr;
     } else {
       current_bundle = new int[size];
-      bundles.addElement(current_bundle);
+      bundles.add(current_bundle);
       next_bundle++;
       next = 0;
       current_bundle[next++] = instr;
@@ -82,14 +82,14 @@ public final class VM_MachineCode {
   int getInstruction (int k) {
     int i = k >> shift;
     int j = k & mask;
-    int[] b = (int[]) bundles.elementAt(i);
+    int[] b = (int[]) bundles.get(i);
     return b[j];
   }
 
   void putInstruction(int k, int instr) {
     int i = k >> shift;
     int j = k & mask;
-    int[] b = (int[]) bundles.elementAt(i);
+    int[] b = (int[]) bundles.get(i);
     b[j] = instr;
   }
   
@@ -112,15 +112,15 @@ public final class VM_MachineCode {
   private static final int shift = 8;
 
   private VM_CodeArray instructions;
-  private Vector        bundles;
+  private ArrayList     bundles;
   private int[]         current_bundle;
   private int           next;
   private int           next_bundle;
 
   VM_MachineCode () {
-    bundles = new Vector();
+    bundles = new ArrayList();
     current_bundle = new int[size];
-    bundles.addElement(current_bundle);
+    bundles.add(current_bundle);
     next_bundle++;
   }
 }

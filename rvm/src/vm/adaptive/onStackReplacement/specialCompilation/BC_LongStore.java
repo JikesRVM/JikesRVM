@@ -35,7 +35,7 @@ public class BC_LongStore extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-	return -2;
+        return -2;
   }
 
   public String toString() {

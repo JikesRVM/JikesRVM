@@ -97,7 +97,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * @param   err3 message describing reason for exception 
    */
   public OPT_OptimizingCompilerException (String module, String err1, String err2, 
-					  String err3) {
+                                          String err3) {
     super("ERROR produced in module:" + module + "\n    " + err1 + " "
         + err2 + "\n" + err3 + "\n");
   }
@@ -109,7 +109,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * @param   obj  object to print describing reason for exception
    */
   public OPT_OptimizingCompilerException (String module, String err1, String err2, 
-					  Object obj) {
+                                          Object obj) {
     this(module, err1, err2, obj.toString());
   }
 
@@ -120,7 +120,7 @@ public class OPT_OptimizingCompilerException extends RuntimeException {
    * @param   val  integer to print describing reason for exception
    */
   OPT_OptimizingCompilerException (String module, String err1, String err2, 
-				   int val) {
+                                   int val) {
     this(module, err1, err2, Integer.toString(val));
   }
 

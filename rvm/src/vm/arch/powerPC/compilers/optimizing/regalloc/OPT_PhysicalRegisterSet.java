@@ -147,7 +147,6 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
     reg[PROCESSOR_REGISTER].setSpansBasicBlock();
     reg[FRAME_POINTER].setSpansBasicBlock();
     reg[JTOC_POINTER].setSpansBasicBlock();
-    reg[THREAD_ID_REGISTER].setSpansBasicBlock();
 
     // 8. set up the volatile FPRs
     for (int i = FIRST_DOUBLE + FIRST_VOLATILE_FPR; i < FIRST_DOUBLE + 
@@ -184,10 +183,10 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
       int i = CR_NUMS[idx];
       reg[FIRST_CONDITION + i].setVolatile();
       if (prevCR != -1)
-	reg[FIRST_CONDITION + prevCR].linkWithNext(reg[FIRST_CONDITION + i]);
+        reg[FIRST_CONDITION + prevCR].linkWithNext(reg[FIRST_CONDITION + i]);
       prevCR = i;
       if (firstCR == -1)
-	firstCR = i;
+        firstCR = i;
     }
 
     // 11. cache the volatiles for efficiency
@@ -216,7 +215,6 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
       case PROCESSOR_REGISTER:
       case FRAME_POINTER:
       case JTOC_POINTER:
-      case THREAD_ID_REGISTER:
         return false;
       default:
         return (r.number < FIRST_SPECIAL);
@@ -277,13 +275,6 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
    */
   public OPT_Register getFP() {
     return reg[FRAME_POINTER];
-  }
-
-  /**
-   * @return the TI register
-   */
-  public OPT_Register getTI() {
-    return reg[THREAD_ID_REGISTER];
   }
 
   /**
@@ -516,7 +507,6 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
       regName[i + FIRST_CONDITION] = "C" + i;
     regName[JTOC_POINTER] = "JTOC";
     regName[FRAME_POINTER] = "FP";
-    regName[THREAD_ID_REGISTER] = "TI";
     regName[PROCESSOR_REGISTER] = "PR";
     regName[XER] = "XER";
     regName[LR] = "LR";
@@ -594,6 +584,14 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
                                            FIRST_INT+LAST_SCRATCH_GPR);
   }
 
+  static {
+    // enumerateVolatileGPRs relies on volatiles & scratches being
+    // contiguous; so let's make sure that is the case!
+    if (VM.VerifyAssertions)
+      VM._assert(LAST_VOLATILE_GPR+1 == FIRST_SCRATCH_GPR);
+  }
+  
+  
   /**
    * Enumerate the first n GPR parameters.
    */
@@ -649,13 +647,13 @@ public final class OPT_PhysicalRegisterSet extends OPT_GenericPhysicalRegisterSe
    */
   public Enumeration enumerateVolatileConditionRegisters() {
     return new Enumeration() {
-	private int idx = 0;
-	public Object nextElement() {
-	  return reg[FIRST_CONDITION + CR_NUMS[idx++]];
-	}
-	public boolean hasMoreElements() {
-	  return idx < CR_NUMS.length;
-	}
+        private int idx = 0;
+        public Object nextElement() {
+          return reg[FIRST_CONDITION + CR_NUMS[idx++]];
+        }
+        public boolean hasMoreElements() {
+          return idx < CR_NUMS.length;
+        }
       };
   }
 

@@ -65,8 +65,8 @@ public final class OPT_BranchOptimizations
    * @return true if an optimization was applied, false otherwise
    */
   protected final boolean optimizeBranchInstruction(OPT_IR ir,
-						    OPT_Instruction s,
-						    OPT_BasicBlock bb) {
+                                                    OPT_Instruction s,
+                                                    OPT_BasicBlock bb) {
     if (Goto.conforms(s))
       return processGoto(ir, s, bb);
     else if (IfCmp.conforms(s))
@@ -85,17 +85,17 @@ public final class OPT_BranchOptimizations
    *
    * <p> Patterns: 
    * <pre>
-   *	1)	GOTO A	     replaced by  GOTO B
-   *	     A: GOTO B
+   *    1)      GOTO A       replaced by  GOTO B
+   *         A: GOTO B
    *
-   *    2) 	GOTO A	     replaced by  IF .. GOTO B
-   *	     A: IF .. GOTO B 		  GOTO C
-   *	     C: ...			
+   *    2)      GOTO A       replaced by  IF .. GOTO B
+   *         A: IF .. GOTO B              GOTO C
+   *         C: ...                     
    *    3)   GOTO next instruction eliminated
-   *    4)      GOTO A	     replaced by  GOTO B
-   *	     A: LABEL	     
-   *		BBEND
-   *	     B: 
+   *    4)      GOTO A       replaced by  GOTO B
+   *         A: LABEL        
+   *            BBEND
+   *         B: 
    *    5)   GOTO BBn where BBn has exactly one in ede
    *         - move BBn immediately after the GOTO in the code order,
    *           so that pattern 3) will create a fallthrough
@@ -109,7 +109,7 @@ public final class OPT_BranchOptimizations
    * @return true if made a transformation
    */
   private boolean processGoto(OPT_IR ir, OPT_Instruction g, 
-			      OPT_BasicBlock bb) {
+                              OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = g.getBranchTarget();
 
     // don't optimize jumps to a code motion landing pad 
@@ -134,12 +134,12 @@ public final class OPT_BranchOptimizations
       // replace g with goto to targetInst's target
       OPT_Instruction target2 = firstRealInstructionFollowing(targetInst.getBranchTarget().firstInstruction());
       if (target2 == targetInst) {
-	// Avoid an infinite recursion in the following bizarre scenario:
-	// g: goto L
-	// ...
-	// L: goto L
-	// This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
-	return false;
+        // Avoid an infinite recursion in the following bizarre scenario:
+        // g: goto L
+        // ...
+        // L: goto L
+        // This happens in jByteMark.EmFloatPnt.denormalize() due to a while(true) {} 
+        return false;
       }
       Goto.setTarget(g, Goto.getTarget(targetInst));
       bb.recomputeNormalOut(ir); // fix the CFG 
@@ -163,15 +163,15 @@ public final class OPT_BranchOptimizations
       // We impose these additional restrictions to avoid getting 
       // multiple conditional branches in a single basic block.
       if (!g.prevInstructionInCodeOrder().isBranch() && 
-	  (targetInst.nextInstructionInCodeOrder().operator == BBEND ||
-	   targetInst.nextInstructionInCodeOrder().operator == GOTO)) {
-	OPT_Instruction copy = targetInst.copyWithoutLinks();
-	g.replace(copy);
-	OPT_Instruction newGoto = 
-	  targetInst.getBasicBlock().getNotTakenNextBlock().makeGOTO();
-	copy.insertAfter(newGoto);
-	bb.recomputeNormalOut(ir); // fix the CFG 
-	return true;
+          (targetInst.nextInstructionInCodeOrder().operator == BBEND ||
+           targetInst.nextInstructionInCodeOrder().operator == GOTO)) {
+        OPT_Instruction copy = targetInst.copyWithoutLinks();
+        g.replace(copy);
+        OPT_Instruction newGoto = 
+          targetInst.getBasicBlock().getNotTakenNextBlock().makeGOTO();
+        copy.insertAfter(newGoto);
+        bb.recomputeNormalOut(ir); // fix the CFG 
+        return true;
       }
     }
 
@@ -196,18 +196,18 @@ public final class OPT_BranchOptimizations
    * Perform optimizations for a conditional branch.  
    *
    * <pre>
-   * 1)   IF .. GOTO A	        replaced by  IF .. GOTO B
+   * 1)   IF .. GOTO A          replaced by  IF .. GOTO B
    *      ...
    *   A: GOTO B
    * 2)   conditional branch to next instruction eliminated
    * 3)   IF (condition) GOTO A  replaced by  IF (!condition) GOTO B
-   *	  GOTO B			   A: ...
+   *      GOTO B                           A: ...
    *   A: ...
    * 4) special case to generate Boolean compare opcode
    * 5) special case to generate conditional move sequence
-   * 6)   IF .. GOTO A	     replaced by  IF .. GOTO B
-   *   A: LABEL	     
-   *   	  BBEND
+   * 6)   IF .. GOTO A       replaced by  IF .. GOTO B
+   *   A: LABEL      
+   *      BBEND
    *   B: 
    * 7)  fallthrough to a goto: replicate goto to enable other optimizations.
    * </pre>
@@ -220,8 +220,8 @@ public final class OPT_BranchOptimizations
    * @return true iff made a transformation
    */
   private boolean processConditionalBranch(OPT_IR ir, 
-					   OPT_Instruction cb, 
-					   OPT_BasicBlock bb) {
+                                           OPT_Instruction cb, 
+                                           OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = cb.getBranchTarget();
 
     // don't optimize jumps to a code motion landing pad 
@@ -240,16 +240,16 @@ public final class OPT_BranchOptimizations
       OPT_Instruction nextLabel = firstLabelFollowing(cb);
 
       if (targetLabel == nextLabel) {
-	// found a conditional branch to the next instruction.  just remove it.
-	cb.remove();
-	return true;
+        // found a conditional branch to the next instruction.  just remove it.
+        cb.remove();
+        return true;
       }
       OPT_Instruction nextI = firstRealInstructionFollowing(nextLabel);
       if (nextI != null && Goto.conforms(nextI)) {
-	// replicate Goto
-	cb.insertAfter(nextI.copyWithoutLinks());
-	bb.recomputeNormalOut(ir); // fix the CFG 
-	return true;
+        // replicate Goto
+        cb.insertAfter(nextI.copyWithoutLinks());
+        bb.recomputeNormalOut(ir); // fix the CFG 
+        return true;
       }
     }
     // attempt to generate boolean compare.
@@ -267,12 +267,12 @@ public final class OPT_BranchOptimizations
     OPT_BasicBlock fallThrough = bb.getFallThroughBlock();
     if (fallThrough != null) {
       OPT_Instruction
-	fallThroughInstruction = fallThrough.firstRealInstruction();
+        fallThroughInstruction = fallThrough.firstRealInstruction();
       if ((  fallThroughInstruction != null)
-	  && Goto.conforms (fallThroughInstruction)) {
-	// copy goto to bb
-	bb.appendInstruction (fallThroughInstruction.copyWithoutLinks());
-	bb.recomputeNormalOut(ir);
+          && Goto.conforms (fallThroughInstruction)) {
+        // copy goto to bb
+        bb.appendInstruction (fallThroughInstruction.copyWithoutLinks());
+        bb.recomputeNormalOut(ir);
       }                                                                  
     }
     
@@ -281,12 +281,12 @@ public final class OPT_BranchOptimizations
       // change conditional branch target to latter's target
       OPT_Instruction target2 = firstRealInstructionFollowing(targetInst.getBranchTarget().firstInstruction());
       if (target2 == targetInst) {
-	// Avoid an infinite recursion in the following scenario:
-	// g: if (...) goto L
-	// ...
-	// L: goto L
-	// This happens in VM_GCUtil in some systems due to a while(true) {} 
-	return false;
+        // Avoid an infinite recursion in the following scenario:
+        // g: if (...) goto L
+        // ...
+        // L: goto L
+        // This happens in VM_GCUtil in some systems due to a while(true) {} 
+        return false;
       }
       IfCmp.setTarget(cb, Goto.getTarget(targetInst));
       bb.recomputeNormalOut(ir); // fix the CFG 
@@ -318,8 +318,8 @@ public final class OPT_BranchOptimizations
    * @return true iff made a transformation
    */
   private boolean processInlineGuard(OPT_IR ir, 
-				     OPT_Instruction cb, 
-				     OPT_BasicBlock bb) {
+                                     OPT_Instruction cb, 
+                                     OPT_BasicBlock bb) {
     OPT_BasicBlock targetBlock = cb.getBranchTarget();
     OPT_Instruction targetLabel = targetBlock.firstInstruction();
     // get the first real instruction at the branch target
@@ -333,28 +333,28 @@ public final class OPT_BranchOptimizations
     if (endsBlock) {
       OPT_Instruction nextLabel = firstLabelFollowing(cb);
       if (targetLabel == nextLabel) {
-	// found a conditional branch to the next instruction.  just remove it.
-	cb.remove();
-	return true;
+        // found a conditional branch to the next instruction.  just remove it.
+        cb.remove();
+        return true;
       }
       OPT_Instruction nextI = firstRealInstructionFollowing(nextLabel);
       if (nextI != null && Goto.conforms(nextI)) {
-	// replicate Goto
-	cb.insertAfter(nextI.copyWithoutLinks());
-	bb.recomputeNormalOut(ir); // fix the CFG 
-	return true;
+        // replicate Goto
+        cb.insertAfter(nextI.copyWithoutLinks());
+        bb.recomputeNormalOut(ir); // fix the CFG 
+        return true;
       }
     }
     // do we fall through to a block that has only a goto?
     OPT_BasicBlock fallThrough = bb.getFallThroughBlock();
     if (fallThrough != null) {
       OPT_Instruction
-	fallThroughInstruction = fallThrough.firstRealInstruction();
+        fallThroughInstruction = fallThrough.firstRealInstruction();
       if ((  fallThroughInstruction != null)
-	  && Goto.conforms (fallThroughInstruction)) {
-	// copy goto to bb
-	bb.appendInstruction (fallThroughInstruction.copyWithoutLinks());
-	bb.recomputeNormalOut(ir);
+          && Goto.conforms (fallThroughInstruction)) {
+        // copy goto to bb
+        bb.appendInstruction (fallThroughInstruction.copyWithoutLinks());
+        bb.recomputeNormalOut(ir);
       }                                                                  
     }
     
@@ -387,8 +387,8 @@ public final class OPT_BranchOptimizations
    * @return true iff made a transformation
    */
   private boolean processTwoTargetConditionalBranch(OPT_IR ir, 
-						    OPT_Instruction cb, 
-						    OPT_BasicBlock bb) {
+                                                    OPT_Instruction cb, 
+                                                    OPT_BasicBlock bb) {
     // First condition/target
     OPT_Instruction target1Label = IfCmp2.getTarget1(cb).target; 
     OPT_Instruction target1Inst = firstRealInstructionFollowing(target1Label);
@@ -396,19 +396,19 @@ public final class OPT_BranchOptimizations
     boolean endsBlock = cb.nextInstructionInCodeOrder().operator() == BBEND;
     if (target1Inst != null && target1Inst != cb) {
       if (Goto.conforms(target1Inst)) {
-	// conditional branch to unconditional branch.
-	// change conditional branch target to latter's target
-	IfCmp2.setTarget1(cb, Goto.getTarget(target1Inst));
-	bb.recomputeNormalOut(ir); // fix CFG
-	return true;
+        // conditional branch to unconditional branch.
+        // change conditional branch target to latter's target
+        IfCmp2.setTarget1(cb, Goto.getTarget(target1Inst));
+        bb.recomputeNormalOut(ir); // fix CFG
+        return true;
       }
       OPT_BasicBlock target1Block = target1Label.getBasicBlock();
       if (target1Block.isEmpty()) {
-	// branch to an empty block.  Change target to the next block.
-	OPT_BasicBlock nextBlock = target1Block.getFallThroughBlock();
-	IfCmp2.setTarget1(cb, nextBlock.makeJumpTarget());
-	bb.recomputeNormalOut(ir); // fix the CFG 
-	return true;
+        // branch to an empty block.  Change target to the next block.
+        OPT_BasicBlock nextBlock = target1Block.getFallThroughBlock();
+        IfCmp2.setTarget1(cb, nextBlock.makeJumpTarget());
+        bb.recomputeNormalOut(ir); // fix the CFG 
+        return true;
       }
     }
       
@@ -417,28 +417,28 @@ public final class OPT_BranchOptimizations
     OPT_Instruction target2Inst = firstRealInstructionFollowing(target2Label);
     if (target2Inst != null && target2Inst != cb) {
       if (Goto.conforms(target2Inst)) {
-	// conditional branch to unconditional branch.
-	// change conditional branch target to latter's target
-	IfCmp2.setTarget2(cb, Goto.getTarget(target2Inst));
-	bb.recomputeNormalOut(ir); // fix CFG
-	return true;
+        // conditional branch to unconditional branch.
+        // change conditional branch target to latter's target
+        IfCmp2.setTarget2(cb, Goto.getTarget(target2Inst));
+        bb.recomputeNormalOut(ir); // fix CFG
+        return true;
       }
       if ((target2Label == nextLabel) && endsBlock) {
-	// found a conditional branch to the next instruction. Reduce to IfCmp
-	if (VM.VerifyAssertions) VM._assert(cb.operator() == INT_IFCMP2);
-	IfCmp.mutate(cb, INT_IFCMP,
-		     IfCmp2.getGuardResult(cb), IfCmp2.getVal1(cb),
-		     IfCmp2.getVal2(cb), IfCmp2.getCond1(cb), 
-		     IfCmp2.getTarget1(cb), IfCmp2.getBranchProfile1(cb));
-	return true;
+        // found a conditional branch to the next instruction. Reduce to IfCmp
+        if (VM.VerifyAssertions) VM._assert(cb.operator() == INT_IFCMP2);
+        IfCmp.mutate(cb, INT_IFCMP,
+                     IfCmp2.getGuardResult(cb), IfCmp2.getVal1(cb),
+                     IfCmp2.getVal2(cb), IfCmp2.getCond1(cb), 
+                     IfCmp2.getTarget1(cb), IfCmp2.getBranchProfile1(cb));
+        return true;
       }
       OPT_BasicBlock target2Block = target2Label.getBasicBlock();
       if (target2Block.isEmpty()) {
-	// branch to an empty block.  Change target to the next block.
-	OPT_BasicBlock nextBlock = target2Block.getFallThroughBlock();
-	IfCmp2.setTarget2(cb, nextBlock.makeJumpTarget()); 
-	bb.recomputeNormalOut(ir); // fix the CFG 
-	return true;
+        // branch to an empty block.  Change target to the next block.
+        OPT_BasicBlock nextBlock = target2Block.getFallThroughBlock();
+        IfCmp2.setTarget2(cb, nextBlock.makeJumpTarget()); 
+        bb.recomputeNormalOut(ir); // fix the CFG 
+        return true;
       }
     }
 
@@ -446,10 +446,10 @@ public final class OPT_BranchOptimizations
     if (endsBlock) {
       OPT_Instruction nextI = firstRealInstructionFollowing(nextLabel);
       if (nextI != null && Goto.conforms(nextI)) {
-	// replicate Goto
-	cb.insertAfter(nextI.copyWithoutLinks());
-	bb.recomputeNormalOut(ir); // fix the CFG 
-	return true;
+        // replicate Goto
+        cb.insertAfter(nextI.copyWithoutLinks());
+        bb.recomputeNormalOut(ir); // fix the CFG 
+        return true;
       }
     }
 
@@ -465,7 +465,7 @@ public final class OPT_BranchOptimizations
    *
    * @param cb the conditional branch instruction
    * @param target the target instruction (real instruction) of the conditional
-   *		   branch
+   *               branch
    * @return boolean result
    */
   private boolean isFlipCandidate (OPT_Instruction cb, 
@@ -475,7 +475,7 @@ public final class OPT_BranchOptimizations
     if (!Goto.conforms(next))
       return false;
     // condition 2: is the target of the conditional branch the 
-    //	next instruction after the GOTO?
+    //  next instruction after the GOTO?
     next = firstRealInstructionFollowing(next);
     if (next != target)
       return false;
@@ -524,27 +524,27 @@ public final class OPT_BranchOptimizations
    * @param cond comparison condition
    */
   private void booleanCompareHelper(OPT_Instruction cb, 
-				    OPT_RegisterOperand res, 
-				    OPT_Operand val1, 
-				    OPT_Operand val2, 
-				    OPT_ConditionOperand cond) {
+                                    OPT_RegisterOperand res, 
+                                    OPT_Operand val1, 
+                                    OPT_Operand val2, 
+                                    OPT_ConditionOperand cond) {
     if ((val1 instanceof OPT_RegisterOperand) && 
         ((OPT_RegisterOperand)val1).type.isBooleanType() && 
-	(val2 instanceof OPT_IntConstantOperand)) {
+        (val2 instanceof OPT_IntConstantOperand)) {
       int value = ((OPT_IntConstantOperand)val2).value;
       if (VM.VerifyAssertions && (value != 0) && (value != 1))
         throw  new OPT_OptimizingCompilerException("Invalid boolean value");
       int c = cond.evaluate(value, 0);
       if (c == OPT_ConditionOperand.TRUE) {
         Unary.mutate(cb, BOOLEAN_NOT, res, val1);
-	return;
+        return;
       } else if (c == OPT_ConditionOperand.FALSE) {
         Move.mutate(cb, INT_MOVE, res, val1);
-	return;
+        return;
       }
     } 
     BooleanCmp.mutate(cb, BOOLEAN_CMP, res, val1, val2, cond,
-		      new OPT_BranchProfileOperand());
+                      new OPT_BranchProfileOperand());
   }
 
   /**
@@ -783,7 +783,7 @@ public final class OPT_BranchOptimizations
   private OPT_Instruction[] copyAndMapInstructions(OPT_BasicBlock bb,
                                                    HashMap map) {
     if (bb == null) return new OPT_Instruction[0];
-		
+                
     int count = 0;
     // first count the number of instructions
     for (Enumeration e = bb.forwardRealInstrEnumerator();
@@ -985,7 +985,7 @@ public final class OPT_BranchOptimizations
    * Attempt to generate a boolean compare opcode from a conditional branch.
    *
    * <pre>
-   * 1)   IF .. GOTO A	        replaced by  BOOLEAN_CMP x=..
+   * 1)   IF .. GOTO A          replaced by  BOOLEAN_CMP x=..
    *      x = 0
    *      GOTO B
    *   A: x = 1
@@ -1002,9 +1002,9 @@ public final class OPT_BranchOptimizations
    * @return true if the transformation succeeds, false otherwise
    */
   private boolean generateBooleanCompare (OPT_IR ir, 
-					  OPT_BasicBlock bb, 
-					  OPT_Instruction cb, 
-					  OPT_BasicBlock tb) 
+                                          OPT_BasicBlock bb, 
+                                          OPT_Instruction cb, 
+                                          OPT_BasicBlock tb) 
   {
     
     if ((cb.operator() != INT_IFCMP) && (cb.operator() != REF_IFCMP))

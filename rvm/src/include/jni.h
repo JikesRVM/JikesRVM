@@ -552,8 +552,8 @@ struct JNIEnv_ {
 	void ReleaseStringUTFChars(jstring str, const char* chars) { functions->ReleaseStringUTFChars(this, str, chars); }
 	jsize GetArrayLength(jarray array) { return functions->GetArrayLength(this, array); }
 	jobjectArray NewObjectArray(jsize len, jclass clazz, jobject init) { return functions->NewObjectArray(this, len, clazz, init); }
-	jobject GetObjectArrayElement(jobjectArray array, jsize index) { return functions->GetObjectArrayElement(this, array, index); }
-	void SetObjectArrayElement(jobjectArray array, jsize index, jobject val) { functions->SetObjectArrayElement(this, array, index, val); }
+	jobject GetObjectArrayElement(jobjectArray array, jsize index_) { return functions->GetObjectArrayElement(this, array, index_); }
+	void SetObjectArrayElement(jobjectArray array, jsize index_, jobject val) { functions->SetObjectArrayElement(this, array, index_, val); }
 	jbooleanArray NewBooleanArray(jsize len) { return functions->NewBooleanArray(this, len); }
 	jbyteArray NewByteArray(jsize len) { return functions->NewByteArray(this, len); }
 	jcharArray NewCharArray(jsize len) { return functions->NewCharArray(this, len); }

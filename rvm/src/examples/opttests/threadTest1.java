@@ -31,28 +31,28 @@ public class threadTest1 {
         TestThread1 thread[] = new TestThread1[NUM_THREADS];
 
          for (int i = 0; i < NUM_THREADS; i ++) {
-			 aResult[i] = 0;
-			 bResult[i] = 0;
+                         aResult[i] = 0;
+                         bResult[i] = 0;
             thread[i] = new TestThread1(i);
-			thread[i].start();
+                        thread[i].start();
          }
 
          System.out.println("a = " + a + ", b = " + b);
 
-	 int idx = 0;
+         int idx = 0;
          xx = 5;
          yy = 5;
          idx = xx - yy;
-	 while (idx < NUM_THREADS) {
-		 while (aResult[idx] == 0) {};
+         while (idx < NUM_THREADS) {
+                 while (aResult[idx] == 0) {};
 
-		 idx ++;
-	 }
+                 idx ++;
+         }
 
-	 for (int i = 0; i < NUM_THREADS; i ++) {
-		 System.out.println("Final[" + i + "]: a = " + aResult[i] + 
-					", b = " + bResult[i]);
-	 }
+         for (int i = 0; i < NUM_THREADS; i ++) {
+                 System.out.println("Final[" + i + "]: a = " + aResult[i] + 
+                                        ", b = " + bResult[i]);
+         }
     }
 }
 
@@ -61,7 +61,7 @@ public class threadTest1 {
 class TestThread1 extends Thread {
 
     TestThread1(int id) { _tid = id;}
-	
+        
     public void run () {
 
        for (int i = 0; i < 10000; i++) {
@@ -76,7 +76,7 @@ class TestThread1 extends Thread {
          }
 
        }
-	   
+           
        System.out.println("Final: [" + _tid + "]" + " a = " + threadTest1.a + ", b = " + threadTest1.b);
        threadTest1.aResult[_tid] =  threadTest1.a;
        threadTest1.bResult[_tid] =  threadTest1.b;

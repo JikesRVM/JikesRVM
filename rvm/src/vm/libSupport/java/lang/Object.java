@@ -53,29 +53,29 @@ public class Object {
   }
   
   public final void wait () throws InterruptedException,
-				   IllegalMonitorStateException {
+                                   IllegalMonitorStateException {
     VM_Lock.wait(this);
   }
 
   public final void wait (long time) throws InterruptedException,
-					    IllegalMonitorStateException,
-					    IllegalArgumentException {
+                                            IllegalMonitorStateException,
+                                            IllegalArgumentException {
     wait(time, 0);
   }
 
   public final void wait (long time, int frac)  throws InterruptedException,
-						       IllegalMonitorStateException,
-						       IllegalArgumentException {
+                                                       IllegalMonitorStateException,
+                                                       IllegalArgumentException {
     if (time >= 0 && frac >= 0 && frac < 1000000) {
       if (time == 0 && frac > 0) {
-	time = 1;
+        time = 1;
       } else if (frac >= 500000) {
-	time += 1;
+        time += 1;
       } 
       if (time == 0) {
-	VM_Lock.wait(this);
+        VM_Lock.wait(this);
       } else {
-	VM_Lock.wait(this, time);
+        VM_Lock.wait(this, time);
       }
     } else {
       throw new IllegalArgumentException();

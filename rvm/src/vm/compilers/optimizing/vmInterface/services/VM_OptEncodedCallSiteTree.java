@@ -61,7 +61,7 @@ public abstract class VM_OptEncodedCallSiteTree implements VM_Uninterruptible {
   }
 
   static int getEncoding(OPT_CallSiteTreeNode current, int offset, int parent, 
-			 int[] encoding) throws VM_PragmaInterruptible {
+                         int[] encoding) throws VM_PragmaInterruptible {
     int i = offset;
     if (parent != -1)
       encoding[i++] = parent - offset;

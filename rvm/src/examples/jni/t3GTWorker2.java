@@ -33,16 +33,16 @@ class t3GTWorker2 extends Thread {
   public void run()  //- overrides Thread
   {
 
-		isReady = true;
-		while (isReady) {
+                isReady = true;
+                while (isReady) {
     try {
       Thread.currentThread().sleep(arg1);
     }
     catch (InterruptedException e) {
-			System.out.println(" GC thread returning");
-			isFinished = true;
+                        System.out.println(" GC thread returning");
+                        isFinished = true;
     }
-			if (isFinished) return;
+                        if (isFinished) return;
     System.gc();
     }
 

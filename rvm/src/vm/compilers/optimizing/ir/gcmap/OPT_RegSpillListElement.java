@@ -73,7 +73,7 @@ public class OPT_RegSpillListElement extends com.ibm.JikesRVM.opt.OPT_LinkedList
   public final int getRealRegNumber() {
     if (VM.VerifyAssertions) {
       VM._assert(!isSpill(), 
-	"OPT_RegSpillListElement asked for a Real Reg, when it had a spill");
+        "OPT_RegSpillListElement asked for a Real Reg, when it had a spill");
     }
 
     // real regs are stored as non-positive values

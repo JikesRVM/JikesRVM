@@ -37,6 +37,8 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    *
    * Class variables
    */
+  public static final boolean INC_DEC_ROOT = false;
+  public static final boolean RC_SANITY_CHECK = false;
   
   /****************************************************************************
    *
@@ -86,14 +88,9 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    */
 
   /**
-   * Prepare for a new collection increment.  Flip the state of the
-   * boot image mark bit (use for debug tracing).
+   * Prepare for a new collection increment.  Nothing to do.
    */
-  public void prepare() { 
-    if (!Options.noFinalizer)
-      VM_Interface.sysFail("-X:gc:noFinalizer must be used with RefCount Plan");
-    bootImageMark = !bootImageMark;
-  }
+  public void prepare() {}
 
   /**
    * A new collection increment has completed.
@@ -114,68 +111,13 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    * @param object The object encountered in the trace
    * @param root True if the object is referenced directly from a root
    */
-  public final VM_Address traceObject(VM_Address object, boolean root)
+  public final VM_Address traceObject(VM_Address object)
     throws VM_PragmaInline {
-    if (Plan.REF_COUNT_SANITY_TRACING) 
-      incrementTraceCount(object);
-
-    increment(object);
-    if (root)
+    if (INC_DEC_ROOT) {
+      RCBaseHeader.incRC(object);
       VM_Interface.getPlan().addToRootSet(object);
-
-    return object;
-  }
-
-  /**
-   * Determine whether an object is live.
-   *
-   * @param object The object in question
-   * @return True if this object is considered live (i.e. it has a no-zero RC)
-   */
-  public static boolean isLive(VM_Address object)
-    throws VM_PragmaInline {
-    return RCBaseHeader.isLiveRC(object);
-  }
-  
-  /****************************************************************************
-   *
-   * Methods for sanity tracing (tracing to check ref counts)
-   */
-
-  /**
-   * An (reference counted) object has been encountered in a sanity
-   * trace, increment its reachability count and enqueue for recursive
-   * scanning if this is the first tracing of the object
-   *
-   * @param object The object to be traced
-   */
-  public final void incrementTraceCount(VM_Address object) 
-    throws VM_PragmaInline {
-    if (RCBaseHeader.incTraceRC(object)) {
-      VM_Interface.getPlan().addToTraceBuffer(object); 
-      Plan.enqueue(object);
-    }
-  }
-
-  /**
-   * A boot image (or immortal) object has been encountered in a
-   * sanity trace.  Set the mark bit if necessary (at present this is
-   * a hack---we use the buffered bit).  FIXME
-   *
-   * For consistency with existing interfaces, return the object.
-   *
-   * @param object The boot or immortal object encountered.
-   * @return The object (a no-op in this case).
-   */
-  public final VM_Address traceBootObject(VM_Address object) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
-    if (bootImageMark && !RCBaseHeader.isBuffered(object)) {
-      RCBaseHeader.setBufferedBit(object);
-      Plan.enqueue(object);
-    } else if (!bootImageMark && RCBaseHeader.isBuffered(object)) {
-      RCBaseHeader.clearBufferedBit(object);
-      Plan.enqueue(object);
+    } else if (RCBaseHeader.setRoot(object)) {
+      VM_Interface.getPlan().addToRootSet(object);
     }
     return object;
   }
@@ -184,16 +126,6 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    *
    * Misc
    */
-
-  /**
-   * Increment the reference count for an object.
-   *
-   * @param object  The object whose reference count is to be incremented
-   */
-  public final void increment(VM_Address object) 
-    throws VM_PragmaInline {
-    RCBaseHeader.incRC(object, true);
-  }
 
   public final FreeListVMResource getVMResource() { return vmResource;}
   public final MemoryResource getMemoryResource() { return memoryResource;}

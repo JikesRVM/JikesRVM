@@ -25,8 +25,8 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
    */
   static void perform(OPT_IR ir) { 
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder(); 
-	 s != null; 
-	 s = s.nextInstructionInCodeOrder()) {
+         s != null; 
+         s = s.nextInstructionInCodeOrder()) {
 
       // Get 'large' constants into a form the the BURS rules are 
       // prepared to deal with.
@@ -40,39 +40,39 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
           if (use != null) {
             if (use instanceof OPT_StringConstantOperand) {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.JavaLangString);
-	      OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
+              OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_StringConstantOperand sc = (OPT_StringConstantOperand)use;
               int offset = sc.index << 2;
               if (offset == 0)
                 throw new OPT_OptimizingCompilerException("String constant w/o valid JTOC offset");
               OPT_LocationOperand loc = new OPT_LocationOperand(offset);
-	      s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset), loc));
-	      s.putOperand(idx, rop.copyD2U());
+              s.insertBefore(Load.create(INT_LOAD, rop, jtoc, new OPT_IntConstantOperand(offset), loc));
+              s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_DoubleConstantOperand) {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Double);
-	      OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
+              OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_DoubleConstantOperand dc = (OPT_DoubleConstantOperand)use.copy();
               if (dc.index == 0) {
                 dc.index = VM_Statics.findOrCreateDoubleLiteral(Double.doubleToLongBits(dc.value));
               }
-	      s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, dc));
+              s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, dc));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_FloatConstantOperand) {
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_TypeReference.Float);
-	      OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
+              OPT_Operand jtoc = ir.regpool.makeJTOCOp(ir,s);
               OPT_FloatConstantOperand fc = (OPT_FloatConstantOperand)use.copy();
               if (fc.index  == 0) {
                 fc.index = VM_Statics.findOrCreateFloatLiteral(Float.floatToIntBits(fc.value));
               }
-	      s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, fc));
+              s.insertBefore(Binary.create(MATERIALIZE_FP_CONSTANT, rop, jtoc, fc));
               s.putOperand(idx, rop.copyD2U());
-	    } else if (use instanceof OPT_NullConstantOperand) {
-	      s.putOperand(idx, new OPT_IntConstantOperand(0));
-	    } else if (use instanceof OPT_AddressConstantOperand) {
-	      int v = ((OPT_AddressConstantOperand)use).value.toInt();
+            } else if (use instanceof OPT_NullConstantOperand) {
+              s.putOperand(idx, new OPT_IntConstantOperand(0));
+            } else if (use instanceof OPT_AddressConstantOperand) {
+              int v = ((OPT_AddressConstantOperand)use).value.toInt();
               s.putOperand(idx, new OPT_IntConstantOperand(v));
-	    }
-	  }
+            }
+          }
         }
       }
     }
@@ -82,8 +82,8 @@ abstract class OPT_NormalizeConstants implements OPT_Operators {
    * IA32 supports 32 bit int immediates, so nothing to do.
    */
   static OPT_Operand asImmediateOrReg (OPT_Operand addr, 
-				       OPT_Instruction s, 
-				       OPT_IR ir) {
+                                       OPT_Instruction s, 
+                                       OPT_IR ir) {
     return addr;
   }
 

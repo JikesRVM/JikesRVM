@@ -40,19 +40,19 @@ class DeBruijn {
       val <<= 1;
       val &= mask;
       if (table[val]) {
-	++val;
-	if (table[val]) {
-	  //	  System.out.println("John is wrong!");
-	  return "John is wrong!";
-	} else {
-	  table[val] = true;
-	  //	  System.out.print("1");
-	  str = str +"1";
-	}
+        ++val;
+        if (table[val]) {
+          //      System.out.println("John is wrong!");
+          return "John is wrong!";
+        } else {
+          table[val] = true;
+          //      System.out.print("1");
+          str = str +"1";
+        }
       } else {
-	table[val] = true;
-	//	System.out.print("0");
-	str = str + "0";
+        table[val] = true;
+        //      System.out.print("0");
+        str = str + "0";
       }
     }
     //    System.out.println();

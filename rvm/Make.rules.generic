@@ -24,10 +24,6 @@ HOST_JAVAC_CLASSPATH = -classpath $(HOST_REPOSITORIES):.:
 # This is the name to use to compile "normal" (non-RVM) java files.
 JCOMPILE = $(HOST_JAVAC) $(HOST_JAVAC_CLASSPATH)
 
-# Java compiler to use to compile RVM .java files.
-# Makefiles redefine JCOMPILE=$(JCOMPILE_RVM) when they need to do this.
-JCOMPILE_RVM =$(RVM_BUILD)/jbuild.tool
-
 RM=rm -f
 CP=cp -f
 

@@ -152,7 +152,7 @@ final class VM_BasicBlock {
        short[] newpreds = new short[predcount<<1];
        int restLength = restPredecessors.length;
        for (int i=0; i<restLength; i++) 
-	  newpreds[i] = restPredecessors[i];
+          newpreds[i] = restPredecessors[i];
        restPredecessors = newpreds;
        newpreds = null;
      }
@@ -171,46 +171,46 @@ final class VM_BasicBlock {
 
    if (predcount >= 1) {
      if (pred1 == predbbNum)
-	return;
+        return;
      
      if (predcount > 1) {
-	if (pred2 == predbbNum)
-	  return;
+        if (pred2 == predbbNum)
+          return;
 
-	if (predcount > 2) {
+        if (predcount > 2) {
          if (restPredecessors.length <= predcount-2) {
-	    short[] newpreds = new short[predcount<<1];
-	    int restLength = restPredecessors.length;
-	    for (int i=0; i<restLength; i++) {
-	      if (restPredecessors[i] == predbbNum)
-	        dupFound = true;            // finish up the copy anyway.
-	      newpreds[i] = restPredecessors[i];
-	    }
-	    restPredecessors = newpreds;
-	    newpreds = null;
+            short[] newpreds = new short[predcount<<1];
+            int restLength = restPredecessors.length;
+            for (int i=0; i<restLength; i++) {
+              if (restPredecessors[i] == predbbNum)
+                dupFound = true;            // finish up the copy anyway.
+              newpreds[i] = restPredecessors[i];
+            }
+            restPredecessors = newpreds;
+            newpreds = null;
 
-	    if (dupFound) return;
-	    checkMade = true;
+            if (dupFound) return;
+            checkMade = true;
          }
 
          if (!checkMade) {
           for (int i=0; i<predcount-2; i++) 
-	     if (restPredecessors[i] == predbbNum)
-	       return;
-	 }
+             if (restPredecessors[i] == predbbNum)
+               return;
+         }
 
-	 predcount++;
-	 restPredecessors[predcount-3] = predbbNum;
-	}
-	else {  // predcount must be 2
-	  restPredecessors = new short[STARTPREDSIZE];
-	  predcount++;
-	  restPredecessors[predcount-3] = predbbNum;
-	}
+         predcount++;
+         restPredecessors[predcount-3] = predbbNum;
+        }
+        else {  // predcount must be 2
+          restPredecessors = new short[STARTPREDSIZE];
+          predcount++;
+          restPredecessors[predcount-3] = predbbNum;
+        }
      }  // predcount must be 1
      else { 
-	predcount++;
-	pred2 = predbbNum;
+        predcount++;
+        pred2 = predbbNum;
      }
    }
    else { // predcount must be 0

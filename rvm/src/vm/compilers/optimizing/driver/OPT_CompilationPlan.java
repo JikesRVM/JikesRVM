@@ -61,7 +61,7 @@ public final class OPT_CompilationPlan {
    * @param opts The OPT_Options to be used for compiling m
    */
   public OPT_CompilationPlan (VM_NormalMethod m, OPT_OptimizationPlanElement[] op, 
-			      OPT_InstrumentationPlan mp, OPT_Options opts) {
+                              OPT_InstrumentationPlan mp, OPT_Options opts) {
     method = m;
     optimizationPlan = op;
     instrumentationPlan = mp;
@@ -77,7 +77,7 @@ public final class OPT_CompilationPlan {
    * @param opts The OPT_Options to be used for compiling m
    */
   public OPT_CompilationPlan (VM_NormalMethod m, OPT_OptimizationPlanElement op, 
-			      OPT_InstrumentationPlan mp, OPT_Options opts) {
+                              OPT_InstrumentationPlan mp, OPT_Options opts) {
     method = m;
     optimizationPlan = new OPT_OptimizationPlanElement[] {
       op

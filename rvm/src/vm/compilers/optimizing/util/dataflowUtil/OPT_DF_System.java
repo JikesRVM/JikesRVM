@@ -10,12 +10,12 @@ import  java.util.*;
  * Represents a system of Data Flow equations
  *
  * <p> Implementation Note:
- *  	The set of equations is internally represented as a graph
- *	(actually a OPT_SpaceEffGraph).  Each dataflow equation is a node in the
- *	graph.  If a dataflow equation produces a lattice cell value
- *	that is used by another equation, the graph has a directed edge
- *	from the producer to the consumer.  Fixed-point iteration proceeds
- *	in a topological order according to these edges.
+ *      The set of equations is internally represented as a graph
+ *      (actually a OPT_SpaceEffGraph).  Each dataflow equation is a node in the
+ *      graph.  If a dataflow equation produces a lattice cell value
+ *      that is used by another equation, the graph has a directed edge
+ *      from the producer to the consumer.  Fixed-point iteration proceeds
+ *      in a topological order according to these edges.
  *
  *
  * @author Stephen Fink
@@ -263,7 +263,7 @@ public abstract class OPT_DF_System implements OPT_Solvable {
     // add the operands to the working solution
     //       cells.put(lhs.getKey(),lhs);
     for (int i = 0; i < rhs.length; i++) {
-      //    	cells.put(rhs[i].getKey(),rhs[i]);
+      //        cells.put(rhs[i].getKey(),rhs[i]);
       rhs[i].addUse(eq);
       equations.addGraphNode(rhs[i]);
     }
@@ -392,10 +392,10 @@ public abstract class OPT_DF_System implements OPT_Solvable {
    * 
    *  <p>Algorithm: 
    *   <ul> 
-   *   <li>	1. create a DAG of SCCs
+   *   <li>     1. create a DAG of SCCs
    *   <li>     2. number this DAG topologically
-   *   <li>	3. walk through the DAG and number nodes as they are
-   *		   encountered
+   *   <li>     3. walk through the DAG and number nodes as they are
+   *               encountered
    *    </ul>
    */
   private void numberEquationsTopological() {

@@ -20,7 +20,7 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_AllocatorHeader;
 public interface VM_JavaHeaderConstants extends VM_SizeConstants {
 
   static final int TIB_BYTES = BYTES_IN_ADDRESS;
-  static final int STATUS_BYTES = BYTES_IN_INT;
+  static final int STATUS_BYTES = BYTES_IN_ADDRESS;
   static final int ARRAY_LENGTH_BYTES = BYTES_IN_INT;
 
   static final int JAVA_HEADER_BYTES = TIB_BYTES + STATUS_BYTES;
@@ -32,6 +32,7 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   static final int MISC_HEADER_OFFSET = GC_HEADER_OFFSET - MISC_HEADER_BYTES;
   static final int JAVA_HEADER_OFFSET = MISC_HEADER_OFFSET - JAVA_HEADER_BYTES;
   static final int ARRAY_LENGTH_OFFSET = JAVA_HEADER_OFFSET - ARRAY_LENGTH_BYTES;
+
   /**
    * This object model supports two schemes for hashcodes:
    * (1) a 10 bit hash code in the object header

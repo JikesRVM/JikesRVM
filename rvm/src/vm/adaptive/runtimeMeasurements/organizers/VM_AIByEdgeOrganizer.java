@@ -56,7 +56,7 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
   private int   numberOfBufferTriples;
 
   /**
-   *	Representation of call graph.
+   *    Representation of call graph.
    */
   private VM_PartialCallGraph callGraph;
 
@@ -130,72 +130,72 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
       switch (compiledMethod.getCompilerType()) {
       case VM_CompiledMethod.TRAP:
       case VM_CompiledMethod.JNI:
-	if (DEBUG) VM.sysWrite("Skipping sample with TRAP/JNI caller");
-	continue;
+        if (DEBUG) VM.sysWrite("Skipping sample with TRAP/JNI caller");
+        continue;
       case VM_CompiledMethod.BASELINE:
-	{
-	  VM_BaselineCompiledMethod baseCompiledMethod = 
-	    (VM_BaselineCompiledMethod)compiledMethod;
-	  // note: the following call expects the offset in INSTRUCTIONS!
-	  bytecodeIndex = baseCompiledMethod.findBytecodeIndexForInstruction
-	    (MCOffset>>>VM.LG_INSTRUCTION_WIDTH);
-	  caller = stackFrameCaller;
-	}
-	break;
+        {
+          VM_BaselineCompiledMethod baseCompiledMethod = 
+            (VM_BaselineCompiledMethod)compiledMethod;
+          // note: the following call expects the offset in INSTRUCTIONS!
+          bytecodeIndex = baseCompiledMethod.findBytecodeIndexForInstruction
+            (MCOffset>>>VM.LG_INSTRUCTION_WIDTH);
+          caller = stackFrameCaller;
+        }
+        break;
       case VM_CompiledMethod.OPT:
-	{
-	  VM_OptCompiledMethod optCompiledMethod = (VM_OptCompiledMethod)compiledMethod;
-	  VM_OptMachineCodeMap mc_map = optCompiledMethod.getMCMap();
-	  try {
-	    bytecodeIndex = mc_map.getBytecodeIndexForMCOffset(MCOffset);
-	    if (bytecodeIndex == -1) {
-	      // this can happen we we sample a call 
-	      // to a runtimeSerivce routine. 
-	      // We aren't setup to inline such methods anyways, 
-	      // so skip the sample.
-	      if (DEBUG) {
-		  VM.sysWrite("  *** SKIP SAMPLE ", stackFrameCaller.toString());
-		  VM.sysWrite("@",compiledMethod.toString());
-		  VM.sysWrite(" at MC offset ", MCOffset);
-		  VM.sysWrite(" calling ", callee.toString());
-		  VM.sysWriteln(" due to invalid bytecodeIndex");
-	      }
-	      continue; // skip sample.
-	    }
-	  } catch (java.lang.ArrayIndexOutOfBoundsException e) {
-	      VM.sysWrite("  ***ERROR: getBytecodeIndexForMCOffset(", MCOffset);
-	      VM.sysWrite(") ArrayIndexOutOfBounds!\n");
-	      e.printStackTrace(); caller = stackFrameCaller;
-	      continue;  // skip sample
-	  } catch (OPT_OptimizingCompilerException e) {
-	    VM.sysWrite("***Error: SKIP SAMPLE: can't find bytecode index in OPT compiled "+
-			stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset);
-		 VM.sysWrite("!\n");
-	    continue;  // skip sample
-	  }
-	  
-	  try {
-	    caller = mc_map.getMethodForMCOffset(MCOffset);
-	  } catch (java.lang.ArrayIndexOutOfBoundsException e) {
-	    VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset);
-		 VM.sysWrite(") ArrayIndexOutOfBounds!\n");
-	    e.printStackTrace(); caller = stackFrameCaller;
-	    continue;
-	  } catch (OPT_OptimizingCompilerException e) {
-	    VM.sysWrite("***Error: SKIP SAMPLE: can't find caller in OPT compiled "+
-			stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset);
-		 VM.sysWrite("!\n");
-	    continue;  // skip sample
-	  }
+        {
+          VM_OptCompiledMethod optCompiledMethod = (VM_OptCompiledMethod)compiledMethod;
+          VM_OptMachineCodeMap mc_map = optCompiledMethod.getMCMap();
+          try {
+            bytecodeIndex = mc_map.getBytecodeIndexForMCOffset(MCOffset);
+            if (bytecodeIndex == -1) {
+              // this can happen we we sample a call 
+              // to a runtimeSerivce routine. 
+              // We aren't setup to inline such methods anyways, 
+              // so skip the sample.
+              if (DEBUG) {
+                  VM.sysWrite("  *** SKIP SAMPLE ", stackFrameCaller.toString());
+                  VM.sysWrite("@",compiledMethod.toString());
+                  VM.sysWrite(" at MC offset ", MCOffset);
+                  VM.sysWrite(" calling ", callee.toString());
+                  VM.sysWriteln(" due to invalid bytecodeIndex");
+              }
+              continue; // skip sample.
+            }
+          } catch (java.lang.ArrayIndexOutOfBoundsException e) {
+              VM.sysWrite("  ***ERROR: getBytecodeIndexForMCOffset(", MCOffset);
+              VM.sysWrite(") ArrayIndexOutOfBounds!\n");
+              e.printStackTrace(); caller = stackFrameCaller;
+              continue;  // skip sample
+          } catch (OPT_OptimizingCompilerException e) {
+            VM.sysWrite("***Error: SKIP SAMPLE: can't find bytecode index in OPT compiled "+
+                        stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset);
+                 VM.sysWrite("!\n");
+            continue;  // skip sample
+          }
+          
+          try {
+            caller = mc_map.getMethodForMCOffset(MCOffset);
+          } catch (java.lang.ArrayIndexOutOfBoundsException e) {
+            VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset);
+                 VM.sysWrite(") ArrayIndexOutOfBounds!\n");
+            e.printStackTrace(); caller = stackFrameCaller;
+            continue;
+          } catch (OPT_OptimizingCompilerException e) {
+            VM.sysWrite("***Error: SKIP SAMPLE: can't find caller in OPT compiled "+
+                        stackFrameCaller+"@"+compiledMethod+" at MC offset ",MCOffset);
+                 VM.sysWrite("!\n");
+            continue;  // skip sample
+          }
 
-	  if (caller == null) {
-	    VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset);
-		 VM.sysWrite(") returned null!\n");
-	    caller = stackFrameCaller;
-	    continue;  // skip sample
-	  }
-	}
-	break;
+          if (caller == null) {
+            VM.sysWrite("  ***ERROR: getMethodForMCOffset(",MCOffset);
+                 VM.sysWrite(") returned null!\n");
+            caller = stackFrameCaller;
+            continue;  // skip sample
+          }
+        }
+        break;
       }
 
       // increment the call graph edge, adding it if needed
@@ -209,19 +209,19 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
       Vector vectorOfTriples = VM_AdaptiveInlining.recomputeHotEdges();
       
       if(DEBUG) {
-	VM.sysWrite("\nNew edges found:\n");
-	for (int i=0; i<vectorOfTriples.size(); i++) {
-	  VM_CallSiteTriple triple = (VM_CallSiteTriple)
+        VM.sysWrite("\nNew edges found:\n");
+        for (int i=0; i<vectorOfTriples.size(); i++) {
+          VM_CallSiteTriple triple = (VM_CallSiteTriple)
                 vectorOfTriples.elementAt(i);
-	  VM.sysWrite((i+1)+": "+triple.toString()+"\n");
-	}
+          VM.sysWrite((i+1)+": "+triple.toString()+"\n");
+        }
       }
       
       VM_MethodCountSet HM_data = 
-	VM_Controller.methodSamples.collectHotMethods(VM_Controller.options.MAX_OPT_LEVEL,
-						      VM_Controller.options.AI_METHOD_HOTNESS_THRESHOLD);
+        VM_Controller.methodSamples.collectHotMethods(VM_Controller.options.MAX_OPT_LEVEL,
+                                                      VM_Controller.options.AI_METHOD_HOTNESS_THRESHOLD);
       if (VM.LogAOSEvents) 
-	VM_AOSLogging.AIorganizerFoundHotMethods(HM_data.cms.length);
+        VM_AOSLogging.AIorganizerFoundHotMethods(HM_data.cms.length);
       
       findMethodsToRecompile(vectorOfTriples, HM_data);
     }
@@ -235,14 +235,14 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
     * a method in the set contains a call site corresponding to an edge 
     * in the vector and that call site has not been inlined.
     *
-    * @param vectorOfTriples	new edges that are hot in call graph
-    * @param hotMethodSet	methods that are hot and compiled at max opt level.
+    * @param vectorOfTriples    new edges that are hot in call graph
+    * @param hotMethodSet       methods that are hot and compiled at max opt level.
     *
     */
    private void findMethodsToRecompile(Vector vectorOfTriples,
-				       VM_MethodCountSet hotMethodSet) {
+                                       VM_MethodCountSet hotMethodSet) {
      if (DEBUG) VM.sysWrite("\nVM_AIByEdgeOrganizer.findMethodsToRecompile() "
-			    + hotMethodSet.cms.length+"\n");
+                            + hotMethodSet.cms.length+"\n");
 
      if (vectorOfTriples.isEmpty() || hotMethodSet.cms.length == 0) {
        if (DEBUG) VM.sysWrite("  return early\n");
@@ -258,66 +258,66 @@ class VM_AIByEdgeOrganizer extends VM_Organizer implements VM_Decayable {
        double edgeHotness          = 0.0;
 
        if (DEBUG) VM.sysWrite(" Process hot method: "+
-			      hotMethod.getMethod()+" with "+numSamples+"\n");
+                              hotMethod.getMethod()+" with "+numSamples+"\n");
        
        if (!hotMethod.getMethod().isInterruptible()) {
-	 // This is required because a very small subset of uninterruptible methods
-	 // need to have their code in a non-moving heap. 
-	 // For now, we use this simple, but conservative test to avoid trouble.
-	 if (DEBUG) VM.sysWrite("Not selecting uninterruptible method for recompilation "+hotMethod.getMethod());
-	 continue;
+         // This is required because a very small subset of uninterruptible methods
+         // need to have their code in a non-moving heap. 
+         // For now, we use this simple, but conservative test to avoid trouble.
+         if (DEBUG) VM.sysWrite("Not selecting uninterruptible method for recompilation "+hotMethod.getMethod());
+         continue;
        }
 
        // For each edge, see if the callsite is present, 
        // but the callee is absent in hotMethod.
        for (Enumeration triples = vectorOfTriples.elements(); 
                 triples.hasMoreElements(); ) {
-	 VM_CallSiteTriple triple = (VM_CallSiteTriple)triples.nextElement();
-	 if (!VM_AdaptiveInlining.knownNonInlinedEdge(cmid, triple)) {
-	   VM_Method caller = triple.getCaller();
-	   int bytecodeIndex= triple.getBytecodeIndex();
-	   VM_Method callee = triple.getCallee();
-	   if (DEBUG) VM.sysWrite("   Edge candidate "+triple+"\n");
+         VM_CallSiteTriple triple = (VM_CallSiteTriple)triples.nextElement();
+         if (!VM_AdaptiveInlining.knownNonInlinedEdge(cmid, triple)) {
+           VM_Method caller = triple.getCaller();
+           int bytecodeIndex= triple.getBytecodeIndex();
+           VM_Method callee = triple.getCallee();
+           if (DEBUG) VM.sysWrite("   Edge candidate "+triple+"\n");
 
-	   try {
-	     if (mcMap.callsitePresent(caller, bytecodeIndex)) {
-	       if (DEBUG) VM.sysWrite(" FOUND EDGE: "+triple+
-				      " that can be inlined into "
-				      +hotMethod.getMethod()+"\n");
-	       edgeHotness += triple.getWeight();
-	       if (VM.LogAOSEvents) 
-		 VM_AOSLogging.inliningOpportunityDetected(hotMethod, 
-							   numSamples, 
-							   triple);
-	     }
-	   }
-	   catch (Throwable e){
-	     VM.sysWrite("ERROR in adaptive system! Exception caught!\n");
-	     VM.sysWrite(" AI Organizer considering edge "+triple+
-			 " to be inlined into "
-			   +hotMethod.getMethod()+"\n");
-	     e.printStackTrace();
-	   }
-	 }
+           try {
+             if (mcMap.callsitePresent(caller, bytecodeIndex)) {
+               if (DEBUG) VM.sysWrite(" FOUND EDGE: "+triple+
+                                      " that can be inlined into "
+                                      +hotMethod.getMethod()+"\n");
+               edgeHotness += triple.getWeight();
+               if (VM.LogAOSEvents) 
+                 VM_AOSLogging.inliningOpportunityDetected(hotMethod, 
+                                                           numSamples, 
+                                                           triple);
+             }
+           }
+           catch (Throwable e){
+             VM.sysWrite("ERROR in adaptive system! Exception caught!\n");
+             VM.sysWrite(" AI Organizer considering edge "+triple+
+                         " to be inlined into "
+                           +hotMethod.getMethod()+"\n");
+             e.printStackTrace();
+           }
+         }
        }
 
        // Notify the controller if we found a candidate edge in hotMethod
        if (edgeHotness > 0.0001) {
-	 edgeHotness   /= VM_AdaptiveInlining.getNumYieldPoints();
-	 double boost   = 
-	   1.0 + (VM_Controller.options.MAX_EXPECTED_AI_BOOST * edgeHotness);
-	 VM_AINewHotEdgeEvent event = 
-	   new VM_AINewHotEdgeEvent(hotMethod, numSamples, boost);
-	 if (!VM_Controller.controllerInputQueue.prioritizedInsert(numSamples, 
-								   event)) {
-	   if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
-	 } else {
-	   if (VM.LogAOSEvents) {
-	     VM_AOSLogging.controllerNotifiedForInlining(hotMethod, 
-							 numSamples, 
-							 boost);
-	   }
-	 }
+         edgeHotness   /= VM_AdaptiveInlining.getNumYieldPoints();
+         double boost   = 
+           1.0 + (VM_Controller.options.MAX_EXPECTED_AI_BOOST * edgeHotness);
+         VM_AINewHotEdgeEvent event = 
+           new VM_AINewHotEdgeEvent(hotMethod, numSamples, boost);
+         if (!VM_Controller.controllerInputQueue.prioritizedInsert(numSamples, 
+                                                                   event)) {
+           if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
+         } else {
+           if (VM.LogAOSEvents) {
+             VM_AOSLogging.controllerNotifiedForInlining(hotMethod, 
+                                                         numSamples, 
+                                                         boost);
+           }
+         }
        }
      }
      

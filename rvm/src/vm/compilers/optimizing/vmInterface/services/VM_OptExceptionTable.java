@@ -44,92 +44,92 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
     //   entries to reachable handlers; as the first block may only
     //   throw a subset of the exception types represented by the Bag
     for (OPT_BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); 
-	 bblock != null; ) {
+         bblock != null; ) {
       // Iteration is explicit in loop
 
       int startOff = bblock.firstInstruction().getmcOffset();
       int endOff = bblock.lastInstruction().getmcOffset();
       if (endOff > startOff) {
-	if (!bblock.hasExceptionHandlers()) {
-	  bblock = bblock.nextBasicBlockInCodeOrder();
-	  continue;
-	}
+        if (!bblock.hasExceptionHandlers()) {
+          bblock = bblock.nextBasicBlockInCodeOrder();
+          continue;
+        }
 
-	OPT_BasicBlock followonBB;
-	OPT_BasicBlockEnumeration reachBBe, e;
-	boolean joinedBlocks;
+        OPT_BasicBlock followonBB;
+        OPT_BasicBlockEnumeration reachBBe, e;
+        boolean joinedBlocks;
 
-	// First make sure at least one of the exception handlers
-	// is reachable from this block
-	reachBBe = bblock.getReachableExceptionHandlers(); 
-	if (!reachBBe.hasMoreElements()) {
-	  bblock = bblock.nextBasicBlockInCodeOrder();
-	  continue;
-	}
-	  
-	currStartOff = startOff;
-	currEndOff = endOff;
-	joinedBlocks = false;
+        // First make sure at least one of the exception handlers
+        // is reachable from this block
+        reachBBe = bblock.getReachableExceptionHandlers(); 
+        if (!reachBBe.hasMoreElements()) {
+          bblock = bblock.nextBasicBlockInCodeOrder();
+          continue;
+        }
+          
+        currStartOff = startOff;
+        currEndOff = endOff;
+        joinedBlocks = false;
 
-	for (followonBB = bblock.nextBasicBlockInCodeOrder();
-	     followonBB != null;
-	     followonBB = followonBB.nextBasicBlockInCodeOrder()) {
-	  int fStartOff = followonBB.firstInstruction().getmcOffset();
-	  int fEndOff = followonBB.lastInstruction().getmcOffset();
-	  // See if followon Block has any code
-	  if (fEndOff > fStartOff) {
-	    // See if followon Block has matching handler block bag
-	    if (followonBB.hasExceptionHandlers() &&
-		bblock.isExceptionHandlerEquivalent(followonBB)) {
-	      currEndOff = fEndOff;
-	      joinedBlocks = true;
-	    } else {
-	      // Can't join any more blocks together
-	      break;
-	    }
-	  }
-	}
-	// found all the matching followon blocks 
-	// Now fill in the eTable with the handlers
-	if (joinedBlocks)
-	  e = bblock.getExceptionHandlers();
-	else
-	  e = reachBBe;
-	
-	for ( ; e.hasMoreElements();) {
-	  OPT_ExceptionHandlerBasicBlock eBlock = 
-	    (OPT_ExceptionHandlerBasicBlock)e.nextElement();
-	  for (java.util.Enumeration ets = eBlock.getExceptionTypes(); 
-	       ets.hasMoreElements();) {
-	    OPT_TypeOperand type = (OPT_TypeOperand)ets.nextElement();
-	    int catchOffset = eBlock.firstInstruction().getmcOffset();
-	    eTable[index + TRY_START] = currStartOff;
-	    eTable[index + TRY_END] = currEndOff;
-	    eTable[index + CATCH_START] = catchOffset;
-	    try {
-	      eTable[index + EX_TYPE] = type.getTypeRef().resolve().getId();
-	    } catch (NoClassDefFoundError except) {
-	      // Yuck.  If this happens beatup Dave and make him do the right
-	      // thing. For now, we are forcing early loading of exception
-	      // types to avoid a bunch of ugly issues in resolving the type
-	      // when delivering the exception.  The problem is that we
-	      // currently can't allow a GC while in the midst of delivering
-	      // an exception and resolving the type reference might entail
-	      // calling arbitrary classloader code.
-	      VM.sysWriteln("Trouble resolving a caught exception at compile time:");
-	      except.printStackTrace();	// sysFail won't print the stack trace
-					// that lead to the
-					// NoClassDefFoundError. 
-	      VM.sysFail("Unable to resolve caught exception type at compile time");
-	    }
-	    index += 4;
-	  }
-	}
-	
-	bblock = followonBB;
-	
+        for (followonBB = bblock.nextBasicBlockInCodeOrder();
+             followonBB != null;
+             followonBB = followonBB.nextBasicBlockInCodeOrder()) {
+          int fStartOff = followonBB.firstInstruction().getmcOffset();
+          int fEndOff = followonBB.lastInstruction().getmcOffset();
+          // See if followon Block has any code
+          if (fEndOff > fStartOff) {
+            // See if followon Block has matching handler block bag
+            if (followonBB.hasExceptionHandlers() &&
+                bblock.isExceptionHandlerEquivalent(followonBB)) {
+              currEndOff = fEndOff;
+              joinedBlocks = true;
+            } else {
+              // Can't join any more blocks together
+              break;
+            }
+          }
+        }
+        // found all the matching followon blocks 
+        // Now fill in the eTable with the handlers
+        if (joinedBlocks)
+          e = bblock.getExceptionHandlers();
+        else
+          e = reachBBe;
+        
+        for ( ; e.hasMoreElements();) {
+          OPT_ExceptionHandlerBasicBlock eBlock = 
+            (OPT_ExceptionHandlerBasicBlock)e.nextElement();
+          for (java.util.Enumeration ets = eBlock.getExceptionTypes(); 
+               ets.hasMoreElements();) {
+            OPT_TypeOperand type = (OPT_TypeOperand)ets.nextElement();
+            int catchOffset = eBlock.firstInstruction().getmcOffset();
+            eTable[index + TRY_START] = currStartOff;
+            eTable[index + TRY_END] = currEndOff;
+            eTable[index + CATCH_START] = catchOffset;
+            try {
+              eTable[index + EX_TYPE] = type.getTypeRef().resolve().getId();
+            } catch (NoClassDefFoundError except) {
+              // Yuck.  If this happens beatup Dave and make him do the right
+              // thing. For now, we are forcing early loading of exception
+              // types to avoid a bunch of ugly issues in resolving the type
+              // when delivering the exception.  The problem is that we
+              // currently can't allow a GC while in the midst of delivering
+              // an exception and resolving the type reference might entail
+              // calling arbitrary classloader code.
+              VM.sysWriteln("Trouble resolving a caught exception at compile time:");
+              except.printStackTrace(); // sysFail won't print the stack trace
+                                        // that lead to the
+                                        // NoClassDefFoundError. 
+              VM.sysFail("Unable to resolve caught exception type at compile time");
+            }
+            index += 4;
+          }
+        }
+        
+        bblock = followonBB;
+        
       } else // No code in bblock
-	bblock = bblock.nextBasicBlockInCodeOrder();
+        bblock = bblock.nextBasicBlockInCodeOrder();
     }
 
     if (index != eTable.length) {              // resize array
@@ -147,13 +147,13 @@ final class VM_OptExceptionTable extends VM_ExceptionTable {
   private static int countExceptionTableSize(OPT_IR ir) {
     int tSize = 0;
     for (OPT_BasicBlock bblock = ir.firstBasicBlockInCodeOrder(); 
-	 bblock != null; 
-	 bblock = bblock.nextBasicBlockInCodeOrder()) {
+         bblock != null; 
+         bblock = bblock.nextBasicBlockInCodeOrder()) {
       if (bblock.hasExceptionHandlers()) {
         for (OPT_BasicBlockEnumeration e = 
-	       bblock.getExceptionHandlers(); e.hasMoreElements();) {
-	  OPT_ExceptionHandlerBasicBlock ebb = 
-	    (OPT_ExceptionHandlerBasicBlock)e.next();
+               bblock.getExceptionHandlers(); e.hasMoreElements();) {
+          OPT_ExceptionHandlerBasicBlock ebb = 
+            (OPT_ExceptionHandlerBasicBlock)e.next();
           tSize += ebb.getNumberOfExceptionTableEntries();
         }
       }

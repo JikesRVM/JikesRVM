@@ -46,36 +46,36 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
       // might have become MAPPED here
       lock.check(100);
       if (mapped[chunk] == UNMAPPED) {
-	lock.check(101);
-	int errno = VM_Interface.mmap(mmapStart, MMAP_CHUNK_SIZE);
-	lock.check(102);
-	if (errno != 0) {
-	  lock.release();
-	  Log.write("ensureMapped failed with errno "); Log.write(errno);
-	  Log.write(" on address "); Log.writeln(mmapStart);
-	  VM_Interface._assert(false);
-	}
-	else {
-	  if (verbose) {
-	    Log.write("mmap succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
-	    Log.write(" with len = "); Log.writeln(MMAP_CHUNK_SIZE);
-	  }
-	}
-	lock.check(103);
+        lock.check(101);
+        int errno = VM_Interface.mmap(mmapStart, MMAP_CHUNK_SIZE);
+        lock.check(102);
+        if (errno != 0) {
+          lock.release();
+          Log.write("ensureMapped failed with errno "); Log.write(errno);
+          Log.write(" on address "); Log.writeln(mmapStart);
+          VM_Interface._assert(false);
+        }
+        else {
+          if (verbose) {
+            Log.write("mmap succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
+            Log.write(" with len = "); Log.writeln(MMAP_CHUNK_SIZE);
+          }
+        }
+        lock.check(103);
       }
       if (mapped[chunk] == PROTECTED) {
-	lock.check(201);
-	if (!VM_Interface.munprotect(mmapStart, MMAP_CHUNK_SIZE)) {
-	  lock.check(202);
-	  lock.release();
-	  VM_Interface.sysFail("LazyMmapper.ensureMapped (unprotect) failed");
-	}
-	else {
-	  if (verbose) {
-	    Log.write("munprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
-	    Log.write(" with len = "); Log.writeln(MMAP_CHUNK_SIZE);
-	  }
-	}
+        lock.check(201);
+        if (!VM_Interface.munprotect(mmapStart, MMAP_CHUNK_SIZE)) {
+          lock.check(202);
+          lock.release();
+          VM_Interface.sysFail("LazyMmapper.ensureMapped (unprotect) failed");
+        }
+        else {
+          if (verbose) {
+            Log.write("munprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
+            Log.write(" with len = "); Log.writeln(MMAP_CHUNK_SIZE);
+          }
+        }
       }
       lock.check(301);
       mapped[chunk] = MAPPED;
@@ -92,21 +92,21 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
     lock.acquire();
     for (int chunk=startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) {
-	VM_Address mmapStart = Conversions.mmapChunksToAddress(chunk);
-	if (!VM_Interface.mprotect(mmapStart, MMAP_CHUNK_SIZE)) {
-	  lock.release();
-	  VM_Interface.sysFail("LazyMmapper.mprotect failed");
-	}
-	else {
-	  if (verbose) {
-	    Log.write("mprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
-	    Log.write(" with len = "); Log.writeln(MMAP_CHUNK_SIZE);
-	  }
-	}
-	mapped[chunk] = PROTECTED;
+        VM_Address mmapStart = Conversions.mmapChunksToAddress(chunk);
+        if (!VM_Interface.mprotect(mmapStart, MMAP_CHUNK_SIZE)) {
+          lock.release();
+          VM_Interface.sysFail("LazyMmapper.mprotect failed");
+        }
+        else {
+          if (verbose) {
+            Log.write("mprotect succeeded at chunk "); Log.write(chunk);  Log.write("  "); Log.write(mmapStart);
+            Log.write(" with len = "); Log.writeln(MMAP_CHUNK_SIZE);
+          }
+        }
+        mapped[chunk] = PROTECTED;
       }
       else {
-	if (VM_Interface.VerifyAssertions) VM_Interface._assert(mapped[chunk] == PROTECTED);
+        if (VM_Interface.VerifyAssertions) VM_Interface._assert(mapped[chunk] == PROTECTED);
       }
     }
     lock.release();

@@ -65,8 +65,8 @@ public final class OPT_LiveIntervalElement {
    * @param end   the last use of the register
    */
   public OPT_LiveIntervalElement(OPT_Register reg, 
-			  OPT_Instruction begin, 
-			  OPT_Instruction end) {
+                          OPT_Instruction begin, 
+                          OPT_Instruction end) {
     register = reg;
     this.begin = begin;
     this.end = end;

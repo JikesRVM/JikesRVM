@@ -86,8 +86,8 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
     if (data == null) return;
     for (int i=0; i<data.length; i++) {
       if (data[i] != null) {
-	VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(i).asMethodReference().peekResolvedMethod();
-	new VM_BranchProfiles(m, data[i]).print(f);
+        VM_NormalMethod m = (VM_NormalMethod)VM_MemberReference.getMemberRef(i).asMethodReference().peekResolvedMethod();
+        new VM_BranchProfiles(m, data[i]).print(f);
       }
     }
   }
@@ -104,47 +104,47 @@ public final class VM_EdgeCounts implements VM_Callbacks.ExitMonitor {
       int[] cur = null;
       int curIdx = 0;
       for (String s = in.readLine(); s != null; s = in.readLine()) {
-	StringTokenizer parser = new StringTokenizer(s, " \t\n\r\f,{}");
-	String firstToken = parser.nextToken();
-	if (firstToken.equals("M")) {
-	  int numCounts = Integer.parseInt(parser.nextToken());
-	  parser.nextToken(); // discard '<'
-	  String clName = parser.nextToken();
-	  VM_Atom dc = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
-	  VM_Atom mn = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
-	  VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
-	  parser.nextToken(); // discard '>'
-	  ClassLoader cl;
-	  if (clName.equals("SystemCL")) {
-	    cl = VM_SystemClassLoader.getVMClassLoader();
-	  } else if (clName.equals("AppCL")) {
-	    cl = VM_ClassLoader.getApplicationClassLoader();
-	  } else {
-	    VM.sysFail("Unable to match classloader "+clName);
-	    cl = null;
-	  }
-	  VM_TypeReference tref = VM_TypeReference.findOrCreate(cl, dc);
-	  VM_MemberReference key = VM_MemberReference.findOrCreate(tref, mn, md);
-	  int id = key.getId();
-	  allocateCounters(id, numCounts);
-	  cur = data[id];
-	  curIdx = 0;
-	} else {
-	  String type = parser.nextToken(); // discard bytecode index, we don't care.
-	  if (type.equals("switch")) {
-	    parser.nextToken(); // discard '<'
-	    for (String nt = parser.nextToken(); !nt.equals(">"); nt = parser.nextToken()) {
-	      cur[curIdx++] = Integer.parseInt(nt);
-	    }
-	  } else if (type.equals("forwbranch") || type.equals("backbranch")) {
-	    parser.nextToken(); // discard '<'
-	    cur[curIdx + TAKEN] = Integer.parseInt(parser.nextToken());
-	    cur[curIdx + NOT_TAKEN] = Integer.parseInt(parser.nextToken());
-	    curIdx += 2;
-	  } else {
-	    VM.sysFail("Format error in edge counter input file");
-	  }
-	}
+        StringTokenizer parser = new StringTokenizer(s, " \t\n\r\f,{}");
+        String firstToken = parser.nextToken();
+        if (firstToken.equals("M")) {
+          int numCounts = Integer.parseInt(parser.nextToken());
+          parser.nextToken(); // discard '<'
+          String clName = parser.nextToken();
+          VM_Atom dc = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
+          VM_Atom mn = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
+          VM_Atom md = VM_Atom.findOrCreateUnicodeAtom(parser.nextToken());
+          parser.nextToken(); // discard '>'
+          ClassLoader cl;
+          if (clName.equals("SystemCL")) {
+            cl = VM_SystemClassLoader.getVMClassLoader();
+          } else if (clName.equals("AppCL")) {
+            cl = VM_ClassLoader.getApplicationClassLoader();
+          } else {
+            VM.sysFail("Unable to match classloader "+clName);
+            cl = null;
+          }
+          VM_TypeReference tref = VM_TypeReference.findOrCreate(cl, dc);
+          VM_MemberReference key = VM_MemberReference.findOrCreate(tref, mn, md);
+          int id = key.getId();
+          allocateCounters(id, numCounts);
+          cur = data[id];
+          curIdx = 0;
+        } else {
+          String type = parser.nextToken(); // discard bytecode index, we don't care.
+          if (type.equals("switch")) {
+            parser.nextToken(); // discard '<'
+            for (String nt = parser.nextToken(); !nt.equals(">"); nt = parser.nextToken()) {
+              cur[curIdx++] = Integer.parseInt(nt);
+            }
+          } else if (type.equals("forwbranch") || type.equals("backbranch")) {
+            parser.nextToken(); // discard '<'
+            cur[curIdx + TAKEN] = Integer.parseInt(parser.nextToken());
+            cur[curIdx + NOT_TAKEN] = Integer.parseInt(parser.nextToken());
+            curIdx += 2;
+          } else {
+            VM.sysFail("Format error in edge counter input file");
+          }
+        }
       }
     } catch (IOException e) {
       e.printStackTrace();

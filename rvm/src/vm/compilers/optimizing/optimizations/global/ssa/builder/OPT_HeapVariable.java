@@ -19,7 +19,7 @@ public class OPT_HeapVariable {
    * Create a new Heap variable of a given type, with a given number.
    * 
    * @param type a VM_Field or VM_Type object, naming the type of this
-   *		  heap
+   *              heap
    * @param number second part of the name of this heap variable
    * @param ir the governing IR 
    */

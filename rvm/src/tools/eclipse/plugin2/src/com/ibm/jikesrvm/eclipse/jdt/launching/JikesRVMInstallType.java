@@ -75,14 +75,14 @@ public class JikesRVMInstallType extends AbstractVMInstallType {
     IPath thePath = Path.EMPTY;
     
     defaultLibraryLocations = new LibraryLocation[]{ 
-	new LibraryLocation(rvmrtLib, rvmrtSrc, thePath),
-	new LibraryLocation(jksvmLib, jksvmSrc, thePath) 
+        new LibraryLocation(rvmrtLib, rvmrtSrc, thePath),
+        new LibraryLocation(jksvmLib, jksvmSrc, thePath) 
     };
   }
 
   public LibraryLocation[] getDefaultLibraryLocations(File installLocation) {
       if (defaultLibraryLocations == null)
-	  setDefaultLibraryLocations( installLocation );
+          setDefaultLibraryLocations( installLocation );
 
       return defaultLibraryLocations;
   }
@@ -103,7 +103,7 @@ public class JikesRVMInstallType extends AbstractVMInstallType {
     File rvm    = new File(binDir, "rvm");
     if (!rvm.isFile() || rvm.isDirectory()) {
       return new Status(IStatus.ERROR, JikesRVMLaunchingPlugin.getPluginId(), 0, 
-			JikesRVMLauncherMessages.getString("JikesRVMType.error.notRoot"), null);
+                        JikesRVMLauncherMessages.getString("JikesRVMType.error.notRoot"), null);
     }
     return new Status(IStatus.OK, JikesRVMLaunchingPlugin.getPluginId(), 0, "ok", null);
   }

@@ -40,7 +40,7 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
    */
   public void perform (OPT_IR ir) {
     for (OPT_BasicBlock bb = ir.firstBasicBlockInCodeOrder(); 
-	 bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
+         bb != null; bb = bb.nextBasicBlockInCodeOrder()) {
       if (!bb.isEmpty()) {
         OPT_Instruction lastInstr = bb.lastInstruction();
         boolean combined;
@@ -68,8 +68,8 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
               }
             } else if (op == GUARD_COMBINE) {
               if (activeGuard != null && 
-		  (Binary.getVal1(instr) == activeGuard || 
-		   Binary.getVal2(instr) == activeGuard)) {
+                  (Binary.getVal1(instr) == activeGuard || 
+                   Binary.getVal2(instr) == activeGuard)) {
                 remaining |= (activeGuard == null);
                 activeGuard = null;
               }
@@ -83,23 +83,23 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
                 // NOTE: don't mark remaining, since we'd hit the same problem instr again.
                 activeGuard = null;
               } else {
-		if (activeGuard != null && isGuardedBy(instr, activeGuard)) {
-		  instr.markAsPEI();
-		  activeNullCheck.remove();
-		  activeGuard = null;
-		  combined = true;
+                if (activeGuard != null && isGuardedBy(instr, activeGuard)) {
+                  instr.markAsPEI();
+                  activeNullCheck.remove();
+                  activeGuard = null;
+                  combined = true;
                 }
                 remaining |= (activeGuard == null);
                 activeGuard = null;   // don't attempt to move PEI past a store; could do better.
               }
             } else if (isExplicitLoad(instr, op)) {
-	      if (activeGuard != null && isGuardedBy(instr, activeGuard)) {
-		instr.markAsPEI();
-		activeNullCheck.remove();
-		activeGuard = null;
-		combined = true;
-	      } else 
-		if (instr.isPEI()) {
+              if (activeGuard != null && isGuardedBy(instr, activeGuard)) {
+                instr.markAsPEI();
+                activeNullCheck.remove();
+                activeGuard = null;
+                combined = true;
+              } else 
+                if (instr.isPEI()) {
                 // can't reorder PEI's 
                 // NOTE: don't mark remaining, since we'd hit the same problem instr again.
                 activeGuard = null;
@@ -115,7 +115,7 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
 
         // (2) Blow away all validation registers in bb.
         for (OPT_Instruction instr = bb.firstRealInstruction(), nextInstr = null; 
-	     instr != lastInstr; instr = nextInstr) {
+             instr != lastInstr; instr = nextInstr) {
           nextInstr = instr.nextInstructionInCodeOrder();
           OPT_Operator op = instr.operator();
           if (op == GUARD_MOVE || op == GUARD_COMBINE) {
@@ -153,15 +153,15 @@ public class OPT_NullCheckCombining extends OPT_CompilerPhase
 
   private boolean isGuardedBy(OPT_Instruction s, OPT_Operand activeGuard) {
     if (GuardCarrier.conforms(s) && 
-	GuardCarrier.hasGuard(s) && 
-	activeGuard.similar(GuardCarrier.getGuard(s))) {
+        GuardCarrier.hasGuard(s) && 
+        activeGuard.similar(GuardCarrier.getGuard(s))) {
       return true;
     }
     for (int i=0, n = s.getNumberOfOperands(); i<n; i++) {
       OPT_Operand op = s.getOperand(i);
       if (op instanceof OPT_MemoryOperand &&
-	  activeGuard.similar(((OPT_MemoryOperand)op).guard)) {
-	return true;
+          activeGuard.similar(((OPT_MemoryOperand)op).guard)) {
+        return true;
       }
     }
     return false;

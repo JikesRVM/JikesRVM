@@ -85,8 +85,8 @@ cp="-classpath $RVM_SPECJVM98"
 # Define benchmark groups
 all='_201_compress _202_jess _209_db _213_javac _222_mpegaudio _227_mtrt _228_jack'
 
-jvmoptions="	        -Xms200 -Xmx400 $PROFILE_ARG"
-jvmcompoptions="	-Xms200 -Xmx400 -X:vm:measureCompilation=true"
+jvmoptions="	        -Xmx400 $PROFILE_ARG"
+jvmcompoptions="	-Xmx400 -X:vm:measureCompilation=true"
 appcompoptions="	-d3000 -g -m1 -M1 -s100"
 appperfoptions="	-d3000 -g -m5 -M5 -s100"
 

@@ -31,7 +31,7 @@ package com.ibm.JikesRVM;
  * @author Julian Dolby
  * @author Bowen Alpern
  */
-abstract class VM_ForwardReference {
+public abstract class VM_ForwardReference {
 
   int sourceMachinecodeIndex;
   int targetBytecodeIndex;     // optional
@@ -54,7 +54,7 @@ abstract class VM_ForwardReference {
 
   // rewrite source to reference current machine code (in asm's machineCodes)
   //
-  abstract void resolve (VM_Assembler asm);
+  public abstract void resolve (VM_Assembler asm);
 
   // add a new reference r to a priority queue q
   // return the updated queue
@@ -99,7 +99,7 @@ abstract class VM_ForwardReference {
       super(source, btarget);
     }
 
-    void resolve (VM_Assembler asm) {
+    public void resolve (VM_Assembler asm) {
       asm.patchUnconditionalBranch(sourceMachinecodeIndex);
     }
 
@@ -111,7 +111,7 @@ abstract class VM_ForwardReference {
       super(source, btarget);
     }
 
-    void resolve (VM_Assembler asm) {
+    public void resolve (VM_Assembler asm) {
       asm.patchConditionalBranch(sourceMachinecodeIndex);
     }
 
@@ -123,7 +123,7 @@ abstract class VM_ForwardReference {
       super(source);
     }
 
-    void resolve (VM_Assembler asm) {
+    public void resolve (VM_Assembler asm) {
       asm.patchShortBranch(sourceMachinecodeIndex);
     }
 
@@ -135,7 +135,7 @@ abstract class VM_ForwardReference {
       super(source, btarget);
     }
 
-    void resolve (VM_Assembler asm) {
+    public void resolve (VM_Assembler asm) {
       asm.patchSwitchCase(sourceMachinecodeIndex);
     }
 

@@ -55,7 +55,7 @@ final class VM_PendingJSRInfo {
    * @param parent not null if embedded subroutine
    */
   public VM_PendingJSRInfo(int JSRStartByteIndex, int currBBEmpty, 
-			   int[] currBBMap, 
+                           int[] currBBMap, 
                            int currBBStkTop, VM_PendingJSRInfo parent)
   {
     this.JSRStartByteIndex = JSRStartByteIndex;
@@ -84,7 +84,7 @@ final class VM_PendingJSRInfo {
     if (newStkTop != startStkTop) {
       throw new IllegalArgumentException("newStkTop (" + newStkTop 
          + ") must be the same as the existing startStkTop ("
-	 + startStkTop + ")");
+         + startStkTop + ")");
     } else {
       for (int i = 0; i <= startStkTop; i ++ )
         startMap[i] = newMap[i];
@@ -108,7 +108,7 @@ final class VM_PendingJSRInfo {
       if (newStkTop != endStkTop)
       throw new IllegalArgumentException("newStkTop (" + newStkTop 
          + ") must be the same as the existing endStkTop ("
-	 + endStkTop + ")");
+         + endStkTop + ")");
       else
         for (int i = 0; i < newStkTop; i++)
           endMap[i] = newMap[i];

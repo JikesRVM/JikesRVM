@@ -11,7 +11,7 @@ import com.ibm.JikesRVM.classloader.VM_Method;
  * A partial call graph (PCG) is implemented as a set of edges and each
  * edge is represented as a VM_CallSiteTriple object.
  * A PCG's internal representation is a HashMap of edges:
- *	hashCodeOf(E) -> E where 
+ *      hashCodeOf(E) -> E where 
  *             E is VM_CallSiteTriple<caller,bytecodeOffset,callee>
  *
  * @author Peter F. Sweeney
@@ -50,8 +50,8 @@ public final class VM_PartialCallGraph implements VM_Decayable {
     
     synchronized(findTriples) {
       for (java.util.Iterator iterator = getEdges(); iterator.hasNext();) {
-	VM_CallSiteTriple triple = (VM_CallSiteTriple)iterator.next();
-	triple.decayWeight(rate);
+        VM_CallSiteTriple triple = (VM_CallSiteTriple)iterator.next();
+        triple.decayWeight(rate);
       }
       totalEdgeWeights /= rate;
     }
@@ -84,35 +84,35 @@ public final class VM_PartialCallGraph implements VM_Decayable {
    * @return         edge
    */
   public VM_CallSiteTriple findOrCreateEdge(VM_Method caller, 
-					    int bcIndex, 
-					    VM_Method callee) 
+                                            int bcIndex, 
+                                            VM_Method callee) 
   {
     if (findTriples == null) {
       VM.sysWrite("FIND TRIPLES NULL");
     }
     if(DEBUG)VM.sysWrite(" VM_PartialCallGraph.findEdge("+caller+", "+
-			 callee+", "+bcIndex+") entered\n");
+                         callee+", "+bcIndex+") entered\n");
     if (caller == null) {
       VM.sysWrite("***Error: VM_PartialCallGraph.findEdge("+caller+", "+
-		  callee+") has null caller!\n");
+                  callee+") has null caller!\n");
       new Exception().printStackTrace();
     }
     if (callee == null) {
       VM.sysWrite("***Error: VM_PartialCallGraph.findEdge("+caller+", "+
-		  callee+") has null callee!\n");
+                  callee+") has null callee!\n");
       new Exception().printStackTrace();
     }
     VM_CallSiteTriple triple = new VM_CallSiteTriple(caller, bcIndex, callee);
     
     synchronized(findTriples) {
       if (findTriples.containsKey(triple)) {
-	if(DEBUG) VM.sysWrite
-		    ("  VM_PartialCallGraph.findEdge() edge already called!\n");
-	triple = (VM_CallSiteTriple)findTriples.get(triple);
+        if(DEBUG) VM.sysWrite
+                    ("  VM_PartialCallGraph.findEdge() edge already called!\n");
+        triple = (VM_CallSiteTriple)findTriples.get(triple);
       } else {
-	if(DEBUG) VM.sysWrite
-		    ("  VM_PartialCallGraph.findEdge() FIRST time edge called!\n");
-	findTriples.put(triple,triple);
+        if(DEBUG) VM.sysWrite
+                    ("  VM_PartialCallGraph.findEdge() FIRST time edge called!\n");
+        findTriples.put(triple,triple);
       }
     }
     
@@ -129,7 +129,7 @@ public final class VM_PartialCallGraph implements VM_Decayable {
     java.util.TreeSet treeSet = new java.util.TreeSet(new VM_CallSiteTripleComparator(true));
     try {
       synchronized(findTriples) {
-	treeSet.addAll(findTriples.values());
+        treeSet.addAll(findTriples.values());
       }
     } catch (ClassCastException e) {
       VM.sysWrite("***VM_PartialCallGraph.dump(): addAll threw CallCastException!\n");
@@ -139,10 +139,10 @@ public final class VM_PartialCallGraph implements VM_Decayable {
     for (java.util.Iterator iterator = treeSet.iterator(); iterator.hasNext();) {
       VM_CallSiteTriple triple = null;
       try {
-	triple = (VM_CallSiteTriple)iterator.next();
+        triple = (VM_CallSiteTriple)iterator.next();
       } catch (java.util.NoSuchElementException e) {
-	VM.sysWrite("***OPT_PCG.dump(): iterator.next() returns NoSuchElementException!\n");
-	VM.sysExit(-1);
+        VM.sysWrite("***OPT_PCG.dump(): iterator.next() returns NoSuchElementException!\n");
+        VM.sysExit(-1);
       }
       i++;
       VM.sysWrite(i+": "+triple.toString()+"\n");

@@ -42,7 +42,7 @@ final class OPT_MinimalBURS extends OPT_BURS {
   public void invoke (OPT_BasicBlock bb) {
     OPT_BURS_STATE burs = new OPT_BURS_STATE(this);
     for (OPT_InstructionEnumeration e = bb.forwardRealInstrEnumerator();
-	 e.hasMoreElements();) {
+         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       OPT_BURS_TreeNode tn = buildTree(s);
       burs.label(tn);
@@ -77,36 +77,36 @@ final class OPT_MinimalBURS extends OPT_BURS {
       // Set child = OPT_BURS_TreeNode for operand op
       OPT_BURS_TreeNode child;
       if (op instanceof OPT_RegisterOperand) {
-	if (op.asRegister().register.isValidation()) continue;
-	child = Register; 
+        if (op.asRegister().register.isValidation()) continue;
+        child = Register; 
       } else if (op instanceof OPT_IntConstantOperand) {
-	child = new OPT_BURS_IntConstantTreeNode(((OPT_IntConstantOperand)op).value);
+        child = new OPT_BURS_IntConstantTreeNode(((OPT_IntConstantOperand)op).value);
       } else if (op instanceof OPT_LongConstantOperand) {
-	child = LongConstant;
+        child = LongConstant;
       } else if (op instanceof OPT_BranchOperand && s.isCall()) {
-	child = BranchTarget;
+        child = BranchTarget;
       //-#if RVM_WITH_OSR
       } else if (op instanceof OPT_InlinedOsrTypeInfoOperand && s.isYieldPoint()) {
-	child = NullTreeNode;
-      //-#endif	
+        child = NullTreeNode;
+      //-#endif 
       } else {
-	continue;
+        continue;
       }
 
       // Attach child as child of cur_parent in correct position
       if (cur.child1 == null) {
-	cur.child1 = child; 
+        cur.child1 = child; 
       } else if (cur.child2 == null) {
-	cur.child2 = child; 
+        cur.child2 = child; 
       } else {
-	// Create auxiliary node so as to represent
-	// a instruction with arity > 2 in a binary tree.
-	OPT_BURS_TreeNode child1 = cur.child2;
-	OPT_BURS_TreeNode aux = new OPT_BURS_TreeNode(OTHER_OPERAND_opcode);
-	cur.child2 = aux;
-	cur = aux;
-	cur.child1 = child1;
-	cur.child2 = child;
+        // Create auxiliary node so as to represent
+        // a instruction with arity > 2 in a binary tree.
+        OPT_BURS_TreeNode child1 = cur.child2;
+        OPT_BURS_TreeNode aux = new OPT_BURS_TreeNode(OTHER_OPERAND_opcode);
+        cur.child2 = aux;
+        cur = aux;
+        cur.child1 = child1;
+        cur.child2 = child;
       }
     }
 
@@ -118,11 +118,11 @@ final class OPT_MinimalBURS extends OPT_BURS {
     case YIELDPOINT_OSR_opcode:
     //-#endif
       if (cur.child2 == null)
-	cur.child2 = NullTreeNode;
+        cur.child2 = NullTreeNode;
       // fall through
     case RETURN_opcode:
       if (cur.child1 == null)
-	cur.child1 = NullTreeNode;
+        cur.child1 = NullTreeNode;
     }
     return root;
   }
@@ -133,24 +133,24 @@ final class OPT_MinimalBURS extends OPT_BURS {
     OPT_BURS_TreeNode child2 = k.child2;
     if (child1 != null) {
       if (child2 != null) {
-	// k has two children; use register labeling to
-	// determine order that minimizes register pressure
-	if (k.isSuperNodeRoot()) {
-	  byte act = burs.action[k.rule(k.getNonTerminal())];
-	  if ((act & burs.RIGHT_CHILD_FIRST) != 0) {
-	    // rule selected forces order of evaluation
-	    generateTree(child2, burs);
-	    generateTree(child1, burs);
-	  } else {
-	    generateTree(child1, burs);
-	    generateTree(child2, burs);
-	  }
-	} else {
-	  generateTree(child1, burs);
-	  generateTree(child2, burs);
-	}
+        // k has two children; use register labeling to
+        // determine order that minimizes register pressure
+        if (k.isSuperNodeRoot()) {
+          byte act = burs.action[k.rule(k.getNonTerminal())];
+          if ((act & burs.RIGHT_CHILD_FIRST) != 0) {
+            // rule selected forces order of evaluation
+            generateTree(child2, burs);
+            generateTree(child1, burs);
+          } else {
+            generateTree(child1, burs);
+            generateTree(child2, burs);
+          }
+        } else {
+          generateTree(child1, burs);
+          generateTree(child2, burs);
+        }
       } else {
-	generateTree(child1, burs);
+        generateTree(child1, burs);
       }
     } else if (child2 != null) {
       generateTree(child2, burs);

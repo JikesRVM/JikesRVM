@@ -11,7 +11,7 @@ package com.ibm.JikesRVM;
  * @author Dave Grove
  * @author Derek Lieber
  */
-interface VM_AssemblerConstants {
+public interface VM_AssemblerConstants {
 
   public static final int LT = 0xC<<21 | 0<<16;
   public static final int GT = 0xC<<21 | 1<<16;

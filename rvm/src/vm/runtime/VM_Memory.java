@@ -26,6 +26,8 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    */
   private static final int NATIVE_THRESHOLD = 256; 
 
+  private static final boolean USE_NATIVE = true;
+  
   /**
    * Low level copy of len elements from src[srcPos] to dst[dstPos].
    * Assumptions: src != dst || (scrPos >= dstPos + 4) and
@@ -37,7 +39,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * @param len     number of array elements to copy
    */
   public static void arraycopy8Bit(Object src, int srcPos, Object dst, int dstPos, int len) throws VM_PragmaInline {
-    if (len > NATIVE_THRESHOLD) {
+    if (USE_NATIVE && len > NATIVE_THRESHOLD) {
       memcopy(VM_Magic.objectAsAddress(dst).add(dstPos), 
               VM_Magic.objectAsAddress(src).add(srcPos), 
               len);
@@ -127,7 +129,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
           VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
           VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
           VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
-        }	  
+        }         
       } else {
         for (int i=0; i<len; i++) {
           VM_Magic.setByteAtOffset(dst, dstPos++, VM_Magic.getByteAtOffset(src, srcPos++));
@@ -147,7 +149,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * @param len     number of array elements to copy
    */
   public static void arraycopy(short[] src, int srcPos, short[] dst, int dstPos, int len) throws VM_PragmaInline {
-    if (len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_SHORT)) {
+    if (USE_NATIVE && len > (NATIVE_THRESHOLD >> LOG_BYTES_IN_SHORT)) {
       memcopy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_SHORT), 
               VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_SHORT),
               len<<LOG_BYTES_IN_SHORT);
@@ -172,7 +174,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
         dstPos += wordLen;
         for (;endDiff > 0; endDiff -=BYTES_IN_SHORT) {
           dst[dstPos++] = src[srcPos++];
-        }	  
+        }         
       } else {
         for (int i=0; i<len; i++) {
           dst[dstPos+i] = src[srcPos+i];
@@ -192,7 +194,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * @param len     number of array elements to copy
    */
   public static void arraycopy(char[] src, int srcPos, char[] dst, int dstPos, int len) throws VM_PragmaInline {
-    if (len > (NATIVE_THRESHOLD>>LOG_BYTES_IN_CHAR)) {
+    if (USE_NATIVE && len > (NATIVE_THRESHOLD>>LOG_BYTES_IN_CHAR)) {
       memcopy(VM_Magic.objectAsAddress(dst).add(dstPos<<LOG_BYTES_IN_CHAR), 
               VM_Magic.objectAsAddress(src).add(srcPos<<LOG_BYTES_IN_CHAR), 
               len<<LOG_BYTES_IN_CHAR);
@@ -217,7 +219,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
         dstPos += wordLen;
         for (;endDiff > 0; endDiff -= BYTES_IN_CHAR) {
           dst[dstPos++] = src[srcPos++];
-        }	  
+        }         
       } else {
         for (int i=0; i<len; i++) {
           dst[dstPos+i] = src[srcPos+i];
@@ -236,7 +238,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * @param numBytes the number of bytes top copy
    */
   public static void aligned32Copy(VM_Address dst, VM_Address src, int numBytes) throws VM_PragmaInline {
-    if (numBytes > NATIVE_THRESHOLD) {
+    if (USE_NATIVE && numBytes > NATIVE_THRESHOLD) {
       memcopy(dst, src, numBytes);
     } else {
       internalAligned32Copy(dst, src, numBytes);
@@ -269,7 +271,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * Returned: nothing
    * Assumption: source and destination regions do not overlap
    */
-  static void memcopy(VM_Address dst, VM_Address src, int cnt) {
+  public static void memcopy(VM_Address dst, VM_Address src, int cnt) {
     VM_SysCall.sysCopy(dst, src, cnt);
   }
 
@@ -280,7 +282,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    *           number of bytes to fill with pattern
    * Returned: nothing
    */
-  static void fill(VM_Address dst, byte pattern, int cnt) {
+  public static void fill(VM_Address dst, byte pattern, int cnt) {
     VM_SysCall.sysFill(dst, pattern, cnt);
   }
 
@@ -335,6 +337,21 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   ////////////////////////
 
   // constants for protection and mapping calls
+  //-#if RVM_FOR_OSX    
+  public static final int PROT_NONE  = 0;
+  public static final int PROT_READ  = 1;
+  public static final int PROT_WRITE = 2;
+  public static final int PROT_EXEC  = 4;
+
+  public static final int MAP_SHARED    =  1;
+  public static final int MAP_PRIVATE   =  2;
+  public static final int MAP_FIXED     = 0x0010;
+  public static final int MAP_ANONYMOUS = 0x1000;
+
+  public static final int MS_ASYNC      = 1;
+  public static final int MS_INVALIDATE = 2;
+  public static final int MS_SYNC       = 0;
+  //-#endif
   //-#if RVM_FOR_LINUX
   public static final int PROT_NONE  = 0;
   public static final int PROT_READ  = 1;
@@ -420,7 +437,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * Returned: VM_Address (of region)
    */
   public static VM_Address mmap(VM_Address address, int size, 
-				int prot, int flags, int fd, long offset) {
+                                int prot, int flags, int fd, long offset) {
     if (VM.VerifyAssertions)
       VM._assert(isPageAligned(address) && isPageMultiple(size) && isPageMultiple(offset));
     return VM_Address.max();  // not implemented: requires new magic for 6 args, etc.
@@ -549,7 +566,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   // There are other SHMCTL that are not included for now.
   //-#endif
 
-  //-#if RVM_FOR_LINUX
+  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
   public static final int SHMGET_IPC_CREAT  = 1 * 512;  // 01000 Create key if key does not exist
   public static final int SHMGET_IPC_EXCL   = 2 * 512;  // 02000 Fail if key exists
   public static final int SHMGET_IPC_NOWAIT = 4 * 512;  // 04000 Return error on wait
@@ -748,13 +765,13 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   * @deprecated use alignUp(..) instead
   */
   public static VM_Address align (VM_Address address, int alignment) throws VM_PragmaInline {
-	return alignUp(address, alignment); }
+        return alignUp(address, alignment); }
      
   /**
   * @deprecated use alignUp(..) instead
   */
   public static int align (int address, int alignment) throws VM_PragmaInline {
-	return alignUp(address, alignment); }
+        return alignUp(address, alignment); }
   
   public static VM_Address alignUp (VM_Address address, int alignment) throws VM_PragmaInline {
     return address.add(alignment-1).toWord().and(VM_Word.fromIntSignExtend(~(alignment - 1))).toAddress();

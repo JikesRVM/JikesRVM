@@ -1,47 +1,34 @@
- As of version 2.2.1, Jikes\JikesTMFootnote\ RVM has adopted the
+ As of version 2.2.1, Jikes\TMweb{} RVM has adopted the
 \xlink{GNU Classpath}{http://www.classpath.org} libraries.  GNU
 Classpath is an ongoing project working towards a complete set of
-Java\JavaTMFootnote\ libraries.  The GNU Classpath web site includes
+Java\TMweb{} libraries.  The GNU Classpath web site includes
 rough guides as to what portions of the libraries exist.  Jikes RVM
 runs with unmodified versions of GNU Classpath straight from its ftp
 site, and the Jikes RVM configuration process can check out
 appropriate versions of the library as needed.  Thus, the integration
 can be seamless from a user's perspective.
 
-However, the fully automatic checkout and build of GNU Classpath by
-the Jikes RVM build process requires that your machine be capable of
-building the classpath libraries from sources (including running {\tt
-autoconf} et al).  This requires a number of RPMs to be installed that
-aren't included in the default Red Hat 7.3 or 8.0 builds (they are
-part of the full Red Hat image).  So if you haven't built the GNU
-classpath libraries from source before and you don't have a need to be
-on the CVS head of Jikes RVM and/or GNU Classpath, we suggest you use
-the ``Manual GNU Classpath'' option described below.
-
 \begin{description}
-\item[Manual GNU Classpath] If you set the CLASSPATH\_ROOT variable in
+\item[Manual GNU Classpath] If you set the \varName{CLASS\-PATH\_ROOT} variable in
 your Jikes RVM configuration file, the build process will use the
 libraries that are located there.  The setup must mimic the one
 generated automatically, which means that
-{\tt \$CLASSPATH\_ROOT/`config.guess`} must contain a build for your platform
-and {\tt \$CLASSPATH\_ROOT/classpath} must be a version of GNU Classpath from
-CVS.  This configuration is useful if (1) you can't build GNU
-Classpath from a CVS checkout and want to use a classpath release tar
-ball or (2) you want to do classpath development using Jikes RVM. The
-current release of Jikes RVM works with GNU classpath version \classpathversion.
+{\tt \$CLASS\-PATH\_ROOT/\-\$(con\-fig.guess)} must contain a build for your platform
+and {\tt \$CLASS\-PATH\_ROOT/\-class\-path} must be a version of GNU Classpath from
+CVS.\@  This configuration is mainly useful if (1) you want to share one
+copy of the Classpath libraries among multiple Jikes RVM users or (2)
+you want to do Classpath development using Jikes RVM.\@ The
+current release of Jikes RVM works with GNU Classpath version
+\classpathversion.  \link{We discuss more about how to set
+{\tt \$CLASS\-PATH\_\-ROOT} \texorhtml{in section~\Ref{} (page~\Pageref)}{elsewhere}}{sec:installDetails}.
 
-\item[Automatic GNU Classpath] If you do not set CLASSPATH\_ROOT and 
-{\tt RVM\_WITH\_GNU\_CLASSPATH=1} then the Jikes RVM build process will do a
-CVS check out of appropriate version of GNU Classpath (using the date
-in {\tt \$RVM\_ROOT/rvm/bin/classpath.stamp}) and build it for you.  This is
-the easiest way to use GNU Classpath with Jikes RVM if you can do it.
-This won't work on default (non-full) Red Hat 7.3 and 8.0 images
-as the GNU classpath {\tt automake}/{\tt autoconf} step will fail.
-
+\item[Automatic GNU Classpath] If you do not set \varName{CLASS\-PATH\_\-ROOT} and 
+{\tt RVM\_\-WITH\_\-GNU\_\-CLASS\-PATH=1} then the Jikes RVM build process
+will use {\tt wget} to download the appropriate version of GNU Classpath (using
+the URL in {\tt \$RVM\_\-ROOT/\-rvm/\-bin/\-class\-path.stamp}) and build it for
+you. 
 \end{description}
 
 Some library classes require special VM support.  This is provided by
-the classes found in {\tt rvm/src/vm/libSupport}. 
+the classes found in {\tt rvm/\-src/\-vm/\-lib\-Sup\-port}. 
 
-\JavaTMFooter
-\JikesTMFooter

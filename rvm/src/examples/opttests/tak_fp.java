@@ -11,12 +11,12 @@ public class tak_fp{
 
   public static void main(String argv[])
   { 
-	int i;
-	System.out.println("Tak is running\n");
+        int i;
+        System.out.println("Tak is running\n");
   //      for (i=0; i<1000; i++){
           float result = tak(18,12,6);
-	  System.out.println(result + "\n"+test2(18));
-//	}
+          System.out.println(result + "\n"+test2(18));
+//      }
 
   }
 

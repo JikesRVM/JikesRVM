@@ -158,7 +158,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
       OPT_Instruction i = e.next();
       OPT_OperandEnumeration ee = i.getUses();
       while (ee.hasMoreElements()) {
-        OPT_Operand o = ee.next();	
+        OPT_Operand o = ee.next();      
         if (o instanceof OPT_RegisterOperand) {
           OPT_Register r1 = ((OPT_RegisterOperand)o).register;
           if (r1.isValidation()) continue;
@@ -389,9 +389,9 @@ class OPT_LeaveSSA extends OPT_CompilerPhase implements OPT_Operators, OPT_Const
             HashMap criticalBlockNames = (HashMap)currentNames.get(criticalBlock);
             OPT_Register nameForSR = (OPT_Register)criticalBlockNames.get(sr);
             if (nameForSR == null) {
-	      nameForSR = (OPT_Register)bbNames.get(sr);
-	      if (nameForSR == null) nameForSR = sr;
-	    }
+              nameForSR = (OPT_Register)bbNames.get(sr);
+              if (nameForSR == null) nameForSR = sr;
+            }
             if (DEBUG) VM.sysWriteln("dest(r): " + r);
             if (DEBUG) VM.sysWriteln("sr: " + sr + ", nameForSR: " + nameForSR);
             ci = OPT_SSA.makeMoveInstruction(ir, r, nameForSR, tt);

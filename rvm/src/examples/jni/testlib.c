@@ -44,35 +44,35 @@ main(int argc, char **argv) {
     else {
       switch (errno) {
       case EACCES:
-	printf("Error loading library, cannot access because not an ordinary file, or permission denied\n"); 
-	return 0;
+        printf("Error loading library, cannot access because not an ordinary file, or permission denied\n"); 
+        return 0;
       case EINVAL:
-	printf("Error loading library, incorrect file header for the host machine\n"); 
-	return 0;
+        printf("Error loading library, incorrect file header for the host machine\n"); 
+        return 0;
       case ELOOP:
-	printf("Error loading library, too many symbolic links in path name\n"); 
-	return 0;
+        printf("Error loading library, too many symbolic links in path name\n"); 
+        return 0;
       case ENOEXEC:
-	printf("Error loading library, problem in loading or resolving symbols, possibly invalid XCOFF header\n"); 
-	return 0;
+        printf("Error loading library, problem in loading or resolving symbols, possibly invalid XCOFF header\n"); 
+        return 0;
       case ENOMEM:
-	printf("Error loading library, not enough memory\n"); 
-	return 0;
+        printf("Error loading library, not enough memory\n"); 
+        return 0;
       case ETXTBSY:
-	printf("Error loading library, file currently open for writing by others\n"); 
-	return 0;
+        printf("Error loading library, file currently open for writing by others\n"); 
+        return 0;
       case ENAMETOOLONG:
-	printf("Error loading library, path exceeded 1023 characters\n"); 
-	return 0;
+        printf("Error loading library, path exceeded 1023 characters\n"); 
+        return 0;
       case ENOENT:
-	printf("Error loading library, bad library path\n"); 
-	return 0;
+        printf("Error loading library, bad library path\n"); 
+        return 0;
       case ENOTDIR:
-	printf("Error loading library, library path not a directory\n"); 
-	return 0;
+        printf("Error loading library, library path not a directory\n"); 
+        return 0;
       case ESTALE:
-	printf("Error loading library, file system unmounted\n"); 
-	return 0;
+        printf("Error loading library, file system unmounted\n"); 
+        return 0;
       }
       
     }

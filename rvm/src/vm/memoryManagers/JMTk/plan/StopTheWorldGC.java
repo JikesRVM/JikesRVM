@@ -16,9 +16,6 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_ThreadQueue;
-import com.ibm.JikesRVM.VM;
 
 
 /**
@@ -52,10 +49,11 @@ public abstract class StopTheWorldGC extends BasePlan
    * Class variables
    */
   // Global pools for load-balancing queues
-  protected static SharedQueue valuePool;
-  protected static SharedQueue locationPool;
-  protected static SharedQueue rootLocationPool;
-  protected static SharedQueue interiorRootPool;
+  protected static SharedDeque valuePool;
+  protected static SharedDeque locationPool;
+  protected static SharedDeque forwardPool;
+  protected static SharedDeque rootLocationPool;
+  protected static SharedDeque interiorRootPool;
 
   // Timing variables
   protected static long gcStartTime;
@@ -72,11 +70,11 @@ public abstract class StopTheWorldGC extends BasePlan
    *
    * Instance variables
    */
-  protected AddressQueue values;          // gray objects
-  protected AddressQueue locations;       // locations containing white objects
-  protected AddressQueue rootLocations;   // root locs containing white objects
-  protected AddressPairQueue interiorRootLocations; // interior root locations
-
+  protected AddressDeque values;          // gray objects
+  protected AddressDeque locations;       // locations containing white objects
+  protected AddressDeque forwardedObjects;// forwarded, unscanned objects
+  protected AddressDeque rootLocations;   // root locs containing white objects
+  protected AddressPairDeque interiorRootLocations; // interior root locations
 
   /****************************************************************************
    *
@@ -90,25 +88,28 @@ public abstract class StopTheWorldGC extends BasePlan
    * into the boot image by the build process.
    */
   static {
-    valuePool = new SharedQueue(metaDataRPA, 1);
-    locationPool = new SharedQueue(metaDataRPA, 1);
-    rootLocationPool = new SharedQueue(metaDataRPA, 1);
-    interiorRootPool = new SharedQueue(metaDataRPA, 2);
+    valuePool = new SharedDeque(metaDataRPA, 1);
+    locationPool = new SharedDeque(metaDataRPA, 1);
+    forwardPool = new SharedDeque(metaDataRPA, 1);
+    rootLocationPool = new SharedDeque(metaDataRPA, 1);
+    interiorRootPool = new SharedDeque(metaDataRPA, 2);
   }
 
   /**
    * Constructor
    */
   StopTheWorldGC() {
-    values = new AddressQueue("value", valuePool);
+    values = new AddressDeque("value", valuePool);
     valuePool.newClient();
-    locations = new AddressQueue("loc", locationPool);
+    locations = new AddressDeque("loc", locationPool);
     locationPool.newClient();
-    rootLocations = new AddressQueue("rootLoc", rootLocationPool);
+    forwardedObjects = new AddressDeque("forwarded", forwardPool);
+    forwardPool.newClient();
+    rootLocations = new AddressDeque("rootLoc", rootLocationPool);
     rootLocationPool.newClient();
-    interiorRootLocations = new AddressPairQueue(interiorRootPool);
+    interiorRootLocations = new AddressPairDeque(interiorRootPool);
     interiorRootPool.newClient();
-  }
+ }
 
   /****************************************************************************
    *
@@ -136,7 +137,7 @@ public abstract class StopTheWorldGC extends BasePlan
     throws VM_PragmaInline {
     long pages = MemoryResource.getCumulativeCommittedPages();
     if (initialized &&
-	((pages ^ lastStressCumulativeCommittedPages) > Options.stressPages)) {
+        ((pages ^ lastStressCumulativeCommittedPages) > Options.stressPages)) {
       lastStressCumulativeCommittedPages = pages;
       return true;
     } else
@@ -157,8 +158,8 @@ public abstract class StopTheWorldGC extends BasePlan
    *      4. globalRelease()
    */
   public void collect () {
-//     if (VM_Interface.VerifyAssertions) 
-//       VM_Interface._assert(collectionInitiated);
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(collectionsInitiated > 0);
 
     boolean designated = (VM_Interface.rendezvous(4210) == 1);
     if (designated) Statistics.initTime.start();
@@ -168,6 +169,17 @@ public abstract class StopTheWorldGC extends BasePlan
     if (designated) Statistics.rootTime.start();
     VM_Interface.computeAllRoots(rootLocations, interiorRootLocations);
     if (designated) Statistics.rootTime.stop();
+
+    // This should actually occur right before preCopyGC but
+    // a spurious complaint about setObsolete would occur.
+    // The upshot is that objects coped by preCopyGC are not
+    // subject to the sanity checking.
+    int order = VM_Interface.rendezvous(4900);
+    if (order == 1) {
+      VM_Interface.resetThreadCounter();
+      setGcStatus(GC_PROPER);    
+    }
+    VM_Interface.rendezvous(4901);
 
     if (designated) Statistics.scanTime.start();
     processAllWork(); 
@@ -216,17 +228,25 @@ public abstract class StopTheWorldGC extends BasePlan
   protected final void prepare() {
     long start = VM_Interface.cycles();
     int order = VM_Interface.rendezvous(4230);
-    if (order == 1)
+    if (order == 1) {
+      setGcStatus(GC_PREPARE);
       baseGlobalPrepare(start);
+    }
     VM_Interface.rendezvous(4240);
     if (order == 1)
       for (int i=0; i<planCount; i++) {
-	Plan p = plans[i];
-	if (VM_Interface.isNonParticipating(p))
-	  p.baseThreadLocalPrepare(NON_PARTICIPANT);
+        Plan p = plans[i];
+        if (VM_Interface.isNonParticipating(p)) 
+          p.baseThreadLocalPrepare(NON_PARTICIPANT);
       }
     baseThreadLocalPrepare(order);
     VM_Interface.rendezvous(4250);
+    if (Plan.MOVES_OBJECTS) {
+      VM_Interface.preCopyGCInstances();
+      VM_Interface.rendezvous(4260);
+      if (order == 1) VM_Interface.resetThreadCounter();
+      VM_Interface.rendezvous(4270);
+    }
   }
 
   /**
@@ -241,23 +261,23 @@ public abstract class StopTheWorldGC extends BasePlan
    * @param start The time that this GC started
    */
   private final void baseGlobalPrepare(long start) {
-    gcInProgress = true;
     Statistics.gcCount++;
     gcStartTime = start;
     if ((Options.verbose == 1) || (Options.verbose == 2)) {
       Log.write("[GC "); Log.write(Statistics.gcCount);
       if (Options.verbose == 1) {
-	Log.write(" Start "); 
-	Log.write(VM_Interface.cyclesToSecs(gcStartTime - bootTime));
-	Log.write(" s");
+        Log.write(" Start "); 
+        Log.write(VM_Interface.cyclesToSecs(gcStartTime - bootTime));
+        Log.write(" s");
       } else {
-	Log.write(" Start "); 
-	Log.write(VM_Interface.cyclesToMillis(gcStartTime - bootTime));
-	Log.write(" ms");
+        Log.write(" Start "); 
+        Log.write(VM_Interface.cyclesToMillis(gcStartTime - bootTime));
+        Log.write(" ms");
       }
       Log.write("   ");
       Log.write(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
       Log.write(" KB ");
+      Log.flush();
     }
     if (Options.verbose > 2) {
       Log.write("Collection "); Log.write(Statistics.gcCount);
@@ -267,12 +287,11 @@ public abstract class StopTheWorldGC extends BasePlan
       Log.write("  Before Collection: ");
       MemoryResource.showUsage(MB);
       if (Options.verbose >= 4) {
-	Log.write("                     ");
-	MemoryResource.showUsage(PAGES);
+        Log.write("                     ");
+        MemoryResource.showUsage(PAGES);
       }
     }
     globalPrepare();
-    VM_Interface.resetComputeAllRoots();
   }
 
   /**
@@ -288,9 +307,9 @@ public abstract class StopTheWorldGC extends BasePlan
    * caller's use of <code>rendezvous</code>.
    */
   public final void baseThreadLocalPrepare(int order) {
-    flushRememberedSets();
-    if (order == NON_PARTICIPANT)
+    if (order == NON_PARTICIPANT) {
       VM_Interface.prepareNonParticipating((Plan) this);  
+    }
     else {
       VM_Interface.prepareParticipating((Plan) this);  
       VM_Interface.rendezvous(4260);
@@ -309,20 +328,22 @@ public abstract class StopTheWorldGC extends BasePlan
     if (order == 1) {
       int count = 0;
       for (int i=0; i<planCount; i++) {
-	Plan p = plans[i];
-	if (VM_Interface.isNonParticipating(p)) {
-	  count++;
-	  ((StopTheWorldGC) p).baseThreadLocalRelease(NON_PARTICIPANT);
-	}
+        Plan p = plans[i];
+        if (VM_Interface.isNonParticipating(p)) {
+          count++;
+          ((StopTheWorldGC) p).baseThreadLocalRelease(NON_PARTICIPANT);
+        }
       }
       if (Options.verbose >= 4) {
-	Log.write("  There were "); Log.write(count);
-	Log.writeln(" non-participating GC threads");
+        Log.write("  There were "); Log.write(count);
+        Log.writeln(" non-participating GC threads");
       }
     }
     order = VM_Interface.rendezvous(4280);
-    if (order == 1)
+    if (order == 1) {
       baseGlobalRelease();
+      setGcStatus(NOT_IN_GC);    // GC is in progress until after release!
+    }
     VM_Interface.rendezvous(4290);
   }
 
@@ -337,9 +358,9 @@ public abstract class StopTheWorldGC extends BasePlan
    */
   private final void baseGlobalRelease() {
     globalRelease();
-    gcInProgress = false;    // GC is in progress until after release!
     valuePool.reset();
     locationPool.reset();
+    forwardPool.reset();
     rootLocationPool.reset();
     interiorRootPool.reset();
   }
@@ -353,6 +374,7 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void baseThreadLocalRelease(int order) {
     values.reset();
     locations.reset();
+    forwardPool.reset();
     rootLocations.reset();
     interiorRootLocations.reset();
     threadLocalRelease(order);
@@ -366,32 +388,37 @@ public abstract class StopTheWorldGC extends BasePlan
 
     if (Options.verbose >= 4) { Log.prependThreadId(); Log.writeln("  Working on GC in parallel"); }
     do {
+      if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing forwarded (pre-copied) objects"); }
+      while (!forwardedObjects.isEmpty()) {
+        VM_Address object = forwardedObjects.pop();
+        scanForwardedObject(object);
+      }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing root locations"); }
       while (!rootLocations.isEmpty()) {
-	VM_Address loc = rootLocations.pop();
-	traceObjectLocation(loc, true);
+        VM_Address loc = rootLocations.pop();
+        traceObjectLocation(loc, true);
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing interior root locations"); }
       while (!interiorRootLocations.isEmpty()) {
-	VM_Address obj = interiorRootLocations.pop1();
-	VM_Address interiorLoc = interiorRootLocations.pop2();
-	VM_Address interior = VM_Magic.getMemoryAddress(interiorLoc);
-	VM_Address newInterior = traceInteriorReference(obj, interior, true);
-	VM_Magic.setMemoryAddress(interiorLoc, newInterior);
+        VM_Address obj = interiorRootLocations.pop1();
+        VM_Address interiorLoc = interiorRootLocations.pop2();
+        VM_Address interior = VM_Magic.getMemoryAddress(interiorLoc);
+        VM_Address newInterior = traceInteriorReference(obj, interior, true);
+        VM_Magic.setMemoryAddress(interiorLoc, newInterior);
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing gray objects"); }
       while (!values.isEmpty()) {
-	VM_Address v = values.pop();
-	ScanObject.scan(v);  // NOT traceObject
+        VM_Address v = values.pop();
+        ScanObject.scan(v);  // NOT traceObject
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing locations"); }
       while (!locations.isEmpty()) {
-	VM_Address loc = locations.pop();
-	traceObjectLocation(loc, false);
+        VM_Address loc = locations.pop();
+        traceObjectLocation(loc, false);
       }
       flushRememberedSets();
     } while (!(rootLocations.isEmpty() && interiorRootLocations.isEmpty()
-	       && values.isEmpty() && locations.isEmpty()));
+               && values.isEmpty() && locations.isEmpty()));
 
     if (Options.verbose >= 4) { Log.prependThreadId(); Log.writeln("    waiting at barrier"); }
     VM_Interface.rendezvous(4300);
@@ -402,6 +429,14 @@ public abstract class StopTheWorldGC extends BasePlan
    * Non-generational collectors do nothing.
    */
   protected void flushRememberedSets() {}
+
+  /**
+   * 
+   */
+  protected void scanForwardedObject(VM_Address object) {
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(!Plan.MOVES_OBJECTS);
+  }
 
   /**
    * Print out plan-specific timing info
@@ -418,20 +453,20 @@ public abstract class StopTheWorldGC extends BasePlan
       Log.write(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
       Log.write(" KB   ");
       if (Options.verbose == 1) {
-	Log.write(VM_Interface.cyclesToMillis(gcStopTime - gcStartTime)); 
-	Log.writeln(" ms]");
+        Log.write(VM_Interface.cyclesToMillis(gcStopTime - gcStartTime)); 
+        Log.writeln(" ms]");
       } else {
-	Log.write("End "); 
-	Log.write(VM_Interface.cyclesToMillis(gcStopTime - bootTime));
-	Log.writeln(" ms]");
+        Log.write("End "); 
+        Log.write(VM_Interface.cyclesToMillis(gcStopTime - bootTime));
+        Log.writeln(" ms]");
       }
     }
     if (Options.verbose > 2) {
       Log.write("   After Collection: ");
       MemoryResource.showUsage(MB);
       if (Options.verbose >= 4) {
-	  Log.write("                     ");
-	  MemoryResource.showUsage(PAGES);
+          Log.write("                     ");
+          MemoryResource.showUsage(PAGES);
       }
       Log.write("                     reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
       Log.write("      total = "); writePages(getTotalPages(), MB_PAGES);

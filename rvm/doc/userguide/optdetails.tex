@@ -1,15 +1,16 @@
 This section provides some information on various
-implementation details for the Jikes\trademark RVM optimizing compiler.
+implementation details for the Jikes\TMweb{} RVM optimizing compiler.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Method Compilation}
-\label{sec:optdriver}
-\index{compilation}
-\index{optimizations}
-\index{IR}
-\index{HIR}
-\index{LIR}
-\index{MIR}
+\subsection{Method Compilation}%
+\label{sec:optdriver}%
+\index{compilation}%
+\index{optimizations}%
+\index{IR}%
+\index{HIR}%
+\index{LIR}%
+\index{MIR}%
+
 The fundamental unit for optimization in Jikes RVM is a single method. 
 The optimization of a method consists of a series of 
 compiler phases performed on the method. These 
@@ -18,11 +19,11 @@ IR (intermediate representation) from bytecodes through
 HIR (high-level intermediate representation), 
 LIR (low-level intermediate representation), and 
 MIR (machine intermediate representation) and finally into machine code. 
-Various optimizing transformations are performed at each level of IR.
+Various optimizing transformations are performed at each level of IR.\@
 
-\index{OPT\_CompilationPlan class}
-\index{VM\_Method class}
-\index{OPT\_OptimizationPlanElement class}
+\IndexttClass{OPT\_CompilationPlan}%
+\IndexttClass{VM\_Method}%
+\IndexttClass{OPT\_OptimizationPlanElement}%
 An object of the class 
 \xlink{{\tt OPT\_CompilationPlan}}{\OPTCompilationPlanURL} 
 contains all the  
@@ -31,7 +32,7 @@ An instance of this class includes, among other fields,
 the 
 \xlink{{\tt VM\_Method}}{\VMMethodURL} 
 to be compiled and the array of 
-\xlink{{\tt OPT\_OptimizationPlanElements}}{\OPTOptimizationPlanElementURL} 
+\xlink{{\tt OPT\_\-Op\-ti\-mi\-za\-tion\-Plan\-El\-e\-ments}}{\OPTOptimizationPlanElementURL} 
 which define the compilation steps.
 The {\tt execute} method of an
 \xlink{{\tt OPT\_CompilationPlan}}{\OPTCompilationPlanURL} 
@@ -39,13 +40,13 @@ invokes the optimizing compiler to generate machine code for the method,
 executing the compiler phases as listed in the plan's
 {\tt OPT\_OptimizationPlanElement}s.
 
-\index{OPT\_OptimizationPlanner class}
+\IndexttClass{OPT\_OptimizationPlanner}
 The 
 \xlink{{\tt OPT\_OptimizationPlanner}}{\OPTOptimizationPlannerURL} 
 class defines the standard phases used in a compilation.
 This class
 contains a static field, called {\tt masterPlan}, which contains all
-possible {\tt OPT\_OptimizationPlanElement}s.
+possible {\tt OPT\_\-Op\-ti\-mi\-za\-tion\-Plan\-El\-e\-ment}s.
 The structure of the master plan is 
 a tree. Any element may either be an atomic element (a leaf of the 
 tree), or an aggregate element (an internal node of the tree).
@@ -70,7 +71,7 @@ The master plan has the following general structure:
 
 \index{optimization plan}
 A client (compiler driver) constructs a specific optimization plan by including all the 
-{\tt OPT\_OptimizationPlanElement}s contained in the master plan which are 
+{\tt OPT\_\-Op\-ti\-mi\-za\-tion\-Plan\-El\-e\-ment}s contained in the master plan which are 
 appropriate for this compilation instance. 
 Whether or not an element should be part of a compilation plan is determined 
 by its {\tt shouldPerform} method. For each atomic element, the values in the
@@ -80,16 +81,16 @@ included when any of its component elements must be included.
 
 Each element must have a {\tt perform} method defined which takes the IR as
 a parameter. It is expected, but not required, that the {\tt perform}
-method will modify the IR. 
+method will modify the IR.\@ 
 The perform method of an aggregate element will invoke the 
 perform methods of its elements.
 
-\index{OPT\_CompilerPhase class}
+\IndexttClass{OPT\_CompilerPhase}
 Each atomic element is an object of the final class 
-{\tt OPT\_OptimizationPlanAtomicElement}. The main work of this class
+{\tt OPT\_Optimization\-Plan\-A\-to\-mic\-El\-e\-ment}. The main work of this class
 is performed by its {\em phase}, an object of type 
 \xlink{{\tt OPT\_CompilerPhase}}{\OPTCompilerPhaseURL}. The
-{\tt OPT\_CompilerPhase} class is not final; each phase overrides this class,
+{\tt OPT\_\-Com\-pi\-ler\-Phase} class is not final; each phase overrides this class,
 in particular it overrides the {\tt perform} method, which is invoked by its 
 enclosing element's {\tt perform} method. All the state associated with 
 the element
@@ -123,21 +124,22 @@ The optimizing compiler intermediate representation (IR) includes a list
 of instructions.  Each instruction includes an operator and zero or
 more operands.
 
-\index{OPT\_Operators class}
-\index{OperatorList.dat}
+\IndexttClass{OPT\_Operators}%
+\Indextt{OperatorList.dat}%
 The IR operators are defined by the class {\tt OPT\_Operators}, which in
 turn is automatically generated from a template by a driver.  The input to the
-driver are two files, both called {\tt OperatorList.dat}.  One input
-file resides in {\tt \$RVM\_ROOT/rvm/src/vm/compilers/optimizing/ir/instruction} and defines machine-independent
-operators.  The other resides in {\tt \$RVM\_ROOT/rvm/src/vm/arch/\{arch\}/compilers/optimizing/ir/instruction}
-and defines machine-dependent operators, where \{arch\} is the
-specific architecture of interest, such as PowerPC\PowerPCTMFootnote.
+driver are two files, both called {\tt Op\-er\-a\-tor\-List\-.dat}.  One input
+file resides in {\tt \$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-com\-pi\-lers/\-op\-ti\-mi\-zing/\-ir/\-in\-struc\-tion} and defines machine-independent
+operators.  The other resides in {\tt \$RVM\-\_\-ROOT\-/\-rvm\-/\-src/\-vm\-/\-arch\-/\-\$\{arch\}\-/\-com\-pi\-lers\-/\-op\-ti\-mi\-zing\-/\-ir/\-in\-struc\-tion}
+and defines machine-dependent operators, where \texttt{\$\{arch\}} is the
+specific architecture of interest, such as PowerPC\TMweb.
 
 Each operator in {\tt OperatorList.dat} is defined by a five-line record,
 consisting of:
 \begin{itemize}
 \item {\tt SYMBOL}: a static symbol to identify the operator
-\item {\tt INSTRUCTION\_FORMAT}: the instruction format class that accepts this operator.  See Section~\ref{iformats} for more information.
+\item {\tt INSTRUCTION\_FORMAT}: \link{the instruction format class
+that accepts this operator.}[  See Section~\Ref{} (page~\Pageref{}) for more information.]{iformats}
 \item {\tt TRAITS}: a set of characteristics of the operator, composed with a bit-wise or ($|$) operator.  See {\tt OPT\_Operator.java} for a list of valid traits.
 \item {\tt IMPLDEFS}: set of registers implicitly defined by this operator; usually applies only to machine-dependent operators
 \item {\tt IMPLUSES}: set of registers implicitly used by this operator; usually applies only to machine-dependent operators
@@ -167,15 +169,13 @@ Additionally,  the machine-specific {\tt OperatorList.dat} file contains
 another line of information for use by the assembler.  See the file
 for details. 
 
-\PowerPCTMFooter
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Instruction Formats}\label{iformats}
-\index{instructions}
-\index{instructionFormats.java}
+\subsection{Instruction Formats}\label{iformats}%
+\index{instructions}%
+\Indextt{instructionFormats.java}
 
 Every IR instruction fits one of the pre-defined {\em Instruction Formats}.
-The Java package {\tt instructionFormats} defines roughly 75 architecture-independent
+The Java package {\tt in\-struc\-tion\-For\-mats} defines roughly 75 architecture-independent
 instruction formats.  For each instruction format, the package includes a class
 that defines a set of static methods by which optimizing compiler
 code can access an instruction of that format.
@@ -203,12 +203,12 @@ Move format.  Other static access functions can set each operand
 (in this case, {\tt Result} and {\tt Val}), query each operand for
 nullness, clear operands, create Move instructions, mutate other
 instructions into Move instructions, and check the index of a particular
-operand field in the instruction.  See the Javadoc reference for a complete
-description of the API.
+operand field in the instruction.  See the Javadoc\TMweb{} reference for a complete
+description of the API.\@
 
-\index{InstructionFormatList.dat}
+\Indextt{InstructionFormatList.dat}%
 Each fixed-length instruction format is defined in the text file 
-{\tt \$RVM\_ROOT/rvm/src/vm/compilers/optimizing/ir/instruction/InstructionFormatList.dat}.
+{\tt \$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-com\-pi\-lers/\-op\-ti\-mi\-zing/\-ir/\-in\-struction/InstructionFormatList.dat}.
 Each record in this file has four lines:
 \begin{itemize}
 \item {\tt NAME}: the name of the instruction format
@@ -294,15 +294,15 @@ checking algorithms may alleviate some of this concern.
 
 The optimizing compiler uses the Bottom-Up Rewrite System (BURS) for
 instruction selection.  BURS is essentially a tree pattern matching
-system derived from Iburg by David R.\ Hanson.   (See ``Engineering a
+system derived from Iburg by David R. Hanson.   (See ``Engineering a
 Simple, Efficient Code-Generator Generator'' by Fraser, Hanson, and
 Proebsting, LOPLAS 1(3), Sept.\ 1992.)
 The instruction selection rules for each architecture are specified in an
 architecture-specific file called {\tt LIR2MIR.rules}, which resides in
-{\tt \$RVM\_ROOT/rvm/src/vm/arch/\{arch\}/compilers/optimizing/ir/conversions/lir2mir}, where \{arch\} is the
-specific architecture of interest, such as PowerPC\PowerPCTMFootnote.
+{\tt \$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-arch/\-\$\{arch\}/\-compilers/\-op\-ti\-mi\-zing/\-ir/\-con\-ver\-sions/\-lir\-2\-mir}, where \$\{arch\} is the
+specific architecture of interest, such as PowerPC\TMweb.
 The rules are 
-used in generating a parser, which transforms the IR.
+used in generating a parser, which transforms the IR.\@
 
 Each rule in {\tt LIR2MIR.rules} is defined by a four-line record,
 consisting of:
@@ -310,10 +310,10 @@ consisting of:
 \item {\tt PRODUCTION}: the tree pattern to be matched.  The format of each
 pattern is explained below.
 \item {\tt COST}: the cost of matching the pattern as opposed to skipping
-it.  It is a Java\trademark expression that evaluates to an integer.
-\item {\tt FLAGS}: specifies whether the rule actually represents a sequence
-of instructions (EMIT\_INSTRUCTION) or a transformation of operands
-(NOFLAGS). Other flags can be used to control the order of code
+it.  It is a Java\TMweb{} expression that evaluates to an integer.
+\item {\tt FLAGS}: specifies whe\-ther the rule actually represents a sequence
+of instructions (\texttt{E\-MIT\_\-IN\-STRUC\-TION}) or a transformation of operands
+(\texttt{NO\-FLAGS}). Other flags can be used to control the order of code
 generation of a node's children.
 \item {\tt TEMPLATE}: Java code to emit
 \end{itemize}
@@ -377,34 +377,26 @@ The rules file is used to generate a file called {\tt ir.brg}, which, in
 turn, is used to produce a file called {\tt OPT\_BURS\_STATE.java}.
 
 For more information on helper functions look at
-{\tt \$RVM\_ROOT/rvm/src/vm/arch/\{arch\}/compilers/optimizing/ir/conversions/lir2mir/OPT\_BURS\_Helpers.java}.
+{\tt \$RVM\_\-ROOT/rvm/src/\-vm/\-arch/\-\{arch\}/com\-pi\-l\-ers/op\-ti\-mi\-z\-ing/ir/\-con\-ver\-sions/\-lir\-2\-mir/OPT\_BURS\_Helpers.java}.
 For more information on the BURS algorithm see
-{\tt \$RVM\_ROOT/rvm/src/vm/compilers/optimizing/ir/conversions/lir2mir/OPT\_BURS.java}.
-
-\JavaTMFooter
-
-\PowerPCTMFooter
-
+{\tt \$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-com\-pi\-l\-ers/\-op\-ti\-m\-i\-zing/\-ir/\-con\-ver\-sions/\-lir\-2\-mir/OPT\_\-BURS.java}.
 
 \subsection{OptTestHarness}\label{opttestharness}
 
 For optimizing compiler development, it is sometimes useful to exercise
 careful control over which classes are compiled, and with which
-optimization level.  In many cases, a {\tt BaseOptSemiSpace} image will
-suit this process.  This configuration invokes the optimizing compiler on
-each method run.  Since the optimizing compiler is not in the boot image, 
-you can modify its classes without re-linking the boot image.  Instead,
-{\tt jbuild -nolink} will recompile the source files you edit, without
-invoking the time-consuming boot image writing step.
+optimization level.  In many cases, a {\tt prototype-opt} image will
+suit this process using the command line {\tt
+-X:aos:initial\_compiler=opt}.  This configuration invokes the
+optimizing compiler on each method run. 
 
 The {\tt OptTestHarness} program provides even more control over the
 optimizing compiler.  This driver program allows you to invoke the
-optimizing compiler as an ``application'' running on top of the VM.
+optimizing compiler as an ``application'' running on top of the VM.\@
 The most useful configuration for this is probably {\tt
-BaseBaseOTHSemiSpace}; this image provides a BaseBase configuration with just
-enough support to invoke the optimizing compiler through {\tt
-OptTestHarness}.  Like the {\tt BaseOpt} images, you can use {\tt jbuild
--nolink} to skip a time-consuming boot image writing during development.
+BaseAdaptiveOTHCopyMS}. Use the command line argument {\tt
+-X:aos:enable\_recompilation=false} to only opt compile those methods
+selected by OptTestHarness. 
 
 To use the {\tt OptTestHarness} program:
 \begin{verbatim}
@@ -419,7 +411,7 @@ will invoke the optimizing compiler on the first method {\tt bar} of class
 {\tt Foo} it loads.
 
 \begin{verbatim}
-% rvm OptTestHarness -method Foo bar (I)V; 
+% rvm OptTestHarness -method Foo bar '(I)V;' 
 \end{verbatim} 
 will invoke the optimizing compiler on method {\tt Foo.bar(I)V;}.
 
@@ -431,11 +423,15 @@ the command line.  Any arguments passed to {\tt OptTestHarness} via {\tt
 % rvm OptTestHarness -oc:O1 -oc:print_final_hir=true -method Foo bar -
 \end{verbatim} 
 will compile {\tt Foo.bar} at optimization level {\tt O1} and print
-the final HIR.
+the final HIR.\@
 
-One other useful option to {\tt OptTestHarness} is {\tt -longcommandline
+Another useful option to {\tt OptTestHarness} is {\tt -longcommandline
 <filename>}. With this option, {\tt OptTestHarness} reads the command line
 from a file.
 
-The source to the {\tt OptTestHarness} resides in 
-{\tt \$RVM\_ROOT/rvm/src/tools/optTestHarness}.
+The source to the {\tt OptTestHarness} resides in
+{\tt \$RVM\_\-ROOT/rvm/src/tools/\-opt\-Test\-Har\-ness}.  Consult the comments
+at the head of the file {\tt
+OptTestHarness.java} in that directory to read about other options,
+including how to use {\tt -er} to make {\tt OptTestHarness} 
+actually execute one of the methods that it just compiled.

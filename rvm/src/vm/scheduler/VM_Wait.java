@@ -135,8 +135,8 @@ public class VM_Wait {
    *   from native code
    */
   public static void ioWaitSelect(int[] readFds, int[] writeFds,
-				  int[] exceptFds, double totalWaitTime, 
-				  boolean fromNative) {
+                                  int[] exceptFds, double totalWaitTime, 
+                                  boolean fromNative) {
     
     // Create wait data to represent the event that the thread is
     // waiting for
@@ -166,7 +166,7 @@ public class VM_Wait {
    *   the state of the process
    */
   public static VM_ThreadProcessWaitData processWait(VM_Process process, 
-						     double totalWaitTime)
+                                                     double totalWaitTime)
     throws InterruptedException {
 
     // Create wait data to represent the event the thread is

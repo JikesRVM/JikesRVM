@@ -29,18 +29,18 @@ class TestDeadVPQueueWorker extends Thread
    public void
    run() //- overrides Thread
       {
-	state = running;
-	count++;
+        state = running;
+        count++;
 
-	System.out.println(myname + ": running count = " + count);
+        System.out.println(myname + ": running count = " + count);
 
-	int returnValue = nativeFoo(17);
-	System.out.println("First nativeFoo return " + returnValue);
+        int returnValue = nativeFoo(17);
+        System.out.println("First nativeFoo return " + returnValue);
     
-	returnValue = nativeFoo(30);
-	System.out.println("Second nativeFoo return " + returnValue);
-	
-	
-	state = ending;
+        returnValue = nativeFoo(30);
+        System.out.println("Second nativeFoo return " + returnValue);
+        
+        
+        state = ending;
       }
    }

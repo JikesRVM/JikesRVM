@@ -69,9 +69,9 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
           s = getAggregateReplacer(def, ir);
         }
         if (s != null) {
-	  // VM.sysWrite("Scalar replacing "+def+" in "+ir.method+"\n");
+          // VM.sysWrite("Scalar replacing "+def+" in "+ir.method+"\n");
           s.transform();
-	}
+        }
       }
       // *********************************************************
       // Now remove synchronizations
@@ -83,9 +83,9 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
           unsync = getUnsyncReplacer(reg, def, ir);
         }
         if (unsync != null) {
-	  // VM.sysWrite("Removing synchronization on "+def+" in "+ir.method+"\n");
-	  unsync.transform();
-	}
+          // VM.sysWrite("Removing synchronization on "+def+" in "+ir.method+"\n");
+          unsync.transform();
+        }
       }
     }
   }
@@ -100,7 +100,7 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
    * @param inst the allocation site
    * @param ir controlling ir
    * @return an OPT_UnsyncReplacer specialized to the allocation site,
-   *		null if no legal transformation found
+   *            null if no legal transformation found
    */
   private OPT_UnsyncReplacer getUnsyncReplacer (OPT_Register reg, 
       OPT_Instruction inst, 
@@ -127,16 +127,16 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
       // check if this instruction invokes a synchronized method on the
       // object
       // we must pass the following conditions:
-      //	1. the method is not static
-      //	2. it is actually invoked on the register operand in question
-      //	3. the method is synchronized
+      //        1. the method is not static
+      //        2. it is actually invoked on the register operand in question
+      //        3. the method is synchronized
       if (Call.conforms(s)) {
         OPT_MethodOperand mo = Call.getMethod(s);
         if (!mo.isStatic()) {
-	  OPT_RegisterOperand invokee = Call.getParam(s, 0).asRegister();
+          OPT_RegisterOperand invokee = Call.getParam(s, 0).asRegister();
           if (invokee == use) {
-	    if (!mo.hasPreciseTarget()) return true; // if I don't know exactly what is called, assume the worse
-	    if (mo.getTarget().isSynchronized()) {
+            if (!mo.hasPreciseTarget()) return true; // if I don't know exactly what is called, assume the worse
+            if (mo.getTarget().isSynchronized()) {
               return  true;
             }
           }
@@ -151,15 +151,15 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
    * an aggregate allocated by a given instruction
    *
    * <p> PRECONDITION: objects returned by this allocation site do NOT escape
-   * 		     the current method
+   *                 the current method
    * 
    * @param inst the allocation site
    * @param ir controlling ir
    * @return an OPT_AggregateReplacer specialized to the allocation site,
-   *		null if no legal transformation found
+   *            null if no legal transformation found
    */
   private OPT_AggregateReplacer getAggregateReplacer (OPT_Instruction inst, 
-						      OPT_IR ir) {
+                                                      OPT_IR ir) {
     OPT_Options options = ir.options;
     VM_Type t = null;
     if (inst.getOpcode() == NEW_opcode) {

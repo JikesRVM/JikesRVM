@@ -83,26 +83,26 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       return VM_Statics.getSlotContentsAsInt(slot);
     } else {
       try {
-	Field f = getJDKField(field);
-	VM_TypeReference fieldType = field.getType();
-	if (fieldType.isBooleanType()) {
-	  boolean val = f.getBoolean(null);
-	  return val?1:0;
-	} else if (fieldType.isByteType()) {
-	  return f.getByte(null);
-	} else if (fieldType.isShortType()) {
-	  return f.getShort(null);
-	} else if (fieldType.isIntType()) {
-	  return f.getInt(null);
-	} else if (fieldType.isCharType()) {
-	  return f.getChar(null);
-	} else {
-	  throw new OPT_OptimizingCompilerException("Unsupported type "+field+"\n");
-	}
+        Field f = getJDKField(field);
+        VM_TypeReference fieldType = field.getType();
+        if (fieldType.isBooleanType()) {
+          boolean val = f.getBoolean(null);
+          return val?1:0;
+        } else if (fieldType.isByteType()) {
+          return f.getByte(null);
+        } else if (fieldType.isShortType()) {
+          return f.getShort(null);
+        } else if (fieldType.isIntType()) {
+          return f.getInt(null);
+        } else if (fieldType.isCharType()) {
+          return f.getChar(null);
+        } else {
+          throw new OPT_OptimizingCompilerException("Unsupported type "+field+"\n");
+        }
       } catch (IllegalAccessException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
       } catch (IllegalArgumentException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
       }
     }
   }
@@ -121,11 +121,11 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       return VM_Magic.intBitsAsFloat(bits);
     } else {
       try {
-	return getJDKField(field).getFloat(null);
+        return getJDKField(field).getFloat(null);
       } catch (IllegalAccessException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
       } catch (IllegalArgumentException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
       }
     }
   }
@@ -143,11 +143,11 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       return VM_Statics.getSlotContentsAsLong(slot);
     } else {
       try {
-	return getJDKField(field).getLong(null);
+        return getJDKField(field).getLong(null);
       } catch (IllegalAccessException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
       } catch (IllegalArgumentException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
       }
     }
   }
@@ -166,11 +166,11 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       return VM_Magic.longBitsAsDouble(bits);
     } else {
       try {
-	return getJDKField(field).getDouble(null);
+        return getJDKField(field).getDouble(null);
       } catch (IllegalAccessException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
       } catch (IllegalArgumentException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
       }
     }
   }
@@ -188,11 +188,11 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       return VM_Statics.getSlotContentsAsObject(slot);
     } else {
       try {
-	return getJDKField(field).get(null);
+        return getJDKField(field).get(null);
       } catch (IllegalAccessException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
       } catch (IllegalArgumentException e) {
-	throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
+        throw new OPT_OptimizingCompilerException("Accessing "+field+" caused "+e);
       }
     }
   }
@@ -226,12 +226,12 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
       String className = rc.getName();
       VM_Atom classAtom = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/'));
       if (className.startsWith("[")) {
-	// an array
-	return VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classAtom);
+        // an array
+        return VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classAtom);
       } else {
-	// a class
-	VM_Atom classDescriptor = classAtom.descriptorFromClassName();
-	return VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor);
+        // a class
+        VM_Atom classDescriptor = classAtom.descriptorFromClassName();
+        return VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(), classDescriptor);
       }
     }
   }
@@ -241,9 +241,9 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
     try {
       String cn = field.getDeclaringClass().toString();
       if (VM.writingBootImage) {
-	if (cn.startsWith("java")) {
-	  throw new NoSuchFieldException("Avoiding host JDK/RVM incompatability problems");
-	}
+        if (cn.startsWith("java")) {
+          throw new NoSuchFieldException("Avoiding host JDK/RVM incompatability problems");
+        }
       }
       Field f = Class.forName(cn).getDeclaredField(field.getName().toString());
       f.setAccessible(true);

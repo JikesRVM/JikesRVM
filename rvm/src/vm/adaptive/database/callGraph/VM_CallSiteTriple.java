@@ -45,7 +45,7 @@ public final class VM_CallSiteTriple {
   /**
    * Call site's bytecode index in caller.
    */
-  int bcIndex;		// bytecode index (in caller) of call site
+  int bcIndex;          // bytecode index (in caller) of call site
   /**
    * Get call site's bytecode index (in caller).
    * @return call site's bytecode index (in caller)
@@ -99,8 +99,8 @@ public final class VM_CallSiteTriple {
     if (obj instanceof VM_CallSiteTriple) { 
       VM_CallSiteTriple triple = (VM_CallSiteTriple)obj;
       return caller == triple.caller &&
-	callee == triple.callee && 
-	bcIndex == triple.bcIndex;
+        callee == triple.callee && 
+        bcIndex == triple.bcIndex;
     }
     return false;
   }

@@ -85,14 +85,14 @@ class VM_PriorityQueue {
     int parent = numElements / 2;
     // keep checking parents that violate the magic condition
     while (parent > 0 && queue[parent].priority < queue[current].priority) {
-      //	System.out.println("Parent: "+ parent +", Current: "+ current);
-      //	System.out.println("Contents before: "+ this);
+      //        System.out.println("Parent: "+ parent +", Current: "+ current);
+      //        System.out.println("Contents before: "+ this);
       // exchange parrent and current values
       VM_PriorityQueueNode tmp = queue[parent];
       queue[parent] = queue[current];
       queue[current] = tmp;
       
-      //	System.out.println("Contents after: "+ this);
+      //        System.out.println("Contents after: "+ this);
       // go up 1 level
       current = parent;
       parent = parent / 2;
@@ -129,7 +129,7 @@ class VM_PriorityQueue {
    */
   synchronized public boolean prioritizedInsert(double _priority, Object _data) {
     if (DEBUG) VM.sysWrite("prioInsert: prio: "+_priority+",size: "+
-			   size +", numElements: "+ numElements +")\n");
+                           size +", numElements: "+ numElements +")\n");
 
     // the queue isn't full just use the regular insert
     if (!isFull()) {
@@ -145,10 +145,10 @@ class VM_PriorityQueue {
     double evicteePriority = _priority;  // start of with the priority of the insertor
     for (int i=firstChild; i<=numElements; i++) {
       if (queue[i].priority < evicteePriority) {
-	if (DEBUG) VM.sysWrite("  candidate at entry "+ i 
-			       +", prio: "+queue[i].priority +")\n");
-	evictee = i;
-	evicteePriority = queue[i].priority;
+        if (DEBUG) VM.sysWrite("  candidate at entry "+ i 
+                               +", prio: "+queue[i].priority +")\n");
+        evictee = i;
+        evicteePriority = queue[i].priority;
       }
     }
 
@@ -193,23 +193,23 @@ class VM_PriorityQueue {
       // find the smaller of the two children
       int smaller;
       if (child2 <= numElements && queue[child2].priority > queue[child1].priority) {
-	smaller = child2;
+        smaller = child2;
       } else {
-	smaller = child1;
+        smaller = child1;
       }
       
       if (queue[smaller].priority <= queue[current].priority) {
-	break;
+        break;
       }
       else {
-	// exchange parrent and current values
-	VM_PriorityQueueNode tmp = queue[smaller];
-	queue[smaller] = queue[current];
-	queue[current] = tmp;
-	
-	// go down 1 level
-	current = smaller;
-	child1 = 2 * current;
+        // exchange parrent and current values
+        VM_PriorityQueueNode tmp = queue[smaller];
+        queue[smaller] = queue[current];
+        queue[current] = tmp;
+        
+        // go down 1 level
+        current = smaller;
+        child1 = 2 * current;
       }
     }
     return returnValue;
@@ -239,7 +239,7 @@ class VM_PriorityQueue {
     for (int i=1; i<=numElements; i++) {
       sb.append(queue[i].toString());
       if (i<numElements)
-	sb.append("\n\t");
+        sb.append("\n\t");
     }
     return sb.toString();
   }

@@ -34,16 +34,16 @@ public class VM_MultianewarrayHelper {
    */
   static Object newArrayArray (int methodId, int numDimensions, int typeId, int argOffset)
     throws NoClassDefFoundError,
-	   NegativeArraySizeException, 
-	   OutOfMemoryError {
+           NegativeArraySizeException, 
+           OutOfMemoryError {
     // fetch number of elements to be allocated for each array dimension
     //
     int[] numElements = new int[numDimensions];
     VM.disableGC();
     VM_Address argp = VM_Magic.getFramePointer().add(argOffset);
     for (int i = 0; i < numDimensions; ++i) {
-	argp = argp.sub(4);
-	numElements[i] = VM_Magic.getMemoryInt(argp);
+        argp = argp.sub(4);
+        numElements[i] = VM_Magic.getMemoryInt(argp);
     }
     VM.enableGC();
     

@@ -40,7 +40,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * @param   OPT_OptimizationPlanElement[] e the elements to compose
    */
   public OPT_OptimizationPlanCompositeElement(String n, 
-					      OPT_OptimizationPlanElement[] e) {
+                                              OPT_OptimizationPlanElement[] e) {
     myName = n;
     myElements = e;
   }
@@ -53,7 +53,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    * @param   Object[] e the elements to compose
    */
   public OPT_OptimizationPlanCompositeElement(String n, 
-					      Object[] e) {
+                                              Object[] e) {
     myName = n;
     myElements = new OPT_OptimizationPlanElement[e.length];
     for (int i = 0; i < e.length; i++) {
@@ -89,7 +89,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
    *         represents the composition.
    */
   public static OPT_OptimizationPlanCompositeElement compose (String name, 
-							      Object[] elems) {
+                                                              Object[] elems) {
     return  new OPT_OptimizationPlanCompositeElement(name, elems);
   }
 
@@ -131,7 +131,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
   public final void perform (OPT_IR ir) {
     if (printingEnabled(ir.options, true)) {
       if (!ir.options.hasMETHOD_TO_PRINT() ||
-	  ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
+          ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
         OPT_CompilerPhase.dumpIR(ir, "Before " + getName());
       }
     }
@@ -144,7 +144,7 @@ public class OPT_OptimizationPlanCompositeElement extends OPT_OptimizationPlanEl
 
     if (printingEnabled(ir.options, false)) {
       if (!ir.options.hasMETHOD_TO_PRINT() ||
-	  ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
+          ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
         OPT_CompilerPhase.dumpIR(ir, "After " + getName());
       }
     }

@@ -19,15 +19,15 @@ class ReferenceTest {
     for (Reference r = rq.poll(); r != null; r = rq.poll()) {
       int i;
       for (i=0; i<ra.length; i++)
-	  if (ra[i] == r)
-	    break;
+          if (ra[i] == r)
+            break;
       if (i == ra.length) return -2.0;
     }
     // Return fraction of ra array whose references are not cleared
     int count = 0;
     for (int i=0; i<ra.length; i++)
       if (ra[i].get() != null)
-	count++;
+        count++;
     return count / ((double) ra.length);
   }
 
@@ -50,14 +50,14 @@ class ReferenceTest {
   public static void allocateDiscard (double amt) { // amt in Mb
     int rounds = MBtoUnits(amt);
     for (int i=0; i<rounds; i++)  
-	dummy = allocateUnit();
+        dummy = allocateUnit();
   }
 
   public static Object allocateHold (double amt) { // amt in Mb
     int rounds = MBtoUnits(amt);
     Object [] a = new Object[rounds];
     for (int i=0; i<rounds; i++)  
-	a[i] = allocateUnit();
+        a[i] = allocateUnit();
     return a;
   }
 
@@ -65,12 +65,12 @@ class ReferenceTest {
       int count = 0;
       long lastFree = Runtime.getRuntime().freeMemory();
       while (true) {
-	allocateDiscard(0.1);
-	long curFree = Runtime.getRuntime().freeMemory();
-	count++;
-	if (curFree > lastFree) 
-	    return (count * 0.1);
-	lastFree = curFree;
+        allocateDiscard(0.1);
+        long curFree = Runtime.getRuntime().freeMemory();
+        count++;
+        if (curFree > lastFree) 
+            return (count * 0.1);
+        lastFree = curFree;
       }
   }
 
@@ -84,7 +84,7 @@ class ReferenceTest {
     Reference [] ra = new Reference[rounds];
     for (int i=0; i<rounds; i++)  
       ra[i] = (type == WEAK) ? (Reference) new WeakReference(allocateUnit(), rq) :
-	      ((type == SOFT) ? (Reference) new SoftReference(allocateUnit(), rq) : null);
+              ((type == SOFT) ? (Reference) new SoftReference(allocateUnit(), rq) : null);
     return ra;
   }
 
@@ -106,11 +106,11 @@ class ReferenceTest {
       System.out.print(msg + "     ");
       System.out.print(correct ? "PASS" : "FAIL");
       if (correct) {
-	if (quality == GOOD) System.out.print("   GOOD");
-	if (quality == POOR) System.out.print("   POOR");
+        if (quality == GOOD) System.out.print("   GOOD");
+        if (quality == POOR) System.out.print("   POOR");
       }
       else 
-	failCount++;
+        failCount++;
       System.out.println();
   }
 
@@ -148,8 +148,8 @@ class ReferenceTest {
       allocateHold(0.5 * initialHeapSize);
       softAvail = checkReferenceArray(sra, srq);
       check("Fraction of soft references after  GC still live = " + softAvail, 
-	    (softAvail >= 0.00) && (softAvail <= 0.67),
-	    ((softAvail >= 0.33) && (softAvail <= 0.66)) ? GOOD : POOR);
+            (softAvail >= 0.00) && (softAvail <= 0.67),
+            ((softAvail >= 0.33) && (softAvail <= 0.66)) ? GOOD : POOR);
 
 
 

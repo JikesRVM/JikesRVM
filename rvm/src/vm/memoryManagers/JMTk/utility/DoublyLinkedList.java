@@ -57,9 +57,9 @@ final class DoublyLinkedList
    */
   DoublyLinkedList (int granularity_, boolean shared, Object owner_) {
     owner = owner_;
-    head = VM_Address.zero();	
+    head = VM_Address.zero();   
     lock = shared ? new Lock("DoublyLinkedList") : null;
-    granularity = granularity_;	
+    granularity = granularity_; 
   }
 
   // Offsets are relative to the node (not the payload)
@@ -113,11 +113,11 @@ final class DoublyLinkedList
     VM_Address next = VM_Magic.getMemoryAddress(node.add(NEXT_OFFSET));
     // Splice the node out of the list
     if (!next.isZero()) 
-	VM_Magic.setMemoryAddress(next.add(PREV_OFFSET), prev);
+        VM_Magic.setMemoryAddress(next.add(PREV_OFFSET), prev);
     if (prev.isZero()) 
-	head = next;
+        head = next;
     else
-	VM_Magic.setMemoryAddress(prev.add(NEXT_OFFSET), next);
+        VM_Magic.setMemoryAddress(prev.add(NEXT_OFFSET), next);
     // Null out node's reference to the list
     VM_Magic.setMemoryAddress(node.add(PREV_OFFSET), VM_Address.zero());
     VM_Magic.setMemoryAddress(node.add(NEXT_OFFSET), VM_Address.zero());
@@ -150,8 +150,8 @@ final class DoublyLinkedList
     VM_Address cur = head;
     while (!cur.isZero()) {
       if (cur.EQ(node)) {
-	result = true;
-	break;
+        result = true;
+        break;
      }
      cur = VM_Magic.getMemoryAddress(cur.add(NEXT_OFFSET));
     }

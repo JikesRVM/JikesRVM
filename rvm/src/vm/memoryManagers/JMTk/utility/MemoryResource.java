@@ -125,7 +125,7 @@ final class MemoryResource implements Constants, VM_Uninterruptible {
     if (reserved > pageBudget) {
       unlock();   // We cannot hold the lock across a GC point!
       if (VM_Interface.getPlan().poll(false, this)) {
-	return false;
+        return false;
       }
       lock();
     }

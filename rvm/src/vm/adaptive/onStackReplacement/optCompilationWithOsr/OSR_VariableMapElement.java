@@ -18,7 +18,7 @@ public class OSR_VariableMapElement {
   public LinkedList mvars;
 
   public OSR_VariableMapElement(OPT_Instruction inst,
-				   LinkedList methVars) {
+                                   LinkedList methVars) {
     if (VM.VerifyAssertions) {
       VM._assert(OsrPoint.conforms(inst));
     }

@@ -55,7 +55,7 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
    */ 
   static final void lowerInstrumentation(OPT_IR ir) {
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
-	 bbe.hasMoreElements(); ) {
+         bbe.hasMoreElements(); ) {
       OPT_BasicBlock bb = bbe.next();
       //bb.printExtended();
     }
@@ -66,22 +66,21 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
     // We put them in a vector and expand them later because if we
     // expanded them on the fly we mess up the enumeration.
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
-	 bbe.hasMoreElements(); ) {
+         bbe.hasMoreElements(); ) {
       OPT_BasicBlock bb = bbe.next();
       
       OPT_Instruction i = bb.firstInstruction();
       while (i!=null && i!=bb.lastInstruction()) {
-	
-	if (i.operator() == INSTRUMENTED_EVENT_COUNTER) {
-	  vector.add(i);
-	}
-	i = i.nextInstructionInCodeOrder();
+        
+        if (i.operator() == INSTRUMENTED_EVENT_COUNTER) {
+          vector.add(i);
+        }
+        i = i.nextInstructionInCodeOrder();
       }
     }
     
     // Now go through the instructions and "lower" them by calling
     // the counter manager to convert them into real instructions
-    boolean didSomething = false;
     Enumeration e = vector.elements();
     while (e.hasMoreElements()) {
       OPT_Instruction i = (OPT_Instruction) e.nextElement();
@@ -89,20 +88,19 @@ class OPT_LowerInstrumentation  extends OPT_CompilerPhase
       // Have the counter manager for this data convert this into the
       // actual counting code.  For now, we'll hard code the counter
       // manager.  Ideally it should be stored in the instruction,
-      // (to allow multipe counter managers.  It would also make this
+      // (to allow multiple counter managers.  It would also make this
       // code independant of the adaptive system..)
       OPT_InstrumentedEventCounterManager counterManager = 
-	VM_Instrumentation.eventCounterManager;
+        VM_Instrumentation.eventCounterManager;
       
       counterManager.mutateOptEventCounterInstruction(i,ir);
-      didSomething=true;
     }
     
     for (OPT_BasicBlockEnumeration bbe = ir.getBasicBlocks(); 
-	 bbe.hasMoreElements(); ) {
+         bbe.hasMoreElements(); ) {
       OPT_BasicBlock bb = bbe.next();
       //       bb.printExtended();
     }
-  } // end of perform
+  } // end of lowerInstrumentation
   
 }

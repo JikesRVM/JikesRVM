@@ -30,10 +30,11 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    */
   public VM_ReferenceMaps referenceMaps;
 
-  // the bytecode map; currently needed to support dynamic bridge magic; 
-  // TODO: encode this densely like the opt compiler does.
-  // Think about sharing some piece of the encoding code with opt???
-  private int[] _bytecodeMap;
+  /*
+   * Currently needed to support dynamic bridge magic; 
+   * Consider integrating with GC maps
+   */
+  private byte[] bytecodeMap;
 
   /**
    * Exception table, null if not present.
@@ -89,15 +90,8 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   }
 
   public final void getDynamicLink (VM_DynamicLink dynamicLink, int instructionOffset) throws VM_PragmaUninterruptible {
-    int bytecodeIndex = -1;
     int instructionIndex = instructionOffset >>> LG_INSTRUCTION_WIDTH;
-    for (int i = 0, n = _bytecodeMap.length; i < n; ++i) {
-      if (_bytecodeMap[i] == 0)
-        continue;               // middle of a bytecode
-      if (_bytecodeMap[i] >= instructionIndex)
-        break;                  // next bytecode
-      bytecodeIndex = i;
-    }
+    int bytecodeIndex = findBytecodeIndexForInstruction(instructionIndex);
     ((VM_NormalMethod)method).getDynamicLink(dynamicLink, bytecodeIndex);
   }
 
@@ -113,38 +107,40 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
    * machine instructions.
    *
    * Note: This method expects the instructionIndex to refer to the machine
-   * 	     instruction immediately FOLLOWING the bytecode in question.
-   *	     just like findLineNumberForInstruction. See VM_CompiledMethod
-   * 	     for rationale
+   *         instruction immediately FOLLOWING the bytecode in question.
+   *         just like findLineNumberForInstruction. See VM_CompiledMethod
+   *         for rationale
    * NOTE: instructionIndex is in units of instructions, not bytes (different from
    *       all the other methods in this interface!!)
    *
    * @return the bytecode index for the machine instruction, -1 if
-   *		not available or not found.
+   *            not available or not found.
    */
   public final int findBytecodeIndexForInstruction (int instructionIndex) throws VM_PragmaUninterruptible {
-    // since "instructionIndex" points just beyond the desired instruction,
-    // we scan for the line whose "instructionIndex" most-closely-preceeds
-    // the desired instruction
-    //
     int candidateIndex = -1;
-    for (int i = 0, n = _bytecodeMap.length; i < n; i++) {
-      if (_bytecodeMap[i] >= instructionIndex)
+    int bcIndex = 0, instrIndex = 0;
+    for (int i = 0; i < bytecodeMap.length; ) {
+      int b0 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
+      int deltaBC, deltaIns;
+      if (b0 != 255) {
+        deltaBC = b0 >> 5;
+        deltaIns = b0 & 31;
+      }
+      else {
+        int b1 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
+        int b2 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
+        int b3 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
+        int b4 = ((int) bytecodeMap[i++]) & 255;  // unsign-extend
+        deltaBC = (b1 << 8) | b2;
+        deltaIns = (b3 << 8) | b4;
+      }
+      bcIndex += deltaBC;
+      instrIndex += deltaIns;
+      if (instrIndex >= instructionIndex)
         break;
-      // remember index at which each bytecode starts
-      if (_bytecodeMap[i] != 0)
-        candidateIndex = i;
+      candidateIndex = bcIndex;
     }
     return candidateIndex;
-  }
-
-  /** 
-   * Find machine code offset in this method's machine instructions
-   * given the bytecode index. 
-   * @return machine code offset for the bytecode index, -1 if not available or not found.
-   */
-  public int findInstructionForBytecodeIndex (int bcIndex) {
-    return _bytecodeMap[bcIndex];
   }
 
   /**
@@ -156,10 +152,10 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
     browser.setBytecodeIndex(findBytecodeIndexForInstruction(instr>>>LG_INSTRUCTION_WIDTH));
 
     if (VM.TraceStackTrace) {
-	VM.sysWrite("setting stack to frame (base): ");
-	VM.sysWrite( browser.getMethod() );
-	VM.sysWrite( browser.getBytecodeIndex() );
-	VM.sysWrite("\n");
+        VM.sysWrite("setting stack to frame (base): ");
+        VM.sysWrite( browser.getMethod() );
+        VM.sysWrite( browser.getBytecodeIndex() );
+        VM.sysWrite("\n");
     }
   }
 
@@ -227,22 +223,64 @@ public final class VM_BaselineCompiledMethod extends VM_CompiledMethod
   //        bytecode-index to machine-instruction-index map for method
   //        number of instructions for method
   //
+    static int counter = 0;
+    static int goodCount = 0;
+    static int badBCCount = 0;
+        static int badInsCount = 0;
   public void encodeMappingInfo(VM_ReferenceMaps referenceMaps, 
-				int[] bytecodeMap, int numInstructions) {
-    _bytecodeMap = bytecodeMap;
-    referenceMaps.translateByte2Machine(bytecodeMap);
+                                int[] bcMap, int numInstructions) {
+    int count = 0;
+    int lastBC = 0, lastIns = 0;
+    for (int i=0; i<bcMap.length; i++)
+      if (bcMap[i] != 0) {
+        int deltaBC = i - lastBC;
+        int deltaIns = bcMap[i] - lastIns;
+        if (VM.VerifyAssertions) 
+          VM._assert(deltaBC >= 0 && deltaIns >= 0);
+        if (deltaBC <= 6 && deltaIns <= 31)
+          count++;
+        else {
+          if (deltaBC > 65535 || deltaIns > 65535)
+            VM.sysFail("VM_BaselineCompiledMethod: a fancier encoding is needed");
+          count += 5;
+        }
+        lastBC = i;
+        lastIns = bcMap[i];
+      }
+    bytecodeMap = new byte[count];
+    count = lastBC = lastIns = 0;
+    for (int i=0; i<bcMap.length; i++)
+      if (bcMap[i] != 0) {
+        int deltaBC = i - lastBC;
+        int deltaIns = bcMap[i] - lastIns;
+        if (VM.VerifyAssertions) 
+          VM._assert(deltaBC >= 0 && deltaIns >= 0);
+        if (deltaBC <= 6 && deltaIns <= 31) {
+          bytecodeMap[count++] = (byte) ((deltaBC << 5) | deltaIns);
+        }
+        else { // From before, we know that deltaBC <= 65535 and deltaIns <= 65535
+          bytecodeMap[count++] = (byte) 255;
+          bytecodeMap[count++] = (byte) (deltaBC >> 8);
+          bytecodeMap[count++] = (byte) (deltaBC & 255);
+          bytecodeMap[count++] = (byte) (deltaIns >> 8);
+          bytecodeMap[count++] = (byte) (deltaIns & 255);
+        }
+        lastBC = i;
+        lastIns = bcMap[i];
+      }
+    referenceMaps.translateByte2Machine(bcMap);
     this.referenceMaps = referenceMaps;
     VM_ExceptionHandlerMap emap = ((VM_NormalMethod)method).getExceptionHandlerMap();
     if (emap != null) {
-      eTable = VM_BaselineExceptionTable.encode(emap, bytecodeMap);
+      eTable = VM_BaselineExceptionTable.encode(emap, bcMap);
     }
   }
 
   private static final VM_TypeReference TYPE = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
-									     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"));
+                                                                             VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"));
   public int size() {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
-    if (_bytecodeMap != null) size += VM_Array.IntArray.getInstanceSize(_bytecodeMap.length);
+    if (bytecodeMap != null) size += VM_Array.ByteArray.getInstanceSize(bytecodeMap.length);
     if (eTable != null) size += VM_Array.IntArray.getInstanceSize(eTable.length);
     if (referenceMaps != null) size += referenceMaps.size();
     return size;

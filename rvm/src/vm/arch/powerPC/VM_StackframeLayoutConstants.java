@@ -129,7 +129,7 @@ public interface VM_StackframeLayoutConstants  {
   static final int STACKFRAME_METHOD_ID_OFFSET        =  BYTES_IN_STACKSLOT; // spot for this frame's method id
   static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0; // base of this frame
   //-#endif
-  //-#if RVM_FOR_LINUX
+  //-#if RVM_FOR_LINUX || RVM_FOR_OSX
   // SVR4 ABI has no space between FP and LR, swap the positions for LR and CMID
   static final int STACKFRAME_METHOD_ID_OFFSET        =  2*BYTES_IN_STACKSLOT;
   static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET =  BYTES_IN_STACKSLOT;
@@ -170,7 +170,7 @@ public interface VM_StackframeLayoutConstants  {
   // - Stacks for "collector" threads are fixed in size and cannot grow.
   // - Stacks for "boot" thread grow as needed - boot thread calls JNI during initialization
   //
-  static final int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  16*1024; 
+  static final int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  16*1024 + (VM.BuildFor64Addr?256*1024:0); 
   static final int STACK_SIZE_BOOT      = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  STACK_SIZE_JNINATIVE + 128 * 1024;
   static final int STACK_SIZE_COLLECTOR = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  32*1024; 
 

@@ -29,13 +29,13 @@ class TraceFileReader
    */
   static private int    SIZE_OF_INT    = 4;
   static private int    SIZE_OF_LONG   = 8;
-  static private int    SIZE_OF_HEADER = 24;	// VP, tid, start_wall_time + end_wall_time
+  static private int    SIZE_OF_HEADER = 24;    // VP, tid, start_wall_time + end_wall_time
   /*
     * For all processors, accumulate HPM counter values
     */
   static private HashMap vp_trs      = new HashMap();  // Integer:VPID X TraceRecord
   static private HashMap tid_trs     = new HashMap();  // Integer:TID X TraceRecord
-  static private HashMap vp_tids_trs = new HashMap();  // Integer:VPID X HashMap	
+  static private HashMap vp_tids_trs = new HashMap();  // Integer:VPID X HashMap        
 
   // trace header 
   static private TraceHeader traceHeader = null;
@@ -99,7 +99,7 @@ class TraceFileReader
       //      options.resetStatistics();
       String trace_filename = options.trace_filenames[i];
       if(options.debug>=1)System.out.println("main() start of iteration "+i+" with trace file \""+
-					     trace_filename+"\"");
+                                             trace_filename+"\"");
 
       DataInputStream input_file = Utilities.openDataInputStream(trace_filename);
 
@@ -117,21 +117,21 @@ class TraceFileReader
       Trace trace = new Trace(traceHeader, records);
       //      traces[i] = trace;
       if (super_trace == null) {
-	super_trace = trace;
+        super_trace = trace;
       } else {
-	super_trace.merge(trace);
+        super_trace.merge(trace);
       }
 
       if(options.print_local) {
-	//	if (options.generate_statistics) {
-	//	  options.reportGeneratedStatistics(traceHeader);
-	//	}
-	if (options.print_aggregate){
-	  aggregate(false);
-	}
-	if (options.print_aggregate_by_thread){
-	  aggregate(true);
-	}
+        //      if (options.generate_statistics) {
+        //        options.reportGeneratedStatistics(traceHeader);
+        //      }
+        if (options.print_aggregate){
+          aggregate(false);
+        }
+        if (options.print_aggregate_by_thread){
+          aggregate(true);
+        }
       }
 
       if(options.debug>=2)System.out.println("main() end of iteration "+i);
@@ -153,28 +153,28 @@ class TraceFileReader
       int end   = find_end_record_number(super_trace.records.length);
 
       if (options.print_trace) {
-	// find least start wall time and use from which to adjust all start wall times.
-	start_wall_time = Long.MAX_VALUE;
-	for (int i=0; i<options.trace_file_index; i++) {
-	  if (start_wall_times[i] < start_wall_time) {
-	    start_wall_time = start_wall_times[i];
-	  }
-	}
-	TraceCounterRecord.start_time = start_wall_time;
-	System.out.println("Trace:");
+        // find least start wall time and use from which to adjust all start wall times.
+        start_wall_time = Long.MAX_VALUE;
+        for (int i=0; i<options.trace_file_index; i++) {
+          if (start_wall_times[i] < start_wall_time) {
+            start_wall_time = start_wall_times[i];
+          }
+        }
+        TraceCounterRecord.start_time = start_wall_time;
+        System.out.println("Trace:");
       }
 
       for (int i=start; i<end; i++) {
-	TraceRecord tr = super_trace.records[i];
-	if (options.print_trace)
-	  printTraceRecord(tr, i);
-	updateCummulativeCounters(tr);
+        TraceRecord tr = super_trace.records[i];
+        if (options.print_trace)
+          printTraceRecord(tr, i);
+        updateCummulativeCounters(tr);
       }
       if (options.print_aggregate){
-	aggregate(false);
+        aggregate(false);
       }
       if (options.print_aggregate_by_thread){
-	aggregate(true);
+        aggregate(true);
       }
     }
   }
@@ -186,31 +186,31 @@ class TraceFileReader
   {
     if (options.application != null) {
       if (options.run == -1) {
-	Integer Start = (Integer)startApplication.get(options.application);
-	if (Start == null) {
-	  System.out.println("***find_start_record_number() Specified application \""+options.application+
-			     "\" on command line; however, no trace record found for startApplication!***");
-	  System.out.println("\tTry the command line argument -structure to determine valid application values.\n");
-	  System.exit(-1);
-	}
-	if(debug>=1)System.out.println("First trace record for application \""+options.application+
-					 "\": "+Start+".");
-	return Start.intValue();
+        Integer Start = (Integer)startApplication.get(options.application);
+        if (Start == null) {
+          System.out.println("***find_start_record_number() Specified application \""+options.application+
+                             "\" on command line; however, no trace record found for startApplication!***");
+          System.out.println("\tTry the command line argument -structure to determine valid application values.\n");
+          System.exit(-1);
+        }
+        if(debug>=1)System.out.println("First trace record for application \""+options.application+
+                                         "\": "+Start+".");
+        return Start.intValue();
       } else { // if (options.run != -1)
-	int[] start_map = (int[])startApplicationRunMap.get(options.application);
-	if (start_map == null) {
-	  System.out.println("***Start Run Map for \""+options.application+"\" is null!***");
-	  System.exit(-1);
-	} 
-	if (options.run >= start_map.length) {
-	  System.out.println("***Specified a run \""+options.run+"\" for application "+
-			     options.application+" that was never recorded!  -run must be specfied less than "+start_map.length+".***");
-	  System.out.println("\tTry the command line argument -structure to determine valid application values.\n");
-	  System.exit(-1);
-	}
-	if(debug>=1)System.out.println("First trace record for run "+options.run+" of application "+
-				       options.application+": "+start_map[options.run]+".");
-	return start_map[options.run];
+        int[] start_map = (int[])startApplicationRunMap.get(options.application);
+        if (start_map == null) {
+          System.out.println("***Start Run Map for \""+options.application+"\" is null!***");
+          System.exit(-1);
+        } 
+        if (options.run >= start_map.length) {
+          System.out.println("***Specified a run \""+options.run+"\" for application "+
+                             options.application+" that was never recorded!  -run must be specfied less than "+start_map.length+".***");
+          System.out.println("\tTry the command line argument -structure to determine valid application values.\n");
+          System.exit(-1);
+        }
+        if(debug>=1)System.out.println("First trace record for run "+options.run+" of application "+
+                                       options.application+": "+start_map[options.run]+".");
+        return start_map[options.run];
       } // end else (if options.run != -1)
     } // endif (options.application != null)
     // start at the beginning
@@ -225,31 +225,31 @@ class TraceFileReader
   {
     if (options.application != null) {
       if (options.run == -1) {
-	Integer Complete = (Integer)completeApplication.get(options.application);
-	if (Complete == null) {
-	  System.out.println("***find_complete_record_number() Specified application "+options.application+
-			     " on command line; however, no trace record found for its completion!***");
-	  System.out.println("\tTry the command line argument -structure to determine valid application values.\n");
-	  System.exit(-1);
-	}
-	if(debug>=1)System.out.println("Last trace record for application "+options.application+
-					 ": "+Complete+".");
-	return Complete.intValue();
+        Integer Complete = (Integer)completeApplication.get(options.application);
+        if (Complete == null) {
+          System.out.println("***find_complete_record_number() Specified application "+options.application+
+                             " on command line; however, no trace record found for its completion!***");
+          System.out.println("\tTry the command line argument -structure to determine valid application values.\n");
+          System.exit(-1);
+        }
+        if(debug>=1)System.out.println("Last trace record for application "+options.application+
+                                         ": "+Complete+".");
+        return Complete.intValue();
       } else { // if (options.run != -1)
-	int[] complete_map = (int[])completeApplicationRunMap.get(options.application);
-	if (complete_map == null) {
-	  System.out.println("***Complete Run Map for \""+options.application+"\" is null!***");
-	  System.exit(-1);
-	} 
-	if (options.run >= complete_map.length) {
-	  System.out.println("***Specified a run "+options.run+" for application "+
-			     options.application+" that was never recorded!  -run must be specfied less than "+complete_map.length+".***");
-	  System.out.println("\tTry the command line argument -structure to determine valid application values.\n");
-	  System.exit(-1);
-	}
-	if(debug>=1)System.out.println("Last trace record for run "+options.run+" of application "+
-				       options.application+": "+complete_map[options.run]+".");
-	return complete_map[options.run];
+        int[] complete_map = (int[])completeApplicationRunMap.get(options.application);
+        if (complete_map == null) {
+          System.out.println("***Complete Run Map for \""+options.application+"\" is null!***");
+          System.exit(-1);
+        } 
+        if (options.run >= complete_map.length) {
+          System.out.println("***Specified a run "+options.run+" for application "+
+                             options.application+" that was never recorded!  -run must be specfied less than "+complete_map.length+".***");
+          System.out.println("\tTry the command line argument -structure to determine valid application values.\n");
+          System.exit(-1);
+        }
+        if(debug>=1)System.out.println("Last trace record for run "+options.run+" of application "+
+                                       options.application+": "+complete_map[options.run]+".");
+        return complete_map[options.run];
       } // end else if (options.run != -1)
     } // endif (options.application != null)
     // end at the end
@@ -294,7 +294,7 @@ class TraceFileReader
       header_filename = local_header_filename;
     } else if (header_filename.compareTo(local_header_filename) != 0) {
       System.out.println("***"+trace_filename+"'s header filename \""+
-			 local_header_filename+"\" != \""+header_filename+"\"!***");
+                         local_header_filename+"\" != \""+header_filename+"\"!***");
       System.exit(-1);
     }
   }
@@ -324,8 +324,8 @@ class TraceFileReader
       System.out.println("start application \""+app_name+"\" total runs "+max_index);
       int [] map = (int []) startApplicationRunMap.get(app_name);
       for (int j = 0; j<max_index.intValue(); j++) {
-	int trace_record = map[j];
-	System.out.println("  run "+j+" at index "+trace_record);
+        int trace_record = map[j];
+        System.out.println("  run "+j+" at index "+trace_record);
       }
     }
     keys = completeApplicationRunIndex.keySet();
@@ -335,8 +335,8 @@ class TraceFileReader
       System.out.println("complete application \""+app_name+"\" runs "+max_index);
       int [] map = (int []) completeApplicationRunMap.get(app_name);
       for (int j = 0; j<max_index.intValue(); j++) {
-	int trace_record = map[j];
-	System.out.println(" run "+j+" at index "+trace_record);
+        int trace_record = map[j];
+        System.out.println(" run "+j+" at index "+trace_record);
       }
     }
   }
@@ -361,13 +361,13 @@ class TraceFileReader
     trace_file_start_wall_time = 0;
     while (true) {
       if (records.length <= records_index) {
-	// grow trace record array
-	int old_length = records.length;
-	TraceRecord[] trs = new TraceRecord[records.length*2];
-	for (int i=0; i<old_length; i++) {
-	  trs[i] = records[i];
-	}
-	records = trs;
+        // grow trace record array
+        int old_length = records.length;
+        TraceRecord[] trs = new TraceRecord[records.length*2];
+        for (int i=0; i<old_length; i++) {
+          trs[i] = records[i];
+        }
+        records = trs;
       }
 
       // read record's fields
@@ -377,11 +377,11 @@ class TraceFileReader
 
       // generate statistics
       //      if (options.generate_statistics && (tr instanceof TraceCounterRecord)) {
-      //	options.generateStatistics((TraceCounterRecord)tr, records_index);
+      //        options.generateStatistics((TraceCounterRecord)tr, records_index);
       //      }
       // write record's fields
       if (options.print_trace && options.print_local) {
-	printTraceRecord(tr, records_index);
+        printTraceRecord(tr, records_index);
       }
       records_index++;
 
@@ -411,7 +411,7 @@ class TraceFileReader
     // VPID cummulative counters
     Integer VPID = new Integer(tcr.vpid);
     TraceCounterRecord vp_tr = (TraceCounterRecord)vp_trs.get(VPID);
-    if (vp_tr == null) {	// add new HashMap
+    if (vp_tr == null) {        // add new HashMap
       vp_tr = new TraceCounterRecord(n_counters);
       vp_tr.vpid = tcr.vpid;
       if(options.debug>=2)System.out.println("  vp_trs.put("+VPID+",vp_tr)");
@@ -428,10 +428,10 @@ class TraceFileReader
     }
     int tid = tcr.tid;
     if (tid < 0) tid = -tid;
-    Integer TID = new Integer(tid);	// TID key
+    Integer TID = new Integer(tid);     // TID key
     // accumulate by TID and VPID
     TraceCounterRecord tid_tr = (TraceCounterRecord)vp_tid_trs.get(TID);
-    if (tid_tr == null) {	// add new HashMap
+    if (tid_tr == null) {       // add new HashMap
       tid_tr = new TraceCounterRecord(n_counters);
       tid_tr.tid = tcr.tid;
       if(options.debug>=2)System.out.println("  vp_tid_trs.put(    "+TID+",tid_trs)");
@@ -462,104 +462,104 @@ class TraceFileReader
     
     try {
       int encoding = input_file.readInt();
-      int record_format = encoding & 0x0000000F; 	// last 4 bits
+      int record_format = encoding & 0x0000000F;        // last 4 bits
       if (record_format == 0) {
-	// EOF
- 	return tr;
+        // EOF
+        return tr;
       } else if (record_format == TraceRecord.COUNTER_TYPE) {
-	TraceCounterRecord tcr = new TraceCounterRecord(n_counters);
-	tcr.local_tid     =  encoding >> 16;
-	tcr.buffer_code   = (encoding >> 15) & 0x00000001;
-	int bit           = (encoding >> 14) & 0x00000001;
-	tcr.vpid          = (encoding >>  4) & 0x000003FF;
-	tcr.thread_switch = (bit==1?true:false);
-	tcr.tid           = input_file.readInt();
-	if(options.debug>=5){
-	  if (tcr.thread_switch) {
-	    System.out.print(tcr.buffer_code+" VPID "+tcr.vpid);
-	  } else {
-	    System.out.print(tcr.buffer_code+"*VPID "+tcr.vpid);
-	  }
-	  System.out.print(" TID "+tcr.tid+" LTID "+tcr.local_tid);
-	}
-	tcr.start_wall_time   = input_file.readLong();
-	// translate end wall time to relative wall time.
-	tcr.counters[0]       = input_file.readLong() - tcr.start_wall_time;
-	tcr.callee_MID        = input_file.readInt();
-	tcr.caller_MID        = input_file.readInt();
-	if(options.debug>=5){
-	  System.out.print(" SWT "+tcr.start_wall_time);System.out.print(" RWT "+tcr.counters[0]);
-	}
+        TraceCounterRecord tcr = new TraceCounterRecord(n_counters);
+        tcr.local_tid     =  encoding >> 16;
+        tcr.buffer_code   = (encoding >> 15) & 0x00000001;
+        int bit           = (encoding >> 14) & 0x00000001;
+        tcr.vpid          = (encoding >>  4) & 0x000003FF;
+        tcr.thread_switch = (bit==1?true:false);
+        tcr.tid           = input_file.readInt();
+        if(options.debug>=5){
+          if (tcr.thread_switch) {
+            System.out.print(tcr.buffer_code+" VPID "+tcr.vpid);
+          } else {
+            System.out.print(tcr.buffer_code+"*VPID "+tcr.vpid);
+          }
+          System.out.print(" TID "+tcr.tid+" LTID "+tcr.local_tid);
+        }
+        tcr.start_wall_time   = input_file.readLong();
+        // translate end wall time to relative wall time.
+        tcr.counters[0]       = input_file.readLong() - tcr.start_wall_time;
+        tcr.callee_MID        = input_file.readInt();
+        tcr.caller_MID        = input_file.readInt();
+        if(options.debug>=5){
+          System.out.print(" SWT "+tcr.start_wall_time);System.out.print(" RWT "+tcr.counters[0]);
+        }
 
-	for (int i=1; i<=tcr.n_counters; i++) {
-	  tcr.counters[i] = input_file.readLong();
-	  if(options.debug>=5)System.out.print(" "+i+": "+tcr.counters[i]);
-	}
-	if(options.debug>=5)System.out.println();
-	// first Trace Counter Record read 
-	if (trace_file_vpid == -1) {
-	  trace_file_vpid = tcr.vpid;				// cache vpid
-	  trace_file_start_wall_time = tcr.start_wall_time;
-	  TraceCounterRecord.start_time = tcr.start_wall_time;
-	  if (debug>=3) {
-	    System.out.println(trace_file_vpid+" start wall clock time "+trace_file_start_wall_time);
-	  }
-	} else { // check that all vpid in a trace file are the same!
-	  if (trace_file_vpid != tcr.vpid) {
-	    System.out.println("***readTraceRecord: trace_file_vpid "+trace_file_vpid+" != record vpid "+tcr.vpid+"!***");
-	    System.exit(-1);
-	  }
-	}
-	tr = tcr;
+        for (int i=1; i<=tcr.n_counters; i++) {
+          tcr.counters[i] = input_file.readLong();
+          if(options.debug>=5)System.out.print(" "+i+": "+tcr.counters[i]);
+        }
+        if(options.debug>=5)System.out.println();
+        // first Trace Counter Record read 
+        if (trace_file_vpid == -1) {
+          trace_file_vpid = tcr.vpid;                           // cache vpid
+          trace_file_start_wall_time = tcr.start_wall_time;
+          TraceCounterRecord.start_time = tcr.start_wall_time;
+          if (debug>=3) {
+            System.out.println(trace_file_vpid+" start wall clock time "+trace_file_start_wall_time);
+          }
+        } else { // check that all vpid in a trace file are the same!
+          if (trace_file_vpid != tcr.vpid) {
+            System.out.println("***readTraceRecord: trace_file_vpid "+trace_file_vpid+" != record vpid "+tcr.vpid+"!***");
+            System.exit(-1);
+          }
+        }
+        tr = tcr;
       } else if (record_format == TraceRecord.START_APP_TYPE) {
-	String app_name = Utilities.getStringFromDataInputStream(input_file);
-	if(options.debug>=1)System.out.println("  VPID "+trace_file_vpid+" START_APP_TYPE: app "+app_name);
-	tr = new TraceStartAppRecord(trace_file_vpid, app_name);
+        String app_name = Utilities.getStringFromDataInputStream(input_file);
+        if(options.debug>=1)System.out.println("  VPID "+trace_file_vpid+" START_APP_TYPE: app "+app_name);
+        tr = new TraceStartAppRecord(trace_file_vpid, app_name);
       } else if (record_format == TraceRecord.COMPLETE_APP_TYPE) {
-	String app_name = Utilities.getStringFromDataInputStream(input_file);
-	if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" COMPLETE_APP_TYPE: app "+app_name);
-	tr = new TraceCompleteAppRecord(trace_file_vpid, app_name);
-	
+        String app_name = Utilities.getStringFromDataInputStream(input_file);
+        if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" COMPLETE_APP_TYPE: app "+app_name);
+        tr = new TraceCompleteAppRecord(trace_file_vpid, app_name);
+        
       } else if (record_format == TraceRecord.START_APP_RUN_TYPE) {
-	int  run = input_file.readInt();
-	String app_name = Utilities.getStringFromDataInputStream(input_file);
-	if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" START_APP_RUN_TYPE: app "+app_name+", run "+run);
-	tr = new TraceStartAppRunRecord(trace_file_vpid, app_name, run);
+        int  run = input_file.readInt();
+        String app_name = Utilities.getStringFromDataInputStream(input_file);
+        if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" START_APP_RUN_TYPE: app "+app_name+", run "+run);
+        tr = new TraceStartAppRunRecord(trace_file_vpid, app_name, run);
 
       } else if (record_format == TraceRecord.COMPLETE_APP_RUN_TYPE) {
-	int  run = input_file.readInt();
-	String app_name = Utilities.getStringFromDataInputStream(input_file);
-	if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" COMPLETE_APP_RUN_TYPE: app "+app_name+", run "+run);
-	Integer Index = (Integer)completeApplicationRunIndex.get(app_name);
-	tr = new TraceCompleteAppRunRecord(trace_file_vpid, app_name, run);
+        int  run = input_file.readInt();
+        String app_name = Utilities.getStringFromDataInputStream(input_file);
+        if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" COMPLETE_APP_RUN_TYPE: app "+app_name+", run "+run);
+        Integer Index = (Integer)completeApplicationRunIndex.get(app_name);
+        tr = new TraceCompleteAppRunRecord(trace_file_vpid, app_name, run);
 
       } else if (record_format == TraceRecord.EXIT_TYPE) {
-	int  value = input_file.readInt();	// value
-	if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" EXIT_TYPE: value "+value);
-	tr = new TraceExitRecord(trace_file_vpid, value);
+        int  value = input_file.readInt();      // value
+        if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" EXIT_TYPE: value "+value);
+        tr = new TraceExitRecord(trace_file_vpid, value);
 
       } else if (record_format == TraceRecord.PADDING_TYPE) {
-	int  length = input_file.readInt();	// value
-	if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" PADDING_TYPE: length "+length);
-	// gobble up padding
-	for (int i=0; i<length; i++) {
-	  input_file.readByte();
-	}
+        int  length = input_file.readInt();     // value
+        if(options.debug>=4)System.out.println("  VPID "+trace_file_vpid+" PADDING_TYPE: length "+length);
+        // gobble up padding
+        for (int i=0; i<length; i++) {
+          input_file.readByte();
+        }
 
-	tr = new TracePaddingRecord(trace_file_vpid, length);
+        tr = new TracePaddingRecord(trace_file_vpid, length);
 
       } else {
-	System.out.println("***TraceFileReader.readTraceRecord() record format "+record_format+
-			   " unknown with encoding "+encoding+"!***");
-	int value;
-	int BOUND = 100;
-	System.out.print("***"+BOUND+" additional values: ");
-	for (int i = 0; i<BOUND; i++) {
-	  value = input_file.readInt();
-	  System.out.print(" "+value);
-	}
-	System.out.println("***");
-	//	System.exit(-1);
+        System.out.println("***TraceFileReader.readTraceRecord() record format "+record_format+
+                           " unknown with encoding "+encoding+"!***");
+        int value;
+        int BOUND = 100;
+        System.out.print("***"+BOUND+" additional values: ");
+        for (int i = 0; i<BOUND; i++) {
+          value = input_file.readInt();
+          System.out.print(" "+value);
+        }
+        System.out.println("***");
+        //      System.exit(-1);
       }
 
     } catch (EOFException e) {
@@ -588,65 +588,65 @@ class TraceFileReader
       if (tr == null) return;
     
       if (tr instanceof TraceCounterRecord || 
-	  tr instanceof TracePaddingRecord ||
-	  tr instanceof TraceExitRecord   ) {
-	// do nothing
+          tr instanceof TracePaddingRecord ||
+          tr instanceof TraceExitRecord   ) {
+        // do nothing
       } else if (tr instanceof TraceStartAppRecord) {
-	TraceStartAppRecord tsar = (TraceStartAppRecord)tr;
-	if(options.debug>=3)
-	  System.out.println("Start    application "+tsar.app_name+" at record "+n_records);
-	startApplication.put(tsar.app_name, new Integer(n_records));
-	
+        TraceStartAppRecord tsar = (TraceStartAppRecord)tr;
+        if(options.debug>=3)
+          System.out.println("Start    application "+tsar.app_name+" at record "+n_records);
+        startApplication.put(tsar.app_name, new Integer(n_records));
+        
       } else if (tr instanceof TraceCompleteAppRecord) {
-	TraceCompleteAppRecord tcar = (TraceCompleteAppRecord)tr;
-	if(options.debug>=3)
-	  System.out.println("Complete application "+tcar.app_name+" at record "+n_records);
-	completeApplication.put(tcar.app_name, new Integer(n_records));
-	
+        TraceCompleteAppRecord tcar = (TraceCompleteAppRecord)tr;
+        if(options.debug>=3)
+          System.out.println("Complete application "+tcar.app_name+" at record "+n_records);
+        completeApplication.put(tcar.app_name, new Integer(n_records));
+        
       } else if (tr instanceof TraceStartAppRunRecord) {
-	TraceStartAppRunRecord tsarr = (TraceStartAppRunRecord)tr;
-	if(options.debug>=3)
-	  System.out.print("Start    application "+tsarr.app_name+" run "+tsarr.run+" at record "+n_records);
-	Integer Index = (Integer)startApplicationRunIndex.get(tsarr.app_name);
-	int [] map = null;
-	if (Index == null) {
-	  // first time run found for this application
-	  if(options.debug>=3)System.out.println(" first run ");
-	  Index = new Integer(tsarr.run+1);
-	  map = new int[tsarr.run+1];
-	  map[tsarr.run] = n_records;
-	} else {
-	  if(options.debug>=3)System.out.println();
-	  Index = new Integer(tsarr.run+1);
-	  map = (int[])startApplicationRunMap.get(tsarr.app_name);
-	  map = Utilities.addIntArrayElement(map, n_records, tsarr.run);
-	}
-	startApplicationRunIndex.put(tsarr.app_name, Index);
-	startApplicationRunMap.put(  tsarr.app_name, map);
+        TraceStartAppRunRecord tsarr = (TraceStartAppRunRecord)tr;
+        if(options.debug>=3)
+          System.out.print("Start    application "+tsarr.app_name+" run "+tsarr.run+" at record "+n_records);
+        Integer Index = (Integer)startApplicationRunIndex.get(tsarr.app_name);
+        int [] map = null;
+        if (Index == null) {
+          // first time run found for this application
+          if(options.debug>=3)System.out.println(" first run ");
+          Index = new Integer(tsarr.run+1);
+          map = new int[tsarr.run+1];
+          map[tsarr.run] = n_records;
+        } else {
+          if(options.debug>=3)System.out.println();
+          Index = new Integer(tsarr.run+1);
+          map = (int[])startApplicationRunMap.get(tsarr.app_name);
+          map = Utilities.addIntArrayElement(map, n_records, tsarr.run);
+        }
+        startApplicationRunIndex.put(tsarr.app_name, Index);
+        startApplicationRunMap.put(  tsarr.app_name, map);
 
       } else if (tr instanceof TraceCompleteAppRunRecord) {
-	TraceCompleteAppRunRecord tcarr = (TraceCompleteAppRunRecord)tr;
-	if(options.debug>=3)
-	  System.out.print("Complete application "+tcarr.app_name+" run "+tcarr.run+" at record "+n_records);
-	Integer Index = (Integer)completeApplicationRunIndex.get(tcarr.app_name);
-	int [] map = null;
-	if (Index == null) {
-	  // first time run found for this application
-	  if(options.debug>=3)System.out.println(" first run found!");
-	  Index = new Integer(tcarr.run+1);
-	  map = new int[tcarr.run+1];
-	  map[tcarr.run] = n_records;
-	} else {
-	  if(options.debug>=3)System.out.println();
-	  Index = new Integer(tcarr.run+1);
-	  map = (int[])completeApplicationRunMap.get(tcarr.app_name);
-	  map = Utilities.addIntArrayElement(map, n_records, tcarr.run);
-	}
-	completeApplicationRunIndex.put(tcarr.app_name, Index);
-	completeApplicationRunMap.put(  tcarr.app_name, map);
+        TraceCompleteAppRunRecord tcarr = (TraceCompleteAppRunRecord)tr;
+        if(options.debug>=3)
+          System.out.print("Complete application "+tcarr.app_name+" run "+tcarr.run+" at record "+n_records);
+        Integer Index = (Integer)completeApplicationRunIndex.get(tcarr.app_name);
+        int [] map = null;
+        if (Index == null) {
+          // first time run found for this application
+          if(options.debug>=3)System.out.println(" first run found!");
+          Index = new Integer(tcarr.run+1);
+          map = new int[tcarr.run+1];
+          map[tcarr.run] = n_records;
+        } else {
+          if(options.debug>=3)System.out.println();
+          Index = new Integer(tcarr.run+1);
+          map = (int[])completeApplicationRunMap.get(tcarr.app_name);
+          map = Utilities.addIntArrayElement(map, n_records, tcarr.run);
+        }
+        completeApplicationRunIndex.put(tcarr.app_name, Index);
+        completeApplicationRunMap.put(  tcarr.app_name, map);
       } else {
-	System.out.println("***TraceFileReader.build_structure() unknown trace record format!***");
-	//	System.exit(-1);
+        System.out.println("***TraceFileReader.build_structure() unknown trace record format!***");
+        //      System.exit(-1);
       }
     } // end for
   }
@@ -663,7 +663,7 @@ class TraceFileReader
       if (options.tid != CommandLineOptions.UNINITIALIZED && options.tid != Math.abs(tcr.tid)) return;
       if (options.no_yields && tcr.tid < 0) return;
       if(options.verbose>=1) {
-	System.out.print(index);
+        System.out.print(index);
       }
       if(options.verbose>=3) System.out.print(tcr.buffer_code+" ");
       tcr.print();
@@ -688,13 +688,13 @@ class TraceFileReader
       // find totals across all threads.
       TraceCounterRecord total_tr = new TraceCounterRecord(traceHeader.n_counters);
       for (Iterator keys = vp_trs.keySet().iterator(); keys.hasNext(); ) {
-	Integer VPID = (Integer)keys.next();
-	TraceCounterRecord p_tr = (TraceCounterRecord)vp_trs.get(VPID);
-	total_tr.accumulate(p_tr);
+        Integer VPID = (Integer)keys.next();
+        TraceCounterRecord p_tr = (TraceCounterRecord)vp_trs.get(VPID);
+        total_tr.accumulate(p_tr);
       }
       if(options.debug>=1) {
-	System.out.println("TraceFileReader.aggregate() total across all threads ");
-	total_tr.print();
+        System.out.println("TraceFileReader.aggregate() total across all threads ");
+        total_tr.print();
       }
     }
 
@@ -702,119 +702,119 @@ class TraceFileReader
       System.out.println("\nDump HPM counter values for VPIDs (aggregate threads)");
       int p_trips = 0;
       for (Iterator keys = vp_trs.keySet().iterator(); keys.hasNext(); ) {
-	Integer VPID = (Integer)keys.next();
-	System.out.print(" VPID: "+VPID+"     ");
-	TraceCounterRecord p_tr = (TraceCounterRecord)vp_trs.get(VPID);
-	if (p_tr == null) {
-	  System.err.println("***aggregate() vp_trs.get("+VPID+") == null!***");
-	  continue;
-	}
-	p_tr.printCPI(traceHeader);
-	System.out.println();
-	p_tr.print(traceHeader);
-	System.out.println();
-	vp_sum_tr.accumulate(p_tr);
-	p_trips++;
+        Integer VPID = (Integer)keys.next();
+        System.out.print(" VPID: "+VPID+"     ");
+        TraceCounterRecord p_tr = (TraceCounterRecord)vp_trs.get(VPID);
+        if (p_tr == null) {
+          System.err.println("***aggregate() vp_trs.get("+VPID+") == null!***");
+          continue;
+        }
+        p_tr.printCPI(traceHeader);
+        System.out.println();
+        p_tr.print(traceHeader);
+        System.out.println();
+        vp_sum_tr.accumulate(p_tr);
+        p_trips++;
       }
       if (p_trips > 1) {
-	System.out.print("Dump aggregate HPM counter values for VPIDs");
-	vp_sum_tr.printCPI(traceHeader);
-	System.out.println();
-	vp_sum_tr.print(traceHeader);
-	System.out.println();
+        System.out.print("Dump aggregate HPM counter values for VPIDs");
+        vp_sum_tr.printCPI(traceHeader);
+        System.out.println();
+        vp_sum_tr.print(traceHeader);
+        System.out.println();
       }
     
       System.out.println("\nDump aggregate HPM counter values per thread");
       tid_sum_tr.reset();
       int t_trips = 0;
       for (Iterator keys = tid_trs.keySet().iterator(); keys.hasNext(); ) {
-	Integer TID = (Integer)keys.next();
-	System.out.println(" TID "+TID);	
-	TraceCounterRecord tcr = (TraceCounterRecord)tid_trs.get(TID);
-	if (tcr == null) {
-	  System.out.println("***tid_trs.get("+TID+") == null!***");
-	  System.exit(-1);
-	}
-	int tid = TID.intValue();
-	if(options.debug>=1)System.out.println("TraceFileReader.aggregate() tid "+tid);
-	if (options.tid == CommandLineOptions.UNINITIALIZED || options.tid == Math.abs(tid)) {
-	  String thread_name = traceHeader.threadName(tid);
-	  System.out.print(" ThreadIndex: " + tid + " "+ thread_name + "     ");
-	  tcr.printCPI(traceHeader);
-	  System.out.println();
-	  tcr.print(traceHeader);
-	  System.out.println();
-	  tid_sum_tr.accumulate(tcr);
-	  t_trips++;
-	}
+        Integer TID = (Integer)keys.next();
+        System.out.println(" TID "+TID);        
+        TraceCounterRecord tcr = (TraceCounterRecord)tid_trs.get(TID);
+        if (tcr == null) {
+          System.out.println("***tid_trs.get("+TID+") == null!***");
+          System.exit(-1);
+        }
+        int tid = TID.intValue();
+        if(options.debug>=1)System.out.println("TraceFileReader.aggregate() tid "+tid);
+        if (options.tid == CommandLineOptions.UNINITIALIZED || options.tid == Math.abs(tid)) {
+          String thread_name = traceHeader.threadName(tid);
+          System.out.print(" ThreadIndex: " + tid + " "+ thread_name + "     ");
+          tcr.printCPI(traceHeader);
+          System.out.println();
+          tcr.print(traceHeader);
+          System.out.println();
+          tid_sum_tr.accumulate(tcr);
+          t_trips++;
+        }
       }
       if(t_trips > 1) {
-	System.out.print("\nAggregate HPM counter values across threads     ");
-	tid_sum_tr.printCPI(traceHeader);
-	System.out.println();
-	tid_sum_tr.print(traceHeader);
-	System.out.println();
+        System.out.print("\nAggregate HPM counter values across threads     ");
+        tid_sum_tr.printCPI(traceHeader);
+        System.out.println();
+        tid_sum_tr.print(traceHeader);
+        System.out.println();
       }
     } else {
       // System.out.println("\nDump HPM counter values for VPIDs");
       tid_sum_tr.reset();
       int p_trips = 0;
       for (Iterator keys = vp_trs.keySet().iterator(); keys.hasNext(); ) {
-	Integer VPID = (Integer)keys.next();
-	System.out.print("\n VPID: "+VPID+"     ");
-	TraceCounterRecord p_tcr = (TraceCounterRecord)vp_trs.get(VPID);
-	if (p_tcr == null) {
-	  System.err.println("***aggregate() vp_trs.get("+VPID+") == null!***");
-	  continue;
-	}
-	p_tcr.printCPI(traceHeader);
-	System.out.println();
-	p_tcr.print(traceHeader);
-	System.out.println();
-	vp_sum_tr.accumulate(p_tcr);
-	p_trips++;
+        Integer VPID = (Integer)keys.next();
+        System.out.print("\n VPID: "+VPID+"     ");
+        TraceCounterRecord p_tcr = (TraceCounterRecord)vp_trs.get(VPID);
+        if (p_tcr == null) {
+          System.err.println("***aggregate() vp_trs.get("+VPID+") == null!***");
+          continue;
+        }
+        p_tcr.printCPI(traceHeader);
+        System.out.println();
+        p_tcr.print(traceHeader);
+        System.out.println();
+        vp_sum_tr.accumulate(p_tcr);
+        p_trips++;
 
-	HashMap tids = (HashMap)vp_tids_trs.get(VPID);
-	if (tids == null) {
-	  System.out.println("***aggregate() vp_tids_trs.get("+VPID+") == null!***");
-	  continue;
-	}
-	int t_trips = 0;
-	//	System.out.println("\nDump aggregate HPM counter values per thread");
-	for (Iterator t_keys = tids.keySet().iterator(); t_keys.hasNext();) {
-	  Integer TID = (Integer)t_keys.next();
-	  TraceCounterRecord tid_tcr = (TraceCounterRecord)tids.get(TID);
-	  if (tid_tcr == null) {
-	    System.err.println("***aggregate() vp_trs.get("+TID+") == null!***");
-	    continue;
-	  }
-	  int tid = TID.intValue();
-	  if (options.tid == CommandLineOptions.UNINITIALIZED || options.tid == Math.abs(tid)) {
-	    tid_sum_tr.accumulate(tid_tcr);
-	    String thread_name = traceHeader.threadName(tid);
-	    System.out.print(" ThreadIndex: " + tid + " "+ thread_name + "     ");
-	    tid_tcr.printCPI(traceHeader);
-	    System.out.println();
-	    tid_tcr.print(traceHeader);
-	    System.out.println();
-	    t_trips++;
-	  }
-	}
-	if(t_trips > 1) {
-	  System.out.print("\nAggregate HPM counter values across threads");
-	  tid_sum_tr.printCPI(traceHeader);
-	  System.out.println();
-	  tid_sum_tr.print(traceHeader);
-	  System.out.println();
-	}
-	tid_sum_tr.reset();
+        HashMap tids = (HashMap)vp_tids_trs.get(VPID);
+        if (tids == null) {
+          System.out.println("***aggregate() vp_tids_trs.get("+VPID+") == null!***");
+          continue;
+        }
+        int t_trips = 0;
+        //      System.out.println("\nDump aggregate HPM counter values per thread");
+        for (Iterator t_keys = tids.keySet().iterator(); t_keys.hasNext();) {
+          Integer TID = (Integer)t_keys.next();
+          TraceCounterRecord tid_tcr = (TraceCounterRecord)tids.get(TID);
+          if (tid_tcr == null) {
+            System.err.println("***aggregate() vp_trs.get("+TID+") == null!***");
+            continue;
+          }
+          int tid = TID.intValue();
+          if (options.tid == CommandLineOptions.UNINITIALIZED || options.tid == Math.abs(tid)) {
+            tid_sum_tr.accumulate(tid_tcr);
+            String thread_name = traceHeader.threadName(tid);
+            System.out.print(" ThreadIndex: " + tid + " "+ thread_name + "     ");
+            tid_tcr.printCPI(traceHeader);
+            System.out.println();
+            tid_tcr.print(traceHeader);
+            System.out.println();
+            t_trips++;
+          }
+        }
+        if(t_trips > 1) {
+          System.out.print("\nAggregate HPM counter values across threads");
+          tid_sum_tr.printCPI(traceHeader);
+          System.out.println();
+          tid_sum_tr.print(traceHeader);
+          System.out.println();
+        }
+        tid_sum_tr.reset();
       }
       if (p_trips>1) {
-	System.out.print("\nDump aggregate HPM counter values for VPIDs");
-	vp_sum_tr.printCPI(traceHeader);
-	System.out.println();
-	vp_sum_tr.print(traceHeader);
-	System.out.println();
+        System.out.print("\nDump aggregate HPM counter values for VPIDs");
+        vp_sum_tr.printCPI(traceHeader);
+        System.out.println();
+        vp_sum_tr.print(traceHeader);
+        System.out.println();
       }
     }
   }

@@ -1,18 +1,19 @@
 This section provides some information on various
-implementation details for the Jikes\trademark RVM runtime system.
+implementation details for the Jikes\TMweb{} RVM runtime system.
 
 
-\subsection{Object Model} \label{sssec:objects}
+\subsection{Object Model}\label{sssec:objects}
 \index{object model}
+
 An {\em object model} dictates how to represent objects in storage;
 the best object model will maximize efficiency of frequent language
-operations while minimizing storage overhead. Jikes\trademark RVM's
+operations while minimizing storage overhead. \jrvm's
 object model 
 is defined by \xlink{{\tt VM\_ObjectModel.java}}{\VMObjectModelURL}.
 
 \paragraph{Overview}
-Values in the Java\trademark programming language are either {\em
-primitive} (e.g. {\tt int}, {\tt double}, etc.)  or they are {\em
+Values in the Java\TMweb{} programming language are either {\em
+primitive} ({\it e.g.}\ {\tt int}, {\tt double}, etc.)  or they are {\em
 references} (that is, pointers) to objects.  Objects are either {\em
 arrays} having elements or {\em scalar objects} having fields.
 Objects are logically composed of two primary sections: an object
@@ -46,19 +47,19 @@ an array, its {\em length}, resides just before its first
 element. Thus, compiled code can access array elements via base +
 scaled index addressing.
 
-\index{NullPointerException}
 The Java programming language requires that an attempt to access an
 object through a {\tt null} 
-object reference generates a {\tt NullPointerException}.  In Jikes RVM, references
+object reference generates a \IndexTexttt{NullPointerException}.
+In Jikes RVM, references
 are machine addresses, and {\tt null} is represented by address $0$.
-The AIX\AIXTMFootnote\ operating system permits loads from low memory,
+The AIX\TMweb{} operating system permits loads from low memory,
 but accesses 
 to very high memory (at small {\em negative} offsets from a null
 pointer) normally cause hardware interrupts.\footnote{In AIX, it is at
 least theoretically possible for another process to cause a shared
 system library to get loaded into very high memory.  This remote
 possibility is not a concern in a research project, but would need to
-be addressed by a commercial JVM.  It would be sufficient to forbid
+be addressed by a commercial JVM.\@  It would be sufficient to forbid
 read and write access to the last page of addressable memory.
 (Accesses to some of the fields of objects bigger than a page could be
 checked explicitly without having a major impact on performance.)}
@@ -77,12 +78,14 @@ Logically, every object header contains the following components:
 \index{superclass}
 \index{interfaces}
 \index{virtual methods}
-\item [TIB Pointer] The TIB (Type Information Block) holds information that
+\begin{Label}{TIB}
+\item[TIB Pointer] The TIB (Type Information Block) holds information that
 applies to all objects of a type.  The structure of the TIB is defined by 
 \xlink{{\tt VM\_TIBLayoutConstants.java}}{\VMTIBLayoutConstantsURL}.
 A TIB includes the virtual method table, a pointer to an object
 representing the type, and pointers to a few data structures to
 facilitate efficient interface invocation and dynamic type checking.
+\end{Label}
 %
 \index{hashing}
 \item[Default Hash Code] Each Java object has a default hash code.
@@ -106,7 +109,7 @@ support profiling.
 
 An implementation of this abstract header is defined by three files: 
 \xlink{{\tt VM\_JavaHeader.java}}{\VMJavaHeaderURL}, which supports
-TIB access, default hash codes, and locking; 
+\link{TIB}{TIB} access, default hash codes, and locking; 
 \xlink{{\tt VM\_AllocatorHeader.java}}{\VMAllocatorHeaderURL}, which
 supports garbage collection information; 
 and 
@@ -119,21 +122,19 @@ defining a two-word header for scalar objects.  The source tree includes
 three other object models which are currently unsupported, but may be
 resurrected in a future release.
 
-\JavaTMFooter
-
-\JikesTMFooter
-
 \subsection{Methods and Fields}\label{sssec:methods}
 \index{methods}
 \index{JTOC}
 \index{TIB}
+\begin{Label}{JTOC}
 A compiled method body is an array of machine instructions (stored as
-ints on PowerPC and bytes on IA32). 
+{\tt int}s on PowerPC\TMweb{} and {\tt byte}s on x86-32). 
 The {\em Jikes RVM Table of Contents} (JTOC),
 stores pointers to static fields and methods.  However, 
 pointers for instance fields and virtual methods are stored in the receiver 
-class's TIB.  Consequently the dispatch mechanism differs for static and virtual 
-methods.
+class's \link{TIB}{TIB}.  Consequently, the dispatch mechanism differs
+between static methods and instance methods.
+\end{Label}
 
 \paragraph{The JTOC}
 \index{JTOC}
@@ -150,45 +151,45 @@ methods.
 \index{constants}
 \index{dynamic type checking}
 The JTOC holds pointers to 
-each of Jikes\trademark RVM's global data structures, as well as
-literals, numeric constants and references to String constants.
+each of Jikes\TMweb{} RVM's global data structures, as well as
+literals, numeric constants and references to \texttt{String} constants.
 The JTOC also
-contains references to the TIB for each class in the system.  
+contains references to the \link{TIB}{TIB} for each class in the system.  
 Since these 
 structures can have many types and the JTOC is declared to be an array of 
 {\tt int}s,  
 Jikes RVM uses a descriptor array, co-indexed with the JTOC, 
 to identify the entries containing references.
 The JTOC
-is depicted in figure~\ref{fig:jtoc}.  
+is depicted \link*{in this figure}[in figure~\Ref, on page~\Pageref{}]{fig:jtoc}.  
 
 \paragraph{Virtual Methods}
 \index{virtual methods}
-A TIB contains pointers to the compiled method 
+A \link{TIB}{TIB} contains pointers to the compiled method 
 bodies (executable code) for the virtual methods of its class. 
-Thus, the TIB serves as Jikes RVM's virtual method table.
-A virtual method dispatch entails loading the TIB pointer from 
+Thus, the \link{TIB}{TIB} serves as Jikes RVM's virtual method table.
+A virtual method dispatch entails loading the \link{TIB}{TIB} pointer from 
 the object reference, loading the address of the method
-body at a given offset off the TIB pointer, and making an indirect
+body at a given offset off the \link{TIB}{TIB} pointer, and making an indirect
 branch and link to it.
 
 \paragraph{Static Fields and Methods} 
 \index{static methods}
-Static fields and pointers to static method bodies are stored in the JTOC. 
+Static fields and pointers to static method bodies are stored in the \link{JTOC}{JTOC}. 
 Static method dispatch is simpler than virtual dispatch, since 
-a well-known JTOC entry method holds the address of the compiled method
+a well-known \link{JTOC}{JTOC} entry method holds the address of the compiled method
 body. 
 
-\paragraph{Lazy Method Compilation}
+\paragraph{Lazy Method Compilation}\label{par:lazy}
 \index{lazy method compilation}
 \index{deferred compilation}
 \index{lazy method invocation stub}
-Method slots in a TIB or the JTOC may hold either
+Method slots in a \link{TIB}{TIB} or the \link{JTOC}{JTOC} may hold either
 a pointer to the compiled code, 
 or a pointer to the compiled code of the {\em lazy method invocation stub}.
 When invoked, the lazy method invocation stub compiles the 
 method, installs a pointer to the compiled code in the appropriate
-TIB or the JTOC slot, then 
+\link{TIB}{TIB} or the \link{JTOC}{JTOC} slot, then 
 jumps to the start of the compiled code. 
 
 \paragraph{Interface Methods}
@@ -197,113 +198,114 @@ jumps to the start of the compiled code.
 \index{conflict resolution stub}
 Regardless of whether or not a virtual method is overridden,
 virtual method dispatch is still simple since the method will occupy 
-the same TIB offset its defining class and in every sub-class.
+the same \link{TIB}{TIB} offset its defining class and in every sub-class.
 However, a method invoked through an {\tt invokeinterface} call rather than
-an {\tt invokevirtual call}, will not occupy the same TIB offset in every class that 
+an {\tt invokevirtual call}, will not occupy the same \link{TIB}{TIB} offset in every class that 
 implements its interface.  This complicates dispatch for {\tt
 invokeinterface}.
 
+\index{Interface Method Table (IMT)}%
+\index{IMT: Interface Method Table}%
 The simplest, and least efficient way, of locating an interface method 
-is to search all the virtual method entries in the TIB finding a match.
+is to search all the virtual method entries in the \link{TIB}{TIB} finding a match.
 Instead, Jikes RVM uses an {\em Interface Method Table} (IMT) which resembles
 a virtual method table for interface methods. Any method that could be an interface method has 
-a fixed offset into the IMT just as with the TIB. However, unlike in the TIB, two different methods may
-share the same offset into the IMT. In this case, a {\em conflict resolution
-stub} is inserted in the IMT. Conflict resolution stubs are
+a fixed offset into the IMT just as with the \link{TIB}{TIB}. However, unlike in the \link{TIB}{TIB}, two different methods may
+share the same offset into the IMT.\@ In this case, a
+\index{conflict resolution stub}{\em conflict resolution
+stub} is inserted in the IMT.\@ Conflict resolution stubs are
 custom-generated machine code sequences that test the value of a
 hidden parameter to dispatch to the desired interface method.
 For more details, see
-\xlink{{\tt VM\_InterfaceInvocation.java}}{\VMInterfaceInvocationURL}.
-
-\JikesTMFooter
+\xlink{{\tt VM\-\_In\-ter\-face\-In\-vo\-ca\-tion\-.java}}{\VMInterfaceInvocationURL}.
 
 \subsection{VM Conventions}
 
-%% footnotes not allowed in section headings, so we specialize
-\htmlonly{\subsubsection{AIX\trademark VM Conventions}} 
-\texonly{\subsubsection{AIX\trademark VM Conventions}} 
+\subsubsection{AIX/PowerPC VM Conventions}
 \label{aix-conventions}
 
-\index{stack conventions}
-\index{register conventions}
-\index{calling conventions}
+\index{stack conventions: AIX/PowerPC}
+\index{register conventions: AIX/PowerPC}
+\index{calling conventions: AIX/PowerPC}
 
 This section describes register, stack, and calling conventions that apply to 
-Jikes RVM on PowerPC\PowerPCTMFootnote.
+Jikes RVM on AIX\-/\-Pow\-er\-PC\TMweb{}.
 
 Stackframe layout and calling conventions may evolve as our understanding
-of Jikes RVM's performance improves.  Where possible API's should be used
+of Jikes RVM's performance improves.  Where possible, API's should be used
 to protect code against such changes.  In particular, we may move to
-the AIX conventions at a later date.  Where code differs from the AIX
+the AIX\TMweb{} conventions at a later date.  Where code differs from the AIX
 conventions, it should be marked with a comment to that effect containing
-the string "AIX".
+the string ``\texttt{AIX}''.
 
-\noindent{\bf Register conventions}
+%\noindent{\bf Register conventions}
+\paragraph{Register conventions}
 
 Registers (general purpose, gp, and floating point, fp) can be roughly
 categorized into four types:
 
 \begin{description}
-\item [Scratch]
+\item[Scratch]
      Needed for method prologue/epilogue.  Can be used by compiler between
      calls.
 
 \item[Dedicated]
      Reserved registers with known contents:
 \begin{description}
-\item [JTOC - Jikes RVM Table Of Contents]
+\item[\link{JTOC}{JTOC} - Jikes RVM Table Of Contents]
         Globally accessible data: constants, static fields and methods.
 
-\item [FP - Frame Pointer]
+\item[FP - Frame Pointer]
         Current stack frame (thread specific).
 
-\item [TI - Thread (locking) Id]
+\item[TI - Thread (locking) Id]
         Used to set (and test) the locking field of light weight object
         locks.  Can also be shifted to get the index into a global
         array of an object representing the current thread.
 
-\item [PR - Processor register]
+\item[PR - Processor register]
         An object representing the current virtual processor (the one
         executing on the CPU containing these registers).  A field in
         this object contains a reference to the object representing
         the {\tt VM\_Thread} being executed.
 \end{description}
 
-\item [Volatile ("caller save", or "parameter")]
-     Like scratch registers these can be used by the compiler as
-     temporaries, but they are not preserved across calls.  (Volatile
+\item[Volatile (``caller save'', or ``parameter'')]
+     Like scratch registers, these can be used by the compiler as
+     temporaries, but they are not preserved across calls.  Volatile
      registers differ from scratch registers in that volatiles
      can be used to pass parameters and result(s) to and from
-     methods.)
+     methods.
 
-\item [Nonvolatile ("callee save", or "preserved")]
+\item[Nonvolatile (``callee save'', or ``preserved'')]
      These can be used (and are preserved across calls), but they must be
      saved on method entry and restored at method exit.  Highest numbered
      registers are to be used first.  (At least initially, nonvolatile
      registers will not be used to pass parameters.)
 
 \item[Condition Register's 4-bit fields]
-We follow the AIX conventions to minimize cost in JNI C to Java
-transitions. 
+We follow the AIX conventions to minimize cost in JNI transitions
+between C and Java code. 
 \begin{description}
-\item    [CR0, CR1, CR5, CR6, CR7] volatile
-\item    [CR2, CR3, CR4] non-volatile
+\item[CR0, CR1, CR5, CR6, CR7] volatile
+\item[CR2, CR3, CR4] non-volatile
 \end{description}
 The baseline compiler only uses CR0.  The opt compiler allocates CR0,
 CR1, CR5 and CR6 and reserves CR7 for use in yieldpoints.  None of the
 compilers use CR2, CR3, or CR4 to avoid saving/restoring condition
-registers when doing a JNI transition from C to Java. 
+registers when doing a JNI transition from C to Java code. 
 \end{description}
 
 
-\noindent{\bf Stack conventions}
+%\noindent{\bf Stack conventions}
+\paragraph{Stack conventions}
 
 Stacks grow from high memory to low memory.
 The layout of the stackframe appears in a block comment in
-\xlink{{\tt \$RVM\_ROOT/rvm/src/vm/arch/powerpc/VM\_StackframeLayoutConstants.java}}
-{\PPCStackframeLayoutURL}.
+\texorhtml{\texttt{\$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-arch/\-powerpc/\-VM\_\-StackframeLay\-outCon\-stants.java}}{\xlink{\texttt{\$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-arch/\-powerpc/\-VM\_\-StackframeLay\-outCon\-stants.java}}{\PPCStackframeLayoutURL}}.
 
-\noindent{\bf Calling Conventions}
+%\noindent{\bf Calling Conventions}
+\paragraph{Calling Conventions}
 
 \begin{description}
 \item[Parameters]
@@ -326,7 +328,7 @@ The layout of the stackframe appears in a block comment in
     fp register; a long result is returned in the first two volatile gp
     registers (low-order half in the first);
 
-\item [Method prologue responsibilities] (some of these can be omitted for leaf
+\item[Method prologue responsibilities] (some of these can be omitted for leaf
   methods):
 
 \begin{enumerate}
@@ -339,15 +341,15 @@ The layout of the stackframe appears in a block comment in
 
 \item Save any nonvolatile general-purpose registers used by callee.
 
-\item Store and update the frame pointer FP.
+\item Store and update the frame pointer FP.\@
 
 \item Store callee's compiled method ID 
 
-\item Check to see if the Java\trademark thread must yield the {\tt VM\_Processor}
+\item Check to see if the Java\TMweb{} thread must yield the {\tt VM\_Processor}
 (and yield if threadswitch was requested). 
 \end{enumerate}
 
-\item [Method epilogue responsibilities] (some of these can be
+\item[Method epilogue responsibilities] (some of these can be
 ommitted for leaf methods):
 
 \begin{enumerate}
@@ -361,18 +363,19 @@ ommitted for leaf methods):
 \end{enumerate}
 \end{description}
 
-\subsubsection{Linux/IA32 VM Conventions} \label{lintel-conventions}
-\index{stack conventions}
-\index{register conventions}
-\index{calling conventions}
+\subsubsection{Linux/x86-32 VM Conventions} \label{lintel-conventions}
+\index{stack conventions: Linux/x86-32}
+\index{register conventions: Linux/x86-32}
+\index{calling conventions: Linux/x86-32}
 
 This section describes register, stack, and calling conventions that
-apply to Jikes RVM on Linux/IA32.  
+apply to Jikes RVM on Li\-nux\Rweb{}\-/x86-32.  
 
-\noindent{\bf Register conventions}
+%\noindent{\bf Register conventions}
+\paragraph{Register conventions}
 
 \begin{description}
-\item [EAX]
+\item[EAX]
     First GPR parameter register, first GPR result value (high-order part
     of a long result), otherwise volatile (caller-save).
 
@@ -397,19 +400,21 @@ apply to Jikes RVM on Linux/IA32.
     virtual processor.
 
 \item[EDI]
-    Nonvolatile.  (used to hold JTOC in baseline compiled code)
+    Nonvolatile.  (used to hold \link{JTOC}{JTOC} in baseline compiled code)
 
 \end{description}
 
-\noindent{\bf Stack conventions}
+%\noindent{\bf Stack conventions}
+\paragraph{Stack conventions}
 
 Stacks grow from high memory to low memory.
 The layout of the stackframe appears in a block comment in
 \xlink{{\tt
-\$RVM\_ROOT/rvm/src/vm/arch/intel/VM\_StackframeLayoutConstants.java}}
+\$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-arch/\-in\-tel/\-VM\_\-Stack\-frame\-Lay\-out\-Con\-stants.java}}
 {\LintelStackframeLayoutURL}.
 
-\noindent{\bf Calling Conventions}
+%\noindent{\bf Calling Conventions}
+\paragraph{Calling Conventions}
 
 \begin{description}
 \item[At the beginning of callee's prologue]
@@ -417,38 +422,51 @@ The first two areas of the callee's stackframe (see above) have been
      established.  ESP points to caller's return address.
      Parameters from caller to callee are as mandated by 
 \xlink{{\tt
-\$RVM\_ROOT/rvm/src/vm/arch/intel/VM\_RegisterConstants.java}}
+\$RVM\_\-ROOT/\-rvm/\-src/\-vm/\-arch/\-in\-tel/\-VM\_\-Re\-gis\-terCon\-stants.java}}
 {\LintelRegisterConstantsURL}.
+
 \item[After callee's epilogue]
      Callee's stackframe has been removed.  ESP points to the word above where
      callee's frame was.  The framePointer field
      of the VM\_Processor object pointed to by ESI points to A's
      frame.  If B returns a floating-point result, this is at
      the top of the fp register stack.  If B returns a long, the
-     low-order word is in EAX and the high-order word is in EDX.
-     Otherwise, if B has a result, it is in EAX.
+     low-order word is in EAX and the high-order word is in EDX.\@
+     Otherwise, if B has a result, it is in EAX.\@
 
 \end{description}
 
-\JavaTMFooter
+\subsubsection{OS~X VM Conventions}
+\index{calling conventions: OS X/PowerPC}
 
-\AIXPPCTMFooter
+\paragraph{Calling Conventions}
+
+\newcommand{\OSXCallingConventionsURL}{http:\-//\-de\-vel\-op\-er.ap\-ple.com/\-do\-cu\-men\-ta\-tion\-/\-De\-ve\-lo\-per\-Tools\-/\-Con\-cep\-tu\-al\-/\-Mach\-O\-Run\-time\-/\-Mach\-O\-Run\-time\-.pdf}
+The calling conventions we use for OS~X are the same as those listed
+at:
+\begin{example}
+\xlink{\texttt{\OSXCallingConventionsURL}}{\OSXCallingConventionsURL}
+\end{example}
+They're similar to the Linux PowerPC calling conventions.  One
+major difference is how the two operating systems handle the case of
+a \texttt{long} parameter when you only have a single parameter register left.
+
 
 \subsection{Class Loading} \label{sssec:classLoading}
 \index{class loading}
 
-Jikes\trademark RVM implements the Java\trademark programming
-language's dynamic class loading. While a class is being loaded it can
-be in one of six states. These are
+Jikes\TMweb{} RVM implements the Java\TMweb{} programming
+language's dynamic class loading.  While a class is being loaded it can
+be in one of six states. These are:
 \begin{description}
 \item[vacant] The class is in the process of being loaded.
 \item[loaded] the class's bytecode file has been read and parsed successfully.
 \item[resolved] the superclass of this class has been loaded and resolved and
-the offsets (whether in the object itself, the JTOC, or the class's
-TIB) of its fields and methods have been calculated.
+the offsets (whether in the object itself, the \link{JTOC}{JTOC}, or the class's
+\link{TIB}{TIB}) of its fields and methods have been calculated.
 \item[instantiated] the superclass has been instantiated and pointers to the
-compiled methods have been inserted into the JTOC(for static methods) and the
-TIB (for virtual methods).
+compiled methods have been inserted into the \link{JTOC}{JTOC} (for static methods) and the
+\link{TIB}{TIB} (for virtual methods).
 \item[initializing] the superclass has been initialized and the class
 initializer is being run.
 \item[initialized] the superclass has been initialized and the class
@@ -476,16 +494,16 @@ In this state the superclass and superinterfaces of this class have
 been resolved as well.  A list of the virtual methods and instance fields
 of this class, including the methods and fields inherited from its
 superclass has been constructed and the offsets for the instance
-fields have been calculated.  Space has been allocated in the JTOC for
+fields have been calculated.  Space has been allocated in the \link{JTOC}{JTOC} for
 all static fields of the class and for static method pointers and the
-appropriate offsets calculated.  The TIB has been initialized and
+appropriate offsets calculated.  The \link{TIB}{TIB} has been initialized and
 offsets for the virtual methods have been calculated.
 
 \paragraph{Instantiated}
 In this state the superclass has been instantiated.  The
-slots in the TIB are filled in with pointers to compiled code or lazy
+slots in the \link{TIB}{TIB} are filled in with pointers to compiled code or \link{lazy
 compilation stubs for
-the virtual methods.  The slots in the JTOC are filled in with
+the virtual methods}[.  (See Paragraph~\Ref{} on page~\Pageref.)]{par:lazy}  The slots in the \link{JTOC}{JTOC} are filled in with
 pointers to compiled code or lazy compilation stubs for the static methods.
 
 \paragraph{Initializing} 
@@ -495,12 +513,8 @@ initializer is being run.
 
 \paragraph{Initialized} 
 \index{class initializer}
-In this state the superclass has been initialized. The class initializer has 
+In this state the superclass has been initialized.  The class initializer has 
 been run. 
-
-\JavaTMFooter
-
-\JikesTMFooter
 
 \subsection{Thread System}\label{sec:threads}
 

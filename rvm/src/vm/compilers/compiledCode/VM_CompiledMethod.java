@@ -33,7 +33,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
 
   //-#if RVM_WITH_OSR
   // flags the baseline compiled method is outdated, needs OSR
-  private final static int OUTDATED	    = 0x10000000;
+  private final static int OUTDATED         = 0x10000000;
   //-#endif
   protected final static int AVAIL_BITS = 0x0fffffff;
 
@@ -141,16 +141,16 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
       VM_CodeArray code = getInstructions();
       VM_Offset offset = ip.diff(VM_Magic.objectAsAddress(code));
       if (VM.VerifyAssertions) {
-	int max = (code.length()+1)<< VM_Constants.LG_INSTRUCTION_WIDTH;
-	if (!offset.toWord().LT(VM_Word.fromIntZeroExtend(max))) {
-	  VM.sysWrite(method);
-	  VM.sysWriteln();
-	  VM.sysWriteln(offset);
-	  VM.sysWriteln(VM_Offset.fromInt(max));
-	  VM.sysWriteln(ip);
-	  VM.sysWriteln(VM_Magic.objectAsAddress(code));
-	  VM._assert(false);
-	}
+        int max = (code.length()+1)<< VM_Constants.LG_INSTRUCTION_WIDTH;
+        if (!offset.toWord().LT(VM_Word.fromIntZeroExtend(max))) {
+          VM.sysWrite(method);
+          VM.sysWriteln();
+          VM.sysWriteln(offset);
+          VM.sysWriteln(VM_Offset.fromInt(max));
+          VM.sysWriteln(ip);
+          VM.sysWriteln(VM_Magic.objectAsAddress(code));
+          VM._assert(false);
+        }
       }
       // NOTE: we are absolutely positive that offset will fit in 32 bits
       // because we don't create VM_CodeArrays that are so massive it won't.
@@ -315,7 +315,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * <ul>
    */
   public abstract void getDynamicLink(VM_DynamicLink dynamicLink, 
-				      int instructionOffset) throws VM_PragmaUninterruptible;
+                                      int instructionOffset) throws VM_PragmaUninterruptible;
 
    /**
     * Find source line number corresponding to one of this method's 

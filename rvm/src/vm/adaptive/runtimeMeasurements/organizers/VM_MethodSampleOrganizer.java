@@ -75,7 +75,7 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
     for (int i=1; i<numSamples; i++) {
       int cur = samples[i];
       for (int j=0; j<uniqueIdx; j++) {
-	if (cur == samples[j]) continue outer;
+        if (cur == samples[j]) continue outer;
       }
       samples[uniqueIdx++] = cur;
     }
@@ -87,22 +87,22 @@ final class VM_MethodSampleOrganizer extends VM_Organizer {
       int cmid = samples[i];
       double ns = VM_Controller.methodSamples.getData(cmid);
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-      if (cm != null) {		// not already obsoleted
-	int compilerType = cm.getCompilerType();
+      if (cm != null) {         // not already obsoleted
+        int compilerType = cm.getCompilerType();
 
-	// Enqueue it unless it's either a trap method or already opt
-	// compiled at filterOptLevel or higher.
-	if (!(compilerType == VM_CompiledMethod.TRAP ||
-	      (compilerType == VM_CompiledMethod.OPT && 
-	       (((VM_OptCompiledMethod)cm).getOptLevel() >= filterOptLevel)))) {
-	  VM_HotMethodRecompilationEvent event = 
-	    new VM_HotMethodRecompilationEvent(cm, ns);
-	  if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
-	    if (VM.LogAOSEvents) VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
-	  } else {
-	    if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
-	  }
-	}
+        // Enqueue it unless it's either a trap method or already opt
+        // compiled at filterOptLevel or higher.
+        if (!(compilerType == VM_CompiledMethod.TRAP ||
+              (compilerType == VM_CompiledMethod.OPT && 
+               (((VM_OptCompiledMethod)cm).getOptLevel() >= filterOptLevel)))) {
+          VM_HotMethodRecompilationEvent event = 
+            new VM_HotMethodRecompilationEvent(cm, ns);
+          if (VM_Controller.controllerInputQueue.prioritizedInsert(ns, event)){
+            if (VM.LogAOSEvents) VM_AOSLogging.controllerNotifiedForHotness(cm, ns);
+          } else {
+            if (VM.LogAOSEvents) VM_AOSLogging.controllerInputQueueFull(event);
+          }
+        }
       }
     }
   }

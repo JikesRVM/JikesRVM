@@ -83,8 +83,8 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
     if (snode == tnode) return false; // in same loop
     
     for (OPT_LSTNode ptr = tnode; 
-	 ptr != rootNode; 
-	 ptr = ptr.getParent()) {
+         ptr != rootNode; 
+         ptr = ptr.getParent()) {
       if (ptr == snode) return false; // tnode is nested inside of snode
     }
 
@@ -110,7 +110,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
   private String dumpIt(OPT_LSTNode n) {
     String ans = n.toString() + "\n";
     for (Enumeration e = n.getChildren();
-	 e.hasMoreElements();) {
+         e.hasMoreElements();) {
       ans += dumpIt((OPT_LSTNode)e.nextElement());
     }
     return ans;
@@ -134,8 +134,8 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
     entry.sortDFS();
     int dfn = 0;
     for (OPT_SpaceEffGraphNode node = entry; 
-	 node != null; 
-	 node = node.nextSorted) {
+         node != null; 
+         node = node.nextSorted) {
       node.clearLoopHeader();
       node.scratch = dfn++;
       clearBackEdges(node);
@@ -151,12 +151,12 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
     // compute the natural loops for each back edge. 
     // merge backedges with the same header
     for (OPT_BasicBlock node = (OPT_BasicBlock)entry.nextSorted; 
-	 node != null;
-	 node = (OPT_BasicBlock)node.nextSorted) {
+         node != null;
+         node = (OPT_BasicBlock)node.nextSorted) {
       OPT_LSTNode header = null;
       for (OPT_SpaceEffGraphEdge edge = node.firstInEdge(); 
-	   edge != null; 
-	   edge = edge.getNextIn()) {
+           edge != null; 
+           edge = edge.getNextIn()) {
         if (edge.backEdge()) {
           OPT_BitVector loop;
           if (header == null) {
@@ -168,7 +168,7 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
             if (DEBUG) {  System.out.println("header" + header); }
           } else {
             loop = header.loop;
-	  }
+          }
           cfg.clearDFS();
           node.setDfsVisited();
           findNaturalLoop(edge, loop);
@@ -177,8 +177,8 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
     }
     if (DEBUG) {
       for (OPT_SpaceEffGraphNode node = _firstNode; 
-	   node != null; 
-	   node = node.getNext()) {
+           node != null; 
+           node = node.getNext()) {
         System.out.println(node);
       }
     }
@@ -186,16 +186,16 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
     // now build the LST
   lstloop: 
     for (OPT_LSTNode node = (OPT_LSTNode)_firstNode.getNext(); 
-		node != null; 
-		node = (OPT_LSTNode)node.getNext()) {
+                node != null; 
+                node = (OPT_LSTNode)node.getNext()) {
       int number = node.header.getNumber();
       for (OPT_LSTNode prev = (OPT_LSTNode)node.getPrev(); 
-	   prev != _firstNode; 
-	   prev = (OPT_LSTNode)prev.getPrev()) {
-	if (prev.loop.get(number)) {            // nested
-	  prev.insertOut(node);
-	  continue  lstloop;
-	}
+           prev != _firstNode; 
+           prev = (OPT_LSTNode)prev.getPrev()) {
+        if (prev.loop.get(number)) {            // nested
+          prev.insertOut(node);
+          continue  lstloop;
+        }
       }
       // else the node is considered to be connected to the LST head
       _firstNode.insertOut(node);
@@ -210,18 +210,18 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
     if (VM.VerifyAssertions) VM._assert(node.depth == 0);
     node.depth = depth;
     for (Enumeration e = node.getChildren();
-	 e.hasMoreElements();) {
+         e.hasMoreElements();) {
       setDepth(ir, (OPT_LSTNode)e.nextElement(), depth+1);
     }
     OPT_BitVector loop = node.loop;
     if (loop != null) {
       for (int i = 0; i < loop.length(); i++) {
-	if (loop.get(i)) {
-	  OPT_BasicBlock bb = ir.getBasicBlock(i);
-	  if (loopMap.get(bb) == null) {
-	    loopMap.put(bb, node);
-	  }
-	}
+        if (loop.get(i)) {
+          OPT_BasicBlock bb = ir.getBasicBlock(i);
+          if (loopMap.get(bb) == null) {
+            loopMap.put(bb, node);
+          }
+        }
       }
     }
   }
@@ -249,35 +249,35 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
       // saved the state of the enumeration in the loop below
       OPT_SpaceEffGraphNode.GraphEdgeEnumeration e = BBenum[bb.getNumber()];
       if (e == null) {
-	if (DEBUG) { System.out.println(" Initial processing of " + bb);  }
-	bb.setDfsVisited();
-	e = bb.outEdges();
+        if (DEBUG) { System.out.println(" Initial processing of " + bb);  }
+        bb.setDfsVisited();
+        e = bb.outEdges();
       } else {
-	if (DEBUG) { System.out.println(" Resuming processing of " + bb); }
+        if (DEBUG) { System.out.println(" Resuming processing of " + bb); }
       }
 
       while (e.hasMoreElements()) {
-	OPT_SpaceEffGraphEdge outEdge = e.next();
+        OPT_SpaceEffGraphEdge outEdge = e.next();
 
-	OPT_BasicBlock outbb = (OPT_BasicBlock)outEdge.toNode();
-	if (OPT_LTDominatorInfo.isDominatedBy(bb, outbb)) {   // backedge
-	  outbb.setLoopHeader();
-	  outEdge.setBackEdge();
-	  if (DEBUG) {
-	    System.out.println("backedge from " + bb.scratch + " ( " + bb
-			       + " ) " + outbb.scratch + " ( " 
-			       + outbb + " ) ");
-	  }
-	} else if (!outbb.dfsVisited()) {
-	  // irreducible loop test
-	  if (outbb.scratch < bb.scratch)
-	    throw new OPT_OptimizingCompilerException("irreducible loop found!");
-	  // simulate a recursive call
-	  // but first save the enumeration state for resumption later
-	  BBenum[bb.getNumber()] = e;
-	  stack.push(outbb);
-	  continue recurse;
-	}
+        OPT_BasicBlock outbb = (OPT_BasicBlock)outEdge.toNode();
+        if (OPT_LTDominatorInfo.isDominatedBy(bb, outbb)) {   // backedge
+          outbb.setLoopHeader();
+          outEdge.setBackEdge();
+          if (DEBUG) {
+            System.out.println("backedge from " + bb.scratch + " ( " + bb
+                               + " ) " + outbb.scratch + " ( " 
+                               + outbb + " ) ");
+          }
+        } else if (!outbb.dfsVisited()) {
+          // irreducible loop test
+          if (outbb.scratch < bb.scratch)
+            throw new OPT_OptimizingCompilerException("irreducible loop found!");
+          // simulate a recursive call
+          // but first save the enumeration state for resumption later
+          BBenum[bb.getNumber()] = e;
+          stack.push(outbb);
+          continue recurse;
+        }
       } // enum
       // "Pop" from the emulated activiation stack
       if (DEBUG) { System.out.println(" Popping");   }
@@ -337,8 +337,8 @@ public class OPT_LSTGraph extends OPT_SpaceEffGraph {
       fromNode.setDfsVisited();
       loop.set(fromNode.getNumber());
       for (OPT_SpaceEffGraphEdge in = fromNode.firstInEdge(); 
-	   in != null; 
-	   in = in.getNextIn()) {
+           in != null; 
+           in = in.getNextIn()) {
         findNaturalLoop(in, loop);
       }
     }

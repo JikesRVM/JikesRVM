@@ -42,11 +42,11 @@ class Looper extends Thread
 
       // Loop until a separate gc is complete
        while ((c > 0) && ( gccomplete == 0)){
-	   c--;
-	   if ( c == 1) {
-	       r++;
-	       c = d;
-	   }
+           c--;
+           if ( c == 1) {
+               r++;
+               c = d;
+           }
        }
 
 
@@ -116,8 +116,8 @@ class TestBackEdgeGC
 
       // start Thread2 after thread 1 is in loop
        while (Looper.running == 0){
- 	   try {  Thread.currentThread().sleep(20); } 
-	   catch (InterruptedException e) {}
+           try {  Thread.currentThread().sleep(20); } 
+           catch (InterruptedException e) {}
        }
        System.out.println("TestBackEdgeGC-Looper running -starting CallGC");
        callGC.start();

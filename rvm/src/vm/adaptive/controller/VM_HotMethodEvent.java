@@ -29,11 +29,19 @@ abstract class VM_HotMethodEvent {
   public final boolean isOptCompiled() {
     return cm.getCompilerType() == VM_CompiledMethod.OPT;
   }
+
   public final int getOptCompiledLevel() {
     if (!isOptCompiled()) return -1;
     return ((VM_OptCompiledMethod)cm).getOptLevel();
   }
 
+  public final int getPrevCompilerConstant() {
+    if (isOptCompiled()) {
+      return VM_CompilerDNA.getCompilerConstant(getOptCompiledLevel());
+    } else {
+      return VM_CompilerDNA.BASELINE;
+    }
+  }
 
   /**
    * Number of samples attributed to this method.

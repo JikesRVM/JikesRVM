@@ -65,9 +65,9 @@ public class JikesRVMPreferencePage
     rvmList = new List(table, SWT.BORDER | SWT.SINGLE);
     rvmList.setItems(vmStrings());
     rvmList.addMouseListener(new MouseAdapter() {
-	public void mouseDoubleClick(MouseEvent e) {
-	  editSelectedRVM();
-	}
+        public void mouseDoubleClick(MouseEvent e) {
+          editSelectedRVM();
+        }
       });
     
     // Create a data that takes up the extra space in the dialog and spans both columns.
@@ -87,9 +87,9 @@ public class JikesRVMPreferencePage
     Button editButton = new Button(buttonComposite, SWT.PUSH | SWT.CENTER);
     editButton.setText(JikesRVMLauncherMessages.getString("JikesRVMPreferencePage.editButton"));
     editButton.addSelectionListener(new SelectionAdapter() {
-	public void widgetSelected(SelectionEvent event) {
-	  editSelectedRVM();
-	}
+        public void widgetSelected(SelectionEvent event) {
+          editSelectedRVM();
+        }
       });
 
     // A label with the build info
@@ -113,10 +113,10 @@ public class JikesRVMPreferencePage
       Button debuggerSetButton = new Button(table, SWT.PUSH);
       debuggerSetButton.setText("Set Debugger Command");
       debuggerSetButton.addSelectionListener(new SelectionAdapter() {
-	  public void widgetSelected(SelectionEvent event) {
-	    JikesRVMLaunchingPlugin.getDefault().setDebuggerProgram(debuggerText.getText());
-	  }
-	});
+          public void widgetSelected(SelectionEvent event) {
+            JikesRVMLaunchingPlugin.getDefault().setDebuggerProgram(debuggerText.getText());
+          }
+        });
     }
     
     return table;

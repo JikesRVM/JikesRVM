@@ -49,26 +49,26 @@ public class OPT_DominatorTree extends OPT_Tree {
     if (forward) {
       ir.HIRInfo.dominatorTree = new OPT_DominatorTree(ir, forward);
       if (ir.options.PRINT_DOMINATORS) {
-	if (DEBUG) {
-	  System.out.println("Here is the CFG for method "+
-			     ir.method.getName() +"\n"+
-			     ir.cfg);
-	}
-	System.out.println("Here is the Dominator Tree for method "+
-			   ir.method.getName() +"\n"+
-			   ir.HIRInfo.dominatorTree);
+        if (DEBUG) {
+          System.out.println("Here is the CFG for method "+
+                             ir.method.getName() +"\n"+
+                             ir.cfg);
+        }
+        System.out.println("Here is the Dominator Tree for method "+
+                           ir.method.getName() +"\n"+
+                           ir.HIRInfo.dominatorTree);
       }
     } else {
       ir.HIRInfo.postDominatorTree = new OPT_DominatorTree(ir, forward);
       if (ir.options.PRINT_POST_DOMINATORS) {
-	if (DEBUG) {
-	  System.out.println("Here is the CFG for method "+
-			     ir.method.getName() +"\n"+
-			     ir.cfg);
-	}
-	System.out.println("Here is the Post-Dominator Tree for method "+
-			   ir.method.getName() +"\n"+
-			   ir.HIRInfo.postDominatorTree);
+        if (DEBUG) {
+          System.out.println("Here is the CFG for method "+
+                             ir.method.getName() +"\n"+
+                             ir.cfg);
+        }
+        System.out.println("Here is the Post-Dominator Tree for method "+
+                           ir.method.getName() +"\n"+
+                           ir.HIRInfo.postDominatorTree);
       }
     }
   }
@@ -133,7 +133,7 @@ public class OPT_DominatorTree extends OPT_Tree {
         // tell the parent they have a child
         parentNode.addChild(blockNode);
       }
-    }           // for loop	
+    }           // for loop     
   }             // method
 
   /**

@@ -27,9 +27,9 @@ import com.ibm.JikesRVM.opt.ir.*;
  */
 public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   implements VM_Uninterruptible
-	     //-#if RVM_WITH_OPT_COMPILER
-	     ,OPT_Operators
-	     //-#endif
+             //-#if RVM_WITH_OPT_COMPILER
+             ,OPT_Operators
+             //-#endif
 {
 
   /** 
@@ -64,7 +64,7 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * Set the TIB for an object.
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, 
-			    VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
+                            VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
     bootImage.setAddressWord(refOffset + TIB_OFFSET, tibAddr.toInt());
   }
 
@@ -112,8 +112,8 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
     OPT_Operand address = GuardedUnary.getClearVal(s);
     OPT_RegisterOperand result = GuardedUnary.getClearResult(s);
     Load.mutate(s,INT_LOAD, result.copyRO(),
-		address, new OPT_IntConstantOperand(TIB_OFFSET), 
-		null, GuardedUnary.getClearGuard(s));
+                address, new OPT_IntConstantOperand(TIB_OFFSET), 
+                null, GuardedUnary.getClearGuard(s));
   }
   //-#endif
 }

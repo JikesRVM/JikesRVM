@@ -1,7 +1,8 @@
-\label{section:cmdline}
-\index{command line arguments}
 
-This section describes how non-standard Jikes\trademark RVM command
+\label{section:cmdline}%
+\index{command line arguments}%
+%
+This section describes how non-standard Jikes\TMweb{} RVM command
 line options are specified. Command line options can be used to modify
 the behavior of the runtime system, adaptive optimization system, the
 optimizing compiler, the baseline compiler, or the memory manager.  A
@@ -124,21 +125,21 @@ to generate the following output:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Adding Jikes RVM Non-Standard Command-Line Options}
 The supporting code for virtually all of the non-standard
-Jikes\trademark RVM command-line options (and much of the content of
-this section of the userguide) is machine generated from
-option description files.  Each of the major sub-systems (vm, aos, gc,
-baseline compiler, optimzing compiler) has its own set of description
+Jikes\TMweb{} RVM command-line options (and much of the content of
+this section of the user's guide) is machine generated from
+option description files.  Each of the major sub-systems (VM, AOS, GC,
+Baseline Compiler, Optimzing Compiler) has its own set of description
 files and corresponding name space of options. 
 
 At a high level, adding a new command line argument can be done just
 by adding a new record to the appropriate option description file.  We
 strongly discourage adding command line options by any other means as
 doing so leads to more work in maintaining the help messages, option
-processing, and userguide. Although the details of the template and
+processing, and user's guide. Although the details of the template and
 option description files varies slightly from one subsystem to the
 other, the general ideas are the same.  
 
-\index{OPT\_Options class}
+\IndexttClass{OPT\_Options}%
 As an example, here is a discussion on how to add a command line
 option to the optimizing compiler.
 Jikes RVM stores command-line options to the optimizing compiler 
@@ -146,20 +147,17 @@ as fields in an object of type {\tt OPT\_Options}.
 The Jikes RVM build process generates the {\tt OPT\_Options.java} 
 file automatically from a template.  
 
-\index{BooleanOptions.dat}
-\index{ValueOptions.dat}
 To add or modify the command-line options in {\tt OPT\_Options.java},
-you must modify either {\tt BooleanOptions.dat} or 
-{\tt ValueOptions.dat}.  You should describe your desired
+you must modify either \IndexTexttt{BooleanOptions.dat} or 
+\IndexTexttt{ValueOptions.dat}.  You should describe your desired
 command-line option in a format described below.
 Your option will be generated the next time you build the
 system.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{BooleanOptions.dat}
-\index{BooleanOptions.dat}
+\subsubsection{\texttt{BooleanOptions.dat}}
 
-The {\tt BooleanOptions.dat} file defines boolean options for
+The \IndexTexttt{BooleanOptions.dat} file defines boolean options for
 the optimizing compiler.  The file describes each command-line option 
 by a two-line record, and each record is separated
 by a blank line.  Long lines can be continued using ``$\backslash$''.
@@ -194,12 +192,11 @@ Perform local scalar replacement
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{ValueOptions.dat}
-\index{ValueOptions.dat}
 
-The {\tt ValueOptions.dat} file defines non-boolean options for
+The \IndexTexttt{ValueOptions.dat} file defines non-boolean options for
 the optimizing compiler.  The file describes each command-line option 
 with a three-line record, and each record is separated
-by a blank line.  As with {\tt BooleanOptions.dat},
+by a blank line.  As with \texttt{BooleanOptions.dat},
 long lines can be continued using ``$\backslash$'' and
 blank lines are once again significant.
 Lines starting with ``\#'' are ignored.
@@ -267,8 +264,8 @@ Notice how the third line was broken up by using ``$\backslash$''.
 
 So, by default, Jikes RVM uses the {\em strict} floating-point
 semantics.  To use the option that allows fused multiply-add
-instructions, specify {\tt -X:irc:allow\_fma} on the command-line.
+({\texonly{\sc} FMA})
+instructions, specify ``{\tt -X:irc:allow\_fma}'' on the command-line.
 Given an {\tt OPT\_Options} object called {\tt options}, your code can
-query if fma is allowed by testing {\tt options.allowFMA()}.
+query if {\texonly{\sc} FMA} is allowed by testing ``{\tt op\-tions\-.al\-low\-F\-M\-A()}''.
 
-\JikesTMFooter

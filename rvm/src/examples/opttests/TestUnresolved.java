@@ -26,7 +26,7 @@ public class TestUnresolved {
       test[0] = new temp5();
       test[1] = new temp6();
       for (int i=0; i< 2; i++) {
-	System.out.println(test[i].foo());
+        System.out.println(test[i].foo());
       }
       return true;
    }

@@ -244,7 +244,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    *
    * @return the end of the generated machine code.
    */
-  final int getMachineCodeIndex () {
+  public final int getMachineCodeIndex () {
       return mi;
   }
     
@@ -310,6 +310,35 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
     if (lister != null) lister.noteBytecode(bytecodeNumber, bc);
   }
 
+  final void noteBytecode (int i, String bcode, int x) throws VM_PragmaNoInline {
+    noteBytecode(i, bcode+" "+x);
+  }
+
+  final void noteBytecode (int i, String bcode, long x) throws VM_PragmaNoInline {
+    noteBytecode(i, bcode+" "+x);
+  }
+
+  final void noteBytecode (int i, String bcode, Object o) throws VM_PragmaNoInline {
+    noteBytecode(i, bcode+" "+o);
+  }
+
+  final void noteBytecode (int i, String bcode, int x, int y) throws VM_PragmaNoInline {
+    noteBytecode(i, bcode+" "+x+" "+y);
+  }
+
+  final void noteBranchBytecode (int i, String bcode, int off,
+                           int bt) throws VM_PragmaNoInline {
+    noteBytecode(i, bcode +" "+off+" ["+bt+"] ");
+  }
+
+  final void noteTableswitchBytecode (int i, int l, int h, int d) throws VM_PragmaNoInline {
+    noteBytecode(i, "tableswitch [" + l + "--" + h + "] " + d);
+  }
+
+  final void noteLookupswitchBytecode (int i, int n, int d) throws VM_PragmaNoInline {
+    noteBytecode(i, "lookupswitch [<" + n + ">]" + d);
+  }
+  
   /**
    *  inform the lister of a comment related to the currently
    * generated machine code.
@@ -788,7 +817,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
    *
    * @param cond the condition code on which to branch
    */
-  final VM_ForwardReference forwardJcc (byte cond) {
+  public final VM_ForwardReference forwardJcc (byte cond) {
     int miStart = mi;
     VM_ForwardReference r =  new VM_ForwardReference.ShortBranch(mi);
     setMachineCodes(mi++, (byte) (0x70 + cond));

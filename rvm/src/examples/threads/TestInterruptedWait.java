@@ -16,13 +16,13 @@ public class TestInterruptedWait {
 
     new Thread() {
       public void run() {
-	try {
-	  Thread.sleep(1000);
-	}
-	catch (InterruptedException e) {
-	}
+        try {
+          Thread.sleep(1000);
+        }
+        catch (InterruptedException e) {
+        }
 
-	mainThread.interrupt();
+        mainThread.interrupt();
       }
     }.start();
 
@@ -31,8 +31,8 @@ public class TestInterruptedWait {
         lock.wait(2000);
       }
       catch (InterruptedException e) {
-	System.out.println("TestInterruptedWait SUCCESS");
-	System.exit(0);
+        System.out.println("TestInterruptedWait SUCCESS");
+        System.exit(0);
       }
     }
 

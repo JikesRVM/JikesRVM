@@ -27,7 +27,7 @@ public final class OPT_ConvertBCtoHIR extends OPT_CompilerPhase {
     // Generate the cfg into gc
     OPT_GenerationContext gc = 
       new OPT_GenerationContext(ir.method, ir.compiledMethod, 
-				ir.options, ir.inlinePlan);
+                                ir.options, ir.inlinePlan);
     OPT_BC2IR.generateHIR(gc);
     // Transfer HIR and misc state from gc to the ir object
     ir.gc = gc;

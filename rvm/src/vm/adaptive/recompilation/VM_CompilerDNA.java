@@ -4,9 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.adaptive;
 
-import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.classloader.VM_Method;
-import com.ibm.JikesRVM.VM_Constants;
+import com.ibm.JikesRVM.*;
+import com.ibm.JikesRVM.classloader.VM_NormalMethod;
 import java.io.*;
 import java.util.*;
 
@@ -30,33 +29,27 @@ public class VM_CompilerDNA implements VM_Constants {
   private static int numCompilers;
 
   /**
-   *  Average bytecodes compiled per millisec
+   * Average bytecodes compiled per millisec
+   * These numbers were from a shadow on September 6, 2003 on munchkin (AIX/PPC)
+   * and turangalila (Linux/IA32) using unweighted compilation rate,
+   * which is different than previous collections
    */
-  //-#if RVM_FOR_AIX
-  /*
-   *  These numbers were from a shadow on August 20, 2003 on AIX/PPC (munchkin)
-   */
-  private static final double[] compilationRates = {477.61, 4.69, 3.11, 1.33};
-  //-#else
-  /*
-   *  These numbers were from a shadow on August 20, 2003 on Linux/IA32 (turangalila)
-   */
-  private static final double[] compilationRates = {707.71, 6.76, 3.46, 1.55};
+  //-#if RVM_FOR_POWERPC
+  private static final double[] compilationRates = {377.76, 9.29, 5.69, 1.81};
+  //-#elif RVM_FOR_IA32
+  private static final double[] compilationRates = {351.50, 10.51, 5.21, 1.89};
   //-#endif
 
   /**
    * What is the execution rate of each compiler normalized to the 1st compiler
+   * These numbers were from a shadow on September 6, 2003 on munchkin (AIX/PPC)
+   * and turangalila (Linux/IA32) using unweighted compilation rate, 
+   * which is different than previous collections
    */
-  //-#if RVM_FOR_AIX
-  /*
-   *  These numbers were from a shadow on August 20, 2003 on AIX/PPC (munchkin)
-   */
-  private static final double[] speedupRates = {1.00, 4.35, 6.12, 6.54};
-  //-#else
-  /*
-   *  These numbers were from a shadow on August 20, 2003 on Linux/IA32 (turangalila)
-   */
-  private static final double[] speedupRates = {1.00, 4.17, 5.82, 5.45};
+  //-#if RVM_FOR_POWERPC
+  private static final double[] speedupRates = {1.00, 4.26, 6.07, 6.61};
+  //-#elif RVM_FOR_IA32
+  private static final double[] speedupRates = {1.00, 4.03, 5.55, 5.34};
   //-#endif
 
   /**
@@ -98,12 +91,30 @@ public class VM_CompilerDNA implements VM_Constants {
   }
 
   /**
+   * Estimate how long (in milliseconds) it will/did take the 
+   * given compiler to compile the given method.
+   *
+   * @param compiler the compiler to compile meth
+   * @param meth the method to be compiled
+   * @return an estimate of compile time (in milliseconds)
+   */ 
+  static double estimateCompileTime(int compiler, VM_NormalMethod meth) {
+    double bytes = (double)meth.getBytecodeLength();
+    double runtimeBaselineRate = VM_RuntimeCompiler.getBaselineRate();
+    double compileTime = bytes / runtimeBaselineRate;
+    if (compiler != BASELINE) {
+      compileTime *= compileTimeRatio[BASELINE][compiler];
+    }
+    return compileTime;
+  }
+    
+  /**
    * Returns the compilation rates of the baseline compiler in 
-   *  bytecodes/millisecond
+   *  bytecodes/millisecond.
    * @return the compilation rates of the baseline compiler in 
    *   bytecodes/millisecond
    */
-  static public double getBaselineCompilationRate() {
+  public static double getBaselineCompilationRate() {
     return compilationRates[BASELINE];
   }
 
@@ -124,43 +135,43 @@ public class VM_CompilerDNA implements VM_Constants {
 
     if (VM.LogAOSEvents) {
       for (int i=0; i < compilationRates.length; i++) {
-	VM_AOSLogging.reportCompilationRate(i, compilationRates[i]);
+        VM_AOSLogging.reportCompilationRate(i, compilationRates[i]);
       }
       for (int i=0; i < speedupRates.length; i++) {
-	VM_AOSLogging.reportSpeedupRate(i, speedupRates[i]);
+        VM_AOSLogging.reportSpeedupRate(i, speedupRates[i]);
       }
     }
 
     // fill in the upper triangular matrices
     for (int prevCompiler = 0; 
-	 prevCompiler < numCompilers; 
-	 prevCompiler++) {
+         prevCompiler < numCompilers; 
+         prevCompiler++) {
 
       benefitRatio[prevCompiler][prevCompiler] = 1.0;
       compileTimeRatio[prevCompiler][prevCompiler] = 1.0;
 
       for (int nextCompiler = prevCompiler+1; 
-	   nextCompiler < numCompilers; 
-	   nextCompiler++) {
+           nextCompiler < numCompilers; 
+           nextCompiler++) {
 
-	benefitRatio[prevCompiler][nextCompiler] = 
-	  speedupRates[nextCompiler] / speedupRates[prevCompiler];
+        benefitRatio[prevCompiler][nextCompiler] = 
+          speedupRates[nextCompiler] / speedupRates[prevCompiler];
 
-	// Since compilation rates are not relative to the 1st compiler
-	//  we invert the division.
-	compileTimeRatio[prevCompiler][nextCompiler] = 
-	  compilationRates[prevCompiler] / compilationRates[nextCompiler];  
+        // Since compilation rates are not relative to the 1st compiler
+        //  we invert the division.
+        compileTimeRatio[prevCompiler][nextCompiler] = 
+          compilationRates[prevCompiler] / compilationRates[nextCompiler];  
 
-	if (VM.LogAOSEvents) {
-	  VM_AOSLogging.reportBenefitRatio(
-			   prevCompiler, nextCompiler,
-			   benefitRatio[prevCompiler][nextCompiler]);
+        if (VM.LogAOSEvents) {
+          VM_AOSLogging.reportBenefitRatio(
+                           prevCompiler, nextCompiler,
+                           benefitRatio[prevCompiler][nextCompiler]);
 
-	  VM_AOSLogging.reportCompileTimeRatio(
-			   prevCompiler, nextCompiler,
-			   compileTimeRatio[prevCompiler][nextCompiler]);
-	}
-	
+          VM_AOSLogging.reportCompileTimeRatio(
+                           prevCompiler, nextCompiler,
+                           compileTimeRatio[prevCompiler][nextCompiler]);
+        }
+        
       }
     }
 
@@ -168,8 +179,8 @@ public class VM_CompilerDNA implements VM_Constants {
     int maxProfitableCompiler = 0;
     for (int compiler = 1; compiler < numCompilers; compiler++) {
       if (compilationRates[compiler] > compilationRates[compiler-1] ||
-	  speedupRates[compiler] > speedupRates[compiler-1]) {
-	maxProfitableCompiler = compiler;
+          speedupRates[compiler] > speedupRates[compiler-1]) {
+        maxProfitableCompiler = compiler;
       }
     }
     int maxOptLevel = getOptLevel(maxProfitableCompiler);
@@ -186,7 +197,7 @@ public class VM_CompilerDNA implements VM_Constants {
     try {
 
       LineNumberReader in =
-	new LineNumberReader(new FileReader(filename));
+        new LineNumberReader(new FileReader(filename));
 
       // Expected Format
       //   CompilationRates  aaa.a  bbbb.b cccc.c dddd.d ....
@@ -207,7 +218,7 @@ public class VM_CompilerDNA implements VM_Constants {
    *  @param valueHolder the array to hold the read values
    */
   static private void processOneLine(LineNumberReader in, String title,
-				     double[] valueHolder) throws IOException {
+                                     double[] valueHolder) throws IOException {
 
     String s = in.readLine();
     if (VM.VerifyAssertions) VM._assert(s != null);
@@ -221,8 +232,8 @@ public class VM_CompilerDNA implements VM_Constants {
     
     // walk through the array, making sure we still have tokens
     for (int i=0;
-	 parser.hasMoreTokens() && i < valueHolder.length;
-	 i++) {
+         parser.hasMoreTokens() && i < valueHolder.length;
+         i++) {
 
       // get the available token
       token = parser.nextToken();
@@ -253,8 +264,8 @@ public class VM_CompilerDNA implements VM_Constants {
       case OPT1: return 1;
       case OPT2: return 2;
       default:
-	if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown compiler constant\n");
-	return -99;
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown compiler constant\n");
+        return -99;
     }
   }
 
@@ -278,8 +289,8 @@ public class VM_CompilerDNA implements VM_Constants {
       case 1: return OPT1;
       case 2: return OPT2;
       default:
-	if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level\n");
-	return -99;
+        if (VM.VerifyAssertions) VM._assert(NOT_REACHED, "Unknown Opt Level\n");
+        return -99;
     }
   }
 }

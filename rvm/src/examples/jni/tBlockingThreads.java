@@ -33,10 +33,10 @@ class tBlockingThreads
     if (NUMBER_OF_WORKERS == 0) {
       // have main thread make the native blocking call
       for (int i=1; i < 5; i++) {
-	time = 1 * i;
-	VM_Scheduler.trace("main","calling nativeBlocking for time = ",time);
-	nativeBlocking(time);
-	VM_Scheduler.trace("main","returned from nativeBlocking for time = ",time);
+        time = 1 * i;
+        VM_Scheduler.trace("main","calling nativeBlocking for time = ",time);
+        nativeBlocking(time);
+        VM_Scheduler.trace("main","returned from nativeBlocking for time = ",time);
       }
     }
 
@@ -44,34 +44,34 @@ class tBlockingThreads
       // create worker threads which each make repeated native blocking calls
       BlockingThreadsWorker a[] = new BlockingThreadsWorker[NUMBER_OF_WORKERS];
       for ( int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk++ )
-	{
-	  if (wrk%2 == 0)
-	    a[wrk] = new BlockingThreadsWorker(1); 
-	  else
-	    a[wrk] = new BlockingThreadsWorker(2); 
-	  
-	  a[wrk].start();
-	}
+        {
+          if (wrk%2 == 0)
+            a[wrk] = new BlockingThreadsWorker(1); 
+          else
+            a[wrk] = new BlockingThreadsWorker(2); 
+          
+          a[wrk].start();
+        }
       
       for ( int i = 0; i < NUMBER_OF_WORKERS; i ++ ) {
-	int cntr = 1;
-	while( ! a[i].isFinished) {
-	  
-	  try { 	     
-	    Thread.currentThread().sleep(100);
-	  } 
-	  catch (InterruptedException e) {}
-	  
-	  cntr++;
-	  if (cntr%1000 == 0)
-	    VM_Scheduler.trace("main","waiting for worker",i);
+        int cntr = 1;
+        while( ! a[i].isFinished) {
+          
+          try {              
+            Thread.currentThread().sleep(100);
+          } 
+          catch (InterruptedException e) {}
+          
+          cntr++;
+          if (cntr%1000 == 0)
+            VM_Scheduler.trace("main","waiting for worker",i);
 
-	  if (FORCE_GC) {
-	    System.out.println("\nMain calling System.gc:\n");
-	    System.gc();
-	  }
+          if (FORCE_GC) {
+            System.out.println("\nMain calling System.gc:\n");
+            System.gc();
+          }
 
-	}
+        }
       }
 
       System.out.println("Finished");

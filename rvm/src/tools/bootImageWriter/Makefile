@@ -5,10 +5,12 @@
 # @author Derek Lieber
 
 include		$(RVM_BUILD)/Make.rules.host
+SHELL=${BASH}			# Set shell to bash because we use 'echo -n' 
+			        # below, and /bin/sh on AIX does not support
+                                # 'echo -n'.
 
 HOST_JDK_FLAGS=
 HOST_MEM_MAX=400M
-HOST_MEM_MIN=400M
 
 LIB_JAR=$(JAL_BUILD)/RVM.classes/rvmrt.jar
 
@@ -19,12 +21,18 @@ LINKEDLIST_KLUDGE_CLASSES = java/util/LinkedList* java/util/List*
 BUNDLE_KLUDGE_CLASSES = java/util/ResourceBundle* java/util/Locale*
 UTIL_KLUDGE_CLASSES = $(ZIP_KLUDGE_CLASSES) $(MAP_KLUDGE_CLASSES) $(TREEMAP_KLUDGE_CLASSES) $(LINKEDLIST_KLUDGE_CLASSES) $(BUNDLE_KLUDGE_CLASSES)
 UTIL_KLUDGE_EXTRACT = $(foreach PAT, $(UTIL_KLUDGE_CLASSES), '$(PAT)')
-UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/libyuck.jar
+UTIL_KLUDGE_JAR=$(SCRATCH_DIR)/utility_kludge.jar
 
 $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
-	cd $(SCRATCH_DIR); $(UNZIP_CMD) -Uoqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
-	cd $(SCRATCH_DIR); $(HOST_JAR) cvf $@ $(UTIL_KLUDGE_CLASSES) > /dev/null 2> /dev/null
-	@echo -n "(built workaround zip) "
+#	cd $(SCRATCH_DIR); $(UNZIP_CMD) -Uoqq $< $(UTIL_KLUDGE_EXTRACT) > /dev/null 2> /dev/null
+# -U: Maintain uppercase MS-DOS file names if we need to.
+# -o: Overwrite if we need to.  (I think -f might be better)
+# (Uh, no.  At least with unzip 5.50, we want -u instead, for update 
+#  > /dev/null 2> /dev/null
+#  > /dev/null 2> /dev/null
+	cd $(SCRATCH_DIR); $(UNZIP_CMD) -uoqq $< $(UTIL_KLUDGE_EXTRACT)
+	cd $(SCRATCH_DIR); $(HOST_JAR) -cf $@ $(UTIL_KLUDGE_CLASSES)
+	@echo -n "(built $$(basename ${UTIL_KLUDGE_JAR})) "
 
 #
 # The -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) is a kludge to force
@@ -52,7 +60,7 @@ $(UTIL_KLUDGE_JAR):		$(LIB_JAR)
 $(RVM_BOOTIMAGE): $(UTIL_KLUDGE_JAR)
 	$(HOST_JAVA) -Xbootclasspath/p:$(UTIL_KLUDGE_JAR) \
 	    -Xbootclasspath/a:$(LIB_JAR) \
-	   -Xms$(HOST_MEM_MIN) -Xmx$(HOST_MEM_MAX)\
+	   -Xmx$(HOST_MEM_MAX)\
 	   -classpath $(SCRATCH_DIR):$(RVM_REPOSITORIES) \
 	   -Djava.security.policy=rvm.security \
 	   $(HOST_JDK_FLAGS) $(VERBOSE_ARG) \

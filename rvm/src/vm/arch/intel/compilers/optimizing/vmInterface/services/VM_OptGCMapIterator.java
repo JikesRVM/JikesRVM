@@ -65,13 +65,13 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
       // update non-volatiles
       int first = compiledMethod.getFirstNonVolatileGPR();
       if (first >= 0) {
-	// move to the beginning of the nonVol area
-	VM_Address location = nonVolArea;
-	
-	for (int i = first; i < NUM_NONVOLATILE_GPRS; i++) {
-	  // determine what register index corresponds to this location
-	  int registerIndex = NONVOLATILE_GPRS[i];
-	  registerLocations.set(registerIndex, location);
+        // move to the beginning of the nonVol area
+        VM_Address location = nonVolArea;
+        
+        for (int i = first; i < NUM_NONVOLATILE_GPRS; i++) {
+          // determine what register index corresponds to this location
+          int registerIndex = NONVOLATILE_GPRS[i];
+          registerLocations.set(registerIndex, location);
           if (DEBUG) {
             VM.sysWrite("UpdateRegisterLocations: Register ");
             VM.sysWrite(registerIndex);
@@ -79,19 +79,19 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
             VM.sysWrite(location);
             VM.sysWrite("\n");
           }
-	  location = location.sub(BYTES_IN_ADDRESS);
-	}
+          location = location.sub(BYTES_IN_ADDRESS);
+        }
       }
       
       // update volatiles if needed
       if (compiledMethod.isSaveVolatile()) {
-	// move to the beginning of the nonVol area
-	VM_Address location = nonVolArea.add(4 * NUM_VOLATILE_GPRS);
-	
-	for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
-	  // determine what register index corresponds to this location
-	  int registerIndex = VOLATILE_GPRS[i];
-	  registerLocations.set(registerIndex, location);
+        // move to the beginning of the nonVol area
+        VM_Address location = nonVolArea.add(4 * NUM_VOLATILE_GPRS);
+        
+        for (int i = 0; i < NUM_VOLATILE_GPRS; i++) {
+          // determine what register index corresponds to this location
+          int registerIndex = VOLATILE_GPRS[i];
+          registerLocations.set(registerIndex, location);
           if (DEBUG) {
             VM.sysWrite("UpdateRegisterLocations: Register ");
             VM.sysWrite(registerIndex);
@@ -99,8 +99,8 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
             VM.sysWrite(location);
             VM.sysWrite("\n");
           }
-	  location = location.sub(BYTES_IN_ADDRESS);
-	}
+          location = location.sub(BYTES_IN_ADDRESS);
+        }
       }
     }
   }

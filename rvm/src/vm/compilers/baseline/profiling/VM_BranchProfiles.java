@@ -28,17 +28,17 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
       int mid = (low + high) >> 1;
       int bci = data[mid].getBytecodeIndex();
       if (bci == bcIndex) {
-	return data[mid];
+        return data[mid];
       }
       if (low >= high) { 
-	// search failed
-	if (VM.VerifyAssertions) { VM._assert(false); }
-	return null;
+        // search failed
+        if (VM.VerifyAssertions) { VM._assert(false); }
+        return null;
       }
       if (bci > bcIndex) {
-	high = mid-1;
+        high = mid-1;
       } else {
-	low = mid+1;
+        low = mid+1;
       }      
     }
   }
@@ -71,40 +71,40 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
       case JBC_if_icmplt:case JBC_if_icmpge:case JBC_if_icmpgt:
       case JBC_if_icmple:case JBC_if_acmpeq:case JBC_if_acmpne:
       case JBC_ifnull:case JBC_ifnonnull: {
-	int yea = cs[countIdx + VM_EdgeCounts.TAKEN];
-	int nea = cs[countIdx + VM_EdgeCounts.NOT_TAKEN];
-	int offset = bcodes.getBranchOffset();
-	boolean backwards = offset < 0;
-	countIdx += 2;
-	data[dataIdx++] = new VM_ConditionalBranchProfile(bcIndex, yea, nea, backwards);
-	break;
+        int yea = cs[countIdx + VM_EdgeCounts.TAKEN];
+        int nea = cs[countIdx + VM_EdgeCounts.NOT_TAKEN];
+        int offset = bcodes.getBranchOffset();
+        boolean backwards = offset < 0;
+        countIdx += 2;
+        data[dataIdx++] = new VM_ConditionalBranchProfile(bcIndex, yea, nea, backwards);
+        break;
       }
 
       case JBC_tableswitch: {
-	bcodes.alignSwitch();
-	int def = bcodes.getDefaultSwitchOffset();
-	int low = bcodes.getLowSwitchValue();
-	int high = bcodes.getHighSwitchValue();
-	int n = high - low + 1;
-	data[dataIdx++] = new VM_SwitchBranchProfile(bcIndex, cs, countIdx, n+1);
-	countIdx += n + 1;
-	bcodes.skipTableSwitchOffsets(n);
-	break;
+        bcodes.alignSwitch();
+        int def = bcodes.getDefaultSwitchOffset();
+        int low = bcodes.getLowSwitchValue();
+        int high = bcodes.getHighSwitchValue();
+        int n = high - low + 1;
+        data[dataIdx++] = new VM_SwitchBranchProfile(bcIndex, cs, countIdx, n+1);
+        countIdx += n + 1;
+        bcodes.skipTableSwitchOffsets(n);
+        break;
       }
 
       case JBC_lookupswitch: { 
-	bcodes.alignSwitch();
-	int def = bcodes.getDefaultSwitchOffset();
-	int numPairs = bcodes.getSwitchLength();
-	data[dataIdx++] = new VM_SwitchBranchProfile(bcIndex, cs, countIdx, numPairs+1);
-	countIdx += numPairs + 1;
-	bcodes.skipLookupSwitchPairs(numPairs);
-	break;
+        bcodes.alignSwitch();
+        int def = bcodes.getDefaultSwitchOffset();
+        int numPairs = bcodes.getSwitchLength();
+        data[dataIdx++] = new VM_SwitchBranchProfile(bcIndex, cs, countIdx, numPairs+1);
+        countIdx += numPairs + 1;
+        bcodes.skipLookupSwitchPairs(numPairs);
+        break;
       }
 
       default:
-	bcodes.skipInstruction();
-	break;
+        bcodes.skipInstruction();
+        break;
       }
     }
 
@@ -115,7 +115,7 @@ public final class VM_BranchProfiles implements VM_BytecodeConstants {
       // We had a switch statment; shrink the array.
       VM_BranchProfile[] newData = new VM_BranchProfile[dataIdx];
       for (int i=0; i<dataIdx; i++) {
-	newData[i] = data[i];
+        newData[i] = data[i];
       }
       data = newData;
     }

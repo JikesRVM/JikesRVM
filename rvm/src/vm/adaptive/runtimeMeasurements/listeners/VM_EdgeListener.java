@@ -111,8 +111,8 @@ class VM_EdgeListener extends VM_ContextListener
     }
 
     VM_Synchronization.fetchAndAdd(this,
-				   VM_Entrypoints.edgeListenerUpdateCalledField.getOffset(),
-				   1);
+                                   VM_Entrypoints.edgeListenerUpdateCalledField.getOffset(),
+                                   1);
 
     // don't take a sample for back edge yield points
     if (whereFrom == VM_Thread.BACKEDGE) return; 
@@ -122,15 +122,15 @@ class VM_EdgeListener extends VM_ContextListener
     VM_Address returnAddress = VM_Address.zero();
 
     if (VM_Magic.getMemoryAddress(sfp) == STACKFRAME_SENTINEL_FP) {
-      if (DEBUG) VM.sysWrite(" Walking off end of stack!\n");	
+      if (DEBUG) VM.sysWrite(" Walking off end of stack!\n");   
       return;
     }
 
     calleeCMID = VM_Magic.getCompiledMethodID(sfp);
     if (calleeCMID == INVISIBLE_METHOD_ID) {
       if (DEBUG){
-	VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
-	VM.sysWrite(calleeCMID); VM.sysWrite("\n");       
+        VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
+        VM.sysWrite(calleeCMID); VM.sysWrite("\n");       
       } 
       return;
     }
@@ -138,15 +138,15 @@ class VM_EdgeListener extends VM_ContextListener
     returnAddress = VM_Magic.getReturnAddress(sfp); // return address in caller
     sfp = VM_Magic.getCallerFramePointer(sfp);      // caller's frame pointer
     if(VM_Magic.getMemoryAddress(sfp) == STACKFRAME_SENTINEL_FP) {
-      if (DEBUG) VM.sysWrite(" Walking off end of stack\n");	
+      if (DEBUG) VM.sysWrite(" Walking off end of stack\n");    
       return;
     }
     callerCMID = VM_Magic.getCompiledMethodID(sfp);
     if (callerCMID == INVISIBLE_METHOD_ID) {
       if (DEBUG) { 
-	VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
-	VM.sysWrite(callerCMID); VM.sysWrite("\n"); 
-      }	
+        VM.sysWrite(" INVISIBLE_METHOD_ID  (assembler code) ");
+        VM.sysWrite(callerCMID); VM.sysWrite("\n"); 
+      } 
       return;
     }
 
@@ -155,7 +155,7 @@ class VM_EdgeListener extends VM_ContextListener
     VM_CompiledMethod callerCM = VM_CompiledMethods.getCompiledMethod(callerCMID);
     if (callerCM.getCompilerType() == VM_CompiledMethod.TRAP) {
       if (DEBUG) {
-	VM.sysWriteln(" HARDWARE TRAP FRAME ");
+        VM.sysWriteln(" HARDWARE TRAP FRAME ");
       }
       return;
     }
@@ -169,9 +169,9 @@ class VM_EdgeListener extends VM_ContextListener
     }
     
     // Find out what sample we are.
-    int sampleNumber = 	VM_Synchronization.fetchAndAdd(this, 
-						       VM_Entrypoints.edgeListenerSamplesTakenField.getOffset(),
-						       1);
+    int sampleNumber =  VM_Synchronization.fetchAndAdd(this, 
+                                                       VM_Entrypoints.edgeListenerSamplesTakenField.getOffset(),
+                                                       1);
     int idx = 3*sampleNumber;
 
     // If we got buffer slots that are beyond the end of the buffer, that means
@@ -184,7 +184,7 @@ class VM_EdgeListener extends VM_ContextListener
 
       // If we are the last sample, we need to activate the organizer.
       if (sampleNumber+1 == desiredSamples) {
-	activateOrganizer();
+        activateOrganizer();
       } 
     } 
   }

@@ -140,7 +140,7 @@ public interface VM_StackframeLayoutConstants  {
   static final int STACKFRAME_HEADER_SIZE             = 12;
    
    // space to save entire FPU state.  The FPU state is saved only for 'bridge' frames
-   static final int FPU_STATE_SIZE       	       = 108;
+   static final int FPU_STATE_SIZE                     = 108;
 
   /** fp value indicating end of stack walkback */
   static final VM_Address STACKFRAME_SENTINEL_FP = VM_Address.fromIntSignExtend(-2);

@@ -117,11 +117,11 @@ public abstract class OPT_CompilerPhase implements Cloneable {
   public final void performPhase (OPT_IR ir) {
     if (printingEnabled(ir.options, true)) {
       if (!ir.options.hasMETHOD_TO_PRINT() ||
-	  ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
-	// only print above centain opt level.
-	if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
-	  dumpIR(ir, "Before " + getName());
-	}
+          ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
+        // only print above centain opt level.
+        if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
+          dumpIR(ir, "Before " + getName());
+        }
       }
     }
     if (ir.options.PRINT_PHASES) VM.sysWrite(getName());
@@ -131,11 +131,11 @@ public abstract class OPT_CompilerPhase implements Cloneable {
     if (ir.options.PRINT_PHASES) VM.sysWrite(" done\n");
     if (ir.options.PRINT_ALL_IR || printingEnabled(ir.options, false)) {
       if (!ir.options.hasMETHOD_TO_PRINT() ||
-	  ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
-	// only print when above certain opt level
-	if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
-	  dumpIR(ir, "After " + getName());
-	}
+          ir.options.fuzzyMatchMETHOD_TO_PRINT(ir.method.toString())) {
+        // only print when above certain opt level
+        if (ir.options.getOptLevel() >= ir.options.IR_PRINT_LEVEL) {
+          dumpIR(ir, "After " + getName());
+        }
       }
     }
 
@@ -150,13 +150,13 @@ public abstract class OPT_CompilerPhase implements Cloneable {
    */
   public static void dumpIR (OPT_IR ir, String tag) {
     System.out.println("********* START OF IR DUMP  " + tag + "   FOR "
-		       + ir.method);
+                       + ir.method);
     ir.printInstructions();
     if (ir.options.PRINT_CFG) {
       ir.cfg.printDepthFirst();
     }
     System.out.println("*********   END OF IR DUMP  " + tag + "   FOR "
-		       + ir.method);
+                       + ir.method);
   }
 
   /**

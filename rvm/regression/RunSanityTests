@@ -269,12 +269,6 @@ while [ $# != 0 ]; do
    shift
 done
 
-#
-# Some common command line arguments
-#
-DEFAULT_ADAPTIVE_RC_ARGS="-X:recomp:errors_fatal=true -X:aos:logging_level=1"
-OPT_JIT_ARGS="-X:aos:enable_recompilation=false -X:aos:initial_compiler=opt"
-
 # Name of current configuration being tested.
 #
 NAME="NoName"
@@ -295,6 +289,62 @@ function setConfiguration {
 
 }
 
+
+# Wait for a semaphore file to appear; used in doBuild()
+# waitFor <semaphore-file> <sleep-interval> <max-duration>
+function waitFor () {
+    local -r sem="$1";
+    local -i -r SLEEP_DURATION=$2;
+    local -i -r MAX_SLEEP=$3;
+    
+    local -i dots=0	# Number of dots printed.
+    local -i printedWaiting=0	# did we print the "Waiting for... message?"
+    if [[ ! -a $sem ]]; then
+	printedWaiting=1
+	echo "$ME: Waiting for the file \"$sem\""
+	echo -n "$ME: to appear"
+    fi
+    ## Print a dot every two minutes while we are waiting.
+    while [[ ! -a $sem ]]; do
+	if (( dots * SLEEP_DURATION >= MAX_SLEEP )); then
+	    say "We've waited for too long, $MAX_SLEEP seconds."
+	    say "We'll assume this build was stillborn and try the next one."
+	    echo "FAILED to build $NAME; marked as stillborn by $0 on $(date)" >> $sem
+	    return 1;
+	fi
+	let ++dots;
+	echo -n "."
+	sleep $SLEEP_DURATION;
+    done
+    if (( dots < 1 && printedWaiting )); then
+	echo ";  it's already here."
+    elif (( printedWaiting )); then
+	local -i waited_minutes
+	let waited_minutes=(dots * SLEEP_DURATION / 60)
+	echo "Done.  (Had to wait $waited_minutes minutes.)"
+    fi
+    echo -n "$ME: Build status: "
+    if fgrep FAILED $sem; then
+	# fgrep has printed the FAILED message for us.
+	return 2
+    elif fgrep SUCCESS $sem; then
+	# fgrep has printed the status message for us.
+	if fgrep NEED-LINKING $sem > /dev/null ; then
+	    need_linking=1
+	else
+	    need_linking=0
+	fi
+    elif [[ ! -s $sem ]]; then
+	say "Build succeeded; someone must have manually created the file \"$sem\".  I'll go on."
+    else
+	echo "ERROR"
+	say "$sem is not in a recognized format!"
+	say "Internal error.  Maybe someone manually created it?"
+	say "Or maybe we ran out of disk space?"
+	say "We'll assume the build failed."
+	return -1
+    fi
+}
 
 
 # Build a virtual machine.
@@ -350,7 +400,7 @@ function doBuild {
 	## The magic strings here in $WAIT are:
 	## FAILED, SUCCESS, and NEED-LINKING
 	if [[ $WAIT ]]; then
-	    say "Leaving a wait marker in \"$WAIT\""
+	    say "Leaving a wait marker in RVM_BUILD/\"$WAIT\""
 	    # Leave a marker to signify the building is done.
 	    if (( failed == 1 )); then
 		echo "SUCCESS Built boot image for $NAME in what must be a cross-platform build. Must still run jbuild -booter to create executable."
@@ -370,49 +420,12 @@ function doBuild {
         #   "failed" is passed down to code after the "if".
     else 
 	if [[ $WAIT ]]; then
-	    local -i dots=0	# Number of dots printed.
-	    echo "$ME: Waiting for the file \"$RVM_BUILD/$WAIT\""
-	    echo -n "$ME: to appear"
-	    while [[ ! -a $RVM_BUILD/$WAIT ]]; do
-		if (( dots * SLEEP_DURATION >= MAX_SLEEP )); then
-		    say "We've waited for too long, $MAX_SLEEP seconds."
-		    say "We'll assume this build was stillborn and try the next one."
-		    return 1;
-		fi
-		let ++dots;
-		echo -n "."
-		sleep $SLEEP_DURATION;
-	    done
-	    if (( dots < 1 )); then
-		echo ";  it's already here."
-	    else
-		local -i waited_minutes
-		let waited_minutes=(dots * SLEEP_DURATION) / 60
-		echo "Done.  (Had to wait $waited_minutes minutes.)"
-	    fi
-	    cd $RVM_BUILD || return 1
-	    echo -n "$ME: Build status: "
-	    if fgrep FAILED $WAIT; then
-		# fgrep will print the message for us.
-		return 2
-	    elif fgrep SUCCESS $WAIT; then
-		# fgrep has printed the status message for us.
-		if fgrep NEED-LINKING $WAIT > /dev/null ; then
-		    need_linking=1
-		else
-		    need_linking=0
-		fi
-	    elif [[ ! -s $WAIT ]]; then
-		say "Build succeeded; someone must have manually created the file \"$WAIT\".  I'll go on."
-	    else
-		say "$WAIT is not in a recognized format!"
-		say "Internal error."
-		return -1
-	    fi
+	    waitFor "$RVM_BUILD/$WAIT" $SLEEP_DURATION $MAX_SLEEP
+	    failed=$?
 	fi
 	
 	## The only thing left to do is to link.  And we only do that if 
-	## we need to ling AND if we had a successful build so far.
+	## we need to link AND if we had a successful build so far.
 
 	(( failed )) && return $failed
 	
@@ -420,6 +433,7 @@ function doBuild {
 	    say "Serious trouble; can not go to RVM_BUILD ($RVM_BUILD)"
 	    return 2
 	fi
+
 	# UMass regression tests do cross-builds
 	# If RVM.image not present, relink.
         #
@@ -452,7 +466,8 @@ function doRun {
     # Determine which set of runtime arguments to pass
     case $NAME in
 
-	*Adaptive* ) export RC_ARGS=$DEFAULT_ADAPTIVE_RC_ARGS 
+	*Adaptive*|prototype-opt|production|development )
+            export RC_ARGS="-X:recomp:errors_fatal=true -X:aos:logging_level=1 -X:aos:lf=AOSLog.$NAME.txt"
 	    ;;
 
 	* ) # baseline must be the runtime compiler - no default options yet
@@ -519,14 +534,24 @@ function doRun {
     fi
 
     . $RVM_BUILD/environment.target
-    $RVM_ROOT/rvm/regression/limited.sh $LIMIT "$GNU_MAKE $FLAGS \
+    ## Note: If you quote this, it'll break.  limited.bash respects
+    ## whatever quoting you put around the command.
+    $RVM_ROOT/rvm/regression/limited.bash $LIMIT $GNU_MAKE $FLAGS \
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
 	   SUFFIX=$SUFFIX \
-           PROCESSORS=\"$NUM_PROCS\" \
-           RC_ARGS=\"$RC_ARGS $OPT_LEVEL_ARGS $EXTRA_RC_ARGS\" \
+           PROCESSORS="$NUM_PROCS" \
+           RC_ARGS="$RC_ARGS $OPT_LEVEL_ARGS $EXTRA_RC_ARGS" \
            JAVA_PACKAGES=$RVM_BUILD/RVM.classes \
            RVMPATH=$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar \
-           clean sanity"
+           clean sanity
+#     $RVM_ROOT/rvm/regression/limited.sh $LIMIT "$GNU_MAKE $FLAGS \
+# 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
+# 	   SUFFIX=$SUFFIX \
+#            PROCESSORS=\"$NUM_PROCS\" \
+#            RC_ARGS=\"$RC_ARGS $OPT_LEVEL_ARGS $EXTRA_RC_ARGS\" \
+#            JAVA_PACKAGES=$RVM_BUILD/RVM.classes \
+#            RVMPATH=$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar \
+#            clean sanity"
 
     # record status
     test_status=$?
@@ -566,7 +591,7 @@ function doTests {
    
 function doOptLevelTests {
     for OPT_LEVEL in $OPT_LEVELS; do
-	export OPT_LEVEL_ARGS="$OPT_JIT_ARGS -X:irc:$OPT_LEVEL"
+	export OPT_LEVEL_ARGS="-X:aos:enable_recompilation=false -X:aos:initial_compiler=opt -X:irc:$OPT_LEVEL"
 	doTests
     done
 }

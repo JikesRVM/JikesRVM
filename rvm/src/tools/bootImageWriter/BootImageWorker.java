@@ -27,15 +27,15 @@ public class BootImageWorker extends Thread {
     while (true) {
       VM_Type type = null;
       synchronized (enum) {
-	if (enum.hasMoreElements()) {
-	  type = (VM_Type) enum.nextElement();
-	  count++;
-	}
+        if (enum.hasMoreElements()) {
+          type = (VM_Type) enum.nextElement();
+          count++;
+        }
       }
       if (type == null) 
-	return;
+        return;
       if (verbose >= 1) 
-	  BootImageWriterMessages.say("Thread " + id + " instantiating type " + count + " " + type);
+          BootImageWriterMessages.say("Thread " + id + " instantiating type " + count + " " + type);
       type.instantiate();
     }
   }

@@ -50,7 +50,7 @@ public class HybridHeader {
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeHeader(VM_Address ref, Object[] tib, int size,
-				      boolean isScalar)
+                                      boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     // nothing here because this is for default allocation, which is
     // to the copying allocator, which requires nothing to be done.
@@ -65,7 +65,7 @@ public class HybridHeader {
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeMarkSweepHeader(VM_Address ref, Object[] tib,
-					       int size, boolean isScalar)
+                                               int size, boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (VM_Interface.VerifyAssertions && MM_Interface.gcInProgress())
       VM_Interface._assert(false);
@@ -83,7 +83,7 @@ public class HybridHeader {
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeLOSHeader(VM_Address ref, Object[] tib,
-					 int size, boolean isScalar)
+                                         int size, boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     if (VM_Interface.VerifyAssertions && MM_Interface.gcInProgress())
       VM_Interface._assert(false);
@@ -104,7 +104,7 @@ public class HybridHeader {
    * (false) object?
    */
   public static int getBootTimeAvailableBits(int ref, Object[] tib, int size,
-					     boolean isScalar, int status)
+                                             boolean isScalar, int status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return status; // nothing to do (no bytes of GC header)
   }

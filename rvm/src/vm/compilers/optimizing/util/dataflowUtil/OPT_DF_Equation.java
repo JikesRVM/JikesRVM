@@ -202,22 +202,22 @@ public class OPT_DF_Equation implements OPT_GraphNode {
    */
   public OPT_GraphNodeEnumeration outNodes () {
     return  new OPT_GraphNodeEnumeration() {
-	    private OPT_GraphNode elt = getLHS();
+            private OPT_GraphNode elt = getLHS();
 
-	    public boolean hasMoreElements () {
-		return elt != null;
-	    }
+            public boolean hasMoreElements () {
+                return elt != null;
+            }
 
-	    public OPT_GraphNode next () {
-		OPT_GraphNode x = elt;
-		elt = null;
-		return x;
-	    }
+            public OPT_GraphNode next () {
+                OPT_GraphNode x = elt;
+                elt = null;
+                return x;
+            }
 
-	    public Object nextElement () {
-		return  next();
-	    }
-	};
+            public Object nextElement () {
+                return  next();
+            }
+        };
   }
     
   /**
@@ -228,20 +228,20 @@ public class OPT_DF_Equation implements OPT_GraphNode {
    */
   public OPT_GraphNodeEnumeration inNodes () {
       return new OPT_GraphNodeEnumeration() {
-	      private int i = 1;
-	      
-	      public boolean hasMoreElements () {
-		  return  (i < operands.length);
-	      }
-	      
-	      public OPT_GraphNode next () {
-		  return operands[i++];
-	      }
-	      
-	      public Object nextElement () {
-		  return  next();
-	      }
-	  };
+              private int i = 1;
+              
+              public boolean hasMoreElements () {
+                  return  (i < operands.length);
+              }
+              
+              public OPT_GraphNode next () {
+                  return operands[i++];
+              }
+              
+              public Object nextElement () {
+                  return  next();
+              }
+          };
   }
 
   private Object scratchObject;

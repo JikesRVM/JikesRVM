@@ -58,8 +58,8 @@ public final class OPT_InlineDecision {
    * @return a decision YES to inline, but it is not always safe. 
    */
   public static OPT_InlineDecision guardedYES(VM_Method target, 
-					      byte guard, 
-					      String reason) {
+                                              byte guard, 
+                                              String reason) {
     VM_Method[] targets = new VM_Method[1];
     byte[] guards = new byte[1];
     targets[0] = target;
@@ -76,8 +76,8 @@ public final class OPT_InlineDecision {
    * @return a decision YES to inline, but it is not always safe. 
    */
   public static OPT_InlineDecision guardedYES(VM_Method[] targets, 
-					      byte[] guards,
-					      String reason) {
+                                              byte[] guards,
+                                              String reason) {
     return new OPT_InlineDecision(targets, guards, GUARDED_YES, reason);
   }
 
@@ -171,7 +171,7 @@ public final class OPT_InlineDecision {
    * @param reason a string rationale
    */
   private OPT_InlineDecision (VM_Method[] targets, byte[] guards,
-			      short code, String reason) {
+                              short code, String reason) {
     this.targets = targets;
     this.guards = guards;
     this.code = code;
@@ -199,19 +199,19 @@ public final class OPT_InlineDecision {
     if (targets != null) {
       for (int i = 0; i < targets.length; i++) {
         s += " " + targets[i];
-	if (guards != null) {
-	  switch (guards[i]) {
-	  case OPT_Options.IG_METHOD_TEST:
-	    s += " (method test)";
-	    break;
-	  case OPT_Options.IG_CLASS_TEST:
-	    s += " (class test)";
-	    break;
-	  case OPT_Options.IG_CODE_PATCH:
-	    s += " (code patch)";
-	    break;
-	  }
-	}
+        if (guards != null) {
+          switch (guards[i]) {
+          case OPT_Options.IG_METHOD_TEST:
+            s += " (method test)";
+            break;
+          case OPT_Options.IG_CLASS_TEST:
+            s += " (class test)";
+            break;
+          case OPT_Options.IG_CODE_PATCH:
+            s += " (code patch)";
+            break;
+          }
+        }
       }
     }
     return s;

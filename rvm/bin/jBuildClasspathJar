@@ -9,7 +9,7 @@
 #
 ME="${0##*/}"
 
-trap 'echo "$ME: Aborted due to a command exiting with error status ($?)"' ERR 2> /dev/null || echo >&2 "$ME: This shell can not trap ERR.  We will go on anyway."
+trap 'echo "$ME: Aborted due to a command exiting with error status ($?)"' ERR 2> /dev/null || :
 set -e
 
 
@@ -17,8 +17,6 @@ set -e
 ## constants
 ##
 TOP_LEVEL_PACKAGES="java javax gnu"
-CVS_SPIN_ATTEMPTS=5
-CVS_SLEEP_ATTEMPTS=5
 
 ##
 ## defaults
@@ -27,12 +25,7 @@ export CHECK=0
 export DEST_DIR=$RVM_ROOT/classpath
 export OS_VER=$(uname -v)
 
-if [ $(uname) = Linux ]; then
-    CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:/cvsroot/classpath
-else
-    CLASSPATH_CVS_ROOT=:pserver:anoncvs@subversions.gnu.org:2401/cvsroot/classpath
-fi
-CLASSPATH_CVS_DATESPEC_ARG=$(cat $RVM_ROOT/rvm/bin/classpath.stamp)
+CLASSPATH_URL=$(cat $RVM_ROOT/rvm/bin/classpath.stamp)
 
 if [[ -e $CLASSPATH_ROOT/classpath/config.guess ]]; then
     export USE_LOCAL_CLASSPATH="yes"
@@ -41,20 +34,17 @@ else
     export USE_LOCAL_CLASSPATH="no"
 fi
 
+if [[ -e /usr/include/gtk-2.0/gtk/gtk.h ]]; then
+    export CLASSPATH_CONFIG_ARGS="--enable-portable-native-sync"
+else
+    export CLASSPATH_CONFIG_ARGS="--disable-gtk-peer"
+fi
 
 ##
 ## process arguments
 ##
 while [[ $# > 0 ]] ; do
     case $1 in
-	--datespec) 
-	    CLASSPATH_CVS_DATESPEC_ARG="$2"
-	    shift ;;
-	
-	--root)
-	    CLASSPATH_CVS_ROOT=$2
-	    shift ;;
-	
 	--destination)
 	    DEST_DIR=$2
 	    shift ;;
@@ -70,9 +60,14 @@ done
 ##
 if [[ "$USE_LOCAL_CLASSPATH" = "no" ]]; then
     if [[ -e $DEST_DIR/stamp ]]; then
-	if ! $DIFF -q $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp ; then
+	declare -i stat=0
+	$DIFF $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp > /dev/null || stat=$?
+	if (( stat == 1 )); then
 	    echo "Removing out-of-date GNU Classpath checkout"
 	    rm -rf $DEST_DIR
+	elif (( stat != 0 )); then
+	    echo >&2 "$ME: diff failed with bad status $stat; aborting"
+	    exit $stat
 	fi
     else
 	echo "Removing unknown GNU Classpath checkout"
@@ -96,7 +91,7 @@ fi
 if [[ ! -e $DEST_DIR/classpath/TODO ]]; then
     if [[ $USE_LOCAL_CLASSPATH != "no" ]]; then
 	echo >&2 "Please download GNU Classpath and unpack it in $DEST_DIR"
-	echo >&2 "(You should use classpath-0.06 or newer for best results)"
+	echo >&2 "(You should use classpath-0.07 or newer for best results)"
 	exit 1
     fi
     echo "Downloading GNU Classpath"
@@ -104,41 +99,25 @@ if [[ ! -e $DEST_DIR/classpath/TODO ]]; then
     mkdir -p $DEST_DIR
     cd $DEST_DIR
     
-    if [[ x$CLASSPATH_CVS_DATESPEC_ARG = x ]]; then
-	CVS_CMD="$CVS -Q -d $CLASSPATH_CVS_ROOT co classpath"
-    else
-	CVS_CMD="$CVS -Q -d $CLASSPATH_CVS_ROOT co -D "$CLASSPATH_CVS_DATESPEC_ARG" classpath"
-	
-        # ugh.  we sometimes have trouble with subversions.gnu.org, so we
-	# retry a few times.
-	done=false
-	sleep=0
-	while (( sleep++ < CVS_SLEEP_ATTEMPTS )) &&  [[ $done = "false" ]]
-	do
-	    spin=0
-	    while (( spin++ < CVS_SPIN_ATTEMPTS )) && [[ $done = "false" ]]
-	    do
-	        if $CVS_CMD; then
-		    done="true"
-	        fi
-	    done
-	done
-	cp $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp
-    fi 
+    $WGET --passive-ftp $CLASSPATH_URL -Oclasspath.tar.gz
+    $GNU_TAR xzf classpath.tar.gz
+    rm classpath.tar.gz
+    mv classpath-* classpath
+    cp $RVM_ROOT/rvm/bin/classpath.stamp stamp
 else
     cd $DEST_DIR
 fi
 
-# stuff checked out into this dir
+# stuff untarred into this dir
 cd classpath
 
 # set up the directory for building if needed
 if [[ ! -e $DEST_DIR/classpath/configure ]]; then
     echo "Setting up source tree"
-    if [[ $RVM_FOR_IA32 = 1 ]]; then
-	aclocal
+    if [[ `uname -m` = i686 ]]; then
+      aclocal
     else
-	aclocal -I $RVM_ROOT/rvm/config/m4
+      aclocal -I $RVM_ROOT/rvm/config/m4
     fi
     autoheader
     automake
@@ -151,11 +130,7 @@ if [[ ! -e $DEST_DIR/$system_type/lib/glibj.zip ]]; then
     mkdir -p $DEST_DIR/$system_type
     echo "Configuring for $system_type"
     cd $DEST_DIR/$system_type
-    if [[ $RVM_FOR_IA32 = 1 ]]; then
-	../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --enable-portable-native-sync
-    else
-	FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" --disable-gtk-peer
-    fi   
+    FIND=$FIND ZIP=$ZIP_CMD AR=$AR AR_FLAGS=$AR_FLAGS ../classpath/configure --enable-jni --with-jikes="$HOST_JIKES" $CLASSPATH_CONFIG_ARGS
     echo "Building the library"
     $GNU_MAKE
 fi

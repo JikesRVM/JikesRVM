@@ -1,38 +1,40 @@
-The vast majority of Jikes RVM's source code is in Java ($\approx 1049$
-source files as of this writing.)  This section describes a set of
+The vast majority of Jikes\TMweb{} RVM's source code is in the Java\TMweb{}
+programming language ($\approx 1052$ source files as of this writing,
+November 21, 2003, including examples and tools.)  This section
+describes a set of 
 coding style guidelines that we recommend for all Java code added to
-Jikes\trademark RVM.
+Jikes RVM.\@  We shall subsequently visit the other programming languages.
 
-This section also includes one or more coding conventions that we
-use within Jikes RVM.  
+This section also includes coding conventions that we
+use within Jikes RVM.\@  
 
-\subsection{Coding Convention}
+\subsection{Coding Conventions}
 
 \subsubsection{The {\tt VM\_} prefix}
 
 By convention, any class which should be loaded into the boot image
 starts its name with {\tt VM\_}.  This is used by the build configurator,
 {\tt jconfigure}, which uses that information to create {\tt
-\$RVM\_BUILD/RVM.primordials}, the file containing the list of classes
+\$RVM\-\_\-BUILD\-/\-R\-V\-M\-.pri\-mor\-di\-als}, the file containing the list of classes
 that should be written into \jrvm{}'s  boot image.
 
-The JMTk (see~\ref{section:JMTk}) classes don't follow this naming convention
+\link{The JMTk classes}[ (see Section~\Ref, page~\Pageref)]{section:JMTk} don't follow this naming convention
 because they're an independent subsystem, but the rest of \jrvm{} does.
 
 \subsubsection{Assertions}
 \label{assertions}
 
 Partly for historical reasons, we use our own built-in assertion
-facility rather than the one that appeared in Sun's JDK 1.4.   All
+facility rather than the one that appeared in Sun\Rweb{}'s JDK 1.4.   All
 assertion checks have one of the two forms:
 \begin{example}
 \tt{}    if (VM.VerifyAssertions)  VM._assert({\it condition}
 \tt{}    if (VM.VerifyAssertions)  VM._assert({\it condition}, {\it message})
 \end{example}
 {\tt VM.VerifyAssertions} is a {\tt 
-public static final} field.  The {\tt RVM\_WITHOUT\_ASSERTIONS}
+public static final} field.  The \varName{RVM\_WITHOUT\_ASSERTIONS}
 configuration variable determines {\tt VM.VerifyAssertions}' value.
-If {\tt RVM\_WITHOUT\_ASSERTIONS} is enabled, \jrvm{} has no assertion
+If \varName{RVM\_WITHOUT\_ASSERTIONS} is enabled, \jrvm{} has no assertion
 overhead. 
 
 If you use the form without a {\it message}, then the default message
@@ -56,44 +58,56 @@ An assertion failure is always followed by a stack dump.
 Regrettably, much code in the current system does not follow any
 consistent coding style.  This is an unfortunate residuum of the
 system's evolution.  It makes editing sometimes unpleasant, and
-prevents Javadoc from formatting comments in many files.  To alleviate
-this problem, we present this style guide for new Java code; it's just
-a small tweak of Sun's style guide.
+prevents Javadoc\TMweb{} from formatting comments in many files.  To alleviate
+this problem, we present this style guide for new Java\TMweb{} code; it's just
+a small tweak of Sun\Rweb{}'s style guide.
 
 \subsection{File Headers}
 
-Every file needs to have a header with a copyright notice, a Javadoc
+Every file needs to have a header with a copyright notice, a Javadoc\TMweb{}
 {\tt @author} tag, and an RCS/CVS {\tt \$Id\$} entry. There may be
 multiple Javadoc {\tt @author} tags, and there may
 additionally be a {\tt @modified} tag for someone who modified code but
 doesn't want to claim co-authorship.  ({\tt @modified} is our own
 extended tag.)  There is usually also a Javadoc {\tt @date} field for
-the date of authorship.  An example of the notices follow.  You can
-just cut-and-paste one from an existing source file.
+the date of authorship.  There are skeleton files for Java, C/C++,
+Bash (Bourne Shell), \texttt{make}, and \texttt{m4} in the source directory
+``\texttt{rvm/etc/skel/}''; just cut-and-paste the header text from them.  
 
-We add the Javadoc authorship tags even to non-Java source files, such
-as shell scripts and C programs.
+A Java example of the notices follows.
+
 \begin{example}
-\tt{}/*
- * (C) Copyright IBM Corp 2003
- * \${}Id{}: SourceFile.java,v 1.105 2003/07/14 22:41:44 augart-oss Exp \$
- * @author Steven Augart
- * @date 10 July 2003
+/* -*-coding: iso-8859-1 -*-
+ *
+ * (C) Copyright © IBM Corp 2003
+ *
+ * \$Id$
+ */
+package com.ibm.JikesRVM;       // FILL ME IN with the appropriate package.
+
+import com.ibm.JikesRVM.classloader.VM_ClassLoader; // FILL ME IN 
+
+/** TODO Substitute a brief description of what this program or library does.
+ *
+ * @author Your Name Here
+ * @date 11 October 2003
  */
 \end{example}
 
+We add the Javadoc authorship tags even to non-Java\TMweb{} source
+files, such as shell scripts and C programs.
 
-\index{Coding Style}
-\index{Java source code style}
-\subsection {Coding style description}
+\index{coding style}%
+\index{Java source code style}%
+\subsection{Coding style description}
 
-The Jikes\trademark RVM coding style guidelines are defined with
-reference to the Sun 
-Microsystems ``Code Conventions for the Java\trademark Programming Language'',
-with a few exceptions listed below.  The Sun coding
+The Jikes\TMweb{} RVM coding style guidelines are defined with
+reference to \xlink{the Sun\Rweb{} 
+Microsystems ``Code Conventions for the Java\TMweb{} Programming Language''}{\SunCodeConventionURL},
+with a few exceptions listed below.\texonly{  The Sun coding
 conventions can be found at 
-\xlink{{\tt \SunCodeConventionURL}} {\SunCodeConventionURL} in HTML,
-PostScript, and PDF.  Most of the style guide is intuitive; 
+\texttt{\SunCodeConventionURL} in HTML,
+PostScript\Rweb{}, and PDF.\@}  Most of the style guide is intuitive; 
 however, please read through the document (or at least look at its sample code).
 
 We have adopted four modifications to the Sun code conventions:
@@ -113,18 +127,19 @@ column lines for exceptional cases, such as to avoid bad line breaks.
 As a special case, the condition {\tt if (VM.VerifyAssertions)} is
 usually immediately followed by the call to {\tt VM.\_assert()},
 with a single space substituting for the normal
-newline-and-indentation.  There's an example in \ref{assertions}.    
+newline-and-indentation.  \link{There's an example \htmlonly{elsewhere
+in this document}}[ in section~\Ref, on page~\Pageref]{assertions}.    
 
 \item {\bf Capitalized fields} 
 Under the Sun coding conventions, and as specified in 
 {\em The Java Language Specification, Second Edition}, the names of
 fields begin with a lowercase letter.  (The only exception they give
 is for some {\tt final static} constants, which have names
-ALL\_IN\_CAPITAL\_LETTERS, with underscores separating them.)  That
+ALL\-\_\-IN\-\_\-CA\-PI\-TAL\-\_\-LET\-TERS, with underscores separating them.)  That
 convention reserves
 IdentifiersBeginningWithACapitalLetterFollowedByMixedCase for the
 names of classes and interfaces.  However, most of the {\tt final}
-fields in the {\tt VM\_Configuration} class and the {\tt VM\_Properties}
+fields in the {\tt VM\_Configuration} class and the {\tt VM\_\-Pro\-per\-ties}
 interface also are in that format.   
 
 Since the {\tt VM} class inherits
@@ -137,21 +152,23 @@ that's how we get {\tt VM.VerifyAssertions}, etc.
 
 \end{enumerate}
 
-\JikesTMFooter
+\paragraph{Spacing and Tabs}
 
-\JavaTMFooter
+As of the \jrvm{} 2.3.1 release, the Java, C, and C++ source code will
+use only spaces for indentation, not tabs.  This is because an IDE
+that a potential contributor uses does not work well with code
+containing tab characters.  
 
 \subsection {Javadoc requirements}
 \index{Javadoc}
 
 All files should contain descriptive comments
-in Javadoc form (
-\xlink{{\tt \JavadocURL}} {\JavadocURL}
-) so
+\xlink{in Javadoc\TMweb{} form}[ (\texttt{\JavadocURL})]{\JavadocURL}
+so
 that documentation can be generated automatically.  Of course,
 additional non-Javadoc source code comments should appear as
 appropriate.
-For Javadoc, at a minimum,
+% For Javadoc, at a minimum,
 
 \begin{enumerate}
 \item All classes and methods should have a block comment describing
@@ -163,76 +180,67 @@ exceptions they may throw (using {\tt @throws}).
 references as appropriate.
 \end{enumerate}
 
-\subsection {Useful tools/hints}
-\index{editing source code}
-\index{vi}
-\index{emacs}
+\subsection{Useful Tools and Hints}\index{editing source code}
 
 This section describes helpful hints for conforming with the style
 guide.  Below are suggestions on how to setup the two most common
-editors, emacs and vi. 
+editors, Emacs and \texttt{vi}. 
 %\remark{If we find a pretty-print code processor, we
 %can describe it in this section.}
 
-\subsubsection{emacs} 
+\subsubsection{Emacs}\index{Emacs}
 
-The following tells {\tt emacs} to indent 2 spaces:
-\begin{verbatim}
-;; You have to do it in this complicated way because of the
-;; strange way the cc-mode initializes the value of `c-basic-offset'.
-(add-hook 'c-mode-hook (lambda () (setq c-basic-offset 2)))
-(add-hook 'java-mode-hook (lambda () (setq c-basic-offset 2)))
-\end{verbatim}
-If you want {\tt emacs} to truncate long lines instead of wrapping them, add
-the following to your c/java mode hook:
-\begin{verbatim}
-(setq truncate-lines 't)
-\end{verbatim}
+\paragraph{jikes-rvm.el}
 
-\subsubsection{vi}\label{options:vi/vim}
+Load the contents of the
+file \texttt{RVM\_ROOT/rvm/etc/jikes-rvm.el}.  This will set up your
+Emacs to use Jikes RVM's coding conventions for Java, C, and C++ code.
 
-If you are more comfortable with {\tt vi}, it is recommended that you
-use a {\tt vi} clone called {\tt vim} 
-(\xlink{{\tt \VimURL}}{\VimURL}).  It
+The easiest way to enable Emacs to do this automatically is to copy
+(cut-and-paste) the contents
+of \texttt{RVM\_ROOT/rvm/etc/dot-emacs.el} into the \texttt{.emacs}
+file in your home directory.
+
+\texttt{dot-emacs.el} also contains sample customizations for telling
+Emacs to: 
+
+\begin{itemize} 
+\item \textbf{use fonts and colors} to highlight your
+code syntactically (this is generally a Good Thing).
+
+\item \textbf{truncate long lines} instead of wrapping them.
+
+\end{itemize}
+
+\subsubsection{vi}%
+        \label{options:vi/vim}%
+        \cindex[vi]{\texttt{vi} and \texttt{vim}}
+
+If you are more comfortable with {\tt vi}, we recommended that you
+use \xlink{\texttt{vim}, a {\tt vi} clone}[ (\texttt{\VimURL})]{\VimURL}.
+\texttt{vim}
 contains all of {\tt vi}'s commands and is fully backward compatible,
-but is much more configurable than {\tt vi}.  Hints for {\tt vi}
-diehards who absolutely refuse to use {\tt vim} are provided at the end
-of this subsection (\ref{options:vi}).
+but is much more configurable than {\tt vi}.  \link{Hints for {\tt vi}
+diehards who absolutely refuse to use {\tt vim} are at the end
+of this subsection}{options:vi}.
 
 \paragraph{vim}\label{options:vim}
 
-If you are using vim version 6.0 or higher, then you can add the
-following to your {\tt .vimrc} for formatting:
 
-\T {\small
-\begin{verbatim}
-set shiftwidth=2           " for indenting and shifting
-set expandtab              " to replace tab characters by spaces
-set smarttab               " to allow the use of <Tab> for indenting
-set formatoptions-=t2croq  " reset formatting
-set formatoptions+=croq    " format comments
-set textwidth=0            " don't wrap text
-set wrapmargin=0           " ditto
-" Java mode setup
-augroup java
-   autocmd!
-   autocmd BufEnter *.java set cindent
-   autocmd BufEnter *.java set cinoptions=>s,e0,n0,f0,{0,}0,^0,:s,=s,ps,ts,c3,+s,(0,u0,)20,*30,gs,hs
-   autocmd BufEnter *.java set cinwords=if,else,while,do,for,switch,static,new
-   autocmd BufLeave *.java set nocindent
-augroup END
-\end{verbatim}
-If you want {\tt vim} to truncate long lines instead of wrapping them, add
-the following to your {\tt .vimrc}:
-\begin{verbatim}
-set formatoptions+=t " to allow autowrap text
-set textwidth=74    " to allow autowrap text at 74th column
-\end{verbatim}
-\T }
+The file \texttt{RVM\_ROOT/rvm/etc/jikes-rvm.vim} contains
+customizations for editing Jikes RVM source code.  It customizes Java
+mode, C++ mode, and C mode.  Since this file will probably improve
+with time, I recommend you load it in indirectly from the source tree
+rather than cutting and pasting its contents into your \texttt{.vimrc} file.
+
+To set yourself up to load it indirectly, add the contents
+of ``\texttt{RVM\_ROOT/rvm/etc/dot-vimrc.vim}'' to a file in your home
+directory named ``\texttt{.vimrc}''.
 
 \paragraph{vi}\label{options:vi}
 
-Standard {\tt vi} options that would approximate Java\trademark formatting are:
+Standard {\tt vi} options that would approximate Java\TMweb{} formatting are:
+
 \begin{verbatim}
 set shiftwidth=2  " for indenting and shifting
 set autoindent    " automatically indent new lines to the start of previous
@@ -241,8 +249,6 @@ and the approximation for wrapping long lines is
 \begin{verbatim}
 set wrapmargin=6  " to allow autowrap text at 74th column
 \end{verbatim}
-
-\JavaTMFooter
 
 % LocalWords:  Javadoc param
 

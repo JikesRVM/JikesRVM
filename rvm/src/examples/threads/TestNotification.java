@@ -131,7 +131,7 @@ class TestNotification {
     for (int i = 0; i < cnt; ++i) {
       System.out.println("main: joining " + tasks[i].getTaskName());
       try {
-	tasks[i].join();
+        tasks[i].join();
       }
       catch (InterruptedException e) {
       }

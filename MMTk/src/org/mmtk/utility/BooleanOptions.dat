@@ -5,6 +5,9 @@ DECL
 # Structure of DECL FULL_NAME DEFAULT_VALUE {SHORT_NAME}
 DESCRIP
 
+protectOnRelease false
+Should memory be protected on release?
+
 noFinalizer false
 Should finalization be disabled?
 

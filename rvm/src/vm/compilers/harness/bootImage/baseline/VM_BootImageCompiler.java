@@ -24,7 +24,7 @@ public class VM_BootImageCompiler {
     for (int i = 0, n = args.length; i < n; i++) {
       String arg = args[i];
       if (!VM_Compiler.options.processAsOption("-X:bc:", arg)) {
-	VM.sysWrite("VM_BootImageCompiler(baseline): Unrecognized argument "+arg+"; ignoring\n");
+        VM.sysWrite("VM_BootImageCompiler(baseline): Unrecognized argument "+arg+"; ignoring\n");
       }
     }
   }
@@ -57,6 +57,6 @@ public class VM_BootImageCompiler {
    */
   public static VM_CompiledMethod compile(VM_NativeMethod method) {
     VM_Callbacks.notifyMethodCompile(method, VM_CompiledMethod.JNI);
-    return VM_JNICompiler.compile(method);
+    return com.ibm.JikesRVM.jni.VM_JNICompiler.compile(method);
   }
 }

@@ -30,7 +30,7 @@ abstract class OPT_AssemblerBase
      * @see VM_Assembler
      */
     OPT_AssemblerBase(int bytecodeSize, boolean shouldPrint) {
-	super(bytecodeSize, shouldPrint);
+        super(bytecodeSize, shouldPrint);
     }
 
     /**
@@ -46,14 +46,14 @@ abstract class OPT_AssemblerBase
      * @return true if op represents an immediate
      */
     static boolean isImm(OPT_Operand op) {
-	return 
-	    (op instanceof OPT_IntConstantOperand)
-	                   ||
-	    (op instanceof OPT_TrapCodeOperand)
-	                   ||
-	    (op instanceof OPT_BranchOperand 
+        return 
+            (op instanceof OPT_IntConstantOperand)
+                           ||
+            (op instanceof OPT_TrapCodeOperand)
+                           ||
+            (op instanceof OPT_BranchOperand 
                            &&
-	     op.asBranch().target.getmcOffset() >= 0);
+             op.asBranch().target.getmcOffset() >= 0);
     }
 
     /**
@@ -72,16 +72,16 @@ abstract class OPT_AssemblerBase
      * @return the immediate value represented by the operand
      */
     static int getImm(OPT_Operand op) {
-	if (op instanceof OPT_BranchOperand) {
-	    // used by ImmOrLabel stuff
-	    return op.asBranch().target.getmcOffset();
-	}
-	else if (op instanceof OPT_TrapCodeOperand) 
-	    return ((OPT_TrapCodeOperand)op).getTrapCode() 
-		                  +
-		   VM_TrapConstants.RVM_TRAP_BASE;
-	else
-	    return op.asIntConstant().value;
+        if (op instanceof OPT_BranchOperand) {
+            // used by ImmOrLabel stuff
+            return op.asBranch().target.getmcOffset();
+        }
+        else if (op instanceof OPT_TrapCodeOperand) 
+            return ((OPT_TrapCodeOperand)op).getTrapCode() 
+                                  +
+                   VM_TrapConstants.RVM_TRAP_BASE;
+        else
+            return op.asIntConstant().value;
     }
 
     /**
@@ -93,7 +93,7 @@ abstract class OPT_AssemblerBase
      * @return true if op is an OPT_RegisterOperand
      */
     static boolean isReg(OPT_Operand op) {
-	return (op instanceof OPT_RegisterOperand);
+        return (op instanceof OPT_RegisterOperand);
     }
 
     /**
@@ -113,15 +113,15 @@ abstract class OPT_AssemblerBase
      * @return the 3 bit machine-level encoding of reg
      */
     static private byte getMachineRegister(OPT_Register reg) {
-	int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(reg);
-	if (type == INT_REG) 
-	    return (byte) (reg.number - FIRST_INT);
-	else if (type == DOUBLE_REG)
-	    return (byte) (reg.number - FIRST_DOUBLE);
-	else
-	    throw new OPT_OptimizingCompilerException("unexpected register type " + type);
+        int type = OPT_PhysicalRegisterSet.getPhysicalRegisterType(reg);
+        if (type == INT_REG) 
+            return (byte) (reg.number - FIRST_INT);
+        else if (type == DOUBLE_REG)
+            return (byte) (reg.number - FIRST_DOUBLE);
+        else
+            throw new OPT_OptimizingCompilerException("unexpected register type " + type);
     }
-	
+        
     /**
      *  Given a register operand, return the 3 bit IA32 ISA encoding
      * of that register.  This function translates an optimizing
@@ -136,7 +136,7 @@ abstract class OPT_AssemblerBase
      * @return the 3 bit IA32 ISA encoding of op
      */
     static byte getReg(OPT_Operand op) {
-	return getMachineRegister( op.asRegister().register );
+        return getMachineRegister( op.asRegister().register );
     }
 
     /**
@@ -157,7 +157,7 @@ abstract class OPT_AssemblerBase
      * @return the 3 bit IA32 ISA encoding of the base register of op
      */
     static byte getBase(OPT_Operand op) {
-	return getMachineRegister( ((OPT_MemoryOperand)op).base.register );
+        return getMachineRegister( ((OPT_MemoryOperand)op).base.register );
     }
 
     /**
@@ -177,7 +177,7 @@ abstract class OPT_AssemblerBase
      * @return the 3 bit IA32 ISA encoding of the index register of op
      */
     static byte getIndex(OPT_Operand op) {
-	return getMachineRegister(((OPT_MemoryOperand)op).index.register);
+        return getMachineRegister(((OPT_MemoryOperand)op).index.register);
     }
 
     /**
@@ -194,7 +194,7 @@ abstract class OPT_AssemblerBase
      * @return the IA32 ISA encoding of the scale of op
      */
     static short getScale(OPT_Operand op) {
-	return ((OPT_MemoryOperand)op).scale;
+        return ((OPT_MemoryOperand)op).scale;
     }
 
     /**
@@ -211,7 +211,7 @@ abstract class OPT_AssemblerBase
      * @return the IA32 ISA encoding of the scale of op
      */
     static int getDisp(OPT_Operand op) {
-	return ((OPT_MemoryOperand)op).disp;
+        return ((OPT_MemoryOperand)op).disp;
     }
 
     /**
@@ -227,14 +227,14 @@ abstract class OPT_AssemblerBase
      * @return true if op should be assembled as register-displacement mode
      */
     static boolean isRegDisp(OPT_Operand op) {
-	if (op instanceof OPT_MemoryOperand) {
-	    OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
-	    return (mop.base != null) &&
-		(mop.index == null) &&
-		(mop.disp != 0) &&
-		(mop.scale == 0);
-	} else
-	    return false;
+        if (op instanceof OPT_MemoryOperand) {
+            OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
+            return (mop.base != null) &&
+                (mop.index == null) &&
+                (mop.disp != 0) &&
+                (mop.scale == 0);
+        } else
+            return false;
     }
 
     /**
@@ -249,14 +249,14 @@ abstract class OPT_AssemblerBase
      * @return true if op should be assembled as absolute mode
      */
     static boolean isAbs(OPT_Operand op) {
-	if (op instanceof OPT_MemoryOperand) {
-	    OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
-	    return (mop.base == null) &&
-		(mop.index == null) &&
-		(mop.disp != 0) &&
-		(mop.scale == 0);
-	} else
-	    return false;
+        if (op instanceof OPT_MemoryOperand) {
+            OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
+            return (mop.base == null) &&
+                (mop.index == null) &&
+                (mop.disp != 0) &&
+                (mop.scale == 0);
+        } else
+            return false;
     }
 
     /**
@@ -272,14 +272,14 @@ abstract class OPT_AssemblerBase
      * @return true if op should be assembled as register-indirect mode
      */
     static boolean isRegInd(OPT_Operand op) {
-	if (op instanceof OPT_MemoryOperand) {
-	    OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
-	    return (mop.base != null) &&
-		(mop.index == null) &&
-		(mop.disp == 0) &&
-		(mop.scale == 0);
-	} else
-	    return false;
+        if (op instanceof OPT_MemoryOperand) {
+            OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
+            return (mop.base != null) &&
+                (mop.index == null) &&
+                (mop.disp == 0) &&
+                (mop.scale == 0);
+        } else
+            return false;
     }
 
     /**
@@ -295,12 +295,12 @@ abstract class OPT_AssemblerBase
      * @return true if op should be assembled as register-offset mode
      */
     static boolean isRegOff(OPT_Operand op) {
-	if (op instanceof OPT_MemoryOperand) {
-	    OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
-	    return (mop.base == null) &&
-		(mop.index != null);
-	} else
-	    return false;
+        if (op instanceof OPT_MemoryOperand) {
+            OPT_MemoryOperand mop = (OPT_MemoryOperand) op;
+            return (mop.base == null) &&
+                (mop.index != null);
+        } else
+            return false;
     }
 
     /**
@@ -316,10 +316,10 @@ abstract class OPT_AssemblerBase
      * @return true if op should be assembled as SIB mode
      */
     static boolean isRegIdx(OPT_Operand op) {
-	if (op instanceof OPT_MemoryOperand) 
-	    return !(isAbs(op) || isRegInd(op) || isRegDisp(op) || isRegOff(op));
-	else
-	    return false;
+        if (op instanceof OPT_MemoryOperand) 
+            return !(isAbs(op) || isRegInd(op) || isRegDisp(op) || isRegOff(op));
+        else
+            return false;
     }
 
     /**
@@ -337,7 +337,7 @@ abstract class OPT_AssemblerBase
      * @return the bits that (usually) represent the given condition
      * in the IA32 ISA */
     static byte getCond(OPT_Operand op) {
-	return ((OPT_IA32ConditionOperand)op).value;
+        return ((OPT_IA32ConditionOperand)op).value;
     }
 
     /**
@@ -347,7 +347,7 @@ abstract class OPT_AssemblerBase
      * @return true if op is an IA32 condition operand
      */
     static boolean isCond(OPT_Operand op) {
-	return (op instanceof OPT_IA32ConditionOperand);
+        return (op instanceof OPT_IA32ConditionOperand);
     }
 
     /**
@@ -366,15 +366,15 @@ abstract class OPT_AssemblerBase
      * @return the label representing the branch target
      */
     static int getLabel(OPT_Operand op) {
-	if (op instanceof OPT_IntConstantOperand)
-	    // used by ImmOrLabel stuff
-	    return 0;
-	else {
-	    if (op.asBranch().target.getmcOffset() < 0)
-		return - op.asBranch().target.getmcOffset();
-	    else
-		return -1;
-	}
+        if (op instanceof OPT_IntConstantOperand)
+            // used by ImmOrLabel stuff
+            return 0;
+        else {
+            if (op.asBranch().target.getmcOffset() < 0)
+                return - op.asBranch().target.getmcOffset();
+            else
+                return -1;
+        }
     }
 
     /**
@@ -386,9 +386,9 @@ abstract class OPT_AssemblerBase
      * @return true if it represents a branch requiring a label target
      */
     static boolean isLabel(OPT_Operand op) {
-	return (op instanceof OPT_BranchOperand
-		                &&
-		op.asBranch().target.getmcOffset() < 0);
+        return (op instanceof OPT_BranchOperand
+                                &&
+                op.asBranch().target.getmcOffset() < 0);
     }
     
     /**
@@ -401,7 +401,7 @@ abstract class OPT_AssemblerBase
      * @return true if it represents a branch target
      */
     static boolean isImmOrLabel(OPT_Operand op) {
-	return (isImm(op) || isLabel(op));
+        return (isImm(op) || isLabel(op));
     }
 
     /**
@@ -417,16 +417,16 @@ abstract class OPT_AssemblerBase
      * @return true if inst operates upon byte data
      */
     static boolean isByte(OPT_Instruction inst) {
-	if (inst.operator.toString().indexOf("$b") != -1)
-	    return true;
+        if (inst.operator.toString().indexOf("$b") != -1)
+            return true;
 
-	for(int i = 0; i < inst.getNumberOfOperands(); i++) {
-	    OPT_Operand op = inst.getOperand(i);
-	    if (op instanceof OPT_MemoryOperand)
-		return (((OPT_MemoryOperand)op).size == 1);
-	}
+        for(int i = 0; i < inst.getNumberOfOperands(); i++) {
+            OPT_Operand op = inst.getOperand(i);
+            if (op instanceof OPT_MemoryOperand)
+                return (((OPT_MemoryOperand)op).size == 1);
+        }
 
-	return false;
+        return false;
     }
 
     /**
@@ -442,16 +442,16 @@ abstract class OPT_AssemblerBase
      * @return true if inst operates upon word data
      */
     static boolean isWord(OPT_Instruction inst) {
-	if (inst.operator.toString().indexOf("$w") != -1)
-	    return true;
+        if (inst.operator.toString().indexOf("$w") != -1)
+            return true;
 
-	for(int i = 0; i < inst.getNumberOfOperands(); i++) {
-	    OPT_Operand op = inst.getOperand(i);
-	    if (op instanceof OPT_MemoryOperand)
-		return (((OPT_MemoryOperand)op).size == 2);
-	}
+        for(int i = 0; i < inst.getNumberOfOperands(); i++) {
+            OPT_Operand op = inst.getOperand(i);
+            if (op instanceof OPT_MemoryOperand)
+                return (((OPT_MemoryOperand)op).size == 2);
+        }
 
-	return false;
+        return false;
     }
 
     /**
@@ -467,16 +467,16 @@ abstract class OPT_AssemblerBase
      * @return true if inst operates upon quad data
      */
     static boolean isQuad(OPT_Instruction inst) {
-	if (inst.operator.toString().indexOf("$q") != -1)
-	    return true;
+        if (inst.operator.toString().indexOf("$q") != -1)
+            return true;
 
-	for(int i = 0; i < inst.getNumberOfOperands(); i++) {
-	    OPT_Operand op = inst.getOperand(i);
-	    if (op instanceof OPT_MemoryOperand)
-		return (((OPT_MemoryOperand)op).size == 8);
-	}
+        for(int i = 0; i < inst.getNumberOfOperands(); i++) {
+            OPT_Operand op = inst.getOperand(i);
+            if (op instanceof OPT_MemoryOperand)
+                return (((OPT_MemoryOperand)op).size == 8);
+        }
 
-	return false;
+        return false;
     }
 
   /**
@@ -500,17 +500,17 @@ abstract class OPT_AssemblerBase
       int count = 0;
 
       for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
-	   p != null; p = p.nextInstructionInCodeOrder()) 
+           p != null; p = p.nextInstructionInCodeOrder()) 
       {
-	  p.setmcOffset( - ++count);
+          p.setmcOffset( - ++count);
       }
       
       OPT_Assembler asm = new OPT_Assembler(count, shouldPrint);
 
       for (OPT_Instruction p = ir.firstInstructionInCodeOrder(); 
-	   p != null; p = p.nextInstructionInCodeOrder()) 
+           p != null; p = p.nextInstructionInCodeOrder()) 
       {
-	  asm.doInst(p);
+          asm.doInst(p);
       }
       
     ir.MIRInfo.machinecode = asm.getMachineCodes();

@@ -143,7 +143,7 @@ public abstract class VM_RuntimeMeasurements {
     VM_MethodListener[] tmp = methodListeners; // side-step dangerous race condition
     for (int i=0; i<tmp.length; i++) {
       if (tmp[i].isActive()) {
- 	tmp[i].update(cmid, callerCmid, whereFrom);
+        tmp[i].update(cmid, callerCmid, whereFrom);
       }
     }
   }
@@ -151,7 +151,7 @@ public abstract class VM_RuntimeMeasurements {
   /**
    * Notify RuntimeMeasurements that context listeners should be activated.
    *
-   * @param sfp		a pointer to a stack frame
+   * @param sfp         a pointer to a stack frame
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or
    *         EPILOGUE?
    */
@@ -160,7 +160,7 @@ public abstract class VM_RuntimeMeasurements {
     VM_ContextListener[] tmp = contextListeners; // side-step dangerous race condition
     for (int i=0; i<tmp.length; i++) {
       if (tmp[i].isActive()) {
- 	tmp[i].update(sfp, whereFrom);
+        tmp[i].update(sfp, whereFrom);
       }
     }
   }
@@ -175,7 +175,7 @@ public abstract class VM_RuntimeMeasurements {
     VM_NullListener[] tmp = nullListeners; // side-step dangerous race condition
     for (int i=0; i<tmp.length; i++) {
       if (tmp[i].isActive()) {
-	tmp[i].update(whereFrom);
+        tmp[i].update(whereFrom);
       }
     }
   }
@@ -252,15 +252,15 @@ public abstract class VM_RuntimeMeasurements {
     
     if (VM.LogAOSEvents) {
       VM_AOSLogging.listenerStatistics(activateMethodListeners_count,
-				       activateContextListeners_count,
-				       activateNullListeners_count);
+                                       activateContextListeners_count,
+                                       activateNullListeners_count);
       VM_AOSLogging.decayStatistics(decayEventCounter);
 
       for (int i = 0, n = VM_Scheduler.threads.length; i < n; i++) {
-	VM_Thread t = VM_Scheduler.threads[i];
-	if (t != null) {
-	  VM_AOSLogging.threadExiting(t);
-	}
+        VM_Thread t = VM_Scheduler.threads[i];
+        if (t != null) {
+          VM_AOSLogging.threadExiting(t);
+        }
       }
     }
   }

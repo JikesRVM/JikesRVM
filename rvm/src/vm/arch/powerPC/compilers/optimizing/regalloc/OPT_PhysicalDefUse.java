@@ -91,10 +91,10 @@ public class OPT_PhysicalDefUse {
 
     public Object nextElement() {
       while (true) {
-	int curBit = code & curMask;
-	code -= curBit;
-	curMask = curMask >> 1;
-	if (curBit != 0) return getReg(curBit, phys);
+        int curBit = code & curMask;
+        code -= curBit;
+        curMask = curMask >> 1;
+        if (curBit != 0) return getReg(curBit, phys);
       }
     }
 

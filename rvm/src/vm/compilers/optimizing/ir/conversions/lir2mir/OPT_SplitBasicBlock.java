@@ -23,8 +23,8 @@ final class OPT_SplitBasicBlock extends OPT_CompilerPhase {
       OPT_BasicBlock bb = (OPT_BasicBlock) e.nextElement();
       
       if (!bb.isEmpty()) {
-	while (bb != null) 
-	  bb = splitEachBlock(bb, ir);
+        while (bb != null) 
+          bb = splitEachBlock(bb, ir);
       }
     }
   }
@@ -36,19 +36,19 @@ final class OPT_SplitBasicBlock extends OPT_CompilerPhase {
 
     int instCount = MAX_NUM_INSTRUCTIONS;
     for (OPT_Instruction inst = bb.firstInstruction(); 
-	 inst != bb.lastInstruction(); inst = inst.nextInstructionInCodeOrder())
+         inst != bb.lastInstruction(); inst = inst.nextInstructionInCodeOrder())
       {
-	if ((--instCount) == 0) {
-	  if (inst.isBranch())
-	    return null; // no need to split because all the rests are just branches
+        if ((--instCount) == 0) {
+          if (inst.isBranch())
+            return null; // no need to split because all the rests are just branches
           if (inst.isMove()) {  // why do we need this?? --dave
-	    OPT_Instruction next = inst.nextInstructionInCodeOrder();
+            OPT_Instruction next = inst.nextInstructionInCodeOrder();
              if (next != bb.lastInstruction() && next.isImplicitLoad()) 
                 inst = next;
           }
-	  // Now, split!
-	  return bb.splitNodeWithLinksAt(inst, ir);
-	}
+          // Now, split!
+          return bb.splitNodeWithLinksAt(inst, ir);
+        }
       }
 
     return null; // no splitting happened

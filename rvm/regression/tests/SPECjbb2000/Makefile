@@ -48,7 +48,7 @@ check:
 else
 check:
 	@$(FGREP) -q "JVM Check OK" < $(OUT)
-	@egrep -q "(Valid run, Score is)|(INVALID run; Score is  Invalid, but estimate is)" < $(OUT)
+	@egrep -q "(Valid run, Score is)|(INVALID run; Score is Invalid, but estimate is)" < $(OUT)
 endif
 
 #

@@ -104,8 +104,8 @@ public class JikesRVMInstall extends AbstractVMInstall {
   private void ensureRequiredEnvVariables() {    
     // The first time start with defaults
     for (boolean first = true;
-	 overridingEnv && (rvmRoot == null || rvmBuild == null);
-	 first = false) {
+         overridingEnv && (rvmRoot == null || rvmBuild == null);
+         first = false) {
       JikesRVMChangeConfigurationDialog.changeConfiguration(this, first);
     }
   }

@@ -65,7 +65,7 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
     Object[] typeTib = VM_ObjectModel.getTIB(typeAddress);
     return ( (typeTib == tibForClassType) || 
              (typeTib == tibForArrayType) ||
-	     (typeTib == tibForPrimitiveType));
+             (typeTib == tibForPrimitiveType));
   }
 
   /**
@@ -77,13 +77,13 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
       VM_Thread  t;
       VM_Scheduler.trace("\ndumpAllThreadStacks","dumping stacks for all threads");
       for (int i=0; i<VM_Scheduler.threads.length; i++) {
-	  t = VM_Scheduler.threads[i];
-	  if (t == null) continue;
-	  VM.sysWrite("\n Thread "); t.dump(); VM.sysWrite("\n");
-	  // start stack dump using fp & ip in threads saved context registers
-	  ip = t.contextRegisters.getInnermostInstructionAddress();
-	  fp = t.contextRegisters.getInnermostFramePointer();
-	  VM_Scheduler.dumpStack(ip,fp);
+          t = VM_Scheduler.threads[i];
+          if (t == null) continue;
+          VM.sysWrite("\n Thread "); t.dump(); VM.sysWrite("\n");
+          // start stack dump using fp & ip in threads saved context registers
+          ip = t.contextRegisters.getInnermostInstructionAddress();
+          fp = t.contextRegisters.getInnermostFramePointer();
+          VM_Scheduler.dumpStack(ip,fp);
       }
       VM.sysWrite("\ndumpAllThreadStacks: end of thread stacks\n\n");
   }  // dumpAllThreadStacks
@@ -105,8 +105,8 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
     }
     if (MM_Interface.MOVES_OBJECTS) {
       if (VM_AllocatorHeader.isForwarded(ref) ||
-	  VM_AllocatorHeader.isBeingForwarded(ref)) {
-	return true; // TODO: actually follow forwarding pointer (need to bound recursion when things are broken!!)
+          VM_AllocatorHeader.isBeingForwarded(ref)) {
+        return true; // TODO: actually follow forwarding pointer (need to bound recursion when things are broken!!)
       }
     }
     
@@ -180,7 +180,7 @@ public class Util implements VM_Constants, Constants, VM_Uninterruptible {
     if (validRef(ref)) {
       VM_Type type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
       if (validRef(VM_Magic.objectAsAddress(type)))
-	VM.sysWrite(type.getDescriptor());
+        VM.sysWrite(type.getDescriptor());
     }
   }
 

@@ -33,10 +33,10 @@ public class OSR_TempRegisters implements VM_Constants {
       gprs.set(i, contextRegisters.gprs.get(i));
     }
     System.arraycopy(contextRegisters.fprs,
-		     0,
-		     fprs,
-		     0,
-		     NUM_FPRS);
+                     0,
+                     fprs,
+                     0,
+                     NUM_FPRS);
     ip = contextRegisters.ip;
   }
 
@@ -51,7 +51,7 @@ public class OSR_TempRegisters implements VM_Constants {
     System.err.println("  OBJS: ");
     for (int i=0; i<NUM_GPRS; i++) {
       if (objs[i] != null) {
-	System.err.println("    ("+i+","+objs[i]+")");
+        System.err.println("    ("+i+","+objs[i]+")");
       }
     }
 

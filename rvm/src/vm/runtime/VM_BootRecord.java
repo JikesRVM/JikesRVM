@@ -174,10 +174,6 @@ public class VM_BootRecord {
    */
   public int processorsOffset;               
   /**
-   * jtoc offset of VM_Scheduler.threads[]
-   */
-  public int threadsOffset;                  
-  /**
    * jtoc offset of VM_Scheduler.debugRequested
    */
   int debugRequestedOffset;           
@@ -185,22 +181,6 @@ public class VM_BootRecord {
    * an external signal has been sent e.g. kill -signalnumber processid
    */
   int externalSignalFlag;             
-
-  // Support for JNI Native functions
-  //
-  /**
-   * jtoc offset of VM_Scheduler.attachThreadRequested
-   */
-  int attachThreadRequestedOffset;    
-  /**
-   * set when GC starts; reset at end
-   */
-  int globalGCInProgressFlag;        
-  static final int GC_IN_PROGRESS = 1;   
-  /**
-   * used during GC and transfers to and from native processors
-   */
-  int lockoutProcessor; 
 
   // Host operating system entrypoints - see "sys.C"
   //
@@ -280,13 +260,11 @@ public class VM_BootRecord {
   public VM_Address sysVirtualProcessorYieldIP;
   public VM_Address sysVirtualProcessorEnableTimeSlicingIP;
   public VM_Address sysPthreadSelfIP;
-  public VM_Address sysPthreadSigWaitIP;
   public VM_Address sysPthreadSignalIP;
   public VM_Address sysPthreadExitIP;
   public VM_Address sysPthreadJoinIP;
-  //-#if RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-  //-#else
-  public VM_Address sysStashVmProcessorIdInPthreadIP;
+  //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
+  public VM_Address sysStashVmProcessorInPthreadIP;
   //-#endif
 
   // arithmetic 

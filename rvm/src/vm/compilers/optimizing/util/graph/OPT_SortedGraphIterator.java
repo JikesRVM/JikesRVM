@@ -66,7 +66,7 @@ public class OPT_SortedGraphIterator {
    * @param forward the direction we are processing the graph
    */
   public OPT_SortedGraphIterator(OPT_SortedGraphNode current, 
-				 boolean forward) {
+                                 boolean forward) {
     currentNode = current;
     barrier = current.getSortedNext(forward);
     this.forward = forward;
@@ -99,26 +99,26 @@ public class OPT_SortedGraphIterator {
       OPT_SortedGraphNode newNode = null;
       Enumeration e;
       if (forward)
-	e = currentNode.getOutNodes();
+        e = currentNode.getOutNodes();
       else
-	e = currentNode.getInNodes();
+        e = currentNode.getInNodes();
       
       for (; e.hasMoreElements(); ) {
-	// Select the node with the smallest sort number among the "successor" nodes
-	OPT_SortedGraphNode outNode = (OPT_SortedGraphNode) e.nextElement();
-	if (outNode.getSortNumber(forward) < barrierOrder) { // anything larger than barrier will be visited later
-	  outNode.setSortMarker(changeMark);
-	  if (outNode.getSortNumber(forward) < newOrder) { // have to go backward
-	    newOrder = outNode.getSortNumber(forward);
-	    newNode = outNode;
-	  }
-	}
+        // Select the node with the smallest sort number among the "successor" nodes
+        OPT_SortedGraphNode outNode = (OPT_SortedGraphNode) e.nextElement();
+        if (outNode.getSortNumber(forward) < barrierOrder) { // anything larger than barrier will be visited later
+          outNode.setSortMarker(changeMark);
+          if (outNode.getSortNumber(forward) < newOrder) { // have to go backward
+            newOrder = outNode.getSortNumber(forward);
+            newNode = outNode;
+          }
+        }
       }
       if (newOrder <= currOrder) {
-	currentNode = newNode;
-	// retreat
-	advanceBarrier();
-	return newNode;
+        currentNode = newNode;
+        // retreat
+        advanceBarrier();
+        return newNode;
       }
     } 
     
@@ -129,8 +129,8 @@ public class OPT_SortedGraphIterator {
     for (; currentNode != barrier; currentNode = 
         currentNode.getSortedNext(forward)) {
       if (currentNode.getSortMarker() == changeMark) {
-	advanceBarrier();
-	return currentNode;
+        advanceBarrier();
+        return currentNode;
       }
     }
     
@@ -152,7 +152,7 @@ public class OPT_SortedGraphIterator {
    * @return if first parameter is the only predecessor of the 2nd parameter
    */
   public boolean isSingleSuccessor(OPT_SortedGraphNode currentNode, 
-				   OPT_SortedGraphNode nextNode) {
+                                   OPT_SortedGraphNode nextNode) {
     // check that next node has only 1 predecessor
     if (!nextNode.hasOneIn()) return false;
     // now check that the predecessor is current node
@@ -172,7 +172,7 @@ public class OPT_SortedGraphIterator {
    * @return if first parameter is the only succesor of the 2nd parameter
    */
   public boolean isSinglePredecessor(OPT_SortedGraphNode currentNode, 
-				     OPT_SortedGraphNode nextNode) {
+                                     OPT_SortedGraphNode nextNode) {
     // check that next node has only 1 successor
     if (!nextNode.hasOneOut()) return  false;
     // now check that the successor is current node

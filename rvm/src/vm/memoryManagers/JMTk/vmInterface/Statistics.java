@@ -140,7 +140,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 //   static void printGCStats(int GCType) throws VM_PragmaUninterruptible {
 
 //     if (Options.verbose >= 2)
-//       printGCPhaseTimes();  	
+//       printGCPhaseTimes();   
 
 //     if (Options.verbose >= 1) {
 //       printVerboseOutputLine(GCType);
@@ -204,7 +204,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     // showParameter();
     if (Options.verbose >= 3) {
       VM.sysWriteln("\nGC Summary:  ", gcCount, " Collections");
-	/* These counts are not updated. */
+        /* These counts are not updated. */
 //       if (gcCount != 0) {
 //         if (minorGCTime.count() > 0) {
 //           VM.sysWrite("GC Summary:  Minor Times   ");
@@ -241,7 +241,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
       VM.sysWrite("  roots ", rootTime.avg() * 1000.0, " ms");
       VM.sysWrite("  scan ", scanTime.avg() * 1000.0, " ms");
       if (!Options.noFinalizer)
-	VM.sysWrite("  finalize ", finalizeTime.avg() * 1000.0, " ms");
+        VM.sysWrite("  finalize ", finalizeTime.avg() * 1000.0, " ms");
       VM.sysWrite("  finish ", finishTime.avg() * 1000.0, " ms");
       VM.sysWriteln();
     }
@@ -253,7 +253,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
 
 
       for (int i=1; i <= np; i++ ) {
-	VM_CollectorThread ct = VM_CollectorThread.collectorThreads[VM_Scheduler.processors[i].id];
+        VM_CollectorThread ct = VM_CollectorThread.collectorThreads[VM_Scheduler.processors[i].id];
         totalBufferWait += ct.totalBufferWait;
         totalFinishWait += ct.totalFinishWait;
       }
@@ -282,7 +282,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
       VM.sysWrite("\n");
     }
 
-    if (COUNT_BY_TYPE)	printCountsByType();
+    if (COUNT_BY_TYPE)  printCountsByType();
   } // printSummaryStatistics
 
   private static void printBytes(int fieldWidth, int bytes) throws VM_PragmaUninterruptible {
@@ -339,7 +339,7 @@ public class Statistics implements Constants, VM_Callbacks.ExitMonitor, VM_Callb
     for (int i = 1; i < maxId; i++) {
       VM_Type type = VM_Type.getType(i);
       if (type.allocBytes >= FIRST_ALLOC_BYTES_THRESHOLD
-	  && type.allocBytes < SECOND_ALLOC_BYTES_THRESHOLD)
+          && type.allocBytes < SECOND_ALLOC_BYTES_THRESHOLD)
         printCountsLine(type.getDescriptor(),
                         type.allocCount, type.allocBytes,
                         type.copyCount, type.copyBytes,

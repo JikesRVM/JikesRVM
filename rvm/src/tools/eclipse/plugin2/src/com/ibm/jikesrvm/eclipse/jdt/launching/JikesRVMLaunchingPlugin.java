@@ -129,11 +129,11 @@ public class JikesRVMLaunchingPlugin extends AbstractUIPlugin {
     JikesRVMInstall install = getInstall(toString);
     if (install == null) {
       errorDialog(getActiveWorkbenchShell(), 
-		  JikesRVMLauncherMessages.getString("JikesRVMLauncher.dialog.error"),
-		  JikesRVMLauncherMessages.getString("JikesRVMLauncher.removeInstall.notFound"),
-		  new Status(IStatus.ERROR, JikesRVMLaunchingPlugin.getPluginId(), 0, 
-			     JikesRVMLauncherMessages.getString("JikesRVMType.removeInstall.notFound"), 
-			     null));
+                  JikesRVMLauncherMessages.getString("JikesRVMLauncher.dialog.error"),
+                  JikesRVMLauncherMessages.getString("JikesRVMLauncher.removeInstall.notFound"),
+                  new Status(IStatus.ERROR, JikesRVMLaunchingPlugin.getPluginId(), 0, 
+                             JikesRVMLauncherMessages.getString("JikesRVMType.removeInstall.notFound"), 
+                             null));
     }
     installs.remove(toString);
     return install;

@@ -51,13 +51,13 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
    * </ul>
    */
   private static final double[][] function = {{0.00, 0.00, 0.10, 0.30, 0.60, 0.80, 1.00},
-					      {0.00, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
-					      {0.02, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
-					      {0.05, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00},
-					      {0.15, 1.00, 1.00, 1.10, 1.15, 1.20, 1.20},
-					      {0.30, 1.00, 1.00, 1.20, 1.25, 1.35, 1.30},
-					      {0.50, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50},
-					      {1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50}};
+                                              {0.00, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
+                                              {0.02, 0.90, 0.90, 0.95, 1.00, 1.00, 1.00},
+                                              {0.05, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00},
+                                              {0.15, 1.00, 1.00, 1.10, 1.15, 1.20, 1.20},
+                                              {0.30, 1.00, 1.00, 1.20, 1.25, 1.35, 1.30},
+                                              {0.50, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50},
+                                              {1.00, 1.00, 1.00, 1.25, 1.30, 1.50, 1.50}};
   
   private static long endLastMajorGC;
   private static double accumulatedGCTime;
@@ -146,9 +146,9 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
       // Heap size is going to change
       currentHeapSize = (int) newSize;
       if (Options.verbose >= 2) { 
-	Log.write("GC Message: Heap changed from "); Log.write((int) (oldSize / 1024)); 
-	Log.write("KB to "); Log.write((int) (newSize / 1024)); 
-	Log.writeln("KB"); 
+        Log.write("GC Message: Heap changed from "); Log.write((int) (oldSize / 1024)); 
+        Log.write("KB to "); Log.write((int) (newSize / 1024)); 
+        Log.writeln("KB"); 
       } 
       return true;
     } else {
@@ -170,10 +170,10 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
     }
     if (gcLoad > 1) {
       if (gcLoad > 1.0001) {
-	Log.write("GC Error: GC load was greater than 1!! ");
-	Log.writeln(gcLoad);
-	Log.write("GC Error:\ttotal time (ms) "); Log.writeln(totalTime);
-	Log.write("GC Error:\tgc time (ms) "); Log.writeln(accumulatedGCTime);
+        Log.write("GC Error: GC load was greater than 1!! ");
+        Log.writeln(gcLoad);
+        Log.write("GC Error:\ttotal time (ms) "); Log.writeln(totalTime);
+        Log.write("GC Error:\tgc time (ms) "); Log.writeln(accumulatedGCTime);
       }
       gcLoad = 1;
     }
@@ -245,8 +245,8 @@ public abstract class HeapGrowthManager implements VM_Uninterruptible {
     for (int i=2; i<liveRatio.length; i++) {
       VM_Interface._assert(liveRatio[i-1] < liveRatio[i]);
       for (int j=1; j<function.length; j++) {
-	VM_Interface._assert(function[j][i] >= 1 ||
-			     function[j][i] > liveRatio[i]);
+        VM_Interface._assert(function[j][i] >= 1 ||
+                             function[j][i] > liveRatio[i]);
       }
     }
 

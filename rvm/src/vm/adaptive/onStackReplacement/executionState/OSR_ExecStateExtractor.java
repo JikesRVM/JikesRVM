@@ -34,9 +34,9 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
    * @param cmid, the compiled method id of ypTaken
    */
   public abstract OSR_ExecutionState extractState(VM_Thread thread, 
-					   int tsFromFPoff,
-					   int ypTakenFPoff,
-					   int cmid);
+                                           int tsFromFPoff,
+                                           int ypTakenFPoff,
+                                           int cmid);
 
   public static void printStackTraces(int[] stack, int osrFPoff) {
 
@@ -49,15 +49,15 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
       int cmid = VM_Magic.getCompiledMethodID(fp);
 
       if (cmid == INVISIBLE_METHOD_ID) {
-	VM.sysWriteln(" invisible method ");
+        VM.sysWriteln(" invisible method ");
       } else {
-	VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-	int instrOff = cm.getInstructionOffset(ip);
-	cm.printStackTrace(instrOff, PrintContainer.get(System.out));
+        VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
+        int instrOff = cm.getInstructionOffset(ip);
+        cm.printStackTrace(instrOff, PrintContainer.get(System.out));
 
-	if (cm.getMethod().getDeclaringClass().isBridgeFromNative()) {
-	  fp = VM_Runtime.unwindNativeStackFrame(fp);
-	}
+        if (cm.getMethod().getDeclaringClass().isBridgeFromNative()) {
+          fp = VM_Runtime.unwindNativeStackFrame(fp);
+        }
       }
       
       ip = VM_Magic.getReturnAddress(fp);

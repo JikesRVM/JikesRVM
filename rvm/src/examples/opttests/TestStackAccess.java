@@ -41,7 +41,7 @@ class TestStackAccess
     }
     
     str =  lstoreload0() + lstoreload1() + lstoreload2() +
-	     lstoreload3() + lstoreload();
+             lstoreload3() + lstoreload();
     if (!str.equals("001012012301234")) {
       System.out.print("\nwant: 001012012301234\n got: ");
       System.out.println(str);
@@ -204,7 +204,7 @@ class TestStackAccess
       */
 
       return Integer.toString(x0) + Integer.toString(x1) + Integer.toString(x2) +
-	     Long.toString(x3);
+             Long.toString(x3);
       }
    
    static String
@@ -224,7 +224,7 @@ class TestStackAccess
       System.out.print(x4);   // lload
       */
       return Integer.toString(x0) + Integer.toString(x1) + Integer.toString(x2) +
-	     Integer.toString(x3) + Long.toString(x4);
+             Integer.toString(x3) + Long.toString(x4);
       }
    
    static String
@@ -279,7 +279,7 @@ class TestStackAccess
       */
 
       return Integer.toString(x0) + Integer.toString(x1) +Integer.toString(x2)
-	     + Double.toString(x3);
+             + Double.toString(x3);
       }
    
    static String
@@ -299,7 +299,7 @@ class TestStackAccess
       System.out.print(x4);   // dload
       */
       return Integer.toString(x0) + Integer.toString(x1) +Integer.toString(x2)
-	     + Integer.toString(x3) + Double.toString(x4);
+             + Integer.toString(x3) + Double.toString(x4);
       }
 
    static long sa, sb;
@@ -335,10 +335,10 @@ class TestStackAccess
       switch(x[0] = 1)                           // dup_x2
          {
          case 1: {
-	   str += Integer.toString(1);
-	   //  System.out.print(1);
-	 }
-	 
+           str += Integer.toString(1);
+           //  System.out.print(1);
+         }
+         
          }
       return str;
       }

@@ -43,9 +43,9 @@ final class OPT_FieldDatabase extends java.util.HashMap {
 
   // a data structure holding information about a field
   final class FieldDatabaseEntry {
-    private java.util.HashMap summaries;	// VM_Method -> FieldWriterInfo
-    boolean cachedAllAnalyzed;	// have we already determined all methods are analyzed?
-    VM_TypeReference cachedConcreteType;	// cache a copy of the concrete type already determined for this field
+    private java.util.HashMap summaries;        // VM_Method -> FieldWriterInfo
+    boolean cachedAllAnalyzed;  // have we already determined all methods are analyzed?
+    VM_TypeReference cachedConcreteType;        // cache a copy of the concrete type already determined for this field
     
     FieldWriterInfo findMethodInfo(VM_Method m) { 
       return (FieldWriterInfo)summaries.get(m);
@@ -56,8 +56,8 @@ final class OPT_FieldDatabase extends java.util.HashMap {
       
       if (cachedAllAnalyzed) return true;
       for (java.util.Iterator i = summaries.values().iterator(); i.hasNext(); ) {
-	FieldWriterInfo info = (FieldWriterInfo)i.next();
-	if (!info.isAnalyzed()) return false;
+        FieldWriterInfo info = (FieldWriterInfo)i.next();
+        if (!info.isAnalyzed()) return false;
       }
       cachedAllAnalyzed = true;
       return true;
@@ -69,16 +69,16 @@ final class OPT_FieldDatabase extends java.util.HashMap {
       if (cachedConcreteType != null) return cachedConcreteType;
       VM_TypeReference result = null;
       for (java.util.Iterator i = summaries.values().iterator(); i.hasNext(); ) {
-	FieldWriterInfo info = (FieldWriterInfo)i.next();
-	if (!info.isAnalyzed()) return null;
-	if (info.isBottom()) return null;
-	VM_TypeReference t = info.concreteType;
-	if (result != null) {
-	  // make sure that all methods set the same concrete type.
-	  if (result != t) return null;
-	} else {
-	  result = info.concreteType;
-	}
+        FieldWriterInfo info = (FieldWriterInfo)i.next();
+        if (!info.isAnalyzed()) return null;
+        if (info.isBottom()) return null;
+        VM_TypeReference t = info.concreteType;
+        if (result != null) {
+          // make sure that all methods set the same concrete type.
+          if (result != t) return null;
+        } else {
+          result = info.concreteType;
+        }
       }
       // found a concrete type.  cache it and return it.
       cachedConcreteType = result;
@@ -97,12 +97,12 @@ final class OPT_FieldDatabase extends java.util.HashMap {
       // If a method m may write to f, then create a FieldWriterInfo for m
       VM_Method[] declaredMethods = klass.getDeclaredMethods();
       for (int i=0; i<declaredMethods.length; i++) {
-	VM_Method m = declaredMethods[i];
-	if (m.mayWrite(f)) {
-	  FieldWriterInfo info = new FieldWriterInfo();
-	  if (DEBUG) debug("New summary METHOD " + m + " FIELD " + f + " INFO " + info);
-	  summaries.put(m, info);
-	}
+        VM_Method m = declaredMethods[i];
+        if (m.mayWrite(f)) {
+          FieldWriterInfo info = new FieldWriterInfo();
+          if (DEBUG) debug("New summary METHOD " + m + " FIELD " + f + " INFO " + info);
+          summaries.put(m, info);
+        }
       }
     }
   } // class FieldDatabaseEntry
@@ -115,11 +115,11 @@ final class OPT_FieldDatabase extends java.util.HashMap {
     int status;
     VM_TypeReference concreteType;
 
-    void setBottom() 			{ status |= BOTTOM;   }
-    void setAnalyzed() 		{ status |= ANALYZED; }
+    void setBottom()                    { status |= BOTTOM;   }
+    void setAnalyzed()          { status |= ANALYZED; }
       
-    boolean isBottom()		{ return (status & BOTTOM)   != 0; }
-    boolean isAnalyzed()		{ return (status & ANALYZED) != 0; }
+    boolean isBottom()          { return (status & BOTTOM)   != 0; }
+    boolean isAnalyzed()                { return (status & ANALYZED) != 0; }
   }
 
   // print a debug message

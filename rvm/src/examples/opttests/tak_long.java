@@ -12,14 +12,14 @@ public class tak_long {
   /*
   public static void main(String argv[])
   {
-	int i;
-	System.out.println("Tak is running\n");
+        int i;
+        System.out.println("Tak is running\n");
         //for (i=0; i<1000; i++){
           long result = tak(18,12,6);
         System.out.println(result + "\n");
-	//}
+        //}
 
-	//System.exit(0);
+        //System.exit(0);
   }
   */
 

@@ -317,7 +317,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register ESP = phys.getESP();
     OPT_MemoryOperand M = 
       OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffset(), 
-			   (byte)WORDSIZE, null, null);
+                           (byte)WORDSIZE, null, null);
 
     //    Trap if ESP <= active Thread Stack Limit
     MIR_TrapIf.mutate(plg,IA32_TRAPIF,null,R(ESP),M,
@@ -351,7 +351,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     //    ECX := active Thread Stack Limit
     OPT_MemoryOperand M = 
       OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.activeThreadStackLimitField.getOffset(), 
-			   (byte)WORDSIZE, null, null);
+                           (byte)WORDSIZE, null, null);
     plg.insertBefore(MIR_Move.create(IA32_MOV, R(ECX), M));
 
     //    ECX += frame Size
@@ -382,8 +382,8 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     OPT_Register PR = phys.getPR();
     OPT_MemoryOperand fpHome = 
       OPT_MemoryOperand.BD(R(PR),
-			   VM_Entrypoints.framePointerField.getOffset(),
-			   (byte)WORDSIZE, null, null);
+                           VM_Entrypoints.framePointerField.getOffset(),
+                           (byte)WORDSIZE, null, null);
 
     // inst is the instruction immediately after the IR_PROLOGUE
     // instruction
@@ -562,7 +562,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     ret.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, I(frameSize)));
     OPT_MemoryOperand fpHome = 
       OPT_MemoryOperand.BD(R(PR), VM_Entrypoints.framePointerField.getOffset(),
-			   (byte)WORDSIZE, null, null);
+                           (byte)WORDSIZE, null, null);
     ret.insertBefore(MIR_Nullary.create(IA32_POP, fpHome));
   }
 
@@ -680,11 +680,11 @@ public final class OPT_StackManager extends OPT_GenericStackManager
     int delta = desiredOffset - ESPOffset;
     if (delta != 0) {
       if (canModifyEFLAGS(s)) {
-	s.insertBefore(MIR_BinaryAcc.create(IA32_ADD, R(ESP), I(delta)));
+        s.insertBefore(MIR_BinaryAcc.create(IA32_ADD, R(ESP), I(delta)));
       } else {
-	OPT_MemoryOperand M = 
-	  OPT_MemoryOperand.BD(R(ESP),delta, (byte)4, null, null); 
-	s.insertBefore(MIR_Lea.create(IA32_LEA, R(ESP), M));
+        OPT_MemoryOperand M = 
+          OPT_MemoryOperand.BD(R(ESP),delta, (byte)4, null, null); 
+        s.insertBefore(MIR_Lea.create(IA32_LEA, R(ESP), M));
       }
       ESPOffset = desiredOffset;
     }
@@ -743,7 +743,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
           offset = FPOffset2SPOffset(offset);
           moveESPBefore(s,offset);
           MIR_Nullary.mutate(s,IA32_POP,result);
-	}
+        }
       }
     }
   }
@@ -759,47 +759,47 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
     boolean seenReturn = false;
     for (OPT_InstructionEnumeration e = ir.forwardInstrEnumerator(); 
-	 e.hasMoreElements();) {
+         e.hasMoreElements();) {
       OPT_Instruction s = e.next();
       
       if (s.isReturn()) {
-	seenReturn = true;
-	continue;
+        seenReturn = true;
+        continue;
       }
 
       if (s.isBranch()) {
-	// restore ESP to home location at end of basic block.
-	moveESPBefore(s, 0);
-	continue;
+        // restore ESP to home location at end of basic block.
+        moveESPBefore(s, 0);
+        continue;
       }
-	
+        
       if (s.operator() == BBEND) {
-	if (seenReturn) {
-	  // at a return ESP will be at FrameFixedSize, 
-	  seenReturn = false;
-	  ESPOffset = 0;
-	} else {
-	  moveESPBefore(s, 0);
-	}
-	continue;
+        if (seenReturn) {
+          // at a return ESP will be at FrameFixedSize, 
+          seenReturn = false;
+          ESPOffset = 0;
+        } else {
+          moveESPBefore(s, 0);
+        }
+        continue;
       }
 
       if (s.operator() == ADVISE_ESP) {
         ESPOffset = MIR_UnaryNoRes.getVal(s).asIntConstant().value;
-	continue;
+        continue;
       }
 
       if (s.operator() == REQUIRE_ESP) {
-	// ESP is required to be at the given offset from the bottom of the frame
-	moveESPBefore(s, MIR_UnaryNoRes.getVal(s).asIntConstant().value);
-	continue;
+        // ESP is required to be at the given offset from the bottom of the frame
+        moveESPBefore(s, MIR_UnaryNoRes.getVal(s).asIntConstant().value);
+        continue;
       }
 
       if (s.operator() == YIELDPOINT_PROLOGUE ||
-	  s.operator() == YIELDPOINT_BACKEDGE ||
-	  s.operator() == YIELDPOINT_EPILOGUE) {
-	moveESPBefore(s, 0);
-	continue;
+          s.operator() == YIELDPOINT_BACKEDGE ||
+          s.operator() == YIELDPOINT_EPILOGUE) {
+        moveESPBefore(s, 0);
+        continue;
       }
 
       if (s.operator() == IA32_MOV) {
@@ -810,37 +810,37 @@ public final class OPT_StackManager extends OPT_GenericStackManager
       // is incremented.  Therefore update ESPOffset before rewriting 
       // stacklocation and memory operands.
       if (s.operator() == IA32_POP) {
-	ESPOffset  += 4; 
-      }	
+        ESPOffset  += 4; 
+      } 
 
       for (OPT_OperandEnumeration ops = s.getOperands(); ops.hasMoreElements(); ) {
         OPT_Operand op = ops.next();
         if (op instanceof OPT_StackLocationOperand) {
-	  OPT_StackLocationOperand sop = (OPT_StackLocationOperand)op;
+          OPT_StackLocationOperand sop = (OPT_StackLocationOperand)op;
           int offset = sop.getOffset();
-	  if (sop.isFromTop()) {
-	    offset = FPOffset2SPOffset(offset);
-	  }
-	  offset -= ESPOffset;
+          if (sop.isFromTop()) {
+            offset = FPOffset2SPOffset(offset);
+          }
+          offset -= ESPOffset;
           byte size = sop.getSize();
           OPT_MemoryOperand M = 
-	    OPT_MemoryOperand.BD(R(ESP),offset,
-				 size, null, null); 
+            OPT_MemoryOperand.BD(R(ESP),offset,
+                                 size, null, null); 
           s.replaceOperand(op, M);
         } else if (op instanceof OPT_MemoryOperand) {
-	  OPT_MemoryOperand M = op.asMemory();
-	  if ((M.base != null && M.base.register == ESP) ||
-	      (M.index != null && M.index.register == ESP)) {
-	    M.disp -= ESPOffset;
-	  }
-	}
+          OPT_MemoryOperand M = op.asMemory();
+          if ((M.base != null && M.base.register == ESP) ||
+              (M.index != null && M.index.register == ESP)) {
+            M.disp -= ESPOffset;
+          }
+        }
       }
 
       // push computes the effective address of its operand after ESP
       // is decremented.  Therefore update ESPOffset after rewriting 
       // stacklocation and memory operands.
       if (s.operator() == IA32_PUSH) {
-	ESPOffset -= 4;
+        ESPOffset -= 4;
       }
     }
   }
@@ -939,7 +939,7 @@ public final class OPT_StackManager extends OPT_GenericStackManager
 
         }
         // s or some future instruction uses the scratch register, 
-	// so restore the correct contents.
+        // so restore the correct contents.
         if (verboseDebug) {
           System.out.println("RESTORE : reload because used " + scratch);
         }

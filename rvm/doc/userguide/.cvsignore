@@ -9,7 +9,7 @@ jmtk_options.*
 vm_options.*
 userguide.aux  userguide.idx  userguide.lof  userguide.toc
 userguide.bbl  userguide.ilg  userguide.log  userguide.dvi
-userguide.blg  userguide.ind  userguide.ps   
+userguide.blg  userguide.ind  userguide.ps   userguide.lot
 HTML
 GenerateFromTemplate.class
 QuotedStringTokenizer.class

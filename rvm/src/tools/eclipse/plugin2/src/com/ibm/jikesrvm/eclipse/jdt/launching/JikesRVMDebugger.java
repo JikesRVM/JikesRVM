@@ -43,8 +43,8 @@ public class JikesRVMDebugger extends JikesRVMRunner {
   public final static int ATTACH_MODE = 2;
 
   public void run(VMRunnerConfiguration config, 
-		  ILaunch launch, 
-		  IProgressMonitor monitor) 
+                  ILaunch launch, 
+                  IProgressMonitor monitor) 
     throws CoreException 
   {
 
@@ -55,7 +55,7 @@ public class JikesRVMDebugger extends JikesRVMRunner {
     int port = SocketUtil.findUnusedLocalPort(host, 5000, 15000);
     if (port == -1) {
       showErrorDialog(JikesRVMLauncherMessages.getString("JikesRVMLauncher.error.noPort") + 
-		      "port=" + port);
+                      "port=" + port);
     }
 
     if (monitor.isCanceled()) {
@@ -87,11 +87,11 @@ public class JikesRVMDebugger extends JikesRVMRunner {
 
       // If we're listening add the address
       if (connectMode == LISTEN_MODE) {
-	arguments.add("-jdplisten" + host + ":" + port);
+        arguments.add("-jdplisten" + host + ":" + port);
       } else if (connectMode == ATTACH_MODE) {
-	arguments.add("-jdpattach" + port);
+        arguments.add("-jdpattach" + port);
       } else if (connectMode == LAUNCH_MODE) {
-	arguments.add("-jdplistenlocalhost:52944"); //XXX
+        arguments.add("-jdplistenlocalhost:52944"); //XXX
       }
     }
 
@@ -99,7 +99,7 @@ public class JikesRVMDebugger extends JikesRVMRunner {
     String[] bootclasspath = config.getBootClassPath();
     if (bootclasspath != null) {
       arguments.add("-X:bootclasspath:" + 
-		    (bootclasspath.length == 0  ? "" : convertClassPath(bootclasspath)));
+                    (bootclasspath.length == 0  ? "" : convertClassPath(bootclasspath)));
     }
 
     // Classpath
@@ -132,7 +132,7 @@ public class JikesRVMDebugger extends JikesRVMRunner {
       // Want to wait forever for things
       //
       JDIDebugModel.getPreferences().setValue(JDIDebugModel.PREF_REQUEST_TIMEOUT,
-					      Integer.MAX_VALUE);
+                                              Integer.MAX_VALUE);
       //
       // To use the GUI debugger we need to launch something
       //
@@ -145,12 +145,12 @@ public class JikesRVMDebugger extends JikesRVMRunner {
   }
 
   private void launchCommandLineDebugger(VMRunnerConfiguration config, 
-					 ILaunch launch, 
-					 IProgressMonitor monitor,
-					 String[] cmdLine,
-					 int port,
-					 String program)
-					 
+                                         ILaunch launch, 
+                                         IProgressMonitor monitor,
+                                         String[] cmdLine,
+                                         int port,
+                                         String program)
+                                         
     throws CoreException
   {
     File workingDir = workingDir(config);
@@ -170,18 +170,18 @@ public class JikesRVMDebugger extends JikesRVMRunner {
       String title= JikesRVMLauncherMessages.getString("JikesRVMLauncher.dialog.title");
       String message= JikesRVMLauncherMessages.getString("JikesRVMLauncher.error.startVM");
       showErrorDialog(title, message, 
-		      new Status(IStatus.ERROR, JikesRVMLaunchingPlugin.getPluginId(), 0, 
-				 JikesRVMLauncherMessages.getString("JikesRVMLauncher.status.startVM"), 
-				 e));
+                      new Status(IStatus.ERROR, JikesRVMLaunchingPlugin.getPluginId(), 0, 
+                                 JikesRVMLauncherMessages.getString("JikesRVMLauncher.status.startVM"), 
+                                 e));
     }
   }
 
   private void launch(VMRunnerConfiguration config, 
-		      ILaunch launch, 
-		      IProgressMonitor monitor,
-		      String[] cmdLine,
-		      int port,
-		      String program) 
+                      ILaunch launch, 
+                      IProgressMonitor monitor,
+                      String[] cmdLine,
+                      int port,
+                      String program) 
     throws CoreException
   {
     File workingDir = workingDir(config);
@@ -207,32 +207,32 @@ public class JikesRVMDebugger extends JikesRVMRunner {
     Process p = null;
     try {
 
-	if (monitor.isCanceled()) {
-	  System.err.println(" >>> monitor=" + monitor + " isCanceled()");
-	  return;
-	}
+        if (monitor.isCanceled()) {
+          System.err.println(" >>> monitor=" + monitor + " isCanceled()");
+          return;
+        }
 
-	try {
-	  p = Runtime.getRuntime().exec(cmdLine, null, workingDir);
-	} catch (IOException e) {
-	  if (p != null) p.destroy();
-	  showErrorDialog(JikesRVMLauncherMessages.getString("JikesRVMLauncher.error.startVM"), e);
-	  return;
-	}
+        try {
+          p = Runtime.getRuntime().exec(cmdLine, null, workingDir);
+        } catch (IOException e) {
+          if (p != null) p.destroy();
+          showErrorDialog(JikesRVMLauncherMessages.getString("JikesRVMLauncher.error.startVM"), e);
+          return;
+        }
 
-	JikesRVMDebug.d.bug(" >>> Launching p=" + p);
+        JikesRVMDebug.d.bug(" >>> Launching p=" + p);
 
-	IProcess process = DebugPlugin.getDefault().newProcess(launch, p, renderProcessLabel(cmdLine));
-	process.setAttribute(JavaRuntime.ATTR_CMDLINE, renderCommandLine(cmdLine));
+        IProcess process = DebugPlugin.getDefault().newProcess(launch, p, renderProcessLabel(cmdLine));
+        process.setAttribute(JavaRuntime.ATTR_CMDLINE, renderCommandLine(cmdLine));
 
-	VirtualMachine vm = connector.launch(map);
+        VirtualMachine vm = connector.launch(map);
 
-	JikesRVMDebug.d.bug("*** vm=" + vm + " ***");
+        JikesRVMDebug.d.bug("*** vm=" + vm + " ***");
 
-	JDIDebugModel.newDebugTarget(launch, 
-				     vm, 
-				     renderDebugTarget(config.getClassToLaunch(), port), 
-				     process, true, false);
+        JDIDebugModel.newDebugTarget(launch, 
+                                     vm, 
+                                     renderDebugTarget(config.getClassToLaunch(), port), 
+                                     process, true, false);
     } catch (VMStartException e) {
       showErrorDialog(JikesRVMLauncherMessages.getString("JikesRVMLauncher.error.startVM"), e);
     } catch (IOException e) {
@@ -247,11 +247,11 @@ public class JikesRVMDebugger extends JikesRVMRunner {
   }
 
   private void attach(VMRunnerConfiguration config, 
-		      ILaunch launch, 
-		      IProgressMonitor monitor,
-		      String[] cmdLine,
-		      int port,
-		      String program) 
+                      ILaunch launch, 
+                      IProgressMonitor monitor,
+                      String[] cmdLine,
+                      int port,
+                      String program) 
     throws CoreException 
   {
 
@@ -289,25 +289,25 @@ public class JikesRVMDebugger extends JikesRVMRunner {
     boolean retry = false;
     do {
       try {
-	VirtualMachine vm;
-	try {
-	  vm = connector.attach(map);
-	} catch (IOException exc) {
-	  vm = connector.attach(map);
-	}
-	setTimeout(vm);
-	IDebugTarget debugTarget = 
-	  JDIDebugModel.newDebugTarget(launch, 
-				       vm, 
-				       renderDebugTarget(config.getClassToLaunch(), port), 
-				       process1, true, false);
-	return;
-	//return new VMRunnerResult(debugTarget, new IProcess[] { process1, process2 });
+        VirtualMachine vm;
+        try {
+          vm = connector.attach(map);
+        } catch (IOException exc) {
+          vm = connector.attach(map);
+        }
+        setTimeout(vm);
+        IDebugTarget debugTarget = 
+          JDIDebugModel.newDebugTarget(launch, 
+                                       vm, 
+                                       renderDebugTarget(config.getClassToLaunch(), port), 
+                                       process1, true, false);
+        return;
+        //return new VMRunnerResult(debugTarget, new IProcess[] { process1, process2 });
       } catch (IOException e) {
-	retry = askRetry(JikesRVMLauncherMessages.getString("JikesRVMLauncher.error.noConnect1"));
+        retry = askRetry(JikesRVMLauncherMessages.getString("JikesRVMLauncher.error.noConnect1"));
       } catch (IllegalConnectorArgumentsException e) {
-	retry = false;
-	showErrorDialog(JikesRVMLauncherMessages.getString("JikesRVMDebugger.error.noConnect2"), e);
+        retry = false;
+        showErrorDialog(JikesRVMLauncherMessages.getString("JikesRVMDebugger.error.noConnect2"), e);
       }
     } while (retry);
     p.destroy();
@@ -315,11 +315,11 @@ public class JikesRVMDebugger extends JikesRVMRunner {
   }
   
   private void listen(VMRunnerConfiguration config, 
-		      ILaunch launch, 
-		      IProgressMonitor monitor,
-		      String[] cmdLine,
-		      int port,
-		      String program) 
+                      ILaunch launch, 
+                      IProgressMonitor monitor,
+                      String[] cmdLine,
+                      int port,
+                      String program) 
     throws CoreException 
   {
     
@@ -348,70 +348,70 @@ public class JikesRVMDebugger extends JikesRVMRunner {
     try {
       try {
 
-	if (monitor.isCanceled()) {
-	  System.err.println(" >>> monitor=" + monitor + " isCanceled()");
-	  return;
-	}
+        if (monitor.isCanceled()) {
+          System.err.println(" >>> monitor=" + monitor + " isCanceled()");
+          return;
+        }
       
-	connector.startListening(map);
-	p = exec(cmdLine, workingDir);				
-	if (p == null) return;
+        connector.startListening(map);
+        p = exec(cmdLine, workingDir);                          
+        if (p == null) return;
       
-	if (monitor.isCanceled()) {
-	  System.err.println(" >>> monitor=" + monitor + " isCanceled()");
-	  p.destroy();
-	  return;
-	}				
-				
-	IProcess process = DebugPlugin.getDefault().newProcess(launch, p, renderProcessLabel(cmdLine));
-	process.setAttribute(JavaRuntime.ATTR_CMDLINE, renderCommandLine(cmdLine));
-				
-	boolean retry = false;
-	do  {
-	  try {
-	    VirtualMachine vm = connector.accept(map);
+        if (monitor.isCanceled()) {
+          System.err.println(" >>> monitor=" + monitor + " isCanceled()");
+          p.destroy();
+          return;
+        }                               
+                                
+        IProcess process = DebugPlugin.getDefault().newProcess(launch, p, renderProcessLabel(cmdLine));
+        process.setAttribute(JavaRuntime.ATTR_CMDLINE, renderCommandLine(cmdLine));
+                                
+        boolean retry = false;
+        do  {
+          try {
+            VirtualMachine vm = connector.accept(map);
 
-	    JikesRVMDebug.d.bug("*** vm=" + vm + " ***");
+            JikesRVMDebug.d.bug("*** vm=" + vm + " ***");
 
-	    setPluginTimeout();
+            setPluginTimeout();
 
-	    JDIDebugModel.newDebugTarget(launch, 
-					 vm, 
-					 renderDebugTarget(config.getClassToLaunch(), port), 
-					 process, true, false);
-	    setPluginTimeout();
-	    return;
-	  } catch (InterruptedIOException e) {
-	    JikesRVMDebug.d.handle(e);
-	    String errorMessage = process.getStreamsProxy().getErrorStreamMonitor().getContents();
-	    if (errorMessage.length() == 0) {
-	      errorMessage = process.getStreamsProxy().getOutputStreamMonitor().getContents();
-	    }
-	    if (errorMessage.length() != 0) {
-	      showErrorDialog(errorMessage, e);
-	    } else {
-	      // timeout, consult status handler if there is one
-	      IStatus status = new Status(IStatus.ERROR, 
-					  JikesRVMLaunchingPlugin.getPluginId(),
-					  IJavaLaunchConfigurationConstants.ERR_VM_CONNECT_TIMEOUT, 
-					  "", e);
-	      IStatusHandler handler = DebugPlugin.getDefault().getStatusHandler(status);							
-	      retry = false;
-	      if (handler == null) {
-		// if there is no handler, throw the exception
-		throw new CoreException(status);
-	      } else {
-		Object result = handler.handleStatus(status, this);
-		if (result instanceof Boolean) {
-		  retry = ((Boolean)result).booleanValue();
-		}
-	      } 
-	    }
-	  }
-	} while (retry);
+            JDIDebugModel.newDebugTarget(launch, 
+                                         vm, 
+                                         renderDebugTarget(config.getClassToLaunch(), port), 
+                                         process, true, false);
+            setPluginTimeout();
+            return;
+          } catch (InterruptedIOException e) {
+            JikesRVMDebug.d.handle(e);
+            String errorMessage = process.getStreamsProxy().getErrorStreamMonitor().getContents();
+            if (errorMessage.length() == 0) {
+              errorMessage = process.getStreamsProxy().getOutputStreamMonitor().getContents();
+            }
+            if (errorMessage.length() != 0) {
+              showErrorDialog(errorMessage, e);
+            } else {
+              // timeout, consult status handler if there is one
+              IStatus status = new Status(IStatus.ERROR, 
+                                          JikesRVMLaunchingPlugin.getPluginId(),
+                                          IJavaLaunchConfigurationConstants.ERR_VM_CONNECT_TIMEOUT, 
+                                          "", e);
+              IStatusHandler handler = DebugPlugin.getDefault().getStatusHandler(status);                                                       
+              retry = false;
+              if (handler == null) {
+                // if there is no handler, throw the exception
+                throw new CoreException(status);
+              } else {
+                Object result = handler.handleStatus(status, this);
+                if (result instanceof Boolean) {
+                  retry = ((Boolean)result).booleanValue();
+                }
+              } 
+            }
+          }
+        } while (retry);
       } finally {
-  	JikesRVMDebug.d.bug("*** stopListening connector=" + connector + " ***");
-  	connector.stopListening(map);
+        JikesRVMDebug.d.bug("*** stopListening connector=" + connector + " ***");
+        connector.stopListening(map);
       }
     } catch (IOException e) {
       JikesRVMDebug.d.handle(e);
@@ -432,9 +432,9 @@ public class JikesRVMDebugger extends JikesRVMRunner {
 
   protected final void setPluginTimeout(int value) {
     JDIDebugModel.getPreferences().setValue(JDIDebugModel.PREF_REQUEST_TIMEOUT,
-					    Integer.MAX_VALUE);
+                                            Integer.MAX_VALUE);
     JDIDebugPlugin.getDefault().getPluginPreferences().setDefault(JDIDebugModel.PREF_REQUEST_TIMEOUT,
-								  Integer.MAX_VALUE);
+                                                                  Integer.MAX_VALUE);
   }
 
   protected LaunchingConnector getLaunchingConnector() {
@@ -442,7 +442,7 @@ public class JikesRVMDebugger extends JikesRVMRunner {
     for (int i= 0; i < connectors.size(); i++) {
       LaunchingConnector c = (LaunchingConnector)connectors.get(i);
       if ("com.sun.jdi.CommandLineLaunch".equals(c.name()))
-	return c;
+        return c;
     }
     return null;
   }
@@ -452,7 +452,7 @@ public class JikesRVMDebugger extends JikesRVMRunner {
     for (int i= 0; i < connectors.size(); i++) {
       ListeningConnector c = (ListeningConnector)connectors.get(i);
       if ("com.sun.jdi.SocketListen".equals(c.name()))
-	return c;
+        return c;
     }
     return null;
   }
@@ -462,7 +462,7 @@ public class JikesRVMDebugger extends JikesRVMRunner {
     for (int i= 0; i < connectors.size(); i++) {
       AttachingConnector c= (AttachingConnector)connectors.get(i);
       if ("com.sun.jdi.SocketAttach".equals(c.name()))
-	return c;
+        return c;
     }
     return null;
   }
@@ -470,13 +470,13 @@ public class JikesRVMDebugger extends JikesRVMRunner {
   private final static class SocketUtil {
     private static int findUnusedLocalPort(String host, int searchFrom, int searchTo) {
       for (int i= 0; i < 10; i++) {
-	int port = getRandomPort(searchFrom, searchTo);
-	try {
-	  new Socket(host, port);
-	} catch (ConnectException e) {
-	    return port;
-	} catch (IOException e) {
-	}
+        int port = getRandomPort(searchFrom, searchTo);
+        try {
+          new Socket(host, port);
+        } catch (ConnectException e) {
+            return port;
+        } catch (IOException e) {
+        }
       }
       return -1;
     }
@@ -488,22 +488,22 @@ public class JikesRVMDebugger extends JikesRVMRunner {
 
   protected boolean askRetry(String message) {
     return askRetry(JikesRVMLauncherMessages.getString("JikesRVMLauncher.dialog.title"), 
-		    message);
+                    message);
   }
 
   protected boolean askRetry(final String title, final String message) {
     final boolean[] result= new boolean[1];
     Display.getDefault().syncExec(new Runnable() {
-	public void run() {
-	  result[0]= (MessageDialog.openQuestion(JikesRVMLaunchingPlugin.getActiveWorkbenchShell(), 
-						 title, 
-						 message));
-	}
+        public void run() {
+          result[0]= (MessageDialog.openQuestion(JikesRVMLaunchingPlugin.getActiveWorkbenchShell(), 
+                                                 title, 
+                                                 message));
+        }
       });
     return result[0];
   }
 
-  protected void setTimeout(VirtualMachine vm) {		
+  protected void setTimeout(VirtualMachine vm) {                
     if (vm instanceof org.eclipse.jdi.VirtualMachine) {
       int timeout = 30000; //fVMInstance.getDebuggerTimeout();
       org.eclipse.jdi.VirtualMachine vm2= (org.eclipse.jdi.VirtualMachine)vm;
@@ -519,10 +519,10 @@ public class JikesRVMDebugger extends JikesRVMRunner {
       "Attaching Connector",
     };
 //      ListSelectionDialog dialog = new ListSelectionDialog(JikesRVMLaunchingPlugin.getActiveWorkbenchShell(),
-//    							 input,
-//    							 new WorkbenchContentProvider(),
-//    							 new WorkbenchLabelProvider(),
-//    							 "Choose a selector");
+//                                                       input,
+//                                                       new WorkbenchContentProvider(),
+//                                                       new WorkbenchLabelProvider(),
+//                                                       "Choose a selector");
 //      dialog.open();
 //      Object result = dialog.getResult();
 //      System.err.println("result="+result);
@@ -540,21 +540,21 @@ public class JikesRVMDebugger extends JikesRVMRunner {
     //XXX
     if (arg.startsWith("-Xrunjdwp:")) {
       for (StringTokenizer t = new StringTokenizer(arg.substring(10), ",", false); t.hasMoreTokens();) {
-	String str = t.nextToken().trim();
-	int ieq = str.indexOf("=");
-	final String key;
-	final String val;
-	if (ieq == -1) {
-	  key = str;
-	  val = "";
-	} else {
-	  key = str.substring(0,ieq);
-	  val = str.substring(ieq+1);
-	}
-	if (key.equals("address")) {
-	  result.add("-jdplisten" + val);
-	  return false;
-	}
+        String str = t.nextToken().trim();
+        int ieq = str.indexOf("=");
+        final String key;
+        final String val;
+        if (ieq == -1) {
+          key = str;
+          val = "";
+        } else {
+          key = str.substring(0,ieq);
+          val = str.substring(ieq+1);
+        }
+        if (key.equals("address")) {
+          result.add("-jdplisten" + val);
+          return false;
+        }
       }
     }
     

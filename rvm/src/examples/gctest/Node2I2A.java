@@ -27,27 +27,27 @@ class Node2I2A {
       Node2I2A head = new Node2I2A();
       Node2I2A cur = head;
       for (int i=0; i<estimateSize; i++) {
-	cur.cdr = new Node2I2A();
-	cur = cur.cdr;
+        cur.cdr = new Node2I2A();
+        cur = cur.cdr;
       }
       synchronized(fakeLock) {
-	// This seemingly useless lock operation prevents the optimizing
-	// compiler from doing redundant load elimination of the internal fields 
-	// used to compute freeMemory in the watson semispace collector.
-	// Fairly amusing...at the HIR level there is of course nothing in the above loop
-	// that would cause the compiler to think that the fields of VM_ContiguousHeap get changed.
-	// Arguably the fields in question should be marked volatile, but injecting this
-	// fake lock operation here causes us to obey the java memory model and not do the 
-	// redundant load elimination. 
+        // This seemingly useless lock operation prevents the optimizing
+        // compiler from doing redundant load elimination of the internal fields 
+        // used to compute freeMemory in the watson semispace collector.
+        // Fairly amusing...at the HIR level there is of course nothing in the above loop
+        // that would cause the compiler to think that the fields of VM_ContiguousHeap get changed.
+        // Arguably the fields in question should be marked volatile, but injecting this
+        // fake lock operation here causes us to obey the java memory model and not do the 
+        // redundant load elimination. 
       }
       long end = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
       long used = end - start;
       if (used > 0) {
-	measuredObjectSize = used / ((double) estimateSize);
-	objectSize = (int) (measuredObjectSize + 0.5); // round to byte
-	objectSize = (objectSize + 2) / 4 * 4; // round to word
-	if (objectSize > 16) 
-	  break;
+        measuredObjectSize = used / ((double) estimateSize);
+        objectSize = (int) (measuredObjectSize + 0.5); // round to byte
+        objectSize = (objectSize + 2) / 4 * 4; // round to word
+        if (objectSize > 16) 
+          break;
       }
       estimateSize = (int) (0.75 * estimateSize);
       System.out.println("GC occured since used memory decreased after allocation or implausible object size obtained.  Retrying with " + estimateSize + " objects.");

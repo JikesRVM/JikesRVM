@@ -24,24 +24,25 @@ import com.ibm.JikesRVM.VM_Magic;
 
 public class Memory implements VM_Uninterruptible {
 
-  // Inlining this loop into the uninterruptible code can cause/encourage the GCP 
-  // into moving a get_obj_tib into the interruptible region where the tib is being
-  // installed via an int_store
-  //
+  /* Inlining this loop into the uninterruptible code can cause/encourage the
+   GCP into moving a get_obj_tib into the interruptible region where the tib
+   is being installed via an int_store 
+  */
   private static boolean isSetHelper(VM_Address start, int size, boolean verbose, int v) throws VM_PragmaNoInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(size == (size & (~3)));
+    if (VM_Interface.VerifyAssertions) 
+      VM_Interface._assert(size == (size & (~3)));
     for (int i=0; i<size; i+=4) 
       if (VM_Magic.getMemoryInt(start.add(i)) != v) {
-	if (verbose) {
-	    Log.prependThreadId();
-	    Log.write("Memory range does not contain only value ");
-	    Log.writeln(v);
-	    Log.write("Non-zero range: "); Log.write(start);
-	    Log.write(" .. "); Log.writeln(start.add(size));
-	    Log.write("First bad value at "); Log.writeln(start.add(i));
-	    dumpMemory(start, 0, size);
-	}
-	return false;
+        if (verbose) {
+            Log.prependThreadId();
+            Log.write("Memory range does not contain only value ");
+            Log.writeln(v);
+            Log.write("Non-zero range: "); Log.write(start);
+            Log.write(" .. "); Log.writeln(start.add(size));
+            Log.write("First bad value at "); Log.writeln(start.add(i));
+            dumpMemory(start, 0, size);
+        }
+        return false;
       }
     return true;
   }

@@ -5,36 +5,36 @@
 /**
  *  Method invocation in JNI:  test the following JNI functions
  *    CallStaticBooleanMethodA    CallStaticBooleanMethodV  CallStaticBooleanMethod 
- *    CallStaticByteMethodA	  CallStaticByteMethodV     CallStaticByteMethod    
- *    CallStaticCharMethodA	  CallStaticCharMethodV     CallStaticCharMethod    
- *    CallStaticShortMethodA	  CallStaticShortMethodV    CallStaticShortMethod   
- *    CallStaticIntMethodA	  CallStaticIntMethodV      CallStaticIntMethod     
- *    CallStaticLongMethodA	  CallStaticLongMethodV     CallStaticLongMethod    
- *    CallStaticFloatMethodA	  CallStaticFloatMethodV    CallStaticFloatMethod   
- *    CallStaticDoubleMethodA	  CallStaticDoubleMethodV   CallStaticDoubleMethod  
- *    CallStaticVoidMethodA	  CallStaticVoidMethodV     CallStaticVoidMethod    
+ *    CallStaticByteMethodA       CallStaticByteMethodV     CallStaticByteMethod    
+ *    CallStaticCharMethodA       CallStaticCharMethodV     CallStaticCharMethod    
+ *    CallStaticShortMethodA      CallStaticShortMethodV    CallStaticShortMethod   
+ *    CallStaticIntMethodA        CallStaticIntMethodV      CallStaticIntMethod     
+ *    CallStaticLongMethodA       CallStaticLongMethodV     CallStaticLongMethod    
+ *    CallStaticFloatMethodA      CallStaticFloatMethodV    CallStaticFloatMethod   
+ *    CallStaticDoubleMethodA     CallStaticDoubleMethodV   CallStaticDoubleMethod  
+ *    CallStaticVoidMethodA       CallStaticVoidMethodV     CallStaticVoidMethod    
  *    CallStaticObjectMethodA     CallStaticObjectMethodV   CallStaticObjectMethod
  *
- *    CallBooleanMethodA    	  CallBooleanMethodV  	    CallBooleanMethod 
- *    CallByteMethodA	    	  CallByteMethodV     	    CallByteMethod    
- *    CallCharMethodA	    	  CallCharMethodV     	    CallCharMethod    
- *    CallShortMethodA	    	  CallShortMethodV    	    CallShortMethod   
- *    CallIntMethodA	    	  CallIntMethodV      	    CallIntMethod     
- *    CallLongMethodA	    	  CallLongMethodV     	    CallLongMethod    
- *    CallFloatMethodA	    	  CallFloatMethodV    	    CallFloatMethod   
- *    CallDoubleMethodA	    	  CallDoubleMethodV   	    CallDoubleMethod  
- *    CallVoidMethodA	    	  CallVoidMethodV     	    CallVoidMethod    
- *    CallObjectMethodA     	  CallObjectMethodV   	    CallObjectMethod
+ *    CallBooleanMethodA          CallBooleanMethodV        CallBooleanMethod 
+ *    CallByteMethodA             CallByteMethodV           CallByteMethod    
+ *    CallCharMethodA             CallCharMethodV           CallCharMethod    
+ *    CallShortMethodA            CallShortMethodV          CallShortMethod   
+ *    CallIntMethodA              CallIntMethodV            CallIntMethod     
+ *    CallLongMethodA             CallLongMethodV           CallLongMethod    
+ *    CallFloatMethodA            CallFloatMethodV          CallFloatMethod   
+ *    CallDoubleMethodA           CallDoubleMethodV         CallDoubleMethod  
+ *    CallVoidMethodA             CallVoidMethodV           CallVoidMethod    
+ *    CallObjectMethodA           CallObjectMethodV         CallObjectMethod
  *
  *    CallNonvirtualBooleanMethodA   CallNonvirtualBooleanMethodV   CallNonvirtualBooleanMethod 
- *    CallNonvirtualByteMethodA	     CallNonvirtualByteMethodV      CallNonvirtualByteMethod    
- *    CallNonvirtualCharMethodA	     CallNonvirtualCharMethodV      CallNonvirtualCharMethod    
+ *    CallNonvirtualByteMethodA      CallNonvirtualByteMethodV      CallNonvirtualByteMethod    
+ *    CallNonvirtualCharMethodA      CallNonvirtualCharMethodV      CallNonvirtualCharMethod    
  *    CallNonvirtualShortMethodA     CallNonvirtualShortMethodV     CallNonvirtualShortMethod   
- *    CallNonvirtualIntMethodA	     CallNonvirtualIntMethodV       CallNonvirtualIntMethod     
- *    CallNonvirtualLongMethodA	     CallNonvirtualLongMethodV      CallNonvirtualLongMethod    
+ *    CallNonvirtualIntMethodA       CallNonvirtualIntMethodV       CallNonvirtualIntMethod     
+ *    CallNonvirtualLongMethodA      CallNonvirtualLongMethodV      CallNonvirtualLongMethod    
  *    CallNonvirtualFloatMethodA     CallNonvirtualFloatMethodV     CallNonvirtualFloatMethod   
  *    CallNonvirtualDoubleMethodA    CallNonvirtualDoubleMethodV    CallNonvirtualDoubleMethod  
- *    CallNonvirtualVoidMethodA	     CallNonvirtualVoidMethodV      CallNonvirtualVoidMethod    
+ *    CallNonvirtualVoidMethodA      CallNonvirtualVoidMethodV      CallNonvirtualVoidMethod    
  *    CallNonvirtualObjectMethodA    CallNonvirtualObjectMethodV    CallNonvirtualObjectMethod
  *
  * @author Ton Ngo, Steve Smith 
@@ -71,22 +71,22 @@ class MethodInvocation {
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)Z        */
   public static boolean staticReturnBoolean(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return !val8;
   }
   
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)B        */
   public static byte staticReturnByte(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return (byte) (val0 + 3);
   }
   
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)C        */
   public static char staticReturnChar(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     if (val1=='a')
       return 'b';
     else
@@ -95,50 +95,50 @@ class MethodInvocation {
   
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)S        */
   public static short staticReturnShort(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return (short) (val2 + 15);
   }
   
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)I        */
   public static int staticReturnInt(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return val3 + (int) val2;
   }
   
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)J        */
   public static long staticReturnLong(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return val4 + (long) val3;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)F        */
   public static float staticReturnFloat(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return val5 + (float) 100.0;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)D        */
   public static double staticReturnDouble(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return val6 + (double) 100.0;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)         */
   public static void staticReturnVoid(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     testFlagForVoid = 789;     // update the flag to indicate success
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;        */
   public static Object staticReturnObject(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return new String("Year 2000");
   }
 
@@ -150,22 +150,22 @@ class MethodInvocation {
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)Z        */
   public boolean virtualReturnBoolean(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return !val8;
   }
   
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)B        */
   public byte virtualReturnByte(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return (byte) (val0 + 7);
   }
   
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)C        */
   public char virtualReturnChar(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     if (val1=='x')
       return 'y';
     else
@@ -174,50 +174,50 @@ class MethodInvocation {
   
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)S        */
   public short virtualReturnShort(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return (short) (val2 + 23);
   }
   
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)I        */
   public int virtualReturnInt(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return val3 + (int) val0;
   }
   
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)J        */
   public long virtualReturnLong(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return val4 + (long) val2;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)F        */
   public float virtualReturnFloat(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return val5 + (float) 32.0;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)D        */
   public double virtualReturnDouble(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return val6 + (double) 1000.0;
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)         */
   public void virtualReturnVoid(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     testFlagForVoid = 456;     // update the flag to indicate success
   }
 
   /* The signature is:     (BCSIJFDLjava/lang/Object;Z)Ljava/lang/Object;        */
   public Object virtualReturnObject(byte val0, char val1, short val2,  
-				  int val3, long val4, float val5,  
-				  double val6, Object val7, boolean val8) {
+                                  int val3, long val4, float val5,  
+                                  double val6, Object val7, boolean val8) {
     return new String("RVM");
   }
 
@@ -241,9 +241,9 @@ class MethodInvocation {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-	verbose = false;	
-	setVerboseOff();
-      } 	
+        verbose = false;        
+        setVerboseOff();
+      }         
     }
 
     /**

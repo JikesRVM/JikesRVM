@@ -32,9 +32,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           new OPT_OptimizationPlanAtomicElement(new UpdateGCMaps1()),
           new OPT_OptimizationPlanAtomicElement(new SpillCode()),
           new OPT_OptimizationPlanAtomicElement(new UpdateGCMaps2()),
-	  //-#if RVM_WITH_OSR
-	      new OPT_OptimizationPlanAtomicElement(new UpdateOSRMaps()),
-	  //-#endif
+          //-#if RVM_WITH_OSR
+              new OPT_OptimizationPlanAtomicElement(new UpdateOSRMaps()),
+          //-#endif
           });
   }
 
@@ -225,7 +225,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
        * Register allocation is required
        */
       public final boolean shouldPerform(OPT_Options options) { 
-	return true; 
+        return true; 
       }
 
       public final String getName() { 
@@ -949,7 +949,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
         if (verboseDebug) System.out.println("Expire " + bi);
 
         // note that the bi interval no longer is live 
-        freeInterval(bi);	
+        freeInterval(bi);       
 
         // remove bi from the active set
         e.remove();
@@ -1867,7 +1867,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
               return null;
             } else {
               if (!end.isPEI()) {
-                if (VM.VerifyAssertions) {		      
+                if (VM.VerifyAssertions) {                    
                   OPT_Operand value = MIR_Move.getValue(end);
                   VM._assert(value.isRegister());
                   VM._assert(MIR_Move.getValue(end).asRegister().register 
@@ -2431,7 +2431,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       replaceSymbolicRegisters(ir);
 
       // Generate spill code if necessary
-      if (ir.hasSysCall() || ir.MIRInfo.linearScanState.spilledSomething) {	
+      if (ir.hasSysCall() || ir.MIRInfo.linearScanState.spilledSomething) {     
         OPT_StackManager stackMan = (OPT_StackManager)ir.stackManager;
         stackMan.insertSpillCode(ir.MIRInfo.linearScanState.active);
         //      stackMan.insertSpillCode();
@@ -2565,38 +2565,38 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
 
       // for each osr instruction
       for (int numOsrs=0, m=mapList.size(); numOsrs<m; numOsrs++) {
-	OSR_VariableMapElement elm = 
-	  (OSR_VariableMapElement)mapList.get(numOsrs);
+        OSR_VariableMapElement elm = 
+          (OSR_VariableMapElement)mapList.get(numOsrs);
 
-	// for each inlined method
-	LinkedList mvarsList = elm.mvars;
-	for (int numMvars=0, n=mvarsList.size(); numMvars<n; numMvars++) {
-	  OSR_MethodVariables mvar =
-	    (OSR_MethodVariables)mvarsList.get(numMvars);
+        // for each inlined method
+        LinkedList mvarsList = elm.mvars;
+        for (int numMvars=0, n=mvarsList.size(); numMvars<n; numMvars++) {
+          OSR_MethodVariables mvar =
+            (OSR_MethodVariables)mvarsList.get(numMvars);
 
-	  // for each tuple
-	  LinkedList tupleList = mvar.tupleList;
-	  for (int numTuple=0, k=tupleList.size(); numTuple<k; numTuple++) {
-	    OSR_LocalRegPair tuple = 
-	      (OSR_LocalRegPair) tupleList.get(numTuple);
+          // for each tuple
+          LinkedList tupleList = mvar.tupleList;
+          for (int numTuple=0, k=tupleList.size(); numTuple<k; numTuple++) {
+            OSR_LocalRegPair tuple = 
+              (OSR_LocalRegPair) tupleList.get(numTuple);
 
-	    OPT_Operand op = tuple.operand;
-	    if (op.isRegister()) {
-	      OPT_Register sym_reg = ((OPT_RegisterOperand)op).register;
+            OPT_Operand op = tuple.operand;
+            if (op.isRegister()) {
+              OPT_Register sym_reg = ((OPT_RegisterOperand)op).register;
 
-	      setRealPosition(tuple, sym_reg);
+              setRealPosition(tuple, sym_reg);
 
-	      // get another half part of long register
-	      if (tuple.typeCode == OSR_Constants.LongTypeCode) {
+              // get another half part of long register
+              if (tuple.typeCode == OSR_Constants.LongTypeCode) {
 
-		OSR_LocalRegPair other = tuple._otherHalf;
-		OPT_Operand other_op = other.operand;
+                OSR_LocalRegPair other = tuple._otherHalf;
+                OPT_Operand other_op = other.operand;
 
-		if (VM.VerifyAssertions) VM._assert(other_op.isRegister());
+                if (VM.VerifyAssertions) VM._assert(other_op.isRegister());
 
-		OPT_Register other_reg = ((OPT_RegisterOperand)other_op).register;
-		setRealPosition(other, other_reg);
-	      }
+                OPT_Register other_reg = ((OPT_RegisterOperand)other_op).register;
+                setRealPosition(other, other_reg);
+              }
       /* According to OPT_ConvertToLowLevelIR, StringConstant, LongConstant,
        * NullConstant, FloatConstant, and DoubleConstant are all materialized
        * The only thing left is the integer constant.
@@ -2606,34 +2606,34 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
        *
        * Perhaps, OPT_ConvertToLowLevelIR can skip OsrPoint instruction.
        */
-	    } else if (op.isIntConstant()) {
-	      setTupleValue(tuple,
-			    OSR_Constants.ICONST,
-			    ((OPT_IntConstantOperand)op).value
-			    );
-	      if (tuple.typeCode == OSR_Constants.LongTypeCode) {
-		OSR_LocalRegPair other = tuple._otherHalf;
-		OPT_Operand other_op = other.operand;
+            } else if (op.isIntConstant()) {
+              setTupleValue(tuple,
+                            OSR_Constants.ICONST,
+                            ((OPT_IntConstantOperand)op).value
+                            );
+              if (tuple.typeCode == OSR_Constants.LongTypeCode) {
+                OSR_LocalRegPair other = tuple._otherHalf;
+                OPT_Operand other_op = other.operand;
 
-		if (VM.VerifyAssertions) VM._assert(other_op.isIntConstant());
-		setTupleValue(other,
-			      OSR_Constants.ICONST,
-			      ((OPT_IntConstantOperand)other_op).value
-			      );			      
-	      } 
-	    } else {
-	      throw new OPT_OptimizingCompilerException("OPT_LinearScan",
+                if (VM.VerifyAssertions) VM._assert(other_op.isIntConstant());
+                setTupleValue(other,
+                              OSR_Constants.ICONST,
+                              ((OPT_IntConstantOperand)other_op).value
+                              );                              
+              } 
+            } else {
+              throw new OPT_OptimizingCompilerException("OPT_LinearScan",
                         "Unexpected operand type at ", op.toString());
-	    } // for the op type
-	  } // for each tuple
-	} // for each inlined method
+            } // for the op type
+          } // for each tuple
+        } // for each inlined method
       } // for each osr instruction
 
       this.ir = null;
     } // end of method
  
     final void setRealPosition(OSR_LocalRegPair tuple, 
-				      OPT_Register sym_reg) {
+                                      OPT_Register sym_reg) {
       if (VM.VerifyAssertions) VM._assert(sym_reg != null);
 
       int REG_MASK = 0x01F;      
@@ -2643,32 +2643,32 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
       // and sometimes not.
       if (sym_reg.isAllocated()) {
         OPT_Register ra = OPT_RegisterAllocatorState.getMapping(sym_reg);
-	setTupleValue(tuple,
-		      OSR_Constants.PHYREG,
-		      sym_reg.number & REG_MASK
-		      ); 
+        setTupleValue(tuple,
+                      OSR_Constants.PHYREG,
+                      sym_reg.number & REG_MASK
+                      ); 
       } else if (sym_reg.isPhysical()) {
-	setTupleValue(tuple,
-		      OSR_Constants.PHYREG,
-		      sym_reg.number & REG_MASK
-		      );
+        setTupleValue(tuple,
+                      OSR_Constants.PHYREG,
+                      sym_reg.number & REG_MASK
+                      );
       } else if (sym_reg.isSpilled()) {
-	setTupleValue(tuple,
-		      OSR_Constants.SPILL,
-		      sym_reg.getSpillAllocated()
-		      );
+        setTupleValue(tuple,
+                      OSR_Constants.SPILL,
+                      sym_reg.getSpillAllocated()
+                      );
       } else {
 
- 	(new OPT_IRPrinter("PANIC")).dumpIR(ir, "PANIC");
+        (new OPT_IRPrinter("PANIC")).dumpIR(ir, "PANIC");
 
-	throw new RuntimeException("OPT_LinearScan PANIC in OSRMAP, "
-				       +sym_reg+" is not alive");
+        throw new RuntimeException("OPT_LinearScan PANIC in OSRMAP, "
+                                       +sym_reg+" is not alive");
       }
     } // end of setRealPosition
 
     final static void setTupleValue(OSR_LocalRegPair tuple,
-				    int type,
-				    int value) {
+                                    int type,
+                                    int value) {
       tuple.valueType = type;
       tuple.value     = value;
     } // end of setTupleValue

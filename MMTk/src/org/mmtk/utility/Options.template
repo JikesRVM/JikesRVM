@@ -6,7 +6,6 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
-import com.ibm.JikesRVM.VM_CommandLineArgs;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaInterruptible;
@@ -24,7 +23,6 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @author Dave Grove
  **/
 public final class Options implements VM_Uninterruptible, Constants {
-
    // Begin template-specified options
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
@@ -151,18 +149,18 @@ $$$$ FOREACH OPTION VDATFILE
        FULL_NAME = filter_FULL_NAME(value);
           $$$$ ELSE
             $$$$ IF TYPE == int
-       FULL_NAME = filter_FULL_NAME(VM_CommandLineArgs.primitiveParseInt(value));
+       FULL_NAME = filter_FULL_NAME(VM_Interface.primitiveParseInt(value));
             $$$$ ELSE
               $$$$ IF TYPE == byte
-       FULL_NAME = filter_FULL_NAME((byte)VM_CommandLineArgs.primitiveParseInt(value));
+       FULL_NAME = filter_FULL_NAME((byte)VM_Interface.primitiveParseInt(value));
               $$$$ ELSE
                 $$$$ IF TYPE == double
-       FULL_NAME = filter_FULL_NAME(VM_CommandLineArgs.primitiveParseFloat(value));
+       FULL_NAME = filter_FULL_NAME(VM_Interface.primitiveParseFloat(value));
                 $$$$ ELSE
                   $$$$ IF TYPE == float
-       FULL_NAME = filter_FULL_NAME(VM_CommandLineArgs.primitiveParseFloat(value));
+       FULL_NAME = filter_FULL_NAME(VM_Interface.primitiveParseFloat(value));
                   $$$$ ELSE
-       Hey! You tried to declare a value option of unrecoginized type...fix it!
+       Hey! You tried to declare a value option of unrecognized type...fix it!
                   $$$$ END IF
                 $$$$ END IF
               $$$$ END IF

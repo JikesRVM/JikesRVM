@@ -14,28 +14,28 @@ import java.lang.Process;
 class TestRuntimeExec extends Thread {
 
     public static void main(String[] argv) {
-	try {
-	    int num = 1;
-	    if (argv.length > 0) {
-		num = Integer.parseInt(argv[0]);
-	    }
+        try {
+            int num = 1;
+            if (argv.length > 0) {
+                num = Integer.parseInt(argv[0]);
+            }
 
-	    Thread[] threadList = new Thread[num];
+            Thread[] threadList = new Thread[num];
 
-	    for (int i = 0; i < num; ++i) {
-		threadList[i] = new TestRuntimeExec(i);
-		threadList[i].start();
-	    }
+            for (int i = 0; i < num; ++i) {
+                threadList[i] = new TestRuntimeExec(i);
+                threadList[i].start();
+            }
 
-	    for (int i = 0; i < num; ++i)
-		threadList[i].join();
+            for (int i = 0; i < num; ++i)
+                threadList[i].join();
 
-	    System.out.println("All test threads finished");
-	}
-	catch (Exception e) {
-	    System.out.println("TestRuntimeExec: FAILED");
-	    System.exit(1);
-	}
+            System.out.println("All test threads finished");
+        }
+        catch (Exception e) {
+            System.out.println("TestRuntimeExec: FAILED");
+            System.exit(1);
+        }
     }
 
     private static String[] testData = {
@@ -57,14 +57,14 @@ class TestRuntimeExec extends Thread {
     public static final String PROGRAM = "tee";
 
     public TestRuntimeExec(int myNum) {
-	this.myNumber = myNum;
+        this.myNumber = myNum;
     }
 
     public void run() {
         try {
             charsExpected = 10000*(testData[0].length()+testData[1].length());
 
-	    String fileName ="/tmp/out" + myNumber; 
+            String fileName ="/tmp/out" + myNumber; 
 
             final Process tac = 
                 Runtime.getRuntime().exec(new String[]{PROGRAM, fileName}, null, new File("/tmp"));
@@ -128,71 +128,71 @@ class TestRuntimeExec extends Thread {
             writer.start();
             reader.start();
 
-	    // Use Process.waitFor() to wait for the process to complete
-	    final Thread waiter = new Thread() {
-		public void run() {
-		    try {
-			int exitCode = tac.waitFor();
-			System.out.println("waitFor(): Process exited with code " + exitCode);
-		    }
-		    catch (InterruptedException e) {
-			if (!interruptWait) {
-			    System.out.println("Waiting thread uninterrupted unexpectedly!!!");
-			    System.out.println("TestRuntimeExec FAILED");
-			    System.exit(1);
-			}
-			System.out.println("Waiting thread interrupted! (THIS IS GOOD)");
-			e.printStackTrace();
-		    }
-		}
-	    };
-	    waiter.start();
+            // Use Process.waitFor() to wait for the process to complete
+            final Thread waiter = new Thread() {
+                public void run() {
+                    try {
+                        int exitCode = tac.waitFor();
+                        System.out.println("waitFor(): Process exited with code " + exitCode);
+                    }
+                    catch (InterruptedException e) {
+                        if (!interruptWait) {
+                            System.out.println("Waiting thread uninterrupted unexpectedly!!!");
+                            System.out.println("TestRuntimeExec FAILED");
+                            System.exit(1);
+                        }
+                        System.out.println("Waiting thread interrupted! (THIS IS GOOD)");
+                        e.printStackTrace();
+                    }
+                }
+            };
+            waiter.start();
 
-	    if (interruptWait) {
-		// See if waitFor() can be interrupted.
-		// This should not affect the behavoir of the IO threads
-		// or the process.
-		new Thread() {
-		    public void run() {
-			try { Thread.sleep(2000); } catch (Exception e) { }
-			waiter.interrupt();
-		    }
-		}.start();
-	    }
+            if (interruptWait) {
+                // See if waitFor() can be interrupted.
+                // This should not affect the behavoir of the IO threads
+                // or the process.
+                new Thread() {
+                    public void run() {
+                        try { Thread.sleep(2000); } catch (Exception e) { }
+                        waiter.interrupt();
+                    }
+                }.start();
+            }
 
-	    // Use repeated polling with exitValue() to wait for the process
-	    // to complete
-	    Thread poller = new Thread() {
-		public void run() {
-		    int exitCode = -99;
-		    boolean exited = false;
-		    do {
-			try {
-			    exitCode = tac.exitValue();
-			    //System.out.println( "GOT IT");
-			    exited = true;
-			}
-			catch (IllegalThreadStateException e) {
-			    System.out.println("still alive!");
-			    try { Thread.sleep(1000); } catch (Exception ee) { }
-			}
-		    }
-		    while (!exited);
+            // Use repeated polling with exitValue() to wait for the process
+            // to complete
+            Thread poller = new Thread() {
+                public void run() {
+                    int exitCode = -99;
+                    boolean exited = false;
+                    do {
+                        try {
+                            exitCode = tac.exitValue();
+                            //System.out.println( "GOT IT");
+                            exited = true;
+                        }
+                        catch (IllegalThreadStateException e) {
+                            System.out.println("still alive!");
+                            try { Thread.sleep(1000); } catch (Exception ee) { }
+                        }
+                    }
+                    while (!exited);
 
-		    System.out.println("exitValue(): Process exited with code " + exitCode);
-	        }
-	    };
-	    poller.start();
+                    System.out.println("exitValue(): Process exited with code " + exitCode);
+                }
+            };
+            poller.start();
 
-	    try {
-		reader.join();
-		writer.join();
-	        waiter.join();
-	        poller.join();
-	    }
-	    catch (InterruptedException eee) {
-		eee.printStackTrace();
-	    }
+            try {
+                reader.join();
+                writer.join();
+                waiter.join();
+                poller.join();
+            }
+            catch (InterruptedException eee) {
+                eee.printStackTrace();
+            }
 
         } catch (Throwable e) {
             System.err.println("TestRuntimeExec FAILED with");

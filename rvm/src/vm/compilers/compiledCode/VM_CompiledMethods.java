@@ -64,10 +64,10 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     VM_Magic.isync();  // see potential update from other procs
 
     if (VM.VerifyAssertions) {
-	if (!(0 < compiledMethodId && compiledMethodId <= currentCompiledMethodId)) {
-	    VM.sysWriteln(compiledMethodId);
-	    VM._assert(false);
-	}
+        if (!(0 < compiledMethodId && compiledMethodId <= currentCompiledMethodId)) {
+            VM.sysWriteln(compiledMethodId);
+            VM._assert(false);
+        }
     }
 
     return compiledMethods[compiledMethodId];
@@ -112,7 +112,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     for (int i = 0, n = numCompiledMethods(); i < n; ++i) {
       VM_CompiledMethod compiledMethod = compiledMethods[i];
       if (compiledMethod == null || !compiledMethod.isCompiled())
-	continue; // empty slot
+        continue; // empty slot
 
       VM_CodeArray instructions = compiledMethod.getInstructions();
       VM_Address   beg          = VM_Magic.objectAsAddress(instructions);
@@ -123,7 +123,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
       // and not                         "ip <  beg || ip >= end"
       //
       if (ip.LE(beg) || ip.GT(end))
-	continue;
+        continue;
 
       return compiledMethod;
     }
@@ -138,13 +138,13 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   // in use.
   public static synchronized void setCompiledMethodObsolete(VM_CompiledMethod compiledMethod) {
     if (compiledMethod.isObsolete()) return; // someone else already marked it as obsolete.
-    int	cmid = compiledMethod.getId();
+    int cmid = compiledMethod.getId();
 
     // Currently, we avoid setting methods of java.lang.Object obsolete.
     // This is because the TIBs for arrays point to the original version
     // and are not updated on recompilation.
     // !!TODO: When replacing a java.lang.Object method, find arrays in JTOC
-    //	and update TIB to use newly recompiled method.
+    //  and update TIB to use newly recompiled method.
     if (compiledMethod.getMethod().getDeclaringClass().isJavaLangObjectType())
       return;
 
@@ -172,7 +172,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   // the code is currently being executed, stack scanning is responsible for
   // marking it NOT obsolete. Keep such reference until a future GC.
   // NOTE: It's expected that this is processed during GC, after scanning
-  //	stacks to determine which methods are currently executing.
+  //    stacks to determine which methods are currently executing.
   public static void snipObsoleteCompiledMethods() {
     if (obsoleteMethods == null) return;
     
@@ -182,10 +182,10 @@ public class VM_CompiledMethods implements VM_SizeConstants {
     for (int i = 0; i < oldCount; i++) {
       int currCM = obsoleteMethods[i];
       if (compiledMethods[currCM].isObsolete()) {
-	compiledMethods[currCM] = null;		// break the link
+        compiledMethods[currCM] = null;         // break the link
       } else {
-	obsoleteMethods[obsoleteMethodCount++] = currCM; // keep it
-	compiledMethods[currCM].setObsolete(true);	 // maybe next time
+        obsoleteMethods[obsoleteMethodCount++] = currCM; // keep it
+        compiledMethods[currCM].setObsolete(true);       // maybe next time
       }
     }
   }
@@ -246,13 +246,13 @@ public class VM_CompiledMethods implements VM_SizeConstants {
   private static int currentCompiledMethodId;
 
   // See usage above
-  private static int[]	obsoleteMethods;
-  private static int	obsoleteMethodCount;
+  private static int[]  obsoleteMethods;
+  private static int    obsoleteMethodCount;
 
   // Expand an array.
   //
   private static VM_CompiledMethod[] growArray(VM_CompiledMethod[] array, 
-					       int newLength) {
+                                               int newLength) {
     VM_CompiledMethod[] newarray = MM_Interface.newContiguousCompiledMethodArray(newLength);
     System.arraycopy(array, 0, newarray, 0, array.length);
     VM_Magic.sync();

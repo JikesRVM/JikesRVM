@@ -5,8 +5,9 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.SynchronizedCounter;
 
-import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
@@ -30,7 +31,7 @@ public final class Barrier implements VM_Uninterruptible {
   private volatile int target = -1;  
   private static final int NUM_COUNTERS = 3;
   SynchronizedCounter [] counters;
-  int currentCounter = 0;
+  SynchronizedCounter currentCounter;
 
   // Debugging constants
   private static final int TIME_CHECK = 1000000;   // Check time every TIME_CHECK-th iteration
@@ -46,59 +47,76 @@ public final class Barrier implements VM_Uninterruptible {
     counters = new SynchronizedCounter[NUM_COUNTERS];
     for (int i=0; i<NUM_COUNTERS; i++)
       counters[i] = new SynchronizedCounter();
+    currentCounter = new SynchronizedCounter();
   }
 
   // Set target to appropriate value
   //
   public void setTarget (int t) {
-    if (VM.VerifyAssertions) VM._assert(t >= 0);
+    VM_Magic.isync();
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(t >= 0);
     target = t + 1;
+    VM_Magic.sync();
   }
 
   public void clearTarget () {
+    VM_Magic.isync();
     target = -1;
+    VM_Magic.sync();
   }
 
   // Returns whether caller was first to arrive.
   // The coding to ensure resetting is delicate.
   //
   public int arrive (int where) {
-    SynchronizedCounter c = counters[currentCounter];
+    VM_Magic.isync();
+    int cur = currentCounter.peek();
+    SynchronizedCounter c = counters[cur];
     int myValue = c.increment();
     // Do NOT use the currentCounter variables unless designated thread
-    if (verbose >= 1) VM.sysWriteln("", where, ": myValue = ", myValue);
-    if (VM.VerifyAssertions) VM._assert(myValue >= 0 && (target == -1 || myValue <= target));
+    if (verbose >= 1) { 
+      Log.write(where); Log.write(": myValue = "); Log.writeln(myValue);
+    }
+    if (VM_Interface.VerifyAssertions) 
+        VM_Interface._assert(myValue >= 0 && (target == -1 || myValue <= target));
     if (myValue + 2 == target) { 
       // last one to show up
-      int nextCounter = (currentCounter + 1) % NUM_COUNTERS;
-      int prevCounter = (currentCounter - 1 + NUM_COUNTERS) % NUM_COUNTERS; 
-      counters[prevCounter].reset();  // everyone has seen the value so safe to reset now
-      currentCounter = nextCounter;   // everyone has arrived but still waiting
-      c.increment();                  // now safe to let others past barrier
+      int next = (cur + 1) % NUM_COUNTERS;
+      int prev = (cur - 1 + NUM_COUNTERS) % NUM_COUNTERS; 
+      counters[prev].reset();       // everyone has seen the value so safe to reset now
+      if (next == 0)
+        currentCounter.reset();    // everyone has arrived but still waiting
+      else
+        currentCounter.increment();   
+      c.increment();                // now safe to let others past barrier
       // VM.sysWriteln("last guy done ", where);
+      VM_Magic.sync();
       return myValue;
     } else {
       // everyone else
       long startCheck = 0;
       long lastElapsed = 0;
       for (int i=0; ; i++) {
-	if (target != -1 && c.peek() == target) 
-	  return myValue;
-	if (((i - 1) % TIME_CHECK) == 0) {
-	  if (startCheck == 0) {
-	    startCheck = VM_Interface.cycles();
-	  } else {
-	    long elapsed = VM_Interface.cycles() - startCheck;
-	    if (elapsed - lastElapsed > WARN_PERIOD) {
-	      VM.sysWrite("GC Warning: Barrier wait has reached ", VM_Interface.cyclesToSecs(elapsed));
-	      VM.sysWrite(" seconds.  Called from ", where, ".  myOrder = ", myValue);
-	      VM.sysWriteln("  count is ", c.peek(), " waiting for ", target - 1);
-	      lastElapsed = elapsed;
-	    }
-	    if (elapsed > TIME_OUT)
-	      VM.sysFail("GC Error: Barrier Timeout");
-	  }
-	}
+        if (target != -1 && c.peek() == target) {
+          VM_Magic.sync();
+          return myValue;
+        }
+        if (((i - 1) % TIME_CHECK) == 0) {
+          if (startCheck == 0) {
+            startCheck = VM_Interface.cycles();
+          } else {
+            long elapsed = VM_Interface.cycles() - startCheck;
+            if (elapsed - lastElapsed > WARN_PERIOD) {
+              Log.write("GC Warning: Barrier wait has reached "); Log.write(VM_Interface.cyclesToSecs(elapsed));
+              Log.write(" seconds.  Called from "); Log.write(where); Log.write(".  myOrder = "); Log.write(myValue);
+              Log.write("  count is "); Log.write(c.peek()); Log.write(" waiting for "); Log.write(target - 1);
+              Log.writeln();
+              lastElapsed = elapsed;
+            }
+            if (elapsed > TIME_OUT)
+              VM_Interface.sysFail("GC Error: Barrier Timeout");
+          }
+        }
       }
     }
   }

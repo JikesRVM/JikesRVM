@@ -6,12 +6,6 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 
-import java.net.*;
-
-//-#if RVM_WITH_ADAPTIVE_SYSTEM
-import com.ibm.JikesRVM.adaptive.VM_Controller;
-//-#endif
-
 /**
  * Thread in which user's "main" program runs.
  *
@@ -48,27 +42,6 @@ class MainThread extends Thread {
    * Run "main" thread.
    */
   public void run() {
-    // set up JikesRVM socket I/O
-    try {
-      Socket.setSocketImplFactory(new SocketImplFactory() {
-	  public SocketImpl createSocketImpl() { return new JikesRVMSocketImpl(); }
-	});
-      ServerSocket.setSocketFactory(new SocketImplFactory() {
-	  public SocketImpl createSocketImpl() { return new JikesRVMSocketImpl(); }
-	});
-      DatagramSocket.setDatagramSocketImplFactory(new DatagramSocketImplFactory() {
-	  public DatagramSocketImpl createDatagramSocketImpl() { 
-	    throw new VM_UnimplementedError ("Need to implement JikesRVMDatagramSocketImpl");
-	  }});
-    } catch (java.io.IOException e) {
-      VM.sysWrite("trouble setting socket impl factories");
-    }
-
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    // initialize the controller and runtime measurement subsystems
-    VM_Controller.boot();
-    //-#endif
-    
     // Set up application class loader
     ClassLoader cl = VM_ClassLoader.getApplicationClassLoader();
     setContextClassLoader(cl); 

@@ -49,7 +49,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
    */
   abstract VM_RecompilationChoice[] 
     getViableRecompilationChoices(int prevCompiler, 
-				  VM_CompiledMethod cmpMethod);
+                                  VM_CompiledMethod cmpMethod);
 
 
   // ----------------------------------------------------- 
@@ -88,7 +88,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
    * @return the controller plan to be used or NULL, if no 
    *                   compilation is to be performed.  */
   VM_ControllerPlan considerHotMethod(VM_CompiledMethod cmpMethod,
-				      VM_HotMethodEvent hme) {
+                                      VM_HotMethodEvent hme) {
     // Compiler used for the previous compilation
     int prevCompiler = getPreviousCompiler(cmpMethod); 
     if (prevCompiler == -1) {
@@ -105,12 +105,8 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
 
     if (!considerForRecompilation(hme, plan)) return null;
 
-    // double prevCompileTime = hme.getCompiledMethod().getCompilationTime();
-    double prevCompileTime = estimatePrevCompileTime(hme);
-    
-    // Now we know the compiler that generated the method (prevCompiler).
-    // the compile time it took to generate it (prevCompileTime), and that 
-    // the method is a potential candidate for additional recompilation. 
+    // Now we know the compiler that generated the method (prevCompiler) and
+    // that the method is a potential candidate for additional recompilation. 
     // So, next decide what, if anything, should be done now.  
     // We consider doing nothing (ie leaving the method at the current 
     // opt level, which incurs no  compilation cost), and recompiling the 
@@ -121,12 +117,13 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     // spend just as much time in the method in the future as we have so far.
     VM_RecompilationChoice bestActionChoice = null;
     double bestActionTime = futureTimeForMethod;
+    double bestCost = 0.0;
     
     if (VM.LogAOSEvents) { 
       VM_AOSLogging.recordControllerEstimateCostDoNothing
-	(cmpMethod.getMethod(),
-	 VM_CompilerDNA.getOptLevel(prevCompiler),
-	 bestActionTime);
+        (cmpMethod.getMethod(),
+         VM_CompilerDNA.getOptLevel(prevCompiler),
+         bestActionTime);
     }
     
     // Get a vector of optimization choices to consider
@@ -134,69 +131,50 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
       getViableRecompilationChoices(prevCompiler,cmpMethod);
     
     // Consider all choices in the vector of possibilities
-    for (int i=0; i< recompilationChoices.length; i++) {
+    VM_NormalMethod meth = (VM_NormalMethod)hme.getMethod();
+    for (int i=0; i<recompilationChoices.length; i++) {
       VM_RecompilationChoice choice = recompilationChoices[i];
 
       // Get the cost and benefit of this choice
-      double cost = choice.getCost(prevCompiler, prevCompileTime);
+      double cost = choice.getCost(meth);
       double futureExecutionTime = 
-	choice.getFutureExecutionTime(prevCompiler,futureTimeForMethod);
+        choice.getFutureExecutionTime(prevCompiler,futureTimeForMethod);
       
       double curActionTime = cost + futureExecutionTime;
       
       if (VM.LogAOSEvents) { 
-	VM_AOSLogging.recordControllerEstimateCostOpt
-	  (cmpMethod.getMethod(),
-	   choice.toString(),
-	   curActionTime);
+        VM_AOSLogging.recordControllerEstimateCostOpt
+          (cmpMethod.getMethod(),
+           choice.toString(),
+           cost,
+           curActionTime);
       }
       
       if (curActionTime < bestActionTime) {
-	bestActionTime = curActionTime;
-	bestActionChoice = choice;
+        bestActionTime = curActionTime;
+        bestActionChoice = choice;
+        bestCost = cost;
       }
     }
     
     // if the best action is the previous than we don't need to recompile
-    if (bestActionChoice == null) {	
+    if (bestActionChoice == null) {     
       plan = null;
     } else {
       plan = bestActionChoice.makeControllerPlan(cmpMethod, prevCompiler,
-						 futureTimeForMethod,
-						 bestActionTime);
+                                                 futureTimeForMethod,
+                                                 bestActionTime,
+                                                 bestCost);
     }
     return plan;
   }
-
-  /**
-   * Estimate what the previous compile-time for a method
-   *
-   * @param hme the HotMethodEvent referencing the previously compiled
-   * code
-   */
-  private double estimatePrevCompileTime(VM_HotMethodEvent hme) {
-    double baselineRate = VM_RuntimeCompiler.getBaselineRate();
-    VM_NormalMethod m = (VM_NormalMethod)hme.getMethod();
-    double bytes = (double)m.getBytecodeLength();
-    double baselineSecs = bytes / baselineRate;
-    if (!hme.isOptCompiled()) {
-      return baselineSecs; // NOTE: do not add brake time here!  It mill be multiplied by the compile time ratio and we don't want that!
-    } else {
-      // SJF: have to add one to opt-compiled level to get constant that
-      // VM_CompilerDNA wants.  TODO: this sucks; clean it all up.
-      double multiplier = VM_CompilerDNA.getCompileTimeRatio(VM_CompilerDNA.BASELINE,
-							     hme.getOptCompiledLevel()+1);
-      return baselineSecs * multiplier;
-    }
-  }
-
 
   //-#if RVM_WITH_OSR
   /* check if a compiled method is outdated, then decide if it needs OSR from BASE to OPT
    */
   boolean considerOSRRecompilation(VM_CompiledMethod cmpMethod, 
-				   VM_HotMethodEvent hme,
-				   VM_ControllerPlan plan) {
+                                   VM_HotMethodEvent hme,
+                                   VM_ControllerPlan plan) {
     boolean outdatedBaseline = false;
     if (plan == null) {
       // if plan is null, this method was not compiled by AOS; it was
@@ -226,14 +204,14 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
         // insert the plan to memory, which sets up state in the system to trigger
         // the OSR promotion
         if (plan != null) {
-		  VM_ControllerMemory.insert(plan);
-		  // to work with VM_Thread, it flags the compiled method 
-		  // that it is outdated
-		  if (VM.VerifyAssertions) {
-			VM._assert(cmpMethod.getCompilerType() == VM_CompiledMethod.BASELINE);
-		  }
-		  cmpMethod.setOutdated();
-		}
+                  VM_ControllerMemory.insert(plan);
+                  // to work with VM_Thread, it flags the compiled method 
+                  // that it is outdated
+                  if (VM.VerifyAssertions) {
+                        VM._assert(cmpMethod.getCompilerType() == VM_CompiledMethod.BASELINE);
+                  }
+                  cmpMethod.setOutdated();
+                }
         // we don't do any more action on the controller side.
         return true;
       }
@@ -266,12 +244,13 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     if (futureTimeForMethod > futureTimeOptimized + millis) {
       VM_AOSLogging.recordOSRRecompilationDecision(prev);
       VM_ControllerPlan p = new VM_ControllerPlan(prev.getCompPlan(), 
-                                                         prev.getTimeCreated(),
-                                                         hme.getCMID(),
-                                                         prev.getExpectedSpeedup(),
-                                                         prev.getPriority());
-	  // set up state to trigger osr
-	  p.setStatus(VM_ControllerPlan.OSR_BASE_2_OPT);
+                                                  prev.getTimeCreated(),
+                                                  hme.getCMID(),
+                                                  prev.getExpectedSpeedup(),
+                                                  millis,
+                                                  prev.getPriority());
+          // set up state to trigger osr
+          p.setStatus(VM_ControllerPlan.OSR_BASE_2_OPT);
       return p;
     } else {
       return null;
@@ -287,7 +266,7 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
    * performing inlining.  
    */
   void considerHotCallEdge(VM_CompiledMethod cmpMethod, 
-			   VM_AINewHotEdgeEvent event) {
+                           VM_AINewHotEdgeEvent event) {
 
     // Compiler used for the previous compilation
     int prevCompiler = getPreviousCompiler(cmpMethod); 
@@ -308,11 +287,12 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
     if (VM.LogAOSEvents) { 
       int prevOptLevel = VM_CompilerDNA.getOptLevel(prevCompiler);
       VM_AOSLogging.recordControllerEstimateCostDoNothing(cmpMethod.getMethod(),
-							  prevOptLevel,
-							  futureTimeForMethod);
+                                                          prevOptLevel,
+                                                          futureTimeForMethod);
       VM_AOSLogging.recordControllerEstimateCostOpt(cmpMethod.getMethod(),
-						    "O"+prevOptLevel+"AI",
-						    futureTimeForFDOMethod);
+                                                    "O"+prevOptLevel+"AI",
+                                                    prevCompileTime,
+                                                    futureTimeForFDOMethod);
     }
 
     if (futureTimeForFDOMethod < futureTimeForMethod) {
@@ -320,14 +300,14 @@ abstract class VM_AnalyticModel extends VM_RecompilationStrategy {
       int optLevel = VM_CompilerDNA.getOptLevel(prevCompiler);
       double priority = futureTimeForMethod - futureTimeForFDOMethod;
       plan = createControllerPlan(cmpMethod.getMethod(), 
-				  optLevel, null, 
-				  cmpMethod.getId(), 
-				  event.getBoostFactor(),
-				  priority);
+                                  optLevel, null, 
+                                  cmpMethod.getId(), 
+                                  event.getBoostFactor(),
+                                  futureTimeForFDOMethod,
+                                  priority);
       plan.execute();
     }
   }
-
 
   /**
    * How much time do we expect to spend in the method in the future if

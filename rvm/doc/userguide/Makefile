@@ -10,7 +10,9 @@ GENERATOR := GenerateFromTemplate
 VM_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/utility
 VM_BOOLEAN_DAT_FILES := $(VM_OPTION_DIR)/BooleanOptions.dat
 VM_VALUE_DAT_FILES   := $(VM_OPTION_DIR)/ValueOptions.dat
-VM_DAT_FILES         := $(VM_BOOLEAN_DAT_FILES) $(JMTK_VALUE_DAT_FILES)
+# VM_DAT_FILES must be =, not :=, because JMTK_VALUE_DAT_FILES are 
+# defined below.
+VM_DAT_FILES         = $(VM_BOOLEAN_DAT_FILES) $(JMTK_VALUE_DAT_FILES)
 
 JMTK_OPTION_DIR        := $(RVM_ROOT)/rvm/src/vm/memoryManagers/JMTk/utility
 JMTK_BOOLEAN_DAT_FILES := $(JMTK_OPTION_DIR)/BooleanOptions.dat
@@ -46,15 +48,18 @@ BIBTEX ?= bibtex
 MAKEINDEX ?= makeindex
 HYPERLATEX ?= hyperlatex
 PS2GIF ?= ps2gif
+M4 ?= m4
 
 INPUT_FILES = 	userguide.tex \
 		ack.tex \
 		aosdetails.tex \
 		basedetails.tex \
+		callbacks.tex \
 		cmdline.tex \
 		codingstyle.tex \
 		codingstyle-nonjava.tex \
 		componentOverview.tex \
+		contributions.tex \
 		debugging.tex \
 		eclipse.tex \
 		faq.tex \
@@ -63,6 +68,8 @@ INPUT_FILES = 	userguide.tex \
 		JMTk.tex \
 		jni.tex \
 		libraries.tex \
+		licenses.tex \
+		magic.tex \
 		optdetails.tex \
 		performance.tex \
 		preprocessor.tex \
@@ -70,7 +77,12 @@ INPUT_FILES = 	userguide.tex \
 		regression.tex \
 		running.tex \
 		remark.tex \
+		threads.tex \
+		trademarks.tex \
+		trademark-macros.tex \
 		vmdetails.tex
+
+INCLUSIONS_FILE:=inclusions.filenames
 
 GEN_INPUTS =	opt_options.tex adaptive_options.tex base_options.tex \
                 jmtk_options.tex vm_options.tex
@@ -119,7 +131,25 @@ html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
 
 .INTERMEDIATE:	${GENERATOR}.java
 
-clean:;	rm -f 	${TEX_GEN_FILES} $(GEN_INPUTS) ${GENERATOR_FILES} userguide.dvi
+clean:;	rm -f 	${TEX_GEN_FILES} $(GEN_INPUTS) ${GENERATOR_FILES} userguide.dvi *.tmp
+
+## Use INCLUSIONS_FILE so that we get the namss in order.
+tags: TAGS # TAGS.ALL
+
+TAGS: ${INCLUSIONS_FILE}
+	etags $$(< $<)
+
+${INCLUSIONS_FILE}: ${INCLUSIONS_FILE}.m4
+	$(M4) $< > $@.tmp
+	mv -f $@.tmp $@
+
+TEX_FILES:
+	@for file in ${TEX_FILES}; do echo $$file; done
+
+
+
+
+.PHONY: tags dist-clean distrib html all ps TAGS
 
 dist-clean:	clean
 		rm -f userguide.ps

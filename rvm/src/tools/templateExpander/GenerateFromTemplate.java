@@ -270,9 +270,9 @@ public class GenerateFromTemplate {
     argc = 2;
     for (int i = 2; i < limit; i++) {
       if ( args[i].indexOf("=") < 0 )
-	args[ argc-1 ] = args[ argc-1 ] + " " + args[ i ];
+        args[ argc-1 ] = args[ argc-1 ] + " " + args[ i ];
       else {
-	args[ argc++ ] = args[ i ];
+        args[ argc++ ] = args[ i ];
       }
     }
 
@@ -281,9 +281,9 @@ public class GenerateFromTemplate {
     if (DEBUG) System.out.println("in:"+args[0]+"\nout:"+args[1]);
     try {
       if (args[0].indexOf(File.separator) != -1)
-	  inDir = args[0].substring(0, args[0].lastIndexOf(File.separator)+1);
+          inDir = args[0].substring(0, args[0].lastIndexOf(File.separator)+1);
       else
-	  inDir = "";
+          inDir = "";
       inStream = new FileInputStream(args[0]);
       outStream = new FileOutputStream(args[1]);
 
@@ -304,8 +304,8 @@ public class GenerateFromTemplate {
     //   System.out.println("An error occurred: "+e);
     } finally {
       try {
-	inStream.close();
-	outStream.close();
+        inStream.close();
+        outStream.close();
       } catch (Exception e) {}
     }
   }
@@ -342,14 +342,14 @@ public class GenerateFromTemplate {
       String inLine;
       // loop over strings
       for (inLine = readLine(); inLine != null; inLine = readLine()) {
-	if (DEBUG) System.out.println("from input:"+inLine);
-	if (!isTemplateLine(inLine)) {
-	  if (DEBUG) System.out.println("not template line, continuing...");
-	  out.print(inLine+"\n");
-	  continue;
-	}
-	Vector region = buildTemplateRegion(inLine);
-	processTemplateRegion(region);
+        if (DEBUG) System.out.println("from input:"+inLine);
+        if (!isTemplateLine(inLine)) {
+          if (DEBUG) System.out.println("not template line, continuing...");
+          out.print(inLine+"\n");
+          continue;
+        }
+        Vector region = buildTemplateRegion(inLine);
+        processTemplateRegion(region);
       }
     } finally {
       out.flush();
@@ -419,8 +419,8 @@ public class GenerateFromTemplate {
       String inLine = readLine();
       if (inLine == null) throw new IOException("Unexpected end of file");
       if (isTemplateLine(inLine)) {
-	int command = getTemplateCommand(inLine);
-	if (command == END) break;
+        int command = getTemplateCommand(inLine);
+        if (command == END) break;
         region.addElement(buildTemplateRegion(inLine));
       } else {
          if (DEBUG) System.out.println("adding line to region :"+inLine);
@@ -435,8 +435,8 @@ public class GenerateFromTemplate {
       String inLine = readLine();
       if (inLine == null) throw new IOException("Unexpected end of file");
       if (isTemplateLine(inLine)) {
-	int command = getTemplateCommand(inLine);
-	if (command == END) {
+        int command = getTemplateCommand(inLine);
+        if (command == END) {
           region.addElement(intern);
           break;
         } else if (command == ELSE) {
@@ -459,9 +459,9 @@ public class GenerateFromTemplate {
     String file_name = pst.nextToken();
     LineNumberReader old_in = in;
     try {
-	in = new LineNumberReader(new FileReader(file_name));
+        in = new LineNumberReader(new FileReader(file_name));
     } catch (java.io.FileNotFoundException e) {
-	in = new LineNumberReader(new FileReader(inDir + file_name));
+        in = new LineNumberReader(new FileReader(inDir + file_name));
     }
     String inLine;
     // loop over strings in the file
@@ -482,9 +482,9 @@ public class GenerateFromTemplate {
     for (int i = 0; i < commands.length; ++i) {
       String current = commands[i];
       if (line.regionMatches(startMatch, current, 0, current.length())) {
-	params = line.substring(startMatch+current.length());
-	if (DEBUG) System.out.println("command is "+commands[i]+". params ="+params);
-	return i;
+        params = line.substring(startMatch+current.length());
+        if (DEBUG) System.out.println("command is "+commands[i]+". params ="+params);
+        return i;
       }
     }
     return INVALID_COMMAND;
@@ -539,7 +539,7 @@ public class GenerateFromTemplate {
        int dotdot = fval.indexOf("..");
        if (dotdot != -1 && dotdot == fval.lastIndexOf("..")) {
           start = fval.substring(0, dotdot);
-	  end = fval.substring(dotdot+2);
+          end = fval.substring(dotdot+2);
        } else {
           start = fval;
        }
@@ -556,22 +556,22 @@ public class GenerateFromTemplate {
     // open data file
     BufferedReader data;
     try {
-	data = new BufferedReader(new FileReader(file_name));
+        data = new BufferedReader(new FileReader(file_name));
     } catch (java.io.FileNotFoundException e) {
-	data = new BufferedReader(new FileReader(inDir + file_name));
-    }	
+        data = new BufferedReader(new FileReader(inDir + file_name));
+    }   
 
     // read field information
     Vector fields_v = new Vector();
     Vector fpl_v = new Vector();
     for (String inLine = getNextLine(data);
-	 (inLine != null && inLine.length() != 0);
-	 inLine = getNextLine(data)) {
+         (inLine != null && inLine.length() != 0);
+         inLine = getNextLine(data)) {
       StringTokenizer st = new StringTokenizer(inLine);
       fpl_v.addElement(new Integer(st.countTokens()));
       while (st.hasMoreTokens()) {
-	String tok = st.nextToken();
-	if (DEBUG) System.out.println("read field "+fields_v.size()+" :"+tok);
+        String tok = st.nextToken();
+        if (DEBUG) System.out.println("read field "+fields_v.size()+" :"+tok);
         fields_v.addElement(tok);
       }
     }
@@ -594,21 +594,21 @@ public class GenerateFromTemplate {
         String line = getNextLine(data);
         if (line == null) break dataFileLoop;
         if (fieldsPerLine[j] == 1) {
-	  if (DEBUG) System.out.println("read field "+fields[i]+" :"+line);
-	  fieldData[i++] = line;
-	} else {
+          if (DEBUG) System.out.println("read field "+fields[i]+" :"+line);
+          fieldData[i++] = line;
+        } else {
           if (DEBUG) System.out.println("reading "+fieldsPerLine[j]+" fields");
           StringTokenizer st = new StringTokenizer(line);
-	  try {
-	    for (int k = 0; k < fieldsPerLine[j]; k++) {
-	      String tok = st.nextToken();
-	      if (DEBUG) System.out.println("read field "+fields[i]+": "+tok);
-	      fieldData[i++] = tok;
-	    }
-	  } catch (NoSuchElementException x) {
+          try {
+            for (int k = 0; k < fieldsPerLine[j]; k++) {
+              String tok = st.nextToken();
+              if (DEBUG) System.out.println("read field "+fields[i]+": "+tok);
+              fieldData[i++] = tok;
+            }
+          } catch (NoSuchElementException x) {
             throw new IOException("Missing field "+fields[i]);
-	  }
-	}
+          }
+        }
       }
       if (fieldsPerLine.length != 1) getNextLine(data); // skip empty line.
       fieldData[i++] = Integer.toString(curField);
@@ -633,7 +633,7 @@ public class GenerateFromTemplate {
       // Count through each line in region.
       for (int j = 1; j < region.size(); j++) {
         try {
-	  String currentLine = (String) region.elementAt(j);
+          String currentLine = (String) region.elementAt(j);
           String result = substitute(currentLine, var_name, fields, fieldData);
           out.print(result+"\n");
         } catch (ClassCastException e) {
@@ -660,9 +660,9 @@ public class GenerateFromTemplate {
        int dotdot = v_i.indexOf("..");
        if (dotdot != -1 && dotdot == v_i.lastIndexOf("..")) {
           int start = Integer.parseInt(v_i.substring(0, dotdot));
-	  int end = Integer.parseInt(v_i.substring(dotdot+2));
-	  for (int j = start; j <= end; j++)
-	     valvec.addElement(Integer.toString(j));
+          int end = Integer.parseInt(v_i.substring(dotdot+2));
+          for (int j = start; j <= end; j++)
+             valvec.addElement(Integer.toString(j));
        } else
           valvec.addElement(v_i);
     }
@@ -679,7 +679,7 @@ public class GenerateFromTemplate {
       // Count through each line in region.
       for (int j = 1; j < region.size(); j++) {
         try {
-	  String currentLine = (String) region.elementAt(j);
+          String currentLine = (String) region.elementAt(j);
           // String result = substitute(currentLine, var_name, values[curValue]);
           String result = substitute(currentLine,
                                      var_name+"."+indexField,
@@ -713,9 +713,9 @@ public class GenerateFromTemplate {
        int dotdot = v_i.indexOf("..");
        if (dotdot != -1 && dotdot == v_i.lastIndexOf("..")) {
           int start = Integer.parseInt(v_i.substring(0, dotdot));
-	  int end = Integer.parseInt(v_i.substring(dotdot+2));
-	  for (int j = start; j <= end; j++)
-	     count++;
+          int end = Integer.parseInt(v_i.substring(dotdot+2));
+          for (int j = start; j <= end; j++)
+             count++;
        } else
           count++;
     }
@@ -946,7 +946,7 @@ public class GenerateFromTemplate {
     // Count through each line in region.
     for (int j = 1; j < region.size(); j++) {
       try {
-	String currentLine = (String) region.elementAt(j);
+        String currentLine = (String) region.elementAt(j);
         String result = substitute(currentLine, var_name, value);
         out.print(result+"\n");
       } catch (ClassCastException e) {
@@ -982,7 +982,7 @@ public class GenerateFromTemplate {
     // Count through each line in region.
     for (int j = 1; j < region.size(); j++) {
       try {
-	String currentLine = (String) region.elementAt(j);
+        String currentLine = (String) region.elementAt(j);
         String result = substitute(currentLine, var_name, value);
         out.print(result+"\n");
       } catch (ClassCastException e) {
@@ -1024,7 +1024,7 @@ public class GenerateFromTemplate {
     // Count through each line in region.
     for (int j = 1; j < region.size(); j++) {
       try {
-	String currentLine = (String) region.elementAt(j);
+        String currentLine = (String) region.elementAt(j);
         String result = currentLine;
         // Loop through vars.
         for (int curVar = 0; curVar < var_names.length; curVar++)

@@ -65,8 +65,8 @@ public class VM_ExceptionHandlerMap {
   VM_TypeReference[] exceptionTypes; 
 
   VM_ExceptionHandlerMap(DataInputStream input, 
-			 VM_Class declaringClass, 
-			 int n) throws IOException {
+                         VM_Class declaringClass, 
+                         int n) throws IOException {
     startPCs       = new int[n];
     endPCs         = new int[n];
     handlerPCs     = new int[n];
@@ -77,11 +77,11 @@ public class VM_ExceptionHandlerMap {
       handlerPCs[i]     = input.readUnsignedShort();
       VM_TypeReference et = declaringClass.getTypeRef(input.readUnsignedShort()); // possibly null
       if (et == null) {
-	// A finally block...set to java.lang.Throwable to avoid
-	// needing to think about this case anywhere else in the VM.
-	exceptionTypes[i] = VM_TypeReference.JavaLangThrowable;
+        // A finally block...set to java.lang.Throwable to avoid
+        // needing to think about this case anywhere else in the VM.
+        exceptionTypes[i] = VM_TypeReference.JavaLangThrowable;
       } else {
-	exceptionTypes[i] = et;
+        exceptionTypes[i] = et;
       }
     }
   }

@@ -98,16 +98,16 @@ class jBYTEmark
     if (vminfo == null)
       {
         String vmven = System.getProperty("java.vm.vendor");
-	String vmver = System.getProperty("java.vm.version");
-	if ((vmven != null) && (vmver != null))
+        String vmver = System.getProperty("java.vm.version");
+        if ((vmven != null) && (vmver != null))
           vminfo =  vmven + " " + vmver;
       }
     
     if (vminfo == null)
       {
         String jven = System.getProperty("java.vendor");
-	String jver = System.getProperty("java.version");
-	if ((jven != null) && (jver != null))
+        String jver = System.getProperty("java.version");
+        if ((jven != null) && (jver != null))
           vminfo =  jven + " " + jver;
       }
     
@@ -192,7 +192,7 @@ class jBYTEmark
                 //System.out.print("Avg: ");
 //                System.out.print(pad(df.format(test.mean), 10, JUSTIFY_RIGHT));
 //                System.out.print("  Index: ");
-//		System.out.print (" ");
+//              System.out.print (" ");
                 System.out.println(pad(df.format(rsltIndex), 10, JUSTIFY_RIGHT));
           }
            else
@@ -213,9 +213,9 @@ class jBYTEmark
         {   System.out.println("**Error in pow() **");
         }
         //System.out.println("********************");
-	System.out.print(pad("", 22, JUSTIFY_LEFT));
+        System.out.print(pad("", 22, JUSTIFY_LEFT));
         System.out.println(pad("-------", 10, JUSTIFY_RIGHT));
-	
+        
         System.out.print(pad("Integer Index:", 22, JUSTIFY_LEFT));
         //System.out.println(intIndex);
         System.out.println(pad(df.format(intIndex), 10, JUSTIFY_RIGHT));
@@ -574,8 +574,8 @@ catch (java.io.IOException e)
 return;
 }
 
-  static final int 	JUSTIFY_LEFT = 0,
-  		   	JUSTIFY_RIGHT = 1;
+  static final int      JUSTIFY_LEFT = 0,
+                        JUSTIFY_RIGHT = 1;
   /* 
     pad input string with spaces up to length. 
     eg: pad("foo",5) returns "foo  " 
@@ -585,26 +585,26 @@ return;
   {
     if (s.length() < length)
       {
-	char[] chars = new char[length];
-	int start,end;
-	if (justification == JUSTIFY_LEFT)
-	  {
-  	    s.getChars(0, s.length(), chars, 0);
-	    start = s.length() +1;
-	    end = chars.length;
-	  }
-	else
-	  {
-	    int len = Math.min(chars.length, s.length());
-    	    s.getChars(0, len, chars, chars.length - len);
-	    start = 0;
-	    end = chars.length - len;
+        char[] chars = new char[length];
+        int start,end;
+        if (justification == JUSTIFY_LEFT)
+          {
+            s.getChars(0, s.length(), chars, 0);
+            start = s.length() +1;
+            end = chars.length;
           }
-	for (int i=start; i<end; i++)
-	  {
+        else
+          {
+            int len = Math.min(chars.length, s.length());
+            s.getChars(0, len, chars, chars.length - len);
+            start = 0;
+            end = chars.length - len;
+          }
+        for (int i=start; i<end; i++)
+          {
             chars[i] = ' ';
-	  }
-	return new String(chars);
+          }
+        return new String(chars);
       }
     else return s;
   }

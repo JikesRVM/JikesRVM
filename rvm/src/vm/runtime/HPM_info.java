@@ -22,9 +22,9 @@ public final class HPM_info
   /*
    * Possible HPM counters
    */
-  public int    numberOfCounters = 0;		// number of counters
+  public int    numberOfCounters = 0;           // number of counters
   public int    maxNumberOfEventsPerCounter = 0;// number of events per counter
-  public String processorName   = "";		// processor name
+  public String processorName   = "";           // processor name
   public String filenamePrefix = "HPM";         // trace and header file name prefices
   /*
    * Return header filename with out path.
@@ -80,7 +80,7 @@ public final class HPM_info
   public String short_name(int i){
     if (i>numberOfCounters) {
       System.err.println("***HPM_info.short_name("+i+") "+i+" > number of counters "+
-			 numberOfCounters+"!***");
+                         numberOfCounters+"!***");
       System.exit(-1);
     }
     return short_names[i];

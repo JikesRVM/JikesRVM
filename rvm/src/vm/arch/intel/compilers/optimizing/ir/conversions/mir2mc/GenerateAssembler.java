@@ -79,12 +79,12 @@ public class GenerateAssembler {
      * @param String s  The string to be written
      */
     private static void emit(String s) {
-	try {
-	    out.write(s, 0, s.length());
-	} catch (IOException e) {
-	    e.printStackTrace();
-	    System.exit(-1);
-	}
+        try {
+            out.write(s, 0, s.length());
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
     }
 
     /**
@@ -93,7 +93,7 @@ public class GenerateAssembler {
      * @param int level  The level of indentation to generate
      */
     private static void emitTab(int level) {
-	for(int i = 0; i < level; i++) emit("  ");
+        for(int i = 0; i < level; i++) emit("  ");
     }
 
     /**
@@ -111,12 +111,12 @@ public class GenerateAssembler {
      * not possible.
      */
     static {
-	try {
-	    formats = Class.forName("OPT_InstructionFormatTables");
-	} catch (ClassNotFoundException e) {
-	    e.printStackTrace();
-	    System.exit( -1 );
-	}
+        try {
+            formats = Class.forName("OPT_InstructionFormatTables");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            System.exit( -1 );
+        }
     }
 
     /**
@@ -163,20 +163,20 @@ public class GenerateAssembler {
      *  Initialize the opcodeArgTables table
      */
     static {
-	opcodeArgTables = new Hashtable();
-	opcodeArgTables.put("CALL", new int[]{2});
-	opcodeArgTables.put("INT", new int[]{1});
-	opcodeArgTables.put("CDQ", new int[]{0});
-	opcodeArgTables.put("DIV", new int[]{1,2});
-	opcodeArgTables.put("IDIV", new int[]{1,2});
-	opcodeArgTables.put("MUL", new int[]{1,2});
-	opcodeArgTables.put("IMUL1", new int[]{1,2});
-	opcodeArgTables.put("DIV", new int[]{1,2});
-	opcodeArgTables.put("IDIV", new int[]{1,2});
-	opcodeArgTables.put("SET", new int[]{1,0});
-	opcodeArgTables.put("CMPXCHG", new int[]{1,2});
-	opcodeArgTables.put("FCMOV", new int[]{2,0,1});
-	opcodeArgTables.put("CMOV", new int[]{2,0,1});
+        opcodeArgTables = new Hashtable();
+        opcodeArgTables.put("CALL", new int[]{2});
+        opcodeArgTables.put("INT", new int[]{1});
+        opcodeArgTables.put("CDQ", new int[]{0});
+        opcodeArgTables.put("DIV", new int[]{1,2});
+        opcodeArgTables.put("IDIV", new int[]{1,2});
+        opcodeArgTables.put("MUL", new int[]{1,2});
+        opcodeArgTables.put("IMUL1", new int[]{1,2});
+        opcodeArgTables.put("DIV", new int[]{1,2});
+        opcodeArgTables.put("IDIV", new int[]{1,2});
+        opcodeArgTables.put("SET", new int[]{1,0});
+        opcodeArgTables.put("CMPXCHG", new int[]{1,2});
+        opcodeArgTables.put("FCMOV", new int[]{2,0,1});
+        opcodeArgTables.put("CMOV", new int[]{2,0,1});
     }
 
     /**
@@ -187,17 +187,17 @@ public class GenerateAssembler {
      * @param opcode  The IA32 architecture opcode to make the current opcode
      */
     static void setCurrentOpcode(String opcode) {
-	try {
-	    currentOpcode = opcode;
-	    currentOpcodeArgTable = (int[]) opcodeArgTables.get( opcode );
-	    currentFormat = OPT_OperatorFormatTables.getFormat( opcode );
-	    Field f = formats.getDeclaredField(currentFormat+"ParameterNames");
-	    currentOpcodeSymbolicNames = (String[]) f.get( null );
-	} catch (Throwable e) {
-	    System.err.println("Cannot handle VM_Assembler opcode " + opcode);
-	    e.printStackTrace();
-	    System.exit( -1 );
-	}
+        try {
+            currentOpcode = opcode;
+            currentOpcodeArgTable = (int[]) opcodeArgTables.get( opcode );
+            currentFormat = OPT_OperatorFormatTables.getFormat( opcode );
+            Field f = formats.getDeclaredField(currentFormat+"ParameterNames");
+            currentOpcodeSymbolicNames = (String[]) f.get( null );
+        } catch (Throwable e) {
+            System.err.println("Cannot handle VM_Assembler opcode " + opcode);
+            e.printStackTrace();
+            System.exit( -1 );
+        }
     }
 
     /**
@@ -308,16 +308,16 @@ public class GenerateAssembler {
      * dispatch an OPT_Instruction to the appropriate VM_Assembler emitter.
      */
     static final String[] encoding = 
-    {"Imm",		// encoding[Immediate]
-     "Reg",		// encoding[Register]
-     "Cond",		// encoding[Condition]
-     "Abs",		// encoding[Absolute]
-     "RegDisp",		// encoding[RegisterDisplacement]
-     "RegOff",		// encoding[RegisterOffset]
-     "RegIdx",		// encoding[RegisterIndexed]
-     "RegInd",		// encoding[RegisterIndirect]
-     "Label",		// encoding[Label]
-     "ImmOrLabel",	// encoding[LabelOrImmediate]
+    {"Imm",             // encoding[Immediate]
+     "Reg",             // encoding[Register]
+     "Cond",            // encoding[Condition]
+     "Abs",             // encoding[Absolute]
+     "RegDisp",         // encoding[RegisterDisplacement]
+     "RegOff",          // encoding[RegisterOffset]
+     "RegIdx",          // encoding[RegisterIndexed]
+     "RegInd",          // encoding[RegisterIndirect]
+     "Label",           // encoding[Label]
+     "ImmOrLabel",      // encoding[LabelOrImmediate]
      "Byte",
      "Word",
      "Quad"};
@@ -333,11 +333,11 @@ public class GenerateAssembler {
      *
      */
     private static int getEncoding(String str) {
-	for(int i = 0; i < encoding.length - SIZES; i++)
-	    if (encoding[i].equals(str))
-		return i;
+        for(int i = 0; i < encoding.length - SIZES; i++)
+            if (encoding[i].equals(str))
+                return i;
 
-	return -1;
+        return -1;
     }
 
     /**
@@ -351,11 +351,11 @@ public class GenerateAssembler {
      *
      */
     private static int getSize(String str) {
-	for(int i = encoding.length - SIZES; i < encoding.length; i++)
-	    if (encoding[i].equals(str))
-		return i;
+        for(int i = encoding.length - SIZES; i < encoding.length; i++)
+            if (encoding[i].equals(str))
+                return i;
 
-	return -1;
+        return -1;
     }
 
     /**
@@ -371,18 +371,18 @@ public class GenerateAssembler {
      * @return A Java expression for adcessing the requested operand.
      */
     private static String getOperand(int op) {
-	try {
-	    if (currentOpcodeArgTable == null)
-		return currentFormat + ".get" + currentOpcodeSymbolicNames[op] + "(inst)";
-	    else
-		return currentFormat + ".get" + currentOpcodeSymbolicNames[currentOpcodeArgTable[op]] + "(inst)";
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    System.err.println(currentOpcode + ": cannot access operand " + op  + ":");
-	    for(int i = 0; i < currentOpcodeSymbolicNames.length; i++)
-		System.err.println( currentOpcodeSymbolicNames[i] );
-	    System.exit( -1 );
-	    return null;
-	}
+        try {
+            if (currentOpcodeArgTable == null)
+                return currentFormat + ".get" + currentOpcodeSymbolicNames[op] + "(inst)";
+            else
+                return currentFormat + ".get" + currentOpcodeSymbolicNames[currentOpcodeArgTable[op]] + "(inst)";
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.err.println(currentOpcode + ": cannot access operand " + op  + ":");
+            for(int i = 0; i < currentOpcodeSymbolicNames.length; i++)
+                System.err.println( currentOpcodeSymbolicNames[i] );
+            System.exit( -1 );
+            return null;
+        }
     }
 
     /**
@@ -397,10 +397,10 @@ public class GenerateAssembler {
      * @param argEncoding The encoding for which to check 
      */
     private static void emitTest(int argNumber, int argEncoding) {   
-	if (argEncoding < encoding.length - SIZES)
-	    emit("is" + encoding[argEncoding] + "(" + getOperand(argNumber) + ")");
-	else
-	    emit("is" + encoding[argEncoding] + "(inst)");
+        if (argEncoding < encoding.length - SIZES)
+            emit("is" + encoding[argEncoding] + "(" + getOperand(argNumber) + ")");
+        else
+            emit("is" + encoding[argEncoding] + "(inst)");
     }
 
     /**
@@ -421,10 +421,10 @@ public class GenerateAssembler {
      * @param level current level for generating pretty, tabified output
      */
     private static void emitVerify(int argNumber, int argEncoding, int level) {   
-	emitTab(level);
-	emit("if (VM.VerifyAssertions && !");
-	emitTest(argNumber, argEncoding);
-	emit(") VM._assert(false, inst.toString());\n");
+        emitTab(level);
+        emit("if (VM.VerifyAssertions && !");
+        emitTest(argNumber, argEncoding);
+        emit(") VM._assert(false, inst.toString());\n");
     }
 
     /**
@@ -442,23 +442,23 @@ public class GenerateAssembler {
      * @param argEcoding The encoding to use.
      */
     private static void emitArgs(int argNumber, int argEncoding) {
-	String op = getOperand(argNumber);
-	if (argEncoding == LabelOrImmediate)
-	    emit("getImm(" + op + "), getLabel(" + op + ")");
-    	else if (argEncoding == RegisterDisplacement)
-	    emit("getBase(" + op + "), getDisp(" + op + ")");
-	else if (argEncoding == Absolute)
-	    emit("getDisp(" + op + ")");
-	else if (argEncoding == RegisterOffset)
-	    emit("getIndex(" + op + "), getScale(" + op + 
-		 "), getDisp(" + op + ")");
-	else if (argEncoding == RegisterIndexed)
-	    emit("getBase(" + op + "), getIndex(" + op + 
-		 "), getScale(" + op + "), getDisp(" + op + ")");
-	else if (argEncoding == RegisterIndirect)
-	    emit("getBase(" + op + ")");
-	else 
-	    emit("get" + encoding[argEncoding] + "(" + op + ")");
+        String op = getOperand(argNumber);
+        if (argEncoding == LabelOrImmediate)
+            emit("getImm(" + op + "), getLabel(" + op + ")");
+        else if (argEncoding == RegisterDisplacement)
+            emit("getBase(" + op + "), getDisp(" + op + ")");
+        else if (argEncoding == Absolute)
+            emit("getDisp(" + op + ")");
+        else if (argEncoding == RegisterOffset)
+            emit("getIndex(" + op + "), getScale(" + op + 
+                 "), getDisp(" + op + ")");
+        else if (argEncoding == RegisterIndexed)
+            emit("getBase(" + op + "), getIndex(" + op + 
+                 "), getScale(" + op + "), getDisp(" + op + ")");
+        else if (argEncoding == RegisterIndirect)
+            emit("getBase(" + op + ")");
+        else 
+            emit("get" + encoding[argEncoding] + "(" + op + ")");
     }
 
     /**
@@ -476,17 +476,17 @@ public class GenerateAssembler {
      */
     static class BadEmitMethod extends RuntimeException {
 
-	/**
-	 *  Create a BadEmitMethod exception indicating that 
-	 * GenerateAssembler cannot understand the code portion
-	 * of the method name methodName.
-	 *
-	 * @param methodName The method name causing trouble
-	 * @param code The portion of methodName that does not parse
-	 */
-	BadEmitMethod(String methodName, String code) {
-	    super("cannot interpret method " + methodName + "(" + code + ")");
-	}
+        /**
+         *  Create a BadEmitMethod exception indicating that 
+         * GenerateAssembler cannot understand the code portion
+         * of the method name methodName.
+         *
+         * @param methodName The method name causing trouble
+         * @param code The portion of methodName that does not parse
+         */
+        BadEmitMethod(String methodName, String code) {
+            super("cannot interpret method " + methodName + "(" + code + ")");
+        }
 
     }
 
@@ -531,120 +531,120 @@ public class GenerateAssembler {
      * </DL>
      */
     static class EmitterDescriptor {
-	private int size;
-	private int count;
-	private final int args[];
+        private int size;
+        private int count;
+        private final int args[];
 
-	/**
-	 * Create an EmitterDescriptor for the given methodName.  This 
-	 * conmstructor creates a descriptor that represents explicitly 
-	 * the types and size of the operands of the given emit* method.
-	 * This constructor encapsulate the logic to parse the given
-	 * method name into the appropriate explicit representation.
-	 */
-	EmitterDescriptor(String methodName) {
-	    StringTokenizer toks = new StringTokenizer(methodName, "_");
-	    toks.nextElement(); // first element is emitXXX;
-	    args = new int[ toks.countTokens() ];
-	    this.size = 0;
-	    this.count = 0;
-	    for(int i = 0; i < args.length; i++) {
-		String cs = toks.nextToken();
-		int code = getEncoding(cs);
-		int size = GenerateAssembler.getSize(cs);
+        /**
+         * Create an EmitterDescriptor for the given methodName.  This 
+         * conmstructor creates a descriptor that represents explicitly 
+         * the types and size of the operands of the given emit* method.
+         * This constructor encapsulate the logic to parse the given
+         * method name into the appropriate explicit representation.
+         */
+        EmitterDescriptor(String methodName) {
+            StringTokenizer toks = new StringTokenizer(methodName, "_");
+            toks.nextElement(); // first element is emitXXX;
+            args = new int[ toks.countTokens() ];
+            this.size = 0;
+            this.count = 0;
+            for(int i = 0; i < args.length; i++) {
+                String cs = toks.nextToken();
+                int code = getEncoding(cs);
+                int size = GenerateAssembler.getSize(cs);
 
-		if (DEBUG) {
-		    System.err.println(methodName + "[" + i + "] is " + code + "," + size + " for " + cs);
-		}
+                if (DEBUG) {
+                    System.err.println(methodName + "[" + i + "] is " + code + "," + size + " for " + cs);
+                }
 
-		if (code != -1)
-		    args[count++] = code;
-		else if (size != -1)
-		    this.size = size;
-		else
-		    throw new BadEmitMethod( methodName, cs );
-	    }
-	}
+                if (code != -1)
+                    args[count++] = code;
+                else if (size != -1)
+                    this.size = size;
+                else
+                    throw new BadEmitMethod( methodName, cs );
+            }
+        }
 
-	/**
-	 *  This method checks whether the emit* method represented by
-	 * this EmitterDescriptor expects the argument type represented
-	 * by enc as its argument'th operand.  If enc is an operand type
-	 * encoding, this method checks wether the given argument is of
-	 * the appropriate type.  If enc is an operand size encoding,
-	 * the argument parameter is ignored, and this method checks
-	 * whether the emit* method represented operates upon data of
-	 * the desired size.
-	 * <P>
-	 * <EM>See the descriptions of the GenerateAssembler constants:</EM>
-	 * <DL>
-	 * <DT> <EM>Operand types</EM>
-	 * <DI> 
-	 *  <UL>
-	 *   <LI> {@link #Immediate}
-	 *   <LI> {@link #Label}
-	 *   <LI> {@link #LabelOrImmediate}
-	 *   <LI> {@link #Absolute}
-	 *   <LI> {@link #Register}
-	 *   <LI> {@link #RegisterIndirect}
-	 *   <LI> {@link #RegisterOffset}
-	 *   <LI> {@link #RegisterIndexed}
-	 *  </UL>
-	 * <DT> <EM>Data size</EM>
-	 *  <UL>
-	 *   <LI> {@link #Byte}
-	 *   <LI> {@link #Word}
-	 *   <LI> {@link #Quad}
-	 *  </UL>
-	 * </DL>
-	 * <P>
-	 * @param argument The operand number examined 
-	 * @param enc The argument type queried, as encoded as one of
-	 *    the operand type constants used throughout 
-	 *    GenerateAssembler.
-	 *
-	 * @return True if this method expects an argument type encoded
-	 *    by enc as its argument'th operand, and false otherwise.
-	 */
-	boolean argMatchesEncoding(int argument, int enc) {
-	    if (enc < encoding.length - SIZES)
-		return (count > argument) && args[argument] == enc;
-	    else
-		return size == enc;
-	}
+        /**
+         *  This method checks whether the emit* method represented by
+         * this EmitterDescriptor expects the argument type represented
+         * by enc as its argument'th operand.  If enc is an operand type
+         * encoding, this method checks wether the given argument is of
+         * the appropriate type.  If enc is an operand size encoding,
+         * the argument parameter is ignored, and this method checks
+         * whether the emit* method represented operates upon data of
+         * the desired size.
+         * <P>
+         * <EM>See the descriptions of the GenerateAssembler constants:</EM>
+         * <DL>
+         * <DT> <EM>Operand types</EM>
+         * <DI> 
+         *  <UL>
+         *   <LI> {@link #Immediate}
+         *   <LI> {@link #Label}
+         *   <LI> {@link #LabelOrImmediate}
+         *   <LI> {@link #Absolute}
+         *   <LI> {@link #Register}
+         *   <LI> {@link #RegisterIndirect}
+         *   <LI> {@link #RegisterOffset}
+         *   <LI> {@link #RegisterIndexed}
+         *  </UL>
+         * <DT> <EM>Data size</EM>
+         *  <UL>
+         *   <LI> {@link #Byte}
+         *   <LI> {@link #Word}
+         *   <LI> {@link #Quad}
+         *  </UL>
+         * </DL>
+         * <P>
+         * @param argument The operand number examined 
+         * @param enc The argument type queried, as encoded as one of
+         *    the operand type constants used throughout 
+         *    GenerateAssembler.
+         *
+         * @return True if this method expects an argument type encoded
+         *    by enc as its argument'th operand, and false otherwise.
+         */
+        boolean argMatchesEncoding(int argument, int enc) {
+            if (enc < encoding.length - SIZES)
+                return (count > argument) && args[argument] == enc;
+            else
+                return size == enc;
+        }
 
-	/**
-	 * Access the array that stores the encodings of the arguments
-	 * to the emit method represented by this EmitterDescriptor.
-	 *
-	 * @return the array of argument encodings
-	 */
-	int[] getArgs() { return args; }
+        /**
+         * Access the array that stores the encodings of the arguments
+         * to the emit method represented by this EmitterDescriptor.
+         *
+         * @return the array of argument encodings
+         */
+        int[] getArgs() { return args; }
 
-	/**
-	 * Access the data size operated upon by emit method represented 
-	 * by this EmitterDescriptor.
-	 *
-	 * @return data size for this descriptor
-	 */
-	int getSize() { return size; }
+        /**
+         * Access the data size operated upon by emit method represented 
+         * by this EmitterDescriptor.
+         *
+         * @return data size for this descriptor
+         */
+        int getSize() { return size; }
 
-	/**
-	 * Access the number of operands operated upon by emit method 
-	 * represented by this EmitterDescriptor.
-	 *
-	 * @return number of operands for this descriptor
-	 */
-	int getCount() { return count; }
+        /**
+         * Access the number of operands operated upon by emit method 
+         * represented by this EmitterDescriptor.
+         *
+         * @return number of operands for this descriptor
+         */
+        int getCount() { return count; }
 
-	public String toString() {
-	    StringBuffer s = new StringBuffer();
-	    s.append ("ed:");
-	    for(int i = 0; i < count; i++)
-		s.append(" " + encoding[args[i]]);
-	    if (size != 0) s.append(" (" + encoding[size] + ")");
-	    return s.toString();
-	}
+        public String toString() {
+            StringBuffer s = new StringBuffer();
+            s.append ("ed:");
+            for(int i = 0; i < count; i++)
+                s.append(" " + encoding[args[i]]);
+            if (size != 0) s.append(" (" + encoding[size] + ")");
+            return s.toString();
+        }
     }
 
     /**
@@ -659,321 +659,321 @@ public class GenerateAssembler {
      */
     static class EmitterSet {
 
-	/**
-	 *  The VM_Assembler emit methods that this set represents.
-	 * This is a set of EmitterDescriptor objects.
-	 */
-	private final Set emitters = new HashSet();
+        /**
+         *  The VM_Assembler emit methods that this set represents.
+         * This is a set of EmitterDescriptor objects.
+         */
+        private final Set emitters = new HashSet();
 
-	/**
-	 * Print this EmitterSet readably.
-	 * @return a string describing this EmitterSet
-	 */
-	public String toString() {
-	    StringBuffer s = new StringBuffer();
-	    s.append("Emitter Set of:\n");
-	    Iterator i = emitters.iterator();
-	    while (i.hasNext()) 
-		s.append(i.next().toString() + "\n");
-	    
-	    s.append("-------------\n");
-	    return s.toString();
-	}
+        /**
+         * Print this EmitterSet readably.
+         * @return a string describing this EmitterSet
+         */
+        public String toString() {
+            StringBuffer s = new StringBuffer();
+            s.append("Emitter Set of:\n");
+            Iterator i = emitters.iterator();
+            while (i.hasNext()) 
+                s.append(i.next().toString() + "\n");
+            
+            s.append("-------------\n");
+            return s.toString();
+        }
 
-	/**
-	 *  Test whethe rthis EmitterSet as exactly one element.
-	 * @return true if this EmitterSet as exactly one element.
-	 */
-	boolean isSingleton() {
-	    return  (emitters.size() == 1);
-	}
+        /**
+         *  Test whethe rthis EmitterSet as exactly one element.
+         * @return true if this EmitterSet as exactly one element.
+         */
+        boolean isSingleton() {
+            return  (emitters.size() == 1);
+        }
 
-	/**
-	 *  Insert an EmitterDescriptor into this set
-	 * @param ed the EmitterDescriptor to insert
-	 */
-	void add(EmitterDescriptor ed) {
-	    emitters.add( ed );
-	}
+        /**
+         *  Insert an EmitterDescriptor into this set
+         * @param ed the EmitterDescriptor to insert
+         */
+        void add(EmitterDescriptor ed) {
+            emitters.add( ed );
+        }
 
-	/**
-	 *  Count how many of the emit represented by this set match a
-	 * given operand type and size encoding.  This method is used
-	 * (via getEncodingSplit) while recursively partitioning a
-	 * given EmitterSet to determine how evenly (or even whether)
-	 * a given operand type and size splits this set.
-	 *
-	 * @see #getEncodingSplit
-	 *
-	 * @param n the operand being examined
-	 * @param code the operand type or size code being considered
-	 * @return the number of emit methods of which the specified
-	 *         operand type matches the specified one.  */
-	private int countEncoding(int n, int code) {
-	    Iterator i = emitters.iterator();
-	    int count = 0;
-	    while (i.hasNext())
-		if (((EmitterDescriptor)i.next()).argMatchesEncoding(n, code))
-		    count++;
-	    return count;
-	}
+        /**
+         *  Count how many of the emit represented by this set match a
+         * given operand type and size encoding.  This method is used
+         * (via getEncodingSplit) while recursively partitioning a
+         * given EmitterSet to determine how evenly (or even whether)
+         * a given operand type and size splits this set.
+         *
+         * @see #getEncodingSplit
+         *
+         * @param n the operand being examined
+         * @param code the operand type or size code being considered
+         * @return the number of emit methods of which the specified
+         *         operand type matches the specified one.  */
+        private int countEncoding(int n, int code) {
+            Iterator i = emitters.iterator();
+            int count = 0;
+            while (i.hasNext())
+                if (((EmitterDescriptor)i.next()).argMatchesEncoding(n, code))
+                    count++;
+            return count;
+        }
 
-	/**
-	 *  Return the difference between the number of emit methods
-	 * in this set that match a given operand type and size for a
-	 * given operand, and the number of those that do not. This
-	 * method is used while recursively partitioning a given
-	 * EmitterSet to determine how evenly (or even whether) a
-	 * given operand type and size splits this set.
-	 *
-	 * @param n the operand being examined
-	 * @param code the operand type or size code being considered
-	 * @return the different between matching and non-matching
-	 *         emit method in this set.  */
-	private int getEncodingSplit(int n, int code) {
-	    int count = countEncoding(n, code);
-	    return Math.abs( (emitters.size() - count) - count );
-	}
+        /**
+         *  Return the difference between the number of emit methods
+         * in this set that match a given operand type and size for a
+         * given operand, and the number of those that do not. This
+         * method is used while recursively partitioning a given
+         * EmitterSet to determine how evenly (or even whether) a
+         * given operand type and size splits this set.
+         *
+         * @param n the operand being examined
+         * @param code the operand type or size code being considered
+         * @return the different between matching and non-matching
+         *         emit method in this set.  */
+        private int getEncodingSplit(int n, int code) {
+            int count = countEncoding(n, code);
+            return Math.abs( (emitters.size() - count) - count );
+        }
 
-	/**
-	 * This class is used just to communicate the two results of
-	 * searching for the best split for a given set: the chosen
-	 * operand type or size, and the chosen operand nummber.  This
-	 * class is basically to avoid writing the slew of required
-	 * type casts that a generic pair would need given Java's
-	 * primitive type system.
-	 *
-	 * @see #makeSplit
-	 * @see #split
-	 */
-	static class SplitRecord {
-	    /**
-	     * The operand number to be split.
-	     */
-	    int argument;
+        /**
+         * This class is used just to communicate the two results of
+         * searching for the best split for a given set: the chosen
+         * operand type or size, and the chosen operand nummber.  This
+         * class is basically to avoid writing the slew of required
+         * type casts that a generic pair would need given Java's
+         * primitive type system.
+         *
+         * @see #makeSplit
+         * @see #split
+         */
+        static class SplitRecord {
+            /**
+             * The operand number to be split.
+             */
+            int argument;
 
-	    /**
-	     * The operand type or size test on which to split.
-	     */
-	    int test;
+            /**
+             * The operand type or size test on which to split.
+             */
+            int test;
 
-	    /**
-	     * Make s split record to communicate the results of
-	     * searching for the best operand to split.
-	     *
-	     * argument The operand number to be split.
-	     * test The operand type or size test on which to split.
-	     */
-	    SplitRecord(int argument, int test) {
-		this.argument = argument;
-		this.test = test;
-	    }
-	}
+            /**
+             * Make s split record to communicate the results of
+             * searching for the best operand to split.
+             *
+             * argument The operand number to be split.
+             * test The operand type or size test on which to split.
+             */
+            SplitRecord(int argument, int test) {
+                this.argument = argument;
+                this.test = test;
+            }
+        }
 
-	/**
-	 * This method uses a SplitRecord as the criertion to
-	 * partition the given EmitterSet into two subsets.
-	 *
-	 * @param split the plit record dicatating how to split
-	 */
-	private EmitterSet[] makeSplit(SplitRecord split) {
-	    int arg = split.argument;
-	    int test = split.test;
-	    EmitterSet yes = new EmitterSet();
-	    EmitterSet no = new EmitterSet();
-	    Iterator i = emitters.iterator();
-	    while (i.hasNext()) {
-		EmitterDescriptor ed = (EmitterDescriptor) i.next();
-		if (ed.argMatchesEncoding(arg, test))
-		    yes.add( ed );
-		else
-		    no.add( ed );
-	    }
+        /**
+         * This method uses a SplitRecord as the criertion to
+         * partition the given EmitterSet into two subsets.
+         *
+         * @param split the plit record dicatating how to split
+         */
+        private EmitterSet[] makeSplit(SplitRecord split) {
+            int arg = split.argument;
+            int test = split.test;
+            EmitterSet yes = new EmitterSet();
+            EmitterSet no = new EmitterSet();
+            Iterator i = emitters.iterator();
+            while (i.hasNext()) {
+                EmitterDescriptor ed = (EmitterDescriptor) i.next();
+                if (ed.argMatchesEncoding(arg, test))
+                    yes.add( ed );
+                else
+                    no.add( ed );
+            }
 
-	    return new EmitterSet[]{yes, no};
-	}
+            return new EmitterSet[]{yes, no};
+        }
 
-	/**
-	 *  Find the best operand type or size and operand number to
-	 * partition this EmitterSet.  This method searches across all
-	 * possible ways of splitting this set--all possible operand
-	 * types and sizes, and all possible operands--to determine
-	 * which one splits the set most evenly.  
-	 *
-	 * @return a SplitRecord representing the most-even split
-	 */
-	SplitRecord split() {
-	    int splitArg = -1;
-	    int splitTest = -1;
-	    int splitDiff = 1000;
-	    for(int arg = 0; arg < 4; arg++) {
-		for (int test = 0; test < encoding.length; test++) {
-		    int c = getEncodingSplit(arg, test);
-		    if (c == 0)
-			return new SplitRecord(arg, test);
-		    else if (c < splitDiff) {
-			splitArg = arg;
-			splitTest = test;
-			splitDiff = c;
-		    }
-		}
-	    }
+        /**
+         *  Find the best operand type or size and operand number to
+         * partition this EmitterSet.  This method searches across all
+         * possible ways of splitting this set--all possible operand
+         * types and sizes, and all possible operands--to determine
+         * which one splits the set most evenly.  
+         *
+         * @return a SplitRecord representing the most-even split
+         */
+        SplitRecord split() {
+            int splitArg = -1;
+            int splitTest = -1;
+            int splitDiff = 1000;
+            for(int arg = 0; arg < 4; arg++) {
+                for (int test = 0; test < encoding.length; test++) {
+                    int c = getEncodingSplit(arg, test);
+                    if (c == 0)
+                        return new SplitRecord(arg, test);
+                    else if (c < splitDiff) {
+                        splitArg = arg;
+                        splitTest = test;
+                        splitDiff = c;
+                    }
+                }
+            }
 
-	    return new SplitRecord(splitArg, splitTest);
-	}
+            return new SplitRecord(splitArg, splitTest);
+        }
 
-	/**
-	 *  Emit the Java code to call a particular emit method for a
-	 * particular opcode.  This method takes representations of
-	 * the opcode and operands of a given emit method, and
-	 * generates the appropriate Java source code to call it.  It
-	 * synthesizes the encoded emit method name, and uses emitArgs
-	 * to pass all the required arguments.
-	 *
-	 * @see #emitArgs
-	 *
-	 * @param opcode the IA32 opcode of the emit method
-	 * @param args the encoding of each operand to the emit method
-	 * @param count the number of operands
-	 * @param level the level of tabbing for pretty output
-	 */
-	private void emitEmitCall(String opcode, int[] args, int count, int level, int size) {
-	    emitTab(level);
-	    emit("emit" + opcode);
-	    for(int i = 0; i < count; i++)
-		emit("_" + encoding[args[i]]);
-	    if (size != 0) emit("_" + encoding[size]);
+        /**
+         *  Emit the Java code to call a particular emit method for a
+         * particular opcode.  This method takes representations of
+         * the opcode and operands of a given emit method, and
+         * generates the appropriate Java source code to call it.  It
+         * synthesizes the encoded emit method name, and uses emitArgs
+         * to pass all the required arguments.
+         *
+         * @see #emitArgs
+         *
+         * @param opcode the IA32 opcode of the emit method
+         * @param args the encoding of each operand to the emit method
+         * @param count the number of operands
+         * @param level the level of tabbing for pretty output
+         */
+        private void emitEmitCall(String opcode, int[] args, int count, int level, int size) {
+            emitTab(level);
+            emit("emit" + opcode);
+            for(int i = 0; i < count; i++)
+                emit("_" + encoding[args[i]]);
+            if (size != 0) emit("_" + encoding[size]);
 
-	    if (count == 0)
-		emit("();\n");
-	    else {
-		emit("(");
-		for(int i = 0; i < count; i++) {
-		    emit("\n");
-		    emitTab(level+1);
-		    emitArgs(i, args[i]);
-		    if (i == count-1)
-			emit(");\n");
-		    else
-			emit(",");
-		}
-	    }
-	}
+            if (count == 0)
+                emit("();\n");
+            else {
+                emit("(");
+                for(int i = 0; i < count; i++) {
+                    emit("\n");
+                    emitTab(level+1);
+                    emitArgs(i, args[i]);
+                    if (i == count-1)
+                        emit(");\n");
+                    else
+                        emit(",");
+                }
+            }
+        }
 
-	/**
-	 *  Write the Java code required for error checking and
-	 * calling the emit method represented by a singleton
-	 * EmitterSet.  A singleton EmiiterSet will typically be the
-	 * result of a series of splits of bigger sets, where the
-	 * splits represent emitted queries of operand types and
-	 * sizes.  (See emitSet) However, there may be cases when some
-	 * operand has only one possible options, so the splitting
-	 * will not have generated any tests for it.  In this case, we
-	 * will emit assertions that guarantee the operand is of the
-	 * expected type.  Note that the answers to queries alrrready
-	 * performed by splitting are known to be fine, so no
-	 * additional error checking is needed for cases they cover.
-	 *
-	 * @see #emitSet
-	 *
-	 * @param opcode the IA32 opcode to generate
-	 * @param testsPerformed the set of queries already performed
-	 *        by splitting.  
-	 * @param level level of indentation for prett printing */
-	private void emitSingleton(String opcode, boolean[][] testsPerformed, int level) {
-	    EmitterDescriptor ed = 
-		(EmitterDescriptor) emitters.iterator().next();
+        /**
+         *  Write the Java code required for error checking and
+         * calling the emit method represented by a singleton
+         * EmitterSet.  A singleton EmiiterSet will typically be the
+         * result of a series of splits of bigger sets, where the
+         * splits represent emitted queries of operand types and
+         * sizes.  (See emitSet) However, there may be cases when some
+         * operand has only one possible options, so the splitting
+         * will not have generated any tests for it.  In this case, we
+         * will emit assertions that guarantee the operand is of the
+         * expected type.  Note that the answers to queries alrrready
+         * performed by splitting are known to be fine, so no
+         * additional error checking is needed for cases they cover.
+         *
+         * @see #emitSet
+         *
+         * @param opcode the IA32 opcode to generate
+         * @param testsPerformed the set of queries already performed
+         *        by splitting.  
+         * @param level level of indentation for prett printing */
+        private void emitSingleton(String opcode, boolean[][] testsPerformed, int level) {
+            EmitterDescriptor ed = 
+                (EmitterDescriptor) emitters.iterator().next();
 
-	    int[] args = ed.getArgs();
-	    int count = ed.getCount();
-	    for(int i = 0; i < count; i++) 
-		if (! testsPerformed[i][args[i]])
-		    emitVerify(i, args[i], level);
+            int[] args = ed.getArgs();
+            int count = ed.getCount();
+            for(int i = 0; i < count; i++) 
+                if (! testsPerformed[i][args[i]])
+                    emitVerify(i, args[i], level);
 
-	    int size = ed.getSize();
-	    if (size != 0) {
-		boolean needed = true;
+            int size = ed.getSize();
+            if (size != 0) {
+                boolean needed = true;
 
-		for(int i = 0; i < count; i++) 
-		    if (testsPerformed[i][size])
-			needed = false;
-		    
-		if (needed)
-		    emitVerify(0, size, level);
+                for(int i = 0; i < count; i++) 
+                    if (testsPerformed[i][size])
+                        needed = false;
+                    
+                if (needed)
+                    emitVerify(0, size, level);
 
-		if (size == Byte)
-		    for(int i = 0; i < count; i++) 
-			if (args[i] == Register)
-			    if (currentOpcode.indexOf("MOVZX") == -1 &&
-				currentOpcode.indexOf("MOVSX") == -1)
-			    {
-				emitTab(level);
-				emit("if (VM.VerifyAssertions && !(");
-				emitArgs(i, Register);
-				emit(" < 4)) VM._assert(false, inst.toString());\n");
-			    }
-		
-	    }
+                if (size == Byte)
+                    for(int i = 0; i < count; i++) 
+                        if (args[i] == Register)
+                            if (currentOpcode.indexOf("MOVZX") == -1 &&
+                                currentOpcode.indexOf("MOVSX") == -1)
+                            {
+                                emitTab(level);
+                                emit("if (VM.VerifyAssertions && !(");
+                                emitArgs(i, Register);
+                                emit(" < 4)) VM._assert(false, inst.toString());\n");
+                            }
+                
+            }
 
-	    emitEmitCall(opcode, args, count, level, ed.getSize());
-	}
+            emitEmitCall(opcode, args, count, level, ed.getSize());
+        }
 
-	/**
-	 *  Emit Java code for deciding which emit method in the given
-	 * set applies to an OPT_Instruction, and then calling the
-	 * apprpriate method.  The method essentially works by
-	 * recursively parititioning the given set into two smaller
-	 * pieces until it finds a set with only one element.  On each
-	 * partition, this method generates code for the appropriate
-	 * operand type or size query, and then calls itself
-	 * recursively on the two sets resulting from the partition.
-	 *
-	 * This method uses split to determine what test to apply, and
-	 * emitSingleton when it encounteres a singleton set.
-	 *
-	 * Note that the testsPerformed parameter is not needed to do
-	 * the recursive splitting; this is passed to emitSingleton to
-	 * help it generate appropriate error checking for operands.
-	 *
-	 * @see #split
-	 * @see #emitSingleton
-	 *
-	 * @param opcode the IA32 opcode being generated
-	 * @param testsPerformed the set of tests already performed
-	 * @param level the indentation level for pretty printing
-	 *
-	 */
-	private void emitSet(String opcode, boolean[][] testsPerformed, int level) {
-	    if (emitters.isEmpty()) {
-		// do nothing
-	    } else if (isSingleton())
-		emitSingleton(opcode, testsPerformed, level);
-	    else {
-		SplitRecord rec = split();
+        /**
+         *  Emit Java code for deciding which emit method in the given
+         * set applies to an OPT_Instruction, and then calling the
+         * apprpriate method.  The method essentially works by
+         * recursively parititioning the given set into two smaller
+         * pieces until it finds a set with only one element.  On each
+         * partition, this method generates code for the appropriate
+         * operand type or size query, and then calls itself
+         * recursively on the two sets resulting from the partition.
+         *
+         * This method uses split to determine what test to apply, and
+         * emitSingleton when it encounteres a singleton set.
+         *
+         * Note that the testsPerformed parameter is not needed to do
+         * the recursive splitting; this is passed to emitSingleton to
+         * help it generate appropriate error checking for operands.
+         *
+         * @see #split
+         * @see #emitSingleton
+         *
+         * @param opcode the IA32 opcode being generated
+         * @param testsPerformed the set of tests already performed
+         * @param level the indentation level for pretty printing
+         *
+         */
+        private void emitSet(String opcode, boolean[][] testsPerformed, int level) {
+            if (emitters.isEmpty()) {
+                // do nothing
+            } else if (isSingleton())
+                emitSingleton(opcode, testsPerformed, level);
+            else {
+                SplitRecord rec = split();
 
-		if (DEBUG) {
-		    for(int i = 0; i < level; i++) System.err.print("  ");
-		    System.err.println("split of " + opcode + "[" + rec.argument + "] for " + encoding[rec.test]);
-		}
+                if (DEBUG) {
+                    for(int i = 0; i < level; i++) System.err.print("  ");
+                    System.err.println("split of " + opcode + "[" + rec.argument + "] for " + encoding[rec.test]);
+                }
 
-		if (testsPerformed[rec.argument][rec.test] == true) {
-		    System.err.println("repeated split of " + opcode + "[" + rec.argument + "] for " + encoding[rec.test]);
-		    System.err.println( this );
-		    System.exit( -1 );
-		}
+                if (testsPerformed[rec.argument][rec.test] == true) {
+                    System.err.println("repeated split of " + opcode + "[" + rec.argument + "] for " + encoding[rec.test]);
+                    System.err.println( this );
+                    System.exit( -1 );
+                }
 
-		testsPerformed[rec.argument][rec.test] = true;
-		EmitterSet[] splits = makeSplit(rec);
-		emitTab(level);	emit("if (");
-		emitTest( rec.argument, rec.test );
-		emit(") {\n");
-		splits[0].emitSet(opcode, testsPerformed, level+1);
-		emit("\n"); emitTab(level); emit("} else {\n");
-		splits[1].emitSet(opcode, testsPerformed, level+1);
-		emitTab(level); emit("}\n");
-		testsPerformed[rec.argument][rec.test] = false;
-	    }
-	}
+                testsPerformed[rec.argument][rec.test] = true;
+                EmitterSet[] splits = makeSplit(rec);
+                emitTab(level); emit("if (");
+                emitTest( rec.argument, rec.test );
+                emit(") {\n");
+                splits[0].emitSet(opcode, testsPerformed, level+1);
+                emit("\n"); emitTab(level); emit("} else {\n");
+                splits[1].emitSet(opcode, testsPerformed, level+1);
+                emitTab(level); emit("}\n");
+                testsPerformed[rec.argument][rec.test] = false;
+            }
+        }
     }
 
     /**
@@ -992,20 +992,20 @@ public class GenerateAssembler {
      * @param opcode the opcode being examined
      */
     private static EmitterSet 
-	buildSetForOpcode(Method[] emitters, String opcode)
+        buildSetForOpcode(Method[] emitters, String opcode)
     {
-	EmitterSet s = new EmitterSet();
-	for(int i = 0; i < emitters.length; i++) {
-	    Method m = emitters[i];
-	    if (m.getName().startsWith("emit" + opcode + "_") 
-		                    ||
-		m.getName().equals("emit" + opcode))
-	    {
-		s.add(new EmitterDescriptor(m.getName()));
-	    }
-	}
+        EmitterSet s = new EmitterSet();
+        for(int i = 0; i < emitters.length; i++) {
+            Method m = emitters[i];
+            if (m.getName().startsWith("emit" + opcode + "_") 
+                                    ||
+                m.getName().equals("emit" + opcode))
+            {
+                s.add(new EmitterDescriptor(m.getName()));
+            }
+        }
 
-	return s;
+        return s;
     }
 
     /**
@@ -1022,13 +1022,13 @@ public class GenerateAssembler {
      * @see #excludedOpcodes
      */
     static {
-	excludedOpcodes = new HashSet();
-	excludedOpcodes.add("FSAVE");
-	excludedOpcodes.add("FNSTSW");
-	excludedOpcodes.add("FUCOMPP");
-	excludedOpcodes.add("SAHF");
-	excludedOpcodes.add("NOP");
-	excludedOpcodes.add("ENTER");
+        excludedOpcodes = new HashSet();
+        excludedOpcodes.add("FSAVE");
+        excludedOpcodes.add("FNSTSW");
+        excludedOpcodes.add("FUCOMPP");
+        excludedOpcodes.add("SAHF");
+        excludedOpcodes.add("NOP");
+        excludedOpcodes.add("ENTER");
     }
 
     /**
@@ -1042,26 +1042,26 @@ public class GenerateAssembler {
      * @return the set of all opcodes handled by the VM_Assembler
      */
     private static Set getOpcodes(Method[] emitters) {
-	Set s = new HashSet();
-	for(int i = 0; i < emitters.length; i++) {
-	    String name = emitters[i].getName();
-	    if (DEBUG) System.out.println(name);
-	    if (name.startsWith("emit")) {
-		int posOf_ = name.indexOf('_');
-		if (posOf_ != -1) {
-		    String opcode = name.substring(4, posOf_);
-		    if (! excludedOpcodes.contains(opcode)) s.add( opcode );
-		} else {
-		    String opcode = name.substring(4);
-		    // make sure it is an opcode
-		    if (opcode.equals(opcode.toUpperCase(Locale.getDefault())))
-			if (! excludedOpcodes.contains(opcode))
-			    s.add( opcode );
-		}
-	    }
-	}
+        Set s = new HashSet();
+        for(int i = 0; i < emitters.length; i++) {
+            String name = emitters[i].getName();
+            if (DEBUG) System.out.println(name);
+            if (name.startsWith("emit")) {
+                int posOf_ = name.indexOf('_');
+                if (posOf_ != -1) {
+                    String opcode = name.substring(4, posOf_);
+                    if (! excludedOpcodes.contains(opcode)) s.add( opcode );
+                } else {
+                    String opcode = name.substring(4);
+                    // make sure it is an opcode
+                    if (opcode.equals(opcode.toUpperCase(Locale.getDefault())))
+                        if (! excludedOpcodes.contains(opcode))
+                            s.add( opcode );
+                }
+            }
+        }
 
-	return s;
+        return s;
     }
 
     /**
@@ -1078,15 +1078,15 @@ public class GenerateAssembler {
      * not understand.
      */
     private static Set getErrorOpcodes(Set emittedOpcodes) {
-	Iterator e = OPT_OperatorFormatTables.getOpcodes();
-	Set errorOpcodes = new HashSet();
-	while (e.hasNext()) {
-	    String opcode = (String) e.next();
-	    if (! emittedOpcodes.contains(opcode))
-		errorOpcodes.add( opcode );
-	}
+        Iterator e = OPT_OperatorFormatTables.getOpcodes();
+        Set errorOpcodes = new HashSet();
+        while (e.hasNext()) {
+            String opcode = (String) e.next();
+            if (! emittedOpcodes.contains(opcode))
+                errorOpcodes.add( opcode );
+        }
 
-	return errorOpcodes;
+        return errorOpcodes;
     }
 
     /**
@@ -1099,151 +1099,151 @@ public class GenerateAssembler {
      * ADD IA32 opcode with a byte operand size.  
      */
     private static Set getMatchingOperators(String lowLevelOpcode) {
-	Iterator e = OPT_OperatorFormatTables.getOpcodes();
-	Set matchingOperators = new HashSet();
-	while (e.hasNext()) {
-	    String o = (String) e.next();
-	    if (o.equals(lowLevelOpcode) || o.startsWith(lowLevelOpcode+"$"))
-		matchingOperators.add( o );
-	}
+        Iterator e = OPT_OperatorFormatTables.getOpcodes();
+        Set matchingOperators = new HashSet();
+        while (e.hasNext()) {
+            String o = (String) e.next();
+            if (o.equals(lowLevelOpcode) || o.startsWith(lowLevelOpcode+"$"))
+                matchingOperators.add( o );
+        }
 
-	return matchingOperators;
+        return matchingOperators;
     }
 
     /**
      * Generate an assembler for the opt compiler
      */
     public static void main(String[] args) {
-	try {
-	    out = new FileWriter(System.getProperty("generateToDir") + "/OPT_Assembler.java");
-	} catch (IOException e) {
-	    e.printStackTrace();
-	    System.exit( -1 );
-	}
+        try {
+            out = new FileWriter(System.getProperty("generateToDir") + "/OPT_Assembler.java");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit( -1 );
+        }
 
-	try {
-	    lowLevelAsm = Class.forName("com.ibm.JikesRVM.VM_Assembler");
-	} catch (ClassNotFoundException e) {
-	    e.printStackTrace();
-	    System.exit( -1 );
-	}
+        try {
+            lowLevelAsm = Class.forName("com.ibm.JikesRVM.VM_Assembler");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            System.exit( -1 );
+        }
 
-	emit("package com.ibm.JikesRVM.opt;\n\n");
-	emit("import com.ibm.JikesRVM.*;\n\n");
-	emit("import com.ibm.JikesRVM.opt.ir.*;\n\n");
-	emit("\n\n");
+        emit("package com.ibm.JikesRVM.opt;\n\n");
+        emit("import com.ibm.JikesRVM.*;\n\n");
+        emit("import com.ibm.JikesRVM.opt.ir.*;\n\n");
+        emit("\n\n");
 
-	emit("/**\n");
-	emit(" *  This class is the automatically-generated assembler for\n");
-	emit(" * the optimizing compiler.  It consists of methods that\n");
-	emit(" * understand the possible operand combinations of each\n");
-	emit(" * instruction type, and how to translate those operands to\n");
-	emit(" * calls to the VM_Assember low-level emit method\n");
-	emit(" *\n");
-	emit(" * It is generated by GenerateAssembler.java\n");
-	emit(" *\n");
-	emit(" * @author Julian Dolby\n");
-	emit(" */\n");
-	emit("class OPT_Assembler extends OPT_AssemblerBase {\n\n");
+        emit("/**\n");
+        emit(" *  This class is the automatically-generated assembler for\n");
+        emit(" * the optimizing compiler.  It consists of methods that\n");
+        emit(" * understand the possible operand combinations of each\n");
+        emit(" * instruction type, and how to translate those operands to\n");
+        emit(" * calls to the VM_Assember low-level emit method\n");
+        emit(" *\n");
+        emit(" * It is generated by GenerateAssembler.java\n");
+        emit(" *\n");
+        emit(" * @author Julian Dolby\n");
+        emit(" */\n");
+        emit("class OPT_Assembler extends OPT_AssemblerBase {\n\n");
 
-	emitTab(1);emit("/**\n");
-	emitTab(1);emit(" *  This class requires no special construction;\n");
-	emitTab(1);emit(" * this constructor simply invokes the\n");
-	emitTab(1);emit(" * constructor for VM_Assembler\n");
-	emitTab(1);emit(" *\n");
-	emitTab(1);emit(" * @see VM_Assembler\n");
-	emitTab(1);emit(" */\n");
-	emitTab(1); emit("OPT_Assembler(int bcSize, boolean print) {\n");
-	emitTab(2);   emit("super(bcSize, print);\n");
-	emitTab(1); emit("}");
-	emit("\n\n");
+        emitTab(1);emit("/**\n");
+        emitTab(1);emit(" *  This class requires no special construction;\n");
+        emitTab(1);emit(" * this constructor simply invokes the\n");
+        emitTab(1);emit(" * constructor for VM_Assembler\n");
+        emitTab(1);emit(" *\n");
+        emitTab(1);emit(" * @see VM_Assembler\n");
+        emitTab(1);emit(" */\n");
+        emitTab(1); emit("OPT_Assembler(int bcSize, boolean print) {\n");
+        emitTab(2);   emit("super(bcSize, print);\n");
+        emitTab(1); emit("}");
+        emit("\n\n");
 
-	Method[] emitters = lowLevelAsm.getDeclaredMethods();
-	Set opcodes = getOpcodes(emitters);
+        Method[] emitters = lowLevelAsm.getDeclaredMethods();
+        Set opcodes = getOpcodes(emitters);
 
-	Iterator i = opcodes.iterator();
-	while (i.hasNext()) {
-	    String opcode = (String) i.next();
-	    setCurrentOpcode( opcode );
-	    emitTab(1);emit("/**\n");
-	    emitTab(1);emit(" *  Emit the given instruction, assuming that\n");
-	    emitTab(1);emit(" * it is a " + currentFormat + " instruction\n");
-	    emitTab(1);emit(" * and has a " + currentOpcode + " operator\n");
-	    emitTab(1);emit(" *\n");
-	    emitTab(1);emit(" * @param inst the instruction to assemble\n");
-	    emitTab(1);emit(" */\n");
-	    emitTab(1);
-	    emit("private void do" + opcode + "(OPT_Instruction inst) {\n");
-	    EmitterSet emitter = buildSetForOpcode(emitters, opcode);
-	    boolean[][] tp = new boolean[4][ encoding.length ];
-	    emitter.emitSet(opcode, tp, 2);
-	    emitTab(1);
-	    emit("}\n\n");
-	}
+        Iterator i = opcodes.iterator();
+        while (i.hasNext()) {
+            String opcode = (String) i.next();
+            setCurrentOpcode( opcode );
+            emitTab(1);emit("/**\n");
+            emitTab(1);emit(" *  Emit the given instruction, assuming that\n");
+            emitTab(1);emit(" * it is a " + currentFormat + " instruction\n");
+            emitTab(1);emit(" * and has a " + currentOpcode + " operator\n");
+            emitTab(1);emit(" *\n");
+            emitTab(1);emit(" * @param inst the instruction to assemble\n");
+            emitTab(1);emit(" */\n");
+            emitTab(1);
+            emit("private void do" + opcode + "(OPT_Instruction inst) {\n");
+            EmitterSet emitter = buildSetForOpcode(emitters, opcode);
+            boolean[][] tp = new boolean[4][ encoding.length ];
+            emitter.emitSet(opcode, tp, 2);
+            emitTab(1);
+            emit("}\n\n");
+        }
 
-	emitTab(1);emit("/**\n");
-	emitTab(1);emit(" *  The number of instructions emitted so far\n");
-	emitTab(1);emit(" */\n");
-	emitTab(1); emit("private int instructionCount = 0;\n\n");
+        emitTab(1);emit("/**\n");
+        emitTab(1);emit(" *  The number of instructions emitted so far\n");
+        emitTab(1);emit(" */\n");
+        emitTab(1); emit("private int instructionCount = 0;\n\n");
 
-	emitTab(1);emit("/**\n");
-	emitTab(1);emit(" *  Assemble the given instruction\n");
-	emitTab(1);emit(" *\n");
-	emitTab(1);emit(" * @param inst the instruction to assemble\n");
-	emitTab(1);emit(" */\n");
-	emitTab(1); emit("void doInst(OPT_Instruction inst) {\n");
-	emitTab(2);    emit("resolveForwardReferences(++instructionCount);\n");
-	emitTab(2);    emit("switch (inst.getOpcode()) {\n");
+        emitTab(1);emit("/**\n");
+        emitTab(1);emit(" *  Assemble the given instruction\n");
+        emitTab(1);emit(" *\n");
+        emitTab(1);emit(" * @param inst the instruction to assemble\n");
+        emitTab(1);emit(" */\n");
+        emitTab(1); emit("void doInst(OPT_Instruction inst) {\n");
+        emitTab(2);    emit("resolveForwardReferences(++instructionCount);\n");
+        emitTab(2);    emit("switch (inst.getOpcode()) {\n");
 
-	Set emittedOpcodes = new HashSet();
+        Set emittedOpcodes = new HashSet();
 
-	i = opcodes.iterator();
-	while (i.hasNext()) {
-	    String opcode = (String) i.next();
-	    Iterator operators = getMatchingOperators( opcode ).iterator();
-	    while ( operators.hasNext() ) {
-		Object operator = operators.next();
-		emitTab(3); 
-		emittedOpcodes.add( operator );
-		emit("case IA32_" + operator + "_opcode:\n");
-	    }
-	    emitTab(4);    emit("do" + opcode + "(inst);\n");
-	    emitTab(4);    emit("break;\n");
-	}
+        i = opcodes.iterator();
+        while (i.hasNext()) {
+            String opcode = (String) i.next();
+            Iterator operators = getMatchingOperators( opcode ).iterator();
+            while ( operators.hasNext() ) {
+                Object operator = operators.next();
+                emitTab(3); 
+                emittedOpcodes.add( operator );
+                emit("case IA32_" + operator + "_opcode:\n");
+            }
+            emitTab(4);    emit("do" + opcode + "(inst);\n");
+            emitTab(4);    emit("break;\n");
+        }
 
-	// Kludge for IA32_LOCK which needs to call emitLockNextInstruction
-	emittedOpcodes.add("LOCK");
-	emitTab(3);    emit("case IA32_LOCK_opcode:\n");
-	emitTab(4);    emit("emitLockNextInstruction();\n");
-	emitTab(4);    emit("break;\n");
+        // Kludge for IA32_LOCK which needs to call emitLockNextInstruction
+        emittedOpcodes.add("LOCK");
+        emitTab(3);    emit("case IA32_LOCK_opcode:\n");
+        emitTab(4);    emit("emitLockNextInstruction();\n");
+        emitTab(4);    emit("break;\n");
 
-	// Kludge for PATCH_POINT 
-	emittedOpcodes.add("LOCK");
-	emitTab(3);    emit("case IG_PATCH_POINT_opcode:\n");
-	emitTab(4);    emit("emitPatchPoint();\n");
-	emitTab(4);    emit("break;\n");
-	
-	Set errorOpcodes = getErrorOpcodes( emittedOpcodes );
-	if (! errorOpcodes.isEmpty()) {
-	    i = errorOpcodes.iterator();
-	    while (i.hasNext()) {
-		emitTab(3); 
-		emit("case IA32_" + i.next() + "_opcode:\n");
-	    }
-	    emitTab(4); emit("throw new OPT_OptimizingCompilerException(inst + \" has unimplemented IA32 opcode (check excludedOpcodes)\");\n");
-	}
-	
-	emitTab(2);    emit("}\n");
-	emitTab(2);    emit("inst.setmcOffset( mi );\n");
-	emitTab(1); emit("}\n\n");
-	
-	emit("\n}\n");
+        // Kludge for PATCH_POINT 
+        emittedOpcodes.add("LOCK");
+        emitTab(3);    emit("case IG_PATCH_POINT_opcode:\n");
+        emitTab(4);    emit("emitPatchPoint();\n");
+        emitTab(4);    emit("break;\n");
+        
+        Set errorOpcodes = getErrorOpcodes( emittedOpcodes );
+        if (! errorOpcodes.isEmpty()) {
+            i = errorOpcodes.iterator();
+            while (i.hasNext()) {
+                emitTab(3); 
+                emit("case IA32_" + i.next() + "_opcode:\n");
+            }
+            emitTab(4); emit("throw new OPT_OptimizingCompilerException(inst + \" has unimplemented IA32 opcode (check excludedOpcodes)\");\n");
+        }
+        
+        emitTab(2);    emit("}\n");
+        emitTab(2);    emit("inst.setmcOffset( mi );\n");
+        emitTab(1); emit("}\n\n");
+        
+        emit("\n}\n");
 
-	try {
-	    out.close();
-	} catch (IOException e) {
-	    e.printStackTrace();
-	    System.exit( -1 );
-	}
+        try {
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit( -1 );
+        }
     }
 }

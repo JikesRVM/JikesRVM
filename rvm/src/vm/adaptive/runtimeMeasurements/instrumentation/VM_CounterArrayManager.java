@@ -68,7 +68,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
     // transfer the old data to the new array
     if (counterArrays[handle] != null) {
       for (int i=0; i<counterArrays[handle].length; i++) {
-	temp[i] = counterArrays[handle][i];
+        temp[i] = counterArrays[handle][i];
       }
     }
     
@@ -109,7 +109,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    * @return The counter instruction
    **/
   public OPT_Instruction createEventCounterInstruction(int handle, int index,
-						       double incrementValue) {
+                                                       double incrementValue) {
 
     // Doubles are annoying. They are too big to fit into the
     // instruction, so they must be loaded from the JTOC.  That means
@@ -122,10 +122,10 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
     // Now create the instruction to be returned.
     OPT_Instruction c = 
       InstrumentedCounter.create(INSTRUMENTED_EVENT_COUNTER, 
-				 new OPT_IntConstantOperand(handle),
-				 new OPT_IntConstantOperand(index),
-				 new OPT_DoubleConstantOperand(incrementValue,
-							       offset));
+                                 new OPT_IntConstantOperand(handle),
+                                 new OPT_IntConstantOperand(index),
+                                 new OPT_DoubleConstantOperand(incrementValue,
+                                                               offset));
     c.bcIndex = INSTRUMENTATION_BCI;
 
     return c;
@@ -142,7 +142,7 @@ final class VM_CounterArrayManager extends OPT_InstrumentedEventCounterManager
    * @param ir The governing IR
    **/
   public void mutateOptEventCounterInstruction(OPT_Instruction counterInst, 
-					       OPT_IR ir) {
+                                               OPT_IR ir) {
     if (VM.VerifyAssertions)
       VM._assert(InstrumentedCounter.conforms(counterInst));
 

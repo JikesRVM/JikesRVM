@@ -52,9 +52,9 @@ class ClassQuery extends ClassQuerySuper {
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-	verbose = false;	
-	setVerboseOff();
-      } 	
+        verbose = false;        
+        setVerboseOff();
+      }         
     }
 
     /***********************************************
@@ -82,13 +82,13 @@ class ClassQuery extends ClassQuerySuper {
       supercls = Class.forName("ClassQuerySuper");
       returnFlag = testAssignable(subcls, supercls);
       if (!returnFlag)             // should be true
-	returnValue = 1;
+        returnValue = 1;
 
       // case 2:  non-assignable class
       subcls = Class.forName("java.lang.String");
       returnFlag = testAssignable(subcls, supercls);
       if (returnFlag)             // should be false
-	returnValue = 1;
+        returnValue = 1;
 
       // case 3:  assignable primitive array
       int ary1[] = new int[10];
@@ -97,14 +97,14 @@ class ClassQuery extends ClassQuerySuper {
       supercls = ary2.getClass();
       returnFlag = testAssignable(subcls, supercls);
       if (!returnFlag)             // should be true
-	returnValue = 1;
+        returnValue = 1;
 
       // case 4:  non-assignable primitive array
       boolean bary2[] = new boolean[10];
       supercls = bary2.getClass();
       returnFlag = testAssignable(subcls, supercls);
       if (returnFlag)             // should be false
-	returnValue = 1;
+        returnValue = 1;
 
       // case 5:  assignable object array
       String str1[] = new String[7];
@@ -113,14 +113,14 @@ class ClassQuery extends ClassQuerySuper {
       supercls = str2.getClass();
       returnFlag = testAssignable(subcls, supercls);
       if (!returnFlag)             // should be true
-	returnValue = 1;
+        returnValue = 1;
 
       // case 6:  non-assignable object array
       ClassQuery ObjArray[] = new ClassQuery[7];
       supercls = ObjArray.getClass();
       returnFlag = testAssignable(subcls, supercls);
       if (returnFlag)             // should be false
-	returnValue = 1;
+        returnValue = 1;
 
 
     } catch (ClassNotFoundException e) {            
@@ -152,9 +152,9 @@ class ClassQuery extends ClassQuerySuper {
       subcls = Class.forName("ClassQuery");
       ClassQuery blankObj = (ClassQuery) testAllocObject(subcls);
       if (blankObj.toTestConstructor==2)    // shouldn't have been initialized
-	returnValue = 1;
+        returnValue = 1;
       else 
-	returnValue = 0;
+        returnValue = 0;
       // blankObj = new ClassQuery();
       // System.out.println("the field is " + blankObj.toTestConstructor);
     } catch (ClassNotFoundException e) {            

@@ -9,7 +9,7 @@ package com.ibm.JikesRVM.opt;
  * represents a set of value number pairs.
  *
  * TODO: use this implementation for index propagation as well as
- * 	  dead store elimination.
+ *        dead store elimination.
  *
  * @author Stephen Fink
  *

@@ -136,27 +136,27 @@ public final class OPT_RegisterOperand extends OPT_Operand {
   private int scratch2;
 
   static private final int TAKEN     = 0x00000001; // guard operand that
-  					    // represents a taken branch
+                                            // represents a taken branch
   static private final int NOT_TAKEN = 0x00000002; // guard operand that
-  					// represents a not taken branch
+                                        // represents a not taken branch
   static private final int BOUNDS_CHECK = 0x00000004; // guard operand that
-  					// originates from a bounds-check
+                                        // originates from a bounds-check
   static private final int NULL_CHECK = 0x00000008; // guard operand that
-  					// originates from a null-check
-  public boolean isTaken()       	{   return (scratch2 & TAKEN) != 0; }
-  public boolean isNotTaken()     	{   return (scratch2 & NOT_TAKEN) != 0; }
+                                        // originates from a null-check
+  public boolean isTaken()              {   return (scratch2 & TAKEN) != 0; }
+  public boolean isNotTaken()           {   return (scratch2 & NOT_TAKEN) != 0; }
   public boolean isBoundsCheck()       {   return (scratch2 & BOUNDS_CHECK) != 0; }
   public boolean isNullCheck()         {   return (scratch2 & NULL_CHECK) != 0; }
 
-  public void    setTaken()      	{   scratch2 |=  TAKEN;                 }
-  public void    setNotTaken()      	{   scratch2 |=  NOT_TAKEN;             }
-  public void    setBoundsCheck()     	{   scratch2 |=  BOUNDS_CHECK;          }
-  public void    setNullCheck()     	{   scratch2 |=  NULL_CHECK;            }
+  public void    setTaken()             {   scratch2 |=  TAKEN;                 }
+  public void    setNotTaken()          {   scratch2 |=  NOT_TAKEN;             }
+  public void    setBoundsCheck()       {   scratch2 |=  BOUNDS_CHECK;          }
+  public void    setNullCheck()         {   scratch2 |=  NULL_CHECK;            }
 
-  public void    clearTaken()    	{   scratch2 &= ~TAKEN;        		}
-  public void    clearNotTaken()    	{   scratch2 &= ~NOT_TAKEN;    		}
-  public void    clearBoundsCheck()   	{   scratch2 &= ~BOUNDS_CHECK;  	}
-  public void    clearNullCheck()   	{   scratch2 &= ~NULL_CHECK;  	        }
+  public void    clearTaken()           {   scratch2 &= ~TAKEN;                 }
+  public void    clearNotTaken()        {   scratch2 &= ~NOT_TAKEN;             }
+  public void    clearBoundsCheck()     {   scratch2 &= ~BOUNDS_CHECK;          }
+  public void    clearNullCheck()       {   scratch2 &= ~NULL_CHECK;            }
 
 
   /* optimizations can use it for different purposes, as long as

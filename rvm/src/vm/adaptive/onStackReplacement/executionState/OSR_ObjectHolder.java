@@ -27,10 +27,10 @@ public class OSR_ObjectHolder implements VM_Uninterruptible, VM_SizeConstants {
     int p = handinRefs(objs);
     getRefAt(p,0);
     cleanRefs(p);
-	
-	if (VM.TraceOnStackReplacement) {
-	  VM.sysWriteln("OSR_ObjectHolder booted...");
-	}
+        
+        if (VM.TraceOnStackReplacement) {
+          VM.sysWriteln("OSR_ObjectHolder booted...");
+        }
   }
 
   /**
@@ -40,8 +40,8 @@ public class OSR_ObjectHolder implements VM_Uninterruptible, VM_SizeConstants {
     int n = refs.length;
     for (int i=0; i<n; i++) {
       if (refs[i] == null) {
-	refs[i] = objs;
-	return i;
+        refs[i] = objs;
+        return i;
       }
     }
     // grow the array
@@ -49,7 +49,7 @@ public class OSR_ObjectHolder implements VM_Uninterruptible, VM_SizeConstants {
     System.arraycopy(refs, 0, newRefs, 0, n);
     newRefs[n] = objs;
     refs = newRefs;
-	
+        
     return n;
   }
 
@@ -58,11 +58,11 @@ public class OSR_ObjectHolder implements VM_Uninterruptible, VM_SizeConstants {
    */ 
   public final static Object getRefAt(int h, int i) 
     throws VM_PragmaInline {
-	
-	if (VM.TraceOnStackReplacement) {
-	  VM.sysWriteln("OSR_ObjectHolder getRefAt");
-	}
-	Object obj = refs[h][i];
+        
+        if (VM.TraceOnStackReplacement) {
+          VM.sysWriteln("OSR_ObjectHolder getRefAt");
+        }
+        Object obj = refs[h][i];
     return obj;
   }
 

@@ -50,14 +50,14 @@ public class VM_Reflection implements VM_Constants {
     //
     int triple     = VM_MachineReflection.countParameters(method);
     int gprs       = triple & REFLECTION_GPRS_MASK;
-    int[]    GPRs  = new int[gprs];
+    VM_WordArray GPRs = VM_WordArray.create(gprs);
     int fprs       = (triple >> REFLECTION_GPRS_BITS) & 0x1F;
     double[] FPRs  = new double[fprs];
 
     int spills     = triple >> (REFLECTION_GPRS_BITS+REFLECTION_FPRS_BITS);
     int spillCount = spills;
      
-    int[]   Spills = new int[spillCount];
+    VM_WordArray Spills = VM_WordArray.create(spillCount);
 
     if (firstUse) { 
       // force dynamic link sites in unwrappers to get resolved, 
@@ -101,10 +101,10 @@ public class VM_Reflection implements VM_Constants {
 
     VM_CodeArray code = cm.getInstructions();
     VM_MachineReflection.packageParameters(method, thisArg, otherArgs, GPRs, 
-					   FPRs, Spills);
+                                           FPRs, Spills);
     
     // critical: no threadswitch/GCpoints between here and the invoke of code!
-    //           We may have references hidden as ints in the GPRs array!!!
+    //           We may have references hidden in the GPRs and Spills arrays!!!
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
 
     if (!returnIsPrimitive) {

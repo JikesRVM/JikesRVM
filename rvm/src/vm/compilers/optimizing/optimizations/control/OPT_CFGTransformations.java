@@ -16,15 +16,11 @@ import com.ibm.JikesRVM.opt.ir.*;
  *  </ul>
  *
  * @author Martin Trapp
-*/
+ */
 class OPT_CFGTransformations extends OPT_CompilerPhase
   implements OPT_Operators {
 
-  private static boolean changed = false;
   private static boolean DEBUG = false;
-
-  // gack
-  private static OPT_BranchOptimizations branchOpts = new OPT_BranchOptimizations(-1, true, true);
 
   /**
    * This is the method that actually does the work of the phase.
@@ -50,7 +46,6 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
 
     ensureLandingPads (ir);
     
-    //branchOpts.perform(ir, false);
     dom.perform(ir);
     ir.cfg.compactNodeNumbering();
   }
@@ -69,7 +64,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
    * Returns the name of the phase.
    */
   public String getName() {
-    return  "CFGTransformations";
+    return "Loop Normalization";
   }
 
   /**
@@ -154,7 +149,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     }
     OPT_BasicBlock newPred;
     newPred = n.header.createSubBlock (n.header.firstInstruction().bcIndex,
-				       ir, 1f);
+                                       ir, 1f);
     newPred.setLandingPad();
     newPred.setExecutionFrequency (frequency);
 
@@ -197,18 +192,17 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     while (e.hasMoreElements()) {
       OPT_BasicBlock b = e.next();
       if (!exitsLoop (b, n.loop)) {
-	// header doesn't exit: nothing to do
-	if (b == n.header) return false;
+        // header doesn't exit: nothing to do
+        if (b == n.header) return false;
       } else {
-	exiters++;
+        exiters++;
       }
       i++;
     }
     // all blocks exit: can't improve
     if (i == exiters) return false;
 
-
-    // rewritung loops where the header has more than one in-loop
+    // rewriting loops where the header has more than one in-loop
     // successor will lead to irreducible control flow.
     OPT_BasicBlock succ[] = inLoopSuccessors (n);
     if (succ.length > 1) {
@@ -225,7 +219,6 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
       OPT_BasicBlock p = header.prevBasicBlockInCodeOrder();
       p.killFallThrough();
       newLoopTest = pred[0].replicateThisOut (ir, header, p);
-      removeYieldPoint(header);
     }
     for (i = 1;  i < pred.length;  ++i) { // check for aditional back edges
       frequency += edgeFrequency (pred[i], header);
@@ -301,31 +294,15 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     return  res;
   }
 
-  /**
-   * If the given block has a yield point, remove it.
-   */
-  static void removeYieldPoint(OPT_BasicBlock b) {
-    OPT_InstructionEnumeration e = b.forwardInstrEnumerator();
-    while (e.hasMoreElements()) {
-      OPT_Instruction inst = e.next();
-      if (inst.operator.opcode == OPT_Operators.YIELDPOINT_PROLOGUE_opcode ||
-	  inst.operator.opcode == OPT_Operators.YIELDPOINT_EPILOGUE_opcode ||
-	  inst.operator.opcode == OPT_Operators.YIELDPOINT_BACKEDGE_opcode) {
-	//VM.sysWrite ("yieldpoint removed\n");
-	inst.remove();
-      }
-    }
-  }
-
   static void killFallThroughs(OPT_IR ir, OPT_BitVector nloop) {
     OPT_BasicBlockEnumeration bs = ir.getBasicBlocks (nloop);
     while (bs.hasMoreElements()) {
       OPT_BasicBlock block = bs.next();
       OPT_BasicBlockEnumeration bi = block.getIn();
       while (bi.hasMoreElements()) {
-	OPT_BasicBlock in = bi.next();
-	if (inLoop (in, nloop)) continue;
-	in.killFallThrough();
+        OPT_BasicBlock in = bi.next();
+        if (inLoop (in, nloop)) continue;
+        in.killFallThrough();
       }
       block.killFallThrough();
     }
@@ -373,17 +350,17 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
         OPT_BasicBlock a = ins[i];
         if (a.getNumberOfOut() <= 1)
           continue;
-	// insert pads only for moving code up to the start of the method
+        // insert pads only for moving code up to the start of the method
         //if (a.getExecutionFrequency() >= b.getExecutionFrequency()) continue;
-        changed = true;
+
         // create a new block as landing pad
         OPT_BasicBlock landingPad;
         OPT_Instruction firstInB = b.firstInstruction();
         int bcIndex = firstInB != null ? firstInB.bcIndex : -1;
         landingPad = b.createSubBlock(bcIndex, ir);
-	landingPad.setLandingPad();
-	landingPad.setExecutionFrequency (edgeFrequency (a, b));
-	
+        landingPad.setLandingPad();
+        landingPad.setExecutionFrequency (edgeFrequency (a, b));
+        
         // make the landing pad jump to `b'
         OPT_Instruction g;
         g = Goto.create(GOTO, b.makeJumpTarget());
@@ -392,7 +369,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
         // redirect a's outputs from b to the landing pad
         a.redirectOuts(b, landingPad,ir);
 
-	a.killFallThrough ();
+        a.killFallThrough ();
         OPT_BasicBlock aNext = a.nextBasicBlockInCodeOrder();
         if (aNext != null) {
           ir.cfg.breakCodeOrder(a, aNext);

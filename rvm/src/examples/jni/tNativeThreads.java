@@ -48,7 +48,7 @@ class tNativeThreads
       b.start();
 
       while ( ! b.isFinished )
-	  Thread.currentThread().yield();
+          Thread.currentThread().yield();
 
       //count number of workers that completed
       //
@@ -59,19 +59,19 @@ class tNativeThreads
       }
       if ( cntr < NUMBER_OF_WORKERS) {
 
-	//     VM_Scheduler.dumpVirtualMachine();
+        //     VM_Scheduler.dumpVirtualMachine();
       }
 
       
       for ( int wrk = 0; wrk < NUMBER_OF_WORKERS; wrk ++ )
-	while ( ! a[wrk].isFinished ) {
-	  try { 	     
-	    //say(name, "sleeping");
-	    Thread.currentThread().sleep(300);
-	  } 
-	  catch (InterruptedException e) {}
-	  Thread.currentThread().yield();
-	}
+        while ( ! a[wrk].isFinished ) {
+          try {              
+            //say(name, "sleeping");
+            Thread.currentThread().sleep(300);
+          } 
+          catch (InterruptedException e) {}
+          Thread.currentThread().yield();
+        }
 
       //      VM_Scheduler.dumpVirtualMachine();    
   }

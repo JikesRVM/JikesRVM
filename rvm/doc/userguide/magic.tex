@@ -1,7 +1,7 @@
 This section provides information on ``magic'' which is an escape
-hatch that Jikes\trademark RVM provides to implement
+hatch that Jikes\TMweb{} RVM provides to implement
 functionality that is not 
-possible in pure Java\trademark.  For example, the Jikes RVM garbage
+possible using the pure Java\TMweb{} programming language.  For example, the Jikes RVM garbage
 collectors and 
 runtime system must, on occasion, access memory or perform unsafe
 casts.  Users are {\it strongly} discouraged from using magic in their code
@@ -10,54 +10,53 @@ except where absolutely necessary.
 There are currently three types of magical operations which are
 described in the remainder of this section.  The first is a collection
 of magical methods that are static methods of the class {\tt
-VM\_Magic}.  The second is the magical classes {\tt VM\_Address}, {\tt
-VM\_Word}, {\tt VM\_Offset}, and  {\tt VM\_Extent} used in
+VM\_Magic}\IndexttClass{VM\_Magic}.  The second is the magical classes {\tt VM\_Address}\IndexttClass{VM\_Address}, {\tt
+VM\_Word}\IndexttClass{VM\_Word}, {\tt VM\_Offset}\IndexttClass{VM\_Offset}, and  {\tt VM\_Extent}\IndexttClass{VM\_Extent} used in
 parts of the runtime and garbage collector. The third is various
 mechanisms to declare code {\em uninterruptible}.
 
-\subsection{VM\_Magic}
-\index{magic methods}
-\index{VM\_Magic}
-\index{semantic inlining}
-Certain methods in the class \xlink{{\tt VM\_Magic}}{\VMMagicURL} are
+\subsection{\texttt{VM\_Magic}}%
+\index{magic methods}%
+\index{semantic inlining}%
+Certain methods in the class \xlink{\texttt{VM\_Magic}}{\VMMagicURL} are
 treated differently by the compiler. Because these methods access raw
 memory or other machine state, perform unsafe casts, or are operating
 system calls, they cannot be implemented in Java code.  A
-Jikes\trademark RVM implementor must be {\em extremely careful} when
+Jikes\TMweb{} RVM implementor must be {\em extremely careful} when
 writing code that uses {\tt VM\_Magic} to circumvent the Java type
-system.  The use of {\tt VM\_Magic.objectAsAddress} to perform various
-forms of pointer arithmetic is especially hazardous, since it can
+system.  The use of \xlink{{\tt VM\_Magic.objectAsAddress} to perform various
+forms of pointer arithmetic}{\VMMagicURL\#objectAsAddress(java.lang.Object)} is especially hazardous, since it can
 result in pointers being ``lost'' during garbage collection.  All such
-uses of magic must either occur in uninterruptible methods (see below)
-or be guarded by calls to {\tt VM.disableGC} and {\tt VM.enableGC}.
-The optimizing compiler performs aggressive inlining and code motion
-and not explictly marking such dangerous regions in one of these two
+uses of magic must either occur in \link{uninterruptible methods}[
+(see below, Section~\Ref, page~\Pageref)]{uninterruptible_code}
+or be guarded by calls to \xlink{{\tt VM.disableGC}}{\VMURL\#disableGC()} and \xlink{{\tt VM.enableGC}}{\VMURL\#enableGC()}.
+The optimizing compiler performs aggressive inlining and code motion, so
+not explictly marking such dangerous regions in one of these two
 manners will lead to disaster.
 
-Since magic is inexpressible in Java, it is unsurprising that the
-bodies of {\tt VM\_Magic} methods are undefined.  Instead, for each of
-these methods, the Java instructions to generate the code is stored in
+Since magic is inexpressible in the Java programming language , it is
+unsurprising that the bodies of {\tt VM\_Magic} methods are undefined.
+Instead, for each of these methods, the Java instructions to generate
+the code is stored in
 \xlink{{\tt OPT\_GenerateMagic}}{\OPTGenerateMagicURL} and 
 \xlink{{\tt OPT\_GenerateMachineSpecificMagic}}{\OPTGenerateMachineSpecificMagicURL} (to generate HIR) and 
-\xlink{{\tt VM\_MagicCompiler}}{\VMMagicCompilerURL} (to generate assembly code)\footnote{The optimizing
+\xlink{{\tt VM\_Compiler}}{\VMCompilerURL} (to generate assembly code)\footnote{The optimizing
 compiler always uses the set of instructions that generate HIR; the
 instructions that generate assembly code are only invoked by the
 baseline compiler.}.  Whenever the compiler encounters a call to one of these
 magic methods, it inlines appropriate code for the magic method into the caller method.
 
-\JikesTMFooter
-
-\subsection{VM\_Address}
-\index{VM\_Address}
-The type {\tt VM\_Address} is used to represent a machine-dependent
+\subsection{VM\_Address}\IndexttClass{VM\_Address}
+The type \xlink{\texttt{VM\_Address}}{\JikesRVMJavadocURL/VM\_Address.html} is used to represent a machine-dependent
 address type.  In the past, the base type {\tt int} was used to
 represent addresses but this approach had several shortcomings.
 First, the lack of abstraction makes porting nightmarish.  Equally
 important is that Java type {\tt int} is signed whereas address are
 more appropriately considered unsigned.  The difference is problematic
-since an unsigned comparison on {\tt int} is inexpressible in Java.
+since an unsigned comparison on {\tt int} is inexpressible in the Java
+programming language.
 
-To overcome these problems, instances of {\tt VM\_Address} are used to
+To overcome these problems, instances of \xlink{{\tt VM\_Address}}{\JikesRVMJavadocURL/VM\_Address.html} are used to
 represent addresses.  The class supports the expected well-typed
 methods like adding an integer offset to an address to obtain another
 address, computing the difference of two addresses, and comparing
@@ -75,7 +74,7 @@ integer.  Since an address is not really an object, the following must
 be kept in mind:
 
 \begin{enumerate}
-\item{} Do not pass a {\tt VM\_Address} instance where an {\tt Object}
+\item{} Do not pass a \xlink{{\tt VM\_Address}}{\JikesRVMJavadocURL/VM\_Address.html}  instance where an {\tt Object}
 is expected. This will type-check, but it is {\em not} what you want.  A
 corollary is to avoid overloading a method where the two overloaded
 versions of the method can only be distinguished by operating on an
@@ -83,19 +82,20 @@ versions of the method can only be distinguished by operating on an
 \item{} Do not synchronize on a {\tt VM\_Address} instance.
 \item{} Due to a current shortcoming in the way {\tt VM\_Address} works, do not make an
 array of {VM\_Address} values.  Instead make a
-{VM\_AddressArray}. Creating {VM\_AddressArray[]} works as expected
-and is allowed.
+\xlink{{\tt VM\_AddressArray}}{\JikesRVMJavadocURL/VM\_AddressArray.html}.
+  Creating {VM\_AddressArray[]} works as expected and is allowed.
 \end{enumerate}
 
 
-\subsection{What are the Semantics of Uninterruptible Code?}
-\index{uninterruptible}
-\index{interruptible}
-\index{VM\_Uninterruptible}
-\index{VM\_PragmaInterruptible}
-\index{VM\_PragmaUninterruptible}
-\index{VM\_PragmaLogicallyUninterruptible}
-\index{yield point}
+\subsection{What are the Semantics of Uninterruptible Code?\label{uninterruptible_code}}%
+\index{uninterruptible}%
+\index{interruptible}%
+\Indextt{VM\_Uninterruptible}%
+\Indextt{VM\_PragmaInterruptible}%
+\Indextt{VM\_PragmaUninterruptible}%
+\Indextt{VM\_PragmaLogicallyUninterruptible}%
+\index{yield point}%
+
 Declaring a method uninterruptible enables a Jikes RVM developer to
 prevent the Jikes RVM compilers from inserting ``hidden'' thread
 switch points in the compiled code for the method.  As a result, the
@@ -133,8 +133,9 @@ newarray}; {\instruction anewarray}; {\instruction athrow};
 {\instruction monitorenter},
 {\instruction monitorexit}, {\instruction multianewarray}. 
 \item{} Uninterruptible code cannot cause class loading and thus must
-not contain unresolved getstatic, putstatic, getfield, putfield,
-invokevirtual, or invokestatic bytecodes. 
+not contain unresolved {\instruction getstatic}, {\instruction
+putstatic}, {\instruction getfield}, {\instruction putfield},
+{\instruction invokevirtual}, or {\instruction invokestatic} bytecodes. 
 \item{} Uninterruptible code cannot contain calls to interruptible
 code. As a consequence, it is illegal to override an uninterruptible
 virtual method with an interruptible method.
@@ -144,16 +145,16 @@ virtual method with an interruptible method.
 We have augmented the baseline compiler to print a warning message
 when one of these restrictions is violated.  Because there are still a
 small number of violations in Jikes RVM, this checking is not enabled
-by default, but can be enabled by setting {\tt
-VM\_Configuration.VerifyUnint} to  true. 
+by default, but can be enabled by setting \xlink{{\tt
+VM\_Configuration.VerifyUnint}}{\JikesRVMJavadocURL/VM\_Configuration.html#VerifyUnint} to  \texttt{true}. 
 If uninterruptible code were to raise a runtime exception such
 as NullPointerException, ArrayIndexOutOfBoundsException, or
 ClassCastException, then it could be interrupted.  We assume that such
 conditions are a programming error and do not flag bytecodes that
 might result in one of these exceptions being raised as a violation of
 uninterruptibility. Checking for a particular method can be disabled
-by having the method throw the exception {\tt
-VM\_PragmaLogicallyUninterruptible}. This should be done with extreme
+by having the method throw the exception \xlink{{\tt
+VM\_PragmaLogicallyUninterruptible}}{\JikesRVMJavadocURL/VM\_PragmaLogicallyUninterruptible.html}.  This should be done with extreme
 care, but in a few cases is necessary to avoid spurious warning
 messages. 
 
@@ -164,12 +165,13 @@ uninterruptible.
 can only be invoked during class loading.
 \item{} All object constructors are interruptible, since they an
 only be invoked as part of the implementation of the new bytecode.
-\item{} If a method throws the exception {\tt
-VM\_PragmaInterruptible} then it is interruptible.
+\item{} If a method throws the exception \xlink{{\tt
+VM\_PragmaInterruptible}}{\JikesRVMJavadocURL/VM\_PragmaInterruptible.html} then it is interruptible.
 \item{} If none of the above rules apply and a method throws the
-exception {\tt VM\_PragmaUninterruptible}, then it is uninterruptible.
+exception 
+\xlink{{\tt VM\_\-Prag\-ma\-Un\-in\-ter\-rup\-ti\-ble}}{\JikesRVMJavadocURL/VM\_PragmaUninterruptible.html}, then it is uninterruptible.
 \item{} If none of the above rules apply and the declaring class of
-the method directly implements the interface {\tt VM\_Uninterruptible}
+the method directly implements the interface {\tt VM\_\-Un\-in\-ter\-rup\-ti\-ble}
 then it is uninterruptible.
 \end{enumerate}
 Whether to use {\tt VM\_Uninterruptible} or the {\tt
@@ -178,4 +180,3 @@ the ratio of interruptible to uninterruptible methods in a class.  If
 most methods of the class should be uninterruptible, then implementing
 {\tt VM\_Uninterruptible} is preferred. 
 
-\JavaTMFooter

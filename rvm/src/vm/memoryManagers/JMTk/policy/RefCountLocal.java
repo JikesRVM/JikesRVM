@@ -5,9 +5,11 @@
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
 
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Address;
@@ -35,9 +37,20 @@ final class RefCountLocal extends SegregatedFreeList
    *
    * Class variables
    */
-  private static SharedQueue rootPool;
-  private static SharedQueue tracingPool;
+  private static SharedDeque oldRootPool;
 
+  // sanity tracing
+  private static SharedDeque incSanityRootsPool;
+  private static SharedDeque sanityWorkQueuePool;
+  private static SharedDeque checkSanityRootsPool;
+  private static SharedDeque sanityImmortalPoolA;
+  private static SharedDeque sanityImmortalPoolB;
+  private static SharedDeque sanityLastGCPool;
+  public static int rcLiveObjects = 0;
+  public static int sanityLiveObjects = 0;
+
+  private static final int RCL_TAG_OFFSET = FREE_LIST_HEADER_BYTES;
+  private static final int RC_BLOCK_HEADER = BYTES_IN_ADDRESS; 
   private static final int DEC_COUNT_QUANTA = 2000; // do 2000 decs at a time
   private static final double DEC_TIME_FRACTION = 0.66; // 2/3 remaining time
 
@@ -49,10 +62,14 @@ final class RefCountLocal extends SegregatedFreeList
   private RefCountLOSLocal los;
   private Plan plan;
 
-  private AddressQueue incBuffer;
-  private AddressQueue decBuffer;
-  private AddressQueue rootSet;
-  private AddressQueue tracingBuffer;
+  private Lock deferredFreeLock;
+
+  private AddressDeque incBuffer;
+  private AddressDeque decBuffer;
+  private AddressDeque newRootSet;
+  private AddressDeque oldRootSet;
+  private SharedDeque deferredFreePool;
+  private AddressPairDeque deferredFreeBuffer;
 
   private boolean decrementPhase = false;
 
@@ -66,6 +83,14 @@ final class RefCountLocal extends SegregatedFreeList
 
   private boolean cycleBufferAisOpen = true;
 
+  // sanity tracing
+  private AddressDeque incSanityRoots;
+  private AddressPairDeque sanityWorkQueue;
+  private AddressDeque checkSanityRoots;
+  private AddressDeque sanityImmortalSetA;
+  private AddressDeque sanityImmortalSetB;
+  private AddressDeque sanityLastGCSet;
+
   protected final boolean preserveFreeList() { return true; }
   protected final boolean maintainInUse() { return true; }
 
@@ -75,41 +100,28 @@ final class RefCountLocal extends SegregatedFreeList
    */
 
   /**
-   * Constructor
-   *
-   * @param space The ref count space with which this local thread is
-   * associated.
-   * @param plan The plan with which this local thread is associated.
-   */
-  RefCountLocal(RefCountSpace space, Plan plan_, RefCountLOSLocal los_, 
-		AddressQueue inc, AddressQueue dec, AddressQueue root) {
-    super(space.getVMResource(), space.getMemoryResource(), plan_);
-    rcSpace = space;
-    plan = plan_;
-    los = los_;
-
-    incBuffer = inc;
-    decBuffer = dec;
-    rootSet = root;
-    if (Plan.REF_COUNT_SANITY_TRACING) {
-      tracingBuffer = new AddressQueue("tracing buffer", tracingPool);
-    }
-    if (Plan.REF_COUNT_CYCLE_DETECTION)
-      cycleDetector = new TrialDeletion(this, plan_);
-  }
-
-  /**
    * Class initializer.  This is executed <i>prior</i> to bootstrap
    * (i.e. at "build" time).  This is where key <i>global</i>
    * instances are allocated.  These instances will be incorporated
    * into the boot image by the build process.
    */
   static {
-    rootPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
-    rootPool.newClient();
-    if (Plan.REF_COUNT_SANITY_TRACING) {
-      tracingPool = new SharedQueue(Plan.getMetaDataRPA(), 1);
-      tracingPool.newClient();
+    oldRootPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+    oldRootPool.newClient();
+
+    if (RefCountSpace.RC_SANITY_CHECK) {
+      incSanityRootsPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      incSanityRootsPool.newClient();
+      sanityWorkQueuePool = new SharedDeque(Plan.getMetaDataRPA(), 2);
+      sanityWorkQueuePool.newClient();
+      checkSanityRootsPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      checkSanityRootsPool.newClient();
+      sanityImmortalPoolA = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      sanityImmortalPoolA.newClient();
+      sanityImmortalPoolB = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      sanityImmortalPoolB.newClient();
+      sanityLastGCPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
+      sanityLastGCPool.newClient();
     }
 
     cellSize = new int[SIZE_CLASSES];
@@ -120,16 +132,50 @@ final class RefCountLocal extends SegregatedFreeList
     for (int sc = 0; sc < SIZE_CLASSES; sc++) {
       cellSize[sc] = getBaseCellSize(sc);
       for (byte blk = 0; blk < BlockAllocator.BLOCK_SIZE_CLASSES; blk++) {
-	int avail = BlockAllocator.blockSize(blk) - FREE_LIST_HEADER_BYTES;
-	int cells = avail/cellSize[sc];
-	blockSizeClass[sc] = blk;
-	cellsInBlock[sc] = cells;
-	blockHeaderSize[sc] = FREE_LIST_HEADER_BYTES;
-	if (((avail < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
-	    ((avail > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
-	  break;
+        int avail = BlockAllocator.blockSize(blk) - FREE_LIST_HEADER_BYTES - RC_BLOCK_HEADER;
+        int cells = avail/cellSize[sc];
+        blockSizeClass[sc] = blk;
+        cellsInBlock[sc] = cells;
+        blockHeaderSize[sc] = FREE_LIST_HEADER_BYTES + RC_BLOCK_HEADER;
+        if (((avail < BYTES_IN_PAGE) && (cells*2 > MAX_CELLS)) ||
+            ((avail > (BYTES_IN_PAGE>>1)) && (cells > MIN_CELLS)))
+          break;
       }
     }
+  }
+
+ /**
+   * Constructor
+   *
+   * @param space The ref count space with which this local thread is
+   * associated.
+   * @param plan The plan with which this local thread is associated.
+   */
+  RefCountLocal(RefCountSpace space, Plan plan_, RefCountLOSLocal los_, 
+                AddressDeque dec, AddressDeque root) {
+    super(space.getVMResource(), space.getMemoryResource(), plan_);
+    rcSpace = space;
+    plan = plan_;
+    los = los_;
+
+    deferredFreeLock = new Lock("RefCountLocal.deferredFreeLock");
+
+    decBuffer = dec;
+    newRootSet = root;
+    oldRootSet = new AddressDeque("old root set", oldRootPool);
+    deferredFreePool = new SharedDeque(Plan.getMetaDataRPA(), 2);
+    deferredFreePool.newClient();
+    deferredFreeBuffer = new AddressPairDeque(deferredFreePool);
+    if (RefCountSpace.RC_SANITY_CHECK) {
+      incSanityRoots = new AddressDeque("sanity increment root set", incSanityRootsPool);
+      sanityWorkQueue = new AddressPairDeque(sanityWorkQueuePool);
+      checkSanityRoots = new AddressDeque("sanity check root set", checkSanityRootsPool);
+      sanityImmortalSetA = new AddressDeque("immortal set A", sanityImmortalPoolA);
+      sanityImmortalSetB = new AddressDeque("immortal set B", sanityImmortalPoolB);
+      sanityLastGCSet = new AddressDeque("last GC set", sanityLastGCPool);
+    }
+    if (Plan.REF_COUNT_CYCLE_DETECTION)
+      cycleDetector = new TrialDeletion(this, plan_);
   }
 
   /****************************************************************************
@@ -137,8 +183,10 @@ final class RefCountLocal extends SegregatedFreeList
    * Allocation
    */
   public final void postAlloc(VM_Address cell, VM_Address block, int sizeClass,
-			      int bytes, boolean inGC) throws VM_PragmaInline{}
-  protected final void postExpandSizeClass(VM_Address block, int sizeClass){}
+                              int bytes, boolean inGC) throws VM_PragmaInline{}
+  protected final void postExpandSizeClass(VM_Address block, int sizeClass) {
+    VM_Magic.setMemoryAddress(block.add(RCL_TAG_OFFSET), VM_Magic.objectAsAddress(this));
+  }
   protected final VM_Address advanceToBlock(VM_Address block, int sizeClass){
     return getFreeList(block);
   }
@@ -152,53 +200,48 @@ final class RefCountLocal extends SegregatedFreeList
    * Prepare for a collection.
    */
   public final void prepare(boolean time) { 
+    if (RefCountSpace.RC_SANITY_CHECK && !Options.noFinalizer) 
+      VM_Interface.sysFail("Ref count sanity checks must be run with finalization disabled (-X:gc:noFinalizer=true)");
+
     flushFreeLists();
-    if (Options.verbose > 2) processRootBufsAndCount(); else processRootBufs();
+    if (RefCountSpace.INC_DEC_ROOT) {
+      if (Options.verbose > 2)
+        processRootBufsAndCount(); 
+      else
+        processRootBufs();
+    }
   }
 
   /**
    * Finish up after a collection.
    */
-  public final void release(boolean time) {
+  public final void release(int count, boolean time) {
     flushFreeLists();
-    if (time) Statistics.rcIncTime.start();
-    if (Options.verbose > 2) processIncBufsAndCount(); else processIncBufs();
-    if (time) Statistics.rcIncTime.stop();
     VM_Interface.rendezvous(4400);
+    if (!RefCountSpace.INC_DEC_ROOT) {
+      processOldRootBufs();
+    }
     if (time) Statistics.rcDecTime.start();
+    if (RefCountSpace.RC_SANITY_CHECK) incSanityTrace();
     processDecBufs();
     if (time) Statistics.rcDecTime.stop();
     if (Plan.REF_COUNT_CYCLE_DETECTION) {
       if (time) Statistics.cdTime.start();
-      if (cycleDetector.collectCycles(time)) 
-	processDecBufs();
+      if (cycleDetector.collectCycles(count, time)) 
+        processDecBufs();
       if (time) Statistics.cdTime.stop();
     }
+    VM_Interface.rendezvous(4410);
+    processDeferredFreeBufs();
+    VM_Interface.rendezvous(4420);
+    if (RefCountSpace.RC_SANITY_CHECK) checkSanityTrace();
+    if (!RefCountSpace.INC_DEC_ROOT) {
+      if (Options.verbose > 2) 
+        processRootBufsAndCount(); 
+      else 
+        processRootBufs();
+    }
     restoreFreeLists();
-    
-    if (Plan.REF_COUNT_SANITY_TRACING) rcSanityCheck();
-  }
-
-  /**
-   * Process the increment buffers
-   */
-  private final void processIncBufs() {
-    VM_Address tgt;
-    while (!(tgt = incBuffer.pop()).isZero()) {
-      rcSpace.increment(tgt);
-    }
-  }
-
-  /**
-   * Process the increment buffers and maintain statistics
-   */
-  private final void processIncBufsAndCount() {
-    VM_Address tgt;
-    incCounter = 0;
-    while (!(tgt = incBuffer.pop()).isZero()) {
-      rcSpace.increment(tgt);
-      incCounter++;
-    }
   }
 
   /**
@@ -214,33 +257,71 @@ final class RefCountLocal extends SegregatedFreeList
     do {
       int count = 0;
       while (count < DEC_COUNT_QUANTA && !(tgt = decBuffer.pop()).isZero()) {
-	decrement(tgt);
-	count++;
+        decrement(tgt);
+        count++;
       } 
       decCounter += count;
-    } while (!tgt.isZero() && VM_Interface.cycles() < limit);
+    } while (!tgt.isZero() && (RefCountSpace.RC_SANITY_CHECK || VM_Interface.cycles() < limit));
     decrementPhase = false;
   }
 
   /**
+   * Process the root buffers from the previous GC, if the object is
+   * no longer live release it.
+   */
+  private final void processOldRootBufs() {
+    VM_Address object;
+    while (!(object = oldRootSet.pop()).isZero()) {
+      if (!RCBaseHeader.isLiveRC(object))
+        release(object);
+    }
+  }
+
+  /**
    * Process the root buffers, moving entries over to the decrement
-   * buffers for the next GC.  FIXME this is inefficient
+   * buffers for the next GC. 
    */
   private final void processRootBufs() {
-    VM_Address tgt;
-    while (!(tgt = rootSet.pop()).isZero())
-      decBuffer.push(tgt);
+    VM_Address object;
+    while (!(object = newRootSet.pop()).isZero()) {
+      if (RefCountSpace.INC_DEC_ROOT)
+        decBuffer.push(object);
+      else {
+        RCBaseHeader.unsetRoot(object);
+        oldRootSet.push(object);
+      }
+    }
   }
 
   /**
    * Process the root buffers and maintain statistics.
    */
   private final void processRootBufsAndCount() {
-    VM_Address tgt;
+    VM_Address object;
     rootCounter = 0;
-    while (!(tgt = rootSet.pop()).isZero()) {
-      decBuffer.push(tgt);
+    while (!(object = newRootSet.pop()).isZero()) {
+      if (RefCountSpace.INC_DEC_ROOT)
+        decBuffer.push(object);
+      else {
+        RCBaseHeader.unsetRoot(object);
+        oldRootSet.push(object);
+      }
       rootCounter++;
+    }
+  }
+
+  /**
+   * Process the deferred free buffers
+   */
+  private final void processDeferredFreeBufs() {
+    VM_Address cell;
+    while (!(cell = deferredFreeBuffer.pop1()).isZero()) {
+      VM_Address block = deferredFreeBuffer.pop2();
+      int sizeClass = getBlockSizeClass(block);
+      if (VM_Interface.VerifyAssertions) {
+        VM_Interface._assert(VM_Magic.objectAsAddress(this).EQ(VM_Magic.getMemoryAddress(block.add(RCL_TAG_OFFSET))));
+      }
+      free(cell, block, sizeClass);
     }
   }
 
@@ -261,7 +342,7 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void decrement(VM_Address object) 
     throws VM_PragmaInline {
-    int state = RCBaseHeader.decRC(object, true);
+    int state = RCBaseHeader.decRC(object);
     if (state == RCBaseHeader.DEC_KILL)
       release(object);
     else if (Plan.REF_COUNT_CYCLE_DETECTION && state ==RCBaseHeader.DEC_BUFFER)
@@ -282,6 +363,7 @@ final class RefCountLocal extends SegregatedFreeList
   private final void release(VM_Address object) 
     throws VM_PragmaInline {
     // this object is now dead, scan it for recursive decrement
+    if (RefCountSpace.RC_SANITY_CHECK) rcLiveObjects--;
     ScanObject.enumeratePointers(object, plan.decEnum);
     if (!Plan.REF_COUNT_CYCLE_DETECTION || !RCBaseHeader.isBuffered(object)) 
       free(object);
@@ -308,93 +390,141 @@ final class RefCountLocal extends SegregatedFreeList
       int sizeClass = getBlockSizeClass(block);
       int index = (ref.diff(block.add(blockHeaderSize[sizeClass])).toInt())/cellSize[sizeClass];
       VM_Address cell = block.add(blockHeaderSize[sizeClass]).add(index*cellSize[sizeClass]);
-      free(cell, block, sizeClass);
-    }
-  }
-
-  /****************************************************************************
-   *
-   * Methods relating to sanity tracing (tracing used to check
-   * reference counts)
-   */
-
-  /**
-   * Check the reference counts of all objects against those
-   * established during the sanity scan.
-   */
-  private final void rcSanityCheck() {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
-    VM_Address obj;
-    int checked = 0;
-    while (!(obj = tracingBuffer.pop()).isZero()) {
-      checked++;
-      int rc = RCBaseHeader.getRC(obj);
-      int sanityRC = RCBaseHeader.getTracingRC(obj);
-      RCBaseHeader.clearTracingRC(obj);
-      if (rc != sanityRC) {
-	Log.write("---> ");
-	Log.write(checked);
-	Log.write(" roots checked, RC mismatch: ");
-	Log.write(obj); Log.write(" -> ");
-	Log.write(rc); Log.write(" (rc) != ");
-	Log.write(sanityRC); Log.writeln(" (sanity)");
-	if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+      VM_Address owner = VM_Magic.getMemoryAddress(block.add(RCL_TAG_OFFSET));
+      if (owner.EQ(VM_Magic.objectAsAddress(this)))
+        free(cell, block, sizeClass);
+      else {
+        ((RefCountLocal) VM_Magic.addressAsObject(owner)).deferredFree(cell, block);
       }
     }
   }
 
-  /**
-   * Set the mark bit appropriately in an immortal object so that the
-   * traversal of immortal objects is performed correctly during
-   * sanity scans.
+  private final void deferredFree(VM_Address cell, VM_Address block) {
+    deferredFreeLock.acquire();
+    deferredFreeBuffer.push(cell, block);
+    deferredFreeLock.release();
+  }
+
+  /****************************************************************************
    *
-   * @param object An object just allocated to the immortal space
+   * Sanity check support
+   *
+   * Sanity check code allows reference counts to be cross-checked
+   * with counts established via a transitive closure.  The code has
+   * two significant limitations:
+   *
+   * . Finalization is not supported---it must be turned off to avoid
+   *   anomalies relating to finalization's odd reachability semantics.
+   *
+   * . Currently immortal (and boot image) objects are uncollected.
+   *   If any such object were to become unreachable, decrements would
+   *   not be issued for any referent RC objects---leading to a
+   *   discrepancy between RC and sanity RC counts.
+   *
+   * To maximize the utility of this mechanism in the face of the
+   * above problems, it is best to trigger frequent GCs by setting the
+   * metadata limit to its minimum.
    */
-  public final void postAllocImmortal(VM_Address object)
-    throws VM_PragmaInline {
-    if (Plan.REF_COUNT_SANITY_TRACING) {
-      if (rcSpace.bootImageMark)
-	RCBaseHeader.setBufferedBit(object);
-      else
-	RCBaseHeader.clearBufferedBit(object);
+ 
+  /**
+   * Add an entry to the root buffer for the increment sanity
+   * traversal. (used only for sanity checks).
+   *
+   * @param object The object to be added to the root buffer
+   */
+  final void incSanityTraceRoot(VM_Address object) {
+    incSanityRoots.push(object);
+  }
+
+  /**
+   * Add an entry to the sanity traversal work queue (the work queue
+   * is used instead of a stack in establishing the transitive
+   * closure). (used only for sanity checks).
+   *
+   * @param object The object to be added to the work queue buffer
+   * @param location The location from which the object is reached
+   */
+  final void sanityTraceEnqueue(VM_Address object, VM_Address location) {
+    sanityWorkQueue.push(object, location);
+  }
+
+
+  /**
+   * Perform a sanity increment traversal.  This involves starting
+   * from roots and performing a transitive closure, incrementing the
+   * sanity reference count of each object each time it is visited.
+   */
+  final void incSanityTrace() {
+    sanityLiveObjects = 0;
+    VM_Address object;
+    while (!(object = sanityImmortalSetA.pop()).isZero()) {
+      plan.checkSanityTrace(object, VM_Address.zero());
+      sanityImmortalSetB.push(object);
+    }
+    while (!(object = incSanityRoots.pop()).isZero()) {
+      plan.incSanityTrace(object, VM_Address.zero(), true);
+      checkSanityRoots.push(object);
+    }
+    while (!(object = sanityWorkQueue.pop1()).isZero()) {
+      plan.incSanityTrace(object, sanityWorkQueue.pop2(), false);
     }
   }
 
   /**
-   * A boot or immortal object has been encountered during a root
-   * scan.  Its mark bit needs to be set appropriately according to
-   * the current state of the immortal mark bit.  Currently as a dirty
-   * hack we overload the buffered bit for marking during sanity
-   * scans.  FIXME
-   *
-   * @param object The immortal or boot image object encountered
-   * during a root scan.
+   * Perform a sanity check traversal.  This involves starting from
+   * roots and performing a transitive closure, checking the sanity
+   * reference count of each object against its actual reference
+   * count, failing with an error if there is a mismatch.  A check is
+   * also made of the number of live objects (comparing RC and
+   * tracing).
    */
-  public void rootScan(VM_Address object) {
-    if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
-    // this object has been explicitly scanned as part of the root scanning
-    // process.  Mark it now so that it does not get re-scanned.
-    if (object.LE(Plan.RC_START) && object.GE(Plan.BOOT_START)) {
-      if (rcSpace.bootImageMark)
-	RCBaseHeader.setBufferedBit(object);
-      else
-	RCBaseHeader.clearBufferedBit(object);
+  final void checkSanityTrace() {
+    VM_Address object;
+    while (!(object = sanityLastGCSet.pop()).isZero()) {
+      RCBaseHeader.checkOldObject(object);
+    }
+    while (!(object = sanityImmortalSetB.pop()).isZero()) {
+      plan.checkSanityTrace(object, VM_Address.zero());
+      sanityImmortalSetA.push(object);
+    }
+    while (!(object = checkSanityRoots.pop()).isZero()) {
+      if (MM_Interface.getCollectionCount() == 1) checkForImmortal(object);
+      plan.checkSanityTrace(object, VM_Address.zero());
+    }
+    while (!(object = sanityWorkQueue.pop1()).isZero()) {
+      if (MM_Interface.getCollectionCount() == 1) checkForImmortal(object);
+      plan.checkSanityTrace(object, sanityWorkQueue.pop2());
+    }
+    if (rcLiveObjects != sanityLiveObjects) {
+      Log.write("live mismatch: "); Log.write(rcLiveObjects); 
+      Log.write(" (rc) != "); Log.write(sanityLiveObjects);
+      Log.writeln(" (sanityRC)");
+      if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
+    }
+  }
+
+  static int lastGCsize = 0;
+  final void addLiveSanityObject(VM_Address object) {
+    lastGCsize++;
+    sanityLastGCSet.push(object);
+  }
+
+  final void addImmortalObject(VM_Address object) {
+    sanityImmortalSetA.push(object);
+  }
+
+  final void checkForImmortal(VM_Address object) {
+    byte space = VMResource.getSpace(VM_Interface.refToAddress(object));
+    if (space == Plan.IMMORTAL_SPACE || space == Plan.BOOT_SPACE) {
+      addImmortalObject(object);
     }
   }
 
   /**
-   * Add an object to the tracing buffer (used for sanity
-   * tracing---verifying ref counts through tracing).
-   *
-   * @param object The object to be added to the tracing buffer.
+   * An allocation has occured, so increment the count of live objects.
    */
-  public final void addToTraceBuffer(VM_Address object) 
-    throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(Plan.REF_COUNT_SANITY_TRACING);
-    tracingBuffer.push(VM_Magic.objectAsAddress(object));
+  final static void sanityAllocCount(VM_Address object) {
+    rcLiveObjects++;
   }
 
   /****************************************************************************

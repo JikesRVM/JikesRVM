@@ -20,9 +20,9 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
    * Pass control to a catch block.
    */
   public void deliverException(VM_CompiledMethod compiledMethod,
-			VM_Address catchBlockInstructionAddress,
-			Throwable exceptionObject,
-			VM_Registers registers)  {
+                        VM_Address catchBlockInstructionAddress,
+                        Throwable exceptionObject,
+                        VM_Registers registers)  {
     VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod)compiledMethod;
     VM_Address fp = registers.getInnermostFramePointer();
     VM_Thread myThread = VM_Thread.getCurrentThread();
@@ -47,13 +47,13 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       //  drop the exceptionObject on the floor).
       VM_Magic.setObjectAtOffset(VM_Magic.addressAsObject(fp), -offset, exceptionObject);
       if (TRACE) {
-	VM.sysWrite("Storing exception object ");
-	VM.sysWrite(VM_Magic.objectAsAddress(exceptionObject));
-	VM.sysWrite(" at offset ");
-	VM.sysWrite(offset);
-	VM.sysWrite(" from framepoint ");
-	VM.sysWrite(fp);
-	VM.sysWrite("\n");
+        VM.sysWrite("Storing exception object ");
+        VM.sysWrite(VM_Magic.objectAsAddress(exceptionObject));
+        VM.sysWrite(" at offset ");
+        VM.sysWrite(offset);
+        VM.sysWrite(" from framepoint ");
+        VM.sysWrite(fp);
+        VM.sysWrite("\n");
       }
     } 
 
@@ -62,10 +62,10 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       VM.sysWrite(optMethod.getMethod());
       VM.sysWrite("\n");
       for (int i=0; i<NUM_GPRS; i++) {
-	VM.sysWrite(GPR_NAMES[i]);
-	VM.sysWrite(" = ");
-	VM.sysWrite(registers.gprs.get(i));
-	VM.sysWrite("\n");
+        VM.sysWrite(GPR_NAMES[i]);
+        VM.sysWrite(" = ");
+        VM.sysWrite(registers.gprs.get(i));
+        VM.sysWrite("\n");
       }
     }
 
@@ -103,7 +103,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
    * Unwind a stackframe.
    */
   public void unwindStackFrame(VM_CompiledMethod compiledMethod, 
-			VM_Registers registers) {
+                        VM_Registers registers) {
     VM_Address fp = registers.getInnermostFramePointer();
     VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod)compiledMethod;
     
@@ -112,18 +112,18 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       VM.sysWrite(optMethod.getMethod());
       VM.sysWrite("\n");
       for (int i=0; i<NUM_GPRS; i++) {
-	VM.sysWrite(GPR_NAMES[i]);
-	VM.sysWrite(" = ");
-	VM.sysWrite(registers.gprs.get(i));
-	VM.sysWrite("\n");
+        VM.sysWrite(GPR_NAMES[i]);
+        VM.sysWrite(" = ");
+        VM.sysWrite(registers.gprs.get(i));
+        VM.sysWrite("\n");
       }
     }
 
     // restore non-volatile registers
     int frameOffset = optMethod.getUnsignedNonVolatileOffset();
     for (int i = optMethod.getFirstNonVolatileGPR(); 
-	 i<NUM_NONVOLATILE_GPRS; 
-	 i++, frameOffset += 4) {
+         i<NUM_NONVOLATILE_GPRS; 
+         i++, frameOffset += 4) {
       registers.gprs.set(NONVOLATILE_GPRS[i],VM_Magic.getMemoryWord(fp.sub(frameOffset)));
     }
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0);
@@ -135,10 +135,10 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
       VM.sysWrite(optMethod.getMethod());
       VM.sysWrite("\n");
       for (int i=0; i<NUM_GPRS; i++) {
-	VM.sysWrite(GPR_NAMES[i]);
-	VM.sysWrite(" = ");
-	VM.sysWrite(registers.gprs.get(i));
-	VM.sysWrite("\n");
+        VM.sysWrite(GPR_NAMES[i]);
+        VM.sysWrite(" = ");
+        VM.sysWrite(registers.gprs.get(i));
+        VM.sysWrite("\n");
       }
     }
   }

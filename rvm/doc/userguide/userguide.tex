@@ -7,80 +7,26 @@
 \W\usepackage{longtable}
 \W\usepackage{jframes}
 
-\T \newcommand{\trademark}{\ }
-\W \newcommand{\trademark}{\xmlsym{##8482}\ }
-
 %%%% These are grammatical commands.
-\newcommand{\Mor}{{\bf \tt |}}	%meta-Or
-\newcommand{\Mlbr}{{\bf \{}}	%left-brace
-\newcommand{\Mrbr}{{\bf \}}}	%right-brace
-\newcommand{\Mlsq}{{\bf [}}	%left-square
-\newcommand{\Mrsq}{{\bf ]}}	%right-brace
+\newcommand{\Mor}{{\bf \tt |}}  %meta-Or
+\newcommand{\Mlbr}{{\bf \{}}    %left-brace
+\newcommand{\Mrbr}{{\bf \}}}    %right-brace
+\newcommand{\Mlsq}{{\bf [}}     %left-square
+\newcommand{\Mrsq}{{\bf ]}}     %right-brace
 \newcommand{\Mmeta}[1]{{\it $<$#1$>$}} %meta-token
 %%% Hyperlatex doesn't seem to know about \rm.  
 \W \newcommand{\rm}{}
+\W \newcommand{\raggedright}{}
+\T \newcommand{\OneCMStrut}{\hspace*{1cm}}
+\W \newcommand{\OneCMStrut}{}
 \newcommand{\Mlitch}[1]{{ \bf ``{\tt #1}''}} %literal char or txt
 \newcommand{\MZeroOrMore}[1]{{\(\Mlsq\mbox{#1}\Mrsq_+\)}}
+\newcommand{\MZeroOrOne}[1]{{\(\Mlsq\mbox{#1}\Mrsq\)}}
 
-
-\newcommand{\JikesTMFootnote}{{\texonly \texttrademark}{\htmlonly
-\trademark}\texonly{\footnote{{\bf Jikes} is a
-trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}}}
-
-\newcommand{\JikesTMFooter}{\W \hline {\small {\bf Jikes} is a
-trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}}
-
-\newcommand{\AIXTMFootnote}{{\texonly \texttrademark}{\htmlonly
-\trademark}\texonly{\footnote{{\bf AIX} is a
-trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}}}
-
-\newcommand{\AIXTMFooter}{\W \hline {\small {\bf AIX} is a
-trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}}
-
-\newcommand{\PowerPCTMFootnote}{{\texonly \texttrademark}{\htmlonly
-\trademark}\texonly{\footnote{{\bf PowerPC} is a
-trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}}}
-
-\newcommand{\PowerPCTMFooter}{\W \hline {\small {\bf PowerPC} is a
-trademark or registered trademark of International Business Machines
-Corporation in the United States, other countries, or both.}}
-
-\newcommand{\JavaTMFootnote}{{\texonly {\texttrademark}}{\htmlonly
-\trademark}\texonly{\footnote{\small {\bf Java} and all Java-based
-trademarks and 
-logos are trademarks or registered trademarks of Sun Microsystems,
-Inc.\ in the United States, other countries, or both.}}}
-
-\newcommand{\JavaTMFooter}{\W \hline {\small {\bf Java} and all Java-based trademarks and
-logos are trademarks or registered trademarks of Sun Microsystems,
-Inc.\ in the United States, other countries, or both.}}
-
-\newcommand{\AIXPPCTMFooter}{\W \hline {\small {\bf AIX} and {\bf
-PowerPC} are
-trademarks or registered trademarks of International Business Machines
-Corporation in the United States, other countries, or both.}}
-
-\newcommand{\JikesAIXTMFooter}{\W \hline {\small {\bf Jikes} and {\bf AIX} are
-trademarks or registered trademarks of International Business Machines
-Corporation in the United States, other countries, or both.}}
-
-\newcommand{\AIXPPCJikesTMFooter}{\W \hline {\small {\bf AIX}, {\bf
-PowerPC}, and {\bf Jikes} are
-trademarks or registered trademarks of International Business Machines
-Corporation in the United States, other countries, or both.}}
-
-%% I do not know how to get the (R) symbol, so we'll substitute with
-%% TM for now.
-\newcommand{\LinuxRegisteredTMFootnote}{{\texonly {\texttrademark}}{\htmlonly
-\trademark}\texonly{\footnote{\small {\bf Linux} is a registered
-      trademark of Linux Torvalds.}}}
-
-
+%%%
+%%% End of Meta-grammar symbols.
+%%% 
+\input{trademark-macros}
 
 
 %Define macros
@@ -92,39 +38,56 @@ Corporation in the United States, other countries, or both.}}
 %%     Jan, 2002: 2.0.2
 %%     Mar, 2002: 2.0.3
 %%     Jun, 2002: 2.1.0
-%%     July, 2002: 2.1.1
-%%     December, 2002: 2.2.0
-%%     April, 2003: 2.2.1
-%%     June, 2003: 2.2.2
-%%     August, 2003: 2.3.0
-\newcommand{\version}{2.3.0.1}
-\newcommand{\classpathversion}{0.06}
+%%     Jul, 2002: 2.1.1
+%%     Dec, 2002: 2.2.0
+%%     Apr, 2003: 2.2.1
+%%     Jun, 2003: 2.2.2
+%%     Aug, 2003: 2.3.0
+%%     Sep, 2003: 2.3.0.1
+%%     Dec, 2003: 2.3.1
+\newcommand{\version}{2.3.1}
+\newcommand{\classpathversion}{0.07}
 \newcommand{\jp}{Jalape\~{n}o}
 \newcommand{\jrvm}{Jikes RVM}
-\newcommand{\ignore}[1]{{}}
-\newcommand{\spec}{SPECjvm98}
-\newcommand{\instruction}{\it}
 
-\newcommand{\RVMTarFile}{jikesrvm-{\version}.tar.gz}
+\newcommand{\Indextt}[1]{\cindex[#1]{\texttt{#1}}}
+\newcommand{\IndexTexttt}[1]{{\protect\texttt{#1}\cindex[#1]{\protect\texttt{#1}}}}
+\newcommand{\IndexttClass}[1]{\cindex[#1]{\protect\texttt{#1} class}}
+\newcommand{\ignore}[1]{{}}
+\newcommand{\instruction}{\it}
+\T\newcommand{\SectionName}[1]{{\sc #1}}
+\W\newcommand{\SectionName}[1]{\textbf{#1}}
+\newcommand{\varName}[1]{\texttt{#1}}
+
+\newcommand{\RVMTarFile}{jikes\-r\-v\-m-{\version}\-.tar\-.gz}
 
 %Define URLs
-\newcommand{\RVMHomeURL}{http://www.ibm.com/developerworks/oss/jikesrvm}
-\newcommand{\JalapenoHomeURL}{http://www.research.ibm.com/jalapeno}
-\newcommand{\QandAURL}{{\RVMHomeURL}/info/overview.shtml}
-\newcommand{\RVMPubsURL}{{\RVMHomeURL}/info/pubs.shtml}
-\newcommand{\RVMUsersPubsURL}{{\RVMHomeURL}/info/users-pubs.shtml}
-\newcommand{\RVMUsersURL}{{\RVMHomeURL}/info/users.shtml}
-\newcommand{\RVMSlidesURL}{{\RVMHomeURL}/info/presentations.shtml}
+%\newcommand{\RVMHomeURL}{http://www.ibm.com/developerworks/oss/jikesrvm}
+\newcommand{\dWossURL}{http://\-www.ibm.com/\-de\-vel\-o\-per\-works/\-oss}
+\newcommand{\RVMHomeURL}{\dWossURL/\-jikes\-rvm}
+\newcommand{\RVMBugURL}{{\RVMHomeURL}/so\-lu\-tions}
+\newcommand{\JalapenoHomeURL}{http://\-www.research.ibm.com/\-ja\-la\-pe\-no}
+\newcommand{\QandAURL}{{\RVMHomeURL}/\-info/\-overview.shtml}
+\newcommand{\RVMPubsURL}{{\RVMHomeURL}/\-info/\-pubs.shtml}
+\newcommand{\RVMUsersPubsURL}{{\RVMHomeURL}/\-info/\-users-pubs.shtml}
+\newcommand{\RVMUsersURL}{{\RVMHomeURL}/\-info/\-users.shtml}
+\newcommand{\RVMSlidesURL}{{\RVMHomeURL}/\-info/\-pre\-sen\-ta\-tions.shtml}
 \newcommand{\RVMUserGuideURL}{{\RVMHomeURL}/userguide/HTML/userguide.html}
 \newcommand{\RVMJavadocURL}{{\RVMHomeURL}/api}
 
-\newcommand{\RVMDownloadURL}{http://www-124.ibm.com/developerworks/projects/jikesrvm}
-\newcommand{\RVMCVSURL}{\RVMDownloadURL}
-\newcommand{\RVMUserListURL}{{\RVMHomeURL}/info/users.shtml}
-\newcommand{\RVMResearcherMailingListURL}{{\RVMDownloadURL}}
-\newcommand{\RVMBugURL}{\RVMDownloadURL}
-\newcommand{\RVMContribURL}{{\RVMHomeURL}/info/contributions.shtml}
-\newcommand{\RVMTeachingResourcesURL}{{\RVMHomeURL}/info/course-info.shtml}
+\newcommand{\RVMDownloadURL}{{\RVMHomeURL}/download}
+\newcommand{\RVMCVSURL}{\RVMHomeURL/cvsweb.html}
+%\newcommand{\RVMUserListURL}{{\RVMHomeURL}/info/users.shtml}
+\newcommand{\RVMMailingListURL}{http://\-www.ibm.com/\-de\-ve\-lo\-per\-works/\-oss/\-mail\-man/\-list\-in\-fo/}
+\newcommand{\RVMResearcherMailingListURL}{\RVMMailingListURL/jikes\-r\-v\-m-re\-sear\-chers}
+\newcommand{\RVMResearcherMailingListArchiveURL}{http://www-124.ibm.com/pipermail/jikesrvm-researchers}
+\newcommand{\RVMRegressionMailingListURL}{\RVMMailingListURL/jikesrvm-researchers}
+\newcommand{\RVMCoreMailingListURL}{\RVMMailingListURL/jikesrvm-core}
+\newcommand{\RVMAnnounceMailingListURL}{\RVMMailingListURL/jikesrvm-announce}
+%\newcommand{\RVMBugURL}{\RVMDownloadURL}
+%\newcommand{\RVMBugURL}{http://www-124.ibm.com/developerworks/bugs/?group\_id=95}
+\newcommand{\RVMContribURL}{{\RVMHomeURL}\-/\-in\-fo\-/\-con\-tri\-bu\-tions\-.shtml}
+\newcommand{\RVMTeachingResourcesURL}{{\RVMHomeURL}\-/\-in\-fo\-/\-course-in\-fo\-.shtml}
 \newcommand{\CPLURL}{http://oss.software.ibm.com/developerworks/opensource/license-cpl.html}
 \newcommand{\IBMURL}{http://www.ibm.com}
 \newcommand{\WatsonURL}{http://www.watson.ibm.com}
@@ -132,11 +95,14 @@ Corporation in the United States, other countries, or both.}}
 \newcommand{\SOOTURL}{http://www.sable.mcgill.ca/soot}
 \newcommand{\classpathURL}{http://www.gnu.org/software/classpath}
 \newcommand{\classpathftp}{ftp://alpha.gnu.org/pub/gnu/classpath}
-\newcommand{\tempclasspathftp}{http://www.klomp.org/mark/classpath/classpath-0.06.tar.gz}
 \newcommand{\osiURL}{http://www.opensource.org}
+\newcommand{\JDWPURL}{http://java.sun.com/j2se/1.4.2/docs/guide/jpda/jdwp-spec.html}
+\newcommand{\OSXURL}{http://directory.google.com/Top/Computers/Software/Operating\_Systems/Mac\_OS/System\_Software/Mac\_OS\_X/?tc=1}
 
 % package com.ibm.JikesRVM
+\newcommand{\JikesRVMpackage}{com\-.ibm\-.Jikes\-RVM}
 \newcommand{\JikesRVMJavadocURL}{{\RVMJavadocURL}/com/ibm/JikesRVM}
+\newcommand{\VMURL}{\JikesRVMJavadocURL/VM.html}
 \newcommand{\VMAbstractThreadQueueURL}{{\JikesRVMJavadocURL}/VM\_AbstractThreadQueue.html}
 \newcommand{\VMCallbacksURL}{{\JikesRVMJavadocURL}/VM\_Callbacks.html}
 \newcommand{\VMClassURL}{{\JikesRVMJavadocURL}/VM\_Class.html}
@@ -145,7 +111,7 @@ Corporation in the United States, other countries, or both.}}
 \newcommand{\VMJavaHeaderURL}{{\JikesRVMJavadocURL}/VM\_JavaHeader.html}
 \newcommand{\VMLockURL}{{\JikesRVMJavadocURL}/VM\_Lock.html}
 \newcommand{\VMMagicURL}{{\JikesRVMJavadocURL}/VM\_Magic.html}
-\newcommand{\VMMagicCompilerURL}{{\JikesRVMJavadocURL}/VM\_MagicCompiler.html}
+\newcommand{\VMCompilerURL}{{\JikesRVMJavadocURL}/VM\_Compiler.html}
 \newcommand{\VMMiscHeaderURL}{{\JikesRVMJavadocURL}/VM\_MiscHeader.html}
 \newcommand{\VMMethodURL}{{\JikesRVMJavadocURL}/VM\_Method.html}
 \newcommand{\VMObjectModelURL}{{\JikesRVMJavadocURL}/VM\_ObjectModel.html}
@@ -169,7 +135,7 @@ Corporation in the United States, other countries, or both.}}
 \newcommand{\VMMethodSampleOrganizerURL}{{\AdaptiveJavadocURL}/VM\_MethodSampleOrganizer.html}
 \newcommand{\VMControllerURL}{{\AdaptiveJavadocURL}/VM\_Controller.html}
 \newcommand{\VMControllerThreadURL}{{\AdaptiveJavadocURL}/VM\_ControllerThread.html}
-\newcommand{\VMCompilationThreadURL}{{\AdaptiveJavadocURL}/VM\_CompilationThread.html}
+\newcommand{\VMCompilationThreadURL}{{\AdaptiveJavadocURL}/VM\_Com\-pi\-la\-tion\-Thread.html}
 \newcommand{\VMCompilerDNAURL}{{\AdaptiveJavadocURL}/VM\_CompilerDNA.html}
 \newcommand{\VMEdgeListenerURL}{{\AdaptiveJavadocURL}/VM\_EdgeListener.html}
 \newcommand{\VMInstrumentationURL}{{\AdaptiveJavadocURL}/VM\_Instrumentation.html}
@@ -184,7 +150,7 @@ Corporation in the United States, other countries, or both.}}
 % package com.ibm.JikesRVM.memoryManagers.JMTk
 \newcommand{\JMTkJavadocURL}{{\MMJavadocURL}/JMTk}
 \newcommand{\JMTkPackageURL}{{\JMTkJavadocURL}/package-frame.html}
-\newcommand{\AddressQueueURL}{{\JMTkJavadocURL}/AddressQueue.html}
+\newcommand{\AddressDequeURL}{{\JMTkJavadocURL}/AddressDeque.html}
 \newcommand{\BaseFreeListURL}{{\JMTkJavadocURL}/BaseFreeList.html}
 \newcommand{\BasePlanURL}{{\JMTkJavadocURL}/BasePlan.html}
 \newcommand{\BumpPointerURL}{{\JMTkJavadocURL}/BumpPointer.html}
@@ -197,15 +163,17 @@ Corporation in the United States, other countries, or both.}}
 \newcommand{\MonotoneVMResourceURL}{{\JMTkJavadocURL}/MonotoneVMResource.html}
 \newcommand{\MarkSweepCollectorURL}{{\JMTkJavadocURL}/MarkSweepCollector.html}
 \newcommand{\RawPageAllocatorURL}{{\JMTkJavadocURL}/RawPageAllocator.html}
-\newcommand{\SharedQueueURL}{{\JMTkJavadocURL}/SharedQueue.html}
+\newcommand{\SharedDequeURL}{{\JMTkJavadocURL}/SharedDeque.html}
 \newcommand{\StopTheWorldGCURL}{{\JMTkJavadocURL}/StopTheWorldGC.html}
 \newcommand{\VMResourceURL}{{\JMTkJavadocURL}/VMResource.html}
 % package com.ibm.JikesRVM.memoryManagers.watson
+\newcommand{\MMpackage}{\JikesRVMpackage{}.me\-mo\-ry\-Ma\-na\-gers}
 \newcommand{\WatsonGCJavadocURL}{{\MMJavadocURL}/watson}
 \newcommand{\VMGCLocksURL}{{\WatsonGCJavadocURL}/VM\_GCLocks.html}
 \newcommand{\VMGCWorkQueueURL}{{\WatsonGCJavadocURL}/VM\_GCWorkQueue.html}
 % package com.ibm.JikesRVM.memoryManagers.vmInterface
-\newcommand{\VMInterfaceJavadocURL}{{\MMJavadocURL}/vmInterface}
+\newcommand{\vmInterface}{v\-m\-In\-ter\-face}
+\newcommand{\VMInterfaceJavadocURL}{{\MMJavadocURL}/\vmInterface}
 \newcommand{\vmInterfacePackageURL}{{\VMInterfaceJavadocURL}/package-frame.html}
 \newcommand{\ScanObjectURL}{{\VMInterfaceJavadocURL}/ScanObject.html}
 \newcommand{\ScanStaticsURL}{{\VMInterfaceJavadocURL}/ScanStatics.html}
@@ -244,13 +212,26 @@ Corporation in the United States, other countries, or both.}}
 \newcommand{\LintelRegisterConstantsURL}{{\RVMJavadocURL}/finishURL}
 
 
-\newcommand{\gnuMakeURL}{http://www.gnu.org/software/make/make.html}
-\newcommand{\gnuTarURL}{http://www.gnu.org/software/tar/tar.html}
-\newcommand{\jikesURL}{http://oss.software.ibm.com/developerworks/opensource/jikes}
-\newcommand{\HyperlatexURL}{http://www.cs.ruu.nl/\~{}otfried/Hyperlatex/}
-\newcommand{\AIXJdkURL}{http://www.ibm.com/java/jdk/aix/index.html}
-\newcommand{\LinuxJdkURL}{http://www.ibm.com/java/jdk/aix/index.html}
-\newcommand{\BlackdownURL}{http://www.blackdown.org}
+\T \hyphenation{Class-path}
+\T \hyphenation{a-vai-la-ble}
+\T \hyphenation{Post-Script}
+\T \hyphenation{li-bra-ries}
+\T \hyphenation{di-rec-to-ry}
+\T \hyphenation{SPEC-jvm}
+\T \hyphenation{SPEC-jbb}
+% \T \hyphenation{RVM\_-ROOT}
+\T \hyphenation{CLASS-PATH}
+\T \hyphenation{j-con-fi-gure}
+\T \hyphenation{Run-Sa-ni-ty-Tests}
+\T \hyphenation{Pow-er-PC}
+\newcommand{\gnuMakeURL}{http:\-//\-www\-.gnu\-.org\-/\-software\-/\-make}
+\newcommand{\gnuTarURL}{http:\-//\-www\-.gnu\-.org\-/\-soft\-ware\-/\-tar\-/\-tar\-.html}
+%\newcommand{\jikesURL}{http://oss.software.ibm.com/developerworks/opensource/jikes}
+\newcommand{\jikesURL}{http:\-//\-oss\-.soft\-ware\-.ibm\-.com\-/\-de\-ve\-l\-o\-per\-works\-/\-op\-en\-source\-/\-jikes}
+\newcommand{\HyperlatexURL}{http:\-//www\-.cs\-.ruu\-.nl\-/\-\~{}ot\-fried\-/\-Hy\-per\-la\-tex/}
+\newcommand{\AIXJdkURL}{http://www.ibm.com/\-java/\-jdk/\-aix/\-in\-dex.html}
+\newcommand{\LinuxJdkURL}{http://www.ibm.com/\-java/\-jdk/\-aix/\-in\-dex.html}
+\newcommand{\BlackdownURL}{http:\-//\-www\-.black\-down\-.org}
 \newcommand{\SystemJournalPaperURL}{{\RVMPubsURL}\#ibmsj00}
 \newcommand{\JavaGrandePaperURL}{{\RVMPubsURL}\#grande99}
 \newcommand{\OOPSLAPaperURL}{{\RVMPubsURL}\#oopsla00\_aos}
@@ -258,11 +239,11 @@ Corporation in the United States, other countries, or both.}}
 \newcommand{\SASPaperURL}{{\RVMPubsURL}\#sas00}
 \newcommand{\ABCDPaperURL}{{\RVMHomeURL}\#ABCD}
 \newcommand{\SunCodeConventionURL}{http://java.sun.com/docs/codeconv}
-\newcommand{\JavadocURL}{http://java.sun.com/j2se/javadoc/index.html}
-\newcommand{\VimURL}{http://www.vim.org}
-\newcommand{\DejavuURL}{{\JalapenoHomeURL}/dejavu/index.html}
+\newcommand{\JavadocURL}{http://\-ja\-va.sun.com/\-j2se/\-java\-doc/\-in\-dex.html}
+\newcommand{\VimURL}{http://\-www.vim.org}
+\newcommand{\DejavuURL}{{\JalapenoHomeURL}/\-dejavu/\-index.html}
 \newcommand{\QuicksilverURL}{http://www.research.ibm.com/people/g/gupta/oopsla00.ps}
-\newcommand{\unzipURL}{http://www.info-zip.org/pub/infozip/UnZip.html}
+\newcommand{\unzipURL}{http://www.info-zip.org/\-pub/\-infozip/\-UnZip.html}
 
 %% Html declarations: Output directory and filenames, node title
 %\htmlcss{http://www.w3.org/StyleSheets/Core/Steely}
@@ -272,8 +253,8 @@ Corporation in the United States, other countries, or both.}}
 \W \renewcommand{\htmlpanelfield}[3][\link]{\HlxAppend{\HlxPanelFields}%
   {\xml*{td bgcolor="###99ccff" align="center"}%
     #1{#2}{#3}\xml*{/td}}}
-\W \htmlpanelfield[\xlink]{Home}{http://www-124.ibm.com/developerworks/oss/jikesrvm" target="_top}
-\W \htmlpanelfield[\xlink]{Project}{http://www-124.ibm.com/developerworks/projects/jikesrvm" target="_top}
+\W \htmlpanelfield[\xlink]{Home}{http://www-124.ibm.com/developerworks/oss/jikesrvm" target="\_top}
+\W \htmlpanelfield[\xlink]{Project}{http://www-124.ibm.com/developerworks/projects/jikesrvm" target="\_top}
 \W \htmlpanelfield{\contentsname}{hlxtoc}
 \W \htmlpanelfield{\indexname}{hlxindex}
 %\setcounter{secnumdepth}{3}
@@ -284,11 +265,13 @@ Corporation in the United States, other countries, or both.}}
 \xmlattributes{a}{style="text-decoration: none"}
 
 \W\begin{iftex}
-\sloppy
+% \sloppy
 %% These definitions work reasonably for A4 and letter paper
 \oddsidemargin 0mm
 \evensidemargin 0mm
 \topmargin 0mm
+%\textwidth 10cm
+%\textheight 8in
 \textwidth 15cm
 \textheight 22cm
 \advance\textheight by -\topskip
@@ -303,115 +286,154 @@ Corporation in the United States, other countries, or both.}}
 \T \remarktrue
 \W \newcommand{\remark}[1]{}
 
-\title{\texonly{\vfill} {\huge The Jikes\JikesTMFootnote\ Research Virtual
-Machine
-\\
-User's Guide} \\ {\huge \version} \\ { } \texonly{\vfill} }
+\title{\texonly{\vfill} {\huge The Jikes\TMboth{} 
+Research Virtual Machine \\
+User's Guide} \\ {\huge \version{}}\\ { } \texonly{\vfill} }
+
+%\\ {\huge Post \version{} (CVS Head)}\\ { } \texonly{\vfill} }
 
 \makeindex
+
+% \newcommand{\Xname}[1]{\basename{#1}\xname{#1}}
+%% Failed experiment:
+% \newcommand{\InputSec}[2]{\section{#1}\xname{#2}\htmlname{#2}\input{#2}\htmlname{userguide}}
 
 \begin{document}
 
 \maketitle
 \date{}
 
-\T \JikesTMFooter
-
 \T \newpage
+%% \T \ifthenelse{\boolean{TMOnOwnPage}}{
+   \T \input{trademarks}
+   \T \cleardoublepage
+%% \T }{}
+
 \label{hlxtoc}
 \T \tableofcontents
 \T \listoffigures
+\T \listoftables
+% This does nothing.
+% \xname{contents}
 \W \htmlmenu{6}
 
-\W \JikesTMFooter
-
 \T \newpage
+%% Failed experiment:
+%%\InputSec{Introduction}{intro}
+\xname{intro}
 \section{Introduction}
+% \W \htmldirectory{HTML/intro}
+%\htmlname{intro}
 \input{intro}
 
+\htmlname{userguide}
+% \W \htmldirectory{HTML}
 \T \newpage
+\xname{installation}
 \section{Installation Guide} \label{section:installation}
+% \W \htmldirectory{HTML/installation}
 \input{installation}
 
 \T \newpage
+% \W \htmldirectory{HTML}
+\xname{running}
 \section{Running \jrvm} \label{section:running}
+% \W \htmldirectory{HTML/running}
 \input{running}
 
 \T \newpage
+% \W \htmldirectory{HTML}
+\xname{eclipse}
 \section{Eclipse on Jikes RVM} \label{section:eclipse}
 \input{eclipse}
 
 \T \newpage
-\section{Overview of \jrvm\ Structure}
+\xname{componentOverview}
+\section{Overview of \jrvm{} Structure}
 \input{componentOverview}
 
 \T \newpage
+\xname{vmdetails}
 \section{Runtime Implementation Details}
 \input{vmdetails}
 
 \T \newpage
+\xname{basedetails}
 \section{Baseline Compiler Implementation Details}
 \label{section:basedetails}
 \input{basedetails}
 
 \T \newpage
+\xname{optdetails}
 \section{Optimizing Compiler Implementation Details}
 \label{section:optdetails}
 \input{optdetails}
 
 \T \newpage
+\xname{JMTk}
 \section{Memory Management Details}
 \label{section:JMTk}
 \input{JMTk}
 
 \T \newpage
+\xname{aosdetails}
 \section{Adaptive Optimization System}
 \label{section:aosdetails}
 \input{aosdetails}
 
 \T \newpage
+\xname{magic}
 \section{Magic}
 \input{magic}
 
 \T \newpage
+\xname{preprocessor}
 \section{Java Preprocessor}
 \label{section:preprocessor}
 \input{preprocessor}
 
 \T \newpage
+\xname{jni}
 \section{JNI Implementation Details}
 \label{section:jni}
 \input{jni}
 
 \T \newpage
+\xname{libraries}
 \section{Class Libraries}
 \label{section:libraries}
 \input{libraries}
 
 \T \newpage
+\xname{debugging}
 \section{Debugging Support}
 \label{section:debugging}
 \input{debugging}
 
 \T \newpage
-\section{Using the \jrvm\ to Profile an Application}
+\xname{profiling}
+\section{Using \jrvm{} to Profile an Application}
 \input{profiling}
 
 \T \newpage
+\xname{performance}
 \section{Experimental Guidelines}
 \input{performance}
 
 \T \newpage
+\xname{coding_style_java}
 \section{Java Coding Style Guidelines and Conventions}
 \label{section:javacodingstyle}
 \input{codingstyle}
 
 \T \newpage
+\xname{coding_style_other}
 \section{Coding Style Guidelines for other Programming Languages}
 \label{section:codingstyle-nonjava}
 \input{codingstyle-nonjava}
 
 \T \newpage
+\xname{faq}
 \section{FAQ}
 \input{faq}
 
@@ -427,16 +449,32 @@ User's Guide} \\ {\huge \version} \\ { } \texonly{\vfill} }
 
 \T \appendix
 
+\xname{cmdline}
 \section{Appendix A: Jikes RVM Command-Line Options}
 \label{appendix:nonadaptive:cmdline}
 \input{cmdline}
 
+\T \newpage
+\xname{licenses}
 \section{Appendix B: Jikes RVM Licenses}
 \label{appendix:licenses}
 \input{licenses}
+
+\T \newpage
+\xname{JMTk_contributions}
+\section{Appendix C: JMTk Contributions}
+\label{appendix:contributions}
+\input{contributions}
 
 \xname{userguide_index}
 \W \section*{\indexname}\label{hlxindex}
 \W \htmlprintindex
 \T \printindex
+
+%\ifthenelse{\boolean{TMOnOwnPage}}{
+ \W \xname{trademarks}
+ \W \input{trademarks}
+%}{
+%}
+
 \end{document}

@@ -1,4 +1,4 @@
-This section describes how to run a Jikes\trademark{} RVM  image built
+This section describes how to run a Jikes\TMweb{}{} RVM  image built
 from the previous section. 
 
 %%%
@@ -6,13 +6,13 @@ from the previous section.
 %%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Running \jrvm}
 
-\index{jikes}
-\index{rvm script}
-Jikes\trademark\ RVM executes bytecodes from {\tt .class} files. It does {\em
-not} compile 
-Java\trademark\ source code. Therefore, you must compile all Java source
-files into bytecode using your favorite Java compiler.
-Our favorite Java compiler is the IBM Jikes compiler. 
+\cindex[jikes command]{\texttt{jikes} command}%
+\cindex[rvm script]{\texttt{rvm} script}%
+Jikes\TMweb{} RVM executes Java virtual machine byte code instructions from {\tt .class} files.  
+It does {\em not} compile 
+Java\TMweb{} source code. Therefore, you must compile all Java source
+files into byte code using your favorite Java compiler.
+Our favorite Java compiler is the IBM\Rweb{} Jikes compiler. 
 
 For example, to run class {\tt foo} with source code in file {\tt foo.java}:
 \begin{verbatim}
@@ -35,7 +35,7 @@ non-standard}.  Non-standard options are preceded by {\bf ``{\tt -X:}''}.
 
 We currently support a subset of the JDK 1.3 standard options.  Below
 is a list of all options and their descriptions.  Unless otherwise noted each
-option is supported in Jikes RVM.
+option is supported in Jikes RVM.\@
 \begin{description}
 \item[{\tt \Mlbr{} -cp \Mor{} -classpath \Mrbr{} \Mmeta{directories and
 zip/jar files separated by \Mlitch{:}}}]
@@ -56,7 +56,7 @@ enable verbose output
 
 \item[{\tt -X}] print help on non-standard options
 
-\item[{\tt -jar}] not supported
+\item[{\tt -jar}] execute a jar file 
 
 \end{description}
 
@@ -66,7 +66,7 @@ enable verbose output
 The non-standard options are
 
 \begin{description}
-\item [{\tt -X}]
+\item[{\tt -X}]
 immediately print usage information on nonstandard options
 
 \item[{\tt -X:verbose}]
@@ -140,20 +140,20 @@ file names of one or more {\tt .jar} files.  File names in
 \Mmeta{path} are separated by colons (\Mlitch{:}).
 
 \item[{\tt -X:cpuAffinity=\Mmeta{int}}]
-\Mmeta{int} is the number of the physical cpu to which the first virtual processor will be bound.
+\Mmeta{int} is the number of the physical CPU to which the first virtual processor will be bound.
 
 \item[{\tt -X:processors=\Mlsq{} \Mmeta{int} \Mor{} \Mlitch{all} \Mrsq{}}]
 number of processors to use on a multiprocessor
 
 \end{description}
 
-See Appendix~\ref{appendix:nonadaptive:cmdline} for more details on 
-command-line options, including the list of options supported by the 
-baseline compiler, optimizing compiler, and adaptive optimization system.
-
-\JikesTMFooter
-
-\JavaTMFooter
+\link{Later in this user's guide \texonly{(see appendix~\Ref, page~\Pageref{})} there
+are more details on command-line options}{appendix:nonadaptive:cmdline}, including the list of options supported by the baseline
+compiler, optimizing compiler, and adaptive optimization system. 
 
 \subsection{Regression Tests}
+\label{sec:regression}
 \input{regression}
+
+% LocalWords:  args JDK cp gc jni VM showversion fullversion verboseBoot Xms vm
+% LocalWords:  Xmx sysLogfile RVM's aos irc recomp vmClasses cpuAffinity

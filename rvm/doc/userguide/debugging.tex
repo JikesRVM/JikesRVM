@@ -1,10 +1,10 @@
-Previous releases of Jikes\JikesTMFootnote\ RVM included a home grown
-debugger called {\bf jdp}.  The jdp debugger is no longer included in
-\jrvm{}.  This is because, although the jdp debugger provided some
+Previous releases of Jikes\TMweb{} RVM included a home grown
+debugger called {\bf jdp}.  The \texttt{jdp} debugger is no longer included in
+\jrvm{}.\@  This is because, although the \texttt{jdp} debugger provided some
 useful functionality for debugging Jikes RVM itself, it was always a
 little unstable and was not really intended to support source level
-debugging for programs running on top of Jikes RVM.  Prior to the
-2.2.0 release, the Jikes RVM core team decided to deprecate jdp
+debugging for programs running on top of Jikes RVM.\@  Prior to the
+2.2.0 release, the Jikes RVM core team decided to deprecate \texttt{jdp}
 because we believe that the cost of maintaining it outweighs its
 usefulness.
 
@@ -12,10 +12,13 @@ usefulness.
 The future plan for debugging Jikes RVM consists of two main pieces of
 work:
 
+\label{JDWP}
+\index{JDWP}
 \begin{itemize}
-\item Implement {\bf JDWP} support in Jikes RVM. If Jikes RVM
-implemented the standard Java debugging wire protocol (JDWP), then a
-number of debugger front ends could be used with Jikes RVM.  This
+\item Implement \xlink{\textbf{JDWP}}{\JDWPURL} support in Jikes RVM.\@ If Jikes RVM
+implemented the standard \xlink{Java Debugging Wire Protocol
+(JDWP)}{\JDWPURL}, then a 
+number of debugger front ends could be used with Jikes RVM.\@  This
 would support most debugging tasks, but would obviously not work if
 Jikes RVM itself was crashing or corrupted.
 
@@ -27,7 +30,7 @@ for the boot image.
 \end{itemize}
 
 Contributions from the community along either of these fronts would be
-greatly appreciated.  Some prototyping of JDWP support for Jikes RVM
+greatly appreciated.  Some prototyping of \xlink{JDWP}{\JDWPURL} support for Jikes RVM
 was done at IBM during the summer of 2002; we can make this code
 available if anyone is interested in completing it.
 

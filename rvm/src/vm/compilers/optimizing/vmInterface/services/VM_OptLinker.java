@@ -50,16 +50,16 @@ public final class VM_OptLinker implements VM_BytecodeConstants {
     case JBC_invokeinterface:
     default:
       if (VM.VerifyAssertions)
-	VM._assert(VM.NOT_REACHED, 
-		  "Unexpected case in VM_OptLinker.resolveDynamicLink");
+        VM._assert(VM.NOT_REACHED, 
+                  "Unexpected case in VM_OptLinker.resolveDynamicLink");
       break;
     }
   }
 
   public static Object newArrayArray (int methodId, int[] dimensions, int typeId)
     throws NoClassDefFoundError,
-	   NegativeArraySizeException, 
-	   OutOfMemoryError {
+           NegativeArraySizeException, 
+           OutOfMemoryError {
     // validate arguments
     for (int i = 0; i < dimensions.length; i++) {
       if (dimensions[i] < 0) throw new NegativeArraySizeException();

@@ -125,48 +125,48 @@ final class VM_BuildBB implements VM_BytecodeConstants {
       // a basic block value prior to us examining that destination byte code
       //
       if (lastInstrType == NONBRANCH) {
-	if (byteToBlockMap[bcodes.index()] == VM_BasicBlock.NOTBLOCK) {
-	  // Not a new block
-	  // Make note of current block 
-	  byteToBlockMap[bcodes.index()] = (short)currentBB.getBlockNumber();
-	} else {
-	  // Earlier forward branch must have started this block
-	  currentBB.setEnd(lastInstrStart);
-	  basicBlocks[byteToBlockMap[bcodes.index()]].addPredecessor(currentBB);
-	  currentBB = basicBlocks[byteToBlockMap[bcodes.index()]];
-	}
+        if (byteToBlockMap[bcodes.index()] == VM_BasicBlock.NOTBLOCK) {
+          // Not a new block
+          // Make note of current block 
+          byteToBlockMap[bcodes.index()] = (short)currentBB.getBlockNumber();
+        } else {
+          // Earlier forward branch must have started this block
+          currentBB.setEnd(lastInstrStart);
+          basicBlocks[byteToBlockMap[bcodes.index()]].addPredecessor(currentBB);
+          currentBB = basicBlocks[byteToBlockMap[bcodes.index()]];
+        }
       } else { // we are at a block boundary, last instr was some type of branch
-	if (lastInstrType == CONDITIONAL_BRANCH) {
-	  currentBB.setEnd(lastInstrStart);
-	  // See if we need a new block
-	  if (byteToBlockMap[bcodes.index()] == VM_BasicBlock.NOTBLOCK) {
-	    VM_BasicBlock newBB = bbf.newBlock(bcodes.index());
-	    addBasicBlock(newBB);
-	    newBB.addPredecessor(currentBB);
-	    currentBB = newBB;
-	    // Make note of current block 
-	    byteToBlockMap[bcodes.index()] = (short)currentBB.getBlockNumber();
-	  } else {
-	    // From an earlier forward branch 
-	    basicBlocks[byteToBlockMap[bcodes.index()]].addPredecessor(currentBB);	    
-	    currentBB = basicBlocks[byteToBlockMap[bcodes.index()]];
-	  }
-	} else {
-	  if (lastInstrType == BRANCH) {
-	    currentBB.setEnd(lastInstrStart);
-	    // See if we need a new block
-	    if (byteToBlockMap[bcodes.index()] == VM_BasicBlock.NOTBLOCK) {
-	      VM_BasicBlock newBB = bbf.newBlock(bcodes.index());
-	      addBasicBlock(newBB);
-	      currentBB = newBB;
-	      // Make note of current block 
-	      byteToBlockMap[bcodes.index()] = (short)currentBB.getBlockNumber();
-	    } else {
-	      // From an earlier forward branch 
-	      currentBB = basicBlocks[byteToBlockMap[bcodes.index()]];
-	    }
-	  }
-	}
+        if (lastInstrType == CONDITIONAL_BRANCH) {
+          currentBB.setEnd(lastInstrStart);
+          // See if we need a new block
+          if (byteToBlockMap[bcodes.index()] == VM_BasicBlock.NOTBLOCK) {
+            VM_BasicBlock newBB = bbf.newBlock(bcodes.index());
+            addBasicBlock(newBB);
+            newBB.addPredecessor(currentBB);
+            currentBB = newBB;
+            // Make note of current block 
+            byteToBlockMap[bcodes.index()] = (short)currentBB.getBlockNumber();
+          } else {
+            // From an earlier forward branch 
+            basicBlocks[byteToBlockMap[bcodes.index()]].addPredecessor(currentBB);          
+            currentBB = basicBlocks[byteToBlockMap[bcodes.index()]];
+          }
+        } else {
+          if (lastInstrType == BRANCH) {
+            currentBB.setEnd(lastInstrStart);
+            // See if we need a new block
+            if (byteToBlockMap[bcodes.index()] == VM_BasicBlock.NOTBLOCK) {
+              VM_BasicBlock newBB = bbf.newBlock(bcodes.index());
+              addBasicBlock(newBB);
+              currentBB = newBB;
+              // Make note of current block 
+              byteToBlockMap[bcodes.index()] = (short)currentBB.getBlockNumber();
+            } else {
+              // From an earlier forward branch 
+              currentBB = basicBlocks[byteToBlockMap[bcodes.index()]];
+            }
+          }
+        }
       }
       // end of determining if at block boundary
 
@@ -191,95 +191,95 @@ final class VM_BuildBB implements VM_BytecodeConstants {
       case JBC_if_acmpne:
       case JBC_ifnull:
       case JBC_ifnonnull:
-	{
-	  lastInstrType = CONDITIONAL_BRANCH;
-	  int offset = bcodes.getBranchOffset();
-	  if(offset < 0) gcPointCount++; // gc map required if backward edge
-	  int branchtarget = lastInstrStart + offset;
-	  processBranchTarget(lastInstrStart, branchtarget);
-	  break;
-	}
-	       
+        {
+          lastInstrType = CONDITIONAL_BRANCH;
+          int offset = bcodes.getBranchOffset();
+          if(offset < 0) gcPointCount++; // gc map required if backward edge
+          int branchtarget = lastInstrStart + offset;
+          processBranchTarget(lastInstrStart, branchtarget);
+          break;
+        }
+               
       case JBC_jsr:
-	{
-	  lastInstrType = BRANCH;
-	  int offset = bcodes.getBranchOffset();
-	  int branchtarget = lastInstrStart + offset;
-	  processBranchTarget(lastInstrStart, branchtarget);
-	  int jsrentryBBNum = byteToBlockMap[branchtarget];
-	  VM_BasicBlock bb = basicBlocks[jsrentryBBNum];
-	  if ((bb.getState() & VM_BasicBlock.JSRENTRY) == 0) numJsrs++;
-	  bb.setState(VM_BasicBlock.JSRENTRY);  
-	  gcPointCount = gcPointCount+1;
-	  break;
-	}
+        {
+          lastInstrType = BRANCH;
+          int offset = bcodes.getBranchOffset();
+          int branchtarget = lastInstrStart + offset;
+          processBranchTarget(lastInstrStart, branchtarget);
+          int jsrentryBBNum = byteToBlockMap[branchtarget];
+          VM_BasicBlock bb = basicBlocks[jsrentryBBNum];
+          if ((bb.getState() & VM_BasicBlock.JSRENTRY) == 0) numJsrs++;
+          bb.setState(VM_BasicBlock.JSRENTRY);  
+          gcPointCount = gcPointCount+1;
+          break;
+        }
 
       case JBC_jsr_w:
-	{
-	  lastInstrType = BRANCH;
-	  int offset = bcodes.getWideBranchOffset();
-	  int branchtarget = lastInstrStart + offset;
-	  processBranchTarget(lastInstrStart, branchtarget);
-	  int jsrentryBBNum = byteToBlockMap[branchtarget];
-	  VM_BasicBlock bb = basicBlocks[jsrentryBBNum];
-	  if ((bb.getState() & VM_BasicBlock.JSRENTRY) == 0) numJsrs++;
-	  bb.setState(VM_BasicBlock.JSRENTRY);  
-	  gcPointCount = gcPointCount+1;
-	  break;
-	}
+        {
+          lastInstrType = BRANCH;
+          int offset = bcodes.getWideBranchOffset();
+          int branchtarget = lastInstrStart + offset;
+          processBranchTarget(lastInstrStart, branchtarget);
+          int jsrentryBBNum = byteToBlockMap[branchtarget];
+          VM_BasicBlock bb = basicBlocks[jsrentryBBNum];
+          if ((bb.getState() & VM_BasicBlock.JSRENTRY) == 0) numJsrs++;
+          bb.setState(VM_BasicBlock.JSRENTRY);  
+          gcPointCount = gcPointCount+1;
+          break;
+        }
 
       case JBC_goto:
-	{
-	  lastInstrType = BRANCH;
-	  int offset = bcodes.getBranchOffset();
-	  if(offset < 0) gcPointCount++; // gc map required if backward edge
-	  int branchtarget = lastInstrStart + offset;
-	  processBranchTarget(lastInstrStart, branchtarget);
-	  break;
-	}
+        {
+          lastInstrType = BRANCH;
+          int offset = bcodes.getBranchOffset();
+          if(offset < 0) gcPointCount++; // gc map required if backward edge
+          int branchtarget = lastInstrStart + offset;
+          processBranchTarget(lastInstrStart, branchtarget);
+          break;
+        }
 
       case JBC_goto_w:
-	{
-	  int offset = bcodes.getWideBranchOffset();
-	  if(offset < 0) gcPointCount++; // gc map required if backward edge
-	  int branchtarget = lastInstrStart + offset;
-	  processBranchTarget(lastInstrStart, branchtarget);
-	  break;
-	}
+        {
+          int offset = bcodes.getWideBranchOffset();
+          if(offset < 0) gcPointCount++; // gc map required if backward edge
+          int branchtarget = lastInstrStart + offset;
+          processBranchTarget(lastInstrStart, branchtarget);
+          break;
+        }
 
       case JBC_tableswitch:
-	{
-	  bcodes.alignSwitch();
-	  int def = bcodes.getDefaultSwitchOffset();
-	  processBranchTarget(lastInstrStart, lastInstrStart+def);
-	  int low = bcodes.getLowSwitchValue();
-	  int high = bcodes.getHighSwitchValue();
-	  int n = high-low+1;                        // n = number of normal cases (0..n-1)
+        {
+          bcodes.alignSwitch();
+          int def = bcodes.getDefaultSwitchOffset();
+          processBranchTarget(lastInstrStart, lastInstrStart+def);
+          int low = bcodes.getLowSwitchValue();
+          int high = bcodes.getHighSwitchValue();
+          int n = high-low+1;                        // n = number of normal cases (0..n-1)
 
-	  // generate labels for offsets
-	  for (int i=0; i<n; i++) {
-	    int offset = bcodes.getTableSwitchOffset(i);
-	    processBranchTarget(lastInstrStart, lastInstrStart+offset);
-	  }
-	  bcodes.skipTableSwitchOffsets(n);
-	  break;
-	}
-	  
+          // generate labels for offsets
+          for (int i=0; i<n; i++) {
+            int offset = bcodes.getTableSwitchOffset(i);
+            processBranchTarget(lastInstrStart, lastInstrStart+offset);
+          }
+          bcodes.skipTableSwitchOffsets(n);
+          break;
+        }
+          
       case JBC_lookupswitch:
-	{
-	  bcodes.alignSwitch();
-	  int def = bcodes.getDefaultSwitchOffset();
-	  int npairs = bcodes.getSwitchLength();
-	  processBranchTarget(lastInstrStart, lastInstrStart+def);
+        {
+          bcodes.alignSwitch();
+          int def = bcodes.getDefaultSwitchOffset();
+          int npairs = bcodes.getSwitchLength();
+          processBranchTarget(lastInstrStart, lastInstrStart+def);
 
-	  // generate label for each offset in table
-	  for (int i=0; i<npairs; i++) {
-	    int offset  = bcodes.getLookupSwitchOffset(i);
-	    processBranchTarget(lastInstrStart, lastInstrStart+offset);
-	  }	   
-	  bcodes.skipLookupSwitchPairs(npairs);
-	  break;
-	}
+          // generate label for each offset in table
+          for (int i=0; i<npairs; i++) {
+            int offset  = bcodes.getLookupSwitchOffset(i);
+            processBranchTarget(lastInstrStart, lastInstrStart+offset);
+          }        
+          bcodes.skipLookupSwitchPairs(npairs);
+          break;
+        }
 
       case JBC_ireturn:
       case JBC_lreturn:
@@ -287,66 +287,66 @@ final class VM_BuildBB implements VM_BytecodeConstants {
       case JBC_dreturn:
       case JBC_areturn:
       case JBC_return:
-	{
-	  lastInstrType = BRANCH;
-	  basicBlocks[VM_BasicBlock.EXITBLOCK].addPredecessor(currentBB); 
-	  if (method.isSynchronized() || VM.UseEpilogueYieldPoints)
-	    gcPointCount++;
-	  break;
-	}
+        {
+          lastInstrType = BRANCH;
+          basicBlocks[VM_BasicBlock.EXITBLOCK].addPredecessor(currentBB); 
+          if (method.isSynchronized() || VM.UseEpilogueYieldPoints)
+            gcPointCount++;
+          break;
+        }
 
       case JBC_ret:
-	{
-	  lastInstrType = BRANCH;
-	  int index = bcodes.getLocalNumber();
-	  int blocknum = currentBB.getBlockNumber();
-	  basicBlocks[blocknum].setState(VM_BasicBlock.JSREXIT);
+        {
+          lastInstrType = BRANCH;
+          int index = bcodes.getLocalNumber();
+          int blocknum = currentBB.getBlockNumber();
+          basicBlocks[blocknum].setState(VM_BasicBlock.JSREXIT);
 
-	  // Worry about growing retListarray
-	  if (retList == null) retList = new int[10];
-	  if (nextRetList >= retList.length) {
-	    int[] biggerRetList = new int[nextRetList + 10];
-	    for (int i=0; i<nextRetList; i++) 
-	      biggerRetList[i] = retList[i];
-	    retList = biggerRetList;
-	    biggerRetList = null;
-	  }
-	  retList[nextRetList++] = blocknum;	  
-	  break;
-	}
+          // Worry about growing retListarray
+          if (retList == null) retList = new int[10];
+          if (nextRetList >= retList.length) {
+            int[] biggerRetList = new int[nextRetList + 10];
+            for (int i=0; i<nextRetList; i++) 
+              biggerRetList[i] = retList[i];
+            retList = biggerRetList;
+            biggerRetList = null;
+          }
+          retList[nextRetList++] = blocknum;      
+          break;
+        }
 
       case JBC_wide: {
-	int widecode = bcodes.getWideOpcode();
-	int index = bcodes.getWideLocalNumber();
-	if (widecode == JBC_ret) {
-	  lastInstrType = BRANCH;
-	  int blocknum = currentBB.getBlockNumber();
-	  basicBlocks[blocknum].setState(VM_BasicBlock.JSREXIT);
-	  
-	  // Worry about growing retListarray
-	  if (retList == null) retList = new int[10];
-	  if (nextRetList >= retList.length) {
-	    int[] biggerRetList = new int[nextRetList + 10];
-	    for (int i=0; i<nextRetList; i++) 
-	      biggerRetList[i] = retList[i];
-	    retList = biggerRetList;
-	    biggerRetList = null;
-	  }
-	  retList[nextRetList++] = blocknum;	  
-	} else if (widecode == JBC_iinc) {
-	  int val = bcodes.getWideIncrement();
-	} else {
-	  // nothing more to do
-	}
+        int widecode = bcodes.getWideOpcode();
+        int index = bcodes.getWideLocalNumber();
+        if (widecode == JBC_ret) {
+          lastInstrType = BRANCH;
+          int blocknum = currentBB.getBlockNumber();
+          basicBlocks[blocknum].setState(VM_BasicBlock.JSREXIT);
+          
+          // Worry about growing retListarray
+          if (retList == null) retList = new int[10];
+          if (nextRetList >= retList.length) {
+            int[] biggerRetList = new int[nextRetList + 10];
+            for (int i=0; i<nextRetList; i++) 
+              biggerRetList[i] = retList[i];
+            retList = biggerRetList;
+            biggerRetList = null;
+          }
+          retList[nextRetList++] = blocknum;      
+        } else if (widecode == JBC_iinc) {
+          int val = bcodes.getWideIncrement();
+        } else {
+          // nothing more to do
+        }
       }
        
       case JBC_athrow:
-	{
-	  lastInstrType = BRANCH;
-	  processAthrow(exceptions, lastInstrStart);
-	  gcPointCount++;
-	  break;
-	}
+        {
+          lastInstrType = BRANCH;
+          processAthrow(exceptions, lastInstrStart);
+          gcPointCount++;
+          break;
+        }
 
       case JBC_aaload:
       case JBC_iaload:
@@ -384,19 +384,19 @@ final class VM_BuildBB implements VM_BytecodeConstants {
       case JBC_newarray:
       case JBC_anewarray:
       case JBC_multianewarray:
-	{
-	  bcodes.skipInstruction();
-	  byteToBlockMap[lastInstrStart] = (short)currentBB.getBlockNumber(); 
-	  gcPointCount = gcPointCount+1;
-	  break;
-	}
+        {
+          bcodes.skipInstruction();
+          byteToBlockMap[lastInstrStart] = (short)currentBB.getBlockNumber(); 
+          gcPointCount = gcPointCount+1;
+          break;
+        }
 
       default:
-	{
-	  bcodes.skipInstruction();
-	  byteToBlockMap[lastInstrStart] = (short)currentBB.getBlockNumber();
-	  break;
-	}
+        {
+          bcodes.skipInstruction();
+          byteToBlockMap[lastInstrStart] = (short)currentBB.getBlockNumber();
+          break;
+        }
       } // switch (opcode) 
     } // while (bcodes.hasMoreBytecodes)
 
@@ -439,7 +439,7 @@ final class VM_BuildBB implements VM_BytecodeConstants {
     VM_BasicBlock newBB, currentBB;
     if (byteToBlockMap[branchtarget] == VM_BasicBlock.NOTBLOCK) {
       newBB = bbf.newBlock(branchtarget);
-      addBasicBlock(newBB);		 
+      addBasicBlock(newBB);              
       byteToBlockMap[branchtarget] = (short)newBB.getBlockNumber();
       currentBB = basicBlocks[byteToBlockMap[index]];
       newBB.addPredecessor(currentBB);
@@ -490,8 +490,8 @@ final class VM_BuildBB implements VM_BytecodeConstants {
       // number
       //
       for (i=newBB.getStart(); i<=newBlockEnd; i++) {
-	if (byteToBlockMap[i] != VM_BasicBlock.NOTBLOCK)
-	  byteToBlockMap[i]= (short)newBlockNum;
+        if (byteToBlockMap[i] != VM_BasicBlock.NOTBLOCK)
+          byteToBlockMap[i]= (short)newBlockNum;
       }
 
       VM_BasicBlock.transferPredecessors(existingBB, newBB);
@@ -546,18 +546,18 @@ final class VM_BuildBB implements VM_BytecodeConstants {
 
     if (basicBlocks[pred].isJSREntry()) {
       if (otherRetCount == 0) {
-	// setup call site
-	setupJSRCallSite(basicBlocks[pred], retBB); 
-	return;  
+        // setup call site
+        setupJSRCallSite(basicBlocks[pred], retBB); 
+        return;  
       } else {
-	otherRetCount--;
+        otherRetCount--;
       }
     }
     int[] preds = basicBlocks[pred].getPredecessors();
     for( int i = 0; i < preds.length; i++) {
       int pred2 = preds[i];
       if (!seenAlready[pred2])
-	findAndSetJSRCallSite(pred2,retBB,otherRetCount, seenAlready);
+        findAndSetJSRCallSite(pred2,retBB,otherRetCount, seenAlready);
     }
   }
 
@@ -592,10 +592,10 @@ final class VM_BuildBB implements VM_BytecodeConstants {
     int tryLength = tryHandlerPC.length;
     for (int i=0; i<tryLength; i++) {
       if (byteToBlockMap[tryHandlerPC[i]] == VM_BasicBlock.NOTBLOCK) {
-	VM_BasicBlock handlerBB = bbf.newBlock(tryHandlerPC[i]);
-	handlerBB.setState(VM_BasicBlock.TRYHANDLERSTART);
-	addBasicBlock(handlerBB); 
-	byteToBlockMap[tryHandlerPC[i]] = (short)handlerBB.getBlockNumber();
+        VM_BasicBlock handlerBB = bbf.newBlock(tryHandlerPC[i]);
+        handlerBB.setState(VM_BasicBlock.TRYHANDLERSTART);
+        addBasicBlock(handlerBB); 
+        byteToBlockMap[tryHandlerPC[i]] = (short)handlerBB.getBlockNumber();
       }
     }
   }
@@ -609,10 +609,10 @@ final class VM_BuildBB implements VM_BytecodeConstants {
     int tryLength = tryStartPC.length;
     for (int i=0; i< tryLength; i++) {
       if (byteToBlockMap[tryStartPC[i]] == VM_BasicBlock.NOTBLOCK) {
-	VM_BasicBlock tryStartBB = bbf.newBlock(tryStartPC[i]);
-	addBasicBlock(tryStartBB); 
-	byteToBlockMap[tryStartPC[i]] = (short)tryStartBB.getBlockNumber();
-	tryStartBB.setState(VM_BasicBlock.TRYSTART);
+        VM_BasicBlock tryStartBB = bbf.newBlock(tryStartPC[i]);
+        addBasicBlock(tryStartBB); 
+        byteToBlockMap[tryStartPC[i]] = (short)tryStartBB.getBlockNumber();
+        tryStartBB.setState(VM_BasicBlock.TRYSTART);
       }
     }
   }
@@ -631,13 +631,13 @@ final class VM_BuildBB implements VM_BytecodeConstants {
       VM_BasicBlock tryHandlerBB = basicBlocks[handlerBBNum];
       int throwBBNum = 0;
       for (int k=tryStartPC[i]; k < tryEndPC[i]; k++) {
-	if (byteToBlockMap[k] == VM_BasicBlock.NOTBLOCK) continue;
+        if (byteToBlockMap[k] == VM_BasicBlock.NOTBLOCK) continue;
 
-	if (byteToBlockMap[k] != throwBBNum) {
-	  throwBBNum = byteToBlockMap[k];
-	  VM_BasicBlock throwBB = basicBlocks[throwBBNum];
-	  tryHandlerBB.addUniquePredecessor(throwBB);
-	}
+        if (byteToBlockMap[k] != throwBBNum) {
+          throwBBNum = byteToBlockMap[k];
+          VM_BasicBlock throwBB = basicBlocks[throwBBNum];
+          tryHandlerBB.addUniquePredecessor(throwBB);
+        }
       }
     }
   }
@@ -654,12 +654,12 @@ final class VM_BuildBB implements VM_BytecodeConstants {
     int tryBlockNum = 0;
     for (int i=0; i< tryLength; i++) {
       for (int j=tryStartPC[i]; j< tryEndPC[i]; j++) {
-	if (byteToBlockMap[j] != VM_BasicBlock.NOTBLOCK) {
-	  if (tryBlockNum != byteToBlockMap[j]) {
-	    tryBlockNum = byteToBlockMap[j];
-	    basicBlocks[tryBlockNum].setState(VM_BasicBlock.TRYBLOCK);
-	  }
-	}
+        if (byteToBlockMap[j] != VM_BasicBlock.NOTBLOCK) {
+          if (tryBlockNum != byteToBlockMap[j]) {
+            tryBlockNum = byteToBlockMap[j];
+            basicBlocks[tryBlockNum].setState(VM_BasicBlock.TRYBLOCK);
+          }
+        }
       }
     }
   }
@@ -677,9 +677,9 @@ final class VM_BuildBB implements VM_BytecodeConstants {
       int   tryLength    = tryStartPC.length;
       // Check if this athrow index is within any of the try blocks
       for (int i=0; i<tryLength; i++) {
-	if (tryStartPC[i] <= athrowIndex && athrowIndex < tryEndPC[i]) {
-	  return; // found it
-	}
+        if (tryStartPC[i] <= athrowIndex && athrowIndex < tryEndPC[i]) {
+          return; // found it
+        }
       }
     } 
 
@@ -706,20 +706,20 @@ final class VM_BuildBB implements VM_BytecodeConstants {
       int currentSize = basicBlocks.length;
       int newSize = 15;
       if (currentSize!=2) {
-	if (currentSize==15)
-	  newSize = bytelength >> 4; // assume 16 bytecodes per basic block
-	else
-	  newSize = currentSize + currentSize >> 3;  // increase by 12.5%
-	if (newSize <= blocknum)
-	  newSize = blocknum + 20;
+        if (currentSize==15)
+          newSize = bytelength >> 4; // assume 16 bytecodes per basic block
+        else
+          newSize = currentSize + currentSize >> 3;  // increase by 12.5%
+        if (newSize <= blocknum)
+          newSize = blocknum + 20;
       }
       VM_BasicBlock biggerBlocks[] = new VM_BasicBlock[newSize];
       for (int i=0; i<currentSize; i++) 
-	biggerBlocks[i] = basicBlocks[i];
+        biggerBlocks[i] = basicBlocks[i];
       basicBlocks = biggerBlocks;
     } 
 
     // Go ahead and add block
-    basicBlocks[blocknum] = newBB;	  
+    basicBlocks[blocknum] = newBB;        
   }
 }

@@ -21,41 +21,41 @@ class TestMath_toHex
       SystemOut.println("-- Math.floor --");
       
       SystemOut.println("\nwant:  " + Long.toHexString(Double.doubleToLongBits(1.0D)) + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(1.6))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(1.6))));
       SystemOut.println("\nwant:  " + Long.toHexString(Double.doubleToLongBits(1.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(1.5))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(1.5))));
       SystemOut.println("\nwant:  " + Long.toHexString(Double.doubleToLongBits(1.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(1.4))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(1.4))));
       SystemOut.println("\nwant:  " + Long.toHexString(Double.doubleToLongBits(1.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(1.0))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(1.0))));
 
       SystemOut.println("\nwant: " + Long.toHexString(Double.doubleToLongBits(-2.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(-2.0))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(-2.0))));
       SystemOut.println("\nwant: " + Long.toHexString(Double.doubleToLongBits(-2.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(-1.6))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(-1.6))));
       SystemOut.println("\nwant: " + Long.toHexString(Double.doubleToLongBits(-2.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(-1.5))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(-1.5))));
       SystemOut.println("\nwant: " + Long.toHexString(Double.doubleToLongBits(-2.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(-1.4))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.floor(-1.4))));
 
       SystemOut.println("-- Math.ceil --");
       
       SystemOut.println("\nwant: " + Long.toHexString(Double.doubleToLongBits(2.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(1.6))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(1.6))));
       SystemOut.println("\nwant: " + Long.toHexString(Double.doubleToLongBits(2.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(1.5))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(1.5))));
       SystemOut.println("\nwant: " + Long.toHexString(Double.doubleToLongBits(2.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(1.4))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(1.4))));
       SystemOut.println("\nwant:  " + Long.toHexString(Double.doubleToLongBits(1.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(1.0))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(1.0))));
 
       SystemOut.println("\nwant: " + Long.toHexString(Double.doubleToLongBits(-2.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(-2.0))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(-2.0))));
       SystemOut.println("\nwant: " + Long.toHexString(Double.doubleToLongBits(-1.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(-1.6))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(-1.6))));
       SystemOut.println("\nwant: " + Long.toHexString(Double.doubleToLongBits(-1.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(-1.5))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(-1.5))));
       SystemOut.println("\nwant: " + Long.toHexString(Double.doubleToLongBits(-1.0D))  + 
-	"\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(-1.4))));
+        "\ngot:  " + Long.toHexString(Double.doubleToLongBits(Math.ceil(-1.4))));
       }
    }

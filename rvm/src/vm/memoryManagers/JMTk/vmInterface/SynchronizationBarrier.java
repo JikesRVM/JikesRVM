@@ -34,7 +34,7 @@ public final class SynchronizationBarrier {
 
   private static final int verbose = 0;
 
-  // maximum processor id for rendezvous (possibly including the native daemon processor)
+  // maximum processor id for rendezvous
   private int maxProcessorId;
 
   // number of physical processors on running computer 
@@ -65,8 +65,6 @@ public final class SynchronizationBarrier {
   }
 
   /**
-   * Comments are for default implementation of jni (not the alternative implemenation)
-   * <p>
    * First rendezvous for a collection, called by all CollectorThreads that arrive
    * to participate in a collection.  Thread with gcOrdinal==1 is responsible for
    * detecting RVM processors stuck in Native C, blocking them in Native, and making
@@ -97,46 +95,23 @@ public final class SynchronizationBarrier {
     int numParticipating = 0;
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
       if ( VM_Scheduler.processors[i].lockInCIfInC() ) { // can't be true for self
-	  if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
-	  removeProcessor(i);
+          if (verbose > 0) VM.sysWriteln("GC Message: excluding processor ", i);
+          removeProcessor(i);
       }
       else
-	numParticipating++;
+        numParticipating++;
     }
 
-    if ( !VM.BuildForSingleVirtualProcessor && VM_Scheduler.processors[VM_Scheduler.nativeDPndx]!=null) {
-      // If it is the NativeProcessor (its collector thread) that is executing here
-      // just fall thru to end, to set our entryCount, sync & return. Else, decide
-      // what to do with the NativeProcessor
-      if ( myProcessorId == VM_Scheduler.nativeDPndx ) {
-	if (verbose > 0) 
-	    VM.sysWriteln("GC Message: startupRendezvous: NativeProcessor has ordinal 1, will participate");
-      }
-      else {
-	int loopCount = 1;
-	VM_Processor ndvp = VM_Scheduler.processors[VM_Scheduler.nativeDPndx];
-	if ( VM_Scheduler.processors[VM_Scheduler.nativeDPndx].blockInWaitIfInWait() ) {
-	    if (verbose > 0) VM.sysWriteln("GC Message: startupRendezvous  excluding NATIVE DAEMON PROCESSOR");
-	    removeProcessor( VM_Scheduler.nativeDPndx );
-	}
-      }
-      // include NativeDaemonProcessor in set of processors to rendezvous
-      maxProcessorId = VM_Scheduler.numProcessors + 1;
-    }  // !VM.BuildForSingleVirtualProcessor
-
-    else {
-      // compiled ForSingleProcessor: there is no nativeDaemonProcessor 
-      maxProcessorId = VM_Scheduler.numProcessors;
-    }
+    maxProcessorId = VM_Scheduler.numProcessors;
 
     if (verbose > 0) 
-	VM.sysWriteln("GC Message: startupRendezvous  numParticipating = ", numParticipating);
+        VM.sysWriteln("GC Message: startupRendezvous  numParticipating = ", numParticipating);
     barrier.setTarget(numParticipating);
     barrier.arrive(8888);    // all setup now complete and we can proceed
     VM_Magic.sync();   // update main memory so other processors will see it in "while" loop
     VM_Magic.isync();  // so subsequent instructions won't see stale values
     if (verbose > 0) 
-	VM.sysWriteln("GC Message: startupRendezvous  designated proc leaving");
+        VM.sysWriteln("GC Message: startupRendezvous  designated proc leaving");
 
   }  // startupRendezvous
 
@@ -169,11 +144,11 @@ public final class SynchronizationBarrier {
     if (VM_Scheduler.numProcessors < numRealProcessors) {
       // spin for a while, keeping the operating system thread
       for ( int i = 0; i < (x*100); i++)
-	sum = sum + i;
+        sum = sum + i;
       return sum;
     } else {
       if (!VM.BuildForSingleVirtualProcessor) {
-	VM_SysCall.sysVirtualProcessorYield();        // pthread yield 
+        VM_SysCall.sysVirtualProcessorYield();        // pthread yield 
       }
       return 0;
     }

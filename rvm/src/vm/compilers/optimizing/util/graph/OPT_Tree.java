@@ -117,8 +117,8 @@ public class OPT_Tree {
    * @param depth the current depth (root = 0) in the tree
    */
   final private StringBuffer DFS(StringBuffer sb, 
-				 OPT_TreeNode node, 
-				 int depth) {
+                                 OPT_TreeNode node, 
+                                 int depth) {
     // indent appropriate spaces and print node
     for (int i=0; i < 2 * depth; i++) {
       sb.append(" ");

@@ -79,8 +79,8 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     topOrder = new OPT_BasicBlock[ir.cfg.numberOfNodes()];
     int idx = 0;
     for (OPT_BasicBlock ptr = ir.cfg.entry();
-	 ptr != null;
-	 ptr = (OPT_BasicBlock)ptr.getForwardSortedNext()) {
+         ptr != null;
+         ptr = (OPT_BasicBlock)ptr.getForwardSortedNext()) {
       topOrder[idx++] = ptr;
       ptr.setExecutionFrequency(0f);
       ptr.clearScratchFlag();
@@ -93,10 +93,10 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
     if (lst != null) {
       computeLoopMultipliers(lst.getRoot());
       for (OPT_BasicBlockEnumeration e = ir.getBasicBlocks();
-	   e.hasMoreElements();) {
-	OPT_BasicBlock bb = e.next();
-	bb.setExecutionFrequency(0f);
-	bb.clearScratchFlag();
+           e.hasMoreElements();) {
+        OPT_BasicBlock bb = e.next();
+        bb.setExecutionFrequency(0f);
+        bb.clearScratchFlag();
       }
     }
 
@@ -153,9 +153,9 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
       if (bb.getExecutionFrequency() < threshold) {
         bb.setInfrequent();
-	container.counter1++;
+        container.counter1++;
       } else {
-	bb.clearInfrequent();
+        bb.clearInfrequent();
       }
       container.counter2++;
     }
@@ -208,46 +208,46 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       if (!n.loop.get(cur.getNumber())) continue; // node was not in the loop nest being processed.
       OPT_LSTNode other = lst.getLoop(cur);
       if (other != n) {
-	if (cur == other.header) {
-	  // loop header of nested loop
-	  numNodes -= other.loop.populationCount();
-	}
-	continue; // skip over nodes in nested loop.
+        if (cur == other.header) {
+          // loop header of nested loop
+          numNodes -= other.loop.populationCount();
+        }
+        continue; // skip over nodes in nested loop.
       }
 
       numNodes--;
       cur.setScratchFlag();
       float weight = cur.getExecutionFrequency();
       for (OPT_WeightedBranchTargets wbt = new OPT_WeightedBranchTargets(cur);
-	   wbt.hasMoreElements(); wbt.advance()) {
-	processEdge(n, cur, wbt.curBlock(), wbt.curWeight(), weight);
+           wbt.hasMoreElements(); wbt.advance()) {
+        processEdge(n, cur, wbt.curBlock(), wbt.curWeight(), weight);
       }
     }
   }
 
 
   private void processEdge(OPT_LSTNode n, 
-			   OPT_BasicBlock source, 
-			   OPT_BasicBlock target, 
-			   float prob, 
-			   float weight) {
+                           OPT_BasicBlock source, 
+                           OPT_BasicBlock target, 
+                           float prob, 
+                           float weight) {
     if (target.getScratchFlag()) return; // ignore backedge
     if (n.loop.get(target.getNumber())) {
       OPT_LSTNode other = lst.getLoop(target);
       if (other == n) {
-	target.augmentExecutionFrequency(prob * weight);
+        target.augmentExecutionFrequency(prob * weight);
       } else {
-	// header of nested loop; pass prob and weight through to targets of loop exits
-	// Algorithm: find the total loopExitWeight, then distribute prob and weight
-	//            in ratio to the exit weight for each exit.
-	//            Effectively we are treating the nested loop as an n-way branch to its loop exits.
-	float exitWeight = computeLoopExitWeight(other);
-	for (Iterator i = other.loopExits.iterator(); i.hasNext();) {
-	  OPT_LSTNode.Edge exit = (OPT_LSTNode.Edge)i.next();
-	  float myWeight = exit.source.getExecutionFrequency() * exit.probability;
-	  float myFraction = myWeight/exitWeight;
-	  processEdge(n, source, exit.target, prob * myFraction, weight);
-	}
+        // header of nested loop; pass prob and weight through to targets of loop exits
+        // Algorithm: find the total loopExitWeight, then distribute prob and weight
+        //            in ratio to the exit weight for each exit.
+        //            Effectively we are treating the nested loop as an n-way branch to its loop exits.
+        float exitWeight = computeLoopExitWeight(other);
+        for (Iterator i = other.loopExits.iterator(); i.hasNext();) {
+          OPT_LSTNode.Edge exit = (OPT_LSTNode.Edge)i.next();
+          float myWeight = exit.source.getExecutionFrequency() * exit.probability;
+          float myFraction = myWeight/exitWeight;
+          processEdge(n, source, exit.target, prob * myFraction, weight);
+        }
       }
     } else {
       n.addLoopExit(source, target, prob);
@@ -273,20 +273,20 @@ class OPT_EstimateBlockFrequencies extends OPT_CompilerPhase {
       OPT_BasicBlock cur = topOrder[idx];
       if (cur == null || cur.isExit()) continue; // ignore exit node.
       if (lst != null) {
-	OPT_LSTNode loop = lst.getLoop(cur);
-	if (loop != null && loop.header == cur) {
-	  cur.setExecutionFrequency(cur.getExecutionFrequency() * loop.loopMultiplier);
-	}
+        OPT_LSTNode loop = lst.getLoop(cur);
+        if (loop != null && loop.header == cur) {
+          cur.setExecutionFrequency(cur.getExecutionFrequency() * loop.loopMultiplier);
+        }
       }
       float weight = cur.getExecutionFrequency();
       cur.setScratchFlag();
 
       for (OPT_WeightedBranchTargets wbt = new OPT_WeightedBranchTargets(cur);
-	   wbt.hasMoreElements(); wbt.advance()) {
-	OPT_BasicBlock target = wbt.curBlock();
-	if (!target.getScratchFlag()) {
-	  target.augmentExecutionFrequency(wbt.curWeight() * weight);
-	}
+           wbt.hasMoreElements(); wbt.advance()) {
+        OPT_BasicBlock target = wbt.curBlock();
+        if (!target.getScratchFlag()) {
+          target.augmentExecutionFrequency(wbt.curWeight() * weight);
+        }
       }
     }
   }

@@ -11,7 +11,7 @@ package com.ibm.JikesRVM.OSR;
  */
 public class BC_ParamInitEnd extends OSR_PseudoBytecode {
   public byte[] getBytes() {
-	return initBytes(2, PSEUDO_ParamInitEnd);
+        return initBytes(2, PSEUDO_ParamInitEnd);
   }
 
   public int getSize() {
@@ -19,7 +19,7 @@ public class BC_ParamInitEnd extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-	return 0;
+        return 0;
   }
 
   public String toString() {

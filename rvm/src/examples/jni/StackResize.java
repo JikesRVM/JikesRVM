@@ -37,7 +37,7 @@ class StackResize
     boolean resizeDidNotOccur = expectNoResize(currentStackSize);
     if (resizeDidNotOccur==false) {
       if (verbose)
-	VM.sysWrite("> Unexpected stack resize with native frame present\n");
+        VM.sysWrite("> Unexpected stack resize with native frame present\n");
       return false;
     }
     return true;
@@ -83,11 +83,11 @@ class StackResize
       int currentStackSize = VM_Magic.getArrayLength(th.stack);
       boolean resizeOccurred = expectResize(currentStackSize);
       if (resizeOccurred) {
-	return true;
+        return true;
       } else {
-	if (verbose)
-	  VM.sysWrite("> Second stack resize did not occur\n");
-	return false;
+        if (verbose)
+          VM.sysWrite("> Second stack resize did not occur\n");
+        return false;
       }
     }
 
@@ -102,9 +102,9 @@ class StackResize
 
     if (args.length!=0) {
       if (args[0].equals("-quiet")) {
-	verbose = false;	
+        verbose = false;        
         // for verbose native, have to edit the flag in StackResize.c
-      } 	
+      }         
     }
 
     if (verbose)
@@ -116,7 +116,7 @@ class StackResize
     int currentStackSpace = VM_Magic.getArrayLength(th.stack);
     if (currentStackSpace>VM.STACK_SIZE_JNINATIVE) {
       if (verbose)
-	VM.sysWrite("StackResize:  normal stack size already exceeds native requirement, stack will not get resized.\n  Set up the system configuration for smaller normal stack:  VM_StackFrameLayoutConstants.java\n");
+        VM.sysWrite("StackResize:  normal stack size already exceeds native requirement, stack will not get resized.\n  Set up the system configuration for smaller normal stack:  VM_StackFrameLayoutConstants.java\n");
       VM.sysWrite("FAIL: StackResize\n");
     }
     

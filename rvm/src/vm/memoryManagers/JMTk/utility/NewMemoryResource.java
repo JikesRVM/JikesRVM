@@ -96,7 +96,7 @@ final class NewMemoryResource implements Constants, VM_Uninterruptible {
     if ((committed + pages) > pageBudget) {
       unlock();   // We cannot hold the lock across a GC point!
       if (VM_Interface.getPlan().poll(false)) 
-	return false;
+        return false;
       lock();
     }
     committed += pages;

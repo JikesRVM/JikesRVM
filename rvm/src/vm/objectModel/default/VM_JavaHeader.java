@@ -52,10 +52,10 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Derek Lieber
  */
 public final class VM_JavaHeader implements VM_JavaHeaderConstants, 
-					    VM_Uninterruptible 
-					    //-#if RVM_WITH_OPT_COMPILER
-					    ,OPT_Operators
-					    //-#endif
+                                            VM_Uninterruptible 
+                                            //-#if RVM_WITH_OPT_COMPILER
+                                            ,OPT_Operators
+                                            //-#endif
 {
 
   // TIB + STATUS + OTHER_HEADER_BYTES
@@ -63,12 +63,10 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   // SCALAR_HEADER + ARRAY LENGTH;
   private static final int ARRAY_HEADER_SIZE  = SCALAR_HEADER_SIZE + ARRAY_LENGTH_BYTES;
 
-  private static final int ARRAY_HEADER_SIZE_ALIGNED = VM_Memory.alignUp(ARRAY_HEADER_SIZE,BYTES_IN_ADDRESS);
-  
   private static final int STATUS_OFFSET  = JAVA_HEADER_OFFSET;
   private static final int TIB_OFFSET     = STATUS_OFFSET + STATUS_BYTES;
 
-  private static final int AVAILABLE_BITS_OFFSET = VM.LittleEndian ? (STATUS_OFFSET) : (STATUS_OFFSET + 3);
+  private static final int AVAILABLE_BITS_OFFSET = VM.LittleEndian ? (STATUS_OFFSET) : (STATUS_OFFSET + STATUS_BYTES-1);
 
   /*
    * Stuff for 10 bit header hash code in header
@@ -128,7 +126,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Set the TIB for an object.
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, 
-			    VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
+                            VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
     bootImage.setAddressWord(refOffset + TIB_OFFSET, tibAddr.toInt());
   }
 
@@ -136,10 +134,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Process the TIB field during copyingGC
    */
   public static void gcProcessTIB(VM_Address ref) {
-    MM_Interface.processPtrLocation(ref.add(TIB_OFFSET), false);
-  }
-  public static void gcProcessTIB(VM_Address ref, boolean root) {
-    MM_Interface.processPtrLocation(ref.add(TIB_OFFSET), root);
+    MM_Interface.processPtrLocation(ref.add(TIB_OFFSET));
   }
 
   /**
@@ -149,9 +144,15 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     int size = type.getInstanceSize();
     if (ADDRESS_BASED_HASHING) {
       int hashState = VM_Magic.getIntAtOffset(fromObj, STATUS_OFFSET) & HASH_STATE_MASK;
-      if (hashState != HASH_STATE_UNHASHED && !VM.BuildFor64Addr) {
-	size += HASHCODE_BYTES;
+      if (hashState != HASH_STATE_UNHASHED) {
+        size += HASHCODE_BYTES;
       }
+    }
+    // JMTK requires sizes to be multiples of BYTES_IN_ADDRESS
+    // Jikes RVM currently forces scalars to be multiples of
+    // BYTES_IN_INT. So in 64 bit mode have to do something extra here.
+    if (BYTES_IN_INT != BYTES_IN_ADDRESS) {
+      size = VM_Memory.alignUp(size, BYTES_IN_ADDRESS);
     }
     return size;
   }
@@ -160,15 +161,15 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * how many bytes are needed when the array object is copied by GC?
    */
   public static int bytesRequiredWhenCopied(Object fromObj, VM_Array type, int numElements) {
-    int headersize = VM_ObjectModel.computeArrayHeaderSize(type) ; 
-    int size = VM_Memory.alignUp(type.getInstanceSize(numElements) - headersize , BYTES_IN_ADDRESS); //align elmnts to right, assuming elmnts start aligned
+    // JMTk requires all sizes to be multiples of BYTES_IN_ADDRESS
+    int size = VM_Memory.alignUp(type.getInstanceSize(numElements), BYTES_IN_ADDRESS);
     if (ADDRESS_BASED_HASHING) {
       int hashState = VM_Magic.getIntAtOffset(fromObj, STATUS_OFFSET) & HASH_STATE_MASK;
       if (hashState != HASH_STATE_UNHASHED) {
-	headersize += HASHCODE_BYTES;
+        size += HASHCODE_BYTES;
       }
     }
-    return VM_Memory.alignUp(size+headersize,BYTES_IN_ADDRESS); //align header on left
+    return size;
   }
 
   /**
@@ -191,8 +192,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Copy a scalar to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj, 
-				  int numBytes, VM_Class type, 
-				  int availBitsWord) throws VM_PragmaInline {
+                                  int numBytes, VM_Class type, 
+                                  int availBitsWord) throws VM_PragmaInline {
     int objectEndOffset;
     int hashState = HASH_STATE_UNHASHED;
     if (ADDRESS_BASED_HASHING) hashState = availBitsWord & HASH_STATE_MASK;
@@ -222,19 +223,19 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Copy an array to the given raw storage address
    */
   public static Object moveObject(VM_Address toAddress, Object fromObj,
-				  int numBytes, VM_Array type,
-				  int availBitsWord) throws VM_PragmaInline {
-    int headersizeAligned; 
+                                  int numBytes, VM_Array type,
+                                  int availBitsWord) throws VM_PragmaInline {
+    int headersize; 
     int hashState = HASH_STATE_UNHASHED;
     if (ADDRESS_BASED_HASHING) hashState = availBitsWord & HASH_STATE_MASK;
     if (hashState == HASH_STATE_UNHASHED) {
-      headersizeAligned = ARRAY_HEADER_SIZE_ALIGNED; 
+      headersize = ARRAY_HEADER_SIZE; 
     } else {
-      headersizeAligned = VM_Memory.alignUp(ARRAY_HEADER_SIZE + HASHCODE_BYTES, BYTES_IN_ADDRESS);
+      headersize = ARRAY_HEADER_SIZE + HASHCODE_BYTES;
     }
-    VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(headersizeAligned);
+    VM_Address fromAddress = VM_Magic.objectAsAddress(fromObj).sub(headersize);
     VM_Memory.aligned32Copy(toAddress, fromAddress, numBytes); 
-    Object toObj = VM_Magic.addressAsObject(toAddress.add(headersizeAligned));
+    Object toObj = VM_Magic.addressAsObject(toAddress.add(headersize));
     if (hashState == HASH_STATE_HASHED) {
       int hashCode = VM_Magic.objectAsAddress(fromObj).toInt() >>> LOG_BYTES_IN_ADDRESS;  
       VM_Magic.setIntAtOffset(toObj, HASHCODE_ARRAY_OFFSET, hashCode);
@@ -252,31 +253,31 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   public static int getObjectHashCode(Object o) { 
     if (ADDRESS_BASED_HASHING) {
       if (MM_Interface.MOVES_OBJECTS) {
-	int hashState = VM_Magic.getIntAtOffset(o, STATUS_OFFSET) & HASH_STATE_MASK;
-	if (hashState == HASH_STATE_HASHED) {
-	  return VM_Magic.objectAsAddress(o).toInt() >>> LOG_BYTES_IN_ADDRESS;  
-	} else if (hashState == HASH_STATE_HASHED_AND_MOVED) {
-	  VM_Type t = VM_Magic.getObjectType(o);
-	  if (t.isArrayType()) {
-	    return VM_Magic.getIntAtOffset(o, HASHCODE_ARRAY_OFFSET);
-	  } else {
-	    return VM_Magic.getIntAtOffset(o, HASHCODE_SCALAR_OFFSET);
-	  }
-	} else {
-	  int tmp;
-	  do {
-	    tmp = VM_Magic.prepareInt(o, STATUS_OFFSET);
-	  } while (!VM_Magic.attemptInt(o, STATUS_OFFSET, tmp, tmp | HASH_STATE_HASHED));
-	  if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition1++;
-	  return getObjectHashCode(o);
-	}
+        int hashState = VM_Magic.getIntAtOffset(o, STATUS_OFFSET) & HASH_STATE_MASK;
+        if (hashState == HASH_STATE_HASHED) {
+          return VM_Magic.objectAsAddress(o).toInt() >>> LOG_BYTES_IN_ADDRESS;  
+        } else if (hashState == HASH_STATE_HASHED_AND_MOVED) {
+          VM_Type t = VM_Magic.getObjectType(o);
+          if (t.isArrayType()) {
+            return VM_Magic.getIntAtOffset(o, HASHCODE_ARRAY_OFFSET);
+          } else {
+            return VM_Magic.getIntAtOffset(o, HASHCODE_SCALAR_OFFSET);
+          }
+        } else {
+          int tmp;
+          do {
+            tmp = VM_Magic.prepareInt(o, STATUS_OFFSET);
+          } while (!VM_Magic.attemptInt(o, STATUS_OFFSET, tmp, tmp | HASH_STATE_HASHED));
+          if (VM_ObjectModel.HASH_STATS) VM_ObjectModel.hashTransition1++;
+          return getObjectHashCode(o);
+        }
       } else {
-	return VM_Magic.objectAsAddress(o).toInt() >>> LOG_BYTES_IN_ADDRESS;  
+        return VM_Magic.objectAsAddress(o).toInt() >>> LOG_BYTES_IN_ADDRESS;  
       }
     } else { // 10 bit hash code in status word
       int hashCode = (VM_Magic.getIntAtOffset(o, STATUS_OFFSET) & HASH_CODE_MASK) >> HASH_CODE_SHIFT;
       if (hashCode != 0) 
-	return hashCode; 
+        return hashCode; 
       return installHashCode(o);
     }
   }
@@ -291,9 +292,9 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     while (true) {
       int statusWord = VM_Magic.prepareInt(o, STATUS_OFFSET);
       if ((statusWord & HASH_CODE_MASK) != 0) // some other thread installed a hashcode
-	return (statusWord & HASH_CODE_MASK) >> HASH_CODE_SHIFT;
+        return (statusWord & HASH_CODE_MASK) >> HASH_CODE_SHIFT;
       if (VM_Magic.attemptInt(o, STATUS_OFFSET, statusWord, statusWord | hashCode))
-	return hashCode >> HASH_CODE_SHIFT;  // we installed the hash code
+        return hashCode >> HASH_CODE_SHIFT;  // we installed the hash code
     }
   }
 
@@ -349,8 +350,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   /**
    * Non-atomic read of word containing available bits
    */
-  public static int readAvailableBitsWord(Object o) {
-    return VM_Magic.getIntAtOffset(o, STATUS_OFFSET);
+  public static VM_Word readAvailableBitsWord(Object o) {
+    return VM_Magic.getWordAtOffset(o, STATUS_OFFSET);
   }
 
   /**
@@ -363,21 +364,20 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   /**
    * Non-atomic write of word containing available bits
    */
-  public static void writeAvailableBitsWord(Object o, int val) {
-    VM_Magic.setIntAtOffset(o, STATUS_OFFSET, val);
+  public static void writeAvailableBitsWord(Object o, VM_Word val) {
+    VM_Magic.setWordAtOffset(o, STATUS_OFFSET, val);
   }
 
   /**
-   * Non-atomic write of word containing available bits for a <b>boot
-   * image</b> object.
-   *
-   * @param bootImage The boot image interface.
-   * @param ref The object reference
-   * @param val The new status word
+   * Non-atomic write of word containing available bits
    */
   public static void writeAvailableBitsWord(BootImageInterface bootImage,
-					    int ref, int val) throws VM_PragmaInterruptible {
-    bootImage.setFullWord(ref + STATUS_OFFSET, val);
+                                            int ref, VM_Word val) throws VM_PragmaInterruptible {
+    //-#if RVM_FOR_32_ADDR
+    bootImage.setAddressWord(ref + STATUS_OFFSET, val.toInt());
+    //-#else
+    bootImage.setAddressWord(ref + STATUS_OFFSET, val.toLong());
+    //-#endif
   }
 
   /**
@@ -391,18 +391,22 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Return true if argument bit is 1, false if it is 0
    */
   public static boolean testAvailableBit(Object o, int idx) {
-    return ((1 << idx) & VM_Magic.getIntAtOffset(o, STATUS_OFFSET)) != 0;
+    VM_Word mask = VM_Word.fromIntSignExtend(1<<idx);
+    VM_Word status = VM_Magic.getWordAtOffset(o, STATUS_OFFSET);
+    return mask.and(status).NE(VM_Word.zero());
   }
 
   /**
    * Set argument bit to 1 if value is true, 0 if value is false
    */
   public static void setAvailableBit(Object o, int idx, boolean flag) {
-    int status = VM_Magic.getIntAtOffset(o, STATUS_OFFSET);
+    VM_Word status = VM_Magic.getWordAtOffset(o, STATUS_OFFSET);
     if (flag) {
-      VM_Magic.setIntAtOffset(o, STATUS_OFFSET, status | (1 << idx));
+      VM_Word mask = VM_Word.fromIntSignExtend(1<<idx);
+      VM_Magic.setWordAtOffset(o, STATUS_OFFSET, status.or(mask));
     } else {
-      VM_Magic.setIntAtOffset(o, STATUS_OFFSET, status & ~(1 << idx));
+      VM_Word mask = VM_Word.fromIntSignExtend(1<<idx).not();
+      VM_Magic.setWordAtOffset(o, STATUS_OFFSET, status.and(mask));
     }
   }
 
@@ -417,15 +421,16 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   /**
    * A prepare on the word containing the available bits
    */
-  public static int prepareAvailableBits(Object o) {
-    return VM_Magic.prepareInt(o, STATUS_OFFSET);
+  public static VM_Word prepareAvailableBits(Object o) {
+    return VM_Magic.prepareWord(o, STATUS_OFFSET);
   }
   
   /**
    * An attempt on the word containing the available bits
    */
-  public static boolean attemptAvailableBits(Object o, int oldVal, int newVal) {
-    return VM_Magic.attemptInt(o, STATUS_OFFSET, oldVal, newVal);
+  public static boolean attemptAvailableBits(Object o, VM_Word oldVal,
+                                             VM_Word newVal) {
+    return VM_Magic.attemptWord(o, STATUS_OFFSET, oldVal, newVal);
   }
   
   /**
@@ -459,6 +464,92 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   }
 
   /**
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Class.
+   * @param t VM_Class instance being created
+   */
+  public static int getAlignment(VM_Class t) {
+    return t.getAlignment();
+  }
+
+  /**
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Class.
+   * @param t VM_Class instance being copied
+   * @param obj the object being copied
+   */
+  public static int getAlignment(VM_Class t, Object obj) {
+    return t.getAlignment();
+  }
+
+  /**
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Array.
+   * @param t VM_Array instance being created
+   */
+  public static int getAlignment(VM_Array t) {
+    return t.getAlignment();
+  }
+
+  /**
+   * Return the desired aligment of the alignment point returned by
+   * getOffsetForAlignment in instances of the argument VM_Array.
+   * @param t VM_Array instance being copied
+   * @param obj the object being copied
+   */
+  public static int getAlignment(VM_Array t, Object obj) {
+    return t.getAlignment();
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object
+   * that must be aligned.
+   * @param t VM_Class instance being created
+   */
+  public static int getOffsetForAlignment(VM_Class t) {
+    return t.getInstanceSize(); // TIB is at the end
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object
+   * that must be aligned.
+   * @param t VM_Class instance being copied
+   * @param obj the object being copied
+   */
+  public static int getOffsetForAlignment(VM_Class t, VM_Address obj) {
+    // TIB is at end and HASHCODE (if present) is to right of TIB
+    return t.getInstanceSize();
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object that must
+   * be aligned.
+   * @param t VM_Array instance being created
+   */
+  public static int getOffsetForAlignment(VM_Array t) {
+    return ARRAY_HEADER_SIZE; // TIB is at end of header
+  }
+
+  /**
+   * Return the offset relative to physical beginning of object that must
+   * be aligned.
+   * @param t VM_Array instance being copied
+   * @param obj the object being copied
+   */
+  public static int getOffsetForAlignment(VM_Array t, VM_Address obj) {
+    if (ADDRESS_BASED_HASHING) {
+      int hashState = VM_Magic.getIntAtOffset(obj, STATUS_OFFSET) & HASH_STATE_MASK;
+      if (hashState == HASH_STATE_UNHASHED) {
+        return ARRAY_HEADER_SIZE;
+      } else {
+        return ARRAY_HEADER_SIZE + HASHCODE_BYTES;
+      }
+    } else {
+      return ARRAY_HEADER_SIZE;
+    }
+  }
+
+  /**
    * Perform any required initialization of the JAVA portion of the header.
    * @param ptr the raw storage to be initialized
    * @param tib the TIB of the instance being created
@@ -478,7 +569,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param size the number of bytes allocated by the GC system for this object.
    */
   public static int initializeScalarHeader(BootImageInterface bootImage,
-					   int ptr, Object[] tib, int size)
+                                           int ptr, Object[] tib, int size)
     throws VM_PragmaInterruptible {
     int ref = ptr + size;
 
@@ -488,17 +579,17 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
     if (false) {
       // must set barrier bit for bootimage objects
       if (ADDRESS_BASED_HASHING) {
-	bootImage.setFullWord(ref + STATUS_OFFSET, VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
+        bootImage.setFullWord(ref + STATUS_OFFSET, VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
       } else {
-	// Since the write barrier accesses the available bits bytes 
-	// non-atomically we also need to initialize the hash code
-	// to freeze the rest of the bits in the byte.
-	int hashCode;
-	do {
-	  hashCodeGenerator += (1 << HASH_CODE_SHIFT);
-	  hashCode = hashCodeGenerator & HASH_CODE_MASK;
-	} while (hashCode == 0);
-	bootImage.setFullWord(ref + STATUS_OFFSET, hashCode | VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
+        // Since the write barrier accesses the available bits bytes 
+        // non-atomically we also need to initialize the hash code
+        // to freeze the rest of the bits in the byte.
+        int hashCode;
+        do {
+          hashCodeGenerator += (1 << HASH_CODE_SHIFT);
+          hashCode = hashCodeGenerator & HASH_CODE_MASK;
+        } while (hashCode == 0);
+        bootImage.setFullWord(ref + STATUS_OFFSET, hashCode | VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
       }
     }
 
@@ -513,7 +604,7 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    */
   public static Object initializeArrayHeader(VM_Address ptr, Object[] tib, int size) {
     // (TIB and array length set by VM_ObjectModel)
-    Object ref = VM_Magic.addressAsObject(ptr.add(ARRAY_HEADER_SIZE_ALIGNED));
+    Object ref = VM_Magic.addressAsObject(ptr.add(ARRAY_HEADER_SIZE));
     return ref;
   }
 
@@ -525,25 +616,25 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param size the number of bytes allocated by the GC system for this object.
    */
   public static int initializeArrayHeader(BootImageInterface bootImage, int ptr, 
-					  Object[] tib, int size) throws VM_PragmaInterruptible {
-    int ref = ptr + ARRAY_HEADER_SIZE_ALIGNED;
+                                          Object[] tib, int size) throws VM_PragmaInterruptible {
+    int ref = ptr + ARRAY_HEADER_SIZE;
     // (TIB set by BootImageWriter2; array length set by VM_ObjectModel)
 
     //    if (MM_Interface.NEEDS_WRITE_BARRIER) {
     if (false) {
       // must set barrier bit for bootimage objects
       if (ADDRESS_BASED_HASHING) {
-	bootImage.setFullWord(ref + STATUS_OFFSET, VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
+        bootImage.setFullWord(ref + STATUS_OFFSET, VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
       } else {
-	// Since the write barrier accesses the available bits bytes 
-	// non-atomically we also need to initialize the hash code
-	// to freeze the rest of the bits in the byte.
-	int hashCode;
-	do {
-	  hashCodeGenerator += (1 << HASH_CODE_SHIFT);
-	  hashCode = hashCodeGenerator & HASH_CODE_MASK;
-	} while (hashCode == 0);
-	bootImage.setFullWord(ref + STATUS_OFFSET, hashCode | VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
+        // Since the write barrier accesses the available bits bytes 
+        // non-atomically we also need to initialize the hash code
+        // to freeze the rest of the bits in the byte.
+        int hashCode;
+        do {
+          hashCodeGenerator += (1 << HASH_CODE_SHIFT);
+          hashCode = hashCodeGenerator & HASH_CODE_MASK;
+        } while (hashCode == 0);
+        bootImage.setFullWord(ref + STATUS_OFFSET, hashCode | VM_AllocatorHeader.GC_BARRIER_BIT_MASK);
       }
     }
 

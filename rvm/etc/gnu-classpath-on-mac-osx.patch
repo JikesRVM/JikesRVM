@@ -1,0 +1,84 @@
+Patches to GNU Classpath 0.06 so that it works on Mac OSX.
+
+@author Chris Hoffman
+@date   3 October 2003
+
+$Id$
+
+
+diff -ur /exp/dodo/ali/home/naren/rvm-cvs-mos/classpath/classpath/native/fdlibm/ieeefp.h classpath/native/fdlibm/ieeefp.h
+--- /exp/dodo/ali/home/naren/rvm-cvs-mos/classpath/classpath/native/fdlibm/ieeefp.h	Fri Jan 10 11:49:15 2003
++++ classpath/native/fdlibm/ieeefp.h	Fri Oct  3 11:17:44 2003
+@@ -113,6 +113,11 @@
+ #endif
+ #endif
+ 
++#if (defined( __BIG_ENDIAN__) && defined( __APPLE__ ))
++#define __IEEE_BIG_ENDIAN
++#endif 
++
++
+ #ifdef __fr30__
+ #define __IEEE_BIG_ENDIAN
+ #endif
+diff -ur /exp/dodo/ali/home/naren/rvm-cvs-mos/classpath/classpath/native/jni/java-io/FileDescriptor.c classpath/native/jni/java-io/FileDescriptor.c
+--- /exp/dodo/ali/home/naren/rvm-cvs-mos/classpath/classpath/native/jni/java-io/FileDescriptor.c	Wed Jul 30 06:11:34 2003
++++ classpath/native/jni/java-io/FileDescriptor.c	Fri Oct  3 11:19:16 2003
+@@ -121,9 +121,9 @@
+   if ((*env)->ExceptionOccurred (env))                                  \
+     return;
+ 
+-  INIT_FIELD ("in", 0);
+-  INIT_FIELD ("out", 1);
+-  INIT_FIELD ("err", 2);
++  INIT_FIELD ("in", ((long long)0));
++  INIT_FIELD ("out", ((long long)1));
++  INIT_FIELD ("err", ((long long)2));
+ 
+ #undef INIT_FIELD
+ }
+@@ -174,6 +174,10 @@
+       permissions = TARGET_NATIVE_FILE_FILEPERMISSION_NORMAL;
+     }
+ 
++#ifndef O_SYNC
++#undef TARGET_NATIVE_FILE_FILEFLAG_SYNC
++#define TARGET_NATIVE_FILE_FILEFLAG_SYNC O_FSYNC
++#endif
+   if ((jflags & FILEDESCRIPTOR_FILEOPEN_FLAG_SYNC))
+     {
+       flags |= TARGET_NATIVE_FILE_FILEFLAG_SYNC;
+@@ -183,10 +187,12 @@
+     {
+       flags |= TARGET_NATIVE_FILE_FILEFLAG_DSYNC;
+     }
++
+ #ifdef O_BINARY
+   flags |= TARGET_NATIVE_FILE_FILEFLAG_BINARY;
+ #endif
+ 
++
+   TARGET_NATIVE_FILE_OPEN(filename,native_fd,flags,permissions,result);
+   (*env)->ReleaseStringUTFChars(env, name, filename);
+ 
+@@ -199,6 +205,7 @@
+       return TARGET_NATIVE_MATH_INT_INT64_CONST_MINUS_1;
+     }
+ 
++    
+   return CONVERT_INT_TO_JLONG(native_fd);
+ }
+ 
+diff -ur /exp/dodo/ali/home/naren/rvm-cvs-mos/classpath/classpath/native/target/generic/target_generic_network.h classpath/native/target/generic/target_generic_network.h
+--- /exp/dodo/ali/home/naren/rvm-cvs-mos/classpath/classpath/native/target/generic/target_generic_network.h	Tue Aug 19 05:07:19 2003
++++ classpath/native/target/generic/target_generic_network.h	Fri Oct  3 11:19:55 2003
+@@ -66,6 +66,9 @@
+ /***************************** Variables *******************************/
+ 
+ /****************************** Macros *********************************/
++#ifdef __MACH__
++typedef int    socklen_t;       
++#endif
+ 
+ /***********************************************************************\
+ * Name       : TARGET_NATIVE_NETWORK_IPADDRESS_BYTES_TO_INT

@@ -70,9 +70,9 @@ final class OPT_GVCongruenceClass {
   public void addVertex (OPT_ValueGraphVertex v) {
     if (vertices.add(v)) {
       if (v.representsParameter())
-	nParameter++;
+        nParameter++;
       if (representativeV == null)
-	representativeV = v;
+        representativeV = v;
     }
   }
 
@@ -83,10 +83,10 @@ final class OPT_GVCongruenceClass {
   public void removeVertex (OPT_ValueGraphVertex v) {
     if (vertices.remove(v)) {
       if (v.representsParameter())
-	nParameter--;
+        nParameter--;
       if (representativeV == v) {
-	// Try to find an alternate representative
-	representativeV = (OPT_ValueGraphVertex)vertices.iterator().next();
+        // Try to find an alternate representative
+        representativeV = (OPT_ValueGraphVertex)vertices.iterator().next();
       }
     }
     ;

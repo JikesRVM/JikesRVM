@@ -44,23 +44,23 @@ public final class VM_StackBrowser implements VM_Constants {
     VM_Address newIP = VM_Magic.getReturnAddress(prevFP);
 
     int cmid = VM_Magic.getCompiledMethodID(newFP);
-	
+        
     while (cmid == INVISIBLE_METHOD_ID) {
       prevFP = newFP;
       newFP = VM_Magic.getCallerFramePointer(newFP);
       if (newFP.EQ(STACKFRAME_SENTINEL_FP))
-	return false;
+        return false;
       newIP = VM_Magic.getReturnAddress(prevFP);
       cmid = VM_Magic.getCompiledMethodID(newFP);
     }
-	
+        
     if (set) {
       VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
       currentFramePointer = newFP;
       currentInstructionPointer = cm.getInstructionOffset(newIP);
       cm.set(this, currentInstructionPointer);
     }
-	
+        
     return true;
   }
 

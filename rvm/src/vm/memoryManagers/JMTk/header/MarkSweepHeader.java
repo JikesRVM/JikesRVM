@@ -46,7 +46,7 @@ public class MarkSweepHeader {
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeHeader(VM_Address ref, Object[] tib, int size,
-				      boolean isScalar)
+                                      boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue = VM_Interface.readAvailableBitsWord(VM_Magic.objectAsAddress(ref));
     int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);
@@ -62,7 +62,7 @@ public class MarkSweepHeader {
    * @param isScalar are we initializing a scalar (true) or array (false) object?
    */
   public static void initializeLOSHeader(VM_Address ref, Object[] tib, int size,
-					 boolean isScalar)
+                                         boolean isScalar)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     int oldValue = VM_Interface.readAvailableBitsWord(VM_Magic.objectAsAddress(ref));
     int newValue = (oldValue & ~GC_BITS_MASK) | Plan.getInitialHeaderValue(size);
@@ -81,7 +81,7 @@ public class MarkSweepHeader {
    * (false) object?
    */
   public static int getBootTimeAvailableBits(int ref, Object[] tib, int size,
-					     boolean isScalar, int status)
+                                             boolean isScalar, int status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return status; // nothing to do (no bytes of GC header)
   }

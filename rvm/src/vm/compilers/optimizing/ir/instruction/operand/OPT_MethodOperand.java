@@ -289,8 +289,8 @@ public final class OPT_MethodOperand extends OPT_Operand {
      if (op instanceof OPT_MethodOperand) {
        OPT_MethodOperand mop = (OPT_MethodOperand)op;
        return memRef == mop.memRef &&
-	 target == mop.target &&
-	 isPreciseTarget == mop.isPreciseTarget;
+         target == mop.target &&
+         isPreciseTarget == mop.isPreciseTarget;
      } else {
        return false;
      }

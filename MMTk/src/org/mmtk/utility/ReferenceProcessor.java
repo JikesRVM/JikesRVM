@@ -74,7 +74,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
 
   // Debug flags
 
-  private static final boolean  TRACE		                 = false;
+  private static final boolean  TRACE                            = false;
   private static final boolean  TRACE_DETAIL            = false;
 
   //-----------//
@@ -99,7 +99,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
     
     lock.acquire();
     VM_Interface.setNextReferenceAsAddress(VM_Magic.objectAsAddress(ref),
-					   waitingListHead);
+                                           waitingListHead);
     waitingListHead = VM_Magic.objectAsAddress(ref);
     countOnWaitingList += 1;    
     lock.release();
@@ -111,7 +111,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
      process them. If the reference is non-reachable, or it has been
      cleared, we no longer care about it. Otherwise, depending on the
      semantics of the type of reference, we may resurrect the referent
-     and/or enqueue the reference object on its ReferenceQueue.
+     and/or enqueue the reference object on its ReferenceDeque.
    */
   private int traverse(int semantics) throws VM_PragmaLogicallyUninterruptible {
 
@@ -210,7 +210,7 @@ public class ReferenceProcessor implements VM_Uninterruptible {
             // linked list of waiting references.
             if (!prevReference.isZero()) {
               VM_Interface.setNextReferenceAsAddress(prevReference, 
-						     newReference);
+                                                     newReference);
             }
             
             waiting += 1;
@@ -275,16 +275,16 @@ public class ReferenceProcessor implements VM_Uninterruptible {
 
 
   private static void makeAlive(VM_Address addr) {
-    Plan.traceObject(addr);    
+    Plan.makeAlive(addr);    
   }
 
+  // FIXME The following is never called.  Should it be?
   private static void makeDead (VM_Address addr) {
-    // no-op for mark-sweep or copying collectors
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
   }
   
   private static VM_Address getForwardingAddress(VM_Address addr) {
-    // TODO: use new routine in Plan!
-    return Plan.traceObject(addr);
+    return Plan.getForwardedReference(addr);
   }
 
   /** Set flag indicating if soft references referring to non-strongly

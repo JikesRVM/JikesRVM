@@ -295,65 +295,65 @@ public final class OPT_ConditionOperand extends OPT_Operand {
     if (v1.isAddressConstant()) {
       if (v2.isAddressConstant()) {
         return evaluate(v1.asAddressConstant().value, 
-			v2.asAddressConstant().value);
+                        v2.asAddressConstant().value);
       } else if (v2.isNullConstant()) {
-	return evaluate(v1.asAddressConstant().value, VM_Address.zero()); 
+        return evaluate(v1.asAddressConstant().value, VM_Address.zero()); 
       } else if (v2.isIntConstant()) {
-	return evaluate(v1.asAddressConstant().value.toInt(), 
-			v2.asIntConstant().value); 
+        return evaluate(v1.asAddressConstant().value.toInt(), 
+                        v2.asIntConstant().value); 
       }
     } else if (v1.isIntConstant()) {
       if (v2.isIntConstant()) {
         return evaluate(v1.asIntConstant().value, v2.asIntConstant().value);
       } else if (v2.isNullConstant()) {
-	return evaluate(v1.asIntConstant().value, 0); 
+        return evaluate(v1.asIntConstant().value, 0); 
       } else if (v2.isAddressConstant()) {
-	return evaluate(v1.asIntConstant().value,
-			v2.asAddressConstant().value.toInt());
+        return evaluate(v1.asIntConstant().value,
+                        v2.asAddressConstant().value.toInt());
       }
     } else if (v1.isLongConstant()) {
       if (v2.isLongConstant()) {
         return evaluate(v1.asLongConstant().value, 
-			v2.asLongConstant().value);
+                        v2.asLongConstant().value);
       } 
     } else if (v1.isFloatConstant()) {
       if (v2.isFloatConstant()) {
         return evaluate(v1.asFloatConstant().value, 
-			v2.asFloatConstant().value);
+                        v2.asFloatConstant().value);
       } 
     } else if (v1.isDoubleConstant()) {
       if (v2.isDoubleConstant()) {
         return evaluate(v1.asDoubleConstant().value, 
-			v2.asDoubleConstant().value);
+                        v2.asDoubleConstant().value);
       } 
     } else if (v1.isStringConstant()) {
       if (v2.isStringConstant()) {
-	if (isEQUAL()) {
+        if (isEQUAL()) {
           return (v1.asStringConstant().value == v2.asStringConstant().value) ? TRUE : FALSE;
-	} else if (isNOT_EQUAL()) {
+        } else if (isNOT_EQUAL()) {
           return (v1.asStringConstant().value != v2.asStringConstant().value) ? TRUE : FALSE;
-	}
+        }
       } else if (v2.isNullConstant() ||
-		 (v2.isIntConstant() && v2.asIntConstant().value == 0)) {
-	if (isEQUAL()) {
-	  return FALSE;
-	} else if (isNOT_EQUAL()) {
-	  return TRUE;
-	}
+                 (v2.isIntConstant() && v2.asIntConstant().value == 0)) {
+        if (isEQUAL()) {
+          return FALSE;
+        } else if (isNOT_EQUAL()) {
+          return TRUE;
+        }
       }
     } else if (v1.isNullConstant()) {
       if (v2.isNullConstant()) {
-	return evaluate(0, 0);
+        return evaluate(0, 0);
       } else if (v2.isIntConstant()) {
-	return evaluate(0, v2.asIntConstant().value);
+        return evaluate(0, v2.asIntConstant().value);
       } else if (v2.isAddressConstant()) {
-	return evaluate(VM_Address.zero(), v2.asAddressConstant().value);
+        return evaluate(VM_Address.zero(), v2.asAddressConstant().value);
       } else if (v2.isStringConstant()) {
-	if (isEQUAL()) {
-	  return FALSE;
-	} else if (isNOT_EQUAL()) {
-	  return TRUE;
-	}
+        if (isEQUAL()) {
+          return FALSE;
+        } else if (isNOT_EQUAL()) {
+          return TRUE;
+        }
       }
     }
     return UNKNOWN;

@@ -60,47 +60,47 @@ public abstract class VM_UTF8Convert {
     for (int i=0, n=utf8.length; i<n; ) {
       byte b = utf8[i++];
       if (STRICTLY_CHECK_FORMAT && !ALLOW_NORMAL_UTF8)
-	if (b == 0)
-	  throw new UTFDataFormatException("0 byte encountered at location "+(i-1));
+        if (b == 0)
+          throw new UTFDataFormatException("0 byte encountered at location "+(i-1));
       if (b >= 0) {  // < 0x80 unsigned
-	// in the range '\001' to '\177'
-	result[result_index++] = (char)b;
-	continue;
+        // in the range '\001' to '\177'
+        result[result_index++] = (char)b;
+        continue;
       }
       try {
-	byte nb = utf8[i++];
-	if (b < -32) {  // < 0xe0 unsigned
-	  // '\000' or in the range '\200' to '\u07FF'
-	  char c = result[result_index++] =
-	    (char)(((b & 0x1f) << 6) | (nb & 0x3f));
-	  if (STRICTLY_CHECK_FORMAT) {
-	    if (((b & 0xe0) != 0xc0) ||
-		((nb & 0xc0) != 0x80))
-	      throw new UTFDataFormatException("invalid marker bits for double byte char at location "+(i-2));
-	    if (c < '\200') {
-	      if (!ALLOW_PSEUDO_UTF8 || (c != '\000'))
-		throw new UTFDataFormatException("encountered double byte char that should have been single byte at location "+(i-2));
-	    } else if (c > '\u07FF')
-	      throw new UTFDataFormatException("encountered double byte char that should have been triple byte at location "+(i-2));
-	  }
-	} else {
-	  byte nnb = utf8[i++];
-	  // in the range '\u0800' to '\uFFFF'
-	  char c = result[result_index++] =
-	    (char)(((b & 0x0f) << 12) |
-		   ((nb & 0x3f) << 6) |
-		   (nnb & 0x3f));
-	  if (STRICTLY_CHECK_FORMAT) {
-	    if (((b & 0xf0) != 0xe0) ||
-		((nb & 0xc0) != 0x80) ||
-		((nnb & 0xc0) != 0x80))
-	      throw new UTFDataFormatException("invalid marker bits for triple byte char at location "+(i-3));
-	    if (c < '\u0800')
-	      throw new UTFDataFormatException("encountered triple byte char that should have been fewer bytes at location "+(i-3));
-	  }
-	}
+        byte nb = utf8[i++];
+        if (b < -32) {  // < 0xe0 unsigned
+          // '\000' or in the range '\200' to '\u07FF'
+          char c = result[result_index++] =
+            (char)(((b & 0x1f) << 6) | (nb & 0x3f));
+          if (STRICTLY_CHECK_FORMAT) {
+            if (((b & 0xe0) != 0xc0) ||
+                ((nb & 0xc0) != 0x80))
+              throw new UTFDataFormatException("invalid marker bits for double byte char at location "+(i-2));
+            if (c < '\200') {
+              if (!ALLOW_PSEUDO_UTF8 || (c != '\000'))
+                throw new UTFDataFormatException("encountered double byte char that should have been single byte at location "+(i-2));
+            } else if (c > '\u07FF')
+              throw new UTFDataFormatException("encountered double byte char that should have been triple byte at location "+(i-2));
+          }
+        } else {
+          byte nnb = utf8[i++];
+          // in the range '\u0800' to '\uFFFF'
+          char c = result[result_index++] =
+            (char)(((b & 0x0f) << 12) |
+                   ((nb & 0x3f) << 6) |
+                   (nnb & 0x3f));
+          if (STRICTLY_CHECK_FORMAT) {
+            if (((b & 0xf0) != 0xe0) ||
+                ((nb & 0xc0) != 0x80) ||
+                ((nnb & 0xc0) != 0x80))
+              throw new UTFDataFormatException("invalid marker bits for triple byte char at location "+(i-3));
+            if (c < '\u0800')
+              throw new UTFDataFormatException("encountered triple byte char that should have been fewer bytes at location "+(i-3));
+          }
+        }
       } catch (ArrayIndexOutOfBoundsException e) {
-	throw new UTFDataFormatException("unexpected end at location "+i);
+        throw new UTFDataFormatException("unexpected end at location "+i);
       }
     }
     return new String(result, 0, result_index);
@@ -123,14 +123,14 @@ public abstract class VM_UTF8Convert {
       // in all shifts below, c is an (unsigned) char,
       // so either >>> or >> is ok
       if (((!WRITE_PSEUDO_UTF8) || (c >= 0x0001)) && (c <= 0x007F))
-	result[result_index++] = (byte)c;
+        result[result_index++] = (byte)c;
       else if (c > 0x07FF) {
-	result[result_index++] = (byte)(0xe0 | (byte)(c >> 12));
-	result[result_index++] = (byte)(0x80 | ((c & 0xfc0) >> 6));
-	result[result_index++] = (byte)(0x80 | (c & 0x3f));
+        result[result_index++] = (byte)(0xe0 | (byte)(c >> 12));
+        result[result_index++] = (byte)(0x80 | ((c & 0xfc0) >> 6));
+        result[result_index++] = (byte)(0x80 | (c & 0x3f));
       } else {
-	result[result_index++] = (byte)(0xc0 | (byte)(c >> 6));
-	result[result_index++] = (byte)(0x80 | (c & 0x3f));
+        result[result_index++] = (byte)(0xc0 | (byte)(c >> 6));
+        result[result_index++] = (byte)(0x80 | (c & 0x3f));
       }
     }
     return result;
@@ -144,11 +144,11 @@ public abstract class VM_UTF8Convert {
     for (int i = 0, n = s.length(); i < n; ++i) {
       int c = s.charAt(i);
       if (((!WRITE_PSEUDO_UTF8) || (c >= 0x0001)) && (c <= 0x007F))
-	++utflen;
+        ++utflen;
       else if (c > 0x07FF)
-	utflen += 3;
+        utflen += 3;
       else
-	utflen += 2;
+        utflen += 2;
     }
     return utflen;
   }
@@ -163,39 +163,39 @@ public abstract class VM_UTF8Convert {
     for (int i=0, n=bytes.length; i<n; ) {
       byte b = bytes[i++];
       if (!ALLOW_NORMAL_UTF8)
-	if (b == 0) return false;
+        if (b == 0) return false;
       if (b >= 0) {  // < 0x80 unsigned
-	// in the range '\001' to '\177'
-	continue;
+        // in the range '\001' to '\177'
+        continue;
       }
       try {
-	byte nb = bytes[i++];
-	if (b < -32) {  // < 0xe0 unsigned
-	  // '\000' or in the range '\200' to '\u07FF'
-	  char c = (char)(((b & 0x1f) << 6) | (nb & 0x3f));
-	  if (((b & 0xe0) != 0xc0) ||
-	      ((nb & 0xc0) != 0x80))
-	    return false;
-	  if (c < '\200') {
-	    if (!ALLOW_PSEUDO_UTF8 || (c != '\000'))
-	      return false;
-	  } else if (c > '\u07FF')
-	    return false;
-	} else {
-	  byte nnb = bytes[i++];
-	  // in the range '\u0800' to '\uFFFF'
-	  char c = (char)(((b & 0x0f) << 12) |
-			  ((nb & 0x3f) << 6) |
-			  (nnb & 0x3f));
-	  if (((b & 0xf0) != 0xe0) ||
-	      ((nb & 0xc0) != 0x80) ||
-	      ((nnb & 0xc0) != 0x80))
-	    return false;
-	  if (c < '\u0800')
-	    return false;
-	}
+        byte nb = bytes[i++];
+        if (b < -32) {  // < 0xe0 unsigned
+          // '\000' or in the range '\200' to '\u07FF'
+          char c = (char)(((b & 0x1f) << 6) | (nb & 0x3f));
+          if (((b & 0xe0) != 0xc0) ||
+              ((nb & 0xc0) != 0x80))
+            return false;
+          if (c < '\200') {
+            if (!ALLOW_PSEUDO_UTF8 || (c != '\000'))
+              return false;
+          } else if (c > '\u07FF')
+            return false;
+        } else {
+          byte nnb = bytes[i++];
+          // in the range '\u0800' to '\uFFFF'
+          char c = (char)(((b & 0x0f) << 12) |
+                          ((nb & 0x3f) << 6) |
+                          (nnb & 0x3f));
+          if (((b & 0xf0) != 0xe0) ||
+              ((nb & 0xc0) != 0x80) ||
+              ((nnb & 0xc0) != 0x80))
+            return false;
+          if (c < '\u0800')
+            return false;
+        }
       } catch (ArrayIndexOutOfBoundsException e) {
-	return false;
+        return false;
       }
     }
     return true;

@@ -37,8 +37,8 @@ public final class HPM_counters
     boolean notZero = false;
     for (int i=0; i<=info.numberOfCounters; i++) {
       if (counters[i] > 0) {
-	notZero = true;
-	System.out.println(i+": "+info.short_name(i)+":"+format_long(counters[i]));
+        notZero = true;
+        System.out.println(i+": "+info.short_name(i)+":"+format_long(counters[i]));
       }
     }
     return notZero;
@@ -82,7 +82,7 @@ public final class HPM_counters
       constructed += value_.substring(start, start+3);
       start += 3;
       if (i<(segments-1)) {
-	constructed += ",";
+        constructed += ",";
       }
     }
     return constructed;

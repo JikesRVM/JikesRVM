@@ -66,7 +66,7 @@ public class CopyingHeader {
    * (false) object?
    */
   public static int getBootTimeAvailableBits(int ref, Object[] tib, int size,
-					     boolean isScalar, int status)
+                                             boolean isScalar, int status)
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return status; // nothing to do (no bytes of GC header)
   }
@@ -106,6 +106,13 @@ public class CopyingHeader {
    */
   static int getForwardingWord(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
     return VM_Interface.readAvailableBitsWord(base);
+  }
+
+  /**
+   * Non-atomic read of forwarding pointer
+   */
+  static VM_Address getForwardingPtr(VM_Address base) throws VM_PragmaUninterruptible, VM_PragmaInline {
+    return VM_Address.fromInt(VM_Interface.readAvailableBitsWord(base) & ~GC_FORWARDING_MASK);
   }
 
   /**

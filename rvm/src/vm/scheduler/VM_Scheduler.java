@@ -40,11 +40,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   // id 0 can be used in locking to represent an unheld lock
 
   /**
-   * Maximum number of VM_Processor's that we can support. In SMP builds
-   * the NativeDaemonProcessor takes one slot & the RVM can be run with
-   * 1 to MAX_PROCESSORS-1 processors
-   **/
-  public static final int MAX_PROCESSORS = 13;   // allow processors = 1 to 12
+   * Maximum number of VM_Processor's that we can support.
+   */
+  public static final int MAX_PROCESSORS = 12;   // allow processors = 1 to 12
 
   /** Maximum number of VM_Thread's that we can support. */
   public static final int LOG_MAX_THREADS = 14;
@@ -64,11 +62,17 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   public static VM_Processor[]       processors;        // list thereof (slot 0 always empty)
   public static boolean              allProcessorsInitialized; // have all completed initialization?
   public static boolean              terminated;        // VM is terminated, clean up and exit
-  public static int nativeDPndx;
 
   // Thread creation and deletion.
   //
   public static VM_Thread[]          threads;             // list of threads that have been created (slot 0 always empty)
+
+  //-#if RVM_WITH_HPM
+  // Hack, don't to any GC of thread slots!
+  // never forget about a thread for reporting.
+  public static VM_Thread[]      hpm_threads; 
+  //-#endif
+
   static int                  threadAllocationIndex; // place to start searching threads[] for next free slot
   static int                  numActiveThreads;    // number of threads running or waiting to run
   static int                  numDaemons;          // number of "daemon" threads, in the java sense
@@ -90,13 +94,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   public static VM_ThreadQueue       finalizerQueue;      // Finalizer thread waits here when idle
   public static VM_ProcessorLock     finalizerMutex;
 
-  public static VM_ProcessorQueue    nativeProcessorQueue;  // queue for VPs available for blocked native threads
-  public static VM_ProcessorLock     nativeProcessorMutex;
-
-  // JNI external thread service
-  public static VM_ThreadQueue       attachThreadQueue;   // thread waiting to service external thread attach
-  public static VM_ProcessorLock     attachThreadMutex;
-
   // Debugging output.
   //
   // DEPRECATED! use lockOutput() and unlock Output() instead
@@ -111,12 +108,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   // See also: RunBootImage.C
   //
   public static boolean debugRequested;
-
-  // Flag set by AttachCurrentThread (libjni.C) to request new Java thread
-  // and native VM_Processor for an external pthread
-  // A non-zero value stored here is a pointer to an integer array that 
-  // contains the necessary arguments
-  public static VM_Address attachThreadRequested;
 
   // Trace flags.
   //
@@ -141,7 +132,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * @param t      thread as an object to fool jikes at compile time.
    * @param value  valued used to determine which virtual processor to bind thread to.
    *               Use mod of value to compute processor id.
-   *		   Assume value > 0.
+   *               Assume value > 0.
    */
   static public void setProcessorAffinity(Object t, int value) 
   {
@@ -169,6 +160,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     threadCreationMutex     = new VM_ProcessorLock();
     outputMutex             = new VM_ProcessorLock();
     threads                 = new VM_Thread[MAX_THREADS];
+    //-#if RVM_WITH_HPM
+    hpm_threads             = new VM_Thread[MAX_THREADS];
+    //-#endif
     threadAllocationIndex   = PRIMORDIAL_THREAD_INDEX;
 
     // Enable us to dump a Java Stack from the C trap handler to aid in debugging things that 
@@ -178,9 +172,9 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     // allocate initial processor list
     //
     processors = new VM_Processor[2 + NUM_EXTRA_PROCS];  // first slot unused, then primordial, then extra
-    processors[PRIMORDIAL_PROCESSOR_ID] = new VM_Processor(PRIMORDIAL_PROCESSOR_ID, VM_Processor.RVM);
+    processors[PRIMORDIAL_PROCESSOR_ID] = new VM_Processor(PRIMORDIAL_PROCESSOR_ID);
     for (int i=1; i<=NUM_EXTRA_PROCS; i++)
-      processors[PRIMORDIAL_PROCESSOR_ID + i] = new VM_Processor(PRIMORDIAL_PROCESSOR_ID + i, VM_Processor.RVM);
+      processors[PRIMORDIAL_PROCESSOR_ID + i] = new VM_Processor(PRIMORDIAL_PROCESSOR_ID + i);
 
     // allocate lock structures
     //
@@ -203,39 +197,22 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     //
     VM_Processor primordialProcessor = processors[PRIMORDIAL_PROCESSOR_ID];
     VM_Processor [] origProcs = processors;
-    processors = new VM_Processor[1 + numProcessors + 1];  // first slot unused; then normal processors; then 1 ndp
+    processors = new VM_Processor[1 + numProcessors];
 
     for (int i = PRIMORDIAL_PROCESSOR_ID; i <= numProcessors; i++) {
-	VM_Processor p = (i < origProcs.length) ? origProcs[i] : null;
-	if (p == null) 
-	  processors[i] = new VM_Processor(i, VM_Processor.RVM);
-	else { 
-	  // XXXX setting of vpStatusAddress during JDK building of bootimage is not valid
-	  // so reset here...maybe change everything to just use index
-	  processors[i] = p;
-	  //-#if RVM_FOR_IA32
-	  p.jtoc = VM_Magic.getJTOC();  // only needed for EXTRA_PROCS
-	  //-#endif
-	  p.vpStatusAddress = VM_Magic.objectAsAddress(VM_Processor.vpStatus).add(p.vpStatusIndex<<LOG_BYTES_IN_INT);
-	}
+      VM_Processor p = (i < origProcs.length) ? origProcs[i] : null;
+      if (p == null) {
+        processors[i] = new VM_Processor(i);
+      } else { 
+        processors[i] = p;
+        //-#if RVM_FOR_IA32
+        p.jtoc = VM_Magic.getJTOC();  // only needed for EXTRA_PROCS
+        //-#endif
+      }
       //-#if RVM_WITH_HPM
       // boot virtual processor's HPM producer
       processors[i].hpm.boot();    
       //-#endif
-    }
-
-    // Create NativeDaemonProcessor as N+1st processor in the processors array.
-    // It is NOT included in "numProcessors" which is the index of the last RVM processor.
-    //
-    nativeDPndx = numProcessors + 1;		// the last entry in processors[]                                          
-    if (VM.BuildWithNativeDaemonProcessor) {
-      processors[nativeDPndx] = new VM_Processor(numProcessors + 1, VM_Processor.NATIVEDAEMON);
-      if (VM.TraceThreads)
-	trace("VM_Scheduler.boot","created nativeDaemonProcessor with id",nativeDPndx);
-    } else {
-      processors[nativeDPndx] = null;
-      if (VM.TraceThreads)
-	trace("VM_Scheduler.boot","NativeDaemonProcessor not created");
     }
 
     // Create work queues.
@@ -246,17 +223,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     debuggerQueue   = new VM_ThreadQueue();
     debuggerMutex   = new VM_ProcessorLock();
 
-    attachThreadQueue = new VM_ThreadQueue();
-    attachThreadMutex = new VM_ProcessorLock();
-
     collectorQueue  = new VM_ThreadQueue();
     collectorMutex  = new VM_ProcessorLock();
 
     finalizerQueue  = new VM_ThreadQueue();
     finalizerMutex  = new VM_ProcessorLock();
-
-    nativeProcessorQueue  = new VM_ProcessorQueue();
-    nativeProcessorMutex  = new VM_ProcessorLock();
 
     deadVPQueue     = new VM_ProcessorQueue();
     availableProcessorQueue     = new VM_ProcessorQueue();
@@ -270,17 +241,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       t.start(processors[1+i].idleQueue);
     }
 
-    if (VM.BuildWithNativeDaemonProcessor) {
-      // Create one idle thread for the NATIVEDAEMON processor
-      VM_Thread t = new VM_IdleThread(processors[nativeDPndx]);
-      t.start(processors[nativeDPndx].idleQueue);
-      // create the NativeDaemonThread that runs on the NativeDaemonProcessor
-      t = new VM_NativeDaemonThread(processors[nativeDPndx]);
-      t.start(processors[nativeDPndx].readyQueue);
-    }
-
     // JNI support
-    attachThreadRequested = VM_Address.zero();
     terminated = false;         
 
     // the one we're running on
@@ -301,10 +262,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     System.loadLibrary("syswrap");
     //-#endif
 
-    if (VM.BuildWithNativeDaemonProcessor)
-      VM_SysCall.sysInitializeStartupLocks( numProcessors + 1 );
-    else
-      VM_SysCall.sysInitializeStartupLocks( numProcessors );
+    VM_SysCall.sysInitializeStartupLocks(numProcessors);
 
     if (cpuAffinity != NO_CPU_AFFINITY)
       VM_SysCall.sysVirtualProcessorBind(cpuAffinity + PRIMORDIAL_PROCESSOR_ID - 1); // bind it to a physical cpu
@@ -312,7 +270,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       // create VM_Thread for virtual cpu to execute
       //
-      VM_Thread target = new VM_StartupThread(MM_Interface.newStack(STACK_SIZE_NORMAL>>2)); 
+      VM_Thread target = new VM_StartupThread(MM_Interface.newStack(STACK_SIZE_NORMAL, false));
 
       // create virtual cpu and wait for execution to enter target's code/stack.
       // this is done with gc disabled to ensure that garbage collector doesn't move
@@ -327,54 +285,25 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       target.registerThread(); // let scheduler know that thread is active.
       if (VM.BuildForPowerPC) {
         //-#if RVM_FOR_POWERPC
-	// NOTE: it is critical that we acquire the tocPointer explicitly
-	//       before we start the SysCall sequence. This prevents 
-	//       the opt compiler from generating code that passes the AIX 
-	//       sys toc instead of the RVM jtoc. --dave
-	VM_Address toc = VM_Magic.getTocPointer();
+        // NOTE: it is critical that we acquire the tocPointer explicitly
+        //       before we start the SysCall sequence. This prevents 
+        //       the opt compiler from generating code that passes the AIX 
+        //       sys toc instead of the RVM jtoc. --dave
+        VM_Address toc = VM_Magic.getTocPointer();
         VM_SysCall.sysVirtualProcessorCreate(toc,
-					     VM_Magic.objectAsAddress(processors[i]),
-					     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toAddress(),
-					     target.contextRegisters.getInnermostFramePointer());
+                                             VM_Magic.objectAsAddress(processors[i]),
+                                             target.contextRegisters.ip, 
+                                             target.contextRegisters.getInnermostFramePointer());
+        if (cpuAffinity != NO_CPU_AFFINITY)
+          VM_SysCall.sysVirtualProcessorBind(cpuAffinity + i - 1); // bind it to a physical cpu
         //-#endif
       } else if (VM.BuildForIA32) {
         VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-					     VM_Magic.objectAsAddress(processors[i]),
-					     target.contextRegisters.ip, 
-					     target.contextRegisters.getInnermostFramePointer());
+                                             VM_Magic.objectAsAddress(processors[i]),
+                                             target.contextRegisters.ip, 
+                                             target.contextRegisters.getInnermostFramePointer());
       }
 
-    }
-
-    if (VM.BuildWithNativeDaemonProcessor) {
-
-      VM_Thread target = new VM_StartupThread(MM_Interface.newStack(STACK_SIZE_NORMAL>>LOG_BYTES_IN_ADDRESS));
-
-      processors[nativeDPndx].activeThread = target;
-      processors[nativeDPndx].activeThreadStackLimit = target.stackLimit;
-      target.registerThread(); // let scheduler know that thread is active.
-      if (VM.TraceThreads)
-        trace("VM_Scheduler.boot", "starting native daemon processor id", nativeDPndx);
-      if (VM.BuildForPowerPC) {
-        //-#if RVM_FOR_POWERPC
-	// NOTE: it is critical that we acquire the tocPointer explicitly
-	//       before we start the SysCall sequence. This prevents 
-	//       the opt compiler from generating code that passes the AIX 
-	//       sys toc instead of the RVM jtoc. --dave
-	VM_Address toc = VM_Magic.getTocPointer();
-        VM_SysCall.sysVirtualProcessorCreate(toc,
-					     VM_Magic.objectAsAddress(processors[nativeDPndx]),
-					     target.contextRegisters.gprs.get(THREAD_ID_REGISTER).toAddress(),
-					     target.contextRegisters.getInnermostFramePointer());
-        //-#endif
-      } else if (VM.BuildForIA32) {
-        VM_SysCall.sysVirtualProcessorCreate(VM_Magic.getTocPointer(),
-					     VM_Magic.objectAsAddress(processors[nativeDPndx]),
-					     target.contextRegisters.ip,
-					     target.contextRegisters.getInnermostFramePointer());
-      }
-      if (VM.TraceThreads)
-        trace("VM_Scheduler.boot", "started native daemon processor id", nativeDPndx);
     }
 
     // wait for everybody to start up
@@ -393,12 +322,16 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     if (!VM.BuildForDeterministicThreadSwitching) {
       schedulingQuantum = VM.interruptQuantum * VM.schedulingMultiplier;
       if (VM.TraceThreads) {
-	VM.sysWrite("  schedulingQuantum "       +  schedulingQuantum);
-	VM.sysWrite(" = VM.interruptQuantum "    +VM.interruptQuantum);
-	VM.sysWrite(" * VM.schedulingMultiplier "+VM.schedulingMultiplier);
-	VM.sysWriteln();
+        VM.sysWrite("  schedulingQuantum "       +  schedulingQuantum);
+        VM.sysWrite(" = VM.interruptQuantum "    +VM.interruptQuantum);
+        VM.sysWrite(" * VM.schedulingMultiplier "+VM.schedulingMultiplier);
+        VM.sysWriteln();
       }
-      VM_SysCall.sysVirtualProcessorEnableTimeSlicing(schedulingQuantum);
+      if (VM.BuildFor64Addr) {
+        VM.sysWriteln("Warning: Time slicing disabled in 64 bit mode until more stuff is working");
+      } else {
+        VM_SysCall.sysVirtualProcessorEnableTimeSlicing(VM.interruptQuantum);
+      }
     }
 
     // Allow virtual cpus to commence feeding off the work queues.
@@ -419,12 +352,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     }
 
     // Start the G.C. system.
-
-    // Start collector thread for native daemon processor (if configured).
-    if (VM.BuildWithNativeDaemonProcessor) {
-      VM_Thread t = VM_CollectorThread.createActiveCollectorThread(processors[nativeDPndx]);
-      t.start(processors[nativeDPndx].readyQueue);
-    }
 
     // Create the FinalizerThread
     FinalizerThread tt = new FinalizerThread();
@@ -703,60 +630,60 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       } else {
         // normal java frame(s)
         VM_CompiledMethod compiledMethod    = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-	if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
-	  VM.sysWrite("   <hardware trap>\n");
-	} else {
-	  VM_Method method            = compiledMethod.getMethod();
-	  int       instructionOffset = compiledMethod.getInstructionOffset(ip);
-	  int       lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset);
-	  
-	  //-#if RVM_WITH_OPT_COMPILER
-	  if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
-	    VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
-	    // Opt stack frames may contain multiple inlined methods.
-	    VM_OptMachineCodeMap map = optInfo.getMCMap();
-	    int iei = map.getInlineEncodingForMCOffset(instructionOffset);
-	    if (iei >= 0) {
-	      int[] inlineEncoding = map.inlineEncoding;
-	      int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
-	      for (int j = iei; j >= 0; j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
-		int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-		method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
-		lineNumber = ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
-		VM.sysWrite("   ");
-		VM.sysWrite(method.getDeclaringClass().getDescriptor());
-		VM.sysWrite(" ");
-		VM.sysWrite(method.getName());
-		VM.sysWrite(method.getDescriptor());
-		VM.sysWrite(" at line ");
-		VM.sysWriteInt(lineNumber);
-		VM.sysWrite("\n");
-		if (j > 0) 
-		  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
-	      }
-	    } else {
-	      VM.sysWrite("   Unknown location in opt compiled method ");
-	      VM.sysWrite(method.getDeclaringClass().getDescriptor());
-	      VM.sysWrite(" ");
-	      VM.sysWrite(method.getName());
-	      VM.sysWrite(method.getDescriptor());
-	      VM.sysWrite("\n");
-	    }
-	    ip = VM_Magic.getReturnAddress(fp);
-	    fp = VM_Magic.getCallerFramePointer(fp);
-	    continue; // done printing this stack frame
-	  } 
-	  //-#endif
+        if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
+          VM.sysWrite("   <hardware trap>\n");
+        } else {
+          VM_Method method            = compiledMethod.getMethod();
+          int       instructionOffset = compiledMethod.getInstructionOffset(ip);
+          int       lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset);
+          
+          //-#if RVM_WITH_OPT_COMPILER
+          if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
+            VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
+            // Opt stack frames may contain multiple inlined methods.
+            VM_OptMachineCodeMap map = optInfo.getMCMap();
+            int iei = map.getInlineEncodingForMCOffset(instructionOffset);
+            if (iei >= 0) {
+              int[] inlineEncoding = map.inlineEncoding;
+              int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
+              for (int j = iei; j >= 0; j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
+                int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
+                method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
+                lineNumber = ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
+                VM.sysWrite("   ");
+                VM.sysWrite(method.getDeclaringClass().getDescriptor());
+                VM.sysWrite(" ");
+                VM.sysWrite(method.getName());
+                VM.sysWrite(method.getDescriptor());
+                VM.sysWrite(" at line ");
+                VM.sysWriteInt(lineNumber);
+                VM.sysWrite("\n");
+                if (j > 0) 
+                  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
+              }
+            } else {
+              VM.sysWrite("   Unknown location in opt compiled method ");
+              VM.sysWrite(method.getDeclaringClass().getDescriptor());
+              VM.sysWrite(" ");
+              VM.sysWrite(method.getName());
+              VM.sysWrite(method.getDescriptor());
+              VM.sysWrite("\n");
+            }
+            ip = VM_Magic.getReturnAddress(fp);
+            fp = VM_Magic.getCallerFramePointer(fp);
+            continue; // done printing this stack frame
+          } 
+          //-#endif
 
-	  VM.sysWrite("   ");
-	  VM.sysWrite(method.getDeclaringClass().getDescriptor());
-	  VM.sysWrite(" ");
-	  VM.sysWrite(method.getName());
-	  VM.sysWrite(method.getDescriptor());
-	  VM.sysWrite(" at line ");
-	  VM.sysWriteInt(lineNumber);
-	  VM.sysWrite("\n");
-	}
+          VM.sysWrite("   ");
+          VM.sysWrite(method.getDeclaringClass().getDescriptor());
+          VM.sysWrite(" ");
+          VM.sysWrite(method.getName());
+          VM.sysWrite(method.getDescriptor());
+          VM.sysWrite(" at line ");
+          VM.sysWriteInt(lineNumber);
+          VM.sysWrite("\n");
+        }
       }
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
@@ -798,36 +725,19 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
       processor.dumpProcessorState();
     }
 
-    if (VM.BuildWithNativeDaemonProcessor) {
-      VM.sysWrite("\n-- NativeDaemonProcessor --\n");
-      processors[nativeDPndx].dumpProcessorState();
-    }
-
-    VM.sysWrite("\n-- Native Processors --\n");
-    for (int i = 1; i <= VM_Processor.numberNativeProcessors;i++) {
-      processor =  VM_Processor.nativeProcessors[i];
-      if (processor == null) {
-        VM.sysWrite(" NULL processor for nativeProcessors entry = ");
-        VM.sysWriteInt(i); 
-        continue;
-      }
-      processor.dumpProcessorState();
-    }
-
-    // system queues	
+    // system queues    
     VM.sysWrite("\n-- System Queues -- \n");   wakeupQueue.dump();
     VM.sysWrite(" wakeupQueue: ");   wakeupQueue.dump();
     VM.sysWrite(" debuggerQueue: "); debuggerQueue.dump();
     VM.sysWrite(" deadVPQueue: ");     deadVPQueue.dump();
     VM.sysWrite(" collectorQueue: ");   collectorQueue.dump();
     VM.sysWrite(" finalizerQueue: ");   finalizerQueue.dump();
-    VM.sysWrite(" nativeProcessorQueue: ");   nativeProcessorQueue.dump();
 
     VM.sysWrite("\n-- Threads --\n");
     for (int i = 1; i < threads.length; ++i) {
       if (threads[i] != null) {
-	threads[i].dump();
-	VM.sysWrite("\n");
+        threads[i].dump();
+        VM.sysWrite("\n");
       }
     }
     VM.sysWrite("\n");
@@ -847,7 +757,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     VM.sysWrite("\n-- Locks in use --\n");
     for (int i = 0; i < locks.length; ++i)
       if (locks[i] != null)
-	locks[i].dump();
+        locks[i].dump();
     VM.sysWrite("\n");
   }
 

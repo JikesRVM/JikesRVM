@@ -3,9 +3,9 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
-import com.ibm.JikesRVM.PrintContainer;	/* This import statement isn't
-				     necessary, but is here for documentation
-				     purposes. --S. Augart */ 
+import com.ibm.JikesRVM.PrintContainer; /* This import statement isn't
+                                     necessary, but is here for documentation
+                                     purposes. --S. Augart */ 
 import com.ibm.JikesRVM.classloader.VM_Member;
 import com.ibm.JikesRVM.classloader.VM_Atom;
 import com.ibm.JikesRVM.classloader.VM_Class;
@@ -22,8 +22,11 @@ import java.io.PrintStream;
 public abstract class PrintLN {
   //  PrintLN(PrintWriter out);
   //  PrintLN(PrintStream out);
-  public boolean isVMSysWriteln() { return false; };
-  public boolean isSystemErr() { return false; };
+  public boolean isSysWrite() { return false; }
+  // Transitional method; will go away RSN
+  /** @deprecated superseded by <code>isSysWrite()</code> */
+  public boolean isVMSysWriteln() { return isSysWrite(); }
+  public boolean isSystemErr() { return false; }
   public abstract void flush();
   
   public abstract void println();
@@ -57,7 +60,7 @@ public abstract class PrintLN {
       int digit = n / p;
       n -= digit * p;
       if (digit == 0 && suppress_leading_zero)
-	continue;
+        continue;
       suppress_leading_zero = false;
       char c = (char) ('0' + digit);
       print(c);
@@ -68,24 +71,32 @@ public abstract class PrintLN {
     print("0x");
     // print exactly 8 hexadec. digits.
     for (int i = 32 - 4; i >= 0; i -= 4) {
-      int digit = (n >>> i) & 0x0000000F;		// fill with 0 bits.
+      int digit = (n >>> i) & 0x0000000F;               // fill with 0 bits.
       char c;
 
       if (digit <= 9) {
-	c = (char) ('0' + digit);
+        c = (char) ('0' + digit);
       } else {
-	c = (char) ('A' + (digit - 10));
+        c = (char) ('A' + (digit - 10));
       }
       print(c);
     }
   }
 
   public abstract void print(char c);
-  /* Code related to VM_Atom.classNameFromDescriptor() */
-  public void print(VM_Class class_) {
 
-    // getDescriptor() does no allocation.
-    VM_Atom descriptor = class_.getDescriptor(); 
+//   /** Print the name of the class to which the argument belongs.
+//    * 
+//    * @param o Print the name of the class to which o belongs. */
+//   public void printClassName(Object o) {
+    
+//   }
+
+  /** Print the name of the class represented by the class descriptor.
+   * 
+   * @param d The class descriptor whose name we'll print. */
+  public void printClassName(VM_Atom descriptor) {
+    // toByteArray does not allocate; just returns an existing descriptor.
     byte[] val = descriptor.toByteArray();
 
     if (VM.VerifyAssertions) 
@@ -93,21 +104,28 @@ public abstract class PrintLN {
     for (int i = 1; i < val.length - 1; ++i) {
       char c = (char) val[i];
       if (c == '/')
-	print('.');
+        print('.');
       else
-	print(c);
+        print(c);
     }
     // We could do this in an emergency.  But we don't need to.
     // print(descriptor);
+  }
+
+  /* Code related to VM_Atom.classNameFromDescriptor() */
+  public void print(VM_Class class_) {
+    // getDescriptor() does no allocation.
+    VM_Atom descriptor = class_.getDescriptor(); 
+    printClassName(descriptor);
   }
 
     // A kludgy alternative:
 //     public void print(VM_Class c) {
 //       VM_Atom descriptor = c.getDescriptor();
 //       try {
-// 	print(descriptor.classNameFromDescriptor());
+//      print(descriptor.classNameFromDescriptor());
 //       } catch(OutOfMemoryError e) {
-// 	print(descriptor);
+//      print(descriptor);
 //       }
 //     }
 

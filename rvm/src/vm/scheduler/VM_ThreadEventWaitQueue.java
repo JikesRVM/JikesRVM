@@ -96,31 +96,31 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
 
       // Allow subclass to check for events
       if (!pollForEvents()) 
-	return false; // possibly transient error; try again later
+        return false; // possibly transient error; try again later
 
       VM_Thread thread = head;
       long currentCycle = VM_Time.cycles(); 
 
       // See if any threads have become ready to run
       while (thread != null) {
-	VM_ThreadEventWaitData waitData = thread.waitData;
-	long maxWaitCycle = waitData.maxWaitCycle;
+        VM_ThreadEventWaitData waitData = thread.waitData;
+        long maxWaitCycle = waitData.maxWaitCycle;
 
-	if (maxWaitCycle > 0 && maxWaitCycle < currentCycle) {
-	  // Wait timed out
-	  waitData.waitFlags = WAIT_FINISHED | WAIT_TIMEOUT;
-	  ++ready;
-	} else if (isReady(thread)) { 
-	  // Subclass has decided that the thread is ready to schedule;
-	  // it should have updated waitFlags appropriately
-	  if (VM.VerifyAssertions)
-	    VM._assert((waitData.waitFlags & WAIT_FINISHED) != 0); 
-	  ++ready;
-	} else {
-	  waitData.waitFlags &= ~(WAIT_FINISHED);
-	}
+        if (maxWaitCycle > 0 && maxWaitCycle < currentCycle) {
+          // Wait timed out
+          waitData.waitFlags = WAIT_FINISHED | WAIT_TIMEOUT;
+          ++ready;
+        } else if (isReady(thread)) { 
+          // Subclass has decided that the thread is ready to schedule;
+          // it should have updated waitFlags appropriately
+          if (VM.VerifyAssertions)
+            VM._assert((waitData.waitFlags & WAIT_FINISHED) != 0); 
+          ++ready;
+        } else {
+          waitData.waitFlags &= ~(WAIT_FINISHED);
+        }
 
-	thread = thread.next;
+        thread = thread.next;
       }
     }
 
@@ -151,7 +151,7 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
   public void enqueue(VM_Thread thread) {
     if (VM.VerifyAssertions) {
       VM._assert(thread.waitData.waitFlags == WAIT_PENDING ||
-			  thread.waitData.waitFlags == WAIT_NATIVE); 
+                          thread.waitData.waitFlags == WAIT_NATIVE); 
       VM._assert(thread.next == null); 
     }
 
@@ -179,7 +179,7 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
     while (thread != null) {
       VM_ThreadEventWaitData waitData = thread.waitData;
       if ((waitData.waitFlags & WAIT_FINISHED) != 0)
-	break;
+        break;
       prev = thread;
       thread = thread.next;
     }
@@ -187,11 +187,11 @@ abstract class VM_ThreadEventWaitQueue extends VM_AbstractThreadQueue
     // If we found one, take it off the queue
     if (thread != null) {
       if (prev == null)
-	head = thread.next;
+        head = thread.next;
       else
-	prev.next = thread.next;
+        prev.next = thread.next;
       if (tail == thread)
-	tail = prev;
+        tail = prev;
       thread.next = null;
          
       --length;

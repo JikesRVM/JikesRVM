@@ -112,29 +112,29 @@ public class TraceCounterRecord extends TraceRecord
     System.out.print(" ST "+start_thread_time+" RT "+counters[0]);
     if (TraceFileReader.options.event_mask == CommandLineOptions.UNINITIALIZED) {
       for(int i=1; i<=n_counters; i++) {
-	System.out.print(" "+i+": "+counters[i]);
+        System.out.print(" "+i+": "+counters[i]);
       }
     } else {
       for(int i=1; i<=n_counters; i++) {
-	int mask = TraceFileReader.options.event_mask_array[i];
-	if ((mask & TraceFileReader.options.event_mask) == mask) {
-	  if (counters[i] > 0) notZero = true;
-	  System.out.print(" "+i+": "+counters[i]);
-	}
+        int mask = TraceFileReader.options.event_mask_array[i];
+        if ((mask & TraceFileReader.options.event_mask) == mask) {
+          if (counters[i] > 0) notZero = true;
+          System.out.print(" "+i+": "+counters[i]);
+        }
       }
     }
     if ((TraceFileReader.options.event_mask & CALLER_MID) == CALLER_MID) {
       if (TraceFileReader.options.print_fullname) {
-	System.out.print(" "+caller_MID+" "+TraceHeader.getFullMIDName(caller_MID));
+        System.out.print(" "+caller_MID+" "+TraceHeader.getFullMIDName(caller_MID));
       } else {
-	System.out.print(" "+caller_MID);
+        System.out.print(" "+caller_MID);
       }
     } 
     if ((TraceFileReader.options.event_mask & CALLEE_MID) == CALLEE_MID) {
       if (TraceFileReader.options.print_fullname) {
-	System.out.print(" "+callee_MID+" "+TraceHeader.getFullMIDName(callee_MID));
+        System.out.print(" "+callee_MID+" "+TraceHeader.getFullMIDName(callee_MID));
       } else {
-	System.out.print(" "+callee_MID);
+        System.out.print(" "+callee_MID);
       }
     } 
     if (TraceFileReader.options.group_index == CommandLineOptions.P4_LSU_BUSY) {
@@ -159,10 +159,10 @@ public class TraceCounterRecord extends TraceRecord
     for (int i=0; i<=n_counters; i++) {
       int mask = TraceFileReader.options.event_mask_array[i];
       if ((mask & TraceFileReader.options.event_mask) == mask) {
-	if (counters[i] > 0) {
-	  notZero = true;
-	  System.out.println(i+":"+trace_header.short_event_name(i)+": "+Utilities.format_long(counters[i]));
-	}
+        if (counters[i] > 0) {
+          notZero = true;
+          System.out.println(i+":"+trace_header.short_event_name(i)+": "+Utilities.format_long(counters[i]));
+        }
       }
     }
     return notZero;
@@ -191,7 +191,7 @@ public class TraceCounterRecord extends TraceRecord
   {
     //    System.out.println("TraceCounterRecord.printP4Performance("+group_index+")");
     double value = 0; double value1 = 0;
-    if (group_index == CommandLineOptions.P4_SLICE0) {			//  group  0
+    if (group_index == CommandLineOptions.P4_SLICE0) {                  //  group  0
       // instructions per group = instructions / group_completed
       value  =  counters[4] / (double)counters[7];
       value1 = (counters[7] / (double)counters[4])*100.0;
@@ -213,7 +213,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print(  "  1PLUS_PPC_CMPL "+Utilities.threeDigitDouble(value));
       System.out.print(  "("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_BASIC) {		//  group  2
+    } else if (group_index == CommandLineOptions.P4_BASIC) {            //  group  2
       // speculative instructions = dispatched / completed
       value   =  (counters[6] / (double)counters[5])*100.0;
       value1  =  (counters[5] / (double)counters[6]);
@@ -245,7 +245,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print(  "  DC_INV_L2 "+Utilities.threeDigitDouble(value));
       System.out.print(  "("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_IFU) {		//  group  3
+    } else if (group_index == CommandLineOptions.P4_IFU) {              //  group  3
       // instructions per branch = instructions completed / branches issued
       value  = (counters[1] / (double)counters[3]);
       value1 = (counters[3] / (double)counters[1])*100.0;
@@ -283,7 +283,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print(  "  INST_per_BB "+Utilities.threeDigitDouble(value));
       System.out.print(  "("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_ISU) {		//  group  4
+    } else if (group_index == CommandLineOptions.P4_ISU) {              //  group  4
       // FPR mapper full = cycles / fpr map full
       value   =   counters[7] / (double)counters[1];
       value1  =  (counters[1] / (double)counters[7])*100.0;
@@ -315,10 +315,10 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print(  "  FXLS_FULL "+Utilities.threeDigitDouble(value));
       System.out.print(  "("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_LSOURCE) {		//  group  5
+    } else if (group_index == CommandLineOptions.P4_LSOURCE) {          //  group  5
       // computed cycles
       double cycles = counters[1] + counters[2] + counters[3] + counters[4] + 
-	counters[5] + counters[6] + counters[7] + counters[8];
+        counters[5] + counters[6] + counters[7] + counters[8];
       System.out.print(  "  INST "+Utilities.threeDigitDouble(cycles));
       // DATA FROM mem
       value  =  cycles      / (double)counters[2];
@@ -342,45 +342,45 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
       // DATA FROM L25_SHR
       if (counters[5] != 0) {
-	value  =  cycles      / (double)counters[5];
-	value1 = (counters[5] / (double)cycles)*100;
-	System.out.print(  "  DATA_FROM_L25_SHR "+Utilities.threeDigitDouble(value));
-	System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
+        value  =  cycles      / (double)counters[5];
+        value1 = (counters[5] / (double)cycles)*100;
+        System.out.print(  "  DATA_FROM_L25_SHR "+Utilities.threeDigitDouble(value));
+        System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
       } else {
-	System.out.print(  "  DATA_FROM_L25_SHR 0(0%)");
+        System.out.print(  "  DATA_FROM_L25_SHR 0(0%)");
       }
       // DATA FROM L25_MOD
       if (counters[8] != 0) {
-	value  =  cycles      / (double)counters[8];
-	value1 = (counters[8] / (double)cycles)*100;
-	System.out.print(  "  DATA_FROM_L25_MOD "+Utilities.threeDigitDouble(value));
-	System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
+        value  =  cycles      / (double)counters[8];
+        value1 = (counters[8] / (double)cycles)*100;
+        System.out.print(  "  DATA_FROM_L25_MOD "+Utilities.threeDigitDouble(value));
+        System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
       } else {
-	System.out.print(  "  DATA_FROM_L25_MOD 0(0%)");
+        System.out.print(  "  DATA_FROM_L25_MOD 0(0%)");
       }
       // DATA FROM L275_SHR
       if (counters[6] != 0) {
-	value  =  cycles      / (double)counters[6];
-	value1 = (counters[6] / (double)cycles)*100;
-	System.out.print(  "  DATA_FROM_L275_SHR "+Utilities.threeDigitDouble(value));
-	System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
+        value  =  cycles      / (double)counters[6];
+        value1 = (counters[6] / (double)cycles)*100;
+        System.out.print(  "  DATA_FROM_L275_SHR "+Utilities.threeDigitDouble(value));
+        System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
       } else {
-	System.out.print(  "  DATA_FROM_L275_SHR 0(0%)");
+        System.out.print(  "  DATA_FROM_L275_SHR 0(0%)");
       }
       // DATA FROM L275_MOD
       if (counters[7] != 0) {
-	value  =  cycles      / (double)counters[7];
-	value1 = (counters[7] / (double)cycles)*100;
-	System.out.print(  "  DATA_FROM_L275_MOD "+Utilities.threeDigitDouble(value));
-	System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
+        value  =  cycles      / (double)counters[7];
+        value1 = (counters[7] / (double)cycles)*100;
+        System.out.print(  "  DATA_FROM_L275_MOD "+Utilities.threeDigitDouble(value));
+        System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
       } else {
-	System.out.print(  "  DATA_FROM_L275_MOD 0(0%)");
+        System.out.print(  "  DATA_FROM_L275_MOD 0(0%)");
       }
 
-    } else if (group_index == CommandLineOptions.P4_ISOURCE) {		//  group  6
+    } else if (group_index == CommandLineOptions.P4_ISOURCE) {          //  group  6
       // computed cycles
       double cycles = counters[1] + counters[2] + counters[3] + counters[4] + 
-	counters[5] + counters[6] + counters[7] + counters[8];
+        counters[5] + counters[6] + counters[7] + counters[8];
       System.out.print(  "   INST "+Utilities.threeDigitDouble(cycles));
       // instructions from mem
       value  =  cycles      / (double)counters[1];
@@ -394,12 +394,12 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
       // instructions from L35
       if (counters[4] != 0) {
-	value  =  cycles      / (double)counters[4];
-	value1 = (counters[4] / (double)cycles)*100;
-	System.out.print(  "  INST_FROM_L35 "+Utilities.threeDigitDouble(value));
-	System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
+        value  =  cycles      / (double)counters[4];
+        value1 = (counters[4] / (double)cycles)*100;
+        System.out.print(  "  INST_FROM_L35 "+Utilities.threeDigitDouble(value));
+        System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
       } else {
-	System.out.print(  "  INST_FROM_L35 0(0%)");
+        System.out.print(  "  INST_FROM_L35 0(0%)");
       }
       // instructions from L2
       value  =  cycles      / counters[3];
@@ -408,12 +408,12 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
       // instructions from L25_SHR
       if (counters[2] != 0) {
-	value  =  cycles      / counters[2];
-	value1 = (counters[2] / (double)cycles)*100;
-	System.out.print(  "  INST_FROM_L25_L275 "+Utilities.threeDigitDouble(value));
-	System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
+        value  =  cycles      / counters[2];
+        value1 = (counters[2] / (double)cycles)*100;
+        System.out.print(  "  INST_FROM_L25_L275 "+Utilities.threeDigitDouble(value));
+        System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
       } else {
-	System.out.print(  "  INST_FROM_L25_L275 0(0%)");
+        System.out.print(  "  INST_FROM_L25_L275 0(0%)");
       }
       // instructions from L1
       value  =  cycles      / counters[6];
@@ -431,7 +431,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print(  "  0INST_FETCH "+Utilities.threeDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_LSU) {		//  group  7
+    } else if (group_index == CommandLineOptions.P4_LSU) {              //  group  7
       // 
       value  =  counters[3] / (double)counters[1];
       value1 = (counters[1] / (double)counters[3])*100;
@@ -463,7 +463,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  LD_REF_L1 "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_XLATE1) {		//  group  8
+    } else if (group_index == CommandLineOptions.P4_XLATE1) {           //  group  8
       // average tablewalk = tablewalk duration / (ITLB miss + DTLB MISS) (group 34)
       value  =  counters[3] / (double)(counters[1] + counters[2]);
       value1 = (counters[3] / (double)counters[8])*100;
@@ -490,7 +490,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  ITLB_MISS "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_XLATE2) {		//  group  9
+    } else if (group_index == CommandLineOptions.P4_XLATE2) {           //  group  9
       // DERAT Miss Rate = instructions / DERAT miss 
       value  =  counters[7] / (double)counters[6];
       value1 = (counters[6] / (double)counters[7])*100;
@@ -522,7 +522,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  LSU_LMQ_S0_ALLOC "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_FPU1) {		//  group 14
+    } else if (group_index == CommandLineOptions.P4_FPU1) {             //  group 14
       // FPU fdiv = instructions / FPU fdiv
       value  =  counters[7] / (double)counters[1];
       value1 = (counters[1] / (double)counters[7])*100;
@@ -554,7 +554,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  FPU_FMOVE_FEST "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_FPU2) {		//  group 15
+    } else if (group_index == CommandLineOptions.P4_FPU2) {             //  group 15
       // 
       value  =  counters[3] / (double)counters[1];
       value1 = (counters[1] / (double)counters[3])*100;
@@ -586,7 +586,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  LSU_LDF "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_IDU1) {		//  group 16
+    } else if (group_index == CommandLineOptions.P4_IDU1) {             //  group 16
       // 
       value  =  counters[6] / (double)counters[3];
       value1 = (counters[3] / (double)counters[6])*100.0;
@@ -613,7 +613,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  1PLUS_PPC_CMPL "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.twoDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_IDU2) {		//  group 17
+    } else if (group_index == CommandLineOptions.P4_IDU2) {             //  group 17
       // 
       value  =  counters[6] / (double)counters[3];
       value1 = (counters[3] / (double)counters[6])*100.0;
@@ -640,7 +640,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  GRP_DISP_SUCCESS "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.twoDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_ISU_RENAME) {	//  group 18
+    } else if (group_index == CommandLineOptions.P4_ISU_RENAME) {       //  group 18
       // SPECULATIVE INSTRUCTIONS = instructions dispatched / instructions completed
       value  =  counters[6] / (double)counters[7];
       value1 = (counters[7] / (double)counters[6])*100.0;
@@ -667,7 +667,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  LR_CTR_MAP_FULL "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.twoDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_ISU_QUEUES1) {	//  group 19
+    } else if (group_index == CommandLineOptions.P4_ISU_QUEUES1) {      //  group 19
       // FPU0 cycles issue queue is full = cycles / FPU0_FULL_CYC
       value  =  counters[5] / (double)counters[1];
       value1 = (counters[1] / (double)counters[5])*100.0;
@@ -699,7 +699,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  LSU_SRQ_FULL "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.twoDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_ISU_FLOW) {		//  group 20
+    } else if (group_index == CommandLineOptions.P4_ISU_FLOW) {         //  group 20
       // FXU0 produced a result = cycles / FXU0_FIN
       value  =   counters[8] / (double)counters[3];
       value1 = (counters[3] / (double)counters[8])*100.0;
@@ -721,7 +721,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  GRP_DISP_REJECT "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.twoDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_SERIALIZE) {	//  group 22
+    } else if (group_index == CommandLineOptions.P4_SERIALIZE) {        //  group 22
       // 
       value  =  counters[4] / (double)counters[2];
       value1 = (counters[2] / (double)counters[4])*100.0;
@@ -748,7 +748,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  1PLUS_PPC_CMPL "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.twoDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_LSU_BUSY) {		//  group 23
+    } else if (group_index == CommandLineOptions.P4_LSU_BUSY) {         //  group 23
       // estimated load time = LRQ slot 0 valid / LRQ slot 0 allocated
       value   =  counters[5] / (double)counters[6];
       value1  = (counters[5] / (double)counters[8])*100.0;
@@ -770,7 +770,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  LSU1_BUSY "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.twoDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_LSOURCE3) {		//  group 25
+    } else if (group_index == CommandLineOptions.P4_LSOURCE3) {         //  group 25
       // Where are instructions coming from?
       // data from memory = inst_completed / data from memory
       value  =  counters[8] / (double)counters[2];
@@ -803,7 +803,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  DCCHE_RELOAD_VALID "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_ISOURCE3) {		//  group 27
+    } else if (group_index == CommandLineOptions.P4_ISOURCE3) {         //  group 27
       // Where are instructions coming from?
       // instructions from memory = inst_completed / instructions from memory
       value  =  counters[8] / (double)counters[1];
@@ -831,7 +831,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  INST_FROM_L35 "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_FPU3) {		//  group 28
+    } else if (group_index == CommandLineOptions.P4_FPU3) {             //  group 28
       //
       value  =  counters[8] / (double)counters[1];
       value1 = (counters[1] / (double)counters[8])*100;
@@ -863,7 +863,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  FPU1_FMA "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_FPU4) {		//  group 29
+    } else if (group_index == CommandLineOptions.P4_FPU4) {             //  group 29
       //
       value  =  counters[8] / (double)counters[1];
       value1 = (counters[1] / (double)counters[8])*100;
@@ -895,7 +895,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  FPU1_ALL "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_FPU5) {		//  group 30
+    } else if (group_index == CommandLineOptions.P4_FPU5) {             //  group 30
       // 
       value  =  counters[5] / (double)counters[1];
       value1 = (counters[1] / (double)counters[5])*100;
@@ -918,24 +918,24 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
       // 
       if (counters[7] != 0) {
-	value  =  counters[5] / (double)counters[7];
-	value1 = (counters[7] / (double)counters[5])*100;
-	System.out.print("  FPU0_FEST "+Utilities.twoDigitDouble(value));
-	System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
+        value  =  counters[5] / (double)counters[7];
+        value1 = (counters[7] / (double)counters[5])*100;
+        System.out.print("  FPU0_FEST "+Utilities.twoDigitDouble(value));
+        System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
       } else {
-	System.out.print("  FPU0_FEST 0.0 (0.0%)");
+        System.out.print("  FPU0_FEST 0.0 (0.0%)");
       }
       // 
       if (counters[7] != 0) {
-	value  =  counters[5] / (double)counters[8];
-	value1 = (counters[8] / (double)counters[5])*100;
-	System.out.print("  FPU1_FEST "+Utilities.twoDigitDouble(value));
-	System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
+        value  =  counters[5] / (double)counters[8];
+        value1 = (counters[8] / (double)counters[5])*100;
+        System.out.print("  FPU1_FEST "+Utilities.twoDigitDouble(value));
+        System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
       } else {
-	System.out.print("  FPU1_FEST 0.0 (0.0%)");
+        System.out.print("  FPU1_FEST 0.0 (0.0%)");
       }
 
-    } else if (group_index == CommandLineOptions.P4_FPU6) {		//  group 31
+    } else if (group_index == CommandLineOptions.P4_FPU6) {             //  group 31
       // 
       value  =  counters[7] / (double)counters[1];
       value1 = (counters[1] / (double)counters[7])*100;
@@ -967,7 +967,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  FPU1_STF "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_FPU7) {		//  group 32
+    } else if (group_index == CommandLineOptions.P4_FPU7) {             //  group 32
       // 
       value  =  counters[5] / (double)counters[1];
       value1 = (counters[1] / (double)counters[5])*100;
@@ -994,7 +994,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  FPU0_FPSCR "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_FXU) {		//  group 33
+    } else if (group_index == CommandLineOptions.P4_FXU) {              //  group 33
       // FXU produced a result = instructions / fxu fin
       value  =  counters[1] / (double)counters[3];
       value1 = (counters[3] / (double)counters[1])*100;
@@ -1026,7 +1026,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  FXLS_FULL "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_LSU_LMQ) {		//  group 34
+    } else if (group_index == CommandLineOptions.P4_LSU_LMQ) {          //  group 34
       // estimated load miss time = LMQ slot 0 valid / LMQ slot 0 allocated
       value  =  counters[4] / (double)counters[3];
       value1 = (counters[4] / (double)counters[5])*100;
@@ -1053,7 +1053,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  LSU_SRQ_SYNC "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_LSU_LOAD1) {		// group 36
+    } else if (group_index == CommandLineOptions.P4_LSU_LOAD1) {                // group 36
       // 
       value  =  counters[6] / (double)counters[3];
       value1 = (counters[3] / (double)counters[6])*100;
@@ -1089,7 +1089,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  LSU1_FLUSH_ULD "+Utilities.twoDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_LSU_STORE1) {	// group 37
+    } else if (group_index == CommandLineOptions.P4_LSU_STORE1) {       // group 37
       // 
       value  = (counters[5] / (double)counters[1]);
       value1 = (counters[1] / (double)counters[5])*100.0;
@@ -1121,7 +1121,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print(  "  DC_INV_L2 "+Utilities.threeDigitDouble(value));
       System.out.print(  "("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_LSU7) { 		// group 39
+    } else if (group_index == CommandLineOptions.P4_LSU7) {             // group 39
       // 
       value  =  counters[7] / (double)counters[1];
       value1 = (counters[1] / (double)counters[7])*100.0;
@@ -1138,7 +1138,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  cyc  L1_DCACHE_RELOAD_VALID "+Utilities.threeDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_MISC) { 		// group 41
+    } else if (group_index == CommandLineOptions.P4_MISC) {             // group 41
       // 
       value  =  counters[4] / (double)counters[1];
       value1 = (counters[1] / (double)counters[4])*100.0;
@@ -1170,7 +1170,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print(  "  TB_BIT_TRANS "+Utilities.threeDigitDouble(value));
       System.out.print(  "("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_BRANCH_ANALYSIS) { 		// group 55
+    } else if (group_index == CommandLineOptions.P4_BRANCH_ANALYSIS) {          // group 55
       // instructions per branch = instructions completed / branches issued
       value  = (counters[1] / (double)counters[3]);
       value1 = (counters[3] / (double)counters[1])*100.0;
@@ -1197,7 +1197,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  BRQ_FULL "+Utilities.threeDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_L1_AND_TLB_ANALYSIS) {	// group 56
+    } else if (group_index == CommandLineOptions.P4_L1_AND_TLB_ANALYSIS) {      // group 56
       // ITLB miss rate                 = instructions / ITLB misses
       value  = (counters[6] / (double)counters[2]);
       value1 = (counters[2] / (double)counters[6])*100.0;
@@ -1228,7 +1228,7 @@ public class TraceCounterRecord extends TraceRecord
       value1 = (counters[4] / (double)counters[7])*100.0;
       System.out.print("  ST_REF_L1_per_miss "+Utilities.threeDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
-    } else if (group_index == CommandLineOptions.P4_L2_ANALYSIS) { 		// group 57
+    } else if (group_index == CommandLineOptions.P4_L2_ANALYSIS) {              // group 57
       // 
       value  = (counters[1] / (double)counters[3]);
       value1 = (counters[3] / (double)counters[1])*100.0;
@@ -1260,7 +1260,7 @@ public class TraceCounterRecord extends TraceRecord
       System.out.print("  DATA_FROM_L275_MOD "+Utilities.threeDigitDouble(value));
       System.out.print("("+Utilities.threeDigitDouble(value1)+"%)");
 
-    } else if (group_index == CommandLineOptions.P4_L3_ANALYSIS) { 		// group 58
+    } else if (group_index == CommandLineOptions.P4_L3_ANALYSIS) {              // group 58
       // 
       value  = (counters[7] / (double)counters[2]);
       value1 = (counters[1] / (double)counters[7])*100.0;
@@ -1304,161 +1304,161 @@ public class TraceCounterRecord extends TraceRecord
     long instructions = 0;
     if (header.isPower4()){
       int group_index = header.groupNumber();
-      if (group_index == CommandLineOptions.P4_SLICE0) {			// group  0
-	cycles = counters[2];      instructions = counters[4];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_BASIC) {			// group  2
-	cycles = counters[2];      instructions = counters[6];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_IFU) {			// group  3
-	cycles = counters[6];      instructions = counters[1];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_ISU) {			// group  4
-	cycles = counters[7];      instructions = counters[4];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_LSOURCE) {		// group  5
-	System.out.print("  CPI N/A");
-	// not available
-      } else if (group_index == CommandLineOptions.P4_ISOURCE) {		// group  6
-	System.out.print("  CPI N/A");
-      } else if (group_index == CommandLineOptions.P4_LSU) {			// group  7
-	cycles = counters[3];      instructions = counters[4];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_XLATE1) {			// group  8
-	cycles = counters[8];      instructions = counters[7];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_XLATE2) {			// group  9
-	cycles = counters[8];      instructions = counters[7];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_FPU1) {			// group 14
-	cycles = counters[5];      instructions = counters[7];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_FPU2) {			// group 15
-	cycles = counters[3];      instructions = counters[4];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_IDU1) {			// group 16
-	cycles = counters[2];      instructions = counters[1];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_IDU2) {			// group 17
-	cycles = counters[2];      instructions = counters[1];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_ISU_RENAME) {		// group 18
-	cycles = counters[8];      instructions = counters[7];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_ISU_QUEUES1) {		// group 19
-	cycles = counters[5];      instructions = counters[6];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_ISU_FLOW) {		// group 20
-	cycles = counters[8];      instructions = counters[7];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_SERIALIZE) {		// group 22
-	cycles = counters[4];      instructions = counters[6];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_LSU_BUSY) {		// group 23
-	cycles = counters[8];      instructions = counters[7];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_LSOURCE3) {		// group 25
-	cycles = counters[6];      instructions = counters[8];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_ISOURCE3) {		// group 27
-	cycles = counters[7];      instructions = counters[8];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_FPU3) {			// group 28
-	cycles = counters[8];      instructions = counters[7];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_FPU4) {			// group 29
-	cycles = counters[8];      instructions = counters[7];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_FPU5) {			// group 30
-	cycles = counters[5];      instructions = counters[6];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_FPU6) {			// group 31
-	cycles = counters[7];      instructions = counters[8];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_FPU7) {			// group 31
-	cycles = counters[5];      instructions = counters[6];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_FXU) {			// group 33
-	cycles = counters[2];      instructions = counters[1];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_LSU_LMQ) {		// group 34
-	cycles = counters[5];      instructions = counters[6];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_LSU_LOAD1) {		// group 36
-	cycles = counters[5];      instructions = counters[6];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_LSU_STORE1) {		// group 37
-	cycles = counters[5];      instructions = counters[6];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_LSU7) {			// group 39
-	cycles = counters[6];      instructions = counters[7];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_MISC) {			// group 41
-	cycles = counters[4];      instructions = counters[6];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_BRANCH_ANALYSIS) {	// group 55
-	cycles = counters[6];      instructions = counters[1];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_L1_AND_TLB_ANALYSIS) {	// group 56
-	cycles = counters[5];      instructions = counters[6];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_L2_ANALYSIS) { 		// group 57
-	cycles = counters[2];      instructions = counters[1];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
-      } else if (group_index == CommandLineOptions.P4_L3_ANALYSIS) { 		// group 58
-	cycles = counters[6];      instructions = counters[7];
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      if (group_index == CommandLineOptions.P4_SLICE0) {                        // group  0
+        cycles = counters[2];      instructions = counters[4];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_BASIC) {                  // group  2
+        cycles = counters[2];      instructions = counters[6];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_IFU) {                    // group  3
+        cycles = counters[6];      instructions = counters[1];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_ISU) {                    // group  4
+        cycles = counters[7];      instructions = counters[4];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_LSOURCE) {                // group  5
+        System.out.print("  CPI N/A");
+        // not available
+      } else if (group_index == CommandLineOptions.P4_ISOURCE) {                // group  6
+        System.out.print("  CPI N/A");
+      } else if (group_index == CommandLineOptions.P4_LSU) {                    // group  7
+        cycles = counters[3];      instructions = counters[4];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_XLATE1) {                 // group  8
+        cycles = counters[8];      instructions = counters[7];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_XLATE2) {                 // group  9
+        cycles = counters[8];      instructions = counters[7];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_FPU1) {                   // group 14
+        cycles = counters[5];      instructions = counters[7];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_FPU2) {                   // group 15
+        cycles = counters[3];      instructions = counters[4];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_IDU1) {                   // group 16
+        cycles = counters[2];      instructions = counters[1];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_IDU2) {                   // group 17
+        cycles = counters[2];      instructions = counters[1];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_ISU_RENAME) {             // group 18
+        cycles = counters[8];      instructions = counters[7];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_ISU_QUEUES1) {            // group 19
+        cycles = counters[5];      instructions = counters[6];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_ISU_FLOW) {               // group 20
+        cycles = counters[8];      instructions = counters[7];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_SERIALIZE) {              // group 22
+        cycles = counters[4];      instructions = counters[6];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_LSU_BUSY) {               // group 23
+        cycles = counters[8];      instructions = counters[7];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_LSOURCE3) {               // group 25
+        cycles = counters[6];      instructions = counters[8];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_ISOURCE3) {               // group 27
+        cycles = counters[7];      instructions = counters[8];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_FPU3) {                   // group 28
+        cycles = counters[8];      instructions = counters[7];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_FPU4) {                   // group 29
+        cycles = counters[8];      instructions = counters[7];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_FPU5) {                   // group 30
+        cycles = counters[5];      instructions = counters[6];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_FPU6) {                   // group 31
+        cycles = counters[7];      instructions = counters[8];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_FPU7) {                   // group 31
+        cycles = counters[5];      instructions = counters[6];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_FXU) {                    // group 33
+        cycles = counters[2];      instructions = counters[1];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_LSU_LMQ) {                // group 34
+        cycles = counters[5];      instructions = counters[6];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_LSU_LOAD1) {              // group 36
+        cycles = counters[5];      instructions = counters[6];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_LSU_STORE1) {             // group 37
+        cycles = counters[5];      instructions = counters[6];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_LSU7) {                   // group 39
+        cycles = counters[6];      instructions = counters[7];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_MISC) {                   // group 41
+        cycles = counters[4];      instructions = counters[6];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_BRANCH_ANALYSIS) {        // group 55
+        cycles = counters[6];      instructions = counters[1];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_L1_AND_TLB_ANALYSIS) {    // group 56
+        cycles = counters[5];      instructions = counters[6];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_L2_ANALYSIS) {            // group 57
+        cycles = counters[2];      instructions = counters[1];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+      } else if (group_index == CommandLineOptions.P4_L3_ANALYSIS) {            // group 58
+        cycles = counters[6];      instructions = counters[7];
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
       } else {
-	System.out.print("  CPI not computed for group "+group_index);
+        System.out.print("  CPI not computed for group "+group_index);
       }
     } else if (header.isRS64_III()){
       // look up cycles and instructions in counters.
       for (int i=1; i<=header.n_counters; i++) {
-	if        (header.short_event_names[i].startsWith("PM_CYC")) {
-	  cycles = counters[i];
-	} else if (header.short_event_names[i].startsWith("PM_INST_CMPL")) {
-	  instructions = counters[i];
-	}
+        if        (header.short_event_names[i].startsWith("PM_CYC")) {
+          cycles = counters[i];
+        } else if (header.short_event_names[i].startsWith("PM_INST_CMPL")) {
+          instructions = counters[i];
+        }
       }
       if (cycles != 0 && instructions != 0) {
-	double value = (cycles/ (double)instructions);
-	System.out.print("  CPI "+Utilities.threeDigitDouble(value));
+        double value = (cycles/ (double)instructions);
+        System.out.print("  CPI "+Utilities.threeDigitDouble(value));
       } else {
-	System.out.print("  don't know how to compute CPI.  Either cycles "+cycles+
-			 " or instructions "+instructions+" == 0");	
+        System.out.print("  don't know how to compute CPI.  Either cycles "+cycles+
+                         " or instructions "+instructions+" == 0");     
       }
     } else {
       System.out.print("  don't know how to compute CPI");
@@ -1484,15 +1484,15 @@ public class TraceCounterRecord extends TraceRecord
     double  load_time = Utilities.threeDigitDouble(counters[5]/(double)counters[6]);
     for (int i=0; i<=n_counters; i++) {
       if (counters[i] > 0) {
-	notZero = true;
-	System.out.print(i+":"+trace_header.short_event_name(i)+": "+Utilities.format_long(counters[i]));
-	if (i == 2 ) {
-	  System.out.println(" "+store_time);
-	} else if (i == 6) {
-	  System.out.println(" "+load_time);
-	} else {
-	  System.out.println();
-	}
+        notZero = true;
+        System.out.print(i+":"+trace_header.short_event_name(i)+": "+Utilities.format_long(counters[i]));
+        if (i == 2 ) {
+          System.out.println(" "+store_time);
+        } else if (i == 6) {
+          System.out.println(" "+load_time);
+        } else {
+          System.out.println();
+        }
       }
     }
     return notZero;

@@ -173,7 +173,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return dest
    */
   public static final OPT_Instruction CPOS(OPT_Instruction src, 
-					   OPT_Instruction dst) {
+                                           OPT_Instruction dst) {
     dst.copyPosition(src);
     return dst;
   }
@@ -308,8 +308,8 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return register operand that we copied into
    */
   public static final OPT_RegisterOperand moveIntoRegister(OPT_RegisterPool pool,
-							   OPT_Instruction s,
-							   OPT_Operand op) {
+                                                           OPT_Instruction s,
+                                                           OPT_Operand op) {
     if (op instanceof OPT_RegisterOperand) {
       return (OPT_RegisterOperand) op;
     }
@@ -331,10 +331,10 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @return last use register operand that we copied into
    */
   public static final OPT_RegisterOperand moveIntoRegister(VM_TypeReference type,
-							   OPT_Operator move_op,
-							   OPT_RegisterPool pool,
-							   OPT_Instruction s,
-							   OPT_Operand op) {
+                                                           OPT_Operator move_op,
+                                                           OPT_RegisterPool pool,
+                                                           OPT_Instruction s,
+                                                           OPT_Operand op) {
     OPT_RegisterOperand rop = pool.makeTemp(type);
     s.insertBack(Move.create(move_op, rop, op));
     rop = rop.copyD2U();
@@ -362,7 +362,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * @param temp basic block which contains the instructions to be inserted.
    */
   public static final void insertInstructionsAfter(OPT_Instruction after,
-						   OPT_BasicBlock temp) {
+                                                   OPT_BasicBlock temp) {
     if (temp.isEmpty()) return;
     OPT_Instruction after_after = after.getNext();
     after.linkWithNext(temp.firstRealInstruction());
@@ -490,7 +490,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * architecture has a questionable future.
    */
   public static boolean useDoublesAsDef(OPT_Operand u, 
-					OPT_Instruction s) {
+                                        OPT_Instruction s) {
     for (Enumeration d = s.getDefs(); d.hasMoreElements(); ) {
       OPT_Operand def = (OPT_Operand)d.nextElement();
       if (def != null) {
@@ -512,7 +512,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * architecture has a questionable future.
    */
   public static boolean defDoublesAsUse(OPT_Operand d, 
-					OPT_Instruction s) {
+                                        OPT_Instruction s) {
     for (Enumeration u = s.getUses(); u.hasMoreElements(); ) {
       OPT_Operand use = (OPT_Operand)u.nextElement();
       if (use != null) {
