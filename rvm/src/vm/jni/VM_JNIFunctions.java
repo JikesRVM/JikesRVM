@@ -7072,11 +7072,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       // For array of primitive, return the object address, which is the array itself
       VM.disableGC();
       return VM_Magic.objectAsAddress(primitiveArray);
-
-    // VM.sysWrite("JNI ERROR: GetPrimitiveArrayCritical not implemented yet, exiting ...\n");
-    // VM.sysExit(200);
-    // return GETPRIMITIVEARRAYCRITICAL ; 
-
     } catch (Throwable unexpected) {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);
@@ -7109,10 +7104,6 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       env.recordException(unexpected);
     }
-
-    // VM.sysWrite("JNI ERROR: ReleasePrimitiveArrayCritical not implemented yet, exiting ...\n");
-    // VM.sysExit(200);
-    // return RELEASEPRIMITIVEARRAYCRITICAL ; 
   }
 
   private static int GetStringCritical (int envHandler) {
