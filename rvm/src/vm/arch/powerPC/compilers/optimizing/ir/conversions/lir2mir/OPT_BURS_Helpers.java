@@ -56,6 +56,13 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
   /**
+   * returns true if lower 16-bits are zero
+   */
+  protected final boolean U16 (int value) {
+    return  (value & 0xffff) == 0;
+  }
+
+  /**
    * returns true if the constant fits the mask of PowerPC's RLWINM
    */
   protected final boolean MASK (OPT_Operand a) {
@@ -110,6 +117,10 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
     return  IC(IV(o) >>> amount);
   }
 
+  protected final OPT_IntConstantOperand SRI (int i, int amount) {
+    return  IC(i >>> amount);
+  }
+
   /**
    * Integer And Immediate
    */
@@ -125,10 +136,24 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
   }
 
   /**
+   * Calculate Lower 16 Bits
+   */
+  protected final OPT_IntConstantOperand CAL16 (int i) {
+    return  IC(OPT_Bits.PPCMaskLower16(i));
+  }
+
+  /**
    * Calculate Upper 16 Bits
    */
   protected final OPT_IntConstantOperand CAU16 (OPT_Operand o) {
     return  IC(OPT_Bits.PPCMaskUpper16(IV(o)));
+  }
+
+  /**
+   * Calculate Upper 16 Bits
+   */
+  protected final OPT_IntConstantOperand CAU16 (int i) {
+    return  IC(OPT_Bits.PPCMaskUpper16(i));
   }
 
   /**
@@ -1235,6 +1260,14 @@ abstract class OPT_BURS_Helpers extends OPT_BURS_Common_Helpers
       val = val >> bits-1;
       return (val == 0L || val == -1L);
   }
+
+  //-#if RVM_FOR_64_ADDR
+  protected final void LONG_CONSTANT(OPT_Instruction s, 
+                                     OPT_RegisterOperand def, 
+                                     OPT_AddressConstantOperand left) {
+    LONG_CONSTANT(s, def, LC(left.value.toLong()));
+  }
+  //-#endif
 
   protected final void LONG_CONSTANT(OPT_Instruction s, 
                                      OPT_RegisterOperand def, 

@@ -25,6 +25,8 @@ public abstract class OPT_BURS implements OPT_Operators {
     new OPT_BURS_TreeNode(NULL_opcode);
   protected static final OPT_BURS_TreeNode LongConstant = 
     new OPT_BURS_TreeNode(LONG_CONSTANT_opcode);
+  protected static final OPT_BURS_TreeNode AddressConstant = 
+    new OPT_BURS_TreeNode(ADDRESS_CONSTANT_opcode);
   protected static final OPT_BURS_TreeNode Register = 
     new OPT_BURS_TreeNode(REGISTER_opcode);
   protected static final OPT_BURS_TreeNode BranchTarget = 
@@ -34,6 +36,7 @@ public abstract class OPT_BURS implements OPT_Operators {
   static {
     NullTreeNode.setNumRegisters(0);
     LongConstant.setNumRegisters(0);
+    AddressConstant.setNumRegisters(0);
     Register.setNumRegisters(1);
     BranchTarget.setNumRegisters(0);
   }

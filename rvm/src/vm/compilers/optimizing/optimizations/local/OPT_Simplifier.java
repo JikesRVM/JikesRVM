@@ -7,7 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
-import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.*;
 /**
  * A constant folder, strength reducer and axiomatic simplifier. 
  *
@@ -36,6 +36,11 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
    * Constant fold long operations?
    */
   public static final boolean CF_LONG = true;
+
+  /** 
+   * Constant fold long operations?
+   */
+  public static final boolean CF_ADDR = true;
 
   /** 
    * Constant fold float operations?  Default is false to avoid consuming
@@ -74,6 +79,19 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
    */
   public static final byte REDUCED = 0x04;      
 
+  private static Address getAddressValue(OPT_Operand op) {
+    if (op instanceof OPT_NullConstantOperand) 
+      return Address.zero();
+    if (op instanceof OPT_AddressConstantOperand)
+      return op.asAddressConstant().value; 
+    if (op instanceof OPT_IntConstantOperand)
+      return Address.fromIntSignExtend(op.asIntConstant().value);
+    //-#if RVM_FOR_64_ADDR 
+    if (op instanceof OPT_LongConstantOperand)
+      return Address.fromLong(op.asLongConstant().value);
+    //-#endif
+    throw new OPT_OptimizingCompilerException("Cannot getAddressValue from this operand " + op);
+  }
   /**
    * Given an instruction, attempt to simplify it.
    * The instruction will be mutated in place.
@@ -825,6 +843,223 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
             }
             if (val2 == 0) {                  // x ^ 0 == x
               Move.mutate(s, INT_MOVE, Binary.getClearResult(s), 
+                          Binary.getClearVal1(s));
+              return MOVE_REDUCED;
+            }
+          }
+        }
+      }
+      return UNCHANGED;
+      ////////////////////
+      // WORD ALU operations
+      ////////////////////
+    case REF_ADD_opcode:
+      if (CF_ADDR) {
+        canonicalizeCommutativeOperator(s);
+        OPT_Operand op2 = Binary.getVal2(s);
+        if (op2.isConstant()) {
+          Address val2 = getAddressValue(op2);
+          OPT_Operand op1 = Binary.getVal1(s);
+          if (op1.isConstant()) {
+            // BOTH CONSTANTS: FOLD
+            Address val1 = getAddressValue(op1);
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.add(val2.toWord().toOffset())));
+            return MOVE_FOLDED;
+          } else {
+            // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
+            if (val2.isZero()) {                 // x + 0 == x
+              Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                          Binary.getClearVal1(s));
+              return MOVE_REDUCED;
+            }
+          }
+        }
+      }
+      return UNCHANGED;
+    case REF_AND_opcode:
+      if (CF_ADDR) {
+        canonicalizeCommutativeOperator(s);
+        OPT_Operand op2 = Binary.getVal2(s);
+        if (op2.isAddressConstant()) {
+          Word val2 = op2.asAddressConstant().value.toWord();
+          OPT_Operand op1 = Binary.getVal1(s);
+          if (op1.isAddressConstant()) {
+            // BOTH CONSTANTS: FOLD
+            Word val1 = op1.asAddressConstant().value.toWord();
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.and(val2).toAddress()));
+            return MOVE_FOLDED;
+          } else {
+            // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
+            if (val2.isZero()) {                  // x & 0 == 0
+              Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(Address.zero()));
+              return MOVE_FOLDED;
+            }
+            if (val2.isMax()) {                 // x & -1 == x & 0xffffffff == x
+              Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                          Binary.getClearVal1(s));
+              return MOVE_REDUCED;
+            }
+          }
+        }
+      }
+      return UNCHANGED;
+    case REF_SHL_opcode:
+      if (CF_ADDR) {
+        OPT_Operand op2 = Binary.getVal2(s);
+        if (op2.isIntConstant()) {
+          int val2 = op2.asIntConstant().value;
+          OPT_Operand op1 = Binary.getVal1(s);
+          if (op1.isAddressConstant()) {
+            // BOTH CONSTANTS: FOLD
+            Word val1 = op1.asAddressConstant().value.toWord();
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                        AC(val1.lsh(val2).toAddress()));
+            return MOVE_FOLDED;
+          } else {
+            // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
+            if (val2 == 0) {                  // x << 0 == x
+              Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                          Binary.getClearVal1(s));
+              return MOVE_REDUCED;
+            }
+          }
+        }
+      }
+      return UNCHANGED;
+    case REF_SHR_opcode:
+      if (CF_ADDR) {
+        OPT_Operand op2 = Binary.getVal2(s);
+        if (op2.isIntConstant()) {
+          int val2 = op2.asIntConstant().value;
+          OPT_Operand op1 = Binary.getVal1(s);
+          if (op1.isAddressConstant()) {
+            // BOTH CONSTANTS: FOLD
+            Word val1 = op1.asAddressConstant().value.toWord();
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                        AC(val1.rsha(val2).toAddress()));
+            return MOVE_FOLDED;
+          } else {
+            // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
+            if (val2 == 0) {                  // x >> 0 == x
+              Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                          Binary.getClearVal1(s));
+              return MOVE_REDUCED;
+            }
+          }
+        }
+      }
+      return UNCHANGED;
+    case REF_NOT_opcode:
+      if (CF_ADDR) {
+        OPT_Operand op = Unary.getVal(s);
+        if (op.isAddressConstant()) {
+          // CONSTANT: FOLD
+          Word val = op.asAddressConstant().value.toWord();
+          Move.mutate(s, REF_MOVE, Unary.getClearResult(s), AC(val.not().toAddress()));
+          return MOVE_FOLDED;
+        }
+      }
+      return UNCHANGED;
+    case REF_OR_opcode:
+      if (CF_ADDR) {
+        canonicalizeCommutativeOperator(s);
+        OPT_Operand op2 = Binary.getVal2(s);
+        if (op2.isAddressConstant()) {
+          Word val2 = op2.asAddressConstant().value.toWord();
+          OPT_Operand op1 = Binary.getVal1(s);
+          if (op1.isAddressConstant()) {
+            // BOTH CONSTANTS: FOLD
+            Word val1 = op1.asAddressConstant().value.toWord();
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                        AC(val1.or(val2).toAddress()));
+            return MOVE_FOLDED;
+          } else {
+            // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
+            if (val2.isMax()) { // x | -1 == x | 0xffffffff == 0xffffffff == -1
+              Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(Address.max()));
+              return MOVE_FOLDED;
+            }
+            if (val2.isZero()) {                  // x | 0 == x
+              Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                          Binary.getClearVal1(s));
+              return MOVE_REDUCED;
+            }
+          }
+        }
+      }
+      return UNCHANGED;
+    case REF_SUB_opcode:
+      if (CF_ADDR) {
+        OPT_Operand op2 = Binary.getVal2(s);
+        if (op2.isConstant()) {
+          Address val2 = getAddressValue(op2);
+          OPT_Operand op1 = Binary.getVal1(s);
+          if (op1.isConstant()) {
+            // BOTH CONSTANTS: FOLD
+            Address val1 = getAddressValue(op1);
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), AC(val1.sub(val2.toWord().toOffset())));
+            return MOVE_FOLDED;
+          } else {
+            // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
+            if (val2.isZero()) {                 // x - 0 == x
+              Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                          Binary.getClearVal1(s));
+              return MOVE_REDUCED;
+            }
+            // x - c = x + -c
+            // prefer adds, since some architectures have addi but not subi
+            Binary.mutate(s, REF_ADD, Binary.getClearResult(s), 
+                          Binary.getClearVal1(s), AC(Address.zero().sub(val2.toWord().toOffset())));
+            return REDUCED;
+          }
+        }
+      }
+      return UNCHANGED;
+    case REF_USHR_opcode:
+      if (CF_ADDR) {
+        OPT_Operand op2 = Binary.getVal2(s);
+        if (op2.isIntConstant()) {
+          int val2 = op2.asIntConstant().value;
+          OPT_Operand op1 = Binary.getVal1(s);
+          if (op1.isAddressConstant()) {
+            // BOTH CONSTANTS: FOLD
+            Word val1 = op1.asAddressConstant().value.toWord();
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                        AC(val1.rshl(val2).toAddress()));
+            return MOVE_FOLDED;
+          } else {
+            // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
+            if (val2 == 0) {                  // x >>> 0 == x
+              Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                          Binary.getClearVal1(s));
+              return MOVE_REDUCED;
+            }
+          }
+        }
+      }
+      return UNCHANGED;
+    case REF_XOR_opcode:
+      if (CF_ADDR) {
+        canonicalizeCommutativeOperator(s);
+        OPT_Operand op2 = Binary.getVal2(s);
+        if (op2.isAddressConstant()) {
+          Word val2 = op2.asAddressConstant().value.toWord();
+          OPT_Operand op1 = Binary.getVal1(s);
+          if (op1.isAddressConstant()) {
+            // BOTH CONSTANTS: FOLD
+            Word val1 = op1.asAddressConstant().value.toWord();
+            Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                        AC(val1.xor(val2).toAddress()));
+            return MOVE_FOLDED;
+          } else {
+            // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
+            if (val2.isMax()) {                 // x ^ -1 == x ^ 0xffffffff = ~x
+              Unary.mutate(s, REF_NOT, Binary.getClearResult(s), 
+                           Binary.getClearVal1(s));
+              return REDUCED;
+            }
+            if (val2.isZero()) {                  // x ^ 0 == x
+              Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
                           Binary.getClearVal1(s));
               return MOVE_REDUCED;
             }
@@ -1614,7 +1849,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
       }
       return UNCHANGED;
     case INT_2ADDRSigExt_opcode:
-      if (CF_INT) {
+      if (CF_ADDR) {
         OPT_Operand op = Unary.getVal(s);
         if (op.isIntConstant()) {
           // CONSTANT: FOLD
@@ -1625,7 +1860,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
       }
       return UNCHANGED;
     case INT_2ADDRZerExt_opcode:
-      if (CF_INT) {
+      if (CF_ADDR) {
         OPT_Operand op = Unary.getVal(s);
         if (op.isIntConstant()) {
           // CONSTANT: FOLD
@@ -1637,7 +1872,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
       return UNCHANGED;
     //-#if RVM_FOR_64_ADDR
     case LONG_2ADDR_opcode:
-      if (CF_LONG) {
+      if (CF_ADDR) {
         OPT_Operand op = Unary.getVal(s);
         if (op.isLongConstant()) {
           // CONSTANT: FOLD

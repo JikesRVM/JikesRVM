@@ -16,6 +16,13 @@ MIR_TEMPLATE
 ###################
 # Operators only needed for BURS rules, not real instructions
 ###################
+ADDRESS_CONSTANT
+Unassigned
+none
+
+
+-1
+
 INT_CONSTANT
 Unassigned
 none

@@ -629,6 +629,14 @@ none
 
 
 
+# Add two (register/constant) word operands together putting
+# the result in a register operand.
+REF_ADD
+Binary
+none
+
+
+
 # Add two (register/constant) integer operands together putting
 # the result in a register operand.
 INT_ADD
@@ -656,6 +664,14 @@ none
 # Add two (register/constant) double operands together putting
 # the result in a register operand.
 DOUBLE_ADD
+Binary
+none
+
+
+
+# Subtract two (register/constant) integer operands together putting
+# the result in a register operand.
+REF_SUB
 Binary
 none
 
@@ -801,6 +817,14 @@ none
 IEEEMagicUses
 
 
+# Unary negation for words. Take a (register/constant) operand and
+# negate it, putting the result in a register operand.
+REF_NEG
+Unary
+none
+
+
+
 # Unary negation for integers. Take a (register/constant) operand and
 # negate it, putting the result in a register operand.
 INT_NEG
@@ -833,6 +857,15 @@ none
 
 
 
+# shifting its first (register/constant) word
+# operand by the amount specified by its second (register/constant) int operand
+# putting the result in a register operand.
+REF_SHL
+Binary
+none
+
+
+
 # implements ishl bytecode by shifting its first (register/constant) int
 # operand by the amount specified by its second (register/constant) int operand
 # putting the result in a register operand.
@@ -846,6 +879,15 @@ none
 # operand by the amount specified by its second (register/constant) long operand
 # putting the result in a register operand.
 LONG_SHL
+Binary
+none
+
+
+
+# shifting its first (register/constant) word
+# operand by the amount specified by its second (register/constant) int operand
+# putting the result in a register operand.
+REF_SHR
 Binary
 none
 
@@ -869,6 +911,15 @@ none
 
 
 
+# shifting its first (register/constant) word
+# operand by the amount specified by its second (register/constant) int operand
+# putting the result in a register operand.
+REF_USHR
+Binary
+none
+
+
+
 # implements iushr bytecode by shifting its first (register/constant) int
 # operand by the amount specified by its second (register/constant) int operand
 # putting the result in a register operand.
@@ -882,6 +933,13 @@ none
 # operand by the amount specified by its second (register/constant) long operand
 # putting the result in a register operand.
 LONG_USHR
+Binary
+none
+
+
+
+# put bitwise and of two (register/constant) word operands into a register operand
+REF_AND
 Binary
 none
 
@@ -902,6 +960,13 @@ none
 
 
 # put bitwise or of two (register/constant) int operands into a register operand
+REF_OR
+Binary
+none
+
+
+
+# put bitwise or of two (register/constant) int operands into a register operand
 INT_OR
 Binary
 none
@@ -916,8 +981,22 @@ none
 
 
 # put bitwise xor of two (register/constant) int operands into a register operand
+REF_XOR
+Binary
+none
+
+
+
+# put bitwise xor of two (register/constant) int operands into a register operand
 INT_XOR
 Binary
+none
+
+
+
+# put bitwise complement of a (register/constant) int operand into a register operand
+REF_NOT
+Unary
 none
 
 

@@ -57,11 +57,7 @@ public final class OPT_AddressConstantOperand extends OPT_ConstantOperand {
   }
 
   public int hashCode() {
-    //-#if RVM_FOR_64_ADDR
-    return (int)(value.toLong() >>> VM_SizeConstants.LOG_BYTES_IN_ADDRESS);
-    //-#elif RVM_FOR_32_ADDR
-    return value.toInt() >>> VM_SizeConstants.LOG_BYTES_IN_ADDRESS;  
-    //-#endif
+    return value.toWord().rshl(VM_SizeConstants.LOG_BYTES_IN_ADDRESS).toInt();  
   }
   
   /**

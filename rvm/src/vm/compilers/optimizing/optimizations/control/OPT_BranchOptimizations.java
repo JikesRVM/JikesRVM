@@ -728,15 +728,24 @@ public final class OPT_BranchOptimizations
         case INT_MOVE_opcode:
         case REF_MOVE_opcode:
         case INT_ADD_opcode:
+        case REF_ADD_opcode:
         case INT_SUB_opcode:
+        case REF_SUB_opcode:
         case INT_MUL_opcode:
         case INT_NEG_opcode:
+        case REF_SHL_opcode:
         case INT_SHL_opcode:
+        case REF_SHR_opcode:
         case INT_SHR_opcode:
+        case REF_USHR_opcode:
         case INT_USHR_opcode:
+        case REF_AND_opcode:
         case INT_AND_opcode:
+        case REF_OR_opcode:
         case INT_OR_opcode:
+        case REF_XOR_opcode:
         case INT_XOR_opcode:
+        case REF_NOT_opcode:
         case INT_NOT_opcode:
         case INT_2BYTE_opcode:
         case INT_2USHORT_opcode:

@@ -162,10 +162,12 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     case GUARD_MOVE_opcode:
     case GUARD_COMBINE_opcode:
     case TRAP_IF_opcode:
+    case REF_ADD_opcode:
     case INT_ADD_opcode:
     case LONG_ADD_opcode:
     case FLOAT_ADD_opcode:
     case DOUBLE_ADD_opcode:
+    case REF_SUB_opcode:
     case INT_SUB_opcode:
     case LONG_SUB_opcode:
     case FLOAT_SUB_opcode:
@@ -186,17 +188,24 @@ class OPT_LICM extends OPT_CompilerPhase implements OPT_Operators {
     case LONG_NEG_opcode:
     case FLOAT_NEG_opcode:
     case DOUBLE_NEG_opcode:
+    case REF_SHL_opcode:
     case INT_SHL_opcode:
     case LONG_SHL_opcode:
+    case REF_SHR_opcode:
     case INT_SHR_opcode:
     case LONG_SHR_opcode:
+    case REF_USHR_opcode:
     case INT_USHR_opcode:
     case LONG_USHR_opcode:
+    case REF_AND_opcode:
     case INT_AND_opcode:
     case LONG_AND_opcode:
+    case REF_OR_opcode:
     case INT_OR_opcode:
     case LONG_OR_opcode:
+    case REF_XOR_opcode:
     case INT_XOR_opcode:
+    case REF_NOT_opcode:
     case INT_NOT_opcode:
     case LONG_NOT_opcode:
     case LONG_XOR_opcode:

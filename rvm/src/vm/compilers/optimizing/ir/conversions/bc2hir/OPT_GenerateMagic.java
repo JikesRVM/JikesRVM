@@ -156,8 +156,7 @@ class OPT_GenerateMagic implements OPT_Operators,
         result = gc.temps.makeTemp(elementType);
         bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, 
                                               new OPT_IntConstantOperand(LOG_BYTES_IN_ADDRESS)));
-        OPT_Operator op = VM.BuildFor32Addr ? INT_LOAD : (VM.BuildFor64Addr ? LONG_LOAD : null);
-        bc2ir.appendInstruction(Load.create(op, result, ref, offset.copy(),
+        bc2ir.appendInstruction(Load.create(REF_LOAD, result, ref, offset.copy(),
                                             new OPT_LocationOperand(elementType),
                                             new OPT_TrueGuardOperand()));
       }
@@ -183,8 +182,7 @@ class OPT_GenerateMagic implements OPT_Operators,
       } else {
         bc2ir.appendInstruction(Binary.create(INT_SHL, offset, index, 
                                               new OPT_IntConstantOperand(LOG_BYTES_IN_ADDRESS)));
-        OPT_Operator op = VM.BuildFor32Addr ? INT_STORE : (VM.BuildFor64Addr ? LONG_STORE : null);
-        bc2ir.appendInstruction(Store.create(op, val, ref, offset.copy(),
+        bc2ir.appendInstruction(Store.create(REF_STORE, val, ref, offset.copy(),
                                              new OPT_LocationOperand(elementType),
                                              new OPT_TrueGuardOperand()));
       }
@@ -671,42 +669,42 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_Operand o2 = bc2ir.pop();
       OPT_Operand o1 = bc2ir.pop();
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(VM.BuildFor32Addr ? INT_ADD : LONG_ADD, op0, o1, o2));
+      bc2ir.appendInstruction(Binary.create(REF_ADD, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.wordSub) {
       OPT_Operand o2 = bc2ir.pop();
       OPT_Operand o1 = bc2ir.pop();
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(VM.BuildFor32Addr ? INT_SUB : LONG_SUB, op0, o1, o2));
+      bc2ir.appendInstruction(Binary.create(REF_SUB, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.wordDiff) {
       OPT_Operand o2 = bc2ir.pop();
       OPT_Operand o1 = bc2ir.pop();
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(VM.BuildFor32Addr ? INT_SUB : LONG_SUB, op0, o1, o2));
+      bc2ir.appendInstruction(Binary.create(REF_SUB, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.wordAnd) {
       OPT_Operand o2 = bc2ir.pop();
       OPT_Operand o1 = bc2ir.pop();
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(VM.BuildFor32Addr ? INT_AND : LONG_AND, op0, o1, o2));
+      bc2ir.appendInstruction(Binary.create(REF_AND, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.wordOr) {
       OPT_Operand o2 = bc2ir.pop();
       OPT_Operand o1 = bc2ir.pop();
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(VM.BuildFor32Addr ? INT_OR : LONG_OR, op0, o1, o2));
+      bc2ir.appendInstruction(Binary.create(REF_OR, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.wordXor) {
       OPT_Operand o2 = bc2ir.pop();
       OPT_Operand o1 = bc2ir.pop();
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(VM.BuildFor32Addr ? INT_XOR : LONG_XOR, op0, o1, o2));
+      bc2ir.appendInstruction(Binary.create(REF_XOR, op0, o1, o2));
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.wordNot) {
       OPT_Operand o1 = bc2ir.pop();
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Unary.create(VM.BuildFor32Addr ? INT_NOT : LONG_NOT, op0, o1));
+      bc2ir.appendInstruction(Unary.create(REF_NOT, op0, o1));
       bc2ir.push(op0.copyD2U());
     } else if (methodName == VM_MagicNames.wordZero) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
@@ -764,19 +762,19 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_Operand op2 = bc2ir.popInt();
       OPT_Operand op1 = bc2ir.popAddress();
       OPT_RegisterOperand res = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(VM.BuildFor32Addr ? INT_SHL : LONG_SHL, res, op1, op2));
+      bc2ir.appendInstruction(Binary.create(REF_SHL, res, op1, op2));
       bc2ir.push(res.copyD2U());
     } else if (methodName == VM_MagicNames.wordRshl) {
       OPT_Operand op2 = bc2ir.popInt();
       OPT_Operand op1 = bc2ir.popAddress();
       OPT_RegisterOperand res = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(VM.BuildFor32Addr ? INT_USHR : LONG_USHR, res, op1, op2));
+      bc2ir.appendInstruction(Binary.create(REF_USHR, res, op1, op2));
       bc2ir.push(res.copyD2U());
     } else if (methodName == VM_MagicNames.wordRsha) {
       OPT_Operand op2 = bc2ir.popInt();
       OPT_Operand op1 = bc2ir.popAddress();
       OPT_RegisterOperand res = gc.temps.makeTemp(resultType);
-      bc2ir.appendInstruction(Binary.create(VM.BuildFor32Addr ? INT_SHR : LONG_SHR, res, op1, op2));
+      bc2ir.appendInstruction(Binary.create(REF_SHR, res, op1, op2));
       bc2ir.push(res.copyD2U());
     } else {
       return false;

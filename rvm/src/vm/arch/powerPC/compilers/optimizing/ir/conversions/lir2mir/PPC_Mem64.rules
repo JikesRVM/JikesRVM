@@ -12,64 +12,6 @@
 # See PPC_Common.rules for the format of this file
 #
 #####
-# INT_LOAD
-# A few more cases than for other load operators to handle pointer arithmetic introduced by use of magic
-#####
-r:      INT_LOAD(r,INT_CONSTANT)
-11
-EMIT_INSTRUCTION
-EMIT(MIR_Load.mutate(P(p), PPC_LInt, Load.getResult(P(p)),            \
-                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-                     Load.getLocation(P(p)), Load.getGuard(P(p))));
-
-r:      INT_LOAD(r,INT_MOVE(INT_CONSTANT))
-22
-EMIT_INSTRUCTION
-{                                                                             \
-   OPT_Operand val = Move.getVal(PR(p));                                      \
-   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
-                          R(Load.getAddress(P(p))), CAU16(val)));             \
-   EMIT(MIR_Load.mutate(P(p), PPC_LInt, Load.getResult(P(p)),         \
-                                 Move.getResult(PR(p)), CAL16(val),           \
-                                 Load.getLocation(P(p)),                      \
-                                 Load.getGuard(P(p))));                      \
-}
-
-r:      INT_LOAD(r,LONG_MOVE(INT_CONSTANT))
-22
-EMIT_INSTRUCTION
-{                                                                             \
-   OPT_Operand val = Move.getVal(PR(p));                                      \
-   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
-                          R(Load.getAddress(P(p))), CAU16(val)));             \
-   EMIT(MIR_Load.mutate(P(p), PPC_LInt, Load.getResult(P(p)),         \
-                                 Move.getResult(PR(p)), CAL16(val),           \
-                                 Load.getLocation(P(p)),                      \
-                                 Load.getGuard(P(p))));                      \
-}
-
-r:      INT_LOAD(r,r)
-11
-EMIT_INSTRUCTION
-EMIT(MIR_Load.mutate(P(p), PPC_LIntX, Load.getResult(P(p)),           \
-                     R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
-                     Load.getLocation(P(p)), Load.getGuard(P(p))));
-
-r:      INT_LOAD(INT_ADD(r,r),INT_CONSTANT)
-isZERO(VR(p), 11)
-EMIT_INSTRUCTION
-EMIT(MIR_Load.mutate(P(p), PPC_LIntX, Load.getResult(P(p)),           \
-                              R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), \
-                              Load.getLocation(P(p)), Load.getGuard(P(p))));
-
-r:      INT_LOAD(INT_ADD(r,INT_CONSTANT),INT_CONSTANT)
-SI16(VR(p)+VLR(p)) ? 14 : INFINITE
-EMIT_INSTRUCTION
-EMIT(MIR_Load.mutate(P(p), PPC_LInt, Load.getResult(P(p)),            \
-                              R(Binary.getVal1(PL(p))), IC(VR(p)+VLR(p)), \
-                              Load.getLocation(P(p)), Load.getGuard(P(p))));
-
-#####
 # LONG_LOAD
 #####
 r:	LONG_LOAD(r,INT_CONSTANT)
@@ -79,7 +21,7 @@ EMIT(MIR_Load.mutate(P(p), PPC_LAddr, Load.getResult(P(p)),            \
                      R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 	             Load.getLocation(P(p)), Load.getGuard(P(p))));
 
-r:	LONG_LOAD(r,INT_MOVE(INT_CONSTANT))
+r:	LONG_LOAD(r,REF_MOVE(INT_CONSTANT))
 22
 EMIT_INSTRUCTION
 {                                                                             \
@@ -92,19 +34,6 @@ EMIT_INSTRUCTION
                                  Load.getGuard(P(p))));                      \
 }
 
-r:      LONG_LOAD(r,LONG_MOVE(INT_CONSTANT))
-22
-EMIT_INSTRUCTION
-{                                                                             \
-   OPT_Operand val = Move.getVal(PR(p));                                      \
-   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
-                          R(Load.getAddress(P(p))), CAU16(val)));             \
-   EMIT(MIR_Load.mutate(P(p), PPC_LAddr, Load.getResult(P(p)),         \
-                                 Move.getResult(PR(p)), CAL16(val),           \
-                                 Load.getLocation(P(p)),                      \
-                                 Load.getGuard(P(p))));                      \
-}
-
 r:	LONG_LOAD(r,r)
 11
 EMIT_INSTRUCTION
@@ -112,36 +41,19 @@ EMIT(MIR_Load.mutate(P(p), PPC_LAddrX, Load.getResult(P(p)),           \
                      R(Load.getAddress(P(p))), Load.getOffset(P(p)), \
 	             Load.getLocation(P(p)), Load.getGuard(P(p))));
 
-r:	LONG_LOAD(LONG_ADD(r,r),INT_CONSTANT)
+r:	LONG_LOAD(REF_ADD(r,r),INT_CONSTANT)
 isZERO(VR(p), 11)
 EMIT_INSTRUCTION
 EMIT(MIR_Load.mutate(P(p), PPC_LAddrX, Load.getResult(P(p)),           \
                               R(Binary.getVal1(PL(p))), Binary.getVal2(PL(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p))));
 
-r:	LONG_LOAD(LONG_ADD(r,INT_CONSTANT),INT_CONSTANT)
+r:	LONG_LOAD(REF_ADD(r,INT_CONSTANT),INT_CONSTANT)
 SI16(VR(p)+VLR(p)) ? 14 : INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Load.mutate(P(p), PPC_LAddr, Load.getResult(P(p)),            \
                               R(Binary.getVal1(PL(p))), IC(VR(p)+VLR(p)), \
 			      Load.getLocation(P(p)), Load.getGuard(P(p))));
-
-#####
-# INT_STORE
-# A few more cases than for other store operators to handle pointer arithmetic introduced by use of magic
-#####
-stm:	INT_STORE(r,OTHER_OPERAND(r,LONG_MOVE(INT_CONSTANT)))
-22
-EMIT_INSTRUCTION
-{                                                                             \
-   OPT_Operand val = Move.getVal(PRR(p));                                     \
-   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
-                          R(Store.getAddress(P(p))), CAU16(val)));            \
-   EMIT(MIR_Store.mutate(P(p), PPC_STW, R(Store.getValue(P(p))),     \
-                                  Move.getResult(PRR(p)), CAL16(val),         \
-				  Store.getLocation(P(p)),                    \
-                                  Store.getGuard(P(p))));                    \
-}
 
 #####
 # LONG_STORE
@@ -156,7 +68,7 @@ EMIT(MIR_Store.mutate(P(p), PPC_STAddr, R(Store.getValue(P(p))),        \
 			       Store.getLocation(P(p)),                       \
                                Store.getGuard(P(p))));
 
-stm:	LONG_STORE(r,OTHER_OPERAND(r,INT_MOVE(INT_CONSTANT)))
+stm:	LONG_STORE(r,OTHER_OPERAND(r,REF_MOVE(INT_CONSTANT)))
 22
 EMIT_INSTRUCTION
 {                                                                             \
@@ -169,7 +81,7 @@ EMIT_INSTRUCTION
                                   Store.getGuard(P(p))));                    \
 }
 
-stm:	LONG_STORE(r,OTHER_OPERAND(r,LONG_MOVE(INT_CONSTANT)))
+stm:	LONG_STORE(r,OTHER_OPERAND(r,REF_MOVE(INT_CONSTANT)))
 22
 EMIT_INSTRUCTION
 {                                                                             \
@@ -191,7 +103,7 @@ EMIT(MIR_Store.mutate(P(p), PPC_STAddrX, R(Store.getValue(P(p))),       \
 			       Store.getLocation(P(p)),                       \
                                Store.getGuard(P(p))));
 
-stm:	LONG_STORE(r,OTHER_OPERAND(LONG_ADD(r,INT_CONSTANT),INT_CONSTANT))
+stm:	LONG_STORE(r,OTHER_OPERAND(REF_ADD(r,INT_CONSTANT),INT_CONSTANT))
 SI16(VRR(p)+VRLR(p))?14:INFINITE
 EMIT_INSTRUCTION
 EMIT(MIR_Store.mutate(P(p), PPC_STAddr, R(Store.getValue(P(p))),        \
@@ -199,70 +111,6 @@ EMIT(MIR_Store.mutate(P(p), PPC_STAddr, R(Store.getValue(P(p))),        \
                                IC(VRR(p) + VRLR(p)), \
 			       Store.getLocation(P(p)),                       \
                                Store.getGuard(P(p))));
-
-#####
-# FLOAT_STORE
-#####
-stm:      FLOAT_STORE(r,OTHER_OPERAND(r,LONG_MOVE(INT_CONSTANT)))
-22
-EMIT_INSTRUCTION
-{                                                                             \
-   OPT_Operand val = Move.getVal(PRR(p));                                     \
-   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
-                          R(Store.getAddress(P(p))), CAU16(val)));            \
-   EMIT(MIR_Store.mutate(P(p), PPC_STFS, R(Store.getValue(P(p))),    \
-                                  Move.getResult(PRR(p)), CAL16(val),         \
-				  Store.getLocation(P(p)),                    \
-                                  Store.getGuard(P(p))));                    \
-}
-
-#####
-# DOUBLE_STORE
-#####
-stm:      DOUBLE_STORE(r,OTHER_OPERAND(r,LONG_MOVE(INT_CONSTANT)))
-22
-EMIT_INSTRUCTION
-{                                                                             \
-   OPT_Operand val = Move.getVal(PRR(p));                                     \
-   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PRR(p)),                  \
-                          R(Store.getAddress(P(p))), CAU16(val)));            \
-   EMIT(MIR_Store.mutate(P(p), PPC_STFD, R(Store.getValue(P(p))),    \
-                                  Move.getResult(PRR(p)), CAL16(val),         \
-				  Store.getLocation(P(p)),                    \
-                                  Store.getGuard(P(p))));                    \
-}
-
-#####
-# FLOAT_LOAD
-#####
-r:      FLOAT_LOAD(r,LONG_MOVE(INT_CONSTANT))
-22
-EMIT_INSTRUCTION
-{                                                                             \
-   OPT_Operand val = Move.getVal(PR(p));                                      \
-   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
-                          R(Load.getAddress(P(p))), CAU16(val)));             \
-   EMIT(MIR_Load.mutate(P(p), PPC_LFS, Load.getResult(P(p)),         \
-                                 Move.getResult(PR(p)), CAL16(val),           \
-			         Load.getLocation(P(p)),                      \
-                                 Load.getGuard(P(p))));                      \
-}
-
-#####
-# DOUBLE_LOAD
-#####
-r:      DOUBLE_LOAD(r,LONG_MOVE(INT_CONSTANT))
-22
-EMIT_INSTRUCTION
-{                                                                             \
-   OPT_Operand val = Move.getVal(PR(p));                                      \
-   EMIT(MIR_Binary.create(PPC_ADDIS, Move.getResult(PR(p)),                   \
-                          R(Load.getAddress(P(p))), CAU16(val)));             \
-   EMIT(MIR_Load.mutate(P(p), PPC_LFD, Load.getResult(P(p)),         \
-                                 Move.getResult(PR(p)), CAL16(val),           \
-				 Load.getLocation(P(p)),                      \
-                                 Load.getGuard(P(p))));                      \
-}
 
 #####
 # PREPARE

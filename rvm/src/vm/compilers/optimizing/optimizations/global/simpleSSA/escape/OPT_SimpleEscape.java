@@ -332,12 +332,14 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case REF_MOVE_opcode:case ATHROW_opcode:
       case PREPARE_INT_opcode:case PREPARE_ADDR_opcode:
       case ATTEMPT_INT_opcode:case ATTEMPT_ADDR_opcode: 
-      case INT_MOVE_opcode:case INT_ADD_opcode: 
+      case INT_MOVE_opcode:case INT_ADD_opcode:case REF_ADD_opcode: 
       case INT_MUL_opcode: case INT_DIV_opcode: case INT_REM_opcode:
       case INT_NEG_opcode: case INT_ZERO_CHECK_opcode:                 
       case INT_OR_opcode: case INT_AND_opcode: case INT_XOR_opcode:
-      case INT_SUB_opcode:case INT_SHL_opcode:
+      case REF_OR_opcode: case REF_AND_opcode: case REF_XOR_opcode:
+      case INT_SUB_opcode:case REF_SUB_opcode:case INT_SHL_opcode:
       case INT_SHR_opcode:case INT_USHR_opcode:case SYSCALL_opcode:
+      case REF_SHL_opcode:case REF_SHR_opcode:case REF_USHR_opcode:
       case GET_CLASS_OBJECT_opcode:case SET_CAUGHT_EXCEPTION_opcode:
       case PHI_opcode: case INT_2LONG_opcode:
       case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:
@@ -468,12 +470,14 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case REF_MOVE_opcode:case ATHROW_opcode:
       case PREPARE_INT_opcode:case PREPARE_ADDR_opcode:
       case ATTEMPT_INT_opcode:case ATTEMPT_ADDR_opcode: 
-      case INT_MOVE_opcode:case INT_ADD_opcode: 
+      case INT_MOVE_opcode:case INT_ADD_opcode:case REF_ADD_opcode: 
       case INT_MUL_opcode: case INT_DIV_opcode: case INT_REM_opcode:
       case INT_NEG_opcode: case INT_ZERO_CHECK_opcode:                 
       case INT_OR_opcode: case INT_AND_opcode: case INT_XOR_opcode:
-      case INT_SUB_opcode:case INT_SHL_opcode:
+      case REF_OR_opcode: case REF_AND_opcode: case REF_XOR_opcode:
+      case INT_SUB_opcode:case REF_SUB_opcode:case INT_SHL_opcode:
       case INT_SHR_opcode:case INT_USHR_opcode:case SYSCALL_opcode:
+      case REF_SHL_opcode:case REF_SHR_opcode:case REF_USHR_opcode:
       case GET_CLASS_OBJECT_opcode:case SET_CAUGHT_EXCEPTION_opcode:
       case PHI_opcode: case INT_2LONG_opcode:
       case REF_COND_MOVE_opcode: case INT_COND_MOVE_opcode:

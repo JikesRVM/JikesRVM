@@ -10,6 +10,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import org.vmmagic.unboxed.Address;
 
 /**
  * This class simplifies expressions in SSA form.
@@ -128,21 +129,43 @@ class OPT_ExpressionFolding implements OPT_Operators {
                                            OPT_Instruction def) {
     if (s.operator == INT_ADD || s.operator == INT_SUB) {
       return transformForInt(s,def);
+    } else if (s.operator == REF_ADD || s.operator == REF_SUB) {
+      return transformForWord(s,def);
     } else {
       return transformForLong(s,def);
     }
   }
 
   private static int getIntValue(OPT_Operand op) {
-    if (op instanceof OPT_NullConstantOperand) 
+    if (op instanceof OPT_NullConstantOperand) //is this still necessary? 
       return 0;
     if (op instanceof OPT_IntConstantOperand)
       return op.asIntConstant().value;
-    if (op instanceof OPT_AddressConstantOperand)
-      return op.asAddressConstant().value.toInt();  // not portable
     throw new OPT_OptimizingCompilerException("Cannot getIntValue from this operand " + op);
   }
 
+  private static Address getAddressValue(OPT_Operand op) {
+    if (op instanceof OPT_NullConstantOperand) 
+      return Address.zero();
+    if (op instanceof OPT_AddressConstantOperand)
+      return op.asAddressConstant().value; 
+    if (op instanceof OPT_IntConstantOperand)
+      return Address.fromIntSignExtend(op.asIntConstant().value);
+    //-#if RVM_FOR_64_ADDR 
+    if (op instanceof OPT_LongConstantOperand)
+      return Address.fromLong(op.asLongConstant().value);
+    //-#endif
+    throw new OPT_OptimizingCompilerException("Cannot getWordValue from this operand " + op);
+  }
+
+  private static OPT_AddressConstantOperand addConstantValues(boolean neg1, OPT_Operand op1, boolean neg2, OPT_Operand op2) {
+    Address a = getAddressValue(op1);
+    if (neg1) a = Address.zero().sub(a.toWord().toOffset()); //negate op1
+    if (neg2) a = a.sub(getAddressValue(op2).toWord().toOffset()); //sub op2
+    else a = a.add(getAddressValue(op2).toWord().toOffset()); //add op2
+    return new OPT_AddressConstantOperand(a);
+  }
+  
   /**
    * Perform the transfomation on the instruction s = A +/- c
    * where def is the definition of A.
@@ -161,7 +184,7 @@ class OPT_ExpressionFolding implements OPT_Operators {
     int d = getIntValue(Binary.getVal2(def));
     if (def.operator == INT_SUB) d = -d;
 
-    // rewrite so y = B + (c+d)  
+    // rewrite so y = B + (c+d) 
     OPT_IntConstantOperand val2 = new OPT_IntConstantOperand(c+d);
     return Binary.create(INT_ADD,y.copyRO(),B.copy(),val2);
   }
@@ -190,12 +213,32 @@ class OPT_ExpressionFolding implements OPT_Operators {
   }
 
   /**
+   * Perform the transfomation on the instruction s = A +/- c
+   * where def is the definition of A.
+   * @return the new instruction to replace s;
+   */
+  private static OPT_Instruction transformForWord(OPT_Instruction s, 
+                                                  OPT_Instruction def) {
+    // s is y = A + c
+    OPT_RegisterOperand y = Binary.getResult(s);
+    OPT_RegisterOperand A = Binary.getVal1(s).asRegister();
+
+    // A = B + d
+    OPT_RegisterOperand B = Binary.getVal1(def).asRegister();
+
+    // rewrite so y = B + (c+d)  
+    OPT_AddressConstantOperand val2 = addConstantValues(s.operator == REF_SUB, Binary.getVal2(s), def.operator == REF_SUB, Binary.getVal2(def)); 
+    return Binary.create(REF_ADD,y.copyRO(),B.copy(),val2);
+  }
+
+  /**
    * Does instruction s compute a register r = candidate expression?
    *
    * @return the computed register, or null 
    */
   private static OPT_Register isCandidateExpression(OPT_Instruction s) {
     if (s.operator == INT_ADD || s.operator == LONG_ADD ||
+        s.operator == REF_ADD || s.operator == REF_SUB || 
         s.operator == INT_SUB || s.operator == LONG_SUB ) {
       OPT_Operand val2 = Binary.getVal2(s);
       if (val2.isConstant()) {

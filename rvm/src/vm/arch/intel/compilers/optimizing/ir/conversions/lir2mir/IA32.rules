@@ -103,6 +103,11 @@ any:	riv
 NOFLAGS
 // No code emitted
 
+any:	ADDRESS_CONSTANT
+0
+NOFLAGS
+// No code emitted
+
 any:	LONG_CONSTANT
 0
 NOFLAGS

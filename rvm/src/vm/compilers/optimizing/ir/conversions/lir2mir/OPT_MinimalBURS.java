@@ -83,6 +83,8 @@ final class OPT_MinimalBURS extends OPT_BURS {
         child = new OPT_BURS_IntConstantTreeNode(((OPT_IntConstantOperand)op).value);
       } else if (op instanceof OPT_LongConstantOperand) {
         child = LongConstant;
+      } else if (op instanceof OPT_AddressConstantOperand) {
+        child = AddressConstant;
       } else if (op instanceof OPT_BranchOperand && s.isCall()) {
         child = BranchTarget;
       //-#if RVM_WITH_OSR

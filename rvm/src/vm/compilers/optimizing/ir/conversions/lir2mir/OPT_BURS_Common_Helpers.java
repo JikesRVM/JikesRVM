@@ -45,6 +45,11 @@ abstract class OPT_BURS_Common_Helpers extends OPT_PhysicalRegisterTools
     return (OPT_RegisterOperand) op;
   }
 
+  // returns the given operand as an address constant
+  protected final OPT_AddressConstantOperand AC(OPT_Operand op) {
+    return (OPT_AddressConstantOperand) op;
+  }
+
   // returns the given operand as an integer constant
   protected final OPT_IntConstantOperand IC(OPT_Operand op) {
     return (OPT_IntConstantOperand) op;

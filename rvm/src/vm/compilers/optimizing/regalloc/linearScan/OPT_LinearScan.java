@@ -2623,6 +2623,16 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
                               ((OPT_IntConstantOperand)other_op).value
                               );                              
               } 
+            } else if (op.isAddressConstant()) {
+              setTupleValue(tuple,
+                            OSR_Constants.ICONST,
+                            ((OPT_AddressConstantOperand)op).value.toInt()
+                            );
+              //KV:TODO:
+              if (VM.BuildFor64Addr) 
+              throw new OPT_OptimizingCompilerException("OPT_LinearScan",
+                        "Unexpected operand type at ", op.toString());
+              //KV:end TODO
             } else {
               throw new OPT_OptimizingCompilerException("OPT_LinearScan",
                         "Unexpected operand type at ", op.toString());

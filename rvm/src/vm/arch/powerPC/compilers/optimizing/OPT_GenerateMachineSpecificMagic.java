@@ -94,16 +94,9 @@ class OPT_GenerateMachineSpecificMagic
                                           fp,
                                           new OPT_IntConstantOperand(STACKFRAME_FRAME_POINTER_OFFSET),
                                           null));
-      //-#if RVM_FOR_32_ADDR
-      bc2ir.appendInstruction(Binary.create(INT_ADD, val, 
+      bc2ir.appendInstruction(Binary.create(REF_ADD, val, 
                                             callerFP,
                                             new OPT_IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
-      //-#endif
-      //-#if RVM_FOR_64_ADDR
-      bc2ir.appendInstruction(Binary.create(LONG_ADD, val, 
-                                            callerFP,
-                                            new OPT_IntConstantOperand(STACKFRAME_NEXT_INSTRUCTION_OFFSET)));
-      //-#endif
       bc2ir.push(val.copyD2U());
     } else if (methodName == VM_MagicNames.isync) {
       if (!gc.options.NO_CACHE_FLUSH)

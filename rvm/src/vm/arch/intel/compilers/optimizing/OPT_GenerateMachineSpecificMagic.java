@@ -120,7 +120,7 @@ class OPT_GenerateMachineSpecificMagic implements OPT_Operators, VM_Constants {
     } else if (methodName == VM_MagicNames.getReturnAddressLocation) {
       OPT_Operand fp = bc2ir.popAddress();
       OPT_RegisterOperand val = gc.temps.makeTemp(VM_TypeReference.Address);
-      bc2ir.appendInstruction(Binary.create(INT_ADD, val, 
+      bc2ir.appendInstruction(Binary.create(REF_ADD, val, 
                                             fp,
                                             new OPT_IntConstantOperand(STACKFRAME_RETURN_ADDRESS_OFFSET)));
       bc2ir.push(val.copyD2U());

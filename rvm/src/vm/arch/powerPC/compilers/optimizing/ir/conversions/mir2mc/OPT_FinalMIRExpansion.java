@@ -60,7 +60,7 @@ abstract class OPT_FinalMIRExpansion extends OPT_IRTools
           p.insertBack(MIR_Move.create(PPC_MFSPR, A(temp), A(phys.getLR())));
           p.insertBack(MIR_Binary.create(PPC_SLWI, I(regI), I(regI), IC(2)));
           p.insertBack(MIR_LoadUpdate.create(PPC_LIntUX, I(temp), I(regI), A(temp)));
-          p.insertBack(MIR_Binary.create(PPC_ADD, A(regI), I(regI), A(temp)));
+          p.insertBack(MIR_Binary.create(PPC_ADD, A(regI), A(regI), I(temp)));
           p.insertBack(MIR_Move.create(PPC_MTSPR, A(phys.getCTR()), A(regI)));
           MIR_Branch.mutate(p, PPC_BCTR);
           instructionCount += NumTargets + 7;
