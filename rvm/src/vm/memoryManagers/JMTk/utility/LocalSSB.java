@@ -151,6 +151,7 @@ class LocalSSB extends Queue implements Constants, VM_Uninterruptible {
       closeAndEnqueueTail(arity);
     }
     tail = queue.alloc().add(bufferLastOffset(arity) + BYTES_IN_WORD);
+    Plan.checkForAsyncCollection(); // possible side-effect of alloc()
   }
 
   /**

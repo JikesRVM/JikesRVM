@@ -315,13 +315,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param mr The memory resource that triggered this collection.
    * @return True if a collection is triggered
    */
-  public final boolean poll (boolean mustCollect, MemoryResource mr) 
+  public final boolean poll(boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
-    if (gcInProgress || !initialized || mr == metaDataMR) return false;
+    if (collectionInitiated || !initialized || mr == metaDataMR) return false;
     mustCollect |= stressTestGCRequired();
     if (mustCollect || getPagesReserved() > getTotalPages()) {
       required = mr.reservedPages() - mr.committedPages();
       if (mr == ssMR) required = required<<1; // must account for copy reserve
+      collectionInitiated = true;
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }

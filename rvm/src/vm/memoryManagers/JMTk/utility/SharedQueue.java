@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Lock;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
@@ -22,8 +23,8 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @version $Revision$
  * @date $Date$
  */ 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-public class SharedQueue extends Queue implements Constants, VM_Uninterruptible {
+public class SharedQueue extends Queue 
+  implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
   
@@ -50,7 +51,8 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
   public final int getArity() throws VM_PragmaInline { return arity; }
 
   public final void enqueue(VM_Address buf, int arity, boolean toTail) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == this.arity);
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(arity == this.arity);
 
     lock();
     if (toTail) {
@@ -70,7 +72,7 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
     } 
     if (VM_Interface.VerifyAssertions) {
       bufsenqueued++;
-      VM_Interface._assert(bufsenqueued == debugQueueLength());
+      VM_Interface._assert(checkQueueLength(bufsenqueued));
     }
     unlock();
   }
@@ -84,12 +86,14 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
   }
 
   public final VM_Address dequeue(int arity) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == this.arity);
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(arity == this.arity);
     return dequeue(false);
   }
 
   public final VM_Address dequeueAndWait(int arity) {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(arity == this.arity);
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(arity == this.arity);
     VM_Address buf = dequeue(false);
     while (buf.isZero() && (completionFlag == 0)) {
       buf = dequeue(true);
@@ -100,7 +104,8 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
   public final void reset() {
     setNumClientsWaiting(0);
     setCompletionFlag(0);
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(head.isZero() && tail.isZero());
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(head.isZero() && tail.isZero());
   }
 
   public final void newClient() {
@@ -109,7 +114,8 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
 
   public final VM_Address alloc() throws VM_PragmaInline {
     VM_Address rtn = rpa.alloc(PAGES_PER_BUFFER);
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(rtn.EQ(bufferStart(rtn)));
+    if (VM_Interface.VerifyAssertions)
+      VM_Interface._assert(rtn.EQ(bufferStart(rtn)));
     return rtn;
   }
 
@@ -183,19 +189,20 @@ public class SharedQueue extends Queue implements Constants, VM_Uninterruptible 
   }
 
   /**
-   * Establish the number of buffers in the work queue (for debugging
+   * Check the number of buffers in the work queue (for debugging
    * purposes).
    *
-   * @return The number of buffers in the work queue.
+   * @param length The number of buffers believed to be in the queue.
+   * @return True if the length of the queue matches length.
    */
-  private final int debugQueueLength() {
+  private final boolean checkQueueLength(int length) {
     VM_Address top = head;
     int l = 0;
-    while (!top.isZero()) {
+    while (!top.isZero() && l <= length) {
       top = getNext(top);
       l++;
     }
-    return l;
+    return l == length;
   }
 
   /**

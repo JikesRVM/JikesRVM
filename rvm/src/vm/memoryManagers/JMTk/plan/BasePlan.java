@@ -63,7 +63,9 @@ public abstract class BasePlan
 
   // GC state and control variables
   protected static boolean initialized = false;
-  protected static boolean gcInProgress = false;    // Controlled by subclasses
+  protected static boolean awaitingCollection = false;
+  protected static boolean collectionInitiated = false;
+  protected static boolean gcInProgress = false;
   protected static int exceptionReserve = 0;
 
   // Timing variables
@@ -459,6 +461,31 @@ public abstract class BasePlan
    */
   public static boolean isLastGCFull () {
     return true;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Collection
+  //
+
+  /**
+   * Check whether an asynchronous collection is pending.<p>
+   *
+   * This is decoupled from the poll() mechanism because the
+   * triggering of asynchronous collections can trigger write
+   * barriers, which can trigger an asynchronous collection.  Thus, if
+   * the triggering were tightly coupled with the request to alloc()
+   * within the write buffer code, then inifinite regress could
+   * result.  There is no race condition in the following code since
+   * there is no harm in triggering the collection more than once,
+   * thus it is unsynchronized.
+   */
+  static void checkForAsyncCollection() {
+    if (awaitingCollection) {
+      awaitingCollection = false;
+      collectionInitiated = true;
+      VM_Interface.triggerAsyncCollection();
+    }
   }
 
   ////////////////////////////////////////////////////////////////////////////

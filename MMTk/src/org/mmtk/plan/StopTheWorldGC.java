@@ -158,7 +158,6 @@ public abstract class StopTheWorldGC extends BasePlan
   public void collect () {
 
     boolean designated = (VM_CollectorThread.gcBarrier.rendezvous() == 1);
-
     if (designated) Statistics.initTime.start();
     prepare();        
     if (designated) Statistics.initTime.stop();
@@ -321,6 +320,7 @@ public abstract class StopTheWorldGC extends BasePlan
   private final void baseGlobalRelease() {
     globalRelease();
     gcInProgress = false;    // GC is in progress until after release!
+    collectionInitiated = false;
     valuePool.reset();
     locationPool.reset();
     rootLocationPool.reset();

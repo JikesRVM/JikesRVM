@@ -317,16 +317,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
-    if (gcInProgress || !initialized) return false;
+    if (collectionInitiated || !initialized) return false;
     if (mustCollect || getPagesReserved() > getTotalPages() ||
 	(progress &&
 	 ((rcMR.committedPages() - lastRCPages) > Options.maxNurseryPages ||
 	  metaDataMR.committedPages() > Options.metaDataPages))) {
       if (mr == metaDataMR) {
-        VM_Interface.triggerAsyncCollection();
+	awaitingCollection = true;
         return false;
       }
       required = mr.reservedPages() - mr.committedPages();
+      collectionInitiated = true;
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }

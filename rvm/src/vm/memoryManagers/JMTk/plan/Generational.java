@@ -8,7 +8,6 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
 
-
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_Magic;
@@ -339,9 +338,9 @@ public abstract class Generational extends StopTheWorldGC
    * @param mr The memory resource that triggered this collection.
    * @return True if a collection is triggered
    */
-  public final boolean poll (boolean mustCollect, MemoryResource mr) 
+  public final boolean poll(boolean mustCollect, MemoryResource mr) 
     throws VM_PragmaLogicallyUninterruptible {
-    if (gcInProgress || !initialized || mr == metaDataMR) return false;
+    if (collectionInitiated || !initialized || mr == metaDataMR) return false;
     mustCollect |= stressTestGCRequired();
     boolean heapFull = getPagesReserved() > getTotalPages();
     boolean nurseryFull = nurseryMR.reservedPages() > Options.maxNurseryPages;
@@ -351,6 +350,7 @@ public abstract class Generational extends StopTheWorldGC
 	required = required<<1;  // must account for copy reserve
       int nurseryYield = ((int)((float) nurseryMR.committedPages() * SURVIVAL_ESTIMATE))<<1;
       fullHeapGC = mustCollect || (nurseryYield < required) || fullHeapGC;
+      collectionInitiated = true;
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
