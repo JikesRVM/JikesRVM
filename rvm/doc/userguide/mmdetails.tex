@@ -3,21 +3,25 @@ of the memory management component of RVM runtime system.
  
 \subsection{Directory Structure} \label{sssec:directories}
 The classes related to memory management are contained in the 
-{\tt \$RVM\_ROOT/rvm/src/vm/memoryManagers} directory.  Sub-directories
-there
+{\tt \$RVM\_ROOT/rvm/src/vm/memoryManagers} directory.
+The {\tt watson} sub-directory of {\tt memoryManagers} contains
+the memory managers provided with the initial release of the RVM,
+and are the managers discussed in this section.
+
+The {\tt watson} directory contains common classes used by multiple
+memory managers, such as the load balancing work queue
+(see 
+\xlink{{\tt VM\_GCWorkQueue.java}}{\VMGCWorkQueueURL}
+).
+Sub-directories of {\tt watson} 
 contain classes for a specific memory management strategy.
 For example, the {\tt semispace} directory implements a
 simple semi-space copying allocator and collector.
 
 A RVM configuration specifies a memory management strategy, 
 and the jconfigure command will include in the build all the
-classes in the memoryManagers directory and all the classes in the
+classes in the {\tt memoryManagers/watson} directory and all the classes in the
 sub-directory for the specified memory management strategy.
-The memoryManagers directory contains classes used in multiple
-configurations, such as the load balancing work queue 
-(see 
-\xlink{{\tt VM\_GCWorkQueue.java}}{\VMGCWorkQueueURL}
-) which is used by all of the RVM garbage collectors.
 
 \subsection{Choosing an Allocator/Collector} \label{ssec:choosinggc}
 Depending on your purposes, you may choose to build RVM
@@ -35,6 +39,11 @@ than any of the copying collectors, which in have a semispace structure.
 Also, major collections are faster with a noncopying collector,
 since objects are not moved.  The best performance for a particular	
 application should be determined by experiment.
+
+All of the memory managers provided in the {\tt watson} directory,
+except for the concurrent (reference counting) collector, support
+finalization, and collection while threads are executing in 
+native code (such threads are blocked in native code during collection).
 
 \subsection{Adding A New Allocator/Collector} \label{sssec:newalloc}
 \index{garbage collection}
@@ -57,7 +66,7 @@ non-copying.  If you want to start from scratch, start with
 This file provides simple implementations of the required object allocation
 methods, and stubs for the other fields and methods expected by the rest
 of the RVM runtime (not all will be needed in any one implementation).
-With the RVM memory managers, a single class, VM\_Allocator, implements both
+With the initial set of memory managers, a single class, VM\_Allocator, implements both
 the methods that perform object allocation and the methods that perform
 garbage collections.
 \end{enumerate}
@@ -67,7 +76,7 @@ garbage collections.
 \index{finalizable objects}
 \index{finalizer method}
 The class {\tt VM\_GCWorkQueue}, implements a load balancing workqueue
-which is used by all the RVM collectors to find all references reachable from
+which is used by all the collectors to find all references reachable from
 some initial set of references.  It is used to find all objects reachable
 from roots, and also to find all objects reachable from finalizable objects
 that are made live in order to execute their finalizer methods.
