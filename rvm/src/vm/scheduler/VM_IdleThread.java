@@ -11,6 +11,13 @@
  */
 class VM_IdleThread extends VM_Thread {
 
+  // time in seconds to spin 
+  //-#if RVM_WITH_LOUSY_LOAD_BALANCING
+  static final double SPIN_TIME = (VM.BuildforConcurentGC ? 0.001 : 0);
+  //-#else
+  static final double SPIN_TIME = 0.001;
+  //-#endif
+
   VM_IdleThread(VM_Processor processorAffinity) {
     makeDaemon(true);
     super.isIdleThread = true;
@@ -25,60 +32,60 @@ class VM_IdleThread extends VM_Thread {
 
   public void run() { // overrides VM_Thread
     while (true) {
-      boolean rvmYield = false;
-      if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logIdleEvent();
-      VM_Processor myProcessor = VM_Processor.getCurrentProcessor(); // Tell load balancer that this processor needs work.
-      if (VM_Scheduler.terminated) // the VM is terminating, exit idle thread
-        VM_Thread.terminate();
       
+      if (VM.BuildForEventLogging && VM.EventLoggingEnabled) VM_EventLogger.logIdleEvent();
+
+      if (VM_Scheduler.terminated) VM_Thread.terminate();
+      
+      // flag -  the main will will either yield to the idle queue, and most
+      //         likely loop back, or
+      //	 yield the time slice to other processors.
+      //  idleQueueYield means yield to the idle queue
+
+      VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
+
       if (!VM.BuildForDedicatedNativeProcessors && myProcessor.processorMode != VM_Processor.NATIVEDAEMON) {
-        if (myProcessor.readyQueue.isEmpty() &&      // no more local work to do
-            myProcessor.transferQueue.isEmpty() &&   // no incoming work to do
-            VM_Processor.idleProcessor == null)      // nobody else has asked for work
-	  { 
-	    // ask for somebody to put work onto our transfer queue
-	    // VM_Scheduler.trace("VM_IdleThread", "asking for work");
-	    if (! VM.BuildForConcurrentGC) {
-	      VM_Processor.idleProcessor = VM_Processor.getCurrentProcessor();
-	    } else if (VM_Scheduler.numProcessors > 1 && 
-		       VM_Processor.getCurrentProcessor().id != VM_Scheduler.numProcessors) {
-	      VM_Processor.idleProcessor = VM_Processor.getCurrentProcessor();
-	    }
-	  }
-        
         // Awaken threads whose sleep time has expired.
         //
-        if (VM_Scheduler.wakeupQueue.isReady()) {
+        if ( VM_Processor.idleProcessor == null      // nobody else has asked for work
+	     && !availableWork(myProcessor)
+             && VM_Scheduler.numProcessors > 1
+             && ( !VM.BuildForConcurrentGC
+	 	  ||  (VM_Processor.getCurrentProcessor().id != VM_Scheduler.numProcessors) ) ) { 
+            // Tell load balancer that this processor needs work.
+	    // VM_Scheduler.trace("VM_IdleThread", "asking for work");
+	    VM_Processor.idleProcessor = VM_Processor.getCurrentProcessor();
+	  }
+      }
+
+      for (double t = VM_Time.now() + SPIN_TIME; VM_Time.now() < t; ) 
+        if (availableWork(myProcessor)) break;
+      
+      if (availableWork(myProcessor))	VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
+      else				VM.sysVirtualProcessorYield();
+    }
+  }
+
+  /*
+   * @returns true, if the processor has a runnable thread
+   */
+  private static boolean availableWork ( VM_Processor p ) {
+
+    if (!p.readyQueue.isEmpty())	return true;
+    VM_Magic.isync();
+    if (!p.transferQueue.isEmpty())	return true;
+    if (p.ioQueue.isReady())		return true;
+
+    if (VM_Scheduler.wakeupQueue.isReady()) {
             VM_Scheduler.wakeupMutex.lock();
             VM_Thread t = VM_Scheduler.wakeupQueue.dequeue();
             VM_Scheduler.wakeupMutex.unlock();
             if (t != null) {
-        	rvmYield = true;
         	t.schedule();
+		return true;
             }
-        }
-      }
-
-      if (VM.BuildForConcurrentGC) {
-	// Temporary: prevent mutation buffer from being flooded by scheduler ops by spinning 
-	final double SPIN_TIME = 0.001;		    // time in seconds to spin 
-	for (double t = VM_Time.now() + SPIN_TIME; VM_Time.now() < t; ) {
-	  if ((!myProcessor.readyQueue.isEmpty()) || myProcessor.ioQueue.isReady() || (!myProcessor.transferQueue.isEmpty()))
-	    break;
-	}
-      }
-
-      if (!myProcessor.readyQueue.isEmpty()    || // no more local work to do
-          !myProcessor.transferQueue.isEmpty() || // no work yet transferred form other virtual processors
-	  !myProcessor.ioQueue.isEmpty())         // no work waiting on io is ready to process
-	 rvmYield = true;
-
-      // Put ourself back on idle queue.
-      //
-      if (rvmYield) 
-	VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
-      else 
-	VM.sysVirtualProcessorYield();
     }
+
+    return false;
   }
 }
