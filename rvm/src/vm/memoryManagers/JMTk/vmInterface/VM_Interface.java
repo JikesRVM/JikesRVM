@@ -249,9 +249,9 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 	if (usage > OUT_OF_MEMORY_THRESHOLD) {
 	if (why == INTERNALLY_TRIGGERED) {
 	  if (Options.verbose >= 2) {
-	    VM.sysWriteln("Throwing OutOfMemoryError: usage = ", usage);
-	    VM.sysWriteln("                           reserved (kb) = ", (int) (Plan.reservedMemory() / 1024));
-	    VM.sysWriteln("                           total    (Kb) = ", (int) (Plan.totalMemory() / 1024));
+	    VM.sysWriteln("OutOfMemoryError: usage = ", usage);
+	    VM.sysWriteln("          reserved (kb) = ", (int) (Plan.reservedMemory() / 1024));
+	    VM.sysWriteln("          total    (Kb) = ", (int) (Plan.totalMemory() / 1024));
 	  }
 	  if (VM.debugOOM || Options.verbose >= 5)
 	    VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
