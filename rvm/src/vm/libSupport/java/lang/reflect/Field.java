@@ -141,17 +141,19 @@ public final class Field extends AccessibleObject implements Member {
 
     VM_TypeReference type = field.getType();
     if (type.isReferenceType()) {
-      VM_Type valueType = VM_ObjectModel.getObjectType(value);
-      VM_Type fieldType;
-      try {
-	fieldType = type.resolve();
-      } catch (NoClassDefFoundError e) {
-	throw new IllegalArgumentException("field type mismatch");
-      }
-      if (fieldType != valueType 
-	  && !VM_Runtime.isAssignableWith(fieldType, valueType))
-      {
-	throw new IllegalArgumentException("field type mismatch");
+      if (value != null) {
+        VM_Type valueType = VM_ObjectModel.getObjectType(value);
+        VM_Type fieldType;
+        try {
+	  fieldType = type.resolve();
+        } catch (NoClassDefFoundError e) {
+	  throw new IllegalArgumentException("field type mismatch");
+        }
+	if (fieldType != valueType 
+	    && !VM_Runtime.isAssignableWith(fieldType, valueType))
+	{
+	  throw new IllegalArgumentException("field type mismatch");
+	}
       }
       field.setObjectValueUnchecked(object, value);
     } else if (value instanceof Character) {

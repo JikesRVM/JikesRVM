@@ -6,6 +6,7 @@ package java.lang.reflect;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM_Reflection;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Runtime;
 
 /**
@@ -81,6 +82,7 @@ public final class Method extends AccessibleObject implements Member {
 							      IllegalArgumentException, 
 							      ExceptionInInitializerError,
 							      InvocationTargetException {
+    VM_Method method = this.method;
     VM_Class declaringClass = method.getDeclaringClass();
     
     // validate "this" argument
@@ -108,6 +110,12 @@ public final class Method extends AccessibleObject implements Member {
       JikesRVMSupport.checkAccess(method, accessingClass);
     }
 
+    // find the right method to call
+    if (! method.isStatic()) {
+	VM_Class C = VM_Magic.getObjectType(receiver).asClass(); 
+	method = C.findVirtualMethod(method.getName(), method.getDescriptor());
+    }
+    
     // Forces initialization of declaring class
     if (method.isStatic() && !declaringClass.isInitialized()) {
       try {
