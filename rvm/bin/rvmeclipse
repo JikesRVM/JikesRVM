@@ -8,7 +8,7 @@
 # @author Julian Dolby
 #
 
-. $RVM_BUILD/environment
+. $RVM_BUILD/environment.target
 
 cd $ECLIPSE_INSTALL_DIR
 
