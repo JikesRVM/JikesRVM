@@ -13,7 +13,8 @@
 # @date  Sunday, June 1, 2003
 
 # Who we are.  Just the short form of the name (no directory component).
-ME="${0##*/}"
+: ${ME="${0##*/}"}
+    
 
 ## Usage: checkenv <envar> [ <example> ]
 ## If the environment variable <envar> is unset, then tell the user it
@@ -39,6 +40,19 @@ function checkenv () {
 				# (English typography.)
 	exit 1
     fi >&2
+    ## Special tests for RVM_ROOT
+    if [[ $envar = RVM_ROOT ]]; then
+	if [[ "${RVM_ROOT}" != /* ]]; then
+	    echo "$ME: RVM_ROOT must be set to an absolute path name."
+	    exit 1;
+	elif [[ ! -e "${RVM_ROOT}" ]]; then
+	    echo "$ME: RVM_ROOT is set to the directory ${RVM_ROOT}, which does not exist!"
+	    exit 1;
+	elif [[ ! -d "${RVM_ROOT}/." ]]; then
+	    echo "$ME: RVM_ROOT ($RVM_ROOT/.) must be a directory, but isn't!"
+	    exit 1;
+	fi >& 2
+    fi
 }
 
 
