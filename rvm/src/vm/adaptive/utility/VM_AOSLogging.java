@@ -74,7 +74,8 @@ class VM_AOSLogging {
 	}
       }
       catch (IOException e) {
-	VM.sysWrite("IOException caught in VM_AOSLogging.java\n");
+	VM.sysWrite("IOException caught in VM_AOSLogging.java while trying to create and start log file.\n");
+	VM.sysWrite("Please check for file permission problems\n");
       }
     }
     booted = true;
