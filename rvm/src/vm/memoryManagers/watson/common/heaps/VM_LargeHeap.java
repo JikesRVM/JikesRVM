@@ -33,6 +33,7 @@ public class VM_LargeHeap extends VM_Heap
   private final int pageSize = 4096;         // large space allocated in 4K chunks
   private final int GC_LARGE_SIZES = 20;           // for statistics  
   private final int GC_INITIAL_LARGE_SPACE_PAGES = 200; // for early allocation of large objs
+  private int           usedPages = 0;
   private int           largeSpacePages;
   private int		large_last_allocated;   // where to start search for free space
   private short[]	largeSpaceAlloc;	// used to allocate in large space
@@ -117,6 +118,7 @@ public class VM_LargeHeap extends VM_Heap
 	  spaceLock.unlock();  //release lock *and synch changes*
 	  VM_Address target = start.add(VM_Memory.getPagesize() * first_free);
 	  VM_Memory.zero(target, target.add(size));  // zero space before return
+	  usedPages += num_pages;
 	  return target;
 	} else {  
 	  // free area did not contain enough contig. pages
@@ -148,8 +150,9 @@ public class VM_LargeHeap extends VM_Heap
 
 
   void startCollect() throws VM_PragmaUninterruptible {
-      VM_Memory.zero(VM_Magic.objectAsAddress(largeSpaceMark), 
-		     VM_Magic.objectAsAddress(largeSpaceMark).add(2*largeSpaceMark.length));
+    usedPages  = 0;
+    VM_Memory.zero(VM_Magic.objectAsAddress(largeSpaceMark), 
+		   VM_Magic.objectAsAddress(largeSpaceMark).add(2*largeSpaceMark.length));
   }
 
   void endCollect() throws VM_PragmaUninterruptible {
@@ -183,8 +186,10 @@ public class VM_LargeHeap extends VM_Heap
       return false;	
     }
     int temp = largeSpaceAlloc[page_num];
-    if (temp == 1) 
+    usedPages += (temp > 0) ? temp : -temp;
+    if (temp == 1) {
       largeSpaceMark[page_num] = 1;
+    }
     else {
       // mark entries for both ends of the range of allocated pages
       if (temp > 0) {
@@ -252,15 +257,20 @@ public class VM_LargeHeap extends VM_Heap
   }  // countLargeObjects()
 
   public int freeSpace () throws VM_PragmaUninterruptible {
-    int total = 0;
-    for (int i = 0 ; i < largeSpacePages;) {
-      if (largeSpaceAlloc[i] == 0) {
-	total++;
-	i++;
+    /*
+      if (VM.VerifyAssertions) {
+      int total = 0;
+      for (int i = 0 ; i < largeSpacePages;) {
+	if (largeSpaceAlloc[i] == 0) {
+	  total++;
+	  i++;
+	}
+	else i = i + largeSpaceAlloc[i];
       }
-      else i = i + largeSpaceAlloc[i];
+      VM._assert(total == usedPages);
     }
-    return (total * pageSize);       // number of bytes free in largespace
+    */
+    return (usedPages * pageSize);
   }
-
+  
 }
