@@ -86,3 +86,8 @@ Selection of spilling heuristic
 S METHOD_TO_WRITE String
 Write class file from HIR for this method
 
+
+V CBS_HOTNESS double 0.98
+Threshold at which a conditional branch is considered to be skewed.
+
+
