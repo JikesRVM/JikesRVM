@@ -1,3 +1,14 @@
+/*
+ * (C) Copyright IBM Corp. 2002
+ * $Id$
+ */
+
+/* Test the JavaVM and GetEnv JNI functionality 
+ * Implement native methods from GetEnv.java 
+ * 
+ * @author Julian Dolby
+ */
+
 #include "GetEnv.h"
 
 void JNICALL Java_GetEnv_nativeCall(JNIEnv *env, jclass cls) {
