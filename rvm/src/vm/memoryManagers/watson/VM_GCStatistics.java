@@ -1,4 +1,9 @@
-class VM_GCStatistics {
+/*
+ * (C) Copyright IBM Corp. 2001
+ */
+//$Id$
+
+class VM_GCStatistics implements VM_GCConstants, VM_Uninterruptible {
 
   // Number and types of GC
   static int gcExternalCount = 0;   // number of calls from System.gc
@@ -27,6 +32,13 @@ class VM_GCStatistics {
 
   // more statistics
   static final boolean COUNT_ALLOCATIONS = false;
+
+  // verify that all allocations are word size aligned
+  static final boolean VERIFY_ALIGNMENT = false;
+
+  // verify that all allocations return zero-filled storage.
+  static final boolean VERIFY_ZEROED_ALLOCATIONS = false;
+  
 
   static final int DEFAULT = 0;  // non-generational
   static final int MINOR = 1;
@@ -211,9 +223,9 @@ class VM_GCStatistics {
   } // printSummaryStatistics
 
 
-  static void profileAlloc (int size, Object[] tib) {
+  static void profileAlloc (VM_Address addr, int size, Object[] tib) {
       VM_Magic.pragmaInline();
-      if (VM_GCStatistics.COUNT_ALLOCATIONS) {
+      if (COUNT_ALLOCATIONS) {
 	  VM_Processor st = VM_Processor.getCurrentProcessor();
 	  st.totalBytesAllocated += size;
 	  st.totalObjectsAllocated++;
@@ -221,6 +233,29 @@ class VM_GCStatistics {
           if (t.thinLockOffset != -1) {
 	      st.synchronizedObjectsAllocated++;
           }
+      }
+
+      if (VERIFY_ALIGNMENT) {
+	if ((size & ~(WORDSIZE - 1)) != size ||
+	    VM_Memory.align(addr, WORDSIZE).NE(addr)) {
+	  VM.sysWrite("Non word size aligned region allocated ");
+	  VM.sysWrite("size is ", size);
+	  VM.sysWriteln(" address is ", addr.toInt());
+	  VM.sysFail("...exiting VM");
+	}
+      }
+
+      if (VERIFY_ZEROED_ALLOCATIONS) {
+	for (int i=0; i<size; i+= 4) {
+	  int val = VM_Magic.getMemoryWord(addr.add(i));
+	  if (val != 0) {
+	    VM.sysWrite("Non-zeroed memory allocated ");
+	    VM.sysWriteln("\taddress is ",addr.toInt());
+	    VM.sysWriteln("\tnon-zero address is ", addr.add(i).toInt());
+	    VM.sysWriteln("\tvalue is ", val);
+	    VM.sysFail("...exiting VM");
+	  }
+	}
       }
   }  // profileAlloc
 

@@ -259,9 +259,10 @@ public class VM_Allocator  extends VM_GCStatistics
     throws OutOfMemoryError {
     VM_Magic.pragmaInline();
     
-    profileAlloc(size, tib); // profile/debug; usually inlined away to nothing
-
     VM_Address region = allocateRawMemory(size);
+
+    profileAlloc(region, size, tib); // profile/debug; usually inlined away to nothing
+
     return VM_ObjectModel.initializeScalar(region, tib, size);
   }   // end of allocateScalar() 
   
@@ -281,13 +282,14 @@ public class VM_Allocator  extends VM_GCStatistics
     throws OutOfMemoryError {
     VM_Magic.pragmaInline();
 
-    profileAlloc(size, tib); // profile/debug: usually inlined away to nothing
-
     // note: array size might not be a word multiple,
     //       must preserve alignment of future allocations
     size = VM_Memory.align(size, WORDSIZE);
 
     VM_Address region = allocateRawMemory(size);  
+
+    profileAlloc(region, size, tib); // profile/debug: usually inlined away to nothing
+
     return VM_ObjectModel.initializeArray(region, tib, numElements, size);
   }  // allocateArray
 

@@ -435,9 +435,10 @@ public class VM_Allocator
 
     VM_Magic.pragmaInline();	// make sure this method is inlined
     
-    profileAlloc(size, tib); // profile/debug; usually inlined away to nothing
-
     VM_Address region = allocateRawMemory(size);
+
+    profileAlloc(region, size, tib); // profile/debug: usually inlined away to nothing
+
     Object newObj = VM_ObjectModel.initializeScalar(region, tib, size);
     if (size >= SMALL_SPACE_MAX) resetObjectBarrier(newObj);
     return newObj;
@@ -466,6 +467,9 @@ public class VM_Allocator
 
     VM_Address region = allocateRawMemory(size);
     Object newObj = VM_ObjectModel.initializeArray(region, tib, numElements, size);
+
+    profileAlloc(region, size, tib); // profile/debug: usually inlined away to nothing
+
     if (size >= SMALL_SPACE_MAX) resetObjectBarrier(newObj);
     return newObj;
   }  // allocateArray
