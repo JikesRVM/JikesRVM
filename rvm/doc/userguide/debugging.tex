@@ -1,23 +1,27 @@
 Previous releases of Jikes\JikesTMFootnote\ RVM included a home grown
-debugger called jdp. The jdp debugger provided some useful
-functionality for debugging Jikes RVM itself, but has always been a
+debugger called {\bf jdp}.  The jdp debugger is no longer included in
+\jrvm{}.  This is because, although the jdp debugger provided some
+useful functionality for debugging Jikes RVM itself, it was always a
 little unstable and was not really intended to support source level
-debugging for programs running on top of Jikes RVM. Prior to the 2.2.0
-release, the Jikes RVM core team decided to deprecate jdp because we
-believe that the cost of maintaining it outweighs its usefulness.
+debugging for programs running on top of Jikes RVM.  Prior to the
+2.2.0 release, the Jikes RVM core team decided to deprecate jdp
+because we believe that the cost of maintaining it outweighs its
+usefulness.
+
 
 The future plan for debugging Jikes RVM consists of two main pieces of
 work. 
 \begin{itemize}
-\item Implement JDWP support in Jikes RVM. If Jikes RVM implemented
-the standard debugging wire protocol (JDWP), then a number of debugger
-front ends could be used with Jikes RVM.  This would support most
-debugging tasks, but would obviously not work if Jikes RVM itself was
-crashing or corrupted.
+\item Implement {\bf JDWP} support in Jikes RVM. If Jikes RVM
+implemented the standard Java debugging wire protocol (JDWP), then a
+number of debugger front ends could be used with Jikes RVM.  This
+would support most debugging tasks, but would obviously not work if
+Jikes RVM itself was crashing or corrupted.
+
 \item Low level debugging of Jikes RVM itself would be performed using
-gdb. Work could be done either in gdb or Jikes RVM to make this
-marginally more pleasant.  For example, Jikes RVM could be extended to
-generate basic stab information for the bootimage.
+{\bf gdb}.  Work could be done to either or both of gdb and Jikes RVM
+to make this more pleasant.  For example, Jikes RVM could be extended to
+generate basic {\tt stabs} information for the bootimage.
 \end{itemize}
 Contributions from the community along either of these fronts would be
 greatly appreciated.  Some prototyping of JDWP support for Jikes RVM
