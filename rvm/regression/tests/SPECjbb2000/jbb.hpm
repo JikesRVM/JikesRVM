@@ -1,6 +1,8 @@
 #!/bin/ksh
 #
-# (C) copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001
+#
+# $Id:
 #
 # This shell script executes the AOS configuration of an adaptive JikesRVM 
 # image with HPM and without adaptive inlining for a particular SPECjvm98 benchmark.
