@@ -89,6 +89,7 @@ public final class VM_CallSiteTriple {
   public String toString() {
     return " <"+caller+", "+bcIndex+", "+callee+">"+"(wt:"+weight+")";
   }
+
   /**
    * Determine if two call sites are the same.  Exact match: no wild cards.
    *
@@ -96,38 +97,24 @@ public final class VM_CallSiteTriple {
    * @return true if call sites are the same; otherwise, return false
    */
   public boolean equals(Object obj) {
-    if (!(obj instanceof VM_CallSiteTriple)) return false;
-    if (obj == null) return false;
-    VM_CallSiteTriple triple = (VM_CallSiteTriple)obj;
-    boolean returnValue = false;
-    try {
-      returnValue = (caller.toString().compareTo(triple.caller.toString())==0);
-      if (returnValue == true) {
-	returnValue = (callee.toString().compareTo(triple.callee.toString())==0);
-	if (returnValue == true) {
-	  if (bcIndex != triple.bcIndex && bcIndex != -1 && triple.bcIndex != -1) {
-	    returnValue = false;
-	  }
-	}
-      }
-    } catch (NullPointerException e) {
-      VM.sysWrite("***VM_CallSiteTriple.equals("+obj+
-		  ") compareTo of names failed!\n");
-      returnValue = false;
+    if (obj instanceof VM_CallSiteTriple) { 
+      VM_CallSiteTriple triple = (VM_CallSiteTriple)obj;
+      return caller == triple.caller &&
+	callee == triple.callee && 
+	bcIndex == triple.bcIndex;
     }
-    return returnValue;
+    return false;
   }
-   
+
   /**
    * Compute a call site's hash code
    *
    * @return hash code
    */
   public int hashCode() {
-    int result = 7;
-    if (caller != null) result += caller.hashCode();
-    if (callee != null) result += callee.hashCode();
-    result += bcIndex;
+    int result = bcIndex;
+    result += caller.hashCode();
+    result += callee.hashCode();
     return result;
   }
 }
