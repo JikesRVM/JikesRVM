@@ -2289,8 +2289,9 @@ fi";
 function emitToolCompiler () {
     echo '#! /bin/bash'
     echo '# Generate class files for vm tools that are not part of the build.'
-    echo '# In simpler language, this runs the Jikes compiler with the environment'
-    echo '# properly set up.'
+    echo '# This runs the Jikes Compiler with the'
+    echo '# classpath and command-line flags set up so that we can just'
+    echo '# make .class files for Jikes RVM to run.'
     emitBoilerplate
     echo ". \${RVM_BUILD}/environment"
 
@@ -2339,12 +2340,16 @@ function emitToolCompiler () {
 #
 function emitToolPreprocessor () {
     echo '#! /bin/bash'
-    echo '# Generate class files for vm tools that are not part of the build.'
+    echo "# Run Jikes RVM's preprocessor on some source code files."
+    echo "# Provides all of the standard preprocessor definitions we need for"
+    echo "# the target environment.  Sticks the pure .java files that are the output"
+    echo "# into the <output-directory> specified as the first non-flag"
+    echo "# command-line argument."
     emitBoilerplate;
     echo '. "$RVM_BUILD/environment"'
 
     echo "if [[ \$# = 0 ]]; then"
-    echo '    echo >&2 "usage: $ME java-file [ java-file... ]"'
+    echo '    echo >&2 "usage: $ME [ extra-preprocessor-flags...] output-directory java-file [ java-file... ]"'
     echo '    trap "" EXIT'
     echo '    exit 1'
     echo 'fi'
@@ -2408,9 +2413,14 @@ checkConfigurationOptions
 
 # Make a fresh start.
 #
-if [[ -e ${BUILD_DIRECTORY} ]]; then # old directory exists
-    if [ -t 0 ]; then # keyboard is live (ie. this is not an automated build)
-	got_EOF=""
+if [[ -e ${BUILD_DIRECTORY} ]] # old directory exists; 
+then 
+    if [ -t 0 ]    # keyboard is live (ie. this is not an automated build)
+    then
+	## && [[ ! $EMACS ]] 
+	## It would be nice to test whether we are running under EMACS's 
+	## M-x compile mode.   But I do not know how to do that. 
+ 	got_EOF=""
 	response="unset"
 	status=0
 	if ! read -n 1 -p "${ME}: ${BUILD_DIRECTORY} already exists, replace it? (y/n) --> " response; then
