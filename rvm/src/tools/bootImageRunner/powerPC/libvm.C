@@ -22,10 +22,14 @@
  *	       everything except the command line parsing in main().
  */
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE		/* so that the Linux (GNU Libc) string.h will
+                                // include strsignal(), */
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <strings.h> 
+#include <string.h>             // among other things, provides strsignal()
 #include <assert.h>
 #include <sys/mman.h>
 #include <sys/shm.h>
