@@ -182,49 +182,20 @@ public abstract class OPT_InlineTools implements OPT_Constants {
   }
 
   /**
-   *  This table is the list of classes of which some or all methods
-   * cannot be invalidated without breaking the virtual machine. These
-   * are, more-or-less, the set of classes crucial to the lazy
-   * compilation process.  If such classes are invalidated, then
-   * subsequent baseline compilation requires that these methods be
-   * recompiled first, which is rather a problem.
+   * Is it safe to speculatively inline the callee into the caller.
+   * Some forms of speculative inlining are unsafe to apply to 
+   * methods of the core virtual machine because if we are forced to 
+   * invalidate the methods, we will be unable to compile their 
+   * replacement method.
+   * The current test is overly conservative, but past attempts at
+   * defining a more precise set of "third rail" classes have
+   * always resulted in missing some (only to discover them later
+   * when Jikes RVM hangs or crashes.
+   * @param caller the caller method
+   * @param calleee the callee method
+   * @return whether or not we are allowed to speculatively inline
+   *         the callee into the caller.
    */
-  private static final VM_Atom[] thirdRailClasses = new VM_Atom[]{
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/classloader/VM_Atom;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/classloader/VM_InterfaceMethodSignature;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/classloader/VM_MemberReference;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/classloader/VM_TypeReference;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_InvalidationDatabase;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_InvalidationDatabase$MethodSet;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_ClassLoadingDependencyManager;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/OPT_InterfaceHierarchy;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/opt/VM_OptCompiledMethod;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Barriers;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BasicBlock;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiler;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineCompiledMethod;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineExceptionTable;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BaselineOptions;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BuildBB;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_BuildReferenceMaps;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Compiler;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicLink;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicLinker;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_DynamicLinker$DL_Helper;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ForwardReference;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_HardwareTrapCompiledMethod;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_JSRSubroutineInfo;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_MultianewarrayHelper;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_PendingRETInfo;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ReferenceMaps;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_Runtime;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_TableBasedDynamicLinker;"),
-    VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_UnusualMaps;"),
-    VM_Atom.findOrCreateAsciiAtom("Ljava/lang/Runtime;"),
-    VM_Atom.findOrCreateAsciiAtom("Ljava/lang/System;")
-  };
-
-
   public static boolean isForbiddenSpeculation(VM_Method caller, VM_Method callee) {
     return caller.getDeclaringClass().isInBootImage() &&
       !callee.getDeclaringClass().toString().startsWith("com.ibm.JikesRVM.VM_");
