@@ -7,8 +7,6 @@ aware of and delete items as they are completed.
     the 2.1.0 release.  See the TODO list in doc/userguide.
 
 (3) Memory Manager restructuring:
-  -- create two new subdirectories: heap and util and relocate files
-     in the top level directory accordingly
   -- stabilize VM_Heap interface
   -- at a minimum javadoc header comments on all classes; javadoc on
      all methods of VM_Heap.
