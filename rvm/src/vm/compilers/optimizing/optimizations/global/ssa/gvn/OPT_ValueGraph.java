@@ -201,6 +201,12 @@ class OPT_ValueGraph implements OPT_Operators {
    * @param s the instruction in question
    */
   private void processMove(OPT_Instruction s) {
+    // ignore instructions that define physical registers
+    for (OPT_OperandEnumeration e = s.getDefs(); e.hasMoreElements(); ) {
+      OPT_Operand current = e.next();
+      if (current instanceof OPT_RegisterOperand && ((OPT_RegisterOperand) current).register.isPhysical()) return;
+    }
+
     OPT_Register result = Move.getResult(s).register;
     OPT_ValueGraphVertex v = findOrCreateVertex(result);
     OPT_Operand val = Move.getVal(s);
