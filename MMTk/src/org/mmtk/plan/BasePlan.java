@@ -228,7 +228,7 @@ public abstract class BasePlan
    * This method allows the correct allocator instance to be
    * established and associated with the thread {@link
    * org.mmtk.utility.alloc.Allocator#allocSlowBody(int, int, offset,
-   * boolean).
+   * boolean)}.
    *
    * @see org.mmtk.utility.alloc.Allocator
    * @see org.mmtk.utility.alloc.Allocator#allocSlowBody(int, int, offset,
