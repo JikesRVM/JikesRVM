@@ -385,16 +385,6 @@ class RemoteInterpreter extends InterpreterBase implements JDPServiceInterface
 	// Nothing to do 
 	  //  System.out.println("isync is being skipped");
 	}
-      else if (methodName == pragmaInline)
-	{
-	// Nothing to do 
-	  //  System.out.println("pragmaInline is being skipped");
-	}
-      else if (methodName == pragmaNoInline)
-	{
-	// Nothing to do 
-	  //  System.out.println("pragmaNoInline is being skipped");
-	}
       else if (methodName == addressFromInt)
 	{
 	  stack.push(VM_Address.fromInt(stack.popInt())); 
