@@ -519,14 +519,24 @@ function doRun {
     fi
 
     . $RVM_BUILD/environment.target
-    $RVM_ROOT/rvm/regression/limited.bash $LIMIT "$GNU_MAKE $FLAGS \
+    ## Note: If you quote this, it'll break.  limited.bash respects
+    ## whatever quoting you put around the command.
+    $RVM_ROOT/rvm/regression/limited.bash $LIMIT $GNU_MAKE $FLAGS \
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
 	   SUFFIX=$SUFFIX \
            PROCESSORS=\"$NUM_PROCS\" \
            RC_ARGS=\"$RC_ARGS $OPT_LEVEL_ARGS $EXTRA_RC_ARGS\" \
            JAVA_PACKAGES=$RVM_BUILD/RVM.classes \
            RVMPATH=$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar \
-           clean sanity"
+           clean sanity
+#     $RVM_ROOT/rvm/regression/limited.sh $LIMIT "$GNU_MAKE $FLAGS \
+# 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
+# 	   SUFFIX=$SUFFIX \
+#            PROCESSORS=\"$NUM_PROCS\" \
+#            RC_ARGS=\"$RC_ARGS $OPT_LEVEL_ARGS $EXTRA_RC_ARGS\" \
+#            JAVA_PACKAGES=$RVM_BUILD/RVM.classes \
+#            RVMPATH=$RVM_BUILD/RVM.classes:$RVM_BUILD/RVM.classes/rvmrt.jar \
+#            clean sanity"
 
     # record status
     test_status=$?
