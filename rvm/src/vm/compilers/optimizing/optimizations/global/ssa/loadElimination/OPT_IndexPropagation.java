@@ -32,7 +32,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * @param options controlling compiler options
    * @return true or false
    */
-  final boolean shouldPerform (OPT_Options options) {
+  final boolean shouldPerform(OPT_Options options) {
     return  true;
   }
 
@@ -40,7 +40,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * Return the name of this compiler phase.
    * @return "Index Propagation"
    */
-  final String getName () {
+  final String getName() {
     return  "Index Propagation";
   }
 
@@ -50,7 +50,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    * @param before query toggle
    * @return true or false.
    */
-  final boolean printingEnabled (OPT_Options options, boolean before) {
+  final boolean printingEnabled(OPT_Options options, boolean before) {
     return  false;
   }
   /**
@@ -65,7 +65,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    *
    * @param ir the IR to optimize 
    */
-  public void perform (OPT_IR ir) {
+  public void perform(OPT_IR ir) {
     if (ir.desiredSSAOptions.getAbort()) return;
     OPT_IndexPropagationSystem system = new OPT_IndexPropagationSystem(ir);
     if (DEBUG)
@@ -93,15 +93,15 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    *
    * @author Stephen Fink
    */
-  static class ObjectCell extends OPT_DF_AbstractCell {
+  final static class ObjectCell extends OPT_DF_AbstractCell {
     /**
      * a bound on the size of a lattice cell.
      */
-    final int CAPACITY = 10; 
+    final static int CAPACITY = 10; 
     /**
      * a set of value numbers comparising this lattice cell.
      */
-    int[] numbers = new int[CAPACITY];
+    int[] numbers = null;
     /**
      * The number of value numbers in this cell.
      */
@@ -119,7 +119,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * Create a latticle cell corresponding to a heap variable.
      * @param   key the heap variable associated with this cell.
      */
-    ObjectCell (OPT_HeapVariable key) {
+    ObjectCell(OPT_HeapVariable key) {
       this.key = key;
     }
 
@@ -127,8 +127,8 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * Does this cell represent the TOP element in the dataflow lattice?
      * @return true or false.
      */
-    boolean isTOP () {
-      return  TOP;
+    boolean isTOP() {
+      return TOP;
     }
 
     /**
@@ -136,14 +136,15 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * dataflow lattice.
      * @param b should this cell contain TOP?
      */
-    void setTOP (boolean b) {
+    void setTOP(boolean b) {
       TOP = b;
+      numbers = null;
     }
 
     /**
      * Set the value of this cell to BOTTOM.
      */
-    void setBOTTOM () {
+    void setBOTTOM() {
       clear();
     }
 
@@ -153,11 +154,11 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @param v value number in question
      * @return true or false
      */
-    boolean contains (int v) {
-      if (isTOP())
-        return  true;
-      if (v == OPT_GlobalValueNumberState.UNKNOWN)
-        return  false;
+    boolean contains(int v) {
+
+      if (isTOP()) return true;
+      if (v == OPT_GlobalValueNumberState.UNKNOWN) return false;
+
       for (int i = 0; i < size; i++) {
         if (numbers[i] == v)
           return  true;
@@ -170,10 +171,13 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      *
      * @param v value number
      */
-    void add (int v) {
-      if (isTOP())
-        return;
+    void add(int v) {
+      if (isTOP()) return;
+
       if ((size < CAPACITY) && !contains(v)) {
+        if (size == 0) {
+          numbers = new int[CAPACITY];
+        }
         numbers[size] = v;
         size++;
       }
@@ -184,10 +188,9 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      *
      * @param v value number
      */
-    void remove (int v) {
+    void remove(int v) {
       if (isTOP()) {
-        throw  new OPT_OptimizingCompilerException(
-                                                   "Unexpected lattice operation");
+        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
       int[] old = numbers;
       int[] numbers = new int[CAPACITY];
@@ -205,39 +208,43 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     /**
      * Clear all value numbers from this cell.
      */
-    void clear () {
+    void clear() {
       setTOP(false);
       size = 0;
+      numbers = null;
     }
 
     /**
-     * Return a deep copy of the value numbers in this cell
-     * @return a deep copy of the value numbers in this cell 
+     * Return a deep copy of the value numbers in this cell.  
+     * @return a deep copy of the value numbers in this cell, null to
+     * represent empty set.
      */
-    int[] getValueNumbers () {
-      if (isTOP()) {
-        throw  new OPT_OptimizingCompilerException(
-                                                   "Unexpected lattice operation");
+    int[] getValueNumbers() {
+      if (isTOP()) { 
+        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
+      if (size == 0) return null;
+
       int[] result = new int[size];
       for (int i = 0; i < size; i++) {
         result[i] = numbers[i];
       }
-      return  result;
+      return result;
     }
 
     /**
      * Return a string representation of this cell 
      * @return a string representation of this cell 
      */
-    public String toString () {
+    public String toString() {
       StringBuffer s = new StringBuffer(key.toString());
-      if (isTOP())
-        return  s.append(" TOP").toString();
+
+      if (isTOP()) return s.append(" TOP").toString();
+
       for (int i = 0; i < size; i++) {
         s.append(" ").append(numbers[i]);
       }
-      return  s.toString();
+      return s.toString();
     }
 
     /**
@@ -248,11 +255,19 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @param set2 second set to compare
      * @return true iff the two sets are different
      */
-    public static boolean setsDiffer (int[] set1, int[] set2) {
-      if (set1.length != set2.length)
-        return  true;
+    public static boolean setsDiffer(int[] set1, int[] set2) {
+
+      if (set1 == null) {
+        return (set2 != null);
+      } else if (set2 == null) {
+        return true;
+      }
+
+      if (set1.length != set2.length) return  true;
+
       sort(set1);
       sort(set2);
+
       for (int i = 0; i < set1.length; i++) {
         if (set1[i] != set2[i])
           return  true;
@@ -267,7 +282,10 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * should be ok.
      * @param set the set to sort
      */
-    public static void sort (int[] set) {
+    public static void sort(int[] set) {
+
+      if (set == null) return;
+
       for (int i = set.length - 1; i >= 0; i--) {
         for (int j = 0; j < i; j++) {
           if (set[j] > set[j + 1]) {
@@ -298,15 +316,15 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
    *
    * @author Stephen Fink
    */
-  static class ArrayCell extends OPT_DF_AbstractCell {
+  final static class ArrayCell extends OPT_DF_AbstractCell {
     /**
      * a bound on the size of a lattice cell.
      */
-    final int CAPACITY = 10;      
+    final static int CAPACITY = 10;      
     /**
      * a set of value number pairs comparising this lattice cell.
      */
-    OPT_ValueNumberPair[] numbers = new OPT_ValueNumberPair[CAPACITY];
+    OPT_ValueNumberPair[] numbers = null;
     /**
      * The number of value number pairs in this cell.
      */
@@ -324,7 +342,7 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * Create a latticle cell corresponding to a heap variable.
      * @param   key the heap variable associated with this cell.
      */
-    ArrayCell (OPT_HeapVariable key) {
+    ArrayCell(OPT_HeapVariable key) {
       this.key = key;
     }
 
@@ -332,8 +350,8 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * Does this cell represent the TOP element in the dataflow lattice?
      * @return true or false.
      */
-    boolean isTOP () {
-      return  TOP;
+    boolean isTOP() {
+      return TOP;
     }
 
     /**
@@ -341,14 +359,15 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * dataflow lattice.
      * @param b should this cell contain TOP?
      */
-    void setTOP (boolean b) {
+    void setTOP(boolean b) {
       TOP = b;
+      numbers = null;
     }
 
     /**
      * Set the value of this cell to BOTTOM.
      */
-    void setBOTTOM () {
+    void setBOTTOM() {
       clear();
     }
 
@@ -359,13 +378,12 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @param v2 second value number
      * @return true or false
      */
-    boolean contains (int v1, int v2) {
-      if (isTOP())
-        return  true;
-      if (v1 == OPT_GlobalValueNumberState.UNKNOWN)
-        return  false;
-      if (v2 == OPT_GlobalValueNumberState.UNKNOWN)
-        return  false;
+    boolean contains(int v1, int v2) {
+      if (isTOP()) return  true;
+      if (v1 == OPT_GlobalValueNumberState.UNKNOWN) return  false;
+      if (v2 == OPT_GlobalValueNumberState.UNKNOWN) return  false;
+      if (size == 0) return false;
+
       OPT_ValueNumberPair p = new OPT_ValueNumberPair(v1, v2);
       for (int i = 0; i < size; i++) {
         if (numbers[i].equals(p))
@@ -380,10 +398,13 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @param v1 first value number
      * @param v2 second value number
      */
-    void add (int v1, int v2) {
-      if (isTOP())
-        return;
+    void add(int v1, int v2) {
+      if (isTOP()) return;
+
       if ((size < CAPACITY) && !contains(v1, v2)) {
+        if (size == 0) {
+          numbers = new OPT_ValueNumberPair[CAPACITY];
+        }
         OPT_ValueNumberPair p = new OPT_ValueNumberPair(v1, v2);
         numbers[size] = p;
         size++;
@@ -396,10 +417,9 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @param v1 first value number
      * @param v2 second value number
      */
-    void remove (int v1, int v2) {
+    void remove(int v1, int v2) {
       if (isTOP()) {
-        throw  new OPT_OptimizingCompilerException( 
-                                                   "Unexpected lattice operation");
+        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
       OPT_ValueNumberPair[] old = numbers;
       OPT_ValueNumberPair[] numbers = new OPT_ValueNumberPair[CAPACITY];
@@ -418,20 +438,23 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
     /**
      * Clear all value numbers from this cell.
      */
-    void clear () {
+    void clear() {
       setTOP(false);
       size = 0;
+      numbers = null;
     }
 
     /**
      * Return a deep copy of the value numbers in this cell
      * @return a deep copy of the value numbers in this cell 
      */
-    OPT_ValueNumberPair[] getValueNumbers () {
+    OPT_ValueNumberPair[] getValueNumbers() {
       if (isTOP()) {
-        throw  new OPT_OptimizingCompilerException(
-                                                   "Unexpected lattice operation");
+        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
+
+      if (size == 0) return null;
+
       OPT_ValueNumberPair[] result = new OPT_ValueNumberPair[size];
       for (int i = 0; i < size; i++) {
         result[i] = new OPT_ValueNumberPair(numbers[i]);
@@ -443,10 +466,11 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * Return a string representation of this cell 
      * @return a string representation of this cell 
      */
-    public String toString () {
+    public String toString() {
       StringBuffer s = new StringBuffer(key.toString());
-      if (isTOP())
-        return  s.append(" TOP").toString();
+
+      if (isTOP()) return  s.append(" TOP").toString();
+
       for (int i = 0; i < size; i++) {
         s.append(" ").append(numbers[i]);
       }
@@ -461,12 +485,19 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * @param set2 second set to compare
      * @return true iff the two sets are different
      */
-    public static boolean setsDiffer (OPT_ValueNumberPair[] set1, 
+    public static boolean setsDiffer(OPT_ValueNumberPair[] set1, 
                                       OPT_ValueNumberPair[] set2) {
-      if (set1.length != set2.length)
-        return  true;
+      if (set1 == null) {
+        return (set2 != null);
+      } else if (set2 == null) {
+        return true;
+      }
+
+      if (set1.length != set2.length) return  true;
+
       sort(set1);
       sort(set2);
+
       for (int i = 0; i < set1.length; i++) {
         if (!set1[i].equals(set2[i]))
           return  true;
@@ -481,7 +512,10 @@ public final class OPT_IndexPropagation extends OPT_CompilerPhase {
      * should be ok.
      * @param set the set to sort
      */
-    public static void sort (OPT_ValueNumberPair[] set) {
+    public static void sort(OPT_ValueNumberPair[] set) {
+
+      if (set == null) return;
+
       for (int i = set.length - 1; i >= 0; i--) {
         for (int j = 0; j < i; j++) {
           if (set[j].greaterThan(set[j + 1])) {

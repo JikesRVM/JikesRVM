@@ -19,7 +19,7 @@ implements OPT_Operators {
    * Set up the system of dataflow equations.
    * @param _ir the IR
    */
-  public OPT_IndexPropagationSystem (OPT_IR _ir) {
+  public OPT_IndexPropagationSystem(OPT_IR _ir) {
     ir = _ir;
     ssa = ir.HIRInfo.SSADictionary;
     valueNumbers = ir.HIRInfo.valueNumbers;
@@ -48,7 +48,7 @@ implements OPT_Operators {
    * @param o the heap variable
    * @return a new lattice cell corresponding to this heap variable
    */
-  protected OPT_DF_LatticeCell makeCell (Object o) {
+  protected OPT_DF_LatticeCell makeCell(Object o) {
     if (!(o instanceof OPT_HeapVariable))
       throw  new OPT_OptimizingCompilerException(
                                                  "OPT_IndexPropagation:makeCell");
@@ -66,7 +66,7 @@ implements OPT_Operators {
   /** 
    * Initialize the lattice variables. 
    */
-  protected void initializeLatticeCells () {
+  protected void initializeLatticeCells() {
     // initially all lattice cells are set to TOP
     // set the lattice cells that are exposed on entry to BOTTOM
     for (java.util.Iterator e = cells.values().iterator(); e.hasNext();) {
@@ -91,7 +91,7 @@ implements OPT_Operators {
   /** 
    * Initialize the work list for the dataflow equation system.
    */
-  protected void initializeWorkList () {
+  protected void initializeWorkList() {
     // add all equations to the work list that contain a non-TOP
     // variable
     for (Enumeration e = getEquations(); e.hasMoreElements();) {
@@ -118,7 +118,7 @@ implements OPT_Operators {
    * Walk through the IR and add dataflow equations for each instruction
    * that affects the values of Array SSA variables.
    */
-  void setupEquations () {
+  void setupEquations() {
     for (Enumeration e = ir.getBasicBlocks(); e.hasMoreElements();) {
       OPT_BasicBlock bb = (OPT_BasicBlock)e.nextElement();
       for (Enumeration e2 = ssa.getAllInstructions(bb); e2.hasMoreElements();) {
@@ -180,7 +180,7 @@ implements OPT_Operators {
    *
    * @param s the Load instruction
    */
-  void processLoad (OPT_Instruction s) {
+  void processLoad(OPT_Instruction s) {
     OPT_HeapOperand[] A1 = ssa.getHeapUses(s);
     OPT_HeapOperand[] A2 = ssa.getHeapDefs(s);
     if ((A1.length != 1) || (A2.length != 1))
@@ -223,7 +223,7 @@ implements OPT_Operators {
    *
    * @param s the Store instruction
    */
-  void processStore (OPT_Instruction s) {
+  void processStore(OPT_Instruction s) {
     OPT_HeapOperand[] A1 = ssa.getHeapUses(s);
     OPT_HeapOperand[] A2 = ssa.getHeapDefs(s);
     if ((A1.length != 1) || (A2.length != 1))
@@ -255,7 +255,7 @@ implements OPT_Operators {
    *
    * @param s the Aload instruction
    */
-  void processALoad (OPT_Instruction s) {
+  void processALoad(OPT_Instruction s) {
     OPT_HeapOperand A1[] = ssa.getHeapUses(s);
     OPT_HeapOperand A2[] = ssa.getHeapDefs(s);
     if ((A1.length != 1) || (A2.length != 1))
@@ -292,7 +292,7 @@ implements OPT_Operators {
    *
    * @param s the Astore instruction
    */
-  void processAStore (OPT_Instruction s) {
+  void processAStore(OPT_Instruction s) {
     OPT_HeapOperand A1[] = ssa.getHeapUses(s);
     OPT_HeapOperand A2[] = ssa.getHeapDefs(s);
     if ((A1.length != 1) || (A2.length != 1))
@@ -309,7 +309,7 @@ implements OPT_Operators {
    * 
    * @param s the New instruction
    */
-  void processNew (OPT_Instruction s) {
+  void processNew(OPT_Instruction s) {
     /** Assume nothing is a available after a new. So, set
      * each lattice cell defined by the NEW as BOTTOM.
      * TODO: add logic that understands that after a
@@ -333,7 +333,7 @@ implements OPT_Operators {
    *
    * @param s the Call instruction
    */
-  void processCall (OPT_Instruction s) {
+  void processCall(OPT_Instruction s) {
 
     /** set all lattice cells def'ed by the call to bottom */
     OPT_HeapOperand A[] = ssa.getHeapDefs(s);
@@ -358,7 +358,7 @@ implements OPT_Operators {
    *
    * @param s the Phi instruction
    */
-  void processPhi (OPT_Instruction s) {
+  void processPhi(OPT_Instruction s) {
     OPT_Operand result = Phi.getResult(s);
     if (!(result instanceof OPT_HeapOperand))
       return;
@@ -380,8 +380,8 @@ implements OPT_Operators {
    * @param A2 variable in the equation
    * @param valueNumber value number of the address
    */
-  void addUpdateObjectDefEquation (OPT_HeapVariable A1, OPT_HeapVariable A2, 
-                                   int valueNumber) {
+  void addUpdateObjectDefEquation(OPT_HeapVariable A1, OPT_HeapVariable A2, 
+                                  int valueNumber) {
     OPT_DF_LatticeCell cell1 = findOrCreateCell(A1);
     OPT_DF_LatticeCell cell2 = findOrCreateCell(A2);
     UpdateDefObjectOperator op = new UpdateDefObjectOperator(valueNumber);
@@ -417,8 +417,8 @@ implements OPT_Operators {
    * @param address variable in the equation
    * @param index variable in the equation
    */
-  void addUpdateArrayDefEquation (OPT_HeapVariable A1, OPT_HeapVariable A2, 
-                                  Object array, Object index) {
+  void addUpdateArrayDefEquation(OPT_HeapVariable A1, OPT_HeapVariable A2, 
+                                 Object array, Object index) {
     OPT_DF_LatticeCell cell1 = findOrCreateCell(A1);
     OPT_DF_LatticeCell cell2 = findOrCreateCell(A2);
     int arrayNumber = valueNumbers.getValueNumber(array);
@@ -439,8 +439,8 @@ implements OPT_Operators {
    * @param address variable in the equation
    * @param index variable in the equation
    */
-  void addUpdateArrayUseEquation (OPT_HeapVariable A1, OPT_HeapVariable A2, 
-                                  Object array, Object index) {
+  void addUpdateArrayUseEquation(OPT_HeapVariable A1, OPT_HeapVariable A2, 
+                                 Object array, Object index) {
     OPT_DF_LatticeCell cell1 = findOrCreateCell(A1);
     OPT_DF_LatticeCell cell2 = findOrCreateCell(A2);
     int arrayNumber = valueNumbers.getValueNumber(array);
@@ -460,7 +460,7 @@ implements OPT_Operators {
      * @param operands the operands of the dataflow equation
      * @return true iff the value of the lhs changes
      */
-    boolean evaluate (OPT_DF_LatticeCell[] operands) {
+    boolean evaluate(OPT_DF_LatticeCell[] operands) {
       OPT_DF_LatticeCell lhs = operands[0];
       if (lhs instanceof ObjectCell) {
         return  evaluateObjectMeet(operands);
@@ -476,12 +476,13 @@ implements OPT_Operators {
      * @param operands the operands of the dataflow equation
      * @return true iff the value of the lhs changes
      */
-    boolean evaluateObjectMeet (OPT_DF_LatticeCell[] operands) {
+    boolean evaluateObjectMeet(OPT_DF_LatticeCell[] operands) {
       ObjectCell lhs = (ObjectCell)operands[0];
       boolean lhsWasTOP = lhs.isTOP();
       int[] oldNumbers = null;
-      if (!lhsWasTOP)
-        oldNumbers = lhs.getValueNumbers();
+
+      if (!lhsWasTOP) oldNumbers = lhs.getValueNumbers();
+
       lhs.clear();
       // perform the intersections
       if (operands.length > 1) {
@@ -502,23 +503,24 @@ implements OPT_Operators {
         }
         // if we get here, we found a non-top cell. Start merging
         // here
-        int[] rhsNumbers = ((ObjectCell)operands[firstNonTopRHS]).
-          getValueNumbers();
-        for (int i = 0; i < rhsNumbers.length; i++) {
-          int v = rhsNumbers[i];
-          lhs.add(v);
-          for (int j = firstNonTopRHS + 1; j < operands.length; j++) {
-            ObjectCell r = (ObjectCell)operands[j];
-            if (!r.contains(v)) {
-              lhs.remove(v);
-              break;
+        int[] rhsNumbers = ((ObjectCell)operands[firstNonTopRHS]).getValueNumbers();
+
+        if (rhsNumbers != null) {
+          for (int i = 0; i < rhsNumbers.length; i++) {
+            int v = rhsNumbers[i];
+            lhs.add(v);
+            for (int j = firstNonTopRHS + 1; j < operands.length; j++) {
+              ObjectCell r = (ObjectCell)operands[j];
+              if (!r.contains(v)) {
+                lhs.remove(v);
+                break;
+              }
             }
           }
         }
       }
       // check if anything has changed
-      if (lhsWasTOP)
-        return  true;
+      if (lhsWasTOP) return  true;
       int[] newNumbers = lhs.getValueNumbers();
       boolean changed = ObjectCell.setsDiffer(oldNumbers, newNumbers);
       return  changed;
@@ -530,12 +532,12 @@ implements OPT_Operators {
      * @param operands the operands of the dataflow equation
      * @return true iff the value of the lhs changes
      */
-    boolean evaluateArrayMeet (OPT_DF_LatticeCell[] operands) {
+    boolean evaluateArrayMeet(OPT_DF_LatticeCell[] operands) {
       ArrayCell lhs = (ArrayCell)operands[0];
       boolean lhsWasTOP = lhs.isTOP();
       OPT_ValueNumberPair[] oldNumbers = null;
-      if (!lhsWasTOP)
-        oldNumbers = lhs.getValueNumbers();
+      if (!lhsWasTOP) oldNumbers = lhs.getValueNumbers();
+
       lhs.clear();
       // perform the intersections
       if (operands.length > 1) {
@@ -556,24 +558,24 @@ implements OPT_Operators {
         }
         // if we get here, we found a non-top cell. Start merging
         // here
-        OPT_ValueNumberPair[] rhsNumbers = ((ArrayCell)operands[
-                                            firstNonTopRHS]).getValueNumbers();
-        for (int i = 0; i < rhsNumbers.length; i++) {
-          int v1 = rhsNumbers[i].v1;
-          int v2 = rhsNumbers[i].v2;
-          lhs.add(v1, v2);
-          for (int j = firstNonTopRHS + 1; j < operands.length; j++) {
-            ArrayCell r = (ArrayCell)operands[j];
-            if (!r.contains(v1, v2)) {
-              lhs.remove(v1, v2);
-              break;
+        OPT_ValueNumberPair[] rhsNumbers = ((ArrayCell)operands[firstNonTopRHS]).getValueNumbers();
+        if (rhsNumbers != null) {
+          for (int i = 0; i < rhsNumbers.length; i++) {
+            int v1 = rhsNumbers[i].v1;
+            int v2 = rhsNumbers[i].v2;
+            lhs.add(v1, v2);
+            for (int j = firstNonTopRHS + 1; j < operands.length; j++) {
+              ArrayCell r = (ArrayCell)operands[j];
+              if (!r.contains(v1, v2)) {
+                lhs.remove(v1, v2);
+                break;
+              }
             }
           }
         }
       }
       // check if anything has changed
-      if (lhsWasTOP)
-        return  true;
+      if (lhsWasTOP) return  true;
       OPT_ValueNumberPair[] newNumbers = lhs.getValueNumbers();
       boolean changed = ArrayCell.setsDiffer(oldNumbers, newNumbers);
       return  changed;
@@ -596,7 +598,7 @@ implements OPT_Operators {
      * Create an operator with a given value number
      * @param     valueNumber
      */
-    UpdateDefObjectOperator (int valueNumber) {
+    UpdateDefObjectOperator(int valueNumber) {
       this.valueNumber = valueNumber;
     }
 
@@ -605,13 +607,12 @@ implements OPT_Operators {
      * @param operands operands in the dataflow equation
      * @return true iff the lhs changes from this evaluation
      */
-    boolean evaluate (OPT_DF_LatticeCell[] operands) {
+    boolean evaluate(OPT_DF_LatticeCell[] operands) {
       ObjectCell lhs = (ObjectCell)operands[0];
       ObjectCell rhs = (ObjectCell)operands[1];
       boolean lhsWasTOP = lhs.isTOP();
       int[] oldNumbers = null;
-      if (!lhsWasTOP)
-        oldNumbers = lhs.getValueNumbers();
+      if (!lhsWasTOP) oldNumbers = lhs.getValueNumbers();
       lhs.clear();
       if (rhs.isTOP()) {
         throw  new OPT_OptimizingCompilerException(
@@ -619,16 +620,17 @@ implements OPT_Operators {
       }
       int[] numbers = rhs.getValueNumbers();
       // add all rhs numbers that are DD from valueNumber
-      for (int i = 0; i < numbers.length; i++) {
-        if (valueNumbers.DD(numbers[i], valueNumber)) {
-          lhs.add(numbers[i]);
+      if (numbers != null) {
+        for (int i = 0; i < numbers.length; i++) {
+          if (valueNumbers.DD(numbers[i], valueNumber)) {
+            lhs.add(numbers[i]);
+          }
         }
       }
       // add value number generated by this update 
       lhs.add(valueNumber);
       // check if anything has changed
-      if (lhsWasTOP)
-        return  true;
+      if (lhsWasTOP) return  true;
       int[] newNumbers = lhs.getValueNumbers();
       boolean changed = ObjectCell.setsDiffer(oldNumbers, newNumbers);
       return  changed;
@@ -652,7 +654,7 @@ implements OPT_Operators {
      * Create an operator with a given value number
      * @param     valueNumber
      */
-    UpdateUseObjectOperator (int valueNumber) {
+    UpdateUseObjectOperator(int valueNumber) {
       this.valueNumber = valueNumber;
     }
 
@@ -661,28 +663,27 @@ implements OPT_Operators {
      * @param operands operands in the dataflow equation
      * @return true iff the lhs changes from this evaluation
      */
-    boolean evaluate (OPT_DF_LatticeCell[] operands) {
+    boolean evaluate(OPT_DF_LatticeCell[] operands) {
       ObjectCell lhs = (ObjectCell)operands[0];
       ObjectCell rhs = (ObjectCell)operands[1];
       int[] oldNumbers = null;
       boolean lhsWasTOP = lhs.isTOP();
-      if (!lhsWasTOP)
-        oldNumbers = lhs.getValueNumbers();
+      if (!lhsWasTOP) oldNumbers = lhs.getValueNumbers();
       lhs.clear();
       if (rhs.isTOP()) {
-        throw  new OPT_OptimizingCompilerException(
-                                                   "Unexpected lattice operation");
+        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
       int[] numbers = rhs.getValueNumbers();
       // add all rhs numbers 
-      for (int i = 0; i < numbers.length; i++) {
-        lhs.add(numbers[i]);
+      if (numbers != null) {
+        for (int i = 0; i < numbers.length; i++) {
+          lhs.add(numbers[i]);
+        }
       }
       // add value number generated by this update 
       lhs.add(valueNumber);
       // check if anything has changed
-      if (lhsWasTOP)
-        return  true;
+      if (lhsWasTOP) return  true;
       int[] newNumbers = lhs.getValueNumbers();
       boolean changed = ObjectCell.setsDiffer(oldNumbers, newNumbers);
       return  changed;
@@ -706,7 +707,7 @@ implements OPT_Operators {
      * @param     v1 first value number in the pari
      * @param     v2 first value number in the pari
      */
-    UpdateDefArrayOperator (int v1, int v2) {
+    UpdateDefArrayOperator(int v1, int v2) {
       v.v1 = v1;
       v.v2 = v2;
     }
@@ -716,26 +717,26 @@ implements OPT_Operators {
      * @param operands operands in the dataflow equation
      * @return true iff the lhs changes from this evaluation
      */
-    boolean evaluate (OPT_DF_LatticeCell[] operands) {
+    boolean evaluate(OPT_DF_LatticeCell[] operands) {
       ArrayCell lhs = (ArrayCell)operands[0];
       ArrayCell rhs = (ArrayCell)operands[1];
       OPT_ValueNumberPair[] oldNumbers = null;
       boolean lhsWasTOP = lhs.isTOP();
-      if (!lhsWasTOP)
-        oldNumbers = lhs.getValueNumbers();
+      if (!lhsWasTOP) oldNumbers = lhs.getValueNumbers();
       lhs.clear();
       if (rhs.isTOP()) {
-        throw  new OPT_OptimizingCompilerException(
-                                                   "Unexpected lattice operation");
+        throw  new OPT_OptimizingCompilerException("Unexpected lattice operation");
       }
       OPT_ValueNumberPair[] numbers = rhs.getValueNumbers();
       // add all rhs pairs that are DD from either v.v1 or v.v2
-      for (int i = 0; i < numbers.length; i++) {
-        if (valueNumbers.DD(numbers[i].v1, v.v1)) {
-          lhs.add(numbers[i].v1, numbers[i].v2);
-        } 
-        else if (valueNumbers.DD(numbers[i].v2, v.v2)) {
-          lhs.add(numbers[i].v1, numbers[i].v2);
+      if (numbers != null) {
+        for (int i = 0; i < numbers.length; i++) {
+          if (valueNumbers.DD(numbers[i].v1, v.v1)) {
+            lhs.add(numbers[i].v1, numbers[i].v2);
+          } 
+          else if (valueNumbers.DD(numbers[i].v2, v.v2)) {
+            lhs.add(numbers[i].v1, numbers[i].v2);
+          }
         }
       }
       // add the value number pair generated by this update 
@@ -767,7 +768,7 @@ implements OPT_Operators {
      * @param     v1 first value number in the pair
      * @param     v2 second value number in the pair
      */
-    UpdateUseArrayOperator (int v1, int v2) {
+    UpdateUseArrayOperator(int v1, int v2) {
       v.v1 = v1;
       v.v2 = v2;
     }
@@ -777,13 +778,12 @@ implements OPT_Operators {
      * @param operands operands in the dataflow equation
      * @return true iff the lhs changes from this evaluation
      */
-    boolean evaluate (OPT_DF_LatticeCell[] operands) {
+    boolean evaluate(OPT_DF_LatticeCell[] operands) {
       ArrayCell lhs = (ArrayCell)operands[0];
       ArrayCell rhs = (ArrayCell)operands[1];
       OPT_ValueNumberPair[] oldNumbers = null;
       boolean lhsWasTOP = lhs.isTOP();
-      if (!lhsWasTOP)
-        oldNumbers = lhs.getValueNumbers();
+      if (!lhsWasTOP) oldNumbers = lhs.getValueNumbers();
       lhs.clear();
       if (rhs.isTOP()) {
         throw  new OPT_OptimizingCompilerException(
@@ -791,9 +791,11 @@ implements OPT_Operators {
       }
       OPT_ValueNumberPair[] numbers = rhs.getValueNumbers();
       // add all rhs numbers 
-      for (int i = 0; i < numbers.length; i++) {
-        lhs.add(numbers[i].v1, numbers[i].v2);
-      }
+      if (numbers != null) {
+        for (int i = 0; i < numbers.length; i++) {
+          lhs.add(numbers[i].v1, numbers[i].v2);
+        }
+      } 
       // add value number generated by this update 
       lhs.add(v.v1, v.v2);
       // check if anything has changed
@@ -805,6 +807,3 @@ implements OPT_Operators {
     }
   }
 }
-
-
-
