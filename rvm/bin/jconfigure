@@ -176,6 +176,7 @@ function help_message () {
 	from a class) type "jbuild -recompile".
 	
 	To monitor the build process in more detail type "jbuild -trace".
+	"jbuild -help" will print the suboptions to "-trace".
 	
 	To restore the build directory to its original "unbuilt" state type
 	"jbuild -clean".
@@ -774,6 +775,57 @@ function emitBoilerplate () {
 	EOF
     emit_enable_exit_on_error
     cat <<- 'EOF'
+	# tracing() takes 0 or 1 arguments.
+	# The trace argument can be:
+	# -trace		 (gets most things but for some of the bootimagewriter)
+	# -trace=ant		# Just ant is of interest
+	# -trace=jbuild		# high-level
+	# 
+	# was: -trace, -trace=no-all, or: -trace=no-BootImageWriter,
+	# Converted to:
+	# TRACE_FLAG: (empty)  # only if nothing was said
+	# TRACE_FLAG: ,no-all,
+	# TRACE_FLAG: ,-trace,
+	# We can be tracing:
+	# preprocessor,make,BootImageWriter,ant,jbuild
+	# As well as the groups:
+	# most,all
+
+	# Returns true (exit 0) if we are tracing
+	# Returns false (exit 1) if we are not.
+	function tracing() {
+	    [[ $TRACE_FLAG ]] || return 1
+
+	    local -i dflt=0	# default answer, true.
+	    # Canonicalize.
+	    if [[ $TRACE_FLAG != ,*, ]]; then
+	        if [[ $TRACE_FLAG = -trace ]]; then
+	            TRACE_FLAG=,most,
+	        elif [[ $TRACE_FLAG != -trace=* ]]; then
+	            echo >&2 "${ME}: I don't understand the trace flag \"$TRACE_FLAG\".   Aborting execution."
+	            trap '' EXIT
+	            kill $$
+	        else
+		    # It's -trace=
+	            TRACE_FLAG=",${TRACE_FLAG#-trace=},";
+	        fi
+	        TRACE_FLAG=${TRACE_FLAG/,no-most,/,no-all,}
+	        TRACE_FLAG=${TRACE_FLAG/,most,/,preprocessor,make,no-BootImageWriter,ant,jbuild,}
+	    fi
+	    if [[ $TRACE_FLAG == *,no-all,* ]]; then
+	            dflt=1	# false
+	    fi
+	    if (( $# > 0 )); then
+	        local arg="$1"
+	        # If someone explicitly requested it, then, trace it.
+	        if [[ $TRACE_FLAG == *,${arg},* ]]; then
+	            return 0;
+	        elif [[ $TRACE_FLAG == *,no-${arg},* ]]; then
+	            return 1;
+	        fi
+	    fi 
+	    return $dflt;
+	}
 	## END inline Bash boilerplate.
 	EOF
 }
@@ -1076,30 +1128,63 @@ function emitController () {
 	    return \$status;	# will always return 0
 	}
 
+	VFLAG="" XFLAG="" DEMOGRAPHICS_FLAG="" CLEAN_FLAG="" RECOMPILE_FLAG="" NOLINK_FLAG="" BOOTER_FLAG="" NOBOOTER_FLAG=""
 	while (( \$# > 0 )); do
-	    if [[ \$1 = -trace ]]; then
-	        TRACE_FLAG=-trace
-	    elif [[ \$1 = -v ]]; then
+	    arg="\$1"
+	    [[ \$arg != --?* ]] || arg="\${arg#-}"
+	    if [[ \$arg == -trace* ]]; then
+	        TRACE_FLAG="\$arg"
+	    elif [[ \$arg = -v ]]; then
 	       VFLAG=-v
-	    elif [[ \$1 = -x ]]; then
+	    elif [[ \$arg = -x ]]; then
 	       XFLAG=-x
-	    elif [[ \$1 = -demographics ]]; then
+	    elif [[ \$arg = -demographics ]]; then
 	        DEMOGRAPHICS_FLAG=-demographics
-	    elif [[ \$1 = -clean ]]; then
+	    elif [[ \$arg = -clean ]]; then
 	        CLEAN_FLAG=-clean
-	    elif [[ \$1 = -recompile ]]; then
+	    elif [[ \$arg = -recompile ]]; then
 	        RECOMPILE_FLAG=-recompile
-	    elif [[ \$1 = -nolink ]]; then
+	    elif [[ \$arg = -nolink ]]; then
 	        NOLINK_FLAG=-nolink
-	    elif [[ \$1 = -nobooter ]]; then
+	    elif [[ \$arg = -nobooter ]]; then
 	        NOBOOTER_FLAG=-nobooter
-	    elif [[ \$1 = -booter ]]; then
+	    elif [[ \$arg = -booter ]]; then
 	        NOLINK_FLAG=-nolink
 	        BOOTER_FLAG=-booter
 	    else
-	         echo >&2 "Usage: \$ME [[-trace [-v] [-x]] [-demographics] [-clean] [-recompile] [-nolink] [-nobooter] [-booter]"
-		echo >&2 "    -trace: Some debugging information.  Make is no longer run with --silent."
-		echo >&2 "    -v, -x: Turn on the -v and/or -x debugging flags in the subshells we spawn."
+	        echo >&2 \
+		"Usage: \$ME [-trace[=<trace-opts>]] [-v] [-x] [-demographics] 
+		         [-clean] [-recompile] [-nolink] [-nobooter] [-booter]
+
+		    -trace: As if \"-trace=most\".  Some debugging information.
+		    -trace=make:  Make is no longer run with --silent.
+		    -trace=ant:  Ant is no longer run with -quiet.
+		    -trace=preprocessor: Follow the process of running the preprocessor on Java
+		          source code.
+		    -trace=BootImageWriter: the BootImageWriter sends out lots of information 
+		         (about 9420 lines in a BaseBaseCopyMS build.)  That's why -trace
+		         no longer includes the BootImageWriter output by default.
+		    -trace=jbuild:  Higher-level info as the build progresses.
+		    -trace=most:   Same as -trace=all,no-BootImageWriter
+		    -trace=all:   Everything.
+		    "
+		echo >&2 \
+		"    -v, -x: Turn on the -v and/or -x debugging flags in the subshells we spawn.
+		     -nobooter: avoid building the booter (when, for example, running on the AIX
+		          side of an AIX/Linux cross-compilation)
+
+		     -booter:  build only the booter (when, for example, running on 
+		          the Linux side of an AIX cross-build to Linux)
+
+		      -nolink:  avoid unnecessarily rebuilding the bootimage (when, for example,
+		          you've only modified classes that are dynamically loaded and which
+		          are not part of the bootimage)
+
+		      -recompile:  force recompilation of all classes (when, for example, 
+		          you've modified a global constant or have added/removed
+		           fields/methods from a class)
+
+		      -clean:  restore the build directory to its original \"unbuilt\" state"
 		trap '' EXIT
 	        exit 33
 	    fi
@@ -1113,7 +1198,9 @@ function emitController () {
 	  . ./jbuild.environment
 	fi
 	
-	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
+#    	[[ \$VFLAG ]] || VFLAG=+v
+#    	[[ \$XFLAG ]] || XFLAG=+x
+	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	# Ensure that we have the right version of the class libraries
 	\$JAL_ROOT/rvm/bin/jBuildClasspathJar --check
 	
@@ -1129,7 +1216,7 @@ function emitController () {
 	fi
 
 	if [[ \$RECOMPILE_FLAG = -recompile ]]; then
-	    timeit ./jbuild.compile \$TRACE_FLAG -clean
+	    timeit ./jbuild.compile -clean
 	fi
 
 	if [[ -e $CLEANSE_STATUS_STR ]]; then
@@ -1201,27 +1288,33 @@ function emitExpander () {
 	unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG || :
 	SILENT_MAKE=--silent
 	while (( \$# > 0 )); do
-	    if [[ \$1 = -trace ]]; then
-	        TRACE_FLAG=-trace
-	        SILENT_MAKE=
-	    elif [[ \$1 = -v ]]; then
+	    arg="\$1"
+	    [[ \$arg != --?* ]] || arg=\${arg#-}
+	    if [[ \$arg == -trace* ]]; then
+	        TRACE_FLAG="\$arg"
+	    elif [[ \$arg = -v ]]; then
 	        VFLAG=-v
-	    elif [[ \$1 = -x ]]; then
+	    elif [[ \$arg = -x ]]; then
 	        XFLAG=-x
-	    elif [[ \$1 = -clean ]]; then
+	    elif [[ \$arg = -clean ]]; then
 	        CLEAN_FLAG=-clean
 	    else
-	        echo >&2 "\$ME: Unknown argument: \$1"
+	        echo >&2 "\$ME: Unknown argument: \$arg"
 		trap '' EXIT
 	        exit $Exit_Status_Bad_Args
 	    fi
 	    shift
 	done
+	if tracing make; then
+	    SILENT_MAKE=
+	fi
 
 	echo -n "\${ME}: "
 
-	! [[ \$TRACE_FLAG ]] || XFLAG=-x
-	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
+#	! tracing jbuild || XFLAG=-x
+#    	[[ \$VFLAG ]] || VFLAG=+v
+#    	[[ \$XFLAG ]] || XFLAG=+x
+	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	if [[ \$CLEAN_FLAG ]]; then
 	    rm -rf ${SCRATCH_DIRECTORY_STR}
 	    mkdir -p ${SCRATCH_DIRECTORY_STR}/com/ibm/JikesRVM
@@ -1287,7 +1380,7 @@ ${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/vm/adaptive Mak
     fi
     
     echo '
-if [[ ${TRACE_FLAG} = -trace ]]; then
+if tracing jbuild; then
     echo ""
 fi
 ';
@@ -1313,30 +1406,38 @@ function emitCopier () {
 	
 
 	# Process command-line args   
-	unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG || :
+	unset TRACE_FLAG  VFLAG XFLAG CLEAN_FLAG || :
 	SILENT_MAKE=--silent
 	while (( \$# > 0 )); do
-	    if [[ \$1 = -trace ]]; then
-	        TRACE_FLAG=-trace
-	        SILENT_MAKE=
-	    elif [[ \$1 = -v ]]; then
+	    arg="\$1"
+	    if [[ \$arg = -- ]]; then
+	        shift		# The end of the flag arguments
+	        break;
+	    fi
+	    [[ \$arg != --?* ]] || arg="\${arg#-}"
+	    if [[ \$arg == -trace* ]]; then
+	        TRACE_FLAG="\$arg"
+	    elif [[ \$arg = -v ]]; then
 	        VFLAG=-v
-	    elif [[ \$1 = -x ]]; then
+	    elif [[ \$arg = -x ]]; then
 	        XFLAG=-x
-	    elif [[ \$1 = -clean ]]; then
+	    elif [[ \$arg = -clean ]]; then
 	        CLEAN_FLAG=-clean
 	    else
-	        echo >&2 "\$ME: Unknown argument: \$1"
+	        echo >&2 "\$ME: Unknown argument: \$arg"
 	        trap '' EXIT
 	        exit $Exit_Status_Bad_Args
 	    fi
 	    shift
 	done
 
+	if tracing make; then
+	    SILENT_MAKE=
+	fi
 	echo -n "\${ME}: "
 
 	if [[ \$CLEAN_FLAG ]]; then
-	    if [[ \$TRACE_FLAG ]]; then
+	    if tracing jbuild; then
 		echo " (nuking .java files in ${CLASSES_DIRECTORY_STR})"
 	    fi
 	    find ${CLASSES_DIRECTORY_STR} -name "*.java" -exec rm {} \;
@@ -1345,7 +1446,9 @@ function emitCopier () {
 	    trap '' EXIT
 	    exit 0
 	fi
-	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
+#    	[[ \$VFLAG ]] || VFLAG=+v
+#    	[[ \$XFLAG ]] || XFLAG=+x
+	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	# Make the preprocessor
 	${GNU_MAKE_STR} \${SILENT_MAKE} -C ${ROOT_DIRECTORY_STR}/rvm/src/tools/preprocessor tool SCRATCH_DIR=${SCRATCH_DIRECTORY_STR}
 	cp ${SCRATCH_DIRECTORY_STR}/preprocessModifiedFiles ${BUILD_DIRECTORY_STR}/jbuild.prep
@@ -1356,8 +1459,13 @@ function emitCopier () {
 
 	# Update from directories containing sources that implement the virtual machine.
 	#
+	if tracing preprocessor; then
+	    PREPROC_TRACE_FLAG=-trace
+	else
+	    PREPROC_TRACE_FLAG=
+	fi
 	for d in \$(< ${SOURCE_LIST_STR} ); do
-	    if [[ \${TRACE_FLAG} = -trace ]]; then
+	    if tracing preprocessor; then
 	         echo -n "\${ME}: expanding \${d}..."
 	    fi
 	    shopt -s nullglob
@@ -1375,8 +1483,12 @@ EOF
 	    ## So, all the non-zero return values get mapped to 123, and we 
 	    ## want to distinguish 1 (OK) 
 	    ## from other non-zero return values (trouble).
-	    # echo \$FILES | \$XARGS -r ${BUILD_DIRECTORY_STR}/jbuild.prep \${TRACE_FLAG} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} 
-	    ${BUILD_DIRECTORY_STR}/jbuild.prep \${TRACE_FLAG} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} \$FILES 
+	    # echo \$FILES | \$XARGS -r ${BUILD_DIRECTORY_STR}/jbuild.prep \${PREPROC_TRACE_FLAG} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} 
+
+	    if [[ ! \$FILES ]]; then
+	        continue;
+	    fi
+	    ${BUILD_DIRECTORY_STR}/jbuild.prep \${PREPROC_TRACE_FLAG} $(echo ${PREPROCESSOR_DEFINITIONS}) ${CLASSES_DIRECTORY_STR} \$FILES 
 	    status=\$?
 EOF
     emit_enable_exit_on_error
@@ -1389,7 +1501,7 @@ EOF
 	trap "" EXIT
 	exit $status
     fi
-    if [[ ${TRACE_FLAG} = -trace ]]; then
+    if tracing preprocessor; then
 	echo ""
     fi
 done
@@ -1398,14 +1510,14 @@ done
 # Do this after we copy the "normal" files to allow us to
 # overwrite any dummy versions of the files we have sitting
 # around in the shadow (telling people that the file is generated).
-if [[ ${TRACE_FLAG} = -trace ]]; then
+if tracing preprocessor; then
     echo -n "${ME}: '${GENERATED_FILES_DIRECTORY_STR}'/"
 fi
 FILES=$(${FIND} '${GENERATED_FILES_DIRECTORY_STR}'/ -name "*.java")'
     emit_disable_exit_on_error
     ## See above comment on xargs.
-    # echo 'echo $FILES | $XARGS -r '${BUILD_DIRECTORY_STR}'/jbuild.prep ${TRACE_FLAG}' ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR}'
-    echo ${BUILD_DIRECTORY_STR}/jbuild.prep "\${TRACE_FLAG}" ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR} "\${FILES}"
+    # echo 'echo $FILES | $XARGS -r '${BUILD_DIRECTORY_STR}'/jbuild.prep ${PREPROC_TRACE_FLAG}' ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR}'
+    echo ${BUILD_DIRECTORY_STR}/jbuild.prep "\${PREPROC_TRACE_FLAG}" ${PREPROCESSOR_DEFINITIONS} ${CLASSES_DIRECTORY_STR} "\${FILES}"
     echo 'status=$?'
     emit_enable_exit_on_error
     echo '
@@ -1416,7 +1528,7 @@ elif [[ ${status} != 0 ]]; then
     trap '' EXIT
     exit ${status}
 fi
-if [[ ${TRACE_FLAG} = -trace ]]; then
+if tracing preprocessor; then
     echo ""
 fi'
 
@@ -1462,16 +1574,22 @@ EOF
 
 	unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG || :
 	while (( \$# > 0 )); do
-	    if [[ \$1 = -trace ]]; then
-		TRACE_FLAG=-trace
-	    elif [[ \$1 = -v ]]; then
+	    arg="\$1"
+	    if [[ \$arg = -- ]]; then
+	        shift		# The end of the flag arguments
+	        break;
+	    fi
+	    [[ \$arg != --?* ]] || arg="\${arg#-}"
+	    if [[ \$arg == -trace* ]]; then
+		TRACE_FLAG="\$arg"
+	    elif [[ \$arg = -v ]]; then
 	        VFLAG=-v
-	    elif [[ \$1 = -x ]]; then
+	    elif [[ \$arg = -x ]]; then
 	        XFLAG=-x
-	    elif [[ \$1 = -clean ]]; then
+	    elif [[ \$arg = -clean ]]; then
 	        CLEAN_FLAG=-clean
 	    else
-	        echo >&2 "\$ME: Unknown argument: \$1"
+	        echo >&2 "\$ME: Unknown argument: \$arg"
 	        trap '' EXIT
 	        exit $Exit_Status_Bad_Args
 	    fi
@@ -1479,7 +1597,10 @@ EOF
 	done
 
 	echo -n "\${ME}: "
-	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
+#    	[[ \$VFLAG ]] || VFLAG=+v
+#    	[[ \$XFLAG ]] || XFLAG=+x
+	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
+
 	if [[ \$CLEAN_FLAG ]]; then
 	    cd ${CLASSES_DIRECTORY_STR}
 	    # This avoids any limits on the size of the command-line arguments.
@@ -1535,13 +1656,13 @@ EOF
 	    echo -n '(jksvmsrc.jar built) '
 
 	else
-	    if [[ \$TRACE_FLAG = -trace ]]; then
+	    if tracing jbuild; then
 	         echo -n "(nothing needed to be compiled) "
 	    fi
 	fi
 	rm -f $CLASSES_INVALID_STR
 
-	if [[ \$TRACE_FLAG = -trace ]]; then
+	if tracing jbuild; then
 	    echo ""
 	fi
 	EOF
@@ -1564,19 +1685,20 @@ function emitImageLinker () {
 	unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG DEMOGRAPHICS_FLAG || :
 	SILENT_MAKE=--silent
 	while (( \$# > 0 )); do
-	    if [[ \$1 = -trace ]]; then
-	        TRACE_FLAG=-trace
-	        SILENT_MAKE=
-	    elif [[ \$1 = -v ]]; then
+	    arg="\$1"
+	    [[ \$arg != --?* ]] || arg="\${arg#-}"
+	    if [[ \$arg == -trace* ]]; then
+	        TRACE_FLAG="\$arg"
+	    elif [[ \$arg = -v ]]; then
 	       VFLAG=-v
-	    elif [[ \$1 = -x ]]; then
+	    elif [[ \$arg = -x ]]; then
 	       XFLAG=-x
-	    elif [[ \$1 = -demographics ]]; then
+	    elif [[ \$arg = -demographics ]]; then
 	        DEMOGRAPHICS_FLAG=-demographics
-	    elif [[ \$1 = -clean ]]; then
+	    elif [[ \$arg = -clean ]]; then
 	        CLEAN_FLAG=-clean
 	    else
-	        echo >&2 "\$ME: Unknown argument: \$1"
+	        echo >&2 "\$ME: Unknown argument: \$arg"
 	        trap '' EXIT
 	        exit $Exit_Status_Bad_Args
 	    fi
@@ -1584,7 +1706,13 @@ function emitImageLinker () {
 	done
 	
 	echo -n "\${ME}: "
-	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
+#    	[[ \$VFLAG ]] || VFLAG=+v
+#    	[[ \$XFLAG ]] || XFLAG=+x
+	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
+	if tracing make; then
+	    SILENT_MAKE=
+	fi
+
 EOF
     
     BOOTIMAGE_WRITER_MAKEFILE=Makefile
@@ -2065,7 +2193,7 @@ EOF
     echo "\
 # Create bootimage.
 #"
-    BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$TRACE_FLAG"
+    BOOTIMAGE_WRITER_ARGS="\$DEMOGRAPHICS_FLAG \$BOOTIMAGE_WRITER_TRACE_FLAG"
 
     BOOTIMAGE_WRITER_ARGS="$BOOTIMAGE_WRITER_ARGS -ia $BOOTIMAGE_LOAD_ADDRESS"
 
@@ -2084,17 +2212,24 @@ EOF
 	echo ' OPT_ARGS="$OPT_ARGS -X:bc:no_cache_flush=true"'
     fi
 
-    echo "if [[ \$TRACE_FLAG ]]; then"
+    echo "if tracing BootImageWriter; then"
     echo '    OPT_ARGS="$OPT_ARGS -X:bc:verbose=true"'
     echo '    VERBOSE_STR="VERBOSE_ARG=-verbose:gc"'
+    echo 'fi'
+    echo "if tracing preprocessor; then"
+    echo '    PREPROC_TRACE_FLAG="-trace"'
+    echo 'else'
+    echo '    PREPROC_TRACE_FLAG=""'
     echo 'fi'
     echo ""
 
     # copy and preprocess BootImageWriter sources
     #
     echo ''
-    echo "if [[ \$TRACE_FLAG ]]; then"
+    echo "BOOTIMAGE_WRITER_TRACE_FLAG="
+    echo "if tracing BootImageWriter; then"
     echo '    echo -n "$ME: '$BOOTIMAGE_WRITER_DIR_STR'"'
+    echo "    BOOTIMAGE_WRITER_TRACE_FLAG=-trace"
     echo 'fi'
     echo "FILES=\$(echo $BOOTIMAGE_WRITER_DIR_STR/*.java)"
     echo "if ! [[ \$FILES ]]; then"
@@ -2103,9 +2238,9 @@ EOF
     echo "    exit 2"
     echo "fi"
     # See above comment in jconfigure on xargs.
-    echo "echo \$FILES | \$XARGS -r \"$BUILD_DIRECTORY_STR/jbuild.prep\" --disable-modification-exit-status \$TRACE_FLAG" $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR 
-    # echo $BUILD_DIRECTORY_STR/jbuild.prep --disable-modification-exit-status '$TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR "\$FILES"
-    echo "if [[ \$TRACE_FLAG ]]; then"
+    echo "echo \$FILES | \$XARGS -r \"$BUILD_DIRECTORY_STR/jbuild.prep\" --disable-modification-exit-status \$PREPROC_TRACE_FLAG" $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR 
+    # echo $BUILD_DIRECTORY_STR/jbuild.prep --disable-modification-exit-status '$PREPROC_TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $SCRATCH_DIRECTORY_STR "\$FILES"
+    echo "if tracing preprocessor; then"
     echo '    echo ""'
     echo 'fi'
     echo ''
@@ -2121,7 +2256,7 @@ EOF
     # copy and preprocess GenerateInterfaceDeclarations.java
     #
     echo ''
-    echo "if [[ \$TRACE_FLAG ]]; then"
+    echo "if tracing jbuild; then"
     echo "    echo -n \"\$ME: $BOOTIMAGE_RUNNER_DIR_STR\""
     echo "fi"
     echo "FILE=$BOOTIMAGE_RUNNER_DIR_STR/GenerateInterfaceDeclarations.java"
@@ -2132,8 +2267,8 @@ EOF
     echo "fi"
     # We explicitly do not double-quote $PREPROCESSOR_DEFINITIONS, since we
     # need the newlines in that string to be replaced with spaces.
-    echo "$BUILD_DIRECTORY_STR/jbuild.prep --disable-modification-exit-status \$TRACE_FLAG" $PREPROCESSOR_DEFINITIONS "$SCRATCH_DIRECTORY_STR  \$FILE"
-    echo "if [[ \$TRACE_FLAG ]]; then"
+    echo "$BUILD_DIRECTORY_STR/jbuild.prep --disable-modification-exit-status \$PREPROC_TRACE_FLAG" $PREPROCESSOR_DEFINITIONS "$SCRATCH_DIRECTORY_STR  \$FILE"
+    echo "if tracing jbuild; then"
     echo '    echo ""'
     echo 'fi'
     echo '
@@ -2167,7 +2302,7 @@ EOF
 	  SCRATCH_DIR=$SCRATCH_DIRECTORY_STR\
 	  $BOOTIMAGE_STR"
 
-    echo "if [[ \$TRACE_FLAG ]]; then"
+    echo "if tracing jbuild; then"
     echo '  echo ""'
     echo 'fi'
 }
@@ -2245,26 +2380,32 @@ function emitBooterLinker () {
     echo 'unset TRACE_FLAG VFLAG XFLAG CLEAN_FLAG || :'
     echo 'SILENT_MAKE=--silent'
     echo "while (( \$# > 0 )); do"
-    echo "    if [[ \$1 = -trace ]]; then"
-    echo '        TRACE_FLAG=-trace'
-    echo '        SILENT_MAKE='
-    echo "    elif [[ \$1 = -v ]]; then"
+    echo '    arg="$1"'
+    echo '    [[ $arg != --?* ]] || arg="${arg#-}"'
+    echo "    if [[ \$arg == -trace* ]]; then"
+    echo '        TRACE_FLAG="$arg"'
+    echo "    elif [[ \$arg = -v ]]; then"
     echo "        VFLAG=-v"
-    echo "    elif [[ \$1 = -x ]]; then"
+    echo "    elif [[ \$arg = -x ]]; then"
     echo "        XFLAG=-x"
-    echo "    elif [[ \$1 = -clean ]]; then"
+    echo "    elif [[ \$arg = -clean ]]; then"
     echo "        CLEAN_FLAG=-clean"
     echo "    else"
-    echo "        echo >&2 \"\$ME: Unknown argument: \$1\""
-    echo "	 trap '' EXIT"
+    echo "        echo >&2 \"\$ME: Unknown argument: \$arg\""
+    echo "	  trap '' EXIT"
     echo "        exit $Exit_Status_Bad_Args"
     echo "    fi"
     echo "    shift"
     echo "done"
  
+    echo "if tracing make; then"
+    echo "    SILENT_MAKE="
+    echo "fi"
     echo "echo -n \"\$ME: \""
-    echo "! [[ \$TRACE_FLAG ]] || XFLAG=-x"
-    echo "! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG"
+#    echo "! tracing jbuild || XFLAG=-x"
+#    echo "[[ \$VFLAG ]] || VFLAG=+v"
+#    echo "[[ \$XFLAG ]] || XFLAG=+x"
+    echo "[ ! \"\$VFLAG\$XFLAG\" ] || set \$VFLAG \$XFLAG"
 
     echo ""
     echo "rm -f libjni.a"
@@ -2316,12 +2457,12 @@ function emitBooterLinker () {
 
     # Create RunBootImage.h file.
     echo "echo \"// RunBootImage.C boot-time constants\" >> RunBootImage.h"
-    echo "echo \"int heap_default_initial_size  = $DEFAULT_INITIAL_HEAP_SIZE*1024*1024;\" >> RunBootImage.h"
-    echo "echo \"int heap_default_maximum_size      = $DEFAULT_MAXIMUM_HEAP_SIZE*1024*1024;\" >> RunBootImage.h"
-    echo "echo \"char *rvm_version              = \\\"$JIKESRVM_VERSION\\\";\" >> RunBootImage.h"
-    echo "echo \"char *rvm_configuration        = \\\"$CONFIGURATION_NAME\\\";\" >> RunBootImage.h"
-    echo "echo \"char *rvm_host_configuration   = \\\"$RVM_HOST_CONFIG\\\";\" >> RunBootImage.h"
-    echo "echo \"char *rvm_target_configuration = \\\"$RVM_TARGET_CONFIG\\\";\" >> RunBootImage.h"
+    echo "echo \"const int heap_default_initial_size  = $DEFAULT_INITIAL_HEAP_SIZE*1024*1024;\" >> RunBootImage.h"
+    echo "echo \"const int heap_default_maximum_size      = $DEFAULT_MAXIMUM_HEAP_SIZE*1024*1024;\" >> RunBootImage.h"
+    echo "echo \"const char *rvm_version              = \\\"$JIKESRVM_VERSION\\\";\" >> RunBootImage.h"
+    echo "echo \"const char *rvm_configuration        = \\\"$CONFIGURATION_NAME\\\";\" >> RunBootImage.h"
+    echo "echo \"const char *rvm_host_configuration   = \\\"$RVM_HOST_CONFIG\\\";\" >> RunBootImage.h"
+    echo "echo \"const char *rvm_target_configuration = \\\"$RVM_TARGET_CONFIG\\\";\" >> RunBootImage.h"
     echo ""
 
     # build the JNI library for creating processes
@@ -2481,11 +2622,6 @@ function emitBooterLinker () {
 	echo 'trap "" EXIT'
 	echo 'exit' $Exit_Status_Run_Linker
     fi
-  
-    echo "
-if [[ \${TRACE_FLAG} = -trace ]]; then
-    set +x
-fi";
 }
 
 # Emit script to generate .class files for vm tools that are not part of the build.
@@ -2501,7 +2637,7 @@ function emitToolCompiler () {
     echo ". \${RVM_BUILD}/environment"
 
     echo "function usage () {"
-    echo '    echo 2>&1 "usage: ${ME} [ -trace ] [ -classpath x:y:z ] java-file [ java-file... ]"'
+    echo '    echo 2>&1 "usage: ${ME} [ -trace[=<commands>] ] [ -classpath x:y:z ] [ -- ] java-file [ java-file... ]"'
     echo '    trap "" EXIT'
     echo "    exit $Exit_Status_Bad_Args"
     echo '}'
@@ -2520,27 +2656,37 @@ function emitToolCompiler () {
 
     echo 'unset EXTRA_CPATH TRACE_FLAG XFLAG VFLAG || :'
     echo 'while :; do'
-    echo "    if [[ \$1 = -classpath ]]; then"
+    echo '    arg="\$1"'
+    echo '    [[ $arg != -- ]] || { shift ; break; }'
+    echo '    [[ \$arg != --?* ]] || arg="\${arg#-}"'
+    echo "    if [[ \$arg = -classpath ]]; then"
     echo '        (( $# > 1 )) || usage'
     echo '        EXTRA_CPATH=$2${EXTRA_CPATH+:}${EXTRA_CPATH}'
     echo '        shift'
     echo '        shift'
-    echo "    elif [[ \$1 = -v ]]; then"
+    echo "    elif [[ \$arg = -v ]]; then"
     echo "        VFLAG=-v"
-    echo "    elif [[ \$1 = -x ]]; then"
-    echo "        XFLAG=-x"
-    echo '    elif [[ $1 = -trace ]]; then'
-    echo '        TRACE_FLAG=-trace'
     echo '        shift'
+    echo "    elif [[ \$arg = -x ]]; then"
+    echo "        XFLAG=-x"
+    echo '        shift'
+    echo '    elif [[ $arg == -trace* ]]; then'
+    echo '        TRACE_FLAG=$arg'
+    echo '        shift'
+    echo '    elif [[ $arg == -* ]]'
+    echo '        echo >&2 "${ME}: Unknown argument: $arg"'
+    echo '	  exit 33'
     echo '    else'
-    echo '        break'
+    echo '        break		# must be a regular argument.'
     echo '    fi'
     echo 'done'
-    
+    echo ""    
     echo "CPATH=\${EXTRA_CPATH-.}:${BUILD_DIRECTORY_STR}/RVM.classes:${BUILD_DIRECTORY_STR}/RVM.classes/rvmrt.jar"
-    echo "! [[ \$TRACE_FLAG ]] || XFLAG=-x"
-    echo "! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG"
-
+    echo "! tracing jbuild || XFLAG=-x"
+#    echo "[[ \$VFLAG ]] || VFLAG=+v"
+#    echo "[[ \$XFLAG ]] || XFLAG=+x"
+    echo "[ ! \"\$VFLAG\$XFLAG\" ] || set \$VFLAG \$XFLAG"
+    echo ""
     echo "$HOST_JAVAC_STR -nowarn -g -classpath \"\$CPATH\" -bootclasspath \"\$CPATH\" \"\$@\""
 }
   
@@ -2577,7 +2723,7 @@ function emitPluginBuilder () {
 
 
 	usage () {
-	    echo "Usage: \$ME [ --help ] [ -trace ] [ -v ] [ -x ]"
+	    echo "Usage: \$ME [ --help ] [ -trace[=<args>] ] [ -v ] [ -x ]"
 	    echo "      [ -- ] [ <eclipse-install-dir> ]"
 	}
 
@@ -2591,30 +2737,31 @@ function emitPluginBuilder () {
 	}
 
 	QUIET_ANT=-quiet
-	declare -i trace=0
 	unset XFLAG VFLAG || :
 
 	while (( \$# > 0 )); do
-	    arg="\$1";
+	    arg="\$1"
+	    if [[ \$arg = -- ]]; then
+	        shift		# The end of the flag arguments
+	        break;
+	    fi
+	    [[ \$arg != --?* ]] || arg="\${arg#-}"
 	    if [[ \$arg = -v ]]; then
 	        VFLAG=-v
 	        shift
 	    elif [[ \$arg = -x ]]; then
 	        XFLAG=-x
 		shift
-	    elif [[ \$arg = -trace ]] || [[ \$arg = --trace ]]; then
-	        let trace=1
-	        QUIET_ANT=
+	    elif [[ \$arg == -trace* ]]; then
+		TRACE_FLAG="\$arg"
+	        ! tracing ant || QUIET_ANT=
 	        shift
-	    elif [[ \$arg = -- ]]; then
-	        shift		# The end of the flag arguments
-	        break;
-	    elif [[ \$arg = -help ]] || [[ \$arg = --help ]]; then
+	    elif [[ \$arg = -help ]] || [[ \$arg = -help ]]; then
 	        shift
 	        help
 	        exit 0
 	    elif [[ \$arg == -* ]]; then
-	        echo >&2 "\$ME: Unknown flag: \$1"
+	        echo >&2 "\$ME: Unknown flag: \$arg"
 	        usage >&2
 	        exit $Exit_Status_Bad_Args
 	    fi
@@ -2647,19 +2794,21 @@ function emitPluginBuilder () {
 	fi
 
 	# build the plugin
-    	! [[ \$VFLAG || \$XFLAG ]] || set \$VFLAG \$XFLAG
+#    	[[ \$VFLAG ]] || VFLAG=+v
+#    	[[ \$XFLAG ]] || XFLAG=+x
+	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
 	srcdir=\${JAL_ROOT}/rvm/src/tools/eclipse/plugin2
-	(( ! trace )) ||  echo "Building in \${srcdir}"
+	! tracing ||  echo "Building in \${srcdir}"
 	cd \${srcdir}
 	# Get the name of the package we're building.  It changes with each
 	# new version of Jikes RVM.  Only used for showing progress.
 	declare -r pkgname=\$(sed -n -e 's/.*name="package".*value="\\([^"][^"]*[Jj]ikes[Rr][Vv][Mm][^"]*\\)".*/\\1/p' build.xml)
 	echo "Building and installing the Eclipse plugin \$pkgname"
-	(( ! trace )) || echo "Setting up ant.properties"
+	( ! tracing jbuild && !tracing ant ) || echo "Setting up ant.properties"
 
 	echo "eclipse.dir=\${ECLIPSE_INSTALL_DIR}" > ant.properties
 
-	if (( trace )); then
+	if tracing ant; then
 	    echo "build.trace=true"
 	else
 	    echo "build.trace=false"
