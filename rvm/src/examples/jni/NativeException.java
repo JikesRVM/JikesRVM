@@ -68,11 +68,10 @@ class NativeException {
      * check for exception in native code
      */
     try {
-      returnFlag = testExceptionOccured(intArray);  // should return to here   
-      System.out.println("Hi dave\n");
-      returnFlag = true;
+      returnFlag = testExceptionOccured(intArray);  // shouldn't return here
+      returnFlag = false;
     } catch (RuntimeException e) {
-      returnFlag = false; // shouldn't be here.
+      returnFlag = true; 
     }
     checkTest(0, returnFlag, "Exception handled in native code");
     
