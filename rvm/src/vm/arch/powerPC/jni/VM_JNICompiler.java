@@ -356,16 +356,10 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     //                   R4 = class           R3  = this  -> R4         
     // 	                 R3 = JNIenv                         R3 = JNIenv
     //
-    // if the number of args in GPR does not exceed R11, then we can use R12 as scratch 
-    //   to move the args
-    // if the number of args in GPR exceed R12, then we need to save R12 first to make 
-    //   room for a scratch register
-    // if the number of args in FPR does not exceed F12, then we can use F13 as scratch
-
     nextAIXArgFloatReg = FIRST_OS_PARAMETER_FPR;
     nextVMArgFloatReg  = FIRST_VOLATILE_FPR;
     nextAIXArgReg      = FIRST_OS_PARAMETER_GPR + 2;   // 1st reg = JNIEnv, 2nd reg = class
-    if ( method.isStatic() ) {
+    if (method.isStatic()) {
       nextVMArgReg = FIRST_VOLATILE_GPR;              
     } else {
       nextVMArgReg = FIRST_VOLATILE_GPR+1;            // 1st reg = this, to be processed separately
@@ -376,7 +370,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     if (VM.VerifyAssertions) VM._assert(LAST_OS_PARAMETER_FPR<=LAST_VOLATILE_FPR);
     if (VM.VerifyAssertions) VM._assert(FIRST_OS_PARAMETER_GPR==FIRST_VOLATILE_GPR);
     if (VM.VerifyAssertions) VM._assert(LAST_OS_PARAMETER_GPR<=LAST_VOLATILE_GPR);
-
 
     // create one VM_Assembler object for each argument
     // This is needed for the following reason:
@@ -552,15 +545,15 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       asm.emitLAddrToc(secondAIXVolatileReg, klass.getTibOffset() ); // r4 <- class TIB ptr from jtoc
       asm.emitLWZ  (secondAIXVolatileReg, 0, secondAIXVolatileReg);                  // r4 <- first TIB entry == -> class object
       asm.emitLWZ  (secondAIXVolatileReg, VM_Entrypoints.classForTypeField.getOffset(), secondAIXVolatileReg); // r4 <- java Class for this VM_Class
-      asm.emitSTWU (secondAIXVolatileReg, 4, TI );                 // append class ptr to end of JNIRefs array
-      asm.emitSUBFC  (secondAIXVolatileReg, PROCESSOR_REGISTER, TI );  // pass offset in bytes
+      asm.emitSTWU (secondAIXVolatileReg, 4, KLUDGE_TI_REG);                 // append class ptr to end of JNIRefs array
+      asm.emitSUBFC  (secondAIXVolatileReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
     } else {
-      asm.emitSTWU (FIRST_OS_PARAMETER_GPR, 4, TI );                 // append this ptr to end of JNIRefs array
-      asm.emitSUBFC  (secondAIXVolatileReg, PROCESSOR_REGISTER, TI );  // pass offset in bytes
+      asm.emitSTWU (FIRST_OS_PARAMETER_GPR, 4, KLUDGE_TI_REG);                 // append this ptr to end of JNIRefs array
+      asm.emitSUBFC  (secondAIXVolatileReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
     }
     
     // store the new JNIRefs array TOP back into JNIEnv	
-    asm.emitSUBFC(KLUDGE_TI_REG, PROCESSOR_REGISTER, TI );     // compute offset for the current TOP
+    asm.emitSUBFC(KLUDGE_TI_REG, PROCESSOR_REGISTER, KLUDGE_TI_REG);     // compute offset for the current TOP
     asm.emitSTW(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffset(), S0);
   }
   //-#endif
@@ -640,11 +633,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     //                   R4 = class           R3  = this  -> R4         
     // 	                 R3 = JNIenv                         R3 = JNIenv
     //
-    // if the number of args in GPR does not exceed R11, then we can use R12 as scratch 
-    //   to move the args
-    // if the number of args in GPR exceed R12, then we need to save R12 first to make 
-    //   room for a scratch register
-    // if the number of args in FPR does not exceed F12, then we can use F13 as scratch
 
     nextOSXArgFloatReg = FIRST_OS_PARAMETER_FPR;
     nextVMArgFloatReg  = FIRST_VOLATILE_FPR;
@@ -862,15 +850,15 @@ public class VM_JNICompiler implements VM_BaselineConstants,
       asm.emitLAddrToc(secondOSXVolatileReg, klass.getTibOffset() ); // r4 <- class TIB ptr from jtoc
       asm.emitLWZ  (secondOSXVolatileReg, 0, secondOSXVolatileReg);                  // r4 <- first TIB entry == -> class object
       asm.emitLWZ  (secondOSXVolatileReg, VM_Entrypoints.classForTypeField.getOffset(), secondOSXVolatileReg); // r4 <- java Class for this VM_Class
-      asm.emitSTWU (secondOSXVolatileReg, 4, TI );                 // append class ptr to end of JNIRefs array
-      asm.emitSUBFC  (secondOSXVolatileReg, PROCESSOR_REGISTER, TI );  // pass offset in bytes
+      asm.emitSTWU (secondOSXVolatileReg, 4, KLUDGE_TI_REG);                 // append class ptr to end of JNIRefs array
+      asm.emitSUBFC  (secondOSXVolatileReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
     } else {
-      asm.emitSTWU (FIRST_OS_PARAMETER_GPR, 4, TI );                 // append this ptr to end of JNIRefs array
-      asm.emitSUBFC  (secondOSXVolatileReg, PROCESSOR_REGISTER, TI );  // pass offset in bytes
+      asm.emitSTWU (FIRST_OS_PARAMETER_GPR, 4, KLUDGE_TI_REG);                 // append this ptr to end of JNIRefs array
+      asm.emitSUBFC  (secondOSXVolatileReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes
     }
     
     // store the new JNIRefs array TOP back into JNIEnv	
-    asm.emitSUBFC(KLUDGE_TI_REG, PROCESSOR_REGISTER, TI );     // compute offset for the current TOP
+    asm.emitSUBFC(KLUDGE_TI_REG, PROCESSOR_REGISTER, KLUDGE_TI_REG);     // compute offset for the current TOP
     asm.emitSTW(KLUDGE_TI_REG, VM_Entrypoints.JNIRefsTopField.getOffset(), S0);
   }
 
@@ -956,9 +944,9 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     //  spill = arg11 -> new spill	    spill = arg11 -> new spill  
     //  spill = arg10 -> new spill	    spill = arg10 -> new spill  
     // 				            spill = arg9  -> new spill  
-    //    R12 = arg9  -> new spill	                                
-    //    R11 = arg8  -> new spill	      R12 = arg8  -> new spill  
-    //    R10 = arg7  -> new spill	      R11 = arg7  -> new spill  
+    //  spill = arg9  -> new spill	                                
+    //  spill = arg8  -> new spill	    spill = arg8  -> new spill  
+    //    R10 = arg7  -> new spill	    spill = arg7  -> new spill  
     //    R9  = arg6  -> new spill	      R10 = arg6  -> new spill  
     // 								   
     //    R8  = arg5  -> R10                  R9  = arg5  -> R10         
@@ -970,11 +958,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     //                   R4 = class           R3  = this  -> R4         
     // 	                 R3 = JNIenv                         R3 = JNIenv
     //
-    // if the number of args in GPR does not exceed R11, then we can use R12 as scratch 
-    //   to move the args
-    // if the number of args in GPR exceed R12, then we need to save R12 first to make 
-    //   room for a scratch register
-    // if the number of args in FPR does not exceed F12, then we can use F13 as scratch
 
     nextAIXArgFloatReg = FIRST_OS_PARAMETER_FPR;
     nextVMArgFloatReg = FIRST_VOLATILE_FPR;
@@ -991,7 +974,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     if (VM.VerifyAssertions) VM._assert(FIRST_OS_PARAMETER_GPR==FIRST_VOLATILE_GPR);
     if (VM.VerifyAssertions) VM._assert(LAST_OS_PARAMETER_GPR<=LAST_VOLATILE_GPR);
 
-
     // create one VM_Assembler object for each argument
     // This is needed for the following reason:
     //   -2 new arguments are added in front for native methods, so the normal arguments
@@ -1006,7 +988,6 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     VM_Assembler[] asmForArgs = new VM_Assembler[numArguments];
 
     for (int arg = 0; arg < numArguments; arg++) {
-      
       boolean mustSaveFloatToSpill;
       asmForArgs[arg] = new VM_Assembler(0);
       VM_Assembler asmArg = asmForArgs[arg];
@@ -1200,7 +1181,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     
     // if static method, append ref for class, else append ref for "this"
     // and pass offset in JNIRefs array in r4 (as second arg to called native code)
-    if ( method.isStatic() ) {
+    if (method.isStatic()) {
       klass.getClassForType();     // ensure the Java class object is created
       // JTOC saved above in JNIEnv is still valid, used by following emitLWZtoc
       asm.emitLAddrToc( 4, klass.getTibOffset() ); // r4 <- class TIB ptr from jtoc
@@ -1293,7 +1274,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     }
 
     // Save AIX non-volatile GRPs and FPRs that will not be saved and restored
-    // by RVM. These are GPR 13-16 & FPR 14-15.
+    // by RVM. These are GPR 13-16.
     //
     offset = STACKFRAME_HEADER_SIZE + JNI_GLUE_SAVED_VOL_SIZE;   // skip 20 word volatile reg save area
     for (int i = FIRST_OS_NONVOLATILE_GPR; i < FIRST_NONVOLATILE_GPR; i++) {
@@ -1346,7 +1327,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     asm.emitBC    (NE, retryLoop);                            // br if failure -retry lwarx by jumping to label0
     VM_ForwardReference frInJava = asm.emitForwardB();        // branch around code to call sysYield
 
-    // branch to here if blocked in native, call sysVirtulaProcessorYield (AIX pthread yield)
+    // branch to here if blocked in native, call sysVirtualProcessorYield (AIX pthread yield)
     // must save volatile gprs & fprs before the call and restore after
     //
     frBlocked.resolve(asm);
