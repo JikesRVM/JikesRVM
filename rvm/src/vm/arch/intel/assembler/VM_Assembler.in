@@ -24,12 +24,12 @@
  * <DI> represents the type of the nth operand:
  *   <DL>
  *   <DT> "Imm"		<DI> immediate operands
- *   <DT> "Reg" 	<DI> register operands
- *   <DT> "RegInd"      <DI> register indirect operands
+ *   <DT> "Reg"		<DI> register operands
+ *   <DT> "RegInd"	<DI> register indirect operands
  *   <DT> "RegDisp"	<DI> register displacement
- *   <DT> "RegOff" 	<DI> shifted index + displacement
+ *   <DT> "RegOff"	<DI> shifted index + displacement
  *   <DT> "RegIdx"	<DI> register base + shifted index + displacement
- *   <DT> "Cond" 	<DI> condition codes
+ *   <DT> "Cond"	<DI> condition codes
  *   </DL>
  *
  * <DT> <EM>size</EM> 
@@ -37,7 +37,7 @@
  *   <DL>
  *   <DT> "Byte"	<DI> bytes
  *   <DT> "Word"	<DI> Intel "words" (i.e. 16 bites)
- *   <DT> "Quad" 	<DI> quad words (i.e. double-precision floating point)
+ *   <DT> "Quad"	<DI> quad words (i.e. double-precision floating point)
  *   </DL>
  *
  * <DT> <EM>operand arguments</EM>
@@ -46,61 +46,83 @@
  *  <DT> "Imm" 
  *  <DI>
  *    <UL>
- *      <LI> immediate value (int)
+ *	<LI> immediate value (int)
       </UL>
  *  <DT> "Reg"	
  *  <DI> 
  *    <UL> 
- *      <LI> register number (byte)
+ *	<LI> register number (byte)
  *    </UL>
  *  <DT> "RegInd" 
  *  <DI>
  *    <UL>
- *      <LI> register number (byte)
+ *	<LI> register number (byte)
  *    </UL>
  *  <DT> "RegDisp"
  *  <DI>
  *    <UL>
- *      <LI> register number (byte)
- *      <LI> displacement (int)
+ *	<LI> register number (byte)
+ *	<LI> displacement (int)
  *    </UL>
  *  <DT> "RegOff" 
  *  <DI> 
  *    <UL>
- *      <LI> index register (byte)
- *      <LI> scale (short)
- *      <LI> displacement (int)
+ *	<LI> index register (byte)
+ *	<LI> scale (short)
+ *	<LI> displacement (int)
  *    </UL>
  *  <DT> "RegIdx" 
  *  <DI>
  *    <UL>
- *      <LI> base register (byte)
- *      <LI> index register (byte)
- *      <LI> scale (short)
- *      <LI> displacement (int)
+ *	<LI> base register (byte)
+ *	<LI> index register (byte)
+ *	<LI> scale (short)
+ *	<LI> displacement (int)
  *    </UL>
  *  <DT> "Cond" 
  *  <DI>
  *    <UL>
- *      <LI> condition code mask (byte)
+ *	<LI> condition code mask (byte)
  *    </UL>
  *  </DL>
  * </DL>
  *
  * @author Julian Dolby
+ * @author Bowen Alpern
  */
 class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
-  
+	
+  /**
+   * dump assemby code as it is generated?
+   */	
   static boolean TRACE = false;
 
-  private VM_Lister      lister;
-          INSTRUCTION [] machineCodes; // needed by lister (otherwise private)
-          int            mi;           // needed by lister (otherwise private)
+  /**
+   * The lister object is used to print generated machine code.
+   */
+  private VM_Lister	 lister;
 
-  ///////////////////////////
-  // non-emitter interface //
-  ///////////////////////////
+  /**
+   * The array holding the generated binary code.  
+   */
+  private INSTRUCTION [] machineCodes;
 
+  /**
+   * The current end of the generated machine code
+   */
+  protected int		 mi;	      
+
+  /**
+   * Create an assembler with a given machine code buffer size.	 This
+   * size is merely a heuristic, because the assembler will expand its
+   * buffer if it becomes full.	 This constructor uses the global
+   * TRACE to determine whether the assemblewr should dump its
+   * generated code
+   *
+   * @see #TRACE
+   *
+   * @param initial machine code buffer size.
+   */
   VM_Assembler (int bytecodeSize) {
     machineCodes = new INSTRUCTION [bytecodeSize*CODE_EXPANSION_FACTOR + CODE_OVERHEAD_TERM];
     if (TRACE)
@@ -109,6 +131,15 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
 	lister = null;
   }
 
+  /**
+   * Create an assembler with a given machine code buffer size and
+   * tell it whether or not to print machine code as it generates it.
+   * The buffer size is merely a heuristic, because the assembler will
+   * expand its buffer if it becomes full. 
+   *
+   * @param bytecodeSize initial machine code buffer size.
+   * @param shouldPrint whether to dump generated machine code.
+   */
   VM_Assembler (int bytecodeSize, boolean shouldPrint) {
     machineCodes = new INSTRUCTION [bytecodeSize*CODE_EXPANSION_FACTOR + CODE_OVERHEAD_TERM];
     if (shouldPrint) 
@@ -117,103 +148,255 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
 	lister = null;
   }
 
-    int getMachineCodeIndex () {
-	return mi;
-    }
-    
-  ///////////////////////
-  // buffer management //
-  ///////////////////////
+  /**
+   *  Heuristic constant used to calculate initial size of the machine
+   * code buffer.  This is an average of how many bytes of generated
+   * code come from a given bytecode in the baseline compiler.
+   */
+  private static final int  CODE_EXPANSION_FACTOR =  12;
 
-    protected void setMachineCodes(int index, byte data) {
-	try {
-	    machineCodes[index] = data;
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    INSTRUCTION [] old = machineCodes;
-	    machineCodes = new INSTRUCTION [2 * old.length ];
-	    for (int i=0; i<old.length; i++) machineCodes[i] = old[i];
-	    machineCodes[index] = data;
-	}
-    }
-    
-    INSTRUCTION [] getMachineCodes () {
-	INSTRUCTION[] trimmed = new INSTRUCTION [ getMachineCodeIndex() ];
-	for(int i = 0; i < getMachineCodeIndex(); i++) 
-	    trimmed[i] = machineCodes[i];
+  /**
+   *  Heuristic constant used to calculate initial size of the machine
+   * code buffer.  This is an estimate of the fixed method overhead
+   * code generated by the baseline compiler, such as method
+   * prologue. 
+   */
+  private static final int  CODE_OVERHEAD_TERM	  = 100;
 
-	return trimmed;
-    }
+  /**
+   *  Return the current offset in the generated code buffer of the
+   * end of the genertaed machine code.
+   *
+   * @return the end of the generated machine code.
+   */
+  int getMachineCodeIndex () {
+      return mi;
+  }
     
-  //////////////////////
-  // bridge to lister //
-  //////////////////////
-
+  /**
+   *	Set the given byte offset in the machine code array to the
+   * given byte value.  This is the low-level function by which the
+   * assembler produces binary code into its machine code buffer.
+   * This function will resize the underlying machine code array if
+   * the index given exceeds the array's length.
+   *
+   * @param index the byte offset into which to write
+   * @param data the byte data value to write
+   */
+  protected void setMachineCodes(int index, byte data) {
+      try {
+	  machineCodes[index] = data;
+      } catch (ArrayIndexOutOfBoundsException e) {
+	  INSTRUCTION [] old = machineCodes;
+	  machineCodes = new INSTRUCTION [2 * old.length ];
+	  for (int i=0; i<old.length; i++) machineCodes[i] = old[i];
+	  machineCodes[index] = data;
+      }
+  }
+    
+  /**
+   *	Return an array of the generated machine code.	This method
+   * returns a copy of the generated code.
+   *
+   * @return a copy of the generated code.
+   */
+  INSTRUCTION [] getMachineCodes () {
+      INSTRUCTION[] trimmed = new INSTRUCTION [ getMachineCodeIndex() ];
+      for(int i = 0; i < getMachineCodeIndex(); i++) 
+	  trimmed[i] = machineCodes[i];
+      
+      return trimmed;
+  }
+    
+  /**
+   *  Give the lister a message associated with a particular
+   * bytecode.  This is used by the baseline assembler to print the
+   * bytecode associated with portions of machine code.  (The
+   * optimizing compiler does not do this because its association
+   * between bytecodes and generated code is much less direct).
+   *
+   * @param bytecodeNumber the offset of the current bytecode in the
+   *         current method's bytecode array.
+   * @param bc a message descriptive of the current bytecode.
+   */
   void noteBytecode (int bytecodeNumber, String bc) {
     if (lister != null) lister.noteBytecode(bytecodeNumber, bc);
   }
 
+  /**
+   *  inform the lister of a comment related to the currently
+   * generated machine code.
+   *
+   * @param comment a comment string
+   */
   void comment (String comment) {
     if (lister != null) lister.comment(mi, comment);
   }
 
-  ////////////
-  // helper //
-  ////////////
+  /**
+   *  Print the raw bits of the current instruction.  It takes the
+   * start of the instruction as a parameter, and prints from that
+   * start to the current machine code index.
+   *
+   * @see #getMachineCodeIndex
+   *
+   * @param start the starting index of the last instruction.
+   */
+  void writeLastInstruction(int start) {
+    for (int j=start; j<mi; j++) {
+      VM.sysWrite(VM_Lister.hex(machineCodes[j]));
+    }
+  }
 
+  /**
+   *  Find out whether a given signed value can be represented in a
+   * given number of bits.
+   *
+   * @param val the value to be represented
+   * @param bits the number of bits to use.
+   * @return true if val can be encoded in bits.
+   */
   private final static boolean fits (int val, int bits) {
     val = val >> bits-1;
     return (val == 0 || val == -1);
   }
 
-  //////////////////////
-  // useful constants //
-  //////////////////////
-
-  private static final int  CODE_EXPANSION_FACTOR =  12;
-  private static final int  CODE_OVERHEAD_TERM    = 100;
-
+  /**
+   *  In the representation of addressing modes in the ModRM and SIB
+   * bytes, the code for register-displacement for on ESP has a
+   * special meaning.  Thus, when register-displacement mode using ESP
+   * is desired, this special SIB (scale-index-base) byte must be
+   * emitted. 
+   */
   private static final byte SIBforESP = (byte) ((0<<6) + (4<<3) + ESP); // (scale factor 1) no index, ESP is base
 
-  /////////////////////////////////////
-  // ModR/M and SIB helper functions //
-  /////////////////////////////////////
-
+  /**
+   * Return a ModRM byte encoding a source and destination register
+   * (i.e. for a register-register instruction).
+   *
+   * @param reg1 the r/m register.
+   * @param reg2 the other register or extended opcode.
+   * @return the encoded ModRM byte.
+   */
   private byte regRegModRM(byte reg1, byte reg2) {
       return (byte) ((3 << 6) | (reg2 << 3) | reg1);
   }
 
+  /**
+   * Return a ModRM byte encoding a source register-32-bit-displacement
+   * operand and a destination register.  Note that the displacement
+   * is handled separately, and not encoded in the ModRM itself.
+   *
+   * @param reg1 the r/m register.
+   * @param reg2 the other register or extended opcode.
+   * @return the encoded ModRM byte.
+   */
   private byte regDisp32RegModRM(byte reg1, byte reg2) {
       return (byte) ((2 << 6) | (reg2 << 3) | reg1);
   }
 	
+  /**
+   * Return a ModRM byte encoding a source register-8-bit-displacement
+   * operand and a destination register.  Note that the displacement
+   * is handled separately, and not encoded in the ModRM itself.
+   *
+   * @param reg1 the r/m register.
+   * @param reg2 the other register or extended opcode.
+   * @return the encoded ModRM byte.
+   */
   private byte regDisp8RegModRM(byte reg1, byte reg2) {
       return (byte) ((1 << 6) | (reg2 << 3) | reg1);
   }
 	
+  /**
+   * Return a ModRM byte encoding a source register-indirect
+   * operand and a destination register.  
+   *
+   * @param reg1 the r/m register.
+   * @param reg2 the other register or extended opcode.
+   * @return the encoded ModRM byte.
+   */
   private byte regIndirectRegModRM(byte reg1, byte reg2) {
       return (byte) ((reg2 << 3) | reg1);
   }
-	
+
+  /**	
+   *  The more complex IA32 addressing modes require a
+   * scale-index-base (SIB) byte.  This is used to encode addressing
+   * modes such as [ indexReg \<\< scale + baseReg ].  This method
+   * encodes the SIB byte for a given base, index and scale.
+   *
+   * @param scale the shift amount for the index register value.
+   * @param baseReg the base register.
+   * @param indexReg the index register.
+   * @return the encoded SIB byte.
+   */
   private byte sib(short scale, byte baseReg, byte indexReg) {
       return (byte) ((scale << 6) | (indexReg << 3) | baseReg);
   }
 
+  /**
+   *  Generate the appropriate bytes into the generated machine code
+   * to represent a regsiter-regsiter instruction.
+   *
+   * @param reg1 the r/m operand.
+   * @param reg2 the other register or extended opcode.
+   */
   private void emitRegRegOperands(byte reg1, byte reg2) {
       setMachineCodes(mi++, regRegModRM(reg1, reg2));
   }
 
+  /**
+   *  Generate the appropriate bytes into the generated machine code
+   * to represent a regsiter-32-bit-displacement--regsiter
+   * instruction. This method generates the appropriate ModRM, the SIB
+   * if needed for the ESP special case, and the little-endian encoded
+   * 32 bit displacement.
+   *
+   * @see #SIBforESP
+   *
+   * @param reg1 the r/m operand.
+   * @param disp the 32 bit displacement.
+   * @param reg2 the other register or extended opcode.
+   */
   private void emitRegDisp32RegOperands(byte reg1, int disp, byte reg2) {
       setMachineCodes(mi++, regDisp32RegModRM(reg1, reg2));
       if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
       emitImm32(disp);
   }
 
+  /**
+   *  Generate the appropriate bytes into the generated machine code
+   * to represent a regsiter-8-bit-displacement--regsiter
+   * instruction. This method generates the appropriate ModRM, the SIB
+   * if needed for the ESP special case, and the little-endian encoded
+   * 32 bit displacement.
+   *
+   * @see #SIBforESP
+   *
+   * @param reg1 the r/m operand.
+   * @param disp the 8 bit displacement.
+   * @param reg2 the other register or extended opcode.
+   */
   private void emitRegDisp8RegOperands(byte reg1, byte disp, byte reg2) {
       setMachineCodes(mi++, regDisp8RegModRM(reg1, reg2));
       if (reg1 == ESP) setMachineCodes(mi++, SIBforESP);
       emitImm8(disp);
   }
 
+  /**
+   *  Generate the appropriate bytes into the generated machine code
+   * to represent a regsiter-displacement--regsiter instruction.  This
+   * method simply chooses the appropriate lower-level method based on
+   * displacement size
+   *
+   * @see #emitRegDisp32RegOperands
+   * @see #emitRegDisp8RegOperands
+   *
+   * @param reg1 the r/m operand.
+   * @param disp the displacement.
+   * @param reg2 the other register or extended opcode.
+   */
   private void emitRegDispRegOperands(byte reg1, int disp, byte reg2) {
       if (fits(disp,8))
 	  emitRegDisp8RegOperands(reg1, (byte)disp, reg2);
@@ -288,7 +471,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   }
 
   /////////////////////////////////////
-  // locking                         //
+  // locking			     //
   /////////////////////////////////////
 
     final void emitLockNextInstruction() {
@@ -296,7 +479,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
     }
 
   ///////////////////////////
-  // branch support        //
+  // branch support	   //
   ///////////////////////////
 
   final VM_ForwardReference forwardJMP () {
@@ -360,7 +543,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       int delta = mTarget - (mi - (c<<2));  // delta is from start of table of 4-byte entries (not this entry)
       emitImm32(delta);
       if (lister != null) lister.I(miStart, "DATA", mTarget);
-    } else {            // unresolved forward reference
+    } else {		// unresolved forward reference
       VM_ForwardReference r =  new VM_ForwardReference.SwitchCase(mi, bTarget);
       forwardRefs = VM_ForwardReference.enqueue(forwardRefs, r);
       emitImm32(c);
@@ -383,7 +566,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   }
 
   /////////////////////////////////////
-  // instructions (hand coded)       //
+  // instructions (hand coded)	     //
   /////////////////////////////////////
 
   final void emitCMOV_Cond_Reg_Reg(byte cond, byte dst, byte src) {
@@ -541,7 +724,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
       forwardRefs = VM_ForwardReference.enqueue(forwardRefs, r);
       setMachineCodes(mi++, (byte) 0x0F);
       setMachineCodes(mi++, (byte) (0x80 + cond));
-      mi += 4; // leave space for displacement  TODO!! handle short branches
+      mi += 4; // leave space for displacement	TODO!! handle short branches
       if (lister != null) lister.I(miStart, "J" + CONDITION[cond], label);
   }
 
@@ -552,7 +735,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
 	  emitCondOpByte((byte)0x70, cond);
 	  emitImm8((byte)relOffset);
       } else {
-        setMachineCodes(mi++, (byte) 0x0F);
+	setMachineCodes(mi++, (byte) 0x0F);
 	emitCondOpByte((byte)0x80, cond);
 	relOffset = mTarget - (mi + 4); // address relative to next instruction
 	emitImm32(relOffset);
@@ -613,7 +796,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
   // pop address and goto it, pop parameterBytes additional bytes
   final void emitRET_Imm (int parameterBytes) {
     int miStart = mi;
-    if (parameterBytes == 0) {   
+    if (parameterBytes == 0) {	 
       setMachineCodes(mi++, (byte) 0xC3);
       if (lister != null) lister.OP(miStart, "RET");
     } else {
@@ -693,7 +876,7 @@ class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants {
 	setMachineCodes(mi++, (byte) (0xD8 + destReg));
 	if (lister != null) lister.R(miStart, "FST", destReg);
     }
-    	
+	
   // Change Sign: Top of FPU register stack -= Top og FPU register stack
   final void emitFCHS () {
     int miStart = mi;
