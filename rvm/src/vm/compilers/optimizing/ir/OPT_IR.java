@@ -889,7 +889,7 @@ public final class OPT_IR implements OPT_Operators {
       if (r.isLong()) types++;
       if (r.isDouble()) types++;
       if (r.isInteger()) types++;
-//KV:TODO: activate with OPT_Register      if (r.isAddress()) types++;
+      if (r.isAddress()) types++;
       if (r.isFloat()) types++;
       if (types > 1) {
         verror(where, "Register " + r + " has incompatible types.");

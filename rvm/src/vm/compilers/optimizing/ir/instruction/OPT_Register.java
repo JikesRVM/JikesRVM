@@ -38,19 +38,13 @@ public final class OPT_Register {
 
   /*  register type  for both physical and symbolic */
   static private final int TYPE_SHIFT       = 6;        /* # bits to shift */
+  static private final int ADDRESS          = 0x00040;  /* address */
   static private final int INTEGER          = 0x00080;  /* integer */
   static private final int FLOAT            = 0x00100;  /* floating-point single precision */
   static private final int DOUBLE           = 0x00200;  /* floating-point double precision */
   static private final int CONDITION        = 0x00400;  /* condition: PPC,x86*/
   static private final int LONG             = 0x00800;  /* long (two ints)*/
   static private final int VALIDATION       = 0x01000;  /* validation pseudo-register */
-  //TEMPORARY HACK,should become this: static private final int ADDRESS          = 0x00040;  /* address */
-  //-#if RVM_FOR_32_ADDR
-  static private final int ADDRESS          = INTEGER;  /* address */
-  //-#endif
-  //-#if RVM_FOR_64_ADDR
-  static private final int ADDRESS          = LONG;  /* address */
-  //-#endif
 
 
   /* this for physical register only */
@@ -87,10 +81,11 @@ public final class OPT_Register {
 
   public boolean isAddress()       { return (flags & ADDRESS         ) != 0; }
   public boolean isInteger()       { return (flags & INTEGER         ) != 0; }
+  public boolean isLong()          { return (flags & LONG            ) != 0; }
+  public boolean isNatural()       { return (flags & (INTEGER|LONG|ADDRESS)) != 0; }
   public boolean isFloat()         { return (flags & FLOAT           ) != 0; } 
   public boolean isDouble()        { return (flags & DOUBLE          ) != 0; }
   public boolean isFloatingPoint() { return (flags & (FLOAT|DOUBLE)  ) != 0; }
-  public boolean isLong()          { return (flags & LONG            ) != 0; }
   public boolean isCondition()     { return (flags & CONDITION       ) != 0; }
   public boolean isValidation()    { return (flags & VALIDATION      ) != 0; }
   public boolean isExcludedLiveA() { return (flags & EXCLUDE_LIVEANAL) != 0; }

@@ -462,7 +462,8 @@ public class VM_Runtime implements VM_Constants {
           // collectors to do the right thing wrt reference counting
           // and write barriers.
           f.setObjectValueUnchecked(newObj, f.getObjectValueUnchecked(obj));
-        } else if (ft.isLongType() || ft.isDoubleType()) {
+        } else if (ft.isLongType() || ft.isDoubleType() ||
+                   (VM.BuildFor64Addr && ft.isWordType())) {
           int offset = f.getOffset();
           long bits = VM_Magic.getLongAtOffset(obj, offset);
           VM_Magic.setLongAtOffset(newObj, offset, bits);

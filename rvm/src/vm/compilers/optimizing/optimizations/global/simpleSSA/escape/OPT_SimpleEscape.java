@@ -66,11 +66,9 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
     for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
         reg != null; reg = reg.getNext()) {
       // skip the following types of registers:
-      if (reg.isFloat())
-        continue;
-      if (reg.isDouble())
-        continue;
       if (reg.isFloatingPoint())
+        continue;
+      if (reg.isInteger())
         continue;
       if (reg.isLong())
         continue;

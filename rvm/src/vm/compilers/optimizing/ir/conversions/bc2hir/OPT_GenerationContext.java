@@ -450,8 +450,9 @@ public final class OPT_GenerationContext
   ///////////
 
   // The registers to use for various types of locals.
-  // Note that "int" really means 32-bit gpr and thus includes references.
+  // Note that "int" really means 32-bit gpr.
   private OPT_Register[] intLocals;
+  private OPT_Register[] addressLocals;
   private OPT_Register[] floatLocals;
   private OPT_Register[] longLocals;
   private OPT_Register[] doubleLocals;
@@ -459,6 +460,7 @@ public final class OPT_GenerationContext
   private void initLocalPool() {
     int numLocals = method.getLocalWords();
     intLocals = new OPT_Register[numLocals];
+    addressLocals = new OPT_Register[numLocals];
     floatLocals = new OPT_Register[numLocals];
     longLocals = new OPT_Register[numLocals];
     doubleLocals = new OPT_Register[numLocals];
@@ -471,18 +473,11 @@ public final class OPT_GenerationContext
       return longLocals;
     } else if (type == VM_TypeReference.Double) {
       return doubleLocals;
-    //-#if RVM_FOR_32_ADDR
+    } else if (type.isReferenceType() || type.isWordType()) {
+      return addressLocals;
     } else {
       return intLocals;
     }
-    //-#endif
-    //-#if RVM_FOR_64_ADDR
-    } else if (type.isReferenceType()) {
-      return longLocals;
-    } else {
-      return intLocals;
-    }
-    //-#endif
   }
 
 

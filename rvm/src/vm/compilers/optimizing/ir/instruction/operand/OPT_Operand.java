@@ -10,6 +10,7 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
 import com.ibm.JikesRVM.opt.OPT_Constants;
 import com.ibm.JikesRVM.opt.OPT_OptimizingCompilerException;
+import org.vmmagic.unboxed.Address;
 
 /**
  * An <code>OPT_Operand</code> identifies an operand for an 
@@ -711,7 +712,7 @@ public abstract class OPT_Operand {
           if ((rop1.scratchObject instanceof OPT_Operand) && 
               ((type2 == VM_TypeReference.NULL_TYPE) ||
                (type2.isIntLikeType() && op2.asIntConstant().value == 0) ||
-               (type2.isWordType() && op2.asIntConstant().value == 0) ||
+               (type2.isWordType() && op2.asAddressConstant().value.EQ(Address.zero())) ||
                (type2.isLongType() && op2.asLongConstant().value == 0L))) {
             if (OPT_IRGenOptions.DBG_OPERAND_LATTICE) {
               VM.sysWrite("op1 non null guard will be incorrect");

@@ -86,10 +86,6 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
       return op.asAddressConstant().value; 
     if (op instanceof OPT_IntConstantOperand)
       return Address.fromIntSignExtend(op.asIntConstant().value);
-    //-#if RVM_FOR_64_ADDR 
-    if (op instanceof OPT_LongConstantOperand)
-      return Address.fromLong(op.asLongConstant().value);
-    //-#endif
     throw new OPT_OptimizingCompilerException("Cannot getAddressValue from this operand " + op);
   }
   /**
@@ -868,8 +864,13 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
           } else {
             // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
             if (val2.isZero()) {                 // x + 0 == x
-              Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
-                          Binary.getClearVal1(s));
+              if (op1.isIntLike()) {
+                Move.mutate(s, INT_2ADDRSigExt, Binary.getClearResult(s), 
+                            Binary.getClearVal1(s));
+				  } else {
+                Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                            Binary.getClearVal1(s));
+				  }
               return MOVE_REDUCED;
             }
           }
@@ -1002,8 +1003,13 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
           } else {
             // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
             if (val2.isZero()) {                 // x - 0 == x
-              Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
-                          Binary.getClearVal1(s));
+              if (op1.isIntLike()) {
+                Move.mutate(s, INT_2ADDRSigExt, Binary.getClearResult(s), 
+                            Binary.getClearVal1(s));
+				  } else {
+                Move.mutate(s, REF_MOVE, Binary.getClearResult(s), 
+                            Binary.getClearVal1(s));
+				  }
               return MOVE_REDUCED;
             }
             // x - c = x + -c

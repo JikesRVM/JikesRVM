@@ -183,9 +183,8 @@ public abstract class OPT_AbstractRegisterPool {
    */
   public OPT_Register getReg(OPT_Register template) {
     switch(template.getType()) {
-//KV:TODO: activate together with OPT_Register
-//    case OPT_Register.ADDRESS_TYPE:
-//      return getAddress();
+    case OPT_Register.ADDRESS_TYPE:
+      return getAddress();
     case OPT_Register.INTEGER_TYPE:
       return getInteger();
     case OPT_Register.FLOAT_TYPE:

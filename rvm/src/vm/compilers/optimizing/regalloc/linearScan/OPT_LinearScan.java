@@ -1096,8 +1096,8 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
             CompoundInterval spillCandidate = getSpillCandidate(container);
             if (VM.VerifyAssertions) {
               VM._assert(!spillCandidate.isSpilled());
-              VM._assert(spillCandidate.getRegister().getType() ==
-                        r.getType());
+              VM._assert((spillCandidate.getRegister().getType() == r.getType())
+                || (spillCandidate.getRegister().isNatural() && r.isNatural()));
               VM._assert(!ir.stackManager.getRestrictions().mustNotSpill
                         (spillCandidate.getRegister()));
               if (spillCandidate.getAssignment() != null) {
@@ -1577,7 +1577,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           if (i.isSpilled())  {
             System.out.println(" not candidate, already spilled: " + newR);
           }
-          if (r.getType() != newR.getType()) {
+          if ((r.getType() != newR.getType()) || (r.isNatural() && newR.isNatural())) {
             System.out.println(" not candidate, type mismatch : " +
                                r.getType() + " " + newR + " " +
                                newR.getType());
@@ -1587,7 +1587,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
           }
         }
         if (!newR.isPhysical() && !i.isSpilled() && 
-            r.getType()== newR.getType() &&
+            (r.getType()== newR.getType() || (r.isNatural() && newR.isNatural())) &&
             !restrict.mustNotSpill(newR)) {
           // Found a potential spill interval. Check if the assignment
           // works if we spill this interval.  
