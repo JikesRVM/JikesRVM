@@ -87,7 +87,7 @@ public abstract class BasePlan
   protected static final int META_DATA_MB = 32;
   protected static final float LOS_FRAC = (float) 0.1;
   protected static Space vmSpace = Memory.getVMSpace();
-  protected static ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
+  protected static ImmortalSpace immortalSpace = new ImmortalSpace("immortal", DEFAULT_POLL_FREQUENCY, IMMORTAL_MB);
   protected static final int IMMORTAL = immortalSpace.getDescriptor();
   protected static RawPageSpace metaDataSpace = new RawPageSpace("meta", DEFAULT_POLL_FREQUENCY, META_DATA_MB);
   protected static final int META = metaDataSpace.getDescriptor();
