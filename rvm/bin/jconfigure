@@ -3311,8 +3311,8 @@ function emitBooterLinker () {
     fi
 
     if [[ ${TARGET_CLASSPATH_BUILD_DIR-} ]]; then
-	if (( ! RVM_FOR_LINUX )); then
-	    show_mesg  >&2 "XXX You will probably have to fix the handling of TARGET_CLASSPATH_BUILD_DIR for your platform; it is currently only implemented on Linux.   The generated jbuild.linkBooter (called by jbuild) may not work.  As a workaround, don't set TARGET_CLASSPATH_BUILD_DIR in your config file."
+	if (( ! RVM_FOR_LINUX && ! RVM_FOR_AIX )); then
+	    show_mesg  >&2 "XXX You will probably have to fix the handling of TARGET_CLASSPATH_BUILD_DIR for your platform; it is currently only implemented on Linux.   The generated jbuild.linkBooter (called by jbuild) may not work.  If that happens, then a workaround is not to set TARGET_CLASSPATH_BUILD_DIR in your config file."
 	fi
     elif [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
 	if (( ! RVM_FOR_LINUX )); then
@@ -3324,7 +3324,23 @@ function emitBooterLinker () {
 	echo "SYSTEM_TYPE=\$(${CPS}/classpath/config.guess)"
     fi
 
-    if (( RVM_FOR_AIX )); then
+    if (( RVM_FOR_AIX )) && [[ ${TARGET_CLASSPATH_BUILD_DIR-} ]]; then
+	local -r shlib_suffix=.a
+
+	cat <<- EOF
+
+	## AIX requires that dynamically loaded libraries end in .a, 
+	## so that dlopen() will find them.  Also, the classpath builder, 
+	## on AIX, generates the files with the suffix ".so.0".  
+	## We transform one to the other.
+	for _library in "${TARGET_CLASSPATH_BUILD_DIR}/native/jni/"*/.libs/*.so.0
+	do
+	    oldbase="\$(basename \${_library} .so.0)"
+	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}${shlib_suffix}"
+	    copyIfNewer "\$_library" "\$dest_lib"
+	done
+EOF
+    elif (( RVM_FOR_AIX )); then
 	local -r shlib_suffix=.a
 
 	cat <<- EOF
@@ -3339,7 +3355,6 @@ function emitBooterLinker () {
 	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
 	done
-	unset oldbase dest_lib _library || :
 EOF
     elif (( RVM_FOR_OSX )); then
 	local -r shlib_suffix=.jnilib
@@ -3354,7 +3369,6 @@ cat <<- EOF
 	    dest_lib="${BUILD_DIRECTORY_STR}/\${oldbase}${shlib_suffix}"
 	    copyIfNewer "\$_library" "\$dest_lib"
 	done
-	unset oldbase dest_lib _library || :
 EOF
     elif (( RVM_FOR_LINUX )) && [[ ${TARGET_CLASSPATH_INSTALLATION-} ]]; then
 	local -r shlib_suffix=.so
@@ -3365,7 +3379,6 @@ cat <<- EOF
 	do
 	    copyIfNewer "\$_library" ${BUILD_DIRECTORY_STR}
 	done
-	unset oldbase dest_lib _library || :
 EOF
     elif (( RVM_FOR_LINUX )) && [[ ${TARGET_CLASSPATH_BUILD_DIR-} ]] ; then
 	local -r shlib_suffix=.so
@@ -3376,7 +3389,6 @@ cat <<- EOF
 	do
 	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
 	done
-	unset oldbase dest_lib _library || :
 EOF
     elif (( RVM_FOR_LINUX )); then
 	local -r shlib_suffix=.so
@@ -3387,13 +3399,13 @@ cat <<- EOF
 	do
 	    copyIfNewer "\$_library" "${BUILD_DIRECTORY_STR}"
 	done
-	unset oldbase dest_lib _library || :
 EOF
     else
 	show_mesg_raw >&2 "$ME:$LINENO: Configuration Trouble is looming; 
 neither RVM_FOR_AIX nor RVM_FOR_LINUX nor RVM_FOR_OSX is defined."
     fi
     cat <<- EOF
+	unset oldbase dest_lib _library || :
 	echo >&2  -n '(classpath native libraries copied) '
 	CONFIG_H_DIR=${SCRATCH_DIRECTORY_STR}/Config.target
 
