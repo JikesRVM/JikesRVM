@@ -277,6 +277,7 @@ integer RVM_FOR_LINUX=0	   #
 integer RVM_WITH_OPT_COMPILER=0
 integer RVM_WITH_ADAPTIVE_SYSTEM=0 # superset of opt
 integer RVM_WITH_OPT_TEST_HARNESS=0  # superset of opt, for test/debug via OptTestHarness class
+integer RVM_WITH_QUICK_COLLECTOR=0
 
 # The following must be set if using any of the RVM memory managers
 #
@@ -416,7 +417,7 @@ fi
 #    RVM_ON_xxx --> -DRVM_ON_xxx
 #    RVM_WITH_xxx --> -DRVM_WITH_xxx
 #
-PREPROCESSOR_DEFINITIONS=""
+PREPROCESSOR_DEFINITIONS="-DBOOTIMAGE_LOAD_ADDRESS=$BOOTIMAGE_LOAD_ADDRESS"
 PREPROCESSOR_DEFINITIONS="$PREPROCESSOR_DEFINITIONS `env | grep '^RVM_WITH' | sed 's@RVM@-DRVM@'`"
 PREPROCESSOR_DEFINITIONS="$PREPROCESSOR_DEFINITIONS `env | grep '^RVM_WITHOUT' | sed 's@RVM@-DRVM@'`"
 PREPROCESSOR_DEFINITIONS="$PREPROCESSOR_DEFINITIONS `env | grep '^RVM_ON' | sed 's@RVM@-DRVM@'`"
@@ -1835,6 +1836,10 @@ function emitImageLinker
 
    if (( RVM_WITH_NOFLUSH )); then
       print ' OPT_ARGS="$OPT_ARGS -X:bc:no_cache_flush=true"'
+   fi
+
+   if (( RVM_WITH_QUICK_COLLECTOR )); then
+      print ' OPT_ARGS="$OPT_ARGS -X:bc:include=JMTk"'
    fi
    
    print 'if [[ $TRACE_FLAG = -trace ]]; then'
