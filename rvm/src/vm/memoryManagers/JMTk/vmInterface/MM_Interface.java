@@ -744,31 +744,19 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    */ 
   public static byte[] newStack(int bytes, boolean immortal)
     throws VM_PragmaInline, VM_PragmaInterruptible {
-    if (!immortal || !VM.runningVM)
+    if (!immortal || !VM.runningVM) {
       return new byte[bytes];
+    } else {
+      VM_Array stackType = VM_Array.ByteArray;
+      int headerSize = VM_ObjectModel.computeArrayHeaderSize(stackType);
+      int align = VM_ObjectModel.getAlignment(stackType);
+      int offset = VM_ObjectModel.getOffsetForAlignment(stackType);
+      int width  = stackType.getLogElementSize();
+      Object [] stackTib = stackType.getTypeInformationBlock();
 
-
-    // NOTE that we explicitly perform our own page-grain alignment here.
-    int logAlignment = 12;
-    int alignment = 1 << logAlignment; // 4096
-    VM_Array stackType = VM_Array.ByteArray;
-    Object [] stackTib = stackType.getTypeInformationBlock();
-    int offset = VM_JavaHeader.computeArrayHeaderSize(stackType);
-    int arraySize = VM_Memory.alignUp(stackType.getInstanceSize(bytes), 
-                                      BYTES_IN_PARTICLE);
-    // somewhat wasteful
-    int fullSize = VM_Memory.alignUp(arraySize + alignment, BYTES_IN_PARTICLE);
-    if (VM.VerifyAssertions) VM._assert(alignment > offset);
-    VM_Address fullRegion = 
-      VM_Interface.getPlan().alloc(fullSize, BYTES_IN_PARTICLE, 
-                                   0, Plan.IMMORTAL_SPACE);
-    VM_Address tmp = fullRegion.add(alignment);
-    VM_Word mask = VM_Word.one().lsh(logAlignment).sub(VM_Word.one()).not();
-    VM_Address region = tmp.toWord().and(mask).sub(VM_Word.fromIntSignExtend(offset)).toAddress();
-    Object result = VM_ObjectModel.initializeArray(region, stackTib, bytes, arraySize);
-    VM_Interface.getPlan().postAlloc(VM_Magic.objectAsAddress(result), 
-                              stackTib, arraySize, Plan.IMMORTAL_SPACE);
-    return (byte []) result;
+      return (byte[]) allocateArray(bytes, width, headerSize, stackTib,
+                                    Plan.IMMORTAL_SPACE, align, offset);
+    }
   }
 
   /**
