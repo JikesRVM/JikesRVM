@@ -272,7 +272,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public static final int getInitialHeaderValue(int size) {
+  public static final int getInitialHeaderValue(int size) 
+    throws VM_PragmaInline {
     if (size > LOS_SIZE_THRESHOLD)
       return losSpace.getInitialHeaderValue(size);
     else
