@@ -151,10 +151,13 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
     threadId       = newThread.getLockingId();
     //-#endif
 
-    if (idleProcessor != null && !readyQueue.isEmpty() 
+    if (!previousThread.isDaemon && 
+	idleProcessor != null && !readyQueue.isEmpty() 
         && getCurrentProcessor().processorMode != NATIVEDAEMON) { 
       // if we've got too much work, transfer some of it to another 
       // processor that has nothing to do
+      // don't schedule when switching away from a daemon thread...
+      // kludge to avoid thrashing when VM is underloaded with real threads.
       VM_Thread t = readyQueue.dequeue();
       if (trace) VM_Scheduler.trace("VM_Processor", "dispatch: offload ", t.getIndex());
       scheduleThread(t);
