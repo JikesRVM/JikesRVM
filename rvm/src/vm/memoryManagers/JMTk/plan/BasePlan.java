@@ -86,11 +86,11 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 
   BasePlan() {
     id = count++;
-    values = new AddressQueue(valuePool);
+    values = new AddressQueue("value", valuePool);
     valuePool.newClient();
-    locations = new AddressQueue(locationPool);
+    locations = new AddressQueue("loc", locationPool);
     locationPool.newClient();
-    rootLocations = new AddressQueue(rootLocationPool);
+    rootLocations = new AddressQueue("rootLoc", rootLocationPool);
     rootLocationPool.newClient();
     interiorRootLocations = new AddressPairQueue(interiorRootPool);
     interiorRootPool.newClient();
@@ -228,12 +228,15 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 
   private void processAllWork() throws VM_PragmaNoInline {
 
-    if (verbose > 1) VM.sysWriteln("  Working on GC in parallel");
+    if (verbose >= 2) VM.sysWriteln("  Working on GC in parallel");
     while (true) {
+      if (verbose >= 3) VM.sysWriteln("    processing root locations");
       while (!rootLocations.isEmpty()) {
 	VM_Address loc = rootLocations.pop();
+	if (verbose >= 4) VM.sysWriteln("      root location = ", loc);
 	traceObjectLocation(loc, true);
       }
+      if (verbose >= 3) VM.sysWriteln("    processing interior root locations");
       while (!interiorRootLocations.isEmpty()) {
 	VM_Address obj = interiorRootLocations.pop1();
 	VM_Address interiorLoc = interiorRootLocations.pop2();
@@ -241,10 +244,12 @@ public abstract class BasePlan implements Constants, VM_Uninterruptible {
 	VM_Address newInterior = traceInteriorReference(obj, interior, true);
 	VM_Magic.setMemoryAddress(interiorLoc, newInterior);
       }
+      if (verbose >= 3) VM.sysWriteln("    processing gray objects");
       while (!values.isEmpty()) {
 	VM_Address v = values.pop();
 	ScanObject.scan(v);  // NOT traceObject
       }
+      if (verbose >= 3) VM.sysWriteln("    processing locations");
       while (!locations.isEmpty()) {
 	VM_Address loc = locations.pop();
 	traceObjectLocation(loc, false);
