@@ -677,6 +677,8 @@ function emitSourceList () {
        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genCopy
    elif (( $RVM_WITH_GEN_MS )); then
        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genMS
+   elif (( $RVM_WITH_GEN_RC )); then
+       echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/genRC
    elif (( $RVM_WITH_COPY_MS )); then
        echo $RVM_ROOT/rvm/src/vm/memoryManagers/JMTk/plan/copyMS
    elif (( $RVM_WITH_REF_COUNT )); then
