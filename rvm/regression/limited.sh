@@ -30,17 +30,17 @@ if [ "x$command" = xkill ] ; then
 
         # ToDO:
         # Think about a portable way to stop $pid from spawning new processes
-        # --done in the Bash version --augart
+        # (note: done in the Bash version) --Steve Augart
         # find kids and call script recursiveley
 	if [[ `uname` == Darwin ]]; then
-            childs="$(ps -wwajx | awk '$3~/'$pid'/{print $2}')"
+            children="$(ps -wwajx | awk '$3~/'$pid'/{print $2}')"
 	else
-            childs="$(ps -ef | awk '$3~/'$pid'/{print $2}')"
+            children="$(ps -ef | awk '$3~/'$pid'/{print $2}')"
         fi
-	if [ "x$childs" != x ] ; then
-	    $mypath kill $childs
-	    #echo killing $childs
-	    kill -9 $childs > /dev/null 2>&1
+	if [ "x$children" != x ] ; then
+	    $mypath kill $children
+	    #echo killing $children
+	    kill -9 $children > /dev/null 2>&1
 	fi
     done
 else
