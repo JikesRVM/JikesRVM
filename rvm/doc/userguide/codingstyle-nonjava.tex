@@ -6,10 +6,11 @@ include:
 ($\approx 1041$ source files as of this writing, on July 17, 2003)  This is
 the vast majority of the code.  The names of Java source files always end in
 `{\tt .java}''.   We \link{have already discussed Java coding style}[ in
-section~\Ref]{section:javacodingstyle}. 
+section~\Ref (page~\Pageref)]{section:javacodingstyle}. 
 
 We have found it necessary to preprocess the Java code; \link{the
-preprocessor is discussed later}[, in section~\Ref]{section:preprocessor}.
+preprocessor is discussed later}[, in
+  section~\Ref, on page~\Pageref]{section:preprocessor}.
 
 
 \subsection {C}
@@ -34,8 +35,8 @@ indenting.
 
 We use the GNU Bourne-Again Shell (Bash) exclusively in our shell
 scripts.  Our build system is driven by one massive Bash script, {\tt
-rvm/bin/jconfigure}, which in turn generates other scripts in the {\tt
-RVM\_BUILD} directory.
+rvm/bin/jconfigure}, which in turn generates other scripts in the
+\varName{RVM\_BUILD} directory.
 
 \subsubsection{Indenting}
 
@@ -113,7 +114,7 @@ status.
 
 We are committed to GNU Make.  All new makefiles should be named {\tt
 GNUmakefile}, \link{just as discussed in the Sun\Rheadingweb{} style guide}[
-  mentioned in section~\Ref]{section:javacodingstyle}.  We have gone
+  mentioned in section~\Ref, on page~\Pageref]{section:javacodingstyle}.  We have gone
 over to pure Bash 
 (we used to use Korn shell, for historical reasons); authors of
 Makefiles can safely use any Bash constructs.

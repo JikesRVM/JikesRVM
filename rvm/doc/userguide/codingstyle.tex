@@ -17,7 +17,7 @@ starts its name with {\tt VM\_}.  This is used by the build configurator,
 \$RVM\-\_\-BUILD\-/\-R\-V\-M\-.pri\-mor\-di\-als}, the file containing the list of classes
 that should be written into \jrvm{}'s  boot image.
 
-\link{The JMTk classes}[ (see Section~\Ref)]{section:JMTk} don't follow this naming convention
+\link{The JMTk classes}[ (see Section~\Ref, page~\Pageref)]{section:JMTk} don't follow this naming convention
 because they're an independent subsystem, but the rest of \jrvm{} does.
 
 \subsubsection{Assertions}
@@ -31,9 +31,9 @@ assertion checks have one of the two forms:
 \tt{}    if (VM.VerifyAssertions)  VM._assert({\it condition}, {\it message})
 \end{example}
 {\tt VM.VerifyAssertions} is a {\tt 
-public static final} field.  The {\tt RVM\_WITHOUT\_ASSERTIONS}
+public static final} field.  The \varName{RVM\_WITHOUT\_ASSERTIONS}
 configuration variable determines {\tt VM.VerifyAssertions}' value.
-If {\tt RVM\_WITHOUT\_ASSERTIONS} is enabled, \jrvm{} has no assertion
+If \varName{RVM\_WITHOUT\_ASSERTIONS} is enabled, \jrvm{} has no assertion
 overhead. 
 
 If you use the form without a {\it message}, then the default message
@@ -115,7 +115,7 @@ As a special case, the condition {\tt if (VM.VerifyAssertions)} is
 usually immediately followed by the call to {\tt VM.\_assert()},
 with a single space substituting for the normal
 newline-and-indentation.  \link{There's an example \htmlonly{elsewhere
-in this document}}[ in section~\Ref]{assertions}.    
+in this document}}[ in section~\Ref, on page~\Pageref]{assertions}.    
 
 \item {\bf Capitalized fields} 
 Under the Sun coding conventions, and as specified in 
