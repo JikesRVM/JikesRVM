@@ -141,7 +141,7 @@ public class VM_Allocator
   /**
    * Flag for counting bytes allocated and objects allocated
    */
-  static final boolean COUNT_ALLOCATIONS = true;
+  static final boolean COUNT_ALLOCATIONS = false;
 
   /** count times parallel GC threads attempt to mark the same object */
   private static final boolean COUNT_COLLISIONS = false;
