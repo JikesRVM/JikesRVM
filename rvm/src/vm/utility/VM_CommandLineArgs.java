@@ -311,9 +311,53 @@ public class VM_CommandLineArgs {
 	if (allEnvArgs[i].startsWith(prefix))
 	  return allEnvArgs[i].substring(variable.length()+1);
 
+    // There are some that we treat specially.
+    if (variable.equals("rvm.root"))
+      return getRvmRoot();
+    else if (variable.equals("rvm.build"))
+      return getRvmBuild();
+    else if (variable.equals("java.home"))
+      return getRvmRoot();
+    else if (variable.equals("gnu.classpath.home.url"))
+      return "file:" + getRvmBuild();
+    else if (variable.equals("gnu.classpath.vm.shortname"))
+      return "JikesRVM";
+    else if (variable.equals("user.home"))
+      return getUserHome();
+    else if (variable.equals("user.dir"))
+      return getCWD();
+    else if (variable.equals("os.name"))
+      return getOsName();
+    else if (variable.equals("os.version"))
+      return getOsVersion();
+    else if (variable.equals("os.arch"))
+      return getOsArch();
+    // Ok, didn't find it.
     return null;
   }
 
+  public static String getRvmRoot() {
+    return null;
+  }
+  public static String getRvmBuild() {
+    return null;
+  }
+  public static String getUserHome() {
+    return null;
+  }
+  public static String getCWD() {
+    return null;
+  }
+  public static String getOsName() {
+    return null;
+  }
+  public static String getOsVersion() {
+    return null;
+  }
+  public static String getOsArch() {
+    return null;
+  }
+  
   /**
    * Extract the -X:vmClasses command line argument and return it.
    * @return null if no such command line argument is given.
