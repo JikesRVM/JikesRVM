@@ -42,8 +42,8 @@ export RVM_WITH_HPM=1
 # you're doing a cross-build.)
 ########## 
 
-# Root of JDK installation.
-[[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/usr/java14"
+# Root of Sun-style JDK installation.
+[[ ${HOST_JAVA_HOME-} ]] || HOST_JAVA_HOME="/homes/munchkin.2/jalapeno/PowerPC-Java-1.4.2-SDK-SR1-20041203/sdk"
 
 # the JDK java executable
 export HOST_VM_RT="${HOST_JAVA_HOME}/jre/bin/java"
