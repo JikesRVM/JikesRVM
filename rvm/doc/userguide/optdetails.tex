@@ -535,7 +535,8 @@ forms of pointer arithmetic is especially hazardous, since it can
 result in pointers being ``lost'' during garbage collection. 
 All such uses of magic must either occur in uninterruptible
 code (ie in a method of a class that {\em directly} implements 
-{\tt VM\_Uninterruptible}) or be guarded by calls to 
+\xlink{{\tt VM\_Uninterruptible}}{\VMUninterruptibleURL}
+) or be guarded by calls to 
 {\tt VM.disableGC} and {\tt VM.enableGC}.  The optimizing compiler
 performs aggressive inlining and code motion and not explictly marking
 such dangerous regions in one of these two manners will lead to

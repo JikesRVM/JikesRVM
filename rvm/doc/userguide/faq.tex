@@ -202,7 +202,9 @@ Posix thread.
 \subsubsection{What are the semantics of VM\_Uninterruptible?}
 
 The actual semantics of uninterruptibility are: if a class 
-extends {\tt VM\_Uninterruptible}, then the compiler will not
+extends 
+\xlink{{\tt VM\_Uninterruptible}}{\VMUninterruptibleURL}
+, then the compiler will not
 generate yield points in methods of the class.  So, there will be no
 timer-driven thread switches caused by SIGALARMs in these methods.
 Additionally, the compiler will {\em not} check for stack overflow in the
