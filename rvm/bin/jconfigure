@@ -24,6 +24,15 @@
 # @author Steven Augart (Bash version)
 # @date 17 May 2003
 
+## We can first do some simple version tests to keep from getting slipped Bash
+## version 2.03 or earlier.
+if ! echo D | read -n 1 > /dev/null 2>&1 ; then
+    echo >&2 "$0: We are somehow running under a version of the shell that does not recognize the '-n' argument to the 'read' builtin.  This program absolutely requires Bash version 2.05 or better to run, and we recommend 2.05a or better.  Aborting execution."
+    exit 1
+fi
+
+
+
 ## Exit statuses:
 
 ## We exit with status 0 upon success, as is conventional.
@@ -180,12 +189,14 @@ load "${bin_dir}/libjconfigure.bash" ;
 ## WORKAROUND:
 ## This should be a no-op.  However, this works around the Bash 2.05b bug where
 ## it thinks midline was unset.
-echo ${midline-UNSET} > /dev/null
-# Also problems with this one :(
-echo ${have_function_relative_LINENO-UNSET} > /dev/null
+# echo ${midline-UNSET} > /dev/null		# "echo" fails miserably.
+builtin echo ${midline-UNSET} > /dev/null
+# Also problems with this one.  This one, too, breaks in bad places.
+builtin echo ${have_function_relative_LINENO-UNSET} > /dev/null
+
 
 ## POSSIBLE FUTURE WORKAROUND:
-## # Do the same thing for the other global variable that are set inside 
+## # Do the same thing for the other global variables that are set inside 
 ## # libjconfigure.bash, just in case the Bash bug should manifest
 ## # itself again:  
 
@@ -207,10 +218,29 @@ function help_message () {
 
     # If PAGER is not set, set it to "more".
     ${PAGER=more} <<- EOF
-	Usage: ${ME} [-nocleanse | -cleanse ] [-quiet]
-	         [-D <variable>=<value>]... <configuration-name>
+	Usage: ${ME} [flags]... <configuration-name>
 	Usage: ${ME} -help
 
+	Flags: 
+	-nocleanse | -cleanse :
+	  (Do not) throw away intermediate files in the build directory that 
+          were generated during a previous run of ${ME}.  "-cleanse" is the 
+	  default.  Has no effect if run on a build directory that has never
+	  been used for building.  This is only useful if you know that you
+	  haven't changed the build configuration.
+	  
+	-quiet :
+	  Do not spit out (most of) the informative messages that go out during
+	  a run of ${ME}.  This includes possible complaints if you're
+	  running an old version of Bash.
+
+	[-D <variable>=<value>]... :
+	  This flag may be repeated an arbitrary number of times.  Sets configuration
+	  variables that describe the kind of Jikes RVM you are trying to build.
+	  Provides an alternative to writing configuration files just 
+	  to change one or two variables.
+
+	About ${ME}:
 	This script generates control files necessary to build a
 	particular "configuration" of the Research Virtual Machine.
 	
@@ -321,6 +351,7 @@ function help_message () {
 #---------------------------------------#
 
 . "${RVM_HOST_CONFIG}"
+
 [[ ${CLASSPATH_ROOT-} ]]  && declare -r HOST_CLASSPATH_ROOT=${CLASSPATH_ROOT}
 
 
@@ -680,6 +711,12 @@ do
 
     shift
 done
+
+# This is where we would want to do the check.  However, we get into
+# trouble too fast (i.e., early on) with Bash 2.03, so we use a
+# grosser kludge at the start of jconfigure in order to quickly throw
+# out Bash 2.03 and earlier.
+(( quiet )) || check_bash_version
 
 (( $# >= 1 )) || croak_usage "Please specify <configuration-name>"
 CONFIGURATION_NAME="$1"
