@@ -7,12 +7,8 @@
  * @author Anthony Cocchi
  */
 class VM_ReferenceMaps  implements VM_BaselineConstants {
-  // class that provides stack (and local var) map for a method
+  // class that provides stack (and local var) map for a baseline compiled method
   // GC uses the methods provided here
-
-  // Eventually this should be an interface with the different types
-  // of compilers providing the equivalent information in their own
-  // way.
 
   /**************/
   /*  Interface */
@@ -21,9 +17,8 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
   static final boolean debug = false;
 
 
-  VM_ReferenceMaps( VM_Method method, int[] byte2machine) {
+  VM_ReferenceMaps(VM_Method method) {
     // save input information and compute related data
-    this.byte2machine  = byte2machine;
     this.bitsPerMap  = (method.getLocalWords() + method.getOperandWords()+1); // +1 for jsr bit
     this.bytesPerMap       = ((this.bitsPerMap + 7)/8)+1 ; // calc size of individul maps
     this.local0Offset = VM_Compiler.getFirstLocalOffset(method);
@@ -56,11 +51,11 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
       // now the related reference maps
       if (!runLiveMaps) {
         VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
-        buildRefMaps.buildReferenceMaps(method, byte2machine, this, buildBB);
+        buildRefMaps.buildReferenceMaps(method, this, buildBB);
       }
       else {
 	VM_BuildLiveRefMaps buildLiveRefMaps = new VM_BuildLiveRefMaps();
-        buildLiveRefMaps.buildReferenceMaps(method, byte2machine, this, buildBB);
+        buildLiveRefMaps.buildReferenceMaps(method, this, buildBB);
       }
 
       // tracing and statistics
@@ -155,13 +150,13 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
         if (!runLiveMaps) {
           // build maps using reachability
 	  VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
-          buildRefMaps.buildReferenceMaps(method, byte2machine, this, buildBB);
+          buildRefMaps.buildReferenceMaps(method, this, buildBB);
 	}
 	else {
           // test code to compare reachable vs live maps
 	  if (VM.ReachableAndLiveReferenceMaps) {
 	    VM_BuildReferenceMaps buildRefMaps = new VM_BuildReferenceMaps();
-	    buildRefMaps.buildReferenceMaps(method, byte2machine, this, buildBB);
+	    buildRefMaps.buildReferenceMaps(method, this, buildBB);
 
 		int dist;
 		int distance = 0;
@@ -192,7 +187,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
 	  }  // end reachableandlive maps
           // build live maps
 	  VM_BuildLiveRefMaps buildLiveRefMaps = new VM_BuildLiveRefMaps();
-          buildLiveRefMaps.buildReferenceMaps(method, byte2machine, this, buildBB);
+          buildLiveRefMaps.buildReferenceMaps(method, this, buildBB);
 	}
         if (VM.TraceTimes) VM_Timer.stop(VM_Timer.REFERENCEMAP_GEN);
 
@@ -741,8 +736,6 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     if (VM.TraceStkMaps){
       VM.sysWrite(" VM_ReferenceMaps-recordStkMap bytecode offset = ");
       VM.sysWrite(byteindex);
-      VM.sysWrite("  machineecode index = ");
-      VM.sysWrite((byte2machine[byteindex] << VM.LG_INSTRUCTION_WIDTH));
       VM.sysWrite("\n");
       VM.sysWrite(" input byte map = ");
       for ( int j = 0; j <= BBLastPtr; j++)
@@ -763,7 +756,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
       //  locate the site
       for( mapNum = 0; mapNum < mapCount; mapNum++)
       {
-        if ( MCSites[mapNum] == (byte2machine[byteindex] << VM.LG_INSTRUCTION_WIDTH))
+        if (MCSites[mapNum] == byteindex)
         {
 	    // location found -clear out old map
 	      int start = mapNum * bytesPerMap;  // get starting byte in map
@@ -786,7 +779,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
       //  allocate a new site
       mapNum = mapCount++;
       // fill in basic information
-      MCSites[mapNum] = byte2machine[byteindex] <<  VM.LG_INSTRUCTION_WIDTH; // gen and  save machine code offset
+      MCSites[mapNum] = byteindex; // gen and save bytecode offset
       if (BBLastPtr == -1)  return;   // empty map for this gc point
     }
 
@@ -901,7 +894,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
       jsrSiteMap = null;
       for( mapNum = 0; mapNum < mapCount; mapNum++)
       {
-        if ( MCSites[mapNum] ==   (byte2machine[byteindex] << VM.LG_INSTRUCTION_WIDTH))
+        if ( MCSites[mapNum] == byteindex)
         {
 	    // gc site found - get index in unusual map table and the unusual Map
 	    unusualMapIndex = JSR_INDEX_MASK & referenceMaps[ mapNum*bytesPerMap];
@@ -927,7 +920,7 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
     {
         // new map, add to end of table
          mapNum = mapCount++;          // get slot and update count
-         MCSites[mapNum] = byte2machine[byteindex] << VM.LG_INSTRUCTION_WIDTH; // gen and save machine code offset
+         MCSites[mapNum] = byteindex;  // gen and save bytecode offset
 
         // generate an UnusualMap for the site
         jsrSiteMap = new VM_UnusualMaps();
@@ -1282,13 +1275,21 @@ class VM_ReferenceMaps  implements VM_BaselineConstants {
   //
   public void
   recordingComplete() {
-    if(!VM.DynamicReferenceMaps)
-        byte2machine = null;   // don't need this anymore for static maps
     if (VM.ReferenceMapsStatistics)
-
       bytespermap = bytespermap + mapCount;
   }
 
+
+  // After code is generated, translate the bytecode indices 
+  // recorded in MCSites array into real machine code offsets.
+  // 
+  public void translateByte2Machine(int[] b2m) {
+    if(VM.DynamicReferenceMaps)
+      this.byte2machine = b2m;   
+    for (int i=0; i< MCSites.length; i++) {
+      MCSites[i] = b2m[MCSites[i]] << VM.LG_INSTRUCTION_WIDTH;
+    }
+  }
 
     //
     // convert a portion of an array word of Bytes into a bitmap of references

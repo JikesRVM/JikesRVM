@@ -28,15 +28,16 @@ public class VM_Compiler implements VM_BaselineConstants {
 				     (!options.hasMETHOD_TO_PRINT() ||
 				     options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
       if (shouldPrint) printStartHeader(method);
+      VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method);
       VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method, shouldPrint);
       if (shouldPrint) printEndHeader(method);
       INSTRUCTION[]   instructions = machineCode.getInstructions();
       int[]           bytecodeMap  = machineCode.getBytecodeMap();
       VM_CompilerInfo info;
       if (method.isSynchronized()) {
-        info = new VM_BaselineCompilerInfo(method, bytecodeMap, instructions.length, compiler.lockOffset);
+        info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, instructions.length, compiler.lockOffset);
       } else {
-        info = new VM_BaselineCompilerInfo(method, bytecodeMap, instructions.length);
+        info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, instructions.length);
       }
       VM_Assembler.TRACE = false;
       return new VM_CompiledMethod(compiledMethodId, method, instructions, info);

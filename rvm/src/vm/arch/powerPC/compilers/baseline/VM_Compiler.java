@@ -25,14 +25,11 @@ public class VM_Compiler implements VM_BaselineConstants {
       VM_CompilerInfo info = new VM_JNICompilerInfo(method);
       return new VM_CompiledMethod(compiledMethodId, method, 
                                    machineCode.getInstructions(), info); 
-
-      //      return new VM_CompiledMethod(compiledMethodId, method, 
-      //                                   machineCode.getInstructions(), 
-      //                                   VM_JNIEnvironment.javaToCCompilerInfo);
     } 
     else if (!VM.BuildForInterpreter) {
       VM_Compiler     compiler     = new VM_Compiler();
 
+      VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method);
       VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method);
       INSTRUCTION[]   instructions = machineCode.getInstructions();
       int[]           bytecodeMap  = machineCode.getBytecodeMap();
@@ -44,11 +41,11 @@ public class VM_Compiler implements VM_BaselineConstants {
       }
       
       if (method.isSynchronized()) {
-	info = new VM_BaselineCompilerInfo(method, bytecodeMap, 
+	info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, 
                                            instructions.length, 
                                            compiler.lockOffset);
       } else {
-	info = new VM_BaselineCompilerInfo(method, bytecodeMap, 
+	info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, 
                                            instructions.length);
       }
       return new VM_CompiledMethod(compiledMethodId, method, 

@@ -50,7 +50,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
    */
 
  public void
- buildReferenceMaps(VM_Method method, int[] byte2machine, 
+ buildReferenceMaps(VM_Method method, 
 		    VM_ReferenceMaps referenceMaps, VM_BuildBB buildBB) {
 
   //****************************************************************//
