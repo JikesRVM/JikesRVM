@@ -75,6 +75,10 @@ public class VM_CollectorThread extends VM_Thread {
    */
   private final static int verbose = 0;
 
+  /** Name used by toString() and when we create the associated
+   * java.lang.Thread.  */
+  private final static String myName =  "VM_CollectorThread";
+  
   /** When true, causes RVM collectors to display heap configuration
    * at startup */
   static final boolean DISPLAY_OPTIONS_AT_BOOT = false;
@@ -156,8 +160,9 @@ public class VM_CollectorThread extends VM_Thread {
    */
   VM_CollectorThread(byte[] stack, boolean isActive, 
                      VM_Processor processorAffinity)
-    throws InterruptiblePragma {
-    super(stack);
+    throws InterruptiblePragma 
+  {
+    super(stack, null, myName);
     makeDaemon(true); // this is redundant, but harmless
     this.isActive          = isActive;
     this.isGCThread        = true;
@@ -250,7 +255,7 @@ public class VM_CollectorThread extends VM_Thread {
    * @return A string describing this thread.
    */
   public String toString() throws UninterruptiblePragma {
-    return "VM_CollectorThread";
+    return myName;
   }
 
   /**
