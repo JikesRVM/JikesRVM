@@ -90,7 +90,9 @@ final class OPT_ClassLoadingDependencyManager {
           while (invalidatedMethods.hasNext()) {
             int cmid = ((Integer)invalidatedMethods.next()).intValue();
             VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
-            invalidate(im);
+	    if (im != null) { // im == null implies that the code has been GCed already
+	      invalidate(im);
+	    }
           }
           db.removeNotOverriddenDependency(overridden);
         }
@@ -107,7 +109,9 @@ final class OPT_ClassLoadingDependencyManager {
       while (invalidatedMethods.hasNext()) {
         int cmid = ((Integer)invalidatedMethods.next()).intValue();
         VM_CompiledMethod im = VM_CompiledMethods.getCompiledMethod(cmid);
-        invalidate(im);
+	if (im != null) { // im == null implies that the code has been GCed already
+	  invalidate(im);
+	}
       }
       db.removeNoSubclassDependency(sc);
     }
@@ -121,35 +125,13 @@ final class OPT_ClassLoadingDependencyManager {
     if (TRACE || DEBUG)
       report("CLDM: Invalidating compiled method " + cm.getId() + "(" + m + ")\n");
     // (1) Blow away information about this now invalid compiled 
-    // method being held on the VM_Method
+    //     method being held on the VM_Method
     m.clearMostRecentCompilation();
+
     // (2) Reset all jtoc or TIB entries that point to the 
-    // now invalid compiled method.
-    // TODO: replace this with a call to resetMethod(cm)
-    if (m.isStatic() || m.isObjectInitializer() || m.isClassInitializer()) {
-      // invalidate jtoc slot.
-      m.getDeclaringClass().resetStaticMethod(cm);
-      if (DEBUG)
-        report("\tReset jtoc slot\n");
-    } else {
-      // invalidate TIB entry
-      Stack s = new Stack();
-      s.push(m.getDeclaringClass());
-      while (!s.isEmpty()) {
-        VM_Class c = (VM_Class)s.pop();
-        if (DEBUG)
-          report("\tConsidering " + c + "\n");
-        if (c.isResolved()) {
-          c.resetTIBEntry(cm);
-          if (DEBUG)
-            report("\tReset tib entry for " + c + "\n");
-          VM_Class[] subClasses = c.getSubClasses();
-          for (int i = 0; i < subClasses.length; i++) {
-            s.push(subClasses[i]);
-          }
-        }
-      }
-    }
+    //     now invalid compiled method.
+    m.getDeclaringClass().resetMethod(cm);
+
     //-#if RVM_FOR_IA32
     // (3) Apply any code patches
     VM_OptCompilerInfo info = (VM_OptCompilerInfo)cm.getCompilerInfo();
