@@ -17,7 +17,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.Thread;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.jni.*;
 import com.ibm.JikesRVM.classloader.*;

@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 /**
  * Flags that specify the configuration of our virtual machine.

@@ -4,7 +4,7 @@
 //$Id$
 
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
+import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
 /**
  * Dummy class containing enough references to force java compiler
