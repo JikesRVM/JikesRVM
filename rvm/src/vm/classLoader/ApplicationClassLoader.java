@@ -1,14 +1,22 @@
 /*
- * (C) Copyright IBM Corp 2002
+ * (C) Copyright IBM Corp 2002, 2005
  */
 //$Id$
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Entrypoints;
 import com.ibm.JikesRVM.VM_FileSystem;
+import com.ibm.JikesRVM.VM_Magic;
+
 import java.io.File;
+
+import java.net.MalformedURLException;
+import java.net.URLClassLoader;
+import java.net.URL;
+
+import java.util.HashMap;
 import java.util.StringTokenizer;
-import java.net.*;
 
 /**
  * The class loader used by Jikes RVM to load the application program.  Since
@@ -18,8 +26,8 @@ import java.net.*;
  * Loader".)
  *
  * We use a two-link chain.  An ordinary user's class is loaded by this class
- * loader.  This class loader first delegates to its parent before trying the
- * class itself.
+ * loader.  This class loader first delegates to its parent (the Bootstrap
+ * Class Loader) before trying the class itself.
  *
  * @author Julian Dolby
  *
@@ -27,15 +35,35 @@ import java.net.*;
  *  Renamed the former "system class loader" to the "bootstrap class loader".
  */
 public class ApplicationClassLoader extends URLClassLoader {
+  
 
-  public ApplicationClassLoader(String specifiedClassPath) {
+  final static boolean DBG = false;
+  
+  static int numInstantiations = 0;
+
+  /** For status printing, to make sure that, if an application class loader is
+   *  created at boot image writing time, it won't leak out into the next
+   *  mode.   This is actually not used any more, but it should never hurt,
+   *  and can give one a sense of confidence when debugging Jikes RVM's
+   *  classloaders.
+   *  */
+  boolean createdAtBootImageWritingTime;
+  boolean createdWithRunningVM;
+
+  public ApplicationClassLoader(String specifiedClasspath) {
     super(new URL[0]);
+    if (DBG)
+      VM.sysWriteln("The Application Class Loader has been instantiated ", numInstantiations, " times");
+    ++numInstantiations;
 
+    createdAtBootImageWritingTime =  VM.writingBootImage;
+    createdWithRunningVM =  VM.runningVM;
+    
     try {
-      if (specifiedClassPath == null) {
+      if (specifiedClasspath == null) {
         addURL(new URL("file", null, -1, System.getProperty("user.dir") + File.separator));
       } else {
-        StringTokenizer tok = new StringTokenizer(specifiedClassPath, File.pathSeparator);
+        StringTokenizer tok = new StringTokenizer(specifiedClasspath, File.pathSeparator);
         while (tok.hasMoreElements()) {
           String elt = tok.nextToken();
           
@@ -55,25 +83,26 @@ public class ApplicationClassLoader extends URLClassLoader {
         }
       }
     } catch (MalformedURLException e) {
-      VM.sysWrite("error setting classpath " + e);
-      VM.sysExit(-1);
+      VM.sysFail("JikesRVM: ApplicationClassLoader: Initialization Failed with a MalformedURLException; there was an error setting the application's classpath: " + e);
     }
   }
 
-  /** I intended this name to reflect both "SystemClassLoader" and
+  /** Name of the Application Class Loader.  Actually used by Jikes RVM's
+   * serialization code.
+   * <P>
+   * I intended this name to reflect both "SystemClassLoader" and
    * "ApplicationClassLoader".
-   *
-   * <p><b>Problem:</b>  It's pretty cryptic, though.  If you think you
-   * have a better one, you're free to change it.  Be sure to search for
-   * all of the other instances of this string in the Jikes RVM source code;
-   * it's used in three other places (as of this writing).   
-   *
-   * <p><b>Action item:</b> TODO XXX
-   * Make this field public; replace those instances with a reference to this
-   * final static field name instead. 
    */ 
   public final static String myName = "SystemAppCL";
-  public String toString() { return myName; }
+
+  public String toString() { 
+    return myName
+      + (createdAtBootImageWritingTime ? "-createdAtBootImageWritingTime" : "")
+      + (createdWithRunningVM ? "" : "-NOTcreatedWithRunningVM")
+      + (DBG 
+         ? "@0x" + Integer.toHexString(VM_Magic.objectAsAddress(this).toInt()) 
+         : "");
+  }
 
   protected String findLibrary(String libName) {
     return null;
