@@ -50,8 +50,7 @@ else
   NUM_PROCS=2
 fi
 
-echo "\n\nRunning the sanity tests\n" >> $RUN_LOG
-
+echo >> $RUN_LOG
 #This shouldn't be needed, but just in case
 chmod 755 $RUN_LOG
 
@@ -59,15 +58,20 @@ chmod 755 $RUN_LOG
 cd $RVM_ROOT
 
 # sanity runs
+echo "\n\nRunning the sanity tests\n" >> $RUN_LOG
+
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/sanity -nobuild -numprocs $NUM_PROCS -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
 
 . $RVM_ROOT/images/FullAdaptiveSemispace/jbuild.environment
 
 # performance runs
+echo "\n\nRunning the performance tests\n" >> $RUN_LOG
+
 $RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs $NUM_PROCS -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
 
 # measure compilation time
-#export RUN_MEASURE_COMPILATION_LOG=$RVM_ROOT/results/measureCompilation.log
+echo "\n\nRunning the measure compilation time tests\n" >> $RUN_LOG
+
 export  MEASURE_COMPILATION_DIR=$RVM_ROOT/results/measureCompilation
 export  MEASURE_COMPILATION_LOG=$MEASURE_COMPILATION_DIR/measureCompilation.performance.log
 
@@ -133,13 +137,13 @@ $AWK -f $RVM_ROOT/rvm/regression/PerformanceVerbose.awk -v targetBench=SPECjvm98
 
 # gather measure compilation results
 echo "\n\n Opt Level 0 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O0.2proc.raw >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O0.?proc.raw >> $MSG
 #
 echo "\n\n Opt Level 1 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O1.2proc.raw >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O1.?proc.raw >> $MSG
 #
 echo "\n\n Opt Level 2 compilation breakdown for SPECjvm98 size 100\n" >> $MSG
-$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O2.2proc.raw >> $MSG
+$AWK -f $RVM_ROOT/rvm/regression/findMeasureCompilationResults.awk $MEASURE_COMPILATION_DIR/rvm/regression/tests/SPECjvm98/out.SpecApplication.FastSemispace.O2.?proc.raw >> $MSG
 
 
 # Finally!  Send the mail message to those who care
