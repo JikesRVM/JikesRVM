@@ -367,14 +367,15 @@ public class Throwable implements java.io.Serializable {
 
   void printMyClassAndMessage(PrintLN out, int depth) {
     // depth is unused.
-    out.print(classNameAsVM_Atom(this));
-    /* Avoid diving into the contents of detailMessage since a subclass MIGHT
-     * override getMessage(). */
-    String msg = getMessage();
-    if (msg != null) {
-      out.print(": ");
-      out.print(msg);
-    }
+    out.print(toString());
+//     out.print(classNameAsVM_Atom(this));
+//     /* Avoid diving into the contents of detailMessage since a subclass MIGHT
+//      * override getMessage(). */
+//     String msg = getMessage();
+//     if (msg != null) {
+//       out.print(": ");
+//       out.print(msg);
+//     }
   }
   
   public void sysWrite() {
@@ -393,12 +394,13 @@ public class Throwable implements java.io.Serializable {
     sysWrite(depth);
     VM.sysWriteln();
   }
-  public static VM_Atom classNameAsVM_Atom(Object o) {
-    VM_Type me_type = VM_ObjectModel.getObjectType(o);
-    VM_TypeReference me_tRef = me_type.getTypeRef();
-    VM_Atom me_name = me_tRef.getName();
-    return me_name;
-  }
+
+//   public static VM_Atom classNameAsVM_Atom(Object o) {
+//     VM_Type me_type = VM_ObjectModel.getObjectType(o);
+//     VM_TypeReference me_tRef = me_type.getTypeRef();
+//     VM_Atom me_name = me_tRef.getName();
+//     return me_name;
+//   }
 
 //   public void sysWriteClassName() {
 //     VM_Atom me_name = classNameAsVM_Atom(this);
