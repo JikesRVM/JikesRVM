@@ -158,7 +158,6 @@ public class VM_Allocator
 					   ((int) (0.05 * smallHeapSize)) + 
 					   4 * VM_Memory.getPagesize());
     int nurserySize = bootrecord.nurserySize;
-    VM.assert(VM_Memory.roundUpPage(nurserySize) == nurserySize);
     
     VM_Heap.boot(bootHeap, bootrecord);
     immortalHeap.attach(immortalSize);

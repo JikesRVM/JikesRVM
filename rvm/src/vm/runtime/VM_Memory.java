@@ -590,7 +590,7 @@ class VM_Memory implements VM_Uninterruptible {
 	    temp >>>= 1;
 	    pagesizeLog++;
 	}
-	VM.assert((1 << pagesizeLog) == pagesize);
+	if (VM.VerifyAssertions) VM.assert((1 << pagesizeLog) == pagesize);
     }
     return pagesize;
   }

@@ -36,7 +36,7 @@ class VM_Heap
     // Set minRef, maxRef, size and update bootRecord heap ranges
     //
     void setAuxiliary() {     
-	VM.assert(id < bootRecord.heapRanges.length - 2); 
+	if (VM.VerifyAssertions) VM.assert(id < bootRecord.heapRanges.length - 2); 
 	bootRecord.heapRanges[2 * id] = start.toInt();
 	bootRecord.heapRanges[2 * id + 1] = end.toInt();
 	minRef = VM_ObjectModel.minimumObjectRef(start);
@@ -50,7 +50,7 @@ class VM_Heap
 	bootHeap.start = bootRecord.bootImageStart;
 	bootHeap.end = bootRecord.bootImageEnd;
 	bootHeap.setAuxiliary();
-	VM.assert(bootHeap.refInHeap(VM_Magic.objectAsAddress(bootHeap)));
+	if (VM.VerifyAssertions) VM.assert(bootHeap.refInHeap(VM_Magic.objectAsAddress(bootHeap)));
     }
 
     public void setRegion(VM_Address s, VM_Address e) {
@@ -66,7 +66,7 @@ class VM_Heap
     // Zero the entire heap
     //
     public void zero() {
-	VM.assert(VM_Memory.roundDownPage(size) == size);
+	if (VM.VerifyAssertions) VM.assert(VM_Memory.roundDownPage(size) == size);
 	VM_Memory.zeroPages(start, size);
     }
 
@@ -74,8 +74,8 @@ class VM_Heap
     //
     public void zeroParallel(VM_Address s, VM_Address e) {
 
-	VM.assert(s.GE(start));
-	VM.assert(e.LE(end));
+	if (VM.VerifyAssertions) VM.assert(s.GE(start));
+	if (VM.VerifyAssertions) VM.assert(e.LE(end));
 	int np = VM_CollectorThread.numCollectors();
 	VM_CollectorThread self = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
 	int which = self.gcOrdinal - 1;  // gcOrdinal starts at 1
@@ -84,7 +84,7 @@ class VM_Heap
 	VM_Address zeroEnd = zeroBegin.add(chunk);
 	if (zeroEnd.GT(end)) zeroEnd = end;
 	int size = zeroEnd.diff(zeroBegin);  // actual size to zero
-	VM.assert(VM_Memory.roundUpPage(size) == size);
+	if (VM.VerifyAssertions) VM.assert(VM_Memory.roundUpPage(size) == size);
 	VM_Memory.zeroPages(zeroBegin, size);
 
     }
@@ -92,7 +92,7 @@ class VM_Heap
     // size is specified in bytes and must be positive - automatically rounded up to the next page
     //
     public void attach(int size) {
-	VM.assert(bootRecord != null);
+	if (VM.VerifyAssertions) VM.assert(bootRecord != null);
 	if (size < 0) 
 	    VM.sysFail("VM_Heap.attach given negative size\n");
 	if (this.size != 0)
@@ -107,7 +107,7 @@ class VM_Heap
 	    start.LT(VM_Address.fromInt(128))) {  // errno range
 	    VM.sysWrite("VM_Heap failed to mmap ", size / 1024);
 	    VM.sysWrite(" Kbytes with errno = "); VM.sysWrite(start); VM.sysWriteln();
-	    VM.assert(false);
+	    if (VM.VerifyAssertions) VM.assert(false);
 	}
 	end = start.add(size);
 	if (verbose >= 1) {
@@ -131,7 +131,7 @@ class VM_Heap
 	    VM.sysWrite(" Kbytes at ");
 	    VM.sysWrite(end);
 	    VM.sysWriteln(" with errno = ", status);
-	    VM.assert(false);
+	    if (VM.VerifyAssertions) VM.assert(false);
 	}
 	if (verbose >= 1) {
 	    VM.sysWrite("VM_Heap.grow successfully mmap additional ", (sz - size) / 1024);
