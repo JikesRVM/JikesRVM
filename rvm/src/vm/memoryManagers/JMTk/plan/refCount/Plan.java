@@ -24,13 +24,14 @@ import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.VM_Processor;
 
 /**
- * This class implements a simple reference counting collector.
+ * This class implements a simple non-concurrent reference counting
+ * collector.
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // implements Constants 
+public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   final public static String Id = "$Id$"; 
 
   ////////////////////////////////////////////////////////////////////////////
@@ -42,7 +43,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   public static final boolean refCountCycleDetection = true;
   public static final boolean movesObjects = false;
   public static final boolean sanityTracing = false;
-  private static final boolean inlineWriteBarrier = true;
+  private static final boolean inlineWriteBarrier = false;
 
   // virtual memory resources
   private static FreeListVMResource losVM;
@@ -297,6 +298,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     throws VM_PragmaInline {
     return rcSpace.getInitialHeaderValue(bytes);
   }
+
   /**
    * This method is called periodically by the allocation subsystem
    * (by default, each time a page is consumed), and provides the
@@ -579,7 +581,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    *
    * In this case, we remember the address of the source of the
    * pointer if the new reference points into the nursery from
-   * non-nursery space.
+   * non-nursery space.  This method is <b>inlined</b> by the
+   * optimizing compiler, and the methods it calls are forced out of
+   * line.
    *
    * @param src The address of the word (slot) containing the new
    * reference.
@@ -598,6 +602,17 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     if (tgt.GE(RC_START))
       incBuffer.pushOOL(tgt);
   }
+
+  /**
+   * An out of line version of the write barrier.  This method is
+   * forced <b>out of line</b> by the optimizing compiler, and the
+   * methods it calls are forced out of inline.
+   *
+   * @param src The address of the word (slot) containing the new
+   * reference.
+   * @param tgt The target of the new reference (about to become the
+   * contents of src).
+   */
   private final void writeBarrierOOL(VM_Address src, VM_Address tgt) 
     throws VM_PragmaNoInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
@@ -673,17 +688,34 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   // RC methods
   //
 
-  public final void addToDecBuf(VM_Address obj)
+  /**
+   * Add an object to the decrement buffer
+   *
+   * @param object The object to be added to the decrement buffer
+   */
+  public final void addToDecBuf(VM_Address object)
     throws VM_PragmaInline {
-    decBuffer.push(obj);
+    decBuffer.push(object);
   }
+  
+  /**
+   * Add an object to the root set
+   *
+   * @param root The object to be added to root set
+   */
   public final void addToRootSet(VM_Address root) 
     throws VM_PragmaInline {
     rootSet.push(root);
   }
-  public final void addToTraceBuffer(VM_Address root) 
+
+  /**
+   * Add an object to the trace buffer (used for sanity tracing)
+   *
+   * @param object The object to be added to the trace buffer
+   */
+  public final void addToTraceBuffer(VM_Address object) 
     throws VM_PragmaInline {
-    rc.addToTraceBuffer(root);
+    rc.addToTraceBuffer(object);
   }
 }
 

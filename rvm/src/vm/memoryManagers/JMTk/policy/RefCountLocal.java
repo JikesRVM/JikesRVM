@@ -1,6 +1,6 @@
 /*
  * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ * Australian National University. 2003
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
@@ -19,6 +19,11 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 import com.ibm.JikesRVM.VM_JavaHeader;
 
 /**
+ * This class implements thread-local behavior for a reference counted
+ * space.  Each instance of this class captures state associated with
+ * one thread/CPU acting over a particular reference counted space.
+ * Since all state is thread local, instance methods of this class are
+ * not required to be synchronized.
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
@@ -162,12 +167,19 @@ final class RefCountLocal extends SegregatedFreeList
     if (Plan.sanityTracing) rcSanityCheck();
   }
 
+  /**
+   * Process the increment buffers
+   */
   private final void processIncBufs() {
     VM_Address tgt;
     while (!(tgt = incBuffer.pop()).isZero()) {
       rcSpace.increment(tgt);
     }
   }
+
+  /**
+   * Process the increment buffers and maintain statistics
+   */
   private final void processIncBufsAndCount() {
     VM_Address tgt;
     incCounter = 0;
@@ -176,6 +188,10 @@ final class RefCountLocal extends SegregatedFreeList
       incCounter++;
     }
   }
+
+  /**
+   * Process the decrement buffers
+   */
   private final void processDecBufs() {
     VM_Address tgt;
     decrementPhase = true;
@@ -184,6 +200,10 @@ final class RefCountLocal extends SegregatedFreeList
     }
     decrementPhase = false;
   }
+
+  /**
+   * Process the decrement buffers and maintain statistics
+   */
   private final void processDecBufsAndCount() {
     VM_Address tgt;
     decrementPhase = true;
@@ -194,11 +214,20 @@ final class RefCountLocal extends SegregatedFreeList
     }
     decrementPhase = false;
   }
+
+  /**
+   * Process the root buffers, moving entries over to the decrement
+   * buffers for the next GC.  FIXME this is inefficient
+   */
   private final void processRootBufs() {
     VM_Address tgt;
     while (!(tgt = rootSet.pop()).isZero())
       decBuffer.push(tgt);
   }
+
+  /**
+   * Process the root buffers and maintain statistics.
+   */
   private final void processRootBufsAndCount() {
     VM_Address tgt;
     rootCounter = 0;
@@ -230,6 +259,16 @@ final class RefCountLocal extends SegregatedFreeList
       cycleDetector.enumeratePointer(object);
   }
   
+  /**
+   * Decrement the reference count of an object.  If the count drops
+   * to zero, the release the object, performing recursive decremetns
+   * and freeing the object.  If not, then if cycle detection is being
+   * used, record this object as the possible source of a cycle of
+   * garbage (all non-zero decrements are potential sources of new
+   * cycles of garbage.
+   *
+   * @param object The object whose count is to be decremented
+   */
   public final void decrement(VM_Address object) 
     throws VM_PragmaInline {
     if (RCBaseHeader.decRC(object))
@@ -238,6 +277,17 @@ final class RefCountLocal extends SegregatedFreeList
       cycleDetector.possibleCycleRoot(object);
   }
 
+  /**
+   * An object is dead, so before freeing it, scan the object for
+   * recursive decrement (each outgoing pointer from this dead object
+   * is now dead, so the targets must have their counts decremented).<p>
+   *
+   * If the object is being held in a buffer by the cycle detector,
+   * then the object must not be freed.  It will be freed later when
+   * the cycle detector processes its buffers.
+   *
+   * @param object The object to be released
+   */
   private final void release(VM_Address object) 
     throws VM_PragmaInline {
     // this object is now dead, scan it for recursive decrement
@@ -246,6 +296,14 @@ final class RefCountLocal extends SegregatedFreeList
       free(object);
   }
 
+  /**
+   * Free an object.  First determine whether it is managed by the LOS
+   * or the regular free list.  If managed by LOS, delegate freeing to
+   * the LOS.  Otherwise, establish the cell, block and sizeclass for
+   * this object and call the free method of our subclass.
+   *
+   * @param object The object to be freed.
+   */
   public final void free(VM_Address object) 
     throws VM_PragmaInline {
     VM_Address ref = VM_JavaHeader.getPointerInMemoryRegion(object);
@@ -268,6 +326,11 @@ final class RefCountLocal extends SegregatedFreeList
   // Methods relating to sanity tracing (tracing used to check
   // reference counts)
   //
+
+  /**
+   * Check the reference counts of all objects against those
+   * established during the sanity scan.
+   */
   private final void rcSanityCheck() {
     if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
     VM_Address obj;
@@ -288,6 +351,14 @@ final class RefCountLocal extends SegregatedFreeList
       }
     }
   }
+
+  /**
+   * Set the mark bit appropriately in an immortal object so that the
+   * traversal of immortal objects is performed correctly during
+   * sanity scans.
+   *
+   * @param object An object just allocated to the immortal space
+   */
   public final void postAllocImmortal(VM_Address object)
     throws VM_PragmaInline {
     if (Plan.sanityTracing) {
@@ -298,31 +369,58 @@ final class RefCountLocal extends SegregatedFreeList
     }
   }
 
-  public void rootScan(VM_Address obj) {
+  /**
+   * A boot or immortal object has been encountered during a root
+   * scan.  Its mark bit needs to be set appropriately according to
+   * the current state of the immortal mark bit.  Currently as a dirty
+   * hack we overload the buffered bit for marking during sanity
+   * scans.  FIXME
+   *
+   * @param object The immortal or boot image object encountered
+   * during a root scan.
+   */
+  public void rootScan(VM_Address object) {
     if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
     // this object has been explicitly scanned as part of the root scanning
     // process.  Mark it now so that it does not get re-scanned.
-    if (obj.LE(Plan.RC_START) && obj.GE(Plan.BOOT_START)) {
+    if (object.LE(Plan.RC_START) && object.GE(Plan.BOOT_START)) {
       if (rcSpace.bootImageMark)
-	RCBaseHeader.setBufferedBit(obj);
+	RCBaseHeader.setBufferedBit(object);
       else
-	RCBaseHeader.clearBufferedBit(obj);
+	RCBaseHeader.clearBufferedBit(object);
     }
   }
 
-  public final void addToTraceBuffer(VM_Address root) 
+  /**
+   * Add an object to the tracing buffer (used for sanity
+   * tracing---verifying ref counts through tracing).
+   *
+   * @param object The object to be added to the tracing buffer.
+   */
+  public final void addToTraceBuffer(VM_Address object) 
     throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
-    tracingBuffer.push(VM_Magic.objectAsAddress(root));
+    tracingBuffer.push(VM_Magic.objectAsAddress(object));
   }
 
   ////////////////////////////////////////////////////////////////////////////
   //
   // Misc
   //
+
+  /**
+   * Setter method for the purple counter.
+   *
+   * @param purple The new value for the purple counter.
+   */
   public final void setPurpleCounter(int purple) {
     purpleCounter = purple;
   }
+
+  /**
+   * Print out statistics on increments, decrements, roots and
+   * potential garbage cycles (purple objects).
+   */
   public final void printStats() {
     VM.sysWrite("<GC ", Statistics.gcCount); VM.sysWrite(" "); 
     VM.sysWriteInt(incCounter); VM.sysWrite(" incs, ");

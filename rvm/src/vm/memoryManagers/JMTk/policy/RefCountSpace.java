@@ -1,6 +1,6 @@
 /*
  * (C) Copyright Department of Computer Science,
- * Australian National University. 2002
+ * Australian National University. 2003
  */
 package com.ibm.JikesRVM.memoryManagers.JMTk;
 
@@ -16,6 +16,15 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
 
 /**
+ * Each instance of this class corresponds to one reference counted
+ * *space*.  In other words, it maintains and performs actions with
+ * respect to state that is global to a given reference counted space.
+ * Each of the instance methods of this class may be called by any
+ * thread (i.e. synchronization must be explicit in any instance or
+ * class method).  This contrasts with the RefCountLocal, where
+ * instances correspond to *plan* instances and therefore to kernel
+ * threads.  Thus unlike this class, synchronization is not necessary
+ * in the instance methods of RefCountLocal.
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
@@ -96,6 +105,15 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
   //
   // Object processing and tracing
   //
+
+  /**
+   * An object has been encountered in a traversal of the object
+   * graph.  If this reference is from a root, perform an increment
+   * and add the object to the root set.
+   *
+   * @param object The object encountered in the trace
+   * @param root True if the object is referenced directly from a root
+   */
   public final VM_Address traceObject(VM_Address object, boolean root)
     throws VM_PragmaInline {
 
@@ -110,11 +128,29 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
     return object;
   }
 
-  public static boolean isLive(VM_Address obj)
+  /**
+   * Determine whether an object is live.
+   *
+   * @param object The object in question
+   * @return True if this object is considered live (i.e. it has a no-zero RC)
+   */
+  public static boolean isLive(VM_Address object)
     throws VM_PragmaInline {
-    return RCBaseHeader.isLiveRC(obj);
+    return RCBaseHeader.isLiveRC(object);
   }
   
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Methods for sanity tracing (tracing to check ref counts)
+  //
+
+  /**
+   * An (reference counted) object has been encountered in a sanity
+   * trace, increment its reachability count and enqueue for recursive
+   * scanning if this is the first tracing of the object
+   *
+   * @param object The object to be traced
+   */
   public final void incrementTraceCount(VM_Address object) 
     throws VM_PragmaInline {
     if (RCBaseHeader.incTraceRC(object)) {
@@ -122,6 +158,17 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
       Plan.enqueue(object);
     }
   }
+
+  /**
+   * A boot image (or immortal) object has been encountered in a
+   * sanity trace.  Set the mark bit if necessary (at present this is
+   * a hack---we use the buffered bit).  FIXME
+   *
+   * For consistency with existing interfaces, return the object.
+   *
+   * @param object The boot or immortal object encountered.
+   * @return The object (a no-op in this case).
+   */
   public final VM_Address traceBootObject(VM_Address object) {
     if (VM.VerifyAssertions) VM._assert(Plan.sanityTracing);
     if (bootImageMark && !RCBaseHeader.isBuffered(object)) {
@@ -133,6 +180,17 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
     }
     return object;
   }
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Misc
+  //
+
+  /**
+   * Increment the reference count for an object.
+   *
+   * @param object  The object whose reference count is to be incremented
+   */
   public final void increment(VM_Address object) 
     throws VM_PragmaInline {
     RCBaseHeader.incRC(object);
@@ -140,10 +198,6 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
       RCBaseHeader.makeBlack(object);
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Misc
-  //
   public final FreeListVMResource getVMResource() { return vmResource;}
   public final MemoryResource getMemoryResource() { return memoryResource;}
 }

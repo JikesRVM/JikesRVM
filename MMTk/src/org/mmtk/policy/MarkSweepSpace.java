@@ -22,10 +22,10 @@ import com.ibm.JikesRVM.VM_JavaHeader;
  * Each instance of this class corresponds to one mark-sweep *space*.
  * Each of the instance methods of this class may be called by any
  * thread (i.e. synchronization must be explicit in any instance or
- * class method).  This contrasts with the MarkSweepAllocator, where
+ * class method).  This contrasts with the MarkSweepLocal, where
  * instances correspond to *plan* instances and therefore to kernel
  * threads.  Thus unlike this class, synchronization is not necessary
- * in the instance methods of MarkSweepAllocator.
+ * in the instance methods of MarkSweepLocal.
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
