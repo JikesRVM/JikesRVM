@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt.ir;
@@ -5393,9 +5393,9 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
      * To deal with the code bloat, we detect excessive code duplication and
      * stop IR generation (bail out to the baseline compiler).
      *
-     * @param simStack the expression stack to match
-     * @param simLocals the local variables to match
-     * @param candBBLE, the candidate BaseicBlockLE
+     * @param simStack  The expression stack to match
+     * @param simLocals The local variables to match
+     * @param candBBLE  The candidate BaseicBlockLE
      */
     private boolean matchingJSRcontext(OperandStack simStack,
                                        OPT_Operand[] simLocals,
