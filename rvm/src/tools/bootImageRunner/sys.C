@@ -100,7 +100,8 @@ extern "C" int     incinterval(timer_t id, itimerstruc_t *newvalue, itimerstruc_
 #endif // RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
 
 /* #define DEBUG_SYS */
-#define VERBOSE_PTHREAD 0
+// #define VERBOSE_PTHREAD false
+#define VERBOSE_PTHREAD lib_verbose
 
 #ifndef UNUSED
 /* In GNU C, __attribute__((unused)) really means "possibly unused". */
@@ -920,11 +921,7 @@ sysNumProcessors()
     int numpc = 1;  /* default */
 
 #ifdef RVM_FOR_LINUX
-#ifdef RVM_FOR_POWERPC
     numpc = get_nprocs_conf();
-#elif RVM_FOR_IA32
-    numpc = get_nprocs_conf();
-#endif
 #else
     numpc = _system_configuration.ncpus;
 #endif
