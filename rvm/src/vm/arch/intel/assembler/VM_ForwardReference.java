@@ -27,7 +27,8 @@
  *  forward references with the same target.
  *
  * @author Julian Dolby
- * */
+ * @author Bowen Alpern
+ */
 abstract class VM_ForwardReference {
 
   int sourceMachinecodeIndex;
