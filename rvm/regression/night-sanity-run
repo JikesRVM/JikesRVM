@@ -101,3 +101,14 @@ else
   cat $MSG | mail -s "[$ARCH] jvm build FAILED" jvm-coders@watson.ibm.com
 fi
 
+# Finally!  Send the mail message to those who care. Again!
+echo "mailing status to jikesrvm-regression@www-124.ibm.com"
+cat MSG >> $RUN_LOG
+
+ARCH=`uname`
+if [[ $numran -gt 0 && $numfailed -eq 0 ]] then
+  cat $MSG | mail -s "[$ARCH] jvm build SUCCEEDED" jikesrvm-regression@www-124.ibm.com
+else
+  cat $MSG | mail -s "[$ARCH] jvm build FAILED" jikesrvm-regression@www-124.ibm.com
+fi
+
