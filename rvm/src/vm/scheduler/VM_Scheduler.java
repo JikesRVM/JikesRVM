@@ -100,18 +100,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   //
   static VM_Lock [] locks;
 
-  // Stack for use by VM_CollectorThread's.
-  // !!TODO: this is temporary until we have a way to create
-  //         pinned memory objects outside the heap
-  //
-  static int[][] collectorThreadStacks;
-
-  // Stacks for use by VM_StartupThread's.
-  // !!TODO: this is temporary until we have a way to create
-  //         pinned memory objects outside the heap
-  //
-  static int[][] startupThreadStacks;
-
   // Flag set by external signal to request debugger activation at next thread switch.
   // See also: RunBootImage.C
   //
@@ -145,16 +133,6 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     // show up as recursive use of hardware exception registers (eg the long-standing lisp bug)
     VM_BootRecord.the_boot_record.dumpStackAndDieOffset = VM_Entrypoints.dumpStackAndDieMethod.getOffset();
 
-    // pre-allocate pinned stacks for later use in boot()
-    //
-    collectorThreadStacks = new int[MAX_PROCESSORS][];
-    for (int i = 0; i < MAX_PROCESSORS; ++i)
-      collectorThreadStacks[i] = VM_RuntimeStructures.newStack(STACK_SIZE_COLLECTOR);
-
-    startupThreadStacks   = new int[MAX_PROCESSORS][];
-    for (int i = 0; i < MAX_PROCESSORS; ++i)
-      startupThreadStacks[i]   = VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL);
-
     // allocate initial processor list
     //
     processors = new VM_Processor[1 + PRIMORDIAL_PROCESSOR_ID];
@@ -183,10 +161,10 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     //
     VM_Processor primordialProcessor = processors[PRIMORDIAL_PROCESSOR_ID];
 
-    processors = new VM_Processor[1 + numProcessors + 1];
+    processors = new VM_Processor[1 + numProcessors + 1];  // first slot unused; then normal processors; then 1 ndp
 
     processors[PRIMORDIAL_PROCESSOR_ID] = primordialProcessor;
-    for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; )
+    for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) 
       processors[i] = new VM_Processor(i, VM_Processor.RVM);
 
     // XXXX setting of vpStatusAddress during JDK building of bootimage is not valid
@@ -240,7 +218,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     VM_CollectorThread.boot(numProcessors);
     for (int i = 0; i < numProcessors; ++i) {
       VM_Thread t;
-      t = VM_CollectorThread.createActiveCollectorThread(collectorThreadStacks[i], processors[1+i]);
+      t = VM_CollectorThread.createActiveCollectorThread(processors[1+i]);
       t.start(processors[1+i].readyQueue);
 
       t = new VM_IdleThread(processors[1+i]);
@@ -251,7 +229,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
 
     if (VM.BuildWithNativeDaemonProcessor) {
       // Create one collector thread and one idle thread for the NATIVEDAEMON processor
-      t = VM_CollectorThread.createActiveCollectorThread(collectorThreadStacks[numProcessors], processors[nativeDPndx]);
+      t = VM_CollectorThread.createActiveCollectorThread(processors[nativeDPndx]);
       t.start(processors[nativeDPndx].readyQueue);
       t = new VM_IdleThread(processors[nativeDPndx]);
       t.start(processors[nativeDPndx].idleQueue);
@@ -300,7 +278,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     for (int i = PRIMORDIAL_PROCESSOR_ID; ++i <= numProcessors; ) {
       // create VM_Thread for virtual cpu to execute
       //
-      VM_Thread target = new VM_StartupThread(startupThreadStacks[i-1]);
+      VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL)); 
 
       // create virtual cpu and wait for execution to enter target's code/stack.
       // this is done with gc disabled to ensure that garbage collector doesn't move
@@ -331,7 +309,8 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     }
 
     if (VM.BuildWithNativeDaemonProcessor) {
-      VM_Thread target = new VM_StartupThread(startupThreadStacks[numProcessors]);
+
+      VM_Thread target = new VM_StartupThread(VM_RuntimeStructures.newStack(STACK_SIZE_NORMAL));
 
       processors[nativeDPndx].activeThread = target;
       processors[nativeDPndx].activeThreadStackLimit = target.stackLimit;
