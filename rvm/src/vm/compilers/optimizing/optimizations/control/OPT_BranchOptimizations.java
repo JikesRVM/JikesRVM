@@ -155,7 +155,7 @@ public final class OPT_BranchOptimizations
 	OPT_Instruction copy = targetInst.copyWithoutLinks();
 	g.replace(copy);
 	OPT_Instruction newGoto = 
-	  getNotTakenNextBlock(targetInst.getBasicBlock()).makeGOTO();
+	  targetInst.getBasicBlock().getNotTakenNextBlock().makeGOTO();
 	copy.insertAfter(newGoto);
 	bb.recomputeNormalOut(ir); // fix the CFG 
 	return true;
@@ -995,7 +995,7 @@ public final class OPT_BranchOptimizations
     OPT_Operand val2 = IfCmp.getVal2(cb);
     OPT_ConditionOperand condition = IfCmp.getCond(cb);
     // "not taken" path
-    OPT_BasicBlock fb = getNotTakenNextBlock(cb.getBasicBlock());
+    OPT_BasicBlock fb = cb.getBasicBlock().getNotTakenNextBlock();
     // make sure it's a diamond
     if (tb.getNumberOfNormalOut() != 1)
       return false;

@@ -238,21 +238,4 @@ public abstract class OPT_BranchOptimizationDriver
     }
     return  s;
   }
-
-
-  /**
-   * Get the next basic block if all conditional branches in bb are
-   * <em> not </em> taken
-   *
-   * @param bb the basic block in question
-   * @return basic block
-   */
-  protected final OPT_BasicBlock getNotTakenNextBlock(OPT_BasicBlock bb) {
-    OPT_Instruction last = bb.lastRealInstruction();
-    if (Goto.conforms(last) || MIR_Branch.conforms(last)) {
-      return  last.getBranchTarget();
-    } else {
-      return  bb.nextBasicBlockInCodeOrder();
-    }
-  }
 }

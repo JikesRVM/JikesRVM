@@ -797,6 +797,19 @@ class OPT_BasicBlock extends OPT_SortedGraphNode
     return nextBasicBlockInCodeOrder();
   }
 
+  /**
+   * @return the FCFG successor if all conditional branches in this are
+   * <em> not </em> taken
+   */
+  public final OPT_BasicBlock getNotTakenNextBlock() {
+    OPT_Instruction last = lastRealInstruction();
+    if (Goto.conforms(last) || MIR_Branch.conforms(last)) {
+      return last.getBranchTarget();
+    } else {
+      return nextBasicBlockInCodeOrder();
+    }
+  }
+
 
   /**
    * Replace fall through in this block by an explicite goto
