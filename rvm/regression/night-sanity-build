@@ -82,7 +82,7 @@ else
       cd $RVM_ROOT/doc/api
       tar czf $RVM_ROOT/pushAPI/api.tar.gz *
       cd $RVM_ROOT/pushAPI
-      cvs add -kv api.tar.gz
+      cvs add -kb api.tar.gz
       cvs commit -m "push it" 
     fi
 fi
