@@ -131,11 +131,16 @@ function copyIfNewer() {
 
 function run() {
     ! tracing make || { cleanline >&2 ; echo >&2 "$@" ; }
-    if [[ $1 == *=* ]]; then
-	eval "$@"
-    else
+#     if [[ $1 == *=* ]] || [[ $1 == *'|'* ]]; then
+# 	eval "$@"
+#     else
 	"$@"
-    fi
+#    fi
+}
+
+function run-evaled() {
+    ! tracing make || { cleanline >&2 ; echo >&2 "$@" ; }
+    eval "$@"
 }
 
 function chdir() {
