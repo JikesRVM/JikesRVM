@@ -193,7 +193,7 @@ public class VM_Entrypoints implements VM_Constants {
   static final VM_Field JNIRefsSavedFPField        = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNIRefsSavedFP", "I");
   static final VM_Field JNITopJavaFPField          = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "JNITopJavaFP", "Lcom/ibm/JikesRVM/VM_Address;");
   static final VM_Field JNIPendingExceptionField   = getField("Lcom/ibm/JikesRVM/VM_JNIGenericEnvironment;", "pendingException", "Ljava/lang/Throwable;");
-  static final VM_Field JNIFunctionPointersField   = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "JNIFunctionPointers", "[I");
+  static final VM_Field JNIFunctionPointersField   = getField("Lcom/ibm/JikesRVM/VM_JNIEnvironment;", "JNIFunctionPointers",  "Lcom/ibm/JikesRVM/VM_AddressArray;");
 
   public static final VM_Field the_boot_recordField            = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "the_boot_record", "Lcom/ibm/JikesRVM/VM_BootRecord;");
   static final VM_Field tiRegisterField                 = getField("Lcom/ibm/JikesRVM/VM_BootRecord;", "tiRegister", "I");

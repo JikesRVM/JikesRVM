@@ -31,8 +31,8 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment {
    * Its offset into the JNIFunctionPts array is the same as the threads offset
    * in the Scheduler.threads array.
    */
-  static int[] JNIFunctionPointers;        // made public so vpStatus could be set 11/16/00 SES
-                                           // maybe need set & get functions ??
+  static VM_AddressArray JNIFunctionPointers;    // made public so vpStatus could be set 11/16/00 SES
+                                                 // maybe need set & get functions ??
 
   /**
    * Initialize the array of JNI functions.
@@ -46,7 +46,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment {
     // First word is a pointer to the JNIFunction table
     // Second word is address of current processors vpStatus word
     // (JTOC is now stored at end of shared JNIFunctions array)
-    JNIFunctionPointers = new int[VM_Scheduler.MAX_THREADS * 2];
+    JNIFunctionPointers = VM_AddressArray.create(VM_Scheduler.MAX_THREADS * 2);
   }
 
   public static void boot() {
@@ -66,9 +66,9 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment {
    */
   public VM_JNIEnvironment (int threadSlot) {
     super();
-    JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions).toInt();
-    JNIFunctionPointers[(threadSlot * 2)+1] = 0;  // later contains addr of processor vpStatus word
-    JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
+    JNIFunctionPointers.set(threadSlot * 2, VM_Magic.objectAsAddress(JNIFunctions));
+    JNIFunctionPointers.set((threadSlot * 2)+1, VM_Address.zero());
+    JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*(2*BYTES_IN_ADDRESS));
   }
 
   static int getJNIFunctionsJTOCOffset() {

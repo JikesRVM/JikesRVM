@@ -24,7 +24,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
   private static VM_CodeArray[] JNIFunctions;
 
   //-#if RVM_FOR_AIX
-  private static int[][][] AIXLinkageTriplets;
+  private static VM_AddressArray[] AIXLinkageTriplets;
   //-#endif
   
   /**
@@ -35,8 +35,8 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
    * Its offset into the JNIFunctionPts array is the same as the threads offset
    * in the Scheduler.threads array.
    */
-  static int[] JNIFunctionPointers;        // made public so vpStatus could be set 11/16/00 SES
-                                           // maybe need set & get functions ??
+  static VM_AddressArray JNIFunctionPointers;   // made public so vpStatus could be set 11/16/00 SES
+                                                // maybe need set & get functions ??
 
   /**
    * Initialize the array of JNI functions.
@@ -45,7 +45,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
   public static void initFunctionTable(VM_CodeArray[] functions) {
     //-#if RVM_FOR_AIX
     JNIFunctions = functions;
-    AIXLinkageTriplets = new int[functions.length][][];
+    AIXLinkageTriplets = new VM_AddressArray[functions.length];
     //-#elif RVM_FOR_LINUX
     // An extra entry is allocated, to hold the RVM JTOC
     JNIFunctions = new VM_CodeArray[functions.length + 1];
@@ -53,24 +53,23 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     //-#endif
 	
     // 2 words for each thread
-    JNIFunctionPointers = new int[VM_Scheduler.MAX_THREADS * 2];
+    JNIFunctionPointers = VM_AddressArray.create(VM_Scheduler.MAX_THREADS * 2);
 
     //-#if RVM_FOR_AIX
     // Allocate the linkage triplets 
     for (int i=0; i<JNIFunctions.length; i++) {
-      AIXLinkageTriplets[i] = new int[3][];
+      AIXLinkageTriplets[i] = VM_AddressArray.create(3);
     }
     //-#endif
   }
 
   public static void boot() {
     //-#if RVM_FOR_AIX
-    // fill in the TOC entries for each AIX linkage triplet
+    // fill in the TOC and IP entries for each AIX linkage triplet
     for (int i=0; i<JNIFunctions.length; i++) {
-      int[][] triplet = AIXLinkageTriplets[i];
-      triplet[TOC] = VM_Statics.getSlotsAsIntArray();   // the JTOC value: address of TOC
-      // GACK. What a horrible thing to do.
-      VM_Magic.setObjectAtOffset(triplet, IP<<LOG_BYTES_IN_ADDRESS, JNIFunctions[i]);
+      VM_AddressArray triplet = AIXLinkageTriplets[i];
+      triplet.set(TOC, VM_Magic.getTocPointer());
+      triplet.set(IP, VM_Magic.objectAsAddress(JNIFunctions[i]));
     }
     //-#endif
 
@@ -88,15 +87,18 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
     // as of 8/22 SES - let JNIEnvAddress be the address of the JNIFunctionPtr to be
     // used by the creating thread.  Passed as first arg (JNIEnv) to native C functions.
 
-    // uses 2 words for each thread, the first is the function pointer
-    // to be used when making native calls
+    // uses 2 VM_Addresses for each thread
+    // the first is the AIXLinkageTriplets to be used to invoke VM_JNIFunctions
     //-#if RVM_FOR_AIX
-    JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(AIXLinkageTriplets).toInt();
+    JNIFunctionPointers.set(threadSlot * 2, VM_Magic.objectAsAddress(AIXLinkageTriplets));
     //-#elif RVM_FOR_LINUX
-    JNIFunctionPointers[threadSlot * 2] = VM_Magic.objectAsAddress(JNIFunctions).toInt();
+    JNIFunctionPointers.set(threadSlot * 2, VM_Magic.objectAsAddress(JNIFunctions));
     //-#endif
-    JNIFunctionPointers[(threadSlot * 2)+1] = 0;  // later contains addr of processor vpStatus word
-    JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*8);
+
+    // the second contains the address of processor's vpStatus word
+    JNIFunctionPointers.set((threadSlot * 2)+1, VM_Address.zero());
+
+    JNIEnvAddress = VM_Magic.objectAsAddress(JNIFunctionPointers).add(threadSlot*(2 * BYTES_IN_ADDRESS));
   }
 
   static int getJNIFunctionsJTOCOffset() {
