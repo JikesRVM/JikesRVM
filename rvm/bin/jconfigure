@@ -1378,17 +1378,25 @@ function emitImageLinker
       print "   print '$exclusion'                  >> $EXCLUDED_CLASSES_STR"
    done
 
-   # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
-   print "   print $CLASSES_DIRECTORY_STR/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
-   print "   print $CLASSES_DIRECTORY_STR/com/ibm/JikesRVM/librarySupport/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@Lcom\/ibm\/JikesRVM\/librarySupport/\1;@' >> $PRIMORDIAL_CLASSES_STR"
    if (( RVM_WITH_ALL_CLASSES )); then
       # Put (almost) all vm classes into bootimage.
 
       # skip: not part of production system, so don't put them in the bootimage (if they are in the build at all)
       print "   print PPC_Disassembler.class >> $EXCLUDED_CLASSES_STR"
 
+      # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
+      print "   print $CLASSES_DIRECTORY_STR/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
       print "   print $CLASSES_DIRECTORY_STR/instructionFormats/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@LinstructionFormats/\1;@' >> $PRIMORDIAL_CLASSES_STR"
+   else
+      # Put minimum number of vm classes into boot image (just sufficient to
+      # dynamically load remaining portions of the system).
+      
+      # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
+      print "   print $CLASSES_DIRECTORY_STR/VM*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
    fi
+      print "   print $CLASSES_DIRECTORY_STR/com/ibm/JikesRVM/librarySupport/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@Lcom\/ibm\/JikesRVM\/librarySupport/\1;@' >> $PRIMORDIAL_CLASSES_STR"
+
+
 
    if (( RVM_WITH_GCTk )); then
       print "   print $CLASSES_DIRECTORY_STR/GCTk*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR"
