@@ -76,69 +76,12 @@ public class VM_Properties extends VM_Configuration {
   public static       boolean MeasureCompilation      = false;  
 
   /**
-   * The following boolean fields provide controls for various diagnostics
+   * The following boolean fields provide controls for various
+   * diagnostics.
    * Normally, these are static final and false, so no overhead is 
    * associated with them.
-   * For systems built with RVM_WITH_DIAGNOSTICS=1, these fields a not final.
-   * They are tested periodically by system code.  As long as they are false 
-   * (the default),
-   * the overhead of such tests should be very small.  These fields can be 
-   * turned
-   * on under program control (and TODO!! by command line arguments).  
-   * (If the overhead
-   * of checking all these fields is felt to distort normal behavior, 
-   * these controls can
-   * be enabled individually by editing this file while RVM_WITH_DIAGNOSTICS=0.)
-   *
-   * (Note, some of the diagnostics may no longer work.)
    */
-  //-#if RVM_WITH_DIAGNOSTICS
 
-  // Currently not used.
-  //
-  public static final boolean BuildWithDiagnostics    = true;
-
-  // Virtual machine subsystem timing.
-  //
-  public static boolean TraceTimes              = false;
-  public static boolean TraceRuntimeTimes       = false;
-  public static boolean TraceTypecheckTimes     = false;
-
-  // Runtime subsystem tracing.
-  //
-  public static boolean TraceDictionaries       = false;
-  public static boolean TraceStatics            = false;
-  public static boolean TraceRepositoryReading  = false;
-  public static boolean TraceClassLoading       = false;
-  public static boolean TraceDynamicLinking     = false;
-  public static boolean TraceFileSystem         = false;
-  public static boolean TraceThreads            = false;
-  public static boolean TraceStackTrace         = false;
-
-  // Baseline compiler tracing.
-  //
-  public static boolean TraceAssembler         = false;
-  public static boolean PrintAssemblerWarnings = false;
-  public static boolean TraceCompilation       = false;
-
-  // Baseline compiler reference map tracing.
-  //
-  public static boolean TraceStkMaps                  = false;
-  public static boolean ReferenceMapsStatistics       = false;
-  public static boolean ReferenceMapsBitStatistics    = false;
-  public static boolean DynamicReferenceMaps          = false;
-  public static boolean ReachLiveGCTwice              = false;
-
-  // Event logging.
-  //
-  public static final boolean BuildForEventLogging      = true;  // see profiler/EventLogger.java
-  public static       boolean EventLoggingEnabled       = false;
-  public static       boolean BuildForNetworkMonitoring = false;
-
-  //-#else // RVM_WITH_DIAGNOSTICS=0
-
-  // 
-  //
   public static final boolean BuildWithDiagnostics    = false;
 
   // Virtual machine subsystem timing.
@@ -169,7 +112,6 @@ public class VM_Properties extends VM_Configuration {
   public static final boolean TraceStkMaps                  = false;
   public static final boolean ReferenceMapsStatistics       = false;
   public static final boolean ReferenceMapsBitStatistics    = false;
-  public static final boolean DynamicReferenceMaps          = false;
   public static final boolean ReachLiveGCTwice              = false;
 
   // Event logging.
@@ -177,7 +119,4 @@ public class VM_Properties extends VM_Configuration {
   public static final boolean BuildForEventLogging      = false;
   public static       boolean EventLoggingEnabled       = false;  // TODO!! make this final, see profiler/VM_EventLogger.java
   public static final boolean BuildForNetworkMonitoring = false;
-
-  //-#endif // RVM_WITH_DIAGNOSTICS
-
 }
