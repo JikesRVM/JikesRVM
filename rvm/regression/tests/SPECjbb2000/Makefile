@@ -22,10 +22,11 @@ include		$(JAL_ROOT)/regression/Make.rules
 # sanity test support
 #
 
-sanity: 	$(WORKING)/SPECjbb.sanity.props $(WORKING)/SPECjbb_config.props $(WORKING)/Makefile
 ifeq ($(MODE),PERFORMANCE)
+sanity: 	$(WORKING)/SPECjbb.perf.props $(WORKING)/SPECjbb_config.props $(WORKING)/Makefile
 	$(MAKE) START_ARGS="-propfile SPECjbb.perf.props" sanity-check-rule
 else
+sanity: 	$(WORKING)/SPECjbb.sanity.props $(WORKING)/SPECjbb_config.props $(WORKING)/Makefile
 	$(MAKE) START_ARGS="-propfile SPECjbb.sanity.props" sanity-check-rule
 endif
 
