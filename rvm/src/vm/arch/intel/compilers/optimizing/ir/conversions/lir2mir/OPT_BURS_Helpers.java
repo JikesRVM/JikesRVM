@@ -468,6 +468,19 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
     return new OPT_StackLocationOperand(true, offset, size);
   }
 
+  final void STORE_LONG_FOR_CONV(OPT_BURS burs, OPT_Operand op) {
+    int offset = - burs.ir.stackManager.allocateSpaceForConversion();
+    if (op instanceof OPT_RegisterOperand) {
+      OPT_RegisterOperand hval = R(op);
+      OPT_RegisterOperand lval = R(burs.ir.regpool.getSecondReg(hval.register));
+      burs.append(MIR_Move.create(IA32_MOV, new OPT_StackLocationOperand(true, offset+4, DW), hval));
+      burs.append(MIR_Move.create(IA32_MOV, new OPT_StackLocationOperand(true, offset, DW), lval));
+    } else {
+      OPT_LongConstantOperand val = L(op);
+      burs.append(MIR_Move.create(IA32_MOV, new OPT_StackLocationOperand(true, offset+4, DW), I(val.upper32())));
+      burs.append(MIR_Move.create(IA32_MOV, new OPT_StackLocationOperand(true, offset, DW), I(val.lower32())));
+    }
+  }      
 
   // condition code state
   private OPT_ConditionOperand cc;

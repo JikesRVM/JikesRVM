@@ -164,23 +164,27 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
 	  
 	case LONG_2FLOAT_opcode:
 	  { 
-	    CallSpecial.mutate1(s, SYSCALL,
-				Unary.getClearResult(s),
-				null,
-				new OPT_SysMethodOperand(VM_Entrypoints.sysLongToFloatIPField),
-				Unary.getClearVal(s));
-	    OPT_CallingConvention.expandSysCall(s, ir);
+	    if (VM.BuildForPowerPC) {
+	      CallSpecial.mutate1(s, SYSCALL,
+				  Unary.getClearResult(s),
+				  null,
+				  new OPT_SysMethodOperand(VM_Entrypoints.sysLongToFloatIPField),
+				  Unary.getClearVal(s));
+	      OPT_CallingConvention.expandSysCall(s, ir);
+	    }
 	  }
 	  break;
 	  
 	case LONG_2DOUBLE_opcode:
 	  { 
-	    CallSpecial.mutate1(s, SYSCALL,
-				Unary.getClearResult(s),
-				null,
-				new OPT_SysMethodOperand(VM_Entrypoints.sysLongToDoubleIPField),
-				Unary.getClearVal(s));
-	    OPT_CallingConvention.expandSysCall(s, ir);
+	    if (VM.BuildForPowerPC) {
+	      CallSpecial.mutate1(s, SYSCALL,
+				  Unary.getClearResult(s),
+				  null,
+				  new OPT_SysMethodOperand(VM_Entrypoints.sysLongToDoubleIPField),
+				  Unary.getClearVal(s));
+	      OPT_CallingConvention.expandSysCall(s, ir);
+	    }
 	  }
 	  break;
 	  

@@ -216,6 +216,16 @@ load32:	INT_ALOAD(r, riv)
 EMIT_INSTRUCTION
 pushMO(MO_AL(P(p), DW_S, DW));
 
+load64:	LONG_LOAD(riv, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_L(P(p), QW));
+
+load64:	LONG_ALOAD(r, riv)
+0
+EMIT_INSTRUCTION
+pushMO(MO_AL(P(p), QW_S, QW));
+
 fpload:	FLOAT_LOAD(riv, riv)
 0
 EMIT_INSTRUCTION
@@ -2081,6 +2091,46 @@ EMIT_INSTRUCTION
 EMIT(MIR_Nullary.mutate(P(p), IA32_FLDZ, myFP0()));
 
 #####
+# LONG_2FP (handles both float and double; both are 80 bit anyways...)
+#####
+r:	LONG_2FP(rlv)
+53
+EMIT_INSTRUCTION
+STORE_LONG_FOR_CONV(burs, Unary.getVal(P(p))); \
+EMIT(MIR_Move.create(IA32_FILD, myFP0(), MO_CONV(burs,QW))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Unary.getResult(P(p)), myFP0()));
+
+fp0:	LONG_2FP(rlv)
+53
+EMIT_INSTRUCTION
+STORE_LONG_FOR_CONV(burs, Unary.getVal(P(p))); \
+EMIT(MIR_Move.create(IA32_FILD, myFP0(), MO_CONV(burs,QW))); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
+
+pfp0:	LONG_2FP(rlv)
+50
+EMIT_INSTRUCTION
+STORE_LONG_FOR_CONV(burs, Unary.getVal(P(p))); \
+EMIT(MIR_Move.create(IA32_FILD, myFP0(), MO_CONV(burs,QW)));
+
+r:	LONG_2FP(load64)
+33
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FILD, myFP0(), consumeMO())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, Unary.getResult(P(p)), myFP0()));
+
+fp0:	LONG_2FP(load64)
+33
+EMIT_INSTRUCTION
+EMIT(MIR_Move.create(IA32_FILD, myFP0(), consumeMO())); \
+EMIT(MIR_Move.mutate(P(p), IA32_FSTP, D(getFPR(0)), myFP0()));
+
+pfp0:	LONG_2FP(load64)
+20
+EMIT_INSTRUCTION
+EMIT(MIR_Move.mutate(P(p), IA32_FILD, myFP0(), consumeMO()));
+
+#####
 # LONG_2INT
 #####
 r:	LONG_2INT(r)
@@ -2101,15 +2151,10 @@ EMIT_INSTRUCTION
 OPT_Register lh = burs.ir.regpool.getSecondReg(R(Unary.getVal(PL(p))).register); \
 EMIT(MIR_Move.mutate(P(p), IA32_MOV, MO_AS(P(p), DW_S, DW), R(lh)));
 
-r:	LONG_2INT(LONG_LOAD(riv,riv))
+r:	LONG_2INT(load64)
 15
 EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), MO_L(PL(p), DW)));
-
-r:	LONG_2INT(LONG_ALOAD(r,riv))
-15
-EMIT_INSTRUCTION
-EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), MO_AL(PL(p), QW_S, DW)));
+EMIT(MIR_Move.mutate(P(p), IA32_MOV, Unary.getResult(P(p)), consumeMO()));
 
 #####
 # FLOAT_2INT
@@ -2431,6 +2476,11 @@ NOFLAGS
 //nothing to do
 
 load32:	INT_MOVE(load32)
+0
+NOFLAGS
+// nothing to do
+
+load64:	LONG_MOVE(load64)
 0
 NOFLAGS
 // nothing to do

@@ -336,6 +336,13 @@ none
 
 
 
+# convert an int to a FP value
+LONG_2FP
+Unary
+none
+
+
+
 # Move a value from one of two (register/constant) operands 
 # to a register operand.  Values are unchanged.
 CMOV
