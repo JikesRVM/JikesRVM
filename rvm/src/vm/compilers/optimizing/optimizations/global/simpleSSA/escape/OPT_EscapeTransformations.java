@@ -28,7 +28,7 @@ class OPT_EscapeTransformations extends OPT_CompilerPhase
   }
 
   final boolean printingEnabled (OPT_Options options, boolean before) {
-    return  false;
+    return false;
   }
 
   /** 
