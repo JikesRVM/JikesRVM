@@ -135,6 +135,23 @@ public class VM_BootRecord {
    */
   public Extent maximumHeapSize;
 
+  //-#if RVM_WITH_FLEXIBLE_STACK_SIZES
+  /**
+   * Initial Size of Java thread stack.
+   */
+  public Extent initialStackSize;
+
+  /**
+   * How much to grow the Java thread stack by, each time we grow it.
+   */
+  public Extent stackGrowIncrement;
+
+  /**
+   * Maximum size of Java thread stack.
+   */
+  public Extent maximumStackSize;
+  //-#endif  RVM_WITH_FLEXIBLE_STACK_SIZES
+
   public AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
                                      // C-style termination with sentinel values
   /**
@@ -287,6 +304,7 @@ public class VM_BootRecord {
   //-#endif
   public Address sysPrimitiveParseFloatIP;
   public Address sysPrimitiveParseIntIP;
+  public Address sysParseMemorySizeIP;
 
   // time
   Address sysGetTimeOfDayIP;
