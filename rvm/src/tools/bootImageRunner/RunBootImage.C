@@ -125,6 +125,8 @@ void usage()
   fprintf(SysTraceFile,"    -X        print help on non-standard options\n");
   fprintf(SysTraceFile,"              print version and continue\n");
   fprintf(SysTraceFile,"    -jar      not supported\n");
+  fprintf(SysTraceFile,"\n For more information look at URL: www.ibm.com/developerworks/oss/jikesrvm\n");
+
   fprintf(SysTraceFile,"\n");
 }
 
