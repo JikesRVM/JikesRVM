@@ -2331,6 +2331,7 @@ EOF
 	fi
 
 	## Where are our sources?
+	generator_class="GenerateInterfaceDeclarations"
 	old_generator_dir=${BOOTIMAGE_RUNNER_DIR_STR}
 	# The new_generator_dir is scaffolding for a work-in-progress
 	# feature --Steve Augart, 26 May 2004
@@ -2338,7 +2339,7 @@ EOF
 	new_generator_dir=${ROOT_DIRECTORY_STR}/rvm/src/tools/generateInterfaceDeclarations
 	if [[ \${INTERFACE_GENERATOR_DIR-} ]]; then
 	    generator_dir=\${INTERFACE_GENERATOR_DIR}
-	elif [[ -d \$new_generator_dir ]]; then
+	elif [[ -f \$new_generator_dir/\${generator_class}.java ]]; then
 	    generator_dir=\$new_generator_dir
 	elif [[ -d \$old_generator_dir ]]; then
 	    generator_dir=\$old_generator_dir
