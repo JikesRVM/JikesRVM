@@ -145,7 +145,7 @@ implements VM_Constants
       // handle mapped objects (this load/resolve is not done by initForTool)
       // they get loaded and resolved if not found
       // Disable code generation in the compiler
-      VM.BuildForInterpreter = true;
+      VM.runningAsJDPRemoteInterpreter = true;
       VM_Class at = forName("VM_Atom");
       at = forName("VM_Field");    
       at = forName("VM_Class");

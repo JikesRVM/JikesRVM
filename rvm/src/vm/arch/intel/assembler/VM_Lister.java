@@ -461,11 +461,6 @@ class VM_Lister implements VM_Constants {
   }
       
   public static void list (VM_Method m) {
-
-      // removed because flags are final
-      //    VM.TraceAssembler         = true;
-      //    VM.TraceCompilation       = true;
-      //    VM.PrintAssemblerWarnings = true;
     System.out.println("" + m);
     VM_Compiler.compile(m);
   }

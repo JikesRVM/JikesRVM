@@ -96,9 +96,6 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       int frameSize	= VM_Compiler.getFrameSize(method);
       VM_Class klass	= method.getDeclaringClass();
 
-      if (VM.TraceCompilation) 
-	VM.sysWrite("VM_Compiler: begin compiling native " + method + "\n");
-
       /* initialization */
       { 
 	if (VM.VerifyAssertions) VM.assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
@@ -307,9 +304,6 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       asm.emitCAL (T0, 0, T2);                   // copy the saved exception to T0
 
       asm.emitBCTR();                            // then branch to the exception delivery code, does not return
-
-      if (VM.TraceCompilation)
-	VM.sysWrite("VM_Compiler: end compiling native " + method + "\n");
 
       return asm.makeMachineCode();
 

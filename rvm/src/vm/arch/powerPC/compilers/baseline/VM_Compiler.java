@@ -26,14 +26,16 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       VM_CompilerInfo info = new VM_JNICompilerInfo(method);
       return new VM_CompiledMethod(compiledMethodId, method, 
                                    machineCode.getInstructions(), info); 
-    } 
-    else if (!VM.BuildForInterpreter) {
+    } else if (VM.runningAsJDPRemoteInterpreter) {
+      return new VM_CompiledMethod(compiledMethodId, method, null, null);
+    } else {
       VM_Compiler     compiler     = new VM_Compiler();
       VM_ReferenceMaps refMaps     = new VM_ReferenceMaps(method, null);
       VM_MachineCode  machineCode  = compiler.genCode(compiledMethodId, method);
       INSTRUCTION[]   instructions = machineCode.getInstructions();
       int[]           bytecodeMap  = machineCode.getBytecodeMap();
       VM_CompilerInfo info;
+      
       if ((options.PRINT_MACHINECODE) &&
           (!options.hasMETHOD_TO_PRINT() ||
 	   options.fuzzyMatchMETHOD_TO_PRINT(method.toString()))) {
@@ -50,8 +52,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       return new VM_CompiledMethod(compiledMethodId, method, 
                                    instructions, info);
-    } else {
-      return new VM_CompiledMethod(compiledMethodId, method, null, null);
     }
   }
 
@@ -163,7 +163,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
   private VM_MachineCode genCode (int compiledMethodId, VM_Method meth) {
     if (options.PRINT_METHOD) printMethodMessage(meth);
-    if (VM.TraceCompilation) VM.sysWrite("VM_Compiler: begin compiling " + meth + "\n");
     /* initialization */ { 
       if (VM.VerifyAssertions) VM.assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
       if (VM.VerifyAssertions) VM.assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
@@ -2949,7 +2948,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
     }
     asm.emitDATA(compiledMethodId); // put method signature at end of machine code
-    if (VM.TraceCompilation) VM.sysWrite("VM_Compiler: end compiling " + meth + "\n");
     return asm.makeMachineCode();
   }
 

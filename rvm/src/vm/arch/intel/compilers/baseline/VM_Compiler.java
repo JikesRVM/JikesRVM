@@ -21,8 +21,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       VM_MachineCode machineCode = VM_JNICompiler.generateGlueCodeForNative(compiledMethodId, method);
       VM_CompilerInfo info = new VM_JNICompilerInfo(method);
       return new VM_CompiledMethod(compiledMethodId, method, machineCode.getInstructions(), info);
-    }
-    if (!VM.BuildForInterpreter) {
+    } else if (VM.runningAsJDPRemoteInterpreter) {
+      return new VM_CompiledMethod(compiledMethodId, method, null, null);
+    } else {
       VM_Compiler     compiler     = new VM_Compiler();
       boolean         shouldPrint  = ((options.PRINT_MACHINECODE) &&
 				     (!options.hasMETHOD_TO_PRINT() ||
@@ -42,8 +43,6 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
       }
       VM_Assembler.TRACE = false;
       return new VM_CompiledMethod(compiledMethodId, method, instructions, info);
-    } else {
-      return new VM_CompiledMethod(compiledMethodId, method, null, null);
     }
   }
 

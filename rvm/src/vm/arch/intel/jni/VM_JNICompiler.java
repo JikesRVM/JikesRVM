@@ -78,9 +78,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     //       low address	 low address
 
 
-    if (VM.TraceCompilation)
-      VM.sysWrite("VM_JNICompiler: begin compiling native " + method + "\n");
-
     // TODO:  check and resize stack once on the lowest Java to C transition
     // on the stack.  Not needed if we use the thread original stack
 
@@ -174,9 +171,6 @@ public class VM_JNICompiler implements VM_JNILinuxConstants, VM_BaselineConstant
     else
       asm.emitRET_Imm((parameterWords+1) << LG_WORDSIZE); 
 
-    if (VM.TraceCompilation)
-      VM.sysWrite("VM_Compiler: end compiling native " + method + "\n");
-    
     // return asm.makeMachineCode();
     return new VM_MachineCode(asm.getMachineCodes(), null);
 

@@ -55,8 +55,8 @@ public class VM_Properties extends VM_Configuration {
 	//-#endif
 	//-#endif
 
-  // suppress code gen when system is to be interpreted
-  public static boolean BuildForInterpreter;
+  // suppress code gen when system is running on remote interpreter portion of jdp.
+  public static boolean runningAsJDPRemoteInterpreter;
 
   /**
    * The following is set on by -verbose:class command line arg.
@@ -79,7 +79,6 @@ public class VM_Properties extends VM_Configuration {
   //
   public static final boolean TraceDictionaries       = false;
   public static final boolean TraceStatics            = false;
-  public static final boolean TraceRepositoryReading  = false;
   public static final boolean TraceClassLoading       = false;
   public static final boolean TraceDynamicLinking     = false;
   public static final boolean TraceFileSystem         = false;
@@ -88,16 +87,13 @@ public class VM_Properties extends VM_Configuration {
 
   // Baseline compiler tracing.
   //
-  public static final boolean TraceAssembler         = false;
-  public static final boolean PrintAssemblerWarnings = false;
-  public static final boolean TraceCompilation       = false;
+  public static final boolean TraceAssembler         = false; // PPC only
 
   // Baseline compiler reference map tracing.
   //
   public static final boolean TraceStkMaps                  = false;
   public static final boolean ReferenceMapsStatistics       = false;
   public static final boolean ReferenceMapsBitStatistics    = false;
-  public static final boolean ReachLiveGCTwice              = false;
 
   // Event logging.
   //
