@@ -252,6 +252,7 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
 
   public void set(Object obj, Object value) throws IllegalArgumentException, IllegalAccessException
   {
+    VM.assert(false, "FINISH ME\n");
     // !!TODO: get and modify form Field
   }
 
@@ -276,12 +277,18 @@ public class VM_Field extends VM_Member implements VM_ClassLoaderConstants {
     }
 
     if (isStatic()) {
+      if (VM_Collector.NEEDS_WRITE_BARRIER) {
+	VM_WriteBarrier.resolvedPutStaticWriteBarrier(offset, ref);
+      }
       VM_Statics.setSlotContents(offset>>>2, ref);
     } else {
       if (obj == null)
 	throw new NullPointerException();
       if (!getDeclaringClass().getClassForType().isInstance(obj))
 	throw new IllegalArgumentException();
+      if (VM_Collector.NEEDS_WRITE_BARRIER) {
+	VM_WriteBarrier.resolvedPutfieldWriteBarrier(obj, offset, ref);
+      }
       VM_Magic.setObjectAtOffset(obj, offset, ref);
     }
   }
