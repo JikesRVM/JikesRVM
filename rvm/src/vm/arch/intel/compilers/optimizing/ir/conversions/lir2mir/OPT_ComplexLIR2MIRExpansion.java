@@ -759,6 +759,7 @@ abstract class OPT_ComplexLIR2MIRExpansion extends OPT_RVMIRTools {
     OPT_Instruction call = 
       MIR_Call.create0(CALL_SAVE_VOLATILE, null, null, target, 
 		       OPT_MethodOperand.STATIC(meth));
+    call.markAsNonPEI();
     call.copyPosition(s);
     yieldpoint.appendInstruction(call);
     yieldpoint.appendInstruction(MIR_Branch.create(IA32_JMP,
