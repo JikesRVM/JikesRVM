@@ -48,12 +48,28 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   //-#endif
   
   //-#if RVM_WITH_HPM
-  /*
-   * Keep counter values for each Java thread.
-   */
-  public HPM_counters hpm_counters;
+  // Keep counter values for each Java thread.
+  public HPM_counters hpm_counters = null;
   // when thread is scheduled, record real time
-  public long startOfRealTime;
+  public long startOfWallTime = -1;
+  // globally unique thread id, needed because thread slots can be reused.
+  static private int GLOBAL_TID_INITIAL_VALUE = -1;
+  private int global_tid = GLOBAL_TID_INITIAL_VALUE;
+  public final int getGlobalIndex() { return global_tid; }
+  // globally unique thread id counter.  Increment ever time a thread is created.
+  static private Integer global_hpm_tid = new Integer(1);
+  // generate a globally unique thread id (only called from constructors)
+  private final void assignGlobalTID() throws VM_PragmaLogicallyUninterruptible
+  {
+    synchronized (global_hpm_tid) {
+      global_tid = global_hpm_tid.intValue();
+      global_hpm_tid = new Integer(global_hpm_tid.intValue()+1);
+    }
+    if(VM_HardwarePerformanceMonitors.verbose>=2) {
+      VM.sysWrite  (" VM_Thread.assignGlobalTID (",threadSlot,") assigned ");
+      VM.sysWriteln(global_tid);
+    }
+  }
   //-#endif
 
   /**
@@ -63,8 +79,13 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     this(VM_Interface.newStack(STACK_SIZE_NORMAL>>2));
 
     //-#if RVM_WITH_HPM
-    //    VM.sysWriteln("VM_Thread() call new HPM_counters");
-    hpm_counters = new HPM_counters();
+    if (hpm_counters == null) hpm_counters = new HPM_counters();
+    if (VM_HardwarePerformanceMonitors.hpm_trace) {
+      if (global_tid == GLOBAL_TID_INITIAL_VALUE) {
+	assignGlobalTID();
+	VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, getClass().toString());
+      }
+    }
     //-#endif
   }
 
@@ -135,6 +156,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (suspended) { // this thread is not on any queue
       suspended = false;
       suspendLock.unlock();
+      if (trace) VM_Scheduler.trace("VM_Thread", "resume() scheduleThread ", getIndex());
       VM_Processor.getCurrentProcessor().scheduleThread(this);
     } else {         // this thread is queued somewhere
       suspendLock.unlock();
@@ -458,6 +480,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
   public static void timerTickYield () {
     VM_Thread myThread = getCurrentThread();
     myThread.beingDispatched = true;
+    if (trace) VM_Scheduler.trace("VM_Thread", "timerTickYield() scheduleThread ", myThread.getIndex());
     VM_Processor.getCurrentProcessor().scheduleThread(myThread);
     morph(true);
   }
@@ -787,6 +810,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
       VM_Scheduler.deadVPQueue.enqueue(p);                  
       myThread.nativeAffinity    = null;          // clear native processor
       myThread.processorAffinity = null;          // clear processor affinity
+      if (trace) VM_Scheduler.trace("VM_Thread", "terminate ", myThread.getIndex());
 //-#if RVM_WITH_PURPLE_VPS
       VM_Processor.vpStatus[p.vpStatusIndex] = VM_Processor.RVM_VP_GOING_TO_WAIT;
 //-#endif
@@ -796,6 +820,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     // begin critical section
     //
     VM_Scheduler.threadCreationMutex.lock();
+
     myThread.releaseThreadSlot();
     
     myThread.beingDispatched = true;
@@ -1185,6 +1210,14 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Scheduler.threadCreationMutex.lock();
     assignThreadSlot();
 
+    //-#if RVM_WITH_HPM
+    if (hpm_counters == null) hpm_counters = new HPM_counters();
+    if (VM_HardwarePerformanceMonitors.hpm_trace) {
+      assignGlobalTID();
+      VM_HardwarePerformanceMonitors.writeThreadToHeaderFile(global_tid, threadSlot, getClass().toString());
+    }
+    //-#endif
+
     VM_Scheduler.threadCreationMutex.unlock();
 
 //-#if RVM_FOR_IA32 
@@ -1381,6 +1414,30 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
    * (null --> any processor is ok).
    */ 
   public VM_Processor processorAffinity;
+
+  //-#if RVM_WITH_HPM  
+  /**
+   * This call sets the processor affinity of the thread that is
+   * passed as the first parameter to the virtual processor
+   * that is identified as the second parameter.
+   * ASSUMPTION: virtual processors are set up before this is called.
+   * Kludge for IVME'03.  Binds SPECjbb warehouses to virtual processors.
+   * Called from JBBmain.java.
+   *
+   * @param t    thread as an object to fool jikes at compile time.
+   * @param pid  virtual processor to bind thread to
+   */
+  static public void setProcessorAffinity(Object t, int pid) 
+  {
+    if(VM_HardwarePerformanceMonitors.verbose>=3) {
+      VM.sysWrite ("VM_Thread.setProcessorAffinity(",pid,")");
+    }
+    VM_Thread thread = (VM_Thread)t;
+    if (pid <= VM_Scheduler.numProcessors && pid > 0) {
+      thread.processorAffinity = VM_Scheduler.processors[pid];
+    }
+  }
+  //-#endif
 
   /**
    * Virtual Processor to run native methods for this thread
