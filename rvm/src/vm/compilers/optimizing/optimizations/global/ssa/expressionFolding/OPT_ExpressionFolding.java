@@ -132,6 +132,17 @@ class OPT_ExpressionFolding implements OPT_Operators {
       return transformForLong(s,def);
     }
   }
+
+  private static int getIntValue(OPT_Operand op) {
+    if (op instanceof OPT_NullConstantOperand) 
+      return 0;
+    if (op instanceof OPT_IntConstantOperand)
+      return op.asIntConstant().value;
+    if (op instanceof OPT_AddressConstantOperand)
+      return op.asAddressConstant().value.toInt();  // not portable
+    throw new OPT_OptimizingCompilerException("Cannot getIntValue from this operand " + op);
+  }
+
   /**
    * Perform the transfomation on the instruction s = A +/- c
    * where def is the definition of A.
@@ -142,12 +153,12 @@ class OPT_ExpressionFolding implements OPT_Operators {
     // s is y = A + c
     OPT_RegisterOperand y = Binary.getResult(s);
     OPT_RegisterOperand A = Binary.getVal1(s).asRegister();
-    int c = Binary.getVal2(s).asIntConstant().value;
+    int c = getIntValue(Binary.getVal2(s));
     if (s.operator == INT_SUB) c = -c;
 
     // A = B + d
     OPT_RegisterOperand B = Binary.getVal1(def).asRegister();
-    int d = Binary.getVal2(def).asIntConstant().value;
+    int d = getIntValue(Binary.getVal2(def));
     if (def.operator == INT_SUB) d = -d;
 
     // rewrite so y = B + (c+d)  
