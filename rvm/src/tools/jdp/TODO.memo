@@ -126,9 +126,13 @@ of priority.
 
 17) Regression testing:
    - bug: The regression test jdp fails with different behaviour on each run
-     with FullOptCopyGenVariable. It is step that is not behaving consistently
-     and sometimes results in a NegativeArraySize Exception in 
-     mapVM.getVMAtomString at the new byte[size] statement.
+     with FullOptCopyGenVariable. Sometimes step runs to the end of the 
+     program.
+
+18) Linux Intel startup
+    The line
+    JDP ERROR: fillBootMethodTable , could not find class VM_BootRecord, VM_MethodDictionary or VM_Method, or one of their fields.
+    Seems to now be appearing when it did not appear before.
 
 
 
