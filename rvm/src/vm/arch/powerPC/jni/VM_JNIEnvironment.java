@@ -39,7 +39,7 @@ public final class VM_JNIEnvironment extends VM_JNIGenericEnvironment implements
    * when we are making a C => Java transition.
    * Don't have to do this on AIX because it is part of the LinkageTriplet.
    */
-  private final static VM_Address savedJTOC = VM_Magic.getTocPointer();
+  private final VM_Address savedJTOC = VM_Magic.getTocPointer();
   //-#endif
    
   /** 
