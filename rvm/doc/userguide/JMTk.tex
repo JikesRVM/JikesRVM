@@ -42,33 +42,36 @@ of the following plans:
 \begin{itemize}
 \item \texttt{SemiSpace} (copying),
 \item \texttt{MarkSweep} (non-copying),
+\item \texttt{CopyMS} (non-generational copy/mark-sweep hybrid)
 \item \texttt{GenCopy} (classic copying generational),
 \item \texttt{GenMS} (generational with mark-sweep mature space), or
-\item \texttt{CopyMS} (non-generational copy/mark-sweep hybrid)
 \item \texttt{RefCount} (a reference counting collector with non-concurrent cycle collection)
 \item \texttt{NoGC} (allocation only, no garbage collection)
 \end{itemize}
 The relative performance of these collectors is highly dependent on
 the application. 
 
-Currently, some of these collectors are more stable than others.  The
-\texttt{SemiSpace}, \texttt{MarkSweep} and \texttt{CopyMS} collectors
-are the most stable and heavily tested GCs and are what we currently
-recommend for general usage. GC researchers will of course want to
-experiment with other GC choices.
 
-With the exception of \texttt{RefCount}, all of the memory managers
-support finalization.  Moreover, a collection can proceed even when
-some threads are executing in native code. When a collection starts,
-threads in native code are blocked from returning to Java code for the
-duration of that collection.
+Currently, some of these collectors are more stable than others. 
+The \texttt{SemiSpace}, \texttt{MarkSweep}, and \texttt{CopyMS} 
+are the stablest collectors, with \texttt{CopyMS} being the
+most heavily tested GC.  \texttt{NoGC} is provided for pedagogical and
+experimental purposes only and should not be used for general usage.
+GC researchers will of course want to experiment with other GC choices.
+
+All of the memory managers (except \texttt{NoGC} and \texttt{RefCount}) 
+support finalization and weak, soft, and phantom references.  They are all parallel 
+and load-balancing.  A collection can proceed even when some threads are
+executing in native code. When a collection starts, threads in native
+code are blocked from returning to Java code for the duration of that
+collection.
 
 \subsection{Plans} \label{sssec:plans}
 \index{garbage collection}
 \index{stop-the-world garbage collection}
 
 All plans inherit from \xlink{\texttt{BasePlan}}{\BumpPointerURL},
-and all plans in this release are ``stop the world'' collectors, so
+and all plans in this release are ``stop-the-world'' collectors, so
 they all inherit from
 \xlink{\texttt{StopTheWorldGC}}{\StopTheWorldGCURL}, which implements
 basic stop the world GC functionality.  The two generational
