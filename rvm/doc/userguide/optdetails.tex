@@ -156,17 +156,24 @@ Various optimizing transformations are performed at each level of IR.
 \index{OPT\_CompilationPlan class}
 \index{VM\_Method class}
 \index{OPT\_OptimizationPlanElement class}
-An object of the class {\tt OPT\_CompilationPlan} contains all the  
+An object of the class 
+\xlink{{\tt OPT\_CompilationPlan}}{\OPTCompilationPlanURL} 
+contains all the  
 information necessary to generate machine code for a method. Two
-important component of this class are the {\tt VM\_Method} to be
+important component of this class are the 
+\xlink{{\tt VM\_Method}}{\VMMethodURL} 
+to be
 compiled and the
-array of {\tt OPT\_OptimizationPlanElement}s to perform the compiling.
+array of 
+\xlink{{\tt OPT\_OptimizationPlanElements}}{\OPTOptimizationPlanElementURL} to perform the compiling.
 When the {\tt execute} method  of this class is called, machine code
 is generated for the method as described by the 
 {\tt OPT\_OptimizationPlanElement}s.
 
 \index{OPT\_OptimizationPlanner class}
-Another important class is {\tt OPT\_OptimizationPlanner}.  This class
+Another important class is 
+\xlink{{\tt OPT\_OptimizationPlanner}}{\OPTOptimizationPlannerURL}.  
+This class
 contains a static field, called {\tt masterPlan}, which contains all
 possible {\tt OPT\_OptimizationPlanElement}s.
 The structure of the master plan is 
@@ -210,7 +217,8 @@ perform methods of its elements.
 \index{OPT\_CompilerPhase class}
 Each atomic element is an object of the final class 
 {\tt OPT\_OptimizationPlanAtomicElement}. The main work of this class
-is performed by its {\em phase}, an object of type {\tt OPT\_CompilerPhase}. The
+is performed by its {\em phase}, an object of type 
+\xlink{{\tt OPT\_CompilerPhase}}{\OPTCompilerPhaseURL}. The
 {\tt OPT\_CompilerPhase} class is not final; each phase overrides this class,
 in particular it overrides the {\tt perform} method, which is invoked by its 
 enclosing element's {\tt perform} method. All the state associated with 
@@ -498,11 +506,12 @@ For more information on the BURS algorithm see
 \index{VM\_Magic}
 \index{semantic inlining}
 Certain methods, known as "magic" methods and declared as static methods of 
-{\tt VM\_Magic}, are treated differently by the 
+\xlink{{\tt VM\_Magic}}{\VMMagicURL}, 
+are treated differently by the 
 compiler. Because these methods access raw memory (such as portions of 
 object headers) or registers, or are operating system calls they cannot be
-implemented in Java\trademark code. Instead, for each of these methods, the Java\trademark 
-instructions to generate the code is stored in 
+implemented in Java\trademark code. Instead, for each of these methods,
+the Java instructions to generate the code is stored in 
 {\tt OPT\_GenerateMagic} (to generate HIR) and {\tt VM\_MagicCompiler}
 (to generate assembly code)\footnote{The optimizing compiler always uses the set
 of instructions that generate HIR; the instructions that generate assembly code

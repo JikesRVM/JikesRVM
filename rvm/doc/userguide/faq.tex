@@ -121,7 +121,7 @@ No. This project is no longer active or supported.
 
 \subsubsection{Can I get DejaVu?}
 
-Not yet.  The DejaVu team hopes to release some code shortly.
+Not yet.  The \xlink{DejaVu}{\DejavuURL} team hopes to release some code shortly.
 
 \subsection{Licenses}
 
@@ -166,7 +166,7 @@ boot image.
 You may choose to add more classes to the primordial list.  One way to do
 this is to edit {\tt jconfigure}; look at the function {\tt
 emitImageLinker}.  You will see that the script already puts certain other
-non-VM classes in the primordial list (eg. {\tt java.lang.Object}.
+non-VM classes in the primordial list (eg. {\tt java.lang.Object}).
 
 \subsection{Runtime implementation}
 
@@ -240,8 +240,12 @@ You should normally set $n$ to be the number of physical processors on
 your machine.  Note that in the current (2.0.0) release, only $n=1$ is
 supported on Linux.
 
-In the source code, a {\tt VM\_Thread} is the base class for each Java
-thread, and a {\tt VM\_Processor} is the base class representing each
+In the source code, a 
+\xlink{{\tt VM\_Thread}}{\VMThreadURL} 
+is the base class for each Java
+thread, and a 
+\xlink{{\tt VM\_Processor}}{\VMProcessorURL} 
+is the base class representing each
 Posix thread.  
 
 \subsubsection{What are the semantics of VM\_Uninterruptible?}
@@ -344,7 +348,9 @@ such as thread scheduling and GC, resort to lower-level primitives for
 situations where normal Java object locking is inconvenient or illegal.
 \begin{description}
 \item [VM\_Magic.prepare and VM\_Magic.attempt]
-The RVM compiler translates these calls into low-level
+The RVM compiler translates these 
+\xlink{VM\_Magic}{\VMMagicURL} 
+calls into low-level
 hardware-supported atomic sequences.  These low-level primitives are the 
 building blocks for all other mutual exclusion mechanisms. 
 
@@ -357,7 +363,7 @@ location.
 On PowerPC, the compilers implement prepare and attempt using the lwarx
 and stwcx instructions.  On IA32, the compilers rely on CMPXCHG with the
 LOCK prefix.
-\item [VM\_Synchronization]
+\item [\xlink{VM\_Synchronization}{\VMSynchronizationURL}]
 This class implements some useful common low-level synchronization
 sequences, such as fetch-and-add and test-and-set.  The VM\_Sychronization
 primities, in turn, are implemented using VM\_Magic.prepare and attempt.
@@ -375,9 +381,10 @@ between Java threads.  The implementation is a variant of Thin Locks.
 \item [monitorenter and monitorexit]
 Synchronized statements in Java source code are compiled to monitorenter
 and exit in the Java bytecode.  The RVM compilers implement these
-bytecodes by inserting calls to {\tt VM\_Lock} routines; the optimizing
+bytecodes by inserting calls to \xlink{{\tt VM\_Lock}}{\VMLockURL} routines; 
+the optimizing
 compiler inlines the common cases.
-\item [VM\_GCLocks]
+\item [\xlink{VM\_GCLocks}{\VMGCLocksURL}]
 This class simply encapsulates a number of VM\_Synchronization locks 
 used for various purposes by the RVM GC system.
 
@@ -431,19 +438,21 @@ PEI is a GC point.
 
 \subsubsection{How do I find the def of a register in SSA form?}
 
-Use OPT\_Register.getFirstDef().
+Use 
+\xlink{{\tt OPT\_Register.getFirstDef()}}{\OPTRegisterURL}.
 
 If this returns {\tt null}, then either a) the register is dead and it's definition has been eliminated, or b) the def-use chains are not up-to-date.
 
 The def-use chains are not normally kept up-to-date incrementally.  To
-recompute the def-use chains, call OPT\_DefUse.computeDU(ir). 
+recompute the def-use chains, call 
+\xlink{{\tt OPT\_DefUse.computeDU(ir)}}{\OPTDefUseURL}. 
 Most optimization passes over SSA form call this method at 
 the beginning of the compiler phase.
 
 \subsubsection{What is Heap Array SSA form?}
 
-See the 
-\xlink{SAS 2000 paper}{\SASPaperURL}. 
+See the \xlink{SAS 2000 paper}{\SASPaperURL}, as well as comments in
+\xlink{{\tt OPT\_SSA.java}}{\OPTSSAURL}.
 
 \subsubsection{Is ABCD included?}
 
