@@ -338,9 +338,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject (VM_Address obj) throws VM_PragmaInline {
+  public static final VM_Address traceObject (VM_Address obj) 
+    throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-    return VM_Address.zero();
+    return obj;
   }
 
   /**
@@ -371,15 +372,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     VM_Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
-      case DEFAULT_SPACE:   return true;
-      case IMMORTAL_SPACE:  return true;
-      case BOOT_SPACE:	    return true;
-      case META_SPACE:	    return true;
-      default:              if (VM_Interface.VerifyAssertions) {
-	                      Log.write("Plan.isLive: unknown space"); Log.writeln(space);
-			      VM_Interface.sysFail("Plan.isLive: unknown space");
-                            }
-			    return false;
+    case DEFAULT_SPACE:   return true;
+    case IMMORTAL_SPACE:  return true;
+    case BOOT_SPACE:	  return true;
+    case META_SPACE:	  return true;
+    default:
+      if (VM_Interface.VerifyAssertions)
+	spaceFailure(obj, space, "Plan.isLive()");
+      return false;
     }
   }
 
