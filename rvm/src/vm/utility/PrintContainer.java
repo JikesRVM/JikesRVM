@@ -25,154 +25,77 @@ import com.ibm.JikesRVM.VM;
  *
  * @author Steven Augart (w/ brainstorming by David Grove)
  */
-public class PrintContainer 
-  extends PrintLN 
-{
-  // These will be implicitly initialized to null.
-  private PrintWriter writer;
-  private PrintStream stream;
-  
-  public PrintContainer(PrintWriter out) {
-    writer = out;
-  }
-  public PrintContainer(PrintStream out) {
-    stream = out;
-  }
-
-  public boolean isSystemErr() {
-    return stream == System.err;
-  }
-  public boolean isVMSysWriteln() {
-    return false;
-  }
-  private void inconsistentState() {
-      throw new InternalError("inconsistent internal state of ibm.com.JikesRVM.PrintContainer.PrintContainer object");
-  }
-
-  public void flush() {
-    if (writer != null)
-      writer.flush();
-    else if (stream != null)
-      stream.flush();
-    else
-      inconsistentState();
-  }
-
-  public void println() {
-    if (writer != null)
-      writer.println();
-    else if (stream != null)
-      stream.println();
-    else
-      inconsistentState();
-  }
-
-  public void print(String s) {
-    if (s == null)
-      s = "(*null String pointer*)";
-
-    if (writer != null)
-      writer.print(s);
-    else if (stream != null)
-      stream.print(s);
-    else
-      inconsistentState();
-    
-  }
-
-  public void println(String s) {
-    print(s);
-    if (writer != null)
-      writer.println();
-    else if (stream != null)
-      stream.println();
-    else
-      inconsistentState();
-  }
-
-  
-  /* Here, we are writing code to make sure that we do not rely upon any
-   * external memory accesses. */
-  // largest power of 10 representable as a Java integer.
-  // (max int is            2147483647)
-  final int max_int_pow10 = 1000000000;
-
-  public void print(int n) {
-    boolean suppress_leading_zero = true;
-    if (n == 0x80000000) {
-      print("-2147483648");
-      return;
-    } else if (n == 0) {
-      print('0');
-      return;
-    } else if (n < 0) {
-      print('-');
-      n = -n;
-    }     
-    /* We now have a positive # of the proper range.  Will need to exit from
-       the bottom of the loop. */
-    for (int p = max_int_pow10; p >= 1; p /= 10) {
-      int digit = n / p;
-      n -= digit * p;
-      if (digit == 0 && suppress_leading_zero)
-	continue;
-      suppress_leading_zero = false;
-      char c = (char) ('0' + digit);
-      print(c);
-    }
-  }
-
-  public void printHex(int n) {
-    print("0x");
-    // print exactly 8 hexadec. digits.
-    for (int i = 32 - 4; i >= 0; i -= 4) {
-      int digit = (n >>> i) & 0x0000000F;		// fill with 0 bits.
-      char c;
-
-      if (digit <= 9) {
-	c = (char) ('0' + digit);
-      } else {
-	c = (char) ('A' + (digit - 10));
-      }
-      print(c);
-    }
-  }
-
-
-  /* Here we need to imitate the work that would normally be done by
-   * VM_Member.toString() (which VM_Method.toString() inherits) */
-  public void print(VM_Member m) {
-    print(m.getDeclaringClass()); // VM_Class
-    print('.');
-    print(m.getName());
-    print(' ');
-    print(m.getDescriptor());
-  }
-
-  public void print(VM_Atom a) {
-    byte[] val = a.toByteArray();
-    for (int i = 0; i < val.length; ++i) {
-      print((char) val[i]);
-    }
-  }
-
-  public void print(char c) {
-    if (writer != null)
-      writer.print(c);
-    else if (stream != null)
-      stream.print(c);
-    else
-      inconsistentState();
-  }
-
+public class PrintContainer {
+  private PrintContainer() {};	// Cannot create an instance of it.
   /** This (nested) class does printing via VM.sysWriteln() */
-  public static class VMSysWriteln 
+  private static class WithPrintWriter
     extends PrintLN
   {
-    public VMSysWriteln() {}
-    public boolean isSystemErr() {
-      return false;
+    private PrintWriter out;
+
+    WithPrintWriter(PrintWriter out) {
+      this.out = out;
     }
+    public void flush() {
+      out.flush();
+    }
+    public void println() {
+      out.println();
+    }
+    public void print(String s) {
+      if (s == null)
+	s = "(*null String pointer*)";
+      out.print(s);
+    }
+    public void print(char c) {
+      out.print(c);
+    }
+  }
+  
+  private static class WithPrintStream
+    extends PrintLN
+  {
+    private PrintStream out;
+
+    WithPrintStream(PrintStream out) {
+      this.out = out;
+    }
+
+    public boolean isSystemErr() {
+      return this.out == System.err;
+    }
+    public void flush() {
+      out.flush();
+    }
+    public void println() {
+      out.println();
+    }
+    public void print(String s) {
+      if (s == null)
+	s = "(*null String pointer*)";
+      out.print(s);
+    }
+    public void print(char c) {
+      out.print(c);
+    }
+  }
+
+  static public PrintLN get(PrintStream out) {
+     return new WithPrintStream(out);
+  }
+
+  static public PrintLN get(PrintWriter out) {
+     return new WithPrintWriter(out);
+  }
+
+  // Keep this one ready to go at all times :)
+  static public PrintLN readyPrinter = new WithSysWriteln();
+  
+  /** This (nested) class does printing via VM.sysWriteln() */
+  private static class WithSysWriteln 
+    extends PrintLN
+  {
+    WithSysWriteln() {}
     public boolean isVMSysWriteln() {
       return true;
     }

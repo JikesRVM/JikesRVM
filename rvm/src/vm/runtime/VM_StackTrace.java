@@ -196,28 +196,14 @@ public class VM_StackTrace implements VM_Constants {
   }
 
   public void printDegradingToVMSysWrite(PrintLN out, Throwable trigger) {
-    if (!out.isSystemErr()) {
-      VM.sysWriteln("VM_StackTrace.print() got an *UNEXPECTED* out-of-memory error while displaying the stack trace.  I give up; what you see is what you got.");
+    if (out.isVMSysWriteln()) {
+      VM.sysWriteln("VM_StackTrace.print() got an *UNEXPECTED* out-of-memory error while displaying the stack trace, via its low-level facilities.  I give up; what you see is what you got.");
       /* Now, if we were triggered by an uncaught exception, processing will
        * continue normally. */
       return;
     }
     VM.sysWriteln("VM_StackTrace.print() ran out of memory while dumping a stack trace to \"System.err\".  We will try again now, using the low-level \"VM.sysWrite()\"");
-    /* We could have some pre-allocated memory and then free it up when we
-     * need it.  Do this if we continue to encounter trouble. */
-    try {
-      out = new PrintContainer.VMSysWriteln();
-    } catch (OutOfMemoryError e2) {
-      trigger.tallyOutOfMemoryError();
-      VM.sysWriteln("VM_StackTrace.printDegradingToVMSysWrite(): Out of memory AGAIN; can't even make a PrintContainer.VMSysWriteln(); I give up.");
-      return;
-    } catch (Throwable t) {
-      trigger.tallyWeirdError();
-      VM.sysWriteln("VM_StackTrace.printDegradingToVMSysWrite(): Caught an unexpected Throwable; bailing out.");
-      return;
-    }
-    /* This is separated from the previous try block so that they can have
-     * their own error messages.   */
+    out = PrintContainer.readyPrinter;
     try {
       print4Real(out, trigger);
     } catch (Throwable t) {
