@@ -757,6 +757,10 @@ function rationalize_config_file_settings () {
 }
 
 function rationalize_classpath_version () {
+    ## Re-loading classpath-version will not hurt.  Not ever loading it
+    ## would mean trouble with RVM_CLASSPATH_URL
+    . ${RVM_ROOT}/rvm/config/classpath-version
+
     ## Perform sanity checks.  We could consolidate these, but
     ## breaking them into two checks lets us print better error
     ## messages.
@@ -1382,6 +1386,8 @@ declare -i HAS_DLCOMPAT=0
 ## "paranoid preprocessor". 
 declare -r -i RVM_WITH_OPT_INSTRUMENTATION=0
 declare -r -i RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH=0
+
+
 
 #---------------------------------------#
 # SECTION 3 - PROCESS RVM_TARGET_CONFIG # 
