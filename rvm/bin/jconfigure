@@ -4005,7 +4005,9 @@ gnu_compiler_flags=(-DRVM_FOR_LINUX -DRVM_FOR_IA32 $CC_DEFINES)"
 	exit 2
     fi
     echo ""
-    echo "BOOTER_CC=\"\${BOOTER_CC} ${RVM_CC_OPTIMIZER_AND_DEBUG_FLAGS}\""
+    if (( RVM_FOR_IA32 )); then
+        echo "BOOTER_CC=\"\${BOOTER_CC} ${RVM_CC_OPTIMIZER_AND_DEBUG_FLAGS}\""
+    fi
     echo "BOOTER_CXX=\"\${BOOTER_CXX} ${RVM_CXX_OPTIMIZER_AND_DEBUG_FLAGS}\""
     
     if (( HAS_DLCOMPAT )); then
