@@ -19,6 +19,9 @@ export HOST_JAVA="/IBM/Java13/jre/bin/java"
 # the JDK javac executable
 export HOST_JAVAC="/usr/local/bin/jikes"
 
+# the JDK jar executable
+export HOST_JAR="/IBM/Java13/jre/bin/jar"
+
 # the JDK standard library jar files
 export HOST_REPOSITORIES="/IBM/Java13/jre/lib/rt.jar"
 
@@ -54,7 +57,7 @@ export AWK=/bin/awk
 export PS=/bin/ps
 export BASH=/usr/bin/bash
 export SED=/usr/bin/sed
-export WGET=
-export MD5SUM=
+export WGET=/usr/bin/wget
+export MD5SUM=/usr/bin/md5sum
 export GNU_TAR=/bin/tar
 
