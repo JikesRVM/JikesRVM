@@ -21,16 +21,11 @@ class VM_IdleThread extends VM_Thread {
    *
    * @see "preprocessor directive RVM_WITHOUT_LOAD_BALANCING"
    */
-//-#if RVM_WITHOUT_LOAD_BALANCING
+  //-#if RVM_WITHOUT_LOAD_BALANCING
   static final boolean loadBalancing = false;
-//-#else
+  //-#else
   static final boolean loadBalancing = !VM.BuildForSingleVirtualProcessor;
-//-#endif
-
-  /**
-   * Time to wait for work if loadBalancing is set.
-   */
-  static final double SPIN_TIME = (loadBalancing? 0.001 : 0.0);
+  //-#endif
 
   /**
    * A thread to run if there is no other work for a virtual processor.
@@ -48,9 +43,10 @@ class VM_IdleThread extends VM_Thread {
   public void run() { // overrides VM_Thread
     VM_Processor myProcessor = VM_Processor.getCurrentProcessor();
     if (VM.VerifyAssertions) VM._assert(myProcessor.processorMode != VM_Processor.NATIVEDAEMON);
-   main: while (true) {
+    long spinInterval = loadBalancing ? VM_Time.millisToCycles(1) : 0;
+    main: while (true) {
       if (VM_Scheduler.terminated) VM_Thread.terminate();
-      double t=VM_Time.now()+SPIN_TIME;
+      long t = VM_Time.cycles()+spinInterval;
 
       if (VM_Scheduler.debugRequested) {
 	System.err.println("debug requested in idle thread");
@@ -63,13 +59,13 @@ class VM_IdleThread extends VM_Thread {
 	  VM_Thread.yield(VM_Processor.getCurrentProcessor().idleQueue);
 	  continue main;
 	}
-      } while (VM_Time.now()<t);
+      } while (VM_Time.cycles()<t);
       
       VM.sysVirtualProcessorYield();
-   }
+    }
   }
 
-  /*
+  /**
    * @return true, if their appears to be a runnable thread for the processor to execute
    */
   private static boolean availableWork ( VM_Processor p ) {
