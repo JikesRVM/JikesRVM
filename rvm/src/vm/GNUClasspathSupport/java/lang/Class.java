@@ -50,7 +50,7 @@ public final class Class implements java.io.Serializable {
     }
 
     void setSigners(Object[] signers) {
-	UnimplementedError.unimplemented("Class.getDeclaringClass");
+	UnimplementedError.unimplemented("Class.setSigners");
     }
    
     public static Class forName(String typeName) throws ClassNotFoundException {
