@@ -190,7 +190,7 @@ final class VM_Chunk implements VM_Uninterruptible, VM_GCConstants {
    * 
    * @param size the number of bytes to allocate
    */
-  private static VM_Address slowPath1(int size) throws OutOfMemoryError, VM_PragmaInline  {
+  private static VM_Address slowPath1(int size) throws OutOfMemoryError, VM_PragmaNoInline  {
     // Detect Java-level allocations during GC or while GC disabled 
     // and trap as a fatal error.
     if (VM.VerifyAssertions) {
