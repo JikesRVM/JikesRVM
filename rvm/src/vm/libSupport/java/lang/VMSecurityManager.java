@@ -7,10 +7,14 @@ package java.lang;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.classloader.VM_Type;
 import com.ibm.JikesRVM.VM_StackBrowser;
-import com.ibm.JikesRVM.classloader.VM_SystemClassLoader;
+import com.ibm.JikesRVM.classloader.VM_BootstrapClassLoader;
 
 /**
- * Library support interface of Jikes RVM
+ * Library support interface of Jikes RVM.
+ * This class is not used after GNU Classpath 0.13.  Many of its
+ * methods have been transferred to VMStackWalker.  We are copying the
+ * methods verbatim to there, rather than doing them by call, because of
+ * the silly interface.
  *
  * @author Julian Dolby
  *
@@ -61,7 +65,7 @@ final class VMSecurityManager
       VM.disableGC();
       b.init();
 
-      while(b.hasMoreFrames() && b.getClassLoader() == VM_SystemClassLoader.getVMClassLoader())
+      while(b.hasMoreFrames() && b.getClassLoader() == VM_BootstrapClassLoader.getBootstrapClassLoader())
           b.up();
 
       VM.enableGC();
