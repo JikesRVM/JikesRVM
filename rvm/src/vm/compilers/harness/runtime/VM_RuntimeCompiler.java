@@ -52,11 +52,23 @@ public class VM_RuntimeCompiler implements VM_Constants,
   public static final byte OPT_COMPILER      = 2;
 
   // Data accumulators
-  private static final String name[]         = {"JNI\t","Base\t","Opt\t"};   // Output names
-  private static int total_methods[]         = {0,0,0};               // (1)
-  private static double total_time[]         = {0,0,0};               // (2)
-  private static int total_bcodeLen[]        = {0,0,0};               // (3)
-  private static int total_mcodeLen[]        = {0,0,0};               // (4)
+  private static final String name[]        = {"JNI\t","Base\t","Opt\t"};   // Output names
+  private static int totalMethods[]         = {0,0,0};
+  private static double totalCompTime[]     = {0,0,0}; 
+  private static int totalBCLength[]        = {0,0,0};
+  private static int totalMCLength[]        = {0,0,0};
+
+  // running sum of the natural logs of the rates, 
+  //  used for geometric mean, the product of rates is too big for doubles
+  //  so we use the principle of logs to help us 
+  // We compute  e ** ((log a + log b + ... + log n) / n )
+  private static double totalLogOfRates[]   = {0,0,0};
+
+  // Only used if we are computing the inferior arithmetic mean, geo is better!
+  private static double totalRates[]        = {0,0,0};
+
+  // We can't record values until Math.log is loaded, so we miss the first few
+  private static int totalLogValueMethods[] = {0,0,0};
 
   //-#if RVM_WITH_ADAPTIVE_SYSTEM
   public static OPT_InlineOracle offlineInlineOracle;
@@ -103,10 +115,28 @@ public class VM_RuntimeCompiler implements VM_Constants,
   public static void record(byte compiler, 
 			    VM_NormalMethod method, 
 			    VM_CompiledMethod compiledMethod) {
-    total_methods[compiler]++;
-    total_bcodeLen[compiler] += method.getBytecodeLength();
-    total_mcodeLen[compiler] += compiledMethod.getInstructions().length();
-    total_time[compiler] += compiledMethod.getCompilationTime();
+
+    recordCompilation(compiler, method.getBytecodeLength(),
+		      compiledMethod.getInstructions().length(),
+		      compiledMethod.getCompilationTime());
+
+    //-#if RVM_WITH_ADAPTIVE_SYSTEM
+    if (VM.LogAOSEvents) {
+      if (VM_AOSLogging.booted()) {
+	VM_AOSLogging.recordUpdatedCompilationRates(compiler, 
+						    method,
+						    method.getBytecodeLength(),
+						    totalBCLength[compiler],		  
+						    compiledMethod.getInstructions().length(),
+						    totalMCLength[compiler],
+						    compiledMethod.getCompilationTime(),
+						    totalCompTime[compiler],
+						    totalLogOfRates[compiler],
+						    totalLogValueMethods[compiler],
+						    totalMethods[compiler]);
+      }
+    }
+    //-#endif
   }
 
   /**
@@ -119,10 +149,48 @@ public class VM_RuntimeCompiler implements VM_Constants,
   public static void record(byte compiler, 
 			    VM_NativeMethod method, 
 			    VM_CompiledMethod compiledMethod) {
-    total_methods[compiler]++;
-    total_bcodeLen[compiler] += 1; // lie to avoid divide by zero!
-    total_mcodeLen[compiler] += compiledMethod.getInstructions().length();
-    total_time[compiler] += compiledMethod.getCompilationTime();
+
+
+    recordCompilation(compiler, 
+		      0, // don't have any bytecode info, its native
+		      compiledMethod.getInstructions().length(),
+		      compiledMethod.getCompilationTime());
+  }
+
+  /**
+   * This method does the actual recording
+   * @param compiler the compiler used
+   * @param BCLength the number of bytecodes in method source
+   * @param MCLength the length of the generated machine code
+   * @param compTime the compilation time in ms
+   */
+  private static void recordCompilation(byte compiler, 
+					int BCLength, 
+					int MCLength, 
+					double compTime) {
+
+    totalMethods[compiler]++;
+    totalMCLength[compiler] += MCLength;
+    totalCompTime[compiler] += compTime;
+
+    // Comp rate not useful for JNI compiler because there is no bytecode!
+    if (compiler != JNI_COMPILER) {
+      totalBCLength[compiler] += BCLength; 
+      double rate = BCLength / compTime;
+
+      // for now let's also accumate for arithmetic mean
+      //  soon we'll just use geomean, which is the statistically right one to choose
+      totalRates[compiler] += rate;
+
+      // need to be fully booted before calling log
+      if (VM.fullyBooted) {
+	// we want the geometric mean, but the product of rates is too big 
+	//  for doubles, so we use the principle of logs to help us 
+	// We compute  e ** ((log a + log b + ... + log n) / n )
+	totalLogOfRates[compiler] += Math.log(rate);
+	totalLogValueMethods[compiler]++;
+      }
+    }
   }
 
   /**
@@ -133,25 +201,56 @@ public class VM_RuntimeCompiler implements VM_Constants,
     VM.sysWrite("\n\t\tCompilation Subsystem Report\n");
     VM.sysWrite("Comp\t#Meths\tTime\tbcb/ms\tmcb/bcb\tMCKB\tBCKB\n");
     for (int i=JNI_COMPILER; i<=OPT_COMPILER; i++) {
-      if (total_methods[i]>0) {
+      if (totalMethods[i]>0) {
 	VM.sysWrite(name[i]);
 	// Number of methods
-	VM.sysWrite(total_methods[i]);
+	VM.sysWrite(totalMethods[i]);
 	VM.sysWrite("\t");
 	// Compilation time
-	VM.sysWrite(total_time[i]);
+	VM.sysWrite(totalCompTime[i]);
 	VM.sysWrite("\t");
-	// Bytecode bytes per millisecond
-	VM.sysWrite((double)total_bcodeLen[i]/total_time[i], 2);
+
+	if (i == JNI_COMPILER) {
+	  VM.sysWrite("NA");
+	} else {
+	  // Bytecode bytes per millisecond, 
+	  // 2 ways to compute controlled by a AOS option for now
+	  //-#if RVM_WITH_ADAPTIVE_SYSTEM
+	  if (VM_Controller.options.WEIGHTED_COMPILATION_RATE) {
+	    VM.sysWrite((double)totalBCLength[i]/totalCompTime[i], 2);
+	  } else {// unweighted rate
+	    // Should use geomean, but need to get past the "log" problem, so
+	    //   we make arith an option for now
+	    if (VM_Controller.options.ARITH_MEAN_COMPILATION_RATE) {
+	      // arith mean
+	      VM.sysWrite(totalRates[i] / totalMethods[i], 2);
+	    } else {
+	      // geometric mean
+	      VM.sysWrite(Math.exp(totalLogOfRates[i] / totalLogValueMethods[i]), 2);
+	    }
+	  }
+	  //-#else
+	  //  use unweighted geomean as default
+	  VM.sysWrite(Math.exp(totalLogOfRates[i] / totalLogValueMethods[i]), 2);
+	  //-#endif
+	}
 	VM.sysWrite("\t");
 	// Ratio of machine code bytes to bytecode bytes
-	VM.sysWrite((double)(total_mcodeLen[i] << LG_INSTRUCTION_WIDTH)/(double)total_bcodeLen[i], 2);
+	if (i != JNI_COMPILER) {
+	  VM.sysWrite((double)(totalMCLength[i] << LG_INSTRUCTION_WIDTH)/(double)totalBCLength[i], 2);
+	} else {
+	  VM.sysWrite("NA");
+	}
 	VM.sysWrite("\t");
 	// Generated machine code Kbytes
-	VM.sysWrite((double)(total_mcodeLen[i] << LG_INSTRUCTION_WIDTH)/1024, 1);
+	VM.sysWrite((double)(totalMCLength[i] << LG_INSTRUCTION_WIDTH)/1024, 1);
 	VM.sysWrite("\t");
 	// Compiled bytecode Kbytes
-	VM.sysWrite((double)total_bcodeLen[i]/1024, 1); 
+	if (i != JNI_COMPILER) {
+	  VM.sysWrite((double)totalBCLength[i]/1024, 1); 
+	} else {
+	  VM.sysWrite("NA");
+	}
 	VM.sysWrite("\n");
       }
     }
@@ -182,14 +281,22 @@ public class VM_RuntimeCompiler implements VM_Constants,
     //-#endif
   }
    
+  //-#if RVM_WITH_ADAPTIVE_SYSTEM 
   /**
    * Return the current estimate of basline-compiler rate, in bcb/msec
    */
   public static double getBaselineRate() {
-    double bytes = (double) total_bcodeLen[BASELINE_COMPILER];
-    double time = total_time[BASELINE_COMPILER];
-    return bytes/time;
+    double rate = 0.0;
+    if (VM_Controller.options.WEIGHTED_COMPILATION_RATE) {
+      double bytes = (double) totalBCLength[BASELINE_COMPILER];
+      double time = totalCompTime[BASELINE_COMPILER];
+      rate = bytes / time;
+    } else {
+      rate = Math.exp(totalLogOfRates[BASELINE_COMPILER] / totalLogValueMethods[BASELINE_COMPILER]);
+    }
+    return rate;
   }
+  //-#endif
 
   /**
    * This method will compile the passed method using the baseline compiler.
@@ -585,7 +692,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
       }
     }
     if (VM.LogAOSEvents) {
-      VM_AOSLogging.recordCompileTime(cm);
+      VM_AOSLogging.recordCompileTime(cm, 0.0);
     }
     return cm;
     //-#endif
@@ -619,4 +726,15 @@ public class VM_RuntimeCompiler implements VM_Constants,
     
     return cm;
   }
+
+  /**
+   * returns the string version of compiler number, using the naming scheme
+   * in this file
+   * @param compiler the compiler of interest
+   * @return the string version of compiler number
+   */
+  public static String getCompilerName(byte compiler) {
+    return name[compiler];
+  }
+
 }
