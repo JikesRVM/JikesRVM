@@ -15,6 +15,7 @@ import org.mmtk.utility.heap.*;
 import org.mmtk.utility.scan.MMType;
 import org.mmtk.utility.scan.Scan;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.Collection;
 import org.mmtk.vm.Memory;
 import org.mmtk.vm.ObjectModel;
 
@@ -242,7 +243,13 @@ public class NoGC extends StopTheWorldGC implements Uninterruptible {
    */
   public final boolean poll(boolean mustCollect, Space space) 
     throws LogicallyUninterruptiblePragma {
-    if (getPagesAvail() <= 0) Assert.error("Out of memory");
+    if (!initialized || collectionsInitiated > 0 || space == metaDataSpace)
+      return false;
+    if (getPagesAvail() <= 0) {
+      Assert.error("Out of memory");	
+      // Collection.triggerCollection(Collection.RESOURCE_GC_TRIGGER);
+      // return true;	
+    }
     return false;
   }
 
