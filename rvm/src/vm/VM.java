@@ -394,7 +394,7 @@ public class VM extends VM_Properties implements VM_Constants,
           throw e;
         } catch (Throwable t) {
           ExceptionInInitializerError eieio
-            = new ExceptionInInitializerError("Caught exception while invoking the class initializer for"
+            = new ExceptionInInitializerError("Caught exception while invoking the class initializer for "
                                               +  className);
           eieio.initCause(t);
           throw eieio;
