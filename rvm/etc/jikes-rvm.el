@@ -136,10 +136,11 @@ JikesRVM Java style guidelines on your own"))
 			       (1 font-lock-constant-face prepend))))))
 
 (defvar jikes-rvm-javadoc-font-lock-keywords
-  '("@\\(author\\|date\\|deprecated\\|exception\\|link\\|modified\\|return\\|see\\|serial\\|serialData\\|serialField\\|since\\|throws\\|version\\)\\>"
+  '("\\(@\\(author\\|date\\|deprecated\\|link\\|modified\\|param\\|return\\|see\\|since\\|value\\|version\\)\\)\\>"
     (1 font-lock-constant-face prepend))
   "*Keywords used for highlighting Javadoc-style comments in Jikes RVM,
-even if they appear in C or C++ programs.")
+even if they appear in C or C++ programs.  This is kludgy; we really
+need to do a better job of recognizing doc comments.")
 
 (add-hook 'c++-mode-hook
 	  #'(lambda () 
