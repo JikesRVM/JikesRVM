@@ -803,9 +803,9 @@ implements OPT_Operators, OPT_Constants {
             } else {
               OPT_RegisterOperand rop = r2.copyRO();
               Phi.setValue(s,j,rop);
-              Phi.setPred(s,j,new OPT_BasicBlockOperand(X));
               OPT_DefUse.recordUse(rop);
             }
+            Phi.setPred(s,j,new OPT_BasicBlockOperand(X));
           }
         }
         s = s.nextInstructionInCodeOrder();
