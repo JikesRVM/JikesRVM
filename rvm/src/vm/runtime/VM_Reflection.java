@@ -51,9 +51,7 @@ public class VM_Reflection implements VM_Constants {
     // make sure it's been compiled
     //
     if (!targetMethod.isCompiled()) {
-      synchronized (VM_ClassLoader.lock) {
-	targetMethod.compile();
-      }
+      targetMethod.compile();
     }
         
     // remember return type

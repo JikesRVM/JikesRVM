@@ -138,9 +138,7 @@ class VM_DynamicLinker implements VM_DynamicBridge, VM_Constants {
 	  targetClass.initialize();
 	}
 
-	synchronized(VM_ClassLoader.lock) {
-	  targetMethod.compile();
-	}
+	targetMethod.compile();
 
 	// If targetMethod is a virtual method, then
 	// eagerly patch tib of declaring class

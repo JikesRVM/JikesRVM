@@ -566,11 +566,7 @@ public class VM_Array extends VM_Type
   // JVM spec says anewarray forces loading of base class   
   // 
   // TODO: this should throw VM_ResolutionException
-  public final void load() {
-    if (VM.VerifyAssertions && VM.runningVM) {
-      VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Array.load called without holding VM_ClassLoader.lock");
-    }
-
+  public final synchronized void load() {
     if (isLoaded())
       return;
 
@@ -591,11 +587,7 @@ public class VM_Array extends VM_Type
   // JVM spec says anewarray forces resolution of base class   
   //
   // TODO: this should throw VM_ResolutionException
-  public final void resolve() {
-    if (VM.VerifyAssertions && VM.runningVM) {
-      VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Array.resolve called without holding VM_ClassLoader.lock");
-    }
-
+  public final synchronized void resolve() {
     if (isResolved())
       return;
     if (VM.VerifyAssertions) VM.assert(state == CLASS_LOADED);
@@ -633,11 +625,7 @@ public class VM_Array extends VM_Type
 
   // Build type information block and install it in jtoc.
   //
-  public final void instantiate() {
-    if (VM.VerifyAssertions && VM.runningVM) {
-      VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Array.instantiate called without holding VM_ClassLoader.lock");
-    }
-
+  public final synchronized void instantiate() {
     if (isInstantiated())
       return;
     if (VM.VerifyAssertions) VM.assert(state == CLASS_RESOLVED);

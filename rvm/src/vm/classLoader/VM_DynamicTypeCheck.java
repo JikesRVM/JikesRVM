@@ -347,10 +347,8 @@ class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
     throws VM_ResolutionException {
     if (LHSType == RHSType) return true;
     if (!LHSType.isResolved()) {
-      synchronized(VM_ClassLoader.lock) {
-	LHSType.load();
-	LHSType.resolve();
-      }
+      LHSType.load();
+      LHSType.resolve();
     }
     int LHSDimension = LHSType.getDimensionality();
     int RHSDimension = RHSType.getDimensionality();

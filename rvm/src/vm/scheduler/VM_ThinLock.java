@@ -73,7 +73,7 @@ final class VM_ThinLock implements VM_ThinLockConstants, VM_Uninterruptible {
    */
   static void lock (Object o, int lockOffset) {
     VM_Magic.pragmaNoInline();
-    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { if (o == VM_ClassLoader.lock) VM_EventLogger.logRuntimeLockContentionEvent(); else VM_EventLogger.logOtherLockContentionEvent(); }
+    if (VM.BuildForEventLogging && VM.EventLoggingEnabled) { VM_EventLogger.logOtherLockContentionEvent(); }
 major: while (true) { // repeat only if attempt to lock a promoted lock fails
          int retries = retryLimit; 
 minor:  while (0 != retries--) { // repeat if there is contention for thin lock

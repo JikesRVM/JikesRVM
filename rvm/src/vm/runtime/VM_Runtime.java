@@ -182,10 +182,7 @@ public class VM_Runtime implements VM_Constants {
 	}
       }
       
-      boolean rc; 
-      synchronized (VM_ClassLoader.lock) {
-	rc = lhs.isAssignableWith(rhs);
-      }
+      boolean rc = lhs.isAssignableWith(rhs);
       
       // update cache of successful type comparisions 
       // (no synchronization required)
@@ -772,11 +769,9 @@ public class VM_Runtime implements VM_Constants {
 						  int dimIndex, 
 						  VM_Array arrayType) {
     if (!arrayType.isInstantiated()) {
-      synchronized(VM_ClassLoader.lock) {
-	arrayType.load();
-	arrayType.resolve();
-	arrayType.instantiate();
-      }
+      arrayType.load();
+      arrayType.resolve();
+      arrayType.instantiate();
     }
 
     int    nelts     = numElements[dimIndex];

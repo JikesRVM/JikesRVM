@@ -156,9 +156,7 @@ class OptTestHarness {
   }
   
   static VM_Class loadClass(String s) throws ClassNotFoundException {
-    synchronized(VM_ClassLoader.lock) {
-      return (VM_Class)cl.loadClass(s, true).getVMType();
-    }
+    return (VM_Class)cl.loadClass(s, true).getVMType();
   }
 
   static void printFormatString() {
@@ -277,9 +275,7 @@ class OptTestHarness {
 	  VM_Method method = findDeclaredOrFirstMethod(klass, name, desc);
 	  VM_CompiledMethod cm = null;
 	  if (BASELINE) 
-	    synchronized(VM_ClassLoader.lock) {
-	      cm = VM_Compiler.compile(method);
-	    }
+	    cm = VM_Compiler.compile(method);
 	  else {
 	    OPT_CompilationPlan cp = 
 	      new OPT_CompilationPlan(method, 
@@ -287,9 +283,7 @@ class OptTestHarness {
 				      null,
 				      options);
 	    try {
-	      synchronized(VM_ClassLoader.lock) {
-		cm = OPT_Compiler.compile(cp);
-	      }
+	      cm = OPT_Compiler.compile(cp);
 	    } catch (Throwable e) {
 	      System.err.println("SKIPPING method:"+ method + "Due to exception: "+ e) ;
 	    }
@@ -328,10 +322,8 @@ class OptTestHarness {
     for(int i = 0; i < size ; i++) {
       VM_Method method = (VM_Method) baselineMethodVector.elementAt(i);
       VM_CompiledMethod cm = null;
-      synchronized(VM_ClassLoader.lock) {
-	cm = VM_Compiler.compile(method);
-	method.replaceCompiledMethod(cm);
-      }
+      cm = VM_Compiler.compile(method);
+      method.replaceCompiledMethod(cm);
     }
 
     // Now compile all methods in opt vector
@@ -347,10 +339,8 @@ class OptTestHarness {
 				  OPT_OptimizationPlanner.createOptimizationPlan(opts),
 				  null,
 				  opts);
-	synchronized(VM_ClassLoader.lock) {
-	  cm = OPT_Compiler.compile(cp);
-	  method.replaceCompiledMethod(cm);
-	}
+	cm = OPT_Compiler.compile(cp);
+	method.replaceCompiledMethod(cm);
       } catch (OPT_OptimizingCompilerException e) {
 	if (e.isFatal && opts.ERRORS_FATAL) {
 	  e.printStackTrace();

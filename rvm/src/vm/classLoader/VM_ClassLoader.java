@@ -13,30 +13,12 @@ import java.security.ProtectionDomain;
 /**
  * Manufacture type descriptions as needed by the running virtual machine. <p>
  * 
- * <p> TODO: Access to many of the VM_ClassLoader data structures currently must
- *       be serialized (access is controlled by VM_ClassLoader.lock).
- *       This is perhaps the biggest scalability problem in the Jikes RVM.
- *       We need to rewrite the data structures and move to a looser
- *       model that allows multiple concurrent readers and only serializes
- *       writers (possibly using multiple write locks, one for each data
- *       structure arranged in a lock hierarchy to prevent deadlock). <p>
- *
  * @author Bowen Alpern
  * @author Derek Lieber
  */
 public class VM_ClassLoader
   implements VM_Constants, VM_ClassLoaderConstants {
 
-  /** 
-   * Serialization lock for thread-safe access to VM_ClassLoader
-   * services and data structures.
-   * <p> A few of the simpler data structures can be read with out acquiring 
-   * the lock; writing any of the data structures requires acquiring 
-   * the lock. 
-   */
-  public static VM_Synchronizer lock;
-
-  
   /**
    * Set list of places to be searched for vm classes and resources.
    * @param classPath path specification in standard "classpath" format
@@ -344,10 +326,6 @@ public class VM_ClassLoader
    * Initialize for bootimage.
    */
   static void init(String vmClassPath) {
-    // Create classloader serialization lock.
-    //
-    lock = new VM_Synchronizer();
-      
     // specify place where vm classes and resources live
     //
     setVmRepositories(vmClassPath);
@@ -458,14 +436,12 @@ public class VM_ClassLoader
 
   public static final void resolveClassInternal(Class clazz) {
     VM_Type cls = clazz.getVMType();
-    synchronized(lock) {
-      try {
-	cls.resolve();
-      } catch (VM_ResolutionException e) { 
-	VM.sysWrite("ERROR: DROPPING EXCEPTION: "+e+" ON THE FLOOR\n");
-      }
-      cls.instantiate();
+    try {
+      cls.resolve();
+    } catch (VM_ResolutionException e) { 
+      VM.sysWrite("ERROR: DROPPING EXCEPTION: "+e+" ON THE FLOOR\n");
     }
+    cls.instantiate();
     cls.initialize();
   }
 
@@ -509,17 +485,15 @@ public class VM_ClassLoader
     VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
     VM_Class cls = VM_ClassLoader.findOrCreateType(classDescriptor, classloader).asClass();
 
-    synchronized (lock) {
-      if (!cls.isLoaded()) {
-	if (VM.TraceClassLoading  && VM.runningVM)
-	  VM.sysWrite("loading " + cls + " with " + classloader);
-	
-	cls.classloader = classloader;
-	try {
-	  cls.load(new DataInputStream(is));
-	} catch (IOException e) {
-	  throw new ClassFormatError(e.getMessage());
-	}
+    if (!cls.isLoaded()) {
+      if (VM.TraceClassLoading  && VM.runningVM)
+	VM.sysWrite("loading " + cls + " with " + classloader);
+      
+      cls.classloader = classloader;
+      try {
+	cls.load(new DataInputStream(is));
+      } catch (IOException e) {
+	throw new ClassFormatError(e.getMessage());
       }
     }
 
@@ -631,12 +605,7 @@ public class VM_ClassLoader
     throws VM_ResolutionException {
     if (!I.isLoaded()) {
       if (canLoad) {
-	  VM_Runtime.initializeClassForDynamicLink(I);
-	  /*
-	    synchronized (VM_ClassLoader.lock) {
-	      I.load();
-	    }
-	  */
+	VM_Runtime.initializeClassForDynamicLink(I);
 	if (!I.isInterface()) 
           throw new VM_ResolutionException(I.getDescriptor(), 
                                            new IncompatibleClassChangeError());

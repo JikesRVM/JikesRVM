@@ -258,7 +258,7 @@
   /**
    * Instance of java.lang.Class corresponding to this type.
    */   
- public final Class getClassForType() {
+  public final Class getClassForType() {
     // ensure that create() is not called during boot image writing
     // since the jdk loads its version of java.lang.Class instead of ours.
     // This only happens for static synchronized methods and the Class 
@@ -271,10 +271,8 @@
      // to check it all over the reflection code. 
      if (!isResolved()) {
        try {
-	 synchronized(VM_ClassLoader.lock) {
-	   load();
-	   resolve();
-	 }
+	 load();
+	 resolve();
        } catch (VM_ResolutionException e) {
 	 throw new NoClassDefFoundError(e.getException().toString());
        }

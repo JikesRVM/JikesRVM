@@ -130,13 +130,10 @@ public class OPT_Compiler {
    */
   private static void loadSpecialClass (String klassName, OPT_Options options) 
     throws VM_ResolutionException {
-    VM_Class klass;
-    synchronized(VM_ClassLoader.lock) {
-      klass = (VM_Class)OPT_ClassLoaderProxy.findOrCreateType(klassName, VM_SystemClassLoader.getVMClassLoader());
-      klass.load();
-      klass.resolve();
-      klass.instantiate();
-    }
+    VM_Class klass = (VM_Class)OPT_ClassLoaderProxy.findOrCreateType(klassName, VM_SystemClassLoader.getVMClassLoader());
+    klass.load();
+    klass.resolve();
+    klass.instantiate();
     klass.initialize();
     VM_Method[] methods = klass.getDeclaredMethods();
     for (int j = 0; j < methods.length; j++) {
@@ -212,7 +209,7 @@ public class OPT_Compiler {
   ////////////////////////////////////////////
   /**
    * Invoke the opt compiler to execute a compilation plan.
-   *
+   * 
    * @param cp the compilation plan to be executed
    * @return the VM_CompiledMethod object containing the compiled code 
    * & VM_OptCompilerInfo
@@ -223,20 +220,33 @@ public class OPT_Compiler {
     checkSupported(method, options);
     try {
       printMethodMessage(method, options);
-      OPT_IR ir = cp.execute();
-      // Temporary workaround memory retention problems
-      if (!cp.irGeneration) {
-        cleanIR(ir);
+      // Lock out class initialization while the opt compiler is compiling.
+      // This is an attempt to ensure that speculative optimizations don't
+      // get invalidated before the compilation is complete. 
+      // Actually, this doesn't really work, since there is a race condition
+      // after compilation completes, but before the method is installed.
+      // TODO: We'll fix this soon.
+      // This race condition already exisited in the old VM_ClassLoader.lock
+      // synchronization scheme, so we actually haven't made the situation much
+      // worse by pushing the synchronization down to here.  It's just a little more
+      // obvious that the race condition exists now!
+      // This is defect 2916.
+      synchronized (VM_Class.OptCLDepManager) {
+	OPT_IR ir = cp.execute();
+	// Temporary workaround memory retention problems
+	if (!cp.irGeneration) {
+	  cleanIR(ir);
+	}
+	// if doing analysis only, don't try to return an object
+	if (cp.analyzeOnly || cp.irGeneration)
+	  return null;
+	// now that we're done compiling, give the specialization
+	// system a chance to eagerly compile any specialized version
+	// that are pending.  TODO: use lazy compilation with specialization.
+	OPT_SpecializationDatabase.doDeferredSpecializations();
+	return new VM_CompiledMethod(ir.compiledMethodId, ir.method, 
+				     ir.MIRInfo.machinecode, ir.MIRInfo.info);
       }
-      // if doing analysis only, don't try to return an object
-      if (cp.analyzeOnly || cp.irGeneration)
-        return null;
-      // now that we're done compiling, give the specialization
-      // system a chance to eagerly compile any specialized version
-      // that are pending.  TODO: use lazy compilation with specialization.
-      OPT_SpecializationDatabase.doDeferredSpecializations();
-      return new VM_CompiledMethod(ir.compiledMethodId, ir.method, 
-                ir.MIRInfo.machinecode, ir.MIRInfo.info);
     } catch (OPT_OptimizingCompilerException e) {
       throw e;
     } catch (Throwable e) {

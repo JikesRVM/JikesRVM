@@ -52,37 +52,34 @@ class MainThread extends Thread {
     // find method to run
     String[]      mainArgs = null;
     INSTRUCTION[] mainCode = null;
-    synchronized (VM_ClassLoader.lock) {
-      // load class specified by args[0]
-      //
-      VM_Class cls = null;
-      try {
-	cls = (VM_Class)cl.loadClass(args[0], true).getVMType();
-      } catch (ClassNotFoundException e) { 
-	// no such class
-	VM.sysWrite(e+"\n");
-	return;
-      }
-
-      // find "main" method
-      //
-      mainMethod = cls.findMainMethod();
-      if (mainMethod == null) { 
-	// no such method
-	VM.sysWrite(cls.getName() + " doesn't have a \"public static void main(String[])\" method to execute\n");
-	return;
-      }
-
-      // create "main" argument list
-      //
-      mainArgs = new String[args.length - 1];
-      for (int i = 0, n = mainArgs.length; i < n; ++i)
-	mainArgs[i] = args[i + 1];
-
-      mainCode = mainMethod.compile();
-      
+    // load class specified by args[0]
+    //
+    VM_Class cls = null;
+    try {
+      cls = (VM_Class)cl.loadClass(args[0], true).getVMType();
+    } catch (ClassNotFoundException e) { 
+      // no such class
+      VM.sysWrite(e+"\n");
+      return;
     }
-   
+
+    // find "main" method
+    //
+    mainMethod = cls.findMainMethod();
+    if (mainMethod == null) { 
+      // no such method
+      VM.sysWrite(cls.getName() + " doesn't have a \"public static void main(String[])\" method to execute\n");
+      return;
+    }
+
+    // create "main" argument list
+    //
+    mainArgs = new String[args.length - 1];
+    for (int i = 0, n = mainArgs.length; i < n; ++i)
+      mainArgs[i] = args[i + 1];
+    
+    mainCode = mainMethod.compile();
+    
     // Notify other clients that the startup is complete.
     //
     VM_Callbacks.notifyStartup();

@@ -18,7 +18,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   // interface //
   //-----------//
    
-  static VM_CompiledMethod compile (VM_Method method) {
+  static synchronized VM_CompiledMethod compile (VM_Method method) {
     int compiledMethodId = VM_CompiledMethods.createCompiledMethodId();
     if (method.isNative()) {
       VM_MachineCode machineCode = VM_JNICompiler.generateGlueCodeForNative

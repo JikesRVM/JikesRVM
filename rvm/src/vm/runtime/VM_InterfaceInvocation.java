@@ -58,9 +58,7 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
                                              sought.getDescriptor());
       if (found == null) throw new IncompatibleClassChangeError();
       if (!found.isCompiled()) {
-        synchronized(VM_ClassLoader.lock) { 
-	  found.compile(); 
-	}
+	found.compile(); 
       }
       return found.getMostRecentlyGeneratedInstructions();
     }
@@ -130,10 +128,8 @@ class VM_InterfaceInvocation implements VM_TIBLayoutConstants {
   public static void invokeinterfaceImplementsTest (VM_Class LHSclass, Object[] RHStib) 
     throws VM_ResolutionException, IncompatibleClassChangeError {
     if (!LHSclass.isResolved()) {
-      synchronized(VM_ClassLoader.lock) {
-	LHSclass.load();
-	LHSclass.resolve();
-      }
+      LHSclass.load();
+      LHSclass.resolve();
     }
     if (LHSclass.isInterface() && VM_DynamicTypeCheck.instanceOfInterface(LHSclass, RHStib)) return;
     // Raise an IncompatibleClassChangeError.

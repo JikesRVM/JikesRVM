@@ -740,11 +740,7 @@ public class VM_Class extends VM_Type
   /**
    * Read this class's description from its .class file.
    */ 
-  public final void load() throws VM_ResolutionException {
-    if (VM.VerifyAssertions && VM.runningVM) {
-      VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.load called without holding VM_ClassLoader.lock");
-    }
-
+  public final synchronized void load() throws VM_ResolutionException {
     if (isLoaded())
       return;
 
@@ -754,7 +750,7 @@ public class VM_Class extends VM_Type
     VM_Thread myThread;
     
     try {
-	classloader.loadClass( getName().toString() );
+      classloader.loadClass( getName().toString() );
     } catch (ClassNotFoundException e) { 
       // no .class file
       throw new VM_ResolutionException(descriptor, 
@@ -771,11 +767,7 @@ public class VM_Class extends VM_Type
   /**
    * Read this class's description from specified data stream.
    */ 
-  final void load(DataInputStream input) throws ClassFormatError, IOException {
-    if (VM.VerifyAssertions && VM.runningVM) {
-      VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.load called without holding VM_ClassLoader.lock");
-    }
-
+  final synchronized void load(DataInputStream input) throws ClassFormatError, IOException {
     if (VM.TraceClassLoading && VM.runningVM) VM.sysWrite("VM_Class: (begin) load file " 
                                           + descriptor + "\n");
     if (VM.VerifyAssertions) VM.assert(state == CLASS_VACANT);
@@ -1019,11 +1011,7 @@ public class VM_Class extends VM_Type
    * method table. 
    * Side effects: superclasses and superinterfaces are resolved.
    */ 
-  public final void resolve() throws VM_ResolutionException {
-    if (VM.VerifyAssertions && VM.runningVM) {
-      VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.resolve called without holding VM_ClassLoader.lock");
-    }
-
+  public final synchronized void resolve() throws VM_ResolutionException {
     if (isResolved())
       return;
 
@@ -1310,11 +1298,7 @@ public class VM_Class extends VM_Type
    * Compile this class's methods, build type information block, populate jtoc.
    * Side effects: superclasses are instantiated.
    */
-  public final void instantiate() {
-    if (VM.VerifyAssertions && VM.runningVM) {
-      VM.assert(VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.instantiate called without holding VM_ClassLoader.lock");
-    }
-
+  public final synchronized void instantiate() {
     if (isInstantiated())
       return;
 
@@ -1407,12 +1391,6 @@ public class VM_Class extends VM_Type
    * initial values.
    */ 
   public final synchronized void initialize() {
-    if (VM.VerifyAssertions && VM.runningVM) {
-      // TODO: The following condition should hold, but we violate it all over the place
-      // VM.assert(!VM_Lock.owns(VM_ClassLoader.lock), "VM_Class.initialize called while holding VM_ClassLoader.lock");
-      // if (VM_Lock.owns(VM_ClassLoader.lock)) VM.sysWriteln("WARNING: VM_Class.initialize called while holding VM_ClassLoader.lock");
-    }
-
     if (isInitialized())
       return;
 
@@ -1461,9 +1439,7 @@ public class VM_Class extends VM_Type
     //
     if (classInitializerMethod != null) {
       INSTRUCTION[] instructions;
-      synchronized (VM_ClassLoader.lock) {
-	instructions = classInitializerMethod.compile();
-      }
+      instructions = classInitializerMethod.compile();
       if (VM.verboseClassLoading) VM.sysWrite("[Running static initializer for "
 					      +descriptor.
 					      classNameFromDescriptor()+"]\n");
@@ -1533,9 +1509,7 @@ public class VM_Class extends VM_Type
 
   /**
    * This method is invoked from VM_Class.initialize() immediately before 
-   * 'this' is marked as INITIALIZED.  Note: VM_ClassLoader.lock is held 
-   * when this method is invoked, so some care must be taken to 
-   * avoid doing too much work.
+   * 'this' is marked as INITIALIZED.  
    */
   private void reportInitialize() {
     //-#if RVM_WITH_OPT_COMPILER

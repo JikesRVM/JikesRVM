@@ -17,10 +17,12 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
   
   // is opt compiler currently in use?
   // This flag is used to detect/avoid recursive opt compilation.
-  // We assume that thread-level synchronization is handled externally
-  // (currently by acquring VM_ClassLoader.lock).
-  // Therefore at most one thread can be reading/writing compilationInProgress
-  // and no further synchronization is required here.
+  // (ie when opt compilation causes a method to be compiled).
+  // We also make all public entrypoints static synchronized methods 
+  // because the opt compiler is not reentrant. 
+  // When we actually fix defect 2912, we'll have to implement a different
+  // scheme that can distinguish between recursive opt compilation by the same
+  // thread (always bad) and parallel opt compilation (currently bad, future ok).
   // NOTE: This code can be quite subtle, so please be absolutely sure
   // you know what you're doing before modifying it!!!
   protected static boolean compilationInProgress; 
@@ -80,7 +82,7 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
   // The following is carefully crafted to avoid (infinte) recursive opt compilation
   // for all combinations of bootimages & lazy/eager compilation.
   // Be absolutely sure you know what you're doing before changing it !!!
-  static VM_CompiledMethod optCompileWithFallBack(VM_Method method) {
+  static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method) {
     if (compilationInProgress) {
       return fallback(method);
     } else {
@@ -95,7 +97,7 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
       }
     }
   }
-  static VM_CompiledMethod optCompileWithFallBack(VM_Method method, OPT_CompilationPlan plan) {
+  static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method, OPT_CompilationPlan plan) {
     if (compilationInProgress) {
       return fallback(method);
     } else {
@@ -108,7 +110,7 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
     }
   }
   //-#if RVM_WITH_SPECIALIZATION
-  static VM_CompiledMethod optCompileWithFallBack(VM_Method method, OPT_SpecializationGraphNode context) {
+  static synchronized VM_CompiledMethod optCompileWithFallBack(VM_Method method, OPT_SpecializationGraphNode context) {
     if (compilationInProgress) {
       return fallback(method);
     } else {
@@ -148,7 +150,7 @@ class VM_RuntimeOptCompilerInfrastructure extends VM_RuntimeCompilerInfrastructu
   // Returns the CMID of the new method if successful, -1 if the recompilation failed.
   // NOTE: the recompile method should never be invoked via VM_RuntimeCompiler.compile;
   // it does not have sufficient guards against recursive recompilation.
-  static int recompileWithOpt(OPT_CompilationPlan plan) {
+  static synchronized int recompileWithOpt(OPT_CompilationPlan plan) {
     if (compilationInProgress) {
       return -1;
     } else {

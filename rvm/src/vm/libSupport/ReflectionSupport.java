@@ -10,7 +10,6 @@ import VM_Atom;
 import VM_Array;
 import VM_Callbacks;
 import VM_Class;
-import VM_ClassLoader;
 import VM_Field;
 import VM_Magic;
 import VM_Method;
@@ -136,11 +135,10 @@ public class ReflectionSupport {
    */ 
   private static void loadType(Class C) {
     if (C.type.isLoaded()) return;
-    synchronized (VM_ClassLoader.lock) {
-      try { C.type.load(); }
-      catch (VM_ResolutionException e) {
-        throw new NoClassDefFoundError(e.getException().toString());
-      }
+    try { 
+      C.type.load();
+    } catch (VM_ResolutionException e) {
+      throw new NoClassDefFoundError(e.getException().toString());
     }
   }
 
@@ -149,14 +147,11 @@ public class ReflectionSupport {
    */ 
   private static void loadAndResolveType(Class C) {
     if (C.type.isResolved()) return;
-    synchronized (VM_ClassLoader.lock) {
-      try {
-        C.type.load();
-        C.type.resolve();
-      }
-      catch (VM_ResolutionException e) {
-        throw new NoClassDefFoundError(e.getException().toString());
-      }
+    try {
+      C.type.load();
+      C.type.resolve();
+    } catch (VM_ResolutionException e) {
+      throw new NoClassDefFoundError(e.getException().toString());
     }
   }
   /**
@@ -432,13 +427,11 @@ public class ReflectionSupport {
 
     VM_Array arrayType = (VM_Array)arrayClassCache.get(componentType);
     if (arrayType == null) {
-      synchronized (VM_ClassLoader.lock) {
-        arrayType = componentType.getVMType().getArrayTypeForElementType();
-        arrayType.load();
-        arrayType.resolve();
-        arrayType.instantiate();
-        arrayClassCache.put(componentType, arrayType);
-      }
+      arrayType = componentType.getVMType().getArrayTypeForElementType();
+      arrayType.load();
+      arrayType.resolve();
+      arrayType.instantiate();
+      arrayClassCache.put(componentType, arrayType);
     }
 
     Object[] tib = arrayType.getTypeInformationBlock();
@@ -464,48 +457,42 @@ public class ReflectionSupport {
    * @see			java.lang.Class
    */
   public static Class forName(String className, boolean initialize, ClassLoader classLoader) throws ClassNotFoundException {
-      SecurityManager security = System.getSecurityManager();
-      boolean DEBUG = false;
-      if (security != null)
-	  throw new VM_UnimplementedError("Classloading with security manager");
+    SecurityManager security = System.getSecurityManager();
+    boolean DEBUG = false;
+    if (security != null)
+      throw new VM_UnimplementedError("Classloading with security manager");
       
-      if ( (initialize == true) 
-	   && ( (classLoader == null) 
-		|| (classLoader instanceof VM_SystemClassLoader) ) ) {
+    if ( (initialize == true) 
+	 && ( (classLoader == null) 
+	      || (classLoader instanceof VM_SystemClassLoader) ) ) {
 	  
-	  Class guess = (Class) classCache.get( className );
-	  if (guess != null) {
-	      VM_Callbacks.notifyForName( guess.type );
-	      return guess;
-	  }
-	  
-	  synchronized (VM_ClassLoader.lock) {
-	      try {
-		  if (className.startsWith("[")) {
-		      if (!validArrayDescriptor(className)) throw new IllegalArgumentException();
-		      classCache.put(className, VM_Array.forName(className).getClassForType());
-		      VM_Callbacks.notifyForName(((Class)classCache.get(className)).type);
-		      return (Class) classCache.get( className );
-		  }
-		  else {
-		      classCache.put(className, VM_Class.forName(className).getClassForType());
-		      VM_Callbacks.notifyForName(((Class)classCache.get(className)).type);
-		      return (Class) classCache.get( className );
-		  }
-	      }
-	      catch (VM_ResolutionException e) {
-		  throw new ClassNotFoundException(className);
-	      }
-	  }
-	  
+      Class guess = (Class) classCache.get( className );
+      if (guess != null) {
+	VM_Callbacks.notifyForName( guess.type );
+	return guess;
       }
-      else {
 	  
-	  if (DEBUG) VM_Scheduler.trace("Class.forName 3 args, loading", className);
-	  Class klass = classLoader.loadClass(className, initialize);
-	  VM_Callbacks.notifyForName( klass.type );
-	  return klass;
+      try {
+	if (className.startsWith("[")) {
+	  if (!validArrayDescriptor(className)) throw new IllegalArgumentException();
+	  classCache.put(className, VM_Array.forName(className).getClassForType());
+	  VM_Callbacks.notifyForName(((Class)classCache.get(className)).type);
+	  return (Class) classCache.get( className );
+	} else {
+	  classCache.put(className, VM_Class.forName(className).getClassForType());
+	  VM_Callbacks.notifyForName(((Class)classCache.get(className)).type);
+	  return (Class) classCache.get( className );
+	}
       }
+      catch (VM_ResolutionException e) {
+	throw new ClassNotFoundException(className);
+      }
+    } else {
+      if (DEBUG) VM_Scheduler.trace("Class.forName 3 args, loading", className);
+      Class klass = classLoader.loadClass(className, initialize);
+      VM_Callbacks.notifyForName( klass.type );
+      return klass;
+    }
   }
 
   /**

@@ -44,26 +44,24 @@ public final class VM_SystemClassLoader extends com.ibm.oti.vm.AbstractClassLoad
     return loadedClass;
   }
 
-    protected Class findClass (String className) throws ClassNotFoundException {
-      VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
-      VM_Class cls = (VM_Class) VM_ClassLoader.findOrCreateType(classDescriptor, this);
-      try {	    
-	InputStream is =
-	  getResourceAsStream(classDescriptor.classFileNameFromDescriptor());
+  protected Class findClass (String className) throws ClassNotFoundException {
+    VM_Atom classDescriptor = VM_Atom.findOrCreateAsciiAtom(className.replace('.','/')).descriptorFromClassName();
+    VM_Class cls = (VM_Class) VM_ClassLoader.findOrCreateType(classDescriptor, this);
+    try {	    
+      InputStream is =
+	getResourceAsStream(classDescriptor.classFileNameFromDescriptor());
+      
+      if (is == null) throw new NullPointerException();
 
-	if (is == null) throw new NullPointerException();
-
-	synchronized(VM_ClassLoader.lock) {
-	  if (!cls.isLoaded()) {
-	    cls.load(new DataInputStream(is));
-	  }
-	}
-      } catch (Throwable e) {
-	throw new ClassNotFoundException(className);
+      if (!cls.isLoaded()) {
+	cls.load(new DataInputStream(is));
       }
-      return cls.getClassForType();
+    } catch (Throwable e) {
+      throw new ClassNotFoundException(className);
     }
-
+    return cls.getClassForType();
+  }
+  
   /**
    * Attempts to find and return a class which has already
    * been loaded by the virtual machine. Note that the class

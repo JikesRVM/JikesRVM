@@ -344,7 +344,7 @@ public class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
    * haven't already done so.
    * @return copy of machine code that was generated
    */
-  final INSTRUCTION[] compile() {
+  final synchronized INSTRUCTION[] compile() {
     if (VM.VerifyAssertions) VM.assert(isLoaded());
 
     if (isCompiled())

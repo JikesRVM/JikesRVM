@@ -21,7 +21,7 @@ final class OPT_ClassLoadingDependencyManager {
   ////////////////////////
   // Entrypoints from VM_Class
   ////////////////////////
-  public void classInitialized (VM_Class c) {
+  public synchronized void classInitialized (VM_Class c) {
     // Process any dependencies on methods not being overridden.
     if (DEBUG)
       report("CLDM: " + c + " is about to be marked as initialized.\n");
@@ -39,6 +39,7 @@ final class OPT_ClassLoadingDependencyManager {
    * invalidated if source is overridden.
    */
   public void addNotOverriddenDependency (VM_Method source, int cmid) {
+    if (VM.VerifyAssertions) VM.assert(VM_Lock.owns(this), "Opt compiler failed to lock out class loading");
     if (TRACE || DEBUG)
       report("CLDM: " + cmid + " is dependent on " + source + 
              " not being overridden\n");
@@ -50,6 +51,7 @@ final class OPT_ClassLoadingDependencyManager {
    * invalidated if source ever has a subclass.
    */
   public void addNoSubclassDependency (VM_Class source, int cmid) {
+    if (VM.VerifyAssertions) VM.assert(VM_Lock.owns(this), "Opt compiler failed to lock out class loading");
     if (TRACE || DEBUG)
       report("CLDM: " + cmid + " is dependent on " + source + 
           " not having a subclass\n");

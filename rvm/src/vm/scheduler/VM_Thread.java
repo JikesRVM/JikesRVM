@@ -1117,10 +1117,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
          {
          //  Problem:
          //  We'd like to say "VM_Scheduler.threads[index] = this;"
-         //  but can't do "checkstore" with thread switching disabled, 
-         //  because it will try to acquire
-         //  "VM_ClassLoader.lock", so we must hand 
-         //  code the operation via magic.
+         //  but can't do "checkstore" without losing control
          //
          threadSlot = index;
          VM_Magic.setObjectAtOffset(VM_Scheduler.threads,threadSlot << 2, this);
