@@ -37,7 +37,15 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * debug flag
    */
   private final static boolean trace = false;
+  private final static boolean traceTermination = false;
 
+  public Thread thread;         // Can't be final -- the primordial thread is
+                                // created by the boot image writer without an
+                                // associated java.lang.Thread ; we need to be
+                                // booting before we can create a Jikes RVM
+                                // java.lang.Thread, at which point we will
+                                // perform the assignment.
+  
   /**
    * Enumerate different types of yield points for sampling
    */
@@ -92,8 +100,15 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   /**
    * Create a thread with default stack.
    */ 
-  public VM_Thread () {
-    this(MM_Interface.newStack(STACK_SIZE_NORMAL, false));
+  public VM_Thread (Thread thread) {
+    this(MM_Interface.newStack(STACK_SIZE_NORMAL, false), thread, null);
+  }
+
+  /**
+   * Create a thread with default stack and with the name myName.
+   */ 
+  public VM_Thread (Thread thread, String myName) {
+    this(MM_Interface.newStack(STACK_SIZE_NORMAL, false), thread, myName);
   }
 
   /**
@@ -133,6 +148,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * Subclass should override with something more interesting.
   */
   public void run () throws InterruptiblePragma {
+    thread.run();
   }
 
   /**
@@ -140,6 +156,7 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * Subclass should override with something more interesting.
    */ 
   public void exit () throws InterruptiblePragma {
+    thread.exit();
   }
 
   /**
@@ -779,7 +796,12 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
       VM.sysWriteln("***VM_Thread.startoff() run thread "+currentThread.getIndex()+"***!");
     }
     //-#endif 
+    if (trace) VM.sysWriteln("VM_Thread.startoff(): about to call ", 
+                             currentThread.toString(), ".run()");
+    
     currentThread.run();
+    if (trace) VM.sysWriteln("VM_Thread.startoff(): finished ", 
+                             currentThread.toString(), ".run()");
 
     terminate();
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
@@ -826,6 +848,15 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   static void terminate () throws InterruptiblePragma {
     boolean terminateSystem = false;
     if (trace) VM_Scheduler.trace("VM_Thread", "terminate");
+
+    if (traceTermination) {
+      VM.disableGC();
+      VM.sysWriteln("[ BEGIN Verbosely dumping stack at time of thread termination");
+      VM_Scheduler.dumpStack();
+      VM.sysWriteln("END Verbosely dumping stack at time of creating thread termination ]");
+      VM.enableGC();
+
+    }
 
     //-#if RVM_WITH_HPM
     // sample HPM counter values at every interrupt or a thread switch.
@@ -874,6 +905,16 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
       // no non-daemon thread remains
       terminateSystem = true;
     }
+    if (traceTermination) {
+      VM.sysWriteln("VM_Thread.terminate: myThread.isDaemon = ", 
+                    myThread.isDaemon);
+      VM.sysWriteln("  VM_Scheduler.numActiveThreads = ", 
+                    VM_Scheduler.numActiveThreads);
+      VM.sysWriteln("  VM_Scheduler.numDaemons = ", 
+                    VM_Scheduler.numDaemons);
+      VM.sysWriteln("  terminateSystem = ", 
+                    terminateSystem);
+    }    
 
     // end critical section
     //
@@ -885,8 +926,8 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     if (terminateSystem) {
       if (myThread.dyingWithUncaughtException)
         VM.sysExit(VM.exitStatusDyingWithUncaughtException);
-      else if (myThread instanceof MainThread) {
-        MainThread mt = (MainThread) myThread;
+      else if (myThread.thread instanceof MainThread) {
+        MainThread mt = (MainThread) myThread.thread;
         if (! mt.launched) {
           VM.sysExit(VM.exitStatusMainThreadCouldNotLaunch);
         }
@@ -1151,8 +1192,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * 
    * Note: This method might need to be uninterruptible so it is final,
    * which is why it isn't called setDaemon.
+   *
+   * Public so that java.lang.Thread can use it.
    */ 
-  protected final void makeDaemon (boolean on) {
+  public final void makeDaemon (boolean on) {
     if (isDaemon == on) return;
     isDaemon = on;
     if (!isAlive) return; 
@@ -1172,8 +1215,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    * Create a thread.
    * @param stack stack in which to execute the thread
    */ 
-  public VM_Thread (byte[] stack) {
+  public VM_Thread (byte[] stack, Thread thread, String myName) {
     this.stack = stack;
+    
+    this.thread = thread;
 
     chosenProcessorId = (VM.runningVM ? VM_Processor.getCurrentProcessorId() : 0); // for load balancing
     suspendLock = new VM_ProcessorLock();
@@ -1192,8 +1237,17 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
       // note that VM_Scheduler.threadAllocationIndex (search hint) 
       // is out of date
       VM_Scheduler.numActiveThreads += 1;
+
+      
+      /* Don't create the Thread object for the primordial thread; we'll have
+         to do that later. */
       return;
     }
+    
+    /* We're running the VM; if we weren't, we'd have to wait until boot time
+     * to do this. */
+    if ( thread == null )
+      thread = java.lang.JikesRVMSupport.createThread(this, myName);
 
     // create a normal (ie. non-primordial) thread
     //
@@ -1344,6 +1398,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     VM.sysWriteInt(getIndex());   // id
     if (isDaemon)              
       VM.sysWrite("-daemon");     // daemon thread?
+    if (isBootThread)    
+      VM.sysWrite("-bootPrimordial");    // Boot (Primordial) thread
+    if (isMainThread)    
+      VM.sysWrite("-main");    // Main Thread
     if (isNativeIdleThread)    
       VM.sysWrite("-nativeidle");    // NativeIdle
     if (isIdleThread)          
@@ -1352,8 +1410,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
       VM.sysWrite("-collector");  // gc thread?
     if (isNativeDaemonThread)  
       VM.sysWrite("-nativeDaemon");  
-    if (beingDispatched)       
+    if (beingDispatched)
       VM.sysWrite("-being_dispatched");
+    if ( ! isAlive )
+      VM.sysWrite("-not_alive");
     // VM.sysWrite("\n");
   }
 
@@ -1465,8 +1525,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
   /**
    * Scheduling priority for this thread.
    * Note that: java.lang.Thread.MIN_PRIORITY <= priority <= MAX_PRIORITY
+   *
+   * Public so that java.lang.Thread can set it.
    */
-  protected int priority;
+  public int priority;
    
   /**
    * Virtual processor that this thread wants to run on 
@@ -1485,6 +1547,10 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    */ 
   public VM_Thread next;       
   
+  /* These status variables are used exclusively for debugging, via the
+   * VM_Thread.dump() function. 
+   */
+
   /**
    * A thread is "alive" if its start method has been called and the 
    * thread has not yet terminated execution.
@@ -1493,6 +1559,17 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
    */ 
   protected boolean isAlive;
 
+  /**
+   * The thread created by the boot image writer, the Primordial thread, is
+   * the Boot thread.   It terminates as soon as it's done.
+   */
+  public boolean isBootThread;
+
+
+  /** The Main Thread is the one created to run static main(String[] args)
+   */
+  public boolean isMainThread;
+  
   /**
    * A thread is a "gc thread" if it's an instance of VM_CollectorThread
    */ 
