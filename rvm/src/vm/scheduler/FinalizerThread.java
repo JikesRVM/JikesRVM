@@ -17,6 +17,8 @@
  * @author Dick Attanasio
  * @date 10 Nov 1999 
  */
+import MM.VM_Finalizer;
+
 public class FinalizerThread extends VM_Thread 
    {
    private final static boolean TRACE        = false; // emit trace messages?
