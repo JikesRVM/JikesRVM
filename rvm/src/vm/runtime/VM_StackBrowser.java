@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2002
+ * (C) Copyright IBM Corp. 2002, 2005
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -10,6 +10,9 @@ import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
 /**
+ *  Use this class to explore the stack.  It is sometimes necessary to
+ *  find out the current context class loader, and other things like that.
+ *  
  * @author Julian Dolby
  * @date May 20, 2002
  */
