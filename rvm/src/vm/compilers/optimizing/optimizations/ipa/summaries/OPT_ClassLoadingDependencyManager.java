@@ -136,8 +136,7 @@ final class OPT_ClassLoadingDependencyManager {
       //-#if RVM_FOR_IA32
       // (2) Apply any code patches to protect invocations already executing
       //     in the soon to be invalid code.
-      VM_OptCompilerInfo info = (VM_OptCompilerInfo)cm.getCompilerInfo();
-      info.applyCodePatches(cm);
+      ((VM_OptCompiledMethod)cm).applyCodePatches(cm);
       //-#endif
 
       cm.setInvalid();

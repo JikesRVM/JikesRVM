@@ -837,7 +837,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     if (compiledMethodId != INVISIBLE_METHOD_ID) {
       VM_CompiledMethod compiledMethod = 
         VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-      if (compiledMethod.getCompilerInfo().getCompilerType() == VM_CompilerInfo.BASELINE) {
+      if (compiledMethod.getCompilerType() == VM_CompiledMethod.BASELINE) {
         //-#if RVM_FOR_POWERPC
 	registers.gprs[VM_BaselineConstants.SP] += delta;
 	if (traceAdjustments) {
@@ -888,8 +888,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
         if (compiledMethodId != INVISIBLE_METHOD_ID) {
           VM_CompiledMethod compiledMethod = 
             VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-          if (compiledMethod.getCompilerInfo().getCompilerType() == 
-              VM_CompilerInfo.BASELINE) {
+          if (compiledMethod.getCompilerType() == VM_CompiledMethod.BASELINE) {
             int spOffset = VM_Compiler.getSPSaveAreaOffset
               (compiledMethod.getMethod());
             VM_Magic.setMemoryWord(fp.add(spOffset), 

@@ -82,20 +82,9 @@ abstract class VM_GCMapIterator implements VM_Uninterruptible {
    * Get the type of this iterator (BASELINE, OPT, etc.).
    * Called from VM_GCMapIteratorGroup to select which iterator
    * to use for a stackframe.  The possible types are specified 
-   * in VM_CompilerInfo.
+   * in VM_CompiledMethod.
    *
    * @return type code for this iterator
    */
   abstract int getType();
-  
-  // Values returned by getType().
-  
-  /** matches VM_CompilerInfo.TRAP*/
-  static final int TRAP     = VM_CompilerInfo.TRAP;
-  /** matches VM_CompilerInfo.BASELINE */
-  static final int BASELINE = VM_CompilerInfo.BASELINE;
-  /** matches VM_CompilerInfo.OPT */
-  static final int OPT      = VM_CompilerInfo.OPT;
-  /** matches VM_CompilerInfo.JNI */
-  static final int JNI      = VM_CompilerInfo.JNI;
 }

@@ -54,7 +54,7 @@ class breakpointList extends Vector implements jdpConstants {
       return false;
     }
 
-    VM_CompilerInfo compInfo = VM_CompiledMethods.getCompiledMethod(compiledMethodID).getCompilerInfo();
+    VM_CompiledMethod compMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodID);
 
     // find the current source line 
     try {
@@ -65,7 +65,7 @@ class breakpointList extends Vector implements jdpConstants {
     }
 
     // look for the next valid code line to set the step breakpoint
-    int offset = compInfo.findInstructionForNextLineNumber(linenum);
+    int offset = compMethod.findInstructionForNextLineNumber(linenum);
     if (offset==-1) {
       // end of source code for this method, return to caller
       // System.out.println("setStepLineBreakpoint:  end of method, returning to caller.");

@@ -197,7 +197,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
   final private void insertEpilogue(OPT_Instruction ret) {
 
     // 1. Restore any saved registers
-    if (ir.MIRInfo.info.isSaveVolatile()) {
+    if (ir.compiledMethod.isSaveVolatile()) {
       restoreVolatileRegisters(ret);
     }
     restoreNonVolatiles(ret);
@@ -226,8 +226,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    */
   private void saveVolatiles(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
-    int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
+    int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
 
     // 1. save the volatile GPRs
     OPT_Register FP = phys.getFP();
@@ -274,9 +273,8 @@ final class OPT_StackManager extends OPT_GenericStackManager
    */
   private void saveNonVolatiles(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
-    int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
-    if (ir.MIRInfo.info.isSaveVolatile()) {
+    int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
+    if (ir.compiledMethod.isSaveVolatile()) {
       // pretend we use all non-volatiles
       nNonvolatileGPRS = phys.getNumberOfNonvolatileGPRs();
     }
@@ -310,12 +308,12 @@ final class OPT_StackManager extends OPT_GenericStackManager
                             I(offset))));
     }
     // 1. save the nonvolatile FPRs
-    if (ir.MIRInfo.info.isSaveVolatile()) {
+    if (ir.compiledMethod.isSaveVolatile()) {
       // pretend we use all non-volatiles
       // DANGER: as an optimization, we assert that a SaveVolatile method
       // will never use non-volatile FPRs.
     } else {
-      int nNonvolatileFPRS = info.getNumberOfNonvolatileFPRs();
+      int nNonvolatileFPRS = ir.compiledMethod.getNumberOfNonvolatileFPRs();
       n = nNonvolatileFPRS - 1;
       // use a sequence of load instructions
       for (Enumeration e = phys.enumerateNonvolatileFPRsBackwards(); 
@@ -336,8 +334,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    */
   private void restoreNonVolatiles(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
-    int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
+    int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
 
     // 1. restore the nonvolatile GPRs
     int n = nNonvolatileGPRS - 1;
@@ -368,9 +365,9 @@ final class OPT_StackManager extends OPT_GenericStackManager
                             I(offset))));
     }
     // Note that save-volatiles are forbidden from using nonvolatile FPRs.
-    if (!ir.MIRInfo.info.isSaveVolatile()) {
+    if (!ir.compiledMethod.isSaveVolatile()) {
       // 1. restore the nonvolatile FPRs
-      int nNonvolatileFPRS = info.getNumberOfNonvolatileFPRs();
+      int nNonvolatileFPRS = ir.compiledMethod.getNumberOfNonvolatileFPRs();
       n = nNonvolatileFPRS - 1;
       // use a sequence of load instructions
       for (Enumeration e = phys.enumerateNonvolatileFPRsBackwards(); 
@@ -391,8 +388,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
    */
   private void restoreVolatileRegisters(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
-    int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
+    int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
 
     // 1. restore the volatile GPRs
     OPT_Register FP = phys.getFP();
@@ -480,9 +476,9 @@ final class OPT_StackManager extends OPT_GenericStackManager
       ir.stackManager.hasPrologueYieldpoint();
 
     int frameFixedSize = getFrameFixedSize();
-    ir.MIRInfo.info.setFrameFixedSize(frameFixedSize);
+    ir.compiledMethod.setFrameFixedSize(frameFixedSize);
     
-    if (frameFixedSize >= STACK_SIZE_GUARD || ir.MIRInfo.info.isSaveVolatile()) {
+    if (frameFixedSize >= STACK_SIZE_GUARD || ir.compiledMethod.isSaveVolatile()) {
       insertExceptionalPrologue();
       return;
     }
@@ -612,7 +608,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
 		       I(STACKFRAME_METHOD_ID_OFFSET))));
 
     // Now add the non volatile save instructions
-    if (ir.MIRInfo.info.isSaveVolatile()) {
+    if (ir.compiledMethod.isSaveVolatile()) {
       saveVolatiles(ptr);
     }
     saveNonVolatiles(ptr);
@@ -639,18 +635,17 @@ final class OPT_StackManager extends OPT_GenericStackManager
    */
   void computeNonVolatileArea() {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
 
-    if (ir.MIRInfo.info.isSaveVolatile()) {
+    if (ir.compiledMethod.isSaveVolatile()) {
       // Record that we use every nonvolatile GPR
       int numGprNv = phys.getNumberOfNonvolatileGPRs();
-      info.setNumberOfNonvolatileGPRs((short)numGprNv);
+      ir.compiledMethod.setNumberOfNonvolatileGPRs((short)numGprNv);
 
       // set the frame size
       frameSize += numGprNv * WORDSIZE;
 
       int numFprNv = phys.getNumberOfNonvolatileFPRs();
-      info.setNumberOfNonvolatileFPRs((short)numFprNv);
+      ir.compiledMethod.setNumberOfNonvolatileFPRs((short)numFprNv);
       frameSize += numFprNv * WORDSIZE * 2;
 
       frameSize = align(frameSize, STACKFRAME_ALIGNMENT);
@@ -717,7 +712,7 @@ final class OPT_StackManager extends OPT_GenericStackManager
 
       // Set the offset to find non-volatiles.
       int gprOffset = getNonvolatileGPROffset(0);
-      info.setUnsignedNonVolatileOffset(gprOffset);
+      ir.compiledMethod.setUnsignedNonVolatileOffset(gprOffset);
 
     } else {
       // Count the number of nonvolatiles used. 
@@ -745,16 +740,16 @@ final class OPT_StackManager extends OPT_GenericStackManager
           numFprNv++;
         }
       }
-      // Update the VM_OptCompilerInfo object.
-      info.setNumberOfNonvolatileGPRs((short)numGprNv);
-      info.setNumberOfNonvolatileFPRs((short)numFprNv);
+      // Update the VM_OptCompiledMethod object.
+      ir.compiledMethod.setNumberOfNonvolatileGPRs((short)numGprNv);
+      ir.compiledMethod.setNumberOfNonvolatileFPRs((short)numFprNv);
       if (numGprNv > 0 || numFprNv > 0) {
         int gprOffset = getNonvolatileGPROffset(0);
-        info.setUnsignedNonVolatileOffset(gprOffset);
+        ir.compiledMethod.setUnsignedNonVolatileOffset(gprOffset);
         // record that we need a stack frame
         setFrameRequired();
       } else {
-        info.setUnsignedNonVolatileOffset(0);
+        ir.compiledMethod.setUnsignedNonVolatileOffset(0);
       }
       frameSize = align(frameSize, STACKFRAME_ALIGNMENT);
     }

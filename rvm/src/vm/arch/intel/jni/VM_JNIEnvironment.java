@@ -17,7 +17,6 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 
   private static boolean initialized = false;
   private static String[] names;
-  static VM_CompilerInfo   javaToCCompilerInfo;  // shared VM_CompilerInfo for all native method glue code
 
   /**
    * This is the JNI function table, the address of this array will be
@@ -96,10 +95,6 @@ public class VM_JNIEnvironment implements VM_JNILinuxConstants, VM_RegisterConst
 
     // fill an array of JNI names
     setNames();
-
-    // create method ID for JNI transition stackframes
-    // XXX now have method specific JNICompilerInfos  SES 073101
-    // javaToCCompilerInfo = new VM_JNICompilerInfo();
 
     // fill in the IP entries for each AIX linkage triplet
     try {

@@ -68,8 +68,7 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
     if (method.isSynchronized()) { // release the lock, if it is being held
       VM_Address ip = registers.getInnermostInstructionAddress();
       int instr = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
-      VM_BaselineCompilerInfo info = (VM_BaselineCompilerInfo) compiledMethod.getCompilerInfo();
-      if (instr < info.lockAcquisitionOffset) {
+      if (instr < ((VM_BaselineCompiledMethod)compiledMethod).lockAcquisitionOffset) {
 	// in prologue, lock not owned; nothing to do.
       } else if (method.isStatic()) {
 	Object lock = method.getDeclaringClass().getClassForType();

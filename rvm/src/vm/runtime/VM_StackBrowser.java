@@ -15,7 +15,7 @@ class VM_StackBrowser implements VM_Constants {
 
   private VM_Address currentFramePointer;
   private int currentInstructionPointer;
-  private VM_CompilerInfo currentCompilerInfo;
+  private VM_CompiledMethod currentCompiledMethod;
 
   //-#if RVM_WITH_OPT_COMPILER
   private int currentInlineEncodingIndex;
@@ -48,7 +48,7 @@ class VM_StackBrowser implements VM_Constants {
     currentFramePointer = newFP;
     currentInstructionPointer = newIP.diff( VM_Magic.objectAsAddress(cm.getInstructions()) );
 
-    cm.getCompilerInfo().set( this, currentInstructionPointer );
+    cm.set(this, currentInstructionPointer);
   }
 
   boolean hasMoreFrames() {
@@ -58,7 +58,7 @@ class VM_StackBrowser implements VM_Constants {
   }
 
   void up() {
-    if (! currentCompilerInfo.up(this)) upOneFrame();
+    if (!currentCompiledMethod.up(this)) upOneFrame();
   }
 
   void setBytecodeIndex(int bytecodeIndex) {
@@ -77,12 +77,8 @@ class VM_StackBrowser implements VM_Constants {
     return currentMethod;
   }
 
-  void setCompilerInfo(VM_CompilerInfo info) {
-    currentCompilerInfo = info;
-  }
-
-  VM_CompilerInfo getCompilerInfo() {
-    return currentCompilerInfo;
+  void setCompiledMethod(VM_CompiledMethod cm) {
+    currentCompiledMethod = cm;
   }
 
   VM_Class getCurrentClass() {

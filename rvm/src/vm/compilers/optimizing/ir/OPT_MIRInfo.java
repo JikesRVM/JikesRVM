@@ -12,12 +12,6 @@
 final class OPT_MIRInfo {
   
   /**
-   * The VM_OptCompilerInfo to be associated with the compiled code 
-   * generated for this IR.
-   */
-  public VM_OptCompilerInfo info;
-
-  /**
    * The generated machinecodes produced by this compilation of 'method'
    */
    public INSTRUCTION[] machinecode;
@@ -64,9 +58,8 @@ final class OPT_MIRInfo {
   OPT_Instruction instAfterPrologue;
   
   OPT_MIRInfo(OPT_IR ir) {
-    info = new VM_OptCompilerInfo(ir.method);
-    info.setSaveVolatile(ir.method.getDeclaringClass().isSaveVolatile());
-    info.setOptLevel(ir.options.getOptLevel());
+    ir.compiledMethod.setSaveVolatile(ir.method.getDeclaringClass().isSaveVolatile());
+    ir.compiledMethod.setOptLevel(ir.options.getOptLevel());
   }
 
 }

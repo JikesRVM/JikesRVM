@@ -70,8 +70,6 @@ implements VM_BaselineConstants, VM_DynamicBridge
     // compiled method info of method that called us
     VM_CompiledMethod callingCompiledMethod = 
       VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
-    VM_CompilerInfo callingCompilerInfo =
-      callingCompiledMethod.getCompilerInfo();
 
     // call instruction address relative to beginning of code array
     int callingInstructionOffset = 
@@ -80,7 +78,7 @@ implements VM_BaselineConstants, VM_DynamicBridge
 
     // obtain symbolic method reference
     VM_DynamicLink link = new VM_DynamicLink();
-    callingCompilerInfo.getDynamicLink(link, callingInstructionOffset);
+    callingCompiledMethod.getDynamicLink(link, callingInstructionOffset);
     VM_Method invokedMethod = link.methodRef();
 
     // get the class of the receiver object

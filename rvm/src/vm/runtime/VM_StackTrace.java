@@ -88,7 +88,7 @@ public class VM_StackTrace implements VM_Constants {
 
   /**
    * Print stack trace.
-   * Delegate the actual printing of the stack trace to the VM_CompilerInfo's to
+   * Delegate the actual printing of the stack trace to the VM_CompiledMethod's to
    * deal with inlining by the opt compiler in a sensible fashion.
    * 
    * @param stackTrace stack trace to be printed
@@ -110,14 +110,14 @@ public class VM_StackTrace implements VM_Constants {
       if (compiledMethod == null) {
 	out.println("\tat <invisible method>");
       } else {
-	compiledMethod.getCompilerInfo().printStackTrace(stackTrace[i].instructionOffset, out);
+	compiledMethod.printStackTrace(stackTrace[i].instructionOffset, out);
       }
     }
   }
    
   /**
    * Print stack trace.
-   * Delegate the actual printing of the stack trace to the VM_CompilerInfo's to
+   * Delegate the actual printing of the stack trace to the VM_CompiledMethod's to
    * deal with inlining by the opt compiler in a sensible fashion.
    * 
    * @param stackTrace stack trace to be printed
@@ -138,7 +138,7 @@ public class VM_StackTrace implements VM_Constants {
        if (compiledMethod == null) 
 	 out.println("\tat <invisible method>");
        else 
-	 compiledMethod.getCompilerInfo().printStackTrace(stackTrace[i].instructionOffset, out);
+	 compiledMethod.printStackTrace(stackTrace[i].instructionOffset, out);
      }
    }
 

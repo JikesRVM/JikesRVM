@@ -48,14 +48,14 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
     //  LOW MEMORY
     
 
-    int frameOffset = compilerInfo.getUnsignedNonVolatileOffset();
+    int frameOffset = compiledMethod.getUnsignedNonVolatileOffset();
     if (frameOffset >= 0) {
 
       // get to the nonVol area
       VM_Address nonVolArea = framePtr.add(frameOffset);
       
       // update non-volatiles that were saved
-      int first = compilerInfo.getFirstNonVolatileGPR();
+      int first = compiledMethod.getFirstNonVolatileGPR();
       if (first >= 0) {
 	// move to the beginning of the save area for nonvolatiles
 	VM_Address location = nonVolArea;
@@ -66,7 +66,7 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
       }
       
       // update volatiles if needed
-      if (compilerInfo.isSaveVolatile()) {
+      if (compiledMethod.isSaveVolatile()) {
 	// move to the beginning of the save area for volatiles
 	int numSlotsToSkip = FIRST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR;
 	VM_Address location = nonVolArea.sub(4 * numSlotsToSkip);
@@ -117,9 +117,9 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
   VM_Address getLastSpillLoc() {
     if (DEBUG) {
       VM.sysWrite("\n unsigendNVOffset: ");
-      VM.sysWrite(compilerInfo.getUnsignedNonVolatileOffset());
+      VM.sysWrite(compiledMethod.getUnsignedNonVolatileOffset());
       VM.sysWrite("\t isSaveVolatile: ");
-      if (compilerInfo.isSaveVolatile()) {
+      if (compiledMethod.isSaveVolatile()) {
 	VM.sysWrite("true");
       } else {
 	VM.sysWrite("false");
@@ -139,14 +139,14 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
 
     // This computation will include some locations that are not technically
     // spill locations.  We do this because we currently do not record 
-    // enough info in the VM_OptCompilerInfo object (the one that is available
+    // enough info in the VM_OptCompiledMethod object (the one that is available
     // at GC time) to distinguish the lower part of the spill.
 
     VM_Address firstSpill = getFirstSpillLoc();
     VM_Address lastSpill;
-    int nonVolOffset = compilerInfo.getUnsignedNonVolatileOffset();
+    int nonVolOffset = compiledMethod.getUnsignedNonVolatileOffset();
     if (nonVolOffset != 0) {
-      if (compilerInfo.isSaveVolatile()) {
+      if (compiledMethod.isSaveVolatile()) {
 	lastSpill = framePtr.add(nonVolOffset - 4 - SAVE_VOL_SIZE);
       } else {
 	lastSpill = framePtr.add(nonVolOffset - 4);

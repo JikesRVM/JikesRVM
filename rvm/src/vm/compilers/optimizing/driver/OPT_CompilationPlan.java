@@ -150,7 +150,7 @@ final class OPT_CompilationPlan {
   public OPT_IR execute () {
     OPT_IR ir = new OPT_IR(method, this);
 
-    ir.compiledMethod = VM_CompiledMethods.createCompiledMethod(method, VM_CompilerInfo.OPT);
+    ir.compiledMethod = (VM_OptCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.OPT);
 
     // If there is instrumentation to perform, do some initialization
     if (instrumentationPlan != null) {

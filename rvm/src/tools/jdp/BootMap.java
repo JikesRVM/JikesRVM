@@ -98,13 +98,13 @@ abstract class BootMap implements jdpConstants,
   public abstract VM_Method findVMMethod(int methodID, boolean usingCompiledMethodID);
 
   /**
-   * Find the VM_CompilerInfo for a compiled methodID
+   * Find the VM_CompiledMethod for a compiled methodID
    * @param methodID the compiled methodID
-   * @return the VM_CompilerInfo associated with this id
+   * @return the VM_CompiledMethod associated with this id
    * @exception BmapNotFoundException if the name is not found
    * @see BootMapExternal.findVMMethod, BootMapInternal.findVMMethod
    */
-  public abstract VM_CompilerInfo findVMCompilerInfo(int methodID, boolean usingCompiledMethodID);
+  public abstract VM_CompiledMethod findVMCompiledMethod(int methodID, boolean usingCompiledMethodID);
 
   /**
    * Check to see if the address falls in the method prolog:
@@ -141,7 +141,7 @@ abstract class BootMap implements jdpConstants,
   public abstract int instructionAddress(int compiledMethodID);
   public abstract boolean isInstructionAddress(int startAddress, int address);
   public abstract int scanPrologSize(int instructionStartAddress);
-  public abstract int getPrologSize(VM_CompilerInfo compInfo, int instructionStartAddress);
+  public abstract int getPrologSize(VM_CompiledMethod compMethod, int instructionStartAddress);
   public abstract int getCompiledMethodIDForInstruction(int instructionStartAddress);
 
   /**
@@ -710,7 +710,7 @@ abstract class BootMap implements jdpConstants,
       if (supercls!=null && 
 	  !supercls.getName().toString().equals("java.lang.Object")) {
 	String superString = classToString(supercls.getName().toString(), 
-					 address, staticOnly);
+					   address, staticOnly);
 	result = superString + result;
       }
     }
@@ -989,8 +989,8 @@ abstract class BootMap implements jdpConstants,
     // System.out.println("fp = " + VM.intAsHexString(fp) + " in " + mth.getName());
 
     // get list of local variables that are currently in scope
-    // TODO:  use compiled method ID to get the correct compilerInfo
-    VM_LocalVariable locals[] = mth.getCurrentCompiledMethod().getCompilerInfo().findLocalVariablesForInstruction(ipOffset);
+    // TODO:  use compiled method ID to get the correct compiledMethod
+    VM_LocalVariable locals[] = mth.getCurrentCompiledMethod().findLocalVariablesForInstruction(ipOffset);
     if (locals==null)
       return "Locals in frame " + frameNumber + ", " + 
       mth.getName().toString() + ":\n (no local variable information available)";
@@ -1316,21 +1316,21 @@ abstract class BootMap implements jdpConstants,
 
     VM_Method mth = findVMMethod(compiledMethodID, true);
     offset = instructionOffset(compiledMethodID, address);
-    VM_CompilerInfo compInfo = findVMCompilerInfo(compiledMethodID, true);
-    if (compInfo == null)
+    VM_CompiledMethod compMethod = findVMCompiledMethod(compiledMethodID, true);
+    if (compMethod == null)
       prologOffset = 0;
     else 
-      prologOffset = getPrologSize(compInfo, instructionAddress(compiledMethodID));
+      prologOffset = getPrologSize(compMethod, instructionAddress(compiledMethodID));
     if (offset<prologOffset)
       throw new BcPrologException();
     if (!previous_line)
       offset+=1;
     
     // check because there may be no compiler info:  native method
-    if (compInfo==null) {
+    if (compMethod==null) {
       line = 0;
     } else {
-      line = compInfo.findLineNumberForInstruction(offset);
+      line = compMethod.findLineNumberForInstruction(offset);
     }
     // System.out.println("offset=" + offset + ", line=" + line + 
     // " for " + mth.getName().toString());
@@ -1876,8 +1876,8 @@ abstract class BootMap implements jdpConstants,
     spillOffset = VM_Compiler.getEmptyStackOffset(mth);
     
     // get list of local variables that are currently in scope
-    // TODO:  use compiled method ID to get the correct compilerInfo
-    VM_LocalVariable locals[] = mth.getCurrentCompiledMethod().getCompilerInfo().findLocalVariablesForInstruction(ipOffset);
+    // TODO:  use compiled method ID to get the correct compiledMethod
+    VM_LocalVariable locals[] = mth.getCurrentCompiledMethod().findLocalVariablesForInstruction(ipOffset);
     if (locals==null)
       return localVars;
 

@@ -4,7 +4,7 @@
 //$Id$
 
 /**
- * Place for VM_CompilerInfo.getDynamicLink() to deposit return information.
+ * Place for VM_CompiledMethod.getDynamicLink() to deposit return information.
  *
  * @author Bowen Alpern
  * @author Derek Lieber

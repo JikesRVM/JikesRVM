@@ -13,15 +13,28 @@
  */
 public class VM_CompiledMethods {
 
-
-  // compilerType for future extension when we fold VM_CompilerInfo and VM_CompiledMethod
-  // into a single class
+  /**
+   * Create a VM_CompiledMethod appropriate for the given compilerType
+   */
   public synchronized static VM_CompiledMethod createCompiledMethod(VM_Method m, int compilerType) {
     int id = ++currentCompiledMethodId;
     if (id == compiledMethods.length) {
       compiledMethods = growArray(compiledMethods, 2 * compiledMethods.length); 
     }
-    VM_CompiledMethod cm = new VM_CompiledMethod(id, m);
+    VM_CompiledMethod cm = null;
+    if (compilerType == VM_CompiledMethod.BASELINE) {
+      cm = new VM_BaselineCompiledMethod(id, m);
+    } else if (compilerType == VM_CompiledMethod.OPT) {
+      //-#if RVM_WITH_OPT_COMPILER
+      cm = new VM_OptCompiledMethod(id, m);
+      //-#endif
+    } else if (compilerType == VM_CompiledMethod.TRAP) {
+      cm = new VM_HardwareTrapCompiledMethod(id, m);
+    } else if (compilerType == VM_CompiledMethod.JNI) {
+      cm = new VM_JNICompiledMethod(id, m);
+    } else {
+      if (VM.VerifyAssertions) VM.assert(false, "Unexpected compiler type!");
+    }
     compiledMethods[id] = cm;
     return cm;
   }

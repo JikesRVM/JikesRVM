@@ -64,7 +64,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator implements VM_Base
       
       // setup stackframe mapping
       //
-      maps      = ((VM_BaselineCompilerInfo)compiledMethod.getCompilerInfo()).referenceMaps;
+      maps      = ((VM_BaselineCompiledMethod)compiledMethod).referenceMaps;
       mapId     = maps.locateGCPoint(instructionOffset, currentMethod);
       mapOffset = 0;
       if (mapId < 0) {
@@ -96,10 +96,9 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator implements VM_Base
 	 VM_Address        ip                       = VM_Magic.getNextInstructionAddress(fp);
          int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);
          VM_CompiledMethod callingCompiledMethod    = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
-         VM_CompilerInfo   callingCompilerInfo      = callingCompiledMethod.getCompilerInfo();
          int               callingInstructionOffset = ip.diff(VM_Magic.objectAsAddress(callingCompiledMethod.getInstructions()));
 
-         callingCompilerInfo.getDynamicLink(dynamicLink, callingInstructionOffset);
+         callingCompiledMethod.getDynamicLink(dynamicLink, callingInstructionOffset);
          bridgeTarget                = dynamicLink.methodRef();
          bridgeParameterInitialIndex = dynamicLink.isInvokedWithImplicitThisParameter() ? -1 : 0;
          bridgeParameterTypes        = bridgeTarget.getParameterTypes();
@@ -244,7 +243,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator implements VM_Base
    }
        
    int getType() {
-       return VM_GCMapIterator.BASELINE;
+       return VM_CompiledMethod.BASELINE;
    }
 
    // For debugging (used with checkRefMap)
@@ -263,7 +262,7 @@ final class VM_BaselineGCMapIterator extends VM_GCMapIterator implements VM_Base
 
    // Additional iterator state for mapping dynamic bridge stackframes.
    //
-   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompilerInfo.getDynamicLink
+   private VM_DynamicLink dynamicLink;                    // place to keep info returned by VM_CompiledMethod.getDynamicLink
    private VM_Method      bridgeTarget;                   // method to be invoked via dynamic bridge (null: current frame is not a dynamic bridge)
    private VM_Method      currentMethod;                  // method for the frame
    private VM_Type[]      bridgeParameterTypes;           // parameter types passed by that method

@@ -49,15 +49,14 @@ class OPT_BCstackTrace {
       VM_CompiledMethod m = trace[i].compiledMethod;
       if (m == null)
         continue;
-      VM_CompilerInfo inf = m.getCompilerInfo();
-      if (inf.getCompilerType() == VM_CompilerInfo.OPT) {
-        VM_OptCompilerInfo info = (VM_OptCompilerInfo)inf;
-        VM_OptMachineCodeMap map = info.getMCMap();
+      if (m.getCompilerType() == VM_CompiledMethod.OPT) {
+        VM_OptCompiledMethod opt = (VM_OptCompiledMethod)cm;
+        VM_OptMachineCodeMap map = opt.getMCMap();
         int[] tree = map.inlineEncoding;
         for (int j = map.getInlineEncodingForMCOffset
             (trace[i].instructionOffset); j >= 0; BCLength++, 
             j = VM_OptEncodedCallSiteTree.getParent(j, tree));
-      } else if (inf.getCompilerType() == VM_CompilerInfo.BASELINE) {
+      } else if (m.getCompilerType() == VM_CompiledMethod.BASELINE) {
 	  BCLength++;
       }
     }
@@ -67,10 +66,8 @@ class OPT_BCstackTrace {
       VM_CompiledMethod m = trace[i].compiledMethod;
       if (m == null) continue;
       int offset = trace[i].instructionOffset;
-      VM_CompilerInfo inf = m.getCompilerInfo();
-      if (inf.getCompilerType() == VM_CompilerInfo.OPT) {
-        VM_OptCompilerInfo info = (VM_OptCompilerInfo)inf;
-        VM_OptMachineCodeMap map = info.getMCMap();
+      if (m.getCompilerType() == VM_CompiledMethod.OPT) {
+        VM_OptMachineCodeMap map = (VM_OptCompiledMethod)cm.getMCMap();
         int[] tree = map.inlineEncoding;
         int bcOffset = map.getBytecodeIndexForMCOffset(offset);
         VM_Method bin = map.getMethodForMCOffset(offset);
@@ -86,16 +83,16 @@ class OPT_BCstackTrace {
             bcOffset = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, 
                 tree);
         }
-      } else if (inf.getCompilerType() == VM_CompilerInfo.BASELINE) {
-	  VM_BaselineCompilerInfo info = (VM_BaselineCompilerInfo)inf;
+      } else if (m.getCompilerType() == VM_CompiledMethod.BASELINE) {
+	  VM_BaselineCompiledMethod bm = (VM_BaselineCompiledMethod)m;
 	  OPT_BCstackTrace bcs = new OPT_BCstackTrace();
 	  bcs.actualMethod = m.getMethod();
 	  bcs.sourceMethod = m.getMethod();
 	  bcs.methodAtOffset = m.getMethod();
 	  if (VM.BuildForIA32)
-	      bcs.byteCodeOffset = info.findBytecodeIndexForInstruction(offset);
+	      bcs.byteCodeOffset = bm.findBytecodeIndexForInstruction(offset);
 	  else
-	      bcs.byteCodeOffset = info.findBytecodeIndexForInstruction(offset>>2);
+	      bcs.byteCodeOffset = bm.findBytecodeIndexForInstruction(offset>>2);
 	  bcTrace[index++] = bcs;
       }
     }

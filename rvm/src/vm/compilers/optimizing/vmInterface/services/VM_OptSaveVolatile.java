@@ -65,14 +65,13 @@ class VM_OptSaveVolatile implements VM_SaveVolatile, VM_Uninterruptible {
     // compiled method that called OPT_resolve
     VM_Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     int cmid = VM_Magic.getCompiledMethodID(fp);
-    VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-    VM_OptCompilerInfo info = (VM_OptCompilerInfo)cm.getCompilerInfo();
+    VM_OptCompiledMethod cm = (VM_OptCompiledMethod)VM_CompiledMethods.getCompiledMethod(cmid);
     // (2) Get the return address 
     VM_Address ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
     VM_Address methodStartAddress = VM_Magic.objectAsAddress(cm.getInstructions());
     int offset = ip.diff(methodStartAddress);
     VM.enableGC();
     // (3) Call the routine in VM_OptLinker that does all the real work.
-    VM_OptLinker.resolveDynamicLink(info, offset);
+    VM_OptLinker.resolveDynamicLink(cm, offset);
   }
 }

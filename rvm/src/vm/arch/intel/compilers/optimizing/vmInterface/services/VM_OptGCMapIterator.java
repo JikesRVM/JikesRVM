@@ -47,20 +47,20 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
     //       |     ...       |     only SaveVolatile Frames              
     //       |  VolGPR[n]    |                                           
     //       +---------------+                                           
-    //       |  NVolGPR[k]   |  <-- info.getUnsignedNonVolatileOffset()  
-    //       |     ...       |   k == info.getFirstNonVolatileGPR()      
+    //       |  NVolGPR[k]   |  <-- cm.getUnsignedNonVolatileOffset()  
+    //       |     ...       |   k == cm.getFirstNonVolatileGPR()      
     //       |  NVolGPR[n]   |                                           
     //       +---------------+                                           
     //
     //           LOW MEMORY
     
-    int frameOffset = compilerInfo.getUnsignedNonVolatileOffset();
+    int frameOffset = compiledMethod.getUnsignedNonVolatileOffset();
     if (frameOffset >= 0) {
       // get to the non vol area
       VM_Address nonVolArea = framePtr.sub(frameOffset);
     
       // update non-volatiles
-      int first = compilerInfo.getFirstNonVolatileGPR();
+      int first = compiledMethod.getFirstNonVolatileGPR();
       if (first >= 0) {
 	// move to the beginning of the nonVol area
 	VM_Address location = nonVolArea;
@@ -81,7 +81,7 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
       }
       
       // update volatiles if needed
-      if (compilerInfo.isSaveVolatile()) {
+      if (compiledMethod.isSaveVolatile()) {
 	// move to the beginning of the nonVol area
 	VM_Address location = nonVolArea.add(4 * NUM_VOLATILE_GPRS);
 	
@@ -128,10 +128,10 @@ final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator {
    *  @return the last spill location
    */
   VM_Address getLastSpillLoc() {
-    if (compilerInfo.isSaveVolatile()) {
-      return framePtr.sub(compilerInfo.getUnsignedNonVolatileOffset() - 4 - SAVE_VOL_SIZE);
+    if (compiledMethod.isSaveVolatile()) {
+      return framePtr.sub(compiledMethod.getUnsignedNonVolatileOffset() - 4 - SAVE_VOL_SIZE);
     } else {
-      return framePtr.sub(compilerInfo.getUnsignedNonVolatileOffset() - 4);
+      return framePtr.sub(compiledMethod.getUnsignedNonVolatileOffset() - 4);
     }
   }
 

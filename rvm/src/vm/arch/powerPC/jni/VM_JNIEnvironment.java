@@ -18,7 +18,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 {
   private static boolean initialized = false;
   private static String[] names;
-  static VM_CompilerInfo   javaToCCompilerInfo;  // shared VM_CompilerInfo for all native method glue code
 
   /**
    * This is the JNI function table, the address of this array will be
@@ -89,9 +88,6 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
 
     // fill an array of JNI names
     setNames();
-
-    // create method ID for JNI transition stackframes
-    //javaToCCompilerInfo = new VM_JNICompilerInfo();   //XXX now alloc method specific infos ses 073101
 
     // fill in the TOC entries for each AIX linkage triplet
     for (int i=0; i<JNIFunctions.length; i++) {

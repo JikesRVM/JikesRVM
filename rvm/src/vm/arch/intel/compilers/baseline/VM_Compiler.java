@@ -17,7 +17,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   /**
    * Create a VM_Compiler object for the compilation of method.
    */
-  VM_Compiler(VM_CompiledMethod cm) {
+  VM_Compiler(VM_BaselineCompiledMethod cm) {
     super(cm);
     stackHeights = new int[bytecodes.length];
     parameterWords = method.getParameterWords() + (method.isStatic() ? 0 : 1); // add 1 for this pointer

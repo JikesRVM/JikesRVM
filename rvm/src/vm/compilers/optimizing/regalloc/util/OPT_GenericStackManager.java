@@ -1364,7 +1364,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
     initForArch(ir);
 
     // (4) save caughtExceptionOffset where the exception deliverer can find it
-    ir.MIRInfo.info.setUnsignedExceptionOffset(caughtExceptionOffset);
+    ir.compiledMethod.setUnsignedExceptionOffset(caughtExceptionOffset);
 
     // (5) initialize the restrictions object
     restrict = new OPT_RegisterRestrictions(ir.regpool.getPhysicalRegisterSet());

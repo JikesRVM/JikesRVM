@@ -202,16 +202,15 @@ abstract class VM_RecompilationStrategy {
    *  This method retrieves the previous compiler constant.
    */
    int getPreviousCompiler(VM_CompiledMethod cmpMethod) {
-    VM_CompilerInfo info = cmpMethod.getCompilerInfo();
-    switch(info.getCompilerType()) {
-    case VM_CompilerInfo.TRAP: 
-    case VM_CompilerInfo.JNI:
+    switch(cmpMethod.getCompilerType()) {
+    case VM_CompiledMethod.TRAP: 
+    case VM_CompiledMethod.JNI:
       return -1; // don't try to optimize these guys!
-    case VM_CompilerInfo.BASELINE:
+    case VM_CompiledMethod.BASELINE:
       return 0;
-    case VM_CompilerInfo.OPT:
-      VM_OptCompilerInfo optInfo = (VM_OptCompilerInfo)info;
-      return VM_CompilerDNA.getCompilerConstant(optInfo.getOptLevel());
+    case VM_CompiledMethod.OPT:
+      VM_OptCompiledMethod optMeth = (VM_OptCompiledMethod)cmpMethod;
+      return VM_CompilerDNA.getCompilerConstant(optMeth.getOptLevel());
     default:
       if (VM.VerifyAssertions) VM.assert(false, "Unknown Compiler");
       return -1;

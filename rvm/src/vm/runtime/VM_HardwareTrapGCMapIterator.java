@@ -43,6 +43,6 @@ final class VM_HardwareTrapGCMapIterator extends VM_GCMapIterator implements VM_
   void cleanupPointers() {} 
   
   int getType() {
-    return VM_GCMapIterator.TRAP;
+    return VM_CompiledMethod.TRAP;
   }
 }

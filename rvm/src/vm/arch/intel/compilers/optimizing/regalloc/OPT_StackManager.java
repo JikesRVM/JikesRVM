@@ -174,21 +174,19 @@ implements OPT_Operators {
    * </ul>
    */
   void computeNonVolatileArea() {
-
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
 
-    if (ir.MIRInfo.info.isSaveVolatile()) {
+    if (ir.compiledMethod.isSaveVolatile()) {
       // Record that we use every nonvolatile GPR
       int numGprNv = phys.getNumberOfNonvolatileGPRs();
-      info.setNumberOfNonvolatileGPRs((short)numGprNv);
+      ir.compiledMethod.setNumberOfNonvolatileGPRs((short)numGprNv);
 
       // set the frame size
       frameSize += numGprNv * WORDSIZE;
       frameSize = align(frameSize, STACKFRAME_ALIGNMENT);
 
       // TODO!!
-      info.setNumberOfNonvolatileFPRs((short)0);
+      ir.compiledMethod.setNumberOfNonvolatileFPRs((short)0);
 
       // Record that we need a stack frame.
       setFrameRequired();
@@ -221,7 +219,7 @@ implements OPT_Operators {
 
       // Set the offset to find non-volatiles.
       int gprOffset = getNonvolatileGPROffset(0);
-      info.setUnsignedNonVolatileOffset(gprOffset);
+      ir.compiledMethod.setUnsignedNonVolatileOffset(gprOffset);
 
     } else {
       // Count the number of nonvolatiles used. 
@@ -237,18 +235,18 @@ implements OPT_Operators {
           numGprNv++;
         }
       }
-      // Update the VM_OptCompilerInfo object.
-      info.setNumberOfNonvolatileGPRs((short)numGprNv);
+      // Update the VM_OptCompiledMethod object.
+      ir.compiledMethod.setNumberOfNonvolatileGPRs((short)numGprNv);
       if (numGprNv > 0) {
         int gprOffset = getNonvolatileGPROffset(0);
-        info.setUnsignedNonVolatileOffset(gprOffset);
+        ir.compiledMethod.setUnsignedNonVolatileOffset(gprOffset);
         // record that we need a stack frame
         setFrameRequired();
       } else {
-        info.setUnsignedNonVolatileOffset(0);
+        ir.compiledMethod.setUnsignedNonVolatileOffset(0);
       }
 
-      info.setNumberOfNonvolatileFPRs((short)0);
+      ir.compiledMethod.setNumberOfNonvolatileFPRs((short)0);
 
     }
   }
@@ -308,7 +306,7 @@ implements OPT_Operators {
       return;
     }
 
-    if (ir.MIRInfo.info.isSaveVolatile()) {
+    if (ir.compiledMethod.isSaveVolatile()) {
       return;
     }
 
@@ -339,7 +337,7 @@ implements OPT_Operators {
       return;
     }
 
-    if (ir.MIRInfo.info.isSaveVolatile()) {
+    if (ir.compiledMethod.isSaveVolatile()) {
       return;
     }
 
@@ -391,7 +389,7 @@ implements OPT_Operators {
     OPT_Instruction plg = inst.getPrev();
 
     int frameFixedSize = getFrameFixedSize();
-    ir.MIRInfo.info.setFrameFixedSize(frameFixedSize);
+    ir.compiledMethod.setFrameFixedSize(frameFixedSize);
 
     // I. Buy a stackframe (including overflow check)
     // NOTE: We play a little game here.  If the frame we are buying is
@@ -431,7 +429,7 @@ implements OPT_Operators {
     }
 
     // II. Save any used volatile and non-volatile registers
-    if (ir.MIRInfo.info.isSaveVolatile())  {
+    if (ir.compiledMethod.isSaveVolatile())  {
       saveVolatiles(inst);
       saveFloatingPointState(inst);
     }
@@ -447,8 +445,7 @@ implements OPT_Operators {
    */
   private void saveNonVolatiles(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
-    int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
+    int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
 
     // Save each non-volatile GPR used by this method. 
     int n = nNonvolatileGPRS - 1;
@@ -469,8 +466,7 @@ implements OPT_Operators {
    */
   private void restoreNonVolatiles(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
-    int nNonvolatileGPRS = info.getNumberOfNonvolatileGPRs();
+    int nNonvolatileGPRS = ir.compiledMethod.getNumberOfNonvolatileGPRs();
 
     int n = nNonvolatileGPRS - 1;
     for (Enumeration e = phys.enumerateNonvolatileGPRsBackwards(); 
@@ -512,7 +508,6 @@ implements OPT_Operators {
    */
   private void saveVolatiles(OPT_Instruction inst) {
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-    VM_OptCompilerInfo info = ir.MIRInfo.info;
 
     // Save each GPR. 
     int i = 0;
@@ -554,7 +549,7 @@ implements OPT_Operators {
     OPT_Register PR = phys.getPR();
 
     // 1. Restore any saved registers
-    if (ir.MIRInfo.info.isSaveVolatile())  {
+    if (ir.compiledMethod.isSaveVolatile())  {
       restoreVolatileRegisters(ret);
       restoreFloatingPointState(ret);
     }

@@ -147,7 +147,7 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
   } //- implements VM_GCMapIterator
   
   int getType() {
-    return VM_GCMapIterator.JNI;
+    return VM_CompiledMethod.JNI;
   } //- implements VM_GCMapIterator
    
 }

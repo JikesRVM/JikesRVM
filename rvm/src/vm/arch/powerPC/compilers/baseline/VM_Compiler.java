@@ -24,7 +24,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   /**
    * Create a VM_Compiler object for the compilation of method.
    */
-  VM_Compiler(VM_CompiledMethod cm) {
+  VM_Compiler(VM_BaselineCompiledMethod cm) {
     super(cm);
     if (VM.VerifyAssertions) VM.assert(T3 <= LAST_VOLATILE_GPR);           // need 4 gp temps
     if (VM.VerifyAssertions) VM.assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps

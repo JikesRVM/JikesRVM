@@ -10,7 +10,7 @@
  * @author David Grove
  */
 class VM_RuntimeCompiler extends VM_RuntimeCompilerInfrastructure {
-  public static final int COMPILER_TYPE = VM_CompilerInfo.BASELINE;
+  public static final int COMPILER_TYPE = VM_CompiledMethod.BASELINE;
 
   static void boot() {
   }

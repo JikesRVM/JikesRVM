@@ -7,7 +7,7 @@ import instructionFormats.*;
 
 /**
  * A class that encapsulates mapping information about generated machine code.
- * Since there will be an instance of this class with every VM_OptCompilerInfo,
+ * Since there will be an instance of this class with every VM_OptCompiledMethod,
  * we attempt to pack the data into a reasonably small number of bits.
  * 
  * <p> The supported functions are:

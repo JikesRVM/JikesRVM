@@ -410,10 +410,9 @@ public class VM_ClassLoader
 							 VM_Atom.findOrCreateAsciiAtom("<trap>"),
 							 VM_Atom.findOrCreateAsciiAtom("()V"),
 							 VM_SystemClassLoader.getVMClassLoader());
-    VM_CompiledMethod compiledMethod   = VM_CompiledMethods.createCompiledMethod(method, VM_CompilerInfo.TRAP);
+    VM_CompiledMethod compiledMethod   = VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.TRAP);
     INSTRUCTION[]     instructions     = VM_RuntimeStructures.newInstructions(0);
-    VM_CompilerInfo   compilerInfo     = new VM_HardwareTrapCompilerInfo();
-    compiledMethod.compileComplete(compilerInfo, instructions);
+    compiledMethod.compileComplete(instructions);
     return compiledMethod.getId();
   }
 

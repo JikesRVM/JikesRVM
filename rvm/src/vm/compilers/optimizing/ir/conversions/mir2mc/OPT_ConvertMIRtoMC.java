@@ -97,22 +97,20 @@ final class OPT_ConvertMIRtoMC extends OPT_OptimizationPlanCompositeElement {
       // STEP 3: Generate all the mapping information 
       // associated with the machine code.
       //////////
-      VM_OptCompilerInfo info = ir.MIRInfo.info;
-  
       // 3a: Create the exception table
-      info.createFinalExceptionTable(ir);
+      ir.compiledMethod.createFinalExceptionTable(ir);
       // 3b: Create the primary machine code map
-      info.createFinalMCMap(ir, codeLength);
+      ir.compiledMethod.createFinalMCMap(ir, codeLength);
       //-#if RVM_FOR_IA32
       // 3c: Create code patching maps
       if (ir.options.guardWithCodePatch()) {
-	info.createCodePatchMaps(ir);
+	ir.compiledMethod.createCodePatchMaps(ir);
       }
       //-#endif
 
       if (shouldPrint) {
         // print exception tables (if any)
-        VM_OptExceptionTable etable = info.getExceptionTable();
+        VM_OptExceptionTable etable = ir.compiledMethod.getExceptionTable();
         if (etable != null)
   	etable.printExceptionTable();
         OPT_Compiler.bottom("Final machine code", method);

@@ -13,7 +13,7 @@ class VM_BootImageCompiler {
 
   // Identity.
   //
-  public static final int COMPILER_TYPE = VM_CompilerInfo.OPT;
+  public static final int COMPILER_TYPE = VM_CompiledMethod.OPT;
 
   /** 
    * Initialize boot image compiler.

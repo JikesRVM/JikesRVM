@@ -11,78 +11,268 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-class VM_CompiledMethod implements VM_Uninterruptible, VM_SynchronizedObject {
+abstract class VM_CompiledMethod implements VM_SynchronizedObject {
 
-  //-----------//
-  // interface //
-  //-----------//
-   
-  final int getId() { 
-    return id;           
-  }
+  public final static int TRAP      = 0; // no code: special trap handling stackframe
+  public final static int BASELINE  = 1; // baseline code
+  public final static int OPT       = 3; // opt code
+  public final static int JNI       = 4; // java to Native C transition frame
+
+  /*
+   * constants for bitField1
+   */
+  protected final static int COMPILED   = 0x80000000;
+  protected final static int INVALID    = 0x40000000;
+  protected final static int OBSOLETE   = 0x20000000;
+
+  /**
+   * The compiled method id of this compiled method (index into VM_CompiledMethods)
+   */
+  protected final int cmid; 
   
-  final VM_Method getMethod() { 
+  /**
+   * The VM_Method that was compiled
+   */
+  protected final VM_Method method;
+
+  /**
+   * The compiled machine code for said method.
+   */
+  protected INSTRUCTION[] instructions; 
+
+  /**
+   * A bit field.  The upper 4 bits are reserved for use by 
+   * VM_CompiledMethod.  Subclasses may use the lower 28 bits for their own
+   * purposes.
+   */
+  protected int bitField1;
+
+  /**
+   * Set the cmid and method fields
+   */
+  VM_CompiledMethod(int id, VM_Method m) {
+    cmid   = id;
+    method = m;
+  }
+
+  /**
+   * Return the compiled method id for this compiled method
+   */
+  public final int getId() throws VM_PragmaUninterruptible { 
+    return cmid;           
+  }
+
+  /**
+   * Return the VM_Method associated with this compiled method
+   */
+  public final VM_Method getMethod() throws VM_PragmaUninterruptible { 
     return method;       
   }
 
-  final INSTRUCTION[] getInstructions() { 
-    if (VM.VerifyAssertions) VM.assert((state & COMPILED) != 0);
+  /**
+   * Return the machine code for this compiled method
+   */
+  final INSTRUCTION[] getInstructions() throws VM_PragmaUninterruptible { 
+    if (VM.VerifyAssertions) VM.assert((bitField1 & COMPILED) != 0);
     return instructions; 
   }
 
-  final VM_CompilerInfo getCompilerInfo() { 
-    if (VM.VerifyAssertions) VM.assert((state & COMPILED) != 0);
-    return compilerInfo; 
-  }
-
-  final void compileComplete(VM_CompilerInfo info, INSTRUCTION[] code) {
-    compilerInfo = info;
+  /**
+   * Record that the compilation is complete.
+   */
+  final void compileComplete(INSTRUCTION[] code) {
     instructions = code;
-    state |= COMPILED;
+    bitField1 |= COMPILED;
   }
 
+  /**
+   * Mark the compiled method as invalid
+   */
   final void setInvalid() {
-    state |= INVALID;
+    bitField1 |= INVALID;
   }
 
-  final void setObsolete(boolean sense) {
+  /**
+   * Mark the compiled method as obsolete (ie a candidate for eventual GC)
+   */
+  final void setObsolete(boolean sense) throws VM_PragmaUninterruptible {
     if (sense) {
-      state |= OBSOLETE;
+      bitField1 |= OBSOLETE;
     } else {
-      state &= ~OBSOLETE;
+      bitField1 &= ~OBSOLETE;
     }
   }
 
-  final boolean isCompiled() {
-    return (state & COMPILED) != 0;
+  /**
+   * Has compilation completed?
+   */
+  final boolean isCompiled() throws VM_PragmaUninterruptible {
+    return (bitField1 & COMPILED) != 0;
   }
 
-  final boolean isInvalid() {
-    return (state & INVALID) != 0;
+  /**
+   * Is the compiled code invalid?
+   */
+  final boolean isInvalid() throws VM_PragmaUninterruptible {
+    return (bitField1 & INVALID) != 0;
   }
 
-  final boolean	isObsolete() { 
-    return (state & OBSOLETE) != 0;
+  /**
+   * Is the compiled code obsolete?
+   */
+  final boolean	isObsolete() throws VM_PragmaUninterruptible { 
+    return (bitField1 & OBSOLETE) != 0;
   }
+
+
+
+  /**
+   * Identify the compiler that produced this compiled method.
+   * @return one of TRAP, BASELINE, OPT, or JNI.
+   * Note: use this instead of "instanceof" when gc is disabled (ie. during gc)
+   */ 
+  abstract int getCompilerType() throws VM_PragmaUninterruptible;
+
+  /**
+   * Get handler to deal with stack unwinding and exception delivery for this 
+   * compiled method's stackframes.
+   */ 
+  abstract VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible;
    
-  //----------------//
-  // implementation //
-  //----------------//
+  /**
+   * Find "catch" block for a machine instruction of 
+   * this method that might be guarded 
+   * against specified class of exceptions by a "try" block .
+   *
+   * @param instructionOffset offset of machine instruction from start of this method, in bytes
+   * @param exceptionType type of exception being thrown - something like "NullPointerException"
+   * @return offset of machine instruction for catch block 
+   * (-1 --> no catch block)
+   * 
+   * Notes: 
+   * <ul>
+   * <li> The "instructionOffset" must point to the instruction 
+   * <em> following </em> the actual
+   * instruction whose catch block is sought. 
+   * This allows us to properly handle the case where
+   * the only address we have to work with is a return address 
+   * (ie. from a stackframe)
+   * or an exception address 
+   * (ie. from a null pointer dereference, array bounds check,
+   * or divide by zero) on a machine architecture with variable length 
+   * instructions.
+   * In such situations we'd have no idea how far to back up the 
+   * instruction pointer
+   * to point to the "call site" or "exception site".
+   * 
+   * <li> This method must not cause any allocations, because it executes with
+   * gc disabled when called by VM_Runtime.deliverException().
+   * </ul>
+   */
+  abstract int findCatchBlockForInstruction(int instructionOffset, VM_Type exceptionType);
 
-  private static final int VACANT     = 0x00;
-  private static final int COMPILED   = 0x01;
-  private static final int INVALID    = 0x02;
-  private static final int OBSOLETE   = 0x80;
+  /**
+   * Fetch symbolic reference to a method that's called by one of 
+   * this method's instructions.
+   * @param dynamicLink place to put return information
+   * @param instructionOffset offset of machine instruction from start of 
+   * this method, in bytes
+   * @return nothing (return information is filled in)
+   *
+   * Notes: 
+   * <ul>
+   * <li> The "instructionOffset" must point to the instruction i
+   * <em> following </em> the call
+   * instruction whose target method is sought. 
+   * This allows us to properly handle the case where
+   * the only address we have to work with is a return address 
+   * (ie. from a stackframe)
+   * on a machine architecture with variable length instructions.
+   * In such situations we'd have no idea how far to back up the 
+   * instruction pointer
+   * to point to the "call site".
+   *
+   * <li> The implementation must not cause any allocations, 
+   * because it executes with
+   * gc disabled when called by VM_GCMapIterator.
+   * <ul>
+   */
+  abstract void getDynamicLink(VM_DynamicLink dynamicLink, 
+                               int instructionOffset) throws VM_PragmaUninterruptible;
 
-  private int             id;           // index of this compiled method in VM_ClassLoader.compiledMethods[]
-  private VM_Method       method;       // method
-  private INSTRUCTION[]   instructions; // machine code for that method
-  private VM_CompilerInfo compilerInfo; // tables and maps for handling exceptions, gc, etc.
-  private int             state;        // state of the compiled method.
-   
-  VM_CompiledMethod(int id, VM_Method method) {
-    this.id     = id;
-    this.method = method;
-    this.state  = VACANT;
-  }
+   /**
+    * Find source line number corresponding to one of this method's 
+    * machine instructions.
+    * @param instructionOffset of machine instruction from start of 
+    * this method, in bytes
+    * @return source line number 
+    * (0 == no line info available, 1 == first line of source file)
+    *
+    * <p> Usage note: "instructionOffset" must point to the 
+    * instruction <em> following </em> the actual instruction
+    * whose line number is sought. 
+    * This allows us to properly handle the case where
+    * the only address we have to work with is a return address 
+    * (ie. from a stackframe)
+    * or an exception address 
+    * (ie. from a null pointer dereference, array bounds check,
+    * or divide by zero) on a machine architecture with variable length 
+    * instructions.
+    * In such situations we'd have no idea how far to back up the 
+    * instruction pointer
+    * to point to the "call site" or "exception site".
+    */
+  abstract int findLineNumberForInstruction(int instructionOffset);
+
+  /**
+   * Find (earliest) machine instruction corresponding one of this method's 
+   * source line numbers.
+   * @param lineNumber source line number (1 == first line of source file)
+   * @return instruction offset from start of this method, 
+   * in bytes (-1 --> not found)
+   */
+  abstract int findInstructionForLineNumber(int lineNumber);
+
+  /**
+   * Find (earliest) machine instruction corresponding to the next 
+   * valid source code line following this method's source line numbers.
+   * @param lineNumber source line number (1 == first line of source file)
+   * @return instruction offset from start of this method, in bytes 
+   * (-1 --> no more valid code line)
+   */
+  abstract int findInstructionForNextLineNumber(int lineNumber);
+
+  /**
+   * Find local variables that are in scope of specified machine instruction.
+   * @param instructionOffset offset of machine instruction from start of method
+   * @return local variables (null --> no local variable information available)
+   */
+  abstract VM_LocalVariable[] findLocalVariablesForInstruction(int instructionOffset);
+
+  /**
+   * Print this compiled method's portion of a stack trace 
+   * @param instructionOffset offset of machine instruction from start of method
+   * @param out the PrintStream to print the stack trace to.
+   */
+  abstract void printStackTrace(int instructionOffset, java.io.PrintStream out);
+     
+  /**
+   * Print this compiled method's portion of a stack trace 
+   * @param instructionOffset offset of machine instruction from start of method
+   * @param out the PrintWriter to print the stack trace to.
+   */
+  abstract void printStackTrace(int instructionOffset, java.io.PrintWriter out);
+
+  /**
+   * Set the stack browser to the innermost logical stack frame of this method
+   */
+  abstract void set(VM_StackBrowser browser, int instr);
+
+  /**
+   * Advance the VM_StackBrowser up one internal stack frame, if possible
+   */
+  abstract boolean up(VM_StackBrowser browser);
+
+  int dataSize() { return 0; }
+
 }

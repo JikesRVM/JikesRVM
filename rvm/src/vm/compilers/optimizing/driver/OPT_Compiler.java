@@ -141,7 +141,7 @@ public class OPT_Compiler {
       if (meth.isClassInitializer())
         continue;
       if (!meth.isCompiled() || 
-	  meth.getCurrentCompiledMethod().getCompilerInfo().getCompilerType() != VM_CompilerInfo.OPT) {
+	  meth.getCurrentCompiledMethod().getCompilerType() != VM_CompiledMethod.OPT) {
         OPT_CompilationPlan cp = 
 	  new OPT_CompilationPlan(meth, 
 				  OPT_OptimizationPlanner.createOptimizationPlan(options), 
@@ -211,8 +211,7 @@ public class OPT_Compiler {
    * Invoke the opt compiler to execute a compilation plan.
    * 
    * @param cp the compilation plan to be executed
-   * @return the VM_CompiledMethod object containing the compiled code 
-   * & VM_OptCompilerInfo
+   * @return the VM_CompiledMethod object that is the result of compilation
    */
   public static VM_CompiledMethod compile (OPT_CompilationPlan cp) {
     VM_Method method = cp.method;
@@ -232,7 +231,7 @@ public class OPT_Compiler {
       // system a chance to eagerly compile any specialized version
       // that are pending.  TODO: use lazy compilation with specialization.
       OPT_SpecializationDatabase.doDeferredSpecializations();
-      ir.compiledMethod.compileComplete(ir.MIRInfo.info, ir.MIRInfo.machinecode);
+      ir.compiledMethod.compileComplete(ir.MIRInfo.machinecode);
       return ir.compiledMethod;
     } catch (OPT_OptimizingCompilerException e) {
       throw e;

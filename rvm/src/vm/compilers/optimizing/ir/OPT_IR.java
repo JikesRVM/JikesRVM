@@ -93,7 +93,7 @@ public final class OPT_IR implements OPT_Operators {
   /**
    * The compiled method created to hold the result of this compilation.
    */
-  public VM_CompiledMethod compiledMethod;
+  public VM_OptCompiledMethod compiledMethod;
 
   /**
    * The compiler {@link OPT_Options options} that apply

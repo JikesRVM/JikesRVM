@@ -604,12 +604,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
         VM_CompiledMethod compiledMethod    = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
         VM_Method         method            = compiledMethod.getMethod();
         int               instructionOffset = ip.diff(VM_Magic.objectAsAddress(compiledMethod.getInstructions()));
-        int               lineNumber        = compiledMethod.getCompilerInfo().findLineNumberForInstruction(instructionOffset>>>LG_INSTRUCTION_WIDTH);
+        int               lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset>>>LG_INSTRUCTION_WIDTH);
 
         //-#if RVM_WITH_OPT_COMPILER
-        VM_CompilerInfo   info              = compiledMethod.getCompilerInfo();
-        if (info.getCompilerType() == VM_CompilerInfo.OPT) {
-          VM_OptCompilerInfo optInfo = (VM_OptCompilerInfo)info;
+        if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
+          VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
           // Opt stack frames may contain multiple inlined methods.
           VM_OptMachineCodeMap map = optInfo.getMCMap();
           int iei = map.getInlineEncodingForMCOffset(instructionOffset);

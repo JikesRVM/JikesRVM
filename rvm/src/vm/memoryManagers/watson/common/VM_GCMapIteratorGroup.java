@@ -16,7 +16,7 @@
  * register save areas.
  *
  * @see VM_GCMapIterator
- * @see VM_CompilerInfo
+ * @see VM_CompiledMethod
  * @see VM_CollectorThread
  * @see VM_Allocator
  * 
@@ -102,7 +102,7 @@ final class VM_GCMapIteratorGroup implements VM_Uninterruptible {
    * @return VM_GCMapIterator to use
    */
   VM_GCMapIterator selectIterator(VM_CompiledMethod compiledMethod) {
-    int type = compiledMethod.getCompilerInfo().getCompilerType();
+    int type = compiledMethod.getCompilerType();
     
     if (type == bootImageCompilerIterator.getType())
       return bootImageCompilerIterator;

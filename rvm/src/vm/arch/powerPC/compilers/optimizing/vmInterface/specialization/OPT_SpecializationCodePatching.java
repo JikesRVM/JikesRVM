@@ -25,18 +25,18 @@ class OPT_SpecializationCodePatching implements VM_BaselineConstants {
     }
     
     static public void insertCallSiteNumber(INSTRUCTION[] codeArray,
-					    VM_CompilerInfo codeInfo,
+					    VM_CompiledMethod codeInfo,
 					    GNO_InstructionLocation call,
 					    int callSiteNumber)
     {
-	if ( codeInfo.getCompilerType() == VM_CompilerInfo.BASELINE ) {
-	    VM_BaselineCompilerInfo info = (VM_BaselineCompilerInfo)codeInfo;
+	if ( codeInfo.getCompilerType() == VM_CompiledMethod.BASELINE ) {
+	    VM_BaselineCompiledMethod info = (VM_BaselineCompiledMethod)codeInfo;
 	    int bcIndex = call.getByteCodeOffset();
 	    int mcOffset = info.findInstructionForBytecodeIndex( bcIndex );
 	    insertCallSiteNumber( codeArray, mcOffset, callSiteNumber );
 
-	} else if ( codeInfo.getCompilerType() == VM_CompilerInfo.OPT ) {
-	    VM_OptCompilerInfo info = (VM_OptCompilerInfo) codeInfo;
+	} else if ( codeInfo.getCompilerType() == VM_CompiledMethod.OPT ) {
+	    VM_OptCompiledMethod info = (VM_OptCompiledMethod) codeInfo;
 	    VM_OptMachineCodeMap map = info.getMCMap();
 	    int[] callSiteEncoding = map.inlineEncoding;
 	    int bcIndex = call.getByteCodeOffset();
@@ -59,9 +59,8 @@ class OPT_SpecializationCodePatching implements VM_BaselineConstants {
 					    int callSiteNumber)
     {
 	INSTRUCTION[] codeArray = code.getInstructions();
-	VM_CompilerInfo codeInfo = code.getCompilerInfo();
 
-	insertCallSiteNumber(codeArray, codeInfo, call, callSiteNumber);
+	insertCallSiteNumber(codeArray, code, call, callSiteNumber);
     }
 
 }

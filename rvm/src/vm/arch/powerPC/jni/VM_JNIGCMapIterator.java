@@ -156,6 +156,6 @@ final class VM_JNIGCMapIterator extends VM_GCMapIterator implements VM_BaselineC
    void cleanupPointers() {}
 
    int getType() {
-       return VM_GCMapIterator.JNI;
+       return VM_CompiledMethod.JNI;
    }
 }

@@ -67,7 +67,7 @@ abstract class VM_BaselineCompiler {
   /**
    * The compiledMethod assigned to this compilation of method
    */
-  protected VM_CompiledMethod compiledMethod;
+  protected VM_BaselineCompiledMethod compiledMethod;
 
   /** 
    * The height of the expression stack at the start of each bytecode.
@@ -94,7 +94,7 @@ abstract class VM_BaselineCompiler {
   /**
    * Construct a VM_Compiler
    */
-  protected VM_BaselineCompiler(VM_CompiledMethod cm) {
+  protected VM_BaselineCompiler(VM_BaselineCompiledMethod cm) {
     compiledMethod = cm;
     method = cm.getMethod();
     shouldPrint  = ((options.PRINT_MACHINECODE) &&
@@ -168,16 +168,15 @@ abstract class VM_BaselineCompiler {
    */
   public static synchronized VM_CompiledMethod compile (VM_Method method) {
     if (method.isNative()) {
-      VM_CompiledMethod cm = VM_CompiledMethods.createCompiledMethod(method, VM_CompilerInfo.JNI);
+      VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
       VM_MachineCode machineCode = VM_JNICompiler.generateGlueCodeForNative(cm);
-      VM_CompilerInfo info = new VM_JNICompilerInfo(method);
-      cm.compileComplete(info, machineCode.getInstructions());
+      cm.compileComplete(machineCode.getInstructions());
       return cm;
     } else {
-      VM_CompiledMethod cm = VM_CompiledMethods.createCompiledMethod(method, VM_CompilerInfo.BASELINE);
+      VM_BaselineCompiledMethod cm = (VM_BaselineCompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.BASELINE);
       if (VM.runningAsJDPRemoteInterpreter) {
 	// "fake" compilation
-	cm.compileComplete(null, null);
+	cm.compileComplete(null);
       } else {
 	new VM_Compiler(cm).compile();
       }
@@ -198,13 +197,12 @@ abstract class VM_BaselineCompiler {
 
     INSTRUCTION[]   instructions = machineCode.getInstructions();
     int[]           bytecodeMap  = machineCode.getBytecodeMap();
-    VM_CompilerInfo info;
     if (method.isSynchronized()) {
-      info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, instructions.length, lockOffset);
+      compiledMethod.encodeMappingInfo(refMaps, bytecodeMap, instructions.length, lockOffset);
     } else {
-      info = new VM_BaselineCompilerInfo(method, refMaps, bytecodeMap, instructions.length);
+      compiledMethod.encodeMappingInfo(refMaps, bytecodeMap, instructions.length);
     }
-    compiledMethod.compileComplete(info, instructions);
+    compiledMethod.compileComplete(instructions);
   }
 
 

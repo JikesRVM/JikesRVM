@@ -11,7 +11,7 @@
  */
 class VM_RuntimeCompiler extends VM_RuntimeOptCompilerInfrastructure {
 
-  public static final int COMPILER_TYPE = VM_CompilerInfo.OPT;
+  public static final int COMPILER_TYPE = VM_CompiledMethod.OPT;
 
   public static void boot() {
     // This is needed before any OPT compilation can occur

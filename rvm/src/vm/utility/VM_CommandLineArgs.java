@@ -629,7 +629,7 @@ class VM_CommandLineArgs {
 	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
 	VM.sysExit(1);
 	//-#else
-	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompilerInfo.OPT) {
+	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompiledMethod.OPT) {
 	//-#if RVM_WITH_OPT_COMPILER
 	    OPT_Options.printHelp("-X:opt");
 	//-#else
@@ -649,7 +649,7 @@ class VM_CommandLineArgs {
 	VM.sysWrite("vm: adaptive configuration; "+p.value+arg+" has an illegal command line argument prefix '-X:irc'\n");
 	VM.sysExit(1);
 	//-#else
-	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompilerInfo.OPT)
+	if (VM_RuntimeCompiler.COMPILER_TYPE == VM_CompiledMethod.OPT)
 	  VM_RuntimeCompiler.processCommandLineArg(arg);
 	else {
 	  VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
