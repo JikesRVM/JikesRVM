@@ -552,6 +552,7 @@ public final class OPT_BranchOptimizations
    * register?
    */
   private boolean hasFloatingPointDef(OPT_BasicBlock bb) {
+    if (bb == null) return false;
     for (Enumeration e = bb.forwardRealInstrEnumerator();
          e.hasMoreElements(); ) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
@@ -569,7 +570,8 @@ public final class OPT_BranchOptimizations
    * register?
    */
   private boolean hasLongDef(OPT_BasicBlock bb) {
-    for (Enumeration e = bb.forwardRealInstrEnumerator();
+     if (bb == null) return false;
+     for (Enumeration e = bb.forwardRealInstrEnumerator();
          e.hasMoreElements(); ) {
       OPT_Instruction s = (OPT_Instruction)e.nextElement();
       for (Enumeration d = s.getDefs(); d.hasMoreElements(); ) {
@@ -586,6 +588,8 @@ public final class OPT_BranchOptimizations
    * basic block with conditional moves?
    */
   private boolean hasCMTaboo(OPT_BasicBlock bb) {
+
+    if (bb == null) return false;
 
     // Note: it is taboo to assign more than once to any register in the
     // block.
@@ -655,6 +659,8 @@ public final class OPT_BranchOptimizations
    */
   private OPT_Instruction[] copyAndMapInstructions(OPT_BasicBlock bb,
                                                    HashMap map) {
+    if (bb == null) return new OPT_Instruction[0];
+		
     int count = 0;
     // first count the number of instructions
     for (Enumeration e = bb.forwardRealInstrEnumerator();
