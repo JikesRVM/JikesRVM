@@ -3871,24 +3871,24 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitXOR(T2, T1, T0);
       pushAddr(T2);
     } else if (methodName == VM_MagicNames.wordLsh) {
-      popAddr(T0);
-      popInt(T1);
+      popInt(T0);
+      popAddr(T1);
       if (VM.BuildFor32Addr)
 	asm.emitSLW (T2, T1, T0);
       else
 	asm.emitSLD (T2, T1, T0);
       pushAddr(T2);
     } else if (methodName == VM_MagicNames.wordRshl) {
-      popAddr(T0);
-      popInt(T1);
+      popInt(T0);
+      popAddr(T1);
       if (VM.BuildFor32Addr)
 	asm.emitSRW (T2, T1, T0);
       else
 	asm.emitSRD (T2, T1, T0);
       pushAddr(T2);
     } else if (methodName == VM_MagicNames.wordRsha) {
-      popAddr(T0);
-      popInt(T1);
+      popInt(T0);
+      popAddr(T1);
       if (VM.BuildFor32Addr)
 	asm.emitSRAW (T2, T1, T0);
       else
