@@ -253,8 +253,6 @@ final class VM_Processor implements VM_Uninterruptible,  VM_Constants, VM_GCCons
    * Put thread onto most lightly loaded virtual processor.
    */ 
   void scheduleThread (VM_Thread t) {
-      VM_Magic.pragmaNoOptCompile();
-
     // if thread wants to stay on specified processor, put it there
     if (t.processorAffinity != null) {
       if (trace) VM_Scheduler.trace("VM_Processor.scheduleThread", "outgoing to specific processor:", t.getIndex());
