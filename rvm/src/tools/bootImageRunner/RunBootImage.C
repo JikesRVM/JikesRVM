@@ -500,10 +500,112 @@ strnequal(const char *s1, const char *s2, size_t n)
 }
 
 
+#if 0
+static unsigned int parse_heap_sizeIntOnly(
+    const char *sizeName, const char *sizeFlag, 
+    const char *token, const char *subtoken, bool *fastExit);
+#endif
+
+
 /* TODO: Import BYTES_IN_PAGE from
    com.ibm.JikesRVM.memoryManagers.vmInterface.Constants */
 static unsigned int
 parse_heap_size(const char *sizeName, const char *sizeFlag, 
+		const char *token, const char *subtoken, bool *fastExit)
+{
+    const unsigned LOG_BYTES_IN_PAGE = 12;
+    const unsigned BYTES_IN_PAGE = 1 << LOG_BYTES_IN_PAGE;
+    
+    char *endp;                 /* really should be const char *, but C++
+                                   can't handle that kind of overloaded
+                                   function. */ 
+    long double factor = 1; // multiplication factor; M for
+                                     // Megabytes, K for kilobytes, etc.
+
+    errno = 0;
+    long double hs = strtold(subtoken, &endp);  // heap size number
+
+    // First, set the factor appropriately, and make sure there aren't extra
+    // characters at the end of the line.
+    if (*endp == '\0') {
+	// no suffix.  Here we differ from the Sun JVM, by assuming
+	// megabytes. (Historical compat.)  The Sun JVM would specify
+	// 1 here. 
+	factor = 1024.0 * 1024.0;
+    } else if (endp[1] == '\0') {
+	if (*endp == 'm' || *endp == 'M')
+	    factor = 1024.0 * 1024.0; // megabytes
+	else if (*endp == 'k' || *endp == 'K')
+	    factor = 1024.0;	// kilobytes
+	else if (*endp == 'b' || *endp == 'B')
+	    factor = 1.0;	// Bytes.  Not avail. in Sun JVM
+	else {
+	    goto bad_strtold;
+	}
+    } else {
+    bad_strtold:
+	fprintf(SysTraceFile, "%s: \"%s\": I don't recognize \"%s\" as a memory size\n", Me, token, subtoken);		
+	*fastExit = true;
+    }
+
+    // Note: on underflow, strtod() returns 0.
+    if (!*fastExit) {
+	if (hs <= 0.0) {
+	    fprintf(SysTraceFile, 
+		    "%s: You may not specify a %s initial heap size;", 
+		    Me, hs < 0.0 ? "negative" : "zero");
+	    fprintf(SysTraceFile, "\tit just doesn't make any sense.\n");
+	    *fastExit = true;
+	}
+    } 
+
+    if (!*fastExit) {
+	if (errno == ERANGE 
+            || hs > ((long double) (UINT_MAX - BYTES_IN_PAGE)/ factor)) 
+        {
+	// If message not already printed, print it.
+	    fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, subtoken);
+	    *fastExit = true;
+	}
+    }
+
+    if (*fastExit) {
+	size_t namelen = strlen(sizeName);
+	fprintf(SysTraceFile, "\tPlease specify %s heap size "
+                "(in megabytes) using \"-X%s<positive number>M\",\n", 
+                sizeName, sizeFlag);
+	fprintf(SysTraceFile, "\t               %*.*s        "
+                "or (in kilobytes) using \"-X%s<positive number>K\",\n",
+                (int) namelen, (int) namelen, " ", sizeFlag);
+	fprintf(SysTraceFile, "\t               %*.*s        "
+                "or (in bytes) using \"-X%s<positive number>B\"\n",
+                (int) namelen, (int) namelen, " ", sizeFlag);
+	return 0U;		// Distinguished value meaning trouble.
+    } 
+    long double tot_d = hs * factor;
+    assert(tot_d <= (UINT_MAX - BYTES_IN_PAGE));
+    assert(tot_d >= 1);
+    
+    unsigned tot = (unsigned) tot_d;
+    if (tot % BYTES_IN_PAGE) {
+	unsigned newtot
+            =  ((tot >> LOG_BYTES_IN_PAGE) + 1) << LOG_BYTES_IN_PAGE;
+	
+	fprintf(SysTraceFile, 
+                "%s: Rounding up %s heap size from %u bytes to %u,"
+		" the next multiple of %u bytes\n", Me, sizeName, tot, newtot, 
+                BYTES_IN_PAGE);
+	tot = newtot;
+    }
+    return tot;
+}
+
+#if 0
+
+/* TODO: Import BYTES_IN_PAGE from
+   com.ibm.JikesRVM.memoryManagers.vmInterface.Constants */
+static unsigned int
+parse_heap_sizeIntOnly(const char *sizeName, const char *sizeFlag, 
 		const char *token, const char *subtoken, bool *fastExit)
 {
     const unsigned LOG_BYTES_IN_PAGE = 12;
@@ -559,9 +661,15 @@ parse_heap_size(const char *sizeName, const char *sizeFlag,
 
     if (*fastExit) {
 	size_t namelen = strlen(sizeName);
-	fprintf(SysTraceFile, "\tPlease specify %s heap size (in megabytes) using \"-X%s<positive number>M\",\n", sizeName, sizeFlag);
-	fprintf(SysTraceFile, "\t               %*.*s        or (in kilobytes) using \"-X%s<positive number>K\",\n", (int) namelen, (int) namelen, " ", sizeFlag);
-	fprintf(SysTraceFile, "\t               %*.*s        or (in bytes) using \"-X%s<positive number>B\"\n", (int) namelen, (int) namelen, " ", sizeFlag);
+	fprintf(SysTraceFile, "\tPlease specify %s heap size "
+                "(in megabytes) using \"-X%s<positive integer>M\",\n", 
+                sizeName, sizeFlag);
+	fprintf(SysTraceFile, "\t               %*.*s        "
+                "or (in kilobytes) using \"-X%s<positive integer>K\",\n",
+                (int) namelen, (int) namelen, " ", sizeFlag);
+	fprintf(SysTraceFile, "\t               %*.*s        "
+                "or (in bytes) using \"-X%s<positive integer>B\"\n",
+                (int) namelen, (int) namelen, " ", sizeFlag);
 	return 0U;		// Dummy.
     } 
     unsigned int tot = hs * factor;
@@ -574,3 +682,4 @@ parse_heap_size(const char *sizeName, const char *sizeFlag,
     }
     return tot;
 }
+#endif
