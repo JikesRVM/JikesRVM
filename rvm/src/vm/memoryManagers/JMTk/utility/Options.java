@@ -26,9 +26,13 @@ public class Options implements VM_Uninterruptible, Constants {
   static int largeHeapSize    = 0; // deprecated
   static int nurseryPages     = MAX_INT;  // default to variable nursery
   static int stressTest       = MAX_INT;  // default to never
+  public static boolean ignoreSystemGC = false;
 
   public static void process (String arg) throws VM_PragmaInterruptible {
-    if (arg.startsWith("initial=")) {
+    if (arg.equals("ignoreSystemGC")) {
+      ignoreSystemGC = true;
+    }
+    else if (arg.startsWith("initial=")) {
       String tmp = arg.substring(8);
       int size = Integer.parseInt(tmp);
       if (size <= 0) VM.sysFail("Unreasonable heap size " + tmp);
