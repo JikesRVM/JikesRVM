@@ -953,16 +953,20 @@ public class VM_JNIEnvironment implements VM_JNIAIXConstants, VM_RegisterConstan
     Object[] argObjectArray;
     
     switch (argtype) {
+      //-#if RVM_FOR_LINUX
     case SVR4_DOTARG:
       // argAddress is the glue frame pointer
       argObjectArray = packageParameterFromDotArgSVR4(targetMethod, argAddress, skip4Args);
       break;
+      //-#endif
     case JVALUE_ARG:
       argObjectArray = packageParameterFromJValue(targetMethod, argAddress);
       break;
+      //-#if RVM_FOR_LINUX
     case SVR4_VARARG:
       argObjectArray = packageParameterFromVarArgSVR4(targetMethod, argAddress);
       break;
+      //-#endif
     case AIX_VARARG:
       argObjectArray = packageParameterFromVarArg(targetMethod, argAddress);
       break;
