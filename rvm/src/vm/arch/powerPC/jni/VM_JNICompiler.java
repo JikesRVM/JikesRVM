@@ -689,6 +689,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
 	  asmArg.emitLAddr(srcreg, spillOffsetVM, FP);
           spillOffsetVM += BYTES_IN_ADDRESS;
         }
+
 	asmArg.emitSTAddrU(srcreg, BYTES_IN_ADDRESS, KLUDGE_TI_REG);
         
         if (nextOSArgReg <= LAST_OS_PARAMETER_GPR) {
@@ -930,27 +931,60 @@ public class VM_JNICompiler implements VM_BaselineConstants,
           asmArg.emitLAddr(REGISTER_ZERO,spillOffsetVM - BYTES_IN_LONG, FP);        // retrieve arg from VM spill area
           asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_LONG, FP);
         }
-      } else if (types[arg].isReferenceType() ) {       
-        // For reference type, replace with handlers before passing to OS
+      } else if (types[arg].isReferenceType() ) {
+        // For reference type, replace with handles before passing to OS
         //
         spillOffsetOS+=BYTES_IN_ADDRESS;
         
         // (1a) fit in OS register, move the register
         if (nextOSArgReg<=LAST_OS_PARAMETER_GPR) {
-          asmArg.emitSTAddrU(nextVMArgReg++, BYTES_IN_ADDRESS, KLUDGE_TI_REG);          // append ref to end of JNIRefs array
-          asmArg.emitSUBFC(nextOSArgReg++, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // pass offset in bytes of jref
+          // Are we passing NULL?
+          asmArg.emitCMPI(nextVMArgReg, 0);
+          VM_ForwardReference isNull = asmArg.emitForwardBC(EQ);
+          // NO: put it in the JNIRefs array and pass offset
+          asmArg.emitSTAddrU(nextVMArgReg, BYTES_IN_ADDRESS, KLUDGE_TI_REG);    // append ref to end of JNIRefs array
+          asmArg.emitSUBFC(nextOSArgReg, PROCESSOR_REGISTER, KLUDGE_TI_REG);    // pass offset in bytes of jref
+          VM_ForwardReference done = asmArg.emitForwardB();
+          // YES: pass NULL (0)
+          isNull.resolve(asmArg);
+          asmArg.emitMR(nextOSArgReg, nextVMArgReg);
+          // JOIN PATHS
+          done.resolve(asmArg);
+          nextVMArgReg++;
+          nextOSArgReg++;
         } else if (nextVMArgReg<=LAST_VOLATILE_GPR) {
           // (1b) spill OS register, but still fit in VM register
-          asmArg.emitSTAddrU(nextVMArgReg++, BYTES_IN_ADDRESS, KLUDGE_TI_REG);    // append ref to end of JNIRefs array
-          asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // compute offset in bytes for jref
-          asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_ADDRESS, FP);       // spill into OS frame
+          // Are we passing NULL?
+          asmArg.emitCMPI(nextVMArgReg, 0);
+          VM_ForwardReference isNull = asmArg.emitForwardBC(EQ);
+          // NO: put it in the JNIRefs array and pass offset
+          asmArg.emitSTAddrU(nextVMArgReg, BYTES_IN_ADDRESS, KLUDGE_TI_REG);    // append ref to end of JNIRefs array
+          asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);     // compute offset in bytes for jref
+          VM_ForwardReference done = asmArg.emitForwardB();
+          // YES: pass NULL (0)
+          isNull.resolve(asmArg);
+          asmArg.emitLVAL(REGISTER_ZERO, 0);
+          // JOIN PATHS
+          done.resolve(asmArg);
+          asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_ADDRESS, FP); // spill into OS frame
+          nextVMArgReg++;
         } else {
           // (1c) spill VM register
           spillOffsetVM+=BYTES_IN_STACKSLOT;
-          asmArg.emitLAddr(REGISTER_ZERO, spillOffsetVM - BYTES_IN_ADDRESS , FP);        // retrieve arg from VM spill area
-          asmArg.emitSTAddrU(REGISTER_ZERO, BYTES_IN_ADDRESS, KLUDGE_TI_REG);  // append ref to end of JNIRefs array
-          asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);  // compute offset in bytes for jref
-          asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_ADDRESS, FP);       // spill into OS frame
+          asmArg.emitLAddr(REGISTER_ZERO, spillOffsetVM - BYTES_IN_ADDRESS , FP); // retrieve arg from VM spill area
+          // Are we passing NULL?
+          asmArg.emitCMPI(REGISTER_ZERO, 0);
+          VM_ForwardReference isNull = asmArg.emitForwardBC(EQ);
+          // NO: put it in the JNIRefs array and pass offset
+          asmArg.emitSTAddrU(REGISTER_ZERO, BYTES_IN_ADDRESS, KLUDGE_TI_REG);     // append ref to end of JNIRefs array
+          asmArg.emitSUBFC(REGISTER_ZERO, PROCESSOR_REGISTER, KLUDGE_TI_REG);     // compute offset in bytes for jref
+          VM_ForwardReference done = asmArg.emitForwardB();
+          // YES: pass NULL (0)
+          isNull.resolve(asmArg);
+          asmArg.emitLVAL(REGISTER_ZERO, 0);
+          // JOIN PATHS
+          done.resolve(asmArg);
+          asmArg.emitSTAddr(REGISTER_ZERO, spillOffsetOS - BYTES_IN_ADDRESS, FP); // spill into OS frame
         }
       } else { 
         // For all other types: int, short, char, byte, boolean 
