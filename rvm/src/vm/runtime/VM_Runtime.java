@@ -563,6 +563,12 @@ public class VM_Runtime implements VM_Constants {
       if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     }
 
+    // GC stress testing
+    if (VM.ForceFrequentGC && VM_Scheduler.allProcessorsInitialized) {
+      VM.sysWrite("FORCING GC: in deliverHardwareException\n");
+      VM_Interface.gc();
+    }
+    
     Throwable exceptionObject;
     switch (trapCode) {
     case TRAP_NULL_POINTER:
