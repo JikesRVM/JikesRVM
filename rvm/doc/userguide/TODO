@@ -35,9 +35,9 @@ DONE (6) Section 5 -- optimizing compiler details.  Exisiting text is
     STEVE
     will add pointer to tutorial when slides are available.
 
-(7) Section 6 -- memory management details. Needs to be completely
+DONE (7) Section 6 -- memory management details. Needs to be completely
     rewritten. 
-    PERRY will be done by Friday, June 7, 2002.
+    PERRY
 
 DONE (8) Section 7 -- jdp.  Need to update with current status of jdp.
     Check to see what commands jdp actually understands and update
@@ -51,11 +51,11 @@ DONE (9) Check FAQ for accurarcy.  Some of these issues have been resolved
 (10) Need to add text on current status of user defined class loaders.
     JULIAN
 
-(11) Need to add section on VM_Address.  Perhaps this should be part
+DONE (11) Need to add section on VM_Address.  Perhaps this should be part
     of an extended section on VM_Magic that goes into more detail on
     how magic is really implemented and what one needs to do to add a new
     VM_Magic operation.
-    PERRY will be done by Friday, June 7, 2002.
+    PERRY
 
 DONE (12) Move brief subsection on AOS details out of optimizing compiler
      section into its own section.  We've diverged enough from the
