@@ -1,0 +1,52 @@
+./ -*- coding: us-ascii ; mode: nroff ;-*-
+./ (C) Copyright IBM Corp. 2004
+./
+./ $Id$
+./
+./ @author Steven Augart
+./ @date 23 April 2004
+./
+./ Sample manual page for Jikes RVM.
+./
+./ Note: the version of "iconv" shipped with Red Hat Linux will
+./ break if this manual page contains any characters from the
+./ extended range (high-bit set) of the iso-8859-1 character set.
+./ That's why this text is us-ascii instead.
+./
+./ Test your manual page with:
+./    nroff -man skeleton.man | less
+./
+./
+./ TODO: We need to use a macro-expansion process like that of 
+./ GNU Configure so that we replace this with the proper version.
+.TH "COMMAND-NAME" "1" "April 2004" "Jikes RVM version 2.3.2+CVS" "User Commands"
+.SH NAME
+command-name \- One-line description of command-name
+
+.SH SYNOPSIS
+
+.B command-name
+[OPTIONS]
+
+.SH DESCRIPTION
+
+This is a sample manual page for 
+.B command-name
+.
+
+.SH "REPORTING BUGS"
+
+The 
+.B Jikes RVM
+bug tracking system is at 
+.B http://oss.software.ibm.com/jikesrvm/solutions
+
+
+.SH "SEE ALSO"
+.B http:://oss.software.ibm.com/jikesrvm
+is the 
+.B "Jikes RVM"
+web site, including a complete user's manual.
+The user's manual is also included with the Jikes RVM distribution,
+and in a Jikes RVM installation will usually be found under
+/usr/share/doc/jikesrvm or at /usr/local/jikesrvm/doc.
