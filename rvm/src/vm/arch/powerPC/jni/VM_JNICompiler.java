@@ -1336,7 +1336,7 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     //-#if RVM_FOR_LINUX || RVM_FOR_OSX
     // on AIX JTOC is part of AIX Linkage triplet and this already set by our caller.
     // Thus, we only need this load on non-AIX platforms
-    asm.emitLAddr(JTOC, VM_Entrypoints.JNISavedJTOCField.getOffset(), T0);
+    asm.emitLAddr(JTOC, VM_Entrypoints.JNIEnvSavedJTOCField.getOffset(), T0);
     //-#endif
 
     asm.emitLVAL  (S1, VM_Entrypoints.vpStatusField.getOffset());
