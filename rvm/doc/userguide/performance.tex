@@ -9,10 +9,6 @@ To make a long story short the best performing configuration of Jikes
 RVM will almost always be {\tt production}.  Unless you really know
 what you are doing, don't use any other configuration to do a
 performance evaluation of Jikes RVM. 
-You can use the {\tt FastSemiSpace} configuration if you want to force
-all dynamically loaded methods to be compiled by the optimizing
-compiler, but this configuration will have extremely poor startup
-behavior and will not perform any profile-directed optimizations.
 
 Any bootimage you use for performance evaluation must have the
 following characteristics for the results to be meaningful:
@@ -28,16 +24,14 @@ machine performance will be abysmal.  Jikes RVM has been designed
 under the assumption that aggressive inlining and optimization will be
 applied to the VM source code. 
 \item Any configuration that performs opt compilation at runtime (
-{\tt RVM\_WITH\_ADAPTIVE\_SYSTEM=1} or {\tt
-RVM\_WITH\_OPT\_RUNTIME\_COMPILER=1}) should be built with {\tt
+{\tt RVM\_WITH\_ADAPTIVE\_SYSTEM=1} should be built with {\tt
 RVM\_WITH\_ALL\_CLASSES=1}.  This includes the optimizing compiler and
 associated support classes in the bootimage where they can be
 optimized by the bootimage compiler. By convention, configurations
 that include the opt compiler in the bootimage have the {\tt Full} or
 {\tt Fast} prefix.  Configurations where {\tt RVM\_WITH\_ALL\_CLASSES}
 is not set to 1 that use the optimizing compiler will dynamically load
-it (which will force it to be baseline compiled, even if
-{\tt RVM\_WITH\_OPT\_RUNTIME\_COMPILER} is set to 1).
+it (which will force it to be baseline compiled).
 \end{itemize}
 
 \subsection{What command-line arguments should I use?}
@@ -48,9 +42,11 @@ For best performance we recommend the following:
 \item {\tt -processors all}: By default, Jikes\trademark RVM uses only
 one processor.  Setting this option tells the runtime system to
 utilize all available processors. 
-\item {\tt -X:irc:O2}: For non-adaptive configurations, this command-line option tells the optimizing compiler to use our highest level of optimization.
-\item Set the heap and large heap sizes generously.  We typically set the heap size to at least half the physical memory on a machine.
-\item Use a dedicated machine with no other users.  The Jikes RVM thread and synchronization implementation do not play well with others.
+\item Set the heap size generously.  We typically set the heap size to
+at least half the physical memory on a machine. 
+\item Use a dedicated machine with no other users.  The Jikes RVM
+thread and synchronization implementation do not play well with
+others. 
 \end{itemize}
 
 \JikesTMFooter
@@ -58,11 +54,11 @@ utilize all available processors.
 \subsection{Jikes RVM is really slow! What am I doing wrong?}
 
 Perhaps you are not seeing stellar Jikes\trademark RVM performance.
-If Jikes RVM as 
-described above is not competitive with the IBM AIX\AIXTMFootnote\ or
-Linux/IA32 product DK, we recommend you test your installation with
-the SPECjvm98 benchmarks.  We expect Jikes RVM performance to be competitive
-with the IBM DK 1.3.0 on the SPECjvm98 benchmarks.
+If Jikes RVM as described above is not competitive with the IBM
+AIX\AIXTMFootnote\ or Linux/IA32 product DK, we recommend you test
+your installation with the SPECjvm98 benchmarks.  We expect Jikes RVM
+performance to be competitive with the IBM DK 1.3.0 on the SPECjvm98
+benchmarks.
 
 Of course, SPECjvm98 does not guarantee that Jikes RVM runs all codes
 well.  We have also tested various flavors of pBOB and the Volano

@@ -280,7 +280,7 @@ done
 #
 # Some common command line arguments
 #
-DEFAULT_ADAPTIVE_RC_ARGS="-X:aos:opt:errors_fatal=true -X:aos:logging_level=1"
+DEFAULT_ADAPTIVE_RC_ARGS="-X:recomp:errors_fatal=true -X:aos:logging_level=1"
 OPT_JIT_ARGS="-X:aos:enable_recompilation=false -X:aos:initial_compiler=opt"
 
 # Name of current configuration being tested.
@@ -462,7 +462,7 @@ function doTests {
    
 function doOptLevelTests {
     for OPT_LEVEL in $OPT_LEVELS; do
-	export OPT_LEVEL_ARGS="$OPT_JIT_ARGS -X:aos:opt:$OPT_LEVEL"
+	export OPT_LEVEL_ARGS="$OPT_JIT_ARGS -X:irc:$OPT_LEVEL"
 	doTests
     done
 }

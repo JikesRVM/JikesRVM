@@ -14,8 +14,6 @@ import com.ibm.JikesRVM.VM_RuntimeCompiler;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 
 /**
- * VM_Recompilation Strategy
- *
  * An abstract class providing the interface to the decision making
  * component of the controller. 
  *
@@ -44,8 +42,8 @@ abstract class VM_RecompilationStrategy {
   }
 
 
-  // -- Functionality common to all recompilation strategies (at least
-  //    for now) --
+  // Functionality common to all recompilation strategies 
+  // (at least for now) 
 
 
   /**
@@ -191,7 +189,7 @@ abstract class VM_RecompilationStrategy {
    *  @return whether we've tried to recompile this method
    */
    boolean previousRecompilationAttempted(VM_Method method) {
-    return  VM_ControllerMemory.findLatestPlan(method) != null;
+     return VM_ControllerMemory.findLatestPlan(method) != null;
   }
 
   /**
@@ -266,7 +264,7 @@ abstract class VM_RecompilationStrategy {
       processCommandLineOptions(_options[i],i,maxOptLevel,optCompilerOptions);
       _optPlans[i]=OPT_OptimizationPlanner.createOptimizationPlan(_options[i]);
       if (_options[i].PRELOAD_CLASS != null) {
-	VM.sysWrite("In an adaptive system, PRELOAD_CLASS should be specified with -X:aos:irc not -X:aos:opt\n");
+	VM.sysWrite("PRELOAD_CLASS should be specified with -X:irc not -X:recomp\n");
 	VM.sysExit(VM.exitStatusBogusCommandLineArg);
       }
     }
@@ -282,20 +280,20 @@ abstract class VM_RecompilationStrategy {
    * @param optCompilerOptions The list of command line options
    */
   void processCommandLineOptions(OPT_Options options, int optLevel, int maxOptLevel,
-			 String optCompilerOptions[]) {
+				 String optCompilerOptions[]) {
 
     String prefix = "opt"+optLevel+":";
     for (int j=0; j<optCompilerOptions.length; j++) {
       if (optCompilerOptions[j].startsWith("opt:")) {
 	String option = optCompilerOptions[j].substring(4);
-	if (!options.processAsOption("-X:aos:opt:", option)) {
+	if (!options.processAsOption("-X:opt:", option)) {
 	  VM.sysWrite("vm: Unrecognized optimizing compiler command line argument: \""
 		      +option+"\" passed in as "
 		      +optCompilerOptions[j]+"\n");
 	}
       } else if (optCompilerOptions[j].startsWith(prefix)) {
 	String option = optCompilerOptions[j].substring(5);
-	if (!options.processAsOption("-X:aos:"+prefix, option)) {
+	if (!options.processAsOption("-X:opt:"+prefix, option)) {
 	  VM.sysWrite("vm: Unrecognized optimizing compiler command line argument: \""
 		      +option+"\" passed in as "
 		      +optCompilerOptions[j]+"\n");
@@ -310,7 +308,7 @@ abstract class VM_RecompilationStrategy {
 	// This should never be the case!
 	continue;
       }
-      if (! optCompilerOptions[j].startsWith("opt:")) {
+      if (!optCompilerOptions[j].startsWith("opt:")) {
 	// must specify optimization level!
 	int endPoint = optCompilerOptions[j].indexOf(":");
 	if (endPoint == -1) {

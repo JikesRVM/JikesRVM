@@ -49,30 +49,11 @@ $$$$ END LET USE_OPT_LEVELS
 
   private static void instancePrintHelpHeader(String prefix) {
     VM.sysWrite("Commands\n");
-    //-#if RVM_WITH_ADAPTIVE_SYSTEM
-    if(prefix.equals("-X:aos:irc")) {
-      VM.sysWrite(prefix+"[:help]\t\t\tPrint brief description of optimizing compiler's command-line options\n");
-      VM.sysWrite(prefix+":printOptions\t\tPrint the current values of the optimizing compiler's options at a specific optimization level; otherwise, if optimization level not specified, print options for all levels\n");
-      VM.sysWrite(prefix+":o=v   Pass the option-value pair, o=v, to the optimizing compiler that recompiles methods.  If the optimization level is specified, then only that optimization level is affected.\n");
-
-      VM.sysWrite("\nCommands to set the optimization level of the initial runtime compiler\n");
-      VM.sysWrite(prefix+":O0\t\t\tSelect optimization level 0, minimal optimizations\n");
-      VM.sysWrite(prefix+":O1\t\t\tSelect optimization level 1, modest optimizations\n");
-      VM.sysWrite(prefix+":O2\t\t\tSelect optimization level 2\n");
-      VM.sysWrite(prefix+":O3\t\t\tSelect optimization level 3\n");
-    } else { // "-X:aos:opt"
-      VM.sysWrite(prefix+"[:help]\t\t\tPrint brief description of optimizing compiler's command-line options\n");
-      VM.sysWrite(prefix+"[?]:printOptions\t\tPrint the current values of the optimizing compiler's options at a specific optimization level; otherwise, if optimization level not specified, print options for all levels\n");
-      VM.sysWrite(prefix+"[?]:o=v   Pass the option-value pair, o=v, to the optimizing compiler that recompiles methods.  If the optimization level is specified, then only that optimization level is affected.\n");
-    }
-    //-#else
     VM.sysWrite(prefix+"[:help]\t\t\tPrint brief description of opt compiler's command-line arguments\n");
-    VM.sysWrite(prefix+":printOptions\t\tPrint the current values of the active opt compiler options\n");
+    VM.sysWrite(prefix+":printOptions\t\tPrint the current values of opt compiler options\n");
     VM.sysWrite(prefix+":O0\t\t\tSelect optimization level 0, minimal optimizations\n");
     VM.sysWrite(prefix+":O1\t\t\tSelect optimization level 1, modest optimizations\n");
     VM.sysWrite(prefix+":O2\t\t\tSelect optimization level 2\n");
-    VM.sysWrite(prefix+":O3\t\t\tSelect optimization level 3\n");
-    //-#endif
     VM.sysWrite("\n");
   }
 

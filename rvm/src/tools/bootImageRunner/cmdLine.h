@@ -21,7 +21,8 @@ static const int TCL_INDEX                     = BOOTIMAGE_FILE_INDEX+1;
 static const int GC_INDEX                      = TCL_INDEX+1;
 static const int AOS_INDEX                     = GC_INDEX+1;
 static const int IRC_INDEX                     = AOS_INDEX+1;
-static const int BASE_INDEX                    = IRC_INDEX+1;
+static const int RECOMP_INDEX                  = IRC_INDEX+1;
+static const int BASE_INDEX                    = RECOMP_INDEX+1;
 static const int OPT_INDEX                     = BASE_INDEX+1;
 static const int PROF_INDEX                    = OPT_INDEX+1;
 static const int VMCLASSES_INDEX               = PROF_INDEX+1;
@@ -29,6 +30,8 @@ static const int CPUAFFINITY_INDEX             = VMCLASSES_INDEX+1;
 static const int PROCESSORS_INDEX              = CPUAFFINITY_INDEX+1;
 static const int MEASURE_COMPILATION_INDEX     = PROCESSORS_INDEX+1;
 static const int VERIFY_INDEX                  = MEASURE_COMPILATION_INDEX+1;
+
+
 static const int numNonstandardArgs            = VERIFY_INDEX+1;
 
 static const char* nonStandardArgs[numNonstandardArgs] = {
@@ -43,6 +46,7 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:gc",
    "-X:aos",
    "-X:irc",
+   "-X:recomp",
    "-X:base",
    "-X:opt",
    "-X:prof",
@@ -54,7 +58,7 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
 };
 
 // we add some lines due to multi-line messages below
-static const int EXTRA_USAGE_LINES = 4;
+static const int EXTRA_USAGE_LINES = 5;
 static const int numNonStandardUsageLines= numNonstandardArgs + EXTRA_USAGE_LINES;
 static const char* nonStandardUsage[numNonStandardUsageLines] = {
    "    -X                       print usage on nonstandard options", 
@@ -70,6 +74,8 @@ static const char* nonStandardUsage[numNonStandardUsageLines] = {
    "          :help              print usage choices for -X:aos",
    "    -X:irc:<option>          pass <option> on to the initial runtime compiler",
    "          :help              print usage choices for -X:irc",
+   "    -X:recomp:<option>       pass <option> on to the recompilation compiler(s)",
+   "          :help              print usage choices for -X:recomp",
    "    -X:base:<option>         pass <option> on to the baseline compiler",
    "          :help              print usage choices for -X:base",
    "    -X:opt:<option>          pass <option> on to the optimizing compiler",
@@ -79,7 +85,7 @@ static const char* nonStandardUsage[numNonStandardUsageLines] = {
    "    -X:cpuAffinity=<number>  physical cpu to which 1st VP is bound",
    "    -X:processors=<number|\"all\">  no. of virtual processors",
    "    -X:measureCompilation=<boolean> produce a report on compilation time",
-   "    -X:verify=<boolean>   verify bytecodes?"
+   "    -X:verify=<boolean>      verify bytecodes?"
 };
 
 #endif

@@ -61,7 +61,7 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
   //-#if RVM_WITH_ADAPTIVE_SYSTEM
   public static OPT_InlineOracle offlineInlineOracle;
-  private static String[] earlyArgs = new String[0];
+  private static String[] earlyOptArgs = new String[0];
 
   // is the opt compiler usable?
   protected static boolean compilerEnabled;  
@@ -227,6 +227,29 @@ public class VM_RuntimeCompiler implements VM_Constants,
 
 
   //-#if RVM_WITH_ADAPTIVE_SYSTEM
+  /**
+   * Process command line argument destined for the opt compiler
+   */
+  public static void processOptCommandLineArg(String arg) {
+    if (compilerEnabled) {
+      if (options.processAsOption("-X:irc", arg)) {
+	// update the optimization plan to reflect the new command line argument
+	setNoCacheFlush(options);
+	optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
+      } else {
+	VM.sysWrite("Unrecognized opt compiler argument \""+arg+"\"");
+	VM.sysExit(VM.exitStatusBogusCommandLineArg);
+      }
+    } else {
+      String[] tmp = new String[earlyOptArgs.length+1];
+      for (int i=0; i<earlyOptArgs.length; i++) {
+	tmp[i] = earlyOptArgs[i];
+      }
+      earlyOptArgs = tmp;
+      earlyOptArgs[earlyOptArgs.length-1] = arg;
+    }
+  }
+
   /**
    * attempt to compile the passed method with the OPT_Compiler.
    * Don't handle OPT_OptimizingCompilerExceptions 
@@ -479,8 +502,8 @@ public class VM_RuntimeCompiler implements VM_Constants,
     // when we reach here the OPT compiler is enabled.
     compilerEnabled = true;
 
-    for (int i=0; i<earlyArgs.length; i++) {
-      processCommandLineArg(earlyArgs[i]);
+    for (int i=0; i<earlyOptArgs.length; i++) {
+      processOptCommandLineArg(earlyOptArgs[i]);
     }
     //-#endif
   }
@@ -490,25 +513,9 @@ public class VM_RuntimeCompiler implements VM_Constants,
     VM_BaselineCompiler.processCommandLineArg("-X:irc",arg);
     //-#else
     if (VM_Controller.options !=null  && VM_Controller.options.optIRC()) {
-      if (compilerEnabled) {
-	if (options.processAsOption("-X:aos:irc", arg)) {
-	  // update the optimization plan to reflect the new command line argument
-	  setNoCacheFlush(options);
-	  optimizationPlan = OPT_OptimizationPlanner.createOptimizationPlan(options);
-	} else {
-	  VM.sysWrite("VM_RuntimeCompiler (optOnly): Unrecognized argument \""+arg+"\" with prefix -X:aos:irc:\n");
-	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	}
-      } else {
-	String[] tmp = new String[earlyArgs.length+1];
-	for (int i=0; i<earlyArgs.length; i++) {
-	  tmp[i] = earlyArgs[i];
-	}
-	earlyArgs = tmp;
-	earlyArgs[earlyArgs.length-1] = arg;
-      }
+      processOptCommandLineArg(arg);
     } else {
-      VM_BaselineCompiler.processCommandLineArg("-X:aos:irc", arg);
+      VM_BaselineCompiler.processCommandLineArg("-X:irc", arg);
     }
     //-#endif
   }

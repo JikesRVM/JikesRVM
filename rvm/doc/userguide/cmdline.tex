@@ -38,19 +38,18 @@ adaptive configuration may conceptually have many optimizing compilers
 that are available at runtime, each with its own set of option values.
 We present a mechanism to address each conceptual optimizing compiler.
 To pass options to the opt compiler that recompiles a method use the
-{\tt -X:aos:opt[?]} prefix where the {\tt ?} is optional and if
+{\tt -X:recomp[?]} prefix where the {\tt ?} is optional and if
 specified is an integer that identifies the optimization level.  For
-example, {\tt -X:aos:opt2:global\_bounds=true} performs global array
-bounds check elimination on demand when a method is optimized at
+example, {\tt -X:recomp2:global\_bounds=true} performs global array
+bounds check elimination on demand when a method is recompiled at
 optimization level 2.  If no optimization level is specified, the
 option applies to all optimization levels of the optimizing compiler
 that recompiles methods.  For example, {\tt
--X:aos:opt:global\_bounds=true} performs global array bounds check
+-X:recomp:global\_bounds=true} performs global array bounds check
 elimination on demand whenever a method is recompiled with
 optimization.  In the default adaptive configurations, the initial
 runtime compiler is the baseline compiler.  Options are passed to the
-initial runtime compiler by prefixing each option with {\tt
--X:aos:irc:}.  
+initial runtime compiler by prefixing each option with {\tt -X:irc:}.  
 
 The {\tt enable\_recompilation} option determines whether or not the
 adaptive system will actually adaptively recompile methods.  By
@@ -63,17 +62,10 @@ optimized on first invocation.
 This has the effect of making the initial runtime compiler
 be the optimizing compiler (and no recompilations will take place), so
 subsequent options in the command line that are prefixed with {\tt
--X:aos:irc:} will be passed to the optimizing compiler. Since no
-recompilation will take place options prefixed with {\tt -X:aos:opt}
+-X:irc:} will be passed to the optimizing compiler. Since no
+recompilation will take place options prefixed with {\tt -X:recomp:}
 will have no effect.  For example to optimize compile a method at
-optimization level 1, use the {\tt -X:aos:irc:O1} option. 
-
-Finally, the prefix {\tt -X:aos:share[?]:o=v} is a short hand for
-passing a option value pair, {\tt o=v}, to both the AOS and to the
-different "conceptual" optimizing compilers.  If the optimization
-level is specified, then only that optimization level for
-recompilation is affected.  Otherwise, the option is set for AOS and
-all optimization levels for method recompilation.
+optimization level 1, use the {\tt -X:irc:O1} option. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Baseline Compiler Command-Line Options}

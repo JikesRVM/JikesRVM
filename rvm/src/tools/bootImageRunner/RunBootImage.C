@@ -391,9 +391,11 @@ processCommandLineArguments(char **CLAs, int n_CLAs, int *fastExit)
     //
 
     // All VM directives that take one token
-    if (!strncmp(token, "-D", 2) || !strncmp(token, nonStandardArgs[GC_INDEX], 5) ||
+    if (!strncmp(token, "-D", 2) || 
+	!strncmp(token, nonStandardArgs[GC_INDEX], 5) ||
 	!strncmp(token, nonStandardArgs[AOS_INDEX],6)   || 
         !strncmp(token, nonStandardArgs[IRC_INDEX], 6) ||
+        !strncmp(token, nonStandardArgs[RECOMP_INDEX], 9) ||
 	!strncmp(token, nonStandardArgs[BASE_INDEX],7)  || 
         !strncmp(token, nonStandardArgs[OPT_INDEX], 6) ||
 	!strncmp(token, nonStandardArgs[PROF_INDEX], 7)  ||

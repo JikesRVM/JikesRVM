@@ -4,12 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-//-#if RVM_WITH_OPT_COMPILER
-import com.ibm.JikesRVM.opt.*;
-//-#endif
-
 //-#if RVM_WITH_ADAPTIVE_SYSTEM
 import com.ibm.JikesRVM.adaptive.VM_Controller;
+import com.ibm.JikesRVM.opt.*;
 //-#endif
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
@@ -63,30 +60,25 @@ public class VM_CommandLineArgs {
   public static final int VM_CLASSES_ARG       =  7;
   public static final int CPUAFFINITY_ARG      =  8;
   public static final int PROCESSORS_ARG       =  9;
-  public static final int IRC_HELP_ARG         = 11;
-  public static final int IRC_ARG              = 12;
-  public static final int AOS_IRC_HELP_ARG     = 13;
-  public static final int AOS_IRC_ARG          = 14;
-  public static final int AOS_OPT_HELP_ARG     = 15;
-  public static final int AOS_OPT_ARG          = 16;
-  public static final int AOS_SHARE_ARG        = 17;
-  public static final int AOS_HELP_ARG         = 18;
-  public static final int AOS_ARG              = 19;
-  public static final int MEASURE_COMP_ARG     = 20;
-  public static final int AOS_BASE_ARG         = 22;
-  public static final int AOS_BASE_HELP_ARG    = 23;
-  public static final int BASE_HELP_ARG        = 24;
-  public static final int BASE_ARG             = 25;
-  public static final int OPT_ARG              = 26;
-  public static final int OPT_HELP_ARG         = 27;
-  public static final int PROF_ARG             = 28;
-  public static final int VERIFY_ARG           = 29;
-  public static final int SCHEDULER_ARG        = 30;
-  public static final int GC_HELP_ARG          = 31;
-  public static final int GC_ARG               = 32;
-  public static final int VERBOSE_STACK_ARG    = 36;
-  public static final int HPM_ARG              = 37;
-  public static final int HPM_HELP_ARG         = 38;
+  public static final int IRC_HELP_ARG         = 10;
+  public static final int IRC_ARG              = 11;
+  public static final int RECOMP_HELP_ARG      = 12;
+  public static final int RECOMP_ARG           = 13;
+  public static final int AOS_HELP_ARG         = 14;
+  public static final int AOS_ARG              = 15;
+  public static final int MEASURE_COMP_ARG     = 16;
+  public static final int BASE_HELP_ARG        = 17;
+  public static final int BASE_ARG             = 18;
+  public static final int OPT_ARG              = 19;
+  public static final int OPT_HELP_ARG         = 20;
+  public static final int PROF_ARG             = 21;
+  public static final int VERIFY_ARG           = 22;
+  public static final int SCHEDULER_ARG        = 23;
+  public static final int GC_HELP_ARG          = 24;
+  public static final int GC_ARG               = 25;
+  public static final int VERBOSE_STACK_ARG    = 26;
+  public static final int HPM_HELP_ARG         = 27;
+  public static final int HPM_ARG              = 28;
 
   /**
    * A catch-all prefix to find application name.
@@ -110,8 +102,8 @@ public class VM_CommandLineArgs {
    * have the same type.
    */
   private static final Prefix[] prefixes = {
-    new Prefix("-classpath ",           CLASSPATH_ARG), // Note: space is significant
-    new Prefix("-cp ",                  CLASSPATH_ARG),        // Note: space is significant
+    new Prefix("-classpath ",           CLASSPATH_ARG),  // Note: space is significant
+    new Prefix("-cp ",                  CLASSPATH_ARG),  // Note: space is significant
     new Prefix("-D",                    ENVIRONMENT_ARG),
     new Prefix("-verbose:class$",       VERBOSE_CLS_ARG),
     new Prefix("-verbose:jni$",         VERBOSE_JNI_ARG),
@@ -122,16 +114,9 @@ public class VM_CommandLineArgs {
     new Prefix("-X:irc:help$",          IRC_HELP_ARG),
     new Prefix("-X:irc$",               IRC_HELP_ARG),
     new Prefix("-X:irc:",               IRC_ARG),
-    new Prefix("-X:aos:irc:help$",      AOS_IRC_HELP_ARG),
-    new Prefix("-X:aos:irc$",           AOS_IRC_HELP_ARG),
-    new Prefix("-X:aos:irc:",           AOS_IRC_ARG),
-    new Prefix("-X:aos:opt:help$",      AOS_OPT_HELP_ARG),
-    new Prefix("-X:aos:opt$",           AOS_OPT_HELP_ARG),
-    new Prefix("-X:aos:opt",            AOS_OPT_ARG),
-    new Prefix("-X:aos:share",          AOS_SHARE_ARG),
-    new Prefix("-X:aos:base:",          AOS_BASE_ARG),
-    new Prefix("-X:aos:base:help$",     AOS_BASE_HELP_ARG),
-    new Prefix("-X:aos:base$",          AOS_BASE_HELP_ARG),
+    new Prefix("-X:recomp:help$",       RECOMP_HELP_ARG),
+    new Prefix("-X:recomp$",            RECOMP_HELP_ARG),
+    new Prefix("-X:recomp",             RECOMP_ARG),
     new Prefix("-X:aos:help$",          AOS_HELP_ARG),
     new Prefix("-X:aos$",               AOS_HELP_ARG),
     new Prefix("-X:aos:",               AOS_ARG),
@@ -149,9 +134,9 @@ public class VM_CommandLineArgs {
     new Prefix("-X:verify=",            VERIFY_ARG),
     new Prefix("-X:verboseStackTrace=", VERBOSE_STACK_ARG),
     new Prefix("-X:scheduler:",         SCHEDULER_ARG),
-    new Prefix("-X:hpm:",               HPM_ARG),
-    new Prefix("-X:hpm:help",           HPM_HELP_ARG),
+    new Prefix("-X:hpm:help$",          HPM_HELP_ARG),
     new Prefix("-X:hpm$",               HPM_HELP_ARG),
+    new Prefix("-X:hpm:",               HPM_ARG),
     app_prefix
   };
 
@@ -343,12 +328,10 @@ public class VM_CommandLineArgs {
 	break;
 
       case VERBOSE_CLS_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	VM.verboseClassLoading = true;
 	break;
 
       case VERBOSE_JNI_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	VM.verboseJNI = true;
 	break;
 
@@ -396,7 +379,7 @@ public class VM_CommandLineArgs {
 	break;
 
 	// -------------------------------------------------------------------
-	// Enable meausrement of compilation time 
+	// Enable measurement of compilation time 
 	// -------------------------------------------------------------------
       case MEASURE_COMP_ARG:
 	if (arg.equals("true")) {
@@ -405,7 +388,7 @@ public class VM_CommandLineArgs {
 	} else if (arg.equals("false")) {
 	  VM.MeasureCompilation = false;
 	} else {
-	  VM.sysWrite("vm: -X:measureCompilation=<option>, where option is true or false\n");
+	  VM.sysWrite("vm: -X:measureCompilation=[true|false]\n");
 	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	}
 	break;
@@ -419,7 +402,7 @@ public class VM_CommandLineArgs {
 	} else if (arg.equals("false")) {
 	  VM.VerifyBytecode = false;
 	} else {
-	  VM.sysWrite("vm: -X:verify=<option>, where option is true or false\n");
+	  VM.sysWrite("vm: -X:verify=[true|false]\n");
 	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	}
 	break;
@@ -433,7 +416,6 @@ public class VM_CommandLineArgs {
 	VM_HardwarePerformanceMonitors.processArg(arg);
 	break;
       case HPM_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	VM_HardwarePerformanceMonitors.printHelp();
 	break;
         //-#endif
@@ -476,7 +458,6 @@ public class VM_CommandLineArgs {
 	// GC options
 	// -------------------------------------------------------------------
       case GC_HELP_ARG:  // -X:gc passed 'help' as an option
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	MM_Interface.processCommandLineArg("help");
 	break;
       case GC_ARG: // "-X:gc:arg" pass 'arg' as an option
@@ -484,149 +465,47 @@ public class VM_CommandLineArgs {
 	break;
 	
 	// ----------------------------------------------------
-	// Access nonadaptive configuration's initial runtime
-	// compiler (may be baseline or optimizing).
+	// Access initial runtime compiler (may be baseline or optimizing).
 	// ----------------------------------------------------
       case IRC_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	//-#else
 	VM_RuntimeCompiler.processCommandLineArg("help");
-	//-#endif
 	break;
       case IRC_ARG: // "-X:irc:arg"; pass 'arg' as an option
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM.sysWrite("vm: adaptive configuration; "+p.value+arg+" has an illegal command line argument prefix '-X:irc'\n");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	//-#else
 	VM_RuntimeCompiler.processCommandLineArg(arg);
-	//-#endif
 	break;
 
 	// --------------------------------------------------------------------
-	// Access adaptive configuration's initial runtime optimizing compiler.
+	// Access adaptive system's recompilation compilers
+	// Currently this means the opt compiler, but in general we could be
+	// talking to several different compilers used by AOS for recompilation.
 	// --------------------------------------------------------------------
-      case AOS_IRC_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_BaselineOptions.printHelp("-X:aos:base");
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	//-#endif
-	break;
-      case AOS_IRC_ARG:
-	// "-X:aos:irc:arg" pass 'arg' as option to initial runtime compiler
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_RuntimeCompiler.processCommandLineArg(arg);
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+p.value+arg+"' has an illegal prefix '-X:aos:'\n");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	//-#endif
-	break;
-
-	// --------------------------------------------------------------------
-	// Access adaptive configuration's optimizing compiler (recompilation and other uses)
-	// --------------------------------------------------------------------
-      case AOS_OPT_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
+      case RECOMP_HELP_ARG:
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM_Controller.addOptCompilerOption("opt:help");
 	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
+	VM.sysWrite("vm: nonadaptive configuration; -X:recomp is not a legal prefix in this configuration\n");
 	VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	//-#endif
 	break;
-      case AOS_OPT_ARG:
-	// "-X:aos:opt[?]:arg" defer processing of 'opt[?]:arg' to
-	// the optimizing compiler.  Note arg actually includes the optional opt level and :
+      case RECOMP_ARG:
+	// "-X:recomp[?]:arg" process as 'opt[?]:arg' to opt
+	// Note arg actually includes the optional opt level and :
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM_Controller.addOptCompilerOption("opt"+arg);
 	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+p.value+arg+"' has an illegal prefix '-X:aos:'\n");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	//-#endif
-	break;
-
-	// --------------------------------------------------------------------
-	// Access adaptive configuration's baseline compiler 
-	// --------------------------------------------------------------------
-      case AOS_BASE_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_BaselineOptions.printHelp("-X:aos:base");
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	//-#endif
-	break;
-      case AOS_BASE_ARG:
-	// "-X:aos:base:arg" defer processing of 'base:arg' to
-	// the baseline compiler.
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM_BaselineCompiler.processCommandLineArg(p.value, arg);
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+p.value+arg+"' has an illegal prefix '-X:aos:'\n");
+	VM.sysWrite("vm: nonadaptive configuration; -X:recomp is not a legal prefix in this configuration\n");
 	VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	//-#endif
 	break;
 
 	// -------------------------------------------------------------------
-	// In adaptive configurations:
-	// Access both aos and recompilation compiler with the same argument
-	// -------------------------------------------------------------------
-      case AOS_SHARE_ARG:
-	// -X:aos:share[?]:o=v expands to -X:aos:o=v and -X:aos:opt[?]:o=v.
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	String optCompilerOption  = "opt";
-	String shareOption        = "";
-	boolean optLevelSpecified = false;
-	if (!arg.startsWith(":") && arg.length() > 0) {
-	  // optimization level specified: peel off and use with opt
-	  // compiler directive.
-	  String optLevel_S = arg.substring(0,1);
-	  try { Integer.parseInt(optLevel_S); }
-	  catch (NumberFormatException e) { 
-	    VM.sysWrite("vm: illegal VM directive "+p.value+arg+"\n"+
-			" '"+optLevel_S+"' must be an integer that specifies an optimization level.\n"+
-			"  Correct syntax is -X:aos:share[?]:option=value where ? is optional.\n");
-	    VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	  }
-	  // Could test that optLevel is a integer in some range!
-	  optCompilerOption += optLevel_S;
-	  arg = arg.substring(1);	// consume ? optimization level
-	  optLevelSpecified = true;
-	}
-	if (arg.startsWith(":") && arg.length() > 0) {
-	  optCompilerOption += arg;
-	  shareOption = arg.substring(1); // consume ":"
-	}
-	if (shareOption.length() == 0) {
-	  VM.sysWrite("vm: illegal VM directive "+p.value+arg+"\n"+
-		      "  Correct syntax is -X:aos:share[?]:option=value where ? is optional.\n");
-	  VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	}
-	if (!optLevelSpecified) {
-	  VM_RuntimeCompiler.processCommandLineArg(shareOption);
-	}
-	VM_Controller.addOptCompilerOption(optCompilerOption);
-	VM_Controller.processCommandLineArg(shareOption);
-	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+p.value+arg+"' has an illegal prefix '-X:aos:'\n");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	//-#endif
-	break;
-	// -------------------------------------------------------------------
-	// Access adaptive configuration's AOS
+	// Access adaptive optimization system
 	// -------------------------------------------------------------------
       case AOS_HELP_ARG:  // -X:aos passed 'help' as an option
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM_Controller.processCommandLineArg("help");
 	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"'\n");
+	VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
 	VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	//-#endif
 	break;
@@ -634,62 +513,40 @@ public class VM_CommandLineArgs {
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
 	VM_Controller.processCommandLineArg(arg);
 	//-#else
-	VM.sysWrite("vm: nonadaptive configuration; command line argument '"+arg+"' has an illegal prefix '"+p.value+"'\n");
+	VM.sysWrite("vm: nonadaptive configuration; -X:aos is not a legal prefix in this configuration\n");
 	VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	//-#endif
 	break;
 
 	// ----------------------------------------------------
-	// Access nonadaptive configuration's baseline compiler
-	// (Note the initial runtime compiler may be baseline or
-	// optimizing - these options go to the baseline only)
+	// Access baseline compiler
 	// ----------------------------------------------------
       case BASE_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	//-#else
-	VM_BaselineOptions.printHelp("-X:base");
-	//-#endif
+	VM_BaselineOptions.printHelp("-X:base:");
 	break;
       case BASE_ARG: // "-X:base:arg"; pass 'arg' as an option
-	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM.sysWrite("vm: adaptive configuration; "+p.value+arg+" has an illegal command line argument prefix '-X:base'\n");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	//-#else
 	VM_BaselineCompiler.processCommandLineArg(p.value,arg);
-	//-#endif
 	break;
 
-
 	// ----------------------------------------------------
-	// Access nonadaptive configuration's optimizing compiler
-	//  If the runtime compiler is not optimizing 
-	//  this is an invalid request as the optimizing compiler
-	//  would not be used to compile anything
+	// Access all 'logical' optimizing compilers
+	// (both irc and recomp compilers)
 	// ----------------------------------------------------
       case OPT_HELP_ARG:
-	if (VM.VerifyAssertions) VM._assert(arg.equals(""));
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	//-#elif RVM_WITH_OPT_RUNTIME_COMPILER
-	VM_RuntimeCompiler.processCommandLineArg("help");
+	VM_RuntimeCompiler.processOptCommandLineArg("help");
 	//-#else
-	VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
+	VM.sysWrite("vm: You are not using a system that includes the optimizing compiler.");
 	VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
 	VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	//-#endif
 	break;
       case OPT_ARG: // "-X:opt:arg"; pass 'arg' as an option
 	//-#if RVM_WITH_ADAPTIVE_SYSTEM
-	VM.sysWrite("vm: adaptive configuration; "+p.value+arg+" has an illegal command line argument prefix '-X:irc'\n");
-	VM.sysExit(VM.exitStatusBogusCommandLineArg);
-	//-#elif RVM_WITH_OPT_RUNTIME_COMPILER
-	VM_RuntimeCompiler.processCommandLineArg(arg);
+	VM_RuntimeCompiler.processOptCommandLineArg(arg);
+	VM_Controller.addOptCompilerOption("opt:"+arg);
 	//-#else
-	VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
+	VM.sysWrite("vm: You are not using a system that includes the optimizing compiler.");
 	VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
 	VM.sysExit(VM.exitStatusBogusCommandLineArg);
 	//-#endif
@@ -749,5 +606,3 @@ public class VM_CommandLineArgs {
     return VM_SysCall.sysArg(argno, buf, buf.length);
   }
 }
-
-
