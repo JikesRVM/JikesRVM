@@ -52,15 +52,19 @@ public class Lock implements VM_Uninterruptible {
   public static int verbose = 0; // show who is acquiring and releasing the locks
   private static int lockCount = 0;
 
-  // Instance fields
+  // Core Instance fields
   private String name;        // logical name of lock
   private int id;             // lock id (based on a non-resetting counter)
   private int dispenser;      // ticket number of next customer
   private int serving;        // number of customer being served
+  // Diagnosis Instance fields
   private VM_Thread thread;   // if locked, who locked it?
   private long start;         // if locked, when was it locked?
   private int where = -1;     // how far along has the lock owner progressed?
-
+  private int[] servingHistory = new int[100];
+  private int[] tidHistory = new int[100];
+  private long[] startHistory = new long[100];
+  private long[] endHistory = new long[100];
 
   static void fullyBooted() {
     SLOW_THRESHOLD = VM_Time.millisToCycles(200); // cycles for .2 seconds
@@ -94,17 +98,30 @@ public class Lock implements VM_Uninterruptible {
 	long now = VM_Time.cycles();
 	long lastReportDuration = now - lastSlowReport;
 	long waitTime = now - localStart;
-	if (lastReportDuration > SLOW_THRESHOLD) {
+	if (lastReportDuration > 
+	    SLOW_THRESHOLD + VM_Time.millisToCycles(200 * (VM_Thread.getCurrentThread().getIndex() % 5))) {
 	    lastSlowReport = now;
-	    VM.sysWrite("GC Warning: possible slow or deadlock - failed to acquire lock ",id);
+	    VM.sysWrite("GC Warning: slow/deadlock - thread ");
+	    VM_Thread.getCurrentThread().dump(1);
+	    VM.sysWrite(" with ticket ", ticket);
+	    VM.sysWrite(" failed to acquire lock ",id);
 	    VM.sysWrite(" (",name);
-	    VM.sysWriteln(")  after ",VM_Time.cyclesToMillis(waitTime)," ms");
+	    VM.sysWriteln(") serving ", serving);
+	    VM.sysWriteln(" after ",VM_Time.cyclesToMillis(waitTime)," ms");
 	    VM_Thread t = thread;
 	    if (t == null) 
 		VM.sysWriteln("GC Warning: Locking thread unknown");
 	    else {
 		VM.sysWrite("GC Warning:  Locking thread: "); t.dump(1); 
 		VM.sysWriteln(" at position ",where);
+	    }
+	    VM.sysWriteln("*** my start = ", localStart);
+	    for (int i=(serving - 10) % 100; i<=(serving % 100); i++) {
+		VM.sysWrite(i, ": index ", servingHistory[i]);
+		VM.sysWrite("   tid ", tidHistory[i]);
+		VM.sysWrite("    start = ", startHistory[i]);
+		VM.sysWrite("    end = ", endHistory[i]);
+		VM.sysWriteln("    start-myStart = ", VM_Time.cyclesToMillis(startHistory[i] - localStart));
 	    }
 	}
 	if (waitTime > TIME_OUT) {
@@ -116,8 +133,12 @@ public class Lock implements VM_Uninterruptible {
       }
     }
 
-    if (REPORT_SLOW) 
+    if (REPORT_SLOW) { 
+      servingHistory[serving % 100] = serving;
+      tidHistory[serving % 100] = VM_Thread.getCurrentThread().getIndex();
+      startHistory[serving % 100] = VM_Time.cycles();
       setLocker(VM_Time.cycles(), VM_Thread.getCurrentThread(), -1);
+    }
 
     if (verbose > 1) {
       VM.sysWrite("Thread ");
@@ -139,7 +160,7 @@ public class Lock implements VM_Uninterruptible {
       VM.sysWrite(" reached point ",w);
       VM.sysWrite(" while holding lock ",id);
       VM.sysWrite(" ",name);
-      VM.sysWrite(" at ",VM_Time.cyclesToMillis(diff));
+      VM.sysWrite(" at ", VM_Time.cyclesToMillis(diff));
       VM.sysWriteln(" ms");
     }
     where = w;
@@ -163,8 +184,10 @@ public class Lock implements VM_Uninterruptible {
       VM.sysWriteln(" ms");
     }
 
-    if (REPORT_SLOW) 
+    if (REPORT_SLOW) {
+      endHistory[serving % 100] = VM_Time.cycles();
       setLocker(0, null, -1);
+    }
 
     VM_Magic.sync();
     VM_Synchronization.fetchAndAdd(this, servingFieldOffset, 1);

@@ -72,10 +72,12 @@ abstract class Allocator implements Constants, VM_Uninterruptible {
 	return result;
       current = BasePlan.getOwnAllocator(current);
     }
-    Log.write("GC Warning: OutOfMemory from allocSlowBody - possible VM range imbalance - space ");
-    Log.writeln(Plan.getSpaceFromAllocatorAnyPlan(this));
+    Log.write("GC Warning: Possible VM range imbalance - Allocator.allocSlowBody failed on request of ");
+    Log.write(bytes);
+    Log.write(" on space "); Log.writeln(Plan.getSpaceFromAllocatorAnyPlan(this));
     Log.write("gcCountStart = "); Log.writeln(gcCountStart);
     Log.write("gcCount (now) = "); Log.writeln(Statistics.gcCount);
+    MemoryResource.showUsage(BasePlan.MB);
     VM_Interface.dumpStack(); 
     VM_Interface.failWithOutOfMemoryError();
     /* NOTREACHED */
