@@ -300,11 +300,6 @@ integer RVM_WITH_HPM=0
 integer RVM_WITH_GNU_CLASSPATH=1
 export RVM_WITH_GNU_CLASSPATH
 
-# Use the cvs head of the GNU CLASSPATH library?
-#
-integer RVM_WITH_GNU_CLASSPATH_CVS_HEAD=0
-export RVM_WITH_GNU_CLASSPATH_CVS_HEAD
-
 # Here are the choices for compiler to generate code for classes that are loaded into bootimage.
 #
 integer RVM_WITH_BASE_BOOTIMAGE_COMPILER=0
@@ -953,15 +948,11 @@ function emitController
    if (( ! RVM_WITH_GNU_CLASSPATH )); then
     print '(export RVM_ROOT=$JAL_ROOT; $RVM_ROOT/rvm/bin/jCheckLibs -f )'
    else
-    if (( RVM_WITH_GNU_CLASSPATH_CVS_HEAD )); then
-      print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --head --full-build --destination $RVM_ROOT/classpath'
-    else 
-      if [[ x$CLASSPATH_SRC = x ]]; then
-        print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check --destination $RVM_ROOT/classpath'
-      else
-        print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check'
-      fi
-     fi
+    if [[ x$CLASSPATH_SRC = x ]]; then
+      print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check --destination $RVM_ROOT/classpath'
+    else
+      print '  $JAL_ROOT/rvm/bin/jBuildClasspathJar --full-build --check'
+    fi
    fi
    print ''
    print 'if [[ $CLEAN_FLAG = -clean ]]; then'
