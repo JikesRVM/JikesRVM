@@ -34,7 +34,7 @@ public class VM_StackTrace implements VM_Constants {
    * Create a trace of the current call stack
    */
   public VM_StackTrace(int skip) {
-    // (1) Count the number of frames compirsing the stack.
+    // (1) Count the number of frames comprising the stack.
     int numFrames = walkFrames(false, skip+1);
     compiledMethods = new VM_CompiledMethod[numFrames];
     offsets = VM_OffsetArray.create(numFrames);
@@ -59,7 +59,7 @@ public class VM_StackTrace implements VM_Constants {
       ip = VM_Magic.getReturnAddress(fp);
     }
     fp = VM_Magic.getCallerFramePointer(fp);
-    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINAL_FP)) {
+    while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
       int compiledMethodId = VM_Magic.getCompiledMethodID(fp);
       if (compiledMethodId != INVISIBLE_METHOD_ID) {
 	VM_CompiledMethod compiledMethod = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
@@ -89,6 +89,8 @@ public class VM_StackTrace implements VM_Constants {
    * Print stack trace.
    * Delegate the actual printing of the stack trace to the VM_CompiledMethod's to
    * deal with inlining by the opt compiler in a sensible fashion.
+   * This is identical to the method print(PrintWriter out), except for the
+   * type of the argument.@param out
    * 
    * @param stackTrace stack trace to be printed
    * @param out        stream to print on
@@ -117,6 +119,8 @@ public class VM_StackTrace implements VM_Constants {
    * Print stack trace.
    * Delegate the actual printing of the stack trace to the VM_CompiledMethod's to
    * deal with inlining by the opt compiler in a sensible fashion.
+   * This is identical to the method print(PrintStream out), except for the
+   * type of.@param out
    * 
    * @param stackTrace stack trace to be printed
    * @param out        printwriter to print on
