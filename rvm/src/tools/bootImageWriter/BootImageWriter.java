@@ -1,7 +1,7 @@
-
 /*
- * (C) Copyright IBM Corp 2001,2002
+ * (C) Copyright IBM Corp 2001,2002, 2004
  */
+
 //$Id$
 
 import java.util.Hashtable;
@@ -16,6 +16,7 @@ import java.io.*;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.Thread;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
@@ -45,6 +46,9 @@ import com.ibm.JikesRVM.classloader.*;
  * @version 03 Jan 2000
  * (complete rewrite of John Barton's original, this time using java2
  * reflection)
+ *
+ * @modified Steven Augart 16 Mar 2004	Fixes to bootstrap under Kaffe
+
  */
 public class BootImageWriter extends BootImageWriterMessages
   implements BootImageWriterConstants {
@@ -193,9 +197,16 @@ public class BootImageWriter extends BootImageWriterMessages
    */
   private static class TraceContext extends Stack {
     /**
-     * Report a field that is part of the OTI but not host JDK implementation.
+     * Report a field that is part of our library's (GNU Classpath's)
+     implementation, but not the host JDK's implementation.
      */
     public void traceFieldNotInHostJdk() {
+      traceNulledWord(": field not in host jdk");
+    }
+
+    /* Report a field that is an instance field in the host JDK but a static
+       field in ours.  */
+    public void traceFieldNotStaticInHostJdk() {
       traceNulledWord(": field not in host jdk");
     }
 
@@ -356,7 +367,7 @@ public class BootImageWriter extends BootImageWriterMessages
       // places where rvm components live, at execution time
       if (args[i].equals("-xclasspath")) {
         if (++i >= args.length)
-          fail("argument syntax error: Got an -classpath flag without a following execution-time classpath for RVM components");
+          fail("argument syntax error: Got an -xclasspath flag without a following execution-time classpath for RVM components");
         bootImageRepositoriesAtExecutionTime = args[i];
         continue;
       }
@@ -1105,6 +1116,17 @@ public class BootImageWriter extends BootImageWriterMessages
             continue;
           }
 
+          if (! Modifier.isStatic(jdkFieldAcc.getModifiers())) {
+              if (verbose >= 2) traceContext.push(rvmFieldType.toString(),
+                                                  jdkType.getName(), rvmFieldName);
+              if (verbose >= 2) traceContext.traceFieldNotStaticInHostJdk();
+              if (verbose >= 2) traceContext.pop();
+              VM_Statics.setSlotContents(rvmFieldSlot, 0);
+            if (!VM.runningTool)
+              bootImage.countNulledReference();
+            continue;
+          }
+
           if (verbose >= 2) 
             say("    populating jtoc slot ", String.valueOf(rvmFieldSlot), 
                 " with ", rvmField.toString());
@@ -1158,7 +1180,23 @@ public class BootImageWriter extends BootImageWriterMessages
             }
           } else {
             // field is reference type
-            Object o = jdkFieldAcc.get(null);
+
+            /* Consistency check. */
+            if (jdkFieldAcc == null)
+              fail("internal inconistency: jdkFieldAcc == null");
+
+            int modifs = jdkFieldAcc.getModifiers();
+
+            /* This crash, realistically, should never occur. */
+            if (! Modifier.isStatic(modifs)) 
+              fail("Consistency failure: About to try to access an instance field (via jdkFieldAcc) as if it were a static one!  The culprit is the field " + jdkFieldAcc.toString());
+            Object o;
+            try {
+              o = jdkFieldAcc.get(null);
+            } catch (NullPointerException npe) {
+              fail("Got a NullPointerException while using reflection to retrieve the value of the field " + jdkFieldAcc.toString() + ": " + npe.toString());
+              o = null;         // Unreached
+            }
             if (verbose >= 3)
               say("       setting with ", String.valueOf(VM_Magic.objectAsAddress(o).toInt()));
             VM_Statics.setSlotContents(rvmFieldSlot, o);
