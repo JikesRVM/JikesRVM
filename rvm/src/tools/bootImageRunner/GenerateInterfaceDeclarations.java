@@ -445,15 +445,29 @@ class GenerateInterfaceDeclarations {
     }
     //-#endif
 
-    p("static const int VM_Constants_STACK_SIZE_GUARD           = "
+    p("static const int VM_Constants_STACK_SIZE_GUARD          = "
         + VM_Constants.STACK_SIZE_GUARD + ";\n");
-    p("static const int VM_Constants_INVISIBLE_METHOD_ID        = "
+
+    //-#if RVM_WITH_FLEXIBLE_STACK_SIZES
+    p("static const int VM_Constants_STACK_SIZE_MIN      = "
+        + VM_Constants.STACK_SIZE_MIN + ";\n");
+    p("static const int VM_Constants_STACK_SIZE_NORMAL_DEFAULT  = "
+        + VM_Constants.STACK_SIZE_NORMAL_DEFAULT + ";\n");
+    p("static const int VM_Constants_STACK_SIZE_GROW_MIN       = "
+        + VM_Constants.STACK_SIZE_GROW_MIN + ";\n");
+    p("static const int VM_Constants_STACK_SIZE_GROW_DEFAULT   = "
+        + VM_Constants.STACK_SIZE_GROW_DEFAULT + ";\n");
+    p("static const int VM_Constants_STACK_SIZE_MAX_DEFAULT    = "
+        + VM_Constants.STACK_SIZE_MAX_DEFAULT + ";\n");
+    //-#endif // RVM_WITH_FLEXIBLE_STACK_SIZES
+
+    p("static const int VM_Constants_INVISIBLE_METHOD_ID       = "
         + VM_Constants.INVISIBLE_METHOD_ID + ";\n");
-    p("static const int VM_ThinLockConstants_TL_THREAD_ID_SHIFT = "
+    p("static const int VM_ThinLockConstants_TL_THREAD_ID_SHIFT= "
         + VM_ThinLockConstants.TL_THREAD_ID_SHIFT + ";\n");
-    p("static const int VM_Constants_STACKFRAME_HEADER_SIZE             = "
+    p("static const int VM_Constants_STACKFRAME_HEADER_SIZE    = "
         + VM_Constants.STACKFRAME_HEADER_SIZE + ";\n");
-    p("static const int VM_Constants_STACKFRAME_METHOD_ID_OFFSET        = "
+    p("static const int VM_Constants_STACKFRAME_METHOD_ID_OFFSET = "
         + VM_Constants.STACKFRAME_METHOD_ID_OFFSET + ";\n");
     p("static const int VM_Constants_STACKFRAME_FRAME_POINTER_OFFSET    = "
         + VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET + ";\n");
@@ -562,6 +576,11 @@ class GenerateInterfaceDeclarations {
         + VM_FileSystem.STAT_LAST_MODIFIED + ";\n");
     p("static const int VM_FileSystem_STAT_LENGTH                 = "
         + VM_FileSystem.STAT_LENGTH + ";\n");
+
+    // Value in org.mmtk.vm.Constants:
+    p("static const int MMTk_Constants_BYTES_IN_PAGE            = "
+        + org.mmtk.vm.Constants.BYTES_IN_PAGE + ";\n");
+
 
     // fields in VM_Processor
     //
