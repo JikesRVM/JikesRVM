@@ -5,6 +5,7 @@
 package org.mmtk.plan;
 
 import org.mmtk.policy.CopySpace;
+import org.mmtk.policy.ImmortalSpace;
 import org.mmtk.utility.Allocator;
 import org.mmtk.utility.BumpPointer;
 import org.mmtk.utility.Log;
@@ -176,8 +177,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * <i>only one thread</i> executes this.
    */
   protected final void globalMaturePrepare() {
-    matureMR.reset(); // reset the nursery semispace memory resource
-    hi = !hi;         // flip the semi-spaces
+    if (fullHeapGC) {
+      matureMR.reset(); // reset the nursery semispace memory resource
+      hi = !hi;         // flip the semi-spaces
+    }
   }
 
   /**
@@ -187,7 +190,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * <i>all threads</i> execute this.
    */
   protected final void threadLocalMaturePrepare(int count) {
-    mature.rebind(((hi) ? mature1VM : mature0VM)); 
+    if (fullHeapGC) mature.rebind(((hi) ? mature1VM : mature0VM)); 
   }
 
   /**
@@ -206,7 +209,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * <i>only one</i> thread executes this.<p>
    */
   protected final void globalMatureRelease() {
-    ((hi) ? mature0VM : mature1VM).release();
+    if (fullHeapGC) ((hi) ? mature0VM : mature1VM).release();
   }
 
   /****************************************************************************
@@ -229,6 +232,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
   protected static final void forwardMatureObjectLocation(VM_Address location,
                                                           VM_Address object,
                                                           byte space) {
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(fullHeapGC);
     if ((hi && space == LOW_MATURE_SPACE) || 
         (!hi && space == HIGH_MATURE_SPACE))
       VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(object));
@@ -244,6 +248,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    */
   static final VM_Address getForwardedMatureReference(VM_Address object,
                                                       byte space) {
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(fullHeapGC);
     if ((hi && space == LOW_MATURE_SPACE) || 
         (!hi && space == HIGH_MATURE_SPACE)) {
       if (VM_Interface.VerifyAssertions) 
@@ -270,11 +275,12 @@ public class Plan extends Generational implements VM_Uninterruptible {
     if (VM_Interface.VerifyAssertions && space != LOW_MATURE_SPACE
         && space != HIGH_MATURE_SPACE)
       spaceFailure(obj, space, "Plan.traceMatureObject()");
-    if ((hi && addr.LT(MATURE_HI_START)) ||
-        (!hi && addr.GE(MATURE_HI_START)))
+    if ((!IGNORE_REMSET || fullHeapGC) && ((hi && addr.LT(MATURE_HI_START)) ||
+					   (!hi && addr.GE(MATURE_HI_START))))
       return CopySpace.traceObject(obj);
-    else
-      return obj;
+    else if (IGNORE_REMSET)
+      CopySpace.markObject(obj, ImmortalSpace.immortalMarkState);
+    return obj;
   }
 
   /**  
@@ -288,6 +294,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
   public final void postCopy(VM_Address ref, Object[] tib, int size,
                              boolean isScalar) throws VM_PragmaInline {
     CopyingHeader.clearGCBits(ref);
+    if (IGNORE_REMSET)
+      ImmortalSpace.postAlloc(ref);
   }
 
   /**

@@ -83,7 +83,7 @@ public final class ImmortalSpace extends BasePolicy
   }
 
   static final VM_Word GC_MARK_BIT_MASK    = VM_Word.one();
-  private static VM_Word immortalMarkState = VM_Word.zero(); // when GC off, the initialization value
+  public static VM_Word immortalMarkState = VM_Word.zero(); // when GC off, the initialization value
 
 
   /**

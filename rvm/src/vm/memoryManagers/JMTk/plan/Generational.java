@@ -78,6 +78,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   public static final boolean NEEDS_WRITE_BARRIER = true;
   public static final boolean MOVES_OBJECTS = true;
+  public static final boolean IGNORE_REMSET = false;    // always do full trace
 
   // Global pool for shared remset queue
   private static SharedDeque arrayRemsetPool = new SharedDeque(metaDataRPA, 2);
@@ -392,7 +393,7 @@ public abstract class Generational extends StopTheWorldGC
   protected final void globalPrepare() {
     nurseryMR.reset(); // reset the nursery
     lastGCFull = fullHeapGC;
-    if (fullHeapGC) {
+    if (fullHeapGC || IGNORE_REMSET) {
       if (Stats.gatheringStats()) fullHeap.set();
       // prepare each of the collected regions
       losSpace.prepare(losVM, losMR);
@@ -416,7 +417,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   protected final void threadLocalPrepare(int count) {
     nursery.rebind(nurseryVM);
-    if (fullHeapGC) {
+    if (fullHeapGC || IGNORE_REMSET) {
       threadLocalMaturePrepare(count);
       los.prepare();
       remset.resetLocal();  // we can throw away remsets for a full heap GC
@@ -453,7 +454,7 @@ public abstract class Generational extends StopTheWorldGC
    * the mature space.
    */
   protected final void threadLocalRelease(int count) {
-    if (fullHeapGC) { 
+    if (fullHeapGC || IGNORE_REMSET) { 
       los.release();
       threadLocalMatureRelease(count);
     }
@@ -474,7 +475,7 @@ public abstract class Generational extends StopTheWorldGC
     // release each of the collected regions
     nurseryVM.release();
     remsetPool.clearDeque(1); // flush any remset entries collected during GC
-    if (fullHeapGC) {
+    if (fullHeapGC || IGNORE_REMSET) {
       losSpace.release();
       globalMatureRelease();
       ImmortalSpace.release(immortalVM, null);
@@ -513,7 +514,7 @@ public abstract class Generational extends StopTheWorldGC
     byte space = VMResource.getSpace(addr);
     if (space == NURSERY_SPACE)
       return CopySpace.traceObject(obj);
-    if (!fullHeapGC)
+    if (!fullHeapGC && !IGNORE_REMSET)
       return obj;
     switch (space) {
     case LOS_SPACE:      return losSpace.traceObject(obj);

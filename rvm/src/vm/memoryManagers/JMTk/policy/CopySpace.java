@@ -32,6 +32,7 @@ import com.ibm.JikesRVM.VM_Magic;
 public final class CopySpace extends BasePolicy 
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
+  static final VM_Word GC_MARK_BIT_MASK = VM_Word.one();
 
   public static void prepare(VMResource vm, MemoryResource mr) { }
   public static void release(VMResource vm, MemoryResource mr) { }
@@ -48,6 +49,36 @@ public final class CopySpace extends BasePolicy
   public static VM_Address traceObject(VM_Address object) 
     throws VM_PragmaInline {
     return forwardObject(object, true);
+  }
+
+  /**
+   * Mark an object as having been traversed.
+   *
+   * @param object The object to be marked
+   * @param markState The sense of the mark bit (flips from 0 to 1)
+   */
+  public static void markObject(VM_Address object, VM_Word markState) 
+    throws VM_PragmaInline {
+    if (testAndMark(object, markState)) 
+      VM_Interface.getPlan().enqueue(object);
+  }
+  
+  /**
+   * Used to mark boot image objects during a parallel scan of objects
+   * during GC Returns true if marking was done.
+   *
+   * @param object The object to be marked
+   * @param value The value to store in the mark bit
+   */
+  private static boolean testAndMark(VM_Address object, VM_Word value) 
+    throws VM_PragmaInline {
+    VM_Word oldValue;
+    do {
+      oldValue = VM_Interface.prepareAvailableBits(object);
+      VM_Word markBit = oldValue.and(GC_MARK_BIT_MASK);
+      if (markBit.EQ(value)) return false;
+    } while (!VM_Interface.attemptAvailableBits(object,oldValue,oldValue.xor(GC_MARK_BIT_MASK)));
+    return true;
   }
 
   /**

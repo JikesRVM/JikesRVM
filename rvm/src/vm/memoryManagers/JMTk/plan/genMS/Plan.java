@@ -182,7 +182,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * <i>all threads</i> execute this.
    */
   protected final void threadLocalMaturePrepare(int count) {
-    mature.prepare();
+    if (fullHeapGC) mature.prepare();
   }
 
   /**
@@ -192,7 +192,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * that <i>all threads</i> execute this.<p>
    */
   protected final void threadLocalMatureRelease(int count) {
-    mature.release();
+    if (fullHeapGC) mature.release();
   }
 
   /**
