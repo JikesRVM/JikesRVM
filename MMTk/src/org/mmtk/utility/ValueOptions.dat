@@ -1,0 +1,29 @@
+#
+# (C) Copyright IBM Corp. 2003
+#
+DECL 
+# Structure of DECL TAG FULL_NAME TYPE DEFAULT_VALUE {SHORT_NAME}
+# TAG: E = Enumeration, V = Value
+# TYPE: byte, int, String, double
+DESCRIP  
+FILTER
+# body of function to filter/check/process the new value
+ENUMS
+#Structure of ENUMS "ITEM_NAME QUERY_NAME CMD_NAME"
+
+V growThreshold double 0.8
+Grow the heap when live ratio exceeds this value
+if (val <= 0.0 || val >= 1.0) VM_Interface.sysFail("Unreasonable growThreshold " + val);
+
+
+V growRatio double 1.2
+Grow the heap by this ratio
+if (val < 1.0) VM_Interface.sysFail("Unreasonable growRatio " + val);
+
+
+V metaDataPages int 128 metadata_limit
+????????
+int val2 = Conversions.bytesToPagesUp(val<<10); \
+if (val2 <= 0) VM_Interface.sysFail("Unreasonable metadata limit " + val);
+
+

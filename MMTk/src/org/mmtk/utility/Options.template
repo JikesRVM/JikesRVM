@@ -1,0 +1,400 @@
+/*
+ * (C) Copyright IBM Corp. 2003
+ */
+package com.ibm.JikesRVM.memoryManagers.JMTk;
+
+import com.ibm.JikesRVM.memoryManagers.vmInterface.Constants;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
+
+import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Extent;
+import com.ibm.JikesRVM.VM_Uninterruptible;
+import com.ibm.JikesRVM.VM_PragmaInterruptible;
+
+/**
+ * Class to handle command-line arguments and options for JMTk.
+ * <p>
+ * Note: This file is mechanically generated from Options.template.
+ * <p>
+ * Note: Boolean options are defined in BOOLEAN_DAT_FILES 
+ *       All other options are defined in VALUE_DAT_FILES 
+ *       (value, enumeration)
+ *
+ * @author Janice Shepherd
+ * @author Dave Grove
+ **/
+public final class Options implements VM_Uninterruptible, Constants {
+
+  private static int initialHeapSize; 
+  private static int maxHeapSize;     
+  private static int currentHeapSize; 
+
+  static int minNurseryPages  = Plan.DEFAULT_MIN_NURSERY;
+  static int maxNurseryPages  = Plan.DEFAULT_MAX_NURSERY;
+  static int cycleMetaDataPages = MAX_INT;  // default to no cycle m/data limit
+  static int cycleDetectionPages = 256;   // do c/d if < 1MB remaining
+  static int gcTimeCap        = MAX_INT;  // default to no time cap
+  static int stressTest       = MAX_INT;  // default to never
+
+
+  public static int getCurrentHeapSize() {
+    return currentHeapSize;
+  }
+
+  public static void overrideGrowHeapSize (int size) {
+    currentHeapSize += size;
+  }
+  
+  public static void setDefaultHeapSizes(int initial, int max) {
+    initialHeapSize = initial;
+    maxHeapSize = max;
+    if (initialHeapSize > maxHeapSize) 
+      maxHeapSize = initialHeapSize;
+    currentHeapSize = initialHeapSize;
+  }
+
+  public static boolean updateCurrentHeapSize(int usedHeapSize) {
+    double liveRatio = ((double) usedHeapSize) / currentHeapSize;
+    if (liveRatio > growThreshold) {
+      int newSize = (int) (growRatio * currentHeapSize);
+      if (newSize > 10 * (1<<20)) {
+	newSize = (newSize + (1<<20)) >> 20 << 20;
+      }
+      else 
+	newSize = (newSize + (1<<10)) >> 10 << 10;
+      if (newSize > maxHeapSize) newSize = maxHeapSize;
+      if (newSize > currentHeapSize) {
+	currentHeapSize = newSize;
+	return true;
+      }
+    }
+    return false;
+  }
+
+   // Begin template-specified options
+$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+$$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
+     $$$$ LET PRETTY_NAME @PAD(FULL_NAME,30," ")
+   public static boolean PRETTY_NAME= DEFAULT_VALUE; // OPTION.DESCRIP
+     $$$$ END LET PRETTY_NAME
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+       $$$$ IF TAG == S
+       $$$$ LET PRETTY_NAME @PAD(FULL_NAME,23-@LENGTH("TYPE")," ")
+   private static java.util.HashSet PRETTY_NAME= null; // OPTION.DESCRIP
+       $$$$ END LET PRETTY_NAME
+       $$$$ ELSE
+     $$$$ LET PRETTY_NAME @PAD(FULL_NAME,37-@LENGTH("TYPE")," ")
+   public static TYPE PRETTY_NAME= DEFAULT_VALUE; // OPTION.DESCRIP
+     $$$$ END LET PRETTY_NAME
+       $$$$ END IF 
+     $$$$ END SPLIT  
+$$$$ END FOREACH
+$$$$ END LOOP
+   // End template-specified options
+
+   // Begin generated support for filtering of value options
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == V
+   // FULL_NAME
+   private static TYPE filter_FULL_NAME(TYPE val) throws VM_PragmaInterruptible {
+     OPTION.FILTER
+     return val;
+   }	
+      $$$$ END IF TAG == V
+      $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+   // End generated support for filtering of value options
+
+   // Begin generated support for "Enumeration" options
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == E
+   // FULL_NAME
+          $$$$ LOOP CONSTNAME OPTION.ENUMS
+               $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
+   public static final TYPE ITEM_NAME = CONSTNAME.INDEX; 
+   public static final boolean QUERRY_NAME() { return FULL_NAME == ITEM_NAME; }
+               $$$$ END SPLIT CONSTNAME
+          $$$$ END LOOP
+
+      $$$$ END IF TAG == E
+      $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+   // End generated support for "Enumeration" options
+
+  /**
+   * Take a string (most likely a command-line argument) and try to proccess it
+   * as an option command.  Return true if the string was understood, false 
+   * otherwise.
+   *
+   * @param arg a String to try to process as an option command
+   * @return true if successful, false otherwise
+   */
+  public static boolean process(String arg) throws com.ibm.JikesRVM.VM_PragmaNoOptCompile,
+	                                           VM_PragmaInterruptible {
+
+    // First handle the "option commands"
+    if (arg.equals("help")) {
+       printHelp();
+       return true;
+    }
+    if (arg.equals("printOptions")) {
+       printOptions();
+       return true;
+    }
+    if (arg.equals("")) {
+      printHelp();
+      return true;
+    }
+
+    // Required format of arg is 'name=value'
+    // Split into 'name' and 'value' strings
+    int split = arg.indexOf('=');
+    if (split == -1) {
+      VM.sysWrite("  Illegal option specification!\n  \""+arg+
+		  "\" must be specified as a name-value pair in the form of option=value\n");
+      return false;
+    }
+    String name = arg.substring(0,split);
+    String value = arg.substring(split+1);
+
+    // Begin generated command-line processing
+$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+$$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
+     $$$$ LET CMD_NAME @IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME")
+    if (name.equals("CMD_NAME")) {
+      if (value.equals("true")) {
+        FULL_NAME = true;
+	return true;
+      } else if (value.equals("false")) {
+  	FULL_NAME = false;
+        return true;
+      } else 
+        return false;
+    }
+     $$$$ END LET
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ LET CMD_NAME @IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME")
+    if (name.equals("CMD_NAME")) {
+     $$$$ IF TAG == V
+          $$$$ IF TYPE == String
+       FULL_NAME = filter_FULL_NAME(value);
+          $$$$ ELSE
+            $$$$ IF TYPE == int
+       FULL_NAME = filter_FULL_NAME(Integer.parseInt(value));
+            $$$$ ELSE
+              $$$$ IF TYPE == byte
+       FULL_NAME = filter_FULL_NAME(Byte.parseByte(value));
+              $$$$ ELSE
+                $$$$ IF TYPE == double
+          FULL_NAME = filter_FULL_NAME(Double.valueOf(value).doubleValue());
+                $$$$ ELSE
+                  $$$$ IF TYPE == float
+            FULL_NAME = filter_FULL_NAME(Float.valueOf(value).floatValue());
+                  $$$$ ELSE
+       Hey! You tried to declare a value option of unrecoginized type...fix it!
+                  $$$$ END IF
+                $$$$ END IF
+              $$$$ END IF
+            $$$$ END IF
+          $$$$ END IF
+       return true;
+     }
+     $$$$ ELSE 
+       $$$$ IF TAG == E
+            $$$$ LOOP CONSTNAME OPTION.ENUMS
+                 $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
+       if (value.equals("CMD_NAME")) {
+         FULL_NAME = ITEM_NAME;
+         return true;
+       }         
+                 $$$$ END SPLIT CONSTNAME
+            $$$$ END LOOP
+       return false;
+     }
+       $$$$ ELSE
+     Whoops! Unimplemented tag: TAG...go nag Dave and he'll finish it.
+       $$$$ END IF TAG == E
+     $$$$ END IF TAG == V
+     $$$$ END LET CMD_NAME
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+       //End generated command-line processing
+
+    if (arg.startsWith("verbose=")) {
+      String tmp = arg.substring(8);
+      int level = Integer.parseInt(tmp);
+      if (level < 0) VM_Interface.sysFail("Unreasonable verbosity level " + tmp);
+      Plan.verbose = level;
+      return true;
+    }
+    if(arg.startsWith("fixedNursery=") ||
+	    arg.startsWith("nursery_size=")) {
+      String tmp = arg.substring(13);
+      maxNurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
+      minNurseryPages = maxNurseryPages;
+      if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + tmp);
+      return true;
+    }
+    if (arg.startsWith("boundedNursery=")) {
+      String tmp = arg.substring(15);
+      maxNurseryPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<20);
+      if (maxNurseryPages <= 0) VM_Interface.sysFail("Unreasonable nursery size " + tmp);
+      return true;
+    }
+    if (arg.startsWith("cycle_metadata_limit=")) {
+      String tmp = arg.substring(21);
+      cycleMetaDataPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<10);
+      if (cycleMetaDataPages <= 0) VM_Interface.sysFail("Unreasonable cycle metadata limit " + tmp);
+      return true;
+    }
+    if (arg.startsWith("cycle_detection_limit=")) {
+      String tmp = arg.substring(22);
+      cycleDetectionPages = Conversions.bytesToPagesUp(Integer.parseInt(tmp)<<10);
+      if (cycleDetectionPages <= 0) VM_Interface.sysFail("Unreasonable cycle detection limit " + tmp);
+      return true;
+    }
+    if (arg.startsWith("time_cap=")) {
+      String tmp = arg.substring(9);
+      gcTimeCap = Integer.parseInt(tmp);
+      if (gcTimeCap <= 0) VM_Interface.sysFail("Unreasonable time cap " + tmp);
+      return true;
+    }
+    if (arg.startsWith("stress=")) {
+      String tmp = arg.substring(7);
+      stressTest = 1<<Integer.parseInt(tmp);
+      return true;
+    }
+
+    // None of the above tests matched, so this wasn't an option
+    return false;
+  }
+
+  // Print a short description of every option
+  // Throws VM_PragmaNoOptCompile to avoid occasional OutOfMemory errors when
+  // boot image writing.
+  public static void printHelp() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
+
+    VM.sysWrite("Commands\n");
+    VM.sysWrite("-X:gc[:help]\t\t\tPrint brief description of JMTk's command-line arguments\n");
+    VM.sysWrite("-X:gc:printOptions\t\tPrint the current values of JMTk's options\n");
+    VM.sysWrite("\n");
+
+    //Begin generated help messages
+    VM.sysWrite("Boolean Options (-X:gc:<option>=true or -X:gc:<option>=false)\n");
+    VM.sysWrite("Option                                 Description\n");
+$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+$$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
+     $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+    VM.sysWrite("CMD_NAME OPTION.DESCRIP\n");
+     $$$$ END LET CMD_NAME
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+    VM.sysWrite("\nValue Options (-X:gc:<option>=<value>)\n");
+    VM.sysWrite("Option                         Type    Description\n");
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == V
+          $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+          $$$$ LET TNAME @PAD("TYPE", 7, " ")
+    VM.sysWrite("CMD_NAME TNAME OPTION.DESCRIP\n");
+          $$$$ END LET TYPE_NAME
+          $$$$ END LET CMD_NAME
+     $$$$ END IF TAG == V
+     $$$$ END SPLIT OPTION.DECL
+$$$$ END FOREACH
+$$$$ END LOOP
+    VM.sysWrite("\nSelection Options (set option to one of an enumeration of possible values)\n");
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == E
+    VM.sysWrite("\t\tOPTION.DESCRIP\n");
+	  $$$$ LET MAIN_CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+    VM.sysWrite("MAIN_CMD_NAME");
+            $$$$ LOOP CONSTNAME OPTION.ENUMS
+                 $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
+    VM.sysWrite("CMD_NAME ");
+                 $$$$ END SPLIT CONSTNAME
+            $$$$ END LOOP CONSTNAME
+          $$$$ END LET MAIN_CMD_NAME
+    VM.sysWrite("\n");
+     $$$$ END IF TAG == E
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+
+    VM.sysExit(1);
+  }    
+
+  // print the options values
+  public static void printOptions() {
+    VM.sysWrite(asString());
+  }
+
+  public static String asString() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile,
+                                  VM_PragmaInterruptible {
+    String s = "Current value of JMTk options:\n";
+    //Begin generated option value printing 
+$$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
+$$$$ FOREACH OPTION BDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " FULL_NAME DEFAULT_VALUE SHORT_NAME
+     $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+    s = s + "\tCMD_NAME = "+FULL_NAME+"\n";
+     $$$$ END LET CMD_NAME
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == V
+          $$$$ LET CMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+    s = s + "\tCMD_NAME = "+FULL_NAME+"\n";
+          $$$$ END LET CMD_NAME
+     $$$$ END IF TAG == V
+     $$$$ END SPLIT OPTION.DECL
+$$$$ END FOREACH
+$$$$ END LOOP
+$$$$ LOOP VDATFILE VALUE_DAT_FILES
+$$$$ FOREACH OPTION VDATFILE
+     $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
+     $$$$ IF TAG == E
+          $$$$ LET PCMD_NAME @PAD(@IF(@LENGTH("SHORT_NAME") == 0, "FULL_NAME", "SHORT_NAME"), 30, " ")
+          $$$$ LOOP CONSTNAME OPTION.ENUMS
+               $$$$ SPLIT "CONSTNAME" " " ITEM_NAME QUERRY_NAME CMD_NAME
+    if (FULL_NAME == ITEM_NAME)
+       s = s + "\tPCMD_NAME = ITEM_NAME\n";
+               $$$$ END LET PCMD
+               $$$$ END SPLIT CONSTNAME
+          $$$$ END LOOP CONSTNAME
+     $$$$ END IF TAG == E
+     $$$$ END SPLIT
+$$$$ END FOREACH
+$$$$ END LOOP
+    //End generated option value printing 
+
+    return s;
+  }
+}

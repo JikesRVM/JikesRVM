@@ -1,0 +1,27 @@
+#
+# (C) Copyright IBM Corp. 2003
+#
+DECL
+# Structure of DECL FULL_NAME DEFAULT_VALUE {SHORT_NAME}
+DESCRIP
+
+noFinalizer false
+Should finalization be disabled?
+
+noReferenceTypes false
+Should reference type processing be disabled?
+
+ignoreSystemGC false
+Should we ignore calls to java.lang.System.gc?
+
+genCycleDetection false gen_cycle_detection
+????????
+
+fragmentationStats false
+????????
+
+verboseFragmentationStats false
+????????
+
+verboseTiming false
+????????
