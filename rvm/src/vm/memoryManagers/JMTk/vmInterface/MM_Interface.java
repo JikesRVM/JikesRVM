@@ -263,11 +263,11 @@ public class MM_Interface implements Constants, VM_Uninterruptible {
     if (Plan.gcInProgress()) {
 	VM_Address ref = VM_Magic.objectAsAddress(obj);
 	if (VMResource.refIsMovable(ref)) {
-	    VM.sysWriteln("GC modifying a potetentially moving object via Java (i.e. not magic)");
+	    VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
 	    VM.sysWriteln("  obj = ", ref);
 	    VM_Type t = VM_Magic.getObjectType(obj);
 	    VM.sysWrite(" type = "); VM.sysWriteln(t.getDescriptor());
-	    VM.sysFail("GC modifying a potetentially moving object via Java (i.e. not magic)");
+	    VM.sysFail("GC modifying a potentially moving object via Java (i.e. not magic)");
 	}
     }
   }
