@@ -7,18 +7,27 @@
 # @author Julian Dolby
 #
 
+## Read environment.  Sanity checks.
+if ! [[ ${RVM_BUILD-} ]]; then
+    echo >&2 "$ME: You must set RVM_BUILD in order to run this program."
+    exit 2
+fi
+if ! [[ ${RVM_ROOT-} ]]; then
+    echo >&2 "$ME: You must set RVM_ROOT in order to run this program."
+    exit 2
+fi
 . $RVM_BUILD/environment.target
 
-# If ECLIPSE_INSTALL_DIR is not set to something sane, then just ignore it.
-[[ ${ECLIPSE_INSTALL_DIR-} ]] && [[ -d ${ECLIPSE_INSTALL_DIR} ]] && cd $ECLIPSE_INSTALL_DIR
+## Put the "eclipse" binary and the fake "java" program it needs at the head
+## of our path.
+export PATH="${ECLIPSE_INSTALL_DIR-}${ECLIPSE_INSTALL_DIR+:}${RVM_ROOT}/rvm/etc/eclipse-bin:${PATH}"
+# If ECLIPSE_INSTALL_DIR is not set to something sane, then we hope
+## that there is an executable named "eclipse" in the user's path
 
-# Debugging options you can add: 
-#     -X:vm:verboseStackTrace=1
-#     -X:vm:stackTraceAtExit=true
-#
-# -Dosgi.locking=null: Present because GNU Classpath 0.10 does not implement
-# some of the java.nio package's locking functions.  This means that
-# we have to tell Eclipse 3.0 not to try to perform locking.
-# (The osgi.locking system property is new with Eclipse 3.0)
-#
-./eclipse "$@" -vm $RVM_ROOT/rvm/bin/rvm -vmargs -Xmx200M -Dosgi.locking=none 
+## Warning message
+echo 'Eclipse 3.0 will probably print out a message saying:'
+echo '  Warning: Could not get charToByteConverterClass!'
+echo 'Just ignore it; it is benign.'
+
+## Do it!
+exec eclipse "$@"
