@@ -7,7 +7,9 @@
 package com.ibm.JikesRVM.librarySupport;
 
 import java.io.*;
-
+//-#if !RVM_WITH_GNU_CLASSPATH
+import java.io.JikesRVMSupport;
+//-#endif
 import com.ibm.JikesRVM.VM_FileSystem;
 import com.ibm.JikesRVM.VM_Callbacks;
 
@@ -103,8 +105,7 @@ public class FileSupport {
     return VM_FileSystem.close(fd);
   }
 
-//-#if RVM_WITH_GNU_CLASSPATH
-//-#else
+//-#if !RVM_WITH_GNU_CLASSPATH
   /**
    * Close a FileInputStream.
    *
