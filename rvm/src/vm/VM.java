@@ -845,8 +845,8 @@ public class VM extends VM_Properties
 //     return (inSysExit != 0) || (inShutdown != 0);
 //   }
 
-  public static boolean debugOOM = true; // debug out-of-memory exception. DEBUG
-  public static boolean doEmergencyGrowHeap = false; // DEBUG
+  public static boolean debugOOM = false; // debug out-of-memory exception. DEBUG
+  public static boolean doEmergencyGrowHeap = true; // DEBUG
   
   /**
    * Exit virtual machine.
