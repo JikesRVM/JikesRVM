@@ -23,6 +23,18 @@ public interface VM_JNIStackframeLayoutConstants extends VM_RegisterConstants,
   // VM_JNICompiler.compile(VM_NativeMethod)
   /////////////////////////////////////////////////////////////
   
+  //-#if RVM_FOR_AIX
+  static final int NATIVE_FRAME_HEADER_SIZE       =  6*BYTES_IN_ADDRESS; // fp + cr + lr + res + res + toc
+  //-#endif
+  //-#if RVM_FOR_LINUX
+  // native frame header size, used for java-to-native glue frame header 
+  static final int NATIVE_FRAME_HEADER_SIZE       =  2*BYTES_IN_ADDRESS;  // fp + lr
+  //-#endif
+  //-#if RVM_FOR_OSX
+  // native frame header size, used for java-to-native glue frame header 
+  static final int NATIVE_FRAME_HEADER_SIZE       =  6*BYTES_IN_ADDRESS;  // fp + cp + lr???
+  //-#endif
+
   // number of volatile registers that may carry parameters to the
   // native code
   // GPR4-10 = 7 words  (does not include R3)

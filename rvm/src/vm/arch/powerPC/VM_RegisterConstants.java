@@ -17,36 +17,52 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   static final int LG_INSTRUCTION_WIDTH = 2;                      // log2 of instruction width in bytes, powerPC
   static final int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH; // instruction width in bytes, powerPC
 
+  // OS register convention (for mapping parameters in JNI calls)
+  // These constants encode conventions for AIX, OSX, and Linux.
+  static final int FIRST_OS_PARAMETER_GPR         =  3; 
+  static final int LAST_OS_PARAMETER_GPR          = 10;
+  static final int FIRST_OS_VOLATILE_GPR          =  3;
+  static final int LAST_OS_VOLATILE_GPR           = 12;
+  static final int FIRST_OS_NONVOLATILE_GPR       = (VM.BuildForAix && VM.BuildFor64Addr) ? 14 : 13;
+  static final int LAST_OS_NONVOLATILE_GPR        = 31;
+  static final int FIRST_OS_PARAMETER_FPR         =  1;
+  static final int LAST_OS_PARAMETER_FPR          = VM.BuildForLinux ? 8 : 13;
+  static final int FIRST_OS_VOLATILE_FPR          =  1;
+  static final int LAST_OS_VOLATILE_FPR           = 13;
+  static final int FIRST_OS_NONVOLATILE_FPR       = 14; 
+  static final int LAST_OS_NONVOLATILE_FPR        = 31;
+  static final int LAST_OS_VARARG_PARAMETER_FPR   =  VM.BuildForAix ? 6 : 8;
+  
   // Jikes RVM's general purpose register usage (32 or 64 bits wide based on VM.BuildFor64Addr).
   //
-  static final int REGISTER_ZERO              =  0; // special instruction semantics on this register
-  static final int FRAME_POINTER              =  1; // AIX is 1
-  static final int JTOC_POINTER               =  2; // AIX is 2
-  static final int FIRST_VOLATILE_GPR         =  3; // AIX is 3
+  static final int REGISTER_ZERO              = 0; // special instruction semantics on this register
+  static final int FRAME_POINTER              = 1; // same as AIX/OSX/Linux
+  static final int JTOC_POINTER               = 2; // AIX toc; OSX scratch; Linux unused?
+  static final int FIRST_VOLATILE_GPR         = FIRST_OS_PARAMETER_GPR;
   //                                            ...
-  static final int LAST_VOLATILE_GPR          = 10; // AIX is 10
-  static final int FIRST_SCRATCH_GPR          = 11; // AIX is 11
-  static final int LAST_SCRATCH_GPR           = 12; // AIX is 12
+  static final int LAST_VOLATILE_GPR          = LAST_OS_PARAMETER_GPR;
+  static final int FIRST_SCRATCH_GPR          = LAST_VOLATILE_GPR+1;
+  static final int LAST_SCRATCH_GPR           = LAST_OS_VOLATILE_GPR;
   // AIX 64 bit ABI reserves R13 for use by libpthread; therefore Jikes RVM doesn't touch it.
   static final int FIRST_RVM_RESERVED_NV_GPR  = VM.BuildFor64Addr? 14 : 13;
   static final int PROCESSOR_REGISTER         = FIRST_RVM_RESERVED_NV_GPR;
   static final int KLUDGE_TI_REG              = PROCESSOR_REGISTER + 1; // migration aid while killing TI
   static final int LAST_RVM_RESERVED_NV_GPR   = 16; // migration kludge; should be KLUDGE_TI_REG
-  static final int FIRST_NONVOLATILE_GPR      = LAST_RVM_RESERVED_NV_GPR+1; // AIX is 14
+  static final int FIRST_NONVOLATILE_GPR      = LAST_RVM_RESERVED_NV_GPR+1; // AIX is 13/14
   //                                            ...
-  static final int LAST_NONVOLATILE_GPR       = 31; // AIX is 31
+  static final int LAST_NONVOLATILE_GPR       = LAST_OS_NONVOLATILE_GPR;
   static final int NUM_GPRS                   = 32;
 
   // Floating point register usage. (FPR's are 64 bits wide).
   //
-  static final int FIRST_SCRATCH_FPR          =  0; // AIX is 0
-  static final int LAST_SCRATCH_FPR           =  0; // AIX is 0
-  static final int FIRST_VOLATILE_FPR         =  1; // AIX is 1
+  static final int FIRST_SCRATCH_FPR          = 0; // AIX/OSX/Linux is 0
+  static final int LAST_SCRATCH_FPR           = 0; // AIX/OSX/Linux is 0
+  static final int FIRST_VOLATILE_FPR         = FIRST_OS_VOLATILE_FPR;
   //                                            ...
-  static final int LAST_VOLATILE_FPR          = 13; // AIX is 13
-  static final int FIRST_NONVOLATILE_FPR      = 14; // AIX is 14
+  static final int LAST_VOLATILE_FPR          = LAST_OS_VOLATILE_FPR;
+  static final int FIRST_NONVOLATILE_FPR      = FIRST_OS_NONVOLATILE_FPR;
   //                                            ...
-  static final int LAST_NONVOLATILE_FPR       = 31; // AIX is 31
+  static final int LAST_NONVOLATILE_FPR       = LAST_OS_NONVOLATILE_FPR;
   static final int NUM_FPRS                   = 32;
 
   static final int NUM_NONVOLATILE_GPRS = LAST_NONVOLATILE_GPR - FIRST_NONVOLATILE_GPR + 1;
@@ -59,47 +75,6 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   // special registers (user visible)
   static final int NUM_SPECIALS               = 8;
 
-  // AIX register convention (for mapping parameters in JNI calls)
-  //-#if RVM_FOR_AIX
-  static final int FIRST_OS_PARAMETER_GPR         =  3; 
-  static final int LAST_OS_PARAMETER_GPR          = 10; // this is really the last parameter passing register
-  static final int FIRST_OS_VOLATILE_GPR          =  3;
-  static final int LAST_OS_VOLATILE_GPR           = 12;
-  static final int FIRST_OS_NONVOLATILE_GPR       = 13;
-  static final int FIRST_OS_PARAMETER_FPR         =  1;
-  static final int LAST_OS_PARAMETER_FPR          = 13;
-  static final int FIRST_OS_VOLATILE_FPR          =  1;
-  static final int LAST_OS_VOLATILE_FPR           = 13;
-  static final int FIRST_OS_NONVOLATILE_FPR       = 14; 
-  static final int LAST_OS_VARARG_PARAMETER_FPR   =  6;
-  static final int NATIVE_FRAME_HEADER_SIZE       =  6*BYTES_IN_ADDRESS; // fp + cr + lr + res + res + toc
-  //-#endif
-  //-#if RVM_FOR_LINUX
-  static final int FIRST_OS_PARAMETER_GPR         =  3;
-  static final int LAST_OS_PARAMETER_GPR          = 10;
-  static final int FIRST_OS_VOLATILE_GPR          =  3;
-  static final int LAST_OS_VOLATILE_GPR           = 12;
-  static final int FIRST_OS_NONVOLATILE_GPR       = 13;
-  static final int FIRST_OS_PARAMETER_FPR         =  1;
-  static final int LAST_OS_PARAMETER_FPR          =  8;
-  static final int FIRST_OS_NONVOLATILE_FPR       = 14;
-  static final int LAST_OS_VARARG_PARAMETER_FPR   =  8;
-  // native frame header size, used for java-to-native glue frame header 
-  static final int NATIVE_FRAME_HEADER_SIZE       =  2*BYTES_IN_ADDRESS;  // fp + lr
-  //-#endif
-  //-#if RVM_FOR_OSX
-  static final int FIRST_OS_PARAMETER_GPR         =  3;
-  static final int LAST_OS_PARAMETER_GPR          = 10;
-  static final int FIRST_OS_VOLATILE_GPR          =  3;
-  static final int LAST_OS_VOLATILE_GPR           = 12;
-  static final int FIRST_OS_NONVOLATILE_GPR       = 13;
-  static final int FIRST_OS_PARAMETER_FPR         =  1;
-  static final int LAST_OS_PARAMETER_FPR          = 13;
-  static final int FIRST_OS_NONVOLATILE_FPR       = 14;
-  static final int LAST_OS_VARARG_PARAMETER_FPR   =  8;
-  // native frame header size, used for java-to-native glue frame header 
-  static final int NATIVE_FRAME_HEADER_SIZE       =  6*BYTES_IN_ADDRESS;  // fp + cp + lr???
-  //-#endif
 
   // Register mnemonics (for use by debugger/machine code printers).
   //

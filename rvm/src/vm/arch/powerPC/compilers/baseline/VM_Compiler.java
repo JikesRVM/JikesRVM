@@ -6,7 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
-import com.ibm.JikesRVM.jni.VM_JNICompiler;
+import com.ibm.JikesRVM.jni.*;
 
 /**
  * VM_Compiler is the baseline compiler class for powerPC architectures.
@@ -19,6 +19,7 @@ import com.ibm.JikesRVM.jni.VM_JNICompiler;
  */
 public class VM_Compiler extends VM_BaselineCompiler 
   implements VM_BaselineConstants,
+             VM_JNIStackframeLayoutConstants, 
              VM_AssemblerConstants {
 
   // stackframe pseudo-constants //
