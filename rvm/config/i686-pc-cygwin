@@ -56,5 +56,5 @@ export BASH=/usr/bin/bash
 export SED=/usr/bin/sed
 export WGET=
 export MD5SUM=
-
+export GNU_TAR=/bin/tar
 

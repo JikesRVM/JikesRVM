@@ -66,6 +66,7 @@ export TAR="/bin/tar"
 export XARGS="/usr/bin/xargs"
 export WGET=
 export MD5SUM=
+export GNU_TAR=/bin/tar
 
 # where to find Jazzlib
 export JAZZLIBDIR=~dolby/stuff/jazzlib-0.02

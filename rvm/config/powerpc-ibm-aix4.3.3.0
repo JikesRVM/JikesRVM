@@ -48,3 +48,4 @@ export AWK="/usr/bin/awk"
 export PS="/usr/bin/ps"
 export WGET=
 export MD5SUM=
+export GNU_TAR="/usr/gnu/bin/tar"

@@ -62,6 +62,7 @@ export WGET="/homes/fury5/jalapeno/bin/wget-aix"
 export DIFF="/usr/gnu/bin/diff"
 export XARGS="/usr/gnu/bin/xargs"
 export MD5SUM="/usr/gnu/bin/md5sum"
+export GNU_TAR="/usr/gnu/bin/tar"
 
 # where to find Jazzlib
 export JAZZLIBDIR=/homes/fury5/jalapeno/contrib/jazzlib-0.02

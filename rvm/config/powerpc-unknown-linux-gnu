@@ -53,3 +53,4 @@ export FGREP="/usr/bin/fgrep"
 export AWK="/usr/bin/awk"
 export WGET=
 export MD5SUM=
+export GNU_TAR="/usr/bin/tar"
