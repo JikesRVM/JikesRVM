@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -568,10 +568,9 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
     }
 
     /**
-     * Should we simply merge the live interval live into a previous 
-     * BasicInterval?
+     * Should we simply merge the live interval <code>live</code> into a
+     *  previous BasicInterval?
      *
-     * @param previous the previous linear scan interval in question
      * @param live the live interval being queried
      * @param bb the basic block in which live resides.
      */
@@ -834,7 +833,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * instruction.
      *
      * If there is no such interval, return null;
-     * @param n DFN of instruction in question
+     * @param s   The instruction in question
      */
     BasicInterval getBasicInterval(OPT_Instruction s) {
       return getBasicInterval(getDFN(s));
@@ -844,7 +843,7 @@ public final class OPT_LinearScan extends OPT_OptimizationPlanCompositeElement {
      * instruction.
      *
      * If there is no such interval, return null;
-     * @param n DFN of instruction in question
+     * @param n The DFN of the instruction in question
      */
     BasicInterval getBasicInterval(int n) {
       SortedSet headSet = headSetInclusive(n);
