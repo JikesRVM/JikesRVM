@@ -480,21 +480,36 @@ if (( RVM_FOR_AIX || RVM_FOR_SINGLE_VIRTUAL_PROCESSOR == 1 )); then
     RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS=1
 fi
 
+## Setting PREPROCESSOR_DEFINITIONS:
+## We keep this variable with a newline-separated list of definitions.
 # Convert configuration choices into preprocessor definitions.
 #    RVM_FOR_xxx  --> -DRVM_FOR_xxx
-#    RVM_ON_xxx --> -DRVM_ON_xxx
 #    RVM_WITH_xxx --> -DRVM_WITH_xxx
+#    RVM_WITHOUT_xxx --> -DRVM_WITH_xxx
 #
+## To find out which programmable conditions are still alive, 
+## look at rvm/GNUmakefile, the 'conditionals' target. 
 PREPROCESSOR_DEFINITIONS="-DBOOTIMAGE_LOAD_ADDRESS=${BOOTIMAGE_LOAD_ADDRESS}"
-PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS} -DMAXIMUM_MAPPABLE_ADDRESS=${MAXIMUM_MAPPABLE_ADDRESS}"
-PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS} $(set     \
-      | sed -n  -e 's/^RVM_ON_/-DRVM_ON_/p'		\
-		-e 's/^RVM_FOR_/-DRVM_FOR_/p'		\
-		-e 's/^RVM_WITH_/-DRVM_WITH_/p'		\
-		-e 's/^JIKES/-DJIKES/p'		\
-		-e 's/^BLOCK_COUNTER_WORKS=/-DBLOCK_COUNTER_WORKS=/p'	  \
-		-e 's/RVM_WITHOUT_/-DRVM_WITHOUT_/p')"
-
+PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS}
+-DMAXIMUM_MAPPABLE_ADDRESS=${MAXIMUM_MAPPABLE_ADDRESS}"
+tmpf=/tmp/jconfigure.$$
+set | sed -n -e 's/^RVM_FOR_/-DRVM_FOR_/p' \
+		-e 's/^RVM_WITH_/-DRVM_WITH_/p'			\
+		-e 's/RVM_WITHOUT_/-DRVM_WITHOUT_/p' > $tmpf
+if :; then
+    ## To cut down on the number of definitions that appear in our generated
+    ## code, if we are not compiling with the strict preprocessor flags 
+    ## enabled, we can remove all of the ones which just set to 
+    ## the default value (zero) 
+    from_vars="$(sed -e '/=0/d' $tmpf)"
+else
+    from_vars="$(< $tmpf)"
+fi
+rm -f $tmpf
+# echo "from_vars are $from_vars"
+PREPROCESSOR_DEFINITIONS="${PREPROCESSOR_DEFINITIONS}
+${from_vars}"
+unset from_vars
 # Place where bootimage runner lives.
 #
 if (( RVM_FOR_POWERPC )); then
@@ -1029,9 +1044,9 @@ function emitController () {
     $(emit_enable_exit_on_error)
 	    echo "\$SECONDS s"
 	    if [ \$status != 0 ]; then
-		echo >&2 "\$ME: Trouble while running \"\$cmd \$*\" (exit status \$status); aborting execution"
-		trap '' EXIT
-		exit \$status;
+	        echo >&2 "\$ME: Trouble while running \"\$cmd \$*\" (exit status \$status); aborting execution"
+	        trap '' EXIT
+	        exit \$status;
 	    fi
 	    return \$status;	# will always return 0
 	}
@@ -1127,6 +1142,14 @@ function emitController () {
 	         elif [[ \$NOBOOTER_FLAG != -nobooter ]]; then
 	             timeit  ./jbuild.linkBooter \$TRACE_FLAG
 	         fi
+	    fi
+	fi
+	
+	if [[ -x JikesRVM ]] && [[ -f JikesRVM ]]; then
+	    echo "\${ME}: To execute the $CONFIGURATION_NAME RVM (from any directory) type:"
+	    echo "\${ME}:    rvm <vm-args> classname <application-args>"
+	    if ! type -p rvm > /dev/null; then
+	        echo "${ME}: You will also need to add ${RVM_ROOT}/bin to your path"
 	    fi
 	fi
 	EOF
@@ -1276,7 +1299,7 @@ function emitCopier () {
 	        CLEAN_FLAG=-clean
 	    else
 	        echo >&2 "\$ME: Unknown argument: \$1"
-		trap '' EXIT
+	        trap '' EXIT
 	        exit 33
 	    fi
 	    shift
@@ -1421,7 +1444,7 @@ EOF
 	        CLEAN_FLAG=-clean
 	    else
 	        echo >&2 "\$ME: Unknown argument: \$1"
-		trap '' EXIT
+	        trap '' EXIT
 	        exit 33
 	    fi
 	    shift
@@ -1526,7 +1549,7 @@ function emitImageLinker () {
 	        CLEAN_FLAG=-clean
 	    else
 	        echo >&2 "\$ME: Unknown argument: \$1"
-		trap '' EXIT
+	        trap '' EXIT
 	        exit 33
 	    fi
 	    shift
@@ -1613,6 +1636,8 @@ com/ibm/JikesRVM/DebuggerThread
 com/ibm/JikesRVM/PrintLN
 com/ibm/JikesRVM/PrintContainer
 
+## Classes involved with the process of class loading...
+com/ibm/JikesRVM/classloader/TypeDescriptorParsing
 # fundamental java classes
 #
 java/lang/Class
@@ -1896,7 +1921,10 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 \\1\$@' > ${PRIMORDIAL_CLASSES_STR}.2
 	    $HOST_JAR_STR tf rvmrt.jar > $PRIMORDIAL_CLASSES_STR.3
 	    \$FIND . -name '*.class' -print | \$SED 's@^\./@@' >> $PRIMORDIAL_CLASSES_STR.3
-	    \$FGREP -f $PRIMORDIAL_CLASSES_STR.2 $PRIMORDIAL_CLASSES_STR.3 | \$SED 's@\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR
+	    > $PRIMORDIAL_CLASSES_STR # Create it clean
+#	DEBUGGING -- lets us test for junk in the RVM.primordials file:
+#	    echo fi > $PRIMORDIAL_CLASSES_STR
+	    \$FGREP -f $PRIMORDIAL_CLASSES_STR.2 $PRIMORDIAL_CLASSES_STR.3 | \$SED 's@\(.*\)\.class@L\1;@' >> $PRIMORDIAL_CLASSES_STR
 	    rm $PRIMORDIAL_CLASSES_STR.1
 	    rm $PRIMORDIAL_CLASSES_STR.2
 	    rm $PRIMORDIAL_CLASSES_STR.3
@@ -1945,7 +1973,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	[Z
 	[[I
 	[[B
-        [[D
+	[[D
 	[[[I
 
 	# These next arrays are really arrays of primitves to Jikes RVM 
@@ -2533,25 +2561,25 @@ function emitPluginBuilder () {
 	    arg="\$1";
 	    if [[ \$arg = -v ]]; then
 	        VFLAG=-v
-		shift
+	        shift
 	    elif [[ \$arg = -x ]]; then
 	        XFLAG=-x
 		shift
 	    elif [[ \$arg = -trace ]] || [[ \$arg = --trace ]]; then
-		let trace=1
+	        let trace=1
 	        QUIET_ANT=
-		shift
+	        shift
 	    elif [[ \$arg = -- ]]; then
 	        shift		# The end of the flag arguments
 	        break;
 	    elif [[ \$arg = -help ]] || [[ \$arg = --help ]]; then
 	        shift
-		help
-		exit 0
+	        help
+	        exit 0
 	    elif [[ \$arg == -* ]]; then
-		echo >&2 "\$ME: Unknown flag: \$1"
-		usage >&2
-		exit 33
+	        echo >&2 "\$ME: Unknown flag: \$1"
+	        usage >&2
+	        exit 33
 	    fi
 	done
 
@@ -2664,7 +2692,7 @@ PERM=+r+w
 
 echo "configuration name: ${CONFIGURATION_NAME}"             >${CONFIGURATION_SUMMARY}
 echo "preprocessor definitions:"                          >>${CONFIGURATION_SUMMARY}
-for p in ${PREPROCESSOR_DEFINITIONS}; do echo -E ${p}; done   >>${CONFIGURATION_SUMMARY}
+echo "${PREPROCESSOR_DEFINITIONS}"   >>${CONFIGURATION_SUMMARY}
 chmod ${PERM}                                                  ${CONFIGURATION_SUMMARY}
 
 (( cleanse )) && touch                          ${CLEANSE_STATUS}
@@ -2743,8 +2771,6 @@ if (( ! quiet )); then
 	echo "${ME}: To build it, type:"
 	echo "${ME}:    cd ${BUILD_DIRECTORY}"
 	echo "${ME}:    ./jbuild"
-	echo "${ME}: To execute it (from any directory) type:"
-	echo "${ME}:    rvm <vm-args> classname <application-args>"
     else
 	echo "done."
     fi
