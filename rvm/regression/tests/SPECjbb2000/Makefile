@@ -19,9 +19,9 @@ START_NAME=spec.jbb.JBBmain
 
 INITIAL_HEAPSIZE=200
 ifeq ($(MODE),PERFORMANCE)
-HEAPSIZE=800
+HEAPSIZE=600
 else
-HEAPSIZE=500
+HEAPSIZE=400
 endif
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
