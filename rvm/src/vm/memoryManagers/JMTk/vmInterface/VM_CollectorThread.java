@@ -203,7 +203,7 @@ public class VM_CollectorThread extends VM_Thread {
    */
   public static VM_CollectorThread createActiveCollectorThread(VM_Processor processorAffinity) 
     throws VM_PragmaInterruptible {
-    int[] stack =  MM_Interface.newImmortalStack(STACK_SIZE_COLLECTOR>>2);  /* XXX SB: what is this >>2?  word, address?? */
+    int[] stack =  MM_Interface.newStack(STACK_SIZE_COLLECTOR, true);
     return new VM_CollectorThread(stack, true, processorAffinity);
   }
   
