@@ -1395,7 +1395,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
     // the opt compiler so it can invalidate speculative CHA optimizations
     // before an instance of this class could actually be created.
     //-#if RVM_WITH_OPT_COMPILER
-    if (OptCLDepManager != null) OptCLDepManager.classInitialized(this);
+    OptCLDepManager.classInitialized(this);
     //-#endif
 
     state = CLASS_INITIALIZED;
@@ -1456,7 +1456,7 @@ public final class VM_Class extends VM_Type implements VM_Constants,
   // invalidate compiled code when new classes are loaded.
   //------------------------------------------------------------//
   //-#if RVM_WITH_OPT_COMPILER
-  public static OPT_ClassLoadingDependencyManager OptCLDepManager;
+  public static final OPT_ClassLoadingDependencyManager OptCLDepManager = new OPT_ClassLoadingDependencyManager();
   //-#endif
 
   /**
