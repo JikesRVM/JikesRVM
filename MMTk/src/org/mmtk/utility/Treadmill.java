@@ -43,8 +43,8 @@ final class Treadmill
   //
   // Instance variables
   //
-  private final DoublyLinkedList fromSpace;
-  private final DoublyLinkedList toSpace;
+  private DoublyLinkedList fromSpace;
+  private DoublyLinkedList toSpace;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -60,107 +60,42 @@ final class Treadmill
   }
 
   static public final Treadmill getTreadmill (VM_Address node) {
-    return (Treadmill) VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(node.add(TREADMILL_OFFSET)));
+    return (Treadmill) DoublyLinkedList.getOwner(node);
   }
 
   static public final int headerSize() throws VM_PragmaInline {
-    return HEADER_SIZE;
+    return DoublyLinkedList.headerSize();
   }
 
-  public final boolean isNode (VM_Address node) {
-    return (node.toInt() / granularity * granularity) == node.toInt();
-  } 
-
   static public final VM_Address nodeToPayload(VM_Address node) throws VM_PragmaInline {
-    return node.add(HEADER_SIZE);
+    return DoublyLinkedList.nodeToPayload(node);
   }
 
   static public final VM_Address payloadToNode(VM_Address payload) throws VM_PragmaInline {
-    return payload.sub(HEADER_SIZE);
+    return DoublyLinkedList.payloadToNode(payload);
   }
 
-  public final void add (VM_Address node) throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(isNode(node));
-    if (lock != null) lock.acquire();
-    VM_Magic.setMemoryAddress(node.add(PREV_OFFSET), VM_Address.zero());
-    VM_Magic.setMemoryAddress(node.add(NEXT_OFFSET), head);
-    VM_Magic.setMemoryAddress(node.add(TREADMILL_OFFSET), VM_Magic.objectAsAddress(this));
-    if (!head.isZero())
-      VM_Magic.setMemoryAddress(head.add(PREV_OFFSET), node);
-    head = node;
-    if (lock != null) lock.release();
+  public final void addToFromSpace (VM_Address node) throws VM_PragmaInline {
+    fromSpace.add(node);
   }
 
-  public final void remove (VM_Address node) throws VM_PragmaInline {
-    if (VM.VerifyAssertions) VM._assert(isNode(node));
-    if (lock != null) lock.acquire();
-    if (VM.VerifyAssertions) {
-      if (!(VM_Magic.objectAsAddress(this).EQ(VM_Magic.getMemoryAddress(node.add(TREADMILL_OFFSET))))) {
-	VM.sysWriteln("node's treadmill = ", VM_Magic.getMemoryAddress(node.add(TREADMILL_OFFSET)));
-	VM.sysWriteln("this = ", VM_Magic.objectAsAddress(this));
-      }
-      VM._assert(VM_Magic.objectAsAddress(this).EQ(VM_Magic.getMemoryAddress(node.add(TREADMILL_OFFSET))));
-    }
-    VM_Address prev = VM_Magic.getMemoryAddress(node.add(PREV_OFFSET));
-    VM_Address next = VM_Magic.getMemoryAddress(node.add(NEXT_OFFSET));
-    // Splice the node out of the list
-    if (!next.isZero()) 
-	VM_Magic.setMemoryAddress(next.add(PREV_OFFSET), prev);
-    if (prev.isZero()) 
-	head = next;
-    else
-	VM_Magic.setMemoryAddress(prev.add(NEXT_OFFSET), next);
-    // Null out node's reference to the list
-    VM_Magic.setMemoryAddress(node.add(PREV_OFFSET), VM_Address.zero());
-    VM_Magic.setMemoryAddress(node.add(NEXT_OFFSET), VM_Address.zero());
-    VM_Magic.setMemoryAddress(node.add(TREADMILL_OFFSET), VM_Address.zero());
-    if (lock != null) lock.release();
+  public final VM_Address popFromSpace () throws VM_PragmaInline {
+    return fromSpace.pop();
   }
 
-  public final VM_Address pop () throws VM_PragmaInline {
-    VM_Address first = head;
-    if (!first.isZero())
-      remove(first);
-    return first;
+  public final void copy (VM_Address node) throws VM_PragmaInline { 
+    fromSpace.remove(node);
+    toSpace.add(node);
   }
 
-  public final boolean isEmpty() throws VM_PragmaInline {
-    return head.isZero();
+  public final boolean toSpaceEmpty () throws VM_PragmaInline {
+    return toSpace.isEmpty();
   }
 
-  /**
-   * Return true if a cell is on a given treadmill
-   *
-   * @param cell The cell being searched for
-   * @param head The head of the treadmill
-   * @return True if the cell is found on the treadmill
-   */
-  public final boolean isOnTreadmill(VM_Address node) {
-    if (VM.VerifyAssertions) VM._assert(isNode(node));
-    boolean result = false;
-    if (lock != null) lock.acquire();
-    VM_Address cur = head;
-    while (!cur.isZero()) {
-      if (cur.EQ(node)) {
-	result = true;
-	break;
-     }
-     cur = VM_Magic.getMemoryAddress(cur.add(NEXT_OFFSET));
-    }
-    if (lock != null) lock.release();
-    return result;
-  }
-
-  public final void show() {
-    if (lock != null) lock.acquire();
-    VM_Address cur = head;
-    VM.sysWrite(cur);
-    while (!cur.isZero()) {
-      cur =      cur = VM_Magic.getMemoryAddress(cur.add(NEXT_OFFSET));
-      VM.sysWrite(" -> ", cur);
-    }
-    VM.sysWriteln();
-    if (lock != null) lock.release();
+  public final void flip() {  
+    DoublyLinkedList tmp = fromSpace;
+    fromSpace = toSpace;
+    toSpace = tmp;
   }
 
 }

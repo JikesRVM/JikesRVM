@@ -85,7 +85,7 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
    */
   public final void postAlloc(VM_Address cell, TreadmillThread thread)
     throws VM_PragmaInline {
-    thread.getFromSpace().add(Treadmill.payloadToNode(cell));
+    thread.treadmill.addToFromSpace(Treadmill.payloadToNode(cell));
   }
 
   /**
@@ -196,11 +196,7 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
     VM_Address cell = VM_JavaHeader.objectStartRef(object);
     VM_Address node = Treadmill.payloadToNode(cell);
     Treadmill tm = Treadmill.getTreadmill(node);
-    TreadmillThread tt = (TreadmillThread) tm.getOwner();
-    if (VM.VerifyAssertions) 
-      VM._assert(VM_Magic.objectAsAddress(tt.getFromSpace()).EQ(VM_Magic.objectAsAddress(tm)));
-    tt.getFromSpace().remove(node);
-    tt.getToSpace().add(node);
+    tm.copy(node);
   }
 
   ////////////////////////////////////////////////////////////////////////////

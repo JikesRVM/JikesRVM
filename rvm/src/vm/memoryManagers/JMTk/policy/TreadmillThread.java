@@ -47,8 +47,7 @@ final class TreadmillThread extends LargeObjectAllocator
   // Instance variables
   //
   private TreadmillSpace space;
-  private Treadmill fromSpace;
-  private Treadmill toSpace;
+  public final Treadmill treadmill;  // per-processor
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -64,8 +63,7 @@ final class TreadmillThread extends LargeObjectAllocator
   TreadmillThread(TreadmillSpace space_) {
     super(space_.getVMResource(), space_.getMemoryResource());
     space = space_;
-    fromSpace = new Treadmill(VMResource.PAGE_SIZE, true, this);
-    toSpace = new Treadmill(VMResource.PAGE_SIZE, true, this);
+    treadmill = new Treadmill(VMResource.PAGE_SIZE, true);
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -101,7 +99,7 @@ final class TreadmillThread extends LargeObjectAllocator
   public final void prepare() {
 //     if (PARANOID)
 //       sanity();
-    if (VM.VerifyAssertions) VM._assert(toSpace.isEmpty());
+    if (VM.VerifyAssertions) VM._assert(treadmill.toSpaceEmpty());
   }
 
   /**
@@ -115,27 +113,17 @@ final class TreadmillThread extends LargeObjectAllocator
     sweepLargePages();
   }
 
-  public final Treadmill getFromSpace() {
-    return fromSpace;
-  }
-
-  public final Treadmill getToSpace() {
-    return toSpace;
-  }
-
   /**
    * Sweep through the large pages, releasing all superpages on the
    * "from space" treadmill.
    */
   public final void sweepLargePages() {
     while (true) {
-      VM_Address cell = fromSpace.pop();
+      VM_Address cell = treadmill.popFromSpace();
       if (cell.isZero()) break;
       free(cell);
     }
-    Treadmill tmp = fromSpace;
-    fromSpace = toSpace;
-    toSpace = tmp;
+    treadmill.flip();
   }
 
 

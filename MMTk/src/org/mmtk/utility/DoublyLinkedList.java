@@ -74,8 +74,8 @@ final class DoublyLinkedList
     return owner;
   }
 
-  static public final DoublyLinkedList getDoublyLinkedList (VM_Address node) {
-    return (DoublyLinkedList) VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(node.add(LIST_OFFSET)));
+  static public final Object getOwner (VM_Address node) {
+    return VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(node.add(LIST_OFFSET)));
   }
 
   static public final int headerSize() throws VM_PragmaInline {
@@ -99,7 +99,7 @@ final class DoublyLinkedList
     if (lock != null) lock.acquire();
     VM_Magic.setMemoryAddress(node.add(PREV_OFFSET), VM_Address.zero());
     VM_Magic.setMemoryAddress(node.add(NEXT_OFFSET), head);
-    VM_Magic.setMemoryAddress(node.add(LIST_OFFSET), VM_Magic.objectAsAddress(this));
+    VM_Magic.setMemoryAddress(node.add(LIST_OFFSET), VM_Magic.objectAsAddress(owner));
     if (!head.isZero())
       VM_Magic.setMemoryAddress(head.add(PREV_OFFSET), node);
     head = node;
@@ -109,13 +109,6 @@ final class DoublyLinkedList
   public final void remove (VM_Address node) throws VM_PragmaInline {
     if (VM.VerifyAssertions) VM._assert(isNode(node));
     if (lock != null) lock.acquire();
-    if (VM.VerifyAssertions) {
-      if (!(VM_Magic.objectAsAddress(this).EQ(VM_Magic.getMemoryAddress(node.add(LIST_OFFSET))))) {
-	VM.sysWriteln("node's treadmill = ", VM_Magic.getMemoryAddress(node.add(LIST_OFFSET)));
-	VM.sysWriteln("this = ", VM_Magic.objectAsAddress(this));
-      }
-      VM._assert(VM_Magic.objectAsAddress(this).EQ(VM_Magic.getMemoryAddress(node.add(LIST_OFFSET))));
-    }
     VM_Address prev = VM_Magic.getMemoryAddress(node.add(PREV_OFFSET));
     VM_Address next = VM_Magic.getMemoryAddress(node.add(NEXT_OFFSET));
     // Splice the node out of the list
