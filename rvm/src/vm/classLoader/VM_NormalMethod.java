@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.classloader;
 import com.ibm.JikesRVM.*;
 import java.io.DataInputStream;
 import java.io.IOException;
+import org.vmmagic.pragma.*;
 
 /**
  * A method of a java class that has bytecodes.
@@ -179,14 +180,14 @@ public final class VM_NormalMethod
    * Space required by this method for its local variables, in words.
    * Note: local variables include parameters
    */
-  public final int getLocalWords() throws VM_PragmaUninterruptible {
+  public final int getLocalWords() throws UninterruptiblePragma {
     return localWords;
   }
 
   /**
    * Space required by this method for its operand stack, in words.
    */
-  public final int getOperandWords() throws VM_PragmaUninterruptible {
+  public final int getOperandWords() throws UninterruptiblePragma {
     return operandWords;
   }
 
@@ -203,7 +204,7 @@ public final class VM_NormalMethod
    * @param dynamicLink the dynamicLink object to initialize
    * @param bcIndex the bcIndex of the invoke instruction
    */
-  public final void getDynamicLink(VM_DynamicLink dynamicLink, int bcIndex) throws VM_PragmaUninterruptible {
+  public final void getDynamicLink(VM_DynamicLink dynamicLink, int bcIndex) throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(bytecodes != null);
     if (VM.VerifyAssertions) VM._assert(bcIndex + 2 < bytecodes.length);
     int bytecode = bytecodes[bcIndex] & 0xFF;
@@ -224,14 +225,14 @@ public final class VM_NormalMethod
    * Exceptions caught by this method.
    * @return info (null --> method doesn't catch any exceptions)
    */
-  public final VM_ExceptionHandlerMap getExceptionHandlerMap() throws VM_PragmaUninterruptible {
+  public final VM_ExceptionHandlerMap getExceptionHandlerMap() throws UninterruptiblePragma {
     return exceptionHandlerMap;
   }
 
   /**
    * Return the line number information for the argument bytecode index.
    */
-  public final int getLineNumberForBCIndex(int bci) throws VM_PragmaUninterruptible {
+  public final int getLineNumberForBCIndex(int bci) throws UninterruptiblePragma {
     if (lineNumberMap == null) return 0;
     int idx;
     for (idx = 0; idx<lineNumberMap.length; idx++) {
@@ -334,7 +335,7 @@ public final class VM_NormalMethod
   }
 
   /**
-   * @return true if the method contains a VM_Magic.xxx or VM_Address.yyy
+   * @return true if the method contains a VM_Magic.xxx or Address.yyy
    */
   public final boolean hasMagic() {
     return (summary & HAS_MAGIC) != 0;

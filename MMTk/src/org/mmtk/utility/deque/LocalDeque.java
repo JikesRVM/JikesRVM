@@ -8,14 +8,8 @@ import org.mmtk.plan.Plan;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Note this may perform poorly when being used as a FIFO structure with
@@ -30,7 +24,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @date $Date$
  */ 
 public class LocalDeque extends LocalQueue 
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -74,7 +68,7 @@ public class LocalDeque extends LocalQueue
    * @param arity The arity of the values stored in this deque: the
    * buffer must contain enough space for this many words.
    */
-  protected final void checkHeadInsert(int arity) throws VM_PragmaInline {
+  protected final void checkHeadInsert(int arity) throws InlinePragma {
     if (bufferOffset(head).EQ(bufferSentinel(arity)) || 
 	head.EQ(HEAD_INITIAL_VALUE))
       headOverflow(arity);
@@ -90,11 +84,11 @@ public class LocalDeque extends LocalQueue
    *
    * @param value the value to be inserted.
    */
-  protected final void uncheckedHeadInsert(VM_Address value) 
-    throws VM_PragmaInline {
+  protected final void uncheckedHeadInsert(Address value) 
+    throws InlinePragma {
       if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(bufferOffset(head).sLT(bufferSentinel(queue.getArity())));
-    VM_Magic.setMemoryAddress(head, value);
+    head.store(value);
     head = head.add(BYTES_IN_ADDRESS);
     //    if (VM_Interface.VerifyAssertions) enqueued++;
   }
@@ -126,7 +120,7 @@ public class LocalDeque extends LocalQueue
    *
    *  @param arity The arity of this buffer.
    */
-  private final void closeAndInsertHead(int arity) throws VM_PragmaInline {
+  private final void closeAndInsertHead(int arity) throws InlinePragma {
     queue.enqueue(head, arity, false);
   }
 

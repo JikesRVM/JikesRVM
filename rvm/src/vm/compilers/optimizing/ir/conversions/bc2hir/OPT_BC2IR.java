@@ -15,6 +15,8 @@ import com.ibm.JikesRVM.adaptive.*;
 import java.util.*;
 //-#endif
 
+import org.vmmagic.pragma.*;
+
 /**
  * This class translates from bytecode to HIR.
  * <p>
@@ -192,7 +194,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
   }
 
 
-  private void start(OPT_GenerationContext context) throws VM_PragmaNoInline {
+  private void start(OPT_GenerationContext context) throws NoInlinePragma {
     gc = context;
     // To use the following you need to change the declarations
     // in OPT_IRGenOption.java
@@ -1616,7 +1618,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         {
           VM_MethodReference ref = bcodes.getMethodReference();
 
-          // See if this is a magic method (VM_Address, VM_Word, etc.)
+          // See if this is a magic method (Address, Word, etc.)
           // If it is, generate the inline code and we are done.
           if (ref.getType().isMagicType()) {
             boolean generated = OPT_GenerateMagic.generateMagic(this, gc, ref);
@@ -1745,7 +1747,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
         {
           VM_MethodReference ref = bcodes.getMethodReference();
 
-          // See if this is a magic method (VM_Magic, VM_Address, VM_Word, etc.)
+          // See if this is a magic method (VM_Magic, Address, Word, etc.)
           // If it is, generate the inline code and we are done.
           if (ref.getType().isMagicType()) {
             boolean generated = OPT_GenerateMagic.generateMagic(this, gc, ref);
@@ -4320,7 +4322,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
     // We could write code to deal with this, but since in practice the
     // opt compiler implements all but a few fringe magics, it is just fine
     // to completely give up rather than take heroic measures here.
-    // In a few cases we do care about, we use VM_PragmaNoInline to
+    // In a few cases we do care about, we use NoInlinePragma to
     // prevent the opt compiler from inlining a method that contains an
     // unimplemented magic.
     OPT_GenerationContext inlinedContext = 

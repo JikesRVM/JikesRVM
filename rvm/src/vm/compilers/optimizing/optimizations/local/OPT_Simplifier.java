@@ -857,7 +857,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
           }
         }
         //-#if RVM_FOR_64_ADDR
-        if (op2.isIntConstant()) { //Magic VM_Address, VM_Offset can do add with integer
+        if (op2.isIntConstant()) { //Magic Address, Offset can do add with integer
           long val2 = op2.asIntConstant().value;
           OPT_Operand op1 = Binary.getVal1(s);
           if (op1.isLongConstant()) {
@@ -1140,7 +1140,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
           }
         }
         //-#if RVM_FOR_64_ADDR
-        if (op2.isIntConstant()) { //Magic VM_Address, VM_Offset can do sub with integer
+        if (op2.isIntConstant()) { //Magic Address, Offset can do sub with integer
           long val2 = op2.asIntConstant().value;
           OPT_Operand op1 = Binary.getVal1(s);
           if (op1.isLongConstant()) {

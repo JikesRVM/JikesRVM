@@ -27,7 +27,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Dave Grove
  */
 public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
-  implements VM_Uninterruptible
+  implements Uninterruptible
              //-#if RVM_WITH_OPT_COMPILER
              ,OPT_Operators
              //-#endif
@@ -62,23 +62,23 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   /**
    * Get the TIB for an object.
    */
-  public static Object[] getTIB(Object o) throws VM_PragmaInline { 
+  public static Object[] getTIB(Object o) throws InlinePragma { 
     int tibWord = VM_Magic.getIntAtOffset(o,TIB_OFFSET);
     if (VM_Collector.MOVES_OBJECTS) {
       int fmask = tibWord & VM_AllocatorHeader.GC_FORWARDING_MASK;
       if (fmask != 0 && fmask == VM_AllocatorHeader.GC_FORWARDED) {
         int forwardPtr = tibWord & ~VM_AllocatorHeader.GC_FORWARDING_MASK;
-        tibWord = VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(VM_Address.fromInt(forwardPtr)), TIB_OFFSET);
+        tibWord = VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(Address.fromInt(forwardPtr)), TIB_OFFSET);
       }
     }      
     tibWord &= TIB_MASK;
-    return VM_Magic.addressAsObjectArray(VM_Address.fromInt(tibWord));
+    return VM_Magic.addressAsObjectArray(Address.fromInt(tibWord));
   }
   
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(Object ref, Object[] tib) throws VM_PragmaInline {
+  public static void setTIB(Object ref, Object[] tib) throws InlinePragma {
     int tibPtr = VM_Magic.objectAsAddress(tib).toInt();
     if (VM.VerifyAssertions) {
       VM._assert((tibPtr & BITS_MASK) == 0);
@@ -91,22 +91,21 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * Set the TIB for an object.
    * Note: Beware; this function clears the additional bits.
    */
-  public static void setTIB(BootImageInterface bootImage, int refOffset, VM_Address tibAddr, VM_Type type) {
+  public static void setTIB(BootImageInterface bootImage, int refOffset, Address tibAddr, VM_Type type) {
     bootImage.setAddressWord(refOffset + TIB_OFFSET, tibAddr.toWord());
   }
 
   /**
    * Process the TIB field during copyingGC.
    */
-  public static void gcProcessTIB(VM_Address ref) {
-    VM_Address tibAddress = ref.add(TIB_OFFSET);
-    int tibWord    = VM_Magic.getMemoryWord(tibAddress);
+  public static void gcProcessTIB(Address ref) {
+    int tibWord    = tibAddress.loadWord();
     int savedBits  = tibWord & ~TIB_MASK;
-    int tibNew     = MM_Interface.processPtrValue(VM_Address.fromInt(tibWord & TIB_MASK)).toInt();
-    VM_Magic.setMemoryWord(tibAddress, tibNew | savedBits);
+    int tibNew     = MM_Interface.processPtrValue(Address.fromInt(tibWord & TIB_MASK)).toInt();
+    ref.store(tibNew | savedBits, TIB_OFFSET);
   }
 
-  public static void gcProcessTIB(VM_Address ref, boolean root) {
+  public static void gcProcessTIB(Address ref, boolean root) {
     VM._assert(false);  // hard to match default model - fix this later
   }
 

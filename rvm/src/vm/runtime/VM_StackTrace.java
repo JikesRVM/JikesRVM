@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import com.ibm.JikesRVM.PrintLN;
 // import java.lang.Class;  // Not needed, redundant with language def.
 
+import org.vmmagic.unboxed.*;
 
 /**
  * A list of compiled method and instructionOffset pairs that describe 
@@ -88,8 +89,8 @@ public class VM_StackTrace implements VM_Constants {
   private int walkFrames(boolean record, int skip) {
     int stackFrameCount = 0;
     VM.disableGC(); // so fp & ip don't change under our feet
-    VM_Address fp = VM_Magic.getFramePointer();
-    VM_Address ip = VM_Magic.getReturnAddress(fp);
+    Address fp = VM_Magic.getFramePointer();
+    Address ip = VM_Magic.getReturnAddress(fp);
     for (int i=0; i<skip; i++) {
       fp = VM_Magic.getCallerFramePointer(fp);
       ip = VM_Magic.getReturnAddress(fp);

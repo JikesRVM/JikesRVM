@@ -4,14 +4,14 @@
 //$Id$
 
 import com.ibm.JikesRVM.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Test GC with Native frames on stack
  *
  * @author Ton Ngo, Steve Smith 
  * @date   3/29/00
  */
-
-
 class TestGC {
   static boolean verbose = true;         // set to true to get messages for each test
   static boolean allTestPass = true;
@@ -52,16 +52,16 @@ class TestGC {
 
     if ( ! runningUnderJDK ) {
 
-        VM_Address oldAddress1 = VM_Magic.objectAsAddress(str1);
-        VM_Address oldAddress2 = VM_Magic.objectAsAddress(str2);
+        Address oldAddress1 = VM_Magic.objectAsAddress(str1);
+        Address oldAddress2 = VM_Magic.objectAsAddress(str2);
         printVerbose("  str1 address = " + VM.addressAsHexString(oldAddress1));
         printVerbose("  str2 address = " + VM.addressAsHexString(oldAddress2));
 
         returnobj = testgc( str1, str2 );
         printVerbose("TestGC After native call:");
         
-        VM_Address newAddress1 = VM_Magic.objectAsAddress(str1);
-        VM_Address newAddress2 = VM_Magic.objectAsAddress(str2);
+        Address newAddress1 = VM_Magic.objectAsAddress(str1);
+        Address newAddress2 = VM_Magic.objectAsAddress(str2);
         if (oldAddress1!=newAddress1 && oldAddress2!=newAddress2) {
             copyingGC = true;
             printVerbose("Objects have been moved by GC:");

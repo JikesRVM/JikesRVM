@@ -6,12 +6,8 @@ package org.mmtk.utility.deque;
 
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Class that defines a doubly-linked double-ended queue (deque).  The
@@ -24,7 +20,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @version $Revision$
  * @date $Date$
  */ 
-class Deque implements Constants, VM_Uninterruptible {
+class Deque implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -34,26 +30,26 @@ class Deque implements Constants, VM_Uninterruptible {
    *  protected int enqueued;
    */
 
-  protected final VM_Offset bufferOffset(VM_Address buf) throws VM_PragmaInline {
+  protected final Offset bufferOffset(Address buf) throws InlinePragma {
     return buf.toWord().and(BUFFER_MASK).toOffset();
   }
-  protected final VM_Address bufferStart(VM_Address buf) throws VM_PragmaInline {
+  protected final Address bufferStart(Address buf) throws InlinePragma {
     return buf.toWord().and(BUFFER_MASK.not()).toAddress();
   }
-  protected final VM_Address bufferEnd(VM_Address buf) throws VM_PragmaInline {
+  protected final Address bufferEnd(Address buf) throws InlinePragma {
     return bufferStart(buf).add(USABLE_BUFFER_BYTES);
   }
-  protected final VM_Address bufferFirst(VM_Address buf) throws VM_PragmaInline {
+  protected final Address bufferFirst(Address buf) throws InlinePragma {
     return bufferStart(buf);
   }
-  protected final VM_Address bufferLast(VM_Address buf, int arity) throws VM_PragmaInline {
+  protected final Address bufferLast(Address buf, int arity) throws InlinePragma {
     return bufferStart(buf).add(bufferLastOffset(arity));
   }
-  protected final VM_Address bufferLast(VM_Address buf) throws VM_PragmaInline {
+  protected final Address bufferLast(Address buf) throws InlinePragma {
     return bufferLast(buf, 1);
   }
-  protected final VM_Offset bufferLastOffset(int arity) throws VM_PragmaInline {
-    return VM_Offset.fromIntZeroExtend(USABLE_BUFFER_BYTES - BYTES_IN_ADDRESS 
+  protected final Offset bufferLastOffset(int arity) throws InlinePragma {
+    return Offset.fromIntZeroExtend(USABLE_BUFFER_BYTES - BYTES_IN_ADDRESS 
                                        - (USABLE_BUFFER_BYTES % (arity<<LOG_BYTES_IN_ADDRESS)));
   }
 
@@ -65,10 +61,10 @@ class Deque implements Constants, VM_Uninterruptible {
   protected static final int PAGES_PER_BUFFER = 1<<LOG_PAGES_PER_BUFFER;
   private static final int LOG_BUFFER_SIZE = (LOG_BYTES_IN_PAGE + LOG_PAGES_PER_BUFFER);
   protected static final int BUFFER_SIZE = 1<<LOG_BUFFER_SIZE;
-  protected static final VM_Word BUFFER_MASK = VM_Word.one().lsh(LOG_BUFFER_SIZE).sub(VM_Word.one());
+  protected static final Word BUFFER_MASK = Word.one().lsh(LOG_BUFFER_SIZE).sub(Word.one());
   protected static final int NEXT_FIELD_OFFSET = BYTES_IN_ADDRESS;
   protected static final int META_DATA_SIZE = 2*BYTES_IN_ADDRESS;
   protected static final int USABLE_BUFFER_BYTES = BUFFER_SIZE-META_DATA_SIZE;
-  protected static final VM_Address TAIL_INITIAL_VALUE = VM_Address.zero();
-  protected static final VM_Address HEAD_INITIAL_VALUE = VM_Address.zero();
+  protected static final Address TAIL_INITIAL_VALUE = Address.zero();
+  protected static final Address HEAD_INITIAL_VALUE = Address.zero();
 }

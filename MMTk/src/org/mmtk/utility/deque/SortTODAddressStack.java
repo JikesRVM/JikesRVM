@@ -7,11 +7,8 @@ package org.mmtk.utility.deque;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This supports <i>unsynchronized</i> pushing and popping of addresses. 
@@ -22,7 +19,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @date $Date$
  */ 
 public class SortTODAddressStack extends LocalDeque 
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
  
   /****************************************************************************
@@ -54,7 +51,7 @@ public class SortTODAddressStack extends LocalDeque
    *
    * @param addr the address to be pushed onto the address queue
    */
-  public final void push(VM_Address addr) throws VM_PragmaInline {
+  public final void push(Address addr) throws InlinePragma {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
@@ -67,11 +64,11 @@ public class SortTODAddressStack extends LocalDeque
    * @return The next address in the address stack, or zero if the
    * stack is empty
    */
-  public final VM_Address pop() throws VM_PragmaInline {
+  public final Address pop() throws InlinePragma {
     if (checkDequeue(1)) {
       return uncheckedDequeue();
     } else {
-      return VM_Address.zero();
+      return Address.zero();
     }
   }
 
@@ -81,7 +78,7 @@ public class SortTODAddressStack extends LocalDeque
    * @return True if there are no more entries on the local & shared stack,
    * false otherwise.
    */
-  public final boolean isEmpty() throws VM_PragmaInline {
+  public final boolean isEmpty() throws InlinePragma {
     return !checkDequeue(1);
   }
 }

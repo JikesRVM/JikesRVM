@@ -6,6 +6,8 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * Machine dependent portion of Reflective method invoker.
  *
@@ -80,8 +82,8 @@ public class VM_MachineReflection implements VM_Constants {
    * Collect parameters into arrays of registers/spills, as required to call specified method.
    */
   static void packageParameters(VM_Method method, Object thisArg, 
-                                Object[] otherArgs, VM_WordArray GPRs, 
-                                double[] FPRs, VM_WordArray Spills) {
+                                Object[] otherArgs, WordArray GPRs, 
+                                double[] FPRs, WordArray Spills) {
     int GPR   = GPRs.length();
     int FPR   = FPRs.length;
     int Spill = Spills.length();
@@ -103,17 +105,17 @@ public class VM_MachineReflection implements VM_Constants {
         if (VM.BuildFor64Addr) {
           if (gp > LAST_VOLATILE_GPR) {
             //-#if RVM_FOR_64_ADDR
-            Spills.set(--Spill, VM_Word.fromLong(l));
+            Spills.set(--Spill, Word.fromLong(l));
             //-#endif
           } else {
             gp++;
             //-#if RVM_FOR_64_ADDR
-            GPRs.set(--GPR, VM_Word.fromLong(l));
+            GPRs.set(--GPR, Word.fromLong(l));
             //-#endif
           }
         } else {
-          VM_Word hi = VM_Word.fromIntZeroExtend((int)(l>>>32));
-          VM_Word lo = VM_Word.fromIntZeroExtend((int)l);
+          Word hi = Word.fromIntZeroExtend((int)(l>>>32));
+          Word lo = Word.fromIntZeroExtend((int)l);
           if (gp > LAST_VOLATILE_GPR) {
             Spills.set(--Spill, hi);
             Spills.set(--Spill, lo);
@@ -131,7 +133,7 @@ public class VM_MachineReflection implements VM_Constants {
       } else if (t.isFloatType()) {
         float f = VM_Reflection.unwrapFloat(otherArgs[i]);
         if (fp > LAST_VOLATILE_FPR) {
-          Spills.set(--Spill, VM_Word.fromIntZeroExtend(Float.floatToIntBits(f)));
+          Spills.set(--Spill, Word.fromIntZeroExtend(Float.floatToIntBits(f)));
         } else {
           fp++;
           FPRs[--FPR] = f;
@@ -142,18 +144,18 @@ public class VM_MachineReflection implements VM_Constants {
           long l = Double.doubleToLongBits(d);
           if (VM.BuildFor64Addr) {
             //-#if RVM_FOR_64_ADDR
-            Spills.set(--Spill, VM_Word.fromLong(l));
+            Spills.set(--Spill, Word.fromLong(l));
             //-#endif
           } else {
-            Spills.set(--Spill, VM_Word.fromIntZeroExtend((int)(l>>>32)));
-            Spills.set(--Spill, VM_Word.fromIntZeroExtend((int)l));
+            Spills.set(--Spill, Word.fromIntZeroExtend((int)(l>>>32)));
+            Spills.set(--Spill, Word.fromIntZeroExtend((int)l));
           }
         } else {
           fp++;
           FPRs[--FPR] = VM_Reflection.unwrapDouble(otherArgs[i]);
         }
       } else if (t.isBooleanType()) {
-        VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapBooleanAsInt(otherArgs[i]));
+        Word val = Word.fromIntZeroExtend(VM_Reflection.unwrapBooleanAsInt(otherArgs[i]));
         if (gp > LAST_VOLATILE_GPR) {
           Spills.set(--Spill, val);
         } else {
@@ -161,7 +163,7 @@ public class VM_MachineReflection implements VM_Constants {
           GPRs.set(--GPR, val);
         }
       } else if (t.isByteType()) {
-        VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapByte(otherArgs[i]));
+        Word val = Word.fromIntZeroExtend(VM_Reflection.unwrapByte(otherArgs[i]));
         if (gp > LAST_VOLATILE_GPR) {
           Spills.set(--Spill, val);
         } else {
@@ -169,7 +171,7 @@ public class VM_MachineReflection implements VM_Constants {
           GPRs.set(--GPR, val);
         }
       } else if (t.isCharType()) {
-        VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapChar(otherArgs[i]));
+        Word val = Word.fromIntZeroExtend(VM_Reflection.unwrapChar(otherArgs[i]));
         if (gp > LAST_VOLATILE_GPR) {
           Spills.set(--Spill, val);
         } else {
@@ -177,7 +179,7 @@ public class VM_MachineReflection implements VM_Constants {
           GPRs.set(--GPR, val);
         }
       } else if (t.isShortType()) {
-        VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapShort(otherArgs[i]));
+        Word val = Word.fromIntZeroExtend(VM_Reflection.unwrapShort(otherArgs[i]));
         if (gp > LAST_VOLATILE_GPR) {
           Spills.set(--Spill, val);
         } else {
@@ -185,7 +187,7 @@ public class VM_MachineReflection implements VM_Constants {
           GPRs.set(--GPR, val);
         }
       } else if (t.isIntType()) {
-        VM_Word val = VM_Word.fromIntZeroExtend(VM_Reflection.unwrapInt(otherArgs[i]));
+        Word val = Word.fromIntZeroExtend(VM_Reflection.unwrapInt(otherArgs[i]));
         if (gp > LAST_VOLATILE_GPR) {
           Spills.set(--Spill, val);
         } else {
@@ -193,7 +195,7 @@ public class VM_MachineReflection implements VM_Constants {
           GPRs.set(--GPR, val);
         }
       } else if (!t.isPrimitiveType()) {
-        VM_Word val = VM_Reflection.unwrapObject(otherArgs[i]).toWord();
+        Word val = VM_Reflection.unwrapObject(otherArgs[i]).toWord();
         if (gp > LAST_VOLATILE_GPR) {
           Spills.set(--Spill, val);
         } else {

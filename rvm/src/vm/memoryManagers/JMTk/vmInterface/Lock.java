@@ -10,15 +10,16 @@ package org.mmtk.vm;
 
 import com.ibm.JikesRVM.VM;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 import com.ibm.JikesRVM.VM_Entrypoints;
 import com.ibm.JikesRVM.VM_Synchronization;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_Time;
-import com.ibm.JikesRVM.VM_PragmaInline;
+
 
 /**
  * Simple, fair locks with deadlock detection.
@@ -36,7 +37,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @version $Revision$
  * @date $Date$
  */
-public class Lock implements VM_Uninterruptible {
+public class Lock implements Uninterruptible {
 
   // Internal class fields
   private static int dispenserFieldOffset = VM_Entrypoints.dispenserField.getOffset();
@@ -197,7 +198,7 @@ public class Lock implements VM_Uninterruptible {
   }
 
   // want to avoid generating a putfield so as to avoid write barrier recursion
-  private final void setLocker(long start, VM_Thread thread, int w) throws VM_PragmaInline {
+  private final void setLocker(long start, VM_Thread thread, int w) throws InlinePragma {
     VM_Magic.setLongAtOffset(this, startFieldOffset, start);
     VM_Magic.setObjectAtOffset(this, threadFieldOffset, (Object) thread);
     where = w;

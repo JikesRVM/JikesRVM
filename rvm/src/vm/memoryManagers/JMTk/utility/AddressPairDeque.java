@@ -7,10 +7,9 @@ package org.mmtk.utility.deque;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of
  * address pairs
@@ -19,7 +18,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */ 
-public class AddressPairDeque extends LocalDeque implements Constants, VM_Uninterruptible {
+public class AddressPairDeque extends LocalDeque implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
  
   /****************************************************************************
@@ -44,7 +43,7 @@ public class AddressPairDeque extends LocalDeque implements Constants, VM_Uninte
    * @param addr1 the first address to be inserted into the address queue
    * @param addr2 the second address to be inserted into the address queue
    */
-  public final void insert(VM_Address addr1, VM_Address addr2) {
+  public final void insert(Address addr1, Address addr2) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
     checkTailInsert(2);
@@ -58,7 +57,7 @@ public class AddressPairDeque extends LocalDeque implements Constants, VM_Uninte
    * @param addr1 the first value to be pushed onto the address queue
    * @param addr2 the second value to be pushed onto the address queue
    */
-  public final void push(VM_Address addr1, VM_Address addr2) {
+  public final void push(Address addr1, Address addr2) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
     checkHeadInsert(2);
@@ -73,11 +72,11 @@ public class AddressPairDeque extends LocalDeque implements Constants, VM_Uninte
    * @return The next address in the address queue, or zero if the
    * queue is empty
    */
-  public final VM_Address pop1() {
+  public final Address pop1() {
      if (checkDequeue(2))
       return uncheckedDequeue();
     else
-      return VM_Address.zero();
+      return Address.zero();
   }
   
   /**
@@ -85,7 +84,7 @@ public class AddressPairDeque extends LocalDeque implements Constants, VM_Uninte
    *
    * @return The next address in the address queue
    */
-  public final VM_Address pop2() {
+  public final Address pop2() {
     return uncheckedDequeue();
   }
 

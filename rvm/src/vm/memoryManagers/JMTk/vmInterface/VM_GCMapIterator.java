@@ -5,13 +5,12 @@
 
 package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_WordArray;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
 
 /**
  * Base class for iterators that identify object references and JSR return addresses
@@ -22,16 +21,16 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  *
  * @author Janice Shepherd
  */
-public abstract class VM_GCMapIterator implements VM_Uninterruptible {
+public abstract class VM_GCMapIterator implements Uninterruptible {
   
   /** thread whose stack is currently being scanned */
   public VM_Thread thread; 
   
   /** address of stackframe currently being scanned */
-  public VM_Address  framePtr;
+  public Address  framePtr;
   
   /** address where each gpr register was saved by previously scanned stackframe(s) */
-  public VM_WordArray   registerLocations;
+  public WordArray   registerLocations;
   
   /**
    * Prepare to scan a thread's stack and saved registers for object references.
@@ -49,7 +48,7 @@ public abstract class VM_GCMapIterator implements VM_Uninterruptible {
    * @param instructionOffset  offset of current instruction within that method's code
    * @param framePtr           address of stackframe to be visited
    */
-  public abstract void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address framePtr);
+  public abstract void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, Address framePtr);
   
   /**
    * Get address of next object reference held by current stackframe.
@@ -63,7 +62,7 @@ public abstract class VM_GCMapIterator implements VM_Uninterruptible {
    * @return address of word containing an object reference
    *         zero if no more references to report
    */
-  public abstract VM_Address getNextReferenceAddress();
+  public abstract Address getNextReferenceAddress();
   
   /**
    * Get address of next JSR return address held by current stackframe.
@@ -71,7 +70,7 @@ public abstract class VM_GCMapIterator implements VM_Uninterruptible {
    * @return address of word containing a JSR return address
    *         zero if no more return addresses to report
    */
-  public abstract VM_Address getNextReturnAddressAddress();
+  public abstract Address getNextReturnAddressAddress();
   
   /**
    * Prepare to re-iterate on same stackframe, and to switch between

@@ -13,16 +13,10 @@ import org.mmtk.vm.VM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_BootRecord;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_CompiledMethods;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaNoOptCompile;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_SysCall;
 import com.ibm.JikesRVM.VM_Registers;
@@ -161,7 +155,7 @@ public class VM_CollectorThread extends VM_Thread {
    */
   VM_CollectorThread(byte[] stack, boolean isActive, 
                      VM_Processor processorAffinity)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     super(stack);
     makeDaemon(true); // this is redundant, but harmless
     this.isActive          = isActive;
@@ -175,7 +169,7 @@ public class VM_CollectorThread extends VM_Thread {
   /**
    * Initialize for boot image.
    */
-  public static void  init() throws VM_PragmaInterruptible {
+  public static void  init() throws InterruptiblePragma {
     gcBarrier = new SynchronizationBarrier();
     collectorThreads = new VM_CollectorThread[1 + VM_Scheduler.MAX_PROCESSORS];
   }
@@ -187,7 +181,7 @@ public class VM_CollectorThread extends VM_Thread {
    * 
    * @param numProcessors Unused
    */
-  public static void boot(int numProcessors) throws VM_PragmaInterruptible {
+  public static void boot(int numProcessors) throws InterruptiblePragma {
     VM_Processor proc = VM_Processor.getCurrentProcessor();
     MM_Interface.setupProcessor(proc);
   }
@@ -202,7 +196,7 @@ public class VM_CollectorThread extends VM_Thread {
    * @return a new collector thread
    */
   public static VM_CollectorThread createActiveCollectorThread(VM_Processor processorAffinity) 
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     byte[] stack =  MM_Interface.newStack(STACK_SIZE_COLLECTOR, true);
     return new VM_CollectorThread(stack, true, processorAffinity);
   }
@@ -220,7 +214,7 @@ public class VM_CollectorThread extends VM_Thread {
    */
   static VM_CollectorThread createPassiveCollectorThread(byte[] stack,
                                                          VM_Processor processorAffinity) 
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     return new VM_CollectorThread(stack, false, processorAffinity);
   }
 
@@ -245,7 +239,7 @@ public class VM_CollectorThread extends VM_Thread {
    * @param handshake VM_Handshake for the requested collection
    */
   public static void asyncCollect(VM_Handshake handshake) 
-    throws VM_PragmaUninterruptible {
+    throws UninterruptiblePragma {
     handshake.requestAndContinue();
   }
 
@@ -254,7 +248,7 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @return A string describing this thread.
    */
-  public String toString() throws VM_PragmaUninterruptible {
+  public String toString() throws UninterruptiblePragma {
     return "VM_CollectorThread";
   }
 
@@ -263,7 +257,7 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @return The number of collector threads participating in a collection
    */
-  public static int numCollectors() throws VM_PragmaUninterruptible {
+  public static int numCollectors() throws UninterruptiblePragma {
     return(participantCount[0]);
   }
   
@@ -274,7 +268,7 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @return The GC ordinal
    */
-  public final int getGCOrdinal() throws VM_PragmaUninterruptible {
+  public final int getGCOrdinal() throws UninterruptiblePragma {
     return gcOrdinal;
   }
 
@@ -285,7 +279,7 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @param ord The new GC ordinal for this thread
    */
-  public final void setGCOrdinal(int ord) throws VM_PragmaUninterruptible {
+  public final void setGCOrdinal(int ord) throws UninterruptiblePragma {
     gcOrdinal = ord;
   }
 
@@ -298,9 +292,9 @@ public class VM_CollectorThread extends VM_Thread {
    * can be configured to use.
    */
    public void run()
-       throws VM_PragmaNoOptCompile, // refs stored in registers by opt compiler will not be relocated by GC 
-              VM_PragmaLogicallyUninterruptible,  // due to call to snipObsoleteCompiledMethods
-              VM_PragmaUninterruptible {
+       throws NoOptCompilePragma, // refs stored in registers by opt compiler will not be relocated by GC 
+              LogicallyUninterruptiblePragma,  // due to call to snipObsoleteCompiledMethods
+              UninterruptiblePragma {
 
     for (int count = 0; ; count++) {
       /* suspend this thread: it will resume when scheduled by
@@ -405,16 +399,16 @@ public class VM_CollectorThread extends VM_Thread {
    *
    * @return <code>true</code> if no threads are still in GC.
    */
-  public static boolean noThreadsInGC() throws VM_PragmaUninterruptible {
+  public static boolean noThreadsInGC() throws UninterruptiblePragma {
     return !gcThreadRunning;
   }
 
-  public int rendezvous(int where) throws VM_PragmaUninterruptible {
+  public int rendezvous(int where) throws UninterruptiblePragma {
     return gcBarrier.rendezvous(where);
   }
   
   /*
-  public static void printThreadWaitTimes() throws VM_PragmaUninterruptible {
+  public static void printThreadWaitTimes() throws UninterruptiblePragma {
     VM.sysWrite("*** Collector Thread Wait Times (in micro-secs)\n");
     for (int i = 1; i <= VM_Scheduler.numProcessors; i++) {
       VM_CollectorThread ct = VM_Magic.threadAsCollectorThread(VM_Scheduler.processors[i].activeThread );

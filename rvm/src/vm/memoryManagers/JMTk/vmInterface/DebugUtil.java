@@ -12,17 +12,12 @@ import org.mmtk.utility.heap.VMResource;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_ObjectModel;
@@ -34,14 +29,14 @@ import com.ibm.JikesRVM.VM_Thread;
  *
  * @author Stephen Smith
  */  
-public class DebugUtil implements VM_Constants, Constants, VM_Uninterruptible {
+public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
 
   private static Object[] tibForArrayType;
   private static Object[] tibForClassType;
   private static Object[] tibForPrimitiveType;
 
   static final void boot (VM_BootRecord theBootRecord)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     // get addresses of TIBs for VM_Array & VM_Class used for testing Type ptrs
     VM_Type t = VM_Array.getPrimitiveArrayType(10);
     tibForArrayType = VM_ObjectModel.getTIB(t);
@@ -55,8 +50,8 @@ public class DebugUtil implements VM_Constants, Constants, VM_Uninterruptible {
    * 
    * @param typeAddress the address to check
    */
-  public static boolean validType(VM_Address typeAddress)
-    throws VM_PragmaUninterruptible {
+  public static boolean validType(Address typeAddress)
+    throws UninterruptiblePragma {
      if (!mappedVMRef(typeAddress))
       return false;  // type address is outside of heap
 
@@ -71,8 +66,8 @@ public class DebugUtil implements VM_Constants, Constants, VM_Uninterruptible {
    * Dump all threads & their stacks starting at the frame identified
    * by the threads saved contextRegisters (ip & fp fields).
    */
-  public static void dumpAllThreadStacks() throws VM_PragmaUninterruptible {
-      VM_Address ip, fp;
+  public static void dumpAllThreadStacks() throws UninterruptiblePragma {
+      Address ip, fp;
       VM_Thread  t;
       VM_Scheduler.trace("\ndumpAllThreadStacks",
                          "dumping stacks for all threads");
@@ -92,12 +87,12 @@ public class DebugUtil implements VM_Constants, Constants, VM_Uninterruptible {
    * Check if a ref, its tib pointer & type pointer are all in the heap
    */
   public static boolean validObject(Object ref)
-    throws VM_PragmaUninterruptible {
+    throws UninterruptiblePragma {
       return validRef(VM_Magic.objectAsAddress(ref));
   }
 
-  public static boolean validRef(VM_Address ref)
-    throws VM_PragmaUninterruptible {
+  public static boolean validRef(Address ref)
+    throws UninterruptiblePragma {
 
     if (ref.isZero()) return true;
      if (!mappedVMRef(ref)) {
@@ -117,7 +112,7 @@ public class DebugUtil implements VM_Constants, Constants, VM_Uninterruptible {
     }
     
     Object[] tib = VM_ObjectModel.getTIB(ref);
-    VM_Address tibAddr = VM_Magic.objectAsAddress(tib);
+    Address tibAddr = VM_Magic.objectAsAddress(tib);
     if (!mappedVMRef(ref)) {
       VM.sysWrite("validRef: TIB outside heap, ref = "); VM.sysWrite(ref);
       VM.sysWrite(" tib = ");VM.sysWrite(tibAddr);
@@ -136,7 +131,7 @@ public class DebugUtil implements VM_Constants, Constants, VM_Uninterruptible {
       return false;
     }
 
-    VM_Address type = VM_Magic.objectAsAddress(tib[0]);
+    Address type = VM_Magic.objectAsAddress(tib[0]);
     if (!validType(type)) {
       VM.sysWrite("validRef: invalid TYPE, ref = "); VM.sysWrite(ref);
       VM.sysWrite(" tib = ");
@@ -147,12 +142,12 @@ public class DebugUtil implements VM_Constants, Constants, VM_Uninterruptible {
     return true;
   }  // validRef
 
-  public static boolean mappedVMRef (VM_Address ref)
-    throws VM_PragmaUninterruptible {
+  public static boolean mappedVMRef (Address ref)
+    throws UninterruptiblePragma {
     return VMResource.refInVM(ref) && LazyMmapper.refIsMapped(ref);
   }
 
-  public static void dumpRef(VM_Address ref) throws VM_PragmaUninterruptible {
+  public static void dumpRef(Address ref) throws UninterruptiblePragma {
     VM.sysWrite("REF=");
     if (ref.isZero()) {
       VM.sysWrite("NULL\n");
@@ -164,13 +159,13 @@ public class DebugUtil implements VM_Constants, Constants, VM_Uninterruptible {
       return;
     }
     VM_ObjectModel.dumpHeader(ref);
-    VM_Address tib = VM_Magic.objectAsAddress(VM_ObjectModel.getTIB(ref));
+    Address tib = VM_Magic.objectAsAddress(VM_ObjectModel.getTIB(ref));
     if (!MM_Interface.mightBeTIB(tib)) {
       VM.sysWrite(" (INVALID TIB: CLASS NOT ACCESSIBLE)\n");
       return;
     }
     VM_Type type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
-    VM_Address itype = VM_Magic.objectAsAddress(type);
+    Address itype = VM_Magic.objectAsAddress(type);
     VM.sysWrite(" TYPE=");
     VM.sysWrite(itype);
     if (!validType(itype)) {
@@ -182,7 +177,7 @@ public class DebugUtil implements VM_Constants, Constants, VM_Uninterruptible {
     VM.sysWrite("\n");
   }
 
-  public static boolean addrInBootImage(VM_Address addr) {
+  public static boolean addrInBootImage(Address addr) {
     return (addr.GE(VM_Interface.bootImageStart()))
       && (addr.LT(VM_Interface.bootImageEnd()));
   }

@@ -5,7 +5,7 @@
 package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.pragma.*;
 import java.util.HashMap;
 
 /**
@@ -99,7 +99,7 @@ public abstract class VM_MemberReference {
   }
   //END HRM
 
-  public static VM_MemberReference getMemberRef(int id) throws VM_PragmaUninterruptible {
+  public static VM_MemberReference getMemberRef(int id) throws UninterruptiblePragma {
     return members[id];
   }
 
@@ -117,56 +117,56 @@ public abstract class VM_MemberReference {
   /**
    * @return the type reference component of this member reference
    */
-  public final VM_TypeReference getType() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference getType() throws UninterruptiblePragma {
     return type;
   }
 
   /**
    * @return the member name component of this member reference
    */
-  public final VM_Atom getName() throws VM_PragmaUninterruptible {
+  public final VM_Atom getName() throws UninterruptiblePragma {
     return name;
   }
 
   /**
    * @return the descriptor component of this member reference
    */
-  public final VM_Atom getDescriptor() throws VM_PragmaUninterruptible {
+  public final VM_Atom getDescriptor() throws UninterruptiblePragma {
     return descriptor;
   }
 
   /**
    * @return the dynamic linking id to use for this member.
    */
-  public final int getId() throws VM_PragmaUninterruptible {
+  public final int getId() throws UninterruptiblePragma {
     return id;
   }
 
   /**
    * Is this member reference to a field?
    */
-  public final boolean isFieldReference() throws VM_PragmaUninterruptible {
+  public final boolean isFieldReference() throws UninterruptiblePragma {
     return this instanceof VM_FieldReference;
   }
 
   /**
    * Is this member reference to a method?
    */
-  public final boolean isMethodReference() throws VM_PragmaUninterruptible {
+  public final boolean isMethodReference() throws UninterruptiblePragma {
     return this instanceof VM_MethodReference;
   }
 
   /**
    * @return this cast to a VM_FieldReference
    */
-  public final VM_FieldReference asFieldReference() throws VM_PragmaUninterruptible {
+  public final VM_FieldReference asFieldReference() throws UninterruptiblePragma {
     return (VM_FieldReference)this;
   }
 
   /**
    * @return this cast to a VM_MethodReference
    */
-  public final VM_MethodReference asMethodReference() throws VM_PragmaUninterruptible {
+  public final VM_MethodReference asMethodReference() throws UninterruptiblePragma {
     return (VM_MethodReference)this;
   }
 

@@ -6,6 +6,8 @@ package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * A native method of a java class.
  *
@@ -23,13 +25,13 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * the IP of the native p rocedure
    */
-  private VM_Address nativeIP;                               
+  private Address nativeIP;                               
 
   //-#if RVM_WITH_POWEROPEN_ABI
   /**
    * the TOC of the native procedure
    */
-  private VM_Address nativeTOC;                              
+  private Address nativeTOC;                              
   //-#endif
   
   /**
@@ -63,18 +65,18 @@ public final class VM_NativeMethod extends VM_Method {
   /**
    * Get the native IP for this method
    */
-  public final VM_Address getNativeIP() { 
+  public final Address getNativeIP() { 
     return nativeIP;
   }
   
   /**
    * get the native TOC for this method
    */
-  public VM_Address getNativeTOC() { 
+  public Address getNativeTOC() { 
     //-#if RVM_WITH_POWEROPEN_ABI
     return nativeTOC;
     //-#else
-    return VM_Address.zero();
+    return Address.zero();
     //-#endif
   }
 
@@ -142,7 +144,7 @@ public final class VM_NativeMethod extends VM_Method {
     nativeProcedureName = getMangledName(false);
     String nativeProcedureNameWithSignature = getMangledName(true);
 
-    VM_Address symbolAddress = VM_DynamicLibrary.resolveSymbol(nativeProcedureNameWithSignature);
+    Address symbolAddress = VM_DynamicLibrary.resolveSymbol(nativeProcedureNameWithSignature);
     if (symbolAddress.isZero()) {
       symbolAddress = VM_DynamicLibrary.resolveSymbol(nativeProcedureName);
     }
@@ -152,8 +154,8 @@ public final class VM_NativeMethod extends VM_Method {
       return false;
     } else {
       //-#if RVM_WITH_POWEROPEN_ABI
-      nativeIP  = VM_Magic.getMemoryAddress(symbolAddress);
-      nativeTOC = VM_Magic.getMemoryAddress(symbolAddress.add(BYTES_IN_ADDRESS));
+      nativeIP  = symbolAddress.loadAddress();
+      nativeTOC = symbolAddress.loadAddress(Offset.fromInt(BYTES_IN_ADDRESS));
       //-#else
       nativeIP = symbolAddress;
       //-#endif

@@ -10,7 +10,7 @@ import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
+
 
 /**
  * This class implements a memory resource.  The unit of managment for
@@ -23,7 +23,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-final class NewMemoryResource implements Constants, VM_Uninterruptible {
+final class NewMemoryResource implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
 

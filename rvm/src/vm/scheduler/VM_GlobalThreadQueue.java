@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * A global queue of VM_Threads.
  *
@@ -12,7 +14,7 @@ package com.ibm.JikesRVM;
  * @author Bowen Alpern
  * @date 30 August 1998 
  */
-public final class VM_GlobalThreadQueue extends VM_ThreadQueue implements VM_Uninterruptible {
+public final class VM_GlobalThreadQueue extends VM_ThreadQueue implements Uninterruptible {
 
   private VM_ProcessorLock mutex; // TODO check that mutex is heald when manipulating this queue.
   private int length;

@@ -2970,6 +2970,197 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
   private final boolean genMagic (VM_MethodReference m) {
     VM_Atom methodName = m.getName();
 
+    if (m.getType() == VM_TypeReference.Address) {
+      // Address magic
+
+      VM_TypeReference[] types = m.getParameterTypes();
+
+      // Loads all take the form:
+      // ..., Address, [Offset] -> ..., Value
+
+      if (methodName == VM_MagicNames.loadAddress ||
+          methodName == VM_MagicNames.prepareAddress ||
+          methodName == VM_MagicNames.loadWord ||
+          methodName == VM_MagicNames.prepareWord ||
+          methodName == VM_MagicNames.loadInt ||
+          methodName == VM_MagicNames.prepareInt ||
+          methodName == VM_MagicNames.loadFloat) {
+
+        if (types.length == 0) {
+          // No offset
+          asm.emitPOP_Reg(T0);                      // address
+          asm.emitPUSH_RegInd(T0);                  // pushes [T0+0]
+        } else {
+          // Load at offset
+          asm.emitPOP_Reg (S0);                  // offset
+          asm.emitPOP_Reg (T0);                  // object ref
+          asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 0); // pushes [T0+S0]
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadByte) {
+        if (types.length == 0) {
+          // No offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitMOVZX_Reg_RegInd_Byte(T0, T0) ;
+          asm.emitPUSH_Reg (T0);
+        } else {
+          // Load at offset
+          asm.emitPOP_Reg (S0);                  // offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitMOVZX_Reg_RegIdx_Byte(T0, T0, S0, asm.BYTE, 0); // load and zero extend byte [T0+S0]
+          asm.emitPUSH_Reg (T0);
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadShort ||
+          methodName == VM_MagicNames.loadChar) {
+
+        if (types.length == 0) {
+          // No offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitMOVZX_Reg_RegInd_Word(T0, T0);
+          asm.emitPUSH_Reg (T0);
+        } else {
+          // Load at offset
+          asm.emitPOP_Reg (S0);                  // offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitMOVZX_Reg_RegIdx_Word(T0, T0, S0, asm.BYTE, 0); // load and zero extend word [T0+S0]
+          asm.emitPUSH_Reg (T0);
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadLong ||
+          methodName == VM_MagicNames.loadDouble) {
+      
+        if (types.length == 0) {
+          // No offset
+          throw new RuntimeException("Magic not implemented");
+        } else {
+          // Load at offset
+          asm.emitPOP_Reg (S0);                  // offset
+          asm.emitPOP_Reg (T0);                  // base 
+          asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 4); // pushes [T0+S0+4]
+          asm.emitPUSH_RegIdx(T0, S0, asm.BYTE, 0); // pushes [T0+S0]
+        }
+        return true;
+      }
+
+      // Stores all take the form:
+      // ..., Address, [Offset], Value -> ...
+      if (methodName == VM_MagicNames.store) {
+        // Always at least one parameter to a store. 
+        // First parameter is the type to be stored.
+        VM_TypeReference storeType = types[0];
+
+        if (storeType == VM_TypeReference.Int ||
+            storeType == VM_TypeReference.Address ||
+            storeType == VM_TypeReference.Word ||
+            storeType == VM_TypeReference.Float) {
+        
+          if (types.length == 1) {
+            // No offset
+            asm.emitPOP_Reg(T0);                   // value
+            asm.emitPOP_Reg(S0);                   // address
+            asm.emitMOV_RegInd_Reg(S0,T0);         // [S0+0] <- T0
+          } else {
+            // Store at offset
+            asm.emitPOP_Reg(S0);                   // offset
+            asm.emitPOP_Reg(T0);                   // value
+            asm.emitPOP_Reg(T1);                   // address 
+            asm.emitMOV_RegIdx_Reg(T1, S0,
+                                 asm.BYTE, 0, T0); // [T1+S0] <- T0
+          }
+          return true;
+        }
+
+        if (storeType == VM_TypeReference.Byte) {
+          if (types.length == 1) {
+            // No offset 
+            asm.emitPOP_Reg(T0);                   // value
+            asm.emitPOP_Reg(T1);                   // base 
+            asm.emitMOV_RegInd_Reg_Byte(T1, T0);
+          } else {
+            // Store at offset
+            asm.emitPOP_Reg(S0);                   // offset
+            asm.emitPOP_Reg(T0);                   // value
+            asm.emitPOP_Reg(T1);                   // base 
+            asm.emitMOV_RegIdx_Reg_Byte(T1, S0, 
+                                 asm.BYTE, 0, T0); // [T1+S0] <- (byte) T0     
+          }
+          return true;
+        }
+
+        if (storeType == VM_TypeReference.Short ||
+            storeType == VM_TypeReference.Char) { 
+
+          if (types.length == 1) {
+            // No offset 
+            asm.emitPOP_Reg(T0);                   // value
+            asm.emitPOP_Reg(T1);                   // base 
+            asm.emitMOV_RegInd_Reg_Word(T1, T0);
+          } else {
+            // Store at offset
+            asm.emitPOP_Reg(S0);                   // offset    
+            asm.emitPOP_Reg(T0);                   // value
+            asm.emitPOP_Reg(T1);                   // base      
+            asm.emitMOV_RegIdx_Reg_Word(T1, S0, 
+                                 asm.BYTE, 0, T0); // [T1+S0] <- (word) T0     
+          }
+          return true;
+        }
+
+        if (storeType == VM_TypeReference.Double ||
+            storeType == VM_TypeReference.Long) { 
+
+          if (types.length == 1) {
+            // No offset 
+            throw new RuntimeException("Magic not implemented");
+          } else {
+            // Store at offset
+            asm.emitMOV_Reg_RegDisp(T0, SP, +4);          // value high
+            asm.emitMOV_Reg_RegInd (S0, SP);     // offset
+            asm.emitMOV_Reg_RegDisp(T1, SP, +12);     // base 
+            asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, 0, T0); // [T1+S0] <- T0
+            asm.emitMOV_Reg_RegDisp(T0, SP, +8);     // value low
+            asm.emitMOV_RegIdx_Reg (T1, S0, asm.BYTE, 4, T0); // [T1+S0+4] <- T0
+            asm.emitADD_Reg_Imm    (SP, WORDSIZE * 4); // pop stack locations
+          }
+          return true;
+        }
+      } else if (methodName == VM_MagicNames.attempt) {
+        // All attempts are similar 32 bit values.
+	if (types.length == 3) {
+          // Offset passed
+          asm.emitPOP_Reg (S0);        // S0 = offset
+        }
+	asm.emitPOP_Reg (T1);          // newVal
+        asm.emitPOP_Reg (EAX);         // oldVal (EAX is implicit arg to LCMPX
+        if (types.length == 3) {
+          asm.emitADD_Reg_RegInd(S0, SP);  // S0 += base
+        } else {
+          // No offset
+          asm.emitMOV_Reg_RegInd(S0, SP);  // S0 = base
+        }        
+
+        if (VM.BuildForSingleVirtualProcessor) {
+          asm.emitMOV_RegInd_Reg (S0, T1);       // simply a store on uniprocessor (need not be atomic or cmp/xchg)
+          asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
+        } else {
+          asm.emitLockNextInstruction();
+          asm.emitCMPXCHG_RegInd_Reg (S0, T1);   // atomic compare-and-exchange
+          asm.emitMOV_RegInd_Imm (SP, 0);        // 'push' false (overwriting base)
+          VM_ForwardReference fr = asm.forwardJcc(asm.NE); // skip if compare fails
+          asm.emitMOV_RegInd_Imm (SP, 1);        // 'push' true (overwriting base)
+          fr.resolve(asm);
+        }
+        return true;
+      }
+    }
+
     if (methodName == VM_MagicNames.attemptInt ||
         methodName == VM_MagicNames.attemptObject ||
         methodName == VM_MagicNames.attemptAddress ||

@@ -12,11 +12,9 @@ package org.mmtk.vm.gcspy;
 
 import com.ibm.JikesRVM.classloader.VM_Type;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Offset;
 import com.ibm.JikesRVM.VM_Magic;
-
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements a base driver for the JMTk.
@@ -26,7 +24,7 @@ import com.ibm.JikesRVM.VM_Magic;
  * @date $Date$
  */
 abstract public class AbstractDriver
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
   public final static String Id = "$Id$";
 
 //-#if RVM_WITH_GCSPY
@@ -44,7 +42,7 @@ abstract public class AbstractDriver
    * @param tileSize The size of each tile
    * @return The number of tiles in this range
    */
- public int countTileNum (VM_Address start, VM_Address end, int tileSize) {
+ public int countTileNum (Address start, Address end, int tileSize) {
     if (end.LE(start)) return 0;
     int diff = end.diff(start).toInt();
     int tiles = diff / tileSize;
@@ -114,7 +112,7 @@ abstract public class AbstractDriver
    *
    * @param addr the address of the object found
    */
-  public void traceObject(VM_Address addr) {} 
+  public void traceObject(Address addr) {} 
                     
   /**
    * Indicate the limits of a space
@@ -124,10 +122,10 @@ abstract public class AbstractDriver
    * scalars in the same direction, or by segregating scalars and arrays).
    *
    * @param event the event
-   * @param start the VM_Address of the start of the space
-   * @param end the VM_Address of the end of the space
+   * @param start the Address of the start of the space
+   * @param end the Address of the end of the space
    */
-  public void setRange(int event, VM_Address start, VM_Address end) {}
+  public void setRange(int event, Address start, Address end) {}
 
   /**
    * Send space info and end communication
@@ -138,11 +136,11 @@ abstract public class AbstractDriver
    *
    * @param size the size of the space
    */
-  protected void sendSpaceInfoAndEndComm(VM_Offset size) {
+  protected void sendSpaceInfoAndEndComm(Offset size) {
     //	  - sprintf(tmp, "Current Size: %s\n", gcspy_formatSize(size));
-    VM_Address tmp = Util.malloc(BUFSIZE);
-    VM_Address formattedSize = Util.malloc(BUFSIZE);
-    VM_Address currentSize = Util.getBytes("Current Size: %s\n"); 
+    Address tmp = Util.malloc(BUFSIZE);
+    Address formattedSize = Util.malloc(BUFSIZE);
+    Address currentSize = Util.getBytes("Current Size: %s\n"); 
     Util.formatSize(formattedSize, size.toInt());
     Util.sprintf(tmp, currentSize, formattedSize);
     
@@ -157,11 +155,11 @@ abstract public class AbstractDriver
   private static final int BUFSIZE = 128;
 
 //-#else
-  public int countTileNum (VM_Address start, VM_Address end, int tileSize) { return 0; }
+  public int countTileNum (Address start, Address end, int tileSize) { return 0; }
   public int jikesObjectsPerBlock (int blockSize) { return 0; }
   public boolean shouldTransmit(int event) { return false; }
-  public void traceObject(VM_Address addr) {} 
-  public void setRange(int event, VM_Address start, VM_Address end) {}
+  public void traceObject(Address addr) {} 
+  public void setRange(int event, Address start, Address end) {}
   public void zero() {}
   public void finish(int event) {}
 //-#endif

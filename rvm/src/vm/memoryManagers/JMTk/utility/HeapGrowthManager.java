@@ -7,7 +7,8 @@ package org.mmtk.utility.heap;
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.*;
 import org.mmtk.vm.VM_Interface;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+
+import org.vmmagic.pragma.*;
 
 /**
  * This class is responsible for growing and shrinking the 
@@ -16,7 +17,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @author Perry Cheng
  * @author Dave Grove
  */
-public abstract class HeapGrowthManager implements VM_Uninterruptible {
+public abstract class HeapGrowthManager implements Uninterruptible {
 
   // TODO: These really need to become longs.
   /**

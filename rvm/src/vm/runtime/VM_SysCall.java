@@ -4,6 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 /**
  * Support for lowlevel (ie non-JNI) invocation of C functions.
  * 
@@ -27,7 +30,7 @@ package com.ibm.JikesRVM;
  * @author Dave Grove
  * @author Derek Lieber
  */
-public class VM_SysCall implements VM_Uninterruptible { 
+public class VM_SysCall implements Uninterruptible { 
 
   // lowlevel write to console
   public static void sysWriteChar(char v) {} 
@@ -40,13 +43,13 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static int sysArg(int argno, byte[] buf, int buflen) { return 0; }
 
   // memory
-  public static void sysCopy(VM_Address dst, VM_Address src, int cnt) {}
-  public static void sysFill(VM_Address dst, int pattern, int cnt) {}
-  public static VM_Address sysMalloc(int length) { return null; }
-  public static void sysFree(VM_Address location) {} 
-  public static void sysZero(VM_Address dst, int cnt) {}
-  public static void sysZeroPages(VM_Address dst, int cnt) {}
-  public static void sysSyncCache(VM_Address address, int size) {}
+  public static void sysCopy(Address dst, Address src, int cnt) {}
+  public static void sysFill(Address dst, int pattern, int cnt) {}
+  public static Address sysMalloc(int length) { return null; }
+  public static void sysFree(Address location) {} 
+  public static void sysZero(Address dst, int cnt) {}
+  public static void sysZeroPages(Address dst, int cnt) {}
+  public static void sysSyncCache(Address address, int size) {}
 
   // files
   public static int sysStat(byte[] name, int kind) { return 0; }
@@ -59,8 +62,8 @@ public class VM_SysCall implements VM_Uninterruptible {
   }
   public static int sysReadByte(int fd) { return 0; }
   public static int sysWriteByte(int fd, int data) { return 0; }
-  public static int sysReadBytes(int fd, VM_Address buf, int cnt) { return 0; }
-  public static int sysWriteBytes(int fd, VM_Address buf, int cnt) { return 0; }
+  public static int sysReadBytes(int fd, Address buf, int cnt) { return 0; }
+  public static int sysWriteBytes(int fd, Address buf, int cnt) { return 0; }
   public static int sysSeek(int fd, int offset, int whence) { return 0; }
   public static int sysClose(int fd) { return 0; }
   public static int sysDelete(byte[] name) { return 0; }
@@ -78,30 +81,30 @@ public class VM_SysCall implements VM_Uninterruptible {
   // shm* - memory mapping
   public static int sysShmget(int key, int size, int flags) { return 0; }
   public static int sysShmctl(int shmid, int command) { return 0; }
-  public static VM_Address sysShmat(int shmid, VM_Address addr, int flags) { 
+  public static Address sysShmat(int shmid, Address addr, int flags) { 
     return null; 
   }
-  public static int sysShmdt(VM_Address addr) { return 0; }
+  public static int sysShmdt(Address addr) { return 0; }
 
   // mmap - memory mapping
-  public static VM_Address sysMMap(VM_Address start, VM_Extent length, int protection,
+  public static Address sysMMap(Address start, Extent length, int protection,
                                    int flags, int fd, long offset) { 
     return null; 
   }
-  public static VM_Address sysMMapErrno(VM_Address start, VM_Extent length, int protection,
+  public static Address sysMMapErrno(Address start, Extent length, int protection,
 					int flags, int fd, long offset) { 
     return null; 
   }
-  public static int sysMUnmap(VM_Address start, VM_Extent length) {
+  public static int sysMUnmap(Address start, Extent length) {
     return 0;
   }
-  public static int sysMProtect(VM_Address start, VM_Extent length, int prot) {
+  public static int sysMProtect(Address start, Extent length, int prot) {
     return 0;
   }
-  public static int sysMSync(VM_Address start, VM_Extent length, int flags) {
+  public static int sysMSync(Address start, Extent length, int flags) {
     return 0;
   }
-  public static int sysMAdvise(VM_Address start, VM_Extent length, int advice) {
+  public static int sysMAdvise(Address start, Extent length, int advice) {
     return 0;
   }
   public static int sysGetPageSize() { return 0; }
@@ -116,10 +119,10 @@ public class VM_SysCall implements VM_Uninterruptible {
    * @param fp
    * @return virtual processor's o/s handle
    */
-  public static int sysVirtualProcessorCreate(VM_Address jtoc, 
-                                              VM_Address pr, 
-                                              VM_Address ip,
-                                              VM_Address fp) { 
+  public static int sysVirtualProcessorCreate(Address jtoc, 
+                                              Address pr, 
+                                              Address ip,
+                                              Address fp) { 
     return 0;
   }
   /**
@@ -188,21 +191,21 @@ public class VM_SysCall implements VM_Uninterruptible {
   public static long sysGetTimeOfDay() { return 0; }
 
   // shared libraries
-  public static VM_Address sysDlopen(byte[] libname) { return null; }
+  public static Address sysDlopen(byte[] libname) { return null; }
   public static void sysDlclose() {}
-  public static VM_Address sysDlsym(VM_Address libHandler, byte[] symbolName) { return null; }
+  public static Address sysDlsym(Address libHandler, byte[] symbolName) { return null; }
   public static void sysSlibclean() {}
 
   // network
-  public static int sysNetLocalHostName(VM_Address buf, int limit) {
+  public static int sysNetLocalHostName(Address buf, int limit) {
     return 0;
   }
   public static int sysNetRemoteHostName(int internetAddress, 
-                                         VM_Address buf,
+                                         Address buf,
                                          int limit) {
     return 0;
   }
-  public static int sysNetHostAddresses(VM_Address hostname, VM_Address buf, 
+  public static int sysNetHostAddresses(Address hostname, Address buf, 
                                         int limit) {
     return 0;
   }
@@ -242,7 +245,7 @@ public class VM_SysCall implements VM_Uninterruptible {
   }
 
   // process management
-  public static void sysWaitPids(VM_Address pidArray, VM_Address exitStatusArray,
+  public static void sysWaitPids(Address pidArray, Address exitStatusArray,
                                  int numPids) {}
 
   //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
@@ -280,45 +283,45 @@ public class VM_SysCall implements VM_Uninterruptible {
 
   //-#if RVM_WITH_GCSPY
   // sysCall entry points to GCSpy
-  public static VM_Address gcspyDriverAddStream (VM_Address driver, int it) { return null; }
-  public static void gcspyDriverEndOutput (VM_Address driver) {}
-  public static void gcspyDriverInit (VM_Address driver, int id, VM_Address serverName, VM_Address driverName,
-                               VM_Address title, VM_Address blockInfo, int tileNum,
-			       VM_Address unused, int mainSpace) {}
-  public static void gcspyDriverInitOutput (VM_Address driver) {}
-  public static void gcspyDriverResize (VM_Address driver, int size) {}
-  public static void gcspyDriverSetTileName (VM_Address driver, int i, VM_Address start, VM_Address end) {}
-  public static void gcspyDriverSpaceInfo (VM_Address driver, VM_Address info) {}
-  public static void gcspyDriverStartComm (VM_Address driver) {}
-  public static void gcspyDriverStream (VM_Address driver, int id, int len) {}
-  public static void gcspyDriverStreamByteValue (VM_Address driver, byte value) {}
-  public static void gcspyDriverStreamShortValue (VM_Address driver, short value) {}
-  public static void gcspyDriverStreamIntValue (VM_Address driver, int value) {}
-  public static void gcspyDriverSummary (VM_Address driver, int id, int len) {}
-  public static void gcspyDriverSummaryValue (VM_Address driver, int value) {}
+  public static Address gcspyDriverAddStream (Address driver, int it) { return null; }
+  public static void gcspyDriverEndOutput (Address driver) {}
+  public static void gcspyDriverInit (Address driver, int id, Address serverName, Address driverName,
+                               Address title, Address blockInfo, int tileNum,
+			       Address unused, int mainSpace) {}
+  public static void gcspyDriverInitOutput (Address driver) {}
+  public static void gcspyDriverResize (Address driver, int size) {}
+  public static void gcspyDriverSetTileName (Address driver, int i, Address start, Address end) {}
+  public static void gcspyDriverSpaceInfo (Address driver, Address info) {}
+  public static void gcspyDriverStartComm (Address driver) {}
+  public static void gcspyDriverStream (Address driver, int id, int len) {}
+  public static void gcspyDriverStreamByteValue (Address driver, byte value) {}
+  public static void gcspyDriverStreamShortValue (Address driver, short value) {}
+  public static void gcspyDriverStreamIntValue (Address driver, int value) {}
+  public static void gcspyDriverSummary (Address driver, int id, int len) {}
+  public static void gcspyDriverSummaryValue (Address driver, int value) {}
 
-  public static void gcspyIntWriteControl (VM_Address driver, int id, int tileNum) {}
+  public static void gcspyIntWriteControl (Address driver, int id, int tileNum) {}
 
-  public static VM_Address gcspyMainServerAddDriver(VM_Address addr) { return null; }
-  public static void gcspyMainServerAddEvent (VM_Address server, int event, VM_Address name) {}
-  public static VM_Address gcspyMainServerInit (int port, int len, VM_Address name, int verbose) { return null; }
-  public static int gcspyMainServerIsConnected (VM_Address server, int event) { return 0; }
-  public static VM_Address gcspyMainServerOuterLoop () { return null; }; 
-  public static void gcspyMainServerSafepoint (VM_Address server, int event) {};
-  public static void gcspyMainServerSetGeneralInfo (VM_Address server, VM_Address info) {};
-  public static void gcspyMainServerStartCompensationTimer (VM_Address server) {};
-  public static void gcspyMainServerStopCompensationTimer (VM_Address server) {};
+  public static Address gcspyMainServerAddDriver(Address addr) { return null; }
+  public static void gcspyMainServerAddEvent (Address server, int event, Address name) {}
+  public static Address gcspyMainServerInit (int port, int len, Address name, int verbose) { return null; }
+  public static int gcspyMainServerIsConnected (Address server, int event) { return 0; }
+  public static Address gcspyMainServerOuterLoop () { return null; }; 
+  public static void gcspyMainServerSafepoint (Address server, int event) {};
+  public static void gcspyMainServerSetGeneralInfo (Address server, Address info) {};
+  public static void gcspyMainServerStartCompensationTimer (Address server) {};
+  public static void gcspyMainServerStopCompensationTimer (Address server) {};
 
-  public static void gcspyStartserver (VM_Address server, int wait, VM_Address serverOuterLoop) {};
+  public static void gcspyStartserver (Address server, int wait, Address serverOuterLoop) {};
    
-  public static void gcspyStreamInit (VM_Address stream, int id, int dataType, VM_Address name,
+  public static void gcspyStreamInit (Address stream, int id, int dataType, Address name,
                                int minValue, int maxValue, int zeroValue, int defaultValue,
-			       VM_Address pre, VM_Address post, int presentation, int paintStyle,
+			       Address pre, Address post, int presentation, int paintStyle,
 			       int maxStreamIndex, int red, int green, int blue) {}
 
-  public static void gcspyFormatSize (VM_Address buffer, int size) {}
+  public static void gcspyFormatSize (Address buffer, int size) {}
 
-  public static int gcspySprintf (VM_Address str, VM_Address format, VM_Address value) { return 0; }
+  public static int gcspySprintf (Address str, Address format, Address value) { return 0; }
   //-#endif
 
 }

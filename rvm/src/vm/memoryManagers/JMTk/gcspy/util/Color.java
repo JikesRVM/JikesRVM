@@ -10,7 +10,7 @@ package org.mmtk.vm.gcspy;
 
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
+
 
 
 /**
@@ -24,7 +24,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 public class Color
-  implements  VM_Uninterruptible {
+  implements  Uninterruptible {
   public final static String Id = "$Id$";
     
   /**

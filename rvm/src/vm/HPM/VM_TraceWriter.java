@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.*;
 import java.io.*;
+import org.vmmagic.pragma.*;
 
 /**
  * A VM_TraceWriter thread offloads interruptible work when in uninterruptible code.
@@ -92,13 +93,13 @@ class VM_TraceWriter extends VM_Thread
   private FileOutputStream trace_file = null;
   // virtual processor id
   private int pid                = 0;
-  public int getPid() throws VM_PragmaUninterruptible { return pid; }
+  public int getPid() throws UninterruptiblePragma { return pid; }
 
   /**
    * Start consuming.
    * Called (by producer) to activate the consumer thread (i.e. schedule it for execution).
    */
-  public void activate() throws VM_PragmaUninterruptible 
+  public void activate() throws UninterruptiblePragma 
   {
     if (active == true) {
       VM.sysWriteln("***VM_TraceWriter.activate() active == true!  PID ",
@@ -118,7 +119,7 @@ class VM_TraceWriter extends VM_Thread
   /*
    * Let the outside world know if I am active?
    */
-  public final boolean isActive() throws VM_PragmaUninterruptible
+  public final boolean isActive() throws UninterruptiblePragma
   { 
     return active; 
   }
@@ -131,7 +132,7 @@ class VM_TraceWriter extends VM_Thread
    * producer uses its own protocol to ensure that exactly 1 
    * thread will attempt to activate the consumer.
    */
-  private void passivate() throws VM_PragmaUninterruptible 
+  private void passivate() throws UninterruptiblePragma 
   {
     if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_TraceWriter.passivate()");
     active = false;
@@ -489,7 +490,7 @@ class VM_TraceWriter extends VM_Thread
   /**
    * name of thread.
    */
-  public String toString() throws VM_PragmaUninterruptible {
+  public String toString() throws UninterruptiblePragma {
     return "VM_TraceWriter";
   }
 }

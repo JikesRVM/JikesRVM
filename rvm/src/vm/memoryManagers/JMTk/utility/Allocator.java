@@ -12,15 +12,10 @@ import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Word;
 import com.ibm.JikesRVM.VM_Memory;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This abstract base class provides the basis for processor-local
@@ -44,7 +39,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 
-public abstract class Allocator implements Constants, VM_Uninterruptible {
+public abstract class Allocator implements Constants, Uninterruptible {
   public final static String Id = "$Id$";
 
   /**
@@ -73,9 +68,9 @@ public abstract class Allocator implements Constants, VM_Uninterruptible {
    * @param knownAlignment The statically known minimum alignment.
    * @return The aligned up address.
    */
-  final public static VM_Address alignAllocation(VM_Address region, int alignment, 
+  final public static Address alignAllocation(Address region, int alignment, 
                                              int offset, int knownAlignment)
-    throws VM_PragmaInline {
+    throws InlinePragma {
    if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(knownAlignment >= BYTES_IN_PARTICLE);
       VM_Interface._assert(BYTES_IN_PARTICLE >= BYTES_IN_INT);
@@ -91,9 +86,9 @@ public abstract class Allocator implements Constants, VM_Uninterruptible {
       return region; 
 
     // May require an alignment
-    VM_Word mask  = VM_Word.fromIntSignExtend(alignment-1);
-    VM_Word negOff= VM_Word.fromIntSignExtend(-offset);
-    VM_Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
+    Word mask  = Word.fromIntSignExtend(alignment-1);
+    Word negOff= Word.fromIntSignExtend(-offset);
+    Offset delta = negOff.sub(region.toWord()).and(mask).toOffset();
     return region.add(delta);
   }
 
@@ -107,9 +102,9 @@ public abstract class Allocator implements Constants, VM_Uninterruptible {
    * @param offset The offset from the alignment 
    * @return The aligned up address.
    */ 
-  final public static VM_Address alignAllocation(VM_Address region, int alignment, 
+  final public static Address alignAllocation(Address region, int alignment, 
                                              int offset) 
-    throws VM_PragmaInline {
+    throws InlinePragma {
     return alignAllocation(region, alignment, offset, BYTES_IN_PARTICLE);
   }
 
@@ -121,7 +116,7 @@ public abstract class Allocator implements Constants, VM_Uninterruptible {
    * @param alignment The requested alignment (some factor of 2).
    */
   final public static int getMaximumAlignedSize(int size, int alignment) 
-    throws VM_PragmaInline {
+    throws InlinePragma {
     return getMaximumAlignedSize(size, alignment, BYTES_IN_PARTICLE);
   }
   
@@ -136,7 +131,7 @@ public abstract class Allocator implements Constants, VM_Uninterruptible {
    */
   final public static int getMaximumAlignedSize(int size, int alignment,
 						int knownAlignment) 
-    throws VM_PragmaInline {
+    throws InlinePragma {
     if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(knownAlignment >= BYTES_IN_PARTICLE);
     }
@@ -148,28 +143,28 @@ public abstract class Allocator implements Constants, VM_Uninterruptible {
     }
   }
 
-  abstract protected VM_Address allocSlowOnce (int bytes, int alignment,
+  abstract protected Address allocSlowOnce (int bytes, int alignment,
 					       int offset, boolean inGC);
 
-  public VM_Address allocSlow(int bytes, int alignment, int offset) 
-    throws VM_PragmaNoInline { 
+  public Address allocSlow(int bytes, int alignment, int offset) 
+    throws NoInlinePragma { 
     return allocSlowBody(bytes, alignment, offset, false);
   }
 
-  public VM_Address allocSlow(int bytes, int alignment, int offset,
+  public Address allocSlow(int bytes, int alignment, int offset,
 			      boolean inGC) 
-    throws VM_PragmaNoInline { 
+    throws NoInlinePragma { 
     return allocSlowBody( bytes, alignment, offset, inGC);
   }
 
-  private VM_Address allocSlowBody(int bytes, int alignment, int offset,
+  private Address allocSlowBody(int bytes, int alignment, int offset,
 				   boolean inGC) 
-    throws VM_PragmaInline { 
+    throws InlinePragma { 
 
     int gcCountStart = Stats.gcCount();
     Allocator current = this;
     for (int i=0; i<MAX_RETRY; i++) {
-      VM_Address result = 
+      Address result = 
         current.allocSlowOnce(bytes, alignment, offset, inGC);
       if (!result.isZero())
         return result;
@@ -184,7 +179,7 @@ public abstract class Allocator implements Constants, VM_Uninterruptible {
     VM_Interface.dumpStack(); 
     VM_Interface.failWithOutOfMemoryError();
     /* NOTREACHED */
-    return VM_Address.zero();
+    return Address.zero();
   }
 
 }

@@ -9,7 +9,7 @@ package org.mmtk.policy;
 import org.mmtk.utility.heap.MemoryResource;
 import org.mmtk.utility.heap.VMResource;
 
-import com.ibm.JikesRVM.VM_Address;
+import org.vmmagic.unboxed.*;
 
 /**
  * @author Perry Cheng
@@ -33,11 +33,11 @@ abstract public class BasePolicy { // implements HeaderConstants {
   public static void release(VMResource vm, MemoryResource mr) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false); 
   }
-  public static VM_Address traceObject(VM_Address object) { 
+  public static Address traceObject(Address object) { 
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false); 
-    return VM_Address.zero(); 
+    return Address.zero(); 
   }
-  public static    boolean isLive(VM_Address obj) {
+  public static    boolean isLive(Address obj) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false); 
     return false; 
   }

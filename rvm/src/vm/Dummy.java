@@ -5,6 +5,7 @@
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import org.vmmagic.unboxed.*;
 
 /**
  * Dummy class containing enough references to force java compiler
@@ -26,9 +27,9 @@ class Dummy {
   static MM_Interface               l;
   static VM_RecompilationManager    o;
   static VM_MultianewarrayHelper    r;
-  static VM_Address                 s;
+  static Address                 s;
   static VM_Math                    t;
-  static VM_WordArray               x;
-  static VM_OffsetArray             y;
-  static VM_ExtentArray             z;
+  static WordArray               x;
+  static OffsetArray             y;
+  static ExtentArray             z;
 }

@@ -9,7 +9,7 @@ package com.ibm.JikesRVM;
  * @author Ton Ngo
  *
  * Defined: disasm(inst, addr, buf, reg)
- *          INSTRUCTION inst; VM_Address addr;  CHAR *buf; CHAR reg[4][10];
+ *          INSTRUCTION inst; Address addr;  CHAR *buf; CHAR reg[4][10];
  *
  * 31 Jul 1990 Derek Lieber.
  *      Borrowed from libdbx (opcode.c, decode.c).

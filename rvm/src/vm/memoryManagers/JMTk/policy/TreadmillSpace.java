@@ -9,13 +9,8 @@ import org.mmtk.utility.Treadmill;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Each instance of this class corresponds to one treadmill *space*.
@@ -32,7 +27,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-public final class TreadmillSpace implements Constants, VM_Uninterruptible {
+public final class TreadmillSpace implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -41,13 +36,13 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    */
   public static final int LOCAL_GC_BITS_REQUIRED = 1;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
-  public static final VM_Word MARK_BIT_MASK = VM_Word.one();  // ...01
+  public static final Word MARK_BIT_MASK = Word.one();  // ...01
 
   /****************************************************************************
    *
    * Instance variables
    */
-  private VM_Word markState;
+  private Word markState;
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   private boolean inTreadmillCollection = false;
@@ -85,8 +80,8 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * @param thread The treadmill thread instance through which
    * this instance was allocated.
    */
-  public final void postAlloc(VM_Address cell, TreadmillLocal thread)
-    throws VM_PragmaInline {
+  public final void postAlloc(Address cell, TreadmillLocal thread)
+    throws InlinePragma {
     thread.treadmill.addToFromSpace(Treadmill.payloadToNode(cell));
   }
 
@@ -125,7 +120,7 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * @return True if this mark-sweep space is currently being collected.
    */
   public boolean inTreadmillCollection() 
-    throws VM_PragmaInline {
+    throws InlinePragma {
     return inTreadmillCollection;
   }
 
@@ -148,8 +143,8 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
-  public final VM_Address traceObject(VM_Address object)
-    throws VM_PragmaInline {
+  public final Address traceObject(Address object)
+    throws InlinePragma {
     if (testAndMark(object, markState)) {
       internalMarkObject(object);
       VM_Interface.getPlan().enqueue(object);
@@ -164,8 +159,8 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * @param obj The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
-   public boolean isLive(VM_Address obj)
-    throws VM_PragmaInline {
+   public boolean isLive(Address obj)
+    throws InlinePragma {
      return testMarkBit(obj, markState);
    }
 
@@ -176,10 +171,10 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    *
    * @param object The object which has been marked.
    */
-  private final void internalMarkObject(VM_Address object) 
-    throws VM_PragmaInline {
-    VM_Address cell = VM_Interface.objectStartRef(object);
-    VM_Address node = Treadmill.midPayloadToNode(cell);
+  private final void internalMarkObject(Address object) 
+    throws InlinePragma {
+    Address cell = VM_Interface.objectStartRef(object);
+    Address node = Treadmill.midPayloadToNode(cell);
     Treadmill tm = Treadmill.getTreadmill(node);
     tm.copy(node);
   }
@@ -193,12 +188,11 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * Perform any required initialization of the GC portion of the header.
    * 
    * @param object the object ref to the storage to be initialized
-   * @param tib the TIB of the instance being created
    */
-  public final void initializeHeader(VM_Address object, Object[] tib) 
-    throws VM_PragmaInline {
-    VM_Word oldValue = VM_Interface.readAvailableBitsWord(object);
-    VM_Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
+  public final void initializeHeader(Address object) 
+    throws InlinePragma {
+    Word oldValue = VM_Interface.readAvailableBitsWord(object);
+    Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
     VM_Interface.writeAvailableBitsWord(object, newValue);
   }
 
@@ -209,9 +203,9 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
    */
-  public static boolean testAndMark(VM_Address object, VM_Word value)
-    throws VM_PragmaInline {
-    VM_Word oldValue, markBit;
+  public static boolean testAndMark(Address object, Word value)
+    throws InlinePragma {
+    Word oldValue, markBit;
     do {
       oldValue = VM_Interface.prepareAvailableBits(object);
       markBit = oldValue.and(MARK_BIT_MASK);
@@ -228,8 +222,8 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
    */
-  static public boolean testMarkBit(VM_Address object, VM_Word value)
-    throws VM_PragmaInline {
+  static public boolean testMarkBit(Address object, Word value)
+    throws InlinePragma {
     return VM_Interface.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
   }
 
@@ -244,7 +238,7 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * @return the VMResource associated with this collector
    */
   public final FreeListVMResource getVMResource() 
-    throws VM_PragmaInline {
+    throws InlinePragma {
     return vmResource;
   }
 
@@ -254,7 +248,7 @@ public final class TreadmillSpace implements Constants, VM_Uninterruptible {
    * @return The memory resource associated with this collector
    */
   public final MemoryResource getMemoryResource() 
-    throws VM_PragmaInline {
+    throws InlinePragma {
     return memoryResource;
   }
 }

@@ -13,13 +13,8 @@ import org.mmtk.utility.*;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Magic;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements a virtual memory resource.  The unit of
@@ -35,7 +30,7 @@ import com.ibm.JikesRVM.VM_Magic;
  * @date $Date$
  */
 
-public abstract class VMResource implements Constants, VM_Uninterruptible {
+public abstract class VMResource implements Constants, Uninterruptible {
 
   public final static String Id = "$Id$"; 
 
@@ -61,24 +56,24 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     }
   }
 
-  public static boolean refIsMovable (VM_Address obj) {
-    VM_Address addr = VM_Interface.refToAddress(VM_Magic.objectAsAddress(obj));
+  public static boolean refIsMovable (Address obj) {
+    Address addr = VM_Interface.refToAddress(obj);
     return (getPageStatus(addr) & MOVABLE) == MOVABLE;
   }
 
-  public static boolean refInVM(VM_Address ref) throws VM_PragmaUninterruptible {
+  public static boolean refInVM(Address ref) throws UninterruptiblePragma {
     return addrInVM(VM_Interface.refToAddress(ref));
   }
 
-  public static boolean addrInVM(VM_Address addr) throws VM_PragmaUninterruptible {
+  public static boolean addrInVM(Address addr) throws UninterruptiblePragma {
     return (getPageStatus(addr) & IN_VM) == IN_VM;
   }
 
-  public static boolean refIsImmortal(VM_Address ref) throws VM_PragmaUninterruptible {
+  public static boolean refIsImmortal(Address ref) throws UninterruptiblePragma {
     return addrIsImmortal(VM_Interface.refToAddress(ref));
   }
 
-  public static boolean addrIsImmortal(VM_Address addr) throws VM_PragmaUninterruptible {
+  public static boolean addrIsImmortal(Address addr) throws UninterruptiblePragma {
     return (getPageStatus(addr) & IMMORTAL) == IMMORTAL;
   }
 
@@ -109,7 +104,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
       spaceTable[blk] = Plan.UNUSED_SPACE;
   }
 
-  public static void boot() throws VM_PragmaInterruptible {
+  public static void boot() throws InterruptiblePragma {
     // resourceTable = new VMResource[NUM_PAGES];
     resourceTable = (VMResource []) VM_Interface.cloneArray(resources,Plan.IMMORTAL_SPACE,
                                                             NUM_PAGES);
@@ -126,12 +121,12 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
         resourceTable[p] = vm;
       }
     }
-    VM_Extent bootSize = VM_Interface.bootImageEnd().diff(VM_Interface.bootImageStart()).toWord().toExtent();
+    Extent bootSize = VM_Interface.bootImageEnd().diff(VM_Interface.bootImageStart()).toWord().toExtent();
     Plan.bootVM.acquireHelp(BasePlan.BOOT_START, Conversions.bytesToPagesUp(bootSize));
     LazyMmapper.boot(BasePlan.BOOT_START, bootSize);
   }
 
-  public static VMResource resourceForPage(VM_Address addr) {
+  public static VMResource resourceForPage(Address addr) {
     if (resourceTable == null)
       VM_Interface.sysFail("resourceForBlock called when resourceTable is null");
     int which = Conversions.addressToPagesDown(addr);
@@ -142,19 +137,19 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     return resourceTable[which];
   }
 
-  public static byte getPageStatus(VM_Address addr) {
+  public static byte getPageStatus(Address addr) {
     VMResource vm = resourceForPage(addr);
     if (vm == null) return NOT_IN_VM;
     return vm.status;
   }
 
-  final public static byte getSpace(VM_Address addr) throws VM_PragmaInline {
+  final public static byte getSpace(Address addr) throws InlinePragma {
     if (VM_Interface.VerifyAssertions) {
         if (spaceTable == null)
           VM_Interface.sysFail("getSpace called when spaceTable is null");
 	return spaceTable[Conversions.addressToPagesDown(addr)];
     }
-    return VM_Magic.getByteAtOffset(VM_Magic.objectAsAddress(spaceTable), 
+    return VM_Interface.getArrayNoBarrier(spaceTable, 
 				    Conversions.addressToPagesDown(addr));
   }
 
@@ -165,7 +160,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   /**
    * Constructor
    */
-  VMResource(byte space_, String vmName, VM_Address vmStart, VM_Extent bytes, byte status_) {
+  VMResource(byte space_, String vmName, Address vmStart, Extent bytes, byte status_) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(vmStart.EQ(Conversions.roundDownVM(vmStart)));
     space = space_;
     start = vmStart;
@@ -192,10 +187,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
    * @return The address of the start of the virtual memory region, or
    * zero on failure.
    */
-  public abstract VM_Address acquire(int request);
-  public abstract VM_Address acquire(int request, MemoryResource mr);
+  public abstract Address acquire(int request);
+  public abstract Address acquire(int request, MemoryResource mr);
   
-  protected void acquireHelp (VM_Address start, int pageRequest) {
+  protected void acquireHelp (Address start, int pageRequest) {
     if (!VM_Interface.runningVM()) VM_Interface.sysFail("VMResource.acquireHelp called before VM is running");
     if (spaceTable == null) 
         VM_Interface.sysFail("VMResource.acquireHelp called when spaceTable is still empty");
@@ -212,7 +207,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     }
   }
 
-  protected void releaseHelp (VM_Address start, int pageRequest) {
+  protected void releaseHelp (Address start, int pageRequest) {
     if (!VM_Interface.runningVM()) VM_Interface.sysFail("VMResource.releaseHelp called before VM is running");
     int pageStart = Conversions.addressToPages(start);
     // Log.write("Releasing pages "); Log.write(pageStart);
@@ -228,9 +223,9 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
 
   public final int getPages() { return pages; }
 
-  public final VM_Address getStart() { return start; }
-  public final VM_Address getEnd() { return end; }
-  public final boolean inRange(VM_Address s) { return (start.LE(s) && s.LT(end)); }
+  public final Address getStart() { return start; }
+  public final Address getEnd() { return end; }
+  public final boolean inRange(Address s) { return (start.LE(s) && s.LT(end)); }
 
   /****************************************************************************
    *
@@ -240,7 +235,7 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
   final private byte space;
   final protected String name;
   private byte status;
-  protected VM_Address start;
-  protected VM_Address end;
+  protected Address start;
+  protected Address end;
   private int pages;
 }

@@ -7,14 +7,8 @@ package org.mmtk.utility.deque;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements a local (<i>unsynchronized</i>) queue.
@@ -41,7 +35,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @version $Revision$
  * @date $Date$
  */ 
-class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptible {
+class LocalQueue extends LocalSSB implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /**
@@ -58,7 +52,7 @@ class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptible {
    *
    * Protected instance methods and fields
    */
-  protected VM_Address head;   // the start of the buffer
+  protected Address head;   // the start of the buffer
 
   /**
    * Reset the local buffer (throwing away any local entries).
@@ -76,12 +70,12 @@ class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptible {
    * @param arity The arity of the values stored in this queue: the
    * buffer must contain enough space for this many words.
    */
-  protected final boolean checkDequeue(int arity) throws VM_PragmaInline {
+  protected final boolean checkDequeue(int arity) throws InlinePragma {
     if (bufferOffset(head).isZero()) {
       return dequeueUnderflow(arity);
     } else {
       if (VM_Interface.VerifyAssertions)
-        VM_Interface._assert(bufferOffset(head).sGE(VM_Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
+        VM_Interface._assert(bufferOffset(head).sGE(Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
       return true;
     }
   }
@@ -93,12 +87,12 @@ class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptible {
    *
    * @return The first entry on the queue.
    */
-  protected final VM_Address uncheckedDequeue() 
-    throws VM_PragmaInline{
+  protected final Address uncheckedDequeue() 
+    throws InlinePragma{
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bufferOffset(head).sGE(VM_Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
+      VM_Interface._assert(bufferOffset(head).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     head = head.sub(BYTES_IN_ADDRESS);
-    return VM_Magic.getMemoryAddress(head);
+    return head.loadAddress();
   }
 
   /**
@@ -144,7 +138,7 @@ class LocalQueue extends LocalSSB implements Constants, VM_Uninterruptible {
    * @return True if there the head buffer has been successfully
    * replenished.
    */
-  private final boolean dequeueUnderflow(int arity) throws VM_PragmaNoInline {
+  private final boolean dequeueUnderflow(int arity) throws NoInlinePragma {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(arity == queue.getArity());
     do {

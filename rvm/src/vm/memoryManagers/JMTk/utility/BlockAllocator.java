@@ -9,16 +9,8 @@ import org.mmtk.utility.heap.*;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_AddressArray;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_WordArray;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements "block" data structures of various sizes.<p>
@@ -33,7 +25,7 @@ import com.ibm.JikesRVM.VM_WordArray;
  * @version $Revision$
  * @date $Date$
  */
-public final class BlockAllocator implements Constants, VM_Uninterruptible {
+public final class BlockAllocator implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
 
@@ -57,17 +49,17 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
   private static final int FREE_LIST_ENTRIES = 1<<(FREE_LIST_BITS*2);
 
   // metadata
-  private static final VM_Extent PREV_OFFSET = VM_Extent.zero();
-  private static final VM_Extent NEXT_OFFSET = PREV_OFFSET.add(BYTES_IN_ADDRESS);
-  private static final VM_Extent SC_OFFSET = NEXT_OFFSET.add(BYTES_IN_ADDRESS);
-  private static final VM_Extent IU_OFFSET = SC_OFFSET.add(BYTES_IN_SHORT);
-  private static final VM_Extent FL_META_OFFSET = IU_OFFSET.add(BYTES_IN_SHORT);
+  private static final Offset PREV_OFFSET = Offset.zero();
+  private static final Offset NEXT_OFFSET = PREV_OFFSET.add(BYTES_IN_ADDRESS);
+  private static final Offset SC_OFFSET = NEXT_OFFSET.add(BYTES_IN_ADDRESS);
+  private static final Offset IU_OFFSET = SC_OFFSET.add(BYTES_IN_SHORT);
+  private static final Offset FL_META_OFFSET = IU_OFFSET.add(BYTES_IN_SHORT);
   private static final int LOG_BYTES_IN_BLOCK_META = LOG_BYTES_IN_ADDRESS + 2;
   private static final int BLOCK_META_SIZE = 1<<LOG_BYTES_IN_BLOCK_META;
   private static final int LOG_BYTE_COVERAGE = LOG_MIN_BLOCK - LOG_BYTES_IN_BLOCK_META;
   public static final int META_DATA_BYTES_PER_REGION = 1<<(EmbeddedMetaData.LOG_BYTES_IN_REGION - LOG_BYTE_COVERAGE);
 
-  public static final VM_Extent META_DATA_EXTENT = VM_Extent.fromInt(META_DATA_BYTES_PER_REGION);
+  public static final Extent META_DATA_EXTENT = Extent.fromInt(META_DATA_BYTES_PER_REGION);
 
   /****************************************************************************
    *
@@ -75,7 +67,7 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    */
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
-  private VM_AddressArray freeList;
+  private AddressArray freeList;
   private int[] freeBlocks;
   private int[] usedBlocks;
 
@@ -86,7 +78,7 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
   BlockAllocator(FreeListVMResource vmr, MemoryResource mr) {
     vmResource = vmr;
     memoryResource = mr;
-    freeList = VM_AddressArray.create(FREE_LIST_ENTRIES);
+    freeList = AddressArray.create(FREE_LIST_ENTRIES);
     freeBlocks = new int[FREE_LIST_ENTRIES];
     usedBlocks = new int[FREE_LIST_ENTRIES];
   }
@@ -104,11 +96,11 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @return The address of the first usable byte in the block, or
    * zero on failure.
    */
-  final VM_Address alloc(int blockSizeClass) {
+  final Address alloc(int blockSizeClass) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert((blockSizeClass >= 0) && 
 			   (blockSizeClass <= MAX_BLOCK_SIZE_CLASS));
-    VM_Address rtn;
+    Address rtn;
     if (PARANOID) sanity(false);
     if (blockSizeClass > SUB_PAGE_SIZE_CLASS ||
 	(rtn = allocFast(blockSizeClass)).isZero())
@@ -130,7 +122,7 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    *
    * @param block The address of the block to be freed
    */
-  final void free(VM_Address block) {
+  final void free(Address block) {
     if (PARANOID) sanity(false);
     int blockSizeClass = getBlkSizeClass(block);
     if (PARANOID) usedBlocks[blockSizeClass]--;
@@ -146,7 +138,7 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
         if (PARANOID) sanity(false);
       } else {
         /* add it to the appropriate free list */
-        VM_Address next = freeList.get(blockSizeClass);
+        Address next = freeList.get(blockSizeClass);
         setNext(block, next);
         if (!next.isZero())
           setPrev(next, block);
@@ -166,16 +158,16 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @return The address of the first usable byte in the block, or
    * zero on failure.
    */
-  private final VM_Address allocFast(int blockSizeClass)
-    throws VM_PragmaInline {
-    VM_Address rtn;
+  private final Address allocFast(int blockSizeClass)
+    throws InlinePragma {
+    Address rtn;
     if (!(rtn = freeList.get(blockSizeClass)).isZero()) {
       // successfully got a block off the free list
-      VM_Address next = getNextBlock(rtn);
+      Address next = getNextBlock(rtn);
       incInUseCount(rtn);
       freeList.set(blockSizeClass, next);
       if (!next.isZero())
-	setPrev(next, VM_Address.zero());
+	setPrev(next, Address.zero());
     }
     return rtn;
   }
@@ -190,8 +182,8 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @return The address of the first usable byte in the block, or
    * zero on failure.
    */
-  private final VM_Address allocSlow(int blockSizeClass) {
-    VM_Address rtn;
+  private final Address allocSlow(int blockSizeClass) {
+    Address rtn;
     int pages = pagesForSizeClass(blockSizeClass);
     if (!(rtn = vmResource.acquire(pages, memoryResource)).isZero()) {
       setBlkSizeClass(rtn, (short) blockSizeClass);
@@ -217,12 +209,12 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param start The start of the page
    * @param blockSizeClass The sizeClass of the blocks to go in this page.
    */
-  private final void populatePage(VM_Address start, int blockSizeClass) {
+  private final void populatePage(Address start, int blockSizeClass) {
     resetInUseCount(start);
     int blockSize = blockSize(blockSizeClass);
-    VM_Address end = start.add(BYTES_IN_PAGE);
-    VM_Address block = start.add(blockSize);
-    VM_Address next = freeList.get(blockSizeClass);
+    Address end = start.add(BYTES_IN_PAGE);
+    Address block = start.add(blockSize);
+    Address next = freeList.get(blockSizeClass);
     while (block.LT(end)) {
       setNext(block, next);
       if (!next.isZero())
@@ -231,7 +223,7 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
       block = block.add(blockSize);
     }
     freeList.set(blockSizeClass, next);
-    setPrev(next, VM_Address.zero());
+    setPrev(next, Address.zero());
   }
 
   /**
@@ -240,7 +232,7 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param blockSizeClass The size class in question
    * @return The size in bytes of a block of this size class
    */
-  public final static int blockSize(int blockSizeClass) throws VM_PragmaInline {
+  public final static int blockSize(int blockSizeClass) throws InlinePragma {
     return 1<<(LOG_MIN_BLOCK + blockSizeClass);
   }
 
@@ -253,7 +245,7 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * blocks) of this size class.
    */
   private final static int pagesForSizeClass(int blockSizeClass) 
-    throws VM_PragmaInline {
+    throws InlinePragma {
     if (blockSizeClass <= SUB_PAGE_SIZE_CLASS)
       return 1;
     else
@@ -271,8 +263,8 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param block One of the one or more blocks in the set whose count
    * is to be reset to 1.
    */
-  private static void resetInUseCount(VM_Address block) 
-    throws VM_PragmaInline {
+  private static void resetInUseCount(Address block) 
+    throws InlinePragma {
     setInUseCount(block, (short) 1);
   }
 
@@ -282,7 +274,7 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param block One of the blocks in the set whose count is being
    * incremented.
    */
-  private static void incInUseCount(VM_Address block) throws VM_PragmaInline {
+  private static void incInUseCount(Address block) throws InlinePragma {
     setInUseCount(block, (short) (getInUseCount(block) + 1));
   }
   
@@ -295,7 +287,7 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * decremented.
    * @return The post-decrement count for this set of blocks
    */
-  private static int decInUseCount(VM_Address block) throws VM_PragmaInline {
+  private static int decInUseCount(Address block) throws InlinePragma {
     short value = (short) (getInUseCount(block) - 1);
     setInUseCount(block, value);
     return value;
@@ -308,10 +300,10 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param address The address of interest
    * @param iu The value to which this field is to be set
    */
-  private static final void setInUseCount(VM_Address address, short iu) 
-    throws VM_PragmaInline {
+  private static final void setInUseCount(Address address, short iu) 
+    throws InlinePragma {
     address = Conversions.pageAlign(address);
-    VM_Magic.setCharAtOffset(getMetaAddress(address), IU_OFFSET.toInt(), (char) iu);
+    getMetaAddress(address).store(iu, IU_OFFSET);
   }
   
   /**
@@ -321,10 +313,10 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param address The address of interest
    * @return The inuse field for the block containing the given address
    */
-  private static final short getInUseCount(VM_Address address) 
-    throws VM_PragmaInline {
+  private static final short getInUseCount(Address address) 
+    throws InlinePragma {
     address = Conversions.pageAlign(address);
-    return (short) VM_Magic.getCharAtOffset(getMetaAddress(address), IU_OFFSET.toInt());
+    return getMetaAddress(address).loadShort(IU_OFFSET);
   }
   
   /**
@@ -335,10 +327,10 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param address The address of interest
    * @param sc The value to which this field is to be set
    */
-  private static final void setBlkSizeClass(VM_Address address, short sc) 
-    throws VM_PragmaInline {
+  private static final void setBlkSizeClass(Address address, short sc) 
+    throws InlinePragma {
     address = Conversions.pageAlign(address);
-    VM_Magic.setCharAtOffset(getMetaAddress(address), SC_OFFSET.toInt(), (char) sc);
+    getMetaAddress(address).store(sc, SC_OFFSET);
   }
   
   /**
@@ -349,10 +341,10 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param address The address of interest
    * @return The size class field for the block containing the given address
    */
-  private static final short getBlkSizeClass(VM_Address address) 
-    throws VM_PragmaInline {
+  private static final short getBlkSizeClass(Address address) 
+    throws InlinePragma {
     address = Conversions.pageAlign(address);
-    short rtn = (short) VM_Magic.getCharAtOffset(getMetaAddress(address), SC_OFFSET.toInt());
+    short rtn = getMetaAddress(address).loadShort(SC_OFFSET);
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(rtn >= 0 && rtn <= (short) MAX_BLOCK_SIZE_CLASS);
     return rtn;
@@ -366,10 +358,10 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param address The address of interest
    * @param value The value to which this field is to be set
    */
-  public static final void setFreeListMeta(VM_Address address, 
-					    VM_Address value) 
-    throws VM_PragmaInline {
-    VM_Magic.setMemoryAddress(getMetaAddress(address).add(FL_META_OFFSET), value);
+  public static final void setFreeListMeta(Address address, 
+					   Address value) 
+    throws InlinePragma {
+    getMetaAddress(address).add(FL_META_OFFSET).store(value);
   }
   
   /**
@@ -381,22 +373,23 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @return The free list meta data field for the block containing
    * the given address
    */
-  public static final VM_Address getFreeListMeta(VM_Address address) 
-    throws VM_PragmaInline {
-    return VM_Magic.getMemoryAddress(getMetaAddress(address).add(FL_META_OFFSET));  }
+  public static final Address getFreeListMeta(Address address) 
+    throws InlinePragma {
+    return getMetaAddress(address).add(FL_META_OFFSET).loadAddress();
+  }
   
   /**
    * Remove a block from the doubly linked list of blocks
    *
    * @param block The block to be removed from the doubly linked list
    */
-  static final void unlinkBlock(VM_Address block) throws VM_PragmaInline {
+  static final void unlinkBlock(Address block) throws InlinePragma {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!block.isZero());
-    VM_Address next = getNextBlock(block);
-    VM_Address prev = getPrevBlock(block);
+    Address next = getNextBlock(block);
+    Address prev = getPrevBlock(block);
     //    if (VM_Interface.VerifyAssertions) {
-      setNext(block, VM_Address.zero());
-      setPrev(block, VM_Address.zero());
+      setNext(block, Address.zero());
+      setPrev(block, Address.zero());
       //    }
     if (!prev.isZero()) setNext(prev, next);
     if (!next.isZero()) setPrev(next, prev);
@@ -408,15 +401,15 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param block The block to be added
    * @param prev The block that is to preceed the new block
    */
-  static final void linkedListInsert(VM_Address block, VM_Address prev) 
-    throws VM_PragmaInline {
+  static final void linkedListInsert(Address block, Address prev) 
+    throws InlinePragma {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!block.isZero());
-    VM_Address next;
+    Address next;
     if (!prev.isZero()) {
       next = getNextBlock(prev);
       setNext(prev, block);
     } else
-      next = VM_Address.zero();
+      next = Address.zero();
     setPrev(block, prev);
     setNext(block, next);
     if (!next.isZero()) setPrev(next, block);
@@ -428,9 +421,9 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param address The address of interest
    * @param prev The value to which this field is to be set
    */
-  private static final void setPrev(VM_Address address, VM_Address prev) 
-    throws VM_PragmaInline {
-    VM_Magic.setMemoryAddress(getMetaAddress(address, PREV_OFFSET), prev);
+  private static final void setPrev(Address address, Address prev) 
+    throws InlinePragma {
+    getMetaAddress(address, PREV_OFFSET).store(prev);
   }
   
   /**
@@ -439,9 +432,9 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param address The address of interest
    * @return The prev field for the block containing the given address
    */
-  static final VM_Address getPrevBlock(VM_Address address) 
-    throws VM_PragmaInline {
-    return VM_Magic.getMemoryAddress(getMetaAddress(address, PREV_OFFSET));
+  static final Address getPrevBlock(Address address) 
+    throws InlinePragma {
+    return getMetaAddress(address, PREV_OFFSET).loadAddress();
   }
   
   /**
@@ -450,9 +443,9 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param address The address of interest
    * @param next The value to which this field is to be set
    */
-  private static final void setNext(VM_Address address, VM_Address next) 
-    throws VM_PragmaInline {
-    VM_Magic.setMemoryAddress(getMetaAddress(address, NEXT_OFFSET), next);
+  private static final void setNext(Address address, Address next) 
+    throws InlinePragma {
+    getMetaAddress(address, NEXT_OFFSET).store(next);
   }
   
   /**
@@ -461,9 +454,9 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param address The address of interest
    * @return The next field for the block containing the given address
    */
-  public static final VM_Address getNextBlock(VM_Address address) 
-    throws VM_PragmaInline {
-    return VM_Magic.getMemoryAddress(getMetaAddress(address, NEXT_OFFSET));
+  public static final Address getNextBlock(Address address) 
+    throws InlinePragma {
+    return getMetaAddress(address, NEXT_OFFSET).loadAddress();
   }
   
   /**
@@ -474,9 +467,9 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param address The address for which the metadata is required
    * @return The address of the specified meta data
    */
-  private static final VM_Address getMetaAddress(VM_Address address) 
-    throws VM_PragmaInline {
-    return getMetaAddress(address, VM_Extent.zero());
+  private static final Address getMetaAddress(Address address) 
+    throws InlinePragma {
+    return getMetaAddress(address, Offset.zero());
   }
 
   /**
@@ -489,9 +482,9 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * for the prev pointer, or next pointer)
    * @return The address of the specified meta data
    */
-  private static final VM_Address getMetaAddress(VM_Address address,
-						 VM_Extent offset) 
-    throws VM_PragmaInline {
+  private static final Address getMetaAddress(Address address,
+					      Offset offset) 
+    throws InlinePragma {
     return EmbeddedMetaData.getMetaDataBase(address).add(EmbeddedMetaData.getMetaDataOffset(address, LOG_BYTE_COVERAGE, LOG_BYTES_IN_BLOCK_META)).add(offset);
   }
 
@@ -508,15 +501,15 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * @param blockSizeClass The size class of the page
    * @return The address of the page containing <code>block</code>
    */
-  private VM_Address unlinkSubPageBlocks(VM_Address block, int blockSizeClass) {
-    VM_Address start = Conversions.pageAlign(block); 
-    VM_Address end = start.add(BYTES_IN_PAGE);
+  private Address unlinkSubPageBlocks(Address block, int blockSizeClass) {
+    Address start = Conversions.pageAlign(block); 
+    Address end = start.add(BYTES_IN_PAGE);
     int blockSize = blockSize(blockSizeClass);
-    VM_Address head = freeList.get(blockSizeClass);
+    Address head = freeList.get(blockSizeClass);
     block = start;
     while (block.LT(end)) {
       if (block.EQ(head)) {
-        VM_Address next = BlockAllocator.getNextBlock(block);
+        Address next = BlockAllocator.getNextBlock(block);
 	freeList.set(blockSizeClass, next);
         head = next;
       }
@@ -541,10 +534,10 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    */
   private final void sanity(boolean verbose) {
     for (int sc = 0; sc < BLOCK_SIZE_CLASSES; sc++) {
-      int blocks = sanityTraverse(freeList.get(sc), VM_Address.zero(), verbose);
+      int blocks = sanityTraverse(freeList.get(sc), Address.zero(), verbose);
       if (blocks != freeBlocks[sc]) {
         Log.write("------>"); Log.writeln(sc); Log.write(" "); Log.write(blocks); Log.write(" != "); Log.writeln(freeBlocks[sc]);
-        sanityTraverse(freeList.get(sc), VM_Address.zero(), true);
+        sanityTraverse(freeList.get(sc), Address.zero(), true);
         Log.writeln();
         if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
       }
@@ -563,7 +556,7 @@ public final class BlockAllocator implements Constants, VM_Uninterruptible {
    * output detailing the composition of the list.
    * @return The length of the list
    */
-  final static int sanityTraverse(VM_Address block, VM_Address prev, 
+  final static int sanityTraverse(Address block, Address prev, 
 				   boolean verbose) {
     if (verbose) Log.write("[");
     boolean first = true;

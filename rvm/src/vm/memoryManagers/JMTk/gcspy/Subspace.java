@@ -12,8 +12,8 @@ package org.mmtk.vm.gcspy;
 
 import org.mmtk.utility.Log;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+
 
 
 /**
@@ -26,11 +26,11 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 public class Subspace 
-  implements  VM_Uninterruptible {
+  implements  Uninterruptible {
   public final static String Id = "$Id$";
 
-  private VM_Address start_;	// The Subspace spans [start_, end_)
-  private VM_Address end_;
+  private Address start_;	// The Subspace spans [start_, end_)
+  private Address end_;
   private int firstIndex_;	// The index of the tile in which start_ lies
   private int blockSize_;	// The tile size
   private int blockNum_;	// The number of tiles in this space
@@ -46,8 +46,8 @@ public class Subspace
    * @param blockSize The size of tiles in this subspace
    * @param blockNum The number of tiles in this subspace
    */
-  public Subspace (VM_Address start, 
-                VM_Address end, 
+  public Subspace (Address start, 
+                Address end, 
                 int firstIndex, 
 		int blockSize, 
 		int blockNum) {
@@ -63,8 +63,8 @@ public class Subspace
    * @param blockSize The size of tiles in this subspace
    * @param blockNum The number of tiles in this subspace
    */
-  private void reset (VM_Address start, 
-                      VM_Address end, 
+  private void reset (Address start, 
+                      Address end, 
                       int firstIndex, 
 		      int blockSize, 
 		      int blockNum) {
@@ -82,8 +82,8 @@ public class Subspace
    * @param firstIndex The index of the first tile of the subspace
    * @param blockNum The number of tiles in this subspace
    */
-  public void reset (VM_Address start, 
-		     VM_Address end, 
+  public void reset (Address start, 
+		     Address end, 
 		     int firstIndex, 
 		     int blockNum) {
     start_ = start;
@@ -99,7 +99,7 @@ public class Subspace
    * @param end The address of the end of the subspace
    * @param blockNum The number of tiles in this subspace
    */
-  public void reset (VM_Address start, VM_Address end, int blockNum) {
+  public void reset (Address start, Address end, int blockNum) {
     start_ = start;
     end_ = end;
     blockNum_ = blockNum;
@@ -134,7 +134,7 @@ public class Subspace
    * @param addr An address
    * @return true if this address is in a tile in this subspace
    */
-  public boolean addressInRange(VM_Address addr) {
+  public boolean addressInRange(Address addr) {
     return addr.GE(start_) && addr.LT(end_);
   }
 
@@ -145,7 +145,7 @@ public class Subspace
    * @param addr The address
    * @return The index of the tile holding this address
    */
-  public int getIndex(VM_Address addr) {
+  public int getIndex(Address addr) {
     return firstIndex_ + addr.diff(start_).toInt() / blockSize_;
   }
 
@@ -155,7 +155,7 @@ public class Subspace
    * @param index The index of the tile
    * @return The address of the start of the tile
    */
-  public VM_Address getAddress(int index) {
+  public Address getAddress(int index) {
     return start_.add(index - firstIndex_ * blockSize_);
   }
 
@@ -164,14 +164,14 @@ public class Subspace
    *
    * @return The start of this subspace
    */
-  public VM_Address getStart() { return start_; }
+  public Address getStart() { return start_; }
 
   /**
    * End of subspace
    *
    * @return The address of the end of this subspace
    */
-  public VM_Address getEnd() { return end_; }
+  public Address getEnd() { return end_; }
 
   /**
    * First index of subspace
@@ -197,12 +197,12 @@ public class Subspace
   /**
    * Space remaining in a block after this address
    *
-   * @param addr the VM_Address
+   * @param addr the Address
    * @return the remainder
    */
-  public int spaceRemaining(VM_Address addr) {
+  public int spaceRemaining(Address addr) {
     int nextIndex = getIndex(addr) + 1;
-    VM_Address nextTile = start_.add(blockSize_ * (nextIndex - firstIndex_));
+    Address nextTile = start_.add(blockSize_ * (nextIndex - firstIndex_));
     return nextTile.diff(addr).toInt();      
   }
   

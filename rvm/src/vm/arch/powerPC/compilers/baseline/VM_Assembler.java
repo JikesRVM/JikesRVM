@@ -4,6 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Machine code generators:
  *
@@ -61,37 +64,37 @@ public final class VM_Assembler implements VM_BaselineConstants,
     return (val == 0 || val == -1);
   }
 
-  void noteBytecode (int i, String bcode) throws VM_PragmaNoInline {
+  void noteBytecode (int i, String bcode) throws NoInlinePragma {
     String s1 = VM_Services.getHexString(mIP << LG_INSTRUCTION_WIDTH, true);
     VM.sysWrite(s1 + ": [" + i + "] " + bcode + "\n");
   }
 
-  void noteBytecode (int i, String bcode, int x) throws VM_PragmaNoInline {
+  void noteBytecode (int i, String bcode, int x) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+x);
   }
 
-  void noteBytecode (int i, String bcode, long x) throws VM_PragmaNoInline {
+  void noteBytecode (int i, String bcode, long x) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+x);
   }
 
-  void noteBytecode (int i, String bcode, Object o) throws VM_PragmaNoInline {
+  void noteBytecode (int i, String bcode, Object o) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+o);
   }
 
-  void noteBytecode (int i, String bcode, int x, int y) throws VM_PragmaNoInline {
+  void noteBytecode (int i, String bcode, int x, int y) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+x+" "+y);
   }
 
   void noteBranchBytecode (int i, String bcode, int off,
-                           int bt) throws VM_PragmaNoInline {
+                           int bt) throws NoInlinePragma {
     noteBytecode(i, bcode +" "+off+" ["+bt+"] ");
   }
 
-  void noteTableswitchBytecode (int i, int l, int h, int d) throws VM_PragmaNoInline {
+  void noteTableswitchBytecode (int i, int l, int h, int d) throws NoInlinePragma {
     noteBytecode(i, "tableswitch [" + l + "--" + h + "] " + d);
   }
 
-  void noteLookupswitchBytecode (int i, int n, int d) throws VM_PragmaNoInline {
+  void noteLookupswitchBytecode (int i, int n, int d) throws NoInlinePragma {
     noteBytecode(i, "lookupswitch [<" + n + ">]" + d);
   }
   
@@ -1406,7 +1409,7 @@ public final class VM_Assembler implements VM_BaselineConstants,
     }
   }
 
-  public final void emitLVALAddr (int RT, VM_Address addr) {
+  public final void emitLVALAddr (int RT, Address addr) {
 //-#if RVM_FOR_64_ADDR
     long val = addr.toLong();
     if (!fits(val,48)){

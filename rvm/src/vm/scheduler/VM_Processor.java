@@ -6,6 +6,8 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import org.mmtk.plan.Plan;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * Multiplex execution of large number of VM_Threads on small 
@@ -19,7 +21,7 @@ public final class VM_Processor
 //-#if RVM_WITH_JMTK_INLINE_PLAN
 extends Plan 
 //-#endif
-implements VM_Uninterruptible, VM_Constants {
+implements Uninterruptible, VM_Constants {
 
   // definitions for VP status for implementation of jni
   public static final int IN_JAVA                 = 1;
@@ -133,7 +135,7 @@ implements VM_Uninterruptible, VM_Constants {
   /**
    * Is it ok to switch to a new VM_Thread in this processor?
    */ 
-  public boolean threadSwitchingEnabled() throws VM_PragmaInline {
+  public boolean threadSwitchingEnabled() throws InlinePragma {
     return threadSwitchingEnabledCount == 1;
   }
 
@@ -157,21 +159,21 @@ implements VM_Uninterruptible, VM_Constants {
   /**
    * Disable thread switching in this processor.
    */ 
-  public void disableThreadSwitching() throws VM_PragmaInline {
+  public void disableThreadSwitching() throws InlinePragma {
     --threadSwitchingEnabledCount;
   }
 
   /**
    * Get processor that's being used to run the current java thread.
    */
-  public static VM_Processor getCurrentProcessor() throws VM_PragmaInline {
+  public static VM_Processor getCurrentProcessor() throws InlinePragma {
     return VM_ProcessorLocalState.getCurrentProcessor();
   }
 
   /**
    * Get id of processor that's being used to run the current java thread.
    */ 
-  public static int getCurrentProcessorId() throws VM_PragmaInline {
+  public static int getCurrentProcessorId() throws InlinePragma {
     return getCurrentProcessor().id;
   }
 
@@ -225,7 +227,7 @@ implements VM_Uninterruptible, VM_Constants {
    * Find a thread that can be run by this processor and remove it 
    * from its queue.
    */ 
-  private VM_Thread getRunnableThread() throws VM_PragmaInline {
+  private VM_Thread getRunnableThread() throws InlinePragma {
 
     int loopcheck = 0;
     for (int i=transferQueue.length(); 0<i; i--) {
@@ -463,7 +465,7 @@ implements VM_Uninterruptible, VM_Constants {
    * cached activeThread.stackLimit;
    * removes 1 load from stackoverflow sequence.
    */
-  public VM_Address activeThreadStackLimit;
+  public Address activeThreadStackLimit;
 
   /**
    * Cache the results of activeThread.getLockingId()
@@ -482,7 +484,7 @@ implements VM_Uninterruptible, VM_Constants {
   /**
    * FP for current frame
    */
-  VM_Address framePointer;        
+  Address framePointer;        
   /**
    * "hidden parameter" for interface invocation thru the IMT
    */
@@ -647,7 +649,7 @@ implements VM_Uninterruptible, VM_Constants {
   // PPC baseline compiler
   private double scratchStorage;
 
-  public void dumpProcessorState() throws VM_PragmaInterruptible {
+  public void dumpProcessorState() throws InterruptiblePragma {
     VM.sysWrite("Processor "); 
     VM.sysWriteInt(id);
     if (this == VM_Processor.getCurrentProcessor()) VM.sysWrite(" (me)");

@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.lang.reflect.Field;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * Code for accessing the value of a static field at
  * compile time.  This is used to optimize
@@ -35,19 +37,19 @@ public abstract class OPT_StaticFieldReader implements VM_SizeConstants{
     int slot = field.getOffset() >>> LOG_BYTES_IN_INT;
     if (fieldType == VM_TypeReference.Address) {
       Object obj = getObjectStaticFieldValue(field);
-      VM_Address val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj) : (VM_Address) obj;
+      Address val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj) : (Address) obj;
       return new OPT_AddressConstantOperand(val);
     } else if (fieldType == VM_TypeReference.Word) {
       Object obj = getObjectStaticFieldValue(field);
-      VM_Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : (VM_Word) obj;
+      Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : (Word) obj;
       return new OPT_AddressConstantOperand(val.toAddress());
     } else if (fieldType == VM_TypeReference.Offset) {
       Object obj = getObjectStaticFieldValue(field);
-      VM_Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : ((VM_Offset) obj).toWord();
+      Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : ((Offset) obj).toWord();
       return new OPT_AddressConstantOperand(val.toAddress());
     } else if (fieldType == VM_TypeReference.Extent) {
       Object obj = getObjectStaticFieldValue(field);
-      VM_Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : ((VM_Extent) obj).toWord();
+      Word val = (VM.runningVM) ? VM_Magic.objectAsAddress(obj).toWord() : ((Extent) obj).toWord();
       return new OPT_AddressConstantOperand(val.toAddress());
     } else if (fieldType.isIntLikeType()) {
       int val = getIntStaticFieldValue(field);

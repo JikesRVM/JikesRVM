@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.jni.*;
 
+import org.vmmagic.pragma.*;
+
 /**
  * VM_Compiler is the baseline compiler class for powerPC architectures.
  *
@@ -57,7 +59,7 @@ public class VM_Compiler extends VM_BaselineCompiler
   //----------------//
   
   // position of spill area within method's stackframe.
-  public static int getMaxSpillOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
+  public static int getMaxSpillOffset (VM_NormalMethod m) throws UninterruptiblePragma {
     int params = m.getOperandWords()<<LOG_BYTES_IN_STACKSLOT; // maximum parameter area
     int spill  = params - (MIN_PARAM_REGISTERS << LOG_BYTES_IN_STACKSLOT);
     if (spill < 0) spill = 0;
@@ -65,24 +67,24 @@ public class VM_Compiler extends VM_BaselineCompiler
   }
   
   // position of operand stack within method's stackframe.
-  public static int getEmptyStackOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
+  public static int getEmptyStackOffset (VM_NormalMethod m) throws UninterruptiblePragma {
     int stack = m.getOperandWords()<<LOG_BYTES_IN_STACKSLOT; // maximum stack size
     return getMaxSpillOffset(m) + stack + BYTES_IN_STACKSLOT; // last local
   }
   
   // position of locals within method's stackframe.
-  public static int getFirstLocalOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
+  public static int getFirstLocalOffset (VM_NormalMethod m) throws UninterruptiblePragma {
     return getStartLocalOffset(m) - BYTES_IN_STACKSLOT;
   }
   
   // start position of locals within method's stackframe.
-  public static int getStartLocalOffset (VM_NormalMethod m) throws VM_PragmaUninterruptible {
+  public static int getStartLocalOffset (VM_NormalMethod m) throws UninterruptiblePragma {
     int locals = m.getLocalWords()<<LOG_BYTES_IN_STACKSLOT;       // input param words + pure locals
     return getEmptyStackOffset(m) + locals; // bottom-most local
   }
   
   // size of method's stackframe.
-  public static int getFrameSize (VM_NormalMethod m) throws VM_PragmaUninterruptible {
+  public static int getFrameSize (VM_NormalMethod m) throws UninterruptiblePragma {
     int size = getStartLocalOffset(m);
     if (m.getDeclaringClass().isDynamicBridge()) {
       size += (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) << LOG_BYTES_IN_DOUBLE;
@@ -94,7 +96,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     return size;
   }
 
-  public static int getFrameSize (VM_NativeMethod m) throws VM_PragmaUninterruptible {
+  public static int getFrameSize (VM_NativeMethod m) throws UninterruptiblePragma {
     // space for:
     //   -NATIVE header (AIX 6 words, LINUX 2 words)
     //   -parameters and 2 extra JNI parameters (jnienv + obj), minimum 8 words
@@ -3477,7 +3479,341 @@ public class VM_Compiler extends VM_BaselineCompiler
       } else if (rtype.isLongType()) {
         pushLong(T0, VM.BuildFor64Addr?T0:T1);
       }
-    } else if (methodName == VM_MagicNames.getFramePointer) {
+      return true;
+    }
+
+    if (methodToBeCalled.getType() == VM_TypeReference.Address) {
+      // Address.xyz magic
+
+      VM_TypeReference[] types = methodToBeCalled.getParameterTypes();
+
+      // Loads all take the form:
+      // ..., Address, [Offset] -> ..., Value
+
+      if (methodName == VM_MagicNames.loadAddress ||
+          methodName == VM_MagicNames.loadWord) {
+
+        if (types.length == 0) {
+          popAddr(T0);                  // pop base 
+          asm.emitLAddr(T0,  0, T0);    // *(base)
+          pushAddr(T0);                 // push *(base)
+        } else {
+          popInt(T1);                   // pop offset
+          popAddr(T0);                  // pop base 
+          asm.emitLAddrX(T0, T1, T0);   // *(base+offset)
+          pushAddr(T0);                 // push *(base+offset)
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadChar ||
+          methodName == VM_MagicNames.loadShort) {
+
+        if (types.length == 0) {
+          popAddr(T0);                  // pop base
+          asm.emitLHZ(T0, 0, T0);       // load with zero extension.
+          pushInt(T0);                  // push *(base) 
+        } else {
+          popInt(T1);                   // pop offset
+          popAddr(T0);                  // pop base
+          asm.emitLHZX(T0, T1, T0);     // load with zero extension.
+          pushInt(T0);                  // push *(base+offset) 
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadByte) {
+        if (types.length == 0) {
+          popAddr(T0);                  // pop base
+          asm.emitLBZ(T0, 0, T0);       // load with zero extension.
+          pushInt(T0);                  // push *(base) 
+        } else {
+          popInt(T1);                   // pop offset
+          popAddr(T0);                  // pop base
+          asm.emitLBZX(T0, T1, T0);     // load with zero extension.
+          pushInt(T0);                  // push *(base+offset) 
+        }
+        return true;
+      }
+
+
+      if (methodName == VM_MagicNames.loadInt ||
+          methodName == VM_MagicNames.loadFloat) {
+
+        if (types.length == 0) {
+          popAddr(T0);                  // pop base 
+          asm.emitLInt(T0,  0, T0);     // *(base)
+          pushInt(T0);                  // push *(base)
+        } else {
+          popInt(T1);                   // pop offset
+          popAddr(T0);                  // pop base 
+          asm.emitLIntX(T0, T1, T0);    // *(base+offset)
+          pushInt(T0);                  // push *(base+offset)
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.loadDouble ||
+          methodName == VM_MagicNames.loadLong) {
+
+        if (types.length == 0) {
+          popAddr(T1);                  // pop base 
+          asm.emitLFD (F0, 0, T1);      // *(base)
+          pushDouble(F0);               // push double
+        } else {       
+          popInt(T2);                   // pop offset 
+          popAddr(T1);                  // pop base 
+          asm.emitLFDX (F0, T1, T2);    // *(base+offset)
+          pushDouble(F0);               // push *(base+offset)
+        }
+        return true;
+      }
+      
+      // Prepares all take the form:
+      // ..., Address, [Offset] -> ..., Value
+
+      if (methodName == VM_MagicNames.prepareInt) {
+        if (types.length == 0) {
+          popAddr(T0);                             // pop base 
+          if (VM.BuildForSingleVirtualProcessor) {
+            asm.emitLWZ(T0, 0, T0);                // *(base)
+          } else {
+            asm.emitLWARX(T0, 0, T0);              // *(base), setting 
+                                                   // reservation address
+          } // this Integer is not sign extended !!
+          pushInt(T0);                             // push *(base+offset)
+        } else {
+          popInt(T1);                              // pop offset
+          popAddr(T0);                             // pop base 
+          if (VM.BuildForSingleVirtualProcessor) {
+            asm.emitLWZX (T0, T1, T0);             // *(base+offset)
+          } else {
+            asm.emitLWARX(T0,  T1, T0);            // *(base+offset), setting 
+                                                   // reservation address
+          } // this Integer is not sign extended !!
+          pushInt(T0);                             // push *(base+offset)
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.prepareWord || 
+          methodName == VM_MagicNames.prepareAddress) {
+        if (types.length == 0) {
+          popAddr(T0);                             // pop base
+          if (VM.BuildForSingleVirtualProcessor) {
+            asm.emitLAddrX(T0, 0, T0);             // *(base+offset)
+          } else {
+            if (VM.BuildFor32Addr) {
+              asm.emitLWARX(T0, 0, T0);            // *(base+offset), setting 
+            } else {                               // reservation address
+              asm.emitLDARX(T0, 0, T0);
+            }
+          }
+          pushAddr(T0);                            // push *(base+offset)
+        } else {
+          popInt(T1);                              // pop offset
+          popAddr(T0);                             // pop base
+          if (VM.BuildForSingleVirtualProcessor) {
+            asm.emitLAddrX(T0, T1, T0);            // *(base+offset)
+          } else {
+            if (VM.BuildFor32Addr) {
+              asm.emitLWARX(T0,  T1, T0);          // *(base+offset), setting 
+            } else {                               // reservation address
+              asm.emitLDARX(T0, T1, T0);
+            }
+          }
+          pushAddr(T0);                            // push *(base+offset)
+        }
+        return true;  
+      } 
+
+      // Attempts all take the form:
+      // ..., Address, OldVal, NewVal, [Offset] -> ..., Success?
+
+      if (methodName == VM_MagicNames.attempt && 
+          types[0] == VM_TypeReference.Int) {
+        if (types.length == 2) { 
+          popInt(T2);                              // pop newValue                 
+          discardSlot();                           // ignore oldValue            
+          popAddr(T0);                             // pop base 
+          if (VM.BuildForSingleVirtualProcessor) {
+            asm.emitSTWX(T2, 0, T0);               // store new value (single VP)
+            asm.emitLVAL(T0,  1);                  // T0 := true      
+            pushInt(T0);                           // push success of store
+          } else {
+            asm.emitSTWCXr(T2,  0, T0);            // store new value and set CR0
+            asm.emitLVAL(T0,  0);                  // T0 := false
+            VM_ForwardReference fr 
+              = asm.emitForwardBC(NE);             // skip, if store failed
+            asm.emitLVAL(T0,  1);                  // T0 := true
+            fr.resolve(asm);
+            pushInt(T0);                           // push success of store
+          }
+        } else {
+          popInt(T1);                              // pop offset
+          popInt(T2);                              // pop newValue                 
+          discardSlot();                           // ignore oldValue            
+          popAddr(T0);                             // pop base 
+          if (VM.BuildForSingleVirtualProcessor) {
+            asm.emitSTWX(T2, T1, T0);              // store new value (single VP)
+            asm.emitLVAL(T0,  1);                  // T0 := true      
+            pushInt(T0);                           // push success of store
+          } else {
+            asm.emitSTWCXr(T2,  T1, T0);           // store new value and set CR0
+            asm.emitLVAL(T0,  0);                  // T0 := false
+            VM_ForwardReference fr 
+              = asm.emitForwardBC(NE);             // skip, if store failed
+            asm.emitLVAL(T0,  1);                  // T0 := true
+            fr.resolve(asm);
+            pushInt(T0);                           // push success of store
+          } 
+        }
+        return true;
+      }
+
+      if (methodName == VM_MagicNames.attempt &&
+          (types[0] == VM_TypeReference.Address ||
+           types[0] == VM_TypeReference.Word)) {
+
+        if (types.length == 2) {
+          popAddr(T2);                             // pop newValue
+          discardSlot();                           // ignore oldValue
+          popAddr(T0);                             // pop base 
+          if (VM.BuildForSingleVirtualProcessor) {
+            asm.emitSTAddrX(T2,  0, T0);           // store new value (single VP)
+            asm.emitLVAL(T0,  1);                  // T0 := true
+            pushInt(T0);                           // push success of store
+          } else {
+            if (VM.BuildFor32Addr) {
+              asm.emitSTWCXr(T2,  0, T0);          // store new value and set CR0
+            } else { 
+              asm.emitSTDCXr(T2,  0, T0);          // store new value and set CR0
+            }
+            asm.emitLVAL(T0, 0);                   // T0 := false
+            VM_ForwardReference fr 
+              = asm.emitForwardBC(NE);             // skip, if store failed
+            asm.emitLVAL(T0, 1);                   // T0 := true
+            fr.resolve(asm);  
+            pushInt(T0);                           // push success of store
+          }
+        } else {
+          popInt(T1);                              // pop offset
+          popAddr(T2);                             // pop newValue
+          discardSlot();                           // ignore oldValue
+          popAddr(T0);                             // pop base 
+          if (VM.BuildForSingleVirtualProcessor) {
+            asm.emitSTAddrX(T2,  T1, T0);          // store new value (single VP)
+            asm.emitLVAL(T0,  1);                  // T0 := true
+            pushInt(T0);                           // push success of store
+          } else {
+            if (VM.BuildFor32Addr) {
+              asm.emitSTWCXr(T2,  T1, T0);         // store new value and set CR0
+            } else {
+              asm.emitSTDCXr(T2,  T1, T0);         // store new value and set CR0
+            }
+            asm.emitLVAL(T0, 0);                   // T0 := false
+            VM_ForwardReference fr 
+              = asm.emitForwardBC(NE);             // skip, if store failed
+            asm.emitLVAL(T0, 1);                   // T0 := true
+            fr.resolve(asm);  
+            pushInt(T0);                           // push success of store
+          }
+        }
+        return true;
+      }
+
+      // Stores all take the form:
+      // ..., Address, Value, [Offset] -> ...
+      if (methodName == VM_MagicNames.store) {
+
+        if(types[0] == VM_TypeReference.Word ||
+           types[0] == VM_TypeReference.Address) {
+          if (types.length == 1) {
+            popAddr(T1);                 // pop newvalue
+            popAddr(T0);                 // pop base 
+            asm.emitSTAddrX(T1, 0, T0);   // *(base) = newvalue
+          } else {
+            popInt(T1);                  // pop offset
+            popAddr(T2);                 // pop newvalue
+            popAddr(T0);                 // pop base 
+            asm.emitSTAddrX(T2, T1, T0); // *(base+offset) = newvalue
+          }
+          return true;
+        }
+
+        if(types[0] == VM_TypeReference.Byte) {
+          if (types.length == 1) {
+            popInt(T1);                  // pop newvalue
+            popAddr(T0);                 // pop base 
+            asm.emitSTBX(T1, 0, T0);      // *(base) = newvalue
+          } else {
+            popInt(T1);                  // pop offset
+            popInt(T2);                  // pop newvalue
+            popAddr(T0);                 // pop base 
+            asm.emitSTBX(T2, T1, T0);    // *(base+offset) = newvalue
+          }
+          return true;
+        }
+
+        if(types[0] == VM_TypeReference.Int ||
+           types[0] == VM_TypeReference.Float) {
+          if (types.length == 1) {
+            popInt(T1);                  // pop newvalue
+            popAddr(T0);                 // pop base 
+            asm.emitSTWX(T1, 0, T0);      // *(base+offset) = newvalue
+          } else {
+            popInt(T1);                  // pop offset
+            popInt(T2);                  // pop newvalue
+            popAddr(T0);                 // pop base 
+            asm.emitSTWX(T2, T1, T0);    // *(base+offset) = newvalue
+          }
+          return true;
+        }
+
+        if(types[0] == VM_TypeReference.Short ||
+           types[0] == VM_TypeReference.Char) {
+          if (types.length == 1) {
+            popInt(T1);                  // pop newvalue
+            popAddr(T0);                 // pop base 
+            asm.emitSTHX(T1, 0, T0);      // *(base) = newvalue
+          } else {
+            popInt(T1);                  // pop offset
+            popInt(T2);                  // pop newvalue
+            popAddr(T0);                 // pop base 
+            asm.emitSTHX(T2, T1, T0);    // *(base+offset) = newvalue
+          }
+          return true;
+        }
+
+        if(types[0] == VM_TypeReference.Double ||
+          types[0] == VM_TypeReference.Long) {
+          if (types.length == 1) {
+            popLong(T2, T1);                      // pop newvalue low and high
+            popAddr(T0);                          // pop base 
+            if (VM.BuildFor32Addr) {
+              asm.emitSTWX(T2, 0, T0);             // *(base) = newvalue low
+              asm.emitSTWX(T1, BYTES_IN_INT, T0);  // *(base+4) = newvalue high
+            } else {
+              asm.emitSTDX(T1, 0, T0);           // *(base) = newvalue 
+            }
+          } else {
+            popInt(T1);                           // pop offset
+            popLong(T3, T2);                      // pop newvalue low and high
+            popAddr(T0);                          // pop base 
+            if (VM.BuildFor32Addr) {
+              asm.emitSTWX(T3, T1, T0);           // *(base+offset) = newvalue low
+              asm.emitADDI(T1, BYTES_IN_INT, T1); // offset += 4
+              asm.emitSTWX(T2, T1, T0);           // *(base+offset) = newvalue high
+            } else {
+              asm.emitSTDX(T2, T1, T0);           // *(base+offset) = newvalue 
+            }
+          }
+          return true;
+        }
+      }
+    }
+
+    if (methodName == VM_MagicNames.getFramePointer) {
       pushAddr(FP); 
     } else if (methodName == VM_MagicNames.getCallerFramePointer) {
       popAddr(T0);                               // pop  frame pointer of callee frame

@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.pragma.*;
 
 //BEGIN HRM
 import com.ibm.JikesRVM.classloader.VM_Method;
@@ -34,7 +34,7 @@ import com.ibm.JikesRVM.classloader.VM_Method;
  * @date 2/6/2003
  * @modified Matthias Hauswirth (8/8/2003) added support to collect method IDs
  */
-public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
+public class VM_HardwarePerformanceMonitor implements Uninterruptible
 {
   /*
    * My consumer.
@@ -65,7 +65,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   /*
    * Start producing.  Determined by consumer.
    */
-  public  void   activate() throws VM_PragmaLogicallyUninterruptible
+  public  void   activate() throws LogicallyUninterruptiblePragma
   { 
     if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.activate() PID ",vpid);
     active = true;  
@@ -73,7 +73,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   /*
    * Stop producing.  Determined by consumer.
    */
-  public  void passivate()  throws VM_PragmaLogicallyUninterruptible
+  public  void passivate()  throws LogicallyUninterruptiblePragma
   { 
     if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.passivate() PID ",vpid);
     active = false; 
@@ -146,7 +146,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
    * Called from VM_Scheduler.boot() when VM_Processor instances are created, when
    * the RVM is running on a single kernel thread.
    */
-  public void boot() throws VM_PragmaLogicallyUninterruptible
+  public void boot() throws LogicallyUninterruptiblePragma
   {
     if(VM_HardwarePerformanceMonitors.verbose>=2)VM.sysWriteln("VM_HPM.boot() PID ",vpid);
     vp_counters  = new HPM_counters();
@@ -657,7 +657,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
    * Get this virtual processors hardware counters. 
    * @return HPM counters
    */
-  public  HPM_counters vp_counters() throws VM_PragmaLogicallyUninterruptible {
+  public  HPM_counters vp_counters() throws LogicallyUninterruptiblePragma {
     return vp_counters; 
   }
   /*
@@ -670,7 +670,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
    *
    * @param app    application name
    */
-  public void notifyAppStart(String app)  throws VM_PragmaLogicallyUninterruptible
+  public void notifyAppStart(String app)  throws LogicallyUninterruptiblePragma
   {
     start_app_name = app.getBytes();
     notifyAppStart = true;
@@ -680,7 +680,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
    *
    * @param app    application name
    */
-  public void notifyAppComplete(String app)  throws VM_PragmaLogicallyUninterruptible
+  public void notifyAppComplete(String app)  throws LogicallyUninterruptiblePragma
   {
     complete_app_name = app.getBytes();
     notifyAppComplete = true;
@@ -691,7 +691,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
    * @param app    application name
    * @param run    number of run
    */
-  public void notifyAppRunStart(String app, int run)  throws VM_PragmaLogicallyUninterruptible
+  public void notifyAppRunStart(String app, int run)  throws LogicallyUninterruptiblePragma
   {
     start_app_run_name = app.getBytes();
     start_app_run      = run;
@@ -703,7 +703,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
    * @param app    application name
    * @param run    number of run
    */
-  public void notifyAppRunComplete(String app, int run)  throws VM_PragmaLogicallyUninterruptible
+  public void notifyAppRunComplete(String app, int run)  throws LogicallyUninterruptiblePragma
   {
     complete_app_run_name = app.getBytes();
     complete_app_run      = run;
@@ -713,7 +713,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
    * dump statistics.
    * Side effects are to reset n_records.
    */
-  public void dumpStatistics() throws VM_PragmaLogicallyUninterruptible {
+  public void dumpStatistics() throws LogicallyUninterruptiblePragma {
       VM.sysWrite("VM_HPM.dumpStatistics() wrote ",
 		  n_records," records");
       n_records = 0;
@@ -723,7 +723,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   /**
    * Which buffer is current?
    */
-  public String getNameOfCurrentBuffer() throws VM_PragmaLogicallyUninterruptible
+  public String getNameOfCurrentBuffer() throws LogicallyUninterruptiblePragma
   {
     if      (buffer_code == ONE) { return "ONE"; } 
     else if (buffer_code == TWO) { return "TWO"; }
@@ -735,7 +735,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   /**
    * Called from consumer to flush buffer at notifyExit time.
    */
-  public byte[] getCurrentBuffer() throws VM_PragmaLogicallyUninterruptible
+  public byte[] getCurrentBuffer() throws LogicallyUninterruptiblePragma
   {
     if      (buffer_code == ONE) { return buffer_1; } 
     else if (buffer_code == TWO) { return buffer_2; }
@@ -747,7 +747,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   /**
    * Called from consumer to flush buffer at notifyExit time.
    */
-  public int getCurrentIndex() throws VM_PragmaLogicallyUninterruptible
+  public int getCurrentIndex() throws LogicallyUninterruptiblePragma
   {
     if      (buffer_code == ONE) { return index_1; } 
     else if (buffer_code == TWO) { return index_2; } 
@@ -760,7 +760,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   /**
    * Called from consumer after trace file is opened.
    */
-  public void resetCurrent() throws VM_PragmaLogicallyUninterruptible
+  public void resetCurrent() throws LogicallyUninterruptiblePragma
   {
     if      (buffer_code==ONE) { index_1 = 0; }
     else if (buffer_code==TWO) { index_2 = 0; }
@@ -771,7 +771,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   /**
    * Which buffer is full?
    */
-  public String getNameOfFullBuffer() throws VM_PragmaLogicallyUninterruptible
+  public String getNameOfFullBuffer() throws LogicallyUninterruptiblePragma
   {
     if      (buffer_code == ONE) { return "TWO"; } 
     else if (buffer_code == TWO) { return "ONE"; }
@@ -783,7 +783,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   /**
    * Called from consumer to get buffer to consume.
    */
-  public byte[] getFullBuffer() throws VM_PragmaLogicallyUninterruptible
+  public byte[] getFullBuffer() throws LogicallyUninterruptiblePragma
   {
     if      (buffer_code == ONE) { return buffer_2; } 
     else if (buffer_code == TWO) { return buffer_1; }
@@ -795,7 +795,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   /**
    * Called from consumer to get end of full buffer.
    */
-  public int getFullIndex() throws VM_PragmaLogicallyUninterruptible
+  public int getFullIndex() throws LogicallyUninterruptiblePragma
   {
     if      (buffer_code == ONE) { return index_2; } 
     else if (buffer_code == TWO) { return index_1; } 
@@ -808,7 +808,7 @@ public class VM_HardwarePerformanceMonitor implements VM_Uninterruptible
   /*
    * Called from consumer to reset full buffer index.
    */
-  public void resetFull() throws VM_PragmaLogicallyUninterruptible
+  public void resetFull() throws LogicallyUninterruptiblePragma
   {
     if      (buffer_code==ONE) { index_2  = 0; }
     else if (buffer_code==TWO) { index_1  = 0; }

@@ -14,14 +14,8 @@ import org.mmtk.utility.Options;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements unsynchronized (local) elements of a
@@ -50,7 +44,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 public final class MarkSweepLocal extends SegregatedFreeList
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -154,7 +148,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
    * @return The address of the first pre-zeroed cell in the free list
    * for this block, or zero if there are no available cells.
    */
-  protected final VM_Address advanceToBlock(VM_Address block, int sizeClass) {
+  protected final Address advanceToBlock(Address block, int sizeClass) {
     if (LAZY_SWEEP)
       return makeFreeListFromLiveBits(block, sizeClass);
     else
@@ -192,12 +186,12 @@ public final class MarkSweepLocal extends SegregatedFreeList
    */
   private final void sweepBlocks() {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
-      VM_Address block = firstBlock.get(sizeClass);
-      VM_Extent blockSize = VM_Extent.fromInt(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+      Address block = firstBlock.get(sizeClass);
+      Extent blockSize = Extent.fromInt(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
       while (!block.isZero()) {
         /* first check to see if block is completely free and if possible
          * free the entire block */
-        VM_Address next = BlockAllocator.getNextBlock(block);
+        Address next = BlockAllocator.getNextBlock(block);
         if (isEmpty(block, blockSize))
           freeBlock(block, sizeClass);
 	else if (!LAZY_SWEEP)
@@ -248,7 +242,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
   private final int unusedBytes(boolean prepare) {
     int unused = 0;
     for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
-      VM_Address block = (prepare) ? currentBlock.get(sizeClass) : firstBlock.get(sizeClass);
+      Address block = (prepare) ? currentBlock.get(sizeClass) : firstBlock.get(sizeClass);
       while (!block.isZero()) {
         unused += cellSize[sizeClass] * (cellsInBlock[sizeClass] - markedCells(block, sizeClass));
         block = BlockAllocator.getNextBlock(block);
@@ -267,20 +261,20 @@ public final class MarkSweepLocal extends SegregatedFreeList
    * @param block The block whose marked cells are to be counted
    * @return the number of cells marked as live on this block.
    */
-  private final int markedCells(VM_Address block, int sizeClass)
-    throws VM_PragmaInline {
-    VM_Extent cellBytes = VM_Extent.fromInt(cellSize[sizeClass]);
-    VM_Address cellCursor = block.add(blockHeaderSize[sizeClass]);
-    VM_Address nextCellCursor = cellCursor.add(cellBytes);
-    VM_Address markCursor = alignToLiveStride(cellCursor);
-    VM_Extent blockSize = VM_Extent.fromInt(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
-    VM_Address end = block.add(blockSize);
+  private final int markedCells(Address block, int sizeClass)
+    throws InlinePragma {
+    Extent cellBytes = Extent.fromInt(cellSize[sizeClass]);
+    Address cellCursor = block.add(blockHeaderSize[sizeClass]);
+    Address nextCellCursor = cellCursor.add(cellBytes);
+    Address markCursor = alignToLiveStride(cellCursor);
+    Extent blockSize = Extent.fromInt(BlockAllocator.blockSize(blockSizeClass[sizeClass]));
+    Address end = block.add(blockSize);
     boolean marked = false;
     int markCount = 0;
     while (markCursor.LT(end)) {
-      VM_Word mark = getLiveBits(markCursor);
+      Word mark = getLiveBits(markCursor);
       for (int i=0; i < BITS_IN_WORD; i++) {
-        if (!mark.isZero() && !(mark.and(VM_Word.one().lsh(i)).isZero())) {
+        if (!mark.isZero() && !(mark.and(Word.one().lsh(i)).isZero())) {
 	  marked = true;
         }
         markCursor = markCursor.add(BYTES_PER_LIVE_BIT);
@@ -302,10 +296,10 @@ public final class MarkSweepLocal extends SegregatedFreeList
     int totBlocks = 0;
     printFragHeader(prepare, false);
     for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
-      VM_Address block = firstBlock.get(sizeClass);
+      Address block = firstBlock.get(sizeClass);
       int blocks = 0;
       int usedCells = 0;
-      VM_Address current = currentBlock.get(sizeClass);
+      Address current = currentBlock.get(sizeClass);
       boolean getUsed = block.EQ(current) || current.isZero();
       while (!block.isZero()) {
         blocks++;
@@ -460,7 +454,7 @@ public final class MarkSweepLocal extends SegregatedFreeList
     return bytes>>LOG_BYTES_IN_PAGE;
   }
 
-  private final int getUsedBlockBytes(VM_Address block, int sizeClass) {
+  private final int getUsedBlockBytes(Address block, int sizeClass) {
     int bytes = 0;
     while (!block.isZero()) {
       bytes += BlockAllocator.blockSize(blockSizeClass[sizeClass]);

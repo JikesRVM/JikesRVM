@@ -5,6 +5,9 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * A method that has been compiled into machine code by one of our compilers.
  * We implement VM_SynchronizedObject because we need to synchronized 
@@ -109,44 +112,44 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
   /**
    * Return the compiled method id for this compiled method
    */
-  public final int getId() throws VM_PragmaUninterruptible { 
+  public final int getId() throws UninterruptiblePragma { 
     return cmid;           
   }
 
   /**
    * Return the VM_Method associated with this compiled method
    */
-  public final VM_Method getMethod() throws VM_PragmaUninterruptible { 
+  public final VM_Method getMethod() throws UninterruptiblePragma { 
     return method;       
   }
 
   /**
    * Return the machine code for this compiled method
    */
-  public final VM_CodeArray getInstructions() throws VM_PragmaUninterruptible { 
+  public final VM_CodeArray getInstructions() throws UninterruptiblePragma { 
     if (VM.VerifyAssertions) VM._assert((bitField1 & COMPILED) != 0);
     return instructions; 
   }
 
   /**
-   * Return the offset in bytes of the given VM_Address from the start
+   * Return the offset in bytes of the given Address from the start
    * of the machine code array.
-   * @param ip a VM_Address (should be an interior pointer to instructions)
+   * @param ip a Address (should be an interior pointer to instructions)
    * @return offset of addr from start of instructions in bytes
    */
-  public final int getInstructionOffset(VM_Address ip) throws VM_PragmaUninterruptible {
+  public final int getInstructionOffset(Address ip) throws UninterruptiblePragma {
     if (getCompilerType() == JNI || getCompilerType() == TRAP) {
       return 0;
     } else {
       VM_CodeArray code = getInstructions();
-      VM_Offset offset = ip.diff(VM_Magic.objectAsAddress(code));
+      Offset offset = ip.diff(VM_Magic.objectAsAddress(code));
       if (VM.VerifyAssertions) {
         int max = (code.length()+1)<< VM_Constants.LG_INSTRUCTION_WIDTH;
-        if (!offset.toWord().LT(VM_Word.fromIntZeroExtend(max))) {
+        if (!offset.toWord().LT(Word.fromIntZeroExtend(max))) {
           VM.sysWrite(method);
           VM.sysWriteln();
           VM.sysWriteln(offset);
-          VM.sysWriteln(VM_Offset.fromInt(max));
+          VM.sysWriteln(Offset.fromInt(max));
           VM.sysWriteln(ip);
           VM.sysWriteln(VM_Magic.objectAsAddress(code));
           VM._assert(false);
@@ -177,7 +180,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
   /**
    * Mark the compiled method as obsolete (ie a candidate for eventual GC)
    */
-  public final void setObsolete(boolean sense) throws VM_PragmaUninterruptible {
+  public final void setObsolete(boolean sense) throws UninterruptiblePragma {
     if (sense) {
       bitField1 |= OBSOLETE;
     } else {
@@ -190,7 +193,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * Mark the compiled method as outdated (ie requires OSR),
    * the flag is set in VM_AnalyticModel
    */
-  public final void setOutdated() throws VM_PragmaUninterruptible {
+  public final void setOutdated() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(this.getCompilerType() == BASELINE);
     bitField1 |= OUTDATED;
   }
@@ -199,7 +202,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * Check if the compiled method is marked as outdated,
    * called by VM_Thread
    */
-  public final boolean isOutdated() throws VM_PragmaUninterruptible {
+  public final boolean isOutdated() throws UninterruptiblePragma {
     return (bitField1 & OUTDATED) != 0;
   }
   //-#endif
@@ -207,21 +210,21 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
   /**
    * Has compilation completed?
    */
-  public final boolean isCompiled() throws VM_PragmaUninterruptible {
+  public final boolean isCompiled() throws UninterruptiblePragma {
     return (bitField1 & COMPILED) != 0;
   }
 
   /**
    * Is the compiled code invalid?
    */
-  public final boolean isInvalid() throws VM_PragmaUninterruptible {
+  public final boolean isInvalid() throws UninterruptiblePragma {
     return (bitField1 & INVALID) != 0;
   }
 
   /**
    * Is the compiled code obsolete?
    */
-  public final boolean isObsolete() throws VM_PragmaUninterruptible { 
+  public final boolean isObsolete() throws UninterruptiblePragma { 
     return (bitField1 & OBSOLETE) != 0;
   }
 
@@ -233,9 +236,9 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * @return one of TRAP, BASELINE, OPT, or JNI.
    * Note: use this instead of "instanceof" when gc is disabled (ie. during gc)
    */ 
-  public abstract int getCompilerType() throws VM_PragmaUninterruptible;
+  public abstract int getCompilerType() throws UninterruptiblePragma;
 
-  public static final String compilerTypeToString (int compilerType) throws VM_PragmaUninterruptible {
+  public static final String compilerTypeToString (int compilerType) throws UninterruptiblePragma {
     switch (compilerType) {
       case TRAP: return "TRAP";
       case BASELINE: return "BASELINE";
@@ -254,7 +257,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * Get handler to deal with stack unwinding and exception delivery for this 
    * compiled method's stackframes.
    */ 
-  public abstract VM_ExceptionDeliverer getExceptionDeliverer() throws VM_PragmaUninterruptible;
+  public abstract VM_ExceptionDeliverer getExceptionDeliverer() throws UninterruptiblePragma;
    
   /**
    * Find "catch" block for a machine instruction of 
@@ -315,7 +318,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
    * <ul>
    */
   public abstract void getDynamicLink(VM_DynamicLink dynamicLink, 
-                                      int instructionOffset) throws VM_PragmaUninterruptible;
+                                      int instructionOffset) throws UninterruptiblePragma;
 
    /**
     * Find source line number corresponding to one of this method's 
@@ -338,7 +341,7 @@ public abstract class VM_CompiledMethod implements VM_SynchronizedObject, VM_Siz
     * instruction pointer
     * to point to the "call site" or "exception site".
     */
-  public int findLineNumberForInstruction(int instructionOffset) throws VM_PragmaUninterruptible {
+  public int findLineNumberForInstruction(int instructionOffset) throws UninterruptiblePragma {
     return 0;
   }
 

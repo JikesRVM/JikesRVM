@@ -7,6 +7,9 @@ package com.ibm.JikesRVM.jni;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * This class compiles the prolog and epilog for all code that makes
  * the transition between Java and Native C
@@ -49,7 +52,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
   public static synchronized VM_CompiledMethod compile (VM_NativeMethod method) {
     VM_JNICompiledMethod cm = (VM_JNICompiledMethod)VM_CompiledMethods.createCompiledMethod(method, VM_CompiledMethod.JNI);
     VM_Assembler asm     = new VM_Assembler(100);   // some size for the instruction array
-    VM_Address nativeIP         = method.getNativeIP();
+    Address nativeIP         = method.getNativeIP();
     // recompute some constants
     int parameterWords   = method.getParameterWords();
 

@@ -6,7 +6,8 @@
 package org.mmtk.utility.statistics;
 
 import org.mmtk.vm.VM_Interface;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements a simple counter of events of different sizes
@@ -21,7 +22,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  * $Id$
  */
-public class SizeCounter implements VM_Uninterruptible {
+public class SizeCounter implements Uninterruptible {
 
   /****************************************************************************
    *

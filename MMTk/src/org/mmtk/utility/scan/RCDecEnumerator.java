@@ -7,9 +7,8 @@ package org.mmtk.utility.scan;
 
 import org.mmtk.plan.Plan;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * A pointer enumeration class.  This class is used by the reference
@@ -19,7 +18,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $date: $
  */
-public class RCDecEnumerator extends Enumerate implements VM_Uninterruptible {
+public class RCDecEnumerator extends Enumerate implements Uninterruptible {
   private Plan plan;
 
   /**
@@ -37,8 +36,8 @@ public class RCDecEnumerator extends Enumerate implements VM_Uninterruptible {
    *
    * @param location The address of the field being enumerated.
    */
-  public void enumeratePointerLocation(VM_Address location) 
-      throws VM_PragmaInline {
+  public void enumeratePointerLocation(Address location) 
+      throws InlinePragma {
     plan.enumerateDecrementPointerLocation(location);
   }
 }

@@ -6,6 +6,7 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
+import org.vmmagic.unboxed.*;
 
 /**
  * Constants for the JavaHeader. 
@@ -82,10 +83,10 @@ public interface VM_JavaHeaderConstants extends VM_SizeConstants {
   /*
    * Stuff for address based hashing
    */
-  static final VM_Word HASH_STATE_UNHASHED         = VM_Word.zero();
-  static final VM_Word HASH_STATE_HASHED           = VM_Word.one().lsh(8); //0x00000100
-  static final VM_Word HASH_STATE_HASHED_AND_MOVED = VM_Word.fromIntZeroExtend(3).lsh(8); //0x0000300
-  static final VM_Word HASH_STATE_MASK             = HASH_STATE_UNHASHED.or(HASH_STATE_HASHED).or(HASH_STATE_HASHED_AND_MOVED);
+  static final Word HASH_STATE_UNHASHED         = Word.zero();
+  static final Word HASH_STATE_HASHED           = Word.one().lsh(8); //0x00000100
+  static final Word HASH_STATE_HASHED_AND_MOVED = Word.fromIntZeroExtend(3).lsh(8); //0x0000300
+  static final Word HASH_STATE_MASK             = HASH_STATE_UNHASHED.or(HASH_STATE_HASHED).or(HASH_STATE_HASHED_AND_MOVED);
   
   static final int HASHCODE_BYTES              = BYTES_IN_INT;
   static final int HASHCODE_OFFSET = GC_HEADER_OFFSET - HASHCODE_BYTES; 

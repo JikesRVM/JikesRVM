@@ -117,7 +117,7 @@ $$$$ END LOOP
    * @param arg a String to try to process as an option command
    * @return true if successful, false otherwise
    */
-  public boolean processAsOption(String prefix, String arg)  throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
+  public boolean processAsOption(String prefix, String arg)  throws org.vmmagic.pragma.NoOptCompilePragma {
 
     // First handle the "option commands"
     if (arg.equals("help")) {
@@ -315,7 +315,7 @@ $$$$ END LOOP
   }    
 
   // print the options values
-  public String toString() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
+  public String toString() throws org.vmmagic.pragma.NoOptCompilePragma {
     StringBuffer result = new StringBuffer();
 
     // Begin generated option value printing 
@@ -373,7 +373,7 @@ $$$$ END LOOP
     //End generated toString()
   }
   // return a String value of this options object
-  public void printOptions() throws com.ibm.JikesRVM.VM_PragmaNoOptCompile {
+  public void printOptions() throws org.vmmagic.pragma.NoOptCompilePragma {
     printOptionsHeader();
 
     // Begin generated option value printing 

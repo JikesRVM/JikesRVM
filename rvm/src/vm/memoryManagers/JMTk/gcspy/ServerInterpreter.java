@@ -14,9 +14,8 @@ import org.mmtk.utility.Log;
 
 import com.ibm.JikesRVM.VM_SysCall;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements the GCspy server. 
@@ -27,12 +26,12 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 public class ServerInterpreter 
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
   public final static String Id = "$Id$";
   
 //-#if RVM_WITH_GCSPY
   private static final int MAX_LEN = 64 * 1024;	// Buffer size
-  private static VM_Address server_;		// address of the c server, gcspy_main_server_t server
+  private static Address server_;		// address of the c server, gcspy_main_server_t server
 
   private static final boolean DEBUG_ = false;
   
@@ -54,7 +53,7 @@ public class ServerInterpreter
     if (DEBUG_) {
       Log.writeln("-- Initialising main server on port ",port);
     }
-    VM_Address tmp = Util.getBytes(name);
+    Address tmp = Util.getBytes(name);
     server_ = VM_SysCall.gcspyMainServerInit(port, MAX_LEN, tmp, verbose ? 1 : 0);
     if (DEBUG_) {
       Log.writeln("gcspy_main_server_t address = ");
@@ -81,7 +80,7 @@ public class ServerInterpreter
    *
    * @return the address of the server
    */
-  static VM_Address getServerAddress() {
+  static Address getServerAddress() {
     return server_;
   }
 
@@ -96,7 +95,7 @@ public class ServerInterpreter
       Log.write("Starting GCSpy server, wait=");
       Log.writeln(wait);
     }
-    VM_Address serverOuterLoop 
+    Address serverOuterLoop 
       = VM_SysCall.gcspyMainServerOuterLoop();
     VM_SysCall.gcspyStartserver(server_, wait?1:0, serverOuterLoop);
   }

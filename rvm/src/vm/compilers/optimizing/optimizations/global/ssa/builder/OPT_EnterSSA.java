@@ -1097,7 +1097,7 @@ outer: for (Iterator i = scalarPhis.iterator(); i.hasNext(); ) {
       } else {
         VM_TypeReference meet = OPT_ClassLoaderProxy.findCommonSuperclass(result,t);
         if (meet == null) {
-          // TODO: This horrific kludge should go away once we get rid of VM_Address.toInt()
+          // TODO: This horrific kludge should go away once we get rid of Address.toInt()
           if ((result.isIntLikeType() && (t.isReferenceType() || t.isWordType())) ||
               ((result.isReferenceType() || result.isWordType()) && t.isIntLikeType())) {
             meet = VM_TypeReference.Int;

@@ -4,6 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 /**
  * Machine specific helper functions for dynamic linking.
  *
@@ -11,7 +14,7 @@ package com.ibm.JikesRVM;
  * @author Derek Lieber
  * @date 17 Sep 1999  
  */
-class VM_DynamicLinkerHelper implements VM_Constants, VM_Uninterruptible {
+class VM_DynamicLinkerHelper implements VM_Constants, Uninterruptible {
 
   /**
    * Reach up two stack frames into a frame that is compiled
@@ -19,14 +22,14 @@ class VM_DynamicLinkerHelper implements VM_Constants, VM_Uninterruptible {
    * the receiver object of the invoke (ie the first param).
    * NOTE: assumes that caller has disabled GC.
    */
-  static Object getReceiverObject() throws VM_PragmaNoInline {
+  static Object getReceiverObject() throws NoInlinePragma {
     // reach into register save area and fetch "this" parameter
-    VM_Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
+    Address callingFrame = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);
     callingFrame = VM_Magic.getCallerFramePointer(callingFrame);
-    VM_Address location = callingFrame.sub((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE + 
+    Address location = callingFrame.sub((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE + 
                                            (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1) * BYTES_IN_ADDRESS); 
     
-    return VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(location));
+    return VM_Magic.addressAsObject(location.loadAddress());
   }
 }

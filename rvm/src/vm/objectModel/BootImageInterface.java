@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.unboxed.*;
+ 
 /**
  * Interface of BootImage that is used to define object model classes.
  *
@@ -51,7 +53,7 @@ public interface BootImageInterface {
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public void setAddressWord(int offset, VM_Word value);
+  public void setAddressWord(int offset, Word value);
 
   /**
    * Fill in 4 bytes of bootimage, as null object reference.

@@ -31,8 +31,11 @@ import com.ibm.JikesRVM.classloader.VM_MemberReference;
 import com.ibm.JikesRVM.classloader.VM_Method;
 import com.ibm.JikesRVM.classloader.VM_Type;
 
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_CommandLineArgs;
 import com.ibm.JikesRVM.VM_CompiledMethod;
@@ -40,23 +43,13 @@ import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_DynamicLibrary;
 import com.ibm.JikesRVM.VM_Entrypoints;
-import com.ibm.JikesRVM.VM_Extent;
 import com.ibm.JikesRVM.VM_JavaHeader;
-import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Memory;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Time;
 import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_Word;
 
 /**
  * The interface that the Jikes research virtual machine presents to
@@ -67,7 +60,7 @@ import com.ibm.JikesRVM.VM_Word;
  * @date $Date$
  */  
 
-public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible {
+public class VM_Interface implements VM_Constants, Constants, Uninterruptible {
 
   /***********************************************************************
    *
@@ -77,11 +70,11 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   /**
    * The address of the start of the boot image.
    */
-  public static final VM_Address bootImageAddress = 
+  public static final Address bootImageAddress = 
     //-#if RVM_FOR_32_ADDR
-    VM_Address.fromIntZeroExtend
+    Address.fromIntZeroExtend
     //-#elif RVM_FOR_64_ADDR
-    VM_Address.fromLong
+    Address.fromLong
     //-#endif
     (
      //-#value BOOTIMAGE_LOAD_ADDRESS
@@ -90,11 +83,11 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   /**
    * The address in virtual memory that is the highest that can be mapped.
    */
-  public static VM_Address MAXIMUM_MAPPABLE = 
+  public static Address MAXIMUM_MAPPABLE = 
     //-#if RVM_FOR_32_ADDR
-    VM_Address.fromIntZeroExtend
+    Address.fromIntZeroExtend
     //-#elif RVM_FOR_64_ADDR
-    VM_Address.fromLong
+    Address.fromLong
     //-#endif
     (
      //-#value MAXIMUM_MAPPABLE_ADDRESS
@@ -190,7 +183,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *
    * This is called from MM_Interface.
    */
-  public static final void init() throws VM_PragmaInterruptible {
+  public static final void init() throws InterruptiblePragma {
     collectorThreadAtom = VM_Atom.findOrCreateAsciiAtom(
       "Lcom/ibm/JikesRVM/memoryManagers/mmInterface/VM_CollectorThread;");
     runAtom = VM_Atom.findOrCreateAsciiAtom("run");
@@ -209,7 +202,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *
    * @return the address of the start of the boot image
    */
-  public static VM_Address bootImageStart() throws VM_PragmaUninterruptible {
+  public static Address bootImageStart() throws UninterruptiblePragma {
     return  VM_BootRecord.the_boot_record.bootImageStart;
   }
 
@@ -218,7 +211,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *
    * @return the address of the end of the boot image
    */
-  public static VM_Address bootImageEnd() throws VM_PragmaUninterruptible {
+  public static Address bootImageEnd() throws UninterruptiblePragma {
     return  VM_BootRecord.the_boot_record.bootImageEnd;
   }
 
@@ -234,12 +227,12 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param size the size, in bytes, of the area to be mapped
    * @return 0 if successful, otherwise the system errno
    */
-  public static int mmap(VM_Address start, int size) {
-    VM_Address result = VM_Memory.mmap(start, VM_Extent.fromIntZeroExtend(size),
+  public static int mmap(Address start, int size) {
+    Address result = VM_Memory.mmap(start, Extent.fromIntZeroExtend(size),
                                        VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC, 
                                        VM_Memory.MAP_PRIVATE | VM_Memory.MAP_FIXED | VM_Memory.MAP_ANONYMOUS);
     if (result.EQ(start)) return 0;
-    if (result.GT(VM_Address.fromIntZeroExtend(127))) {
+    if (result.GT(Address.fromIntZeroExtend(127))) {
       VM.sysWrite("mmap with MAP_FIXED on ", start);
       VM.sysWriteln(" returned some other address", result);
       VM.sysFail("mmap with MAP_FIXED has unexpected behavior");
@@ -255,8 +248,8 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return <code>true</code> if successful, otherwise
    * <code>false</code>
    */
-  public static boolean mprotect(VM_Address start, int size) {
-    return VM_Memory.mprotect(start, VM_Extent.fromIntZeroExtend(size),
+  public static boolean mprotect(Address start, int size) {
+    return VM_Memory.mprotect(start, Extent.fromIntZeroExtend(size),
                               VM_Memory.PROT_NONE);
   }
 
@@ -268,8 +261,8 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return <code>true</code> if successful, otherwise
    * <code>false</code>
    */
-  public static boolean munprotect(VM_Address start, int size) {
-    return VM_Memory.mprotect(start, VM_Extent.fromIntZeroExtend(size),
+  public static boolean munprotect(Address start, int size) {
+    return VM_Memory.mprotect(start, Extent.fromIntZeroExtend(size),
                               VM_Memory.PROT_READ | VM_Memory.PROT_WRITE | VM_Memory.PROT_EXEC);
   }
 
@@ -279,7 +272,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param len Length in bytes of range to zero
    * Returned: nothing
    */
-  public static void zero(VM_Address start, VM_Extent len) {
+  public static void zero(Address start, Extent len) {
     VM_Memory.zero(start,len);
   }
 
@@ -288,7 +281,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param start Start of address range (must be a page address)
    * @param len Length in bytes of range (must be multiple of page size)
    */
-  public static void zeroPages(VM_Address start, int len) {
+  public static void zeroPages(Address start, int len) {
       /* AJG: Add assertions to check conditions documented above. */
     VM_Memory.zeroPages(start,len);
   }
@@ -303,7 +296,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param afterBytes the number of bytes after the address to be
    * included
    */
-  public static void dumpMemory(VM_Address start, int beforeBytes,
+  public static void dumpMemory(Address start, int beforeBytes,
                                 int afterBytes) {
     VM_Memory.dumpMemory(start,beforeBytes,afterBytes);
   }
@@ -323,7 +316,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param o the address of the object
    * @param idx the index of the bit
    */
-  public static boolean testAvailableBit(VM_Address o, int idx) {
+  public static boolean testAvailableBit(Address o, int idx) {
     return VM_ObjectModel.testAvailableBit(VM_Magic.addressAsObject(o),idx);
   }
 
@@ -335,7 +328,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param flag <code>true</code> to set the bit to 1,
    * <code>false</code> to set it to 0
    */
-  public static void setAvailableBit(VM_Address o, int idx, boolean flag) {
+  public static void setAvailableBit(Address o, int idx, boolean flag) {
     VM_ObjectModel.setAvailableBit(VM_Magic.addressAsObject(o),idx,flag);
   }
 
@@ -352,8 +345,8 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return <code>true</code> if the bits were set,
    * <code>false</code> otherwise
    */
-  public static boolean attemptAvailableBits(VM_Address o,
-					     VM_Word oldVal, VM_Word newVal) {
+  public static boolean attemptAvailableBits(Address o,
+					     Word oldVal, Word newVal) {
     return VM_ObjectModel.attemptAvailableBits(VM_Magic.addressAsObject(o), oldVal, newVal);
   }
 
@@ -364,7 +357,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param o the address of the object
    * @return the value of the bits
    */
-  public static VM_Word prepareAvailableBits(VM_Address o) {
+  public static Word prepareAvailableBits(Address o) {
     return VM_ObjectModel.prepareAvailableBits(VM_Magic.addressAsObject(o));
   }
 
@@ -374,7 +367,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param o the address of the object
    * @param val the new value of the bits
    */
-  public static void writeAvailableBitsWord(VM_Address o, VM_Word val) {
+  public static void writeAvailableBitsWord(Address o, Word val) {
     VM_ObjectModel.writeAvailableBitsWord(VM_Magic.addressAsObject(o),val);
   }
 
@@ -384,7 +377,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param o the address of the object
    * @return the value of the bits
    */
-  public static VM_Word readAvailableBitsWord(VM_Address o) {
+  public static Word readAvailableBitsWord(Address o) {
     return VM_ObjectModel.readAvailableBitsWord(o);
   }
 
@@ -407,8 +400,8 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param object the reference address of the object
    * @return the lowest address of the object
    */
-  public static VM_Address objectStartRef(VM_Address object)
-    throws VM_PragmaInline {
+  public static Address objectStartRef(Address object)
+    throws InlinePragma {
     return VM_ObjectModel.objectStartRef(object);
   }
 
@@ -419,7 +412,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param obj the reference address of the object
    * @return an address inside the object
    */
-  public static VM_Address refToAddress(VM_Address obj) {
+  public static Address refToAddress(Address obj) {
     return VM_ObjectModel.getPointerInMemoryRegion(obj);
   }
 
@@ -430,8 +423,9 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return <code>true</code> if a reference of the type is
    * inherently acyclic
    */
-  public static boolean isAcyclic(Object[] tib) throws VM_PragmaInline {
+  public static boolean isAcyclic(Address typeRef) throws InlinePragma {
     Object type;
+    Object[] tib = VM_Magic.addressAsObjectArray(typeRef);
     if (true) {  // necessary to avoid an odd compiler bug
       type = VM_Magic.getObjectAtOffset(tib, TIB_TYPE_INDEX);
     } else {
@@ -452,7 +446,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * <code>TRIGGER_REASONS - 1</code>.
    */
   public static final void triggerCollection(int why)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
     Plan.collectionInitiated();
 
@@ -488,7 +482,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * <code>TRIGGER_REASONS - 1</code>.
    */
   public static final void triggerCollectionNow(int why) 
-    throws VM_PragmaLogicallyUninterruptible {
+    throws LogicallyUninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
     Plan.collectionInitiated();
 
@@ -523,7 +517,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * exhaustion first.
    */
   public static final void triggerAsyncCollection()
-    throws VM_PragmaUninterruptible {
+    throws UninterruptiblePragma {
     checkForExhaustion(RESOURCE_GC_TRIGGER, true);
     Plan.collectionInitiated();
     if (Options.verbose >= 1) VM.sysWrite("[Async GC]");
@@ -542,7 +536,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *
    * @return True if GC is not in progress.
    */
- public static final boolean noThreadsInGC() throws VM_PragmaUninterruptible {
+ public static final boolean noThreadsInGC() throws UninterruptiblePragma {
    return VM_CollectorThread.noThreadsInGC(); 
  }
 
@@ -554,7 +548,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param async True if this collection was asynchronously triggered.
    */
   private static final void checkForExhaustion(int why, boolean async)
-    throws VM_PragmaLogicallyUninterruptible {
+    throws LogicallyUninterruptiblePragma {
     double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
     
     //    if (Plan.totalMemory() - Plan.reservedMemory() < 64<<10) {
@@ -594,7 +588,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * has been called, and before mutators are allowed to run.
    */
   public static void scheduleFinalizerThread ()
-    throws VM_PragmaUninterruptible {
+    throws UninterruptiblePragma {
 
     int finalizedCount = Finalizer.countToBeFinalized();
     boolean alreadyScheduled = VM_Scheduler.finalizerQueue.isEmpty();
@@ -644,10 +638,10 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
     // into the threads saved context regs, which is where the stack scan starts.
     //
     VM_Thread t = vp.activeThread;
-    t.contextRegisters.setInnermost(VM_Address.zero(), t.jniEnv.topJavaFP());
+    t.contextRegisters.setInnermost(Address.zero(), t.jniEnv.topJavaFP());
   }
 
-  public static int getArrayLength(VM_Address object) throws VM_PragmaInline {
+  public static int getArrayLength(Address object) throws InlinePragma {
     Object obj = VM_Magic.addressAsObject(object);
     return VM_Magic.getArrayLength(obj);
   }
@@ -662,10 +656,10 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
     VM_Processor vp = (VM_Processor) p;
     if (VM.VerifyAssertions) VM._assert(vp == VM_Processor.getCurrentProcessor());
     VM_Thread t = VM_Thread.getCurrentThread();
-    VM_Address fp = VM_Magic.getFramePointer();
+    Address fp = VM_Magic.getFramePointer();
     while (true) {
-      VM_Address caller_ip = VM_Magic.getReturnAddress(fp);
-      VM_Address caller_fp = VM_Magic.getCallerFramePointer(fp);
+      Address caller_ip = VM_Magic.getReturnAddress(fp);
+      Address caller_fp = VM_Magic.getCallerFramePointer(fp);
       if (VM_Magic.getCallerFramePointer(caller_fp).EQ(STACKFRAME_SENTINEL_FP)) 
         VM.sysFail("prepareParticipating: Could not locate VM_CollectorThread.run");
       int compiledMethodId = VM_Magic.getCompiledMethodID(caller_fp);
@@ -693,8 +687,8 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param object The object whose type is required
    * @return The type object for <code>object</code>
    */
-  public static MMType getObjectType(VM_Address object) 
-    throws VM_PragmaInline {
+  public static MMType getObjectType(Address object) 
+    throws InlinePragma {
     Object obj = VM_Magic.addressAsObject(object);
     Object[] tib = VM_ObjectModel.getTIB(obj);
     if (VM.VerifyAssertions) {
@@ -722,8 +716,8 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *
    * @param object The object to be scanned.
    */
-  public static void scanObject(VM_Address object) 
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static void scanObject(Address object) 
+    throws UninterruptiblePragma, InlinePragma {
     // Never reached
     if (VM.VerifyAssertions) VM._assert(false);
   }
@@ -737,8 +731,8 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param enum the Enumerate object through which the callback
    * is made
    */
-  public static void enumeratePointers(VM_Address object, Enumerate enum) 
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static void enumeratePointers(Address object, Enumerate enum) 
+    throws UninterruptiblePragma, InlinePragma {
     // Never reached
     if (VM.VerifyAssertions) VM._assert(false);
   }
@@ -801,7 +795,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * is made
    */
   private static void enumeratePointers(Object object, Enumerate enum) 
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    throws UninterruptiblePragma, InlinePragma {
     Scan.enumeratePointers(VM_Magic.objectAsAddress(object), enum);
   }
 
@@ -863,8 +857,8 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param from the address of the object to be copied
    * @return the address of the new object
    */
-  public static VM_Address copy(VM_Address from)
-    throws VM_PragmaInline {
+  public static Address copy(Address from)
+    throws InlinePragma {
     Object[] tib = VM_ObjectModel.getTIB(from);
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
     
@@ -874,36 +868,36 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
       return copyArray(from, tib, type.asArray());
   }
 
-  private static VM_Address copyScalar(VM_Address from, Object[] tib,
+  private static Address copyScalar(Address from, Object[] tib,
 				       VM_Class type)
-    throws VM_PragmaInline {
+    throws InlinePragma {
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type);
     int align = VM_ObjectModel.getAlignment(type, from);
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
     Plan plan = getPlan();
-    VM_Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
+    Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
 						   from);
     Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
-    VM_Address to = VM_Magic.objectAsAddress(toObj);
-    plan.postCopy(to, tib, bytes);
+    Address to = VM_Magic.objectAsAddress(toObj);
+    plan.postCopy(to, VM_Magic.objectAsAddress(tib), bytes);
     MMType mmType = (MMType) type.getMMType();
     mmType.profileCopy(bytes);
     return to;
   }
 
-  private static VM_Address copyArray(VM_Address from, Object[] tib,
+  private static Address copyArray(Address from, Object[] tib,
 				      VM_Array type)
-    throws VM_PragmaInline {
+    throws InlinePragma {
     int elements = VM_Magic.getArrayLength(from);
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type, elements);
     int align = VM_ObjectModel.getAlignment(type, from);
     int offset = VM_ObjectModel.getOffsetForAlignment(type, from);
     Plan plan = getPlan();
-    VM_Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
+    Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
 						   from);
     Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
-    VM_Address to = VM_Magic.objectAsAddress(toObj);
-    plan.postCopy(to, tib, bytes);
+    Address to = VM_Magic.objectAsAddress(toObj);
+    plan.postCopy(to, VM_Magic.objectAsAddress(tib), bytes);
     if (type == VM_Type.CodeArrayType) {
       // sync all moved code arrays to get icache and dcache in sync
       // immediately.
@@ -926,7 +920,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return the initialzed array object
    */
   public static Object cloneArray(Object [] array, int allocator, int length)
-      throws VM_PragmaUninterruptible {
+      throws UninterruptiblePragma {
     return MM_Interface.cloneArray(array, allocator, length);
   }
 
@@ -942,8 +936,8 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param start the address of the start of the heap
    * @param end the address of the end of the heap
    */
-  public static void setHeapRange(int id, VM_Address start, VM_Address end)
-    throws VM_PragmaUninterruptible {
+  public static void setHeapRange(int id, Address start, Address end)
+    throws UninterruptiblePragma {
     VM_BootRecord.the_boot_record.setHeapRange(id, start, end);
   }
 
@@ -954,7 +948,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param proc the processor
    * @return the plan for the processor
    */
-  static Plan getPlanFromProcessor(VM_Processor proc) throws VM_PragmaInline {
+  static Plan getPlanFromProcessor(VM_Processor proc) throws InlinePragma {
     //-#if RVM_WITH_JMTK_INLINE_PLAN
     return proc;
     //-#else
@@ -967,7 +961,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *
    * @return the plan for the current processor
    */
-  public static Plan getPlan() throws VM_PragmaInline {
+  public static Plan getPlan() throws InlinePragma {
     return getPlanFromProcessor(VM_Processor.getCurrentProcessor());
   }
 
@@ -1012,7 +1006,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param obj The object whose size is to be queried
    * @return The size required to copy <code>obj</code>
    */
-  public static int getSizeWhenCopied(VM_Address obj) {
+  public static int getSizeWhenCopied(Address obj) {
     return VM_ObjectModel.bytesRequiredWhenCopied(obj);
   }
     
@@ -1022,21 +1016,21 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param obj The object whose size is to be queried
    * @return The size of <code>obj</code>
    */
-  public static int getCurrentSize(VM_Address obj) {
+  public static int getCurrentSize(Address obj) {
     return VM_ObjectModel.bytesUsed(obj);
   }
 
   /**
    * Return the next object in the heap under contiguous allocation
    */
-  public static VM_Address getNextObject(VM_Address obj) {
+  public static Address getNextObject(Address obj) {
     return VM_ObjectModel.getNextObject(obj);
   }
 
   /**
    * Return an object reference from knowledge of the low order word
    */
-  public static VM_Address getObjectFromStartAddress(VM_Address start) {
+  public static Address getObjectFromStartAddress(Address start) {
     return VM_ObjectModel.getObjectFromStartAddress(start);
   }
   
@@ -1051,7 +1045,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return The number of collections that have occured.
    */
   public static final int getCollectionCount()
-    throws VM_PragmaUninterruptible {
+    throws UninterruptiblePragma {
     return MM_Interface.getCollectionCount();
   }
 
@@ -1065,14 +1059,30 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *
    * @param cond the condition to be checked
    */
-  public static void _assert(boolean cond) throws VM_PragmaInline {
+  public static void _assert(boolean cond) throws InlinePragma {
     VM._assert(cond);
   }
 
 
-  public static void _assert(boolean cond, String s) throws VM_PragmaInline {
+  public static void _assert(boolean cond, String s) throws InlinePragma {
     if (!cond) VM.sysWriteln(s);
     VM._assert(cond);
+  }
+
+  public static void sync() throws InlinePragma {
+    VM_Magic.sync();
+  }
+
+  public static void isync() throws InlinePragma {
+    VM_Magic.isync();
+  }
+
+  public static Object addressAsObject(Address address) throws InlinePragma {
+    return VM_Magic.addressAsObject(address);
+  }
+
+  public static Address objectAsAddress(Object object) throws InlinePragma {
+    return VM_Magic.objectAsAddress(object);
   }
 
   /**
@@ -1097,7 +1107,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    */
   public static void sysFail(String message) { VM.sysFail(message); }
 
-  public static void sysExit(int rc) throws VM_PragmaUninterruptible {
+  public static void sysExit(int rc) throws UninterruptiblePragma {
     VM.sysExit(rc);
   }
 
@@ -1117,7 +1127,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    */
   public static int copyStringToChars(String src, char [] dst,
                                       int dstBegin, int dstEnd)
-    throws VM_PragmaLogicallyUninterruptible {
+    throws LogicallyUninterruptiblePragma {
     if (runningVM())
       VM_Processor.getCurrentProcessor().disableThreadSwitching();
     int len = src.length();
@@ -1157,10 +1167,10 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param locationMetadata An index of the FieldReference (metaDataB)
    * @param mode The context in which the write is occuring
    */
-  public static void performWriteInBarrier(VM_Address ref, VM_Address slot, 
-                                           VM_Address target, int offset, 
+  public static void performWriteInBarrier(Address ref, Address slot, 
+                                           Address target, int offset, 
                                            int locationMetadata, int mode) 
-    throws VM_PragmaInline {
+    throws InlinePragma {
     Object obj = VM_Magic.addressAsObject(ref);
     VM_Magic.setObjectAtOffset(obj, offset, target, locationMetadata);  
   }
@@ -1177,10 +1187,10 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param mode The context in which the write is occuring
    * @return The value that was replaced by the write.
    */
-  public static VM_Address performWriteInBarrierAtomic(VM_Address ref, 
-                                    VM_Address slot, VM_Address target, 
+  public static Address performWriteInBarrierAtomic(Address ref, 
+                                    Address slot, Address target, 
                                     int offset, int locationMetadata, int mode)
-    throws VM_PragmaInline {                                
+    throws InlinePragma {                                
     Object obj = VM_Magic.addressAsObject(ref);
     Object newObject = VM_Magic.addressAsObject(target);
     Object oldObject;
@@ -1265,7 +1275,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param ref address of the object
    * @return byte array with the type descriptor
    */
-  public static byte [] getTypeDescriptor(VM_Address ref) {
+  public static byte [] getTypeDescriptor(Address ref) {
     VM_Atom descriptor = VM_Magic.getObjectType(ref).getDescriptor();
     return descriptor.toByteArray();
   }
@@ -1274,7 +1284,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * Rendezvous with all other processors, returning the rank
    * (that is, the order this processor arrived at the barrier).
    */
-  public static int rendezvous(int where) throws VM_PragmaUninterruptible {
+  public static int rendezvous(int where) throws UninterruptiblePragma {
     return VM_CollectorThread.gcBarrier.rendezvous(where);
   }
 
@@ -1282,13 +1292,13 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * Primitive parsing facilities for strings
    */
   public static int primitiveParseInt(String value) 
-    throws VM_PragmaInterruptible
+    throws InterruptiblePragma
   {
     return VM_CommandLineArgs.primitiveParseInt(value);
   }
 
   public static float primitiveParseFloat(String value) 
-      throws VM_PragmaInterruptible 
+      throws InterruptiblePragma 
   {
       return VM_CommandLineArgs.primitiveParseFloat(value);
   }
@@ -1297,7 +1307,7 @@ public class VM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * Throw an out of memory exception.
    */
   public static void failWithOutOfMemoryError()
-    throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
+    throws LogicallyUninterruptiblePragma, NoInlinePragma {
     throw new OutOfMemoryError();
   }
 

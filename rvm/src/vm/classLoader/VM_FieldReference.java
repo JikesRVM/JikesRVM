@@ -4,9 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM.classloader;
 
-import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.pragma.*;
 
 /**
  * A class to represent the reference in a class file to a field.
@@ -40,7 +39,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   /**
    * @return the type of the field's value
    */
-  public final VM_TypeReference getFieldContentsType() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference getFieldContentsType() throws UninterruptiblePragma {
     return fieldContentsType;
   }
   
@@ -54,7 +53,7 @@ public final class VM_FieldReference extends VM_MemberReference implements VM_Si
   /**
    * Get size of the field's value, in bytes.
    */ 
-  public final int getSize() throws VM_PragmaUninterruptible {
+  public final int getSize() throws UninterruptiblePragma {
     return fieldContentsType.getSize();
   }
 

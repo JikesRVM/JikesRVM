@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.*;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * OSR_OptExecStateExtractor is a subclass of OSR_ExecStateExtractor. 
  * It extracts the execution state of a optimized activation.
@@ -78,8 +80,8 @@ public final class OSR_OptExecStateExtractor
      */
     // get the next machine code offset of the real method
     VM.disableGC();
-    VM_Address methFP = VM_Magic.objectAsAddress(stack).add(methFPoff);
-    VM_Address nextIP     = VM_Magic.getNextInstructionAddress(methFP);
+    Address methFP = VM_Magic.objectAsAddress(stack).add(methFPoff);
+    Address nextIP     = VM_Magic.getNextInstructionAddress(methFP);
     int ipOffset = fooCM.getInstructionOffset(nextIP);
     VM.enableGC();
 
@@ -165,7 +167,7 @@ public final class OSR_OptExecStateExtractor
     // stack word width in bytes.
     int SW_WIDTH = 1 << LG_STACKWORD_WIDTH;
     
-    VM_WordArray gprs = registers.gprs;
+    WordArray gprs = registers.gprs;
     double[] fprs = registers.fprs;
       
     // temporarialy hold ct, xer, ctr register
@@ -185,7 +187,7 @@ public final class OSR_OptExecStateExtractor
          i >= FIRST_VOLATILE_GPR;
          i--) {
       lastVoffset -= SW_WIDTH;
-      gprs.set(i, VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(stack).add(lastVoffset)));
+      gprs.set(i, VM_Magic.objectAsAddress(stack).add(lastVoffset).loadWord());
     }
             
     // recover nonvolatile GPRs
@@ -193,7 +195,7 @@ public final class OSR_OptExecStateExtractor
       for (int i=firstGPR;
            i<=LAST_NONVOLATILE_GPR;
            i++) {
-        gprs.set(i, VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(stack).add(nvArea)));
+        gprs.set(i, VM_Magic.objectAsAddress(stack).add(nvArea).loadWord());
         nvArea += SW_WIDTH;
       }
     }
@@ -500,7 +502,7 @@ public final class OSR_OptExecStateExtractor
     if (vtype == ICONST) {
       // the only constant object is NULL, I believe.
       if (VM.VerifyAssertions) VM._assert(value == 0);
-      return VM_Magic.addressAsObject(VM_Address.fromInt(value));
+      return VM_Magic.addressAsObject(Address.fromInt(value));
     } else if (vtype == PHYREG) {
       return registers.objs[value];
     } else if (vtype == SPILL) {
@@ -515,7 +517,7 @@ public final class OSR_OptExecStateExtractor
 
   private static void dumpStackContent(byte[] stack, int fpOffset) {
     VM.disableGC();
-    VM_Address upper = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(fpOffset));
+    Address upper = VM_Magic.objectAsAddress(stack).add(fpOffset).loadAddress();
     int upOffset = upper.diff(VM_Magic.objectAsAddress(stack)).toInt();
     VM.enableGC();
 
@@ -550,8 +552,8 @@ public final class OSR_OptExecStateExtractor
         VM.sysWriteln(cm.getMethod().toString());
       }
       VM.disableGC();
-      VM_Address callerfp = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(
-                               fpOffset+STACKFRAME_FRAME_POINTER_OFFSET));
+      Address callerfp = VM_Magic.objectAsAddress(stack).add(
+                               fpOffset+STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
       fpOffset = callerfp.diff(VM_Magic.objectAsAddress(stack)).toInt();
       VM.enableGC();
     } while (cmid != STACKFRAME_SENTINEL_FP.toInt());

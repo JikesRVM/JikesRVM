@@ -14,15 +14,8 @@ import org.mmtk.utility.heap.MonotoneVMResource;
 import org.mmtk.utility.heap.VMResource;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements the functionality of a standard
@@ -58,7 +51,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @version $Revision$
  * @date $Date$
  */
-public class Plan extends Generational implements VM_Uninterruptible {
+public class Plan extends Generational implements Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -77,8 +70,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
   // Memory layout constants
   public static final byte LOW_MATURE_SPACE = 10;
   public static final byte HIGH_MATURE_SPACE = 11;
-  private static final VM_Address MATURE_LO_START = MATURE_START;
-  private static final VM_Address MATURE_HI_START = MATURE_START.add(MATURE_SS_SIZE);
+  private static final Address MATURE_LO_START = MATURE_START;
+  private static final Address MATURE_HI_START = MATURE_START.add(MATURE_SS_SIZE);
 
   /****************************************************************************
    *
@@ -126,8 +119,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureAlloc(int bytes, int align, int offset) 
-    throws VM_PragmaInline {
+  protected final Address matureAlloc(int bytes, int align, int offset) 
+    throws InlinePragma {
     return mature.alloc(bytes, align, offset);
   }
 
@@ -140,19 +133,18 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureCopy(int bytes, int align, int offset) 
-    throws VM_PragmaInline {
+  protected final Address matureCopy(int bytes, int align, int offset) 
+    throws InlinePragma {
     return mature.alloc(bytes, align, offset);
   }
 
   /**
    * Perform post-allocation initialization of an object
    *
-   * @param ref The newly allocated object
-   * @param tib The TIB of the newly allocated object
+   * @param object The newly allocated object
    */
-  protected final void maturePostAlloc(VM_Address ref, Object[] tib) 
-    throws VM_PragmaInline {
+  protected final void maturePostAlloc(Address object) 
+    throws InlinePragma {
     // nothing to be done
   }
 
@@ -231,13 +223,13 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param object The referent object.
    * @param space The space in which the referent object resides.
    */
-  protected static final void forwardMatureObjectLocation(VM_Address location,
-                                                          VM_Address object,
+  protected static final void forwardMatureObjectLocation(Address location,
+                                                          Address object,
                                                           byte space) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(fullHeapGC);
     if ((hi && space == LOW_MATURE_SPACE) || 
         (!hi && space == HIGH_MATURE_SPACE))
-      VM_Magic.setMemoryAddress(location, CopySpace.forwardObject(object));
+      location.store(CopySpace.forwardObject(object));
   }
 
   /**
@@ -248,7 +240,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param space The space in which the object resides.
    * @return The forwarded value for <code>object</code>.
    */
-  static final VM_Address getForwardedMatureReference(VM_Address object,
+  static final Address getForwardedMatureReference(Address object,
                                                       byte space) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(fullHeapGC);
     if ((hi && space == LOW_MATURE_SPACE) || 
@@ -271,9 +263,9 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  protected static final VM_Address traceMatureObject(byte space,
-                                                      VM_Address obj,
-                                                      VM_Address addr) {
+  protected static final Address traceMatureObject(byte space,
+                                                      Address obj,
+                                                      Address addr) {
     if (VM_Interface.VerifyAssertions && space != LOW_MATURE_SPACE
         && space != HIGH_MATURE_SPACE)
       spaceFailure(obj, space, "Plan.traceMatureObject()");
@@ -289,11 +281,11 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * Perform any post-copy actions.
    *
    * @param ref The newly allocated object
-   * @param tib The TIB of the newly allocated object
+   * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(VM_Address ref, Object[] tib, int size)
-    throws VM_PragmaInline {
+  public final void postCopy(Address ref, Address typeRef, int size)
+    throws InlinePragma {
     CopySpace.clearGCBits(ref);
     if (IGNORE_REMSET)
       ImmortalSpace.postAlloc(ref);
@@ -306,8 +298,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param obj The object in question
    * @return True if the object resides in a copying space.
    */
-  public static final boolean isCopyObject(VM_Address base) {
-    VM_Address addr = VM_Interface.refToAddress(base);
+  public static final boolean isCopyObject(Address base) {
+    Address addr = VM_Interface.refToAddress(base);
     return (addr.GE(MATURE_START) && addr.LE(HEAP_END));
   }
 
@@ -317,9 +309,9 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param obj The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(VM_Address obj) {
+  public static final boolean isLive(Address obj) {
     if (obj.isZero()) return false;
-    VM_Address addr = VM_Interface.refToAddress(obj);
+    Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
     case NURSERY_SPACE:       return CopySpace.isLive(obj);
@@ -336,10 +328,10 @@ public class Plan extends Generational implements VM_Uninterruptible {
     }
   }
 
-  public static boolean willNotMove (VM_Address obj) {
+  public static boolean willNotMove (Address obj) {
    boolean movable = VMResource.refIsMovable(obj);
    if (!movable) return true;
-   VM_Address addr = VM_Interface.refToAddress(obj);
+   Address addr = VM_Interface.refToAddress(obj);
    return (hi ? mature1VM : mature0VM).inRange(addr);
   }
 

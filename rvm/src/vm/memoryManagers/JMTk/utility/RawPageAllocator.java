@@ -9,10 +9,9 @@ import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 /**
  * This class allows raw pages to be allocated.  Such pages are used
  * for untyped memory manager meta-data (eg sequential store buffers,
@@ -30,7 +29,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @date $Date$
  *
  */
-public final class RawPageAllocator implements Constants, VM_Uninterruptible {
+public final class RawPageAllocator implements Constants, Uninterruptible {
    public final static String Id = "$Id$";
  
   /****************************************************************************
@@ -55,7 +54,7 @@ public final class RawPageAllocator implements Constants, VM_Uninterruptible {
    * @param pages  The number of pages to be allocated
    * @return The address of the first byte of the allocated pages
    */
-  public VM_Address alloc(int pages) {
+  public Address alloc(int pages) {
     memoryResource.acquire(pages);
     lock.acquire();
     if (base.isZero()) {
@@ -67,11 +66,11 @@ public final class RawPageAllocator implements Constants, VM_Uninterruptible {
       Log.writeln("RawPageAllocator: unable to satisfy raw page allocation request");
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     }
-    VM_Address result = base.add(Conversions.pagesToBytes(pageIndex));
-    VM_Address resultEnd = result.add(Conversions.pagesToBytes(pages));
+    Address result = base.add(Conversions.pagesToBytes(pageIndex));
+    Address resultEnd = result.add(Conversions.pagesToBytes(pages));
     if (resultEnd.GT(top)) {
       int pagesNeeded = Conversions.bytesToPages(resultEnd.diff(result).toWord().toExtent()); // rounded up
-      VM_Address tmp = vmResource.acquire(pagesNeeded, null);
+      Address tmp = vmResource.acquire(pagesNeeded, null);
       top = tmp.add(Conversions.pagesToBytes(pagesNeeded));
       if (VM_Interface.VerifyAssertions) VM_Interface._assert(resultEnd.LE(top));
     }
@@ -86,7 +85,7 @@ public final class RawPageAllocator implements Constants, VM_Uninterruptible {
    * which is to be freed.
    * @return The number of pages freed.
    */
-  public int free(VM_Address start) {
+  public int free(Address start) {
     lock.acquire();
     int freed = freeList.free(Conversions.bytesToPages(start.diff(base).toWord().toExtent()));
     lock.release();
@@ -101,7 +100,7 @@ public final class RawPageAllocator implements Constants, VM_Uninterruptible {
    * @param start The address of the start of the allocated region.
    * @return The number of pages in the allocated region.
    */
-  public int pages (VM_Address start) {
+  public int pages (Address start) {
     return freeList.size(Conversions.bytesToPages(start.diff(base).toWord().toExtent()));
   }
 
@@ -109,8 +108,8 @@ public final class RawPageAllocator implements Constants, VM_Uninterruptible {
    *
    * Private fields and methods
    */
-  private VM_Address base;       // beginning of available region
-  private VM_Address top;        // end of available region
+  private Address base;       // beginning of available region
+  private Address top;        // end of available region
   private int totalPages;       // number of pages in entire VM region
   private MemoryResource memoryResource;
   private MonotoneVMResource vmResource;

@@ -33,26 +33,21 @@ import com.ibm.JikesRVM.classloader.VM_Class;
 import com.ibm.JikesRVM.classloader.VM_Method;
 
 import com.ibm.JikesRVM.VM;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Offset;
+import com.ibm.JikesRVM.VM_Magic;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_CodeArray;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_DynamicLibrary;
 import com.ibm.JikesRVM.VM_JavaHeader;
-import com.ibm.JikesRVM.VM_Magic;
+
 import com.ibm.JikesRVM.VM_Memory;
 import com.ibm.JikesRVM.VM_ObjectModel;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_Uninterruptible;
 
 import org.mmtk.vm.gcspy.GCSpy;
 
@@ -64,7 +59,7 @@ import org.mmtk.vm.gcspy.GCSpy;
  * @version $Revision$
  * @date $Date$
  */  
-public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible {
+public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
 
   /***********************************************************************
    *
@@ -146,7 +141,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *
    * This is the entry point for all build-time activity in the collector.
    */
-  public static final void init() throws VM_PragmaInterruptible {
+  public static final void init() throws InterruptiblePragma {
     VM_CollectorThread.init();
     VM_Interface.init();
   }
@@ -159,7 +154,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * the heap size.
    */
   public static final void boot (VM_BootRecord theBootRecord)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     int pageSize = VM_Memory.getPagesize();  // Cannot be determined at init-time
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
     DebugUtil.boot(theBootRecord);
@@ -182,7 +177,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param p The <code>VM_Processor</code> object.
    */
   public static final void setupProcessor(VM_Processor proc)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     // if (proc.mmPlan == null) proc.mmPlan = new Plan();
     // if (VM.VerifyAssertions) VM._assert(proc.mmPlan != null);
   }
@@ -192,14 +187,14 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * options (this is called as soon as options have been parsed,
    * which is necessarily after the basic allocator boot).
    */
-  public static void postBoot() throws VM_PragmaInterruptible {
+  public static void postBoot() throws InterruptiblePragma {
     Plan.postBoot();
   }
 
   /**
    * Notify the MM that the host VM is now fully booted.
    */
-  public static void fullyBootedVM() throws VM_PragmaInterruptible {
+  public static void fullyBootedVM() throws InterruptiblePragma {
     Plan.fullyBooted();
     Lock.fullyBooted();
     Barrier.fullyBooted();
@@ -209,7 +204,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *  Process GC parameters.
    */
   public static void processCommandLineArg(String arg)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
       if ( ! Options.process(arg)) {
 	VM.sysWriteln("Unrecognized command line argument: \"" + arg +"\"");
 	VM.sysExit(VM.exitStatusBogusCommandLineArg);
@@ -231,8 +226,8 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    */
   public static void putfieldWriteBarrier(Object ref, int offset, Object value,
                                           int locationMetadata)
-    throws VM_PragmaInline {
-    VM_Address src = VM_Magic.objectAsAddress(ref);
+    throws InlinePragma {
+    Address src = VM_Magic.objectAsAddress(ref);
     VM_Interface.getPlan().writeBarrier(src,
                                         src.add(offset),
                                         VM_Magic.objectAsAddress(value),
@@ -249,10 +244,10 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param value the new value for the field
    */
   public static void putstaticWriteBarrier(int offset, Object value)
-    throws VM_PragmaInline { 
+    throws InlinePragma { 
     // putstatic barrier currently unimplemented
     if (VM.VerifyAssertions) VM._assert(false);
-//     VM_Address jtoc = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
+//     Address jtoc = VM_Magic.objectAsAddress(VM_Magic.getJTOC());
 //     VM_Interface.getPlan().writeBarrier(jtoc,
 //                                         jtoc.add(offset),
 //                                         VM_Magic.objectAsAddress(value),
@@ -271,8 +266,8 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    */
   public static void arrayStoreWriteBarrier(Object ref, int index,
                                             Object value)
-    throws VM_PragmaInline {
-    VM_Address array = VM_Magic.objectAsAddress(ref);
+    throws InlinePragma {
+    Address array = VM_Magic.objectAsAddress(ref);
     int offset = (index<<LOG_BYTES_IN_ADDRESS);
     VM_Interface.getPlan().writeBarrier(array,
                                         array.add(offset),
@@ -301,7 +296,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   public static boolean arrayCopyWriteBarrier(Object src, int srcOffset,
 					      Object tgt, int tgtOffset,
 					      int bytes) 
-    throws VM_PragmaInline {
+    throws InlinePragma {
     return VM_Interface.getPlan().writeBarrier(VM_Magic.objectAsAddress(src),
 					       srcOffset,
 					       VM_Magic.objectAsAddress(tgt),
@@ -320,7 +315,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
        Such updates are dangerous because they can be lost.
      */
     if (Plan.gcInProgressProper()) {
-        VM_Address ref = VM_Magic.objectAsAddress(obj);
+        Address ref = VM_Magic.objectAsAddress(obj);
         if (VMResource.refIsMovable(ref)) {
             VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
             VM.sysWriteln("  obj = ", ref);
@@ -342,7 +337,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return The number of collections that have occured.
    */
   public static final int getCollectionCount()
-    throws VM_PragmaUninterruptible {
+    throws UninterruptiblePragma {
     return VM_CollectorThread.collectionCount;
   }
   
@@ -382,7 +377,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
   /**
    * External call to force a garbage collection.
    */
-  public static final void gc() throws VM_PragmaInterruptible {
+  public static final void gc() throws InterruptiblePragma {
     if (!Options.ignoreSystemGC)
       VM_Interface.triggerCollection(VM_Interface.EXTERNAL_GC_TRIGGER);
   }
@@ -397,7 +392,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *
    * @param ref the address to log information about
    */
-  public static void dumpRef(VM_Address ref) throws VM_PragmaUninterruptible {
+  public static void dumpRef(Address ref) throws UninterruptiblePragma {
     DebugUtil.dumpRef(ref);
   }
 
@@ -407,8 +402,8 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param ref the address to be checked
    * @return <code>true</code> if the reference is valid
    */
-  public static boolean validRef(VM_Address ref)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static boolean validRef(Address ref)
+    throws UninterruptiblePragma, InlinePragma {
     return DebugUtil.validRef(ref);
   }
 
@@ -418,8 +413,8 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param address the address to be checked
    * @return <code>true</code> if the address refers to an in use area
    */
-  public static boolean addrInVM(VM_Address address)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static boolean addrInVM(Address address)
+    throws UninterruptiblePragma, InlinePragma {
     return VMResource.addrInVM(address);
   }
 
@@ -434,8 +429,8 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return <code>true</code> if the object refered to is in an
    * in-use area
    */
-  public static boolean refInVM(VM_Address ref)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static boolean refInVM(Address ref)
+    throws UninterruptiblePragma, InlinePragma {
     return VMResource.refInVM(ref);
   }
 
@@ -456,7 +451,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param type the type of the object to be allocated
    * @return the identifier of the appropriate allocator
    */
-  public static int pickAllocator(VM_Type type) throws VM_PragmaInterruptible {
+  public static int pickAllocator(VM_Type type) throws InterruptiblePragma {
     return pickAllocator(type, null);
   }
 
@@ -472,7 +467,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * <code>b</code>
    */
   private static boolean isPrefix(String a, byte [] b)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     int aLen = a.length();
     if (aLen > b.length)
       return false;
@@ -492,7 +487,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return the identifier of the appropriate allocator
    */
   public static int pickAllocator(VM_Type type, VM_Method method)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     /*
      * We check the calling method so GC-data can go into special
      * places.  A better implementation would be call-site specific
@@ -525,7 +520,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * <code>type</code>.
    */
   private static int pickAllocatorForType(VM_Type type)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     int allocator = Plan.DEFAULT_SPACE;
     byte[] typeBA = type.getDescriptor().toByteArray();
     if (VM_Interface.GCSPY) {
@@ -561,13 +556,13 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    */
   public static Object allocateScalar(int size, Object [] tib, int allocator,
                                       int align, int offset)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    throws UninterruptiblePragma, InlinePragma {
     Plan plan = VM_Interface.getPlan();
     allocator = Plan.checkAllocator(size, align, allocator);
-    VM_Address region = allocateSpace(plan, size, align, offset, allocator);
+    Address region = allocateSpace(plan, size, align, offset, allocator);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
-    plan.postAlloc(VM_Magic.objectAsAddress(result), tib, size,  
-		   allocator);
+    plan.postAlloc(VM_Magic.objectAsAddress(result), 
+                   VM_Magic.objectAsAddress(tib), size, allocator);
     return result;
   }
 
@@ -589,7 +584,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
                                      int headerSize, Object [] tib,
                                      int allocator,
                                      int align, int offset) 
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    throws UninterruptiblePragma, InlinePragma {
     Plan plan = VM_Interface.getPlan();
 
     int elemBytes = numElements << logElementSize;
@@ -599,11 +594,11 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
     }
     int size = elemBytes + headerSize;
     allocator = Plan.checkAllocator(size, align, allocator);
-    VM_Address region = allocateSpace(plan, size, align, offset, allocator);
+    Address region = allocateSpace(plan, size, align, offset, allocator);
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
                                                    size);
-    plan.postAlloc(VM_Magic.objectAsAddress(result), tib, size, 
-                   allocator);
+    plan.postAlloc(VM_Magic.objectAsAddress(result), 
+                   VM_Magic.objectAsAddress(tib), size, allocator);
     return result;
   }
 
@@ -617,9 +612,9 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param allocator The MMTk allocator to be used for this allocation
    * @return The first byte of a suitably sized and aligned region of memory.
    */
-  private static VM_Address allocateSpace(Plan plan, int bytes, int align,
+  private static Address allocateSpace(Plan plan, int bytes, int align,
 					  int offset, int allocator)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    throws UninterruptiblePragma, InlinePragma {
     return allocateSpace(plan, bytes, align, offset, false, allocator,
 			 null);
   }
@@ -634,9 +629,9 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param from The source object from which this is to be copied
    * @return The first byte of a suitably sized and aligned region of memory.
    */
-  public static VM_Address allocateSpace(Plan plan, int bytes, int align,
-					 int offset, VM_Address from)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
+  public static Address allocateSpace(Plan plan, int bytes, int align,
+					 int offset, Address from)
+    throws UninterruptiblePragma, InlinePragma {
     return allocateSpace(plan, bytes, align, offset, true, 0, from);
   }
 
@@ -653,18 +648,18 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param from The source object from which to copy (if copying)
    * @return The first byte of a suitably sized and aligned region of memory.
    */
-  private static VM_Address allocateSpace(Plan plan, int bytes, int align,
+  private static Address allocateSpace(Plan plan, int bytes, int align,
 					  int offset, boolean copy,
-					  int allocator, VM_Address from)
+					  int allocator, Address from)
 					  
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    throws UninterruptiblePragma, InlinePragma {
     // MMTk requests must be in multiples of BYTES_IN_PARTICLE
     bytes = VM_Memory.alignUp(bytes, BYTES_IN_PARTICLE);
 
     /*
      * Now make the request
      */
-    VM_Address region;
+    Address region;
     if (copy) {
       region = plan.allocCopy(from, bytes, align, offset);
       if (Plan.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes);
@@ -693,8 +688,8 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    */
   public static final int alignAllocation(int initialOffset, int align,
                                           int offset)
-    throws VM_PragmaUninterruptible, VM_PragmaInline {
-    VM_Address region = VM_Memory.alignUp(VM_Address.fromInt(initialOffset),
+    throws UninterruptiblePragma, InlinePragma {
+    Address region = VM_Memory.alignUp(Address.fromInt(initialOffset),
                                           BYTES_IN_PARTICLE);
     return Allocator.alignAllocation(region, align, offset).toInt();
   }
@@ -710,7 +705,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return the initialzed array object
    */
   public static Object cloneArray(Object [] array, int allocator, int length)
-      throws VM_PragmaUninterruptible {
+      throws UninterruptiblePragma {
     VM_Array type = VM_Magic.getObjectType(array).asArray();
     Object [] tib = type.getTypeInformationBlock();
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(type);
@@ -731,7 +726,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return The  array
    */
   public static VM_CodeArray newInstructions(int n)
-    throws VM_PragmaInline, VM_PragmaInterruptible {
+    throws InlinePragma, InterruptiblePragma {
     return VM_CodeArray.create(n);
   }
 
@@ -742,7 +737,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return The stack
    */ 
   public static byte[] newStack(int bytes, boolean immortal)
-    throws VM_PragmaInline, VM_PragmaInterruptible {
+    throws InlinePragma, InterruptiblePragma {
     if (!immortal || !VM.runningVM) {
       return new byte[bytes];
     } else {
@@ -765,7 +760,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return the new TIB
    */
   public static Object[] newTIB (int n)
-    throws VM_PragmaInline, VM_PragmaInterruptible {
+    throws InlinePragma, InterruptiblePragma {
 
     if (!VM.runningVM) 
       return new Object[n];
@@ -786,7 +781,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return The contiguous object array
    */ 
   public static VM_CompiledMethod[] newContiguousCompiledMethodArray(int n)
-    throws VM_PragmaInline, VM_PragmaInterruptible {
+    throws InlinePragma, InterruptiblePragma {
     return new VM_CompiledMethod[n];
   }
 
@@ -796,7 +791,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return The contiguous object array
    */ 
   public static VM_DynamicLibrary[] newContiguousDynamicLibraryArray(int n)
-    throws VM_PragmaInline, VM_PragmaInterruptible {
+    throws InlinePragma, InterruptiblePragma {
     return new VM_DynamicLibrary[n];
   }
 
@@ -811,8 +806,8 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *
    * @param obj the object to be added to the finalizer's list
    */
-  public static void addFinalizer(Object obj) throws VM_PragmaInterruptible {
-    Finalizer.addCandidate(obj);
+  public static void addFinalizer(Object obj) throws InterruptiblePragma {
+    Finalizer.addCandidate(VM_Magic.objectAsAddress(obj));
   }
 
   /**
@@ -821,7 +816,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *
    * @return the object needing to be finialized
    */
-  public static Object getFinalizedObject() throws VM_PragmaInterruptible {
+  public static Object getFinalizedObject() throws InterruptiblePragma {
     return Finalizer.get();
   }
 
@@ -837,7 +832,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param obj the soft reference to be added to the list
    */
    public static void addSoftReference(SoftReference obj)
-     throws VM_PragmaInterruptible {
+     throws InterruptiblePragma {
      ReferenceGlue.addSoftCandidate(obj);
    }
  
@@ -847,7 +842,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param obj the weak reference to be added to the list
    */
    public static void addWeakReference(WeakReference obj)
-     throws VM_PragmaInterruptible {
+     throws InterruptiblePragma {
      ReferenceGlue.addWeakCandidate(obj);
    }
  
@@ -857,7 +852,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param obj the phantom reference to be added to the list
    */
    public static void addPhantomReference(PhantomReference obj)
-     throws VM_PragmaInterruptible {
+     throws InterruptiblePragma {
      ReferenceGlue.addPhantomCandidate(obj);
    }
 
@@ -874,8 +869,8 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return The address of the object after processing (it may have
    * been moved in the course of processing).
    */
-  public static VM_Address processPtrValue(VM_Address object)
-    throws VM_PragmaUninterruptible, VM_PragmaInline { 
+  public static Address processPtrValue(Address object)
+    throws UninterruptiblePragma, InlinePragma { 
     return Plan.traceObject(object);
   }
 
@@ -885,8 +880,8 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param location the address of a reference to the object to be
    * processed
    */
-  public static void processPtrLocation(VM_Address location)
-    throws VM_PragmaUninterruptible, VM_PragmaInline { 
+  public static void processPtrLocation(Address location)
+    throws UninterruptiblePragma, InlinePragma { 
     Plan.traceObjectLocation(location, false);
   }
 
@@ -939,7 +934,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @param vmType The newly resolved type
    */
   public static void notifyClassResolved(VM_Type vmType) 
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     MMType type;
     if (vmType.isArrayType()) {
       type = new MMType(false,
@@ -963,7 +958,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * benchmark, such as a full heap collection, turning on
    * instrumentation, etc.
    */
-  public static void harnessBegin() throws VM_PragmaInterruptible {
+  public static void harnessBegin() throws InterruptiblePragma {
     Plan.harnessBegin();
   }
 
@@ -984,8 +979,8 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return <code>false</code> if the object is in the wrong
    * allocation scheme/area for a TIB, <code>true</code> otherwise
    */
-  public static boolean mightBeTIB (VM_Address obj)
-    throws VM_PragmaInline, VM_PragmaUninterruptible {
+  public static boolean mightBeTIB (Address obj)
+    throws InlinePragma, UninterruptiblePragma {
     return VMResource.refIsImmortal(obj);
   }
 
@@ -994,14 +989,14 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    *
    * @return True if GC is in progress.
    */
-  public static final boolean gcInProgress() throws VM_PragmaUninterruptible {
+  public static final boolean gcInProgress() throws UninterruptiblePragma {
     return Plan.gcInProgress();
   }
 
   /**
    * Start the GCSpy server
    */
-  public static void startGCSpyServer() throws VM_PragmaInterruptible {
+  public static void startGCSpyServer() throws InterruptiblePragma {
     GCSpy.startGCSpyServer();
   }
 
@@ -1029,7 +1024,7 @@ public class MM_Interface implements VM_Constants, Constants, VM_Uninterruptible
    * @return The contiguous int array
    */ 
   public static int[] newContiguousIntArray(int n)
-    throws VM_PragmaInline, VM_PragmaInterruptible {
+    throws InlinePragma, InterruptiblePragma {
     return new int[n];
   }
 

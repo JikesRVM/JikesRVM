@@ -7,6 +7,8 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
+import org.vmmagic.pragma.*;
+
 /**
  * A class that encapsulates the GCMap portion of the machine code maps.
  * An instance of this class is created to encode and instance of a
@@ -34,7 +36,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Mauricio Serrano
  */
 public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
-                                          VM_Uninterruptible {
+                                          Uninterruptible {
   public static final int NO_MAP_ENTRY = -1;
   public static final int ERROR        = -2;
 
@@ -74,7 +76,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
   /**
    * Called to complete the encoding and return the final int[]
    */
-  public int[] finish() throws VM_PragmaInterruptible {
+  public int[] finish() throws InterruptiblePragma {
     if ((gcMapInformation != null) && 
         (lastGCMapEntry < gcMapInformation.length - 1)) {
       resizeMapInformation(lastGCMapEntry + 1);
@@ -88,7 +90,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
    * @param the irMapElem to create a GCMap for
    * @return the GCMap index.
    */
-  public int generateGCMapEntry(OPT_GCIRMapElement irMapElem) throws VM_PragmaInterruptible {
+  public int generateGCMapEntry(OPT_GCIRMapElement irMapElem) throws InterruptiblePragma {
     // the index into the GC maps we will use for this instruction.
     int mapIndex = NO_MAP_ENTRY;
 
@@ -242,7 +244,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
    * @param entry  the entry where the map begins
    * @param gcMap the encoded GCmaps
    */
-  public static void dumpMap(int entry, int[] gcMap) throws VM_PragmaInterruptible {
+  public static void dumpMap(int entry, int[] gcMap) throws InterruptiblePragma {
     VM.sysWrite("Regs [");
     // Inspect the register bit map for the entry passed and print
     // those bit map entries that are true
@@ -271,7 +273,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
    * Returns the next GC map entry for use
    * @return the entry in the map table that can be used
    */
-  private int getNextMapEntry() throws VM_PragmaInterruptible {
+  private int getNextMapEntry() throws InterruptiblePragma {
     // make sure we have enough room
     int oldLength = gcMapInformation.length - 1;
     if (lastGCMapEntry >= oldLength) {
@@ -285,7 +287,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
    * Resize the map array
    * @param newSize the new size for the map array
    */
-  private void resizeMapInformation(int newSize) throws VM_PragmaInterruptible {
+  private void resizeMapInformation(int newSize) throws InterruptiblePragma {
     int[] newMapInformation = new int[newSize];
     for (int i = 0; i <= lastGCMapEntry; i++) {
       newMapInformation[i] = gcMapInformation[i];
@@ -301,7 +303,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
    * Sets the register map information at the next available entry
    * @param  bitmap    map entry
    */
-  private final int setRegisterBitMap(int bitMap) throws VM_PragmaInterruptible {
+  private final int setRegisterBitMap(int bitMap) throws InterruptiblePragma {
     // Set the appropriate bit, but make sure we preserve the NEXT bit!
     int entry = getNextMapEntry();
     gcMapInformation[entry] = bitMap | NEXT_BIT;
@@ -313,7 +315,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
    *  of spills and then add them to the map, otherwise, nothing to do
    * @param spillArray an array of spills
    */
-  private final void addAllSpills(int spillArray[]) throws VM_PragmaInterruptible {
+  private final void addAllSpills(int spillArray[]) throws InterruptiblePragma {
     // 1) sort the spills to increase the odds of reusing the GC map
     java.util.Arrays.sort(spillArray);
 
@@ -327,7 +329,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
    * Adds the passed spill value to the current map
    * @param spill the spill location
    */
-  private final void addSpillLocation(int spill) throws VM_PragmaInterruptible {
+  private final void addSpillLocation(int spill) throws InterruptiblePragma {
     // make sure the value doesn't overflow the maximum spill location
     if (VM.VerifyAssertions && ((spill < 0) || (spill > 32767))) {
       VM._assert(false, "Unexpected spill passed:" + spill);
@@ -342,7 +344,7 @@ public final class VM_OptGCMap implements VM_OptGCMapIteratorConstants,
    * @param firstIndex the index of the beginning of the map
    * @return the index of the beginning of the map (may be different)
    */
-  private final int endCurrentMap(int firstIndex) throws VM_PragmaInterruptible {
+  private final int endCurrentMap(int firstIndex) throws InterruptiblePragma {
     int lastEntry = lastGCMapEntry;
 
     // adjust the last entry so that the NEXT bit is not set.

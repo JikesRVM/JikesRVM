@@ -6,6 +6,9 @@
 package com.ibm.JikesRVM.OSR;
 
 import com.ibm.JikesRVM.*;
+
+import org.vmmagic.unboxed.*;
+
 /** 
  * Temporary resiter set.
  * see: VM_Registers
@@ -14,8 +17,8 @@ import com.ibm.JikesRVM.*;
  */
 public class OSR_TempRegisters implements VM_Constants {
 
-  VM_Address ip;        // next instruction address
-  VM_WordArray gprs;
+  Address ip;        // next instruction address
+  WordArray gprs;
   double fprs[];
 
   /* hold CR, XER, CTR */
@@ -30,7 +33,7 @@ public class OSR_TempRegisters implements VM_Constants {
   Object objs[];
 
   public OSR_TempRegisters(VM_Registers contextRegisters) {
-    gprs = VM_WordArray.create(NUM_GPRS);
+    gprs = WordArray.create(NUM_GPRS);
     fprs = new double[NUM_FPRS];
     objs = new Object[NUM_GPRS];
 

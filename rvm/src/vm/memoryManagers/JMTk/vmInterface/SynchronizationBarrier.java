@@ -7,18 +7,16 @@ package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import org.mmtk.utility.Barrier;
 
+import org.vmmagic.pragma.*;
+
 import com.ibm.JikesRVM.VM_Scheduler;
 import com.ibm.JikesRVM.VM_Time;
-import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM;
-
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Thread;
 import com.ibm.JikesRVM.VM_SysCall;
 import com.ibm.JikesRVM.VM_BootRecord;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-
 
 /**
  * A synchronization barrier used to synchronize collector threads,
@@ -47,7 +45,7 @@ public final class SynchronizationBarrier {
   /**
    * Constructor
    */
-  public SynchronizationBarrier () throws VM_PragmaUninterruptible {
+  public SynchronizationBarrier () throws UninterruptiblePragma {
     // initialize numRealProcessors to 1. Will be set to actual value later.
     // Using without resetting will cause waitABit() to yield instead of spinning
     numRealProcessors = 1;
@@ -56,7 +54,7 @@ public final class SynchronizationBarrier {
   /**
    * Wait for all other collectorThreads/processors to arrive at this barrier.
    */
-  public int rendezvous (int where) throws VM_PragmaUninterruptible {
+  public int rendezvous (int where) throws UninterruptiblePragma {
 
     int myOrder = barrier.arrive(where);
 
@@ -74,7 +72,7 @@ public final class SynchronizationBarrier {
    * Other arriving collector threads just wait until all have either arrived or
    * been declared non-participating.
    */
-  public void startupRendezvous () throws VM_PragmaUninterruptible {
+  public void startupRendezvous () throws UninterruptiblePragma {
 
     int myProcessorId = VM_Processor.getCurrentProcessorId();
     VM_CollectorThread th = VM_Magic.threadAsCollectorThread(VM_Thread.getCurrentThread());
@@ -121,7 +119,7 @@ public final class SynchronizationBarrier {
    * reset the rendezvous counters for all VPs to 0.
    * Also sets numRealProcessors to number of real CPUs.
    */
-  public void resetRendezvous () throws VM_PragmaUninterruptible {
+  public void resetRendezvous () throws UninterruptiblePragma {
 
     if ( ! VM.BuildForSingleVirtualProcessor) {
       // Set number of Real processors on the running computer. This will allow
@@ -141,7 +139,7 @@ public final class SynchronizationBarrier {
    *
    * @param x amount to spin in some unknown units
    */
-  private int waitABit ( int x ) throws VM_PragmaUninterruptible {
+  private int waitABit ( int x ) throws UninterruptiblePragma {
     int sum = 0;
     if (VM_Scheduler.numProcessors < numRealProcessors) {
       // spin for a while, keeping the operating system thread
@@ -163,7 +161,7 @@ public final class SynchronizationBarrier {
    *
    * @param id  processor id of processor to be removed.
    */
-  private void removeProcessor( int id ) throws VM_PragmaUninterruptible {
+  private void removeProcessor( int id ) throws UninterruptiblePragma {
 
     VM_Processor vp = VM_Scheduler.processors[id];
 

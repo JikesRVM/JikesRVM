@@ -7,10 +7,8 @@ package org.mmtk.utility.scan;
 
 import org.mmtk.utility.TrialDeletion;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * A pointer enumeration class.  This class is used by the trial
@@ -21,7 +19,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $date: $
  */
-public class TDScanBlackEnumerator extends Enumerate implements VM_Uninterruptible {
+public class TDScanBlackEnumerator extends Enumerate implements Uninterruptible {
   private TrialDeletion td;
 
   /**
@@ -39,8 +37,8 @@ public class TDScanBlackEnumerator extends Enumerate implements VM_Uninterruptib
    *
    * @param location The address of the field being enumerated.
    */
-  public void enumeratePointerLocation(VM_Address objLoc) 
-    throws VM_PragmaInline {
-    td.enumerateScanBlack(VM_Magic.getMemoryAddress(objLoc));
+  public void enumeratePointerLocation(Address objLoc) 
+    throws InlinePragma {
+    td.enumerateScanBlack(objLoc.loadAddress());
   }
 }

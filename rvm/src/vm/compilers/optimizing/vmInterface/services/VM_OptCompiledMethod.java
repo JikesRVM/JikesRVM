@@ -11,6 +11,7 @@ import com.ibm.JikesRVM.opt.ir.*;
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.OSR.*;
 //-#endif
+import org.vmmagic.pragma.*;
 
 /** 
  * An implementation of VM_CompiledMethod for the OPT compiler.
@@ -24,7 +25,7 @@ import com.ibm.JikesRVM.OSR.*;
  * @author Mauricio Serrano
  */
 public final class VM_OptCompiledMethod extends VM_CompiledMethod
-  implements OPT_Operators, VM_Uninterruptible  {
+  implements OPT_Operators, Uninterruptible  {
 
   public VM_OptCompiledMethod(int id, VM_Method m) {
     super(id,m);    
@@ -56,7 +57,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    * Find "catch" block for a machine instruction of this method.
    */ 
   public final int findCatchBlockForInstruction(int instructionOffset, 
-                                                VM_Type exceptionType) throws VM_PragmaInterruptible {
+                                                VM_Type exceptionType) throws InterruptiblePragma {
     if (eTable == null) {
       return -1;
     } else {
@@ -93,7 +94,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Set the stack browser to the innermost logical stack frame of this method
    */
-  public final void set(VM_StackBrowser browser, int instr) throws VM_PragmaInterruptible {
+  public final void set(VM_StackBrowser browser, int instr) throws InterruptiblePragma {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instr);
     if (iei >= 0) {
@@ -119,7 +120,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Advance the VM_StackBrowser up one internal stack frame, if possible
    */
-  public final boolean up(VM_StackBrowser browser) throws VM_PragmaInterruptible {
+  public final boolean up(VM_StackBrowser browser) throws InterruptiblePragma {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = browser.getInlineEncodingIndex();
     int[] ie = map.inlineEncoding;
@@ -152,7 +153,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    * @param out    the PrintStream to print the stack trace to.
    */
   public final void printStackTrace(int instructionOffset, PrintLN out) 
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     VM_OptMachineCodeMap map = getMCMap();
     int iei = map.getInlineEncodingForMCOffset(instructionOffset);
     if (iei >= 0) {
@@ -196,7 +197,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
     = VM_TypeReference.findOrCreate(VM_SystemClassLoader.getVMClassLoader(),
                                     VM_Atom.findOrCreateAsciiAtom("Lcom/ibm/JikesRVM/VM_ExceptionTable;"));
 
-  public final int size() throws VM_PragmaInterruptible {
+  public final int size() throws InterruptiblePragma {
     int size = TYPE.peekResolvedType().asClass().getInstanceSize();
     size += _mcMap.size();
     if (eTable != null) size += VM_Array.IntArray.getInstanceSize(eTable.length);
@@ -228,7 +229,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
 //-#if RVM_WITH_OSR
   private OSR_EncodedOSRMap _osrMap;
 
-  public void createFinalOSRMap(OPT_IR ir) throws VM_PragmaInterruptible {
+  public void createFinalOSRMap(OPT_IR ir) throws InterruptiblePragma {
     this._osrMap = new OSR_EncodedOSRMap(ir.MIRInfo.osrVarMap);
   }
 
@@ -394,7 +395,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Print the eTable
    */
-  public final void printExceptionTable() throws VM_PragmaInterruptible {
+  public final void printExceptionTable() throws InterruptiblePragma {
     if (eTable != null) VM_ExceptionTable.printExceptionTable(eTable);
   }
 
@@ -411,7 +412,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    * @param ir the ir 
    * @param machineCodeLength the number of machine code instructions.
    */
-  public final void createFinalMCMap (OPT_IR ir, int machineCodeLength) throws VM_PragmaInterruptible {
+  public final void createFinalMCMap (OPT_IR ir, int machineCodeLength) throws InterruptiblePragma {
     _mcMap = new VM_OptMachineCodeMap(ir, machineCodeLength);
     setEndPrologueOffset(ir.MIRInfo.instAfterPrologue.getmcOffset());
   }
@@ -420,7 +421,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    * Create the final exception table from the IR for the method.
    * @param ir the ir 
    */
-  public final void createFinalExceptionTable (OPT_IR ir) throws VM_PragmaInterruptible {
+  public final void createFinalExceptionTable (OPT_IR ir) throws InterruptiblePragma {
     if (ir.hasReachableExceptionHandlers()) {
       eTable = VM_OptExceptionTable.encode(ir);
     }
@@ -430,7 +431,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
    * Create the code patching maps from the IR for the method
    * @param ir the ir 
    */
-  public final void createCodePatchMaps(OPT_IR ir) throws VM_PragmaInterruptible {
+  public final void createCodePatchMaps(OPT_IR ir) throws InterruptiblePragma {
     // (1) count the patch points
     int patchPoints = 0;
     for (OPT_Instruction s = ir.firstInstructionInCodeOrder();
@@ -475,7 +476,7 @@ public final class VM_OptCompiledMethod extends VM_CompiledMethod
   /**
    * Apply the code patches to the INSTRUCTION array of cm
    */
-  public final void applyCodePatches(VM_CompiledMethod cm) throws VM_PragmaInterruptible {
+  public final void applyCodePatches(VM_CompiledMethod cm) throws InterruptiblePragma {
     if (patchMap != null) {
       VM_CodeArray code = cm.getInstructions();
       for (int idx=0; idx<patchMap.length; idx += 2) {

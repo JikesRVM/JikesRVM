@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.*;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.pragma.*;
 import java.util.HashMap;
 
 /**
@@ -65,15 +65,15 @@ public class VM_TypeReference implements VM_SizeConstants {
   public static final VM_TypeReference FloatArray   = findOrCreate("[F");
   public static final VM_TypeReference DoubleArray  = findOrCreate("[D");
   
-  public static final VM_TypeReference Word    = findOrCreate("Lcom/ibm/JikesRVM/VM_Word;");
-  public static final VM_TypeReference Address = findOrCreate("Lcom/ibm/JikesRVM/VM_Address;");
-  public static final VM_TypeReference Offset  = findOrCreate("Lcom/ibm/JikesRVM/VM_Offset;");
-  public static final VM_TypeReference Extent  = findOrCreate("Lcom/ibm/JikesRVM/VM_Extent;");
+  public static final VM_TypeReference Word    = findOrCreate("Lorg/vmmagic/unboxed/Word;");
+  public static final VM_TypeReference Address = findOrCreate("Lorg/vmmagic/unboxed/Address;");
+  public static final VM_TypeReference Offset  = findOrCreate("Lorg/vmmagic/unboxed/Offset;");
+  public static final VM_TypeReference Extent  = findOrCreate("Lorg/vmmagic/unboxed/Extent;");
   public static final VM_TypeReference Code    = findOrCreate("Lcom/ibm/JikesRVM/VM_Code;");
-  public static final VM_TypeReference WordArray = findOrCreate("Lcom/ibm/JikesRVM/VM_WordArray;");
-  public static final VM_TypeReference AddressArray = findOrCreate("Lcom/ibm/JikesRVM/VM_AddressArray;");
-  public static final VM_TypeReference OffsetArray = findOrCreate("Lcom/ibm/JikesRVM/VM_OffsetArray;");
-  public static final VM_TypeReference ExtentArray = findOrCreate("Lcom/ibm/JikesRVM/VM_ExtentArray;");
+  public static final VM_TypeReference WordArray = findOrCreate("Lorg/vmmagic/unboxed/WordArray;");
+  public static final VM_TypeReference AddressArray = findOrCreate("Lorg/vmmagic/unboxed/AddressArray;");
+  public static final VM_TypeReference OffsetArray = findOrCreate("Lorg/vmmagic/unboxed/OffsetArray;");
+  public static final VM_TypeReference ExtentArray = findOrCreate("Lorg/vmmagic/unboxed/ExtentArray;");
   public static final VM_TypeReference CodeArray = findOrCreate("Lcom/ibm/JikesRVM/VM_CodeArray;");
   public static final VM_TypeReference Magic   = findOrCreate("Lcom/ibm/JikesRVM/VM_Magic;");
   public static final VM_TypeReference SysCall = findOrCreate("Lcom/ibm/JikesRVM/VM_SysCall;");
@@ -189,7 +189,7 @@ public class VM_TypeReference implements VM_SizeConstants {
                         VM_Atom.findOrCreateAsciiAtom(tn));
   }
 
-  public static VM_TypeReference getTypeRef(int id) throws VM_PragmaUninterruptible {
+  public static VM_TypeReference getTypeRef(int id) throws UninterruptiblePragma {
     return types[id];
   }
 
@@ -205,14 +205,14 @@ public class VM_TypeReference implements VM_SizeConstants {
   /**
    * @return the classloader component of this type reference
    */
-  public final ClassLoader getClassLoader() throws VM_PragmaUninterruptible {
+  public final ClassLoader getClassLoader() throws UninterruptiblePragma {
     return classloader;
   }
       
   /**
    * @return the type name component of this type reference
    */
-  public final VM_Atom getName() throws VM_PragmaUninterruptible {
+  public final VM_Atom getName() throws UninterruptiblePragma {
     return name;
   }
 
@@ -261,7 +261,7 @@ public class VM_TypeReference implements VM_SizeConstants {
       if (elem.isArrayType()) {
         // NOTE: we must recur instead of attempting to parse
         //       the array descriptor for ['s so we correctly handle
-        //       [VM_AddressArray etc. which actually has dimensionality 2!
+        //       [AddressArray etc. which actually has dimensionality 2!
         return 1 + elem.getDimensionality();
       } else {
         return 1;
@@ -289,7 +289,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   /**
    * Does 'this' refer to a class?
    */ 
-  public final boolean isClassType() throws VM_PragmaUninterruptible {
+  public final boolean isClassType() throws UninterruptiblePragma {
     return name.isClassDescriptor() &&
       !(isWordArrayType() || isWordType() || isCodeArrayType() || isCodeType());
   }
@@ -297,49 +297,49 @@ public class VM_TypeReference implements VM_SizeConstants {
   /**
    * Does 'this' refer to an array?
    */ 
-  public final boolean isArrayType() throws VM_PragmaUninterruptible {
+  public final boolean isArrayType() throws UninterruptiblePragma {
     return name.isArrayDescriptor() || isWordArrayType() || isCodeArrayType();
   }
 
   /**
    * Does 'this' refer to a primitive type
    */
-  public final boolean isPrimitiveType() throws VM_PragmaUninterruptible {
+  public final boolean isPrimitiveType() throws UninterruptiblePragma {
     return !(isArrayType() || isClassType());
   }
 
   /**
    * Does 'this' refer to a reference type
    */
-  public final boolean isReferenceType() throws VM_PragmaUninterruptible {
+  public final boolean isReferenceType() throws UninterruptiblePragma {
     return !isPrimitiveType();
   }
 
   /**
-   * Does 'this' refer to VM_Word, VM_Address, VM_Offset or VM_Extent
+   * Does 'this' refer to Word, Address, Offset or Extent
    */
-  public final boolean isWordType() throws VM_PragmaUninterruptible {
+  public final boolean isWordType() throws UninterruptiblePragma {
     return this == Word || this == Offset || this == Address || this == Extent;
   }
 
   /**
    * Does 'this' refer to VM_Code
    */
-  public final boolean isCodeType() throws VM_PragmaUninterruptible {
+  public final boolean isCodeType() throws UninterruptiblePragma {
     return this == Code;
   }
 
   /**
-   * Does 'this' refer to VM_WordArray, VM_AddressArray, VM_OffsetArray or VM_ExtentArray
+   * Does 'this' refer to WordArray, AddressArray, OffsetArray or ExtentArray
    */
-  final boolean isWordArrayType() throws VM_PragmaUninterruptible {
+  final boolean isWordArrayType() throws UninterruptiblePragma {
     return this == WordArray || this == OffsetArray || this == AddressArray || this == ExtentArray;
   }
 
   /**
    * Does 'this' refer to VM_CodeArray
    */
-  public final boolean isCodeArrayType() throws VM_PragmaUninterruptible {
+  public final boolean isCodeArrayType() throws UninterruptiblePragma {
     return this == CodeArray;
   }
 
@@ -355,7 +355,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   /**
    * How many java stack/local words do value of this type take?
    */
-  public final int getStackWords() throws VM_PragmaUninterruptible {
+  public final int getStackWords() throws UninterruptiblePragma {
     if (this == Long || this == Double) return 2;
     if (this == Void) return 0;
     return 1;
@@ -364,7 +364,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   /**
    * How many bytes of memory words do value of this type take?
    */
-  public final int getSize() throws VM_PragmaUninterruptible {
+  public final int getSize() throws UninterruptiblePragma {
     if (isReferenceType() || isWordType()) return BYTES_IN_ADDRESS; 
     if (this == Long || this == Double) return BYTES_IN_LONG;
     if (this == Void) return 0;
@@ -375,69 +375,69 @@ public class VM_TypeReference implements VM_SizeConstants {
   /**
    * @return the id to use for this type
    */
-  public final int getId() throws VM_PragmaUninterruptible {
+  public final int getId() throws UninterruptiblePragma {
     return id;
   }
 
   /**
    * Is this the type reference for the void primitive type?
    */
-  public final boolean isVoidType() throws VM_PragmaUninterruptible { 
+  public final boolean isVoidType() throws UninterruptiblePragma { 
     return this == Void;
   }
   /**
    * Is this the type reference for the boolean primitive type?
    */
-  public final boolean isBooleanType() throws VM_PragmaUninterruptible { 
+  public final boolean isBooleanType() throws UninterruptiblePragma { 
     return this == Boolean;
   }
   /**
    * Is this the type reference for the byte primitive type?
    */
-  public final boolean isByteType() throws VM_PragmaUninterruptible { 
+  public final boolean isByteType() throws UninterruptiblePragma { 
     return this == Byte;
   }
   /**
    * Is this the type reference for the short primitive type?
    */
-  public final boolean isShortType() throws VM_PragmaUninterruptible { 
+  public final boolean isShortType() throws UninterruptiblePragma { 
     return this == Short;
   }
   /**
    * Is this the type reference for the char primitive type?
    */
-  public final boolean isCharType() throws VM_PragmaUninterruptible {
+  public final boolean isCharType() throws UninterruptiblePragma {
     return this == Char;
   }
   /**
    * Is this the type reference for the int primitive type?
    */
-  public final boolean isIntType() throws VM_PragmaUninterruptible {
+  public final boolean isIntType() throws UninterruptiblePragma {
     return this == Int;
   }
   /**
    * Is this the type reference for the long primitive type?
    */
-  public final boolean isLongType() throws VM_PragmaUninterruptible { 
+  public final boolean isLongType() throws UninterruptiblePragma { 
     return this == Long;
   }
   /**
    * Is this the type reference for the float primitive type?
    */
-  public final boolean isFloatType() throws VM_PragmaUninterruptible { 
+  public final boolean isFloatType() throws UninterruptiblePragma { 
     return this == Float;
   }
   /**
    * Is this the type reference for the double primitive type?
    */
-  public final boolean isDoubleType() throws VM_PragmaUninterruptible { 
+  public final boolean isDoubleType() throws UninterruptiblePragma { 
     return this == Double;
   }
   /**
    * Is <code>this</code> the type reference for an 
    * int-like (1, 8, 16, or 32 bit integral) primitive type? 
    */
-  public final boolean isIntLikeType() throws VM_PragmaUninterruptible { 
+  public final boolean isIntLikeType() throws UninterruptiblePragma { 
     return isBooleanType() || isByteType() || isCharType() 
       || isShortType() || isIntType();
   } 
@@ -459,6 +459,8 @@ public class VM_TypeReference implements VM_SizeConstants {
    * Do this and that definitely refer to the same type?
    */
   public final boolean definitelySame(VM_TypeReference that) {
+    if (that == null) System.out.println("that is null :)");
+    if (this == null) System.out.println("this is null :)");
     if (this == that) return true;
     if (name != that.name) return false;
     VM_Type mine = peekResolvedType();
@@ -477,7 +479,7 @@ public class VM_TypeReference implements VM_SizeConstants {
   /**
    * @return the current value of resolvedType -- null if not yet resolved.
    */
-  public final VM_Type peekResolvedType() throws VM_PragmaUninterruptible {
+  public final VM_Type peekResolvedType() throws UninterruptiblePragma {
     return resolvedType;
   }
 
@@ -538,7 +540,7 @@ public class VM_TypeReference implements VM_SizeConstants {
       if (isWordArrayType() || isCodeArrayType()) {
         // Ensure that we only create one VM_Array object for each pair of
         // names for this type. 
-        // Do this by resolving VM_AddressArray to [VM_Address
+        // Do this by resolving AddressArray to [Address
         resolvedType = getArrayElementType().getArrayTypeForElementType().resolve();
       } else {
         VM_Type elementType = getArrayElementType().resolve();

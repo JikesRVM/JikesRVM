@@ -15,26 +15,19 @@ import com.ibm.JikesRVM.opt.VM_OptEncodedCallSiteTree;
 //-#endif
 
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_BaselineCompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethod;
 import com.ibm.JikesRVM.VM_CompiledMethods;
 import com.ibm.JikesRVM.VM_Constants;
-import com.ibm.JikesRVM.VM_Magic;
+
 import com.ibm.JikesRVM.VM_MiscHeader;
 import com.ibm.JikesRVM.VM_ObjectModel;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Scheduler;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_AddressArray;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 /**
  * Class that supports scanning Objects or Arrays for references
  * during tracing, handling those references, and computing death times
@@ -43,7 +36,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @version $Revision$
  * @date $Date$
  */
-public final class TraceInterface implements VM_Constants, VM_Uninterruptible {
+public final class TraceInterface implements VM_Constants, Uninterruptible {
 
   public final static String Id = "$Id$"; 
 
@@ -124,14 +117,14 @@ public final class TraceInterface implements VM_Constants, VM_Uninterruptible {
    * the update will be stored
    * @return The easy to understand offset of the slot
    */
-  public static final VM_Offset adjustSlotOffset(boolean isScalar, 
-						 VM_Address src,
-                                                 VM_Address slot) {
+  public static final Offset adjustSlotOffset(boolean isScalar, 
+						 Address src,
+                                                 Address slot) {
     /* Offset scalar objects so that the fields appear to begin at offset 0
        of the object. */
-    VM_Offset offset = slot.diff(src);
+    Offset offset = slot.diff(src);
     if (isScalar)
-      return VM_Offset.fromInt(getHeaderEndOffset()).sub(offset);
+      return Offset.fromInt(getHeaderEndOffset()).sub(offset);
     else
       return offset;
   }
@@ -142,17 +135,18 @@ public final class TraceInterface implements VM_Constants, VM_Uninterruptible {
    * the allocation, and returns the address of the first non-trace, non-alloc
    * stack frame.
    *
-   *@param tib The tib of the object just allocated
+   *@param typeRef The type reference (tib) of the object just allocated
    *@return The frame pointer address for the method that allocated the object
    */
-  public static final VM_Address skipOwnFramesAndDump(Object[] tib)
-    throws VM_PragmaNoInline {
+  public static final Address skipOwnFramesAndDump(Address typeRef)
+    throws NoInlinePragma {
+    Object[] tib = VM_Magic.addressAsObjectArray(typeRef);
     VM_Method m = null;
     int bci = -1;
     int compiledMethodID = 0;
-    VM_Offset ipOffset = VM_Offset.zero();
-    VM_Address fp = VM_Magic.getFramePointer();
-    VM_Address ip = VM_Magic.getReturnAddress(fp);
+    Offset ipOffset = Offset.zero();
+    Address fp = VM_Magic.getFramePointer();
+    Address ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
     // This code borrows heavily from VM_Scheduler.dumpStack
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP)) {
@@ -234,53 +228,53 @@ public final class TraceInterface implements VM_Constants, VM_Uninterruptible {
    * Wrapper methods
    */
 
-  public static void updateDeathTime(Object obj) throws VM_PragmaInline {
+  public static void updateDeathTime(Object obj) throws InlinePragma {
     VM_MiscHeader.updateDeathTime(obj);
   }
 
-  public static void setDeathTime(VM_Address ref, VM_Word time_) 
-    throws VM_PragmaInline {
+  public static void setDeathTime(Address ref, Word time_) 
+    throws InlinePragma {
     VM_MiscHeader.setDeathTime(ref, time_);
   }
 
-  public static void setLink(VM_Address ref, VM_Address link) 
-    throws VM_PragmaInline {
+  public static void setLink(Address ref, Address link) 
+    throws InlinePragma {
     VM_MiscHeader.setLink(ref, link);
   }
 
-  public static void updateTime(VM_Word time_) throws VM_PragmaInline {
+  public static void updateTime(Word time_) throws InlinePragma {
     VM_MiscHeader.updateTime(time_);
   }
 
-  public static VM_Word getOID(VM_Address obj) throws VM_PragmaInline {
+  public static Word getOID(Address obj) throws InlinePragma {
     return VM_MiscHeader.getOID(obj);
   }
 
-  public static VM_Word getDeathTime(VM_Address ref) throws VM_PragmaInline {
+  public static Word getDeathTime(Address ref) throws InlinePragma {
     return VM_MiscHeader.getDeathTime(VM_Magic.addressAsObject(ref));
   }
 
-  public static VM_Address getLink(VM_Address ref) throws VM_PragmaInline {
+  public static Address getLink(Address ref) throws InlinePragma {
     return VM_MiscHeader.getLink(VM_Magic.addressAsObject(ref));
   }
 
-  public static VM_Address getBootImageLink() throws VM_PragmaInline {
+  public static Address getBootImageLink() throws InlinePragma {
     return VM_MiscHeader.getBootImageLink();
   }
 
-  public static VM_Word getOID() throws VM_PragmaInline {
+  public static Word getOID() throws InlinePragma {
     return VM_MiscHeader.getOID();
   }
 
-  public static void setOID(VM_Word oid_) throws VM_PragmaInline {
+  public static void setOID(Word oid_) throws InlinePragma {
     VM_MiscHeader.setOID(oid_);
   }
 
-  public static final int getHeaderSize() throws VM_PragmaInline {
+  public static final int getHeaderSize() throws InlinePragma {
     return VM_MiscHeader.getHeaderSize();
   }
 
-  public static final int getHeaderEndOffset() throws VM_PragmaInline {
+  public static final int getHeaderEndOffset() throws InlinePragma {
     return VM_ObjectModel.getHeaderEndOffset();
   }
 }

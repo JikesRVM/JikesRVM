@@ -13,16 +13,8 @@ import org.mmtk.utility.heap.*;
 import org.mmtk.utility.scan.MMType;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements a simple allocator without a collector.
@@ -31,7 +23,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @version $Revision$
  * @date $Date$
  */
-public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
+public class Plan extends StopTheWorldGC implements Uninterruptible {
   public static final String Id = "$Id$"; 
 
 
@@ -57,12 +49,12 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final VM_Extent    DEFAULT_SIZE = VM_Extent.fromIntZeroExtend((int)(AVAILABLE));
-  public  static final VM_Extent        MAX_SIZE = DEFAULT_SIZE;
+  private static final Extent    DEFAULT_SIZE = Extent.fromIntZeroExtend((int)(AVAILABLE));
+  public  static final Extent        MAX_SIZE = DEFAULT_SIZE;
 
-  private static final VM_Address  DEFAULT_START = PLAN_START;
-  private static final VM_Address    DEFAULT_END = DEFAULT_START.add(DEFAULT_SIZE);
-  private static final VM_Address       HEAP_END = DEFAULT_END;
+  private static final Address  DEFAULT_START = PLAN_START;
+  private static final Address    DEFAULT_END = DEFAULT_START.add(DEFAULT_SIZE);
+  private static final Address       HEAP_END = DEFAULT_END;
 
 
   /****************************************************************************
@@ -103,7 +95,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * allocation.
    */
   public static final void boot()
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     StopTheWorldGC.boot();
   }
 
@@ -122,8 +114,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param allocator The allocator number to be used for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(int bytes, int align, int offset, int allocator)
-    throws VM_PragmaInline {
+  public final Address alloc(int bytes, int align, int offset, int allocator)
+    throws InlinePragma {
     switch (allocator) {
     case      LOS_SPACE:  // no los, so use default allocator
     case  DEFAULT_SPACE:  return def.alloc(bytes, align, offset);
@@ -131,7 +123,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     default:
       if (VM_Interface.VerifyAssertions) 
 	VM_Interface.sysFail("No such allocator"); 
-      return VM_Address.zero();
+      return Address.zero();
     }
   }
 
@@ -140,13 +132,13 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * required.
    *
    * @param ref The newly allocated object
-   * @param tib The TIB of the newly allocated object
+   * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
+  public final void postAlloc(Address ref, Address typeRef, int bytes,
                               int allocator)
-    throws VM_PragmaInline {
+    throws InlinePragma {
     switch (allocator) {
     case      LOS_SPACE: // no los, so use default allocator
     case  DEFAULT_SPACE: return;
@@ -167,22 +159,23 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address allocCopy(VM_Address original, int bytes, 
+  public final Address allocCopy(Address original, int bytes, 
                                     int align, int offset) 
-    throws VM_PragmaInline {
+    throws InlinePragma {
     VM_Interface.sysFail("no allocCopy in noGC");
-    //    return VM_Address.zero();   // Trips some intel opt compiler bug...
-    return VM_Address.max();
+    //    return Address.zero();   // Trips some intel opt compiler bug...
+    return Address.max();
   }
 
   /**  
    * Perform any post-copy actions.  In this case nothing is required.
    *
    * @param ref The newly allocated object
+   * @param typeRef The type reference for the instance being created
    * @param tib The TIB of the newly allocated object
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(VM_Address ref, Object[] tib, int bytes) {
+  public final void postCopy(Address ref, Address typeRef, int bytes) {
     VM_Interface.sysFail("no postCopy in noGC");
   } 
 
@@ -223,10 +216,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param bytes The size of the newly created instance in bytes.
    * @return The inital header value for the new instance.
    */
-  public static final VM_Word getInitialHeaderValue(int bytes)
-    throws VM_PragmaInline {
+  public static final Word getInitialHeaderValue(int bytes)
+    throws InlinePragma {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-    return VM_Word.zero();
+    return Word.zero();
   }
 
   /**
@@ -252,7 +245,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return True if a collection is triggered
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr) 
-    throws VM_PragmaLogicallyUninterruptible {
+    throws LogicallyUninterruptiblePragma {
     if (getPagesReserved() > getTotalPages())
       error("Out of memory");
     return false;
@@ -323,8 +316,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject (VM_Address obj) 
-    throws VM_PragmaInline {
+  public static final Address traceObject (Address obj) 
+    throws InlinePragma {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
     return obj;
   }
@@ -340,9 +333,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * in a root.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject(VM_Address obj, boolean root) {
+  public static final Address traceObject(Address obj, boolean root) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-    return VM_Address.zero();
+    return Address.zero();
   }
 
 
@@ -352,9 +345,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param obj The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(VM_Address obj) {
+  public static final boolean isLive(Address obj) {
     if (obj.isZero()) return false;
-    VM_Address addr = VM_Interface.refToAddress(obj);
+    Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
     case     LOS_SPACE:   return true;
@@ -370,7 +363,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   }
 
 
-  public static boolean willNotMove (VM_Address obj) {
+  public static boolean willNotMove (Address obj) {
     return true;
   }
 

@@ -7,6 +7,9 @@ package com.ibm.JikesRVM.OSR;
 
 import com.ibm.JikesRVM.*;
 import java.io.*;
+
+import org.vmmagic.unboxed.*;
+
 /**
  * A OSR_ExecStateExtractor extracts a runtime state (JVM scope descriptor) 
  * of a method activation. The implementation depends on compilers and 
@@ -42,8 +45,8 @@ public abstract class OSR_ExecStateExtractor implements VM_Constants{
 
     VM.disableGC();
 
-    VM_Address fp = VM_Magic.objectAsAddress(stack).add(osrFPoff);
-    VM_Address ip = VM_Magic.getReturnAddress(fp);
+    Address fp = VM_Magic.objectAsAddress(stack).add(osrFPoff);
+    Address ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
     while (VM_Magic.getCallerFramePointer(fp).NE(STACKFRAME_SENTINEL_FP) ){
       int cmid = VM_Magic.getCompiledMethodID(fp);

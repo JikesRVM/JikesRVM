@@ -8,6 +8,8 @@ import java.util.Enumeration;
 
 import com.ibm.JikesRVM.opt.ir.*;
 
+import org.vmmagic.pragma.*;
+
 /**
  * This class computes du-lists and associated information.
  *  
@@ -55,7 +57,7 @@ public final class OPT_DefUse implements OPT_Operators {
    *
    * @param ir the IR in question
    */
-  public static void computeDU(OPT_IR ir) throws VM_PragmaNoInline {
+  public static void computeDU(OPT_IR ir) throws NoInlinePragma {
     // Clear old register list (if any)
     clearDU(ir);
     // Create register defList and useList
@@ -468,7 +470,7 @@ public final class OPT_DefUse implements OPT_Operators {
       current = current.getNext();
       return tmp;
     }
-    private static void raiseNoSuchElementException() throws VM_PragmaNoInline {
+    private static void raiseNoSuchElementException() throws NoInlinePragma {
       throw new java.util.NoSuchElementException("RegOpListWalker");
     }
   }

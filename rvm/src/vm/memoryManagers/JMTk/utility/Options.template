@@ -7,9 +7,8 @@ import org.mmtk.plan.Plan;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Class to handle command-line arguments and options for JMTk.
@@ -23,7 +22,7 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @author Janice Shepherd
  * @author Dave Grove
  **/
-public final class Options implements VM_Uninterruptible, Constants {
+public final class Options implements Uninterruptible, Constants {
 
    // Begin generated support for "Enumeration" options
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
@@ -77,7 +76,7 @@ $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
      $$$$ IF TAG == V
    // FULL_NAME
-   private static TYPE filter_FULL_NAME(TYPE val) throws VM_PragmaInterruptible {
+   private static TYPE filter_FULL_NAME(TYPE val) throws InterruptiblePragma {
      OPTION.FILTER
      return val;
    }	
@@ -95,7 +94,7 @@ $$$$ END LOOP
    * @param arg a String to try to process as an option command
    * @return true if successful, false otherwise
    */
-  public static boolean process(String arg) throws VM_PragmaInterruptible {
+  public static boolean process(String arg) throws InterruptiblePragma {
 
     // First handle the "option commands"
     if (arg.equals("help")) {
@@ -197,7 +196,7 @@ $$$$ END LOOP
   }
 
   // Print a short description of every option
-  // Throws VM_PragmaNoOptCompile to avoid occasional OutOfMemory errors when
+  // Throws PragmaNoOptCompile to avoid occasional OutOfMemory errors when
   // boot image writing.
   public static void printHelp() {
 

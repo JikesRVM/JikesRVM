@@ -7,13 +7,8 @@ import org.mmtk.utility.gcspy.TreadmillDriver;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Each instance of this class is a doubly-linked list, in which
@@ -30,7 +25,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 public final class Treadmill
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -58,40 +53,40 @@ public final class Treadmill
     toSpace = new DoublyLinkedList (granularity, shared, this); 
   }
 
-  static public final Treadmill getTreadmill (VM_Address node) {
+  static public final Treadmill getTreadmill (Address node) {
     return (Treadmill) DoublyLinkedList.getOwner(node);
   }
 
-  static public final int headerSize() throws VM_PragmaInline {
+  static public final int headerSize() throws InlinePragma {
     return DoublyLinkedList.headerSize();
   }
 
-  static public final VM_Address nodeToPayload(VM_Address payload) throws VM_PragmaInline {
+  static public final Address nodeToPayload(Address payload) throws InlinePragma {
     return DoublyLinkedList.nodeToPayload(payload);
   }
 
-  static public final VM_Address payloadToNode(VM_Address payload) throws VM_PragmaInline {
+  static public final Address payloadToNode(Address payload) throws InlinePragma {
     return DoublyLinkedList.payloadToNode(payload);
   }
 
-  static public final VM_Address midPayloadToNode(VM_Address payload) throws VM_PragmaInline {
+  static public final Address midPayloadToNode(Address payload) throws InlinePragma {
     return DoublyLinkedList.midPayloadToNode(payload);
   }
 
-  public final void addToFromSpace (VM_Address node) throws VM_PragmaInline {
+  public final void addToFromSpace (Address node) throws InlinePragma {
     fromSpace.add(node);
   }
 
-  public final VM_Address popFromSpace () throws VM_PragmaInline {
+  public final Address popFromSpace () throws InlinePragma {
     return fromSpace.pop();
   }
 
-  public final void copy (VM_Address node) throws VM_PragmaInline { 
+  public final void copy (Address node) throws InlinePragma { 
     fromSpace.remove(node);
     toSpace.add(node);
   }
 
-  public final boolean toSpaceEmpty () throws VM_PragmaInline {
+  public final boolean toSpaceEmpty () throws InlinePragma {
     return toSpace.isEmpty();
   }
 

@@ -8,8 +8,8 @@ package org.mmtk.utility.statistics;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM_Interface;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
+
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements a simple timer.
@@ -20,7 +20,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * $Id$
  */
 public class Timer extends LongCounter
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
 
   /****************************************************************************
    *
@@ -72,7 +72,7 @@ public class Timer extends LongCounter
    *
    * @return The current value for this timer
    */
-  final protected long getCurrentValue() throws VM_PragmaInline {
+  final protected long getCurrentValue() throws InlinePragma {
     return VM_Interface.cycles();
   }
 

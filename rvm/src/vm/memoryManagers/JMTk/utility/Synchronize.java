@@ -5,13 +5,14 @@
 
 package org.mmtk.utility;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
 import org.mmtk.vm.VM_Interface;
+
+import org.vmmagic.pragma.*;
 
 /*
  * @author Perry Cheng
  */
-public class Synchronize implements VM_Uninterruptible {
+public class Synchronize implements Uninterruptible {
 
 
 }

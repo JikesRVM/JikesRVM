@@ -11,10 +11,8 @@ import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements lazy mmapping of virtual memory.
@@ -23,7 +21,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-public final class LazyMmapper implements Constants, VM_Uninterruptible {
+public final class LazyMmapper implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -37,12 +35,12 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
 
   // There is a monotonicity assumption so that only updates require lock acquisition.
   //
-  public static void ensureMapped(VM_Address start, int pages) {
+  public static void ensureMapped(Address start, int pages) {
     int startChunk = Conversions.addressToMmapChunksDown(start);
     int endChunk = Conversions.addressToMmapChunksUp(start.add(Conversions.pagesToBytes(pages)));
     for (int chunk=startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) continue;
-      VM_Address mmapStart = Conversions.mmapChunksToAddress(chunk);
+      Address mmapStart = Conversions.mmapChunksToAddress(chunk);
       lock.acquire();
       // might have become MAPPED here
       lock.check(100);
@@ -86,14 +84,14 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
 
   }
 
-  public static void protect(VM_Address start, int pages) {
+  public static void protect(Address start, int pages) {
     int startChunk = Conversions.addressToMmapChunksDown(start); 
     int chunks = Conversions.pagesToMmapChunksUp(pages);
     int endChunk = startChunk + chunks;
     lock.acquire();
     for (int chunk=startChunk; chunk < endChunk; chunk++) {
       if (mapped[chunk] == MAPPED) {
-        VM_Address mmapStart = Conversions.mmapChunksToAddress(chunk);
+        Address mmapStart = Conversions.mmapChunksToAddress(chunk);
         if (!VM_Interface.mprotect(mmapStart, MMAP_CHUNK_SIZE)) {
           lock.release();
           VM_Interface.sysFail("LazyMmapper.mprotect failed");
@@ -113,12 +111,12 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
     lock.release();
   }
 
-  public static boolean addrIsMapped (VM_Address addr) throws VM_PragmaUninterruptible {
+  public static boolean addrIsMapped (Address addr) throws UninterruptiblePragma {
     int chunk = Conversions.addressToMmapChunksDown(addr);
     return mapped[chunk] == MAPPED;
   }
 
-  public static boolean refIsMapped (VM_Address ref) throws VM_PragmaUninterruptible {
+  public static boolean refIsMapped (Address ref) throws UninterruptiblePragma {
     return addrIsMapped(VM_Interface.refToAddress(ref));
   }
 
@@ -155,7 +153,7 @@ public final class LazyMmapper implements Constants, VM_Uninterruptible {
     }
   }
 
-  public static void boot (VM_Address bootStart, VM_Extent bootSize) {
+  public static void boot (Address bootStart, Extent bootSize) {
     int startChunk = Conversions.addressToMmapChunksDown(bootStart);
     int endChunk = Conversions.addressToMmapChunksDown(bootStart.add(bootSize));
     for (int i=startChunk; i<=endChunk; i++)

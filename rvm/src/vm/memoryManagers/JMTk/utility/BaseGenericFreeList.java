@@ -10,11 +10,9 @@ package org.mmtk.utility;
 
 import org.mmtk.vm.Constants;
 
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
 /**
  * This is a very simple, generic malloc-free allocator.  It works
  * abstractly, in "units", which the user may associate with some
@@ -94,7 +92,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  *
  */
 import org.mmtk.vm.VM_Interface;
-abstract class BaseGenericFreeList implements Constants, VM_Uninterruptible {
+abstract class BaseGenericFreeList implements Constants, Uninterruptible {
    public final static String Id = "$Id$";
  
   /****************************************************************************

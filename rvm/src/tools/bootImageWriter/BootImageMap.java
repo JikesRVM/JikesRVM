@@ -7,6 +7,8 @@ import java.util.Hashtable;
 import java.util.ArrayList;
 import com.ibm.JikesRVM.*;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * Correlate objects in host jdk with corresponding objects in target rvm
  * bootimage.
@@ -71,7 +73,7 @@ public class BootImageMap extends BootImageWriterMessages
     /**
      * Unique id associated with a jdk/rvm object pair.
      */
-    VM_Address objectId;
+    Address objectId;
 
     /**
      * JDK object.
@@ -90,7 +92,7 @@ public class BootImageMap extends BootImageWriterMessages
      * @param jdkObject the JDK object
      * @param imageOffset the offset of the object in the bootimage
      */
-    public Entry(VM_Address objectId, Object jdkObject, int imageOffset) {
+    public Entry(Address objectId, Object jdkObject, int imageOffset) {
       this.objectId    = objectId;
       this.jdkObject   = jdkObject;
       this.imageOffset = imageOffset;
@@ -98,8 +100,8 @@ public class BootImageMap extends BootImageWriterMessages
   }
 
   private static int idGenerator = 0;
-  private static VM_Address newId() {
-      return VM_Address.fromInt(idGenerator++);
+  private static Address newId() {
+      return Address.fromInt(idGenerator++);
   }
 
   /**
@@ -161,10 +163,10 @@ public class BootImageMap extends BootImageWriterMessages
    * @return address of corresponding rvm object within bootimage, in bytes
    *         or 0 if not present
    */
-  public static VM_Address getImageAddress(VM_Address bootImageAddress, Object jdkObject) {
+  public static Address getImageAddress(Address bootImageAddress, Object jdkObject) {
     BootImageMap.Entry mapEntry = BootImageMap.findOrCreateEntry(jdkObject);
     if (mapEntry.imageOffset == OBJECT_NOT_ALLOCATED)
-      return VM_Address.zero();
+      return Address.zero();
     return bootImageAddress.add(mapEntry.imageOffset);
   }
 }

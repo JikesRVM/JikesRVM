@@ -10,8 +10,8 @@ import org.mmtk.plan.Plan;
 import org.mmtk.utility.Options;
 
 import org.mmtk.vm.VM_Interface;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
+
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements basic statistics functionality
@@ -21,7 +21,7 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @date $Date$
  * $Id$
  */
-public class Stats implements VM_Uninterruptible {
+public class Stats implements Uninterruptible {
 
   /****************************************************************************
    *
@@ -59,7 +59,7 @@ public class Stats implements VM_Uninterruptible {
    * 
    * @param ctr The counter to be added.
    */
-  static void newCounter(Counter ctr) throws VM_PragmaInterruptible {
+  static void newCounter(Counter ctr) throws InterruptiblePragma {
     if (counters < (MAX_COUNTERS - 1)) {
       counter[counters++] = ctr;
     } else {

@@ -9,6 +9,9 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.adaptive.*;
+
+import org.vmmagic.unboxed.*;
+
 /**
  * OSR_CodeInstaller generates a glue code which recovers registers and 
  * from the stack frames and branch to the newly compiled method instructions.
@@ -127,7 +130,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
     thread.fooFPOffset = fooFPOffset;
     thread.tsFPOffset = tsfromFPOffset;
 
-    VM_Address bridgeaddr = 
+    Address bridgeaddr = 
       VM_Magic.objectAsAddress(thread.bridgeInstructions);
 
     VM_Memory.sync(bridgeaddr,

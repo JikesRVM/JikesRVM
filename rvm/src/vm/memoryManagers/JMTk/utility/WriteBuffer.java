@@ -7,11 +7,9 @@ package org.mmtk.utility.deque;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Magic;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 /**
  * This supports <i>unsynchronized</i> insertion of write buffer values.
  *
@@ -20,7 +18,7 @@ import com.ibm.JikesRVM.VM_Magic;
  * @date $Date$
  */ 
 public class WriteBuffer extends LocalSSB
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -43,8 +41,8 @@ public class WriteBuffer extends LocalSSB
    *
    * @param addr the value to be inserted into the write buffer
    */
-  public final void insert(VM_Address addr)
-    throws VM_PragmaNoInline {
+  public final void insert(Address addr)
+    throws NoInlinePragma {
     checkTailInsert(1);
     uncheckedTailInsert(addr);
   }

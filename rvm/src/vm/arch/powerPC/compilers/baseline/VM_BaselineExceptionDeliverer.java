@@ -5,6 +5,9 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
+
+import org.vmmagic.unboxed.*;
+
 /**
  *  Handle exception delivery and stack unwinding for methods compiled 
  * by baseline compiler.
@@ -19,20 +22,20 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
    * Pass control to a catch block.
    */
   public void deliverException(VM_CompiledMethod compiledMethod,
-                               VM_Address        catchBlockInstructionAddress,
+                               Address        catchBlockInstructionAddress,
                                Throwable         exceptionObject,
                                VM_Registers      registers) {
-    VM_Address fp    = registers.getInnermostFramePointer();
+    Address fp    = registers.getInnermostFramePointer();
     VM_NormalMethod method = (VM_NormalMethod)compiledMethod.getMethod();
 
     // reset sp to "empty expression stack" state
     //
-    VM_Address sp = fp.add(VM_Compiler.getEmptyStackOffset(method));
+    Address sp = fp.add(VM_Compiler.getEmptyStackOffset(method));
 
     // push exception object as argument to catch block
     //
     sp = sp.sub(BYTES_IN_ADDRESS);
-    VM_Magic.setMemoryAddress(sp, VM_Magic.objectAsAddress(exceptionObject));
+    sp.store(VM_Magic.objectAsAddress(exceptionObject));
 
     // set address at which to resume executing frame
     //
@@ -54,8 +57,8 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
   public void unwindStackFrame(VM_CompiledMethod compiledMethod, VM_Registers registers) {
     VM_NormalMethod method = (VM_NormalMethod)compiledMethod.getMethod();
     if (method.isSynchronized()) { 
-      VM_Address ip = registers.getInnermostInstructionAddress();
-      VM_Address base = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+      Address ip = registers.getInnermostInstructionAddress();
+      Address base = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
       int instr = ip.diff(base).toInt();
       int lockOffset = ((VM_BaselineCompiledMethod)compiledMethod).getLockAcquisitionOffset();
       if (instr > lockOffset) { // we actually have the lock, so must unlock it.
@@ -63,9 +66,9 @@ class VM_BaselineExceptionDeliverer extends VM_ExceptionDeliverer
         if (method.isStatic()) {
           lock = method.getDeclaringClass().getClassForType();
         } else {
-          VM_Address fp = registers.getInnermostFramePointer();
+          Address fp = registers.getInnermostFramePointer();
           int offset = VM_Compiler.getFirstLocalOffset(method);
-          lock = VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(fp.add(offset)));
+          lock = VM_Magic.addressAsObject(fp.add(offset).loadAddress());
         }
         VM_ObjectModel.genericUnlock(lock);
       }

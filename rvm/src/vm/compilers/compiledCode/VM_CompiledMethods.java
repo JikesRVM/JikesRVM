@@ -10,6 +10,9 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.opt.*;
 //-#endif
 
+import org.vmmagic.pragma.*; 
+import org.vmmagic.unboxed.*; 
+
 /**
  * Manage pool of compiled methods. <p>
  * Original extracted from VM_ClassLoader. <p>
@@ -60,7 +63,7 @@ public class VM_CompiledMethods implements VM_SizeConstants {
 
   // Fetch a previously compiled method.
   //
-  public static VM_CompiledMethod getCompiledMethod(int compiledMethodId) throws VM_PragmaUninterruptible {
+  public static VM_CompiledMethod getCompiledMethod(int compiledMethodId) throws UninterruptiblePragma {
     VM_Magic.isync();  // see potential update from other procs
 
     if (VM.VerifyAssertions) {
@@ -75,19 +78,19 @@ public class VM_CompiledMethods implements VM_SizeConstants {
 
   // Get number of methods compiled so far.
   //
-  public static int numCompiledMethods() throws VM_PragmaUninterruptible {
+  public static int numCompiledMethods() throws UninterruptiblePragma {
     return currentCompiledMethodId + 1;
   }
 
   // Getter method for the debugger, interpreter.
   //
-  public static VM_CompiledMethod[] getCompiledMethods() throws VM_PragmaUninterruptible {
+  public static VM_CompiledMethod[] getCompiledMethods() throws UninterruptiblePragma {
     return compiledMethods;
   }
 
   // Getter method for the debugger, interpreter.
   //
-  static int numCompiledMethodsLess1() throws VM_PragmaUninterruptible {
+  static int numCompiledMethodsLess1() throws UninterruptiblePragma {
     return currentCompiledMethodId;
   }
 
@@ -108,15 +111,15 @@ public class VM_CompiledMethods implements VM_SizeConstants {
    // Note: this method is highly inefficient. Normally you should use the following instead:
    //   VM_ClassLoader.getCompiledMethod(VM_Magic.getCompiledMethodID(fp))
    //
-  public static VM_CompiledMethod findMethodForInstruction(VM_Address ip) throws VM_PragmaUninterruptible {
+  public static VM_CompiledMethod findMethodForInstruction(Address ip) throws UninterruptiblePragma {
     for (int i = 0, n = numCompiledMethods(); i < n; ++i) {
       VM_CompiledMethod compiledMethod = compiledMethods[i];
       if (compiledMethod == null || !compiledMethod.isCompiled())
         continue; // empty slot
 
       VM_CodeArray instructions = compiledMethod.getInstructions();
-      VM_Address   beg          = VM_Magic.objectAsAddress(instructions);
-      VM_Address   end          = beg.add(instructions.length() << VM.LG_INSTRUCTION_WIDTH);
+      Address   beg          = VM_Magic.objectAsAddress(instructions);
+      Address   end          = beg.add(instructions.length() << VM.LG_INSTRUCTION_WIDTH);
 
       // note that "ip" points to a return site (not a call site)
       // so the range check here must be "ip <= beg || ip >  end"

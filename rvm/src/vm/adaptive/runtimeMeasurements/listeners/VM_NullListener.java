@@ -4,7 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM.adaptive;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.pragma.*;
 
 /**
  * A VM_NullListener is an object that is invoked when
@@ -16,7 +16,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date   2 June 2000
  */
 
-abstract class VM_NullListener extends VM_Listener implements VM_Uninterruptible {
+abstract class VM_NullListener extends VM_Listener implements Uninterruptible {
   /**
    * Entry point when listener is awoken.
    * @param whereFrom Was this a yieldpoint in a PROLOGUE, BACKEDGE, or

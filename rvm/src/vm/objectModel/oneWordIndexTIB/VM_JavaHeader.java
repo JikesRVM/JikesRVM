@@ -27,7 +27,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Dave Grove
  */
 public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
-  implements VM_Uninterruptible,
+  implements Uninterruptible,
              VM_BaselineConstants
              //-#if RVM_WITH_OPT_COMPILER
              ,OPT_Operators
@@ -67,17 +67,17 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
       int fmask = tibWord & VM_AllocatorHeader.GC_FORWARDING_MASK;
       if (fmask != 0 && fmask == VM_AllocatorHeader.GC_FORWARDED) {
         int forwardPtr = tibWord & ~VM_AllocatorHeader.GC_FORWARDING_MASK;
-        tibWord = VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(VM_Address.fromInt(forwardPtr)), TIB_OFFSET);
+        tibWord = VM_Magic.getIntAtOffset(VM_Magic.addressAsObject(Address.fromInt(forwardPtr)), TIB_OFFSET);
       }
     }      
     int offset = (tibWord & TIB_MASK) >>> (TIB_SHIFT - 2);
-    return VM_Magic.addressAsObjectArray(VM_Magic.getMemoryAddress(VM_Magic.getTocPointer().add(offset)));
+    return VM_Magic.addressAsObjectArray(VM_Magic.getTocPointer().add(offset).loadAddress());
   }
   
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(Object ref, Object[] tib) throws VM_PragmaInline {
+  public static void setTIB(Object ref, Object[] tib) throws InlinePragma {
     int idx = VM_Magic.objectAsType(tib[0]).getTibSlot() << TIB_SHIFT;
     if (VM.VerifyAssertions) VM._assert((idx & TIB_MASK) == idx);
     int tibWord = (VM_Magic.getIntAtOffset(ref, TIB_OFFSET) & ~TIB_MASK) | idx;
@@ -89,8 +89,8 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
    * Set the TIB for an object.
    * Note: Beware; this function clears the additional bits.
    */
-  public static void setTIB(BootImageInterface bootImage, int refOffset, VM_Address tibAddr, VM_Type type) {
-    VM_Word idx = VM_Word.fromIntZeroExtend(type.getTibSlot()).lsh(TIB_SHIFT);
+  public static void setTIB(BootImageInterface bootImage, int refOffset, Address tibAddr, VM_Type type) {
+    Word idx = Word.fromIntZeroExtend(type.getTibSlot()).lsh(TIB_SHIFT);
     if (VM.VerifyAssertions) VM._assert((idx.toInt() & TIB_MASK) == idx);
     bootImage.setAddressWord(refOffset + TIB_OFFSET, idx);
   }
@@ -98,12 +98,12 @@ public final class VM_JavaHeader extends VM_LockNurseryJavaHeader
   /**
    * Process the TIB field during copyingGC.
    */
-  public static void gcProcessTIB(VM_Address ref) {
+  public static void gcProcessTIB(Address ref) {
     // nothing to do (TIB is not a pointer)
   }
 
 
-  public static void gcProcessTIB(VM_Address ref, boolean root) {
+  public static void gcProcessTIB(Address ref, boolean root) {
     // nothing to do (TIB is not a pointer)
   }
 

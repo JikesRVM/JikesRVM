@@ -12,8 +12,9 @@ package org.mmtk.utility.gcspy;
 
 import org.mmtk.vm.gcspy.AbstractDriver;
 import org.mmtk.utility.heap.FreeListVMResource;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 
 //-#if RVM_WITH_GCSPY
 import org.mmtk.plan.Plan;
@@ -29,7 +30,7 @@ import org.mmtk.vm.gcspy.ServerSpace;
 import org.mmtk.vm.gcspy.Stream;
 import org.mmtk.vm.gcspy.StreamConstants;
 import org.mmtk.vm.VM_Interface;
-import com.ibm.JikesRVM.VM_Offset;
+
 //-#endif
 
 /**
@@ -40,7 +41,7 @@ import com.ibm.JikesRVM.VM_Offset;
  * @date $Date$
  */
 public class TreadmillDriver extends AbstractDriver
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
   public final static String Id = "$Id$";
 
 //-#if RVM_WITH_GCSPY
@@ -54,7 +55,7 @@ public class TreadmillDriver extends AbstractDriver
    * We count the number of objects in each tile and the space they use
    */
   class Tile extends AbstractTile 
-    implements  VM_Uninterruptible {
+    implements  Uninterruptible {
     short objects;
     int usedSpace;
     
@@ -87,7 +88,7 @@ public class TreadmillDriver extends AbstractDriver
   private int totalObjects = 0;		// total number of objects allocated
   private int totalUsedSpace = 0;	// total space used
 
-  private VM_Address maxAddr;		// the largest address seen
+  private Address maxAddr;		// the largest address seen
   private FreeListVMResource losVM;	// The LOS' VM_Resource
 
   
@@ -111,8 +112,8 @@ public class TreadmillDriver extends AbstractDriver
   public TreadmillDriver(String name,
                          FreeListVMResource losVM,
                          int blockSize,
-                         VM_Address start, 
-                         VM_Address end,
+                         Address start, 
+                         Address end,
                          int size,
                          int threshold,
                          boolean mainSpace) {
@@ -196,7 +197,7 @@ public class TreadmillDriver extends AbstractDriver
    */
   private void setTilenames(int numTiles) {
     int tile = 0;
-    VM_Address start = subspace.getStart();
+    Address start = subspace.getStart();
     int first = subspace.getFirstIndex();
     int bs = subspace.getBlockSize();
 
@@ -251,8 +252,8 @@ public class TreadmillDriver extends AbstractDriver
    * 
    * @param addr The address of the current object
    */
-  public void traceObject(VM_Address addr) {
-    VM_Address sp = TreadmillLocal.getSuperPage(addr);
+  public void traceObject(Address addr) {
+    Address sp = TreadmillLocal.getSuperPage(addr);
     int index = subspace.getIndex(sp);
     int length = Conversions.pagesToBytes(losVM.getSize(sp)).toInt();
 
@@ -303,8 +304,8 @@ public class TreadmillDriver extends AbstractDriver
    * @param addr an address in the super-page
    * @return the length of the super-page
    */
-  private int getSuperPageLength(VM_Address addr) {
-    VM_Address sp = TreadmillLocal.getSuperPage(addr);
+  private int getSuperPageLength(Address addr) {
+    Address sp = TreadmillLocal.getSuperPage(addr);
     return Conversions.pagesToBytes(losVM.getSize(sp)).toInt();
   }
 
@@ -313,7 +314,7 @@ public class TreadmillDriver extends AbstractDriver
    * @param start the start of the space
    * @param end the end of the space
    *
- public void setRange(VM_Address start, VM_Address end) {
+ public void setRange(Address start, Address end) {
    int current = subspace.getBlockNum();
    int required = countTileNum(start, end, blockSize);
 
@@ -354,7 +355,7 @@ public class TreadmillDriver extends AbstractDriver
     // however, we don't know the size of the space
 
     // Calculate the highest indexed tile used so far, and update the subspace
-    VM_Address start = subspace.getStart();
+    Address start = subspace.getStart();
     int required = countTileNum(start, maxAddr, blockSize);
     int current = subspace.getBlockNum();
     if (required > current || maxAddr != subspace.getEnd()) {
@@ -402,7 +403,7 @@ public class TreadmillDriver extends AbstractDriver
     space.controlEnd(numTiles, tiles);     
     
     // send the space info
-    VM_Offset size = subspace.getEnd().diff(subspace.getStart());
+    Offset size = subspace.getEnd().diff(subspace.getStart());
     sendSpaceInfoAndEndComm(size);
   }
 
@@ -410,8 +411,8 @@ public class TreadmillDriver extends AbstractDriver
   public TreadmillDriver(String name,
 		     FreeListVMResource losVM,
 		     int blockSize,
-		     VM_Address start, 
-		     VM_Address end,
+		     Address start, 
+		     Address end,
 		     int size,
 		     int threshold,
 		     boolean mainSpace) {}

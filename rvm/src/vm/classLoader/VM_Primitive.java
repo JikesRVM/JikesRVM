@@ -6,6 +6,7 @@ package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import org.vmmagic.pragma.*;
 
 /**
  * Description of a java "primitive" type (int, float, etc.)
@@ -56,7 +57,7 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
   /**
    * Stack space requirement.
    */ 
-  public final int getStackWords() throws VM_PragmaUninterruptible {
+  public final int getStackWords() throws UninterruptiblePragma {
     return stackWords;
   }
       
@@ -82,12 +83,12 @@ public final class VM_Primitive extends VM_Type implements VM_Constants,
     return new VM_Method[0];
   }
 
-  public final boolean hasFinalizer() throws VM_PragmaUninterruptible {
+  public final boolean hasFinalizer() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return false;
   }
       
-  public final Object[] getTypeInformationBlock() throws VM_PragmaUninterruptible {
+  public final Object[] getTypeInformationBlock() throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return null;
   }

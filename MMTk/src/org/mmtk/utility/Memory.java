@@ -8,31 +8,24 @@ package org.mmtk.utility;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_Magic;
-
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /*
  * @author Perry Cheng  
  */  
 
-public class Memory implements VM_Uninterruptible, Constants {
+public class Memory implements Uninterruptible, Constants {
 
   /* Inlining this loop into the uninterruptible code can cause/encourage the
    GCP into moving a get_obj_tib into the interruptible region where the tib
    is being installed via an int_store 
   */
-  private static boolean isSetHelper(VM_Address start, int size, boolean verbose, int v) throws VM_PragmaNoInline {
+  private static boolean isSetHelper(Address start, int size, boolean verbose, int v) throws NoInlinePragma {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert((size & (BYTES_IN_INT-1)) == 0);
     for (int i=0; i < size; i += BYTES_IN_INT) 
-      if (VM_Magic.getMemoryInt(start.add(i)) != v) {
+      if (start.loadInt(Offset.fromInt(i)) != v) {
         if (verbose) {
           Log.prependThreadId();
           Log.write("Memory range does not contain only value ");
@@ -47,36 +40,36 @@ public class Memory implements VM_Uninterruptible, Constants {
     return true;
   }
 
-  public static boolean IsZeroed(VM_Address start, int size) throws VM_PragmaInline {
+  public static boolean IsZeroed(Address start, int size) throws InlinePragma {
     return isSetHelper(start, size, false, 0);
   }
 
   // this is in the inline allocation sequence when VM_Interface.VerifyAssertions
   // therefore it is very carefully written to reduce the impact on code space.
-  public static void assertIsZeroed(VM_Address start, int size) throws VM_PragmaNoInline {
+  public static void assertIsZeroed(Address start, int size) throws NoInlinePragma {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(isSetHelper(start, size, true, 0));
   }
 
-  public static boolean assertIsSet(VM_Address start, int size, int v) throws VM_PragmaInline {
+  public static boolean assertIsSet(Address start, int size, int v) throws InlinePragma {
     return isSetHelper(start, size, true, v);
   }
 
-  public static void zeroSmall(VM_Address start, VM_Extent len) throws VM_PragmaInline {
-    VM_Address end = start.add(len);
-    for (VM_Address i = start; i.LT(end); i = i.add(BYTES_IN_INT)) 
-      VM_Magic.setMemoryInt(i, 0);
+  public static void zeroSmall(Address start, Extent len) throws InlinePragma {
+    Address end = start.add(len);
+    for (Address i = start; i.LT(end); i = i.add(BYTES_IN_INT)) 
+      i.store(0);
   }
 
-  public static void set (VM_Address start, int len, int v) throws VM_PragmaInline {
+  public static void set (Address start, int len, int v) throws InlinePragma {
     for (int i=0; i < len; i += BYTES_IN_INT) 
-      VM_Magic.setMemoryInt(start.add(i), v);
+      start.store(v, Offset.fromInt(i));
   }
 
   // start and len must both be 4-byte aligned
   //
-  public static void zero(VM_Address start, VM_Extent len) throws VM_PragmaInline {
-    if (len.GT(VM_Extent.fromIntZeroExtend(256))) 
+  public static void zero(Address start, Extent len) throws InlinePragma {
+    if (len.GT(Extent.fromIntZeroExtend(256))) 
       VM_Interface.zero(start, len);
     else
       zeroSmall(start, len);
@@ -84,11 +77,11 @@ public class Memory implements VM_Uninterruptible, Constants {
 
   // start and len must both be OS-page aligned
   //
-  public static void zeroPages(VM_Address start, int len) throws VM_PragmaInline {
+  public static void zeroPages(Address start, int len) throws InlinePragma {
     VM_Interface.zeroPages(start, len);
   }
 
-  public static void dumpMemory(VM_Address addr, int before, int after) {
+  public static void dumpMemory(Address addr, int before, int after) {
     VM_Interface.dumpMemory(addr, before, after);
   }
 

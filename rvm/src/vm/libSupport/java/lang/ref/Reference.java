@@ -4,10 +4,9 @@
 //$Id$
 package java.lang.ref;
 
-import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * The JikesRVM implementation of the java.lang.ref.Reference class.
@@ -16,10 +15,10 @@ import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 public abstract class Reference {
 
   /**
-   * The underlying object.  This field is a VM_Address so it will not
+   * The underlying object.  This field is a Address so it will not
    * be automatically kept alive by the garbage collector.
    */
-  private VM_Address referent;
+  private Address referent;
 
   /**
    * The address of the next Reference object in a linked list of
@@ -27,7 +26,7 @@ public abstract class Reference {
    * be garbage collected if the mutator no longer maintains strong
    * references to them.
    */
-  private VM_Address nextAsAddress;
+  private Address nextAsAddress;
 
   /**
    * Link to the next entry on the queue.  If this is null, this
@@ -73,7 +72,7 @@ public abstract class Reference {
    */
   public Object get() {
 
-    VM_Address tmp = referent;
+    Address tmp = referent;
     
     if (tmp.isZero())
         return null;
@@ -82,14 +81,14 @@ public abstract class Reference {
   }
 
   public void clear() {
-    referent = VM_Address.zero();
+    referent = Address.zero();
   }
 
   public boolean isEnqueued() {
     return nextOnQueue != null;
   }
 
-  public boolean wasEverEnqueued() throws VM_PragmaUninterruptible {
+  public boolean wasEverEnqueued() throws UninterruptiblePragma {
     return wasEnqueued;
   }
 
@@ -100,8 +99,8 @@ public abstract class Reference {
    * that users might find confusing. We think the problem is actually
    * not a 'real' problem...
    */
-  public boolean enqueue() throws VM_PragmaUninterruptible, 
-                                  VM_PragmaLogicallyUninterruptible {
+  public boolean enqueue() throws UninterruptiblePragma, 
+                                  LogicallyUninterruptiblePragma {
     if (nextOnQueue == null && queue != null) {
       wasEnqueued = true;
       queue.enqueue(this);

@@ -16,14 +16,8 @@ import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This abstract class implments the core functionality for
@@ -48,7 +42,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @date $Date$
  */
 public abstract class StopTheWorldGC extends BasePlan
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -139,7 +133,7 @@ public abstract class StopTheWorldGC extends BasePlan
    * Check whether a stress test GC is required
    */
   protected static final boolean stressTestGCRequired()
-    throws VM_PragmaInline {
+    throws InlinePragma {
     long pages = MemoryResource.getCumulativeCommittedPages();
     if (initialized &&
         ((pages ^ lastStressCumulativeCommittedPages) > Options.stressPages)) {
@@ -395,36 +389,36 @@ public abstract class StopTheWorldGC extends BasePlan
    * Process all GC work.  This method iterates until all work queues
    * are empty.
    */
-  private final void processAllWork() throws VM_PragmaNoInline {
+  private final void processAllWork() throws NoInlinePragma {
 
     if (Options.verbose >= 4) { Log.prependThreadId(); Log.writeln("  Working on GC in parallel"); }
     do {
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing forwarded (pre-copied) objects"); }
       while (!forwardedObjects.isEmpty()) {
-        VM_Address object = forwardedObjects.pop();
+        Address object = forwardedObjects.pop();
         scanForwardedObject(object);
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing root locations"); }
       while (!rootLocations.isEmpty()) {
-        VM_Address loc = rootLocations.pop();
+        Address loc = rootLocations.pop();
         traceObjectLocation(loc, true);
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing interior root locations"); }
       while (!interiorRootLocations.isEmpty()) {
-        VM_Address obj = interiorRootLocations.pop1();
-        VM_Address interiorLoc = interiorRootLocations.pop2();
-        VM_Address interior = VM_Magic.getMemoryAddress(interiorLoc);
-        VM_Address newInterior = traceInteriorReference(obj, interior, true);
-        VM_Magic.setMemoryAddress(interiorLoc, newInterior);
+        Address obj = interiorRootLocations.pop1();
+        Address interiorLoc = interiorRootLocations.pop2();
+        Address interior = interiorLoc.loadAddress();
+        Address newInterior = traceInteriorReference(obj, interior, true);
+        interiorLoc.store(newInterior);
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing gray objects"); }
       while (!values.isEmpty()) {
-        VM_Address v = values.pop();
+        Address v = values.pop();
 	Scan.scanObject(v);  // NOT traceObject
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing remset"); }
       while (!remset.isEmpty()) {
-        VM_Address loc = remset.pop();
+        Address loc = remset.pop();
         traceObjectLocation(loc, false);
       }
       flushRememberedSets();
@@ -452,7 +446,7 @@ public abstract class StopTheWorldGC extends BasePlan
    *
    * @param object The forwarded object to be scanned
    */
-  protected void scanForwardedObject(VM_Address object) {
+  protected void scanForwardedObject(Address object) {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(!Plan.MOVES_OBJECTS);
   }

@@ -6,10 +6,11 @@
  * @author Perry Cheng
  */
 
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+
 import java.lang.System;        // unneeded
 import java.io.PrintStream;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import org.vmmagic.pragma.*;
 
 class Exhaust {
 
@@ -40,7 +41,7 @@ class Exhaust {
 
   public static int doInner (int size) 
     throws // Throwable, 
-      VM_PragmaNoInline 
+      NoInlinePragma 
   {
     while (true) {
       wasAllocating = size;
@@ -54,7 +55,7 @@ class Exhaust {
 
   public static void runTest() 
     throws // Throwable, 
-      VM_PragmaNoInline 
+      NoInlinePragma 
   {
     int size = itemSize;  
     for (int i=1; i<=rounds; i++) {

@@ -13,12 +13,8 @@ import org.mmtk.utility.statistics.*;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements "trial deletion" cyclic garbage collection
@@ -58,7 +54,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 public final class TrialDeletion extends CycleDetector
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -171,8 +167,8 @@ public final class TrialDeletion extends CycleDetector
     collectEnum = new TDCollectEnumerator(this);
   }
 
-  public final void possibleCycleRoot(VM_Address object)
-    throws VM_PragmaInline {
+  public final void possibleCycleRoot(Address object)
+    throws InlinePragma {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!RefCountSpace.isGreen(object));
     //    Log.write("p[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
@@ -308,7 +304,7 @@ public final class TrialDeletion extends CycleDetector
                                      long timeCap) {
     int purple = 0;
     int limit = Options.cycleMetaDataPages<<(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_ADDRESS-1);
-    VM_Address obj = VM_Address.zero();
+    Address obj = Address.zero();
     src.flushLocal();
     do {
       int p = 0;
@@ -324,13 +320,13 @@ public final class TrialDeletion extends CycleDetector
   }
 
   private final void flushFilteredPurpleBufs() {
-    VM_Address obj = VM_Address.zero();
+    Address obj = Address.zero();
     while (!(obj = filteredPurpleBuffer.pop()).isZero()) {
       maturePurpleBuffer.push(obj);
     }
   }
 
-  private final void filter(VM_Address obj, AddressDeque tgt) {
+  private final void filter(Address obj, AddressDeque tgt) {
     //    Log.write("f[");Log.write(obj);RefCountSpace.print(obj);Log.writeln("]");
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!RefCountSpace.isGreen(obj));
@@ -349,7 +345,7 @@ public final class TrialDeletion extends CycleDetector
   }
 
   private final void processFreeBufs() {
-    VM_Address obj;
+    Address obj;
     while (!(obj = freeBuffer.pop()).isZero()) {
       rc.free(obj);
     }
@@ -381,7 +377,7 @@ public final class TrialDeletion extends CycleDetector
    * grey.
    */
   private final boolean doMarkGreyPhase(long timeCap) {
-    VM_Address obj = VM_Address.zero();
+    Address obj = Address.zero();
     boolean abort = false;
     phase = MARK_GREY;
     do {
@@ -398,9 +394,9 @@ public final class TrialDeletion extends CycleDetector
               RefCountSpace.RC_SANITY_CHECK));
     return abort;
   }
-  private final boolean processGreyObject(VM_Address object, AddressDeque tgt,
+  private final boolean processGreyObject(Address object, AddressDeque tgt,
                                           long timeCap)
-    throws VM_PragmaInline {
+    throws InlinePragma {
     //    Log.write("pg[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!RefCountSpace.isGreen(object));
@@ -425,8 +421,8 @@ public final class TrialDeletion extends CycleDetector
     }
     return true;
   }
-  private final boolean markGrey(VM_Address object, long timeCap)
-    throws VM_PragmaInline {
+  private final boolean markGrey(Address object, long timeCap)
+    throws InlinePragma {
     boolean abort = false;
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(workQueue.pop().isZero());
@@ -447,8 +443,8 @@ public final class TrialDeletion extends CycleDetector
     }
     return !abort;
   }
-  public final void enumerateGrey(VM_Address object)
-    throws VM_PragmaInline {
+  public final void enumerateGrey(Address object)
+    throws InlinePragma {
     if (Plan.isRCObject(object) && !RefCountSpace.isGreen(object)) {
       if (VM_Interface.VerifyAssertions)
         VM_Interface._assert(RefCountSpace.isLiveRC(object));
@@ -458,7 +454,7 @@ public final class TrialDeletion extends CycleDetector
   }
 
   private final void doScanPhase() {
-    VM_Address object;
+    Address object;
     AddressDeque src = cycleBufferA;
     AddressDeque tgt = cycleBufferB;
     phase = SCAN;
@@ -469,8 +465,8 @@ public final class TrialDeletion extends CycleDetector
       tgt.push(object);
     }
   }
-  private final void scan(VM_Address object)
-    throws VM_PragmaInline {
+  private final void scan(Address object)
+    throws InlinePragma {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
@@ -489,13 +485,13 @@ public final class TrialDeletion extends CycleDetector
       object = workQueue.pop();
     }
   }
-  public final void enumerateScan(VM_Address object) 
-    throws VM_PragmaInline {
+  public final void enumerateScan(Address object) 
+    throws InlinePragma {
     if (Plan.isRCObject(object) && !RefCountSpace.isGreen(object))
       workQueue.push(object);
   }
-  private final void scanBlack(VM_Address object)
-    throws VM_PragmaInline {
+  private final void scanBlack(Address object)
+    throws InlinePragma {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(blackQueue.pop().isZero());
     while (!object.isZero()) {
@@ -508,8 +504,8 @@ public final class TrialDeletion extends CycleDetector
       object = blackQueue.pop();
     }
   }
-  public final void enumerateScanBlack(VM_Address object)
-    throws VM_PragmaInline {
+  public final void enumerateScanBlack(Address object)
+    throws InlinePragma {
     if (Plan.isRCObject(object) && !RefCountSpace.isGreen(object)) {
       RefCountSpace.unsyncIncRC(object);
       if (!RefCountSpace.isBlack(object))
@@ -518,7 +514,7 @@ public final class TrialDeletion extends CycleDetector
   }
 
   private final void doCollectPhase() {
-    VM_Address object;
+    Address object;
     AddressDeque src = cycleBufferB;
     phase = COLLECT;
     while (!(object = src.pop()).isZero()) {
@@ -528,8 +524,8 @@ public final class TrialDeletion extends CycleDetector
       collectWhite(object);
     }
   }
-  private final void collectWhite(VM_Address object)
-    throws VM_PragmaInline {
+  private final void collectWhite(Address object)
+    throws InlinePragma {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(workQueue.pop().isZero());
     while (!object.isZero()) {
@@ -541,8 +537,8 @@ public final class TrialDeletion extends CycleDetector
       object = workQueue.pop();
     }
   }
-  public final void enumerateCollect(VM_Address object) 
-    throws VM_PragmaInline {
+  public final void enumerateCollect(Address object) 
+    throws InlinePragma {
     if (Plan.isRCObject(object)) {
       if (RefCountSpace.isGreen(object))
         plan.addToDecBuf(object); 
@@ -554,7 +550,7 @@ public final class TrialDeletion extends CycleDetector
   void resetVisitCount() {
     visitCount = 0;
   }
-  int getVisitCount() throws VM_PragmaInline {
+  int getVisitCount() throws InlinePragma {
     return visitCount;
   }
 }

@@ -11,6 +11,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 
+import org.vmmagic.pragma.*;
+
 //-#if RVM_WITH_HPM
 import com.ibm.JikesRVM.Java2HPM;
 //-#endif
@@ -85,7 +87,7 @@ public class VM_HardwarePerformanceMonitors
    * Called from VM_
    * @return record size
    */
-  static public  int getRecordSize() throws VM_PragmaUninterruptible 
+  static public  int getRecordSize() throws UninterruptiblePragma 
   {
     return record_size; 
   }
@@ -743,7 +745,7 @@ public class VM_HardwarePerformanceMonitors
    * @param bytes   array of bytes
    */
   static public int writeStringToBuffer(byte[] buffer, int index, byte[] bytes)
-    throws VM_PragmaUninterruptible 
+    throws UninterruptiblePragma 
   {
     if (VM.BuildForHPM && enabled) {
       int length = bytes.length;
@@ -772,7 +774,7 @@ public class VM_HardwarePerformanceMonitors
    * @param bytes   array of bytes
    */
   static public int writeStringToBufferSwapBytes(byte[] buffer, int index, byte[] bytes)
-    throws VM_PragmaUninterruptible 
+    throws UninterruptiblePragma 
   {
     if (VM.BuildForHPM && enabled) {
       int length = bytes.length;
@@ -893,7 +895,7 @@ public class VM_HardwarePerformanceMonitors
   /*
    * Get stashed thread name.
    */
-  static private String getThreadName(int index) throws VM_PragmaUninterruptible 
+  static private String getThreadName(int index) throws UninterruptiblePragma 
   {
     //-#if RVM_WITH_HPM
     if (index > ptn_size) {
@@ -993,7 +995,7 @@ public class VM_HardwarePerformanceMonitors
    * <p> 
    * Using sysCall interface (could use JNI interface).
    */
-  static private void stopUpdateResetReportAndStart() throws VM_PragmaUninterruptible {
+  static private void stopUpdateResetReportAndStart() throws UninterruptiblePragma {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
       if(verbose>=2)VM.sysWrite("VM_HPMs.stopUpdateResetReportAndStart()\n");
@@ -1012,7 +1014,7 @@ public class VM_HardwarePerformanceMonitors
    * Reset the HPM counters of all the threads and processors.
    * Report the aggregate counts for processors and threads.
    */
-  static private void stopUpdateResetAndReport() throws VM_PragmaUninterruptible {
+  static private void stopUpdateResetAndReport() throws UninterruptiblePragma {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
       stop_Update_reset();
@@ -1028,7 +1030,7 @@ public class VM_HardwarePerformanceMonitors
    * Reset HPM counter values.
    * Report the aggregate counts for processors and threads.
    */
-  static private void stop_Update_reset() throws VM_PragmaUninterruptible {
+  static private void stop_Update_reset() throws UninterruptiblePragma {
     // capture MID's
     VM_Thread.captureCallChainCMIDs(false);
     // update hpm counters of current processor and thread.
@@ -1047,7 +1049,7 @@ public class VM_HardwarePerformanceMonitors
    * Use the tracing facility for more details.
    * The aggregate reporting of HPM counter values is unaware of the tracing mechanism.
    */
-  static public void Report() throws VM_PragmaUninterruptible {
+  static public void Report() throws UninterruptiblePragma {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
       if (verbose<0) return;
@@ -1127,7 +1129,7 @@ public class VM_HardwarePerformanceMonitors
    * <p>
    * Uses sysCall interface (could use JNI interface)
    */
-  public static void report_MyGroup() throws VM_PragmaUninterruptible {
+  public static void report_MyGroup() throws UninterruptiblePragma {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
       if(verbose>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.report_MyGroup()\n");
@@ -1142,7 +1144,7 @@ public class VM_HardwarePerformanceMonitors
    * <p>
    * Uses sysCall interface (could use JNI interface)
    */
-  public static void stopAndReport_MyGroup() throws VM_PragmaUninterruptible {
+  public static void stopAndReport_MyGroup() throws UninterruptiblePragma {
     if (VM.BuildForHPM && enabled) {
       //-#if RVM_WITH_HPM
       if(verbose>=2)VM.sysWrite("VM_HardwarePerformanceMonitors.stopAndReport_MyGroup()\n");
@@ -1157,7 +1159,7 @@ public class VM_HardwarePerformanceMonitors
    * Start HPM counting.
    * Constraint: VM.BuildForHPM and enabled are set and built with RVM_WITH_HPM.
    */
-  static private void start() throws VM_PragmaUninterruptible
+  static private void start() throws UninterruptiblePragma
   {
     //-#if RVM_WITH_HPM
     VM_SysCall.sysHPMstartMyThread();
@@ -1168,7 +1170,7 @@ public class VM_HardwarePerformanceMonitors
    * Stop HPM counting.
    * Constraint: VM.BuildForHPM and enabled are set and built with RVM_WITH_HPM.
    */
-  static private void stop() throws VM_PragmaUninterruptible
+  static private void stop() throws UninterruptiblePragma
   {
     //-#if RVM_WITH_HPM
     VM_SysCall.sysHPMstopMyThread();
@@ -1179,7 +1181,7 @@ public class VM_HardwarePerformanceMonitors
    * Reset HPM counters.
    * Constraint: VM.BuildForHPM and enabled are set and built with RVM_WITH_HPM.
    */
-  static private void reset() throws VM_PragmaUninterruptible
+  static private void reset() throws UninterruptiblePragma
   {
     //-#if RVM_WITH_HPM
     VM_SysCall.sysHPMresetMyThread();

@@ -3,6 +3,10 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  *
  * <p> Alternative (to Java monitors) light-weight synchronization
@@ -58,13 +62,13 @@ package com.ibm.JikesRVM;
  * <p> Usage: system locks should only be used when synchronized
  * methods cannot.  Do not do anything, (such as trigger a type cast,
  * allocate an object, or call any method of a class that does not
- * implement VM_Uninterruptible) that might allow a thread switch or
+ * implement Uninterruptible) that might allow a thread switch or
  * trigger a garbage collection between lock and unlock.
  *
  * @author Bowen Alpern
  * @see VM_Processor
  * @see VM_Lock */
-public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible {
+public final class VM_ProcessorLock implements VM_Constants, Uninterruptible {
 
 //-#if RVM_FOR_MCS_PROCESSOR_LOCKS
   /**
@@ -104,7 +108,7 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
     do {
       p = VM_Magic.objectAsProcessor(VM_Magic.addressAsObject(VM_Magic.prepareAddress(this, latestContenderOffset)));
       if (p == null) { // nobody owns the lock
-        if (VM_Magic.attemptAddress(this, latestContenderOffset, VM_Address.zero(), VM_Magic.objectAsAddress(i))) {
+        if (VM_Magic.attemptAddress(this, latestContenderOffset, Address.zero(), VM_Magic.objectAsAddress(i))) {
           VM_Magic.isync(); // so subsequent instructions wont see stale values
           return; 
         } else {
@@ -142,8 +146,8 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
     if (VM.BuildForSingleVirtualProcessor) return true;
     int latestContenderOffset = VM_Entrypoints.latestContenderField.getOffset();
     if (VM_Magic.prepareAddress(this, latestContenderOffset).isZero()) {
-      VM_Address cp = VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor());
-      if (VM_Magic.attemptAddress(this, latestContenderOffset, VM_Address.zero(), cp)) {
+      Address cp = VM_Magic.objectAsAddress(VM_Processor.getCurrentProcessor());
+      if (VM_Magic.attemptAddress(this, latestContenderOffset, Address.zero(), cp)) {
         VM_Magic.isync(); // so subsequent instructions wont see stale values
         return true; 
       }
@@ -169,7 +173,7 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
     do {
       p = VM_Magic.objectAsProcessor(VM_Magic.addressAsObject(VM_Magic.prepareAddress(this, latestContenderOffset)));
       if (p == i) { // nobody is waiting for the lock
-        if (VM_Magic.attemptAddress(this, latestContenderOffset, VM_Magic.objectAsAddress(p), VM_Address.zero())) {
+        if (VM_Magic.attemptAddress(this, latestContenderOffset, VM_Magic.objectAsAddress(p), Address.zero())) {
           break;
         }
       } else if (VM_Magic.objectAsAddress(p).NE(IN_FLUX)) { // there are waiters, but the contention chain is not being chainged
@@ -209,7 +213,7 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
    * little to increase the likelihood that a subsequent retry will
    * succeed.
    */
-  private static void handleMicrocontention(int n) throws VM_PragmaNoInline {
+  private static void handleMicrocontention(int n) throws NoInlinePragma {
     if (n <= 0) return;                                  // method call overhead is delay enough
     int pid    =  VM_Processor.getCurrentProcessorId();
     if (pid < 0) pid = - pid;                            // native processors have negative ids
@@ -228,6 +232,6 @@ public final class VM_ProcessorLock implements VM_Constants, VM_Uninterruptible 
    * For MCS locking, indicates that another processor is changing the
    * state of the circular waiting queue.
    */
-  private static final VM_Address  IN_FLUX = VM_Address.max();
+  private static final Address  IN_FLUX = Address.max();
 
 }

@@ -13,10 +13,8 @@ import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.gcspy.AbstractDriver;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements a monotone virtual memory resource.  The unit of
@@ -29,7 +27,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-public class MonotoneVMResource extends VMResource implements Constants, VM_Uninterruptible {
+public class MonotoneVMResource extends VMResource implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   public final static boolean ZERO_ON_RELEASE = false;
@@ -42,7 +40,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
    * Constructor
    */
   public MonotoneVMResource(byte space_, String vmName, MemoryResource mr, 
-                     VM_Address vmStart, VM_Extent bytes, byte status) {
+                     Address vmStart, Extent bytes, byte status) {
     super(space_, vmName, vmStart, bytes, (byte) (VMResource.IN_VM | status));
     cursor = start;
     sentinel = start.add(bytes);
@@ -59,24 +57,24 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
    * @return The address of the start of the virtual memory region, or
    * zero on failure.
    */
-  public VM_Address acquire(int pageRequest) {
+  public Address acquire(int pageRequest) {
     return acquire(pageRequest, memoryResource);
   }
 
-  public VM_Address acquire(int pageRequest, MemoryResource memoryResource) {
+  public Address acquire(int pageRequest, MemoryResource memoryResource) {
     if ((memoryResource != null) && !memoryResource.acquire(pageRequest)) {
       if (Options.verbose >= 5) Log.writeln("polling caused gc - returning gc and retry");
-      return VM_Address.zero();
+      return Address.zero();
     }
     lock();
-    VM_Extent bytes = Conversions.pagesToBytes(pageRequest);
-    VM_Address tmpCursor = cursor.add(bytes);
+    Extent bytes = Conversions.pagesToBytes(pageRequest);
+    Address tmpCursor = cursor.add(bytes);
     if (tmpCursor.GT(sentinel)) {
       unlock();
       VM_Interface.getPlan().poll(true, memoryResource);
-      return VM_Address.zero();
+      return Address.zero();
     } else {
-      VM_Address oldCursor = cursor;
+      Address oldCursor = cursor;
       cursor = tmpCursor;
       unlock();
       acquireHelp(oldCursor, pageRequest);
@@ -91,7 +89,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
 
   public void release() {
     // Unmapping is useful for being a "good citizen" and for debugging
-    VM_Extent bytes = cursor.diff(start).toWord().toExtent();
+    Extent bytes = cursor.diff(start).toWord().toExtent();
     int pages = Conversions.bytesToPages(bytes);
     if (ZERO_ON_RELEASE) 
         Memory.zero(start, bytes);
@@ -107,7 +105,7 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
    * GCSpy needs to know the extent of this resource
    * @return the cursor
    */
- public VM_Address getCursor() { return cursor; }
+ public Address getCursor() { return cursor; }
 
   /**
    * Acquire the appropriate lock depending on whether the context is
@@ -152,8 +150,8 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
    * Private fields and methods
    */
 
-  protected VM_Address cursor;
-  protected VM_Address sentinel;
+  protected Address cursor;
+  protected Address sentinel;
   public final MemoryResource memoryResource;
   private Lock gcLock;       // used during GC
   private Lock mutatorLock;  // used by mutators

@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 
+import org.vmmagic.pragma.*;
+
 /**
  * An <code>OPT_IR</code> object (IR is short for Intermediate Representation)
  * contains all the per-compilation information associated with 
@@ -894,7 +896,7 @@ public final class OPT_IR implements OPT_Operators {
     }
   }
 
-  private void verror(String where, String msg) throws VM_PragmaNoInline {
+  private void verror(String where, String msg) throws NoInlinePragma {
     throw new OPT_OptimizingCompilerException("VERIFY: "+where, msg);
   }
 }

@@ -7,6 +7,8 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import java.util.ArrayList;
 
+import org.vmmagic.unboxed.*;
+
 /*
  * A block of machine code in the running virtual machine image.
  *

@@ -4,13 +4,15 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Base class for queues of VM_Threads.
  *
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-abstract class VM_AbstractThreadQueue implements VM_Uninterruptible {
+abstract class VM_AbstractThreadQueue implements Uninterruptible {
 
   // Are any threads on the queue?
   //
@@ -32,5 +34,5 @@ abstract class VM_AbstractThreadQueue implements VM_Uninterruptible {
   // For debugging.
   //
   abstract boolean contains(VM_Thread t);
-  abstract void    dump() throws VM_PragmaInterruptible;
+  abstract void    dump() throws InterruptiblePragma;
 }

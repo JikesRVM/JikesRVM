@@ -8,7 +8,8 @@ package org.mmtk.utility.statistics;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM_Interface;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements a simple boolean counter (counting number of
@@ -20,7 +21,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * $Id$
  */
 public class BooleanCounter extends Counter
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
 
   /****************************************************************************
    *

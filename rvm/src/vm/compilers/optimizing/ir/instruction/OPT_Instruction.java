@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import java.util.Enumeration;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Instructions are the basic atomic unit of the IR.
  * An instruction contains an {@link OPT_Operator operator} and
@@ -747,7 +749,7 @@ public final class OPT_Instruction
    * 
    * @return an enumeration of the instruction's uses.
    */
-  public final OPT_OperandEnumeration getUses() throws VM_PragmaInline {
+  public final OPT_OperandEnumeration getUses() throws InlinePragma {
     int numOps = getNumberOfOperands() - 1;
     int defsEnd = 
       operator.hasVarDefs() ? numOps : operator.getNumberOfPureDefs()-1;
@@ -1632,7 +1634,7 @@ public final class OPT_Instruction
       return temp;
     }
     protected abstract void advance();
-    private static void fail() throws VM_PragmaNoInline {
+    private static void fail() throws NoInlinePragma {
       throw new java.util.NoSuchElementException("OperandEnumerator");
     }
   }
@@ -1822,7 +1824,7 @@ public final class OPT_Instruction
       ops[i] = op;
     }
   }
-  private OPT_Operand outOfLineCopy(OPT_Operand op) throws VM_PragmaNoInline {
+  private OPT_Operand outOfLineCopy(OPT_Operand op) throws NoInlinePragma {
     return op.copy();
   }
 

@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * Converts all remaining instructions with HIR-only operators into 
  * an equivalent sequence of LIR operators.
@@ -1040,7 +1042,7 @@ public abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
     VM_Type t = type.getVMType();
     if (VM.BuildForIA32 && !MM_Interface.MOVES_TIBS &&
         VM.runningVM && t != null && t.isResolved()) {
-      VM_Address addr = VM_Magic.objectAsAddress(t.getTypeInformationBlock());
+      Address addr = VM_Magic.objectAsAddress(t.getTypeInformationBlock());
       return new OPT_AddressConstantOperand(addr);
     } else {
       OPT_RegisterOperand res = 

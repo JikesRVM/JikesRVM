@@ -6,6 +6,8 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * Helper routine to pull the parameters to multianewarray off the
  * Java expression stack maintained by the baseline compiler and 
@@ -37,10 +39,10 @@ public class VM_MultianewarrayHelper implements VM_Constants {
     //
     int[] numElements = new int[numDimensions];
     VM.disableGC();
-    VM_Address argp = VM_Magic.getMemoryAddress(VM_Magic.getFramePointer()).add(argOffset);
+    Address argp = VM_Magic.getFramePointer().loadAddress().add(argOffset);
     for (int i = 0; i < numDimensions; ++i) {
       int offset = (BYTES_IN_STACKSLOT * i) + BYTES_IN_INT;
-      numElements[i] = VM_Magic.getMemoryInt(argp.sub(offset));
+      numElements[i] = argp.sub(offset).loadInt();
     }
     VM.enableGC();
 

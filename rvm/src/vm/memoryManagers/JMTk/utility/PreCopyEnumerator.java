@@ -7,10 +7,8 @@ package org.mmtk.utility.scan;
 
 import org.mmtk.plan.Plan;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * A pointer enumeration class.  This class is used to forward all
@@ -21,7 +19,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $date: $
  */
 public class PreCopyEnumerator extends Enumerate 
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
   /**
    * Constructor (empty).
    */
@@ -32,8 +30,8 @@ public class PreCopyEnumerator extends Enumerate
    *
    * @param location The address of the field being enumerated.
    */
-  public void enumeratePointerLocation(VM_Address location) 
-    throws VM_PragmaInline {
+  public void enumeratePointerLocation(Address location) 
+    throws InlinePragma {
     Plan.forwardObjectLocation(location);
   }
 }

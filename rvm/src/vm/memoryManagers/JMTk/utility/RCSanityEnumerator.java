@@ -7,10 +7,8 @@ package org.mmtk.utility.scan;
 
 import org.mmtk.policy.RefCountLocal;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_Magic;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * A pointer enumeration class.  This class is used by the reference
@@ -21,7 +19,7 @@ import com.ibm.JikesRVM.VM_Magic;
  * @date $date: $
  */
 public class RCSanityEnumerator extends Enumerate 
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
   private RefCountLocal rc;
 
   /**
@@ -39,9 +37,9 @@ public class RCSanityEnumerator extends Enumerate
    *
    * @param location The address of the field being enumerated.
    */
-  public void enumeratePointerLocation(VM_Address location) 
-    throws VM_PragmaInline {
-    VM_Address object = VM_Magic.getMemoryAddress(location);
+  public void enumeratePointerLocation(Address location) 
+    throws InlinePragma {
+    Address object = location.loadAddress();
     if (!object.isZero()) {
       rc.sanityTraceEnqueue(object, location);
     }

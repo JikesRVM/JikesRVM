@@ -11,6 +11,8 @@ import com.ibm.JikesRVM.classloader.*;
 import java.util.Vector;
 import java.util.Enumeration;
 
+import org.vmmagic.pragma.*;
+
 /** 
  *  VM_CounterBasedSampling.java
  *
@@ -20,7 +22,7 @@ import java.util.Enumeration;
  *
  *  @author Matthew Arnold 
  * */
-public final class VM_CounterBasedSampling implements VM_Uninterruptible, VM_Constants
+public final class VM_CounterBasedSampling implements Uninterruptible, VM_Constants
 {
   static final boolean DEBUG = false;
 

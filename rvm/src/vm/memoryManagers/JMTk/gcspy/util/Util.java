@@ -14,14 +14,12 @@ import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 import org.mmtk.utility.Log;
 
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_SysCall;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
 import com.ibm.JikesRVM.VM_Synchronization;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class provides generally useful methods.
@@ -31,7 +29,7 @@ import com.ibm.JikesRVM.VM_Magic;
  * @date $Date$
  */
 public class Util 
-  implements VM_Uninterruptible, Constants {
+  implements Uninterruptible, Constants {
   public final static String Id = "$Id$";
   
   private static final boolean DEBUG_ = false;
@@ -45,8 +43,8 @@ public class Util
    * @return The start address of the memory allocated in C space
    * @see free
    */
-  public static final VM_Address malloc(int size) {
-    VM_Address rtn  = VM_SysCall.sysMalloc(size);
+  public static final Address malloc(int size) {
+    Address rtn  = VM_SysCall.sysMalloc(size);
     if (rtn.isZero())
       VM_Interface.sysFail("GCspy malloc failure");
     return rtn;
@@ -58,7 +56,7 @@ public class Util
    * @param addr The address of some memory previously allocated with malloc
    * @see malloc
    */
-  public static final void free(VM_Address addr) {
+  public static final void free(Address addr) {
     if (!addr.isZero())
       VM_SysCall.sysFree(addr);
   }
@@ -69,7 +67,7 @@ public class Util
    * @param start The start of the range
    * @param end The end of the range
    */
-  public static final void dumpRange(VM_Address start, VM_Address end) {
+  public static final void dumpRange(Address start, Address end) {
     Log.write("[", start);
     Log.write(",", end);
     Log.write(')');
@@ -101,10 +99,10 @@ public class Util
    * which are interruptible. We protect these calls with a
    * swLock/swUnlock mechanism, as per VM.sysWrite on String
    */
-  public static final VM_Address getBytes (String str) 
-    throws VM_PragmaLogicallyUninterruptible {
+  public static final Address getBytes (String str) 
+    throws LogicallyUninterruptiblePragma {
     if (str == null) 
-      return VM_Address.zero();
+      return Address.zero();
 
     if (DEBUG_) {
       Log.write("getBytes: ");
@@ -119,7 +117,7 @@ public class Util
       len = str.length(); 
     swUnlock();
     int size = ((len >>> LOG_BYTES_IN_WORD) + 1) << LOG_BYTES_IN_WORD;
-    VM_Address rtn = malloc(size);
+    Address rtn = malloc(size);
    
     // Write the string into it, one word at a time, being carefull about endianism
     for (int w = 0; w <= (len >>> LOG_BYTES_IN_WORD); w++)  {
@@ -141,7 +139,7 @@ public class Util
 	//-#endif
 	shift += BITS_IN_BYTE;
       }
-      VM_Magic.setMemoryInt(rtn.add(offset), value);
+      rtn.store(value, Offset.intAsOffset(offset));
     }
     if (DEBUG_) {
       VM_SysCall.sysWriteBytes(2/*SysTraceFd*/, rtn, size);
@@ -160,7 +158,7 @@ public class Util
    * @param buffer The buffer (in C space) in which to place the formatted size
    * @param size The size in bytes
    */
-  public static final void formatSize(VM_Address buffer, int size) {
+  public static final void formatSize(Address buffer, int size) {
     VM_SysCall.gcspyFormatSize(buffer, size);
   }
 
@@ -241,7 +239,7 @@ public class Util
    * @param value The value 'string' (memory in C space)
    * @return The number of characters printed (as returned by C's sprintf
    */
-  public static final int sprintf(VM_Address str, VM_Address format, VM_Address value) {
+  public static final int sprintf(Address str, Address format, Address value) {
     return VM_SysCall.gcspySprintf(str, format, value);
   }
 

@@ -8,6 +8,7 @@ import com.ibm.JikesRVM.*;
 import java.util.*;
 import com.ibm.JikesRVM.opt.ir.OPT_CallSiteTree;
 import com.ibm.JikesRVM.opt.ir.OPT_CallSiteTreeNode;
+import org.vmmagic.pragma.*;
 
 /**
  * Suppose the following inlining actions have been taken 
@@ -27,7 +28,7 @@ import com.ibm.JikesRVM.opt.ir.OPT_CallSiteTreeNode;
  * @author Julian Dolby
  * @modified Dave Grove
  */
-public abstract class VM_OptEncodedCallSiteTree implements VM_Uninterruptible {
+public abstract class VM_OptEncodedCallSiteTree implements Uninterruptible {
 
   public static int getMethodID(int entryOffset, int[] encoding) {
     return  encoding[entryOffset + 1];
@@ -41,7 +42,7 @@ public abstract class VM_OptEncodedCallSiteTree implements VM_Uninterruptible {
     return  encoding[entryOffset];
   }
 
-  public static int[] getEncoding(OPT_CallSiteTree tree) throws VM_PragmaInterruptible {
+  public static int[] getEncoding(OPT_CallSiteTree tree) throws InterruptiblePragma {
     int size = 0;
     if (tree.isEmpty())
       return  null; 
@@ -61,7 +62,7 @@ public abstract class VM_OptEncodedCallSiteTree implements VM_Uninterruptible {
   }
 
   static int getEncoding(OPT_CallSiteTreeNode current, int offset, int parent, 
-                         int[] encoding) throws VM_PragmaInterruptible {
+                         int[] encoding) throws InterruptiblePragma {
     int i = offset;
     if (parent != -1)
       encoding[i++] = parent - offset;

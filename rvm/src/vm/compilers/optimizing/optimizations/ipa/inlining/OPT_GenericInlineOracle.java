@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Common code for inline oracles.
  * This class's shouldInline method factors out the basic logic

@@ -5,6 +5,8 @@
 
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * A wait queue for threads that are waiting for a process
  * to exit.  Used to implement the <code>exitValue()</code>
@@ -38,7 +40,7 @@ package com.ibm.JikesRVM;
  * @see VM_Process
  */
 public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
-  implements VM_Uninterruptible, VM_ThreadEventConstants {
+  implements Uninterruptible, VM_ThreadEventConstants {
 
   /**
    * Class to safely downcast from <code>VM_ThreadEventWaitData</code>
@@ -48,7 +50,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
    * code.
    */
   private static class WaitDataDowncaster extends VM_ThreadEventWaitDataVisitor
-    implements VM_Uninterruptible {
+    implements Uninterruptible {
 
     public VM_ThreadProcessWaitData waitData;
 
@@ -218,7 +220,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
    * Dump text description of what given thread is waiting for.
    * For debugging.
    */
-  void dumpWaitDescription(VM_Thread thread) throws VM_PragmaInterruptible {
+  void dumpWaitDescription(VM_Thread thread) throws InterruptiblePragma {
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData.
     // Because this method may be called by other VM_Processors without
     // locking (and thus execute concurrently with other methods), do NOT
@@ -236,7 +238,7 @@ public class VM_ThreadProcessWaitQueue extends VM_ThreadEventWaitQueue
    * Get string describing what given thread is waiting for.
    * This method must be interruptible!
    */
-  String getWaitDescription(VM_Thread thread) throws VM_PragmaInterruptible {
+  String getWaitDescription(VM_Thread thread) throws InterruptiblePragma {
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadProcessWaitData.
     WaitDataDowncaster downcaster = new WaitDataDowncaster();
     thread.waitData.accept(downcaster);

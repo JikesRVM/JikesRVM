@@ -9,8 +9,8 @@ import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
 import com.ibm.JikesRVM.VM_Callbacks;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+
+import org.vmmagic.pragma.*;
 
 /**
  * This class allows JMTk to register call backs with VM_Callbacks.
@@ -21,13 +21,13 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 public class Monitor 
-  implements Constants, VM_Uninterruptible, VM_Callbacks.ExitMonitor {
+  implements Constants, Uninterruptible, VM_Callbacks.ExitMonitor {
   public final static String Id = "$Id$"; 
 
   /**
    * Register the exit monitor at boot time.
    */
-  public static void boot() throws VM_PragmaInterruptible {
+  public static void boot() throws InterruptiblePragma {
     VM_Callbacks.addExitMonitor(new Monitor());
   }
 

@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.Stack;
 
+import org.vmmagic.pragma.*;
+
 /**
  * This class provides some utilities that are useful for inlining.
  *
@@ -134,7 +136,7 @@ public abstract class OPT_InlineTools implements OPT_Constants {
 
   /**
    * Should the callee method always be inlined?
-   * Usually this is becuase of a programmer directive (VM_PragmaInline),
+   * Usually this is becuase of a programmer directive (InlinePragma),
    * but we also use this mechanism to hardwire a couple special cases.
    *
    * @param callee the method being considered for inlining

@@ -5,6 +5,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.unboxed.*;
 /**
  *--------------------------------------------------------------------------
  *                     Stackframe layout conventions           
@@ -132,7 +133,7 @@ public interface VM_StackframeLayoutConstants  {
   static final int STACKFRAME_NEXT_INSTRUCTION_OFFSET =  BYTES_IN_STACKSLOT;
   static final int STACKFRAME_FRAME_POINTER_OFFSET    =  0;
   //-#endif
-  static final VM_Address STACKFRAME_SENTINEL_FP = VM_Address.fromIntSignExtend(-2); // fp value indicating end of stack walkback
+  static final Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2); // fp value indicating end of stack walkback
   static final int INVISIBLE_METHOD_ID    = -1; // marker for "assembler" frames that have no associated VM_Method
 
   // Stackframe alignment.

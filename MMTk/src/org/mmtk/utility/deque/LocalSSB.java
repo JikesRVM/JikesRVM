@@ -8,14 +8,8 @@ import org.mmtk.plan.Plan;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class implements a local (<i>unsynchronized</i>) sequential
@@ -47,7 +41,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @version $Revision$
  * @date $Date$
  */ 
-class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
+class LocalSSB extends Deque implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -87,8 +81,8 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
    *
    * Protected instance methods and fields
    */
-  protected VM_Address tail;            // the location in the buffer
-  protected VM_Address tailBufferEnd;   // the end of the buffer
+  protected Address tail;            // the location in the buffer
+  protected Address tailBufferEnd;   // the end of the buffer
   protected SharedDeque queue;          // the shared queue
 
   /**
@@ -107,11 +101,11 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
    * @param arity The arity of the values stored in this SSB: the
    * buffer must contain enough space for this many words.
    */
-  protected final void checkTailInsert(int arity) throws VM_PragmaInline {
+  protected final void checkTailInsert(int arity) throws InlinePragma {
     if (bufferOffset(tail).isZero())
       tailOverflow(arity);
     else if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(bufferOffset(tail).sGE(VM_Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
+      VM_Interface._assert(bufferOffset(tail).sGE(Word.fromIntZeroExtend(arity).lsh(LOG_BYTES_IN_ADDRESS).toOffset()));
   }
 
   /**
@@ -121,11 +115,11 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
    *
    * @param value the value to be inserted.
    */
-  protected final void uncheckedTailInsert(VM_Address value) throws VM_PragmaInline {
+  protected final void uncheckedTailInsert(Address value) throws InlinePragma {
     if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(bufferOffset(tail).sGE(VM_Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
+      VM_Interface._assert(bufferOffset(tail).sGE(Offset.fromIntZeroExtend(BYTES_IN_ADDRESS)));
     tail = tail.sub(BYTES_IN_ADDRESS);
-    VM_Magic.setMemoryAddress(tail, value);
+    tail.store(value);
     //    if (VM_Interface.VerifyAssertions) enqueued++;
   }
 
@@ -141,12 +135,12 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
    * @param arity The arity of the buffer in question
    * @return The last slot in the normalized buffer that contains an entry
    */
-  protected final VM_Address normalizeTail(int arity) {
-    VM_Address src = tail;
-    VM_Address tgt = bufferFirst(tail);
-    VM_Address last = tgt.add(bufferLastOffset(arity).sub(bufferOffset(tail)));
+  protected final Address normalizeTail(int arity) {
+    Address src = tail;
+    Address tgt = bufferFirst(tail);
+    Address last = tgt.add(bufferLastOffset(arity).sub(bufferOffset(tail)));
     while(tgt.LE(last)) {
-      VM_Magic.setMemoryAddress(tgt, VM_Magic.getMemoryAddress(src));
+      tgt.store(src.loadAddress());
       src = src.add(BYTES_IN_ADDRESS);
       tgt = tgt.add(BYTES_IN_ADDRESS);
     }
@@ -160,7 +154,7 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
    * @param arity The arity of this buffer
    * @return The sentinel offset value for a buffer of the given arity.
    */
-  protected final VM_Offset bufferSentinel(int arity) throws VM_PragmaInline {
+  protected final Offset bufferSentinel(int arity) throws InlinePragma {
     return bufferLastOffset(arity).add(BYTES_IN_ADDRESS);
   }
 
@@ -191,8 +185,8 @@ class LocalSSB extends Deque implements Constants, VM_Uninterruptible {
    *
    *  @param arity The arity of this buffer.
    */
-  private final void closeAndEnqueueTail(int arity) throws VM_PragmaNoInline {
-    VM_Address last;
+  private final void closeAndEnqueueTail(int arity) throws NoInlinePragma {
+    Address last;
     if (!bufferOffset(tail).isZero()) {
       // prematurely closed
       last = normalizeTail(arity);

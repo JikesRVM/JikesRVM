@@ -7,6 +7,9 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_GCMapIterator;
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Iterator for stack frame  built by the Baseline compiler
  * An Instance of this class will iterate through a particular 
@@ -21,7 +24,7 @@ import com.ibm.JikesRVM.classloader.*;
  */
 public final class VM_BaselineGCMapIterator extends VM_GCMapIterator 
   implements VM_BaselineConstants,
-             VM_Uninterruptible  {
+             Uninterruptible  {
 
   // Iterator state for mapping any stackframe.
   //
@@ -41,8 +44,8 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   private int            bridgeParameterInitialIndex;    // first parameter to be mapped (-1 == "this")
   private int            bridgeParameterIndex;           // current parameter being mapped (-1 == "this")
   private int            bridgeRegisterIndex;            // gpr register it lives in
-  private VM_Address     bridgeRegisterLocation;         // memory address at which that register was saved
-  private VM_Address     bridgeSpilledParamLocation;     // current spilled param location
+  private Address     bridgeRegisterLocation;         // memory address at which that register was saved
+  private Address     bridgeSpilledParamLocation;     // current spilled param location
 
   //
   // Remember the location array for registers. This array needs to be updated
@@ -51,7 +54,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // other types of iterators (ones for the quick and opt compiler built frames)
   // The locations are kept as addresses within the stack.
   //
-  public VM_BaselineGCMapIterator(VM_WordArray registerLocations) {
+  public VM_BaselineGCMapIterator(WordArray registerLocations) {
     this.registerLocations = registerLocations; // (in superclass)
     dynamicLink  = new VM_DynamicLink();
   }
@@ -68,7 +71,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   //
   //  NOTE: An iterator may be reused to scan a different method and map.
   //
-  public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, VM_Address fp) {
+  public void setupIterator(VM_CompiledMethod compiledMethod, int instructionOffset, Address fp) {
     currentMethod = (VM_NormalMethod)compiledMethod.getMethod();
 
     // setup superclass
@@ -101,12 +104,12 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
     bridgeRegistersLocationUpdated = false;
     bridgeParameterIndex           = 0;
     bridgeRegisterIndex            = 0;
-    bridgeRegisterLocation         = VM_Address.zero();
-    bridgeSpilledParamLocation     = VM_Address.zero();
+    bridgeRegisterLocation         = Address.zero();
+    bridgeSpilledParamLocation     = Address.zero();
 
     if (currentMethod.getDeclaringClass().isDynamicBridge()) {
       fp                       = VM_Magic.getCallerFramePointer(fp);
-      VM_Address        ip                       = VM_Magic.getNextInstructionAddress(fp);
+      Address        ip                       = VM_Magic.getNextInstructionAddress(fp);
       int               callingCompiledMethodId  = VM_Magic.getCompiledMethodID(fp);
       VM_CompiledMethod callingCompiledMethod    = VM_CompiledMethods.getCompiledMethod(callingCompiledMethodId);
       int               callingInstructionOffset = callingCompiledMethod.getInstructionOffset(ip);
@@ -133,12 +136,12 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       bridgeParameterMappingRequired = true;
       bridgeParameterIndex   = bridgeParameterInitialIndex;
       bridgeRegisterIndex    = FIRST_VOLATILE_GPR;
-      bridgeRegisterLocation = VM_Magic.getMemoryAddress(framePtr);
+      bridgeRegisterLocation = framePtr.loadAddress();
       bridgeRegisterLocation = bridgeRegisterLocation.sub(BYTES_IN_DOUBLE * (LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) +
                                                           BYTES_IN_ADDRESS * (LAST_NONVOLATILE_GPR - FIRST_VOLATILE_GPR + 1));
 
       // get to my caller's frameptr and then walk up to the spill area
-      VM_Address callersFP = VM_Magic.getCallerFramePointer(framePtr);
+      Address callersFP = VM_Magic.getCallerFramePointer(framePtr);
       bridgeSpilledParamLocation     = callersFP.add(STACKFRAME_HEADER_SIZE);
     }
   }
@@ -146,7 +149,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // Get location of next reference.
   // A zero return indicates that no more references exist.
   //
-  public VM_Address getNextReferenceAddress() {
+  public Address getNextReferenceAddress() {
 
     if (!finishedWithRegularMap) {
       if (mapId < 0) {
@@ -177,7 +180,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       if (!bridgeRegistersLocationUpdated) {
         // point registerLocations[] to our callers stackframe
         //
-        VM_Address location = framePtr.add(VM_Compiler.getFrameSize(currentMethod));
+        Address location = framePtr.add(VM_Compiler.getFrameSize(currentMethod));
         location = location.sub((LAST_NONVOLATILE_FPR - FIRST_VOLATILE_FPR + 1) * BYTES_IN_DOUBLE); 
         // skip non-volatile and volatile fprs
         for (int i = LAST_NONVOLATILE_GPR; i >= FIRST_VOLATILE_GPR; --i) {
@@ -259,7 +262,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
         }
       }
     }
-    return VM_Address.zero();
+    return Address.zero();
   }
 
   //
@@ -267,7 +270,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
   // after the current position.
   //  a zero return indicates that no more references exist
   //
-  public VM_Address getNextReturnAddressAddress() {
+  public Address getNextReturnAddressAddress() {
 
     if (mapId >= 0) {
       if (VM.TraceStkMaps) {
@@ -275,7 +278,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
         VM.sysWrite(mapId);
         VM.sysWrite(".\n");
       }
-      return VM_Address.zero();
+      return Address.zero();
     }
     mapOffset = maps.getNextJSRReturnAddr(mapOffset);
     if (VM.TraceStkMaps) {
@@ -283,7 +286,7 @@ public final class VM_BaselineGCMapIterator extends VM_GCMapIterator
       VM.sysWrite(mapOffset);
       VM.sysWrite(".\n");
     }
-    return (mapOffset == 0) ? VM_Address.zero() : framePtr.add(mapOffset);
+    return (mapOffset == 0) ? Address.zero() : framePtr.add(mapOffset);
   }
 
   // cleanup pointers - used with method maps to release data structures

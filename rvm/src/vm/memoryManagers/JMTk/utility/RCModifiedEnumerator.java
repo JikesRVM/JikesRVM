@@ -7,9 +7,8 @@ package org.mmtk.utility.scan;
 
 import org.mmtk.plan.Plan;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * A pointer enumeration class.  This class is used by the
@@ -22,7 +21,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $date: $
  */
 public class RCModifiedEnumerator extends Enumerate 
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
   private Plan plan;
 
   /**
@@ -40,8 +39,8 @@ public class RCModifiedEnumerator extends Enumerate
    *
    * @param location The address of the field being enumerated.
    */
-  public void enumeratePointerLocation(VM_Address location) 
-      throws VM_PragmaInline {
+  public void enumeratePointerLocation(Address location) 
+      throws InlinePragma {
     plan.enumerateModifiedPointerLocation(location);
   }
 }

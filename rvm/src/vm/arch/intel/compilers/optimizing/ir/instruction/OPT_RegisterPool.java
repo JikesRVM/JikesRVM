@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.OPT_ClassLoaderProxy;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * Pool of symbolic registers.
  * Intel specific implementation where JTOC is stored in the processor object
@@ -40,7 +42,7 @@ public class OPT_RegisterPool extends OPT_GenericRegisterPool implements OPT_Ope
    */ 
   public OPT_Operand makeJTOCOp(OPT_IR ir, OPT_Instruction s) {
     if (ir.options.FIXED_JTOC) {
-      VM_Address jtoc = VM_Magic.getTocPointer();
+      Address jtoc = VM_Magic.getTocPointer();
       return new OPT_IntConstantOperand(jtoc.toInt());
     } else {
       OPT_RegisterOperand res = ir.regpool.makeTemp(VM_TypeReference.IntArray);

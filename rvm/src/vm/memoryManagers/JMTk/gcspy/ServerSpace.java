@@ -12,8 +12,8 @@ import org.mmtk.utility.Log;
 
 import com.ibm.JikesRVM.VM_SysCall;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_Address;
+
+import org.vmmagic.unboxed.*;
 
 /**
  * ServerSpace.java
@@ -26,12 +26,12 @@ import com.ibm.JikesRVM.VM_Address;
  * @date $Date$
  */
 public class ServerSpace 
-  implements  VM_Uninterruptible {
+  implements  Uninterruptible {
   public final static String Id = "$Id$";
   
   private static final String DEFAULT_UNUSED_STRING = "NOT USED";	// The "unused" string
 
-  private final VM_Address driver_;               	// the c driver, gcspy_gc_driver_t *driver;
+  private final Address driver_;               	// the c driver, gcspy_gc_driver_t *driver;
   private final int id_;				// the space's ID
   private static final boolean DEBUG_ = false;
   
@@ -61,11 +61,11 @@ public class ServerSpace
     this.id_ = id;
     
     // Convert Strings to char *
-    VM_Address serverName_ = Util.getBytes(serverName);
-    VM_Address driverName_ = Util.getBytes(driverName);
-    VM_Address title_      = Util.getBytes(title);
-    VM_Address blockInfo_  = Util.getBytes(title);
-    VM_Address unused_ =     Util.getBytes((unused == null) ? DEFAULT_UNUSED_STRING
+    Address serverName_ = Util.getBytes(serverName);
+    Address driverName_ = Util.getBytes(driverName);
+    Address title_      = Util.getBytes(title);
+    Address blockInfo_  = Util.getBytes(title);
+    Address unused_ =     Util.getBytes((unused == null) ? DEFAULT_UNUSED_STRING
                                                       : unused);
     
     // Add the driver to the server and initialise it
@@ -83,7 +83,7 @@ public class ServerSpace
    * @param start the starting address of the tile
    * @param end the end address
    */
-  public void setTilename(int i, VM_Address start, VM_Address end) {
+  public void setTilename(int i, Address start, Address end) {
     VM_SysCall.gcspyDriverSetTileName(driver_, i, start, end);
   }
 
@@ -93,7 +93,7 @@ public class ServerSpace
    * @param id The stream's ID
    * @return The address of the stream, gcspy_gc_stream_t *
    */
-  VM_Address addStream(int id) {
+  Address addStream(int id) {
     return VM_SysCall.gcspyDriverAddStream(driver_, id);
   }
 
@@ -102,7 +102,7 @@ public class ServerSpace
    * 
    * @return The address of the stream, gcspy_gc_stream_t *
    */
-  VM_Address getDriverAddress() {
+  Address getDriverAddress() {
     return driver_;
   }
   
@@ -222,7 +222,7 @@ public class ServerSpace
    * 
    * @param info The info
    */
-  public void spaceInfo (VM_Address info) {
+  public void spaceInfo (Address info) {
     VM_SysCall.gcspyDriverSpaceInfo(driver_, info);
   }
 

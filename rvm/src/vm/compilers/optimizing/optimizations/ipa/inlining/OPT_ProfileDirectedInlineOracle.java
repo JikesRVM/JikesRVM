@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
 
+import org.vmmagic.pragma.*;
+
 /**
   * This class implements the OPT_InlineOracle interface with a
   * profile-directed inlining strategy.

@@ -45,6 +45,19 @@ public class VM_MagicNames {
   public static final VM_Atom setNextInstructionAddress     = VM_Atom.findOrCreateAsciiAtom("setNextInstructionAddress");
   public static final VM_Atom getReturnAddressLocation      = VM_Atom.findOrCreateAsciiAtom("getReturnAddressLocation");
 
+  public static final VM_Atom loadPrefix                    = VM_Atom.findOrCreateAsciiAtom("load");
+  public static final VM_Atom loadByte                      = VM_Atom.findOrCreateAsciiAtom("loadByte");
+  public static final VM_Atom loadChar                      = VM_Atom.findOrCreateAsciiAtom("loadChar");
+  public static final VM_Atom loadInt                       = VM_Atom.findOrCreateAsciiAtom("loadInt");
+  public static final VM_Atom loadWord                      = VM_Atom.findOrCreateAsciiAtom("loadWord");
+  public static final VM_Atom loadObject                    = VM_Atom.findOrCreateAsciiAtom("loadObject");
+  public static final VM_Atom loadAddress                   = VM_Atom.findOrCreateAsciiAtom("loadAddress");
+  public static final VM_Atom loadShort                     = VM_Atom.findOrCreateAsciiAtom("loadShort");
+  public static final VM_Atom loadFloat                     = VM_Atom.findOrCreateAsciiAtom("loadFloat");
+  public static final VM_Atom loadLong                      = VM_Atom.findOrCreateAsciiAtom("loadLong");
+  public static final VM_Atom loadDouble                    = VM_Atom.findOrCreateAsciiAtom("loadDouble");
+  public static final VM_Atom store                         = VM_Atom.findOrCreateAsciiAtom("store");
+
   public static final VM_Atom getByteAtOffset               = VM_Atom.findOrCreateAsciiAtom("getByteAtOffset");
   public static final VM_Atom getCharAtOffset               = VM_Atom.findOrCreateAsciiAtom("getCharAtOffset");
   public static final VM_Atom getIntAtOffset                = VM_Atom.findOrCreateAsciiAtom("getIntAtOffset");
@@ -68,10 +81,12 @@ public class VM_MagicNames {
   public static final VM_Atom getMemoryAddress              = VM_Atom.findOrCreateAsciiAtom("getMemoryAddress");
   public static final VM_Atom setMemoryAddress              = VM_Atom.findOrCreateAsciiAtom("setMemoryAddress");
 
+  public static final VM_Atom preparePrefix                 = VM_Atom.findOrCreateAsciiAtom("prepare");
   public static final VM_Atom prepareInt                    = VM_Atom.findOrCreateAsciiAtom("prepareInt");
   public static final VM_Atom prepareObject                 = VM_Atom.findOrCreateAsciiAtom("prepareObject");
   public static final VM_Atom prepareAddress                = VM_Atom.findOrCreateAsciiAtom("prepareAddress");
   public static final VM_Atom prepareWord                   = VM_Atom.findOrCreateAsciiAtom("prepareWord");
+  public static final VM_Atom attempt                       = VM_Atom.findOrCreateAsciiAtom("attempt");
   public static final VM_Atom attemptInt                    = VM_Atom.findOrCreateAsciiAtom("attemptInt");
   public static final VM_Atom attemptObject                 = VM_Atom.findOrCreateAsciiAtom("attemptObject");
   public static final VM_Atom attemptAddress                = VM_Atom.findOrCreateAsciiAtom("attemptAddress");
@@ -119,7 +134,7 @@ public class VM_MagicNames {
   public static final VM_Atom clearFloatingPointState       = VM_Atom.findOrCreateAsciiAtom("clearFloatingPointState");
   //-#endif
 
-  // atoms related to VM_Word, VM_Address, VM_Offset, VM_Extent
+  // atoms related to Word, Address, Offset, Extent
   public static final VM_Atom wordFromInt                   = VM_Atom.findOrCreateAsciiAtom("fromInt");
   public static final VM_Atom wordFromIntZeroExtend         = VM_Atom.findOrCreateAsciiAtom("fromIntZeroExtend");
   public static final VM_Atom wordFromIntSignExtend         = VM_Atom.findOrCreateAsciiAtom("fromIntSignExtend");
@@ -156,7 +171,7 @@ public class VM_MagicNames {
   public static final VM_Atom wordRshl                      = VM_Atom.findOrCreateAsciiAtom("rshl");
   public static final VM_Atom wordRsha                      = VM_Atom.findOrCreateAsciiAtom("rsha");
 
-  // atoms related to VM_WordArray, VM_AddressArray, VM_OffsetArray, VM_ExtentArray, VM_CodeArray
+  // atoms related to WordArray, AddressArray, OffsetArray, ExtentArray, VM_CodeArray
   public static final VM_Atom addressArrayCreate            = VM_Atom.findOrCreateAsciiAtom("create");
   public static final VM_Atom addressArrayLength            = VM_Atom.findOrCreateAsciiAtom("length");
   public static final VM_Atom addressArrayGet               = VM_Atom.findOrCreateAsciiAtom("get");

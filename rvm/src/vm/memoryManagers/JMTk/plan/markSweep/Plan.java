@@ -23,15 +23,8 @@ import org.mmtk.utility.Options;
 import org.mmtk.utility.scan.*;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements a simple mark-sweep collector.
@@ -53,7 +46,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @version $Revision$
  * @date $Date$
  */
-public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
+public class Plan extends StopTheWorldGC implements Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -92,15 +85,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // Memory layout constants
   public  static final long            AVAILABLE = VM_Interface.MAXIMUM_MAPPABLE.diff(PLAN_START).toLong();
-  private static final VM_Extent        LOS_SIZE = Conversions.roundDownVM(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.3)));
-  private static final VM_Extent         MS_SIZE = Conversions.roundDownVM(VM_Extent.fromIntZeroExtend((int)(AVAILABLE * 0.7)));
-  public  static final VM_Extent        MAX_SIZE = MS_SIZE;
+  private static final Extent        LOS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.3)));
+  private static final Extent         MS_SIZE = Conversions.roundDownVM(Extent.fromIntZeroExtend((int)(AVAILABLE * 0.7)));
+  public  static final Extent        MAX_SIZE = MS_SIZE;
 
-  private static final VM_Address      LOS_START = PLAN_START;
-  private static final VM_Address        LOS_END = LOS_START.add(LOS_SIZE);
-  private static final VM_Address       MS_START = LOS_END;
-  private static final VM_Address         MS_END = MS_START.add(MS_SIZE);
-  private static final VM_Address       HEAP_END = MS_END;
+  private static final Address      LOS_START = PLAN_START;
+  private static final Address        LOS_END = LOS_START.add(LOS_SIZE);
+  private static final Address       MS_START = LOS_END;
+  private static final Address         MS_END = MS_START.add(MS_SIZE);
+  private static final Address       HEAP_END = MS_END;
 
   /****************************************************************************
    *
@@ -147,7 +140,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * allocation.
    */
   public static final void boot()
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     StopTheWorldGC.boot();
     msReservedPages = (int) (getTotalPages() * MS_RESERVE_FRACTION);
   }
@@ -167,8 +160,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param allocator The allocator number to be used for this allocation
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address alloc(int bytes, int align, int offset, int allocator)
-    throws VM_PragmaInline {
+  public final Address alloc(int bytes, int align, int offset, int allocator)
+    throws InlinePragma {
     switch (allocator) {
     case       MS_SPACE: return ms.alloc(bytes, align, offset, false);
     case      LOS_SPACE: return los.alloc(bytes, align, offset);
@@ -176,7 +169,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     default:
       if (VM_Interface.VerifyAssertions) 
 	VM_Interface.sysFail("No such allocator"); 
-      return VM_Address.zero();
+      return Address.zero();
     }
   }
   
@@ -185,16 +178,16 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * required.
    *
    * @param ref The newly allocated object
-   * @param tib The TIB of the newly allocated object
+   * @param typeRef The type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(VM_Address ref, Object[] tib, int bytes,
+  public final void postAlloc(Address ref, Address typeRef, int bytes,
                               int allocator)
-    throws VM_PragmaInline {
+    throws InlinePragma {
     switch (allocator) {
-    case  MS_SPACE: msSpace.initializeHeader(ref, tib); return;
-    case LOS_SPACE: losSpace.initializeHeader(ref, tib); return;
+    case  MS_SPACE: msSpace.initializeHeader(ref); return;
+    case LOS_SPACE: losSpace.initializeHeader(ref); return;
     case IMMORTAL_SPACE: ImmortalSpace.postAlloc(ref); return;
     default:
       if (VM_Interface.VerifyAssertions)
@@ -212,21 +205,21 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  public final VM_Address allocCopy(VM_Address original, int bytes,
-                                    int align, int offset) throws VM_PragmaInline {
+  public final Address allocCopy(Address original, int bytes,
+                                    int align, int offset) throws InlinePragma {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(false);
-    // return VM_Address.zero();  this trips some Intel assembler bug
-    return VM_Address.max();
+    // return Address.zero();  this trips some Intel assembler bug
+    return Address.max();
   }
 
   /**  
    * Perform any post-copy actions.  In this case nothing is required.
    *
    * @param ref The newly allocated object
-   * @param tib The TIB of the newly allocated object
+   * @param typeRef The type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(VM_Address ref, Object[] tib, int size) {}
+  public final void postCopy(Address ref, Address typeRef, int size) {}
 
   /**
    * Give the compiler/runtime statically generated alloction advice
@@ -282,7 +275,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return Whether a collection is triggered
    */
   public final boolean poll(boolean mustCollect, MemoryResource mr)
-    throws VM_PragmaLogicallyUninterruptible {
+    throws LogicallyUninterruptiblePragma {
     if (collectionsInitiated > 0 || !initialized || mr == metaDataMR)
       return false;
     mustCollect |= stressTestGCRequired() || ms.mustCollect();
@@ -394,9 +387,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject(VM_Address obj) {
+  public static final Address traceObject(Address obj) {
     if (obj.isZero()) return obj;
-    VM_Address addr = VM_Interface.refToAddress(obj);
+    Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
     case MS_SPACE:        return msSpace.traceObject(obj);
@@ -422,7 +415,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * in a root.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject(VM_Address obj, boolean root) {
+  public static final Address traceObject(Address obj, boolean root) {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
@@ -433,9 +426,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @param obj The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(VM_Address obj) {
+  public static final boolean isLive(Address obj) {
     if (obj.isZero()) return false;
-    VM_Address addr = VM_Interface.refToAddress(obj);
+    Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
     case MS_SPACE:        return msSpace.isLive(obj);

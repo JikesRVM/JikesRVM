@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * A queue of VM_Threads
  *
@@ -12,7 +14,7 @@ package com.ibm.JikesRVM;
  */
 public class VM_ThreadQueue 
   extends VM_AbstractThreadQueue 
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
 
   /**
    * First thread on list.

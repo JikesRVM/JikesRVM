@@ -5,6 +5,8 @@
 package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * Information required to start the virtual machine and communicate 
@@ -89,10 +91,10 @@ public class VM_BootRecord {
 
   public VM_BootRecord() {
     int len = 2 * (1 + MM_Interface.getMaxHeaps());
-    heapRanges = VM_AddressArray.create(len);
+    heapRanges = AddressArray.create(len);
     // Indicate end of array with sentinel value
-    heapRanges.set(len -1, VM_Address.fromIntSignExtend(-1));
-    heapRanges.set(len -2, VM_Address.fromIntSignExtend(-1));
+    heapRanges.set(len -1, Address.fromIntSignExtend(-1));
+    heapRanges.set(len -2, Address.fromIntSignExtend(-1));
   }
 
   public void showHeapRanges() {
@@ -104,7 +106,7 @@ public class VM_BootRecord {
     }
   }
 
-  public void setHeapRange(int id, VM_Address start, VM_Address end) throws VM_PragmaUninterruptible {
+  public void setHeapRange(int id, Address start, Address end) throws UninterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(id < heapRanges.length() - 2); 
     heapRanges.set(2 * id, start);
     heapRanges.set(2 * id + 1, end);
@@ -120,8 +122,8 @@ public class VM_BootRecord {
   /**
    * address at which image is to be loaded into memory
    */
-  public VM_Address bootImageStart;
-  public VM_Address bootImageEnd;
+  public Address bootImageStart;
+  public Address bootImageEnd;
 
   /**
    * initial size of heap
@@ -133,7 +135,7 @@ public class VM_BootRecord {
    */
   public int maximumHeapSize;
 
-  public VM_AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
+  public AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
                                      // C-style termination with sentinel values
   /**
    * Verbosity level for booting
@@ -145,9 +147,9 @@ public class VM_BootRecord {
   // RVM startoff
   //
   public int tiRegister;          // value to place into TI register
-  public VM_Address spRegister;   // value to place into SP register
-  public VM_Address ipRegister;   // value to place into IP register
-  public VM_Address tocRegister;  // value to place into JTOC register
+  public Address spRegister;   // value to place into SP register
+  public Address ipRegister;   // value to place into IP register
+  public Address tocRegister;  // value to place into JTOC register
 
   /**
    * flag to indicate RVM has completed booting and ready to run Java programs
@@ -189,198 +191,198 @@ public class VM_BootRecord {
   /**
    * value to place in TOC register when issuing "sys" calls
    */
-  public VM_Address sysTOC;           
+  public Address sysTOC;           
   /**
    * dummy function to pair with sysTOC
    */
-  VM_Address sysIP;            
+  Address sysIP;            
   //-#endif
 
   // lowlevel write to console
-  public VM_Address sysWriteCharIP;    
-  public VM_Address sysWriteIP;            
-  public VM_Address sysWriteLongIP;
-  public VM_Address sysWriteDoubleIP;
+  public Address sysWriteCharIP;    
+  public Address sysWriteIP;            
+  public Address sysWriteLongIP;
+  public Address sysWriteDoubleIP;
   
   // startup/shutdown
-  public VM_Address sysExitIP;                     
-  public VM_Address sysArgIP;
+  public Address sysExitIP;                     
+  public Address sysArgIP;
 
   // memory
-  public VM_Address sysCopyIP;         
-  public VM_Address sysFillIP;
-  public VM_Address sysMallocIP;
-  public VM_Address sysFreeIP;
-  public VM_Address sysZeroIP;
-  public VM_Address sysZeroPagesIP;
-  public VM_Address sysSyncCacheIP;
+  public Address sysCopyIP;         
+  public Address sysFillIP;
+  public Address sysMallocIP;
+  public Address sysFreeIP;
+  public Address sysZeroIP;
+  public Address sysZeroPagesIP;
+  public Address sysSyncCacheIP;
 
   // files
-  public VM_Address sysStatIP;         
-  public VM_Address sysListIP;
-  public VM_Address sysOpenIP;                
-  public VM_Address sysUtimeIP;                
-  public VM_Address sysReadByteIP;            
-  public VM_Address sysWriteByteIP;
-  public VM_Address sysReadBytesIP;
-  public VM_Address sysWriteBytesIP;
-  public VM_Address sysSeekIP;
-  public VM_Address sysCloseIP;
-  public VM_Address sysDeleteIP;
-  public VM_Address sysRenameIP;
-  public VM_Address sysMkDirIP;
-  public VM_Address sysBytesAvailableIP;
-  public VM_Address sysIsValidFDIP;
-  public VM_Address sysLengthIP;
-  public VM_Address sysSetLengthIP;
-  public VM_Address sysSyncFileIP;
-  public VM_Address sysIsTTYIP;
-  public VM_Address sysSetFdCloseOnExecIP;
+  public Address sysStatIP;         
+  public Address sysListIP;
+  public Address sysOpenIP;                
+  public Address sysUtimeIP;                
+  public Address sysReadByteIP;            
+  public Address sysWriteByteIP;
+  public Address sysReadBytesIP;
+  public Address sysWriteBytesIP;
+  public Address sysSeekIP;
+  public Address sysCloseIP;
+  public Address sysDeleteIP;
+  public Address sysRenameIP;
+  public Address sysMkDirIP;
+  public Address sysBytesAvailableIP;
+  public Address sysIsValidFDIP;
+  public Address sysLengthIP;
+  public Address sysSetLengthIP;
+  public Address sysSyncFileIP;
+  public Address sysIsTTYIP;
+  public Address sysSetFdCloseOnExecIP;
   
-  public VM_Address sysAccessIP;
+  public Address sysAccessIP;
   // shm* - memory mapping
-  public VM_Address sysShmgetIP;
-  public VM_Address sysShmctlIP;
-  public VM_Address sysShmatIP;
-  public VM_Address sysShmdtIP;
+  public Address sysShmgetIP;
+  public Address sysShmctlIP;
+  public Address sysShmatIP;
+  public Address sysShmdtIP;
 
   // mmap - memory mapping
-  public VM_Address sysMMapIP;
-  public VM_Address sysMMapErrnoIP;
-  public VM_Address sysMUnmapIP;
-  public VM_Address sysMProtectIP;
-  public VM_Address sysMSyncIP;
-  public VM_Address sysMAdviseIP;
-  public VM_Address sysGetPageSizeIP;
+  public Address sysMMapIP;
+  public Address sysMMapErrnoIP;
+  public Address sysMUnmapIP;
+  public Address sysMProtectIP;
+  public Address sysMSyncIP;
+  public Address sysMAdviseIP;
+  public Address sysGetPageSizeIP;
 
   // threads
-  public VM_Address sysNumProcessorsIP;
-  public VM_Address sysVirtualProcessorCreateIP;
-  public VM_Address sysVirtualProcessorBindIP;
-  public VM_Address sysVirtualProcessorYieldIP;
-  public VM_Address sysVirtualProcessorEnableTimeSlicingIP;
-  public VM_Address sysPthreadSelfIP;
-  public VM_Address sysPthreadSignalIP;
-  public VM_Address sysPthreadExitIP;
-  public VM_Address sysPthreadJoinIP;
+  public Address sysNumProcessorsIP;
+  public Address sysVirtualProcessorCreateIP;
+  public Address sysVirtualProcessorBindIP;
+  public Address sysVirtualProcessorYieldIP;
+  public Address sysVirtualProcessorEnableTimeSlicingIP;
+  public Address sysPthreadSelfIP;
+  public Address sysPthreadSignalIP;
+  public Address sysPthreadExitIP;
+  public Address sysPthreadJoinIP;
   //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-  public VM_Address sysStashVmProcessorInPthreadIP;
+  public Address sysStashVmProcessorInPthreadIP;
   //-#endif
 
   // arithmetic 
-  public VM_Address sysLongDivideIP;
-  public VM_Address sysLongRemainderIP;
-  public VM_Address sysLongToFloatIP;
-  public VM_Address sysLongToDoubleIP;
-  public VM_Address sysFloatToIntIP;
-  public VM_Address sysDoubleToIntIP;
-  public VM_Address sysFloatToLongIP;
-  public VM_Address sysDoubleToLongIP;
+  public Address sysLongDivideIP;
+  public Address sysLongRemainderIP;
+  public Address sysLongToFloatIP;
+  public Address sysLongToDoubleIP;
+  public Address sysFloatToIntIP;
+  public Address sysDoubleToIntIP;
+  public Address sysFloatToLongIP;
+  public Address sysDoubleToLongIP;
   //-#if RVM_FOR_POWERPC
-  public VM_Address sysDoubleRemainderIP;
+  public Address sysDoubleRemainderIP;
   //-#endif
-  public VM_Address sysPrimitiveParseFloatIP;
-  public VM_Address sysPrimitiveParseIntIP;
+  public Address sysPrimitiveParseFloatIP;
+  public Address sysPrimitiveParseIntIP;
 
   // time
-  VM_Address sysGetTimeOfDayIP;
+  Address sysGetTimeOfDayIP;
 
   // shared libraries
-  VM_Address sysDlopenIP;
-  VM_Address sysDlcloseIP;
-  VM_Address sysDlsymIP;
-  VM_Address sysSlibcleanIP;
+  Address sysDlopenIP;
+  Address sysDlcloseIP;
+  Address sysDlsymIP;
+  Address sysSlibcleanIP;
 
   // network
-  public VM_Address sysNetLocalHostNameIP;
-  public VM_Address sysNetRemoteHostNameIP;
-  public VM_Address sysNetHostAddressesIP;
-  public VM_Address sysNetSocketCreateIP;
-  public VM_Address sysNetSocketPortIP;
-  public VM_Address sysNetSocketFamilyIP;
-  public VM_Address sysNetSocketLocalAddressIP;
-  public VM_Address sysNetSocketBindIP;
-  public VM_Address sysNetSocketConnectIP;
-  public VM_Address sysNetSocketListenIP;
-  public VM_Address sysNetSocketAcceptIP;
-  public VM_Address sysNetSocketLingerIP;
-  public VM_Address sysNetSocketNoDelayIP;
-  public VM_Address sysNetSocketNoBlockIP;
-  public VM_Address sysNetSocketCloseIP;
-  public VM_Address sysNetSocketShutdownIP;
-  public VM_Address sysNetSelectIP;
+  public Address sysNetLocalHostNameIP;
+  public Address sysNetRemoteHostNameIP;
+  public Address sysNetHostAddressesIP;
+  public Address sysNetSocketCreateIP;
+  public Address sysNetSocketPortIP;
+  public Address sysNetSocketFamilyIP;
+  public Address sysNetSocketLocalAddressIP;
+  public Address sysNetSocketBindIP;
+  public Address sysNetSocketConnectIP;
+  public Address sysNetSocketListenIP;
+  public Address sysNetSocketAcceptIP;
+  public Address sysNetSocketLingerIP;
+  public Address sysNetSocketNoDelayIP;
+  public Address sysNetSocketNoBlockIP;
+  public Address sysNetSocketCloseIP;
+  public Address sysNetSocketShutdownIP;
+  public Address sysNetSelectIP;
 
   // process management
-  public VM_Address sysWaitPidsIP;
+  public Address sysWaitPidsIP;
 
   //-#if !RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
   // system startup pthread sync. primitives
   //-#if !RVM_WITHOUT_INTERCEPT_BLOCKING_SYSTEM_CALLS
-  public VM_Address sysCreateThreadSpecificDataKeysIP;
+  public Address sysCreateThreadSpecificDataKeysIP;
   //-#endif
-  public VM_Address sysInitializeStartupLocksIP;
-  public VM_Address sysWaitForVirtualProcessorInitializationIP;
-  public VM_Address sysWaitForMultithreadingStartIP;
+  public Address sysInitializeStartupLocksIP;
+  public Address sysWaitForVirtualProcessorInitializationIP;
+  public Address sysWaitForMultithreadingStartIP;
   //-#endif
 
   //-#if RVM_WITH_HPM
   // sysCall entry points to HPM
-  public VM_Address sysHPMinitIP;
-  public VM_Address sysHPMsetEventIP;
-  public VM_Address sysHPMsetEventXIP;
-  public VM_Address sysHPMsetModeIP;
-  public VM_Address sysHPMgetNumberOfCountersIP;
-  public VM_Address sysHPMgetNumberOfEventsIP;
-  public VM_Address sysHPMisBigEndianIP;
-  public VM_Address sysHPMtestIP;
-  public VM_Address sysHPMsetProgramMyThreadIP;
-  public VM_Address sysHPMstartMyThreadIP;
-  public VM_Address sysHPMstopMyThreadIP;
-  public VM_Address sysHPMresetMyThreadIP;
-  public VM_Address sysHPMgetCounterMyThreadIP;
-  public VM_Address sysHPMsetProgramMyGroupIP;
-  public VM_Address sysHPMstartMyGroupIP;
-  public VM_Address sysHPMstopMyGroupIP;
-  public VM_Address sysHPMresetMyGroupIP;
-  public VM_Address sysHPMgetCounterMyGroupIP;
-  public VM_Address sysHPMprintMyGroupIP;
+  public Address sysHPMinitIP;
+  public Address sysHPMsetEventIP;
+  public Address sysHPMsetEventXIP;
+  public Address sysHPMsetModeIP;
+  public Address sysHPMgetNumberOfCountersIP;
+  public Address sysHPMgetNumberOfEventsIP;
+  public Address sysHPMisBigEndianIP;
+  public Address sysHPMtestIP;
+  public Address sysHPMsetProgramMyThreadIP;
+  public Address sysHPMstartMyThreadIP;
+  public Address sysHPMstopMyThreadIP;
+  public Address sysHPMresetMyThreadIP;
+  public Address sysHPMgetCounterMyThreadIP;
+  public Address sysHPMsetProgramMyGroupIP;
+  public Address sysHPMstartMyGroupIP;
+  public Address sysHPMstopMyGroupIP;
+  public Address sysHPMresetMyGroupIP;
+  public Address sysHPMgetCounterMyGroupIP;
+  public Address sysHPMprintMyGroupIP;
   //-#endif
 
    //-#if RVM_WITH_GCSPY
    // GCspy entry points
-   public VM_Address gcspyDriverAddStreamIP;
-   public VM_Address gcspyDriverEndOutputIP;
-   public VM_Address gcspyDriverInitIP;
-   public VM_Address gcspyDriverInitOutputIP;
-   public VM_Address gcspyDriverResizeIP;
-   public VM_Address gcspyDriverSetTileNameIP;
-   public VM_Address gcspyDriverSpaceInfoIP;
-   public VM_Address gcspyDriverStartCommIP;
-   public VM_Address gcspyDriverStreamIP;
-   public VM_Address gcspyDriverStreamByteValueIP;
-   public VM_Address gcspyDriverStreamShortValueIP;
-   public VM_Address gcspyDriverStreamIntValueIP;
-   public VM_Address gcspyDriverSummaryIP;
-   public VM_Address gcspyDriverSummaryValueIP;
+   public Address gcspyDriverAddStreamIP;
+   public Address gcspyDriverEndOutputIP;
+   public Address gcspyDriverInitIP;
+   public Address gcspyDriverInitOutputIP;
+   public Address gcspyDriverResizeIP;
+   public Address gcspyDriverSetTileNameIP;
+   public Address gcspyDriverSpaceInfoIP;
+   public Address gcspyDriverStartCommIP;
+   public Address gcspyDriverStreamIP;
+   public Address gcspyDriverStreamByteValueIP;
+   public Address gcspyDriverStreamShortValueIP;
+   public Address gcspyDriverStreamIntValueIP;
+   public Address gcspyDriverSummaryIP;
+   public Address gcspyDriverSummaryValueIP;
 
-   public VM_Address gcspyIntWriteControlIP;
+   public Address gcspyIntWriteControlIP;
 
-   public VM_Address gcspyMainServerAddDriverIP;
-   public VM_Address gcspyMainServerAddEventIP;
-   public VM_Address gcspyMainServerInitIP;
-   public VM_Address gcspyMainServerIsConnectedIP;
-   public VM_Address gcspyMainServerOuterLoopIP;
-   public VM_Address gcspyMainServerSafepointIP;
-   public VM_Address gcspyMainServerSetGeneralInfoIP;
-   public VM_Address gcspyMainServerStartCompensationTimerIP;
-   public VM_Address gcspyMainServerStopCompensationTimerIP;
+   public Address gcspyMainServerAddDriverIP;
+   public Address gcspyMainServerAddEventIP;
+   public Address gcspyMainServerInitIP;
+   public Address gcspyMainServerIsConnectedIP;
+   public Address gcspyMainServerOuterLoopIP;
+   public Address gcspyMainServerSafepointIP;
+   public Address gcspyMainServerSetGeneralInfoIP;
+   public Address gcspyMainServerStartCompensationTimerIP;
+   public Address gcspyMainServerStopCompensationTimerIP;
 
-   public VM_Address gcspyStartserverIP;
+   public Address gcspyStartserverIP;
      
-   public VM_Address gcspyStreamInitIP;
+   public Address gcspyStreamInitIP;
 
-   public VM_Address gcspyFormatSizeIP;
-   public VM_Address gcspySprintfIP;
+   public Address gcspyFormatSizeIP;
+   public Address gcspySprintfIP;
    //-#endif
 
 }

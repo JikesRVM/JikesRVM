@@ -11,14 +11,8 @@ import org.mmtk.plan.Plan;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_Word;
-
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Error and trace logging.
@@ -28,7 +22,7 @@ import com.ibm.JikesRVM.VM_Word;
  * @version $Revision$
  * @date $Date$
  */ 
-public class Log implements Constants, VM_Uninterruptible {
+public class Log implements Constants, Uninterruptible {
 
   /****************************************************************************
    *
@@ -281,7 +275,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param w the word to be logged
    */
-  public static void write(VM_Word w) {
+  public static void write(Word w) {
     writeHex(w, BYTES_IN_ADDRESS);
   }
 
@@ -290,7 +284,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param a the address to be logged
    */
-  public static void write(VM_Address a) {
+  public static void write(Address a) {
     writeHex(a.toWord(), BYTES_IN_ADDRESS);
   }
 
@@ -299,7 +293,7 @@ public class Log implements Constants, VM_Uninterruptible {
    *
    * @param o the offset to be logged
    */
-  public static void write(VM_Offset o) {
+  public static void write(Offset o) {
     writeHex(o.toWord(), BYTES_IN_ADDRESS);
   }
 
@@ -388,27 +382,27 @@ public class Log implements Constants, VM_Uninterruptible {
 
   /**
    * writes a word, in hexadecimal, and a new-line, then flushes the buffer.
-   * @see #write(VM_Word)
+   * @see #write(Word)
    *
    * @param w the word to be logged
    */
-  public static void writeln(VM_Word w) { writeln(w, true); }
+  public static void writeln(Word w) { writeln(w, true); }
 
   /**
    * writes an address, in hexademical, and a new-line, then flushes the buffer.
-   * @see #write(VM_Address)
+   * @see #write(Address)
    *
    * @param a the address to be logged
    */
-  public static void writeln(VM_Address a) { writeln(a, true); }
+  public static void writeln(Address a) { writeln(a, true); }
 
   /**
    * writes an offset, in hexademical, and a new-line, then flushes the buffer.
-   * @see #write(VM_Offset)
+   * @see #write(Offset)
    *
    * @param o the offset to be logged
    */
-  public static void writeln(VM_Offset o) { writeln(o, true); }
+  public static void writeln(Offset o) { writeln(o, true); }
 
   /**
    * writes a new-line without flushing the buffer
@@ -543,12 +537,12 @@ public class Log implements Constants, VM_Uninterruptible {
   /**
    * writes a word, in hexadecimal, and a new-line, then optionally
    * flushes the buffer.
-   * @see #write(VM_Word)
+   * @see #write(Word)
    *
    * @param w the word to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(VM_Word w, boolean flush) {
+  public static void writeln(Word w, boolean flush) {
     write(w);
     writelnWithFlush(flush);
   }
@@ -557,12 +551,12 @@ public class Log implements Constants, VM_Uninterruptible {
   /**
    * writes an address, in hexademical, and a new-line, then optionally
    * flushes the buffer.
-   * @see #write(VM_Address)
+   * @see #write(Address)
    *
    * @param a the address to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(VM_Address a, boolean flush) {
+  public static void writeln(Address a, boolean flush) {
     write(a);
     writelnWithFlush(flush);
   }
@@ -570,25 +564,25 @@ public class Log implements Constants, VM_Uninterruptible {
   /**
    * writes an offset, in hexademical, and a new-line, then optionally
    * flushes the buffer.
-   * @see #write(VM_Offset)
+   * @see #write(Offset)
    *
    * @param o the offset to be logged
    * @param flush if <code>true</code> then flushes the buffer
    */
-  public static void writeln(VM_Offset o, boolean flush) {
+  public static void writeln(Offset o, boolean flush) {
     write(o);
     writelnWithFlush(flush);
   }
 
   /**
-   * writes a string followed by a VM_Address
+   * writes a string followed by a Address
    * @see #write(String)
-   * @see #write(VM_Address)
+   * @see #write(Address)
    *
    * @param s the string to be logged
-   * @param a the VM_Address to be logged
+   * @param a the Address to be logged
    */
-  public static void write (String s, VM_Address a) {
+  public static void write (String s, Address a) {
     write(s);
     write(a);
   }
@@ -599,14 +593,14 @@ public class Log implements Constants, VM_Uninterruptible {
   }
 
   /**
-   * writes a string followed by a VM_Address
+   * writes a string followed by a Address
    * @see #write(String)
-   * @see #write(VM_Address)
+   * @see #write(Address)
    *
    * @param s the string to be logged
-   * @param a the VM_Address to be logged
+   * @param a the Address to be logged
    */
-  public static void writeln (String s, VM_Address a) {
+  public static void writeln (String s, Address a) {
     write(s);
     writeln(a);
   }
@@ -642,12 +636,12 @@ public class Log implements Constants, VM_Uninterruptible {
   /**
    * writes a <code>long</code> in hexadecimal
    *
-   * @param l the VM_Word to be logged
+   * @param l the Word to be logged
    * @param bytes the number of bytes from the long to be logged.  If
    * less than 8 then the least significant bytes are logged and some
    * of the most significant bytes are ignored.
    */
-  private static void writeHex(VM_Word w, int bytes) {
+  private static void writeHex(Word w, int bytes) {
     int hexDigits = bytes * (1 << LOG_HEX_DIGITS_IN_BYTE);
     int nextDigit;
     char [] intBuffer = getIntBuffer();

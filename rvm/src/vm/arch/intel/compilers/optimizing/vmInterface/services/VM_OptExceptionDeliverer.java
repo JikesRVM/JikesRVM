@@ -5,6 +5,9 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Handle exception delivery and stack unwinding for methods 
  *  compiled by optimizing Compiler 
@@ -20,11 +23,11 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
    * Pass control to a catch block.
    */
   public void deliverException(VM_CompiledMethod compiledMethod,
-                        VM_Address catchBlockInstructionAddress,
+                        Address catchBlockInstructionAddress,
                         Throwable exceptionObject,
                         VM_Registers registers)  {
     VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod)compiledMethod;
-    VM_Address fp = registers.getInnermostFramePointer();
+    Address fp = registers.getInnermostFramePointer();
     VM_Thread myThread = VM_Thread.getCurrentThread();
     
     if (TRACE) {
@@ -36,7 +39,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     }
 
     // reset sp to "empty params" state (ie same as it was after prologue)
-    VM_Address sp = fp.sub(optMethod.getFrameFixedSize());
+    Address sp = fp.sub(optMethod.getFrameFixedSize());
     registers.gprs.set(STACK_POINTER, sp);
 
     // store exception object for later retrieval by catch block
@@ -104,7 +107,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
    */
   public void unwindStackFrame(VM_CompiledMethod compiledMethod, 
                         VM_Registers registers) {
-    VM_Address fp = registers.getInnermostFramePointer();
+    Address fp = registers.getInnermostFramePointer();
     VM_OptCompiledMethod optMethod = (VM_OptCompiledMethod)compiledMethod;
     
     if (TRACE) {
@@ -124,7 +127,7 @@ final class VM_OptExceptionDeliverer extends VM_ExceptionDeliverer
     for (int i = optMethod.getFirstNonVolatileGPR(); 
          i<NUM_NONVOLATILE_GPRS; 
          i++, frameOffset += 4) {
-      registers.gprs.set(NONVOLATILE_GPRS[i],VM_Magic.getMemoryWord(fp.sub(frameOffset)));
+      registers.gprs.set(NONVOLATILE_GPRS[i],fp.sub(frameOffset).loadWord());
     }
     if (VM.VerifyAssertions) VM._assert(NUM_NONVOLATILE_FPRS == 0);
     

@@ -10,8 +10,8 @@ package org.mmtk.vm.gcspy;
 
 import com.ibm.JikesRVM.VM_SysCall;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+
 
 /**
  * Stream
@@ -24,10 +24,10 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  */
 
 public class Stream 
-  implements  VM_Uninterruptible {
+  implements  Uninterruptible {
   public final static String Id = "$Id$";
     
-  private VM_Address stream_;	// address of c stream, gcspy_gc_stream_t *stream
+  private Address stream_;	// address of c stream, gcspy_gc_stream_t *stream
   private int min;
   private int max;
   
@@ -69,9 +69,9 @@ public class Stream
     min = minValue;
     max = maxValue;
 
-    VM_Address tmpName = Util.getBytes(name);
-    VM_Address tmpPre =  Util.getBytes(stringPre);
-    VM_Address tmpPost = Util.getBytes(stringPost);
+    Address tmpName = Util.getBytes(name);
+    Address tmpPre =  Util.getBytes(stringPre);
+    Address tmpPost = Util.getBytes(stringPost);
     
     VM_SysCall.gcspyStreamInit(stream_, id, dataType, tmpName,
 		               minValue, maxValue, zeroValue, defaultValue,

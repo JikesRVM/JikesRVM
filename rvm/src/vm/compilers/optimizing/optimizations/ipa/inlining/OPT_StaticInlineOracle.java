@@ -10,6 +10,9 @@ import com.ibm.JikesRVM.opt.ir.*;
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.adaptive.VM_Controller;
 //-#endif
+
+import org.vmmagic.pragma.*;
+
 /**
  * Inlining oracle using static size heuristics during on-the-fly compilation.
  *

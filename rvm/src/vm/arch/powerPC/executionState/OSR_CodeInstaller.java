@@ -8,6 +8,9 @@ package com.ibm.JikesRVM.OSR;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.adaptive.*;
+
+import org.vmmagic.unboxed.*;
+
 /**
  * OSR_CodeInstaller adjusts registers and return address to make a 
  * specialized thread as a normal thread get scheduled. The method
@@ -104,7 +107,7 @@ public class OSR_CodeInstaller implements VM_Constants, VM_BaselineConstants {
     thread.bridgeInstructions = mc.getInstructions();
     thread.fooFPOffset = fooFPOffset;
 
-    VM_Address bridgeaddr = 
+    Address bridgeaddr = 
       VM_Magic.objectAsAddress(thread.bridgeInstructions);
 
     VM_Memory.sync(bridgeaddr, 

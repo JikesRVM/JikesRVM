@@ -7,6 +7,9 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Contains routines that must be compiled with special prologues and eplilogues that
  * save/restore all registers (both volatile and non-volatile).
@@ -22,7 +25,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @author Dave Grove
  */
 public class VM_OptSaveVolatile implements VM_SaveVolatile,
-                                           VM_Uninterruptible {
+                                           Uninterruptible {
  
   /**
    * Handle timer interrupt taken in method prologue.
@@ -80,7 +83,7 @@ public class VM_OptSaveVolatile implements VM_SaveVolatile,
 
   //-#if RVM_WITH_OSR
   public static void OPT_threadSwitchFromOsrOpt() 
-    throws VM_PragmaUninterruptible {
+    throws UninterruptiblePragma {
     VM_Thread.threadSwitch(VM_Thread.OSROPT);
   }
   //-#endif 
@@ -90,15 +93,15 @@ public class VM_OptSaveVolatile implements VM_SaveVolatile,
    * dynamically loaded/resolved/etc.
    */
   public static void OPT_resolve() throws NoClassDefFoundError,
-                                          VM_PragmaInterruptible {
+                                          InterruptiblePragma {
     VM.disableGC();
     // (1) Get the compiled method & compilerInfo for the (opt) 
     // compiled method that called OPT_resolve
-    VM_Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
+    Address fp = VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer());
     int cmid = VM_Magic.getCompiledMethodID(fp);
     VM_OptCompiledMethod cm = (VM_OptCompiledMethod)VM_CompiledMethods.getCompiledMethod(cmid);
     // (2) Get the return address 
-    VM_Address ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
+    Address ip = VM_Magic.getReturnAddress(VM_Magic.getFramePointer());
     int offset = cm.getInstructionOffset(ip);
     VM.enableGC();
     // (3) Call the routine in VM_OptLinker that does all the real work.

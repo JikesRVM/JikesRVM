@@ -9,15 +9,8 @@ import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Lock;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_AddressArray;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of buffers
@@ -31,13 +24,13 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @date $Date$
  */ 
 public abstract class SortSharedDeque extends SharedDeque 
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
 
   public final static String Id = "$Id$"; 
 
   private static final int BYTES_PUSHED = BYTES_IN_ADDRESS * 5;
   private static final int MAX_STACK_SIZE = BYTES_PUSHED * 64;
-  private static final VM_Offset INSERTION_SORT_LIMIT = VM_Offset.fromInt(80);
+  private static final Offset INSERTION_SORT_LIMIT = Offset.fromInt(80);
   
   /***********************************************************************
    *
@@ -51,7 +44,7 @@ public abstract class SortSharedDeque extends SharedDeque
    */
   public SortSharedDeque(RawPageAllocator rpa, int arity) {
     super(rpa, arity);
-    stackBase = VM_AddressArray.create(MAX_STACK_SIZE);
+    stackBase = AddressArray.create(MAX_STACK_SIZE);
     stackLoc = 0;
   }
 
@@ -67,13 +60,13 @@ public abstract class SortSharedDeque extends SharedDeque
    * @param obj The address of the object whose key is wanted
    * @return The value of the sorting key for this object
    */
-  abstract protected VM_Word getKey(VM_Address obj);
+  abstract protected Word getKey(Address obj);
   
-  private final static VM_Word mask16 = VM_Word.fromIntZeroExtend(0xffff0000);
-  private final static VM_Word mask8 = VM_Word.fromIntZeroExtend(0x0000ff00);
-  private final static VM_Word mask4 = VM_Word.fromIntZeroExtend(0x000000f0);
-  private final static VM_Word mask2 = VM_Word.fromIntZeroExtend(0x0000000c);
-  private final static VM_Word mask1 = VM_Word.fromIntZeroExtend(0x00000002);
+  private final static Word mask16 = Word.fromIntZeroExtend(0xffff0000);
+  private final static Word mask8 = Word.fromIntZeroExtend(0x0000ff00);
+  private final static Word mask4 = Word.fromIntZeroExtend(0x000000f0);
+  private final static Word mask2 = Word.fromIntZeroExtend(0x0000000c);
+  private final static Word mask1 = Word.fromIntZeroExtend(0x00000002);
 
   /**
    * Find the highest bit that is set in a longword and return a mask
@@ -82,7 +75,7 @@ public abstract class SortSharedDeque extends SharedDeque
    * @param addr Value for which the mask needs to be found
    * @return The highest bit set in the parameter
    */
-  private static final VM_Word getBitMask(VM_Word addr) {
+  private static final Word getBitMask(Word addr) {
     int shift = 0;
     if (!addr.and(mask16).isZero()) {
       addr = addr.rshl(16);
@@ -103,7 +96,7 @@ public abstract class SortSharedDeque extends SharedDeque
     if (!addr.and(mask1).isZero()) {
       shift += 1;
     }
-    return(VM_Word.one().lsh(shift));
+    return(Word.one().lsh(shift));
   }
   
   /** 
@@ -112,25 +105,25 @@ public abstract class SortSharedDeque extends SharedDeque
    *  @param begin Start address of the range to be sorted
    *  @param end End address of the range to be sorted
    */
-  private final void insertionSort(VM_Address begin, VM_Address end) {
-    VM_Address rPtr = begin.sub(BYTES_IN_ADDRESS);
-    VM_Address lPtr;
+  private final void insertionSort(Address begin, Address end) {
+    Address rPtr = begin.sub(BYTES_IN_ADDRESS);
+    Address lPtr;
 
     while (rPtr.GE(end)) {
-      VM_Address rSlot = VM_Magic.getMemoryAddress(rPtr);
-      VM_Word rKey = getKey(rSlot);
+      Address rSlot = rPtr.loadAddress();
+      Word rKey = getKey(rSlot);
       lPtr = rPtr.add(BYTES_IN_ADDRESS);
       while (lPtr.LE(begin)) {
-        VM_Address lSlot = VM_Magic.getMemoryAddress(lPtr);
-        VM_Word lKey = getKey(lSlot);
+        Address lSlot = lPtr.loadAddress();
+        Word lKey = getKey(lSlot);
         if (lKey.GT(rKey)) {
-          VM_Magic.setMemoryAddress(lPtr.sub(BYTES_IN_ADDRESS), lSlot);
+	  lPtr.sub(BYTES_IN_ADDRESS).store(lSlot);
           lPtr = lPtr.add(BYTES_IN_ADDRESS);
         }
         else
           break;
       }
-      VM_Magic.setMemoryAddress(lPtr.sub(BYTES_IN_ADDRESS), rSlot);
+      lPtr.sub(BYTES_IN_ADDRESS).store(rSlot);
       rPtr = rPtr.sub(BYTES_IN_ADDRESS);
     }
   }
@@ -140,8 +133,8 @@ public abstract class SortSharedDeque extends SharedDeque
    *  maintained to avoid using recursion.
    */
   public void sort() {
-    VM_Address startPtr, startLink, endPtr, endLink;
-    VM_Word bitMask;
+    Address startPtr, startLink, endPtr, endLink;
+    Word bitMask;
     if (!head.EQ(HEAD_INITIAL_VALUE)) {
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(tail.NE(TAIL_INITIAL_VALUE));
@@ -186,26 +179,26 @@ public abstract class SortSharedDeque extends SharedDeque
    * @param endLinkAddr The address where the end block has its next field
    * @param bitMask The mask in which the bit to be commpared is set
    */
-  private final void partition(VM_Address startAddr, VM_Address startLinkAddr,
-			       VM_Address endAddr, VM_Address endLinkAddr,
-			       VM_Word bitMask) {
-    VM_Address travPtr = endAddr;
-    VM_Address travLink = endLinkAddr;
-    VM_Address stopPtr = startAddr;
-    VM_Address stopLink = startLinkAddr;
-    VM_Address travSlot, stopSlot;
-    VM_Word travKey, stopKey;
-    VM_Word lmax = VM_Word.zero(), rmax = VM_Word.zero();
-    VM_Word lmin = VM_Word.max(), rmin = VM_Word.max();
+  private final void partition(Address startAddr, Address startLinkAddr,
+			       Address endAddr, Address endLinkAddr,
+			       Word bitMask) {
+    Address travPtr = endAddr;
+    Address travLink = endLinkAddr;
+    Address stopPtr = startAddr;
+    Address stopLink = startLinkAddr;
+    Address travSlot, stopSlot;
+    Word travKey, stopKey;
+    Word lmax = Word.zero(), rmax = Word.zero();
+    Word lmin = Word.max(), rmin = Word.max();
 
     while (true) {
       /* Compute the address range  within the current block to compute. */
-      VM_Address endOfBlock = travLink;
+      Address endOfBlock = travLink;
 
       /* Move the left pointer until the right pointer is reached
 	 or an address with a 0 value in the bit position is found. */
       while (true) {
-        travSlot = VM_Magic.getMemoryAddress(travPtr);
+        travSlot = travPtr.loadAddress();
         travKey = getKey(travSlot);
 
 	/* If we reach the end. */
@@ -233,7 +226,7 @@ public abstract class SortSharedDeque extends SharedDeque
       /* Move the right pointer until the left pointer is reached
 	 or an address with a 1 value in the bit position is found. */
       while (true) {
-        stopSlot = VM_Magic.getMemoryAddress(stopPtr);
+        stopSlot = stopPtr.loadAddress();
         stopKey = getKey(stopSlot);
         /* Found a 1 in bit position, break. */
         if (!stopKey.and(bitMask).isZero())
@@ -255,8 +248,8 @@ public abstract class SortSharedDeque extends SharedDeque
       if (stopPtr.EQ(travPtr))
 	break;
       /* interchange the values pointed to by the left and right pointers */
-      VM_Magic.setMemoryAddress(travPtr, stopSlot);
-      VM_Magic.setMemoryAddress(stopPtr, travSlot);
+      travPtr.store(stopSlot);
+      stopPtr.store(travSlot);
     }
 
     /* If max value is not equal to the min value in the right partition,
@@ -291,7 +284,7 @@ public abstract class SortSharedDeque extends SharedDeque
    * Sorting Stack management routines
    */
   private int stackLoc;
-  private VM_AddressArray stackBase;
+  private AddressArray stackBase;
 
   /* 
    * Allocate memory for the stack and intialize it with the first range
@@ -300,17 +293,17 @@ public abstract class SortSharedDeque extends SharedDeque
   private final void initStack() {
     stackLoc = 0;
 
-    VM_Address endOfBlock = tail;
-    VM_Address trailer = tail;
-    VM_Address startPtr = bufferStart(endOfBlock);
-    VM_Word min = VM_Word.max();
-    VM_Word max = VM_Word.zero();
+    Address endOfBlock = tail;
+    Address trailer = tail;
+    Address startPtr = bufferStart(endOfBlock);
+    Word min = Word.max();
+    Word max = Word.zero();
     // Find the max. and min addresses in the object buffer
     while (endOfBlock.NE(HEAD_INITIAL_VALUE)) {
       startPtr = bufferStart(endOfBlock);
       while (startPtr.LT(endOfBlock)) {
-        VM_Address startSlot = VM_Magic.getMemoryAddress(startPtr);
-        VM_Word startKey = getKey(startSlot);
+        Address startSlot = startPtr.loadAddress();
+        Word startKey = getKey(startSlot);
         if (startKey.GT(max))
           max = startKey;
         if (startKey.LT(min))
@@ -336,7 +329,7 @@ public abstract class SortSharedDeque extends SharedDeque
   * 
   * @param val The address to be pushed
   */
-  private final void pushOnStack(VM_Address val) {
+  private final void pushOnStack(Address val) {
     stackBase.set(stackLoc, val);
     stackLoc++;
   }
@@ -346,9 +339,9 @@ public abstract class SortSharedDeque extends SharedDeque
   * 
   * @return The address at the top of the stack, or 0 if stack is empty
   */
-  private final VM_Address popStack() {
+  private final Address popStack() {
     if (stackLoc == 0)
-      return VM_Address.zero();
+      return Address.zero();
     stackLoc--;
     return stackBase.get(stackLoc);
   }
@@ -361,15 +354,15 @@ public abstract class SortSharedDeque extends SharedDeque
   */
   private final void checkIfSorted() {
     if (VM_Interface.VerifyAssertions) {
-      VM_Address next, buf, end;
-      VM_Word prevKey = VM_Word.max();
+      Address next, buf, end;
+      Word prevKey = Word.max();
       end = tail;
       buf = bufferStart(end);
       while (buf.NE(HEAD_INITIAL_VALUE)) {
 	// iterate through the block
 	while (buf.LT(end)) {
-	  VM_Address slot = VM_Magic.getMemoryAddress(buf);
-	  VM_Word key = getKey(slot);
+	  Address slot = buf.loadAddress();
+	  Word key = getKey(slot);
 	  VM_Interface._assert(key.LE(prevKey));
 	  prevKey = key;
 	  buf = buf.add(BYTES_IN_ADDRESS);

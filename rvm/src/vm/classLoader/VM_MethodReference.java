@@ -6,7 +6,7 @@ package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Runtime;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.pragma.*;
 
 /**
  * A class to represent the reference in a class file to a method of
@@ -49,14 +49,14 @@ public final class VM_MethodReference extends VM_MemberReference {
   /**
    * @return return type of the method
    */
-  public final VM_TypeReference getReturnType() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference getReturnType() throws UninterruptiblePragma {
     return returnType;
   }
 
   /**
    * @return parameter types of the method
    */
-  public final VM_TypeReference[] getParameterTypes() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference[] getParameterTypes() throws UninterruptiblePragma {
     return parameterTypes;
   }
 
@@ -64,7 +64,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * Space required by method for its parameters, in words.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  public final int getParameterWords() throws VM_PragmaUninterruptible {
+  public final int getParameterWords() throws UninterruptiblePragma {
     int pw = 0;
     for (int i = 0; i<parameterTypes.length; i++)
            pw += parameterTypes[i].getStackWords();
@@ -107,7 +107,7 @@ public final class VM_MethodReference extends VM_MemberReference {
    * Get the member this reference has been resolved to, if 
    * it has already been resolved. Does NOT force resolution.
    */
-  public final VM_Method getResolvedMember() throws VM_PragmaUninterruptible {
+  public final VM_Method getResolvedMember() throws UninterruptiblePragma {
     return resolvedMember;
   }
 

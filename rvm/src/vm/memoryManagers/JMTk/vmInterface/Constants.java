@@ -8,7 +8,7 @@ package org.mmtk.vm;
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_SizeConstants;
-import com.ibm.JikesRVM.VM_Address;
+import org.vmmagic.unboxed.*;
 import com.ibm.JikesRVM.VM_JavaHeader;
 
 /**

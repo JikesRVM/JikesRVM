@@ -6,12 +6,9 @@ package org.mmtk.utility.deque;
 
 import org.mmtk.vm.Constants;
 
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of addresses
  *
@@ -21,7 +18,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  */ 
 import org.mmtk.vm.VM_Interface;
 public class AddressDeque extends LocalDeque 
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
    public final static String Id = "$Id$"; 
  
   /****************************************************************************
@@ -47,7 +44,7 @@ public class AddressDeque extends LocalDeque
    *
    * @param addr the address to be inserted into the address queue
    */
-  public final void insert(VM_Address addr) throws VM_PragmaInline {
+  public final void insert(Address addr) throws InlinePragma {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr.isZero());
     checkTailInsert(1);
     uncheckedTailInsert(addr);
@@ -58,7 +55,7 @@ public class AddressDeque extends LocalDeque
    *
    * @param addr the address to be pushed onto the address queue
    */
-  public final void push(VM_Address addr) throws VM_PragmaInline {
+  public final void push(Address addr) throws InlinePragma {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr.isZero());
     checkHeadInsert(1);
     uncheckedHeadInsert(addr);
@@ -71,7 +68,7 @@ public class AddressDeque extends LocalDeque
    *
    * @param addr the address to be pushed onto the address queue
    */
-  public final void pushOOL(VM_Address addr) throws VM_PragmaNoInline {
+  public final void pushOOL(Address addr) throws NoInlinePragma {
     push(addr);
   }
 
@@ -82,20 +79,20 @@ public class AddressDeque extends LocalDeque
    * @return The next address in the address queue, or zero if the
    * queue is empty
    */
-  public final VM_Address pop() throws VM_PragmaInline {
+  public final Address pop() throws InlinePragma {
     if (checkDequeue(1)) {
       return uncheckedDequeue();
     }
     else {
-      return VM_Address.zero();
+      return Address.zero();
     }
   }
 
-  public final boolean isEmpty() throws VM_PragmaInline {
+  public final boolean isEmpty() throws InlinePragma {
     return !checkDequeue(1);
   }
 
-  public final boolean isNonEmpty() throws VM_PragmaInline {
+  public final boolean isNonEmpty() throws InlinePragma {
     return checkDequeue(1);
   }
 

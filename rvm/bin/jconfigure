@@ -1177,6 +1177,8 @@ function emitSourceList () {
 	$RVM_ROOT/rvm/src/vm/scheduler
 	$RVM_ROOT/rvm/src/vm/utility
 	$RVM_ROOT/rvm/src/vm/verifier
+	$RVM_ROOT/rvm/src/vm/vmmagic/unboxed
+	$RVM_ROOT/rvm/src/vm/vmmagic/pragma
 	$RVM_ROOT/rvm/src/vm/compilers/compiledCode
     
 
@@ -1939,6 +1941,8 @@ function emitExpander () {
 	if [[ \$CLEAN_FLAG ]]; then
 	    rm -rf ${SCRATCH_DIRECTORY_STR}
 	    mkdir -p ${SCRATCH_DIRECTORY_STR}/com/ibm/JikesRVM
+	    mkdir -p ${SCRATCH_DIRECTORY_STR}/org/vmmagic/unboxed
+	    mkdir -p ${SCRATCH_DIRECTORY_STR}/org/vmmagic/pragma
 	    cd ${GENERATED_FILES_DIRECTORY_STR}
 	    echo *.* | \$XARGS rm -f
 	EOF
@@ -2578,6 +2582,7 @@ EOF
         fi
 	echo "    \$FIND ./com/ibm/JikesRVM/memoryManagers -name '*.class'"
 	echo "    \$FIND ./org/mmtk -name '*.class'"
+	echo "    \$FIND ./org/vmmagic -name '*.class'"
 	echo "    \$FIND . -name JikesRVMSupport.class"
     fi
     echo ") > ${PRIMORDIAL_CLASSES_STR}.want-these"
@@ -2953,14 +2958,14 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 
 	# These next arrays are really arrays of primitves to Jikes RVM 
 	#  (even though Java does not think they are...)
-	[Lcom/ibm/JikesRVM/VM_Address;
-	[Lcom/ibm/JikesRVM/VM_Word;
-	[Lcom/ibm/JikesRVM/VM_Offset;
-	[Lcom/ibm/JikesRVM/VM_Extent;
+	[Lorg/vmmagic/unboxed/Address;
+	[Lorg/vmmagic/unboxed/Word;
+	[Lorg/vmmagic/unboxed/Offset;
+	[Lorg/vmmagic/unboxed/Extent;
 	[Lcom/ibm/JikesRVM/VM_Code;
 	    
 	[Lcom/ibm/JikesRVM/VM_CodeArray;
-        [Lcom/ibm/JikesRVM/VM_AddressArray;
+        [Lorg/vmmagic/unboxed/AddressArray;
 
 	[Lcom/ibm/JikesRVM/classloader/VM_Class;
 	[Lcom/ibm/JikesRVM/VM_UnusualMaps;

@@ -6,6 +6,8 @@ package com.ibm.JikesRVM.jni;
 
 import com.ibm.JikesRVM.*;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * Platform independent utility functions called from VM_JNIFunctions
  * (cannot be placed in VM_JNIFunctions because methods 
@@ -26,11 +28,11 @@ abstract class VM_JNIGenericHelpers {
    * @param stringAddress an address in C space for a string
    * @return a new Java byte[]
    */
-  static byte[] createByteArrayFromC(VM_Address stringAddress) {
+  static byte[] createByteArrayFromC(Address stringAddress) {
     // scan the memory for the null termination of the string
     int length = 0;
-    for (VM_Address addr = stringAddress; true; addr = addr.add(4)) {
-      int word = VM_Magic.getMemoryInt(addr);
+    for (Address addr = stringAddress; true; addr = addr.add(4)) {
+      int word = addr.loadInt();
       int byte0, byte1, byte2, byte3;
       if (VM.LittleEndian) {
         byte3 = ((word >> 24) & 0xFF);
@@ -70,7 +72,7 @@ abstract class VM_JNIGenericHelpers {
    * @param stringAddress an address in C space for a string
    * @return a new Java String
    */
-  static String createStringFromC(VM_Address stringAddress) {
+  static String createStringFromC(Address stringAddress) {
     return new String(createByteArrayFromC(stringAddress));
   }
 
@@ -87,11 +89,11 @@ abstract class VM_JNIGenericHelpers {
    * #if.  --Steve Augart
    */
 
-  static void setBoolStar(VM_Address boolPtr, boolean val) {
+  static void setBoolStar(Address boolPtr, boolean val) {
     // VM.sysWriteln("Someone called setBoolStar");
     if (boolPtr.isZero())
       return;
-    int temp = VM_Magic.getMemoryInt(boolPtr);
+    int temp = boolPtr.loadInt();
     int intval;
     if (VM.LittleEndian) {
       if (val)                  // set to true.
@@ -105,7 +107,7 @@ abstract class VM_JNIGenericHelpers {
       else                      // set to false
         intval =  temp & 0x00ffffff;
     }
-    VM_Magic.setMemoryInt(boolPtr, intval);
+    boolPtr.store(intval);
   }
   //-#endif
 }

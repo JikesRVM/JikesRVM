@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * HPM configuration information.
  *
@@ -39,14 +41,14 @@ public final class HPM_info
    * Get number of values
    * @return number of values
    */
-  static public  int getNumberOfValues() throws VM_PragmaUninterruptible {
+  static public  int getNumberOfValues() throws UninterruptiblePragma {
     return numberOfValues;
   }
   /**
    * Get number of events
    * @return number of events being counted
    */
-  static public  int getNumberOfEvents() throws VM_PragmaUninterruptible {
+  static public  int getNumberOfEvents() throws UninterruptiblePragma {
     return numberOfEvents;
   }
 
@@ -148,7 +150,7 @@ public final class HPM_info
       System.out.println(short_names[i]+" ");
     }
   }
-  static public String short_name(int i) throws VM_PragmaUninterruptible {
+  static public String short_name(int i) throws UninterruptiblePragma {
     if (i>numberOfEvents) {
       VM.sysWrite("***HPM_info.short_name(");VM.sysWrite(i);VM.sysWrite(") ");VM.sysWrite(i);
       VM.sysWrite(" > number of events ");VM.sysWrite(numberOfEvents);VM.sysWrite("!***");
@@ -167,7 +169,7 @@ public final class HPM_info
    *
    * @param value value to have bytes swapped
    */
-  static public  int swapByteOrder(int value) throws VM_PragmaUninterruptible
+  static public  int swapByteOrder(int value) throws UninterruptiblePragma
   {  
     if(VM_HardwarePerformanceMonitors.verbose>=3){VM.sysWrite("VM_HPMs.swapByteOrder(");VM.sysWriteHex(value);}
     byte b1 = (byte)((value & 0xFF000000) >> 24);

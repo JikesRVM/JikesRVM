@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 //-#if RVM_WITH_OSR
 import com.ibm.JikesRVM.OSR.*;
 //-#endif
@@ -116,7 +118,6 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
                     (options.PRINT_MACHINECODE) &&
                     (!options.hasMETHOD_TO_PRINT() ||
                      options.fuzzyMatchMETHOD_TO_PRINT(method.toString())));
-
     if (!VM.runningTool && options.PRINT_METHOD) printMethodMessage();
     if (shouldPrint && VM.runningVM && !fullyBootedVM) {
       shouldPrint = false;
@@ -1684,8 +1685,9 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
         VM_MethodReference methodRef = bcodes.getMethodReference();
         if (shouldPrint) asm.noteBytecode(biStart, "invokestatic", methodRef);
         if (methodRef.getType().isMagicType()) {
-          if (emit_Magic(methodRef))
+          if (emit_Magic(methodRef)) {
             break;
+        }
         }
         if (methodRef.needsDynamicLink(method)) {
           if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("unresolved invokestatic ", methodRef);
@@ -2168,7 +2170,7 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
    * @param msg description of bytecode that is violating the invariant
    * @param obj object that provides further information
    */
-  protected final void forbiddenBytecode(String msg, Object obj) throws VM_PragmaNoInline {
+  protected final void forbiddenBytecode(String msg, Object obj) throws NoInlinePragma {
     forbiddenBytecode(msg+obj);
   }
 
@@ -2178,12 +2180,11 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
    * 
    * @param msg description of bytecode that is violating the invariant
    */
-  protected final void forbiddenBytecode(String msg) throws VM_PragmaNoInline {
+  protected final void forbiddenBytecode(String msg) throws NoInlinePragma {
     if (!VM.ParanoidVerifyUnint) {
       // Respect programmer overrides of uninterruptibility checking
-      if (VM_PragmaLogicallyUninterruptible.declaredBy(method)) return; 
-      if (VM_PragmaUninterruptibleNoWarn.declaredBy(method)) return;
-      if (VM_PragmaNoYieldpoints.declaredBy(method)) return; // a weaker statement than being uninterruptible.
+      if (LogicallyUninterruptiblePragma.declaredBy(method)) return; 
+      if (UninterruptibleNoWarnPragma.declaredBy(method)) return;
     }
     VM.sysWriteln("WARNING " + method + ": contains forbidden bytecode " + msg);
   }
@@ -2196,10 +2197,10 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants,
   protected final void checkTarget(VM_Method target) {
     if (!VM.ParanoidVerifyUnint) {
       // Respect programmer overrides of uninterruptibility checking
-      if (VM_PragmaLogicallyUninterruptible.declaredBy(method)) return;
-      if (VM_PragmaUninterruptibleNoWarn.declaredBy(method)) return;
+      if (LogicallyUninterruptiblePragma.declaredBy(method)) return;
+      if (UninterruptibleNoWarnPragma.declaredBy(method)) return;
     }
-    if (target.isInterruptible() && !VM_PragmaInterruptibleNoWarn.declaredBy(method)) {
+    if (target.isInterruptible() && !UninterruptibleNoWarnPragma.declaredBy(method)) {
       VM.sysWriteln("WARNING "+ method + ": contains call to interruptible method "+target);
     }
   }

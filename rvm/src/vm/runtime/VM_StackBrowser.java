@@ -6,6 +6,9 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 /**
  * @author Julian Dolby
  * @date May 20, 2002
@@ -15,7 +18,7 @@ public final class VM_StackBrowser implements VM_Constants {
   private VM_Method currentMethod;
   private int currentBytecodeIndex;
 
-  private VM_Address currentFramePointer;
+  private Address currentFramePointer;
   private int currentInstructionPointer;
   private VM_CompiledMethod currentCompiledMethod;
     
@@ -23,25 +26,25 @@ public final class VM_StackBrowser implements VM_Constants {
   private int currentInlineEncodingIndex;
   //-#endif
 
-  public void init() throws VM_PragmaNoInline {
+  public void init() throws NoInlinePragma {
     currentFramePointer = VM_Magic.getFramePointer();
     upOneFrame();
   }
 
   private boolean upOneFrameInternal(boolean set) {
-    VM_Address fp;
+    Address fp;
     if (currentMethod != null && currentMethod.getDeclaringClass().isBridgeFromNative()) 
       fp = VM_Runtime.unwindNativeStackFrame(currentFramePointer);
     else 
       fp = currentFramePointer;
 
-    VM_Address prevFP = fp;
-    VM_Address newFP = VM_Magic.getCallerFramePointer(fp);
+    Address prevFP = fp;
+    Address newFP = VM_Magic.getCallerFramePointer(fp);
     if (newFP.EQ(STACKFRAME_SENTINEL_FP) )
       return false;
     // getReturnAddress has to be put here, consider the case
     // on ppc, when fp is the frame above SENTINEL FP
-    VM_Address newIP = VM_Magic.getReturnAddress(prevFP);
+    Address newIP = VM_Magic.getReturnAddress(prevFP);
 
     int cmid = VM_Magic.getCompiledMethodID(newFP);
         

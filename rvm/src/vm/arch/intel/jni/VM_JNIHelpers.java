@@ -8,6 +8,9 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import java.lang.reflect.*;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Platform dependent utility functions called from VM_JNIFunctions
  * (cannot be placed in VM_JNIFunctions because methods 
@@ -27,7 +30,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param methodID the method ID for a constructor
    * @return a new object created by the specified constructor
    */
-  static Object invokeInitializer(Class cls, int methodID, VM_Address argAddress, 
+  static Object invokeInitializer(Class cls, int methodID, Address argAddress, 
                                   boolean isJvalue, boolean isDotDotStyle) throws Exception {
 
     // get the parameter list as Java class
@@ -38,7 +41,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
     }
 
     // Package the parameters for the constructor
-    VM_Address varargAddress;
+    Address varargAddress;
     if (isDotDotStyle) 
       // flag is false because this JNI function has 3 args before the var args
       varargAddress = getVarArgAddress(false);    
@@ -64,8 +67,8 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    */
   static Object invokeWithDotDotVarArg(int methodID, VM_TypeReference expectReturnType)
     throws Exception, 
-           VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
-    VM_Address varargAddress = getVarArgAddress(false);    
+           NoInlinePragma, NoOptCompilePragma { // expect a certain stack frame structure
+    Address varargAddress = getVarArgAddress(false);    
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, true);
   }
 
@@ -83,9 +86,9 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
                                               VM_TypeReference expectReturnType, 
                                               boolean skip4Args)
     throws Exception,
-           VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
+           NoInlinePragma, NoOptCompilePragma { // expect a certain stack frame structure
 
-    VM_Address varargAddress = getVarArgAddress(skip4Args);    
+    Address varargAddress = getVarArgAddress(skip4Args);    
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, true);
   }
 
@@ -160,10 +163,10 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *                  if false, the calling JNI function has 3 args before the vararg
    * @return the starting address of the vararg in the caller stack frame
    */
-  private static VM_Address getVarArgAddress(boolean skip4Args) throws VM_PragmaNoInline {
-    VM_Address fp = VM_Magic.getFramePointer();
-    fp = VM_Magic.getMemoryAddress(fp);
-    fp = VM_Magic.getMemoryAddress(fp);
+  private static Address getVarArgAddress(boolean skip4Args) throws NoInlinePragma {
+    Address fp = VM_Magic.getFramePointer();
+    fp = fp.loadAddress();
+    fp = fp.loadAddress();
     return (fp.add(2*4 + (skip4Args ? 4*4 : 3*4)));
   }
 
@@ -173,7 +176,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param argAddress a raw address for the variable argument list
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  static Object invokeWithVarArg(int methodID, VM_Address argAddress, VM_TypeReference expectReturnType) 
+  static Object invokeWithVarArg(int methodID, Address argAddress, VM_TypeReference expectReturnType) 
     throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, true);
   }
@@ -187,7 +190,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  static Object invokeWithVarArg(Object obj, int methodID, VM_Address argAddress, 
+  static Object invokeWithVarArg(Object obj, int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType, boolean skip4Args) 
     throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, true);
@@ -199,7 +202,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param argAddress a raw address for the argument array
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  static Object invokeWithJValue(int methodID, VM_Address argAddress, 
+  static Object invokeWithJValue(int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType) 
     throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, false);
@@ -214,7 +217,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  static Object invokeWithJValue(Object obj, int methodID, VM_Address argAddress, 
+  static Object invokeWithJValue(Object obj, int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType, boolean skip4Args) 
     throws Exception {
     return packageAndInvoke(obj, methodID, argAddress, expectReturnType, skip4Args, false);
@@ -236,11 +239,11 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *                  jvalue format
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  static Object packageAndInvoke(Object obj, int methodID, VM_Address argAddress, 
+  static Object packageAndInvoke(Object obj, int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType, boolean skip4Args, 
                                         boolean isVarArg) 
     throws Exception,
-           VM_PragmaNoInline, VM_PragmaNoOptCompile { // expect a certain stack frame structure
+           NoInlinePragma, NoOptCompilePragma { // expect a certain stack frame structure
 
     VM_Method targetMethod = VM_MemberReference.getMemberRef(methodID).asMethodReference().resolve();
     VM_TypeReference returnType = targetMethod.getReturnType();
@@ -281,31 +284,31 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
-  static Object[] packageParameterFromVarArg(VM_Method targetMethod, VM_Address argAddress) {
+  static Object[] packageParameterFromVarArg(VM_Method targetMethod, Address argAddress) {
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
 
-    VM_Address addr = argAddress;
+    Address addr = argAddress;
     for (int i=0; i<argCount; i++) {
-      int loword = VM_Magic.getMemoryInt(addr);
+      int loword = addr.loadInt();
       addr = addr.add(4);
 
       // convert and wrap the argument according to the expected type
       if (argTypes[i].isFloatType()) {
         // NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
         // so we have to extract it as a double and convert it back to a float
-        int hiword = VM_Magic.getMemoryInt(addr);
+        int hiword = addr.loadInt();
         addr = addr.add(4);                       
         long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
       } else if (argTypes[i].isDoubleType()) {
-        int hiword = VM_Magic.getMemoryInt(addr);
+        int hiword = addr.loadInt();
         addr = addr.add(4);
         long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
       } else if (argTypes[i].isLongType()) { 
-        int hiword = VM_Magic.getMemoryInt(addr);
+        int hiword = addr.loadInt();
         addr = addr.add(4);
         long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapLong(longValue);
@@ -343,7 +346,7 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
-  static Object[] packageParameterFromJValue(VM_Method targetMethod, VM_Address argAddress) {
+  static Object[] packageParameterFromJValue(VM_Method targetMethod, Address argAddress) {
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
@@ -351,19 +354,19 @@ abstract class VM_JNIHelpers extends VM_JNIGenericHelpers {
     // get the VM_JNIEnvironment for this thread in case we need to dereference any object arg
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
 
-    VM_Address addr = argAddress;
+    Address addr = argAddress;
     for (int i=0; i<argCount; i++, addr = addr.add(8)) {
-      int loword = VM_Magic.getMemoryInt(addr);
+      int loword = addr.loadInt();
       int hiword;
       // convert and wrap the argument according to the expected type
       if (argTypes[i].isFloatType()) {
         argObjectArray[i] = VM_Reflection.wrapFloat(Float.intBitsToFloat(loword));
       } else if (argTypes[i].isDoubleType()) {
-        hiword = VM_Magic.getMemoryInt(addr.add(4));
+        hiword = addr.add(4).loadInt();
         long doubleBits = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
       } else if (argTypes[i].isLongType()) { 
-        hiword = VM_Magic.getMemoryInt(addr.add(4));
+        hiword = addr.add(4).loadInt();
         long longValue = (((long) hiword) << 32) | (loword & 0xFFFFFFFFL);
         argObjectArray[i] = VM_Reflection.wrapLong(longValue);
       } else if (argTypes[i].isBooleanType()) {

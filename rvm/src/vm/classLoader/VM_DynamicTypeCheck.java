@@ -6,6 +6,8 @@ package com.ibm.JikesRVM.classloader;
 
 import com.ibm.JikesRVM.*;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Data structures and code for fast dynamic type checking.
  * <p>
@@ -221,7 +223,7 @@ public class VM_DynamicTypeCheck implements VM_TIBLayoutConstants {
    * @return <code>true</code> if the object is an instance of LHSClass
    *         or <code>false</code> if it is not
    */
-  public static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) throws VM_PragmaUninterruptible {
+  public static boolean instanceOfClass(VM_Class LHSclass, Object[] rhsTIB) throws UninterruptiblePragma {
     short[] superclassIds = VM_Magic.objectAsShortArray(rhsTIB[TIB_SUPERCLASS_IDS_INDEX]);
     int LHSDepth = LHSclass.getTypeDepth();
     if (LHSDepth >= superclassIds.length) return false;

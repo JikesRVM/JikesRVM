@@ -9,12 +9,8 @@ package org.mmtk.utility.scan;
 import org.mmtk.plan.Plan;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Class that supports scanning of objects (scalar and array)
@@ -25,18 +21,18 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */  
-public final class Scan implements VM_Uninterruptible {
+public final class Scan implements Uninterruptible {
   /**
    * Scan a object, processing each pointer field encountered. 
    *
    * @param object The object to be scanned.
    */
-  public static void scanObject(VM_Address object) throws VM_PragmaInline {
+  public static void scanObject(Address object) throws InlinePragma {
     MMType type = VM_Interface.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
-        VM_Address slot = type.getSlot(object, i);
+        Address slot = type.getSlot(object, i);
         Plan.traceObjectLocation(slot);
       }
     } else
@@ -52,13 +48,13 @@ public final class Scan implements VM_Uninterruptible {
    * @param enum the Enumerate object through which the callback
    * is made
    */
-  public static void enumeratePointers(VM_Address object, Enumerate enum) 
-    throws VM_PragmaInline {
+  public static void enumeratePointers(Address object, Enumerate enum) 
+    throws InlinePragma {
     MMType type = VM_Interface.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
       for (int i = 0; i < references; i++) {
-        VM_Address slot = type.getSlot(object, i);
+        Address slot = type.getSlot(object, i);
         enum.enumeratePointerLocation(slot);
       }
     } else

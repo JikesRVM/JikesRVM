@@ -9,15 +9,8 @@ import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_AddressArray;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of buffers
@@ -29,8 +22,10 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @version $Revision$
  * @date $Date$
  */ 
-public class SharedDeque extends Deque implements Constants, VM_Uninterruptible {
+public class SharedDeque extends Deque implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
+
+  private static final Offset PREV_OFFSET = Offset.fromInt(BYTES_IN_ADDRESS);
 
   /****************************************************************************
    *
@@ -54,15 +49,15 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
     return completionFlag == 1;
   }
 
-  final int getArity() throws VM_PragmaInline { return arity; }
+  final int getArity() throws InlinePragma { return arity; }
 
-  final void enqueue(VM_Address buf, int arity, boolean toTail) {
+  final void enqueue(Address buf, int arity, boolean toTail) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(arity == this.arity);
     lock();
     if (toTail) {
       // Add to the tail of the queue
-      setNext(buf, VM_Address.zero());
+      setNext(buf, Address.zero());
       if (tail.EQ(TAIL_INITIAL_VALUE))
         head = buf;
       else
@@ -71,7 +66,7 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
       tail = buf;
     } else {
       // Add to the head of the queue
-      setPrev(buf, VM_Address.zero());
+      setPrev(buf, Address.zero());
       if (head.EQ(HEAD_INITIAL_VALUE))
         tail = buf;
       else
@@ -87,31 +82,31 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
   }
 
   public final void clearDeque(int arity) {
-    VM_Address buf = dequeue(arity);
+    Address buf = dequeue(arity);
     while (!buf.isZero()) {
       free(bufferStart(buf));
       buf = dequeue(arity);
     }
   }
 
-  final VM_Address dequeue(int arity) throws VM_PragmaInline {
+  final Address dequeue(int arity) throws InlinePragma {
     return dequeue(arity, false);
   }
 
-  final VM_Address dequeue(int arity, boolean fromTail) {
+  final Address dequeue(int arity, boolean fromTail) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(arity == this.arity);
     return dequeue(false, fromTail);
   }
 
-  final VM_Address dequeueAndWait(int arity) throws VM_PragmaInline {
+  final Address dequeueAndWait(int arity) throws InlinePragma {
     return dequeueAndWait(arity, false);
   }
 
-  final VM_Address dequeueAndWait(int arity, boolean fromTail) {
+  final Address dequeueAndWait(int arity, boolean fromTail) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(arity == this.arity);
-    VM_Address buf = dequeue(false, fromTail);
+    Address buf = dequeue(false, fromTail);
     while (buf.isZero() && (completionFlag == 0)) {
       buf = dequeue(true, fromTail);
     }
@@ -129,20 +124,20 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
     setNumClients(numClients + 1);
   }
 
-  final VM_Address alloc() throws VM_PragmaInline {
-    VM_Address rtn = rpa.alloc(PAGES_PER_BUFFER);
+  final Address alloc() throws InlinePragma {
+    Address rtn = rpa.alloc(PAGES_PER_BUFFER);
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(rtn.EQ(bufferStart(rtn)));
     return rtn;
   }
 
-  final void free(VM_Address buf) throws VM_PragmaInline {
+  final void free(Address buf) throws InlinePragma {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(buf.EQ(bufferStart(buf)) && !buf.isZero());
     rpa.free(buf);
   }
 
-  public final int enqueuedPages() throws VM_PragmaInline {
+  public final int enqueuedPages() throws InlinePragma {
     return bufsenqueued<<LOG_PAGES_PER_BUFFER;
   }
 
@@ -155,15 +150,15 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
   private int completionFlag; //
   private int numClients; //
   private int numClientsWaiting; //
-  protected VM_Address head;
-  protected VM_Address tail;
+  protected Address head;
+  protected Address tail;
   private int bufsenqueued;
   private Lock lock;
 
   
-  private final VM_Address dequeue(boolean waiting, boolean fromTail) {
+  private final Address dequeue(boolean waiting, boolean fromTail) {
     lock();
-    VM_Address rtn = ((fromTail) ? tail : head);
+    Address rtn = ((fromTail) ? tail : head);
     if (rtn.isZero()) {
       if (VM_Interface.VerifyAssertions) 
 	VM_Interface._assert(tail.isZero() && head.isZero());
@@ -178,19 +173,19 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
 	// dequeue the tail buffer
 	setTail(getPrev(tail));	
 	if (head.EQ(rtn)) {
-	  setHead(VM_Address.zero());
+	  setHead(Address.zero());
 	  if (VM_Interface.VerifyAssertions) VM_Interface._assert(tail.isZero());
 	} else {
-	  setNext(tail, VM_Address.zero());
+	  setNext(tail, Address.zero());
 	}
       } else {
       // dequeue the head buffer
       setHead(getNext(head));
       if (tail.EQ(rtn)) {
-        setTail(VM_Address.zero());
+        setTail(Address.zero());
         if (VM_Interface.VerifyAssertions) VM_Interface._assert(head.isZero());
 	} else {
-	  setPrev(head, VM_Address.zero());
+	  setPrev(head, Address.zero());
 	}
       }
       bufsenqueued--;
@@ -207,8 +202,8 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
    * @param bufRef The buffer whose next field is to be set.
    * @param next The reference to which next should point.
    */
-  private static final void setNext(VM_Address buf, VM_Address next) {
-    VM_Magic.setMemoryAddress(buf, next);
+  private static final void setNext(Address buf, Address next) {
+    buf.store(next);
   }
 
   /**
@@ -217,8 +212,8 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
    * @param bufRef The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
-  protected final VM_Address getNext(VM_Address buf) {
-    return VM_Magic.getMemoryAddress(buf);
+  protected final Address getNext(Address buf) {
+    return buf.loadAddress();
   }
 
   /**
@@ -227,8 +222,8 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
    * @param bufRef The buffer whose next field is to be set.
    * @param next The reference to which next should point.
    */
-  private final void setPrev(VM_Address buf, VM_Address prev) {
-    VM_Magic.setMemoryAddress(buf.add(BYTES_IN_ADDRESS), prev);
+  private final void setPrev(Address buf, Address prev) {
+    buf.store(prev, PREV_OFFSET);
   }
 
   /**
@@ -237,8 +232,8 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
    * @param bufRef The buffer whose next field is to be returned.
    * @return The next field for this buffer.
    */
-  protected final VM_Address getPrev(VM_Address buf) {
-    return VM_Magic.getMemoryAddress(buf.add(BYTES_IN_ADDRESS));
+  protected final Address getPrev(Address buf) {
+    return buf.loadAddress(PREV_OFFSET);
   }
 
   /**
@@ -249,7 +244,7 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
    * @return True if the length of the queue matches length.
    */
   private final boolean checkDequeLength(int length) {
-    VM_Address top = head;
+    Address top = head;
     int l = 0;
     while (!top.isZero() && l <= length) {
       top = getNext(top);
@@ -276,23 +271,23 @@ public class SharedDeque extends Deque implements Constants, VM_Uninterruptible 
 
   // need to use this to avoid generating a putfield and so causing write barrier recursion
   //
-  private final void setCompletionFlag(int flag) throws VM_PragmaInline {
+  private final void setCompletionFlag(int flag) throws InlinePragma {
     completionFlag = flag;
   }
 
-  private final void setNumClients(int newNumClients) throws VM_PragmaInline {
+  private final void setNumClients(int newNumClients) throws InlinePragma {
       numClients = newNumClients;
   }
 
-  private final void setNumClientsWaiting(int newNCW) throws VM_PragmaInline {
+  private final void setNumClientsWaiting(int newNCW) throws InlinePragma {
     numClientsWaiting = newNCW;
   }
 
-  private final void setHead(VM_Address newHead) throws VM_PragmaInline {
+  private final void setHead(Address newHead) throws InlinePragma {
     head = newHead;
   }
 
-  private final void setTail(VM_Address newTail) throws VM_PragmaInline {
+  private final void setTail(Address newTail) throws InlinePragma {
     tail = newTail;
   }
 }

@@ -7,11 +7,8 @@ package org.mmtk.utility.heap;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
-
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class restricts MonotoneVMResource by preventing release of immortal memory.
@@ -22,7 +19,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-public class ImmortalVMResource extends MonotoneVMResource implements Constants, VM_Uninterruptible {
+public class ImmortalVMResource extends MonotoneVMResource implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -32,14 +29,14 @@ public class ImmortalVMResource extends MonotoneVMResource implements Constants,
   /**
    * Constructor
    */
-  public ImmortalVMResource(byte space_, String vmName, MemoryResource mr, VM_Address vmStart, VM_Extent bytes) {
+  public ImmortalVMResource(byte space_, String vmName, MemoryResource mr, Address vmStart, Extent bytes) {
     super(space_, vmName, mr, vmStart, bytes, (byte) (VMResource.IN_VM | VMResource.IMMORTAL));
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(cursor.GE(vmStart) && cursor.LE(sentinel));
     sentinel = start.add(bytes);
   }
 
-  public final VM_Address acquire(int pageRequest) {
-    VM_Address result = super.acquire(pageRequest);
+  public final Address acquire(int pageRequest) {
+    Address result = super.acquire(pageRequest);
     acquireHelp(start, pageRequest);
     return result;
   }

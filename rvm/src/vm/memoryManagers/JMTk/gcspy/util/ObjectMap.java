@@ -6,8 +6,9 @@
 package org.mmtk.utility.gcspy;
 
 import com.ibm.JikesRVM.VM_SizeConstants;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_Address;
+
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 //-#if RVM_WITH_GCSPY
 import org.mmtk.plan.Plan;
@@ -17,10 +18,8 @@ import org.mmtk.utility.heap.VMResource;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.gcspy.Util;
 
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Memory;
-import com.ibm.JikesRVM.VM_PragmaInline;
+
 //-#endif
 
 /**
@@ -92,7 +91,7 @@ import com.ibm.JikesRVM.VM_PragmaInline;
 
 
 public class ObjectMap 
-  implements VM_SizeConstants, VM_Uninterruptible {
+  implements VM_SizeConstants, Uninterruptible {
   public final static String Id = "$Id$";
  
  
@@ -137,14 +136,14 @@ public class ObjectMap
   // Fields
   //
   
-  private VM_Address objectMap_;        // the object map
+  private Address objectMap_;        // the object map
 
   // Iterator data
   private int iterPage_;                // index of the slot in objectMap_
   private int iterSlot_;                // index of the slot in the pagemap
   private int iterWord_;                // index of the word in the bitmap
   private int iterBit_;                 // number of the bit in this word
-  private VM_Address iterEnd_;          // address of end of iterator space
+  private Address iterEnd_;          // address of end of iterator space
   private int iterPageEnd_;             // index of page of end of iterator space
   private boolean hasNext_; 
 
@@ -152,7 +151,7 @@ public class ObjectMap
   // TODO debug levels need sorting out
   public boolean allocationTrap = false;        // allow allocation
   public int allocCounter = 0;
-  public VM_Address lastAddressAllocated = VM_Address.zero();
+  public Address lastAddressAllocated = Address.zero();
   private static int memoryConsumed = 0;
   private static int memoryHighWater = 0;
  
@@ -197,7 +196,7 @@ public class ObjectMap
    * @param chunkAddr The address of the first chunk to be added 
    * @param chunks The number of chunks to be added
    */
-  public final void grow(VM_Address chunkAddr, int bytes) {
+  public final void grow(Address chunkAddr, int bytes) {
     addOrRelease(chunkAddr, bytes, true);
   }
 
@@ -206,7 +205,7 @@ public class ObjectMap
    *
    * @param chunkAddr The address of the chunk to be added 
    */
-  public final void grow(VM_Address chunkAddr) { 
+  public final void grow(Address chunkAddr) { 
     addOrRelease(chunkAddr, 1, true);
   }
 
@@ -216,7 +215,7 @@ public class ObjectMap
    * @param chunkAddr The address of the first chunk to be released 
    * @param chunks The number of bytes to be released
    */
-  public final void release(VM_Address chunkAddr, int bytes) {
+  public final void release(Address chunkAddr, int bytes) {
     addOrRelease(chunkAddr, bytes, false);
   }
   
@@ -225,7 +224,7 @@ public class ObjectMap
    *
    * @param chunkAddr The address of the chunk to be added 
    */
-  public final void release(VM_Address chunkAddr) {
+  public final void release(Address chunkAddr) {
     addOrRelease(chunkAddr, 1, false);
   }
   
@@ -236,9 +235,9 @@ public class ObjectMap
    * @param chunks The number of chunks to add or release
    * @param add Whether to add or release chunks
    */
-  private final void addOrRelease(VM_Address start, int bytes, boolean add) {   
+  private final void addOrRelease(Address start, int bytes, boolean add) {   
     int page = addressToPage(start);
-    VM_Address end = start.add(bytes);
+    Address end = start.add(bytes);
     int lastPage = addressToPage(end);
 
     debug(2, "ObjectMap.release(", start);
@@ -309,13 +308,13 @@ public class ObjectMap
   private final void zeroSlot(int slot) { 
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(!objectMap_.isZero(), "objectMap_ is null!");
-    VM_Address addr = getSlotAddress(slot);
+    Address addr = getSlotAddress(slot);
     if (VM_Interface.VerifyAssertions) {
-      VM_Address bitmap = VM_Magic.getMemoryAddress(addr);
+      Address bitmap = VM _Magic.getMemoryAddress(addr);
       if (!bitmap.isZero()) 
         VM_Interface.sysWriteln("Zeroing object map slot with non-empty bitmap!", slot);
     }
-    VM_Magic.setMemoryAddress(addr, VM_Address.zero());
+    VM _Magic.setMemoryAddress(addr, Address.zero());
   }
   */
   
@@ -330,22 +329,22 @@ public class ObjectMap
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(!objectMap_.isZero(), "objectMap_ is null!");
     
-    VM_Address addr = getSlotAddress(page, slot);
-    VM_Address bitmap = VM_Magic.getMemoryAddress(addr);
+    Address addr = getSlotAddress(page, slot);
+    Address bitmap = addr.loadAddress();
     if (!bitmap.isZero()) {
       Util.free(bitmap);
-      VM_Magic.setMemoryAddress(addr, VM_Address.zero());
+      addr.storeAddress(Address.zero());
       memoryConsumed -= BITMAP_SIZE;
     }
   }
   
   /**
-   * Allocate a fresh pagemap (i.e. a set of pages of VM_Address)
+   * Allocate a fresh pagemap (i.e. a set of pages of Address)
    *
    * @return the address of the start of this set of pages
    */
-  private final VM_Address allocPagemap() {
-    VM_Address pagemap = Util.malloc(PAGEMAP_SIZE);
+  private final Address allocPagemap() {
+    Address pagemap = Util.malloc(PAGEMAP_SIZE);
     VM_Memory.zero(pagemap, PAGEMAP_SIZE);
     memoryConsumed += PAGEMAP_SIZE;
     if (memoryConsumed > memoryHighWater)
@@ -359,9 +358,9 @@ public class ObjectMap
    *
    * @return the address of the start of this set of pages
    */
-  private final VM_Address allocBitmap() {
-    //VM_Address bitmap = rpa.alloc(PAGES_PER_BITMAP);
-    VM_Address bitmap = Util.malloc(BITMAP_SIZE);
+  private final Address allocBitmap() {
+    //Address bitmap = rpa.alloc(PAGES_PER_BITMAP);
+    Address bitmap = Util.malloc(BITMAP_SIZE);
     VM_Memory.zero(bitmap, BITMAP_SIZE);
     memoryConsumed += BITMAP_SIZE;
     if (memoryConsumed > memoryHighWater)
@@ -378,12 +377,12 @@ public class ObjectMap
    * @param slot the slot to check
    * @return true if a new bitmap is allocated
    */
-  private final boolean checkSlot(int page, int slot) //throws VM_PragmaInline 
+  private final boolean checkSlot(int page, int slot) //throws InlinePragma 
   {
     boolean newpage = checkPage(page);
     
-    VM_Address slotAddr = getSlotAddress(page, slot);
-    VM_Address slotValue = VM_Magic.getMemoryAddress(slotAddr);
+    Address slotAddr = getSlotAddress(page, slot);
+    Address slotValue = slotAddr.loadAddress();
     if (VM_Interface.VerifyAssertions) {
       if (newpage) {
         if (!slotValue.isZero())
@@ -391,12 +390,12 @@ public class ObjectMap
       }
     }
     if (slotValue.isZero()) {
-      VM_Address bm = allocBitmap();
+      Address bm = allocBitmap();
       debug(2, "allocating new bitmap for page ", page);
       debug(2, ", slot ", slot);
       debug(2, " (address ", slotAddr);
       debugln(2, ") at  ", bm);
-      VM_Magic.setMemoryAddress(slotAddr, bm);
+      slotAddr.storeAddress(bm);
       return true;
     }
     return false;
@@ -409,19 +408,19 @@ public class ObjectMap
    * @param page the index of pagemap  to check in the object table
    * @return true if new page allocated
    */
-  private final boolean checkPage(int page) //throws VM_PragmaInline 
+  private final boolean checkPage(int page) //throws InlinePragma 
   {
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(!objectMap_.isZero(), "objectMap_ is null!");
     
-    VM_Address pageAddr = getPageAddress(page);
-    VM_Address pagemap = VM_Magic.getMemoryAddress(pageAddr);
+    Address pageAddr = getPageAddress(page);
+    Address pagemap = pageAddr.loadAddress();
     if (pagemap.isZero()) {
       pagemap = allocPagemap();
       debug(2, "allocating new pagemap for page ", page);
       debug(2, " (address ", pageAddr);
       debugln(2, ") at ", pagemap);
-      VM_Magic.setMemoryAddress(pageAddr, pagemap);
+      pageAddr.storeAddress(pagemap);
       return true;
     }
     return false;
@@ -437,7 +436,7 @@ public class ObjectMap
    *
    * @param addr The address of the object
    */
-  public final void alloc(VM_Address addr) throws VM_PragmaInline {
+  public final void alloc(Address addr) throws InlinePragma {
     // Check that allocation is allowed
     if (VM_Interface.VerifyAssertions) 
       VM_Interface._assert(!allocationTrap, "Unexpected allocation");
@@ -462,7 +461,7 @@ public class ObjectMap
    *
    * @param addr The address of the object
    */
-  public final void dealloc(VM_Address addr) {
+  public final void dealloc(Address addr) {
     // Get the slot, word and bit
     int page = addressToPage(addr);
     int slot = addressToSlot(addr);
@@ -502,7 +501,7 @@ public class ObjectMap
    * @param index The index of a pagemap in the object map 
    * @return The address of this pagemap's slot in the object map
    */
-  private VM_Address getPageAddress(int index) //throws VM_PragmaInline 
+  private Address getPageAddress(int index) //throws InlinePragma 
   {
     int offset = index << LOG_BYTES_IN_ADDRESS;
     return objectMap_.add(offset);
@@ -513,9 +512,9 @@ public class ObjectMap
    * @param page The index of a pagemap in the object map
    * @return The address of the correspondng pagemap 
    */
-  private VM_Address getPagemap(int page) {
-    VM_Address addr = getPageAddress(page);
-    return VM_Magic.getMemoryAddress(addr);
+  private Address getPagemap(int page) {
+    Address addr = getPageAddress(page);
+    return addr.loadAddress();
   }
 
   /**
@@ -525,10 +524,10 @@ public class ObjectMap
    * @param slot The index of the bitmap in that pagemap
    * @return The address of this bitmap's slot in the pagemap
    */
-  private VM_Address getSlotAddress(int page, int slot) //throws VM_PragmaInline 
+  private Address getSlotAddress(int page, int slot) //throws InlinePragma 
   {
     int offset = slot << LOG_BYTES_IN_ADDRESS;
-    VM_Address pagemapAddr = getPagemap(page);
+    Address pagemapAddr = getPagemap(page);
     return pagemapAddr.add(offset);
   }
   
@@ -539,9 +538,9 @@ public class ObjectMap
    * @param slot The index of the bitmap in that pagemap
    * @return The address of the corresponding bitmap 
    */
-  private VM_Address getBitmap(int page, int slot) {
-    VM_Address slotAddr = getSlotAddress(page, slot);
-    return VM_Magic.getMemoryAddress(slotAddr);
+  private Address getBitmap(int page, int slot) {
+    Address slotAddr = getSlotAddress(page, slot);
+    return slotAddr.loadAddress();
   }
   
   /**
@@ -581,7 +580,7 @@ public class ObjectMap
    * @param word the int number
    * @return the int value
    */
-  private final int getBitmapInt(int page, int slot, int word) //throws VM_PragmaInline 
+  private final int getBitmapInt(int page, int slot, int word) //throws InlinePragma 
   {
     if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(page < PAGEMAPS_IN_OBJECTMAP);
@@ -589,15 +588,15 @@ public class ObjectMap
       VM_Interface._assert(slot < BITMAPS_IN_PAGEMAP);
       VM_Interface._assert(!emptyBitmap(page, slot), "ObjectMap slot not in use");
     }
-    VM_Address bitmap = getBitmap(page, slot);
+    Address bitmap = getBitmap(page, slot);
 
     if (VM_Interface.VerifyAssertions) { 
       VM_Interface._assert(!bitmap.isZero(), "failed to get bitmap from getBitmap");
       VM_Interface._assert(word < INTS_IN_BITMAP);
     }
     int offset = word << LOG_BYTES_IN_INT;
-    VM_Address addr = bitmap.add(offset);
-    return VM_Magic.getMemoryInt(addr);
+    Address addr = bitmap.add(offset);
+    return addr.loadInt();
   }
  
  /**
@@ -608,7 +607,7 @@ public class ObjectMap
    * @param word the int number
    * @param value the new value
    */
-  private final void setBitmapInt(int page, int slot, int word, int value) //throws VM_PragmaInline 
+  private final void setBitmapInt(int page, int slot, int word, int value) //throws InlinePragma 
   {
     if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(page < PAGEMAPS_IN_OBJECTMAP);
@@ -616,13 +615,13 @@ public class ObjectMap
       VM_Interface._assert(slot < BITMAPS_IN_PAGEMAP);
       VM_Interface._assert(!emptyBitmap(page, slot), "ObjectMap slot not in use");
     }
-    VM_Address bitmap = getBitmap(page, slot);
+    Address bitmap = getBitmap(page, slot);
          
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(word < INTS_IN_BITMAP);        
     int offset = word << LOG_BYTES_IN_INT;
-    VM_Address addr = bitmap.add(offset);
-    VM_Magic.setMemoryInt(addr, value);
+    Address addr = bitmap.add(offset);
+    addr.storeInt(value);
   }
   
   /**
@@ -633,7 +632,7 @@ public class ObjectMap
    * @param bit the bit number
    * @return true if set
    */
-  private final boolean getBit(int page, int slot, int word, int bit) //throws VM_PragmaInline 
+  private final boolean getBit(int page, int slot, int word, int bit) //throws InlinePragma 
   {
     if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(page < PAGEMAPS_IN_OBJECTMAP);
@@ -659,7 +658,7 @@ public class ObjectMap
    * @param bit the bit number
    * @param set Set bit to 1 if true, else set to 0
    */
-  private final void setBit(int page, int slot, int word, int bit, boolean set) //throws VM_PragmaInline 
+  private final void setBit(int page, int slot, int word, int bit, boolean set) //throws InlinePragma 
   {
     if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(page < PAGEMAPS_IN_OBJECTMAP);
@@ -736,7 +735,7 @@ public class ObjectMap
     * @see hasNext
     * @see next
     */
-  public void iterator(VM_Address start, VM_Address end) {
+  public void iterator(Address start, Address end) {
       debug(2, "Iterating from ", start);
       debug(2, "to ", end);
 
@@ -773,9 +772,9 @@ public class ObjectMap
    * 
    * @return The address of the next object or 0 if none
    */
-  public VM_Address next() {
-    VM_Address rv = hasNext_ ? bitmapToAddress(iterPage_, iterSlot_, iterWord_, iterBit_) 
-                             : VM_Address.zero();
+  public Address next() {
+    Address rv = hasNext_ ? bitmapToAddress(iterPage_, iterSlot_, iterWord_, iterBit_) 
+                             : Address.zero();
     advanceIterator(true);
     return rv;
   }
@@ -871,7 +870,7 @@ public class ObjectMap
    * @param addr The address of the object
    * @return The address of the slot
    */
-  private static final int addressToPage(VM_Address addr) //throws VM_PragmaInline 
+  private static final int addressToPage(Address addr) //throws InlinePragma 
   {
     if (VM_Interface.VerifyAssertions) {    
       boolean inHeap = VMResource.refInVM(addr);
@@ -891,7 +890,7 @@ public class ObjectMap
    * @param addr The address of the object
    * @return The address of the slot
    */
-  private static final int addressToSlot(VM_Address addr) //throws VM_PragmaInline 
+  private static final int addressToSlot(Address addr) //throws InlinePragma 
   {
     if (VM_Interface.VerifyAssertions) {    
       boolean inHeap = VMResource.refInVM(addr);
@@ -908,7 +907,7 @@ public class ObjectMap
    * @param addr The address of the object
    * @return The number of the bitmap word containing this address
    */
-  private static final int addressToWord(VM_Address addr) //throws VM_PragmaInline 
+  private static final int addressToWord(Address addr) //throws InlinePragma 
   {
     return (addr.toWord().rshl(WORD_OFFSET).toInt() & (INTS_IN_BITMAP - 1));
   }
@@ -919,7 +918,7 @@ public class ObjectMap
    * @param addr The address of the object
    * @return The bit
    */
-  private static final int addressToBit(VM_Address addr)  //throws VM_PragmaInline 
+  private static final int addressToBit(Address addr)  //throws InlinePragma 
   {
     return (addr.toWord().rshl(LOG_OBJECT_ALIGNMENT).toInt() & (BITS_IN_INT - 1));
   }
@@ -932,13 +931,13 @@ public class ObjectMap
    * @param word The word number in the bitmap
    * @param bit The number of the bit in the bit mask
    */
-  private static VM_Address bitmapToAddress(int page, int slot, int word, int bit) {
-    VM_Word pageAddr  = VM_Word.fromIntZeroExtend(page).lsh(PAGE_OFFSET);
-    VM_Word chunkAddr  = VM_Word.fromIntZeroExtend(slot).lsh(SLOT_OFFSET);
-    VM_Word wordAddr  = VM_Word.fromIntZeroExtend(word).lsh(WORD_OFFSET);
-    VM_Word bitAddr  = VM_Word.fromIntZeroExtend(bit).lsh(LOG_OBJECT_ALIGNMENT);
+  private static Address bitmapToAddress(int page, int slot, int word, int bit) {
+    Word pageAddr  = Word.fromIntZeroExtend(page).lsh(PAGE_OFFSET);
+    Word chunkAddr  = Word.fromIntZeroExtend(slot).lsh(SLOT_OFFSET);
+    Word wordAddr  = Word.fromIntZeroExtend(word).lsh(WORD_OFFSET);
+    Word bitAddr  = Word.fromIntZeroExtend(bit).lsh(LOG_OBJECT_ALIGNMENT);
     
-    VM_Address addr = pageAddr.or(chunkAddr).or(wordAddr).or(wordAddr).or(bitAddr).toAddress();
+    Address addr = pageAddr.or(chunkAddr).or(wordAddr).or(wordAddr).or(bitAddr).toAddress();
 
     if (VM_Interface.VerifyAssertions) {
       VM_Interface._assert(page == addressToPage(addr));
@@ -981,25 +980,25 @@ public class ObjectMap
     if(Options.verbose >= level) 
       Log.writeln(mesg, value); 
   }
-  private static final void debug(int level, String mesg, VM_Address value) { 
+  private static final void debug(int level, String mesg, Address value) { 
     if(Options.verbose >= level) 
       Log.write(mesg, value); 
   }
-  private static final void debugln(int level, String mesg, VM_Address value) { 
+  private static final void debugln(int level, String mesg, Address value) { 
     if(Options.verbose >= level) 
       Log.writeln(mesg, value); 
   }
 
   public void testTranslation() {
     // trivial example
-    VM_Address HIGH_SS_START = VM_Address.fromIntZeroExtend(0x92500000);
+    Address HIGH_SS_START = Address.fromIntZeroExtend(0x92500000);
     testTranslation(HIGH_SS_START);
     testTranslation(HIGH_SS_START.add(252));
     testTranslation(HIGH_SS_START.sub(744));
     VM_Interface.sysFail("bye from testTranslation"); 
   }
   
-  public  void testTranslation(VM_Address testAddr) {
+  public  void testTranslation(Address testAddr) {
     // test our translations
     Log.writeln("Test address ", testAddr);
     int testPage = addressToPage(testAddr);
@@ -1018,7 +1017,7 @@ public class ObjectMap
     Log.writeln("  value written ", getBitmapInt(testPage, testSlot, testWord));
     Log.write("  objectmap_ start ", objectMap_);
     Log.writeln(", end ", objectMap_.add(OBJECTMAP_SIZE));
-    VM_Address pmaddr = getPageAddress(testPage);
+    Address pmaddr = getPageAddress(testPage);
     Log.write("  page address ", pmaddr);
     Log.writeln(", end ", pmaddr.add(PAGEMAP_SIZE));
     Log.writeln("  slot address ", getSlotAddress(testPage, testSlot));
@@ -1026,7 +1025,7 @@ public class ObjectMap
     Log.writeln("  searching around test address ", testAddr);
     iterator(testAddr.sub(1024), testAddr.add(1024));
     while (hasNext()) {
-      VM_Address addr = next();
+      Address addr = next();
       Log.writeln("  found object at ", addr);
     }
     VMResource.showAll(); 
@@ -1101,13 +1100,13 @@ public class ObjectMap
 //-#else
   public ObjectMap() {}
   public final void boot() {}
-  public final void release(VM_Address chunkAddr, int bytes) {}
-  public final void release(VM_Address chunkAddr) {}
-  public final void alloc(VM_Address addr) {}
-  public final void dealloc(VM_Address addr) {}
-  public void iterator(VM_Address start, VM_Address end) {}
+  public final void release(Address chunkAddr, int bytes) {}
+  public final void release(Address chunkAddr) {}
+  public final void alloc(Address addr) {}
+  public final void dealloc(Address addr) {}
+  public void iterator(Address start, Address end) {}
   public boolean hasNext() { return false; }
-  public VM_Address next() { return null; }
+  public Address next() { return null; }
   public boolean trapAllocation(boolean trap) { return false; }
 //-#endif
 }

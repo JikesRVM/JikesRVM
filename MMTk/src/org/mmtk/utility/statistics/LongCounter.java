@@ -8,7 +8,8 @@ package org.mmtk.utility.statistics;
 import org.mmtk.utility.Log;
 
 import org.mmtk.vm.VM_Interface;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+
+import org.vmmagic.pragma.*;
 
 /**
  * This abstract class implements a simple counter (counting some
@@ -20,7 +21,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * $Id$
  */
 public abstract class LongCounter extends Counter
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
 
   /****************************************************************************
    *

@@ -6,6 +6,8 @@
 
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  *  <P> This class is the low-level assembler for Intel; it contains
  * functionality for encoding specific instructions into an array of
@@ -266,7 +268,7 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
       }
   }
     
-  private void growMachineCodes(int index, byte data) throws VM_PragmaNoInline {
+  private void growMachineCodes(int index, byte data) throws NoInlinePragma {
       byte [] old = machineCodes;
       machineCodes = new byte [2 * old.length ];
       System.arraycopy(old, 0, machineCodes, 0, old.length);
@@ -310,32 +312,32 @@ public class VM_Assembler implements VM_RegisterConstants, VM_AssemblerConstants
     if (lister != null) lister.noteBytecode(bytecodeNumber, bc);
   }
 
-  final void noteBytecode (int i, String bcode, int x) throws VM_PragmaNoInline {
+  final void noteBytecode (int i, String bcode, int x) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+x);
   }
 
-  final void noteBytecode (int i, String bcode, long x) throws VM_PragmaNoInline {
+  final void noteBytecode (int i, String bcode, long x) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+x);
   }
 
-  final void noteBytecode (int i, String bcode, Object o) throws VM_PragmaNoInline {
+  final void noteBytecode (int i, String bcode, Object o) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+o);
   }
 
-  final void noteBytecode (int i, String bcode, int x, int y) throws VM_PragmaNoInline {
+  final void noteBytecode (int i, String bcode, int x, int y) throws NoInlinePragma {
     noteBytecode(i, bcode+" "+x+" "+y);
   }
 
   final void noteBranchBytecode (int i, String bcode, int off,
-                           int bt) throws VM_PragmaNoInline {
+                           int bt) throws NoInlinePragma {
     noteBytecode(i, bcode +" "+off+" ["+bt+"] ");
   }
 
-  final void noteTableswitchBytecode (int i, int l, int h, int d) throws VM_PragmaNoInline {
+  final void noteTableswitchBytecode (int i, int l, int h, int d) throws NoInlinePragma {
     noteBytecode(i, "tableswitch [" + l + "--" + h + "] " + d);
   }
 
-  final void noteLookupswitchBytecode (int i, int n, int d) throws VM_PragmaNoInline {
+  final void noteLookupswitchBytecode (int i, int n, int d) throws NoInlinePragma {
     noteBytecode(i, "lookupswitch [<" + n + ">]" + d);
   }
   

@@ -8,6 +8,9 @@ package com.ibm.JikesRVM.OSR;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
+
+import org.vmmagic.unboxed.*;
+
 /**
  * OSR_BaselineExecStateExtractor retrieves the JVM scope descriptor
  * from a suspended thread whose top method was compiled by the
@@ -86,9 +89,8 @@ public final class OSR_BaselineExecStateExtractor
     VM_CodeArray instructions = fooCM.getInstructions();
 
     VM.disableGC();
-    VM_Address instr_beg = VM_Magic.objectAsAddress(instructions);
-    VM_Address rowIP     = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add( 
-                       osrFPoff + STACKFRAME_RETURN_ADDRESS_OFFSET)); 
+    Address instr_beg = VM_Magic.objectAsAddress(instructions);
+    Address rowIP     = VM_Magic.objectAsAddress(stack).add(osrFPoff + STACKFRAME_RETURN_ADDRESS_OFFSET).loadAddress(); 
     VM.enableGC();
     int ipIndex   = rowIP.diff(instr_beg).toInt() >> LG_INSTRUCTION_WIDTH;
     
@@ -253,8 +255,8 @@ public final class OSR_BaselineExecStateExtractor
       }
       case AddressTypeCode: {
         VM.disableGC();
-        VM_Address rowIP = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(vOffset));
-        VM_Address instr_beg = VM_Magic.objectAsAddress(instructions);  
+        Address rowIP = VM_Magic.objectAsAddress(stack).add(vOffset).loadAddress();
+        Address instr_beg = VM_Magic.objectAsAddress(instructions);  
         VM.enableGC();
 
         vOffset -= 4;

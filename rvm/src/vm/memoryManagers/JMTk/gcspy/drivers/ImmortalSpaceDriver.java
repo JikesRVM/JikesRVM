@@ -12,8 +12,9 @@ package org.mmtk.utility.gcspy;
 
 import org.mmtk.vm.gcspy.AbstractDriver;
 import org.mmtk.utility.heap.MonotoneVMResource;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 
 //-#if RVM_WITH_GCSPY
 import org.mmtk.plan.Plan;
@@ -29,7 +30,7 @@ import org.mmtk.vm.gcspy.StreamConstants;
 
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Offset;
+
 //-#endif
 
 /**
@@ -40,7 +41,7 @@ import com.ibm.JikesRVM.VM_Offset;
  * @date $Date$
  */
 public class ImmortalSpaceDriver extends AbstractDriver
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
   public final static String Id = "$Id$";
 
 //-#if RVM_WITH_GCSPY
@@ -52,7 +53,7 @@ public class ImmortalSpaceDriver extends AbstractDriver
    * We count the number of objects in each tile and the space they use
    */
   class Tile extends AbstractTile 
-    implements  VM_Uninterruptible {
+    implements  Uninterruptible {
     int usedSpace;
     
     /**
@@ -81,7 +82,7 @@ public class ImmortalSpaceDriver extends AbstractDriver
   // Overall statistics
   private int totalUsedSpace = 0;	// total space used
 
-  private VM_Address maxAddr;		// the largest address seen
+  private Address maxAddr;		// the largest address seen
   private MonotoneVMResource immVM;	// the VM_Resource for the immortal space
 
   
@@ -99,8 +100,8 @@ public class ImmortalSpaceDriver extends AbstractDriver
   public ImmortalSpaceDriver(String name,
                              MonotoneVMResource immVM,
                              int blockSize,
-                             VM_Address start, 
-                             VM_Address end,
+                             Address start, 
+                             Address end,
                              int size,
                              boolean mainSpace) {
     
@@ -166,7 +167,7 @@ public class ImmortalSpaceDriver extends AbstractDriver
    */
   private void setTilenames(int numTiles) {
     int tile = 0;
-    VM_Address start = subspace.getStart();
+    Address start = subspace.getStart();
     int first = subspace.getFirstIndex();
     int bs = subspace.getBlockSize();
 
@@ -209,10 +210,10 @@ public class ImmortalSpaceDriver extends AbstractDriver
    * scalars in the same direction, or by segregating scalars and arrays).
    *
    * @param event the event
-   * @param start the VM_Address of the start of the space
-   * @param end the VM_Address of the end of the space
+   * @param start the Address of the start of the space
+   * @param end the Address of the end of the space
    */
-  public void setRange(int event, VM_Address start, VM_Address end) {
+  public void setRange(int event, Address start, Address end) {
     int index = subspace.getIndex(start);
     int length = end.diff(start).toInt();
 
@@ -267,7 +268,7 @@ public class ImmortalSpaceDriver extends AbstractDriver
     // at this point, we've filled the tiles with data
     // however, we don't know the size of the space
     // Calculate the highest indexed tile used so far, and update the subspace
-    VM_Address start = subspace.getStart();
+    Address start = subspace.getStart();
     int required = countTileNum(start, maxAddr, blockSize);
     int current = subspace.getBlockNum();
     if (required > current || maxAddr != subspace.getEnd()) {
@@ -305,7 +306,7 @@ public class ImmortalSpaceDriver extends AbstractDriver
     space.controlEnd(numTiles, tiles);     
     
     // send the space info
-    VM_Offset size = subspace.getEnd().diff(subspace.getStart());
+    Offset size = subspace.getEnd().diff(subspace.getStart());
     sendSpaceInfoAndEndComm(size);
   }
 
@@ -313,8 +314,8 @@ public class ImmortalSpaceDriver extends AbstractDriver
   public ImmortalSpaceDriver(String name,
 		     MonotoneVMResource immVM,
 		     int blockSize,
-		     VM_Address start, 
-		     VM_Address end,
+		     Address start, 
+		     Address end,
 		     int size,
 		     boolean mainSpace) {}
 //-#endif

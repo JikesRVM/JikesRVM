@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * A list of threads waiting for i/o data to become available.
  *
@@ -22,7 +24,7 @@ package com.ibm.JikesRVM;
  * @date 25 June 1999 
  */
 public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue 
-  implements VM_Uninterruptible, VM_ThreadEventConstants, VM_ThreadIOConstants {
+  implements Uninterruptible, VM_ThreadEventConstants, VM_ThreadIOConstants {
 
   // Note: this class was modified by David Hovemeyer
   // for Extreme Blue 2002 to implement it as a subclass of
@@ -38,7 +40,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * code.
    */
   private static class WaitDataDowncaster extends VM_ThreadEventWaitDataVisitor
-    implements VM_Uninterruptible {
+    implements Uninterruptible {
 
     public VM_ThreadIOWaitData waitData;
 
@@ -295,7 +297,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * Dump text description of what given thread is waiting for.
    * For debugging.
    */
-  void dumpWaitDescription(VM_Thread thread) throws VM_PragmaInterruptible {
+  void dumpWaitDescription(VM_Thread thread) throws InterruptiblePragma {
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadIOWaitData.
     // Because this method may be called by other VM_Processors without
     // locking (and thus execute concurrently with other methods), do NOT
@@ -315,7 +317,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
     VM.sysWrite(')');
   }
 
-  private void appendFds(StringBuffer buffer, int[] fds) throws VM_PragmaInterruptible {
+  private void appendFds(StringBuffer buffer, int[] fds) throws InterruptiblePragma {
     if (fds == null)
       return;
     for (int i = 0; i < fds.length; ++i) {
@@ -333,7 +335,7 @@ public final class VM_ThreadIOQueue extends VM_ThreadEventWaitQueue
    * Get string describing what given thread is waiting for.
    * This method must be interruptible!
    */
-  String getWaitDescription(VM_Thread thread) throws VM_PragmaInterruptible {
+  String getWaitDescription(VM_Thread thread) throws InterruptiblePragma {
     // Safe downcast from VM_ThreadEventWaitData to VM_ThreadIOWaitData.
     WaitDataDowncaster downcaster = new WaitDataDowncaster();
     thread.waitData.accept(downcaster);

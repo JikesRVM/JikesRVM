@@ -5,6 +5,9 @@
 package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * An instance of this class provides iteration across the references 
  * represented by a frame built by the OPT compiler.
@@ -16,11 +19,11 @@ import com.ibm.JikesRVM.*;
  * @author Michael Hind
  */
 public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator 
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
 
   private final static boolean DEBUG = false;
 
-  public VM_OptGCMapIterator(VM_WordArray registerLocations) {
+  public VM_OptGCMapIterator(WordArray registerLocations) {
     super(registerLocations);
   }
 
@@ -54,13 +57,13 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
     if (frameOffset >= 0) {
 
       // get to the nonVol area
-      VM_Address nonVolArea = framePtr.add(frameOffset);
+      Address nonVolArea = framePtr.add(frameOffset);
       
       // update non-volatiles that were saved
       int first = compiledMethod.getFirstNonVolatileGPR();
       if (first >= 0) {
         // move to the beginning of the save area for nonvolatiles
-        VM_Address location = nonVolArea;
+        Address location = nonVolArea;
         for (int i = first; i <= LAST_GCMAP_REG; i++) {
           registerLocations.set(i, location);
           location = location.add(BYTES_IN_ADDRESS);
@@ -70,7 +73,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
       // update volatiles if needed
       if (compiledMethod.isSaveVolatile()) {
         // move to the beginning of the save area for volatiles
-        VM_Address location = nonVolArea.sub(SAVE_VOL_SIZE);
+        Address location = nonVolArea.sub(SAVE_VOL_SIZE);
         
         // Walk the saved volatiles, updating registerLocations array
         for (int i = FIRST_VOLATILE_GPR; i <= LAST_VOLATILE_GPR; i++) {
@@ -94,7 +97,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    *  @param offset  the offset 
    *  @return the resulting stack location
    */
-  VM_Address getStackLocation(VM_Address framePtr, int offset) {
+  Address getStackLocation(Address framePtr, int offset) {
     return framePtr.add(offset);
   }
 
@@ -103,7 +106,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    *  @param the frame pointer
    *  @return the first spill location
    */
-  VM_Address getFirstSpillLoc() {
+  Address getFirstSpillLoc() {
     return framePtr.add(SPILL_DISTANCE_FROM_FP);
   }
 
@@ -114,7 +117,7 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
    *  @return the last spill location, if no spills occur, we return the
    *          first spill location
    */
-  VM_Address getLastSpillLoc() {
+  Address getLastSpillLoc() {
     if (DEBUG) {
       VM.sysWrite("\n unsigendNVOffset: ");
       VM.sysWrite(compiledMethod.getUnsignedNonVolatileOffset());
@@ -142,8 +145,8 @@ public final class VM_OptGCMapIterator extends VM_OptGenericGCMapIterator
     // enough info in the VM_OptCompiledMethod object (the one that is available
     // at GC time) to distinguish the lower part of the spill.
 
-    VM_Address firstSpill = getFirstSpillLoc();
-    VM_Address lastSpill;
+    Address firstSpill = getFirstSpillLoc();
+    Address lastSpill;
     int nonVolOffset = compiledMethod.getUnsignedNonVolatileOffset();
     if (nonVolOffset != 0) {
       if (compiledMethod.isSaveVolatile()) {

@@ -8,6 +8,8 @@ import com.ibm.JikesRVM.*;
 import java.io.DataInputStream;
 import java.io.IOException;
 
+import org.vmmagic.pragma.*;
+
 /**
  * A method of a java class.
  *
@@ -123,28 +125,28 @@ public abstract class VM_Method extends VM_Member {
   /**
    * Is this method a class initializer?
    */
-  public final boolean isClassInitializer() throws VM_PragmaUninterruptible { 
+  public final boolean isClassInitializer() throws UninterruptiblePragma { 
     return getName() == VM_ClassLoader.StandardClassInitializerMethodName;  
   }
 
   /**
    * Is this method an object initializer?
    */
-  public final boolean isObjectInitializer() throws VM_PragmaUninterruptible { 
+  public final boolean isObjectInitializer() throws UninterruptiblePragma { 
     return getName() == VM_ClassLoader.StandardObjectInitializerMethodName; 
   }
 
   /**
    * Is this method a compiler-generated object initializer helper?
    */
-  public final boolean isObjectInitializerHelper() throws VM_PragmaUninterruptible { 
+  public final boolean isObjectInitializerHelper() throws UninterruptiblePragma { 
     return getName() == VM_ClassLoader.StandardObjectInitializerHelperMethodName; 
   }
 
   /**
    * Type of this method's return value.
    */
-  public final VM_TypeReference getReturnType() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference getReturnType() throws UninterruptiblePragma {
     return memRef.asMethodReference().getReturnType();
   }
 
@@ -152,7 +154,7 @@ public abstract class VM_Method extends VM_Member {
    * Type of this method's parameters.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  public final VM_TypeReference[] getParameterTypes() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference[] getParameterTypes() throws UninterruptiblePragma {
     return memRef.asMethodReference().getParameterTypes();
   }
 
@@ -160,7 +162,7 @@ public abstract class VM_Method extends VM_Member {
    * Space required by this method for its parameters, in words.
    * Note: does *not* include implicit "this" parameter, if any.
    */
-  public final int getParameterWords() throws VM_PragmaUninterruptible {
+  public final int getParameterWords() throws UninterruptiblePragma {
     return memRef.asMethodReference().getParameterWords();
   }
 
@@ -183,35 +185,35 @@ public abstract class VM_Method extends VM_Member {
   /**
    * Declared as statically dispatched?
    */
-  public final boolean isStatic() throws VM_PragmaUninterruptible {
+  public final boolean isStatic() throws UninterruptiblePragma {
     return (modifiers & ACC_STATIC) != 0;
   }
 
   /**
    * Declared as non-overridable by subclasses?
    */
-  public final boolean isFinal() throws VM_PragmaUninterruptible {
+  public final boolean isFinal() throws UninterruptiblePragma {
     return (modifiers & ACC_FINAL) != 0;
   }
 
   /**
    * Guarded by monitorenter/monitorexit?
    */
-  public final boolean isSynchronized() throws VM_PragmaUninterruptible {
+  public final boolean isSynchronized() throws UninterruptiblePragma {
     return (modifiers & ACC_SYNCHRONIZED) != 0;
   }
 
   /**
    * Not implemented in java?
    */
-  public final boolean isNative() throws VM_PragmaUninterruptible {
+  public final boolean isNative() throws UninterruptiblePragma {
     return (modifiers & ACC_NATIVE) != 0;
   }
 
   /**
    * Implemented in subclass?
    */
-  public final boolean isAbstract() throws VM_PragmaUninterruptible {
+  public final boolean isAbstract() throws UninterruptiblePragma {
     return (modifiers & ACC_ABSTRACT) != 0;
   }
 
@@ -220,7 +222,7 @@ public abstract class VM_Method extends VM_Member {
    * something like { "java/lang/IOException", "java/lang/EOFException" }
    * @return info (null --> method doesn't throw any exceptions)
    */
-  public final VM_TypeReference[] getExceptionTypes() throws VM_PragmaUninterruptible {
+  public final VM_TypeReference[] getExceptionTypes() throws UninterruptiblePragma {
     return exceptionTypes;
   }
 
@@ -236,20 +238,18 @@ public abstract class VM_Method extends VM_Member {
    * <li> It is not a <clinit> or <init> method.
    * <li> It is not the synthetic 'this' method used by jikes to
    *      factor out default initializers for <init> methods.
-   * <li> it throws the <CODE>VM_PragmaUninterruptible</CODE> exception.
-   * <li> its declaring class directly implements the <CODE>VM_Uninterruptible</CODE>
-   *      interface and the method does not throw the <CODE>VM_PragmaInterruptible</CODE>
+   * <li> it throws the <CODE>UninterruptiblePragma</CODE> exception.
+   * <li> its declaring class directly implements the <CODE>Uninterruptible</CODE>
+   *      interface and the method does not throw the <CODE>InterruptiblePragma</CODE>
    *      exception.
    * </ul>
    */
   public final boolean isInterruptible() {
     if (isClassInitializer() || isObjectInitializer()) return true;
     if (isObjectInitializerHelper()) return true;
-    if (VM_PragmaInterruptible.declaredBy(this)) return true;
-    if (VM_PragmaInterruptibleNoWarn.declaredBy(this)) return true;
-    if (VM_PragmaUninterruptible.declaredBy(this)) return false;
-    if (VM_PragmaUninterruptibleNoWarn.declaredBy(this)) return false;
-    if (VM_PragmaNoYieldpoints.declaredBy(this)) return false;
+    if (InterruptiblePragma.declaredBy(this)) return true;
+    if (UninterruptibleNoWarnPragma.declaredBy(this)) return false;
+    if (UninterruptiblePragma.declaredBy(this)) return false;
     VM_Class[] interfaces = getDeclaringClass().getDeclaredInterfaces();
     for (int i = 0, n = interfaces.length; i < n; ++i) {
       if (interfaces[i].isUninterruptibleType()) return false;
@@ -259,27 +259,27 @@ public abstract class VM_Method extends VM_Member {
 
   /**
    * Has this method been marked as mandatory to inline?
-   * ie., it throws the <CODE>VM_PragmaInline</CODE> exception?
+   * ie., it throws the <CODE>InlinePragma</CODE> exception?
    */
   public final boolean hasInlinePragma() {
-    return VM_PragmaInline.declaredBy(this);
+    return InlinePragma.declaredBy(this);
   }
     
   /**
    * Has this method been marked as forbidden to inline?
-   * ie., it throws the <CODE>VM_PragmaNoInline</CODE> or
-   * the <CODE>VM_PragmaNoOptCompile</CODE> exception?
+   * ie., it throws the <CODE>NoInlinePragma</CODE> or
+   * the <CODE>NoOptCompilePragma</CODE> exception?
    */
   public final boolean hasNoInlinePragma() {
-    return VM_PragmaNoInline.declaredBy(this) || VM_PragmaNoOptCompile.declaredBy(this);
+    return NoInlinePragma.declaredBy(this) || NoOptCompilePragma.declaredBy(this);
   }
     
   /**
    * Has this method been marked as no opt compile?
-   * ie., it throws the <CODE>VM_PragmaNoOptCompile</CODE> exception?
+   * ie., it throws the <CODE>NoOptCompilePragma</CODE> exception?
    */
   public final boolean hasNoOptCompilePragma() {
-    return VM_PragmaNoOptCompile.declaredBy(this);
+    return NoOptCompilePragma.declaredBy(this);
   }
     
   /**

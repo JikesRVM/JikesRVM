@@ -4,12 +4,14 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Abstraction for a statistic.
  *
  * @author Perry Cheng
  */
-public class VM_Statistic implements VM_Uninterruptible {
+public class VM_Statistic implements Uninterruptible {
 
   protected int    count;
   protected double last;

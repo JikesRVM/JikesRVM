@@ -5,9 +5,8 @@
 //$Id$
 package org.mmtk.utility.scan;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * Callbacks from ScanObject to Plan.enumeratePointerLocation are
@@ -19,6 +18,6 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date    $Date$
  */
 
-abstract public class Enumerate implements VM_Uninterruptible {
-  abstract public void enumeratePointerLocation(VM_Address location);
+abstract public class Enumerate implements Uninterruptible {
+  abstract public void enumeratePointerLocation(Address location);
 }

@@ -12,9 +12,7 @@ package org.mmtk.vm.gcspy;
 import org.mmtk.plan.Plan;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.Options;
-
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import org.vmmagic.pragma.*;
 
 /** 
  * This class implements collector-independent GCSpy functionality to start
@@ -25,7 +23,7 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  * @date $Date$
  */
 public class GCSpy
-  implements VM_Uninterruptible {
+  implements Uninterruptible {
   public final static String Id = "$Id$";
 
 //-#if RVM_WITH_GCSPY  
@@ -73,7 +71,7 @@ public class GCSpy
    * Start the GCSpy server
    * WARNING: allocates memory indirectly
    */
-  public static void startGCSpyServer() throws VM_PragmaInterruptible {
+  public static void startGCSpyServer() throws InterruptiblePragma {
     int port = getGCSpyPort();
     Log.write("GCSpy.startGCSpyServer, port=", port);
     Log.write(", wait=");

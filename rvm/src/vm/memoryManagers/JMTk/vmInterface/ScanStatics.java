@@ -6,16 +6,15 @@
 package org.mmtk.vm;
 
 import org.mmtk.utility.deque.AddressDeque;
-
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
-import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Statics;
-import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM;
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Thread;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
 
 /**
  * Class that determines all JTOC slots (statics) that hold references
@@ -29,10 +28,10 @@ public class ScanStatics
    * Scan static variables (JTOC) for object references.
    * Executed by all GC threads in parallel, with each doing a portion of the JTOC.
    */
-  public static void scanStatics (AddressDeque rootLocations) throws VM_PragmaUninterruptible {
+  public static void scanStatics (AddressDeque rootLocations) throws UninterruptiblePragma {
 
     int numSlots = VM_Statics.getNumberOfSlots();
-    VM_Address slots = VM_Statics.getSlots();
+    Address slots = VM_Statics.getSlots();
     int chunkSize = 512;
     int slot, start, end, stride, slotAddress;
     VM_CollectorThread ct;
@@ -64,13 +63,13 @@ public class ScanStatics
   }  // scanStatics
 
   /*
-  static boolean validateRefs () throws VM_PragmaUninterruptible {
+  static boolean validateRefs () throws UninterruptiblePragma {
     int numSlots = VM_Statics.getNumberOfSlots();
-    VM_Address slots = VM_Statics.getSlots();
+    Address slots = VM_Statics.getSlots();
     boolean result = true;
     for ( int slot=0; slot<numSlots; slot++ ) {
       if ( ! VM_Statics.isReference(slot) ) continue;
-      VM_Address ref = VM_Magic.getMemoryAddress(slots.add(slot << LOG_BYTES_IN_ADDRESS));
+      Address ref = slots.add(slot << LOG_BYTES_IN_ADDRESS).loadAddress();
       if ( (!ref.isZero()) && !VM_GCUtil.validRef(ref) ) {
         VM.sysWrite("\nScanStatics.validateRefs:bad ref in slot "); VM.sysWrite(slot,false); VM.sysWrite("\n");
         VM.sysWriteHex(slot); VM.sysWrite(" ");
@@ -82,13 +81,13 @@ public class ScanStatics
   }  // validateRefs
 
 
-  static boolean validateRefs ( int depth ) throws VM_PragmaUninterruptible {
+  static boolean validateRefs ( int depth ) throws UninterruptiblePragma {
     int numSlots = VM_Statics.getNumberOfSlots();
-    VM_Address slots = VM_Statics.getSlots();
+    Address slots = VM_Statics.getSlots();
     boolean result = true;
     for ( int slot=0; slot<numSlots; slot++ ) {
       if ( ! VM_Statics.isReference(slot) ) continue;
-      VM_Address ref = VM_Magic.getMemoryAddress(slots.add(slot << LOG_BYTES_IN_ADDRESS));
+      Address ref = slots.loadAddress(slot << LOG_BYTES_IN_ADDRESS);
       if ( ! VM_ScanObject.validateRefs( ref, depth ) ) {
         VM.sysWrite("ScanStatics.validateRefs: Bad Ref reached from JTOC slot ");
         VM.sysWrite(slot,false);
@@ -99,15 +98,15 @@ public class ScanStatics
     return result;
   }
 
-  static void dumpRefs ( int start, int count ) throws VM_PragmaUninterruptible {
+  static void dumpRefs ( int start, int count ) throws UninterruptiblePragma {
     int numSlots = VM_Statics.getNumberOfSlots();
-    VM_Address slots = VM_Statics.getSlots();
+    Address slots = VM_Statics.getSlots();
     int last     = start + count;
     if (last > numSlots) last = numSlots;
     VM.sysWrite("Dumping Static References...\n");
       for ( int slot=start; slot<last; slot++ ) {
         if ( ! VM_Statics.isReference(slot) ) continue;
-        VM_Address ref = VM_Magic.getMemoryAddress(slots.add(slot << LOG_BYTES_IN_ADDRESS));
+        Address ref = slots.loadAddress(slot << LOG_BYTES_IN_ADDRESS);
         if (!ref.isZero()) {
           VM.sysWrite(slot,false); VM.sysWrite(" "); VM_GCUtil.dumpRef(ref);
         }

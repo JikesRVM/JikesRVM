@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * Memory image of virtual machine that will be written to disk file and later
  * "booted".
@@ -210,7 +212,7 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    * @param value value to write
    */
-  public void setAddressWord(int offset, VM_Word value) {
+  public void setAddressWord(int offset, Word value) {
 //-#if RVM_FOR_32_ADDR
     setFullWord(offset, value.toInt());
     numAddresses++;
@@ -227,7 +229,7 @@ public class BootImage extends BootImageWriterMessages
    * @param offset offset of target from start of image, in bytes
    */
   public void setNullAddressWord(int offset) {
-    setAddressWord(offset, VM_Word.zero());
+    setAddressWord(offset, Word.zero());
     numNulledReferences += 1;
   }
 

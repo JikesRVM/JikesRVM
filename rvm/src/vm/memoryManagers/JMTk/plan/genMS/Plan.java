@@ -12,15 +12,8 @@ import org.mmtk.utility.heap.FreeListVMResource;
 import org.mmtk.utility.heap.VMResource;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements the functionality of a two-generation copying
@@ -57,7 +50,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @version $Revision$
  * @date $Date$
  */
-public class Plan extends Generational implements VM_Uninterruptible {
+public class Plan extends Generational implements Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -117,20 +110,19 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureAlloc(int bytes, int align, int offset) 
-    throws VM_PragmaInline {
+  protected final Address matureAlloc(int bytes, int align, int offset) 
+    throws InlinePragma {
     return mature.alloc(bytes, align, offset, false);
   }
 
   /**
    * Perform post-allocation initialization of an object
    *
-   * @param ref The newly allocated object
-   * @param tib The TIB of the newly allocated object
+   * @param object The newly allocated object
    */
-  protected final void maturePostAlloc(VM_Address ref, Object[] tib) 
-    throws VM_PragmaInline {
-    matureSpace.initializeHeader(ref, tib);
+  protected final void maturePostAlloc(Address object) 
+    throws InlinePragma {
+    matureSpace.initializeHeader(object);
   }
 
   /**
@@ -142,8 +134,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  protected final VM_Address matureCopy(int bytes, int align, int offset) 
-    throws VM_PragmaInline {
+  protected final Address matureCopy(int bytes, int align, int offset) 
+    throws InlinePragma {
     return mature.alloc(bytes, align, offset, matureSpace.inMSCollection());
   }
 
@@ -216,9 +208,9 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  protected static final VM_Address traceMatureObject(byte space,
-                                                      VM_Address obj,
-                                                      VM_Address addr) {
+  protected static final Address traceMatureObject(byte space,
+                                                   Address obj,
+                                                   Address addr) {
     if (VM_Interface.VerifyAssertions && space != MATURE_SPACE)
       spaceFailure(obj, space, "Plan.traceMatureObject()");
     return matureSpace.traceObject(obj);
@@ -228,14 +220,14 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * Perform any post-copy actions.  In this case set the mature space
    * mark bit.
    *
-   * @param ref The newly allocated object
-   * @param tib The TIB of the newly allocated object
+   * @param object The newly allocated object
+   * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(VM_Address ref, Object[] tib, int size)
-    throws VM_PragmaInline {
-    matureSpace.writeMarkBit(ref);
-    MarkSweepLocal.liveObject(ref);
+  public final void postCopy(Address object, Address typeRef, int bytes)
+    throws InlinePragma {
+    matureSpace.writeMarkBit(object);
+    MarkSweepLocal.liveObject(object);
   }
 
   /**
@@ -252,8 +244,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param object The referent object.
    * @param space The space in which the referent object resides.
    */
-  protected static void forwardMatureObjectLocation(VM_Address location,
-                                                    VM_Address object,
+  protected static void forwardMatureObjectLocation(Address location,
+                                                    Address object,
                                                     byte space) {}
 
   /**
@@ -265,7 +257,7 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param space The space in which the object resides.
    * @return The forwarded value for <code>object</code>.
    */
-  static final VM_Address getForwardedMatureReference(VM_Address object,
+  static final Address getForwardedMatureReference(Address object,
                                                       byte space) {
     return object;
   }
@@ -277,8 +269,8 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param obj The object in question
    * @return True if the object resides in a copying space.
    */
-  public final static boolean isCopyObject(VM_Address obj) {
-    VM_Address addr = VM_Interface.refToAddress(obj);
+  public final static boolean isCopyObject(Address obj) {
+    Address addr = VM_Interface.refToAddress(obj);
     return (addr.GE(NURSERY_START) && addr.LE(HEAP_END));
   }
 
@@ -288,9 +280,9 @@ public class Plan extends Generational implements VM_Uninterruptible {
    * @param obj The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public final static boolean isLive(VM_Address obj) {
+  public final static boolean isLive(Address obj) {
     if (obj.isZero()) return false;
-    VM_Address addr = VM_Interface.refToAddress(obj);
+    Address addr = VM_Interface.refToAddress(obj);
     byte space = VMResource.getSpace(addr);
     switch (space) {
     case NURSERY_SPACE:   return CopySpace.isLive(obj);

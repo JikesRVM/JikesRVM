@@ -9,13 +9,8 @@ import org.mmtk.utility.heap.*;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-
-
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_Magic;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements tracing for a simple immortal collection
@@ -30,7 +25,7 @@ import com.ibm.JikesRVM.VM_Magic;
  * @date $Date$
  */
 public final class ImmortalSpace extends BasePolicy 
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
 
@@ -42,26 +37,26 @@ public final class ImmortalSpace extends BasePolicy
   /**
    * test to see if the mark bit has the given value
    */
-  private static boolean testMarkBit(VM_Address ref, VM_Word value) {
+  private static boolean testMarkBit(Address ref, Word value) {
     return !(VM_Interface.readAvailableBitsWord(ref).and(value).isZero());
   }
 
   /**
    * write the given value in the mark bit.
    */
-  private static void writeMarkBit(VM_Address ref, VM_Word value) {
-    VM_Word oldValue = VM_Interface.readAvailableBitsWord(ref);
-    VM_Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
+  private static void writeMarkBit(Address ref, Word value) {
+    Word oldValue = VM_Interface.readAvailableBitsWord(ref);
+    Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
     VM_Interface.writeAvailableBitsWord(ref,newValue);
   }
 
   /**
    * atomically write the given value in the mark bit.
    */
-  private static void atomicWriteMarkBit(VM_Address ref, VM_Word value) {
+  private static void atomicWriteMarkBit(Address ref, Word value) {
     while (true) {
-      VM_Word oldValue = VM_Interface.prepareAvailableBits(ref);
-      VM_Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
+      Word oldValue = VM_Interface.prepareAvailableBits(ref);
+      Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
       if (VM_Interface.attemptAvailableBits(ref,oldValue,newValue)) break;
     }
   }
@@ -70,19 +65,19 @@ public final class ImmortalSpace extends BasePolicy
    * Used to mark boot image objects during a parallel scan of objects during GC
    * Returns true if marking was done.
    */
-  private static boolean testAndMark(VM_Address ref, VM_Word value) 
-    throws VM_PragmaInline {
-    VM_Word oldValue;
+  private static boolean testAndMark(Address ref, Word value) 
+    throws InlinePragma {
+    Word oldValue;
     do {
       oldValue = VM_Interface.prepareAvailableBits(ref);
-      VM_Word markBit = oldValue.and(GC_MARK_BIT_MASK);
+      Word markBit = oldValue.and(GC_MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
     } while (!VM_Interface.attemptAvailableBits(ref,oldValue,oldValue.xor(GC_MARK_BIT_MASK)));
     return true;
   }
 
-  static final VM_Word GC_MARK_BIT_MASK    = VM_Word.one();
-  public static VM_Word immortalMarkState = VM_Word.zero(); // when GC off, the initialization value
+  static final Word GC_MARK_BIT_MASK    = Word.one();
+  public static Word immortalMarkState = Word.zero(); // when GC off, the initialization value
 
 
   /**
@@ -94,13 +89,13 @@ public final class ImmortalSpace extends BasePolicy
    * @param object The object to be traced.
    */
 
-  public static VM_Address traceObject(VM_Address object) {
+  public static Address traceObject(Address object) {
     if (testAndMark(object, immortalMarkState)) 
       VM_Interface.getPlan().enqueue(object);
     return object;
   }
 
-  public static void postAlloc (VM_Address object) throws VM_PragmaInline {
+  public static void postAlloc (Address object) throws InlinePragma {
     writeMarkBit (object, immortalMarkState);
   }
 
@@ -116,7 +111,7 @@ public final class ImmortalSpace extends BasePolicy
   public static void release(VMResource vm, MemoryResource mr) { 
   }
 
-  public static boolean isLive(VM_Address obj) {
+  public static boolean isLive(Address obj) {
     return true;
   }
 
@@ -131,7 +126,7 @@ public final class ImmortalSpace extends BasePolicy
    *         the current mark state).  While all immortal objects are live,
    *         some may be unreachable.
    */
-  public static boolean isReachable(VM_Address ref) {
+  public static boolean isReachable(Address ref) {
     return (VM_Interface.readAvailableBitsWord(ref).and(GC_MARK_BIT_MASK).EQ(immortalMarkState));
   }
 }

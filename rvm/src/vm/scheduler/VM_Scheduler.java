@@ -7,6 +7,10 @@ package com.ibm.JikesRVM;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_CollectorThread;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.classloader.*;
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.*;
 //-#endif
@@ -26,7 +30,7 @@ import com.ibm.JikesRVM.OSR.OSR_ObjectHolder;
  * @author Derek Lieber
  * PFS added calls to set HPM settings and start counting.
  */
-public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
+public class VM_Scheduler implements VM_Constants, Uninterruptible {
 
   /** Index of initial processor in which "VM.boot()" runs. */
   public static final int PRIMORDIAL_PROCESSOR_ID = 1;
@@ -155,7 +159,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   /**
    * Initialize boot image.
    */
-  static void init() throws VM_PragmaInterruptible {
+  static void init() throws InterruptiblePragma {
     threadCreationMutex     = new VM_ProcessorLock();
     outputMutex             = new VM_ProcessorLock();
     threads                 = new VM_Thread[MAX_THREADS];
@@ -183,7 +187,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
   /**
    * Begin multi-threaded vm operation.
    */
-  static void boot () throws VM_PragmaInterruptible {
+  static void boot () throws InterruptiblePragma {
     if (VM.VerifyAssertions) VM._assert(1 <= numProcessors && numProcessors <= MAX_PROCESSORS);
 
     if (VM.TraceThreads)
@@ -291,7 +295,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
         //       before we start the SysCall sequence. This prevents 
         //       the opt compiler from generating code that passes the AIX 
         //       sys toc instead of the RVM jtoc. --dave
-        VM_Address toc = VM_Magic.getTocPointer();
+        Address toc = VM_Magic.getTocPointer();
         VM_SysCall.sysVirtualProcessorCreate(toc,
                                              VM_Magic.objectAsAddress(processors[i]),
                                              target.contextRegisters.ip, 
@@ -484,7 +488,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
     _trace( who, what, howmany, true );
   }
 
-  public static void trace(String who, String what, VM_Address addr) {
+  public static void trace(String who, String what, Address addr) {
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
     lockOutput();
     VM.sysWriteInt(VM_Processor.getCurrentProcessorId());
@@ -582,11 +586,11 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * @param fp address of starting frame. first frame output
    *           is the calling frame of passed frame
    */
-  static void dumpStack (VM_Address fp) {
+  static void dumpStack (Address fp) {
     if (VM.VerifyAssertions)
       VM._assert(VM.runningVM);
 
-    VM_Address ip = VM_Magic.getReturnAddress(fp);
+    Address ip = VM_Magic.getReturnAddress(fp);
     fp = VM_Magic.getCallerFramePointer(fp);
     dumpStack( ip, fp );
       
@@ -598,7 +602,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * @param ip instruction pointer for first frame to dump
    * @param fp frame pointer for first frame to dump
    */
-  public static void dumpStack (VM_Address ip, VM_Address fp) {
+  public static void dumpStack (Address ip, Address fp) {
     ++inDumpStack;
     if (inDumpStack > 1 && inDumpStack <= VM.maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite ) {
       VM.sysWrite("VM_Scheduler.dumpStack(): in a recursive call, ");
@@ -697,7 +701,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * This method is called from RunBootImage.C when something goes horrifically
    * wrong with exception handling and we want to die with useful diagnostics.
    */
-  public static void dumpStackAndDie(VM_Address fp) {
+  public static void dumpStackAndDie(Address fp) {
     if (!exitInProgress) {
       // This is the first time I've been called, attempt to exit "cleanly"
       exitInProgress = true;
@@ -714,7 +718,7 @@ public class VM_Scheduler implements VM_Constants, VM_Uninterruptible {
    * Dump state of virtual machine.
    */ 
   public static void dumpVirtualMachine() 
-    throws VM_PragmaInterruptible
+    throws InterruptiblePragma
   {
     VM_Processor processor;
     VM.sysWrite("\n-- Processors --\n");

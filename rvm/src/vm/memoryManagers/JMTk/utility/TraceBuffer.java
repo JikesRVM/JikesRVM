@@ -9,13 +9,9 @@ import org.mmtk.utility.TracingConstants;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of tracing data
  * and bulk processing of the buffer.
@@ -25,26 +21,26 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @date $Date$
  */ 
 public class TraceBuffer extends LocalQueue 
-  implements Constants, TracingConstants, VM_Uninterruptible {
+  implements Constants, TracingConstants, Uninterruptible {
   public final static String Id = "$Id$"; 
  
   /***********************************************************************
    *
    * Class based constants
    */
-  private static final VM_Word TRACE_NEW_RECORD = VM_Word.fromInt(3);
-  private static final VM_Word TRACE_ALLOC_SIZE = VM_Word.fromInt(5);
-  private static final VM_Word TRACE_ALLOC_NAME = VM_Word.fromInt(6);
-  private static final VM_Word TRACE_ALLOC_FP = VM_Word.fromInt(7);
-  private static final VM_Word TRACE_ALLOC_THREAD = VM_Word.fromInt(9);
-  private static final VM_Word TRACE_TIB_VALUE = VM_Word.fromInt(10);
-  private static final VM_Word TRACE_DEATH_TIME = VM_Word.fromInt(11);
-  private static final VM_Word TRACE_FIELD_TARGET = VM_Word.fromInt(12);
-  private static final VM_Word TRACE_ARRAY_TARGET = VM_Word.fromInt(13);
-  private static final VM_Word TRACE_FIELD_SLOT = VM_Word.fromInt(14);
-  private static final VM_Word TRACE_ARRAY_ELEMENT = VM_Word.fromInt(15);
-  private static final VM_Word TRACE_STATIC_TARGET = VM_Word.fromInt(17);
-  private static final VM_Word TRACE_BOOT_ALLOC_SIZE = VM_Word.fromInt(18);
+  private static final Word TRACE_NEW_RECORD = Word.fromInt(3);
+  private static final Word TRACE_ALLOC_SIZE = Word.fromInt(5);
+  private static final Word TRACE_ALLOC_NAME = Word.fromInt(6);
+  private static final Word TRACE_ALLOC_FP = Word.fromInt(7);
+  private static final Word TRACE_ALLOC_THREAD = Word.fromInt(9);
+  private static final Word TRACE_TIB_VALUE = Word.fromInt(10);
+  private static final Word TRACE_DEATH_TIME = Word.fromInt(11);
+  private static final Word TRACE_FIELD_TARGET = Word.fromInt(12);
+  private static final Word TRACE_ARRAY_TARGET = Word.fromInt(13);
+  private static final Word TRACE_FIELD_SLOT = Word.fromInt(14);
+  private static final Word TRACE_ARRAY_ELEMENT = Word.fromInt(15);
+  private static final Word TRACE_STATIC_TARGET = Word.fromInt(17);
+  private static final Word TRACE_BOOT_ALLOC_SIZE = Word.fromInt(18);
 
   /***********************************************************************
    *
@@ -73,7 +69,7 @@ public class TraceBuffer extends LocalQueue
    *
    * @param i The data to be pushed onto the tracing queue
    */
-  public final void push(VM_Word i) throws VM_PragmaInline {
+  public final void push(Word i) throws InlinePragma {
     checkTailInsert(1);
     uncheckedTailInsert(i.toAddress());
   }
@@ -82,7 +78,7 @@ public class TraceBuffer extends LocalQueue
    * Process the data in the tracing buffer, output information as needed.
    */
   public final void process() {
-    VM_Word traceState = TRACE_NEW_RECORD;
+    Word traceState = TRACE_NEW_RECORD;
     int entriesNotFlushed = 0;
     /* First we must flush any remaining data */
     Log.writeln();
@@ -93,7 +89,7 @@ public class TraceBuffer extends LocalQueue
 	 buffer and not by dequeue-ing each entry. */
       while (!bufferOffset(head).isZero()) {
 	head = head.sub(BYTES_IN_ADDRESS);
-	VM_Word val = VM_Magic.getMemoryWord(head);
+	Word val = head.loadWord();
 	if (traceState.EQ(TRACE_NEW_RECORD)) {
 	  if (val.EQ(TRACE_GCSTART)) {
 	    Log.write('G');

@@ -12,15 +12,8 @@ import org.mmtk.utility.Memory;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Offset;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * Each instance of this class corresponds to one mark-sweep *space*.
@@ -35,7 +28,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @version $Revision$
  * @date $Date$
  */
-public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
+public final class MarkSweepSpace implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -45,13 +38,13 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
   public static final int LOCAL_GC_BITS_REQUIRED = 1;
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   public static final int GC_HEADER_BYTES_REQUIRED = 0;
-  public static final VM_Word MARK_BIT_MASK = VM_Word.one();  // ...01
+  public static final Word MARK_BIT_MASK = Word.one();  // ...01
 
   /****************************************************************************
    *
    * Instance variables
    */
-  private VM_Word markState;
+  private Word markState;
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   public boolean inMSCollection = false;
@@ -115,7 +108,7 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * @return True if this mark-sweep space is currently being collected.
    */
   public boolean inMSCollection() 
-    throws VM_PragmaInline {
+    throws InlinePragma {
     return inMSCollection;
   }
 
@@ -137,8 +130,8 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
-  public final VM_Address traceObject(VM_Address object)
-    throws VM_PragmaInline {
+  public final Address traceObject(Address object)
+    throws InlinePragma {
     if (testAndMark(object, markState)) {
       if (Plan.GATHER_MARK_CONS_STATS)
 	Plan.mark.inc(VM_Interface.getSizeWhenCopied(object));
@@ -153,8 +146,8 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * @param obj The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
-  public boolean isLive(VM_Address obj)
-    throws VM_PragmaInline {
+  public boolean isLive(Address obj)
+    throws InlinePragma {
     return testMarkBit(obj, markState);
   }
 
@@ -167,12 +160,11 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * Perform any required initialization of the GC portion of the header.
    * 
    * @param object the object ref to the storage to be initialized
-   * @param tib the TIB of the instance being created
    */
-  public final void initializeHeader(VM_Address object, Object[] tib) 
-    throws VM_PragmaInline {
-    VM_Word oldValue = VM_Interface.readAvailableBitsWord(object);
-    VM_Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
+  public final void initializeHeader(Address object) 
+    throws InlinePragma {
+    Word oldValue = VM_Interface.readAvailableBitsWord(object);
+    Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
     VM_Interface.writeAvailableBitsWord(object, newValue);
   }
 
@@ -183,9 +175,9 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
    */
-  private static boolean testAndMark(VM_Address object, VM_Word value)
-    throws VM_PragmaInline {
-    VM_Word oldValue, markBit;
+  private static boolean testAndMark(Address object, Word value)
+    throws InlinePragma {
+    Word oldValue, markBit;
     do {
       oldValue = VM_Interface.prepareAvailableBits(object);
       markBit = oldValue.and(MARK_BIT_MASK);
@@ -202,8 +194,8 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
    */
-  private static boolean testMarkBit(VM_Address object, VM_Word value)
-    throws VM_PragmaInline {
+  private static boolean testMarkBit(Address object, Word value)
+    throws InlinePragma {
     return VM_Interface.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
   }
 
@@ -212,9 +204,9 @@ public final class MarkSweepSpace implements Constants, VM_Uninterruptible {
    *
    * @param object The object whose mark bit is to be written
    */
-  public void writeMarkBit(VM_Address object) throws VM_PragmaInline {
-    VM_Word oldValue = VM_Interface.readAvailableBitsWord(object);
-    VM_Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
+  public void writeMarkBit(Address object) throws InlinePragma {
+    Word oldValue = VM_Interface.readAvailableBitsWord(object);
+    Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
     VM_Interface.writeAvailableBitsWord(object, newValue);
   }
 

@@ -7,7 +7,8 @@ package java.lang;
 import java.security.ProtectionDomain;
 
 import com.ibm.JikesRVM.classloader.VM_Type;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+
+import org.vmmagic.pragma.*;
 
 /**
  * Library support interface of Jikes RVM
@@ -28,15 +29,15 @@ public class JikesRVMSupport {
     c.pd = pd;
   }
 
-  public static char[] getBackingCharArray(String str) throws VM_PragmaUninterruptible {
+  public static char[] getBackingCharArray(String str) throws UninterruptiblePragma {
     return str.value;
   }
 
-  public static int getStringLength(String str) throws VM_PragmaUninterruptible {
+  public static int getStringLength(String str) throws UninterruptiblePragma {
     return str.count;
   }
 
-  public static int getStringOffset(String str) throws VM_PragmaUninterruptible {
+  public static int getStringOffset(String str) throws UninterruptiblePragma {
     return str.offset;
   }
 }

@@ -8,14 +8,10 @@ import org.mmtk.vm.Constants;
 import org.mmtk.vm.Lock;
 import org.mmtk.utility.gcspy.TreadmillDriver;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
+import com.ibm.JikesRVM.VM_Magic;
 
 /**
  * Each instance of this class is a doubly-linked list, in which
@@ -32,7 +28,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 final class DoublyLinkedList
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /****************************************************************************
@@ -44,7 +40,7 @@ final class DoublyLinkedList
    *
    * Instance variables
    */
-  private       VM_Address head;
+  private       Address head;
   private final Lock lock;
   private final Object owner;
   private final int granularity;  // Each node on the treadmill is guaranteed to be a multiple of this.
@@ -59,101 +55,101 @@ final class DoublyLinkedList
    */
   DoublyLinkedList (int granularity_, boolean shared, Object owner_) {
     owner = owner_;
-    head = VM_Address.zero();   
+    head = Address.zero();   
     lock = shared ? new Lock("DoublyLinkedList") : null;
     granularity = granularity_;
 
     // ensure that granularity is big enough for midPayloadToNode to work
-    VM_Word tmp = VM_Word.fromIntZeroExtend(granularity);
+    Word tmp = Word.fromIntZeroExtend(granularity);
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(tmp.and(nodeMask).EQ(tmp));
   }
 
   // Offsets are relative to the node (not the payload)
   //
-  private static int PREV_OFFSET = 0 * BYTES_IN_ADDRESS;
-  private static int NEXT_OFFSET = 1 * BYTES_IN_ADDRESS;
-  private static int LIST_OFFSET = 2 * BYTES_IN_ADDRESS;
-  private static int HEADER_SIZE = 3 * BYTES_IN_ADDRESS;
+  private static final Offset PREV_OFFSET = Offset.fromInt(0 * BYTES_IN_ADDRESS);
+  private static Offset NEXT_OFFSET = Offset.fromInt(1 * BYTES_IN_ADDRESS);
+  private static Offset LIST_OFFSET = Offset.fromInt(2 * BYTES_IN_ADDRESS);
+  private static Offset HEADER_SIZE = Offset.fromInt(3 * BYTES_IN_ADDRESS);
 
-  private static final VM_Word nodeMask;
+  private static final Word nodeMask;
   static {
     int mask = 1;
-    while (mask < HEADER_SIZE+MAX_BYTES_PADDING) mask <<= 1;
-    nodeMask = VM_Word.fromIntZeroExtend(mask-1).not();
+    while (mask < HEADER_SIZE.toInt()+MAX_BYTES_PADDING) mask <<= 1;
+    nodeMask = Word.fromIntZeroExtend(mask-1).not();
   }
 
   public final Object getOwner() {
     return owner;
   }
 
-  static public final Object getOwner (VM_Address node) {
-    return VM_Magic.addressAsObject(VM_Magic.getMemoryAddress(node.add(LIST_OFFSET)));
+  static public final Object getOwner(Address node) {
+    return VM_Magic.addressAsObject(node.loadAddress(LIST_OFFSET));
   }
 
-  static public final int headerSize() throws VM_PragmaInline {
-    return HEADER_SIZE;
+  static public final int headerSize() throws InlinePragma {
+    return HEADER_SIZE.toInt();
   }
 
-  public final boolean isNode (VM_Address node) {
+  public final boolean isNode (Address node) {
     if (BITS_IN_ADDRESS == 64)
       return (node.toLong() / granularity * granularity) == node.toLong();
     else
       return (node.toInt() / granularity * granularity) == node.toInt();
   }
 
-  static public final VM_Address nodeToPayload(VM_Address node) throws VM_PragmaInline {
+  static public final Address nodeToPayload(Address node) throws InlinePragma {
     return node.add(HEADER_SIZE);
   }
 
-  static public final VM_Address payloadToNode(VM_Address payload) throws VM_PragmaInline {
+  static public final Address payloadToNode(Address payload) throws InlinePragma {
     return payload.sub(HEADER_SIZE);
   }
 
-  static public final VM_Address midPayloadToNode(VM_Address payload) throws VM_PragmaInline {
+  static public final Address midPayloadToNode(Address payload) throws InlinePragma {
     // This method words as long as you are less than MAX_BYTES_PADDING into the payload.
     return payload.toWord().and(nodeMask).toAddress();
   }
 
-  public final void add (VM_Address node) throws VM_PragmaInline {
+  public final void add (Address node) throws InlinePragma {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(isNode(node));
     if (lock != null) lock.acquire();
-    VM_Magic.setMemoryAddress(node.add(PREV_OFFSET), VM_Address.zero());
-    VM_Magic.setMemoryAddress(node.add(NEXT_OFFSET), head);
-    VM_Magic.setMemoryAddress(node.add(LIST_OFFSET), VM_Magic.objectAsAddress(owner));
+    node.store(Address.zero(), PREV_OFFSET);
+    node.store(head, NEXT_OFFSET);
+    node.store(VM_Magic.objectAsAddress(owner), LIST_OFFSET);
     if (!head.isZero())
-      VM_Magic.setMemoryAddress(head.add(PREV_OFFSET), node);
+      head.store(node, PREV_OFFSET);
     head = node;
     if (lock != null) lock.release();
   }
 
-  public final void remove (VM_Address node) throws VM_PragmaInline {
+  public final void remove (Address node) throws InlinePragma {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(isNode(node));
     if (lock != null) lock.acquire();
-    VM_Address prev = VM_Magic.getMemoryAddress(node.add(PREV_OFFSET));
-    VM_Address next = VM_Magic.getMemoryAddress(node.add(NEXT_OFFSET));
+    Address prev = node.loadAddress(PREV_OFFSET);
+    Address next = node.loadAddress(NEXT_OFFSET);
     // Splice the node out of the list
     if (!next.isZero()) 
-        VM_Magic.setMemoryAddress(next.add(PREV_OFFSET), prev);
+        next.store(prev, PREV_OFFSET);
     if (prev.isZero()) 
         head = next;
     else
-        VM_Magic.setMemoryAddress(prev.add(NEXT_OFFSET), next);
+        prev.store(next, NEXT_OFFSET);
     // Null out node's reference to the list
-    VM_Magic.setMemoryAddress(node.add(PREV_OFFSET), VM_Address.zero());
-    VM_Magic.setMemoryAddress(node.add(NEXT_OFFSET), VM_Address.zero());
-    VM_Magic.setMemoryAddress(node.add(LIST_OFFSET), VM_Address.zero());
+    node.store(Address.zero(), PREV_OFFSET);
+    node.store(Address.zero(), NEXT_OFFSET);
+    node.store(Address.zero(), LIST_OFFSET);
     if (lock != null) lock.release();
   }
 
-  public final VM_Address pop () throws VM_PragmaInline {
-    VM_Address first = head;
+  public final Address pop () throws InlinePragma {
+    Address first = head;
     if (!first.isZero())
       remove(first);
     return first;
   }
 
-  public final boolean isEmpty() throws VM_PragmaInline {
+  public final boolean isEmpty() throws InlinePragma {
     return head.isZero();
   }
 
@@ -164,17 +160,17 @@ final class DoublyLinkedList
    * @param head The head of the treadmill
    * @return True if the cell is found on the treadmill
    */
-  public final boolean isMember (VM_Address node) {
+  public final boolean isMember (Address node) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(isNode(node));
     boolean result = false;
     if (lock != null) lock.acquire();
-    VM_Address cur = head;
+    Address cur = head;
     while (!cur.isZero()) {
       if (cur.EQ(node)) {
         result = true;
         break;
      }
-     cur = VM_Magic.getMemoryAddress(cur.add(NEXT_OFFSET));
+     cur = cur.loadAddress(NEXT_OFFSET);
     }
     if (lock != null) lock.release();
     return result;
@@ -182,10 +178,10 @@ final class DoublyLinkedList
 
   public final void show() {
     if (lock != null) lock.acquire();
-    VM_Address cur = head;
+    Address cur = head;
     Log.write(cur);
     while (!cur.isZero()) {
-      cur =      cur = VM_Magic.getMemoryAddress(cur.add(NEXT_OFFSET));
+      cur = cur.loadAddress(NEXT_OFFSET);
       Log.write(" -> "); Log.write(cur);
     }
     Log.writeln();
@@ -199,12 +195,10 @@ final class DoublyLinkedList
    */
   void gcspyGatherData(TreadmillDriver tmDriver) {
     // GCSpy doesn't need a lock (in its stop the world config)
-    VM_Address cur = head;
+    Address cur = head;
     while (!cur.isZero()) {
       tmDriver.traceObject(cur);
-      cur = VM_Magic.getMemoryAddress(cur.add(NEXT_OFFSET));
+      cur = cur.loadAddress(NEXT_OFFSET);
     }
   }
-
-
 }

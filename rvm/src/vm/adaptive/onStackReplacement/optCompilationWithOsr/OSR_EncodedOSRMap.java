@@ -10,6 +10,9 @@ import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.opt.ir.*;
 import java.util.*;
+
+import org.vmmagic.pragma.*;
+
 /** 
  * OSR_EncodedOSRMap provides the samilar function as GC map
  * in VM_OptMachineCodeMap.
@@ -39,7 +42,7 @@ public class OSR_EncodedOSRMap
   private int[] ieMaps;
 
   public static final boolean registerIsSet(int map, int regnum) 
-    throws VM_PragmaInline {
+    throws InlinePragma {
 
     int bitpos = getRegBitPosition(regnum);
     return (map & (NEXT_BIT >>> bitpos)) > 0;
@@ -58,7 +61,7 @@ public class OSR_EncodedOSRMap
    * get register bit position
    */
   private static final int getRegBitPosition(int regnum) 
-    throws VM_PragmaInline {
+    throws InlinePragma {
 
     return regnum - FIRST_GCMAP_REG + 1;
   }

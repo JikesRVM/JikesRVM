@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.opt;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.ir.*;
+import org.vmmagic.pragma.*;
 
 /**
  * A class that encapsulates mapping information about generated machine code.
@@ -46,7 +47,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  */
 public final class VM_OptMachineCodeMap implements VM_Constants, 
                                                    OPT_Constants,
-                                                   VM_Uninterruptible {
+                                                   Uninterruptible {
   
   /**
    * Constructor, called during compilation
@@ -250,7 +251,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    *  @param irMap  the irmap to translate from
    *  @param gcMap  the VM_OptGCMap instance that is building the encoded GCMap
    */
-  private void generateMCInformation(OPT_GCIRMap irMap) throws VM_PragmaInterruptible {
+  private void generateMCInformation(OPT_GCIRMap irMap) throws InterruptiblePragma {
     OPT_CallSiteTree inliningMap = new OPT_CallSiteTree();
     int numEntries = 0;
     
@@ -532,7 +533,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
   //  Debugging
   ////////////////////////////////////////////
 
-  public void dumpMCInformation() throws VM_PragmaInterruptible {
+  public void dumpMCInformation() throws InterruptiblePragma {
     if (DUMP_MAPS) {
       VM.sysWrite("  Dumping the MCInformation\n");
       if (MCInformation == null) return;
@@ -547,7 +548,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * Prints the MCInformation for this entry
    * @param entry  the entry to print
    */
-  private final void printMCInformationEntry(int entry) throws VM_PragmaInterruptible {
+  private final void printMCInformationEntry(int entry) throws InterruptiblePragma {
     if (DUMP_MAPS) {
       String sep = "\tMC: ";
       if (isBigEntry(entry)) sep = "B\tMC: ";
@@ -592,7 +593,7 @@ public final class VM_OptMachineCodeMap implements VM_Constants,
    * @param machineCodeSize
    */
   private void recordStats(VM_Method method, int mapSize, 
-                           int machineCodeSize) throws VM_PragmaInterruptible {
+                           int machineCodeSize) throws InterruptiblePragma {
     if (DUMP_MAP_SIZES) {
       double mapMCPercent = (double)mapSize/machineCodeSize;
       VM.sysWrite(method);

@@ -10,15 +10,8 @@ import org.mmtk.utility.heap.*;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Extent;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 import org.mmtk.vm.gcspy.AbstractDriver;
 
@@ -34,7 +27,7 @@ import org.mmtk.vm.gcspy.AbstractDriver;
  * @date $Date$
  */
 public final class BumpPointer extends Allocator 
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
 
   /**
@@ -51,8 +44,8 @@ public final class BumpPointer extends Allocator
   }
 
   public void reset () {
-    cursor = VM_Address.zero();
-    limit = VM_Address.zero();
+    cursor = Address.zero();
+    limit = Address.zero();
   }
 
   /**
@@ -78,20 +71,20 @@ public final class BumpPointer extends Allocator
    * @param offset The offset from the alignment 
    * @return The address of the first byte of the allocated region
    */
-  final public VM_Address alloc(int bytes, int align, int offset) 
-    throws VM_PragmaInline {
-    VM_Address oldCursor = alignAllocation(cursor, align, offset);
-    VM_Address newCursor = oldCursor.add(bytes);
+  final public Address alloc(int bytes, int align, int offset) 
+    throws InlinePragma {
+    Address oldCursor = alignAllocation(cursor, align, offset);
+    Address newCursor = oldCursor.add(bytes);
       if (newCursor.GT(limit))
       return allocSlow(bytes, align, offset);
     cursor = newCursor;
     return oldCursor;
   }
 
-  final protected VM_Address allocSlowOnce(int bytes, int align, int offset, 
+  final protected Address allocSlowOnce(int bytes, int align, int offset, 
                                            boolean inGC) {
-    VM_Extent chunkSize = VM_Word.fromIntZeroExtend(bytes).add(CHUNK_MASK).and(CHUNK_MASK.not()).toExtent();
-    VM_Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
+    Extent chunkSize = Word.fromIntZeroExtend(bytes).add(CHUNK_MASK).and(CHUNK_MASK.not()).toExtent();
+    Address start = ((MonotoneVMResource)vmResource).acquire(Conversions.bytesToPages(chunkSize));
     if (start.isZero())
       return start;
 
@@ -119,8 +112,8 @@ public final class BumpPointer extends Allocator
    *
    * Instance variables
    */
-  private VM_Address cursor;
-  private VM_Address limit;
+  private Address cursor;
+  private Address limit;
   private MonotoneVMResource vmResource;
 
   /****************************************************************************
@@ -131,5 +124,5 @@ public final class BumpPointer extends Allocator
    * alloc of initial value
    */
   private static final int LOG_CHUNK_SIZE = VMResource.LOG_BYTES_IN_PAGE + 3;
-  private static final VM_Word CHUNK_MASK = VM_Word.one().lsh(LOG_CHUNK_SIZE).sub(VM_Word.one());
+  private static final Word CHUNK_MASK = Word.one().lsh(LOG_CHUNK_SIZE).sub(Word.one());
 }

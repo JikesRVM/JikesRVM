@@ -6,6 +6,8 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Scratch space for JSR processing.  Used from VM_ReferenceMaps
  * 
@@ -13,7 +15,7 @@ import com.ibm.JikesRVM.classloader.*;
  * @modified Perry Cheng
  * @modified Dave Grove
  */
-public final class VM_JSRInfo implements VM_BaselineConstants, VM_Uninterruptible  {
+public final class VM_JSRInfo implements VM_BaselineConstants, Uninterruptible  {
 
   int              numberUnusualMaps;
   VM_UnusualMaps[] unusualMaps;

@@ -8,6 +8,9 @@ package com.ibm.JikesRVM.OSR;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 import com.ibm.JikesRVM.opt.*;
+
+import org.vmmagic.unboxed.*;
+
 /**
  * OSR_BaselineExecStateExtractor retrieves the runtime state from a suspended
  * thread whose top method was compiled by a baseline compiler.
@@ -73,7 +76,7 @@ public final class OSR_BaselineExecStateExtractor
     VM_CodeArray instructions = fooCM.getInstructions();
 
     VM.disableGC();
-    VM_Address rowIP     = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(methFPoff + STACKFRAME_NEXT_INSTRUCTION_OFFSET));
+    Address rowIP     = VM_Magic.objectAsAddress(stack).add(methFPoff + STACKFRAME_NEXT_INSTRUCTION_OFFSET).loadAddress();
     int ipIndex   = rowIP.diff(VM_Magic.objectAsAddress(instructions)).toInt() >> LG_INSTRUCTION_WIDTH;
     VM.enableGC();
 
@@ -223,7 +226,7 @@ public final class OSR_BaselineExecStateExtractor
       }
       case AddressTypeCode: {
         VM.disableGC();
-        VM_Address rowIP = VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(stack).add(vOffset));
+        Address rowIP = VM_Magic.objectAsAddress(stack).add(vOffset).loadAddress();
         int ipIndex = rowIP.diff(VM_Magic.objectAsAddress(instructions)).toInt() >> LG_INSTRUCTION_WIDTH;
         VM.enableGC();
 

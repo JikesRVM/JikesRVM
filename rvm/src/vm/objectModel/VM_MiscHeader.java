@@ -6,6 +6,9 @@ package com.ibm.JikesRVM;
 
 import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
  * Defines other header words not used for 
  * core Java language support of memory allocation.
@@ -19,20 +22,20 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
  * @author Dave Grove
  * @modified <a href="http://www-ali.cs.umass.edu/~hertz">Matthew Hertz</a>
  */
-public final class VM_MiscHeader implements VM_Uninterruptible, VM_Constants {
+public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
 
   /*********************
    * Support for GC Tracing; uses either 0 or 3 words of MISC HEADER
    */
 
-  private static final int MISC_HEADER_START = VM_JavaHeaderConstants.MISC_HEADER_OFFSET;
+  private static final Offset MISC_HEADER_START = Offset.fromInt(VM_JavaHeaderConstants.MISC_HEADER_OFFSET);
 
   /* offset from object ref to .oid field, in bytes */
-  static final int OBJECT_OID_OFFSET       = (VM.CompileForGCTracing ? MISC_HEADER_START : 0);
+  static final Offset OBJECT_OID_OFFSET   = VM.CompileForGCTracing ? MISC_HEADER_START : Offset.zero();
   /* offset from object ref to OBJECT_DEATH field, in bytes */
-  static final int OBJECT_DEATH_OFFSET	   = (VM.CompileForGCTracing ? OBJECT_OID_OFFSET + BYTES_IN_ADDRESS : 0);
+  static final Offset OBJECT_DEATH_OFFSET = VM.CompileForGCTracing ? OBJECT_OID_OFFSET.add(BYTES_IN_ADDRESS) : Offset.zero();
   /* offset from object ref to .link field, in bytes */
-  static final int OBJECT_LINK_OFFSET      = (VM.CompileForGCTracing ? OBJECT_DEATH_OFFSET + BYTES_IN_ADDRESS : 0);
+  static final Offset OBJECT_LINK_OFFSET  = VM.CompileForGCTracing ? OBJECT_DEATH_OFFSET.add(BYTES_IN_ADDRESS) : Offset.zero();
   /* amount by which tracing causes headers to grow */
   static final int GC_TRACING_HEADER_WORDS = (VM.CompileForGCTracing ? 3 : 0);
   static final int GC_TRACING_HEADER_BYTES = GC_TRACING_HEADER_WORDS<<LOG_BYTES_IN_ADDRESS;
@@ -58,19 +61,19 @@ public final class VM_MiscHeader implements VM_Uninterruptible, VM_Constants {
   /**
    * The next object ID to be used.
    */
-  private static VM_Word oid;
+  private static Word oid;
   /**
    * The current "time" for the trace being generated.
    */
-  private static VM_Word time;
+  private static Word time;
   /**
    * The address of the last object allocated into the header.
    */
   private static int prevAddress;
 
   static {
-    oid = VM_Word.fromInt(4);
-    time = VM_Word.fromInt(4);
+    oid = Word.fromInt(4);
+    time = Word.fromInt(4);
     prevAddress = 0;
   }
 
@@ -83,13 +86,13 @@ public final class VM_MiscHeader implements VM_Uninterruptible, VM_Constants {
    */
   public static void initializeHeader(Object obj, Object[] tib, int size, 
 				      boolean isScalar) 
-    throws VM_PragmaUninterruptible {
+    throws UninterruptiblePragma {
     /* Only perform initialization when it is required */
     if (VM.CompileForGCTracing) {
-      VM_Address ref = VM_Magic.objectAsAddress(obj); 
-      VM_Magic.setMemoryWord(ref.add(OBJECT_OID_OFFSET), oid);
-      VM_Magic.setMemoryWord(ref.add(OBJECT_DEATH_OFFSET), time);
-      oid = oid.add(VM_Word.fromInt((size - GC_TRACING_HEADER_BYTES) 
+      Address ref = VM_Magic.objectAsAddress(obj); 
+      ref.store(oid, OBJECT_OID_OFFSET);
+      ref.store(time, OBJECT_DEATH_OFFSET);
+      oid = oid.add(Word.fromInt((size - GC_TRACING_HEADER_BYTES) 
  				    >> LOG_BYTES_IN_ADDRESS));
     }
   }
@@ -104,14 +107,14 @@ public final class VM_MiscHeader implements VM_Uninterruptible, VM_Constants {
    */
   public static void initializeHeader(BootImageInterface bootImage, int ref, 
                                       Object[] tib, int size, boolean isScalar)
-    throws VM_PragmaLogicallyUninterruptible {
+    throws LogicallyUninterruptiblePragma {
     /* Only perform initialization when it is required */
     if (VM.CompileForGCTracing) {
-      bootImage.setAddressWord(ref + OBJECT_OID_OFFSET, oid);
-      bootImage.setAddressWord(ref + OBJECT_DEATH_OFFSET, time);
-      bootImage.setFullWord(ref + OBJECT_LINK_OFFSET, prevAddress);
+      bootImage.setAddressWord(ref + OBJECT_OID_OFFSET.toInt(), oid);
+      bootImage.setAddressWord(ref + OBJECT_DEATH_OFFSET.toInt(), time);
+      bootImage.setFullWord(ref + OBJECT_LINK_OFFSET.toInt(), prevAddress);
       prevAddress = ref;
-      oid = oid.add(VM_Word.fromInt((size - GC_TRACING_HEADER_BYTES) 
+      oid = oid.add(Word.fromInt((size - GC_TRACING_HEADER_BYTES) 
  				    >> LOG_BYTES_IN_ADDRESS));
     }
   }
@@ -119,68 +122,68 @@ public final class VM_MiscHeader implements VM_Uninterruptible, VM_Constants {
   public static void updateDeathTime(Object ref) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      VM_Magic.setMemoryWord(VM_Magic.objectAsAddress(ref).add(OBJECT_DEATH_OFFSET), time);
+      VM_Magic.objectAsAddress(ref).store(time, OBJECT_DEATH_OFFSET);
   }
 
-  public static void setDeathTime(VM_Address ref, VM_Word time_) {
+  public static void setDeathTime(Address ref, Word time_) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      VM_Magic.setMemoryWord(ref.add(OBJECT_DEATH_OFFSET), time_);
+      ref.store(time_, OBJECT_DEATH_OFFSET);
   }
 
-  public static void setLink(VM_Address ref, VM_Address link) {
+  public static void setLink(Address ref, Address link) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      VM_Magic.setMemoryAddress(ref.add(OBJECT_LINK_OFFSET), link);
+      ref.store(link, OBJECT_LINK_OFFSET);
   }
 
-  public static void updateTime(VM_Word time_) {
+  public static void updateTime(Word time_) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     time = time_;
   }
 
-  public static VM_Word getOID(VM_Address ref) {
+  public static Word getOID(Address ref) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      return VM_Magic.getMemoryWord(ref.add(OBJECT_OID_OFFSET));
+      return ref.add(OBJECT_OID_OFFSET).loadWord();
     else
-      return VM_Word.zero();
+      return Word.zero();
   }
 
-  public static VM_Word getDeathTime(Object ref) {
+  public static Word getDeathTime(Object ref) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      return VM_Magic.getMemoryWord(VM_Magic.objectAsAddress(ref).add(OBJECT_DEATH_OFFSET));
+      return VM_Magic.objectAsAddress(ref).add(OBJECT_DEATH_OFFSET).loadWord();
     else
-      return VM_Word.zero();
+      return Word.zero();
   }
 
-  public static VM_Address getLink(Object ref) {
+  public static Address getLink(Object ref) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
       return VM_Magic.objectAsAddress(VM_Magic.getObjectAtOffset(ref,
-							       OBJECT_LINK_OFFSET));
+							       OBJECT_LINK_OFFSET.toInt()));
     else
-      return VM_Address.zero();
+      return Address.zero();
   }
 
-  public static VM_Address getBootImageLink() {
+  public static Address getBootImageLink() {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      return VM_Address.fromInt(prevAddress);
+      return Address.fromInt(prevAddress);
     else
-      return VM_Address.zero();
+      return Address.zero();
   }
 
-  public static VM_Word getOID() {
+  public static Word getOID() {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
       return oid;
     else
-      return VM_Word.zero();
+      return Word.zero();
   }
 
-  public static void setOID(VM_Word oid_) {
+  public static void setOID(Word oid_) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
       oid = oid_;

@@ -9,15 +9,8 @@ import org.mmtk.plan.Plan;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Lock;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_AddressArray;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaLogicallyUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class manages finalization.  When an object is created if its
@@ -36,7 +29,7 @@ import com.ibm.JikesRVM.VM_PragmaInterruptible;
  *
  * @author Perry Cheng
  */
-public class Finalizer implements VM_Uninterruptible {
+public class Finalizer implements Uninterruptible {
 
   //----------------//
   // Implementation //
@@ -45,7 +38,7 @@ public class Finalizer implements VM_Uninterruptible {
   private static int INITIAL_SIZE = 32768;
   private static double growthFactor = 2.0;
   private static Lock lock = new Lock("Finalizer");
-  private static VM_AddressArray candidate = VM_AddressArray.create(INITIAL_SIZE);
+  private static AddressArray candidate = AddressArray.create(INITIAL_SIZE);
   private static int candidateEnd;                            // candidate[0] .. candidate[candidateEnd-1] contains non-zero entries
   private static Object [] live = new Object[INITIAL_SIZE];
   private static int liveStart;                               // live[liveStart] .. live[liveEnd-1] are the non-null entries
@@ -64,17 +57,17 @@ public class Finalizer implements VM_Uninterruptible {
   //
   // (SJF: This method must NOT be inlined into an inlined allocation sequence, since it contains a lock!)
   //
-  public static final void addCandidate(Object item) throws VM_PragmaNoInline, VM_PragmaInterruptible  {
+  public static final void addCandidate(Address item) throws NoInlinePragma, InterruptiblePragma  {
     lock.acquire();
 
     int origLength = candidate.length();
     if (candidateEnd >= origLength) {
-      VM_AddressArray newCandidate = VM_AddressArray.create((int) (growthFactor * origLength));
+      AddressArray newCandidate = AddressArray.create((int) (growthFactor * origLength));
       for (int i=0; i<origLength; i++)
         newCandidate.set(i, candidate.get(i));
       candidate = newCandidate;
     }
-    candidate.set(candidateEnd++, VM_Magic.objectAsAddress(item));
+    candidate.set(candidateEnd++, item);
     lock.release();
   }
 
@@ -94,7 +87,7 @@ public class Finalizer implements VM_Uninterruptible {
       if (VM_Interface.VerifyAssertions) 
         VM_Interface._assert(candidate.get(leftCursor).isZero() && !candidate.get(rightCursor).isZero());
       candidate.set(leftCursor, candidate.get(rightCursor));
-      candidate.set(rightCursor, VM_Address.zero());
+      candidate.set(rightCursor, Address.zero());
     }
     if (candidate.get(leftCursor).isZero())
       candidateEnd = leftCursor;
@@ -106,7 +99,7 @@ public class Finalizer implements VM_Uninterruptible {
    *
    * The aastore is actually uninterruptible since the target is an array of Objects.
    */
-  private static void addLive(Object obj) throws VM_PragmaLogicallyUninterruptible {
+  private static void addLive(Object obj) throws LogicallyUninterruptiblePragma {
     if (liveEnd == live.length) {
       Object[] newLive = live;
       if (liveStart == 0) 
@@ -129,7 +122,7 @@ public class Finalizer implements VM_Uninterruptible {
    * The aastore is actually uninterruptible since the target is an
    * array of Objects.
    */
-  public final static Object get() throws VM_PragmaLogicallyUninterruptible {
+  public final static Object get() throws LogicallyUninterruptiblePragma {
 
     if (liveStart == liveEnd) return null;
 
@@ -147,9 +140,9 @@ public class Finalizer implements VM_Uninterruptible {
 
     int cursor = 0;
     while (cursor < candidateEnd) {
-      VM_Address cand = candidate.get(cursor);
-      candidate.set(cursor, VM_Address.zero());
-      addLive(VM_Magic.addressAsObject(cand));
+      Address cand = candidate.get(cursor);
+      candidate.set(cursor, Address.zero());
+      addLive(VM_Interface.addressAsObject(cand));
       cursor++;
     }
     
@@ -172,11 +165,11 @@ public class Finalizer implements VM_Uninterruptible {
     int newFinalizeCount = 0;
 
     while (cursor < candidateEnd) {
-      VM_Address cand = candidate.get(cursor);
+      Address cand = candidate.get(cursor);
       boolean isFinalizable = Plan.isFinalizable(cand);
       if (isFinalizable) { // object died, enqueue for finalization
-        candidate.set(cursor, VM_Address.zero());
-        addLive(VM_Magic.addressAsObject(Plan.retainFinalizable(cand)));
+        candidate.set(cursor, Address.zero());
+        addLive(VM_Interface.addressAsObject(Plan.retainFinalizable(cand)));
         newFinalizeCount++;
       } else {             // live beforehand but possibly moved
         candidate.set(cursor, Plan.getForwardedReference(cand));

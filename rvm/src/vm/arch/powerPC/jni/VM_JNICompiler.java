@@ -7,6 +7,8 @@ package com.ibm.JikesRVM.jni;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.unboxed.*;
+
 /**
  * @author Ton Ngo 
  * @author Steve Smith
@@ -138,8 +140,8 @@ public class VM_JNICompiler implements VM_BaselineConstants,
     if (VM.VerifyAssertions) VM._assert(F3 <= LAST_VOLATILE_FPR);           // need 4 fp temps
     if (VM.VerifyAssertions) VM._assert(S0 < S1 && S1 <= LAST_SCRATCH_GPR); // need 2 scratch
 
-    VM_Address nativeIP  = method.getNativeIP();
-    VM_Address nativeTOC = method.getNativeTOC();
+    Address nativeIP  = method.getNativeIP();
+    Address nativeTOC = method.getNativeTOC();
 
     // NOTE:  this must be done before the condition VM_Thread.hasNativeStackFrame() become true
     // so that the first Java to C transition will be allowed to resize the stack

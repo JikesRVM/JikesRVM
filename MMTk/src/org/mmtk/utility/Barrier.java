@@ -6,10 +6,7 @@ package org.mmtk.utility;
 
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.SynchronizedCounter;
-
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements barrier synchronization.
@@ -19,7 +16,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  *
  * @author   Perry Cheng
  */
-public final class Barrier implements VM_Uninterruptible {
+public final class Barrier implements Uninterruptible {
 
   public static int verbose = 0;
 
@@ -53,23 +50,23 @@ public final class Barrier implements VM_Uninterruptible {
   // Set target to appropriate value
   //
   public void setTarget (int t) {
-    VM_Magic.isync();
+    VM_Interface.isync();
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(t >= 0);
     target = t + 1;
-    VM_Magic.sync();
+    VM_Interface.sync();
   }
 
   public void clearTarget () {
-    VM_Magic.isync();
+    VM_Interface.isync();
     target = -1;
-    VM_Magic.sync();
+    VM_Interface.sync();
   }
 
   // Returns whether caller was first to arrive.
   // The coding to ensure resetting is delicate.
   //
   public int arrive (int where) {
-    VM_Magic.isync();
+    VM_Interface.isync();
     int cur = currentCounter.peek();
     SynchronizedCounter c = counters[cur];
     int myValue = c.increment();
@@ -90,7 +87,7 @@ public final class Barrier implements VM_Uninterruptible {
         currentCounter.increment();   
       c.increment();                // now safe to let others past barrier
       // VM.sysWriteln("last guy done ", where);
-      VM_Magic.sync();
+      VM_Interface.sync();
       return myValue;
     } else {
       // everyone else
@@ -98,7 +95,7 @@ public final class Barrier implements VM_Uninterruptible {
       long lastElapsed = 0;
       for (int i=0; ; i++) {
         if (target != -1 && c.peek() == target) {
-          VM_Magic.sync();
+          VM_Interface.sync();
           return myValue;
         }
         if (((i - 1) % TIME_CHECK) == 0) {

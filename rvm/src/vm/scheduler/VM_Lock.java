@@ -3,6 +3,10 @@
  */
 //$Id$
 package com.ibm.JikesRVM;
+
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 /**
    VM_Lock provides RVM support for monitors and Java level 
    synchronization.
@@ -90,7 +94,7 @@ package com.ibm.JikesRVM;
    @author Bowen Alpern 
 */
 
-public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
+public final class VM_Lock implements VM_Constants, Uninterruptible {
 
   ////////////////////////////////////////////////////////////////////////
   /// Section 1: Support for synchronizing methods of java.lang.Object ///
@@ -102,7 +106,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @param o the object synchronized on
    * @see java.lang.Object#wait()
    */
-  public static void wait (Object o) throws VM_PragmaLogicallyUninterruptible /* only loses control at expected points -- I think -dave */{
+  public static void wait (Object o) throws LogicallyUninterruptiblePragma /* only loses control at expected points -- I think -dave */{
     if (STATS) waitOperations++;
     VM_Thread t = VM_Thread.getCurrentThread();
     t.proxy = new VM_Proxy(t); // cache the proxy before obtaining lock
@@ -144,7 +148,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    * @param millis the number of milliseconds to wait for notification
    * @see java.lang.Object#wait(long time)
    */
-  public static void wait (Object o, long millis) throws VM_PragmaLogicallyUninterruptible /* only loses control at expected points -- I think -dave */{
+  public static void wait (Object o, long millis) throws LogicallyUninterruptiblePragma /* only loses control at expected points -- I think -dave */{
     double time;
     VM_Thread t = VM_Thread.getCurrentThread();
     if (STATS) timedWaitOperations++;
@@ -378,15 +382,15 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
   /**
    * Sets up the data structures for holding heavy-weight locks.
    */
-  static void init() throws VM_PragmaInterruptible {
+  static void init() throws InterruptiblePragma {
     lockAllocationMutex = new VM_ProcessorLock();
     VM_Scheduler.locks  = new VM_Lock[INIT_LOCKS+1]; // don't use slot 0
     if (VM.VerifyAssertions) // check that each potential lock is addressable
       VM._assert((VM_Scheduler.locks.length-1<=VM_ThinLockConstants.TL_LOCK_ID_MASK.rshl(VM_ThinLockConstants.TL_LOCK_ID_SHIFT).toInt())
-                || VM_ThinLockConstants.TL_LOCK_ID_MASK.EQ(VM_Word.fromIntSignExtend(-1)));
+                || VM_ThinLockConstants.TL_LOCK_ID_MASK.EQ(Word.fromIntSignExtend(-1)));
   }
   
-  static void growLocks() throws VM_PragmaLogicallyUninterruptible /* ok because the caller is prepared to lose control when it allocates a lock -- dave */ {
+  static void growLocks() throws LogicallyUninterruptiblePragma /* ok because the caller is prepared to lose control when it allocates a lock -- dave */ {
     VM_Lock [] oldLocks = VM_Scheduler.locks;
     int newSize = 2 * oldLocks.length;
     if (newSize > MAX_LOCKS + 1)
@@ -406,7 +410,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
    *
    * @return a free VM_Lock; or <code>null</code>, if garbage collection is not enabled
    */
-  static VM_Lock allocate () throws VM_PragmaLogicallyUninterruptible /* ok because the caller is prepared to lose control when it allocates a lock -- dave */ {
+  static VM_Lock allocate () throws LogicallyUninterruptiblePragma /* ok because the caller is prepared to lose control when it allocates a lock -- dave */ {
     VM_Processor mine = VM_Processor.getCurrentProcessor();
     if (mine.isInitialized && !mine.threadSwitchingEnabled()) return null; // Collector threads can't use heavy locks because they don't fix up their stacks after moving objects
     if ((mine.freeLocks == 0) && (0 < globalFreeLocks) && balanceFreeLocks) {
@@ -531,7 +535,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     lockAllocationMutex.unlock();
   }
 
-  static void raiseIllegalMonitorStateException(String msg, Object o) throws VM_PragmaLogicallyUninterruptible {
+  static void raiseIllegalMonitorStateException(String msg, Object o) throws LogicallyUninterruptiblePragma {
     throw new IllegalMonitorStateException(msg + o);
   }
 
@@ -587,7 +591,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     VM.sysWrite("Lock "); VM.sysWriteInt(index); VM.sysWrite(":\n");
     VM.sysWrite(" lockedObject: 0x"); VM.sysWriteHex(VM_Magic.objectAsAddress(lockedObject)); 
     VM.sysWrite("   thin lock = "); 
-    VM.sysWriteHex(VM_Magic.getMemoryAddress(VM_Magic.objectAsAddress(lockedObject).add(VM_ObjectModel.defaultThinLockOffset())));
+    VM.sysWriteHex(VM_Magic.objectAsAddress(lockedObject).add(VM_ObjectModel.defaultThinLockOffset()).loadAddress());
     VM.sysWrite("\n");
 
     VM.sysWrite(" ownerId: "); VM.sysWriteInt(ownerId); VM.sysWrite(" recursionCount: "); VM.sysWriteInt(recursionCount); VM.sysWrite("\n");
@@ -623,7 +627,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
       VM_Lock l = VM_LockNursery.findOrCreate(o, false);
       return l != null && l.ownerId == tid;
     } else {
-      VM_Word bits = VM_Magic.getWordAtOffset(o, thinLockOffset);
+      Word bits = VM_Magic.getWordAtOffset(o, thinLockOffset);
       if (bits.and(VM_ThinLockConstants.TL_FAT_LOCK_MASK).isZero()) {
         // if locked, then locked with a thin lock
         return (bits.and(VM_ThinLockConstants.TL_THREAD_ID_MASK).toInt() == tid);
@@ -640,7 +644,7 @@ public final class VM_Lock implements VM_Constants, VM_Uninterruptible {
     //             Statistics                   //
     //////////////////////////////////////////////
 
-  public static void boot () throws VM_PragmaInterruptible {
+  public static void boot () throws InterruptiblePragma {
     VM_Callbacks.addExitMonitor(new VM_Lock.ExitMonitor());
     VM_Callbacks.addAppRunStartMonitor(new VM_Lock.AppRunStartMonitor());
   }

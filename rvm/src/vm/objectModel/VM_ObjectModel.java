@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.VM_AllocatorHeader;
 //-#if RVM_WITH_OPT_COMPILER
 import com.ibm.JikesRVM.opt.ir.*;
 //-#endif
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * The interface to the object model definition accessible to the 
@@ -103,7 +105,7 @@ import com.ibm.JikesRVM.opt.ir.*;
  * @author Derek Lieber
  * @author Kris Venstermans
  */
-public final class VM_ObjectModel implements VM_Uninterruptible, 
+public final class VM_ObjectModel implements Uninterruptible, 
                                              VM_JavaHeaderConstants,
                                              VM_SizeConstants {
 
@@ -121,7 +123,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * TODO: If we allocate a 4-byte and then an 8-byte field on a 32 bit architecture
    *       we can possibly waste 4 bytes.  
    */
-  public static void layoutInstanceFields(VM_Class klass) throws VM_PragmaInterruptible {
+  public static void layoutInstanceFields(VM_Class klass) throws InterruptiblePragma {
     int fieldOffset = VM_JavaHeader.objectEndOffset(klass);
     int doubleAlign = Math.abs(VM_JavaHeader.objectStartOffset(klass) % BYTES_IN_DOUBLE);
     VM_Field fields[] = klass.getDeclaredFields();
@@ -165,7 +167,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Given a reference, return an address which is guaranteed to be inside
    * the memory region allocated to the object.
    */
-  public static VM_Address getPointerInMemoryRegion(VM_Address ref) {
+  public static Address getPointerInMemoryRegion(Address ref) {
     return VM_JavaHeader.getPointerInMemoryRegion(ref);
   }
 
@@ -180,7 +182,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Get the TIB for an object.
    */
-  public static Object[] getTIB(VM_Address ptr) { 
+  public static Object[] getTIB(Address ptr) { 
     return getTIB(VM_Magic.addressAsObject(ptr)); 
   }
 
@@ -194,7 +196,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(VM_Address ptr, Object[] tib) {
+  public static void setTIB(Address ptr, Object[] tib) {
     setTIB(VM_Magic.addressAsObject(ptr),tib);
   }
 
@@ -209,42 +211,42 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Set the TIB for an object.
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, 
-                            VM_Address tibAddr, VM_Type type) throws VM_PragmaInterruptible {
+                            Address tibAddr, VM_Type type) throws InterruptiblePragma {
     VM_JavaHeader.setTIB(bootImage, refOffset, tibAddr, type);
   }
 
   /**
    * Process the TIB field during copyingGC
    */
-  public static void gcProcessTIB(VM_Address ref) {
+  public static void gcProcessTIB(Address ref) {
     VM_JavaHeader.gcProcessTIB(ref);
   }
 
  /**
    * Get an object reference from the address the lowest word of the object was allocated.
    */
-  public static VM_Address getObjectFromStartAddress(VM_Address start) {
+  public static Address getObjectFromStartAddress(Address start) {
     return VM_JavaHeader.getObjectFromStartAddress(start);
   }
 
   /**
    * Get an object reference from the address the lowest word of the object was allocated.
    */
-  public static VM_Address getScalarFromStartAddress(VM_Address start) {
+  public static Address getScalarFromStartAddress(Address start) {
     return VM_JavaHeader.getScalarFromStartAddress(start);
   }
 
   /**
    * Get an object reference from the address the lowest word of the object was allocated.
    */
-  public static VM_Address getArrayFromStartAddress(VM_Address start) {
+  public static Address getArrayFromStartAddress(Address start) {
     return VM_JavaHeader.getArrayFromStartAddress(start);
   }
 
   /**
    * Get the next object in the heap under contiguous allocation. 
    */
-  public static VM_Address getNextObject(VM_Address obj) {
+  public static Address getNextObject(Address obj) {
     Object[] tib = getTIB(obj);
     VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
     if (type.isClassType()) {
@@ -258,14 +260,14 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Get the next object after this scalar under contiguous allocation. 
    */
-  public static VM_Address getNextObject(VM_Address obj, VM_Class type) {
+  public static Address getNextObject(Address obj, VM_Class type) {
     return VM_JavaHeader.getNextObject(obj, type);
   }
 
   /**
    * Get the next object after this array under contiguous allocation. 
   */
-  public static VM_Address getNextObject(VM_Address obj, VM_Array type, int numElements) {
+  public static Address getNextObject(Address obj, VM_Array type, int numElements) {
     return VM_JavaHeader.getNextObject(obj, type, numElements);
   }
  
@@ -329,14 +331,14 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Map from the object ref to the lowest address of the storage
    * associated with the object
    */
-  public static VM_Address objectStartRef(VM_Address obj) throws VM_PragmaInline {
+  public static Address objectStartRef(Address obj) throws InlinePragma {
     return VM_JavaHeader.objectStartRef(obj);
   }
 
   /**
    * Copy a scalar object to the given raw storage address
    */
-  public static Object moveObject(VM_Address toAddress, Object fromObj,
+  public static Object moveObject(Address toAddress, Object fromObj,
                                   int numBytes, boolean noGCHeader, VM_Class type) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, noGCHeader, type);
   }
@@ -344,7 +346,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Copy an array object to the given raw storage address
    */
-  public static Object moveObject(VM_Address toAddress, Object fromObj,
+  public static Object moveObject(Address toAddress, Object fromObj,
                                   int numBytes, boolean noGCHeader, VM_Array type) {
     return VM_JavaHeader.moveObject(toAddress, fromObj, numBytes, noGCHeader, type);
   }
@@ -430,7 +432,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Non-atomic read of word containing available bits
    */
-  public static VM_Word readAvailableBitsWord(Object o) {
+  public static Word readAvailableBitsWord(Object o) {
     return VM_JavaHeader.readAvailableBitsWord(o);
   }
 
@@ -444,7 +446,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Non-atomic write of word containing available bits
    */
-  public static void writeAvailableBitsWord(Object o, VM_Word val) {
+  public static void writeAvailableBitsWord(Object o, Word val) {
     VM_JavaHeader.writeAvailableBitsWord(o, val);
   }
 
@@ -480,15 +482,15 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * A prepare on the word containing the available bits
    */
-  public static VM_Word prepareAvailableBits(Object o) {
+  public static Word prepareAvailableBits(Object o) {
     return VM_JavaHeader.prepareAvailableBits(o);
   }
   
   /**
    * An attempt on the word containing the available bits
    */
-  public static boolean attemptAvailableBits(Object o, VM_Word oldVal,
-                                             VM_Word newVal) {
+  public static boolean attemptAvailableBits(Object o, Word oldVal,
+                                             Word newVal) {
     return VM_JavaHeader.attemptAvailableBits(o, oldVal, newVal);
   }
 
@@ -496,7 +498,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Given the smallest base address in a region, return the smallest
    * object reference that could refer to an object in the region.
    */
-  public static VM_Address minimumObjectRef (VM_Address regionBaseAddr) {
+  public static Address minimumObjectRef (Address regionBaseAddr) {
     return VM_JavaHeader.minimumObjectRef(regionBaseAddr);
   }
 
@@ -504,14 +506,14 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Given the largest base address in a region, return the largest
    * object reference that could refer to an object in the region.
    */
-  public static VM_Address maximumObjectRef (VM_Address regionHighAddr) {
+  public static Address maximumObjectRef (Address regionHighAddr) {
     return VM_JavaHeader.maximumObjectRef(regionHighAddr);
   }
 
   /**
    * Compute the header size of an instance of the given type.
    */
-  public static int computeHeaderSize(VM_Type type) throws VM_PragmaInline {
+  public static int computeHeaderSize(VM_Type type) throws InlinePragma {
     if (type.isArrayType()) {
       return computeArrayHeaderSize(type.asArray());
     } else {
@@ -522,14 +524,14 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * Compute the header size of an object 
    */
-  public static int computeHeaderSize(Object ref) throws VM_PragmaInterruptible {
+  public static int computeHeaderSize(Object ref) throws InterruptiblePragma {
     return computeHeaderSize(getObjectType(ref));
   }
 
   /**
    * Compute the header size of an instance of the given type.
    */
-  public static int computeScalarHeaderSize(VM_Class type) throws VM_PragmaInline {
+  public static int computeScalarHeaderSize(VM_Class type) throws InlinePragma {
     return VM_JavaHeader.computeScalarHeaderSize(type);
   }
 
@@ -616,7 +618,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param t VM_Class instance being copied
    * @param obj the object being copied
    */
-  public static int getOffsetForAlignment(VM_Class t, VM_Address obj) {
+  public static int getOffsetForAlignment(VM_Class t, Address obj) {
     return VM_JavaHeader.getOffsetForAlignment(t, obj);
   }
 
@@ -635,7 +637,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param t VM_Array instance being copied
    * @param obj the object being copied
    */
-  public static int getOffsetForAlignment(VM_Array t, VM_Address obj) {
+  public static int getOffsetForAlignment(VM_Array t, Address obj) {
     return VM_JavaHeader.getOffsetForAlignment(t, obj);
   }
 
@@ -647,8 +649,8 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param tib the type information block
    * @param size number of bytes of raw storage allocated.
    */
-  public static Object initializeScalar(VM_Address ptr, Object[] tib, int size)
-    throws VM_PragmaInline {
+  public static Object initializeScalar(Address ptr, Object[] tib, int size)
+    throws InlinePragma {
     Object ref = VM_JavaHeader.initializeScalarHeader(ptr, tib, size);
     VM_MiscHeader.initializeHeader(ref, tib, size, true);
     setTIB(ref, tib);
@@ -664,7 +666,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param klass the VM_Class object of the instance to create.
    * @return the offset of object in bootimage (in bytes)
    */
-  public static int allocateScalar(BootImageInterface bootImage, VM_Class klass) throws VM_PragmaInterruptible {
+  public static int allocateScalar(BootImageInterface bootImage, VM_Class klass) throws InterruptiblePragma {
     Object[] tib = klass.getTypeInformationBlock();
     int size = klass.getInstanceSize();
     int align = getAlignment(klass);
@@ -687,7 +689,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param numElems number of elements in the array
    * @param size number of bytes of raw storage allocated.
    */
-  public static Object initializeArray(VM_Address ptr, Object[] tib, int numElems, int size) throws VM_PragmaInline {
+  public static Object initializeArray(Address ptr, Object[] tib, int numElems, int size) throws InlinePragma {
     Object ref = VM_JavaHeader.initializeArrayHeader(ptr, tib, size);
     VM_MiscHeader.initializeHeader(ref, tib, size, false);
     setTIB(ref, tib);
@@ -707,7 +709,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    */
   public static int allocateArray(BootImageInterface bootImage, 
                                   VM_Array array,
-                                  int numElements) throws VM_PragmaInterruptible {
+                                  int numElements) throws InterruptiblePragma {
     Object[] tib = array.getTypeInformationBlock();
     int size = array.getInstanceSize(numElements);
     int align = getAlignment(array);
@@ -725,7 +727,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * Dump the header word(s) of the given object reference.
    * @param ptr the object reference whose header should be dumped 
    */
-  public static void dumpHeader(VM_Address ptr) {
+  public static void dumpHeader(Address ptr) {
     dumpHeader(VM_Magic.addressAsObject(ptr));
   }
 
@@ -745,7 +747,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
   /**
    * For debugging.
    */
-  public static void describeObject(VM_Address addr) {
+  public static void describeObject(Address addr) {
     Object obj = VM_Magic.addressAsObject(addr);
     VM_Type type = VM_Magic.getObjectType(obj);
     VM.sysWrite(type.getDescriptor());
@@ -765,7 +767,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
                                          //-#elif RVM_FOR_IA32
                                          byte dest, byte object
                                          //-#endif
-                                         ) throws VM_PragmaInterruptible {
+                                         ) throws InterruptiblePragma {
     VM_JavaHeader.baselineEmitLoadTIB(asm, dest, object);
   }
 
@@ -777,7 +779,7 @@ public final class VM_ObjectModel implements VM_Uninterruptible,
    * @param s the GET_OBJ_TIB instruction to lower
    * @param ir the enclosing OPT_IR
    */
-  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) throws VM_PragmaInterruptible {
+  public static void lowerGET_OBJ_TIB(OPT_Instruction s, OPT_IR ir) throws InterruptiblePragma {
     VM_JavaHeader.lowerGET_OBJ_TIB(s, ir);
   }
   //-#endif

@@ -9,6 +9,9 @@ import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
 
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
 /**
  * Platform dependent utility functions called from VM_JNIFunctions
  * (cannot be placed in VM_JNIFunctions because methods 
@@ -29,7 +32,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param methodID the method ID for a constructor
    * @return a new object created by the specified constructor
    */
-  public static Object invokeInitializer(Class cls, int methodID, VM_Address argAddress, 
+  public static Object invokeInitializer(Class cls, int methodID, Address argAddress, 
                                          boolean isJvalue, boolean isDotDotStyle) 
     throws Exception {
 
@@ -47,7 +50,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     } else {
       if (isDotDotStyle) {
         //-#if RVM_WITH_POWEROPEN_ABI  || RVM_WITH_MACH_O_ABI
-        VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);
+        Address varargAddress = pushVarArgToSpillArea(methodID, false);
         argObjs = packageParameterFromVarArg(mth, varargAddress);
         
         //-#elif RVM_WITH_SVR4_ABI
@@ -60,7 +63,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         //      glue frame ->
         //
         //      native C method ->
-        VM_Address gluefp = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer())); 
+        Address gluefp = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer())); 
         argObjs = packageParameterFromDotArgSVR4(mth, gluefp, false);
         //-#endif
       } else {
@@ -87,17 +90,17 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    */
   public static Object invokeWithDotDotVarArg(int methodID, 
                                               VM_TypeReference expectReturnType)
-    throws Exception, VM_PragmaNoInline {
+    throws Exception, NoInlinePragma {
 
     //-#if RVM_WITH_POWEROPEN_ABI
-    VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);    
+    Address varargAddress = pushVarArgToSpillArea(methodID, false);    
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, AIX_VARARG);
 
     //-#elif RVM_WITH_SVR4_ABI
-    VM_Address glueFP = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
+    Address glueFP = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
     return packageAndInvoke(null, methodID, glueFP, expectReturnType, false, SVR4_DOTARG);
     //-#elif RVM_WITH_MACH_O_ABI
-    VM_Address varargAddress = pushVarArgToSpillArea(methodID, false);    
+    Address varargAddress = pushVarArgToSpillArea(methodID, false);    
     return packageAndInvoke(null, methodID, varargAddress, expectReturnType, false, OSX_DOTARG);
     //-#endif
   }
@@ -114,17 +117,17 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    */
   public static Object invokeWithDotDotVarArg(Object obj, int methodID, 
                                               VM_TypeReference expectReturnType, boolean skip4Args)
-    throws Exception, VM_PragmaNoInline {
+    throws Exception, NoInlinePragma {
 
     //-#if RVM_WITH_POWEROPEN_ABI
-    VM_Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);    
+    Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);    
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, AIX_VARARG);
 
     //-#elif RVM_WITH_SVR4_ABI 
-    VM_Address glueFP = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
+    Address glueFP = VM_Magic.getCallerFramePointer(VM_Magic.getCallerFramePointer(VM_Magic.getFramePointer()));
     return packageAndInvoke(obj, methodID, glueFP, expectReturnType, skip4Args, SVR4_DOTARG);
     //-#elif RVM_WITH_MACH_O_ABI
-    VM_Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);    
+    Address varargAddress = pushVarArgToSpillArea(methodID, skip4Args);    
     return packageAndInvoke(obj, methodID, varargAddress, expectReturnType, skip4Args, OSX_DOTARG);
     //-#endif
   }
@@ -222,21 +225,21 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @return the starting address of the vararg in the caller stack frame
    */
   //-#if !RVM_WITH_MACH_O_ABI
-  private static VM_Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception, VM_PragmaNoInline {
+  private static Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception, NoInlinePragma {
 
     int glueFrameSize = JNI_GLUE_FRAME_SIZE;
 
     // get the FP for this stack frame and traverse 2 frames to get to the glue frame
-    VM_Address gluefp = VM_Magic.getMemoryAddress(VM_Magic.getFramePointer().add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
-    gluefp = VM_Magic.getMemoryAddress(gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
-    gluefp = VM_Magic.getMemoryAddress(gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
+    Address gluefp = VM_Magic.getFramePointer().add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+    gluefp = gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
+    gluefp = gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET).loadAddress();
 
     // compute the offset into the area where the vararg GPR[6-10] and FPR[1-3] are saved
     // skipping the args which are not part of the arguments for the target method
     // For Call<type>Method functions and NewObject, skip 3 args
     // For CallNonvirtual<type>Method functions, skip 4 args
-    int varargGPROffset = VARARG_AREA_OFFSET + (skip4Args ? BYTES_IN_ADDRESS : 0);
-    int varargFPROffset = varargGPROffset + 5*BYTES_IN_ADDRESS ;
+    Offset varargGPROffset = Offset.fromInt(VARARG_AREA_OFFSET + (skip4Args ? BYTES_IN_ADDRESS : 0));
+    Offset varargFPROffset = varargGPROffset.add(5*BYTES_IN_ADDRESS);
 
     // compute the offset into the spill area of the native caller frame, 
     // skipping the args which are not part of the arguments for the target method
@@ -247,7 +250,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
                           (skip4Args ? 4*BYTES_IN_ADDRESS : 3*BYTES_IN_ADDRESS);
 
     // address to return pointing to the var arg list
-    VM_Address varargAddress = gluefp.add(spillAreaOffset);
+    Address varargAddress = gluefp.add(spillAreaOffset);
 
     // VM.sysWrite("pushVarArgToSpillArea:  var arg at " + 
     //             VM.intAsHexString(varargAddress) + "\n");
@@ -257,43 +260,43 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     int argCount = argTypes.length;
 
     for (int i=0; i<argCount && spillAreaOffset<spillAreaLimit ; i++) {
-      VM_Word hiword, loword;
+      Word hiword, loword;
 
       if (argTypes[i].isFloatType() || argTypes[i].isDoubleType()) {
         // move 2 words from the vararg FPR save area into the spill area of the caller
-        hiword = VM_Magic.getMemoryWord(gluefp.add(varargFPROffset));
-        varargFPROffset+=BYTES_IN_ADDRESS;
+        hiword = gluefp.loadWord(varargFPROffset);
+        varargFPROffset = varargFPROffset.add(BYTES_IN_ADDRESS);
         if (VM.BuildFor32Addr) {
-          loword = VM_Magic.getMemoryWord(gluefp.add(varargFPROffset));
-          varargFPROffset+=BYTES_IN_ADDRESS;
+          loword = gluefp.loadWord(varargFPROffset);
+          varargFPROffset = varargFPROffset.add(BYTES_IN_ADDRESS);
         }
-        VM_Magic.setMemoryWord(gluefp.add(spillAreaOffset), hiword);
+        gluefp.store(hiword, Offset.fromInt(spillAreaOffset));
         spillAreaOffset+=BYTES_IN_ADDRESS;
         if (VM.BuildFor32Addr) {
-          VM_Magic.setMemoryWord(gluefp.add(spillAreaOffset), loword);
+          gluefp.store(loword, Offset.fromInt(spillAreaOffset));
           spillAreaOffset+=BYTES_IN_ADDRESS;
         }
       } 
 
       else if (argTypes[i].isLongType()) {
         // move 2 words from the vararg GPR save area into the spill area of the caller
-        hiword = VM_Magic.getMemoryWord(gluefp.add(varargGPROffset));
-        varargGPROffset+=BYTES_IN_ADDRESS;
-        VM_Magic.setMemoryWord(gluefp.add(spillAreaOffset), hiword);
+        hiword = gluefp.loadWord(varargGPROffset);
+        varargGPROffset = varargGPROffset.add(BYTES_IN_ADDRESS);
+        gluefp.store(hiword, Offset.fromInt(spillAreaOffset));
         spillAreaOffset+=BYTES_IN_ADDRESS;
         // this covers the case when the long value straddles the spill boundary
         if (VM.BuildFor32Addr && spillAreaOffset<spillAreaLimit) {
-          loword = VM_Magic.getMemoryWord(gluefp.add(varargGPROffset));
-          varargGPROffset+=BYTES_IN_ADDRESS;
-          VM_Magic.setMemoryWord(gluefp.add(spillAreaOffset), loword);
+          loword = gluefp.loadWord(varargGPROffset);
+          varargGPROffset = varargGPROffset.add(BYTES_IN_ADDRESS);
+          gluefp.store(loword, Offset.fromInt(spillAreaOffset));
           spillAreaOffset+=BYTES_IN_ADDRESS;
         }
       }
 
       else {
-        hiword = VM_Magic.getMemoryWord(gluefp.add(varargGPROffset));
-        varargGPROffset+=BYTES_IN_ADDRESS;
-        VM_Magic.setMemoryWord(gluefp.add(spillAreaOffset), hiword);
+        hiword = gluefp.loadWord(varargGPROffset);
+        varargGPROffset = varargGPROffset.add(BYTES_IN_ADDRESS);
+        gluefp.store(hiword, Offset.fromInt(spillAreaOffset));
         spillAreaOffset+=BYTES_IN_ADDRESS;
       }
 
@@ -305,15 +308,15 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
   }
   //-#else   // RVM_WITH_MACH_O_ABI
-  private static VM_Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception, VM_PragmaNoInline {
+  private static Address pushVarArgToSpillArea(int methodID, boolean skip4Args) throws Exception, NoInlinePragma {
 
 
     // get the FP for this stack frame and traverse 2 frames to get to the glue frame
-    VM_Address currentfp = VM_Magic.getFramePointer(); 
-    VM_Address gluefp = VM_Magic.getMemoryAddress(VM_Magic.getFramePointer().add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
-    gluefp = VM_Magic.getMemoryAddress(gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
-    gluefp = VM_Magic.getMemoryAddress(gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
-    VM_Address gluecallerfp = VM_Magic.getMemoryAddress(gluefp.add(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET));
+    Address currentfp = VM_Magic.getFramePointer(); 
+    Address gluefp = VM_Magic.getFramePointer().loadAddress(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET);
+    gluefp = gluefp.loadAddress(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET);
+    gluefp = gluefp.loadAddress(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET);
+    Address gluecallerfp = gluefp.loadAddress(VM_Constants.STACKFRAME_FRAME_POINTER_OFFSET);
     // compute the offset into the spill area of the native caller frame, 
     // skipping the args which are not part of the arguments for the target method
 
@@ -345,27 +348,27 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     // class id, method id, object instance. These are *not* passed to
     // the Java method itself:
     
-    VM_Address targetAddress = gluefp.add(STACKFRAME_HEADER_SIZE+
+    Address targetAddress = gluefp.add(STACKFRAME_HEADER_SIZE+
                                           ((skip4Args?4:3))* BYTES_IN_ADDRESS);
 
     int spillRequiredAtOffset = registerBlock -
       ((skip4Args?4:3))* BYTES_IN_ADDRESS;
 
     if (argSize > spillRequiredAtOffset) {
-      VM_Word word;
+      Word word;
       int targetOffset = 0;
       int srcOffset = 0;
       // gcc puts the extra var arg information is 14 words into the caller
       // frame: 3 for standard header, 8 register spill, and 3
       // unknown.
       
-      VM_Address srcAddress = gluecallerfp.add(14 * BYTES_IN_ADDRESS);
+      Address srcAddress = gluecallerfp.add(14 * BYTES_IN_ADDRESS);
 
       for (targetOffset = spillRequiredAtOffset;
            targetOffset <= argSize;
            srcOffset += BYTES_IN_ADDRESS, targetOffset += BYTES_IN_ADDRESS) {
-        word = VM_Magic.getMemoryWord(srcAddress.add(srcOffset));
-        VM_Magic.setMemoryWord(targetAddress.add(targetOffset), word);
+        word = srcAddress.loadWord(srcOffset);
+        targetAddress.store(word, Offset.fromInt(targetOffset));
       }
     }
 
@@ -382,7 +385,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param argAddress a raw address for the variable argument list
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithVarArg(int methodID, VM_Address argAddress, 
+  public static Object invokeWithVarArg(int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType) 
     throws Exception {
     //-#if RVM_WITH_POWEROPEN_ABI
@@ -402,7 +405,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithVarArg(Object obj, int methodID, VM_Address argAddress, 
+  public static Object invokeWithVarArg(Object obj, int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType, 
                                         boolean skip4Args) 
     throws Exception {
@@ -421,7 +424,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param argAddress a raw address for the argument array
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithJValue(int methodID, VM_Address argAddress, 
+  public static Object invokeWithJValue(int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType) 
     throws Exception {
     return packageAndInvoke(null, methodID, argAddress, expectReturnType, false, JVALUE_ARG);
@@ -436,7 +439,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param skip4Args received from the JNI function, passed on to VM_Reflection.invoke()
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object invokeWithJValue(Object obj, int methodID, VM_Address argAddress, 
+  public static Object invokeWithJValue(Object obj, int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType, 
                                         boolean skip4Args) 
     throws Exception {
@@ -466,7 +469,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    *                  jvalue format
    * @return an object that may be the return object or a wrapper for the primitive return value 
    */
-  public static Object packageAndInvoke(Object obj, int methodID, VM_Address argAddress, 
+  public static Object packageAndInvoke(Object obj, int methodID, Address argAddress, 
                                         VM_TypeReference expectReturnType, 
                                         boolean skip4Args, int argtype) 
     throws Exception {
@@ -542,9 +545,9 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    * @param targetMethod, the call target
    * @param glueFP, the glue stack frame pointer
    */
-  static Object[] packageParameterFromDotArgSVR4(VM_Method targetMethod, VM_Address glueFP, boolean skip4Args) {
+  static Object[] packageParameterFromDotArgSVR4(VM_Method targetMethod, Address glueFP, boolean skip4Args) {
     // native method's stack frame
-    VM_Address nativeFP = VM_Magic.getCallerFramePointer(glueFP);
+    Address nativeFP = VM_Magic.getCallerFramePointer(glueFP);
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
@@ -552,10 +555,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     VM_JNIEnvironment env = VM_Thread.getCurrentThread().getJNIEnv();
 
     // GPR r3 - r10 and FPR f1 - f8 are saved in glue stack frame
-    VM_Address regsavearea = glueFP.add(VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE);
+    Address regsavearea = glueFP.add(VM_StackframeLayoutConstants.STACKFRAME_HEADER_SIZE);
 
     // spill area offset
-    VM_Address overflowarea = nativeFP.add(NATIVE_FRAME_HEADER_SIZE);
+    Address overflowarea = nativeFP.add(NATIVE_FRAME_HEADER_SIZE);
     
     //-#if RVM_FOR_LINUX
     //overflowarea is aligned to 8 bytes
@@ -571,8 +574,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     // and fpr starting array address, so we can use gpr and fpr to 
     // calculate the right position to get values
     // GPR starts with r3;
-    VM_Address gprarray = regsavearea.add(-3*BYTES_IN_ADDRESS); 
-    VM_Address fprarray = regsavearea.add(8*BYTES_IN_ADDRESS-2*BYTES_IN_ADDRESS);
+    Address gprarray = regsavearea.add(-3*BYTES_IN_ADDRESS); 
+    Address fprarray = regsavearea.add(8*BYTES_IN_ADDRESS-2*BYTES_IN_ADDRESS);
 
     // call the common function for SVR4
     packageArgumentForSVR4(argTypes, argObjectArray, gprarray, fprarray, overflowarea, gpr, fpr, env); 
@@ -603,7 +606,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   //
   // -- Feng
   //
-  static Object[] packageParameterFromVarArgSVR4(VM_Method targetMethod, VM_Address argAddress) {
+  static Object[] packageParameterFromVarArgSVR4(VM_Method targetMethod, Address argAddress) {
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
@@ -614,14 +617,14 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     // GPR FPR 0 0   (4 bytes)
     // overflowarea  (pointer)
     // reg_save_area (pointer)
-    VM_Address va_list_addr = argAddress;
-    int word1 = VM_Magic.getMemoryWord(va_list_addr).toInt();
+    Address va_list_addr = argAddress;
+    int word1 = va_list_addr.loadWord().toInt();
     int gpr = word1 >> 24;
     int fpr = (word1 >> 16) & 0x0FF;
     va_list_addr = va_list_addr.add(BYTES_IN_ADDRESS);
-    VM_Address overflowarea = VM_Magic.getMemoryAddress(va_list_addr);
+    Address overflowarea = va_list_addr.loadAddress();
     va_list_addr = va_list_addr.add(BYTES_IN_ADDRESS);
-    VM_Address regsavearea = VM_Magic.getMemoryAddress(va_list_addr);
+    Address regsavearea = va_list_addr.loadAddress();
     
     //-#if RVM_FOR_LINUX
     //overflowarea is aligned to 8 bytes
@@ -637,8 +640,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     // and fpr starting array address, so we can use gpr and fpr to 
     // calculate the right position to get values
     // GPR starts with r3;
-    VM_Address gprarray = regsavearea.add(-3*BYTES_IN_ADDRESS); 
-    VM_Address fprarray = regsavearea.add(8*BYTES_IN_ADDRESS-2*BYTES_IN_ADDRESS);
+    Address gprarray = regsavearea.add(-3*BYTES_IN_ADDRESS); 
+    Address fprarray = regsavearea.add(8*BYTES_IN_ADDRESS-2*BYTES_IN_ADDRESS);
     
     // call the common function for SVR4
     packageArgumentForSVR4(argTypes, argObjectArray, gprarray, fprarray, overflowarea, gpr, fpr, env); 
@@ -650,8 +653,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
   //-#if RVM_WITH_SVR4_ABI
   static void packageArgumentForSVR4(VM_TypeReference[] argTypes, Object[] argObjectArray,
-                                     VM_Address gprarray, VM_Address fprarray,
-                                     VM_Address overflowarea, int gpr, int fpr,
+                                     Address gprarray, Address fprarray,
+                                     Address overflowarea, int gpr, int fpr,
                                      VM_JNIEnvironment env) {
     // also make overflow offset, we may need to round it
     int overflowoffset = 0;
@@ -666,14 +669,14 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
           // overflow, OTHER
           // round it, bytes are saved from lowest to highest one, regardless endian
           overflowoffset = (overflowoffset + 7) & -8;
-          hiword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          hiword = overflowarea.add(overflowoffset).loadInt();
           overflowoffset += BYTES_IN_INT;
-          loword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          loword = overflowarea.add(overflowoffset).loadInt();
           overflowoffset += BYTES_IN_INT;
         } else {
           // get value from fpr, increase fpr by 1
-          hiword = VM_Magic.getMemoryInt(fprarray.add(fpr*BYTES_IN_DOUBLE));
-          loword = VM_Magic.getMemoryInt(fprarray.add(fpr*BYTES_IN_DOUBLE + BYTES_IN_INT));
+          hiword = fprarray.add(fpr*BYTES_IN_DOUBLE).loadInt();
+          loword = fprarray.add(fpr*BYTES_IN_DOUBLE + BYTES_IN_INT).loadInt();
           fpr += 1;
         }
         long doubleBits = (((long)hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
@@ -691,17 +694,17 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
           // overflow, OTHER
           // round overflowoffset, assuming overflowarea is aligned to 8 bytes
           overflowoffset = (overflowoffset + 7) & -8;
-          hiword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          hiword = overflowarea.add(overflowoffset).loadInt();
           overflowoffset += BYTES_IN_INT;
-          loword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          loword = overflowarea.add(overflowoffset).loadInt();
           overflowoffset += BYTES_IN_INT;
           
           // va-ppc.h makes last gpr useless
           gpr = 11;
         } else {
           gpr += (gpr + 1) & 0x01;  // if gpr is even, gpr += 1
-          hiword = VM_Magic.getMemoryInt(gprarray.add(gpr*4));
-          loword = VM_Magic.getMemoryInt(gprarray.add((gpr+1)*4));
+          hiword = gprarray.add(gpr*4).loadInt();
+          loword = gprarray.add((gpr+1)*4).loadInt();
           gpr += 2;
         }
         long longBits = (((long)hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
@@ -713,10 +716,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         int ivalue;
         if (gpr > LAST_OS_PARAMETER_GPR) {
           // overflow, OTHER
-          ivalue = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          ivalue = overflowarea.add(overflowoffset).loadInt();
           overflowoffset += 4;
         } else {
-          ivalue = VM_Magic.getMemoryInt(gprarray.add(gpr*4));
+          ivalue = gprarray.add(gpr*4).loadInt();
           gpr += 1;
         } 
         
@@ -742,8 +745,8 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
   }
   //-#elif RVM_WITH_MACH_O_ABI
   static void packageArgumentForSVR4(VM_TypeReference[] argTypes, Object[] argObjectArray,
-                                     VM_Address gprarray, VM_Address fprarray,
-                                     VM_Address overflowarea, int gpr, int fpr,
+                                     Address gprarray, Address fprarray,
+                                     Address overflowarea, int gpr, int fpr,
                                      VM_JNIEnvironment env) {
     // also make overflow offset, we may need to round it
     int overflowoffset = 0;
@@ -759,14 +762,14 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
           // overflow, OTHER
           // round it, bytes are saved from lowest to highest one, regardless endian
           // overflowoffset = (overflowoffset + 7) & -8;
-          hiword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          hiword = overflowarea.add(overflowoffset).loadInt();
           overflowoffset += BYTES_IN_INT;
-          loword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          loword = overflowarea.add(overflowoffset).loadInt();
           overflowoffset += BYTES_IN_INT;
         } else {
           // get value from fpr, increase fpr by 1
-          hiword = VM_Magic.getMemoryInt(fprarray.add(fpr*BYTES_IN_DOUBLE));
-          loword = VM_Magic.getMemoryInt(fprarray.add(fpr*BYTES_IN_DOUBLE + BYTES_IN_INT));
+          hiword = fprarray.add(fpr*BYTES_IN_DOUBLE).loadInt();
+          loword = fprarray.add(fpr*BYTES_IN_DOUBLE + BYTES_IN_INT).loadInt();
         }
         long doubleBits = (((long)hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
         if (argTypes[i].isFloatType()) {
@@ -784,16 +787,16 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
           // overflow, OTHER
           // round overflowoffset, assuming overflowarea is aligned to 8 bytes
           //overflowoffset = (overflowoffset + 7) & -8;
-          hiword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          hiword = overflowarea.add(overflowoffset).loadInt();
           overflowoffset += BYTES_IN_INT;
-          loword = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          loword = overflowarea.add(overflowoffset).loadInt();
           overflowoffset += BYTES_IN_INT;
           
           // va-ppc.h makes last gpr useless
           regIncrementGpr = 2;
         } else {
-          hiword = VM_Magic.getMemoryInt(gprarray.add(gpr*4));
-          loword = VM_Magic.getMemoryInt(gprarray.add((gpr+1)*4));
+          hiword = gprarray.loadInt(gpr*4);
+          loword = gprarray.loadInt((gpr+1)*4);
           regIncrementGpr = 2;
         }
         long longBits = (((long)hiword) << BITS_IN_INT) | (loword & 0xFFFFFFFFL);
@@ -804,10 +807,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         int ivalue;
         if (gpr > LAST_OS_PARAMETER_GPR) {
           // overflow, OTHER
-          ivalue = VM_Magic.getMemoryInt(overflowarea.add(overflowoffset));
+          ivalue = overflowarea.add(overflowoffset).loadInt();
           overflowoffset += 4;
         } else {
-          ivalue = VM_Magic.getMemoryInt(gprarray.add(gpr*4));
+          ivalue = gprarray.loadInt(gpr*4);
         } 
         
         //              VM.sysWriteln("int "+ivalue);
@@ -842,7 +845,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
-  static Object[] packageParameterFromVarArg(VM_Method targetMethod, VM_Address argAddress) {
+  static Object[] packageParameterFromVarArg(VM_Method targetMethod, Address argAddress) {
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
@@ -852,10 +855,10 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
 
     // VM.sysWrite("JNI packageParameterFromVarArg: packaging " + argCount + " arguments\n");
 
-    VM_Address addr = argAddress;
+    Address addr = argAddress;
     for (int i=0; i<argCount; i++) {
-      VM_Word loword, hiword;
-      hiword = VM_Magic.getMemoryWord(addr);
+      Word loword, hiword;
+      hiword = addr.loadWord();
 
       // VM.sysWrite("JNI packageParameterFromVarArg:  arg " + i + " = " + hiword + 
       // " or " + VM.intAsHexString(hiword) + "\n");
@@ -868,7 +871,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         // NOTE:  in VarArg convention, C compiler will expand a float to a double that occupy 2 words
         // so we have to extract it as a double and convert it back to a float
         if (VM.BuildFor32Addr) {
-          loword = VM_Magic.getMemoryWord(addr);
+          loword = addr.loadWord();
           addr = addr.add(BYTES_IN_ADDRESS);                       
           long doubleBits = (((long) hiword.toInt()) << BITS_IN_INT) | (loword.toInt() & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapFloat((float) (Double.longBitsToDouble(doubleBits)));
@@ -877,7 +880,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         }
       } else if (argTypes[i].isDoubleType()) {
         if (VM.BuildFor32Addr) {
-          loword = VM_Magic.getMemoryWord(addr);
+          loword = addr.loadWord();
           addr = addr.add(BYTES_IN_ADDRESS);
           long doubleBits = (((long) hiword.toInt()) << BITS_IN_INT) | (loword.toInt() & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapDouble(Double.longBitsToDouble(doubleBits));
@@ -886,7 +889,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
         }
       } else if (argTypes[i].isLongType()) { 
         if (VM.BuildFor32Addr) {
-          loword = VM_Magic.getMemoryWord(addr);
+          loword = addr.loadWord();
           addr = addr.add(BYTES_IN_ADDRESS);
           long longValue = (((long) hiword.toInt()) << BITS_IN_INT) | (loword.toInt() & 0xFFFFFFFFL);
           argObjectArray[i] = VM_Reflection.wrapLong(longValue);
@@ -925,7 +928,7 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
    *                   each element is 2-word and holds the argument of the appropriate type
    * @return an Object array holding the arguments wrapped at Objects
    */
-  static Object[] packageParameterFromJValue(VM_Method targetMethod, VM_Address argAddress) {
+  static Object[] packageParameterFromJValue(VM_Method targetMethod, Address argAddress) {
     VM_TypeReference[] argTypes = targetMethod.getParameterTypes();
     int argCount = argTypes.length;
     Object[] argObjectArray = new Object[argCount];
@@ -936,11 +939,11 @@ public abstract class VM_JNIHelpers extends VM_JNIGenericHelpers implements VM_R
     // VM.sysWrite("JNI packageParameterFromJValue: packaging " + argCount + " arguments\n");
 
     for (int i=0; i<argCount; i++) {
-      VM_Address addr = argAddress.add(BYTES_IN_DOUBLE*i);
-      VM_Word hiword = VM_Magic.getMemoryWord(addr);
-      VM_Word loword;
+      Address addr = argAddress.add(BYTES_IN_DOUBLE*i);
+      Word hiword = addr.loadWord();
+      Word loword;
       if (VM.BuildFor32Addr) {
-        loword = VM_Magic.getMemoryWord(addr.add(BYTES_IN_ADDRESS));
+        loword = addr.add(BYTES_IN_ADDRESS).loadWord();
       }
 
       // VM.sysWrite("JNI packageParameterFromJValue:  arg " + i + " = " + hiword + 

@@ -7,13 +7,12 @@ package com.ibm.JikesRVM.memoryManagers.mmInterface;
 
 import org.mmtk.plan.Plan;
 
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
+
+import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_JavaHeader;
 import com.ibm.JikesRVM.BootImageInterface;
-import com.ibm.JikesRVM.VM_Magic;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
 
 /**
  * Chooses the appropriate collector-specific header model.
@@ -37,13 +36,13 @@ public final class VM_AllocatorHeader {
    */
   public static void initializeHeader(BootImageInterface bootImage, int ref,
                                       Object[] tib, int size, boolean isScalar)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
-    VM_Word status = Plan.getBootTimeAvailableBits(ref, tib, size, VM_Word.zero());
+    Word status = Plan.getBootTimeAvailableBits(ref, VM_Magic.objectAsAddress(tib), size, Word.zero());
     VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }
 
-  public static void dumpHeader(Object ref) throws VM_PragmaUninterruptible {
+  public static void dumpHeader(Object ref) throws UninterruptiblePragma {
     // currently unimplemented
     //    Header.dumpHeader(VM_Magic.objectAsAddress(ref));
   }

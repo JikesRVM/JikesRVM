@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.unboxed.*;
+
 /**----------------------------------------------------------------------
  *                   Stackframe layout conventions - Intel version.  
  *-----------------------------------------------------------------------
@@ -143,7 +145,7 @@ public interface VM_StackframeLayoutConstants  {
    static final int FPU_STATE_SIZE                     = 108;
 
   /** fp value indicating end of stack walkback */
-  static final VM_Address STACKFRAME_SENTINEL_FP = VM_Address.fromIntSignExtend(-2);
+  static final Address STACKFRAME_SENTINEL_FP = Address.fromIntSignExtend(-2);
   /** marker for "assembler" frames that have no associated VM_Method */
   static final int INVISIBLE_METHOD_ID    = -1;
 

@@ -6,17 +6,17 @@ package org.mmtk.utility;
 
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Uninterruptible;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /*
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-abstract class CycleDetector implements VM_Uninterruptible {
+abstract class CycleDetector implements Uninterruptible {
   public final static String Id = "$Id$"; 
 
   abstract boolean collectCycles(int count, boolean time);
-  abstract void possibleCycleRoot(VM_Address object);
+  abstract void possibleCycleRoot(Address object);
 }

@@ -7,10 +7,10 @@ package org.mmtk.utility.deque;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_PragmaNoInline;
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaUninterruptible;
+import org.vmmagic.unboxed.*;
+
+
+
 /**
  * This supports <i>unsynchronized</i> enqueuing and dequeuing of
  * address triples
@@ -19,7 +19,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */ 
-public class AddressTripleDeque extends LocalDeque implements Constants, VM_Uninterruptible {
+public class AddressTripleDeque extends LocalDeque implements Constants, Uninterruptible {
   public final static String Id = "$Id$"; 
  
   /****************************************************************************
@@ -45,8 +45,8 @@ public class AddressTripleDeque extends LocalDeque implements Constants, VM_Unin
    * @param addr2 the second address to be inserted into the address queue
    * @param addr3 the third address to be inserted into the address queue
    */
-  public final void insert(VM_Address addr1, VM_Address addr2, 
-                           VM_Address addr3) {
+  public final void insert(Address addr1, Address addr2, 
+                           Address addr3) {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr3.isZero());
@@ -62,7 +62,7 @@ public class AddressTripleDeque extends LocalDeque implements Constants, VM_Unin
    * @param addr2 the second value to be pushed onto the address queue
    * @param addr2 the third address to be pushed onto the address queue
    */
-  public final void push(VM_Address addr1, VM_Address addr2, VM_Address addr3){
+  public final void push(Address addr1, Address addr2, Address addr3){
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr1.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr2.isZero());
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(!addr3.isZero());
@@ -79,11 +79,11 @@ public class AddressTripleDeque extends LocalDeque implements Constants, VM_Unin
    * @return The next address in the address queue, or zero if the
    * queue is empty
    */
-  public final VM_Address pop1() {
+  public final Address pop1() {
      if (checkDequeue(3))
       return uncheckedDequeue();
     else
-      return VM_Address.zero();
+      return Address.zero();
   }
   
   /**
@@ -91,7 +91,7 @@ public class AddressTripleDeque extends LocalDeque implements Constants, VM_Unin
    *
    * @return The next address in the address queue
    */
-  public final VM_Address pop2() {
+  public final Address pop2() {
     return uncheckedDequeue();
   }
 
@@ -101,7 +101,7 @@ public class AddressTripleDeque extends LocalDeque implements Constants, VM_Unin
    *
    * @return The next address in the address queue
    */
-  public final VM_Address pop3() {
+  public final Address pop3() {
     return uncheckedDequeue();
   }
 }

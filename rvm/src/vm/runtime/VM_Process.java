@@ -4,6 +4,7 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
 import com.ibm.JikesRVM.classloader.*;
 import java.io.*;
 
@@ -65,7 +66,7 @@ public class VM_Process extends java.lang.Process {
    * Get the <code>VM_Processor</code> that the child process was
    * created from.
    */
-  VM_Processor getCreatingProcessor() throws VM_PragmaUninterruptible {
+  VM_Processor getCreatingProcessor() throws UninterruptiblePragma {
     return creatingProcessor;
   }
 

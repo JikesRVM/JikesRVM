@@ -8,7 +8,7 @@
 
 package org.mmtk.vm.gcspy;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
+
 
 /**
  * This abstract class is the super-class for all tiles. In particular, it
@@ -19,7 +19,7 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * @date $Date$
  */
 public abstract class AbstractTile 
-  implements  VM_Uninterruptible {
+  implements  Uninterruptible {
   public final static String Id = "$Id$";
 
   // Controls used for tile presentation

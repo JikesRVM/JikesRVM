@@ -8,12 +8,8 @@ package org.mmtk.utility.scan;
 import org.mmtk.vm.Constants;
 import org.mmtk.vm.VM_Interface;
 
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Offset;
-
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class encapsulates type-specific memory management information. 
@@ -23,12 +19,12 @@ import com.ibm.JikesRVM.VM_PragmaInline;
  * @version $Revision$
  * @date $Date$
  */ 
-public final class MMType implements Constants, VM_Uninterruptible {
+public final class MMType implements Constants, Uninterruptible {
   // AJG: Maybe should make this immutable.  See Item 13 of Effective Java.
   private boolean isReferenceArray;
   private boolean isDelegated;
   private boolean isAcyclic;
-  private VM_Offset arrayOffset;
+  private Offset arrayOffset;
   private int [] offsets;
   private int allocator;
   
@@ -62,7 +58,7 @@ public final class MMType implements Constants, VM_Uninterruptible {
    */
   public MMType(boolean isDelegated, boolean isReferenceArray, 
                 boolean isAcyclic, int allocator, int [] offsets)
-    throws VM_PragmaInterruptible {
+    throws InterruptiblePragma {
     this.isDelegated = isDelegated;
     this.isReferenceArray = isReferenceArray;
     this.isAcyclic = isAcyclic;
@@ -84,7 +80,7 @@ public final class MMType implements Constants, VM_Uninterruptible {
    * into an array
    * @return The address of the relevant slot within the object
    */
-  VM_Address getSlot(VM_Address object, int reference) throws VM_PragmaInline {
+  Address getSlot(Address object, int reference) throws InlinePragma {
     if (isReferenceArray)
       return object.add(arrayOffset).add(reference << LOG_BYTES_IN_ADDRESS);
     else
@@ -99,7 +95,7 @@ public final class MMType implements Constants, VM_Uninterruptible {
    * @param object The object in question
    * @return The number of references in the object
    */
-  int getReferences(VM_Address object) throws VM_PragmaInline {
+  int getReferences(Address object) throws InlinePragma {
     if (isReferenceArray)
       return VM_Interface.getArrayLength(object);
     else
@@ -116,7 +112,7 @@ public final class MMType implements Constants, VM_Uninterruptible {
    *
    * @param size The number of bytes allocated
    */
-  void profileAlloc(int size) throws VM_PragmaInline {
+  void profileAlloc(int size) throws InlinePragma {
     if (PROFILING_STATISTICS) {
       allocCount++;
       allocBytes += size;
@@ -128,7 +124,7 @@ public final class MMType implements Constants, VM_Uninterruptible {
    *
    * @param size The number of bytes copied. 
    */
-  public void profileCopy(int size) throws VM_PragmaInline {
+  public void profileCopy(int size) throws InlinePragma {
     if (PROFILING_STATISTICS) {
       copyCount++;
       copyBytes += size;
@@ -140,7 +136,7 @@ public final class MMType implements Constants, VM_Uninterruptible {
    *
    * @param size The number of bytes scanned. 
    */
-  void profileScan(int size) throws VM_PragmaInline {
+  void profileScan(int size) throws InlinePragma {
     if (PROFILING_STATISTICS) {
       scanCount++;
       scanBytes += size;

@@ -10,12 +10,8 @@ import org.mmtk.utility.heap.*;
 import org.mmtk.vm.VM_Interface;
 import org.mmtk.vm.Constants;
 
-import com.ibm.JikesRVM.VM_Uninterruptible;
-import com.ibm.JikesRVM.VM_PragmaInline;
-import com.ibm.JikesRVM.VM_Address;
-import com.ibm.JikesRVM.VM_Word;
-import com.ibm.JikesRVM.VM_Magic;
-
+import org.vmmagic.unboxed.*;
+import org.vmmagic.pragma.*;
 
 /**
  * This class implements tracing functionality for a simple copying
@@ -34,7 +30,7 @@ import com.ibm.JikesRVM.VM_Magic;
  * @date $Date$
  */
 public final class CopySpace extends BasePolicy 
-  implements Constants, VM_Uninterruptible {
+  implements Constants, Uninterruptible {
 
   /****************************************************************************
    *
@@ -44,10 +40,10 @@ public final class CopySpace extends BasePolicy
   public static final int GLOBAL_GC_BITS_REQUIRED = 0;
   public static final int GC_HEADER_BYTES_REQUIRED = 0;
 
-  private static final VM_Word GC_MARK_BIT_MASK = VM_Word.one();
-  private static final VM_Word GC_FORWARDED        = VM_Word.one().lsh(1);  // ...10
-  private static final VM_Word GC_BEING_FORWARDED  = VM_Word.one().lsh(2).sub(VM_Word.one());  // ...11
-  private static final VM_Word GC_FORWARDING_MASK  = GC_FORWARDED.or(GC_BEING_FORWARDED);
+  private static final Word GC_MARK_BIT_MASK = Word.one();
+  private static final Word GC_FORWARDED        = Word.one().lsh(1);  // ...10
+  private static final Word GC_BEING_FORWARDED  = Word.one().lsh(2).sub(Word.one());  // ...11
+  private static final Word GC_FORWARDING_MASK  = GC_FORWARDED.or(GC_BEING_FORWARDED);
 
   public static void prepare(VMResource vm, MemoryResource mr) { }
   public static void release(VMResource vm, MemoryResource mr) { }
@@ -61,8 +57,8 @@ public final class CopySpace extends BasePolicy
    * @param object The object to be traced.
    * @return The forwarded object.
    */
-  public static VM_Address traceObject(VM_Address object) 
-    throws VM_PragmaInline {
+  public static Address traceObject(Address object) 
+    throws InlinePragma {
     return forwardObject(object, true);
   }
 
@@ -72,8 +68,8 @@ public final class CopySpace extends BasePolicy
    * @param object The object to be marked
    * @param markState The sense of the mark bit (flips from 0 to 1)
    */
-  public static void markObject(VM_Address object, VM_Word markState) 
-    throws VM_PragmaInline {
+  public static void markObject(Address object, Word markState) 
+    throws InlinePragma {
     if (testAndMark(object, markState)) 
       VM_Interface.getPlan().enqueue(object);
   }
@@ -84,8 +80,8 @@ public final class CopySpace extends BasePolicy
    * @param object The object to be forwarded.
    * @return The forwarded object.
    */
-  public static VM_Address forwardObject(VM_Address object) 
-    throws VM_PragmaInline {
+  public static Address forwardObject(Address object) 
+    throws InlinePragma {
     return forwardObject(object, false);
   }
 
@@ -98,22 +94,22 @@ public final class CopySpace extends BasePolicy
    * scanning if the object was previously unforwarded.
    * @return The forwarded object.
    */
-  private static VM_Address forwardObject(VM_Address object, boolean scan) 
-    throws VM_PragmaInline {
-    VM_Word forwardingPtr = attemptToForward(object);
+  private static Address forwardObject(Address object, boolean scan) 
+    throws InlinePragma {
+    Word forwardingPtr = attemptToForward(object);
 
     // Somebody else got to it first.
     //
     if (stateIsForwardedOrBeingForwarded(forwardingPtr)) {
       while (stateIsBeingForwarded(forwardingPtr)) 
         forwardingPtr = getForwardingWord(object);
-      VM_Address newObject = forwardingPtr.and(GC_FORWARDING_MASK.not()).toAddress();
+      Address newObject = forwardingPtr.and(GC_FORWARDING_MASK.not()).toAddress();
       return newObject;
     }
 
     // We are the designated copier
     //
-    VM_Address newObject = VM_Interface.copy(object);
+    Address newObject = VM_Interface.copy(object);
     setForwardingPointer(object, newObject);
     if (scan) {
       Plan.enqueue(newObject);       // Scan it later
@@ -125,7 +121,7 @@ public final class CopySpace extends BasePolicy
   }
 
 
-  public static boolean isLive(VM_Address obj) {
+  public static boolean isLive(Address obj) {
     return isForwarded(obj);
   }
 
@@ -140,8 +136,8 @@ public final class CopySpace extends BasePolicy
    * 
    * @param object the object ref to the storage to be initialized
    */
-  public static void clearGCBits(VM_Address object) throws VM_PragmaInline {
-    VM_Word header = VM_Interface.readAvailableBitsWord(object);
+  public static void clearGCBits(Address object) throws InlinePragma {
+    Word header = VM_Interface.readAvailableBitsWord(object);
     VM_Interface.writeAvailableBitsWord(object, header.and(GC_FORWARDING_MASK.not()));
   }
  
@@ -151,7 +147,7 @@ public final class CopySpace extends BasePolicy
    * @param object The object to be checked
    * @return True if the object has been forwarded
    */
-  public static boolean isForwarded(VM_Address object) throws VM_PragmaInline {
+  public static boolean isForwarded(Address object) throws InlinePragma {
     return stateIsForwarded(getForwardingWord(object));
   }
 
@@ -161,8 +157,8 @@ public final class CopySpace extends BasePolicy
    * @param object The object to be checked
    * @return True if the object has been forwarded or is being forwarded
    */
-  public static boolean isForwardedOrBeingForwarded(VM_Address object)
-    throws VM_PragmaInline {
+  public static boolean isForwardedOrBeingForwarded(Address object)
+    throws InlinePragma {
     return stateIsForwardedOrBeingForwarded(getForwardingWord(object));
   }
 
@@ -173,8 +169,8 @@ public final class CopySpace extends BasePolicy
    * @return The forwarding word stored in <code>object</code>'s
    * header.
    */
-  private static VM_Word getForwardingWord(VM_Address object)
-    throws VM_PragmaInline {
+  private static Word getForwardingWord(Address object)
+    throws InlinePragma {
     return VM_Interface.readAvailableBitsWord(object);
   }
 
@@ -185,8 +181,8 @@ public final class CopySpace extends BasePolicy
    * @return The forwarding pointer stored in <code>object</code>'s
    * header.
    */
-  public static VM_Address getForwardingPointer(VM_Address object) 
-    throws VM_PragmaInline {
+  public static Address getForwardingPointer(Address object) 
+    throws InlinePragma {
     return getForwardingWord(object).and(GC_FORWARDING_MASK.not()).toAddress();
   }
 
@@ -197,12 +193,12 @@ public final class CopySpace extends BasePolicy
    * @param object The object to be marked
    * @param value The value to store in the mark bit
    */
-  private static boolean testAndMark(VM_Address object, VM_Word value) 
-    throws VM_PragmaInline {
-    VM_Word oldValue;
+  private static boolean testAndMark(Address object, Word value) 
+    throws InlinePragma {
+    Word oldValue;
     do {
       oldValue = VM_Interface.prepareAvailableBits(object);
-      VM_Word markBit = oldValue.and(GC_MARK_BIT_MASK);
+      Word markBit = oldValue.and(GC_MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
     } while (!VM_Interface.attemptAvailableBits(object, oldValue, 
                                                 oldValue.xor(GC_MARK_BIT_MASK)));
@@ -218,9 +214,9 @@ public final class CopySpace extends BasePolicy
    * @return The forwarding pointer for the object if it has already
    * been forwarded.
    */
-  private static VM_Word attemptToForward(VM_Address object) 
-    throws VM_PragmaInline {
-    VM_Word oldValue;
+  private static Word attemptToForward(Address object) 
+    throws InlinePragma {
+    Word oldValue;
     do {
       oldValue = VM_Interface.prepareAvailableBits(object);
       if (oldValue.and(GC_FORWARDING_MASK).EQ(GC_FORWARDED)) return oldValue;
@@ -235,8 +231,8 @@ public final class CopySpace extends BasePolicy
    * @param fword A forwarding word.
    * @return True if the forwarding word's state is being forwarded.
    */
-  private static boolean stateIsBeingForwarded(VM_Word fword)
-    throws VM_PragmaInline {
+  private static boolean stateIsBeingForwarded(Word fword)
+    throws InlinePragma {
     return  fword.and(GC_FORWARDING_MASK).EQ(GC_BEING_FORWARDED);
   }
   
@@ -246,8 +242,8 @@ public final class CopySpace extends BasePolicy
    * @param fword A forwarding word.
    * @return True if the forwarding word's state is forwarded.
    */
-  private static boolean stateIsForwarded(VM_Word fword)
-    throws VM_PragmaInline {
+  private static boolean stateIsForwarded(Word fword)
+    throws InlinePragma {
     return  fword.and(GC_FORWARDING_MASK).EQ(GC_FORWARDED);
   }
   
@@ -258,8 +254,8 @@ public final class CopySpace extends BasePolicy
    * @return True if the forwarding word's state is forwarded or being
    * forwarded.
    */
-  public static boolean stateIsForwardedOrBeingForwarded(VM_Word fword)
-    throws VM_PragmaInline {
+  public static boolean stateIsForwardedOrBeingForwarded(Word fword)
+    throws InlinePragma {
     return !(fword.and(GC_FORWARDED).isZero());
   }
 
@@ -272,8 +268,8 @@ public final class CopySpace extends BasePolicy
    * @param ptr The forwarding pointer to be stored in the object's
    * forwarding word
    */
-  private static void setForwardingPointer(VM_Address object, VM_Address ptr)
-    throws VM_PragmaInline {
+  private static void setForwardingPointer(Address object, Address ptr)
+    throws InlinePragma {
     VM_Interface.writeAvailableBitsWord(object, ptr.toWord().or(GC_FORWARDED));
   }
 }

@@ -4,6 +4,8 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+
 /**
  * Unusual maps are maps to track references that don't take the usual format.
  * Currently unusual maps include:
@@ -13,7 +15,7 @@ package com.ibm.JikesRVM;
  *
  * @author Anthony Cocchi
  */
-final class VM_UnusualMaps implements VM_Uninterruptible {
+final class VM_UnusualMaps implements Uninterruptible {
 
   // set the offset in the stack frame of the return address for this map
   //

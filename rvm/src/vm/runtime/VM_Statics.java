@@ -4,6 +4,9 @@
 //$Id$
 package com.ibm.JikesRVM;
 
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
+
 import com.ibm.JikesRVM.classloader.*;
 import java.util.HashMap;
 
@@ -276,14 +279,14 @@ public class VM_Statics implements VM_Constants {
   /**
    * Fetch number of jtoc slots currently allocated.
    */ 
-  public static int getNumberOfSlots() throws VM_PragmaUninterruptible {
+  public static int getNumberOfSlots() throws UninterruptiblePragma {
     return nextSlot;
   }
 
   /**
    * Fetch total number of slots comprising the jtoc.
    */ 
-  public static int getTotalNumberOfSlots() throws VM_PragmaUninterruptible {
+  public static int getTotalNumberOfSlots() throws UninterruptiblePragma {
     return slots.length;
   }
 
@@ -292,7 +295,7 @@ public class VM_Statics implements VM_Constants {
    * @param    slot number obtained from allocateSlot()
    * @return true --> slot contains a reference
    */ 
-  public static boolean isReference(int slot) throws VM_PragmaUninterruptible {
+  public static boolean isReference(int slot) throws UninterruptiblePragma {
     byte type = descriptions[slot];
     // if (type == CONTINUATION) VM.sysFail("Asked about type of a JTOC continuation slot");
     return (descriptions[slot] & VM_Statics.REFERENCE_TAG) == VM_Statics.REFERENCE_TAG;
@@ -303,11 +306,11 @@ public class VM_Statics implements VM_Constants {
    * @param    slot number obtained from allocateSlot()
    * @return description of slot contents (see "kinds", above)
    */
-  public static byte getSlotDescription(int slot) throws VM_PragmaUninterruptible {
+  public static byte getSlotDescription(int slot) throws UninterruptiblePragma {
     return descriptions[slot];
   }
 
-  public static int getSlotSize (int slot) throws VM_PragmaUninterruptible {
+  public static int getSlotSize (int slot) throws UninterruptiblePragma {
       return ((descriptions[slot] & WIDE_TAG) == WIDE_TAG) ? 2 : 1;
   }
 
@@ -338,21 +341,21 @@ public class VM_Statics implements VM_Constants {
   /**
    * Fetch jtoc object (for JNI environment and GC).
    */ 
-  public static VM_Address getSlots() throws VM_PragmaUninterruptible {
+  public static Address getSlots() throws UninterruptiblePragma {
     return VM_Magic.objectAsAddress(slots);
   }
 
   /**
    * Fetch jtoc object (for JNI environment and GC).
    */ 
-  public static int [] getSlotsAsIntArray() throws VM_PragmaUninterruptible {
+  public static int [] getSlotsAsIntArray() throws UninterruptiblePragma {
     return slots;
   }
 
   /**
    * Fetch contents of a slot, as an integer
    */ 
-  public static int getSlotContentsAsInt(int slot) throws VM_PragmaUninterruptible {
+  public static int getSlotContentsAsInt(int slot) throws UninterruptiblePragma {
     if (VM.VerifyAssertions)
       VM._assert((descriptions[slot] & WIDE_TAG) != WIDE_TAG);
     return slots[slot];
@@ -361,7 +364,7 @@ public class VM_Statics implements VM_Constants {
   /**
    * Fetch contents of a slot-pair, as a long integer.
    */ 
-  public static long getSlotContentsAsLong(int slot) throws VM_PragmaUninterruptible {  
+  public static long getSlotContentsAsLong(int slot) throws UninterruptiblePragma {  
     if (VM.runningVM) {
       return VM_Magic.getLongAtOffset(slots, slot << LOG_BYTES_IN_INT);
     } else {
@@ -380,36 +383,36 @@ public class VM_Statics implements VM_Constants {
   /**
    * Fetch contents of a slot, as an object.
    */ 
-  public static Object getSlotContentsAsObject(int slot) throws VM_PragmaUninterruptible {
+  public static Object getSlotContentsAsObject(int slot) throws UninterruptiblePragma {
     //-#if RVM_FOR_64_ADDR
-    return VM_Magic.addressAsObject(VM_Address.fromLong(getSlotContentsAsLong(slot)));
+    return VM_Magic.addressAsObject(Address.fromLong(getSlotContentsAsLong(slot)));
     //-#else
-    return VM_Magic.addressAsObject(VM_Address.fromIntZeroExtend(slots[slot]));
+    return VM_Magic.addressAsObject(Address.fromIntZeroExtend(slots[slot]));
     //-#endif
   }
 
   /**
    * Fetch contents of a slot, as an object array.
    */ 
-  public static Object[] getSlotContentsAsObjectArray(int slot) throws VM_PragmaUninterruptible {
+  public static Object[] getSlotContentsAsObjectArray(int slot) throws UninterruptiblePragma {
     //-#if RVM_FOR_64_ADDR
-    return VM_Magic.addressAsObjectArray(VM_Address.fromLong(getSlotContentsAsLong(slot)));
+    return VM_Magic.addressAsObjectArray(Address.fromLong(getSlotContentsAsLong(slot)));
     //-#else
-    return VM_Magic.addressAsObjectArray(VM_Address.fromIntZeroExtend(slots[slot]));
+    return VM_Magic.addressAsObjectArray(Address.fromIntZeroExtend(slots[slot]));
     //-#endif
   }
 
   /**
    * Set contents of a slot, as an integer.
    */
-  public static void setSlotContents(int slot, int value) throws VM_PragmaUninterruptible {
+  public static void setSlotContents(int slot, int value) throws UninterruptiblePragma {
     slots[slot] = value;
   }
 
   /**
    * Set contents of a slot, as a long integer.
    */
-  public static void setSlotContents(int slot, long value) throws VM_PragmaUninterruptible {
+  public static void setSlotContents(int slot, long value) throws UninterruptiblePragma {
     if (VM.runningVM) {
       VM_Magic.setLongAtOffset(slots, slot << LOG_BYTES_IN_INT , value);
     } else {
@@ -426,7 +429,7 @@ public class VM_Statics implements VM_Constants {
   /**
    * Set contents of a slot, as an object.
    */ 
-  public static void setSlotContents(int slot, Object object) throws VM_PragmaUninterruptible {
+  public static void setSlotContents(int slot, Object object) throws UninterruptiblePragma {
     if (VM.runningVM) {
       VM_Magic.setObjectAtOffset(slots, slot << LOG_BYTES_IN_INT , object);
     } else {

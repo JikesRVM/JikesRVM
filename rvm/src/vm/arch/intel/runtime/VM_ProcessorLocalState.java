@@ -9,6 +9,8 @@ import com.ibm.JikesRVM.opt.*;
 import com.ibm.JikesRVM.opt.ir.*;
 //-#endif 
 
+import org.vmmagic.pragma.*;
+
 /**
  * This class provides a layer of abstraction that the rest of the VM must
  * use in order to access the current <code>VM_Processor</code> object.
@@ -37,14 +39,14 @@ extends OPT_IRTools
   /**
    * Return the current VM_Processor object
    */
-  public static VM_Processor getCurrentProcessor() throws VM_PragmaUninterruptible {
+  public static VM_Processor getCurrentProcessor() throws UninterruptiblePragma {
     return VM_Magic.getESIAsProcessor();
   }
 
   /**
    * Set the current VM_Processor object
    */
-  public static void setCurrentProcessor(VM_Processor p) throws VM_PragmaUninterruptible {
+  public static void setCurrentProcessor(VM_Processor p) throws UninterruptiblePragma {
     VM_Magic.setESIAsProcessor(p);
   }
 
