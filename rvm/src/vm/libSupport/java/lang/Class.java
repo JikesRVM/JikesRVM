@@ -14,8 +14,10 @@ import java.util.HashMap;
 import com.ibm.JikesRVM.classloader.*;
 
 import com.ibm.JikesRVM.VM_Callbacks;
+import com.ibm.JikesRVM.VM_Reflection;
 import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.VM_UnimplementedError;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
 /**
  * Implementation of java.lang.Class for JikesRVM.
@@ -529,24 +531,66 @@ public final class Class implements java.io.Serializable {
     return type.isPrimitiveType();
   }
 
-  // TODO: LOTS of things wrong here.
   public Object newInstance() throws IllegalAccessException, 
 				     InstantiationException,
+				     ExceptionInInitializerError,
 				     SecurityException {
+    // Basic checks
     checkMemberAccess(Member.PUBLIC);
-    Constructor cons;
+    if (!type.isClassType()) 
+      throw new InstantiationException();
+
+    VM_Class cls = type.asClass();
+
+    if (cls.isAbstract() || cls.isInterface())
+      throw new InstantiationException();
+    
+    // Find the defaultConstructor
+    VM_Method defaultConstructor = null;
+    VM_Method methods[] = type.asClass().getConstructorMethods();
+    for (int i = 0; i < methods.length; i++) {
+      VM_Method method = methods[i];
+      if (method.getParameterTypes().length == 0) {
+	defaultConstructor = method;
+	break;
+      }
+    }
+    if (defaultConstructor == null) 
+      throw new InstantiationException();
+
+    // Check that caller is allowed to access it
+    if (!defaultConstructor.isPublic()) {
+      VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
+      java.lang.reflect.JikesRVMSupport.checkAccess(defaultConstructor, accessingClass);
+    }
+
+    // Ensure that the class is initialized
+    if (!cls.isInitialized()) {
+      try {
+	VM_Runtime.initializeClassForDynamicLink(cls);
+      } catch (Throwable e) {
+	ExceptionInInitializerError ex = new ExceptionInInitializerError();
+	ex.initCause(e);
+	throw ex;
+      }
+    }
+
+    // Allocate an uninitialized instance;
+    int      size = cls.getInstanceSize();
+    Object[] tib  = cls.getTypeInformationBlock();
+    boolean  hasFinalizer = cls.hasFinalizer();
+    int allocator = VM_Interface.pickAllocator(cls);
+    Object   obj  = VM_Runtime.resolvedNewScalar(size, tib, hasFinalizer, allocator);
+
+    // Run the default constructor on the it.
     try {
-      cons = getDeclaredConstructor(null);
-      return cons.newInstance(new Object[0]);
-    } catch (java.lang.reflect.InvocationTargetException e) {
-      InstantiationException ex = new InstantiationException(e.getMessage());
-      ex.initCause(e);
-      throw ex;
-    } catch (NoSuchMethodException e) {
-      IllegalAccessException ex = new IllegalAccessException(e.getMessage());
+      VM_Reflection.invoke(defaultConstructor, obj, null);
+    } catch (Throwable e) {
+      InstantiationException ex = new InstantiationException();
       ex.initCause(e);
       throw ex;
     }
+    return obj;
   }
 
   public String toString() {
