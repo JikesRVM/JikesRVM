@@ -117,13 +117,13 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
       VM._assert(false);
   }
 
-  static void printGCStats(int GCType) throws VM_PragmaUninterruptible {
+  static void printGCStats(int GCType, double beginTime, double endTime) throws VM_PragmaUninterruptible {
 
     if (VM_Allocator.verbose >= 2)
       printGCPhaseTimes();  	
 
     if (VM_Allocator.verbose >= 1 ) {
-      printVerboseOutputLine(GCType);
+      printVerboseOutputLine(GCType, beginTime, endTime);
       if (VM_CollectorThread.MEASURE_WAIT_TIMES)
         VM_CollectorThread.printThreadWaitTimes();
       else {
@@ -164,7 +164,8 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
   }
 
 
-  private static void printVerboseOutputLine (int GCType) throws VM_PragmaUninterruptible {
+  private static void printVerboseOutputLine (int GCType, double beginTime, double endTime) 
+      throws VM_PragmaUninterruptible {
 
     int gcTimeMs = (GCType == MINOR) ? minorGCTime.lastMs() : GCTime.lastMs();
     int free = (int) VM_Allocator.allSmallFreeMemory();
@@ -172,12 +173,20 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
     double freeFraction = free / (double) total;
     int copiedKb = (int) (((GCType == MINOR) ? minorBytesCopied.last() : bytesCopied.last()) / 1024);
 
-    VM.sysWrite("<GC ", gcCount, ">  ");
-    VM.sysWrite(gcTimeMs, " ms ");
-    VM.sysWrite("   small: ", copiedKb, " Kb copied     ");
-    VM.sysWrite(free / 1024, " Kb free (");
-                VM.sysWrite(freeFraction * 100.0); VM.sysWrite("%)   ");
-    VM.sysWrite("rate = "); VM.sysWrite(((double) copiedKb) / gcTimeMs); VM.sysWriteln("(Mb/s)      ");
+    if (VM_Allocator.verbose >= 1) {
+	VM.sysWrite("[GC ", gcCount);
+	VM.sysWrite(" start ", beginTime * 1000.0, "ms");
+	VM.sysWrite(" 0KB -> 0KB  ");
+	VM.sysWriteln(endTime * 1000.0, "ms]");
+    }
+
+    if (VM_Allocator.verbose >= 2) {
+	VM.sysWrite("[GC   small: ", copiedKb, " Kb copied     ");
+	VM.sysWrite(free / 1024, " Kb free (");
+	VM.sysWrite(freeFraction * 100.0); VM.sysWrite("%)   ");
+	VM.sysWrite("rate = "); VM.sysWrite(((double) copiedKb) / gcTimeMs); 
+	VM.sysWriteln("(Mb/s)]");
+    }
 
     if (COUNT_BY_TYPE)	printCountsByType();
 
@@ -209,6 +218,11 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
 
     // showParameter();
     if (VM_Allocator.verbose >=1) {
+	VM.sysWrite("[End ");
+	VM.sysWrite(1000.0 * (VM_Time.now() - VM_Allocator.bootTime));
+	VM.sysWriteln("ms]");
+    }
+    if (VM_Allocator.verbose >=2) {
       VM.sysWriteln("\nGC Summary:  ", gcCount, " Collections");
       if (gcCount != 0) {
         if (minorGCTime.count() > 0) {
@@ -241,7 +255,7 @@ public class VM_GCStatistics implements VM_GCConstants, VM_Callbacks.ExitMonitor
                     collisionCount/gcCount);
     }
 
-    if (VM_Allocator.verbose >= 1 && gcCount>0) {
+    if (VM_Allocator.verbose >= 2 && gcCount>0) {
       VM.sysWrite("Average Time in Phases of Collection:\n");
       VM.sysWrite("startTime ", startTime.avgUs(), "(us) init ");
       VM.sysWrite( initTime.avgUs(), "(us) stacks & statics ");
