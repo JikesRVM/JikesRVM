@@ -507,6 +507,7 @@ function runTests {
 
     if (( failed )) ; then
 	say "Building $NAME failed with status $failed; won't run any tests."
+	say "You are NOT sane. All tests for $NAME are failures."
 	return $failed
     fi
 
