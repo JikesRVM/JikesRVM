@@ -190,7 +190,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
   {
     VM_Thread vt = threads[PRIMORDIAL_THREAD_INDEX];
     
-    vt.setJavaThread(java.lang.JikesRVMSupport.createThread(vt, "Jikes_RVM_Boot_Thread"));
+    vt.setJavaLangThread(java.lang.JikesRVMSupport.createThread(vt, "Jikes_RVM_Boot_Thread"));
   }
 
   /**
