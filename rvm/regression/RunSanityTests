@@ -403,7 +403,6 @@ function doRun
     . $RVM_BUILD/environment
     $RVM_ROOT/rvm/regression/limited.sh $LIMIT "$GNU_MAKE $FLAGS \
 	   BOOTNAME=$NAME $OPT_STR $RESULT_STR $PERFORMANCE_STR \
-           JBOOT=$RVM_ROOT/rvm/bin/rvm \
 	   SUFFIX=$SUFFIX \
            PROCESSORS=\"$NUM_PROCS\" \
            RC_ARGS=\"$RC_ARGS $EXTRA_RC_ARGS\" \
