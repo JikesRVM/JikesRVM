@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) Copyright IBM Corp. 2001
+# (C) Copyright IBM Corp. 2001, 2003
 #
 # $Id$
 #
@@ -301,6 +301,11 @@ function setConfiguration {
 #
 function doBuild {
     local -i failed=0;
+    local -i need_linking=0;	# Was this a cross-platform build?  
+				# Does it need linking? 
+
+    # This is the same as Exit_Status_Run_Linker in rvm/bin/jconfigure.
+    local -r -i Exit_Status_Run_Linker=111
 
     if [[ $BUILD = "Yes" ]]; then
 	say "creating $NAME with $GENERATOR/jconfigure $EXTRA_CONFIG_ARGS $NAME"
@@ -325,12 +330,15 @@ function doBuild {
 	fi
 
 	if (( ! failed )); then
-	    say "Building $NAME."
+ 	    say "Building $NAME."
 	    say "Output from the build will go into ${RVM_BUILD}/RVM.trace"
-            ./jbuild -trace -demographics &> ${RVM_BUILD}/RVM.trace || failed=$?
-	    # ./jbuild &> ${RVM_BUILD}/RVM.trace || failed=$?
-	    if (( failed == 1)); then
+	    ./jbuild -trace -demographics &> RVM.trace || failed=$?
+	    ## Special case for jbuild's exit statuses: Means that it
+	    ## just needs linking.
+	    if (( failed == Exit_Status_Run_Linker )); then
 		say "Successfully built image for $NAME in what must be a cross-platform build."
+		let failed=0
+		let need_linking=1
 	    elif (( failed )); then
 		say "FAILED while building $NAME."
 		say "  See $RVM_BUILD/RVM.trace for details"
@@ -338,7 +346,9 @@ function doBuild {
 		say "Successfully built $NAME"
 	    fi
 	fi
-
+	# "failed" is passed down to here:
+	## The magic strings here in $WAIT are:
+	## FAILED, SUCCESS, and NEED-LINKING
 	if [[ $WAIT ]]; then
 	    say "Leaving a wait marker in \"$WAIT\""
 	    # Leave a marker to signify the building is done.
@@ -349,11 +359,15 @@ function doBuild {
 		echo "FAILED to build $NAME at $(date) on $(hostname)"
 		say "  See $RVM_BUILD/RVM.trace for details"
 		say "You may remove this file" 
+	    elif (( need_linking == 1 )); then
+		echo "SUCCESS NEED-LINKING Built boot image for $NAME in what must be a cross-platform build.   Must still run jbuild -booter to create the executable."
+		say "You may remove this file" 
 	    else
 		echo "SUCCESS Built $NAME."
 		say "You may remove this file" 
 	    fi > $RVM_BUILD/$WAIT
 	fi
+        #   "failed" is passed down to code after the "if".
     else 
 	if [[ $WAIT ]]; then
 	    local -i dots=0	# Number of dots printed.
@@ -382,8 +396,12 @@ function doBuild {
 		# fgrep will print the message for us.
 		return 2
 	    elif fgrep SUCCESS $WAIT; then
-		# fgrep will print the message for us.
-		:
+		# fgrep has printed the status message for us.
+		if fgrep NEED-LINKING $WAIT > /dev/null ; then
+		    need_linking=1
+		else
+		    need_linking=0
+		fi
 	    elif [[ ! -s $WAIT ]]; then
 		say "Build succeeded; someone must have manually created the file \"$WAIT\".  I'll go on."
 	    else
@@ -393,26 +411,33 @@ function doBuild {
 	    fi
 	fi
 	
+	## The only thing left to do is to link.  And we only do that if 
+	## we need to ling AND if we had a successful build so far.
+
 	(( failed )) && return $failed
 	
-	cd $RVM_BUILD || failed=$?
-
+	if ! cd $RVM_BUILD; then
+	    say "Serious trouble; can not go to RVM_BUILD ($RVM_BUILD)"
+	    return 2
+	fi
 	# UMass regression tests do cross-builds
 	# If RVM.image not present, relink.
         #
         if [[ ! -e JikesRVM && -e RVM.image ]]; then
-	  say "Output from the linking will go into ${RVM_BUILD}/RVM.trace"
-	  ./jbuild -trace -booter >>  RVM.trace 2>&1 || failed=$?
-	  if (( failed )); then
-	    say "FAILED to build $NAME at $(date) on $(hostname)"
-	    say "  See $RVM_BUILD/RVM.trace for details"
-	  else
-	    say "Linked $NAME successfully"
-	  fi
+	    let ++need_linking
 	fi
-
+	if (( need_linking )); then
+	    say "Linking.  Output from the linking will go into ${RVM_BUILD}/RVM.trace"
+	    ./jbuild -trace -booter >>  RVM.trace 2>&1 || failed=$?
+	    if (( failed )); then
+		say "FAILED to link $NAME at $(date) on $(hostname)"
+		say "We don't have a useful boot image."
+		say "  See $RVM_BUILD/RVM.trace for details"
+	    else
+		say "Linked $NAME successfully"
+	    fi
+	fi
     fi
-    
     return $failed;
 }
 
