@@ -551,14 +551,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * allocation, including space reserved for copying.
    */
   protected static final int getPagesReserved() {
-    int pages = ssMR.reservedPages();
     // we must account for the number of pages required for copying,
-    // which equals the number of semi-space pages in use
-    pages += pages;
-    pages += losMR.reservedPages();
-    pages += immortalMR.reservedPages();
-    pages += metaDataMR.reservedPages();
-    return pages;
+    // which equals the number of semi-space pages reserved
+    return ssMR.reservedPages() + getPagesUsed();
   }
 
   /**
