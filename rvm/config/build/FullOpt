@@ -1,2 +1,0 @@
-   . $1/OptOpt
-   export RVM_WITH_ALL_CLASSES=1 
