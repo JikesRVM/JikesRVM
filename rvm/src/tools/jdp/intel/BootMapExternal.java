@@ -857,9 +857,9 @@ class BootMapExternal extends BootMap {
       // now get the address range of the boot image
       field = findVMField("VM_BootRecord", "the_boot_record");
       int bootRecordAddress = owner.mem.readTOC(field.getOffset());
-      field = findVMField("VM_BootRecord", "startAddress");
+      field = findVMField("VM_BootRecord", "bootImageStart");
       bootStart = owner.mem.read(bootRecordAddress + field.getOffset()); 
-      field = findVMField("VM_BootRecord", "freeAddress");
+      field = findVMField("VM_BootRecord", "bootImageEnd");
       bootEnd = owner.mem.read(bootRecordAddress + field.getOffset());
 
       System.out.println("Method table: " + methodArraySize + " entries, boot address " +
