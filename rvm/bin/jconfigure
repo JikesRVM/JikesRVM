@@ -1102,6 +1102,25 @@ if (( RVM_WITH_OPT_COMPILER )); then
    print ''
 fi
 
+if (( RVM_WITH_JAZZLIB )); then
+   . $RVM_HOST_CONFIG
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '   print -n "$ME: '$JAZZLIBDIR'/java/util/zip"'
+   print 'fi'
+   print 'FILES=`/bin/ls' $JAZZLIBDIR'/java/util/zip/*.java`'
+   print 'set +e'
+   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR'/java/util/zip $FILES'
+   print 'RC=$?'
+   print 'if [[ $RC = 1 ]]; then'
+   print '   FILES_HAVE_CHANGED=1'
+   print 'elif [[ $RC != 0 ]]; then'
+   print '   exit 1'
+   print 'fi'
+   print 'set -e'
+   print 'print ""'
+   print ''
+fi
+
    # script to preprocess GenerateInterfaceDeclarations.java
    #
    print ''
@@ -1174,6 +1193,10 @@ function emitCompiler
       DUMMY_CLASSES="Dummy.class"
    fi
    
+   if (( RVM_WITH_JAZZLIB )); then
+      DUMMY_SOURCES="$DUMMY_SOURCES java/util/zip/*.java"
+   fi
+
    if (( RVM_FOR_POWERPC )); then
       INSTRUCTION_TYPE="int"
    elif (( RVM_FOR_IA32 )); then
@@ -1215,6 +1238,7 @@ function emitCompiler
        print 'unzip -U -n -x rvmrt.jar java/util/TimeZone\$1.class'
        print 'unzip -U -n -x rvmrt.jar java/util/SimpleTimeZone.class'
        print 'unzip -U -n -x rvmrt.jar java/util/StringTokenizer.class'
+       print 'unzip -U -n -x rvmrt.jar java/lang/Math.class'
        print 'unzip -U -n -x rvmrt.jar java/lang/Cloneable.class'
        print 'unzip -U -n -x rvmrt.jar java/security/AccessController.class'
        print 'unzip -U -n -x rvmrt.jar java/security/PrivilegedAction.class'
@@ -1956,7 +1980,7 @@ mkdir -p $SCRATCH_DIRECTORY
 mkdir -p $CLASSES_DIRECTORY
 mkdir -p $CLASSES_DIRECTORY/instructionFormats
 if (( RVM_WITH_JAZZLIB )); then
-  mkdir -p $CLASSES_DIRECTORY/jazzlib
+  mkdir -p $CLASSES_DIRECTORY/java/util/zip
 fi
 
 print -n "(directories created) "
