@@ -225,19 +225,22 @@ public abstract class StopTheWorldGC extends BasePlan
     gcInProgress = true;
     Statistics.gcCount++;
     gcStartTime = start;
-    if (verbose == 1) {
+    if ((verbose == 1) || (verbose == 2)) {
       VM.sysWrite("[GC ", Statistics.gcCount);
-      VM.sysWrite(" Start ", (gcStartTime - bootTime), " s");
+      if (verbose == 1) 
+	VM.sysWrite(" Start ", (gcStartTime - bootTime), " s");
+      else	
+	VM.sysWrite(" Start ", 1000*(gcStartTime - bootTime), " ms");
       VM.sysWrite("   ", Conversions.pagesToBytes(Plan.getPagesUsed())>>10, " KB ");
     }
-    if (verbose >= 2) {
+    if (verbose > 2) {
       VM.sysWrite("Collection ", Statistics.gcCount);
       VM.sysWrite(":        reserved = "); writePages(Plan.getPagesReserved(), MB_PAGES);
       VM.sysWrite("      total = "); writePages(getTotalPages(), MB_PAGES);
       VM.sysWriteln();
       VM.sysWrite("  Before Collection: ");
       MemoryResource.showUsage(MB);
-      if (verbose >= 3) {
+      if (verbose >= 4) {
 	  VM.sysWrite("                     ");
 	  MemoryResource.showUsage(PAGES);
       }
@@ -305,15 +308,18 @@ public abstract class StopTheWorldGC extends BasePlan
     globalRelease();
     gcInProgress = false;    // GC is in progress until after release!
     gcStopTime = VM_Interface.now();
-    if (verbose == 1) {
+    if ((verbose == 1) || (verbose == 2)) {
       VM.sysWrite("-> ");
       VM.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed())>>10, " KB   ");
-      VM.sysWriteln(1000 * (gcStopTime - bootTime), " ms]");
+      if (verbose == 1)
+	VM.sysWriteln(1000 * (gcStopTime - gcStartTime), " ms]");
+      else
+	VM.sysWriteln("End ", 1000 * (gcStopTime - bootTime), " ms]");
     }
-    if (verbose >= 2) {
+    if (verbose > 2) {
       VM.sysWrite("   After Collection: ");
       MemoryResource.showUsage(MB);
-      if (verbose >= 3) {
+      if (verbose >= 4) {
 	  VM.sysWrite("                     ");
 	  MemoryResource.showUsage(PAGES);
       }
