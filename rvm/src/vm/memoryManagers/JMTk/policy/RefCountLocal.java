@@ -185,7 +185,7 @@ final class RefCountLocal extends SegregatedFreeList
    */
   public final void prepare(boolean time) { 
     if (RefCountSpace.RC_SANITY_CHECK && !Options.noFinalizer) 
-      VM_Interface.sysFail("Ref count sanity checks must be run with finalization disable (-X:noFinliser=true)");
+      VM_Interface.sysFail("Ref count sanity checks must be run with finalization disabled (-X:gc:noFinalizer=true)");
 
     flushFreeLists();
     if (RefCountSpace.INC_DEC_ROOT) {
