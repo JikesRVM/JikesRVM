@@ -52,7 +52,7 @@ We currently have the following four mailing lists:
 \item[jikesrvm-announce]
   Infrequent announcements and news items.
 \item[jikesrvm-core]
-  Discussion of day-to-day development and design among JikesRVM core team
+  Discussion of day-to-day development and design among Jikes RVM  core team
   members.
 \end{description}
 
@@ -110,19 +110,21 @@ release some code shortly.
 
 \subsubsection{What's the right value to use for
 RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR?} 
+\label singleProcessorQuestion
 
-JikesRVM can be built to support either $m$-to-$n$ or $m$-to-$1$
+Jikes RVM can be built to support either $m$-to-$n$ or $m$-to-$1$
 threading.  In $m$-to-$n$ threading
-(RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equals 0), $m$ Java threads are
-multiplexed on to $n$ virtual processors (operating system pthreads).
-In $m$-$1$ threading (RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equals 1),
-all $m$ Java threads are run on a single virtual processor.  JikesRVM
-can only exploit multiple CPUs on a hardware SMP machine if it is
+(RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equals 0), the virtual machine
+multiplexes $m$ Java 
+onto $n$ virtual processors (operating system pthreads).
+In $m$-to-$1$ threading (RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equals 1),
+all $m$ Java threads run on a single virtual processor.  Jikes RVM 
+can only exploit multiple CPUs on a hardware SMP machine if 
 built with RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR equal to 0.
 
-Unfortunately, this is not supported on all platforms due to
-mismatches between JikesRVM and the host pthread implementation.  
-The key issue is that because JikesRVM is multiplexing Java threads
+Unfortunately, $m$-to-$n$ threading is not supported on all platforms due to
+mismatches between Jikes RVM  and the host pthread implementation.  
+The key issue is that because Jikes RVM multiplexes Java threads
 (each with their own stack) onto operating system threads, the
 C libraries it is linked with must not use the value of a thread's
 stackpointer/framepointer to access pthread-local storage.  The
@@ -138,7 +140,7 @@ was compiled to use the GS segment register to access pthread-specific
 state.  Depending on your Linux distribution, this may not be the
 default for glibc. See a discussion in the archives for
 jikesrvm-researchers from November of 2001. If your version of glibc
-is not compiled this way, JikesRVM will usually fail by 'hanging' when
+is not compiled this way, Jikes RVM  will usually fail by 'hanging' when
 it is run.
 \end{itemize}                
 
@@ -150,6 +152,7 @@ v1.14 has problems
 on Linux.  In order to build the {\tt rvmrt.jar} library, we applied 
 patch 62
 to the jikes build to fix a jikes scoping problem.
+We've had reports that v1.15 works.
 
 
 \subsubsection{Has anybody thought about incremental boot image writing?}
@@ -203,17 +206,16 @@ but not Linux.
 
 \subsubsection{Does RVM support user-defined class loaders?}
 
-No. Some class loader functionality is hacked around, delegating all
-function to the system class loader.  
+Not entirely.  Jikes RVM version 2.1 implements many of the entrypoints
+for user-defined classloaders, so many codes should work.  However, the
+underlying implementation does not yet support distinct namespaces.  The
+net effect is that the RVM will not yet support two classes which have the
+same name, but different definitions due to different classloaders.
 
-%% We can't put footnotes in section headings, so we specialize
-\html{\subsubsection{Does RVM support the Java\trademark 2
-security model?}} 
+\subsubsection{Does RVM support the Java security model?} 
 
-\texonly{\subsubsection{Does RVM support the Java
-security model?}} 
-
-No. 
+No, Jikes RVM does not currently support the Java\trademark 2 security
+model.
 
 \subsubsection{Does RVM support serialization?}
 
@@ -242,10 +244,10 @@ property, which constrains the optimizations.
 
 \subsubsection{Does RVM support zip files?}
 
-Sort of.  RVM includes enough zip support to read compressed jar files.
-For complete java.util.zip functionality, you are recommended to find 
-a pure Java implementation of java.util.zip.  We have successfully used
+As of Jikes RVM v2.1, the RVM relies on the open-source
 \xlink{JazzLib}{\jazzlibURL}. 
+implementation of java.util.zip and java.util.jar.  These implementations
+are provided as part of the CLASSPATH project.
 
 \subsubsection{Why doesn't the RVM source use packages?}
 
@@ -274,9 +276,12 @@ thread, and a
 is the base class representing each
 Posix thread.  
 
-\subsubsection{What are the semantics of VM\_Uninterruptible?}
+On some platforms, only $m$-to-1 threading is supported.  See 
+question~\ref{singleProcessorQuestion}.
 
-The actual semantics of uninterruptibility are: if a class 
+\subsubsection{What are the semantics of {\tt VM\_Uninterruptible}?}
+
+The semantics of uninterruptibility are: if a class 
 directly implements 
 \xlink{{\tt VM\_Uninterruptible}}{\VMUninterruptibleURL}
 , then the compiler will not
@@ -293,7 +298,7 @@ call interruptible code. Furthermore, any uninterruptible method should
 not need more stack space than specified in VM\_StackFrameLayoutConstants
 for the stack ``guard'' area.
 
-It is perhaps unfortunate that the uninterruptible attribute is currently
+It is unfortunate that the uninterruptible attribute is currently
 specified on a class level.  In some cases, we have declared an entire
 class uninterruptible, even though only a few methods of the class are
 really not safe to interrupt.  We would like to someday use a finer-grain
@@ -417,10 +422,6 @@ used for various purposes by the RVM GC system.
 
 \end{description}
 
-\subsubsection{What causes VM\_JNIEnvironment.setNames() to run?}
-This function, like many others in the RVM, is called during the RVM boot
-sequence.
-
 \subsubsection{Does RVM conform to Sun's JDK Host Porting Interface?}
 
 No. There is nothing in RVM that remotely resembles HPI.
@@ -473,7 +474,8 @@ PEI is a GC point.
 Use 
 \xlink{{\tt OPT\_Register.getFirstDef()}}{\OPTRegisterURL}.
 
-If this returns {\tt null}, then either a) the register is dead and it's definition has been eliminated, or b) the def-use chains are not up-to-date.
+If this returns {\tt null}, then either a) the register is dead and it's definition has been eliminated, 
+or b) the def-use chains are not up-to-date.
 
 The def-use chains are not normally kept up-to-date incrementally.  To
 recompute the def-use chains, call 
