@@ -170,7 +170,7 @@ public interface VM_StackframeLayoutConstants  {
   // - Stacks for "collector" threads are fixed in size and cannot grow.
   // - Stacks for "boot" thread grow as needed - boot thread calls JNI during initialization
   //
-  static final int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  16*1024; 
+  static final int STACK_SIZE_NORMAL    = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  16*1024 + (VM.BuildFor64Addr?256*1024:0); 
   static final int STACK_SIZE_BOOT      = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  STACK_SIZE_JNINATIVE + 128 * 1024;
   static final int STACK_SIZE_COLLECTOR = STACK_SIZE_GUARD + STACK_SIZE_GCDISABLED +  32*1024; 
 
