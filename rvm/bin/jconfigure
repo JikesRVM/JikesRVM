@@ -564,6 +564,7 @@ function emitSourceList
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/graph/vis/vcg
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/graph/vis/dot
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/list
+      print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/dotgraph
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/util/set
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface/classLoader
       print $RVM_ROOT/rvm/src/vm/compilers/optimizing/vmInterface/classLoader/jikesrvm
@@ -1338,6 +1339,7 @@ function emitImageLinker
 
    # Generate list of classes comprising bootimage.
    #
+
    print "if [[ ! -e $PRIMORDIAL_CLASSES_STR ]]; then"
 
    
@@ -1647,13 +1649,13 @@ function emitImageLinker
          print "   print 'LOPT_SpecializedMethodPool;'     >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'LOPT_SpecializationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'LOPT_SpecializationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_SummaryDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
-         print "   print 'LOPT_MethodSummary;'     >> $PRIMORDIAL_CLASSES_STR"
 
          print "   print 'LOPT_ClassLoadingDependencyManager;'     >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'LOPT_InvalidationDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'LOPT_InvalidationDatabase\$MethodSet;'     >> $PRIMORDIAL_CLASSES_STR"
          print "   print 'LOPT_InterfaceHierarchy;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'LOPT_SummaryDatabase;'     >> $PRIMORDIAL_CLASSES_STR"
+         print "   print 'LOPT_MethodSummary;'     >> $PRIMORDIAL_CLASSES_STR"
       fi
 
       if (( RVM_WITH_ALL_CLASSES )); then
