@@ -9,6 +9,7 @@
 package com.ibm.JikesRVM.memoryManagers.vmInterface;
 
 import java.util.Date;
+import java.lang.ref.Reference;
 
 import com.ibm.JikesRVM.memoryManagers.JMTk.Plan;
 import com.ibm.JikesRVM.memoryManagers.JMTk.AddressQueue;
@@ -444,6 +445,34 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
     }
     return toRef;
 
+  }
+
+  /**
+     Determine whether this reference has ever been enqueued.
+     @param r the Reference object
+     @return <code>true</codeif reference has ever been enqueued
+   */
+  public static final boolean referenceWasEverEnqueued(Reference r) {
+    return r.wasEverEnqueued();
+  }
+
+  /**
+     Put this Reference object on its ReferenceQueue (if it has one)
+     when its referent is no longer sufficiently reachable. The
+     definition of "reachable" is defined by the semantics of the
+     particular subclass of Reference. The implementation of this
+     routine is determined by the the implementation of
+     java.lang.ref.ReferenceQueue in GNU classpath. It is in this
+     class rather than the public Reference class to ensure that Jikes
+     has a safe way of enqueueing the object, one that cannot be
+     overridden by the application program.
+     
+     @see java.lang.ref.ReferenceQueue
+     @param r the Reference object
+     @return <code>true</codeif the reference was enqueued
+   */
+  public static final boolean enqueueReference(Reference r) {
+    return r.enqueue();
   }
 
   /*
