@@ -104,7 +104,7 @@ fi
   if [[ x$automatic = xy || x$automatic = xyes ]] ; then
     echo "Generating and installing classpath.jar"
     mkdir -p $RVM_ROOT/support/lib
-    jBuildClasspathJar
+    $RVM_ROOT/rvm/bin/jBuildClasspathJar
   fi
 fi
 
