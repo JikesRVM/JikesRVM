@@ -237,8 +237,8 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
           OPT_Instruction s = null;
           switch (r.getType()) {
             case OPT_Register.INTEGER_TYPE:
-              OPT_RegisterOperand lhs = OPT_IRTools.R(r);
-              OPT_RegisterOperand rhs = OPT_IRTools.R(r);
+              OPT_RegisterOperand lhs = OPT_IRTools.I(r);
+              OPT_RegisterOperand rhs = OPT_IRTools.I(r);
               s = Unary.create(SPLIT,lhs,rhs);
               // fix up types: only split live ranges when the type is
               // consistent at all defs

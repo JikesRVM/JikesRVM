@@ -296,6 +296,22 @@ EMIT_INSTRUCTION
 LONG_2INT(P(p), Unary.getResult(P(p)), R(Unary.getVal(P(p))));
 
 #####
+# FLOAT_2LONG
+#####
+r:	FLOAT_2LONG(r)
+10
+EMIT_INSTRUCTION
+EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansion
+
+#####
+# DOUBLE_2LONG
+#####
+r:	DOUBLE_2LONG(r)
+10
+EMIT_INSTRUCTION
+EMIT(P(p));  // Leave for OPT_ComplexLIR2MIRExpansionLeave
+
+#####
 # DOUBLE_AS_LONG_BITS
 #####
 r:	DOUBLE_AS_LONG_BITS(r)
@@ -373,7 +389,7 @@ stm:    INT_IFCMP(ATTEMPT_ADDR(r,r),INT_CONSTANT)
 EMIT_INSTRUCTION
 {                                                                             \
    OPT_ConditionOperand c = IfCmp.getCond(P(p)).flipCode();                   \
-   EMIT(MIR_Store.create(PPC64_STDCXr, R(Attempt.getNewValue(PL(p))), \
+   EMIT(MIR_Store.create(PPC_STAddrCXr, R(Attempt.getNewValue(PL(p))), \
                                   R(Attempt.getAddress(PL(p))), Attempt.getOffset(PL(p)),           \
                                   Attempt.getLocation(PL(p)),                \
                                   Attempt.getGuard(PL(p))));                \

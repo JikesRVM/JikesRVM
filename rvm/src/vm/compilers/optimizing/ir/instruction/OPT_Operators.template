@@ -8,7 +8,7 @@
  * The input files are:
  *  OPT_Operators.template
  *  OperatorList.dat
- *  ARCH_IR_DIROperatorList.dat
+ *  ARCH_OP_LIST
  */
 
 package com.ibm.JikesRVM.opt.ir;
@@ -31,7 +31,7 @@ $$$$ IF ARCHITECTURE != "NONE"
   // END   Architecture Independent opcodes.
   // BEGIN Architecture Dependent opcodes & MIR.
   //////////////////////////
-$$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
+$$$$ FOREACH OPERATOR ARCH_OP_LIST
   public static final char OPERATOR.SYMBOL_opcode = (char)(OPERATOR.INDEX + ARCH_INDEPENDENT_END_opcode);
 $$$$ END FOREACH
 $$$$ END IF
@@ -58,7 +58,7 @@ $$$$ IF ARCHITECTURE != "NONE"
   // END   Architecture Independent opcodes.
   // BEGIN Architecture Dependent opcodes & MIR.
   //////////////////////////
-$$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
+$$$$ FOREACH OPERATOR ARCH_OP_LIST
   public static final OPT_Operator OPERATOR.SYMBOL = OPT_Operator.OperatorArray[OPERATOR.INDEX+ARCH_INDEPENDENT_END_opcode];
 $$$$ END FOREACH
 $$$$ END IF

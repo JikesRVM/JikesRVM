@@ -218,6 +218,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
           { 
             OPT_Operand val = Unary.getClearVal(s);
             if (VM.BuildForPowerPC) {
+              if (VM.BuildFor64Addr) break;
               // NOTE: must move constants out of sysCall before we expand it.
               //       otherwise we'll have the wrong value in the JTOC register when
               //       we try to load the constant from the JTOC!
@@ -236,6 +237,7 @@ final class OPT_ConvertLIRtoMIR extends OPT_OptimizationPlanCompositeElement {
           { 
             OPT_Operand val = Unary.getClearVal(s);
             if (VM.BuildForPowerPC) {
+              if (VM.BuildFor64Addr) break;
               // NOTE: must move constants out of sysCall before we expand it.
               //       otherwise we'll have the wrong value in the JTOC register when
               //       we try to load the constant from the JTOC!

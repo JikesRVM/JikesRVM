@@ -166,7 +166,7 @@ implements OPT_PhysicalRegisterConstants {
             start.insertBack(MIR_Move.create(PPC_FMR, F(symParam), F(param)));
           } else {                  // spilled parameter
             start.insertBack(MIR_Load.create(PPC_LFS, F(symParam), 
-                                             R(FP), 
+                                             A(FP), 
                                              IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
             spilledArgumentCounter--;
           }
@@ -182,7 +182,7 @@ implements OPT_PhysicalRegisterConstants {
             start.insertBack(MIR_Move.create(PPC_FMR, D(symParam), D(param)));
           } else {                  // spilled parameter
             start.insertBack(MIR_Load.create(PPC_LFD, D(symParam), 
-                                             R(FP), 
+                                             A(FP), 
                                              IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
             spilledArgumentCounter -= BYTES_IN_DOUBLE/BYTES_IN_ADDRESS;
           }
@@ -198,20 +198,16 @@ implements OPT_PhysicalRegisterConstants {
             start.insertBack(MIR_Move.create(PPC_MOVE, 
                                              new OPT_RegisterOperand
                                              (symParam, t),
-                                             R(param)));
+                                             A(param)));
           } else {                  // spilled parameter
-            //-#if RVM_FOR_32_ADDR
-            start.insertBack(MIR_Load.create(PPC_LWZ, new OPT_RegisterOperand(symParam, t), 
-                                             R(FP), IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
-            //-#endif
             //-#if RVM_FOR_64_ADDR
             if (t.isIntType() || t.isShortType() || t.isByteType() || t.isCharType() || t.isBooleanType())
-              start.insertBack(MIR_Load.create(PPC64_LWA, new OPT_RegisterOperand(symParam, t), 
-                               R(FP), IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
+              start.insertBack(MIR_Load.create(PPC_LInt, new OPT_RegisterOperand(symParam, t), 
+                               A(FP), IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
             else //a reference or numeric long
-              start.insertBack(MIR_Load.create(PPC64_LD, new OPT_RegisterOperand(symParam, t), 
-                               R(FP), IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
             //-#endif
+              start.insertBack(MIR_Load.create(PPC_LAddr, new OPT_RegisterOperand(symParam, t), 
+                               A(FP), IC(spilledArgumentCounter << LOG_BYTES_IN_ADDRESS)));
             spilledArgumentCounter--;
           }
         }
@@ -258,7 +254,7 @@ implements OPT_PhysicalRegisterConstants {
           MIR_Call.setParam(s, opNum, Reg);
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
-          p.insertBack(MIR_Store.create(PPC_STFS, F(reg), R(FP), IC(callSpillLoc)));
+          p.insertBack(MIR_Store.create(PPC_STFS, F(reg), A(FP), IC(callSpillLoc)));
           callSpillLoc += BYTES_IN_ADDRESS;
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
@@ -273,7 +269,7 @@ implements OPT_PhysicalRegisterConstants {
           MIR_Call.setParam(s, opNum, Reg);
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
-          p.insertBack(MIR_Store.create(PPC_STFD, D(reg), R(FP), IC(callSpillLoc)));
+          p.insertBack(MIR_Store.create(PPC_STFD, D(reg), A(FP), IC(callSpillLoc)));
           callSpillLoc += BYTES_IN_DOUBLE;
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
@@ -303,22 +299,17 @@ implements OPT_PhysicalRegisterConstants {
           MIR_Call.setParam(s, opNum, Reg);
         } else {                  // spill to memory
           OPT_Instruction p = prev.nextInstructionInCodeOrder();
-          //-#if RVM_FOR_32_ADDR
-          p.insertBack(MIR_Store.create(PPC_STW, 
-                                        new OPT_RegisterOperand(reg, Reg.type), 
-                                        R(FP), IC(callSpillLoc)));
-          //-#endif
           //-#if RVM_FOR_64_ADDR
           if (Reg.type.isIntType() || Reg.type.isShortType() || Reg.type.isByteType() || 
               Reg.type.isCharType() || Reg.type.isBooleanType())
                   p.insertBack(MIR_Store.create(PPC_STW,
                                                 new OPT_RegisterOperand(reg, Reg.type),
-                                                R(FP), IC(callSpillLoc)));
+                                                A(FP), IC(callSpillLoc)));
           else //a reference or numeric long
-                  p.insertBack(MIR_Store.create(PPC64_STD,
-                                                new OPT_RegisterOperand(reg, Reg.type),
-                                                R(FP), IC(callSpillLoc)));
           //-#endif
+                  p.insertBack(MIR_Store.create(PPC_STAddr,
+                                                new OPT_RegisterOperand(reg, Reg.type),
+                                                A(FP), IC(callSpillLoc)));
           callSpillLoc += BYTES_IN_ADDRESS;
           // We don't have uses of the heap at MIR, so null it out
           MIR_Call.setParam(s, opNum, null);
@@ -393,7 +384,7 @@ implements OPT_PhysicalRegisterConstants {
     if (MIR_Return.hasVal2(s)) {
       //-#if RVM_FOR_32_ADDR
       OPT_RegisterOperand symb2 = MIR_Return.getClearVal2(s);
-      OPT_RegisterOperand phys2 = R(phys.get(FIRST_INT_RETURN + 1));
+      OPT_RegisterOperand phys2 = I(phys.get(FIRST_INT_RETURN + 1));
       s.insertBack(MIR_Move.create(PPC_MOVE, phys2, symb2));
       MIR_Return.setVal2(s, phys2.copyD2U());
       //-#endif

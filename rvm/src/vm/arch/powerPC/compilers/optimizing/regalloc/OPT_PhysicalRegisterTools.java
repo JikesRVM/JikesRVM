@@ -24,7 +24,7 @@ OPT_GenericPhysicalRegisterTools {
    * Create a condition register operand for a given register number.
    * To be used in passthrough expressions like
    * <pre>
-   *    ... Binary.create(INT_CMP, CR(2), R(1), IC(4)) ...
+   *    ... Binary.create(INT_CMP, CR(2), I(1), IC(4)) ...
    * </pre>
    *
    * @param regnum the given condition register number

@@ -115,8 +115,8 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
       { 
         OPT_Operand op1 = TrapIf.getVal1(s);
         OPT_Operand op2 = TrapIf.getVal2(s);
-        if (op1.isIntConstant()) {
-          if (op2.isIntConstant()) {
+        if (op1.isConstant()) {
+          if (op2.isConstant()) {
             int willTrap = TrapIf.getCond(s).evaluate(op1, op2);
             if (willTrap == OPT_ConditionOperand.TRUE) {
               Trap.mutate(s, TRAP, TrapIf.getClearGuardResult(s), 
@@ -856,6 +856,25 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
             }
           }
         }
+        //-#if RVM_FOR_64_ADDR
+        if (op2.isIntConstant()) { //Magic VM_Address, VM_Offset can do add with integer
+          long val2 = op2.asIntConstant().value;
+          OPT_Operand op1 = Binary.getVal1(s);
+          if (op1.isLongConstant()) {
+            // BOTH CONSTANTS: FOLD
+            long val1 = op1.asLongConstant().value;
+            Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), LC(val1-val2));
+            return MOVE_FOLDED;
+          } else { //KV: TODO: check if op1 can be int constant ?
+            // ONLY OP2 IS CONSTANT: ATTEMPT TO APPLY AXIOMS
+            if (val2 == 0L) {                 // x + 0 == x
+              Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), 
+                          Binary.getClearVal1(s));
+              return MOVE_REDUCED;
+            }
+          }
+        }
+        //-#endif
       }
       return UNCHANGED;
     case LONG_AND_opcode:
@@ -1190,7 +1209,7 @@ public abstract class OPT_Simplifier extends OPT_IRTools implements OPT_Operator
               return REDUCED;
             }
             if (val2 == 0L) {                 // x ^ 0L == x
-              Move.mutate(s, INT_MOVE, Binary.getClearResult(s), 
+              Move.mutate(s, LONG_MOVE, Binary.getClearResult(s), 
                           Binary.getClearVal1(s));
               return MOVE_REDUCED;
             }

@@ -30,7 +30,7 @@ abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
    * Create an address register operand for a given physical GPR.
    * To be used in passthrough expressions like
    * <pre>
-   *    ... Load.create(INT_LOAD, R(2), A(1), IC(4)) ...
+   *    ... Load.create(INT_LOAD, I(2), A(1), IC(4)) ...
    * </pre>
    *
    * @param regnum the given GPR register number
@@ -45,15 +45,21 @@ abstract class OPT_GenericPhysicalRegisterTools extends OPT_IRTools {
    * Create an integer register operand for a given physical GPR.
    * To be used in passthrough expressions like
    * <pre>
-   *    ... Load.create(INT_LOAD, R(2), A(1), IC(4)) ...
+   *    ... Load.create(INT_LOAD, I(2), A(1), IC(4)) ...
    * </pre>
-   *
+   * 
+   * @deprecated : use I(int regnum) instead
    * @param regnum the given GPR register number
    * @return integer register operand
    */
   final OPT_RegisterOperand R(int regnum) {
     OPT_PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
-    return R(phys.getGPR(regnum));
+    return I(phys.getGPR(regnum));
+  }
+
+  final OPT_RegisterOperand I(int regnum) {
+    OPT_PhysicalRegisterSet phys = getIR().regpool.getPhysicalRegisterSet();
+    return I(phys.getGPR(regnum));
   }
 
   /**

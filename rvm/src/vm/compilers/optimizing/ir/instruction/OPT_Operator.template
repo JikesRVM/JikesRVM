@@ -692,7 +692,7 @@ $$$$ IF ARCHITECTURE != "NONE"
   // BEGIN Architecture Dependent opcodes & MIR.
   //////////////////////////
 $$$$ IF ARCHITECTURE == "powerPC"
-  $$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
+  $$$$ FOREACH OPERATOR ARCH_OP_LIST
      new OPT_Operator((char)(OPERATOR.INDEX + OPT_Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
                       OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format, 
   $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"
@@ -720,7 +720,7 @@ $$$$ IF ARCHITECTURE == "powerPC"
 	              OPERATOR.MIR_TEMPLATE),
   $$$$ END FOREACH
 $$$$ ELSE
-  $$$$ FOREACH OPERATOR ARCH_IR_DIR/OperatorList.dat
+  $$$$ FOREACH OPERATOR ARCH_OP_LIST
      new OPT_Operator((char)(OPERATOR.INDEX + OPT_Operators.ARCH_INDEPENDENT_END_opcode),  //OPERATOR.SYMBOL
                       OPT_InstructionFormat.OPERATOR.INSTRUCTION_FORMAT_format, 
   $$$$ IF OPERATOR.INSTRUCTION_FORMAT == "Unassigned"

@@ -24,7 +24,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * Create an integer register operand for a given register.
    * To be used in passthrough expressions like
    * <pre>
-   *    ... Load.create(INT_LOAD, R(r2), A(r1), IC(4)) ...
+   *    ... Load.create(INT_LOAD, I(r2), A(r1), IC(4)) ...
    * </pre>
    *
    * @param reg the given register
@@ -38,13 +38,17 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * Create an integer register operand for a given register.
    * To be used in passthrough expressions like
    * <pre>
-   *    ... Load.create(INT_LOAD, R(r2), A(r1), IC(4)) ...
+   *    ... Load.create(INT_LOAD, I(r2), A(r1), IC(4)) ...
    * </pre>
-   *
+   * @deprecated : use I(OPT_Register) instead
    * @param reg the given register
    * @return integer register operand
    */
   public static final OPT_RegisterOperand R(OPT_Register reg) {
+    return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
+  }
+
+  public static final OPT_RegisterOperand I(OPT_Register reg) {
     return new OPT_RegisterOperand(reg, VM_TypeReference.Int);
   }
 
@@ -94,7 +98,7 @@ public abstract class OPT_IRTools implements OPT_Operators, VM_Constants {
    * Create a condition register operand for a given register.
    * To be used in passthrough expressions like
    * <pre>
-   *    ... Binary.create(INT_CMP, CR(c2), R(r1), IC(4)) ...
+   *    ... Binary.create(INT_CMP, CR(c2), I(r1), IC(4)) ...
    * </pre>
    *
    * @param reg the given register

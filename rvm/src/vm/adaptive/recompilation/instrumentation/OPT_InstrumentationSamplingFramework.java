@@ -415,7 +415,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
         // Insert the load instruction. 
         load = 
           Load.create(INT_LOAD, cbsReg.copyRO(), 
-                      OPT_IRTools.R(ir.regpool.getPhysicalRegisterSet().getPR()),
+                      OPT_IRTools.A(ir.regpool.getPhysicalRegisterSet().getPR()),
                       OPT_IRTools.IC(VM_Entrypoints.processorCBSField.getOffset()),
                       new OPT_LocationOperand(VM_Entrypoints.processorCBSField));
         
@@ -459,7 +459,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       OPT_Instruction dummy = Load.create(INT_LOAD,null,null,null,null);
       store = Store.create(INT_STORE, 
                            cbsReg.copyRO(),
-                           OPT_IRTools.R(ir.regpool.getPhysicalRegisterSet().getPR()),
+                           OPT_IRTools.A(ir.regpool.getPhysicalRegisterSet().getPR()),
                            OPT_IRTools.IC(VM_Entrypoints.processorCBSField.getOffset()),
                            new OPT_LocationOperand(VM_Entrypoints.processorCBSField));
 
@@ -546,7 +546,7 @@ public final class OPT_InstrumentationSamplingFramework extends OPT_CompilerPhas
       if (ir.options.PROCESSOR_SPECIFIC_COUNTER) {
         store = Store.create(INT_STORE, 
                              cbsReg.copyRO(),
-                             OPT_IRTools.R(ir.regpool.getPhysicalRegisterSet().getPR()),
+                             OPT_IRTools.A(ir.regpool.getPhysicalRegisterSet().getPR()),
                              OPT_IRTools.IC(VM_Entrypoints.processorCBSField.getOffset()),
                              new OPT_LocationOperand(VM_Entrypoints.processorCBSField));
       }

@@ -24,6 +24,7 @@ $(GEN_FILES_DIR)/ir.brg: $(RVM_ROOT)/rvm/src/vm/compilers/optimizing/ir/instruct
 	GenerateFromTemplate ir.template \
 	$(GEN_FILES_DIR)/ir.brg \
 	ARCHITECTURE_IR_DIR=$(MIR_IR_DIR) \
+        ARCH_OP_LIST=$(GEN_FILES_DIR)/Arch_OperatorList.dat \
 	THE_RULE_FILE=$(GEN_FILES_DIR)/LIR2MIR.rules
 
 $(GEN_FILES_DIR)/OPT_BURS_STATE.java:	$(GEN_FILES_DIR)/ir.brg burg.template

@@ -345,6 +345,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case LONG_OR_opcode: case LONG_AND_opcode: case LONG_XOR_opcode:
       case LONG_SUB_opcode:case LONG_SHL_opcode: case LONG_ADD_opcode:
       case LONG_SHR_opcode:case LONG_USHR_opcode:case LONG_NEG_opcode:
+      case LONG_MOVE_opcode:
 //-#endif
 //-#if RVM_FOR_IA32
       case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
@@ -477,6 +478,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case LONG_OR_opcode: case LONG_AND_opcode: case LONG_XOR_opcode:
       case LONG_SUB_opcode:case LONG_SHL_opcode: case LONG_ADD_opcode:
       case LONG_SHR_opcode:case LONG_USHR_opcode:case LONG_NEG_opcode:
+      case LONG_MOVE_opcode:
 //-#endif
 //-#if RVM_FOR_IA32
       case GET_JTOC_opcode: case GET_CURRENT_PROCESSOR_opcode:
