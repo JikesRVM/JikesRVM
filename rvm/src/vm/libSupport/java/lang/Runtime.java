@@ -202,7 +202,7 @@ public class Runtime {
   }
 
   public void runFinalization() {
-    synchronized (FinalizerThread.marker) {}
+    // a no-op for now
   }
     
   public static void runFinalizersOnExit(boolean run) throws SecurityException {
