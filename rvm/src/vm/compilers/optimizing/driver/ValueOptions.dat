@@ -77,6 +77,10 @@ V COND_MOVE_CUTOFF int 5
 How many extra instructions will we insert in order to remove a conditional branch?
 
 
+V LOAD_ELIMINATION_ROUNDS int 3
+How many rounds of redundant load elimination will we attempt?
+
+
 V ALLOC_ADVICE_SITES String null
 Read allocation advice attributes for all classes from this file
  
