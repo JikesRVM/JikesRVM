@@ -49,19 +49,20 @@ final class VM_AppelHeap extends VM_Heap
   }
 
   public void minorEnd() {
+      VM_Address middle = VM_Memory.roundDownPage(start.add(end.diff(start) / 2));
       if (nurseryHeap.sense() == VM_ContiguousHeap.FORWARD) {
-	  VM_Address start = nurseryHeap.start;
-	  VM_Address end = fromHeap.current();
-	  VM_Address middle = VM_Memory.roundDownPage(start.add(end.diff(start) / 2));
-	  nurseryHeap.setRegion(start, middle, VM_ContiguousHeap.FORWARD);
-	  fromHeap.extendRegion(middle);
+	  int available = fromHeap.current().diff(middle);
+	  if (VM.VerifyAssertions) VM.assert(available > 0);
+	  VM_Address newMiddle = nurseryHeap.start.add(available);
+	  nurseryHeap.setRegion(nurseryHeap.start, newMiddle, VM_ContiguousHeap.FORWARD);
+	  fromHeap.extendRegion(newMiddle);
       }
       else {
-	  VM_Address start = fromHeap.current();
-	  VM_Address end = nurseryHeap.end;
-	  VM_Address middle = VM_Memory.roundUpPage(start.add(end.diff(start) / 2));
-	  nurseryHeap.setRegion(middle, end, VM_ContiguousHeap.BACKWARD);
-	  fromHeap.extendRegion(middle);
+	  int available = middle.diff(fromHeap.current());
+	  if (VM.VerifyAssertions) VM.assert(available > 0);
+	  VM_Address newMiddle = nurseryHeap.end.sub(available);
+	  nurseryHeap.setRegion(newMiddle, nurseryHeap.end, VM_ContiguousHeap.BACKWARD);
+	  fromHeap.extendRegion(newMiddle);
       }
   }
 
