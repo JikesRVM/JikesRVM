@@ -166,11 +166,10 @@ public abstract class VMResource implements Constants, VM_Uninterruptible {
     resources[index] = this;
     status = status_;
     VM_Interface.setHeapRange(index, start, end);
-    VM_Address maxMappable = VM_Interface.maximumMappable();
-    if (end.GT(maxMappable)) {
+    if (end.GT(VM_Interface.MAXIMUM_MAPPABLE)) {
       VM.sysWrite("\nError creating VMResrouce ", vmName);
       VM.sysWriteln(" with range ", start, " to ", end);
-      VM.sysWriteln("Exceeds the maximum mappable address for this OS of ", maxMappable);
+      VM.sysWriteln("Exceeds the maximum mappable address for this OS of ", VM_Interface.MAXIMUM_MAPPABLE);
       VM._assert(false);
     }
   }

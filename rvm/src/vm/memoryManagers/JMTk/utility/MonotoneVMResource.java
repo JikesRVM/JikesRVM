@@ -61,13 +61,16 @@ public class MonotoneVMResource extends VMResource implements Constants, VM_Unin
   }
 
   public VM_Address acquire(int pageRequest, MemoryResource memoryResource) {
-    if ((memoryResource != null) && !memoryResource.acquire(pageRequest))
+    if ((memoryResource != null) && !memoryResource.acquire(pageRequest)) {
+      VM.sysWriteln("polling caused gc - returning gc and retry");
       return VM_Address.zero();
+    }
     lock();
     int bytes = Conversions.pagesToBytes(pageRequest);
     VM_Address tmpCursor = cursor.add(bytes);
     if (tmpCursor.GT(sentinel)) {
       unlock();
+      VM_Interface.getPlan().poll(true, memoryResource);
       return VM_Address.zero();
     } else {
       VM_Address oldCursor = cursor;
