@@ -92,7 +92,7 @@ public class VM_CollectorThread extends VM_Thread {
 
   /**
    * When true, collector threads measure time spent waiting for
-   * buffers while processing the Work Dequeue, and time spent waiting
+   * buffers while processing the Work Deque, and time spent waiting
    * in Rendezvous during the collection process. Will also force
    * summary statistics to be generated.
    */

@@ -27,7 +27,7 @@ import com.ibm.JikesRVM.VM_PragmaNoInline;
  * @date $Date$
 
  */ 
-public class LocalDequeue extends LocalSSB 
+public class LocalDeque extends LocalSSB 
   implements Constants, VM_Uninterruptible {
 
   public final static String Id = "$Id$"; 
@@ -43,7 +43,7 @@ public class LocalDequeue extends LocalSSB
    * @param queue The shared queue to which this local queue will append
    * its buffers (when full or flushed).
    */
-  LocalDequeue(SharedDequeue queue) {
+  LocalDeque(SharedDeque queue) {
     super(queue);
     reset();
   }

@@ -19,7 +19,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @version $Revision$
  * @date $Date$
  */ 
-public class AddressPairDequeue extends LocalDequeue implements Constants, VM_Uninterruptible {
+public class AddressPairDeque extends LocalDeque implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
  
   /****************************************************************************
@@ -34,7 +34,7 @@ public class AddressPairDequeue extends LocalDequeue implements Constants, VM_Un
    * its buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
    */
-  AddressPairDequeue(SharedDequeue queue) {
+  AddressPairDeque(SharedDeque queue) {
     super(queue);
   }
  

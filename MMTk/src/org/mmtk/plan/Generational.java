@@ -486,7 +486,7 @@ public abstract class Generational extends StopTheWorldGC
   protected void globalRelease() {
     // release each of the collected regions
     nurseryVM.release();
-    locationPool.flushDequeue(1); // flush any remset entries collected during GC
+    locationPool.flushDeque(1); // flush any remset entries collected during GC
     if (fullHeapGC) {
       if (Plan.usesLOS) losSpace.release();
       globalMatureRelease();

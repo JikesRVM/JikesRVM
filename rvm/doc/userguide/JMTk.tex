@@ -32,7 +32,7 @@ memory management policies (such as \xlink{mark-sweep
     allocation}{\BaseFreeListURL}, \xlink{bump-pointer
     allocation}{\BumpPointerURL}, etc.).  The \texttt{utility}
 sub-directory contains classes implementing generic utilities (such as
-\xlink{load-balancing parallel dequeues}{\SharedDequeueURL},
+\xlink{load-balancing parallel dequeues}{\SharedDequeURL},
 \xlink{sequential store buffers}{\LocalSSBURL}, etc.).
 
 \subsection{Choosing a Garbage Collector} \label{ssec:choosinggc}
@@ -149,9 +149,9 @@ The \texttt{utility} sub-directory contains basic utilities and
 mechanisms, including:
 \begin{itemize}
 \item \xlink{Load-balancing shared parallel
-    dequeues}{\SharedDequeueURL}, which provide load balancing double
+    dequeues}{\SharedDequeURL}, which provide load balancing double
   headed queue management for \xlink{address
-    dequeues}{\AddressDequeueURL} (used by the GC work queue), and
+    dequeues}{\AddressDequeURL} (used by the GC work queue), and
   \xlink{sequential store buffers}{\LocalSSBURL} (used by some write
   barriers as a remembering mechanism).
 \item \xlink{Memory resources}{\MemoryResourceURL}, which are the

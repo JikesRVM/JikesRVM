@@ -52,10 +52,10 @@ public abstract class StopTheWorldGC extends BasePlan
    * Class variables
    */
   // Global pools for load-balancing queues
-  protected static SharedDequeue valuePool;
-  protected static SharedDequeue locationPool;
-  protected static SharedDequeue rootLocationPool;
-  protected static SharedDequeue interiorRootPool;
+  protected static SharedDeque valuePool;
+  protected static SharedDeque locationPool;
+  protected static SharedDeque rootLocationPool;
+  protected static SharedDeque interiorRootPool;
 
   // Timing variables
   protected static long gcStartTime;
@@ -72,10 +72,10 @@ public abstract class StopTheWorldGC extends BasePlan
    *
    * Instance variables
    */
-  protected AddressDequeue values;          // gray objects
-  protected AddressDequeue locations;       // locations containing white objects
-  protected AddressDequeue rootLocations;   // root locs containing white objects
-  protected AddressPairDequeue interiorRootLocations; // interior root locations
+  protected AddressDeque values;          // gray objects
+  protected AddressDeque locations;       // locations containing white objects
+  protected AddressDeque rootLocations;   // root locs containing white objects
+  protected AddressPairDeque interiorRootLocations; // interior root locations
 
 
   /****************************************************************************
@@ -90,23 +90,23 @@ public abstract class StopTheWorldGC extends BasePlan
    * into the boot image by the build process.
    */
   static {
-    valuePool = new SharedDequeue(metaDataRPA, 1);
-    locationPool = new SharedDequeue(metaDataRPA, 1);
-    rootLocationPool = new SharedDequeue(metaDataRPA, 1);
-    interiorRootPool = new SharedDequeue(metaDataRPA, 2);
+    valuePool = new SharedDeque(metaDataRPA, 1);
+    locationPool = new SharedDeque(metaDataRPA, 1);
+    rootLocationPool = new SharedDeque(metaDataRPA, 1);
+    interiorRootPool = new SharedDeque(metaDataRPA, 2);
   }
 
   /**
    * Constructor
    */
   StopTheWorldGC() {
-    values = new AddressDequeue("value", valuePool);
+    values = new AddressDeque("value", valuePool);
     valuePool.newClient();
-    locations = new AddressDequeue("loc", locationPool);
+    locations = new AddressDeque("loc", locationPool);
     locationPool.newClient();
-    rootLocations = new AddressDequeue("rootLoc", rootLocationPool);
+    rootLocations = new AddressDeque("rootLoc", rootLocationPool);
     rootLocationPool.newClient();
-    interiorRootLocations = new AddressPairDequeue(interiorRootPool);
+    interiorRootLocations = new AddressPairDeque(interiorRootPool);
     interiorRootPool.newClient();
   }
 

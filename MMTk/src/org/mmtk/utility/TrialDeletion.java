@@ -62,14 +62,14 @@ final class TrialDeletion extends CycleDetector
    *
    * Class variables
    */
-  private static SharedDequeue workPool;
-  private static SharedDequeue blackPool;
-  private static SharedDequeue unfilteredPurplePool;
-  private static SharedDequeue maturePurplePool;
-  private static SharedDequeue filteredPurplePool;
-  private static SharedDequeue cyclePoolA;
-  private static SharedDequeue cyclePoolB;
-  private static SharedDequeue freePool;
+  private static SharedDeque workPool;
+  private static SharedDeque blackPool;
+  private static SharedDeque unfilteredPurplePool;
+  private static SharedDeque maturePurplePool;
+  private static SharedDeque filteredPurplePool;
+  private static SharedDeque cyclePoolA;
+  private static SharedDeque cyclePoolB;
+  private static SharedDeque freePool;
 
   private static boolean purpleBufferAisOpen = true;
 
@@ -97,14 +97,14 @@ final class TrialDeletion extends CycleDetector
   private RefCountLocal rc;
   private Plan plan;
 
-  private AddressDequeue workDequeue;
-  private AddressDequeue blackDequeue;
-  private AddressDequeue unfilteredPurpleBuffer;
-  private AddressDequeue maturePurpleBuffer;
-  private AddressDequeue filteredPurpleBuffer;
-  private AddressDequeue cycleBufferA;
-  private AddressDequeue cycleBufferB;
-  private AddressDequeue freeBuffer;
+  private AddressDeque workDeque;
+  private AddressDeque blackDeque;
+  private AddressDeque unfilteredPurpleBuffer;
+  private AddressDeque maturePurpleBuffer;
+  private AddressDeque filteredPurpleBuffer;
+  private AddressDeque cycleBufferA;
+  private AddressDeque cycleBufferB;
+  private AddressDeque freeBuffer;
 
   private TDGreyEnumerator greyEnum;
   private TDScanEnumerator scanEnum;
@@ -121,35 +121,35 @@ final class TrialDeletion extends CycleDetector
    * Initialization
    */
   static {
-    workPool = new SharedDequeue(Plan.getMetaDataRPA(), 1);
+    workPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
     workPool.newClient();
-    blackPool = new SharedDequeue(Plan.getMetaDataRPA(), 1);
+    blackPool = new SharedDeque(Plan.getMetaDataRPA(), 1);
     blackPool.newClient();
-    unfilteredPurplePool = new SharedDequeue(Plan.getMetaDataRPA(), 1);
+    unfilteredPurplePool = new SharedDeque(Plan.getMetaDataRPA(), 1);
     unfilteredPurplePool.newClient();
-    maturePurplePool = new SharedDequeue(Plan.getMetaDataRPA(), 1);
+    maturePurplePool = new SharedDeque(Plan.getMetaDataRPA(), 1);
     maturePurplePool.newClient();
-    filteredPurplePool = new SharedDequeue(Plan.getMetaDataRPA(), 1);
+    filteredPurplePool = new SharedDeque(Plan.getMetaDataRPA(), 1);
     filteredPurplePool.newClient();
-    cyclePoolA = new SharedDequeue(Plan.getMetaDataRPA(), 1);
+    cyclePoolA = new SharedDeque(Plan.getMetaDataRPA(), 1);
     cyclePoolA.newClient();
-    cyclePoolB = new SharedDequeue(Plan.getMetaDataRPA(), 1);
+    cyclePoolB = new SharedDeque(Plan.getMetaDataRPA(), 1);
     cyclePoolB.newClient();
-    freePool = new SharedDequeue(Plan.getMetaDataRPA(), 1);
+    freePool = new SharedDeque(Plan.getMetaDataRPA(), 1);
     freePool.newClient();
   }
 
   TrialDeletion(RefCountLocal rc_, Plan plan_) {
     rc = rc_;
     plan = plan_;
-    workDequeue = new AddressDequeue("cycle workqueue", workPool);
-    blackDequeue = new AddressDequeue("cycle black workqueue", blackPool);
-    unfilteredPurpleBuffer = new AddressDequeue("unfiltered purple buf", unfilteredPurplePool);
-    maturePurpleBuffer = new AddressDequeue("mature purple buf", maturePurplePool);
-    filteredPurpleBuffer = new AddressDequeue("filtered purple buf", filteredPurplePool);
-    cycleBufferA = new AddressDequeue("cycle buf A", cyclePoolA);
-    cycleBufferB = new AddressDequeue("cycle buf B", cyclePoolB);
-    freeBuffer = new AddressDequeue("free buffer", freePool);
+    workDeque = new AddressDeque("cycle workqueue", workPool);
+    blackDeque = new AddressDeque("cycle black workqueue", blackPool);
+    unfilteredPurpleBuffer = new AddressDeque("unfiltered purple buf", unfilteredPurplePool);
+    maturePurpleBuffer = new AddressDeque("mature purple buf", maturePurplePool);
+    filteredPurpleBuffer = new AddressDeque("filtered purple buf", filteredPurplePool);
+    cycleBufferA = new AddressDeque("cycle buf A", cyclePoolA);
+    cycleBufferB = new AddressDeque("cycle buf B", cyclePoolB);
+    freeBuffer = new AddressDeque("free buffer", freePool);
 
     greyEnum = new TDGreyEnumerator(this);
     scanEnum = new TDScanEnumerator(this);
@@ -282,7 +282,7 @@ final class TrialDeletion extends CycleDetector
     }
   }
 
-  private final int filterPurpleBufs(AddressDequeue src, AddressDequeue tgt,
+  private final int filterPurpleBufs(AddressDeque src, AddressDeque tgt,
 				     long timeCap) {
     int purple = 0;
     int limit = Options.cycleMetaDataPages<<(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_ADDRESS-1);
@@ -306,7 +306,7 @@ final class TrialDeletion extends CycleDetector
     }
   }
 
-  private final void filter(VM_Address obj, AddressDequeue tgt) {
+  private final void filter(VM_Address obj, AddressDeque tgt) {
     if (VM_Interface.VerifyAssertions)
       VM_Interface._assert(!RCBaseHeader.isGreen(obj));
     if (VM_Interface.VerifyAssertions)
@@ -371,7 +371,7 @@ final class TrialDeletion extends CycleDetector
     } while (!obj.isZero() && !abort && VM_Interface.cycles() < timeCap);
     return abort;
   }
-  private final boolean processGreyObject(VM_Address object, AddressDequeue tgt,
+  private final boolean processGreyObject(VM_Address object, AddressDeque tgt,
 					  long timeCap)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
@@ -401,7 +401,7 @@ final class TrialDeletion extends CycleDetector
     throws VM_PragmaInline {
     boolean abort = false;
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(workDequeue.pop().isZero());
+      VM_Interface._assert(workDeque.pop().isZero());
     while (!object.isZero()) {
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(!RCBaseHeader.isGreen(object));
@@ -414,7 +414,7 @@ final class TrialDeletion extends CycleDetector
 	RCBaseHeader.makeGrey(object);
 	ScanObject.enumeratePointers(object, greyEnum);
       }
-      object = workDequeue.pop();
+      object = workDeque.pop();
     }
     return !abort;
   }
@@ -424,14 +424,14 @@ final class TrialDeletion extends CycleDetector
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(RCBaseHeader.isLiveRC(object));
       RCBaseHeader.decRC(object, false);
-      workDequeue.push(object);
+      workDeque.push(object);
     }
   }
 
   private final void doScanPhase() {
     VM_Address object;
-    AddressDequeue src = cycleBufferA;
-    AddressDequeue tgt = cycleBufferB;
+    AddressDeque src = cycleBufferA;
+    AddressDeque tgt = cycleBufferB;
     phase = SCAN;
     while (!(object = src.pop()).isZero()) {
       if (VM_Interface.VerifyAssertions)
@@ -443,7 +443,7 @@ final class TrialDeletion extends CycleDetector
   private final void scan(VM_Address object)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(workDequeue.pop().isZero());
+      VM_Interface._assert(workDeque.pop().isZero());
     while (!object.isZero()) {
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(!RCBaseHeader.isGreen(object));
@@ -457,18 +457,18 @@ final class TrialDeletion extends CycleDetector
 	  ScanObject.enumeratePointers(object, scanEnum);
 	}
       } 
-      object = workDequeue.pop();
+      object = workDeque.pop();
     }
   }
   final void enumerateScan(VM_Address object) 
     throws VM_PragmaInline {
     if (Plan.isRCObject(object) && !RCBaseHeader.isGreen(object))
-      workDequeue.push(object);
+      workDeque.push(object);
   }
   private final void scanBlack(VM_Address object)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(blackDequeue.pop().isZero());
+      VM_Interface._assert(blackDeque.pop().isZero());
     while (!object.isZero()) {
       if (VM_Interface.VerifyAssertions)
 	VM_Interface._assert(!RCBaseHeader.isGreen(object));
@@ -476,7 +476,7 @@ final class TrialDeletion extends CycleDetector
 	RCBaseHeader.makeBlack(object);
 	ScanObject.enumeratePointers(object, scanBlackEnum);
       }
-      object = blackDequeue.pop();
+      object = blackDeque.pop();
     }
   }
   final void enumerateScanBlack(VM_Address object)
@@ -484,13 +484,13 @@ final class TrialDeletion extends CycleDetector
     if (Plan.isRCObject(object) && !RCBaseHeader.isGreen(object)) {
       RCBaseHeader.incRC(object, false);
       if (!RCBaseHeader.isBlack(object))
-	blackDequeue.push(object);
+	blackDeque.push(object);
     }
   }
 
   private final void doCollectPhase() {
     VM_Address object;
-    AddressDequeue src = cycleBufferB;
+    AddressDeque src = cycleBufferB;
     phase = COLLECT;
     while (!(object = src.pop()).isZero()) {
       if (VM_Interface.VerifyAssertions)
@@ -502,14 +502,14 @@ final class TrialDeletion extends CycleDetector
   private final void collectWhite(VM_Address object)
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions)
-      VM_Interface._assert(workDequeue.pop().isZero());
+      VM_Interface._assert(workDeque.pop().isZero());
     while (!object.isZero()) {
       if (RCBaseHeader.isWhite(object) && !RCBaseHeader.isBuffered(object)) {
 	RCBaseHeader.makeBlack(object);
 	ScanObject.enumeratePointers(object, collectEnum);
 	freeBuffer.push(object);
       }
-      object = workDequeue.pop();
+      object = workDeque.pop();
     }
   }
   final void enumerateCollect(VM_Address object) 
@@ -518,7 +518,7 @@ final class TrialDeletion extends CycleDetector
       if (RCBaseHeader.isGreen(object))
 	plan.addToDecBuf(object); 
       else
-	workDequeue.push(object);
+	workDeque.push(object);
     }
   }
 

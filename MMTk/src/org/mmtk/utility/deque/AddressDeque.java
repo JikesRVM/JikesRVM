@@ -20,7 +20,7 @@ import com.ibm.JikesRVM.VM_PragmaUninterruptible;
  * @date $Date$
  */ 
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
-public class AddressDequeue extends LocalDequeue implements Constants, VM_Uninterruptible {
+public class AddressDeque extends LocalDeque implements Constants, VM_Uninterruptible {
    public final static String Id = "$Id$"; 
  
   /****************************************************************************
@@ -36,7 +36,7 @@ public class AddressDequeue extends LocalDequeue implements Constants, VM_Uninte
    * its buffers (when full or flushed) and from which it will aquire new
    * buffers when it has exhausted its own.
    */
-  AddressDequeue(String n, SharedDequeue queue) {
+  AddressDeque(String n, SharedDeque queue) {
     super(queue);
     name = n;
   }

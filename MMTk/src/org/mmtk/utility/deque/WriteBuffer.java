@@ -33,7 +33,7 @@ class WriteBuffer extends LocalSSB implements Constants, VM_Uninterruptible {
    * @param queue The shared queue to which this local ssb will append
    * its buffers (when full or flushed).
    */
-  WriteBuffer(SharedDequeue queue) {
+  WriteBuffer(SharedDeque queue) {
     super(queue);
   }
 

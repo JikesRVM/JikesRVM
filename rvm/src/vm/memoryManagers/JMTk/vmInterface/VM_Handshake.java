@@ -174,7 +174,7 @@ public class VM_Handshake {
       }
     }
 
-    /* Dequeue and schedule collector threads on ALL RVM Processors,
+    /* Deque and schedule collector threads on ALL RVM Processors,
      * including those running system daemon threads
      * (ex. NativeDaemonProcessor) */
     if (verbose >= 1) 
