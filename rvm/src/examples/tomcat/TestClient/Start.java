@@ -92,6 +92,9 @@ class Start {
 	// tell HTTPClient to accept cookies
 	CookieModule.setCookiePolicyHandler(null);
 
+	// time the downloads
+	long start = System.currentTimeMillis();
+
 	// start desired number of clieants
 	Worker[] workers = new Worker[ clients ];
 	for (int i = 0; i < clients; i++) {
@@ -118,6 +121,9 @@ class Start {
 	    System.exit( -1 );
 	}
 
+	// time the downloads
+	long stop = System.currentTimeMillis();
+
 	// gather statistics
 	long totalBytes = 0;
 	long totalLatency = 0;
@@ -131,15 +137,24 @@ class Start {
 	}
 
 	// check number of requests or time
-	if (requestCount != -1) 
-	    if (numRequests != requestCount*clients)
-		System.err.println("ERROR: got only " + numRequests +
-				   " pages, not the " + requestCount*clients +
-				   " expected");
+	if (requestCount != -1) {
+	    if (numRequests != requestCount*clients) 
+		throw new java.lang.Error(
+		      "ERROR: got only " + numRequests + " pages, not the " +
+		      requestCount*clients + " expected");
+	} else {
+	    long seconds = (stop - start) / 1000;
+	    if (seconds>(runForSeconds*1.1) || (seconds<runForSeconds*0.9)) 
+		throw new java.lang.Error(
+		      "ERROR: ran for " + seconds + 
+		      ", which is outside tolerance for requested interval " +
+		      runForSeconds);
+	}
 
 	// report statistics
 	System.out.println("Downloaded " + totalBytes + " bytes in " + numRequests + " requests");
 	System.out.println("Verified " + numVerifiedRequests + " requests");
+	System.out.println("Total time was " + (stop-start) + " ms for " + (double)totalBytes/(double)(stop-start) + " bytes/ms");
 	System.out.println("Average latency of " + (double)totalLatency/(double)numRequests + " ms");
     }
 
