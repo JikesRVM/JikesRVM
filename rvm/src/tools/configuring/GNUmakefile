@@ -43,6 +43,6 @@ ${CONFIG_H}: prep
 	@${RUN} printf_handles_percent_z.sh	>> $@ ${SILENCE}
 
 prep:
-	mkdir -p ${SCRATCH} ${CONFIG_H_DIR}
+	mkdir -p ${CONFIG_H_DIR} ${SCRATCH} 
 
 .PHONY: all clean prep
