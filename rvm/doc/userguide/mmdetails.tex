@@ -11,9 +11,9 @@ simple semi-space copying allocator and collector.
 
 A RVM configuration specifies a memory management strategy, 
 and the jconfigure command will include in the build all the
-classes in the allocator directory and all the classes in the
+classes in the memoryManagers directory and all the classes in the
 sub-directory for the specified memory management strategy.
-The allocator directory contains classes common to multiple
+The memoryManagers directory contains classes used in multiple
 configurations, such as the load balancing work queue 
 (see 
 \xlink{{\tt VM\_GCWorkQueue.java}}{\VMGCWorkQueueURL}
@@ -21,7 +21,7 @@ configurations, such as the load balancing work queue
 
 \subsection{Choosing an Allocator/Collector} \label{ssec:choosinggc}
 Depending on your purposes, you may choose to build RVM
-with a semispace copying, noncopying (mark-sweep), or hybrid collector.
+with a semispace copying, mark-sweep noncopying, or hybrid collector.
 For programs which do not perform many collections, the
 copying collector will most likely perform best, since object
 allocation path lengths are shortest for this collector.  To
@@ -29,9 +29,9 @@ minimize garbage collection delays, the hybrid collector may
 be used, since it allows a small nursery for which minor collections
 can be quite fast, and major collections are noncopying.  
 
-Generally, the noncopying (mark-sweep)
+Generally, the mark-sweep noncopying
 collector requires smaller heap storage for a given application	
-than a copying collector, which in RVM uses a semispace structure.
+than any of the copying collectors, which in have a semispace structure.
 Also, major collections are faster with a noncopying collector,
 since objects are not moved.  The best performance for a particular	
 application should be determined by experiment.
@@ -57,6 +57,9 @@ non-copying.  If you want to start from scratch, start with
 This file provides simple implementations of the required object allocation
 methods, and stubs for the other fields and methods expected by the rest
 of the RVM runtime (not all will be needed in any one implementation).
+With the RVM memory managers, a single class, VM\_Allocator, implements both
+the methods that perform object allocation and the methods that perform
+garbage collections.
 \end{enumerate}
 
 \subsection{Load Balancing Work Queue} \label{sssec:workqueue}
@@ -83,25 +86,31 @@ example with 256 entries per buffer.
 \index{write barrier}
 \index{object header}
 RVM provides a class {\tt VM\_WriteBarrier} to support generational garbage 
-collection. When the static 
+collection.
+When the static 
 final field {\tt VM\_Allocator.writeBarrier} is true,
-all RVM compilers generate write barrier code, which tests a specified
-bit in the object header of an object into which a ref is being stored,
-and, if the bit is set to one, makes an entry into a write buffer of the 
-address of the object, and sets the bit to zero.  Thus generational 
-collectors can use this class to 
-identify objects which may contain pointers to objects 
-younger than themselves.  During garbage collection, collectors should
-turn the bit back to one, so that subsequent mutator execution that stores
-refs into such objects will be recorded.
+the RVM compilers generate write barriers.
+The baseline compiler generates calls to barrier methods in {\tt VM\_WriteBarrier}.
+The optimizing compiler inlines the same barrier methods.
 
-Currently, RVM copying generational and hybrid 
-`collectors treat all objects which
-survive one garbage collection as old.  The noncopying (mark-sweep) 
-generational contains an as yet very experimental capability to require
-objects to survive more than one collection before being treated as old.
-(The constants GC\_OLD, GC\_STEPS, and GC\_THRESHHOLD) used in this 
-collector are part of the implementation.)
+The logic of the write barrier is implemented in {\tt VM\_WriteBarrier}.
+The RVM generational collectors all use the same write barrier.
+It stores into a processor local write buffer the address of an object
+into which a ref is being stored.
+A bit in the object header identifies objects that need to be recorded.
+The barrier logic turns off the bit when an object is written to the write
+buffer, to avoid duplicate entries.
+During garbage collection, collectors must set these bits back on so that
+subsequent stores into the object will cause it to be recorded.
+
+Alternative write barriers can be implemented. For example, the concurrent
+reference counting collector uses a barrier that records both old and new
+references for each store of a reference into an object. It does this
+by building with its own version of VM\_WriteBarrier.
+
+The RVM generational collectors treat all objects which
+survive one garbage collection as old, and do not maintain ``remembered sets''
+of old objects between collections.
 
 \subsection{Starting Garbage Collection} \label{sssec:startgc}
 \index{VM\_Handshake class}
@@ -111,21 +120,25 @@ collector are part of the implementation.)
 The stopping of mutator threads and the scheduling of the collector
 threads is handled by the classes 
 {\tt VM\_Handshake} and {\tt VM\_CollectorThread}.
-Mutator threads initiate collection by calling the collect method
-of {\tt VM\_CollectorThread}.  It causes collector threads to be scheduled
+Mutator threads initiate collection by calling the {\tt collect} method
+of {\tt VM\_CollectorThread} which causes collector threads to be scheduled
 on all the {\tt VM\_Processor}s, and then yields, to allow the collector thread
-on the executing processor to be scheduled. When all collector threads
-arrive at the first Rendezvous, in the run method of {\tt
-VM\_CollectorThread}, the collection begins.
-All collector threads 
-call the {\tt gc\_collect} method of {\tt VM\_Allocator}.  They execute
+on the executing processor to be scheduled.
+Parallel execution of collector threads is synchronized by rendezvous.
+During the initial rendezvous, one of the collector threads detects
+processors whose executing thread is blocked in native code, and makes
+these processors ``non-participating'' for that collection.
+Collection begins when all ``participating'' collector threads
+arrive at the initial rendezvous.
+After the initial rendezvous, the participating collector threads
+call the {\tt collect} method of {\tt VM\_Allocator}.  They execute
 in parallel in this method until collection is complete.  By default,
 there is one collector thread for each {\tt VM\_Processor} (system thread).
 While collection is in progress, all non-collector threads are suspended
 in queues of the {\tt VM\_Processors} waiting to be re-dispatched.
 
-If you want something other than stop-the-world parallel collection 
-(such as a concurrent collector) then it will be necessary to modify
+To implement other than stop-the-world parallel collection 
+(such as was done with the concurrent collector) then it will be necessary to modify
 or extend the {\tt VM\_Handshake} and {\tt VM\_CollectorThread} classes.
 
 \subsection{Measuring Collector Performance} \label{sssec:verbosegc}
@@ -158,7 +171,7 @@ class will cause it to be set in what ever
 \paragraph{MEASURE\_WAIT\_TIMES}
 This flag will cause the collector to measure the time each collector thread
 spends waiting during a collection.  This is time waiting for buffers while
-processing the Work Queue, and time waiting in Rendezvous between phases of the
+processing the Work Queue, and time waiting in rendezvous between phases of the
 collection process. Turning on this flag will cause
 the summary statistics, with average wait times, to be generated 
 when RVM exits.  If -verbose:gc is specified the output is generated after
