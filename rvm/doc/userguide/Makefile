@@ -82,7 +82,7 @@ html:	userguide.tex $(TEX_FILES) $(HTML_GRAPHICS)
 	cp ${NAV_GIFS} ${HTML_DIR}
 	cp ${HTML_GRAPHICS} ${HTML_DIR}
 	cd ${HTML_DIR} \
-	&& chmod u+w ${NAV_GIFS} \
+	&& chmod u+w ${NAV_GIFS} && chmod u+w ${HTML_GRAPHICS} \
 	&& ln -sf userguide.html index.html
 
 
