@@ -173,7 +173,9 @@ public abstract class StopTheWorldGC extends BasePlan
       VM.sysWrite(" (", Conversions.pagesToBytes(getTotalPages()) / ( 1 << 20)); 
       VM.sysWriteln(" Mb) ");
       VM.sysWrite("  Before Collection: ");
-      Plan.showUsage();
+      Plan.showUsage(PAGES);
+      VM.sysWrite("                     ");
+      Plan.showUsage(MB);
     }
     globalPrepare();
     VM_Interface.resetComputeAllRoots();
@@ -231,10 +233,12 @@ public abstract class StopTheWorldGC extends BasePlan
     }
     if (verbose > 2) {
       VM.sysWrite("   After Collection: ");
-      Plan.showUsage();
+      Plan.showUsage(PAGES);
+      VM.sysWrite("                     ");
+      Plan.showUsage(MB);
       VM.sysWrite("   Collection ", gcCount);
-      writePages(":       reserved = ", Plan.getPagesReserved());
-      writePages("      trigger = ", getTotalPages());
+      writePages(":       reserved = ", Plan.getPagesReserved(), PAGES_MB);
+      writePages("      total = ", getTotalPages(), PAGES_MB);
       VM.sysWriteln();
     }
     gcInProgress = false;    // GC is in progress until after release!
@@ -244,7 +248,8 @@ public abstract class StopTheWorldGC extends BasePlan
       VM.sysWriteln("ms]");
     }
     if (verbose > 2) {
-      VM.sysWrite("    Collection time: ", (gcStopTime - gcStartTime));
+      VM.sysWrite("    Collection time: ");
+      VM.sysWrite(gcStopTime - gcStartTime, 3);
       VM.sysWriteln(" seconds");
     }
     valuePool.reset();
@@ -304,23 +309,6 @@ public abstract class StopTheWorldGC extends BasePlan
 	       && values.isEmpty() && locations.isEmpty()));
   }
 
-  ////////////////////////////////////////////////////////////////////////////
-  //
-  // Miscellaneous
-  //
 
-  /**
-   * Print out the number of pages and volume in MB, preceeded by a
-   * prefix string.
-   *
-   * @param prefix A prefix string
-   * @param pages The number of pages
-   */
-  public static void writePages(String prefix, int pages) {
-    VM.sysWrite(prefix);
-    VM.sysWrite(pages);
-    VM.sysWrite(" (");
-    VM.sysWrite(Conversions.pagesToBytes(pages) / (1024.0 * 1024.0));
-    VM.sysWrite(" Mb)");
-  }
+
 }

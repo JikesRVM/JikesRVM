@@ -378,7 +378,8 @@ public abstract class BasePlan
    * @param str A string describing the error condition.
    */
   public void error(String str) {
-    Plan.showUsage();
+    Plan.showUsage(PAGES);
+    Plan.showUsage(MB);
     VM.sysFail(str);
   }
 
@@ -422,4 +423,43 @@ public abstract class BasePlan
       VM.sysWrite("ms]\n");
     }
   }
+
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  //
+  // Miscellaneous
+  //
+
+  final static int PAGES = 0;
+  final static int MB = 1;
+  final static int PAGES_MB = 2;
+
+  /**
+   * Print out the number of pages and or megabytes, depending on the mode.
+   * A prefix string is outputted first.
+   *
+   * @param prefix A prefix string
+   * @param pages The number of pages
+   */
+  public static void writePages(String prefix, int pages, int mode) {
+    VM.sysWrite(prefix);
+    if (mode == PAGES) {
+       VM.sysWrite(pages); 
+       return;
+    }
+    else {
+      double mb = Conversions.pagesToBytes(pages) / (1024.0 * 1024.0);
+      if (mode == MB)
+	VM.sysWrite(mb, " Mb");
+      else if (mode == PAGES_MB) {
+	VM.sysWrite(" (", mb);
+	VM.sysWrite(" Mb)");
+      }
+      else
+	VM.sysFail("writePages passed illegal printing mode");
+    }
+  }
+
+
 }

@@ -85,12 +85,12 @@ public class Plan extends BasePlan implements VM_Uninterruptible { // implements
     return false;
   }
   
-  final public static void showUsage() {
-      VM.sysWrite("used pages = ", getPagesUsed());
-      VM.sysWrite(" ("); VM.sysWrite(Conversions.pagesToBytes(getPagesUsed()) >> 20, " Mb) ");
-      VM.sysWrite("= (rc) ", rcMR.reservedPages());
-      VM.sysWrite(" + (imm) ", immortalMR.reservedPages());
-      VM.sysWriteln(" + (md) ", metaDataMR.reservedPages());
+  final public static void showUsage(int mode) {
+      writePages("used pages = ", getPagesUsed(), mode);
+      writePages("= (rc) ", rcMR.reservedPages(), mode);
+      writePages(" + (imm) ", immortalMR.reservedPages(), mode);
+      writePages(" + (md) ", metaDataMR.reservedPages(), mode);
+      VM.sysWriteln();
  }
 
 //   final public static int getInitialHeaderValue(int size) {
