@@ -919,7 +919,7 @@ int createJVM(int vmInSeparateThread) {
      // clear flag for synchronization
      bootRecord.bootCompleted = 0;
 
-#if (defined RVM_FOR_LINUX) && (!defined __linuxsmp__)
+#if (defined RVM_FOR_LINUX) && defined RVM_FOR_SINGLE_VIRTUAL_PROCESSOR
      fprintf(stderr, "%s: Unsupported operation (no linux pthreads)\n", Me);
      exit(-1);
 #else
