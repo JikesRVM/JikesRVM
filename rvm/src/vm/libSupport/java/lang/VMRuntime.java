@@ -102,14 +102,22 @@ final class VMRuntime {
     return new VM_Process(cmd[0], cmd, env, dirPath);
   }
 
-  /* The following are set by the "runrvm" script before we go into the C
-   * boot image runner:
+  /** The following are set by the "runrvm" script before we go into the C
+   * boot image runner, by passing them as command-line args with the -D flag:
    *
    * os.name, os.arch, os.version
    * user.name, user.home, user.dir
    * gnu.classpath.vm.shortname, gnu.classpath.home.url, 
    * java.home,
    * rvm.root, rvm.build
+   *
+   * We can look at them here via VM_CommandLineArgs.getEnvironmentArg().
+   *
+   * They will be automatically set for us by
+   * VM_CommandLineArgs.lateProcessCommandLineArguments() if we do not handle
+   * them here.  That won't occur until the VM is fully booted.  That's too
+   * late for some classes, such as java.util.TimeZone, which will already be
+   * initialized.
    */
   static void insertSystemProperties(Properties p) {
     p.put("java.version", "1.3.0"); // change to 1.4.2 ?
@@ -151,41 +159,23 @@ final class VMRuntime {
 
     /* user.timezone
 
-       I found the following abomination in VMRuntime.java:
-           //    p.put("user.timezone", "America/New_York");
+       I (Steve Augart) started a discussion about this on classpath@gnu.org
+       on 23 March 2003.  Summary: we define user.timezone specifically in
+       order to pass that information to java.util.TimeZone, which initializes
+       later on in the boot process.  It does not seem to be required by the
+       spec, and it's the empty string in Blackdown 1.4.2.
 
-       Hey, I guess it worked at Watson...  I'm wondering whether there might
-       have been some program that really needed this.  I hope not.  I also
-       wonder whether it couldn't be provided via lazy evaluation, where we
-       only bother to set it if the property is explicitly requested.  But
-       that would probably require too much messing with java.util.Properties.
-       
-       In Blackdown 1.4.2, this is provided as the empty string.
-
-       (It's the empty string in Blackdown 1.4.2).
-
-       A letter I (Steve Augart) sent to classpath@gnu.org on 23 March 2004:
-      I've noticed that more than one VM defines a user.timezone property.
-
-      Does anyone know where this is officially documented?  The string
-      "user.timezone" does not appear anywhere in the Sun 1.4.2 API specification.
-
-      I'm not sure whether we need to provide it, and if so, what the format should
-      be for it.
-
-      It seems to me that, if someone wanted the name of the current time zone, the
-      best thing to do would be to call
-      java.util.TimeZone.getDefault().getDisplayName().
-
-      Maybe we don't need user.timezone?  I feel weird about calling
-      java.util.TimeZone during the boot sequence, if it will be so little used.
-
+       We have to do this here, because otherwise it wouldn't be set until
+       VM_CommandLineArgs.lateProcessCommandLineArguments().  That won't occur
+       until the VM is fully booted; too late for java.util.TimeZone, which
+       reads this value when it runs its initializer.
     */
-    // p.put("user.timezone", ""); 
-    /* If you call java.util.TimeZone.getDefault().getDisplayName(), then we
-     * get trouble.  It's too early in the boot sequence to do this; pity. 
-     */
-    // p.put("user.timezone", java.util.TimeZone.getDefault().getDisplayName());
+    s = VM_CommandLineArgs.getEnvironmentArg("user.timezone");
+    s = (s == null ) ? "" : s;  // Maybe it's silly to set it to the empty
+                                // string.  Well, this should never succeed
+                                // anyway, since we're always called by
+                                // runrvm.  
+    p.put("user.timezone", s);
 
     /* java.library.path
        Now the library path.  This is the path used for system
@@ -204,6 +194,12 @@ final class VMRuntime {
        really need to be prepended to the list of VM classes, wouldn't it?  Or
        appended, perhaps? */
     s = VM_CommandLineArgs.getEnvironmentArg("java.ext.dirs");
+    if (s == null) {
+      s = "";
+    } else {
+      VM.sysWrite("Jikes RVM: Warning: You have explicitly set java.ext.dirs; that will not do anything under Jikes RVM");
+    }
+    
     s = (s == null ) ? "" : s;
     p.put("java.ext.dirs", s);
     
@@ -215,6 +211,20 @@ final class VMRuntime {
     
     s = VM_CommandLineArgs.getEnvironmentArg("java.class.path");
     p.put("java.class.path", s == null ? "." : s);
+
+
+    /* Now the rest of the special ones that we set on the command line.   Do
+     * this just in case they turn out to be needed earlier on in this
+     * process. */
+    final String[] clProps = new String[] {"os.name", "os.arch", "os.version", "user.name", "user.home", "user.dir", "gnu.classpath.vm.shortname", "gnu.classpath.home.url", "java.home", "rvm.root", "rvm.build"};
+    
+    for (int i = 0; i < clProps.length; ++i ) {
+      final String prop = clProps[i];
+      s = VM_CommandLineArgs.getEnvironmentArg(prop);
+      if (s != null) {
+        p.put(prop, s);
+      }
+    }
 
   }
     
