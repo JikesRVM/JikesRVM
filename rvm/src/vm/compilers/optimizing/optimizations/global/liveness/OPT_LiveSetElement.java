@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 2001
+ * (C) Copyright IBM Corp. 2001, 2004
  */
 //$Id$
 package com.ibm.JikesRVM.opt;
@@ -26,8 +26,9 @@ final class OPT_LiveSetElement {
   private OPT_LiveSetElement next;
 
   /**
-   * constructor
-   * @param OPT_RegisterOperand register
+   * Construct an {@link OPT_LiveSetElement}.
+   *
+   * @param register    An {@link OPT_RegisterOperand}
    */
   OPT_LiveSetElement(OPT_RegisterOperand register) {
     regOp = register;
