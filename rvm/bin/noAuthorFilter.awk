@@ -4,6 +4,8 @@
 
 # @author Peter Sweeney
 # @date 11/1/2001
+# @modified Steven Augart
+# @date June, 2003
 
 ## Auxiliary AWK program to help out rvm/bin/findDeviantFiles.  You should
 ## never run this directly; to discourage people from doing so, this is not an
@@ -13,8 +15,6 @@
 # Search for files that don't have a Javadoc @author tag.
 #
 /\/bin\/classpath.stamp/ { next }
-/\/bin\/ids\/rvmrt.stamp/ { next }
-/\/bin\/ids\/set\/R-/ { next }
 
 /\/doc\/userguide\// { next }
 
@@ -44,4 +44,5 @@
 #
 # print everything else
 #
-/.*/
+{ print; }
+
