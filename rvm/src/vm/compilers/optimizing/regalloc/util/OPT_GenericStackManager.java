@@ -279,8 +279,11 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
    * register.
    *
    * Else return null.
+   *
+   * @param r the symbolic register to hold
+   * @param s the instruction for which we need r in a register
    */
-  private ScratchRegister getCurrentScratchRegister(OPT_Register r) {
+  private ScratchRegister getCurrentScratchRegister(OPT_Register r,OPT_Instruction s) {
     ScratchRegister result = null;
 
     for (Iterator i = scratchInUse.iterator(); i.hasNext(); ) {
@@ -291,6 +294,15 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
       int location = OPT_RegisterAllocatorState.getSpill(sr.currentContents);
       int location2 = OPT_RegisterAllocatorState.getSpill(r); 
       if (location == location2) {
+        // OK. We're currently holding a different symbolic register r2 in
+        // a scratch register, and r2 is mapped to the same spill location
+        // as r.  So, coopt the scratch register for r, instead.
+        OPT_Register r2 = sr.currentContents;
+        sr.currentContents = r;
+        scratchMap.endScratchInterval(sr.scratch,s);
+        scratchMap.endSymbolicInterval(r2,s);
+        scratchMap.beginScratchInterval(sr.scratch,s);
+        scratchMap.beginSymbolicInterval(r,sr.scratch,s);
         return sr;
       }
     }
@@ -455,7 +467,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
                                              OPT_Instruction s,
                                              boolean beCheap) {
 
-    ScratchRegister r = getCurrentScratchRegister(symb);
+    ScratchRegister r = getCurrentScratchRegister(symb,s);
     if (r != null) {
       // symb is currently assigned to scratch register r
       if (isLegal(symb,r.scratch,s)) {
@@ -1016,7 +1028,7 @@ implements OPT_Operators, OPT_PhysicalRegisterConstants {
             if (!r.isPhysical()) {
               // Is r currently assigned to a scratch register?
               // Note that if we're being cheap, the answer is always no (null)
-              ScratchRegister scratch = getCurrentScratchRegister(r);
+              ScratchRegister scratch = getCurrentScratchRegister(r,s);
               if (verboseDebug) {
                 System.out.println(r + " SCRATCH " + scratch);
               }
