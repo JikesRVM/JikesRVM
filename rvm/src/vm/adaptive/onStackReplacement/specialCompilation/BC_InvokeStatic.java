@@ -7,8 +7,11 @@ package com.ibm.JikesRVM.OSR;
 
 import com.ibm.JikesRVM.*;
 import com.ibm.JikesRVM.classloader.*;
+
 /**
- * invokestatic 
+ * Special invokestatic, with only two possible target
+ * OSR_ObjectHolder.getRefAt and OSR_ObjectHolder.cleanRefs
+ * indiced by GETREFAT and CLEANREFS.
  * 
  * @author Feng Qian
  */
@@ -16,16 +19,15 @@ import com.ibm.JikesRVM.classloader.*;
 public class BC_InvokeStatic extends OSR_PseudoBytecode {
 
   private final static int bsize = 6;   
-  private final int mid;
+  private final int tid;  // target INDEX
 
-  public BC_InvokeStatic(int methId) {
-    this.mid = methId;
-    
+  public BC_InvokeStatic(int targetId) {
+    this.tid = targetId;
   }
 
   public byte[] getBytes() {
     byte[] codes = initBytes(bsize, PSEUDO_InvokeStatic);
-    int2bytes(codes, 2, mid);
+    int2bytes(codes, 2, tid);
     return codes;
   }
 
@@ -34,7 +36,19 @@ public class BC_InvokeStatic extends OSR_PseudoBytecode {
   }
 
   public int stackChanges() {
-    VM_Method callee = OSR_ClassLoaderInterface.getMethodById(mid);
+    VM_Method callee = null;
+    switch (tid) {
+    case GETREFAT:
+      callee = VM_Entrypoints.osrGetRefAtMethod;
+      break;
+    case CLEANREFS:
+      callee = VM_Entrypoints.osrCleanRefsMethod;
+      break;
+    default:
+      if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+      break;
+    }
+  
     int psize = callee.getParameterWords();
     int schanges = -psize;
     
@@ -55,6 +69,6 @@ public class BC_InvokeStatic extends OSR_PseudoBytecode {
   }
  
   public String toString() {
-    return "InvokeStatic "+mid;
+    return "InvokeStatic "+tid;
   }
 }
