@@ -1808,10 +1808,10 @@ function emitImageLinker
           print "   print '[Lcom/ibm/JikesRVM/adaptive/VM_NullListener;'                >> $PRIMORDIAL_CLASSES_STR"
           print "   print 'Lcom/ibm/JikesRVM/opt/OPT_ContextFreeInlinePlan;'       >> $PRIMORDIAL_CLASSES_STR"
       fi
-      if (( RVM_WITH_HPM )) ; then
-          print "   print 'Lcom/ibm/JikesRVM/HPM_counters;'       >> $PRIMORDIAL_CLASSES_STR"
-          print "   print 'Lcom/ibm/JikesRVM/HPM_info;'           >> $PRIMORDIAL_CLASSES_STR"
-      fi
+   fi
+   if (( RVM_WITH_HPM )) ; then
+       print "   print 'Lcom/ibm/JikesRVM/HPM_counters;'       >> $PRIMORDIAL_CLASSES_STR"
+       print "   print 'Lcom/ibm/JikesRVM/HPM_info;'           >> $PRIMORDIAL_CLASSES_STR"
    fi
 
    # For performance testing, a full opt base boot image should have all classes
