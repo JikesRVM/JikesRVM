@@ -60,10 +60,14 @@ done
 ##
 if [[ "$USE_LOCAL_CLASSPATH" = "no" ]]; then
     if [[ -e $DEST_DIR/stamp ]]; then
-	if ! diff $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp > /dev/null
-	then
+	declare -i stat=0
+	$DIFF $RVM_ROOT/rvm/bin/classpath.stamp $DEST_DIR/stamp > /dev/null || stat=$?
+	if (( stat == 1 )); then
 	    echo "Removing out-of-date GNU Classpath checkout"
 	    rm -rf $DEST_DIR
+	elif (( stat != 0 )); then
+	    echo >&2 "$ME: diff failed with bad status $stat; aborting"
+	    exit $stat
 	fi
     else
 	echo "Removing unknown GNU Classpath checkout"
