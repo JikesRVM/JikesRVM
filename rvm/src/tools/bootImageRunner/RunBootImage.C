@@ -744,12 +744,14 @@ parse_memory_size(const char *sizeName, /*  "initial heap" or "maximum heap" or
                 sizeFlag);
         fprintf(SysTraceFile,
                 "\tor (in virt. memory pages of %u bytes) using "
-                "\"-X%s<positive number>pages\",\n", BYTES_IN_PAGE, sizeFlag);
+                "\"-X%s<positive number>pages\"", BYTES_IN_PAGE, sizeFlag);
 #ifdef RVM_FOR_64_ADDR
+        fprintf(SysTraceFile, ",\n");
         fprintf(SysTraceFile, 
-                "\tor (in terabytes) using \"-X%s<positive number>T\"\n",
+                "\tor (in terabytes) using \"-X%s<positive number>T\"",
                 sizeFlag);
 #endif // RVM_FOR_64_ADDR
+        fprintf(SysTraceFile, ".\n");
         fprintf(SysTraceFile,
                 "\t<positive number> can be a floating point value.\n"
                 "\tThe # of bytes will be rounded up\n"
