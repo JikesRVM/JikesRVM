@@ -192,6 +192,7 @@ public abstract class StopTheWorldGC extends BasePlan
     int order = VM_CollectorThread.gcBarrier.rendezvous();
     if (order == 1)
       baseGlobalPrepare(start);
+    VM_CollectorThread.gcBarrier.rendezvous();
     if (order == 1)
       for (int i=0; i<planCount; i++) {
 	Plan p = (Plan) plans[i];
@@ -219,16 +220,13 @@ public abstract class StopTheWorldGC extends BasePlan
     gcStartTime = start;
     if (verbose == 1) {
       VM.sysWrite("[GC ", Statistics.gcCount);
-      VM.sysWrite(" Start ", (gcStartTime - bootTime));
-      VM.sysWrite(" s    ");
-      VM.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
-      VM.sysWrite(" KB ");
+      VM.sysWrite(" Start ", (gcStartTime - bootTime), " s");
+      VM.sysWrite("   ", Conversions.pagesToBytes(Plan.getPagesUsed())>>10, " KB ");
     }
-    if (verbose > 2) {
+    if (verbose >= 2) {
       VM.sysWrite("Collection ", Statistics.gcCount);
       VM.sysWrite(":      reserved = ", Plan.getPagesReserved());
-      VM.sysWrite(" (", Conversions.pagesToBytes(Plan.getPagesReserved()) / ( 1 << 20)); 
-      VM.sysWrite(" Mb) ");
+      VM.sysWrite(" (", Conversions.pagesToBytes(Plan.getPagesReserved()) / ( 1 << 20), " Mb) ");
       VM.sysWrite("      trigger = ", getTotalPages());
       VM.sysWrite(" (", Conversions.pagesToBytes(getTotalPages()) / ( 1 << 20)); 
       VM.sysWriteln(" Mb) ");
@@ -259,7 +257,7 @@ public abstract class StopTheWorldGC extends BasePlan
     else
       VM_Interface.prepareParticipating((Plan) this);  
     VM_CollectorThread.gcBarrier.rendezvous();
-    if (verbose > 3) VM.sysWriteln("  Preparing all collector threads for start");
+    if (verbose >= 4) VM.sysWriteln("  Preparing all collector threads for start");
     threadLocalPrepare(order);
   }
 
@@ -267,25 +265,23 @@ public abstract class StopTheWorldGC extends BasePlan
    * Clean up after a collection
    */
   protected final void release() {
+    if (verbose >= 4) VM.sysWriteln("  Preparing all collector threads for termination");
     int order = VM_CollectorThread.gcBarrier.rendezvous();
-    if (verbose > 3) VM.sysWriteln("  Preparing all collector threads for termination");
-    threadLocalRelease(order);
+    baseThreadLocalRelease(order);
     if (order == 1) {
       int count = 0;
       for (int i=0; i<planCount; i++) {
 	Plan p = (Plan) plans[i];
 	if (VM_Interface.isNonParticipating(p)) {
 	  count++;
-	  p.threadLocalRelease(NON_PARTICIPANT);
+	  ((StopTheWorldGC) p).baseThreadLocalRelease(NON_PARTICIPANT);
 	}
       }
-      if (verbose >= 3) VM.sysWriteln("  There were ", count, " non-participating GC threads");
+      if (verbose >= 4) VM.sysWriteln("  There were ", count, " non-participating GC threads");
     }
     order = VM_CollectorThread.gcBarrier.rendezvous();
     if (order == 1)
       baseGlobalRelease();
-    VM_CollectorThread.gcBarrier.rendezvous();
-    threadLocalReset();
     VM_CollectorThread.gcBarrier.rendezvous();
   }
 
@@ -304,12 +300,10 @@ public abstract class StopTheWorldGC extends BasePlan
     gcStopTime = VM_Interface.now();
     if (verbose == 1) {
       VM.sysWrite("-> ");
-      VM.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed())>>10);
-      VM.sysWrite(" KB   ");
-      VM.sysWrite(((gcStopTime - bootTime)*1000));
-      VM.sysWriteln(" ms]");
+      VM.sysWrite(Conversions.pagesToBytes(Plan.getPagesUsed())>>10, " KB   ");
+      VM.sysWriteln(1000 * (gcStopTime - bootTime), " ms]");
     }
-    if (verbose > 2) {
+    if (verbose >= 2) {
       VM.sysWrite("   After Collection: ");
       MemoryResource.showUsage(PAGES);
       VM.sysWrite("                     ");
@@ -334,19 +328,19 @@ public abstract class StopTheWorldGC extends BasePlan
    * <code>release()</code> which will ensure that <i>all threads</i>
    * execute this.
    */
-  private final void threadLocalReset() {
+  private final void baseThreadLocalRelease(int order) {
     values.reset();
     locations.reset();
     rootLocations.reset();
     interiorRootLocations.reset();
+    threadLocalRelease(order);
   }
 
   /**
    * Process all GC work.  This method iterates until all work queues
    * are empty.
    */
-  private final void processAllWork()
-    throws VM_PragmaNoInline {
+  private final void processAllWork() throws VM_PragmaNoInline {
 
     if (verbose >= 4) VM.psysWriteln("  Working on GC in parallel");
     do {
