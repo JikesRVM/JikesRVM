@@ -65,6 +65,7 @@ public class Finalizer implements VM_Uninterruptible {
   //
   public static final void addCandidate(Object item) throws VM_PragmaNoInline, VM_PragmaInterruptible  {
     lock.acquire();
+
     int origLength = candidate.length();
     if (candidateEnd >= origLength) {
       VM_AddressArray newCandidate = VM_AddressArray.create((int) (growthFactor * origLength));
@@ -172,12 +173,12 @@ public class Finalizer implements VM_Uninterruptible {
     while (cursor < candidateEnd) {
       VM_Address cand = candidate.get(cursor);
       boolean isFinalizable = Plan.isFinalizable(cand);
-      if (!isFinalizable) { // live beforehand but possibly moved
-	candidate.set(cursor, Plan.getForwardedReference(cand));
-      } else {             // finalizable, needs to be enqued for finalization
+      if (isFinalizable) { // object died, enqueue for finalization
 	candidate.set(cursor, VM_Address.zero());
 	addLive(VM_Magic.addressAsObject(Plan.retainFinalizable(cand)));
 	newFinalizeCount++;
+      } else {             // live beforehand but possibly moved
+	candidate.set(cursor, Plan.getForwardedReference(cand));
       }
       cursor++;
     }
