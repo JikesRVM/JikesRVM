@@ -84,8 +84,6 @@ package com.ibm.JikesRVM;
  * which is at side of the higher addresses.
  * A Long and a Double take 2 slots of 8 bytes, one of which is not used:
  * the actual value is also stored at the side of the highest addresses.
- * Because of the SP growing toward lower memory, this means that the slot at 
- * the SP itself is not used for longs and doubles.
  *  
  * @author Kris Venstermans
  * Here are some pictures of what a stackslot might look like in memory.
