@@ -76,7 +76,6 @@ abstract class VM_JNIGenericHelpers {
     return new String(createByteArrayFromC(stringAddress));
   }
 
-  //-#if RVM_WITH_JNI_SETBOOLSTAR
   /**  A JNI helper function, to set the value pointed to by a C pointer
    * of type (jboolean *).
    * @param boolPtr Native pointer to a jboolean variable to be set.   May be
@@ -109,5 +108,4 @@ abstract class VM_JNIGenericHelpers {
     }
     boolPtr.store(intval);
   }
-  //-#endif
 }

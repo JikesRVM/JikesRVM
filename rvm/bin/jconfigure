@@ -1250,7 +1250,6 @@ declare -i HAS_DLCOMPAT=0
 ## These should be flushed, since they are now almost hardwired
 ## with these values set (I added these definitions to shut up the
 ## "paranoid preprocessor". 
-declare -r -i RVM_WITH_JNI_SETBOOLSTAR=1
 declare -r -i RVM_WITH_OPT_INSTRUMENTATION=0
 declare -r -i RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH=0
 
