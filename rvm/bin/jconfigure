@@ -1572,380 +1572,404 @@ EOF
 	echo "   \$FIND . -path '*/JikesRVMSupport.class' -print >> $PRIMORDIAL_CLASSES_STR.1"
     fi
 
-    # VM daemon threads that don't start with VM for historical reasons
-    echo "    echo 'com/ibm/JikesRVM/FinalizerThread' >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'com/ibm/JikesRVM/MainThread' >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'com/ibm/JikesRVM/DebuggerThread' >> ${PRIMORDIAL_CLASSES_STR}.1"
+    cat <<- EOF
+    ${SED} -e 's/#.*//' -e '/^[ \t]*$/d' >> ${PRIMORDIAL_CLASSES_STR}.1 << EOF_PRIMORDIAL_CLASSES_STR_1
+# VM daemon threads that don't start with VM for historical reasons
+com/ibm/JikesRVM/FinalizerThread
+com/ibm/JikesRVM/MainThread
+com/ibm/JikesRVM/DebuggerThread
 
-    # Classes needed for OutOfMemory servicing which we can't afford to load when we are actually out of memory
-    echo "    echo 'com/ibm/JikesRVM/PrintLN' >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'com/ibm/JikesRVM/PrintContainer' >> ${PRIMORDIAL_CLASSES_STR}.1"
+# Classes needed for OutOfMemory servicing which we can't afford to load when we are actually out of memory
+com/ibm/JikesRVM/PrintLN
+com/ibm/JikesRVM/PrintContainer
 
-    # fundamental java classes
-    #
-    echo "    echo 'java/lang/Class'            >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Object'           >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Runtime'          >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/String'           >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/StringBuffer'    >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/util/StringTokenizer' >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/System'           >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Thread'           >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/ThreadGroup'     >> ${PRIMORDIAL_CLASSES_STR}.1"
+# fundamental java classes
+#
+java/lang/Class
+java/lang/Object
+java/lang/Runtime
+java/lang/String
+java/lang/StringBuffer
+java/util/StringTokenizer
+java/lang/System
+java/lang/Thread
+java/lang/ThreadGroup
 
-    echo "    echo 'java/lang/OutOfMemoryError'  >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/Cloneable'          >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/VMObject'           >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/VMSystem'           >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/VMString'           >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/classpath/Configuration' >> $PRIMORDIAL_CLASSES_STR.1"
+java/lang/OutOfMemoryError
+java/lang/Cloneable
+java/lang/VMObject
+java/lang/VMSystem
+java/lang/VMString
+gnu/classpath/Configuration
 
     # reflection support
     #
-    echo "    echo 'java/lang/reflect/Field'             >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/reflect/Method'            >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/reflect/Member'            >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/reflect/Constructor'      >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/reflect/AccessibleObject' >> ${PRIMORDIAL_CLASSES_STR}.1"
+java/lang/reflect/Field
+java/lang/reflect/Method
+java/lang/reflect/Member
+java/lang/reflect/Constructor
+java/lang/reflect/AccessibleObject
 
     # hardware runtime errors
     #
-    echo "    echo 'java/lang/ArithmeticException' >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/ArrayIndexOutOfBoundsException' >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Exception'            >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Error'                >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/IndexOutOfBoundsException'    >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/LinkageError'         >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/NullPointerException'>> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/RuntimeException'    >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/SecurityException'    >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/StackOverflowError'  >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Throwable'            >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/UnknownError'         >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/VirtualMachineError' >> ${PRIMORDIAL_CLASSES_STR}.1"
+java/lang/ArithmeticException
+java/lang/ArrayIndexOutOfBoundsException
+java/lang/Exception
+java/lang/Error
+java/lang/IndexOutOfBoundsException
+java/lang/LinkageError
+java/lang/NullPointerException
+java/lang/RuntimeException
+java/lang/SecurityException
+java/lang/StackOverflowError
+java/lang/Throwable
+java/lang/UnknownError
+java/lang/VirtualMachineError
 
     # software runtime errors
     #
-    echo "    echo 'java/lang/IncompatibleClassChangeError' >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/ClassCastException'            >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/ArrayStoreException'           >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/NegativeArraySizeException'   >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/AbstractMethodError'           >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/StringIndexOutOfBoundsException' >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/UnsatisfiedLinkError'          >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/InternalError'                 >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/IllegalMonitorStateException' >> ${PRIMORDIAL_CLASSES_STR}.1"
+java/lang/IncompatibleClassChangeError
+java/lang/ClassCastException
+java/lang/ArrayStoreException
+java/lang/NegativeArraySizeException
+java/lang/AbstractMethodError
+java/lang/StringIndexOutOfBoundsException
+java/lang/UnsatisfiedLinkError
+java/lang/InternalError
+java/lang/IllegalMonitorStateException
 
     # primitive wrapper types
     #
-    echo "    echo 'java/lang/Boolean'   >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Byte'      >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Character' >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Double'    >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Float'     >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Integer'   >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Long'      >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Number'    >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/Short'     >> ${PRIMORDIAL_CLASSES_STR}.1"
+java/lang/Boolean
+java/lang/Byte
+java/lang/Character
+java/lang/Double
+java/lang/Float
+java/lang/Integer
+java/lang/Long
+java/lang/Number
+java/lang/Short
 
     # class loading errors
     #
-    echo "    echo 'java/io/IOException'               >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/io/EOFException'              >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/io/FileNotFoundException'    >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/ClassNotFoundException' >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/ClassFormatError'        >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/lang/NoClassDefFoundError'   >> ${PRIMORDIAL_CLASSES_STR}.1"
-    echo "    echo 'java/util/zip/ZipException'        >> ${PRIMORDIAL_CLASSES_STR}.1"
+java/io/IOException
+java/io/EOFException
+java/io/FileNotFoundException
+java/lang/ClassNotFoundException
+java/lang/ClassFormatError
+java/lang/NoClassDefFoundError
+java/util/zip/ZipException
 
     # util datastructures (needed by compilers, classloaders, etc)
     #
-    echo "    echo 'java/util/AbstractList'      >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/AbstractMap'        >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/AbstractSet'        >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/ArrayList'    	   >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/Arrays'    	   >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/HashMap'    	   >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/HashSet'            >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/Hashtable'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/List'              >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/ListResourceBundle'>> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/PropertyResourceBundle'>> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/MissingResourceException'  >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/Properties'        >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/ResourceBundle'    >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/Vector'            >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/AbstractCollection'     >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/Collections'            >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/Stack'		        >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/WeakHashMap'            >> $PRIMORDIAL_CLASSES_STR.1"
+java/util/AbstractList
+java/util/AbstractMap
+java/util/AbstractSet
+java/util/ArrayList
+java/util/Arrays
+java/util/HashMap
+java/util/HashSet
+java/util/Hashtable
+java/util/List
+java/util/ListResourceBundle
+java/util/PropertyResourceBundle
+java/util/MissingResourceException
+java/util/Properties
+java/util/ResourceBundle
+java/util/Vector
+java/util/AbstractCollection
+java/util/Collections
+java/util/Stack
+java/util/WeakHashMap
 
     # class loaders
     #
-    echo "    echo 'java/lang/ClassLoader'   	                     >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/VMClassLoader'                         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/VMSecurityManager'                     >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/PlatformHelper'                      >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/security/CodeSource'                        >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/security/Policy'                            >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/security/PermissionCollection'              >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/security/Permissions'                       >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/security/Principal'                         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/locale/Calendar'		             >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/reflect/InvocationTargetException'     >> $PRIMORDIAL_CLASSES_STR.1"
+java/lang/ClassLoader
+java/lang/VMClassLoader
+java/lang/VMSecurityManager
+gnu/java/io/PlatformHelper
+java/security/CodeSource
+java/security/Policy
+java/security/PermissionCollection
+java/security/Permissions
+java/security/Principal
+gnu/java/locale/Calendar
+java/lang/reflect/InvocationTargetException
 
     # class loading from regular files
     #
-    echo "    echo 'java/io/File'              >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/DataInputStream'   >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/DataOutputStream'  >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/FilterInputStream' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/InputStream'       >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/FileInputStream'   >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/FileDescriptor'    >> $PRIMORDIAL_CLASSES_STR.1"
+java/io/File
+java/io/DataInputStream
+java/io/DataOutputStream
+java/io/FilterInputStream
+java/io/InputStream
+java/io/FileInputStream
+java/io/FileDescriptor
+EOF
+
     if (( RVM_WITH_NON_BLOCKING_FDS_FOR_CLASSPATH )); then
-	echo "    echo 'java/io/VMFileDescriptor'>> ${PRIMORDIAL_CLASSES_STR}.1"
+	echo "java/io/VMFileDescriptor"
     fi
 
+	cat <<EOF
     # class loading from zip files
     #
-    echo "    echo 'java/util/zip/ZipFile'      >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/ZipFile'      >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/ZipEntry'     >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/Inflater'     >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/InflaterInputStream' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/Deflater'     >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/DeflaterOutputStream' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/ZipException' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/Adler32'      >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/StreamManipulator' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/OutputWindow' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/InflaterHuffmanTree' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/DeflaterHuffman' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/zip/InflaterDynHeader' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/InputStreamReader'  >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/BufferedReader'     >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/Reader'             >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/Math'             >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/Serializable'       >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/Calendar'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/GregorianCalendar'>> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/Locale'           >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/Date'             >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/TimeZone'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/SimpleTimeZone'   >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/Cloneable'        >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/security/AccessController' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/security/PrivilegedAction' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/util/PropertyPermission' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/security/BasicPermission' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/security/Permission'   >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/security/AllPermission'>> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/security/AllPermissionCollection'>> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/RuntimePermission' >> $PRIMORDIAL_CLASSES_STR.1"
+java/util/zip/ZipFile
+java/util/zip/ZipFile
+java/util/zip/ZipEntry
+java/util/zip/Inflater
+java/util/zip/InflaterInputStream
+java/util/zip/Deflater
+java/util/zip/DeflaterOutputStream
+java/util/zip/ZipException
+java/util/zip/Adler32
+java/util/zip/StreamManipulator
+java/util/zip/OutputWindow
+java/util/zip/InflaterHuffmanTree
+java/util/zip/DeflaterHuffman
+java/util/zip/InflaterDynHeader
+java/io/InputStreamReader
+java/io/BufferedReader
+java/io/Reader
+java/lang/Math
+java/io/Serializable
+java/util/Calendar
+java/util/GregorianCalendar
+java/util/Locale
+java/util/Date
+java/util/TimeZone
+java/util/SimpleTimeZone
+java/lang/Cloneable
+java/security/AccessController
+java/security/PrivilegedAction
+java/util/PropertyPermission
+java/security/BasicPermission
+java/security/Permission
+java/security/AllPermission
+java/security/AllPermissionCollection
+java/lang/RuntimePermission
+EOF
     
     # the application class loader uses jar classes (which can be loaded or not)
+
     if (( RVM_WITH_ALL_CLASSES )); then
 	cat <<- EOF
-	echo 'java/util/jar/JarException' >> ${PRIMORDIAL_CLASSES_STR}.1
-	echo 'java/util/jar/JarInputStream' >> ${PRIMORDIAL_CLASSES_STR}.1
-	echo 'java/util/jar/Attributes' >> ${PRIMORDIAL_CLASSES_STR}.1
-	echo 'java/util/jar/JarOutputStream' >> ${PRIMORDIAL_CLASSES_STR}.1
-	echo 'java/util/jar/JarEntry' >> ${PRIMORDIAL_CLASSES_STR}.1
-	echo 'java/util/jar/JarFile' >> ${PRIMORDIAL_CLASSES_STR}.1
-	echo 'java/util/jar/Manifest' >> ${PRIMORDIAL_CLASSES_STR}.1
+java/util/jar/JarException
+java/util/jar/JarInputStream
+java/util/jar/Attributes
+java/util/jar/JarOutputStream
+java/util/jar/JarEntry
+java/util/jar/JarFile
+java/util/jar/Manifest
 	EOF
+
     fi
 
-    echo "    echo 'java/io/BufferedOutputStream' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/BufferedInputStream'  >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/ByteArrayInputStream' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/FileOutputStream'     >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/PrintStream'          >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/RandomAccessFile'     >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/ObjectStreamField'    >> $PRIMORDIAL_CLASSES_STR.1"
-
+	cat <<- EOF
+java/io/BufferedOutputStream
+java/io/BufferedInputStream
+java/io/ByteArrayInputStream
+java/io/FileOutputStream
+java/io/PrintStream
+java/io/RandomAccessFile
+java/io/ObjectStreamField
+EOF
     if (( RVM_WITH_OSR )); then
+	cat <<- EOF
 	# on stack replacement
-	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_ObjectHolder' >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_BaselineExecStateExtractor' >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_OptExecStateExtractor' >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_EncodedOSRMap' >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_SpecialCompiler' >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_AdjustBCIndexes' >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/OSR/OSR_PostThreadSwitch' >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementTrigger' >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementEvent' >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementPlan' >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/adaptive/OSR_OrganizerThread' >> $PRIMORDIAL_CLASSES_STR.1"
+com/ibm/JikesRVM/OSR/OSR_ObjectHolder
+com/ibm/JikesRVM/OSR/OSR_BaselineExecStateExtractor
+com/ibm/JikesRVM/OSR/OSR_OptExecStateExtractor
+com/ibm/JikesRVM/OSR/OSR_EncodedOSRMap
+com/ibm/JikesRVM/OSR/OSR_SpecialCompiler
+com/ibm/JikesRVM/OSR/OSR_AdjustBCIndexes
+com/ibm/JikesRVM/OSR/OSR_PostThreadSwitch
+com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementTrigger
+com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementEvent
+com/ibm/JikesRVM/adaptive/OSR_OnStackReplacementPlan
+com/ibm/JikesRVM/adaptive/OSR_OrganizerThread
+EOF
     fi
 
-    echo "    echo 'java/io/PrintWriter'        >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/OutputStreamWriter' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/io/InputStreamReader'  >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/EncodingManager'              >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/decode/Decoder8859_1'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/decode/Decoder8859_2'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/decode/Decoder8859_3'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/decode/Decoder8859_4'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/decode/Decoder8859_5'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/decode/DecoderEightBitLookup' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/decode/DecoderUTF8'           >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/encode/Encoder8859_1'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/encode/Encoder8859_2'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/encode/Encoder8859_3'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/encode/Encoder8859_4'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/encode/Encoder8859_5'         >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/encode/EncoderEightBitLookup' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/io/encode/EncoderUTF8'           >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/ref/Reference'                  >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'java/lang/ref/ReferenceQueue'             >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/security/provider/DefaultPolicy' >> $PRIMORDIAL_CLASSES_STR.1"
-    echo "    echo 'gnu/java/locale/Calendar_en'              >> $PRIMORDIAL_CLASSES_STR.1"
-
+	cat <<- EOF
+java/io/PrintWriter
+java/io/OutputStreamWriter
+java/io/InputStreamReader
+gnu/java/io/EncodingManager
+gnu/java/io/decode/Decoder8859_1
+gnu/java/io/decode/Decoder8859_2
+gnu/java/io/decode/Decoder8859_3
+gnu/java/io/decode/Decoder8859_4
+gnu/java/io/decode/Decoder8859_5
+gnu/java/io/decode/DecoderEightBitLookup
+gnu/java/io/decode/DecoderUTF8
+gnu/java/io/encode/Encoder8859_1
+gnu/java/io/encode/Encoder8859_2
+gnu/java/io/encode/Encoder8859_3
+gnu/java/io/encode/Encoder8859_4
+gnu/java/io/encode/Encoder8859_5
+gnu/java/io/encode/EncoderEightBitLookup
+gnu/java/io/encode/EncoderUTF8
+java/lang/ref/Reference
+java/lang/ref/ReferenceQueue
+gnu/java/security/provider/DefaultPolicy
+gnu/java/locale/Calendar_en
+EOF_PRIMORDIAL_CLASSES_STR_1
+EOF
     if (( RVM_WITH_OPT_COMPILER )); then
 	# data structures that need to carry over from boot image writing
 	# and/or classes that opt wants to be in the bootimage to 
 	# generate decent code (avoid dynamic linking, get them opt compiled)
 	if (( RVM_WITH_OPT_BOOTIMAGE_COMPILER )); then
-	echo "    echo 'java/util/Enumeration'         >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'java/util/Dictionary'          >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'java/util/TreeMap'          >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'java/util/TreeSet'          >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'java/util/Stack'               >> $PRIMORDIAL_CLASSES_STR.1"
+	cat <<- EOF
+java/util/Enumeration
+java/util/Dictionary
+java/util/TreeMap
+java/util/TreeSet
+java/util/Stack
 
-	echo "    echo 'com/ibm/JikesRVM/opt/ir/OPT_CallSiteTreeNode'  	>> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/opt/OPT_FieldAnalysis'  	        >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/opt/OPT_FieldDatabase'  	        >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/opt/OPT_SpecializedMethod'         >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/opt/OPT_InvokeeThreadLocalContext' >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/opt/OPT_SpecializedMethodPool'     >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/opt/OPT_SpecializationDatabase'     >> $PRIMORDIAL_CLASSES_STR.1"
+com/ibm/JikesRVM/opt/ir/OPT_CallSiteTreeNode
+com/ibm/JikesRVM/opt/OPT_FieldAnalysis
+com/ibm/JikesRVM/opt/OPT_FieldDatabase
+com/ibm/JikesRVM/opt/OPT_SpecializedMethod
+com/ibm/JikesRVM/opt/OPT_InvokeeThreadLocalContext
+com/ibm/JikesRVM/opt/OPT_SpecializedMethodPool
+com/ibm/JikesRVM/opt/OPT_SpecializationDatabase
 
-	echo "    echo 'com/ibm/JikesRVM/opt/OPT_ClassLoadingDependencyManager'     >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/opt/OPT_InvalidationDatabase'     >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/opt/OPT_InterfaceHierarchy'     >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/opt/OPT_SummaryDatabase'     >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/opt/OPT_MethodSummary'     >> $PRIMORDIAL_CLASSES_STR.1"
+com/ibm/JikesRVM/opt/OPT_ClassLoadingDependencyManager
+com/ibm/JikesRVM/opt/OPT_InvalidationDatabase
+com/ibm/JikesRVM/opt/OPT_InterfaceHierarchy
+com/ibm/JikesRVM/opt/OPT_SummaryDatabase
+com/ibm/JikesRVM/opt/OPT_MethodSummary
+EOF
 	fi
 
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-	echo "    echo 'com/ibm/JikesRVM/opt/OPT_ContextFreeInlinePlan'       >> $PRIMORDIAL_CLASSES_STR.1"
+	    echo com/ibm/JikesRVM/opt/OPT_ContextFreeInlinePlan
 	fi
     fi
 
     if (( RVM_WITH_HPM )) ; then
-	echo "    echo 'com/ibm/JikesRVM/HPM_counters'       >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'com/ibm/JikesRVM/HPM_info'           >> $PRIMORDIAL_CLASSES_STR.1"
-	echo "    echo 'Lcom/ibm/JikesRVM/Java2HPM;'         >> $PRIMORDIAL_CLASSES_STR.1"
+	cat << EOF
+com/ibm/JikesRVM/HPM_counters
+com/ibm/JikesRVM/HPM_info
+Lcom/ibm/JikesRVM/Java2HPM;
+EOF
     fi
-    echo "\
-#
-# (3) Now that we have a big file of root classes to include, 
-#     process the exclusions,
-#     find all the compiler-generated classes,
-#     and convert to internal names."
-    echo "    \$FGREP -v -f $EXCLUDED_CLASSES_STR ${PRIMORDIAL_CLASSES_STR}.1 | \${SED} -e'/\\\$/d' -e 's@^\\./@@' -e 's@\.class\$@@' -e 's@^\\(.*\\)\$@\\1.class\\
-\\1\$@' > ${PRIMORDIAL_CLASSES_STR}.2"
-    echo "    $HOST_JAR_STR tf rvmrt.jar > $PRIMORDIAL_CLASSES_STR.3"
-    echo "    \$FIND . -name '*.class' -print | \$SED 's@^\./@@' >> $PRIMORDIAL_CLASSES_STR.3"
-    echo "    \$FGREP -f $PRIMORDIAL_CLASSES_STR.2 $PRIMORDIAL_CLASSES_STR.3 | \$SED 's@\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
-    echo "    rm $PRIMORDIAL_CLASSES_STR.1"
-    echo "    rm $PRIMORDIAL_CLASSES_STR.2"
-    echo "    rm $PRIMORDIAL_CLASSES_STR.3"
+    cat <<- EOF
+	#
+	# (3) Now that we have a big file of root classes to include, 
+	#     process the exclusions,
+	#     find all the compiler-generated classes,
+	#     and convert to internal names.
+	    \$FGREP -v -f $EXCLUDED_CLASSES_STR ${PRIMORDIAL_CLASSES_STR}.1 | \${SED} -e'/\\\$/d' -e 's@^\\./@@' -e 's@\.class\$@@' -e 's@^\\(.*\\)\$@\\1.class\\
+\\1\$@' > ${PRIMORDIAL_CLASSES_STR}.2
+	    $HOST_JAR_STR tf rvmrt.jar > $PRIMORDIAL_CLASSES_STR.3
+	    \$FIND . -name '*.class' -print | \$SED 's@^\./@@' >> $PRIMORDIAL_CLASSES_STR.3
+	    \$FGREP -f $PRIMORDIAL_CLASSES_STR.2 $PRIMORDIAL_CLASSES_STR.3 | \$SED 's@\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR
+	    rm $PRIMORDIAL_CLASSES_STR.1
+	    rm $PRIMORDIAL_CLASSES_STR.2
+	    rm $PRIMORDIAL_CLASSES_STR.3
+	# 
+	# (4) Add Array types.  NOTE: These must be in internal form.
+	#
+	\${SED} -e 's/#.*//' -e '/^$/d' >> $PRIMORDIAL_CLASSES_STR << 'EOF_PRIMORDIAL_CLASSES_STR'
+	[Ljava/util/AbstractSet;
+	[Ljava/util/HashSet;
+	[Ljava/util/HashMap\$HashEntry;
+	[Ljava/util/WeakHashMap\$WeakBucket;
+	[Ljava/security/Principal;
 
-    echo "\
-# 
-# (4) Add Array types.  NOTE: These must be in internal form.
-#"
-    echo "    echo '[Ljava/util/AbstractSet;'      >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/util/HashSet;'          >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/util/HashMap\$HashEntry;'  	    >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/util/WeakHashMap\$WeakBucket;'  >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/security/Principal;'     >> $PRIMORDIAL_CLASSES_STR"
+	[Ljava/util/zip/ZipEntry;
+	[Lcom/ibm/JikesRVM/VM_LockNursery\$VM_LockBucket;
+	[Lcom/ibm/JikesRVM/classloader/VM_Atom;
+	[Lcom/ibm/JikesRVM/VM_BasicBlock;
+	[Lcom/ibm/JikesRVM/classloader/VM_Field;
+	[Lcom/ibm/JikesRVM/classloader/VM_Method;
+	[Lcom/ibm/JikesRVM/classloader/VM_MemberReference;
+	[Lcom/ibm/JikesRVM/classloader/VM_Type;
+	[Lcom/ibm/JikesRVM/classloader/VM_TypeReference;
+	[Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;
+	[Lcom/ibm/JikesRVM/memoryManagers/JMTk/VMResource;
+	[Lcom/ibm/JikesRVM/memoryManagers/JMTk/MemoryResource;
+	[Lcom/ibm/JikesRVM/memoryManagers/JMTk/Plan;
+	[Ljava/lang/Object;
+	[[Ljava/lang/Object;
+	[Ljava/lang/String;
+	[Ljava/lang/Class;
+	[Ljava/lang/reflect/Field;
+	[Ljava/lang/reflect/Method;
+	[Ljava/lang/reflect/Member;
+	[Ljava/lang/reflect/Constructor;
+	[Ljava/io/ObjectStreamField;
+	[Ljava/security/ProtectionDomain;
+	[Ljava/lang/Package;
 
-    echo "    echo '[Ljava/util/zip/ZipEntry;'    >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_LockNursery\$VM_LockBucket;' >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/classloader/VM_Atom;'           >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/classloader/VM_Field;'          >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/classloader/VM_Method;'         >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/classloader/VM_MemberReference;'>> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/classloader/VM_Type;'           >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/classloader/VM_TypeReference;'  >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/memoryManagers/vmInterface/VM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/VMResource;'                      >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/MemoryResource;'                  >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/memoryManagers/JMTk/Plan;'                      >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/lang/Object;'              >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[[Ljava/lang/Object;'             >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/lang/String;'              >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/lang/Class;'               >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/lang/reflect/Field;'       >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/lang/reflect/Method;'      >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/lang/reflect/Member;'      >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/lang/reflect/Constructor;' >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/io/ObjectStreamField;'     >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/security/ProtectionDomain;'>> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Ljava/lang/Package;'             >> $PRIMORDIAL_CLASSES_STR"
+	[B
+	[C
+	[I
+	[F
+	[D
+	[J
+	[S
+	[Z
+	[[I
+	[[B
+	[[[I
 
-    echo "    echo '[B'                               >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[C'                               >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[I'                               >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[F'                               >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[D'                               >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[J'                               >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[S'                               >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Z'                               >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[[I'                              >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[[B'                              >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[[[I'                             >> $PRIMORDIAL_CLASSES_STR"
-    echo "\
-# These next arrays are really arrays of primitves to Jikes RVM 
-#  (even though Java doesn't think they are...)"
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_Address;'   >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_Word;'      >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_Offset;'    >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_Extent;'    >> $PRIMORDIAL_CLASSES_STR"
+	# These next arrays are really arrays of primitves to Jikes RVM 
+	#  (even though Java doesn't think they are...)
+	[Lcom/ibm/JikesRVM/VM_Address;
+	[Lcom/ibm/JikesRVM/VM_Word;
+	[Lcom/ibm/JikesRVM/VM_Offset;
+	[Lcom/ibm/JikesRVM/VM_Extent;
 
-    echo "    echo '[Lcom/ibm/JikesRVM/classloader/VM_Class;'          >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_UnusualMaps;'                >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_Processor;'                  >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_Thread;'                     >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_Lock;'                       >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_CompiledMethod;'             >> $PRIMORDIAL_CLASSES_STR"
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_DynamicLibrary;'             >> $PRIMORDIAL_CLASSES_STR"
+	[Lcom/ibm/JikesRVM/classloader/VM_Class;
+	[Lcom/ibm/JikesRVM/VM_UnusualMaps;
+	[Lcom/ibm/JikesRVM/VM_Processor;
+	[Lcom/ibm/JikesRVM/VM_Thread;
+	[Lcom/ibm/JikesRVM/VM_Lock;
+	[Lcom/ibm/JikesRVM/VM_CompiledMethod;
+	[Lcom/ibm/JikesRVM/VM_DynamicLibrary;
 
-    echo "    echo '[Lcom/ibm/JikesRVM/classloader/VM_InterfaceMethodSignature;'   >> $PRIMORDIAL_CLASSES_STR # for fast interface method invoker"
+	[Lcom/ibm/JikesRVM/classloader/VM_InterfaceMethodSignature; # For fast interface method invoker
 
-    echo "    echo '[Lcom/ibm/JikesRVM/VM_CommandLineArgs\$Prefix;' >> $PRIMORDIAL_CLASSES_STR # for command line argument processing"
-
+	[Lcom/ibm/JikesRVM/VM_CommandLineArgs\$Prefix; # For command-line argument processing
+	EOF
     if (( RVM_WITH_OPT_COMPILER )); then
-	echo "    echo '[[C'                       >> $PRIMORDIAL_CLASSES_STR"
-	echo "    echo '[Ljava/util/HashSet;'      >> $PRIMORDIAL_CLASSES_STR"
+	cat <<- EOF
+		[[C
+		[Ljava/util/HashSet;
+	EOF
 	if (( RVM_WITH_ALL_CLASSES )); then
-	echo "    echo '[Lcom/ibm/JikesRVM/opt/OPT_OperatorClass;'              >> $PRIMORDIAL_CLASSES_STR"
-	echo "    echo '[Lcom/ibm/JikesRVM/opt/OPT_ResourceReservation;'              >> $PRIMORDIAL_CLASSES_STR"
-	echo "    echo '[Lcom/ibm/JikesRVM/opt/ir/OPT_Operator;'                   >> $PRIMORDIAL_CLASSES_STR"
-	echo "    echo '[Lcom/ibm/JikesRVM/opt/ir/OPT_Register;'                   >> $PRIMORDIAL_CLASSES_STR"
+	cat <<- EOF
+		[Lcom/ibm/JikesRVM/opt/OPT_OperatorClass;
+		[Lcom/ibm/JikesRVM/opt/OPT_ResourceReservation;
+		[Lcom/ibm/JikesRVM/opt/ir/OPT_Operator;
+		[Lcom/ibm/JikesRVM/opt/ir/OPT_Register;
+	EOF
 	fi
 
 	if (( RVM_WITH_ADAPTIVE_SYSTEM )); then
-	  echo "    echo '[[D'                               >> $PRIMORDIAL_CLASSES_STR"
-	  echo "    echo '[Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;'              >> $PRIMORDIAL_CLASSES_STR"
-	  echo "    echo '[Lcom/ibm/JikesRVM/adaptive/VM_EdgeListener;'                >> $PRIMORDIAL_CLASSES_STR"
-	  echo "    echo '[Lcom/ibm/JikesRVM/adaptive/VM_ContextListener;'             >> $PRIMORDIAL_CLASSES_STR"
-	  echo "    echo '[Lcom/ibm/JikesRVM/adaptive/VM_NullListener;'                >> $PRIMORDIAL_CLASSES_STR"
+	cat <<- EOF
+		[[D
+		[Lcom/ibm/JikesRVM/adaptive/VM_MethodListener;
+		[Lcom/ibm/JikesRVM/adaptive/VM_EdgeListener;
+		[Lcom/ibm/JikesRVM/adaptive/VM_ContextListener;
+		[Lcom/ibm/JikesRVM/adaptive/VM_NullListener;
+EOF
 	fi
     fi
 
-    echo "\
 # Add the configuration specific primordials
-#"
+#
     for primordial in $CONF_SPECIFIC_PRIMORDIALS_LIST; do
-	echo "    echo '$primordial'			>> $PRIMORDIAL_CLASSES_STR"
+	echo $primordial
     done
 
+cat <<-EOF
+EOF_PRIMORDIAL_CLASSES_STR
+EOF
     echo '    echo -n "(primordials updated) "'
     echo 'fi'
 
