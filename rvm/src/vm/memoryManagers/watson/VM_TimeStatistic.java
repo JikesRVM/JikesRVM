@@ -8,30 +8,18 @@
  * @author Perry Cheng
  * 
  */
-class VM_TimeStatistic {
+class VM_TimeStatistic extends VM_Statistic {
 
-    int count;
-    double last;
-    double sum;
-    double max;
     private double curStart = -1.0;
     double lastStart = -1.0;
     double lastStop = -1.0;
-
-    private void addSample(double x) {
-	last = x;
-	if (count == 0) max = x;
-	if (x > max) max = x;
-	sum += x;
-	count++;
-    }
 
     void start(double x) {
 	if (VM.VerifyAssertions) VM.assert(curStart == -1.0);
 	lastStart = curStart = x;
     }
 
-    private void stop(double x) {
+    void stop(double x) {
 	if (VM.VerifyAssertions) VM.assert(curStart != -1.0);
 	lastStop = x;
 	addSample(x - curStart);
@@ -52,12 +40,24 @@ class VM_TimeStatistic {
 	start(now);
     }
 
+    int lastMs() {
+	return (int)(last()*1000.0);
+    }
+
     int avgMs() {
-	return (int)(sum/count*1000.0);
+	return (int)(avg()*1000.0);
+    }
+
+    int maxMs() {
+	return (int)(max()*1000.0);
+    }
+
+    int sumS() {
+	return (int)(sum());
     }
 
     int avgUs() {
-	return (int)(sum/count*1000.0);
+	return (int)(avg()*1000.0);
     }
 
 }
