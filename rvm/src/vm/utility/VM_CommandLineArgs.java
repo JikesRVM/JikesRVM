@@ -491,7 +491,7 @@ public class VM_CommandLineArgs {
         case AOS_OPT_HELP_ARG:
           if (VM.VerifyAssertions) VM._assert(arg.equals(""));
           //-#if RVM_WITH_ADAPTIVE_SYSTEM
-          OPT_Options.printHelp("-X:aos:opt");
+	  VM_Controller.addOptCompilerOptions("opt:help");
           //-#else
           VM.sysWrite("vm: nonadaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
           VM.sysExit(1);
@@ -692,7 +692,7 @@ public class VM_CommandLineArgs {
           VM.sysWrite("vm: adaptive configuration; illegal command line argument 'help' with prefix '"+p.value+"\n");
           VM.sysExit(1);
           //-#elif RVM_WITH_OPT_RUNTIME_COMPILER
-          OPT_Options.printHelp("-X:opt");
+          VM_RuntimeCompiler.processCommandLineArg("help");
           //-#else
           VM.sysWrite("vm: You are not using a system that involves any compilations by the optmizing compiler.");
           VM.sysWrite(" Illegal command line argument prefix '-X:opt'\n");
@@ -752,7 +752,7 @@ public class VM_CommandLineArgs {
         case SCHEDULER_ARG: // "-X:scheduler:<option>"
           VM_Scheduler.processArg(arg);
           break;
-        //-#if RVM_WITH_HPM
+	//-#if RVM_WITH_HPM
         case HPM_ARG: // "-X:hpm:<option>"
           VM_HardwarePerformanceMonitors.processArg(arg);
           break;
