@@ -92,15 +92,16 @@ public abstract class Generational extends StopTheWorldGC
   protected static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
 
   // Memory layout constants
+  public  static final int               MAX_SIZE = 1200 * 1024 * 1024;
   protected static final VM_Address     LOS_START = PLAN_START;
-  protected static final EXTENT          LOS_SIZE = 128 * 1024 * 1024;
+  protected static final EXTENT          LOS_SIZE = 256 * 1024 * 1024;
   protected static final VM_Address       LOS_END = LOS_START.add(LOS_SIZE);
   protected static final VM_Address  MATURE_START = LOS_END;
-  protected static final EXTENT    MATURE_SS_SIZE = 384 * 1024 * 1024;
+  protected static final EXTENT    MATURE_SS_SIZE = 600 * 1024 * 1024;
   protected static final EXTENT       MATURE_SIZE = MATURE_SS_SIZE<<1;
   protected static final VM_Address    MATURE_END = MATURE_START.add(MATURE_SIZE);
   protected static final VM_Address NURSERY_START = MATURE_END;
-  protected static final EXTENT      NURSERY_SIZE = 384 * 1024 * 1024;
+  protected static final EXTENT      NURSERY_SIZE = 600 * 1024 * 1024;
   protected static final VM_Address   NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   protected static final VM_Address      HEAP_END = NURSERY_END;
 
@@ -264,6 +265,20 @@ public abstract class Generational extends StopTheWorldGC
 				AllocAdvice hint) {
     return (bytes >= LOS_SIZE_THRESHOLD) ? (Plan.usesLOS ? LOS_SPACE : MATURE_SPACE) : NURSERY_SPACE;
   }
+
+
+  protected byte getSpaceFromAllocator (Allocator a) {
+    if (a == nursery) return NURSERY_SPACE;
+    if (a == los) return LOS_SPACE;
+    return super.getSpaceFromAllocator(a);
+  }
+
+  protected Allocator getAllocatorFromSpace (byte s) {
+    if (s == NURSERY_SPACE) return nursery;
+    if (s == LOS_SPACE) return los;
+    return super.getAllocatorFromSpace(s);
+  }
+
 
   /**
    * Give the compiler/runtime statically generated alloction advice

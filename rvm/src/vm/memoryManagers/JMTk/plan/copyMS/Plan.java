@@ -73,18 +73,18 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static final byte NURSERY_SPACE = 0;
   private static final byte MS_SPACE = 1;
   public static final byte DEFAULT_SPACE = NURSERY_SPACE;
-  public static final byte TIB_SPACE = DEFAULT_SPACE;
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
   private static final EXTENT LOS_SIZE_THRESHOLD = DEFAULT_LOS_SIZE_THRESHOLD;
 
   // Memory layout constants
+  public  static final EXTENT           MAX_SIZE = 1400 * 1024 * 1024;
   private static final VM_Address       MS_START = PLAN_START;
-  private static final EXTENT            MS_SIZE = 512 * 1024 * 1024;
+  private static final EXTENT            MS_SIZE = 1400 * 1024 * 1024;
   private static final VM_Address         MS_END = MS_START.add(MS_SIZE);
   private static final VM_Address  NURSERY_START = MS_END;
-  private static final EXTENT       NURSERY_SIZE = 64 * 1024 * 1024;
+  private static final EXTENT       NURSERY_SIZE = 700 * 1024 * 1024;
   private static final VM_Address    NURSERY_END = NURSERY_START.add(NURSERY_SIZE);
   private static final VM_Address       HEAP_END = NURSERY_END;
 
@@ -262,6 +262,18 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public static final int getInitialHeaderValue(EXTENT bytes)
     throws VM_PragmaInline {
     return msCollector.getInitialHeaderValue(bytes);
+  }
+
+  protected final byte getSpaceFromAllocator (Allocator a) {
+    if (a == nursery) return NURSERY_SPACE;
+    if (a == ms) return MS_SPACE;
+    return super.getSpaceFromAllocator(a);
+  }
+
+  protected final Allocator getAllocatorFromSpace (byte s) {
+    if (s == NURSERY_SPACE) return nursery;
+    if (s == MS_SPACE) return ms;
+    return super.getAllocatorFromSpace(s);
   }
 
   /**

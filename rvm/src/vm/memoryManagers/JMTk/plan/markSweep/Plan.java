@@ -64,14 +64,14 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   // Allocators
   public static final byte MS_SPACE = 0;
   public static final byte DEFAULT_SPACE = MS_SPACE;
-  public static final byte TIB_SPACE = DEFAULT_SPACE;
 
   // Miscellaneous constants
   private static final int POLL_FREQUENCY = DEFAULT_POLL_FREQUENCY;
 
   // Memory layout constants
+  public  static final int              MAX_SIZE = 2048 * 1024 * 1024;
   private static final VM_Address       MS_START = PLAN_START;
-  private static final EXTENT            MS_SIZE = 1024 * 1024 * 1024;
+  private static final EXTENT            MS_SIZE = 2048 * 1024 * 1024;
   private static final VM_Address         MS_END = MS_START.add(MS_SIZE);
   private static final VM_Address       HEAP_END = MS_END;
 
@@ -238,6 +238,16 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public static final int getInitialHeaderValue(int size) {
     return msCollector.getInitialHeaderValue(size);
+  }
+
+  protected final byte getSpaceFromAllocator (Allocator a) {
+    if (a == ms) return DEFAULT_SPACE;
+    return super.getSpaceFromAllocator(a);
+  }
+
+  protected final Allocator getAllocatorFromSpace (byte s) {
+    if (s == DEFAULT_SPACE) return ms;
+    return super.getAllocatorFromSpace(s);
   }
 
   /**
