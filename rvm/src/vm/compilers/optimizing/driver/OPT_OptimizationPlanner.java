@@ -179,14 +179,38 @@ public class OPT_OptimizationPlanner {
    * @param p the plan under construction
    */
   private static void HIROptimizations(Vector p) {
-    addComponent(p, new  OPT_TailRecursionElimination());
+    // Various large-scale CFG transformations.
+    // Do these very early in the pipe so that all HIR opts can benefit.
+    composeComponents(p, "CFG Trasformations", new Object[] {
+      // tail recursion elimination
+      new  OPT_TailRecursionElimination(),
+      // Estimate block frequencies if doing any of
+      // static splitting, cfg transformations, or loop unrolling.
+      // Assumption: none of these are active at O0.
+      new OPT_OptimizationPlanCompositeElement
+        ("Basic Block Frequency Estimation", new Object[] {
+	  new OPT_BuildLST(),
+	  new OPT_EstimateBlockFrequencies()
+	}) {
+	public boolean shouldPerform(OPT_Options options) {
+	  return options.getOptLevel() >= 1;
+	}},
+      // CFG spliting
+      new OPT_StaticSplitting(),
+      // restructure loops
+      new OPT_CFGTransformations(),
+      // Loop unrolling
+      new OPT_LoopUnrolling(),
+      new OPT_BranchOptimizations(1, true, true),
+    });
 
-    // Use the LST to insert yieldpoints and estimate basic block frequency from branch probabilities
+    // Use the LST to insert yieldpoints and estimate 
+    // basic block frequency from branch probabilities
     composeComponents(p, "CFG Structural Analysis", new Object[] {
                       new OPT_BuildLST(),
                       new OPT_YieldPoints(),
                       new OPT_EstimateBlockFrequencies()
-                      });
+    });
 
     // Simple flow-insensitive optimizations
     addComponent(p, new OPT_Simple(1, true, true));
@@ -196,14 +220,6 @@ public class OPT_OptimizationPlanner {
 
     // Perform peephole branch optimizations to clean-up before SSA stuff
     addComponent(p, new OPT_BranchOptimizations(1, true, true));
-    // CFG spliting
-    addComponent(p, new OPT_StaticSplitting());
-    // restructure loops
-    addComponent(p, new OPT_CFGTransformations());
-    // Simple flow-insensitive optimizations
-    addComponent(p, new OPT_Simple(1, true, true));
-    // Loop unrolling
-    addComponent(p, new OPT_LoopUnrolling());
 
     // SSA meta-phase
     SSAinHIR(p);

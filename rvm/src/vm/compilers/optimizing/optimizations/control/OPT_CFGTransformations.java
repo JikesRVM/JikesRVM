@@ -16,11 +16,10 @@ import com.ibm.JikesRVM.opt.ir.*;
  *  </ul>
  *
  * @author Martin Trapp
-*/
+ */
 class OPT_CFGTransformations extends OPT_CompilerPhase
   implements OPT_Operators {
 
-  private static boolean changed = false;
   private static boolean DEBUG = false;
 
   // gack
@@ -69,7 +68,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
    * Returns the name of the phase.
    */
   public String getName() {
-    return  "CFGTransformations";
+    return "CFGTransformations";
   }
 
   /**
@@ -207,8 +206,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     // all blocks exit: can't improve
     if (i == exiters) return false;
 
-
-    // rewritung loops where the header has more than one in-loop
+    // rewriting loops where the header has more than one in-loop
     // successor will lead to irreducible control flow.
     OPT_BasicBlock succ[] = inLoopSuccessors (n);
     if (succ.length > 1) {
@@ -225,7 +223,6 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
       OPT_BasicBlock p = header.prevBasicBlockInCodeOrder();
       p.killFallThrough();
       newLoopTest = pred[0].replicateThisOut (ir, header, p);
-      removeYieldPoint(header);
     }
     for (i = 1;  i < pred.length;  ++i) { // check for aditional back edges
       frequency += edgeFrequency (pred[i], header);
@@ -301,22 +298,6 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
     return  res;
   }
 
-  /**
-   * If the given block has a yield point, remove it.
-   */
-  static void removeYieldPoint(OPT_BasicBlock b) {
-    OPT_InstructionEnumeration e = b.forwardInstrEnumerator();
-    while (e.hasMoreElements()) {
-      OPT_Instruction inst = e.next();
-      if (inst.operator.opcode == OPT_Operators.YIELDPOINT_PROLOGUE_opcode ||
-	  inst.operator.opcode == OPT_Operators.YIELDPOINT_EPILOGUE_opcode ||
-	  inst.operator.opcode == OPT_Operators.YIELDPOINT_BACKEDGE_opcode) {
-	//VM.sysWrite ("yieldpoint removed\n");
-	inst.remove();
-      }
-    }
-  }
-
   static void killFallThroughs(OPT_IR ir, OPT_BitVector nloop) {
     OPT_BasicBlockEnumeration bs = ir.getBasicBlocks (nloop);
     while (bs.hasMoreElements()) {
@@ -375,7 +356,7 @@ class OPT_CFGTransformations extends OPT_CompilerPhase
           continue;
 	// insert pads only for moving code up to the start of the method
         //if (a.getExecutionFrequency() >= b.getExecutionFrequency()) continue;
-        changed = true;
+
         // create a new block as landing pad
         OPT_BasicBlock landingPad;
         OPT_Instruction firstInB = b.firstInstruction();

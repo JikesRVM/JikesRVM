@@ -522,10 +522,6 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     tmp.insertBefore
     (Goto.create (GOTO, succBlock.makeJumpTarget()));
 
-    if (mainHeader.firstInstruction().position.getMethod().isInterruptible()) {
-      mainHeader.prependInstruction (Empty.create (YIELDPOINT_BACKEDGE));
-    }
-    
     // recompute normal outs
     guardBlock0.recomputeNormalOut(ir);
     guardBlock1.recomputeNormalOut(ir);
@@ -857,7 +853,6 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
 	firstHeader = seqLast;
       } else {
 	// link copies by jumps
-	OPT_CFGTransformations.removeYieldPoint(seqLast);
 	lastExit.appendInstruction(Goto.create(GOTO,seqLast.makeJumpTarget()));
 	lastExit.recomputeNormalOut(ir);
       }
@@ -906,7 +901,6 @@ class OPT_LoopUnrolling extends OPT_CompilerPhase
     OPT_BasicBlock copy = block.copyWithoutLinks(ir);
     ir.cfg.linkInCodeOrder (seqLast, copy);
     block.scratchObject = copy;
-    OPT_CFGTransformations.removeYieldPoint(copy);
     return copy;
   }
   
