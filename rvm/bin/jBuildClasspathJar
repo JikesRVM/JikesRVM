@@ -173,6 +173,4 @@ rm -f ${cp_src_jar}
 mkdir -p $cp_src_jar_dir
 touch ${cp_src_jar}
 cd $DEST_DIR/classpath
-for p in $TOP_LEVEL_PACKAGES; do
-    $FIND $p -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf ${cp_src_jar}
-done
+$FIND $TOP_LEVEL_PACKAGES -name '*.java' | $GREP -v -f lib/standard.omit | $XARGS $HOST_JAR uf ${cp_src_jar}
