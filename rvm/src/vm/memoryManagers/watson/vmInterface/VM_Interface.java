@@ -18,6 +18,7 @@ import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Processor;
 import com.ibm.JikesRVM.VM_Constants;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_AddressArray;
 import com.ibm.JikesRVM.VM_EventLogger;
 import com.ibm.JikesRVM.VM_BootRecord;
 import com.ibm.JikesRVM.VM_PragmaInline;
@@ -366,6 +367,10 @@ public class VM_Interface implements VM_Constants {
   }
 
   public static int pickAllocator(VM_Type type) throws VM_PragmaInterruptible {
+    return 0;
+  }
+
+  public static int pickAllocator(VM_Type type, VM_Method method) throws VM_PragmaInterruptible {
     return 0;
   }
 
