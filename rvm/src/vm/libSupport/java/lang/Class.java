@@ -386,7 +386,7 @@ public final class Class implements java.io.Serializable {
     }
     
     // (1) Scan the declared public methods of this class and each of its superclasses
-    for (VM_Class current = type.asClass(); current != null; current = current.getSuperClass().asClass()) {
+    for (VM_Class current = type.asClass(); current != null; current = current.getSuperClass()) {
       VM_Method[] methods = current.getDeclaredMethods(); 
       java.lang.reflect.Method answer = null;
       for (int i = 0; i<methods.length; i++) {

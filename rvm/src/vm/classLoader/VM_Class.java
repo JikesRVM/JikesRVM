@@ -914,6 +914,9 @@ public final class VM_Class extends VM_Type implements VM_Constants,
 	    if (outerClassInfoIndex != 0) {
 	      declaringClass = getTypeRef(outerClassInfoIndex);
 	    }
+	    if ((innerClassAccessFlags & (ACC_PRIVATE | ACC_PROTECTED)) != 0) {
+	      modifiers &= ~(ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED);
+	    }
 	    modifiers |= innerClassAccessFlags;
 	  }
 	}
