@@ -260,8 +260,14 @@ to work, then the Jikes RVM build process won't require {\tt
 \end{Label}
 
 \item \texttt{glibc} for Linux/x86 must use the GS register for
-thread-local state.  See the build instructions for \texttt{glibc} for details;
-if that scares you, use a recent Red Hat or SuSE Linux distribution.
+thread-local state.  
+% See the build instructions for \texttt{glibc} for details;
+You can build \texttt{glibc} yourself, being sure to specify the flag
+``\texttt{--enable-kernel=2.4.0}'';
+if that scares you, use a recent Red Hat or SuSE Linux distribution,
+or use Debian/Sarge with a 2.6 kernel.  More information about why
+this is important and how to check on this is
+\link{in the FAQ}[.  See section~\Ref on Page~\Pageref]{singleProcessorQuestion}.
 
 \item It is possible to use 2.2 Linux kernels with multiprocessor
 support disabled in Jikes RVM.\@  We do not recommend this; if you

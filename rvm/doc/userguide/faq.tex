@@ -151,11 +151,24 @@ default for \texttt{glibc}.  If your version of \texttt{glibc}
 is not compiled this way, Jikes RVM will usually fail by ``hanging'' when
 it is run.
 
-This is further discussed in the next two
+This is further discussed in the next three
 questions.  You can also see a discussion in \xlink{the archives for
 jikesrvm-researchers from November of 2001}{\RVMResearcherMailingListArchiveURL/2001-November/000041.html}. 
 
 \end{description}                
+
+\subsubsection{What problems arise if
+\varName{RVM\_FOR\_SINGLE\_VIRTUAL\_PROCESSOR} is set?}%
+\label{singleVirtualProcessorProblems}
+\begin{enumerate}
+\item On an SMP system you'll only use one of your processors.
+\item Any Java methods you call that are implemented with a blocking C
+  library function --- such as the C library functions
+  \texttt{connect()}, \texttt{accept()}, \texttt{select()}, and
+  \texttt{gethostbyname()} --- will make your entire program block
+  until that C library function completes.  They \textit{should} only
+  block the Java thread that makes the blocking call, but they won't.
+\end{enumerate}
 
 \subsubsection{Why does Jikes RVM care about what version of \texttt{glibc} my x86 system uses?}
 
