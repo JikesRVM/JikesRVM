@@ -219,7 +219,6 @@ public class VM_Runtime implements VM_Constants {
     throws VM_ResolutionException, OutOfMemoryError { 
 
     VM_Class cls = VM_TypeDictionary.getValue(dictionaryId).asClass();
-    if (VM.VerifyAssertions) VM._assert(cls.isClassType());
     if (!cls.isInitialized())
       initializeClassForDynamicLink(cls);
 
@@ -261,6 +260,28 @@ public class VM_Runtime implements VM_Constants {
     if (hasFinalizer) VM_Finalizer.addElement(newObj);
 
     return newObj;
+  }
+   
+  /**
+   * Allocate something like "new Foo[]".
+   * @param dictionaryId type of object (VM_TypeDictionary id)
+   * @param numElements number of array elements
+   * @return array with header installed and all fields set to zero/null
+   * See also: bytecode 0xbc ("anewarray")
+   */ 
+  static Object unresolvedNewArray(int numElements, int dictionaryId) 
+    throws VM_ResolutionException, OutOfMemoryError, NegativeArraySizeException { 
+    VM_Array array = VM_TypeDictionary.getValue(dictionaryId).asArray();
+    if (!array.isInitialized()) {
+      VM_Type elementType = array.getElementType();
+      array.load();
+      array.resolve();
+      array.instantiate();
+    }
+
+    return quickNewArray(numElements, 
+			 array.getInstanceSize(numElements),
+			 array.getTypeInformationBlock());
   }
    
   /**
@@ -753,7 +774,7 @@ public class VM_Runtime implements VM_Constants {
    */ 
   public static Object buildMultiDimensionalArray(int[] numElements, 
 						  int dimIndex, 
-						  VM_Array arrayType) {
+						  VM_Array arrayType) throws VM_ResolutionException {
     if (!arrayType.isInstantiated()) {
       arrayType.load();
       arrayType.resolve();

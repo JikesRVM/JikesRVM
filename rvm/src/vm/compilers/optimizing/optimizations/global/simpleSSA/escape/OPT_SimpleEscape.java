@@ -277,7 +277,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
       case GET_OBJ_TIB_opcode:
       case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:case NEWARRAY_opcode:
-      case NEWOBJMULTIARRAY_opcode:case NEW_UNRESOLVED_opcode:
+      case NEWOBJMULTIARRAY_opcode:case NEW_UNRESOLVED_opcode: case NEWARRAY_UNRESOLVED_opcode:
       case INSTANCEOF_opcode:case INSTANCEOF_NOTNULL_opcode:
       case INSTANCEOF_UNRESOLVED_opcode:
       case CHECKCAST_opcode: case MUST_IMPLEMENT_INTERFACE_opcode:
@@ -441,7 +441,7 @@ class OPT_SimpleEscape extends OPT_CompilerPhase
       case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
       case GET_OBJ_TIB_opcode:case GET_TYPE_FROM_TIB_opcode:case NEW_opcode:
       case NEWARRAY_opcode:case NEWOBJMULTIARRAY_opcode:
-      case NEW_UNRESOLVED_opcode:
+      case NEW_UNRESOLVED_opcode: case NEWARRAY_UNRESOLVED_opcode:
       case INSTANCEOF_opcode:case INSTANCEOF_NOTNULL_opcode:
       case INSTANCEOF_UNRESOLVED_opcode:
       case CHECKCAST_opcode: case MUST_IMPLEMENT_INTERFACE_opcode:

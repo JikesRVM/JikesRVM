@@ -1617,11 +1617,15 @@ public abstract class VM_BaselineCompiler {
       case 0xbc: /* newarray */ {
 	int atype = fetch1ByteSigned();
 	VM_Array array = VM_Array.getPrimitiveArrayType(atype);
-	array.resolve();
-	array.instantiate();
+	try {
+	  array.resolve();
+	} catch (VM_ResolutionException e) {
+	  // Cannot be raised with arrays of primitives
+	  if (VM.VerifyAssertions) VM._assert(false);
+	}
 	if (shouldPrint) asm.noteBytecode(biStart, "newarray " + atype + "(" + array + ")");
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+array);
-	emit_newarray(array);
+	emit_resolved_newarray(array);
 	break;
       }
 
@@ -1629,13 +1633,28 @@ public abstract class VM_BaselineCompiler {
 	int constantPoolIndex = fetch2BytesUnsigned();
 	VM_Type elementTypeRef = klass.getTypeRef(constantPoolIndex);
 	VM_Array array = elementTypeRef.getArrayTypeForElementType();
-	// TODO!! Forcing early class loading may violate language spec.  FIX ME!!
-	array.load();
-	array.resolve();
-	array.instantiate();
+	
+	// We can do early resolution of the array type if the element type 
+	// is already initialized.
+	if (!(array.isInitialized() || array.isInBootImage())) {
+	  if (elementTypeRef.isInitialized() || elementTypeRef.isInBootImage()) {
+	    try {
+	      array.load();
+	      array.resolve();
+	      array.instantiate();
+	    } catch (VM_ResolutionException e) {
+	      // can't raise any errors if the element type is already initialized/or in boot image
+	      if (VM.VerifyAssertions) VM._assert(false); 
+	    }
+	  }
+	}
 	if (shouldPrint) asm.noteBytecode(biStart, "anewarray new " + constantPoolIndex + " (" + array + ")");
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("new "+array);
-	emit_newarray(array);
+	if (array.isInitialized() || array.isInBootImage()) {
+	  emit_resolved_newarray(array);
+	} else {
+	  emit_unresolved_newarray(array.getDictionaryId());
+	}
 	break;
       }
 
@@ -2784,7 +2803,13 @@ public abstract class VM_BaselineCompiler {
    * Emit code to allocate an array
    * @param array the VM_Array to instantiate
    */
-  protected abstract void emit_newarray(VM_Array array);
+  protected abstract void emit_resolved_newarray(VM_Array array);
+
+  /**
+   * Emit code to dynamically link the element class and allocate an array
+   * @param array the VM_Array to instantiate
+   */
+  protected abstract void emit_unresolved_newarray(int dictionaryId);
 
   /**
    * Emit code to allocate a multi-dimensional array

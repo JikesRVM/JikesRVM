@@ -2231,7 +2231,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
    * Emit code to allocate an array
    * @param array the VM_Array to instantiate
    */
-  protected final void emit_newarray(VM_Array array) {
+  protected final void emit_resolved_newarray(VM_Array array) {
     int width      = array.getLogElementSize();
     int tibOffset  = array.getOffset();
     int headerSize = VM_ObjectModel.computeHeaderSize(array);
@@ -2243,6 +2243,18 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     asm.emitPUSH_RegDisp(JTOC, tibOffset);        // put tib on stack    
     genParameterRegisterLoad(3);          // pass 3 parameter words
     asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.quickNewArrayMethod.getOffset());
+    asm.emitPUSH_Reg(T0);
+  }
+
+  /**
+   * Emit code to dynamically link and allocate an array
+   * @param the dictionaryId of the VM_Array to dynamically link & instantiate
+   */
+  protected final void emit_unresolved_newarray(int dictionaryId) {
+    // count is already on stack- nothing required
+    asm.emitPUSH_Imm(dictionaryId);
+    genParameterRegisterLoad(2);          // pass 3 parameter words
+    asm.emitCALL_RegDisp(JTOC, VM_Entrypoints.unresolvedNewArrayMethod.getOffset());
     asm.emitPUSH_Reg(T0);
   }
 

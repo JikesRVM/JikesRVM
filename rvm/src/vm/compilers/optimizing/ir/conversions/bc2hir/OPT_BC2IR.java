@@ -1828,8 +1828,7 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
       case JBC_newarray:
 	{
 	  byte atype = (byte)bcInfo.getByteValue();
-	  VM_Array array = 
-	      OPT_ClassLoaderProxy.getPrimitiveArrayType(atype);
+	  VM_Array array = OPT_ClassLoaderProxy.getPrimitiveArrayType(atype);
 	  OPT_TypeOperand arrayOp = makeTypeOperand(array);
 	  OPT_RegisterOperand t = gc.temps.makeTemp(array);
 	  t.setPreciseType();
@@ -1850,7 +1849,22 @@ public final class OPT_BC2IR implements OPT_IRGenOptions,
 	  OPT_RegisterOperand t = gc.temps.makeTemp(array);
 	  t.setPreciseType();
 	  markGuardlessNonNull(t);
-	  s = NewArray.create(NEWARRAY, t, arrayOp, popInt());
+	  // We can do early resolution of the array type if the element type 
+	  // is already initialized.
+	  if (!(array.isInitialized() || array.isInBootImage())) {
+	    if (elementTypeRef.isInitialized() || elementTypeRef.isInBootImage()) {
+	      try {
+		array.load();
+		array.resolve();
+		array.instantiate();
+	      } catch (VM_ResolutionException e) {
+		// can't raise any errors if the element type is already initialized/or in boot image
+		if (VM.VerifyAssertions) VM._assert(false); 
+	      }
+	    }
+	  }
+	  s = NewArray.create(array.isInitialized() ? NEWARRAY : NEWARRAY_UNRESOLVED, 
+			      t, arrayOp, popInt());
 	  push(t.copyD2U()); 
 	  rectifyStateWithErrorHandler();
 	  VM_Class et = 

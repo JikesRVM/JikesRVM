@@ -140,15 +140,6 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
 	{
 	  OPT_TypeOperand Array = NewArray.getClearType(inst);
 	  VM_Array array = (VM_Array)Array.type;
-	  // TODO: Forcing early class loading is probably legal, but gets
-	  // into some delicate areas of the JVM spec.  We really need a 
-	  // NEWARRAY_UNRESOLVED operator & runtime method to deal with those
-	  // cases in which we get an error while Array.load is attempting to
-	  // load the element type.
-	  // See VM_Array.load/resolve/instantiate.
-	  array.load();
-	  array.resolve();
-	  array.instantiate();
 	  OPT_Operand numberElements = NewArray.getClearSize(inst);
 	  OPT_Operand size = null;
 	  if (numberElements instanceof OPT_RegisterOperand) {
@@ -199,6 +190,18 @@ public final class OPT_ExpandRuntimeServices extends OPT_CompilerPhase
               inline(inst, ir);
             }
 	  } 
+	}
+	break;
+
+
+      case NEWARRAY_UNRESOLVED_opcode:
+	{
+	  int typeRefId = New.getType(inst).type.getDictionaryId();
+	  OPT_Operand numberElements = NewArray.getClearSize(inst);
+	  Call.mutate2(inst, CALL, NewArray.getClearResult(inst), null, 
+		       OPT_MethodOperand.STATIC(VM_Entrypoints.unresolvedNewArrayMethod), 
+		       numberElements, 
+		       new OPT_IntConstantOperand(typeRefId));
 	}
 	break;
 

@@ -83,6 +83,16 @@ alloc | immedPEI
 
 
 
+# Allocate a new array. Could cause a NegativeArraySizeException, 
+# therefore is an immedPEI.
+# At compile time the array was not ready to go, 
+# therefore this instruction may cause dynamic linking to happen.
+NEWARRAY_UNRESOLVED
+NewArray
+alloc | immedPEI | dynLink
+
+
+
 # Throw the argument exception object
 ATHROW
 Athrow

@@ -24,6 +24,7 @@ public class VM_Entrypoints implements VM_Constants {
   public static final VM_Method checkcastFinalMethod     = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkcastFinal", "(Ljava/lang/Object;I)V");
   public static final VM_Method checkstoreMethod         = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "checkstore", "(Ljava/lang/Object;Ljava/lang/Object;)V");
   public static final VM_Method athrowMethod             = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "athrow", "(Ljava/lang/Throwable;)V");
+  public static final VM_Method unresolvedNewArrayMethod = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "unresolvedNewArray", "(II)Ljava/lang/Object;");
   public static final VM_Method newScalarMethod          = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "newScalar", "(I)Ljava/lang/Object;");
   public static final VM_Method quickNewArrayMethod      = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "quickNewArray", "(II[Ljava/lang/Object;)Ljava/lang/Object;");
   public static final VM_Method quickNewScalarMethod     = getMethod("Lcom/ibm/JikesRVM/VM_Runtime;", "quickNewScalar", "(I[Ljava/lang/Object;Z)Ljava/lang/Object;");

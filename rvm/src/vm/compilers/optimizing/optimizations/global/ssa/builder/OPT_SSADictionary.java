@@ -592,7 +592,7 @@ public final class OPT_SSADictionary implements OPT_Operators {
       case NEW_opcode:case NEW_UNRESOLVED_opcode:
         newHelper(s, b);
         break;
-      case NEWARRAY_opcode:
+      case NEWARRAY_opcode:case NEWARRAY_UNRESOLVED_opcode:
         newArrayHelper(s, b);
         break;
       case NEWOBJMULTIARRAY_opcode:

@@ -400,11 +400,15 @@ public class ReflectionSupport {
       // get VM_Array type for multi-dimensional array 
       componentVMType = componentType.getVMType();
       arrayType = componentVMType.getArrayTypeForElementType();
-      for ( i = 0; i < length-1; i++ )
+      for ( i = 0; i < length-1; i++ ) {
         arrayType = arrayType.getArrayTypeForElementType();
+      }
 
-      Object obj = VM_Runtime.buildMultiDimensionalArray( dimensions, 0, arrayType );
-      return obj;
+      try {
+	return VM_Runtime.buildMultiDimensionalArray(dimensions, 0, arrayType);
+      } catch (VM_ResolutionException e) {
+	throw new NoClassDefFoundError(e.getException().toString());
+      }
     }
   /**
    * Return a new array of the specified component type and length.
@@ -427,8 +431,12 @@ public class ReflectionSupport {
     VM_Array arrayType = (VM_Array)arrayClassCache.get(componentType);
     if (arrayType == null) {
       arrayType = componentType.getVMType().getArrayTypeForElementType();
-      arrayType.load();
-      arrayType.resolve();
+      try {
+	arrayType.load();
+	arrayType.resolve();
+      } catch (VM_ResolutionException e) {
+	throw new NoClassDefFoundError(e.getException().toString());
+      }
       arrayType.instantiate();
       arrayClassCache.put(componentType, arrayType);
     }

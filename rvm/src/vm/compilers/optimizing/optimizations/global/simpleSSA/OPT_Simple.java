@@ -310,7 +310,7 @@ public final class OPT_Simple extends OPT_CompilerPhase
       OPT_RegisterOperand lhs = reg.defList;
       OPT_Instruction instr = lhs.instruction;
       OPT_Operator op = instr.operator();
-      if (op != NEWARRAY)
+      if (!(op == NEWARRAY || op == NEWARRAY_UNRESOLVED))
         continue;
       OPT_Operand sizeOp = NewArray.getSize(instr);
       // check for an array whose length is a compile-time constant

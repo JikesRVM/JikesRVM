@@ -2261,7 +2261,7 @@ public class VM_Compiler extends VM_BaselineCompiler
    * Emit code to allocate an array
    * @param array the VM_Array to instantiate
    */
-  protected final void emit_newarray(VM_Array array) {
+  protected final void emit_resolved_newarray(VM_Array array) {
     int width      = array.getLogElementSize();
     int tibOffset  = array.getTibOffset();
     int headerSize = VM_ObjectModel.computeArrayHeaderSize(array);
@@ -2271,6 +2271,19 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitSLI  (T1, T0, width);             // T1 := number of bytes
     asm.emitCAL  (T1, headerSize, T1);        //    += header bytes
     asm.emitLtoc (T2, tibOffset);             // T2 := tib
+    asm.emitCall(spSaveAreaOffset);
+    asm.emitST   (T0, 0, SP);
+  }
+
+  /**
+   * Emit code to dynamically link and allocate an array
+   * @param the dictionaryId of the VM_Array to dynamically link & instantiate
+   */
+  protected final void emit_unresolved_newarray(int dictionaryId) {
+    asm.emitLtoc (T0, VM_Entrypoints.unresolvedNewArrayMethod.getOffset());
+    asm.emitMTLR (T0);
+    asm.emitL    (T0, 0, SP);                // T0 := number of elements
+    asm.emitLVAL (T1, dictionaryId);         // T1 := dictionaryId of array
     asm.emitCall(spSaveAreaOffset);
     asm.emitST   (T0, 0, SP);
   }

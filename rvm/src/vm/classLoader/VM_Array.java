@@ -544,43 +544,25 @@ public final class VM_Array extends VM_Type
     VM_Statics.setSlotContents(tibSlot, tib);
   }
 
-  // Ensure that the elementType is loaded
-  // JVM spec says anewarray forces loading of base class   
+  // Loading an array type also forces loading of element type.
   // 
-  // TODO: this should throw VM_ResolutionException
-  public final synchronized void load() {
+  public final synchronized void load() throws VM_ResolutionException {
     if (isLoaded())
       return;
+    elementType.load();
 
-    if (!elementType.isLoaded()) {
-      // JVM spec says anewarray forces instantiation of base class
-      try {
-        elementType.load(); 
-      }	catch (VM_ResolutionException e) {
-        System.err.println("VM_Array.load: cannot load element type::: " + elementType); // TODO: we should throw e
-      }
-    }
     state = CLASS_LOADED;
     if (VM.verboseClassLoading) VM.sysWrite("[Loaded "+this.descriptor+"]\n");
     if (VM.verboseClassLoading) VM.sysWrite("[Loaded superclasses of "+this.descriptor+"]\n");
   }
 
-  // Ensure that the elementType is resolved
-  // JVM spec says anewarray forces resolution of base class   
+  // Resolution of element type also forces resolution of element type
   //
-  // TODO: this should throw VM_ResolutionException
-  public final synchronized void resolve() {
+  public final synchronized void resolve() throws VM_ResolutionException {
     if (isResolved())
       return;
-    if (VM.VerifyAssertions) VM._assert(state == CLASS_LOADED);
 
-    if (elementType.isLoaded() && !elementType.isResolved()) {
-      try {
-	elementType.resolve(); 
-      }	catch (VM_ResolutionException e) {
-	System.err.println("VM_Array.resolve: cannot resolve element type::: " + elementType); // TODO: we should throw e
-      }
-    }
+    elementType.resolve();
     
     // Using the type information block for java.lang.Object as a template,
     // build a type information block for this new array type by copying the
@@ -597,7 +579,7 @@ public final class VM_Array extends VM_Type
     typeInformationBlock[0] = this;
     typeInformationBlock[TIB_SUPERCLASS_IDS_INDEX] = VM_DynamicTypeCheck.buildSuperclassIds(this);
     typeInformationBlock[TIB_DOES_IMPLEMENT_INDEX] = VM_DynamicTypeCheck.buildDoesImplement(this);
-    if (!elementType.isPrimitiveType() && elementType.isResolved()) {
+    if (!elementType.isPrimitiveType()) {
       typeInformationBlock[TIB_ARRAY_ELEMENT_TIB_INDEX] = elementType.getTypeInformationBlock();
     }
  

@@ -1607,15 +1607,15 @@ function emitImageLinker
    print "   print '[Lcom/ibm/JikesRVM/VM_BasicBlock;'                 >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_Field;'                      >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[Lcom/ibm/JikesRVM/VM_Field;'                     >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_Heap;'                       >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_Heap;'        >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_Method;'                     >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_LocalVariable;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_Triplet;'                    >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_Type;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_StackTrace;'                 >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_CollectorThread;'            >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_CollectorThread;' >> $PRIMORDIAL_CLASSES_STR"
    if (( RVM_WITH_JIKESRVM_MEMORY_MANAGERS )); then
-   print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_SizeControl;'                >> $PRIMORDIAL_CLASSES_STR"
+     print "   print '[Lcom/ibm/JikesRVM/memoryManagers/VM_SizeControl;' >> $PRIMORDIAL_CLASSES_STR"
    fi
    print "   print '[Ljava/lang/Object;'              >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[[Ljava/lang/Object;'             >> $PRIMORDIAL_CLASSES_STR"
@@ -1625,10 +1625,15 @@ function emitImageLinker
    print "   print '[Ljava/lang/reflect/Method;'      >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/reflect/Member;'      >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Ljava/lang/reflect/Constructor;' >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Ljava/io/ObjectStreamField;'     >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Ljava/security/ProtectionDomain;'>> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[Ljava/lang/Package;'             >> $PRIMORDIAL_CLASSES_STR"
+
    print "   print '[B'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[C'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[I'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[F'                               >> $PRIMORDIAL_CLASSES_STR"
+   print "   print '[D'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[J'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[S'                               >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Z'                               >> $PRIMORDIAL_CLASSES_STR"
@@ -1642,7 +1647,6 @@ function emitImageLinker
    print "   print '[Lcom/ibm/JikesRVM/VM_Lock;'                       >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_CompiledMethod;'             >> $PRIMORDIAL_CLASSES_STR"
    print "   print '[Lcom/ibm/JikesRVM/VM_DynamicLibrary;'             >> $PRIMORDIAL_CLASSES_STR"
-   print "   print '[D'                               >> $PRIMORDIAL_CLASSES_STR"
 
    print "   print '[Lcom/ibm/JikesRVM/VM_InterfaceMethodSignature;'   >> $PRIMORDIAL_CLASSES_STR" # for fast interface method invoker
 
