@@ -667,8 +667,8 @@ public abstract class BasePlan
    * @return The amount of <i>free memory</i>, in bytes (where free is
    * defined as not in use).
    */
-  public static long freeMemory() throws UninterruptiblePragma {
-    return totalMemory() - usedMemory();
+  public static Extent freeMemory() throws UninterruptiblePragma {
+    return totalMemory().sub(usedMemory());
   }
 
   /**
@@ -678,8 +678,8 @@ public abstract class BasePlan
    *
    * @return The amount of <i>memory in use</i>, in bytes.
    */
-  public static long usedMemory() throws UninterruptiblePragma {
-    return Conversions.pagesToBytes(Plan.getPagesUsed()).toLong();
+  public static Extent usedMemory() throws UninterruptiblePragma {
+    return Conversions.pagesToBytes(Plan.getPagesUsed());
   }
 
 
@@ -690,8 +690,8 @@ public abstract class BasePlan
    *
    * @return The amount of <i>memory in use</i>, in bytes.
    */
-  public static long reservedMemory() throws UninterruptiblePragma {
-    return Conversions.pagesToBytes(Plan.getPagesReserved()).toLong();
+  public static Extent reservedMemory() throws UninterruptiblePragma {
+    return Conversions.pagesToBytes(Plan.getPagesReserved());
   }
 
   /**
@@ -701,7 +701,7 @@ public abstract class BasePlan
    * @return The total amount of memory managed to the memory
    * management system, in bytes.
    */
-  public static long totalMemory() throws UninterruptiblePragma {
+  public static Extent totalMemory() throws UninterruptiblePragma {
     return HeapGrowthManager.getCurrentHeapSize();
   }
 
@@ -713,7 +713,7 @@ public abstract class BasePlan
    * management system, in pages.
    */
   public static int getTotalPages() throws UninterruptiblePragma { 
-    return Conversions.bytesToPages((int) totalMemory()); 
+    return totalMemory().toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
   }
 
   /**

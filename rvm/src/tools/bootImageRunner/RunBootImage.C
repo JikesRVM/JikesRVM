@@ -36,7 +36,7 @@
 #include <errno.h>
 #include <sys/signal.h>
 #include <ctype.h>              // isspace()
-#include <limits.h>             // INT_MAX
+#include <limits.h>             // UINT_MAX, ULONG_MAX, etc
 #include <strings.h> /* bzero */
 #include <libgen.h>  /* basename */
 #if (defined __linux__)
@@ -68,8 +68,8 @@
 #include <InterfaceDeclarations.h>
 
 
-unsigned initialHeapSize;  /* Declared in bootImageRunner.h */
-unsigned maximumHeapSize;  /* Declared in bootImageRunner.h */
+uint64_t initialHeapSize;  /* Declared in bootImageRunner.h */
+uint64_t maximumHeapSize;  /* Declared in bootImageRunner.h */
 
 int verboseBoot;                /* Declared in bootImageRunner.h */
 
@@ -222,7 +222,8 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
             if (vb < 0) {
                 fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative verboseBoot value\n", Me, token);
                 *fastExit = true; break;
-            } else if (errno == ERANGE || vb > INT_MAX ) {
+            } else if (errno == ERANGE
+                       || vb > UINT_MAX ) {
                 fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
                 *fastExit = true; break;
             } else if (*endp) {
@@ -277,7 +278,7 @@ processCommandLineArguments(char *CLAs[], int n_CLAs, bool *fastExit)
                 if (level < 0) {
                     fprintf(SysTraceFile, "%s: \"%s\": You may not specify a negative GC verbose value\n", Me, token);
                     *fastExit = true; 
-                } else if (errno == ERANGE || level > INT_MAX ) {
+                } else if (errno == ERANGE || level > UINT_MAX ) {
                     fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, token);
                     *fastExit = true;
                 } else if (*endp) {
@@ -579,7 +580,7 @@ parse_heap_size(const char *sizeName, //  "initial" or "maximum"
 
     if (!*fastExit) {
         if (errno == ERANGE 
-            || heapsz > ((long double) (UINT_MAX - BYTES_IN_PAGE)/ factor)) 
+            || heapsz > ((long double) (UINT_MAX - BYTES_IN_PAGE)/factor)) 
         {
         // If message not already printed, print it.
             fprintf(SysTraceFile, "%s: \"%s\": too big a number to represent internally\n", Me, subtoken);

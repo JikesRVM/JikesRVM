@@ -128,12 +128,12 @@ public class VM_BootRecord {
   /**
    * initial size of heap
    */
-  public int initialHeapSize;
+  public Extent initialHeapSize;
 
   /**
    * maximum size of heap
    */
-  public int maximumHeapSize;
+  public Extent maximumHeapSize;
 
   public AddressArray heapRanges; // [start1, end1, ..., start_k, end_k, -1, -1]
                                      // C-style termination with sentinel values

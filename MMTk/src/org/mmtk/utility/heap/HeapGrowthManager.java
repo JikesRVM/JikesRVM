@@ -6,10 +6,12 @@ package org.mmtk.utility.heap;
 
 import org.mmtk.utility.*;
 import org.mmtk.vm.Assert;
+import org.mmtk.vm.Constants;
 import org.mmtk.vm.Plan;
 import org.mmtk.vm.Statistics;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * This class is responsible for growing and shrinking the 
@@ -18,23 +20,22 @@ import org.vmmagic.pragma.*;
  * @author Perry Cheng
  * @author Dave Grove
  */
-public abstract class HeapGrowthManager implements Uninterruptible {
+public abstract class HeapGrowthManager implements Constants, Uninterruptible {
 
-  // TODO: These really need to become longs.
   /**
    * The initial heap size (-Xms) in bytes
    */
-  private static int initialHeapSize; 
+  private static Extent initialHeapSize; 
 
   /**
    * The maximum heap size (-Xms) in bytes
    */
-  private static int maxHeapSize;     
+  private static Extent maxHeapSize;     
 
   /**
    * The current heap size in bytes
    */
-  private static int currentHeapSize; 
+  private static Extent currentHeapSize; 
 
 
   private final static double[][] generationalFunction =    {{0.00, 0.00, 0.10, 0.30, 0.60, 0.80, 1.00},
@@ -82,10 +83,10 @@ public abstract class HeapGrowthManager implements Uninterruptible {
    * Initialize heap size parameters and the mechanisms
    * used to adaptively change heap size.
    */
-  public static void boot(int initial, int max) {
+  public static void boot(Extent initial, Extent max) {
     initialHeapSize = initial;
     maxHeapSize = max;
-    if (initialHeapSize > maxHeapSize) 
+    if (initialHeapSize.GT(maxHeapSize)) 
       maxHeapSize = initialHeapSize;
     currentHeapSize = initialHeapSize;
     if (Assert.VERIFY_ASSERTIONS) sanityCheck();
@@ -95,7 +96,7 @@ public abstract class HeapGrowthManager implements Uninterruptible {
   /**
    * @return the current heap size in bytes
    */
-  public static int getCurrentHeapSize() {
+  public static Extent getCurrentHeapSize() {
     return currentHeapSize;
   }
 
@@ -104,7 +105,7 @@ public abstract class HeapGrowthManager implements Uninterruptible {
    *
    * @return The max heap size in bytes (as set by -Xmx).
    */
-  public static int getMaxHeapSize() {
+  public static Extent getMaxHeapSize() {
     return maxHeapSize;
   }
 
@@ -113,7 +114,7 @@ public abstract class HeapGrowthManager implements Uninterruptible {
    *
    * @return The initial heap size in bytes (as set by -Xms).
    */
-  public static int getInitialHeapSize() {
+  public static Extent getInitialHeapSize() {
     return initialHeapSize;
   }
 
@@ -123,8 +124,8 @@ public abstract class HeapGrowthManager implements Uninterruptible {
    * situation.
    * @param size number of bytes to grow the heap
    */
-  public static void overrideGrowHeapSize(int size) {
-    currentHeapSize += size;
+  public static void overrideGrowHeapSize(Extent size) {
+    currentHeapSize = currentHeapSize.add(size);
   }
   
   /**
@@ -150,20 +151,20 @@ public abstract class HeapGrowthManager implements Uninterruptible {
    * @return true if heap size was changed, false otherwise
    */
   public static boolean considerHeapSize() {
-    int oldSize = currentHeapSize;
-    long reserved = Plan.reservedMemory();
-    double liveRatio = reserved / ((double) currentHeapSize);
+    Extent oldSize = currentHeapSize;
+    Extent reserved = Plan.reservedMemory();
+    double liveRatio = reserved.toLong() / ((double) currentHeapSize.toLong());
     double ratio = computeHeapChangeRatio(liveRatio);
-    long newSize = (long) (ratio * (double)oldSize);
-    if (newSize < reserved) newSize = reserved;
-    newSize = (newSize + (1<<20)) >> 20 << 20; // round to next megabyte
-    if (newSize > maxHeapSize) newSize = maxHeapSize;
-    if (newSize != oldSize) {
+    Extent newSize = Word.fromInt((int)(ratio * (double) (oldSize.toLong()>>LOG_BYTES_IN_MBYTE))).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // do arith in MB to avoid overflow
+    if (newSize.LT(reserved)) newSize = reserved;
+    newSize = newSize.add(BYTES_IN_MBYTE - 1).toWord().rshl(LOG_BYTES_IN_MBYTE).lsh(LOG_BYTES_IN_MBYTE).toExtent(); // round to next megabyte
+    if (newSize.GT(maxHeapSize)) newSize = maxHeapSize;
+    if (newSize.NE(oldSize)) {
       // Heap size is going to change
-      currentHeapSize = (int) newSize;
+      currentHeapSize = newSize;
       if (Options.verbose >= 2) { 
-        Log.write("GC Message: Heap changed from "); Log.write((int) (oldSize / 1024)); 
-        Log.write("KB to "); Log.write((int) (newSize / 1024)); 
+        Log.write("GC Message: Heap changed from "); Log.write(oldSize.toWord().rshl(LOG_BYTES_IN_KBYTE).toInt()); 
+        Log.write("KB to "); Log.write(newSize.toWord().rshl(LOG_BYTES_IN_KBYTE).toInt()); 
         Log.writeln("KB"); 
       } 
       return true;

@@ -124,7 +124,7 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
         VM.sysWrite("[Forced GC]");
     }
     if (Options.verbose > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
-    int sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
+    Extent sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
     long start = VM_Time.cycles();
     VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
     long end = VM_Time.cycles();
@@ -132,7 +132,7 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
     if (Options.verbose > 2) VM.sysWriteln("Collection finished (ms): ", gcTime);
 
     if (Plan.isLastGCFull() && 
-        sizeBeforeGC == HeapGrowthManager.getCurrentHeapSize()) 
+   sizeBeforeGC.EQ(HeapGrowthManager.getCurrentHeapSize()))
       checkForExhaustion(why, false);
     
     Plan.checkForAsyncCollection();
@@ -161,7 +161,7 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
     }
     if (Options.verbose > 2) 
       VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
-    int sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
+    Extent sizeBeforeGC = HeapGrowthManager.getCurrentHeapSize();
     long start = VM_Time.cycles();
     VM_CollectorThread.collect(VM_CollectorThread.handshake, why);
     long end = VM_Time.cycles();
@@ -170,7 +170,7 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
       VM.sysWriteln("Collection finished (ms): ", gcTime);
 
     if (Plan.isLastGCFull() && 
-	sizeBeforeGC == HeapGrowthManager.getCurrentHeapSize()) 
+        sizeBeforeGC.EQ(HeapGrowthManager.getCurrentHeapSize()))
       checkForExhaustion(why, false);
     
     Plan.checkForAsyncCollection();
@@ -209,15 +209,15 @@ public class Collection implements Constants, VM_Constants, Uninterruptible {
    */
   private static final void checkForExhaustion(int why, boolean async)
     throws LogicallyUninterruptiblePragma {
-    double usage = Plan.reservedMemory() / ((double) Plan.totalMemory());
+    double usage = Plan.reservedMemory().toLong()/ ((double) Plan.totalMemory().toLong());
     
     //    if (Plan.totalMemory() - Plan.reservedMemory() < 64<<10) {
     if (usage > OUT_OF_MEMORY_THRESHOLD) {
       if (why == INTERNAL_GC_TRIGGER) {
         if (Options.verbose >= 2) {
           VM.sysWriteln("OutOfMemoryError: usage = ", usage);
-          VM.sysWriteln("          reserved (kb) = ",(int)(Plan.reservedMemory() / 1024));
-          VM.sysWriteln("          total    (Kb) = ",(int)(Plan.totalMemory() / 1024));
+          VM.sysWriteln("          reserved (KB) = ",(long)(Plan.reservedMemory().toLong() / 1024));
+          VM.sysWriteln("          total    (KB) = ",(long)(Plan.totalMemory().toLong() / 1024));
         }
         if (VM.debugOOM || Options.verbose >= 5)
           VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");

@@ -2,16 +2,14 @@
  * (C) Copyright IBM Corp. 2001
  */
 //$Id$
-/*
- * @author Perry Cheng
- */
 
-
-import java.lang.System;        // unneeded
 import java.io.PrintStream;
 import com.ibm.JikesRVM.memoryManagers.mmInterface.MM_Interface;
 import org.vmmagic.pragma.*;
 
+/**
+ * @author Perry Cheng
+ */
 class Exhaust {
 
   final private static PrintStream o = System.out;
@@ -25,9 +23,8 @@ class Exhaust {
   static long wasAllocating;            // How much were we allocating?
   
 
-  public static void main(String args[])  //throws Throwable 
-  {
-    long mhs = MM_Interface.getMaxHeapSize();
+  public static void main(String args[]) {
+    long mhs = MM_Interface.getMaxHeapSize().toLong();
     
     o.println("Max heap size: " + mhs + " bytes");
     if (mhs > 1024 * 1024)
@@ -39,10 +36,7 @@ class Exhaust {
     System.exit(0);
   }
 
-  public static int doInner (int size) 
-    throws // Throwable, 
-      NoInlinePragma 
-  {
+  public static int doInner (int size) throws NoInlinePragma {
     while (true) {
       wasAllocating = size;
       Object [] next = new Object[((int) size) / 4];
@@ -53,10 +47,7 @@ class Exhaust {
     }
   }
 
-  public static void runTest() 
-    throws // Throwable, 
-      NoInlinePragma 
-  {
+  public static void runTest() throws NoInlinePragma {
     int size = itemSize;  
     for (int i=1; i<=rounds; i++) {
       o.println("Starting round " + i + " with size = " + size);

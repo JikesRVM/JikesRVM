@@ -156,7 +156,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @param theBootRecord the boot record. Contains information about
    * the heap size.
    */
-  public static final void boot (VM_BootRecord theBootRecord)
+  public static final void boot(VM_BootRecord theBootRecord)
     throws InterruptiblePragma {
     int pageSize = VM_Memory.getPagesize();  // Cannot be determined at init-time
     LazyMmapper.boot(BOOT_IMAGE_START, BOOT_IMAGE_SIZE);
@@ -355,7 +355,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    *
    * @return The amount of free memory.
    */
-  public static final long freeMemory() {
+  public static final Extent freeMemory() {
     return Plan.freeMemory();
   }
 
@@ -364,7 +364,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    *
    * @return The amount of total memory.
    */
-  public static final long totalMemory() {
+  public static final Extent totalMemory() {
     return Plan.totalMemory();
   }
 
@@ -373,7 +373,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    *
    * @return The maximum amount of memory VM will attempt to use.
    */
-  public static final long maxMemory() {
+  public static final Extent maxMemory() {
     return HeapGrowthManager.getMaxHeapSize();
   }
 
@@ -948,7 +948,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    *
    * @return The max heap size in bytes (as set by -Xmx).
    */
-  public static int getMaxHeapSize() {
+  public static Extent getMaxHeapSize() {
     return HeapGrowthManager.getMaxHeapSize();
   }
 
@@ -957,7 +957,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    *
    * @return The initial heap size in bytes (as set by -Xms).
    */
-  public static int getInitialHeapSize() {
+  public static Extent getInitialHeapSize() {
     return HeapGrowthManager.getInitialHeapSize();
   }
 
@@ -971,7 +971,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
     // This can be undoable if the current thread doesn't cause 'em
     // all to exit.
     // if (VM.VerifyAssertions && growSize < 0) VM._assert(false);
-    HeapGrowthManager.overrideGrowHeapSize(growSize);
+    HeapGrowthManager.overrideGrowHeapSize(Extent.fromInt(growSize));
   }
 
   

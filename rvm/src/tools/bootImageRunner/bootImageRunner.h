@@ -11,6 +11,7 @@
 // #include "bootImageRunner.h"	// In rvm/src/tools/bootImageRunner
 
 #include <stdio.h>
+#include <inttypes.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,8 +44,8 @@ extern const char *bootFilename;	/* Defined in libvm.C */
 extern char *Me;		// Defined in libvm.C
 
 /* libvm.C and RunBootImage.C */
-extern unsigned initialHeapSize;
-extern unsigned maximumHeapSize;
+extern uint64_t initialHeapSize;
+extern uint64_t maximumHeapSize;
 extern int verboseBoot;
 
 /* Defined in libvm.C; used in RunBootImage.C */
