@@ -72,7 +72,7 @@ extern "C"     int sigaltstack(const struct sigaltstack *ss, struct sigaltstack 
 #define USE_MMAP 1 // choose mmap() for Linux --SB
 #define NGPRS 32
 // Linux on PPC does not save FPRs - is this true still?
-#define NFPRS  0
+#define NFPRS  32
 // Third argument to signal handler is of type ucontext_t
 #define SIGNAL_ARG3_IS_UCONTEXT
 
@@ -637,6 +637,7 @@ cTrapHandler(int signum, siginfo_t *siginfo, struct ucontext *context)
 {
     struct mcontext* info = context->uc_mcontext;
     ppc_thread_state_t *save = &info->ss;
+    ppc_float_state_t       *fs = &info->fs;
     unsigned ip  =  save->srr0;
     uintptr_t lr = save->lr;
     VM_Address jtoc =  GET_GPR(save, VM_Constants_JTOC_POINTER);
@@ -784,7 +785,7 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
 #ifdef RVM_FOR_LINUX
     for (int i = 0; i < NGPRS; ++i)
       gprs[i] = save->gpr[i];
-    for (int i = 0; i < 32; ++i) 
+    for (int i = 0; i < NFPRS; ++i) 
       fprs[i] = ((struct linux_sigregs*)save)->fp_regs[i];
     *ipLoc = save->nip + 4; // +4 so it looks like return address
     *lrLoc = save->link;
@@ -794,7 +795,8 @@ cTrapHandler(int signum, int UNUSED zero, sigcontext *context)
     {
       for (int i = 0; i < NGPRS; ++i)
         gprs[i] = GET_GPR(save, i);
-      *ipLoc = save->nip + 4; // +4 so it looks like return address
+      for (int i=0; i < NFPRS; i++) 
+        fprs[i] = fs->fpregs[i];
     }
     *ipLoc = save->srr0 + 4; // +4 so it looks like return address
     *lrLoc = save->lr;
