@@ -352,7 +352,10 @@ poll(struct pollfd *ufds, long unsigned int nfds, int timeout)
 // JNI Invocation API functions
 //////////////////////////////////////////////////////////////
 
-/** Destroying the Java VM only makes sense if you can first attach it.  */
+/** Destroying the Java VM only makes sense if programs can create a VM
+ * on-the-fly.   Further, as of Sun's Java 1.2, it sitll didn't support
+ * unloading virtual machine instances.  It is supposed to block until all
+ * other user threads are gone, and then return an error code. */
 static
 jint 
 DestroyJavaVM(JavaVM UNUSED * vm) 
@@ -361,8 +364,13 @@ DestroyJavaVM(JavaVM UNUSED * vm)
     return JNI_ERR;
 }
 
-/* This is the JNI Invocation Interface function.
-   "Trying to attach a thread that is already attached is a no-op"
+/* This is the JNI Invocation Interface function.  The only part that is
+   implemented is:
+
+   "Trying to attach a thread that is already attached is a no-op".  In other
+   words, it works like GetEnv().
+
+   So we don't support attaching threads that aren't already attached.  
  * */
 static
 jint 
