@@ -373,18 +373,13 @@ public abstract class Generational extends StopTheWorldGC
    */
 
   /**
-   * A collection has been initiated.  If it was initiated due to an
-   * externally triggered GC (System.gc()), and the fullHeapSystemGC
+   * A user triggered GC has been initated.  If the fullHeapSystemGC
    * option is true, then force a full heap collection.  Call the
    * corresponding method on our superclass.
-   *
-   * @param why The reason the collection was initiated (one of
-   * <code>VM_Interface.TRIGGER_REASONS</code>).
    */
-  public static void collectionInitiated(int why) {
-    fullHeapGC |= (Options.fullHeapSystemGC && 
-		   why == VM_Interface.EXTERNALLY_TRIGGERED_GC);
-    StopTheWorldGC.collectionInitiated(why);
+  public static void userTriggeredGC() throws VM_PragmaUninterruptible {
+    fullHeapGC |= Options.fullHeapSystemGC;
+    StopTheWorldGC.userTriggeredGC();
   }
   
   /**

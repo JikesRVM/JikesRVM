@@ -422,16 +422,17 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
    */
   public static final void triggerCollection(int why)
     throws VM_PragmaInterruptible {
-    Plan.collectionInitiated(why);
-
     if (VM.VerifyAssertions) VM._assert((why >= 0) && (why < TRIGGER_REASONS)); 
+    Plan.collectionInitiated();
+
     if (Options.verbose >= 4) {
       VM.sysWriteln("Entered VM_Interface.triggerCollection().  Stack:");
       VM_Scheduler.dumpStack();
     }
-    if ((Options.verbose == 1 || Options.verbose == 2) 
-	&& (why == EXTERNALLY_TRIGGERED_GC)) {
-      VM.sysWrite("[Forced GC]");
+    if (why == EXTERNALLY_TRIGGERED_GC) {
+      Plan.userTriggeredGC();
+      if (Options.verbose == 1 || Options.verbose == 2) 
+	VM.sysWrite("[Forced GC]");
     }
     if (Options.verbose > 2) VM.sysWriteln("Collection triggered due to ", triggerReasons[why]);
     double start = VM_Time.now();
@@ -462,7 +463,7 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
   public static final void triggerAsyncCollection()
     throws VM_PragmaUninterruptible {
     checkForExhaustion(RESOURCE_TRIGGERED_GC, true);
-    Plan.collectionInitiated(RESOURCE_TRIGGERED_GC);
+    Plan.collectionInitiated();
     if (Options.verbose >= 1) VM.sysWrite("[Async GC]");
     VM_CollectorThread.asyncCollect(VM_CollectorThread.handshake);
   }

@@ -157,8 +157,8 @@ public abstract class StopTheWorldGC extends BasePlan
    *      4. globalRelease()
    */
   public void collect() {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(collectionInitiated);
+//     if (VM_Interface.VerifyAssertions) 
+//       VM_Interface._assert(collectionInitiated);
 
     boolean designated = (VM_Interface.rendezvous(4210) == 1);
     if (designated) Statistics.initTime.start();

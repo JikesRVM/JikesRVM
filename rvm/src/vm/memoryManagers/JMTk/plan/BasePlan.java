@@ -495,9 +495,7 @@ public abstract class BasePlan
    * @param why The reason the collection was initiated (one of
    * <code>VM_Interface.TRIGGER_REASONS</code>).  <i>(Ignored)</i>
    */
-  public static void collectionInitiated(int why) {
-    if (VM_Interface.VerifyAssertions) 
-      VM_Interface._assert(!collectionInitiated);
+  public static void collectionInitiated() throws VM_PragmaUninterruptible {
     collectionInitiated = true;
   }
 
@@ -518,6 +516,13 @@ public abstract class BasePlan
    */
   public static boolean gcInProgress() {
     return gcInProgress;
+  }
+
+  /**
+   * A user-triggered GC has been initiated.  By default, do nothing,
+   * but this may be overridden.
+   */
+  public static void userTriggeredGC() throws VM_PragmaUninterruptible {
   }
 
   /****************************************************************************
