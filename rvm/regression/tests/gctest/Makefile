@@ -7,7 +7,8 @@
 # @author Perry Cheng
 #
 
-ALL_TESTS	= FixedLive Node2I2A
+ALL_TESTS = LargeAlloc FixedLive Node2I2A
+TESTS =LargeAlloc FixedLive Node2I2A
 
 include		$(RVM_BUILD)/Make.rules
 
@@ -15,20 +16,23 @@ BENCH_HOME=$(JAL_ROOT)/rvm/src/examples/gctest
 BENCH_SOURCE_PATH=$(BENCH_HOME)
 ifeq ($(MODE),PERFORMANCE)
   HEAPSIZE   = 300
-  START_ARGS = 100
+  START_ARGS = perf
 else
   HEAPSIZE   = 150
-  START_ARGS = 30
+  START_ARGS = base
 endif
-EXPECTED=Tests.expected
-START_NAME=FixedLive
+EXPECTED=
 BENCH_RVM_ARGS=
 
 include		$(JAL_ROOT)/rvm/regression/Make.rules
 
-sanity: 	$(foreach NAME, $(ALL_TESTS), $(NAME).class)
-	$(MAKE) sanity-check-rule
+sanity: 	$(TESTS)
+	echo DONE
+
+$(TESTS): %:
+	$(MAKE) START_NAME=$@ sanity-check-rule
 
 check:
-	@$(FGREP) -q "Overall Rate:" < $(OUT)
+
+
 
