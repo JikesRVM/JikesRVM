@@ -22,7 +22,7 @@ public class VM_ScanStack
 
   // includes in output a dump of the contents of each frame
   // forces DUMP_STACK_REFS & TRACE_STACKS on (ie. everything!!)
-  static final boolean DUMP_STACK_FRAMES = false;
+   static final boolean DUMP_STACK_FRAMES = false;
 
   // includes in output the refs reported by map iterators
   // forces TRACE_STACKS on 
@@ -44,6 +44,7 @@ public class VM_ScanStack
    * @param top_frame      address of stack frame at which to begin the scan
    * @param relocate_code  if true, relocate code & update return addresses
    */
+  static int stackDumpCount = 0;
   static void 
   scanStack (VM_Thread t, int top_frame, boolean relocate_code)  {
     int       ip, fp, code, newip, newcode, delta, refaddr, prevFp;
@@ -51,6 +52,8 @@ public class VM_ScanStack
     VM_CompiledMethod      compiledMethod;
     VM_GCMapIterator       iterator;
     VM_GCMapIteratorGroup  iteratorGroup;
+
+
 
     // Before scanning the thread's stack, copy forward any machine code that is
     // referenced by the thread's hardwareExceptionRegisters, if they are in use.
@@ -126,7 +129,7 @@ public class VM_ScanStack
 
     if ( fp != STACKFRAME_SENTINAL_FP) {
 
-    if (DUMP_STACK_REFS) {
+    if ( DUMP_STACK_REFS) {
       VM_Scheduler.dumpStack( ip, fp ); VM.sysWrite("\n");
     }
 
@@ -179,6 +182,17 @@ public class VM_ScanStack
       if (DUMP_STACK_REFS) 
 	VM.sysWrite("--- Refs Reported By GCMap Iterator ---\n");
 
+      if (false && VM_Allocator.gcCount > 60) {
+	  VM.sysWrite("--- FRAME DUMP of METHOD ");
+	  VM.sysWrite(method);
+	  VM.sysWrite(" at offset ");
+	  VM.sysWrite(offset,false);
+	  VM.sysWrite(".--- \n");
+	  VM.sysWrite(" fp = "); VM.sysWriteHex(fp);
+	  VM.sysWrite(" ip = "); VM.sysWriteHex(ip); VM.sysWrite("\n");
+	  dumpStackFrame( fp, prevFp );
+      }
+
       // scan the map for this frame and process each reference
       //
       for (refaddr = iterator.getNextReferenceAddress();  refaddr != 0;
@@ -216,7 +230,7 @@ public class VM_ScanStack
 	
 	VM_Allocator.processPtrField( refaddr );
       }
-      
+
       if (VM_Allocator.movesObjects && relocate_code) {
 	// process the code object for the method, and if it is moved, relocate
 	// the saved ip and any internal code pointers (JSR subroutine return
@@ -269,6 +283,8 @@ public class VM_ScanStack
 	  }
 	}
       } //movesObjects
+
+      iterator.cleanupPointers();
 
       // if at a JNIFunction method, it is preceeded by native frames that must be skipped
       //
