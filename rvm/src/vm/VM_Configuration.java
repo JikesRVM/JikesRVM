@@ -224,4 +224,11 @@ public abstract class VM_Configuration {
   public final static boolean AllocatorZapFromSpace = false; 
   public final static boolean ForceFrequentGC       = false;
   //-#endif
+
+  public final static boolean CompileForGCTracing =
+      //-#if RVM_WITH_GCTk_GCTRACE
+	true;
+      //-#else
+        false;
+      //-#endif
 }
