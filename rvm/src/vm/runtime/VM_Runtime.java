@@ -799,6 +799,8 @@ public class VM_Runtime implements VM_Constants {
     // no appropriate catch block found
     //
     VM.enableGC();
+    if (VM.alreadyShuttingDown())
+      VM.die();
     exceptionObject.printStackTrace();
     VM_Thread.terminate();
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);

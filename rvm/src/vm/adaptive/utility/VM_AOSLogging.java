@@ -209,7 +209,10 @@ public class VM_AOSLogging {
 
 
   /**
-   * Call this method when the controller thread is exiting
+   * Call this method when the controller thread is exiting.  This can 
+   * cause us lots and lots of trouble if we are exiting as part of handling
+   * an OutOfMemoryError.  We resolve *that* problem by means of a test in
+   * VM_Runtime.deliverException(). 
    */
   public static void controllerCompleted() {
     if (!booted) return; // fast exit

@@ -41,9 +41,12 @@ public class VM_Properties extends VM_Configuration {
    */
   public static boolean writingImage = false;
   /**
-   * if true, don't exit from the process
+   * If true, don't exit from the process.  As of July, 2003, this has not
+   * worked in a couple of years, nor has there been much interest in using it.
+   * If it is resurrected, we need to check the code that calls die(), to make
+   * sure that instead we just kill the proper threads. 
    */
-  public static boolean runningAsSubsystem;  
+  public static boolean runningAsSubsystem = false;
 
   // Use count of method prologues executed rather than timer interrupts to drive
   // preemptive thread switching.  Non preemptive thread switching is achieved by

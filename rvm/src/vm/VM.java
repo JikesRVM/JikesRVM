@@ -831,34 +831,60 @@ public class VM extends VM_Properties
   public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3, String s4, VM_Address a4) throws VM_PragmaNoInline { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); writeln(); swUnlock(); }
   public static void psysWriteln   (String s1, VM_Address a1, String s2, VM_Address a2, String s3, VM_Address a3, String s4, VM_Address a4, String s5, VM_Address a5) throws VM_PragmaNoInline { swLock(); showProc(); write(s1);  write(a1); write(s2); write(a2); write(s3); write(a3); write (s4); write(a4); write(s5); write(a5); writeln(); swUnlock(); }
 
+  final public static int exitStatusRecursivelyShuttingDown = 128;
+
   /**
    * Exit virtual machine due to internal failure of some sort.
    * @param message  error message describing the problem
    */
   public static void sysFail(String message) throws VM_PragmaNoInline {
+    ++inSysExit;
+    /* If we've been here exactly once before, then print a message.  */
+    if (inSysExit == 2)
+      sysWriteln("VM.sysExit(): We're in a recursive call to VM.sysExit(); aborting abruptly");
+    if (alreadyShuttingDown())
+      die();
     // print a traceback and die
     VM_Scheduler.traceback(message);
     VM.shutdown(1);
   }
 
-  /**
-   * Exit virtual machine.
-   * @param value  value to pass to host o/s
-   */
+  public static boolean alreadyShuttingDown() {
+    return (inSysExit != 0) || (inShutdown != 0);
+  }
+
+  /** Only for use if we're recursively shutting down!   Used by die() only. */
+  private static boolean dying = false; // Have we already called die()?
+
+  public static void die() {
+    if (!dying) {
+      VM.sysWriteln("VM.die(): Dying abruptly; we're stuck in a recursive shutdown.");
+      dying = true;
+    }
+      
+    /* Emergency death. */
+    die(exitStatusRecursivelyShuttingDown);
+  }
+
   private static void die(int value) {
+    if (VM.VerifyAssertions) 
+      VM._assert(VM.alreadyShuttingDown());
     VM_SysCall.call1(VM_BootRecord.the_boot_record.sysExitIP, value);
   }
 
   private static int inSysExit = 0;
 
+  /**
+   * Exit virtual machine.
+   * @param value  value to pass to host o/s
+   */
   public static void sysExit(int value) throws VM_PragmaLogicallyUninterruptible, VM_PragmaNoInline {
     ++inSysExit;
-    /* If it's only our first time through, then print a message.  After the
-       first time through, we even will give up on message printing! */
+    /* If we've been here exactly once before, then print a message.  */
     if (inSysExit == 2)
       sysWriteln("VM.sysExit(): We're in a recursive call to VM.sysExit(); aborting abruptly");
     if (inSysExit > 1)
-      die(128);
+      die(exitStatusRecursivelyShuttingDown);
     if (runningVM) {
       VM_Wait.disableIoWait(); // we can't depend on thread switching being enabled
       VM_Callbacks.notifyExit(value);
@@ -877,12 +903,11 @@ public class VM extends VM_Properties
    */
   public static void shutdown(int value) {
     ++inShutdown;
-    /* If it's only our first time through, then print a message.  After the
-       first time through, we even will give up on message printing! */
+    /* If we've been here exactly once before, then print a message.  */
     if (inShutdown == 2)
       sysWriteln("VM.shutdown(): We're in a recursive call to VM.shutdown(); aborting abruptly");
     if (inShutdown > 1)
-      die(128);
+      die(exitStatusRecursivelyShuttingDown);
     if (VM.VerifyAssertions) VM._assert(VM.runningVM);
     if (VM.runningAsSubsystem) {
       // Terminate only the system threads that belong to the VM
