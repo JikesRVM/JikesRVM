@@ -376,4 +376,22 @@ final class VM_BaselineCompilerInfo extends VM_CompilerInfo implements VM_Baseli
       }
     }
   }
+
+  // Returns total size (including header) of all int array fields
+  //
+  public int dataSize() {
+      VM_Array intArray = VM_Array.arrayOfIntType;
+      int size = 0;
+      if (_bytecodeMap != null) size += intArray.getInstanceSize(_bytecodeMap.length);
+      if (tryStartInstructionOffsets != null) size += intArray.getInstanceSize(tryStartInstructionOffsets.length);
+      if (tryEndInstructionOffsets != null) size += intArray.getInstanceSize(tryEndInstructionOffsets.length);
+      if (catchInstructionOffsets != null) size += intArray.getInstanceSize(catchInstructionOffsets.length);
+      if (lineNumbers != null) size += intArray.getInstanceSize(lineNumbers.length);
+      if (lineInstructionOffsets != null) size += intArray.getInstanceSize(lineInstructionOffsets.length);
+      if (referenceMaps != null) {
+	  size += referenceMaps.getByteDataSize();
+	  size += referenceMaps.getIntDataSize();
+      }
+      return size;
+  }
 }
