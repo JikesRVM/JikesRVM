@@ -517,6 +517,10 @@ public final class VM_Array extends VM_Type
     this.dictionaryId   = dictionaryId;
     this.tibSlot        = VM_Statics.allocateSlot(VM_Statics.TIB);
     this.elementType    = VM_ClassLoader.findOrCreateType(descriptor.parseForArrayElementDescriptor(), classloader);
+    if (VM.VerifyAssertions && this.elementType.isWordType()) {
+      VM.sysWriteln("\nDo not create arrays of VM_Address, VM_Word, VM_Offset, or other special primitive types.\n  Use an int array or long array for now and use casts.");
+      VM._assert(false);
+    }
     if (this.elementType.isArrayType()) {
       this.innermostElementType = this.elementType.asArray().getInnermostElementType();
     } else {
