@@ -419,7 +419,7 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
     }
 
     // Get any uses from PHIs, which are in the successor blocks
-    getUsesFromPHIs(bblock);
+    getUsesFromPhis(bblock);
 
 
     // Traverse instructions in reverse order within the basic block.
@@ -508,7 +508,6 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
   }
 
   /**
-   *
    * The rvals of phi nodes are logically uses in the phi's predecessor 
    * blocks, so here we collect phi rvals from the current block's
    * successors into the gen set for this block, being careful to
@@ -519,32 +518,33 @@ final class OPT_LiveAnalysis extends OPT_CompilerPhase implements OPT_Operators 
    * pre: Assumes the liveInfo array is allocated for this block
    * post: May add to liveInfo for this block
    */
-  private void getUsesFromPHIs(OPT_BasicBlock bblock) {
+  private void getUsesFromPhis(OPT_BasicBlock bblock) {
     Enumeration successors = bblock.getOut();
     while (successors.hasMoreElements()) {
       OPT_BasicBlock sb = (OPT_BasicBlock)successors.nextElement();
       if (sb.isExit())
         continue;
 
-      // which phi rval is associated with this block (i.e. bblock)
-      int index = 0;
-      Enumeration x = sb.getIn();
-      while (x.nextElement() != bblock)
-        index++;
       for (OPT_Instruction phi = sb.firstInstruction(); 
-          phi != sb.lastInstruction(); phi = phi.nextInstructionInCodeOrder()) {
+           phi != sb.lastInstruction(); 
+           phi = phi.nextInstructionInCodeOrder()) {
         if (phi.operator() == PHI) {
-          OPT_Operand myRval = Phi.getValue(phi, index);
-          if (myRval instanceof OPT_RegisterOperand) {
-            OPT_RegisterOperand regOp = (OPT_RegisterOperand)myRval;
-            VM_Type regType = regOp.type;
-            if (regOp.register.spansBasicBlock() && regType != null) {
-              bbLiveInfo[bblock.getNumber()].getGen().add(regOp);
+          for (int j = 0; j < Phi.getNumberOfValues(phi); j++) {
+            OPT_BasicBlockOperand bbop = Phi.getPred(phi,j);
+            if (bbop.block == bblock) {
+              OPT_Operand myRval = Phi.getValue(phi, j);
+              if (myRval instanceof OPT_RegisterOperand) {
+                OPT_RegisterOperand regOp = (OPT_RegisterOperand)myRval;
+                VM_Type regType = regOp.type;
+                if (regOp.register.spansBasicBlock() && regType != null) {
+                  bbLiveInfo[bblock.getNumber()].getGen().add(regOp);
+                }
+              }                    
             }
-          }                     // is a RegOp
-        }       // is a PHI
-      }         // foreach instruction
-    }           // foreach successor
+          }
+        }     
+      }      
+    }       
   }
 
   /**

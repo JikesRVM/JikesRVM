@@ -187,7 +187,7 @@ class OPT_LeaveSSA extends OPT_CompilerPhase
           phi != bbs.lastInstruction(); 
           phi = phi.nextInstructionInCodeOrder()) {
         if (phi.operator() != PHI) continue;
-        for (int index=0; index<bbs.getNumberOfIn(); index++) {
+        for (int index=0; index<Phi.getNumberOfPreds(phi); index++) {
           if (Phi.getPred(phi,index).block != bb) continue;
           OPT_Operand rval = Phi.getValue(phi, index);
           if (rval.isRegister() && Phi.getResult(phi).asRegister().register

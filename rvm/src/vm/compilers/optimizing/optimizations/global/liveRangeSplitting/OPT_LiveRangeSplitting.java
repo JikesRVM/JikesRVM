@@ -39,15 +39,17 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
    */
   OPT_LiveRangeSplitting() {
     super("LIR SSA Live Range Splitting", new OPT_OptimizationPlanElement[] {
-          // 1. Insert the split operations.
-          new OPT_OptimizationPlanAtomicElement(new LiveRangeSplitting()),
-          // 2. Recompute Dominators
+          // 1. Get into SSA
           new OPT_OptimizationPlanAtomicElement(new OPT_DominatorsPhase(true)), 
-          // 3. Recompute Dominance Frontier
           new OPT_OptimizationPlanAtomicElement(new OPT_DominanceFrontier()),
-          // 4. Get ready for SSA renaming
           new OPT_OptimizationPlanAtomicElement(new RenamePreparation()),
-          // 5. Perform SSA renaming
+          new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA()),
+          // 2. Insert the split operations.
+          new OPT_OptimizationPlanAtomicElement(new LiveRangeSplitting()),
+          // 3. Use SSA to rename
+          new OPT_OptimizationPlanAtomicElement(new OPT_DominatorsPhase(true)), 
+          new OPT_OptimizationPlanAtomicElement(new OPT_DominanceFrontier()),
+          new OPT_OptimizationPlanAtomicElement(new RenamePreparation()),
           new OPT_OptimizationPlanAtomicElement(new OPT_EnterSSA())
           });
   }
@@ -92,8 +94,8 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
                              true);  // skip guards
       live.perform(ir);
 
-
       // 3. Perform the analysis
+      OPT_DefUse.computeDU(ir);
       HashMap result = findSplitPoints(ir,live,lst);
 
       // 4. Perform the transformation.
@@ -186,7 +188,6 @@ class OPT_LiveRangeSplitting extends OPT_OptimizationPlanCompositeElement {
      * to split
      */
     private static void transform(OPT_IR ir, HashMap xform) {
-int j = 0;
       for (Iterator i = xform.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry entry = (Map.Entry)i.next();
         BasicBlockPair bbp = (BasicBlockPair)entry.getKey();
@@ -200,10 +201,17 @@ int j = 0;
         
         for (Iterator splits = toSplit.iterator(); splits.hasNext(); ) {
           OPT_Register r = (OPT_Register)splits.next();
+          if (r.defList == null) continue;
           OPT_Instruction s = null;
           switch (r.getType()) {
             case OPT_Register.INTEGER_TYPE:
-              s = Unary.create(SPLIT,OPT_IRTools.R(r), OPT_IRTools.R(r));
+              OPT_RegisterOperand lhs = OPT_IRTools.R(r);
+              OPT_RegisterOperand rhs = OPT_IRTools.R(r);
+              s = Unary.create(SPLIT,lhs,rhs);
+              // fix up types
+              OPT_RegisterOperand def = r.defList;
+              lhs.type = def.type;
+              rhs.type = def.type;
               break;
             case OPT_Register.FLOAT_TYPE:
               s = Unary.create(SPLIT,OPT_IRTools.F(r), OPT_IRTools.F(r));
@@ -218,10 +226,6 @@ int j = 0;
               // we won't split live ranges for other types.
               s = null;
               break;
-          }
-          j++;
-          if (j > 10) {
-          s=null;
           }
           if (s != null) {
             target.prependInstruction(s);
