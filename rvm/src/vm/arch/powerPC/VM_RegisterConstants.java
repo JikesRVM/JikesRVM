@@ -13,8 +13,8 @@ package com.ibm.JikesRVM;
 public interface VM_RegisterConstants extends VM_SizeConstants {
   // Machine instructions.
   //
-  static final int LG_INSTRUCTION_WIDTH = 2;           // log2 of instruction width in bytes, powerPC
-  static final int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH;           // log2 of instruction width in bytes, powerPC
+  static final int LG_INSTRUCTION_WIDTH = 2;                      // log2 of instruction width in bytes, powerPC
+  static final int INSTRUCTION_WIDTH = 1 << LG_INSTRUCTION_WIDTH; // instruction width in bytes, powerPC
 
   // General purpose register usage. (GPR's are 32 bits wide).
   //
@@ -26,6 +26,7 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   static final int LAST_VOLATILE_GPR          = 12; // AIX is 10
   static final int FIRST_SCRATCH_GPR          = 13; // AIX is 11
   static final int LAST_SCRATCH_GPR           = 14; // AIX is 12
+  //                                           .... // some stuff we aren't using!
   static final int KLUDGE_TI_REG              = 15; // migration aid while getting rid of TI register
   static final int PROCESSOR_REGISTER         = 16;
   static final int FIRST_NONVOLATILE_GPR      = 17; // AIX is 14
@@ -94,7 +95,7 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   static final int FIRST_OS_NONVOLATILE_FPR       = 14;
   static final int LAST_OS_VARARG_PARAMETER_FPR   =  8;
   // native frame header size, used for java-to-native glue frame header 
-  static final int NATIVE_FRAME_HEADER_SIZE       =  24;  // fp + cp + lr 
+  static final int NATIVE_FRAME_HEADER_SIZE       =  6*BYTES_IN_ADDRESS;  // fp + cp + lr???
   //-#endif
 
   /////////////////////////////////////////////////////////
@@ -220,8 +221,9 @@ public interface VM_RegisterConstants extends VM_SizeConstants {
   // Register mnemonics (for use by debugger).
   //
   static final String [] GPR_NAMES = {
-    "R0", "FP", "JT", "R3", "R4", "R5", "R6", "R7",
-    "R8", "R9", "R10", "R11", "R12", "R13", "R14", "TI",
+    "R0", "FP", (JTOC_POINTER == 2 ? "JT" : "R2"), "R3", "R4", "R5",
+    "R6", "R7","R8", "R9", "R10", "R11", "R12",
+    (JTOC_POINTER == 13 ? "JT" : "R13"),"R14", "R15",
     "PR", "R17", "R18", "R19", "R20", "R21", "R22", "R23",
     "R24", "R25", "R26", "R27", "R28", "R29", "R30", "R31"
   };
