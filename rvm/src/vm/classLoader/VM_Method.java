@@ -20,94 +20,6 @@ import com.ibm.JikesRVM.opt.*;
  */
 public final class VM_Method extends VM_Member implements VM_ClassLoaderConstants {
 
-  //-#if RVM_WITH_OSR 
-  /* indicate this method has been osred */
-  public boolean osrFlag = false;
-
-  /* For on stack replacement, it memorizes the length of prologue.
-   * OPT compiler has a phase called OPT_AdjustBCIndexes after BC2HIR.
-   * The baseline compiler will adjust the bytecodeMap after assembling
-   * the machine code.
-   */
-  public int realBCOffset;
- 
-  /* OriginalBC keeps original bytecode. 
-   *
-   * NOTE:
-   * For the baseline compiler, the caller of VM_Compiler.compile
-   * sets the bytecode to the specialized one
-   */
- 
-  /* is this method bytecode set for special compilation? */
-  private byte[] originalBytecodes = null;
-  private byte[] specialBytecodes = null;
-  private boolean isForSpecialization = false;
-
-  private int savedOperandWords;
-  
-  public boolean isForSpecialization() {
-    return this.isForSpecialization;
-  }
-
-  /* between flag and action, it does not allow GC or threadSwitch happen. */
-  public void setForSpecialization(byte[] specialbcodes, int prolength, int newStackHeight) {
-    this.isForSpecialization = true;
-    this.originalBytecodes = this.bytecodes;
-    this.specialBytecodes = specialbcodes;
-	this.realBCOffset = prolength;
-	this.bytecodes = this.specialBytecodes;
-	this.savedOperandWords = this.operandWords;
-	if (newStackHeight > this.operandWords) {
-	  this.operandWords = newStackHeight;
-
-	  if (VM.TraceOnStackReplacement) {
-		VM.sysWriteln("new stack height "+newStackHeight
-						+" old "+this.savedOperandWords+" "+this.toString());
-	  }
-	}
-  }
- 
-  /* restore the original bytecode. */
-  public void finalizeSpecialization() {
-    if (this.isForSpecialization == false) return;
-
-    this.isForSpecialization = false;
-    this.bytecodes = this.originalBytecodes;
-    this.originalBytecodes = null;
-    this.specialBytecodes = null;
-    this.operandWords = this.savedOperandWords;
-  }
-
-  /* return the OSR prologue length */
-  public int getOsrPrologueLength() {
-    return this.realBCOffset;
-  }
-
-  /**
-   * This is a special method for GC, dynamic linker when the method
-   * on the top of a thread waiting for specialization.
-   */
-  public final byte[] getOriginalBytecodes() {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-    if (VM.VerifyAssertions) VM._assert(isLoaded());
-    if (this.isForSpecialization) {
-      return this.originalBytecodes;
-    } else {
-      return this.specialBytecodes;
-    }
-  }
-
-  /**
-   * This is a kludge for OSR, OSR_SpecialCompiler needs to see the
-   * bytecode array
-   */
-  public final byte[] getBytecodeArray() {
-    if (VM.VerifyAssertions) VM._assert(declaringClass.isLoaded());
-	if (VM.VerifyAssertions) VM._assert(isLoaded());
-	return this.bytecodes;
-  }
-  //-#endif RVM_WITH_OSR
-
   //-----------//
   // Interface //
   //-----------//
@@ -346,6 +258,8 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     if (VM.VerifyAssertions) VM._assert(bytecodes != null);
     if (VM.VerifyAssertions) VM._assert(bcIndex + 2 < bytecodes.length);
     int bytecode = bytecodes[bcIndex] & 0xFF;
+	if (VM.VerifyAssertions) VM._assert((VM_BytecodeConstants.JBC_invokevirtual <= bytecode)
+										&& (bytecode <= VM_BytecodeConstants.JBC_invokeinterface));
     int constantPoolIndex = ((bytecodes[bcIndex + 1] & 0xFF) << 8) | (bytecodes[bcIndex + 2] & 0xFF);
     dynamicLink.set(declaringClass.getMethodRef(constantPoolIndex), bytecode);
   }
@@ -1042,4 +956,88 @@ public final class VM_Method extends VM_Member implements VM_ClassLoaderConstant
     }
 
   }
+
+  //-#if RVM_WITH_OSR 
+  // Extra fields and methods for on-stack replacement
+  // VM_BaselineCompiler and OPT_BC2IR should check if a method is
+  // for specialization by calling isForOsrSpecialization, the compiler
+  // uses synthesized bytecodes (prologue + original bytecodes) for 
+  // OSRing method. Other interfaces of method are not changed, therefore,
+  // dynamic linking and gc referring to bytecodes are safe.
+  
+  /* bytecode array constists of prologue and original bytecodes */
+  private byte[] synthesizedBytecodes = null;
+  /* record osr prologue */
+  private byte[] osrPrologue = null;
+  /* prologue may change the maximum stack height, remember the
+   * original stack height */
+  private int savedOperandWords;
+  
+  /**
+   * Checks if the method is in state for OSR specialization now 
+   * @return true, if it is (with prologue)
+   */
+  public boolean isForOsrSpecialization() {
+    return this.synthesizedBytecodes != null;
+  }
+
+  /**
+   * Sets method in state for OSR specialization, i.e, the subsequent calls
+   * of getBytecodes return the stream of specilized bytecodes.
+   * NB: between flag and action, it should not allow GC or threadSwitch happen.
+   * @param prologue, the bytecode of prologue
+   * @param newStackHeight, the prologue may change the default height of 
+   *                        stack
+   */
+  public void setForOsrSpecialization(byte[] prologue, int newStackHeight) {
+    if (VM.VerifyAssertions) VM._assert(this.synthesizedBytecodes == null);
+	
+    byte[] newBytecodes = new byte[prologue.length + bytecodes.length];
+    System.arraycopy(prologue, 0, newBytecodes, 0, prologue.length);
+    System.arraycopy(bytecodes, 0, newBytecodes, prologue.length, bytecodes.length);
+   
+	this.osrPrologue = prologue;
+    this.synthesizedBytecodes = newBytecodes;
+	this.savedOperandWords = operandWords;
+	if (newStackHeight > operandWords) 
+	  this.operandWords = newStackHeight;
+  }
+ 
+  /**
+   * Restores the original state of the method.
+   */
+  public void finalizeOsrSpecialization() {
+    if (VM.VerifyAssertions) VM._assert(this.synthesizedBytecodes != null);
+    this.synthesizedBytecodes = null;
+    this.osrPrologue  = null;
+    this.operandWords = savedOperandWords;
+  }
+
+  /**
+   * Returns the OSR prologue length for adjusting various tables and maps.
+   * @return the length of prologue if the method is in state for OSR,
+   *         0 otherwise.
+   */
+  public int getOsrPrologueLength() {
+    return isForOsrSpecialization()?this.osrPrologue.length:0;
+  }
+
+  /** 
+   * Returns a bytecode stream of osr prologue
+   * @return osr prologue bytecode stream
+   */
+  public VM_BytecodeStream getOsrPrologue() {
+	if (VM.VerifyAssertions) VM._assert(synthesizedBytecodes != null);
+	return new VM_BytecodeStream(this, osrPrologue);
+  }
+  
+  /**
+   * Returns the synthesized bytecode stream with osr prologue
+   * @return bytecode stream
+   */
+  public VM_BytecodeStream getOsrSynthesizedBytecodes() {
+	if (VM.VerifyAssertions) VM._assert(synthesizedBytecodes != null);
+	return new VM_BytecodeStream(this, synthesizedBytecodes);
+  }		 
+  //-#endif RVM_WITH_OSR
 }
