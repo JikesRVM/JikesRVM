@@ -1599,7 +1599,7 @@ final class VM_BuildReferenceMaps implements VM_BytecodeConstants {
     boolean skipRecordingReferenceMap = false;
     int stkDepth = currBBStkTop;
 
-    if (target.getType().isMagicType() || target.getType().isWordType()) {
+    if (target.getType().isMagicType()) {
       boolean producesCall = VM_MagicCompiler.checkForActualCall(target);
       if (producesCall) {
 	stkDepth = currBBStkEmpty;   // register a map, but do NOT include any of the 

@@ -1755,9 +1755,9 @@ public abstract class VM_BaselineCompiler implements VM_BytecodeConstants, VM_Si
 	      break;
 	    }
 	  } else {
-	    if (type.isWordType()) {
-	      break;
-	    }
+	    // checkcast to a primitive. Must be a word type.
+	    if (VM.VerifyAssertions) VM._assert(type.isWordType());
+	    break;
 	  }
 	}
 	if (VM.VerifyUnint && !isInterruptible) forbiddenBytecode("checkcast "+typeRef);

@@ -545,7 +545,7 @@ public final class VM_NormalMethod extends VM_Method implements VM_BytecodeConst
       case JBC_invokestatic:   
 	// Special case VM_Magic's as being cheaper.
 	VM_MethodReference meth = bcodes.getMethodReference();
-	if (meth.getType().isMagicType() || meth.getType().isWordType()) {
+	if (meth.getType().isMagicType()) {
 	  summary |= HAS_MAGIC;
 	  calleeSize += MAGIC_COST;
 	} else {
