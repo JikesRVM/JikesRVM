@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# (C) Copyright IBM 2002, 2003
+# (C) Copyright IBM 2002, 2003, 2004
 #
 # $Id$
 # @author Julian Dolby
@@ -62,7 +62,8 @@ function classpath_configure_args () {
     if (( AIX )); then
 	## AIX does not come with pkg-config or glib by default.  So, if 
 	## someone is doing a default AIX build, we'll disable them.
-	## The GTK peers won't do any good without select hijacking, 
+	##
+	## The GTk peers won't do any good without select hijacking, 
 	## in any case. 
 	echo "  --disable-gtk-peer CPPFLAGS='-D_POSIX_SOURCE -D_ALL_SOURCE -D__ppc__'"
 	return;
@@ -76,8 +77,19 @@ function classpath_configure_args () {
 	# So, we can go ahead and just disable AWT for this default
 	# Classpath build.  When this is enabled, as of this writing
 	# (26 July 2004), the JMTk regressions fail due to an attempt
-	# to contact the X server.  This should make it impossible for
+	# to contact the X server.  By setting --disable-gtk-peer 
+	# in this situation, it should make it impossible for
 	# Classpath to try to talk to X.
+	# 
+	# There is another reason for disabling the GTk peers in this
+	# default GNU Classpath build.  As Steve Blackburn writes, the
+	# GTk peers depend on GTk devel stuff, which in turn draws in
+	# a large chunk of GNOME-related devel stuff that is
+	# often/typically not installed by default.
+	# 
+	# If we were to leave the GTk peers enabled, a lot of people
+	# might find that system would no longer build out of the box
+	# because they did not have the GTk devel tools installed.
 	echo "  --disable-gtk-peer"
     fi
 }
