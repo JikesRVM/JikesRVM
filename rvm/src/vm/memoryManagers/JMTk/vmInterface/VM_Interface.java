@@ -511,7 +511,9 @@ public class VM_Interface implements VM_Constants, VM_Uninterruptible {
 	}
 	if (VM.debugOOM || Options.verbose >= 5)
 	  VM.sysWriteln("triggerCollection(): About to try \"new OutOfMemoryError()\"");
+	MM_Interface.emergencyGrowHeap(512 * (1 << 10));  // 512K should be plenty to make an exn
 	OutOfMemoryError oome = new OutOfMemoryError();
+	MM_Interface.emergencyGrowHeap(- (512 * (1 << 10)));
 	if (VM.debugOOM || Options.verbose >= 5)
 	  VM.sysWriteln("triggerCollection(): Allocated the new OutOfMemoryError().");
 	throw oome;
