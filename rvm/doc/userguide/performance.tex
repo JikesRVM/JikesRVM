@@ -6,14 +6,13 @@ Jikes RVM.
 \subsection{Which boot image should I use?}
 
 To make a long story short the best performing configuration of Jikes
-RVM will almost always be {\tt FastAdaptive}{\em$<$some-GC$>$}.  Unless you really
-know what you are doing, don't use any other configuration to do a 
-performance evaluation of Jikes RVM. In most cases,
-{\tt FastAdaptiveSemiSpace} is likely to be your best choice. You can
-use the {\tt FastSemiSpace} configuration if you want to force all
-dynamically loaded methods to be compiled by the optimizing compiler,
-but this configuration will have extremely poor startup behavior and
-will not perform any profile-directed optimizations. 
+RVM will almost always be {\tt production}.  Unless you really know
+what you are doing, don't use any other configuration to do a
+performance evaluation of Jikes RVM. 
+You can use the {\tt FastSemiSpace} configuration if you want to force
+all dynamically loaded methods to be compiled by the optimizing
+compiler, but this configuration will have extremely poor startup
+behavior and will not perform any profile-directed optimizations.
 
 Any bootimage you use for performance evaluation must have the
 following characteristics for the results to be meaningful:

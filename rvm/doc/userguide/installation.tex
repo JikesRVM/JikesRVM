@@ -78,7 +78,7 @@ Jikes RVM.  It must be RVM\_ROOT/rvm/config/i686-pc-linux-gnu.mine.
 can be anywhere.
 \end{description}
 
-\item Setup a build directory with `jconfigure BaseBaseSemiSpace,' or
+\item Setup a build directory with `jconfigure prototype', or
 use some other configuration if you prefer. See Section~\ref{configs}
 for information about the various configurations.
 
@@ -366,16 +366,16 @@ first choose a Jikes RVM configuration.
 For quick turnaround time while modifying Jikes RVM, you will usually
 want to use the baseline compiler to build the Jikes RVM bootimage.
 A typical configuration that builds very quickly (but performs poorly)
-is {\tt BaseBaseSemiSpace}: a non-adaptive system that uses the
-baseline compiler everywhere, with the semispace copying collector. 
+is {\tt prototype}: a non-adaptive system that uses the
+baseline compiler everywhere.
 
 To obtain reasonable performance from Jikes RVM, you will need to use
 the optimizing compiler to build the bootimage.  This takes longer,
 but generates a Jikes RVM image with reasonable runtime performance.
-We recommend either the {\tt FullAdaptiveSemiSpace} or {\tt
-FastAdaptiveSemiSpace} images depending on whether or not you want
-VM assertion checking enabled. (A discussion 
-of Jikes RVM configurations appears in Section~\ref{configs}.)
+We recommend either the {\tt development} or {\tt production} images
+depending on whether or not you want VM assertion checking enabled. (A
+discussion  of Jikes RVM configurations appears in
+Section~\ref{configs}.) 
 
 Depending on your purposes you may want to choose another
 configuration that uses a different memory manager (See
@@ -392,12 +392,11 @@ configuration desired:
 % jconfigure <configuration>
 \end{verbatim}
 
-For example, to configure a build 
-directory for the {\tt OptOptSemiSpace} configuration, type
-the following command:
+For example, to configure a build directory for the 
+{\tt prototype} configuration, type the following command:
 
 \begin{verbatim}
-% jconfigure OptOptSemiSpace
+% jconfigure prototype
 \end{verbatim}
 
 \index{jbuild script}
@@ -436,9 +435,40 @@ affect system viability.
 \index{configuration names}
 
 This section describes Jikes\trademark RVM's build configurations.
-The various 
-build configurations are defined by files in {\tt
+The various build configurations are defined by files in {\tt
 \$RVM\_ROOT/rvm/config/build}.
+
+\subsubsection{Logical Configurations}
+\index{logical configurations}
+There are a large number of possible Jikes RVM configurations.
+Therefore we define four ``logical'' configurations that are most
+suitable for casual or novice users of the system.  The four
+configurations are: 
+\begin{description}
+\item [prototype] A simple, fast to build, but low performance
+configuration of Jikes RVM.  This configuration does not include the
+optimizing compiler or adaptive system.  Most useful for rapid
+prototyping of the core virtual machine.
+\item [prototype-opt] A simple, fast to build, but low performance
+configuration of Jikes RVM.  Unlike prototype, this configuration does
+include the optimizing compiler and adaptive system. Most useful for
+rapid prototyping of the core virtual machine, adaptive system, and
+optimizing compiler. 
+\item [development] A fully functional configuration of
+Jikes RVM with reasonable performance that includes the adaptive
+system and optimizing compiler. This configuration takes longer to
+build than the two prototype configurations.
+\item [production] The same as the development configuration,
+except all assertions are disabled.  This is the highest performance
+configuration of Jikes RVM and is the one to use for benchmarking and
+performance analysis.
+\end{description}
+The mapping of logical to actual configurations may vary from release
+to release.  In particular, it is expected that the choice of garbage
+collector for these logical configurations may be different as JMTk
+evolves. 
+
+\subsubsection{Configurations in Depth}
 
 Most standard Jikes RVM configuration files loosely follow the
 following naming scheme 
@@ -478,14 +508,12 @@ The following garbage collection suffixes are available:
 \item[CopyMS] a hybrid non-generational collector with a copying space
   (into which all allocation goes), and a non-copying space into which
   survivors go
-\item[WatsonSemispace] the original ``watson'' copying semi-space collector 
-\item[WatsonMarkSweep] the original ``watson'' mark-and-sweep collector
 \end{description}
 
 For example, to specify a compiler with a baseline-compiled boot image
-that will compile classes loaded at runtime using the optimizing compiler and that uses
-a non-generational semi-space copying garbage collector, use the name 
-{\em BaseOptSemiSpace}.
+that will compile classes loaded at runtime using the optimizing
+compiler and that uses a non-generational semi-space copying garbage
+collector, use the name {\em BaseOptSemiSpace}.
 
 Some files augment the standard configurations as follows:
 \begin{itemize}
@@ -574,7 +602,7 @@ set your
 RVM\_HOST\_CONFIG and RVM\_TARGET\_CONFIG environment variables to
 be different files.
 
-For example, to build a BaseBaseSemiSpace system for AIX\AIXTMFootnote\
+For example, to build the prototype configuration for AIX\AIXTMFootnote\
 {\em on a Linux host}:
 \begin{verbatim}
 % setenv RVM_ROOT $HOME/rvmRoot
@@ -582,7 +610,7 @@ For example, to build a BaseBaseSemiSpace system for AIX\AIXTMFootnote\
 % setenv PATH $RVM_ROOT/rvm/bin:$PATH
 % setenv RVM_TARGET_CONFIG=$RVM_ROOT/rvm/config/powerpc-ibm-aix4.3.3.0
 % setenv RVM_HOST_CONFIG=$RVM_ROOT/rvm/config/i686-pc-linux-gnu
-% jconfigure BaseBaseSemiSpace
+% jconfigure prototype
 % cd $RVM_BUILD
 % jbuild
 \end{verbatim}
