@@ -11,29 +11,7 @@
  * @author Bowen Alpern
  * @author Derek Lieber
  */
-public class VM_FileSystem {
-  // options for open()
-  //
-  public static final int OPEN_READ   = 0; // open for read/only  access
-  public static final int OPEN_WRITE  = 1; // open for read/write access, create if doesn't already exist, truncate if already exists
-  public static final int OPEN_MODIFY = 2; // open for read/write access, create if doesn't already exist
-  public static final int OPEN_APPEND = 3; // open for read/write access, create if doesn't already exist, append writes
-
-  // options for seek()
-  //
-  public static final int SEEK_SET = 0;    // set i/o position to start of file plus "offset"
-  public static final int SEEK_CUR = 1;    // set i/o position to current position plus "offset"
-  public static final int SEEK_END = 2;    // set i/o position to end of file plus "offset"
-
-  // options for stat()
-  //
-  public static final int STAT_EXISTS        = 0;
-  public static final int STAT_IS_FILE       = 1;
-  public static final int STAT_IS_DIRECTORY  = 2;
-  public static final int STAT_IS_READABLE   = 3;
-  public static final int STAT_IS_WRITABLE   = 4;
-  public static final int STAT_LAST_MODIFIED = 5;
-  public static final int STAT_LENGTH        = 6;
+public class VM_FileSystem extends com.ibm.JikesRVM.librarySupport.FileSupport {
 
   /**
    * Get file status.
@@ -243,7 +221,7 @@ public class VM_FileSystem {
   }
 
   /**
-   * Get file status.
+   * Delete file.
    * @param fileName file name
    * @return true -- delete; false -- not delete
    */ 

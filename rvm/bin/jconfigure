@@ -1175,6 +1175,25 @@ if (( RVM_WITH_JAZZLIB )); then
    print ''
 fi
 
+   # copy library support package
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '   print -n "$ME: '$RVM_ROOT'/rvm/src/vm/libSupport"'
+   print 'fi'
+   print 'FILES=`/bin/ls' $RVM_ROOT'/rvm/src/vm/libSupport/*.java`'
+   print 'set +e'
+   print './jbuild.prep $TRACE_FLAG' $PREPROCESSOR_DEFINITIONS $CLASSES_DIRECTORY_STR'/com/ibm/JikesRVM/librarySupport $FILES'
+   print 'RC=$?'
+   print 'if [[ $RC = 1 ]]; then'
+   print '   FILES_HAVE_CHANGED=1'
+   print 'elif [[ $RC != 0 ]]; then'
+   print '   exit 1'
+   print 'fi'
+   print 'set -e'
+   print 'if [[ $TRACE_FLAG = -trace ]]; then'
+   print '  print ""'
+   print 'fi'
+   print ''
+
    # script to preprocess GenerateInterfaceDeclarations.java
    #
    print ''
@@ -1359,22 +1378,16 @@ function emitImageLinker
       print "   print '$exclusion'                  >> $EXCLUDED_CLASSES_STR"
    done
 
+   # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
+   print "   print $CLASSES_DIRECTORY_STR/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
+   print "   print $CLASSES_DIRECTORY_STR/com/ibm/JikesRVM/librarySupport/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@Lcom\/ibm\/JikesRVM\/librarySupport/\1;@' >> $PRIMORDIAL_CLASSES_STR"
    if (( RVM_WITH_ALL_CLASSES )); then
       # Put (almost) all vm classes into bootimage.
 
       # skip: not part of production system, so don't put them in the bootimage (if they are in the build at all)
       print "   print PPC_Disassembler.class >> $EXCLUDED_CLASSES_STR"
 
-      # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
-      print "   print $CLASSES_DIRECTORY_STR/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
       print "   print $CLASSES_DIRECTORY_STR/instructionFormats/*.class   | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@LinstructionFormats/\1;@' >> $PRIMORDIAL_CLASSES_STR"
-
-   else
-      # Put minimum number of vm classes into boot image (just sufficient to
-      # dynamically load remaining portions of the system).
-      
-      # create list: use sed to strip off path name and .class suffix and to change "xxx" to "Lxxx;"
-      print "   print $CLASSES_DIRECTORY_STR/VM*.class | xargs ls | fgrep -v -f $EXCLUDED_CLASSES_STR | sed 's@.*/\(.*\)\.class@L\1;@' > $PRIMORDIAL_CLASSES_STR"
    fi
 
    if (( RVM_WITH_GCTk )); then
@@ -2157,6 +2170,7 @@ mkdir -p $GENERATED_FILES_DIRECTORY/instructionFormats
 mkdir -p $SCRATCH_DIRECTORY
 mkdir -p $CLASSES_DIRECTORY
 mkdir -p $CLASSES_DIRECTORY/instructionFormats
+mkdir -p $CLASSES_DIRECTORY/com/ibm/JikesRVM/librarySupport
 if (( RVM_WITH_JAZZLIB )); then
   mkdir -p $CLASSES_DIRECTORY/java/util/zip
 fi

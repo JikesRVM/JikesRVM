@@ -173,7 +173,7 @@ public class VM extends VM_Properties implements VM_Constants,
     runClassInitializer("java.lang.Character");
     runClassInitializer("com.ibm.oti.io.CharacterConverter");
     runClassInitializer("java.util.Hashtable");
-    runClassInitializer("java.lang.Class");
+    runClassInitializer("com.ibm.JikesRVM.librarySupport.ReflectionSupport");
     //-#if RVM_WITH_JAZZLIB
     runClassInitializer("java.lang.Math");
     runClassInitializer("java.lang.RuntimePermission");
