@@ -458,13 +458,14 @@ public class VM_Runtime implements VM_Constants {
   //---------------------------------------------------------------//
   //                        Dynamic linking.                       //
   //---------------------------------------------------------------//
-   
+
   /**
    * Prepare a class for use prior to first allocation, 
    * field access, or method invocation.
+   * Made public so that it is accessible from java.lang.reflect.*.
    * @see VM_Member.needsDynamicLink()
    */ 
-  static void initializeClassForDynamicLink(VM_Class cls) 
+  public static void initializeClassForDynamicLink(VM_Class cls) 
     throws VM_ResolutionException {
     if (VM.TraceClassLoading) 
       VM.sysWrite("VM_Runtime.initializeClassForDynamicLink: (begin) " 
