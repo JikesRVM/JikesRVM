@@ -155,7 +155,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     throws VM_PragmaInline {
     if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes == (bytes & (~(WORD_SIZE-1))));
     VM_Address region;
-    if (allocator == DEFAULT_SPACE && bytes >= LOS_SIZE_THRESHOLD) {
+    if (allocator == DEFAULT_SPACE && bytes > LOS_SIZE_THRESHOLD) {
       region = los.alloc(isScalar, bytes);
     } else {
       switch (allocator) {
@@ -182,7 +182,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final void postAlloc(VM_Address ref, Object[] tib, int size,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
-    if (allocator == DEFAULT_SPACE && size >= LOS_SIZE_THRESHOLD) {
+    if (allocator == DEFAULT_SPACE && size > LOS_SIZE_THRESHOLD) {
       Header.initializeLOSHeader(ref, tib, size, isScalar);
     } else {
       switch (allocator) {
@@ -236,7 +236,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final int getAllocator(Type type, int bytes, CallSite callsite,
 				AllocAdvice hint) {
-    return (bytes >= LOS_SIZE_THRESHOLD) ? LOS_SPACE : DEFAULT_SPACE;
+    return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : DEFAULT_SPACE;
   }
 
   /**

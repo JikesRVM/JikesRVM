@@ -212,7 +212,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   public final VM_Address allocCopy(VM_Address original, int bytes, 
 				    boolean isScalar) 
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes < LOS_SIZE_THRESHOLD);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes <= LOS_SIZE_THRESHOLD);
     VM_Address result = ss.alloc(isScalar, bytes);
     return result;
   }
@@ -243,7 +243,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final int getAllocator(Type type, int bytes, CallSite callsite, 
 				AllocAdvice hint) {
-    return (bytes >= LOS_SIZE_THRESHOLD) ? LOS_SPACE : DEFAULT_SPACE;
+    return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : DEFAULT_SPACE;
   }
 
   protected final byte getSpaceFromAllocator (Allocator a) {

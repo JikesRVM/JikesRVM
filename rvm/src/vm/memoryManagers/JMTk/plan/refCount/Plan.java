@@ -248,7 +248,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public final int getAllocator(Type type, int bytes, CallSite callsite,
 				AllocAdvice hint) {
-    return RC_SPACE;
+    return (bytes > LOS_SIZE_THRESHOLD) ? LOS_SPACE : RC_SPACE;
   }
 
   protected final byte getSpaceFromAllocator (Allocator a) {

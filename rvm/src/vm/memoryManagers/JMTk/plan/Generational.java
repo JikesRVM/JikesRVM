@@ -245,7 +245,7 @@ public abstract class Generational extends StopTheWorldGC
   public final VM_Address allocCopy(VM_Address original, int bytes,
 				    boolean isScalar) 
     throws VM_PragmaInline {
-    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes < LOS_SIZE_THRESHOLD);
+    if (VM_Interface.VerifyAssertions) VM_Interface._assert(bytes <= LOS_SIZE_THRESHOLD);
     return matureCopy(isScalar, bytes);
   }
 
@@ -275,7 +275,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   public final int getAllocator(Type type, int bytes, CallSite callsite,
 				AllocAdvice hint) {
-    return (bytes >= LOS_SIZE_THRESHOLD) ? (Plan.usesLOS ? LOS_SPACE : MATURE_SPACE) : NURSERY_SPACE;
+    return (bytes > LOS_SIZE_THRESHOLD) ? (Plan.usesLOS ? LOS_SPACE : MATURE_SPACE) : NURSERY_SPACE;
   }
 
 
