@@ -492,11 +492,14 @@ public class VM extends VM_Properties implements VM_Constants,
   public static void sysWrite   (VM_Address addr)      { sysWriteHex(addr.toInt()); }
   public static void sysWriteln (int i)                { sysWrite(i);   sysWriteln(); }
   public static void sysWriteln (double d)             { sysWrite(d);   sysWriteln(); }
+  public static void sysWriteln (long l)               { sysWrite(l);   sysWriteln(); }
   public static void sysWriteln (String s)             { sysWrite(s);   sysWriteln(); }
   public static void sysWrite   (String s, int i)           { sysWrite(s);   sysWrite(i); }
   public static void sysWriteln (String s, int i)           { sysWrite(s);   sysWriteln(i); }
   public static void sysWrite   (String s, double d)        { sysWrite(s);   sysWrite(d); }
   public static void sysWriteln (String s, double d)        { sysWrite(s);   sysWriteln(d); }
+  public static void sysWrite   (String s, long i)           { sysWrite(s);   sysWrite(i); }
+  public static void sysWriteln (String s, long i)           { sysWrite(s);   sysWriteln(i); }
   public static void sysWrite   (int i, String s)           { sysWrite(i);   sysWrite(s); }
   public static void sysWriteln (int i, String s)           { sysWrite(i);   sysWriteln(s); }
   public static void sysWrite   (String s1, String s2)      { sysWrite(s1);  sysWrite(s2); }
