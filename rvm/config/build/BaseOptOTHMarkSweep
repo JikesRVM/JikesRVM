@@ -1,0 +1,6 @@
+   . $1/BaseBaseMarkSweep
+   export RVM_WITH_OPT_TEST_HARNESS=1 
+   export RVM_WITH_OPT_COMPILER=1 
+   SMALL_HEAP_DEFAULT_SIZE=50 
+   
+   CONF_SPECIFIC_SOURCES_LIST="$CONF_SPECIFIC_SOURCE_LIST rvm/src/tools/optTestHarness"
