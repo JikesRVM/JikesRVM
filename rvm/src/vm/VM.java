@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp 2001, 2002, 2003
+ * (C) Copyright IBM Corp 2001, 2002, 2003, 2004
  */
 //$Id$
 package com.ibm.JikesRVM;
@@ -10,7 +10,8 @@ import java.lang.ref.Reference;
 
 /**
  * A virtual machine.
- * Implements VM_Uninterruptible to suppress thread switching in boot().
+ * Implements {@link VM_Uninterruptible} to suppress thread switching in {@link
+ * boot()}.
  *
  * @author Derek Lieber (project start).
  * @date 21 Nov 1997 
@@ -19,9 +20,9 @@ import java.lang.ref.Reference;
  *                          such as when out of memory)
  * @date 10 July 2003
  */
-public class VM extends VM_Properties implements VM_Constants, 
-                                                 VM_Uninterruptible { 
-
+public class VM extends VM_Properties 
+  implements VM_Constants, VM_Uninterruptible 
+{ 
   //----------------------------------------------------------------------//
   //                          Initialization.                             //
   //----------------------------------------------------------------------//
@@ -993,9 +994,7 @@ public class VM extends VM_Properties implements VM_Constants,
   }
 
   private static int inSysFail = 0;
-  private static void handlePossibleRecursiveCallToSysFail(
-                                                           String message) 
-  {
+  private static void handlePossibleRecursiveCallToSysFail(String message) {
     ++inSysFail;
     if (inSysFail > 1 && inSysFail <= maxSystemTroubleRecursionDepth + VM.maxSystemTroubleRecursionDepthBeforeWeStopVMSysWrite) {
       sysWrite("VM.sysFail(): We're in a recursive call to VM.sysFail(), ");
@@ -1102,8 +1101,8 @@ public class VM extends VM_Properties implements VM_Constants,
   }
 
   /**
-   * The following two methods are for use as guards to protect code that 
-   * must deal with raw object addresses in a collection-safe manner 
+   * The disableGC() and enableGC() methods are for use as guards to protect
+   * code that must deal with raw object addresses in a collection-safe manner
    * (ie. code that holds raw pointers across "gc-sites").
    *
    * Authors of code running while gc is disabled must be certain not to 
@@ -1130,7 +1129,21 @@ public class VM extends VM_Properties implements VM_Constants,
    * should test "VM_Thread.disallowAllocationsByThisThread" to verify that 
    * they are never called while gc is disabled.
    */
-  public static void disableGC() throws VM_PragmaInline, VM_PragmaInterruptible  { 
+  public static void disableGC()
+    throws VM_PragmaInline, VM_PragmaInterruptible  
+  {
+    disableGC(false);           // Recursion is not allowed in this context.
+  }
+  
+  /**
+   * disableGC: Disable GC if it hasn't already been disabled.  This
+   * enforces a stack discipline; we need it for the JNI Get*Critical and
+   * Release*Critical functions.  Should be matched with a subsequent call to
+   * enableGC().
+   */
+  public static void disableGC(boolean recursiveOK) 
+    throws VM_PragmaInline, VM_PragmaInterruptible  
+  {
     // current (non-gc) thread is going to be holding raw addresses, therefore we must:
     //
     // 1. make sure we have enough stack space to run until gc is re-enabled
@@ -1148,9 +1161,17 @@ public class VM extends VM_Properties implements VM_Constants,
 
     VM_Thread myThread = VM_Thread.getCurrentThread();
 
+    // 0. Sanity Check; recursion
+    if (VM.VerifyAssertions) VM._assert(myThread.disableGCDepth >= 0);
+    if (myThread.disableGCDepth++ > 0)
+      return;                   // We've already disabled it.
+
     // 1.
     //
-    if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED).LT(myThread.stackLimit) && !myThread.hasNativeStackFrame()) {
+    if (VM_Magic.getFramePointer().sub(STACK_SIZE_GCDISABLED)
+        .LT(myThread.stackLimit) 
+        && !myThread.hasNativeStackFrame()) 
+      {
       VM_Thread.resizeCurrentStack(myThread.stack.length + STACK_SIZE_GCDISABLED, null);
     }
 
@@ -1161,21 +1182,40 @@ public class VM extends VM_Properties implements VM_Constants,
     // 3.
     //
     if (VM.VerifyAssertions) {
-      VM._assert(myThread.disallowAllocationsByThisThread == false); // recursion not allowed
+      if (!recursiveOK)
+        VM._assert(myThread.disallowAllocationsByThisThread == false); // recursion not allowed
       myThread.disallowAllocationsByThisThread = true;
     }
   }
 
   /**
-   * enable GC
+   * enable GC; entry point when recursion is not OK.
    */
   public static void enableGC() throws VM_PragmaInline { 
+    enableGC(false);            // recursion not OK.
+  }
+
+  
+  /**
+   * enableGC(): Re-Enable GC if we're popping off the last
+   * possibly-recursive disableGC request.  This enforces a stack discipline;
+   * we need it for the JNI Get*Critical and Release*Critical functions.
+   * Should be matched with a preceding call to disableGC().
+   */
+  public static void enableGC(boolean recursiveOK) 
+    throws VM_PragmaInline 
+  { 
+    VM_Thread myThread = VM_Thread.getCurrentThread();
     if (VM.VerifyAssertions) {
-      VM_Thread myThread = VM_Thread.getCurrentThread();
-      // recursion not allowed
+      VM._assert(myThread.disableGCDepth >= 1);
       VM._assert(myThread.disallowAllocationsByThisThread == true); 
-      myThread.disallowAllocationsByThisThread = false;
     }
+    --myThread.disableGCDepth;
+    if (myThread.disableGCDepth > 0)
+      return;
+    
+    // Now the actual work of re-enabling GC.
+    myThread.disallowAllocationsByThisThread = false;
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
   }
 
