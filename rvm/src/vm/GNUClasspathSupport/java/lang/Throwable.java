@@ -7,6 +7,7 @@ package java.lang;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import com.ibm.JikesRVM.librarySupport.StackTrace;
+import com.ibm.JikesRVM.VM;
 
 /**
  * Library support interface of Jikes RVM
@@ -83,6 +84,10 @@ public class Throwable implements java.io.Serializable {
     }
     
     public synchronized void printStackTrace (PrintStream err) {
+	if (err == null) {
+	  VM.sysWriteln("Throwable.printStackTrace given null stream - early in booting");
+	  return;
+	}
 	err.println(this);
 	StackTrace.print(stackTrace, err);
     }
