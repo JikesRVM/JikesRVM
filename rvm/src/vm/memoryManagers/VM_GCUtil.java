@@ -85,6 +85,18 @@ public class VM_GCUtil
       return false;
   }
 
+  // a range test used by the opt compiler. it should probably be
+  // calling referenceInVM instead.
+  //
+  static boolean
+  inRange( int address ) {
+    if ( (address >= bootImageStart && address < heapEnd) ||
+	 (address >= largeStart && address < largeEnd) )
+      return true;
+    else
+      return false;
+  }
+
   static boolean
   addressInVM ( int address ) {
     if ( (address >= bootImageStart && address < heapEnd) ||
