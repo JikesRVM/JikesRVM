@@ -240,24 +240,6 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
    * @param phys controlling physical register set
    */
   private static void expandFClear(OPT_Instruction s, OPT_IR ir) {
-
-    if (ir.options.fclearWithFSTP()) {
-      expandFClearWithFSTP(s,ir);
-    } else if (ir.options.fclearWithFFREE()) {
-      expandFClearWithFFREE(s,ir);
-    } else {
-      OPT_OptimizingCompilerException.TODO("Unsupported fclear option");
-    }
-  }
-  /**
-   * expand an FCLEAR pseudo-insruction using FFREEs.
-   *
-   * @param s the instruction to expand
-   * @param phys controlling physical register set
-   */
-  private static void expandFClearWithFFREE(OPT_Instruction s, 
-                                   OPT_IR ir) {
-
     int nSave = MIR_UnaryNoRes.getVal(s).asIntConstant().value;
     int fpStackHeight = ir.MIRInfo.fpStackHeight;
     OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
@@ -270,33 +252,7 @@ class OPT_FinalMIRExpansion extends OPT_RVMIRTools {
     // Remove the FCLEAR.
     s.remove();
   }
-  /**
-   * expand an FCLEAR pseudo-insruction using pops.
-   *
-   * @param s the instruction to expand
-   * @param phys controlling physical register set
-   */
-  private static void expandFClearWithFSTP(OPT_Instruction s, 
-                                   OPT_IR ir) {
 
-    int nSave = MIR_UnaryNoRes.getVal(s).asIntConstant().value;
-    int fpStackHeight = ir.MIRInfo.fpStackHeight;
-    OPT_PhysicalRegisterSet phys = ir.regpool.getPhysicalRegisterSet();
-
-    // pop the FP registers that should be saved into the appropriate
-    // stack locations.
-    OPT_Register dest = phys.getFPR(fpStackHeight);
-    OPT_Register FP0 = phys.getFPR(0);
-    for (int i=0; i<nSave; i++) {
-      s.insertBefore(MIR_Move.create(IA32_FSTP,D(dest),D(FP0)));
-    }
-    // The remaining FP register are simply popped.
-    for (int i=nSave; i<fpStackHeight; i++) {
-     s.insertBefore(MIR_Move.create(IA32_FSTP,D(FP0),D(FP0)));
-    }
-    // Remove the FCLEAR.
-    s.remove();
-  }
   /**
    * expand an FMOV pseudo-insruction.
    *

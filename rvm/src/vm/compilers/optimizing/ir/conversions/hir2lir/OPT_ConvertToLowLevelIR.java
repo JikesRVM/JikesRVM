@@ -56,8 +56,6 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
       // 
       // Constants can't appear as defs, so only scan the uses.
       //
-      // SIDE EFFECT: while enumerating all uses, if we see a
-      // floating-point, set ir.hasFloatingPoint = true.
       int numUses = s.getNumberOfUses();
       if (numUses > 0) {
         int numDefs = s.getNumberOfDefs();
@@ -76,23 +74,17 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
               s.insertBack(Binary.create(MATERIALIZE_CONSTANT, rop, ir.regpool.makeJTOCOp(ir,s), use));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_DoubleConstantOperand) {
-              ir.setHasFloatingPoint(true);
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.DoubleType);
 	      use.clear();
               s.insertBack(Binary.create(MATERIALIZE_CONSTANT, rop, ir.regpool.makeJTOCOp(ir,s), use));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_FloatConstantOperand) {
-              ir.setHasFloatingPoint(true);
               OPT_RegisterOperand rop = ir.regpool.makeTemp(VM_Type.FloatType);
 	      use.clear();
               s.insertBack(Binary.create(MATERIALIZE_CONSTANT, rop, ir.regpool.makeJTOCOp(ir,s), use));
               s.putOperand(idx, rop.copyD2U());
             } else if (use instanceof OPT_NullConstantOperand) {
               s.putOperand(idx, I(0));
-            } else if (use instanceof OPT_RegisterOperand) {
-              if (use.asRegister().register.isFloatingPoint()) {
-                ir.setHasFloatingPoint(true);
-              }
             }
           }
         }

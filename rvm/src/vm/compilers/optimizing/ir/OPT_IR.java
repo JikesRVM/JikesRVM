@@ -210,14 +210,6 @@ final class OPT_IR implements OPT_Operators {
   private OPT_BasicBlock[] basicBlockMap;
 
   /**
-   * Does this IR include floating point operations?
-   * Initialized during convert-to-low.
-   */
-  private boolean hasFP = false;
-  public boolean hasFloatingPoint() { return hasFP; }
-  public void setHasFloatingPoint(boolean b) { hasFP = b; }
-  
-  /**
    * Does this IR include a syscall?
    * Initialized during lir to mir conversion;
    */
