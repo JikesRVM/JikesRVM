@@ -27,7 +27,7 @@ while [ $# != 0 ]; do
         ;;
 
 	*)
-	  DRIVER=$RVM_ROOT/regression/config/$2
+	  DRIVER=$RVM_ROOT/rvm/regression/config/$2
 	;;
 	esac
 	shift
@@ -50,4 +50,4 @@ done
 # the config file specifies a configuration to test, and any extra
 # arguments that RunSanityTests needs
 #
-awk "{ print \"$RVM_ROOT/regression/RunSanityTests -configurations \" \$0 \" $ADDED\" }" < $DRIVER | sh -s
+awk "{ print \"$RVM_ROOT/rvm/regression/RunSanityTests -configurations \" \$0 \" $ADDED\" }" < $DRIVER | sh -s

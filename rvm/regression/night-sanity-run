@@ -14,29 +14,28 @@
 SLEEP_DURATION="120"
 
 export JALAPENO_HOME=/homes/fury5/jalapeno
-export CVSROOT=$JALAPENO_HOME/CVSmaster
 
 export PATH=/usr/gnu/bin:$JALAPENO_HOME/bin:$RVM_ROOT/bin:$PATH:/usr/contrib/bin:.
 
 # the resulting message
-MSG=$RVM_ROOT/../MSG
+MSG=$RVM_ROOT/MSG
 
 # The directory where the archive lives
 export ARCHIVE=~/archive
 
-mkdir -p $RVM_ROOT/../results
+mkdir -p $RVM_ROOT/results
 
 # Where the fullshadow and other verbose output are placed, not mailed
-export VERBOSE_LOG=$RVM_ROOT/../results/verbose.log
+export VERBOSE_LOG=$RVM_ROOT/results/verbose.log
 
 # Where the build output is placed, this is mailed when the tests failed
-export BUILD_LOG=$RVM_ROOT/../results/build.log
+export BUILD_LOG=$RVM_ROOT/results/build.log
 
 # Where the run output is placed, this is mailed when the tests failed
-export RUN_LOG=$RVM_ROOT/../results/run.log
+export RUN_LOG=$RVM_ROOT/results/run.log
 
 # Where the performance results are placed
-export PERF_LOG=$RVM_ROOT/../results/performance.log
+export PERF_LOG=$RVM_ROOT/results/performance.log
 
 umask 022
 
@@ -49,22 +48,22 @@ chmod 755 $RUN_LOG
 cd $RVM_ROOT
 
 # sanity runs
-$RVM_ROOT/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/../results/sanity -nobuild -numprocs 2 -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
+$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/sanity -nobuild -numprocs 2 -wait sem" -config $1 >> $RUN_LOG 2>> $RUN_LOG
 
 # performance runs
-$RVM_ROOT/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/../results/performance -nobuild -numprocs 2 -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
+$RVM_ROOT/rvm/regression/NightSanityDriver -common "-images $RVM_ROOT/images -result $RVM_ROOT/results/performance -nobuild -numprocs 2 -wait sem -performance $PERF_LOG" -config $2 >> $RUN_LOG 2>> $RUN_LOG
 
 # Fix the permission bits because umask doesn't seem to be working correctly
 echo "fixing permission bits" >> $RUN_LOG
-chmod -R 755 $RVM_ROOT/.. 2>> $RUN_LOG
+chmod -R 755 $RVM_ROOT 2>> $RUN_LOG
 
 # Archive result files and performance results
 echo "Archiving results into $ARCHIVE\n" >> $RUN_LOG
 
 if [ `uname` = "Linux" ]; then
-  (cd $RVM_ROOT/../results; find . -name cp -prune -o -type f -print | xargs tar cvjf $ARCHIVE/archive.`date +"%A"`.`uname`.tar.bz2) >> $RUN_LOG 2>> $RUN_LOG
+  (cd $RVM_ROOT/results; find . -name cp -prune -o -type f -print | xargs tar cvjf $ARCHIVE/archive.`date +"%A"`.`uname`.tar.bz2) >> $RUN_LOG 2>> $RUN_LOG
 else
-  (cd $RVM_ROOT/../results; find . -name cp -prune -o -type f -print | xargs tar cvf $ARCHIVE/archive.`date +"%A"`.`uname`.tar) >> $RUN_LOG 2>> $RUN_LOG
+  (cd $RVM_ROOT/results; find . -name cp -prune -o -type f -print | xargs tar cvf $ARCHIVE/archive.`date +"%A"`.`uname`.tar) >> $RUN_LOG 2>> $RUN_LOG
 fi
 
 # determine how many ran, failed, and passed, then build a summary line
@@ -92,7 +91,7 @@ echo "     performance details: $PERF_LOG" >> $MSG
 echo >> $MSG
 echo >> $MSG
 echo Performance Summary >> $MSG
-awk -f $RVM_ROOT/regression/PerformanceBottomLine.awk $RVM_ROOT/../results/performance.log >> $MSG
+awk -f $RVM_ROOT/rvm/regression/PerformanceBottomLine.awk $RVM_ROOT/results/performance.log >> $MSG
 
 # Finally!  Send the mail message to those who care.
 echo "mailing status to jvm-coders@watson.ibm.com"
