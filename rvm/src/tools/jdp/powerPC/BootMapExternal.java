@@ -29,7 +29,7 @@ class BootMapExternal extends BootMap {
   static int VM_TypeDictionary_values_offset;             // VM_TypeDictionary.values
   static int VM_MethodDictionary_values_offset;           // VM_MethodDictionary.values
   static int VM_Class_declaredMethods_offset;             // VM_Class.declaredMethods
-  static int compiledMethodTable_offset;                  // VM_ClassLoader.compiledMethods
+  static int compiledMethodTable_offset;                  // VM_CompiledMethods.compiledMethods
   static int compiledMethod_instructions_offset;          // VM_CompiledMethod.instruction
   static int compiledMethod_method_offset;                // VM_CompiledMethod.method
 
@@ -120,7 +120,7 @@ class BootMapExternal extends BootMap {
   /**
    * Implement abstract method:  find the class.method name for an instruction address
    * @param methodID  an index into either the method dictionary table or the compiled method table
-   * @param usingCompiledMethodID true if indexing the VM_ClassLoader.compiledMethodID
+   * @param usingCompiledMethodID true if indexing the VM_CompiledMethods.compiledMethodID
    *                              false if indexing the method dictionary table
    * @return a name of the form class.method for this code
    * @see
@@ -138,7 +138,7 @@ class BootMapExternal extends BootMap {
   /**
    * Implement abstract method: find the class name for an instruction address
    * @param methodID  an index into either the method dictionary table or the compiled method table
-   * @param usingCompiledMethodID true if indexing the VM_ClassLoader.compiledMethodID
+   * @param usingCompiledMethodID true if indexing the VM_CompiledMethods.compiledMethodID
    *                              false if indexing the method dictionary table
    * @return the class name for this code
    * @see
@@ -156,7 +156,7 @@ class BootMapExternal extends BootMap {
   /**
    * Implement abstract method: find the method name for an instruction address
    * @param methodID  an index into either the method dictionary table or the compiled method table
-   * @param usingCompiledMethodID true if indexing the VM_ClassLoader.compiledMethodID
+   * @param usingCompiledMethodID true if indexing the VM_CompiledMethods.compiledMethodID
    *                              false if indexing the method dictionary table
    * @return the method name for this code
    * @see
@@ -173,7 +173,7 @@ class BootMapExternal extends BootMap {
    * Implement abstract method:  find the signature of the method for 
    *                             an instruction address
    * @param methodID  an index into either the method dictionary table or the compiled method table
-   * @param usingCompiledMethodID true if indexing the VM_ClassLoader.compiledMethodID
+   * @param usingCompiledMethodID true if indexing the VM_CompiledMethods.compiledMethodID
    *                              false if indexing the method dictionary table
    * @return the signature string for this code
    * @see
@@ -209,7 +209,7 @@ class BootMapExternal extends BootMap {
 
   public int instructionAddress(int compiledMethodID) {
 
-    // first get the address for the compiled method table in VM_ClassLoader
+    // first get the address for the compiled method table in VM_CompiledMethods
     int compiledMethodTable = owner.mem.readTOC(compiledMethodTable_offset);
     int compiledMethodAddress = owner.mem.read(compiledMethodTable + compiledMethodID*4);
     
@@ -590,7 +590,7 @@ class BootMapExternal extends BootMap {
   /**
    * Implement abstract method: find the VM_Class for an instruction address
    * @param methodID  an index into either the method dictionary table or the compiled method table
-   * @param usingCompiledMethodID true if indexing the VM_ClassLoader.compiledMethodID
+   * @param usingCompiledMethodID true if indexing the VM_CompiledMethods.compiledMethodID
    *                              false if indexing the method dictionary table
    * @return the runtime VM_Class 
    * @exception BmapNotFoundException if the name is not in the map
@@ -608,7 +608,7 @@ class BootMapExternal extends BootMap {
   /**
    * Implement abstract method: find the VM_Method given a method ID
    * @param methodID  an index into either the method dictionary table or the compiled method table
-   * @param usingCompiledMethodID true if indexing the VM_ClassLoader.compiledMethodID
+   * @param usingCompiledMethodID true if indexing the VM_CompiledMethods.compiledMethodID
    *                              false if indexing the method dictionary table
    * @return the runtime VM_Method containing this code
    * @exception BmapNotFoundException if the name is not in the map
@@ -616,11 +616,11 @@ class BootMapExternal extends BootMap {
    */
   public VM_Method findVMMethod(int methodID, boolean usingCompiledMethodID){
     if (usingCompiledMethodID) {
-      // the methodID is an index into the compiled method table VM_ClassLoader.compiledMethods[]
+      // the methodID is an index into the compiled method table VM_CompiledMethods.compiledMethods[]
       VM_CompiledMethod[] compiledMths = VM_CompiledMethods.getCompiledMethods();
       // System.out.println("findVMMethod: looking for compiled method ID " + methodID +
       // 	 " out of " + compiledMths.length);
-      // System.out.println("findVMMethod: compiled " + VM_ClassLoader.numCompiledMethods());
+      // System.out.println("findVMMethod: compiled " + VM_CompiledMethods.numCompiledMethods());
       
       VM_CompiledMethod compiledMethod = compiledMths[methodID];
       if (compiledMethod !=null) {
@@ -722,7 +722,7 @@ class BootMapExternal extends BootMap {
       field = findVMField("VM_Class", "declaredMethods");      
       VM_Class_declaredMethods_offset = field.getOffset();
 
-      field = findVMField("VM_ClassLoader", "compiledMethods");
+      field = findVMField("VM_CompiledMethods", "compiledMethods");
       compiledMethodTable_offset = field.getOffset();
 
       field = findVMField("VM_CompiledMethod", "instructions");
@@ -735,7 +735,7 @@ class BootMapExternal extends BootMap {
       int methodArrayAddress = owner.mem.readTOC(compiledMethodTable_offset);
 
       // get the number of compiled methods when booting is done
-      field = findVMField("VM_ClassLoader", "currentCompiledMethodId");
+      field = findVMField("VM_CompiledMethods", "currentCompiledMethodId");
       int methodArraySize = owner.mem.readTOC(field.getOffset()) + 1;
       System.out.println("There are " + methodArraySize + 
 			 " compiled methods in the boot image.");
@@ -816,7 +816,7 @@ class BootMapExternal extends BootMap {
 
   /**
    *  Given the address for a VM_Method object, search the table
-   * in VM_ClassLoader to find all the compiled method ID for this VM_Method
+   * in VM_CompiledMethods to find all the compiled method ID for this VM_Method
    * NOTE:  should return an array of int, but for now just return the first one
    * @param methodAddress  the address of a VM_Method object
    * @return the compiled method ID
@@ -828,7 +828,7 @@ class BootMapExternal extends BootMap {
 
   /**
    *  Given the starting address for an instruction array, search the table
-   * in VM_ClassLoader to find all the compiled method ID for this instruction array
+   * in VM_CompiledMethods to find all the compiled method ID for this instruction array
    * NOTE:  should return an array of int, but for now just return the first one
    * @param instructionAddress  the starting address of an instruction array
    * @return the compiled method ID
@@ -839,7 +839,7 @@ class BootMapExternal extends BootMap {
   }
 
   /**
-   * Common code to scan the table of VM_ClassLoader.currentCompiledMethodId to look for 
+   * Common code to scan the table of VM_CompiledMethods.currentCompiledMethodId to look for 
    * all compiled method IDs for a certain VM_Method or a certain instruction address
    *
    * @param address  the address to look for
@@ -862,10 +862,10 @@ class BootMapExternal extends BootMap {
 
     // get the number of methods
     try {
-      VM_Field field = findVMField("VM_ClassLoader", "currentCompiledMethodId");
+      VM_Field field = findVMField("VM_CompiledMethods", "currentCompiledMethodId");
       numMethods = owner.mem.readTOC(field.getOffset()) + 1;
     } catch (BmapNotFoundException e) {
-      System.out.println("JDP ERROR: Field VM_ClassLoader.currentCompiledMethodId not found, has it been changed?");
+      System.out.println("JDP ERROR: Field VM_CompiledMethods.currentCompiledMethodId not found, has it been changed?");
       return 0;
     }
 
