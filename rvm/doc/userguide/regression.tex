@@ -33,12 +33,17 @@ controlled via command-line options, including what tests and boot
 images to run, whether to do sanity or performance tests, and what to
 do with test results. These options are described in more detail
 below, and a summary can be obtained by invoking {\tt
-\$RVM\_\-ROOT/rvm/regression/RunSanityTests -help}.  The behavior of
-RunSanityTests and the benchmarks must also be customized to your
-local setup by modifying {\tt
-\$RVM\_\-ROOT/rvm/regression/Local.rules}.  In addition, you can also
-customize by making control files for RunSanityTests to ease running
-your preferred selection of boot images, test programs, and options.
+\$RVM\_\-ROOT/rvm/regression/RunSanityTests -help}. 
+We only distribute the full sources to a subset of the regression
+tests. The file {\tt \$RVM\_\-ROOT/rvm/regression/Local.rules} is used
+to find resources not distributed as part of the Jikes RVM
+distribution.  You will need to set an environment variable 
+\$BENCHMARK\_\-ROOT that is used by {\tt Local.rules} to point it to
+other resources; {\tt Local.rules} contains URLs for finding many of
+the regression tests that are not distributed with Jikes RVM.
+You can also customize your regression testing by making control files
+for RunSanityTests to ease running your preferred selection of boot
+images, test programs, and options. 
 
 \paragraph{{\tt{RunSanityTests}} Command-Line Options}
 
@@ -181,8 +186,8 @@ multiple options must be enclosed in quotations.
 
 \paragraph{\texttt{\textbf{Local.rules}} Configuration File}
 
- The {\tt Local.rules} file is located in the
- {\tt \$RVM\_\-ROOT/\-re\-gres\-sion/} directory.
+The {\tt Local.rules} file is located in the 
+{\tt \$RVM\_\-ROOT/\-re\-gres\-sion/} directory. 
 It customizes the testing harness to your local
 setup.  Essentially, it contains the information needed to find test
 programs not provided as part of the Jikes RVM distribution, such as
@@ -190,9 +195,9 @@ SPECjvm\Rweb{}98 and SPECjbb\Rboth{}2000.  Each test harness
 provided as part of Jikes RVM for which the benchmark itself is
 not part of the distribution will have an entry in this file telling
 the test harness where to find the program itself.  In order to use
-the test harness for those benchmarks, you must obtain the benchmark,
-install it at your site and edit your {\tt{Local.rules}} file to
-reflect the location of each benchmark.  {\tt{Local.rules}} defines
+the test harness for those benchmarks, you must obtain the benchmark
+and install it at your site in the appropriate subdirectory of your
+local {\tt \$BENCHMARK\_\-ROOT} directory. {\tt{Local.rules}} defines 
 the following variables for a benchmark:
 \begin{description}
 \item[BENCH\_HOME] is the home directory where the benchmark is
