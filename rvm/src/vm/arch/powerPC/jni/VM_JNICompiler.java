@@ -712,6 +712,9 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitMFLR(0);
     asm.emitST  (S0, STACKFRAME_METHOD_ID_OFFSET, FP);
     asm.emitST  (0, JNI_GLUE_FRAME_SIZE + STACKFRAME_NEXT_INSTRUCTION_OFFSET, FP);
+    int CR_OFFSET = 4; // Save CR in caller's frame; see page 162 of PPC Compiler Writer's Guide
+    asm.emitMFCR (S0);
+    asm.emitST (S0, JNI_GLUE_FRAME_SIZE + CR_OFFSET, FP);
 
     // change the vpStatus of the current Processor to "in Java", if GC has started 
     // and we are "blocked_in_native" then loop doing sysYields until GC done and the
@@ -807,7 +810,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
     // get pointer to top java frame from JNIEnv, compute offset from current
     // frame pointer (offset to avoid more interior pointers) and save offset
-    // in this flue frame
+    // in this glue frame
     //
     asm.emitL  (TI, VM_Entrypoints.JNITopJavaFPField.getOffset(), T0);     // get addr of top java frame from JNIEnv
     asm.emitSF (TI, FP, TI);                                    // TI <- offset from current FP
@@ -875,7 +878,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // the normal epilog of the method will return to the epilog here to pop the glue stack frame
 
     // branch count = number of instructions/words that follow + 1
-    asm.emitBL( 11 + 4 + 2 + 4 + 1 + 22 );      // with restore of only NECESSARY volatile regs
+    asm.emitBL( 11 + 4 + 2 + 4 + 1 + 24);      // with restore of only NECESSARY volatile regs
 
     // RETURN TO HERE FROM EPILOG OF JNI FUNCTION
     // CAUTION:  START OF EPILOG OF GLUE CODE
@@ -967,6 +970,8 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     asm.emitCAL   (S0,  VM_Processor.IN_NATIVE, 0 );              // S0  <- new status value
     asm.emitST    (S0,  0, T3);                                   // change state to native
 
+    asm.emitL     (S0, JNI_GLUE_FRAME_SIZE + CR_OFFSET, FP);
+    asm.emitMTCRF (0xff, S0);
 
     // Restore those AIX nonvolatile registers saved in the prolog above
     // Here we only save & restore ONLY those registers not restored by RVM
@@ -980,8 +985,6 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 	asm.emitLFD  (i, offset, FP);                   // 2 instructions
 	offset +=8;
     }
-
-    // TODO: restore the CR if necessary
 
     // pop frame
     asm.emitCAL(FP, JNI_GLUE_FRAME_SIZE, FP);
