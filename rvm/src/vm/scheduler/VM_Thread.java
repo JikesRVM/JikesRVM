@@ -1,3 +1,4 @@
+
 /*
  * (C) Copyright IBM Corp. 2001,2002,2004
  */
@@ -570,13 +571,12 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     final Address fp1 = startFp;
     final int callee_CMID = VM_Magic.getCompiledMethodID(fp1);
     if (fp1.EQ(STACKFRAME_SENTINEL_FP)) {
-      VM.sysWriteln("***VM_Thread.captureCallChainCMIDs() fp1 == STACKFRAME_SENTINEL_FP***");
-      dumpCallStack(); VM.sysExit(-1);
+      VM.sysFail("***VM_Thread.captureCallChainCMIDs() fp1 == STACKFRAME_SENTINEL_FP***");
     }
     if (callee_CMID == INVISIBLE_METHOD_ID) {
       if (VM_HardwarePerformanceMonitors.verbose>=4) {
         VM.sysWriteln("***VM_Thread.captureCallChainCMIDs() callee_CMID == INVISIBLE_METHOD_ID***");
-        //      dumpCallStack(); 
+        //      VM_Scheduler.dumpStack(); 
       }
     }
 
@@ -584,56 +584,15 @@ public class VM_Thread implements VM_Constants, Uninterruptible {
     final Address fp2 = VM_Magic.getCallerFramePointer(startFp);
     final int caller_CMID = VM_Magic.getCompiledMethodID(fp2);
     if (fp2.EQ(STACKFRAME_SENTINEL_FP)) {
-      VM.sysWriteln("***VM_Thread.captureCallChainCMIDs() fp2 == STACKFRAME_SENTINEL_FP***");
-      dumpCallStack(); VM.sysExit(-1);
+      VM.sysFail("***VM_Thread.captureCallChainCMIDs() fp2 == STACKFRAME_SENTINEL_FP***");
     }
     if (caller_CMID==INVISIBLE_METHOD_ID) {
-      VM.sysWriteln("***VM_Thread.captureCallChainCMIDs() caller_CMID == INVISIBLE_METHOD_ID***");
-      dumpCallStack(); VM.sysExit(-1);
+      VM.sysFail("***VM_Thread.captureCallChainCMIDs() caller_CMID == INVISIBLE_METHOD_ID***");
     }
     // save CMIDs in VM_Processor's HPM object
     VM_Processor.getCurrentProcessor().hpm.callee_CMID = callee_CMID;
     VM_Processor.getCurrentProcessor().hpm.caller_CMID = caller_CMID;
     VM_Processor.getCurrentProcessor().hpm.cmidAvailable = true;
-  }
-  /**
-   * Crawl the threads stack and print out activation records.
-   *
-   * @throws do not inline this method
-   */
-  public static final void dumpCallStack () throws NoInlinePragma 
-  {
-    VM.sysWriteln("dumpCallStack()");
-    Address fp = VM_Magic.getFramePointer();
-    int cmid = VM_Magic.getCompiledMethodID(fp);
-    while (cmid!=VM_Constants.STACKFRAME_SENTINEL_FP.toInt() && cmid!=VM_Constants.INVISIBLE_METHOD_ID) {
-      VM.sysWrite("  ",cmid);
-      final VM_CompiledMethod cm = VM_CompiledMethods.getCompiledMethod(cmid);
-      if (cm==null) {
-        VM.sysWriteln(" cm==null!");
-        return;
-      } else {
-        final VM_Method m = cm.getMethod();
-        if (m==null) {
-          VM.sysWriteln(" m==null");
-          return;
-        } else {
-          VM.sysWrite(" m: [",m.getId(),"] ");
-          VM.sysWrite(m.getDeclaringClass().getDescriptor());
-          VM.sysWrite(m.getName());
-          VM.sysWrite(m.getDescriptor());
-          VM.sysWrite("  ");
-          if (m.getDeclaringClass().isBridgeFromNative()) {
-            VM.sysWriteln("isBridgeFromNative!");
-            return;
-          } else {
-            VM.sysWriteln();
-            fp = VM_Magic.getCallerFramePointer(fp);
-            cmid = VM_Magic.getCompiledMethodID(fp);
-          }
-        }
-      }
-    }
   }
   //-#endif
   //END HRM
