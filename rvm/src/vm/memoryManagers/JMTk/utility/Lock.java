@@ -33,11 +33,13 @@ public class Lock implements VM_Uninterruptible {
   private static int startFieldOffset = VM_Entrypoints.lockStartField.getOffset();
   private static int UNLOCKED = 0;
   private static int LOCKED = 1;
+  private static double SLOW_THRESHOLD = 0.1; // seconds
+  private static double TIME_OUT = 1.0; // seconds
 
   // Debugging
   private static final boolean REPORT_SLOW_LOCK = false; // has overhead when on
   private static double SLOW_LOCK_THRESHOLD = 0.001; // in seconds
-  private static int MAX_RETRY = 10000000; // -1 to disable - overhead probably masked by contention
+  private static int TIMEOUT_CHECK_FREQ = 1000; 
   public static int verbose = 0; // show who is acquiring and releasing the locks
   private static int lockCount = 0;
 
@@ -62,36 +64,40 @@ public class Lock implements VM_Uninterruptible {
   // (3) When a lock is acquired, the time of acquistion and the identity of acquirer is recorded.
   //
   public void acquire() {
-    int retryCount = 0;
+    int retryCountdown = TIMEOUT_CHECK_FREQ;
     double localStart = 0.0; // Avoid getting time unnecessarily
+    double lastSlowReport = 0.0;
     while (!VM_Synchronization.tryCompareAndSwap(this, lockFieldOffset, UNLOCKED, LOCKED)) {
-      if (verbose > 0 & retryCount == 0) {
-	VM.sysWrite("WARNING: Thread ");
-	VM_Thread.getCurrentThread().dump();
-	VM.sysWrite(" starting to retry on acquiring lock ", id);
-	VM.sysWriteln(" ", name);
-      }
-      retryCount++;
-      if (localStart == 0.0) localStart = VM_Time.now();
-      if (MAX_RETRY > 0 && retryCount > MAX_RETRY) {
-	double end = VM_Time.now();
-	VM.sysWrite("\nPossible deadlock: failed to acquire lock ", id);
-	VM.sysWrite(" ", name);
-	VM.sysWrite(" after trying ");
-	VM.sysWrite(retryCount);
-	VM.sysWrite(" times or ");
-	VM.sysWrite(1000000.0 * (end - localStart));
-	VM.sysWriteln(" micro-seconds");
-	if (thread == null) 
-	  VM.sysWriteln("Locking thread unknown");
-	else {
-	  VM.sysWrite("Locking thread: "); thread.dump(1); VM.sysWriteln(" at position ", where);
+      if (localStart == 0.0) 
+	lastSlowReport = localStart = VM_Time.now();
+      retryCountdown--;
+      if (retryCountdown == 0) {
+	retryCountdown = TIMEOUT_CHECK_FREQ;
+	double now = VM_Time.now();
+	double lastReportDuration = now - lastSlowReport;
+	double waitTime = now - localStart;
+	if (lastReportDuration > SLOW_THRESHOLD) {
+	    lastSlowReport = now;
+	    VM.sysWrite("\nWarning: possible slow or deadlock - failed to acquire lock ", id);
+	    VM.sysWrite(" (", name);
+	    VM.sysWrite(")  after ", 1000.0 * waitTime);
+	    VM.sysWriteln(" ms");
+	    if (thread == null) 
+		VM.sysWriteln("  Locking thread unknown");
+	    else {
+		VM.sysWrite("  Locking thread: "); thread.dump(1); 
+		VM.sysWriteln(" at position ", where);
+	    }
 	}
-	VM.sysWrite("Locked out thread: "); VM_Thread.getCurrentThread().dump(1); VM.sysWriteln();
-	VM.sysWriteln("Will now spin for one second and die");
-        VM_Scheduler.dumpStack();
-	VM_Interface.busyWait(1.0);
-	VM.sysFail("Deadlock or someone holding on to lock for too long");
+	if (waitTime > TIME_OUT) {
+	    VM.sysWrite("Locked out thread: "); 
+	    VM_Thread.getCurrentThread().dump(1); 
+	    VM.sysWriteln("\nWill now spin for one second and die");
+	    VM_Scheduler.dumpStack();
+	    VM_Interface.busyWait(1.0);
+	    LazyMmapper.showHistory();
+	    VM.sysFail("Deadlock or someone holding on to lock for too long");
+	}
       }
     }
 
@@ -109,7 +115,7 @@ public class Lock implements VM_Uninterruptible {
     VM_Magic.isync();
   }
 
-  public void check(int w) {
+  public void check (int w) {
     if (!REPORT_SLOW_LOCK) return;
     if (VM.VerifyAssertions) VM._assert(VM_Thread.getCurrentThread() == thread);
     double diff = (REPORT_SLOW_LOCK) ? VM_Time.now() - start : 0.0;
