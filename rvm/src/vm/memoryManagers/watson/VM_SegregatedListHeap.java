@@ -807,7 +807,7 @@ final class VM_SegregatedListHeap extends VM_Heap
   }
 
   public long partialBlockFreeMemory() {
-    VM.sysWrite("WARNING: partialBlockFreeMemory not implemented; returning 0\n");
+    if (VM_Allocator.verbose >= 2) VM.sysWrite("WARNING: partialBlockFreeMemory not implemented; returning 0\n");
     return 0;
   }
 
