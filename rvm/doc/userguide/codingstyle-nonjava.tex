@@ -69,7 +69,9 @@ Classpath library, and users then got an RVM that did not work.
 The Bash source code used in the build system is protected with 
 {\tt set~-e}, which causes the shell to immediately exit in case of
 trouble, and (on Bash versions that support it) with a {\tt trap}
-against the {\tt ERR} pesudo-signal.
+against the {\tt ERR} pesudo-signal.  You can see an example of this
+in the function {\tt emit\_enable\_exit\_on\_error} in {\tt
+rvm/bin/jconfigure}.  
 
 \paragraph{Subshells}
 
@@ -95,6 +97,21 @@ which will make the right thing happen, or:
 fi
 
 \end{example}
+
+\paragraph{{\bf \tt unset} fails on nonexistent variables}
+The construct ``{\tt unset} \(\mbox{\it variablename}_1\)...'' will
+fail if any \(\mbox{{\it variablename\/}}_i\) is not already set.
+If this could happen, you should guard the construct as in this
+example:
+\begin{example}
+\tt{}unset {\it{}variablename\/} || :
+\end{example} 
+where the shell command {\bf \tt : } (colon) always exits with true
+status.
+
+
+
+\subsubsection{Miscellany}
 
 \subsection{GNU Makefiles} 
 
