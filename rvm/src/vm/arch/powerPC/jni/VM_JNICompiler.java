@@ -513,11 +513,16 @@ public class VM_JNICompiler implements VM_BaselineConstants,
           nextOSArgFloatReg ++;
         } else {
           //-#if RVM_FOR_LINUX          
-          // spill it, round the spill address to 8
-          // assuming FP is aligned to 8
-          spillOffsetOS = (spillOffsetOS + 7) & -8;       
-          asmArg.emitSTFD(srcVMArg, spillOffsetOS, FP);
-          spillOffsetOS += BYTES_IN_DOUBLE;
+          if (is32bits) {
+            asmArg.emitSTFS(srcVMArg, spillOffsetOS, FP);
+            spillOffsetOS += BYTES_IN_ADDRESS;
+          } else {
+            // spill it, round the spill address to 8
+            // assuming FP is aligned to 8
+            spillOffsetOS = (spillOffsetOS + 7) & -8;       
+            asmArg.emitSTFD(srcVMArg, spillOffsetOS, FP);
+            spillOffsetOS += BYTES_IN_DOUBLE;
+          }
           //-#elif RVM_FOR_OSX
           if (is32bits) {
             asmArg.emitSTFS(srcVMArg, spillOffsetOS, FP);
