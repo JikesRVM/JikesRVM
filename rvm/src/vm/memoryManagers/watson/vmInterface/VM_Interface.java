@@ -368,4 +368,8 @@ public class VM_Interface implements VM_Constants {
   public static void checkBootImageAddress (int addr) {
   }
 
+  public static Object getFinalizedObject () throws VM_PragmaInterruptible {
+    return VM_Finalizer.get();
+  }
+
 }
