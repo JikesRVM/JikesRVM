@@ -2758,7 +2758,7 @@ function emitPluginBuilder () {
 	# new version of Jikes RVM.  Only used for showing progress.
 	declare -r pkgname=\$(sed -n -e 's/.*name="package".*value="\\([^"][^"]*[Jj]ikes[Rr][Vv][Mm][^"]*\\)".*/\\1/p' build.xml)
 	echo "Building and installing the Eclipse plugin \$pkgname"
-	( ! tracing jbuild && !tracing ant ) || echo "Setting up ant.properties"
+	( ! tracing jbuild && ! tracing ant ) || echo "Setting up ant.properties"
 
 	echo "eclipse.dir=\${ECLIPSE_INSTALL_DIR}" > ant.properties
 
