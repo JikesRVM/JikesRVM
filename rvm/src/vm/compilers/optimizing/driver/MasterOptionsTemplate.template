@@ -243,9 +243,9 @@ $$$$ END LOOP
     //Begin generated help messages
     VM.sysWrite("Boolean Options ("+prefix+":<option>=true or "+prefix+":<option>=false)\n");
 $$$$ IF USE_OPT_LEVELS == "YES"
-    VM.sysWrite("option                      OptLevel Description\n");
+    VM.sysWrite("Option                        OptLevel Description\n");
 $$$$ ELSE
-    VM.sysWrite("option                               Description\n");
+    VM.sysWrite("Option                                 Description\n");
 $$$$ END IF
 $$$$ LOOP BDATFILE BOOLEAN_DAT_FILES
 $$$$ FOREACH OPTION BDATFILE
@@ -259,7 +259,7 @@ $$$$ FOREACH OPTION BDATFILE
 $$$$ END FOREACH
 $$$$ END LOOP
     VM.sysWrite("\nValue Options ("+prefix+"<option>=<value>)\n");
-    VM.sysWrite("option                         Type    Description\n");
+    VM.sysWrite("Option                         Type    Description\n");
 $$$$ LOOP VDATFILE VALUE_DAT_FILES
 $$$$ FOREACH OPTION VDATFILE
      $$$$ SPLIT "OPTION.DECL" " " TAG FULL_NAME TYPE DEFAULT_VALUE SHORT_NAME
