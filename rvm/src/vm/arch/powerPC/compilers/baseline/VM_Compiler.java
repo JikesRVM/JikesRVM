@@ -3527,13 +3527,13 @@ public class VM_Compiler extends VM_BaselineCompiler
     } else if (methodName == VM_MagicNames.addressArrayLength) {
       emit_arraylength();
     } else if (methodName == VM_MagicNames.addressArrayGet) {
-      if (VM.BuildFor32Addr) {
+      if (VM.BuildFor32Addr || methodToBeCalled.getType() == VM_TypeReference.CodeArray) {
 	emit_iaload();
       } else {
 	emit_laload();
       }
     } else if (methodName == VM_MagicNames.addressArraySet) {
-      if (VM.BuildFor32Addr) {
+      if (VM.BuildFor32Addr || methodToBeCalled.getType() == VM_TypeReference.CodeArray) {
         emit_iastore();  
       } else {
 	emit_lastore();
