@@ -422,5 +422,11 @@ if [[ ${NS_OS}.${NS_BITS} = 'AIX.32' ]]; then
 #  else
 #    echo " " | mail -s "no files without a Copyright notice" pfs 
     fi
+
+    if [[ -s $CHECK_DIR/tabChars.rvm ]]; then
+	cat $CHECK_DIR/tabChars.rvm| mail -s "files with embedded TAB characters" $RESULT_MAILING_LIST
+#  else
+#    echo " " | mail -s "no files with embedded TAB characters" pfs 
+    fi
 fi
 
