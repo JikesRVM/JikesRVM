@@ -37,8 +37,8 @@ final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
     OPT_Options opts = state.getOptions();
     // more or less figure out the guard situation early -- impacts size estimate.
     boolean needsGuard = state.getComputedTarget() == null && needsGuard(callee);
-    boolean preEx = needsGuard && state.getIsExtant() && opts.PREEX_INLINE &&
-                      OPT_InlineTools.isCurrentlyFinal(callee, true);
+    boolean preEx = 
+      needsGuard && state.getIsExtant() && opts.PREEX_INLINE && isCurrentlyFinal(callee, true);
     
     // See if inlining action passes simple size heuristics
     int cost = inliningActionCost(inlinedSizeEstimate, needsGuard, preEx, opts);
@@ -56,8 +56,7 @@ final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
 	VM_Class.OptCLDepManager.addNotOverriddenDependency(callee, 
 							    state.getCompiledMethodId());
 	return OPT_InlineDecision.YES(callee, "PREEX_INLINE passed size checks");
-      } else if (opts.GUARDED_INLINE && 
-		 OPT_InlineTools.isCurrentlyFinal(callee, !opts.guardWithClassTest())) {
+      } else if (opts.GUARDED_INLINE && isCurrentlyFinal(callee, !opts.guardWithClassTest())) {
 	return OPT_InlineDecision.guardedYES(callee, 
 					     chooseGuard(caller, callee, state, true), 
 					     "static guarded inline passsed size checks");
@@ -98,8 +97,7 @@ final class OPT_StaticInlineOracle extends OPT_GenericInlineOracle {
       if (!legalToInline(caller,callee))
         return OPT_InlineDecision.NO("Illegal interface inline");
       
-      int inlinedSizeEstimate = 
-	OPT_InlineTools.inlinedSizeEstimate(callee, state);
+      int inlinedSizeEstimate = inlinedSizeEstimate(callee, state);
       int cost = inliningActionCost(inlinedSizeEstimate, true, false, opts);
 
       OPT_InlineDecision sizeCheck = sizeHeuristics(caller, callee, state, cost);

@@ -55,7 +55,7 @@ class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
       if (candidateNeedsGuard(caller, staticCallee, state)) {
 	if (opts.GUARDED_INLINE) {
 	  boolean codePatch = opts.guardWithCodePatch() && !state.isInvokeInterface() &&
-	    OPT_InlineTools.isCurrentlyFinal(staticCallee, true);
+	    isCurrentlyFinal(staticCallee, true);
 	  byte guard = chooseGuard(caller, staticCallee, state, codePatch);
 	  if (guard == OPT_Options.IG_METHOD_TEST) {
 	    // see if we can get away with the cheaper class test on the actual target 
@@ -127,11 +127,10 @@ class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     if (seq.containsMethod(callee)) return false;
 
     // Check inline pragmas
-    if (OPT_InlineTools.hasInlinePragma(callee, state)) return true;
-    if (OPT_InlineTools.hasNoInlinePragma(callee, state)) return false;
+    if (hasInlinePragma(callee, state)) return true;
+    if (hasNoInlinePragma(callee, state)) return false;
 
-    int inlinedSizeEstimate = 
-      OPT_InlineTools.inlinedSizeEstimate(callee, state);
+    int inlinedSizeEstimate = inlinedSizeEstimate(callee, state);
     
     // Callees above a certain size are too big to be considered 
     // even if the call arc is hot.
@@ -158,7 +157,7 @@ class OPT_ProfileDirectedInlineOracle extends OPT_GenericInlineOracle {
     if (needsGuard(callee)) {
       // check pre-existance
       if (state.getIsExtant() && state.getOptions().PREEX_INLINE) {
-	if (OPT_InlineTools.isCurrentlyFinal(callee, true)) {
+	if (isCurrentlyFinal(callee, true)) {
 	  // use pre-existence !!
 	  if (OPT_ClassLoadingDependencyManager.TRACE || OPT_ClassLoadingDependencyManager.DEBUG) {
 	    VM_Class.OptCLDepManager.report("PREEX_INLINE: Inlined "+callee+

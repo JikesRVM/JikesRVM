@@ -27,40 +27,46 @@ abstract class OPT_GenericInlineOracle extends OPT_InlineTools
     }
     VM_Method caller = state.getMethod();
     VM_Method callee = state.obtainTarget();
-    // perform generic checks to test common inlining cases.
-    // These tests do not apply for invokeinterface
-    int inlinedSizeEstimate = 0;
     if (state.isInvokeInterface()) {
       if (!callee.getDeclaringClass().isLoaded()) {
 	return OPT_InlineDecision.NO("Cannot inline interface before it is loaded");
       } 
       return shouldInlineInterfaceInternal(caller, callee, state);
     } else {
-      // Check legality of inlining.
+      // invokestatic, invokevirtual, invokestatic
+      // perform generic checks to test common inlining cases.
+      
+      // Is inlining forbidden?
       if (!legalToInline(caller, callee))
         return OPT_InlineDecision.NO("illegal inlining");
-      boolean guardless = state.getComputedTarget() != null || !needsGuard(callee);
-      // Check inline pragmas
-      if (guardless && OPT_InlineTools.hasInlinePragma(callee, state))
-        return OPT_InlineDecision.YES(callee, "pragmaInline");
-      if (OPT_InlineTools.hasNoInlinePragma(callee, state))
+      if (hasNoInlinePragma(callee, state))
         return OPT_InlineDecision.NO("pragmaNoInline");
-      inlinedSizeEstimate = 
-	OPT_InlineTools.inlinedSizeEstimate(callee, state);
+
       // Some callee methods should always be inlined, even if 
       // dynamically this call site is never executed.  If the 
       // callee is sufficiently small and can be inlined without a guard
       // then we save compile time and code space by inlining it.
+      int inlinedSizeEstimate = inlinedSizeEstimate(callee, state);
+      boolean guardless = state.getComputedTarget() != null || !needsGuard(callee);
       if (inlinedSizeEstimate < state.getOptions().IC_MAX_ALWAYS_INLINE_TARGET_SIZE && 
 	  guardless &&
           !state.getSequence().containsMethod(callee)) { 
         return OPT_InlineDecision.YES(callee, "trivial inline");
       }
-    } 
-    // At this point, we know that it is legal to inline the call,
-    // but we don't know whether it is desirable.  Invoke the "real"
-    // inline oracle (a subclass) to make the tough decisions.
-    return shouldInlineInternal(caller, callee, state, inlinedSizeEstimate);
+	
+      if (state.getOptions().getOptLevel() == 0) {
+	// at opt level 0, trivial inlines are the only kind we consider
+	return OPT_InlineDecision.NO(callee, "Only do trivial inlines at O0");
+      }
+
+      if (guardless && hasInlinePragma(callee, state))
+        return OPT_InlineDecision.YES(callee, "pragmaInline");
+
+      // At this point, we know that it is legal to inline the call,
+      // but we don't know whether it is desirable.  Invoke the "real"
+      // inline oracle (a subclass) to make the tough decisions.
+      return shouldInlineInternal(caller, callee, state, inlinedSizeEstimate);
+    }
   }
 
   /**
