@@ -425,6 +425,7 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
 
   /**
    * Do mmap general memory mapping call.
+   * Please consult your system's mmap system call documentation for semantics.
    * @param start of address range (VM_Address)
    * @param size of address range
    * @param protection 
@@ -432,7 +433,6 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
    * @param fd 
    * @param offset
    * @return VM_Address (of region) if successful; errno (1 to 127) otherwise
-   * @note Please consult your system's mmap system call documentation 
    */
   public static VM_Address mmap(VM_Address address, int size, 
                                 int prot, int flags, int fd, long offset) {
@@ -634,13 +634,13 @@ public class VM_Memory implements VM_Uninterruptible , VM_SizeConstants{
   }
 
 
+  private static int pagesize = -1;
+  private static int pagesizeLog = -1;
+
   /**
    * Do getpagesize call
    * @return page size
    */
-  private static int pagesize = -1;
-  private static int pagesizeLog = -1;
-
   public static int getPagesize() {
     if (pagesize == -1) {
       pagesize = VM_SysCall.sysGetPageSize();
