@@ -454,7 +454,7 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     //
     // try to return to Java state, by testing state word of process
     //
-    int label1    = asm.currentInstructionOffset();	                    // inst index of the following load
+    int label1    = asm.getMachineCodeIndex();                            // inst index of the following load
     asm.emitL     (PROCESSOR_REGISTER, 0, FP);                            // get previous frame
     asm.emitL     (JTOC, -4, PROCESSOR_REGISTER);                         // load JTOC reg
     asm.emitL     (PROCESSOR_REGISTER, - JNI_PR_OFFSET, PROCESSOR_REGISTER); //load processor register  
@@ -470,13 +470,13 @@ class VM_OutOfLineMachineCode implements VM_BaselineConstants {
     asm.emitL     (T1,   VM_Entrypoints.sysVirtualProcessorYieldIPField.getOffset(), T2);  // load addr of function
     asm.emitMTLR  (T1);
     asm.emitBLRL  ();                                          // call sysVirtualProcessorYield in sys.C
-    asm.emitB     ( label1 - asm.currentInstructionOffset() ); // retest the blocked in native
+    asm.emitB     ( label1 - asm.getMachineCodeIndex() ); // retest the blocked in native
     //
     //  br to here -not blocked in native
     //
     asm.emitCAL   (S0,  VM_Processor.IN_JAVA, 0 );           // S0  <- new state value
     asm.emitSTWCXr(S0,  0, T3);                              // attempt to change state to java
-    asm.emitBNE   ( label1 - asm.currentInstructionOffset() ); // br if failure -retry lwarx
+    asm.emitBNE   ( label1 - asm.getMachineCodeIndex() ); // br if failure -retry lwarx
     //
     // return to caller
     //

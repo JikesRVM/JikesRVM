@@ -724,7 +724,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
     // ...it would be nice to leave the passed arguments untouched, unless we are blocked
     // and have to call sysVirtualProcessorYield
 
-    int label0    = asm.currentInstructionOffset();	                    // inst index of the following instr
+    int label0    = asm.getMachineCodeIndex();	                    // inst index of the following instr
     //
     asm.emitL     (TI, 4, T0);      // TI <- addr of processors vpStatus, from JNI function Ptr array
     asm.emitLWARX (S0, 0, TI);      // get status for processor
@@ -733,7 +733,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
 
     asm.emitCAL   (S0,  VM_Processor.IN_JAVA, 0 );            // S0  <- new state value
     asm.emitSTWCXr(S0,  0, TI);                               // attempt to change state to native
-    asm.emitBNE   ( label0 - asm.currentInstructionOffset() );// br if failure -retry lwarx
+    asm.emitBNE   ( label0 - asm.getMachineCodeIndex() );     // br if failure -retry lwarx
     asm.emitB     ( 8 + 6 + 7 + 8 + 6 + 1 + 1 );              // branch around code to call sysYield
                                                               // 1 + #instructions to NOW_IN_JAVA
 
@@ -779,7 +779,7 @@ public class VM_JNICompiler implements VM_BaselineConstants {
       offset+=8;
     }
 
-    asm.emitB   ( label0 - asm.currentInstructionOffset() );  // br back to try lwarx again
+    asm.emitB   ( label0 - asm.getMachineCodeIndex() );  // br back to try lwarx again
 
     // NOW_IN_JAVA:
     // branch to here, after setting status to IN_JAVA

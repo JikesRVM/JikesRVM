@@ -1568,14 +1568,8 @@ public class VM_Compiler extends VM_BaselineCompiler
    * @param bTarget target bytecode of the branch
    */
   protected final void emit_goto(int bTarget) {
-    int mTarget;
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardBranch(bTarget);
-    }
-    asm.emitB(mTarget);
+    int mTarget = bytecodeMap[bTarget];
+    asm.emitB(mTarget, bTarget);
   }
 
   /**
@@ -1587,14 +1581,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitMFLR(T1);           // LR +  0
     asm.emitCAL (T1, 16, T1);   // LR +  4  (LR + 16 is ret address)
     asm.emitSTU (T1, -4, SP);   // LR +  8
-    int mTarget;
-    if (bTarget <= biStart) {
-      mTarget = asm.relativeMachineAddress(bTarget);
-    } else {
-      mTarget = 0;
-      asm.reserveForwardBranch(bTarget);
-    }
-    asm.emitBL(mTarget);        // LR + 12
+    asm.emitBL(bytecodeMap[bTarget], bTarget);
   }
 
   /**
@@ -2643,7 +2630,7 @@ public class VM_Compiler extends VM_BaselineCompiler
     asm.emitL     (S0, VM_Entrypoints.lockMethod.getOffset(), JTOC); // call out...
     asm.emitMTLR  (S0);                                  // ...of line lock
     asm.emitCall(spSaveAreaOffset);
-    lockOffset = 4*(asm.currentInstructionOffset() - 1); // after this instruction, the method has the monitor
+    lockOffset = 4*(asm.getMachineCodeIndex() - 1); // after this instruction, the method has the monitor
   }
 
   // Emit code to release method synchronization lock.
@@ -2715,14 +2702,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitST   (T1, (entry+VM_EdgeCounts.TAKEN)<<2, T0);
 
       // Goto bTarget
-      int mTarget;
-      if (bTarget <= biStart) {
-	mTarget = asm.relativeMachineAddress(bTarget);
-      } else {
-	mTarget = 0;
-	asm.reserveForwardBranch(bTarget);
-      }
-      asm.emitB(mTarget);
+      asm.emitB(bytecodeMap[bTarget], bTarget);
 
       // NotTaken:
       asm.emitL    (T1, (entry+VM_EdgeCounts.NOT_TAKEN)<<2, T0);
@@ -2730,14 +2710,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       asm.emitRLWINM(T1, T1, 0, 1, 31);
       asm.emitST   (T1, (entry+VM_EdgeCounts.NOT_TAKEN)<<2, T0);
     } else {
-      int mTarget;
-      if (bTarget <= biStart) {
-	mTarget = asm.relativeMachineAddress(bTarget);
-      } else {
-	mTarget = 0;
-	asm.reserveForwardConditionalBranch(bTarget);
-      }
-      asm.emitBC(cc, mTarget);
+      asm.emitBC(cc, bytecodeMap[bTarget], bTarget);
     }
   }
 

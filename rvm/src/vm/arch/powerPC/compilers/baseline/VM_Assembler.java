@@ -42,7 +42,6 @@ final class VM_Assembler implements VM_BaselineConstants,
   /* machine code */
   VM_MachineCode mc;
   private int    mIP    = 0; // current machine code instruction
-  private int    bIP    = 0; // bytecode instruction pointer
 
   /* map from bytecode indeces to  machine code indeces */
   private int[]  b2m;                // 0, if bcodes[n] not an instruction
@@ -154,67 +153,91 @@ final class VM_Assembler implements VM_BaselineConstants,
     return b2m[bci] - mIP;
   }
 
-  int currentInstructionOffset () {
-    return mIP;
-  }
   int getMachineCodeIndex () {
     return mIP;
   }
 
   /* Handling forward branch references */
 
-  VM_ForwardReference forwardReferenceQ = null;
+  VM_ForwardReference forwardRefs = null;
 
   /* call before emiting code for the branch */
   final void reserveForwardBranch (int where) {
-    VM_ForwardReference fr = new VM_UnconditionalBranch(mIP, where);
-    if (forwardReferenceQ == null) {
-      forwardReferenceQ = fr;
-    } else {
-      forwardReferenceQ = forwardReferenceQ.add(fr);
-    }
+    VM_ForwardReference fr = new VM_ForwardReference.UnconditionalBranch(mIP, where);
+    forwardRefs = VM_ForwardReference.enqueue(forwardRefs, fr);
   }
 
   /* call before emiting code for the branch */
   final void reserveForwardConditionalBranch (int where) {
     emitNOP();
-    VM_ForwardReference fr = new VM_ConditionalBranch(mIP, where);
-    if (forwardReferenceQ == null) {
-      forwardReferenceQ = fr;
-    } else {
-      forwardReferenceQ = forwardReferenceQ.add(fr);
-    }
+    VM_ForwardReference fr = new VM_ForwardReference.ConditionalBranch(mIP, where);
+    forwardRefs = VM_ForwardReference.enqueue(forwardRefs, fr);
   }
 
   /* call before emiting code for the branch */
   final void reserveShortForwardConditionalBranch (int where) {
-    VM_ForwardReference fr = new VM_ConditionalBranch(mIP, where);
-    if (forwardReferenceQ == null) {
-      forwardReferenceQ = fr;
-    } else {
-      forwardReferenceQ = forwardReferenceQ.add(fr);
-    }
+    VM_ForwardReference fr = new VM_ForwardReference.ConditionalBranch(mIP, where);
+    forwardRefs = VM_ForwardReference.enqueue(forwardRefs, fr);
   }
 
   /* call before emiting data for the case branch */
   final void reserveForwardCase (int where) {
-    VM_ForwardReference fr = new VM_SwitchCase(mIP, where);
-    if (forwardReferenceQ == null) {
-      forwardReferenceQ = fr;
-    } else {
-      forwardReferenceQ = forwardReferenceQ.add(fr);
-    }
+    VM_ForwardReference fr = new VM_ForwardReference.SwitchCase(mIP, where);
+    forwardRefs = VM_ForwardReference.enqueue(forwardRefs, fr);
   }
 
   /* call before emiting code for the target */
-  final void resolveForwardReferences (int bindex) {
-    bIP = bindex;
-    b2m[bIP] = mIP;
-    if (forwardReferenceQ != null && 
-	forwardReferenceQ.targetBytecodeIndex == bIP) {
-      forwardReferenceQ = forwardReferenceQ.resolveUpdate(mc, mIP);
+  final void resolveForwardReferences (int label) {
+    b2m[label] = mIP;
+    if (forwardRefs == null) return; 
+    forwardRefs = VM_ForwardReference.resolveMatching(this, forwardRefs, label);
+  }
+
+  final void patchUnconditionalBranch(int sourceMachinecodeIndex) {
+    if (VM.TraceAssembler) System.out.print(" <- " + hex(sourceMachinecodeIndex << 2));
+    int delta = mIP - sourceMachinecodeIndex;
+    INSTRUCTION instr = mc.getInstruction(sourceMachinecodeIndex);
+    if (VM.VerifyAssertions) VM.assert((delta>>>23) == 0); // delta (positive) fits in 24 bits
+    instr |= (delta<<2);
+    mc.putInstruction(sourceMachinecodeIndex, instr);
+  }
+  
+  final void patchConditionalBranch(int sourceMachinecodeIndex) {
+    if (VM.TraceAssembler) System.out.print(" << " + VM_Assembler.hex(sourceMachinecodeIndex << 2));
+    int delta = mIP - sourceMachinecodeIndex;
+    INSTRUCTION instr = mc.getInstruction(sourceMachinecodeIndex);
+    if ((delta>>>13) == 0) { // delta (positive) fits in 14 bits
+      instr |= (delta<<2);
+      mc.putInstruction(sourceMachinecodeIndex, instr);
+    } else {
+      if (VM.VerifyAssertions) VM.assert((delta>>>23) == 0); // delta (positive) fits in 24 bits
+      instr ^= 0x01000008; // make skip instruction with opposite sense
+      mc.putInstruction(sourceMachinecodeIndex-1, instr); // skip unconditional branch to target
+      mc.putInstruction(sourceMachinecodeIndex,  Btemplate | (delta&0xFFFFFF)<<2);
     }
   }
+
+  final void patchShortBranch(int sourceMachinecodeIndex) {
+    if (VM.TraceAssembler) System.out.print(" << " + VM_Assembler.hex(sourceMachinecodeIndex << 2));
+    int delta = mIP - sourceMachinecodeIndex;
+    INSTRUCTION instr = mc.getInstruction(sourceMachinecodeIndex);
+    if ((delta>>>13) == 0) { // delta (positive) fits in 14 bits
+      instr |= (delta<<2);
+      mc.putInstruction(sourceMachinecodeIndex, instr);
+    } else {
+      throw new InternalError("Long offset doesn't fit in short branch\n");
+    }
+  }
+
+  final void patchSwitchCase(int sourceMachinecodeIndex) {
+    if (VM.TraceAssembler) System.out.print(" <+ " + VM_Assembler.hex(sourceMachinecodeIndex << 2));
+    int delta = mIP - sourceMachinecodeIndex;
+    // correction is number of words of source off switch base
+    int         correction = (int)mc.getInstruction(sourceMachinecodeIndex);
+    INSTRUCTION offset = (INSTRUCTION)((delta+correction) << 2);
+    mc.putInstruction(sourceMachinecodeIndex, offset);
+  }
+
 
   /* machine instructions */
 
@@ -272,6 +295,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int Btemplate = 18<<26;
 
+  /** Deprecated! */
   final void emitB (int relative_address) {
     if (VM.VerifyAssertions) VM.assert(fits(relative_address,24));
     INSTRUCTION mi = Btemplate | (relative_address&0xFFFFFF)<<2;
@@ -279,6 +303,15 @@ final class VM_Assembler implements VM_BaselineConstants,
       asm(mIP, mi, "b", signedHex(relative_address<<2));
     mIP++;
     mc.addInstruction(mi);
+  }
+
+  final void emitB (int relative_address, int label) {
+    if (relative_address == 0) {
+      reserveForwardBranch(label);
+    } else {
+      relative_address -= mIP;
+    }
+    emitB(relative_address);
   }
 
   static final int BLAtemplate = 18<<26 | 3;
@@ -294,6 +327,7 @@ final class VM_Assembler implements VM_BaselineConstants,
 
   static final int BLtemplate = 18<<26 | 1;
 
+  /** Deprecated! */
   final void emitBL (int relative_address) {
     if (VM.VerifyAssertions) VM.assert(fits(relative_address,24));
     INSTRUCTION mi = BLtemplate | (relative_address&0xFFFFFF)<<2;
@@ -302,6 +336,16 @@ final class VM_Assembler implements VM_BaselineConstants,
     mIP++;
     mc.addInstruction(mi);
   }
+
+  final void emitBL (int relative_address, int label) {
+    if (relative_address == 0) {
+      reserveForwardBranch(label);
+    } else {
+      relative_address -= mIP;
+    }
+    emitBL(relative_address);
+  }
+
 
   static final int BCtemplate = 16<<26;
 
@@ -337,6 +381,15 @@ final class VM_Assembler implements VM_BaselineConstants,
       emitBC(flipCode(cc), 2);
       emitB(relative_address-1);
     }
+  }
+
+  final void emitBC (int cc, int relative_address, int label) {
+    if (relative_address == 0) {
+      reserveForwardConditionalBranch(label);
+    } else {
+      relative_address -= mIP;
+    }
+    emitBC(cc, relative_address);
   }
 
   final void emitBGT (int relative_address) {
