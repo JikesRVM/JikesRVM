@@ -1,6 +1,7 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
 
 /^RESULT:/ { 
     if ("x$4" != "x") {

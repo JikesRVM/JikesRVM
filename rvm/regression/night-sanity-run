@@ -2,6 +2,7 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
 
 # This script will run sanity and performance tests.  
 # It assumes the boot images have 

@@ -2,6 +2,7 @@
 #
 # (C) Copyright IBM Corp. 2001
 #
+# $Id$
 
 # This script will build the boot images
 # It then signals another script, night-sanity-run to perform the runs.
