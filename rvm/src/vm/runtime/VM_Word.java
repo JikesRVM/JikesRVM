@@ -69,9 +69,27 @@ final public class VM_Word implements VM_Uninterruptible {
     return new VM_Word(value + w2.value);
   }
 
+  public VM_Word add (VM_Offset w2) throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return new VM_Word(value + w2.toWord().value);
+  }
+
+  public VM_Word add (VM_Extent w2) throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return new VM_Word(value + w2.toWord().value);
+  }
+
   public VM_Word sub (VM_Word w2) throws VM_PragmaLogicallyUninterruptible {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
     return new VM_Word(value - w2.value);
+  }
+  public VM_Word sub (VM_Offset w2) throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return new VM_Word(value - w2.toWord().value);
+  }
+  public VM_Word sub (VM_Extent w2) throws VM_PragmaLogicallyUninterruptible {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);  // call site should have been hijacked by magic in compiler
+    return new VM_Word(value - w2.toWord().value);
   }
 
   public boolean isZero() {
