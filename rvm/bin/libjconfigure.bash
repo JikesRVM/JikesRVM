@@ -43,15 +43,16 @@ XFLAG=""
 CLEAN_FLAG=""
 MFLAGS=--silent
 
-## A variable we care about here.
-## This is supposed to be already set, but I'm setting it here so that we can test
-## libjconfigure.bash independently of the rest of jconfigure.
+## ME: The name of this program, for purposes of printing error messages.
+## This is supposed to be already set, but I'm setting it here so that it's
+## easier to test libjconfigure.bash independently of the rest of jconfigure.
 [[ "${ME-}" != "" ]] || ME="${0##*/}"
 
 function tracing() {
     set +vx
     # We go through some skulduggery here so that running jbuild
-    # with -v or -x won't generate lots of junk output.
+    # with -v or -x won't generate lots of junk output from tracing() and
+    # other low-level functions.
     [[ $TRACE_FLAG ]] || { [ ! "$VFLAG$XFLAG" ] || set $VFLAG $XFLAG ; return 1 ; }
 
     local -i dflt=1      # default answer, false  (using exit codes)
@@ -299,7 +300,7 @@ set -o nounset;			# may cause trouble!
 ## Routines to clean a list of files or other things.
 
 function cleanFileList() {
-    ${SED=sed} -e 's/^[ 	]*//' -e 's/[ 	]*#.*//' -e '/^$/d' "$@"
+    sed -e 's/^[ 	]*//' -e 's/[ 	]*#.*//' -e '/^$/d' "$@"
 }
 
 
