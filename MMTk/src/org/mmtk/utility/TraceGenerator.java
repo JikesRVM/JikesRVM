@@ -333,7 +333,7 @@ public final class TraceGenerator
    *
    * @param obj The root-referenced object
    */
-  public static final void rootEnumerate(Object obj) {
+  public static final void rootEnumerate(ObjectReference obj) {
     TraceInterface.updateDeathTime(obj);
   }
 

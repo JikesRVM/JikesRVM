@@ -43,7 +43,7 @@ public class Finalizer implements Uninterruptible {
      being traced.  We don't want this array to keep the candiates alive */
   private static AddressArray candidate = AddressArray.create(INITIAL_SIZE);
   private static int candidateEnd;                            // candidate[0] .. candidate[candidateEnd-1] contains non-zero entries
-  private static Object [] live = new Object[INITIAL_SIZE];
+  private static ObjectReferenceArray live = ObjectReferenceArray.create(INITIAL_SIZE);
   private static int liveStart;                               // live[liveStart] .. live[liveEnd-1] are the non-null entries
   private static int liveEnd;
 
@@ -102,20 +102,20 @@ public class Finalizer implements Uninterruptible {
    *
    * The aastore is actually uninterruptible since the target is an array of Objects.
    */
-  private static void addLive(Object obj) throws LogicallyUninterruptiblePragma {
-    if (liveEnd == live.length) {
-      Object[] newLive = live;
+  private static void addLive(ObjectReference obj) throws LogicallyUninterruptiblePragma {
+    if (liveEnd == live.length()) {
+      ObjectReferenceArray newLive = live;
       if (liveStart == 0) 
-        newLive = new Object[(int) (growthFactor * live.length)];
+        newLive = ObjectReferenceArray.create((int) (growthFactor * live.length()));
       for (int i=liveStart; i<liveEnd; i++)
-        newLive[i-liveStart] = live[i];
-      for (int i=liveEnd - liveStart; i<live.length; i++)
-        newLive[i] = null;
+        newLive.set(i-liveStart, live.get(i));
+      for (int i=liveEnd - liveStart; i<live.length(); i++)
+        newLive.set(i, ObjectReference.nullReference());
       liveEnd -= liveStart;
       liveStart = 0;
       live = newLive;
     }
-    live[liveEnd++] = obj;
+    live.set(liveEnd++, obj);
   }
 
   /**
@@ -125,12 +125,12 @@ public class Finalizer implements Uninterruptible {
    * The aastore is actually uninterruptible since the target is an
    * array of Objects.
    */
-  public final static Object get() throws LogicallyUninterruptiblePragma {
+  public final static ObjectReference get() throws LogicallyUninterruptiblePragma {
 
-    if (liveStart == liveEnd) return null;
+    if (liveStart == liveEnd) return ObjectReference.nullReference();
 
-    Object obj = live[liveStart];
-    live[liveStart++] = null;
+    ObjectReference obj = live.get(liveStart);
+    live.set(liveStart++, ObjectReference.nullReference());
 
     return obj;
   }
@@ -172,7 +172,7 @@ public class Finalizer implements Uninterruptible {
       boolean isFinalizable = Plan.isFinalizable(cand.toObjectReference());
       if (isFinalizable) { // object died, enqueue for finalization
         candidate.set(cursor, Address.zero());
-        addLive(Plan.retainFinalizable(cand.toObjectReference()).toObject());
+        addLive(Plan.retainFinalizable(cand.toObjectReference()));
         newFinalizeCount++;
       } else {             // live beforehand but possibly moved
         candidate.set(cursor, Plan.getForwardedReference(cand.toObjectReference()).toAddress());
