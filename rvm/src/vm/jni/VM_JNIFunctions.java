@@ -104,7 +104,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       env = VM_Thread.getCurrentThread().getJNIEnv();
       classString = VM_JNIEnvironment.createStringFromC(classNameAddress);
       if (traceJNI) VM.sysWriteln( classString );
-      Class matchedClass = Class.forName(classString);
+      Class matchedClass = Class.forName(classString.replace('/', '.'));
       return env.pushJNIRef(matchedClass);  
     } catch (ClassNotFoundException e) {
       if (traceJNI) e.printStackTrace( System.err );
@@ -646,8 +646,8 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
       }
 
       if (meth == null) {
-        env.recordException(new NoSuchMethodError());
-        return 0;
+	  env.recordException(new NoSuchMethodError(klass + ": " + methodName + " " + sigName));
+	  return 0;
       }	
 
       if (traceJNI) VM.sysWrite("got method " + meth + "\n");
@@ -6847,7 +6847,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
   private static native int createJavaVM();
 
   private static int GetJavaVM(int envJREF, VM_Address StarStarJavaVM) {
-     VM.sysWrite("JNI called: GetJavaVM \n");
+    if (traceJNI) VM.sysWrite("JNI called: GetJavaVM \n");
 
     if (JavaVM == null) {
 	int addr = createJavaVM();
@@ -6855,7 +6855,7 @@ public class VM_JNIFunctions implements VM_NativeBridge, VM_JNIConstants {
 	VM.sysWriteln(addr);
     }
     
-    VM.sysWriteln(StarStarJavaVM.toInt());
+    if (traceJNI) VM.sysWriteln(StarStarJavaVM.toInt());
     VM_Magic.setMemoryWord(StarStarJavaVM, JavaVM.toInt());
 
     return 0;
