@@ -17,9 +17,18 @@ abstract public class BasePolicy { // implements HeaderConstants {
   
   public final static String Id = "$Id$"; 
 
-  public static void prepare(VMResource vm, MemoryResource mr) { VM._assert(false); }
-  public static void release(VMResource vm, MemoryResource mr) { VM._assert(false); }
-  public static VM_Address traceObject(VM_Address object) { VM._assert(false); return VM_Address.zero(); }
-  public static    boolean isLive(VM_Address obj)         { VM._assert(false); return false; }
-
+  public static void prepare(VMResource vm, MemoryResource mr) {
+    if (VM.VerifyAssertions) VM._assert(false);
+  }
+  public static void release(VMResource vm, MemoryResource mr) {
+    if (VM.VerifyAssertions) VM._assert(false); 
+  }
+  public static VM_Address traceObject(VM_Address object) { 
+    if (VM.VerifyAssertions) VM._assert(false); 
+    return VM_Address.zero(); 
+  }
+  public static    boolean isLive(VM_Address obj) {
+    if (VM.VerifyAssertions) VM._assert(false); 
+    return false; 
+  }
 }
