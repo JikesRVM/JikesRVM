@@ -1735,7 +1735,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	      (vmeth = lookupMethod(meth, refType)) != null) {
 	    // We're going to virtualize it. Must deal with the DTC here.
 	    if (requiresImplementsTest) {
-	      appendInstruction(TypeCheck.create(CHECKCAST_INTERFACE_NOTNULL,
+	      appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
 						 ref.copyU2U(),
 						 makeTypeOperand(interfaceType),
 						 getCurrentGuard()));
@@ -1767,7 +1767,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
               return;
             } else {
 	      if (requiresImplementsTest) {
-		appendInstruction(TypeCheck.create(CHECKCAST_INTERFACE_NOTNULL,
+		appendInstruction(TypeCheck.create(MUST_IMPLEMENT_INTERFACE,
 						   ref.copyU2U(),
 						   makeTypeOperand(interfaceType),
 						   getCurrentGuard()));
@@ -1884,10 +1884,11 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  int constantPoolIndex = bcInfo.getTypeReferenceIndex();
 	  VM_Type typeRef = bcInfo.getTypeReference(constantPoolIndex);
+	  boolean classLoading = couldCauseClassLoading(typeRef);
 	  OPT_TypeOperand typeOp = makeTypeOperand(typeRef);
 	  OPT_Operand op2 = pop();
 	  if (VM.VerifyAssertions) VM.assert(op2.isRef());
-	  if (CF_CHECKCAST) {
+	  if (CF_CHECKCAST && !classLoading) {
 	    if (op2.isDefinitelyNull()) {
 	      push(op2);
 	      if (DBG_CF) db("skipped gen of null checkcast");
@@ -1907,11 +1908,14 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  if (gc.options.NO_CHECKCAST) {
 	    // Unsafely eliminate all checkcasts
 	  } else {
-	    if (isNonNull(reg)) {
-	      s = TypeCheck.create(CHECKCAST_NOTNULL, reg, typeOp, 
-				   getGuard(reg));
+	    if (classLoading) {
+	      s = TypeCheck.create(CHECKCAST_UNRESOLVED, reg, typeOp);
 	    } else {
-	      s = TypeCheck.create(CHECKCAST, reg, typeOp);
+	      if (isNonNull(reg)) {
+		s = TypeCheck.create(CHECKCAST_NOTNULL, reg, typeOp, getGuard(reg));
+	      } else {
+		s = TypeCheck.create(CHECKCAST, reg, typeOp);
+	      }
 	    }
 	  }
 	  reg = reg.copyU2U();
@@ -1919,6 +1923,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  push(reg);
 	  VM_Class et = OPT_ClassLoaderProxy.JavaLangClassCastExceptionType;
 	  rectifyStateWithExceptionHandler(et);
+	  if (classLoading) rectifyStateWithErrorHandler();
 	}
 	break;
 
@@ -1926,10 +1931,11 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	{
 	  int constantPoolIndex = bcInfo.getTypeReferenceIndex();
 	  VM_Type typeRef = bcInfo.getTypeReference(constantPoolIndex);
+	  boolean classLoading = couldCauseClassLoading(typeRef);
 	  OPT_TypeOperand typeOp = makeTypeOperand(typeRef);
 	  OPT_Operand op2 = pop();
 	  if (VM.VerifyAssertions) VM.assert(op2.isRef());
-	  if (CF_INSTANCEOF) {
+	  if (CF_INSTANCEOF && !classLoading) {
 	    if (op2.isDefinitelyNull()) {
 	      push(new OPT_IntConstantOperand(0));
 	      if (DBG_CF) db("skipped gen of null instanceof");
@@ -1957,15 +1963,18 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
 	  }
 
 	  OPT_RegisterOperand t = gc.temps.makeTempInt();
-	  if (isNonNull(op2)) {
-	    s = InstanceOf.create(INSTANCEOF_NOTNULL, t, typeOp, op2, 
-				 getGuard(op2));
+	  if (classLoading) {
+	    s = InstanceOf.create(INSTANCEOF_UNRESOLVED, t, typeOp, op2);
 	  } else {
-	    s = InstanceOf.create(INSTANCEOF, t, typeOp, op2);
+	    if (isNonNull(op2)) {
+	      s = InstanceOf.create(INSTANCEOF_NOTNULL, t, typeOp, op2, getGuard(op2));
+	    } else {
+	      s = InstanceOf.create(INSTANCEOF, t, typeOp, op2);
+	    } 
 	  }
+
 	  push(t.copyD2U());
-	  if (!typeRef.isInstantiated())
-	    rectifyStateWithErrorHandler();
+	  if (classLoading) rectifyStateWithErrorHandler();
 	}
 	break;
 
@@ -2430,6 +2439,13 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
    */
   private OPT_TypeOperand makeTypeOperand(VM_Type typ) {
     return new OPT_TypeOperand(typ);
+  }
+
+  private boolean couldCauseClassLoading(VM_Type type) {
+    if (type.isInitialized()) return false;
+    if (type.isArrayType()) return !type.isResolved();
+    if (type.isClassType() && type.asClass().isInBootImage()) return false;
+    return true;
   }
 
   //// LOAD LOCAL VARIABLE ONTO STACK.
@@ -3245,9 +3261,17 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     }
 
     OPT_RegisterOperand guard = gc.temps.makeTempValidation();
-    appendInstruction(StoreCheck.create(OBJARRAY_STORE_CHECK, guard, 
-					ref.copy(), elem.copy(), 
-					getCurrentGuard()));
+    if (isNonNull(elem)) {
+      OPT_RegisterOperand newGuard = gc.temps.makeTempValidation();
+      appendInstruction(Binary.create(GUARD_COMBINE, newGuard, getGuard(elem), getCurrentGuard()));
+      appendInstruction(StoreCheck.create(OBJARRAY_STORE_CHECK_NOTNULL, guard, 
+					  ref.copy(), elem.copy(), 
+					  newGuard.copy()));
+    } else {
+      appendInstruction(StoreCheck.create(OBJARRAY_STORE_CHECK, guard, 
+					  ref.copy(), elem.copy(), 
+					  getCurrentGuard()));
+    }
     setCurrentGuard(guard);
     rectifyStateWithArrayStoreExceptionHandler();
     return false;
@@ -3340,6 +3364,7 @@ final class OPT_BC2IR implements OPT_IRGenOptions,
     if (lastInstr != null) {
       switch (lastInstr.getOpcode()) {
       case INSTANCEOF_opcode:
+      case INSTANCEOF_UNRESOLVED_opcode:
 	{
 	  if (DBG_TYPE) db("last instruction was instanceof");
 	  OPT_RegisterOperand res = InstanceOf.getResult(lastInstr);

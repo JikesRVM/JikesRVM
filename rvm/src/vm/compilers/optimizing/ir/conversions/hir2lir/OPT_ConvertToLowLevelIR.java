@@ -199,10 +199,15 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	break;
 
       case OBJARRAY_STORE_CHECK_opcode:
-	s = OPT_DynamicTypeCheckExpansion.arrayStoreCheck(s, ir);
+	s = OPT_DynamicTypeCheckExpansion.arrayStoreCheck(s, ir, true);
+	break;
+
+      case OBJARRAY_STORE_CHECK_NOTNULL_opcode:
+	s = OPT_DynamicTypeCheckExpansion.arrayStoreCheck(s, ir, false);
 	break;
 
       case CHECKCAST_opcode:
+      case CHECKCAST_UNRESOLVED_opcode:
 	s = OPT_DynamicTypeCheckExpansion.checkcast(s, ir);
 	break;
 
@@ -210,8 +215,8 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	s = OPT_DynamicTypeCheckExpansion.checkcastNotNull(s, ir);
 	break;
 
-      case CHECKCAST_INTERFACE_NOTNULL_opcode:
-	s = OPT_DynamicTypeCheckExpansion.checkcastInterfaceNotNull(s, ir);
+      case MUST_IMPLEMENT_INTERFACE_opcode:
+	s = OPT_DynamicTypeCheckExpansion.mustImplementInterface(s, ir);
 	break;
 
       case IG_CLASS_TEST_opcode:
@@ -244,6 +249,7 @@ abstract class OPT_ConvertToLowLevelIR extends OPT_IRTools
 	}
 	
       case INSTANCEOF_opcode:
+      case INSTANCEOF_UNRESOLVED_opcode:
 	s = OPT_DynamicTypeCheckExpansion.instanceOf(s, ir);
 	break;
 

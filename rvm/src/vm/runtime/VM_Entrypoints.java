@@ -50,8 +50,6 @@ class VM_Entrypoints implements VM_Constants {
   static final VM_Method instanceOfUnresolvedMethod         = getMethod("LVM_DynamicTypeCheck;", "instanceOfUnresolved", "(LVM_Class;[Ljava/lang/Object;)Z");
   static final VM_Method instanceOfArrayMethod              = getMethod("LVM_DynamicTypeCheck;", "instanceOfArray", "(LVM_Class;ILVM_Type;)Z");
   static final VM_Method instanceOfUnresolvedArrayMethod    = getMethod("LVM_DynamicTypeCheck;", "instanceOfUnresolvedArray", "(LVM_Class;ILVM_Type;)Z");
-  static final VM_Method checkstoreNotArrayOfPrimitiveMethod= getMethod("LVM_DynamicTypeCheck;", "checkstoreNotArrayOfPrimitive", "(LVM_Type;LVM_Type;)V");
-  static final VM_Method checkstorePossibleArrayOfPrimitiveMethod = getMethod("LVM_DynamicTypeCheck;", "checkstorePossibleArrayOfPrimitive", "(LVM_Type;LVM_Type;)V");
 
   static final VM_Method lockMethod          = getMethod("LVM_Lock;", "lock", "(Ljava/lang/Object;)V");
   static final VM_Method unlockMethod        = getMethod("LVM_Lock;", "unlock", "(Ljava/lang/Object;)V");

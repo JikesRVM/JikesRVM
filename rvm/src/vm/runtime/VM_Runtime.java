@@ -54,6 +54,7 @@ public class VM_Runtime implements VM_Constants {
   static final int TRAP_REGENERATE     =  5; // opt-compiler
   static final int TRAP_JNI_STACK      =  6; // jni
   static final int TRAP_MUST_IMPLEMENT =  7; 
+  static final int TRAP_STORE_CHECK    =  8; 
    
   //---------------------------------------------------------------//
   //                     Type Checking.                            //
@@ -584,6 +585,9 @@ public class VM_Runtime implements VM_Constants {
       break;
     case TRAP_MUST_IMPLEMENT:
       exceptionObject = new java.lang.IncompatibleClassChangeError();
+      break;
+    case TRAP_STORE_CHECK:
+      exceptionObject = new java.lang.ArrayStoreException();
       break;
     default:
       exceptionObject = new java.lang.UnknownError();

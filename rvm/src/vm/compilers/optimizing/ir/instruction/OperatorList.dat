@@ -84,16 +84,27 @@ ethrow
 
 
 # Check that a cast is legal, raise ClassCastException if it is not.
-# The object being checked may be null
+# The object being checked may be null.
+# The LHS type is resolved
 CHECKCAST
 TypeCheck
-immedPEI | dynLink
+immedPEI
 
 
 
 # Check that a cast is legal, raise ClassCastException if it is not.
 # The object being checked is known to be non-null.
+# The LHS type is resolved
 CHECKCAST_NOTNULL
+TypeCheck
+immedPEI
+
+
+
+# Check that a cast is legal, raise ClassCastException if it is not.
+# The object being checked may be null.
+# The LHS type is not resolved
+CHECKCAST_UNRESOLVED
 TypeCheck
 immedPEI | dynLink
 
@@ -102,23 +113,33 @@ immedPEI | dynLink
 # Dynamic type check before an interface invocation.
 # raise IncompatibleClassChangeError if object does not implement the interface
 # The object being checked is known to be non-null
-CHECKCAST_INTERFACE_NOTNULL
+# The LHS type may or may not be resolved, but we don't need to load it if it
+# isn't loaded already.
+MUST_IMPLEMENT_INTERFACE
 TypeCheck
-immedPEI | dynLink
+immedPEI
 
 
 
-# implement instanceof bytecode. Numerous exceptions could be raised during dynamic class loading
+# implement instanceof bytecode for resolved LHStype
 # The object being checked may be null
 INSTANCEOF
 InstanceOf
-immedPEI | dynLink
+none
 
 
 
-# implement instanceof bytecode. Numerous exceptions could be raised during dynamic class loading
+# implement instanceof bytecode for resolved LHStype
 # The object being checked is known to be non-null
 INSTANCEOF_NOTNULL
+InstanceOf
+none
+
+
+
+# implement instanceof bytecode for unresolved LHStype
+# The object being checked is known to be non-null
+INSTANCEOF_UNRESOLVED
 InstanceOf
 immedPEI | dynLink
 
@@ -1097,6 +1118,17 @@ immedPEI
 # pointed to by its first reference argument (register). Raises an
 # ArrayStoreException if the validity check fails.
 OBJARRAY_STORE_CHECK
+StoreCheck
+immedPEI
+
+
+
+# Performs a store check (subclass test) to determine if it is valid to
+# store its second reference argument (register/constant) into the array
+# pointed to by its first reference argument (register). Raises an
+# ArrayStoreException if the validity check fails.
+# The argument being stored is known to not be null.
+OBJARRAY_STORE_CHECK_NOTNULL
 StoreCheck
 immedPEI
 

@@ -16,20 +16,15 @@ import instructionFormats.*;
  */
 abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
 
-  //////////////////
-  // Entrypoints for expanding each kind of DTC instruction into 
-  // LIR instructions
-  //////////////////
-
   /**
    * Expand an instanceof instruction into the LIR sequence that implements
    * the dynamic type check.  Ref may contain a null ptr at runtime.
    * 
-   * @param s an INSTANCEOF instruction to expand 
+   * @param s an INSTANCEOF or INSTANCEOF_UNRESOLVED instruction to expand 
    * @param ir the enclosing OPT_IR
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
-  static OPT_Instruction instanceOf (OPT_Instruction s, OPT_IR ir) {
+  static OPT_Instruction instanceOf(OPT_Instruction s, OPT_IR ir) {
     OPT_RegisterOperand result = InstanceOf.getClearResult(s);
     VM_Type LHStype = InstanceOf.getType(s).type;
     OPT_RegisterOperand ref = (OPT_RegisterOperand)InstanceOf.getClearRef(s);
@@ -114,7 +109,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * @param ir the enclosing OPT_IR
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
-  static OPT_Instruction instanceOfNotNull (OPT_Instruction s, OPT_IR ir) {
+  static OPT_Instruction instanceOfNotNull(OPT_Instruction s, OPT_IR ir) {
     OPT_RegisterOperand result = InstanceOf.getClearResult(s);
     VM_Type LHStype = InstanceOf.getType(s).type;
     OPT_RegisterOperand ref = (OPT_RegisterOperand)InstanceOf.getClearRef(s);
@@ -160,11 +155,11 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * dynamic type check, raising a ClassCastException when the type check 
    * fails. Ref may contain a null ptr at runtime.
    * 
-   * @param s a CHECKCAST instruction to expand 
+   * @param s a CHECKCAST or CHECKCAST_UNRESOLVED instruction to expand 
    * @param ir the enclosing OPT_IR
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
-  static OPT_Instruction checkcast (OPT_Instruction s, OPT_IR ir) {
+  static OPT_Instruction checkcast(OPT_Instruction s, OPT_IR ir) {
     OPT_RegisterOperand ref = (OPT_RegisterOperand)TypeCheck.getClearRef(s);
     VM_Type LHStype = TypeCheck.getType(s).type;
     OPT_RegisterOperand guard = ir.regpool.makeTempValidation();
@@ -207,7 +202,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * @param ir the enclosing OPT_IR
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
-  static OPT_Instruction checkcastNotNull (OPT_Instruction s, OPT_IR ir) {
+  static OPT_Instruction checkcastNotNull(OPT_Instruction s, OPT_IR ir) {
     OPT_RegisterOperand ref = (OPT_RegisterOperand)TypeCheck.getClearRef(s);
     VM_Type LHStype = TypeCheck.getType(s).type;
     OPT_Operand guard = TypeCheck.getClearGuard(s);
@@ -235,12 +230,11 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    * if the type check fails. 
    * Ref is known to never contain a null ptr at runtime.
    *
-   * @param s a CHECKCAST_INTERFACE_NOTNULL instruction to expand 
+   * @param s a MUST_IMPLEMENT_INTERFACE instruction to expand 
    * @param ir the enclosing OPT_IR
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
-  static OPT_Instruction checkcastInterfaceNotNull (OPT_Instruction s, 
-						    OPT_IR ir) {
+  static OPT_Instruction mustImplementInterface(OPT_Instruction s, OPT_IR ir) {
     OPT_RegisterOperand ref = (OPT_RegisterOperand)TypeCheck.getClearRef(s);
     VM_Class LHSClass = TypeCheck.getType(s).type.asClass();
     int interfaceIndex = LHSClass.getDoesImplementIndex();
@@ -297,9 +291,10 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
    *
    * @param s an OBJARRAY_STORE_CHECK instruction to expand 
    * @param ir the enclosing OPT_IR
+   * @param couldBeNull is it possible that the element being stored is null?
    * @return the last OPT_Instruction in the generated LIR sequence.
    */
-  static OPT_Instruction arrayStoreCheck (OPT_Instruction s, OPT_IR ir) {
+  static OPT_Instruction arrayStoreCheck(OPT_Instruction s, OPT_IR ir, boolean couldBeNull) {
     if (VM.BuildForFastDynamicTypeCheck) {
       OPT_RegisterOperand guardResult = StoreCheck.getClearGuardResult(s);
       OPT_RegisterOperand arrayRef = StoreCheck.getClearRef(s).asRegister();
@@ -310,160 +305,168 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
         s.remove();
         return continueAt;
       }
-      OPT_InlineSequence position = s.position;
-      int bcIndex = s.bcIndex;
       OPT_BasicBlock myBlock = s.getBasicBlock();
       OPT_BasicBlock contBlock = myBlock.splitNodeAt(s, ir);
-      OPT_BasicBlock shortCircuitBlock1 = myBlock.createSubBlock(s.bcIndex, ir);
-      OPT_BasicBlock shortCircuitBlock2 = myBlock.createSubBlock(s.bcIndex, ir);
-      OPT_BasicBlock shortCircuitBlock3 = myBlock.createSubBlock(s.bcIndex, ir);
-      OPT_BasicBlock shortCircuitBlock4 = myBlock.createSubBlock(s.bcIndex, ir);
-      OPT_BasicBlock testBlock = myBlock.createSubBlock(s.bcIndex, ir);
+      OPT_BasicBlock trapBlock = myBlock.createSubBlock(s.bcIndex, ir);
+      OPT_BasicBlock curBlock = myBlock;
+      s.remove();
 
-      myBlock.insertOut(shortCircuitBlock1);
-      myBlock.insertOut(contBlock);
-      shortCircuitBlock1.insertOut(shortCircuitBlock2);
-      shortCircuitBlock2.insertOut(shortCircuitBlock3);
-      shortCircuitBlock2.insertOut(contBlock);
-      shortCircuitBlock3.insertOut(shortCircuitBlock4);
-      shortCircuitBlock4.insertOut(testBlock);
-      testBlock.insertOut(contBlock);
-      ir.cfg.linkInCodeOrder(myBlock, shortCircuitBlock1);
-      ir.cfg.linkInCodeOrder(shortCircuitBlock1, shortCircuitBlock2);
-      ir.cfg.linkInCodeOrder(shortCircuitBlock2, shortCircuitBlock3);
-      ir.cfg.linkInCodeOrder(shortCircuitBlock3, shortCircuitBlock4);
-      ir.cfg.linkInCodeOrder(shortCircuitBlock4, testBlock);
-      ir.cfg.linkInCodeOrder(testBlock, contBlock);
-      
-      // (0) Set up guard combine in contBlock
-      OPT_RegisterOperand rhsGuard = ir.regpool.makeTempValidation();
-      contBlock.prependInstruction(Binary.create(GUARD_COMBINE, 
-						 guardResult, 
-						 guardResult.copyRO(), 
-						 rhsGuard.copyRO()));
+      // Set up a block with a trap instruction that we can jump to if the 
+      // store check fails
+      OPT_Instruction trap = Trap.create(TRAP, null, OPT_TrapCodeOperand.StoreCheck());
+      trap.copyPosition(s);
+      trapBlock.appendInstruction(trap);
+      trapBlock.setInfrequent();
+      trapBlock.setInfrequent(true);
+      ir.cfg.addLastInCodeOrder(trapBlock);
 
-      // (1) is rhs null?
-      IfCmp.mutate(s, REF_IFCMP, rhsGuard, elemRef, 
-		   new OPT_NullConstantOperand(),
-		   OPT_ConditionOperand.EQUAL(), 
-		   contBlock.makeJumpTarget(), new OPT_BranchProfileOperand());
-      // (2) is lhs runtime type the same as the declared compile 
-      //     time type of the lhs?
-      //     or if the declared type is unknown, we can still 
-      //     attempt to short circuit with a compare to [Object.
-      OPT_Instruction continueAt = shortCircuitBlock1.lastInstruction();
-      OPT_RegisterOperand lhsTIB = getTIB(continueAt, ir, arrayRef, guard);
+      OPT_Operand rhsGuard = guard;
+      if (couldBeNull) {
+	// if rhs is null, then the checkcast succeeds
+	rhsGuard = ir.regpool.makeTempValidation();
+	contBlock.prependInstruction(Binary.create(GUARD_COMBINE, 
+						   guardResult, 
+						   guardResult.copyRO(), 
+						   rhsGuard.copy()));
+	curBlock.appendInstruction(IfCmp.create(REF_IFCMP, rhsGuard.asRegister(), 
+						elemRef, 
+						new OPT_NullConstantOperand(),
+						OPT_ConditionOperand.EQUAL(), 
+						contBlock.makeJumpTarget(), 
+						new OPT_BranchProfileOperand()));
+	curBlock.insertOut(contBlock);
+	curBlock = advanceBlock(s.bcIndex, curBlock, ir);
+      }
+	  
+      // Find out what we think the compile time type of the lhs is.
+      // Based on this, we can do one of several things:
+      //  (1) If the compile time element type is a final proper class, then a 
+      //      TIB comparision of the runtime elemRef type and the 
+      //      compile time element type is definitive.
+      //  (2) If the compile time type is known to be the declared type,
+      //      then inject a short-circuit test to see if the 
+      //      runtime lhs type is the same as the compile-time lhs type.
+      //  (3) If the compile time type is a proper class, then a 
+      //      subclass test of the runtime LHS elem type and 
+      //      then runtime elemRef type is definitive.
+      // If we think the compile time type is JavaLangObjectType then
+      // we lost type information due to unloaded classes causing
+      // imprecise meets.  This should only happen once in a blue moon,
+      // so don't bother trying anything clever when it does.
       VM_Type compType = arrayRef.type;
-      if (compType == VM_Type.JavaLangObjectType) {
-	// we lost type info due to unloaded classes causing imprecise meets.
-        compType = OPT_ClassLoaderProxy.JavaLangObjectArrayType;
-      }
-      if (arrayRef.isDeclaredType() || 
-	  compType == OPT_ClassLoaderProxy.JavaLangObjectArrayType) {
-	OPT_RegisterOperand declTIB = getTIB(continueAt, ir, compType);
-	continueAt.insertBefore(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
-					     declTIB, lhsTIB,
-					     OPT_ConditionOperand.EQUAL(), 
-					     contBlock.makeJumpTarget(),
-					     new OPT_BranchProfileOperand()));
-	shortCircuitBlock1.insertOut(contBlock);
-      }
-      // (3) is lhs element type the same as rhs?
-      continueAt = shortCircuitBlock2.lastInstruction();
-      OPT_RegisterOperand rhsTIB = 
-	getTIB(continueAt, ir, elemRef.copy(), rhsGuard.copyD2U());
-      OPT_RegisterOperand lhsElemTIB = 
-	InsertUnary(continueAt, ir, GET_ARRAY_ELEMENT_TIB_FROM_TIB, 
-		    OPT_ClassLoaderProxy.JavaLangObjectArrayType, 
-		    lhsTIB.copyU2U());
-      continueAt.insertBefore(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
-					   rhsTIB, lhsElemTIB,
-					   OPT_ConditionOperand.EQUAL(), 
-					   contBlock.makeJumpTarget(),
-					   new OPT_BranchProfileOperand()));
-      // (4) is runtime lhs element type a class? 
-      //     if so, is the rhs an instance of the lhs element type?
-      //     If we know at compile time that the dimensionality of 
-      //     compType is more than 1, then don't bother with this test, 
-      //     since the only case in which this short-circuit
-      //     can work with multi-dimensional arrays is caught by case (3).
-      //     Futhermore, don't bother when compType's element type is 
-      //     known to be an interface (short-circuit always fails).
-      if (compType.getDimensionality() == 1) {
-        VM_Class et = compType.asArray().getElementType().asClass();
-	// must be a class type (dim == 1 & !prim)
-        if (et.isResolved() && !et.isFinal() && !et.isInterface()) { 
-	  // et is a resolved proper class with subclasses, 
-	  // check if rhsType is one of them.
-          continueAt = shortCircuitBlock3.lastInstruction();
-          OPT_RegisterOperand lhsElemType = 
-	    InsertUnary(continueAt, ir, 
-			GET_TYPE_FROM_TIB, OPT_ClassLoaderProxy.VM_Type_type, 
-			lhsElemTIB.copyU2U());
-          OPT_RegisterOperand rhsSuperclassIds = 
-	    InsertUnary(continueAt, ir, GET_SUPERCLASS_IDS_FROM_TIB, 
-			OPT_ClassLoaderProxy.ShortArrayType, rhsTIB.copyD2U());
-          OPT_RegisterOperand lhsElemDepth = 
-	    getField(continueAt, ir, lhsElemType, VM_Entrypoints.depthField, TG());
-          OPT_RegisterOperand rhsSuperclassIdsLength = 
-	    InsertGuardedUnary(continueAt, ir, ARRAYLENGTH, VM_Type.IntType,
-			       rhsSuperclassIds.copyD2U(), TG());
-          continueAt.insertBefore(IfCmp.create(INT_IFCMP, guardResult.copyRO(), 
-					       lhsElemDepth, 
-					       rhsSuperclassIdsLength,
-					       OPT_ConditionOperand.GREATER_EQUAL(), 
-					       testBlock.makeJumpTarget(),
-					       new OPT_BranchProfileOperand()));
-	  shortCircuitBlock3.insertOut(testBlock);
+      if (compType != VM_Type.JavaLangObjectType) {
+	// optionally (1) from above
+	if (compType.getDimensionality() == 1) {
+	  VM_Class et = compType.asArray().getElementType().asClass();
+	  if (et.isResolved() && et.isFinal()) {
+	    if (VM.VerifyAssertions) VM.assert(!et.isInterface());
+	    OPT_RegisterOperand rhsTIB = getTIB(curBlock.lastInstruction(), ir, elemRef.copy(), rhsGuard.copy());
+	    OPT_RegisterOperand etTIB = getTIB(curBlock.lastInstruction(), ir, et);
+	    curBlock.appendInstruction(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
+						    rhsTIB, etTIB,
+						    OPT_ConditionOperand.NOT_EQUAL(), 
+						    trapBlock.makeJumpTarget(),
+						    OPT_BranchProfileOperand.unlikely()));
+	    curBlock.insertOut(trapBlock);
+	    curBlock.insertOut(contBlock);
+	    ir.cfg.linkInCodeOrder(curBlock, contBlock);
+	    return curBlock.lastInstruction();
+	  }
+	}
 
-	  continueAt = shortCircuitBlock4.lastInstruction();
-          OPT_RegisterOperand lhsElemId = 
-	    getField(continueAt, ir, lhsElemType.copyD2U(), VM_Entrypoints.idField, TG());
-          OPT_RegisterOperand refCandidate = 
-	    ir.regpool.makeTemp(VM_Type.ShortType);
-          OPT_LocationOperand loc = new OPT_LocationOperand(VM_Type.ShortType);
-          if (LOWER_ARRAY_ACCESS) {
-            OPT_RegisterOperand lhsDepthOffset = 
-	      InsertBinary(continueAt, ir, INT_SHL, VM_Type.IntType, 
-			   lhsElemDepth.copyD2U(), I(1));
-            continueAt.insertBefore(Load.create(SHORT_LOAD, refCandidate, 
-						rhsSuperclassIds, 
-						lhsDepthOffset, loc, TG()));
-          } else {
-            continueAt.insertBefore(ALoad.create(SHORT_ALOAD, refCandidate, 
-						 rhsSuperclassIds, 
-						 lhsElemDepth, loc, TG()));
-          }
-          continueAt.insertBefore(IfCmp.create(INT_IFCMP, guardResult.copyRO(),
-					       refCandidate.copyD2U(), 
-					       lhsElemId,
-					       OPT_ConditionOperand.EQUAL(), 
-					       contBlock.makeJumpTarget(),
-					       new OPT_BranchProfileOperand()));
-	  shortCircuitBlock4.insertOut(contBlock);
-        }
+	// optionally (2) from above
+	OPT_RegisterOperand lhsTIB = getTIB(curBlock.lastInstruction(), ir, arrayRef, guard);
+	if (arrayRef.isDeclaredType() || compType == VM_Type.JavaLangObjectArrayType) {
+	  OPT_RegisterOperand declTIB = getTIB(curBlock.lastInstruction(), ir, compType);
+	  curBlock.appendInstruction(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
+						  declTIB, lhsTIB,
+						  OPT_ConditionOperand.EQUAL(), 
+						  contBlock.makeJumpTarget(),
+						  new OPT_BranchProfileOperand()));
+	  curBlock.insertOut(contBlock);
+	  curBlock = advanceBlock(s.bcIndex, curBlock, ir);
+	}
+
+	// On our way to doing (3) from above attempt another short-circuit.
+	// If lhsElemTIB == rhsTIB, then we are done.
+	OPT_RegisterOperand rhsTIB = getTIB(curBlock.lastInstruction(), ir, elemRef.copy(), rhsGuard.copy());
+	OPT_RegisterOperand lhsElemTIB = 
+	  InsertUnary(curBlock.lastInstruction(), ir, GET_ARRAY_ELEMENT_TIB_FROM_TIB, 
+		      OPT_ClassLoaderProxy.JavaLangObjectArrayType, 
+		      lhsTIB.copyRO());
+	curBlock.appendInstruction(IfCmp.create(REF_IFCMP, guardResult.copyRO(), 
+						rhsTIB, lhsElemTIB,
+						OPT_ConditionOperand.EQUAL(), 
+						contBlock.makeJumpTarget(),
+						new OPT_BranchProfileOperand()));
+	curBlock.insertOut(contBlock);
+	curBlock = advanceBlock(s.bcIndex, curBlock, ir);
+
+	// Optionally (3) from above 
+	if (compType.getDimensionality() == 1) {
+	  VM_Class et = compType.asArray().getElementType().asClass();
+	  if (et.isResolved() && !et.isInterface()) {
+	    OPT_RegisterOperand lhsElemType = 
+	      InsertUnary(curBlock.lastInstruction(), ir, 
+			  GET_TYPE_FROM_TIB, OPT_ClassLoaderProxy.VM_Type_type, 
+			  lhsElemTIB.copyU2U());
+	    OPT_RegisterOperand rhsSuperclassIds = 
+	      InsertUnary(curBlock.lastInstruction(), ir, GET_SUPERCLASS_IDS_FROM_TIB, 
+			  OPT_ClassLoaderProxy.ShortArrayType, rhsTIB.copyD2U());
+	    OPT_RegisterOperand lhsElemDepth = 
+	      getField(curBlock.lastInstruction(), ir, lhsElemType, VM_Entrypoints.depthField, TG());
+	    OPT_RegisterOperand rhsSuperclassIdsLength = 
+	      InsertGuardedUnary(curBlock.lastInstruction(), ir, 
+				 ARRAYLENGTH, VM_Type.IntType,
+				 rhsSuperclassIds.copyD2U(), TG());
+	    curBlock.appendInstruction(IfCmp.create(INT_IFCMP, guardResult.copyRO(), 
+						    lhsElemDepth, 
+						    rhsSuperclassIdsLength,
+						    OPT_ConditionOperand.GREATER_EQUAL(), 
+						    trapBlock.makeJumpTarget(),
+						    OPT_BranchProfileOperand.unlikely()));
+	    curBlock.insertOut(trapBlock);
+	    curBlock = advanceBlock(s.bcIndex, curBlock, ir);
+
+	    OPT_RegisterOperand lhsElemId = 
+	      getField(curBlock.lastInstruction(), ir, lhsElemType.copyD2U(), VM_Entrypoints.idField, TG());
+	    OPT_RegisterOperand refCandidate = ir.regpool.makeTemp(VM_Type.ShortType);
+	    OPT_LocationOperand loc = new OPT_LocationOperand(VM_Type.ShortType);
+	    if (LOWER_ARRAY_ACCESS) {
+	      OPT_RegisterOperand lhsDepthOffset = 
+		InsertBinary(curBlock.lastInstruction(), ir, INT_SHL, VM_Type.IntType, 
+			     lhsElemDepth.copyD2U(), I(1));
+	      curBlock.appendInstruction(Load.create(SHORT_LOAD, refCandidate, 
+						     rhsSuperclassIds, 
+						     lhsDepthOffset, loc, TG()));
+	    } else {
+	      curBlock.appendInstruction(ALoad.create(SHORT_ALOAD, refCandidate, 
+						      rhsSuperclassIds, 
+						      lhsElemDepth, loc, TG()));
+	    }
+	    curBlock.appendInstruction(IfCmp.create(INT_IFCMP, guardResult.copyRO(),
+						    refCandidate.copyD2U(), 
+						    lhsElemId,
+						    OPT_ConditionOperand.NOT_EQUAL(), 
+						    trapBlock.makeJumpTarget(),
+						    OPT_BranchProfileOperand.unlikely()));
+	    curBlock.insertOut(trapBlock);
+	    curBlock.insertOut(contBlock);
+	    ir.cfg.linkInCodeOrder(curBlock, contBlock);
+	    return curBlock.lastInstruction();
+	  }
+	}
       }
-      // (5) Sigh.  Make the call to checkstore
-      continueAt = testBlock.lastInstruction();
-      OPT_RegisterOperand rhsTYPE = 
-	InsertUnary(continueAt, ir, GET_TYPE_FROM_TIB, 
-		    OPT_ClassLoaderProxy.VM_Type_type, rhsTIB.copyU2U());
-      OPT_RegisterOperand lhsElemTYPE = 
-	InsertUnary(continueAt, ir, GET_TYPE_FROM_TIB, 
-		    OPT_ClassLoaderProxy.VM_Type_type, lhsElemTIB.copyU2U());
-      VM_Method target;
-      if (compType.asArray().getInnermostElementType() == VM_Type.JavaLangObjectType)
-        target = VM_Entrypoints.checkstorePossibleArrayOfPrimitiveMethod; 
-      else 
-        target = VM_Entrypoints.checkstoreNotArrayOfPrimitiveMethod;
+
+      // Call VM_Runtime.checkstore.
       OPT_Instruction call = Call.create2(CALL, null, null,
-					  OPT_MethodOperand.STATIC(target), 
-					  lhsElemTYPE, rhsTYPE);
-      continueAt.insertBefore(call);
-      call.position = position;
-      call.bcIndex = bcIndex;
-      call = _callHelper(call, ir);
-      return continueAt;
+					  OPT_MethodOperand.STATIC(VM_Entrypoints.checkstoreMethod), 
+					  rhsGuard.copy(), arrayRef.copy(), elemRef.copy());
+      call.copyPosition(s);
+      curBlock.appendInstruction(call);
+      curBlock.insertOut(contBlock);
+      ir.cfg.linkInCodeOrder(curBlock, contBlock);
+      return _callHelper(call, ir);
     } else {
       Call.mutate2(s, CALL, null, null, 
 		   OPT_MethodOperand.STATIC(VM_Entrypoints.checkstoreMethod), 
@@ -474,9 +477,7 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
     }
   }
 
-  /////////////////////////////////////////////////
-  // NEW IMPLEMENTATION
-  /////////////////////////////////////////////////
+
   /** 
    * Generate a value-producing dynamic type check.
    * This routine assumes that the CFG and code order are 
@@ -962,6 +963,14 @@ abstract class OPT_DynamicTypeCheckExpansion extends OPT_ConvertToLowLevelIR {
       ir.cfg.linkInCodeOrder(myBlock, succBlock);
       return succBlock;
     }
+  }
+
+
+  private static final OPT_BasicBlock advanceBlock(int bcIndex, OPT_BasicBlock curBlock, OPT_IR ir) {
+    OPT_BasicBlock newBlock = curBlock.createSubBlock(bcIndex, ir);
+    curBlock.insertOut(newBlock);
+    ir.cfg.linkInCodeOrder(curBlock, newBlock);
+    return newBlock;
   }
 
 }
