@@ -324,7 +324,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
  void checkRegistersForMissedReferences(int firstReg, int lastReg) {
     for (int i = firstReg; i <= lastReg; i++) {
       int regLocation = registerLocations[i];
-      if (VM_Allocator.inRange(i)) {
+      if (VM_GCUtil.inRange(i)) {
         VM.sysWrite("  reg#");
         VM.sysWrite(getCurrentRegister());
         VM.sysWrite(" contains a suspicious value ==>");
@@ -381,7 +381,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
 	VM.sysWrite("\n");
       }
 
-      if (VM_Allocator.inRange(ptr)) {
+      if (VM_GCUtil.inRange(ptr)) {
 	VM.sysWrite("  spill location:");
 	VM.sysWrite(i);
 	VM.sysWrite(" contains a suspicious value ==>");
