@@ -1607,6 +1607,13 @@ function emitController () {
     cat <<- EOF
 	#! ${HOST_BASH}
 
+
+	if [[ \${RVM_ROOT-UNSET} = UNSET ]]; then
+	    export ${ROOT_DIRECTORY_STR1}=${RVM_ROOT}
+	else
+	    export ${ROOT_DIRECTORY_STR1}=\${RVM_ROOT}
+	fi
+    $(emitBoilerplate)
 	# Run all phases of vm builder.
 
 	# timeit() \$1: The command to run
@@ -1746,7 +1753,6 @@ function emitController () {
 	else
 	  . ./environment.host
 	fi
-    $(emitBoilerplate)
 
 	
 	[ ! "\$VFLAG\$XFLAG" ] || set \$VFLAG \$XFLAG
