@@ -131,7 +131,11 @@ function copyIfNewer() {
 
 function run() {
     ! tracing make || { cleanline >&2 ; echo >&2 "$@" ; }
-    "$@"
+    if [[ $1 == *=* ]]; then
+	eval "$@"
+    else
+	"$@"
+    fi
 }
 
 function chdir() {
@@ -187,6 +191,11 @@ function unexpected_exit() {
     xitstatus=$?
     show_mesg >&2 "Exiting unexpectedly with status $xitstatus."
     do_cleanup
+    ## This last line probably does nothing useful; I believe Bash 
+    ## will continue to exit with the status it had before (2.05b does).  This 
+    ## is insurance in case it ever changes or in case of a 
+    ## buggy implementation.
+    return $xitstatus
 }
 
 trap 'unexpected_exit' EXIT
