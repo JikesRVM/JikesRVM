@@ -137,7 +137,7 @@ public class OPT_LocalCopyProp extends OPT_CompilerPhase implements OPT_Operator
 	// GEN
 	if (Move.conforms(s)) {
 	  OPT_Operand val = Move.getVal(s);
-	  if (val.isRegister()) {
+	  if (val.isRegister() && !val.asRegister().register.isPhysical()) {
 	    info.put(Move.getResult(s).register, val);
 	  } 
 	}

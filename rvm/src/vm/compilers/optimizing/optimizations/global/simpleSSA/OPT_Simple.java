@@ -145,8 +145,9 @@ public final class OPT_Simple extends OPT_CompilerPhase
     boolean reiterate = true;
     while (reiterate) {         // /MT/ better think about proper ordering.
       reiterate = false;
-      instructions: for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
-          reg != null; reg = elemNext) {
+      instructions: 
+      for (OPT_Register reg = ir.regpool.getFirstSymbolicRegister(); 
+	   reg != null; reg = elemNext) {
         elemNext = reg.getNext(); // we may remove reg, so get elemNext up front
         if (reg.useList == null ||   // Copy propagation not possible if reg 
                                      // has no uses
@@ -169,11 +170,20 @@ public final class OPT_Simple extends OPT_CompilerPhase
         } else {
           continue  instructions;
 	}
-        // If rhs is a non-SSA register, then we can't propagate it to 
-        // uses of lhs.
-        if (rhs.isRegister() && !rhs.asRegister().register.isSSA())
-          continue;
 
+        if (rhs.isRegister()) {
+	  OPT_Register rrhs = rhs.asRegister().register;
+	  // If rhs is a non-SSA register, then we can't propagate it
+	  // because we can't be sure that the same definition reaches 
+	  // all uses.
+	  if (!rrhs.isSSA()) continue;
+
+	  // If rhs is a physical register, then we can't safely propagate
+	  // it to uses of lhs because we don't understand the implicit
+	  // uses/defs of physical registers well enough to do so safely.
+	  if (rrhs.isPhysical()) continue;
+	}
+	
 	reiterate = ir.options.getOptLevel() > 1;
         // Now substitute rhs for all uses of lhs, updating the 
         // register list as we go.
