@@ -5,6 +5,7 @@
 package java.lang.reflect;
 
 import com.ibm.JikesRVM.classloader.*;
+import com.ibm.JikesRVM.VM_Reflection;
 import com.ibm.JikesRVM.VM_Runtime;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 
@@ -21,14 +22,14 @@ import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
  * @author Dave Grove
  */
 public final class Constructor extends AccessibleObject implements Member {
-  VM_Method constructor;
+  final VM_Method constructor;
 
-  /**
-   * Prevent this class from being instantiated.
-   */
-  private Constructor() {}
+  // Prevent this class from being instantiated.
+  private Constructor() {
+    constructor = null;
+  }
 
-  // For use by java.lang.Class
+  // For use by JikesRVMSupport
   Constructor(VM_Method m) {
     constructor = m;
   }
@@ -70,42 +71,64 @@ public final class Constructor extends AccessibleObject implements Member {
     return getName().hashCode();
   }
 
-  // TODO: This is wrong in a number of ways.  
-  // Must do all of the error and accessibility checking.
   public Object newInstance(Object args[]) throws InstantiationException, 
 						  IllegalAccessException, 
 						  IllegalArgumentException, 
 						  InvocationTargetException {
+    // Check accessibility
+    if (!constructor.isPublic() && !isAccessible()) {
+      VM_Class accessingClass = VM_Class.getClassFromStackFrame(1);
+      JikesRVMSupport.checkAccess(constructor, accessingClass);
+    }
 
-    // Get a new instance, uninitialized.
-    //
+    // validate number and types of arguments to constructor
+    VM_TypeReference[] parameterTypes = constructor.getParameterTypes();
+    if (args == null) {
+      if (parameterTypes.length != 0) {
+	throw new IllegalArgumentException("argument count mismatch");
+      }
+    } else {
+      if (args.length != parameterTypes.length) {
+	throw new IllegalArgumentException("argument count mismatch");
+      }
+      for (int i = 0; i < parameterTypes.length; i++) {
+	try {
+	  args[i] = JikesRVMSupport.makeArgumentCompatible(parameterTypes[i].resolve(), args[i]);
+	} catch (ClassNotFoundException e) {
+	  throw new InternalError(e.toString()); // Should never happen.
+	}
+      }
+    }
+    
     VM_Class cls = constructor.getDeclaringClass();
+    if (cls.isAbstract()) {
+      throw new InstantiationException("Abstract class");
+    }
+
+    // Ensure that the class is initialized
     if (!cls.isInitialized()) {
       try {
 	VM_Runtime.initializeClassForDynamicLink(cls);
       } catch (Throwable e) {
-	InstantiationException ex = new InstantiationException();
+	ExceptionInInitializerError ex = new ExceptionInInitializerError();
 	ex.initCause(e);
 	throw ex;
       }
     }
 
+    // Allocate an uninitialized instance;
     int      size = cls.getInstanceSize();
     Object[] tib  = cls.getTypeInformationBlock();
     boolean  hasFinalizer = cls.hasFinalizer();
     int allocator = VM_Interface.pickAllocator(cls);
     Object   obj  = VM_Runtime.resolvedNewScalar(size, tib, hasFinalizer, allocator);
 
-    // Run <init> on the instance.
-    //
-    Method m = JikesRVMSupport.createMethod(constructor);
-
-    // Note that <init> is not overloaded but it is
-    // not static either: it is called with a "this"
-    // pointer but not looked up in the TypeInformationBlock.
-    // See VM_Reflection.invoke().
-    //
-    m.invoke(obj, args);
+    // Run the constructor on the instance.
+    try {
+      VM_Reflection.invoke(constructor, obj, args);
+    } catch (Throwable e) {
+      throw new InvocationTargetException(e);
+    }
     return obj;
   }
 
