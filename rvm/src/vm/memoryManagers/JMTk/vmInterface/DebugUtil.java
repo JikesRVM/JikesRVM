@@ -50,7 +50,7 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
    * 
    * @param typeAddress the address to check
    */
-  public static boolean validType(Address typeAddress)
+  public static boolean validType(ObjectReference typeAddress)
     throws UninterruptiblePragma {
      if (!Space.isMappedObject(typeAddress))
       return false;  // type address is outside of heap
@@ -88,13 +88,13 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
    */
   public static boolean validObject(Object ref)
     throws UninterruptiblePragma {
-      return validRef(VM_Magic.objectAsAddress(ref));
+      return validRef(ObjectReference.fromObject(ref));
   }
 
-  public static boolean validRef(Address ref)
+  public static boolean validRef(ObjectReference ref)
     throws UninterruptiblePragma {
 
-    if (ref.isZero()) return true;
+    if (ref.isNull()) return true;
     if (!Space.isMappedObject(ref)) {
       VM.sysWrite("validRef: REF outside heap, ref = ");
       VM.sysWrite(ref); VM.sysWrite("\n");
@@ -131,7 +131,7 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
       return false;
     }
 
-    Address type = VM_Magic.objectAsAddress(tib[0]);
+    ObjectReference type = ObjectReference.fromObject(tib[0]);
     if (!validType(type)) {
       VM.sysWrite("validRef: invalid TYPE, ref = "); VM.sysWrite(ref);
       VM.sysWrite(" tib = ");
@@ -142,14 +142,14 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
     return true;
   }  // validRef
 
-  public static boolean mappedVMRef(Address ref)
+  public static boolean mappedVMRef(ObjectReference ref)
     throws UninterruptiblePragma {
-    return Space.isMappedObject(ref) && LazyMmapper.refIsMapped(ref);
+    return Space.isMappedObject(ref) && LazyMmapper.objectIsMapped(ref);
   }
 
-  public static void dumpRef(Address ref) throws UninterruptiblePragma {
+  public static void dumpRef(ObjectReference ref) throws UninterruptiblePragma {
     VM.sysWrite("REF=");
-    if (ref.isZero()) {
+    if (ref.isNull()) {
       VM.sysWrite("NULL\n");
       return;
     }
@@ -159,13 +159,13 @@ public class DebugUtil implements VM_Constants, Constants, Uninterruptible {
       return;
     }
     VM_ObjectModel.dumpHeader(ref);
-    Address tib = VM_Magic.objectAsAddress(VM_ObjectModel.getTIB(ref));
+    ObjectReference tib = ObjectReference.fromObject(VM_ObjectModel.getTIB(ref));
     if (!MM_Interface.mightBeTIB(tib)) {
       VM.sysWrite(" (INVALID TIB: CLASS NOT ACCESSIBLE)\n");
       return;
     }
-    VM_Type type = VM_Magic.getObjectType(VM_Magic.addressAsObject(ref));
-    Address itype = VM_Magic.objectAsAddress(type);
+    VM_Type type = VM_Magic.getObjectType(ref.toObject());
+    ObjectReference itype = ObjectReference.fromObject(type);
     VM.sysWrite(" TYPE=");
     VM.sysWrite(itype);
     if (!validType(itype)) {

@@ -930,7 +930,7 @@ public class VM_Runtime implements VM_Constants {
       callee_fp = fp;
       ip = VM_Magic.getReturnAddress(fp);
       fp = VM_Magic.getCallerFramePointer(fp);
-    } while (!MM_Interface.refInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
+    } while (!MM_Interface.addressInVM(ip) && fp.NE(STACKFRAME_SENTINEL_FP));
 
     if (VM.BuildForPowerPC) {
       if (VM.BuildForSVR4ABI || VM.BuildForMachOABI) {
@@ -938,7 +938,7 @@ public class VM_Runtime implements VM_Constants {
         // stop before the mini frame 1 whose ip is in VM (out of line machine
         // code), in the case of sentinel fp, it has to return the callee's fp
         // because GC ScanThread uses it to get return address and so on.
-        if (MM_Interface.refInVM(ip)) {
+        if (MM_Interface.addressInVM(ip)) {
           return fp;
         } else {
           return callee_fp;

@@ -39,6 +39,6 @@ public class TDCollectEnumerator extends Enumerate implements Uninterruptible {
    */
   public void enumeratePointerLocation(Address objLoc) 
     throws InlinePragma {
-    td.enumerateCollect(objLoc.loadAddress());
+    td.enumerateCollect(objLoc.loadObjectReference());
   }
 }

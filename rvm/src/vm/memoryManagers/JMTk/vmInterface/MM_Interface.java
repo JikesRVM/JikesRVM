@@ -230,10 +230,10 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   public static void putfieldWriteBarrier(Object ref, int offset, Object value,
                                           int locationMetadata)
     throws InlinePragma {
-    Address src = VM_Magic.objectAsAddress(ref);
+    ObjectReference src = ObjectReference.fromObject(ref);
     Plan.getInstance().writeBarrier(src,
-                                        src.add(offset),
-                                        VM_Magic.objectAsAddress(value),
+                                    src.toAddress().add(offset),
+                                    ObjectReference.fromObject(value),
                                         offset,
                                         locationMetadata,
                                         PUTFIELD_WRITE_BARRIER);
@@ -270,11 +270,11 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   public static void arrayStoreWriteBarrier(Object ref, int index,
                                             Object value)
     throws InlinePragma {
-    Address array = VM_Magic.objectAsAddress(ref);
+    ObjectReference array = ObjectReference.fromObject(ref);
     int offset = (index<<LOG_BYTES_IN_ADDRESS);
     Plan.getInstance().writeBarrier(array,
-                                        array.add(offset),
-                                        VM_Magic.objectAsAddress(value),
+                                    array.toAddress().add(offset),
+                                    ObjectReference.fromObject(value),
                                         offset,
                                         0, // don't know metadata
                                         AASTORE_WRITE_BARRIER);
@@ -300,9 +300,9 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
 					      Object tgt, int tgtOffset,
 					      int bytes) 
     throws InlinePragma {
-    return Plan.getInstance().writeBarrier(VM_Magic.objectAsAddress(src),
+    return Plan.getInstance().writeBarrier(ObjectReference.fromObject(src),
 					       srcOffset,
-					       VM_Magic.objectAsAddress(tgt),
+                                           ObjectReference.fromObject(tgt),
 					       tgtOffset, bytes);
   }
 
@@ -311,18 +311,18 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * object is not movable.  If it is movable error messages are
    * logged and the system exits.
    *
-   * @param obj the object to check
+   * @param object the object to check
    */
-  public static void modifyCheck(Object obj) {
+  public static void modifyCheck(Object object) {
     /* Make sure that during GC, we don't update on a possibly moving object. 
        Such updates are dangerous because they can be lost.
      */
     if (Plan.gcInProgressProper()) {
-        Address ref = VM_Magic.objectAsAddress(obj);
+        ObjectReference ref = ObjectReference.fromObject(object);
         if (Space.isMovable(ref)) {
             VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
             VM.sysWriteln("  obj = ", ref);
-            VM_Type t = VM_Magic.getObjectType(obj);
+          VM_Type t = VM_Magic.getObjectType(object);
             VM.sysWrite(" type = "); VM.sysWriteln(t.getDescriptor());
             VM.sysFail("GC modifying a potentially moving object via Java (i.e. not magic)");
         }
@@ -395,7 +395,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    *
    * @param ref the address to log information about
    */
-  public static void dumpRef(Address ref) throws UninterruptiblePragma {
+  public static void dumpRef(ObjectReference ref) throws UninterruptiblePragma {
     DebugUtil.dumpRef(ref);
   }
 
@@ -405,7 +405,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @param ref the address to be checked
    * @return <code>true</code> if the reference is valid
    */
-  public static boolean validRef(Address ref)
+  public static boolean validRef(ObjectReference ref)
     throws UninterruptiblePragma, InlinePragma {
     return DebugUtil.validRef(ref);
   }
@@ -416,7 +416,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @param address the address to be checked
    * @return <code>true</code> if the address refers to an in use area
    */
-  public static boolean addrInVM(Address address)
+  public static boolean addressInVM(Address address)
     throws UninterruptiblePragma, InlinePragma {
     return Space.isMappedAddress(address);
   }
@@ -428,13 +428,13 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * <p>References may be addresses just outside the memory region
    * allocated to the object.
    *
-   * @param ref the reference to be checked
+   * @param object the reference to be checked
    * @return <code>true</code> if the object refered to is in an
    * in-use area
    */
-  public static boolean refInVM(Address ref)
+  public static boolean objectInVM(ObjectReference object)
     throws UninterruptiblePragma, InlinePragma {
-    return Space.isMappedObject(ref);
+    return Space.isMappedObject(object);
   }
 
   /***********************************************************************
@@ -612,8 +612,8 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
     allocator = Plan.checkAllocator(size, align, allocator);
     Address region = allocateSpace(plan, size, align, offset, allocator);
     Object result = VM_ObjectModel.initializeScalar(region, tib, size);
-    plan.postAlloc(VM_Magic.objectAsAddress(result), 
-                   VM_Magic.objectAsAddress(tib), size, allocator);
+    plan.postAlloc(ObjectReference.fromObject(result), 
+                   ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
 
@@ -648,8 +648,8 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
     Address region = allocateSpace(plan, size, align, offset, allocator);
     Object result = VM_ObjectModel.initializeArray(region, tib, numElements,
                                                    size);
-    plan.postAlloc(VM_Magic.objectAsAddress(result), 
-                   VM_Magic.objectAsAddress(tib), size, allocator);
+    plan.postAlloc(ObjectReference.fromObject(result), 
+                   ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
 
@@ -666,8 +666,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   private static Address allocateSpace(Plan plan, int bytes, int align,
 					  int offset, int allocator)
     throws UninterruptiblePragma, InlinePragma {
-    return allocateSpace(plan, bytes, align, offset, false, allocator,
-			 null);
+    return allocateSpace(plan, bytes, align, offset, false, allocator, null);
   }
 
   /** 
@@ -681,7 +680,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @return The first byte of a suitably sized and aligned region of memory.
    */
   public static Address allocateSpace(Plan plan, int bytes, int align,
-					 int offset, Address from)
+                                      int offset, ObjectReference from)
     throws UninterruptiblePragma, InlinePragma {
     return allocateSpace(plan, bytes, align, offset, true, 0, from);
   }
@@ -701,7 +700,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    */
   private static Address allocateSpace(Plan plan, int bytes, int align,
 					  int offset, boolean copy,
-					  int allocator, Address from)
+                                       int allocator, ObjectReference from)
 					  
     throws UninterruptiblePragma, InlinePragma {
     // MMTk requests must be in multiples of BYTES_IN_PARTICLE
@@ -857,10 +856,10 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * Adds an object to the list of objects to have their
    * <code>finalize</code> method called when they are reclaimed.
    *
-   * @param obj the object to be added to the finalizer's list
+   * @param object the object to be added to the finalizer's list
    */
-  public static void addFinalizer(Object obj) throws InterruptiblePragma {
-    Finalizer.addCandidate(VM_Magic.objectAsAddress(obj));
+  public static void addFinalizer(Object object) throws InterruptiblePragma {
+    Finalizer.addCandidate(ObjectReference.fromObject(object));
   }
 
   /**
@@ -918,11 +917,11 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
   /**
    * Processes an object during the tracing phase of a collection.
    *
-   * @param object the address of the object to be processed
-   * @return The address of the object after processing (it may have
-   * been moved in the course of processing).
+   * @param object the object to be processed
+   * @return The object after processing (it may have been moved in
+   * the course of processing).
    */
-  public static Address processPtrValue(Address object)
+  public static ObjectReference processPtrValue(ObjectReference object)
     throws UninterruptiblePragma, InlinePragma { 
     return Plan.traceObject(object);
   }
@@ -1032,7 +1031,7 @@ public class MM_Interface implements VM_Constants, Constants, Uninterruptible {
    * @return <code>false</code> if the object is in the wrong
    * allocation scheme/area for a TIB, <code>true</code> otherwise
    */
-  public static boolean mightBeTIB (Address obj)
+  public static boolean mightBeTIB(ObjectReference obj)
     throws InlinePragma, UninterruptiblePragma {
     return Space.isImmortal(obj);
   }

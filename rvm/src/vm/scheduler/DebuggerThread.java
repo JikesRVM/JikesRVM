@@ -115,7 +115,7 @@ class DebuggerThread extends VM_Thread {
         VM.sysWrite("Object at addr 0x");
         VM.sysWriteHex(addr);
         VM.sysWrite(": ");
-        VM_ObjectModel.describeObject(addr);
+        VM_ObjectModel.describeObject(addr.toObjectReference());
         VM.sysWriteln();
       } else {
         VM.sysWriteln("Please specify an address\n");

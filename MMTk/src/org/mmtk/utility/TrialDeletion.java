@@ -102,14 +102,14 @@ public final class TrialDeletion extends CycleDetector
    */
   private RefCountLocal rc;
 
-  private AddressDeque workQueue;
-  private AddressDeque blackQueue;
-  private AddressDeque unfilteredPurpleBuffer;
-  private AddressDeque maturePurpleBuffer;
-  private AddressDeque filteredPurpleBuffer;
-  private AddressDeque cycleBufferA;
-  private AddressDeque cycleBufferB;
-  private AddressDeque freeBuffer;
+  private ObjectReferenceDeque workQueue;
+  private ObjectReferenceDeque blackQueue;
+  private ObjectReferenceDeque unfilteredPurpleBuffer;
+  private ObjectReferenceDeque maturePurpleBuffer;
+  private ObjectReferenceDeque filteredPurpleBuffer;
+  private ObjectReferenceDeque cycleBufferA;
+  private ObjectReferenceDeque cycleBufferB;
+  private ObjectReferenceDeque freeBuffer;
 
   private TDGreyEnumerator greyEnum;
   private TDScanEnumerator scanEnum;
@@ -151,14 +151,14 @@ public final class TrialDeletion extends CycleDetector
 
   public TrialDeletion(RefCountLocal rc) {
     this.rc = rc;
-    workQueue = new AddressDeque("cycle workqueue", workPool);
-    blackQueue = new AddressDeque("cycle black workqueue", blackPool);
-    unfilteredPurpleBuffer = new AddressDeque("unfiltered purple buf", unfilteredPurplePool);
-    maturePurpleBuffer = new AddressDeque("mature purple buf", maturePurplePool);
-    filteredPurpleBuffer = new AddressDeque("filtered purple buf", filteredPurplePool);
-    cycleBufferA = new AddressDeque("cycle buf A", cyclePoolA);
-    cycleBufferB = new AddressDeque("cycle buf B", cyclePoolB);
-    freeBuffer = new AddressDeque("free buffer", freePool);
+    workQueue = new ObjectReferenceDeque("cycle workqueue", workPool);
+    blackQueue = new ObjectReferenceDeque("cycle black workqueue", blackPool);
+    unfilteredPurpleBuffer = new ObjectReferenceDeque("unfiltered purple buf", unfilteredPurplePool);
+    maturePurpleBuffer = new ObjectReferenceDeque("mature purple buf", maturePurplePool);
+    filteredPurpleBuffer = new ObjectReferenceDeque("filtered purple buf", filteredPurplePool);
+    cycleBufferA = new ObjectReferenceDeque("cycle buf A", cyclePoolA);
+    cycleBufferB = new ObjectReferenceDeque("cycle buf B", cyclePoolB);
+    freeBuffer = new ObjectReferenceDeque("free buffer", freePool);
 
     greyEnum = new TDGreyEnumerator(this);
     scanEnum = new TDScanEnumerator(this);
@@ -166,7 +166,7 @@ public final class TrialDeletion extends CycleDetector
     collectEnum = new TDCollectEnumerator(this);
   }
 
-  public final void possibleCycleRoot(Address object)
+  public final void possibleCycleRoot(ObjectReference object)
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
     //    Log.write("p[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
@@ -298,52 +298,52 @@ public final class TrialDeletion extends CycleDetector
     }
   }
 
-  private final int filterPurpleBufs(AddressDeque src, AddressDeque tgt,
-                                     long timeCap) {
+  private final int filterPurpleBufs(ObjectReferenceDeque src, 
+				     ObjectReferenceDeque tgt, long timeCap) {
     int purple = 0;
     int limit = Options.cycleMetaDataPages<<(LOG_BYTES_IN_PAGE-LOG_BYTES_IN_ADDRESS-1);
-    Address obj = Address.zero();
+    ObjectReference object = ObjectReference.nullReference();
     src.flushLocal();
     do {
       int p = 0;
-      while (p < FILTER_BOUND && !(obj = src.pop()).isZero()) {
-        filter(obj, tgt);
+      while (p < FILTER_BOUND && !(object = src.pop()).isNull()) {
+        filter(object, tgt);
         p++;
       }
       purple += p;
-    } while (!obj.isZero() && 
+    } while (!object.isNull() && 
              ((Statistics.cycles() < timeCap && purple < limit) ||
               RefCountSpace.RC_SANITY_CHECK));
     return purple;
   }
 
   private final void flushFilteredPurpleBufs() {
-    Address obj = Address.zero();
-    while (!(obj = filteredPurpleBuffer.pop()).isZero()) {
-      maturePurpleBuffer.push(obj);
+    ObjectReference object = ObjectReference.nullReference();
+    while (!(object = filteredPurpleBuffer.pop()).isNull()) {
+      maturePurpleBuffer.push(object);
     }
   }
 
-  private final void filter(Address obj, AddressDeque tgt) {
+  private final void filter(ObjectReference object, ObjectReferenceDeque tgt) {
     //    Log.write("f[");Log.write(obj);RefCountSpace.print(obj);Log.writeln("]");
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(obj));
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(RefCountSpace.isBuffered(obj));
-    if (RefCountSpace.isLiveRC(obj)) {
-      if (RefCountSpace.isPurple(obj)) {
-        tgt.insert(obj);
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(RefCountSpace.isBuffered(object));
+    if (RefCountSpace.isLiveRC(object)) {
+      if (RefCountSpace.isPurple(object)) {
+        tgt.insert(object);
       } else {
-        RefCountSpace.clearBufferedBit(obj);
+        RefCountSpace.clearBufferedBit(object);
       }
     } else {
-      RefCountSpace.clearBufferedBit(obj);
-      freeBuffer.push(obj);
+      RefCountSpace.clearBufferedBit(object);
+      freeBuffer.push(object);
     }
   }
 
   private final void processFreeBufs() {
-    Address obj;
-    while (!(obj = freeBuffer.pop()).isZero()) {
-      rc.free(obj);
+    ObjectReference object;
+    while (!(object = freeBuffer.pop()).isNull()) {
+      rc.free(object);
     }
   }
 
@@ -373,24 +373,25 @@ public final class TrialDeletion extends CycleDetector
    * grey.
    */
   private final boolean doMarkGreyPhase(long timeCap) {
-    Address obj = Address.zero();
+    ObjectReference object = ObjectReference.nullReference();
     boolean abort = false;
     phase = MARK_GREY;
     do {
       visitCount = 0;
       while (visitCount < GREY_VISIT_BOUND && !abort &&
-             !(obj = filteredPurpleBuffer.pop()).isZero()) {
-        if (!processGreyObject(obj, cycleBufferA, timeCap)) {
+             !(object = filteredPurpleBuffer.pop()).isNull()) {
+        if (!processGreyObject(object, cycleBufferA, timeCap)) {
           abort = true;
-          maturePurpleBuffer.insert(obj);
+          maturePurpleBuffer.insert(object);
         }
       }
-    } while (!obj.isZero() && !abort && 
+    } while (!object.isNull() && !abort && 
              ((Statistics.cycles() < timeCap) || 
               RefCountSpace.RC_SANITY_CHECK));
     return abort;
   }
-  private final boolean processGreyObject(Address object, AddressDeque tgt,
+  private final boolean processGreyObject(ObjectReference object,
+					  ObjectReferenceDeque tgt,
                                           long timeCap)
     throws InlinePragma {
     //    Log.write("pg[");Log.write(object);RefCountSpace.print(object);Log.writeln("]");
@@ -415,11 +416,11 @@ public final class TrialDeletion extends CycleDetector
     }
     return true;
   }
-  private final boolean markGrey(Address object, long timeCap)
+  private final boolean markGrey(ObjectReference object, long timeCap)
     throws InlinePragma {
     boolean abort = false;
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(workQueue.pop().isZero());
-    while (!object.isZero()) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(workQueue.pop().isNull());
+    while (!object.isNull()) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
       visitCount++;
       if (visitCount % GREY_VISIT_GRAIN == 0 && !RefCountSpace.RC_SANITY_CHECK 
@@ -435,7 +436,7 @@ public final class TrialDeletion extends CycleDetector
     }
     return !abort;
   }
-  public final void enumerateGrey(Address object)
+  public final void enumerateGrey(ObjectReference object)
     throws InlinePragma {
     if (Plan.isRCObject(object) && !RefCountSpace.isGreen(object)) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(RefCountSpace.isLiveRC(object));
@@ -445,20 +446,21 @@ public final class TrialDeletion extends CycleDetector
   }
 
   private final void doScanPhase() {
-    Address object;
-    AddressDeque src = cycleBufferA;
-    AddressDeque tgt = cycleBufferB;
+    ObjectReference object;
+    ObjectReferenceDeque src = cycleBufferA;
+    ObjectReferenceDeque tgt = cycleBufferB;
     phase = SCAN;
-    while (!(object = src.pop()).isZero()) {
+    while (!(object = src.pop()).isNull()) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
       scan(object);
       tgt.push(object);
     }
   }
-  private final void scan(Address object)
+
+  private final void scan(ObjectReference object)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(workQueue.pop().isZero());
-    while (!object.isZero()) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(workQueue.pop().isNull());
+    while (!object.isNull()) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
       if (RefCountSpace.isGrey(object)) {
         if (RefCountSpace.isLiveRC(object)) {
@@ -473,15 +475,15 @@ public final class TrialDeletion extends CycleDetector
       object = workQueue.pop();
     }
   }
-  public final void enumerateScan(Address object) 
+  public final void enumerateScan(ObjectReference object) 
     throws InlinePragma {
     if (Plan.isRCObject(object) && !RefCountSpace.isGreen(object))
       workQueue.push(object);
   }
-  private final void scanBlack(Address object)
+  private final void scanBlack(ObjectReference object)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(blackQueue.pop().isZero());
-    while (!object.isZero()) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(blackQueue.pop().isNull());
+    while (!object.isNull()) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
       if (!RefCountSpace.isBlack(object)) {  // FIXME can't this just be if (isGrey(object)) ??
         RefCountSpace.makeBlack(object);
@@ -490,7 +492,7 @@ public final class TrialDeletion extends CycleDetector
       object = blackQueue.pop();
     }
   }
-  public final void enumerateScanBlack(Address object)
+  public final void enumerateScanBlack(ObjectReference object)
     throws InlinePragma {
     if (Plan.isRCObject(object) && !RefCountSpace.isGreen(object)) {
       RefCountSpace.unsyncIncRC(object);
@@ -500,19 +502,19 @@ public final class TrialDeletion extends CycleDetector
   }
 
   private final void doCollectPhase() {
-    Address object;
-    AddressDeque src = cycleBufferB;
+    ObjectReference object;
+    ObjectReferenceDeque src = cycleBufferB;
     phase = COLLECT;
-    while (!(object = src.pop()).isZero()) {
+    while (!(object = src.pop()).isNull()) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(!RefCountSpace.isGreen(object));
       RefCountSpace.clearBufferedBit(object);
       collectWhite(object);
     }
   }
-  private final void collectWhite(Address object)
+  private final void collectWhite(ObjectReference object)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(workQueue.pop().isZero());
-    while (!object.isZero()) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(workQueue.pop().isNull());
+    while (!object.isNull()) {
       if (RefCountSpace.isWhite(object) && !RefCountSpace.isBuffered(object)) {
         RefCountSpace.makeBlack(object);
         Scan.enumeratePointers(object, collectEnum);
@@ -521,7 +523,7 @@ public final class TrialDeletion extends CycleDetector
       object = workQueue.pop();
     }
   }
-  public final void enumerateCollect(Address object) 
+  public final void enumerateCollect(ObjectReference object) 
     throws InlinePragma {
     if (Plan.isRCObject(object)) {
       if (RefCountSpace.isGreen(object))

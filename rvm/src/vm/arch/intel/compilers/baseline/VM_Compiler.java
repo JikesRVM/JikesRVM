@@ -2964,7 +2964,9 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
       if (methodName == VM_MagicNames.loadAddress ||
           methodName == VM_MagicNames.prepareAddress ||
+          methodName == VM_MagicNames.prepareObjectReference ||
           methodName == VM_MagicNames.loadWord ||
+          methodName == VM_MagicNames.loadObjectReference ||
           methodName == VM_MagicNames.prepareWord ||
           methodName == VM_MagicNames.loadInt ||
           methodName == VM_MagicNames.prepareInt ||
@@ -3042,6 +3044,7 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
 
         if (storeType == VM_TypeReference.Int ||
             storeType == VM_TypeReference.Address ||
+            storeType == VM_TypeReference.ObjectReference ||
             storeType == VM_TypeReference.Word ||
             storeType == VM_TypeReference.Float) {
         
@@ -3644,11 +3647,14 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
     }
 
     if (methodName == VM_MagicNames.wordFromInt ||
+        methodName == VM_MagicNames.wordFromObject ||
         methodName == VM_MagicNames.wordFromIntZeroExtend ||
         methodName == VM_MagicNames.wordFromIntSignExtend ||
         methodName == VM_MagicNames.wordToInt ||
         methodName == VM_MagicNames.wordToAddress ||
         methodName == VM_MagicNames.wordToOffset ||
+        methodName == VM_MagicNames.wordToObject ||
+        methodName == VM_MagicNames.wordToObjectReference ||
         methodName == VM_MagicNames.wordToExtent ||
         methodName == VM_MagicNames.wordToWord) {
         if (VM.BuildFor32Addr) return true;     // no-op for 32-bit
@@ -3757,6 +3763,11 @@ public class VM_Compiler extends VM_BaselineCompiler implements VM_BaselineConst
         return true;
     }
     if (methodName == VM_MagicNames.wordIsZero) {
+        asm.emitPUSH_Imm(0);
+        generateAddrComparison(asm.EQ);
+        return true;
+    }
+    if (methodName == VM_MagicNames.wordIsNull) {
         asm.emitPUSH_Imm(0);
         generateAddrComparison(asm.EQ);
         return true;

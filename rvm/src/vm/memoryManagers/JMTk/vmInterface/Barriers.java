@@ -48,12 +48,12 @@ public class Barriers implements Constants, Uninterruptible {
    * @param locationMetadata An index of the FieldReference (metaDataB)
    * @param mode The context in which the write is occuring
    */
-  public static void performWriteInBarrier(Address ref, Address slot, 
-                                           Address target, int offset, 
+  public static void performWriteInBarrier(ObjectReference ref, Address slot, 
+                                           ObjectReference target, int offset, 
                                            int locationMetadata, int mode) 
     throws InlinePragma {
-    Object obj = VM_Magic.addressAsObject(ref);
-    VM_Magic.setObjectAtOffset(obj, offset, target, locationMetadata);  
+    Object obj = ref.toObject();
+    VM_Magic.setObjectAtOffset(obj, offset, target.toObject(), locationMetadata);  
   }
 
   /**
@@ -68,17 +68,18 @@ public class Barriers implements Constants, Uninterruptible {
    * @param mode The context in which the write is occuring
    * @return The value that was replaced by the write.
    */
-  public static Address performWriteInBarrierAtomic(Address ref, 
-                                    Address slot, Address target, 
-                                    int offset, int locationMetadata, int mode)
+  public static ObjectReference performWriteInBarrierAtomic(
+                                           ObjectReference ref, Address slot,
+                                           ObjectReference target, int offset,
+                                           int locationMetadata, int mode)
     throws InlinePragma {                                
-    Object obj = VM_Magic.addressAsObject(ref);
-    Object newObject = VM_Magic.addressAsObject(target);
+    Object obj = ref.toObject();
+    Object newObject = target.toObject();
     Object oldObject;
     do {
       oldObject = VM_Magic.prepareObject(obj, offset);
     } while (!VM_Magic.attemptObject(obj, offset, oldObject, newObject));
-    return VM_Magic.objectAsAddress(oldObject); 
+    return ObjectReference.fromObject(oldObject); 
   }
 
   /**

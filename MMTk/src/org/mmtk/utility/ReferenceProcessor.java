@@ -75,8 +75,7 @@ public class ReferenceProcessor implements Uninterruptible {
    * @param semantics the code number of the semantics
    */
   public static Address processReference(Address reference,
-                                            int semantics)
-  {
+					 int semantics) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!reference.isZero());
     
     if (TRACE) {
@@ -88,19 +87,20 @@ public class ReferenceProcessor implements Uninterruptible {
      * If the reference is dead, we're done with it. Let it (and
      * possibly its referent) be garbage-collected.
      */
-    if (ReferenceGlue.REFERENCES_ON_HEAP && !Plan.isLive(reference)) {
+    if (ReferenceGlue.REFERENCES_ARE_OBJECTS && 
+	!Plan.isLive(reference.toObjectReference())) {
       newReference = Address.zero();
     } else {
       /* Otherwise... */
-      if (ReferenceGlue.REFERENCES_ON_HEAP)
-        newReference = Plan.getForwardedReference(reference);
+      if (ReferenceGlue.REFERENCES_ARE_OBJECTS)
+        newReference = Plan.getForwardedReference(reference.toObjectReference()).toAddress();
       else
         newReference = reference;
-      Address oldReferent = ReferenceGlue.getReferent(reference);
+      ObjectReference oldReferent = ReferenceGlue.getReferent(reference);
 
       if (TRACE_DETAIL) {
         Log.write("    new reference: "); Log.writeln(newReference);
-        Log.write(" old referENT: "); Log.writeln(oldReferent);
+        Log.write(" old referent: "); Log.writeln(oldReferent);
       }
       /*
        * If the application has cleared the referent the Java spec says
@@ -108,13 +108,12 @@ public class ReferenceProcessor implements Uninterruptible {
        * simply allow the Reference object to fall out of our
        * waiting list.
        */
-      if (oldReferent.isZero()) {
+      if (oldReferent.isNull()) {
         newReference = Address.zero();
       } else {
         boolean enqueue = false;
 
-        if (semantics == PHANTOM_SEMANTICS && !Plan.isLive(oldReferent))
-          {
+        if (semantics == PHANTOM_SEMANTICS && !Plan.isLive(oldReferent)) {
             /*
              * Keep phantomly reachable objects from being collected
              * until they are completely unreachable.
@@ -124,8 +123,7 @@ public class ReferenceProcessor implements Uninterruptible {
             }
             Plan.makeAlive(oldReferent);
             enqueue = true;
-          }
-        else if (semantics == SOFT_SEMANTICS && !clearSoftReferences) {
+	} else if (semantics == SOFT_SEMANTICS && !clearSoftReferences) {
           /*
            * Unless we've completely run out of memory, we keep
            * softly reachable objects alive.
@@ -141,10 +139,10 @@ public class ReferenceProcessor implements Uninterruptible {
            * Referent is still reachable in a way that is as strong as
            * or stronger than the current reference level.
            */
-          Address newReferent = Plan.getForwardedReference(oldReferent);
+          ObjectReference newReferent = Plan.getForwardedReference(oldReferent);
 
           if (TRACE) {
-            Log.write(" new referENT: "); Log.writeln(newReferent);
+            Log.write(" new referent: "); Log.writeln(newReferent);
           }
             
           /*
@@ -176,7 +174,7 @@ public class ReferenceProcessor implements Uninterruptible {
             if (TRACE_DETAIL) {
               Log.write(" clearing: "); Log.writeln(oldReferent);
             }
-            ReferenceGlue.setReferent(newReference, Address.zero());
+            ReferenceGlue.setReferent(newReference, ObjectReference.nullReference());
           }
           enqueue = true;
         }

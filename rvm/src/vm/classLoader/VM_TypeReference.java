@@ -67,11 +67,13 @@ public class VM_TypeReference implements VM_SizeConstants {
   
   public static final VM_TypeReference Word    = findOrCreate("Lorg/vmmagic/unboxed/Word;");
   public static final VM_TypeReference Address = findOrCreate("Lorg/vmmagic/unboxed/Address;");
+  public static final VM_TypeReference ObjectReference = findOrCreate("Lorg/vmmagic/unboxed/ObjectReference;");
   public static final VM_TypeReference Offset  = findOrCreate("Lorg/vmmagic/unboxed/Offset;");
   public static final VM_TypeReference Extent  = findOrCreate("Lorg/vmmagic/unboxed/Extent;");
   public static final VM_TypeReference Code    = findOrCreate("Lcom/ibm/JikesRVM/VM_Code;");
   public static final VM_TypeReference WordArray = findOrCreate("Lorg/vmmagic/unboxed/WordArray;");
   public static final VM_TypeReference AddressArray = findOrCreate("Lorg/vmmagic/unboxed/AddressArray;");
+  public static final VM_TypeReference ObjectReferenceArray = findOrCreate("Lorg/vmmagic/unboxed/ObjectReferenceArray;");
   public static final VM_TypeReference OffsetArray = findOrCreate("Lorg/vmmagic/unboxed/OffsetArray;");
   public static final VM_TypeReference ExtentArray = findOrCreate("Lorg/vmmagic/unboxed/ExtentArray;");
   public static final VM_TypeReference CodeArray = findOrCreate("Lcom/ibm/JikesRVM/VM_CodeArray;");
@@ -225,6 +227,8 @@ public class VM_TypeReference implements VM_SizeConstants {
     if (isWordArrayType()) {
       if (this == AddressArray) {
         return Address;
+      } else if (this == ObjectReferenceArray) {
+        return ObjectReference;
       } else if (this == WordArray) {
         return Word;
       } else if (this == OffsetArray) {
@@ -333,7 +337,7 @@ public class VM_TypeReference implements VM_SizeConstants {
    * Does 'this' refer to WordArray, AddressArray, OffsetArray or ExtentArray
    */
   final boolean isWordArrayType() throws UninterruptiblePragma {
-    return this == WordArray || this == OffsetArray || this == AddressArray || this == ExtentArray;
+    return this == WordArray || this == OffsetArray || this == AddressArray || this == ObjectReferenceArray || this == ExtentArray;
   }
 
   /**
@@ -348,6 +352,7 @@ public class VM_TypeReference implements VM_SizeConstants {
    */
   public final boolean isMagicType() {
     return this == Magic || this == SysCall 
+      || this == ObjectReference || this == ObjectReferenceArray 
       || isWordType() || isWordArrayType() 
       || isCodeType() || isCodeArrayType();
   }

@@ -72,9 +72,9 @@ public abstract class RefCountBase extends StopTheWorldGC
   protected LargeRCObjectLocal los;
 
   // queues (buffers)
-  protected AddressDeque decBuffer;
-  protected AddressDeque modBuffer;
-  protected AddressDeque newRootSet;
+  protected ObjectReferenceDeque decBuffer;
+  protected ObjectReferenceDeque modBuffer;
+  protected ObjectReferenceDeque newRootSet;
 
   // enumerators
   public RCDecEnumerator decEnum;
@@ -118,10 +118,10 @@ public abstract class RefCountBase extends StopTheWorldGC
    * Constructor
    */
   public RefCountBase() {
-    if (WITH_COALESCING_RC) modBuffer = new AddressDeque("mod buf", modPool);
+    if (WITH_COALESCING_RC) modBuffer = new ObjectReferenceDeque("mod buf", modPool);
     if (WITH_COALESCING_RC) modEnum = new RCModifiedEnumerator();
-    decBuffer = new AddressDeque("dec buf", decPool);
-    newRootSet = new AddressDeque("root set", rootPool);
+    decBuffer = new ObjectReferenceDeque("dec buf", decPool);
+    newRootSet = new ObjectReferenceDeque("root set", rootPool);
     los = new LargeRCObjectLocal(loSpace);
     rc = new RefCountLocal(rcSpace, los, decBuffer, newRootSet);
     decEnum = new RCDecEnumerator();
@@ -230,8 +230,8 @@ public abstract class RefCountBase extends StopTheWorldGC
    */
   protected final void processModBufs() {
     modBuffer.flushLocal();
-    Address object = Address.zero();
-    while (!(object = modBuffer.pop()).isZero()) {
+    ObjectReference object = ObjectReference.nullReference();
+    while (!(object = modBuffer.pop()).isNull()) {
       RefCountSpace.makeUnlogged(object);
       Scan.enumeratePointers(object, modEnum);
     }
@@ -248,7 +248,7 @@ public abstract class RefCountBase extends StopTheWorldGC
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
-  public static Word getBootTimeAvailableBits(int ref, Address typeRef,
+  public static Word getBootTimeAvailableBits(int ref, ObjectReference typeRef,
                                               int size, Word status)
     throws UninterruptiblePragma, InlinePragma {
     if (WITH_COALESCING_RC) status = status.or(RefCountSpace.UNLOGGED);
@@ -285,7 +285,7 @@ public abstract class RefCountBase extends StopTheWorldGC
    */
   public final void enumerateDecrementPointerLocation(Address location)
     throws InlinePragma {
-    Address object = location.loadAddress();
+    ObjectReference object = location.loadObjectReference();
     if (isRCObject(object))
       decBuffer.push(object);
   }
@@ -300,7 +300,7 @@ public abstract class RefCountBase extends StopTheWorldGC
    *
    * @param object The object to be added to the decrement buffer
    */
-  public final void addToDecBuf(Address object)
+  public final void addToDecBuf(ObjectReference object)
     throws InlinePragma {
     decBuffer.push(object);
   }
@@ -310,7 +310,7 @@ public abstract class RefCountBase extends StopTheWorldGC
    *
    * @param root The object to be added to root set
    */
-  public final void addToRootSet(Address root) 
+  public final void addToRootSet(ObjectReference root) 
     throws InlinePragma {
     newRootSet.push(root);
   }
@@ -321,9 +321,9 @@ public abstract class RefCountBase extends StopTheWorldGC
    * @param object An object reference
    * @return True if the object resides within the RC space
    */
-  public static final boolean isRCObject(Address object)
+  public static final boolean isRCObject(ObjectReference object)
     throws InlinePragma {
-    if (object.isZero()) 
+    if (object.isNull()) 
       return false;
     else return (Space.isInSpace(RC, object) || Space.isInSpace(LOS, object));
   }

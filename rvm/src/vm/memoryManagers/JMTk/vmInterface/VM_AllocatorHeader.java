@@ -38,7 +38,8 @@ public final class VM_AllocatorHeader {
                                       Object[] tib, int size, boolean isScalar)
     throws InterruptiblePragma {
     //    int status = VM_JavaHeader.readAvailableBitsWord(bootImage, ref);
-    Word status = Plan.getBootTimeAvailableBits(ref, VM_Magic.objectAsAddress(tib), size, Word.zero());
+    Word status = Plan.getBootTimeAvailableBits(ref, 
+      ObjectReference.fromObject(tib), size, Word.zero());
     VM_JavaHeader.writeAvailableBitsWord(bootImage, ref, status);
   }
 

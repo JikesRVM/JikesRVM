@@ -655,7 +655,18 @@ class OPT_GenerateMagic implements OPT_Operators,
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.wordToAddress) {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Address);
-      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popAddress()));
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
+      bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.wordToObject) {
+      OPT_RegisterOperand reg 
+        = gc.temps.makeTemp(VM_TypeReference.JavaLangObject);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
+      bc2ir.push(reg.copyD2U());
+    } else if (methodName == VM_MagicNames.wordToObjectReference || 
+               methodName == VM_MagicNames.wordFromObject) {
+      OPT_RegisterOperand reg 
+        = gc.temps.makeTemp(VM_TypeReference.ObjectReference);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, reg, bc2ir.popRef()));
       bc2ir.push(reg.copyD2U());
     } else if (methodName == VM_MagicNames.wordToOffset) {
       OPT_RegisterOperand reg = gc.temps.makeTemp(VM_TypeReference.Offset);
@@ -718,6 +729,11 @@ class OPT_GenerateMagic implements OPT_Operators,
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new OPT_AddressConstantOperand(Address.max())));
       bc2ir.push(op0.copyD2U());
+    } else if (methodName == VM_MagicNames.wordIsNull) {
+      OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
+      bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new OPT_AddressConstantOperand(Address.zero())));
+      OPT_ConditionOperand cond = OPT_ConditionOperand.EQUAL();
+      cmpHelper(bc2ir,gc,cond,op0);
     } else if (methodName == VM_MagicNames.wordIsZero) {
       OPT_RegisterOperand op0 = gc.temps.makeTemp(resultType);
       bc2ir.appendInstruction(Move.create(REF_MOVE, op0, new OPT_AddressConstantOperand(Address.zero())));
@@ -812,6 +828,7 @@ class OPT_GenerateMagic implements OPT_Operators,
     throws OPT_MagicNotImplementedException {
     if (operatorClass == LOAD_OP) {
       if (type == VM_TypeReference.Address) return REF_LOAD; 
+      if (type == VM_TypeReference.ObjectReference) return REF_LOAD; 
       if (type == VM_TypeReference.Word)    return REF_LOAD; 
       if (type == VM_TypeReference.Offset)  return REF_LOAD; 
       if (type == VM_TypeReference.Extent)  return REF_LOAD; 
@@ -824,14 +841,17 @@ class OPT_GenerateMagic implements OPT_Operators,
       if (type == VM_TypeReference.Long)    return LONG_LOAD;
     } else if (operatorClass == PREPARE_OP) {
       if (type == VM_TypeReference.Address) return PREPARE_ADDR; 
+      if (type == VM_TypeReference.ObjectReference) return PREPARE_ADDR; 
       if (type == VM_TypeReference.Word)    return PREPARE_ADDR; 
       if (type == VM_TypeReference.Int)     return PREPARE_INT;
     } else if (operatorClass == ATTEMPT_OP) {
       if (type == VM_TypeReference.Address) return ATTEMPT_ADDR; 
+      if (type == VM_TypeReference.ObjectReference) return ATTEMPT_ADDR; 
       if (type == VM_TypeReference.Word)    return ATTEMPT_ADDR; 
       if (type == VM_TypeReference.Int)     return ATTEMPT_INT;
     } else if (operatorClass == STORE_OP) {
       if (type == VM_TypeReference.Address) return REF_STORE; 
+      if (type == VM_TypeReference.ObjectReference) return REF_STORE; 
       if (type == VM_TypeReference.Word)    return REF_STORE; 
       if (type == VM_TypeReference.Offset)  return REF_STORE; 
       if (type == VM_TypeReference.Extent)  return REF_STORE; 

@@ -50,10 +50,11 @@ import java.lang.ref.PhantomReference;
  */
 public class ReferenceGlue implements Uninterruptible {
   /**
-   * <code>true</code> if references are heap objects.  In this
-   * context references are soft, weak or phantom references.
+   * <code>true</code> if the references are implemented as heap
+   * objects (rather than in a table, for example).  In this context
+   * references are soft, weak or phantom references.
    */
-  public static final boolean REFERENCES_ON_HEAP = true;
+  public static final boolean REFERENCES_ARE_OBJECTS = true;
 
   private static boolean clearSoftReferences = false;
 
@@ -89,9 +90,9 @@ public class ReferenceGlue implements Uninterruptible {
     throws NoInlinePragma, InterruptiblePragma {
     if (TRACE) {
         Address referenceAsAddress = VM_Magic.objectAsAddress(ref);
-        Address referent = getReferent(referenceAsAddress);
+        ObjectReference referent = getReferent(referenceAsAddress);
         VM.sysWriteln("Adding Reference: ", referenceAsAddress);
-        VM.sysWriteln("       ReferENT:  ", referent);
+        VM.sysWriteln("       Referent:  ", referent);
     }
     
     lock.acquire();
@@ -231,8 +232,8 @@ public class ReferenceGlue implements Uninterruptible {
    * @param addr the address of the reference
    * @return the referent address
    */
-  public static Address getReferent(Address addr) {
-    return addr.loadAddress(Offset.fromInt(VM_Entrypoints.referenceReferentField.getOffset()));
+  public static ObjectReference getReferent(Address addr) {
+    return addr.loadObjectReference(Offset.fromInt(VM_Entrypoints.referenceReferentField.getOffset()));
   }
   
   /**
@@ -241,7 +242,7 @@ public class ReferenceGlue implements Uninterruptible {
    * @param addr the address of the reference
    * @param referent the referent address
    */
-  public static void setReferent(Address addr, Address referent) {
+  public static void setReferent(Address addr, ObjectReference referent) {
     addr.store(referent, Offset.fromInt(VM_Entrypoints.referenceReferentField.getOffset()));
   }
   

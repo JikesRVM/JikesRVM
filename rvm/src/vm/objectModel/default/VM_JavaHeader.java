@@ -127,8 +127,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Given a reference, return an address which is guaranteed to be inside
    * the memory region allocated to the object.
    */
-  public static Address getPointerInMemoryRegion(Address ref) {
-    return ref.add(TIB_OFFSET);
+  public static Address getPointerInMemoryRegion(ObjectReference ref) {
+    return ref.toAddress().add(TIB_OFFSET);
   }
 
   /**
@@ -156,8 +156,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
   /**
    * Process the TIB field during copyingGC
    */
-  public static void gcProcessTIB(Address ref) {
-    MM_Interface.processPtrLocation(ref.add(TIB_OFFSET));
+  public static void gcProcessTIB(ObjectReference ref) {
+    MM_Interface.processPtrLocation(ref.toAddress().add(TIB_OFFSET));
   }
 
   /**
@@ -224,25 +224,27 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Map from the object ref to the lowest address of the storage
    * associated with the object
    */
-  public static Address objectStartRef(Address obj) throws InlinePragma {
+  public static Address objectStartRef(ObjectReference obj)
+    throws InlinePragma {
     if (MM_Interface.MOVES_OBJECTS) {
       if (ADDRESS_BASED_HASHING && !DYNAMIC_HASH_OFFSET) {
-        Word hashState = VM_Magic.getWordAtOffset(obj, STATUS_OFFSET).and(HASH_STATE_MASK);
+        Word hashState = obj.toAddress().loadWord(Offset.fromInt(STATUS_OFFSET)).and(HASH_STATE_MASK);
         if (hashState.EQ(HASH_STATE_HASHED_AND_MOVED)) {
-          return obj.sub(OBJECT_REF_OFFSET + HASHCODE_BYTES);
+          return obj.toAddress().sub(OBJECT_REF_OFFSET + HASHCODE_BYTES);
         }
       }
     }
-    return obj.sub(OBJECT_REF_OFFSET);
+    return obj.toAddress().sub(OBJECT_REF_OFFSET);
   }
 
   /**
-   * Get an object reference from the address the lowest word of the object was allocated.
-   * In general this required that we are using a dynamic hash offset or not using address 
-   * based hashing. However, the GC algorithm could safely do this in the nursery so we 
-   * can't assert DYNAMIC_HASH_OFFSET.
+   * Get an object reference from the address the lowest word of the
+   * object was allocated.  In general this required that we are using
+   * a dynamic hash offset or not using address based
+   * hashing. However, the GC algorithm could safely do this in the
+   * nursery so we can't assert DYNAMIC_HASH_OFFSET.
    */
-  public static Address getObjectFromStartAddress(Address start) {
+  public static ObjectReference getObjectFromStartAddress(Address start) {
     if (VM.VerifyAssertions) VM._assert(OTHER_HEADER_BYTES == 0);
 
     Address obj = start.add(OBJECT_REF_OFFSET); 
@@ -260,32 +262,35 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
       }
     }
 
-    return obj; 
+    return obj.toObjectReference(); 
   }
 
   /**
-   * Get an object reference from the address the lowest word of the object was allocated.
+   * Get an object reference from the address the lowest word of the
+   * object was allocated.
    */
-  public static Address getScalarFromStartAddress(Address start) {
+  public static ObjectReference getScalarFromStartAddress(Address start) {
     return getObjectFromStartAddress(start);
   }
   
   /**
-   * Get an object reference from the address the lowest word of the object was allocated.
+   * Get an object reference from the address the lowest word of the
+   * object was allocated.
    */
-  public static Address getArrayFromStartAddress(Address start) {
+  public static ObjectReference getArrayFromStartAddress(Address start) {
     return getObjectFromStartAddress(start);
   }
 
   /**
-   * Get the next object in the heap under contiguous allocation. Handles alignment issues 
-   * only when there are no GC or Misc header words. In the case there are we probably have 
-   * to ask MM_Interface to distinguish this for us.
+   * Get the next object in the heap under contiguous
+   * allocation. Handles alignment issues only when there are no GC or
+   * Misc header words. In the case there are we probably have to ask
+   * MM_Interface to distinguish this for us.
    */
-  private static Address getNextObject(Address obj, int size) {
+  private static ObjectReference getNextObject(ObjectReference obj, int size) {
     if (VM.VerifyAssertions) VM._assert(OTHER_HEADER_BYTES == 0);
     
-    Address next = obj.add(size);
+    Address next = obj.toAddress().add(size);
     
     if (!VM.BuildFor64Addr) {
       Object tib = VM_Magic.getObjectAtOffset(next, TIB_OFFSET); 
@@ -300,20 +305,24 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
       } 
     }
    
-    return next;
+    return ObjectReference.fromAddress(next);
   }
  
   /**
-   * Get the next scalar in the heap under contiguous allocation. Handles alignment issues 
+   * Get the next scalar in the heap under contiguous
+   * allocation. Handles alignment issues
    */
-  public static Address getNextObject(Address obj, VM_Class type) {
+  public static ObjectReference getNextObject(ObjectReference obj,
+					      VM_Class type) {
     return getNextObject(obj, bytesUsed(obj, type));
   }
 
   /**
-   * Get the next array in the heap under contiguous allocation. Handles alignment issues 
+   * Get the next array in the heap under contiguous
+   * allocation. Handles alignment issues
    */
-  public static Address getNextObject(Address obj, VM_Array type, int numElements) {
+  public static ObjectReference getNextObject(ObjectReference obj,
+					      VM_Array type, int numElements) {
     return getNextObject(obj, bytesUsed(obj, type, numElements));
   }
 
@@ -321,7 +330,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Copy a scalar to the given raw storage address
    */
   public static Object moveObject(Address toAddress, Object fromObj, 
-                                  int numBytes, boolean noGCHeader, VM_Class type)
+                                  int numBytes, boolean noGCHeader,
+				  VM_Class type)
     throws InlinePragma {
 
     // We copy arrays and scalars the same way
@@ -332,7 +342,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * Copy an array to the given raw storage address
    */
   public static Object moveObject(Address toAddress, Object fromObj,
-                                  int numBytes, boolean noGCHeader, VM_Array type)
+                                  int numBytes, boolean noGCHeader, 
+				  VM_Array type)
     throws InlinePragma {
 
     // We copy arrays and scalars the same way
@@ -680,9 +691,9 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param t VM_Class instance being copied
    * @param obj the object being copied
    */
-  public static int getOffsetForAlignment(VM_Class t, Address obj) {
+  public static int getOffsetForAlignment(VM_Class t, ObjectReference obj) {
     if (ADDRESS_BASED_HASHING && !DYNAMIC_HASH_OFFSET) {
-      Word hashState = VM_Magic.getWordAtOffset(obj, STATUS_OFFSET).and(HASH_STATE_MASK);
+      Word hashState = obj.toAddress().loadWord(Offset.fromInt(STATUS_OFFSET)).and(HASH_STATE_MASK);
       if (hashState.NE(HASH_STATE_UNHASHED)) {
         return SCALAR_HEADER_SIZE + HASHCODE_BYTES;
       }
@@ -707,11 +718,11 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param t VM_Array instance being copied
    * @param obj the object being copied
    */
-  public static int getOffsetForAlignment(VM_Array t, Address obj) {
+  public static int getOffsetForAlignment(VM_Array t, ObjectReference obj) {
     /* although array_header_size == object_ref_offset we say this
        because the whole point is to align the object ref */
     if (ADDRESS_BASED_HASHING && !DYNAMIC_HASH_OFFSET) {
-      Word hashState = VM_Magic.getWordAtOffset(obj, STATUS_OFFSET).and(HASH_STATE_MASK);
+      Word hashState = obj.toAddress().loadWord(Offset.fromInt(STATUS_OFFSET)).and(HASH_STATE_MASK);
       if (hashState.NE(HASH_STATE_UNHASHED)) {
         return OBJECT_REF_OFFSET + HASHCODE_BYTES;
       }
@@ -725,7 +736,8 @@ public final class VM_JavaHeader implements VM_JavaHeaderConstants,
    * @param tib the TIB of the instance being created
    * @param size the number of bytes allocated by the GC system for this object.
    */
-  public static Object initializeScalarHeader(Address ptr, Object[] tib, int size) {
+  public static Object initializeScalarHeader(Address ptr, Object[] tib, 
+					      int size) {
     // (TIB set by VM_ObjectModel)
     Object ref = VM_Magic.addressAsObject(ptr.add(OBJECT_REF_OFFSET));
     return ref;

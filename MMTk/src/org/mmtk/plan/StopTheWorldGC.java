@@ -81,9 +81,9 @@ public abstract class StopTheWorldGC extends BasePlan
    *
    * Instance variables
    */
-  protected AddressDeque values;          // gray objects
-  protected AddressDeque remset;          // remset (containing white objects)
-  protected AddressDeque forwardedObjects;// forwarded, unscanned objects
+  protected ObjectReferenceDeque values;  // gray objects
+  protected AddressDeque remset;          // remset
+  protected ObjectReferenceDeque forwardedObjects; // forwarded, unscanned obj
   protected AddressDeque rootLocations;   // root locs containing white objects
   protected AddressPairDeque interiorRootLocations; // interior root locations
 
@@ -104,11 +104,11 @@ public abstract class StopTheWorldGC extends BasePlan
    * Constructor
    */
   StopTheWorldGC() {
-    values = new AddressDeque("value", valuePool);
+    values = new ObjectReferenceDeque("value", valuePool);
     valuePool.newClient();
-    remset = new AddressDeque("loc", remsetPool);
+    remset = new AddressDeque("remset", remsetPool);
     remsetPool.newClient();
-    forwardedObjects = new AddressDeque("forwarded", forwardPool);
+    forwardedObjects = new ObjectReferenceDeque("forwarded", forwardPool);
     forwardPool.newClient();
     rootLocations = new AddressDeque("rootLoc", rootLocationPool);
     rootLocationPool.newClient();
@@ -369,7 +369,7 @@ public abstract class StopTheWorldGC extends BasePlan
     do {
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing forwarded (pre-copied) objects"); }
       while (!forwardedObjects.isEmpty()) {
-        Address object = forwardedObjects.pop();
+        ObjectReference object = forwardedObjects.pop();
         scanForwardedObject(object);
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing root locations"); }
@@ -379,7 +379,7 @@ public abstract class StopTheWorldGC extends BasePlan
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing interior root locations"); }
       while (!interiorRootLocations.isEmpty()) {
-        Address obj = interiorRootLocations.pop1();
+        ObjectReference obj = interiorRootLocations.pop1().toObjectReference();
         Address interiorLoc = interiorRootLocations.pop2();
         Address interior = interiorLoc.loadAddress();
         Address newInterior = traceInteriorReference(obj, interior, true);
@@ -387,7 +387,7 @@ public abstract class StopTheWorldGC extends BasePlan
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing gray objects"); }
       while (!values.isEmpty()) {
-        Address v = values.pop();
+        ObjectReference v = values.pop();
 	Scan.scanObject(v);  // NOT traceObject
       }
       if (Options.verbose >= 5) { Log.prependThreadId(); Log.writeln("    processing remset"); }
@@ -420,7 +420,7 @@ public abstract class StopTheWorldGC extends BasePlan
    *
    * @param object The forwarded object to be scanned
    */
-  protected void scanForwardedObject(Address object) {
+  protected void scanForwardedObject(ObjectReference object) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
   }
 

@@ -3478,6 +3478,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       // ..., Address, [Offset] -> ..., Value
 
       if (methodName == VM_MagicNames.loadAddress ||
+          methodName == VM_MagicNames.loadObjectReference ||
           methodName == VM_MagicNames.loadWord) {
 
         if (types.length == 0) {
@@ -3576,6 +3577,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       }
 
       if (methodName == VM_MagicNames.prepareWord || 
+          methodName == VM_MagicNames.prepareObjectReference ||
           methodName == VM_MagicNames.prepareAddress) {
         if (types.length == 0) {
           popAddr(T0);                             // pop base
@@ -3971,6 +3973,7 @@ public class VM_Compiler extends VM_BaselineCompiler
       pushInt(T0);  // push success of conditional store
     } else if (methodName == VM_MagicNames.attemptObject ||
                methodName == VM_MagicNames.attemptAddress ||
+               methodName == VM_MagicNames.attemptObjectReference || 
                methodName == VM_MagicNames.attemptWord) {
       popAddr(T2);  // pop newValue
       discardSlot(); // ignore oldValue
@@ -4088,6 +4091,9 @@ public class VM_Compiler extends VM_BaselineCompiler
     } else if (methodName == VM_MagicNames.wordToInt || 
                methodName == VM_MagicNames.wordToAddress ||
                methodName == VM_MagicNames.wordToOffset ||
+               methodName == VM_MagicNames.wordToObject ||
+               methodName == VM_MagicNames.wordFromObject ||
+               methodName == VM_MagicNames.wordToObjectReference ||
                methodName == VM_MagicNames.wordToExtent ||
                methodName == VM_MagicNames.wordToWord) {
       // no-op   
@@ -4146,7 +4152,8 @@ public class VM_Compiler extends VM_BaselineCompiler
       generateAddrComparison(true, GT);
     } else if (methodName == VM_MagicNames.wordsGE) {
       generateAddrComparison(true, GE);
-    } else if (methodName == VM_MagicNames.wordIsZero) {
+    } else if (methodName == VM_MagicNames.wordIsZero ||
+               methodName == VM_MagicNames.wordIsNull) {
       // unsigned comparison generating a boolean
       asm.emitLVAL(T0,  0);
       pushAddr(T0);

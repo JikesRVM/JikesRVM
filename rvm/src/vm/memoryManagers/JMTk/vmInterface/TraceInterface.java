@@ -118,11 +118,11 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
    * @return The easy to understand offset of the slot
    */
   public static final Offset adjustSlotOffset(boolean isScalar, 
-						 Address src,
+					      ObjectReference src,
                                                  Address slot) {
     /* Offset scalar objects so that the fields appear to begin at offset 0
        of the object. */
-    Offset offset = slot.diff(src);
+    Offset offset = slot.diff(src.toAddress());
     if (isScalar)
       return Offset.fromInt(getHeaderEndOffset()).sub(offset);
     else
@@ -138,9 +138,9 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
    *@param typeRef The type reference (tib) of the object just allocated
    *@return The frame pointer address for the method that allocated the object
    */
-  public static final Address skipOwnFramesAndDump(Address typeRef)
+  public static final Address skipOwnFramesAndDump(ObjectReference typeRef)
     throws NoInlinePragma {
-    Object[] tib = VM_Magic.addressAsObjectArray(typeRef);
+    Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
     VM_Method m = null;
     int bci = -1;
     int compiledMethodID = 0;
@@ -232,30 +232,31 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
     VM_MiscHeader.updateDeathTime(obj);
   }
 
-  public static void setDeathTime(Address ref, Word time_) 
+  public static void setDeathTime(ObjectReference ref, Word time_) 
     throws InlinePragma {
-    VM_MiscHeader.setDeathTime(ref, time_);
+    VM_MiscHeader.setDeathTime(ref.toObject(), time_);
   }
 
-  public static void setLink(Address ref, Address link) 
+  public static void setLink(ObjectReference ref, ObjectReference link) 
     throws InlinePragma {
-    VM_MiscHeader.setLink(ref, link);
+    VM_MiscHeader.setLink(ref.toObject(), link);
   }
 
   public static void updateTime(Word time_) throws InlinePragma {
     VM_MiscHeader.updateTime(time_);
   }
 
-  public static Word getOID(Address obj) throws InlinePragma {
-    return VM_MiscHeader.getOID(obj);
+  public static Word getOID(ObjectReference ref) throws InlinePragma {
+    return VM_MiscHeader.getOID(ref.toObject());
   }
 
-  public static Word getDeathTime(Address ref) throws InlinePragma {
-    return VM_MiscHeader.getDeathTime(VM_Magic.addressAsObject(ref));
+  public static Word getDeathTime(ObjectReference ref) throws InlinePragma {
+    return VM_MiscHeader.getDeathTime(ref.toObject());
   }
 
-  public static Address getLink(Address ref) throws InlinePragma {
-    return VM_MiscHeader.getLink(VM_Magic.addressAsObject(ref));
+  public static ObjectReference getLink(ObjectReference ref)
+    throws InlinePragma {
+    return VM_MiscHeader.getLink(ref.toObject());
   }
 
   public static Address getBootImageLink() throws InlinePragma {
@@ -266,8 +267,8 @@ public final class TraceInterface implements VM_Constants, Uninterruptible {
     return VM_MiscHeader.getOID();
   }
 
-  public static void setOID(Word oid_) throws InlinePragma {
-    VM_MiscHeader.setOID(oid_);
+  public static void setOID(Word oid) throws InlinePragma {
+    VM_MiscHeader.setOID(oid);
   }
 
   public static final int getHeaderSize() throws InlinePragma {

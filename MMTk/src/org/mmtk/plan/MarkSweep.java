@@ -149,8 +149,8 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Address ref, Address typeRef, int bytes,
-                              int allocator)
+  public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
+                              int bytes, int allocator)
     throws InlinePragma {
     switch (allocator) {
     case       ALLOC_MS: msSpace.initializeHeader(ref); return;
@@ -171,8 +171,9 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  public final Address allocCopy(Address original, int bytes,
-				 int align, int offset) throws InlinePragma {
+  public final Address allocCopy(ObjectReference original, int bytes,
+                                 int align, int offset)
+    throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
     // return Address.zero();  this trips some Intel assembler bug
     return Address.max();
@@ -185,7 +186,8 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * @param typeRef The type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(Address ref, Address typeRef, int size) {}
+  public final void postCopy(ObjectReference ref, ObjectReference typeRef,
+                             int size) {}
 
   /**
    * Give the compiler/runtime statically generated alloction advice
@@ -379,8 +381,8 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address object) {
-    if (object.isZero()) 
+  public static final ObjectReference traceObject(ObjectReference object) {
+    if (object.isNull()) 
       return object;
     else if (Space.isInSpace(MS, object))
       return msSpace.traceObject(object);
@@ -399,7 +401,8 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * in a root.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address object, boolean root) {
+  public static final ObjectReference traceObject(ObjectReference object,
+                                                  boolean root) {
     return traceObject(object);  // root or non-root is of no consequence here
   }
 
@@ -410,8 +413,8 @@ public class MarkSweep extends StopTheWorldGC implements Uninterruptible {
    * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(Address object) {
-    if (object.isZero()) return false;
+  public static final boolean isLive(ObjectReference object) {
+    if (object.isNull()) return false;
     Space space = Space.getSpaceForObject(object);
     if (space == msSpace)
       return msSpace.isLive(object);

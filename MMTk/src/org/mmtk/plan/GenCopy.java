@@ -139,7 +139,7 @@ public class GenCopy extends Generational implements Uninterruptible {
    *
    * @param object The newly allocated object
    */
-  protected final void maturePostAlloc(Address object) 
+  protected final void maturePostAlloc(ObjectReference object) 
     throws InlinePragma {
     // nothing to be done
   }
@@ -247,7 +247,7 @@ public class GenCopy extends Generational implements Uninterruptible {
    * @param space The space in which the referent object resides.
    */
   protected static final void forwardMatureObjectLocation(Address location,
-                                                          Address object) {
+                                                          ObjectReference object) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(fullHeapGC);
     if ((hi && Space.isInSpace(MS0, object)) || 
         (!hi && Space.isInSpace(MS1, object)))
@@ -262,7 +262,7 @@ public class GenCopy extends Generational implements Uninterruptible {
    * @param space The space in which the object resides.
    * @return The forwarded value for <code>object</code>.
    */
-  public static final Address getForwardedMatureReference(Address object) {
+  public static final ObjectReference getForwardedMatureReference(ObjectReference object) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(fullHeapGC);
     if ((hi && Space.isInSpace(MS0, object)) || 
         (!hi && Space.isInSpace(MS1, object))) {
@@ -283,7 +283,7 @@ public class GenCopy extends Generational implements Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  protected static final Address traceMatureObject(Address object) {
+  protected static final ObjectReference traceMatureObject(ObjectReference object) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(fullHeapGC || IGNORE_REMSET);
     if (IGNORE_REMSET && !fullHeapGC &&
 	(Space.isInSpace(MS0, object) || Space.isInSpace(MS1, object))) {
@@ -300,8 +300,8 @@ public class GenCopy extends Generational implements Uninterruptible {
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(Address object, Address typeRef, int size)
-    throws InlinePragma {
+  public final void postCopy(ObjectReference object, ObjectReference typeRef,
+                             int size) throws InlinePragma {
     CopySpace.clearGCBits(object);
     if (IGNORE_REMSET) CopySpace.markObject(object, ImmortalSpace.immortalMarkState);
   }
@@ -312,10 +312,10 @@ public class GenCopy extends Generational implements Uninterruptible {
    * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(Address object) {
-    if (object.isZero()) return false;
+  public static final boolean isLive(ObjectReference object) {
+    if (object.isNull()) return false;
     if (!fullHeapGC) {
-      if (object.GE(NURSERY_START))
+      if (object.toAddress().GE(NURSERY_START))
 	return nurserySpace.isLive(object);
       else
 	return true;
@@ -347,14 +347,14 @@ public class GenCopy extends Generational implements Uninterruptible {
    * @return True if this object is guaranteed not to move during this
    * collection.
    */
-  public static boolean willNotMove(Address object) {
+  public static boolean willNotMove(ObjectReference object) {
     if (fullHeapGC) {
       if (hi)
         return !(Space.isInSpace(NS, object) || Space.isInSpace(MS0, object));
       else
         return !(Space.isInSpace(NS, object) || Space.isInSpace(MS1, object));
     } else
-      return object.LT(NURSERY_START);
+      return object.toAddress().LT(NURSERY_START);
   }
 
 

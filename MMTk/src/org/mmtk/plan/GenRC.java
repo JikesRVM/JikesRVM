@@ -144,8 +144,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Address ref, Address typeRef, int bytes,
-                              int allocator)
+  public final void postAlloc(ObjectReference ref, ObjectReference typeRef,
+			      int bytes, int allocator)
     throws InlinePragma {
     switch (allocator) {
     case ALLOC_NURSERY: return;
@@ -177,7 +177,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param offset The alignment offset
    * @return The address of the first byte of the allocated region
    */
-  public final Address allocCopy(Address original, int bytes,
+  public final Address allocCopy(ObjectReference original, int bytes,
                                     int align, int offset) throws InlinePragma {
     return rc.alloc(bytes, align, offset, false);  // FIXME is this right???
   }
@@ -189,8 +189,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(Address object, Address typeRef, int bytes)
-    throws InlinePragma {
+  public final void postCopy(ObjectReference object, ObjectReference typeRef,
+			     int bytes) throws InlinePragma {
     CopySpace.clearGCBits(object);
     RefCountSpace.initializeHeader(object, typeRef, false);
     RefCountSpace.makeUnlogged(object);
@@ -365,11 +365,11 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param obj The object reference to be traced.  This is <i>NOT</i> an
+   * @param object The object reference to be traced.  This is <i>NOT</i> an
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject (Address object) 
+  public static final ObjectReference traceObject(ObjectReference object) 
     throws InlinePragma {
     return traceObject(object, false);
   }
@@ -385,13 +385,13 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * in a root.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address object, boolean root) {
-    if (object.isZero()) return object;
-    Address addr = ObjectModel.refToAddress(object);
+  public static final ObjectReference traceObject(ObjectReference object, 
+						  boolean root) {
+    if (object.isNull()) return object;
     if (RefCountSpace.RC_SANITY_CHECK && root) 
       Plan.getInstance().rc.incSanityTraceRoot(object);
     if (Space.isInSpace(NS, object)) {
-      Address rtn = CopySpace.forwardAndScanObject(object);
+      ObjectReference rtn = CopySpace.forwardAndScanObject(object);
       // every incoming reference to the from-space object must inc the
       // ref count of forwarded (to-space) object...
       if (root) {
@@ -426,9 +426,9 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param root <code>true</code> if the object is being traced
    * directly from a root.
    */
-  public final void incSanityTrace(Address object, Address location,
+  public final void incSanityTrace(ObjectReference object, Address location,
                                    boolean root) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());        
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());        
     // if nursery, then get forwarded RC object
     if (Space.isInSpace(NS, object)) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));        
@@ -455,8 +455,9 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param root <code>true</code> if the object is being traced
    * directly from a root.
    */
-  public final void checkSanityTrace(Address object, Address location) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());        
+  public final void checkSanityTrace(ObjectReference object, 
+				     Address location) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());        
     // if nursery, then get forwarded RC object
     if (Space.isInSpace(NS, object)) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));        
@@ -485,9 +486,9 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    */
   public static void forwardObjectLocation(Address location) 
     throws InlinePragma {
-    Address object = location.loadAddress();
-    if (!object.isZero() && Space.isInSpace(NS, object)) {
-      if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+    ObjectReference object = location.loadObjectReference();
+    if (!object.isNull() && Space.isInSpace(NS, object)) {
+      if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
       location.store(CopySpace.forwardObject(object));
     }
   }
@@ -499,7 +500,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    *
    * @param object The object to be scanned.
    */
-  protected final void scanForwardedObject(Address object) {
+  protected final void scanForwardedObject(ObjectReference object) {
     Scan.scanObject(object);
     if (RefCountSpace.INC_DEC_ROOT) {
       RefCountSpace.incRC(object);
@@ -516,8 +517,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param object The object which may have been forwarded.
    * @return The forwarded value for <code>object</code>.
    */
-  public static final Address getForwardedReference(Address object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+  public static final ObjectReference getForwardedReference(ObjectReference object) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     if (Space.isInSpace(NS, object)) {
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));
       return CopySpace.getForwardingPointer(object);
@@ -531,8 +532,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param object The object in question
    * @return True if <code>object</code> is a live object.
    */
-  public static final boolean isLive(Address object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+  public static final boolean isLive(ObjectReference object) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     if (Space.isInSpace(NS, object))
       return nurserySpace.isLive(object);
     else if (isRCObject(object))
@@ -551,8 +552,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @return <code>true</code> if the object has no regular references
    * to it.
    */
-  public static final boolean isFinalizable(Address object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+  public static final boolean isFinalizable(ObjectReference object) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     if (Space.isInSpace(NS, object))
       return !nurserySpace.isLive(object);
     else if (isRCObject(object))
@@ -573,8 +574,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param object The object being queried.
    * @return The object (no copying is performed).
    */
-  public static Address retainFinalizable(Address object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+  public static ObjectReference retainFinalizable(ObjectReference object) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     if (Space.isInSpace(NS, object))
       return nurserySpace.traceObject(object);
     else if (isRCObject(object))
@@ -582,8 +583,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
     return object;
   }
 
-  public static boolean willNotMove(Address object) {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+  public static boolean willNotMove(ObjectReference object) {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     return !(Space.isInSpace(NS, object));
   }
 
@@ -608,9 +609,9 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param metaDataB An int that assists the host VM in creating a store 
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
-  public final void writeBarrier(Address src, Address slot, Address tgt,
-                                 int metaDataA, int metaDataB, int mode) 
-    throws InlinePragma {
+  public final void writeBarrier(ObjectReference src, Address slot, 
+				 ObjectReference tgt, int metaDataA, 
+				 int metaDataB, int mode) throws InlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
     if (RefCountSpace.logRequired(src))
       writeBarrierSlow(src);
@@ -637,8 +638,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public final boolean writeBarrier(Address src, int srcOffset,
-				    Address dst, int dstOffset,
+  public final boolean writeBarrier(ObjectReference src, int srcOffset,
+				    ObjectReference dst, int dstOffset,
 				    int bytes) 
     throws InlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
@@ -658,7 +659,7 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    *
    * @param src The object being mutated.
    */
-  private final void writeBarrierSlow(Address src) 
+  private final void writeBarrierSlow(ObjectReference src) 
     throws NoInlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!isNurseryObject(src));
     if (RefCountSpace.attemptToLog(src)) {
@@ -732,8 +733,8 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    */
   public final void enumerateModifiedPointerLocation(Address objLoc)
     throws InlinePragma {
-    Address object = objLoc.loadAddress();
-    if (!object.isZero()) {
+    ObjectReference object = objLoc.loadObjectReference();
+    if (!object.isNull()) {
       if (Space.isInSpace(NS, object))
         remset.push(objLoc);
       else if (isRCObject(object))
@@ -762,9 +763,9 @@ public class GenRC extends RefCountBase implements Uninterruptible {
    * @param object An object reference
    * @return True if the object resides within the nursery
    */
-  static final boolean isNurseryObject(Address object)
+  static final boolean isNurseryObject(ObjectReference object)
     throws InlinePragma {
-    if (object.isZero()) 
+    if (object.isNull()) 
       return false;
     else 
       return Space.isInSpace(NS, object);

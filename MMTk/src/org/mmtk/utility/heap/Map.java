@@ -86,8 +86,9 @@ public class Map implements Constants, Uninterruptible {
    * @param object The object in question
    * @return The space in which the object resides
    */
-  public static Space getSpaceForObject(Address object) throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+  public static Space getSpaceForObject(ObjectReference object)
+    throws InlinePragma {
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     return getSpaceForAddress(ObjectModel.refToAddress(object));
   }
 
@@ -110,9 +111,9 @@ public class Map implements Constants, Uninterruptible {
    * @return The space descriptor for the space in which the object
    * resides
    */
-  public static int getDescriptorForObject(Address object)
+  public static int getDescriptorForObject(ObjectReference object)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     int index = hashAddress(ObjectModel.refToAddress(object));
     return Barriers.getArrayNoBarrier(descriptorMap, index);
   }

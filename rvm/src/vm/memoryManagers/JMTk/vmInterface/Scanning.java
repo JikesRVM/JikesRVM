@@ -64,7 +64,7 @@ public class Scanning implements Constants, VM_Constants, Uninterruptible {
    *
    * @param object The object to be scanned.
    */
-  public static void scanObject(Address object) 
+  public static void scanObject(ObjectReference object) 
     throws UninterruptiblePragma, InlinePragma {
     // Never reached
     if (VM.VerifyAssertions) VM._assert(false);
@@ -79,7 +79,7 @@ public class Scanning implements Constants, VM_Constants, Uninterruptible {
    * @param enum the Enumerate object through which the callback
    * is made
    */
-  public static void enumeratePointers(Address object, Enumerate enum) 
+  public static void enumeratePointers(ObjectReference object, Enumerate enum) 
     throws UninterruptiblePragma, InlinePragma {
     // Never reached
     if (VM.VerifyAssertions) VM._assert(false);
@@ -144,7 +144,7 @@ public class Scanning implements Constants, VM_Constants, Uninterruptible {
    */
   private static void enumeratePointers(Object object, Enumerate enum) 
     throws UninterruptiblePragma, InlinePragma {
-    Scan.enumeratePointers(VM_Magic.objectAsAddress(object), enum);
+    Scan.enumeratePointers(ObjectReference.fromObject(object), enum);
   }
 
  /**

@@ -151,9 +151,8 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Address ref, Address typeRef, int bytes,
-                              int allocator)
-    throws InlinePragma {
+  public final void postAlloc(ObjectReference ref, ObjectReference typeRef, 
+			      int bytes, int allocator) throws InlinePragma {
     switch (allocator) {
     case  ALLOC_NURSERY: return;
     case      ALLOC_LOS: loSpace.initializeHeader(ref); return;
@@ -174,9 +173,8 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  public final Address allocCopy(Address original, int bytes,
-                                    int align, int offset)
-    throws InlinePragma {
+  public final Address allocCopy(ObjectReference original, int bytes,
+				 int align, int offset) throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
     return ms.alloc(bytes, align, offset, true);
   }
@@ -188,8 +186,8 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(Address ref, Address typeRef, int bytes)
-    throws InlinePragma {
+  public final void postCopy(ObjectReference ref, ObjectReference typeRef,
+			     int bytes) throws InlinePragma {
     msSpace.writeMarkBit(ref);
     MarkSweepLocal.liveObject(ref);
   }
@@ -384,8 +382,8 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address object) {
-    if (object.isZero()) 
+  public static final ObjectReference traceObject(ObjectReference object) {
+    if (object.isNull()) 
       return object;
     else
       return Space.getSpaceForObject(object).traceObject(object);
@@ -402,7 +400,8 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * in a root.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address obj, boolean root) {
+  public static final ObjectReference traceObject(ObjectReference obj,
+						  boolean root) {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
 
@@ -413,7 +412,7 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    *
    * @param object The object to be scanned.
    */
-  protected final void scanForwardedObject(Address object) {
+  protected final void scanForwardedObject(ObjectReference object) {
     Scan.scanObject(object);
   }
 
@@ -429,8 +428,8 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    */
   public static void forwardObjectLocation(Address location) 
     throws InlinePragma {
-    Address object = location.loadAddress();
-    if (!object.isZero() && Space.isInSpace(NS, object))
+    ObjectReference object = location.loadObjectReference();
+    if (!object.isNull() && Space.isInSpace(NS, object))
       location.store(CopySpace.forwardObject(object));
   }
 
@@ -441,8 +440,8 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @param object The object which may have been forwarded.
    * @return The forwarded value for <code>object</code>.
    */
-  public static final Address getForwardedReference(Address object) {
-    if (!object.isZero()) {
+  public static final ObjectReference getForwardedReference(ObjectReference object) {
+    if (!object.isNull()) {
       if (Space.isInSpace(NS, object)) {
         if (Assert.VERIFY_ASSERTIONS) Assert._assert(CopySpace.isForwarded(object));
         return CopySpace.getForwardingPointer(object);
@@ -457,8 +456,8 @@ public class CopyMS extends StopTheWorldGC implements Uninterruptible {
    * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(Address object) {
-    if (object.isZero()) return false;
+  public static final boolean isLive(ObjectReference object) {
+    if (object.isNull()) return false;
     Space space = Space.getSpaceForObject(object);
     if (space == nurserySpace)
       return nurserySpace.isLive(object);

@@ -107,12 +107,13 @@ public final class RawPageSpace extends Space
    * @param object The object to be traced.
    * @return <code>zero</code>: calling this is an error.
    */
-  public final Address traceObject(Address object) throws InlinePragma {
+  public final ObjectReference traceObject(ObjectReference object) 
+    throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
-    return Address.zero();
+    return ObjectReference.nullReference();
   }
 
-  public final boolean isLive(Address obj) {
+  public final boolean isLive(ObjectReference object) {
     return true;
   }
 }

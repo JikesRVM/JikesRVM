@@ -113,13 +113,15 @@ public final class LazyMmapper implements Constants, Uninterruptible {
     lock.release();
   }
 
-  public static boolean addrIsMapped (Address addr) throws UninterruptiblePragma {
+  public static boolean addressIsMapped(Address addr) 
+    throws UninterruptiblePragma {
     int chunk = Conversions.addressToMmapChunksDown(addr);
     return mapped[chunk] == MAPPED;
   }
 
-  public static boolean refIsMapped (Address ref) throws UninterruptiblePragma {
-    return addrIsMapped(ObjectModel.refToAddress(ref));
+  public static boolean objectIsMapped(ObjectReference object) 
+    throws UninterruptiblePragma {
+    return addressIsMapped(ObjectModel.refToAddress(object));
   }
 
   /****************************************************************************

@@ -706,6 +706,10 @@ public class VM extends VM_Properties
     //-#endif
   }
 
+  public static void writeHex(ObjectReference value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
+    writeHex(value.toAddress());
+  }
+
   public static void writeHex(Extent value) throws NoInlinePragma /* don't waste code space inlining these --dave */ {
     //-#if RVM_FOR_64_ADDR
     writeHex(value.toLong()); 
@@ -816,6 +820,10 @@ public class VM extends VM_Properties
     writeHex(addr);
   }
 
+  public static void write (ObjectReference object) { 
+    writeHex(object);
+  }
+
   public static void write (Offset addr) { 
     writeHex(addr);
   }
@@ -849,6 +857,8 @@ public class VM extends VM_Properties
   public static void sysWrite   (char [] c, int l)     throws NoInlinePragma { swLock(); write(c, l); swUnlock(); }
   public static void sysWrite   (Address a)         throws NoInlinePragma { swLock(); write(a); swUnlock(); }
   public static void sysWriteln (Address a)         throws NoInlinePragma { swLock(); write(a); writeln(); swUnlock(); }
+  public static void sysWrite   (ObjectReference o) throws NoInlinePragma { swLock(); write(o); swUnlock(); }
+  public static void sysWriteln (ObjectReference o)         throws NoInlinePragma { swLock(); write(o); writeln(); swUnlock(); }
   public static void sysWrite   (Offset o)          throws NoInlinePragma { swLock(); write(o); swUnlock(); }
   public static void sysWriteln (Offset o)          throws NoInlinePragma { swLock(); write(o); writeln(); swUnlock(); }
   public static void sysWrite   (Word w)            throws NoInlinePragma { swLock(); write(w); swUnlock(); }
@@ -878,6 +888,8 @@ public class VM extends VM_Properties
   public static void sysWriteln (String s1, String s2)      throws NoInlinePragma { swLock(); write(s1);  write(s2); writeln(); swUnlock(); }
   public static void sysWrite   (String s, Address a)    throws NoInlinePragma { swLock(); write(s);   write(a); swUnlock(); }
   public static void sysWriteln (String s, Address a)    throws NoInlinePragma { swLock(); write(s);   write(a); writeln(); swUnlock(); }
+  public static void sysWrite (String s, ObjectReference r)    throws NoInlinePragma { swLock(); write(s);   write(r); swUnlock(); }
+  public static void sysWriteln (String s, ObjectReference r)    throws NoInlinePragma { swLock(); write(s);   write(r); writeln(); swUnlock(); }
   public static void sysWrite   (String s, Offset o)    throws NoInlinePragma { swLock(); write(s);   write(o); swUnlock(); }
   public static void sysWriteln (String s, Offset o)    throws NoInlinePragma { swLock(); write(s);   write(o); writeln(); swUnlock(); }
   public static void sysWrite   (String s, Word w)       throws NoInlinePragma { swLock(); write(s);   write(w); swUnlock(); }

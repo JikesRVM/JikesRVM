@@ -80,11 +80,12 @@ public final class MMType implements Constants, Uninterruptible {
    * into an array
    * @return The address of the relevant slot within the object
    */
-  Address getSlot(Address object, int reference) throws InlinePragma {
+  Address getSlot(ObjectReference object, int reference) throws InlinePragma {
+    Address addr = object.toAddress();
     if (isReferenceArray)
-      return object.add(arrayOffset).add(reference << LOG_BYTES_IN_ADDRESS);
+      return addr.add(arrayOffset).add(reference << LOG_BYTES_IN_ADDRESS);
     else
-      return object.add(offsets[reference]);
+      return addr.add(offsets[reference]);
   }
 
   /**
@@ -95,7 +96,7 @@ public final class MMType implements Constants, Uninterruptible {
    * @param object The object in question
    * @return The number of references in the object
    */
-  int getReferences(Address object) throws InlinePragma {
+  int getReferences(ObjectReference object) throws InlinePragma {
     if (isReferenceArray)
       return ObjectModel.getArrayLength(object);
     else

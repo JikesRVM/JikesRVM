@@ -128,6 +128,7 @@ public final class LargeObjectLocal extends LargeObjectAllocator
    *
    * Miscellaneous size-related methods
    */
+
   /**
    * Return the size of the per-superpage header required by this
    * system.  In this case it is just the underlying superpage header

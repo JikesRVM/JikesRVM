@@ -101,18 +101,18 @@ public class ScanThread implements VM_Constants, Uninterruptible {
        * of the special interior pointers (SP, FP).  If we implement
        * split C & Java stacks then we could allow the Java stacks to
        * be moved, but we can't move the native stack. */
-      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));
+      VM._assert(Plan.willNotMove(ObjectReference.fromObject(t.stack)));
     }                             
 
     if (VM.VerifyAssertions) {
-      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t)));
-      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.stack)));
-      VM._assert(t.jniEnv == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv)));
-      VM._assert(t.jniEnv == null || t.jniEnv.refsArray() == null || Plan.willNotMove(VM_Magic.objectAsAddress(t.jniEnv.refsArray())));
-      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters)));
-      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.contextRegisters.gprs)));
-      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters)));
-      VM._assert(Plan.willNotMove(VM_Magic.objectAsAddress(t.hardwareExceptionRegisters.gprs)));
+      VM._assert(Plan.willNotMove(ObjectReference.fromObject(t)));
+      VM._assert(Plan.willNotMove(ObjectReference.fromObject(t.stack)));
+      VM._assert(t.jniEnv == null || Plan.willNotMove(ObjectReference.fromObject(t.jniEnv)));
+      VM._assert(t.jniEnv == null || t.jniEnv.refsArray() == null || Plan.willNotMove(ObjectReference.fromObject(t.jniEnv.refsArray())));
+      VM._assert(Plan.willNotMove(ObjectReference.fromObject(t.contextRegisters)));
+      VM._assert(Plan.willNotMove(ObjectReference.fromObject(t.contextRegisters.gprs)));
+      VM._assert(Plan.willNotMove(ObjectReference.fromObject(t.hardwareExceptionRegisters)));
+      VM._assert(Plan.willNotMove(ObjectReference.fromObject(t.hardwareExceptionRegisters.gprs)));
     }
 
     // all threads in "unusual" states, such as running threads in
@@ -136,10 +136,10 @@ public class ScanThread implements VM_Constants, Uninterruptible {
   static VM_Thread failed = null;
 
   private static void codeLocationsPush (AddressPairDeque codeLocations,
-                                         Address code, Address ipLoc, 
+                                         ObjectReference code, Address ipLoc, 
                                          int where, VM_Thread t) {
     Address ip = ipLoc.loadAddress();
-    Offset offset = ip.diff(code);
+    Offset offset = ip.diff(code.toAddress());
     if (offset.sLT(Offset.zero()) || offset.sGT(Offset.fromIntZeroExtend(1<<24))) {  // There is probably no object this large
         VM.sysWriteln("ERROR: Suspiciously large delta of interior pointer from object base");
         VM.sysWriteln("       object base = ", code);
@@ -150,7 +150,7 @@ public class ScanThread implements VM_Constants, Uninterruptible {
         if (failed == null) failed = t;
         // VM._assert(false);
     }
-    codeLocations.push(code, ipLoc);
+    codeLocations.push(code.toAddress(), ipLoc);
   }
 
 
@@ -168,9 +168,9 @@ public class ScanThread implements VM_Constants, Uninterruptible {
     VM.sysWriteln();
     VM.sysWrite("--- fp = ", fp);
     if (compiledMethod.isCompiled()) {
-        Address codeBase = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+        ObjectReference codeBase = ObjectReference.fromObject(compiledMethod.getInstructions());
         VM.sysWrite("     code base = ", codeBase);
-	VM.sysWriteln("     code offset = ", ip.diff(codeBase));
+	VM.sysWriteln("     code offset = ", ip.diff(codeBase.toAddress()));
     }
     else
       VM.sysWriteln("   Method is uncompiled - ip = ", ip);
@@ -201,7 +201,7 @@ public class ScanThread implements VM_Constants, Uninterruptible {
       VM_CompiledMethod compiledMethod = VM_CompiledMethods.findMethodForInstruction(ip);
       if (VM.VerifyAssertions) VM._assert(compiledMethod != null);
       compiledMethod.setObsolete( false );
-      Address code = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+      ObjectReference code = ObjectReference.fromObject(compiledMethod.getInstructions());
       Address ipLoc = t.hardwareExceptionRegisters.getIPLocation();
       codeLocationsPush(codeLocations, code, ipLoc, 1, t);
     }
@@ -297,7 +297,7 @@ public class ScanThread implements VM_Constants, Uninterruptible {
             }
             VM.sysWrite("\tSupposed method: ");
             VM.sysWrite(method);
-            VM.sysWriteln("\n\tBase of its code array", VM_Magic.objectAsAddress(codeArray));
+            VM.sysWriteln("\n\tBase of its code array", ObjectReference.fromObject(codeArray));
             Address ra = VM_Magic.objectAsAddress(codeArray).add(offset);
             VM.sysWriteln("\tCalculated actual return address is ", ra);
             VM_CompiledMethod realCM = VM_CompiledMethods.findMethodForInstruction(ra);
@@ -326,7 +326,7 @@ public class ScanThread implements VM_Constants, Uninterruptible {
              refaddr = iterator.getNextReferenceAddress()) {
           
           if (VM.VerifyAssertions && VALIDATE_STACK_REFS) {
-            Address ref = refaddr.loadAddress();
+            ObjectReference ref = refaddr.loadObjectReference();
             if (!MM_Interface.validRef(ref)) {
               VM.sysWrite("\nInvalid ref reported while scanning stack\n");
               printMethodHeader(compiledMethod, fp, ip);
@@ -342,7 +342,7 @@ public class ScanThread implements VM_Constants, Uninterruptible {
             }
           }
           if (DUMP_STACK >= 3) {
-            Address ref = refaddr.loadAddress();
+            ObjectReference ref = refaddr.loadObjectReference();
             VM.sysWrite(refaddr); 
             if (DUMP_STACK >= 4) {
                 VM.sysWrite(":"); MM_Interface.dumpRef(ref);
@@ -361,7 +361,7 @@ public class ScanThread implements VM_Constants, Uninterruptible {
         // NOT updated at this time, so that other invocations of the same
         // method can use the original address to compute the relocation delta.
         //
-        Address code = VM_Magic.objectAsAddress(compiledMethod.getInstructions());
+        ObjectReference code = ObjectReference.fromObject(compiledMethod.getInstructions());
 
         if (prevFp.isZero()) {
           // top-most stack frame, ip saved in threads context regs
@@ -466,10 +466,10 @@ public class ScanThread implements VM_Constants, Uninterruptible {
     for (Address loc = start; loc.LT(end); loc = loc.add(BYTES_IN_ADDRESS)) {
       VM.sysWrite(loc); VM.sysWrite(" (");
       VM.sysWrite(loc.diff(start).toInt(), "):  ");
-      Address value = loc.loadAddress();
+      ObjectReference value = loc.loadObjectReference();
       VM.sysWrite(" ", value);
       VM.sysWrite(" ");
-      if (DUMP_STACK >= 3 && MM_Interface.refInVM(value) && loc.NE(start) && loc.NE(end) )
+      if (DUMP_STACK >= 3 && MM_Interface.objectInVM(value) && loc.NE(start) && loc.NE(end) )
         MM_Interface.dumpRef(value);
       else
         VM.sysWrite("\n");

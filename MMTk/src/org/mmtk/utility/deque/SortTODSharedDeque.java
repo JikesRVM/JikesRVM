@@ -43,6 +43,6 @@ final public class SortTODSharedDeque extends SortSharedDeque
    * @return The value of the sorting key for this object
    */
   protected final Word getKey(Address obj) {
-    return TraceInterface.getDeathTime(obj);
+    return TraceInterface.getDeathTime(obj.toObjectReference());
   }
 }

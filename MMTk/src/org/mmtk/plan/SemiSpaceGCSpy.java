@@ -351,8 +351,8 @@ public class SemiSpaceGCSpy extends SemiSpaceBase implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Address object, Address typeRef, int bytes,
-                              int allocator)
+  public final void postAlloc(Address object, ObjectReference typeRef, 
+                              int bytes, int allocator)
     throws InlinePragma {
     switch (allocator) {
     case  DEFAULT_SPACE:

@@ -119,22 +119,22 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
     }
   }
 
-  public static void updateDeathTime(Object ref) {
+  public static void updateDeathTime(Object object) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      VM_Magic.objectAsAddress(ref).store(time, OBJECT_DEATH_OFFSET);
+      VM_Magic.objectAsAddress(object).store(time, OBJECT_DEATH_OFFSET);
   }
 
-  public static void setDeathTime(Address ref, Word time_) {
+  public static void setDeathTime(Object object, Word time_) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      ref.store(time_, OBJECT_DEATH_OFFSET);
+      VM_Magic.objectAsAddress(object).store(time_, OBJECT_DEATH_OFFSET);
   }
 
-  public static void setLink(Address ref, Address link) {
+  public static void setLink(Object object, ObjectReference link) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      ref.store(link, OBJECT_LINK_OFFSET);
+      VM_Magic.objectAsAddress(object).store(link, OBJECT_LINK_OFFSET);
   }
 
   public static void updateTime(Word time_) {
@@ -142,29 +142,29 @@ public final class VM_MiscHeader implements Uninterruptible, VM_Constants {
     time = time_;
   }
 
-  public static Word getOID(Address ref) {
+  public static Word getOID(Object object) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      return ref.add(OBJECT_OID_OFFSET).loadWord();
+      return VM_Magic.objectAsAddress(object).add(OBJECT_OID_OFFSET).loadWord();
     else
       return Word.zero();
   }
 
-  public static Word getDeathTime(Object ref) {
+  public static Word getDeathTime(Object object) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      return VM_Magic.objectAsAddress(ref).add(OBJECT_DEATH_OFFSET).loadWord();
+      return VM_Magic.objectAsAddress(object).add(OBJECT_DEATH_OFFSET).loadWord();
     else
       return Word.zero();
   }
 
-  public static Address getLink(Object ref) {
+  public static ObjectReference getLink(Object ref) {
     if (VM.VerifyAssertions) VM._assert(VM.CompileForGCTracing);
     if (VM.CompileForGCTracing)
-      return VM_Magic.objectAsAddress(VM_Magic.getObjectAtOffset(ref,
+      return ObjectReference.fromObject(VM_Magic.getObjectAtOffset(ref,
 							       OBJECT_LINK_OFFSET.toInt()));
     else
-      return Address.zero();
+      return ObjectReference.nullReference();
   }
 
   public static Address getBootImageLink() {

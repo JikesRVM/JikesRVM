@@ -39,8 +39,8 @@ public class RCSanityEnumerator extends Enumerate
    */
   public void enumeratePointerLocation(Address location) 
     throws InlinePragma {
-    Address object = location.loadAddress();
-    if (!object.isZero()) {
+    ObjectReference object = location.loadObjectReference();
+    if (!object.isNull()) {
       rc.sanityTraceEnqueue(object, location);
     }
   }

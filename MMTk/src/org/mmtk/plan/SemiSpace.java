@@ -62,8 +62,8 @@ public class SemiSpace extends SemiSpaceBase implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Address object, Address typeRef, int bytes,
-                              int allocator)
+  public final void postAlloc(ObjectReference object, ObjectReference typeRef, 
+                              int bytes, int allocator)
     throws InlinePragma {
     switch (allocator) {
     case  ALLOC_DEFAULT: return;
@@ -84,7 +84,7 @@ public class SemiSpace extends SemiSpaceBase implements Uninterruptible {
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  public final Address allocCopy(Address original, int bytes, 
+  public final Address allocCopy(ObjectReference original, int bytes, 
                                     int align, int offset) 
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
@@ -100,9 +100,9 @@ public class SemiSpace extends SemiSpaceBase implements Uninterruptible {
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(Address object, Address typeRef, int bytes)
+  public final void postCopy(ObjectReference object, ObjectReference typeRef,
+                             int bytes)
   throws InlinePragma {
     CopySpace.clearGCBits(object);
   }
-
 }

@@ -68,30 +68,36 @@ import org.vmmagic.pragma.*;
  * used directly in the base+offset subscript calculation, with no
  * additional constant required.<p>
  *
- * This model allows free null pointer checking for most reads: a small offset from 
- * that reference will wrap around to either very high or very low unmapped memory 
- * in the case of a null pointer. As long as these segments of memory are not 
- * mapped to the current process, loads/stores through such a pointer will cause a 
- * trap that we can catch with a unix signal handler.<p>
+ * This model allows free null pointer checking for most reads: a
+ * small offset from that reference will wrap around to either very
+ * high or very low unmapped memory in the case of a null pointer. As
+ * long as these segments of memory are not mapped to the current
+ * process, loads/stores through such a pointer will cause a trap that
+ * we can catch with a unix signal handler.<p>
  * 
- * Note that on AIX we are forced to perform explicit null checks on scalar field accesses 
- * as we are unable to protect low memory.
+ * Note that on AIX we are forced to perform explicit null checks on
+ * scalar field accesses as we are unable to protect low memory.
  * 
  * Note the key invariant that all elements of the header are 
  * available at the same offset from an objref for both arrays and 
  * scalar objects.
  * 
- * Note that this model allows for arbitrary growth of the GC header to the left of the object. 
- * A possible TODO item is to modify the necessary interfaces within this class and JavaHeader 
- * to allow moveObject, bytesUsed, bytesRequiredWhenCopied, etc. to tell this class how many
- * GC header bytes have been allocated. As these calls would be constant within the constant of 
- * the call the optimising compiler should be able to allow this at minimal cost.
+ * Note that this model allows for arbitrary growth of the GC header
+ * to the left of the object.  A possible TODO item is to modify the
+ * necessary interfaces within this class and JavaHeader to allow
+ * moveObject, bytesUsed, bytesRequiredWhenCopied, etc. to tell this
+ * class how many GC header bytes have been allocated. As these calls
+ * would be constant within the constant of the call the optimising
+ * compiler should be able to allow this at minimal cost.
  *
- * Another possible TODO item is to include support for linear scanning, where it is possible to 
- * move from one object to the next under contiguous allocation. At the moment this is in conflict
- * with object alignment code for objects with long/double fields. We could possibly include the 
- * code anyway but require that the alignment code is switched off, or that all objects are aligned.
- * Linear scanning is used in several GC algorithms including card-marking and compaction.
+ * Another possible TODO item is to include support for linear
+ * scanning, where it is possible to move from one object to the next
+ * under contiguous allocation. At the moment this is in conflict with
+ * object alignment code for objects with long/double fields. We could
+ * possibly include the code anyway but require that the alignment
+ * code is switched off, or that all objects are aligned.  Linear
+ * scanning is used in several GC algorithms including card-marking
+ * and compaction.
  *  
  * @see VM_JavaHeader
  * @see VM_MiscHeader
@@ -167,7 +173,7 @@ public final class VM_ObjectModel implements Uninterruptible,
    * Given a reference, return an address which is guaranteed to be inside
    * the memory region allocated to the object.
    */
-  public static Address getPointerInMemoryRegion(Address ref) {
+  public static Address getPointerInMemoryRegion(ObjectReference ref) {
     return VM_JavaHeader.getPointerInMemoryRegion(ref);
   }
 
@@ -182,8 +188,8 @@ public final class VM_ObjectModel implements Uninterruptible,
   /**
    * Get the TIB for an object.
    */
-  public static Object[] getTIB(Address ptr) { 
-    return getTIB(VM_Magic.addressAsObject(ptr)); 
+  public static Object[] getTIB(ObjectReference ptr) { 
+    return getTIB(ptr.toObject()); 
   }
 
   /**
@@ -196,8 +202,8 @@ public final class VM_ObjectModel implements Uninterruptible,
   /**
    * Set the TIB for an object.
    */
-  public static void setTIB(Address ptr, Object[] tib) {
-    setTIB(VM_Magic.addressAsObject(ptr),tib);
+  public static void setTIB(ObjectReference ptr, Object[] tib) {
+    setTIB(ptr.toObject(), tib);
   }
 
   /**
@@ -211,42 +217,43 @@ public final class VM_ObjectModel implements Uninterruptible,
    * Set the TIB for an object.
    */
   public static void setTIB(BootImageInterface bootImage, int refOffset, 
-                            Address tibAddr, VM_Type type) throws InterruptiblePragma {
+                            Address tibAddr, VM_Type type)
+    throws InterruptiblePragma {
     VM_JavaHeader.setTIB(bootImage, refOffset, tibAddr, type);
   }
 
   /**
    * Process the TIB field during copyingGC
    */
-  public static void gcProcessTIB(Address ref) {
+  public static void gcProcessTIB(ObjectReference ref) {
     VM_JavaHeader.gcProcessTIB(ref);
   }
 
  /**
    * Get an object reference from the address the lowest word of the object was allocated.
    */
-  public static Address getObjectFromStartAddress(Address start) {
+  public static ObjectReference getObjectFromStartAddress(Address start) {
     return VM_JavaHeader.getObjectFromStartAddress(start);
   }
 
   /**
    * Get an object reference from the address the lowest word of the object was allocated.
    */
-  public static Address getScalarFromStartAddress(Address start) {
+  public static ObjectReference getScalarFromStartAddress(Address start) {
     return VM_JavaHeader.getScalarFromStartAddress(start);
   }
 
   /**
    * Get an object reference from the address the lowest word of the object was allocated.
    */
-  public static Address getArrayFromStartAddress(Address start) {
+  public static ObjectReference getArrayFromStartAddress(Address start) {
     return VM_JavaHeader.getArrayFromStartAddress(start);
   }
 
   /**
    * Get the next object in the heap under contiguous allocation. 
    */
-  public static Address getNextObject(Address obj) {
+  public static ObjectReference getNextObject(ObjectReference obj) {
     Object[] tib = getTIB(obj);
     VM_Type type = VM_Magic.objectAsType(tib[VM_TIBLayoutConstants.TIB_TYPE_INDEX]);
     if (type.isClassType()) {
@@ -260,14 +267,16 @@ public final class VM_ObjectModel implements Uninterruptible,
   /**
    * Get the next object after this scalar under contiguous allocation. 
    */
-  public static Address getNextObject(Address obj, VM_Class type) {
+  public static ObjectReference getNextObject(ObjectReference obj,
+					      VM_Class type) {
     return VM_JavaHeader.getNextObject(obj, type);
   }
 
   /**
    * Get the next object after this array under contiguous allocation. 
   */
-  public static Address getNextObject(Address obj, VM_Array type, int numElements) {
+  public static ObjectReference getNextObject(ObjectReference obj,
+					      VM_Array type, int numElements) {
     return VM_JavaHeader.getNextObject(obj, type, numElements);
   }
  
@@ -331,7 +340,8 @@ public final class VM_ObjectModel implements Uninterruptible,
    * Map from the object ref to the lowest address of the storage
    * associated with the object
    */
-  public static Address objectStartRef(Address obj) throws InlinePragma {
+  public static Address objectStartRef(ObjectReference obj) 
+    throws InlinePragma {
     return VM_JavaHeader.objectStartRef(obj);
   }
 
@@ -618,7 +628,7 @@ public final class VM_ObjectModel implements Uninterruptible,
    * @param t VM_Class instance being copied
    * @param obj the object being copied
    */
-  public static int getOffsetForAlignment(VM_Class t, Address obj) {
+  public static int getOffsetForAlignment(VM_Class t, ObjectReference obj) {
     return VM_JavaHeader.getOffsetForAlignment(t, obj);
   }
 
@@ -637,7 +647,7 @@ public final class VM_ObjectModel implements Uninterruptible,
    * @param t VM_Array instance being copied
    * @param obj the object being copied
    */
-  public static int getOffsetForAlignment(VM_Array t, Address obj) {
+  public static int getOffsetForAlignment(VM_Array t, ObjectReference obj) {
     return VM_JavaHeader.getOffsetForAlignment(t, obj);
   }
 
@@ -727,8 +737,8 @@ public final class VM_ObjectModel implements Uninterruptible,
    * Dump the header word(s) of the given object reference.
    * @param ptr the object reference whose header should be dumped 
    */
-  public static void dumpHeader(Address ptr) {
-    dumpHeader(VM_Magic.addressAsObject(ptr));
+  public static void dumpHeader(ObjectReference ptr) {
+    dumpHeader(ptr.toObject());
   }
 
   /**
@@ -747,8 +757,8 @@ public final class VM_ObjectModel implements Uninterruptible,
   /**
    * For debugging.
    */
-  public static void describeObject(Address addr) {
-    Object obj = VM_Magic.addressAsObject(addr);
+  public static void describeObject(ObjectReference addr) {
+    Object obj = addr.toObject();
     VM_Type type = VM_Magic.getObjectType(obj);
     VM.sysWrite(type.getDescriptor());
   }

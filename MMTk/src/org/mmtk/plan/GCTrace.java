@@ -170,8 +170,8 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Address object, Address typeRef, int bytes,
-			      int allocator)
+  public final void postAlloc(ObjectReference object, ObjectReference typeRef, 
+			      int bytes, int allocator)
     throws InlinePragma {
     /* Make the trace generator aware of the new object. */
     TraceGenerator.addTraceObject(object, allocator);
@@ -198,7 +198,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  public final Address allocCopy(Address original, int bytes, 
+  public final Address allocCopy(ObjectReference original, int bytes, 
 				    int align, int offset) 
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
@@ -213,8 +213,8 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(Address object, Address typeRef, int bytes) 
-    throws InlinePragma {
+  public final void postCopy(ObjectReference object, ObjectReference typeRef,
+			     int bytes) throws InlinePragma {
     CopySpace.clearGCBits(object);
   } // do nothing
 
@@ -350,8 +350,9 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * cases, this should <i>NOT</i> be an interior pointer.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address object) throws InlinePragma {
-    if (object.isZero()) return object;
+  public static final ObjectReference traceObject(ObjectReference object)
+    throws InlinePragma {
+    if (object.isNull()) return object;
     if (traceInducedGC) {
       TraceGenerator.rootEnumerate(object);
       return object;
@@ -373,7 +374,8 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * in a root.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address object, boolean root) {
+  public static final ObjectReference traceObject(ObjectReference object,
+						  boolean root) {
     return traceObject(object);  // root or non-root is of no consequence here
   }
 
@@ -390,8 +392,8 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
   public static void forwardObjectLocation(Address location) 
     throws InlinePragma {
     if (traceInducedGC) {
-      Address object = location.loadAddress();
-      if (!object.isZero())
+      ObjectReference object = location.loadObjectReference();
+      if (!object.isNull())
         TraceGenerator.rootEnumerate(object);
     } else
       SemiSpaceBase.forwardObjectLocation(location);
@@ -403,8 +405,8 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static final boolean isLive(Address object) {
-    if (object.isZero()) return false;
+  public static final boolean isLive(ObjectReference object) {
+    if (object.isNull()) return false;
     if (traceInducedGC)
       return true;
     else
@@ -418,9 +420,9 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * @return True if <code>obj</code> is a reachable object;
    * unreachable objects may still be live, however
    */
-  public final boolean isReachable(Address object) {
+  public final boolean isReachable(ObjectReference object) {
     if (finalDead) return false;
-    if (object.isZero()) return false;
+    if (object.isNull()) return false;
     Space space = Space.getSpaceForObject(object);
     if (space == copySpace0)
       return ((hi) ? copySpace0.isLive(object) : true);
@@ -433,7 +435,7 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
   }
 
   // XXX Missing Javadoc comment.
-  public static boolean willNotMove(Address object) {
+  public static boolean willNotMove(ObjectReference object) {
     if (traceInducedGC)
       return true;
     else
@@ -461,10 +463,9 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * being modified
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
-  public final void writeBarrier(Address src, Address slot,
-                                 Address tgt, int metaDataA, 
-				 int metaDataB, int mode) 
-    throws InlinePragma {
+  public final void writeBarrier(ObjectReference src, Address slot,
+                                 ObjectReference tgt, int metaDataA, 
+				 int metaDataB, int mode) throws InlinePragma {
     TraceGenerator.processPointerUpdate(mode == PUTFIELD_WRITE_BARRIER,
                                         src, slot, tgt);
     Barriers.performWriteInBarrier(src, slot, tgt, metaDataA, metaDataB, mode);
@@ -488,15 +489,14 @@ public class GCTrace extends SemiSpaceBase implements Uninterruptible {
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public boolean writeBarrier(Address src, int srcOffset,
-			      Address dst, int dstOffset,
-			      int bytes) {
+  public boolean writeBarrier(ObjectReference src, int srcOffset,
+			      ObjectReference dst, int dstOffset, int bytes) {
     /* These names seem backwards, but are defined to be compatable with the
      * previous writeBarrier method. */
-    Address slot = dst.add(dstOffset);
-    Address tgtLoc = src.add(srcOffset);
+    Address slot = dst.toAddress().add(dstOffset);
+    Address tgtLoc = src.toAddress().add(srcOffset);
     for (int i = 0; i < bytes; i += BYTES_IN_ADDRESS) {
-      Address tgt = tgtLoc.loadAddress();
+      ObjectReference tgt = tgtLoc.loadObjectReference();
       TraceGenerator.processPointerUpdate(false, dst, slot, tgt);
       slot = slot.add(BYTES_IN_ADDRESS);
       tgtLoc = tgtLoc.add(BYTES_IN_ADDRESS);

@@ -172,10 +172,8 @@ public abstract class SegregatedFreeList extends Allocator
    * @return The address of the first word of <code>bytes</code>
    * contigious bytes of zeroed memory.
    */
-  public final Address allocFast(int bytes, int align, 
-                                    int offset, boolean inGC) 
-    throws InlinePragma {
-
+  public final Address allocFast(int bytes, int align, int offset,
+				 boolean inGC) throws InlinePragma {
     int alignedBytes = getMaximumAlignedSize(bytes, align);
     int sizeClass = getSizeClass(alignedBytes);
     Address cell = freeList.get(sizeClass);
@@ -220,9 +218,7 @@ public abstract class SegregatedFreeList extends Allocator
    * contigious bytes of zerod memory.
    */
   public final Address allocSlowOnce(int bytes, int align, int offset,
-                                        boolean inGC) 
-    throws NoInlinePragma {
-    
+				     boolean inGC) throws NoInlinePragma {
     Address cell = allocFast(bytes, align, offset, inGC);
     if (!cell.isZero()) 
       return cell;
@@ -342,8 +338,8 @@ public abstract class SegregatedFreeList extends Allocator
    * @param sizeClass The size class of the cell and block
    * @param nextFree The next cell in the free list
    */
-  public final void free(Address cell, Address block, 
-			 int sizeClass, Address nextFree)
+  public final void free(Address cell, Address block, int sizeClass, 
+			 Address nextFree)
     throws InlinePragma {
     Memory.zeroSmall(cell, Extent.fromIntZeroExtend(cellSize[sizeClass]));
     setNextCell(cell, nextFree);
@@ -515,8 +511,7 @@ public abstract class SegregatedFreeList extends Allocator
    */
 
   abstract protected boolean preserveFreeList();
-  abstract protected Address advanceToBlock(Address block, 
-                                               int sizeClass);
+  abstract protected Address advanceToBlock(Address block, int sizeClass);
 
   /**
    * Zero all of the current free list pointers, and refresh the
@@ -700,7 +695,7 @@ public abstract class SegregatedFreeList extends Allocator
    *
    * @param object The object whose live bit is to be set.
    */
-  public static final void liveObject(Address object)
+  public static final void liveObject(ObjectReference object)
     throws InlinePragma {
     liveAddress(ObjectModel.refToAddress(object), true);
   }
@@ -712,7 +707,7 @@ public abstract class SegregatedFreeList extends Allocator
    *
    * @param object The object whose live bit is to be set.
    */
-  public static final void unsyncLiveObject(Address object)
+  public static final void unsyncLiveObject(ObjectReference object)
     throws InlinePragma {
     liveAddress(ObjectModel.refToAddress(object), false);
   }
@@ -742,7 +737,7 @@ public abstract class SegregatedFreeList extends Allocator
    *
    * @param object The object whose live bit is to be cleared.
    */
-  protected static final void deadObject(Address object)
+  protected static final void deadObject(ObjectReference object)
     throws InlinePragma {
     deadAddress(ObjectModel.refToAddress(object));
   }

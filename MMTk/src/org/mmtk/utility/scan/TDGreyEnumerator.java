@@ -37,8 +37,7 @@ public class TDGreyEnumerator extends Enumerate implements Uninterruptible {
    *
    * @param location The address of the field being enumerated.
    */
-  public void enumeratePointerLocation(Address objLoc) 
-    throws InlinePragma {
-    td.enumerateGrey(objLoc.loadAddress());
+  public void enumeratePointerLocation(Address objLoc) throws InlinePragma {
+    td.enumerateGrey(objLoc.loadObjectReference());
   }
 }

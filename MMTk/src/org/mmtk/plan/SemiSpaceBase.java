@@ -321,8 +321,9 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static Address traceObject(Address object) throws InlinePragma {
-    if (object.isZero())
+  public static ObjectReference traceObject(ObjectReference object) 
+    throws InlinePragma {
+    if (object.isNull())
       return object;
     else if (Space.isInSpace(SS0, object))
       return hi ? copySpace0.forwardAndScanObject(object) : object;
@@ -337,14 +338,15 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param obj The object reference to be traced.  This is <i>NOT</i>
-   * an interior pointer.
+   * @param object The object reference to be traced.  This is
+   * <i>NOT</i> an interior pointer.
    * @param root True if this reference to <code>obj</code> was held
    * in a root.
    * @return The possibly moved reference.
    */
-  public static Address traceObject(Address obj, boolean root) {
-    return traceObject(obj);  // root or non-root is of no consequence here
+  public static ObjectReference traceObject(ObjectReference object,
+                                            boolean root) {
+    return traceObject(object);  // root or non-root is of no consequence here
   }
 
   /**
@@ -354,7 +356,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    *
    * @param object The object to be scanned.
    */
-  protected final void scanForwardedObject(Address object) {
+  protected final void scanForwardedObject(ObjectReference object) {
     Scan.scanObject(object);
   }
 
@@ -370,8 +372,8 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    */
   public static void forwardObjectLocation(Address location) 
     throws InlinePragma {
-    Address object = location.loadAddress();
-    if (!object.isZero()) {
+    ObjectReference object = location.loadObjectReference();
+    if (!object.isNull()) {
       if ((hi && Space.isInSpace(SS0, object)) || 
  	  (!hi && Space.isInSpace(SS1, object)))
  	location.store(CopySpace.forwardObject(object));
@@ -385,8 +387,8 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * @param object The object which may have been forwarded.
    * @return The forwarded value for <code>object</code>.
    */
-  public static final Address getForwardedReference(Address object) {
-    if (!object.isZero()) {
+  public static final ObjectReference getForwardedReference(ObjectReference object) {
+    if (!object.isNull()) {
       if ((hi && Space.isInSpace(SS0, object)) || 
           (!hi && Space.isInSpace(SS1, object))) {
 	if (Assert.VERIFY_ASSERTIONS) 
@@ -405,7 +407,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * @return True if the given reference is to an object that is within
    * one of the semi-spaces.
    */
-  public static final boolean isSemiSpaceObject(Address object) {
+  public static final boolean isSemiSpaceObject(ObjectReference object) {
     return Space.isInSpace(SS0, object) || Space.isInSpace(SS1, object);
   }
 
@@ -415,8 +417,8 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public static boolean isLive(Address object) {
-    if (object.isZero()) return false;
+  public static boolean isLive(ObjectReference object) {
+    if (object.isNull()) return false;
     Space space = Space.getSpaceForObject(object);
     if (space == copySpace0)
       return copySpace0.isLive(object);
@@ -438,7 +440,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
    * @param object
    * @return True if the object is either forwarded or being forwarded
    */
-  public static boolean isForwardedOrBeingForwarded(Address object) 
+  public static boolean isForwardedOrBeingForwarded(ObjectReference object) 
     throws InlinePragma {
     if (isSemiSpaceObject(object))
       return CopySpace.isForwardedOrBeingForwarded(object);
@@ -447,7 +449,7 @@ public class SemiSpaceBase extends StopTheWorldGC implements Uninterruptible {
   }
 
   // XXX Missing Javadoc comment.
-  public static boolean willNotMove (Address object) {
+  public static boolean willNotMove (ObjectReference object) {
     return (hi && !Space.isInSpace(SS0, object))
        || (!hi && !Space.isInSpace(SS1, object));  
   }

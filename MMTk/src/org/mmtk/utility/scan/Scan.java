@@ -29,7 +29,7 @@ public final class Scan implements Uninterruptible {
    *
    * @param object The object to be scanned.
    */
-  public static void scanObject(Address object) throws InlinePragma {
+  public static void scanObject(ObjectReference object) throws InlinePragma {
     MMType type = ObjectModel.getObjectType(object);
     if (!type.isDelegated()) {
       int references = type.getReferences(object);
@@ -50,7 +50,7 @@ public final class Scan implements Uninterruptible {
    * @param enum the Enumerate object through which the callback
    * is made
    */
-  public static void enumeratePointers(Address object, Enumerate enum) 
+  public static void enumeratePointers(ObjectReference object, Enumerate enum) 
     throws InlinePragma {
     MMType type = ObjectModel.getObjectType(object);
     if (!type.isDelegated()) {

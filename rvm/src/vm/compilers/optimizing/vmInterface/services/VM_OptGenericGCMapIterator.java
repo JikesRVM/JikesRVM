@@ -402,7 +402,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
     for (int i = firstReg; i <= lastReg; i++) {
       Address regLocation = registerLocations.get(i).toAddress();
       Address regValue = regLocation.loadAddress();
-      if (MM_Interface.refInVM(regValue)) {
+      if (MM_Interface.addressInVM(regValue)) {
         VM.sysWrite("  reg#", getCurrentRegister());
         VM.sysWrite(", location ==>", regLocation);
         VM.sysWriteln(", suspicious value ==>", regValue);
@@ -457,7 +457,7 @@ abstract class VM_OptGenericGCMapIterator extends VM_GCMapIterator
         VM.sysWrite("\n");
       }
 
-      if (MM_Interface.refInVM(ptr)) {
+      if (MM_Interface.addressInVM(ptr)) {
         VM.sysWrite("  spill location:");
         VM.sysWrite(i);
         VM.sysWrite(" contains a suspicious value ==>");

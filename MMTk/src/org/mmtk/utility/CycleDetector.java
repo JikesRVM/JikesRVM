@@ -16,5 +16,5 @@ abstract class CycleDetector implements Uninterruptible {
   public final static String Id = "$Id$"; 
 
   abstract boolean collectCycles(int count, boolean time);
-  abstract void possibleCycleRoot(Address object);
+  abstract void possibleCycleRoot(ObjectReference object);
 }

@@ -39,6 +39,8 @@ public class Finalizer implements Uninterruptible {
   private static int INITIAL_SIZE = 32768;
   private static double growthFactor = 2.0;
   private static Lock lock = new Lock("Finalizer");
+  /* Use an AddressArray rather than ObjectReference array to *avoid* this
+     being traced.  We don't want this array to keep the candiates alive */
   private static AddressArray candidate = AddressArray.create(INITIAL_SIZE);
   private static int candidateEnd;                            // candidate[0] .. candidate[candidateEnd-1] contains non-zero entries
   private static Object [] live = new Object[INITIAL_SIZE];
@@ -58,7 +60,8 @@ public class Finalizer implements Uninterruptible {
   //
   // (SJF: This method must NOT be inlined into an inlined allocation sequence, since it contains a lock!)
   //
-  public static final void addCandidate(Address item) throws NoInlinePragma, InterruptiblePragma  {
+  public static final void addCandidate(ObjectReference item)
+    throws NoInlinePragma, InterruptiblePragma  {
     lock.acquire();
 
     int origLength = candidate.length();
@@ -68,7 +71,7 @@ public class Finalizer implements Uninterruptible {
         newCandidate.set(i, candidate.get(i));
       candidate = newCandidate;
     }
-    candidate.set(candidateEnd++, item);
+    candidate.set(candidateEnd++, item.toAddress());
     lock.release();
   }
 
@@ -142,7 +145,7 @@ public class Finalizer implements Uninterruptible {
     while (cursor < candidateEnd) {
       Address cand = candidate.get(cursor);
       candidate.set(cursor, Address.zero());
-      addLive(ObjectModel.addressAsObject(cand));
+      addLive(cand.toObjectReference());
       cursor++;
     }
     
@@ -166,13 +169,13 @@ public class Finalizer implements Uninterruptible {
 
     while (cursor < candidateEnd) {
       Address cand = candidate.get(cursor);
-      boolean isFinalizable = Plan.isFinalizable(cand);
+      boolean isFinalizable = Plan.isFinalizable(cand.toObjectReference());
       if (isFinalizable) { // object died, enqueue for finalization
         candidate.set(cursor, Address.zero());
-        addLive(ObjectModel.addressAsObject(Plan.retainFinalizable(cand)));
+        addLive(Plan.retainFinalizable(cand.toObjectReference()).toObject());
         newFinalizeCount++;
       } else {             // live beforehand but possibly moved
-        candidate.set(cursor, Plan.getForwardedReference(cand));
+        candidate.set(cursor, Plan.getForwardedReference(cand.toObjectReference()).toAddress());
       }
       cursor++;
     }

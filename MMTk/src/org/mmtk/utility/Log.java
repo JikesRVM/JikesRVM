@@ -291,6 +291,15 @@ public class Log implements Constants, Uninterruptible {
   }
 
   /**
+   * writes an object reference, in hexademical.  It is zero-padded.
+   *
+   * @param o the object reference to be logged
+   */
+  public static void write(ObjectReference o) {
+    writeHex(o.toAddress().toWord(), BYTES_IN_ADDRESS);
+  }
+
+  /**
    * writes an offset, in hexademical.  It is zero-padded.
    *
    * @param o the offset to be logged
@@ -391,12 +400,22 @@ public class Log implements Constants, Uninterruptible {
   public static void writeln(Word w) { writeln(w, true); }
 
   /**
-   * writes an address, in hexademical, and a new-line, then flushes the buffer.
+   * writes an address, in hexademical, and a new-line, then flushes
+   * the buffer.
    * @see #write(Address)
    *
    * @param a the address to be logged
    */
   public static void writeln(Address a) { writeln(a, true); }
+
+  /**
+   * writes an object reference, in hexademical, and a new-line, then
+   * flushes the buffer.
+   * @see #write(ObjectReference)
+   *
+   * @param o the object reference to be logged
+   */
+  public static void writeln(ObjectReference o) { writeln(o, true); }
 
   /**
    * writes an offset, in hexademical, and a new-line, then flushes the buffer.
@@ -560,6 +579,19 @@ public class Log implements Constants, Uninterruptible {
    */
   public static void writeln(Address a, boolean flush) {
     write(a);
+    writelnWithFlush(flush);
+  }
+
+  /**
+   * writes an object reference, in hexademical, and a new-line, then
+   * optionally flushes the buffer.
+   * @see #write(ObjectReference)
+   *
+   * @param o the object reference to be logged
+   * @param flush if <code>true</code> then flushes the buffer
+   */
+  public static void writeln(ObjectReference o, boolean flush) {
+    write(o);
     writelnWithFlush(flush);
   }
 

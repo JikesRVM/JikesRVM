@@ -39,6 +39,6 @@ public class TDScanBlackEnumerator extends Enumerate implements Uninterruptible 
    */
   public void enumeratePointerLocation(Address objLoc) 
     throws InlinePragma {
-    td.enumerateScanBlack(objLoc.loadAddress());
+    td.enumerateScanBlack(objLoc.loadObjectReference());
   }
 }

@@ -151,27 +151,27 @@ public final class ImmortalSpace extends Space
   /**
    * test to see if the mark bit has the given value
    */
-  private static boolean testMarkBit(Address ref, Word value) {
-    return !(ObjectModel.readAvailableBitsWord(ref).and(value).isZero());
+  private static boolean testMarkBit(ObjectReference object, Word value) {
+    return !(ObjectModel.readAvailableBitsWord(object).and(value).isZero());
   }
 
   /**
    * write the given value in the mark bit.
    */
-  private static void writeMarkBit(Address ref, Word value) {
-    Word oldValue = ObjectModel.readAvailableBitsWord(ref);
+  private static void writeMarkBit(ObjectReference object, Word value) {
+    Word oldValue = ObjectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
-    ObjectModel.writeAvailableBitsWord(ref,newValue);
+    ObjectModel.writeAvailableBitsWord(object, newValue);
   }
 
   /**
    * atomically write the given value in the mark bit.
    */
-  private static void atomicWriteMarkBit(Address ref, Word value) {
+  private static void atomicWriteMarkBit(ObjectReference object, Word value) {
     while (true) {
-      Word oldValue = ObjectModel.prepareAvailableBits(ref);
+      Word oldValue = ObjectModel.prepareAvailableBits(object);
       Word newValue = oldValue.and(GC_MARK_BIT_MASK.not()).or(value);
-      if (ObjectModel.attemptAvailableBits(ref,oldValue,newValue)) break;
+      if (ObjectModel.attemptAvailableBits(object, oldValue, newValue)) break;
     }
   }
 
@@ -179,14 +179,15 @@ public final class ImmortalSpace extends Space
    * Used to mark boot image objects during a parallel scan of objects during GC
    * Returns true if marking was done.
    */
-  private static boolean testAndMark(Address ref, Word value) 
+  private static boolean testAndMark(ObjectReference object, Word value) 
     throws InlinePragma {
     Word oldValue;
     do {
-      oldValue = ObjectModel.prepareAvailableBits(ref);
+      oldValue = ObjectModel.prepareAvailableBits(object);
       Word markBit = oldValue.and(GC_MARK_BIT_MASK);
       if (markBit.EQ(value)) return false;
-    } while (!ObjectModel.attemptAvailableBits(ref,oldValue,oldValue.xor(GC_MARK_BIT_MASK)));
+    } while (!ObjectModel.attemptAvailableBits(object, oldValue,
+                                               oldValue.xor(GC_MARK_BIT_MASK)));
     return true;
   }
 
@@ -200,14 +201,14 @@ public final class ImmortalSpace extends Space
    *
    * @param object The object to be traced.
    */
-  public final Address traceObject(Address object) 
+  public final ObjectReference traceObject(ObjectReference object) 
     throws InlinePragma {
     if (testAndMark(object, immortalMarkState)) 
       Plan.enqueue(object);
     return object;
   }
 
-  public static void postAlloc (Address object) throws InlinePragma {
+  public static void postAlloc(ObjectReference object) throws InlinePragma {
     writeMarkBit (object, immortalMarkState);
   }
 
@@ -233,7 +234,7 @@ public final class ImmortalSpace extends Space
     Assert._assert(false);  // this policy only releases pages enmasse
   }
 
-  public final boolean isLive(Address obj) throws InlinePragma {
+  public final boolean isLive(ObjectReference object) throws InlinePragma {
     return true;
   }
 
@@ -243,12 +244,12 @@ public final class ImmortalSpace extends Space
    * immortal collector reachable and live are different, making this method
    * necessary.
    *
-   * @param ref The address of an object in immortal space to test
+   * @param object The address of an object in immortal space to test
    * @return True if <code>ref</code> may be a reachable object (e.g., having
    *         the current mark state).  While all immortal objects are live,
    *         some may be unreachable.
    */
-  public static boolean isReachable(Address ref) {
-    return (ObjectModel.readAvailableBitsWord(ref).and(GC_MARK_BIT_MASK).EQ(immortalMarkState));
+  public static boolean isReachable(ObjectReference object) {
+    return (ObjectModel.readAvailableBitsWord(object).and(GC_MARK_BIT_MASK).EQ(immortalMarkState));
   }
 }

@@ -46,11 +46,11 @@ public final class TraceGenerator
   private static TraceBuffer trace;
   private static boolean       traceBusy;     // If we are building the trace
   private static Word       lastGC;        // Last time GC was performed
-  private static AddressArray objectLinks; // Lists of active objs
+  private static ObjectReferenceArray objectLinks; // Lists of active objs
 
   /* Fields needed for Merlin lifetime analysis */
   private static SortTODSharedDeque workListPool;  // Holds objs to process
-  private static SortTODAddressStack worklist;     // Objs to process
+  private static SortTODObjectReferenceStack worklist;     // Objs to process
   private static Word    agePropagate;  // Death time propagating
 
 
@@ -80,7 +80,7 @@ public final class TraceGenerator
     /* Objects are only needed for merlin tracing */
     if (MERLIN_ANALYSIS) {
       workListPool = worklist_;
-      worklist = new SortTODAddressStack(workListPool);
+      worklist = new SortTODObjectReferenceStack(workListPool);
       workListPool.newClient();
     }
 
@@ -88,7 +88,7 @@ public final class TraceGenerator
     tracePool = trace_;
     trace = new TraceBuffer(tracePool);
     tracePool.newClient();
-    objectLinks = AddressArray.create(Space.MAX_SPACES);
+    objectLinks = ObjectReferenceArray.create(Space.MAX_SPACES);
   }
 
   /**
@@ -111,7 +111,7 @@ public final class TraceGenerator
    * @param ref The address of the object to be added to the linked list
    * @param linkSpace The region to which the object should be added
    */
-  public static final void addTraceObject(Address ref, int linkSpace) {
+  public static final void addTraceObject(ObjectReference ref, int linkSpace) {
     TraceInterface.setLink(ref, objectLinks.get(linkSpace));
     objectLinks.set(linkSpace, ref);
   }
@@ -142,11 +142,11 @@ public final class TraceGenerator
    */
   public static final void boot(Address bootStart) {
     Word nextOID = TraceInterface.getOID();
-    Address trav = TraceInterface.getBootImageLink().add(bootStart.toInt());
+    ObjectReference trav = TraceInterface.getBootImageLink().add(bootStart.toInt()).toObjectReference();
     objectLinks.set(ALLOC_BOOT, trav);
     /* Loop through all the objects within boot image */
-    while (!trav.isZero()) {
-      Address next = TraceInterface.getLink(trav);
+    while (!trav.isNull()) {
+      ObjectReference next = TraceInterface.getLink(trav);
       Word thisOID = TraceInterface.getOID(trav);
       /* Add the boot image object to the trace. */
       trace.push(TRACE_BOOT_ALLOC);
@@ -155,8 +155,8 @@ public final class TraceGenerator
       nextOID = thisOID;
       /* Move to the next object & adjust for starting address of 
 	 the bootImage */
-      if (!next.isZero()) {
-	next = next.add(bootStart.toInt());
+      if (!next.isNull()) {
+	next = next.toAddress().add(bootStart.toInt()).toObjectReference();
 	TraceInterface.setLink(trav, next);
       }
       trav = next;
@@ -174,16 +174,17 @@ public final class TraceGenerator
    * <code>tgt</code> will be stored
    * @param tgt The target of the pointer store
    */
-  public static void processPointerUpdate(boolean isScalar, Address src,
-					  Address slot, Address tgt)
+  public static void processPointerUpdate(boolean isScalar, 
+					  ObjectReference src,
+					  Address slot, ObjectReference tgt)
     throws NoInlinePragma {
     /* Assert that this isn't the result of tracing */
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!traceBusy);
 
     /* Process the old target potentially becoming unreachable, when needed. */
     if (MERLIN_ANALYSIS) {
-      Address oldTgt = slot.loadAddress();
-      if (!oldTgt.isZero())
+      ObjectReference oldTgt = slot.loadObjectReference();
+      if (!oldTgt.isNull())
 	TraceInterface.updateDeathTime(oldTgt);
     }
 
@@ -196,7 +197,7 @@ public final class TraceGenerator
       trace.push(TRACE_ARRAY_SET);
     trace.push(TraceInterface.getOID(src));
     trace.push(traceOffset.toWord());
-    if (tgt.isZero())
+    if (tgt.isNull())
       trace.push(Word.zero());
     else
       trace.push(TraceInterface.getOID(tgt));
@@ -212,8 +213,8 @@ public final class TraceGenerator
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the object being allocated
    */
-  public static final void traceAlloc(boolean isImmortal, Address ref, 
-				      Address typeRef, int bytes)
+  public static final void traceAlloc(boolean isImmortal, ObjectReference ref, 
+				      ObjectReference typeRef, int bytes)
     throws LogicallyUninterruptiblePragma, NoInlinePragma {
     /* Assert that this isn't the result of tracing */
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!traceBusy);
@@ -278,9 +279,9 @@ public final class TraceGenerator
       if (Assert.VERIFY_ASSERTIONS) Assert._assert(worklist.isEmpty());
       /* Scan the linked list of objects within each region */
       for (int allocator = 0; allocator < ALLOCATORS; allocator++) {
-	Address thisRef = objectLinks.get(allocator);
+	ObjectReference thisRef = objectLinks.get(allocator);
 	/* Start at the top of each linked list */
-	while (!thisRef.isZero()) {
+	while (!thisRef.isNull()) {
 	  /* Add the unreachable objects onto the worklist. */
 	  if (!Plan.getInstance().isReachable(thisRef))
 	    worklist.push(thisRef);
@@ -294,11 +295,10 @@ public final class TraceGenerator
     }
     /* Output the death times for each object */
     for (int allocator = 0; allocator < ALLOCATORS; allocator++) {
-      Address thisRef = objectLinks.get(allocator);
-      Address prevRef = Address.zero(); // the last live object seen
-      while (!thisRef.isZero()) {
-	Address nextRef = 
-	  TraceInterface.getLink(thisRef);
+      ObjectReference thisRef = objectLinks.get(allocator);
+      ObjectReference prevRef = ObjectReference.nullReference(); // the last live object seen
+      while (!thisRef.isNull()) {
+	ObjectReference nextRef = TraceInterface.getLink(thisRef);
         /* Maintain reachable objects on the linked list of allocated objects */
 	if (Plan.getInstance().isReachable(thisRef)) {
 	  thisRef = Plan.followObject(thisRef);
@@ -342,7 +342,7 @@ public final class TraceGenerator
    *
    * @param ref The address of the object to examine
    */
-  public static final void propagateDeathTime(Address ref) {
+  public static final void propagateDeathTime(ObjectReference ref) {
     /* If this death time is more accurate, set it. */
     if (TraceInterface.getDeathTime(ref).LT(agePropagate)) {
       /* If we should add the object for further processing. */
@@ -365,8 +365,8 @@ public final class TraceGenerator
     agePropagate = Word.max();
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!worklist.isEmpty());
     /* Process through the entire buffer. */
-    Address ref = worklist.pop();
-    while (!ref.isZero()) {
+    ObjectReference ref = worklist.pop();
+    while (!ref.isNull()) {
       Word currentAge = TraceInterface.getDeathTime(ref);
       /* This is a cheap and simple test to process objects only once. */
       if (currentAge.LE(agePropagate)) {

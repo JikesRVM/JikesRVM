@@ -118,7 +118,7 @@ public class GenMS extends Generational implements Uninterruptible {
    *
    * @param object The newly allocated object
    */
-  protected final void maturePostAlloc(Address object) 
+  protected final void maturePostAlloc(ObjectReference object) 
     throws InlinePragma {
     matureSpace.initializeHeader(object);
   }
@@ -231,7 +231,7 @@ public class GenMS extends Generational implements Uninterruptible {
    * interior pointer.
    * @return The possibly moved reference.
    */
-  protected static final Address traceMatureObject(Address object) {
+  protected static final ObjectReference traceMatureObject(ObjectReference object) {
     if (Space.isInSpace(MS, object))
       return matureSpace.traceObject(object);
     else
@@ -246,7 +246,7 @@ public class GenMS extends Generational implements Uninterruptible {
    * @param typeRef the type reference for the instance being created
    * @param bytes The size of the space to be allocated (in bytes)
    */
-  public final void postCopy(Address object, Address typeRef, int bytes)
+  public final void postCopy(ObjectReference object, ObjectReference typeRef, int bytes)
     throws InlinePragma {
     matureSpace.writeMarkBit(object);
     MarkSweepLocal.liveObject(object);
@@ -267,7 +267,7 @@ public class GenMS extends Generational implements Uninterruptible {
    * @param space The space in which the referent object resides.
    */
   protected static void forwardMatureObjectLocation(Address location,
-                                                    Address object) {}
+                                                    ObjectReference object) {}
 
   /**
    * If the object in question has been forwarded, return its
@@ -278,7 +278,7 @@ public class GenMS extends Generational implements Uninterruptible {
    * @param space The space in which the object resides.
    * @return The forwarded value for <code>object</code>.
    */
-  public static final Address getForwardedMatureReference(Address object) {
+  public static final ObjectReference getForwardedMatureReference(ObjectReference object) {
     return object;
   }
 
@@ -289,8 +289,8 @@ public class GenMS extends Generational implements Uninterruptible {
    * @param object The object in question
    * @return True if the object resides in a copying space.
    */
-  public final static boolean isCopyObject(Address object) {
-    return object.GE(NURSERY_START);
+  public final static boolean isCopyObject(ObjectReference object) {
+    return object.toAddress().GE(NURSERY_START);
   }
 
   /**
@@ -299,10 +299,10 @@ public class GenMS extends Generational implements Uninterruptible {
    * @param object The object in question
    * @return True if <code>obj</code> is a live object.
    */
-  public final static boolean isLive(Address object) {
-    if (object.isZero()) return false;
+  public final static boolean isLive(ObjectReference object) {
+    if (object.isNull()) return false;
     if (!fullHeapGC) {
-      if (object.GE(NURSERY_START))
+      if (object.toAddress().GE(NURSERY_START))
  	return nurserySpace.isLive(object);
       else
  	return true;

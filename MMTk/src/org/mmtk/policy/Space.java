@@ -323,7 +323,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object in question
    * @return True if the given object is in an immortal (uncollected) space.
    */
-  public static final boolean isImmortal(Address object) {
+  public static final boolean isImmortal(ObjectReference object) {
     Space space = getSpaceForObject(object);
     if (space == null) 
       return true;
@@ -337,7 +337,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object in question
    * @return True if the given object is in space that moves objects.
    */
-  public static final boolean isMovable(Address object)
+  public static final boolean isMovable(ObjectReference object)
     throws InlinePragma {
     Space space = getSpaceForObject(object);
     if (space == null) 
@@ -352,9 +352,9 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object in question
    * @return True if the given object is in a space managed by MMTk.
    */
-  public static final boolean isMappedObject(Address object)
+  public static final boolean isMappedObject(ObjectReference object)
     throws InlinePragma {
-    return !object.isZero() && (getSpaceForObject(object) != null);
+    return !object.isNull() && (getSpaceForObject(object) != null);
   }
 
   /**
@@ -377,7 +377,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * @return True if the given object is in the space associated with
    * the descriptor.
    */
-  public static boolean isInSpace(int descriptor, Address object)
+  public static boolean isInSpace(int descriptor, ObjectReference object)
     throws InlinePragma {
     if (!SpaceDescriptor.isContiguous(descriptor)) {
       return getDescriptorForObject(object) == descriptor;
@@ -401,7 +401,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object in question
    * @return The space containing the object
    */
-  public static Space getSpaceForObject(Address object) 
+  public static Space getSpaceForObject(ObjectReference object) 
     throws InlinePragma {
     return Map.getSpaceForObject(object);
   }
@@ -412,9 +412,9 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object The object in question
    * @return The descriptor for the space containing the object
    */
-  public static int getDescriptorForObject(Address object)
+  public static int getDescriptorForObject(ObjectReference object)
     throws InlinePragma {
-    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isZero());
+    if (Assert.VERIFY_ASSERTIONS) Assert._assert(!object.isNull());
     return Map.getDescriptorForObject(object);
   }
   
@@ -558,7 +558,7 @@ public abstract class Space implements Constants, Uninterruptible {
    * @param object
    * @return The object, forwarded, if appropriate
    */
-  abstract public Address traceObject(Address object); 
+  abstract public ObjectReference traceObject(ObjectReference object); 
 
   /**
    * Align an address to a space chunk

@@ -163,7 +163,7 @@ public abstract class Generational extends StopTheWorldGC
    */
   abstract Address matureAlloc(int bytes, int align, int offset);
   abstract Address matureCopy(int bytes, int align, int offset);
-  abstract void maturePostAlloc(Address object);
+  abstract void maturePostAlloc(ObjectReference object);
 
   /**
    * Allocate space (for an object)
@@ -197,9 +197,8 @@ public abstract class Generational extends StopTheWorldGC
    * @param bytes The size of the space to be allocated (in bytes)
    * @param allocator The allocator number to be used for this allocation
    */
-  public final void postAlloc(Address object, Address typeRef, int bytes,
-                              int allocator)
-    throws InlinePragma {
+  public final void postAlloc(ObjectReference object, ObjectReference typeRef,
+                              int bytes, int allocator) throws InlinePragma {
     switch (allocator) {
     case  ALLOC_NURSERY: return;
     case   ALLOC_MATURE: maturePostAlloc(object); return;
@@ -220,7 +219,7 @@ public abstract class Generational extends StopTheWorldGC
    * @param offset The alignment offset.
    * @return The address of the first byte of the allocated region
    */
-  public final Address allocCopy(Address original, int bytes,
+  public final Address allocCopy(ObjectReference original, int bytes,
                                     int align, int offset) 
     throws InlinePragma {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(bytes <= LOS_SIZE_THRESHOLD);
@@ -497,10 +496,10 @@ public abstract class Generational extends StopTheWorldGC
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address object) {
-    if (object.isZero()) 
+  public static final ObjectReference traceObject(ObjectReference object) {
+    if (object.isNull()) 
       return object;
-    else if (object.GE(NURSERY_START))
+    else if (object.toAddress().GE(NURSERY_START))
       return CopySpace.forwardAndScanObject(object);
     else if (!fullHeapGC && !IGNORE_REMSET)
       return object;
@@ -519,7 +518,8 @@ public abstract class Generational extends StopTheWorldGC
    * in a root.
    * @return The possibly moved reference.
    */
-  public static final Address traceObject(Address obj, boolean root)
+  public static final ObjectReference traceObject(ObjectReference obj, 
+                                                  boolean root)
     throws InlinePragma {
     return traceObject(obj);  // root or non-root is of no consequence here
   }
@@ -537,8 +537,8 @@ public abstract class Generational extends StopTheWorldGC
    */
   public static final void forwardObjectLocation(Address location) 
     throws InlinePragma {
-    Address object = location.loadAddress();
-    if (!object.isZero()) {
+    ObjectReference object = location.loadObjectReference();
+    if (!object.isNull()) {
       if (Space.isInSpace(NS, object))
         location.store(CopySpace.forwardObject(object));
       else if (fullHeapGC) 
@@ -553,7 +553,7 @@ public abstract class Generational extends StopTheWorldGC
    *
    * @param object The object to be scanned.
    */
-  protected final void scanForwardedObject(Address object) {
+  protected final void scanForwardedObject(ObjectReference object) {
     Scan.scanObject(object);
   }
 
@@ -564,8 +564,8 @@ public abstract class Generational extends StopTheWorldGC
    * @param object The object which may have been forwarded.
    * @return The forwarded value for <code>object</code>.
    */
-  public static final Address getForwardedReference(Address object) {
-    if (!object.isZero()) {
+  public static final ObjectReference getForwardedReference(ObjectReference object) {
+    if (!object.isNull()) {
       if (Space.isInSpace(NS, object)) {
         if (Assert.VERIFY_ASSERTIONS)
 	  Assert._assert(CopySpace.isForwarded(object));
@@ -597,12 +597,12 @@ public abstract class Generational extends StopTheWorldGC
    * @param metaDataB A field used by the VM to create a correct store.
    * @param mode The mode of the store (eg putfield, putstatic etc)
    */
-  public final void writeBarrier(Address src, Address slot,
-                                 Address tgt, int metaDataA, 
+  public final void writeBarrier(ObjectReference src, Address slot,
+                                 ObjectReference tgt, int metaDataA, 
                                  int metaDataB, int mode) 
     throws InlinePragma {
     if (GATHER_WRITE_BARRIER_STATS) wbFast.inc();
-    if (slot.LT(NURSERY_START) && tgt.GE(NURSERY_START)) {
+    if (slot.LT(NURSERY_START) && tgt.toAddress().GE(NURSERY_START)) {
       if (GATHER_WRITE_BARRIER_STATS) wbSlow.inc();
       remset.insert(slot);
     }
@@ -630,12 +630,12 @@ public abstract class Generational extends StopTheWorldGC
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public final boolean writeBarrier(Address src, int srcOffset,
-				    Address dst, int dstOffset,
-				    int bytes) 
-    throws InlinePragma {
-    if (dst.LT(NURSERY_START))
-      arrayRemset.insert(dst.add(dstOffset), dst.add(dstOffset + bytes));
+  public final boolean writeBarrier(ObjectReference src, int srcOffset,
+				    ObjectReference dst, int dstOffset,
+				    int bytes) throws InlinePragma {
+    if (dst.toAddress().LT(NURSERY_START))
+      arrayRemset.insert(dst.toAddress().add(dstOffset), 
+                         dst.toAddress().add(dstOffset + bytes));
     return false;
   }
 

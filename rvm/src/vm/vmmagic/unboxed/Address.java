@@ -88,6 +88,11 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
     return fromIntSignExtend(-1);
   }
 
+  public ObjectReference toObjectReference() {
+    if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
+    return null;
+  }
+
   public int toInt () {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return (int) value;
@@ -203,6 +208,29 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   public boolean NE (Address addr2) {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return !EQ(addr2);
+  }
+
+  /** 
+   * Loads a reference from the memory location pointed to by the
+   * current instance.
+   *
+   * @return the read value
+   */
+  public ObjectReference loadObjectReference() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
+  }
+
+  /**
+   * Loads a reference from the memory location pointed to by the
+   * current instance.
+   *
+   * @param offset the offset to the value.
+   * @return the read value
+   */
+  public ObjectReference loadObjectReference(Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
   }
 
   /** 
@@ -437,6 +465,28 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
     return null;
   }
 
+  /**
+   * Prepare for an atomic store operation. This must be associated with
+   * a related call to attempt.
+   *
+   * @return the old value to be passed to an attempt call.
+   */
+  public ObjectReference prepareObjectReference() {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
+  }
+
+  /**
+   * Prepare for an atomic store operation. This must be associated with
+   * a related call to attempt.
+   *
+   * @param offset the offset to the value.
+   * @return the old value to be passed to an attempt call.
+   */
+  public ObjectReference prepareObjectReference(Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return null;
+  }
 
   /**
    * Prepare for an atomic store operation. This must be associated with
@@ -546,6 +596,34 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
    * @param value the new value.
    * @return true if the attempt was successful.
    */ 
+  public boolean attempt(ObjectReference old, ObjectReference value) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return false;
+  }
+
+  /**
+   * Attempt an atomic store operation. This must be associated with a
+   * related call to prepare.
+   *
+   * @param old the old value.
+   * @param value the new value.
+   * @param offset the offset to the value.
+   * @return true if the attempt was successful.
+   */
+  public boolean attempt(ObjectReference old, ObjectReference value, 
+                         Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    return false;
+  }
+
+  /**
+   * Attempt an atomic store operation. This must be associated with a
+   * related call to prepare.
+   *
+   * @param old the old value.
+   * @param value the new value.
+   * @return true if the attempt was successful.
+   */ 
   public boolean attempt(Address old, Address value) {
     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
     return false;
@@ -565,6 +643,26 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
     return false;
   }
 
+  /**
+   * Stores the address value in the memory location pointed to by the
+   * current instance.
+   *
+   * @param value The address value to store.
+   */
+  public void store(ObjectReference ref) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
+
+  /**
+   * Stores the address value in the memory location pointed to by the
+   * current instance.
+   *
+   * @param value The address value to store.
+   * @param offset the offset to the value.
+   */
+  public void store(ObjectReference ref, Offset offset) {
+    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+  }
  
   /**
    * Stores the address value in the memory location pointed to by the 

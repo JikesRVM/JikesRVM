@@ -1238,6 +1238,8 @@ public class BootImageWriter extends BootImageWriterMessages
     Word value = Word.zero();
     if (addr instanceof Address) {
       value = ((Address)addr).toWord();
+    } else if (addr instanceof ObjectReference) {
+      value = ((ObjectReference)addr).toAddress().toWord();
     } else if (addr instanceof Word) {
       value = (Word)addr;
     } else if (addr instanceof Extent) {
@@ -1408,6 +1410,13 @@ public class BootImageWriter extends BootImageWriterMessages
           if (verbose >= 2) depth--;
           AddressArray addrArray = (AddressArray) jdkObject;
           Object backing = addrArray.getBacking();
+          return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
+        }
+
+        if (rvmType == VM_Type.ObjectReferenceArrayType) {
+          if (verbose >= 2) depth--;
+          ObjectReferenceArray orArray = (ObjectReferenceArray) jdkObject;
+          Object backing = orArray.getBacking();
           return copyMagicArrayToBootImage(backing, rvmType.asArray(), allocOnly, overwriteOffset, parentObject);
         }
 
@@ -1633,6 +1642,14 @@ public class BootImageWriter extends BootImageWriterMessages
         String msg = "Address array element";
         bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), 
                                  getWordValue(addr, msg, true));
+      }
+    } else if (rvmElementType.equals(VM_Type.ObjectReferenceType)) {
+      ObjectReference values[] = (ObjectReference[]) jdkObject;
+      for (int i=0; i<arrayCount; i++) {
+        ObjectReference or = values[i];
+        String msg = "ObjectReference array element";
+        bootImage.setAddressWord(arrayImageOffset + (i << LOG_BYTES_IN_ADDRESS), 
+                                 getWordValue(or, msg, true));
       }
     } else if (rvmElementType.equals(VM_Type.WordType)) {
       Word values[] = (Word[]) jdkObject;
@@ -2148,6 +2165,8 @@ public class BootImageWriter extends BootImageWriterMessages
         jdkObject = ((VM_CodeArray)jdkObject).getBacking();
       } else if (jdkObject instanceof AddressArray) {
         jdkObject = ((AddressArray)jdkObject).getBacking();
+      } else if (jdkObject instanceof ObjectReferenceArray) {
+        jdkObject = ((ObjectReferenceArray)jdkObject).getBacking();
       } else if (jdkObject instanceof ExtentArray) {
         jdkObject = ((ExtentArray)jdkObject).getBacking();
       } else if (jdkObject instanceof OffsetArray) {

@@ -231,7 +231,7 @@ public final class LargeObjectSpace extends Space
    * collector, so we always return the same object: this could be a
    * void method but for compliance to a more general interface).
    */
-  public final Address traceObject(Address object)
+  public final ObjectReference traceObject(ObjectReference object)
     throws InlinePragma {
     if (testAndMark(object, markState)) {
       internalMarkObject(object);
@@ -244,12 +244,12 @@ public final class LargeObjectSpace extends Space
    * A new collection increment has completed.  For the mark-sweep
    * collector this means we can perform the sweep phase.
    *
-   * @param obj The object in question
+   * @param object The object in question
    * @return True if this object is known to be live (i.e. it is marked)
    */
-   public boolean isLive(Address obj)
+   public boolean isLive(ObjectReference object)
     throws InlinePragma {
-     return testMarkBit(obj, markState);
+     return testMarkBit(object, markState);
    }
 
   /**
@@ -259,7 +259,7 @@ public final class LargeObjectSpace extends Space
    *
    * @param object The object which has been marked.
    */
-  private final void internalMarkObject(Address object) 
+  private final void internalMarkObject(ObjectReference object) 
     throws InlinePragma {
 
     Address cell = ObjectModel.objectStartRef(object);
@@ -278,7 +278,7 @@ public final class LargeObjectSpace extends Space
    * 
    * @param object the object ref to the storage to be initialized
    */
-  public final void initializeHeader(Address object) 
+  public final void initializeHeader(ObjectReference object) 
     throws InlinePragma {
     Word oldValue = ObjectModel.readAvailableBitsWord(object);
     Word newValue = oldValue.and(MARK_BIT_MASK.not()).or(markState);
@@ -292,7 +292,7 @@ public final class LargeObjectSpace extends Space
    * @param object The object whose mark bit is to be written
    * @param value The value to which the mark bit will be set
    */
-  public static boolean testAndMark(Address object, Word value)
+  public static boolean testAndMark(ObjectReference object, Word value)
     throws InlinePragma {
     Word oldValue, markBit;
     do {
@@ -311,7 +311,7 @@ public final class LargeObjectSpace extends Space
    * @param value The value against which the mark bit will be tested
    * @return True if the mark bit for the object has the given value.
    */
-  static public boolean testMarkBit(Address object, Word value)
+  static public boolean testMarkBit(ObjectReference object, Word value)
     throws InlinePragma {
     return ObjectModel.readAvailableBitsWord(object).and(MARK_BIT_MASK).EQ(value);
   }

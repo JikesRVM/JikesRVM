@@ -73,6 +73,8 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
   public static VM_Array WordArrayType;             
   public static VM_Type AddressType;             
   public static VM_Array AddressArrayType;             
+  public static VM_Type ObjectReferenceType;             
+  public static VM_Array ObjectReferenceArrayType;             
   public static VM_Type OffsetType;             
   public static VM_Array OffsetArrayType;             
   public static VM_Type ExtentType;             
@@ -490,10 +492,12 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
 
   public final boolean isWordType() throws UninterruptiblePragma              { return (this == WordType) ||
                                                                                           (this == AddressType) ||
+                                                                                          (this == ObjectReferenceType) ||
                                                                                           (this == ExtentType) || 
                                                                                           (this == OffsetType); }
   final boolean isWordArrayType() throws UninterruptiblePragma         { return (this == WordArrayType) ||
                                                                                           (this == AddressArrayType) ||
+                                                                                          (this == ObjectReferenceArrayType) ||
                                                                                           (this == ExtentArrayType) || 
                                                                                           (this == OffsetArrayType); }
   final boolean isCodeType() throws UninterruptiblePragma { return this == CodeType; }
@@ -573,6 +577,8 @@ public abstract class VM_Type implements VM_ClassLoaderConstants, VM_SizeConstan
     WordArrayType = VM_TypeReference.WordArray.resolve().asArray();
     AddressType = VM_TypeReference.Address.resolve();
     AddressArrayType = VM_TypeReference.AddressArray.resolve().asArray();
+    ObjectReferenceType = VM_TypeReference.ObjectReference.resolve();
+    ObjectReferenceArrayType = VM_TypeReference.ObjectReferenceArray.resolve().asArray();
     OffsetType = VM_TypeReference.Offset.resolve();
     OffsetArrayType = VM_TypeReference.OffsetArray.resolve().asArray();
     ExtentType = VM_TypeReference.Extent.resolve();

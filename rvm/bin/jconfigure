@@ -3029,6 +3029,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	# These next arrays are really arrays of primitves to Jikes RVM 
 	#  (even though Java does not think they are...)
 	[Lorg/vmmagic/unboxed/Address;
+	[Lorg/vmmagic/unboxed/ObjectReference;
 	[Lorg/vmmagic/unboxed/Word;
 	[Lorg/vmmagic/unboxed/Offset;
 	[Lorg/vmmagic/unboxed/Extent;
@@ -3036,6 +3037,7 @@ EOF_PRIMORDIAL_CLASSES_STR_1
 	    
 	[Lcom/ibm/JikesRVM/VM_CodeArray;
         [Lorg/vmmagic/unboxed/AddressArray;
+        [Lorg/vmmagic/unboxed/ObjectReferenceArray;
 
 	[Lcom/ibm/JikesRVM/classloader/VM_Class;
 	[Lcom/ibm/JikesRVM/VM_UnusualMaps;

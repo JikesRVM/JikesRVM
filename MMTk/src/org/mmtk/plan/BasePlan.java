@@ -333,7 +333,7 @@ public abstract class BasePlan
    * @param status the initial value of the status word
    * @return The new value of the status word
    */
-  public static Word getBootTimeAvailableBits(int ref, Address typeRef,
+  public static Word getBootTimeAvailableBits(int ref, ObjectReference typeRef,
                                               int size, Word status)
     throws InlinePragma {
     return status; // nothing to do (no bytes of GC header)
@@ -347,11 +347,11 @@ public abstract class BasePlan
   /**
    * Add a gray object
    *
-   * @param obj The object to be enqueued
+   * @param object The object to be enqueued
    */
-  public static final void enqueue(Address obj)
+  public static final void enqueue(ObjectReference object)
     throws InlinePragma {
-    Plan.getInstance().values.push(obj);
+    Plan.getInstance().values.push(object);
   }
 
   /**
@@ -360,7 +360,7 @@ public abstract class BasePlan
    * @param object
    * @return True if the object is either forwarded or being forwarded
    */
-  public static boolean isForwardedOrBeingForwarded(Address object) 
+  public static boolean isForwardedOrBeingForwarded(ObjectReference object) 
     throws InlinePragma {
     return false;
   }
@@ -369,11 +369,11 @@ public abstract class BasePlan
    * Add an unscanned, forwarded object for subseqent processing.
    * This mechanism is necessary for "pre-copying".
    *
-   * @param obj The object to be enqueued
+   * @param object The object to be enqueued
    */
-  public static final void enqueueForwardedUnscannedObject(Address obj)
+  public static final void enqueueForwardedUnscannedObject(ObjectReference object)
     throws InlinePragma {
-    Plan.getInstance().forwardedObjects.push(obj);
+    Plan.getInstance().forwardedObjects.push(object);
   }
 
   /**
@@ -387,9 +387,9 @@ public abstract class BasePlan
    */
   public static final void traceObjectLocation(Address objLoc, boolean root)
     throws InlinePragma {
-    Address obj = objLoc.loadAddress();
-    Address newObj = Plan.traceObject(obj, root);
-    objLoc.store(newObj);
+    ObjectReference object = objLoc.loadObjectReference();
+    ObjectReference newObject = Plan.traceObject(object, root);
+    objLoc.store(newObject);
   }
 
   /**
@@ -411,27 +411,26 @@ public abstract class BasePlan
    * collection policy applies and calling the appropriate
    * <code>trace</code> method.
    *
-   * @param obj The object reference to be traced.  This is <i>NOT</i> an
-   * interior pointer.
+   * @param object The object reference to be traced.
    * @param interiorRef The interior reference inside obj that must be traced.
    * @param root True if the reference to <code>obj</code> was held in a root.
    * @return The possibly moved interior reference.
    */
-  public static final Address traceInteriorReference(Address obj,
+  public static final Address traceInteriorReference(ObjectReference object,
                                                         Address interiorRef,
                                                         boolean root) {
-    Offset offset = interiorRef.diff(obj);
-    Address newObj = Plan.traceObject(obj, root);
+    Offset offset = interiorRef.diff(object.toAddress());
+    ObjectReference newObject = Plan.traceObject(object, root);
     if (Assert.VERIFY_ASSERTIONS) {
       if (offset.sLT(Offset.zero()) || offset.sGT(Offset.fromIntSignExtend(1<<24))) {  // There is probably no object this large
         Log.writeln("ERROR: Suspiciously large delta of interior pointer from object base");
-        Log.write("       object base = "); Log.writeln(obj);
+        Log.write("       object base = "); Log.writeln(object);
         Log.write("       interior reference = "); Log.writeln(interiorRef);
         Log.write("       delta = "); Log.writeln(offset);
         Assert._assert(false);
       }
     }
-    return newObj.add(offset);
+    return newObject.toAddress().add(offset);
   }
 
   /**
@@ -454,7 +453,7 @@ public abstract class BasePlan
    * @return True if the object resides in a space that is known to be
    * immovable.
    */
-  public static boolean willNotMove(Address object) {
+  public static boolean willNotMove(ObjectReference object) {
     return !Space.isMovable(object);
   }
 
@@ -487,7 +486,7 @@ public abstract class BasePlan
    * case return <code>object</code>, copying collectors must override
    * this method.
    */
-  public static Address getForwardedReference(Address object) {
+  public static ObjectReference getForwardedReference(ObjectReference object) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
     return object;
   }
@@ -498,7 +497,7 @@ public abstract class BasePlan
    *
    * @param object The object which is to be made alive.
    */
-  public static void makeAlive(Address object) {
+  public static void makeAlive(ObjectReference object) {
     Plan.traceObject(object);
   }
  
@@ -518,7 +517,7 @@ public abstract class BasePlan
    * case return <code>object</code>, copying collectors must override
    * this method.
    */
-  public static Address retainFinalizable(Address object) {
+  public static ObjectReference retainFinalizable(ObjectReference object) {
     return Plan.traceObject(object);
   }
 
@@ -531,7 +530,7 @@ public abstract class BasePlan
    * @return <code>true</code> if the object has no regular references
    * to it.
    */
-  public static boolean isFinalizable(Address object) {
+  public static boolean isFinalizable(ObjectReference object) {
     return !Plan.isLive(object);
   }
 
@@ -555,8 +554,9 @@ public abstract class BasePlan
    * @param metaDataB An int that assists the host VM in creating a store 
    * @param mode The context in which the store occured
    */
-  public void writeBarrier(Address src, Address slot,
-                           Address tgt, int metaDataA, int metaDataB, int mode) {
+  public void writeBarrier(ObjectReference src, Address slot,
+                           ObjectReference tgt, int metaDataA, int metaDataB,
+                           int mode) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(false);
@@ -580,8 +580,8 @@ public abstract class BasePlan
    * @return True if the update was performed by the barrier, false if
    * left to the caller (always false in this case).
    */
-  public boolean writeBarrier(Address src, int srcOffset,
-			      Address dst, int dstOffset,
+  public boolean writeBarrier(ObjectReference src, int srcOffset,
+			      ObjectReference dst, int dstOffset,
 			      int bytes) {
     // Either: write barriers are used and this is overridden, or 
     //         write barriers are not used and this is never called
@@ -599,7 +599,7 @@ public abstract class BasePlan
    * @param context The context in which the read arose (getfield, for example)
    * @return The reference that was read.
    */
-  public final Address readBarrier(Address src, Address slot,
+  public final Address readBarrier(ObjectReference src, Address slot,
                                       int context)
     throws InlinePragma {
     // read barrier currently unimplemented
@@ -625,10 +625,9 @@ public abstract class BasePlan
    *         will be returned if it cannot be determined if the object is 
    *         reachable (e.g., resides in a space unknown to the class).
    */
-  public boolean isReachable(Address object) {
-    if (object.isZero()) return false;
+  public boolean isReachable(ObjectReference object) {
+    if (object.isNull()) return false;
     if (Space.isImmortal(object)) {
-      Space space = Space.getSpaceForObject(object);
       return ImmortalSpace.isReachable(object);
     }
       if (Assert.VERIFY_ASSERTIONS)
@@ -643,13 +642,13 @@ public abstract class BasePlan
    * <i> For this method to be accurate, collectors must override this method
    * to define results for the spaces they create.</i>   
    *
-   * @param obj The object reference to be followed.  This is <i>NOT</i> an
-   * interior pointer.
+   * @param object The object reference to be followed.  This is
+   * <i>NOT</i> an interior pointer.
    * @return The possibly moved reference.
    */
-  public static Address followObject(Address obj) {
+  public static ObjectReference followObject(ObjectReference object) {
     if (Assert.VERIFY_ASSERTIONS) Assert._assert(!Plan.MOVES_OBJECTS);
-    return Address.zero();
+    return ObjectReference.nullReference();
   }
   
   /****************************************************************************
@@ -902,30 +901,6 @@ public abstract class BasePlan
    */
 
   /**
-   * Print a failure message for the case where an object in an
-   * unknown space is traced.
-   *
-   * @param obj The object being traced
-   * @param space The space with which the object is associated
-   * @param source Information about the source of the problem
-   */
-  protected static void spaceFailure(Address obj, byte space, 
-                                     String source) {
-    Address addr = ObjectModel.refToAddress(obj);
-    Log.write(source);
-    Log.write(": obj "); Log.write(obj);
-    Log.write(" or addr "); Log.write(addr);
-    Log.write(" of page "); Log.write(Conversions.addressToPagesDown(addr));
-    Log.write(" is in unknown space ");
-    Log.writeln(space);
-    Log.write("Type = ");
-    Log.write(ObjectModel.getTypeDescriptor(obj));
-    Log.writeln();
-    Log.write(source);
-    Assert.fail(": unknown space");
-  }
-
-  /**
    * Return the <code>Log</code> instance for this plan.
    *
    * @return the <code>Log</code> instance
@@ -974,19 +949,4 @@ public abstract class BasePlan
    *
    */
   protected void gcspyPostRelease() {}  
-  
-  /**
-   * After VMResource release
-   * @param start the start of the released resource
-   * @param bytes the number of bytes released
-   */
-  public static void releaseVMResource(Address start, Extent bytes) {} 
-  
-  /**
-   * After VMResource acquisition
-   * @param start the start of the acquired resource
-   * @param bytes the number of bytes acquired
-   */
-  public static void acquireVMResource(Address start, Address end, Extent bytes) {} 
-
 }

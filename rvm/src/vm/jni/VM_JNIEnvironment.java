@@ -206,7 +206,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants
       return 0;
 
     if (VM.VerifyAssertions) {
-      VM._assert(MM_Interface.validRef(VM_Magic.objectAsAddress(ref)));
+      VM._assert(MM_Interface.validRef(ObjectReference.fromObject(ref)));
     }
 
     if ((JNIRefsTop >>> LOG_BYTES_IN_ADDRESS) >= JNIRefs.length()) {
@@ -285,7 +285,7 @@ public class VM_JNIEnvironment implements VM_SizeConstants
       VM.sysWrite(" ");
       VM.sysWrite(VM_Magic.objectAsAddress(JNIRefs).add(jniRefOffset));
       VM.sysWrite(" ");
-      MM_Interface.dumpRef(JNIRefs.get(jniRefOffset >>> LOG_BYTES_IN_ADDRESS));
+      MM_Interface.dumpRef(JNIRefs.get(jniRefOffset >>> LOG_BYTES_IN_ADDRESS).toObjectReference());
       jniRefOffset -= BYTES_IN_ADDRESS;
     }
     VM.sysWrite("\n* * end of dump * *\n");

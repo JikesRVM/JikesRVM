@@ -43,7 +43,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * @param from the address of the object to be copied
    * @return the address of the new object
    */
-  public static Address copy(Address from)
+  public static ObjectReference copy(ObjectReference from)
     throws InlinePragma {
     Object[] tib = VM_ObjectModel.getTIB(from);
     VM_Type type = VM_Magic.objectAsType(tib[TIB_TYPE_INDEX]);
@@ -54,7 +54,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
       return copyArray(from, tib, type.asArray());
   }
 
-  private static Address copyScalar(Address from, Object[] tib,
+  private static ObjectReference copyScalar(ObjectReference from, Object[] tib,
 				       VM_Class type)
     throws InlinePragma {
     int bytes = VM_ObjectModel.bytesRequiredWhenCopied(from, type);
@@ -64,14 +64,14 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
 						   from);
     Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
-    Address to = VM_Magic.objectAsAddress(toObj);
-    plan.postCopy(to, VM_Magic.objectAsAddress(tib), bytes);
+    ObjectReference to = ObjectReference.fromObject(toObj);
+    plan.postCopy(to, ObjectReference.fromObject(tib), bytes);
     MMType mmType = (MMType) type.getMMType();
     mmType.profileCopy(bytes);
     return to;
   }
 
-  private static Address copyArray(Address from, Object[] tib,
+  private static ObjectReference copyArray(ObjectReference from, Object[] tib,
 				      VM_Array type)
     throws InlinePragma {
     int elements = VM_Magic.getArrayLength(from);
@@ -82,13 +82,13 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     Address region = MM_Interface.allocateSpace(plan, bytes, align, offset,
 						   from);
     Object toObj = VM_ObjectModel.moveObject(region, from, bytes, false, type);
-    Address to = VM_Magic.objectAsAddress(toObj);
-    plan.postCopy(to, VM_Magic.objectAsAddress(tib), bytes);
+    ObjectReference to = ObjectReference.fromObject(toObj);
+    plan.postCopy(to, ObjectReference.fromObject(tib), bytes);
     if (type == VM_Type.CodeArrayType) {
       // sync all moved code arrays to get icache and dcache in sync
       // immediately.
       int dataSize = bytes - VM_ObjectModel.computeHeaderSize(VM_Magic.getObjectType(toObj));
-      VM_Memory.sync(to, dataSize);
+      VM_Memory.sync(to.toAddress(), dataSize);
     }
     MMType mmType = (MMType) type.getMMType();
     mmType.profileCopy(bytes);
@@ -110,45 +110,48 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
     return MM_Interface.cloneArray(array, allocator, length);
   }
 
-  public static Object addressAsObject(Address address) throws InlinePragma {
-    return VM_Magic.addressAsObject(address);
+  /*
+  public static Object addressAsObject(ObjectReference object)
+    throws InlinePragma {
+    return ObjectReference.toObject(object);
   }
 
-  public static Address objectAsAddress(Object object) throws InlinePragma {
-    return VM_Magic.objectAsAddress(object);
+  public static Address objectAsRef(Object object) throws InlinePragma {
+    return ObjectReference.fromObject(object);
   }
+  */
 
   /**
    * Return the size required to copy an object
    *
-   * @param obj The object whose size is to be queried
+   * @param object The object whose size is to be queried
    * @return The size required to copy <code>obj</code>
    */
-  public static int getSizeWhenCopied(Address obj) {
-    return VM_ObjectModel.bytesRequiredWhenCopied(obj);
+  public static int getSizeWhenCopied(ObjectReference object) {
+    return VM_ObjectModel.bytesRequiredWhenCopied(object);
   }
     
   /**
    * Return the size used by an object
    *
-   * @param obj The object whose size is to be queried
+   * @param object The object whose size is to be queried
    * @return The size of <code>obj</code>
    */
-  public static int getCurrentSize(Address obj) {
-    return VM_ObjectModel.bytesUsed(obj);
+  public static int getCurrentSize(ObjectReference object) {
+    return VM_ObjectModel.bytesUsed(object);
   }
 
   /**
    * Return the next object in the heap under contiguous allocation
    */
-  public static Address getNextObject(Address obj) {
-    return VM_ObjectModel.getNextObject(obj);
+  public static ObjectReference getNextObject(ObjectReference object) {
+    return VM_ObjectModel.getNextObject(object);
   }
 
   /**
    * Return an object reference from knowledge of the low order word
    */
-  public static Address getObjectFromStartAddress(Address start) {
+  public static ObjectReference getObjectFromStartAddress(Address start) {
     return VM_ObjectModel.getObjectFromStartAddress(start);
   }
   
@@ -158,35 +161,36 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * @param ref address of the object
    * @return byte array with the type descriptor
    */
-  public static byte [] getTypeDescriptor(Address ref) {
+  public static byte [] getTypeDescriptor(ObjectReference ref) {
     VM_Atom descriptor = VM_Magic.getObjectType(ref).getDescriptor();
     return descriptor.toByteArray();
   }
 
-  public static int getArrayLength(Address object) throws InlinePragma {
-    Object obj = VM_Magic.addressAsObject(object);
-    return VM_Magic.getArrayLength(obj);
+  public static int getArrayLength(ObjectReference object) 
+    throws InlinePragma {
+    return VM_Magic.getArrayLength(object.toObject());
   }
   /**
    * Tests a bit available for memory manager use in an object.
    *
-   * @param o the address of the object
+   * @param object the address of the object
    * @param idx the index of the bit
    */
-  public static boolean testAvailableBit(Address o, int idx) {
-    return VM_ObjectModel.testAvailableBit(VM_Magic.addressAsObject(o),idx);
+  public static boolean testAvailableBit(ObjectReference object, int idx) {
+    return VM_ObjectModel.testAvailableBit(object.toObject(), idx);
   }
 
   /**
    * Sets a bit available for memory manager use in an object.
    *
-   * @param o the address of the object
+   * @param object the address of the object
    * @param idx the index of the bit
    * @param flag <code>true</code> to set the bit to 1,
    * <code>false</code> to set it to 0
    */
-  public static void setAvailableBit(Address o, int idx, boolean flag) {
-    VM_ObjectModel.setAvailableBit(VM_Magic.addressAsObject(o),idx,flag);
+  public static void setAvailableBit(ObjectReference object, int idx,
+                                     boolean flag) {
+    VM_ObjectModel.setAvailableBit(object.toObject(), idx, flag);
   }
 
   /**
@@ -196,15 +200,16 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * current value and setting are atomic with respect to other
    * allocators.
    *
-   * @param o the address of the object
+   * @param oject the address of the object
    * @param oldVal the required current value of the bits
    * @param newVal the desired new value of the bits
    * @return <code>true</code> if the bits were set,
    * <code>false</code> otherwise
    */
-  public static boolean attemptAvailableBits(Address o,
+  public static boolean attemptAvailableBits(ObjectReference object,
 					     Word oldVal, Word newVal) {
-    return VM_ObjectModel.attemptAvailableBits(VM_Magic.addressAsObject(o), oldVal, newVal);
+    return VM_ObjectModel.attemptAvailableBits(object.toObject(), oldVal,
+                                               newVal);
   }
 
   /**
@@ -214,28 +219,28 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * @param o the address of the object
    * @return the value of the bits
    */
-  public static Word prepareAvailableBits(Address o) {
-    return VM_ObjectModel.prepareAvailableBits(VM_Magic.addressAsObject(o));
+  public static Word prepareAvailableBits(ObjectReference object) {
+    return VM_ObjectModel.prepareAvailableBits(object.toObject());
   }
 
   /**
    * Sets the bits available for memory manager use in an object.
    *
-   * @param o the address of the object
+   * @param object the address of the object
    * @param val the new value of the bits
    */
-  public static void writeAvailableBitsWord(Address o, Word val) {
-    VM_ObjectModel.writeAvailableBitsWord(VM_Magic.addressAsObject(o),val);
+  public static void writeAvailableBitsWord(ObjectReference object, Word val) {
+    VM_ObjectModel.writeAvailableBitsWord(object.toObject(), val);
   }
 
   /**
    * Read the bits available for memory manager use in an object.
    *
-   * @param o the address of the object
+   * @param object the address of the object
    * @return the value of the bits
    */
-  public static Word readAvailableBitsWord(Address o) {
-    return VM_ObjectModel.readAvailableBitsWord(o);
+  public static Word readAvailableBitsWord(ObjectReference object) {
+    return VM_ObjectModel.readAvailableBitsWord(object);
   }
 
   /**
@@ -257,7 +262,7 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * @param object the reference address of the object
    * @return the lowest address of the object
    */
-  public static Address objectStartRef(Address object)
+  public static Address objectStartRef(ObjectReference object)
     throws InlinePragma {
     return VM_ObjectModel.objectStartRef(object);
   }
@@ -266,11 +271,11 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * Returns an address guaranteed to be inside the storage assocatied
    * with and object.
    *
-   * @param obj the reference address of the object
+   * @param object the reference address of the object
    * @return an address inside the object
    */
-  public static Address refToAddress(Address obj) {
-    return VM_ObjectModel.getPointerInMemoryRegion(obj);
+  public static Address refToAddress(ObjectReference object) {
+    return VM_ObjectModel.getPointerInMemoryRegion(object);
   }
 
   /**
@@ -280,9 +285,10 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * @return <code>true</code> if a reference of the type is
    * inherently acyclic
    */
-  public static boolean isAcyclic(Address typeRef) throws InlinePragma {
+  public static boolean isAcyclic(ObjectReference typeRef) 
+    throws InlinePragma {
     Object type;
-    Object[] tib = VM_Magic.addressAsObjectArray(typeRef);
+    Object[] tib = VM_Magic.addressAsObjectArray(typeRef.toAddress());
     if (true) {  // necessary to avoid an odd compiler bug
       type = VM_Magic.getObjectAtOffset(tib, TIB_TYPE_INDEX);
     } else {
@@ -297,13 +303,13 @@ public class ObjectModel implements Constants, VM_Constants, Uninterruptible {
    * @param object The object whose type is required
    * @return The type object for <code>object</code>
    */
-  public static MMType getObjectType(Address object) 
+  public static MMType getObjectType(ObjectReference object) 
     throws InlinePragma {
-    Object obj = VM_Magic.addressAsObject(object);
+    Object obj = object.toObject();
     Object[] tib = VM_ObjectModel.getTIB(obj);
     if (VM.VerifyAssertions) {
       if (tib == null || VM_ObjectModel.getObjectType(tib) != VM_Type.JavaLangObjectArrayType) {
-	VM.sysWriteln("getObjectType: objRef = ", object, "   tib = ", VM_Magic.objectAsAddress(tib));
+	VM.sysWriteln("getObjectType: objRef = ", object.toAddress(), "   tib = ", VM_Magic.objectAsAddress(tib));
 	VM.sysWriteln("               tib's type is not Object[]");
         VM._assert(false);
       }
