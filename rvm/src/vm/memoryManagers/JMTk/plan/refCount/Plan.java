@@ -8,6 +8,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.VM_Interface;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Statistics;
 import com.ibm.JikesRVM.memoryManagers.vmInterface.Type;
+import com.ibm.JikesRVM.memoryManagers.vmInterface.ScanObject;
 
 import com.ibm.JikesRVM.VM_Address;
 import com.ibm.JikesRVM.VM_Extent;
@@ -98,6 +99,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // enumerators
   RCDecEnumerator decEnum;
+  RCSanityEnumerator  sanityEnum;
 
   /****************************************************************************
    *
@@ -138,6 +140,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     los = new RefCountLOSLocal(losVM, rcMR);
     rc = new RefCountLocal(rcSpace, this, los, decBuffer, newRootSet);
     decEnum = new RCDecEnumerator(this);
+    if (RefCountSpace.RC_SANITY_CHECK) sanityEnum = new RCSanityEnumerator(rc);
   }
 
   /**
@@ -196,7 +199,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     throws VM_PragmaInline {
     switch (allocator) {
     case RC_SPACE: 
-    case LOS_SPACE: decBuffer.pushOOL(VM_Magic.objectAsAddress(ref)); return;
+    case LOS_SPACE: 
+      decBuffer.pushOOL(VM_Magic.objectAsAddress(ref));
+      if (RefCountSpace.RC_SANITY_CHECK) RefCountLocal.sanityAllocCount(); 
+      return;
     case IMMORTAL_SPACE: 
       ImmortalSpace.postAlloc(ref); return;
     default: if (VM_Interface.VerifyAssertions) VM_Interface.sysFail("No such allocator"); return;
@@ -390,7 +396,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * LOS).
    */
   protected final void threadLocalRelease(int count) {
-    rc.release(Options.verboseTiming && count==1);
+    rc.release(count, Options.verboseTiming && count==1);
     if (GATHER_WRITE_BARRIER_STATS) { 
       // This is printed independantly of the verbosity so that any
       // time someone sets the GATHER_WRITE_BARRIER_STATS flags they
@@ -423,23 +429,23 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
 
   /**
-   * Trace a reference during GC.  This involves determining which
-   * collection policy applies and calling the appropriate
-   * <code>trace</code> method.
+   * Trace a reference during GC.  In this case we do nothing.  We
+   * only trace objects that are known to be root reachable.
    *
    * @param obj The object reference to be traced.  This is <i>NOT</i> an
    * interior pointer.
    * @return The possibly moved reference.
    */
-  public static final VM_Address traceObject (VM_Address obj) 
-    throws VM_PragmaInline {
-    return traceObject(obj, false);
-  }
+   public static final VM_Address traceObject(VM_Address obj) 
+     throws VM_PragmaInline {
+     return obj;
+   }
   
   /**
    * Trace a reference during GC.  This involves determining which
    * collection policy applies and calling the appropriate
-   * <code>trace</code> method.
+   * <code>trace</code> method.  We do not trace objects that are not
+   * roots.
    *
    * @param obj The object reference to be traced.  This is <i>NOT</i>
    * an interior pointer.
@@ -448,11 +454,16 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    * @return The possibly moved reference.
    */
   public static final VM_Address traceObject(VM_Address object, boolean root) {
-    if (object.isZero()) return object;
+    if (object.isZero() || !root) 
+      return object;
     VM_Address addr = VM_Interface.refToAddress(object);
     byte space = VMResource.getSpace(addr);
+    
+    if (RefCountSpace.RC_SANITY_CHECK) 
+      VM_Interface.getPlan().rc.incSanityTraceRoot(object);
+
     if (space == RC_SPACE || space == LOS_SPACE)
-      return rcSpace.traceObject(object, root);
+      return rcSpace.traceObject(object);
     
     if (VM_Interface.VerifyAssertions && space != BOOT_SPACE 
 	&& space != IMMORTAL_SPACE && space != META_SPACE) 
@@ -461,6 +472,54 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     return object;
   }
 
+  /**
+   * Trace a reference during an increment sanity traversal.  This is
+   * only used as part of the ref count sanity check, and it forms the
+   * basis for a transitive closure that assigns a reference count to
+   * each object.
+   *
+   * @param object The object being traced
+   * @param location The location from which this object was
+   * reachable, null if not applicable.
+   * @param root <code>true</code> if the object is being traced
+   * directly from a root.
+   */
+  final void incSanityTrace(VM_Address object, VM_Address location,
+			    boolean root) {
+    VM_Address addr = VM_Interface.refToAddress(object);
+    byte space = VMResource.getSpace(addr);
+    
+    if (space == RC_SPACE || space == LOS_SPACE) {
+      if (RCBaseHeader.incSanityRC(object, root))
+	ScanObject.enumeratePointers(object, sanityEnum);
+    } else if (RCBaseHeader.markSanityRC(object))
+      ScanObject.enumeratePointers(object, sanityEnum);
+  }
+  
+  /**
+   * Trace a reference during an check sanity traversal.  This is only
+   * used as part of the ref count sanity check, and it forms the
+   * basis for a transitive closure that checks reference counts
+   * against sanity reference counts.  If the counts are not matched,
+   * an error is raised.
+   *
+   * @param object The object being traced
+   * @param location The location from which this object was
+   * reachable, null if not applicable.
+   * @param root <code>true</code> if the object is being traced
+   * directly from a root.
+   */
+  final void checkSanityTrace(VM_Address object, VM_Address location) {
+    VM_Address addr = VM_Interface.refToAddress(object);
+    byte space = VMResource.getSpace(addr);
+    
+    if (space == RC_SPACE || space == LOS_SPACE) {
+      if (RCBaseHeader.checkAndClearSanityRC(object))
+	ScanObject.enumeratePointers(object, sanityEnum);
+    } else if (RCBaseHeader.unmarkSanityRC(object))
+      ScanObject.enumeratePointers(object, sanityEnum);
+  }
+  
   /**
    * Return true if <code>obj</code> is a live object.
    *
@@ -605,6 +664,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     do {
       old = VM_Magic.prepareAddress(src, 0);
     } while (!VM_Magic.attemptAddress(src, 0, old, tgt));
+
     if (old.GE(RC_START))
       decBuffer.pushOOL(old);
     if (tgt.GE(RC_START))
@@ -628,6 +688,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     do {
       old = VM_Magic.prepareAddress(src, 0);
     } while (!VM_Magic.attemptAddress(src, 0, old, tgt));
+
     if (old.GE(RC_START))
       decBuffer.push(old);
     if (tgt.GE(RC_START))

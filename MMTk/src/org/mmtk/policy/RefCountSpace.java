@@ -38,6 +38,7 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    * Class variables
    */
   public static final boolean INC_DEC_ROOT = false;
+  public static final boolean RC_SANITY_CHECK = false;
   
   /****************************************************************************
    *
@@ -87,12 +88,9 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    */
 
   /**
-   * Prepare for a new collection increment.  Flip the state of the
-   * boot image mark bit (use for debug tracing).
+   * Prepare for a new collection increment.  Nothing to do.
    */
-  public void prepare() { 
-    bootImageMark = !bootImageMark;
-  }
+  public void prepare() {}
 
   /**
    * A new collection increment has completed.
@@ -113,18 +111,14 @@ final class RefCountSpace implements Constants, VM_Uninterruptible {
    * @param object The object encountered in the trace
    * @param root True if the object is referenced directly from a root
    */
-  public final VM_Address traceObject(VM_Address object, boolean root)
+  public final VM_Address traceObject(VM_Address object)
     throws VM_PragmaInline {
-    if (root) {
-      if (INC_DEC_ROOT) {
-	RCBaseHeader.incRC(object);
-	VM_Interface.getPlan().addToRootSet(object);
-      } else if (RCBaseHeader.setRoot(object)) {
-	VM_Interface.getPlan().addToRootSet(object);
-      }
-    } else
-       RCBaseHeader.incRC(object);
-
+    if (INC_DEC_ROOT) {
+      RCBaseHeader.incRC(object);
+      VM_Interface.getPlan().addToRootSet(object);
+    } else if (RCBaseHeader.setRoot(object)) {
+      VM_Interface.getPlan().addToRootSet(object);
+    }
     return object;
   }
 

@@ -28,8 +28,9 @@ public abstract class RCBaseHeader implements Constants {
   /**
    * How many bytes are used by all GC header fields?
    */
-  public static final int NUM_BYTES_HEADER = BYTES_IN_ADDRESS;
+  public static final int NUM_BYTES_HEADER = (RefCountSpace.RC_SANITY_CHECK) ? 2*BYTES_IN_ADDRESS : BYTES_IN_ADDRESS;
   protected static final int RC_HEADER_OFFSET = VM_Interface.GC_HEADER_OFFSET();
+  protected static final int RC_SANITY_HEADER_OFFSET = VM_Interface.GC_HEADER_OFFSET() + BYTES_IN_ADDRESS;
 
   /**
    * How many bits does this GC system require?
@@ -101,6 +102,7 @@ public abstract class RCBaseHeader implements Constants {
     throws VM_PragmaUninterruptible, VM_PragmaNoInline {
     incRC(object);
   }
+
   /**
    * Increment the reference count of an object, clearing the "purple"
    * status of the object (if it were already purple).  An object is
@@ -117,6 +119,8 @@ public abstract class RCBaseHeader implements Constants {
     do {
       oldValue = VM_Magic.prepareInt(object, RC_HEADER_OFFSET);
       newValue = oldValue + INCREMENT;
+      if (VM_Interface.VerifyAssertions)
+	VM_Interface._assert(newValue <= INCREMENT_LIMIT);
       if (Plan.REF_COUNT_CYCLE_DETECTION) newValue = (newValue & ~PURPLE);
     } while (!VM_Magic.attemptInt(object, RC_HEADER_OFFSET, oldValue, newValue));
   }
@@ -160,6 +164,107 @@ public abstract class RCBaseHeader implements Constants {
     throws VM_PragmaUninterruptible, VM_PragmaInline {
     return  (VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET) & BUFFERED_MASK) == BUFFERED_MASK;
   }
+
+
+  /****************************************************************************
+   *
+   * Sanity check support
+   */
+ 
+  /**
+   * Increment the sanity reference count of an object.
+   *
+   * @param object The object whose sanity RC is to be incremented.
+   * @return <code>true</code> if this is the first increment to this object
+   */
+  static boolean incSanityRC(VM_Address object, boolean root)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int oldValue, newValue;
+    do {
+      oldValue = VM_Magic.prepareInt(object, RC_SANITY_HEADER_OFFSET);
+      if (root) {
+ 	newValue = (oldValue | ROOT_REACHABLE);
+      } else {
+ 	newValue = oldValue + INCREMENT;
+      }
+    } while (!VM_Magic.attemptInt(object, RC_SANITY_HEADER_OFFSET, oldValue,
+				  newValue));
+    if (oldValue == 0) {
+      RefCountLocal.sanityLiveObjects++;
+    }
+    return (oldValue == 0);
+  }
+
+  /**
+   * Check the sanity reference count and actual reference count for
+   * an object.
+   *
+   * @param object The object whose RC is to be checked.
+   * @return <code>true</code> if this is the first check of this object
+   */
+  static boolean checkAndClearSanityRC(VM_Address object) 
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int value = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
+    int sanityValue = VM_Magic.getIntAtOffset(object, RC_SANITY_HEADER_OFFSET);
+    int sanityRC = sanityValue >>> INCREMENT_SHIFT;
+    boolean sanityRoot = (sanityValue & ROOT_REACHABLE) == ROOT_REACHABLE;
+    if (sanityValue == 0) {
+      return false;
+    } else {
+      int rc = value >>> INCREMENT_SHIFT;
+      if (sanityRC != rc) {
+	Log.write("RC mismatch for object: ");
+	Log.write(object);
+	Log.write(" "); Log.write(rc);
+	Log.write(" (rc) != "); Log.write(sanityRC);
+	Log.writeln(" (sanityRC)");
+	VM_Interface.sysFail("");
+      }
+      VM_Magic.setIntAtOffset(object, RC_SANITY_HEADER_OFFSET, 0);
+      return true;
+    }
+  }
+
+  /**
+   * Set the mark bit within the sanity RC word for an object as part
+   * of a transitive closure of live objects in the sanity trace.
+   * This is only used for non-reference counted objects (immortal
+   * etc).
+   *
+   * @param object The object to be marked.
+   * @return <code>true</code> if the mark bit had not already been
+   * cleared.
+   */
+  static boolean markSanityRC(VM_Address object)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int sanityValue = VM_Magic.getIntAtOffset(object, RC_SANITY_HEADER_OFFSET);
+    if (sanityValue == 1)
+      return false;
+    else {
+      VM_Magic.setIntAtOffset(object, RC_SANITY_HEADER_OFFSET, 1);
+      return true;
+    }
+  }
+
+  /**
+   * Clear the mark bit within the sanity RC word for an object as
+   * part of a transitive closure of live objects in the sanity trace.
+   * This is only used for non-reference counted objects (immortal
+   * etc).
+   *
+   * @param object The object to be unmarked.
+   * @return <code>true</code> if the mark bit had not already been cleared.
+   */
+  static boolean unmarkSanityRC(VM_Address object)
+    throws VM_PragmaUninterruptible, VM_PragmaInline {
+    int sanityValue = VM_Magic.getIntAtOffset(object, RC_SANITY_HEADER_OFFSET);
+    if (sanityValue == 0)
+      return false;
+    else {
+      VM_Magic.setIntAtOffset(object, RC_SANITY_HEADER_OFFSET, 0);
+      return true;
+    }
+  }  
 
   /****************************************************************************
    * 
@@ -249,9 +354,7 @@ public abstract class RCBaseHeader implements Constants {
     int rtn;
     oldValue = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
     newValue = oldValue - INCREMENT;
-    //    Log.write("ud[");Log.write(object);RCBaseHeader.print(object);
     VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, newValue);
-    //    Log.write(' ');RCBaseHeader.print(object);Log.writeln("]");
   }
 
   /**
@@ -264,9 +367,7 @@ public abstract class RCBaseHeader implements Constants {
     int oldValue, newValue;
     oldValue = VM_Magic.getIntAtOffset(object, RC_HEADER_OFFSET);
     newValue = oldValue + INCREMENT;
-    //    Log.write("ui[");Log.write(object);RCBaseHeader.print(object);
     VM_Magic.setIntAtOffset(object, RC_HEADER_OFFSET, newValue);
-    //    Log.write(' ');RCBaseHeader.print(object);Log.writeln("]");
   }
 
   static void print(VM_Address object)
@@ -379,6 +480,5 @@ public abstract class RCBaseHeader implements Constants {
   protected static final int INCREMENT_SHIFT = BITS_USED;
   protected static final int INCREMENT = 1<<INCREMENT_SHIFT;
   protected static final int AVAILABLE_BITS = BITS_IN_ADDRESS - BITS_USED;
-  protected static final int INCREMENT_BITS = AVAILABLE_BITS;
-  protected static final int INCREMENT_MASK = ((1<<INCREMENT_BITS)-1)<<INCREMENT_SHIFT;
+  protected static final int INCREMENT_LIMIT = ~(1<<(BITS_IN_ADDRESS-1));
 }

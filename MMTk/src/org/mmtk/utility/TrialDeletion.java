@@ -165,9 +165,9 @@ final class TrialDeletion extends CycleDetector
     unfilteredPurpleBuffer.insert(object);
   }
 
-  final boolean collectCycles(boolean time) {
+  final boolean collectCycles(int count, boolean time) {
     collectedCycles = false;
-    if (shouldFilterPurple()) {
+    if (count == 1 && shouldFilterPurple()) {
       long filterStart = VM_Interface.cycles();
       long finishTarget = Plan.getTimeCap();
       long remaining = finishTarget - filterStart;
@@ -197,8 +197,8 @@ final class TrialDeletion extends CycleDetector
 	  }
 	}
       }
+      lastPurplePages = Plan.getMetaDataPagesUsed();
     }
-    lastPurplePages = Plan.getMetaDataPagesUsed();
     return collectedCycles;
   }
 
@@ -259,6 +259,8 @@ final class TrialDeletion extends CycleDetector
    * @return True if we should act
    */
   private final boolean shouldAct(int thresholdPages) {
+    if (RefCountSpace.RC_SANITY_CHECK) return true;
+
     final int LOG_WRIGGLE = 2;
     int slack = log2((int) Plan.getPagesAvail()/thresholdPages);
     int mask = (1<<slack)-1;
