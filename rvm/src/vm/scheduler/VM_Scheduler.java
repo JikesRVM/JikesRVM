@@ -662,45 +662,45 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
         VM.sysWrite("   <invisible method>\n");
       } else {
         // normal java frame(s)
-        VM_CompiledMethod compiledMethod    = VM_CompiledMethods.getCompiledMethod(compiledMethodId);
-        if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP) {
+        VM_CompiledMethod compiledMethod    =
+          VM_CompiledMethods.getCompiledMethod(compiledMethodId);
+        if (compiledMethod == null) {
+          VM.sysWrite("   <unprintable normal Java frame: VM_CompiledMethods.getCompiledMethod(", compiledMethodId, ") returned null>");
+        } else if (compiledMethod.getCompilerType() == VM_CompiledMethod.TRAP){
           VM.sysWrite("   <hardware trap>\n");
         } else {
           VM_Method method            = compiledMethod.getMethod();
-          int       instructionOffset = compiledMethod.getInstructionOffset(ip);
-          int       lineNumber        = compiledMethod.findLineNumberForInstruction(instructionOffset);
+          int       instructionOffset = 
+            compiledMethod.getInstructionOffset(ip);
+          int       lineNumber        = 
+            compiledMethod.findLineNumberForInstruction(instructionOffset);
           
           //-#if RVM_WITH_OPT_COMPILER
           if (compiledMethod.getCompilerType() == VM_CompiledMethod.OPT) {
-            VM_OptCompiledMethod optInfo = (VM_OptCompiledMethod)compiledMethod;
+            VM_OptCompiledMethod optInfo =
+              (VM_OptCompiledMethod) compiledMethod;
             // Opt stack frames may contain multiple inlined methods.
             VM_OptMachineCodeMap map = optInfo.getMCMap();
             int iei = map.getInlineEncodingForMCOffset(instructionOffset);
             if (iei >= 0) {
               int[] inlineEncoding = map.inlineEncoding;
               int bci = map.getBytecodeIndexForMCOffset(instructionOffset);
-              for (int j = iei; j >= 0; j = VM_OptEncodedCallSiteTree.getParent(j,inlineEncoding)) {
-                int mid = VM_OptEncodedCallSiteTree.getMethodID(j, inlineEncoding);
-                method = VM_MemberReference.getMemberRef(mid).asMethodReference().getResolvedMember();
-                lineNumber = ((VM_NormalMethod)method).getLineNumberForBCIndex(bci);
-                VM.sysWrite("   ");
-                VM.sysWrite(method.getDeclaringClass().getDescriptor());
-                VM.sysWrite(" ");
-                VM.sysWrite(method.getName());
-                VM.sysWrite(method.getDescriptor());
-                VM.sysWrite(" at line ");
-                VM.sysWriteInt(lineNumber);
-                VM.sysWrite("\n");
-                if (j > 0) 
-                  bci = VM_OptEncodedCallSiteTree.getByteCodeOffset(j, inlineEncoding);
+              for (; iei >= 0; iei = VM_OptEncodedCallSiteTree
+                                        .getParent(iei,inlineEncoding)) 
+              {
+                int mid = VM_OptEncodedCallSiteTree
+                  .getMethodID(iei, inlineEncoding);
+                method = VM_MemberReference.getMemberRef(mid)
+                  .asMethodReference().getResolvedMember();
+                lineNumber = ((VM_NormalMethod)method)
+                  .getLineNumberForBCIndex(bci);
+                showMethod(method, lineNumber);
+                if (iei > 0) 
+                  bci = VM_OptEncodedCallSiteTree
+                    .getByteCodeOffset(iei, inlineEncoding);
               }
             } else {
-              VM.sysWrite("   Unknown location in opt compiled method ");
-              VM.sysWrite(method.getDeclaringClass().getDescriptor());
-              VM.sysWrite(" ");
-              VM.sysWrite(method.getName());
-              VM.sysWrite(method.getDescriptor());
-              VM.sysWrite("\n");
+              showMethod(method, lineNumber);
             }
             ip = VM_Magic.getReturnAddress(fp);
             fp = VM_Magic.getCallerFramePointer(fp);
@@ -708,14 +708,7 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
           } 
           //-#endif
 
-          VM.sysWrite("   ");
-          VM.sysWrite(method.getDeclaringClass().getDescriptor());
-          VM.sysWrite(" ");
-          VM.sysWrite(method.getName());
-          VM.sysWrite(method.getDescriptor());
-          VM.sysWrite(" at line ");
-          VM.sysWriteInt(lineNumber);
-          VM.sysWrite("\n");
+          showMethod(method, lineNumber);
         }
       }
       ip = VM_Magic.getReturnAddress(fp);
@@ -723,6 +716,25 @@ public class VM_Scheduler implements VM_Constants, Uninterruptible {
     }
     --inDumpStack;
   }  
+
+  /** Helper function for {@link #dumpStack(Address, Address)}.  Print a
+   * stack frame showing the method.  */
+  private static void showMethod(VM_Method method, int lineNumber) {
+    VM.sysWrite("   ");
+    if (method == null) {
+      VM.sysWrite("<unknown method>");
+    } else {
+      VM.sysWrite(method.getDeclaringClass().getDescriptor());
+      VM.sysWrite(" ");
+      VM.sysWrite(method.getName());
+      VM.sysWrite(method.getDescriptor());
+    }
+    if (lineNumber > 0) {
+      VM.sysWrite(" at line ");
+      VM.sysWriteInt(lineNumber);
+    }
+    VM.sysWrite("\n");
+  }
 
   private static boolean exitInProgress = false;
   /**
