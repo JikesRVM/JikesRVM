@@ -72,7 +72,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   //
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
-  private int[] freeList; // should be VM_Address []
+  private VM_AddressArray freeList;
   private Plan plan;
   private int pagesInUse;
 
@@ -84,7 +84,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     vmResource = vmr;
     memoryResource = mr;
     plan = thePlan;
-    freeList = new int[FREE_LIST_ENTRIES];
+    freeList = new VM_AddressArray(FREE_LIST_ENTRIES);
   }
 
   static {
@@ -114,9 +114,9 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
     }
 
     // try to use satisfy from free list
-    if (freeList[blockSizeClass] != 0) {
-      rtn = VM_Address.fromInt(freeList[blockSizeClass]);
-      freeList[blockSizeClass] = getNextFLBlock(rtn).toInt();
+    if (!freeList.get(blockSizeClass).isZero()) {
+      rtn = freeList.get(blockSizeClass);
+      freeList.set(blockSizeClass, getNextFLBlock(rtn));
       if (!getNextFLBlock(rtn).isZero())
 	setPrevFLBlock(getNextFLBlock(rtn), VM_Address.zero());
     } else {
@@ -153,9 +153,9 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
       rtn = rtn.add(BLOCK_HEADER_SIZE);
     } else {
       byte srcSC = getFreeListID(requestedSC, originalSC);
-      if (freeList[srcSC] != 0) {  // available through free list
-	rtn = VM_Address.fromInt(freeList[srcSC]);
-	freeList[srcSC] = getNextFLBlock(rtn).toInt();
+      if (!freeList.get(srcSC).isZero()) {  // available through free list
+	rtn = freeList.get(srcSC);
+	freeList.set(srcSC, getNextFLBlock(rtn));
 	if (!getNextFLBlock(rtn).isZero())
 	  setPrevFLBlock(getNextFLBlock(rtn), VM_Address.zero());
       } else {                     // must split larger sizes
@@ -217,7 +217,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
 
   private final void sanity() {
     for (byte fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
-      VM_Address block = VM_Address.fromInt(freeList[fl]);
+      VM_Address block = freeList.get(fl);
       VM_Address prev = VM_Address.zero();
       while (!block.isZero()) {
 	if (VM.VerifyAssertions) {
@@ -235,7 +235,7 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
   private final int freeListEntries(VM_Address block) {
     int entries = 0;
     for (byte fl = 0; fl < FREE_LIST_ENTRIES; fl++) {
-      VM_Address blk = VM_Address.fromInt(freeList[fl]);
+      VM_Address blk = freeList.get(fl);
       while (!blk.isZero()) {
 	if (blk.EQ(block))
 	  entries++;
@@ -267,20 +267,20 @@ final class BlockAllocator implements Constants, VM_Uninterruptible {
 
 
   private final void addToFreeList(VM_Address block, int freeListID) {
-    VM_Address next = VM_Address.fromInt(freeList[freeListID]);
+    VM_Address next = freeList.get(freeListID);
     VM_Magic.setMemoryAddress(block.add(FL_MARKER_OFFSET), BASE_FL_MARKER.sub(freeListID));
     VM_Magic.setMemoryAddress(block.add(FL_NEXT_FIELD_OFFSET), next);
     VM_Magic.setMemoryAddress(block.add(FL_PREV_FIELD_OFFSET), VM_Address.zero());
     if (!next.isZero())
       VM_Magic.setMemoryAddress(next.add(FL_PREV_FIELD_OFFSET), block);
-    freeList[freeListID] = block.toInt();
+    freeList.set(freeListID, block);
     //    VM.sysWrite("a["); VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(freeListID); VM.sysWrite(" "); VM.sysWrite(getNextFLBlock(block)); VM.sysWrite(" "); VM.sysWrite(getPrevFLBlock(block)); VM.sysWrite("]\n");
   }
 
   private final void removeFromFreeList(VM_Address block, byte freeListID) {
-    //    VM.sysWrite("r["); VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(freeListID); VM.sysWrite(" "); VM.sysWrite(getNextFLBlock(block)); VM.sysWrite(" "); VM.sysWrite(getPrevFLBlock(block)); VM.sysWrite(" "); VM.sysWrite(freeList[freeListID]); 
-    if (freeList[freeListID] == block.toInt()) {
-      freeList[freeListID] = getNextFLBlock(block).toInt();
+    //    VM.sysWrite("r["); VM.sysWrite(block); VM.sysWrite(" "); VM.sysWrite(freeListID); VM.sysWrite(" "); VM.sysWrite(getNextFLBlock(block)); VM.sysWrite(" "); VM.sysWrite(getPrevFLBlock(block)); VM.sysWrite(" "); VM.sysWrite(freeList.get(freeListID));
+    if (freeList.get(freeListID).EQ(block)) {
+      freeList.set(freeListID, getNextFLBlock(block));
       if (!getNextFLBlock(block).isZero())
 	setPrevFLBlock(getNextFLBlock(block), VM_Address.zero());
     }

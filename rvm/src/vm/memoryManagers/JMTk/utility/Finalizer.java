@@ -7,6 +7,7 @@ package com.ibm.JikesRVM.memoryManagers.JMTk;
 
 import com.ibm.JikesRVM.VM;
 import com.ibm.JikesRVM.VM_Address;
+import com.ibm.JikesRVM.VM_AddressArray;
 import com.ibm.JikesRVM.VM_Magic;
 import com.ibm.JikesRVM.VM_PragmaInline;
 import com.ibm.JikesRVM.VM_PragmaNoInline;
@@ -44,7 +45,7 @@ public class Finalizer implements VM_Uninterruptible {
   private static int INITIAL_SIZE = 32768;
   private static double growthFactor = 2.0;
   private static Lock lock = new Lock("Finalizer");
-  private static int [] candidate = new int[INITIAL_SIZE];    // should be VM_Address [] but compiler does not support that type properly
+  private static VM_AddressArray candidate = new VM_AddressArray(INITIAL_SIZE);
   private static int candidateEnd;                            // candidate[0] .. candidate[candidateEnd-1] contains non-zero entries
   private static Object [] live = new Object[INITIAL_SIZE];
   private static int liveStart;                               // live[liveStart] .. live[liveEnd-1] are the non-null entries
@@ -65,13 +66,14 @@ public class Finalizer implements VM_Uninterruptible {
   //
   public static final void addCandidate(Object item) throws VM_PragmaNoInline, VM_PragmaInterruptible  {
     lock.acquire();
-    if (candidateEnd >= candidate.length) {
-      int[] newCandidate = new int[(int) (growthFactor * candidate.length)];
-      for (int i=0; i<candidate.length; i++)
-	newCandidate[i] = candidate[i];
+    int origLength = candidate.length();
+    if (candidateEnd >= origLength) {
+      VM_AddressArray newCandidate = new VM_AddressArray((int) (growthFactor * origLength));
+      for (int i=0; i<origLength; i++)
+	newCandidate.set(i, candidate.get(i));
       candidate = newCandidate;
     }
-    candidate[candidateEnd++] = VM_Magic.objectAsAddress(item).toInt();
+    candidate.set(candidateEnd++, VM_Magic.objectAsAddress(item));
     lock.release();
   }
 
@@ -81,19 +83,19 @@ public class Finalizer implements VM_Uninterruptible {
     // Invariant: Slots left of leftCursor are non-empty and slots right of rightCursor are empty
     while (true) {
       // Advance left cursor until it hits empty slot
-      while (leftCursor < rightCursor && candidate[leftCursor] != 0)
+      while (leftCursor < rightCursor && !candidate.get(leftCursor).isZero())
 	leftCursor++;
       // Back-advance right cursor until it hits non-empty slot
-      while (rightCursor > leftCursor && candidate[rightCursor] == 0)
+      while (rightCursor > leftCursor && candidate.get(rightCursor).isZero())
 	rightCursor--;
       if (leftCursor >= rightCursor) // can be greater on first iteration if totally empty
 	break;
       if (VM.VerifyAssertions) 
-	VM._assert(candidate[leftCursor] == 0 && candidate[rightCursor] != 0);
-      candidate[leftCursor] = candidate[rightCursor];
-      candidate[rightCursor] = 0;
+	VM._assert(candidate.get(leftCursor).isZero() && !candidate.get(rightCursor).isZero());
+      candidate.set(leftCursor, candidate.get(rightCursor));
+      candidate.set(rightCursor, VM_Address.zero());
     }
-    if (candidate[leftCursor] == 0)
+    if (candidate.get(leftCursor).isZero())
       candidateEnd = leftCursor;
     else
       candidateEnd = leftCursor + 1;
@@ -143,8 +145,8 @@ public class Finalizer implements VM_Uninterruptible {
 
     int cursor = 0;
     while (cursor < candidateEnd) {
-      VM_Address cand = VM_Address.fromInt(candidate[cursor]);
-      candidate[cursor] = 0;
+      VM_Address cand = candidate.get(cursor);
+      candidate.set(cursor, VM_Address.zero());
       addLive(VM_Magic.addressAsObject(cand));
       cursor++;
     }
@@ -164,16 +166,16 @@ public class Finalizer implements VM_Uninterruptible {
     int newFinalizeCount = 0;
 
     while (cursor < candidateEnd) {
-      VM_Address cand = VM_Address.fromInt(candidate[cursor]);
+      VM_Address cand = candidate.get(cursor);
       boolean isLive = Plan.isLive(cand);
       VM_Address newObj = Plan.traceObject(cand);
       if (isLive) {
 	// live beforehand but possibly moved
-	candidate[cursor] = newObj.toInt();
+	candidate.set(cursor, newObj);
       }
       else {
 	// died and revived, needs finalization now
-	candidate[cursor] = 0;
+	candidate.set(cursor, VM_Address.zero());
 	addLive(VM_Magic.addressAsObject(newObj));
 	newFinalizeCount++;
       }

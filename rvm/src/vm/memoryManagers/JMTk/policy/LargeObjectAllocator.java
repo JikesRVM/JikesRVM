@@ -117,8 +117,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
   /**
    * Allocate a large object.  Large objects are directly allocted and
    * freed in page-grained units via the vm resource.  This routine
-   * does not guarantee that the space will have been zeroed.  The
-   * caller must explicitly zero the space.
+   * returned zeroed memory.
    *
    * @param isScalar True if the object to occupy this space will be a scalar.
    * @param bytes The required size of this space in bytes.
@@ -132,6 +131,7 @@ abstract class LargeObjectAllocator extends Allocator implements Constants, VM_U
     if (sp.isZero()) return sp;
     VM_Address cell = sp.add(header);
     Memory.zero(cell, bytes);
+    VM.sysWrite("LargeObjectAllocator returning ", cell);
     return cell;
   }
 

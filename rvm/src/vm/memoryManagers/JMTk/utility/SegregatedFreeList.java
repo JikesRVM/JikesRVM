@@ -29,8 +29,7 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
   //
   // Class variables
   //
-  //  protected static final VM_Address DEBUG_BLOCK = VM_Address.fromInt(0x5b098008);
-  protected static final VM_Address DEBUG_BLOCK = VM_Address.fromInt(0xffffffff);
+  protected static final VM_Address DEBUG_BLOCK = VM_Address.fromInt(0xffffffff);  // 0x5b098008
   protected static final int SIZE_CLASSES = 40;
   protected static final int FREE_LIST_HEADER_BYTES = WORD_SIZE;
   private static final int FREE_LIST_OFFSET = 0;
@@ -61,11 +60,11 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
   // Instance variables
   //
   protected BlockAllocator blockAllocator;
-  protected int[] freeList; // should be VM_Address []
-  protected int[] firstBlock; // should be VM_Address []
-  protected int[] lastBlock; // should be VM_Address []
-  protected int[] currentBlock; // should be VM_Address []
-  protected int[] cellsInUse;
+  protected VM_AddressArray freeList; 
+  protected VM_AddressArray firstBlock;
+  protected VM_AddressArray lastBlock;
+  protected VM_AddressArray currentBlock;
+  protected int []          cellsInUse;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -82,10 +81,10 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
    */
   SegregatedFreeList(FreeListVMResource vmr, MemoryResource mr, Plan plan) {
     blockAllocator = new BlockAllocator(vmr, mr, plan);
-    freeList = new int[SIZE_CLASSES];
-    firstBlock = new int[SIZE_CLASSES];
-    lastBlock = new int[SIZE_CLASSES];
-    currentBlock = new int[SIZE_CLASSES];
+    freeList = new VM_AddressArray(SIZE_CLASSES);
+    firstBlock = new VM_AddressArray(SIZE_CLASSES);
+    lastBlock = new VM_AddressArray(SIZE_CLASSES);
+    currentBlock = new VM_AddressArray(SIZE_CLASSES);
     cellsInUse = new int[SIZE_CLASSES];
   }
 
@@ -116,15 +115,14 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
 
     int sizeClass = getSizeClass(bytes);
 //     VM.sysWrite(bytes); VM.sysWrite(" "); VM.sysWrite(sizeClass); VM.sysWrite(" "); VM.sysWrite(VM_Magic.objectAsAddress(freeList)); VM.sysWrite(" "); VM.sysWrite(freeList[sizeClass]); VM.sysWrite("\n");
-    VM_Address cell = VM_Address.fromInt(freeList[sizeClass]);
+    VM_Address cell = freeList.get(sizeClass);
 //     VM.sysWrite(cell); VM.sysWrite("-");
     if (!cell.isZero()) {
 //     VM.sysWrite(cell); VM.sysWrite("-");
 //     VM.sysWrite(getNextCell(cell)); VM.sysWrite("-");
       cellsInUse[sizeClass]++;
-      freeList[sizeClass] = getNextCell(cell);
-      postAlloc(cell, VM_Address.fromInt(currentBlock[sizeClass]), sizeClass,
-		bytes);
+      freeList.set(sizeClass, getNextCell(cell));
+      postAlloc(cell, currentBlock.get(sizeClass), sizeClass, bytes);
       Memory.zeroSmall(cell, bytes);
       return cell;
     } else
@@ -158,7 +156,7 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
   private final VM_Address allocFromNextFreeList(boolean isScalar, int bytes,
 						 int sizeClass)
     throws VM_PragmaNoInline {
-    VM_Address current = VM_Address.fromInt(currentBlock[sizeClass]);
+    VM_Address current = currentBlock.get(sizeClass);
     if (!current.isZero()) {
       flushFreeList(current, sizeClass, VM_Address.zero());
       current = BlockAllocator.getNextBlock(current);
@@ -166,10 +164,10 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
 	advanceToBlock(current, sizeClass);
 	VM_Address cell = getFreeList(current);
 	if (!cell.isZero()) {
-	  currentBlock[sizeClass] = current.toInt();
+	  currentBlock.set(sizeClass, current);
 	  cellsInUse[sizeClass] = getInUse(current) + 1;
-	  freeList[sizeClass] = getNextCell(cell);
-	  postAlloc(cell, VM_Address.fromInt(currentBlock[sizeClass]),
+	  freeList.set(sizeClass, getNextCell(cell));
+	  postAlloc(cell, currentBlock.get(sizeClass),
 		    sizeClass, bytes);
 	  Memory.zeroSmall(cell, bytes);
 	  return cell;
@@ -188,8 +186,8 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
       return VM_Address.zero();
 
     cellsInUse[sizeClass]++;
-    freeList[sizeClass] = getNextCell(cell);
-    postAlloc(cell, VM_Address.fromInt(currentBlock[sizeClass]), sizeClass,
+    freeList.set(sizeClass, getNextCell(cell));
+    postAlloc(cell, currentBlock.get(sizeClass), sizeClass,
 	      bytes);
     Memory.zeroSmall(cell, bytes);
     return cell;
@@ -199,7 +197,7 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
 
   private final VM_Address expandSizeClass(int sizeClass) 
     throws VM_PragmaInline {
-    VM_Address block = blockAllocator.alloc(blockSizeClass[sizeClass]);
+    VM_Address block = blockAllocator.alloc(blockSizeClass.get(sizeClass));
     if (block.isZero())
       return VM_Address.zero();
 
@@ -266,11 +264,11 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
 
   private final void installNewBlock(VM_Address block, int sizeClass) 
     throws VM_PragmaInline {
-    BlockAllocator.linkedListInsert(block, VM_Address.fromInt(lastBlock[sizeClass]));
-    currentBlock[sizeClass] = block.toInt();
-    lastBlock[sizeClass] = block.toInt();
-    if (firstBlock[sizeClass] == 0)
-      firstBlock[sizeClass] = block.toInt();
+    BlockAllocator.linkedListInsert(block, lastBlock.get(sizeClass));
+    currentBlock.set(sizeClass, block);
+    lastBlock.set(sizeClass, block);
+    if (firstBlock.get(sizeClass).isZero())
+      firstBlock.set(sizeClass, block);
   }
 
   protected final void freeBlock(VM_Address block, int sizeClass) 
@@ -279,12 +277,12 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
     VM_Address next = BlockAllocator.getNextBlock(block);
     VM_Address prev = BlockAllocator.getPrevBlock(block);
     BlockAllocator.unlinkBlock(block);
-    if (firstBlock[sizeClass] == block.toInt())
-      firstBlock[sizeClass] = next.toInt();
-    if (currentBlock[sizeClass] == block.toInt())
-      currentBlock[sizeClass] = next.toInt();
-    if (lastBlock[sizeClass] == block.toInt())
-      lastBlock[sizeClass] = prev.toInt();
+    if (firstBlock.get(sizeClass).EQ(block))
+      firstBlock.set(sizeClass, next);
+    if (currentBlock.get(sizeClass).EQ(block))
+      currentBlock.set(sizeClass, next);
+    if (lastBlock.get(sizeClass).EQ(block))
+      lastBlock.set(sizeClass, prev);
     blockAllocator.free(block, blockSizeClass[sizeClass]);
   }
 
@@ -364,24 +362,24 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
     //    VM.sysWrite("Flushing free lists!\n");
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++)
       if (currentBlock[sizeClass] != 0) {
-	VM_Address block = VM_Address.fromInt(currentBlock[sizeClass]);
-	VM_Address cell = VM_Address.fromInt(freeList[sizeClass]);
+	VM_Address block = currentBlock.get(sizeClass);
+	VM_Address cell = freeList.get(sizeClass);
 	flushFreeList(block, sizeClass, cell);
-	currentBlock[sizeClass] = 0;
-	freeList[sizeClass] = 0;
+	currentBlock.set(sizeClass, VM_Address.zero());
+	freeList.set(sizeClass, VM_Address.zero());
       }
   }
 
   public final void restoreFreeLists() {
     //    VM.sysWrite("Flushing free lists!\n");
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
-      currentBlock[sizeClass] = firstBlock[sizeClass];
-      VM_Address block = VM_Address.fromInt(firstBlock[sizeClass]);
+      currentBlock.set(sizeClass, firstBlock.get(sizeClass));
+      VM_Address block = firstBlock.get(sizeClass);
       if (block.isZero()) {
-	freeList[sizeClass] = 0;
+	freeList.set(sizeClass, VM_Address.zero());
 	cellsInUse[sizeClass] = 0;
       } else {
-	freeList[sizeClass] = getFreeList(block).toInt();
+	freeList.set(sizeClass, getFreeList(block));
 	cellsInUse[sizeClass] = getInUse(block);
       }
     }
@@ -395,7 +393,7 @@ abstract class SegregatedFreeList extends Allocator implements Constants, VM_Uni
 
   private final void refreshFreeLists() {
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++)
-      currentBlock[sizeClass] = firstBlock[sizeClass];
+      currentBlock.set(sizeClass, firstBlock.get(sizeClass));
   }
 
   private final void setFreeListSizeClassAndInUse(VM_Address block,

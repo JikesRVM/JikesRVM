@@ -166,9 +166,7 @@ final class MarkSweepLocal extends SegregatedFreeList
        VM.sysWrite(block); VM.sysWrite(" ");
        VM.sysWrite(bitmapWord); VM.sysWrite(" ");
        VM.sysWrite(word); VM.sysWrite("<-\n");
-// 	  VM.sysWrite("<"); VM.sysWrite(0x5b200038); VM.sysWrite(" ");
-// 	  VM.sysWrite(VM_Magic.getMemoryAddress(VM_Address.fromInt(0x5b200038)));
-	  VM.sysWrite(">\n");
+       VM.sysWrite(">\n");
     }
     if (msSpace.inMSCollection) {
       // set the mark bit
@@ -226,7 +224,7 @@ final class MarkSweepLocal extends SegregatedFreeList
    */
   private final void sweepBlocks() {
     for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
-      VM_Address block = VM_Address.fromInt(firstBlock[sizeClass]);
+      VM_Address block = firstBlock.get(sizeClass);
       while (!block.isZero()) {
 	// first check to see if block is completely free and if possible
 	// free the entire block
@@ -236,9 +234,6 @@ final class MarkSweepLocal extends SegregatedFreeList
 	else if (!LAZY_SWEEP)
 	  freePairs(block, sizeClass, true);
 	block = next;
-// 	  VM.sysWrite("{"); VM.sysWrite(0x5b200038); VM.sysWrite(" ");
-// 	  VM.sysWrite(VM_Magic.getMemoryAddress(VM_Address.fromInt(0x5b200038)));
-// 	  VM.sysWrite("}\n");
       }
     }
   }
@@ -249,7 +244,7 @@ final class MarkSweepLocal extends SegregatedFreeList
    */
   private final void zeroMarkBits() {
     for (int sizeClass = 1; sizeClass < SIZE_CLASSES; sizeClass++) {
-      VM_Address block = VM_Address.fromInt(currentBlock[sizeClass]);
+      VM_Address block = currentBlock.get(sizeClass);
 //       VM.sysWrite("zeroing... "); VM.sysWrite(block);
       if (!block.isZero())
 	block = BlockAllocator.getNextBlock(block);
@@ -391,15 +386,15 @@ final class MarkSweepLocal extends SegregatedFreeList
   private final void sanity() {
     VM.sysWrite("<");
     for (int sizeClass = 0; sizeClass < SIZE_CLASSES; sizeClass++) {
-      VM_Address block = VM_Address.fromInt(firstBlock[sizeClass]);
+      VM_Address block = firstBlock.get(sizeClass);
       while (!block.isZero()) {
 	if (block.EQ(DEBUG_BLOCK)) {
-	  VM.sysWrite(firstBlock[sizeClass]); VM.sysWrite("[ ");
+	  VM.sysWrite(firstBlock.get(sizeClass)); VM.sysWrite("[ ");
 	}
 	int free = checkFreeList(block, sizeClass);
 	checkUsed(block, sizeClass, free);
 	if (block.EQ(DEBUG_BLOCK)) {
-	  VM.sysWrite(firstBlock[sizeClass]); VM.sysWrite("] ");
+	  VM.sysWrite(firstBlock.get(sizeClass)); VM.sysWrite("] ");
 	  VM.sysWrite("done\n");
 	}
 	block = BlockAllocator.getNextBlock(block);
@@ -410,8 +405,8 @@ final class MarkSweepLocal extends SegregatedFreeList
 
   private final int checkFreeList(VM_Address block, int sizeClass) {
     VM_Address cell;
-    if (currentBlock[sizeClass] == block.toInt())
-      cell = VM_Address.fromInt(freeList[sizeClass]);
+    if (currentBlock.get(sizeClass).EQ(block)) {
+      cell = freeList.get(sizeClass);
     else
       cell = getFreeList(block);
 
@@ -436,7 +431,7 @@ final class MarkSweepLocal extends SegregatedFreeList
 	VM.sysWrite(block); VM.sysWrite("\n");
 	if (VM.VerifyAssertions) VM._assert(false);
       }
-      cell = VM_Address.fromInt(getNextCell(cell));
+      cell = getNextCell(cell);
     }
     if (block.EQ(DEBUG_BLOCK)) {
       VM.sysWrite(") ");
@@ -503,7 +498,7 @@ final class MarkSweepLocal extends SegregatedFreeList
   private final int getUsedPages() {
     int bytes = 0;
     for (int sc = 0; sc < SIZE_CLASSES; sc++) {
-      bytes += getUsedBlockBytes(VM_Address.fromInt(firstBlock[sc]), sc);
+      bytes += getUsedBlockBytes(firstBlock.get(sc)), sc);
     }
     return bytes>>LOG_PAGE_SIZE;
   }
@@ -539,8 +534,7 @@ final class MarkSweepLocal extends SegregatedFreeList
 	i = inuse[sizeClass];
 	u = used[sizeClass];
       } else {
-	VM_Address block;
-	block = VM_Address.fromInt(firstBlock[sizeClass]);
+	VM_Address block = firstBlock.get(sizeClass);
 	i = getInuseCellBytes(block, sizeClass);
 	u = getUsedBlockBytes(block, sizeClass);
 	inuse[sizeClass] += i;
