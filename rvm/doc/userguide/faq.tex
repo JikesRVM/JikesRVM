@@ -2,8 +2,7 @@
 {\bf RVM Frequently Asked Questions}
 \end{center}
 
-
-\subsection{Basic RVM Questions}
+\subsection{General}
 
 \subsubsection{What is RVM?}
 
@@ -18,27 +17,37 @@ not still burn your mouth?
 
 \subsection{Getting RVM}
 
-See the RVM web pages on DeveloperWorks.
+\subsubsection{How do I get RVM?}
+
+You need to download two bundles: the RVM source, and the RVM standard library
+jar file.  Each of these is available for download from DeveloperWorks at
+\remark{TODO! insert URL}.  
+The RVM source is also available through a public CVS server 
+\remark{TODO.  URL}. 
+
+You can also download the source to the libraries \remark{TODO URL} under
+a separate license. \remark{TODO URL}
 
 \subsection{Licenses}
 
 The RVM implementation is licensed open-source under the Common Public
-License.  There are separate, more restrictive licenses for the binary and 
+License. \remark{TODO URL} There are separate, more restrictive licenses 
+for the binary and 
 source to the Java standard libraries for RVM.  See the DeveloperWorks
-web pages for more details.
+web pages for more details. \remark{TODO URL}
 
 \subsection{Building RVM}
 
-\subsubsection{Why is bootimage writing so slow?} 
-\begin{description}
-\item [Q:] 
-Boot image writing seems to be the most time-consuming step in the
-RVM build process.  Has anybody tried to or thought about
-creating an incremental boot image writer? It might speed up the
-development cycle quite a bit (I guess the standard reply to this will
-be that I better keep the stuff I'm working on out of the boot image).
+\subsubsection{Which jikes should I use?}
+\remark{TODO URL}
+At Watson, we're currently using jikes v1.13 to compile the RVM source on
+both Linux and AIX.  We've had reports from users that v1.14 has problems
+on Linux.  In order to build the rvmrt.jar library, we applied patch 62 to
+the jikes build to fix a jikes scoping problem.
 
-\item [A:]
+
+\subsubsection{Has anybody thought about incremental boot image writing?}
+
 Incremental boot image building is not a trivial problem.  One big
 issue is: if we change the implementation of one class in the boot image,
 what other parts of the VM image must be invalidated?  One example: which
@@ -47,15 +56,8 @@ mechanism in place to trace these kinds of dependencies.  There are other
 examples, too.  In summary: incremental boot image writing would be nice,
 but it's not easy to support, and it hasn't been at the top of our
 priorities.
-\end{description}
 
-\subsubsection{Which jikes should I use?}
-At Watson, we're currently using jikes v1.13 to compile the RVM source on
-both Linux and AIX.  We've had reports from users that v1.14 has problems
-on Linux.  In order to build the rvmrt.jar library, we applied patch 62 to
-the jikes build to fix a jikes problem with variable scoping.
-
-\subsection{System Structure}
+\subsection{RVM Design}
 
 \subsubsection{Why doesn't the RVM source use packages?}
 
