@@ -1070,6 +1070,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // begin critical section
     //
+/*******
     VM_Scheduler.threadCreationMutex.lock();
     VM_Processor.getCurrentProcessor().disableThreadSwitching();
 
@@ -1100,6 +1101,7 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Processor.getCurrentProcessor().enableThreadSwitching();
     VM_Scheduler.threadCreationMutex.unlock();
 
+*******/
 
     // create a normal (ie. non-primordial) thread
     //
@@ -1109,10 +1111,12 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
 
     // make sure thread id will fit in Object .status field
     //
+/****
     if (VM.VerifyAssertions) 
       VM.assert(threadSlot == (((threadSlot << OBJECT_THREAD_ID_SHIFT) 
                                 &(OBJECT_THREAD_ID_MASK) ) 
                                >>  OBJECT_THREAD_ID_SHIFT ));
+*****/
 
     // get instructions for method to be executed as thread startoff
     //
@@ -1155,11 +1159,40 @@ public class VM_Thread implements VM_Constants, VM_Uninterruptible {
     VM_Magic.setMemoryWord(sp -= 4, fp);                  // STACKFRAME_FRAME_POINTER_OFFSET
     fp = sp;
 
-    contextRegisters.gprs[THREAD_ID_REGISTER] = getLockingId();
+//  contextRegisters.gprs[THREAD_ID_REGISTER] = getLockingId();
     contextRegisters.gprs[FRAME_POINTER]  = fp;
 
 //-#endif
 
+    VM_Scheduler.threadCreationMutex.lock();
+    assignThreadSlot();
+    VM_Scheduler.numActiveThreads += 1;
+
+
+    if (VM.BuildForConcurrentGC) { // RCGC - currently assign a 
+      // thread to a processor - no migration yet
+      if (VM_Scheduler.allProcessorsInitialized) {
+	//-#if RVM_WITH_CONCURRENT_GC 
+        //// because VM_RCCollectorThread only available for concurrent 
+        //memory managers
+	if (VM_RCCollectorThread.GC_ALL_TOGETHER && 
+            VM_Scheduler.numProcessors > 1) {
+	  // assign new threads to first N-1 processors, reserve last for gc
+	  processorAffinity = VM_Scheduler.
+            processors[(threadSlot % (VM_Scheduler.numProcessors-1)) + 1];
+	} else {
+	  processorAffinity = VM_Scheduler.processors
+            [(threadSlot % VM_Scheduler.numProcessors) + 1];
+	}
+	//-#endif
+      }
+    }
+
+//-#if RVM_FOR_IA32 // TEMP!!
+//-#else
+    contextRegisters.gprs[THREAD_ID_REGISTER] = getLockingId();
+//-#endif
+    VM_Scheduler.threadCreationMutex.unlock();
     VM.enableGC();
 
     // only do this at runtime because it will call VM_Magic
