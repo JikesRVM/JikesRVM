@@ -576,6 +576,12 @@ void cTrapHandler(int signum, int zero, sigcontext *context)
          trapCode = VM_Runtime_TRAP_MUST_IMPLEMENT;
          break;
          }
+      if ((instruction & VM_Constants_STORE_CHECK_MASK) == VM_Constants_STORE_CHECK_TRAP)
+         {
+         ANNOUNCE_TRAP("vm: objarray store check trap\n");
+         trapCode = VM_Runtime_TRAP_STORE_CHECK;
+         break;
+         }
       if ((instruction & VM_Constants_CHECKCAST_MASK ) == VM_Constants_CHECKCAST_TRAP)
          {
          ANNOUNCE_TRAP("vm: checkcast trap\n");

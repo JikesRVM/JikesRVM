@@ -1678,6 +1678,13 @@ abstract class OPT_BURS_Helpers extends OPT_PhysicalRegisterTools
 				    R(12), I(VM_TrapConstants.MUST_IMPLEMENT_TRAP & 0xffff), tc));
       }
       break;
+    case VM_Runtime.TRAP_STORE_CHECK:
+      {
+	burs.append(MIR_Trap.mutate(s, PPC_TWI, gRes, 
+				    OPT_PowerPCTrapOperand.ALWAYS(),
+				    R(12), I(VM_TrapConstants.STORE_CHECK_TRAP & 0xffff), tc));
+      }
+      break;
     default:
       throw new OPT_OptimizingCompilerException("Unexpected case of trap_if"+s);
     }

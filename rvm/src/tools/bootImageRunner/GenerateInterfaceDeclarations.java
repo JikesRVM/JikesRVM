@@ -208,6 +208,10 @@ class GenerateInterfaceDeclarations {
           + VM_Constants.MUST_IMPLEMENT_MASK + ";\n");
       System.out.print("static const int VM_Constants_MUST_IMPLEMENT_TRAP        = "
           + VM_Constants.MUST_IMPLEMENT_TRAP + ";\n");
+      System.out.print("static const int VM_Constants_STORE_CHECK_MASK           = "
+          + VM_Constants.STORE_CHECK_MASK + ";\n");
+      System.out.print("static const int VM_Constants_STORE_CHECK_TRAP           = "
+          + VM_Constants.STORE_CHECK_TRAP + ";\n");
       System.out.print("static const int VM_Constants_ARRAY_INDEX_MASK           = "
           + VM_Constants.ARRAY_INDEX_MASK + ";\n");
       System.out.print("static const int VM_Constants_ARRAY_INDEX_TRAP           = "
@@ -328,6 +332,8 @@ class GenerateInterfaceDeclarations {
         + VM_Runtime.TRAP_JNI_STACK + ";\n");
     System.out.print("static const int VM_Runtime_TRAP_MUST_IMPLEMENT = "
         + VM_Runtime.TRAP_MUST_IMPLEMENT + ";\n");
+    System.out.print("static const int VM_Runtime_TRAP_STORE_CHECK = "
+        + VM_Runtime.TRAP_STORE_CHECK + ";\n");
     System.out.println();
 
     // values in VM_FileSystem

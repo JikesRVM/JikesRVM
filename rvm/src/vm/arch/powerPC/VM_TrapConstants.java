@@ -41,6 +41,8 @@ interface VM_TrapConstants {
   static final int CHECKCAST_TRAP             = 0x0FEC0000; 
   static final int MUST_IMPLEMENT_MASK        = 0x0FECFFFF; // tALWAYSi, 12, 0x0002 
   static final int MUST_IMPLEMENT_TRAP        = 0x0FEC0002; 
+  static final int STORE_CHECK_MASK           = 0x0FECFFFF; // tALWAYSi, 12, 0x0003 
+  static final int STORE_CHECK_TRAP           = 0x0FEC0003; 
   static final int REGENERATE_MASK            = 0xFFE007FE;
   static final int REGENERATE_TRAP            = 0x7C600008; // tlne
   static final int NULLCHECK_MASK             = 0xFFE0FFFF;

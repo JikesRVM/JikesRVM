@@ -327,7 +327,6 @@ class VM_DynamicTypeCheck implements VM_Constants {
                                 getTypeInformationBlock());
   }
   
-  
   /**
    * RHSType is resolved.
    *   Can we store an object of type RHSType in a variable of type LHSType?
@@ -361,73 +360,5 @@ class VM_DynamicTypeCheck implements VM_Constants {
     } else {
       return false;
     }
-  }
-  
-
-  /**
-   * LHSType != RHSType
-   * LHSType and RHSType are both resolved.  
-   * LHSInnermostElementType in not a primitive.
-   * LHSType isn't a pure class
-   *   Can we store an object of type RHSType in a variable of type LHSType?
-   * Throw an ArrayStoreException if we cannot.
-   *
-   * @param LHSType the left-hand-side type
-   * @param RHSType the right-hand-size type
-   */
-  static void checkstoreNotArrayOfPrimitive(VM_Type LHSType, VM_Type RHSType) 
-    throws VM_ResolutionException, ArrayStoreException  {
-    int LHSDimension = LHSType.getDimensionality();
-    if (LHSDimension == 0) {
-      if (instanceOfInterface(LHSType.asClass(), 
-                              RHSType.getTypeInformationBlock()))
-	return; 
-    } else {
-      VM_Type LHSInnermostElementType = LHSType.asArray().getInnermostElementType();
-      if (LHSInnermostElementType == VM_Type.JavaLangObjectType){
-	if (instanceOfObjectArray(LHSDimension, RHSType)) 
-	  return;
-      } else {
-	if (instanceOfArray(LHSInnermostElementType.asClass(), 
-                            LHSDimension, RHSType))
-	  return;
-      }
-    }
-    
-    throw new ArrayStoreException();
-  }
-
-
-  /**
-   * LHSType != RHSType
-   * LHSType and RHSType are both resolved.  
-   * LHSType isn't a pure class
-   *   Can we store an object of type RHSType in a variable of type LHSType?
-   * Throw an ArrayStoreException if we cannot.
-   *
-   * @param LHSType the left-hand-side type
-   * @param RHSType the right-hand-size type
-   */
-  static void checkstorePossibleArrayOfPrimitive(VM_Type LHSType, 
-						 VM_Type RHSType) 
-    throws VM_ResolutionException, ArrayStoreException {
-    int LHSDimension = LHSType.getDimensionality();
-    if (LHSDimension == 0) {
-      if (instanceOfInterface(LHSType.asClass(), 
-                              RHSType.getTypeInformationBlock()))
-	return; 
-    } else {
-      VM_Type LHSInnermostElementType = LHSType.asArray().getInnermostElementType();
-      if (LHSInnermostElementType == VM_Type.JavaLangObjectType){
-	if (instanceOfObjectArray(LHSDimension, RHSType))
-	  return;
-      } else if (!LHSInnermostElementType.isPrimitiveType()) {
-	if (instanceOfArray(LHSInnermostElementType.asClass(), 
-                            LHSDimension, RHSType))
-	  return;
-      }
-    }
-    
-    throw new ArrayStoreException();
   }
 }
