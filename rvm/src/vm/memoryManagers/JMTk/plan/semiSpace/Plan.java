@@ -68,7 +68,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
   private static MemoryResource immortalMR;
 
   // large object space (LOS) collector
-  private static MarkSweepCollector losCollector;
+  private static TreadmillSpace losCollector;
 
   // GC state
   private static boolean hi = false; // True if allocing to "higher" semispace
@@ -104,7 +104,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
 
   // allocators
   private BumpPointer ss;
-  private MarkSweepAllocator los;
+  private TreadmillThread los;
   private BumpPointer immortal;
 
 
@@ -127,7 +127,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
     ss1VM = new MonotoneVMResource("Upper SS", ssMR, HIGH_SS_START, SS_SIZE, VMResource.MOVABLE);
     losVM = new FreeListVMResource("LOS", LOS_START, LOS_SIZE, VMResource.MOVABLE);
     immortalVM = new ImmortalVMResource("Immortal", immortalMR, IMMORTAL_START, IMMORTAL_SIZE, BOOT_END);
-    losCollector = new MarkSweepCollector(losVM, losMR);
+    losCollector = new TreadmillSpace(losVM, losMR);
   }
 
   /**
@@ -135,7 +135,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible {
    */
   public Plan() {
     ss = new BumpPointer(ss0VM);
-    los = new MarkSweepAllocator(losCollector);
+    los = new TreadmillThread(losCollector);
     immortal = new BumpPointer(immortalVM);
   }
 

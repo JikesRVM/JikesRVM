@@ -26,11 +26,14 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
  * synchronization, and synchronization only occurs at the granularity
  * of aquiring (and releasing) chunks of memory from the VMResource.
  *
+ * If there are C CPUs and T TreadmillSpaces, there must be C X T
+ * instances of this class, one for each CPU, TreadmillSpace pair.
+ *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
  * @date $Date$
  */
-final class ThreadmillThread extends LargeObjectAllocator
+final class TreadmillThread extends LargeObjectAllocator
   implements Constants, VM_Uninterruptible {
   public final static String Id = "$Id$"; 
 
@@ -120,8 +123,7 @@ final class ThreadmillThread extends LargeObjectAllocator
     VM_Address cell = treadmillFromHead;
     while (!cell.isZero()) {
       VM_Address next = TreadmillSpace.getNextTreadmill(cell);
-      VM_Address sp =  getSuperPage(cell, false);
-      free(cell, sp, LARGE_SIZE_CLASS);
+      free(cell);
       cell = next;
     }
     treadmillFromHead = treadmillToHead;
@@ -205,18 +207,17 @@ final class ThreadmillThread extends LargeObjectAllocator
    */
   protected final int superPageHeaderSize()
     throws VM_PragmaInline {
-    return BASE_SP_HEADER_SIZE + TreadmillSpace.TREADMILL_HEADER_SIZE;
+    return TreadmillSpace.TREADMILL_HEADER_SIZE;
   }
 
   /**
    * Return the size of the per-cell header for cells of a given class
    * size.
    *
-   * @param sizeClass The size class in question.
    * @return The size of the per-cell header for cells of a given class
    * size.
    */
-  protected final int cellHeaderSize(int sizeClass)
+  protected final int cellHeaderSize()
     throws VM_PragmaInline {
     return 0;
   }

@@ -20,12 +20,8 @@ import com.ibm.JikesRVM.VM_Uninterruptible;
 
 /**
  * This abstract class implements core functionality for a generic
- * free list allocator.  Each instance of this class is intended to
- * provide fast, unsynchronized access to a free list.  Therefore
- * instances must not be shared across truely concurrent threads
- * (CPUs).  Rather, one or more instances of this class should be
- * bound to each CPU.  The shared VMResource used by each instance is
- * the point of global synchronization, and synchronization only
+ * large object allocator. The shared VMResource used by each instance
+ * is the point of global synchronization, and synchronization only
  * occurs at the granularity of aquiring (and releasing) chunks of
  * memory from the VMResource.  Subclasses may require finer grained
  * synchronization during a marking phase, for example.<p>
@@ -169,6 +165,9 @@ abstract class LargeObjectAllocator implements Constants, VM_Uninterruptible {
   //
   // Superpages
   //
+
+  abstract protected int superPageHeaderSize();
+  abstract protected int cellHeaderSize();
 
   /**
    * Allocate a super page.

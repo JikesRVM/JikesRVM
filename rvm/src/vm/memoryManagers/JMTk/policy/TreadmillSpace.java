@@ -25,8 +25,9 @@ import com.ibm.JikesRVM.VM_JavaHeader;
  * thread (i.e. synchronization must be explicit in any instance or
  * class method).
  *
- * This stands in contrast to TreadmillThread, which is
- * instantiated and called on a per-thread basis.
+ * This stands in contrast to TreadmillThread, which is instantiated
+ * and called on a per-thread basis, where each instance of
+ * TreadmillThread corresponds to one thread operating over one space.
  *
  * @author <a href="http://cs.anu.edu.au/~Steve.Blackburn">Steve Blackburn</a>
  * @version $Revision$
@@ -39,15 +40,16 @@ final class TreadmillSpace implements Constants, VM_Uninterruptible {
   //
   // Class variables
   //
-  private static final int   TREADMILL_PREV_OFFSET = -2 * WORD_SIZE;
-  private static final int   TREADMILL_NEXT_OFFSET = -3 * WORD_SIZE;
-  private static final int  TREADMILL_OWNER_OFFSET = -4 * WORD_SIZE;
+  private static final int   TREADMILL_PREV_OFFSET = -1 * WORD_SIZE;
+  private static final int   TREADMILL_NEXT_OFFSET = -2 * WORD_SIZE;
+  private static final int  TREADMILL_OWNER_OFFSET = -3 * WORD_SIZE;
   public static final int    TREADMILL_HEADER_SIZE = 3 * WORD_SIZE;
 
   ////////////////////////////////////////////////////////////////////////////
   //
   // Instance variables
   //
+  private int markState;
   private FreeListVMResource vmResource;
   private MemoryResource memoryResource;
   private boolean inTreadmillCollection = false;
