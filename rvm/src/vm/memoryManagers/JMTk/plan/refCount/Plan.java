@@ -38,8 +38,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   //
   public static final boolean needsWriteBarrier = true;
   public static final boolean needsRefCountWriteBarrier = true;
-  public static final boolean refCountCycleDetection = false;
+  public static final boolean refCountCycleDetection = true;
   public static final boolean movesObjects = false;
+  public static final boolean sanityTracing = false;
 
   // virtual memory resources
   private static FreeListVMResource rcVM;
@@ -57,6 +58,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   private static SharedQueue cyclePoolA;
   private static SharedQueue cyclePoolB;
   private static SharedQueue freePool;
+  private static SharedQueue tracingPool;
 
   // GC state
   private static boolean progress = true;  // are we making progress?
@@ -80,6 +82,19 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   private static final VM_Address         RC_END = RC_START.add(RC_SIZE);
   private static final VM_Address       HEAP_END = RC_END;
 
+  //  public static final VM_Address TARGET_OBJ = VM_Address.fromInt(0x573b8b10);
+  public static final VM_Address TARGET_OBJ = VM_Address.fromInt(0x5737bd03);
+  public static boolean targetBorn = false;
+  public static final VM_Address TARGET_OBJ2 = VM_Address.fromInt(0x5748c023);
+  public static boolean target2Born = false;
+  public static final VM_Address TARGET_OBJ3 = VM_Address.fromInt(0x43f5f657);
+  public static boolean target3Born = false;
+  public static final VM_Address TARGET_OBJ4 = VM_Address.fromInt(0x5737bce3);
+  public static boolean target4Born = false;
+  public static final VM_Address TARGET_OBJ5 = VM_Address.fromInt(0x5737bce7);
+  public static boolean target5Born = false;
+  public static final VM_Address TARGET_OBJ6 = VM_Address.fromInt(0x43f6ebc3);
+
   ////////////////////////////////////////////////////////////////////////////
   //
   // Instance variables
@@ -88,8 +103,6 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   // allocator
   private SimpleRCAllocator rc;
 
-  private int id;  
-  
   // counters
   private int incCounter;
   private int decCounter;
@@ -104,6 +117,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   private AddressQueue cycleBufferA;
   private AddressQueue cycleBufferB;
   private AddressQueue freeBuffer;
+  private AddressQueue tracingBuffer;
 
   ////////////////////////////////////////////////////////////////////////////
   //
@@ -143,6 +157,10 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
       freePool = new SharedQueue(metaDataRPA, 1);
       freePool.newClient();
     }
+    if (sanityTracing) {
+      tracingPool = new SharedQueue(metaDataRPA, 1);
+      tracingPool.newClient();
+    }
   }
 
   /**
@@ -157,6 +175,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
       cycleBufferA = new AddressQueue("cycle buf A", cyclePoolA);
       cycleBufferB = new AddressQueue("cycle buf B", cyclePoolB);
       freeBuffer = new AddressQueue("free buffer", freePool);
+    }
+    if (sanityTracing) {
+      tracingBuffer = new AddressQueue("tracing buffer", tracingPool);
     }
   }
 
@@ -210,9 +231,32 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   public final void postAlloc(Object ref, Object[] tib, EXTENT bytes,
 			      boolean isScalar, int allocator)
     throws VM_PragmaInline {
+    if (VM_Magic.objectAsAddress(ref).EQ(TARGET_OBJ)) {
+      targetBorn = true;
+      VM.sysWrite("pa["); VM.sysWrite(VM_Magic.objectAsAddress(ref)); VM.sysWrite("]\n");
+    }
+    if (VM_Magic.objectAsAddress(ref).EQ(TARGET_OBJ2)) {
+      target2Born = true;
+      VM.sysWrite("pa["); VM.sysWrite(VM_Magic.objectAsAddress(ref)); VM.sysWrite("]\n");
+    }
+    if (VM_Magic.objectAsAddress(ref).EQ(TARGET_OBJ3)) {
+      target3Born = true;
+      VM.sysWrite("pa["); VM.sysWrite(VM_Magic.objectAsAddress(ref)); VM.sysWrite("]\n");
+    }
+    if (VM_Magic.objectAsAddress(ref).EQ(TARGET_OBJ4)) {
+      target4Born = true;
+      VM.sysWrite("pa["); VM.sysWrite(VM_Magic.objectAsAddress(ref)); VM.sysWrite("]\n");
+    }
+    if (VM_Magic.objectAsAddress(ref).EQ(TARGET_OBJ5)) {
+      target5Born = true;
+      VM.sysWrite("pa["); VM.sysWrite(VM_Magic.objectAsAddress(ref)); VM.sysWrite("]\n");
+    }
     switch (allocator) {
     case RC_SPACE: decBuffer.push(VM_Magic.objectAsAddress(ref)); return;
-    case IMMORTAL_SPACE: Immortal.postAlloc(ref); return;
+    case IMMORTAL_SPACE: 
+      if (sanityTracing)
+	SimpleRCCollector.postAllocImmortal(VM_Magic.objectAsAddress(ref));
+      Immortal.postAlloc(ref); return;
     default:             if (VM.VerifyAssertions) VM.sysFail("No such allocator"); return;
     }
   }
@@ -333,6 +377,9 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
 	metaDataMR.committedPages() > Options.metaDataPages) {  // CHANGE
       if (VM.VerifyAssertions) VM._assert(mr != metaDataMR);
       required = mr.reservedPages() - mr.committedPages();
+      if (sanityTracing) {
+	VM.sysWrite("xxx["); VM.sysWrite(VM_Magic.getMemoryAddress(TARGET_OBJ6)); VM.sysWrite("]\n");
+      }
       VM_Interface.triggerCollection(VM_Interface.RESOURCE_TRIGGERED_GC);
       return true;
     }
@@ -401,9 +448,15 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * LOS).
    */
   protected final void threadLocalRelease(int count) {
+    if (sanityTracing) {
+      VM.sysWrite("yyy["); VM.sysWrite(VM_Magic.getMemoryAddress(TARGET_OBJ6)); VM.sysWrite("]\n");
+      VM.sysWrite("--------- Increment --------\n");
+    }
     if (verbose == 2) processIncBufsAndCount(); else processIncBufs();
     //    if (id == 1)
-      rcSpace.decrementPhase();
+    if (sanityTracing)
+      VM.sysWrite("--------- Decrement --------\n");
+    rcSpace.decrementPhase();
       //    else
       //      VM._assert(false);
     VM_CollectorThread.gcBarrier.rendezvous();
@@ -411,13 +464,41 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     if (refCountCycleDetection) {
       filterCycleBufs();
       processFreeBufs(false);
-      if ((getTotalPages() - getPagesReserved() - required)
- 	  < Options.cycleDetectionPages) {
-	doMarkGreyPhase();
-	doScanPhase();
-	doCollectPhase();
-	processFreeBufs(true);
-      }
+      //       if (((getTotalPages() - getPagesReserved() - required)
+      //  	  < Options.cycleDetectionPages) ||
+      // 	  (metaDataMR.committedPages() > Options.metaDataPages)) {
+      
+      if (sanityTracing)
+	VM.sysWrite("----------Mark Grey---------\n");
+      doMarkGreyPhase();
+      if (sanityTracing)
+	VM.sysWrite("----------- Scan -----------\n");
+      doScanPhase();
+      if (sanityTracing)
+	VM.sysWrite("---------- Collect ---------\n");
+      doCollectPhase();
+      if (sanityTracing)
+	VM.sysWrite("------------ Free ----------\n");
+      processFreeBufs(true);
+//       }
+    }
+    if (sanityTracing) {
+      VM.sysWrite("yyy["); VM.sysWrite(VM_Magic.getMemoryAddress(TARGET_OBJ6)); VM.sysWrite("]\n");
+    }
+    if (sanityTracing && targetBorn) {
+      VM.sysWrite("rc1["); VM.sysWrite(TARGET_OBJ); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(TARGET_OBJ));  VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getTracingRC(TARGET_OBJ)); VM.sysWrite("]\n");
+    }
+    if (sanityTracing && target2Born) {
+      VM.sysWrite("rc2["); VM.sysWrite(TARGET_OBJ2); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(TARGET_OBJ2));  VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getTracingRC(TARGET_OBJ2)); VM.sysWrite("]\n");
+    }
+    if (sanityTracing && target3Born) {
+      VM.sysWrite("rc3["); VM.sysWrite(TARGET_OBJ3); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(TARGET_OBJ3));  VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getTracingRC(TARGET_OBJ3)); VM.sysWrite("]\n");
+    }
+    if (sanityTracing && target4Born) {
+      VM.sysWrite("rc4["); VM.sysWrite(TARGET_OBJ4); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(TARGET_OBJ4));  VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getTracingRC(TARGET_OBJ4)); VM.sysWrite("]\n");
+    }
+    if (sanityTracing && target5Born) {
+      VM.sysWrite("rc5["); VM.sysWrite(TARGET_OBJ5); VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(TARGET_OBJ5));  VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getTracingRC(TARGET_OBJ5)); VM.sysWrite("]\n");
     }
     if (GATHER_WRITE_BARRIER_STATS) { 
       // This is printed independantly of the verbosity so that any
@@ -427,6 +508,8 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
       VM.sysWriteInt(wbFastPathCounter); VM.sysWrite(" wb-fast>\n");
       wbFastPathCounter = 0;
     }
+    if (sanityTracing)
+      rcSanityCheck();
   }
 
   /**
@@ -501,13 +584,27 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * @return The possibly moved reference.
    */
   public static final VM_Address traceObject(VM_Address obj, boolean root) {
+    if (obj.isZero()) return obj;
     VM_Address addr = VM_Interface.refToAddress(obj);
     if (addr.LE(HEAP_END) && addr.GE(RC_START))
       return rcSpace.traceObject(obj, root);
+    else if (sanityTracing && addr.LE(HEAP_END) && addr.GE(BOOT_START))
+      return rcSpace.traceBootObject(obj);
     
     // else this is not a rc heap pointer
     return obj;
   }
+  public static void rootScan(VM_Address obj) {
+    // this object has been explicitly scanned as part of the root scanning
+    // process.  Mark it now so that it does not get re-scanned.
+    if (obj.LE(RC_START) && obj.GE(BOOT_START)) {
+      if (SimpleRCCollector.bootMark)
+	SimpleRCBaseHeader.setBufferedBit(obj);
+      else
+	SimpleRCBaseHeader.clearBufferedBit(obj);
+    }
+  }
+
 
   /**
    * Return true if <code>obj</code> is a live object.
@@ -568,7 +665,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   public final void putFieldWriteBarrier(VM_Address src, int offset,
 					 VM_Address tgt)
     throws VM_PragmaInline {
-    writeBarrier(src.add(offset), tgt);
+    writeBarrier(src.add(offset), tgt, src);
   }
 
   /**
@@ -585,7 +682,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
   public final void arrayStoreWriteBarrier(VM_Address src, int index,
 					   VM_Address tgt)
     throws VM_PragmaInline {
-    writeBarrier(src.add(index<<LOG_WORD_SIZE), tgt);
+    writeBarrier(src.add(index<<LOG_WORD_SIZE), tgt, src);
   }
 
   /**
@@ -601,13 +698,26 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
    * @param tgt The target of the new reference (about to become the
    * contents of src).
    */
-  private final void writeBarrier(VM_Address src, VM_Address tgt) 
+  private final void writeBarrier(VM_Address src, VM_Address tgt, VM_Address obj) 
     throws VM_PragmaInline {
     if (GATHER_WRITE_BARRIER_STATS) wbFastPathCounter++;
     VM_Address old;
     do {
       old = VM_Address.fromInt(VM_Magic.prepare(src, 0));
     } while (!VM_Magic.attempt(src, 0, old.toInt(), tgt.toInt()));
+    if (obj.EQ(TARGET_OBJ) || old.EQ(TARGET_OBJ) || tgt.EQ(TARGET_OBJ)) {
+      //    if (old.EQ(TARGET_OBJ) || tgt.EQ(TARGET_OBJ)) {
+      VM.sysWrite("wb");
+      if (tgt.EQ(TARGET_OBJ))
+	VM.sysWrite("+");
+      if (old.EQ(TARGET_OBJ))
+	VM.sysWrite("-");
+      VM.sysWrite("[");
+      VM.sysWrite(src); VM.sysWrite(" ");
+      VM.sysWrite(obj); VM.sysWrite(" ");
+      VM.sysWrite(old); VM.sysWrite("->");
+      VM.sysWrite(tgt); VM.sysWrite("]\n");
+    }
     if (old.GE(RC_START))
       decBuffer.push(old);
     if (tgt.GE(RC_START))
@@ -691,6 +801,11 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
     throws VM_PragmaInline {
     rootSet.push(VM_Magic.objectAsAddress(root));
   }
+  public final void addToTraceBuffer(VM_Address root) 
+    throws VM_PragmaInline {
+    if (VM.VerifyAssertions) VM._assert(sanityTracing);
+    tracingBuffer.push(VM_Magic.objectAsAddress(root));
+  }
   public final void addToCycleBuf(VM_Address obj)
     throws VM_PragmaInline {
     if (VM.VerifyAssertions && !refCountCycleDetection) VM._assert(false);
@@ -702,28 +817,74 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
 
   private final void processIncBufs() {
     VM_Address tgt;
-    while (!(tgt = incBuffer.pop()).isZero())
+    while (!(tgt = incBuffer.pop()).isZero()) {
+      if (tgt.EQ(TARGET_OBJ)) {
+	VM.sysWrite("pib["); VM.sysWrite(tgt); 
+      }
       rcSpace.increment(tgt);
+      if (tgt.EQ(TARGET_OBJ)) {
+	VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(tgt)); VM.sysWrite("]\n");
+      }
+    }
   }
   private final void processIncBufsAndCount() {
     VM_Address tgt;
     incCounter = 0;
     while (!(tgt = incBuffer.pop()).isZero()) {
+      if (tgt.EQ(TARGET_OBJ)) {
+	VM.sysWrite("pib["); VM.sysWrite(tgt); VM.sysWrite("]\n");
+      }
       rcSpace.increment(tgt);
+      if (tgt.EQ(TARGET_OBJ)) {
+	VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(tgt)); VM.sysWrite("]\n");
+      }
       incCounter++;
+    }
+  }
+  private final void rcSanityCheck() {
+    if (VM.VerifyAssertions) VM._assert(sanityTracing);
+    VM_Address obj;
+    int checked = 0;
+    while (!(obj = tracingBuffer.pop()).isZero()) {
+      checked++;
+      int rc = SimpleRCBaseHeader.getRC(obj);
+      int sanityRC = SimpleRCBaseHeader.getTracingRC(obj);
+      SimpleRCBaseHeader.clearTracingRC(obj);
+      if (rc != sanityRC) {
+	VM.sysWrite("---> ");
+	VM.sysWrite(checked);
+	VM.sysWrite(" roots checked, RC mismatch: ");
+	VM.sysWrite(obj); VM.sysWrite(" -> ");
+	VM.sysWrite(rc); VM.sysWrite(" (rc) != ");
+	VM.sysWrite(sanityRC); VM.sysWrite(" (sanity)\n");
+	if (VM.VerifyAssertions) VM._assert(false);
+      }
     }
   }
 
   private final void processDecBufs() {
     VM_Address tgt;
-    while (!(tgt = decBuffer.pop()).isZero())
+    while (!(tgt = decBuffer.pop()).isZero()) {
+      if (tgt.EQ(TARGET_OBJ)) {
+	VM.sysWrite("pdb["); VM.sysWrite(tgt);
+      }
       rcSpace.decrement(tgt, rc, this);
+      if (tgt.EQ(TARGET_OBJ)) {
+	VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(tgt)); VM.sysWrite("]\n");
+      }
+    }
   }
   private final void processDecBufsAndCount() {
     VM_Address tgt;
     decCounter = 0;
     while (!(tgt = decBuffer.pop()).isZero()) {
+      if (tgt.EQ(TARGET_OBJ)) {
+	VM.sysWrite("pdb["); VM.sysWrite(tgt);
+      }
       rcSpace.decrement(tgt, rc, this);
+      if (tgt.EQ(TARGET_OBJ)) {
+	VM.sysWrite(" "); VM.sysWrite(SimpleRCBaseHeader.getRC(tgt)); VM.sysWrite("]\n");
+      }
       decCounter++;
     }
   }
@@ -791,7 +952,7 @@ public class Plan extends StopTheWorldGC implements VM_Uninterruptible { // impl
 	tgt.push(obj);
       } else {
  	if (VM.VerifyAssertions) VM._assert(SimpleRCBaseHeader.isGrey(obj));
-	SimpleRCBaseHeader.clearBufferedBit(obj);
+	SimpleRCBaseHeader.clearBufferedBit(obj); // FIXME Why? Why not above?
       }
     } 
     cycleBufferAisOpen = !cycleBufferAisOpen;
