@@ -735,8 +735,8 @@ public final class Address implements Uninterruptible, VM_SizeConstants {
   }
 
   /** 
-   * Stores the {@link float} value in the memory location pointed to by the 
-   * current instance.
+   * Stores the <code>float</code> value in the memory location pointed to by
+   * the current instance.
    *
    * @param value The float value to store.
    */
