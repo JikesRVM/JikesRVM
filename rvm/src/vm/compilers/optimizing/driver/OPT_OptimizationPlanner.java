@@ -245,6 +245,8 @@ class OPT_OptimizationPlanner {
         new OPT_SSATuneUp(), 
         // Global Code Placement,
         new OPT_GCP(), 
+        // Coalesce phis
+        new OPT_CoalescePhis(), 
         // Leave SSA 
         new OPT_LeaveSSA() })     {
           boolean shouldPerform(OPT_Options options) {
@@ -286,6 +288,8 @@ class OPT_OptimizationPlanner {
 	    new OPT_DominanceFrontier(), 
 	    // Global Code Placement,
 	    new OPT_GCP(), 
+            // Coalesce phis
+            new OPT_CoalescePhis(), 
 	    // Leave SSA 
 	    new OPT_LeaveSSA()  
 	      }
