@@ -193,6 +193,11 @@ implements VM_Uninterruptible, VM_Constants {
       newThread.cpuStartTime = now;  // this thread has started running
     }
 
+    //-#if RVM_WITH_HPM
+    // set start time of thread
+    newThread.startOfWallTime = VM_Magic.getTimeBase();
+    //-#endif
+
     //-#if RVM_FOR_IA32
     threadId       = newThread.getLockingId();
     //-#endif
